@@ -37,6 +37,8 @@ public sealed class ScriptSourceFileEditorViewModel : AssetEditorViewModel<Scrip
     private bool isModified;
     private int fontSize = 13;
     private FileContentSignature signature;
+    // The file that the text was read from or saved to: until the session saves a rename, the script keeps its old file
+    private string? filePath;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ScriptSourceFileEditorViewModel"/> class.
@@ -46,7 +48,8 @@ public sealed class ScriptSourceFileEditorViewModel : AssetEditorViewModel<Scrip
         : base(asset)
     {
         savedText = currentText = asset.Asset.Text ?? string.Empty;
-        signature = FileContentSignature.Capture(FilePath);
+        filePath = FilePath;
+        signature = FileContentSignature.Capture(filePath);
         // Enabled while the text has unsaved edits
         SaveCommand = new AnonymousTaskCommand(ServiceProvider, SaveAsync) { IsEnabled = false };
     }
@@ -107,18 +110,27 @@ public sealed class ScriptSourceFileEditorViewModel : AssetEditorViewModel<Scrip
     /// </summary>
     public void CheckExternalChanges()
     {
+        ReloadExternalChanges(beforeSessionSave: false);
+    }
+
+    private void ReloadExternalChanges(bool beforeSessionSave)
+    {
         if (IsModified)
             return;
 
-        var path = FilePath;
-        var current = FileContentSignature.Capture(path);
+        FollowSavedMove();
+        var current = FileContentSignature.Capture(filePath);
         if (current == signature)
+            return;
+
+        // The session does not write a script that has no change: it does not bring back a file that another program deleted
+        if (beforeSessionSave && !current.Exists)
             return;
 
         string text;
         try
         {
-            text = current.Exists ? File.ReadAllText(path!) : string.Empty;
+            text = current.Exists ? File.ReadAllText(filePath!) : string.Empty;
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
@@ -133,18 +145,32 @@ public sealed class ScriptSourceFileEditorViewModel : AssetEditorViewModel<Scrip
     }
 
     /// <summary>
+    /// Follows a rename that the session saved: the file of the script moved, so the editor watches the new one.
+    /// </summary>
+    private void FollowSavedMove()
+    {
+        var path = FilePath;
+        if (path == filePath || string.IsNullOrEmpty(path) || !File.Exists(path) || (filePath != null && File.Exists(filePath)))
+            return;
+
+        filePath = path;
+        signature = FileContentSignature.Capture(path);
+    }
+
+    /// <summary>
     /// Saves the text to the file of the script, after asking the user when another program changed the file since the editor
     /// read it. Without unsaved edits, it does nothing.
     /// </summary>
     /// <returns>A task that completes when the file is saved, or when the user chose not to overwrite it.</returns>
     public async Task SaveAsync()
     {
+        FollowSavedMove();
         var path = FilePath;
         if (!IsModified || string.IsNullOrEmpty(path))
             return;
 
         // Another program changed the file since the editor read it: ask before overwriting its changes
-        var current = FileContentSignature.Capture(path);
+        var current = FileContentSignature.Capture(filePath);
         if (current.Exists && current != signature)
         {
             var dialogService = ServiceProvider.Get<IDialogService>();
@@ -157,10 +183,11 @@ public sealed class ScriptSourceFileEditorViewModel : AssetEditorViewModel<Scrip
         // The user can keep typing while the file is written: what is saved is the text of now
         var text = currentText;
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-        await File.WriteAllTextAsync(path, text, EncodingOf(path));
+        await File.WriteAllTextAsync(path, text, EncodingOf(File.Exists(path) || string.IsNullOrEmpty(filePath) ? path : filePath));
 
         Asset.Asset.Text = text;
         savedText = text;
+        filePath = path;
         signature = FileContentSignature.Capture(path);
         IsModified = !string.Equals(currentText, savedText, StringComparison.Ordinal);
     }
@@ -168,13 +195,18 @@ public sealed class ScriptSourceFileEditorViewModel : AssetEditorViewModel<Scrip
     /// <inheritdoc />
     /// <remarks>
     /// The session saves the unsaved edits of the text through <see cref="SaveAsync"/>, which asks before overwriting a change of
-    /// another program. A file that cannot be written is an error of the session save; the edits stay unsaved.
+    /// another program. Without edits, the script takes the change of another program first, so that the session (which writes
+    /// a renamed script) does not write an old text. A file that cannot be written is an error of the session save; the edits
+    /// stay unsaved.
     /// </remarks>
     public override async Task SaveChangesAsync(ILogger logger)
     {
         try
         {
-            await SaveAsync();
+            if (IsModified)
+                await SaveAsync();
+            else
+                ReloadExternalChanges(beforeSessionSave: true);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {

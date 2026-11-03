@@ -83,6 +83,97 @@ public sealed class ScriptSessionSaveTests
     }
 
     [Fact]
+    public async Task SavingTheSessionTakesTheChangeOfAnotherProgramWhenTheTextHasNoEdit()
+    {
+        using var fixture = await OpenAsync();
+        var (script, editor) = OpenEditor(fixture);
+        File.WriteAllText(PathOf(script), External);
+
+        // The editor did not get the focus since: only the session save sees the change
+        Assert.True(await fixture.Session.SaveSessionAsync());
+
+        Assert.Equal(External, script.Asset.Text);
+        Assert.Equal(External, editor.Text);
+        Assert.Equal(External, File.ReadAllText(PathOf(script)));
+        Assert.Empty(Dialogs(fixture).Messages);
+    }
+
+    [Fact]
+    public async Task SavingARenamedScriptKeepsTheChangeOfAnotherProgram()
+    {
+        using var fixture = await OpenAsync();
+        var (script, editor) = OpenEditor(fixture);
+        var oldPath = PathOf(script);
+        File.WriteAllText(oldPath, External);
+
+        script.Name = "Hero";
+        Assert.True(await fixture.Session.SaveSessionAsync());
+
+        Assert.NotEqual(oldPath, PathOf(script));
+        Assert.False(File.Exists(oldPath));
+        Assert.Equal(External, File.ReadAllText(PathOf(script)));
+        Assert.Equal(External, editor.Text);
+        Assert.Empty(Dialogs(fixture).Messages);
+    }
+
+    [Fact]
+    public async Task ARenameBeforeTheSaveKeepsTheText()
+    {
+        using var fixture = await OpenAsync();
+        var (script, editor) = OpenEditor(fixture);
+        var reloads = new List<string>();
+        editor.TextReloaded += (_, text) => reloads.Add(text);
+
+        // The file keeps its old name until the session saves: the editor gets the focus in between
+        script.Name = "Hero";
+        editor.CheckExternalChanges();
+
+        Assert.Empty(reloads);
+        Assert.Equal(Script, editor.Text);
+        Assert.Equal(Script, script.Asset.Text);
+
+        Assert.True(await fixture.Session.SaveSessionAsync());
+        editor.CheckExternalChanges();
+
+        Assert.Empty(reloads);
+        Assert.Equal(Script, File.ReadAllText(PathOf(script)));
+        Assert.Equal(Script, editor.Text);
+    }
+
+    [Fact]
+    public async Task SavingTheSessionSavesTheEditsOfARenamedScriptToTheNewFile()
+    {
+        using var fixture = await OpenAsync();
+        var (script, editor) = OpenEditor(fixture);
+        var oldPath = PathOf(script);
+        editor.OnTextEdited(Edited);
+
+        script.Name = "Hero";
+        Assert.True(await fixture.Session.SaveSessionAsync());
+
+        Assert.False(File.Exists(oldPath));
+        Assert.Equal(Edited, File.ReadAllText(PathOf(script)));
+        Assert.False(editor.IsModified);
+        Assert.Empty(Dialogs(fixture).Messages);
+    }
+
+    [Fact]
+    public async Task EditsAfterASavedRenameAreSavedToTheNewFile()
+    {
+        using var fixture = await OpenAsync();
+        var (script, editor) = OpenEditor(fixture);
+        script.Name = "Hero";
+        Assert.True(await fixture.Session.SaveSessionAsync());
+
+        editor.OnTextEdited(Edited);
+        Assert.True(await fixture.Session.SaveSessionAsync());
+
+        Assert.Equal(Edited, File.ReadAllText(PathOf(script)));
+        Assert.False(editor.IsModified);
+        Assert.Empty(Dialogs(fixture).Messages);
+    }
+
+    [Fact]
     public async Task AScriptThatCannotBeWrittenFailsTheSessionSave()
     {
         using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, ("Scripts/Player", new ScriptSourceFileAsset { Text = Script }));
