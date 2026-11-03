@@ -23,7 +23,7 @@ namespace Stride.Physics
         [CanBeNull]
         public readonly Model Model;
         
-        private readonly SharedMeshData sharedData;
+        private SharedMeshData sharedData;
         
         private static readonly Dictionary<string, SharedMeshData> MeshSharingCache = new();
         
@@ -58,10 +58,14 @@ namespace Stride.Physics
         {
             base.Dispose(disposing);
 
+            if (sharedData == null)
+                return;
+
             if (sharedData.Key == null)
             {
                 // Not actually shared, dispose and move on
                 sharedData.Dispose();
+                sharedData = null;
                 return;
             }
 
@@ -74,6 +78,7 @@ namespace Stride.Physics
                     sharedData.Dispose();
                 }
             }
+            sharedData = null;
         }
 
         public unsafe void GetMeshDataCopy(out Vector3[] verts, out int[] indices)
