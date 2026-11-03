@@ -134,9 +134,11 @@ public unsafe class HeightfieldColliderShape : ColliderShape
 
     protected override void Dispose(bool disposing)
     {
-        using (LockToReadAndWriteHeights())
+        base.Dispose(disposing);
+
+        if (heightDataPointer != null)
         {
-            if (heightDataPointer != null)
+            using (LockToReadAndWriteHeights())
             {
                 NativeMemory.Free(heightDataPointer);
                 heightDataPointer = null;
@@ -147,8 +149,6 @@ public unsafe class HeightfieldColliderShape : ColliderShape
         {
             lockSlim.Dispose();
         }
-
-        base.Dispose(disposing);
     }
 
     public HeightArrayLock LockToReadHeights()
