@@ -63,8 +63,8 @@ internal sealed class GpuFramePresenter : IDisposable
     private const string VulkanFd = KnownPlatformGraphicsExternalImageHandleTypes.VulkanOpaquePosixFileDescriptor;
     private const string VulkanSemaphoreFd = KnownPlatformGraphicsExternalSemaphoreHandleTypes.VulkanOpaquePosixFileDescriptor;
 
-    // Direct3D 11's TextureOptions.SharedKeyedMutex | SharedNtHandle, which only exist in the Direct3D 11 build of Stride.Graphics
-    private const TextureOptions SharedKeyedMutexNtHandle = (TextureOptions)(256 | 2048);
+    // Shared with the compositor through an NT handle, and synchronized with a keyed mutex (Direct3D 11 only)
+    private const TextureOptions SharedKeyedMutexNtHandle = TextureOptions.SharedKeyedMutex | TextureOptions.SharedNtHandle;
 
     private readonly OffscreenGameView view;
     private readonly Logger logger;
@@ -240,7 +240,7 @@ internal sealed class GpuFramePresenter : IDisposable
         }
 
         // A new keyed mutex is free for key 0; afterwards the compositor releases it with key 0
-        if (!slot.Texture.AcquireSync(0, 0))
+        if (!slot.Texture.TryAcquireSync(0, TimeSpan.Zero))
             return false;
         // The sRGB back buffer and the UNorm texture are in the same typeless group: a plain copy keeps the bytes
         commandList.Copy(backBuffer, slot.Texture);

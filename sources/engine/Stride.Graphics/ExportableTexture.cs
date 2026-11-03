@@ -14,7 +14,11 @@ namespace Stride.Graphics;
 ///     Only the Vulkan backend supports it, with the <c>VK_KHR_external_memory_fd</c> and <c>VK_KHR_external_semaphore_fd</c>
 ///     extensions (Linux). The extensions are only enabled on the devices created after a host sets
 ///     <see cref="EnableExternalObjects"/>, so a game's device is not changed. On Direct3D 11, a Texture created with the
-///     <c>SharedKeyedMutex</c> option plays this role (<see cref="Texture.SharedHandle"/>, <see cref="Texture.AcquireSync"/>).
+///     <c>SharedKeyedMutex</c> option plays this role (<see cref="Texture.SharedHandle"/>, <see cref="Texture.TryAcquireSync"/>).
+///   </para>
+///   <para>
+///     It is internal: only the editor (<c>Stride.Editor.Avalonia</c>) uses it, until the device tracks the external objects
+///     itself and Direct3D 11 and Vulkan share one API.
 ///   </para>
 ///   <para>
 ///     A frame is handed over in four steps: <see cref="WaitReleased"/> (from the second frame on), a copy into
@@ -23,7 +27,7 @@ namespace Stride.Graphics;
 ///     Texture, and signals the released one when it is done.
 ///   </para>
 /// </remarks>
-public sealed partial class ExportableTexture : IDisposable
+internal sealed partial class ExportableTexture : IDisposable
 {
     /// <summary>
     ///   Gets or sets a value indicating whether the graphics devices created from now on enable the extensions that

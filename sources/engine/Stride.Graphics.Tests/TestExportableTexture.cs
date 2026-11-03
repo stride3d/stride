@@ -29,6 +29,14 @@ public class TestExportableTexture : GraphicTestGameBase
         ExportableTexture.EnableExternalObjects = true;
     }
 
+    /// <inheritdoc/>
+    protected override void Destroy()
+    {
+        // The setting is for the whole process: the devices of the next tests stay as a game's
+        ExportableTexture.EnableExternalObjects = false;
+        base.Destroy();
+    }
+
     [SkippableFact]
     public void AnotherBackendCannotExport()
     {

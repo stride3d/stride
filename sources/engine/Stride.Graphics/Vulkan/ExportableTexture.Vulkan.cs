@@ -8,7 +8,7 @@ using Vortice.Vulkan;
 
 namespace Stride.Graphics;
 
-public sealed partial class ExportableTexture
+internal sealed partial class ExportableTexture
 {
     private readonly GraphicsDevice device;
     private VkSemaphore readySemaphore;

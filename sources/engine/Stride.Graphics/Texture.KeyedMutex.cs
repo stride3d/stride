@@ -15,7 +15,7 @@ public partial class Texture
 {
     /// <summary>
     ///   Gets a value indicating whether this Texture can be synchronized with another device through a keyed mutex
-    ///   (<see cref="AcquireSync"/> and <see cref="ReleaseSync"/>).
+    ///   (<see cref="TryAcquireSync"/> and <see cref="ReleaseSync"/>).
     /// </summary>
     /// <remarks>
     ///   Only a Direct3D 11 Texture created with the <c>SharedKeyedMutex</c> option has a keyed mutex.
@@ -37,20 +37,27 @@ public partial class Texture
     ///   <see cref="ReleaseSync"/>.
     /// </summary>
     /// <param name="key">The key the other device released the mutex with (<c>0</c> for a Texture nobody used yet).</param>
-    /// <param name="timeoutMilliseconds">
-    ///   How long to wait for the other device, in milliseconds (<c>0</c> to try without waiting).
+    /// <param name="timeout">
+    ///   How long to wait for the other device (<see cref="TimeSpan.Zero"/> to try without waiting,
+    ///   <see cref="System.Threading.Timeout.InfiniteTimeSpan"/> to wait until it releases the mutex).
     /// </param>
     /// <returns><see langword="true"/> if the mutex was acquired; <see langword="false"/> on a timeout.</returns>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="timeout"/> is negative (other than infinite) or too long.</exception>
     /// <exception cref="NotSupportedException">The Texture has no keyed mutex (see <see cref="HasKeyedMutex"/>).</exception>
     /// <remarks>
     ///   A device that shares the Texture with another one (a UI compositor, another Direct3D device) acquires the mutex
     ///   before its commands use the Texture and releases it after, with the key the other device waits for.
     /// </remarks>
-    public bool AcquireSync(ulong key, uint timeoutMilliseconds)
+    public bool TryAcquireSync(ulong key, TimeSpan timeout)
     {
+        // INFINITE (0xFFFFFFFF) is Timeout.InfiniteTimeSpan; any other value must fit below it
+        var milliseconds = (long)timeout.TotalMilliseconds;
+        if (timeout != System.Threading.Timeout.InfiniteTimeSpan && (milliseconds < 0 || milliseconds >= uint.MaxValue))
+            throw new ArgumentOutOfRangeException(nameof(timeout));
+
 #if STRIDE_GRAPHICS_API_DIRECT3D11
         using var keyedMutex = GetKeyedMutex();
-        HResult result = keyedMutex.AcquireSync(key, timeoutMilliseconds);
+        HResult result = keyedMutex.AcquireSync(key, timeout == System.Threading.Timeout.InfiniteTimeSpan ? uint.MaxValue : (uint)milliseconds);
         // WAIT_TIMEOUT (0x102) and WAIT_ABANDONED (0x80) are success codes
         if (result.Value == 0x102)
             return false;

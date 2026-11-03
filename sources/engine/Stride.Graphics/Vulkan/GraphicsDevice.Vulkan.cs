@@ -854,9 +854,6 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Waits for the device to be idle. A lost device is idle too: its resources can be torn down.
-        /// </summary>
-        /// <summary>
         ///   Whether the physical device can export the memory of a color image and binary semaphores as opaque
         ///   POSIX file descriptors, which <see cref="ExportableTexture"/> needs. Some drivers advertise the
         ///   extensions without supporting that handle type (Lavapipe, for semaphores).
@@ -900,6 +897,9 @@ namespace Stride.Graphics
             return (externalImageProperties.externalMemoryProperties.externalMemoryFeatures & VkExternalMemoryFeatureFlags.Exportable) != 0;
         }
 
+        /// <summary>
+        ///   Waits for the device to be idle. A lost device is idle too: its resources can be torn down.
+        /// </summary>
         internal void WaitIdle()
         {
             var result = NativeDeviceApi.vkDeviceWaitIdle(nativeDevice);
