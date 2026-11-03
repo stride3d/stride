@@ -26,7 +26,6 @@ namespace Stride.Assets.Tests
             var result = Run(
             [
                 Asset(@"Ground Textures\Skybox texture.sdtex"),
-                Map(".sdtex|Stride.Graphics.Texture"),
             ]);
 
             Assert.Contains("internal static partial class Assets", result.Source);
@@ -37,20 +36,39 @@ namespace Stride.Assets.Tests
         }
 
         [Fact]
-        public void UntypedWhenTheMapTypeIsNotVisible()
+        public void AssetAttributesRegisterCustomExtension()
         {
-            var result = Run([Asset("Thing.sdcustom"), Map(".sdcustom|MyPlugin.NotReferenced")]);
+            var result = Run(
+                [Asset("Thing.custom")],
+                source: """
+                    using Stride.Core.Assets;
+                    namespace MyPlugin
+                    {
+                        public class CustomContent { }
 
-            Assert.Contains("global::Stride.Core.Serialization.UrlReference Thing", result.Source);
-            Assert.DoesNotContain("UrlReference<", result.Source);
+                        [AssetDescription(".custom")]
+                        [AssetContentType(typeof(CustomContent))]
+                        public class CustomThingAsset { }
+                    }
+                    """);
+
+            Assert.Contains("UrlReference<global::MyPlugin.CustomContent> Thing", result.Source);
             AssertCompiles(result);
         }
 
         [Fact]
         public void UnknownExtensionGetsNoConstant()
         {
-            // An .sd* file no map, declaration or asset type knows (a shader next to the assets) is not an asset
+            // An extension with no declaration or visible asset type is not an asset.
             var result = Run([Asset("Effect.sdsl")]);
+
+            Assert.Null(result.Source);
+        }
+
+        [Fact]
+        public void UnknownNonSdExtensionGetsNoConstant()
+        {
+            var result = Run([Asset("Thing.custom")]);
 
             Assert.Null(result.Source);
         }
@@ -112,12 +130,12 @@ namespace Stride.Assets.Tests
                 Asset("A b.sdcustom"),
                 Asset("A_b.sdcustom"),
                 Asset("2 Cool.sdcustom"),
-                Map(".sdcustom|MyPlugin.NotReferenced"),
-            ]);
+            ],
+                source: "[assembly: Stride.Core.Serialization.AssetFileExtension(\".sdcustom\", typeof(Stride.Graphics.Texture))]");
 
-            Assert.Contains("UrlReference A_b ", result.Source);
-            Assert.Contains("UrlReference A_b_1 ", result.Source);
-            Assert.Contains("UrlReference _2_Cool ", result.Source);
+            Assert.Contains(" A_b =", result.Source);
+            Assert.Contains(" A_b_1 =", result.Source);
+            Assert.Contains(" _2_Cool =", result.Source);
             Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "STRDIAG012");
             AssertCompiles(result);
         }
@@ -144,12 +162,11 @@ namespace Stride.Assets.Tests
         }
 
         [Fact]
-        public void CompilationSymbolsWinOverMap()
+        public void CompilationSymbolsWinOverReferences()
         {
             var result = Run(
             [
-                Asset("Thing.sdcustom"),
-                Map(".sdcustom|Stride.Graphics.Texture"),
+                Asset("Thing.sdtex"),
             ],
                 source: """
                     using Stride.Core.Assets;
@@ -157,7 +174,7 @@ namespace Stride.Assets.Tests
                     {
                         public class CustomContent { }
 
-                        [AssetDescription(".sdcustom")]
+                        [AssetDescription(".sdtex")]
                         [AssetContentType(typeof(CustomContent))]
                         public class CustomThingAsset { }
                     }
@@ -170,13 +187,8 @@ namespace Stride.Assets.Tests
         [Fact]
         public void FilesWithoutAssetFolderMetadataAreSkipped()
         {
-            // Only files the build task tagged with StrideAssetFolder are assets; the map file and
-            // any other AdditionalFiles the generator is handed must never produce a constant.
-            var result = Run(
-            [
-                (@"C:\other\note.txt", "hello"),
-                Map(".sdtex|Stride.Graphics.Texture"),
-            ]);
+            // Only files the build task tagged with StrideAssetFolder are assets.
+            var result = Run([(@"C:\other\note.txt", "hello")]);
 
             Assert.Null(result.Source);
         }
@@ -184,7 +196,7 @@ namespace Stride.Assets.Tests
         [Fact]
         public void EmitIsCachedWhenOnlyUnrelatedSourceChanges()
         {
-            var (driver, _) = TrackingDriver([Asset("Ground.sdtex"), Map(".sdtex|Stride.Graphics.Texture")]);
+            var (driver, _) = TrackingDriver([Asset("Ground.sdtex")]);
 
             var result = driver.RunGenerators(CreateCompilation("public class TestDummy { }"));
             // An unrelated source edit produces a new compilation but the same assets, resolved
@@ -237,9 +249,6 @@ namespace Stride.Assets.Tests
         // irrelevant (never read); only the path and its StrideAssetFolder root matter.
         private static (string Path, string Content) Asset(string relativePath)
             => (Path.Combine(AssetFolder, relativePath), "");
-
-        private static (string Path, string Content) Map(string content)
-            => (@"C:\maps\Test.AssetContentTypeMap.txt", content);
 
         private static Dictionary<string, string> GlobalOptions(string urlNamespace) => new()
         {
@@ -300,9 +309,8 @@ namespace Stride.Assets.Tests
             }
         }
 
-        // Mirrors the build task's tagging: files under an asset folder carry StrideAssetFolder,
-        // the checked-in map carries StrideAssetContentTypeMap. Prefix-based so a renamed asset
-        // still resolves its folder.
+        // Mirrors the build task's tagging: files under an asset folder carry StrideAssetFolder.
+        // Prefix-based so a renamed asset still resolves its folder.
         private sealed class PrefixOptionsProvider(Dictionary<string, string> globalOptions) : AnalyzerConfigOptionsProvider
         {
             public override AnalyzerConfigOptions GlobalOptions { get; } = new TestOptions(globalOptions);
@@ -312,8 +320,6 @@ namespace Stride.Assets.Tests
                 var options = new Dictionary<string, string>();
                 if (textFile.Path.StartsWith(AssetFolder + @"\", StringComparison.OrdinalIgnoreCase))
                     options["build_metadata.AdditionalFiles.StrideAssetFolder"] = AssetFolder;
-                else if (textFile.Path.EndsWith("AssetContentTypeMap.txt", StringComparison.OrdinalIgnoreCase))
-                    options["build_metadata.AdditionalFiles.StrideAssetContentTypeMap"] = "true";
                 return new TestOptions(options);
             }
         }
