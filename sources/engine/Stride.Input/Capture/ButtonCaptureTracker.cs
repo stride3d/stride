@@ -109,6 +109,13 @@ public sealed class ButtonCaptureTracker<T>
                 if (!(unseenNewPresses && rawNewPresses.Contains(item)))
                     suppressed.Add(item);
             }
+
+            // Input released earlier in this frame was hidden down, or its release was already shown when the capture began
+            foreach (var item in rawReleased)
+            {
+                if (!(unseenNewPresses && rawNewPresses.Contains(item)))
+                    releasedWhileSuppressed.Add(item);
+            }
         }
     }
 

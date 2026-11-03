@@ -106,4 +106,38 @@ public class TestKeyboardCapture
         Assert.True(headless.Input.IsKeyPressed(Keys.W));
         Assert.True(headless.Input.IsKeyDown(Keys.W));
     }
+
+    [Fact]
+    public void KeyPressedDuringACaptureIsNotSeenReleasedWhenTheCaptureEndsInTheFrameOfItsRelease()
+    {
+        using var headless = new HeadlessInput();
+        var owner = new object();
+        headless.Input.TryCapture(headless.Keyboard, owner);
+        headless.Keyboard.SimulateDown(Keys.W);
+        headless.Update();
+
+        headless.Keyboard.SimulateUp(Keys.W);
+        headless.Update();
+        headless.Input.Release(headless.Keyboard, owner);
+
+        Assert.False(headless.Input.IsKeyReleased(Keys.W));
+        Assert.DoesNotContain(Keys.W, headless.Keyboard.ReleasedKeys);
+    }
+
+    [Fact]
+    public void ReleaseInTheCapturePhaseKeepsATapFromThatFrame()
+    {
+        using var headless = new HeadlessInput();
+        var owner = new object();
+        headless.Input.TryCapture(headless.Keyboard, owner);
+        headless.Update();
+        headless.Input.ResolvingCapture += (_, _) => headless.Input.Release(headless.Keyboard, owner);
+
+        headless.Keyboard.SimulateDown(Keys.W);
+        headless.Keyboard.SimulateUp(Keys.W);
+        headless.Update();
+
+        Assert.True(headless.Input.IsKeyPressed(Keys.W));
+        Assert.True(headless.Input.IsKeyReleased(Keys.W));
+    }
 }
