@@ -616,6 +616,9 @@ namespace Stride.Navigation
                         {
                             var heightfield = (HeightfieldColliderShape)shape;
 
+                            if (!heightfield.HasHeightData)
+                                continue;
+
                             var halfRange = (heightfield.MaxHeight - heightfield.MinHeight) * 0.5f;
                             var offset = -(heightfield.MinHeight + halfRange);
                             Matrix transform = Matrix.Translation(new Vector3(0, offset, 0)) * heightfield.PositiveCenterMatrix * entityWorldMatrix;
@@ -630,8 +633,6 @@ namespace Stride.Navigation
                                 {
                                     case HeightfieldTypes.Short:
                                         var shortSpan = heightfield.ShortSpan;
-                                        if (shortSpan.Length == 0)
-                                            continue;
                                         for (int i = 0; i < shortSpan.Length; ++i)
                                         {
                                             mesh.Vertices[i].Position.Y = shortSpan[i] * heightfield.HeightScale;
@@ -639,8 +640,6 @@ namespace Stride.Navigation
                                         break;
                                     case HeightfieldTypes.Byte:
                                         var byteSpan = heightfield.ByteSpan;
-                                        if (byteSpan.Length == 0)
-                                            continue;
                                         for (int i = 0; i < byteSpan.Length; ++i)
                                         {
                                             mesh.Vertices[i].Position.Y = byteSpan[i] * heightfield.HeightScale;
@@ -648,8 +647,6 @@ namespace Stride.Navigation
                                         break;
                                     case HeightfieldTypes.Float:
                                         var floatSpan = heightfield.FloatSpan;
-                                        if (floatSpan.Length == 0)
-                                            continue;
                                         for (int i = 0; i < floatSpan.Length; ++i)
                                         {
                                             mesh.Vertices[i].Position.Y = floatSpan[i];

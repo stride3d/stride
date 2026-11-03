@@ -133,6 +133,11 @@ public unsafe class HeightfieldColliderShape : ColliderShape
     /// </remarks>
     public Span<float> FloatSpan => HeightType == HeightfieldTypes.Float && heightDataPointer != null ? new Span<float>(heightDataPointer, HeightStickWidth * HeightStickLength) : [];
 
+    /// <summary>
+    /// Whether this shape has height data allocated. If false, this shape might have been disposed.
+    /// </summary>
+    public bool HasHeightData => heightDataPointer != null;
+
     private void* heightDataPointer;
 
     public int HeightStickWidth { get; private set; }
