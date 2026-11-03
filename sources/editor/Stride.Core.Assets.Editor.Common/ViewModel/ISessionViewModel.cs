@@ -190,6 +190,14 @@ namespace Stride.Core.Assets.Editor.ViewModel
         void UnregisterAsset(AssetViewModel asset);
 
         /// <summary>
+        /// Records whether the file of a deleted project asset was deleted outside Game Studio, so that a save does not delete a file that
+        /// came back. This method is intended to be invoked only by <see cref="AssetViewModel"/>.
+        /// </summary>
+        /// <param name="filePath">The full path of the file of the asset.</param>
+        /// <param name="deletedOutside">Whether the file was deleted outside Game Studio.</param>
+        void SetFileDeletedOutside(UFile filePath, bool deletedOutside);
+
+        /// <summary>
         /// Creates the view models of the projects that were added to the session.
         /// </summary>
         void ProcessAddedProjects(LoggerResult loggerResult, WorkProgressViewModel workProgress, bool packageAlreadyInSession);

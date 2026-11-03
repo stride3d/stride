@@ -35,7 +35,10 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// <summary>
         /// Deletes the given assets and directories.
         /// </summary>
+        /// <param name="locations">The assets and directories to delete.</param>
+        /// <param name="skipConfirmation">If <c>true</c>, no confirmation is asked.</param>
+        /// <param name="deletedOutside">If <c>true</c>, the files of these assets were deleted outside the editor.</param>
         /// <returns><c>true</c> if the content was deleted, <c>false</c> if the deletion was cancelled.</returns>
-        Task<bool> DeleteContent(IReadOnlyCollection<object> locations, bool skipConfirmation = false);
+        Task<bool> DeleteContent(IReadOnlyCollection<object> locations, bool skipConfirmation = false, bool deletedOutside = false);
     }
 }

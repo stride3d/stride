@@ -70,7 +70,8 @@ namespace Stride.Core.Assets.Editor.ViewModel
         [NotNull]
         public Task SaveCompletion => session.SaveCompletion;
 
-        internal void SetFileDeletedOutside(UFile filePath, bool deletedOutside) => session.SetFileDeletedOutside(filePath, deletedOutside);
+        /// <inheritdoc/>
+        public void SetFileDeletedOutside(UFile filePath, bool deletedOutside) => session.SetFileDeletedOutside(filePath, deletedOutside);
 
         public UFile SolutionPath => session.SolutionPath;
 

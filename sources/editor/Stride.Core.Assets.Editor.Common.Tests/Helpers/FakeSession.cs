@@ -142,6 +142,8 @@ public sealed class FakeSession : ISessionViewModel
 
     public void UnregisterAsset(AssetViewModel asset) => assets.Remove(asset.Id);
 
+    public void SetFileDeletedOutside(UFile filePath, bool deletedOutside) { }
+
     public void ProcessAddedProjects(LoggerResult loggerResult, WorkProgressViewModel workProgress, bool packageAlreadyInSession) => throw new NotSupportedException();
 
     public void ProcessRemovedProjects() => throw new NotSupportedException();
