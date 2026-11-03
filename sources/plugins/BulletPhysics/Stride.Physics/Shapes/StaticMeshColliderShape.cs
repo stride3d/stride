@@ -64,7 +64,8 @@ namespace Stride.Physics
             if (sharedData.Key == null)
             {
                 // Not actually shared, dispose and move on
-                sharedData.Dispose();
+                if (disposing)
+                    sharedData.Dispose();
                 sharedData = null;
                 return;
             }
