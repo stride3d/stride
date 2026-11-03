@@ -1064,19 +1064,16 @@ namespace Stride.Importer.ThreeD
                 vertexStride += sizeColor;
             }
 
+            // Tangents are stored as float4 with the bitangent sign in W, which is what the shaders read.
             var tangentOffset = vertexStride;
+            Vector3[] uvBitangents = null;
             if (mesh->MTangents != null)
             {
-                vertexElements.Add(VertexElement.Tangent<Vector3>(0, vertexStride));
-                vertexStride += sizeof(Vector3);
+                vertexElements.Add(VertexElement.Tangent<Vector4>(0, vertexStride));
+                vertexStride += sizeof(Vector4);
+                uvBitangents = ComputeUVBitangents(mesh);
             }
-
-            var bitangentOffset = vertexStride;
-            if (mesh->MTangents != null)
-            {
-                vertexElements.Add(VertexElement.BiTangent<Vector3>(0, vertexStride));
-                vertexStride += sizeof(Vector3);
-            }
+            var rootHandedness = rootTransform.Determinant() < 0 ? -1.0f : 1.0f;
 
             var blendIndicesOffset = vertexStride;
             var controlPointIndices16 = totalClusterCount > 256;
@@ -1140,25 +1137,24 @@ namespace Stride.Importer.ThreeD
 
                     if (mesh->MTangents != null)
                     {
-                        var tangentPointer = (Vector3*)(vbPointer + tangentOffset);
-                        var bitangentPointer = (Vector3*)(vbPointer + bitangentOffset);
-                        *tangentPointer = mesh->MTangents[i].ToStrideVector3();
-                        *bitangentPointer = mesh->MBitangents[i].ToStrideVector3();
-                        if (float.IsNaN(tangentPointer->X) || float.IsNaN(tangentPointer->Y) || float.IsNaN(tangentPointer->Z) ||
-                            float.IsNaN(bitangentPointer->X) || float.IsNaN(bitangentPointer->Y) || float.IsNaN(bitangentPointer->Z))
+                        var tangent = mesh->MTangents[i].ToStrideVector3();
+                        float handedness;
+                        if (float.IsNaN(tangent.X) || float.IsNaN(tangent.Y) || float.IsNaN(tangent.Z) || mesh->MNormals == null)
                         {
-                            var normalPointer = ((Vector3*)(vbPointer + normalOffset));
-                            Vector3 c1 = Vector3.Cross(*normalPointer, new Vector3(0.0f, 0.0f, 1.0f));
-                            Vector3 c2 = Vector3.Cross(*normalPointer, new Vector3(0.0f, 1.0f, 0.0f));
-
-                            if (c1.LengthSquared() > c2.LengthSquared())
-                                *tangentPointer = c1;
-                            else
-                                *tangentPointer = c2;
-                            *bitangentPointer = Vector3.Cross(*normalPointer, *tangentPointer);
+                            var normal = mesh->MNormals != null ? *(Vector3*)(vbPointer + normalOffset) : Vector3.UnitZ;
+                            Vector3 c1 = Vector3.Cross(normal, new Vector3(0.0f, 0.0f, 1.0f));
+                            Vector3 c2 = Vector3.Cross(normal, new Vector3(0.0f, 1.0f, 0.0f));
+                            tangent = c1.LengthSquared() > c2.LengthSquared() ? c1 : c2;
+                            handedness = 1.0f;
                         }
-                        tangentPointer->Normalize();
-                        bitangentPointer->Normalize();
+                        else
+                        {
+                            var uvBitangent = uvBitangents?[i] ?? Vector3.Zero;
+                            handedness = Vector3.Dot(Vector3.Cross(mesh->MNormals[i].ToStrideVector3(), tangent), uvBitangent) < 0 ? -rootHandedness : rootHandedness;
+                            Vector3.TransformNormal(ref tangent, ref rootTransform, out tangent);
+                        }
+                        tangent.Normalize();
+                        *(Vector4*)(vbPointer + tangentOffset) = new Vector4(tangent, handedness);
                     }
 
                     if (vertexIndexToBoneIdWeight.Count > 0)
@@ -1471,6 +1467,42 @@ namespace Stride.Importer.ThreeD
                 string fullName = Path.Combine(dir, texFileName);
                 CreateTextureFile(texture, fullName);
             }
+        }
+
+        /// <summary>
+        /// Accumulates, per vertex, the direction in which the first texture coordinate's V increases.
+        /// Its side of the normal-tangent plane gives the tangent frame's handedness, as in <see cref="VertexHelper.GenerateTangentBinormal"/>,
+        /// independently of how the source format or Assimp stores bitangents.
+        /// </summary>
+        private static unsafe Vector3[] ComputeUVBitangents(Silk.NET.Assimp.Mesh* mesh)
+        {
+            if (mesh->MTextureCoords[0] == null)
+                return null;
+
+            var uvs = mesh->MTextureCoords[0];
+            var bitangents = new Vector3[mesh->MNumVertices];
+            for (uint f = 0; f < mesh->MNumFaces; f++)
+            {
+                var face = mesh->MFaces[f];
+                if (face.MNumIndices != 3)
+                    continue;
+
+                uint a = face.MIndices[0], b = face.MIndices[1], c = face.MIndices[2];
+                var edge1 = mesh->MVertices[b].ToStrideVector3() - mesh->MVertices[a].ToStrideVector3();
+                var edge2 = mesh->MVertices[c].ToStrideVector3() - mesh->MVertices[a].ToStrideVector3();
+                var uvEdge1 = new Vector2(uvs[b].X - uvs[a].X, uvs[b].Y - uvs[a].Y);
+                var uvEdge2 = new Vector2(uvs[c].X - uvs[a].X, uvs[c].Y - uvs[a].Y);
+
+                var determinant = uvEdge1.X * uvEdge2.Y - uvEdge2.X * uvEdge1.Y;
+                if (MathUtil.IsZero(determinant))
+                    continue;
+
+                var bitangent = (uvEdge1.X * edge2 - uvEdge2.X * edge1) / determinant;
+                bitangents[a] += bitangent;
+                bitangents[b] += bitangent;
+                bitangents[c] += bitangent;
+            }
+            return bitangents;
         }
 
         /// <summary>

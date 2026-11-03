@@ -179,7 +179,7 @@ public sealed class TestGltfMaterialImport : IDisposable
         Assert.False(data.UseSRgbSampling);
         Assert.False(data.PremultiplyAlpha);
 
-        Assert.IsType<NormapMapTextureType>(ModelAssetImporter.GetTextureType(TextureRole.Normal));
+        Assert.True(Assert.IsType<NormapMapTextureType>(ModelAssetImporter.GetTextureType(TextureRole.Normal)).InvertY);
     }
 
     [Fact]
