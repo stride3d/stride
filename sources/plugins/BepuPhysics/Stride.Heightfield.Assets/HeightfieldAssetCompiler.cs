@@ -48,7 +48,7 @@ internal sealed class HeightfieldAssetCompiler : AssetCompilerBase
         {
             if (Parameters.Layer is null)
                 return ResultStatus.Failed;
-            
+
             Parameters.Layer.BuildRuntimeRepresentation(Parameters.Size, Parameters.Subdivision, commandContext, AssetFinder, out var runtime, out float minHeight, out float maxHeight);
 
             var heightfieldFunction = runtime.BuildHeightfieldFunction();
@@ -78,7 +78,7 @@ internal sealed class HeightfieldAssetCompiler : AssetCompilerBase
                 Size = Parameters.Size,
                 MinHeight = minHeight,
                 MaxHeight = maxHeight,
-                CoarseBlockSubdivision = coarseBlocksSubdivision,
+                CoarseBlocksSubdivision = coarseBlocksSubdivision,
                 CoarseBlocks = coarseBlocks
             };
 

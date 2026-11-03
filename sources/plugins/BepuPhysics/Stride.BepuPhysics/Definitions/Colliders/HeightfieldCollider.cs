@@ -64,13 +64,13 @@ public sealed class HeightfieldCollider : ICollider
         float minHeight = Source.MinHeight;
         float maxHeight = Source.MaxHeight;
 
-        if (size == 0f || subdivision == 0)
+        if (size == 0f)
         {
             Log.Error($"{nameof(HeightfieldCollider)} needs a positive {nameof(size)} and subdivision ({size}, {subdivision})");
             return false;
         }
 
-        ArgumentOutOfRangeException.ThrowIfLessThan(subdivision, 0);
+        ArgumentOutOfRangeException.ThrowIfLessThan(subdivision, 2);
         ArgumentOutOfRangeException.ThrowIfLessThan(size, 0);
         float sampleInterval = size / (subdivision - 1);
         float subdivisionsPerUnit = (subdivision - 1) / size;

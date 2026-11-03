@@ -20,7 +20,7 @@ using Int2 = Stride.Core.Mathematics.Int2;
 // collecting overlapping cell indices (int x,y) instead of triangle indices (int i).
 // Once that is done, while the mesh implementation retrieves triangles from their index,
 // here we build the two triangles the cell contains. The rest operates in the same way.
-// 
+//
 // Comments and overall architecture is kept mostly the same when possible to improve diff-ing
 // efficiency when pulling changes that have been introduced upstream.
 // Comments that do not come from the base implementation are marked with '-Eideren'
@@ -30,7 +30,7 @@ using Int2 = Stride.Core.Mathematics.Int2;
 //       Need a complex repro case to properly validate this. Users may run into it, we could simply ask for their repro.
 //       -Eideren
 
-namespace Stride.Heightfield;
+namespace Stride.BepuPhysics.Definitions.Colliders;
 
 internal static class HeightfieldCollisionTasks
 {

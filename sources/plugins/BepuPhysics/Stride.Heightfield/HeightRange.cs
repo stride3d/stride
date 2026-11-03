@@ -12,10 +12,10 @@ namespace Stride.Heightfield;
 [DataContract]
 public record struct HeightRange(float MinHeight, float MaxHeight)
 {
-    /// <inheritdoc cref="HeightfieldShape.MinHeight"/>
+    /// <inheritdoc cref="IHeightfieldSource.MinHeight"/>
     public float MinHeight { get; set; } = MinHeight;
 
-    /// <inheritdoc cref="HeightfieldShape.MaxHeight"/>
+    /// <inheritdoc cref="IHeightfieldSource.MaxHeight"/>
     public float MaxHeight { get; set; } = MaxHeight;
 
     /// <summary>
@@ -25,7 +25,7 @@ public record struct HeightRange(float MinHeight, float MaxHeight)
     {
         var range = new HeightRange(float.PositiveInfinity, float.NegativeInfinity);
         Span<Sample> samples = stackalloc Sample[1];
-            
+
         Int2 block2D = new Int2(blockIndex % coarseBlocksSubdivision, blockIndex / coarseBlocksSubdivision);
 
         Int2 sampleCorner = block2D * coarseBlockInterval;

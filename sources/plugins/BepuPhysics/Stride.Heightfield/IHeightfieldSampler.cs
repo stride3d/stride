@@ -4,7 +4,7 @@
 namespace Stride.Heightfield;
 
 /// <summary>
-/// The datatype that holds or computes sample's heights for an <see cref="HeightfieldShape"/>
+/// The datatype that holds or computes sample's heights for a heightfield's physics
 /// </summary>
 public interface IHeightfieldSampler
 {

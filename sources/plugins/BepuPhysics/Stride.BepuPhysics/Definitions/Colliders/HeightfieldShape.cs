@@ -11,10 +11,11 @@ using BepuPhysics.CollisionDetection.CollisionTasks;
 using BepuPhysics.Trees;
 using BepuUtilities;
 using BepuUtilities.Memory;
+using Stride.Heightfield;
 using Int2 = Stride.Core.Mathematics.Int2;
 using NRigidPose = BepuPhysics.RigidPose;
 
-namespace Stride.Heightfield;
+namespace Stride.BepuPhysics.Definitions.Colliders;
 
 /// <summary>
 /// A collider shape representing a subdivided plane made up of triangles whose vertices are offset based on a user provided function.
@@ -25,10 +26,10 @@ public unsafe struct HeightfieldShape : IShape
     public static int TypeId
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => BepuPhysics.ShapeId<HeightfieldShape>.Id;
+        get => ShapeId<HeightfieldShape>.Id;
     }
 
-    /// <summary>A GCHandle pointing to a <see cref="IHeightfieldSampler"/></summary>
+    /// <summary>A GCHandle pointing to a <see cref="Stride.Heightfield.IHeightfieldSampler"/></summary>
     public GCHandle Sampler;
 
     /// <summary>
@@ -43,42 +44,22 @@ public unsafe struct HeightfieldShape : IShape
     /// <summary>How many subdivisions (samples) there is per unit distance, (<see cref="Subdivision"/>-1) / <see cref="Size"/> in XZ, 1 in Y</summary>
     public Vector3 SampleIntervalReciprocal;
 
-    /// <summary>
-    /// How many individual height samples the heightfield is made up of on one axis,
-    /// amount of samples in total would be <see cref="Subdivision"/>^2.
-    /// </summary>
-    /// <remarks>
-    /// Note that the amount of quads along an axis would be (<see cref="Subdivision"/>-1) as each quad bridges between two samples.
-    /// </remarks>
+    /// <inheritdoc cref="Heightfield.Subdivision"/>
     public int Subdivision;
 
-    /// <summary>
-    /// How large the heightfield is in units, 10 would occupy an area of 10^2 units
-    /// </summary>
+    /// <inheritdoc cref="Heightfield.Size"/>
     public float Size;
 
-    /// <summary>
-    /// The rock bottom, or lower bounds of this field. Assumed to be constant. May be negative
-    /// </summary>
+    /// <inheritdoc cref="Heightfield.MinHeight"/>
     public float MinHeight;
 
-    /// <summary>
-    /// The apex, or the highest bounds of this field. Assumed to be constant. May be negative
-    /// </summary>
+    /// <inheritdoc cref="Heightfield.MaxHeight"/>
     public float MaxHeight;
 
-    /// <summary>
-    /// <see cref="MinHeight"/> and <see cref="MaxHeight"/> define the bounding box of this heightfield, and these coarse blocks define sub-bounding boxes that encompass <see cref="CoarseBlocksSubdivision"/>^2 heightfield points.
-    /// They are laid out in [x + y * <see cref="CoarseBlockInterval"/>] and may extend slightly farther than the heightfield points when <see cref="Subdivision"/> is
-    /// not evenly divisible by <see cref="CoarseBlocksSubdivision"/>
-    /// </summary>
+    /// <inheritdoc cref="Heightfield.CoarseBlocks"/>
     public HeightRange* CoarseBlocksAddress;
 
-    /// <summary>
-    /// Amount of coarse blocks along one axis.
-    /// <see cref="CoarseBlocksAddress"/> holds <see cref="CoarseBlocksSubdivision"/>^2 blocks.
-    /// Each block overlaps <see cref="CoarseBlockInterval"/>^2 height samples
-    /// </summary>
+    /// <inheritdoc cref="Heightfield.CoarseBlocksSubdivision"/>
     public int CoarseBlocksSubdivision;
 
     /// <summary>
@@ -172,20 +153,24 @@ public unsafe struct HeightfieldShape : IShape
         // as the search radius to find candidates. Continuously reducing the radius every time we find a new minima
         // Although this scales quite badly, especially if we don't use blocks to accelerate the query
 
-        Matrix3x3.CreateFromQuaternion(pose.Orientation, out var orientation);
-        Matrix3x3.TransformTranspose(worldSpacePoint - pose.Position, orientation, out var localPoint);
-        
-        localPoint = Vector3.Min(localPoint, new Vector3(Size, MaxHeight, Size));
-        localPoint = Vector3.Max(localPoint, new Vector3(0, MinHeight, 0));
-        localPoint.Y = MathF.BitIncrement(MaxHeight);
-        
-        localPoint *= SampleIntervalReciprocal;
-        var floor = Vector3.Round(localPoint, MidpointRounding.ToNegativeInfinity);
+        // We're using the quaternion as is instead of CreateFromQuaternion,
+        // m3x3 * v is cheaper than q * v, but creating the m3x3 and inverting it is slower
+        var localPointInBounds = Vector3.Transform(worldSpacePoint - pose.Position, pose.Orientation);
+
+        localPointInBounds = Vector3.Min(localPointInBounds, new Vector3(Size, MaxHeight, Size));
+        localPointInBounds = Vector3.Max(localPointInBounds, new Vector3(0, MinHeight, 0));
+
+        var localPointInCell = localPointInBounds * SampleIntervalReciprocal;
+        var floor = Vector3.Round(localPointInCell, MidpointRounding.ToNegativeInfinity);
         var cell = new Int2((int)floor.X, (int)floor.Z);
-        
+        // When localPointInBounds is exactly at (Size, x, Size), floor would keep it there,
+        // trying to fetch samples [Subdivision - 1, Subdivision] the latter of which is out of bounds
+        cell.X = int.Min(cell.X, Subdivision - 2);
+        cell.Y = int.Min(cell.Y, Subdivision - 2);
+
         GetCellCornersInDiscreteSpace(cell, out var samples);
 
-        var fracTopDown = new Vector2(localPoint.X - cell.X, localPoint.Z - cell.Y);
+        var fracTopDown = new Vector2(localPointInCell.X - cell.X, localPointInCell.Z - cell.Y);
         float baryB;
         float baryC;
         float a, b, c;
@@ -202,13 +187,16 @@ public unsafe struct HeightfieldShape : IShape
             b = samples[1].Height; // (x1, z0);
             c = samples[2].Height; // (x0, z1);
             a = samples[3].Height; // (x1, z1);
-            baryB = 1f - fracTopDown.X;
-            baryC = 1f - fracTopDown.Y;
+            baryB = 1f - fracTopDown.Y; // a is above b, move vertically
+            baryC = 1f - fracTopDown.X; // a is on the right of c, move horizontally
         }
 
-        var aAndB = float.MultiplyAddEstimate((b - a), baryB, a);
-        var aBAndC = float.MultiplyAddEstimate((c - a), baryC, aAndB);
-        return new Vector3(fracTopDown.X, aBAndC, fracTopDown.Y);
+        float aAndB = float.MultiplyAddEstimate(b - a, baryB, a);
+        float aBAndC = float.MultiplyAddEstimate(c - a, baryC, aAndB);
+        var localSnapped = localPointInBounds with { Y = aBAndC };
+
+        var iOrientation = Quaternion.Inverse(pose.Orientation);
+        return pose.Position + Vector3.Transform(localSnapped, iOrientation);
     }
 
     public readonly void ComputeBounds(Quaternion orientation, out Vector3 min, out Vector3 max)
@@ -255,11 +243,11 @@ public unsafe struct HeightfieldShape : IShape
         v = Vector4.Round(v, MidpointRounding.ToNegativeInfinity);
 
         // remember that we have N samples, but N-1 cells; the last cell covers the sample that goes from N-1 to N
-        var subdivisionMinusOne = Subdivision - 2;
-        minInclusive.X = Math.Clamp((int)v.X, 0, subdivisionMinusOne);
-        maxInclusive.X = Math.Clamp((int)v.Y, 0, subdivisionMinusOne);
-        minInclusive.Y = Math.Clamp((int)v.Z, 0, subdivisionMinusOne);
-        maxInclusive.Y = Math.Clamp((int)v.W, 0, subdivisionMinusOne);
+        var subdivisionMinusTwo = Subdivision - 2;
+        minInclusive.X = Math.Min((int)v.X, subdivisionMinusTwo);
+        maxInclusive.X = Math.Min((int)v.Y, subdivisionMinusTwo);
+        minInclusive.Y = Math.Min((int)v.Z, subdivisionMinusTwo);
+        maxInclusive.Y = Math.Min((int)v.W, subdivisionMinusTwo);
         return true;
     }
 
@@ -287,14 +275,34 @@ public unsafe struct HeightfieldShape : IShape
     public readonly void RayTest<TRayHitHandler>(in NRigidPose pose, in RayData ray, ref float maximumT, BufferPool pool, ref TRayHitHandler hitHandler)
         where TRayHitHandler : struct, IShapeRayHitHandler
     {
-        Matrix3x3.CreateFromQuaternion(pose.Orientation, out var orientation);
+        Matrix3x3? orientation;
+        if (pose.Orientation.IsIdentity == false)
+        {
+            Matrix3x3.CreateFromQuaternion(pose.Orientation, out var m);
+            orientation = m;
+        }
+        else
+        {
+            orientation = null;
+        }
+
         MarchRay(ray, pose, orientation, ref maximumT, ref hitHandler);
     }
 
     public readonly void RayTest<TRayHitHandler>(in NRigidPose pose, ref RaySource rays, BufferPool pool, ref TRayHitHandler hitHandler)
         where TRayHitHandler : struct, IShapeRayHitHandler
     {
-        Matrix3x3.CreateFromQuaternion(pose.Orientation, out var orientation);
+        Matrix3x3? orientation;
+        if (pose.Orientation.IsIdentity == false)
+        {
+            Matrix3x3.CreateFromQuaternion(pose.Orientation, out var m);
+            orientation = m;
+        }
+        else
+        {
+            orientation = null;
+        }
+
         for (int i = 0; i < rays.RayCount; ++i)
         {
             rays.GetRay(i, out var ray, out var maxT);
@@ -360,7 +368,7 @@ public unsafe struct HeightfieldShape : IShape
                     continue;
                 }
 
-                if (!enumerator.LoopBody(cell.X) || !enumerator.LoopBody(cell.Y)) 
+                if (!enumerator.LoopBody(cell.X) || !enumerator.LoopBody(cell.Y))
                     return;
 
                 cell.X++;
@@ -407,7 +415,7 @@ public unsafe struct HeightfieldShape : IShape
         //   the left/right side should extend a bit further. Worth looking into whether there is any research on efficient DDA with a width property
         // - DDA on a coarser grid with cells the width of the bounding box
         //   likely safer, but the cell width used there would have to be set to the next closest multiple of the base cells width
-        //   for accuracy, resulting in a fair amount of false positives given that we're rounding up the bounding box, and 
+        //   for accuracy, resulting in a fair amount of false positives given that we're rounding up the bounding box, and
         //   operate on blocks of cells
         if (sweep.X < 0)
             min.X += sweep.X * maximumT;
@@ -429,7 +437,7 @@ public unsafe struct HeightfieldShape : IShape
     private ref struct OverlapsAsBreakableForeach<TOverlaps>(ref TOverlaps overlaps, BufferPool pool) : IBreakableForEach<int> where TOverlaps : ICollisionTaskSubpairOverlaps
     {
         private ref TOverlaps overlaps = ref overlaps;
-        
+
         public bool LoopBody(int i)
         {
             overlaps.Allocate(pool) = i;
@@ -438,33 +446,29 @@ public unsafe struct HeightfieldShape : IShape
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private readonly void MarchRay<TRayHitHandler>(in RayData ray, in NRigidPose pose, Matrix3x3 orientation, ref float maximumT, ref TRayHitHandler hitHandler)
+    private readonly void MarchRay<TRayHitHandler>(in RayData ray, in NRigidPose pose, in Matrix3x3? orientation, ref float maximumT, ref TRayHitHandler hitHandler)
         where TRayHitHandler : struct, IShapeRayHitHandler
     {
         // We're doing DDA
 
+        Vector3 localOrigin = ray.Origin - pose.Position, localDir = ray.Direction;
         // When we have no rotation, which is the most common use-case, our bounds matches the AABB the physics engine already
         // tested higher up the callstack, this makes early exit tests within this scope redundant, we'll skip them
-        bool hasRotation = orientation.X != Matrix3x3.Identity.X 
-                           || orientation.Y != Matrix3x3.Identity.Y
-                           || orientation.Z != Matrix3x3.Identity.Z;
-
-        Vector3 localOrigin = ray.Origin - pose.Position, localDir = ray.Direction;
-        if (hasRotation)
+        if (orientation is { } m)
         {
-            Matrix3x3.TransformTranspose(localOrigin, orientation, out localOrigin);
-            Matrix3x3.TransformTranspose(localDir, orientation, out localDir);
+            Matrix3x3.TransformTranspose(localOrigin, m, out localOrigin);
+            Matrix3x3.TransformTranspose(localDir, m, out localDir);
         }
 
         // We're operating in subdiv-space, squash vectors accordingly
         localOrigin *= SampleIntervalReciprocal;
         localDir *= SampleIntervalReciprocal;
-        
+
         TreeRay.CreateFrom(localOrigin, localDir, maximumT, out var treeRay);
 
-        // The last sample is N - 1, same idea as an array index 
+        // The last sample is N - 1, same idea as an array index
         var localMaxInclusive = Subdivision - 1;
-        // Cell goes from [0, Subdivision - 2] inclusive since they join the sample N with N+1 
+        // Cell goes from [0, Subdivision - 2] inclusive since they join the sample N with N+1
         var localCellMaxInclusive = Subdivision - 2;
 
         // Note that henceforth X&Z is referred as X&Y
@@ -472,7 +476,7 @@ public unsafe struct HeightfieldShape : IShape
         var localOrigin2D = new Vector2(localOrigin.X, localOrigin.Z);
         var localDir2D = new Vector2(localDir.X, localDir.Z);
         Vector2 invDir;
-        invDir.X = treeRay.InverseDirection.X; 
+        invDir.X = treeRay.InverseDirection.X;
         invDir.Y = treeRay.InverseDirection.Z;
 
         float tEnter, tExit;
@@ -505,7 +509,7 @@ public unsafe struct HeightfieldShape : IShape
         }
 
         float tCellEnter = MathF.Max(tEnter, 0f);
-        if (hasRotation)
+        if (orientation.HasValue)
         {
             // Less likely to have any rotation, so we're bundling early exits together
 
@@ -556,7 +560,7 @@ public unsafe struct HeightfieldShape : IShape
         }
 
         tExit = MathF.Min(tExit, maximumT);
-        
+
         var blockCoord = cell / CoarseBlockInterval;
 
         // Note that this is signed, positive when going in negative dir, negative when going in positive dir
@@ -629,21 +633,23 @@ public unsafe struct HeightfieldShape : IShape
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private readonly bool RayTestCell<TRayHitHandler>(Int2 cornerCoord, Vector3 origin, Vector3 dir, in RayData ray, in Matrix3x3 orientation, ref float maximumT, ref TRayHitHandler hitHandler)
+    private readonly bool RayTestCell<TRayHitHandler>(Int2 cornerCoord, in Vector3 origin, in Vector3 dir, in RayData ray, in Matrix3x3? orientation, ref float maximumT, ref TRayHitHandler hitHandler)
         where TRayHitHandler : struct, IShapeRayHitHandler
     {
         bool hit = false;
         GetTrianglesInDiscreteSpace(cornerCoord, out var tri0, out var tri1);
         if (Triangle.RayTest(tri0.A, tri0.B, tri0.C, origin, dir, out float t0, out var normal0) && t0 <= maximumT)
         {
-            Matrix3x3.Transform(normal0, orientation, out normal0);
+            if (orientation is { } m)
+                Matrix3x3.Transform(normal0, m, out normal0);
             normal0 = Vector3.Normalize(normal0);
             hitHandler.OnRayHit(ray, ref maximumT, t0, normal0, 0);
             hit = true;
         }
         if (Triangle.RayTest(tri1.A, tri1.B, tri1.C, origin, dir, out float t1, out var normal1) && t1 <= maximumT)
         {
-            Matrix3x3.Transform(normal1, orientation, out normal1);
+            if (orientation is { } m)
+                Matrix3x3.Transform(normal1, m, out normal1);
             normal1 = Vector3.Normalize(normal1);
             hitHandler.OnRayHit(ray, ref maximumT, t1, normal1, 0);
             hit = true;

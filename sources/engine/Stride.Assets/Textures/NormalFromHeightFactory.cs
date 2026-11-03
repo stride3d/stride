@@ -3,7 +3,7 @@
 
 using Stride.Core.Assets;
 
-namespace Stride.Heightfield.Assets;
+namespace Stride.Assets.Textures;
 
 internal class NormalFromHeightAssetFactory : AssetFactory<NormalFromHeightAsset>
 {

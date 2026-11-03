@@ -27,7 +27,7 @@ namespace Stride.BepuPhysics.Tests
 
                 const float planeHeight = 1f;
 
-                var heightfield = SetupHeightfieldPlane(planeHeight, game, out BepuSimulation simulation);
+                var heightfield = SetupHeightfieldPlane(planeHeight, game, out BepuSimulation simulation, out _);
 
                 // Topdown ray test at sample points, and whether XZ bounds are correct
                 for (int z = -10; z < heightfield.Subdivision + 10; z++)
@@ -99,7 +99,7 @@ namespace Stride.BepuPhysics.Tests
 
                 const float planeHeight = 1f;
 
-                var heightfield = SetupHeightfieldPlane(planeHeight, game, out BepuSimulation simulation);
+                var heightfield = SetupHeightfieldPlane(planeHeight, game, out BepuSimulation simulation, out _);
 
                 var random = new Random(1010);
                 for (int i = 0; i < 256; i++)
@@ -183,7 +183,7 @@ namespace Stride.BepuPhysics.Tests
 
                 const float planeHeight = 1f;
 
-                var heightfield = SetupHeightfieldPlane(planeHeight, game, out BepuSimulation simulation);
+                var heightfield = SetupHeightfieldPlane(planeHeight, game, out BepuSimulation simulation, out _);
 
                 Span<CollidableStack> dummy = stackalloc CollidableStack[1];
 
@@ -230,18 +230,85 @@ namespace Stride.BepuPhysics.Tests
             RunGameTest(game);
         }
 
-        private static HeightfieldSourceTest SetupHeightfieldPlane(float planeHeight, GameTest game, out BepuSimulation simulation)
+        [Fact]
+        public static void SnapToHeightfieldTest()
+        {
+            var game = new GameTest();
+            game.Script.AddTask(async () =>
+            {
+                game.ScreenShotAutomationEnabled = false;
+
+                const float planeHeight = 1f;
+
+                var heightfield = SetupHeightfieldPlane(planeHeight, game, out _, out var collider);
+
+                var random = new Random(1010);
+                for (int i = 0; i < 64; i++)
+                {
+                    var posNorm = new Vector2(random.NextSingle(), random.NextSingle()) * heightfield.Size;
+                    var target = new Vector3(posNorm.X, planeHeight, posNorm.Y);
+
+                    Assert.True(Vector3.NearEqual(target, collider.SnapToSurface(target), new Vector3(0.0001f)));
+                }
+
+                Assert.True(Vector3.NearEqual(new Vector3(0, 1, 0), collider.SnapToSurface(new Vector3(-1)), new Vector3(0.0001f)));
+                Assert.True(Vector3.NearEqual(new Vector3(heightfield.Size, 1, heightfield.Size), collider.SnapToSurface(new Vector3(heightfield.Size)), new Vector3(0.0001f)));
+                Assert.True(Vector3.NearEqual(new Vector3(0, 1, heightfield.Size * 0.5f), collider.SnapToSurface(new Vector3(-1, 0, heightfield.Size * 0.5f)), new Vector3(0.0001f)));
+
+                game.Exit();
+            });
+            RunGameTest(game);
+        }
+
+        [Fact]
+        public static void SnapToRotatedHeightfieldTest()
+        {
+            var game = new GameTest();
+            game.Script.AddTask(async () =>
+            {
+                game.ScreenShotAutomationEnabled = false;
+
+                const float planeHeight = 1f;
+
+                var fieldPos = new Vector3(3, -4, 5);
+                var fieldRot = Quaternion.RotationYawPitchRoll(0.3f, 0.2f, 0.1f);
+
+                var heightfield = SetupHeightfieldPlane(planeHeight, game, out _, out var collider, fieldPos, fieldRot);
+
+                Quaternion.Invert(fieldRot, out var iRot);
+                var random = new Random(1010);
+                for (int i = 0; i < 64; i++)
+                {
+                    var posNorm = new Vector2(random.NextSingle(), random.NextSingle()) * heightfield.Size;
+                    var target = new Vector3(posNorm.X, planeHeight, posNorm.Y);
+                    target = fieldPos + iRot * target;
+
+                    var snapped = collider.SnapToSurface(target);
+
+                    Assert.True(Vector3.NearEqual(target, snapped, new Vector3(0.0001f)));
+                }
+
+                game.Exit();
+            });
+            RunGameTest(game);
+        }
+
+        private static HeightfieldSourceTest SetupHeightfieldPlane(float planeHeight, GameTest game, out BepuSimulation simulation, out HeightfieldCollider collider, Vector3? position = null, Quaternion? rotation = null)
         {
             var hSource = new HeightfieldSourceTest(new FlatPlane(planeHeight));
             var c2 = new StaticComponent
             {
-                Collider = new HeightfieldCollider
+                Collider = collider = new HeightfieldCollider
                 {
                     Source = hSource,
                 }
             };
 
             var e2 = new Entity { c2 };
+            if (position is { } p)
+                e2.Transform.Position = p;
+            if (rotation is { } q)
+                e2.Transform.Rotation = q;
 
             game.SceneSystem.SceneInstance.RootScene.Entities.AddRange(new[] { e2 });
 

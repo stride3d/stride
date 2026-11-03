@@ -4,8 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Stride.Assets;
-using Stride.Assets.Textures;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Compiler;
 using Stride.Core.BuildEngine;
@@ -17,7 +15,7 @@ using Stride.Graphics;
 using Stride.Graphics.Data;
 using Stride.TextureConverter;
 
-namespace Stride.Heightfield.Assets;
+namespace Stride.Assets.Textures;
 
 [AssetCompiler(typeof(NormalFromHeightAsset), typeof(AssetCompilationContext))]
 internal class NormalFromHeightAssetCompiler : AssetCompilerBase
