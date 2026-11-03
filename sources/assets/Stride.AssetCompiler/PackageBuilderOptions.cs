@@ -17,6 +17,8 @@ namespace Stride.AssetCompiler
         public bool Debug = false;
         // Upgrade verb only: skip the copy-on-write backup of files the in-place upgrade overwrites (on by default).
         public bool NoBackup { get; set; }
+        // Upgrade verb only: write every asset in the current format, also the ones the upgrade did not change.
+        public bool ResaveAll { get; set; }
         // This should not be a list
         public bool DisableAutoCompileProjects { get; set; }
         public string ProjectConfiguration { get; set; }

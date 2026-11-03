@@ -141,13 +141,16 @@
     <!-- Run the package upgrader once over the whole samples solution: one process + one shared NuGet restore,
          so the samples resolve against one coherent graph and don't each pay a fresh process + restore. It sees
          each sample's committed version, migrates assets, rewrites the Stride.* references to this checkout's dev
-         build and restores from the local dev feed. Override SampleUpgradeTarget for a single .slnx/.csproj/.sdpkg. -->
+         build and restores from the local dev feed. Override SampleUpgradeTarget for a single .slnx/.sdpkg (a .csproj
+         upgrades its whole solution). -p:SampleResaveAll=true also writes the assets the upgrade did not change, with
+         no backup folder: git holds the originals. -->
     <PropertyGroup>
       <SampleUpgradeTarget Condition="'$(SampleUpgradeTarget)' == ''">$(StrideRoot)samples\StrideSamples.slnx</SampleUpgradeTarget>
+      <_SampleUpgradeArgs Condition="'$(SampleResaveAll)' == 'true'">--resave-all --no-backup</_SampleUpgradeArgs>
     </PropertyGroup>
     <Message Importance="high" Text="UpgradeSamples: upgrading $(SampleUpgradeTarget)" />
     <Exec WorkingDirectory="$(StrideRoot)"
-          Command="dotnet &quot;@(_StrideCompilerAppDll)&quot; upgrade &quot;$(SampleUpgradeTarget)&quot;" />
+          Command="dotnet &quot;@(_StrideCompilerAppDll)&quot; upgrade &quot;$(SampleUpgradeTarget)&quot; $(_SampleUpgradeArgs)" />
     <Message Importance="high" Text="UpgradeSamples: done (samples at $(SamplesDevEngineVersion))" />
   </Target>
 

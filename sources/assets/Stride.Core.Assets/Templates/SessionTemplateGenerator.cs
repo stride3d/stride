@@ -30,6 +30,7 @@ _ReSharper*
 *.sdf
 [Bb]in/
 obj/
+.stride-backup-*/
 Cache/
 "; //sadly templates and new games are different, the first ones are basically a copy the second is more programatically, so our best bet to have something easy to mantain is this for now.
 
