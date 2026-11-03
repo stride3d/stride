@@ -23,7 +23,7 @@ public abstract class GraphNodeBinding<TTargetType, TContentType> : IDisposable
         PropertyName = propertyName;
         this.propertyChanging = propertyChanging;
         this.propertyChanged = propertyChanged;
-        Converter = converter;
+        Converter = converter ?? throw new ArgumentNullException(nameof(converter));
         ActionService = actionService;
         this.notifyChangesOnly = notifyChangesOnly;
     }
