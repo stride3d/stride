@@ -1,7 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Cli.Core;
+using Stride.Assets.Templates;
+using Stride.Core;
 using Xunit;
 
 namespace Stride.Launcher.Tests;
@@ -349,12 +350,12 @@ public sealed class AssetPackPlacementTests : IDisposable
         => AssetPackPlacement.RewriteResourcePaths(Dir("pack", "Assets"), Dir("pack", "Resources"), Path.Combine(root, "G", assets), Path.Combine(root, "G", resources));
 
     [Theory]
-    [InlineData("Source: ../../Resources/Models/a.fbx", "Source: ../../Art/Models/a.fbx")]
     [InlineData("Source: !file ../../Resources/Models/a.fbx", "Source: !file ../../Art/Models/a.fbx")]
-    [InlineData("    a6a33c1a0db1400de6fac7d2eda800ff~../../Resources/Models/a.fbx: b16f8f283ed13095f9f0388beea800ed", "    a6a33c1a0db1400de6fac7d2eda800ff~../../Art/Models/a.fbx: b16f8f283ed13095f9f0388beea800ed")]
-    [InlineData("Other: \"../../Resources/Models/a.fbx\"", "Other: \"../../Art/Models/a.fbx\"")]
-    [InlineData("Other: {A: ../../Resources/Models/a.fbx, B: ../../Resources/Models/a.fbx}", "Other: {A: ../../Art/Models/a.fbx, B: ../../Art/Models/a.fbx}")]
-    [InlineData(@"Source: ..\..\Resources\Models\a.fbx", "Source: ../../Art/Models/a.fbx")]
+    [InlineData("~SourceHashes:\n    a6a33c1a0db1400de6fac7d2eda800ff~../../Resources/Models/a.fbx: b16f8f283ed13095f9f0388beea800ed", "~SourceHashes:\n    a6a33c1a0db1400de6fac7d2eda800ff~../../Art/Models/a.fbx: b16f8f283ed13095f9f0388beea800ed")]
+    [InlineData("Other: !file \"../../Resources/Models/a.fbx\"", "Other: !file \"../../Art/Models/a.fbx\"")]
+    [InlineData("Other: {A: !file ../../Resources/Models/a.fbx, B: !file ../../Resources/Models/a.fbx}", "Other: {A: !file ../../Art/Models/a.fbx, B: !file ../../Art/Models/a.fbx}")]
+    [InlineData("Sprites:\n    -   Source: !file ../../Resources/Models/a.fbx", "Sprites:\n    -   Source: !file ../../Art/Models/a.fbx")]
+    [InlineData(@"Source: !file ..\..\Resources\Models\a.fbx", "Source: !file ../../Art/Models/a.fbx")]
     public void APathThatResolvesToAResourceChanges(string before, string after)
     {
         Staged("Resources/Models/a.fbx");
@@ -362,14 +363,18 @@ public sealed class AssetPackPlacementTests : IDisposable
     }
 
     [Theory]
-    [InlineData("Source: ../../Resources/Models/missing.fbx")]
-    [InlineData("Source: ../../Resources/Models/a.fbx.bak")]
-    [InlineData("Source: ../../Resources/Models/a.fbx.")]
-    [InlineData("Source: ../Resources/Models/a.fbx")]
-    [InlineData("Source: ../../../Resources/Models/a.fbx")]
-    [InlineData("Source: x../../Resources/Models/a.fbx")]
-    [InlineData("Source: ../a.sdtex")]
+    [InlineData("Source: !file ../../Resources/Models/missing.fbx")]
+    [InlineData("Source: !file ../../Resources/Models/a.fbx.bak")]
+    [InlineData("Source: !file ../../Resources/Models/a.fbx.")]
+    [InlineData("Source: !file ../Resources/Models/a.fbx")]
+    [InlineData("Source: !file ../../../Resources/Models/a.fbx")]
+    [InlineData("Source: !file x../../Resources/Models/a.fbx")]
+    [InlineData("Source: !file ../a.sdtex")]
     [InlineData("Text: see Resources/Models/a.fbx")]
+    [InlineData("Source: ../../Resources/Models/a.fbx")]
+    [InlineData("Other: \"../../Resources/Models/a.fbx\"")]
+    [InlineData("Other:\n    1234~../../Resources/Models/a.fbx: 5678")]
+    [InlineData("Not YAML: [ ../../Resources/Models/a.fbx")]
     public void AnyOtherPathStays(string text)
     {
         Staged("Resources/Models/a.fbx");
@@ -389,14 +394,14 @@ public sealed class AssetPackPlacementTests : IDisposable
     public void ThePathGoesFromTheAssetToItsResource(string assets, string resources, string expected)
     {
         Staged("Resources/a.fbx");
-        Assert.Equal($"Source: {expected}", Rewrite("Assets/Animations/a.sdanim", "Source: ../../Resources/a.fbx", assets, resources));
+        Assert.Equal($"Source: !file {expected}", Rewrite("Assets/Animations/a.sdanim", "Source: !file ../../Resources/a.fbx", assets, resources));
     }
 
     [Fact]
     public void AnAssetAtTheTopOfAFolderHoldingItsResourcesHasNoDotDot()
     {
         Staged("Resources/a.fbx");
-        Assert.Equal("Source: Resources/a.fbx", Rewrite("Assets/a.sdanim", "Source: ../Resources/a.fbx", ".", "Resources"));
+        Assert.Equal("Source: !file Resources/a.fbx", Rewrite("Assets/a.sdanim", "Source: !file ../Resources/a.fbx", ".", "Resources"));
     }
 
     [Fact]
@@ -405,7 +410,7 @@ public sealed class AssetPackPlacementTests : IDisposable
         Staged("Resources/My Models/a b.fbx");
         Staged("Resources/My Models/a.fbx");
         var text = """
-            Source: ../../Resources/My Models/a b.fbx
+            Source: !file ../../Resources/My Models/a b.fbx
             ~SourceHashes:
                 1234~../../Resources/My Models/a b.fbx: 5678
                 1234~../../Resources/My Models/a.fbx: 5678
@@ -417,7 +422,7 @@ public sealed class AssetPackPlacementTests : IDisposable
     public void OnlyThePathChangesInAFile()
     {
         Staged("Resources/a.fbx");
-        var text = "\uFEFF!Asset\r\n# a comment\r\nSource:    ../../Resources/a.fbx   \nOdd:\t[1,2]\r\n";
+        var text = "\uFEFF!Asset\r\n# a comment\r\nSource:    !file ../../Resources/a.fbx   \nOdd: [1,2]\r\n";
         Assert.Equal(text.Replace("../../Resources/", "../../Art/"), Rewrite("Assets/Animations/a.sdanim", text, "Content", "Art"));
     }
 
@@ -425,9 +430,9 @@ public sealed class AssetPackPlacementTests : IDisposable
     public void AFileThatIsNotUtf8TextKeepsItsBytes()
     {
         Staged("Resources/a.fbx");
-        byte[] bytes = [0xFF, 0xFE, .. "Source: ../Resources/a.fbx\n"u8];
+        byte[] bytes = [0xFF, 0xFE, .. "Source: !file ../Resources/a.fbx\n"u8];
         File.WriteAllBytes(Path.Combine(Dir("pack", "Assets"), "a.bin"), bytes);
-        byte[] withNul = [.. "Source: ../Resources/a.fbx\n"u8, 0];
+        byte[] withNul = [.. "Source: !file ../Resources/a.fbx\n"u8, 0];
         File.WriteAllBytes(Path.Combine(Dir("pack", "Assets"), "b.bin"), withNul);
         Rewrite("Content", "Art");
         Assert.Equal(bytes, File.ReadAllBytes(Path.Combine(Dir("pack", "Assets"), "a.bin")));
@@ -440,7 +445,7 @@ public sealed class AssetPackPlacementTests : IDisposable
     public void TheSameRelativePathLeavesEveryFileAlone(string assets, string resources)
     {
         Staged("Resources/a.fbx");
-        const string text = "Source: ./../Resources/a.fbx";
+        const string text = "Source: !file ./../Resources/a.fbx";
         Assert.Equal(text, Rewrite("Assets/a.sdanim", text, assets, resources));
     }
 
@@ -450,18 +455,140 @@ public sealed class AssetPackPlacementTests : IDisposable
         if (!OperatingSystem.IsWindows())
             return;
         Staged("Resources/a.fbx");
-        Staged("Assets/a.sdanim", "Source: ../Resources/a.fbx");
+        Staged("Assets/a.sdanim", "Source: !file ../Resources/a.fbx");
         var error = Assert.Throws<InvalidOperationException>(() => AssetPackPlacement.RewriteResourcePaths(Dir("pack", "Assets"), Dir("pack", "Resources"), @"C:\G\Assets", @"Z:\G\Resources"));
         Assert.Contains(@"Z:\G\Resources", error.Message);
     }
 
     [Theory]
-    [InlineData("Content", "Art #2")]
-    [InlineData(".", "[Art]")]
-    public void AFolderThatNeedsQuotesInAnAssetIsAnError(string assets, string resources)
+    [InlineData("Content", "Art #2", "Source: !file '../Art #2/a.fbx'")]
+    [InlineData(".", "[Art]", "Source: !file '[Art]/a.fbx'")]
+    [InlineData("Content", "it's", "Source: !file ../it's/a.fbx")]
+    public void AFolderThatNeedsQuotesInAnAssetGetsThem(string assets, string resources, string expected)
     {
         Staged("Resources/a.fbx");
-        Staged("Assets/a.sdanim", "Source: ../Resources/a.fbx");
-        Assert.Throws<InvalidOperationException>(() => Rewrite(assets, resources));
+        Assert.Equal(expected, Rewrite("Assets/a.sdanim", "Source: !file ../Resources/a.fbx", assets, resources));
+    }
+
+    [Fact]
+    public void AnAssetAsAToolSavesItChangesOnlyInItsPaths()
+    {
+        Staged("Resources/Animation/Idle.fbx");
+        const string text = """
+            !Animation
+            Id: 5f286f7e-7d38-44cf-9bc1-3aad7be4f0fa
+            SerializedVersion: {Stride: 2.0.0.0}
+            Tags: []
+            Source: !file ../../Resources/Animation/Idle.fbx
+            ClipDuration:
+                Enabled: false
+                StartAnimationTime: 0:00:00:00.0000000
+            PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
+            Skeleton: a0d324bd-326a-4fd8-88a9-fc5e4dcc62e5:Models/mannequinModel Skeleton
+            ~SourceHashes:
+                21b21af1ba37657150977644b3988e1d~../../Resources/Animation/Idle.fbx: 425da9e0d3fa578a8427ead97d6200b6
+            """;
+        Assert.Equal(text.Replace("../../Resources/", "../../Art/"), Rewrite("Assets/Animations/Idle.sdanim", text, "Content", "Art"));
+    }
+
+    [Fact]
+    public void APathWrittenWithAnEscapeChanges()
+    {
+        Staged("Resources/a.fbx");
+        Assert.Equal("Source: !file \"../Art/a.fbx\"", Rewrite("Assets/a.sdanim", "Source: !file \"..\\\\Resources\\\\a.fbx\"", "Content", "Art"));
+    }
+
+    [Fact]
+    public void APathWrittenAsABlockIsAnError()
+    {
+        Staged("Resources/a.fbx");
+        Staged("Assets/a.sdanim", "Source: !file >-\n    ../Resources/a.fbx");
+        Assert.Contains("a.sdanim", Assert.Throws<InvalidOperationException>(() => Rewrite("Content", "Art")).Message);
+    }
+
+    [Fact]
+    public void AnSdpkgThatIsNotYamlIsAnError()
+    {
+        Library("A.Game");
+        File.WriteAllText(Path.Combine(Dir("A.Game"), "A.Game.sdpkg"), "AssetFolders: [");
+        var error = Assert.Throws<InvalidOperationException>(() => AssetPackPlacement.GetFolders(AssetPackPlacement.ChoosePackage(Dir("A.Game")).Project));
+        Assert.Contains("A.Game.sdpkg", error.Message);
+    }
+
+    private AssetPackPlacement.PackFolders Folders(string assets, string resources)
+        => new(Path.Combine(root, "G", assets), Path.Combine(root, "G", resources), null);
+
+    [Theory]
+    [InlineData("4.4.0")]
+    [InlineData("4.4.1")]
+    [InlineData("4.4.1-dev3")]
+    [InlineData("4.3.0.2507")]
+    public void AnOlderEngineIsRefusedWhenPathsWouldChange(string version)
+    {
+        var error = Assert.Throws<InvalidOperationException>(() => AssetPackPlacement.CheckVersionForRewrite(new PackageVersion(version), Folders("Content", "Art")));
+        Assert.Contains("stride upgrade", error.Message);
+    }
+
+    [Theory]
+    [InlineData("4.4.2")]
+    [InlineData("4.4.2-dev3")]
+    [InlineData("4.4.2-beta1")]
+    [InlineData("4.5.0-beta01")]
+    public void TheMinimumEngineAndNewerCanChangePaths(string version)
+        => AssetPackPlacement.CheckVersionForRewrite(new PackageVersion(version), Folders("Content", "Art"));
+
+    [Theory]
+    [InlineData("Assets", "Resources")]
+    [InlineData("../Assets", "../Resources")]
+    public void AnOlderEngineWorksInTheStandardLayout(string assets, string resources)
+        => AssetPackPlacement.CheckVersionForRewrite(new PackageVersion("4.4.0"), Folders(assets, resources));
+
+    [Fact]
+    public void APackageWithNoResourceFolderIsNotAVersionProblem()
+        => AssetPackPlacement.CheckVersionForRewrite(new PackageVersion("4.4.0"), new AssetPackPlacement.PackFolders(Path.Combine(root, "G", "Content"), null, "add a folder"));
+
+    private static Task Instantiate(string staging, params string[] files)
+    {
+        foreach (var file in files)
+        {
+            var path = Path.Combine(staging, file);
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            File.WriteAllText(path, file.EndsWith(".sdtex") ? "Source: !file ../Resources/a.png" : "");
+        }
+        return Task.CompletedTask;
+    }
+
+    [Fact]
+    public async Task AddingAPackRewritesAndMovesIt()
+    {
+        var folders = Folders("Content", "Art");
+        var (hasAssets, hasResources) = await AssetPackPlacement.AddAsync(staging => Instantiate(staging, "Assets/a.sdtex", "Resources/a.png"), "my-pack", folders);
+        Assert.True(hasAssets && hasResources);
+        Assert.Equal("Source: !file ../Art/a.png", File.ReadAllText(Path.Combine(folders.Assets, "a.sdtex")));
+        Assert.True(File.Exists(Path.Combine(folders.Resources!, "a.png")));
+    }
+
+    [Fact]
+    public async Task ARefusedPackWritesNothingAndLeavesNoStaging()
+    {
+        var folders = Folders("Content", "Art");
+        string? usedStaging = null;
+        await Assert.ThrowsAsync<InvalidOperationException>(() => AssetPackPlacement.AddAsync(staging =>
+        {
+            usedStaging = staging;
+            return Instantiate(staging, "Assets/a.sdtex", "LICENSE.txt");
+        }, "my-pack", folders));
+        Assert.False(Directory.Exists(folders.Assets));
+        Assert.False(Directory.Exists(usedStaging));
+    }
+
+    [Fact]
+    public async Task APackWithResourcesAndNoResourceFolderWritesNothing()
+    {
+        var assets = Path.Combine(root, "G", "Content");
+        var error = await Assert.ThrowsAsync<InvalidOperationException>(() => AssetPackPlacement.AddAsync(
+            staging => Instantiate(staging, "Assets/a.sdtex", "Resources/a.png"), "my-pack", new AssetPackPlacement.PackFolders(assets, null, "add a folder")));
+        Assert.Equal("add a folder", error.Message);
+        Assert.False(Directory.Exists(assets));
     }
 }

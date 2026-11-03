@@ -59,9 +59,14 @@ has to go, from the solution folder or from a package folder:
   `.sdpkg` is not edited, and no folder is added to it: a pack with resources gives an error and writes
   nothing if the package lists no resource folder.
 - **The paths:** if the relative path between the two folders is not `../Resources`, the paths in the
-  pack's assets that lead to one of its resources are rewritten, in any field (`Source:` and the keys of
-  `~SourceHashes`). Nothing else in a file changes. A folder that no relative path reaches, or whose name
-  would need quotes in an asset file, gives an error and writes nothing.
+  pack's assets that lead to one of its resources are rewritten: the values tagged `!file` and the keys of
+  `~SourceHashes`. Nothing else in a file changes. A folder that no relative path reaches gives an error
+  and writes nothing.
+- **The version:** the packs before Stride 4.4.2 have paths with no `!file` tag, so rewriting them gives
+  an error that asks to upgrade the project and writes nothing. They still work when no rewrite is needed.
+
+A pack written by hand or saved by an old tool needs the tag too. To add it, run
+`Stride.AssetCompiler upgrade <path to .sdpkg> --resave-all` on the pack.
 
 `-o <folder>` skips this: `<folder>/Assets` and `<folder>/Resources` are written, with a warning if no
 package sees them.

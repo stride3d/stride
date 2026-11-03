@@ -1,18 +1,32 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Xml.Linq;
+using Stride.Core;
+using Stride.Core.Yaml;
+using Stride.Core.Yaml.Serialization;
+using Version = System.Version;
 
-namespace Stride.Cli.Core;
+#nullable enable
 
-// Where `stride new` puts an asset pack: which package it goes into, then which folders of that package. Failures are
-// an InvalidOperationException whose message is for the user.
-internal static partial class AssetPackPlacement
+namespace Stride.Assets.Templates;
+
+// Where an asset pack goes: which package, then which folders of that package. Shared by source between the Game Studio
+// generator and the stride CLI. Failures are an InvalidOperationException whose message is for the user.
+internal static class AssetPackPlacement
 {
     private const string AssetsFolder = "Assets";
     private const string ResourcesFolder = "Resources";
     private const string Advice = "Run this command inside a package folder, or pass -o to write to a given folder.";
+
+    // The first engine whose packs have every path tagged, which a rewrite needs. Only the numbers count, so that a
+    // checkout's 4.4.2-devN qualifies.
+    private static readonly Version MinVersionToRewritePaths = new(4, 4, 2);
 
     private static readonly StringComparison PathComparison = OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
     private static readonly EnumerationOptions Enumeration = new() { IgnoreInaccessible = true };
@@ -93,22 +107,66 @@ internal static partial class AssetPackPlacement
             .Order(StringComparer.Ordinal)
             .ToList();
         if (unknown.Count > 0)
-            throw new InvalidOperationException($"Template '{templateName}' writes {string.Join(", ", unknown.Select(entry => $"'{entry}'"))}, and this CLI only knows {AssetsFolder} and {ResourcesFolder} as the top-level folders of an asset pack. Update it with 'stride self update', or use 'dotnet new' to write the template to the current folder as it is.");
+            throw new InvalidOperationException($"Template '{templateName}' writes {string.Join(", ", unknown.Select(entry => $"'{entry}'"))}, and this version only knows {AssetsFolder} and {ResourcesFolder} as the top-level folders of an asset pack. Update it (the CLI with 'stride self update'), or use 'dotnet new' to write the template to the current folder as it is.");
         if (!Directory.EnumerateFileSystemEntries(packDirectory).Any())
             throw new InvalidOperationException($"Template '{templateName}' writes nothing.");
     }
 
-    // Points the assets of a staged pack at the folders it goes to. Only a path that resolves to a staged resource changes,
-    // in the text of the file, so it keeps its tag and its form, and every other byte stays as it is.
+    // Refuses a pack of an engine older than the minimum when its paths would have to change. In the standard layout
+    // nothing is rewritten, so any version works.
+    public static void CheckVersionForRewrite(PackageVersion engine, PackFolders folders)
+    {
+        if (folders.Resources is null || !NeedsRewrite(folders.Assets, folders.Resources))
+            return;
+
+        var version = engine.Version;
+        if (new Version(version.Major, version.Minor, Math.Max(version.Build, 0)) < MinVersionToRewritePaths)
+            throw new InvalidOperationException($"The asset packs of Stride {engine} can only go in the standard layout, with {ResourcesFolder} next to the asset folder, and this package lists '{folders.Assets}' and '{folders.Resources}'. Upgrade the project to Stride {MinVersionToRewritePaths} or later with 'stride upgrade', or pass -o to write to a given folder.");
+    }
+
+    // Instantiates a pack into a temporary folder, as the template engine can't rename its folders, then moves it into the
+    // folders it goes to. Nothing is written to them when the pack is refused. Says which of the two the pack has.
+    public static async Task<(bool HasAssets, bool HasResources)> AddAsync(Func<string, Task> instantiate, string templateName, PackFolders folders)
+    {
+        var staging = Path.Combine(Path.GetTempPath(), $"stride-new-{Guid.NewGuid():N}");
+        try
+        {
+            await instantiate(staging).ConfigureAwait(false);
+            CheckLayout(staging, templateName);
+
+            var stagedAssets = Path.Combine(staging, AssetsFolder);
+            var stagedResources = Path.Combine(staging, ResourcesFolder);
+            var hasAssets = Directory.Exists(stagedAssets);
+            var hasResources = Directory.Exists(stagedResources);
+
+            if (hasResources && folders.NoResourcesError is { } noResources)
+                throw new InvalidOperationException(noResources);
+            if (hasAssets && hasResources)
+                RewriteResourcePaths(stagedAssets, stagedResources, folders.Assets, folders.Resources!);
+
+            if (hasAssets)
+                MoveFiles(stagedAssets, folders.Assets);
+            if (hasResources)
+                MoveFiles(stagedResources, folders.Resources!);
+            return (hasAssets, hasResources);
+        }
+        finally
+        {
+            if (Directory.Exists(staging))
+                Directory.Delete(staging, recursive: true);
+        }
+    }
+
+    // Points the assets of a staged pack at the folders it goes to. Only a path of an asset that resolves to a staged
+    // resource changes, in the text of the file, so every other byte stays as it is.
     public static void RewriteResourcePaths(string stagedAssets, string stagedResources, string assets, string resources)
     {
-        var relative = Path.GetRelativePath(assets, resources).Replace('\\', '/');
-        if (relative == $"../{ResourcesFolder}")
+        if (!NeedsRewrite(assets, resources))
             return;
+
+        var relative = Path.GetRelativePath(assets, resources).Replace('\\', '/');
         if (Path.IsPathRooted(relative))
             throw new InvalidOperationException($"No relative path leads from '{assets}' to '{resources}', so the pack's assets could not refer to their resources. Use folders on the same drive, or pass -o to write to a given folder.");
-        if (NotPlainYaml().IsMatch(relative))
-            throw new InvalidOperationException($"The pack's assets can't refer to their resources through '{relative}': it needs quotes in an asset file. Rename the folder, or pass -o to write to a given folder.");
 
         var stagedResourceFiles = Directory.EnumerateFiles(stagedResources, "*", SearchOption.AllDirectories).ToHashSet(StringComparer.FromComparison(PathComparison));
         foreach (var file in Directory.EnumerateFiles(stagedAssets, "*", SearchOption.AllDirectories))
@@ -118,20 +176,20 @@ internal static partial class AssetPackPlacement
 
             var stagedFolder = Path.GetDirectoryName(file)!;
             var folder = Path.GetDirectoryName(Path.Combine(assets, Path.GetRelativePath(stagedAssets, file)))!;
-            var rewritten = new StringBuilder();
-            var position = 0;
-            foreach (Match start in RelativePathStart().Matches(text))
+            string? rewritten;
+            try
             {
-                if (start.Index < position || FindResourcePath(text, start.Index, stagedFolder, stagedResourceFiles) is not { } found)
-                    continue;
-
-                var target = Path.Combine(resources, Path.GetRelativePath(stagedResources, found.Resource));
-                rewritten.Append(text, position, start.Index - position).Append(Path.GetRelativePath(folder, target).Replace('\\', '/'));
-                position = found.End;
+                rewritten = YamlFilePaths.Rewrite(text, (path, _) => ResolveResource(path, stagedFolder, stagedResourceFiles) is { } resource
+                    ? Path.GetRelativePath(folder, Path.Combine(resources, Path.GetRelativePath(stagedResources, resource))).Replace('\\', '/')
+                    : null);
+            }
+            catch (InvalidOperationException e)
+            {
+                throw new InvalidOperationException($"{e.Message} It is in '{Path.GetFileName(file)}'. Pass -o to write to a given folder.");
             }
 
-            if (position > 0)
-                File.WriteAllBytes(file, StrictUtf8.GetBytes(rewritten.Append(text, position, text.Length - position).ToString()));
+            if (rewritten is not null)
+                File.WriteAllBytes(file, StrictUtf8.GetBytes(rewritten));
         }
     }
 
@@ -161,26 +219,17 @@ internal static partial class AssetPackPlacement
         }
     }
 
-    // The longest text from this position that resolves to a staged resource. A name can hold spaces, so a path can end
-    // only where the line, a quote or a YAML separator allows it, and the file itself decides which end is right.
-    private static (int End, string Resource)? FindResourcePath(string text, int start, string stagedFolder, HashSet<string> stagedResourceFiles)
+    private static bool NeedsRewrite(string assets, string resources)
+        => Path.GetRelativePath(assets, resources).Replace('\\', '/') != $"../{ResourcesFolder}";
+
+    private static string? ResolveResource(string path, string stagedFolder, HashSet<string> stagedResourceFiles)
     {
-        var lineLength = text.AsSpan(start).IndexOfAny('\r', '\n');
-        var lineEnd = lineLength < 0 ? text.Length : start + lineLength;
-        for (var end = lineEnd; end > start; end--)
-        {
-            if (end < lineEnd && text[end] is not ('"' or '\'' or ':' or ',' or ']' or '}') && !char.IsWhiteSpace(text[end]))
-                continue;
-            // Windows drops these from the end of a path, and they aren't part of a file name.
-            if (text[end - 1] == '.' || char.IsWhiteSpace(text[end - 1]))
-                continue;
+        // Windows drops these from the end of a path, and they aren't part of a file name.
+        if (path.Length == 0 || path[^1] == '.' || char.IsWhiteSpace(path[^1]))
+            return null;
 
-            var resolved = Path.GetFullPath(Path.Combine(stagedFolder, text[start..end]));
-            if (stagedResourceFiles.Contains(resolved))
-                return (end, resolved);
-        }
-
-        return null;
+        var resolved = Path.GetFullPath(Path.Combine(stagedFolder, path.Replace('\\', '/')));
+        return stagedResourceFiles.Contains(resolved) ? resolved : null;
     }
 
     private static PackageChoice ChooseFromInside(string directory, List<PackageProject> projects)
@@ -268,43 +317,31 @@ internal static partial class AssetPackPlacement
         if (!File.Exists(project.PackagePath))
             return ([Path.Combine(project.Directory, AssetsFolder)], [Path.Combine(project.Directory, ResourcesFolder)]);
 
-        var lines = File.ReadAllLines(project.PackagePath);
-        return (ReadFolderList(lines, "AssetFolders", AssetFolderItem(), project.Directory),
-            ReadFolderList(lines, "ResourceFolders", ResourceFolderItem(), project.Directory));
-    }
-
-    // Reads a top-level list of the .sdpkg, which is YAML the engine writes. The CLI doesn't load the engine's assets library.
-    private static List<string> ReadFolderList(string[] lines, string key, Regex item, string packageDirectory)
-    {
-        var folders = new List<string>();
-        var start = Array.FindIndex(lines, line => line.TrimEnd() == key + ":");
-        if (start < 0)
-            return folders;
-
-        foreach (var line in lines.Skip(start + 1))
+        var stream = new YamlStream();
+        try
         {
-            if (line.Length > 0 && !char.IsWhiteSpace(line[0]) && line[0] != '-')
-                break;
-            if (item.Match(line) is { Success: true } match)
-                folders.Add(Path.GetFullPath(Path.Combine(packageDirectory, match.Groups[1].Value.Trim('"', '\''))));
+            using var reader = new StreamReader(project.PackagePath);
+            stream.Load(reader);
+        }
+        catch (YamlException e)
+        {
+            throw new InvalidOperationException($"Could not read '{project.PackagePath}': {e.Message}");
         }
 
-        return folders;
+        var package = stream.Documents.FirstOrDefault()?.RootNode as YamlMappingNode;
+        return (ReadFolderList(package, "AssetFolders", item => Child(item as YamlMappingNode, "Path"), project.Directory),
+            ReadFolderList(package, "ResourceFolders", item => item, project.Directory));
     }
+
+    // Reads a top-level list of the .sdpkg. The CLI doesn't load the engine's assets library.
+    private static List<string> ReadFolderList(YamlMappingNode? package, string key, Func<YamlNode, YamlNode?> folder, string packageDirectory)
+        => Child(package, key) is YamlSequenceNode list
+            ? list.Children.Select(folder).OfType<YamlScalarNode>().Select(path => Path.GetFullPath(Path.Combine(packageDirectory, path.Value))).ToList()
+            : [];
+
+    private static YamlNode? Child(YamlMappingNode? mapping, string key)
+        => mapping?.Children.FirstOrDefault(child => child.Key is YamlScalarNode name && name.Value == key).Value;
 
     private static bool IsSameOrBelow(string path, string folder)
         => path.Equals(folder, PathComparison) || path.StartsWith(folder.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar, PathComparison);
-
-    // A relative path, as a YAML value or after the '~' of a ~SourceHashes key.
-    [GeneratedRegex(@"(?<![^\s~""'\[{,])\.\.?[/\\]")]
-    private static partial Regex RelativePathStart();
-
-    [GeneratedRegex(@"^[!&*\[{|>%@`""'#]|:( |$)| #")]
-    private static partial Regex NotPlainYaml();
-
-    [GeneratedRegex(@"^\s*-?\s*Path:\s*(?:!dir\s+)?(\S.*?)\s*$")]
-    private static partial Regex AssetFolderItem();
-
-    [GeneratedRegex(@"^\s*-\s*(?:!dir\s+)?(\S.*?)\s*$")]
-    private static partial Regex ResourceFolderItem();
 }

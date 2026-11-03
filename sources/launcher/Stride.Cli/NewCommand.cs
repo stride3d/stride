@@ -143,7 +143,7 @@ internal static class NewCommand
                 var resolvedName = template.ShortNameList.FirstOrDefault() ?? templateName;
                 Console.WriteLine($"Creating '{name}' from {resolvedName} (Stride {version})...");
                 if (isItemTemplate)
-                    return await AddAssetPack(context.Registry, template, name, parameters, packPackage, packFolders ?? AssetPackPlacement.GetFolders(output), cancellationToken);
+                    return await AddAssetPack(context.Registry, template, name, parameters, packPackage, packFolders ?? AssetPackPlacement.GetFolders(output), version, cancellationToken);
 
                 var result = await context.Registry.InstantiateAsync(template, name, output, parameters, cancellationToken);
                 if (result.Status != CreationResultStatus.Success)
@@ -184,43 +184,26 @@ internal static class NewCommand
         return command;
     }
 
-    // Instantiates a pack into a temporary folder, as the template engine can't rename its folders, then moves it into
-    // the package. Nothing is written to the project when the pack's layout is refused.
+    // Adds a pack to the folders it goes to. Prints the reason and returns 1 when it is refused.
     private static async Task<int> AddAssetPack(
         DotNetNewTemplateRegistry registry, ITemplateInfo template, string name, IReadOnlyDictionary<string, string> parameters,
-        AssetPackPlacement.PackageChoice? package, AssetPackPlacement.PackFolders folders, CancellationToken cancellationToken)
+        AssetPackPlacement.PackageChoice? package, AssetPackPlacement.PackFolders folders, PackageVersion engine, CancellationToken cancellationToken)
     {
-        var staging = Path.Combine(Path.GetTempPath(), $"stride-new-{Guid.NewGuid():N}");
         try
         {
-            var result = await registry.InstantiateAsync(template, name, staging, parameters, cancellationToken);
-            if (result.Status != CreationResultStatus.Success)
+            AssetPackPlacement.CheckVersionForRewrite(engine, folders);
+
+            var (hasAssets, hasResources) = await AssetPackPlacement.AddAsync(async staging =>
             {
-                Console.Error.WriteLine($"Template creation failed: {result.ErrorMessage}");
-                return 1;
-            }
-
-            AssetPackPlacement.CheckLayout(staging, name);
-
-            var stagedAssets = Path.Combine(staging, "Assets");
-            var stagedResources = Path.Combine(staging, "Resources");
-            var hasAssets = Directory.Exists(stagedAssets);
-            var hasResources = Directory.Exists(stagedResources);
-
-            if (hasResources && folders.NoResourcesError is { } noResources)
-                throw new InvalidOperationException(noResources);
-            if (hasAssets && hasResources)
-                AssetPackPlacement.RewriteResourcePaths(stagedAssets, stagedResources, folders.Assets, folders.Resources!);
+                var result = await registry.InstantiateAsync(template, name, staging, parameters, cancellationToken);
+                if (result.Status != CreationResultStatus.Success)
+                    throw new InvalidOperationException($"Template creation failed: {result.ErrorMessage}");
+            }, name, folders);
 
             if (package?.Note is { } note)
                 Console.WriteLine(note);
             if (package is null && hasAssets && AssetPackPlacement.GetOutputWarning(folders.Assets) is { } warning)
                 Console.Error.WriteLine(warning);
-
-            if (hasAssets)
-                AssetPackPlacement.MoveFiles(stagedAssets, folders.Assets);
-            if (hasResources)
-                AssetPackPlacement.MoveFiles(stagedResources, folders.Resources!);
 
             var written = string.Join(", ", new[] { hasAssets ? $"assets in '{folders.Assets}'" : null, hasResources ? $"resources in '{folders.Resources}'" : null }.OfType<string>());
             Console.WriteLine(package is null ? $"Created '{name}': {written}." : $"Added '{name}' to package '{package.Project.Name}': {written}.");
@@ -230,11 +213,6 @@ internal static class NewCommand
         {
             Console.Error.WriteLine(exception.Message);
             return 1;
-        }
-        finally
-        {
-            if (Directory.Exists(staging))
-                Directory.Delete(staging, recursive: true);
         }
     }
 
