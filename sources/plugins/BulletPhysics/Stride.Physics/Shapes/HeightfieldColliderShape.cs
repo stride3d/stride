@@ -103,11 +103,35 @@ public unsafe class HeightfieldColliderShape : ColliderShape
         set { ((BulletSharp.HeightfieldTerrainShape)InternalShape).SetUseZigzagSubdivision(value); }
     }
 
-    public Span<short> ShortSpan => HeightType == HeightfieldTypes.Short ? new Span<short>(heightDataPointer, HeightStickWidth * HeightStickLength) : [];
+    /// <summary>
+    /// A live view of the native height data as a span of shorts.
+    /// </summary>
+    /// <remarks>
+    /// This is only valid if the height type is <see cref="HeightfieldTypes.Short"/>.
+    /// This should only be used under a <see cref="LockToReadHeights"/> or <see cref="LockToReadAndWriteHeights"/> context to ensure thread safety.
+    /// This must never be used after the shape has been disposed.
+    /// </remarks>
+    public Span<short> ShortSpan => HeightType == HeightfieldTypes.Short && heightDataPointer != null ? new Span<short>(heightDataPointer, HeightStickWidth * HeightStickLength) : [];
 
-    public Span<byte> ByteSpan => HeightType == HeightfieldTypes.Byte ? new Span<byte>(heightDataPointer, HeightStickWidth * HeightStickLength) : [];
+    /// <summary>
+    /// A live view of the native height data as a span of bytes.
+    /// </summary>
+    /// <remarks>
+    /// This is only valid if the height type is <see cref="HeightfieldTypes.Byte"/>.
+    /// This should only be used under a <see cref="LockToReadHeights"/> or <see cref="LockToReadAndWriteHeights"/> context to ensure thread safety.
+    /// This must never be used after the shape has been disposed.
+    /// </remarks>
+    public Span<byte> ByteSpan => HeightType == HeightfieldTypes.Byte && heightDataPointer != null ? new Span<byte>(heightDataPointer, HeightStickWidth * HeightStickLength) : [];
 
-    public Span<float> FloatSpan => HeightType == HeightfieldTypes.Float ? new Span<float>(heightDataPointer, HeightStickWidth * HeightStickLength) : [];
+    /// <summary>
+    /// A live view of the native height data as a span of floats.
+    /// </summary>
+    /// <remarks>
+    /// This is only valid if the height type is <see cref="HeightfieldTypes.Float"/>.
+    /// This should only be used under a <see cref="LockToReadHeights"/> or <see cref="LockToReadAndWriteHeights"/> context to ensure thread safety.
+    /// This must never be used after the shape has been disposed.
+    /// </remarks>
+    public Span<float> FloatSpan => HeightType == HeightfieldTypes.Float && heightDataPointer != null ? new Span<float>(heightDataPointer, HeightStickWidth * HeightStickLength) : [];
 
     private void* heightDataPointer;
 
