@@ -33,6 +33,8 @@ namespace Stride.UI.Tests.Regression
             ImageWithoutHitTestLetsClicksThrough,
             ClickWhereAHiddenUIWas,
             KeysReachScriptsAfterTheFocusedUIStopsDrawing,
+            HoverEndsWhenTheCameraMovesAWorldSpacePanelAwayFromTheCursor,
+            HoverBeginsWhenAButtonMovesUnderTheCursor,
         }
 
         private static readonly Vector2 OnButton = new Vector2(0.1f, 0.08f);
@@ -71,6 +73,7 @@ namespace Stride.UI.Tests.Regression
             switch (scenario)
             {
                 case Scenario.ClickOnWorldSpacePanel:
+                case Scenario.HoverEndsWhenTheCameraMovesAWorldSpacePanelAwayFromTheCursor:
                     worldButton = new Button { HorizontalAlignment = HorizontalAlignment.Stretch, VerticalAlignment = VerticalAlignment.Stretch };
                     ApplyButtonDefaultStyle(worldButton);
                     var worldPanel = new Engine.Entity("World panel")
@@ -158,6 +161,17 @@ namespace Stride.UI.Tests.Regression
                 case Scenario.KeysReachScriptsAfterTheFocusedUIStopsDrawing:
                     FrameGameSystem.Draw(2, FocusTheButtonAndHideTheUI);
                     FrameGameSystem.Draw(3, PressAKey);
+                    break;
+                case Scenario.HoverEndsWhenTheCameraMovesAWorldSpacePanelAwayFromTheCursor:
+                    FrameGameSystem.Draw(2, MoveCamera);
+                    FrameGameSystem.Draw(3, HoverWorldPanel);
+                    FrameGameSystem.Draw(4, MoveCameraBack);
+                    FrameGameSystem.Draw(5, UpdateWithoutMovingTheMouse);
+                    break;
+                case Scenario.HoverBeginsWhenAButtonMovesUnderTheCursor:
+                    FrameGameSystem.Draw(2, HoverWhereTheButtonWillBe);
+                    FrameGameSystem.Draw(3, MoveButton);
+                    FrameGameSystem.Draw(4, UpdateWithoutMovingTheMouseOverTheMovedButton);
                     break;
             }
         }
@@ -277,6 +291,47 @@ namespace Stride.UI.Tests.Regression
             Assert.False(Input.IsMouseButtonPressed(MouseButton.Left));
         }
 
+        private void HoverWorldPanel()
+        {
+            var panelCenter = Vector3.TransformCoordinate(Vector3.Zero, CameraComponent.ViewProjectionMatrix);
+            MouseSimulated.SetPosition(new Vector2((panelCenter.X + 1) / 2, (1 - panelCenter.Y) / 2));
+            Input.Update(new GameTime());
+
+            Assert.Equal(MouseOverState.MouseOverElement, worldButton.MouseOverState);
+            Assert.True(Input.Mouse.CaptureState.IsCaptured);
+        }
+
+        // The panel stays on screen, but no longer under the cursor
+        private void MoveCameraBack()
+        {
+            Camera.Transform.Position = new Vector3(0, 0, 1000);
+        }
+
+        private void UpdateWithoutMovingTheMouse()
+        {
+            Input.Update(new GameTime());
+
+            Assert.Equal(MouseOverState.MouseOverNone, worldButton.MouseOverState);
+            Assert.False(Input.Mouse.CaptureState.IsCaptured);
+        }
+
+        private void HoverWhereTheButtonWillBe()
+        {
+            MouseSimulated.SetPosition(OnMovedButton);
+            Input.Update(new GameTime());
+
+            Assert.Equal(MouseOverState.MouseOverNone, button.MouseOverState);
+            Assert.False(Input.Mouse.CaptureState.IsCaptured);
+        }
+
+        private void UpdateWithoutMovingTheMouseOverTheMovedButton()
+        {
+            Input.Update(new GameTime());
+
+            Assert.Equal(MouseOverState.MouseOverElement, button.MouseOverState);
+            Assert.True(Input.Mouse.CaptureState.IsCaptured);
+        }
+
         private void ClickOnPanelBackground()
         {
             MouseSimulated.SetPosition(OnPanel);
@@ -342,6 +397,8 @@ namespace Stride.UI.Tests.Regression
         [InlineData(Scenario.ImageWithoutHitTestLetsClicksThrough)]
         [InlineData(Scenario.ClickWhereAHiddenUIWas)]
         [InlineData(Scenario.KeysReachScriptsAfterTheFocusedUIStopsDrawing)]
+        [InlineData(Scenario.HoverEndsWhenTheCameraMovesAWorldSpacePanelAwayFromTheCursor)]
+        [InlineData(Scenario.HoverBeginsWhenAButtonMovesUnderTheCursor)]
         public void RunInputCaptureTest(Scenario testScenario)
         {
             RunGameTest(new InputCaptureTest(testScenario));

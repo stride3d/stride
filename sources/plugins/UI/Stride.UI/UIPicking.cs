@@ -331,14 +331,15 @@ namespace Stride.UI
 
             UIElement mouseOverElement = lastMouseOverElement;
 
-            // determine currently overred element.
+            // Test again when the mouse moved or the UI was drawn again, since the UI or the camera may have moved under a still
+            // cursor. A cursor outside the UI is over nothing, so the last hovered element loses its mouse-over state.
             if (mousePosition != state.LastMousePosition
+                || target.Frame != state.LastMouseOverFrame
                 || (lastMouseOverElement?.RequiresMouseOverUpdate ?? false))
             {
-                if (!GetTouchPosition(target, ref worldViewProj, mousePosition, out var uiRay))
-                    return null;
-
-                mouseOverElement = UIRenderFeature.GetElementAtScreenPosition(rootElement, ref uiRay, ref worldViewProj, ref intersectionPoint);
+                mouseOverElement = GetTouchPosition(target, ref worldViewProj, mousePosition, out var uiRay)
+                    ? UIRenderFeature.GetElementAtScreenPosition(rootElement, ref uiRay, ref worldViewProj, ref intersectionPoint)
+                    : null;
             }
 
             // find the common parent between current and last overred elements
@@ -374,6 +375,7 @@ namespace Stride.UI
             // update cached values
             state.LastMouseOverElement = mouseOverElement;
             state.LastMousePosition = mousePosition;
+            state.LastMouseOverFrame = target.Frame;
             return mouseOverElement;
         }
 
