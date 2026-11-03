@@ -19,6 +19,7 @@ namespace Stride.Engine
     {
         private InstancingComponent master;
         private InstancingEntityTransform connectedInstancing;
+        private bool isMasterEventSubscribed;
 
         /// <summary>
         /// Gets or sets the referenced <see cref="InstancingComponent"/> to instance.
@@ -35,19 +36,9 @@ namespace Stride.Engine
             {
                 if (value != master)
                 {
-                    DisconnectInstancing();
-
-                    // Remove previous event handler
-                    if (master != null)
-                        master.InstancingChanged -= Master_InstancingChanged;
-
+                    DisconnectFromMaster();
                     master = value;
-
-                    if (master != null)
-                    {
-                        master.InstancingChanged += Master_InstancingChanged;
-                        ConnectInstancing();
-                    }
+                    ConnectToMaster();
                 }
             }
         }
@@ -56,6 +47,28 @@ namespace Stride.Engine
         {
             DisconnectInstancing();
             ConnectInstancing();
+        }
+
+        internal void ConnectToMaster()
+        {
+            if (master != null && !isMasterEventSubscribed)
+            {
+                master.InstancingChanged += Master_InstancingChanged;
+                isMasterEventSubscribed = true;
+            }
+
+            ConnectInstancing();
+        }
+
+        internal void DisconnectFromMaster()
+        {
+            DisconnectInstancing();
+
+            if (master != null && isMasterEventSubscribed)
+            {
+                master.InstancingChanged -= Master_InstancingChanged;
+                isMasterEventSubscribed = false;
+            }
         }
 
         internal void ConnectInstancing()
