@@ -27,6 +27,7 @@ public class TestEditorToolkitInference(ITestOutputHelper output)
     [InlineData("""<PackageReference Include="Dock.Avalonia" />""", "", EditorToolkits.Avalonia)]
     [InlineData("""<PackageReference Include="Avalonia" />""", "", EditorToolkits.Avalonia)]
     [InlineData("""<PackageReference Include="Avalonia.Desktop" />""", "", EditorToolkits.Avalonia)]
+    [InlineData("""<PackageReference Include="AvaloniaEdit.TextMate" />""", "", EditorToolkits.Avalonia)]
     // An explicit toolkit wins over the references
     [InlineData("""<PackageReference Include="Avalonia" /><ProjectReference Include="../Stride.Assets.Presentation.Wpf/Stride.Assets.Presentation.Wpf.csproj" />""", "<StrideEditorToolkit>Wpf</StrideEditorToolkit>", EditorToolkits.Wpf)]
     public void EditorPackageToolkitComesFromItsReferences(string items, string properties, string? toolkit)
