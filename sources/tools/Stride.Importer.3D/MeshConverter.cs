@@ -1460,6 +1460,9 @@ namespace Stride.Importer.ThreeD
             }
         }
 
+                if (string.IsNullOrEmpty(Path.GetFileNameWithoutExtension(texture->MFilename.AsString)))
+                    SetTextureName(texture, $"{Path.GetFileNameWithoutExtension(importFieName)}_texture{i}");
+
         private unsafe void CreateTextureFile(Silk.NET.Assimp.Texture* texture, string path)
         {
             var texel = texture->PcData;
@@ -1470,6 +1473,19 @@ namespace Stride.Importer.ThreeD
                 var sourcePointer = (byte*)texture->PcData;
                 MemoryUtilities.CopyWithAlignmentFallback(bufferPointer, sourcePointer, arraySize);
             }
+        /// <summary>
+        /// Names an embedded texture that has no file name (common in GLB files), so its extracted file and asset don't collide with other textures.
+        /// </summary>
+        private static unsafe void SetTextureName(Silk.NET.Assimp.Texture* texture, string name)
+        {
+            var bytes = System.Text.Encoding.UTF8.GetBytes(name);
+            var length = Math.Min(bytes.Length, (int)Assimp.Maxlen - 1);
+            for (var i = 0; i < length; i++)
+                texture->MFilename.Data[i] = bytes[i];
+            texture->MFilename.Data[length] = 0;
+            texture->MFilename.Length = (uint)length;
+        }
+
             System.IO.File.WriteAllBytes(path, buffer);
         }
 
