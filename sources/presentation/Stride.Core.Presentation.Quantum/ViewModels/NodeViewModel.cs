@@ -54,7 +54,8 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
 
     static NodeViewModel()
     {
-        typeof(NodeViewModel).GetProperties().Select(x => x.Name).ForEach(x => ReservedNames.Add(x));
+        // The indexer (this[string], named Item) is left out: a binding cannot reach it by name, and a member named Item stays Item, as before
+        typeof(NodeViewModel).GetProperties().Where(x => x.GetIndexParameters().Length == 0).Select(x => x.Name).ForEach(x => ReservedNames.Add(x));
     }
 
     protected internal NodeViewModel(GraphViewModel ownerViewModel, NodeViewModel? parent, string baseName, Type nodeType, List<INodePresenter> nodePresenters)
