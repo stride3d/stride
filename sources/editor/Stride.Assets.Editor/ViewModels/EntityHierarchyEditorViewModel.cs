@@ -5,7 +5,7 @@ using System.Collections.Specialized;
 using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Editor.EditorGame.Tools;
 using Stride.Assets.Entities;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories;
+using Stride.Assets.Editor.EntityFactories;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.GameEditor;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;

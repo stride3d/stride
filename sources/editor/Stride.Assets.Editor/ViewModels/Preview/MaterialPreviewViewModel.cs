@@ -3,7 +3,6 @@
 
 using Stride.Editor.Annotations;
 using Stride.Assets.Editor.Preview;
-using Stride.Assets.Presentation.ViewModel.Preview;
 using Stride.Core.Assets.Editor.ViewModel;
 
 namespace Stride.Assets.Editor.ViewModels.Preview;

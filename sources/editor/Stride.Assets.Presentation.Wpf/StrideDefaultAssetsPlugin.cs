@@ -18,6 +18,7 @@ using Stride.Core.Annotations;
 using Stride.Core.Presentation.Collections;
 using Stride.Assets.Presentation.AssetEditors.AssetHighlighters;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories;
+using Stride.Assets.Editor.EntityFactories;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Assets.Presentation.NodePresenters.Commands;
 using Stride.Assets.Presentation.NodePresenters.Updaters;

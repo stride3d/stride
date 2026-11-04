@@ -4,7 +4,7 @@
 using Stride.Assets.Models;
 using Stride.Core.Assets;
 
-namespace Stride.Assets.Presentation.Preview
+namespace Stride.Assets.Editor.Preview
 {
     /// <summary>
     /// Helper methods shared by the preview and the thumbnail of an <see cref="AnimationAsset"/>.

@@ -15,7 +15,7 @@ using Stride.Core.Serialization.Contents;
 using Stride.Editor.Build;
 using Stride.Editor.Preview;
 
-namespace Stride.Assets.Presentation.Preview
+namespace Stride.Assets.Editor.Preview
 {
     /// <summary>
     /// An implementation of the <see cref="AssetPreview"/> class that provide utilities to build an asset. 

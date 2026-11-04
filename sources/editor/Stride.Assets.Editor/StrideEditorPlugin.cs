@@ -5,7 +5,7 @@ using System.Reflection;
 using Stride.Assets.Editor.Build;
 using Stride.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Assets.Editor.Quantum.NodePresenters.Updaters;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories;
+using Stride.Assets.Editor.EntityFactories;
 using Stride.Assets.Presentation.AssetEditors.ScriptEditor;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Assets.Presentation.NodePresenters.Commands;

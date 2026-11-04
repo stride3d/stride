@@ -5,6 +5,7 @@ using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Presentation.Commands;
 using Stride.Assets.Presentation.Preview;
+using Stride.Assets.Editor.Preview;
 using Stride.Editor.Annotations;
 using Stride.Editor.Preview;
 using Stride.Assets.Editor.ViewModels.Preview;

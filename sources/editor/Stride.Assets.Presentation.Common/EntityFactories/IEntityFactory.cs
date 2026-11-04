@@ -5,7 +5,7 @@ using Stride.Core.Annotations;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Engine;
 
-namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories
+namespace Stride.Assets.Editor.EntityFactories
 {
     [Stride.Core.Reflection.AssemblyScan]
     public interface IEntityFactory

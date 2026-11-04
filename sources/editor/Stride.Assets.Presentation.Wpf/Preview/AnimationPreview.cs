@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using Stride.Assets.Editor.Preview;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ using Stride.Core.Assets.Compiler;
 using Stride.Animations;
 using Stride.Assets.Models;
 using Stride.Assets.Presentation.ViewModel.Preview;
+using Stride.Assets.Editor.ViewModels.Preview;
 using Stride.Editor.Annotations;
 using Stride.Editor.Build;
 using Stride.Editor.Preview;

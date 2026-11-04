@@ -15,7 +15,7 @@ using Stride.Core.Presentation.Core;
 using Stride.Editor.EditorGame.Game;
 using Scene =  Stride.Engine.Scene;
 
-namespace Stride.Assets.Presentation.Preview
+namespace Stride.Assets.Editor.Preview
 {
     /// <summary>
     /// A base class to implement sprite batch rendering previews.
