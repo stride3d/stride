@@ -19,10 +19,24 @@ namespace Stride.Assets.Editor.Tests.Templates;
 public sealed class NewGameGenerationTests
 {
     [SkippableFact]
-    public void TheNewGameTemplateWritesTheGameProjects()
+    public async Task TheNewGameTemplateWritesTheGameProjects()
     {
-        // The dotnet new templates of the installed Stride.Templates.Games package, as the editor registers them at startup
+        // The dotnet new templates of the installed Stride.Templates.Games package, as the editor registers them at startup. That
+        // also starts the download of the missing starters and samples, which the test doesn't need
         DotNetNewTemplateBridge.RegisterProjectTemplates();
+        try
+        {
+            GenerateTheNewGame();
+        }
+        finally
+        {
+            // Nothing the test starts outlives it: the download would report to the template windows of the other tests
+            await DotNetNewTemplateBridge.CancelContentDownloadAsync();
+        }
+    }
+
+    private static void GenerateTheNewGame()
+    {
         var template = TemplateManager.FindTemplates(TemplateScope.Session)
             .OfType<TemplateDotNetNewDescription>()
             .FirstOrDefault(x => x.TemplateShortName == "stride-game");
