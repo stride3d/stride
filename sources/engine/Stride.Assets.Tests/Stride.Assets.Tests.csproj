@@ -43,6 +43,7 @@
     <Compile Include="TestMaterialGenerator.cs" />
     <Compile Include="AssetImportTests.cs" />
     <Compile Include="TestMorphImport.cs" />
+    <Compile Include="tests\TestHierarchicalFbxImport.cs" />
     <Compile Include="TestModelComponentMorphs.cs" />
     <Compile Include="TestDependencyResolver.cs" />
     <Compile Include="TestPrefabAsset.cs" />

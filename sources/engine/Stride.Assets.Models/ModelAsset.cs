@@ -91,6 +91,24 @@ namespace Stride.Assets.Models
         [DefaultValue(false)]
         public bool ShaderReadableBuffers { get; set; }
 
+        /// <summary>
+        /// Gets or sets the name of the single mesh this model was split out of the source file, or null when
+        /// the model imports the whole file. Set by the hierarchical import; the compiler keeps only this mesh.
+        /// </summary>
+        [DataMember(38)]
+        [DefaultValue(null)]
+        [Display(Browsable = false)]
+        public string MeshName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the name of the source node this split model belongs to, or null when the model imports
+        /// the whole file. Used for diagnostics when <see cref="MeshName"/> alone is not enough.
+        /// </summary>
+        [DataMember(39)]
+        [DefaultValue(null)]
+        [Display(Browsable = false)]
+        public string NodeName { get; set; }
+
         /// <inheritdoc/>
         [DataMember(40)]
         [MemberCollection(ReadOnly = true)]

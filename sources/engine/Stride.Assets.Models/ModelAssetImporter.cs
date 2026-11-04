@@ -12,8 +12,10 @@ using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
+using Stride.Assets.Entities;
 using Stride.Assets.Materials;
 using Stride.Assets.Textures;
+using Stride.Engine;
 using Stride.Rendering;
 using Stride.Importer.Common;
 using System.IO;
@@ -24,6 +26,12 @@ namespace Stride.Assets.Models
     public abstract class ModelAssetImporter : AssetImporterBase
     {
         public static readonly PropertyKey<bool> DeduplicateMaterialsKey = new PropertyKey<bool>("DeduplicateMaterials", typeof(ModelAssetImporter));
+
+        /// <summary>
+        /// Import parameter controlling the hierarchical import: when enabled, the importer produces one model
+        /// per mesh plus a prefab that mirrors the source node hierarchy instead of a single merged model.
+        /// </summary>
+        public static readonly PropertyKey<bool> SplitHierarchyKey = new PropertyKey<bool>("SplitHierarchy", typeof(ModelAssetImporter));
 
         public override IEnumerable<Type> RootAssetTypes
         {
@@ -104,11 +112,22 @@ namespace Stride.Assets.Models
                 ImportMaterials(rawAssetReferences, entityInfo.Materials);
             }
 
+            // Hierarchical import: when the toggle is on, produce one model per mesh plus a prefab that mirrors
+            // the source hierarchy instead of a single merged model.
+            var splitHierarchy = importParameters.InputParameters.TryGet(SplitHierarchyKey, out var split) && split;
+
             ModelAsset modelAsset = null;
             // 4. Model
             if (isImportingModel)
             {
-                modelAsset = ImportModel(rawAssetReferences, localPath, localPath, entityInfo, false, skeletonAsset);
+                if (splitHierarchy)
+                {
+                    modelAsset = ImportHierarchy(rawAssetReferences, localPath, entityInfo, skeletonAsset);
+                }
+                else
+                {
+                    modelAsset = ImportModel(rawAssetReferences, localPath, localPath, entityInfo, false, skeletonAsset);
+                }
             }
 
             // 5. Animation
@@ -214,6 +233,88 @@ namespace Stride.Assets.Models
             var assetItem = new AssetItem(modelUrl, asset);
             assetReferences.Add(assetItem);
             return asset;
+        }
+
+        /// <summary>
+        /// Imports one model per mesh and a prefab that mirrors the source node hierarchy.
+        /// </summary>
+        private static ModelAsset ImportHierarchy(List<AssetItem> assetReferences, UFile localPath, EntityInfo entityInfo, AssetItem skeletonAsset)
+        {
+            // Without a node hierarchy there is nothing to split: fall back to the regular single-model import.
+            if (entityInfo.Nodes == null || entityInfo.Nodes.Count == 0 || entityInfo.Models == null || entityInfo.Models.Count == 0)
+                return ImportModel(assetReferences, localPath, localPath, entityInfo, false, skeletonAsset);
+
+            var plan = HierarchicalModelImporter.CreatePlan(localPath.GetFileNameWithoutExtension(), entityInfo.Nodes, entityInfo.Models);
+
+            var loadedMaterials = assetReferences.Where(x => x.Asset is MaterialAsset).ToList();
+            var modelItems = new Dictionary<string, AssetItem>(StringComparer.Ordinal);
+            ModelAsset firstModel = null;
+            foreach (var entry in plan.Models)
+            {
+                var asset = new ModelAsset
+                {
+                    Source = localPath,
+                    MeshName = entry.MeshName,
+                    NodeName = entry.NodeName,
+                };
+                if (entityInfo.MorphTargetNames != null)
+                    asset.MorphTargetNames.AddRange(entityInfo.MorphTargetNames);
+
+                // Keep only the material(s) actually used by this mesh.
+                foreach (var materialName in entry.MaterialNames)
+                {
+                    var modelMaterial = new ModelMaterial
+                    {
+                        Name = materialName,
+                        MaterialInstance = new MaterialInstance(),
+                    };
+                    var foundMaterial = loadedMaterials.FirstOrDefault(x => x.Location == new UFile(materialName));
+                    if (foundMaterial != null)
+                        modelMaterial.MaterialInstance.Material = AttachedReferenceManager.CreateProxyObject<Material>(foundMaterial.Id, foundMaterial.Location);
+                    asset.Materials.Add(modelMaterial);
+                }
+                if (asset.Materials.Count == 0)
+                    asset.Materials.Add(new ModelMaterial { Name = "Material", MaterialInstance = new MaterialInstance() });
+
+                if (skeletonAsset != null)
+                    asset.Skeleton = AttachedReferenceManager.CreateProxyObject<Skeleton>(skeletonAsset.Id, skeletonAsset.Location);
+
+                var assetItem = new AssetItem(new UFile(entry.ModelName), asset);
+                assetReferences.Add(assetItem);
+                modelItems[entry.ModelName] = assetItem;
+                firstModel ??= asset;
+            }
+
+            var prefab = new PrefabAsset();
+            var rootEntity = BuildPrefabEntity(plan.Root, modelItems, prefab);
+            prefab.Hierarchy.RootParts.Add(rootEntity);
+            assetReferences.Add(new AssetItem(new UFile(plan.PrefabName), prefab));
+
+            return firstModel;
+        }
+
+        private static Entity BuildPrefabEntity(HierarchicalPrefabNode node, Dictionary<string, AssetItem> modelItems, PrefabAsset prefab)
+        {
+            // One entity per source node, mirroring the hierarchy.
+            var entity = new Entity(node.Name);
+            prefab.Hierarchy.Parts.Add(new EntityDesign(entity));
+
+            // Stride allows only one component of a given type per entity, so each mesh hosted by this node gets
+            // its own child entity carrying the matching model component. Node entities stay transform-only.
+            foreach (var modelName in node.ModelNames)
+            {
+                var meshEntity = new Entity(modelName);
+                var modelComponent = new ModelComponent();
+                if (modelItems.TryGetValue(modelName, out var modelItem))
+                    modelComponent.Model = AttachedReferenceManager.CreateProxyObject<Model>(modelItem.Id, modelItem.Location);
+                meshEntity.Add(modelComponent);
+                entity.Transform.Children.Add(meshEntity.Transform);
+                prefab.Hierarchy.Parts.Add(new EntityDesign(meshEntity));
+            }
+
+            foreach (var child in node.Children)
+                entity.Transform.Children.Add(BuildPrefabEntity(child, modelItems, prefab).Transform);
+            return entity;
         }
 
         private static void ImportMaterials(List<AssetItem> assetReferences, Dictionary<string, MaterialAsset> materials)

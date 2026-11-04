@@ -27,6 +27,17 @@ namespace Stride.Assets.Models
         public Vector3 PivotPosition { get; set; }
 
         public bool MergeMeshes { get; set; }
+
+        /// <summary>
+        /// When set, only the mesh with this name is kept in the imported model. Set by the hierarchical import.
+        /// </summary>
+        public string MeshName { get; set; }
+
+        /// <summary>
+        /// The source node a split mesh belongs to. Informational, used for diagnostics.
+        /// </summary>
+        public string NodeName { get; set; }
+
         public bool ImportMorphTargets { get; set; } = true;
         public MorphDeltaSource MorphNormals { get; set; }
         public MorphDeltaSource MorphTangents { get; set; }
@@ -77,6 +88,16 @@ namespace Stride.Assets.Models
             var modelSkeleton = LoadSkeleton(commandContext, contentManager); // we get model skeleton to compare it to real skeleton we need to map to
             AdjustSkeleton(modelSkeleton);
             var model = LoadModel(commandContext, contentManager);
+
+            // Hierarchical import: when this model was split out of a source file, keep only the matching mesh so
+            // each generated model contains exactly one mesh.
+            if (!string.IsNullOrEmpty(MeshName))
+            {
+                model.Meshes.RemoveAll(mesh => !string.Equals(mesh.Name, MeshName, StringComparison.Ordinal));
+                if (model.Meshes.Count == 0)
+                    commandContext.Logger.Warning($"The mesh [{MeshName}] was not found while importing {ContextAsString}.");
+            }
+
             if (!ImportMorphTargets)
                 foreach (var mesh in model.Meshes) mesh.MorphTargets = null;
             if (!CheckInputSlots(commandContext, model))
