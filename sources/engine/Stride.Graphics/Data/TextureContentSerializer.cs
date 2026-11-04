@@ -23,20 +23,20 @@ namespace Stride.Graphics.Data
                 var services = stream.Context.Tags.Get(ServiceRegistry.ServiceRegistryKey);
                 if (services == null)
                 {
-                    var data = TextureSerializationData.Read(stream, out var fullRezDescription);
+                    var data = TextureSerializationData.Read(stream, out var fullResDescription);
                     if (data.EnableStreaming)
                     {
                         // regardless of 'allowContentStreaming' state, we can't stream at
                         // this point without a service, load it in full.
 
-                        if (fullRezDescription != data.Image.Description) // This is the lowest mip used as placeholder while streaming, discard it
+                        if (fullResDescription != data.Image.Description) // This is the lowest mip used as placeholder while streaming, discard it
                         {
                             data.Image.Dispose();
-                            data.Image = Image.New(fullRezDescription);
+                            data.Image = Image.New(fullResDescription);
                         }
 
                         var contentSerializerContext = stream.Context.Get(ContentSerializerContext.ContentSerializerContextProperty);
-                        DeserializeTexture(contentSerializerContext.ContentManager, data.Image, ref fullRezDescription, ref data.StorageHeader);
+                        DeserializeTexture(contentSerializerContext.ContentManager, data.Image, ref data.StorageHeader);
                     }
 
                     data.Image.DisposeBy(texture);
@@ -185,7 +185,7 @@ namespace Stride.Graphics.Data
             }
         }
 
-        private static void DeserializeTexture(ContentManager contentManager, Image image, ref ImageDescription imageDescription, ref ContentStorageHeader storageHeader)
+        private static void DeserializeTexture(ContentManager contentManager, Image image, ref ContentStorageHeader storageHeader)
         {
             using (var content = new ContentStreamingService())
             {
@@ -197,30 +197,22 @@ namespace Stride.Graphics.Data
 
                 // Cache data
                 var fileProvider = contentManager.FileProvider;
-                var format = imageDescription.Format;
 
                 // Get data boxes data
-                for (int arrayIndex = 0; arrayIndex < imageDescription.ArraySize; arrayIndex++)
+                for (int arrayIndex = 0; arrayIndex < image.Description.ArraySize; arrayIndex++)
                 {
-                    for (int mipIndex = 0; mipIndex < imageDescription.MipLevels; mipIndex++)
+                    for (int mipIndex = 0; mipIndex < image.Description.MipLevels; mipIndex++)
                     {
-                        var (mipWidth, mipHeight) = Image.GetMipDimensions(format, imageDescription.Width, imageDescription.Height, mipIndex);
-
-                        int rowPitch, slicePitch;
-                        int widthPacked;
-                        int heightPacked;
-                        Image.ComputePitch(format, mipWidth, mipHeight, out rowPitch, out slicePitch, out widthPacked, out heightPacked);
+                        var dest = image.GetPixelBuffer(arrayIndex, mipIndex);
 
                         var chunk = storage.GetChunk(mipIndex);
-                        if (chunk == null || chunk.Size != slicePitch * imageDescription.ArraySize)
+                        if (chunk == null || chunk.Size != dest.BufferStride * image.Description.ArraySize)
                             throw new ContentStreamingException("Data chunk is missing or has invalid size.", storage);
                         var data = chunk.GetData(fileProvider);
                         if (!chunk.IsLoaded)
                             throw new ContentStreamingException("Data chunk is not loaded.", storage);
 
-                        var pb = new PixelBuffer(mipWidth, mipHeight, format, rowPitch, slicePitch, data + slicePitch * arrayIndex);
-                        var pxBuffer = image.GetPixelBuffer(arrayIndex, mipIndex);
-                        pb.CopyTo(pxBuffer);
+                        MemoryUtilities.CopyWithAlignmentFallback(dest.DataPointer, source: data + dest.BufferStride * arrayIndex, (uint)dest.BufferStride);
                     }
                 }
 

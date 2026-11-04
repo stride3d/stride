@@ -132,7 +132,8 @@ namespace Stride.Graphics.Data
         /// </summary>
         /// <remarks>
         /// Similar to <see cref="Write"/>, a streamed image is serialized separately from this range in the stream.
-        /// In that specific case, the image returned may correspond to a lower mip of the whole texture. <br/>
+        /// In that specific case, the image returned may correspond to a lower mip of the whole texture or
+        /// an empty full-size image if the mip's format was incompatible (<see cref="ContentStorageHeader.InitialImage"/>). <br/>
         /// You will have to go through <see cref="ContentStreamingService"/> and its <see cref="ContentStorage"/> to retrieve the full resolution data,
         /// see <see cref="TextureContentSerializer"/>'s implementation.
         /// </remarks>
