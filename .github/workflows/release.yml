@@ -31,10 +31,6 @@ on:
         description: Deploy to NuGet.org and create GitHub Release
         default: false
         type: boolean
-      bump-version:
-        description: After a stable deploy, commit the next Patch to the branch (open next dev version)
-        default: true
-        type: boolean
       upload-binlog:
         description: Capture and upload an MSBuild binlog (parallel/race diagnostics). Ignored on signed builds — a binlog records env vars/task params and would leak signing secrets.
         default: false
@@ -51,6 +47,8 @@ jobs:
   Validate:
     name: Validate
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - name: Check deploy requires signing
         if: ${{ inputs.deploy && !inputs.sign }}
@@ -72,6 +70,55 @@ jobs:
             echo "::error::Sign/deploy blocked: '$USER' is not a member of $ORG/$TEAM, or GH_PAT cannot read it (dead token / missing Organization Members: Read). Requires stride-release-managers membership."
             exit 1
           fi
+
+      # What can be refused from the committed files alone is refused here, before the build.
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0  # full history + tags for the re-publish guard
+          fetch-tags: true
+          lfs: false
+
+      - name: Read the version
+        id: version
+        shell: pwsh
+        run: |
+          $file = Get-Content sources/shared/SharedAssemblyInfo.cs -Raw
+          $field = { param($name) [regex]::Match($file, "$name = `"([^`"]*)`";").Groups[1].Value }
+          $version = "$(& $field 'MajorMinor').$(& $field 'Patch')$(& $field 'NuGetVersionSuffix')"
+          # Only allow stable X.Y.Z or a pre-release with an alpha/beta/rc/preview suffix, with no number: the number
+          # before it moves at every release. This blocks typos like '-brta' and any stray suffix.
+          if ($version -notmatch '^\d+\.\d+\.\d+(-(alpha|beta|rc|preview))?$') {
+            echo "::error::Version '$version' is not an allowed release version. Use X.Y.Z or X.Y.Z-(alpha|beta|rc|preview) (e.g. 4.5.1, 4.5.1-beta) - check SharedAssemblyInfo.cs"
+            exit 1
+          }
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+          echo "::notice::Version: $version"
+
+      # Forget-to-bump guard: the version is the committed value in SharedAssemblyInfo.cs, bumped after every release. If
+      # it wasn't bumped, its releases/<version> tag already exists on the previously-released commit, so fail the
+      # deploy. Re-running the release on the exact tagged commit (idempotent) is allowed (tag points at HEAD).
+      - name: Guard against re-publishing an existing version
+        if: ${{ inputs.deploy }}
+        shell: bash
+        run: |
+          TAG="releases/${{ steps.version.outputs.version }}"
+          if git rev-parse "$TAG" >/dev/null 2>&1 && [ -z "$(git tag --points-at HEAD --list "$TAG")" ]; then
+            echo "::error::Version ${{ steps.version.outputs.version }} is already released (tag $TAG on another commit). Bump Patch in SharedAssemblyInfo.cs."
+            exit 1
+          fi
+
+      # release-deploy.yml checks the content version again, for a deploy of a build made earlier.
+      - name: Check the samples of a stable engine
+        if: ${{ (inputs.sign || inputs.deploy) && !contains(steps.version.outputs.version, '-') }}
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.version }}"
+          $content = ([xml](Get-Content sources/templates/StrideSamplesVersion.props -Raw)).SelectSingleNode('//_StrideCommittedSamplesVersion').InnerText
+          if ($content -match '-') {
+            echo "::error::Stable engine $version names prerelease content $content. Publish the samples with a stable content number first (release-samples.yml)."
+            exit 1
+          }
+          ./.github/scripts/check-sample-references.ps1 -RequireStable
 
   #
   # Build and package
@@ -151,27 +198,13 @@ jobs:
             exit 1
           }
           $version = $pkg.Name -replace 'Stride\.Core\.(.*?)\.nupkg','$1'
-          # Only allow stable X.Y.Z or a pre-release with an alpha/beta/rc/preview + digits suffix. This
-          # blocks typos like '-brta4' and any stray suffix from a malformed SharedAssemblyInfo.cs.
-          if ($version -notmatch '^\d+\.\d+\.\d+(-(alpha|beta|rc|preview)\d+)?$') {
-            echo "::error::Version '$version' is not an allowed release version. Use X.Y.Z or X.Y.Z-(alpha|beta|rc|preview)<N> (e.g. 4.4.0, 4.4.0-beta1) - check SharedAssemblyInfo.cs"
+          # The checks ran on the committed version, in Validate: the packages must carry it.
+          if ($version -ne '${{ needs.Validate.outputs.version }}') {
+            echo "::error::Package version '$version' is not the committed version '${{ needs.Validate.outputs.version }}'"
             exit 1
           }
           echo "version=$version" >> $env:GITHUB_OUTPUT
           echo "::notice::Package version: $version"
-
-      # Forget-to-bump guard: the version is the committed value in SharedAssemblyInfo.cs, bumped per release. If it
-      # wasn't bumped, its releases/<version> tag already exists on the previously-released commit, so fail the
-      # deploy. Re-running the release on the exact tagged commit (idempotent) is allowed (tag points at HEAD).
-      - name: Guard against re-publishing an existing version
-        if: ${{ inputs.deploy }}
-        shell: bash
-        run: |
-          TAG="releases/${{ steps.version.outputs.version }}"
-          if git rev-parse "$TAG" >/dev/null 2>&1 && [ -z "$(git tag --points-at HEAD --list "$TAG")" ]; then
-            echo "::error::Version ${{ steps.version.outputs.version }} is already released (tag $TAG on another commit). Bump Patch/NuGetVersionSuffix in SharedAssemblyInfo.cs."
-            exit 1
-          fi
 
       - name: Upload NuGet packages
         uses: actions/upload-artifact@v7
@@ -239,5 +272,4 @@ jobs:
     uses: ./.github/workflows/release-deploy.yml
     with:
       run-id: ${{ github.run_id }}
-      bump-version: ${{ inputs.bump-version }}
     secrets: inherit

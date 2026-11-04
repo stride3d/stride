@@ -1,7 +1,7 @@
 name: Release Deploy
 
 # Deploys a previously-built release: downloads the `packages` artifact from a build run, pushes to NuGet.org,
-# tags the built commit, creates the GitHub Release, and (for a stable release) opens the next dev version.
+# tags the built commit, creates the GitHub Release, and opens the next number on the branch.
 #
 # Two entry points share one job:
 #   - workflow_call: release.yml's Deploy stage calls this with run-id = the current run (the integrated flow).
@@ -19,20 +19,12 @@ on:
         description: Run whose 'packages' artifact to deploy
         required: true
         type: string
-      bump-version:
-        description: After a stable deploy, commit Patch+1 to the branch
-        default: true
-        type: boolean
   workflow_dispatch:
     inputs:
       run-id:
         description: Run ID of a prior signed (no-deploy) release build to deploy
         required: true
         type: string
-      bump-version:
-        description: After a stable deploy, commit Patch+1 to the branch (open next dev version)
-        default: true
-        type: boolean
 
 jobs:
   Deploy:
@@ -250,34 +242,46 @@ jobs:
             bin/packages/*.nupkg
 
       - name: Bump version for next cycle
-        # After a *stable* deploy, advance Patch in source so the branch opens the next dev version (the tag above
-        # points at the just-released commit). Skipped for prereleases (they keep the same number) and idempotent
-        # re-runs where the tag already existed. Opt out with the bump-version input. Pushes to the current branch
-        # tip (github.ref_name), not the built commit, so it advances the branch even if it moved past the build.
-        if: ${{ inputs.bump-version && steps.tag.outputs.created == 'true' && !contains(steps.version.outputs.version, '-') }}
+        # After every deploy, beta or stable, advance Patch on the branch, so the committed number has never been released
+        # (the tag above points at the just-released commit). The number is read from the branch tip after a fetch, not
+        # from the built commit: nothing is bumped when the tip already moved past the release, by an upgrader PR or a
+        # re-run of this deploy. A push refused because the branch just moved starts again from the new tip.
         run: |
           RELEASED="${{ steps.version.outputs.version }}"
+          BRANCH="${{ github.ref_name }}"
           FILE=sources/shared/SharedAssemblyInfo.cs
-          git checkout "${{ github.ref_name }}"
-          CUR=$(sed -n 's/.*public const string Patch = "\([0-9][0-9]*\)".*/\1/p' "$FILE")
-          # Don't commit anything if Patch can't be parsed (e.g. the file's shape changed). The release already
-          # succeeded; warn and skip - the forget-to-bump guard will catch the un-bumped version next release.
-          if ! printf '%s' "$CUR" | grep -qE '^[0-9]+$'; then
-            echo "::warning::Could not parse Patch from $FILE (got '$CUR'); skipping version bump - bump it manually."
-            exit 0
-          fi
-          NEXT=$((CUR + 1))
-          sed -i "s/\(public const string Patch = \)\"$CUR\"/\1\"$NEXT\"/" "$FILE"
-          if ! grep -q "public const string Patch = \"$NEXT\";" "$FILE"; then
-            echo "::warning::Version bump did not apply to $FILE; skipping - bump it manually."
-            exit 0
-          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          # Commit only the version file (never -a), so an unexpected working-tree change can't ride along.
-          git commit -m "Open ${RELEASED%.*}.$NEXT for development (released $RELEASED)" -- "$FILE"
-          git pull --rebase origin "${{ github.ref_name }}"
-          git push origin "HEAD:${{ github.ref_name }}"
+          for ATTEMPT in 1 2 3 4 5; do
+            git fetch origin "$BRANCH"
+            git checkout -B "$BRANCH" FETCH_HEAD
+            LINE=$(sed -n 's/.*public const string MajorMinor = "\([0-9.]*\)".*/\1/p' "$FILE")
+            CUR=$(sed -n 's/.*public const string Patch = "\([0-9][0-9]*\)".*/\1/p' "$FILE")
+            # Don't commit anything if the version can't be parsed (e.g. the file's shape changed). The release already
+            # succeeded; warn and skip - the forget-to-bump guard will catch the un-bumped version next release.
+            if ! printf '%s' "$CUR" | grep -qE '^[0-9]+$' || [ -z "$LINE" ]; then
+              echo "::warning::Could not parse the version from $FILE (got '$LINE.$CUR'); skipping version bump - bump it manually."
+              exit 0
+            fi
+            if [ "$LINE.$CUR" != "${RELEASED%%-*}" ]; then
+              echo "::notice::$BRANCH is at $LINE.$CUR, not the released $RELEASED: nothing to bump."
+              exit 0
+            fi
+            NEXT=$((CUR + 1))
+            sed -i "s/\(public const string Patch = \)\"$CUR\"/\1\"$NEXT\"/" "$FILE"
+            if ! grep -q "public const string Patch = \"$NEXT\";" "$FILE"; then
+              echo "::warning::Version bump did not apply to $FILE; skipping - bump it manually."
+              exit 0
+            fi
+            # Commit only the version file (never -a), so an unexpected working-tree change can't ride along.
+            git commit -m "Open $LINE.$NEXT for development (released $RELEASED)" -- "$FILE"
+            if git push origin "HEAD:$BRANCH"; then
+              exit 0
+            fi
+            echo "Push refused (attempt $ATTEMPT), trying again from the new branch tip"
+            sleep $((ATTEMPT * 10))
+          done
+          echo "::warning::Could not push the version bump to $BRANCH; bump Patch manually."
 
       - name: Publish summary
         if: success()

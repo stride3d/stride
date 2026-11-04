@@ -15,7 +15,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Content version to publish (e.g. 4.4.1, or 4.4.1-beta1 for content not ready yet). Empty = the committed SamplesVersion's next stable number, or <engine line>.0 for older-line content.
+        description: Content version to publish. Keep it empty, unless you recover from a partial deploy. Empty = the committed SamplesVersion's next number, or <engine line>.0 for older-line content, with -beta while the engine is in beta.
         default: ''
         type: string
       sign:
@@ -73,9 +73,10 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      # The content version: the input, or the committed one's next number (4.4.0 -> 4.4.1, 4.4.0-beta7 -> 4.4.0), or
-      # <engine line>.0 when the committed content is from an older line. Its major.minor is this branch's engine line
-      # (a line's content is released from that line's branch only), its patch part is a free counter.
+      # The content version: the input, or the committed one's next number, or <engine line>.0 when the committed content
+      # is from an older line, with the engine's suffix (4.5.1 -> 4.5.2-beta during betas, 4.5.2-beta -> 4.5.2 at stable).
+      # Its major.minor is this branch's engine line (a line's content is released from that line's branch only), its
+      # patch part is a free counter.
       - name: Choose the content version
         id: version
         shell: pwsh
@@ -83,6 +84,7 @@ jobs:
           $file = Get-Content sources/shared/SharedAssemblyInfo.cs -Raw
           $committed = [regex]::Match((Get-Content sources/templates/StrideSamplesVersion.props -Raw), '<_StrideCommittedSamplesVersion>([^<]*)</').Groups[1].Value
           $engineLine = [regex]::Match($file, 'MajorMinor = "([^"]*)";').Groups[1].Value
+          $engineSuffix = [regex]::Match($file, 'NuGetVersionSuffix = "([^"]*)";').Groups[1].Value
           $version = "${{ inputs.version }}".Trim()
           $parts = [regex]::Match($committed, '^(\d+\.\d+)\.(\d+)(-.*)?$')
           if (-not $parts.Success) {
@@ -91,15 +93,20 @@ jobs:
           }
           $committedLine, $committedPatch = $parts.Groups[1].Value, [int]$parts.Groups[2].Value
           if ($version -eq '') {
-            if ($committedLine -ne $engineLine) { $version = "$engineLine.0" }
-            elseif ($parts.Groups[3].Success) { $version = "$committedLine.$committedPatch" }
-            else { $version = "$committedLine.$($committedPatch + 1)" }
+            if ($committedLine -ne $engineLine) { $number = "$engineLine.0" }
+            elseif ($parts.Groups[3].Success -and $engineSuffix -eq '') { $number = "$committedLine.$committedPatch" }
+            else { $number = "$committedLine.$($committedPatch + 1)" }
+            $version = "$number$engineSuffix"
           }
-          # Usually stable, so an engine going from beta to stable keeps the same content (New Project rewrites the
-          # Stride.* references to the running engine). A prerelease (typed, never the default) is for content not
-          # ready yet: release-deploy.yml refuses a stable engine that names it.
-          if ($version -notmatch '^\d+\.\d+\.\d+(-(alpha|beta|rc|preview)\d+)?$') {
-            echo "::error::Content version '$version' is not an allowed release version. Use X.Y.Z or X.Y.Z-(alpha|beta|rc|preview)<N>."
+          if ($version -notmatch '^\d+\.\d+\.\d+(-(alpha|beta|rc|preview))?$') {
+            echo "::error::Content version '$version' is not an allowed release version. Use X.Y.Z or X.Y.Z-(alpha|beta|rc|preview)."
+            exit 1
+          }
+          # Prerelease with a prerelease engine, stable with a stable one: a stable number would give the content of a
+          # beta engine to anyone on stable with a plain 'dotnet new install', and release-deploy.yml refuses a stable
+          # engine that names prerelease content.
+          if (($version -match '-') -ne ($engineSuffix -ne '')) {
+            echo "::error::Content version $version and the branch's engine ($engineLine.x$engineSuffix) must both be prerelease or both be stable. Leave the version empty to get the right number."
             exit 1
           }
           if (($version -replace '^(\d+\.\d+).*', '$1') -ne $engineLine) {
@@ -112,6 +119,12 @@ jobs:
           }
           echo "version=$version" >> $env:GITHUB_OUTPUT
           echo "::notice::Content version: $committed -> $version"
+
+      - name: Check the sample references
+        shell: pwsh
+        run: |
+          $stable = '${{ steps.version.outputs.version }}' -notmatch '-'
+          ./.github/scripts/check-sample-references.ps1 -RequireStable:$stable -WarnMissedGates
 
       # A version already released means the input is wrong (or the samples were published already); fail rather
       # than re-publish different content under it. A re-run on the tagged commit is allowed (completes a partial push).
