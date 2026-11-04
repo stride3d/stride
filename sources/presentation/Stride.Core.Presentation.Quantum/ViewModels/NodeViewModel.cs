@@ -733,6 +733,9 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     private void ChangeAndNotify(Action changeAction, params string[] propertyNames)
     {
         ArgumentNullException.ThrowIfNull(changeAction);
+        // A member named Item has the name of the indexer: during a refresh, its change waits for the one of the indexer, at the end
+        if (isRefreshing)
+            propertyNames = Array.FindAll(propertyNames, x => x != IndexerPropertyName);
         if (initializingChildren == null)
         {
             foreach (var propertyName in propertyNames)

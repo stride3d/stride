@@ -32,4 +32,29 @@ public sealed class TestNodeViewModelIndexer
         Assert.NotSame(oldChild, newChild);
         Assert.Equal("ccc", newChild.NodeValue);
     }
+
+    [Fact]
+    public void AMemberNamedItemWaitsForTheIndexerChangeOfARefresh()
+    {
+        // A member named Item keeps its name, so its own changes are named like the indexer: in the middle of a refresh, they
+        // would tell the bindings to the indexer that the node has no children
+        var instance = new Types.ClassWithRefToMembersNamedLikeTheViewModel { Ref = new() { Item = "aaa", Children = "bbb" } };
+        var viewModel = new TestContainerContext().CreateInstanceContext(instance).CreateViewModel();
+        var node = viewModel.RootNode.GetChild(nameof(Types.ClassWithRefToMembersNamedLikeTheViewModel.Ref))!;
+        var oldChild = node["Item"];
+        var seenChildren = new List<object?>();
+        node.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == "Item")
+                seenChildren.Add(node["Item"]);
+        };
+
+        node.NodeValue = new Types.ClassWithMembersNamedLikeTheViewModel { Item = "ccc", Children = "ddd" };
+
+        // One change, once the new child is there; a binding to the member Item (WPF) gets it too
+        var newChild = Assert.IsType<NodeViewModel>(Assert.Single(seenChildren));
+        Assert.NotSame(oldChild, newChild);
+        Assert.Equal("Item", newChild.Name);
+        Assert.Equal("ccc", newChild.NodeValue);
+    }
 }
