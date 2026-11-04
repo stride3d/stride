@@ -725,7 +725,15 @@ namespace Stride.Core.Assets.Editor.ViewModel
                             File.Copy(file.FullPath, finalPath);
                         }
 
-                        files[i] = new UFile(finalPath);
+                        var original = file;
+                        var copy = new UFile(finalPath);
+                        files[i] = copy;
+
+                        // The importer reads the files a raw asset needs (a model's textures) next to the copy, so copy them too.
+                        var importers = AssetRegistry.FindImporterForFile(finalPath).ToList();
+                        var dependencies = await Task.Run(() => RawAssetDependencyCopier.CopyDependencies(original, copy, importers, logger));
+                        foreach (var dependency in dependencies)
+                            logger.Info(Tr._p("Message", "Copied '{0}', which '{1}' needs, to the resources folder.").ToFormat(dependency.GetFileName(), copy.GetFileName()));
                     }
                     catch (Exception ex)
                     {
