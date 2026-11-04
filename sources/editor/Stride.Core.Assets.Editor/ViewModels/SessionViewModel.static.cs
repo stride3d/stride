@@ -74,7 +74,7 @@ partial class SessionViewModel
     public static async Task<SessionViewModel?> CreateNewSessionAsync(NewSessionParameters newSessionParameters, IMainViewModel main, IViewModelServiceProvider serviceProvider)
     {
         var loggerResult = new LoggerResult();
-        var session = new PackageSession { LoadEditorPackages = true, EditorToolkit = EditorToolkitName };
+        var session = new PackageSession { LoadEditorPackages = true, EditorToolkit = main.EditorToolkitName };
 
         var workProgress = new WorkProgressViewModel(serviceProvider, loggerResult)
         {
@@ -188,7 +188,7 @@ partial class SessionViewModel
                 try
                 {
                     // Load the session file (package or solution)
-                    PackageSession.Load(path, sessionResult, CreatePackageLoadParameters(serviceProvider, token));
+                    PackageSession.Load(path, sessionResult, CreatePackageLoadParameters(serviceProvider, main.EditorToolkitName, token));
                     if (!token.IsCancellationRequested)
                     {
                         // Load references
@@ -292,7 +292,7 @@ partial class SessionViewModel
         }
     }
 
-    private static PackageLoadParameters CreatePackageLoadParameters(IViewModelServiceProvider serviceProvider, CancellationToken token)
+    private static PackageLoadParameters CreatePackageLoadParameters(IViewModelServiceProvider serviceProvider, string editorToolkit, CancellationToken token)
     {
         // Snapshot every file the upgrade overwrites into a timestamped backup folder under the solution.
         // Copy-on-write, so it costs nothing unless an upgrade actually runs and modifies files. The dialog
@@ -303,7 +303,7 @@ partial class SessionViewModel
             CancelToken = token,
             BackupBeforeUpgrade = true,
             LoadEditorPackages = true,
-            EditorToolkit = EditorToolkitName,
+            EditorToolkit = editorToolkit,
             // An asset of a missing plugin stays in the session as an unloadable asset
             LoadAssetsOfUnknownType = true,
         };

@@ -8,6 +8,7 @@ using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModel.Progress;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Presentation.Services;
+using Stride.Core.Settings;
 
 namespace Stride.Core.Assets.Editor.Services;
 
@@ -96,5 +97,36 @@ public interface IEditorDialogService : IDialogService, IAssetPickerService
     Task<bool> ShowFixAssetReferencesDialogAsync(FixAssetReferencesViewModel fixReferences)
     {
         return Task.FromResult(false);
+    }
+
+    /// <summary>
+    /// Shows the package picker of the Add dependency command, which lists the loaded and the suggested packages of the session
+    /// that pass the given filter. A host without a package picker returns <c>null</c>.
+    /// </summary>
+    /// <param name="session">The session.</param>
+    /// <param name="filter">The packages that can be picked.</param>
+    /// <returns>The picked packages, or <c>null</c> when the user cancelled.</returns>
+    Task<IReadOnlyCollection<PickablePackageViewModel>?> ShowPackagePickerDialogAsync(SessionViewModel session, Func<PickablePackageViewModel, bool> filter)
+    {
+        return Task.FromResult<IReadOnlyCollection<PickablePackageViewModel>?>(null);
+    }
+
+    /// <summary>
+    /// Asks a yes/no question once the main window is active and nothing else is up (see <see cref="WaitForMainWindowActiveAsync"/>),
+    /// with a "don't ask again" box, then runs the action of the answer. A question already waiting for the same setting is not
+    /// asked twice.
+    /// </summary>
+    /// <param name="confirmationSettingsKey">Whether to ask; the "don't ask again" box sets it to <c>false</c>.</param>
+    /// <param name="message">The question.</param>
+    /// <param name="yesCaption">The caption of the yes button.</param>
+    /// <param name="noCaption">The caption of the no button.</param>
+    /// <param name="yesAction">What a yes does.</param>
+    /// <param name="noAction">What a no does.</param>
+    /// <param name="yesNoSettingsKey">The answer to use when the question is not asked; "don't ask again" saves the answer there.
+    /// Without it, the answer is yes, and only a yes can be remembered.</param>
+    /// <returns>A task that completes when the question was answered and its action ran.</returns>
+    Task AddDelayedNotification(SettingsKey<bool> confirmationSettingsKey, string message, string yesCaption, string noCaption, Action? yesAction = null, Action? noAction = null, SettingsKey<bool>? yesNoSettingsKey = null)
+    {
+        return DelayedNotifications.AskAsync(this, confirmationSettingsKey, message, yesCaption, noCaption, yesAction, noAction, yesNoSettingsKey);
     }
 }
