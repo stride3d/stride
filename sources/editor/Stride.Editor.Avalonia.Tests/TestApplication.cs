@@ -8,6 +8,10 @@ using Avalonia.Themes.Fluent;
 using Stride.Editor.Avalonia.Tests;
 
 [assembly: AvaloniaTestApplication(typeof(TestApplication))]
+// One application for the whole assembly: rebuilding it for each test resets the UI thread, and the headless platform
+// setup then sometimes runs against the render loop of another thread (InvalidOperationException in
+// DefaultRenderLoop.Add, https://github.com/AvaloniaUI/Avalonia/issues/22021)
+[assembly: AvaloniaTestIsolation(AvaloniaTestIsolationLevel.PerAssembly)]
 
 namespace Stride.Editor.Avalonia.Tests;
 
