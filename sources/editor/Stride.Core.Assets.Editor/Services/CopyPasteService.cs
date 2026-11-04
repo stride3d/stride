@@ -41,6 +41,9 @@ internal class CopyPasteService : ICopyPasteService
     /// <inheritdoc/>
     public string? CopyFromAssets(IReadOnlyList<(AssetPropertyGraph propertyGraph, AssetId? sourceId, object value, bool isObjectReference)> items, Type itemType)
     {
+        ArgumentNullException.ThrowIfNull(items);
+        ArgumentNullException.ThrowIfNull(itemType);
+
         if (items.Count == 0)
             return null;
 
@@ -161,6 +164,8 @@ internal class CopyPasteService : ICopyPasteService
     /// <inheritdoc/>
     public bool CanPaste(string? text, Type targetRootType, Type targetMemberType, params Type[] expectedTypes)
     {
+        ArgumentNullException.ThrowIfNull(targetRootType);
+
         if (string.IsNullOrEmpty(text))
             return false;
 
@@ -177,6 +182,8 @@ internal class CopyPasteService : ICopyPasteService
     /// <inheritdoc/>
     public IPasteResult DeserializeCopiedData(string text, object targetObject, Type targetMemberType)
     {
+        ArgumentNullException.ThrowIfNull(targetObject);
+
         var result = new PasteResult();
         if (string.IsNullOrEmpty(text))
             return result;
@@ -220,35 +227,41 @@ internal class CopyPasteService : ICopyPasteService
     /// <inheritdoc/>
     public void RegisterProcessor(ICopyProcessor processor)
     {
+        ArgumentNullException.ThrowIfNull(processor);
         copyProcessors.Add(processor);
     }
 
     /// <inheritdoc/>
     public void RegisterProcessor(IPasteProcessor processor)
     {
+        ArgumentNullException.ThrowIfNull(processor);
         pasteProcessors.Add(processor);
     }
     /// <inheritdoc/>
     public void RegisterProcessor(IAssetPostPasteProcessor processor)
     {
+        ArgumentNullException.ThrowIfNull(processor);
         postProcessors.Add(processor);
     }
 
     /// <inheritdoc/>
     public void UnregisterProcessor(ICopyProcessor processor)
     {
+        ArgumentNullException.ThrowIfNull(processor);
         copyProcessors.Remove(processor);
     }
 
     /// <inheritdoc/>
     public void UnregisterProcessor(IPasteProcessor processor)
     {
+        ArgumentNullException.ThrowIfNull(processor);
         pasteProcessors.Remove(processor);
     }
 
     /// <inheritdoc/>
     public void UnregisterProcessor(IAssetPostPasteProcessor processor)
     {
+        ArgumentNullException.ThrowIfNull(processor);
         postProcessors.Remove(processor);
     }
 

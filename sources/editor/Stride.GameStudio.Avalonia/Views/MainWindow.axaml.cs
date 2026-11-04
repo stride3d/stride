@@ -207,7 +207,7 @@ public partial class MainWindow : Window
             GameStudioInternalSettings.WindowTop.SetValue(position.Y);
             View.SavePanelSizes();
             // Write the settings file
-            InternalSettings.SaveProfile();
+            InternalSettings.Save();
         }
 
         void Shutdown()

@@ -237,7 +237,7 @@ public sealed class NewOrOpenSessionTemplateCollectionViewModel : ProjectTemplat
     {
         EditorSettings.Save();
         InternalSettings.TemplatesWindowDialogLastNewSessionTemplateDirectory.SetValue(Location.FullPath);
-        InternalSettings.SaveProfile();
+        InternalSettings.Save();
     }
 
     /// <inheritdoc />

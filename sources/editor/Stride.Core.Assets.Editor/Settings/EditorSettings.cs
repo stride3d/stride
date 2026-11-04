@@ -4,7 +4,6 @@
 using System.Runtime.CompilerServices;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
-using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Quantum.ViewModels;
 using Stride.Core.Settings;
 using Stride.Core.Translation;
@@ -21,6 +20,7 @@ public static class EditorSettings
 
     // Categories
     public static readonly string Environment = Tr._p("Settings", "Environment");
+    public static readonly string ExternalTools = ExternalToolsSettings.ExternalTools;
     public static readonly string Interface = Tr._p("Settings", "Interface");
     public static readonly string Logging = Tr._p("Settings", "Logging");
     public static readonly string Tools = Tr._p("Settings", "Tools");
@@ -51,18 +51,9 @@ public static class EditorSettings
             DisplayName = $"{Interface}/{Tr._p("Settings", "Ask before saving new scripts")}",
             Description = Tr._p("Settings", "Ask before saving new scripts"),
         };
-        Language = new SettingsKey<string>("Interface/Language", SettingsContainer, "MachineDefault")
+        Language = new SettingsKey<SupportedLanguage>("Interface/Language", SettingsContainer, SupportedLanguage.MachineDefault)
         {
             DisplayName = $"{Interface}/{Tr._p("Settings", "Language")}",
-        };
-        ThemeAccent = new SettingsKey<Color>("Interface/Theme/Accent", SettingsContainer, default(Color))
-        {
-            DisplayName = $"{Interface}/{Tr._p("Settings", "Theme Accent")}",
-        };
-        ThemeVariant = new SettingsKey<string>("Interface/Theme/Variant", SettingsContainer, "Default")
-        {
-            DisplayName = $"{Interface}/{Tr._p("Settings", "Theme Variant")}",
-            GetAcceptableValues = () => ["Default", "Dark", "Light"],
         };
         ResetEditorLayout = new SettingsCommand("Interface/ResetEditorLayout")
         {
@@ -121,6 +112,12 @@ public static class EditorSettings
         return levels;
     }
 
+    public static SettingsKey<UFile> DefaultTextEditor => ExternalToolsSettings.DefaultTextEditor;
+
+    public static SettingsKey<UFile> ShaderEditor => ExternalToolsSettings.ShaderEditor;
+
+    public static SettingsKey<string> DefaultIDE => ExternalToolsSettings.DefaultIDE;
+
     public static SettingsKey<bool> AskBeforeDeletingAssets { get; }
 
     public static SettingsKey<bool> AskBeforeReloadingAssemblies { get; }
@@ -129,11 +126,7 @@ public static class EditorSettings
 
     public static SettingsKey<bool> AskBeforeSavingNewScripts { get; }
 
-    public static SettingsKey<string> Language { get; }
-
-    public static SettingsKey<Color> ThemeAccent { get; }
-
-    public static SettingsKey<string> ThemeVariant { get; }
+    public static SettingsKey<SupportedLanguage> Language { get; }
 
     public static SettingsCommand ResetEditorLayout { get; }
 
