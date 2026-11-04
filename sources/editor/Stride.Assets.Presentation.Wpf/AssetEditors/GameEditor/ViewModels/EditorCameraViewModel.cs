@@ -96,7 +96,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
 
         public void LoadSettings([NotNull] SceneSettingsData sceneSettings)
         {
-            Service.LoadSettings(sceneSettings);
+            Service.LoadSettings(sceneSettings.CamPosition, sceneSettings.CamPitchYaw);
             OrthographicProjection = sceneSettings.CamProjection == CameraProjectionMode.Orthographic;
             OrthographicSize = sceneSettings.CamOrthographicSize;
             NearPlane = sceneSettings.CamNearClipPlane;
@@ -108,7 +108,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
 
         public void SaveSettings([NotNull] SceneSettingsData sceneSettings)
         {
-            Service.SaveSettings(sceneSettings);
+            (sceneSettings.CamPosition, sceneSettings.CamPitchYaw) = Service.SaveSettings();
             sceneSettings.CamProjection = OrthographicProjection ? CameraProjectionMode.Orthographic : CameraProjectionMode.Perspective;
             sceneSettings.CamOrthographicSize = OrthographicSize;
             sceneSettings.CamNearClipPlane = NearPlane;
