@@ -13,10 +13,11 @@ This project is the main project for the assets in the editor.
 
 All view models for the Stride asset editors are here.
 
-Also the editor services that know the Stride asset types, which the agnostic `Stride.Editor` does not:
-
-* `Build`: `StrideShaderImporter`, the import of the shader assets of a session; the plugin passes it to the builder service.
-* `EditorGame/ContentLoader`: `EditorContentLoader`, the loader of the assets an editor game shows.
+The editor services that know the Stride asset types, which the agnostic `Stride.Editor` does not, are shared with the WPF
+editor since Phase 3 (editor layer) and live in `Stride.Assets.Presentation.Common` under this project's namespaces:
+`Stride.Assets.Editor.Build.StrideShaderImporter` (the import of the shader assets of a session; the plugin passes it to the
+builder service) and `Stride.Assets.Editor.EditorGame.ContentLoader.EditorContentLoader` (the loader of the assets an editor
+game shows).
 
 ## Notes
 

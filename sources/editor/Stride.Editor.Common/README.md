@@ -18,10 +18,13 @@ Since slice 4 (plugin contracts) also `StrideAssetsPlugin` (the toolkit-neutral 
 
 Since slice 8 (agnostic `Stride.Editor`) also the build units and compilers that need neither WPF nor the WPF session:
 `EditorGameBuildUnit`, `PrecompiledAssetBuildUnit`, `PreviewCompilationContext`, `ThumbnailListCompiler`. The animation and
-prefab preview compilers came along, then moved to `Stride.Assets.Presentation.Common` (they compile Stride asset types). The
-session-bound services (`GameStudioBuilderService`, `GameStudioDatabase`, `StrideShaderImporter`, `EditorContentLoader`,
-`GameStudioThumbnailService`, `ThumbnailAssetBuildUnit`) exist twice, in `Stride.Editor.Wpf` and in the agnostic layer
-(`Stride.Editor`, and `Stride.Assets.Editor` for the shader importer and the content loader), until the consolidation.
+prefab preview compilers came along, then moved to `Stride.Assets.Presentation.Common` (they compile Stride asset types).
+
+Since Phase 3 (editor layer) also the session-bound services, which both editors now share: `GameStudioBuilderService`
+(with the shader import progress and `WaitForShadersAsync`), `GameStudioDatabase`, `IShaderImporter`,
+`GameStudioThumbnailService` (it asks the host's `IThumbnailDataFactory` for the thumbnail data, so each toolkit shows its own
+images) and `ThumbnailAssetBuildUnit`. Their Stride-asset counterparts, the shader importer and the content loader, are in
+`Stride.Assets.Presentation.Common`.
 
 ## Notes
 

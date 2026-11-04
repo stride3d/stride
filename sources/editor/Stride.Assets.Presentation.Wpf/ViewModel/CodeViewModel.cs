@@ -30,6 +30,7 @@ using Stride.Core.Storage;
 using Stride.Core.Translation;
 using Stride.Editor.Build;
 using RoslynWorkspace = Stride.Assets.Presentation.AssetEditors.ScriptEditor.RoslynWorkspace;
+using Stride.Assets.Editor.Build;
 
 namespace Stride.Assets.Presentation.ViewModel
 {

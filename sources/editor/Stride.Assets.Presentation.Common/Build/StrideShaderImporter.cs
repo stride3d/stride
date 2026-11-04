@@ -1,5 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,17 +12,21 @@ using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.BuildEngine;
 using Stride.Assets.Effect;
+using Stride.Editor.Build;
 
-namespace Stride.Editor.Build
+namespace Stride.Assets.Editor.Build
 {
-    public class StrideShaderImporter
+    /// <summary>
+    /// Imports the shader assets (<see cref="EffectShaderAsset"/>) of the packages of a session.
+    /// </summary>
+    public sealed class StrideShaderImporter : IShaderImporter
     {
         /// <summary>
         /// The current session being processed
         /// </summary>
         private readonly HashSet<string> systemProjectsLoaded = new HashSet<string>();
 
-        private class UpdateImportShaderCacheBuildStep : BuildStep
+        private sealed class UpdateImportShaderCacheBuildStep : BuildStep
         {
             private readonly HashSet<string> cachedProject;
 
@@ -61,7 +67,7 @@ namespace Stride.Editor.Build
         /// </summary>
         /// <param name="session">The session used to retrieve currently used system packages.</param>
         /// <returns>A <see cref="ListBuildStep"/> containing the steps to build all shaders from system packages.</returns>
-        public ListBuildStep CreateSystemShaderBuildSteps(SessionViewModel session)
+        public ListBuildStep? CreateSystemShaderBuildSteps(SessionViewModel session)
         {
             if (session == null) throw new ArgumentNullException(nameof(session));
             // Preload shaders from every not-yet-loaded package once at startup.
@@ -100,7 +106,7 @@ namespace Stride.Editor.Build
             return buildSteps;
         }
 
-        public ListBuildStep CreateUserShaderBuildSteps(ISessionViewModel session)
+        public ListBuildStep? CreateUserShaderBuildSteps(ISessionViewModel session)
         {
             var packages = session.AllPackages.Where(project => !project.Package.IsReadOnly).ToList();
             if (packages.Count == 0)
