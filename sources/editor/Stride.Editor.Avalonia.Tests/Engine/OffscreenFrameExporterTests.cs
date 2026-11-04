@@ -27,7 +27,7 @@ public sealed class OffscreenFrameExporterTests
     public void AClearedBackBufferIsReadBackWithinThreeFrames(PixelFormat format, uint expectedPixel)
     {
         using var device = CreateDeviceOrSkip();
-        using var commandList = CommandList.New(device);
+        var commandList = GetCommandList(device);
         using var backBuffer = Texture.New2D(device, 8, 4, format, TextureFlags.RenderTarget | TextureFlags.ShaderResource);
         using var probe = backBuffer.ToStaging();
         var sink = new RecordingSink();
@@ -50,8 +50,11 @@ public sealed class OffscreenFrameExporterTests
     [AvaloniaFact]
     public void TheLatestCompletedFrameIsPublishedAndEarlierOnesAreDropped()
     {
+        // Direct3D 11 has no command list to submit: its immediate context runs the copies whenever the driver wants, so the
+        // test can't keep them in flight
+        Assert.SkipWhen(GraphicsDevice.Platform == GraphicsPlatform.Direct3D11, "Direct3D 11 runs the copies on its immediate context, without a submission to wait for.");
         using var device = CreateDeviceOrSkip();
-        using var commandList = CommandList.New(device);
+        var commandList = GetCommandList(device);
         using var backBuffer = Texture.New2D(device, 8, 4, PixelFormat.B8G8R8A8_UNorm, TextureFlags.RenderTarget | TextureFlags.ShaderResource);
         using var probe = backBuffer.ToStaging();
         var sink = new RecordingSink();
@@ -88,6 +91,12 @@ public sealed class OffscreenFrameExporterTests
             throw;
         }
     }
+
+    /// <summary>
+    /// The command list of the frames, as the preview game's graphics context has it: the immediate context on Direct3D 11,
+    /// which can't create another one. The device disposes it.
+    /// </summary>
+    private static CommandList GetCommandList(GraphicsDevice device) => new GraphicsContext(device).CommandList;
 
     /// <summary>
     /// Submits the command list and waits for the GPU to finish it, so that a frame's copies are complete at the next frame
