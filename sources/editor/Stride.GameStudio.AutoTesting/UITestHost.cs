@@ -23,12 +23,12 @@ using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.SceneEditor.ViewModels;
 using Stride.GameStudio.AssetsEditors;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
-using Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.View;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Controls;
@@ -910,7 +910,7 @@ internal sealed class UITestHost
                     host.Log($"AddAssetFromTemplate: template id={templateId} name='{templateName ?? "*"}' not found ({matches.Count} sharing Id: {string.Join(",", matches.Select(t => t.Name))})");
                     return Guid.Empty;
                 }
-                var assetView = session.ActiveAssetView;
+                var assetView = session.AssetCollection;
                 if (assetView is null) { host.Log("AddAssetFromTemplate: ActiveAssetView is null"); return Guid.Empty; }
                 // RunAssetTemplate's target-folder lookup uses SelectedLocations and pops a modal
                 // MessageBox if nothing is selected (or if the selected package isn't editable —
@@ -925,7 +925,7 @@ internal sealed class UITestHost
                 assetView.SelectedLocations.Add(rootDir);
                 host.Log($"AddAssetFromTemplate: default-selected '{rootDir.Path}' in package '{editablePackage.Name}' as creation target");
                 var templateVm = new TemplateDescriptionViewModel(session.ServiceProvider, template);
-                var created = await assetView.RunAssetTemplate(templateVm, null).ConfigureAwait(true);
+                var created = await assetView.RunAssetTemplateAsync(templateVm, null).ConfigureAwait(true);
                 if (created is null || created.Count == 0) { host.Log("AddAssetFromTemplate: RunAssetTemplate returned no asset"); return Guid.Empty; }
                 host.Log($"AddAssetFromTemplate: created '{created[0].Url}' (id={created[0].Id})");
                 return (Guid)created[0].Id;
@@ -945,7 +945,7 @@ internal sealed class UITestHost
                     return (string?)null;
                 }
                 if (session.ServiceProvider.TryGet<IAssetEditorsManager>() is not { } aem) { host.Log("OpenAssetEditor: no IAssetEditorsManager"); return (string?)null; }
-                await aem.OpenAssetEditorWindow(asset).ConfigureAwait(true);
+                await aem.OpenAssetEditorAsync(asset).ConfigureAwait(true);
                 host.Log($"OpenAssetEditor: opened '{asset.Url}' (id={asset.Id})");
                 return asset.Url;
             }).Task.Unwrap();

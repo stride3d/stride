@@ -4,7 +4,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.ViewModels;
@@ -168,7 +167,7 @@ public sealed class EditorCollectionViewModel : DispatcherViewModel, IAssetEdito
         }
     }
 
-    public bool TryGetAssetEditor<TEditor>(AssetViewModel asset, [MaybeNullWhen(false)] out TEditor assetEditor) where TEditor : AssetEditorViewModel
+    public bool TryGetAssetEditor<TEditor>(AssetViewModel asset, [MaybeNullWhen(false)] out TEditor assetEditor) where TEditor : IAssetEditorViewModel
     {
         if (openedAssets.TryGetValue(asset, out var found) && found is TEditor editor)
         {
@@ -176,7 +175,7 @@ public sealed class EditorCollectionViewModel : DispatcherViewModel, IAssetEdito
             return true;
         }
 
-        assetEditor = null;
+        assetEditor = default;
         return false;
     }
 }

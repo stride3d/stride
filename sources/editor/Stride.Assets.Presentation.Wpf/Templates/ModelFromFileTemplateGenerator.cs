@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Templates;
 using Stride.Core;
 using Stride.Core.IO;
@@ -77,7 +78,7 @@ namespace Stride.Assets.Presentation.Templates
             };
 
             var skeletonId = ModelFromFileTemplateSettings.DefaultSkeleton.GetValue();
-            var skeleton = SessionViewModel.Instance?.GetAssetById(skeletonId);
+            var skeleton = SessionViewModel.CurrentInstance?.GetAssetById(skeletonId);
             if (skeleton != null)
             {
                 window.Parameters.ReuseSkeleton = true;

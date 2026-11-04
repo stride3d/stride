@@ -5,6 +5,7 @@ using System;
 using System.Windows;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors;
 
 #nullable enable

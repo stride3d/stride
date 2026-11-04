@@ -6,6 +6,7 @@ using System.Linq;
 
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.ViewModels;
@@ -22,7 +23,7 @@ namespace Stride.GameStudio.ViewModels
             : base(session.SafeArgument(nameof(session)).ServiceProvider)
         {
             this.session = session;
-            session.ActiveAssetView.SelectedAssets.CollectionChanged += SelectedAssetsCollectionChanged;
+            session.AssetCollection.SelectedAssets.CollectionChanged += SelectedAssetsCollectionChanged;
             session.ActiveAssetsChanged += ActiveAssetsChanged;
 
             RenderPreviewCommand = new AnonymousCommand<bool>(session.ServiceProvider, SetIsVisible);
@@ -70,7 +71,7 @@ namespace Stride.GameStudio.ViewModels
                 previewService.Dispose();
             }
 
-            session.ActiveAssetView.SelectedAssets.CollectionChanged -= SelectedAssetsCollectionChanged;
+            session.AssetCollection.SelectedAssets.CollectionChanged -= SelectedAssetsCollectionChanged;
             session.ActiveAssetsChanged -= ActiveAssetsChanged;
         }
 
@@ -91,9 +92,9 @@ namespace Stride.GameStudio.ViewModels
             if (PreviewService == null)
                 return;
 
-            if (session.ActiveAssetView.SelectedAssets.Count == 1)
+            if (session.AssetCollection.SelectedAssets.Count == 1)
             {
-                var selectedItem = session.ActiveAssetView.SelectedAssets.First();
+                var selectedItem = session.AssetCollection.SelectedAssets.First();
                 previewService.SetAssetToPreview(selectedItem);
             }
             else

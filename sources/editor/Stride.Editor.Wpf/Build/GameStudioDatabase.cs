@@ -16,6 +16,7 @@ using Stride.Core.Serialization.Contents;
 using Stride.Assets;
 using Stride.Editor.Preview;
 using Stride.Graphics;
+using Stride.Core.Assets.Editor.ViewModels;
 
 namespace Stride.Editor.Build
 {

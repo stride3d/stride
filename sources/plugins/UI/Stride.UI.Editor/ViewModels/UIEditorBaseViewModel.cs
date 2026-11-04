@@ -242,7 +242,7 @@ namespace Stride.UI.Editor.ViewModels
             // We should save settings first, before starting to destroy everything
             SaveSettings();
 
-            Session.ActiveAssetView.Assets.CollectionChanged -= AssetsCollectionChanged;
+            Session.AssetCollection.Assets.CollectionChanged -= AssetsCollectionChanged;
 
             base.Destroy();
         }
@@ -303,7 +303,7 @@ namespace Stride.UI.Editor.ViewModels
 
             // Initialize the libraries
             InitializeLibraries();
-            Session.ActiveAssetView.Assets.CollectionChanged += AssetsCollectionChanged;
+            Session.AssetCollection.Assets.CollectionChanged += AssetsCollectionChanged;
 
             ShowAssetProperties();
             return true;
@@ -710,7 +710,7 @@ namespace Stride.UI.Editor.ViewModels
             var libraries = new HashSet<UILibraryViewModel>(SelectedItems.Select(x => x.SourceLibrary).NotNull());
             foreach (var library in libraries)
             {
-                ServiceProvider.Get<IAssetEditorsManager>().OpenAssetEditorWindow(library);
+                ServiceProvider.Get<IAssetEditorsManager>().OpenAssetEditorAsync(library);
             }
         }
 
@@ -778,7 +778,7 @@ namespace Stride.UI.Editor.ViewModels
         {
             var library = LastSelectedElement?.SourceLibrary;
             if (library != null)
-                Session.ActiveAssetView.SelectAssets(library.Yield());
+                Session.AssetCollection.SelectAssets(library.Yield());
         }
 
         private void SetCurrentSelection(AbsoluteId elementId)

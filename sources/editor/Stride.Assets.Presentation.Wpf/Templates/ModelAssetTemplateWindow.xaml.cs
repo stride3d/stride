@@ -4,6 +4,7 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Quantum;

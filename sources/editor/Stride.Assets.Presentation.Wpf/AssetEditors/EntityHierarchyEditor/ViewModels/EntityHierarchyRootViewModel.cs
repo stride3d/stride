@@ -12,6 +12,7 @@ using Stride.Core.Quantum;
 using Stride.Assets.Entities;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.Engine;
+using Stride.Core.Assets.Editor.ViewModels;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels
 {

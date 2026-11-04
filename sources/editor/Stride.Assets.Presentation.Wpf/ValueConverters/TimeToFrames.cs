@@ -4,6 +4,7 @@
 using System;
 using System.Globalization;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Presentation.ValueConverters;
 using Stride.Editor.Build;
 
@@ -21,7 +22,7 @@ namespace Stride.Assets.Presentation.ValueConverters
             if (value == null)
                 return null;
 
-            var gameSettings = SessionViewModel.Instance?.ServiceProvider.Get<GameSettingsProviderService>().CurrentGameSettings;
+            var gameSettings = SessionViewModel.CurrentInstance?.ServiceProvider.Get<GameSettingsProviderService>().CurrentGameSettings;
             var frameRate = (double) (gameSettings?.GetOrCreate<EditorSettings>().AnimationFrameRate ?? 30);
             frameRate = Math.Max(frameRate, 1.0);
             var timeSpan = (TimeSpan)value;
@@ -31,7 +32,7 @@ namespace Stride.Assets.Presentation.ValueConverters
         /// <inheritdoc/>
         public override object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var gameSettings = SessionViewModel.Instance?.ServiceProvider.Get<GameSettingsProviderService>().CurrentGameSettings;
+            var gameSettings = SessionViewModel.CurrentInstance?.ServiceProvider.Get<GameSettingsProviderService>().CurrentGameSettings;
 
             var frameRate = (double)(gameSettings?.GetOrCreate<EditorSettings>().AnimationFrameRate ?? 30);
 

@@ -16,6 +16,7 @@ using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Quantum;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Assets.Quantum.Visitors;
 using Stride.Core.Assets.Serializers;
@@ -224,7 +225,7 @@ namespace Stride.Assets.Presentation.AssemblyReloading
         // editorCode. Its changes are the asset's, which stay in the session.
         private static void CloseEditorsThatCannotFollow(SessionViewModel session, IReadOnlySet<Assembly> outgoingAssemblies, bool editorCode, IEnumerable<AssetViewModel> wholeAssets, ILogger log)
         {
-            var editorsManager = session.ServiceProvider.TryGet<IAssetEditorsManager>();
+            var editorsManager = session.ServiceProvider.TryGet<IWpfAssetEditorsManager>();
             if (editorsManager is null)
                 return;
 
@@ -562,7 +563,7 @@ namespace Stride.Assets.Presentation.AssemblyReloading
             // The asset gets a new property graph, which its editor isn't bound to
             private void CloseEditor()
             {
-                if (asset.Session.ServiceProvider.TryGet<IAssetEditorsManager>() is { } editorsManager && editorsManager.TryGetAssetEditor<IAssetEditorViewModel>(asset, out _))
+                if (asset.Session.ServiceProvider.TryGet<IWpfAssetEditorsManager>() is { } editorsManager && editorsManager.TryGetAssetEditor<IAssetEditorViewModel>(asset, out _))
                     editorsManager.CloseAssetEditorWindow(asset, false);
             }
         }

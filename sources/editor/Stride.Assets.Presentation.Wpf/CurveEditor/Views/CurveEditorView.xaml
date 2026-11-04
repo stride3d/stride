@@ -39,7 +39,7 @@
         <WrapPanel DockPanel.Dock="Right">
           <Button Margin="2" Content="{sd:Image {StaticResource ImageRemove}, 16, 16, NearestNeighbor}"
                   Command="{Binding RemoveSelectedCurveCommand}" IsEnabled="{Binding SelectedCurve, Converter={sd:ObjectToBool}}"
-                  ToolTip="{sd:Localize Remove the selected curve, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
+                  ToolTip="{sd:Localize Remove the selected curve, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True" />
         </WrapPanel>
         <TextBlock Text="{sd:Localize Curves:}" VerticalAlignment="Center" />
       </DockPanel>
@@ -71,26 +71,26 @@
         <!-- View Toolbar -->
         <ToolBar Visibility="{Binding SelectedCurve, Converter={sd:Chained {sd:ObjectToBool}, {sd:VisibleOrCollapsed}}}">
           <ToggleButton x:Name="TrackerToggleButton" IsThreeState="False" IsChecked="True"
-                        ToolTip="{sd:Localize Show or hide the tracker, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                        ToolTip="{sd:Localize Show or hide the tracker, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
             <Path Width="16" Height="16" Stretch="UniformToFill" Fill="{Binding LineStroke, ElementName=Tracker}"
                   Data="F1 M 56,36L 56,40L 40,40L 40,56L 36,56L 36,40L 20,40L 20,36L 36,36L 36,20L 40,20L 40,36L 56,36 Z M 8,37L 8,39L 3.01401,39L 3,38L 3.01401,37L 8,37 Z M 13,37L 13,39L 10,39L 10,37L 13,37 Z M 18,37L 18,39L 15,39L 15,37L 18,37 Z M 39,8.00005L 37,8.00005L 37,3.01403L 38,3.00002L 39,3.01403L 39,8.00005 Z M 39,18.0001L 37,18.0001L 37,15.0001L 39,15.0001L 39,18.0001 Z M 37,10.0001L 39,10.0001L 39,13.0001L 37,13.0001L 37,10.0001 Z M 68,39L 68,37L 72.986,37L 73,38L 72.986,39L 68,39 Z M 63,39L 63,37L 66,37L 66,39L 63,39 Z M 57.9999,39L 57.9999,37L 61,37L 61,39L 57.9999,39 Z M 37,68L 39,68L 39,72.986L 38,73L 37,72.986L 37,68 Z M 37,63L 39,63L 39,66L 37,66L 37,63 Z M 37,58L 39,58L 39,61L 37,61L 37,58 Z " />
           </ToggleButton>
           <Button Content="{sd:Image {StaticResource ImageFitCurve}, 16, 16, NearestNeighbor}"
                   Command="{Binding ResetViewCommand}" CommandParameter="{sd:Int 0}"
-                  ToolTip="{sd:Localize Fit view to curve, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
+                  ToolTip="{sd:Localize Fit view to curve, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True" />
           <Button Content="{sd:Image {StaticResource ImageFitCurveHeight}, 16, 16, NearestNeighbor}"
                   Command="{Binding ResetViewCommand}" CommandParameter="{sd:Int 1}"
-                  ToolTip="{sd:Localize Fit view to curve height, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
+                  ToolTip="{sd:Localize Fit view to curve height, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True" />
           <Button Content="{sd:Image {StaticResource ImageFitCurveWidth}, 16, 16, NearestNeighbor}"
                   Command="{Binding ResetViewCommand}" CommandParameter="{sd:Int -1}"
-                  ToolTip="{sd:Localize Fit view to curve width, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
+                  ToolTip="{sd:Localize Fit view to curve width, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True" />
         </ToolBar>
         <!--  Points Toolbar  -->
         <ToolBar>
           <Button Content="{sd:Image {StaticResource ImageRemove}, 16, 16, NearestNeighbor}"
                   Command="{Binding DeleteSelectedPointsCommand}" IsEnabled="{Binding SelectedControlPoints.Count, Converter={sd:Chained {sd:IsEqualToParam}, {sd:InvertBool}, Parameter1={sd:Int 0}}}"
                   Visibility="{Binding SelectedCurve, Converter={sd:Chained {sd:MatchType}, {sd:VisibleOrCollapsed}, Parameter1={x:Type viewModels:IEditableCurveViewModel}}}"
-                  ToolTip="{sd:Localize Delete selected points, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
+                  ToolTip="{sd:Localize Delete selected points, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True" />
           <!--<Separator />-->
           <!-- TODO other point related tools: e.g. tangent, alignment... -->
         </ToolBar>
@@ -99,16 +99,16 @@
           <!-- Navigation -->
           <Button Content="{sd:Image {StaticResource ImageFirstPoint}, 16, 16, NearestNeighbor}"
                   Command="{Binding NavigateToControlPointCommand}" CommandParameter="{sd:MinInt}"
-                  ToolTip="{sd:Localize First key, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True"/>
+                  ToolTip="{sd:Localize First key, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True"/>
           <Button Content="{sd:Image {StaticResource ImagePreviousPoint}, 16, 16, NearestNeighbor}"
                   Command="{Binding NavigateToControlPointCommand}" CommandParameter="{sd:Int -1}" 
-                  ToolTip="{sd:Localize Previous key, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True"/>
+                  ToolTip="{sd:Localize Previous key, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True"/>
           <Button Content="{sd:Image {StaticResource ImageNextPoint}, 16, 16, NearestNeighbor}"
                   Command="{Binding NavigateToControlPointCommand}" CommandParameter="{sd:Int 1}"
-                  ToolTip="{sd:Localize Next key, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True"/>
+                  ToolTip="{sd:Localize Next key, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True"/>
           <Button Content="{sd:Image {StaticResource ImageLastPoint}, 16, 16, NearestNeighbor}"
                   Command="{Binding NavigateToControlPointCommand}" CommandParameter="{sd:MaxInt}"
-                  ToolTip="{sd:Localize Last key, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True"/>
+                  ToolTip="{sd:Localize Last key, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True"/>
           <!-- Edition -->
           <ContentControl Content="{Binding SingleSelectedControlPoint}"
                           IsEnabled="{Binding HasContent, RelativeSource={RelativeSource Self}}">

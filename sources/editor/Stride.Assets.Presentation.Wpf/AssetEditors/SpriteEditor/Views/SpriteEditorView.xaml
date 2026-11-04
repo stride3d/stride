@@ -87,7 +87,7 @@
       </DockPanel>
       <DockPanel DockPanel.Dock="Top" Margin="8">
         <CheckBox Content="{sd:Localize Use color key, Context=Button}" DockPanel.Dock="Top" IsChecked="{Binding ColorKeyEnabled}"
-                  ToolTip="{sd:Localize If enabled\, the sprite uses the given color as transparency, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True"
+                  ToolTip="{sd:Localize If enabled\, the sprite uses the given color as transparency, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True"
                   VerticalAlignment="Center" />
         <Grid Visibility="{Binding ColorKeyEnabled, Converter={sd:VisibleOrHidden}}" Margin="21,4,0,0">
           <Grid.ColumnDefinitions>
@@ -115,7 +115,7 @@
           <ToggleButton Grid.Column="2"
                         IsChecked="{Binding ToolMode, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static sevm:SpriteSheetEditorToolMode.ColorPick}, Mode=OneWay}"
                         Command="{Binding ToggleToolModeCommand}" CommandParameter="{x:Static sevm:SpriteSheetEditorToolMode.ColorPick}"
-                        ToolTip="{sd:Localize To select the color key\,  select a pixel color from the image, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                        ToolTip="{sd:Localize To select the color key\,  select a pixel color from the image, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
             <Image Source="{StaticResource ImagePicker}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16" Margin="2,0"/>
           </ToggleButton>
         </Grid>
@@ -124,20 +124,20 @@
         <UniformGrid Rows="1" DockPanel.Dock="Right">
           <Button Margin="2" Content="{sd:Image {StaticResource ImageAdd}, 16, 16, NearestNeighbor}"
                   Command="{Binding AddNewImageCommand}"
-                  ToolTip="{sd:ToolTip {sd:Localize Add a new empty sprite, Context=ToolTip}, {x:Static strings:KeyGestures.GestureNewSprite}}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
+                  ToolTip="{sd:ToolTip {sd:Localize Add a new empty sprite, Context=ToolTip}, {x:Static strings:KeyGestures.GestureNewSprite}}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True" />
           <Button Margin="2" Content="{sd:Image {StaticResource ImageDuplicateSprite}, 16, 16, NearestNeighbor}"
                   Command="{Binding DuplicateSelectedImagesCommand}" IsEnabled="{Binding SelectedItems.Count, ElementName=ImageList, Converter={sd:NumericToBool}}"
-                  ToolTip="{sd:ToolTip {sd:Localize Duplicate selected sprites, Context=ToolTip}, {x:Static strings:KeyGestures.GestureDuplicateSelection}}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
+                  ToolTip="{sd:ToolTip {sd:Localize Duplicate selected sprites, Context=ToolTip}, {x:Static strings:KeyGestures.GestureDuplicateSelection}}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True" />
           <Button Margin="2" Content="{sd:Image {StaticResource ImageRemove}, 16, 16, NearestNeighbor}"
                   Command="{Binding RemoveImageCommand}" IsEnabled="{Binding SelectedItems.Count, ElementName=ImageList, Converter={sd:NumericToBool}}"
-                  ToolTip="{sd:Localize Delete selected sprites, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
+                  ToolTip="{sd:Localize Delete selected sprites, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True" />
           <Button Margin="2" Content="{sd:Image {StaticResource ImageUp}, 16, 16, NearestNeighbor}"
                   Command="{Binding MoveImageCommand}" CommandParameter="{sd:Int -1}"
-                  ToolTip="{sd:Localize Move selected sprites up, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True"
+                  ToolTip="{sd:Localize Move selected sprites up, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True"
                   IsEnabled="{Binding SelectedItems.Count, ElementName=ImageList, Converter={sd:NumericToBool}}" />
           <Button Margin="2" Content="{sd:Image {StaticResource ImageDown}, 16, 16, NearestNeighbor}"
                   Command="{Binding MoveImageCommand}" CommandParameter="{sd:Int 1}" 
-                  ToolTip="{sd:Localize Move selected sprites down, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True"
+                  ToolTip="{sd:Localize Move selected sprites down, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True"
                   IsEnabled="{Binding SelectedItems.Count, ElementName=ImageList, Converter={sd:NumericToBool}}" />
         </UniformGrid>
         <TextBlock Text="{sd:Localize Sprites:}" VerticalAlignment="Center"/>
@@ -221,38 +221,38 @@
       <ToolBarTray DockPanel.Dock="Top">
         <ToolBar>
           <Button Command="{Binding SelectNextSpriteCommand}" CommandParameter="{sd:Int -1}"
-                  ToolTip="{sd:ToolTip {sd:Localize Select previous sprite, Context=ToolTip}, {x:Static strings:KeyGestures.GestureSelectPreviousSprite}}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                  ToolTip="{sd:ToolTip {sd:Localize Select previous sprite, Context=ToolTip}, {x:Static strings:KeyGestures.GestureSelectPreviousSprite}}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
             <Image Source="{StaticResource ImagePrevious}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16" />
           </Button>
           <Button Command="{Binding SelectNextSpriteCommand}" CommandParameter="{sd:Int 1}"
-                  ToolTip="{sd:ToolTip {sd:Localize Select next sprite, Context=ToolTip}, {x:Static strings:KeyGestures.GestureSelectNextSprite}}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                  ToolTip="{sd:ToolTip {sd:Localize Select next sprite, Context=ToolTip}, {x:Static strings:KeyGestures.GestureSelectNextSprite}}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
             <Image Source="{StaticResource ImageNext}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16" />
           </Button>
           <Separator Background="{StaticResource NormalBrush}"/>
           <Button Command="{Binding Viewport.ZoomOutCommand}" Background="Transparent" Margin="2"
-                  ToolTip="{sd:Localize Zoom out, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                  ToolTip="{sd:Localize Zoom out, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
             <Image Source="{StaticResource ImageZoomOut}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16" />
           </Button>
           <Button Command="{Binding Viewport.ZoomInCommand}" Background="Transparent" Margin="2"
-                  ToolTip="{sd:Localize Zoom in, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                  ToolTip="{sd:Localize Zoom in, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
             <Image Source="{StaticResource ImageZoomIn}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16" />
           </Button>
           <Button Command="{Binding Viewport.ScaleToRealSizeCommand}" Background="Transparent" Margin="2"
-                  ToolTip="{sd:Localize Scale to real pixel size, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                  ToolTip="{sd:Localize Scale to real pixel size, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
             <Image Source="{StaticResource ImageScaleOnRealSize}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16" />
           </Button>
           <Button Command="{Binding Viewport.FitOnScreenCommand}" Background="Transparent" Margin="2"
-                  ToolTip="{sd:Localize Fit image to screen, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                  ToolTip="{sd:Localize Fit image to screen, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
             <Image Source="{StaticResource ImageFitOnScreen}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16" />
           </Button>
           <Button Command="{Binding FocusOnRegionCommand}" Background="Transparent" Margin="2"
-                  ToolTip="{sd:ToolTip {sd:Localize Center view on current sprite region, Context=ToolTip}, {x:Static strings:KeyGestures.GestureFocus}}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                  ToolTip="{sd:ToolTip {sd:Localize Center view on current sprite region, Context=ToolTip}, {x:Static strings:KeyGestures.GestureFocus}}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
             <Image Source="{StaticResource ImageFocusOnRegion}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16" />
           </Button>
           <Separator Background="{StaticResource NormalBrush}"/>
           <Grid>
             <ToggleButton x:Name="BorderColorButton" Background="Transparent" Margin="2"
-                        ToolTip="{sd:Localize Change selection rectangle color, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                        ToolTip="{sd:Localize Change selection rectangle color, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
               <Border BorderThickness="1" BorderBrush="{Binding BorderColor, Converter={sd:ColorConverter}}" Width="16" Height="16" />
               <i:Interaction.Behaviors>
                 <sd:ToggleButtonPopupBehavior/>
@@ -269,10 +269,10 @@
                         Command="{Binding ToggleSelectionHighlightCommand}"
                         Background="Transparent" Style="{StaticResource {x:Type ToggleButton}}" Margin="2"
                         Content="{sd:Image {StaticResource ImageHighlightSelection}, 16, 16, NearestNeighbor}"
-                        ToolTip="{sd:Localize Highlight the current selection, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
+                        ToolTip="{sd:Localize Highlight the current selection, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True" />
           <Separator Background="{StaticResource NormalBrush}"/>
           <Button Command="{Binding UseWholeImageCommand}" Background="Transparent" Margin="2" IsEnabled="{Binding SelectedSprites.Count, Converter={sd:NumericToBool}}"
-                  ToolTip="{sd:ToolTip {sd:Localize Select entire image, Context=ToolTip}, {x:Static strings:KeyGestures.GestureSelectWholeImage}}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                  ToolTip="{sd:ToolTip {sd:Localize Select entire image, Context=ToolTip}, {x:Static strings:KeyGestures.GestureSelectWholeImage}}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
             <Image Source="{StaticResource ImageSelectAll}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16" />
           </Button>
           <!-- Magic wand -->
@@ -280,7 +280,7 @@
                         Command="{Binding ToggleToolModeCommand}" CommandParameter="{x:Static sevm:SpriteSheetEditorToolMode.MagicWand}"
                         Background="Transparent" Style="{StaticResource {x:Type ToggleButton}}" Margin="2"
                         Content="{sd:Image {StaticResource ImageMagicWand}, 16, 16, NearestNeighbor}"
-                        ToolTip="{sd:ToolTip {sd:Localize Select the sprite region using the magic wand, Context=ToolTip}, {x:Static strings:KeyGestures.GestureMagicWand}}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True"
+                        ToolTip="{sd:ToolTip {sd:Localize Select the sprite region using the magic wand, Context=ToolTip}, {x:Static strings:KeyGestures.GestureMagicWand}}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True"
                         IsEnabled="{Binding SelectedSprites.Count, Converter={sd:NumericToBool}}" />
           <Grid>
             <ToggleButton x:Name="MagicWandColorButton" Background="Transparent" IsEnabled="{Binding SelectedSprites.Count, Converter={sd:NumericToBool}}">
@@ -308,7 +308,7 @@
           <ToggleButton Visibility="{Binding Type, Converter={sd:Chained {sd:IsEqualToParam}, {sd:VisibleOrCollapsed}, Parameter1={x:Static sprite:SpriteSheetType.Sprite2D}}, Mode=OneWay}"
                         IsChecked="{Binding ToolMode, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static sevm:SpriteSheetEditorToolMode.SpriteCenter}, Mode=OneWay}"
                         Command="{Binding ToggleToolModeCommand}" CommandParameter="{x:Static sevm:SpriteSheetEditorToolMode.SpriteCenter}"
-                        ToolTip="{sd:Localize Move the sprite center, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                        ToolTip="{sd:Localize Move the sprite center, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
             <Path Width="16" Height="16" Stretch="UniformToFill" Fill="{Binding BorderColor, Converter={sd:ColorConverter}}"
                   Data="F1 M 56,36L 56,40L 40,40L 40,56L 36,56L 36,40L 20,40L 20,36L 36,36L 36,20L 40,20L 40,36L 56,36 Z M 8,37L 8,39L 3.01401,39L 3,38L 3.01401,37L 8,37 Z M 13,37L 13,39L 10,39L 10,37L 13,37 Z M 18,37L 18,39L 15,39L 15,37L 18,37 Z M 39,8.00005L 37,8.00005L 37,3.01403L 38,3.00002L 39,3.01403L 39,8.00005 Z M 39,18.0001L 37,18.0001L 37,15.0001L 39,15.0001L 39,18.0001 Z M 37,10.0001L 39,10.0001L 39,13.0001L 37,13.0001L 37,10.0001 Z M 68,39L 68,37L 72.986,37L 73,38L 72.986,39L 68,39 Z M 63,39L 63,37L 66,37L 66,39L 63,39 Z M 57.9999,39L 57.9999,37L 61,37L 61,39L 57.9999,39 Z M 37,68L 39,68L 39,72.986L 38,73L 37,72.986L 37,68 Z M 37,63L 39,63L 39,66L 37,66L 37,63 Z M 37,58L 39,58L 39,61L 37,61L 37,58 Z " />
           </ToggleButton>
@@ -316,12 +316,12 @@
           <ToggleButton Visibility="{Binding Type, Converter={sd:Chained {sd:IsEqualToParam}, {sd:VisibleOrCollapsed}, Parameter1={x:Static sprite:SpriteSheetType.UI}}, Mode=OneWay}"
                         IsChecked="{Binding ToolMode, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static sevm:SpriteSheetEditorToolMode.Borders}, Mode=OneWay}"
                         Command="{Binding ToggleToolModeCommand}" CommandParameter="{x:Static sevm:SpriteSheetEditorToolMode.Borders}"
-                        ToolTip="{sd:Localize Resize the sprite borders, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                        ToolTip="{sd:Localize Resize the sprite borders, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
             <Rectangle StrokeThickness="1" StrokeDashArray="2 2" Stroke="{Binding BorderColor, Converter={sd:ColorConverter}}" Width="16" Height="16" />
           </ToggleButton>
           <!-- Lock/Unlock borders -->
           <ToggleButton Visibility="{Binding Type, Converter={sd:Chained {sd:IsEqualToParam}, {sd:VisibleOrCollapsed}, Parameter1={x:Static sprite:SpriteSheetType.UI}}, Mode=OneWay}"
-                        IsChecked="{Binding CurrentSprite.SpriteBorders.Locked, Mode=TwoWay}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                        IsChecked="{Binding CurrentSprite.SpriteBorders.Locked, Mode=TwoWay}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
             <ToggleButton.Style>
               <Style TargetType="{x:Type ToggleButton}">
                 <Style.Triggers>

@@ -17,6 +17,7 @@
              xmlns:cmd="clr-namespace:Stride.Core.Presentation.Commands;assembly=Stride.Core.Presentation"
              xmlns:core="clr-namespace:Stride.Core.Presentation.Core;assembly=Stride.Core.Presentation"
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+             xmlns:editorvm="clr-namespace:Stride.Core.Assets.Editor.ViewModels;assembly=Stride.Core.Assets.Editor.Common"
              mc:Ignorable="d"
              d:DesignHeight="300" d:DesignWidth="300" d:DataContext="{d:DesignInstance ehvm:EntityHierarchyEditorViewModel}">
   <UserControl.Resources>
@@ -45,7 +46,7 @@
           <Setter.Value>
             <DataTemplate>
               <Border Width="28" Height="28"
-                      Background="Transparent" ToolTip="{Binding Converter={sd:EnumToTooltip}}" sd:ToolTipHelper.Status="{Binding Editor.Status, Source={x:Static sd:SessionViewModel.Instance}}" ToolTipService.ShowOnDisabled="True">
+                      Background="Transparent" ToolTip="{Binding Converter={sd:EnumToTooltip}}" sd:ToolTipHelper.Status="{Binding Main.Status, Source={x:Static editorvm:SessionViewModel.Instance}}" ToolTipService.ShowOnDisabled="True">
                 <Image Width="16" Height="16" Source="{Binding Converter={sd:EnumToResource}}" />
               </Border>
             </DataTemplate>
@@ -194,7 +195,7 @@
           <ToolBar>
             <Menu Background="Transparent"
                   DataContext="{sd:PriorityBinding {Binding ActiveRoot, Converter={sd:NullToUnset}, Mode=OneWay}, {Binding HierarchyRoot, Mode=OneWay}}"
-                  ToolTip="{sd:Localize Create a new entity, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Editor.Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                  ToolTip="{sd:Localize Create a new entity, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Editor.Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
               <MenuItem Style="{StaticResource ToolBarIconMenuItemStyle}">
                 <MenuItem.Icon>
                   <Image Source="{StaticResource ImageNewAsset}" MaxHeight="24" MaxWidth="24" />
@@ -234,7 +235,7 @@
             <Separator/>
             <AdornerDecorator>
               <sd:TextBox UseTimedValidation="True" Width="120" WatermarkContent="Filter" Text="{Binding FilterPattern}" VerticalAlignment="Center"
-                            ToolTip="{sd:Localize Filter entities by name, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                            ToolTip="{sd:Localize Filter entities by name, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
                 <i:Interaction.Behaviors>
                   <sd:ContainTextAdornerBehavior />
                 </i:Interaction.Behaviors>
@@ -242,11 +243,11 @@
             </AdornerDecorator>
             <Separator/>
             <Button Command="{x:Static views:AssetCompositeHierarchyTreeViewHelper.ExpandAllItems}" CommandTarget="{Binding ElementName=HierarchyTreeView}"
-                    ToolTip="{sd:Localize Expand all entities, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                    ToolTip="{sd:Localize Expand all entities, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
               <Image Source="{StaticResource ImageExpandAllFolders}" />
             </Button>
             <Button Command="{x:Static views:AssetCompositeHierarchyTreeViewHelper.CollapseAllItems}" CommandTarget="{Binding ElementName=HierarchyTreeView}"
-                    ToolTip="{sd:Localize Collapse all entities, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                    ToolTip="{sd:Localize Collapse all entities, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
               <Image Source="{StaticResource ImageCollapseAllFolders}" />
             </Button>
           </ToolBar>
@@ -494,7 +495,7 @@
             <WrapPanel HorizontalAlignment="Right" DockPanel.Dock="Right">
               <!-- Grid -->
               <ToggleButton x:Name="ToggleGrid" Content="{sd:Image {StaticResource ImageGrid}, 16, 16, NearestNeighbor}"
-                            ToolTip="{sd:Localize Viewport grid settings..., Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True"
+                            ToolTip="{sd:Localize Viewport grid settings..., Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True"
                             Width="28" Height="28" Background="Transparent" >
               </ToggleButton>
               <Popup IsOpen="{Binding ElementName=ToggleGrid, Path=IsChecked}" StaysOpen="False" PlacementTarget="{Binding ElementName=ToggleGrid}">
@@ -518,7 +519,7 @@
               </Popup>
               <!-- Lighting -->
               <ToggleButton x:Name="ToggleLighting" Content="{sd:Image {StaticResource ImageLighting}, 16, 16, NearestNeighbor}"
-                            ToolTip="{sd:Localize Light probes and cubemaps..., Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True"
+                            ToolTip="{sd:Localize Light probes and cubemaps..., Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True"
                             Width="28" Height="28" Background="Transparent" >
                 <i:Interaction.Behaviors>
                   <sd:ToggleButtonPopupBehavior/>
@@ -572,7 +573,7 @@
               </Popup>
               <!-- Overlays (navigation meshes, debug shapes, ... whatever the editor game services draw on request) -->
               <ToggleButton x:Name="ToggleOverlays" Content="{sd:Image {StaticResource ImageNavigation}, 16, 16, NearestNeighbor}"
-                            ToolTip="{sd:Localize Overlays..., Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True"
+                            ToolTip="{sd:Localize Overlays..., Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True"
                             Width="28" Height="28" Background="Transparent" >
                 <i:Interaction.Behaviors>
                   <sd:ToggleButtonPopupBehavior/>
@@ -616,7 +617,7 @@
               </Popup>
               <!-- Gizmos -->
               <ToggleButton x:Name="ToggleGizmo" Content="{sd:Image {StaticResource ImageGizmos}, 16, 16, NearestNeighbor}"
-                            ToolTip="{sd:Localize Grid and gizmo options..., Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True"
+                            ToolTip="{sd:Localize Grid and gizmo options..., Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True"
                             Width="28" Height="28" Background="Transparent" >
                 <i:Interaction.Behaviors>
                   <sd:ToggleButtonPopupBehavior/>
@@ -664,7 +665,7 @@
               </Popup>
               <!-- Camera -->
               <ToggleButton x:Name="ToggleCamera" Content="{sd:Image {StaticResource ImageCameraSettings}, 16, 16, NearestNeighbor}"
-                            ToolTip="{sd:Localize Editor camera options..., Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True"
+                            ToolTip="{sd:Localize Editor camera options..., Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True"
                             Width="28" Height="28" Background="Transparent">
                 <i:Interaction.Behaviors>
                   <sd:ToggleButtonPopupBehavior/>
@@ -749,7 +750,7 @@
               <ToggleButton IsChecked="{Binding Transform.TranslationSnap.IsActive}" Height="28" Background="Transparent"
                             Visibility="{Binding Transform.ActiveTransformation, Mode=OneWay,
                                                  Converter={sd:Chained {sd:IsEqualToParam}, {sd:VisibleOrCollapsed}, Parameter1={x:Static gameEditor:Transformation.Translation}}}"
-                            ToolTip="{sd:Localize Snap translations to this value, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                            ToolTip="{sd:Localize Snap translations to this value, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
                 <StackPanel Orientation="Horizontal">
                   <Image Source="{StaticResource ImageTranslateSnap}" Width="16" Height="16" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
                   <sd:NumericTextBox Width="50" Value="{Binding Transform.TranslationSnap.Value}" Minimum="0" DecimalPlaces="3" Margin="2"/>
@@ -758,7 +759,7 @@
               <ToggleButton IsChecked="{Binding Transform.RotationSnap.IsActive}" Height="28" Background="Transparent"
                             Visibility="{Binding Transform.ActiveTransformation, Mode=OneWay,
                                                  Converter={sd:Chained {sd:IsEqualToParam}, {sd:VisibleOrCollapsed}, Parameter1={x:Static gameEditor:Transformation.Rotation}}}"
-                            ToolTip="{sd:Localize Snap rotations to this value, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                            ToolTip="{sd:Localize Snap rotations to this value, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
                 <StackPanel Orientation="Horizontal">
                   <Image Source="{StaticResource ImageRotateSnap}" Width="16" Height="16" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
                   <sd:NumericTextBox Width="50" Value="{Binding Transform.RotationSnap.Value}" Minimum="0" DecimalPlaces="3" Margin="2"/>
@@ -767,7 +768,7 @@
               <ToggleButton IsChecked="{Binding Transform.ScaleSnap.IsActive}" Height="28" Background="Transparent"
                             Visibility="{Binding Transform.ActiveTransformation, Mode=OneWay,
                                                  Converter={sd:Chained {sd:IsEqualToParam}, {sd:VisibleOrCollapsed}, Parameter1={x:Static gameEditor:Transformation.Scale}}}"
-                            ToolTip="{sd:Localize Snap scale to this factor, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                            ToolTip="{sd:Localize Snap scale to this factor, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
                 <StackPanel Orientation="Horizontal">
                   <Image Source="{StaticResource ImageScaleSnap}" Width="16" Height="16" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
                   <sd:NumericTextBox Width="50" Value="{Binding Transform.ScaleSnap.Value}" Minimum="0" DecimalPlaces="3" Margin="2"/>
@@ -791,10 +792,10 @@
               <Separator Background="{StaticResource ToggleButtonNormalBackground}"/>
               <ToggleButton IsChecked="{Binding MaterialSelectionMode}" Background="Transparent"
                             Content="{sd:Image {StaticResource ImageToggleMaterialMode}, 16, 16, NearestNeighbor}" Width="28" Height="28"
-                            ToolTip="{sd:Localize Toggle material selection (click a selected asset to select its material), Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
+                            ToolTip="{sd:Localize Toggle material selection (click a selected asset to select its material), Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True" />
               <ToggleButton IsChecked="{Binding DisplaySelectionMask}" Background="Transparent"
                             Content="{sd:Image {StaticResource ImageToggleSelectionMask}, 16, 16, NearestNeighbor}" Width="28" Height="28"
-                            ToolTip="{sd:Localize Show or hide selection mask, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
+                            ToolTip="{sd:Localize Show or hide selection mask, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True" />
               <Separator Background="{StaticResource ToggleButtonNormalBackground}"/>
               <TextBlock Text="{sd:Localize Loading assets...}" Visibility="{Binding CompilingAssets, Converter={sd:VisibleOrCollapsed}}"
                          VerticalAlignment="Center" FontWeight="Bold" Foreground="{StaticResource LoadingAssetMessageFromBrush}">

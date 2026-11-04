@@ -354,7 +354,7 @@ namespace Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewM
 
                 // Create the view model (and the AssetPropertyGraph)
                 var assetViewModel = Asset.Directory.Package.CreateAsset(Asset.Directory, assetItem, true, null);
-                Session.ActiveAssetView.SelectAssets(assetViewModel.Yield());
+                Session.AssetCollection.SelectAssets(assetViewModel.Yield());
 
                 if (linkToBase)
                 {

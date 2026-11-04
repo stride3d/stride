@@ -13,6 +13,7 @@ using Stride.Assets.Presentation.AssetEditors.PrefabEditor.Services;
 using Stride.Assets.Presentation.SceneEditor;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.Core.Assets.Editor.Annotations;
+using Stride.Core.Assets.Editor.ViewModels;
 
 namespace Stride.Assets.Presentation.AssetEditors.PrefabEditor.ViewModels
 {
