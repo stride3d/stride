@@ -592,86 +592,88 @@ namespace Stride.BepuPhysics.Tests
         }
 
         [Theory]
-        // 60hz sim with a max budget of 16ms*0.5, sleep of 17ms, which is right past our budget should lead to a single tick being processed
-        [InlineData(60, 0.5f, 17, 4, 1)]
-        // 60hz sim with a max budget of 16ms*10, sleep of 17ms per tick, total of four ticks, should (hopefully) result in four ticks as the budget is large enough.
-        // Since we're using time elapsed as the threshold, this could be inconsistent
-        [InlineData(60, 10f, 17, 4, 4)]
-        public static void PhysicsBudgetTest(int frequency, float budget, int sleepDuration, int stepsMax, int expectedTicks)
+        [InlineData(true, 2, 2, 3, 5, 5)]
+        [InlineData(false, 2, 4, 5, 7, 9)]
+        public static void PostponedTicksTest(
+            bool dropPostponedTicks, int expectedTicksA, int expectedTicksB, int expectedTicksC, int expectedTicksD, int expectedTicksE)
         {
             using var simulation = new BepuSimulation
             {
-                FixedTimeStep = TimeSpan.FromTicks(TimeSpan.TicksPerSecond / frequency),
-                PhysicsBudget = budget
+                MaximumTimespanToProcess = TimeSpan.FromSeconds(2f),
+                DropPostponedTicks = dropPostponedTicks,
+                FixedTimeStep = TimeSpan.FromSeconds(1f),
             };
-
-            // Make sure any caching and JITing is ready
-            simulation.PostponedTicksCap = 0;
-            simulation.Update(simulation.FixedTimeStep * 10);
-            simulation.PostponedTicksCap = -1;
-
             int ticks = 0;
-            simulation.Register(new SimUpdateListener { SimUpdate = () =>
-            {
-                if (sleepDuration != 0)
-                    Thread.Sleep(sleepDuration); // Simulate physics work that takes at least sleepDuration ms
-                ticks++;
-            } });
+            simulation.Register(new SimUpdateListener { SimUpdate = () => ticks++ });
 
-            simulation.Update(simulation.FixedTimeStep * stepsMax);
-
-            Assert.Equal(expectedTicks, ticks);
+            simulation.Update(simulation.FixedTimeStep * 4);
+            Assert.Equal(expectedTicksA, ticks);
+            simulation.Update(simulation.FixedTimeStep / 2);
+            Assert.Equal(expectedTicksB, ticks);
+            simulation.Update(simulation.FixedTimeStep / 2);
+            Assert.Equal(expectedTicksC, ticks);
+            simulation.Update(simulation.FixedTimeStep * 4);
+            Assert.Equal(expectedTicksD, ticks);
+            simulation.Update(simulation.FixedTimeStep * 0);
+            Assert.Equal(expectedTicksE, ticks);
         }
 
-        [Theory]
-        // 16ms per physics tick with a budget of 16ms*0.5.
-        // Update for 64ms, 4 physics tick to run with the first one taking 17ms longer breaking past our budget.
-        // We postpone the three other ticks to next update given our unlimited cap(-1).
-        // Next one runs 64ms worth of ticks again, it goes through the  Should still lead to 8 ticks as the time is not dropped, next frame caught up.
-        [InlineData(16, 64, 17, -1, 1, 8)]
-        // Same setup, but this time we have a cap of zero ticks.
-        // From the first batch of four, the first one will be processed, while the others will be discarded.
-        // The second batch then runs, and given that no additional ticks have been queued up, processes its four ticks and ends.
-        [InlineData(16, 64, 17, 0, 1, 5)]
-        // Same setup, but this time we have a cap of two ticks.
-        // From the first batch of four, the first one will be processed, two of them will be queued up, and the last one will be discarded.
-        // The second batch then runs, processes the two that have been queued up, then its four ticks and ends.
-        [InlineData(16, 64, 17, 2, 1, 7)]
-        // Same setup, but this time we have a cap of zero ticks with an update time step of half a physics step.
-        // The first batch doesn't contain a whole step, its time is added to the counter. The cap here doesn't affect the counter as it doesn't contain a whole step yet.
-        // The second batch then runs, adds its half as well. Now that the counter has a full step, physics runs for one step and ends.
-        [InlineData(16, 8, 17, 0, 0, 1)]
-        public static void PhysicsBudgetOverflowTest(int physicsTimestep, int updateTimestep, int sleepDuration, int ticksCap, int expectedTicksAfterFirstUpdate, int expectedTicksTotal)
+        [Fact]
+        public static void FractionalTicksPastMaxTest()
         {
             using var simulation = new BepuSimulation
             {
-                FixedTimeStep = TimeSpan.FromMilliseconds(physicsTimestep),
-                PhysicsBudget = 0.5f,
+                MaximumTimespanToProcess = TimeSpan.FromSeconds(1f),
+                DropPostponedTicks = true,
+                FixedTimeStep = TimeSpan.FromSeconds(1f),
             };
-
-            // Make sure any caching and JITing is ready
-            simulation.PostponedTicksCap = 0;
-            simulation.Update(simulation.FixedTimeStep * 10);
-            simulation.PostponedTicksCap = ticksCap;
-
             int ticks = 0;
-            simulation.Register(new SimUpdateListener { SimUpdate = () =>
+            simulation.Register(new SimUpdateListener { SimUpdate = () => ticks++ });
+
+            simulation.Update(simulation.MaximumTimespanToProcess + simulation.MaximumTimespanToProcess * 0);
+            Assert.Equal(1, ticks);
+            simulation.Update(simulation.MaximumTimespanToProcess + simulation.MaximumTimespanToProcess / 2);
+            Assert.Equal(2, ticks);
+            simulation.Update(simulation.MaximumTimespanToProcess / 2);
+            Assert.Equal(3, ticks);
+        }
+
+        [Fact]
+        public static void NoTicksTest()
+        {
+            var maximumTimespanUnderFixedTimeStep = TimeSpan.FromSeconds(0.5f);
+            using var simulation = new BepuSimulation
             {
-                if (sleepDuration != 0)
-                    Thread.Sleep(sleepDuration); // Simulate physics work that takes at least sleepDuration ms on the first tick
-                ticks++;
-            } });
+                MaximumTimespanToProcess = maximumTimespanUnderFixedTimeStep,
+                FixedTimeStep = TimeSpan.FromSeconds(1f),
+            };
+            int ticks = 0;
+            simulation.Register(new SimUpdateListener { SimUpdate = () => ticks++ });
 
-            simulation.Update(TimeSpan.FromMilliseconds(updateTimestep));
-            sleepDuration = 0;
+            simulation.DropPostponedTicks = true;
+            simulation.Update(simulation.FixedTimeStep);
+            Assert.Equal(0, ticks); ticks = 0;
+            simulation.Update(simulation.FixedTimeStep);
+            Assert.Equal(0, ticks); ticks = 0;
+            simulation.Update(simulation.FixedTimeStep);
+            Assert.Equal(0, ticks); ticks = 0;
 
-            Assert.Equal(expectedTicksAfterFirstUpdate, ticks);
+            simulation.MaximumTimespanToProcess = TimeSpan.FromSeconds(10f);
+            simulation.Update(simulation.FixedTimeStep);
+            Assert.Equal(1, ticks); ticks = 0;
+            simulation.MaximumTimespanToProcess = maximumTimespanUnderFixedTimeStep;
 
-            // Let it run to completion with postponed ticks and all
-            simulation.PhysicsBudget = float.PositiveInfinity;
-            simulation.Update(TimeSpan.FromMilliseconds(updateTimestep));
+            simulation.DropPostponedTicks = false;
+            simulation.Update(simulation.FixedTimeStep);
+            Assert.Equal(0, ticks); ticks = 0;
+            simulation.Update(simulation.FixedTimeStep);
+            Assert.Equal(0, ticks); ticks = 0;
+            simulation.Update(simulation.FixedTimeStep);
+            Assert.Equal(0, ticks); ticks = 0;
 
-            Assert.Equal(expectedTicksTotal, ticks);
+            simulation.MaximumTimespanToProcess = TimeSpan.FromSeconds(10f);
+            simulation.Update(TimeSpan.Zero);
+            Assert.Equal(3, ticks); ticks = 0;
         }
 
         [Theory]
