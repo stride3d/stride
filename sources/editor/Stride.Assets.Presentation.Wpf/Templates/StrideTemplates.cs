@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using Stride.Assets.Editor.Templates;
 using Stride.Assets.Templates;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Quantum.Templates;
@@ -25,17 +26,8 @@ namespace Stride.Assets.Presentation.Templates
             QuantumTemplateRegistration.Register(new AddPluginGenerator(new WpfAddPluginParameterPrompt()));
             TemplateManager.Register(new UpdatePlatformsGenerator(new WpfUpdatePlatformsParameterPrompt()));
             RegisterUpdatePlatformsDescription();
-            TemplateManager.Register(AssetFactoryTemplateGenerator.Default);
-            TemplateManager.Register(AssetFromFileTemplateGenerator.Default);
-            // Specific asset templates must be registered after AssetFactoryTemplateGenerator
-            TemplateManager.Register(ProceduralModelFactoryTemplateGenerator.Default);
-            TemplateManager.Register(SkyboxFactoryTemplateGenerator.Default);
-            TemplateManager.Register(DerivedAssetTemplateGenerator.Default);
-            TemplateManager.Register(ScriptTemplateGenerator.Default);
-            TemplateManager.Register(SpriteSheetFromFileTemplateGenerator.Default);
-            TemplateManager.Register(ModelFromFileTemplateGenerator.Default);
-            TemplateManager.Register(SkeletonFromFileTemplateGenerator.Default);
-            TemplateManager.Register(AnimationFromFileTemplateGenerator.Default);
+            // The asset generators, shared with the cross-platform editor, with the WPF dialogs of the script and model templates
+            StrideAssetTemplates.Register(new WpfScriptNamePrompt(), new WpfModelImportPrompt());
         }
 
         /// <summary>

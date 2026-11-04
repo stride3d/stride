@@ -27,7 +27,7 @@ using Stride.Rendering.ProceduralModels;
 namespace Stride.Assets.Editor.Tests.Templates;
 
 /// <summary>
-/// The asset template generators of the editor (the agnostic copies of the WPF ones), run through the asset view of a session
+/// The asset template generators (shared by both editors), run through the asset view of a session
 /// over template descriptions written like the ones of the Stride package.
 /// </summary>
 public sealed class AssetTemplateGeneratorTests

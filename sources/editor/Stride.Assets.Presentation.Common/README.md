@@ -32,6 +32,12 @@ updaters that both editors share (`Stride.Assets.Editor.Quantum.NodePresenters.K
 models of a plugin's own assembly only, so `StrideSharedAssetsPlugin` declares them; a plugin of each editor
 registers the updaters (`StrideEditorPlugin` in the cross-platform editor, `StrideDefaultAssetsPlugin` in WPF).
 
+Since Phase 3 (asset templates) also the asset template generators of both editors (`Stride.Assets.Editor.Templates`: the
+factory, from-file and derived asset generators, the model, skeleton, animation and sprite sheet import generators, the
+procedural model, skybox and script generators), with the view models of their two dialogs (`ScriptNameViewModel`,
+`ImportModelFromFileViewModel`) and the prompt interfaces that each editor implements (`IScriptNamePrompt`, `IModelImportPrompt`).
+`StrideAssetTemplates.Register` registers them: `StrideTemplates` in WPF, `StrideAvaloniaTemplates` in the cross-platform editor.
+
 ## Notes
 
 * This project goes away in Phase 3 of the port, when its code merges into the agnostic editor projects.

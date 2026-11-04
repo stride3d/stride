@@ -1,29 +1,39 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using System.Runtime.CompilerServices;
 using System.Windows;
-using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Assets.Editor.Templates;
 using Stride.Core;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.ViewModels;
-using Stride.Core.Quantum;
-using Stride.Rendering;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Quantum;
+using Stride.Core.Serialization;
+using Stride.Rendering;
 
 namespace Stride.Assets.Presentation.Templates
 {
-    public class ImportModelFromFileViewModel : DispatcherViewModel
+    /// <summary>
+    /// The options of a model import (<see cref="ImportModelFromFileViewModel"/>). The skeleton to reuse is picked with the content
+    /// reference template of the property grid, through a property graph of its own (<see cref="ReferenceViewModel"/>); it is
+    /// copied to the options when the user accepts (<see cref="ApplySkeleton"/>).
+    /// </summary>
+    public partial class ModelAssetTemplateWindow
     {
+        /// <summary>
+        /// The object holding the skeleton reference that the property template edits.
+        /// </summary>
         [DataContract]
-        public class DummyReferenceContainer : IPropertyProviderViewModel
+        public sealed class DummyReferenceContainer : IPropertyProviderViewModel
         {
             private readonly IObjectNode rootNode;
 
-            public DummyReferenceContainer()
+            public DummyReferenceContainer(Skeleton skeleton)
             {
+                Skeleton = skeleton;
                 rootNode = SessionViewModel.Instance.AssetNodeContainer.GetOrCreateNode(this);
             }
 
@@ -38,58 +48,36 @@ namespace Stride.Assets.Presentation.Templates
             bool IPropertyProviderViewModel.ShouldConstructItem(IObjectNode collection, NodeIndex index) => true;
         }
 
-        private readonly DummyReferenceContainer referenceContainer = new DummyReferenceContainer();
+        private readonly DummyReferenceContainer referenceContainer;
 
-        private bool importMaterials = true;
-        private bool showDeduplicateMaterialsCheckBox = true;
-        private bool showFbxDedupeNotSupportedWarning = false;
-        private bool deduplicateMaterials = true;
-        private bool importTextures = true;
-        private bool importAnimations = true;
-        private bool importSkeleton = true;
-        private bool dontImportSkeleton;
-        private bool reuseSkeleton;
-
-        public ImportModelFromFileViewModel(IViewModelServiceProvider serviceProvider)
-            : base(serviceProvider)
+        public ModelAssetTemplateWindow(ImportModelFromFileViewModel parameters)
         {
-            ReferenceViewModel = GraphViewModel.Create(serviceProvider, new[] { referenceContainer });
-        }
-
-        public bool ImportMaterials { get { return importMaterials; } set { SetValue(ref importMaterials, value); } }
-
-        public bool ShowDeduplicateMaterialsCheckBox { get { return showDeduplicateMaterialsCheckBox; } set { SetValue(ref showDeduplicateMaterialsCheckBox, value); } }
-        public bool ShowFbxDedupeNotSupportedWarning { get { return showFbxDedupeNotSupportedWarning; } set { SetValue(ref showFbxDedupeNotSupportedWarning, value); } }
-        public bool DeduplicateMaterials { get { return deduplicateMaterials; } set { SetValue(ref deduplicateMaterials, value); } }
-
-        public bool ImportTextures { get { return importTextures; } set { SetValue(ref importTextures, value); } }
-
-        public bool ImportAnimations { get { return importAnimations; } set { SetValue(ref importAnimations, value); } }
-
-        public bool ImportSkeleton { get { return importSkeleton; } set { SetValue(ref importSkeleton, value); } }
-
-        public bool DontImportSkeleton { get { return dontImportSkeleton; } set { SetValue(ref dontImportSkeleton, value); } }
-
-        public bool ReuseSkeleton { get { return reuseSkeleton; } set { SetValue(ref reuseSkeleton, value); } }
-
-        public Skeleton SkeletonToReuse { get { return referenceContainer.Skeleton; } set { referenceContainer.Skeleton = value; } }
-
-        public GraphViewModel ReferenceViewModel { get; }
-    }
-    /// <summary>
-    /// Interaction logic for ModelAssetTemplateWindow.xaml
-    /// </summary>
-    public partial class ModelAssetTemplateWindow
-    {
-        public ModelAssetTemplateWindow()
-        {
-            var viewModelService = new GraphViewModelService(SessionViewModel.Instance.AssetNodeContainer);
-            var services = new ViewModelServiceProvider(SessionViewModel.Instance.ServiceProvider, viewModelService.Yield());
-            Parameters = new ImportModelFromFileViewModel(services);
+            ArgumentNullException.ThrowIfNull(parameters);
+            var session = SessionViewModel.Instance;
+            var skeleton = parameters.SkeletonToReuse is { } asset ? ContentReferenceHelper.CreateReference<Skeleton>(asset) : null;
+            referenceContainer = new DummyReferenceContainer(skeleton);
+            var viewModelService = new GraphViewModelService(session.AssetNodeContainer);
+            var services = new ViewModelServiceProvider(session.ServiceProvider, viewModelService.Yield());
+            ReferenceViewModel = GraphViewModel.Create(services, new[] { referenceContainer });
+            Parameters = parameters;
             InitializeComponent();
         }
 
-        public ImportModelFromFileViewModel Parameters { get { return (ImportModelFromFileViewModel)DataContext; } set { DataContext = value; } }
+        public ImportModelFromFileViewModel Parameters { get { return (ImportModelFromFileViewModel)DataContext; } private set { DataContext = value; } }
+
+        /// <summary>
+        /// The property graph of the skeleton reference, shown by the content reference template.
+        /// </summary>
+        public GraphViewModel ReferenceViewModel { get; }
+
+        /// <summary>
+        /// Copies the skeleton picked in the window to <see cref="ImportModelFromFileViewModel.SkeletonToReuse"/>.
+        /// </summary>
+        internal void ApplySkeleton()
+        {
+            var id = AttachedReferenceManager.GetAttachedReference(referenceContainer.Skeleton)?.Id;
+            Parameters.SkeletonToReuse = id is { } skeletonId ? SessionViewModel.Instance.GetAssetById(skeletonId) : null;
+        }
 
         private void ButtonOk(object sender, RoutedEventArgs e)
         {
