@@ -46,6 +46,7 @@ bin/packages/*
 !bin/packages/.gitkeep
 ipch/
 obj/
+.stride-backup-*/
 TestResults/
 .vs/
 .idea/

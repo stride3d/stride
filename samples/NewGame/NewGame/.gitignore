@@ -1,6 +1,7 @@
 bin/
 Bin/
 obj/
+.stride-backup-*/
 .vs/
 .idea/
 Cache/
