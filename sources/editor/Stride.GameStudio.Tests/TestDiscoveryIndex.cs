@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using Stride.Assets.Editor.EntityFactories;
 using Stride.Assets.Editor.Preview;
+using Stride.Assets.Editor.Templates;
 using Stride.Assets.Editor.ViewModels.Preview;
 using Stride.Assets.Presentation;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
@@ -20,6 +21,7 @@ using Stride.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Templates;
 using Stride.Core.Reflection;
 using Stride.Editor;
 using Stride.Editor.Annotations;
@@ -158,6 +160,54 @@ namespace Stride.GameStudio.Tests
             Assert.All(factories.Where(x => x.Type.Namespace == typeof(SpriteEntityFactory).Namespace), x => Assert.Equal(typeof(SpriteEntityFactory).Assembly, x.Type.Assembly));
             Assert.Empty(Duplicates(factories, x => x.Type, x => x.Type));
             Assert.Empty(Duplicates(factories, x => x.Entry, x => x.Type));
+        }
+
+        [Fact]
+        public void EachAssetTemplateHasOneGeneratorInTheWpfEditor()
+        {
+            // The module of the WPF assets layer registers the shared generators (Stride.Assets.Presentation.Common) with its dialogs
+            RuntimeHelpers.RunModuleConstructor(typeof(StrideDefaultAssetsPlugin).Module.ModuleHandle);
+
+            const BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Static;
+            var registered = (System.Collections.Generic.List<ITemplateGenerator>)typeof(TemplateManager).GetField("Generators", flags).GetValue(null);
+            System.Collections.Generic.List<ITemplateGenerator> generators;
+            lock (typeof(TemplateManager).GetField("ThisLock", flags).GetValue(null))
+            {
+                generators = registered.ToList();
+            }
+            var shared = generators.Where(x => x.GetType().Namespace == typeof(AssetTemplateGenerator).Namespace).ToList();
+            Assert.All(shared, x => Assert.Equal(typeof(StrideSharedAssetsPlugin).Assembly, x.GetType().Assembly));
+            Assert.Empty(Duplicates(shared, x => x.GetType(), x => x.GetType()));
+            Assert.Equal(10, shared.Count);
+            // No WPF copy is left
+            Assert.DoesNotContain(generators, x => x.GetType().Namespace == "Stride.Assets.Presentation.Templates" && x is AssetTemplateGenerator);
+
+            // Each kind of asset template resolves to its own generator, the specific ones before the generic ones
+            foreach (var (description, expected) in AssetTemplateCases())
+            {
+                var generator = TemplateManager.FindTemplateGenerator<AssetTemplateGeneratorParameters>(description);
+                Assert.True(expected == generator?.GetType(), $"{description.Name}: {generator?.GetType().FullName ?? "no generator"} instead of {expected.Name}");
+            }
+        }
+
+        private static System.Collections.Generic.IEnumerable<(TemplateDescription Description, Type Generator)> AssetTemplateCases()
+        {
+            static TemplateAssetFactoryDescription Factory(string name, Guid id, string assetTypeName, bool importSource = false)
+                => new() { Id = id, Name = name, Scope = TemplateScope.Asset, AssetTypeName = assetTypeName, ImportSource = importSource };
+
+            yield return (Factory("Material", Guid.NewGuid(), nameof(Stride.Assets.Materials.MaterialAsset)), typeof(AssetFactoryTemplateGenerator));
+            yield return (Factory("Texture", Guid.NewGuid(), nameof(Stride.Assets.Textures.TextureAsset), importSource: true), typeof(AssetFromFileTemplateGenerator));
+            var derived = Factory("Graphics compositor", Guid.NewGuid(), nameof(Stride.Assets.Rendering.GraphicsCompositorAsset));
+            derived.DerivedFrom = "GraphicsCompositor";
+            yield return (derived, typeof(DerivedAssetTemplateGenerator));
+            yield return (Factory("Procedural model", ProceduralModelFactoryTemplateGenerator.TemplateId, nameof(Stride.Assets.Models.ProceduralModelAsset)), typeof(ProceduralModelFactoryTemplateGenerator));
+            yield return (Factory("Skybox", SkyboxFactoryTemplateGenerator.TemplateId, nameof(Stride.Assets.Skyboxes.SkyboxAsset)), typeof(SkyboxFactoryTemplateGenerator));
+            yield return (Factory("Model", ModelFromFileTemplateGenerator.Id, nameof(Stride.Assets.Models.ModelAsset), importSource: true), typeof(ModelFromFileTemplateGenerator));
+            yield return (Factory("Skeleton", SkeletonFromFileTemplateGenerator.Id, nameof(Stride.Assets.Models.SkeletonAsset), importSource: true), typeof(SkeletonFromFileTemplateGenerator));
+            yield return (Factory("Animation", AnimationFromFileTemplateGenerator.Id, nameof(Stride.Assets.Models.AnimationAsset), importSource: true), typeof(AnimationFromFileTemplateGenerator));
+            yield return (Factory("Sprite sheet", SpriteSheetFromFileTemplateGenerator.SpriteSheetId, nameof(Stride.Assets.Sprite.SpriteSheetAsset), importSource: true), typeof(SpriteSheetFromFileTemplateGenerator));
+            yield return (Factory("UI sprite sheet", SpriteSheetFromFileTemplateGenerator.UISpriteSheetId, nameof(Stride.Assets.Sprite.SpriteSheetAsset), importSource: true), typeof(SpriteSheetFromFileTemplateGenerator));
+            yield return (new TemplateAssetDescription { Id = Guid.NewGuid(), Name = "Script", Scope = TemplateScope.Asset, AssetTypeName = "ScriptSourceFileAsset" }, typeof(ScriptTemplateGenerator));
         }
 
         private static string[] Duplicates<T, TKey>(System.Collections.Generic.IEnumerable<T> items, Func<T, TKey> key, Func<T, Type> type)
