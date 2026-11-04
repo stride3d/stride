@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics;
+using Avalonia.Threading;
 using Stride.Assets.Editor;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Services;
@@ -76,6 +78,9 @@ internal sealed class ShellSessionFixture : IDisposable
     {
         var fixture = Create(assets);
         var opened = await fixture.Main.OpenSession(fixture.PackagePath);
+        // What the session does in the background once open, so that the tests start from a session at rest
+        if (fixture.Main.Session is { } session)
+            await session.Initialization;
         if (opened != true || fixture.Main.Session is null)
         {
             fixture.Dispose();
@@ -113,6 +118,7 @@ internal sealed class ShellSessionFixture : IDisposable
             }
             session.ServiceProvider.TryGet<GameSettingsProviderService>()?.Dispose();
             session.Destroy();
+            WaitForBackgroundWork(session);
         }
         Plugins.Dispose();
 
@@ -123,6 +129,25 @@ internal sealed class ShellSessionFixture : IDisposable
         catch (IOException)
         {
             // Best effort
+        }
+    }
+
+    /// <summary>
+    /// Waits for the background work of a destroyed session to end: nothing the test started may outlive it.
+    /// </summary>
+    /// <remarks>
+    /// Some of it ends on the UI thread, where the tests run: its jobs run meanwhile.
+    /// </remarks>
+    private static void WaitForBackgroundWork(SessionViewModel session)
+    {
+        var work = session.BackgroundWork;
+        var elapsed = Stopwatch.StartNew();
+        while (!work.Wait(TimeSpan.FromMilliseconds(10)))
+        {
+            if (elapsed.Elapsed > TimeSpan.FromSeconds(30))
+                throw new TimeoutException("The background work of the session did not end within 30 seconds of its destruction.");
+            if (Dispatcher.UIThread.CheckAccess())
+                Dispatcher.UIThread.RunJobs();
         }
     }
 
