@@ -117,6 +117,10 @@ namespace Stride.Engine.Tests
             FrameGameSystem.Draw(() => ChangeMaterial(1)).Draw(() => ChangeModel(-1)).TakeScreenshot();
             FrameGameSystem.Draw(() => ChangeMaterial(1)).TakeScreenshot();
             FrameGameSystem.Draw(() => ChangeMaterial(1)).TakeScreenshot();
+
+            // Back to no tessellation and to the same AEN material: the AEN indices are generated again
+            FrameGameSystem.Draw(6, () => ChangeMaterial(1));
+            FrameGameSystem.Draw(7, () => ChangeMaterial(-1));
         }
 
         protected override void Draw(GameTime gameTime)

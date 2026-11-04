@@ -177,15 +177,13 @@ namespace Stride.Rendering.Materials
                             PrimitiveType = tessellationState.Method.GetPrimitiveType(),
                         };
 
+                        // Dispose AEN indices if they were generated for the previous method
+                        Utilities.Dispose(ref tessellationState.GeneratedIndicesAEN);
+
                         // adapt the primitive type and index buffer to the tessellation used
                         if (tessellationState.Method.PerformsAdjacentEdgeAverage())
                         {
                             renderMeshesToGenerateAEN.Add(renderMesh);
-                        }
-                        else
-                        {
-                            // Not using AEN tessellation anymore, dispose AEN indices if they were generated
-                            Utilities.Dispose(ref tessellationState.GeneratedIndicesAEN);
                         }
                         tessellationState.MeshDraw = tessellationMeshDraw;
 
@@ -198,7 +196,9 @@ namespace Stride.Rendering.Materials
                 else if (tessellationState.GeneratedIndicesAEN != null)
                 {
                     // Not using tessellation anymore, dispose AEN indices if they were generated
+                    // and forget the method, so that a switch back to it rebuilds the draw and generates them again
                     Utilities.Dispose(ref tessellationState.GeneratedIndicesAEN);
+                    tessellationState.Method = StrideTessellationMethod.None;
                 }
 
                 // Rebuild rasterizer state if culling mode changed
@@ -346,15 +346,18 @@ namespace Stride.Rendering.Materials
             });
         }
 
-        public override void Draw(RenderDrawContext context, RenderView renderView, RenderViewStage renderViewStage, int startIndex, int endIndex)
+        /// <inheritdoc/>
+        public override void Draw(RenderDrawContext context, RenderView renderView, RenderViewStage renderViewStage)
         {
+            // Generate AEN indices once per view, before the render nodes are drawn: a deferred device draws
+            // the ranges of nodes in parallel, and each range would generate them again on its own command list
             if (renderMeshesToGenerateAEN.Count > 0)
             {
                 var tessellationStates = RootRenderFeature.RenderData.GetData(tessellationStateKey);
 
                 foreach (var renderMesh in renderMeshesToGenerateAEN)
                 {
-                    var tessellationState = tessellationStates[renderMesh.StaticObjectNode];
+                    ref var tessellationState = ref tessellationStates[renderMesh.StaticObjectNode];
                     if (tessellationState.GeneratedIndicesAEN != null)
                         continue;
 
