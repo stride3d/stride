@@ -98,9 +98,9 @@ public sealed class PluginTests
     }
 
     [Fact]
-    public void TheEditorPluginDeclaresThePreviewViewModels()
+    public void TheSharedAssetsPluginDeclaresThePreviewViewModels()
     {
-        var types = PluginRegistrations.Of(new StrideEditorPlugin(), typeof(Stride.Core.Assets.Editor.Editors.IAssetEditorView)).AssetPreviewViewModelTypes;
+        var types = PluginRegistrations.Of(new StrideSharedAssetsPlugin(), typeof(Stride.Core.Assets.Editor.Editors.IAssetEditorView)).AssetPreviewViewModelTypes;
 
         Assert.Equal(typeof(TexturePreviewViewModel), types[typeof(TexturePreview)]);
         Assert.Equal(typeof(AnimationPreviewViewModel), types[typeof(AnimationPreview)]);
@@ -109,17 +109,20 @@ public sealed class PluginTests
         Assert.Equal(typeof(SpriteSheetPreviewViewModel), types[typeof(SpriteSheetPreview)]);
         // Any sprite batch preview without a view model of its own gets the generic one
         Assert.Equal(typeof(SpritePreviewViewModel), types[typeof(PreviewFromSpriteBatch<>)]);
+        // The editor plugin declares none any more: a second declaration would make the registration throw
+        Assert.Empty(PluginRegistrations.Of(new StrideEditorPlugin(), typeof(Stride.Core.Assets.Editor.Editors.IAssetEditorView)).AssetPreviewViewModelTypes);
     }
 
     [Fact]
-    public void TheEditorPluginDeclaresThePreviews()
+    public void TheSharedAssemblyDeclaresThePreviews()
     {
         // The previews register through the assets assemblies; the editor's preview service collects them by attribute
-        var previews = Stride.Core.Reflection.AssemblyRegistry.GetScanTypes(typeof(StrideEditorPlugin).Assembly, typeof(Stride.Editor.Preview.IAssetPreview)).ToList();
+        var previews = Stride.Core.Reflection.AssemblyRegistry.GetScanTypes(typeof(StrideSharedAssetsPlugin).Assembly, typeof(Stride.Editor.Preview.IAssetPreview)).ToList();
 
         Assert.Contains(typeof(TexturePreview), previews);
         Assert.Contains(typeof(ScenePreview), previews);
         Assert.Contains(typeof(SkyboxPreview), previews);
+        Assert.Empty(Stride.Core.Reflection.AssemblyRegistry.GetScanTypes(typeof(StrideEditorPlugin).Assembly, typeof(Stride.Editor.Preview.IAssetPreview)));
     }
 
     [Fact]
@@ -130,7 +133,7 @@ public sealed class PluginTests
         // The shared editor assembly declares the gizmos of the engine components
         Assert.Equal(typeof(Stride.Assets.Presentation.AssetEditors.Gizmos.CameraGizmo), StrideEditorPlugin.GizmoTypeDictionary[typeof(Stride.Engine.CameraComponent)]);
         Assert.Equal(typeof(Stride.Assets.Presentation.AssetEditors.Gizmos.DispatcherLightGizmo), StrideEditorPlugin.GizmoTypeDictionary[typeof(Stride.Engine.LightComponent)]);
-        // The editor assembly has copies of the engine's entity factories of the WPF assembly, in the same categories
+        // The entity factories of the engine components come from the shared assembly, in the same categories as in WPF
         Assert.Equal(["2D", "Camera", "Light", "Model"], StrideEditorPlugin.EntityFactoryCategories.Select(x => x.Name));
         Assert.Contains(StrideEditorPlugin.EntityFactoryCategories.Single(x => x.Name == "Light").Factories, x => x.Factory is EntityFactories.PointLightEntityFactory);
         // The add-asset policies still live in the WPF assembly: only the plugin packages bring some, and none is loaded here
