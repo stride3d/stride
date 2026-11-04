@@ -206,18 +206,20 @@ public sealed class BuildAndRunTests
             var started = builder.NextBuild;
             fixture.Main.Build.BuildProjectCommand.Execute();
             var build = await started.WaitAsync(TimeSpan.FromSeconds(30));
+            var log = fixture.Main.Build.BuildLog.Messages;
             for (var i = 0; i < 200; ++i)
                 build.Logger.Info($"Line {i}");
-            await WindowTestHelper.PumpAsync();
+            // The lines reach the log after its update interval: until then the empty viewer is "at its end" too
+            await WindowTestHelper.WaitUntilAsync(() => log.Any(x => x.Text == "Line 199"), "the lines in the log");
             var viewer = window.GetVisualDescendants().OfType<ScrollViewer>().Single(x => x.Name == "PART_LogScrollViewer");
-            await WindowTestHelper.WaitUntilAsync(() => viewer.Extent.Height > viewer.Viewport.Height && IsAtEnd(viewer), "the end of the log");
+            await WindowTestHelper.WaitUntilAsync(() => viewer.Viewport.Height > 0 && viewer.Extent.Height > 2 * viewer.Viewport.Height && IsAtEnd(viewer), "the end of the log");
 
             // The user scrolls up to read the log: new lines do not move it
             viewer.Offset = new Vector(0, 0);
             await WindowTestHelper.PumpAsync();
             build.Logger.Info("One more line");
             build.Complete(true);
-            await WindowTestHelper.WaitUntilAsync(() => !fixture.Main.Build.BuildInProgress, "the end of the build");
+            await WindowTestHelper.WaitUntilAsync(() => !fixture.Main.Build.BuildInProgress && log.Any(x => x.Text == "One more line"), "the end of the build");
             await Task.Delay(500);
             await WindowTestHelper.PumpAsync();
             Assert.Equal(0, viewer.Offset.Y);

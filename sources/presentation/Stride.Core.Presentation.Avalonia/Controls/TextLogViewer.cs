@@ -548,8 +548,13 @@ public sealed class TextLogViewer : TemplatedControl
         var showedEnd = viewer.Extent.Height - e.ExtentDelta.Y - (viewer.Viewport.Height - e.ViewportDelta.Y) - (viewer.Offset.Y - e.OffsetDelta.Y) < 1.0;
         if (showedEnd)
         {
-            // Not while the scroll viewer raises its event
-            Dispatcher.UIThread.Post(viewer.ScrollToEnd, DispatcherPriority.Background);
+            // Not while the scroll viewer raises its event, and not once the user scrolled away in between
+            var offset = viewer.Offset;
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (viewer.Offset == offset)
+                    viewer.ScrollToEnd();
+            }, DispatcherPriority.Background);
         }
     }
 
