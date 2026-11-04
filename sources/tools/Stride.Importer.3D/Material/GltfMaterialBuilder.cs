@@ -72,7 +72,7 @@ namespace Stride.Importer.ThreeD.Material
             // Stride blends with premultiplied alpha, so only blended materials premultiply their base color.
             var baseColor = GetColor(material, Assimp.MatkeyBaseColor) ?? GetColor(material, Assimp.MaterialColorDiffuseBase) ?? Vector4.One;
             baseColor.W = alphaMode == AlphaMode.Opaque ? 1.0f : GetFloat(material, Assimp.MatkeyOpacity) ?? 1.0f;
-            var baseColorFactor = new ComputeColor(new Color4(baseColor)) { PremultiplyAlpha = alphaMode == AlphaMode.Blend };
+            var baseColorFactor = new ComputeColor(new Color4(baseColor).ToSRgb()) { PremultiplyAlpha = alphaMode == AlphaMode.Blend };
             attributes.Diffuse = new MaterialDiffuseMapFeature(Multiply(CreateColorNode(GetBaseColorTexture(material)), baseColorFactor));
             attributes.DiffuseModel = new MaterialDiffuseLambertModelFeature();
 
@@ -106,7 +106,7 @@ namespace Stride.Importer.ThreeD.Material
             if (emissiveColor.X > 0.0f || emissiveColor.Y > 0.0f || emissiveColor.Z > 0.0f)
             {
                 var emissiveTexture = GetTexture(material, TextureType.Emissive) ?? GetTexture(material, TextureType.EmissionColor);
-                var emissiveFactor = new ComputeColor(new Color4(emissiveColor.X, emissiveColor.Y, emissiveColor.Z, 1.0f));
+                var emissiveFactor = new ComputeColor(new Color4(emissiveColor.X, emissiveColor.Y, emissiveColor.Z, 1.0f).ToSRgb());
                 attributes.Emissive = new MaterialEmissiveMapFeature(Multiply(CreateColorNode(emissiveTexture), emissiveFactor))
                 {
                     Intensity = new ComputeFloat(GetFloat(material, Assimp.MatkeyEmissiveIntensity) ?? 1.0f),

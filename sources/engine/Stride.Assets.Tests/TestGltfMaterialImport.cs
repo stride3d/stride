@@ -49,7 +49,7 @@ public sealed class TestGltfMaterialImport : IDisposable
         var product = AssertBinary(diffuse.DiffuseMap, BinaryOperator.Multiply);
         Assert.Equal("basecolor", TextureUrl(Assert.IsType<ComputeTextureColor>(product.LeftChild).Texture));
         var factor = Assert.IsType<ComputeColor>(product.RightChild);
-        Assert.Equal(new Color4(0.5f, 0.5f, 0.5f, 1.0f), factor.Value);
+        Assert.Equal(new Color4(0.5f, 0.5f, 0.5f, 1.0f).ToSRgb(), factor.Value);
         Assert.False(factor.PremultiplyAlpha);
         Assert.IsType<MaterialDiffuseLambertModelFeature>(Material("Painted").DiffuseModel);
     }
@@ -94,7 +94,7 @@ public sealed class TestGltfMaterialImport : IDisposable
         var emissive = Assert.IsType<MaterialEmissiveMapFeature>(attributes.Emissive);
         var product = AssertBinary(emissive.EmissiveMap, BinaryOperator.Multiply);
         Assert.Equal("emissive", TextureUrl(Assert.IsType<ComputeTextureColor>(product.LeftChild).Texture));
-        Assert.Equal(new Color4(1.0f, 0.5f, 0.0f, 1.0f), Assert.IsType<ComputeColor>(product.RightChild).Value);
+        Assert.Equal(new Color4(1.0f, 0.5f, 0.0f, 1.0f).ToSRgb(), Assert.IsType<ComputeColor>(product.RightChild).Value);
 
         Assert.Equal(CullMode.None, attributes.CullMode);
         Assert.Null(attributes.Transparency);
@@ -107,7 +107,7 @@ public sealed class TestGltfMaterialImport : IDisposable
 
         var diffuse = Assert.IsType<MaterialDiffuseMapFeature>(attributes.Diffuse);
         var factor = Assert.IsType<ComputeColor>(diffuse.DiffuseMap);
-        Assert.Equal(new Color4(0.8f, 0.9f, 1.0f, 0.2f), factor.Value);
+        Assert.Equal(new Color4(0.8f, 0.9f, 1.0f, 0.2f).ToSRgb(), factor.Value);
         Assert.True(factor.PremultiplyAlpha);
         Assert.IsType<MaterialTransparencyBlendFeature>(attributes.Transparency);
         Assert.Equal(0.0f, Assert.IsType<ComputeFloat>(Assert.IsType<MaterialMetalnessMapFeature>(attributes.Specular).MetalnessMap).Value);
@@ -126,7 +126,7 @@ public sealed class TestGltfMaterialImport : IDisposable
         var product = AssertBinary(Assert.IsType<MaterialDiffuseMapFeature>(attributes.Diffuse).DiffuseMap, BinaryOperator.Multiply);
         Assert.Equal("basecolor", TextureUrl(Assert.IsType<ComputeTextureColor>(product.LeftChild).Texture));
         var factor = Assert.IsType<ComputeColor>(product.RightChild);
-        Assert.Equal(new Color4(1.0f, 1.0f, 1.0f, 0.9f), factor.Value);
+        Assert.Equal(new Color4(1.0f, 1.0f, 1.0f, 0.9f).ToSRgb(), factor.Value);
         Assert.False(factor.PremultiplyAlpha);
     }
 
