@@ -59,19 +59,23 @@ namespace Stride.Assets.Materials
 
             public override void VisitObject(object obj, ObjectDescriptor descriptor, bool visitMembers)
             {
-                if (obj != assetItem && AssetRegistry.IsExactContentType(obj.GetType()))
+                if (AssetRegistry.IsExactContentType(obj.GetType()))
                 {
                     if (obj is Material mat)
                     {
-                        var layerMaterial = assetItem.Package!.FindAssetFromProxyObject(mat) ?? throw new NullReferenceException();
-                        var innerCollector = new ContentReferenceCollector
+                        var layerMaterial = assetItem.Package!.FindAssetFromProxyObject(mat);
+                        // Missing material would be logged through MaterialBlendLayer.Visit when null
+                        if (layerMaterial is not null)
                         {
-                            cycles = cycles,
-                            contentUrl = contentUrl,
-                            assetItem = layerMaterial
-                        };
-                        if (innerCollector.cycles.Add(layerMaterial.Asset))
-                            innerCollector.Visit(layerMaterial);
+                            var innerCollector = new ContentReferenceCollector
+                            {
+                                cycles = cycles,
+                                contentUrl = contentUrl,
+                                assetItem = layerMaterial
+                            };
+                            if (innerCollector.cycles.Add(layerMaterial.Asset))
+                                innerCollector.Visit(layerMaterial.Asset);
+                        }
                         return;
                     }
 
