@@ -34,6 +34,8 @@ internal sealed class FakeEditorGameController : IEditorGameController, IDisposa
 
     public Task GameContentLoaded => Task.CompletedTask;
 
+    public Task GameEnded => Task.CompletedTask;
+
     public SessionNodeContainer GameSideNodeContainer { get; }
 
     /// <summary>

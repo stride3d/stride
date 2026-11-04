@@ -95,6 +95,11 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
         /// Task completion source that sets the result when the game content is loaded.
         /// </summary>
         private readonly TaskCompletionSource<bool> gameContentLoadedTaskSource = new TaskCompletionSource<bool>();
+        /// <summary>
+        /// Task completion source that completes when the game thread runs no more frame.
+        /// </summary>
+        private readonly TaskCompletionSource gameEndedTaskSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private bool gameThreadStarted;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EditorGameController{TEditorGame}"/> class.
@@ -142,6 +147,9 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
         /// <inheritdoc/>
         public Task GameContentLoaded => gameContentLoadedTaskSource.Task;
 
+        /// <inheritdoc/>
+        public Task GameEnded => gameEndedTaskSource.Task;
+
         protected GameEditorViewModel Editor { get; }
 
         /// <summary>
@@ -185,6 +193,10 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
             UnregisterFromDragDropEvents();
             GameForm?.Host?.Dispose();
             IsDestroying = true;
+
+            // A game that never started runs no frame; StartGame refuses to start it from now on
+            if (!gameThreadStarted)
+                gameEndedTaskSource.TrySetResult();
 
             // Clean after everything
             PostTask(async x =>
@@ -245,6 +257,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
             if (IsDestroying)
                 throw new InvalidOperationException("This controller is beeing disposed.");
             // Run the game in a separate thread (create Form and run)
+            gameThreadStarted = true;
             sceneGameThread.Start();
             // Wait for the game to start
             await gameStartedTaskSource.Task;
@@ -517,7 +530,14 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
             {
                 gameEnded = true;
                 gameEndedCancellation.Cancel();
-                Game.Dispose();
+                try
+                {
+                    Game.Dispose();
+                }
+                finally
+                {
+                    gameEndedTaskSource.TrySetResult();
+                }
             }
         }
 

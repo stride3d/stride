@@ -271,10 +271,13 @@ namespace Stride.GameStudio.View
 
                     // Close all windows (except if the user interrupt the flow)
                     // Since all dirty assets must have been saved before, we don't need to ask for any user confirmation
+                    var closedEditors = assetEditorsManager.EditorViewModels.OfType<AssetEditorViewModel>().ToList();
                     assetEditorsManager.CloseAllEditorWindows(false);
 
-                    // Let the running thumbnail command finish, without blocking the UI thread it might need. A stuck command must not prevent closing.
-                    await Task.WhenAny(Editor.Session.Thumbnails.StopAsync(), Task.Delay(TimeSpan.FromSeconds(10)));
+                    // Let the running thumbnail command finish, and the games of the closed editors end (they read the settings keys
+                    // that the plugins take away below), without blocking the UI thread they might need. A stuck one must not prevent closing.
+                    var editorsStopped = Task.WhenAll(closedEditors.Select(x => x.Stopped.ContinueWith(_ => { }, TaskScheduler.Default)));
+                    await Task.WhenAny(Task.WhenAll(Editor.Session.Thumbnails.StopAsync(), editorsStopped), Task.Delay(TimeSpan.FromSeconds(10)));
 
                     pluginService = Editor.Session.ServiceProvider.TryGet<IAssetsPluginService>() as IDisposable;
                     Editor.Session.Destroy();

@@ -150,6 +150,10 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     /// </summary>
     protected EntityHierarchyEditorController? Controller { get; private set; }
 
+    /// <inheritdoc/>
+    /// <remarks>The game reads the scene editor settings, which the plugins register, on every frame.</remarks>
+    public override Task Stopped => Controller?.GameEnded ?? Task.CompletedTask;
+
     /// <summary>
     /// Starts the game of the editor and loads the hierarchy into it, when the session can show a game.
     /// </summary>
