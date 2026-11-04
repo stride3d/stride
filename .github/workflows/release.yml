@@ -108,6 +108,11 @@ jobs:
             exit 1
           fi
 
+      - name: Check the version doesn't go backward
+        if: ${{ inputs.deploy }}
+        shell: pwsh
+        run: ./.github/scripts/check-version-order.ps1 -Version "${{ steps.version.outputs.version }}"
+
       # Whether this release includes the samples. release-deploy.yml checks the content version again, for a deploy of
       # a build made earlier.
       - name: Plan the samples

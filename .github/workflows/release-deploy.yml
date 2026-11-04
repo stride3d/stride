@@ -107,6 +107,11 @@ jobs:
             exit 1
           fi
 
+      # Again here, for a deploy of a build made earlier: a release may have happened since.
+      - name: Check the version doesn't go backward
+        shell: pwsh
+        run: ./.github/scripts/check-version-order.ps1 -Version "${{ steps.version.outputs.version }}" -Commit "${{ steps.src.outputs.sha }}"
+
       - name: List packages
         shell: pwsh
         run: |
