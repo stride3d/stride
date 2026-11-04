@@ -33,6 +33,7 @@ using Stride.Core.Serialization;
 using Stride.Engine.Gizmos;
 using Stride.Editor.Annotations;
 using Stride.Editor.Preview.View;
+using Stride.Assets.Editor.Quantum.NodePresenters.Updaters;
 
 namespace Stride.Assets.Presentation
 {

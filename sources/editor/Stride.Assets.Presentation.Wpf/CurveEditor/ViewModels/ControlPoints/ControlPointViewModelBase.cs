@@ -12,6 +12,7 @@ using Stride.Core.Presentation.Services;
 using Stride.Core.Quantum;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Assets.Editor.ViewModels.SpriteEditor;
 
 namespace Stride.Assets.Presentation.CurveEditor.ViewModels
 {

@@ -8,6 +8,7 @@ using Stride.Assets.Presentation.ViewModel;
 using Stride.UI;
 using Stride.UI.Controls;
 using Stride.UI.Panels;
+using Stride.Assets.Editor.ViewModels.SpriteEditor;
 
 namespace Stride.UI.Editor.Game
 {

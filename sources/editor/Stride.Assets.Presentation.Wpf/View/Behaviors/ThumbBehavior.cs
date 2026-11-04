@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Controls.Primitives;
 using Microsoft.Xaml.Behaviors;
 using Stride.Assets.Presentation.ViewModel;
+using Stride.Assets.Editor.ViewModels.SpriteEditor;
 
 namespace Stride.Assets.Presentation.View.Behaviors
 {

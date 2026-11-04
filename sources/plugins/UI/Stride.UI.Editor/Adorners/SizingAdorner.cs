@@ -6,6 +6,7 @@ using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.UI.Editor.Game;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.UI;
+using Stride.Assets.Editor.ViewModels.SpriteEditor;
 
 namespace Stride.UI.Editor.Adorners
 {

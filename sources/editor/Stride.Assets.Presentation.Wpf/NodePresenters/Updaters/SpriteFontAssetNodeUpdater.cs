@@ -6,6 +6,7 @@ using System.Linq;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters;
 using Stride.Assets.Presentation.NodePresenters.Keys;
 using Stride.Assets.SpriteFont;
+using Stride.Assets.Editor.Quantum.NodePresenters.Keys;
 
 namespace Stride.Assets.Presentation.NodePresenters.Updaters
 {

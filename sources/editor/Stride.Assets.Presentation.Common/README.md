@@ -24,6 +24,14 @@ the names of the cross-platform `Stride.Assets.Editor`: `Stride.Assets.Editor.Bu
 `Stride.Assets.Editor.EditorGame.ContentLoader.EditorContentLoader`. The content loader reads two internal members of
 `GameStudioDatabase` (`Stride.Editor.Common` gives this project its internals).
 
+Since Phase 3 (asset view models) also the asset view models that both editors share (animation, effect log, graphics
+compositor, material, model, precompiled sprite font, procedural model, skeleton, skybox, sprite font, sprite sheet; namespace
+`Stride.Assets.Presentation.ViewModels`), their helpers (`Stride.Assets.Editor.ViewModels.Preview.IAnimatedPreviewViewModel`,
+`Stride.Assets.Editor.ViewModels.SpriteEditor.IResizingTarget` and `ResizingDirection`), and the node presenter keys and
+updaters that both editors share (`Stride.Assets.Editor.Quantum.NodePresenters.Keys` and `.Updaters`). The editor registers the view
+models of a plugin's own assembly only, so `StrideSharedAssetsPlugin` declares them; a plugin of each editor
+registers the updaters (`StrideEditorPlugin` in the cross-platform editor, `StrideDefaultAssetsPlugin` in WPF).
+
 ## Notes
 
 * This project goes away in Phase 3 of the port, when its code merges into the agnostic editor projects.

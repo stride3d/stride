@@ -190,6 +190,8 @@
     </DrawingImage.Drawing>
   </DrawingImage>
 
+  <!-- The Create Skeleton command of the model assets (ModelViewModel names it by this key) -->
+  <BitmapImage x:Key="ImageCreateSkeleton" UriSource="../Resources/Icons/create_skeleton-16.png" />
   <BitmapImage x:Key="ImageFitCurve" UriSource="../Resources/Icons/curve_fit-32.png" />
   <BitmapImage x:Key="ImageFitCurveHeight" UriSource="../Resources/Icons/curve_fit_height-32.png" />
   <BitmapImage x:Key="ImageFitCurveWidth" UriSource="../Resources/Icons/curve_fit_width-32.png" />

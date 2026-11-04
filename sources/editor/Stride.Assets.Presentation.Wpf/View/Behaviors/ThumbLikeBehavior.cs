@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Input;
 using Stride.Core.Presentation.Behaviors;
 using Stride.Assets.Presentation.ViewModel;
+using Stride.Assets.Editor.ViewModels.SpriteEditor;
 
 namespace Stride.Assets.Presentation.View.Behaviors
 {
