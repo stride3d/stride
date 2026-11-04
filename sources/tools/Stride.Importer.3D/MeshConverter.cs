@@ -50,6 +50,12 @@ namespace Stride.Importer.ThreeD
         /// </summary>
         public MorphDeltaSource MorphTangents { get; set; }
 
+        /// <summary>
+        /// Writes tangents the way Stride did before tangent handedness was imported: <c>w</c> is always 1 and the root node
+        /// transform is not applied. Models saved before then keep this, so their normal maps look the same.
+        /// </summary>
+        public bool LegacyTangentHandedness { get; set; }
+
         private readonly Assimp assimp = CreateAssimpApi();
 
         private static Assimp CreateAssimpApi()
@@ -1071,7 +1077,8 @@ namespace Stride.Importer.ThreeD
             {
                 vertexElements.Add(VertexElement.Tangent<Vector4>(0, vertexStride));
                 vertexStride += sizeof(Vector4);
-                uvBitangents = ComputeUVBitangents(mesh);
+                if (!LegacyTangentHandedness)
+                    uvBitangents = ComputeUVBitangents(mesh);
             }
             var rootHandedness = rootTransform.Determinant() < 0 ? -1.0f : 1.0f;
 
@@ -1145,6 +1152,10 @@ namespace Stride.Importer.ThreeD
                             Vector3 c1 = Vector3.Cross(normal, new Vector3(0.0f, 0.0f, 1.0f));
                             Vector3 c2 = Vector3.Cross(normal, new Vector3(0.0f, 1.0f, 0.0f));
                             tangent = c1.LengthSquared() > c2.LengthSquared() ? c1 : c2;
+                            handedness = 1.0f;
+                        }
+                        else if (LegacyTangentHandedness)
+                        {
                             handedness = 1.0f;
                         }
                         else

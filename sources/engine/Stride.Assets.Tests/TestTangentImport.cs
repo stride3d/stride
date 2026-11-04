@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -18,6 +19,27 @@ public class TestTangentImport
 {
     [Fact]
     public void TangentsKeepTheirHandednessInW()
+    {
+        var vertices = ImportTwoTriangles(legacyTangentHandedness: false);
+        var middle = (vertices.Min(v => v.Position.X) + vertices.Max(v => v.Position.X)) / 2;
+
+        Assert.Equal(6, vertices.Count);
+        Assert.All(vertices, v => Assert.Equal(1.0f, new Vector3(v.Tangent.X, v.Tangent.Y, v.Tangent.Z).Length(), 3));
+        // W follows Stride's own tangent generator (VertexHelper), so it matches normal maps imported with Invert Y.
+        Assert.All(vertices.Where(v => v.Position.X < middle), v => Assert.Equal(-1.0f, v.Tangent.W));
+        Assert.All(vertices.Where(v => v.Position.X > middle), v => Assert.Equal(1.0f, v.Tangent.W));
+    }
+
+    [Fact]
+    public void LegacyTangentHandednessWritesWAsOne()
+    {
+        var vertices = ImportTwoTriangles(legacyTangentHandedness: true);
+
+        Assert.Equal(6, vertices.Count);
+        Assert.All(vertices, v => Assert.Equal(1.0f, v.Tangent.W));
+    }
+
+    private static List<(Vector3 Position, Vector4 Tangent)> ImportTwoTriangles(bool legacyTangentHandedness)
     {
         // Two triangles facing +Z with the image's up along +Y (glTF V points down the image), the second mirrored in U,
         // laid out like the Normal and U Mirror columns of Khronos' NormalTangentMirrorTest.
@@ -50,7 +72,8 @@ public class TestTangentImport
         try
         {
             File.WriteAllText(path, JsonSerializer.Serialize(gltf));
-            var binding = Assert.Single(new MeshConverter(null).Convert(path, path, false).Meshes).Draw.VertexBuffers[0];
+            var converter = new MeshConverter(null) { LegacyTangentHandedness = legacyTangentHandedness };
+            var binding = Assert.Single(converter.Convert(path, path, false).Meshes).Draw.VertexBuffers[0];
 
             var elements = binding.Declaration.EnumerateWithOffsets().ToList();
             Assert.DoesNotContain(elements, e => e.VertexElement.SemanticName == "BITANGENT");
@@ -59,16 +82,9 @@ public class TestTangentImport
             var position = Assert.Single(elements, e => e.VertexElement.SemanticName == "POSITION");
 
             var data = binding.Buffer.GetSerializationData().Content;
-            var vertices = Enumerable.Range(0, binding.Count).Select(v => binding.Offset + v * binding.Declaration.VertexStride)
+            return Enumerable.Range(0, binding.Count).Select(v => binding.Offset + v * binding.Declaration.VertexStride)
                 .Select(start => (Position: MemoryMarshal.Read<Vector3>(data.AsSpan(start + position.Offset)), Tangent: MemoryMarshal.Read<Vector4>(data.AsSpan(start + tangent.Offset))))
                 .ToList();
-            var middle = (vertices.Min(v => v.Position.X) + vertices.Max(v => v.Position.X)) / 2;
-
-            Assert.Equal(6, vertices.Count);
-            Assert.All(vertices, v => Assert.Equal(1.0f, new Vector3(v.Tangent.X, v.Tangent.Y, v.Tangent.Z).Length(), 3));
-            // W follows Stride's own tangent generator (VertexHelper), so it matches normal maps imported with Invert Y.
-            Assert.All(vertices.Where(v => v.Position.X < middle), v => Assert.Equal(-1.0f, v.Tangent.W));
-            Assert.All(vertices.Where(v => v.Position.X > middle), v => Assert.Equal(1.0f, v.Tangent.W));
         }
         finally { File.Delete(path); }
     }

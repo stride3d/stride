@@ -45,6 +45,7 @@
     <Compile Include="TestMorphImport.cs" />
     <Compile Include="TestGltfMaterialImport.cs" />
     <Compile Include="TestTangentImport.cs" />
+    <Compile Include="TestModelAssetUpgrade.cs" />
     <Compile Include="TestModelComponentMorphs.cs" />
     <Compile Include="TestDependencyResolver.cs" />
     <Compile Include="TestPrefabAsset.cs" />
