@@ -30,10 +30,12 @@ public class CompanionPackageTests
 
     /// <summary>
     /// The editor package loads at the version its runtime package declares, which is the runtime's own version
-    /// for the in-repo packages (the dev suffix included), and states the kind the runtime declares. It references
-    /// the WPF editor assemblies, so both record the Wpf toolkit.
+    /// for the in-repo packages (the dev suffix included), and states the kind the runtime declares. Both record the
+    /// toolkit of the editor assemblies it references: none for the toolkit-neutral Editor packages, whose views are in
+    /// companions of their own.
     /// </summary>
-    private static void AssertDeclaredEditorPackage(PackageSession session, string runtimeName, Package editorPackage)
+    /// <param name="toolkit">The expected toolkit, null for a toolkit-neutral Editor package.</param>
+    private static void AssertDeclaredEditorPackage(PackageSession session, string runtimeName, Package editorPackage, string? toolkit = null)
     {
         var runtime = session.Packages.Single(p => p.Meta.Name == runtimeName);
         var declaration = Assert.Single(runtime.CompanionPackages, c => c.Kind == PackageKind.Editor);
@@ -41,8 +43,9 @@ public class CompanionPackageTests
         Assert.Equal(runtime.Meta.Version, declaration.Version);
         Assert.Equal(runtime.Meta.Version, editorPackage.Meta.Version);
         Assert.Equal(PackageKind.Editor, editorPackage.Kind);
-        Assert.Equal("Wpf", declaration.Toolkit);
-        Assert.Equal("Wpf", editorPackage.Toolkit);
+        // A toolkit-neutral package may record no toolkit as an empty one
+        Assert.Equal(toolkit ?? string.Empty, declaration.Toolkit ?? string.Empty);
+        Assert.Equal(toolkit ?? string.Empty, editorPackage.Toolkit ?? string.Empty);
     }
 
     [Fact]
@@ -468,7 +471,8 @@ public class CompanionPackageTests
             return;
         var editorSession = c.LoadConsumerProjectSession(loadEditorPackages: true);
         var editorPackage = Assert.Single(editorSession.Packages, p => p.Meta.Name == "Stride.UI.Editor");
-        AssertDeclaredEditorPackage(editorSession, "Stride.UI", editorPackage);
+        // Unlike the other plugin Editor packages, Stride.UI.Editor still references the WPF editor assemblies
+        AssertDeclaredEditorPackage(editorSession, "Stride.UI", editorPackage, "Wpf");
         var viewDeclaration = Assert.Single(editorPackage.CompanionPackages);
         Assert.Equal("Stride.UI.Editor.Wpf", viewDeclaration.Name);
         Assert.Equal("Wpf", viewDeclaration.Toolkit);
