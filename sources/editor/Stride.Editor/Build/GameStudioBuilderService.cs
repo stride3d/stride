@@ -91,6 +91,9 @@ namespace Stride.Editor.Build
         /// </summary>
         public bool IsDisposed { get; private set; }
 
+        /// <summary>Stops the loop of <see cref="StartPushNotificationsTask"/>.</summary>
+        private readonly CancellationTokenSource notificationsCancellation = new();
+
         /// <summary>
         ///   The number of shader-compile tasks waiting in the queue. Test harnesses use this to
         ///   detect a quiescent state; production code should treat it as informational only.
@@ -109,6 +112,7 @@ namespace Stride.Editor.Build
             {
                 IsDisposed = true;
             }
+            notificationsCancellation.Cancel();
         }
 
         private void ShaderBuildStepsStepProcessed(object? sender, BuildStepEventArgs e)
@@ -124,11 +128,20 @@ namespace Stride.Editor.Build
 
         private void StartPushNotificationsTask()
         {
-            Task.Run(async () =>
+            // Shows the shader compilations in the status bar until the service is disposed, as a background work of the session
+            var token = notificationsCancellation.Token;
+            Session.TrackBackgroundWork(Task.Run(async () =>
             {
                 while (!IsDisposed)
                 {
-                    await Task.Delay(500);
+                    try
+                    {
+                        await Task.Delay(500, token);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        return;
+                    }
                     if (currentJobToken >= 0)
                     {
                         if (taskScheduler.QueuedTaskCount > 0)
@@ -146,7 +159,7 @@ namespace Stride.Editor.Build
                         currentJobToken = Session.Main.Status.NotifyBackgroundJobStarted("Building effects ({0} in queue)", JobPriority.Editor);
                     }
                 }
-            });
+            }));
         }
     }
 }

@@ -39,6 +39,9 @@ namespace Stride.Editor.Thumbnails
         private readonly List<ThumbnailPriorityItem> assetsToIncreasePriority = new List<ThumbnailPriorityItem>();
         private readonly ThumbnailGenerator? generator;
         private bool thumbnailThreadShouldTerminate;
+
+        /// <summary>Stops the loop of <see cref="StartPushNotificationsTask"/>.</summary>
+        private readonly CancellationTokenSource notificationsCancellation = new();
         private RenderingMode renderingMode;
         private ColorSpace colorSpace;
         private GraphicsProfile graphicsProfile;
@@ -109,6 +112,7 @@ namespace Stride.Editor.Thumbnails
                 thumbnailQueueHash.Clear();
             }
             thumbnailThreadShouldTerminate = true;
+            notificationsCancellation.Cancel();
         }
 
         private void GameSettingsChanged(object? sender, GameSettingsChangedEventArgs e)
@@ -139,7 +143,7 @@ namespace Stride.Editor.Thumbnails
             if (shouldRefreshAllThumbnails)
             {
                 var allAssets = session.AllAssets.Select(x => x.AssetItem).ToList();
-                Task.Run(() => AddThumbnailAssetItems(allAssets, QueuePosition.First));
+                session.TrackBackgroundWork(Task.Run(() => AddThumbnailAssetItems(allAssets, QueuePosition.First)));
             }
         }
 
@@ -315,11 +319,20 @@ namespace Stride.Editor.Thumbnails
 
         private void StartPushNotificationsTask()
         {
-            Task.Run(async () =>
+            // Shows the thumbnail builds in the status bar until the service stops, as a background work of the session
+            var token = notificationsCancellation.Token;
+            session.TrackBackgroundWork(Task.Run(async () =>
             {
                 while (!thumbnailThreadShouldTerminate)
                 {
-                    await Task.Delay(500);
+                    try
+                    {
+                        await Task.Delay(500, token);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        return;
+                    }
                     if (currentJobToken >= 0)
                     {
                         if (thumbnailQueueHash.Count > 0)
@@ -337,7 +350,7 @@ namespace Stride.Editor.Thumbnails
                         currentJobToken = session.Main.Status.NotifyBackgroundJobStarted("Building thumbnails… ({0} in queue)", JobPriority.Background);
                     }
                 }
-            });
+            }));
         }
 
         private readonly struct ThumbnailPriorityItem
