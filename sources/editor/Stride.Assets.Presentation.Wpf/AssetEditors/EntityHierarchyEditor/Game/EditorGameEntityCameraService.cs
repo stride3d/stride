@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using Stride.Assets.Editor.EditorGame;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
@@ -52,6 +53,16 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             entity.Dispatcher.EnsureAccess();
             var id = entity.Id;
             Controller.InvokeAsync(() => SetTarget((Entity)Controller.FindGameSidePart(id), false, meshIndex));
+        }
+
+        /// <inheritdoc/>
+        /// <remarks>
+        /// Through the camera view model, so that the toolbar shows the new projection and the scene settings save it.
+        /// </remarks>
+        public override void SwitchProjection()
+        {
+            var camera = Camera;
+            camera.Dispatcher.Invoke(() => camera.OrthographicProjection = !camera.OrthographicProjection);
         }
 
         /// <inheritdoc/>

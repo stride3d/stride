@@ -11,6 +11,7 @@ using Stride.Core.Mathematics;
 using Stride.Core.Reflection;
 using Stride.Core.Settings;
 using Stride.Assets.Presentation.AssetEditors.GameEditor;
+using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
 using Stride.Engine;
 using Stride.Engine.Gizmos;

@@ -3,6 +3,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Stride.Assets.Editor.EditorGame;
 using Stride.Core.Mathematics;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;

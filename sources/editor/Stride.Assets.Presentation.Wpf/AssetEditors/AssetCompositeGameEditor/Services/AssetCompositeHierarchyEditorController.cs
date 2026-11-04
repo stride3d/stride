@@ -11,6 +11,7 @@ using Stride.Core.Assets.Quantum.Visitors;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Extensions;
+using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
@@ -18,7 +19,7 @@ using Stride.Editor.EditorGame.Game;
 
 namespace Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.Services
 {
-    public abstract class AssetCompositeHierarchyEditorController<TEditorGame, TAssetPartDesign, TAssetPart, TParentViewModel> : EditorGameController<TEditorGame>
+    public abstract class AssetCompositeHierarchyEditorController<TEditorGame, TAssetPartDesign, TAssetPart, TParentViewModel> : WpfEditorGameController<TEditorGame>
         where TEditorGame : EditorServiceGame
         where TParentViewModel : AssetCompositeItemViewModel
         where TAssetPartDesign : class, IAssetPartDesign<TAssetPart>, new()
@@ -27,11 +28,11 @@ namespace Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.Servi
         /// <summary>
         /// Initializes a new instance of the <see cref="AssetCompositeHierarchyEditorController{TEditorGame,TAssetPartDesign,TAssetPart,TParentViewModel}"/> class.
         /// </summary>
-        /// <param name="asset">The asset associated with this instance.</param>
+        /// <param name="asset">The asset associated with this instance. Unused: the game runs for the asset of <paramref name="editor"/>.</param>
         /// <param name="editor">The editor associated with this instance.</param>
         /// <param name="gameFactory">The factory to create the editor game.</param>
         protected AssetCompositeHierarchyEditorController([NotNull] AssetViewModel asset, [NotNull] GameEditorViewModel editor, [NotNull] EditorGameFactory<TEditorGame> gameFactory)
-            : base(asset, editor, gameFactory)
+            : base(editor, gameFactory)
         {
         }
 

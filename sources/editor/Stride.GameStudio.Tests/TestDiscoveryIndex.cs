@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Editor.EntityFactories;
 using Stride.Assets.Editor.Preview;
 using Stride.Assets.Editor.Templates;
@@ -18,6 +19,7 @@ using Stride.Assets.Presentation.AssetEditors.SceneEditor.Views;
 using Stride.Assets.Presentation.Preview.Views;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.Assets.Presentation.ViewModels;
+using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
@@ -188,6 +190,24 @@ namespace Stride.GameStudio.Tests
                 var generator = TemplateManager.FindTemplateGenerator<AssetTemplateGeneratorParameters>(description);
                 Assert.True(expected == generator?.GetType(), $"{description.Name}: {generator?.GetType().FullName ?? "no generator"} instead of {expected.Name}");
             }
+        }
+
+        [Fact]
+        public void EachEditorGameServiceIsDeclaredOnceInTheWpfEditor()
+        {
+            // A controller creates the services the assets assemblies declare. The shared ones (Stride.Assets.Presentation.Common)
+            // replaced their WPF copies: no service is declared twice under one name
+            RuntimeHelpers.RunModuleConstructor(typeof(StrideDefaultAssetsPlugin).Module.ModuleHandle);
+            var services = AssetRegistry.AssetAssemblies.SelectMany(x => AssemblyRegistry.GetScanTypes(x, typeof(EditorGameServiceAttribute))).Distinct().ToList();
+            Assert.Empty(Duplicates(services, x => x.Name, x => x));
+            Assert.Contains(typeof(EditorGameCameraOrientationService), services);
+            Assert.Equal(typeof(StrideSharedAssetsPlugin).Assembly, typeof(EditorGameCameraOrientationService).Assembly);
+
+            // The shared view cube serves the WPF scene and prefab editors, through the shared controller interface
+            var declaration = typeof(EditorGameCameraOrientationService).GetCustomAttribute<EditorGameServiceAttribute>();
+            Assert.True(declaration.ControllerType.IsAssignableFrom(typeof(Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services.EntityHierarchyEditorController)));
+            // The WPF controllers run on the shared one
+            Assert.True(typeof(EditorGameController<EntityHierarchyEditorGame>).IsAssignableFrom(typeof(Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services.EntityHierarchyEditorController)));
         }
 
         private static System.Collections.Generic.IEnumerable<(TemplateDescription Description, Type Generator)> AssetTemplateCases()

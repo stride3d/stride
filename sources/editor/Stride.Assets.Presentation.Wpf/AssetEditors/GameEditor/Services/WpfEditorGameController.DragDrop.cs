@@ -8,7 +8,7 @@ using Stride.Core.Assets.Editor.View.Behaviors;
 
 namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
 {
-    partial class EditorGameController<TEditorGame>
+    partial class WpfEditorGameController<TEditorGame>
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void DisableDrop()
@@ -112,6 +112,10 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
 
         partial void UnregisterFromDragDropEvents()
         {
+            // A game that never started has no form
+            if (GameForm == null)
+                return;
+
             GameForm.QueryContinueDrag -= OnQueryContinueDrag;
             GameForm.DragOver -= OnDragOver;
             GameForm.DragLeave -= OnDragLeave;

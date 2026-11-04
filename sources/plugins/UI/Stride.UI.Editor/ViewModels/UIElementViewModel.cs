@@ -17,6 +17,7 @@ using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Quantum;
+using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
 using Stride.Assets.Quantum;
@@ -54,7 +55,7 @@ namespace Stride.UI.Editor.ViewModels
     [DebuggerDisplay("{Name} [{ElementType}]")]
     public class UIElementViewModel : UIHierarchyItemViewModel, IEditorDesignPartViewModel<UIElementDesign, UIElement>, IEditorGamePartViewModel, IIsEditableViewModel, IAssetPropertyProviderViewModel
     {
-        private readonly GameEditorChangePropagator<UIElementDesign, UIElement, UIElementViewModel> propagator;
+        private readonly GameEditorChangePropagator<UIElementDesign, UIElement> propagator;
         private readonly MemberGraphNodeBinding<string> nameNodeBinding;
         private UILibraryViewModel sourceLibrary;
         private bool isEditing;
@@ -73,7 +74,7 @@ namespace Stride.UI.Editor.ViewModels
             var assetNode = editor.Session.AssetNodeContainer.GetOrCreateNode(elementDesign.UIElement);
             nameNodeBinding = new MemberGraphNodeBinding<string>(assetNode[nameof(UIElement.Name)], nameof(Name), OnPropertyChanging, OnPropertyChanged, Editor.UndoRedoService);
 
-            propagator = new GameEditorChangePropagator<UIElementDesign, UIElement, UIElementViewModel>(Editor, this, elementDesign.UIElement);
+            propagator = new GameEditorChangePropagator<UIElementDesign, UIElement>(Editor, Editor.Controller, Asset, Id, elementDesign.UIElement);
 
             PanelCommand = new AnonymousCommand<PanelCommandMode>(ServiceProvider, PanelCommandImpl);
             RenameCommand = new AnonymousCommand(ServiceProvider, () => IsEditing = true);

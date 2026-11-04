@@ -1,6 +1,10 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+#nullable enable
+
+using System;
+using System.Threading.Tasks;
 using Stride.Assets.Presentation.AssetEditors;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
@@ -113,6 +117,12 @@ public abstract class EditorGameCameraService : EditorGameMouseServiceBase, IEdi
             _ => throw new ArgumentOutOfRangeException(nameof(orientation)),
         };
         ResetCamera(viewDirection);
+    }
+
+    /// <inheritdoc />
+    public virtual void SwitchProjection()
+    {
+        IsOrthographic = !IsOrthographic;
     }
 
     /// <inheritdoc />
