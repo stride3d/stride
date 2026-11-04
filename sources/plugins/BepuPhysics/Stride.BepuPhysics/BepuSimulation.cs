@@ -163,46 +163,43 @@ public sealed class BepuSimulation : IDisposable
     /// Represents the maximum number of steps per frame to avoid a death loop
     /// </summary>
     [Display(5, "Max steps/frame", CategoryTime, Browsable = false)]
-    [Obsolete($"Use {nameof(PhysicsBudget)} and {nameof(PostponedTicksCap)} instead")]
+    [Obsolete($"Use {nameof(MaximumTimespanToProcess)} and {nameof(DropPostponedTicks)} instead")]
     public int MaxStepPerFrame { get; set; } = 3;
 
     /// <summary>
-    /// The maximum amount of time (as a ratio of <see cref="FixedTimeStepSeconds"/>) allowed for physics to catch up with game time
-    /// when the game's update rate is reduced or otherwise throttled.
-    /// <para/>
-    /// 0.5 would allow physics to perform additional ticks for up until half of the duration of
-    /// <see cref="FixedTimeStepSeconds"/> before yielding to other game systems.
+    /// The span of time physics can catch up to when the game runs slow.
+    /// Once exceeded, the rest is either postponed to next frame or dropped based on <see cref="DropPostponedTicks"/>.
     /// </summary>
     /// <remarks>
-    /// Setting this to 0 prevents physics from running, it will postpone all ticks based on <see cref="PostponedTicksCap"/>.
-    /// Negative values are ignored.
+    /// This is not the same as the wall-clock time physics processing could take;
+    /// if this value is set to a second and last frame was two seconds ago,
+    /// physics will catch up to that first second regardless of the time it takes to do so.
+    /// <para/>
+    /// It should be set fairly high to avoid physics slowing down along with the framerate of the game,
+    /// but not so much that physics tanks the framerate unnecessarily when it is the one affecting the framerate.
+    /// <para/>
+    /// Negative values are ignored, while values between <see cref="FixedTimeStep"/> and zero causes all physics ticks to be postponed or dropped.
+    /// <para/>
+    /// Internally, this time is rounded down to the closest multiple of <see cref="FixedTimeStep"/>
+    /// to ensure that dropped ticks retain the same time interval.
     /// </remarks>
-    [Display(6, "Physics Budget", CategoryTime)]
-    public float PhysicsBudget
+    [Display(6, "Maximum time span to process", CategoryTime)]
+    public TimeSpan MaximumTimespanToProcess
     {
         get;
-        set => field = value >= 0 ? value : field;
-    } = 0.5f;
+        set => field = value >= TimeSpan.Zero ? value : field;
+    } = TimeSpan.FromSeconds(0.5f);
 
     /// <summary>
-    /// When physics runs out of <see cref="PhysicsBudget"/>, how many ticks can we postpone to the next frames.
-    /// Any amount of ticks past that will be dropped instead. We recommend leaving it at -1 to catch up to any amount of ticks.
+    /// When physics has to catch up to game time, should any time past
+    /// the <see cref="MaximumTimespanToProcess"/> window be dropped instead of postponed.
     /// </summary>
     /// <remarks>
     /// Dropping will cause physics time and game time to diverge,
     /// potentially introducing issues in your components implementing <see cref="ISimulationUpdate"/>
-    /// <br/>
-    /// The counter defining the amount of time before a new step needs to run is still decremented,
-    /// meaning that the amount of ticks that are carried between updates is actually <see cref="PostponedTicksCap"/> + some fraction of a step.
-    /// <br/>
-    /// Values below -1 are ignored.
     /// </remarks>
-    [Display(7, "Postponed Ticks Cap", CategoryTime)]
-    public int PostponedTicksCap
-    {
-        get;
-        set => field = value >= -1 ? value : field;
-    } = -1;
+    [Display(7, "Drop Postponed Ticks", CategoryTime)]
+    public bool DropPostponedTicks { get; set; }
 
     /// <summary>
     /// Allows for per-body features like <see cref="BodyComponent.Gravity"/> at a cost to the simulation's performance
@@ -768,11 +765,20 @@ public sealed class BepuSimulation : IDisposable
             return;
 
         // TimeSpan multiplication is lossy, skipping mult when we can
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
         _remainingUpdateTime += TimeScale == 1f ? elapsed : elapsed * TimeScale;
+        // ReSharper disable once PossibleLossOfFraction
+        var closestMaximumTimespan = (MaximumTimespanToProcess.Ticks / FixedTimeStep.Ticks) * FixedTimeStep;
+        if (_remainingUpdateTime > closestMaximumTimespan && DropPostponedTicks)
+        {
+            // If we have to drop, let's drop whole ticks, that way time diverging between game and physics is still predictable
+            var timeUntilNextTick = TimeSpan.FromTicks(_remainingUpdateTime.Ticks % FixedTimeStep.Ticks);
+            _remainingUpdateTime = closestMaximumTimespan == TimeSpan.Zero ? TimeSpan.Zero : closestMaximumTimespan + timeUntilNextTick;
+        }
 
-        double budgetAllowed = FixedTimeStep.Ticks * (double)PhysicsBudget;
-        long ts = Stopwatch.GetTimestamp();
-        for (; _remainingUpdateTime >= FixedTimeStep && Stopwatch.GetElapsedTime(ts, Stopwatch.GetTimestamp()).Ticks < budgetAllowed; _remainingUpdateTime -= FixedTimeStep)
+        for (TimeSpan processed = TimeSpan.Zero;
+             _remainingUpdateTime >= FixedTimeStep && processed < closestMaximumTimespan;
+             _remainingUpdateTime -= FixedTimeStep, processed += FixedTimeStep)
         {
             if (_softStartScheduled)
             {
@@ -823,9 +829,6 @@ public sealed class BepuSimulation : IDisposable
                 body.CurrentPose = body.BodyReference.Value.Pose;
             }
         }
-
-        if (PostponedTicksCap != -1 && _remainingUpdateTime >= FixedTimeStep * (PostponedTicksCap + 1))
-            _remainingUpdateTime = FixedTimeStep * PostponedTicksCap + TimeSpan.FromTicks(_remainingUpdateTime.Ticks % FixedTimeStep.Ticks);
 
         InterpolateTransforms();
     }
