@@ -103,6 +103,9 @@ namespace Stride.Core.Assets.Editor.ViewModel
             TrackPackages();
         }
 
+        // Folders are only added: the folders of a package removed from the session stay watched, which is harmless since their files
+        // belong to no asset or package of the session anymore. An asset folder that does not exist yet is not watched, even once created,
+        // until the packages of the session change again.
         private void TrackPackages()
         {
             foreach (var package in session.LocalPackages.Where(x => x.IsEditable))
@@ -270,7 +273,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             if (!assetsByPath.TryGetValue(fullPath, out var asset))
                 return null;
 
-            // Check that the assset is still the one at this path, as it might have been moved or renamed in the session while the file was read
+            // Check that the asset is still the one at this path, as it might have been moved or renamed in the session while the file was read
             if (session.GetAssetById(asset.Id) == asset && string.Equals(asset.AssetItem.FullPath.ToOSPath(), fullPath, StringComparison.OrdinalIgnoreCase))
                 return asset;
 
