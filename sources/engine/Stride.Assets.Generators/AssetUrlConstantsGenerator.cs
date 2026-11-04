@@ -157,11 +157,8 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
         {
             foreach (var reference in compilation.References)
             {
-                var symbol = compilation.GetAssemblyOrModuleSymbol(reference);
-                if (symbol is IAssemblySymbol assemblySymbol)
+                if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assemblySymbol)
                     yield return assemblySymbol;
-                else if (symbol is IModuleSymbol moduleSymbol && moduleSymbol.ContainingAssembly is { } containingAssembly)
-                    yield return containingAssembly;
             }
 
             yield return compilation.Assembly;
