@@ -232,11 +232,12 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     }
 
     /// <summary>
-    /// Shows the import of the system shaders in the notification bar until it is done; nothing when there is none to wait for.
+    /// Shows the import of the system shaders in the notification bar until it is done; nothing when the session had none to import.
     /// </summary>
     private async Task ShowShaderImportAsync(SessionViewModel openedSession)
     {
-        if (Notifications is null || openedSession.ServiceProvider.TryGet<GameStudioBuilderService>() is not { AreShadersLoaded: false } builder)
+        // The import starts with the builder, so it may already be over here: its notification then shows and goes away at once
+        if (Notifications is null || openedSession.ServiceProvider.TryGet<GameStudioBuilderService>() is not { ShaderImportProgress: not null } builder)
             return;
 
         var logger = GlobalLogger.GetLogger("BuildOnOpen");
