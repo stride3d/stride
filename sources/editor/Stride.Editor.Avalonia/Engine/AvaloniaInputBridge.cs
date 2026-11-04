@@ -29,7 +29,8 @@ namespace Stride.Editor.Avalonia.Engine;
 /// The keys reach the view only while it has the focus, which it takes on a press. A modifier (Ctrl, Shift, Alt) held
 /// before, while another control had the focus, comes with the pointer events instead: the bridge presses it in the game,
 /// and releases it when it is no longer held, so that Ctrl+drag works from a click in the hierarchy. The keys held when the
-/// view loses the focus are released, as the view gets no release afterwards.
+/// view loses the focus are released, as the view gets no release afterwards. So are the mouse buttons held when it loses
+/// the focus or the capture of the pointer.
 /// </para>
 /// </remarks>
 internal sealed class AvaloniaInputBridge
@@ -40,6 +41,7 @@ internal sealed class AvaloniaInputBridge
     private KeyboardSimulated? keyboard;
     private readonly HashSet<Keys> downKeys = [];
     private readonly HashSet<Keys> modifiersFromPointer = [];
+    private readonly HashSet<MouseButton> downButtons = [];
     private Vector2? lastPosition;
 
     /// <summary>
@@ -59,14 +61,18 @@ internal sealed class AvaloniaInputBridge
             SyncModifiers(e.KeyModifiers);
             QueuePosition(view, e);
             var button = ToMouseButton(e.GetCurrentPoint(view).Properties.PointerUpdateKind);
+            downButtons.Add(button);
             pending.Enqueue((m, _) => m.SimulateMouseDown(button));
         };
         view.PointerReleased += (_, e) =>
         {
             QueuePosition(view, e);
             var button = ToMouseButton(e.GetCurrentPoint(view).Properties.PointerUpdateKind);
-            pending.Enqueue((m, _) => m.SimulateMouseUp(button));
+            if (downButtons.Remove(button))
+                pending.Enqueue((m, _) => m.SimulateMouseUp(button));
         };
+        // The view gets no button release once another element or window took the pointer
+        view.PointerCaptureLost += (_, _) => ReleaseButtons();
         view.PointerWheelChanged += (_, e) =>
         {
             var delta = (float)e.Delta.Y;
@@ -96,7 +102,17 @@ internal sealed class AvaloniaInputBridge
             }
             downKeys.Clear();
             modifiersFromPointer.Clear();
+            ReleaseButtons();
         };
+    }
+
+    private void ReleaseButtons()
+    {
+        foreach (var button in downButtons)
+        {
+            pending.Enqueue((m, _) => m.SimulateMouseUp(button));
+        }
+        downButtons.Clear();
     }
 
     /// <summary>

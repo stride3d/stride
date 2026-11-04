@@ -152,4 +152,81 @@ public sealed class AvaloniaInputBridgeTests
 
         Assert.False(input.IsKeyDown(Keys.W));
     }
+
+    [AvaloniaFact]
+    public void TheButtonsHeldWhenTheViewLosesThePointerAreReleased()
+    {
+        var view = new OffscreenGameView { Width = 100, Height = 100 };
+        var window = new Window { Content = view, SizeToContent = SizeToContent.WidthAndHeight };
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+        var bridge = new AvaloniaInputBridge(view);
+        using var input = new InputManager();
+        input.Initialize(new GameContextHeadless());
+        var gameTime = new GameTime();
+        IPointer? pointer = null;
+        view.PointerPressed += (_, e) => pointer = e.Pointer;
+
+        window.MouseDown(new Point(50, 50), MouseButton.Right);
+        bridge.Apply(input);
+        input.Update(gameTime);
+        Assert.True(input.IsMouseButtonDown(Stride.Input.MouseButton.Right));
+
+        // The view loses the capture of the drag (another window took the pointer): it gets no release afterwards
+        pointer!.Capture(null);
+        bridge.Apply(input);
+        input.Update(gameTime);
+
+        Assert.False(input.IsMouseButtonDown(Stride.Input.MouseButton.Right));
+        Assert.True(input.IsMouseButtonReleased(Stride.Input.MouseButton.Right));
+    }
+
+    [AvaloniaFact]
+    public void TheButtonsHeldWhenTheViewLosesTheFocusAreReleased()
+    {
+        var view = new OffscreenGameView { Width = 100, Height = 100 };
+        var other = new Button { Content = "Other" };
+        var window = new Window { Content = new StackPanel { Children = { other, view } }, SizeToContent = SizeToContent.WidthAndHeight };
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+        var bridge = new AvaloniaInputBridge(view);
+        using var input = new InputManager();
+        input.Initialize(new GameContextHeadless());
+        var gameTime = new GameTime();
+        var inView = view.TranslatePoint(new Point(50, 50), window)!.Value;
+
+        window.MouseDown(inView, MouseButton.Left);
+        bridge.Apply(input);
+        input.Update(gameTime);
+        Assert.True(input.IsMouseButtonDown(Stride.Input.MouseButton.Left));
+
+        other.Focus();
+        Dispatcher.UIThread.RunJobs();
+        bridge.Apply(input);
+        input.Update(gameTime);
+
+        Assert.False(input.IsMouseButtonDown(Stride.Input.MouseButton.Left));
+    }
+
+    [AvaloniaFact]
+    public void ReleasingOneOfTwoButtonsKeepsTheOtherDown()
+    {
+        var view = new OffscreenGameView { Width = 100, Height = 100 };
+        var window = new Window { Content = view, SizeToContent = SizeToContent.WidthAndHeight };
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+        var bridge = new AvaloniaInputBridge(view);
+        using var input = new InputManager();
+        input.Initialize(new GameContextHeadless());
+        var gameTime = new GameTime();
+
+        window.MouseDown(new Point(50, 50), MouseButton.Right);
+        window.MouseDown(new Point(50, 50), MouseButton.Left, RawInputModifiers.RightMouseButton);
+        window.MouseUp(new Point(50, 50), MouseButton.Left, RawInputModifiers.RightMouseButton);
+        bridge.Apply(input);
+        input.Update(gameTime);
+
+        Assert.True(input.IsMouseButtonDown(Stride.Input.MouseButton.Right));
+        Assert.False(input.IsMouseButtonDown(Stride.Input.MouseButton.Left));
+    }
 }
