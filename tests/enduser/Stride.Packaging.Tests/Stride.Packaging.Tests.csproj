@@ -84,6 +84,12 @@
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
+    <!-- The sound preview's Avalonia view -->
+    <ProjectReference Include="..\..\..\sources\plugins\Audio\Stride.Audio.Editor.Avalonia\Stride.Audio.Editor.Avalonia.csproj" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\sources\plugins\SpriteStudio\Stride.SpriteStudio.Runtime\Stride.SpriteStudio.Runtime.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
@@ -101,6 +107,12 @@
     </ProjectReference>
     <!-- The sheet preview's WPF view, a companion of Stride.SpriteStudio.Editor -->
     <ProjectReference Include="..\..\..\sources\plugins\SpriteStudio\Stride.SpriteStudio.Editor.Wpf\Stride.SpriteStudio.Editor.Wpf.csproj" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+    <!-- The sheet preview's Avalonia view -->
+    <ProjectReference Include="..\..\..\sources\plugins\SpriteStudio\Stride.SpriteStudio.Editor.Avalonia\Stride.SpriteStudio.Editor.Avalonia.csproj" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
