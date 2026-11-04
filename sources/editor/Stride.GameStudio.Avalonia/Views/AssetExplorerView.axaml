@@ -471,7 +471,7 @@
               </StackPanel>
             </ToolTip.Tip>
             <Border Classes="tileThumbnail">
-              <Image Source="{Binding ThumbnailData.Presenter, Converter={gscv:StrideImage}, FallbackValue={x:Null}}"/>
+              <Image Source="{Binding ThumbnailData.Presenter, Converter={caec:ThumbnailToImage}, FallbackValue={x:Null}}"/>
             </Border>
             <Panel Classes="tileName">
               <TextBlock Classes="tileLabel" HorizontalAlignment="Center" Text="{Binding Name, Converter={caec:NameBreakingLine}}" IsVisible="{Binding !IsEditing}"/>
@@ -535,7 +535,7 @@
             </ToolTip.Tip>
             <Panel>
               <Border Classes="tileThumbnail">
-                <Image Source="{Binding ThumbnailData.Presenter, Converter={gscv:StrideImage}, FallbackValue={x:Null}}"/>
+                <Image Source="{Binding ThumbnailData.Presenter, Converter={caec:ThumbnailToImage}, FallbackValue={x:Null}}"/>
               </Border>
               <!-- The thumbnail is being made -->
               <ProgressBar Width="32" Height="8" MinWidth="32" IsIndeterminate="True"

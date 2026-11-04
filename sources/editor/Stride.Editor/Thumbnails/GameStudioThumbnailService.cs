@@ -288,9 +288,13 @@ namespace Stride.Editor.Thumbnails
             ThumbnailData? thumbnailData = null;
             if (e.ThumbnailStream != null)
             {
-                var stream = new MemoryStream();
-                e.ThumbnailStream.CopyTo(stream);
-                thumbnailData = new BitmapThumbnailData(e.ThumbnailId, stream);
+                // The view of each editor shows its own image type: the factory of the host decodes the PNG (no factory, no UI: no image)
+                if (session.ServiceProvider.TryGet<IThumbnailDataFactory>() is { } factory)
+                {
+                    var stream = new MemoryStream();
+                    e.ThumbnailStream.CopyTo(stream);
+                    thumbnailData = factory.CreateFromStream(e.ThumbnailId, stream);
+                }
             }
 
             if (e.Result != ThumbnailBuildResult.Cancelled)
