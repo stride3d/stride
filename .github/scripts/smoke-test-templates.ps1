@@ -1,7 +1,7 @@
 # Does what a user does with freshly built packages, from the repo root: a new blank game, a sample from this engine's
 # packs, and the same sample from the oldest packs we support upgrading from. Each is instantiated, upgraded if it's on
-# an older version, restored and built. See docs/build/versioning.md.
-#   -Version            the engine version the packages carry.
+# an older version, restored and built. It also restores Stride.GameStudio, what a user installs. See docs/build/versioning.md.
+#   -Version           the engine version the packages carry.
 #   -PackagesDir        the folder holding them; -ExtraSources for more local feeds.
 #   -Configuration      the build of the asset compiler that runs the upgrades.
 #   -KeepWorkspace      keep the projects and logs, to look at a failure.
@@ -97,6 +97,30 @@ function Test-Template([string]$name, [string]$package, [string]$template) {
     }
 }
 
+# Catches version conflicts in the whole graph, which reading the dependencies of each package can't.
+function Test-GameStudioRestore {
+    $name = 'SmokeGameStudio'
+    $log = Join-Path $workspace "$name.log"
+    $directory = Join-Path $workspace $name
+    $start = Get-Date
+    New-Item -ItemType Directory $directory | Out-Null
+    Set-Content (Join-Path $directory "$name.csproj") "<Project Sdk=`"Microsoft.NET.Sdk`"><PropertyGroup><TargetFramework>net10.0-windows</TargetFramework><NuGetAudit>false</NuGetAudit></PropertyGroup><ItemGroup><PackageReference Include=`"Stride.GameStudio`" Version=`"$Version`" /></ItemGroup></Project>"
+    Push-Location $workspace
+    try {
+        Invoke-Logged $log @('restore', (Join-Path $directory "$name.csproj"), '-nodeReuse:false')
+        Write-Host "PASS ${name}: Stride.GameStudio $Version restores ($([int]((Get-Date) - $start).TotalSeconds) s)"
+        return $true
+    }
+    catch {
+        Write-Host "::error::Smoke test $name failed: $_"
+        if (Test-Path $log) { Get-Content $log -Tail 40 | ForEach-Object { Write-Host $_ } }
+        return $false
+    }
+    finally {
+        Pop-Location
+    }
+}
+
 function Get-Package([string]$id, [string]$packageVersion) {
     $file = Join-Path $PackagesDir "$id.$packageVersion.nupkg"
     if (Test-Path $file) { return $file }
@@ -113,6 +137,7 @@ $results = @(
     Test-Template 'SmokeGame' (Get-Package 'Stride.Templates.Games' $Version) 'stride-game'
     Test-Template 'SmokeSample' (Get-Package 'Stride.Templates.Samples' $samplesVersion) $SampleTemplate
     Test-Template 'SmokeOldSample' "Stride.Templates.Samples::$MinSamplesVersion" $SampleTemplate
+    Test-GameStudioRestore
 )
 
 if ($KeepWorkspace) { echo "Kept $workspace" }

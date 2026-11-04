@@ -250,6 +250,10 @@ jobs:
           echo "version=$version" >> $env:GITHUB_OUTPUT
           echo "::notice::Package version: $version"
 
+      - name: Check the packages
+        shell: pwsh
+        run: ./.github/scripts/check-packages.ps1 -Version "${{ steps.version.outputs.version }}"
+
       # PackageStore reads only the user and machine NuGet configs, so the asset compiler's upgrade needs this.
       - name: Register bin/packages with user NuGet config
         shell: pwsh

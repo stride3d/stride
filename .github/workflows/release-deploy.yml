@@ -185,6 +185,11 @@ jobs:
             } >> "$GITHUB_STEP_SUMMARY"
           fi
 
+      # Again here, for a deploy of a build made earlier: what it depends on may have changed on the feed.
+      - name: Check the packages
+        shell: pwsh
+        run: ./.github/scripts/check-packages.ps1 -Version "${{ steps.version.outputs.version }}"
+
       - name: Push NuGet packages
         shell: pwsh
         run: |

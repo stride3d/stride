@@ -71,7 +71,7 @@ Multiple checkouts of Stride on one machine (git worktrees *or* independent clon
 `.github/workflows/release.yml` (manual dispatch, `stride-release-managers` only for sign/deploy):
 
 1. **Validate** reads the committed version in `SharedAssemblyInfo.cs` and refuses, before any build: a version that isn't `X.Y.Z` or `X.Y.Z-(alpha|beta|rc|preview)` with no number after the label, a deploy of a version already released (the forget-to-bump guard), a deploy below a release of its line such as `4.5.8-beta` after `4.5.8` ([`check-version-order.ps1`](../../.github/scripts/check-version-order.ps1), for when a bump failed), and for a signed stable engine, a sample csproj still on a prerelease, or prerelease content when the samples aren't in this release. It also decides whether the release [includes the samples](#preparing-and-releasing-the-samples).
-2. **Package** builds all platforms → `bin/packages/*.nupkg`, with the content packs when the release includes them, runs the [smoke test](#smoke-test), and signs.
+2. **Package** builds all platforms → `bin/packages/*.nupkg`, with the content packs when the release includes them, runs [`check-packages.ps1`](../../.github/scripts/check-packages.ps1) (every package on this version, every `Stride.*` dependency in these packages or on nuget.org, again before the push) and the [smoke test](#smoke-test), and signs.
 3. **Deploy** (only when `sign && deploy`) checks the content version the engine names is published or in this release (see [Samples & template package versions](#samples--template-package-versions)), pushes to nuget.org, then **creates and pushes the `releases/<version>` tag** — so the tag is a *consequence* of a successful release. With the samples, it also tags `samples/<version>`, creates their GitHub Release and commits `StrideSamplesVersion`. Idempotent: `--skip-duplicate`.
 4. **Bump** — after publishing, beta or stable, the workflow commits `Patch+1` to the branch and pushes it. It reads the number from the branch tip after a fetch and retries when its push is refused. It does nothing when the tip's number isn't the released one: an upgrader PR already moved it, or this is a re-run.
 
@@ -187,7 +187,8 @@ The upgraders only write the assets they change. To write all of them in the cur
 
 - a new blank game from `Stride.Templates.Games`;
 - one sample from the packs this engine names, new or published;
-- the same sample from the oldest packs we test upgrading from, a published version set in the script (`MinSamplesVersion`). Template packs exist from 4.4 on, so older versions can't be tested this way, though the upgraders start at 4.0.
+- the same sample from the oldest packs we test upgrading from, a published version set in the script (`MinSamplesVersion`). Template packs exist from 4.4 on, so older versions can't be tested this way, though the upgraders start at 4.0;
+- a restore of `Stride.GameStudio`, what a user installs.
 
 A release with new packs also runs `Stride.Templates.Tests` on them, which instantiates each kind of template without building. To run the smoke test on a checkout, after a build:
 
