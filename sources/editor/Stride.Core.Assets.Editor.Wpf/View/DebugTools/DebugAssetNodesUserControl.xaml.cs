@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Extensions;
 using Stride.Core.Reflection;
@@ -17,43 +18,6 @@ using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.View.DebugTools
 {
-    public class DebugAssetNodeViewModel : DispatcherViewModel
-    {
-        public const string Null = "(NULL)";
-
-        protected readonly IGraphNode Node;
-        public DebugAssetNodeViewModel(IViewModelServiceProvider serviceProvider, IGraphNode node)
-            : base(serviceProvider)
-        {
-            Node = node;
-            BreakCommand = new AnonymousCommand(ServiceProvider, Break);
-        }
-
-        public string Name => (Node as IMemberNode)?.Name ?? Node?.Type.Name ?? Null;
-
-        public string Value => Node?.Retrieve()?.ToString() ?? Null;
-
-        public string ContentType => GetContentType();
-
-        public Type Type => Node?.Type;
-
-        public ICommandBase BreakCommand { get; }
-
-        private string GetContentType()
-        {
-            if (Node is IMemberNode) return "Member";
-            if (Node is BoxedNode) return "Object (boxed)";
-            if (Node is IObjectNode) return "Object";
-            return "Unknown";
-        }
-
-        private void Break()
-        {
-            if (Debugger.IsAttached)
-                Debugger.Break();
-        }
-    }
-
     public class DebugAssetBaseNodeViewModel : DebugAssetNodeViewModel
     {
         public DebugAssetBaseNodeViewModel(IViewModelServiceProvider serviceProvider, IGraphNode node)

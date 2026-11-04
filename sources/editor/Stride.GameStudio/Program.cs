@@ -150,10 +150,13 @@ public static partial class Program
         }
 
         // We use MRU of the current version only when we're trying to reload last session.
-        var mru = new MostRecentlyUsedFileCollection(InternalSettings.LoadProfileCopy, InternalSettings.MostRecentlyUsedSessions, InternalSettings.WriteFile);
+        var mru = new MostRecentlyUsedFileCollection(InternalSettings.LoadProfileCopy, GameStudioInternalSettings.MostRecentlyUsedSessions, InternalSettings.SaveProfile);
         mru.LoadFromSettings();
 
         EditorSettings.Initialize();
+        // The theme of this editor (the Avalonia editor has its own)
+        Stride.Core.Presentation.Themes.ThemesSettings.Initialize();
+        Stride.Core.Presentation.Themes.ThemesSettings.ThemeName.ChangesValidated += (s, e) => EditorSettings.NeedRestart = true;
         if (resetGraphicsApiPreference)
         {
             EditorSettings.GraphicsApi.SetValue(EditorSettings.GraphicsApiDefault);
@@ -414,7 +417,7 @@ public static partial class Program
             }
 
             // We use a MRU that contains the older version projects to display in the editor
-            var mru = new MostRecentlyUsedFileCollection(InternalSettings.LoadProfileCopy, InternalSettings.MostRecentlyUsedSessions, InternalSettings.WriteFile);
+            var mru = new MostRecentlyUsedFileCollection(InternalSettings.LoadProfileCopy, GameStudioInternalSettings.MostRecentlyUsedSessions, InternalSettings.SaveProfile);
             mru.LoadFromSettings();
             var editor = new GameStudioViewModel(serviceProvider, mru);
             AssetsPlugin.RegisterPlugin(typeof(StrideDefaultAssetsPlugin));
@@ -613,20 +616,7 @@ public static partial class Program
     private static void InitializeLanguageSettings()
     {
         TranslationManager.Instance.RegisterProvider(new GettextTranslationProvider());
-        TranslationManager.Instance.CurrentLanguage = EditorSettings.Language.GetValue() switch
-        {
-            SupportedLanguage.MachineDefault => CultureInfo.InstalledUICulture,
-            SupportedLanguage.English => new CultureInfo("en-US"),
-            SupportedLanguage.French => new CultureInfo("fr-FR"),
-            SupportedLanguage.Japanese => new CultureInfo("ja-JP"),
-            SupportedLanguage.Russian => new CultureInfo("ru-RU"),
-            SupportedLanguage.German => new CultureInfo("de-DE"),
-            SupportedLanguage.Spanish => new CultureInfo("es-ES"),
-            SupportedLanguage.ChineseSimplified => new CultureInfo("zh-Hans"),
-            SupportedLanguage.Italian => new CultureInfo("it-IT"),
-            SupportedLanguage.Korean => new CultureInfo("ko-KR"),
-            _ => throw new ArgumentException("Invalid language option"),
-        };
+        TranslationManager.Instance.CurrentLanguage = EditorSettings.Language.GetValue().GetCulture();
     }
 
     internal static void NotifyGameStudioStarted()

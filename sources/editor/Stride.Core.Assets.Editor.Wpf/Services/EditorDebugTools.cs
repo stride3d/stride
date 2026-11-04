@@ -10,11 +10,6 @@ using Stride.Core.Presentation.ViewModel;
 
 namespace Stride.Core.Assets.Editor.Services
 {
-    public interface IDebugPage
-    {
-        string Title { get; set; }
-    }
-
     public static class EditorDebugTools
     {
         internal static readonly List<IDebugPage> DebugPages = new List<IDebugPage>();

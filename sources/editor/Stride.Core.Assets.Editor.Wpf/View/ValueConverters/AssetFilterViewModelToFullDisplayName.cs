@@ -4,6 +4,7 @@ using System;
 using System.Globalization;
 using System.Windows.Data;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Presentation.ValueConverters;
 
 namespace Stride.Core.Assets.Editor.View.ValueConverters

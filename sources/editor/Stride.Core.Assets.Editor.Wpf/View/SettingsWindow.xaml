@@ -8,7 +8,7 @@
                   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                   xmlns:edvw="clr-namespace:Stride.Core.Assets.Editor.View"
-                  xmlns:viewModels="clr-namespace:Stride.Core.Assets.Editor.Settings.ViewModels"
+                  xmlns:viewModels="clr-namespace:Stride.Core.Assets.Editor.ViewModels;assembly=Stride.Core.Assets.Editor.Common"
                   xmlns:viewModels1="clr-namespace:Stride.Core.Presentation.Quantum.ViewModels;assembly=Stride.Core.Presentation.Quantum"
                   mc:Ignorable="d" d:DataContext="{d:DesignInstance viewModels:SettingsViewModel}"
                   ShowInTaskbar="False"
