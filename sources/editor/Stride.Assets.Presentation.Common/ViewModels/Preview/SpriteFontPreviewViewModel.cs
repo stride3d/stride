@@ -9,10 +9,17 @@ using Stride.Editor.Annotations;
 
 namespace Stride.Assets.Editor.ViewModels.Preview;
 
+/// <summary>
+/// The view model of the font previews: the string the preview renders.
+/// </summary>
+/// <remarks>
+/// It serves the <see cref="SpriteFontPreview"/>; <see cref="PrecompiledSpriteFontPreviewViewModel"/> serves the
+/// <see cref="PrecompiledSpriteFontPreview"/>, which shares its view.
+/// </remarks>
 [AssetPreviewViewModel<SpriteFontPreview>]
-public class SpriteFontPreviewViewModel : AssetPreviewViewModel<SpriteFontPreview>
+public class SpriteFontPreviewViewModel : AssetPreviewViewModel<IFontPreview>
 {
-    private SpriteFontPreview? spriteFontPreview;
+    private IFontPreview? spriteFontPreview;
     private string? previewString;
 
     public SpriteFontPreviewViewModel(ISessionViewModel session)
@@ -25,7 +32,7 @@ public class SpriteFontPreviewViewModel : AssetPreviewViewModel<SpriteFontPrevie
 
     public ICommandBase ClearTextCommand { get; }
 
-    protected override void OnAttachPreview(SpriteFontPreview preview)
+    protected override void OnAttachPreview(IFontPreview preview)
     {
         spriteFontPreview = preview;
         spriteFontPreview.SetPreviewString(PreviewString);

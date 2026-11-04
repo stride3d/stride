@@ -135,7 +135,9 @@ public sealed class PluginServiceTests
             .Select(x => x.Preview)
             .ToHashSet();
         Assert.Equal(new HashSet<Type> { typeof(ScenePreview), typeof(PrefabPreview), typeof(PrefabModelPreview) }, withoutViewModel);
-        Assert.Equal(typeof(SpritePreviewViewModel), service.GetPreviewViewModelType(typeof(PrecompiledSpriteFontPreview)));
+        // Both font previews share the font view, which binds to the font view model
+        Assert.Equal(typeof(PrecompiledSpriteFontPreviewViewModel), service.GetPreviewViewModelType(typeof(PrecompiledSpriteFontPreview)));
+        Assert.True(typeof(SpriteFontPreviewViewModel).IsAssignableFrom(service.GetPreviewViewModelType(typeof(PrecompiledSpriteFontPreview))));
         Assert.Equal(typeof(TexturePreviewViewModel), service.GetPreviewViewModelType(typeof(TexturePreview)));
     }
 

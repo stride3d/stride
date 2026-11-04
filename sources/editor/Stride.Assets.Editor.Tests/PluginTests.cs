@@ -107,6 +107,9 @@ public sealed class PluginTests
         Assert.Equal(typeof(MaterialPreviewViewModel), types[typeof(MaterialPreview)]);
         Assert.Equal(typeof(ModelPreviewViewModel), types[typeof(ModelPreview)]);
         Assert.Equal(typeof(SpriteSheetPreviewViewModel), types[typeof(SpriteSheetPreview)]);
+        // Both font previews share the font view, so both get the font view model, not the generic sprite one
+        Assert.Equal(typeof(SpriteFontPreviewViewModel), types[typeof(SpriteFontPreview)]);
+        Assert.Equal(typeof(PrecompiledSpriteFontPreviewViewModel), types[typeof(PrecompiledSpriteFontPreview)]);
         // Any sprite batch preview without a view model of its own gets the generic one
         Assert.Equal(typeof(SpritePreviewViewModel), types[typeof(PreviewFromSpriteBatch<>)]);
         // The editor plugin declares none any more: a second declaration would make the registration throw

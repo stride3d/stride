@@ -18,6 +18,7 @@ AssetPreviewViewModelTypes:
   Stride.Assets.Editor.Preview.EntityPreview -> Stride.Assets.Editor.ViewModels.Preview.EntityPreviewViewModel
   Stride.Assets.Editor.Preview.MaterialPreview -> Stride.Assets.Editor.ViewModels.Preview.MaterialPreviewViewModel
   Stride.Assets.Editor.Preview.ModelPreview -> Stride.Assets.Editor.ViewModels.Preview.ModelPreviewViewModel
+  Stride.Assets.Editor.Preview.PrecompiledSpriteFontPreview -> Stride.Assets.Editor.ViewModels.Preview.PrecompiledSpriteFontPreviewViewModel
   Stride.Assets.Editor.Preview.PreviewFromSpriteBatch`1 -> Stride.Assets.Editor.ViewModels.Preview.SpritePreviewViewModel
   Stride.Assets.Editor.Preview.ProceduralModelPreview -> Stride.Assets.Editor.ViewModels.Preview.ProceduralModelPreviewViewModel
   Stride.Assets.Editor.Preview.SkyboxPreview -> Stride.Assets.Editor.ViewModels.Preview.SkyboxPreviewViewModel

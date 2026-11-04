@@ -9,7 +9,7 @@ using Stride.Rendering;
 
 namespace Stride.Assets.Editor.Preview;
 
-public abstract class FontPreview<T> : PreviewFromSpriteBatch<T>
+public abstract class FontPreview<T> : PreviewFromSpriteBatch<T>, IFontPreview
     where T : Asset
 {
     private string? previewText = "";
@@ -25,11 +25,7 @@ public abstract class FontPreview<T> : PreviewFromSpriteBatch<T>
         return sdfFontEffect ?? (sdfFontEffect = new EffectInstance(new Graphics.Effect(device, SpriteSignedDistanceFieldFontShader.Bytecode) { Name = "SDFFontEffectAssetPreview" }));
     }
 
-    /// <summary>
-    /// Sets a string to preview using the sprite font. If the given string is null or empty, it will display the
-    /// sprite font texture instead.
-    /// </summary>
-    /// <param name="str">The string to preview.</param>
+    /// <inheritdoc />
     public void SetPreviewString(string? str)
     {
         previewText = str;
