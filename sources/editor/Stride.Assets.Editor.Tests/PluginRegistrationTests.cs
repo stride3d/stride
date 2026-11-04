@@ -22,6 +22,13 @@ public sealed class PluginRegistrationTests
     }
 
     [Fact]
+    public void TheSharedAssetsPluginRegistersTheSharedAssetViewModels()
+    {
+        // The view models that the default assets plugin registered before they were shared with the WPF editor
+        AssertEditorRegistrations(new StrideSharedAssetsPlugin());
+    }
+
+    [Fact]
     public void TheEditorPluginRegistersTheSameAsBefore()
     {
         AssertEditorRegistrations(new StrideEditorPlugin());

@@ -8,6 +8,7 @@ using System.Windows.Input;
 using Microsoft.Xaml.Behaviors;
 
 using Stride.Assets.Presentation.ViewModel;
+using Stride.Assets.Editor.ViewModels.Preview;
 
 namespace Stride.Assets.Presentation.View.Behaviors
 {

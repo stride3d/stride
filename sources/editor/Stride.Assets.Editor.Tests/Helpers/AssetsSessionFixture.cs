@@ -18,8 +18,8 @@ using Stride.Editor.Build;
 namespace Stride.Assets.Editor.Tests.Helpers;
 
 /// <summary>
-/// A session over a small project of Stride assets, with the default assets plugin and the editor plugin registered the way
-/// the editor shell registers them.
+/// A session over a small project of Stride assets, with the default assets plugin, the shared asset view models
+/// (<see cref="StrideSharedAssetsPlugin"/>) and the editor plugin registered the way the editor shell registers them.
 /// </summary>
 public sealed class AssetsSessionFixture : IDisposable
 {
@@ -90,7 +90,7 @@ public sealed class AssetsSessionFixture : IDisposable
         var directory = Path.Combine(Path.GetTempPath(), "Stride.Assets.Editor.Tests", Guid.NewGuid().ToString("N"));
         var assetsPlugin = new StrideDefaultAssetsPlugin();
         var editorPlugin = new StrideEditorPlugin { EnableThumbnailService = false };
-        var plugins = new TestPluginService(assetsPlugin, editorPlugin);
+        var plugins = new TestPluginService(assetsPlugin, new StrideSharedAssetsPlugin(), editorPlugin);
         var serviceProvider = new ViewModelServiceProvider(
         [
             dispatcher,

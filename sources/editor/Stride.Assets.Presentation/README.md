@@ -11,7 +11,10 @@ This project is the main project for the view models of Stride assets in an appl
 
 ## Implementations
 
-All view models for the Stride assets are here.
+All view models for the Stride assets are here, except the ones that both editors share since Phase 3 (material, model,
+skeleton, sprite sheet...): they live in `Stride.Assets.Presentation.Common` under the same namespace
+(`Stride.Assets.Presentation.ViewModels`), with their own plugin (`StrideSharedAssetsPlugin`), until the default assets plugin
+moves there too.
 
 ## Notes
 
