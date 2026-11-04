@@ -33,6 +33,27 @@ namespace Stride.Engine.Tests
         }
 
         [Fact]
+        public void RemovedInstanceDoesNotConnectToANewMaster()
+        {
+            var entityManager = new TestEntityManager(new ServiceRegistry());
+            var master = new InstancingComponent();
+            master.Type = new InstancingEntityTransform();
+            var instance = new InstanceComponent { Master = master };
+            var entity = new Entity { instance };
+
+            entityManager.Add(entity);
+            entityManager.Remove(entity);
+
+            var replacement = new InstancingComponent();
+            var replacementTransform = new InstancingEntityTransform();
+            replacement.Type = replacementTransform;
+            instance.Master = replacement;
+            replacementTransform.Update();
+
+            Assert.Equal(0, replacementTransform.InstanceCount);
+        }
+
+        [Fact]
         public void ReaddedInstanceResubscribesToMasterChanges()
         {
             var entityManager = new TestEntityManager(new ServiceRegistry());
@@ -68,6 +89,7 @@ namespace Stride.Engine.Tests
             GC.Collect();
 
             Assert.False(weakEntity.TryGetTarget(out _));
+            GC.KeepAlive(master);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]

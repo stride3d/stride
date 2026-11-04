@@ -19,6 +19,7 @@ namespace Stride.Engine
     {
         private InstancingComponent master;
         private InstancingEntityTransform connectedInstancing;
+        private bool isInProcessor;
         private bool isMasterEventSubscribed;
 
         /// <summary>
@@ -36,9 +37,14 @@ namespace Stride.Engine
             {
                 if (value != master)
                 {
+                    var shouldReconnect = isInProcessor;
                     DisconnectFromMaster();
                     master = value;
-                    ConnectToMaster();
+
+                    if (shouldReconnect)
+                    {
+                        ConnectToMaster();
+                    }
                 }
             }
         }
@@ -51,6 +57,8 @@ namespace Stride.Engine
 
         internal void ConnectToMaster()
         {
+            isInProcessor = true;
+
             if (master != null && !isMasterEventSubscribed)
             {
                 master.InstancingChanged += Master_InstancingChanged;
@@ -62,6 +70,7 @@ namespace Stride.Engine
 
         internal void DisconnectFromMaster()
         {
+            isInProcessor = false;
             DisconnectInstancing();
 
             if (master != null && isMasterEventSubscribed)
@@ -71,7 +80,7 @@ namespace Stride.Engine
             }
         }
 
-        internal void ConnectInstancing()
+        private void ConnectInstancing()
         {
             if (connectedInstancing == null && master != null && master.Type is InstancingEntityTransform instancing)
             {
@@ -80,7 +89,7 @@ namespace Stride.Engine
             }
         }
 
-        internal void DisconnectInstancing()
+        private void DisconnectInstancing()
         {
             if (connectedInstancing != null)
             {
