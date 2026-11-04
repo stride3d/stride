@@ -20,24 +20,24 @@ AssetEditorViewTypes:
   Stride.Assets.Presentation.AssetEditors.ScriptEditor.ScriptEditorViewModel -> Stride.Assets.Presentation.AssetEditors.ScriptEditor.ScriptEditorView
   Stride.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels.SpriteSheetEditorViewModel -> Stride.Assets.Presentation.AssetEditors.SpriteEditor.Views.SpriteEditorView
 AssetPreviewViewModelTypes:
+  Stride.Assets.Editor.Preview.PreviewFromSpriteBatch`1 -> Stride.Assets.Presentation.ViewModel.Preview.SpritePreviewViewModel
   Stride.Assets.Presentation.Preview.AnimationPreview -> Stride.Assets.Presentation.ViewModel.Preview.AnimationPreviewViewModel
   Stride.Assets.Presentation.Preview.EntityPreview -> Stride.Assets.Presentation.ViewModel.Preview.EntityPreviewViewModel
   Stride.Assets.Presentation.Preview.MaterialPreview -> Stride.Assets.Presentation.ViewModel.Preview.MaterialPreviewViewModel
   Stride.Assets.Presentation.Preview.ModelPreview -> Stride.Assets.Presentation.ViewModel.Preview.ModelPreviewViewModel
-  Stride.Assets.Presentation.Preview.PreviewFromSpriteBatch`1 -> Stride.Assets.Presentation.ViewModel.Preview.SpritePreviewViewModel
   Stride.Assets.Presentation.Preview.ProceduralModelPreview -> Stride.Assets.Presentation.ViewModel.Preview.ProceduralModelPreviewViewModel
   Stride.Assets.Presentation.Preview.SkyboxPreview -> Stride.Assets.Presentation.ViewModel.Preview.SkyboxPreviewViewModel
   Stride.Assets.Presentation.Preview.SpriteFontPreview -> Stride.Assets.Presentation.ViewModel.Preview.SpriteFontPreviewViewModel
   Stride.Assets.Presentation.Preview.SpriteSheetPreview -> Stride.Assets.Presentation.ViewModel.Preview.SpriteSheetPreviewViewModel
   Stride.Assets.Presentation.Preview.TexturePreview -> Stride.Assets.Presentation.ViewModel.Preview.TexturePreviewViewModel
 AssetPreviewViewTypes:
+  Stride.Assets.Editor.Preview.PreviewFromSpriteBatch`1 -> Stride.Assets.Presentation.Preview.Views.SpritePreviewView
   Stride.Assets.Presentation.Preview.AnimationPreview -> Stride.Assets.Presentation.Preview.Views.AnimationPreviewView
   Stride.Assets.Presentation.Preview.MaterialPreview -> Stride.Assets.Presentation.Preview.Views.MaterialPreviewView
   Stride.Assets.Presentation.Preview.ModelPreview -> Stride.Assets.Presentation.Preview.Views.ModelPreviewView
   Stride.Assets.Presentation.Preview.PrecompiledSpriteFontPreview -> Stride.Assets.Presentation.Preview.Views.SpriteFontPreviewView
   Stride.Assets.Presentation.Preview.PrefabModelPreview -> Stride.Assets.Presentation.Preview.Views.ModelPreviewView
   Stride.Assets.Presentation.Preview.PrefabPreview -> Stride.Assets.Presentation.Preview.Views.ModelPreviewView
-  Stride.Assets.Presentation.Preview.PreviewFromSpriteBatch`1 -> Stride.Assets.Presentation.Preview.Views.SpritePreviewView
   Stride.Assets.Presentation.Preview.ProceduralModelPreview -> Stride.Assets.Presentation.Preview.Views.ModelPreviewView
   Stride.Assets.Presentation.Preview.ScenePreview -> Stride.Assets.Presentation.Preview.Views.ScenePreviewView
   Stride.Assets.Presentation.Preview.SkyboxPreview -> Stride.Assets.Presentation.Preview.Views.SkyboxPreviewView

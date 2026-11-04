@@ -7,7 +7,7 @@ using Stride.Core.Presentation.ViewModels;
 using Stride.Editor.Preview;
 using Stride.Editor.Preview.ViewModel;
 
-namespace Stride.Assets.Presentation.ViewModel.Preview
+namespace Stride.Assets.Editor.ViewModels.Preview
 {
     /// <summary>
     /// Base implementation of <see cref="IAssetPreview"/>.

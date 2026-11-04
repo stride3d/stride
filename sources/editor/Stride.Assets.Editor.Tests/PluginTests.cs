@@ -8,7 +8,6 @@ using Stride.Assets.Entities;
 using Stride.Assets.Materials;
 using Stride.Assets.Models;
 using Stride.Assets.Presentation;
-using Stride.Assets.Presentation.Preview;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Assets.Sprite;
 using Stride.Assets.Textures;

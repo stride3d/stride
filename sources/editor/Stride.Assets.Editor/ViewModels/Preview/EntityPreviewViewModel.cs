@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Assets.Editor.Preview;
-using Stride.Assets.Presentation.ViewModel.Preview;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Editor.Annotations;
 

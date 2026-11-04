@@ -4,8 +4,10 @@
 using System.Linq;
 using System.Reflection;
 using Stride.Assets.Presentation.Preview;
+using Stride.Assets.Editor.Preview;
 using Stride.Assets.Presentation.Preview.Views;
 using Stride.Assets.Presentation.ViewModel.Preview;
+using Stride.Assets.Editor.ViewModels.Preview;
 using Stride.Editor.Annotations;
 using Xunit;
 

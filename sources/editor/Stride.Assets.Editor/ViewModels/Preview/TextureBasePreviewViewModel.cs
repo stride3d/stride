@@ -4,9 +4,8 @@
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
 using Stride.Editor.Preview;
-using Stride.Assets.Presentation.ViewModel.Preview;
 using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Assets.Presentation.Preview;
+using Stride.Assets.Editor.Preview;
 
 namespace Stride.Assets.Editor.ViewModels.Preview;
 

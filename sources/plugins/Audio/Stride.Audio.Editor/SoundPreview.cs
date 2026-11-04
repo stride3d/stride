@@ -5,7 +5,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Services;
-using Stride.Assets.Presentation.Preview;
+using Stride.Assets.Editor.Preview;
 using Stride.Audio.Assets;
 using Stride.Editor.Annotations;
 using Stride.Media;

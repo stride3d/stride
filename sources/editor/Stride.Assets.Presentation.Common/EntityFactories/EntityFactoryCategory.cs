@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using Stride.Core.Presentation.Collections;
 
-namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories
+namespace Stride.Assets.Editor.EntityFactories
 {
     public class EntityFactoryCategory : IComparable<EntityFactoryCategory>
     {
