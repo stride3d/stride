@@ -17,6 +17,7 @@ using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Templates;
+using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Serialization;
@@ -239,16 +240,17 @@ public sealed class AssetTemplateGeneratorTests
     public void EveryAssetTemplateOfTheStridePackageHasAGenerator()
     {
         _ = LazyTemplates.Value;
-        try
-        {
-            StrideDefaultTemplates.LoadAssetTemplates(loadAssemblyReferences: false);
-        }
-        catch (InvalidOperationException e)
-        {
-            throw new SkipException($"The {StrideDefaultTemplates.AssetTemplatesPackageName} package is not in the package store on this machine: {e.Message}");
-        }
+        // The package is read here, not registered with the TemplateManager (StrideDefaultTemplates.LoadAssetTemplates): the
+        // manager has no unregistration, and the package's templates would stay listed for every later test of the process. Its
+        // skeleton template then doubled the one ModelViewModelTests adds to its session.
+        var packageFile = PackageStore.Instance.GetPackageFileName(StrideDefaultTemplates.AssetTemplatesPackageName, new PackageVersionRange(new PackageVersion(StrideVersion.NuGetVersion)));
+        Skip.If(packageFile is null, $"The {StrideDefaultTemplates.AssetTemplatesPackageName} package is not in the package store on this machine.");
+        var logger = new LoggerResult();
+        var package = Package.Load(logger, packageFile!.ToOSPath(), new PackageLoadParameters { LoadAssemblyReferences = false, AutoLoadTemporaryAssets = false });
+        Assert.False(logger.HasErrors, logger.ToText());
 
-        var templates = TemplateManager.FindTemplates(TemplateScope.Asset)
+        var templates = package.Templates
+            .Where(x => x.Scope == TemplateScope.Asset)
             .OfType<TemplateAssetDescription>()
             .Where(x => x.FullPath.FullPath.Contains("/Templates/Assets/", StringComparison.OrdinalIgnoreCase))
             .ToList();
