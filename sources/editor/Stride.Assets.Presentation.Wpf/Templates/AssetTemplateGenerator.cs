@@ -8,6 +8,7 @@ using Stride.Core.Assets;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.IO;
 using Stride.Core.Assets.Templates;
 using Stride.Core;
@@ -134,7 +135,7 @@ namespace Stride.Assets.Presentation.Templates
         protected async Task<AssetViewModel> BrowseForAsset(Package package, IEnumerable<Type> acceptedTypes, string initialDirectory, string message)
         {
             var session = SessionViewModel.Instance;
-            var dialogService = SessionViewModel.Instance.ServiceProvider.Get<IEditorDialogService>();
+            var dialogService = SessionViewModel.Instance.ServiceProvider.Get<IWpfEditorDialogService>();
             return await session.Dispatcher.InvokeTask(async () =>
             {
                 var dialog = dialogService.CreateAssetPickerDialog(session);

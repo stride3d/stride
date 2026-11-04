@@ -11,6 +11,7 @@ using Stride.Core.Assets.Quantum;
 using Stride.Core.Assets.Yaml;
 using Stride.Core.Extensions;
 using Stride.Core.Reflection;
+using Stride.Core.Assets.Editor.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors
 {

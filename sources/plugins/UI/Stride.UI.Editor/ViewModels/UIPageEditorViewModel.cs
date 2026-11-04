@@ -15,6 +15,7 @@ using Stride.Assets.Presentation.ViewModel;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Assets.Presentation.AssetEditors.PrefabEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.PrefabEditor.ViewModels;
+using Stride.Core.Assets.Editor.ViewModels;
 
 namespace Stride.UI.Editor.ViewModels
 {

@@ -124,7 +124,8 @@ public interface IEditorDialogService : IDialogService, IAssetPickerService
     /// <param name="noAction">What a no does.</param>
     /// <param name="yesNoSettingsKey">The answer to use when the question is not asked; "don't ask again" saves the answer there.
     /// Without it, the answer is yes, and only a yes can be remembered.</param>
-    /// <returns>A task that completes when the question was answered and its action ran.</returns>
+    /// <returns>A task that completes when the question was answered and its action ran. A host that keeps its own queue of
+    /// questions (the WPF editor) may complete it as soon as the question is queued.</returns>
     Task AddDelayedNotification(SettingsKey<bool> confirmationSettingsKey, string message, string yesCaption, string noCaption, Action? yesAction = null, Action? noAction = null, SettingsKey<bool>? yesNoSettingsKey = null)
     {
         return DelayedNotifications.AskAsync(this, confirmationSettingsKey, message, yesCaption, noCaption, yesAction, noAction, yesNoSettingsKey);

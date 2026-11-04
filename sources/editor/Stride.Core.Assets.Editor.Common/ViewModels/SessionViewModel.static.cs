@@ -168,7 +168,9 @@ partial class SessionViewModel
         token = cancellationSource.Token;
         var workProgress = new WorkProgressViewModel(serviceProvider, sessionResult)
         {
-            Title = Tr._p("Title", "Opening session..."),
+            Title = EditorPath.EditorEnvironment != null
+                ? $"{Tr._p("Title", "Opening session...")} ({EditorPath.EditorEnvironment})"
+                : Tr._p("Title", "Opening session..."),
             KeepOpen = KeepOpen.OnWarningsOrErrors,
             IsIndeterminate = true,
             IsCancellable = true,
@@ -322,6 +324,11 @@ partial class SessionViewModel
             }
 
             message.AppendLine();
+            if (pendingUpgrades.Any(x => x.Dependency.Version!.MinVersion > x.PackageUpgrader.Attribute.UpdatedVersionRange!.MinVersion))
+            {
+                message.AppendLine(Tr._p("Message", "This moves the project to an older version. It may not load correctly, and upgrades can run again when you go back to a newer version."));
+                message.AppendLine();
+            }
             message.AppendLine(Tr._p("Message", "Upgrading assets might break them. We also recommend committing or backing up your project first."));
 
             var buttons = new[]

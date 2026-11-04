@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Serialization;
 using Stride.Assets.Effect;
 using Stride.Assets.Presentation.ViewModel;
@@ -261,7 +262,7 @@ namespace Stride.Assets.Presentation
                 effectLogText = effectLogViewModel.Text;
 
                 // Select current asset
-                session.ActiveAssetView.SelectAssets(new[] { effectLogViewModel });
+                session.AssetCollection.SelectAssets(new[] { effectLogViewModel });
 
                 session.UndoRedoService.SetName(transaction, "Import effect log");
             }
@@ -305,7 +306,7 @@ namespace Stride.Assets.Presentation
             session.ImportEffectLogPendingCount = importEffectLogPendingCount;
             if (displayNotification)
             {
-                var dialogService = session.ServiceProvider.Get<IEditorDialogService>();
+                var dialogService = session.ServiceProvider.Get<IWpfEditorDialogService>();
                 dialogService.ShowNotificationWindow("New effects to import", "New effects have been compiled by the game runtime and can be imported in the effect library. Click here to import them.", session.ImportEffectLogCommand, null);
             }
         }

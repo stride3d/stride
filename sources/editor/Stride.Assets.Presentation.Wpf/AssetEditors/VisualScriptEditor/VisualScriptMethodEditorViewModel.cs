@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
-using Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;

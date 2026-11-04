@@ -7,6 +7,7 @@ using RoslynPad.Editor;
 using RoslynPad.Roslyn.Diagnostics;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Annotations;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.Core.Assets.Editor.Annotations;
@@ -95,7 +96,7 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
                     DocumentClosed?.Invoke(this, EventArgs.Empty);
 
                     // Document is closing, we assume we have been asked before to save
-                    ServiceProvider.Get<IAssetEditorsManager>().CloseAssetEditorWindow(Asset, false);
+                    ServiceProvider.Get<IWpfAssetEditorsManager>().CloseAssetEditorWindow(Asset, false);
                 });
             }
         }

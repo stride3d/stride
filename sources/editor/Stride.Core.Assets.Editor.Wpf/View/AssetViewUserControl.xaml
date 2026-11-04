@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:viewModel="clr-namespace:Stride.Core.Assets.Editor.ViewModel"
+             xmlns:editorvm="clr-namespace:Stride.Core.Assets.Editor.ViewModels;assembly=Stride.Core.Assets.Editor.Common"
              xmlns:editorViewModels="clr-namespace:Stride.Core.Assets.Editor.ViewModels;assembly=Stride.Core.Assets.Editor.Common"
              xmlns:commonViewModel="clr-namespace:Stride.Core.Assets.Editor.ViewModel;assembly=Stride.Core.Assets.Editor.Common"
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
@@ -17,7 +17,7 @@
              xmlns:strings="clr-namespace:Stride.Core.Assets.Editor.Resources.Strings"
              xmlns:templateViews="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views"
              xmlns:services="clr-namespace:Stride.Core.Assets.Editor.Services"
-             mc:Ignorable="d" d:DataContext="{d:DesignInstance viewModel:AssetCollectionViewModel}" Focusable="True"
+             mc:Ignorable="d" d:DataContext="{d:DesignInstance editorvm:AssetCollectionViewModel}" Focusable="True"
              d:DesignHeight="300" d:DesignWidth="300" x:Name="AssetView" BorderThickness="1" BorderBrush="{DynamicResource MenuBorderBrush}">
   <!-- DataContext is AssetCollection, set in code-behind -->
   <DockPanel x:Name="RootContainer" DataContext="{x:Null}">
@@ -228,7 +228,7 @@
       <ToolBar>
         <!--  NEW ASSET  -->
         <ToggleButton x:Name="Toggle" Style="{StaticResource {x:Static ToolBar.ToggleButtonStyleKey}}"
-                      ToolTip="{sd:Localize Add an asset to this location, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Editor.Status}"
+                      ToolTip="{sd:Localize Add an asset to this location, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Main.Status}"
                       Visibility="{Binding CanAddAssets, ElementName=AssetView, Converter={sd:VisibleOrCollapsed}}">
           <StackPanel Orientation="Horizontal">
             <Image Source="{StaticResource ImageNewAsset}" />
@@ -253,7 +253,7 @@
         </Popup>
         <!--  UPDATE ASSETS FROM SOURCE BUTTON  -->
         <Button Command="{Binding Session.SourceTracker.UpdateAllAssetsWithModifiedSourceCommand}"
-                ToolTip="{sd:ToolTip {sd:Localize Update assets whose source files have changed, Context=ToolTip}, {x:Static strings:KeyGestures.UpdateAllAssetsWithModifiedSource}}" status:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True"
+                ToolTip="{sd:ToolTip {sd:Localize Update assets whose source files have changed, Context=ToolTip}, {x:Static strings:KeyGestures.UpdateAllAssetsWithModifiedSource}}" status:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True"
                 Visibility="{Binding CanEditAssets, ElementName=AssetView, Converter={sd:VisibleOrCollapsed}}">
           <DockPanel>
             <TextBlock DockPanel.Dock="Right" Margin="3,0" Visibility="{Binding Session.SourceTracker.AssetsToUpdate.Count, Converter={sd:Chained {sd:NumericToBool}, {sd:VisibleOrCollapsed}}}"
@@ -280,7 +280,7 @@
         <Button Command="{Binding Session.ImportEffectLogCommand}"
                 IsEnabled="{Binding Session.ImportEffectLogPendingCount, Converter={sd:NumericToBool}}"
                 Visibility="{Binding CanEditAssets, ElementName=AssetView, Converter={sd:VisibleOrCollapsed}}"
-                ToolTip="{sd:Localize Import last effects compiled remotely, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                ToolTip="{sd:Localize Import last effects compiled remotely, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
           <DockPanel>
             <TextBlock DockPanel.Dock="Right" Margin="3,0" Visibility="{Binding Session.ImportEffectLogPendingCount, Converter={sd:Chained {sd:IsGreater}, {sd:VisibleOrCollapsed},  Parameter1={sd:Double 0}}}"
                        Text="{Binding Session.ImportEffectLogPendingCount, StringFormat=({0})}" VerticalAlignment="Center" />
@@ -306,7 +306,7 @@
         <Separator/>
         <!--  EDIT  -->
         <Button Command="{Binding Session.EditSelectedContentCommand}" Visibility="{Binding CanEditAssets, ElementName=AssetView, Converter={sd:VisibleOrCollapsed}}"
-                ToolTip="{sd:ToolTip {sd:Localize Open asset in dedicated editor, Context=ToolTip}, {x:Static strings:KeyGestures.EditAsset}}" status:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                ToolTip="{sd:ToolTip {sd:Localize Open asset in dedicated editor, Context=ToolTip}, {x:Static strings:KeyGestures.EditAsset}}" status:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
           <Image Source="{StaticResource ImageEditAsset}" />
         </Button>
         <Separator Visibility="{Binding CanEditAssets, ElementName=AssetView, Converter={sd:VisibleOrCollapsed}}" />
@@ -315,7 +315,7 @@
           <MenuItem StaysOpenOnClick="True" Style="{StaticResource ToolBarIconMenuItemStyle}">
             <MenuItem.Icon>
               <Image Source="{StaticResource ImageView}" MaxHeight="16" MaxWidth="16"
-                     ToolTip="{sd:Localize Asset view options, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True"/>
+                     ToolTip="{sd:Localize Asset view options, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True"/>
             </MenuItem.Icon>
             <MenuItem.Resources>
               <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}" />
@@ -350,12 +350,12 @@
                   <TextBlock DockPanel.Dock="Left" Text="View" FontWeight="Bold" />
                   <Button DockPanel.Dock="Right" Margin="4 0 0 0" Background="Transparent"
                           Command="view:AssetViewUserControl.ZoomInCommand"
-                          ToolTip="{sd:Localize Zoom in, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                          ToolTip="{sd:Localize Zoom in, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
                     <Image Source="{StaticResource ImageZoomIn}"/>
                   </Button>
                   <Button DockPanel.Dock="Right" Background="Transparent"
                           Command="view:AssetViewUserControl.ZoomOutCommand"
-                          ToolTip="{sd:Localize Zoom out, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                          ToolTip="{sd:Localize Zoom out, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
                     <Image Source="{StaticResource ImageZoomOut}"/>
                   </Button>
                 </DockPanel>
@@ -376,7 +376,7 @@
         <sd:SearchComboBox Width="120" WatermarkContent="{sd:Localize Add a filter...}"
                              ItemsSource="{Binding AvailableAssetFilters}" SearchText="{Binding AssetFilterPattern}" ClearTextAfterSelection="True"
                              Command="{Binding AddAssetFilterCommand}" AlternativeCommand="{Binding RefreshAssetFilterCommand}" AlternativeModifiers="Shift"
-                             Grid.IsSharedSizeScope="True" x:Name="FilterSearchComboBox" status:ToolTipHelper.Status="{Binding Session.Editor.Status}"
+                             Grid.IsSharedSizeScope="True" x:Name="FilterSearchComboBox" status:ToolTipHelper.Status="{Binding Session.Main.Status}"
                              ToolTip="{sd:Localize Filter assets by name\, type or tag}" ToolTipService.ShowOnDisabled="True">
           <sd:SearchComboBox.ItemTemplate>
             <DataTemplate>
@@ -403,7 +403,7 @@
           </sd:SearchComboBox.ItemTemplate>
         </sd:SearchComboBox>
         <Button Command="{Binding ClearAssetFiltersCommand}" Visibility="{Binding CurrentAssetFilters.Count, Converter={sd:Chained {sd:NumericToBool}, {sd:VisibleOrCollapsed}}}"
-                ToolTip="{sd:Localize Clear filters, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                ToolTip="{sd:Localize Clear filters, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
           <Image Source="{StaticResource ImageClearFilters}"/>
         </Button>
       </ToolBar>

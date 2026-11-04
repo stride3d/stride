@@ -13,6 +13,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Extensions;
@@ -27,7 +28,7 @@ using Stride.GameStudio.Layout;
 
 namespace Stride.GameStudio.AssetsEditors
 {
-    internal sealed class AssetEditorsManager : IAssetEditorsManager, IDestroyable
+    internal sealed class AssetEditorsManager : IWpfAssetEditorsManager, IDestroyable
     {
         private readonly ConditionalWeakTable<IMultipleAssetEditorViewModel, NotifyCollectionChangedEventHandler> registeredHandlers = [];
         private readonly Dictionary<IAssetEditorViewModel, LayoutAnchorable> assetEditors = [];
@@ -160,9 +161,21 @@ namespace Stride.GameStudio.AssetsEditors
 
         /// <inheritdoc/>
         [NotNull]
-        public Task OpenAssetEditorWindow([NotNull] AssetViewModel asset)
+        public Task OpenAssetEditorAsync([NotNull] AssetViewModel asset)
         {
             return OpenAssetEditorWindow(asset, true);
+        }
+
+        /// <inheritdoc/>
+        public Task<bool> CloseAssetEditorAsync([NotNull] AssetViewModel asset, bool? save)
+        {
+            return Task.FromResult(CloseAssetEditorWindow(asset, save));
+        }
+
+        /// <inheritdoc/>
+        public Task<bool> CloseAllEditorsAsync(bool? save)
+        {
+            return Task.FromResult(CloseAllEditorWindows(save));
         }
 
         /// <inheritdoc/>

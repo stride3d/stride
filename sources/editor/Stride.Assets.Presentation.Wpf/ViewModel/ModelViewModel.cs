@@ -11,10 +11,10 @@ using Stride.Assets.Presentation.Templates;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
-using Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Templates;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Commands;
@@ -146,7 +146,7 @@ namespace Stride.Assets.Presentation.ViewModel
                 if (template != null)
                 {
                     var viewModel = new TemplateDescriptionViewModel(ServiceProvider, template);
-                    var skeleton = (await session.ActiveAssetView.RunAssetTemplate(viewModel, new[] { source })).SingleOrDefault();
+                    var skeleton = (await session.AssetCollection.RunAssetTemplateAsync(viewModel, new[] { source })).SingleOrDefault();
                     if (skeleton == null)
                         return;
 

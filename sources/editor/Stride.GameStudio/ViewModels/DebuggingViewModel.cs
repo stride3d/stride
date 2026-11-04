@@ -16,6 +16,7 @@ using Stride.Core.Assets.Editor.Components.Status;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.Components.Build;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
@@ -879,7 +880,7 @@ namespace Stride.GameStudio.ViewModels
                 return false;
             }
 
-            var saved = await Session.SaveSession();
+            var saved = await Session.SaveSessionAsync();
 
             if (!saved)
             {

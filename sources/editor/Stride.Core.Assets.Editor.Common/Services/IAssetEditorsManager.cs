@@ -4,7 +4,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Services;
 
@@ -44,5 +43,5 @@ public interface IAssetEditorsManager
     /// <param name="asset"></param>
     /// <param name="assetEditor"></param>
     /// <returns></returns>
-    bool TryGetAssetEditor<TEditor>(AssetViewModel asset, [MaybeNullWhen(false)] out TEditor assetEditor) where TEditor : AssetEditorViewModel;
+    bool TryGetAssetEditor<TEditor>(AssetViewModel asset, [MaybeNullWhen(false)] out TEditor assetEditor) where TEditor : IAssetEditorViewModel;
 }

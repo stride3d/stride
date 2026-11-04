@@ -8,6 +8,7 @@ using System.IO;
 using System.Windows.Media.Imaging;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Presentation.Views;
 using Stride.Editor;
 
@@ -29,14 +30,14 @@ public class PluginService : StrideEditorPluginHost
     /// <inheritdoc />
     protected override bool AddTemplateProvider(ISessionViewModel session, ITemplateProvider provider)
     {
-        session.ServiceProvider.Get<IEditorDialogService>().RegisterAdditionalTemplateProvider(provider);
+        session.ServiceProvider.Get<IWpfEditorDialogService>().RegisterAdditionalTemplateProvider(provider);
         return true;
     }
 
     /// <inheritdoc />
     protected override void RemoveTemplateProvider(ISessionViewModel session, ITemplateProvider provider)
     {
-        session.ServiceProvider.Get<IEditorDialogService>().UnregisterAdditionalTemplateProvider(provider);
+        session.ServiceProvider.Get<IWpfEditorDialogService>().UnregisterAdditionalTemplateProvider(provider);
     }
 
     /// <inheritdoc />
