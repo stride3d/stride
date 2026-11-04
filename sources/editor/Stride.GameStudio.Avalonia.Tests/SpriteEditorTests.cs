@@ -95,6 +95,35 @@ public sealed class SpriteEditorTests
     }
 
     [AvaloniaFact]
+    public async Task ThePropertyGridHeaderDescribesTheSelectedSpriteThenTheSelectedAsset()
+    {
+        var (fixture, window) = await OpenAsync();
+        using (fixture)
+        {
+            try
+            {
+                // Selecting a sprite clears the selection of the asset view: the header must not follow that clear
+                var (editor, _) = await OpenEditorAsync(fixture, window);
+                var properties = fixture.Session.ActiveProperties;
+                Assert.Equal("Sprite", properties.TypeDescription);
+                Assert.Equal(editor.Sprites[0].Name, properties.Name);
+
+                // Nor the clear of the sprites when an asset is selected
+                var sheet = fixture.Session.AllAssets.OfType<SpriteSheetViewModel>().Single();
+                fixture.Session.AssetCollection.SelectAssets([sheet]);
+                await WindowTestHelper.PumpAsync();
+                Assert.Empty(editor.SelectedSprites);
+                Assert.Equal(sheet.TypeDisplayName, properties.TypeDescription);
+                Assert.Equal(sheet.Url, properties.Name);
+            }
+            finally
+            {
+                await window.CloseAsync();
+            }
+        }
+    }
+
+    [AvaloniaFact]
     public async Task TheKeyboardCopiesPastesAndDeletesSpritesWithOneUndoEntryEach()
     {
         var (fixture, window) = await OpenAsync();

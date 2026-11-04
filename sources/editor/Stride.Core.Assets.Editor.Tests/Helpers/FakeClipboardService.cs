@@ -12,7 +12,12 @@ public sealed class FakeClipboardService : IClipboardService
 {
     public string? Text { get; set; }
 
-    public Task<string?> GetTextAsync() => Task.FromResult(Text);
+    /// <summary>
+    /// When set, the reads wait for this task, like a clipboard that answers later (X11, when another program owns the clipboard).
+    /// </summary>
+    public Task<string?>? PendingRead { get; set; }
+
+    public Task<string?> GetTextAsync() => PendingRead ?? Task.FromResult(Text);
 
     public Task SetTextAsync(string? text)
     {
