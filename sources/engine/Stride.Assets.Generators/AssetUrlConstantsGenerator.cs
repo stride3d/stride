@@ -141,6 +141,10 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
             cancellationToken.ThrowIfCancellationRequested();
             foreach (var pair in ReadDeclaredExtensions(assembly, extensionAttribute))
                 extensionTypes[pair.Key] = pair.Value;
+        }
+        foreach (var assembly in GetAllAssemblies(compilation))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
             if (assembly.Modules.Any(module => module.ReferencedAssemblies.Any(identity => identity.Name == StrideCoreAssetsAssemblyName)))
                 CollectAssetTypes(assembly.GlobalNamespace, extensionTypes);
         }
