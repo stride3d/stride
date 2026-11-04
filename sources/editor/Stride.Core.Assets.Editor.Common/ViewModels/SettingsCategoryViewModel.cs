@@ -44,7 +44,8 @@ public sealed class SettingsCategoryViewModel : DispatcherViewModel, IPropertyPr
             if (displayName.StartsWith(settingsPath, StringComparison.Ordinal) && !displayName[pathLength..].Contains('/'))
             {
                 var settingsObject = PackageSettingsWrapper.SettingsKeyWrapper.Create(key, profile);
-                settingsList.Add(key.DisplayName.GetFileName()!, settingsObject);
+                // By name, as in WPF: a translation can give two settings the same display name (#3260)
+                settingsList.Add(key.Name, settingsObject);
             }
         }
 
@@ -54,7 +55,7 @@ public sealed class SettingsCategoryViewModel : DispatcherViewModel, IPropertyPr
             var displayName = command.DisplayName.ToString();
             if (displayName.StartsWith(settingsPath, StringComparison.Ordinal) && !displayName[pathLength..].Contains('/'))
             {
-                settingsList.Add(command.DisplayName.GetFileName()!, command);
+                settingsList.Add(command.Name, command);
             }
         }
 
@@ -79,7 +80,8 @@ public sealed class SettingsCategoryViewModel : DispatcherViewModel, IPropertyPr
 
 
     /// <summary>
-    /// A dictionary representing the different settings objects (<see cref="SettingsKey"/> or <see cref="SettingsCommand"/>) indexed by their display name.
+    /// A dictionary representing the different settings objects (<see cref="SettingsKey"/> or <see cref="SettingsCommand"/>) indexed by their name;
+    /// the settings window shows their display name (<see cref="Settings.ViewModels.SettingsPropertyNodeUpdater"/>).
     /// </summary>
     internal IReadOnlyDictionary<string, object> SettingsList => settingsList;
 
