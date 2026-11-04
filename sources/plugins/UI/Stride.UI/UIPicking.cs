@@ -43,6 +43,8 @@ namespace Stride.UI
         private readonly List<PointerEvent> compactedPointerEvents = new List<PointerEvent>();
         private readonly List<(IPointerDevice Device, int PointerId)> pointersToRelease = new List<(IPointerDevice, int)>();
         private readonly List<(RenderUIElement, RenderView)> staleTargets = new List<(RenderUIElement, RenderView)>();
+        private readonly Dictionary<RenderUIElement, MouseOverTest> mouseOverTests = new Dictionary<RenderUIElement, MouseOverTest>();
+        private readonly List<RenderUIElement> mouseOverOrder = new List<RenderUIElement>();
         private bool releaseMouseDrag;
 
         public UIPicking(UISystem system, InputManager input)
@@ -67,19 +69,14 @@ namespace Stride.UI
             compactedPointerEvents.Clear();
             CompactPointerEvents(events);
 
-            UIElement elementUnderMouseCursor = null;
+            var elementUnderMouseCursor = UpdateMouseOver(targets);
+
             foreach (var target in targets.Values)
             {
                 if (target.RenderObject.Page?.RootElement == null)
                     continue;
 
-                var inverseZViewProj = target.WorldViewProjection;
-                inverseZViewProj.Row3 = -inverseZViewProj.Row3;
-
-                var element = UpdateMouseOver(target, ref inverseZViewProj);
-                if (element != null)
-                    elementUnderMouseCursor = element;
-
+                var inverseZViewProj = GetInverseZViewProjection(target);
                 UpdateTouchEvents(target, ref inverseZViewProj, time);
             }
 
@@ -318,29 +315,84 @@ namespace Stride.UI
             }
         }
 
-        private UIElement UpdateMouseOver(in UIPickingTarget target, ref Matrix worldViewProj)
+        private static Matrix GetInverseZViewProjection(in UIPickingTarget target)
+        {
+            var inverseZViewProj = target.WorldViewProjection;
+            inverseZViewProj.Row3 = -inverseZViewProj.Row3;
+            return inverseZViewProj;
+        }
+
+        /// <summary>
+        /// Updates the mouse-over state of each UI component once, from all the views that draw it: the first view whose
+        /// hit test finds an element wins.
+        /// </summary>
+        /// <returns>The element under the mouse cursor, or <c>null</c>.</returns>
+        private UIElement UpdateMouseOver(Dictionary<(RenderUIElement, RenderView), UIPickingTarget> targets)
         {
             if (input == null || !input.HasMouse)
                 return null;
 
-            var state = target.RenderObject;
-            var intersectionPoint = Vector3.Zero;
             var mousePosition = input.MousePosition;
-            var rootElement = state.Page.RootElement;
-            var lastMouseOverElement = state.LastMouseOverElement;
+            mouseOverTests.Clear();
+            mouseOverOrder.Clear();
 
-            UIElement mouseOverElement = lastMouseOverElement;
-
+            // Decide for each component whether to test again before any of its views writes the cache, since the views share it.
             // Test again when the mouse moved or the UI was drawn again, since the UI or the camera may have moved under a still
             // cursor. A cursor outside the UI is over nothing, so the last hovered element loses its mouse-over state.
-            if (mousePosition != state.LastMousePosition
-                || target.Frame != state.LastMouseOverFrame
-                || (lastMouseOverElement?.RequiresMouseOverUpdate ?? false))
+            foreach (var target in targets.Values)
             {
-                mouseOverElement = GetTouchPosition(target, ref worldViewProj, mousePosition, out var uiRay)
-                    ? UIRenderFeature.GetElementAtScreenPosition(rootElement, ref uiRay, ref worldViewProj, ref intersectionPoint)
-                    : null;
+                var state = target.RenderObject;
+                if (state.Page?.RootElement == null)
+                    continue;
+
+                var lastMouseOverElement = state.LastMouseOverElement;
+                var retest = mousePosition != state.LastMousePosition
+                    || target.Frame != state.LastMouseOverFrame
+                    || (lastMouseOverElement?.RequiresMouseOverUpdate ?? false);
+
+                if (mouseOverTests.TryGetValue(state, out var test))
+                {
+                    test.Retest |= retest;
+                    test.Frame = Math.Max(test.Frame, target.Frame);
+                }
+                else
+                {
+                    test = new MouseOverTest { Retest = retest, Element = lastMouseOverElement, Frame = target.Frame };
+                    mouseOverOrder.Add(state);
+                }
+                mouseOverTests[state] = test;
             }
+
+            foreach (var target in targets.Values)
+            {
+                var state = target.RenderObject;
+                if (!mouseOverTests.TryGetValue(state, out var test) || !test.Retest || test.Hit)
+                    continue;
+
+                var inverseZViewProj = GetInverseZViewProjection(target);
+                var intersectionPoint = Vector3.Zero;
+                test.Element = GetTouchPosition(target, ref inverseZViewProj, mousePosition, out var uiRay)
+                    ? UIRenderFeature.GetElementAtScreenPosition(state.Page.RootElement, ref uiRay, ref inverseZViewProj, ref intersectionPoint)
+                    : null;
+                test.Hit = test.Element != null;
+                mouseOverTests[state] = test;
+            }
+
+            UIElement elementUnderMouseCursor = null;
+            foreach (var state in mouseOverOrder)
+            {
+                var test = mouseOverTests[state];
+                ApplyMouseOver(state, test.Element, mousePosition, test.Frame);
+                if (test.Element != null)
+                    elementUnderMouseCursor = test.Element;
+            }
+
+            return elementUnderMouseCursor;
+        }
+
+        private void ApplyMouseOver(RenderUIElement state, UIElement mouseOverElement, Vector2 mousePosition, int frame)
+        {
+            var lastMouseOverElement = state.LastMouseOverElement;
 
             // find the common parent between current and last overred elements
             var commonElement = FindCommonParent(mouseOverElement, lastMouseOverElement);
@@ -375,8 +427,7 @@ namespace Stride.UI
             // update cached values
             state.LastMouseOverElement = mouseOverElement;
             state.LastMousePosition = mousePosition;
-            state.LastMouseOverFrame = target.Frame;
-            return mouseOverElement;
+            state.LastMouseOverFrame = frame;
         }
 
         private UIElement FindCommonParent(UIElement element1, UIElement element2)
@@ -425,6 +476,14 @@ namespace Stride.UI
                 }
                 newElementParent = newElementParent.VisualParent;
             }
+        }
+
+        private struct MouseOverTest
+        {
+            public bool Retest;
+            public bool Hit;
+            public UIElement Element;
+            public int Frame;
         }
     }
 }
