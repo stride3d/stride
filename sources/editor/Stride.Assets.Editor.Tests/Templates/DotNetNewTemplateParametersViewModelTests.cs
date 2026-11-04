@@ -13,6 +13,7 @@ namespace Stride.Assets.Editor.Tests.Templates;
 /// <summary>
 /// The view model of the parameters dialog shown before a dotnet new template runs.
 /// </summary>
+[Collection(TemplateDownloadsCollection.Name)]
 public sealed class DotNetNewTemplateParametersViewModelTests
 {
     private const string HostDataHidingUpdateOnly = """{ "symbolInfo": { "updateOnly": { "isVisible": false } } }""";

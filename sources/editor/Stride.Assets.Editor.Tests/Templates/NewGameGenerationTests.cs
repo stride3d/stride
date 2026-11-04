@@ -15,6 +15,7 @@ namespace Stride.Assets.Editor.Tests.Templates;
 /// The game template the project selection window runs, through the agnostic generator: the files it writes in a temporary
 /// folder, without loading the game in a session.
 /// </summary>
+[Collection(TemplateDownloadsCollection.Name)]
 public sealed class NewGameGenerationTests
 {
     [SkippableFact]
