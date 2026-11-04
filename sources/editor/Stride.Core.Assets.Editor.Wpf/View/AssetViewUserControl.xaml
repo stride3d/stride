@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:viewModel="clr-namespace:Stride.Core.Assets.Editor.ViewModel"
+             xmlns:editorViewModels="clr-namespace:Stride.Core.Assets.Editor.ViewModels;assembly=Stride.Core.Assets.Editor.Common"
              xmlns:commonViewModel="clr-namespace:Stride.Core.Assets.Editor.ViewModel;assembly=Stride.Core.Assets.Editor.Common"
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
@@ -321,28 +322,28 @@
             </MenuItem.Resources>
             <MenuItem Header="{sd:Localize Display, Context=Menu}" Style="{StaticResource MenuGroupWithItemsStyle}" Visibility="{Binding CanRecursivelyDisplayAssets, ElementName=AssetView, Converter={sd:VisibleOrCollapsed}}">
               <MenuItem Header="{sd:Localize Assets in selected folder only, Context=Menu}" IsCheckable="False"
-                        Command="{Binding ChangeDisplayAssetModeCommand}" CommandParameter="{x:Static viewModel:DisplayAssetMode.AssetInSelectedFolderOnly}"
-                        IsChecked="{Binding DisplayAssetMode, Mode=OneWay, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static viewModel:DisplayAssetMode.AssetInSelectedFolderOnly}}" />
+                        Command="{Binding ChangeDisplayAssetModeCommand}" CommandParameter="{x:Static editorViewModels:DisplayAssetMode.AssetInSelectedFolderOnly}"
+                        IsChecked="{Binding DisplayAssetMode, Mode=OneWay, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static editorViewModels:DisplayAssetMode.AssetInSelectedFolderOnly}}" />
               <MenuItem Header="{sd:Localize Assets and folders in selected folder, Context=Menu}" IsCheckable="False"
-                        Command="{Binding ChangeDisplayAssetModeCommand}" CommandParameter="{x:Static viewModel:DisplayAssetMode.AssetAndFolderInSelectedFolder}"
-                        IsChecked="{Binding DisplayAssetMode, Mode=OneWay, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static viewModel:DisplayAssetMode.AssetAndFolderInSelectedFolder}}" />
+                        Command="{Binding ChangeDisplayAssetModeCommand}" CommandParameter="{x:Static editorViewModels:DisplayAssetMode.AssetAndFolderInSelectedFolder}"
+                        IsChecked="{Binding DisplayAssetMode, Mode=OneWay, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static editorViewModels:DisplayAssetMode.AssetAndFolderInSelectedFolder}}" />
               <MenuItem Header="{sd:Localize Assets in selected folder and subfolders, Context=Menu}" IsCheckable="False"
-                        Command="{Binding ChangeDisplayAssetModeCommand}" CommandParameter="{x:Static viewModel:DisplayAssetMode.AssetInSelectedFolderAndSubFolder}"
-                        IsChecked="{Binding DisplayAssetMode, Mode=OneWay, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static viewModel:DisplayAssetMode.AssetInSelectedFolderAndSubFolder}}" />
+                        Command="{Binding ChangeDisplayAssetModeCommand}" CommandParameter="{x:Static editorViewModels:DisplayAssetMode.AssetInSelectedFolderAndSubFolder}"
+                        IsChecked="{Binding DisplayAssetMode, Mode=OneWay, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static editorViewModels:DisplayAssetMode.AssetInSelectedFolderAndSubFolder}}" />
             </MenuItem>
             <MenuItem Header="Sort by" Style="{StaticResource MenuGroupSeparatorStyle}" />
             <MenuItem Header="{sd:Localize Name, Context=Menu}" IsCheckable="False"
-                      Command="{Binding SortAssetsCommand}" CommandParameter="{x:Static viewModel:SortRule.Name}"
-                      IsChecked="{Binding SortRule, Mode=OneWay, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static viewModel:SortRule.Name}}"/>
+                      Command="{Binding SortAssetsCommand}" CommandParameter="{x:Static editorViewModels:SortRule.Name}"
+                      IsChecked="{Binding SortRule, Mode=OneWay, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static editorViewModels:SortRule.Name}}"/>
             <MenuItem Header="{sd:Localize Date modified, Context=Menu}" IsCheckable="False"
-                      Command="{Binding SortAssetsCommand}" CommandParameter="{x:Static viewModel:SortRule.ModificationDateThenName}"
-                      IsChecked="{Binding SortRule, Mode=OneWay, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static viewModel:SortRule.ModificationDateThenName}}"/>
+                      Command="{Binding SortAssetsCommand}" CommandParameter="{x:Static editorViewModels:SortRule.ModificationDateThenName}"
+                      IsChecked="{Binding SortRule, Mode=OneWay, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static editorViewModels:SortRule.ModificationDateThenName}}"/>
             <MenuItem Header="{sd:Localize Type, Context=Menu}" IsCheckable="False"
-                      Command="{Binding SortAssetsCommand}" CommandParameter="{x:Static viewModel:SortRule.TypeOrderThenName}"
-                      IsChecked="{Binding SortRule, Mode=OneWay, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static viewModel:SortRule.TypeOrderThenName}}"/>
+                      Command="{Binding SortAssetsCommand}" CommandParameter="{x:Static editorViewModels:SortRule.TypeOrderThenName}"
+                      IsChecked="{Binding SortRule, Mode=OneWay, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static editorViewModels:SortRule.TypeOrderThenName}}"/>
             <MenuItem Header="{sd:Localize Unsaved changes, Context=Menu}" IsCheckable="False"
-                      Command="{Binding SortAssetsCommand}" CommandParameter="{x:Static viewModel:SortRule.DirtyThenName}"
-                      IsChecked="{Binding SortRule, Mode=OneWay, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static viewModel:SortRule.DirtyThenName}}"/>
+                      Command="{Binding SortAssetsCommand}" CommandParameter="{x:Static editorViewModels:SortRule.DirtyThenName}"
+                      IsChecked="{Binding SortRule, Mode=OneWay, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static editorViewModels:SortRule.DirtyThenName}}"/>
             <MenuItem Style="{StaticResource MenuGroupWithItemsStyle}">
               <MenuItem.Header>
                 <DockPanel LastChildFill="False">
@@ -416,10 +417,10 @@
                 <Style TargetType="{x:Type sd:TagControl}" BasedOn="{StaticResource {x:Type sd:TagControl}}">
                   <Style.Triggers>
                     <!--  Background Color  -->
-                    <DataTrigger Binding="{Binding Category}" Value="{x:Static viewModel:FilterCategory.AssetType}">
+                    <DataTrigger Binding="{Binding Category}" Value="{x:Static editorViewModels:FilterCategory.AssetType}">
                       <Setter Property="Background" Value="#D7AA67" />
                     </DataTrigger>
-                    <DataTrigger Binding="{Binding Category}" Value="{x:Static viewModel:FilterCategory.AssetName}">
+                    <DataTrigger Binding="{Binding Category}" Value="{x:Static editorViewModels:FilterCategory.AssetName}">
                       <Setter Property="Background" Value="#84CE80" />
                     </DataTrigger>
                     <!--  Opacity  -->

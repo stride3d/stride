@@ -18,8 +18,8 @@ namespace Stride.Core.Assets.Editor.Settings
     /// Avalonia among them).
     /// </summary>
     /// <remarks>
-    /// Another write of the file can still undo a later change of another editor: the WPF Game Studio writes all its internal
-    /// settings as it last read them, these data included. The Avalonia Game Studio writes only the settings it changed.
+    /// Both Game Studios write only the internal settings they changed (<c>ChangedSettingsWriter</c>), so a save of the other
+    /// settings by one editor doesn't undo a later change of these data by another.
     /// </remarks>
     public sealed class MRUAdditionalDataCollection
     {

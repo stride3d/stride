@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
              xmlns:undoRedo="clr-namespace:Stride.Core.Assets.Editor.Components.DebugTools.UndoRedo"
+             xmlns:editorViewModels="clr-namespace:Stride.Core.Assets.Editor.ViewModels;assembly=Stride.Core.Assets.Editor.Common"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300" d:DataContext="{d:DesignInstance undoRedo:DebugUndoRedoViewModel}">
   <UserControl.Resources>
@@ -13,7 +14,7 @@
         <ResourceDictionary Source="../../../../View/CommonResources.xaml"/>
       </ResourceDictionary.MergedDictionaries>
 
-      <HierarchicalDataTemplate DataType="{x:Type undoRedo:OperationViewModel}" ItemsSource="{Binding Children}">
+      <HierarchicalDataTemplate DataType="{x:Type editorViewModels:OperationViewModel}" ItemsSource="{Binding Children}">
         <TextBlock Margin="0,0,10,0">
           <Run Text="{Binding Name, Mode=OneWay}"/> (<Run Text="{Binding Type, Mode=OneWay}"/>)
         </TextBlock>

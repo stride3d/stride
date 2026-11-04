@@ -18,6 +18,8 @@ Since slice 4 (plugin contracts) also the plugin entry points and what a plugin 
 
 Since Phase 3 (node presenters) the Core node presenter commands, keys and updaters that both editors use, the asset node view models (`AssetNodeViewModel`, its factory and command wrapper) and `IClipboardService`, which the WPF editor implements over its clipboard.
 
+Since Phase 3 (core services) the copy and paste and selection services, the editor and internal settings (`EditorSettings`, `InternalSettings`, `SupportedLanguage`, `EditorPath`) with the settings window view models, the status bar and job progress view models, `PropertiesViewModel`, the transaction and undo/redo operation view models, the debug page and thumbnail service contracts, and the asset view's filter and sort enums.
+
 ## Notes
 
 * This project goes away in Phase 3 of the port, when its code merges into the agnostic editor projects.

@@ -14,6 +14,7 @@ using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.View.Behaviors;
 using Stride.Core.Assets.Editor.ViewModel.Progress;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Assets.Tracking;
 using Stride.Core.Diagnostics;
@@ -32,28 +33,6 @@ using Stride.Core.Translation;
 
 namespace Stride.Core.Assets.Editor.ViewModel
 {
-    public enum DisplayAssetMode
-    {
-        AssetInSelectedFolderOnly,
-        AssetInSelectedFolderAndSubFolder,
-        AssetAndFolderInSelectedFolder,
-    }
-
-    public enum FilterCategory
-    {
-        AssetName,
-        AssetTag,
-        AssetType,
-    }
-
-    public enum SortRule
-    {
-        Name,
-        TypeOrderThenName,
-        DirtyThenName,
-        ModificationDateThenName,
-    }
-
     public sealed class AssetCollectionViewModel : DispatcherViewModel, IAddChildViewModel, IAssetCollectionViewModel
     {
         public sealed class AssetFilterViewModel : DispatcherViewModel, IEquatable<AssetFilterViewModel>
@@ -148,15 +127,6 @@ namespace Stride.Core.Assets.Editor.ViewModel
             {
                 return !Equals(left, right);
             }
-        }
-
-        [DataContract(nameof(AssetFilterViewModelData))]
-        public sealed class AssetFilterViewModelData
-        {
-            public string DisplayName = "";
-            public string Filter = "";
-            public bool IsActive = false;
-            public FilterCategory category = FilterCategory.AssetName;
         }
 
         // Storing out primitive data for filters to save between instances of editor
