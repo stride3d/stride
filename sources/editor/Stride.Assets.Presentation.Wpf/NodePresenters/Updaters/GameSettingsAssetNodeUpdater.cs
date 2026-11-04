@@ -7,7 +7,7 @@ using Stride.Core.Assets.Editor.Quantum.NodePresenters;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
 using Stride.Core;
-using Stride.Core.Presentation.Quantum.Presenters;
+using Stride.Core.Reflection;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.Data;
 
@@ -35,7 +35,8 @@ namespace Stride.Assets.Presentation.NodePresenters.Updaters
 
             if (typeof(Configuration).IsAssignableFrom(node.Type))
             {
-                node.DisplayName = DisplayAttribute.GetDisplayName(node.Value?.GetType()) ?? DisplayAttribute.GetDisplayName(typeof(Configuration));
+                var type = node.Value?.GetType() ?? typeof(Configuration);
+                node.DisplayName = TypeDescriptorFactory.Default.AttributeRegistry.GetDisplayName(type);
             }
 
             if (typeof(ICollection<Configuration>).IsAssignableFrom(node.Type))
