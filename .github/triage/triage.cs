@@ -1047,7 +1047,7 @@ sealed class GitHub
         var data = (await GraphQL("""
             query($owner: String!, $name: String!, $number: Int!, $reviewed: GitObjectID!) { repository(owner: $owner, name: $name) {
               pullRequest(number: $number) {
-                headRefOid baseRefOid
+                headRefOid baseRefOid baseRefName
                 commits(first: 21) { totalCount nodes { commit { message parents(first: 2) { nodes { oid } } } } }
                 timelineItems(last: 50, itemTypes: [BASE_REF_FORCE_PUSHED_EVENT]) { nodes { ... on BaseRefForcePushedEvent { beforeCommit { oid } } } }
               }
@@ -1070,14 +1070,39 @@ sealed class GitHub
 
         // A commit dropped from the start would be left below the old commits: what is below must be in the base branch,
         // now or before one of its force pushes (a PR stack rebases the base branch too)
-        var tips = pr["timelineItems"]!["nodes"]!.AsArray().Select(x => (string?)x?["beforeCommit"]?["oid"]).OfType<string>().Prepend((string)pr["baseRefOid"]!);
+        var tips = pr["timelineItems"]!["nodes"]!.AsArray().Select(x => (string?)x?["beforeCommit"]?["oid"]).OfType<string>().Prepend((string)pr["baseRefOid"]!).ToList();
         foreach (var tip in tips.Distinct())
         {
-            var compare = (await Rest(HttpMethod.Get, $"repos/{owner}/{name}/compare/{oldBase}...{tip}"))!;
-            if ((int)compare["behind_by"]! == 0)
+            if (await Contains(tip, oldBase))
+                return true;
+        }
+        // In a PR stack the base branch is the head of the PR below, and GitHub does not always add its force pushes to
+        // this PR's timeline (both pushed at once): that PR's own timeline has them
+        foreach (var tip in (await StackHeads((string)pr["baseRefName"]!)).Except(tips))
+        {
+            if (await Contains(tip, oldBase))
                 return true;
         }
         return false;
+    }
+
+    async Task<bool> Contains(string tip, string commit) =>
+        (int)(await Rest(HttpMethod.Get, $"repos/{owner}/{name}/compare/{commit}...{tip}"))!["behind_by"]! == 0;
+
+    // The heads before each force push of the open PR whose head is this branch of the repo
+    async Task<List<string>> StackHeads(string branch)
+    {
+        var prs = (await GraphQL("""
+            query($owner: String!, $name: String!, $branch: String!) { repository(owner: $owner, name: $name) {
+              pullRequests(headRefName: $branch, states: OPEN, first: 5) { nodes {
+                headRepository { nameWithOwner }
+                timelineItems(last: 50, itemTypes: [HEAD_REF_FORCE_PUSHED_EVENT]) { nodes { ... on HeadRefForcePushedEvent { beforeCommit { oid } } } }
+              } }
+            } }
+            """, new { owner, name, branch }))["repository"]!["pullRequests"]!["nodes"]!.AsArray();
+        return prs.Where(x => string.Equals((string?)x?["headRepository"]?["nameWithOwner"], $"{owner}/{name}", StringComparison.OrdinalIgnoreCase))
+            .SelectMany(x => x!["timelineItems"]!["nodes"]!.AsArray().Select(e => (string?)e?["beforeCommit"]?["oid"]).OfType<string>())
+            .Distinct().ToList();
     }
 
     // The added and removed lines of a compare; null when GitHub cuts its file list
