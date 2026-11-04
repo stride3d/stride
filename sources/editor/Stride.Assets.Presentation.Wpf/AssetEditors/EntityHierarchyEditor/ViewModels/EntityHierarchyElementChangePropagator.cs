@@ -6,16 +6,16 @@ using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Quantum;
 using Stride.Assets.Entities;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
+using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Quantum;
 using Stride.Engine;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels
 {
-    public class EntityHierarchyElementChangePropagator : GameEditorChangePropagator<EntityDesign, Entity, EntityViewModel>
+    public class EntityHierarchyElementChangePropagator : GameEditorChangePropagator<EntityDesign, Entity>
     {
         public EntityHierarchyElementChangePropagator([NotNull] EntityHierarchyEditorViewModel editor, [NotNull] EntityViewModel owner, [NotNull] Entity assetSidePart)
-            : base(editor, owner, assetSidePart)
+            : base(editor, editor.Controller, owner.Asset, owner.Id, assetSidePart)
         {
         }
 
@@ -25,13 +25,13 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
             // Don't propagate if we're updating the EntityComponentCollection (not a reference),
             // or if we're updating TransformComponent.Children (handled as a part addition/removal)
             var nodeIndex = (e as ItemChangeEventArgs)?.Index ?? NodeIndex.Empty;
-            if (component != null && e.Node.Type != typeof(EntityComponentCollection) && !((EntityHierarchyPropertyGraph)Owner.Asset.PropertyGraph).IsChildPartReference(e.Node, nodeIndex))
+            if (component != null && e.Node.Type != typeof(EntityComponentCollection) && !((EntityHierarchyPropertyGraph)Asset.PropertyGraph).IsChildPartReference(e.Node, nodeIndex))
             {
                 var index = component.Entity.Components.IndexOf(component);
-                var partId = new AbsoluteId(Owner.Id.AssetId, component.Entity.Id); // FIXME: what about cross-asset references?
-                await Editor.Controller.InvokeAsync(() =>
+                var partId = new AbsoluteId(OwnerId.AssetId, component.Entity.Id); // FIXME: what about cross-asset references?
+                await Controller.InvokeAsync(() =>
                 {
-                    var gameSideEntity = (Entity)Editor.Controller.FindGameSidePart(partId);
+                    var gameSideEntity = (Entity)Controller.FindGameSidePart(partId);
                     var gameSideComponent = gameSideEntity?.Components[index];
                     UpdateGameSideContent(gameSideNode, gameSideComponent, e.ChangeType, nodeIndex);
                 });

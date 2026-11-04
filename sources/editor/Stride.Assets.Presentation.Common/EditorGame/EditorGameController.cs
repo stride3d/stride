@@ -1,6 +1,13 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+#nullable enable
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -42,8 +49,9 @@ public delegate TEditorGame EditorGameFactory<out TEditorGame>(TaskCompletionSou
 /// and gives the editor access to it: the services of the game, and the work posted to the game thread.
 /// </summary>
 /// <remarks>
-/// The cross-platform counterpart of the WPF <c>EditorGameController</c>, without its game form: the game has no
-/// window, the viewport shows its frames. Mouse cursor changes and drag and drop are not supported yet.
+/// Shared by both editors: the viewport is the hosting of the UI toolkit. The WPF controllers derive from
+/// <c>WpfEditorGameController</c>, which gives the game a WinForms form and adds the cursor, the mouse position and drag
+/// and drop; the Avalonia viewport shows the frames of a game without a window, and has none of them yet.
 /// </remarks>
 /// <typeparam name="TEditorGame">The type of the game.</typeparam>
 public abstract class EditorGameController<TEditorGame> : IEditorGameController
