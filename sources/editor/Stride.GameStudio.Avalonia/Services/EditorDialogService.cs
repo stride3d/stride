@@ -74,7 +74,11 @@ internal class EditorDialogService : DialogService, IEditorDialogService, IProgr
         if (!workProgress.WorkDone || workProgress.ShouldStayOpen())
         {
             workProgress.NotifyWindowWillOpen();
-            OpenProgressWindow(workProgress);
+            // A message box that is up would be hidden by the window: the window waits for it to close
+            if (Dispatcher.Invoke(() => IsMessageBoxOpen))
+                ShowProgressWindowAfterDelayAsync(workProgress, 0).Forget();
+            else
+                OpenProgressWindow(workProgress);
         }
         else
         {
@@ -85,7 +89,8 @@ internal class EditorDialogService : DialogService, IEditorDialogService, IProgr
     /// <inheritdoc/>
     /// <remarks>
     /// As in WPF, the window opens when the delay is over while the work goes on, or as soon as the work finishes when it should stay
-    /// open (its errors); it does not open at all when the work finishes before the delay without a reason to stay open.
+    /// open (its errors); it does not open at all when the work finishes before the delay without a reason to stay open. It also
+    /// waits for the message boxes that are up (the upgrade question asked while a session loads), which it would hide.
     /// </remarks>
     public void ShowProgressWindow(WorkProgressViewModel workProgress, int minDelay)
     {
@@ -111,6 +116,9 @@ internal class EditorDialogService : DialogService, IEditorDialogService, IProgr
         {
             workProgress.WorkFinished -= OnWorkFinished;
         }
+
+        while (await Dispatcher.InvokeAsync(() => IsMessageBoxOpen))
+            await Task.Delay(100);
 
         await Dispatcher.InvokeAsync(() =>
         {
