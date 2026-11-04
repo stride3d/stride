@@ -132,6 +132,22 @@ public sealed class FakeEditorDialogService : IEditorDialogService, IProgressWin
         return Task.FromResult(PickAssetTemplate(templates));
     }
 
+    /// <summary>
+    /// The filters of the package pickers opened so far.
+    /// </summary>
+    public List<Func<PickablePackageViewModel, bool>> PackagePickers { get; } = [];
+
+    /// <summary>
+    /// Picks the packages of the next package pickers; <c>null</c> cancels them.
+    /// </summary>
+    public Func<Func<PickablePackageViewModel, bool>, IReadOnlyCollection<PickablePackageViewModel>?> PickPackages { get; set; } = _ => null;
+
+    public Task<IReadOnlyCollection<PickablePackageViewModel>?> ShowPackagePickerDialogAsync(SessionViewModel session, Func<PickablePackageViewModel, bool> filter)
+    {
+        PackagePickers.Add(filter);
+        return Task.FromResult(PickPackages(filter));
+    }
+
     public Task<CheckedMessageBoxResult> CheckedMessageBoxAsync(string message, bool? isChecked, string checkboxMessage, MessageBoxButton buttons = MessageBoxButton.OK, MessageBoxImage image = MessageBoxImage.None)
     {
         Messages.Add(message);

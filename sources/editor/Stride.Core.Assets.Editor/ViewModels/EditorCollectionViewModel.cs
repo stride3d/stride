@@ -41,6 +41,17 @@ public sealed class EditorCollectionViewModel : DispatcherViewModel, IAssetEdito
 
     public SessionViewModel Session { get; }
 
+    /// <inheritdoc/>
+    public Task OpenAssetEditorAsync(AssetViewModel asset)
+    {
+        OpenAssetEditor(asset);
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Opens the editor of the given asset, or makes it the active one when it is open already.
+    /// </summary>
+    /// <param name="asset">The asset to edit.</param>
     public void OpenAssetEditor(AssetViewModel asset)
     {
         if (openedAssets.TryGetValue(asset, out var editor))
@@ -75,13 +86,8 @@ public sealed class EditorCollectionViewModel : DispatcherViewModel, IAssetEdito
         }
     }
 
-    /// <summary>
-    /// Closes the editor of an asset once it agrees (see <see cref="AssetEditorViewModel.PreviewCloseAsync"/>): it saves its
-    /// changes or drops them as <paramref name="save"/> says, or as the user chooses when it is <c>null</c>.
-    /// </summary>
-    /// <param name="asset">The asset whose editor closes.</param>
-    /// <param name="save"><c>true</c> to save the changes, <c>false</c> to drop them, <c>null</c> to ask the user.</param>
-    /// <returns><c>true</c> when the editor is closed or the asset has none, <c>false</c> when the user kept it open.</returns>
+    /// <inheritdoc/>
+    /// <remarks>The editor agrees through <see cref="AssetEditorViewModel.PreviewCloseAsync"/>.</remarks>
     public async Task<bool> CloseAssetEditorAsync(AssetViewModel asset, bool? save)
     {
         if (!openedAssets.TryGetValue(asset, out var editor))
@@ -106,14 +112,12 @@ public sealed class EditorCollectionViewModel : DispatcherViewModel, IAssetEdito
         return true;
     }
 
-    /// <summary>
-    /// Closes every editor, see <see cref="CloseAssetEditorAsync"/>. It stops at the first editor that the user keeps open;
-    /// the editors closed before it stay closed. Once all are closed, it waits until they have stopped
-    /// (<see cref="AssetEditorViewModel.Stopped"/>), as long as <see cref="StopTimeout"/> at most: the session closes next,
-    /// and the plugins leave with the settings keys that the games of the editors read on every frame.
-    /// </summary>
-    /// <param name="save"><c>true</c> to save the changes, <c>false</c> to drop them, <c>null</c> to ask the user.</param>
-    /// <returns><c>true</c> when every editor is closed, <c>false</c> when the user kept one open.</returns>
+    /// <inheritdoc/>
+    /// <remarks>
+    /// It stops at the first editor that the user keeps open; the editors closed before it stay closed. Once all are closed, it
+    /// waits until they have stopped (<see cref="AssetEditorViewModel.Stopped"/>), as long as <see cref="StopTimeout"/> at most:
+    /// the session closes next, and the plugins leave with the settings keys that the games of the editors read on every frame.
+    /// </remarks>
     public async Task<bool> CloseAllEditorsAsync(bool? save)
     {
         var closedEditors = new List<AssetEditorViewModel>();
