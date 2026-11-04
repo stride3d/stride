@@ -2,7 +2,9 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Assets.Scripts;
+using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Annotations;
+using Stride.Core.Assets.Editor.Editors;
 using Stride.Core.Assets.Editor.ViewModel;
 
 namespace Stride.Assets.Presentation.ViewModels;
@@ -15,12 +17,20 @@ namespace Stride.Assets.Presentation.ViewModels;
 /// <see cref="SetHasUnsavedText"/>, and the script is dirty while it has some, as in the WPF editor. The editor writes the file
 /// itself, so the session does not write the script for these edits (its asset item is dirty only for the changes of the
 /// action history, such as a rename).
+/// <para>
+/// The script also keeps the signature of the file its text was read from. Before the session writes the scripts (a rename
+/// writes the text to the new file), a script whose file another program changed takes the text of the file, unless its
+/// editor has unsaved edits: so the change is kept whether the editor of the script is open, closed or was never opened.
+/// </para>
 /// </remarks>
 [AssetViewModel<ScriptSourceFileAsset>]
 public class ScriptSourceFileViewModel : SourceCodeViewModel<ScriptSourceFileAsset>
 {
     private bool hasUnsavedText;
     private bool isHistoryDirty;
+    // The file that the text was read from or written to, and its signature then; null when the script has no file to follow
+    private string? filePath;
+    private FileContentSignature signature;
 
     public ScriptSourceFileViewModel(AssetViewModelConstructionParameters parameters)
         : base(parameters)
@@ -44,6 +54,56 @@ public class ScriptSourceFileViewModel : SourceCodeViewModel<ScriptSourceFileAss
         hasUnsavedText = value;
         OnPropertyChanged(nameof(HasUnsavedText));
         base.UpdateDirtiness(isHistoryDirty || hasUnsavedText);
+    }
+
+    /// <inheritdoc />
+    protected override void Initialize()
+    {
+        // The base class reads the text of a project file
+        base.Initialize();
+        if (!Directory.Package.Package.IsReadOnly)
+            CaptureFile();
+    }
+
+    /// <inheritdoc />
+    protected override void OnSessionSaving()
+    {
+        base.OnSessionSaving();
+        if (filePath == null || hasUnsavedText)
+            return;
+
+        // The file is read where the text came from: until the session saves a rename, the script keeps its old file
+        var current = FileContentSignature.Capture(filePath);
+        if (current == signature || !current.Exists)
+            return;
+
+        try
+        {
+            var text = File.ReadAllText(filePath);
+            if (Asset.Text != text)
+                Asset.Text = text;
+            signature = current;
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            // Another program still holds the file: the session writes the text it has, as before
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void OnSessionSaved()
+    {
+        base.OnSessionSaved();
+        // The session wrote the script (or had nothing to write): its file is the one of its current name. With unsaved
+        // edits, the editor has not written the file, so the old signature stays and the next save still checks it.
+        if (filePath != null && !hasUnsavedText)
+            CaptureFile();
+    }
+
+    private void CaptureFile()
+    {
+        filePath = FullPath?.ToOSPath();
+        signature = FileContentSignature.Capture(filePath);
     }
 
     /// <inheritdoc />

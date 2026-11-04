@@ -797,6 +797,12 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
         // which must happen before the progress window shows; their errors go to the log of the save
         await EditorCollection.SaveEditorChangesAsync(sessionResult);
 
+        // The assets get ready to be written (a script takes the change that another program made to its file)
+        foreach (var asset in AllAssets)
+        {
+            asset.OnSessionSaving();
+        }
+
         // Prepare packages to be saved by setting their dirty flag correctly
         foreach (var package in LocalPackages)
         {

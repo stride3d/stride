@@ -116,6 +116,48 @@ public sealed class ScriptSessionSaveTests
         Assert.Empty(Dialogs(fixture).Messages);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task SavingARenamedScriptWithoutAnEditorKeepsTheChangeOfAnotherProgram(bool openAndCloseTheEditorFirst)
+    {
+        using var fixture = await OpenAsync();
+        var script = fixture.Session.AllAssets.OfType<ScriptSourceFileViewModel>().Single();
+        if (openAndCloseTheEditorFirst)
+        {
+            OpenEditor(fixture);
+            Assert.True(await fixture.Session.EditorCollection.CloseAssetEditorAsync(script, false));
+        }
+        var oldPath = PathOf(script);
+        File.WriteAllText(oldPath, External);
+
+        script.Name = "Hero";
+        Assert.True(await fixture.Session.SaveSessionAsync());
+
+        Assert.False(File.Exists(oldPath));
+        Assert.Equal(External, File.ReadAllText(PathOf(script)));
+        Assert.Equal(External, script.Asset.Text);
+    }
+
+    [Fact]
+    public async Task EachChangeOfAnotherProgramIsTakenAtTheNextSave()
+    {
+        using var fixture = await OpenAsync();
+        var script = fixture.Session.AllAssets.OfType<ScriptSourceFileViewModel>().Single();
+        File.WriteAllText(PathOf(script), External);
+        Assert.True(await fixture.Session.SaveSessionAsync());
+        Assert.Equal(External, script.Asset.Text);
+
+        // A second change after the save, then a rename
+        const string again = "// Changed again\n" + Script;
+        File.WriteAllText(PathOf(script), again);
+        File.SetLastWriteTimeUtc(PathOf(script), DateTime.UtcNow.AddSeconds(5));
+        script.Name = "Hero";
+        Assert.True(await fixture.Session.SaveSessionAsync());
+
+        Assert.Equal(again, File.ReadAllText(PathOf(script)));
+    }
+
     [Fact]
     public async Task ARenameBeforeTheSaveKeepsTheText()
     {

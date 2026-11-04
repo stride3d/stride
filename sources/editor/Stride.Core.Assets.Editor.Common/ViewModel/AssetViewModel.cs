@@ -445,6 +445,14 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
         protected virtual bool ShouldListenToTargetNode(IMemberNode member, IGraphNode targetNode) => true;
 
+        /// <summary>
+        /// Called by the cross-platform session before it writes the assets, after the editors saved their own changes.
+        /// </summary>
+        protected internal virtual void OnSessionSaving()
+        {
+            // Do nothing by default.
+        }
+
         protected internal virtual void OnSessionSaved()
         {
             // Do nothing by default.
