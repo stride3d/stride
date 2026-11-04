@@ -229,9 +229,9 @@ public sealed class SpriteSheetEditorViewModel : AssetEditorViewModel<SpriteShee
     public ICommandBase CopyImageCommand { get; }
 
     /// <summary>
-    /// Gets the command that adds the sprites of the clipboard at the end and selects them, as one undoable operation. The
-    /// clipboard can only be read asynchronously: the command checks its content when it runs, and does nothing when it
-    /// holds no sprite.
+    /// Gets the command that adds the sprites of the clipboard at the end and selects them, as one undoable operation. It is
+    /// disabled when a clipboard that answers at once holds no sprite; a clipboard that answers later is checked when the
+    /// command runs, which then does nothing when it holds no sprite.
     /// </summary>
     public ICommandBase PasteImageCommand { get; }
 
@@ -393,7 +393,14 @@ public sealed class SpriteSheetEditorViewModel : AssetEditorViewModel<SpriteShee
 
     private bool CanPasteImages()
     {
-        return ServiceProvider.TryGet<ICopyPasteService>() is not null && ServiceProvider.TryGet<IClipboardService>() is not null;
+        if (ServiceProvider.TryGet<ICopyPasteService>() is not { } copyPasteService || ServiceProvider.TryGet<IClipboardService>() is not { } clipboard)
+            return false;
+
+        // As in the WPF editor, the command is disabled when the clipboard holds no sprite. Some clipboards answer through the
+        // UI thread's event loop (X11, when another program owns the clipboard): waiting for them here, on the UI thread, would
+        // never end. The content is checked only when the clipboard answers at once (always in WPF); otherwise the paste checks it.
+        var text = clipboard.GetTextAsync();
+        return !text.IsCompleted || (text.IsCompletedSuccessfully && copyPasteService.CanPaste(text.Result, typeof(List<SpriteInfo>), typeof(List<SpriteInfo>), typeof(List<SpriteInfo>)));
     }
 
     private async Task PasteImages()
@@ -546,9 +553,7 @@ public sealed class SpriteSheetEditorViewModel : AssetEditorViewModel<SpriteShee
     private void DisplaySpriteSheetProperties()
     {
         SelectedSprites.Clear();
-        EditorProperties.TypeDescription = Asset.TypeDisplayName;
-        EditorProperties.Name = Asset.Name;
-        EditorProperties.GenerateSelectionPropertiesAsync(Asset.Yield()).Forget();
+        ShowAssetProperties();
     }
 
     private void AddNewImage()
