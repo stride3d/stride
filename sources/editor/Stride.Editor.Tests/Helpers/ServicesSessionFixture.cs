@@ -114,6 +114,9 @@ public sealed class ServicesSessionFixture : IDisposable
             serviceProvider.RegisterService(fixture.Builder);
             serviceProvider.RegisterService(fixture.Builder.Database);
         }
+
+        // What the session does in the background once open, so that the tests start from a session at rest
+        await session.Initialization;
         return fixture;
     }
 
@@ -147,6 +150,9 @@ public sealed class ServicesSessionFixture : IDisposable
             }
             SettingsProvider?.Dispose();
             Session.Destroy();
+            // Nothing the test started may outlive it
+            if (!Session.BackgroundWork.Wait(TimeSpan.FromSeconds(30)))
+                throw new TimeoutException("The background work of the session did not end within 30 seconds of its destruction.");
         }
         try
         {
