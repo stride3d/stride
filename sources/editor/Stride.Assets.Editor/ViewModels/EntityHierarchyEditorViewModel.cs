@@ -243,14 +243,18 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     }
 
     /// <summary>
-    /// Shows the view options saved for this scene or prefab in the user settings of its package, shared with the WPF editor.
+    /// Shows the view options saved for this scene or prefab in the user settings of its package, shared with the WPF editor,
+    /// and moves the camera where it was.
     /// </summary>
     private void LoadSettings(EditorViewToolbarViewModel gameToolbar)
     {
         try
         {
             var sceneSettings = Asset.Directory.Package.UserSettings.GetValue(PackageSceneSettings.SceneSettings);
-            gameToolbar.LoadSettings(sceneSettings.TryGetValue(Asset.Asset.Id, out var settings) ? settings : SceneSettingsData.CreateDefault());
+            var settings = sceneSettings.TryGetValue(Asset.Asset.Id, out var saved) ? saved : SceneSettingsData.CreateDefault();
+            gameToolbar.LoadSettings(settings);
+            // As WPF, the camera comes back where it was when the editor closed
+            Controller?.GetService<IEditorGameCameraViewModelService>()?.LoadSettings(settings.CamPosition, settings.CamPitchYaw);
         }
         catch (Exception e)
         {
@@ -279,6 +283,8 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
                 sceneSettings.Add(Asset.Asset.Id, settings);
             }
             gameToolbar.SaveSettings(settings);
+            if (Controller?.GetService<IEditorGameCameraViewModelService>() is { } camera)
+                (settings.CamPosition, settings.CamPitchYaw) = camera.SaveSettings();
             userSettings.SetValue(PackageSceneSettings.SceneSettings, sceneSettings);
             userSettings.Save();
         }

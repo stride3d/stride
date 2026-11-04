@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Stride.Core.Mathematics;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
-using Stride.Assets.Presentation.SceneEditor;
 using Stride.Editor.EditorGame.Game;
 using Stride.Engine;
 using Stride.Engine.Processors;
@@ -198,25 +197,22 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
         }
 
         /// <inheritdoc/>
-        public void LoadSettings(SceneSettingsData sceneSettings)
+        public void LoadSettings(Vector3 position, Vector2 pitchYaw)
         {
             // TODO: split SceneSettingsData to some kind of dictionary where each service can add whatever it want
             Controller.InvokeAsync(() =>
             {
-                SetCurrentPosition(sceneSettings.CamPosition);
-                var orientation = sceneSettings.CamPitchYaw;
-                SetCurrentPitch(orientation.X);
-                SetCurrentYaw(orientation.Y);
+                SetCurrentPosition(position);
+                SetCurrentPitch(pitchYaw.X);
+                SetCurrentYaw(pitchYaw.Y);
                 UpdateViewMatrix();
             });
         }
 
         /// <inheritdoc/>
-        public void SaveSettings(SceneSettingsData sceneSettings)
+        public (Vector3 Position, Vector2 PitchYaw) SaveSettings()
         {
-            sceneSettings.CamPosition = Position;
-            var orientation = new Vector2(Pitch, Yaw);
-            sceneSettings.CamPitchYaw = orientation;
+            return (Position, new Vector2(Pitch, Yaw));
         }
 
         protected override Task<bool> Initialize(EditorServiceGame editorGame)
