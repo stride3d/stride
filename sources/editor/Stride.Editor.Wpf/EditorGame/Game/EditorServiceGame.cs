@@ -167,6 +167,9 @@ namespace Stride.Editor.EditorGame.Game
 
             base.Initialize();
 
+            // The UI editor's adorner canvas is hit-testable over the whole view and its touch handlers read the mouse from Input, so masking would hide every click from them
+            Input.MaskCapturedInput = false;
+
             AssemblyRegistry.AssemblyRegistered += AssemblyRegistered;
             AssemblyRegistry.AssemblyUnregistered += AssemblyUnregistered;
             // The systems were created with the game: an assembly change since then is caught up

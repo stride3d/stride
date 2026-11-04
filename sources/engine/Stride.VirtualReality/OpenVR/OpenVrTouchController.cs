@@ -60,21 +60,21 @@ namespace Stride.VirtualReality
             base.Update(gameTime);
         }
 
-        public override float Trigger => controller?.GetAxis(OpenVR.Controller.ButtonId.ButtonSteamVrTrigger).X ?? 0.0f;
+        protected override float RawTrigger => controller?.GetAxis(OpenVR.Controller.ButtonId.ButtonSteamVrTrigger).X ?? 0.0f;
 
-        public override float Grip => controller?.GetPress(OpenVR.Controller.ButtonId.ButtonGrip) ?? false ? 1.0f : 0.0f;
+        protected override float RawGrip => controller?.GetPress(OpenVR.Controller.ButtonId.ButtonGrip) ?? false ? 1.0f : 0.0f;
 
-        public override bool IndexPointing => !controller?.GetTouch(OpenVR.Controller.ButtonId.ButtonSteamVrTrigger) ?? false; //not so accurate
+        protected override bool RawIndexPointing => !controller?.GetTouch(OpenVR.Controller.ButtonId.ButtonSteamVrTrigger) ?? false; //not so accurate
 
-        public override bool IndexResting => controller?.GetTouch(OpenVR.Controller.ButtonId.ButtonSteamVrTrigger) ?? false;
+        protected override bool RawIndexResting => controller?.GetTouch(OpenVR.Controller.ButtonId.ButtonSteamVrTrigger) ?? false;
 
-        public override bool ThumbUp => !controller?.GetTouch(OpenVR.Controller.ButtonId.ButtonSteamVrTouchpad) ?? false;
+        protected override bool RawThumbUp => !controller?.GetTouch(OpenVR.Controller.ButtonId.ButtonSteamVrTouchpad) ?? false;
 
-        public override bool ThumbResting => controller?.GetTouch(OpenVR.Controller.ButtonId.ButtonSteamVrTouchpad) ?? false;
+        protected override bool RawThumbResting => controller?.GetTouch(OpenVR.Controller.ButtonId.ButtonSteamVrTouchpad) ?? false;
 
-        public override Vector2 ThumbAxis => controller?.GetAxis() ?? Vector2.Zero;
+        protected override Vector2 RawThumbAxis => controller?.GetAxis() ?? Vector2.Zero;
 
-        public override Vector2 ThumbstickAxis => controller?.GetAxis() ?? Vector2.Zero;
+        protected override Vector2 RawThumbstickAxis => controller?.GetAxis() ?? Vector2.Zero;
         public override ControllerHaptics HapticsSupport => ControllerHaptics.Limited;
 
         private OpenVR.Controller.ButtonId ToOpenVrButton(TouchControllerButton button)
@@ -94,32 +94,32 @@ namespace Stride.VirtualReality
             }
         }
 
-        public override bool IsPressedDown(TouchControllerButton button)
+        protected override bool IsRawPressedDown(TouchControllerButton button)
         {
             return controller?.GetPressDown(ToOpenVrButton(button)) ?? false;
         }
 
-        public override bool IsTouchedDown(TouchControllerButton button)
+        protected override bool IsRawTouchedDown(TouchControllerButton button)
         {
             return controller?.GetTouchDown(ToOpenVrButton(button)) ?? false;
         }
 
-        public override bool IsPressed(TouchControllerButton button)
+        protected override bool IsRawPressed(TouchControllerButton button)
         {
             return controller?.GetPress(ToOpenVrButton(button)) ?? false;
         }
 
-        public override bool IsTouched(TouchControllerButton button)
+        protected override bool IsRawTouched(TouchControllerButton button)
         {
             return controller?.GetTouch(ToOpenVrButton(button)) ?? false;
         }
 
-        public override bool IsPressReleased(TouchControllerButton button)
+        protected override bool IsRawPressReleased(TouchControllerButton button)
         {
             return controller?.GetPressUp(ToOpenVrButton(button)) ?? false;
         }
 
-        public override bool IsTouchReleased(TouchControllerButton button)
+        protected override bool IsRawTouchReleased(TouchControllerButton button)
         {
             return controller?.GetTouchUp(ToOpenVrButton(button)) ?? false;
         }

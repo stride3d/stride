@@ -6,12 +6,14 @@ using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Games;
 using Stride.Graphics;
+using Stride.Input;
 
 namespace Stride.VirtualReality
 {
     public class VRDeviceSystem : GameSystemBase
     {
         private static bool physicalDeviceInUse;
+        private VRInputSource inputSource;
 
         public VRDeviceSystem(IServiceRegistry registry) : base(registry)
         {
@@ -143,6 +145,12 @@ postswitch:
 
         public override void Update(GameTime gameTime)
         {
+            if (inputSource == null && Services.GetService<InputManager>() is { } input)
+            {
+                inputSource = new VRInputSource(this);
+                input.Sources.Add(inputSource);
+            }
+
             Device?.Update(gameTime);
         }
 
@@ -153,6 +161,12 @@ postswitch:
 
         protected override void Destroy()
         {
+            if (inputSource != null)
+            {
+                Services.GetService<InputManager>()?.Sources.Remove(inputSource);
+                inputSource = null;
+            }
+
             if (Device != null)
             {
                 if (!(Device is DummyDevice))

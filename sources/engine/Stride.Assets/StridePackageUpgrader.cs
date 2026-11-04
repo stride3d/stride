@@ -23,6 +23,7 @@ using Stride.Assets.Templates;
 using Stride.Graphics;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
+using Microsoft.CodeAnalysis.CSharp;
 using Stride.Core.Annotations;
 using static Stride.Assets.CodeUpgrades;
 
@@ -154,6 +155,31 @@ namespace Stride.Assets
                 // 4.5: the assembly processor no longer pools the delegates passed to the Dispatcher; its callbacks take
                 // their captures as a state, in a static lambda (#3680).
                 DispatcherCallbacksToStaticLambdas(),
+
+                // 4.5: input devices hold their capture state, so a device that implements the input interfaces itself
+                // rather than through an engine base class needs one.
+                InterfaceMemberAdd("Stride.Input.IInputDevice", "public DeviceCaptureState CaptureState { get; } = new DeviceCaptureState();", "Stride.Input"),
+
+                // 4.5: GamePadDeviceBase.State is no longer virtual, so that it can hide a captured gamepad;
+                // custom gamepads provide their state through RawState instead.
+                PropertyOverrideRename("Stride.Input.GamePadDeviceBase", "State", "RawState", SyntaxKind.ProtectedKeyword),
+
+                // 4.5: the TouchController queries are no longer virtual, so that they can hide a captured controller;
+                // custom backends provide their input through the raw members instead.
+                PropertyOverrideRename("Stride.VirtualReality.TouchController", "Trigger", "RawTrigger", SyntaxKind.ProtectedKeyword),
+                PropertyOverrideRename("Stride.VirtualReality.TouchController", "Grip", "RawGrip", SyntaxKind.ProtectedKeyword),
+                PropertyOverrideRename("Stride.VirtualReality.TouchController", "IndexPointing", "RawIndexPointing", SyntaxKind.ProtectedKeyword),
+                PropertyOverrideRename("Stride.VirtualReality.TouchController", "IndexResting", "RawIndexResting", SyntaxKind.ProtectedKeyword),
+                PropertyOverrideRename("Stride.VirtualReality.TouchController", "ThumbUp", "RawThumbUp", SyntaxKind.ProtectedKeyword),
+                PropertyOverrideRename("Stride.VirtualReality.TouchController", "ThumbResting", "RawThumbResting", SyntaxKind.ProtectedKeyword),
+                PropertyOverrideRename("Stride.VirtualReality.TouchController", "ThumbAxis", "RawThumbAxis", SyntaxKind.ProtectedKeyword),
+                PropertyOverrideRename("Stride.VirtualReality.TouchController", "ThumbstickAxis", "RawThumbstickAxis", SyntaxKind.ProtectedKeyword),
+                MethodOverrideRename("Stride.VirtualReality.TouchController", "IsPressedDown", "IsRawPressedDown", SyntaxKind.ProtectedKeyword),
+                MethodOverrideRename("Stride.VirtualReality.TouchController", "IsPressed", "IsRawPressed", SyntaxKind.ProtectedKeyword),
+                MethodOverrideRename("Stride.VirtualReality.TouchController", "IsPressReleased", "IsRawPressReleased", SyntaxKind.ProtectedKeyword),
+                MethodOverrideRename("Stride.VirtualReality.TouchController", "IsTouchedDown", "IsRawTouchedDown", SyntaxKind.ProtectedKeyword),
+                MethodOverrideRename("Stride.VirtualReality.TouchController", "IsTouched", "IsRawTouched", SyntaxKind.ProtectedKeyword),
+                MethodOverrideRename("Stride.VirtualReality.TouchController", "IsTouchReleased", "IsRawTouchReleased", SyntaxKind.ProtectedKeyword),
             ]);
 
             // Structural csproj migrations, gated by the version each change landed at. Run against the

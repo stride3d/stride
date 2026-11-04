@@ -38,7 +38,7 @@ namespace Stride.Input
         /// <returns><c>true</c> if the specified button is pressed; otherwise, <c>false</c>.</returns>
         public static bool IsButtonPressed(this IGamePadDevice gamepad, GamePadButton button)
         {
-            return gamepad.PressedButtons.Contains(button);
+            return !gamepad.CaptureState.QueriesMustMask && gamepad.PressedButtons.Contains(button);
         }
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace Stride.Input
         /// <returns><c>true</c> if the specified button is released; otherwise, <c>false</c>.</returns>
         public static bool IsButtonReleased(this IGamePadDevice gamepad, GamePadButton button)
         {
-            return gamepad.ReleasedButtons.Contains(button);
+            return !gamepad.CaptureState.QueriesMustMask && gamepad.ReleasedButtons.Contains(button);
         }
 
         /// <summary>
@@ -60,7 +60,7 @@ namespace Stride.Input
         /// <returns><c>true</c> if the specified button is being pressed down; otherwise, <c>false</c>.</returns>
         public static bool IsButtonDown(this IGamePadDevice gamepad, GamePadButton button)
         {
-            return gamepad.DownButtons.Contains(button);
+            return !gamepad.CaptureState.QueriesMustMask && gamepad.DownButtons.Contains(button);
         }
     }
 
@@ -77,7 +77,7 @@ namespace Stride.Input
         /// <returns><c>true</c> if the specified button is pressed; otherwise, <c>false</c>.</returns>
         public static bool IsButtonPressed(this IGameControllerDevice controller, int button)
         {
-            return controller.PressedButtons.Contains(button);
+            return !controller.CaptureState.QueriesMustMask && controller.PressedButtons.Contains(button);
         }
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace Stride.Input
         /// <returns><c>true</c> if the specified button is released; otherwise, <c>false</c>.</returns>
         public static bool IsButtonReleased(this IGameControllerDevice controller, int button)
         {
-            return controller.ReleasedButtons.Contains(button);
+            return !controller.CaptureState.QueriesMustMask && controller.ReleasedButtons.Contains(button);
         }
 
         /// <summary>
@@ -99,7 +99,7 @@ namespace Stride.Input
         /// <returns><c>true</c> if the specified button is being pressed down; otherwise, <c>false</c>.</returns>
         public static bool IsButtonDown(this IGameControllerDevice controller, int button)
         {
-            return controller.DownButtons.Contains(button);
+            return !controller.CaptureState.QueriesMustMask && controller.DownButtons.Contains(button);
         }
     }
 }
