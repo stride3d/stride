@@ -85,6 +85,7 @@ public static class AssetFileSerializer
     /// <typeparam name="T">Type of the asset</typeparam>
     /// <param name="filePath">The file path.</param>
     /// <param name="log">The logger.</param>
+    /// <param name="assetNamespace">The namespace used to resolve asset types.</param>
     /// <returns>An instance of Asset not a valid asset asset object file.</returns>
     public static AssetLoadResult<T> Load<T>(string filePath, ILogger? log = null, string? assetNamespace = null)
     {
@@ -111,6 +112,7 @@ public static class AssetFileSerializer
     /// <param name="asset">The asset object.</param>
     /// <param name="yamlMetadata"></param>
     /// <param name="log">The logger.</param>
+    /// <param name="assetNamespace">The namespace used to serialize asset types.</param>
     /// <exception cref="System.ArgumentNullException">filePath</exception>
     public static void Save(string filePath, object asset, AttachedYamlAssetMetadata? yamlMetadata, ILogger? log = null, string? assetNamespace = null)
     {
@@ -136,6 +138,7 @@ public static class AssetFileSerializer
     /// <param name="asset">The asset object.</param>
     /// <param name="yamlMetadata"></param>
     /// <param name="log">The logger.</param>
+    /// <param name="assetNamespace">The namespace used to serialize asset types.</param>
     /// <exception cref="System.ArgumentNullException">
     /// stream
     /// or

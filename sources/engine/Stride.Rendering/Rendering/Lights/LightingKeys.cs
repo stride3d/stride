@@ -12,6 +12,7 @@ namespace Stride.Rendering
     /// <summary>
     /// Keys used for lighting.
     /// </summary>
+    [EffectKeys]
     [DataContract]
     public partial class LightingKeys : ShaderMixinParameters
     {

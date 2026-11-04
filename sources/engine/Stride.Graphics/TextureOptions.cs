@@ -24,11 +24,11 @@ public enum TextureOptions
     ///     The only resources that can be shared are 2D non-mipmapped Textures.
     ///   </para>
     ///   <para>
-    ///     <see cref="Shared"/> and <see cref="SharedKeyedMutex"/> are mutually exclusive.
+    ///     <see cref="Shared"/> and the Direct3D-specific <c>SharedKeyedMutex</c> flag are mutually exclusive.
     ///   </para>
     ///   <para>
     ///     Note that, starting with Windows 8, it is recommended to enable resource data sharing between two or more Direct3D devices
-    ///     by using a combination of the <see cref="SharedNtHandle"/> and <see cref="SharedKeyedMutex"/> flags instead.
+    ///     by using a combination of the Direct3D-specific <c>SharedNtHandle</c> and <c>SharedKeyedMutex</c> flags instead.
     ///   </para>
     /// </remarks>
     Shared = 2,

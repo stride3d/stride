@@ -3,7 +3,6 @@
 #if !(STRIDE_PLATFORM_IOS || STRIDE_PLATFORM_MACOS)
 #pragma warning disable SA1300 // Element must begin with upper-case letter
 using System;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security;
 
@@ -63,32 +62,14 @@ namespace Stride.Audio
         /// Decodes compressed celt data into PCM 16 bit shorts
         /// </summary>
         /// <param name="inputBuffer">The input buffer</param>
-        /// <param name="inputBufferSize">The size of the valid bytes in the input buffer</param>
         /// <param name="outputSamples">The output buffer, the size of frames should be the same amount that is contained in the input buffer</param>
         /// <returns></returns>
-        public unsafe int Decode(byte[] inputBuffer, int inputBufferSize, short[] outputSamples)
+        public unsafe int Decode(ReadOnlySpan<byte> inputBuffer, Span<short> outputSamples)
         {
-            Debug.Assert((uint)inputBufferSize <= (uint)inputBuffer.Length);
             fixed (short* samplesPtr = outputSamples)
             fixed (byte* bufferPtr = inputBuffer)
             {
-                return xnCeltDecodeShort(celtPtr, bufferPtr, inputBufferSize, samplesPtr, outputSamples.Length / Channels);
-            }
-        }
-
-        /// <summary>
-        /// Decodes compressed celt data into PCM 16 bit shorts
-        /// </summary>
-        /// <param name="inputBuffer">The input buffer</param>
-        /// <param name="inputBufferSize">The size of the valid bytes in the input buffer</param>
-        /// <param name="outputSamples">The output buffer, the size of frames should be the same amount that is contained in the input buffer</param>
-        /// <returns></returns>
-        public unsafe int Decode(byte[] inputBuffer, int inputBufferSize, short* outputSamples)
-        {
-            Debug.Assert((uint)inputBufferSize <= (uint)inputBuffer.Length);
-            fixed (byte* bufferPtr = inputBuffer)
-            {
-                return xnCeltDecodeShort(celtPtr, bufferPtr, inputBufferSize, outputSamples, BufferSize);
+                return xnCeltDecodeShort(celtPtr, bufferPtr, inputBuffer.Length, samplesPtr, outputSamples.Length / Channels);
             }
         }
 

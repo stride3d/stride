@@ -26,6 +26,7 @@ using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.ViewModels;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Quantum;
+using Stride.Core.Reflection;
 using Stride.Core.Translation;
 using Stride.Core.Yaml;
 
@@ -179,6 +180,11 @@ namespace Stride.Core.Assets.Editor.ViewModel
         public DirectoryBaseViewModel Directory { get => directory; set => SetValue(ref directory, value); }
 
         /// <summary>
+        /// Gets whether this project asset is deleted because its file was deleted outside Game Studio.
+        /// </summary>
+        public bool IsDeletedOutside { get; private set; }
+
+        /// <summary>
         /// Gets whether this asset can provide an <see cref="GraphViewModel"/> representing its properties.
         /// </summary>
         public virtual bool CanProvidePropertiesViewModel => !IsDeleted && IsEditable;
@@ -210,7 +216,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// <summary>
         /// Gets the display name of the type of this asset.
         /// </summary>
-        public override string TypeDisplayName { get { var desc = DisplayAttribute.GetDisplay(AssetType); return desc?.Name ?? AssetType.Name; } }
+        public override string TypeDisplayName => TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<DisplayAttribute>(AssetType)?.Name ?? AssetType.Name;
 
         /// <summary>
         /// Gets the dependencies of this asset.
@@ -354,6 +360,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// </summary>
         /// <param name="assetType">The type of asset to check</param>
         /// <param name="initialLocation">The initial location where to create the asset.</param>
+        /// <param name="currentPackage">The current package, if any.</param>
         /// <returns>A <see cref="DirectoryBaseViewModel"/> corresponding to a valid location to create the asset, if available. <c>Null</c> otherwise.</returns>
         [CanBeNull]
         public static DirectoryBaseViewModel FindValidCreationLocation(Type assetType, [NotNull] DirectoryBaseViewModel initialLocation, PackageViewModel currentPackage = null)
@@ -690,6 +697,43 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 }
             }
             return true;
+        }
+
+        /// <summary>
+        /// Deletes this project asset, in the current transaction.
+        /// </summary>
+        /// <param name="deletedOutside">Whether its file was deleted outside Game Studio.</param>
+        internal void DeleteProjectAsset(bool deletedOutside)
+        {
+            UndoRedoService.PushOperation(new ProjectAssetDeleteOperation(this, Directory, deletedOutside));
+            RemoveProjectAsset(deletedOutside);
+        }
+
+        internal void RemoveProjectAsset(bool deletedOutside)
+        {
+            MarkAsDeleted();
+            IsDeletedOutside = deletedOutside;
+            Session.SetFileDeletedOutside(AssetItem.FullPath, deletedOutside);
+            Directory.RemoveAsset(this, false);
+            SetValueUncancellable(ref directory, null, nameof(Directory));
+        }
+
+        /// <summary>
+        /// Brings back this deleted project asset, as a change of the session that is not in the undo stack.
+        /// </summary>
+        public void RestoreProjectAsset(DirectoryBaseViewModel targetDirectory)
+        {
+            SetValueUncancellable(ref directory, targetDirectory, nameof(Directory));
+            targetDirectory.AddAsset(this, false);
+            InitialUndelete(false);
+            IsDeletedOutside = false;
+            Session.SetFileDeletedOutside(AssetItem.FullPath, false);
+        }
+
+        internal bool IsFileOfAnotherAsset()
+        {
+            var fullPath = AssetItem.FullPath;
+            return package.Assets.Find(AssetItem.Location) != null || package.Assets.Any(x => x.FullPath == fullPath);
         }
 
         protected override void UpdateIsDeletedStatus()

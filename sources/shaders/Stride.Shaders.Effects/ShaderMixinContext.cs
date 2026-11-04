@@ -59,7 +59,6 @@ namespace Stride.Shaders
         /// <summary>
         /// Pushes the current parameters collection being used.
         /// </summary>
-        /// <typeparam name="T">Type of the parameter collection</typeparam>
         /// <param name="parameterCollection">The property container.</param>
         public void PushParameters(ParameterCollection parameterCollection)
         {

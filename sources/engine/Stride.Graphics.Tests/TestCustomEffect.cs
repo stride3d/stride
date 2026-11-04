@@ -8,6 +8,7 @@ using Stride.Games;
 
 namespace Stride.Graphics.Tests
 {
+    [EffectKeys]
     public static class MyCustomShaderKeys
     {
         public static readonly ValueParameterKey<Vector4> ColorFactor2 = ParameterKeys.NewValue<Vector4>();

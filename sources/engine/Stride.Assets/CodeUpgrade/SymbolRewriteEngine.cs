@@ -146,6 +146,13 @@ internal static class SymbolRewriteEngine
     }
 
     /// <summary>
+    /// <see cref="IsUpgradableSource(Document)"/> for the document holding <paramref name="tree"/>; false for a tree of no
+    /// document of <paramref name="solution"/> (source-generated).
+    /// </summary>
+    internal static bool IsUpgradableSource(Solution solution, SyntaxTree tree)
+        => solution.GetDocument(tree) is { } document && IsUpgradableSource(document);
+
+    /// <summary>
     /// True when the document lives under the project's intermediate or final output directory (taken
     /// from the project's own compilation output paths, wherever the build put them).
     /// </summary>

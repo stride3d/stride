@@ -8,6 +8,7 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// Keys used by the DepthAwareDirectionalBlurEffect
     /// </summary>
+    [EffectKeys]
     public static class DepthAwareDirectionalBlurKeys
     {
         public static readonly PermutationParameterKey<int> Count = ParameterKeys.NewPermutation<int>();

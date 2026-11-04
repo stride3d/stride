@@ -10,7 +10,7 @@ using Stride.Core.Yaml.Serialization.Serializers;
 namespace Stride.Core.Assets.Serializers;
 
 /// <summary>
-/// A Yaml Serializer for <see cref="AssetBase"/>. Because this type is immutable
+/// A Yaml Serializer for <see cref="AssetItem"/>. Because this type is immutable
 /// we need to implement a special serializer.
 /// </summary>
 [YamlSerializerFactory(YamlAssetProfile.Name)]

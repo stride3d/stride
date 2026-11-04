@@ -5,6 +5,7 @@ using Stride.Shaders;
 
 namespace Stride.Rendering.Lights
 {
+    [EffectKeys]
     public partial class LightSkyboxShaderKeys
     {
         public static readonly PermutationParameterKey<ShaderSource> LightDiffuseColor = ParameterKeys.NewPermutation<ShaderSource>();

@@ -38,6 +38,8 @@ namespace Stride.Assets.Presentation.AssetEditors
         Loadability,
         /// <summary>An assembly this one depends on is being reloaded: rebuild and reload it too.</summary>
         Dependency,
+        /// <summary>A shader file or a folder under a project changed. It only goes through <see cref="ProjectWatcher.ShaderChange"/>.</summary>
+        ShaderFile,
     }
 
     public class AssemblyChangedEvent
@@ -95,6 +97,8 @@ namespace Stride.Assets.Presentation.AssetEditors
         public IAsyncEnumerable<List<AssemblyChangedEvent>> SourceChange;
         // Changes for editor-loaded projects only (non-null Assembly); feeds the assembly-reload path.
         public IAsyncEnumerable<List<AssemblyChangedEvent>> AssemblyChange;
+        // Shader file changes, kept apart so that they start no assembly recompile or reload.
+        public IAsyncEnumerable<List<AssemblyChangedEvent>> ShaderChange;
 
         private MSBuildWorkspace msbuildWorkspace;
         private bool solutionOpened;
@@ -140,6 +144,7 @@ namespace Stride.Assets.Presentation.AssetEditors
 
             SourceChange = BatchChanges(SourceChangedBroadcast, loadedOnly: false);
             AssemblyChange = BatchChanges(AssemblyChangedBroadcast, loadedOnly: true);
+            ShaderChange = BatchChanges(ShaderChangedBroadcast, loadedOnly: false);
         }
 
         private async IAsyncEnumerable<List<AssemblyChangedEvent>> BatchChanges(ISourceBlock<AssemblyChangedEvent> source, bool loadedOnly)
@@ -217,6 +222,9 @@ namespace Stride.Assets.Presentation.AssetEditors
 
         // Editor-loaded projects only (non-null Assembly); a filtered view of SourceChangedBroadcast.
         public BroadcastBlock<AssemblyChangedEvent> AssemblyChangedBroadcast { get; } = new BroadcastBlock<AssemblyChangedEvent>(null);
+
+        // Shader files and folders under a tracked project.
+        public BroadcastBlock<AssemblyChangedEvent> ShaderChangedBroadcast { get; } = new BroadcastBlock<AssemblyChangedEvent>(null);
 
         public Project CurrentGameLibrary
         {
@@ -342,6 +350,8 @@ namespace Stride.Assets.Presentation.AssetEditors
             // For a rename, the old path is what identifies the existing document/tracked assembly.
             var changedFile = renameEvent?.OldFullPath ?? e.FullPath;
 
+            PostShaderFileChanges(e, renameEvent);
+
             // A dev build of a dependency package was rebuilt: no project here, its binary is the change
             List<PackageLoadedAssembly> devBuildSnapshot;
             lock (trackedAssembliesLock)
@@ -404,6 +414,25 @@ namespace Stride.Assets.Presentation.AssetEditors
             }
 
             return null;
+        }
+
+        private void PostShaderFileChanges(FileEvent e, FileRenameEvent renameEvent)
+        {
+            // A fault here would end the transform block, and with it all file tracking.
+            try
+            {
+                var isDirectory = e.ChangeType is FileEventChangeType.Created or FileEventChangeType.Renamed && Directory.Exists(e.FullPath);
+                var projectDirectories = SnapshotTrackedAssemblies().Select(x => Path.GetDirectoryName(x.Project.FilePath)).ToList();
+                foreach (var path in renameEvent != null ? new[] { renameEvent.OldFullPath, e.FullPath } : new[] { e.FullPath })
+                {
+                    if (projectDirectories.Any(x => ProjectShaderChanges.IsTouched(path, x, e.ChangeType, isDirectory)))
+                        ShaderChangedBroadcast.Post(new AssemblyChangedEvent(null, AssemblyChangeType.ShaderFile, path, null));
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Error($"Failed to process the change of '{e.FullPath}'", ex);
+            }
         }
 
         // Re-reads StrideContainsAssetTypes from the csproj and, if editor loadability flipped compared to
@@ -631,6 +660,10 @@ namespace Stride.Assets.Presentation.AssetEditors
         private void TrackProjectDocuments(Project project, UDirectory packageDirectory)
         {
             var projectDirectory = new UFile(project.FilePath).GetFullDirectory();
+
+            // A new shader file can appear in any folder of the project, not only in one that holds a document
+            directoryWatcher.Track(projectDirectory.ToOSPath());
+
             foreach (var document in project.Documents)
             {
                 // Limit ourselves to our package subfolders or project folders

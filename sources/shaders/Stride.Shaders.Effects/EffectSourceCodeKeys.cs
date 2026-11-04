@@ -7,6 +7,7 @@ namespace Stride.Shaders
     /// <summary>
     /// Keys used for sourcecode generation.
     /// </summary>
+    [EffectKeys]
     public static class EffectSourceCodeKeys
     {
         /// <summary>

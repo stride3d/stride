@@ -34,6 +34,7 @@ namespace Stride.Shaders
         /// Initializes a new instance of the <see cref="ShaderClassString"/> class.
         /// </summary>
         /// <param name="className">Name of the class.</param>
+        /// <param name="shaderSourceCode">The shader source code.</param>
         public ShaderClassString(string className, string shaderSourceCode)
             : this(className, shaderSourceCode, null)
         {
@@ -43,6 +44,7 @@ namespace Stride.Shaders
         /// Initializes a new instance of the <see cref="ShaderClassString"/> class.
         /// </summary>
         /// <param name="className">Name of the class.</param>
+        /// <param name="shaderSourceCode">The shader source code.</param>
         /// <param name="genericArguments">The generic parameters.</param>
         public ShaderClassString(string className, string shaderSourceCode, params string[] genericArguments)
         {
@@ -55,6 +57,7 @@ namespace Stride.Shaders
         /// Initializes a new instance of the <see cref="ShaderClassString"/> class.
         /// </summary>
         /// <param name="className">Name of the class.</param>
+        /// <param name="shaderSourceCode">The shader source code.</param>
         /// <param name="genericArguments">The generic parameters.</param>
         public ShaderClassString(string className, string shaderSourceCode, params object[] genericArguments)
         {

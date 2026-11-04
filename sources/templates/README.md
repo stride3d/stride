@@ -42,12 +42,37 @@ Asset packs are *item* templates: they drop ready-made assets into an existing g
 ```bash
 dotnet new install Stride.Templates.AssetPacks
 cd MyGame/MyGame.Game
-dotnet new stride-pack-buildingblocks   # merges the pack's Assets/ + Resources/ into the project
+dotnet new stride-pack-buildingblocks   # merges the pack's Assets/ + Resources/ into the current folder
 ```
 
-The `stride` CLI needs neither install: it resolves the template packages of the requested Stride
-version and downloads the asset packs the first time they are needed, so `stride new
-stride-pack-buildingblocks` run inside the game library does the same.
+`dotnet new` writes to the current folder whatever the project lists in its `AssetFolders`. A project
+with other folders (the samples list `../Assets/Shared`) does not see the pack then.
+
+The `stride` CLI needs neither install: it resolves the template packages and downloads the asset
+packs the first time they are needed. `stride new stride-pack-buildingblocks` also finds where the pack
+has to go, from the solution folder or from a package folder:
+
+- **The package:** the one around the current folder, else the game library. From a platform project,
+  the library next to it. If it can't choose, it gives an error and writes nothing.
+- **The folders:** the pack's `Assets/*` goes into the first folder of the package's `AssetFolders`, and
+  its `Resources/*` into the first folder of its `ResourceFolders`. The assets keep their URLs. The
+  `.sdpkg` is not edited, and no folder is added to it: a pack with resources gives an error and writes
+  nothing if the package lists no resource folder.
+- **The paths:** if the relative path between the two folders is not `../Resources`, the paths in the
+  pack's assets that lead to one of its resources are rewritten: the values tagged `!file` and the keys of
+  `~SourceHashes`. Nothing else in a file changes. A folder that no relative path reaches gives an error
+  and writes nothing.
+- **The version:** the packs before Stride 4.4.2 have paths with no `!file` tag, so rewriting them gives
+  an error that asks to upgrade the project and writes nothing. They still work when no rewrite is needed.
+
+A pack written by hand or saved by an old tool needs the tag too. To add it, run
+`Stride.AssetCompiler upgrade <path to .sdpkg> --resave-all` on the pack.
+
+`-o <folder>` skips this: `<folder>/Assets` and `<folder>/Resources` are written, with a warning if no
+package sees them.
+
+The pack comes from the version of that project (or from `--version`), and the project stays on its
+version.
 
 `dotnet new -l` after the installs lists every available stride-* short name.
 
@@ -174,6 +199,30 @@ then add a `<StrideSampleTemplate>` entry to `Stride.Templates.AssetPacks.csproj
 New Game dialog lists every item template of the AssetPacks package as a checkbox (templates whose
 `.sdtpl` `Parameters` list includes `assetPacks` opt into the section; today that's `stride-game`),
 and instantiates each selected pack into the generated game library.
+
+A pack has `Assets/` and `Resources/` at its top level and nothing else: the generator and `stride new`
+refuse anything other than these two folders. Its assets must find their resources through the
+folder they share, as in `Source: ../../Resources/...`, and `stride new` adapts these paths to the package.
+
+Authors outside this repository can't run the generator, so they write the template by hand: a template
+package with this file as `content/<name>/.template.config/template.json`, next to `Assets/` and
+`Resources/`. Try it with `stride new <short name> -p <path to the .nupkg>`.
+
+```json
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Me",
+  "classifications": ["AssetPacks"],
+  "identity": "MyPack.Rocks",
+  "name": "Rocks",
+  "shortName": "mypack-rocks",
+  "tags": { "type": "item" }
+}
+```
+
+The pack's own licence goes in the package metadata: `PackageLicenseExpression` or `PackageLicenseFile`, or
+`<license>` in a nuspec, with the file at the root of the `.nupkg` and outside `content/`. Nothing is then
+copied into the user's project, where a `LICENSE.md` would collide with theirs.
 
 ## Architecture pointers
 

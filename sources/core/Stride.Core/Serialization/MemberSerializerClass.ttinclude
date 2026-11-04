@@ -4,7 +4,7 @@
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ output extension=".cs" #>
-public static unsafe class <#= className #>
+public static class <#= className #>
 {
     public static void SerializeExtended(SerializationStream stream, Type objType, ref object obj, ArchiveMode mode, DataSerializer dataSerializer = null)
     {
@@ -15,7 +15,7 @@ supportsGenerics = false; #>
     }
 }
 
-public unsafe class <#= className #><T> : MemberSerializer<T>
+public class <#= className #><T> : MemberSerializer<T>
 {
     public <#= className #>(DataSerializer<T> dataSerializer) : base(dataSerializer)
     {
@@ -38,7 +38,7 @@ supportsGenerics = true; #>
     }
 }
 
-public unsafe class <#= className #>Object<T> : MemberSerializer<T>
+public class <#= className #>Object<T> : MemberSerializer<T>
 {
     public <#= className #>Object(DataSerializer<T> dataSerializer) : base(dataSerializer)
     {

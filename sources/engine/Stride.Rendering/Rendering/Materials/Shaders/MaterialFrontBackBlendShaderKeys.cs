@@ -3,6 +3,7 @@
 
 namespace Stride.Rendering
 {
+    [EffectKeys]
     public partial class MaterialFrontBackBlendShaderKeys
     {
         public static readonly PermutationParameterKey<bool> UseNormalBackFace = ParameterKeys.NewPermutation<bool>(true);

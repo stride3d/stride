@@ -4,8 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
-using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Core.Threading;
 using Stride.Graphics;
@@ -14,32 +14,83 @@ using Buffer = Stride.Graphics.Buffer;
 
 namespace Stride.Physics;
 
-public class HeightfieldColliderShape : ColliderShape
+public unsafe class HeightfieldColliderShape : ColliderShape
 {
     public static readonly int MinimumHeightStickWidth = 2;
     public static readonly int MinimumHeightStickLength = 2;
 
-    public HeightfieldColliderShape(int heightStickWidth, int heightStickLength, UnmanagedArray<short> dynamicFieldData, float heightScale, float minHeight, float maxHeight, bool flipQuadEdges)
-        : this(heightStickWidth, heightStickLength, HeightfieldTypes.Short, dynamicFieldData, heightScale, minHeight, maxHeight, flipQuadEdges)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="HeightfieldColliderShape"/> class with <see cref="short"/> height data.
+    /// </summary>
+    /// <param name="heightStickWidth">The width of the height field.</param>
+    /// <param name="heightStickLength">The length of the height field.</param>
+    /// <param name="heightData">The height data. This will be copied.</param>
+    /// <param name="heightScale">The scale of the height values.</param>
+    /// <param name="minHeight">The minimum height value.</param>
+    /// <param name="maxHeight">The maximum height value.</param>
+    /// <param name="flipQuadEdges">Whether to flip the quad edges.</param>
+    public HeightfieldColliderShape(int heightStickWidth, int heightStickLength, ReadOnlySpan<short> heightData, float heightScale, float minHeight, float maxHeight, bool flipQuadEdges)
+        : this(heightStickWidth, heightStickLength, HeightfieldTypes.Short, MemoryMarshal.AsBytes(heightData), true, heightScale, minHeight, maxHeight, flipQuadEdges)
     {
     }
 
-    public HeightfieldColliderShape(int heightStickWidth, int heightStickLength, UnmanagedArray<byte> dynamicFieldData, float heightScale, float minHeight, float maxHeight, bool flipQuadEdges)
-        : this(heightStickWidth, heightStickLength, HeightfieldTypes.Byte, dynamicFieldData, heightScale, minHeight, maxHeight, flipQuadEdges)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="HeightfieldColliderShape"/> class with <see cref="byte"/> height data.
+    /// </summary>
+    /// <param name="heightStickWidth">The width of the height field.</param>
+    /// <param name="heightStickLength">The length of the height field.</param>
+    /// <param name="heightData">The height data. This will be copied.</param>
+    /// <param name="heightScale">The scale of the height values.</param>
+    /// <param name="minHeight">The minimum height value.</param>
+    /// <param name="maxHeight">The maximum height value.</param>
+    /// <param name="flipQuadEdges">Whether to flip the quad edges.</param>
+    public HeightfieldColliderShape(int heightStickWidth, int heightStickLength, ReadOnlySpan<byte> heightData, float heightScale, float minHeight, float maxHeight, bool flipQuadEdges)
+        : this(heightStickWidth, heightStickLength, HeightfieldTypes.Byte, heightData, true, heightScale, minHeight, maxHeight, flipQuadEdges)
     {
     }
 
-    public HeightfieldColliderShape(int heightStickWidth, int heightStickLength, UnmanagedArray<float> dynamicFieldData, float heightScale, float minHeight, float maxHeight, bool flipQuadEdges)
-        : this(heightStickWidth, heightStickLength, HeightfieldTypes.Float, dynamicFieldData, heightScale, minHeight, maxHeight, flipQuadEdges)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="HeightfieldColliderShape"/> class with <see cref="float"/> height data.
+    /// </summary>
+    /// <param name="heightStickWidth">The width of the height field.</param>
+    /// <param name="heightStickLength">The length of the height field.</param>
+    /// <param name="heightData">The height data. This will be copied.</param>
+    /// <param name="heightScale">The scale of the height values.</param>
+    /// <param name="minHeight">The minimum height value.</param>
+    /// <param name="maxHeight">The maximum height value.</param>
+    /// <param name="flipQuadEdges">Whether to flip the quad edges.</param>
+    public HeightfieldColliderShape(int heightStickWidth, int heightStickLength, ReadOnlySpan<float> heightData, float heightScale, float minHeight, float maxHeight, bool flipQuadEdges)
+        : this(heightStickWidth, heightStickLength, HeightfieldTypes.Float, MemoryMarshal.AsBytes(heightData), true, heightScale, minHeight, maxHeight, flipQuadEdges)
     {
     }
 
-    internal HeightfieldColliderShape
+    /// <summary>
+    /// Initializes a new instance of the <see cref="HeightfieldColliderShape"/> class with height data initialized to zero.
+    /// </summary>
+    /// <remarks>
+    /// The height data can be set later using the <see cref="ShortSpan"/>, <see cref="ByteSpan"/>, or <see cref="FloatSpan"/> properties,
+    /// depending on the <paramref name="heightType"/> specified. Make sure to use the appropriate locking mechanism (<see cref="LockToReadAndWriteHeights"/>)
+    /// when writing with these spans to ensure thread safety.
+    /// </remarks>
+    /// <param name="heightStickWidth">The width of the height field.</param>
+    /// <param name="heightStickLength">The length of the height field.</param>
+    /// <param name="heightType">The type of the height data.</param>
+    /// <param name="heightScale">The scale of the height values.</param>
+    /// <param name="minHeight">The minimum height value.</param>
+    /// <param name="maxHeight">The maximum height value.</param>
+    /// <param name="flipQuadEdges">Whether to flip the quad edges.</param>
+    public HeightfieldColliderShape(int heightStickWidth, int heightStickLength, HeightfieldTypes heightType, float heightScale, float minHeight, float maxHeight, bool flipQuadEdges)
+        : this(heightStickWidth, heightStickLength, heightType, [], false, heightScale, minHeight, maxHeight, flipQuadEdges)
+    {
+    }
+
+    private HeightfieldColliderShape
     (
         int heightStickWidth,
         int heightStickLength,
         HeightfieldTypes heightType,
-        object dynamicFieldData,
+        ReadOnlySpan<byte> heightDataBytes,
+        bool hasHeightData,
         float heightScale,
         float minHeight,
         float maxHeight,
@@ -58,38 +109,42 @@ public class HeightfieldColliderShape : ColliderShape
 
         cachedScaling = Vector3.One;
 
-        switch (HeightType)
+        var scalarType = heightType switch
         {
-            case HeightfieldTypes.Short:
-                ShortArray = dynamicFieldData as UnmanagedArray<short>;
+            HeightfieldTypes.Short => BulletSharp.PhyScalarType.Int16,
+            HeightfieldTypes.Byte => BulletSharp.PhyScalarType.Byte,
+            HeightfieldTypes.Float => BulletSharp.PhyScalarType.Single,
+            _ => throw new ArgumentOutOfRangeException(nameof(heightType), heightType, null),
+        };
 
-                InternalShape = new BulletSharp.HeightfieldTerrainShape(HeightStickWidth, HeightStickLength, ShortArray.Pointer, HeightScale, MinHeight, MaxHeight, 1, BulletSharp.PhyScalarType.Int16, flipQuadEdges)
-                {
-                    LocalScaling = cachedScaling,
-                };
+        var scalarSize = heightType switch
+        {
+            HeightfieldTypes.Short => sizeof(short),
+            HeightfieldTypes.Byte => sizeof(byte),
+            HeightfieldTypes.Float => sizeof(float),
+            _ => throw new ArgumentOutOfRangeException(nameof(heightType), heightType, null),
+        };
 
-                break;
+        var expectedDataLength = HeightStickWidth * HeightStickLength * scalarSize;
+        if (hasHeightData)
+        {
+            if (heightDataBytes.Length != expectedDataLength)
+            {
+                throw new ArgumentException($"The length of {nameof(heightDataBytes)} is invalid. Expected: {expectedDataLength}, Actual: {heightDataBytes.Length}");
+            }
 
-            case HeightfieldTypes.Byte:
-                ByteArray = dynamicFieldData as UnmanagedArray<byte>;
-
-                InternalShape = new BulletSharp.HeightfieldTerrainShape(HeightStickWidth, HeightStickLength, ByteArray.Pointer, HeightScale, MinHeight, MaxHeight, 1, BulletSharp.PhyScalarType.Byte, flipQuadEdges)
-                {
-                    LocalScaling = cachedScaling,
-                };
-
-                break;
-
-            case HeightfieldTypes.Float:
-                FloatArray = dynamicFieldData as UnmanagedArray<float>;
-
-                InternalShape = new BulletSharp.HeightfieldTerrainShape(HeightStickWidth, HeightStickLength, FloatArray.Pointer, HeightScale, MinHeight, MaxHeight, 1, BulletSharp.PhyScalarType.Single, flipQuadEdges)
-                {
-                    LocalScaling = cachedScaling,
-                };
-
-                break;
+            heightDataPointer = NativeMemory.Alloc((nuint)heightDataBytes.Length);
+            heightDataBytes.CopyTo(new Span<byte>(heightDataPointer, heightDataBytes.Length));
         }
+        else
+        {
+            heightDataPointer = NativeMemory.AllocZeroed((nuint)expectedDataLength);
+        }
+
+        InternalShape = new BulletSharp.HeightfieldTerrainShape(HeightStickWidth, HeightStickLength, (nint)heightDataPointer, HeightScale, MinHeight, MaxHeight, 1, scalarType, flipQuadEdges)
+        {
+            LocalScaling = cachedScaling,
+        };
 
         var halfRange = (MaxHeight - MinHeight) * 0.5f;
         var offset = -(MinHeight + halfRange);
@@ -106,11 +161,42 @@ public class HeightfieldColliderShape : ColliderShape
         set { ((BulletSharp.HeightfieldTerrainShape)InternalShape).SetUseZigzagSubdivision(value); }
     }
 
-    public UnmanagedArray<short> ShortArray { get; private set; }
+    /// <summary>
+    /// A live view of the native height data as a span of shorts.
+    /// </summary>
+    /// <remarks>
+    /// This is only valid if the height type is <see cref="HeightfieldTypes.Short"/>.
+    /// This should only be used under a <see cref="LockToReadHeights"/> or <see cref="LockToReadAndWriteHeights"/> context to ensure thread safety.
+    /// This must never be used after the shape has been disposed.
+    /// </remarks>
+    public Span<short> ShortSpan => HeightType == HeightfieldTypes.Short && heightDataPointer != null ? new Span<short>(heightDataPointer, HeightStickWidth * HeightStickLength) : [];
 
-    public UnmanagedArray<byte> ByteArray { get; private set; }
+    /// <summary>
+    /// A live view of the native height data as a span of bytes.
+    /// </summary>
+    /// <remarks>
+    /// This is only valid if the height type is <see cref="HeightfieldTypes.Byte"/>.
+    /// This should only be used under a <see cref="LockToReadHeights"/> or <see cref="LockToReadAndWriteHeights"/> context to ensure thread safety.
+    /// This must never be used after the shape has been disposed.
+    /// </remarks>
+    public Span<byte> ByteSpan => HeightType == HeightfieldTypes.Byte && heightDataPointer != null ? new Span<byte>(heightDataPointer, HeightStickWidth * HeightStickLength) : [];
 
-    public UnmanagedArray<float> FloatArray { get; private set; }
+    /// <summary>
+    /// A live view of the native height data as a span of floats.
+    /// </summary>
+    /// <remarks>
+    /// This is only valid if the height type is <see cref="HeightfieldTypes.Float"/>.
+    /// This should only be used under a <see cref="LockToReadHeights"/> or <see cref="LockToReadAndWriteHeights"/> context to ensure thread safety.
+    /// This must never be used after the shape has been disposed.
+    /// </remarks>
+    public Span<float> FloatSpan => HeightType == HeightfieldTypes.Float && heightDataPointer != null ? new Span<float>(heightDataPointer, HeightStickWidth * HeightStickLength) : [];
+
+    /// <summary>
+    /// Whether this shape has height data allocated. If false, this shape might have been disposed.
+    /// </summary>
+    public bool HasHeightData => heightDataPointer != null;
+
+    private void* heightDataPointer;
 
     public int HeightStickWidth { get; private set; }
     public int HeightStickLength { get; private set; }
@@ -133,23 +219,22 @@ public class HeightfieldColliderShape : ColliderShape
 
     private readonly ReaderWriterLockSlim lockSlim = new();
 
-    ~HeightfieldColliderShape()
+    protected override void Dispose(bool disposing)
     {
-        lockSlim.Dispose();
-    }
+        base.Dispose(disposing);
 
-    public override void Dispose()
-    {
-        base.Dispose();
-
-        using (LockToReadAndWriteHeights())
+        if (heightDataPointer != null)
         {
-            ShortArray?.Dispose();
-            ShortArray = null;
-            ByteArray?.Dispose();
-            ByteArray = null;
-            FloatArray?.Dispose();
-            FloatArray = null;
+            using (LockToReadAndWriteHeights())
+            {
+                NativeMemory.Free(heightDataPointer);
+                heightDataPointer = null;
+            }
+        }
+
+        if (disposing)
+        {
+            lockSlim.Dispose();
         }
     }
 
@@ -163,7 +248,7 @@ public class HeightfieldColliderShape : ColliderShape
         return new HeightArrayLock(HeightArrayLock.LockTypes.ReadWrite, lockSlim);
     }
 
-    public class HeightArrayLock : IDisposable
+    public sealed class HeightArrayLock : IDisposable
     {
         public enum LockTypes
         {
@@ -175,10 +260,7 @@ public class HeightfieldColliderShape : ColliderShape
 
         internal HeightArrayLock(LockTypes lockType, ReaderWriterLockSlim lockSlim)
         {
-            if (lockSlim == null)
-            {
-                throw new ArgumentNullException(nameof(lockSlim));
-            }
+            ArgumentNullException.ThrowIfNull(lockSlim);
 
             readerWriterLockSlim = lockSlim;
 
@@ -242,9 +324,9 @@ public class HeightfieldColliderShape : ColliderShape
 
             heightStickHeight = heightfield.HeightType switch
             {
-                HeightfieldTypes.Short => heightfield.ShortArray[index] * heightfield.HeightScale,
-                HeightfieldTypes.Byte => heightfield.ByteArray[index] * heightfield.HeightScale,
-                HeightfieldTypes.Float => heightfield.FloatArray[index],
+                HeightfieldTypes.Short => heightfield.ShortSpan[index] * heightfield.HeightScale,
+                HeightfieldTypes.Byte => heightfield.ByteSpan[index] * heightfield.HeightScale,
+                HeightfieldTypes.Float => heightfield.FloatSpan[index],
                 _ => throw new NotSupportedException()
             };
 
@@ -312,20 +394,22 @@ public class HeightfieldColliderShape : ColliderShape
 
         public void Update(CommandList commandList)
         {
-            Dispatcher.ForEach(Tiles, (tile) =>
+            Dispatcher.ForEach(Tiles, this, UpdateTile);
+
+            static void UpdateTile(HeightfieldDebugPrimitive shape, Tile tile)
             {
                 for (int j = 0; j <= tile.Height; ++j)
                 {
                     for (int i = 0; i <= tile.Width; ++i)
                     {
-                        GetHeightStickHeightAndColor(tile.Point.X + i, tile.Point.Y + j, out var heightStickHeight, out var color);
+                        shape.GetHeightStickHeightAndColor(tile.Point.X + i, tile.Point.Y + j, out var heightStickHeight, out var color);
 
                         var index = j * (tile.Width + 1) + i;
                         tile.Vertices[index].Position.Y = heightStickHeight;
                         tile.Vertices[index].Color = color;
                     }
                 }
-            });
+            }
 
             foreach (var tile in Tiles)
             {

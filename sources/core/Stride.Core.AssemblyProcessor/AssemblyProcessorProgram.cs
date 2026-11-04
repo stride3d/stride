@@ -90,7 +90,6 @@ public class AssemblyProcessorProgram
             { "parameter-key", "Automatically initialize parameter keys in module static constructor", _ => app.ParameterKey = true },
             { "auto-module-initializer", "Execute function tagged with [ModuleInitializer] at module initialization (automatically enabled)", _ => app.ModuleInitializer = true },
             { "serialization", "Generate serialiation assembly", _ => app.SerializationAssembly = true },
-            { "docfile=", "Generate user documentation from XML file", v => app.DocumentationFile = v },
             { "d|directory=", "Additional search directory for assemblies", app.SearchDirectories.Add },
             { "a|assembly=", "Additional assembly (for now, it will add the assembly directory to search path)", v => app.SearchDirectories.Add(Path.GetDirectoryName(v)) },
             { "references-file=", "Project reference stored in a path", v => app.References.AddRange(File.ReadAllLines(v)) },

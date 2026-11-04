@@ -27,6 +27,7 @@ using Stride.Core.Presentation.Interop;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Presentation.Windows;
+using Stride.Core.Reflection;
 using Stride.Core.Translation;
 
 namespace Stride.Core.Assets.Editor.ViewModel
@@ -273,7 +274,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 {
                     typeFiltersVersion = AssetRegistry.TypesVersion;
                     typeFilters.Clear();
-                    typeFilters.AddRange(AssetRegistry.GetPublicTypes().Where(type => type != typeof(Package)).Select(type => new AssetFilterViewModel(this, FilterCategory.AssetType, type.FullName, DisplayAttribute.GetDisplayName(type))));
+                    typeFilters.AddRange(AssetRegistry.GetPublicTypes().Where(type => type != typeof(Package)).Select(type => new AssetFilterViewModel(this, FilterCategory.AssetType, type.FullName, TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<DisplayAttribute>(type)?.Name ?? type.Name)));
                     typeFilters.Sort((a, b) => string.Compare(a.DisplayName, b.DisplayName, StringComparison.InvariantCultureIgnoreCase));
                 }
                 return typeFilters;
@@ -452,8 +453,9 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// </summary>
         /// <param name="assetsToDelete">The list of assets to delete.</param>
         /// <param name="forceDelete">If <c>true</c> the asset whose <see cref="AssetViewModel.CanDelete()"/> method returns <c>false</c> will still be deleted</param>
+        /// <param name="deletedOutside">If <c>true</c> the files of these assets were deleted outside Game Studio.</param>
         /// <returns>The number of assets that have been successfully deleted.</returns>
-        internal int DeleteAssets(IEnumerable<AssetViewModel> assetsToDelete, bool forceDelete = false)
+        internal int DeleteAssets(IEnumerable<AssetViewModel> assetsToDelete, bool forceDelete = false, bool deletedOutside = false)
         {
             using (var transaction = Session.UndoRedoService.CreateTransaction())
             {
@@ -471,10 +473,17 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
                     var oldDirectory = asset.Directory;
 
-                    // It is important to set IsDeleted before clearing the directory, so the parent project can be marked as dirty
-                    asset.IsDeleted = true;
-                    asset.Directory.RemoveAsset(asset);
-                    asset.Directory = null;
+                    if (asset.Asset is IProjectAsset)
+                    {
+                        asset.DeleteProjectAsset(deletedOutside);
+                    }
+                    else
+                    {
+                        // It is important to set IsDeleted before clearing the directory, so the parent project can be marked as dirty
+                        asset.IsDeleted = true;
+                        asset.Directory.RemoveAsset(asset);
+                        asset.Directory = null;
+                    }
 
                     // Update RootAssets, for both current package and packages referencing this one
                     // Note: Package to Asset references should be handled in a more generic way (same as Asset to Asset references)
@@ -1440,9 +1449,9 @@ namespace Stride.Core.Assets.Editor.ViewModel
             UpdateLocations();
         }
 
-        public async Task<bool> DeleteContent(IReadOnlyCollection<object> locations, bool skipConfirmation = false)
+        public async Task<bool> DeleteContent(IReadOnlyCollection<object> locations, bool skipConfirmation = false, bool deletedOutside = false)
         {
-            var result = await Session.DeleteItems(locations, skipConfirmation);
+            var result = await Session.DeleteItems(locations, skipConfirmation, deletedOutside);
             UpdateCommands();
             return result;
         }
@@ -1496,7 +1505,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 switch (sortRule)
                 {
                     case SortRule.TypeOrderThenName:
-                        comparer = new AnonymousComparer<AssetViewModel>((x, y) => { var r = -(DisplayAttribute.GetOrder(x.AssetType) ?? 0).CompareTo(DisplayAttribute.GetOrder(y.AssetType) ?? 0); return r == 0 ? assetNameComparer.Compare(x, y) : r; });
+                        comparer = new AnonymousComparer<AssetViewModel>((x, y) => { var r = -(TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<DisplayAttribute>(x.AssetType)?.Order ?? 0).CompareTo(TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<DisplayAttribute>(y.AssetType)?.Order ?? 0); return r == 0 ? assetNameComparer.Compare(x, y) : r; });
                         break;
                     case SortRule.DirtyThenName:
                         comparer = new AnonymousComparer<AssetViewModel>((x, y) => { var r = -x.IsDirty.CompareTo(y.IsDirty); return r == 0 ? assetNameComparer.Compare(x, y) : r; });

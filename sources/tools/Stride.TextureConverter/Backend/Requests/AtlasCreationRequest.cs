@@ -27,6 +27,7 @@ namespace Stride.TextureConverter.Requests
         /// Initializes a new instance of the <see cref="AtlasCreationRequest"/> class.
         /// </summary>
         /// <param name="textureList">The texture list.</param>
+        /// <param name="forceSquaredAtlas">Whether to require a square atlas.</param>
         public AtlasCreationRequest(List<TexImage> textureList, bool forceSquaredAtlas = false)
         {
             TextureList = textureList;

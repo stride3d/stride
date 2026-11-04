@@ -11,6 +11,7 @@ using Stride.Updater;
 
 namespace Stride.Engine.Tests
 {
+    [EffectKeys]
     public class ParameterCollectionUpdateEngineTest
     {
         public static readonly ValueParameterKey<int> IntKey = ParameterKeys.NewValue<int>();

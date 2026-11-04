@@ -5,10 +5,10 @@ using System;
 namespace Stride.Rendering
 {
     /// <summary>
-    /// Assembly attribute used to mark assembly that has been preprocessed using the <see cref="ParameterKeyProcessor"/>.
-    /// Assemblies without this attribute will have all of their type members tagged with <see cref="EffectKeysAttribute"/> scanned for <see cref="ParameterKey"/>.
+    /// Assembly attribute used to mark assembly that has been preprocessed using the ParameterKeyProcessor.
     /// </summary>
     [AttributeUsage(AttributeTargets.Assembly)]
+    [Obsolete("The ParameterKeyProcessor has been removed. This attribute will be removed in a future version.")]
     public class AssemblyEffectKeysAttribute : Attribute
     {
     }

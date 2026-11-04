@@ -8,7 +8,8 @@
     <StrideAssetConstantsImported>true</StrideAssetConstantsImported>
     <StrideGenerateAssetConstants Condition="'$(StrideGenerateAssetConstants)' == ''">true</StrideGenerateAssetConstants>
     <!-- Only an existing StrideCurrentPackagePath counts; a dangling path (e.g. a platform project
-         carrying one from an older layout) falls back to the conventional sdpkg next to the project. -->
+         carrying one from an older layout) falls back to the conventional sdpkg next to the project.
+         StrideCollectAssetConstants also falls back when the path is a referenced project's own sdpkg. -->
     <_StrideAssetConstantsPackagePath Condition="'$(StrideCurrentPackagePath)' != '' And Exists('$(StrideCurrentPackagePath)')">$(StrideCurrentPackagePath)</_StrideAssetConstantsPackagePath>
     <_StrideAssetConstantsPackagePath Condition="'$(_StrideAssetConstantsPackagePath)' == ''">$(MSBuildProjectDirectory)\$(MSBuildProjectName).sdpkg</_StrideAssetConstantsPackagePath>
   </PropertyGroup>
@@ -143,11 +144,22 @@
       <_StrideAssetConstantsPackageName Condition="'$(_StrideAssetConstantsPackageName)' == ''">$(AssemblyName)</_StrideAssetConstantsPackageName>
       <_StrideAssetConstantsPackageName Condition="'$(_StrideAssetConstantsPackageName)' == ''">$(MSBuildProjectName)</_StrideAssetConstantsPackageName>
     </PropertyGroup>
+    <!-- A StrideCurrentPackagePath that sits next to a referenced project (a platform head pointing at
+         its game library's sdpkg) is that project's package, as in the asset build manifest: the game
+         library generates its constants (and its shaders), and the head only takes an sdpkg of its own -->
+    <ItemGroup>
+      <_StrideAssetConstantsReferencedPackage Include="@(ProjectReference->'%(RootDir)%(Directory)%(Filename).sdpkg')" />
+      <_StrideAssetConstantsReferencedPackage Remove="@(_StrideAssetConstantsReferencedPackage)" Condition="'%(FullPath)' != '$([MSBuild]::NormalizePath($(_StrideAssetConstantsPackagePath)))'" />
+    </ItemGroup>
+    <PropertyGroup>
+      <_StrideAssetConstantsPackagePath Condition="'@(_StrideAssetConstantsReferencedPackage)' != ''">$(MSBuildProjectDirectory)\$(MSBuildProjectName).sdpkg</_StrideAssetConstantsPackagePath>
+    </PropertyGroup>
     <!-- The ext|type maps a package ships give the extensions the folder scan takes besides .sd* -->
     <ItemGroup>
       <_StrideAssetContentTypeMap Include="@(AdditionalFiles)" Condition="'%(AdditionalFiles.StrideAssetContentTypeMap)' == 'true'" />
     </ItemGroup>
     <StrideCollectAssetConstantsInputs
+        Condition="Exists('$(_StrideAssetConstantsPackagePath)')"
         PackagePath="$(_StrideAssetConstantsPackagePath)"
         AssetNamespace="$(StrideAssetNamespace)"
         PackageName="$(_StrideAssetConstantsPackageName)"

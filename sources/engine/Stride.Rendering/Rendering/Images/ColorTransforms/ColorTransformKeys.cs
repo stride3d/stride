@@ -7,6 +7,7 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// Parameter keys used by <see cref="ColorTransformBase"/>
     /// </summary>
+    [EffectKeys]
     internal static class ColorTransformKeys
     {
         /// <summary>

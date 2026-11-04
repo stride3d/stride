@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
@@ -72,6 +73,36 @@ namespace Stride.Navigation
                     throw new InvalidOperationException("Trying to remove unregistered collider");
                 colliders.Remove(colliderData);
                 registeredGuids.Remove(colliderData.Component.Id);
+            }
+        }
+
+        private readonly struct BuildTileJob : Dispatcher.IBatchJob
+        {
+            public required Point[] Tiles { get; init; }
+            public required NavigationMeshBuilder Builder { get; init; }
+            public required NavigationMeshBuildSettings BuildSettings { get; init; }
+            public required NavigationAgentSettings AgentSettings { get; init; }
+            public required ICollection<BoundingBox> BoundingBoxes { get; init; }
+            public required CancellationToken CancellationToken { get; init; }
+            public required Vector3[] InputVertices { get; init; }
+            public required int[] InputIndices { get; init; }
+            public required ConcurrentCollector<Tuple<Point, NavigationMeshTile>> BuiltTiles { get; init; }
+
+            public void Process(int start, int endExclusive)
+            {
+                foreach (var tileCoordinate in Tiles.AsSpan(start..endExclusive))
+                {
+                    // Allow cancellation while building tiles
+                    if (CancellationToken.IsCancellationRequested)
+                        continue;
+
+                    // Builds the tile, or returns null when there is nothing generated for this tile (empty tile)
+                    NavigationMeshTile meshTile = Builder.BuildTile(tileCoordinate, BuildSettings, AgentSettings, BoundingBoxes,
+                        InputVertices, InputIndices);
+
+                    // Add the result to the list of built tiles
+                    BuiltTiles.Add(new Tuple<Point, NavigationMeshTile>(tileCoordinate, meshTile));
+                }
             }
         }
 
@@ -234,18 +265,18 @@ namespace Stride.Navigation
                     }
 
                     ConcurrentCollector<Tuple<Point, NavigationMeshTile>> builtTiles = new ConcurrentCollector<Tuple<Point, NavigationMeshTile>>(tilesToBuild.Count);
-                    Dispatcher.ForEach(tilesToBuild.ToArray(), tileCoordinate =>
+                    var tilesToBuildArray = tilesToBuild.ToArray();
+                    Dispatcher.ForBatched(tilesToBuildArray.Length, new BuildTileJob
                     {
-                        // Allow cancellation while building tiles
-                        if (cancellationToken.IsCancellationRequested)
-                            return;
-
-                        // Builds the tile, or returns null when there is nothing generated for this tile (empty tile)
-                        NavigationMeshTile meshTile = BuildTile(tileCoordinate, buildSettings, currentAgentSettings, boundingBoxes,
-                            inputVertices, inputIndices);
-
-                        // Add the result to the list of built tiles
-                        builtTiles.Add(new Tuple<Point, NavigationMeshTile>(tileCoordinate, meshTile));
+                        Tiles = tilesToBuildArray,
+                        Builder = this,
+                        BuildSettings = buildSettings,
+                        AgentSettings = currentAgentSettings,
+                        BoundingBoxes = boundingBoxes,
+                        CancellationToken = cancellationToken,
+                        InputVertices = inputVertices,
+                        InputIndices = inputIndices,
+                        BuiltTiles = builtTiles,
                     });
 
                     if (cancellationToken.IsCancellationRequested)
@@ -278,6 +309,9 @@ namespace Stride.Navigation
                             layer.TilesInternal[p.Item1] = p.Item2;
                         }
                     }
+
+                    // Tiles finish in any order and are saved in the order of the dictionary: keep them sorted, so that the same input gives the same bytes
+                    layer.TilesInternal = layer.TilesInternal.OrderBy(x => x.Key.Y).ThenBy(x => x.Key.X).ToDictionary();
 
                     // Add information about which tiles were updated to the result
                     if (tilesToBuild.Count > 0)
@@ -400,9 +434,39 @@ namespace Stride.Navigation
         {
             NavigationMeshCache lastCache = oldNavigationMesh?.Cache;
             
-            bool clearCache = false;
-            
-            Dispatcher.ForEach(collidersLocal, colliderData =>
+            var clearCache = new StrongBox<bool>();
+            Dispatcher.ForBatched(collidersLocal.Length, new BuildInputJob
+            {
+                Colliders = collidersLocal,
+                Builder = this,
+                IncludedCollisionGroups = includedCollisionGroups,
+                LastCache = lastCache,
+                ClearCache = clearCache,
+            });
+
+            if (clearCache.Value && oldNavigationMesh != null)
+            {
+                oldNavigationMesh = null;
+            }
+        }
+
+        private readonly struct BuildInputJob : Dispatcher.IBatchJob
+        {
+            public required StaticColliderData[] Colliders { get; init; }
+            public required NavigationMeshBuilder Builder { get; init; }
+            public required CollisionFilterGroupFlags IncludedCollisionGroups { get; init; }
+            public required NavigationMeshCache LastCache { get; init; }
+            public required StrongBox<bool> ClearCache { get; init; }
+
+            public void Process(int start, int endExclusive)
+            {
+                foreach (var colliderData in Colliders.AsSpan(start..endExclusive))
+                {
+                    BuildColliderInput(colliderData);
+                }
+            }
+
+            private void BuildColliderInput(StaticColliderData colliderData)
             {
                 var entity = colliderData.Component.Entity;
                 TransformComponent entityTransform = entity.Transform;
@@ -411,9 +475,9 @@ namespace Stride.Navigation
                 NavigationMeshInputBuilder entityNavigationMeshInputBuilder = colliderData.InputBuilder = new NavigationMeshInputBuilder();
 
                 // Compute hash of collider and compare it with the previous build if there is one
-                colliderData.ParameterHash = NavigationMeshBuildUtils.HashEntityCollider(colliderData.Component, includedCollisionGroups);
+                colliderData.ParameterHash = NavigationMeshBuildUtils.HashEntityCollider(colliderData.Component, IncludedCollisionGroups);
                 colliderData.Previous = null;
-                if (lastCache?.Objects.TryGetValue(colliderData.Component.Id, out colliderData.Previous) ?? false)
+                if (LastCache?.Objects.TryGetValue(colliderData.Component.Id, out colliderData.Previous) ?? false)
                 {
                     if ((!colliderData.Component.AlwaysUpdateNaviMeshCache) &&
                         (colliderData.Previous.ParameterHash == colliderData.ParameterHash))
@@ -430,14 +494,14 @@ namespace Stride.Navigation
 
                 // Clear cache on removal of infinite planes
                 if (colliderData.Planes.Count > 0)
-                    clearCache = true;
+                    ClearCache.Value = true;
 
                 // Clear planes
                 colliderData.Planes.Clear();
 
                 // Return empty data for disabled colliders, filtered out colliders or trigger colliders 
                 if (!colliderData.Component.Enabled || colliderData.Component.IsTrigger ||
-                    !NavigationMeshBuildUtils.CheckColliderFilter(colliderData.Component, includedCollisionGroups))
+                    !NavigationMeshBuildUtils.CheckColliderFilter(colliderData.Component, IncludedCollisionGroups))
                 {
                     colliderData.Processed = true;
                     return;
@@ -461,7 +525,7 @@ namespace Stride.Navigation
                         if (shapeType == typeof(BoxColliderShape))
                         {
                             var box = (BoxColliderShape)shape;
-                            var boxDesc = GetColliderShapeDesc<BoxColliderShapeDesc>(box.Description);
+                            var boxDesc = Builder.GetColliderShapeDesc<BoxColliderShapeDesc>(box.Description);
                             Matrix transform = box.PositiveCenterMatrix * entityWorldMatrix;
 
                             var meshData = GeometricPrimitive.Cube.New(boxDesc.Size, toLeftHanded: true);
@@ -470,7 +534,7 @@ namespace Stride.Navigation
                         else if (shapeType == typeof(SphereColliderShape))
                         {
                             var sphere = (SphereColliderShape)shape;
-                            var sphereDesc = GetColliderShapeDesc<SphereColliderShapeDesc>(sphere.Description);
+                            var sphereDesc = Builder.GetColliderShapeDesc<SphereColliderShapeDesc>(sphere.Description);
                             Matrix transform = sphere.PositiveCenterMatrix * entityWorldMatrix;
 
                             var meshData = GeometricPrimitive.Sphere.New(sphereDesc.Radius, toLeftHanded: true);
@@ -479,7 +543,7 @@ namespace Stride.Navigation
                         else if (shapeType == typeof(CylinderColliderShape))
                         {
                             var cylinder = (CylinderColliderShape)shape;
-                            var cylinderDesc = GetColliderShapeDesc<CylinderColliderShapeDesc>(cylinder.Description);
+                            var cylinderDesc = Builder.GetColliderShapeDesc<CylinderColliderShapeDesc>(cylinder.Description);
                             Matrix transform = cylinder.PositiveCenterMatrix * entityWorldMatrix;
 
                             var meshData = GeometricPrimitive.Cylinder.New(cylinderDesc.Height, cylinderDesc.Radius, toLeftHanded: true);
@@ -488,7 +552,7 @@ namespace Stride.Navigation
                         else if (shapeType == typeof(CapsuleColliderShape))
                         {
                             var capsule = (CapsuleColliderShape)shape;
-                            var capsuleDesc = GetColliderShapeDesc<CapsuleColliderShapeDesc>(capsule.Description);
+                            var capsuleDesc = Builder.GetColliderShapeDesc<CapsuleColliderShapeDesc>(capsule.Description);
                             Matrix transform = capsule.PositiveCenterMatrix * entityWorldMatrix;
 
                             var meshData = GeometricPrimitive.Capsule.New(capsuleDesc.Length, capsuleDesc.Radius, toLeftHanded: true);
@@ -497,7 +561,7 @@ namespace Stride.Navigation
                         else if (shapeType == typeof(ConeColliderShape))
                         {
                             var cone = (ConeColliderShape)shape;
-                            var coneDesc = GetColliderShapeDesc<ConeColliderShapeDesc>(cone.Description);
+                            var coneDesc = Builder.GetColliderShapeDesc<ConeColliderShapeDesc>(cone.Description);
                             Matrix transform = cone.PositiveCenterMatrix * entityWorldMatrix;
 
                             var meshData = GeometricPrimitive.Cone.New(coneDesc.Radius, coneDesc.Height, toLeftHanded: true);
@@ -506,7 +570,7 @@ namespace Stride.Navigation
                         else if (shapeType == typeof(StaticPlaneColliderShape))
                         {
                             var planeShape = (StaticPlaneColliderShape)shape;
-                            var planeDesc = GetColliderShapeDesc<StaticPlaneColliderShapeDesc>(planeShape.Description);
+                            var planeDesc = Builder.GetColliderShapeDesc<StaticPlaneColliderShapeDesc>(planeShape.Description);
                             Matrix transform = entityWorldMatrix;
 
                             Plane plane = new Plane(planeDesc.Normal, planeDesc.Offset)
@@ -555,6 +619,9 @@ namespace Stride.Navigation
                         {
                             var heightfield = (HeightfieldColliderShape)shape;
 
+                            if (!heightfield.HasHeightData)
+                                continue;
+
                             var halfRange = (heightfield.MaxHeight - heightfield.MinHeight) * 0.5f;
                             var offset = -(heightfield.MinHeight + halfRange);
                             Matrix transform = Matrix.Translation(new Vector3(0, offset, 0)) * heightfield.PositiveCenterMatrix * entityWorldMatrix;
@@ -563,31 +630,29 @@ namespace Stride.Navigation
                             var length = heightfield.HeightStickLength - 1;
                             var mesh = GeometricPrimitive.Plane.New(width, length, width, length, normalDirection: NormalDirection.UpY, toLeftHanded: true);
 
-                            var arrayLength = heightfield.HeightStickWidth * heightfield.HeightStickLength;
-
                             using (heightfield.LockToReadHeights())
                             {
                                 switch (heightfield.HeightType)
                                 {
                                     case HeightfieldTypes.Short:
-                                        if (heightfield.ShortArray == null) continue;
-                                        for (int i = 0; i < arrayLength; ++i)
+                                        var shortSpan = heightfield.ShortSpan;
+                                        for (int i = 0; i < shortSpan.Length; ++i)
                                         {
-                                            mesh.Vertices[i].Position.Y = heightfield.ShortArray[i] * heightfield.HeightScale;
+                                            mesh.Vertices[i].Position.Y = shortSpan[i] * heightfield.HeightScale;
                                         }
                                         break;
                                     case HeightfieldTypes.Byte:
-                                        if (heightfield.ByteArray == null) continue;
-                                        for (int i = 0; i < arrayLength; ++i)
+                                        var byteSpan = heightfield.ByteSpan;
+                                        for (int i = 0; i < byteSpan.Length; ++i)
                                         {
-                                            mesh.Vertices[i].Position.Y = heightfield.ByteArray[i] * heightfield.HeightScale;
+                                            mesh.Vertices[i].Position.Y = byteSpan[i] * heightfield.HeightScale;
                                         }
                                         break;
                                     case HeightfieldTypes.Float:
-                                        if (heightfield.FloatArray == null) continue;
-                                        for (int i = 0; i < arrayLength; ++i)
+                                        var floatSpan = heightfield.FloatSpan;
+                                        for (int i = 0; i < floatSpan.Length; ++i)
                                         {
-                                            mesh.Vertices[i].Position.Y = heightfield.FloatArray[i];
+                                            mesh.Vertices[i].Position.Y = floatSpan[i];
                                         }
                                         break;
                                 }
@@ -609,15 +674,10 @@ namespace Stride.Navigation
 
                 // Clear cache on addition of infinite planes
                 if (colliderData.Planes.Count > 0)
-                    clearCache = true;
+                    ClearCache.Value = true;
 
                 // Mark collider as processed
                 colliderData.Processed = true;
-            });
-
-            if (clearCache && oldNavigationMesh != null)
-            {
-                oldNavigationMesh = null;
             }
         }
 

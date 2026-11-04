@@ -501,7 +501,6 @@ namespace Stride.Rendering.Shadows
             /// Initializes a new instance of the <see cref="ShaderGroupData" /> class.
             /// </summary>
             /// <param name="shadowType">Type of the shadow.</param>
-            /// <param name="lightCountMax">The light count maximum.</param>
             public ShaderGroupData(LightShadowType shadowType) : base(shadowType)
             {
                 cascadeCount = 1 << ((int)(shadowType & LightShadowType.CascadeMask) - 1);

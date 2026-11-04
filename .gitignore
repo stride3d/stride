@@ -46,6 +46,7 @@ bin/packages/*
 !bin/packages/.gitkeep
 ipch/
 obj/
+.stride-backup-*/
 TestResults/
 .vs/
 .idea/
@@ -87,6 +88,7 @@ ui-test-out-dpi*
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/settings.json
+.devcontainer/
 
 # Xcode
 #

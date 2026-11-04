@@ -34,6 +34,43 @@ namespace Stride.Rendering.Voxels
             VoxelizerStorerCasterKey = ((RootEffectRenderFeature)RootRenderFeature).CreateViewLogicalGroup("VoxelizerStorer");
         }
 
+        private readonly struct PreparePassJob : Dispatcher.IBatchJob
+        {
+            public required List<RenderObject> RenderObjects { get; init; }
+            public required RenderSystem RenderSystem { get; init; }
+            public required RootEffectRenderFeature RootEffectRenderFeature { get; init; }
+            public required StaticObjectPropertyData<RenderEffect> RenderEffects { get; init; }
+            public required int EffectSlotCount { get; init; }
+            public required VoxelizationPass Pass { get; init; }
+
+            public void Process(int start, int endExclusive)
+            {
+                var pass = Pass;
+                foreach (var renderObject in CollectionsMarshal.AsSpan(RenderObjects)[start..endExclusive])
+                {
+                    var renderMesh = (RenderMesh)renderObject;
+
+                    var staticObjectNode = renderMesh.StaticObjectNode;
+
+
+                    var effectSlot = RootEffectRenderFeature.GetEffectPermutationSlot(RenderSystem.RenderStages[pass.view.RenderStages[0].Index]);
+                    {
+
+                        var staticEffectObjectNode = staticObjectNode * EffectSlotCount + effectSlot.Index;
+                        var renderEffect = RenderEffects[staticEffectObjectNode];
+
+                        // Skip effects not used during this frame
+                        if (renderEffect != null)
+                        {
+                            renderEffect.EffectValidator.ValidateParameter(VoxelizeToFragmentsKeys.Storage, pass.source);
+                            renderEffect.EffectValidator.ValidateParameter(VoxelizeToFragmentsKeys.RequireGeometryShader, pass.storer.RequireGeometryShader() || pass.method.RequireGeometryShader());
+                            renderEffect.EffectValidator.ValidateParameter(VoxelizeToFragmentsKeys.GeometryShaderMaxVertexCount, pass.storer.GeometryShaderOutputCount() * pass.method.GeometryShaderOutputCount());
+                        }
+                    }
+                }
+            }
+        }
+
         public override void PrepareEffectPermutations(RenderDrawContext context)
         {
             renderVoxelVolumeData = Context.VisibilityGroup.Tags.Get(CurrentProcessedVoxelVolumes);
@@ -66,27 +103,14 @@ namespace Stride.Rendering.Voxels
                     //Each pass in a group should have identical shaders
                     var pass = group[0];
 
-                    Dispatcher.ForEach(RootRenderFeature.RenderObjects, renderObject =>
+                    Dispatcher.ForBatched(RootRenderFeature.RenderObjects.Count, new PreparePassJob
                     {
-                        var renderMesh = (RenderMesh)renderObject;
-
-                        var staticObjectNode = renderMesh.StaticObjectNode;
-
-
-                        var effectSlot = rootEffectRenderFeature.GetEffectPermutationSlot(RenderSystem.RenderStages[pass.view.RenderStages[0].Index]);
-                        {
-
-                            var staticEffectObjectNode = staticObjectNode * effectSlotCount + effectSlot.Index;
-                            var renderEffect = renderEffects[staticEffectObjectNode];
-
-                            // Skip effects not used during this frame
-                            if (renderEffect != null)
-                            {
-                                renderEffect.EffectValidator.ValidateParameter(VoxelizeToFragmentsKeys.Storage, pass.source);
-                                renderEffect.EffectValidator.ValidateParameter(VoxelizeToFragmentsKeys.RequireGeometryShader, pass.storer.RequireGeometryShader() || pass.method.RequireGeometryShader());
-                                renderEffect.EffectValidator.ValidateParameter(VoxelizeToFragmentsKeys.GeometryShaderMaxVertexCount, pass.storer.GeometryShaderOutputCount() * pass.method.GeometryShaderOutputCount());
-                            }
-                        }
+                        RenderObjects = RootRenderFeature.RenderObjects,
+                        RenderSystem = RenderSystem,
+                        RootEffectRenderFeature = rootEffectRenderFeature,
+                        RenderEffects = renderEffects,
+                        EffectSlotCount = effectSlotCount,
+                        Pass = pass,
                     });
                 }
             }

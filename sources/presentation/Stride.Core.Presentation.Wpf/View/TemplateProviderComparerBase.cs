@@ -19,7 +19,7 @@ namespace Stride.Core.Presentation.View
         /// </summary>
         /// <param name="x">The first <see cref="ITemplateProvider"/> to compare.</param>
         /// <param name="y">The second <see cref="ITemplateProvider"/> to compare.</param>
-        /// <returns><c>-1</c> if <see cref="x"/> has a greater priority than <see cref="y"/>, <c>0</c> if they have the same priority, <c>1</c> if <see cref="y"/> has a greater priority than <see cref="x"/>.</returns>
+        /// <returns><c>-1</c> if <paramref name="x"/> has a greater priority than <paramref name="y"/>, <c>0</c> if they have the same priority, <c>1</c> if <paramref name="y"/> has a greater priority than <paramref name="x"/>.</returns>
         protected abstract int CompareProviders(ITemplateProvider x, ITemplateProvider y);
     }
 }

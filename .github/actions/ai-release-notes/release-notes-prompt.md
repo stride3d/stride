@@ -99,6 +99,18 @@ Drop or collapse noise:
 Group related commits into **one** entry. A multi-commit feature is one highlight, not ten
 bullets.
 
+# Breaking changes
+
+GitHub groups the authoritative change list under headings that come from the labels
+maintainers put on each pull request. The pull requests under `💥 Breaking Changes` are labeled
+`breaking-change` or `behavioral-change`: they change something a game developer may have to
+check or update after upgrading. In the bullet list, put the ones in scope first, under a
+`### 💥 Breaking changes` subheading, instead of under their area. Say what the developer has to
+check or change, and say when Game Studio's project upgrade does it for them (the pull request
+adds an upgrader). Treat this list as a floor, not a ceiling: a change that clearly breaks
+existing projects still belongs there even without the label. In the highlights draft, mention a
+breaking change only when it is also a highlight.
+
 # Output format
 
 $FORMAT_INSTRUCTION

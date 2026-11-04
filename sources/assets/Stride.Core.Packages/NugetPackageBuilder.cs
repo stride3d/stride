@@ -20,7 +20,7 @@ public sealed class NugetPackageBuilder : IEquatable<NugetPackageBuilder>
         Builder = new PackageBuilder();
     }
 
-    /// <inheritdoc />
+    /// <summary>
     /// Internal NuGet helper used to build a package.
     /// </summary>
     internal PackageBuilder Builder { get; }

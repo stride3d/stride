@@ -8,6 +8,7 @@ using Stride.Graphics;
 
 namespace Stride.Rendering.Images
 {
+    [EffectKeys]
     public class DepthMinMax : ImageEffect
     {
         internal static PermutationParameterKey<bool> IsFirstPassKey = ParameterKeys.NewPermutation<bool>();

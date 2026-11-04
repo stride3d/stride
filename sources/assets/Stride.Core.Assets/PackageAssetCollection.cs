@@ -224,7 +224,7 @@ public sealed class PackageAssetCollection : ICollection<AssetItem>, IReadOnlyCo
     /// Removes an <see cref="AssetItem" /> from this instance.
     /// </summary>
     /// <param name="itemId">The item identifier.</param>
-    /// <returns>true if <paramref name="itemId" /> was successfully removed from the <see cref="T:System.Collections.Generic.ICollection`1" />; otherwise, false. This method also returns false if <paramref name="item" /> is not found in the original <see cref="T:System.Collections.Generic.ICollection`1" />.</returns>
+    /// <returns><c>true</c> if the asset with the specified <paramref name="itemId"/> was removed; otherwise, <c>false</c>.</returns>
     public bool RemoveById(AssetId itemId)
     {
         var item = Find(itemId);
@@ -365,7 +365,7 @@ public sealed class PackageAssetCollection : ICollection<AssetItem>, IReadOnlyCo
             throw new ArgumentException("Asset location [{0}] cannot contain drive information".ToFormat(location), nameof(item));
         }
 
-        if (location.GetDirectory()?.StartsWith("..", StringComparison.Ordinal) == true)
+        if (location.GetFullDirectory().FullPath.StartsWith("..", StringComparison.Ordinal))
         {
             throw new ArgumentException("Asset location [{0}] cannot start with relative '..'".ToFormat(location), nameof(item));
         }

@@ -19,6 +19,7 @@ namespace Stride.Assets.Tests
     /// <summary>
     /// Tests for <see cref="MaterialGenerator"/> and related classes
     /// </summary>
+    [EffectKeys]
     public class TestMaterialGenerator
     {
         public static readonly ValueParameterKey<Color4> DiffuseValueCustom1 = ParameterKeys.NewValue<Color4>();

@@ -203,7 +203,9 @@ namespace Stride.Graphics
         /// <summary>
         ///   Generates a debug-friendly name for the Buffer based on its usage, flags, and size.
         /// </summary>
-        /// <param name="bufferDescription">The description of the Buffer.</param>
+        /// <param name="bufferUsage">The buffer usage.</param>
+        /// <param name="bufferFlags">The buffer flags.</param>
+        /// <param name="sizeInBytes">The buffer size in bytes.</param>
         /// <param name="elementType">The name of the type of the elements in the Buffer.</param>
         /// <param name="elementSize">The size in bytes of an element in the Buffer.</param>
         /// <returns>A string representing the debug name of the Buffer.</returns>
@@ -423,7 +425,7 @@ namespace Stride.Graphics
         ///   <paramref name="offsetInBytes"/> is only supported for Buffers declared with <see cref="GraphicsResourceUsage.Default"/>.
         /// </exception>
         /// <remarks>
-        ///   See <see cref="CommandList.MapSubResource"/> and <see cref="CommandList.UpdateSubResource"/> for more information about
+        ///   See <see cref="CommandList.MapSubResource"/> and <see cref="CommandList.UpdateSubResource(GraphicsResource, int, DataBox, ResourceRegion)">CommandList.UpdateSubResource</see> for more information about
         ///   usage and restrictions.
         /// </remarks>
         public void SetData<TData>(CommandList commandList, ref readonly TData fromData, int offsetInBytes = 0) where TData : unmanaged
@@ -442,7 +444,7 @@ namespace Stride.Graphics
         ///   <paramref name="offsetInBytes"/> is only supported for Buffers declared with <see cref="GraphicsResourceUsage.Default"/>.
         /// </exception>
         /// <remarks>
-        ///   See <see cref="CommandList.MapSubResource"/> and <see cref="CommandList.UpdateSubResource"/> for more information about
+        ///   See <see cref="CommandList.MapSubResource"/> and <see cref="CommandList.UpdateSubResource(GraphicsResource, int, DataBox, ResourceRegion)">CommandList.UpdateSubResource</see> for more information about
         ///   usage and restrictions.
         /// </remarks>
         public void SetData<TData>(CommandList commandList, TData[] fromData, int offsetInBytes = 0) where TData : unmanaged
@@ -460,7 +462,7 @@ namespace Stride.Graphics
         ///   <paramref name="offsetInBytes"/> is only supported for Buffers declared with <see cref="GraphicsResourceUsage.Default"/>.
         /// </exception>
         /// <remarks>
-        ///   See <see cref="CommandList.MapSubResource"/> and <see cref="CommandList.UpdateSubResource"/> for more information about
+        ///   See <see cref="CommandList.MapSubResource"/> and <see cref="CommandList.UpdateSubResource(GraphicsResource, int, DataBox, ResourceRegion)">CommandList.UpdateSubResource</see> for more information about
         ///   usage and restrictions.
         /// </remarks>
         [Obsolete("This method is obsolete. Use the Span-based methods instead")]
@@ -483,7 +485,7 @@ namespace Stride.Graphics
         ///   <paramref name="offsetInBytes"/> is only supported for Buffers declared with <see cref="GraphicsResourceUsage.Default"/>.
         /// </exception>
         /// <remarks>
-        ///   See <see cref="CommandList.MapSubResource"/> and <see cref="CommandList.UpdateSubResource"/> for more information about
+        ///   See <see cref="CommandList.MapSubResource"/> and <see cref="CommandList.UpdateSubResource(GraphicsResource, int, DataBox, ResourceRegion)">CommandList.UpdateSubResource</see> for more information about
         ///   usage and restrictions.
         /// </remarks>
         public unsafe void SetData<TData>(CommandList commandList, ReadOnlySpan<TData> fromData, int offsetInBytes = 0) where TData : unmanaged
@@ -1016,7 +1018,7 @@ namespace Stride.Graphics
         ///   <paramref name="offsetInBytes"/> is only supported for Buffers declared with <see cref="GraphicsResourceUsage.Default"/>.
         /// </exception>
         /// <remarks>
-        ///   See <see cref="CommandList.MapSubResource"/> and <see cref="CommandList.UpdateSubResource"/> for more information about
+        ///   See <see cref="CommandList.MapSubResource"/> and <see cref="CommandList.UpdateSubResource(GraphicsResource, int, DataBox, ResourceRegion)">CommandList.UpdateSubResource</see> for more information about
         ///   usage and restrictions.
         /// </remarks>
         public void SetData(CommandList commandList, ref readonly T fromData, int offsetInBytes = 0)
@@ -1034,7 +1036,7 @@ namespace Stride.Graphics
         ///   <paramref name="offsetInBytes"/> is only supported for Buffers declared with <see cref="GraphicsResourceUsage.Default"/>.
         /// </exception>
         /// <remarks>
-        ///   See <see cref="CommandList.MapSubResource"/> and <see cref="CommandList.UpdateSubResource"/> for more information about
+        ///   See <see cref="CommandList.MapSubResource"/> and <see cref="CommandList.UpdateSubResource(GraphicsResource, int, DataBox, ResourceRegion)">CommandList.UpdateSubResource</see> for more information about
         ///   usage and restrictions.
         /// </remarks>
         public void SetData(CommandList commandList, T[] fromData, int offsetInBytes = 0)

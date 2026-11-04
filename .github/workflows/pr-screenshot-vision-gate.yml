@@ -65,7 +65,7 @@ jobs:
       - name: Re-judge deferred frames (vision tiebreak)
         id: gate
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY_SCREENSHOTS }}
           DOTNET_NUGET_SIGNATURE_VERIFICATION: "false"
           # Event data through the environment, never spliced into the script
           HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}

@@ -71,6 +71,8 @@ namespace Stride.Core.Assets.Editor.ViewModel
         [NotNull]
         public Task SaveCompletion => session.SaveCompletion;
 
+        internal void SetFileDeletedOutside(UFile filePath, bool deletedOutside) => session.SetFileDeletedOutside(filePath, deletedOutside);
+
         public UFile SolutionPath => session.SolutionPath;
 
         public UFile SessionFilePath => SolutionPath;
@@ -1240,7 +1242,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
         /// <summary>
         /// Creates a <see cref="IDisposable"/> object that represents a context where most of the standard mechanisms relying on property changes are disabled, such as
-        /// property changes notifications, creation of <see cref="ActionItem"/>, andpropagation of properties between a base and a derived asset.
+        /// property change notifications, creation of undo/redo actions, and propagation of properties between a base and a derived asset.
         /// </summary>
         /// <returns>A disposable object disabling normal mechanisms relying on property change.</returns>
         /// <remarks>This method should be used only for advanced modifications of assets such as global fixups, that still need to reky on undo/redo.</remarks>
@@ -1867,7 +1869,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             sessionStateUpdating = false;
         }
 
-        public async Task<bool> DeleteItems(IReadOnlyCollection<object> locations, bool skipConfirmation = false)
+        public async Task<bool> DeleteItems(IReadOnlyCollection<object> locations, bool skipConfirmation = false, bool deletedOutside = false)
         {
             // Skip empty
             if (locations.Count == 0)
@@ -2028,7 +2030,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 // Delete assets
                 if (assetsToDelete.Count > 0)
                 {
-                    ActiveAssetView.DeleteAssets(assetsToDelete);
+                    ActiveAssetView.DeleteAssets(assetsToDelete, deletedOutside: deletedOutside);
                 }
 
                 // Delete directories

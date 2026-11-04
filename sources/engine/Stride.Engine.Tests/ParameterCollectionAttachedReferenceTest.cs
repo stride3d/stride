@@ -17,6 +17,7 @@ namespace Stride.Engine.Tests
     /// Tests how a <see cref="ParameterCollection"/> handles object values that are unresolved
     /// attached references (proxies made by <see cref="AttachedReferenceManager.CreateProxyObject{T}(AssetId, string)"/>).
     /// </summary>
+    [EffectKeys]
     public class ParameterCollectionAttachedReferenceTest
     {
         public static readonly ObjectParameterKey<object> ObjectKey = ParameterKeys.NewObject<object>();

@@ -8,6 +8,7 @@ using Stride.Rendering;
 
 namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 {
+    [EffectKeys]
     public abstract class GridGizmoBase : GizmoBase
     {
         public const RenderGroup GridGroup = RenderGroup.Group2;

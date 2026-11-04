@@ -85,7 +85,7 @@ public sealed partial class ThreadPool : IDisposable
     /// Queue an action to run on one of the available threads,
     /// it is strongly recommended that the action takes less than a millisecond.
     /// </summary>
-    public unsafe void QueueWorkItem([Pooled] Action workItem, int amount = 1)
+    public void QueueWorkItem(Action workItem, int amount = 1)
     {
         ArgumentNullException.ThrowIfNull(workItem);
         ArgumentOutOfRangeException.ThrowIfLessThan(amount, 1);
@@ -93,23 +93,13 @@ public sealed partial class ThreadPool : IDisposable
 
         var work = new Work { WorkHandler = &ActionHandler, Data = workItem };
 
-        for (int i = 0; i < amount; i++)
-            PooledDelegateHelper.AddReference(workItem);
-
         QueueWorkItemInner(amount, work);
     }
 
     static void ActionHandler(object param)
     {
         Action action = (Action)param;
-        try
-        {
-            action();
-        }
-        finally
-        {
-            PooledDelegateHelper.Release(action);
-        }
+        action();
     }
 
     /// <summary>

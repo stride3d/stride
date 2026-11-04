@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Sean Boettger <sean@whypenguins.com>
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Sean Boettger <sean@whypenguins.com>
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
 using Stride.Rendering.Voxels;
@@ -6,6 +6,7 @@ using Stride.Shaders;
 
 namespace Stride.Rendering.Voxels
 {
+    [EffectKeys]
     public static partial class VoxelizeToFragmentsKeys
     {
         public static readonly PermutationParameterKey<ShaderSource> Storage = ParameterKeys.NewPermutation<ShaderSource>();

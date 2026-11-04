@@ -1107,11 +1107,8 @@ internal sealed class UITestHost
                 return found.Count;
             }).Task;
 
-        public void Exit(int newExitCode = 0)
-        {
-            host.ExitCode = newExitCode;
-            ShutdownInternal();
-        }
+        // RunTest shuts down once the test returns, after writing done.json
+        public void Exit(int newExitCode = 0) => host.ExitCode = newExitCode;
 
         public void ShutdownInternal()
         {

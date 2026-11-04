@@ -10,6 +10,7 @@ namespace Stride.Rendering
     /// <summary>
     /// Keys used for render target settings.
     /// </summary>
+    [EffectKeys]
     public static class RenderTargetKeys
     {
         /// <summary>

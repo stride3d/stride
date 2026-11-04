@@ -160,6 +160,11 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// </summary>
         public IReadOnlyObservableList<AssetViewModel> DeletedAssets => DeletedAssetsList;
 
+        /// <summary>
+        /// Gets the list of assets that have been deleted by the user and whose deletion is not saved yet.
+        /// </summary>
+        public IReadOnlyCollection<AssetViewModel> DeletedAssetsSinceLastSave => deletedAssetsSinceLastSave;
+
         // TODO: Might want to hide this
         public List<PackageLoadedAssembly> LoadedAssemblies => Package.LoadedAssemblies;
 
@@ -727,7 +732,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// The directory a location shows under in the tree: the package node is the namespace root,
         /// so a namespaced package's own locations display bare.
         /// </summary>
-        private string GetDisplayDirectory(UFile location)
+        public string GetDisplayDirectory(UFile location)
         {
             if (Package.Container is { } container)
                 location = container.Unqualify(location);

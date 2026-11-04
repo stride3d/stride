@@ -8,6 +8,7 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// Keys used by <see cref="LightStreak"/> and LightStreakEffect sdfx.
     /// </summary>
+    [EffectKeys]
     internal static class LightStreakKeys
     {
         public static readonly PermutationParameterKey<int> Count = ParameterKeys.NewPermutation<int>();

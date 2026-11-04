@@ -12,6 +12,7 @@ namespace Stride.TextureConverter
         public TextureToolsException() : base() {}
         public TextureToolsException(string message) : base(message) {}
         public TextureToolsException(string message, System.Exception inner) : base(message, inner) {}
+        [Obsolete("Formatter-based serialization is obsolete and should not be used.", DiagnosticId = "SYSLIB0051", UrlFormat = "https://aka.ms/dotnet-warnings/{0}")]
         protected TextureToolsException(System.Runtime.Serialization.SerializationInfo info,
             System.Runtime.Serialization.StreamingContext context)
             : base(info, context) { }

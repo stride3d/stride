@@ -157,6 +157,6 @@ public interface IUITestContext
     /// </summary>
     Task<int> CountUnloadable();
 
-    /// <summary>Sets the process exit code and shuts the editor down.</summary>
+    /// <summary>Sets the process exit code; the editor shuts down when the test returns.</summary>
     void Exit(int exitCode = 0);
 }

@@ -7,6 +7,7 @@ namespace Stride.Rendering
     /// <summary>
     /// Keys used by transformations.
     /// </summary>
+    [EffectKeys]
     public static partial class CameraKeys
     {
         /// <summary>

@@ -1,5 +1,6 @@
 namespace Stride.Rendering.SubsurfaceScattering
 {
+    [EffectKeys]
     internal class SubsurfaceScatteringKeys
     {
         public static readonly PermutationParameterKey<int> MaxMaterialCount = ParameterKeys.NewPermutation<int>();

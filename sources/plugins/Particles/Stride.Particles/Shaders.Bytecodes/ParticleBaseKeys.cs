@@ -8,6 +8,7 @@ using Stride.Shaders;
 // The namespace has to stay Stride.Rendering to match the generated shader code
 namespace Stride.Rendering
 {
+    [EffectKeys]
     public partial class ParticleBaseKeys
     {
         static ParticleBaseKeys()
@@ -30,6 +31,5 @@ namespace Stride.Rendering
 
         //public static readonly ParameterKey<Texture> IntensityMap = ParameterKeys.New<Texture>();
         //public static readonly ParameterKey<float>   IntensityValue = ParameterKeys.New<float>();
-
     }
 }

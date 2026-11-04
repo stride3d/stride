@@ -6,6 +6,7 @@ using Stride.Rendering.Lights;
 
 namespace Stride.Rendering.Voxels.VoxelGI
 {
+    [EffectKeys]
     public partial class LightVoxelShaderKeys
     {
         public static readonly PermutationParameterKey<ShaderSource> diffuseMarcher = ParameterKeys.NewPermutation<ShaderSource>();

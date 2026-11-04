@@ -37,6 +37,7 @@ internal partial class StandardImageHelper
     ///   An optional <see cref="GCHandle"/> associated with the memory block.
     ///   If provided, the handle will be freed after loading the image.
     /// </param>
+    /// <param name="alphaLoadMode">The requested alpha conversion mode.</param>
     /// <returns>An <see cref="Image"/> object containing the loaded image data.</returns>
     /// <remarks>
     ///   The image is loaded with a pixel format of <see cref="PixelFormat.B8G8R8A8_UNorm"/>.

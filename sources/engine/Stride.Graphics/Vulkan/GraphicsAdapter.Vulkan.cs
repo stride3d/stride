@@ -13,13 +13,15 @@ using static Vortice.Vulkan.Vulkan;
 namespace Stride.Graphics
 {
     /// <summary>
-    /// Provides methods to retrieve and manipulate graphics adapters. This is the equivalent to <see cref="Adapter1"/>.
+    /// Provides methods to retrieve and manipulate Vulkan graphics adapters. This is the equivalent to IDXGIAdapter1.
     /// </summary>
     /// <msdn-id>ff471329</msdn-id>
     /// <unmanaged>IDXGIAdapter1</unmanaged>
     /// <unmanaged-short>IDXGIAdapter1</unmanaged-short>
     public partial class GraphicsAdapter
     {
+        private readonly object outputLock = new();
+        private DisplayInfo[] pendingDisplays;
         private VkPhysicalDevice defaultPhysicalDevice;
         private VkPhysicalDevice debugPhysicalDevice;
 
@@ -47,11 +49,14 @@ namespace Stride.Graphics
         /// <summary>
         /// Initializes a new instance of the <see cref="GraphicsAdapter" /> class.
         /// </summary>
-        /// <param name="physicalDevice">The default factory.</param>
+        /// <param name="defaultPhysicalDevice">The Vulkan physical device.</param>
+        /// <param name="properties">The physical device properties.</param>
+        /// <param name="driverProperties">The physical device driver properties.</param>
         /// <param name="adapterUid">The unique identifier of the adapter.</param>
         /// <param name="adapterOrdinal">The adapter ordinal.</param>
         /// <param name="enumerationIndex">The index of the physical device in the instance's enumeration order.</param>
-        internal unsafe GraphicsAdapter(VkPhysicalDevice defaultPhysicalDevice, VkPhysicalDeviceProperties properties, VkPhysicalDeviceDriverProperties driverProperties, long adapterUid, int adapterOrdinal, int enumerationIndex)
+        /// <param name="attachedDisplays">Native outputs or SDL presentation targets for this adapter.</param>
+        internal unsafe GraphicsAdapter(VkPhysicalDevice defaultPhysicalDevice, VkPhysicalDeviceProperties properties, VkPhysicalDeviceDriverProperties driverProperties, long adapterUid, int adapterOrdinal, int enumerationIndex, DisplayInfo[] attachedDisplays)
         {
             AdapterUid = adapterUid;
             this.adapterOrdinal = adapterOrdinal;
@@ -72,13 +77,39 @@ namespace Stride.Graphics
                 ApiName = GraphicsDevice.Platform.ToString(),
                 ApiVersion = FormatApiVersion(properties.apiVersion),
             };
+            pendingDisplays = attachedDisplays;
+        }
 
-            // TODO VULKAN
-            //var displayProperties = physicalDevice.DisplayProperties;
-            //outputs = new GraphicsOutput[displayProperties.Length];
-            //for (var i = 0; i < outputs.Length; i++)
-            //    outputs[i] = new GraphicsOutput(this, displayProperties[i], i).DisposeBy(this);
-            graphicsOutputs = [ new GraphicsOutput() ];
+        private void EnsureOutputs()
+        {
+            lock (outputLock)
+            {
+                if (graphicsOutputs != null)
+                    return;
+
+                // Windows data is captured at factory initialization; SDL may become
+                // available later. This path consumes managed data only.
+                var displays = pendingDisplays ?? DisplayEnumeration.SdlDisplays;
+                if (displays == null)
+                    return;
+
+                var outputs = new GraphicsOutput[displays.Length];
+                for (int index = 0; index < displays.Length; index++)
+                    outputs[index] = new GraphicsOutput(this, displays[index]);
+                graphicsOutputs = outputs;
+                pendingDisplays = null;
+            }
+        }
+
+        protected override void Destroy()
+        {
+            lock (outputLock)
+            {
+                if (graphicsOutputs != null)
+                    foreach (var output in graphicsOutputs)
+                        output.Dispose();
+            }
+            base.Destroy();
         }
 
         // NVIDIA packs 10/8/8/6 bits; Intel-on-Windows packs 18/14; everyone else uses the

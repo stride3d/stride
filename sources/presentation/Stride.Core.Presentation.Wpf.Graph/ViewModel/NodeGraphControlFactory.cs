@@ -38,7 +38,6 @@ namespace Stride.Core.Presentation.Graph.ViewModel
         /// <param name="source"></param>
         /// <param name="target"></param>
         /// <param name="edge"></param>
-        /// <param name="showLabels"></param>
         /// <param name="showArrows"></param>
         /// <param name="visibility"></param>
         /// <returns></returns>

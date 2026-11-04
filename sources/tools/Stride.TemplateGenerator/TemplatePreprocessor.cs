@@ -283,6 +283,18 @@ internal class TemplatePreprocessor
     /// </summary>
     private bool RunAssetPack(string? sdtplPath, ILogger logger)
     {
+        // The top-level folders are what the pack contains. The input is a real project, so its build output is not content.
+        var unknownFolders = Directory.EnumerateDirectories(InputPath!)
+            .Select(path => Path.GetFileName(path))
+            .Where(name => name is not ("Assets" or "Resources") && !name.StartsWith('.')
+                && !name.Equals("bin", StringComparison.OrdinalIgnoreCase) && !name.Equals("obj", StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        if (unknownFolders.Count > 0)
+        {
+            logger.Error($"Asset pack input has folders other than Assets/ and Resources/: {string.Join(", ", unknownFolders)} ({InputPath})");
+            return false;
+        }
+
         if (Directory.Exists(OutputDirectory))
             Directory.Delete(OutputDirectory, recursive: true);
         Directory.CreateDirectory(OutputDirectory!);
@@ -1654,6 +1666,9 @@ internal class TemplatePreprocessor
         "bin", "obj", ".vs",
     };
 
+    /// <summary>Prefix of the timestamped folders an upgrade leaves next to a project, also never staged.</summary>
+    private const string UpgradeBackupDirPrefix = ".stride-backup-";
+
     public static void CopyDirectory(string source, string dest)
     {
         Directory.CreateDirectory(dest);
@@ -1665,9 +1680,10 @@ internal class TemplatePreprocessor
         {
             // Skip build outputs / editor state: they bloat the package and their deep asset-build
             // cache paths blow past Windows MAX_PATH once nested under the staging dir.
-            if (ExcludedCopyDirs.Contains(Path.GetFileName(subdir)))
+            var name = Path.GetFileName(subdir);
+            if (ExcludedCopyDirs.Contains(name) || name.StartsWith(UpgradeBackupDirPrefix, StringComparison.OrdinalIgnoreCase))
                 continue;
-            CopyDirectory(subdir, Path.Combine(dest, Path.GetFileName(subdir)));
+            CopyDirectory(subdir, Path.Combine(dest, name));
         }
     }
 }

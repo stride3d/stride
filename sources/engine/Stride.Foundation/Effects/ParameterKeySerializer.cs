@@ -21,7 +21,13 @@ namespace Stride.Rendering
             {
                 var parameterName = stream.ReadString();
                 var parameterLength = stream.ReadInt32();
-                obj = (ValueParameterKey<T>)ParameterKeys.FindByName(parameterName);
+                var newObj = ParameterKeys.FindByName(parameterName);
+                obj = newObj switch
+                {
+                    ValueParameterKey<T> valueKey => valueKey,
+                    null => null,
+                    _ => throw new InvalidCastException($"Parameter key '{parameterName}' is not of type '{typeof(ValueParameterKey<T>)}', but instead is of type '{newObj?.GetType()}' with owner '{newObj?.OwnerType}'."),
+                };
 
                 // If parameter could not be found, create one matching this type.
                 if (obj == null)
@@ -47,7 +53,13 @@ namespace Stride.Rendering
             {
                 var parameterName = stream.ReadString();
                 var parameterLength = stream.ReadInt32();
-                obj = (ObjectParameterKey<T>)ParameterKeys.FindByName(parameterName);
+                var newObj = ParameterKeys.FindByName(parameterName);
+                obj = newObj switch
+                {
+                    ObjectParameterKey<T> objectKey => objectKey,
+                    null => null,
+                    _ => throw new InvalidCastException($"Parameter key '{parameterName}' is not of type '{typeof(ObjectParameterKey<T>)}', but instead is of type '{newObj?.GetType()}' with owner '{newObj?.OwnerType}'."),
+                };
 
                 // If parameter could not be found, create one matching this type.
                 if (obj == null)
@@ -73,7 +85,13 @@ namespace Stride.Rendering
             {
                 var parameterName = stream.ReadString();
                 var parameterLength = stream.ReadInt32();
-                obj = (PermutationParameterKey<T>)ParameterKeys.FindByName(parameterName);
+                var newObj = ParameterKeys.FindByName(parameterName);
+                obj = newObj switch
+                {
+                    PermutationParameterKey<T> permutationKey => permutationKey,
+                    null => null,
+                    _ => throw new InvalidCastException($"Parameter key '{parameterName}' is not of type '{typeof(PermutationParameterKey<T>)}', but instead is of type '{newObj?.GetType()}' with owner '{newObj?.OwnerType}'."),
+                };
 
                 // If parameter could not be found, create one matching this type.
                 if (obj == null)

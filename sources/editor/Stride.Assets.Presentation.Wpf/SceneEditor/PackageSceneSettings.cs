@@ -8,6 +8,7 @@ using Stride.Core.Assets;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
+using Stride.Core.Reflection;
 using Stride.Core.Settings;
 using Stride.Assets.Presentation.AssetEditors.GameEditor;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
@@ -83,11 +84,11 @@ namespace Stride.Assets.Presentation.SceneEditor
         public static SceneSettingsData CreateDefault()
         {
             // The transform gizmo is the fallback shown on entities without any other gizmo; the rest is what the gizmo classes declare
-            var hiddenGizmos = new List<string> { DisplayAttribute.GetDisplayName(typeof(TransformComponent)) };
+            var hiddenGizmos = new List<string> { TypeDescriptorFactory.Default.AttributeRegistry.GetDisplayName(typeof(TransformComponent)) };
             foreach (var gizmo in StrideDefaultAssetsPlugin.GizmoTypeDictionary)
             {
                 if (gizmo.Value.GetCustomAttribute<GizmoComponentAttribute>(true) is { HiddenByDefault: true })
-                    hiddenGizmos.Add(DisplayAttribute.GetDisplayName(gizmo.Key));
+                    hiddenGizmos.Add(TypeDescriptorFactory.Default.AttributeRegistry.GetDisplayName(gizmo.Key));
             }
 
             return new SceneSettingsData { HiddenGizmos = hiddenGizmos };

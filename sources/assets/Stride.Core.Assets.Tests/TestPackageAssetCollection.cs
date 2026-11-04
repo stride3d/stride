@@ -29,6 +29,23 @@ public class TestPackageAssetCollection
         Assert.Contains(assetItem, package.Assets);
     }
 
+    [Theory]
+    [InlineData("../Test.sdtest", false)]
+    [InlineData("../../Test.sdtest", false)]
+    [InlineData("..hidden/Test.sdtest", false)]
+    [InlineData("Test.sdtest", true)]
+    [InlineData("Assets/Test.sdtest", true)]
+    public void TestAddRelativeLocation(string location, bool allowed)
+    {
+        var package = new Package();
+        var assetItem = new AssetItem(location, new AssetObjectTest());
+
+        if (allowed)
+            package.Assets.Add(assetItem);
+        else
+            Assert.Throws<ArgumentException>(() => package.Assets.Add(assetItem));
+    }
+
     [Fact]
     public void TestRemove()
     {

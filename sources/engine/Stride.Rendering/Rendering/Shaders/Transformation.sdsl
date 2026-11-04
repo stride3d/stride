@@ -4,15 +4,15 @@ shader Transformation
 {
     cbuffer PerView {
         // View matrix. Default to Matrix.Identity.
-        stage float4x4 View;
+        stage float4x4 View = float4x4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
         // Inverse View matrix. Default to Matrix.Inverse(View)
-        stage float4x4 ViewInverse;
+        stage float4x4 ViewInverse = float4x4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
         // Projection matrix. Default to Matrix.Identity.
-        stage float4x4 Projection;
+        stage float4x4 Projection = float4x4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
         // Projection matrix. Default to Matrix.Inverse(Projection).
-        stage float4x4 ProjectionInverse;
+        stage float4x4 ProjectionInverse = float4x4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
         // ViewProjection matrix. Default to = View * Projection.
-        stage float4x4 ViewProjection;
+        stage float4x4 ViewProjection = float4x4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
         // Screen projected ray vector.  Default to = new Vector2(-1.0f / Projection.M11, 1.0f / Projection.M22);
         stage float2 ProjScreenRay;
         // Eye vector. Default to = View^-1[M41,M42,M43,1.0]
@@ -21,21 +21,21 @@ shader Transformation
 
     cbuffer PerDraw {
         // World matrix. Default to Matrix.Identity.
-        stage float4x4 World;
+        stage float4x4 World = float4x4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
     }
     cbuffer PerDraw {
         // Inverse World matrix. Default to Matrix.Inverse(World).
-        stage float4x4 WorldInverse;
+        stage float4x4 WorldInverse = float4x4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
         // Inverse Transpose World matrix. Default to Matrix.Transpose(Matrix.Inverse(World)).
-        stage float4x4 WorldInverseTranspose;
+        stage float4x4 WorldInverseTranspose = float4x4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
         // WorldView matrix. Default to = World * View.
-        stage float4x4 WorldView;
+        stage float4x4 WorldView = float4x4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
         // Inverse WorldView matrix. Default to Matrix.Inverse(WorldView)
-        stage float4x4 WorldViewInverse;
+        stage float4x4 WorldViewInverse = float4x4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
         // WorldViewProjection matrix. Default to = World * ViewProjection.
-        stage float4x4 WorldViewProjection;
+        stage float4x4 WorldViewProjection = float4x4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
         // The scale of the World. Default to Vector2.One.
-        stage float3 WorldScale;
+        stage float3 WorldScale = float3(1,1,1);
         // Eye vector in model space. Default to = (World*View)^-1[M41,M42,M43,1.0]
         stage float4 EyeMS;
     };

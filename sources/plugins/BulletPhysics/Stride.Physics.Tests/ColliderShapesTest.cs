@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using Xunit;
@@ -41,6 +42,84 @@ namespace Stride.Physics.Tests
             }
 
             return false;
+        }
+
+        [Fact]
+        public void HeightfieldShapeCanBeDisposedTwice()
+        {
+            var shape = new HeightfieldColliderShape(2, 2, HeightfieldTypes.Byte, 1, 0, 10, false);
+
+            Assert.True(shape.HasHeightData);
+            shape.Dispose();
+            Assert.False(shape.HasHeightData);
+
+            shape.Dispose();
+            Assert.False(shape.HasHeightData);
+        }
+
+        [Fact]
+        public void HeightfieldShapeDescriptionCopiesHeightDataForEachType()
+        {
+            AssertHeightfieldShapeDataAndCanBeDisposed(
+                CreateHeightfieldShape(HeightfieldTypes.Byte, new byte[] { 1, 2, 3, 4 }),
+                shape => Assert.Equal(new byte[] { 1, 2, 3, 4 }, shape.ByteSpan.ToArray()));
+            AssertHeightfieldShapeDataAndCanBeDisposed(
+                CreateHeightfieldShape(HeightfieldTypes.Short, new short[] { 1, 2, 3, 4 }),
+                shape => Assert.Equal(new short[] { 1, 2, 3, 4 }, shape.ShortSpan.ToArray()));
+            AssertHeightfieldShapeDataAndCanBeDisposed(
+                CreateHeightfieldShape(HeightfieldTypes.Float, new float[] { 1, 2, 3, 4 }),
+                shape => Assert.Equal(new float[] { 1, 2, 3, 4 }, shape.FloatSpan.ToArray()));
+
+            static HeightfieldColliderShape CreateHeightfieldShape<T>(HeightfieldTypes heightType, T[] heights)
+            {
+                var heightmap = Heightmap.Create(new Int2(2, 2), heightType, new Vector2(0, 10), 1, heights);
+                var desc = new HeightfieldColliderShapeDesc
+                {
+                    HeightStickArraySource = new HeightStickArraySourceFromHeightmap { Heightmap = heightmap },
+                };
+                return Assert.IsType<HeightfieldColliderShape>(desc.CreateShape(null));
+            }
+        }
+
+        [Fact]
+        public void ByteHeightfieldShapeConstructorCopiesHeightData()
+        {
+            AssertHeightfieldShapeDataAndCanBeDisposed(
+                new HeightfieldColliderShape(2, 2, new byte[] { 1, 2, 3, 4 }, 1, 0, 10, false),
+                shape => Assert.Equal(new byte[] { 1, 2, 3, 4 }, shape.ByteSpan.ToArray()));
+        }
+
+        [Fact]
+        public void ShortHeightfieldShapeConstructorCopiesHeightData()
+        {
+            AssertHeightfieldShapeDataAndCanBeDisposed(
+                new HeightfieldColliderShape(2, 2, new short[] { 1, 2, 3, 4 }, 1, 0, 10, false),
+                shape => Assert.Equal(new short[] { 1, 2, 3, 4 }, shape.ShortSpan.ToArray()));
+        }
+
+        [Fact]
+        public void FloatHeightfieldShapeConstructorCopiesHeightData()
+        {
+            AssertHeightfieldShapeDataAndCanBeDisposed(
+                new HeightfieldColliderShape(2, 2, new float[] { 1, 2, 3, 4 }, 1, 0, 10, false),
+                shape => Assert.Equal(new float[] { 1, 2, 3, 4 }, shape.FloatSpan.ToArray()));
+        }
+
+        private static void AssertHeightfieldShapeDataAndCanBeDisposed(HeightfieldColliderShape shape, Action<HeightfieldColliderShape> assertHeightData)
+        {
+            try
+            {
+                using (shape.LockToReadHeights())
+                {
+                    assertHeightData(shape);
+                }
+            }
+            finally
+            {
+                shape.Dispose();
+            }
+
+            Assert.False(shape.HasHeightData);
         }
 
         [Fact]

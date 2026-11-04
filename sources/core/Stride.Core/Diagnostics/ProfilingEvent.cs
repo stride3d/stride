@@ -58,6 +58,7 @@ public readonly struct ProfilingEvent
     /// <param name="profilingType">Type of the profiling.</param>
     /// <param name="timeStamp"></param>
     /// <param name="elapsedTime">The elapsed time.</param>
+    /// <param name="threadId">The identifier of the thread that generated the event.</param>
     /// <param name="message">The message.</param>
     /// <param name="attributes">The attributes.</param>
     public ProfilingEvent(
