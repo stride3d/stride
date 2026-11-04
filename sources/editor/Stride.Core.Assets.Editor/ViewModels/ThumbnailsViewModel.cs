@@ -62,11 +62,16 @@ public sealed class ThumbnailsViewModel : DispatcherViewModel
         {
             var assetItems = new HashSet<AssetItem>(assets.Select(x => x.AssetItem));
             // We run this as a task to prevent dead lock
-            Task.Run(() => thumbnailService.AddThumbnailAssetItems(assetItems, QueuePosition.First));
+            var service = thumbnailService;
+            session.TrackBackgroundWork(Task.Run(() => service.AddThumbnailAssetItems(assetItems, QueuePosition.First)));
         }
     }
 
-    internal void StartInitialBuild(PackageViewModel package)
+    /// <summary>
+    /// Queues the thumbnails of the assets of the given package, once the thumbnail service is there.
+    /// </summary>
+    /// <returns>The queueing, completed when there is no thumbnail service yet.</returns>
+    internal Task StartInitialBuild(PackageViewModel package)
     {
         if (thumbnailService == null)
         {
@@ -75,17 +80,18 @@ public sealed class ThumbnailsViewModel : DispatcherViewModel
         }
 
         // TODO: putting false here makes all thumbnails that are not visible to be incorrectly built
-        RefreshThumbnails(package.Assets, true);
+        return RefreshThumbnails(package.Assets, true);
     }
 
-    private void RefreshThumbnails(IEnumerable<AssetViewModel> assets, bool firstPriority)
+    private Task RefreshThumbnails(IEnumerable<AssetViewModel> assets, bool firstPriority)
     {
-        if (thumbnailService != null)
-        {
-            var assetItems = new HashSet<AssetItem>(assets.Select(x => x.AssetItem));
-            // We run this as a task to prevent dead lock
-            Task.Run(() => thumbnailService.AddThumbnailAssetItems(assetItems, firstPriority ? QueuePosition.First : QueuePosition.Last));
-        }
+        if (thumbnailService == null)
+            return Task.CompletedTask;
+
+        var assetItems = new HashSet<AssetItem>(assets.Select(x => x.AssetItem));
+        // We run this as a task to prevent dead lock
+        var service = thumbnailService;
+        return session.TrackBackgroundWork(Task.Run(() => service.AddThumbnailAssetItems(assetItems, firstPriority ? QueuePosition.First : QueuePosition.Last)));
     }
 
     private void ServiceRegistered(object? sender, ServiceRegistrationEventArgs e)

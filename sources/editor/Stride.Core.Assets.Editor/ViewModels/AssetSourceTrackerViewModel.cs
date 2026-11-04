@@ -29,8 +29,8 @@ public sealed class AssetSourceTrackerViewModel : DispatcherViewModel, IAssetSou
         UpdateSelectedAssetsFromSourceCommand = new AnonymousTaskCommand(ServiceProvider, UpdateSelectedAssetsFromSourceAsync);
         UpdateAllAssetsWithModifiedSourceCommand = new AnonymousTaskCommand(ServiceProvider, UpdateAllAssetsWithModifiedSourceAsync) { IsEnabled = false };
 
-        // This task will listen to the AssetSourceTracker for source file change notifications and collect them
-        Dispatcher.InvokeTask(() => PullSourceFileChangesAsync(cts.Token), cts.Token);
+        // This task will listen to the AssetSourceTracker for source file change notifications and collect them, until the session closes
+        session.TrackBackgroundWork(PullSourceFileChangesUntilDestroyedAsync());
     }
 
     public SessionViewModel Session { get; }
@@ -108,6 +108,21 @@ public sealed class AssetSourceTrackerViewModel : DispatcherViewModel, IAssetSou
         }
 
         await workProgress.NotifyWorkFinished(false, logger.HasErrors);
+    }
+
+    /// <summary>
+    /// Runs <see cref="PullSourceFileChangesAsync"/> in the dispatcher until <see cref="Destroy"/> cancels it.
+    /// </summary>
+    private async Task PullSourceFileChangesUntilDestroyedAsync()
+    {
+        try
+        {
+            await Dispatcher.InvokeTask(() => PullSourceFileChangesAsync(cts.Token), cts.Token);
+        }
+        catch (OperationCanceledException) when (cts.IsCancellationRequested)
+        {
+            // Destroyed
+        }
     }
 
     private async Task PullSourceFileChangesAsync(CancellationToken token)

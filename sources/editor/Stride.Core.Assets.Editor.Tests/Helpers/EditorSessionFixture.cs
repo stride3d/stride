@@ -96,6 +96,8 @@ public sealed class EditorSessionFixture : IDisposable
         if (session is null)
             throw new InvalidOperationException("The session could not be opened:" + Environment.NewLine + fixture.Log);
         fixture.Session = session;
+        // What the session does in the background once open, so that the tests start from a session at rest
+        await session.Initialization;
 
         // The paste processors of the core assets, registered by the view plugin in the editor
         var copyPaste = serviceProvider.Get<ICopyPasteService>();
@@ -119,6 +121,7 @@ public sealed class EditorSessionFixture : IDisposable
         {
             destroyed = true;
             Session.Destroy();
+            WaitForBackgroundWork(Session);
         }
         try
         {
@@ -128,6 +131,15 @@ public sealed class EditorSessionFixture : IDisposable
         {
             // Best effort
         }
+    }
+
+    /// <summary>
+    /// Waits for the background work of a destroyed session to end: nothing the test started may outlive it.
+    /// </summary>
+    internal static void WaitForBackgroundWork(SessionViewModel session)
+    {
+        if (!session.BackgroundWork.Wait(TimeSpan.FromSeconds(30)))
+            throw new TimeoutException("The background work of the session did not end within 30 seconds of its destruction.");
     }
 
     private void WritePackage((string Location, string Value)[] assets)

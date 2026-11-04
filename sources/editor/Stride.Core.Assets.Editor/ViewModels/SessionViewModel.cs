@@ -50,6 +50,7 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
     private readonly Dictionary<PackageViewModel, PackageContainer> packageMap = [];
     private readonly ObservableList<RootAssetTargetViewModel> rootAssetTargets = [];
     private readonly PackageSession session;
+    private readonly HashSet<Task> backgroundWork = [];
     private readonly IUndoRedoService undoRedoService;
     private Dictionary<AssetId, AssetViewModel> replacedTargets = [];
 
@@ -314,6 +315,50 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
 
     internal PackageSession PackageSession => session;
 
+    /// <summary>
+    /// The processing of the packages the session opened with: the references of their assets, then the queueing of their
+    /// thumbnails. The session can be used before it ends.
+    /// </summary>
+    public Task Initialization { get; private set; } = Task.CompletedTask;
+
+    /// <summary>
+    /// The work the session and its services run in the background (<see cref="TrackBackgroundWork"/>) and that is not done
+    /// yet. <see cref="Destroy"/> stops what runs until the session closes; this completes once the rest is done too, and
+    /// faults when some of it did.
+    /// </summary>
+    public Task BackgroundWork
+    {
+        get
+        {
+            lock (backgroundWork)
+            {
+                RemoveEndedBackgroundWork();
+                return Task.WhenAll(backgroundWork.ToList());
+            }
+        }
+    }
+
+    /// <summary>
+    /// Adds a task to <see cref="BackgroundWork"/>, rather than leave it running unseen.
+    /// </summary>
+    /// <returns>The task.</returns>
+    public Task TrackBackgroundWork(Task task)
+    {
+        ArgumentNullException.ThrowIfNull(task);
+        lock (backgroundWork)
+        {
+            RemoveEndedBackgroundWork();
+            backgroundWork.Add(task);
+        }
+        return task;
+    }
+
+    /// <summary>
+    /// Forgets the tracked tasks that ended without a failure; a failed one stays, so that <see cref="BackgroundWork"/>
+    /// reports it. The caller holds the lock of the set.
+    /// </summary>
+    private void RemoveEndedBackgroundWork() => backgroundWork.RemoveWhere(x => x.IsCompletedSuccessfully || x.IsCanceled);
+
     internal IAssetsPluginService PluginService => ServiceProvider.Get<IAssetsPluginService>();
 
     internal SelectionService? SelectionService => ServiceProvider.TryGet<SelectionService>();
@@ -547,7 +592,7 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
             viewModel.LoadPackageInformation(loggerResult, workProgress);
             newPackages.Add(viewModel);
         }
-        ProcessAddedPackages(newPackages).Forget();
+        TrackBackgroundWork(ProcessAddedPackages(newPackages));
     }
 
     /// <summary>
@@ -638,6 +683,9 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
         AssemblyRegistry.AssemblyUnregistered -= AssetAssembliesChanged;
 
         base.Destroy();
+
+        // Last, once nothing of the session follows its packages: this stops the source tracking and its thread
+        session.Dispose();
     }
 
     /// <summary>
@@ -1315,7 +1363,7 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
         // This transaction is done to prevent action responding to undoRedoService.TransactionCompletion to occur during loading
         using (undoRedoService.CreateTransaction())
         {
-            ProcessAddedPackages(AllPackages).Forget();
+            Initialization = TrackBackgroundWork(ProcessAddedPackages(AllPackages));
         }
     }
 
@@ -1326,7 +1374,7 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
         foreach (var packageAssembly in LocalPackages.SelectMany(p => p.LoadedAssemblies))
         {
             if (packageAssembly.Assembly != null)
-                Task.Run(() => documentationService.CacheAssemblyDocumentation(packageAssembly.Assembly));
+                TrackBackgroundWork(Task.Run(() => documentationService.CacheAssemblyDocumentation(packageAssembly.Assembly)));
         }
     }
 
@@ -1336,7 +1384,8 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
         // We must refresh asset bases after all packages have been added, because we might have cross-packages references here.
         packageList.SelectMany(x => x.Assets).ForEach(x => x.Initialize());
         await AssetDependenciesViewModel.TriggerInitialReferenceBuild(this);
-        await Dispatcher.InvokeAsync(() => packageList.ForEach(x => Thumbnails.StartInitialBuild(x)));
+        var thumbnails = await Dispatcher.InvokeAsync(() => packageList.Select(x => Thumbnails.StartInitialBuild(x)).ToList());
+        await Task.WhenAll(thumbnails);
     }
 
     private static void RenameDirectoryOrPackage(object? selectedDirectoryOrPackage)
