@@ -71,7 +71,7 @@ Multiple checkouts of Stride on one machine (git worktrees *or* independent clon
 `.github/workflows/release.yml` (manual dispatch, `stride-release-managers` only for sign/deploy):
 
 1. **Validate** reads the committed version in `SharedAssemblyInfo.cs` and refuses, before any build: a version that isn't `X.Y.Z` or `X.Y.Z-(alpha|beta|rc|preview)` with no number after the label, a deploy of a version already released (the forget-to-bump guard), and for a signed stable engine, a sample csproj still on a prerelease, or prerelease content when the samples aren't in this release. It also decides whether the release [includes the samples](#preparing-and-releasing-the-samples).
-2. **Package** builds all platforms → `bin/packages/*.nupkg`, with the content packs when the release includes them, and signs.
+2. **Package** builds all platforms → `bin/packages/*.nupkg`, with the content packs when the release includes them, runs the [smoke test](#smoke-test), and signs.
 3. **Deploy** (only when `sign && deploy`) checks the content version the engine names is published or in this release (see [Samples & template package versions](#samples--template-package-versions)), pushes to nuget.org, then **creates and pushes the `releases/<version>` tag** — so the tag is a *consequence* of a successful release. With the samples, it also tags `samples/<version>`, creates their GitHub Release and commits `StrideSamplesVersion`. Idempotent: `--skip-duplicate`.
 4. **Bump** — after publishing, beta or stable, the workflow commits `Patch+1` to the branch and pushes it. It reads the number from the branch tip after a fetch and retries when its push is refused. It does nothing when the tip's number isn't the released one: an upgrader PR already moved it, or this is a re-run.
 
@@ -180,3 +180,21 @@ dotnet msbuild build/samples.proj -t:PrepareSamplesForRelease   # -p:SamplesEngi
 The upgraders only write the assets they change. To write all of them in the current format, for example to add the `!file` tag that `dotnet pack` follows, pass `-p:SampleResaveAll=true` to `UpgradeSamples`. Add `-p:SampleUpgradeTarget=<path to .sdpkg>` to try it on one sample or pack first.
 
 **Checks at engine release**: an engine naming content that is not on the feed would break every New Project, so `release-deploy.yml` refuses to deploy an engine whose `StrideSamplesVersion` is neither published nor in this release, or that is stable while naming prerelease content. Samples changed since the published content (its `samples/<version>` tag) only produce a warning, with the file list in the run summary: the engine ships with the published content, which is fine for work not released yet, and the release manager decides whether a sample should move first. A PR that changes the samples gets a warning from the change-detection job ([`changes.yml`](../../.github/workflows/changes.yml)) as a reminder that those changes need a sample on the released version to ship; local builds never check this (local content packs are always `-devN`).
+
+### Smoke test
+
+[`smoke-test-templates.ps1`](../../.github/scripts/smoke-test-templates.ps1) runs in every engine release, before signing, on the packages just built. Each case is instantiated, upgraded if it's on an older version, restored and built, as a user would:
+
+- a new blank game from `Stride.Templates.Games`;
+- one sample from the packs this engine names, new or published;
+- the same sample from the oldest packs we test upgrading from, a published version set in the script (`MinSamplesVersion`). Template packs exist from 4.4 on, so older versions can't be tested this way, though the upgraders start at 4.0.
+
+A release with new packs also runs `Stride.Templates.Tests` on them, which instantiates each kind of template without building. To run the smoke test on a checkout, after a build:
+
+```bash
+pwsh .github/scripts/smoke-test-templates.ps1 -Version 4.5.3-dev2 -Configuration Debug -ExtraSources "$LOCALAPPDATA/stride/nugetdev"
+```
+
+CI builds (`CI`, `GITHUB_ACTIONS` or `TF_BUILD` set, except engine release builds) pack the content by default, so the tests that instantiate templates (`Stride.Templates.Tests`, `tests/editor`, `tests/enduser/Stride.Samples.Tests`, `Stride.Packaging.Tests`) run on this checkout's samples and don't depend on the content being published. Locally they use the published content unless the flag is on. The flag is only ever a normal property (Local.props, command line, CI default), never set on a single `ProjectReference`: that would build the template projects, and everything they reference, a second time with different global properties.
+
+GameStudio never downloads content while it starts. A missing Starters or Samples package is downloaded in the background and its templates appear in New Project once ready; AssetPacks are downloaded when the New Game dialog first offers them.

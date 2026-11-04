@@ -245,6 +245,18 @@ jobs:
           echo "version=$version" >> $env:GITHUB_OUTPUT
           echo "::notice::Package version: $version"
 
+      # PackageStore reads only the user and machine NuGet configs, so the asset compiler's upgrade needs this.
+      - name: Register bin/packages with user NuGet config
+        shell: pwsh
+        run: |
+          New-Item -Path "$env:APPDATA\NuGet" -ItemType Directory -Force | Out-Null
+          dotnet nuget add source "${{ github.workspace }}\bin\packages" --name stride-local --configfile "$env:APPDATA\NuGet\NuGet.Config"
+
+      # What a user does with these packages, before they are published and while nothing is signed yet.
+      - name: Smoke test
+        shell: pwsh
+        run: ./.github/scripts/smoke-test-templates.ps1 -Version "${{ steps.version.outputs.version }}" -PackagesDir bin/packages -Configuration Release
+
       - name: Sign
         if: ${{ inputs.sign }}
         run: dotnet build build\package.proj -t:SignPackage --no-restore -p:StrideSign=true
