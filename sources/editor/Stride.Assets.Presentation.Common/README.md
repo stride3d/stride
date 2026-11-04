@@ -7,6 +7,8 @@ Temporary home of the WPF-free code of `Stride.Assets.Presentation.Wpf`, so that
 * No dependency on WPF, Windows Forms or Avalonia, and no Windows-only target framework (`$(StrideXplatEditorTargetFramework)`).
 * References: `Stride.Assets.Models` and `Stride.Editor.Common`.
 * Types keep the namespaces they had in `Stride.Assets.Presentation.Wpf`, which references this project, so WPF code compiles unchanged.
+  Since Phase 3, types that the consolidation moves here from the cross-platform `Stride.Assets.Editor` keep that project's
+  namespaces instead.
 * The assembly registers itself as an assets assembly (`CommonModule`), so the editor's scanning finds its types.
 
 ## Content
@@ -16,6 +18,11 @@ Mainly gizmos, debug shapes, the entity hierarchy, scene and prefab editor games
 Since slice 4 (plugin contracts) also what the plugin editor packages derive from or call: `IEntityHierarchyItemViewModel` with the entity factories (`IEntityFactory`, `EntityFactory`, `EntityFactoryCategory`) and the add-asset policies (`IAddAssetPolicy`, `AddAssetPolicyBase` and its component, entities and custom variants), the preview base classes (`BuildAssetPreview`, `PreviewFromEntity`, `PreviewFromSpriteBatch`, `AssetPreviewViewModel`), the editor game controller contracts (`IEditorGameController`, `IEntityHierarchyEditorController`, `ISceneEditorController`) and `EditorGameComponentChangeWatcherService`. The WPF controllers, item view models and views implement these contracts; plugin views go to a `.Wpf` companion package (`Stride.Audio.Editor.Wpf`, `Stride.SpriteStudio.Editor.Wpf`).
 
 Since the editor cleanup also the animation and prefab preview compilers (`AnimationAssetEditorGameCompiler`, `AnimationAssetPreviewCompiler`, `PrefabAssetPreviewCompiler`, namespace `Stride.Editor.Preview`), which came from `Stride.Editor.Common`: the animation ones were its only use of `Stride.Assets.Models`, which it no longer references, and the prefab one stays with them.
+
+Since Phase 3 (editor layer) also the two session-bound services that know Stride asset types, shared by both editors under
+the names of the cross-platform `Stride.Assets.Editor`: `Stride.Assets.Editor.Build.StrideShaderImporter` and
+`Stride.Assets.Editor.EditorGame.ContentLoader.EditorContentLoader`. The content loader reads two internal members of
+`GameStudioDatabase` (`Stride.Editor.Common` gives this project its internals).
 
 ## Notes
 

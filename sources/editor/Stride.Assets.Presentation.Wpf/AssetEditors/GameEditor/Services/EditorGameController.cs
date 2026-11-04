@@ -33,6 +33,7 @@ using Stride.Games;
 using Stride.Graphics;
 using Stride.Shaders.Compiler;
 using Point = System.Windows.Point;
+using Stride.Assets.Editor.EditorGame.ContentLoader;
 
 namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
 {
@@ -128,7 +129,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
             sceneGameThread.SetApartmentState(ApartmentState.STA);
 
             Debug = new EditorGameDebugService();
-            Loader = new EditorContentLoader(this, Logger, asset, editor, Game);
+            Loader = new EditorContentLoader(this, Logger, editor, Game);
         }
 
         /// <inheritdoc/>
