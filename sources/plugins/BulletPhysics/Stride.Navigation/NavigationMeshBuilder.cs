@@ -310,6 +310,9 @@ namespace Stride.Navigation
                         }
                     }
 
+                    // Tiles finish in any order and are saved in the order of the dictionary: keep them sorted, so that the same input gives the same bytes
+                    layer.TilesInternal = layer.TilesInternal.OrderBy(x => x.Key.Y).ThenBy(x => x.Key.X).ToDictionary();
+
                     // Add information about which tiles were updated to the result
                     if (tilesToBuild.Count > 0)
                     {
