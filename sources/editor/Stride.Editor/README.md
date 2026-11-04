@@ -21,8 +21,9 @@ the editor games and previews, and the thumbnail service.
 * `Build`: `GameStudioBuilderService` (the asset builder of a session, with the effect compiler), `GameStudioDatabase` (the
   compiled content of the editor games, with the asset replacement redirects), `IShaderImporter` (the import of the shaders
   of the session the builder runs first; `StrideShaderImporter` in `Stride.Assets.Editor` implements it).
-* `Thumbnails`: `GameStudioThumbnailService` and its build unit, `BitmapThumbnailData` and `ResourceThumbnailData`, whose
-  presenter is a `Stride.Graphics.Image` (the view of each toolkit converts it), `ThumbnailDataFactory`.
+* `Thumbnails`: `GameStudioThumbnailService` and its build unit. The service hands the PNG of each built thumbnail to the
+  `IThumbnailDataFactory` the host registers, so each toolkit shows its own image type (`Stride.Core.Assets.Editor.Avalonia`
+  makes Avalonia bitmaps, `Stride.Core.Assets.Editor.Wpf` WPF images).
 
 The application registers the services in a session the way `Stride.GameStudio`'s `StrideEditorPlugin` does for WPF.
 

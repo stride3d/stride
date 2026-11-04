@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+             xmlns:caec="using:Stride.Core.Assets.Editor.Avalonia.Converters"
              xmlns:caect="using:Stride.Core.Assets.Editor.Components.Transactions"
              xmlns:caectl="using:Stride.Core.Assets.Editor.Avalonia.Controls"
              xmlns:caevm="using:Stride.Core.Assets.Editor.ViewModels"
@@ -399,7 +400,7 @@
                       </Interaction.Behaviors>
                       <TextBlock Text="Asset: " />
                       <TextBlock Text="{Binding Name}" />
-                      <Image Source="{Binding ThumbnailData.Presenter, Converter={gsc:StrideImage}, FallbackValue={x:Static AvaloniaProperty.UnsetValue}}"
+                      <Image Source="{Binding ThumbnailData.Presenter, Converter={caec:ThumbnailToImage}, FallbackValue={x:Static AvaloniaProperty.UnsetValue}}"
                              Width="64" Height="64"/>
                     </StackPanel>
                   </DataTemplate>

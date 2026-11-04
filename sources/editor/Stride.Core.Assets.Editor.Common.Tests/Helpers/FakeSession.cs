@@ -262,6 +262,17 @@ public sealed class FakeThumbnailDataFactory : IThumbnailDataFactory
         ResourceKeys.Add(resourceKey);
         return new FakeThumbnailData(thumbnailId, resourceKey);
     }
+
+    /// <summary>
+    /// Gets the streams of the thumbnails created from an encoded image.
+    /// </summary>
+    public List<Stream> Streams { get; } = [];
+
+    public ThumbnailData CreateFromStream(ObjectId thumbnailId, Stream imageStream)
+    {
+        Streams.Add(imageStream);
+        return new FakeThumbnailData(thumbnailId, imageStream);
+    }
 }
 
 /// <summary>
