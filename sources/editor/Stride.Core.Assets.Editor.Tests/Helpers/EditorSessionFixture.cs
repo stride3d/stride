@@ -96,13 +96,14 @@ public sealed class EditorSessionFixture : IDisposable
         if (session is null)
             throw new InvalidOperationException("The session could not be opened:" + Environment.NewLine + fixture.Log);
         fixture.Session = session;
-        // What the session does in the background once open, so that the tests start from a session at rest
-        await session.Initialization;
 
         // The paste processors of the core assets, registered by the view plugin in the editor
         var copyPaste = serviceProvider.Get<ICopyPasteService>();
         copyPaste.RegisterProcessor(new AssetPropertyPasteProcessor());
         copyPaste.RegisterProcessor(new AssetItemPasteProcessor(session));
+
+        // What the session does in the background once open, so that the tests start from a session at rest
+        await session.Initialization;
         return fixture;
     }
 
