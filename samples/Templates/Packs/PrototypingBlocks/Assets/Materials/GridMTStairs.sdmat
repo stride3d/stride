@@ -17,7 +17,7 @@ Attributes:
                 Offset: {X: 0.0, Y: 0.0}
                 Swizzle: null
             RightChild: !ComputeColor
-                Value: {R: 0.0, G: 0.275686324, B: 0.435294122, A: 1.0}
+                Value: {R: 0.0, G: 0.27568632, B: 0.43529412, A: 1.0}
     DiffuseModel: !MaterialDiffuseLambertModelFeature {}
     Specular: !MaterialMetalnessMapFeature
         MetalnessMap: !ComputeFloat
@@ -26,6 +26,7 @@ Attributes:
         Fresnel: !MaterialSpecularMicrofacetFresnelSchlick {}
         Visibility: !MaterialSpecularMicrofacetVisibilitySmithSchlickGGX {}
         NormalDistribution: !MaterialSpecularMicrofacetNormalDistributionGGX {}
+        Environment: !MaterialSpecularMicrofacetEnvironmentGGXLUT {}
     Overrides:
         UVScale: {X: 1.0, Y: 1.0}
 Layers: {}

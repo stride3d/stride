@@ -117,8 +117,8 @@ Hierarchy:
                                             DisplayParticleRotation: false
                                             DisplayParticleScale: false
                                             DisplayParticleScaleUniform: false
-                                            ColorMin: {R: 0.113725491, G: 0.172549024, B: 1.0, A: 1.0}
-                                            ColorMax: {R: 0.113725491, G: 0.172549024, B: 1.0, A: 1.0}
+                                            ColorMin: {R: 0.11372549, G: 0.17254902, B: 1.0, A: 1.0}
+                                            ColorMax: {R: 0.11372549, G: 0.17254902, B: 1.0, A: 1.0}
                                     Updaters: {}
                                 f738a7aee0e79e46bb75f702cf0b1691:
                                     ParticleLifetime: {X: 0.5, Y: 1.5}
@@ -175,8 +175,8 @@ Hierarchy:
                                             ParentName: null
                                             ParentSeedOffset: 0
                                             DisplayParticleScale: false
-                                            ParentControlFlag: Group00
                                             DisplayParticleScaleUniform: true
+                                            ParentControlFlag: Group00
                                             SeedOffset: 0
                                             ParentVelocityFactor: 0.5
                                             VelocityMin: {X: -0.2, Y: 0.0, Z: -0.2}
@@ -224,7 +224,7 @@ Hierarchy:
                                             DisplayParticleRotation: false
                                             DisplayParticleScale: false
                                             DisplayParticleScaleUniform: false
-                                            ColorMin: {R: 0.0, G: 0.0235294122, B: 1.0, A: 1.0}
+                                            ColorMin: {R: 0.0, G: 0.023529412, B: 1.0, A: 1.0}
                                             ColorMax: {R: 0.29375, G: 0.3103674, B: 1.0, A: 1.0}
                                     Updaters:
                                         dad1aef5ec8a2149ad5117fb3b07dddf: !UpdaterForceField
@@ -320,7 +320,7 @@ Hierarchy:
                                                             TangentType: Linear
                                                         e2f4b5c3d6f82f41bdb30432bfddf8b1:
                                                             Key: 0.1
-                                                            Value: {R: 0.200000018, G: 0.5, B: 1.0, A: 0.2}
+                                                            Value: {R: 0.20000002, G: 0.5, B: 1.0, A: 0.2}
                                                             TangentType: Linear
                                                         25f7523959ba7a4e8bb39921e9b1e993:
                                                             Key: 1.0
@@ -413,7 +413,7 @@ Hierarchy:
                                             DisplayParticleRotation: false
                                             DisplayParticleScale: false
                                             DisplayParticleScaleUniform: false
-                                            ColorMin: {R: 0.350000024, G: 0.683125, B: 1.0, A: 1.0}
+                                            ColorMin: {R: 0.35000002, G: 0.683125, B: 1.0, A: 1.0}
                                             ColorMax: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
                                         79628854ff680140b85d6011699fe4e7: !InitialVelocitySeed
                                             InheritPosition: true
@@ -899,7 +899,7 @@ Hierarchy:
                                                             Value: {R: 1.0, G: 1.0, B: 1.0, A: 0.0}
                                                             TangentType: Linear
                                                         7fe9f118193470428f9fa8597d926761:
-                                                            Key: 0.375415534
+                                                            Key: 0.37541553
                                                             Value: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
                                                             TangentType: Linear
                                                         bd818fedd0f77c44b8859c7a538d39ae:

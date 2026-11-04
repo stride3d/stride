@@ -2,7 +2,8 @@
 Id: f5843999-e7e7-47d1-b2fe-b020a1f57982
 SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
-Source: ../../Resources/Models/tableB.fbx
+Source: !file ../../Resources/Models/tableB.fbx
+Skeleton: null
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
 Materials:
     a3b76aad37d511efb4aea277b4aea277:
@@ -17,6 +18,6 @@ Materials:
         Name: pole
         MaterialInstance:
             Material: ba13e600-e1c8-4ba7-b66d-aa0e1489e02e:Materials/board1B
-Skeleton: null
+Modifiers: {}
 ~SourceHashes:
     fa4060df2706cec6164fcdcdc1596e5c~../../Resources/Models/tableB.fbx: f4739af3b3a5eee04b8f16c84110a638

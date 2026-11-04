@@ -7,5 +7,6 @@ Type: !CylinderProceduralModel
     Scale: {X: 1.0, Y: 1.0, Z: 1.0}
     UvScale: {X: 1.0, Y: 1.0}
     LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+    NumberOfTextureCoordinates: 10
     MaterialInstance:
         Material: 9c2acd4d-f385-4795-a787-7c9df6315af8:LaserAssets/RedLaserMaterial

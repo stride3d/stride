@@ -136,8 +136,8 @@ Hierarchy:
                                             DisplayParticleRotation: false
                                             DisplayParticleScale: false
                                             DisplayParticleScaleUniform: false
-                                            ColorMin: {R: 1.0, G: 0.619607866, B: 0.2, A: 1.0}
-                                            ColorMax: {R: 1.0, G: 0.559999943, B: 0.199999988, A: 1.0}
+                                            ColorMin: {R: 1.0, G: 0.61960787, B: 0.2, A: 1.0}
+                                            ColorMax: {R: 1.0, G: 0.55999994, B: 0.19999999, A: 1.0}
                                     Updaters:
                                         f63ab8a43f18d44a801c4e6fa3617e10: !UpdaterForceField
                                             InheritPosition: true

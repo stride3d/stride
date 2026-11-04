@@ -12,7 +12,7 @@ Hierarchy:
                 Components:
                     9bd6c2826922c24ba23d41e3a7a958f6: !TransformComponent
                         Id: 82c2d69b-2269-4bc2-a23d-41e3a7a958f6
-                        Position: {X: 0.0, Y: 1.0, Z: 0.999999762}
+                        Position: {X: 0.0, Y: 1.0, Z: 0.99999976}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
@@ -30,6 +30,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             02c03fd947c2e1468d3e1fe2ca768387: !BoxColliderShapeDesc
                                 Is2D: false

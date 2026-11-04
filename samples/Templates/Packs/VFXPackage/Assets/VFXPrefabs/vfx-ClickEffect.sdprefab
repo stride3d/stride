@@ -117,8 +117,8 @@ Hierarchy:
                                             DisplayParticleRotation: false
                                             DisplayParticleScale: false
                                             DisplayParticleScaleUniform: false
-                                            ColorMin: {R: 0.113725491, G: 0.172549024, B: 1.0, A: 1.0}
-                                            ColorMax: {R: 0.113725491, G: 0.172549024, B: 1.0, A: 1.0}
+                                            ColorMin: {R: 0.11372549, G: 0.17254902, B: 1.0, A: 1.0}
+                                            ColorMax: {R: 0.11372549, G: 0.17254902, B: 1.0, A: 1.0}
                                     Updaters: {}
                                 a0981aa1a4e31f4f9d42558b576a68d3:
                                     MaxParticlesOverride: 1

@@ -25,6 +25,8 @@ Hierarchy:
                 Font: f7f1e44e-6a57-4b1f-818e-21711622883f:UI/OpenSans-font
                 TextSize: 20.0
                 TextColor: {R: 240, G: 240, B: 240, A: 255}
+                OutlineColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineThickness: 0.0
         -   UIElement: !StackPanel
                 Id: 1751b62f-93fe-4bc5-b9c0-b801d6862771
                 DependencyProperties:
@@ -42,6 +44,7 @@ Hierarchy:
                 Name: ButtonsCompleted
                 Children:
                     e14bf8f0ccdf50dea05138671cff10ff: !Button ref!! ac458635-2d22-4017-ad25-4897cdc15efa
+                Gap: 0.0
         -   UIElement: !StackPanel
                 Id: 25dc1e4c-eb6b-4abb-9e88-1adc8fb68dd3
                 DependencyProperties:
@@ -59,6 +62,7 @@ Hierarchy:
                 Name: ButtonsStart
                 Children:
                     e14bf8f0ccdf50dea05138671cff10ff: !Button ref!! 8e8a75e5-6eec-42fc-8cb8-7c7033d5dce1
+                Gap: 0.0
         -   UIElement: !Button
                 Id: 3939d869-c66d-4893-8333-b74c735b7f29
                 DependencyProperties:
@@ -83,6 +87,7 @@ Hierarchy:
                 MouseOverImage: !SpriteFromTexture
                     Texture: bfa21909-0aa7-4f47-9d73-b075d7ac0b39:UI/btn_hover
                     Center: {X: 0.0, Y: 0.0}
+                Color: {R: 255, G: 255, B: 255, A: 255}
         -   UIElement: !TextBlock
                 Id: 42c26bd2-d2ad-4956-9ade-2c34e8211487
                 DependencyProperties: {}
@@ -99,6 +104,8 @@ Hierarchy:
                 Font: f7f1e44e-6a57-4b1f-818e-21711622883f:UI/OpenSans-font
                 TextSize: 24.0
                 TextColor: {R: 240, G: 240, B: 240, A: 255}
+                OutlineColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineThickness: 0.0
         -   UIElement: !Grid
                 Id: 464d8733-9b88-486e-a93c-32a386a7a4db
                 DependencyProperties: {}
@@ -149,6 +156,8 @@ Hierarchy:
                 Font: f7f1e44e-6a57-4b1f-818e-21711622883f:UI/OpenSans-font
                 TextSize: 24.0
                 TextColor: {R: 6, G: 0, B: 20, A: 255}
+                OutlineColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineThickness: 0.0
                 TextAlignment: Center
         -   UIElement: !TextBlock
                 Id: 884fbaf0-98b7-42ed-bebd-47cb080ac24c
@@ -168,6 +177,8 @@ Hierarchy:
                 Font: f7f1e44e-6a57-4b1f-818e-21711622883f:UI/OpenSans-font
                 TextSize: 24.0
                 TextColor: {R: 6, G: 0, B: 20, A: 255}
+                OutlineColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineThickness: 0.0
                 TextAlignment: Center
         -   UIElement: !Button
                 Id: 8e8a75e5-6eec-42fc-8cb8-7c7033d5dce1
@@ -192,6 +203,7 @@ Hierarchy:
                 MouseOverImage: !SpriteFromTexture
                     Texture: bfa21909-0aa7-4f47-9d73-b075d7ac0b39:UI/btn_hover
                     Center: {X: 0.0, Y: 0.0}
+                Color: {R: 255, G: 255, B: 255, A: 255}
         -   UIElement: !Button
                 Id: ac458635-2d22-4017-ad25-4897cdc15efa
                 DependencyProperties: {}
@@ -214,6 +226,7 @@ Hierarchy:
                 MouseOverImage: !SpriteFromTexture
                     Texture: bfa21909-0aa7-4f47-9d73-b075d7ac0b39:UI/btn_hover
                     Center: {X: 0.0, Y: 0.0}
+                Color: {R: 255, G: 255, B: 255, A: 255}
         -   UIElement: !ContentDecorator
                 Id: ebf271cd-f036-43ab-92e4-8492873ca17a
                 DependencyProperties:
@@ -247,3 +260,5 @@ Hierarchy:
                 Font: f7f1e44e-6a57-4b1f-818e-21711622883f:UI/OpenSans-font
                 TextSize: 20.0
                 TextColor: {R: 240, G: 240, B: 240, A: 255}
+                OutlineColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineThickness: 0.0

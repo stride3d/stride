@@ -105,8 +105,8 @@ Hierarchy:
                                             DisplayParticlePosition: false
                                             Target: ref!! e97c6f33-1882-4429-8239-55cce7f2b5ee
                                             DisplayParticleRotation: true
-                                            FallbackTarget: {X: 0.0, Y: 0.0, Z: -1.0}
                                             DisplayParticleScale: false
+                                            FallbackTarget: {X: 0.0, Y: 0.0, Z: -1.0}
                                             DisplayParticleScaleUniform: false
                                             ArcHeight: 1.0
                                             Sequential: true
@@ -154,7 +154,7 @@ Hierarchy:
                                             DisplayParticleScale: false
                                             DisplayParticleScaleUniform: false
                                             ColorMin: {R: 0.05000019, G: 0.0, B: 1.0, A: 1.0}
-                                            ColorMax: {R: 0.304999828, G: 0.131250024, B: 1.0, A: 1.0}
+                                            ColorMax: {R: 0.30499983, G: 0.13125002, B: 1.0, A: 1.0}
                                     Updaters: {}
                                 f239db465dd7354bbc55100bd300b151:
                                     EmitterName: sparks
@@ -209,10 +209,10 @@ Hierarchy:
                                             DisplayParticlePosition: false
                                             DisplayParticleRotation: true
                                             ParentName: LaserEmitter01
-                                            DisplayParticleScale: false
                                             ParentSeedOffset: 0
-                                            ParentControlFlag: Group00
+                                            DisplayParticleScale: false
                                             DisplayParticleScaleUniform: true
+                                            ParentControlFlag: Group00
                                             SeedOffset: 0
                                             PositionMin: {X: -0.1, Y: -0.1, Z: -0.1}
                                             PositionMax: {X: 0.1, Y: 0.1, Z: 0.1}
@@ -256,10 +256,10 @@ Hierarchy:
                                             DisplayParticlePosition: false
                                             DisplayParticleRotation: false
                                             ParentName: LaserEmitter01
-                                            DisplayParticleScale: false
                                             ParentSeedOffset: 0
-                                            ParentControlFlag: Group00
+                                            DisplayParticleScale: false
                                             DisplayParticleScaleUniform: false
+                                            ParentControlFlag: Group00
                                             SeedOffset: 0
                                             ColorMin: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
                                             ColorMax: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
@@ -317,8 +317,8 @@ Hierarchy:
                                             DisplayParticlePosition: false
                                             Target: ref!! e97c6f33-1882-4429-8239-55cce7f2b5ee
                                             DisplayParticleRotation: true
-                                            FallbackTarget: {X: 0.0, Y: 0.0, Z: -1.0}
                                             DisplayParticleScale: false
+                                            FallbackTarget: {X: 0.0, Y: 0.0, Z: -1.0}
                                             DisplayParticleScaleUniform: false
                                             ArcHeight: 1.0
                                             Sequential: true
@@ -363,10 +363,10 @@ Hierarchy:
                                             DisplayParticlePosition: false
                                             DisplayParticleRotation: false
                                             ParentName: LaserEmitter01
-                                            DisplayParticleScale: false
                                             ParentSeedOffset: 0
-                                            ParentControlFlag: Group00
+                                            DisplayParticleScale: false
                                             DisplayParticleScaleUniform: false
+                                            ParentControlFlag: Group00
                                             SeedOffset: 0
                                             ColorMin: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
                                             ColorMax: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}

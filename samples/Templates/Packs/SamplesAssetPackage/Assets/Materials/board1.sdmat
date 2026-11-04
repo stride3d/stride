@@ -16,7 +16,6 @@ Attributes:
             RightChild: !ComputeFloat4
                 Value: {X: 0.015, Y: 0.015, Z: 1.0, W: 1.0}
         ScaleAndBias: false
-        IsXYNormal: true
     MicroSurface: !MaterialGlossinessMapFeature
         GlossinessMap: !ComputeBinaryScalar
             Operator: Multiply
@@ -52,6 +51,7 @@ Attributes:
         Fresnel: !MaterialSpecularMicrofacetFresnelSchlick {}
         Visibility: !MaterialSpecularMicrofacetVisibilitySmithSchlickGGX {}
         NormalDistribution: !MaterialSpecularMicrofacetNormalDistributionGGX {}
+        Environment: !MaterialSpecularMicrofacetEnvironmentGGXLUT {}
     Overrides:
         UVScale: {X: 1.0, Y: 1.0}
 Layers: {}

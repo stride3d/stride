@@ -2,7 +2,8 @@
 Id: 15618002-dbfc-46ba-8be9-edacd2146a9d
 SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
-Source: ../../Resources/Models/HandModelRight.fbx
+Source: !file ../../Resources/Models/HandModelRight.fbx
+Skeleton: 81c9644d-cf07-4cfe-a3dd-5836202ba647:Models/HandModelRight Skeleton
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
 Materials:
     6a70d88729ca6a32a5bb95c95bade139:
@@ -21,6 +22,6 @@ Materials:
         Name: lambert1
         MaterialInstance:
             Material: b4152531-11a9-4174-8ec9-c1d0a3561714:Materials/MattBlackUpper
-Skeleton: 81c9644d-cf07-4cfe-a3dd-5836202ba647:Models/HandModelRight Skeleton
+Modifiers: {}
 ~SourceHashes:
     4ad250aefee9b0f92c8c7efc2f83b7ad~../../Resources/Models/HandModelRight.fbx: a3d72d9e3c4237ebc9cade426869f4f6

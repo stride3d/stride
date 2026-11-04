@@ -2,7 +2,8 @@
 Id: f68ea240-695a-4de5-9884-60d77544fcd6
 SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
-Source: ../../Resources/Models/mannequinModel.fbx
+Source: !file ../../Resources/Models/mannequinModel.fbx
+Skeleton: a0d324bd-326a-4fd8-88a9-fc5e4dcc62e5:Models/mannequinModel Skeleton
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
 Materials:
     98c4d20c91aa1618068f92bf068f92bf:
@@ -29,6 +30,6 @@ Materials:
         Name: lambert1
         MaterialInstance:
             Material: dbf44423-b639-4e84-8eca-fcea83343296:Materials/LambertMT
-Skeleton: a0d324bd-326a-4fd8-88a9-fc5e4dcc62e5:Models/mannequinModel Skeleton
+Modifiers: {}
 ~SourceHashes:
     6b7e5b3e9c4180ffe5d731fa352283a4~../../Resources/Models/mannequinModel.fbx: 41531d1299044bd0f0b265374610fb1d

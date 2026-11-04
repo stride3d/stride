@@ -114,8 +114,8 @@ Hierarchy:
                                             ParentName: null
                                             ParentSeedOffset: 0
                                             DisplayParticleScale: false
-                                            ParentControlFlag: Group00
                                             DisplayParticleScaleUniform: true
+                                            ParentControlFlag: Group00
                                             SeedOffset: 0
                                             ParentVelocityFactor: 0.5
                                             VelocityMin: {X: -1.0, Y: 0.0, Z: -1.0}
@@ -137,7 +137,7 @@ Hierarchy:
                                                 Curve: !ComputeAnimationCurveColor4
                                                     KeyFrames:
                                                         e4c63287d8fc724e8b484115fc351be1:
-                                                            Key: 0.246887788
+                                                            Key: 0.24688779
                                                             Value: {R: 1.0, G: 1.0, B: 1.0, A: 0.2}
                                                             TangentType: Linear
                                                         9c9dd35c9be65d4292aa758bd7bf1e04:
@@ -234,7 +234,7 @@ Hierarchy:
                                             DisplayParticleScale: false
                                             DisplayParticleScaleUniform: false
                                             ColorMin: {R: 1.0, G: 0.8329202, B: 0.41875, A: 1.0}
-                                            ColorMax: {R: 0.9921568, G: 0.297647059, B: 0.0, A: 1.0}
+                                            ColorMax: {R: 0.9921568, G: 0.29764706, B: 0.0, A: 1.0}
                                     Updaters:
                                         24f076826d5ef24ba29ce8318050d8e9: !UpdaterSpeedToDirection
                                             InheritPosition: true

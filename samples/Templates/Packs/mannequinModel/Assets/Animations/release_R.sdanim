@@ -2,7 +2,8 @@
 Id: 79c65a7c-44ea-4897-b719-3a293cc2912b
 SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
-Source: ../../Resources/Animation/release_R.fbx
+Source: !file ../../Resources/Animation/release_R.fbx
+AnimationStack: 0
 ClipDuration:
     Enabled: false
     StartAnimationTime: 0:00:00:00.0000000
@@ -14,6 +15,6 @@ Skeleton: 81c9644d-cf07-4cfe-a3dd-5836202ba647:Models/HandModelRight Skeleton
 RootMotion: false
 PreviewModel: 15618002-dbfc-46ba-8be9-edacd2146a9d:Models/HandModelRight
 AnimationTimeMinimum: 0:00:00:00.0000000
+AnimationTimeMaximum: 0:00:00:00.1670000
 ~SourceHashes:
     d3714cb790e8ed0cf3c7e8c43eb60a5b~../../Resources/Animation/release_R.fbx: a7c4763449ac50b1791e97abaf6a71c2
-AnimationTimeMaximum: 0:00:00:00.1670000

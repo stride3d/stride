@@ -2,7 +2,8 @@
 Id: dc419cbf-4eb2-4983-b5c7-305511f0399f
 SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
-Source: ../../../Resources/Models/SwordModel.fbx
+Source: !file ../../../Resources/Models/SwordModel.fbx
+Skeleton: null
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
 Materials:
     7b8394fb681bf353e28097d3e28097d3:
@@ -21,6 +22,6 @@ Materials:
         Name: glossMT
         MaterialInstance:
             Material: 4804672a-09da-4d16-a2e4-cc5a9e722ab2:Materials/BodyWhite
-Skeleton: null
+Modifiers: {}
 ~SourceHashes:
     c1799f1f0f4211be95d5a879368c4eac~../../../Resources/Models/SwordModel.fbx: f21eb0d2f6563aa8f6a26b74477d96d5

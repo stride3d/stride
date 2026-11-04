@@ -2,7 +2,8 @@
 Id: a2ee43dd-1239-4930-bd7c-6017bb263391
 SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
-Source: ../../Resources/Models/mannequinHandModel.fbx
+Source: !file ../../Resources/Models/mannequinHandModel.fbx
+Skeleton: 64401578-294c-4eb2-b92f-4c0a805d7314:Models/mannequinHandModel Skeleton
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
 Materials:
     7b8394fb681bf353e28097d3e28097d3:
@@ -21,6 +22,6 @@ Materials:
         Name: upperMatteMT
         MaterialInstance:
             Material: b4152531-11a9-4174-8ec9-c1d0a3561714:Materials/MattBlackUpper
-Skeleton: 64401578-294c-4eb2-b92f-4c0a805d7314:Models/mannequinHandModel Skeleton
+Modifiers: {}
 ~SourceHashes:
     f1c7be8db99f25c5f4122fdbeae1bb85~../../Resources/Models/mannequinHandModel.fbx: db1befd09793cb26baaafc47576b4e4f

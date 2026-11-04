@@ -2,7 +2,8 @@
 Id: 08dc9342-a099-40d6-9067-40a1f932e396
 SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
-Source: ../../Resources/Models/StrideCrate.fbx
+Source: !file ../../Resources/Models/StrideCrate.fbx
+Skeleton: null
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
 Materials:
     e60b5b1aec04dfad5b137e381df5f2e1:
@@ -13,6 +14,6 @@ Materials:
         Name: Fame
         MaterialInstance:
             Material: bf5ac41a-d259-437b-b4df-c658e7d0d880:Materials/FrameB
-Skeleton: null
+Modifiers: {}
 ~SourceHashes:
     a65f42ab8f32fab738bc7c88b5008af5~../../Resources/Models/StrideCrate.fbx: 6e3a5526c1cdb7001c9b7ea51ac583a0

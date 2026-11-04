@@ -249,7 +249,7 @@ Hierarchy:
                                                     KeyFrames:
                                                         4a5fc68d580326498f44faec012fbef4:
                                                             Key: 0.0
-                                                            Value: {R: 1.0, G: 0.5, B: 0.199999988, A: 1.0}
+                                                            Value: {R: 1.0, G: 0.5, B: 0.19999999, A: 1.0}
                                                             TangentType: Linear
                                                         28960ea9445c6e409b9c3cfc147cf310:
                                                             Key: 0.08
@@ -482,7 +482,7 @@ Hierarchy:
                                             DisplayParticleRotation: false
                                             DisplayParticleScale: false
                                             DisplayParticleScaleUniform: false
-                                            ColorMin: {R: 1.0, G: 0.18187499, B: 0.0375000238, A: 1.0}
+                                            ColorMin: {R: 1.0, G: 0.18187499, B: 0.037500024, A: 1.0}
                                             ColorMax: {R: 1.0, G: 0.3, B: 0.0, A: 1.0}
                                     Updaters:
                                         abe14565ea671640b23e478d067dd5d8: !UpdaterForceField

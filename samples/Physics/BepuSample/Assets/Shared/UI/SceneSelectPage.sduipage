@@ -21,6 +21,7 @@ Hierarchy:
                 MaximumDepth: 3.4028235E+38
                 Name: SceneStackPanel
                 Children: {}
+                Gap: 0.0
         -   UIElement: !Grid
                 Id: bbf1b2a3-df6e-4e81-a571-5f12754c1b23
                 DependencyProperties: {}

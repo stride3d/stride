@@ -16,7 +16,6 @@ Attributes:
             RightChild: !ComputeFloat4
                 Value: {X: 0.02, Y: 0.02, Z: 1.0, W: 1.0}
         ScaleAndBias: false
-        IsXYNormal: true
     MicroSurface: !MaterialGlossinessMapFeature
         GlossinessMap: !ComputeBinaryScalar
             Operator: Multiply

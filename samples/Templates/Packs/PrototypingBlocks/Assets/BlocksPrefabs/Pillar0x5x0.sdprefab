@@ -31,6 +31,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             0c11aab71bdaff448b0974b597a6f84f: !BoxColliderShapeDesc
                                 Is2D: false

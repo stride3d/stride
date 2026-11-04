@@ -2,7 +2,7 @@
 Id: 1ce3c383-bb85-42f5-8341-626ccb59dbf8
 SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
-Source: ../../../Resources/Models/mannequinModel.fbx
+Source: !file ../../../Resources/Models/mannequinModel.fbx
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
 Nodes:
     8ef886f92b468f2868f8f1dcc460b907: {Name: RootNode, Depth: 0}

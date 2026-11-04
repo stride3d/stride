@@ -27,7 +27,7 @@ Hierarchy:
                         Control:
                             ResetSeconds: 5.0
                             Control: Play
-                        Color: {R: 0.0, G: 1.0, B: 0.924999952, A: 1.0}
+                        Color: {R: 0.0, G: 1.0, B: 0.92499995, A: 1.0}
                         Speed: 1.0
                         ParticleSystem:
                             Settings: {}
@@ -438,7 +438,7 @@ Hierarchy:
                         Control:
                             ResetSeconds: 5.0
                             Control: Play
-                        Color: {R: 0.0874999762, G: 1.0, B: 0.0, A: 1.0}
+                        Color: {R: 0.087499976, G: 1.0, B: 0.0, A: 1.0}
                         Speed: 1.0
                         ParticleSystem:
                             Settings: {}
@@ -712,7 +712,7 @@ Hierarchy:
                         Control:
                             ResetSeconds: 5.0
                             Control: Play
-                        Color: {R: 0.987499952, G: 1.0, B: 0.0, A: 1.0}
+                        Color: {R: 0.98749995, G: 1.0, B: 0.0, A: 1.0}
                         Speed: 1.0
                         ParticleSystem:
                             Settings: {}
@@ -849,7 +849,7 @@ Hierarchy:
                         Control:
                             ResetSeconds: 5.0
                             Control: Play
-                        Color: {R: 0.0124998093, G: 0.0, B: 1.0, A: 1.0}
+                        Color: {R: 0.012499809, G: 0.0, B: 1.0, A: 1.0}
                         Speed: 1.0
                         ParticleSystem:
                             Settings: {}

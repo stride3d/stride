@@ -17,9 +17,10 @@ Attributes:
         Fresnel: !MaterialSpecularMicrofacetFresnelSchlick {}
         Visibility: !MaterialSpecularMicrofacetVisibilitySmithSchlickGGX {}
         NormalDistribution: !MaterialSpecularMicrofacetNormalDistributionGGX {}
+        Environment: !MaterialSpecularMicrofacetEnvironmentGGXLUT {}
     Emissive: !MaterialEmissiveMapFeature
         EmissiveMap: !ComputeColor
-            Value: {R: 0.5875, G: 0.891718745, B: 1.0, A: 1.0}
+            Value: {R: 0.5875, G: 0.89171875, B: 1.0, A: 1.0}
         Intensity: !ComputeFloat
             Value: 2.0
     Overrides:
