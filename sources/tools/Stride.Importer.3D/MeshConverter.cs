@@ -165,7 +165,8 @@ namespace Stride.Importer.ThreeD
                     }
                     else
                     {
-                        entityInfo.TextureDependencies = ExtractTextureDependencies(scene);
+                        entityInfo.TextureRoles = new Dictionary<string, TextureRole>();
+                        entityInfo.TextureDependencies = ExtractTextureDependencies(scene, entityInfo.TextureRoles);
                     }
                 }
 
@@ -1960,9 +1961,16 @@ namespace Stride.Importer.ThreeD
             return animationList;
         }
 
-        private unsafe List<string> ExtractTextureDependencies(Scene* scene)
+        /// <summary>
+        /// Collects the textures referenced by the materials of a non-glTF file. Textures in the normals slot get the
+        /// <see cref="TextureRole.Normal"/> role, the only slot the legacy material builder maps to a normal map; the others
+        /// have no role and are imported as color textures.
+        /// </summary>
+        private unsafe List<string> ExtractTextureDependencies(Scene* scene, Dictionary<string, TextureRole> textureRoles)
         {
             var textureNames = new List<string>();
+            var normalMaps = new HashSet<string>();
+            var otherUses = new HashSet<string>();
 
             // texture search is done by type so we need to loop on them
             var allTextureTypes = new TextureType[]
@@ -2007,10 +2015,18 @@ namespace Stride.Importer.ThreeD
                             var relFileName = texFileName;
                             var fileNameToUse = Path.Combine(vfsInputPath, relFileName);
                             textureNames.Add(fileNameToUse);
+                            (textureType == TextureType.Normals ? normalMaps : otherUses).Add(fileNameToUse);
                             break;
                         }
                     }
                 }
+            }
+
+            foreach (var normalMap in normalMaps)
+            {
+                textureRoles[normalMap] = TextureRole.Normal;
+                if (otherUses.Contains(normalMap))
+                    Logger?.Info($"Texture '{Path.GetFileName(normalMap)}' is used both as a normal map and in another slot; it is imported as a normal map.");
             }
 
             return textureNames;
