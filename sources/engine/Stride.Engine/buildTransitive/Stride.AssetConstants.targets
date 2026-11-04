@@ -15,10 +15,10 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$(StrideGenerateAssetConstants)' == 'true'">
-    <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="StrideAssetFolder" />
     <CompilerVisibleProperty Include="StrideAssetUrlNamespace" />
     <CompilerVisibleProperty Include="StrideAssetConstantsClassName" />
     <CompilerVisibleProperty Include="StrideAssetConstantsNamespace" />
+    <CompilerVisibleProperty Include="StrideAssetPaths" />
   </ItemGroup>
 
   <UsingTask TaskName="StrideCollectAssetConstantsInputs"
@@ -28,7 +28,7 @@
       <PackagePath Required="true" />
       <AssetNamespace />
       <PackageName />
-      <AssetFiles ParameterType="Microsoft.Build.Framework.ITaskItem[]" Output="true" />
+      <AssetFiles ParameterType="System.String" Output="true" />
       <ResolvedNamespace ParameterType="System.String" Output="true" />
     </ParameterGroup>
     <Task>
@@ -82,7 +82,7 @@
 
         var baseDir = Path.GetDirectoryName(Path.GetFullPath(PackagePath));
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var items = new List<Microsoft.Build.Framework.ITaskItem>();
+        var items = new List<string>();
         var excludedDirectories = new HashSet<string>(new[] { "bin", "obj", ".git", ".vs" }, StringComparer.OrdinalIgnoreCase);
         foreach (var folderPath in folderPaths)
         {
@@ -96,15 +96,18 @@
                 // Skip package files and build/VCS directories (an asset folder can be '.')
                 if (string.Equals(Path.GetExtension(file), ".sdpkg", StringComparison.OrdinalIgnoreCase))
                     continue;
-                var relativeDir = Path.GetDirectoryName(file.Substring(folder.Length + 1)) ?? "";
-                if (relativeDir.Split(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries).Any(segment => excludedDirectories.Contains(segment)))
+                var folderPrefix = folder.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar.ToString();
+                if (!file.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar).StartsWith(folderPrefix, StringComparison.OrdinalIgnoreCase))
                     continue;
-                var item = new Microsoft.Build.Utilities.TaskItem(file);
-                item.SetMetadata("StrideAssetFolder", folder);
-                items.Add(item);
+                var relativePath = file.Substring(folderPrefix.Length).Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+                var relativeDirectory = Path.GetDirectoryName(relativePath) ?? "";
+                if (relativeDirectory.Split(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries).Any(excludedDirectories.Contains))
+                    continue;
+                items.Add(Uri.EscapeDataString(relativePath));
             }
         }
-        AssetFiles = items.ToArray();
+        items.Sort(StringComparer.OrdinalIgnoreCase);
+        AssetFiles = string.Join("|", items);
       ]]></Code>
     </Task>
   </UsingTask>
@@ -136,12 +139,9 @@
         PackagePath="$(_StrideAssetConstantsPackagePath)"
         AssetNamespace="$(StrideAssetNamespace)"
         PackageName="$(_StrideAssetConstantsPackageName)">
-      <Output TaskParameter="AssetFiles" ItemName="_StrideAssetConstantsFile" />
+      <Output TaskParameter="AssetFiles" PropertyName="StrideAssetPaths" />
       <Output TaskParameter="ResolvedNamespace" PropertyName="StrideAssetUrlNamespace" />
     </StrideCollectAssetConstantsInputs>
-    <ItemGroup>
-      <AdditionalFiles Include="@(_StrideAssetConstantsFile)" />
-    </ItemGroup>
   </Target>
 
 </Project>

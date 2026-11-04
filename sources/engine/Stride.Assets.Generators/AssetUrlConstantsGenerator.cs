@@ -18,7 +18,6 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
     private const string DefaultClassName = "Assets";
     private const string GeneratedFileName = "StrideAssetConstants.g.cs";
 
-    private const string AssetFolderMetadataKey = "build_metadata.AdditionalFiles.StrideAssetFolder";
     private const string UrlReferenceTypeName = "global::Stride.Core.Serialization.UrlReference";
     private const string AssetContentTypeAttributeFullName = "Stride.Core.Assets.AssetContentTypeAttribute";
     private const string AssetDescriptionAttributeFullName = "Stride.Core.Assets.AssetDescriptionAttribute";
@@ -77,13 +76,23 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        var filesWithOptions = context.AdditionalTextsProvider.Combine(context.AnalyzerConfigOptionsProvider);
+        var assets = context.AnalyzerConfigOptionsProvider.Select((options, _) =>
+        {
+            if (!options.GlobalOptions.TryGetValue("build_property.StrideAssetPaths", out var encodedPaths) || string.IsNullOrEmpty(encodedPaths))
+                return [];
 
-        var assets = filesWithOptions
-            .Select(static (pair, cancellationToken) => ReadAssetEntry(pair.Left, pair.Right.GetOptions(pair.Left), cancellationToken))
-            .Where(static entry => entry is not null)
-            .Select(static (entry, _) => entry!)
-            .Collect();
+            var result = new List<AssetEntry>();
+            foreach (var escapedPath in encodedPaths.Split(['|'], StringSplitOptions.RemoveEmptyEntries))
+            {
+                var path = Uri.UnescapeDataString(escapedPath);
+                var extension = Path.GetExtension(path);
+                if (string.IsNullOrEmpty(extension))
+                    continue;
+                var pathWithoutExtension = path[..^extension.Length];
+                result.Add(new AssetEntry(pathWithoutExtension.Replace('\\', '/'), extension));
+            }
+            return result;
+        }).WithComparer(SequentialListComparer<AssetEntry>.Instance);
 
         var config = context.AnalyzerConfigOptionsProvider.Select(static (provider, _) => ReadConfig(provider));
 
@@ -91,7 +100,7 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
         // symbol-dependent parts (type table, name conflict) run in their own stages returning
         // value-equatable results, so the emit stays cached when assets and config are unchanged.
         // hasAssets keeps the symbol work off projects that only reference Stride.Engine.
-        var hasAssets = assets.Select(static (entries, _) => !entries.IsEmpty);
+        var hasAssets = assets.Select(static (entries, _) => entries.Count > 0);
 
         var typeTable = context.CompilationProvider.Combine(hasAssets)
             .Select(static (data, cancellationToken) => data.Right
@@ -186,39 +195,7 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
         }
     }
 
-    private static AssetEntry? ReadAssetEntry(AdditionalText file, AnalyzerConfigOptions options, CancellationToken cancellationToken)
-    {
-        if (!options.TryGetValue(AssetFolderMetadataKey, out var folder) || string.IsNullOrEmpty(folder))
-            return null;
-
-        // The build task tags every file in an asset folder; extension registration is resolved separately;
-        // The file content is never read, so CS2015 is never reported for binary files.
-        var extension = Path.GetExtension(file.Path);
-        if (string.IsNullOrEmpty(extension))
-            return null;
-
-        var relativePath = GetRelativeAssetPath(folder!, file.Path);
-        return relativePath is null ? null : new AssetEntry(relativePath, extension);
-    }
-
-    /// <summary>
-    /// Asset URL path relative to its asset folder: forward slashes, no extension.
-    /// </summary>
-    private static string? GetRelativeAssetPath(string folder, string filePath)
-    {
-        folder = folder.Replace('/', '\\').TrimEnd('\\');
-        var file = filePath.Replace('/', '\\');
-        if (!file.StartsWith(folder + "\\", StringComparison.OrdinalIgnoreCase))
-            return null;
-        var relative = file.Substring(folder.Length + 1).Replace('\\', '/');
-        var lastSlash = relative.LastIndexOf('/');
-        var lastDot = relative.LastIndexOf('.');
-        if (lastDot > lastSlash)
-            relative = relative.Substring(0, lastDot);
-        return relative.Length == 0 ? null : relative;
-    }
-
-    private static void Emit(SourceProductionContext context, ImmutableArray<AssetEntry> assets, ImmutableArray<ExtensionType> typeTable, Config config, ConflictInfo conflict)
+    private static void Emit(SourceProductionContext context, List<AssetEntry> assets, ImmutableArray<ExtensionType> typeTable, Config config, ConflictInfo conflict)
     {
         // Extension -> runtime type (empty = untyped); a file with an unknown extension gets no constant
         var extensionTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
