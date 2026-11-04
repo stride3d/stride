@@ -27,6 +27,7 @@ public sealed class EditorSessionFixture : IDisposable
     public const string OtherSuffix = ".other";
 
     private bool destroyed;
+    private bool ownsDirectory = true;
 
     private EditorSessionFixture(string directory, IViewModelServiceProvider serviceProvider, FakeEditorDialogService dialogs, FakeClipboardService clipboard, FakePluginService plugins)
     {
@@ -94,9 +95,44 @@ public sealed class EditorSessionFixture : IDisposable
     /// </summary>
     public static Task<EditorSessionFixture> OpenGameAsync(params PlatformType[] executablePlatforms) => OpenCoreAsync(null, [], executablePlatforms);
 
-    private static async Task<EditorSessionFixture> OpenCoreAsync(PlatformType? executablePlatform, (string Location, string Value)[] assets, PlatformType[]? heads = null)
+    /// <summary>
+    /// Saves a package with the given assets (location relative to the package, asset) and opens it. Without a project next to
+    /// it, the package is read-only, as the packages of the dependencies (NuGet packages) are.
+    /// </summary>
+    public static Task<EditorSessionFixture> OpenAsync(bool readOnly, params (string Location, Asset Asset)[] assets)
     {
-        var directory = Path.Combine(Path.GetTempPath(), "Stride.Core.Assets.Editor.Tests", Guid.NewGuid().ToString("N"));
+        var directory = NewDirectory();
+        WritePackage(directory, readOnly ? null : ProjectFile(null), assets);
+        return OpenCoreAsync(directory);
+    }
+
+    /// <summary>
+    /// Destroys the session, then opens the files it left in a new session with new services, as the editor does when it opens
+    /// the project again. The new fixture deletes the folder when it is disposed; this one no longer does.
+    /// </summary>
+    public async Task<EditorSessionFixture> ReopenAsync()
+    {
+        if (!destroyed)
+        {
+            destroyed = true;
+            Session.Destroy();
+            WaitForBackgroundWork(Session);
+        }
+        ownsDirectory = false;
+        return await OpenCoreAsync(Directory);
+    }
+
+    private static string NewDirectory() => Path.Combine(Path.GetTempPath(), "Stride.Core.Assets.Editor.Tests", Guid.NewGuid().ToString("N"));
+
+    private static async Task<EditorSessionFixture> OpenCoreAsync(string directory)
+    {
+        var fixture = CreateFixture(directory);
+        await fixture.OpenSessionAsync(fixture.PackagePath);
+        return fixture;
+    }
+
+    private static EditorSessionFixture CreateFixture(string directory)
+    {
         var dialogs = new FakeEditorDialogService();
         var clipboard = new FakeClipboardService();
         var plugins = new FakePluginService();
@@ -109,24 +145,35 @@ public sealed class EditorSessionFixture : IDisposable
             plugins,
             new FakeThumbnailDataFactory(),
         ]);
-        var fixture = new EditorSessionFixture(directory, serviceProvider, dialogs, clipboard, plugins);
-        fixture.WritePackage(assets, executablePlatform);
-        var path = heads is null ? fixture.PackagePath : fixture.WriteSolution(heads);
-        var session = await SessionViewModel.OpenSessionAsync(path, fixture.Result, new FakeMainViewModel(serviceProvider), serviceProvider);
+        return new EditorSessionFixture(directory, serviceProvider, dialogs, clipboard, plugins);
+    }
+
+    private async Task OpenSessionAsync(UFile path)
+    {
+        var session = await SessionViewModel.OpenSessionAsync(path, Result, new FakeMainViewModel(ServiceProvider), ServiceProvider);
         if (session is null)
-            throw new InvalidOperationException("The session could not be opened:" + Environment.NewLine + fixture.Log);
-        fixture.Session = session;
+            throw new InvalidOperationException("The session could not be opened:" + Environment.NewLine + Log);
+        Session = session;
         // The asset view of the session restores the filters of the editor's settings, which every session of the test process
         // shares: a filter that a test left (or is using in parallel) would hide the assets of this one
         session.AssetCollection.ClearAssetFilters();
 
         // The paste processors of the core assets, registered by the view plugin in the editor
-        var copyPaste = serviceProvider.Get<ICopyPasteService>();
+        var copyPaste = ServiceProvider.Get<ICopyPasteService>();
         copyPaste.RegisterProcessor(new AssetPropertyPasteProcessor());
         copyPaste.RegisterProcessor(new AssetItemPasteProcessor(session));
 
         // What the session does in the background once open, so that the tests start from a session at rest
         await session.Initialization;
+    }
+
+    private static async Task<EditorSessionFixture> OpenCoreAsync(PlatformType? executablePlatform, (string Location, string Value)[] assets, PlatformType[]? heads = null)
+    {
+        var directory = NewDirectory();
+        var fixture = CreateFixture(directory);
+        fixture.WritePackage(assets, executablePlatform);
+        var path = heads is null ? fixture.PackagePath : fixture.WriteSolution(heads);
+        await fixture.OpenSessionAsync(path);
         return fixture;
     }
 
@@ -147,6 +194,8 @@ public sealed class EditorSessionFixture : IDisposable
             Session.Destroy();
             WaitForBackgroundWork(Session);
         }
+        if (!ownsDirectory)
+            return;
         try
         {
             System.IO.Directory.Delete(Directory, true);
@@ -202,6 +251,36 @@ public sealed class EditorSessionFixture : IDisposable
             "    <StrideContainsAssetTypes>false</StrideContainsAssetTypes>" + Environment.NewLine +
             "  </PropertyGroup>" + Environment.NewLine +
             "</Project>" + Environment.NewLine;
+    }
+
+    /// <summary>
+    /// Saves a package in the given folder with the given assets, and the given project file next to it; without a project,
+    /// the package is read-only.
+    /// </summary>
+    private static void WritePackage(string directory, string? projectFile, (string Location, Asset Asset)[] assets)
+    {
+        var packageDirectory = Path.Combine(directory, PackageName);
+        System.IO.Directory.CreateDirectory(Path.Combine(packageDirectory, "Assets"));
+        if (projectFile is not null)
+            File.WriteAllText(Path.Combine(packageDirectory, PackageName + ".csproj"), projectFile);
+
+        var packagePath = new UFile(Path.Combine(packageDirectory, PackageName + Stride.Core.Assets.Package.PackageFileExtension));
+        var package = new Stride.Core.Assets.Package
+        {
+            FullPath = packagePath,
+            Meta = { Name = PackageName, Version = new PackageVersion("1.0.0") },
+            AssetFolders = { new AssetFolder("Assets") },
+            ResourceFolders = { "Resources" },
+        };
+        AssetFileSerializer.Save(packagePath.ToOSPath(), package, null);
+
+        foreach (var (location, asset) in assets)
+        {
+            var extension = AssetRegistry.GetDefaultExtension(asset.GetType());
+            var path = Path.Combine(packageDirectory, "Assets", location + extension);
+            System.IO.Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            AssetFileSerializer.Save(path, asset, null);
+        }
     }
 
     private void WritePackage((string Location, string Value)[] assets, PlatformType? executablePlatform)
