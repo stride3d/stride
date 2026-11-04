@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -9,6 +10,8 @@ using System.Text.Json;
 using Stride.Assets.Materials;
 using Stride.Assets.Models;
 using Stride.Assets.Textures;
+using Stride.Core.Assets;
+using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
 using Stride.Graphics;
@@ -140,6 +143,31 @@ public sealed class TestGltfMaterialImport : IDisposable
     }
 
     [Fact]
+    public void SharedBlendedImageGetsAPremultipliedCopy()
+    {
+        Assert.Equal("basecolor_premultiplied", TextureUrl(Assert.IsType<ComputeTextureColor>(Assert.IsType<MaterialDiffuseMapFeature>(Material("SharedGlass").Diffuse).DiffuseMap).Texture));
+        var painted = Assert.IsType<MaterialDiffuseMapFeature>(Material("Painted").Diffuse).DiffuseMap;
+        Assert.Equal("basecolor", TextureUrl(Assert.IsType<ComputeTextureColor>(AssertBinary(painted, BinaryOperator.Multiply).LeftChild).Texture));
+
+        Assert.Equal(TextureRole.Color, Role("basecolor"));
+        Assert.Equal("basecolor_premultiplied", Assert.Single(entity.PremultipliedTextures, x => x.Key == Path.Combine(directory, "basecolor.png")).Value);
+        Assert.DoesNotContain(entity.PremultipliedTextures.Keys, path => path.EndsWith("glass.png"));
+    }
+
+    [Fact]
+    public void PremultipliedCopyIsImportedNextToTheStraightTexture()
+    {
+        var assets = new List<AssetItem>();
+        ModelAssetImporter.ImportTextures(entity.TextureDependencies, entity.TextureRoles, entity.PremultipliedTextures, assets, new LoggerResult());
+
+        var straight = Assert.IsType<ColorTextureType>(Assert.IsType<TextureAsset>(Assert.Single(assets, x => x.Location.ToString() == "basecolor").Asset).Type);
+        Assert.False(straight.PremultiplyAlpha);
+        var copy = Assert.IsType<TextureAsset>(Assert.Single(assets, x => x.Location.ToString() == "basecolor_premultiplied").Asset);
+        Assert.True(Assert.IsType<ColorTextureType>(copy.Type).PremultiplyAlpha);
+        Assert.Equal(Path.Combine(directory, "basecolor.png"), copy.Source.ToOSPath());
+    }
+
+    [Fact]
     public void MaterialWithoutPropertiesUsesGltfDefaults()
     {
         var attributes = Material("Plain");
@@ -233,7 +261,7 @@ public sealed class TestGltfMaterialImport : IDisposable
             {
                 new
                 {
-                    primitives = Enumerable.Range(0, 6).Select(material => new { attributes = new { POSITION = 0, TEXCOORD_0 = 1 }, material, mode = 4 }).ToArray(),
+                    primitives = Enumerable.Range(0, 7).Select(material => new { attributes = new { POSITION = 0, TEXCOORD_0 = 1 }, material, mode = 4 }).ToArray(),
                 },
             },
             materials = new object[]
@@ -280,6 +308,12 @@ public sealed class TestGltfMaterialImport : IDisposable
                     alphaMode = "BLEND",
                 },
                 new { name = "Plain" },
+                new
+                {
+                    name = "SharedGlass",
+                    pbrMetallicRoughness = new { baseColorTexture = new { index = 0 } },
+                    alphaMode = "BLEND",
+                },
             },
             textures = Enumerable.Range(0, Images.Length).Select(source => new { source }).ToArray(),
             images = Images.Select(name => new { uri = embedImages ? "data:image/png;base64," + OnePixelPng : name + ".png" }).ToArray(),

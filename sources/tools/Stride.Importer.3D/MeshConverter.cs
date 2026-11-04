@@ -158,7 +158,9 @@ namespace Stride.Importer.ThreeD
                 {
                     if (Material.GltfMaterialBuilder.IsGltfFile(inputFilename))
                     {
-                        entityInfo.TextureRoles = new Material.GltfMaterialBuilder(assimp, scene, Logger).CollectTextureRoles(fileName => Path.Combine(vfsInputPath, fileName));
+                        var gltfMaterials = new Material.GltfMaterialBuilder(assimp, scene, Logger);
+                        entityInfo.TextureRoles = gltfMaterials.CollectTextureRoles(fileName => Path.Combine(vfsInputPath, fileName));
+                        entityInfo.PremultipliedTextures = gltfMaterials.CollectPremultipliedTextures(fileName => Path.Combine(vfsInputPath, fileName));
                         entityInfo.TextureDependencies = new List<string>(entityInfo.TextureRoles.Keys);
                     }
                     else

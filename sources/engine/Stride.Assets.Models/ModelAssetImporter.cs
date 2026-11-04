@@ -88,7 +88,7 @@ namespace Stride.Assets.Models
             // 1. Textures
             if (isImportingTexture)
             {
-                ImportTextures(entityInfo.TextureDependencies, entityInfo.TextureRoles, rawAssetReferences, importParameters.Logger);
+                ImportTextures(entityInfo.TextureDependencies, entityInfo.TextureRoles, entityInfo.PremultipliedTextures, rawAssetReferences, importParameters.Logger);
             }
 
             // 2. Skeleton
@@ -319,7 +319,11 @@ namespace Stride.Assets.Models
             };
         }
 
-        private static void ImportTextures(IEnumerable<string> textureDependencies, IReadOnlyDictionary<string, TextureRole> textureRoles, List<AssetItem> assetReferences, Logger logger)
+        /// <summary>
+        /// Creates a texture asset for each texture a model uses, typed by its role, and a premultiplied copy of each texture in
+        /// <paramref name="premultipliedTextures"/> for the blended materials that reference it.
+        /// </summary>
+        internal static void ImportTextures(IEnumerable<string> textureDependencies, IReadOnlyDictionary<string, TextureRole> textureRoles, IReadOnlyDictionary<string, string> premultipliedTextures, List<AssetItem> assetReferences, Logger logger)
         {
             if (textureDependencies == null)
                 return;
@@ -340,6 +344,9 @@ namespace Stride.Assets.Models
 
                 // Create asset reference
                 assetReferences.Add(new AssetItem(texturePath.GetFileNameWithoutExtension(), texture));
+
+                if (premultipliedTextures != null && premultipliedTextures.TryGetValue(textureFullPath, out var premultipliedName))
+                    assetReferences.Add(new AssetItem(premultipliedName, new TextureAsset { Source = source, Type = GetTextureType(TextureRole.BlendedColor) }));
             }
         }
     }

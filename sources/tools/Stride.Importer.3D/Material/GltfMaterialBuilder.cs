@@ -45,6 +45,7 @@ namespace Stride.Importer.ThreeD.Material
         private readonly Assimp assimp;
         private readonly Scene* scene;
         private readonly Logger logger;
+        private HashSet<string> sharedBlendedImages;
 
         public GltfMaterialBuilder(Assimp assimp, Scene* scene, Logger logger)
         {
@@ -73,7 +74,10 @@ namespace Stride.Importer.ThreeD.Material
             var baseColor = GetColor(material, Assimp.MatkeyBaseColor) ?? GetColor(material, Assimp.MaterialColorDiffuseBase) ?? Vector4.One;
             baseColor.W = alphaMode == AlphaMode.Opaque ? 1.0f : GetFloat(material, Assimp.MatkeyOpacity) ?? 1.0f;
             var baseColorFactor = new ComputeColor(new Color4(baseColor).ToSRgb()) { PremultiplyAlpha = alphaMode == AlphaMode.Blend };
-            attributes.Diffuse = new MaterialDiffuseMapFeature(Multiply(CreateColorNode(GetBaseColorTexture(material)), baseColorFactor));
+            var baseColorTexture = GetBaseColorTexture(material);
+            if (alphaMode == AlphaMode.Blend && baseColorTexture is { } blended && GetSharedBlendedImages().Contains(blended.FileName))
+                baseColorTexture = blended with { FileName = GetPremultipliedTextureName(blended.FileName) + System.IO.Path.GetExtension(blended.FileName) };
+            attributes.Diffuse = new MaterialDiffuseMapFeature(Multiply(CreateColorNode(baseColorTexture), baseColorFactor));
             attributes.DiffuseModel = new MaterialDiffuseLambertModelFeature();
 
             var metallicRoughnessTexture = GetTexture(material, TextureType.GltfMetallicRoughness);
@@ -144,6 +148,10 @@ namespace Stride.Importer.ThreeD.Material
                     var role = slotRole == TextureRole.Color && texture.FileName == baseColorTexture?.FileName && GetAlphaMode(material) == AlphaMode.Blend
                         ? TextureRole.BlendedColor
                         : slotRole;
+                    // An image shared with other uses keeps their role; blended materials use its premultiplied copy instead.
+                    if (role == TextureRole.BlendedColor && GetSharedBlendedImages().Contains(texture.FileName))
+                        continue;
+
                     var path = resolvePath(texture.FileName);
                     if (!roles.TryGetValue(path, out var existing))
                     {
@@ -161,6 +169,55 @@ namespace Stride.Importer.ThreeD.Material
         }
 
         /// <summary>
+        /// Collects the images that blended materials use as base color while other materials or slots use them too, by path,
+        /// with the name of the premultiplied copy the blended materials reference.
+        /// </summary>
+        public Dictionary<string, string> CollectPremultipliedTextures(Func<string, string> resolvePath)
+        {
+            var textures = new Dictionary<string, string>();
+            foreach (var fileName in GetSharedBlendedImages())
+            {
+                var name = GetPremultipliedTextureName(fileName);
+                textures[resolvePath(fileName)] = name;
+                logger.Info($"Texture '{fileName}' is the base color of a blended material and is also used elsewhere; blended materials use a premultiplied copy, '{name}'.");
+            }
+            return textures;
+        }
+
+        private static string GetPremultipliedTextureName(string fileName) => System.IO.Path.GetFileNameWithoutExtension(fileName) + "_premultiplied";
+
+        /// <summary>
+        /// Finds the images used as base color by a blended material and also by another material or slot. Stride blends with
+        /// premultiplied alpha, so the blended materials need a premultiplied texture while the other uses need the straight one.
+        /// </summary>
+        private HashSet<string> GetSharedBlendedImages()
+        {
+            if (sharedBlendedImages != null)
+                return sharedBlendedImages;
+
+            var blended = new HashSet<string>();
+            var other = new HashSet<string>();
+            for (uint i = 0; i < scene->MNumMaterials; i++)
+            {
+                var material = scene->MMaterials[i];
+                var isBlend = GetAlphaMode(material) == AlphaMode.Blend;
+                var baseColorTexture = GetBaseColorTexture(material)?.FileName;
+                foreach (var (type, slotRole) in TextureSlots)
+                {
+                    if (GetTexture(material, type) is not { } texture)
+                        continue;
+                    if (isBlend && slotRole == TextureRole.Color && texture.FileName == baseColorTexture)
+                        blended.Add(texture.FileName);
+                    else
+                        other.Add(texture.FileName);
+                }
+            }
+
+            blended.IntersectWith(other);
+            return sharedBlendedImages = blended;
+        }
+
+        /// <summary>
         /// Decides the role of an image used in several roles: data types win over color, so channel values stay linear.
         /// </summary>
         private static int RolePriority(TextureRole role)
@@ -169,7 +226,6 @@ namespace Stride.Importer.ThreeD.Material
             {
                 TextureRole.Normal => 3,
                 TextureRole.Data => 2,
-                TextureRole.BlendedColor => 1,
                 _ => 0,
             };
         }
