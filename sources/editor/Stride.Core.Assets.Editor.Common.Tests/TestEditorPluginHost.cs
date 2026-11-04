@@ -148,6 +148,24 @@ public class TestEditorPluginHost
 
     public sealed class PluginHostAssetViewModel2(AssetViewModelConstructionParameters parameters) : AssetViewModel<PluginHostAsset>(parameters);
 
+    /// <summary>
+    /// A plugin that registers a preview view model on an open generic base, as the sprite batch previews do.
+    /// </summary>
+    public sealed class GenericPreviewPlugin : AssetsEditorPlugin
+    {
+        public override void Initialize(IEditorPluginContext context)
+        {
+            context.AssetPreviewViewModelTypes.Register(typeof(GenericPreview<>), typeof(Version));
+            context.AssetPreviewViewModelTypes.Register(typeof(SpecificPreview), typeof(Guid));
+        }
+    }
+
+    public class GenericPreview<T>;
+
+    public sealed class SpecificPreview : GenericPreview<int>;
+
+    public sealed class OtherPreview : GenericPreview<string>;
+
     private static (RecordingEditorPluginHost Host, FakeSession Session, RecordingCopyPasteService CopyPaste, LoggerResult Log) Open(params AssetsPlugin[] plugins)
         => Open(null, plugins);
 
@@ -214,6 +232,19 @@ public class TestEditorPluginHost
         Assert.Same(PluginHostSettings.Key, PluginHostSettings.Container.GetSettingsKey(PluginHostSettings.Key.Name));
         // The editor was initialized: the plugin initializes the session right away
         Assert.Contains(plugin.Command, host.GraphService.AvailableCommands);
+        host.Dispose();
+    }
+
+    [Fact]
+    public void APreviewRegisteredOnAnOpenGenericBaseCoversItsClosedTypes()
+    {
+        var (host, _, _, _) = Open(new GenericPreviewPlugin());
+
+        // The type itself first, then its bases and their generic definitions
+        Assert.Equal(typeof(Guid), host.GetPreviewViewModelType(typeof(SpecificPreview)));
+        Assert.Equal(typeof(Version), host.GetPreviewViewModelType(typeof(OtherPreview)));
+        Assert.Equal(typeof(Version), host.GetPreviewViewModelType(typeof(GenericPreview<float>)));
+        Assert.Null(host.GetPreviewViewModelType(typeof(Uri)));
         host.Dispose();
     }
 
