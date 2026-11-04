@@ -24,7 +24,7 @@ namespace Stride.Engine
         /// Gets or sets the referenced <see cref="InstancingComponent"/> to instance.
         /// </summary>
         /// <value>The referenced <see cref="InstancingComponent"/> to instance.</value>
-        /// <userdoc>The master InstancingComponent to instance. If not set, it tries to find one in the parent entities</userdoc>
+        /// <userdoc>The "Master" InstancingComponent to instance. If not set, it tries to find one in the parent entities</userdoc>
         [DataMember(10)]
         [NotNull]
         [Display("Instancing", Expand = ExpandRule.Always)]
