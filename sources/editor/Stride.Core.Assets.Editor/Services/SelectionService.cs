@@ -91,6 +91,10 @@ public class SelectionService
     /// <returns>The scope corresponding to the collections.</returns>
     public SelectionScope RegisterSelectionScope(Func<AbsoluteId, object?> idToObject, Func<object, AbsoluteId?> objectToId, params INotifyCollectionChanged[] collections)
     {
+        ArgumentNullException.ThrowIfNull(idToObject);
+        ArgumentNullException.ThrowIfNull(objectToId);
+        ArgumentNullException.ThrowIfNull(collections);
+
         var scope = new SelectionScope(collections, idToObject, objectToId);
         foreach (var collection in scope.Collections)
             collection.CollectionChanged += CollectionChanged;

@@ -266,7 +266,7 @@ public sealed partial class AssetCollectionViewModel : IAddChildViewModel
         if (files.Count > 0)
         {
             InternalSettings.FileDialogLastImportDirectory.SetValue(files[0].GetFullDirectory());
-            InternalSettings.SaveProfile();
+            InternalSettings.Save();
             await AddFilesAsync(files);
         }
     }

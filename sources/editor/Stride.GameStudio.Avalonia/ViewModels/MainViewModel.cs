@@ -244,19 +244,19 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
             if (result != 1)
             {
                 InternalSettings.LoadingStartupSession.SetValue(false);
-                InternalSettings.SaveProfile();
+                InternalSettings.Save();
                 return false;
             }
         }
 
         // Safe-guard - this will warn that the startup session makes the editor crash while loading.
         InternalSettings.LoadingStartupSession.SetValue(true);
-        InternalSettings.SaveProfile();
+        InternalSettings.Save();
 
         var sessionResult = await OpenSession(initialSessionPath, token);
 
         InternalSettings.LoadingStartupSession.SetValue(false);
-        InternalSettings.SaveProfile();
+        InternalSettings.Save();
 
         return sessionResult;
     }
@@ -379,7 +379,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     {
         MRU.AddFile(filePath, StrideGameStudio.EditorVersionMajor);
         InternalSettings.FileDialogLastOpenSessionDirectory.SetValue(filePath.GetFullDirectory());
-        InternalSettings.SaveProfile();
+        InternalSettings.Save();
 
         sessionPath = filePath;
         Session = loadedSession;

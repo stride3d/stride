@@ -7,6 +7,9 @@ public static class EditorPath
 {
     public static string EditorTitle { get; set; }
 
+    /// <summary>What this editor process runs on, e.g. ".NET 11.0.0-rc.1, Vulkan"; for windows whose title stays short.</summary>
+    public static string? EditorEnvironment { get; set; }
+
     public static string UserDataPath => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         ProductNameDirectory);

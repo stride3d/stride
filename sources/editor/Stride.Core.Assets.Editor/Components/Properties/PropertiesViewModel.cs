@@ -37,6 +37,7 @@ public abstract class PropertiesViewModel : DispatcherViewModel
     protected PropertiesViewModel(IViewModelServiceProvider serviceProvider, NodeContainer nodeContainer)
         : base(serviceProvider)
     {
+        ArgumentNullException.ThrowIfNull(nodeContainer);
         NodeContainer = nodeContainer;
 
         // Create the service needed to manage graph view models
@@ -89,6 +90,10 @@ public abstract class PropertiesViewModel : DispatcherViewModel
     public void RegisterNodePresenterUpdater(INodePresenterUpdater nodeUpdater) => ViewModelService.AvailableUpdaters.Add(nodeUpdater);
 
     public void UnregisterNodePresenterUpdater(INodePresenterUpdater nodeUpdater) => ViewModelService.AvailableUpdaters.Remove(nodeUpdater);
+
+    public IReadOnlyCollection<INodePresenterCommand> NodePresenterCommands => ViewModelService.AvailableCommands;
+
+    public IReadOnlyCollection<INodePresenterUpdater> NodePresenterUpdaters => ViewModelService.AvailableUpdaters;
 
     // TODO: remove processViewModel
     public async Task<GraphViewModel?> GenerateSelectionPropertiesAsync(IEnumerable<IPropertyProviderViewModel> selectedObjects)
