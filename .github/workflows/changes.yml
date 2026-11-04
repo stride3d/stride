@@ -73,8 +73,8 @@ jobs:
           print('comment_only=' + str(comment_only()).lower())
           EOF
       # Users get the samples from the published content template packs (StrideSamplesVersion.props), not from
-      # the repository, so a sample change only reaches them through a samples release (release-samples.yml).
-      # Editing samples is normal work, so this only warns, as a reminder that one is pending. The engine-versioned
+      # the repository, so a sample change only reaches them when a sample moves to a released version (release.yml).
+      # Editing samples is normal work, so this only warns, as a reminder. The engine-versioned
       # template sources and prose don't count.
       - name: Warn on sample changes (samples release needed)
         if: github.event_name == 'pull_request'
@@ -100,8 +100,8 @@ jobs:
                       where = f"file={f['filename']},line={hunk.group(1)},"
                       break
               print('::warning ' + where + 'title=Samples changed::This PR changes the samples (' + shown + '). '
-                    'Users only get them with the next samples release: after merging, run release-samples.yml '
-                    '(before the next engine release if the engine needs them; see docs/build/versioning.md).')
+                    'Users only get them once a sample is on the version being released: move it in this PR, or run '
+                    'the Upgrade Samples workflow before a release (see docs/build/versioning.md).')
           EOF
       # The crash reporter carries its own package version, so an engine release republishes it only when that
       # version changes. A change shipped without a bump is pushed as a duplicate, skipped, and never reaches users.

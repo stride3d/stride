@@ -9,8 +9,8 @@
       locally only the per-checkout dev packages 4.5.3-devN exist, so the targets switch the csprojs between the two by
       REAL on-disk edits, no evaluation-time flip);
     - the CONTENT version of the template packs made from the samples (StrideSamplesVersion, from
-      sources/templates/StrideSamplesVersion.props: the exact published version an engine names). Only
-      release-samples.yml changes it, after publishing.
+      sources/templates/StrideSamplesVersion.props: the exact published version an engine names). Only a release that
+      includes the samples changes it, after publishing.
 
     PrepareSamplesForRelease - bring the samples up to this engine: SamplesToDevEngine, UpgradeSamples,
                              SamplesToReleaseEngine, pack the content templates as this checkout's -devN, print
@@ -209,7 +209,7 @@
   <!-- Brings the samples up to this engine, as far as a tool can: UpgradeSamples (real upgraders), SamplesToReleaseEngine,
        then a -devN pack of the content to try them. Then the manual part the tool cannot judge: open the samples in
        Game Studio, fix what the upgraders left, commit them in a normal PR. The content version is not touched here:
-       release-samples.yml takes the number, publishes the samples and only then commits SamplesVersion. -->
+       a release on that version publishes the samples and only then commits SamplesVersion. -->
   <Target Name="PrepareSamplesForRelease" DependsOnTargets="_ResolveSamplesEngineVersions">
     <Message Importance="high" Text="PrepareSamplesForRelease: samples referencing engine $(SamplesEngineVersion)" />
 
@@ -218,7 +218,7 @@
          (or worse, it resolves to a stale cached copy). A no-op for samples still at an older engine version. -->
     <CallTarget Targets="SamplesToDevEngine;UpgradeSamples;SamplesToReleaseEngine;PackContentTemplates" />
 
-    <Message Importance="high" Text="%0APrepareSamplesForRelease: samples upgraded and packed locally as $(StrideSamplesVersion)$(StrideWorktreeSuffix). Left to do:%0A  1. Open the samples in Game Studio (SamplesToDevEngine points them at this checkout's engine again) and fix what the upgraders left.%0A  2. Run SamplesToReleaseEngine, commit the samples and merge them with a normal PR.%0A  3. Publish them: release-samples.yml with the next content version; it commits SamplesVersion once published.%0A  4. CleanContentTemplates when this checkout should resolve the published content again." />
+    <Message Importance="high" Text="%0APrepareSamplesForRelease: samples upgraded and packed locally as $(StrideSamplesVersion)$(StrideWorktreeSuffix). Left to do:%0A  1. Open the samples in Game Studio (SamplesToDevEngine points them at this checkout's engine again) and fix what the upgraders left.%0A  2. Run SamplesToReleaseEngine, commit the samples and merge them with a normal PR.%0A  3. Publish them: release.yml on this version includes them, and commits SamplesVersion once published.%0A  4. CleanContentTemplates when this checkout should resolve the published content again." />
   </Target>
 
 </Project>

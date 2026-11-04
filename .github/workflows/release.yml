@@ -49,6 +49,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
+      samples-version: ${{ steps.samples.outputs.samples-version }}
     steps:
       - name: Check deploy requires signing
         if: ${{ inputs.deploy && !inputs.sign }}
@@ -107,18 +108,17 @@ jobs:
             exit 1
           fi
 
-      # release-deploy.yml checks the content version again, for a deploy of a build made earlier.
+      # Whether this release includes the samples. release-deploy.yml checks the content version again, for a deploy of
+      # a build made earlier.
+      - name: Plan the samples
+        id: samples
+        shell: pwsh
+        run: ./.github/scripts/plan-sample-release.ps1 -Version "${{ steps.version.outputs.version }}"
+
       - name: Check the samples of a stable engine
         if: ${{ (inputs.sign || inputs.deploy) && !contains(steps.version.outputs.version, '-') }}
         shell: pwsh
-        run: |
-          $version = "${{ steps.version.outputs.version }}"
-          $content = ([xml](Get-Content sources/templates/StrideSamplesVersion.props -Raw)).SelectSingleNode('//_StrideCommittedSamplesVersion').InnerText
-          if ($content -match '-') {
-            echo "::error::Stable engine $version names prerelease content $content. Publish the samples with a stable content number first (release-samples.yml)."
-            exit 1
-          }
-          ./.github/scripts/check-sample-references.ps1 -RequireStable
+        run: ./.github/scripts/check-sample-references.ps1 -RequireStable
 
   #
   # Build and package
@@ -159,6 +159,19 @@ jobs:
             & "${env:ProgramFiles(x86)}\Caphyon\Advanced Installer 22.0\bin\x86\AdvancedInstaller.com" /register "${{ secrets.ADVINST_LICENSE_KEY }}"
           }
 
+      # In this checkout only, so the engine names the packs built here: release-deploy.yml commits it once published.
+      - name: Name the new samples
+        if: ${{ needs.Validate.outputs.samples-version != '' }}
+        shell: pwsh
+        run: |
+          $file = 'sources/templates/StrideSamplesVersion.props'
+          $version = '${{ needs.Validate.outputs.samples-version }}'
+          (Get-Content $file -Raw) -replace '<_StrideCommittedSamplesVersion>[^<]*</', "<_StrideCommittedSamplesVersion>$version</" | Set-Content $file -NoNewline
+          if (-not (Select-String -Path $file -SimpleMatch "<_StrideCommittedSamplesVersion>$version</" -Quiet)) {
+            echo "::error::Could not set the content version $version in $file"
+            exit 1
+          }
+
       - name: Build Package
         run: |
           $platforms = "Windows"
@@ -170,7 +183,7 @@ jobs:
           # --no-restore: package.proj's targets restore their own solutions (same as the
           # previous desktop msbuild invocation, which never passed /restore).
           dotnet build build\package.proj `
-            -t:Package `
+            -t:BuildPackages `
             --no-restore `
             ${{ inputs.upload-binlog && !inputs.sign && '-bl' || '' }} -m -nr:false `
             -p:StridePlatforms=$($platforms.Replace(';','%3B')) `
@@ -188,10 +201,36 @@ jobs:
           StrideSignKeyVaultCertificate: ${{ inputs.sign && secrets.STRIDE_SIGN_KEYVAULT_CERTIFICATE || '' }}
           StrideSignKeyVaultName: ${{ inputs.sign && secrets.STRIDE_SIGN_KEYVAULT_NAME || '' }}
 
+      # The engine packages go aside first: this builds the projects the packs reference with other global properties,
+      # and they auto-pack next to it, which would replace the packages of all platforms. Only the packs come back.
+      - name: Package the samples
+        if: ${{ needs.Validate.outputs.samples-version != '' }}
+        shell: pwsh
+        run: |
+          $version = '${{ needs.Validate.outputs.samples-version }}'
+          Move-Item bin/packages bin/engine-packages
+          New-Item -ItemType Directory bin/packages | Out-Null  # a source of the root nuget.config
+          dotnet build build\package.proj -t:PackageSamples --no-restore -m -nr:false -p:StrideSamplesVersion=$version
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          # Same properties as the packs above, so the test's own pack is identical to them.
+          dotnet test tests\enduser\Stride.Templates.Tests -c Release -p:StridePackageBuild=true -p:StrideSamplesVersion=$version --logger "trx;LogFileName=templates.trx" --results-directory TestResults
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          foreach ($id in 'Stride.Templates.Samples', 'Stride.Templates.Games.Starters', 'Stride.Templates.AssetPacks') {
+            Move-Item "bin/packages/$id.$version.nupkg" bin/engine-packages -ErrorAction Stop
+          }
+          Remove-Item bin/packages -Recurse -Force
+          Move-Item bin/engine-packages bin/packages
+        env:
+          StrideDisableAssetCompilerExecServerProxy: true
+
       - name: Detect version
         id: version
         shell: pwsh
         run: |
+          if (-not '${{ needs.Validate.outputs.samples-version }}' -and (Get-ChildItem bin/packages/Stride.Templates.Samples.*, bin/packages/Stride.Templates.Games.Starters.*, bin/packages/Stride.Templates.AssetPacks.* -ErrorAction SilentlyContinue)) {
+            echo "::error::This release doesn't include the samples, but the build produced content packs."
+            exit 1
+          }
           $pkg = Get-ChildItem -Path bin/packages -Filter "Stride.Core.*.nupkg" | Select-Object -First 1
           if (-not $pkg) {
             echo "::error::No Stride.Core package found"
@@ -205,6 +244,16 @@ jobs:
           }
           echo "version=$version" >> $env:GITHUB_OUTPUT
           echo "::notice::Package version: $version"
+
+      - name: Sign
+        if: ${{ inputs.sign }}
+        run: dotnet build build\package.proj -t:SignPackage --no-restore -p:StrideSign=true
+        env:
+          StrideSignTenantId: ${{ secrets.STRIDE_SIGN_TENANT_ID }}
+          StrideSignClientId: ${{ secrets.STRIDE_SIGN_CLIENT_ID }}
+          StrideSignClientSecret: ${{ secrets.STRIDE_SIGN_CLIENT_SECRET }}
+          StrideSignKeyVaultCertificate: ${{ secrets.STRIDE_SIGN_KEYVAULT_CERTIFICATE }}
+          StrideSignKeyVaultName: ${{ secrets.STRIDE_SIGN_KEYVAULT_NAME }}
 
       - name: Upload NuGet packages
         uses: actions/upload-artifact@v7

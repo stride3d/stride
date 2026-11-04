@@ -117,17 +117,30 @@ jobs:
           }
           echo '```' >> $env:GITHUB_STEP_SUMMARY
 
-      # The content template packs (Samples, Starters, AssetPacks) are not part of an engine release: the engine
-      # names their exact version (sources/templates/StrideSamplesVersion.props), which release-samples.yml only commits
-      # once it is published. Refuse an engine whose content is not on the feed (every New Project would break) or
-      # that is stable while naming prerelease content. Samples changed since the published content (its
-      # samples/<version> tag) only warn: the engine ships with the published content, which is right for work not
-      # released yet, and the release manager judges whether a change is one the new engine needs.
+      # The content template packs (Samples, Starters, AssetPacks) are in this release only when a sample moved to its
+      # version (plan-sample-release.ps1). Otherwise the engine names the last published ones, by the exact version in
+      # sources/templates/StrideSamplesVersion.props, which this workflow only commits once it is published. Refuse an
+      # engine whose content is not on the feed (every New Project would break) or that is stable while naming
+      # prerelease content. Samples changed since the published content (its samples/<version> tag) only warn: the
+      # engine ships with the published content, which is right for work not released yet.
       - name: Check the content version
+        id: samples
         shell: bash
         run: |
           SHA="${{ steps.src.outputs.sha }}"
           VERSION="${{ steps.version.outputs.version }}"
+          PACK=$(find bin/packages -maxdepth 1 -name 'Stride.Templates.Samples.*.nupkg' | head -1)
+          if [ -n "$PACK" ]; then
+            SV=$(basename "$PACK" .nupkg)
+            SV=${SV#Stride.Templates.Samples.}
+            echo "version=$SV" >> "$GITHUB_OUTPUT"
+            echo "::notice::This release includes the samples as $SV"
+            case "$VERSION" in
+              *-*) ;;
+              *) case "$SV" in *-*) echo "::error::Stable engine $VERSION includes prerelease content $SV."; exit 1;; esac;;
+            esac
+            exit 0
+          fi
           FILE=sources/templates/StrideSamplesVersion.props
           SV=$(git show "$SHA:$FILE" | sed -n 's|.*<_StrideCommittedSamplesVersion>\([^<]*\)</.*|\1|p')
           if [ -z "$SV" ]; then
@@ -137,16 +150,16 @@ jobs:
           echo "::notice::Content version named by this engine: $SV"
           case "$VERSION" in
             *-*) ;;
-            *) case "$SV" in *-*) echo "::error::Stable engine $VERSION names prerelease content $SV. Publish the samples with a stable content number first (release-samples.yml)."; exit 1;; esac;;
+            *) case "$SV" in *-*) echo "::error::Stable engine $VERSION names prerelease content $SV. Run the Upgrade Samples workflow and merge its PR, so the release includes stable samples."; exit 1;; esac;;
           esac
           for id in stride.templates.samples stride.templates.games.starters stride.templates.assetpacks; do
-            if ! curl -sf "https://api.nuget.org/v3-flatcontainer/$id/index.json" | grep -q "\"$SV\""; then
-              echo "::error::$id $SV is not on nuget.org. Publish the samples first (release-samples.yml), then release the engine."
+            # Not grep -q: it stops at the match, and under pipefail curl's broken pipe would read as "not published".
+            if ! curl -sf "https://api.nuget.org/v3-flatcontainer/$id/index.json" | grep "\"$SV\"" > /dev/null; then
+              echo "::error::$id $SV is not on nuget.org, and this release doesn't include the samples."
               exit 1
             fi
           done
-          # The commit the published content was packed from (content published before release-samples.yml has
-          # no such tag).
+          # The commit the published content was packed from (some older content has no such tag).
           if ! git rev-parse -q --verify "refs/tags/samples/$SV" >/dev/null; then
             echo "::warning::No samples/$SV tag; skipped the check for sample changes since the published content."
             exit 0
@@ -154,11 +167,11 @@ jobs:
           CHANGED=$(git diff --name-only "samples/$SV" "$SHA" -- samples ':(exclude)samples/NewGame' ':(exclude)samples/Library' ':(exclude)*.md')
           if [ -n "$CHANGED" ]; then
             COUNT=$(printf '%s\n' "$CHANGED" | wc -l)
-            echo "::warning title=Samples changed::$COUNT sample file(s) changed since the published content $SV (tag samples/$SV). This engine ships with the published $SV content. If the engine needs those changes, publish a samples release first (see the run summary)."
+            echo "::warning title=Samples changed::$COUNT sample file(s) changed since the published content $SV (tag samples/$SV). This engine ships with the published $SV content. To ship those changes, move a sample to the version being released (see the run summary)."
             {
               echo "## Sample changes not in the published content ($SV)"
               echo ""
-              echo "This engine ships with the published $SV content. Fine for work not released yet; if the new engine needs these changes, publish a samples release with release-samples.yml (it updates SamplesVersion), then release again."
+              echo "This engine ships with the published $SV content. Fine for work not released yet; to ship these changes, move a sample to the version being released (the Upgrade Samples workflow, or by hand for one sample) before the release."
               echo ""
               echo '```'
               printf '%s\n' "$CHANGED" | sed -n '1,50p'
@@ -222,6 +235,11 @@ jobs:
         run: |
           SHA="${{ steps.src.outputs.sha }}"
           VERSION="${{ steps.version.outputs.version }}"
+          # A retry of a deploy that failed in a later step.
+          if gh release view "releases/$VERSION" >/dev/null 2>&1; then
+            echo "Release releases/$VERSION already exists, skipping"
+            exit 0
+          fi
           # Base the changelog on the previous engine release, not the chronologically previous
           # tag (which could be a cli/* release and would interleave the two products' changelogs).
           PREV=$(git describe --tags --abbrev=0 --match 'releases/*' "$SHA^" 2>/dev/null || true)
@@ -233,13 +251,93 @@ jobs:
           # repository's "Latest" release. Stable versions stay eligible for the Latest label.
           PRERELEASE_ARG=()
           case "$VERSION" in *-*) PRERELEASE_ARG=(--prerelease);; esac
+          # The content packs go on the samples release below.
+          ASSETS=()
+          for PKG in bin/packages/*.nupkg; do
+            case "$(basename "$PKG")" in
+              Stride.Templates.Samples.*|Stride.Templates.Games.Starters.*|Stride.Templates.AssetPacks.*) ;;
+              *) ASSETS+=("$PKG");;
+            esac
+          done
           # No --target: the tag step above already pushed the tag. With a target, GitHub refuses a token without
           # the workflow permission when the workflow files differ between that commit and the default branch.
           gh release create "releases/$VERSION" \
             --title "Stride $VERSION" \
             --verify-tag \
             --generate-notes "${START_TAG_ARG[@]}" "${PRERELEASE_ARG[@]}" \
-            bin/packages/*.nupkg
+            "${ASSETS[@]}"
+
+      - name: Tag and release the samples
+        if: ${{ steps.samples.outputs.version != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          V="${{ steps.samples.outputs.version }}"
+          TAG="samples/$V"
+          if ! git rev-parse "$TAG" >/dev/null 2>&1; then
+            git tag "$TAG" "${{ steps.src.outputs.sha }}"
+            git push origin "$TAG"
+          fi
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists, skipping"
+            exit 0
+          fi
+          # The changelog is the sample commits since the previous samples/* tag, so engine commits don't leak into it.
+          PREV=$(git describe --tags --abbrev=0 --match 'samples/*' "$TAG^" 2>/dev/null || true)
+          RANGE="$TAG"
+          [ -n "$PREV" ] && RANGE="$PREV..$TAG"
+          NOTES=$(git log --no-merges --pretty='- %s (%h)' "$RANGE" -- samples ':(exclude)samples/NewGame' ':(exclude)samples/Library')
+          [ -z "$NOTES" ] && NOTES="_No sample changes since the previous samples release._"
+          {
+            echo "## What's changed in the Stride samples"
+            echo ""
+            echo "$NOTES"
+            if [ -n "$PREV" ]; then
+              echo ""
+              echo "**Full samples changelog**: ${{ github.server_url }}/${{ github.repository }}/compare/$PREV...$TAG"
+            fi
+          } > samples-notes.md
+          PRERELEASE_ARG=()
+          case "$V" in *-*) PRERELEASE_ARG=(--prerelease);; esac
+          gh release create "$TAG" \
+            --title "Stride samples $V" \
+            --notes-file samples-notes.md \
+            --verify-tag \
+            --latest=false \
+            "${PRERELEASE_ARG[@]}" \
+            bin/packages/Stride.Templates.Samples.*.nupkg bin/packages/Stride.Templates.Games.Starters.*.nupkg bin/packages/Stride.Templates.AssetPacks.*.nupkg
+
+      # Once the content is on the feed, the branch names it, so engines built from here on use it.
+      - name: Commit the content version
+        if: ${{ steps.samples.outputs.version != '' }}
+        run: |
+          V="${{ steps.samples.outputs.version }}"
+          BRANCH="${{ github.ref_name }}"
+          FILE=sources/templates/StrideSamplesVersion.props
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for ATTEMPT in 1 2 3 4 5; do
+            git fetch origin "$BRANCH"
+            git checkout -B "$BRANCH" FETCH_HEAD
+            sed -i "s|<_StrideCommittedSamplesVersion>[^<]*</|<_StrideCommittedSamplesVersion>$V</|" "$FILE"
+            if ! grep -q "<_StrideCommittedSamplesVersion>$V</_StrideCommittedSamplesVersion>" "$FILE"; then
+              echo "::error::Could not set the content version $V in $FILE. The samples are published; set it by hand."
+              exit 1
+            fi
+            if git diff --quiet -- "$FILE"; then
+              echo "The content version is already $V, nothing to commit"
+              exit 0
+            fi
+            # Commit only the version file (never -a), so an unexpected working-tree change can't ride along.
+            git commit -m "Samples: content version $V (released samples/$V)" -- "$FILE"
+            if git push origin "HEAD:$BRANCH"; then
+              exit 0
+            fi
+            echo "Push refused (attempt $ATTEMPT), trying again from the new branch tip"
+            sleep $((ATTEMPT * 10))
+          done
+          echo "::error::Could not push the content version $V to $BRANCH. The samples are published; commit it by hand."
+          exit 1
 
       - name: Bump version for next cycle
         # After every deploy, beta or stable, advance Patch on the branch, so the committed number has never been released

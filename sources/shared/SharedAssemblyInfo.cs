@@ -47,7 +47,7 @@ internal class StrideVersion
 
     /// <summary>
     /// The prerelease suffix, -beta with no number or empty for a stable release: the number already moves at every
-    /// release. Upgrader gates ignore it. release.yml and release-samples.yml read it from here. Only package builds
+    /// release. Upgrader gates ignore it. release.yml reads it from here. Only package builds
     /// apply it; dev and CI builds stay at MajorMinor.Patch (+ -devN).
     /// </summary>
     public const string NuGetVersionSuffix = "-beta";

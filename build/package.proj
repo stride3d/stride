@@ -177,10 +177,10 @@ Example: dotnet build build/package.proj -t:Package
 
   <!--
   Content template packs (Stride.Templates.Samples / .Games.Starters / .AssetPacks)
-  Versioned by sources/templates/StrideSamplesVersion.props, published on their own schedule by
-  .github/workflows/release-samples.yml; the engine release never packs them. PackageSamples produces the
-  release-shaped (fully preprocessed) packs into bin/packages, stamped for this branch's engine version (the committed
-  one, with its suffix); SignPackage then signs them.
+  Versioned by sources/templates/StrideSamplesVersion.props. .github/workflows/release.yml runs PackageSamples only when
+  a sample moved to the version it releases: it produces the release-shaped (fully preprocessed) packs into bin/packages,
+  each sample keeping its version; SignPackage then signs them. The projects they reference auto-pack next to them with
+  this target's properties, so keep other packages out of bin/packages while it runs.
   -->
   <Target Name="PackageSamples" DependsOnTargets="PreparePackageBuild">
     <MSBuild Projects="$(StrideRoot)build\samples.proj" Targets="PackContentTemplates"
