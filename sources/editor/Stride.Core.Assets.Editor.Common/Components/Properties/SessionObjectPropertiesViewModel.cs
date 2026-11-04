@@ -69,6 +69,11 @@ public class SessionObjectPropertiesViewModel : PropertiesViewModel, ISessionObj
 
     public void UpdateTypeAndName<T>(IEnumerable<T> selection, int count, Func<T, string> getObjType, Func<T, string> getObjName, string objTypePlural)
     {
+        // A selection in another scope clears this one while the properties are suppressed: the header keeps describing the new
+        // selection, as the properties do (see GenerateSelectionPropertiesAsync)
+        if (ServiceProvider.TryGet<SelectionService>()?.PropertySelectionSuppressed ?? false)
+            return;
+
         switch (count)
         {
             case 0:

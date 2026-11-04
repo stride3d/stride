@@ -42,7 +42,11 @@ public abstract class PastePropertyCommandBase : NodePresenterCommandBase
             if (clipboard == null)
                 return false;
 
-            if (!copyPasteService.CanPaste(clipboard.GetTextAsync().Result, asset.GetType(), (nodePresenter as ItemNodePresenter)?.OwnerCollection.Type ?? nodePresenter.Type))
+            // Some clipboards answer through the UI thread's event loop (X11, when another program owns the clipboard): waiting for
+            // them here, on the UI thread, would never end. The content is checked only when the clipboard answers at once (always
+            // in WPF); otherwise the paste checks it.
+            var text = clipboard.GetTextAsync();
+            if (text.IsCompleted && !(text.IsCompletedSuccessfully && copyPasteService.CanPaste(text.Result, asset.GetType(), GetTargetType(nodePresenter))))
                 return false;
 
             // Cannot paste into read-only collection
@@ -68,7 +72,12 @@ public abstract class PastePropertyCommandBase : NodePresenterCommandBase
             return;
 
         var copyPasteService = asset.ServiceProvider.Get<ICopyPasteService>();
-        var result = copyPasteService.DeserializeCopiedData(text, asset.Asset, (nodePresenter as ItemNodePresenter)?.OwnerCollection.Type ?? nodePresenter.Type);
+        var targetType = GetTargetType(nodePresenter);
+        // The command can be enabled before the content of the clipboard is known (see CanPaste)
+        if (!copyPasteService.CanPaste(text, asset.Asset.GetType(), targetType))
+            return;
+
+        var result = copyPasteService.DeserializeCopiedData(text, asset.Asset, targetType);
         if (result.Items.Count == 0)
             return;
 
@@ -89,6 +98,11 @@ public abstract class PastePropertyCommandBase : NodePresenterCommandBase
         var propertyContainer = new PropertyContainer { { AssetPropertyPasteProcessor.IsReplaceKey, replace } };
         await (item.Processor?.Paste(item, asset.PropertyGraph, ref nodeAccessor, ref propertyContainer) ?? Task.CompletedTask);
         actionService.SetName(transaction, replace ? "Replace property" : "Paste property");
+    }
+
+    private static Type GetTargetType(INodePresenter nodePresenter)
+    {
+        return (nodePresenter as ItemNodePresenter)?.OwnerCollection.Type ?? nodePresenter.Type;
     }
 
     private static bool IsInReadOnlyCollection(INodePresenter? nodePresenter)
