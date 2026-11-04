@@ -101,6 +101,9 @@ public sealed class EditorSessionFixture : IDisposable
         if (session is null)
             throw new InvalidOperationException("The session could not be opened:" + Environment.NewLine + fixture.Log);
         fixture.Session = session;
+        // The asset view of the session restores the filters of the editor's settings, which every session of the test process
+        // shares: a filter that a test left (or is using in parallel) would hide the assets of this one
+        session.AssetCollection.ClearAssetFilters();
 
         // The paste processors of the core assets, registered by the view plugin in the editor
         var copyPaste = serviceProvider.Get<ICopyPasteService>();
