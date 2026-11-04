@@ -4,7 +4,7 @@ This project is the main project for the assets in the editor.
 
 ## Dependencies
 
-* It can references any Stride libraries, as long as their are cross-platform.
+* It can reference any Stride libraries, as long as they are cross-platform.
 * It should be platform-agnostic as well as UI-agnostic.
   In other words, no dependencies on platform (e.g. Windows), or UI library (e.g. Avalonia, WPF) are allowed.
 * It will mainly reference `Stride.Assets.Presentation`.
