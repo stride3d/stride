@@ -243,6 +243,35 @@ public sealed class PluginServiceTests
     }
 
     [AvaloniaFact]
+    public async Task TheSpriteSheetOpensInOneEditor()
+    {
+        using var fixture = await ShellSessionFixture.OpenAsync(("Sheet", new SpriteSheetAsset()));
+
+        // The plugin host registers the editors and editor views of the assemblies of the editor plugins. The shared sprite
+        // sheet editor (Stride.Assets.Presentation.Common) replaced its copy: one editor per asset, one view per editor
+        var assemblies = fixture.Plugins.Plugins.OfType<AssetsEditorPlugin>().Select(x => x.GetType().Assembly).Distinct().ToList();
+        var editors = assemblies
+            .SelectMany(x => AssemblyRegistry.GetScanTypes(x, typeof(IAssetEditorViewModel)))
+            .Select(x => (x.GetCustomAttribute<AssetEditorViewModelAttribute>()?.ViewModelType, Editor: x))
+            .Where(x => x.ViewModelType is not null)
+            .Distinct()
+            .ToList();
+        Assert.Empty(Duplicates(editors, x => x.ViewModelType, x => x.Editor));
+        var views = assemblies
+            .SelectMany(x => AssemblyRegistry.GetScanTypes(x, typeof(Stride.Core.Assets.Editor.Editors.IAssetEditorView)))
+            .Select(x => (x.GetCustomAttribute<AssetEditorViewAttribute>()?.EditorViewModelType, View: x))
+            .Where(x => x.EditorViewModelType is not null)
+            .Distinct()
+            .ToList();
+        Assert.Empty(Duplicates(views, x => x.EditorViewModelType, x => x.View));
+
+        Assert.Equal([typeof(SpriteSheetEditorViewModel)], editors.Where(x => x.ViewModelType == typeof(SpriteSheetViewModel)).Select(x => x.Editor));
+        Assert.Equal(typeof(StrideSharedAssetsPlugin).Assembly, typeof(SpriteSheetEditorViewModel).Assembly);
+        Assert.Equal([typeof(SpriteSheetEditorView)], views.Where(x => x.EditorViewModelType == typeof(SpriteSheetEditorViewModel)).Select(x => x.View));
+        Assert.Equal(typeof(SpriteSheetEditorViewModel), fixture.Plugins.GetEditorViewModelType(typeof(SpriteSheetViewModel)));
+    }
+
+    [AvaloniaFact]
     public async Task ASecondEditorInTheSameProcessGetsThePluginsAfresh()
     {
         // App.Restart() replaces the editor's services: the plugins' process-wide registrations (the property grid's template

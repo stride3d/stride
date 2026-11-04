@@ -12,6 +12,7 @@ AssetViewModelTypes:
   Stride.Assets.SpriteFont.PrecompiledSpriteFontAsset -> Stride.Assets.Presentation.ViewModels.PrecompiledSpriteFontViewModel
   Stride.Assets.SpriteFont.SpriteFontAsset -> Stride.Assets.Presentation.ViewModels.SpriteFontViewModel
 AssetEditorViewModelTypes:
+  Stride.Assets.Presentation.ViewModels.SpriteSheetViewModel -> Stride.Assets.Editor.ViewModels.SpriteSheetEditorViewModel
 AssetEditorViewTypes:
 AssetPreviewViewModelTypes:
   Stride.Assets.Editor.Preview.AnimationPreview -> Stride.Assets.Editor.ViewModels.Preview.AnimationPreviewViewModel

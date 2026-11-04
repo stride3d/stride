@@ -1,7 +1,13 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable enable
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Stride.Assets.Editor.ViewModels.SpriteEditor;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Assets.Sprite;
@@ -88,11 +94,6 @@ public sealed class SpriteSheetEditorViewModel : AssetEditorViewModel<SpriteShee
     /// Raised when <see cref="Initialize"/> created the <see cref="Cache"/> of the images.
     /// </summary>
     internal event EventHandler<EventArgs>? Initialized;
-
-    /// <summary>
-    /// Gets the undo/redo service of the session.
-    /// </summary>
-    public IUndoRedoService UndoRedoService => ServiceProvider.Get<IUndoRedoService>();
 
     /// <summary>
     /// Gets or sets the type of the sprite sheet: 2D sprites have a center, UI sprites have borders.

@@ -210,6 +210,36 @@ namespace Stride.GameStudio.Tests
             Assert.True(typeof(EditorGameController<EntityHierarchyEditorGame>).IsAssignableFrom(typeof(Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services.EntityHierarchyEditorController)));
         }
 
+        [Fact]
+        public void TheSpriteSheetOpensInOneEditorInTheWpfEditor()
+        {
+            // The plugin host registers the editors and editor views of the Stride plugins' assemblies. The shared sprite sheet
+            // editor (Stride.Assets.Presentation.Common) replaced the WPF one: one editor per asset, one WPF view per editor
+            RuntimeHelpers.RunModuleConstructor(typeof(StrideDefaultAssetsPlugin).Module.ModuleHandle);
+            var assemblies = AssemblyRegistry.Find(AssemblyCommonCategories.Assets);
+            Assert.True(typeof(StrideSharedAssetsPlugin).IsAssignableTo(typeof(AssetsEditorPlugin)), "The shared plugin must be an AssetsEditorPlugin, or its editors are not registered.");
+
+            var editors = assemblies
+                .SelectMany(x => AssemblyRegistry.GetScanTypes(x, typeof(IAssetEditorViewModel)))
+                .Select(x => (x.GetCustomAttribute<AssetEditorViewModelAttribute>()?.ViewModelType, Editor: x))
+                .Where(x => x.ViewModelType is not null)
+                .Distinct()
+                .ToList();
+            Assert.Empty(Duplicates(editors, x => x.ViewModelType, x => x.Editor));
+            var views = assemblies
+                .SelectMany(x => AssemblyRegistry.GetScanTypes(x, typeof(IEditorView)))
+                .Select(x => (x.GetCustomAttribute<AssetEditorViewAttribute>()?.EditorViewModelType, View: x))
+                .Where(x => x.EditorViewModelType is not null)
+                .Distinct()
+                .ToList();
+            Assert.Empty(Duplicates(views, x => x.EditorViewModelType, x => x.View));
+
+            var spriteSheetEditor = typeof(Stride.Assets.Editor.ViewModels.SpriteSheetEditorViewModel);
+            Assert.Equal(new[] { spriteSheetEditor }, editors.Where(x => x.ViewModelType == typeof(SpriteSheetViewModel)).Select(x => x.Editor));
+            Assert.Equal(typeof(StrideSharedAssetsPlugin).Assembly, spriteSheetEditor.Assembly);
+            Assert.Equal(new[] { typeof(Stride.Assets.Presentation.AssetEditors.SpriteEditor.Views.SpriteEditorView) }, views.Where(x => x.EditorViewModelType == spriteSheetEditor).Select(x => x.View));
+        }
+
         private static System.Collections.Generic.IEnumerable<(TemplateDescription Description, Type Generator)> AssetTemplateCases()
         {
             static TemplateAssetFactoryDescription Factory(string name, Guid id, string assetTypeName, bool importSource = false)

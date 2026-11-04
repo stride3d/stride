@@ -3,7 +3,7 @@
 using System.Windows;
 using System.Windows.Input;
 using Microsoft.Xaml.Behaviors;
-using Stride.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels;
+using Stride.Assets.Editor.ViewModels.SpriteEditor;
 using Stride.Assets.Presentation.ViewModel;
 
 namespace Stride.Assets.Presentation.View.Behaviors
