@@ -98,4 +98,18 @@ public sealed class TestSessionOpening
         Assert.Equal("oak", fixture.ReadAsset("Textures/Wood").Value);
         Assert.False(fixture.Session.IsDirty);
     }
+
+    [Fact]
+    public async Task ClosingTheSessionStopsWhatItRunsInTheBackground()
+    {
+        var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
+        var packageSession = fixture.Session.PackageSession;
+        // The session follows the changes of the source files of its assets, with a file watcher and a thread
+        Assert.True(packageSession.SourceTracker.EnableTracking);
+
+        fixture.Dispose();
+
+        Assert.True(fixture.Session.BackgroundWork.IsCompletedSuccessfully);
+        Assert.False(packageSession.SourceTracker.EnableTracking);
+    }
 }
