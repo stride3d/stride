@@ -27,7 +27,11 @@ namespace Stride.Core.Assets.Editor.ViewModel
             Asset = asset;
             ToggleIsRootOnSelectedAssetCommand = new AnonymousCommand(ServiceProvider, () => Session.ToggleRootAsset(new[] { Asset }, Session.GetDefaultRootAssetTarget(new[] { Asset })));
             ForcedRoot = forcedRoot;
-            DirtyDependencies.Add(asset);
+            // The set is shared by every session, and UpdateReferences reads it under the same lock
+            lock (DirtyDependencies)
+            {
+                DirtyDependencies.Add(asset);
+            }
         }
 
         /// <summary>

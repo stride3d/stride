@@ -149,6 +149,19 @@ public class TestSessionObjects
     }
 
     [Fact]
+    public void AssetsCanBeCreatedInSessionsOfSeveralThreads()
+    {
+        // The dependencies of the assets are tracked in a set shared by every session; the tests create assets in parallel
+        Parallel.For(0, 8, _ =>
+        {
+            var package = new FakeSession().CreateLocalPackage("Game");
+            for (var i = 0; i < 200; i++)
+                package.CreateAsset(package.AssetMountPoint, new AssetItem($"MyAsset{i}", new TestSessionAsset()), false, new LoggerResult());
+            Assert.Equal(200, package.AssetMountPoint.Assets.Count);
+        });
+    }
+
+    [Fact]
     public void AssetDeletionIsUndoable()
     {
         var package = session.CreateLocalPackage("Game");
