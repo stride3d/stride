@@ -4,27 +4,52 @@
 using Stride.Assets.Models;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Annotations;
+using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
+using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Quantum;
+using Stride.Core.Assets.Templates;
 using Stride.Core.Extensions;
+using Stride.Core.IO;
+using Stride.Core.Presentation.Commands;
 using Stride.Core.Quantum;
 using Stride.Core.Reflection;
+using Stride.Rendering;
 
 namespace Stride.Assets.Presentation.ViewModels;
 
 /// <summary>
 /// View model for <see cref="ModelAsset"/>.
 /// </summary>
-/// <remarks>
-/// The "Create Skeleton" asset command of the WPF view model is not ported yet. It runs the skeleton asset template, which the cross-platform editor can now run.
-/// </remarks>
 [AssetViewModel<ModelAsset>]
 public class ModelViewModel : ImportedAssetViewModel<ModelAsset>
 {
+    /// <summary>
+    /// The id of the asset template that imports the skeleton of a model file (<c>DefaultSkeleton.sdtpl</c>, run by the
+    /// skeleton import generator of the editor).
+    /// </summary>
+    internal static readonly Guid SkeletonFromFileTemplateId = new("7DA3597C-7AC4-450E-B60B-21DDB6296208");
+
     public ModelViewModel(AssetViewModelConstructionParameters parameters)
         : base(parameters)
     {
+        CreateSkeletonCommand = new AnonymousTaskCommand(ServiceProvider, CreateSkeletonAsync);
+
+        // FIXME: tooltip, icons, etc. should not be created on the view model side (see PDX-2952)
+        // Note: the icon is a resource key that the view resolves (see MenuCommandInfo.Icon).
+        assetCommands.Add(new MenuCommandInfo(ServiceProvider, CreateSkeletonCommand)
+        {
+            DisplayName = "Create Skeleton",
+            Tooltip = "Create a skeleton asset",
+            Icon = "ImageCreateSkeleton",
+        });
     }
+
+    /// <summary>
+    /// Imports the skeleton of the model's source file as a new asset, and makes it the model's skeleton, in one undoable action.
+    /// </summary>
+    public ICommandBase CreateSkeletonCommand { get; }
 
     /// <inheritdoc />
     protected override IAssetImporter? GetImporter()
@@ -114,6 +139,37 @@ public class ModelViewModel : ImportedAssetViewModel<ModelAsset>
                 ? existingId
                 : ItemId.New();
             namesNode.Restore(name, new NodeIndex(index), itemId);
+        }
+    }
+
+    /// <summary>
+    /// What <see cref="CreateSkeletonCommand"/> does, for the callers that wait for it.
+    /// </summary>
+    internal async Task CreateSkeletonAsync()
+    {
+        var source = Asset.Source;
+        if (UPath.IsNullOrEmpty(source))
+            return;
+
+        // Templates run in the asset view of the editor's session
+        if (Session is not SessionViewModel session)
+            return;
+
+        using (var transaction = UndoRedoService.CreateTransaction())
+        {
+            var template = session.FindTemplates(TemplateScope.Asset).SingleOrDefault(x => x.Id == SkeletonFromFileTemplateId);
+            if (template != null)
+            {
+                var viewModel = new TemplateDescriptionViewModel(ServiceProvider, template);
+                var skeleton = (await session.AssetCollection.RunAssetTemplateAsync(viewModel, [source])).SingleOrDefault();
+                if (skeleton == null)
+                    return;
+
+                var skeletonNode = AssetRootNode[nameof(ModelAsset.Skeleton)];
+                var reference = ContentReferenceHelper.CreateReference<Skeleton>(skeleton);
+                skeletonNode.Update(reference);
+            }
+            UndoRedoService.SetName(transaction, "Create Skeleton");
         }
     }
 }
