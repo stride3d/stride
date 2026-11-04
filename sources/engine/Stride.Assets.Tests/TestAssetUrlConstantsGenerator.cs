@@ -13,7 +13,7 @@ namespace Stride.Assets.Tests
     public class TestAssetUrlConstantsGenerator
     {
         [Fact]
-        public void TypedViaMapWithNestedFolders()
+        public void TypedWithNestedFolders()
         {
             var result = Run(
             [
