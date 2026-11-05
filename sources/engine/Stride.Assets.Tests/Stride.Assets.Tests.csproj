@@ -32,6 +32,7 @@
     <Compile Include="TestMaterialGenerator.cs" />
     <Compile Include="AssetImportTests.cs" />
     <Compile Include="TestModelImport.cs" />
+    <Compile Include="TestModelMaterialSlots.cs" />
     <Compile Include="TestDependencyResolver.cs" />
     <Compile Include="TestPrefabAsset.cs" />
     <Compile Include="TestSceneUpgrader.cs" />

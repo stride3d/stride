@@ -134,19 +134,83 @@ namespace Stride.Importer.ThreeD
             }
         }
 
-        public unsafe Model Convert(string inputFilename, string outputFilename, bool deduplicateMaterials)
+        /// <summary>
+        /// Imports the model of a file.
+        /// </summary>
+        /// <param name="inputFilename">The file to import.</param>
+        /// <param name="outputFilename">The location of the output.</param>
+        /// <param name="deduplicateMaterials">Whether materials with the same properties are merged.</param>
+        /// <param name="materialSlots">
+        /// The names of the material slots of the model asset, which <see cref="Mesh.MaterialIndex"/> then refers to.
+        /// When <c>null</c>, it refers to the materials of the file.
+        /// </param>
+        /// <returns>The imported model.</returns>
+        public unsafe Model Convert(string inputFilename, string outputFilename, bool deduplicateMaterials, IReadOnlyList<string> materialSlots = null)
         {
             uint importFlags = 0;
 
-            aiPostProcessSteps postProcessFlags = 0;
+            var scene = Initialize(inputFilename, outputFilename, importFlags, 0);
+
+            // Deduplication runs on its own, to read the material of each mesh before and after it
+            var meshMaterials = materialSlots != null ? GetMeshMaterialSlotNames(scene) : null;
             if (deduplicateMaterials)
             {
-                postProcessFlags |= aiPostProcessSteps.aiProcess_RemoveRedundantMaterials;
+                scene = assimp.ApplyPostProcessing(scene, (uint)aiPostProcessSteps.aiProcess_RemoveRedundantMaterials);
             }
 
-            var scene = Initialize(inputFilename, outputFilename, importFlags, postProcessFlags);
-            return ConvertAssimpScene(scene);
+            var meshSlots = materialSlots != null ? FindMeshSlots(scene, meshMaterials, materialSlots) : null;
+            return ConvertAssimpScene(scene, meshSlots);
         }
+
+        /// <summary>
+        /// Finds the material slot of each mesh, by the name of its material or else of the material deduplication merged it into, and last by position.
+        /// </summary>
+        private unsafe int[] FindMeshSlots(Scene* scene, string[] meshMaterials, IReadOnlyList<string> materialSlots)
+        {
+            var slotIndices = new Dictionary<string, int>();
+            for (var i = 0; i < materialSlots.Count; i++)
+            {
+                if (materialSlots[i] != null)
+                    slotIndices.TryAdd(materialSlots[i], i);
+            }
+
+            var deduplicatedMaterials = GetMeshMaterialSlotNames(scene);
+            var meshSlots = new int[scene->MNumMeshes];
+            var notFound = new HashSet<string>();
+            var anyFound = false;
+            for (var i = 0; i < meshSlots.Length; i++)
+            {
+                if (slotIndices.TryGetValue(meshMaterials[i], out var slot) || slotIndices.TryGetValue(deduplicatedMaterials[i], out slot))
+                {
+                    meshSlots[i] = slot;
+                    anyFound = true;
+                }
+                else
+                {
+                    meshSlots[i] = (int)scene->MMeshes[i]->MMaterialIndex;
+                    notFound.Add(meshMaterials[i]);
+                }
+            }
+
+            if (anyFound && notFound.Count > 0)
+                Logger.Warning($"The model asset has no material slot named {string.Join(", ", notFound)}, so these meshes use the slot at the position of their material. Update the asset from its source if the file changed.");
+
+            return meshSlots;
+        }
+
+        private unsafe string[] GetMeshMaterialSlotNames(Scene* scene)
+        {
+            var materialNames = new Dictionary<IntPtr, string>();
+            GenerateMaterialNames(scene, materialNames);
+
+            var names = new string[scene->MNumMeshes];
+            for (uint i = 0; i < scene->MNumMeshes; i++)
+                names[i] = ToMaterialSlotName(materialNames[(IntPtr)scene->MMaterials[scene->MMeshes[i]->MMaterialIndex]]);
+            return names;
+        }
+
+        // Replace slashes with an underscore to indicate it is not absolute to Strides asset system.
+        private static string ToMaterialSlotName(string materialName) => materialName.Replace('/', '_');
 
         public unsafe AnimationInfo ConvertAnimation(string inputFilename, string outputFilename, int animationIndex)
         {
@@ -193,7 +257,7 @@ namespace Stride.Importer.ThreeD
             return scene;
         }
 
-        private unsafe Model ConvertAssimpScene(Scene* scene)
+        private unsafe Model ConvertAssimpScene(Scene* scene, int[] meshSlots)
         {
             modelData = new Model();
 
@@ -233,7 +297,7 @@ namespace Stride.Importer.ThreeD
                     {
                         Draw = meshInfo.Draw,
                         Name = meshInfo.Name,
-                        MaterialIndex = meshInfo.MaterialIndex,
+                        MaterialIndex = meshSlots?[i] ?? meshInfo.MaterialIndex,
                         NodeIndex = nodeIndex,
                     };
 
@@ -1194,8 +1258,7 @@ namespace Stride.Importer.ThreeD
             for (uint i = 0; i < scene->MNumMaterials; i++)
             {
                 var lMaterial = scene->MMaterials[i];
-                // Replace slashes with an underscore to indicate it is not absolute to Strides asset system.
-                var materialName = materialNames[(IntPtr)lMaterial].Replace('/', '_');
+                var materialName = ToMaterialSlotName(materialNames[(IntPtr)lMaterial]);
 
                 materials.Add(materialName, ProcessMeshMaterial(scene, lMaterial));
             }
