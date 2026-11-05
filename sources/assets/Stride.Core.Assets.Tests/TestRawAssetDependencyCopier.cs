@@ -45,9 +45,35 @@ public sealed class TestRawAssetDependencyCopier : IDisposable
     {
         var texture = Write(Path.Combine(source, "color.png"));
         File.WriteAllText(Path.Combine(resources, "color.png"), "existing");
+        var logger = new LoggerResult();
 
-        Assert.Empty(Copy(new RawAssetDependency(texture, "color.png")));
+        Assert.Empty(Copy(logger, new RawAssetDependency(texture, "color.png")));
         Assert.Equal("existing", File.ReadAllText(Path.Combine(resources, "color.png")));
+        Assert.Contains(logger.Messages, message => message.Type == LogMessageType.Warning && message.Text.Contains("color.png"));
+    }
+
+    [Fact]
+    public void ExistingFileWithTheSameContentsGivesNoWarning()
+    {
+        var texture = Write(Path.Combine(source, "color.png"));
+        File.Copy(texture.ToOSPath(), Path.Combine(resources, "color.png"));
+        var logger = new LoggerResult();
+
+        Assert.Empty(Copy(logger, new RawAssetDependency(texture, "color.png")));
+        Assert.DoesNotContain(logger.Messages, message => message.Type == LogMessageType.Warning);
+    }
+
+    [Fact]
+    public void FileThatCannotBeCopiedDoesNotStopTheOthers()
+    {
+        var missing = new UFile(Path.Combine(source, "missing.png"));
+        var texture = Write(Path.Combine(source, "color.png"));
+        var logger = new LoggerResult();
+
+        var copied = Copy(logger, new RawAssetDependency(missing, "missing.png"), new RawAssetDependency(texture, "color.png"));
+
+        Assert.Equal([Path.Combine(resources, "color.png")], copied.Select(file => file.ToOSPath()));
+        Assert.Contains(logger.Messages, message => message.Type == LogMessageType.Warning && message.Text.Contains("missing.png"));
     }
 
     [Fact]

@@ -99,6 +99,12 @@ namespace Stride.Importer.ThreeD
         private static string FindTexture(string modelDirectory, string reference)
         {
             var normalized = reference.Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar);
+
+            // The file next to the model comes first, because that is the one the importer reads.
+            var nextToModel = Path.Combine(modelDirectory, Path.GetFileName(normalized));
+            if (System.IO.File.Exists(nextToModel))
+                return nextToModel;
+
             string asReferenced = null;
             try
             {
@@ -108,11 +114,7 @@ namespace Stride.Importer.ThreeD
             {
             }
 
-            if (asReferenced != null && System.IO.File.Exists(asReferenced))
-                return asReferenced;
-
-            var nextToModel = Path.Combine(modelDirectory, Path.GetFileName(normalized));
-            return System.IO.File.Exists(nextToModel) ? nextToModel : null;
+            return asReferenced != null && System.IO.File.Exists(asReferenced) ? asReferenced : null;
         }
 
         private sealed class Recorder
@@ -120,6 +122,7 @@ namespace Stride.Importer.ThreeD
             public readonly List<string> OpenedFiles = new();
         }
 
+        // An exception that leaves an UnmanagedCallersOnly method ends the process, so the callbacks report failures like the C file API does.
         [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
         private static AssimpFile* Open(FileIO* fileIO, byte* path, byte* mode)
         {
@@ -127,10 +130,11 @@ namespace Stride.Importer.ThreeD
             if (modeText.Contains('w') || modeText.Contains('a') || modeText.Contains('+'))
                 return null;
 
-            var fullPath = Path.GetFullPath(Marshal.PtrToStringUTF8((IntPtr)path)!);
+            string fullPath;
             FileStream stream;
             try
             {
+                fullPath = Path.GetFullPath(Marshal.PtrToStringUTF8((IntPtr)path)!);
                 stream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             }
             catch (Exception)
@@ -169,15 +173,21 @@ namespace Stride.Importer.ThreeD
             if (size == 0 || count == 0)
                 return 0;
 
-            var stream = GetStream(file);
-            var total = checked((long)(size * count));
             long read = 0;
-            while (read < total)
+            try
             {
-                var chunk = stream.Read(new Span<byte>(buffer + read, (int)Math.Min(total - read, int.MaxValue)));
-                if (chunk == 0)
-                    break;
-                read += chunk;
+                var stream = GetStream(file);
+                var total = checked((long)(size * count));
+                while (read < total)
+                {
+                    var chunk = stream.Read(new Span<byte>(buffer + read, (int)Math.Min(total - read, int.MaxValue)));
+                    if (chunk == 0)
+                        break;
+                    read += chunk;
+                }
+            }
+            catch (Exception)
+            {
             }
             // Like fread, the result counts whole elements.
             return (nuint)(read / (long)size);
@@ -187,10 +197,30 @@ namespace Stride.Importer.ThreeD
         private static nuint Write(AssimpFile* file, byte* buffer, nuint size, nuint count) => 0;
 
         [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-        private static nuint Tell(AssimpFile* file) => (nuint)GetStream(file).Position;
+        private static nuint Tell(AssimpFile* file)
+        {
+            try
+            {
+                return (nuint)GetStream(file).Position;
+            }
+            catch (Exception)
+            {
+                return 0;
+            }
+        }
 
         [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-        private static nuint Size(AssimpFile* file) => (nuint)GetStream(file).Length;
+        private static nuint Size(AssimpFile* file)
+        {
+            try
+            {
+                return (nuint)GetStream(file).Length;
+            }
+            catch (Exception)
+            {
+                return 0;
+            }
+        }
 
         [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
         private static Return Seek(AssimpFile* file, nuint offset, Origin origin)

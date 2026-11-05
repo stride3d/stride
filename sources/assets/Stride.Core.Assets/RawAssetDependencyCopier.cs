@@ -16,8 +16,9 @@ public static class RawAssetDependencyCopier
     /// relative to <paramref name="copiedFile"/>.
     /// </summary>
     /// <remarks>
-    /// Files that already exist next to the copy are left alone. A file that would go outside the copy's folder is not copied,
-    /// and a warning is logged: the importer reports it as missing when the asset is imported.
+    /// Files that already exist next to the copy are left alone, and a warning is logged if their contents differ. A file that
+    /// would go outside the copy's folder or that can't be copied is skipped, and a warning is logged: the importer reports it as
+    /// missing when the asset is imported.
     /// </remarks>
     /// <param name="originalFile">The raw asset that was copied.</param>
     /// <param name="copiedFile">The copy.</param>
@@ -40,15 +41,32 @@ public static class RawAssetDependencyCopier
                     continue;
                 }
 
-                if (File.Exists(target))
-                    continue;
+                try
+                {
+                    if (File.Exists(target))
+                    {
+                        if (!HasSameContents(dependency.Source.ToOSPath(), target))
+                            logger.Warning($"'{target}' already exists and is different from '{dependency.Source}', which '{originalFile.GetFileName()}' needs. The existing file was kept, so '{originalFile.GetFileName()}' uses it.");
+                        continue;
+                    }
 
-                Directory.CreateDirectory(Path.GetDirectoryName(target)!);
-                File.Copy(dependency.Source.ToOSPath(), target);
-                copied.Add(new UFile(target));
+                    Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+                    File.Copy(dependency.Source.ToOSPath(), target);
+                    copied.Add(new UFile(target));
+                }
+                catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+                {
+                    logger.Warning($"'{dependency.Source}', which '{originalFile.GetFileName()}' needs, could not be copied: {e.Message}");
+                }
             }
         }
 
         return copied;
+    }
+
+    private static bool HasSameContents(string first, string second)
+    {
+        return new FileInfo(first).Length == new FileInfo(second).Length
+            && File.ReadAllBytes(first).AsSpan().SequenceEqual(File.ReadAllBytes(second));
     }
 }

@@ -49,6 +49,21 @@ public sealed class TestModelTextureImport : IDisposable
     }
 
     [Fact]
+    public void TextureNextToTheModelComesBeforeTheReferencedPath()
+    {
+        WriteImage("textures/color.png");
+        WriteImage("color.png");
+        File.WriteAllText(Path.Combine(directory, "model.mtl"), "newmtl Painted\nmap_Kd textures/color.png\n");
+        var model = Path.Combine(directory, "model.obj");
+        File.WriteAllText(model, "mtllib model.mtl\nv 0 0 0\nv 1 0 0\nv 0 1 0\nvt 0 0\nvt 1 0\nvt 0 1\nusemtl Painted\nf 1/1 2/2 3/3\n");
+
+        var files = new MeshConverter(null).FindSourceFiles(model);
+
+        Assert.Contains((Path.Combine(directory, "color.png"), "color.png"), files);
+        Assert.DoesNotContain((Path.Combine(directory, "textures", "color.png"), "color.png"), files);
+    }
+
+    [Fact]
     public void GltfFindsItsBufferAndImagesWithoutWritingFiles()
     {
         WriteImage("images/color.png");

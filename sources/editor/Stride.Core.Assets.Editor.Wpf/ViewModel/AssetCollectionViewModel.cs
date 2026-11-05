@@ -647,6 +647,16 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 Tr._p("Button", "No")
             ], 1, 2);
 
+            // Created before the source files are copied, because it only shows messages logged after this.
+            var workProgress = new WorkProgressViewModel(ServiceProvider, logger)
+            {
+                Title = Tr._p("Title", "Add asset…"),
+                KeepOpen = KeepOpen.OnWarningsOrErrors,
+                IsIndeterminate = true,
+                IsCancellable = false, // The process is not cancellable at the beginning.
+            };
+            workProgress.RegisterProgressStatus(logger, true);
+
             var yesToAll = false;
             var overwriteAll = false;
             var finalPath = string.Empty;
@@ -767,15 +777,6 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 await Dialogs.MessageBoxAsync(Tr._p("Message", "Unable to retrieve template generator for the selected template. Aborting."), MessageBoxButton.OK, MessageBoxImage.Error);
                 return newAssets;
             }
-
-            var workProgress = new WorkProgressViewModel(ServiceProvider, logger)
-            {
-                Title = Tr._p("Title", "Add asset…"),
-                KeepOpen = KeepOpen.OnWarningsOrErrors,
-                IsIndeterminate = true,
-                IsCancellable = false, // The process is not cancellable at the beginning.
-            };
-            workProgress.RegisterProgressStatus(logger, true);
 
             try
             {
