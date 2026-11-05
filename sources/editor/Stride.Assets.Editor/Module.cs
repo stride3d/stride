@@ -2,8 +2,9 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Runtime.CompilerServices;
-using Stride.Assets.Presentation;
+using Stride.Core.Assets.Quantum;
 using Stride.Core.Reflection;
+using Stride.Editor.Thumbnails;
 
 namespace Stride.Assets.Editor;
 
@@ -12,12 +13,14 @@ internal static class Module
     [Core.ModuleInitializer]
     public static void Initialize()
     {
-        // Register the layers below this assembly first, so they are scanned first: the WPF-free shared part and the
-        // toolkit-neutral asset view models (which register the engine asset assemblies)
-        RuntimeHelpers.RunModuleConstructor(typeof(CommonModule).Module.ModuleHandle);
+        // Register the layers below this assembly first, so they are scanned first: the editor layer and the asset view models
+        // (which register the engine asset assemblies)
+        RuntimeHelpers.RunModuleConstructor(typeof(ThumbnailCompilerBase<>).Module.ModuleHandle);
         RuntimeHelpers.RunModuleConstructor(typeof(Presentation.Module).Module.ModuleHandle);
-        // The previews and thumbnail compilers of this assembly are discovered through the assets assemblies
+        // Gizmos, previews, thumbnail compilers, editor game services and paste processors are discovered through the assets
+        // assemblies
         AssemblyRegistry.Register(typeof(Module).Assembly, AssemblyCommonCategories.Assets);
+        AssetQuantumRegistry.RegisterAssembly(typeof(Module).Assembly);
         // The default plugin (StrideEditorPlugin) is registered by the cross-platform editor host, so that loading this
         // assembly in another editor does not add it
     }
