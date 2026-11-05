@@ -5,7 +5,7 @@ Temporary home of the WPF-free code of `Stride.Assets.Presentation.Wpf`, so that
 ## Rules
 
 * No dependency on WPF, Windows Forms or Avalonia, and no Windows-only target framework (`$(StrideXplatEditorTargetFramework)`).
-* References: `Stride.Assets.Models` and `Stride.Editor.Common`.
+* References: `Stride.Assets.Models` and `Stride.Editor`.
 * Types keep the namespaces they had in `Stride.Assets.Presentation.Wpf`, which references this project, so WPF code compiles unchanged.
   Since Phase 3, types that the consolidation moves here from the cross-platform `Stride.Assets.Editor` keep that project's
   namespaces instead.
@@ -22,7 +22,7 @@ Since the editor cleanup also the animation and prefab preview compilers (`Anima
 Since Phase 3 (editor layer) also the two session-bound services that know Stride asset types, shared by both editors under
 the names of the cross-platform `Stride.Assets.Editor`: `Stride.Assets.Editor.Build.StrideShaderImporter` and
 `Stride.Assets.Editor.EditorGame.ContentLoader.EditorContentLoader`. The content loader reads two internal members of
-`GameStudioDatabase` (`Stride.Editor.Common` gives this project its internals).
+`GameStudioDatabase` (`Stride.Editor` gives this project its internals).
 
 Since Phase 3 (asset view models) also the asset view models that both editors share (animation, effect log, graphics
 compositor, material, model, precompiled sprite font, procedural model, skeleton, skybox, sprite font, sprite sheet; namespace
