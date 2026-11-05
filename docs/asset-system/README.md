@@ -33,9 +33,9 @@ flowchart LR
 | Runtime type | `DataContract`-decorated class | Engine feature assembly (e.g. `Stride.Graphics`) | `sources/engine/` |
 | Asset class | `Asset` subclass | `Stride.Assets` or feature assembly (e.g. `Stride.Assets.Models`) | `sources/engine/` |
 | Compiler | `AssetCompilerBase` subclass | Same assembly as the asset class | `sources/engine/` (same folder as asset class) |
-| Editor Tier 2 | `AssetViewModel<T>` subclass | `Stride.Assets.Presentation.Wpf` | `sources/editor/Stride.Assets.Presentation.Wpf/ViewModel/` |
-| Editor Tier 3 VM | `AssetEditorViewModel` subclass | `Stride.Assets.Presentation.Wpf` | `sources/editor/Stride.Assets.Presentation.Wpf/AssetEditors/` |
-| Editor Tier 3 View | `IEditorView` XAML control | `Stride.Assets.Presentation.Wpf` | `sources/editor/Stride.Assets.Presentation.Wpf/AssetEditors/` |
+| Editor Tier 2 | `AssetViewModel<T>` subclass | `Stride.Assets.Editor.Wpf` | `sources/editor/Stride.Assets.Editor.Wpf/ViewModel/` |
+| Editor Tier 3 VM | `AssetEditorViewModel` subclass | `Stride.Assets.Editor.Wpf` | `sources/editor/Stride.Assets.Editor.Wpf/AssetEditors/` |
+| Editor Tier 3 View | `IEditorView` XAML control | `Stride.Assets.Editor.Wpf` | `sources/editor/Stride.Assets.Editor.Wpf/AssetEditors/` |
 | Template | `.sdtpl` YAML file | `Stride.Assets.Templates` (package shared by both editors) | `sources/editor/Stride.Assets.Templates/Templates/Assets/` |
 
 ## Choose a Base Class for the Asset

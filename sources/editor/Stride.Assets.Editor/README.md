@@ -3,7 +3,7 @@
 This project is the main project for the Stride assets in the editor, shared by the WPF and the cross-platform (Avalonia)
 Game Studio: the asset editors, gizmos, editor games and their services, previews, thumbnail compilers, asset templates and
 node presenter updaters of the Stride asset types. **Level: Editor.** `Stride.Assets.Editor.Avalonia` and
-`Stride.Assets.Presentation.Wpf` add the views of each toolkit.
+`Stride.Assets.Editor.Wpf` add the views of each toolkit.
 
 ## Dependencies
 
