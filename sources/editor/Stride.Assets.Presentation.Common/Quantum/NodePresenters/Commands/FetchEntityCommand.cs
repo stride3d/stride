@@ -1,17 +1,20 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable enable
 
-using Stride.Assets.Editor.ViewModels;
+using System;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core;
-using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Engine;
 
 namespace Stride.Assets.Editor.Quantum.NodePresenters.Commands;
 
-internal sealed class FetchEntityCommand : SyncNodePresenterCommandBase
+/// <summary>
+/// Selects, in its editor, the entity of an entity or component property, and moves the camera onto it.
+/// </summary>
+public sealed class FetchEntityCommand : SyncNodePresenterCommandBase
 {
     /// <summary>
     /// The name of this command.
@@ -45,15 +48,16 @@ internal sealed class FetchEntityCommand : SyncNodePresenterCommandBase
         if (entity is null)
             return;
 
-        if (!hierarchy.ServiceProvider.Get<IAssetEditorsManager>().TryGetAssetEditor<EntityHierarchyEditorViewModel>(hierarchy, out var editor))
+        // The editor that shows the hierarchy: for a child scene, the editor of its root scene
+        if (hierarchy.HierarchyRoot?.Editor is not { } editor)
             return;
 
         var partId = new AbsoluteId(hierarchy.Id, entity.Id);
         if (editor.FindPartViewModel(partId) is not EntityViewModel viewModel)
             return;
 
-        editor.SelectedItems.Clear();
-        editor.SelectedItems.Add(viewModel);
+        editor.ClearSelection();
+        editor.SelectedContent.Add(viewModel);
         editor.FocusOnEntityAsync(viewModel).Forget();
     }
 }
