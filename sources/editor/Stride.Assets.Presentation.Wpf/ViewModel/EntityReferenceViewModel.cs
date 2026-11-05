@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using Stride.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Assets.Presentation.NodePresenters.Commands;

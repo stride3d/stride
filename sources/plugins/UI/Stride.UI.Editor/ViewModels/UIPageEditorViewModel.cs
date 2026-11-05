@@ -9,6 +9,7 @@ using Stride.Core.Annotations;
 using Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.UI.Editor.ViewModels;
 using Stride.UI.Editor.Services;
 using Stride.Assets.Presentation.ViewModel;

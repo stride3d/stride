@@ -39,6 +39,14 @@ procedural model, skybox and script generators), with the view models of their t
 `ImportModelFromFileViewModel`) and the prompt interfaces that each editor implements (`IScriptNamePrompt`, `IModelImportPrompt`).
 `StrideAssetTemplates.Register` registers them: `StrideTemplates` in WPF, `StrideAvaloniaTemplates` in the cross-platform editor.
 
+Since Phase 3 (scene editors) also the view models of the scene and prefab hierarchies that both editors share (namespace
+`Stride.Assets.Presentation.ViewModels`): the asset view models of the scene, the prefab and the game settings
+(`SceneViewModel`, `PrefabViewModel`, `EntityHierarchyViewModel`, `GameSettingsViewModel`), and the items of the hierarchy
+(`EntityHierarchyItemViewModel`, `EntityHierarchyElementViewModel`, `EntityHierarchyRootViewModel`, `SceneRootViewModel`,
+`PrefabRootViewModel`, `EntityViewModel`, `EntityFolderViewModel`, `EntityFolderOperation`). The asset creates them, and they
+reach the editor through `IEntityHierarchyEditorViewModel`, which each editor implements; the root tells the editor which
+entities to add to its game or remove from it (`EntityAdded`, `EntityRemoved`, `SelectableChanged`).
+
 ## Notes
 
 * This project goes away in Phase 3 of the port, when its code merges into the agnostic editor projects.

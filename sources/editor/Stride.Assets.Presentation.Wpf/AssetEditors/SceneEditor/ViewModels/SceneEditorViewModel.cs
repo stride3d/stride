@@ -1,12 +1,15 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Threading.Tasks;
+using Stride.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Annotations;
+using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Extensions;
 using Stride.Core.Threading;
 using Stride.Core.Presentation.Collections;
@@ -33,8 +36,6 @@ namespace Stride.Assets.Presentation.AssetEditors.SceneEditor.ViewModels
         /// The scene that was initially opened by this editor.
         /// </summary>
         private SceneViewModel mainScene;
-        private readonly AsyncLock loadMutex = new AsyncLock();
-        private readonly TaskCompletionSource<int> initialized = new TaskCompletionSource<int>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SceneEditorViewModel"/> class.
@@ -60,8 +61,6 @@ namespace Stride.Assets.Presentation.AssetEditors.SceneEditor.ViewModels
 
         public bool DisplayCameraPreview { get => Preview.IsActive; set { SetValue(Preview.IsActive != value, () => Preview.IsActive = value); } }
 
-        public Task Initialized => initialized.Task;
-
         /// <summary>
         /// A collection of all scenes opened in this editor.
         /// </summary>
@@ -81,7 +80,7 @@ namespace Stride.Assets.Presentation.AssetEditors.SceneEditor.ViewModels
         /// <inheritdoc />
         protected override AssetCompositeItemViewModel CreateRootPartViewModel()
         {
-            return new SceneRootViewModel(this, Asset, loadMutex);
+            return new SceneRootViewModel(Asset, this);
         }
 
         /// <inheritdoc />
@@ -142,13 +141,29 @@ namespace Stride.Assets.Presentation.AssetEditors.SceneEditor.ViewModels
             }
             // Load the main scene (the one that was initially opened by this editor, not necessarily the root scene)
             mainSceneRoot?.RequestLoading(true).Forget();
-            // Notify initialization completed
-            initialized.SetResult(0);
             // Expand the root by default
             root.IsExpanded = true;
             // Set the main scene as currently active (fallback to root)
             ActiveRoot = mainSceneRoot ?? root;
             return true;
+        }
+
+        /// <inheritdoc />
+        public override Task UpdateSceneOffsetAsync(SceneRootViewModel root)
+        {
+            return Controller.UpdateSceneAnchorPosition(root);
+        }
+
+        /// <inheritdoc />
+        protected override Task LoadRootsIntoGameAsync(IReadOnlyCollection<EntityHierarchyRootViewModel> roots)
+        {
+            return Controller.LoadScenes(roots.Cast<SceneRootViewModel>().ToList());
+        }
+
+        /// <inheritdoc />
+        protected override Task UnloadRootsFromGameAsync(IReadOnlyCollection<EntityHierarchyRootViewModel> roots)
+        {
+            return Controller.UnloadScenes(roots.Cast<SceneRootViewModel>());
         }
 
         /// <inheritdoc />

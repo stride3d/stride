@@ -1,6 +1,9 @@
 Plugin: Stride.Assets.Presentation.StrideSharedAssetsPlugin
 AssetViewModelTypes:
   Stride.Assets.Effect.EffectLogAsset -> Stride.Assets.Presentation.ViewModels.EffectLogViewModel
+  Stride.Assets.Entities.PrefabAsset -> Stride.Assets.Presentation.ViewModels.PrefabViewModel
+  Stride.Assets.Entities.SceneAsset -> Stride.Assets.Presentation.ViewModels.SceneViewModel
+  Stride.Assets.GameSettingsAsset -> Stride.Assets.Presentation.ViewModels.GameSettingsViewModel
   Stride.Assets.Materials.MaterialAsset -> Stride.Assets.Presentation.ViewModels.MaterialViewModel
   Stride.Assets.Models.AnimationAsset -> Stride.Assets.Presentation.ViewModels.AnimationViewModel
   Stride.Assets.Models.ModelAsset -> Stride.Assets.Presentation.ViewModels.ModelViewModel

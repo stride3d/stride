@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Stride.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core;
 using Stride.Core.Extensions;
@@ -315,7 +316,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             var material = modelComp.Materials.SafeGet(materialIndex);
             if (material == null)
             {
-                var modelViewModel = ContentReferenceHelper.GetReferenceTarget(viewModel.Editor.Session, modelComp.Model);
+                var modelViewModel = ContentReferenceHelper.GetReferenceTarget(editor.Session, modelComp.Model);
                 var model = modelViewModel?.AssetItem.Asset as IModelAsset;
                 if (model != null && model.Materials.Count > materialIndex)
                 {
@@ -326,7 +327,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             if (material == null)
                 return;
 
-            var materialAsset = ContentReferenceHelper.GetReferenceTarget(viewModel.Editor.Session, material);
+            var materialAsset = ContentReferenceHelper.GetReferenceTarget(editor.Session, material);
             editor.Session.AssetCollection.SelectAssetCommand.Execute(materialAsset);
         }
 

@@ -4,6 +4,7 @@
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Assets.Presentation.ViewModel;
+using Stride.Assets.Presentation.ViewModels;
 using Stride.Core;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Presentation.Quantum.Presenters;
