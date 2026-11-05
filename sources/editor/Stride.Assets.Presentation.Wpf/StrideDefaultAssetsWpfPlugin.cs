@@ -46,7 +46,7 @@ using Stride.Core.Assets.Presentation.Components.Properties;
 
 namespace Stride.Assets.Presentation
 {
-    public sealed class StrideDefaultAssetsPlugin : StrideAssetsWpfPlugin
+    public sealed class StrideDefaultAssetsWpfPlugin : StrideAssetsWpfPlugin
     {
         private static ResourceDictionary imageDictionary;
         private static ResourceDictionary animationPropertyTemplateDictionary;
@@ -70,7 +70,7 @@ namespace Stride.Assets.Presentation
         /// </summary>
         public static IReadOnlyObservableList<EntityFactoryCategory> EntityFactoryCategories => EntityFactoryCategoryList;
 
-        public StrideDefaultAssetsPlugin()
+        public StrideDefaultAssetsWpfPlugin()
         {
             LoadDefaultTemplates();
         }
