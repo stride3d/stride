@@ -6,6 +6,7 @@ using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Reflection;
+using Stride.Core.Assets.Presentation.Components.Properties;
 
 namespace Stride.Core.Assets.Editor.Settings.ViewModels
 {

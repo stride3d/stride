@@ -10,8 +10,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Stride.Core;
 using Stride.Core.Assets.Editor.Components.Properties;
-using Stride.Core.Assets.Editor.View.Behaviors;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Collections;
@@ -20,6 +18,7 @@ using Stride.Core.Quantum;
 using Stride.Core.Serialization;
 using Stride.Core.Threading;
 using Stride.Engine;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.ViewModels;
 

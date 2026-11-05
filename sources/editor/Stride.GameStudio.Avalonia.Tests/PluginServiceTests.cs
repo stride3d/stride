@@ -24,7 +24,6 @@ using Stride.Core.Assets;
 using Stride.Core.Assets.Editor;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Avalonia;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Diagnostics;
@@ -36,6 +35,9 @@ using Stride.Editor.EditorGame.Game;
 using Stride.Editor.Preview;
 using Stride.Editor.Preview.ViewModel;
 using Stride.GameStudio.Avalonia.Tests.Helpers;
+using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Assets.Presentation.Annotations;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.GameStudio.Avalonia.Tests;
 

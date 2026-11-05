@@ -7,6 +7,7 @@ using Stride.Core.Assets.Quantum;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Settings;
+using Stride.Core.Assets.Presentation.Components.Properties;
 
 namespace Stride.Core.Assets.Editor.Common.Tests;
 

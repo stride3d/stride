@@ -4,9 +4,10 @@
 using Stride.Core.Annotations;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
 using Stride.Core.Assets.Editor.Tests.Helpers;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Presentation.Quantum.ViewModels;
 using Stride.Core.Presentation.Quantum.ViewModels;
+using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Tests;
 

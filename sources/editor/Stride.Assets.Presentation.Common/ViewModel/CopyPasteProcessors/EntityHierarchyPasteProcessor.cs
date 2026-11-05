@@ -5,13 +5,13 @@ using System;
 using System.Threading.Tasks;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors;
 using Stride.Core.Assets.Quantum;
 using Stride.Core;
 using Stride.Core.Quantum;
 using Stride.Assets.Entities;
 using Stride.Assets.Quantum;
 using Stride.Engine;
+using Stride.Core.Assets.Editor.Components.CopyPasteProcessors;
 
 namespace Stride.Assets.Presentation.ViewModel.CopyPasteProcessors
 {

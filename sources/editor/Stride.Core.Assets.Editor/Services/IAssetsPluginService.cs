@@ -7,8 +7,8 @@ using Stride.Core.Diagnostics;
 
 #nullable enable
 
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Presentation.Services;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Services;
 public interface IAssetsPluginService : IPresentationPluginService

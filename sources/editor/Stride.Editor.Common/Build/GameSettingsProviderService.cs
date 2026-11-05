@@ -3,10 +3,10 @@
 using System;
 using System.Linq;
 using Stride.Core.Assets;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Presentation.Extensions;
 using Stride.Assets;
 using Stride.Data;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Editor.Build
 {

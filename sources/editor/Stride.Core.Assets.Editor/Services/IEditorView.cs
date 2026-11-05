@@ -3,8 +3,8 @@
 #nullable disable
 
 using System.Threading.Tasks;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Annotations;
+using Stride.Core.Assets.Editor.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Services
 {

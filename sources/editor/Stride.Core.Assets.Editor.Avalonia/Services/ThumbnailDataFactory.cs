@@ -4,6 +4,7 @@
 using System.Reflection;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Storage;
+using Stride.Core.Assets.Presentation.Services;
 
 namespace Stride.Core.Assets.Editor.Avalonia.Services;
 

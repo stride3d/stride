@@ -3,7 +3,7 @@
 #nullable disable
 using System;
 
-namespace Stride.Core.Assets.Editor.Components.Properties
+namespace Stride.Core.Assets.Presentation.Components.Properties
 {
     [Flags]
     public enum TargetPackage

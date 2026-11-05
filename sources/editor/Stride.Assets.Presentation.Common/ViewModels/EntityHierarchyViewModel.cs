@@ -5,7 +5,6 @@
 using System;
 using Stride.Animations;
 using Stride.Assets.Entities;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Quantum;
 using Stride.Core.Reflection;

@@ -5,8 +5,8 @@ using Stride.Assets.Entities;
 using Stride.Assets.Editor.EntityFactories;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Core.Assets;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Engine;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.Common.Tests;
 

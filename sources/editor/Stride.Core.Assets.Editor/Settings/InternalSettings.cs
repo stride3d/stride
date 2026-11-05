@@ -2,9 +2,9 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #nullable disable
 
-using Stride.Core.Assets.Editor.ViewModel.Logs;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Settings;
+using Stride.Core.Assets.Presentation.ViewModels.Logs;
 
 namespace Stride.Core.Assets.Editor.Settings;
 

@@ -34,6 +34,7 @@ using Stride.GameStudio.Layout;
 
 #if DEBUG
 using Stride.Assets.Presentation.Test;
+using Stride.Core.Assets.Presentation.ViewModels;
 #endif
 
 namespace Stride.GameStudio.View

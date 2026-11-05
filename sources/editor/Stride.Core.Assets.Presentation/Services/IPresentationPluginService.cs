@@ -2,8 +2,8 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #nullable enable
 
-using Stride.Core.Assets.Editor.Components.Properties;
-using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Presentation.Components.Properties;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Presentation.Services;
 

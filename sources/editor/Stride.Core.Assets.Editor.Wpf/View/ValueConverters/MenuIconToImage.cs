@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Presentation.ValueConverters;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.View.ValueConverters
 {

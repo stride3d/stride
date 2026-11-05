@@ -4,8 +4,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.IO;
+using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Components.Properties
 {

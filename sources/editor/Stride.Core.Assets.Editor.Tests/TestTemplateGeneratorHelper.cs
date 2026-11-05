@@ -3,9 +3,9 @@
 
 using Stride.Core.Assets.Editor.Common.Tests.Helpers;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
-using Stride.Core.Assets.Editor.ViewModel.Progress;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Diagnostics;
+using Stride.Core.Assets.Editor.ViewModels.Progress;
 
 namespace Stride.Core.Assets.Editor.Common.Tests;
 

@@ -2,10 +2,10 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #nullable disable
 using System;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Extensions;
 using Stride.Core.Reflection;
 using Stride.Core.Serialization;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Services
 {

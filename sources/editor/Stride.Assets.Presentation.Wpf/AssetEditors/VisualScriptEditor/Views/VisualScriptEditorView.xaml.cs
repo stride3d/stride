@@ -11,6 +11,7 @@ using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Graph.Behaviors;
 using Stride.Assets.Scripts;
+using Stride.Core.Assets.Editor.ViewModels;
 using Block = Stride.Assets.Scripts.Block;
 
 namespace Stride.Assets.Presentation.AssetEditors.VisualScriptEditor

@@ -9,9 +9,9 @@ using Avalonia.Input;
 using Avalonia.Input.Raw;
 using Avalonia.VisualTree;
 using Stride.Core.Assets.Editor.Avalonia.DragDrop;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.GameStudio.Avalonia.Tests.Helpers;
 using Stride.GameStudio.Avalonia.Views;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.GameStudio.Avalonia.Tests;
 

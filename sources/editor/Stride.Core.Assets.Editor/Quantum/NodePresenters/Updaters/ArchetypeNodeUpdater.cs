@@ -4,7 +4,7 @@
 
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
-using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters;
 

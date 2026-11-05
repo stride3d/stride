@@ -6,9 +6,6 @@ using System.Reflection;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Assets.Editor.ViewModel.Logs;
-using Stride.Core.Assets.Editor.ViewModel.Progress;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Diagnostics;
@@ -18,6 +15,11 @@ using Stride.Core.Presentation.Dirtiables;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Storage;
+using Stride.Core.Assets.Editor.ViewModels.Progress;
+using Stride.Core.Assets.Presentation.Components.Properties;
+using Stride.Core.Assets.Presentation.Services;
+using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels.Logs;
 
 namespace Stride.Core.Assets.Editor.Common.Tests.Helpers;
 

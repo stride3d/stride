@@ -13,7 +13,6 @@ using System.Threading.Tasks.Dataflow;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Compiler;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core;
 using Stride.Core.Diagnostics;
@@ -31,6 +30,7 @@ using Stride.Editor.Build;
 using Stride.Editor.EditorGame.ContentLoader;
 using Stride.Editor.EditorGame.Game;
 using Stride.Graphics;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Editor.EditorGame.ContentLoader
 {

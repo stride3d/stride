@@ -3,12 +3,12 @@
 #nullable disable
 
 using Stride.Core.Assets.Editor.Settings;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Templates;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Assets.Editor.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 

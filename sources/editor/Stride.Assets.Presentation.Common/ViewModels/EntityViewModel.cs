@@ -14,8 +14,6 @@ using Stride.Assets.Quantum;
 using Stride.Core;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Editor.Components.Properties;
-using Stride.Core.Assets.Editor.View.Behaviors;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Commands;
@@ -23,6 +21,7 @@ using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Quantum;
 using Stride.Engine;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.ViewModels;
 

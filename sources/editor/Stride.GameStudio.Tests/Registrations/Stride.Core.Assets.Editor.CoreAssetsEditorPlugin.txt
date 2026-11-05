@@ -12,7 +12,7 @@ TypeImages:
 TemplateProviders:
 CopyProcessors:
 PasteProcessors:
-  Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors.AssetPropertyPasteProcessor
+  Stride.Core.Assets.Editor.Components.CopyPasteProcessors.AssetPropertyPasteProcessor
   Stride.Core.Assets.Editor.Components.CopyPasteProcessors.AssetItemPasteProcessor
 PostPasteProcessors:
 SettingsKeys:

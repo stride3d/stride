@@ -20,6 +20,7 @@ using Microsoft.Xaml.Behaviors;
 using Stride.GameStudio.ViewModels;
 using Stride.GameStudio.Helpers;
 using Stride.GameStudio.View;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.GameStudio.Layout
 {

@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Editor.EditorGame.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
 {

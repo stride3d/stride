@@ -2,10 +2,10 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Assets.Editor.ViewModels.Preview;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Presentation.Commands;
 using Stride.Editor.Annotations;
 using Stride.Editor.Preview;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.SpriteStudio.Editor;
 

@@ -12,7 +12,6 @@ using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Collections;
@@ -23,6 +22,7 @@ using Stride.Core.Quantum;
 using Stride.Core.Serialization;
 using Stride.Engine;
 using Stride.Rendering;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Editor.Quantum.NodePresenters.Updaters;
 

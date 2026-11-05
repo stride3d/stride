@@ -8,6 +8,7 @@ using Stride.Core.Assets.Editor.Avalonia.Services;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Storage;
+using Stride.Core.Assets.Presentation.Services;
 
 namespace Stride.Editor.Avalonia.Tests;
 

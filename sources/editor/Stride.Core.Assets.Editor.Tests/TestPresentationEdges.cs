@@ -3,14 +3,15 @@
 
 using Stride.Core.Assets.Editor.Common.Tests.Helpers;
 using Stride.Core.Assets.Editor.Components.Properties;
-using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Assets.Editor.ViewModel.Progress;
 using Stride.Core.Assets.Presentation.Services;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Settings;
 using Stride.Core.Storage;
+using Stride.Core.Assets.Presentation.Components.Properties;
+using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels.Progress;
 
 namespace Stride.Core.Assets.Editor.Common.Tests;
 

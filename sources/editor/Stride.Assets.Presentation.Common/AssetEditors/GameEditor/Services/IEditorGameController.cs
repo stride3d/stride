@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Diagnostics;
@@ -13,6 +12,7 @@ using Stride.Editor.EditorGame.ContentLoader;
 using Stride.Editor.EditorGame.ViewModels;
 
 using Stride.Editor.Engine;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
 {

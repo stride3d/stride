@@ -3,10 +3,10 @@
 #nullable disable
 
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.Presenters;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
 

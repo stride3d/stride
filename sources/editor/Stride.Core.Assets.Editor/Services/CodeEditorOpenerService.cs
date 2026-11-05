@@ -4,10 +4,10 @@
 
 using System.Diagnostics;
 using Stride.Core.Assets.Editor.Settings;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.CodeEditorSupport;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Translation;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Services;
 

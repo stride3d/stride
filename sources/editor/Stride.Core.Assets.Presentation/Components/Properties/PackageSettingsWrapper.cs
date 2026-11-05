@@ -7,7 +7,7 @@ using System.ComponentModel;
 using Stride.Core.Annotations;
 using Stride.Core.Settings;
 
-namespace Stride.Core.Assets.Editor.Components.Properties
+namespace Stride.Core.Assets.Presentation.Components.Properties
 {
     internal class PackageSettingsWrapper
     {

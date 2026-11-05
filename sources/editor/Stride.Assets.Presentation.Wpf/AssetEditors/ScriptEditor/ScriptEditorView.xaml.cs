@@ -8,6 +8,7 @@ using RoslynPad.Roslyn.Diagnostics;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.Annotations;
+using Stride.Core.Assets.Editor.ViewModels;
 
 namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
 {

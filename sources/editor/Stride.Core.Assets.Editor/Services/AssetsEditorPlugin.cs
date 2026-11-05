@@ -5,8 +5,9 @@ using System;
 using System.Collections.Generic;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Components.Properties;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Presentation.Views;
+using Stride.Core.Assets.Presentation.Components.Properties;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 #nullable enable
 

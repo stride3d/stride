@@ -38,6 +38,7 @@ using Stride.Engine.Gizmos;
 using Stride.Editor.Annotations;
 using Stride.Editor.Preview.View;
 using Stride.Assets.Editor.Quantum.NodePresenters.Updaters;
+using Stride.Core.Assets.Presentation.Components.Properties;
 
 namespace Stride.Assets.Presentation
 {

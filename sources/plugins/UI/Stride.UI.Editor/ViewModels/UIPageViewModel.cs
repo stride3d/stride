@@ -5,6 +5,8 @@ using Stride.UI.Assets;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Annotations;
+using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Presentation.Annotations;
 
 namespace Stride.UI.Editor.ViewModels
 {

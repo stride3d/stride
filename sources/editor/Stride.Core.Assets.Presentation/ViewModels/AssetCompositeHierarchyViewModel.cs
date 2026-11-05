@@ -4,7 +4,6 @@
 #nullable enable
 
 using System.Collections.Specialized;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Extensions;
 using Stride.Core.Quantum;

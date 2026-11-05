@@ -5,13 +5,15 @@ using System.Reflection;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Common.Tests.Helpers;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.Views;
 using Stride.Core.Quantum;
 using Stride.Core.Settings;
+using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Presentation.Annotations;
 
 // The declared images of the test assembly: the test host keeps the bytes of the resource as the image
 [assembly: TypeImage(typeof(PluginHostDeclaredType), "TestPluginImage.txt")]

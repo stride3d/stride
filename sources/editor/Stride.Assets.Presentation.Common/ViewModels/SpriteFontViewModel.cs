@@ -7,13 +7,14 @@ using Stride.Assets.SpriteFont;
 using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Annotations;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Translation;
 using Stride.Graphics;
+using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Presentation.Annotations;
 
 namespace Stride.Assets.Presentation.ViewModels;
 

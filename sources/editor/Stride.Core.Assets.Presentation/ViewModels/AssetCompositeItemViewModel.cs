@@ -4,11 +4,10 @@
 #nullable enable
 
 using System.Diagnostics;
-using Stride.Core.Assets.Editor.Components.Properties;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Quantum;
+using Stride.Core.Assets.Presentation.Components.Properties;
 
 namespace Stride.Core.Assets.Presentation.ViewModels;
 

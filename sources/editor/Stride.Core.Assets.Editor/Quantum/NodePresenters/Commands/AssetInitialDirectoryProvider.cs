@@ -2,8 +2,8 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #nullable disable
 
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.IO;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
 

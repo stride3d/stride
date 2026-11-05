@@ -14,6 +14,7 @@ using Stride.Core.Presentation.Graph.ViewModel;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Quantum;
 using Stride.Assets.Scripts;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.AssetEditors.VisualScriptEditor
 {
