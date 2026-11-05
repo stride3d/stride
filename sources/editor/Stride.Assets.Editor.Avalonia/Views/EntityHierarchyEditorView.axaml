@@ -257,7 +257,8 @@
       <!-- The transformation toolbar: the tools, the space of the gizmos, the material selection mode and the selection
            mask. Its items don't take the focus, so that the keys keep going to the view. -->
       <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="4" Margin="2"
-                  DataContext="{Binding Toolbar}"
+                  x:DataType="vm:EditorViewToolbarViewModel"
+                  DataContext="{Binding $parent[local:EntityHierarchyEditorView].((vm:EntityHierarchyEditorViewModel)DataContext).ViewOptions}"
                   IsVisible="{Binding $self.DataContext, Converter={x:Static ObjectConverters.IsNotNull}}">
         <StackPanel.Styles>
           <Style Selector="ListBox.toolbar">
@@ -379,8 +380,8 @@
       <Panel>
         <TextBlock Text="The scene view is not available."
                    HorizontalAlignment="Center" VerticalAlignment="Center"
-                   IsVisible="{Binding GameView, Converter={x:Static ObjectConverters.IsNull}}" />
-        <ContentControl x:Name="GameViewHost" Content="{Binding GameView}" />
+                   IsVisible="{Binding GameHost.GameView, Converter={x:Static ObjectConverters.IsNull}}" />
+        <ContentControl x:Name="GameViewHost" Content="{Binding GameHost.GameView}" />
       </Panel>
     </DockPanel>
   </Grid>

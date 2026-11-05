@@ -5,12 +5,12 @@ using Stride.Editor.EditorGame.ViewModels;
 namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
 {
     /// <summary>
-    /// React to <see cref="Editor.EditorGame.Game.EditorServiceGame"/> exceptions.
+    /// The game service that pauses the game of an editor after an exception (<see cref="Stride.Assets.Editor.EditorGame.EditorGameHost.LastException"/>).
     /// </summary>
     public interface IEditorGameRecoveryViewModelService : IEditorGameViewModelService
     {
         /// <summary>
-        /// Resume a faulted <see cref="Editor.EditorGame.Game.EditorServiceGame"/>.
+        /// Lets the game run again after an exception.
         /// </summary>
         void Resume();
     }

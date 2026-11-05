@@ -7,7 +7,9 @@ using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Tools;
 using Stride.Assets.Presentation.AssetEditors.GameEditor;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
+using Stride.Assets.Presentation.ViewModels;
 using Stride.Core.Extensions;
+using Stride.Core.Mathematics;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Input;
 
@@ -17,7 +19,7 @@ namespace Stride.Assets.Editor.ViewModels;
 /// The toolbar of the view of a scene or prefab editor: the tools of the view, the space of the transformation gizmos, the
 /// material selection mode and the selection mask, as the transformation toolbar of the WPF scene editor.
 /// </summary>
-public sealed class EditorViewToolbarViewModel : DispatcherViewModel
+public sealed class EditorViewToolbarViewModel : DispatcherViewModel, IEditorViewOptions
 {
     // The icons of the WPF scene editor
     private const string WorldSpaceIcon = "F1M9.3838,13.5752C9.9298,12.4292 10.3508,11.3602 10.6218,10.3822 11.5158,10.2662 12.4668,10.0392 13.5078,9.6472 12.9298,11.5842 11.3578,13.0872 9.3838,13.5752 M2.4868,9.6252C3.2838,9.8692 4.1978,10.1032 5.2308,10.2692 5.4368,11.3162 5.7728,12.3862 6.2118,13.4632 4.4218,12.8772 3.0208,11.4382 2.4868,9.6252 M2.2498,8.0002C2.2498,7.1802 2.4238,6.4032 2.7328,5.6972 3.4178,5.8992 4.1808,6.0912 5.0318,6.2362 4.9898,6.6412 4.9598,7.0562 4.9548,7.4942 4.9488,8.0292 4.9888,8.5772 5.0538,9.1312 3.9778,8.9352 3.0478,8.6672 2.2708,8.4032 2.2608,8.2692 2.2498,8.1372 2.2498,8.0002 M5.9168,2.6452C5.6268,3.3682 5.3618,4.1992 5.1848,5.1532 4.4928,5.0332 3.8608,4.8812 3.2818,4.7182 3.9298,3.7882 4.8458,3.0622 5.9168,2.6452 M7.9998,2.2502C8.1648,2.2502 8.3268,2.2612 8.4878,2.2742 8.9558,3.0862 9.4318,4.1202 9.7088,5.3822 9.1378,5.4212 8.5758,5.4262 8.0058,5.4212 7.4058,5.4142 6.8248,5.3732 6.2668,5.3102 6.4998,4.0952 6.8848,3.0962 7.2678,2.3022 7.5078,2.2712 7.7508,2.2502 7.9998,2.2502 M8.0058,9.4212C7.3698,9.4142 6.7578,9.3672 6.1678,9.2982 6.0838,8.6882 6.0388,8.0892 6.0448,7.5062 6.0488,7.1192 6.0758,6.7502 6.1128,6.3902 6.7148,6.4592 7.3428,6.5042 7.9938,6.5112 8.1288,6.5122 8.2628,6.5132 8.3978,6.5132 8.8858,6.5132 9.3798,6.4982 9.8848,6.4592 9.9228,6.7992 9.9508,7.1442 9.9548,7.5062 9.9608,8.0832 9.8868,8.7082 9.7458,9.3752 9.1618,9.4162 8.5878,9.4242 8.0058,9.4212 M7.9998,13.7502C7.8298,13.7502 7.6618,13.7392 7.4958,13.7242 6.9928,12.6082 6.6088,11.5002 6.3678,10.4192 6.8918,10.4712 7.4348,10.5052 7.9938,10.5112 8.1288,10.5122 8.2628,10.5122 8.3978,10.5122 8.7448,10.5122 9.0968,10.5032 9.4508,10.4852 9.1458,11.4762 8.6928,12.5622 8.0988,13.7452 8.0658,13.7462 8.0328,13.7502 7.9998,13.7502 M12.7488,4.7602C12.0628,4.9962 11.4148,5.1602 10.7978,5.2562 10.5838,4.2242 10.2468,3.3372 9.8808,2.5712 11.0568,2.9782 12.0598,3.7512 12.7488,4.7602 M10.9688,6.3382C11.6958,6.2242 12.4628,6.0302 13.2848,5.7342 13.5838,6.4292 13.7498,7.1952 13.7498,8.0002 13.7498,8.1262 13.7398,8.2502 13.7318,8.3742 12.6938,8.8262 11.7598,9.0962 10.8838,9.2372 10.9938,8.6252 11.0508,8.0432 11.0448,7.4942 11.0408,7.0942 11.0098,6.7122 10.9688,6.3382 M14.9998,8.0002C14.9998,7.9202 14.9898,7.8432 14.9888,7.7632 14.8628,4.0082 11.7858,1.0002 7.9998,1.0002 4.1338,1.0002 0.9998,4.1342 0.9998,8.0002 0.9998,8.2042 1.0118,8.4052 1.0298,8.6032 1.0458,8.7832 1.0708,8.9612 1.1008,9.1362 1.1018,9.1412 1.1018,9.1472 1.1028,9.1532 1.5918,12.0962 3.9088,14.4112 6.8528,14.8982 6.8598,14.8992 6.8658,14.9002 6.8728,14.9012 7.0468,14.9302 7.2218,14.9542 7.3998,14.9702 7.5978,14.9882 7.7968,15.0002 7.9998,15.0002 8.2318,15.0002 8.4598,14.9872 8.6848,14.9662 12.2298,14.6212 14.9998,11.6352 14.9998,8.0002";
@@ -27,15 +29,18 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel
     private readonly EditorGameToolService service;
     private readonly IEditorGameSelectionViewModelService? selection;
     private readonly EditorGameMaterialHighlightService? materialHighlight;
+    private readonly IEditorGameCameraViewModelService? camera;
     private EditorViewToolViewModel? activeTool;
     private EditorViewSpaceViewModel space;
     private bool displaySelectionMask;
 
     internal EditorViewToolbarViewModel(IViewModelServiceProvider serviceProvider, EditorGameToolService service, IEditorGameSelectionViewModelService? selection, EditorGameMaterialHighlightService? materialHighlight,
-        EditorGameComponentGizmoService? componentGizmos = null, IEnumerable<IEditorGameOverlayService>? overlays = null, EditorGameLightProbeGizmoService? lightProbes = null)
+        EditorGameComponentGizmoService? componentGizmos = null, IEnumerable<IEditorGameOverlayService>? overlays = null, EditorGameLightProbeGizmoService? lightProbes = null,
+        IEditorGameCameraViewModelService? camera = null)
         : base(serviceProvider)
     {
         this.service = service;
+        this.camera = camera;
         this.selection = selection;
         this.materialHighlight = materialHighlight;
         Gizmos = componentGizmos is not null ? new EditorViewGizmosViewModel(serviceProvider, componentGizmos, service.SetGizmoSizeAsync, lightProbes) : null;
@@ -155,30 +160,52 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel
     }
 
     /// <summary>
-    /// Shows the gizmo and overlay options saved with the scene.
+    /// Shows the gizmo and overlay options saved with the scene, and moves the camera where it was when the editor closed,
+    /// as in the WPF scene editor.
     /// </summary>
     /// <remarks>
-    /// The other members of the settings (camera, snaps, grid, ...) are not used by the Avalonia editor yet and stay as read.
+    /// The other members of the settings (snaps, grid, ...) are not used by the Avalonia editor yet and stay as read.
     /// </remarks>
-    internal void LoadSettings(SceneSettingsData settings)
+    public void LoadSettings(SceneSettingsData settings)
     {
         Gizmos?.LoadSettings(settings);
         Overlays.LoadSettings(settings);
+        camera?.LoadSettings(settings.CamPosition, settings.CamPitchYaw);
     }
 
     /// <summary>
-    /// Writes the gizmo and overlay options in the settings of the scene.
+    /// Writes the gizmo and overlay options, and where the camera is, in the settings of the scene.
     /// </summary>
-    internal void SaveSettings(SceneSettingsData settings)
+    public void SaveSettings(SceneSettingsData settings)
     {
         Gizmos?.SaveSettings(settings);
         Overlays.SaveSettings(settings);
+        if (camera is not null)
+            (settings.CamPosition, settings.CamPitchYaw) = camera.SaveSettings();
+    }
+
+    /// <inheritdoc/>
+    public Vector3 SnapPosition(Vector3 position)
+    {
+        var snap = Snaps.First(x => x.Transformation == Transformation.Translation);
+        return snap.IsActive && snap.Value > 0 ? MathUtil.Snap(position, (float)snap.Value) : position;
+    }
+
+    /// <inheritdoc/>
+    void IEditorViewOptions.OnEntityLinked(EntityViewModel entity)
+    {
+        // The Avalonia editor shows the model components through its node updaters
+    }
+
+    /// <inheritdoc/>
+    void IEditorViewOptions.OnEntityUnlinked(EntityViewModel entity)
+    {
     }
 
     /// <summary>
     /// Reads the active tool and the tools turned off from the game.
     /// </summary>
-    internal async Task InitializeAsync()
+    public async Task InitializeAsync()
     {
         foreach (var snap in Snaps)
         {
@@ -359,4 +386,21 @@ public sealed class EditorViewSnapViewModel : DispatcherViewModel
     public bool IsVisible { get => isVisible; internal set => SetValue(ref isVisible, value); }
 
     internal Task ApplyAsync() => service.SetSnapAsync(Transformation, (float)value, isActive);
+}
+
+/// <summary>
+/// Creates the toolbar of the Avalonia scene and prefab editors as their view options, when their game has the tool service.
+/// </summary>
+internal sealed class EditorViewToolbarFactory : IEditorViewOptionsFactory
+{
+    /// <inheritdoc/>
+    public IEditorViewOptions? CreateViewOptions(IEntityHierarchyEditorViewModel editor, IEntityHierarchyEditorController controller)
+    {
+        if (controller.GetService<EditorGameToolService>() is not { } toolService)
+            return null;
+
+        return new EditorViewToolbarViewModel(((EntityHierarchyEditorViewModel)editor).ServiceProvider, toolService, controller.GetService<IEditorGameSelectionViewModelService>(),
+            controller.GetService<EditorGameMaterialHighlightService>(), controller.GetService<EditorGameComponentGizmoService>(), controller.GetServices<IEditorGameOverlayService>(),
+            controller.GetService<EditorGameLightProbeGizmoService>(), controller.GetService<IEditorGameCameraViewModelService>());
+    }
 }

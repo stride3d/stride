@@ -38,6 +38,9 @@ internal sealed class FakeEditorGameController : IEditorGameController, IDisposa
 
     public SessionNodeContainer GameSideNodeContainer { get; }
 
+    /// <inheritdoc/>
+    public object View { get; } = new();
+
     /// <summary>
     /// Gets how many times the propagators asked the game to evaluate its render stages again, once per propagated change.
     /// </summary>

@@ -7,6 +7,7 @@ using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Assets.Editor.Quantum.NodePresenters.Updaters;
 using Stride.Assets.Editor.EntityFactories;
+using Stride.Assets.Editor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.ScriptEditor;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Assets.Presentation.SceneEditor;
@@ -129,6 +130,9 @@ public sealed class StrideEditorPlugin : StrideAssetsPlugin
 
         var settingsProvider = new GameSettingsProviderService(session);
         context.Services.Register(settingsProvider);
+
+        // The scene and prefab editors show the toolbar of the Avalonia view as their view options
+        context.Services.Register(new EditorViewToolbarFactory());
 
         var builderService = new GameStudioBuilderService(sessionViewModel, settingsProvider, new StrideShaderImporter(), buildDirectory);
         context.Services.Register(builderService);

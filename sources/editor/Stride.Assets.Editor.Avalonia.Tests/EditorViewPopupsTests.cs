@@ -418,6 +418,7 @@ public sealed class EditorViewPopupsTests
         public Task GameEnded => Task.CompletedTask;
 
         public SessionNodeContainer GameSideNodeContainer => throw new NotSupportedException();
+        public object View => throw new NotSupportedException();
 
         public Task<bool> StartGame() => Task.FromResult(true);
 

@@ -43,6 +43,12 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
         SessionNodeContainer GameSideNodeContainer { get; }
 
         /// <summary>
+        /// Gets the control that shows the game: the view of its viewport.
+        /// </summary>
+        [NotNull]
+        object View { get; }
+
+        /// <summary>
         /// Starts and initialize the game thread.
         /// </summary>
         /// <returns>True if the game was successfully initialized, false otherwise.</returns>
