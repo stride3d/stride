@@ -1,12 +1,12 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Core.Assets.Editor.Common.Tests.Helpers;
+using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Diagnostics;
 using Stride.Core.Assets.Presentation.ViewModels;
 
-namespace Stride.Core.Assets.Editor.Common.Tests;
+namespace Stride.Core.Assets.Editor.Tests;
 
 /// <summary>
 /// The plugin base classes are toolkit-neutral: a plugin joins a session through <see cref="ISessionViewModel"/> only.

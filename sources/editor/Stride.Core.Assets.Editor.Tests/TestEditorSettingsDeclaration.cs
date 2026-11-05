@@ -4,7 +4,7 @@
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Settings;
 
-namespace Stride.Core.Assets.Editor.Common.Tests;
+namespace Stride.Core.Assets.Editor.Tests;
 
 public sealed class TestEditorSettingsDeclaration
 {

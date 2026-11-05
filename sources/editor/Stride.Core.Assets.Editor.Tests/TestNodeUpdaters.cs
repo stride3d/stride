@@ -2,13 +2,13 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Annotations;
-using Stride.Core.Assets.Editor.Common.Tests.Helpers;
+using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters;
 using Stride.Core.IO;
 
-namespace Stride.Core.Assets.Editor.Common.Tests;
+namespace Stride.Core.Assets.Editor.Tests;
 
 public class TestNodeUpdaters
 {

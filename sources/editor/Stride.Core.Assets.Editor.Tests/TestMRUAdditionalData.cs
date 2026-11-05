@@ -5,7 +5,7 @@ using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.IO;
 using Stride.Core.Settings;
 
-namespace Stride.Core.Assets.Editor.Common.Tests;
+namespace Stride.Core.Assets.Editor.Tests;
 
 public sealed class TestMRUAdditionalData
 {

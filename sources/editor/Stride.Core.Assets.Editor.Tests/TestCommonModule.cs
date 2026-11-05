@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
 using Stride.Core.Reflection;
 
-namespace Stride.Core.Assets.Editor.Common.Tests;
+namespace Stride.Core.Assets.Editor.Tests;
 
 public class TestCommonModule
 {

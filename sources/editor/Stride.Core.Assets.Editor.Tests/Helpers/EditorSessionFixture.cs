@@ -1,7 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Core.Assets.Editor.Common.Tests.Helpers;
+using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Assets.Editor.Components.CopyPasteProcessors;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModels;

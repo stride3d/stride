@@ -1,12 +1,12 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Core.Assets.Editor.Common.Tests.Helpers;
+using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Diagnostics;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Presentation.ViewModels.Logs;
 
-namespace Stride.Core.Assets.Editor.Common.Tests;
+namespace Stride.Core.Assets.Editor.Tests;
 
 /// <summary>
 /// The session objects work on a session without any UI, through <see cref="ISessionViewModel"/>.

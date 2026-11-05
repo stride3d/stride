@@ -1,7 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Core.Assets.Editor.Common.Tests.Helpers;
+using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Diagnostics;
@@ -11,7 +11,7 @@ using Stride.Core.Settings;
 using Stride.Core.Assets.Presentation.Components.Properties;
 using Stride.Core.Assets.Presentation.ViewModels;
 
-namespace Stride.Core.Assets.Editor.Common.Tests;
+namespace Stride.Core.Assets.Editor.Tests;
 
 /// <summary>
 /// The plugin host shared by the editors: what a plugin registers, through its contexts or the attributes of its assembly,
