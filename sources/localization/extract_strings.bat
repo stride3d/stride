@@ -11,8 +11,8 @@ rem Stride.Core.Presentation.pot
 rem Stride.Core.Presentation.Wpf.pot
 %TOOL_DIR%\Stride.Core.Translation.Extractor.exe --directory=%SOURCES_DIR%\presentation\Stride.Core.Presentation.Wpf --domain-name=Stride.Core.Presentation.Wpf --recursive --preserve-comments --exclude=*.Designer.cs --verbose *.xaml *.cs
 
-rem Stride.Assets.Presentation.Wpf.pot
-%TOOL_DIR%\Stride.Core.Translation.Extractor.exe --directory=%SOURCES_DIR%\editor\Stride.Assets.Presentation.Wpf --domain-name=Stride.Assets.Presentation.Wpf --recursive --preserve-comments --exclude=*.Designer.cs --verbose *.xaml *.cs
+rem Stride.Assets.Editor.Wpf.pot
+%TOOL_DIR%\Stride.Core.Translation.Extractor.exe --directory=%SOURCES_DIR%\editor\Stride.Assets.Editor.Wpf --domain-name=Stride.Assets.Editor.Wpf --recursive --preserve-comments --exclude=*.Designer.cs --verbose *.xaml *.cs
 
 rem Stride.Core.Assets.Editor.Wpf.pot
 %TOOL_DIR%\Stride.Core.Translation.Extractor.exe --directory=%SOURCES_DIR%\editor\Stride.Core.Assets.Editor.Wpf --domain-name=Stride.Core.Assets.Editor.Wpf --recursive --preserve-comments --exclude=*.Designer.cs --verbose *.xaml *.cs
@@ -27,7 +27,7 @@ rem Stride.GameStudio.pot
 %TOOL_DIR%\Stride.Core.Translation.Extractor.exe --directory=%SOURCES_DIR%\editor\Stride.GameStudio --domain-name=Stride.GameStudio --recursive --preserve-comments --exclude=*.Designer.cs --verbose *.xaml *.cs
 
 rem Update po files
-FOR %%B IN (Stride.Core.Presentation Stride.Core.Presentation.Wpf Stride.Assets.Presentation.Wpf Stride.Core.Assets.Editor.Wpf Stride.Core.Assets.Presentation Stride.Core.Assets.Editor Stride.GameStudio) DO (
+FOR %%B IN (Stride.Core.Presentation Stride.Core.Presentation.Wpf Stride.Assets.Editor.Wpf Stride.Core.Assets.Editor.Wpf Stride.Core.Assets.Presentation Stride.Core.Assets.Editor Stride.GameStudio) DO (
   FOR %%A IN (de es fr he_IL it ja ko mk nb_NO pl pt pt_BR ru zh_HANS-CN zh_Hant) DO (
     %MSGMERGE% -U %%A\%%B.%%A.po %%B.pot
   )

@@ -88,7 +88,7 @@ public sealed class PluginServiceTests
         // WPF assembly is not loaded
         Assert.Contains(service.SessionPlugins, x => x is StrideDefaultAssetsPlugin);
         Assert.Equal(typeof(StrideDefaultAssetsPlugin).Assembly, typeof(MaterialViewModel).Assembly);
-        Assert.DoesNotContain(AppDomain.CurrentDomain.GetAssemblies(), x => x.GetName().Name == "Stride.Assets.Presentation.Wpf");
+        Assert.DoesNotContain(AppDomain.CurrentDomain.GetAssemblies(), x => x.GetName().Name == "Stride.Assets.Editor.Wpf");
 
         var declarations = assemblies
             .SelectMany(x => AssemblyRegistry.GetScanTypes(x, typeof(AssetViewModel)))

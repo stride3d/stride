@@ -21,7 +21,7 @@
     <ProjectReference Include="../Stride.Assets.Presentation/Stride.Assets.Presentation.csproj" />
     <ProjectReference Include="../Stride.Core.Assets.Editor/Stride.Core.Assets.Editor.csproj" />
     <ProjectReference Include="../Stride.Editor/Stride.Editor.csproj" />
-    <!-- The .sdtpl asset templates, whose generators are in this project (Templates/Assets), shared with Stride.Assets.Presentation.Wpf -->
+    <!-- The .sdtpl asset templates, whose generators are in this project (Templates/Assets), shared with Stride.Assets.Editor.Wpf -->
     <ProjectReference Include="../Stride.Assets.Templates/Stride.Assets.Templates.csproj" />
   </ItemGroup>
 

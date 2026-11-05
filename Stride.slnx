@@ -180,7 +180,7 @@
     <Project Path="sources/editor/Stride.GameStudio.Avalonia/Stride.GameStudio.Avalonia.csproj" />
   </Folder>
   <Folder Name="/60-Editor/Wpf/">
-    <Project Path="sources/editor/Stride.Assets.Presentation.Wpf/Stride.Assets.Presentation.Wpf.csproj" />
+    <Project Path="sources/editor/Stride.Assets.Editor.Wpf/Stride.Assets.Editor.Wpf.csproj" />
     <Project Path="sources/editor/Stride.Core.Assets.Editor.Wpf/Stride.Core.Assets.Editor.Wpf.csproj" />
     <Project Path="sources/editor/Stride.Editor.Wpf/Stride.Editor.Wpf.csproj" />
     <Project Path="sources/editor/Stride.GameStudio/Stride.GameStudio.csproj" DefaultStartup="true" />
