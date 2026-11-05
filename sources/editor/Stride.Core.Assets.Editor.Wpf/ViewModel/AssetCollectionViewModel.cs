@@ -56,6 +56,8 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
     public sealed class AssetCollectionViewModel : DispatcherViewModel, IAddChildViewModel
     {
+        private const string ImportLogModule = "Asset import";
+
         public sealed class AssetFilterViewModel : DispatcherViewModel, IEquatable<AssetFilterViewModel>
         {
             private readonly AssetCollectionViewModel collection;
@@ -522,7 +524,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             if (template == null)
                 return new List<AssetViewModel>();
 
-            var loggerResult = new LoggerResult();
+            var loggerResult = new LoggerResult(ImportLogModule);
 
             var directory = await GetAssetCreationTargetFolder();
             if (directory == null)
@@ -547,7 +549,20 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 name = templateDescription.DefaultOutputName ?? templateDescription.AssetTypeName;
             }
 
-            return await InvokeAddAssetTemplate(loggerResult, name, directory, templateDescription, files, customParameters);
+            try
+            {
+                return await InvokeAddAssetTemplate(loggerResult, name, directory, templateDescription, files, customParameters);
+            }
+            finally
+            {
+                // The progress window closes by itself on a clean import, and its log goes with it.
+                if (files is not null)
+                {
+                    var editorLog = GlobalLogger.GetLogger(ImportLogModule);
+                    foreach (var message in loggerResult.Messages)
+                        editorLog.Log(message);
+                }
+            }
         }
 
         private async Task ShowAddAssetDialog()
