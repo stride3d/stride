@@ -6,5 +6,5 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Stride.Editor.Wpf" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Assets.Presentation.Wpf" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Editor" + Stride.PublicKeys.Default)]
-[assembly: InternalsVisibleTo("Stride.Assets.Presentation.Common" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.Assets.Editor" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Engine.Tests" + Stride.PublicKeys.Default)]

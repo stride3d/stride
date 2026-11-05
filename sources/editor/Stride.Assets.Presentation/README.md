@@ -1,20 +1,26 @@
 # Stride.Assets.Presentation
 
-This project is the main project for the view models of Stride assets in an application that uses the MVVM pattern..
+This project is the main project for the view models of Stride assets in an application that uses the MVVM pattern, shared
+by the WPF and the cross-platform (Avalonia) Game Studio. **Level: Presentation.**
 
 ## Dependencies
 
 * It can reference any Stride libraries, as long as they are cross-platform.
 * It should be platform-agnostic as well as UI-agnostic.
   In other words, no dependencies on platform (e.g. Windows), or UI library (e.g. Avalonia, WPF) are allowed.
-* It will mainly reference `Stride.Assets` and `Stride.Core.Assets.Presentation`.
+* It references `Stride.Assets`, `Stride.Assets.Models` and `Stride.Core.Assets.Presentation`. It also references
+  `Stride.Core.Assets.Editor` for the plugin base (`AssetsPlugin`) and the asset view model contracts it uses; it does not
+  reference `Stride.Editor` or `Stride.Assets.Editor`.
 
 ## Implementations
 
-All view models for the Stride assets are here, except the ones that both editors share since Phase 3 (material, model,
-skeleton, sprite sheet...): they live in `Stride.Assets.Presentation.Common` under the same namespace
-(`Stride.Assets.Presentation.ViewModels`), with their own plugin (`StrideSharedAssetsPlugin`), until the default assets plugin
-moves there too.
+* The view models of the Stride assets (`ViewModels`: material, model, skeleton, sprite sheet, scene, prefab, game settings,
+  script source file...) and the items of the entity hierarchies (entities, folders, roots). The editors reach the hierarchy
+  through `IEntityHierarchyEditorViewModel`, which each editor implements.
+* The small contracts they use: `IEntityHierarchyItemViewModel`, `IEditorDesignPartViewModel<,>`, the add-asset policy
+  interface and `IScriptCompilationProvider`.
+* `StrideDefaultAssetsPlugin`: a default plugin of the cross-platform editor, which its host registers. The WPF editor
+  registers the view models it shares itself.
 
 ## Notes
 
