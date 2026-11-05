@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Assets.Sprite;
-using Stride.Core.Assets.Editor.Quantum.NodePresenters;
+using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
 using Stride.Core.Extensions;
 
 namespace Stride.Assets.Editor.Quantum.NodePresenters.Updaters;

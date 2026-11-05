@@ -2,19 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Core.Presentation.Quantum.Presenters;
-using Stride.Assets.Scripts;
+using Stride.Assets.Models;
 
-namespace Stride.Assets.Presentation.NodePresenters.Commands
+namespace Stride.Assets.Editor.Quantum.NodePresenters.Commands
 {
-    public class SetSymbolReferenceCommand : ChangeValueCommandBase
+    public class SkeletonNodePreserveAllCommand : SyncNodePresenterCommandBase
     {
         /// <summary>
         /// The name of this command.
         /// </summary>
-        public const string CommandName = "SetSymbolReference";
+        public const string CommandName = "SkeletonNodePreserveAll";
 
         /// <inheritdoc/>
         public override string Name => CommandName;
@@ -22,15 +20,16 @@ namespace Stride.Assets.Presentation.NodePresenters.Commands
         /// <inheritdoc/>
         public override bool CanAttach(INodePresenter nodePresenter)
         {
-            var member = nodePresenter as MemberNodePresenter;
-            return nodePresenter.Type == typeof(string) && (member?.MemberAttributes.OfType<ScriptVariableReferenceAttribute>().Any() ?? false);
+            return typeof(ICollection<NodeInformation>).IsAssignableFrom(nodePresenter.Type);
         }
 
         /// <inheritdoc/>
-        protected override object ChangeValue(object currentValue, object parameter, object preExecuteResult)
+        protected override void ExecuteSync(INodePresenter nodePresenter, object parameter, object preExecuteResult)
         {
-            var symbol = (Symbol)parameter;
-            return symbol.Name;
+            foreach (var item in nodePresenter.Children)
+            {
+                item.UpdateValue(parameter);
+            }
         }
     }
 }

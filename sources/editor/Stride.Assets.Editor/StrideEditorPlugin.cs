@@ -8,8 +8,6 @@ using Stride.Assets.Editor.Quantum.NodePresenters.Updaters;
 using Stride.Assets.Editor.EntityFactories;
 using Stride.Assets.Presentation.AssetEditors.ScriptEditor;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
-using Stride.Assets.Presentation.NodePresenters.Commands;
-using Stride.Assets.Presentation.NodePresenters.Updaters;
 using Stride.Assets.Presentation.SceneEditor;
 using Stride.Assets.Presentation.ViewModel.CopyPasteProcessors;
 using Stride.Core;

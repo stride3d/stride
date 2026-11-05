@@ -3,7 +3,7 @@
 #nullable enable
 
 using System;
-namespace Stride.Assets.Editor.ViewModels.SpriteEditor;
+namespace Stride.Assets.Editor.ViewModels;
 
 /// <summary>
 /// The side or corner of a region that a handle of the sprite editor drags, or <see cref="Center"/> for the handle that moves it.

@@ -5,6 +5,7 @@
 using System;
 using System.ComponentModel;
 using Stride.Core.Transactions;
+using Stride.Assets.Editor.ViewModels;
 
 namespace Stride.Assets.Editor.ViewModels.SpriteEditor;
 

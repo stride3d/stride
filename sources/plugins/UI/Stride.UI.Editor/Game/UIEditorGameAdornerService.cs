@@ -18,6 +18,7 @@ using Stride.UI;
 using Stride.UI.Panels;
 using Stride.Rendering.Compositing;
 using Stride.Assets.Editor.ViewModels.SpriteEditor;
+using Stride.Assets.Editor.ViewModels;
 
 namespace Stride.UI.Editor.Game
 {

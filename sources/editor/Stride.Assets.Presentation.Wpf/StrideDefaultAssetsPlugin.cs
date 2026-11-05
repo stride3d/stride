@@ -20,6 +20,7 @@ using Stride.Assets.Presentation.AssetEditors.AssetHighlighters;
 using Stride.Assets.Editor.EntityFactories;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Assets.Presentation.NodePresenters.Commands;
+using Stride.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Assets.Presentation.NodePresenters.Updaters;
 using Stride.Assets.Presentation.SceneEditor.Services;
 using Stride.Assets.Presentation.ViewModel;

@@ -4,7 +4,7 @@ using System;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Presentation.Quantum.Presenters;
 
-namespace Stride.Core.Assets.Editor.Quantum.NodePresenters
+namespace Stride.Core.Assets.Presentation.Quantum.NodePresenters
 {
     public interface IAssetNodePresenter : INodePresenter
     {
