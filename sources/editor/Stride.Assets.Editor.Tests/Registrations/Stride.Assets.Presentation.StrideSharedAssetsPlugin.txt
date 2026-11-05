@@ -10,6 +10,7 @@ AssetViewModelTypes:
   Stride.Assets.Models.ProceduralModelAsset -> Stride.Assets.Presentation.ViewModels.ProceduralModelViewModel
   Stride.Assets.Models.SkeletonAsset -> Stride.Assets.Presentation.ViewModels.SkeletonViewModel
   Stride.Assets.Rendering.GraphicsCompositorAsset -> Stride.Assets.Presentation.ViewModels.GraphicsCompositorViewModel
+  Stride.Assets.Scripts.VisualScriptAsset -> Stride.Assets.Presentation.ViewModels.VisualScriptViewModel
   Stride.Assets.Skyboxes.SkyboxAsset -> Stride.Assets.Presentation.ViewModels.SkyboxViewModel
   Stride.Assets.Sprite.SpriteSheetAsset -> Stride.Assets.Presentation.ViewModels.SpriteSheetViewModel
   Stride.Assets.SpriteFont.PrecompiledSpriteFontAsset -> Stride.Assets.Presentation.ViewModels.PrecompiledSpriteFontViewModel
