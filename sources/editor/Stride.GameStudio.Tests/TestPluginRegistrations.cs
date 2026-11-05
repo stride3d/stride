@@ -59,11 +59,11 @@ public class TestPluginRegistrations
         yield return new SpriteStudioEditorWpfPlugin();
     }
 
-    private static StrideDefaultAssetsPlugin CreateDefaultAssetsPlugin()
+    private static StrideDefaultAssetsWpfPlugin CreateDefaultAssetsPlugin()
     {
         try
         {
-            return new StrideDefaultAssetsPlugin();
+            return new StrideDefaultAssetsWpfPlugin();
         }
         catch (InvalidOperationException e) when (e.Message.StartsWith($"Could not find package {StrideDefaultTemplates.AssetTemplatesPackageName} ", StringComparison.Ordinal))
         {

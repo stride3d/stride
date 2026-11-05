@@ -47,7 +47,7 @@ namespace Stride.GameStudio.Tests
     public class TestDiscoveryIndex
     {
         [Theory]
-        [InlineData(typeof(AssetsPlugin), typeof(StrideDefaultAssetsPlugin))]
+        [InlineData(typeof(AssetsPlugin), typeof(StrideDefaultAssetsWpfPlugin))]
         [InlineData(typeof(IAddAssetPolicy), typeof(AddPrefabAssetPolicy))]
         [InlineData(typeof(AssetViewModel), typeof(CodeAssetViewModel))]
         [InlineData(typeof(IPreviewView), typeof(ModelPreviewView))]
@@ -55,7 +55,7 @@ namespace Stride.GameStudio.Tests
         [InlineData(typeof(EditorGameServiceAttribute), typeof(EditorGameEntityTransformService))]
         public void DefaultPluginAssemblyIndexListsKnownTypes(Type key, Type expected)
         {
-            var assembly = typeof(StrideDefaultAssetsPlugin).Assembly;
+            var assembly = typeof(StrideDefaultAssetsWpfPlugin).Assembly;
             Assert.NotNull(AssemblyRegistry.GetScanTypes(assembly));
             Assert.Contains(expected, AssemblyRegistry.GetScanTypes(assembly, key).ToList());
         }
@@ -74,7 +74,7 @@ namespace Stride.GameStudio.Tests
         public void SharedAssemblyIndexListsKnownTypes(Type key, Type expected)
         {
             // The WPF-free gizmos live in Stride.Assets.Presentation.Common, which the WPF assembly registers when it loads
-            RuntimeHelpers.RunModuleConstructor(typeof(StrideDefaultAssetsPlugin).Module.ModuleHandle);
+            RuntimeHelpers.RunModuleConstructor(typeof(StrideDefaultAssetsWpfPlugin).Module.ModuleHandle);
             var assembly = typeof(GizmoBase).Assembly;
             Assert.Contains(assembly, AssemblyRegistry.Find(AssemblyCommonCategories.Assets));
             Assert.NotNull(AssemblyRegistry.GetScanTypes(assembly));
@@ -84,7 +84,7 @@ namespace Stride.GameStudio.Tests
         [Fact]
         public void EachAssetTypeHasOneViewModelInTheWpfEditor()
         {
-            RuntimeHelpers.RunModuleConstructor(typeof(StrideDefaultAssetsPlugin).Module.ModuleHandle);
+            RuntimeHelpers.RunModuleConstructor(typeof(StrideDefaultAssetsWpfPlugin).Module.ModuleHandle);
             var assemblies = AssemblyRegistry.Find(AssemblyCommonCategories.Assets);
 
             // The shared view models come from Stride.Assets.Presentation.Common; the Avalonia assembly of the same namespace
@@ -108,7 +108,7 @@ namespace Stride.GameStudio.Tests
         public void TheScenesPrefabsAndGameSettingsHaveTheSharedViewModelsInTheWpfEditor()
         {
             // The shared view models of the entity hierarchies (Stride.Assets.Presentation.Common) replaced the WPF ones
-            RuntimeHelpers.RunModuleConstructor(typeof(StrideDefaultAssetsPlugin).Module.ModuleHandle);
+            RuntimeHelpers.RunModuleConstructor(typeof(StrideDefaultAssetsWpfPlugin).Module.ModuleHandle);
             var viewModels = AssemblyRegistry.Find(AssemblyCommonCategories.Assets)
                 .SelectMany(x => AssemblyRegistry.GetScanTypes(x, typeof(AssetViewModel)))
                 .Select(x => (x.GetCustomAttribute<AssetViewModelAttribute>()?.AssetType, ViewModel: x))
@@ -129,7 +129,7 @@ namespace Stride.GameStudio.Tests
         [Fact]
         public void EachAssetTypeHasOnePreviewAndEachPreviewOneViewModelInTheWpfEditor()
         {
-            RuntimeHelpers.RunModuleConstructor(typeof(StrideDefaultAssetsPlugin).Module.ModuleHandle);
+            RuntimeHelpers.RunModuleConstructor(typeof(StrideDefaultAssetsWpfPlugin).Module.ModuleHandle);
             var assemblies = AssemblyRegistry.Find(AssemblyCommonCategories.Assets);
 
             // The shared previews and their view models come from Stride.Assets.Presentation.Common, the WPF preview views
@@ -172,7 +172,7 @@ namespace Stride.GameStudio.Tests
         [Fact]
         public void EachEntityFactoryIsRegisteredOnceInTheWpfEditor()
         {
-            RuntimeHelpers.RunModuleConstructor(typeof(StrideDefaultAssetsPlugin).Module.ModuleHandle);
+            RuntimeHelpers.RunModuleConstructor(typeof(StrideDefaultAssetsWpfPlugin).Module.ModuleHandle);
 
             // The add-entity menus list the factories of the assets assemblies, by display category and name. The plugin
             // fills them when the editor initializes it, which takes the WPF application, so this reads the same types from
@@ -196,7 +196,7 @@ namespace Stride.GameStudio.Tests
         public void EachAssetTemplateHasOneGeneratorInTheWpfEditor()
         {
             // The module of the WPF assets layer registers the shared generators (Stride.Assets.Presentation.Common) with its dialogs
-            RuntimeHelpers.RunModuleConstructor(typeof(StrideDefaultAssetsPlugin).Module.ModuleHandle);
+            RuntimeHelpers.RunModuleConstructor(typeof(StrideDefaultAssetsWpfPlugin).Module.ModuleHandle);
 
             const BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Static;
             var registered = (System.Collections.Generic.List<ITemplateGenerator>)typeof(TemplateManager).GetField("Generators", flags).GetValue(null);
@@ -225,7 +225,7 @@ namespace Stride.GameStudio.Tests
         {
             // A controller creates the services the assets assemblies declare. The shared ones (Stride.Assets.Presentation.Common)
             // replaced their WPF copies: no service is declared twice under one name
-            RuntimeHelpers.RunModuleConstructor(typeof(StrideDefaultAssetsPlugin).Module.ModuleHandle);
+            RuntimeHelpers.RunModuleConstructor(typeof(StrideDefaultAssetsWpfPlugin).Module.ModuleHandle);
             var services = AssetRegistry.AssetAssemblies.SelectMany(x => AssemblyRegistry.GetScanTypes(x, typeof(EditorGameServiceAttribute))).Distinct().ToList();
             Assert.Empty(Duplicates(services, x => x.Name, x => x));
             Assert.Contains(typeof(EditorGameCameraOrientationService), services);
@@ -257,7 +257,7 @@ namespace Stride.GameStudio.Tests
 
             // The WPF hosting of the game is a WPF service, for the game of every editor (scenes, prefabs and UI)
             Assert.Contains(typeof(WpfEditorGameHostService), services);
-            Assert.Equal(typeof(StrideDefaultAssetsPlugin).Assembly, typeof(WpfEditorGameHostService).Assembly);
+            Assert.Equal(typeof(StrideDefaultAssetsWpfPlugin).Assembly, typeof(WpfEditorGameHostService).Assembly);
             Assert.Equal(typeof(IEditorGameController), typeof(WpfEditorGameHostService).GetCustomAttribute<EditorGameServiceAttribute>().ControllerType);
         }
 
@@ -295,7 +295,7 @@ namespace Stride.GameStudio.Tests
         private static (System.Collections.Generic.List<(Type ViewModelType, Type Editor)> Editors, System.Collections.Generic.List<(Type EditorViewModelType, Type View)> Views) CollectEditorsAndViews()
         {
             // The plugin host registers the editors and editor views of the Stride plugins' assemblies
-            RuntimeHelpers.RunModuleConstructor(typeof(StrideDefaultAssetsPlugin).Module.ModuleHandle);
+            RuntimeHelpers.RunModuleConstructor(typeof(StrideDefaultAssetsWpfPlugin).Module.ModuleHandle);
             var assemblies = AssemblyRegistry.Find(AssemblyCommonCategories.Assets);
             Assert.True(typeof(StrideSharedAssetsPlugin).IsAssignableTo(typeof(AssetsEditorPlugin)), "The shared plugin must be an AssetsEditorPlugin, or its editors are not registered.");
 
@@ -320,7 +320,7 @@ namespace Stride.GameStudio.Tests
         public void TheVisualScriptHasOneAssetViewModelTheSharedOneInTheWpfEditor()
         {
             // The shared asset view model (Stride.Assets.Presentation.Common) replaced the WPF one; the WPF editor stays
-            RuntimeHelpers.RunModuleConstructor(typeof(StrideDefaultAssetsPlugin).Module.ModuleHandle);
+            RuntimeHelpers.RunModuleConstructor(typeof(StrideDefaultAssetsWpfPlugin).Module.ModuleHandle);
             var assemblies = AssemblyRegistry.Find(AssemblyCommonCategories.Assets);
 
             var viewModels = assemblies

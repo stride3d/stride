@@ -30,7 +30,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
         {
             this.controller = controller;
             var dependencyManager = editor.Session.DependencyManager;
-            foreach (var assetHighlighterType in StrideDefaultAssetsPlugin.AssetHighlighterTypesDictionary)
+            foreach (var assetHighlighterType in StrideDefaultAssetsWpfPlugin.AssetHighlighterTypesDictionary)
             {
                 var instance = (AssetHighlighter)Activator.CreateInstance(assetHighlighterType.Value, dependencyManager);
                 assetHighlighters.Add(assetHighlighterType.Key, instance);

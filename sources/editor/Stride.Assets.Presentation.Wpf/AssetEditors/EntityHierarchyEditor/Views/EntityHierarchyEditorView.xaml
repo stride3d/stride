@@ -67,7 +67,7 @@
         <MenuItem Header="{sd:Localize Folder, Context=Menu}" Command="{Binding Editor.CreateFolderInRootCommand}"/>
         <MenuItem Header="{sd:Localize Empty entity, Context=Menu}" Command="{Binding Editor.CreateEntityInRootCommand}"/>
         <!-- IsCheckable=True is a hack to prevent WPF from clearing the selected sub menu item -->
-        <MenuItem ItemsSource="{x:Static p:StrideDefaultAssetsPlugin.EntityFactoryCategories}" IsCheckable="True" d:DataContext="{d:DesignInstance entityFactories:EntityFactoryCategory}">
+        <MenuItem ItemsSource="{x:Static p:StrideDefaultAssetsWpfPlugin.EntityFactoryCategories}" IsCheckable="True" d:DataContext="{d:DesignInstance entityFactories:EntityFactoryCategory}">
           <MenuItem.ItemContainerStyle>
             <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}">
               <Setter Property="ItemsSource" Value="{Binding Factories, Mode=OneWay}"/>
@@ -111,7 +111,7 @@
         <MenuItem Header="{sd:Localize Folder, Context=Menu}" Command="{Binding Editor.CreateFolderInSelectionCommand}"/>
         <MenuItem Header="{sd:Localize Empty entity, Context=Menu}" Command="{Binding Editor.CreateEntityInSelectionCommand}"/>
         <!-- IsCheckable=True is a hack to prevent WPF from clearing the selected sub menu item -->
-        <MenuItem ItemsSource="{x:Static p:StrideDefaultAssetsPlugin.EntityFactoryCategories}" IsCheckable="True" d:DataContext="{d:DesignInstance entityFactories:EntityFactoryCategory}">
+        <MenuItem ItemsSource="{x:Static p:StrideDefaultAssetsWpfPlugin.EntityFactoryCategories}" IsCheckable="True" d:DataContext="{d:DesignInstance entityFactories:EntityFactoryCategory}">
           <MenuItem.ItemContainerStyle>
             <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}">
               <Setter Property="ItemsSource" Value="{Binding Factories, Mode=OneWay}"/>
@@ -206,7 +206,7 @@
                 <!-- For some reason I have to set the style explicitly for this menu item, otherwise it is wrong-->
                 <MenuItem Header="{sd:Localize Empty entity, Context=Menu}" Command="{Binding Editor.CreateEntityInRootCommand}" Style="{StaticResource {x:Type MenuItem}}"/>
                 <!-- IsCheckable=True is a hack to prevent WPF from clearing the selected sub menu item -->
-                <MenuItem ItemsSource="{x:Static p:StrideDefaultAssetsPlugin.EntityFactoryCategories}" IsCheckable="True" d:DataContext="{d:DesignInstance entityFactories:EntityFactoryCategory}">
+                <MenuItem ItemsSource="{x:Static p:StrideDefaultAssetsWpfPlugin.EntityFactoryCategories}" IsCheckable="True" d:DataContext="{d:DesignInstance entityFactories:EntityFactoryCategory}">
                   <MenuItem.ItemContainerStyle>
                     <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}">
                       <Setter Property="ItemsSource" Value="{Binding Factories, Mode=OneWay}"/>
@@ -849,7 +849,7 @@
               <MenuItem Header="{sd:Localize Create, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
               <MenuItem Header="{sd:Localize Empty entity, Context=Menu}" Command="{Binding CreateEntityCommand}"/>
               <!-- IsCheckable=True is a hack to prevent WPF from clearing the selected sub menu item -->
-              <MenuItem ItemsSource="{x:Static p:StrideDefaultAssetsPlugin.EntityFactoryCategories}" IsCheckable="True">
+              <MenuItem ItemsSource="{x:Static p:StrideDefaultAssetsWpfPlugin.EntityFactoryCategories}" IsCheckable="True">
                 <MenuItem.ItemContainerStyle>
                   <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}" d:DataContext="{d:DesignInstance entityFactories:EntityFactoryCategory}">
                     <Setter Property="ItemsSource" Value="{Binding Factories, Mode=OneWay}"/>

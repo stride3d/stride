@@ -18,14 +18,14 @@ namespace Stride.Assets.Presentation;
 /// <para>
 /// The editor registers the <see cref="AssetViewModelAttribute"/> types of a plugin's assembly, and of that assembly only, and
 /// the <see cref="AssetPreviewViewModelAttribute"/> types of the assembly of a <see cref="StrideAssetsPlugin"/> only. The
-/// default assets plugin of each editor (<c>StrideDefaultAssetsPlugin</c> in WPF, <c>StrideEditorPlugin</c> in the
+/// default assets plugin of each editor (<c>StrideDefaultAssetsWpfPlugin</c> in WPF, <c>StrideEditorPlugin</c> in the
 /// cross-platform editor) lives in that editor's own assembly, so the view models shared here need a plugin of their own. It
 /// declares nothing else: it has no member of its own. The previews and the entity factories of this assembly need no plugin:
 /// the editors find them in every assets assembly.
 /// </para>
 /// <para>
 /// A default plugin of the cross-platform editor: its host registers it (<c>Stride.Assets.Editor.Avalonia</c>), the discovery
-/// skips it. The WPF editor registers the same view models itself (<c>StrideDefaultAssetsPlugin.SharedViewModelTypes</c>), so
+/// skips it. The WPF editor registers the same view models itself (<c>StrideDefaultAssetsWpfPlugin.SharedViewModelTypes</c>), so
 /// each asset type has one view model, and each preview one view model, in each editor.
 /// </para>
 /// <para>
