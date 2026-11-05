@@ -232,6 +232,13 @@ namespace Stride.GameStudio.Tests
             Assert.True(declaration.ControllerType.IsAssignableFrom(typeof(Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services.EntityHierarchyEditorController)));
             // The WPF controllers run on the shared one
             Assert.True(typeof(EditorGameController<EntityHierarchyEditorGame>).IsAssignableFrom(typeof(Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services.EntityHierarchyEditorController)));
+            // So do the shared grid and graphics compositor services
+            foreach (var serviceType in new[] { typeof(EditorGameViewportGridService), typeof(EditorGameGraphicsCompositorService) })
+            {
+                Assert.Contains(serviceType, services);
+                Assert.Equal(typeof(StrideSharedAssetsPlugin).Assembly, serviceType.Assembly);
+                Assert.True(serviceType.GetCustomAttribute<EditorGameServiceAttribute>().ControllerType.IsAssignableFrom(typeof(Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services.EntityHierarchyEditorController)));
+            }
         }
 
         [Fact]

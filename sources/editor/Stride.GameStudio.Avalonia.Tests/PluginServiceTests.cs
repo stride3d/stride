@@ -240,6 +240,13 @@ public sealed class PluginServiceTests
         // The shared view cube serves the scene and prefab editors of both editors, through their shared controller interface
         var declaration = typeof(EditorGameCameraOrientationService).GetCustomAttribute<EditorGameServiceAttribute>()!;
         Assert.True(declaration.ControllerType.IsAssignableFrom(typeof(EntityHierarchyEditorController)));
+        // So do the shared grid and graphics compositor services
+        foreach (var serviceType in new[] { typeof(EditorGameViewportGridService), typeof(EditorGameGraphicsCompositorService) })
+        {
+            Assert.Contains(serviceType, services);
+            Assert.Equal(typeof(StrideSharedAssetsPlugin).Assembly, serviceType.Assembly);
+            Assert.True(serviceType.GetCustomAttribute<EditorGameServiceAttribute>()!.ControllerType.IsAssignableFrom(typeof(EntityHierarchyEditorController)));
+        }
     }
 
     [AvaloniaFact]
