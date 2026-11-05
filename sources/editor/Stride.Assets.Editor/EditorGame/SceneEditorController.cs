@@ -110,18 +110,18 @@ public sealed class SceneEditorController : EntityHierarchyEditorController, ISc
                 gameToAssetLookup[sceneId] = assetId;
             }
         }
-        // The child scenes are not supported yet: each scene is a root, at the origin
         var scenesToLoad = roots.Select(root => new
         {
             Id = root.Id.ObjectId,
-            ParentId = Guid.Empty,
+            root.Offset,
+            ParentId = root.ParentScene?.Id.ObjectId ?? Guid.Empty,
             GameSideEntities = ClonePartsForGameSide((AssetCompositeHierarchy<EntityDesign, Entity>)root.Asset.Asset, root.InnerSubEntities.Select(x => x.AssetSideEntity)).ToList(),
         }).ToList();
         await InvokeAsync(() =>
         {
             foreach (var scene in scenesToLoad)
             {
-                var position = Vector3.Zero;
+                var position = scene.Offset;
                 var rotation = Quaternion.Identity;
                 var scale = Vector3.One;
                 Logger.Debug($"Loading scene {scene.Id}");
@@ -170,6 +170,26 @@ public sealed class SceneEditorController : EntityHierarchyEditorController, ISc
                 gameToAssetLookup.Remove(scene.Id);
             }
         }
+    }
+
+    /// <summary>
+    /// Moves the scene represented by <paramref name="root"/> to its offset from its parent scene (UI thread).
+    /// </summary>
+    /// <param name="root">The root representing the scene.</param>
+    /// <seealso cref="SceneEditorGame.UpdateSceneAnchor"/>
+    public Task UpdateSceneAnchorPosition(SceneRootViewModel root)
+    {
+        EnsureAssetAccess();
+
+        var sceneId = root.Id.ObjectId;
+        var position = root.Offset;
+        var rotation = Quaternion.Identity;
+        var scale = Vector3.One;
+        return InvokeAsync(() =>
+        {
+            Logger.Debug($"Updating anchor of scene {sceneId}");
+            Game.UpdateSceneAnchor(sceneId, ref position, ref rotation, ref scale);
+        });
     }
 
     /// <inheritdoc />

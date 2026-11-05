@@ -71,7 +71,7 @@ public sealed class EntityHierarchyFilterAndLockTests
         var parent = FindEntity(editor, "Parent");
         var child = FindEntity(editor, "Child");
         var locked = new List<string?>();
-        editor.HierarchyRoot.LockChanged += (_, e) => locked.Add(e.Element.Name);
+        editor.HierarchyRoot.SelectableChanged += (_, e) => locked.Add(e.Element.Name);
 
         parent.LockCommand.Execute(false);
 
