@@ -4,7 +4,7 @@ using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Rendering.Images;
 
-namespace Stride.Assets.Presentation.NodePresenters.Updaters
+namespace Stride.Assets.Editor.Quantum.NodePresenters.Updaters
 {
     internal sealed class FXAAEffectNodeUpdater : NodePresenterUpdaterBase
     {

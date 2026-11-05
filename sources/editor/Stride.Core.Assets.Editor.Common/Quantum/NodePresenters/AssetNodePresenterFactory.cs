@@ -8,7 +8,7 @@ using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Quantum;
 
-namespace Stride.Core.Assets.Editor.Quantum.NodePresenters
+namespace Stride.Core.Assets.Presentation.Quantum.NodePresenters
 {
     public class AssetNodePresenterFactory : NodePresenterFactory
     {

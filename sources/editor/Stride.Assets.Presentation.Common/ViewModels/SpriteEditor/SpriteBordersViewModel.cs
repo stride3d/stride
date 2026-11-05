@@ -7,6 +7,7 @@ using Stride.Assets.Sprite;
 using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Quantum;
+using Stride.Assets.Editor.ViewModels;
 
 namespace Stride.Assets.Editor.ViewModels.SpriteEditor;
 

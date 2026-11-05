@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using Stride.Core;
 using Stride.Assets.Models;
 
-namespace Stride.Assets.Presentation.NodePresenters.Keys
+namespace Stride.Assets.Editor.Quantum.NodePresenters.Keys
 {
     public static class ModelNodeLinkData
     {

@@ -3,14 +3,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Stride.Core.Assets.Editor.Quantum.NodePresenters;
+using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Assets.Models;
-using Stride.Assets.Presentation.NodePresenters.Keys;
+using Stride.Assets.Editor.Quantum.NodePresenters.Keys;
 using Stride.Engine;
 using Stride.Rendering;
 
-namespace Stride.Assets.Presentation.NodePresenters.Updaters
+namespace Stride.Assets.Editor.Quantum.NodePresenters.Updaters
 {
     public sealed class ModelNodeLinkNodeUpdater : AssetNodePresenterUpdaterBase
     {

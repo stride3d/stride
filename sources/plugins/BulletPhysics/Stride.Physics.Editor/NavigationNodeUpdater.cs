@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Stride.Core.Assets.Editor.Extensions;
-using Stride.Core.Assets.Editor.Quantum.NodePresenters;
+using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
 using Stride.Core.Assets.Editor.ViewModel;
@@ -14,7 +14,6 @@ using Stride.Core.Extensions;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Navigation.Assets;
 using Stride.Navigation;
-using Stride.Assets.Presentation.NodePresenters.Updaters;
 using Stride.Assets;
 
 namespace Stride.Physics.Editor
