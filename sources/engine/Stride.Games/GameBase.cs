@@ -40,6 +40,13 @@ namespace Stride.Games
     public abstract class GameBase : ComponentBase, IGame
     {
         #region Fields
+        /// <summary>
+        /// When a frame takes longer than this span of time, the elapsed time the game reports and advances by is clamped to this value
+        /// </summary>
+        /// <remarks>
+        /// This value is used in the base <see cref="RawTickProducer"/>, games overriding that method may ignore this value
+        /// </remarks>
+        public static readonly TimeSpan DefaultMaximumElapsedTime = TimeSpan.FromMilliseconds(500.0);
 
         private readonly GamePlatform gamePlatform;
         private IGraphicsDeviceService graphicsDeviceService;
@@ -75,7 +82,7 @@ namespace Stride.Games
             DrawTime = new GameTime();
             autoTickTimer = new TimerTick();
             IsFixedTimeStep = false;
-            maximumElapsedTime = TimeSpan.FromMilliseconds(500.0);
+            maximumElapsedTime = DefaultMaximumElapsedTime;
             TargetElapsedTime = TimeSpan.FromTicks(TimeSpan.TicksPerSecond / 60); // target elapsed time is by default 60Hz
             
             TreatNotFocusedLikeMinimized = true;

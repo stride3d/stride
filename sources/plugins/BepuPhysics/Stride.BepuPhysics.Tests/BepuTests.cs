@@ -599,7 +599,7 @@ namespace Stride.BepuPhysics.Tests
         {
             using var simulation = new BepuSimulation
             {
-                MaximumTimespanToProcess = TimeSpan.FromSeconds(2f),
+                MaximumTimeSpanToProcess = TimeSpan.FromSeconds(2f),
                 DropPostponedTicks = dropPostponedTicks,
                 FixedTimeStep = TimeSpan.FromSeconds(1f),
             };
@@ -623,18 +623,18 @@ namespace Stride.BepuPhysics.Tests
         {
             using var simulation = new BepuSimulation
             {
-                MaximumTimespanToProcess = TimeSpan.FromSeconds(1f),
+                MaximumTimeSpanToProcess = TimeSpan.FromSeconds(1f),
                 DropPostponedTicks = true,
                 FixedTimeStep = TimeSpan.FromSeconds(1f),
             };
             int ticks = 0;
             simulation.Register(new SimUpdateListener { SimUpdate = () => ticks++ });
 
-            simulation.Update(simulation.MaximumTimespanToProcess + simulation.MaximumTimespanToProcess * 0);
+            simulation.Update(simulation.MaximumTimeSpanToProcess + simulation.MaximumTimeSpanToProcess * 0);
             Assert.Equal(1, ticks);
-            simulation.Update(simulation.MaximumTimespanToProcess + simulation.MaximumTimespanToProcess / 2);
+            simulation.Update(simulation.MaximumTimeSpanToProcess + simulation.MaximumTimeSpanToProcess / 2);
             Assert.Equal(2, ticks);
-            simulation.Update(simulation.MaximumTimespanToProcess / 2);
+            simulation.Update(simulation.MaximumTimeSpanToProcess / 2);
             Assert.Equal(3, ticks);
         }
 
@@ -644,7 +644,7 @@ namespace Stride.BepuPhysics.Tests
             var maximumTimespanUnderFixedTimeStep = TimeSpan.FromSeconds(0.5f);
             using var simulation = new BepuSimulation
             {
-                MaximumTimespanToProcess = maximumTimespanUnderFixedTimeStep,
+                MaximumTimeSpanToProcess = maximumTimespanUnderFixedTimeStep,
                 FixedTimeStep = TimeSpan.FromSeconds(1f),
             };
             int ticks = 0;
@@ -658,10 +658,10 @@ namespace Stride.BepuPhysics.Tests
             simulation.Update(simulation.FixedTimeStep);
             Assert.Equal(0, ticks); ticks = 0;
 
-            simulation.MaximumTimespanToProcess = TimeSpan.FromSeconds(10f);
+            simulation.MaximumTimeSpanToProcess = TimeSpan.FromSeconds(10f);
             simulation.Update(simulation.FixedTimeStep);
             Assert.Equal(1, ticks); ticks = 0;
-            simulation.MaximumTimespanToProcess = maximumTimespanUnderFixedTimeStep;
+            simulation.MaximumTimeSpanToProcess = maximumTimespanUnderFixedTimeStep;
 
             simulation.DropPostponedTicks = false;
             simulation.Update(simulation.FixedTimeStep);
@@ -671,7 +671,7 @@ namespace Stride.BepuPhysics.Tests
             simulation.Update(simulation.FixedTimeStep);
             Assert.Equal(0, ticks); ticks = 0;
 
-            simulation.MaximumTimespanToProcess = TimeSpan.FromSeconds(10f);
+            simulation.MaximumTimeSpanToProcess = TimeSpan.FromSeconds(10f);
             simulation.Update(TimeSpan.Zero);
             Assert.Equal(3, ticks); ticks = 0;
         }
