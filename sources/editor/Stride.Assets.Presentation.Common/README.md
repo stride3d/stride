@@ -30,8 +30,8 @@ compositor, material, model, precompiled sprite font, procedural model, skeleton
 `Stride.Assets.Editor.ViewModels.IResizingTarget` and `ResizingDirection`, used by the sprite, curve and UI editors), and the
 node presenter commands, keys and updaters that both editors share (`Stride.Assets.Editor.Quantum.NodePresenters.Commands`,
 `.Keys` and `.Updaters`, editor code; their base types are presentation code, in `Stride.Core.Assets.Presentation.Quantum.NodePresenters`). The editor registers the view
-models of a plugin's own assembly only, so `StrideSharedAssetsPlugin` declares them; a plugin of each editor
-registers the updaters (`StrideEditorPlugin` in the cross-platform editor, `StrideDefaultAssetsPlugin` in WPF).
+models of a plugin's own assembly only, so `StrideSharedAssetsPlugin` declares them in the cross-platform editor, whose host
+registers it; the WPF default assets plugin registers them one by one. A plugin of each editor registers the updaters (`StrideEditorPlugin` in the cross-platform editor, `StrideDefaultAssetsPlugin` in WPF).
 
 Since Phase 3 (asset templates) also the asset template generators of both editors (`Stride.Assets.Editor.Templates`: the
 factory, from-file and derived asset generators, the model, skeleton, animation and sprite sheet import generators, the

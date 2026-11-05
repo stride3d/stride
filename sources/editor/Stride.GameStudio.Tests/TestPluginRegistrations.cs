@@ -52,7 +52,6 @@ public class TestPluginRegistrations
         // The plugins of the core editor and of the Game Studio are internal
         yield return Create(typeof(Stride.Core.Assets.Editor.View.ValueConverters.TypeToResource).Assembly, "Stride.Core.Assets.Editor.CoreAssetsEditorPlugin");
         yield return CreateDefaultAssetsPlugin();
-        yield return new StrideSharedAssetsPlugin();
         yield return Create(typeof(PluginService).Assembly, "Stride.GameStudio.Plugin.StrideEditorPlugin");
         yield return new UIEditorPlugin();
         yield return new UIEditorWpfPlugin();

@@ -33,8 +33,9 @@ public sealed class PluginTests
         Assert.Contains(AssetsPlugin.RegisteredPlugins, x => x is StrideEditorPlugin);
         Assert.False(AssetsPlugin.IsDiscoverable(typeof(StrideDefaultAssetsPlugin)));
         Assert.False(AssetsPlugin.IsDiscoverable(typeof(StrideEditorPlugin)));
-        // The plugins of the packages are still discovered
-        Assert.True(AssetsPlugin.IsDiscoverable(typeof(StrideSharedAssetsPlugin)));
+        // So is the plugin of the view models that both editors share: the WPF editor registers them itself
+        Assert.Contains(AssetsPlugin.RegisteredPlugins, x => x is StrideSharedAssetsPlugin);
+        Assert.False(AssetsPlugin.IsDiscoverable(typeof(StrideSharedAssetsPlugin)));
     }
 
     [Fact]

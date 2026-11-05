@@ -1,9 +1,28 @@
 Plugin: Stride.Assets.Presentation.StrideDefaultAssetsPlugin
 AssetViewModelTypes:
+  Stride.Assets.Effect.EffectLogAsset -> Stride.Assets.Presentation.ViewModels.EffectLogViewModel
+  Stride.Assets.Entities.PrefabAsset -> Stride.Assets.Presentation.ViewModels.PrefabViewModel
+  Stride.Assets.Entities.SceneAsset -> Stride.Assets.Presentation.ViewModels.SceneViewModel
+  Stride.Assets.GameSettingsAsset -> Stride.Assets.Presentation.ViewModels.GameSettingsViewModel
+  Stride.Assets.Materials.MaterialAsset -> Stride.Assets.Presentation.ViewModels.MaterialViewModel
+  Stride.Assets.Models.AnimationAsset -> Stride.Assets.Presentation.ViewModels.AnimationViewModel
+  Stride.Assets.Models.ModelAsset -> Stride.Assets.Presentation.ViewModels.ModelViewModel
+  Stride.Assets.Models.ProceduralModelAsset -> Stride.Assets.Presentation.ViewModels.ProceduralModelViewModel
+  Stride.Assets.Models.SkeletonAsset -> Stride.Assets.Presentation.ViewModels.SkeletonViewModel
+  Stride.Assets.Rendering.GraphicsCompositorAsset -> Stride.Assets.Presentation.ViewModels.GraphicsCompositorViewModel
   Stride.Assets.Scripts.ScriptSourceFileAsset -> Stride.Assets.Presentation.ViewModel.ScriptSourceFileAssetViewModel
+  Stride.Assets.Scripts.VisualScriptAsset -> Stride.Assets.Presentation.ViewModels.VisualScriptViewModel
+  Stride.Assets.Skyboxes.SkyboxAsset -> Stride.Assets.Presentation.ViewModels.SkyboxViewModel
+  Stride.Assets.Sprite.SpriteSheetAsset -> Stride.Assets.Presentation.ViewModels.SpriteSheetViewModel
+  Stride.Assets.SpriteFont.PrecompiledSpriteFontAsset -> Stride.Assets.Presentation.ViewModels.PrecompiledSpriteFontViewModel
+  Stride.Assets.SpriteFont.SpriteFontAsset -> Stride.Assets.Presentation.ViewModels.SpriteFontViewModel
   Stride.Core.Assets.SourceCodeAsset -> Stride.Assets.Presentation.ViewModel.CodeAssetViewModel
 AssetEditorViewModelTypes:
   Stride.Assets.Presentation.ViewModel.ScriptSourceFileAssetViewModel -> Stride.Assets.Presentation.AssetEditors.ScriptEditor.ScriptEditorViewModel
+  Stride.Assets.Presentation.ViewModels.GraphicsCompositorViewModel -> Stride.Assets.Editor.ViewModels.GraphicsCompositorEditorViewModel
+  Stride.Assets.Presentation.ViewModels.PrefabViewModel -> Stride.Assets.Editor.ViewModels.PrefabEditorViewModel
+  Stride.Assets.Presentation.ViewModels.SceneViewModel -> Stride.Assets.Editor.ViewModels.SceneEditorViewModel
+  Stride.Assets.Presentation.ViewModels.SpriteSheetViewModel -> Stride.Assets.Editor.ViewModels.SpriteSheetEditorViewModel
   Stride.Assets.Presentation.ViewModels.VisualScriptViewModel -> Stride.Assets.Presentation.AssetEditors.VisualScriptEditor.VisualScriptEditorViewModel
 AssetEditorViewTypes:
   Stride.Assets.Editor.ViewModels.GraphicsCompositorEditorViewModel -> Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.Views.GraphicsCompositorEditorView
@@ -12,6 +31,17 @@ AssetEditorViewTypes:
   Stride.Assets.Editor.ViewModels.SpriteSheetEditorViewModel -> Stride.Assets.Presentation.AssetEditors.SpriteEditor.Views.SpriteEditorView
   Stride.Assets.Presentation.AssetEditors.ScriptEditor.ScriptEditorViewModel -> Stride.Assets.Presentation.AssetEditors.ScriptEditor.ScriptEditorView
 AssetPreviewViewModelTypes:
+  Stride.Assets.Editor.Preview.AnimationPreview -> Stride.Assets.Editor.ViewModels.Preview.AnimationPreviewViewModel
+  Stride.Assets.Editor.Preview.EntityPreview -> Stride.Assets.Editor.ViewModels.Preview.EntityPreviewViewModel
+  Stride.Assets.Editor.Preview.MaterialPreview -> Stride.Assets.Editor.ViewModels.Preview.MaterialPreviewViewModel
+  Stride.Assets.Editor.Preview.ModelPreview -> Stride.Assets.Editor.ViewModels.Preview.ModelPreviewViewModel
+  Stride.Assets.Editor.Preview.PrecompiledSpriteFontPreview -> Stride.Assets.Editor.ViewModels.Preview.PrecompiledSpriteFontPreviewViewModel
+  Stride.Assets.Editor.Preview.PreviewFromSpriteBatch`1 -> Stride.Assets.Editor.ViewModels.Preview.SpritePreviewViewModel
+  Stride.Assets.Editor.Preview.ProceduralModelPreview -> Stride.Assets.Editor.ViewModels.Preview.ProceduralModelPreviewViewModel
+  Stride.Assets.Editor.Preview.SkyboxPreview -> Stride.Assets.Editor.ViewModels.Preview.SkyboxPreviewViewModel
+  Stride.Assets.Editor.Preview.SpriteFontPreview -> Stride.Assets.Editor.ViewModels.Preview.SpriteFontPreviewViewModel
+  Stride.Assets.Editor.Preview.SpriteSheetPreview -> Stride.Assets.Editor.ViewModels.Preview.SpriteSheetPreviewViewModel
+  Stride.Assets.Editor.Preview.TexturePreview -> Stride.Assets.Editor.ViewModels.Preview.TexturePreviewViewModel
 AssetPreviewViewTypes:
   Stride.Assets.Editor.Preview.AnimationPreview -> Stride.Assets.Presentation.Preview.Views.AnimationPreviewView
   Stride.Assets.Editor.Preview.MaterialPreview -> Stride.Assets.Presentation.Preview.Views.MaterialPreviewView
