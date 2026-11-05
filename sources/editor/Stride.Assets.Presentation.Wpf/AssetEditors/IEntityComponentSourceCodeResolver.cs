@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
+using Stride.Assets.Presentation.Services;
 using Stride.Core.IO;
 
 namespace Stride.Assets.Presentation.AssetEditors
@@ -11,15 +11,11 @@ namespace Stride.Assets.Presentation.AssetEditors
     /// <summary>
     /// Provides information about scripts in loaded assemblies.
     /// </summary>
-    public interface IEntityComponentSourceCodeResolver
+    public interface IEntityComponentSourceCodeResolver : IScriptCompilationProvider
     {
         /// <summary>
         /// Gets script types that exist in a source file.
         /// </summary>
         IEnumerable<Type> GetTypesFromSourceFile(UFile file);
-
-        Compilation LatestCompilation { get; }
-
-        event EventHandler LatestCompilationChanged;
     }
 }

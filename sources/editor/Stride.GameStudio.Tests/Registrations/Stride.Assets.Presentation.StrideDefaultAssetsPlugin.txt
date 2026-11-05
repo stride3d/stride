@@ -1,11 +1,10 @@
 Plugin: Stride.Assets.Presentation.StrideDefaultAssetsPlugin
 AssetViewModelTypes:
   Stride.Assets.Scripts.ScriptSourceFileAsset -> Stride.Assets.Presentation.ViewModel.ScriptSourceFileAssetViewModel
-  Stride.Assets.Scripts.VisualScriptAsset -> Stride.Assets.Presentation.ViewModel.VisualScriptViewModel
   Stride.Core.Assets.SourceCodeAsset -> Stride.Assets.Presentation.ViewModel.CodeAssetViewModel
 AssetEditorViewModelTypes:
   Stride.Assets.Presentation.ViewModel.ScriptSourceFileAssetViewModel -> Stride.Assets.Presentation.AssetEditors.ScriptEditor.ScriptEditorViewModel
-  Stride.Assets.Presentation.ViewModel.VisualScriptViewModel -> Stride.Assets.Presentation.AssetEditors.VisualScriptEditor.VisualScriptEditorViewModel
+  Stride.Assets.Presentation.ViewModels.VisualScriptViewModel -> Stride.Assets.Presentation.AssetEditors.VisualScriptEditor.VisualScriptEditorViewModel
 AssetEditorViewTypes:
   Stride.Assets.Editor.ViewModels.GraphicsCompositorEditorViewModel -> Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.Views.GraphicsCompositorEditorView
   Stride.Assets.Editor.ViewModels.PrefabEditorViewModel -> Stride.Assets.Presentation.AssetEditors.PrefabEditor.Views.PrefabEditorView

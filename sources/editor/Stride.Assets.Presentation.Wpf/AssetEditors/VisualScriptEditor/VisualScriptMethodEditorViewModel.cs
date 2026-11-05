@@ -18,6 +18,7 @@ using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.ViewModels;
 using Stride.Core.Quantum;
 using Stride.Assets.Presentation.ViewModel;
+using Stride.Assets.Presentation.ViewModels;
 using Stride.Assets.Scripts;
 using Stride.Core.Presentation.ViewModels;
 

@@ -1,6 +1,11 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable enable
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Stride.Assets.Presentation.Services;
 using Stride.Assets.Scripts;
 using Stride.Core.Diagnostics;
@@ -18,7 +23,7 @@ namespace Stride.Assets.Presentation.ViewModels;
 /// The slots of the blocks are regenerated from the latest compilation of the scripts, which an <see cref="IScriptCompilationProvider"/>
 /// service gives. Without that service, as in the cross-platform editor for now, the blocks keep the slots they were saved with.
 /// </remarks>
-public class VisualScriptMethodViewModel : DispatcherViewModel
+public sealed class VisualScriptMethodViewModel : DispatcherViewModel
 {
     private readonly VisualScriptViewModel visualScript;
     private readonly Method method;
