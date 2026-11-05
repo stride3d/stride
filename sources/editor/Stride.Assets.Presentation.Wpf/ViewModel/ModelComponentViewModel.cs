@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Stride.Assets.Editor.ViewModels;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core;
 using Stride.Core.Assets;
@@ -54,7 +55,7 @@ namespace Stride.Assets.Presentation.ViewModel
                 return;
 
             initialized = true;
-            var assetNode = editor.NodeContainer.GetOrCreateNode(entity.AssetSideEntity);
+            var assetNode = editor.Session.AssetNodeContainer.GetOrCreateNode(entity.AssetSideEntity);
             var componentNode = assetNode[nameof(Entity.Components)].Target;
             componentNode.ItemChanged += ComponentListChanged;
             RegisterModelChanged();
@@ -68,7 +69,7 @@ namespace Stride.Assets.Presentation.ViewModel
                 return;
             }
 
-            var assetNode = editor.NodeContainer.GetOrCreateNode(entity.AssetSideEntity);
+            var assetNode = editor.Session.AssetNodeContainer.GetOrCreateNode(entity.AssetSideEntity);
             var componentNode = assetNode[nameof(Entity.Components)].Target;
             componentNode.ItemChanged -= ComponentListChanged;
             UnregisterModelChanged();
@@ -104,7 +105,7 @@ namespace Stride.Assets.Presentation.ViewModel
 
                 // Sliders live in their own category: editing one weight rebuilds the dictionary presenter, not the other rows.
                 var weights = node.CreateCategory("Weights", 30, ExpandRule.Once);
-                var weightsNode = (IAssetObjectNode)editor.NodeContainer.GetNode(settings.Weights);
+                var weightsNode = (IAssetObjectNode)editor.Session.AssetNodeContainer.GetNode(settings.Weights);
                 weights.Commands.Clear();
                 var componentId = morphComponent.Id;
                 weights.Commands.Add(new SyncAnonymousNodePresenterCommand("ResetAllMorphWeights", (_, _) => SetMorphWeights(weightsNode, componentId, names, 0f, "Reset all morph weights")));
@@ -135,7 +136,7 @@ namespace Stride.Assets.Presentation.ViewModel
 
             if (node.Value is IndexingDictionary<Material> && node.Parent?.Value is ModelComponent)
             {
-                var materialsNode = (IAssetObjectNode)editor.NodeContainer.GetNode(node.Value);
+                var materialsNode = (IAssetObjectNode)editor.Session.AssetNodeContainer.GetNode(node.Value);
                 var materials = node;
                 var model = GetReferencedModel();
                 if (model != null)
@@ -197,7 +198,7 @@ namespace Stride.Assets.Presentation.ViewModel
                     return;
                 previewPosted = true;
             }
-            editor.Controller.InvokeAsync(() => ApplyPreviewWeights(componentId));
+            editor.Controller?.InvokeAsync(() => ApplyPreviewWeights(componentId));
         }
 
         private void ApplyPreviewWeights(Guid componentId)
@@ -209,7 +210,7 @@ namespace Stride.Assets.Presentation.ViewModel
                 previewWeights.Clear();
                 previewPosted = false;
             }
-            var gameSideEntity = editor.Controller.FindGameSidePart(entity.Id) as Entity;
+            var gameSideEntity = editor.Controller?.FindGameSidePart(entity.Id) as Entity;
             if (gameSideEntity?.Components.FirstOrDefault(component => component.Id == componentId) is not ModelComponent gameSideComponent)
                 return;
             // Runtime weights only: the authored weights replace them once the asset change reaches the scene.
@@ -327,7 +328,7 @@ namespace Stride.Assets.Presentation.ViewModel
         private IObjectNode GetMaterialsNode()
         {
             var modelComponent = entity.AssetSideEntity.Get<ModelComponent>();
-            return modelComponent != null ? editor.NodeContainer.GetNode(modelComponent)[nameof(ModelComponent.Materials)].Target : null;
+            return modelComponent != null ? editor.Session.AssetNodeContainer.GetNode(modelComponent)[nameof(ModelComponent.Materials)].Target : null;
         }
 
         private IModelAsset GetReferencedModel() => GetModelAsset(entity.AssetSideEntity.Get<ModelComponent>()?.Model);
@@ -365,7 +366,7 @@ namespace Stride.Assets.Presentation.ViewModel
             var modelComponent = entity.AssetSideEntity.Get<ModelComponent>();
             if (modelComponent != null)
             {
-                var modelNode = editor.NodeContainer.GetNode(modelComponent);
+                var modelNode = editor.Session.AssetNodeContainer.GetNode(modelComponent);
                 modelContent = modelNode[nameof(ModelComponent.Model)];
                 modelContent.ValueChanging += ModelChanging;
             }
@@ -390,7 +391,7 @@ namespace Stride.Assets.Presentation.ViewModel
                 // Keep the weights of targets the new model also has, so swapping between variants of a model keeps the pose.
                 var component = entity.AssetSideEntity.Get<ModelComponent>();
                 var kept = GetMorphTargetNames(GetModelAsset(e.NewValue)).ToHashSet(StringComparer.Ordinal);
-                var weights = editor.NodeContainer.GetNode(component.Morphs.Weights);
+                var weights = editor.Session.AssetNodeContainer.GetNode(component.Morphs.Weights);
                 foreach (var index in weights.Indices.ToList())
                 {
                     if (!kept.Contains((string)index.Value))

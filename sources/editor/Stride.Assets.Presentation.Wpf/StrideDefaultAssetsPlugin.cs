@@ -6,6 +6,8 @@ using System.Linq;
 using System.Reflection;
 using System.Windows;
 using Stride.Assets.Editor.EditorGame;
+using Stride.Assets.Editor.ViewModels;
+using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets;
@@ -53,16 +55,8 @@ namespace Stride.Assets.Presentation
         // Replaced, never changed: the editor games read them on their threads while an assembly registers
         private static volatile IReadOnlyDictionary<Type, Type> assetHighlighterTypes = new Dictionary<Type, Type>();
         private static readonly object TypeMapsLock = new object();
-        // Replaced, never changed: an assembly can register on any thread (a package loaded by a background task)
-        private static volatile IReadOnlyList<Type> addAssetPolicyTypes = [];
-        private static readonly object AddAssetPolicyTypesLock = new object();
 
         public static IReadOnlyDictionary<Type, Type> AssetHighlighterTypesDictionary => assetHighlighterTypes;
-
-        /// <summary>
-        /// The <see cref="IAddAssetPolicy"/> implementations of every asset assembly, in registration order.
-        /// </summary>
-        public static IReadOnlyList<Type> AddAssetPolicyTypeList => addAssetPolicyTypes;
 
         private static readonly ObservableList<EntityFactoryCategory> EntityFactoryCategoryList = new ObservableList<EntityFactoryCategory>();
 
@@ -172,6 +166,9 @@ namespace Stride.Assets.Presentation
             var session = context.Session;
             var sessionViewModel = (SessionViewModel)session;
             context.Services.Register(new StrideDialogService());
+            // The scene and prefab editors run their game in a WinForms form, and show the toolbar of the WPF editor
+            context.Services.Register(WpfEditorGameViewport.Service);
+            context.Services.Register(new WpfEditorViewOptionsFactory());
             var assetsViewModel = new StrideAssetsViewModel(sessionViewModel);
 
             context.NodePresenterCommands.Register(new FetchEntityCommand());
@@ -235,9 +232,7 @@ namespace Stride.Assets.Presentation
             {
                 assetHighlighterTypes = WithTypes(assetHighlighterTypes, GetAssetHighlighterTypes(assembly));
             }
-            var policyTypes = AssemblyRegistry.GetScanTypes(assembly, typeof(IAddAssetPolicy)).Where(IsAddAssetPolicy).ToList();
-            lock (AddAssetPolicyTypesLock)
-                addAssetPolicyTypes = [.. addAssetPolicyTypes, .. policyTypes.Except(addAssetPolicyTypes)];
+            AddAssetPolicyRegistry.RegisterAssembly(assembly);
 
             var factoryTypes = AssemblyRegistry.GetScanTypes(assembly, typeof(IEntityFactory)).ToArray();
             OnUiThread(() => RegisterEntityFactories(factoryTypes));
@@ -250,9 +245,7 @@ namespace Stride.Assets.Presentation
             {
                 assetHighlighterTypes = WithoutTypes(assetHighlighterTypes, GetAssetHighlighterTypes(assembly));
             }
-            var policyTypes = AssemblyRegistry.GetScanTypes(assembly, typeof(IAddAssetPolicy)).ToHashSet();
-            lock (AddAssetPolicyTypesLock)
-                addAssetPolicyTypes = addAssetPolicyTypes.Where(x => !policyTypes.Contains(x)).ToList();
+            AddAssetPolicyRegistry.UnregisterAssembly(assembly);
 
             var factoryTypes = AssemblyRegistry.GetScanTypes(assembly, typeof(IEntityFactory)).ToArray();
             OnUiThread(() => UnregisterEntityFactories(factoryTypes));
@@ -346,11 +339,6 @@ namespace Stride.Assets.Presentation
                 if (category.Factories.Count == 0)
                     EntityFactoryCategoryList.Remove(category);
             }
-        }
-
-        private static bool IsAddAssetPolicy(Type type)
-        {
-            return type.IsAssignableTo(typeof(IAddAssetPolicy)) && type.IsClass && !type.IsAbstract && !type.IsGenericTypeDefinition && type.GetConstructor(Type.EmptyTypes) != null;
         }
     }
 }

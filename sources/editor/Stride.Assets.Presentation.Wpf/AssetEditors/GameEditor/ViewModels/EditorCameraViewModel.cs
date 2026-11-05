@@ -12,7 +12,7 @@ using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
 {
-    public class EditorCameraViewModel : DispatcherViewModel
+    public class EditorCameraViewModel : DispatcherViewModel, ICameraViewOptions
     {
         private readonly IEditorGameController controller;
         
@@ -127,6 +127,18 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
         public void DecreaseMovementSpeed()
         {
             MoveSpeedIndex--;
+        }
+
+        /// <inheritdoc/>
+        void ICameraViewOptions.ChangeMovementSpeed(int step)
+        {
+            Dispatcher.InvokeAsync(() => MoveSpeedIndex += step);
+        }
+
+        /// <inheritdoc/>
+        void ICameraViewOptions.SwitchProjection()
+        {
+            Dispatcher.InvokeAsync(() => OrthographicProjection = !OrthographicProjection);
         }
     }
 }

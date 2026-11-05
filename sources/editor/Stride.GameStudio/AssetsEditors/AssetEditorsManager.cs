@@ -577,16 +577,16 @@ namespace Stride.GameStudio.AssetsEditors
 
             if (editorPane.Content is FrameworkElement element && element?.DataContext is AssetViewModel asset)
             {
-                if (openedAssets.TryGetValue(asset, out var editor) && editor is Assets.Presentation.AssetEditors.GameEditor.ViewModels.GameEditorViewModel gameEditor)
+                if (openedAssets.TryGetValue(asset, out var editor) && editor is Assets.Editor.ViewModels.IGameEditorViewModel gameEditor)
                 {
                     // A tab/sub-window is visible via IsSelected, not IsVisible
                     if (editorPane.IsSelected)
                     {
-                        gameEditor.ShowGame();
+                        gameEditor.GameHost.ShowGame();
                     }
                     else
                     {
-                        gameEditor.HideGame();
+                        gameEditor.GameHost.HideGame();
                     }
                 }
             }

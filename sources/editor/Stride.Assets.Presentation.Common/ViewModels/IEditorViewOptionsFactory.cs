@@ -2,8 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #nullable enable
 
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
-using Stride.Assets.Presentation.ViewModels;
+using Stride.Assets.Editor.EditorGame;
 
 namespace Stride.Assets.Editor.ViewModels;
 
@@ -19,5 +18,5 @@ public interface IEditorViewOptionsFactory
     /// <param name="editor">The scene or prefab editor.</param>
     /// <param name="controller">The controller of its game.</param>
     /// <returns>The view options, or <c>null</c> when this user interface shows none for this game.</returns>
-    IEditorViewOptions? CreateViewOptions(IEntityHierarchyEditorViewModel editor, IEntityHierarchyEditorController controller);
+    IEditorViewOptions? CreateViewOptions(EntityHierarchyEditorViewModel editor, EntityHierarchyEditorController controller);
 }

@@ -24,6 +24,7 @@ using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Settings;
 using Stride.Editor.EditorGame.ContentLoader;
 using Stride.Editor.EditorGame.ViewModels;
+using Stride.Editor.Engine;
 using Stride.Engine;
 using Stride.Physics;
 using Stride.Physics.Editor;
@@ -418,7 +419,10 @@ public sealed class EditorViewPopupsTests
         public Task GameEnded => Task.CompletedTask;
 
         public SessionNodeContainer GameSideNodeContainer => throw new NotSupportedException();
+
         public object View => throw new NotSupportedException();
+
+        public IEditorGameViewport Viewport => throw new NotSupportedException();
 
         public Task<bool> StartGame() => Task.FromResult(true);
 

@@ -11,7 +11,6 @@ using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Annotations;
 using Stride.Core.Extensions;
-using Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels;
 using Stride.Assets.Quantum;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.UI.Assets;

@@ -40,7 +40,7 @@ namespace Stride.UI.Editor.Views
                 return false;
             }
 
-            SceneView.Content = uiEditor.Controller.EditorHost;
+            SceneView.Content = uiEditor.GameHost.GameView;
             SceneView.InvalidateVisual();
 
             editorInitializationNotifier.SetResult();

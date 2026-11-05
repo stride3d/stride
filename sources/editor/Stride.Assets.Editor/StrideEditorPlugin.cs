@@ -55,9 +55,6 @@ public sealed class StrideEditorPlugin : StrideAssetsPlugin
     /// <summary>Run the sweep at most this often across launches, tracked via the marker file's mtime.</summary>
     private static readonly TimeSpan GcInterval = TimeSpan.FromHours(24);
 
-    // Replaced, never changed: an assembly can register on any thread (a package loaded by a background task)
-    private static volatile IReadOnlyList<Type> addAssetPolicyTypes = [];
-    private static readonly object AddAssetPolicyTypesLock = new();
     private static readonly ObservableList<EntityFactoryCategory> EntityFactoryCategoryList = [];
     private static bool assemblyHooksRegistered;
 
@@ -65,11 +62,6 @@ public sealed class StrideEditorPlugin : StrideAssetsPlugin
     /// Whether <see cref="InitializeSession(ISessionPluginContext)"/> creates the thumbnail service. Tests without a graphics device turn it off.
     /// </summary>
     public bool EnableThumbnailService { get; set; } = true;
-
-    /// <summary>
-    /// The <see cref="IAddAssetPolicy"/> implementations of every asset assembly, in registration order.
-    /// </summary>
-    public static IReadOnlyList<Type> AddAssetPolicyTypeList => addAssetPolicyTypes;
 
     /// <summary>
     /// The entity factories ("Add entity" menu) of every asset assembly, grouped by category.
@@ -322,9 +314,7 @@ public sealed class StrideEditorPlugin : StrideAssetsPlugin
     private static void OnRegisteredAssetAssembly(Assembly assembly)
     {
         GizmoTypeRegistry.RegisterAssembly(assembly);
-        var policyTypes = AssemblyRegistry.GetScanTypes(assembly, typeof(IAddAssetPolicy)).Where(IsAddAssetPolicy).ToList();
-        lock (AddAssetPolicyTypesLock)
-            addAssetPolicyTypes = [.. addAssetPolicyTypes, .. policyTypes.Except(addAssetPolicyTypes)];
+        AddAssetPolicyRegistry.RegisterAssembly(assembly);
 
         var factoryTypes = AssemblyRegistry.GetScanTypes(assembly, typeof(IEntityFactory)).ToArray();
         lock (EntityFactoryCategoryList)
@@ -334,9 +324,7 @@ public sealed class StrideEditorPlugin : StrideAssetsPlugin
     private static void OnUnregisteredAssetAssembly(Assembly assembly)
     {
         GizmoTypeRegistry.UnregisterAssembly(assembly);
-        var policyTypes = AssemblyRegistry.GetScanTypes(assembly, typeof(IAddAssetPolicy)).ToHashSet();
-        lock (AddAssetPolicyTypesLock)
-            addAssetPolicyTypes = addAssetPolicyTypes.Where(x => !policyTypes.Contains(x)).ToList();
+        AddAssetPolicyRegistry.UnregisterAssembly(assembly);
 
         var factoryTypes = AssemblyRegistry.GetScanTypes(assembly, typeof(IEntityFactory)).ToArray();
         lock (EntityFactoryCategoryList)
@@ -382,10 +370,5 @@ public sealed class StrideEditorPlugin : StrideAssetsPlugin
             if (category.Factories.Count == 0)
                 EntityFactoryCategoryList.Remove(category);
         }
-    }
-
-    private static bool IsAddAssetPolicy(Type type)
-    {
-        return type.IsAssignableTo(typeof(IAddAssetPolicy)) && type.IsClass && !type.IsAbstract && !type.IsGenericTypeDefinition && type.GetConstructor(Type.EmptyTypes) != null;
     }
 }
