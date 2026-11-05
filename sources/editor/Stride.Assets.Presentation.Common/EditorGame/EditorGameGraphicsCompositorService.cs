@@ -1,6 +1,11 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable enable
 
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Editor.ViewModel;
@@ -17,7 +22,7 @@ namespace Stride.Assets.Editor.EditorGame;
 /// Renders the game of an entity hierarchy editor with the graphics compositor of the game settings, as the game does
 /// (its editor part), and follows the changes of the game settings and of the compositor asset.
 /// </summary>
-[EditorGameService(typeof(EntityHierarchyEditorController), Order = 100)]
+[EditorGameService(typeof(IEntityHierarchyEditorController), Order = 100)]
 public sealed class EditorGameGraphicsCompositorService : EditorGameServiceBase
 {
     private readonly IEditorGameController controller;
