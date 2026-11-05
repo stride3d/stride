@@ -381,14 +381,16 @@ public abstract class EditorGameController<TEditorGame> : IEditorGameController
 
     /// <summary>
     /// Creates the services declared for this controller by <see cref="EditorGameServiceAttribute"/> in every asset
-    /// assembly through its source-generated scan index (game thread, before the game runs).
+    /// assembly through its source-generated scan index (game thread, before the game runs), except the ones the editor
+    /// leaves out (<see cref="EditorGameDiscovery"/>).
     /// </summary>
     protected virtual void InitializeServices(EditorGameServiceRegistry services)
     {
         var serviceTypes = new List<(Type Type, int Order)>();
         foreach (var serviceType in AssetRegistry.AssetAssemblies.SelectMany(x => AssemblyRegistry.GetScanTypes(x, typeof(EditorGameServiceAttribute))).Distinct())
         {
-            if (!typeof(IEditorGameService).IsAssignableFrom(serviceType) || serviceType.IsAbstract || serviceType.IsGenericTypeDefinition)
+            if (!typeof(IEditorGameService).IsAssignableFrom(serviceType) || serviceType.IsAbstract || serviceType.IsGenericTypeDefinition
+                || EditorGameDiscovery.IsExcluded(serviceType))
                 continue;
 
             var declaration = serviceType.GetCustomAttributes<EditorGameServiceAttribute>(inherit: false).FirstOrDefault(x => x.ControllerType.IsInstanceOfType(this));
