@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Analysis;
@@ -11,8 +12,10 @@ using Stride.Core.BuildEngine;
 using Stride.Core.IO;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
-using Stride.Assets.Textures;
+using Stride.Core.Assets.Visitors;
+using Stride.Core.Reflection;
 using Stride.Graphics;
+using Stride.Rendering;
 using Stride.Rendering.Materials;
 
 namespace Stride.Assets.Materials
@@ -22,7 +25,8 @@ namespace Stride.Assets.Materials
     {
         public override IEnumerable<BuildDependencyInfo> GetInputTypes(AssetItem assetItem)
         {
-            yield return new BuildDependencyInfo(typeof(TextureAsset), typeof(AssetCompilationContext), BuildDependencyType.Runtime);
+            foreach (var type in AssetRegistry.GetAssetTypes(typeof(Texture)))
+                yield return new BuildDependencyInfo(type, typeof(AssetCompilationContext), BuildDependencyType.Runtime);
             yield return new BuildDependencyInfo(typeof(MaterialAsset), typeof(AssetCompilationContext), BuildDependencyType.CompileAsset);
             yield return new BuildDependencyInfo(typeof(GameSettingsAsset), typeof(AssetCompilationContext), BuildDependencyType.CompileAsset);
         }
@@ -32,6 +36,62 @@ namespace Stride.Assets.Materials
             // Note: might not be needed in all cases, but let's not bother for now (they are only 9kb)
             yield return new ObjectUrl(UrlType.Content, "/Stride.Engine/StrideEnvironmentLightingDFGLUT16");
             yield return new ObjectUrl(UrlType.Content, "/Stride.Engine/StrideEnvironmentLightingDFGLUT8");
+
+            foreach (var url in ContentReferenceCollector.Collect(assetItem))
+            {
+                yield return new ObjectUrl(UrlType.Content, url);
+            }
+        }
+
+        private class ContentReferenceCollector : AssetVisitorBase
+        {
+            private HashSet<Asset> cycles = new();
+            private HashSet<string> contentUrl = new();
+            private AssetItem assetItem;
+
+            public static HashSet<string> Collect(AssetItem assetItem)
+            {
+                var collector = new ContentReferenceCollector { assetItem = assetItem };
+                if (collector.cycles.Add(assetItem.Asset))
+                    collector.Visit(assetItem.Asset);
+                return collector.contentUrl;
+            }
+
+            public override void VisitObject(object obj, ObjectDescriptor descriptor, bool visitMembers)
+            {
+                if (AssetRegistry.IsExactContentType(obj.GetType()))
+                {
+                    if (obj is Material mat)
+                    {
+                        var layerMaterial = assetItem.Package!.FindAssetFromProxyObject(mat);
+                        // Missing material would be logged through MaterialBlendLayer.Visit when null
+                        if (layerMaterial is not null)
+                        {
+                            var innerCollector = new ContentReferenceCollector
+                            {
+                                cycles = cycles,
+                                contentUrl = contentUrl,
+                                assetItem = layerMaterial
+                            };
+                            if (innerCollector.cycles.Add(layerMaterial.Asset))
+                                innerCollector.Visit(layerMaterial.Asset);
+                        }
+                        return;
+                    }
+
+                    if (obj is Texture)
+                        return;
+                    
+                    var reference = AttachedReferenceManager.GetAttachedReference(obj);
+                    if (reference is { } val)
+                    {
+                        contentUrl.Add(val.Url);
+                    }
+                    return;
+                }
+
+                base.VisitObject(obj, descriptor, visitMembers);
+            }
         }
 
         protected override void Prepare(AssetCompilerContext context, AssetItem assetItem, string targetUrlInStorage, AssetCompilerResult result)
@@ -49,6 +109,7 @@ namespace Stride.Assets.Materials
             private readonly ColorSpace colorSpace;
 
             private UFile assetUrl;
+            private ObjectUrl[] contentReferences;
 
             public MaterialCompileCommand(string url, AssetItem assetItem, MaterialAsset value, AssetCompilerContext context)
                 : base(url, value, assetItem.Package)
@@ -59,6 +120,12 @@ namespace Stride.Assets.Materials
                 assetUrl = new UFile(url);
 
                 graphicsProfile = context.GetGameSettingsAsset().GetOrCreate<RenderingSettings>().DefaultGraphicsProfile;
+                contentReferences = ContentReferenceCollector.Collect(assetItem).Select(x => new ObjectUrl(UrlType.Content, x)).ToArray();
+            }
+
+            public override IEnumerable<ObjectUrl> GetInputFiles()
+            {
+                return contentReferences;
             }
 
             protected override void ComputeParameterHash(BinarySerializationWriter writer)
