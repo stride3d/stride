@@ -13,6 +13,7 @@ using Stride.Core.Storage;
 using Stride.Editor.Tests.Helpers;
 using Stride.Editor.Thumbnails;
 using Stride.Graphics;
+using Stride.Core.Assets.Presentation.Services;
 
 namespace Stride.Editor.Tests;
 

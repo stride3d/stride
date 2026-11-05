@@ -2,9 +2,9 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Threading.Tasks;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Assets;
 using Stride.Editor.Preview.ViewModel;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Editor.Preview
 {

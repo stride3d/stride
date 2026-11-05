@@ -16,7 +16,6 @@ using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Diagnostics;
@@ -32,6 +31,7 @@ using Stride.Engine.Processors;
 using Stride.Games;
 using Stride.Graphics;
 using Stride.Shaders.Compiler;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Editor.EditorGame;
 

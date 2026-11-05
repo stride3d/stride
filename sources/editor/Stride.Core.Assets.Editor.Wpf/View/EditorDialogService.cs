@@ -17,7 +17,6 @@ using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Assets.Editor.ViewModel.Progress;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Extensions;
@@ -29,6 +28,8 @@ using Stride.Core.Presentation.View;
 using Stride.Core.Presentation.Views;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Assets.Editor.ViewModels.Progress;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.View
 {

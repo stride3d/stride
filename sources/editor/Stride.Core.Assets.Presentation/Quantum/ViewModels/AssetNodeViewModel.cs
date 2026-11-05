@@ -4,12 +4,12 @@
 
 using System.ComponentModel;
 using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Presentation.Quantum.ViewModels;
 using Stride.Core.Presentation.Services;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Presentation.Quantum.ViewModels;
 

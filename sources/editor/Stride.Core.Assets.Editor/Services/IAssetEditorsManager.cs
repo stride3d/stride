@@ -4,7 +4,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using Stride.Core.Assets.Editor.ViewModels;
-using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Services;
 

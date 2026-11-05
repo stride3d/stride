@@ -3,11 +3,11 @@
 
 using System;
 using Stride.Core.Annotations;
-using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 #nullable enable
 
-namespace Stride.Core.Assets.Editor.Annotations;
+namespace Stride.Core.Assets.Presentation.Annotations;
 
 public abstract class AssetViewModelAttribute : Attribute
 {

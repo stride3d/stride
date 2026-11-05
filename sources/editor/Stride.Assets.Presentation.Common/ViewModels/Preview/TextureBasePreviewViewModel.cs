@@ -6,8 +6,8 @@ using System.Linq;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
 using Stride.Editor.Preview;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Assets.Editor.Preview;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Editor.ViewModels.Preview;
 

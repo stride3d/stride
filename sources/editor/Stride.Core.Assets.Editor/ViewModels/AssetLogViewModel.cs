@@ -7,8 +7,6 @@ using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Diagnostics;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
-using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Assets.Editor.ViewModel.Logs;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
@@ -17,6 +15,8 @@ using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.ViewModel;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Translation;
+using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels.Logs;
 
 namespace Stride.Core.Assets.Editor.ViewModels;
 

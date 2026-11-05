@@ -5,11 +5,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors;
 using Stride.Core.Assets.Quantum;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Quantum;
+using Stride.Core.Assets.Editor.Components.CopyPasteProcessors;
 
 namespace Stride.Core.Assets.Editor.Wpf.Tests
 {

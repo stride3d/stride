@@ -5,6 +5,7 @@
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Editor;
 using Stride.Editor.Annotations;
+using Stride.Core.Assets.Presentation.Annotations;
 
 namespace Stride.Assets.Presentation;
 

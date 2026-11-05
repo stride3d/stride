@@ -4,11 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Assets.Models;
 using Stride.Assets.Editor.Quantum.NodePresenters.Keys;
 using Stride.Engine;
 using Stride.Rendering;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Editor.Quantum.NodePresenters.Updaters
 {

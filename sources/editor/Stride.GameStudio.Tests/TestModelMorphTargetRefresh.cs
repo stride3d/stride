@@ -17,6 +17,8 @@ using Stride.Core.Serialization;
 using Stride.Rendering;
 using Xunit;
 using Stride.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Presentation.Quantum;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.GameStudio.Tests;
 

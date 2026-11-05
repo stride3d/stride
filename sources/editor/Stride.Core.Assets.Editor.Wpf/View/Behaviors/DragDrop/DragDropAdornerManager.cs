@@ -14,6 +14,7 @@ using Stride.Core.Extensions;
 using Stride.Core.Presentation.Adorners;
 using Stride.Core.Presentation.Core;
 using Stride.Core.Presentation.Extensions;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.View.Behaviors
 {

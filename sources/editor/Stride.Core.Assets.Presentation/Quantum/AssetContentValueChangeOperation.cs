@@ -11,7 +11,7 @@ using Stride.Core.Transactions;
 using Stride.Core.Presentation.Dirtiables;
 using Stride.Core.Quantum;
 
-namespace Stride.Core.Assets.Editor.Quantum
+namespace Stride.Core.Assets.Presentation.Quantum
 {
     public class AssetContentValueChangeOperation : ContentValueChangeOperation
     {

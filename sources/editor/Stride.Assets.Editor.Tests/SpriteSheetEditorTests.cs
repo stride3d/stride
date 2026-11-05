@@ -8,11 +8,10 @@ using Stride.Assets.Presentation.ViewModels;
 using Stride.Assets.Sprite;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Tests.Helpers;
-using Stride.Core.Assets.Editor.View.Behaviors;
-using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
+using Stride.Core.Assets.Editor.Components.CopyPasteProcessors;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Editor.Tests;
 

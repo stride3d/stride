@@ -3,7 +3,6 @@
 
 #nullable enable
 
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Quantum;
 
 namespace Stride.Core.Assets.Presentation.ViewModels;

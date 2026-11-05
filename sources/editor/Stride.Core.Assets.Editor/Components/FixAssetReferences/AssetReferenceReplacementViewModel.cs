@@ -4,9 +4,9 @@
 
 using Stride.Core.Assets.Editor.Components.FixReferences;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Extensions;
 using Stride.Core.Quantum;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Components.FixAssetReferences;
 

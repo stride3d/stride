@@ -3,8 +3,8 @@
 
 using Stride.Core.Assets.Editor.Components.Build;
 using Stride.Core.Assets.Editor.Tests.Helpers;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.IO;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Tests;
 

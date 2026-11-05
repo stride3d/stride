@@ -7,7 +7,7 @@ using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Presentation.Quantum.ViewModels;
 
-namespace Stride.Core.Assets.Editor.Components.Properties
+namespace Stride.Core.Assets.Presentation.Components.Properties
 {
     /// <summary>
     /// The part of a properties panel of the session (<c>SessionObjectPropertiesViewModel</c>) that the session objects and the plugins use.

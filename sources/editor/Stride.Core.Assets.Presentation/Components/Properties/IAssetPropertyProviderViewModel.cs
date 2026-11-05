@@ -1,12 +1,12 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #nullable disable
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Annotations;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Quantum;
+using Stride.Core.Assets.Presentation.ViewModels;
 
-namespace Stride.Core.Assets.Editor.Components.Properties
+namespace Stride.Core.Assets.Presentation.Components.Properties
 {
     public interface IAssetPropertyProviderViewModel : IPropertyProviderViewModel
     {

@@ -4,11 +4,12 @@
 using Stride.Core.Assets.Editor.Common.Tests.Helpers;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Presentation.Views;
 using Stride.Core.Settings;
+using Stride.Core.Assets.Presentation.Components.Properties;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Common.Tests;
 

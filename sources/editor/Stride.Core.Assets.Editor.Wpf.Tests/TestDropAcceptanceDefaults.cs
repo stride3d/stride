@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Xunit;
 using Stride.Core.Assets.Editor.View.Behaviors;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Wpf.Tests
 {

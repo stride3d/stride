@@ -34,6 +34,8 @@ using Stride.Core.Presentation.Dirtiables;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Quantum;
 using Stride.Engine.Gizmos;
+using Stride.Core.Assets.Presentation.Quantum;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.AssemblyReloading
 {

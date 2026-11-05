@@ -23,6 +23,7 @@ using Stride.Editor.Build;
 using Stride.Editor.Resources;
 using Stride.Graphics;
 using Stride.Shaders.Compiler;
+using Stride.Core.Assets.Presentation.Services;
 
 namespace Stride.Editor.Thumbnails
 {

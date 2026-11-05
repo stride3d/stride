@@ -12,6 +12,7 @@ using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Quantum;
 using Stride.Core.Settings;
+using Stride.Core.Assets.Presentation.Components.Properties;
 
 namespace Stride.Core.Assets.Editor.ViewModels;
 

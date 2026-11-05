@@ -8,7 +8,7 @@ using Stride.Core.Storage;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 
-namespace Stride.Core.Assets.Editor.Services
+namespace Stride.Core.Assets.Presentation.Services
 {
     /// <summary>
     /// The thumbnail of a session object, built in the background and then displayed through <see cref="Presenter"/>.

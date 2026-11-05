@@ -3,7 +3,6 @@
 #nullable disable
 using System;
 
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Presentation.Services;
 
 namespace Stride.Core.Assets.Editor.Services

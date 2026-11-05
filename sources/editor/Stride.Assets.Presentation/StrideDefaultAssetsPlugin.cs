@@ -5,7 +5,6 @@ using System.Reflection;
 using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.Reflection;

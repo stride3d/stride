@@ -4,7 +4,7 @@
 using System.IO;
 using Stride.Core.Storage;
 
-namespace Stride.Core.Assets.Editor.Services
+namespace Stride.Core.Assets.Presentation.Services
 {
     /// <summary>
     /// Creates the <see cref="ThumbnailData"/>, whose images are those of the UI framework of the editor: the shared services

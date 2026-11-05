@@ -4,7 +4,6 @@
 using System.Reflection;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Components.Properties;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.Presenters;
@@ -13,6 +12,10 @@ using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Presentation.Views;
 using Stride.Core.Reflection;
 using Stride.Core.Settings;
+using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Assets.Presentation.Annotations;
+using Stride.Core.Assets.Presentation.Components.Properties;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 #nullable enable
 
