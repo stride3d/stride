@@ -19,7 +19,7 @@ namespace Stride.Core.Assets.Tests;
 public class TestEditorToolkitInference(ITestOutputHelper output)
 {
     [Theory]
-    [InlineData("""<ProjectReference Include="../Stride.Assets.Presentation.Common/Stride.Assets.Presentation.Common.csproj" /><PackageReference Include="Stride.Core" />""", "", null)]
+    [InlineData("""<ProjectReference Include="../Stride.Assets.Editor/Stride.Assets.Editor.csproj" /><PackageReference Include="Stride.Core" />""", "", null)]
     [InlineData("""<ProjectReference Include="../Stride.Assets.Editor.Wpf/Stride.Assets.Editor.Wpf.csproj" />""", "", EditorToolkits.Wpf)]
     [InlineData("""<PackageReference Include="Stride.Assets.Editor.Wpf" />""", "", EditorToolkits.Wpf)]
     [InlineData("", "<UseWPF>true</UseWPF>", EditorToolkits.Wpf)]
