@@ -485,7 +485,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             }
 
             // The asset is what the file holds: it is not an undoable creation
-            var directory = package.GetOrCreateAssetDirectory(GetDisplayDirectory(package.Package, assetItem.Location), false);
+            var directory = package.GetOrCreateAssetDirectory(package.GetDisplayDirectory(assetItem.Location), false);
             var logger = new LoggerResult();
             var asset = package.CreateAsset(directory, assetItem, false, logger);
             assetsByPath[asset.AssetItem.FullPath.ToOSPath()] = asset;
@@ -494,13 +494,6 @@ namespace Stride.Core.Assets.Editor.ViewModel
             session.NotifyAssetPropertiesChanged([asset]);
             logger.Messages.Where(x => x.IsAtLeast(LogMessageType.Warning)).ForEach(x => Log.Log(x));
             Log.Info($"[{assetItem.Location}] has been added: its file has been created outside of Game Studio.");
-        }
-
-        private static string GetDisplayDirectory(Package package, UFile location)
-        {
-            if (package.Container is { } container)
-                location = container.Unqualify(location);
-            return location.GetFullDirectory() ?? "";
         }
 
         // The directory watcher reports lower-cased paths: the file system gives back the actual case of each part below the asset folder
