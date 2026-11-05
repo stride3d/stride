@@ -163,7 +163,7 @@ public sealed class BepuSimulation : IDisposable
     /// Represents the maximum number of steps per frame to avoid a death loop
     /// </summary>
     [Display(5, "Max steps/frame", CategoryTime, Browsable = false)]
-    [Obsolete($"Use {nameof(MaximumTimespanToProcess)} and {nameof(DropPostponedTicks)} instead")]
+    [Obsolete($"Use {nameof(MaximumTimeSpanToProcess)} and {nameof(DropPostponedTicks)} instead")]
     public int MaxStepPerFrame { get; set; } = 3;
 
     /// <summary>
@@ -178,21 +178,26 @@ public sealed class BepuSimulation : IDisposable
     /// It should be set fairly high to avoid physics slowing down along with the framerate of the game,
     /// but not so much that physics tanks the framerate unnecessarily when it is the one affecting the framerate.
     /// <para/>
-    /// Negative values are ignored, while values between <see cref="FixedTimeStep"/> and zero causes all physics ticks to be postponed or dropped.
+    /// Negative values are ignored, while values between zero and <see cref="FixedTimeStep"/> cause all physics ticks to be postponed or dropped.
     /// <para/>
     /// Internally, this time is rounded down to the closest multiple of <see cref="FixedTimeStep"/>
     /// to ensure that dropped ticks retain the same time interval.
+    /// <para/>
+    /// In a default game setup, this property's upper limit would be constrained by <see cref="Stride.Games.GameBase.DefaultMaximumElapsedTime"/>;
+    /// frames won't report a longer delta time than that span.
+    /// When <see cref="MaximumTimeSpanToProcess"/> equals or exceeds that value, physics and game-time are guaranteed to be synchronized,
+    /// behaving essentially like an unlimited cap on the amount of ticks that can be processed per frame.
     /// </remarks>
     [Display(6, "Maximum time span to process", CategoryTime)]
-    public TimeSpan MaximumTimespanToProcess
+    public TimeSpan MaximumTimeSpanToProcess
     {
         get;
         set => field = value >= TimeSpan.Zero ? value : field;
-    } = TimeSpan.FromSeconds(0.5f);
+    } = TimeSpan.FromSeconds(0.25f);
 
     /// <summary>
     /// When physics has to catch up to game time, should any time past
-    /// the <see cref="MaximumTimespanToProcess"/> window be dropped instead of postponed.
+    /// the <see cref="MaximumTimeSpanToProcess"/> window be dropped instead of postponed.
     /// </summary>
     /// <remarks>
     /// Dropping will cause physics time and game time to diverge,
@@ -283,6 +288,9 @@ public sealed class BepuSimulation : IDisposable
     /// </summary>
     /// <remarks>
     /// Larger values improve performance at the cost of stability and precision.
+    /// <para/>
+    /// A value between zero and <see cref="MaximumTimeSpanToProcess"/> cause all physics ticks to be postponed or dropped,
+    /// see remarks for that property.
     /// </remarks>
     [DataMemberIgnore]
     public TimeSpan FixedTimeStep
@@ -768,7 +776,7 @@ public sealed class BepuSimulation : IDisposable
         // ReSharper disable once CompareOfFloatsByEqualityOperator
         _remainingUpdateTime += TimeScale == 1f ? elapsed : elapsed * TimeScale;
         // ReSharper disable once PossibleLossOfFraction
-        var closestMaximumTimespan = (MaximumTimespanToProcess.Ticks / FixedTimeStep.Ticks) * FixedTimeStep;
+        var closestMaximumTimespan = (MaximumTimeSpanToProcess.Ticks / FixedTimeStep.Ticks) * FixedTimeStep;
         if (_remainingUpdateTime > closestMaximumTimespan && DropPostponedTicks)
         {
             // If we have to drop, let's drop whole ticks, that way time diverging between game and physics is still predictable
