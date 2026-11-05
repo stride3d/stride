@@ -224,9 +224,19 @@ namespace Stride.GameStudio.Tests
         public void EachEditorGameServiceIsDeclaredOnceInTheWpfEditor()
         {
             // A controller creates the services the assets assemblies declare. The shared ones (Stride.Assets.Presentation.Common)
-            // replaced their WPF copies: no service is declared twice under one name
+            // replaced their WPF copies, and this editor leaves out the cross-platform editor's versions of its own (and of its
+            // light probe gizmo): no service is created twice under one name
             RuntimeHelpers.RunModuleConstructor(typeof(StrideDefaultAssetsWpfPlugin).Module.ModuleHandle);
-            var services = AssetRegistry.AssetAssemblies.SelectMany(x => AssemblyRegistry.GetScanTypes(x, typeof(EditorGameServiceAttribute))).Distinct().ToList();
+            foreach (var crossPlatformType in new[]
+            {
+                typeof(Stride.Assets.Editor.EditorGame.EditorGameLightProbeGizmoService), typeof(Stride.Assets.Editor.EditorGame.WireframeGizmoStageService),
+                typeof(Stride.Assets.Editor.EditorGame.Tools.EditorGameToolService), typeof(Stride.Assets.Editor.Gizmos.LightProbeGizmo),
+            })
+            {
+                Assert.True(EditorGameDiscovery.IsExcluded(crossPlatformType), crossPlatformType.Name);
+            }
+            var services = AssetRegistry.AssetAssemblies.SelectMany(x => AssemblyRegistry.GetScanTypes(x, typeof(EditorGameServiceAttribute))).Distinct()
+                .Where(x => !EditorGameDiscovery.IsExcluded(x)).ToList();
             Assert.Empty(Duplicates(services, x => x.Name, x => x));
             Assert.Contains(typeof(EditorGameCameraOrientationService), services);
             Assert.Equal(typeof(StrideSharedAssetsPlugin).Assembly, typeof(EditorGameCameraOrientationService).Assembly);

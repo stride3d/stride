@@ -5,6 +5,7 @@ using Stride.Core.Assets.Quantum;
 using Stride.Core.Reflection;
 using Stride.Core.Translation;
 using Stride.Core.Translation.Providers;
+using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Entities;
 using Stride.Assets.Presentation.Templates;
 using Stride.Assets.SpriteFont;
@@ -20,8 +21,15 @@ namespace Stride.Assets.Presentation
         [Core.ModuleInitializer]
         public static void Initialize()
         {
-            // Register the WPF-free part of this layer before this assembly, so it is scanned first
-            RuntimeHelpers.RunModuleConstructor(typeof(CommonModule).Module.ModuleHandle);
+            // This editor has its own versions of the light probe and wireframe gizmos and of the transformation service of the
+            // cross-platform editor, in the toolkit-neutral layer: the editor games leave those out
+            EditorGameDiscovery.Exclude(
+                typeof(Stride.Assets.Editor.Gizmos.LightProbeGizmo),
+                typeof(Stride.Assets.Editor.EditorGame.EditorGameLightProbeGizmoService),
+                typeof(Stride.Assets.Editor.EditorGame.WireframeGizmoStageService),
+                typeof(Stride.Assets.Editor.EditorGame.Tools.EditorGameToolService));
+            // Register the toolkit-neutral part of this layer before this assembly, so it is scanned first
+            RuntimeHelpers.RunModuleConstructor(typeof(Stride.Assets.Editor.StrideEditorPlugin).Module.ModuleHandle);
             RuntimeHelpers.RunModuleConstructor(typeof(SpriteFontAsset).Module.ModuleHandle);
             RuntimeHelpers.RunModuleConstructor(typeof(MaterialKeys).Module.ModuleHandle);
             RuntimeHelpers.RunModuleConstructor(typeof(Model).Module.ModuleHandle);

@@ -52,6 +52,8 @@
     <ProjectReference Include="..\Stride.Core.Assets.Editor.Wpf\Stride.Core.Assets.Editor.Wpf.csproj" />
     <ProjectReference Include="..\Stride.Editor.Wpf\Stride.Editor.Wpf.csproj" />
     <ProjectReference Include="..\Stride.Assets.Presentation.Common\Stride.Assets.Presentation.Common.csproj" />
+    <!-- The toolkit-neutral assets editor layer (the cross-platform editor's default plugins are left to its host) -->
+    <ProjectReference Include="..\Stride.Assets.Editor\Stride.Assets.Editor.csproj" />
     <!-- The .sdtpl asset templates, shared with the cross-platform editor -->
     <ProjectReference Include="..\Stride.Assets.Templates\Stride.Assets.Templates.csproj" />
     <!-- Force Stride.Templates.Games (NewGame, the bundled-with-installer set) to build before
