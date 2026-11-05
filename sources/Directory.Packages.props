@@ -37,7 +37,6 @@
     <PackageVersion Include="Silk.NET.OpenXR" Version="$(SilkVersion)" />
     <PackageVersion Include="Silk.NET.OpenXR.Extensions.FB" Version="$(SilkVersion)" />
     <PackageVersion Include="Silk.NET.Sdl" Version="$(SilkVersion)" />
-    <PackageVersion Include="Silk.NET.Shaderc" Version="$(SilkVersion)" />
     <PackageVersion Include="Silk.NET.SPIRV.Cross" Version="$(SilkVersion)" />
     <PackageVersion Include="Silk.NET.SPIRV.Cross.Native" Version="$(SilkVersion)" />
     <PackageVersion Include="Silk.NET.Windowing.Sdl" Version="$(SilkVersion)" />
