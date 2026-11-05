@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Diagnostics;
 using Stride.Core.Assets.Editor.Components.Properties;
-using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Presentation.Services;
 using Stride.Core.Assets.Editor.ViewModel.Logs;
