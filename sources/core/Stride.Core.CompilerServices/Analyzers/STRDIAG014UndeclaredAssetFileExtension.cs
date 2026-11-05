@@ -10,7 +10,7 @@ public class STRDIAG014UndeclaredAssetFileExtension : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "STRDIAG014";
     private const string Title = "Asset file extension not declared by a runtime assembly";
-    private const string MessageFormat = "Asset type '{0}' compiles '{1}' files to '{2}', which no referenced assembly declares. Add [assembly: Stride.Core.Serialization.AssetFileExtension(\"{1}\", typeof({2}))] to the runtime assembly games reference ({3}), so their asset URL constants are typed.";
+    private const string MessageFormat = "Asset type '{0}' compiles '{1}' files to '{2}', which no referenced assembly declares. Add [assembly: Stride.Core.Serialization.AssetFileExtension(\"{1}\", typeof({2}))] to {3}, so the asset URL constants of games are typed.";
     private const string Category = DiagnosticCategory.Build;
 
     private static readonly DiagnosticDescriptor Rule = new(
@@ -59,12 +59,18 @@ public class STRDIAG014UndeclaredAssetFileExtension : DiagnosticAnalyzer
             }
         }
 
+        // Where the declaration goes: the runtime assembly of this package ("X" for "X.Assets") when this assembly
+        // references it. The content type's own assembly is often the engine's, which a plugin or a game cannot change.
+        var runtime = compilationAssembly.Name.EndsWith(".Assets", StringComparison.Ordinal)
+            ? context.Compilation.SourceModule.ReferencedAssemblySymbols.FirstOrDefault(a => a.Name == compilationAssembly.Name.Substring(0, compilationAssembly.Name.Length - ".Assets".Length))
+            : null;
+
         context.RegisterSymbolAction(
-            symbolContext => AnalyzeSymbol(symbolContext, assetDescription, assetContentType, declared),
+            symbolContext => AnalyzeSymbol(symbolContext, assetDescription, assetContentType, declared, runtime?.Name),
             SymbolKind.NamedType);
     }
 
-    private static void AnalyzeSymbol(SymbolAnalysisContext context, INamedTypeSymbol assetDescription, INamedTypeSymbol assetContentType, HashSet<string> declared)
+    private static void AnalyzeSymbol(SymbolAnalysisContext context, INamedTypeSymbol assetDescription, INamedTypeSymbol assetContentType, HashSet<string> declared, string? runtime)
     {
         var symbol = (INamedTypeSymbol)context.Symbol;
         if (symbol.TypeKind != TypeKind.Class || symbol.IsAbstract)
@@ -84,8 +90,11 @@ public class STRDIAG014UndeclaredAssetFileExtension : DiagnosticAnalyzer
             if (trimmed.Length == 0 || declared.Contains(Key(trimmed, contentType)))
                 continue;
 
+            var where = runtime is not null
+                ? $"'{runtime}', the runtime assembly of this package"
+                : $"a runtime assembly that games reference and this assembly references: your own runtime project, or '{contentType.ContainingAssembly?.Name}' if you can change it";
             foreach (var location in symbol.Locations)
-                context.ReportDiagnostic(Diagnostic.Create(Rule, location, symbol.Name, trimmed, contentType.ToDisplayString(), contentType.ContainingAssembly?.Name));
+                context.ReportDiagnostic(Diagnostic.Create(Rule, location, symbol.Name, trimmed, contentType.ToDisplayString(), where));
         }
     }
 
