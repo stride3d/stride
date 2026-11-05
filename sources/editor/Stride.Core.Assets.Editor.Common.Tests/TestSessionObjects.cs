@@ -6,6 +6,7 @@ using Stride.Core.Assets.Editor.View.Behaviors;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModel.Logs;
 using Stride.Core.Diagnostics;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Common.Tests;
 
@@ -114,7 +115,7 @@ public class TestSessionObjects
 
         // The mount points of the editor are read-only, which is checked first
         Assert.False(directory.CanAddChildren([new EditableMountPoint(package)], AddChildModifiers.None, out var message));
-        Assert.Equal(DragDropBehavior.InvalidDropAreaMessage, message);
+        Assert.Equal(DragDropMessages.InvalidDropArea, message);
         Assert.Equal("Can't drop here", message);
     }
 

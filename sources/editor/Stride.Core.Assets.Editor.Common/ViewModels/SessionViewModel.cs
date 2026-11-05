@@ -470,10 +470,6 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
 
     void ISessionViewModel.NotifyAssetPropertiesChanged(IReadOnlyCollection<AssetViewModel> assets) => NotifyAssetPropertiesChanged(assets);
 
-    void ISessionViewModel.ProcessAddedProjects(LoggerResult loggerResult, WorkProgressViewModel workProgress, bool packageAlreadyInSession) => ProcessAddedProjects(loggerResult, workProgress, packageAlreadyInSession);
-
-    void ISessionViewModel.ProcessRemovedProjects() => ProcessRemovedProjects();
-
     Task ISessionViewModel.LoadAddedDependencies(LoggerResult loggerResult) => LoadAddedDependenciesAsync(loggerResult);
 
     /// <inheritdoc />
@@ -1813,7 +1809,45 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
         if (selectedPackage == null)
             return;
 
-        await selectedPackage.UpdatePackageTemplate(templateDescription);
+        await UpdatePackageTemplateAsync(selectedPackage, templateDescription);
+    }
+
+    private async Task UpdatePackageTemplateAsync(PackageViewModel package, TemplateDescription template)
+    {
+        var loggerResult = new LoggerResult();
+
+        var workProgress = new WorkProgressViewModel(ServiceProvider, loggerResult)
+        {
+            Title = "Updating package...",
+            KeepOpen = KeepOpen.OnWarningsOrErrors,
+            IsIndeterminate = true,
+            IsCancellable = false
+        };
+        workProgress.RegisterProgressStatus(loggerResult, true);
+
+        var parameters = new PackageTemplateGeneratorParameters
+        {
+            Name = package.Package.Meta.Name,
+            OutputDirectory = package.Package.FullPath.GetFullDirectory(),
+            Description = template,
+            Package = package.Package,
+            Logger = loggerResult,
+        };
+
+        var generator = TemplateManager.FindTemplateGenerator(parameters);
+        if (generator == null)
+        {
+            await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Tr._p("Message", "Unable to retrieve template generator for the selected template. Aborting."), MessageBoxButton.OK, MessageBoxImage.Error);
+            return;
+        }
+
+        // Errors might occur when generating the template. For the moment we consider them non-fatal and allow to open the project anyway.
+        await TemplateGeneratorHelper.RunTemplateGeneratorSafe(generator, parameters, workProgress);
+
+        ProcessAddedProjects(loggerResult, workProgress, true);
+        ProcessRemovedProjects();
+
+        await workProgress.NotifyWorkFinished(false, loggerResult.HasErrors);
     }
 
     private async Task AddDependencyAsync()

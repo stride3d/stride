@@ -3,13 +3,15 @@
 using System;
 
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Presentation.Services;
 
 namespace Stride.Core.Assets.Editor.Services
 {
-    public interface IAssetPreviewService : IDisposable
+    /// <summary>
+    /// The preview of the editor: it builds the asset to preview in its preview game and gives the view that shows it.
+    /// </summary>
+    public interface IAssetPreviewService : IAssetPreviewUpdater, IDisposable
     {
-        void SetAssetToPreview(AssetViewModel asset);
-
         object GetCurrentPreviewView();
 
         event EventHandler<EventArgs> PreviewAssetUpdated;

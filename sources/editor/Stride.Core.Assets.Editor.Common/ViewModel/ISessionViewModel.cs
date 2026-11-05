@@ -101,11 +101,6 @@ namespace Stride.Core.Assets.Editor.ViewModel
         ISessionObjectPropertiesViewModel AssetViewProperties { get; }
 
         /// <summary>
-        /// Gets or sets the properties panel that is currently active (the one of the asset view or of an editor).
-        /// </summary>
-        SessionObjectPropertiesViewModel ActiveProperties { get; set; }
-
-        /// <summary>
         /// Gets the tracker of the source files of the assets.
         /// </summary>
         IAssetSourceTrackerViewModel SourceTracker { get; }
@@ -226,16 +221,6 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// <param name="filePath">The full path of the file of the asset.</param>
         /// <param name="deletedOutside">Whether the file was deleted outside Game Studio.</param>
         void SetFileDeletedOutside(UFile filePath, bool deletedOutside);
-
-        /// <summary>
-        /// Creates the view models of the projects that were added to the session.
-        /// </summary>
-        void ProcessAddedProjects(LoggerResult loggerResult, WorkProgressViewModel workProgress, bool packageAlreadyInSession);
-
-        /// <summary>
-        /// Removes the view models of the projects that were removed from the session.
-        /// </summary>
-        void ProcessRemovedProjects();
 
         /// <summary>
         /// Loads what a dependency that was just added brings to the projects.

@@ -10,6 +10,7 @@ using Stride.Core.Extensions;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Dirtiables;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModel
 {
@@ -217,7 +218,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             {
                 if (child is MountPointViewModel mountPoint)
                 {
-                    message = DragDropBehavior.InvalidDropAreaMessage;
+                    message = DragDropMessages.InvalidDropArea;
                     return false;
                 }
                 if (child is DirectoryViewModel directory)

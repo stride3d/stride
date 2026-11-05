@@ -4,6 +4,7 @@
 using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Assets.Presentation.Services;
 
 namespace Stride.Core.Assets.Editor.Tests;
 
@@ -116,6 +117,27 @@ public sealed class TestAssetCollection
     }
 
     [Fact]
+    public async Task RenamingTheSingleSelectedAssetRefreshesThePreview()
+    {
+        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Textures/Stone", "stone"));
+        var preview = new PreviewRecorder();
+        fixture.ServiceProvider.RegisterService(preview);
+        var wood = fixture.Session.AllAssets.Single(x => x.Name == "Wood");
+        var stone = fixture.Session.AllAssets.Single(x => x.Name == "Stone");
+
+        fixture.Assets.SelectAssets([wood]);
+        wood.Name = "Oak";
+
+        Assert.Equal([wood], preview.Assets);
+
+        // With several assets selected, the preview shows none of them: nothing to refresh
+        fixture.Assets.SelectAssets([wood, stone]);
+        wood.Name = "Pine";
+
+        Assert.Equal([wood], preview.Assets);
+    }
+
+    [Fact]
     public async Task DeletingAnAssetIsUndoable()
     {
         using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Textures/Stone", "stone"));
@@ -184,5 +206,12 @@ public sealed class TestAssetCollection
 
         Assert.Single(fixture.Dialogs.Messages);
         Assert.Single(fixture.Session.AllAssets);
+    }
+
+    private sealed class PreviewRecorder : IAssetPreviewUpdater
+    {
+        public List<AssetViewModel?> Assets { get; } = [];
+
+        public void SetAssetToPreview(AssetViewModel? asset) => Assets.Add(asset);
     }
 }

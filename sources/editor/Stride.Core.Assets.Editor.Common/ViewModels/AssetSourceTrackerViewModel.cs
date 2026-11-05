@@ -100,6 +100,12 @@ public sealed class AssetSourceTrackerViewModel : DispatcherViewModel, IAssetSou
         return UpdateAssetsFromSourceAsync(session.AllAssets.Where(x => x.Sources.NeedUpdateFromSource));
     }
 
+    /// <inheritdoc />
+    public Task UpdateAssetsFromSourceAsync(IReadOnlyCollection<AssetViewModel> assets)
+    {
+        return UpdateAssetsFromSourceAsync((IEnumerable<AssetViewModel>)assets);
+    }
+
     private async Task UpdateAssetsFromSourceAsync(IEnumerable<AssetViewModel> assets)
     {
         var logger = new LoggerResult();
@@ -117,8 +123,10 @@ public sealed class AssetSourceTrackerViewModel : DispatcherViewModel, IAssetSou
         using (var transaction = undoRedo.CreateTransaction())
         {
             var tasks = new List<Task>();
+            var updated = new List<AssetViewModel>();
             foreach (var asset in assets)
             {
+                updated.Add(asset);
                 logger.Verbose($"Updating {asset.Url}...");
                 var task = asset.Sources.UpdateAssetFromSource(logger);
                 // Continuation might swallow exceptions, careful to keep the original task like this
@@ -127,7 +135,8 @@ public sealed class AssetSourceTrackerViewModel : DispatcherViewModel, IAssetSou
             }
             await Task.WhenAll(tasks);
             logger.Info("Update completed...");
-            undoRedo.SetName(transaction, $"Update {tasks.Count} asset(s) from their source(s)");
+            // One asset (its "Update from source" button) keeps the name it had when the asset ran the update itself
+            undoRedo.SetName(transaction, updated.Count == 1 ? $"Update [{updated[0].Url}] from its source(s)" : $"Update {tasks.Count} asset(s) from their source(s)");
         }
 
         await workProgress.NotifyWorkFinished(false, logger.HasErrors);

@@ -19,5 +19,11 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// Updates the state of the given asset regarding the changes of its source files.
         /// </summary>
         void UpdateAssetStatus(AssetViewModel asset);
+
+        /// <summary>
+        /// Updates <paramref name="assets"/> from their source files in one transaction, with a progress window.
+        /// </summary>
+        /// <returns>A task that completes when the assets are updated.</returns>
+        Task UpdateAssetsFromSourceAsync(IReadOnlyCollection<AssetViewModel> assets);
     }
 }
