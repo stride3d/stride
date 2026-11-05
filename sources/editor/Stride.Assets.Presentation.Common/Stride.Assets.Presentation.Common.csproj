@@ -15,7 +15,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\engine\Stride.Assets.Models\Stride.Assets.Models.csproj" />
-    <ProjectReference Include="..\Stride.Editor.Common\Stride.Editor.Common.csproj" />
+    <ProjectReference Include="..\Stride.Editor\Stride.Editor.csproj" />
   </ItemGroup>
   <!-- Resources -->
   <ItemGroup>

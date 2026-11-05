@@ -5,5 +5,9 @@ using System.Runtime.CompilerServices;
 
 #pragma warning disable 436 // Stride.PublicKeys is defined in multiple assemblies
 
+[assembly: InternalsVisibleTo("Stride.Editor.Wpf" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.GameStudio" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Editor.Avalonia" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Editor.Tests" + Stride.PublicKeys.Default)]
+// The content loader, in the Stride assets layer, reads the dependency compiler of the database
+[assembly: InternalsVisibleTo("Stride.Assets.Presentation.Common" + Stride.PublicKeys.Default)]
