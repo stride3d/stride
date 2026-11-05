@@ -24,6 +24,8 @@ Since Phase 3 (session satellites) the view models around the session, which rea
 
 Since Phase 3 (session core) the session itself: `SessionViewModel` (with `CurrentInstance` for view-side code that runs without a session), `AssetCollectionViewModel` and `AssetFilterViewModel`, `AssetEditorViewModel`, `EditorCollectionViewModel`, `IMainViewModel` (the main window view model each editor implements), `IAssetEditorsManager`, `IEditorDialogService`, `IEditorDebugService`, the update package view models, `CodeEditorOpenerService` with `IVisualStudioService` (implemented by the WPF editor on Windows) and the delayed notifications helper. The WPF-only members stay in `IWpfEditorDialogService` and `IWpfAssetEditorsManager`, in `Stride.Core.Assets.Editor.Wpf`.
 
+Since Phase 3 (scene editors) the asset composite bases: `AssetCompositeViewModel<TAsset>`, `AssetCompositeHierarchyViewModel<TAssetPartDesign, TAssetPart>` and `IAssetPartViewModel`, which replaces the WPF `IEditorGamePartViewModel`.
+
 ## Notes
 
 * This project goes away in Phase 3 of the port, when its code merges into the agnostic editor projects.

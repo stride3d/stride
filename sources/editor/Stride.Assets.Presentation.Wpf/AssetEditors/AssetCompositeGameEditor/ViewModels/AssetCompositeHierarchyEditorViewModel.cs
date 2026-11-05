@@ -10,6 +10,7 @@ using Stride.Core.Assets;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Assets.Yaml;
 using Stride.Core;
@@ -37,7 +38,7 @@ namespace Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewM
     public abstract class AssetCompositeHierarchyEditorViewModel<TAssetPartDesign, TAssetPart, TItemViewModel> : AssetCompositeEditorViewModel
         where TAssetPartDesign : class, IAssetPartDesign<TAssetPart>
         where TAssetPart : class, IIdentifiable
-        where TItemViewModel : AssetCompositeItemViewModel, IEditorDesignPartViewModel<TAssetPartDesign, TAssetPart>, IEditorGamePartViewModel
+        where TItemViewModel : AssetCompositeItemViewModel, IEditorDesignPartViewModel<TAssetPartDesign, TAssetPart>, IAssetPartViewModel
     {
         private AssetCompositeItemViewModel rootPart;
         private bool updateSelectionCollection;
@@ -140,12 +141,12 @@ namespace Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewM
 
         /// <inheritdoc/>
         [CanBeNull]
-        public override IEditorGamePartViewModel FindPartViewModel(AbsoluteId id)
+        public override IAssetPartViewModel FindPartViewModel(AbsoluteId id)
         {
-            if (RootPart is IEditorGamePartViewModel item && id == item.Id)
+            if (RootPart is IAssetPartViewModel item && id == item.Id)
                 return item;
 
-            return RootPart?.EnumerateChildren().BreadthFirst(x => x.EnumerateChildren()).FirstOrDefault(part => part is IEditorGamePartViewModel viewModel && viewModel.Id == id) as IEditorGamePartViewModel;
+            return RootPart?.EnumerateChildren().BreadthFirst(x => x.EnumerateChildren()).FirstOrDefault(part => part is IAssetPartViewModel viewModel && viewModel.Id == id) as IAssetPartViewModel;
         }
 
         /// <summary>

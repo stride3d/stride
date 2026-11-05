@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Quantum;
 using Stride.Core;
 using Stride.Core.Annotations;
@@ -53,7 +54,7 @@ namespace Stride.UI.Editor.ViewModels
     /// View model for <see cref="UIElement"/>.
     /// </summary>
     [DebuggerDisplay("{Name} [{ElementType}]")]
-    public class UIElementViewModel : UIHierarchyItemViewModel, IEditorDesignPartViewModel<UIElementDesign, UIElement>, IEditorGamePartViewModel, IIsEditableViewModel, IAssetPropertyProviderViewModel
+    public class UIElementViewModel : UIHierarchyItemViewModel, IEditorDesignPartViewModel<UIElementDesign, UIElement>, IAssetPartViewModel, IIsEditableViewModel, IAssetPropertyProviderViewModel
     {
         private readonly GameEditorChangePropagator<UIElementDesign, UIElement> propagator;
         private readonly MemberGraphNodeBinding<string> nameNodeBinding;

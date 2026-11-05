@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Annotations;
+using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Quantum;
@@ -117,7 +118,7 @@ namespace Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewM
         /// <inheritdoc/>
         string IChildViewModel.GetName()
         {
-            return (this as IEditorGamePartViewModel)?.Id.ToString() ?? Name;
+            return (this as IAssetPartViewModel)?.Id.ToString() ?? Name;
         }
     }
 
