@@ -67,6 +67,7 @@ namespace Stride.UI.Tests
             Assert.Equal([Keys.W], received);
         }
 
+#if STRIDE_PLATFORM_DESKTOP || STRIDE_PLATFORM_IOS
         [Fact]
         public void ShiftSelectionWorksInAFocusedEditText()
         {
@@ -84,6 +85,7 @@ namespace Stride.UI.Tests
             Assert.Equal(0, editText.SelectionStart);
             Assert.Equal(5, editText.SelectionLength);
         }
+#endif
 
         [Fact]
         public void HidingTheFocusedElementReturnsTheKeyboardToTheGame()
