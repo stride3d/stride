@@ -27,7 +27,7 @@ public abstract class EntityHierarchyViewModel : AssetCompositeHierarchyViewMode
     public EntityHierarchyRootViewModel? HierarchyRoot { get; internal set; }
 
     /// <inheritdoc />
-    public override EntityViewModel CreatePartViewModel(EntityDesign partDesign)
+    public EntityViewModel CreatePartViewModel(EntityDesign partDesign)
     {
         return new EntityViewModel(this, partDesign);
     }

@@ -25,7 +25,7 @@ public sealed class EntityFolderViewModel : EntityHierarchyItemViewModel
     /// <summary>
     /// Folder paths and names ignore the case.
     /// </summary>
-    internal const StringComparison FolderCase = StringComparison.OrdinalIgnoreCase;
+    public const StringComparison FolderCase = StringComparison.OrdinalIgnoreCase;
 
     private string name;
 
