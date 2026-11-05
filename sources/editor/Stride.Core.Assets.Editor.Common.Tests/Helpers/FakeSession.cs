@@ -105,7 +105,11 @@ public sealed class FakeSession : ISessionViewModel
 
     public IEnumerable<AssetViewModel> AllAssets => assets.Values;
 
-    public IAssetDependencyManager DependencyManager => null!;
+    /// <summary>
+    /// Gets a dependency manager that finds no dependency: the dependency view models of the assets query the manager of their
+    /// session, also when the update of another session processes them (the set of assets to update is shared by every session).
+    /// </summary>
+    public IAssetDependencyManager DependencyManager { get; } = new NoDependencyManager();
 
     public AssetPropertyGraphContainer GraphContainer { get; }
 
@@ -208,6 +212,11 @@ public sealed class FakeSession : ISessionViewModel
         var package = new Package { FullPath = new UFile($"/fake/{name}/{name}.sdpkg"), State = PackageState.AssetsReady };
         return new PackageViewModel(this, new StandalonePackage(package), false);
     }
+}
+
+public sealed class NoDependencyManager : IAssetDependencyManager
+{
+    public AssetDependencies? ComputeDependencies(AssetId assetId, AssetDependencySearchOptions dependenciesOptions = AssetDependencySearchOptions.All, ContentLinkType linkTypes = ContentLinkType.Reference, HashSet<AssetId>? visited = null) => null;
 }
 
 public sealed class FakePluginService : IAssetsPluginService
