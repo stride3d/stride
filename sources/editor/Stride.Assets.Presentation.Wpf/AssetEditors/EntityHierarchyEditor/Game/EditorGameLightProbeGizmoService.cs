@@ -160,7 +160,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                 RenderGroup = LightProbeWireGroupMask,
                 RenderStage = lightProbeWireframeRenderStage,
             });
-            meshRenderFeature.PipelineProcessors.Add(new AntiAliasLinePipelineProcessor { RenderStage = lightProbeWireframeRenderStage });
+            meshRenderFeature.PipelineProcessors.Add(new Stride.Assets.Presentation.AssetEditors.GameEditor.Game.AntiAliasLinePipelineProcessor { RenderStage = lightProbeWireframeRenderStage });
             var editorCompositor = (EditorTopLevelCompositor)game.EditorSceneSystem.GraphicsCompositor.Game;
             editorCompositor.PostGizmoCompositors.Add(new SingleStageRenderer { RenderStage = lightProbeWireframeRenderStage, Name = "LightProbe Wireframe Gizmos" });
             editorCompositor.AddOverlayGizmoCompositor(new SceneRendererCollection
