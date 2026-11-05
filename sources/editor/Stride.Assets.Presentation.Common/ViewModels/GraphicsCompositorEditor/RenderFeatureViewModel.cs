@@ -7,12 +7,12 @@ using Stride.Core.Quantum;
 using Stride.Assets.Rendering;
 using Stride.Rendering;
 
-namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewModels
+namespace Stride.Assets.Editor.ViewModels.GraphicsCompositorEditor
 {
     /// <summary>
     /// View model for <see cref="RenderFeature"/>.
     /// </summary>
-    public class RenderFeatureViewModel : GraphicsCompositorItemViewModel
+    public sealed class RenderFeatureViewModel : GraphicsCompositorItemViewModel
     {
         private readonly IObjectNode renderFeatureNode;
 

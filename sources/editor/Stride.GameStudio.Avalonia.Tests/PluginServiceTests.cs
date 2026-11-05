@@ -16,6 +16,7 @@ using Stride.Assets.Materials;
 using Stride.Assets.Models;
 using Stride.Assets.Presentation;
 using Stride.Assets.Presentation.ViewModels;
+using Stride.Assets.Rendering;
 using Stride.Assets.Sprite;
 using Stride.Assets.Textures;
 using Stride.Core.Assets;
@@ -249,13 +250,15 @@ public sealed class PluginServiceTests
         }
     }
 
-    [AvaloniaFact]
-    public async Task TheSpriteSheetOpensInOneEditor()
+    [AvaloniaTheory]
+    [InlineData(typeof(SpriteSheetAsset), typeof(SpriteSheetViewModel), typeof(SpriteSheetEditorViewModel), typeof(SpriteSheetEditorView))]
+    [InlineData(typeof(GraphicsCompositorAsset), typeof(GraphicsCompositorViewModel), typeof(GraphicsCompositorEditorViewModel), typeof(GraphicsCompositorEditorView))]
+    public async Task TheSharedEditorsOpenTheirAssetInOneEditor(Type assetType, Type assetViewModelType, Type editorType, Type viewType)
     {
-        using var fixture = await ShellSessionFixture.OpenAsync(("Sheet", new SpriteSheetAsset()));
+        using var fixture = await ShellSessionFixture.OpenAsync(("Asset", (Asset)Activator.CreateInstance(assetType)!));
 
-        // The plugin host registers the editors and editor views of the assemblies of the editor plugins. The shared sprite
-        // sheet editor (Stride.Assets.Presentation.Common) replaced its copy: one editor per asset, one view per editor
+        // The plugin host registers the editors and editor views of the assemblies of the editor plugins. The shared editors
+        // (Stride.Assets.Presentation.Common) replaced their copies: one editor per asset, one view per editor
         var assemblies = fixture.Plugins.Plugins.OfType<AssetsEditorPlugin>().Select(x => x.GetType().Assembly).Distinct().ToList();
         var editors = assemblies
             .SelectMany(x => AssemblyRegistry.GetScanTypes(x, typeof(IAssetEditorViewModel)))
@@ -272,10 +275,10 @@ public sealed class PluginServiceTests
             .ToList();
         Assert.Empty(Duplicates(views, x => x.EditorViewModelType, x => x.View));
 
-        Assert.Equal([typeof(SpriteSheetEditorViewModel)], editors.Where(x => x.ViewModelType == typeof(SpriteSheetViewModel)).Select(x => x.Editor));
-        Assert.Equal(typeof(StrideSharedAssetsPlugin).Assembly, typeof(SpriteSheetEditorViewModel).Assembly);
-        Assert.Equal([typeof(SpriteSheetEditorView)], views.Where(x => x.EditorViewModelType == typeof(SpriteSheetEditorViewModel)).Select(x => x.View));
-        Assert.Equal(typeof(SpriteSheetEditorViewModel), fixture.Plugins.GetEditorViewModelType(typeof(SpriteSheetViewModel)));
+        Assert.Equal([editorType], editors.Where(x => x.ViewModelType == assetViewModelType).Select(x => x.Editor));
+        Assert.Equal(typeof(StrideSharedAssetsPlugin).Assembly, editorType.Assembly);
+        Assert.Equal([viewType], views.Where(x => x.EditorViewModelType == editorType).Select(x => x.View));
+        Assert.Equal(editorType, fixture.Plugins.GetEditorViewModelType(assetViewModelType));
     }
 
     [AvaloniaFact]

@@ -11,7 +11,7 @@ using Stride.Core.Quantum;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
 
-namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewModels
+namespace Stride.Assets.Editor.ViewModels.GraphicsCompositorEditor
 {
     public abstract class SharedRendererBlockBaseViewModel : GraphicsCompositorBlockViewModel
     {
