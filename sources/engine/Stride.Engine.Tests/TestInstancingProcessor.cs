@@ -21,7 +21,8 @@ namespace Stride.Engine.Tests
     /// A scene instance with two visibility groups, the compositor's and one added while the game runs, holds a model
     /// render processor and an instancing processor per group; each group's instancing map is keyed by the render
     /// models of its own group's model render processor, whichever of the two processors a group makes first and wherever
-    /// its model render processor lands among the processors of the same order.
+    /// its model render processor lands among the processors of the same order; and each group's render meshes take the
+    /// mesh box widened by the instances once, not once per instancing processor.
     /// </summary>
     public class TestInstancingProcessor : GameTestBase
     {
@@ -62,12 +63,15 @@ namespace Stride.Engine.Tests
             }));
             modelComponent = new ModelComponent { Model = model };
 
-            var instancingArray = new InstancingUserArray();
-            instancingArray.UpdateWorldMatrices([Matrix.Translation(-1, 0, 0), Matrix.Translation(1, 0, 0)]);
+            // Instances off the entity's origin, so a box widened twice is centered elsewhere than one widened once
+            var instancingArray = new InstancingUserArray { ModelTransformUsage = ModelTransformUsage.PostMultiply };
+            instancingArray.UpdateWorldMatrices([Matrix.Translation(1, 0, 0), Matrix.Translation(3, 0, 0)]);
             var instancing = new InstancingComponent { Type = instancingArray };
 
             // A scene instance makes a group's processors in the order it met their component types, so the component order decides which comes first
-            scene.Entities.Add(instancingFirst ? new Entity { instancing, modelComponent } : new Entity { modelComponent, instancing });
+            var entity = instancingFirst ? new Entity { instancing, modelComponent } : new Entity { modelComponent, instancing };
+            entity.Transform.Position = new Vector3(0, 1, 0);
+            scene.Entities.Add(entity);
 
             SceneSystem.SceneInstance = new SceneInstance(Services, scene);
 
@@ -95,6 +99,12 @@ namespace Stride.Engine.Tests
                 var map = group.Tags.Get(InstancingRenderFeature.ModelToInstancingMap);
                 if (map == null || map.Count != 1 || !map.ContainsKey(ownRenderModel))
                     failures.Add($"group {sceneInstance.VisibilityGroups.IndexOf(group)} maps {map?.Count ?? 0} render models, its own one {(map?.ContainsKey(ownRenderModel) == true ? "among them" : "not among them")}");
+
+                // The unit cube at (1, 1, 0) and (3, 1, 0): widened once, the render mesh's box spans them; widened once more, it is centered at x = 4
+                var expected = new BoundingBoxExt(new BoundingBox(new Vector3(0.5f, 0.5f, -0.5f), new Vector3(3.5f, 1.5f, 0.5f)));
+                var boundingBox = ownRenderModel.Meshes[0].BoundingBox;
+                if (Vector3.Distance(boundingBox.Center, expected.Center) > 1e-3f || Vector3.Distance(boundingBox.Extent, expected.Extent) > 1e-3f)
+                    failures.Add($"group {sceneInstance.VisibilityGroups.IndexOf(group)} render mesh box: center {boundingBox.Center}, extent {boundingBox.Extent}; expected center {expected.Center}, extent {expected.Extent}");
             }
             return failures;
         }
