@@ -59,8 +59,9 @@ public partial class ShaderMixer
             }
 
             var mixin = SpirvBuilder.BuildInheritanceListIncludingSelf(shaderLoader, context, mixinToMerge2, macros, mixinList, ResolveStep.Mix);
-            // A module goes to the root wherever it is listed
-            if (compositionPath != null && mixin.IsRootOnly && !mixin.IsModule)
+            if (compositionPath != null && mixin.IsModule)
+                throw new InvalidOperationException(string.Format(Parsing.SDSLErrorMessages.SDSL0247, mixin.ToClassNameWithGenerics(), ReadableCompositionPath(compositionPath)));
+            if (compositionPath != null && mixin.IsRootOnly)
                 throw new InvalidOperationException(string.Format(Parsing.SDSLErrorMessages.SDSL0119, mixin.ToClassNameWithGenerics(), ReadableCompositionPath(compositionPath)));
         }
 

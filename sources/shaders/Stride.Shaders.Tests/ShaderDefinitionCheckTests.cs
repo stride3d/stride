@@ -465,6 +465,41 @@ public class ShaderDefinitionCheckTests : IDisposable
         }
     }
 
+    // SDSL0247: a module goes to the root, so a call through the slot finds a method by name there
+    [Fact]
+    public void AModuleInACompositionIsAnError()
+    {
+        WriteRootClasses();
+        Write("CheckSlotModule", """
+            namespace Stride.Shaders.Tests;
+
+            module CheckSlotModule { float4 Compute() { return 1; } }
+            """);
+        Write("CheckMixRoot", """
+            namespace Stride.Shaders.Tests;
+
+            shader CheckMixRoot : ComputeShaderBase
+            {
+                compose CheckContract contract;
+                RWBuffer<float4> Out;
+                override void Compute() { Out[0] = contract.Compute(); }
+            }
+            """);
+
+        var source = new ShaderMixinSource
+        {
+            Mixins = { new ShaderClassSource("CheckMixRoot") },
+            Compositions = { ["contract"] = new ShaderMixinSource { Mixins = { new ShaderClassSource("CheckSlotModule") } } },
+        };
+
+        var log = new LoggerResult();
+        var ok = new ShaderMixer(new ShaderLoader(sourceDir.FullName, "./assets/Stride/SDSL"))
+            .MergeSDSL(source, new ShaderMixer.Options(true), log, out _, out _, out _, out _);
+
+        Assert.False(ok);
+        Assert.Contains(log.Messages, x => x.Text.Contains("SDSL0247: CheckSlotModule is a module, but it is in the composition contract.", StringComparison.Ordinal));
+    }
+
     // SDSL0119 names the composition from the root's slot down, as an effect writes it
     [Fact]
     public void RootOnlyShaderInANestedCompositionNamesThePathFromTheRoot()

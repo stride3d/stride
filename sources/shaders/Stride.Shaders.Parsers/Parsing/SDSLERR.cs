@@ -82,6 +82,7 @@ public static class SDSLErrorMessages
     public const string SDSL0117 = "SDSL0117: {0} has {1} generic parameter(s) ({2}), but {3} given{4}. Give a value for each parameter; an effect log or a C# mixin tree written for an older version of the shader gives this error too: rebuild it.";
     public const string SDSL0118 = "SDSL0118: {0} declares generic parameter '{1}' of type {2} at line {3}. Texture and sampler generic parameters are not supported. Declare a texture or sampler member instead, or use a ComputeColorTexture...Sampler shader with a texture key.";
     public const string SDSL0119 = "SDSL0119: {0} can only be mixed at the root of an effect ([Root] on it, or on a class it inherits or imports), but it is in the composition {1}. Mix it at the root, or remove [Root].";
+    public const string SDSL0247 = "SDSL0247: {0} is a module, but it is in the composition {1}. A module goes to the root of the effect, so a call through a composition can reach the wrong one. Compose a shader, and call the module from it.";
     public const string SDSL0145 = "SDSL0145: Swizzle {0} writes the same element twice. Write each element once.";
     public const string SDSL0160 = "SDSL0160: {0} takes {1}, but the call gives {2}.";
     public const string SDSL0161 = "SDSL0161: Argument {0} of the call to {1} has type {2}, which can't be converted to {3}.";
