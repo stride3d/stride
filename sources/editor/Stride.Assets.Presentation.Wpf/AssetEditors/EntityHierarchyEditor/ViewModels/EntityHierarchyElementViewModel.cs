@@ -8,6 +8,7 @@ using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core;
 using Stride.Core.Annotations;
+using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.Presenters;
@@ -19,7 +20,7 @@ using Stride.Assets.Presentation.ViewModel;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels
 {
-    public abstract class EntityHierarchyElementViewModel : EntityHierarchyItemViewModel, IAssetPropertyProviderViewModel, IEditorGamePartViewModel
+    public abstract class EntityHierarchyElementViewModel : EntityHierarchyItemViewModel, IAssetPropertyProviderViewModel, IAssetPartViewModel
     {
         private readonly object assetSideInstance;
         private bool isLoaded;
