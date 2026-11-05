@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -26,6 +27,8 @@ using ISettings = NuGet.Configuration.ISettings;
 using PackageSource = NuGet.Configuration.PackageSource;
 using PackageSourceProvider = NuGet.Configuration.PackageSourceProvider;
 
+[assembly: InternalsVisibleTo("Stride.Core.Assets.Tests")]
+
 namespace Stride.Core.Packages;
 
 /// <summary>
@@ -46,6 +49,14 @@ public partial class NugetStore : INugetDownloadProgress
 
     private static readonly Regex powerShellProgressRegex = GetPowerShellProgressRegex();
 
+    private static readonly EnumerationOptions nupkgSearchOptions = new()
+    {
+        AttributesToSkip = 0,
+        MatchCasing = MatchCasing.CaseInsensitive,
+        MaxRecursionDepth = 1,
+        RecurseSubdirectories = true,
+    };
+
     private readonly Lock localFolderSyncLock = new();
     private readonly HashSet<string> syncedPackageIds = new(StringComparer.OrdinalIgnoreCase);
     private List<(string Source, FindPackageByIdResource Resource)>? localFolderResources;
@@ -56,11 +67,16 @@ public partial class NugetStore : INugetDownloadProgress
     /// </summary>
     /// <param name="oldRootDirectory">The location of the Nuget store.</param>
     public NugetStore(string? oldRootDirectory)
+        : this(oldRootDirectory, NuGet.Configuration.Settings.LoadDefaultSettings(null))
+    {
+    }
+
+    internal NugetStore(string? oldRootDirectory, ISettings settings)
     {
         // Used only for versions before 3.0
         this.oldRootDirectory = oldRootDirectory;
 
-        settings = NuGet.Configuration.Settings.LoadDefaultSettings(null);
+        this.settings = settings;
 
         // Remove obsolete sources
         RemoveDeletedSources(settings, "Xenko Dev");
@@ -426,8 +442,9 @@ public partial class NugetStore : INugetDownloadProgress
                     List<NuGetVersion> sourceVersions;
                     try
                     {
-                        // Versions come from file names; no nupkg is opened at this point
-                        sourceVersions = (await findPackageById.GetAllVersionsAsync(packageId, localFolderCacheContext, NativeLogger, CancellationToken.None).ConfigureAwait(false)).ToList();
+                        sourceVersions = findPackageById is LocalV2FindPackageByIdResource
+                            ? GetVersionsFromFileNames(source, packageId)
+                            : (await findPackageById.GetAllVersionsAsync(packageId, localFolderCacheContext, NativeLogger, CancellationToken.None).ConfigureAwait(false)).ToList();
                     }
                     catch
                     {
@@ -455,6 +472,15 @@ public partial class NugetStore : INugetDownloadProgress
 
                         if (File.Exists(hashPath) && File.GetLastWriteTimeUtc(hashPath) >= nupkgWriteTime)
                             continue;
+
+                        // The file name can mislead: Foo.1.2.0.0.nupkg may be Foo.1 2.0.0, which must not replace Foo 1.2.0.
+                        try
+                        {
+                            using var reader = new PackageArchiveReader(nupkgPath);
+                            if (!identity.Equals(reader.GetIdentity()))
+                                continue;
+                        }
+                        catch { continue; }
 
                         var extractedDir = resolver.GetInstallPath(identity.Id, identity.Version);
                         if (Directory.Exists(extractedDir))
@@ -485,6 +511,22 @@ public partial class NugetStore : INugetDownloadProgress
                 }
             }).GetAwaiter().GetResult();
         }
+    }
+
+    /// <summary>
+    /// Gets the versions of <paramref name="packageId"/> in a local folder from the names of its nupkgs, without opening them.
+    /// Finds the files <see cref="LocalV2FindPackageByIdResource"/> would open: in the folder or one level down, with the same name rule.
+    /// </summary>
+    private static List<NuGetVersion> GetVersionsFromFileNames(string source, string packageId)
+    {
+        var root = LocalFolderUtility.GetAndVerifyRootDirectory(source).FullName;
+        var versions = new List<NuGetVersion>();
+        foreach (var file in Directory.EnumerateFiles(root, $"{packageId}.*{PackagingCoreConstants.NupkgExtension}", nupkgSearchOptions))
+        {
+            if (LocalFolderUtility.GetVersionFromFileName(Path.GetFileName(file), packageId, PackagingCoreConstants.NupkgExtension) is { } version)
+                versions.Add(version);
+        }
+        return versions;
     }
 
     /// <summary>
@@ -859,7 +901,9 @@ public partial class NugetStore : INugetDownloadProgress
         }
 
         // The range is the mirror filter too: local-folder sources give up only what this lookup could use.
-        var packages = GetLocalPackages(packageId, versionRange);
+        var packages = versionRange is { MinVersion: { } exactVersion, IsMinInclusive: true, IsMaxInclusive: true } && exactVersion == versionRange.MaxVersion
+            ? GetExactLocalPackages(packageId, versionRange, exactVersion)
+            : GetLocalPackages(packageId, versionRange);
 
         if (!allowUnlisted)
         {
@@ -871,6 +915,24 @@ public partial class NugetStore : INugetDownloadProgress
             packages = packages.Where(p => versionRange.Contains(p.Version));
         }
         return packages?.FirstOrDefault(p => allowPrereleaseVersions || string.IsNullOrEmpty(p.Version.SpecialVersion));
+    }
+
+    /// <summary>
+    /// The copies of one version that <see cref="GetLocalPackages"/> would give, without reading the other installed versions.
+    /// </summary>
+    private List<NugetLocalPackage> GetExactLocalPackages(string packageId, PackageVersionRange versionRange, PackageVersion version)
+    {
+        SyncLocalFolderSources(packageId, versionRange, localBuildsOnly: false);
+
+        var res = new List<NugetLocalPackage>();
+        foreach (var installPath in new[] { InstallPath, oldRootDirectory })
+        {
+            // oldRootDirectory might be null
+            if (installPath != null && LocalFolderUtility.GetPackageV3(installPath, packageId, version.ToNuGetVersion(), NativeLogger) is { } package)
+                res.Add(new NugetLocalPackage(package));
+        }
+
+        return res;
     }
 
     /// <summary>
