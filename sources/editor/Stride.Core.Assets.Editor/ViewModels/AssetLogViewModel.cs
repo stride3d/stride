@@ -254,6 +254,13 @@ public sealed class AssetLogViewModel : LoggerViewModel, IAssetLogViewModel
             }
             return result;
         });
+        // The loggers, their messages and the shown messages change on the UI thread: a refresh that a change made elsewhere started
+        // (its continuations then run on the thread pool) must not read them while they change
+        await Dispatcher.InvokeAsync(() => UpdateFilteredMessages(selectedOnly, ids));
+    }
+
+    private void UpdateFilteredMessages(bool selectedOnly, HashSet<AssetId> ids)
+    {
         var messages = new List<ILogMessage>();
         foreach (var (key, logger) in loggers)
         {
