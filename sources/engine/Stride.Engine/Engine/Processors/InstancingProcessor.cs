@@ -267,7 +267,10 @@ namespace Stride.Engine.Processors
 
         protected override bool IsAssociatedDataValid([NotNull] Entity entity, [NotNull] InstancingComponent component, [NotNull] InstancingData associatedData)
         {
-            return true;
+            // A model or transform component replaced in place (the entity's collection set at its index) makes the data stale:
+            // the render model it maps belongs to the component that is gone
+            return associatedData.TransformComponent == entity.Transform
+                && associatedData.ModelComponent == entity.Get<ModelComponent>();
         }
 
         protected internal override void OnSystemAdd()

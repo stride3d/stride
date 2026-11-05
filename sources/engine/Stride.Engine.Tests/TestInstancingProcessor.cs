@@ -29,6 +29,7 @@ namespace Stride.Engine.Tests
         private readonly bool instancingFirst;
         private readonly int idleProcessors;
         private ModelComponent modelComponent;
+        private Entity entity;
 
         public TestInstancingProcessor() : this(false, 0)
         {
@@ -69,7 +70,7 @@ namespace Stride.Engine.Tests
             var instancing = new InstancingComponent { Type = instancingArray };
 
             // A scene instance makes a group's processors in the order it met their component types, so the component order decides which comes first
-            var entity = instancingFirst ? new Entity { instancing, modelComponent } : new Entity { modelComponent, instancing };
+            entity = instancingFirst ? new Entity { instancing, modelComponent } : new Entity { modelComponent, instancing };
             entity.Transform.Position = new Vector3(0, 1, 0);
             scene.Entities.Add(entity);
 
@@ -116,6 +117,36 @@ namespace Stride.Engine.Tests
 
         private class IdleComponent : EntityComponent
         {
+        }
+
+        /// <summary>
+        /// A model component replaced in place (the entity's collection set at its index, as a live assembly reload does) gets a
+        /// render model of its own from the model render processor; the instancing map follows it.
+        /// </summary>
+        [Fact]
+        public void AModelComponentReplacedInPlaceIsMappedAgain()
+        {
+            var game = new TestInstancingProcessor(false, 0);
+            List<string> failures = null;
+            game.Script.AddTask(async () =>
+            {
+                game.ScreenShotAutomationEnabled = false;
+                for (int i = 0; i < 3; i++)
+                    await game.Script.NextFrame();
+
+                var replacement = new ModelComponent { Model = game.modelComponent.Model };
+                game.entity.Components[game.entity.Components.IndexOf(game.modelComponent)] = replacement;
+                game.modelComponent = replacement;
+
+                for (int i = 0; i < 3; i++)
+                    await game.Script.NextFrame();
+
+                failures = game.CheckGroups();
+                game.Exit();
+            });
+            RunGameTest(game);
+
+            Assert.Empty(failures);
         }
 
         [Theory]
