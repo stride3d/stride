@@ -37,6 +37,32 @@ public sealed class RecentProjectTests
     }
 
     [Theory]
+    // The same number, from 4.5
+    [InlineData("4.5.3-beta", "4.5.3-alpha", true)]
+    [InlineData("4.5.3", "4.5.3-beta", true)]
+    [InlineData("4.5.3-mystudio", "4.5.3-beta", true)]
+    // A local or nightly build on either side
+    [InlineData("4.5.7-dev3", "4.5.6-beta", true)]
+    [InlineData("4.5.7-beta", "4.5.6-dev", true)]
+    [InlineData("4.5.7-nightly.20261015.4", "4.5.6-nightly.20261014.3", true)]
+    [InlineData("4.5.7-beta", "4.5.6-nightly.20261014.3", true)]
+    // A real downgrade
+    [InlineData("4.5.7-beta", "4.5.6-beta", false)]
+    [InlineData("4.5.7-mystudio", "4.5.6-mystudio", false)]
+    // An older major.minor
+    [InlineData("4.5.0-nightly.20261014.3", "4.4.2", false)]
+    [InlineData("4.5.0-dev3", "4.4.2", false)]
+    // Before 4.5, Game Studio only switches with a local build
+    [InlineData("4.4.0-beta8", "4.4.0-beta7", false)]
+    [InlineData("4.4.0-nightly.20261015.4", "4.4.0-nightly.20261014.3", false)]
+    [InlineData("4.4.0-beta8", "4.4.0-dev3", true)]
+    [InlineData("4.4.1-dev3", "4.4.0", true)]
+    public void OpensNewerProject_FollowsGameStudio(string project, string editor, bool expected)
+    {
+        Assert.Equal(expected, RecentProjectViewModel.OpensNewerProject(PackageVersion.Parse(project), PackageVersion.Parse(editor)));
+    }
+
+    [Theory]
     [InlineData("4.4.0", "4.5.0", true)]
     [InlineData("4.5.0-nightly.20261014.3", "4.5.0-nightly.20261015.4", true)]
     [InlineData("4.5.0-nightly.20261014.3", "4.5.0", true)]

@@ -5,6 +5,7 @@
     <RootNamespace>Stride.TemplateGenerator</RootNamespace>
     <Nullable>enable</Nullable>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Mono.Options" />
