@@ -38,7 +38,7 @@ public sealed class EditorViewGizmosViewModel : DispatcherViewModel
         this.setTransformationGizmoSize = setTransformationGizmoSize;
         this.lightProbes = lightProbes;
 
-        var gizmoTypes = StrideEditorPlugin.GizmoTypeDictionary;
+        var gizmoTypes = GizmoTypeRegistry.GizmoTypeDictionary;
         Gizmos = typeof(EntityComponent).GetInheritedTypes()
             .Where(gizmoTypes.ContainsKey)
             .Select(x => new EditorViewGizmoViewModel(ServiceProvider, service, x, !IsHiddenByDefault(gizmoTypes[x])))

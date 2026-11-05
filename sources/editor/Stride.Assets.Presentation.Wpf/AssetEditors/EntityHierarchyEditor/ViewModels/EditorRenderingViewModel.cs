@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Stride.Assets.Editor.ViewModels;
 using Stride.Core.Annotations;
 using Stride.Assets.Materials;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
@@ -39,7 +40,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
             // Is there a matching render mode with same active stream?
             if (!string.IsNullOrEmpty(sceneSettings.ActiveStream))
             {
-                var streamRenderMode = AvailableRenderModes.FirstOrDefault(x => x.Mode == GameEditor.RenderMode.SingleStream && x.StreamDescriptor.Name == sceneSettings.ActiveStream);
+                var streamRenderMode = AvailableRenderModes.FirstOrDefault(x => x.Mode == SceneRenderMode.SingleStream && x.StreamDescriptor.Name == sceneSettings.ActiveStream);
                 if (streamRenderMode != null)
                     activeRenderMode = streamRenderMode;
             }

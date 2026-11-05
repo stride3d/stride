@@ -177,7 +177,7 @@ public sealed class EditorViewPopupsTests
         using var controller = new FakeController();
         var gizmos = new EditorViewGizmosViewModel(serviceProvider, new EditorGameComponentGizmoService(controller), null);
 
-        Assert.Equal(typeof(Gizmos.LightProbeGizmo), StrideEditorPlugin.GizmoTypeDictionary[typeof(LightProbeComponent)]);
+        Assert.Equal(typeof(Gizmos.LightProbeGizmo), GizmoTypeRegistry.GizmoTypeDictionary[typeof(LightProbeComponent)]);
         // As in WPF: the light probes are a main gizmo, not one hidden by default
         Assert.True(Find(gizmos, typeof(LightProbeComponent)).IsActive);
         Assert.DoesNotContain(DisplayAttribute.GetDisplayName(typeof(LightProbeComponent)), SceneSettingsData.CreateDefault().HiddenGizmos);
