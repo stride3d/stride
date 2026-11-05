@@ -128,9 +128,9 @@ namespace Stride.Assets.Models
 
         /// <userdoc>
         /// When checked, tangents are imported the way Stride did before tangent handedness was imported: normal maps on mirrored
-        /// texture coordinates are lit from the wrong side, and plain surfaces need Invert Y unchecked on their normal map.
+        /// texture coordinates are lit from the wrong side, and plain surfaces need "OpenGL format (Y+)" unchecked on their normal map.
         /// Models saved before this option existed have it checked, so they keep their look. Uncheck it to use the correct tangents,
-        /// and check Invert Y again on normal maps where it was unchecked to compensate.
+        /// and check "OpenGL format (Y+)" again on normal maps where it was unchecked to compensate.
         /// </userdoc>
         [DataMember(58), DefaultValue(false)]
         public bool LegacyTangentHandedness { get; set; }
