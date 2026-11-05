@@ -53,7 +53,7 @@ public sealed class EditorGameComponentGizmoService : EditorGameServiceBase, IEd
 
         // The default visibilities of the WPF scene settings: the gizmos hidden by default and the fallback gizmo stay hidden
         gizmoVisibilities[typeof(FallbackGizmo)] = false;
-        foreach (var gizmoType in StrideEditorPlugin.GizmoTypeDictionary.Values)
+        foreach (var gizmoType in GizmoTypeRegistry.GizmoTypeDictionary.Values)
         {
             if (gizmoType.GetCustomAttribute<GizmoComponentAttribute>(true) is { HiddenByDefault: true })
                 gizmoVisibilities[gizmoType] = false;
@@ -427,7 +427,7 @@ public sealed class EditorGameComponentGizmoService : EditorGameServiceBase, IEd
     {
         Type? gizmoType;
         var type = componentType;
-        while (!StrideEditorPlugin.GizmoTypeDictionary.TryGetValue(type, out gizmoType))
+        while (!GizmoTypeRegistry.GizmoTypeDictionary.TryGetValue(type, out gizmoType))
         {
             type = type.BaseType ?? throw new ArgumentException(@"The given type is not an EntityComponent type", nameof(componentType));
             if (type == typeof(EntityComponent))

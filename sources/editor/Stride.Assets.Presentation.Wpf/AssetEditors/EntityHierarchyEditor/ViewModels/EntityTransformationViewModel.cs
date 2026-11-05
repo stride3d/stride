@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Stride.Assets.Editor.ViewModels;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;

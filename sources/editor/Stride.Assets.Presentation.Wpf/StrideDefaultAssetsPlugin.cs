@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Windows;
+using Stride.Assets.Editor.EditorGame;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets;
@@ -75,14 +76,11 @@ namespace Stride.Assets.Presentation
         private static ResourceDictionary visualScriptingTemplateDictionary;
         private static ResourceDictionary visualScriptingGraphTemplatesDictionary;
         // Replaced, never changed: the editor games read them on their threads while an assembly registers
-        private static volatile IReadOnlyDictionary<Type, Type> gizmoTypes = new Dictionary<Type, Type>();
         private static volatile IReadOnlyDictionary<Type, Type> assetHighlighterTypes = new Dictionary<Type, Type>();
         private static readonly object TypeMapsLock = new object();
         // Replaced, never changed: an assembly can register on any thread (a package loaded by a background task)
         private static volatile IReadOnlyList<Type> addAssetPolicyTypes = [];
         private static readonly object AddAssetPolicyTypesLock = new object();
-
-        public static IReadOnlyDictionary<Type, Type> GizmoTypeDictionary => gizmoTypes;
 
         public static IReadOnlyDictionary<Type, Type> AssetHighlighterTypesDictionary => assetHighlighterTypes;
 
@@ -315,9 +313,9 @@ namespace Stride.Assets.Presentation
         /// </summary>
         private void OnRegisteredAssetAssembly(Assembly assembly)
         {
+            GizmoTypeRegistry.RegisterAssembly(assembly);
             lock (TypeMapsLock)
             {
-                gizmoTypes = WithTypes(gizmoTypes, GetGizmoTypes(assembly));
                 assetHighlighterTypes = WithTypes(assetHighlighterTypes, GetAssetHighlighterTypes(assembly));
             }
             var policyTypes = AssemblyRegistry.GetScanTypes(assembly, typeof(IAddAssetPolicy)).Where(IsAddAssetPolicy).ToList();
@@ -330,9 +328,9 @@ namespace Stride.Assets.Presentation
 
         private void OnUnregisteredAssetAssembly(Assembly assembly)
         {
+            GizmoTypeRegistry.UnregisterAssembly(assembly);
             lock (TypeMapsLock)
             {
-                gizmoTypes = WithoutTypes(gizmoTypes, GetGizmoTypes(assembly));
                 assetHighlighterTypes = WithoutTypes(assetHighlighterTypes, GetAssetHighlighterTypes(assembly));
             }
             var policyTypes = AssemblyRegistry.GetScanTypes(assembly, typeof(IAddAssetPolicy)).ToHashSet();
@@ -341,18 +339,6 @@ namespace Stride.Assets.Presentation
 
             var factoryTypes = AssemblyRegistry.GetScanTypes(assembly, typeof(IEntityFactory)).ToArray();
             OnUiThread(() => UnregisterEntityFactories(factoryTypes));
-        }
-
-        // Component type -> gizmo type
-        private static List<KeyValuePair<Type, Type>> GetGizmoTypes(Assembly assembly)
-        {
-            var types = new List<KeyValuePair<Type, Type>>();
-            foreach (var type in AssemblyRegistry.GetScanTypes(assembly, typeof(GizmoComponentAttribute)))
-            {
-                if (type.IsAssignableTo(typeof(IGizmo)) && type.GetCustomAttribute<GizmoComponentAttribute>(true) is {} attribute)
-                    types.Add(KeyValuePair.Create(attribute.ComponentType, type));
-            }
-            return types;
         }
 
         // Asset type -> highlighter type

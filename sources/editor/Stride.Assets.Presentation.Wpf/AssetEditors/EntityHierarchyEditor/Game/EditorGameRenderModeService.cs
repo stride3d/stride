@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Stride.Assets.Editor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.GameEditor;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
@@ -105,7 +106,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 
                     // Setup material filter
                     materialFilterRenderFeature.MaterialFilter =
-                        renderMode.Mode == GameEditor.RenderMode.SingleStream
+                        renderMode.Mode == SceneRenderMode.SingleStream
                         ? renderMode.StreamDescriptor.Filter
                         : null;
 

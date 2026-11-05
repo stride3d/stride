@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Stride.Assets.Editor.EditorGame;
 using Stride.Core.BuildEngine;
 using Stride.Core;
 using Stride.Core.Extensions;
@@ -353,7 +354,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
         {
             if (componentType == null) throw new ArgumentNullException(nameof(componentType));
             Type gizmoType;
-            while (!StrideDefaultAssetsPlugin.GizmoTypeDictionary.TryGetValue(componentType, out gizmoType))
+            while (!GizmoTypeRegistry.GizmoTypeDictionary.TryGetValue(componentType, out gizmoType))
             {
                 componentType = componentType.BaseType;
                 if (componentType == null) throw new ArgumentException(@"The given type is not an EntityComponent type", nameof(componentType));
