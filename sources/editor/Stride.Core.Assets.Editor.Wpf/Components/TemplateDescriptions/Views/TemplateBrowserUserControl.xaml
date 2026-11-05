@@ -7,7 +7,7 @@
              xmlns:views="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views"
              xmlns:providers="clr-namespace:Stride.Core.Assets.Editor.View.TemplateProviders"
              xmlns:cvt="clr-namespace:Stride.Core.Assets.Editor.View.ValueConverters"
-             xmlns:viewModels="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions;assembly=Stride.Core.Assets.Editor.Common"
+             xmlns:viewModels="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions;assembly=Stride.Core.Assets.Editor"
              mc:Ignorable="d" d:DataContext="{d:DesignInstance viewModels:TemplateDescriptionCollectionViewModel}"
              d:DesignHeight="300" d:DesignWidth="300">
   <UserControl.Resources>
