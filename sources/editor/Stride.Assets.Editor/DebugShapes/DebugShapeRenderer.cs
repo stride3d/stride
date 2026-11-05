@@ -3,7 +3,6 @@
 #nullable disable
 using System.ComponentModel;
 using Stride.Core.Mathematics;
-using Stride.Assets.Presentation.AssetEditors.Gizmos;
 using Stride.Engine;
 using Stride.Extensions;
 using Stride.Graphics;
@@ -11,7 +10,7 @@ using Stride.Rendering;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
 
-namespace Stride.Assets.Presentation.DebugShapes
+namespace Stride.Assets.Editor.DebugShapes
 {
     public delegate void RegisterEntityDelegate(Entity entity);
 

@@ -7,7 +7,7 @@ using Stride.Engine;
 using Stride.Engine.Gizmos;
 using Stride.Rendering;
 
-namespace Stride.Assets.Presentation.AssetEditors.Gizmos
+namespace Stride.Assets.Editor.AssetEditors.Gizmos
 {
     [GizmoComponent(typeof(LightShaftBoundingVolumeComponent), false)]
     public class LightShaftBoundingVolumeGizmo : EntityGizmo<LightShaftBoundingVolumeComponent>

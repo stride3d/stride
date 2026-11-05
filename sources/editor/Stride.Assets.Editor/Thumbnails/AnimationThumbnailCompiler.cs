@@ -13,15 +13,15 @@ using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
 using Stride.Animations;
 using Stride.Assets.Models;
-using Stride.Assets.Presentation.Resources.Thumbnails;
 using Stride.Assets.Editor.Preview;
 using Stride.Editor.Resources;
 using Stride.Editor.Thumbnails;
 using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering;
+using Stride.Assets.Editor.Resources.Thumbnails;
 
-namespace Stride.Assets.Presentation.Thumbnails
+namespace Stride.Assets.Editor.Thumbnails
 {
     [AssetCompiler(typeof(AnimationAsset), typeof(ThumbnailCompilationContext))]
     public class AnimationThumbnailCompiler : ThumbnailCompilerBase<AnimationAsset>

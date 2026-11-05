@@ -10,12 +10,12 @@ using Stride.Core.Assets.Quantum;
 using Stride.Core.Annotations;
 using Stride.Core.Quantum;
 using Stride.Assets.Entities;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Editor.EditorGame.Game;
 using Stride.Engine;
 using Stride.Engine.Design;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 
-namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
+namespace Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game
 {
     public abstract class EditorGameComponentChangeWatcherService : EditorGameServiceBase
     {

@@ -41,6 +41,7 @@ using Stride.Engine;
 using Stride.Engine.Processors;
 using Stride.UI;
 using Stride.UI.Panels;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 
 namespace Stride.UI.Editor.ViewModels
 {

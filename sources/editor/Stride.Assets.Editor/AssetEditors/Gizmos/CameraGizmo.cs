@@ -13,7 +13,7 @@ using Stride.Graphics;
 using Stride.Rendering;
 using Buffer = Stride.Graphics.Buffer;
 
-namespace Stride.Assets.Presentation.AssetEditors.Gizmos
+namespace Stride.Assets.Editor.AssetEditors.Gizmos
 {
     /// <summary>
     /// A gizmo for the camera component.

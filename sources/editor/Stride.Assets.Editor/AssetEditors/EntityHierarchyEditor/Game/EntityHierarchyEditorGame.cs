@@ -12,9 +12,6 @@ using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Core.Yaml;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
-using Stride.Assets.Presentation.AssetEditors.Gizmos;
-using Stride.Assets.Presentation.SceneEditor;
 using Stride.Assets.Rendering;
 using Stride.Editor.EditorGame.Game;
 using Stride.Editor.Extensions;
@@ -26,8 +23,11 @@ using Stride.Rendering.Compositing;
 using Stride.Rendering.Lights;
 using Stride.Shaders.Compiler;
 using StrideEffects;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
+using Stride.Assets.Editor.AssetEditors.Gizmos;
+using Stride.Assets.Editor.SceneEditor;
 
-namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
+namespace Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game
 {
     public static class EditorGraphicsCompositorHelper
     {

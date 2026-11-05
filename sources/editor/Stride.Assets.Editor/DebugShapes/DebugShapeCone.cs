@@ -7,7 +7,7 @@ using Stride.Graphics;
 using Stride.Graphics.GeometricPrimitives;
 using Stride.Rendering;
 
-namespace Stride.Assets.Presentation.DebugShapes
+namespace Stride.Assets.Editor.DebugShapes
 {
     public class DebugShapeCone : DebugShape
     {

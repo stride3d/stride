@@ -7,7 +7,7 @@ using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Rendering;
 
-namespace Stride.Assets.Presentation.AssetEditors.Gizmos
+namespace Stride.Assets.Editor.AssetEditors.Gizmos
 {
     /// <summary>
     /// Base class for all the gizmo that contain axial information.

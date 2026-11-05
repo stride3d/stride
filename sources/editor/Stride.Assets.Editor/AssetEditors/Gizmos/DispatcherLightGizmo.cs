@@ -7,7 +7,7 @@ using Stride.Engine;
 using Stride.Engine.Gizmos;
 using Stride.Rendering.Lights;
 
-namespace Stride.Assets.Presentation.AssetEditors.Gizmos
+namespace Stride.Assets.Editor.AssetEditors.Gizmos
 {
     /// <summary>
     /// The gizmo dispatcher for lights

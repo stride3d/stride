@@ -12,12 +12,7 @@ using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Editor.EntityFactories;
 using Stride.Assets.Entities;
 using Stride.Assets.Models;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
-using Stride.Assets.Presentation.AssetEditors.GameEditor;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
-using Stride.Assets.Presentation.SceneEditor;
-using Stride.Assets.Presentation.ViewModel.CopyPasteProcessors;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core;
 using Stride.Core.Assets;
@@ -34,6 +29,10 @@ using Stride.Core.Translation;
 using Stride.Editor.EditorGame.ContentLoader;
 using Stride.Editor.Engine;
 using Stride.Engine;
+using Stride.Assets.Editor.AssetEditors.GameEditor;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
+using Stride.Assets.Editor.SceneEditor;
+using Stride.Assets.Editor.ViewModels.CopyPasteProcessors;
 
 namespace Stride.Assets.Editor.ViewModels;
 

@@ -31,7 +31,6 @@ using Stride.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Assets.Presentation.NodePresenters.Updaters;
 using Stride.Assets.Presentation.SceneEditor.Services;
 using Stride.Assets.Presentation.ViewModel;
-using Stride.Assets.Presentation.ViewModel.CopyPasteProcessors;
 using Stride.Assets.Templates;
 using Stride.Editor;
 using Stride.Engine;
@@ -43,6 +42,7 @@ using Stride.Editor.Annotations;
 using Stride.Editor.Preview.View;
 using Stride.Assets.Editor.Quantum.NodePresenters.Updaters;
 using Stride.Core.Assets.Presentation.Components.Properties;
+using Stride.Assets.Editor.ViewModels.CopyPasteProcessors;
 
 namespace Stride.Assets.Presentation
 {

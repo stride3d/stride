@@ -3,11 +3,11 @@
 #nullable disable
 using Stride.Core.Assets.Compiler;
 using Stride.Assets.Entities;
-using Stride.Assets.Presentation.Resources.Thumbnails;
 using Stride.Editor.Resources;
 using Stride.Editor.Thumbnails;
+using Stride.Assets.Editor.Resources.Thumbnails;
 
-namespace Stride.Assets.Presentation.Thumbnails
+namespace Stride.Assets.Editor.Thumbnails
 {
     [AssetCompiler(typeof(SceneAsset), typeof(ThumbnailCompilationContext))]
     public class SceneThumbnailCompiler : StaticThumbnailCompiler<SceneAsset>

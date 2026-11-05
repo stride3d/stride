@@ -16,7 +16,6 @@ using Stride.Core.Mathematics;
 using Stride.Core.Quantum;
 using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
-using Stride.Assets.Presentation.AssetEditors.PrefabEditor.Game;
 using Stride.UI.Editor.Game;
 using Stride.UI.Editor.ViewModels;
 using Stride.Assets.SpriteFont;
@@ -31,6 +30,7 @@ using Stride.Shaders.Compiler;
 using Stride.UI;
 using Stride.UI.Controls;
 using Stride.UI.Panels;
+using Stride.Assets.Editor.AssetEditors.PrefabEditor.Game;
 
 namespace Stride.UI.Editor.Services
 {

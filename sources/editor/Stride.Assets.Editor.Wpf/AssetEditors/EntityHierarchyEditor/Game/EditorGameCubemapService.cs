@@ -11,6 +11,8 @@ using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
 using Stride.Editor.EditorGame.Game;
 using Stride.Graphics;
 using Stride.Rendering.Skyboxes;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 {

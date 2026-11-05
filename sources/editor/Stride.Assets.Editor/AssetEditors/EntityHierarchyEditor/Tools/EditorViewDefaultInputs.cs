@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Tools;
+namespace Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools;
 
 /// <summary>
 /// The inputs of a view of the scene and prefab editors that work with any tool: a tool says which of them stay on while

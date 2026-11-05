@@ -5,15 +5,15 @@
 using System;
 using System.Linq;
 using Stride.Assets.Editor.ViewModels;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Tools;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
-using Stride.Assets.Presentation.SceneEditor;
 using Stride.Core.Mathematics;
 using Stride.Editor.EditorGame.Game;
 using Stride.Editor.EditorGame.ViewModels;
 using Stride.Editor.Engine;
 using Stride.Engine;
 using Stride.Input;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
+using Stride.Assets.Editor.SceneEditor;
 
 namespace Stride.Assets.Editor.EditorGame;
 

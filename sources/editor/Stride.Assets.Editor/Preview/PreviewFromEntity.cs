@@ -9,7 +9,6 @@ using Stride.Core.Assets;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Core.Reflection;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Assets.Rendering;
 using Stride.Editor.EditorGame.Game;
 using Stride.Editor.Engine;
@@ -20,6 +19,7 @@ using Stride.Engine;
 using Stride.Rendering.Compositing;
 using Stride.Rendering;
 using Stride.Rendering.Sprites;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
 
 namespace Stride.Assets.Editor.Preview
 {

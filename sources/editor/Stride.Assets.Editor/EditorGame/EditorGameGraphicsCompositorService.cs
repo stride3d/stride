@@ -5,8 +5,6 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Extensions;
@@ -15,6 +13,8 @@ using Stride.Editor.Build;
 using Stride.Editor.EditorGame.Game;
 using Stride.Rendering.Compositing;
 using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Services;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 
 namespace Stride.Assets.Editor.EditorGame;
 

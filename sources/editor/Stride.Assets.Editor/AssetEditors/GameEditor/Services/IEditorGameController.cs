@@ -15,7 +15,7 @@ using Stride.Editor.EditorGame.ViewModels;
 using Stride.Editor.Engine;
 using Stride.Core.Assets.Presentation.ViewModels;
 
-namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
+namespace Stride.Assets.Editor.AssetEditors.GameEditor.Services
 {
     public interface IEditorGameController : IDestroyable, IDispatcherService
     {

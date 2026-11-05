@@ -4,11 +4,11 @@
 
 using System;
 using System.Threading.Tasks;
-using Stride.Assets.Presentation.AssetEditors.Gizmos;
 using Stride.Core.Mathematics;
 using Stride.Editor.EditorGame.Game;
 using Stride.Engine;
 using Stride.Rendering.Lights;
+using Stride.Assets.Editor.AssetEditors.Gizmos;
 
 namespace Stride.Assets.Editor.EditorGame;
 

@@ -8,8 +8,9 @@ using Stride.Core.Assets;
 using Stride.Engine;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Assets.Presentation.ViewModels;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.ViewModels;
 
-namespace Stride.Assets.Presentation.Common.Tests;
+namespace Stride.Assets.Editor.Tests;
 
 /// <summary>
 /// The entity factories and add-asset policies of the plugins derive from toolkit-neutral base classes, which see the

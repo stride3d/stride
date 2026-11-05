@@ -8,7 +8,7 @@ using Stride.Core.BuildEngine;
 using Stride.Assets.SpriteFont;
 using Stride.Editor.Thumbnails;
 
-namespace Stride.Assets.Presentation.Thumbnails
+namespace Stride.Assets.Editor.Thumbnails
 {
     [AssetCompiler(typeof(PrecompiledSpriteFontAsset), typeof(ThumbnailCompilationContext))]
     [Obsolete("The PrecompiledSpriteFontAsset will be removed soon")]

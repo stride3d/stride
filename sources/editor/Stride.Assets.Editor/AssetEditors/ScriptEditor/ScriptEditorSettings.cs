@@ -5,7 +5,7 @@ using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Settings;
 using Stride.Core.Translation;
 
-namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
+namespace Stride.Assets.Editor.AssetEditors.ScriptEditor
 {
     /// <summary>
     /// The Script editor settings, which both editors read (the font size of the code).

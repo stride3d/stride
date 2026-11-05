@@ -6,7 +6,7 @@ using Stride.Core.Mathematics;
 using Stride.Editor.EditorGame.Game;
 using Stride.Engine;
 
-namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
+namespace Stride.Assets.Editor.AssetEditors.GameEditor.Game
 {
     public interface IEditorGameCameraService : IEditorGameService
     {

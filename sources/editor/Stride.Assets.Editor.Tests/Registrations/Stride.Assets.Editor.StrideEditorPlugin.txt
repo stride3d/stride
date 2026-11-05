@@ -26,12 +26,12 @@ EnumImages:
 TypeImages:
 TemplateProviders:
 CopyProcessors:
-  Stride.Assets.Presentation.ViewModel.CopyPasteProcessors.EntityComponentCopyProcessor
+  Stride.Assets.Editor.ViewModels.CopyPasteProcessors.EntityComponentCopyProcessor
 PasteProcessors:
-  Stride.Assets.Presentation.ViewModel.CopyPasteProcessors.EntityComponentPasteProcessor
-  Stride.Assets.Presentation.ViewModel.CopyPasteProcessors.EntityHierarchyPasteProcessor
+  Stride.Assets.Editor.ViewModels.CopyPasteProcessors.EntityComponentPasteProcessor
+  Stride.Assets.Editor.ViewModels.CopyPasteProcessors.EntityHierarchyPasteProcessor
 PostPasteProcessors:
-  Stride.Assets.Presentation.ViewModel.CopyPasteProcessors.ScenePostPasteProcessor
+  Stride.Assets.Editor.ViewModels.CopyPasteProcessors.ScenePostPasteProcessor
 EditorViewToolTypes:
   Stride.Assets.Editor.EditorGame.Tools.RotateTool
   Stride.Assets.Editor.EditorGame.Tools.ScaleTool

@@ -6,12 +6,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Stride.Core.Annotations;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Editor.Engine;
 using Stride.Engine;
 using Stride.Shaders.Compiler;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
 
-namespace Stride.Assets.Presentation.AssetEditors.PrefabEditor.Game
+namespace Stride.Assets.Editor.AssetEditors.PrefabEditor.Game
 {
     public sealed class PrefabEditorGame : EntityHierarchyEditorGame
     {

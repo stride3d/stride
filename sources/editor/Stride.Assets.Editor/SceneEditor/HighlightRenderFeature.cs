@@ -7,7 +7,7 @@ using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering;
 
-namespace Stride.Assets.Presentation.SceneEditor
+namespace Stride.Assets.Editor.SceneEditor
 {
     /// <summary>
     /// A render feature that can highlight meshes.

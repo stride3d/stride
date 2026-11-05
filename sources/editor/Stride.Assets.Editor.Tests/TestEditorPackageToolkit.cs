@@ -5,7 +5,7 @@ using System.Xml.Linq;
 using Stride.Core.Assets;
 using Stride.Core.Yaml;
 
-namespace Stride.Assets.Presentation.Common.Tests;
+namespace Stride.Assets.Editor.Tests;
 
 /// <summary>
 /// The Editor packages of the plugins reference no WPF or Avalonia project, so the build infers them toolkit-neutral and

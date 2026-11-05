@@ -5,7 +5,7 @@
 using System;
 using Stride.Editor.EditorGame.ViewModels;
 
-namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services
+namespace Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Services
 {
     public interface IEditorGameComponentGizmoViewModelService : IEditorGameViewModelService
     {

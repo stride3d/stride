@@ -5,11 +5,11 @@
 using System;
 using System.Diagnostics;
 using Stride.Core.Mathematics;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Graphics;
 using Stride.Rendering;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
 
-namespace Stride.Assets.Presentation.SceneEditor
+namespace Stride.Assets.Editor.SceneEditor
 {
     /// <summary>
     /// Performs wireframe rendering.

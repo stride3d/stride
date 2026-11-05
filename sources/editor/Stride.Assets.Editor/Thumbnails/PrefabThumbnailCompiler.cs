@@ -10,7 +10,7 @@ using Stride.Editor.Thumbnails;
 using Stride.Engine;
 using Stride.Extensions;
 
-namespace Stride.Assets.Presentation.Thumbnails
+namespace Stride.Assets.Editor.Thumbnails
 {
     [AssetCompiler(typeof(PrefabAsset), typeof(ThumbnailCompilationContext))]
     public class PrefabThumbnailCompiler : ThumbnailCompilerBase<PrefabAsset>

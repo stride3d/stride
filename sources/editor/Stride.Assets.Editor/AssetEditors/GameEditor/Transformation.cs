@@ -4,7 +4,7 @@
 
 using Stride.Core.Translation.Annotations;
 
-namespace Stride.Assets.Presentation.AssetEditors.GameEditor
+namespace Stride.Assets.Editor.AssetEditors.GameEditor
 {
     /// <summary>
     /// Enumerates the different type of transformation that can be performed on an object.

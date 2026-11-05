@@ -4,11 +4,11 @@
 
 using System;
 using System.Threading.Tasks;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 
 namespace Stride.Assets.Editor.EditorGame;
 

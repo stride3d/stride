@@ -2,11 +2,11 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #nullable disable
 using Stride.Core.Assets.Compiler;
-using Stride.Assets.Presentation.Resources.Thumbnails;
 using Stride.Assets.Scripts;
 using Stride.Editor.Thumbnails;
+using Stride.Assets.Editor.Resources.Thumbnails;
 
-namespace Stride.Assets.Presentation.Thumbnails
+namespace Stride.Assets.Editor.Thumbnails
 {
     [AssetCompiler(typeof(ScriptSourceFileAsset), typeof(ThumbnailCompilationContext))]
     public class ScriptSourceFileThumbnailCompiler : StaticThumbnailCompiler<ScriptSourceFileAsset>

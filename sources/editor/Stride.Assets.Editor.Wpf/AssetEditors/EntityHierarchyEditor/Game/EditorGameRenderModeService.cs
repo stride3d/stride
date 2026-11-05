@@ -15,6 +15,8 @@ using Stride.Assets.Presentation.SceneEditor;
 using Stride.Editor.EditorGame.Game;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 {

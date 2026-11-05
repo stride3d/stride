@@ -4,7 +4,7 @@
 
 using Stride.Editor.EditorGame.Game;
 
-namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Tools;
+namespace Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools;
 
 /// <summary>
 /// The tools of the view of a scene or prefab editor (game thread). The services that handle the default inputs (the

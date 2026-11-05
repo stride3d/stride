@@ -5,10 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Stride.Core;
-using Stride.Assets.Presentation.SceneEditor;
 using Stride.Editor.EditorGame.Game;
+using Stride.Assets.Editor.SceneEditor;
 
-namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
+namespace Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game
 {
     public interface IEditorGameEntitySelectionService : IEditorGameService
     {

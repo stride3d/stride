@@ -5,7 +5,7 @@ using System;
 using Stride.Graphics;
 using Stride.Rendering;
 
-namespace Stride.Assets.Presentation.DebugShapes
+namespace Stride.Assets.Editor.DebugShapes
 {
     public class DebugShape : IDisposable
     {

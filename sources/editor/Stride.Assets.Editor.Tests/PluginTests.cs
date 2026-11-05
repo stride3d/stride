@@ -134,8 +134,8 @@ public sealed class PluginTests
         var registrations = PluginRegistrations.Of(new StrideEditorPlugin(), typeof(Stride.Core.Assets.Editor.Editors.IAssetEditorView));
 
         // The shared editor assembly declares the gizmos of the engine components
-        Assert.Equal(typeof(Stride.Assets.Presentation.AssetEditors.Gizmos.CameraGizmo), GizmoTypeRegistry.GizmoTypeDictionary[typeof(Stride.Engine.CameraComponent)]);
-        Assert.Equal(typeof(Stride.Assets.Presentation.AssetEditors.Gizmos.DispatcherLightGizmo), GizmoTypeRegistry.GizmoTypeDictionary[typeof(Stride.Engine.LightComponent)]);
+        Assert.Equal(typeof(Stride.Assets.Editor.AssetEditors.Gizmos.CameraGizmo), GizmoTypeRegistry.GizmoTypeDictionary[typeof(Stride.Engine.CameraComponent)]);
+        Assert.Equal(typeof(Stride.Assets.Editor.AssetEditors.Gizmos.DispatcherLightGizmo), GizmoTypeRegistry.GizmoTypeDictionary[typeof(Stride.Engine.LightComponent)]);
         // The entity factories of the engine components come from the shared assembly, in the same categories as in WPF
         Assert.Equal(["2D", "Camera", "Light", "Model"], StrideEditorPlugin.EntityFactoryCategories.Select(x => x.Name));
         Assert.Contains(StrideEditorPlugin.EntityFactoryCategories.Single(x => x.Name == "Light").Factories, x => x.Factory is EntityFactories.PointLightEntityFactory);

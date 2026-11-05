@@ -2,9 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Assets.Editor.Gizmos;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
-using Stride.Assets.Presentation.SceneEditor;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Editor.EditorGame.Game;
@@ -16,6 +13,8 @@ using Stride.Rendering.Compositing;
 using Stride.Rendering.LightProbes;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
+using Stride.Assets.Editor.SceneEditor;
 using Buffer = Stride.Graphics.Buffer;
 
 namespace Stride.Assets.Editor.EditorGame;

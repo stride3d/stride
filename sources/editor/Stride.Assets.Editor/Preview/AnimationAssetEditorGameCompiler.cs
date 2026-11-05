@@ -5,8 +5,9 @@ using Stride.Core.Assets;
 using Stride.Core.Assets.Compiler;
 using Stride.Animations;
 using Stride.Assets.Models;
+using Stride.Editor.Preview;
 
-namespace Stride.Editor.Preview
+namespace Stride.Assets.Editor.Preview
 {
     [AssetCompiler(typeof(AnimationAsset), typeof(EditorGameCompilationContext))]
     public class AnimationAssetEditorGameCompiler : AssetCompilerBase

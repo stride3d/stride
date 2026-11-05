@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Avalonia.Headless.XUnit;
-using Stride.Assets.Presentation.SceneEditor;
 using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Annotations;
@@ -11,6 +10,7 @@ using Stride.Core.Assets.Editor.ViewModels;
 using Stride.GameStudio.Avalonia.Tests.Helpers;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Presentation.Annotations;
+using Stride.Assets.Editor.SceneEditor;
 
 namespace Stride.GameStudio.Avalonia.Tests;
 

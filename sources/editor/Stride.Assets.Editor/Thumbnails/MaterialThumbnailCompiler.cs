@@ -11,7 +11,7 @@ using Stride.Engine;
 using Stride.Rendering;
 using Stride.Rendering.ProceduralModels;
 
-namespace Stride.Assets.Presentation.Thumbnails
+namespace Stride.Assets.Editor.Thumbnails
 {
     [AssetCompiler(typeof(MaterialAsset), typeof(ThumbnailCompilationContext))]
     public class MaterialThumbnailCompiler : ThumbnailCompilerBase<MaterialAsset>

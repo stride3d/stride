@@ -3,12 +3,12 @@
 
 #nullable enable
 
-using Stride.Assets.Presentation.SceneEditor;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;
+using Stride.Assets.Editor.SceneEditor;
 
-namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Tools;
+namespace Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools;
 
 /// <summary>
 /// A click in a view of the scene and prefab editors: a button released less than 8 pixels away from where it was

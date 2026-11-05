@@ -14,6 +14,7 @@ using Stride.Rendering.LightProbes;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
 using Stride.Shaders;
+using Stride.Assets.Editor.AssetEditors.Gizmos;
 
 namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 {

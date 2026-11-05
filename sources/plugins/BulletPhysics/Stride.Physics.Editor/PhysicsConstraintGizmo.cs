@@ -11,7 +11,7 @@ using Stride.Graphics.GeometricPrimitives;
 using Stride.Physics;
 using Stride.Physics.Constraints;
 using Stride.Rendering;
-using Stride.Assets.Presentation.AssetEditors.Gizmos;
+using Stride.Assets.Editor.AssetEditors.Gizmos;
 
 namespace Stride.Physics.Editor
 {

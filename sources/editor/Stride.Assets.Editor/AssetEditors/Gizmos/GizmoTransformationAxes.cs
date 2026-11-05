@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Stride.Assets.Presentation.AssetEditors.Gizmos
+namespace Stride.Assets.Editor.AssetEditors.Gizmos
 {
     /// <summary>
     /// Enumerates the different possible axes of the transformation for the gizmo.

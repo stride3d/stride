@@ -3,14 +3,13 @@
 #nullable disable
 using System;
 using Stride.Core.Mathematics;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
 using Stride.Engine;
 using Stride.Extensions;
 using Stride.Graphics.GeometricPrimitives;
 using Stride.Rendering;
-using Stride.Assets.Presentation.SceneEditor;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
 
-namespace Stride.Assets.Presentation.AssetEditors.Gizmos
+namespace Stride.Assets.Editor.AssetEditors.Gizmos
 {
     public class RotationGizmo : TransformationGizmo
     {

@@ -9,7 +9,7 @@ using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Processors;
 
-namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
+namespace Stride.Assets.Editor.AssetEditors.GameEditor.Game
 {
     internal static class EditorGameHelper
     {

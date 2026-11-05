@@ -8,7 +8,7 @@ using System.Linq;
 using Stride.Assets.Entities;
 using Stride.Core.Assets.Editor.Components.CopyPasteProcessors;
 
-namespace Stride.Assets.Presentation.ViewModel.CopyPasteProcessors
+namespace Stride.Assets.Editor.ViewModels.CopyPasteProcessors
 {
     internal class ScenePostPasteProcessor : AssetPostPasteProcessorBase<SceneAsset>
     {

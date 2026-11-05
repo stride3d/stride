@@ -3,7 +3,7 @@
 #nullable disable
 using Stride.Editor.EditorGame.ViewModels;
 
-namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
+namespace Stride.Assets.Editor.AssetEditors.GameEditor.Services
 {
     /// <summary>
     /// The game service that pauses the game of an editor after an exception (<see cref="Stride.Assets.Editor.EditorGame.EditorGameHost.LastException"/>).

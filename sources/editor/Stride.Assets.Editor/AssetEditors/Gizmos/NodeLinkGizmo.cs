@@ -4,7 +4,7 @@
 using Stride.Engine;
 using Stride.Engine.Gizmos;
 
-namespace Stride.Assets.Presentation.AssetEditors.Gizmos
+namespace Stride.Assets.Editor.AssetEditors.Gizmos
 {
     [GizmoComponent(typeof(ModelNodeLinkComponent), true)]
     public class NodeLinkGizmo : BillboardingGizmo<ModelNodeLinkComponent>

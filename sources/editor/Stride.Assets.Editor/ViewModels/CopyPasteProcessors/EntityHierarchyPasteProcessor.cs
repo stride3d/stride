@@ -14,7 +14,7 @@ using Stride.Assets.Quantum;
 using Stride.Engine;
 using Stride.Core.Assets.Editor.Components.CopyPasteProcessors;
 
-namespace Stride.Assets.Presentation.ViewModel.CopyPasteProcessors
+namespace Stride.Assets.Editor.ViewModels.CopyPasteProcessors
 {
     public class EntityHierarchyPasteProcessor : AssetCompositeHierarchyPasteProcessor<EntityDesign, Entity>
     {

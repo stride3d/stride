@@ -8,7 +8,7 @@ using Stride.Graphics;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
 
-namespace Stride.Assets.Presentation.AssetEditors.Gizmos
+namespace Stride.Assets.Editor.AssetEditors.Gizmos
 {
     /// <summary>
     /// Used by <see cref="SpaceMarker"/> and <see cref="CameraOrientationGizmo"/> to draw in a sub-viewport using a custom camera.

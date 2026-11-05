@@ -7,7 +7,7 @@ using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering.Lights;
 
-namespace Stride.Assets.Presentation.AssetEditors.Gizmos
+namespace Stride.Assets.Editor.AssetEditors.Gizmos
 {
     /// <summary>
     /// The base class for all light gizmos

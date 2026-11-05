@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using Stride.Core.Mathematics;
 using Stride.Editor.EditorGame.ViewModels;
 
-namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services
+namespace Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Services
 {
     /// <summary>
     /// An editor game service that draws optional scene overlays, shown as toggles in the scene editor's overlays popup.

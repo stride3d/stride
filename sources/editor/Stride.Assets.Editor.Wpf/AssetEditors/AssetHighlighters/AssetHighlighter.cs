@@ -7,6 +7,7 @@ using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Editor.EditorGame.Game;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 
 namespace Stride.Assets.Presentation.AssetEditors.AssetHighlighters
 {

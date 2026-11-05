@@ -6,7 +6,7 @@ using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering.Sprites;
 
-namespace Stride.Assets.Presentation.AssetEditors.Gizmos
+namespace Stride.Assets.Editor.AssetEditors.Gizmos
 {
     public abstract class BillboardingGizmo<T> : EntityGizmo<T> where T : EntityComponent
     {

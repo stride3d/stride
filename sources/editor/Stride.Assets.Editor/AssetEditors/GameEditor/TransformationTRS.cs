@@ -5,7 +5,7 @@
 using Stride.Core.Mathematics;
 using Stride.Engine;
 
-namespace Stride.Assets.Presentation.AssetEditors.GameEditor
+namespace Stride.Assets.Editor.AssetEditors.GameEditor
 {
     public struct TransformationTRS
     {

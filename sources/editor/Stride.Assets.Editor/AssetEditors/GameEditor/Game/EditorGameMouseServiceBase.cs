@@ -7,7 +7,7 @@ using System.Linq;
 using Stride.Core.Annotations;
 using Stride.Editor.EditorGame.Game;
 
-namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
+namespace Stride.Assets.Editor.AssetEditors.GameEditor.Game
 {
     /// <summary>
     /// Base class for editor game service that can take control of the mouse.
