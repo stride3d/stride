@@ -835,6 +835,13 @@ namespace Stride.Importer.ThreeD
 
         private unsafe MeshInfo ProcessMesh(Scene* scene, Silk.NET.Assimp.Mesh* mesh, Dictionary<IntPtr, string> meshNames, Dictionary<IntPtr, int> nodePointerToNodeIndex, Dictionary<IntPtr, IntPtr> bonePointerToNodePointerMap)
         {
+            // SortByPType gives lines and points meshes of their own (an FBX rig's control shapes, for example). They have no surface to draw, and their faces don't have 3 indices.
+            if ((mesh->MPrimitiveTypes & (uint)Silk.NET.Assimp.PrimitiveType.Triangle) == 0)
+            {
+                Logger.Info($"Mesh {meshNames[(IntPtr)mesh]} has no triangles and is skipped.");
+                return null;
+            }
+
             List<MeshBoneDefinition> bones = null;
             var hasSkinningPosition = false;
             var hasSkinningNormal = false;
