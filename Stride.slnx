@@ -209,6 +209,8 @@
     <Project Path="sources/plugins/BepuPhysics/Stride.BepuPhysics.Debug/Stride.BepuPhysics.Debug.csproj" />
     <Project Path="sources/plugins/BepuPhysics/Stride.BepuPhysics.Tests/Stride.BepuPhysics.Tests.csproj" />
     <Project Path="sources/plugins/BepuPhysics/Stride.BepuPhysics/Stride.BepuPhysics.csproj" />
+    <Project Path="sources/plugins/BepuPhysics/Stride.Heightfield.Assets/Stride.Heightfield.Assets.csproj" />
+    <Project Path="sources/plugins/BepuPhysics/Stride.Heightfield/Stride.Heightfield.csproj" />
   </Folder>
   <Folder Name="/80-Plugins/BulletPhysics/">
     <Project Path="sources/plugins/BulletPhysics/Stride.Navigation.Tests/Stride.Navigation.Tests.csproj" />

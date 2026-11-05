@@ -20,6 +20,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\engine\Stride.Engine\Stride.Engine.csproj" />
     <ProjectReference Include="..\..\..\core\Stride.Core.MicroThreading\Stride.Core.MicroThreading.csproj" />
+    <ProjectReference Include="..\Stride.Heightfield\Stride.Heightfield.csproj" />
   </ItemGroup>
 
   <ItemGroup>
