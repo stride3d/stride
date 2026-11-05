@@ -172,6 +172,9 @@ public sealed class AddAssetTests
         var window = new MainWindow { DataContext = fixture.Main };
         window.Show();
         Assert.True(await fixture.Main.OpenSession(fixture.PackagePath));
+        // The notification bar shows the import of the system shaders that the opening starts; when it goes away, the asset view
+        // moves down by about 20 pixels, and a click aimed before would miss the Add asset button
+        await WindowTestHelper.WaitUntilAsync(() => fixture.Main.Notifications!.ActiveNotifications.Count == 0, "the end of the shader import", 30000);
         await WindowTestHelper.PumpAsync();
         return (fixture, window);
     }
