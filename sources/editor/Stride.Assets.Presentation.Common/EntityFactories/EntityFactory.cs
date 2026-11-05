@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
+using Stride.Assets.Presentation.ViewModels;
 using Stride.Engine;
 
 namespace Stride.Assets.Editor.EntityFactories
@@ -22,9 +23,7 @@ namespace Stride.Assets.Editor.EntityFactories
         [NotNull]
         public static string ComputeNewName([NotNull] IEntityHierarchyItemViewModel parent, [NotNull] string baseName)
         {
-            // We do not generate unique names for entities anymore, it is not useful at all.
-            //return NamingHelper.ComputeNewName(baseName, parent.Children.OfType<EntityViewModel>(), x => x.Name);
-            return baseName;
+            return EntityNames.ComputeNewName(parent, baseName);
         }
 
         public abstract Task<Entity> CreateEntity(IEntityHierarchyItemViewModel parent);
