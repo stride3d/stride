@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Stride.Assets.Editor.EntityFactories;
 using Stride.Assets.Entities;
 using Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels;
 using Stride.Assets.Quantum;
@@ -152,7 +151,7 @@ public sealed class EntityViewModel : EntityHierarchyElementViewModel, IEditorDe
         addedRoot.Folder = (Parent as EntityFolderViewModel)?.Path;
 
         // rename the entity to avoid having the same names
-        addedRoot.Entity.Name = EntityFactory.ComputeNewName(Parent, addedRoot.Entity.Name);
+        addedRoot.Entity.Name = EntityNames.ComputeNewName(Parent, addedRoot.Entity.Name);
         Asset.AssetHierarchyPropertyGraph.AddPartToAsset(clonedHierarchy.Parts, addedRoot, (Parent.Owner as EntityViewModel)?.AssetSideEntity, Parent.Owner.IndexOfEntity(this) + 1);
 
         // The view model exists at that point

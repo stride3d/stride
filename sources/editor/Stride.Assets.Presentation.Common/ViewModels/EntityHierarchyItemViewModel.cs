@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
-using Stride.Assets.Editor.EntityFactories;
 using Stride.Assets.Entities;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Assets.Quantum;
@@ -203,7 +202,7 @@ public abstract class EntityHierarchyItemViewModel : AssetCompositeItemViewModel
             var component = CreateComponentFromAsset(asset);
             if (component != null)
             {
-                var name = EntityFactory.ComputeNewName(this, asset.Name);
+                var name = EntityNames.ComputeNewName(this, asset.Name);
                 var newAssetEntity = new Entity(name)
                 {
                     Components = { component }
@@ -218,7 +217,7 @@ public abstract class EntityHierarchyItemViewModel : AssetCompositeItemViewModel
                     var instance = policy.CreateEntitiesFromAsset(this, asset);
                     if (instance == null)
                         continue;
-                    var name = EntityFactory.ComputeNewName(this, asset.Name);
+                    var name = EntityNames.ComputeNewName(this, asset.Name);
                     if ((modifiers & AddChildModifiers.Alt) != AddChildModifiers.Alt)
                     {
                         var prefabRoot = new EntityDesign(new Entity(name), folderName);

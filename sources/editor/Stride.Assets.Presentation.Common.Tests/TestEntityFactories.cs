@@ -7,6 +7,7 @@ using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Core.Assets;
 using Stride.Engine;
 using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.Common.Tests;
 
@@ -50,6 +51,17 @@ public class TestEntityFactories
         Assert.Contains(entity.Components, x => x is LightComponent);
         Assert.Contains(entity.Components, x => x is ModelComponent);
         Assert.Single(entity.Components, x => x is TransformComponent);
+    }
+
+    [Fact]
+    public async Task FactoriesNameNewEntitiesLikeTheHierarchyViewModels()
+    {
+        // The view models of the hierarchy name the entities they add (pasted roots, entities made from assets) with the
+        // same rule as the factories, without depending on the factories
+        var parent = new FakeHierarchyItem();
+
+        Assert.Equal("Light", EntityNames.ComputeNewName(parent, "Light"));
+        Assert.Equal(EntityNames.ComputeNewName(parent, "Light"), (await new LightFactory().CreateEntity(parent)).Name);
     }
 
     [Fact]
