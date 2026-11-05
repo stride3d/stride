@@ -9,6 +9,7 @@ using Stride.Assets.Materials;
 using Stride.Assets.Models;
 using Stride.Assets.Presentation;
 using Stride.Assets.Presentation.ViewModels;
+using Stride.Assets.Scripts;
 using Stride.Assets.Sprite;
 using Stride.Assets.Textures;
 using Stride.Core.Assets;
@@ -55,10 +56,9 @@ public sealed class PluginTests
     {
         var types = PluginRegistrations.Of(new StrideDefaultAssetsPlugin(), typeof(Stride.Core.Assets.Editor.Editors.IAssetEditorView)).AssetViewModelTypes;
 
-        Assert.Equal(typeof(SceneViewModel), types[typeof(SceneAsset)]);
-        Assert.Equal(typeof(PrefabViewModel), types[typeof(PrefabAsset)]);
-        Assert.Equal(typeof(GameSettingsViewModel), types[typeof(GameSettingsAsset)]);
+        Assert.Equal(typeof(VisualScriptViewModel), types[typeof(VisualScriptAsset)]);
         // The shared view models come with the plugin of their assembly
+        Assert.False(types.ContainsKey(typeof(SceneAsset)));
         Assert.False(types.ContainsKey(typeof(MaterialAsset)));
         Assert.False(types.ContainsKey(typeof(TextureAsset)));
     }
@@ -71,7 +71,10 @@ public sealed class PluginTests
         Assert.Equal(typeof(MaterialViewModel), types[typeof(MaterialAsset)]);
         Assert.Equal(typeof(ModelViewModel), types[typeof(ModelAsset)]);
         Assert.Equal(typeof(SpriteSheetViewModel), types[typeof(SpriteSheetAsset)]);
-        Assert.False(types.ContainsKey(typeof(SceneAsset)));
+        Assert.Equal(typeof(SceneViewModel), types[typeof(SceneAsset)]);
+        Assert.Equal(typeof(PrefabViewModel), types[typeof(PrefabAsset)]);
+        Assert.Equal(typeof(GameSettingsViewModel), types[typeof(GameSettingsAsset)]);
+        Assert.False(types.ContainsKey(typeof(VisualScriptAsset)));
         Assert.False(types.ContainsKey(typeof(TextureAsset)));
     }
 

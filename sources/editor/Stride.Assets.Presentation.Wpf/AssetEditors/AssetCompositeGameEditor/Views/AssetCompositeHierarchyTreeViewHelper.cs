@@ -6,6 +6,7 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using Stride.Core.Annotations;
 using Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.Views
 {

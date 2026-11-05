@@ -3,6 +3,7 @@
 using System;
 
 using Stride.Assets.Presentation.ViewModel;
+using Stride.Assets.Presentation.ViewModels;
 using Stride.Core.Presentation.Services;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 

@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
 using Stride.Core;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
@@ -18,8 +19,8 @@ namespace Stride.Assets.Presentation.NodePresenters.Updaters
                 return;
 
             var partId = new AbsoluteId(node.Asset.Id, entity.Id);
-            var viewModel = editor.FindPartViewModel(partId) as EntityHierarchyElementViewModel;
-            viewModel?.UpdateNodePresenter(node);
+            if (editor.FindPartViewModel(partId) is EntityViewModel viewModel)
+                editor.UpdateNodePresenter(viewModel, node);
         }
 
         protected override void FinalizeTree(IAssetNodePresenter root)
@@ -28,8 +29,8 @@ namespace Stride.Assets.Presentation.NodePresenters.Updaters
                 return;
 
             var partId = new AbsoluteId(root.Asset.Id, entity.Id);
-            var viewModel = editor.FindPartViewModel(partId) as EntityHierarchyElementViewModel;
-            viewModel?.FinalizeNodePresenterTree(root);
+            if (editor.FindPartViewModel(partId) is EntityViewModel viewModel)
+                editor.FinalizeNodePresenterTree(viewModel, root);
             base.FinalizeTree(root);
         }
 

@@ -5,18 +5,21 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Threading.Tasks;
+using Stride.Assets.Presentation.ViewModels;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.View.Behaviors;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core;
 using Stride.Core.Annotations;
+using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Interop;
+using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Serialization;
@@ -41,7 +44,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
     /// <summary>
     /// Base class for the view model of an <see cref="EntityHierarchyViewModel"/> editor.
     /// </summary>
-    public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEditorViewModel<EntityDesign, Entity, EntityViewModel>, IAddChildViewModel
+    public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEditorViewModel<EntityDesign, Entity, EntityViewModel>, IAddChildViewModel, IEntityHierarchyEditorViewModel
     {
         private static readonly ILogger EditorLogger = GlobalLogger.GetLogger("Scene");
         private EntityHierarchyRootViewModel activeRoot;
@@ -49,6 +52,13 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
         private string filterPattern;
         private List<string> filterTokens;
         private bool compilingAssets;
+        private readonly TaskCompletionSource initialized = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        // The propagators of the entities whose clones are in the game, by entity
+        private readonly Dictionary<AbsoluteId, EntityHierarchyElementChangePropagator> propagators = new();
+        // The model components of the entities, by entity, created when the properties or the game need them
+        private readonly Dictionary<AbsoluteId, ModelComponentViewModel> modelComponents = new();
+        private readonly CameraComponentViewModel cameraComponent;
+        private IReadOnlyList<IAddAssetPolicy> addAssetPolicies;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EntityHierarchyEditorViewModel"/> class.
@@ -82,6 +92,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
             BreakLinkToPrefabCommand = new AnonymousCommand(ServiceProvider, BreakLinkToPrefab);
             CreatePrefabFromSelectionCommand = new AnonymousCommand(ServiceProvider, CreatePrefabFromSelection);
             UpdateCommands();
+            cameraComponent = new CameraComponentViewModel(ServiceProvider);
             debugPage = new DebugEntityHierarchyEditorUserControl(this);
             EditorDebugTools.RegisterDebugPage(debugPage);
 
@@ -89,6 +100,17 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
         }
 
         public EntityHierarchyRootViewModel ActiveRoot { get => activeRoot; protected internal set => SetValue(ref activeRoot, value); }
+
+        /// <summary>
+        /// Gets a task that completes once the editor is initialized: the hierarchy waits for it before it loads into the game.
+        /// </summary>
+        public Task Initialized => initialized.Task;
+
+        /// <inheritdoc/>
+        public IReadOnlyList<IAddAssetPolicy> AddAssetPolicies => addAssetPolicies ??= StrideDefaultAssetsPlugin.AddAssetPolicyTypeList.Select(x => (IAddAssetPolicy)Activator.CreateInstance(x)).ToList();
+
+        /// <inheritdoc/>
+        EntityHierarchyRootViewModel IEntityHierarchyEditorViewModel.ActiveRoot { get => ActiveRoot ?? HierarchyRoot; set => ActiveRoot = value; }
 
         public ILogger Logger => EditorLogger;
 
@@ -181,13 +203,28 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
             // Unregister editor view models
             Overlays.Destroy();
 
+            initialized.TrySetResult();
+            if (HierarchyRoot is { } root)
+            {
+                root.EntityAdded -= EntityAdded;
+                root.EntityRemoved -= EntityRemoved;
+                root.SelectableChanged -= SelectableChanged;
+            }
+            foreach (var propagator in propagators.Values)
+                propagator.Destroy();
+            propagators.Clear();
+            foreach (var modelComponent in modelComponents.Values)
+                modelComponent.Destroy();
+            modelComponents.Clear();
+            cameraComponent.Destroy();
+
             base.Destroy();
         }
 
         /// <inheritdoc />
         public override AssetCompositeItemViewModel CreatePartViewModel(AssetCompositeHierarchyViewModel<EntityDesign, Entity> asset, EntityDesign partDesign)
         {
-            return new EntityViewModel(this, (EntityHierarchyViewModel)asset, partDesign);
+            return ((EntityHierarchyViewModel)asset).CreatePartViewModel(partDesign);
         }
 
         [NotNull]
@@ -297,10 +334,217 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
         {
             Session.AssetCollection.SelectedAssets.CollectionChanged += SelectedAssetsChanged;
             Session.AssetPropertiesChanged += ReferencedModelChanged;
-            if (!await base.InitializeEditor())
+            try
+            {
+                if (!await base.InitializeEditor())
+                    return false;
+
+                // The entities the asset gets or loses, and those that become selectable, reach the game through the root
+                HierarchyRoot.EntityAdded += EntityAdded;
+                HierarchyRoot.EntityRemoved += EntityRemoved;
+                HierarchyRoot.SelectableChanged += SelectableChanged;
+                return true;
+            }
+            finally
+            {
+                // Whatever happened, the hierarchy stops waiting for the editor
+                initialized.TrySetResult();
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task LoadRootsAsync(IReadOnlyCollection<EntityHierarchyRootViewModel> roots)
+        {
+            // Ensure the editor has finished its initialization
+            await Initialized;
+            if (IsDestroyed)
+                return;
+
+            await LoadRootsIntoGameAsync(roots);
+            if (IsDestroyed)
+                return;
+
+            // Manually notify the game-side scene
+            await LinkToGameSide(roots.SelectMany(x => x.InnerSubEntities.BreadthFirst(e => e.TransformChildren)));
+        }
+
+        /// <inheritdoc/>
+        public async Task UnloadRootsAsync(IReadOnlyCollection<EntityHierarchyRootViewModel> roots)
+        {
+            // Ensure the editor has finished its initialization
+            await Initialized;
+            if (IsDestroyed)
+                return;
+
+            foreach (var entity in roots.SelectMany(x => x.InnerSubEntities.BreadthFirst(e => e.TransformChildren)))
+                UnlinkFromGameSide(entity);
+            await UnloadRootsFromGameAsync(roots);
+        }
+
+        /// <inheritdoc/>
+        public virtual Task UpdateSceneOffsetAsync(SceneRootViewModel root)
+        {
+            return Task.CompletedTask;
+        }
+
+        /// <inheritdoc/>
+        public async Task<bool> IsSceneLoadedOnOpenAsync(SceneRootViewModel root)
+        {
+            // The scene opened by the editor is always loaded
+            if (root.ParentScene == null)
                 return false;
 
-            return true;
+            // Ensure the editor has finished its initialization
+            await Initialized;
+            if (IsDestroyed)
+                return false;
+
+            var sceneSettingsCollection = root.Asset.Directory.Package.UserSettings.GetValue(PackageSceneSettings.SceneSettings);
+            // Fall back to default settings
+            return (sceneSettingsCollection.TryGetValue(root.Asset.Id, out var settings) ? settings : SceneSettingsData.CreateDefault()).SceneLoaded;
+        }
+
+        /// <inheritdoc/>
+        public void SaveSceneLoaded(SceneRootViewModel root)
+        {
+            var userSettings = root.Asset.Directory.Package.UserSettings;
+            var sceneSettingsCollection = userSettings.GetValue(PackageSceneSettings.SceneSettings);
+            if (!sceneSettingsCollection.TryGetValue(root.Asset.Id, out var settings))
+            {
+                // Create new settings
+                settings = SceneSettingsData.CreateDefault();
+                sceneSettingsCollection.Add(root.Asset.Id, settings);
+            }
+            settings.SceneLoaded = root.IsLoaded;
+
+            // FIXME: it would be better to just set the one scene settings data instead of the whole collection.
+            userSettings.SetValue(PackageSceneSettings.SceneSettings, sceneSettingsCollection);
+            userSettings.Save();
+        }
+
+        /// <inheritdoc/>
+        public Task FocusOnEntityAsync(EntityViewModel entity)
+        {
+            if (!entity.IsLoaded)
+                return Task.CompletedTask;
+
+            var meshIndex = -1;
+            var target = entity;
+            var result = Controller.GetService<IEditorGameMaterialHighlightViewModelService>()?.GetTargetMeshIndex(entity);
+            if (result != null)
+            {
+                var partId = new AbsoluteId(entity.Asset.Id, result.Item1);
+                target = (EntityViewModel)FindPartViewModel(partId);
+                meshIndex = result.Item2;
+            }
+
+            Controller.GetService<IEditorGameEntityCameraViewModelService>().CenterOnEntity(target, meshIndex);
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Updates the property grid of the given entity, for its model and camera components.
+        /// </summary>
+        public void UpdateNodePresenter([NotNull] EntityViewModel entity, [NotNull] INodePresenter node)
+        {
+            GetOrCreateModelComponent(entity).UpdateNodePresenter(node);
+        }
+
+        /// <summary>
+        /// Finalizes the property grid of the given entity, for its camera components.
+        /// </summary>
+        public void FinalizeNodePresenterTree([NotNull] EntityViewModel entity, [NotNull] IAssetNodePresenter root)
+        {
+            cameraComponent.FinalizeNodePresenterTree(root);
+        }
+
+        /// <summary>
+        /// Loads the given roots into the game.
+        /// </summary>
+        protected abstract Task LoadRootsIntoGameAsync([NotNull] IReadOnlyCollection<EntityHierarchyRootViewModel> roots);
+
+        /// <summary>
+        /// Unloads the given roots from the game, in this order.
+        /// </summary>
+        protected abstract Task UnloadRootsFromGameAsync([NotNull] IReadOnlyCollection<EntityHierarchyRootViewModel> roots);
+
+        /// <summary>
+        /// Links the given entities, whose game-side clones were just added to the game, to the game side.
+        /// </summary>
+        private Task LinkToGameSide([NotNull] IEnumerable<EntityViewModel> entities)
+        {
+            return Task.WhenAll(entities.ToList().Select(LinkToGameSide));
+        }
+
+        private async Task LinkToGameSide([NotNull] EntityViewModel entity)
+        {
+            if (!propagators.TryGetValue(entity.Id, out var propagator))
+            {
+                propagator = new EntityHierarchyElementChangePropagator(this, entity, entity.AssetSideEntity);
+                propagators.Add(entity.Id, propagator);
+            }
+            propagator.NotifyGameSidePartAdded();
+            // We need the propagator ready to initialize the model component view model, since it might modify the material list.
+            await propagator.Initialized;
+            // The entity left the game while its propagator initialized
+            if (!IsDestroyed && propagators.ContainsKey(entity.Id))
+                GetOrCreateModelComponent(entity).Initialize();
+        }
+
+        private void UnlinkFromGameSide([NotNull] EntityViewModel entity)
+        {
+            if (propagators.Remove(entity.Id, out var propagator))
+                propagator.Destroy();
+        }
+
+        [NotNull]
+        private ModelComponentViewModel GetOrCreateModelComponent([NotNull] EntityViewModel entity)
+        {
+            if (!modelComponents.TryGetValue(entity.Id, out var modelComponent))
+            {
+                modelComponent = new ModelComponentViewModel(this, entity);
+                modelComponents.Add(entity.Id, modelComponent);
+            }
+            return modelComponent;
+        }
+
+        private async void EntityAdded(object sender, EntityHierarchyChangedEventArgs e)
+        {
+            // An entity of an unloaded scene is not in the game
+            if (!e.Entity.IsLoaded)
+                return;
+
+            var entities = e.Entity.Yield().Concat(e.Entity.TransformChildren.BreadthFirst(x => x.TransformChildren)).ToList();
+            // Add the entity to the game (actually load the entity and its children)
+            await Controller.AddPart(e.Parent, e.Entity.AssetSideEntity);
+            // The entity was removed again while its clone was added
+            if (IsDestroyed || e.Entity.Parent == null)
+                return;
+
+            // Manually notify the game-side scene
+            LinkToGameSide(entities).Forget();
+        }
+
+        private void EntityRemoved(object sender, EntityHierarchyChangedEventArgs e)
+        {
+            // Only an entity linked to the game (of a loaded scene) has a clone in the game
+            var inGame = propagators.ContainsKey(e.Entity.Id);
+            foreach (var entity in e.Entity.Yield().Concat(e.Entity.TransformChildren.BreadthFirst(x => x.TransformChildren)))
+            {
+                UnlinkFromGameSide(entity);
+                if (modelComponents.Remove(entity.Id, out var modelComponent))
+                    modelComponent.Destroy();
+            }
+            if (inGame)
+                Controller.RemovePart(e.Parent, e.Entity.AssetSideEntity).Forget();
+        }
+
+        private void SelectableChanged(object sender, EntityHierarchyElementEventArgs e)
+        {
+            if (e.Element.IsSelectable)
+                Selection?.AddSelectable(e.Element.Id);
+            else
+                Selection?.RemoveSelectable(e.Element.Id);
         }
 
         /// <inheritdoc />
@@ -476,7 +720,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
             var transaction = UndoRedoService.UndoRedoInProgress ? null : UndoRedoService.CreateTransaction();
             try
             {
-                folder = new EntityFolderViewModel(parent.Editor, parent.Asset, NamingHelper.ComputeNewName("Folder", parent.Folders, x => x.Name), Enumerable.Empty<EntityDesign>());
+                folder = new EntityFolderViewModel(asset, NamingHelper.ComputeNewName("Folder", parent.Folders, x => x.Name), Enumerable.Empty<EntityDesign>());
                 parent.Folders.Add(folder);
                 parent.IsExpanded = true;
 
