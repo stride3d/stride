@@ -3,6 +3,7 @@
 
 using System.Runtime.CompilerServices;
 using Stride.Assets.Editor.Avalonia.Templates;
+using Stride.Assets.Presentation;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Editor.Avalonia.Preview.Views;
 using Stride.Editor.Preview;
@@ -14,8 +15,12 @@ internal static class Module
     [Core.ModuleInitializer]
     public static void Initialize()
     {
-        // Register the toolkit-neutral editor layer before its views, so its plugin comes first
+        // Register the toolkit-neutral editor layer before its views
         RuntimeHelpers.RunModuleConstructor(typeof(Stride.Assets.Editor.Module).Module.ModuleHandle);
+        // The default plugins of this editor, in their order: the shared ones (the discovery skips them, so that another
+        // editor loading the shared assemblies does not get them), then the views
+        AssetsPlugin.RegisterPlugin(typeof(StrideDefaultAssetsPlugin));
+        AssetsPlugin.RegisterPlugin(typeof(StrideEditorPlugin));
         AssetsPlugin.RegisterPlugin(typeof(StrideEditorViewPlugin));
         AssetPreview.DefaultViewType = typeof(StridePreviewView);
         // The project template generators, with this toolkit's prompts

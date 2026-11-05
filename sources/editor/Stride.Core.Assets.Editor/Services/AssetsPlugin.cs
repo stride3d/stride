@@ -159,7 +159,8 @@ public abstract class AssetsPlugin
     }
 
     /// <summary>
-    /// Registers every concrete plugin type of <paramref name="assembly"/> that is not registered yet.
+    /// Registers every concrete plugin type of <paramref name="assembly"/> that is not registered yet, except the default
+    /// plugins of an editor (<see cref="EditorDefaultPluginAttribute"/>), which their host registers.
     /// </summary>
     /// <returns>The new plugins.</returns>
     public static IReadOnlyList<AssetsPlugin> RegisterPlugins(Assembly assembly)
@@ -169,7 +170,7 @@ public abstract class AssetsPlugin
         {
             foreach (var type in AssemblyRegistry.GetScanTypes(assembly, typeof(AssetsPlugin)))
             {
-                if (type.IsAbstract || type.IsGenericTypeDefinition)
+                if (!IsDiscoverable(type))
                     continue;
                 if (type.GetConstructor(Type.EmptyTypes) is null || registeredPlugins.Any(x => x.GetType() == type))
                     continue;
@@ -186,6 +187,16 @@ public abstract class AssetsPlugin
             }
         }
         return plugins;
+    }
+
+    /// <summary>
+    /// Gets whether the plugin discovery registers <paramref name="type"/>: a concrete plugin type that is not the default
+    /// plugin of an editor (<see cref="EditorDefaultPluginAttribute"/>).
+    /// </summary>
+    public static bool IsDiscoverable(Type type)
+    {
+        return typeof(AssetsPlugin).IsAssignableFrom(type) && !type.IsAbstract && !type.IsGenericTypeDefinition
+            && !type.IsDefined(typeof(EditorDefaultPluginAttribute), inherit: false);
     }
 
     /// <summary>

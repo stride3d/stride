@@ -42,7 +42,9 @@ namespace Stride.Assets.Editor;
 /// </summary>
 /// <remarks>
 /// The preview service and the views belong to the toolkit companion (<c>Stride.Assets.Editor.Avalonia</c>).
+/// A default plugin of the cross-platform editor: its host registers it (<c>Stride.Assets.Editor.Avalonia</c>), the discovery skips it.
 /// </remarks>
+[EditorDefaultPlugin]
 public sealed class StrideEditorPlugin : StrideAssetsPlugin
 {
     /// <summary>
