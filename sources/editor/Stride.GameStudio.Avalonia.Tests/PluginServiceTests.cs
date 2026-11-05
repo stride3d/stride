@@ -84,10 +84,10 @@ public sealed class PluginServiceTests
         var service = fixture.Plugins;
         var assemblies = AssemblyRegistry.Find(AssemblyCommonCategories.Assets);
 
-        // The shared view models come from Stride.Assets.Presentation.Common, through its own plugin; the WPF assembly is not
-        // loaded
-        Assert.Contains(service.SessionPlugins, x => x is StrideSharedAssetsPlugin);
-        Assert.Equal(typeof(StrideSharedAssetsPlugin).Assembly, typeof(MaterialViewModel).Assembly);
+        // The view models that both editors share come from Stride.Assets.Presentation, through the default assets plugin; the
+        // WPF assembly is not loaded
+        Assert.Contains(service.SessionPlugins, x => x is StrideDefaultAssetsPlugin);
+        Assert.Equal(typeof(StrideDefaultAssetsPlugin).Assembly, typeof(MaterialViewModel).Assembly);
         Assert.DoesNotContain(AppDomain.CurrentDomain.GetAssemblies(), x => x.GetName().Name == "Stride.Assets.Presentation.Wpf");
 
         var declarations = assemblies
@@ -113,11 +113,11 @@ public sealed class PluginServiceTests
         var service = fixture.Plugins;
         var assemblies = AssemblyRegistry.Find(AssemblyCommonCategories.Assets);
 
-        // The previews and their view models come from Stride.Assets.Presentation.Common; the view models through the shared
-        // plugin, which must be a Stride plugin for the host to register them
-        Assert.Equal(typeof(StrideSharedAssetsPlugin).Assembly, typeof(ModelPreview).Assembly);
-        Assert.Equal(typeof(StrideSharedAssetsPlugin).Assembly, typeof(ModelPreviewViewModel).Assembly);
-        Assert.IsAssignableFrom<StrideAssetsPlugin>(Assert.Single(service.SessionPlugins.OfType<StrideSharedAssetsPlugin>()));
+        // The previews and their view models come from Stride.Assets.Editor; the view models through the editor plugin, which
+        // must be a Stride plugin for the host to register them
+        Assert.Equal(typeof(StrideEditorPlugin).Assembly, typeof(ModelPreview).Assembly);
+        Assert.Equal(typeof(StrideEditorPlugin).Assembly, typeof(ModelPreviewViewModel).Assembly);
+        Assert.IsAssignableFrom<StrideAssetsPlugin>(Assert.Single(service.SessionPlugins.OfType<StrideEditorPlugin>()));
 
         // The preview service keeps one preview per asset type (the last one registered wins): two would hide one silently
         var previews = assemblies
@@ -155,11 +155,11 @@ public sealed class PluginServiceTests
     {
         using var fixture = await ShellSessionFixture.OpenAsync(("Sheet", new SpriteSheetAsset()));
 
-        // The add-entity menus list the factories of the assets assemblies; the shared ones come from Stride.Assets.Presentation.Common
+        // The add-entity menus list the factories of the assets assemblies; the shared ones come from Stride.Assets.Editor
         var factories = StrideEditorPlugin.EntityFactoryCategories
             .SelectMany(x => x.Factories.Select(y => (Entry: $"{x.Name}/{y.Name}", Type: y.Factory.GetType())))
             .ToList();
-        Assert.Equal(typeof(StrideSharedAssetsPlugin).Assembly, typeof(SpriteEntityFactory).Assembly);
+        Assert.Equal(typeof(StrideEditorPlugin).Assembly, typeof(SpriteEntityFactory).Assembly);
         Assert.Contains(factories, x => x.Type == typeof(SpriteEntityFactory));
         Assert.Contains(factories, x => x.Type == typeof(ModelEntityFactory));
         Assert.Contains(factories, x => x.Type == typeof(SkyboxLightEntityFactory));
@@ -170,10 +170,10 @@ public sealed class PluginServiceTests
     [AvaloniaFact]
     public void EachAssetTemplateHasOneGenerator()
     {
-        // The editor's module registered the shared generators (Stride.Assets.Presentation.Common) once, with the Avalonia dialogs
+        // The editor's module registered the shared generators (Stride.Assets.Editor) once, with the Avalonia dialogs
         var generators = RegisteredTemplateGenerators();
         var shared = generators.Where(x => x.GetType().Namespace == typeof(AssetTemplateGenerator).Namespace).ToList();
-        Assert.All(shared, x => Assert.Equal(typeof(StrideSharedAssetsPlugin).Assembly, x.GetType().Assembly));
+        Assert.All(shared, x => Assert.Equal(typeof(StrideEditorPlugin).Assembly, x.GetType().Assembly));
         Assert.Empty(Duplicates(shared, x => x.GetType(), x => x.GetType()));
         Assert.Equal(10, shared.Count);
 
@@ -234,12 +234,12 @@ public sealed class PluginServiceTests
     [AvaloniaFact]
     public void EachEditorGameServiceIsDeclaredOnce()
     {
-        // A controller creates the services the assets assemblies declare. The shared ones (Stride.Assets.Presentation.Common)
+        // A controller creates the services the assets assemblies declare. The shared ones (Stride.Assets.Editor)
         // replaced their copies: no service is declared twice under one name
         var services = AssetRegistry.AssetAssemblies.SelectMany(x => AssemblyRegistry.GetScanTypes(x, typeof(EditorGameServiceAttribute))).Distinct().ToList();
         Assert.Empty(Duplicates(services, x => x.Name, x => x));
         Assert.Contains(typeof(EditorGameCameraOrientationService), services);
-        Assert.Equal(typeof(StrideSharedAssetsPlugin).Assembly, typeof(EditorGameCameraOrientationService).Assembly);
+        Assert.Equal(typeof(StrideEditorPlugin).Assembly, typeof(EditorGameCameraOrientationService).Assembly);
 
         // The shared view cube serves the scene and prefab editors of both editors, through their shared controller interface
         var declaration = typeof(EditorGameCameraOrientationService).GetCustomAttribute<EditorGameServiceAttribute>()!;
@@ -248,7 +248,7 @@ public sealed class PluginServiceTests
         foreach (var serviceType in new[] { typeof(EditorGameViewportGridService), typeof(EditorGameGraphicsCompositorService) })
         {
             Assert.Contains(serviceType, services);
-            Assert.Equal(typeof(StrideSharedAssetsPlugin).Assembly, serviceType.Assembly);
+            Assert.Equal(typeof(StrideEditorPlugin).Assembly, serviceType.Assembly);
             Assert.True(serviceType.GetCustomAttribute<EditorGameServiceAttribute>()!.ControllerType.IsAssignableFrom(typeof(EntityHierarchyEditorController)));
         }
     }
@@ -261,7 +261,7 @@ public sealed class PluginServiceTests
         using var fixture = await ShellSessionFixture.OpenAsync(("Asset", (Asset)Activator.CreateInstance(assetType)!));
 
         // The plugin host registers the editors and editor views of the assemblies of the editor plugins. The shared editors
-        // (Stride.Assets.Presentation.Common) replaced their copies: one editor per asset, one view per editor
+        // (Stride.Assets.Editor) replaced their copies: one editor per asset, one view per editor
         var assemblies = fixture.Plugins.Plugins.OfType<AssetsEditorPlugin>().Select(x => x.GetType().Assembly).Distinct().ToList();
         var editors = assemblies
             .SelectMany(x => AssemblyRegistry.GetScanTypes(x, typeof(IAssetEditorViewModel)))
@@ -279,7 +279,7 @@ public sealed class PluginServiceTests
         Assert.Empty(Duplicates(views, x => x.EditorViewModelType, x => x.View));
 
         Assert.Equal([editorType], editors.Where(x => x.ViewModelType == assetViewModelType).Select(x => x.Editor));
-        Assert.Equal(typeof(StrideSharedAssetsPlugin).Assembly, editorType.Assembly);
+        Assert.Equal(typeof(StrideEditorPlugin).Assembly, editorType.Assembly);
         Assert.Equal([viewType], views.Where(x => x.EditorViewModelType == editorType).Select(x => x.View));
         Assert.Equal(editorType, fixture.Plugins.GetEditorViewModelType(assetViewModelType));
     }
@@ -289,7 +289,7 @@ public sealed class PluginServiceTests
     {
         using var fixture = await ShellSessionFixture.OpenAsync(("Sheet", new SpriteSheetAsset()));
 
-        // The shared asset view model (Stride.Assets.Presentation.Common) replaced its copy; the editor stays per toolkit
+        // The shared asset view model (Stride.Assets.Presentation) replaced its copy; the editor stays per toolkit
         var assemblies = fixture.Plugins.Plugins.Select(x => x.GetType().Assembly).Distinct().ToList();
         var viewModels = assemblies
             .SelectMany(x => AssemblyRegistry.GetScanTypes(x, typeof(AssetViewModel)))
@@ -300,7 +300,7 @@ public sealed class PluginServiceTests
         Assert.Empty(Duplicates(viewModels, x => x.AssetType!, x => x.ViewModel));
 
         Assert.Equal([typeof(VisualScriptViewModel)], viewModels.Where(x => x.AssetType == typeof(VisualScriptAsset)).Select(x => x.ViewModel));
-        Assert.Equal(typeof(StrideSharedAssetsPlugin).Assembly, typeof(VisualScriptViewModel).Assembly);
+        Assert.Equal(typeof(StrideDefaultAssetsPlugin).Assembly, typeof(VisualScriptViewModel).Assembly);
         Assert.Equal(typeof(VisualScriptViewModel), fixture.Plugins.GetAssetViewModelType(typeof(VisualScriptAsset)));
         Assert.Equal(typeof(VisualScriptEditorViewModel), fixture.Plugins.GetEditorViewModelType(typeof(VisualScriptViewModel)));
     }

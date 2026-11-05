@@ -33,9 +33,6 @@ public sealed class PluginTests
         Assert.Contains(AssetsPlugin.RegisteredPlugins, x => x is StrideEditorPlugin);
         Assert.False(AssetsPlugin.IsDiscoverable(typeof(StrideDefaultAssetsPlugin)));
         Assert.False(AssetsPlugin.IsDiscoverable(typeof(StrideEditorPlugin)));
-        // So is the plugin of the view models that both editors share: the WPF editor registers them itself
-        Assert.Contains(AssetsPlugin.RegisteredPlugins, x => x is StrideSharedAssetsPlugin);
-        Assert.False(AssetsPlugin.IsDiscoverable(typeof(StrideSharedAssetsPlugin)));
     }
 
     [Fact]
@@ -65,18 +62,7 @@ public sealed class PluginTests
         var types = PluginRegistrations.Of(new StrideDefaultAssetsPlugin(), typeof(Stride.Core.Assets.Editor.Editors.IAssetEditorView)).AssetViewModelTypes;
 
         Assert.Equal(typeof(ScriptSourceFileViewModel), types[typeof(ScriptSourceFileAsset)]);
-        // The shared view models come with the plugin of their assembly
-        Assert.False(types.ContainsKey(typeof(VisualScriptAsset)));
-        Assert.False(types.ContainsKey(typeof(SceneAsset)));
-        Assert.False(types.ContainsKey(typeof(MaterialAsset)));
-        Assert.False(types.ContainsKey(typeof(TextureAsset)));
-    }
-
-    [Fact]
-    public void TheSharedAssetsPluginDeclaresTheSharedAssetViewModels()
-    {
-        var types = PluginRegistrations.Of(new StrideSharedAssetsPlugin(), typeof(Stride.Core.Assets.Editor.Editors.IAssetEditorView)).AssetViewModelTypes;
-
+        // The view models that both editors share live in the same assembly (the WPF editor registers them itself)
         Assert.Equal(typeof(MaterialViewModel), types[typeof(MaterialAsset)]);
         Assert.Equal(typeof(ModelViewModel), types[typeof(ModelAsset)]);
         Assert.Equal(typeof(SpriteSheetViewModel), types[typeof(SpriteSheetAsset)]);
@@ -84,8 +70,9 @@ public sealed class PluginTests
         Assert.Equal(typeof(PrefabViewModel), types[typeof(PrefabAsset)]);
         Assert.Equal(typeof(GameSettingsViewModel), types[typeof(GameSettingsAsset)]);
         Assert.Equal(typeof(VisualScriptViewModel), types[typeof(VisualScriptAsset)]);
-        Assert.False(types.ContainsKey(typeof(ScriptSourceFileAsset)));
         Assert.False(types.ContainsKey(typeof(TextureAsset)));
+        // The editor plugin declares none: its assembly has no asset view model
+        Assert.Empty(PluginRegistrations.Of(new StrideEditorPlugin(), typeof(Stride.Core.Assets.Editor.Editors.IAssetEditorView)).AssetViewModelTypes);
     }
 
     [Fact]
@@ -111,9 +98,9 @@ public sealed class PluginTests
     }
 
     [Fact]
-    public void TheSharedAssetsPluginDeclaresThePreviewViewModels()
+    public void TheEditorPluginDeclaresThePreviewViewModels()
     {
-        var types = PluginRegistrations.Of(new StrideSharedAssetsPlugin(), typeof(Stride.Core.Assets.Editor.Editors.IAssetEditorView)).AssetPreviewViewModelTypes;
+        var types = PluginRegistrations.Of(new StrideEditorPlugin(), typeof(Stride.Core.Assets.Editor.Editors.IAssetEditorView)).AssetPreviewViewModelTypes;
 
         Assert.Equal(typeof(TexturePreviewViewModel), types[typeof(TexturePreview)]);
         Assert.Equal(typeof(AnimationPreviewViewModel), types[typeof(AnimationPreview)]);
@@ -125,20 +112,20 @@ public sealed class PluginTests
         Assert.Equal(typeof(PrecompiledSpriteFontPreviewViewModel), types[typeof(PrecompiledSpriteFontPreview)]);
         // Any sprite batch preview without a view model of its own gets the generic one
         Assert.Equal(typeof(SpritePreviewViewModel), types[typeof(PreviewFromSpriteBatch<>)]);
-        // The editor plugin declares none any more: a second declaration would make the registration throw
-        Assert.Empty(PluginRegistrations.Of(new StrideEditorPlugin(), typeof(Stride.Core.Assets.Editor.Editors.IAssetEditorView)).AssetPreviewViewModelTypes);
+        // The asset view model plugin declares none
+        Assert.Empty(PluginRegistrations.Of(new StrideDefaultAssetsPlugin(), typeof(Stride.Core.Assets.Editor.Editors.IAssetEditorView)).AssetPreviewViewModelTypes);
     }
 
     [Fact]
-    public void TheSharedAssemblyDeclaresThePreviews()
+    public void TheEditorAssemblyDeclaresThePreviews()
     {
         // The previews register through the assets assemblies; the editor's preview service collects them by attribute
-        var previews = Stride.Core.Reflection.AssemblyRegistry.GetScanTypes(typeof(StrideSharedAssetsPlugin).Assembly, typeof(Stride.Editor.Preview.IAssetPreview)).ToList();
+        var previews = Stride.Core.Reflection.AssemblyRegistry.GetScanTypes(typeof(StrideEditorPlugin).Assembly, typeof(Stride.Editor.Preview.IAssetPreview)).ToList();
 
         Assert.Contains(typeof(TexturePreview), previews);
         Assert.Contains(typeof(ScenePreview), previews);
         Assert.Contains(typeof(SkyboxPreview), previews);
-        Assert.Empty(Stride.Core.Reflection.AssemblyRegistry.GetScanTypes(typeof(StrideEditorPlugin).Assembly, typeof(Stride.Editor.Preview.IAssetPreview)));
+        Assert.Empty(Stride.Core.Reflection.AssemblyRegistry.GetScanTypes(typeof(StrideDefaultAssetsPlugin).Assembly, typeof(Stride.Editor.Preview.IAssetPreview)));
     }
 
     [Fact]

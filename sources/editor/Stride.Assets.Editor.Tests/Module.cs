@@ -18,7 +18,6 @@ internal static class Module
         RuntimeHelpers.RunModuleConstructor(typeof(Stride.Assets.Editor.Module).Module.ModuleHandle);
         // The default plugins of the cross-platform editor, which its host registers (Stride.Assets.Editor.Avalonia)
         AssetsPlugin.RegisterPlugin(typeof(StrideDefaultAssetsPlugin));
-        AssetsPlugin.RegisterPlugin(typeof(StrideSharedAssetsPlugin));
         AssetsPlugin.RegisterPlugin(typeof(StrideEditorPlugin));
 
         // PackageSession needs MSBuild, like in the editor
