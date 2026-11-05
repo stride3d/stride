@@ -37,6 +37,6 @@ The application registers the services in a session the way `Stride.GameStudio`'
 
 * The goal is to be able to share that library with any application that wants to work with Stride runtime and manage instance of `Game`.
 * It is Stride specific, but it can be used by other applications beside the GameStudio.
-* The assembly registers itself as an assets assembly (`CommonModule`, `Module`), so the editor's scanning finds its thumbnail
+* The assembly registers itself as an assets assembly (`Module`, after the layer below), so the editor's scanning finds its thumbnail
   compilers, previews and editor game services.
 * Both editors use it: `Stride.Editor.Wpf` (WPF) and `Stride.Editor.Avalonia` (cross-platform) reference it.
