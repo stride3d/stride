@@ -35,8 +35,10 @@ public sealed class DefaultPluginLoadingTests
         try
         {
             var presentation = context.LoadFromAssemblyName(typeof(StrideDefaultAssetsPlugin).Assembly.GetName());
+            var shared = context.LoadFromAssemblyName(typeof(StrideSharedAssetsPlugin).Assembly.GetName());
             var editor = context.LoadFromAssemblyName(typeof(StrideEditorPlugin).Assembly.GetName());
             RuntimeHelpers.RunModuleConstructor(presentation.ManifestModule.ModuleHandle);
+            RuntimeHelpers.RunModuleConstructor(shared.ManifestModule.ModuleHandle);
             RuntimeHelpers.RunModuleConstructor(editor.ManifestModule.ModuleHandle);
 
             // The plugin registry of the isolated copy, which only these module initializers could fill
@@ -44,13 +46,14 @@ public sealed class DefaultPluginLoadingTests
             Assert.NotSame(typeof(AssetsPlugin), plugins);
             var registered = Names((IEnumerable<object>)plugins.GetProperty(nameof(AssetsPlugin.RegisteredPlugins))!.GetValue(null)!);
             Assert.DoesNotContain(typeof(StrideDefaultAssetsPlugin).FullName, registered);
+            Assert.DoesNotContain(typeof(StrideSharedAssetsPlugin).FullName, registered);
             Assert.DoesNotContain(typeof(StrideEditorPlugin).FullName, registered);
 
-            // The discovery of the two assemblies, which the WPF editor runs on every assets assembly, skips them too
+            // The discovery of these assemblies, which the WPF editor runs on every assets assembly, skips them too
             var registerPlugins = plugins.GetMethod(nameof(AssetsPlugin.RegisterPlugins))!;
-            var discovered = Names((IEnumerable<object>)registerPlugins.Invoke(null, [presentation])!)
-                .Concat(Names((IEnumerable<object>)registerPlugins.Invoke(null, [editor])!)).ToList();
+            var discovered = new[] { presentation, shared, editor }.SelectMany(x => Names((IEnumerable<object>)registerPlugins.Invoke(null, [x])!)).ToList();
             Assert.DoesNotContain(typeof(StrideDefaultAssetsPlugin).FullName, discovered);
+            Assert.DoesNotContain(typeof(StrideSharedAssetsPlugin).FullName, discovered);
             Assert.DoesNotContain(typeof(StrideEditorPlugin).FullName, discovered);
         }
         finally

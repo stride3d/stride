@@ -20,6 +20,7 @@ internal static class Module
         // The default plugins of this editor, in their order: the shared ones (the discovery skips them, so that another
         // editor loading the shared assemblies does not get them), then the views
         AssetsPlugin.RegisterPlugin(typeof(StrideDefaultAssetsPlugin));
+        AssetsPlugin.RegisterPlugin(typeof(StrideSharedAssetsPlugin));
         AssetsPlugin.RegisterPlugin(typeof(StrideEditorPlugin));
         AssetsPlugin.RegisterPlugin(typeof(StrideEditorViewPlugin));
         AssetPreview.DefaultViewType = typeof(StridePreviewView);

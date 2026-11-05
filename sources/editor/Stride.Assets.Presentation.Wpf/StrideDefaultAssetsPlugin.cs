@@ -7,6 +7,10 @@ using System.Reflection;
 using System.Windows;
 using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Editor.ViewModels;
+using Stride.Assets.Editor.ViewModels.Preview;
+using Stride.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Editor.Annotations;
+using Stride.Core.Assets.Presentation.Annotations;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
@@ -73,10 +77,40 @@ namespace Stride.Assets.Presentation
 
         public static void LoadDefaultTemplates() => StrideDefaultTemplates.Load();
 
+        /// <summary>
+        /// The asset view models, editors and preview view models that this editor shares with the cross-platform one.
+        /// </summary>
+        /// <remarks>
+        /// They live in the agnostic assemblies, whose plugins are the cross-platform editor's default plugins (this editor does
+        /// not load them), and next to cross-platform types that this editor has its own versions of (the script and visual
+        /// script editors): this plugin registers them one by one.
+        /// </remarks>
+        internal static readonly Type[] SharedViewModelTypes =
+        {
+            typeof(AnimationViewModel), typeof(EffectLogViewModel), typeof(GameSettingsViewModel), typeof(GraphicsCompositorViewModel),
+            typeof(MaterialViewModel), typeof(ModelViewModel), typeof(PrecompiledSpriteFontViewModel), typeof(PrefabViewModel),
+            typeof(ProceduralModelViewModel), typeof(SceneViewModel), typeof(SkeletonViewModel), typeof(SkyboxViewModel),
+            typeof(SpriteFontViewModel), typeof(SpriteSheetViewModel), typeof(VisualScriptViewModel),
+            typeof(GraphicsCompositorEditorViewModel), typeof(PrefabEditorViewModel), typeof(SceneEditorViewModel), typeof(SpriteSheetEditorViewModel),
+            typeof(AnimationPreviewViewModel), typeof(EntityPreviewViewModel), typeof(MaterialPreviewViewModel), typeof(ModelPreviewViewModel),
+            typeof(PrecompiledSpriteFontPreviewViewModel), typeof(ProceduralModelPreviewViewModel), typeof(SkyboxPreviewViewModel),
+            typeof(SpriteFontPreviewViewModel), typeof(SpritePreviewViewModel), typeof(SpriteSheetPreviewViewModel), typeof(TexturePreviewViewModel),
+        };
+
         /// <inheritdoc />
         public override void Initialize(IEditorPluginContext context)
         {
             base.Initialize(context);
+
+            foreach (var type in SharedViewModelTypes)
+            {
+                if (type.GetCustomAttribute<AssetViewModelAttribute>() is { } assetViewModel)
+                    context.AssetViewModelTypes.Register(assetViewModel.AssetType, type);
+                if (type.GetCustomAttribute<AssetEditorViewModelAttribute>() is { } editorViewModel)
+                    context.AssetEditorViewModelTypes.Register(editorViewModel.ViewModelType, type);
+                if (type.GetCustomAttribute<AssetPreviewViewModelAttribute>() is { } previewViewModel)
+                    context.AssetPreviewViewModelTypes.Register(previewViewModel.AssetPreviewType, type);
+            }
 
             context.ProfileSettings.Register(new PackageSettingsEntry(GameUserSettings.Effect.EffectCompilation, TargetPackage.Executable));
             context.ProfileSettings.Register(new PackageSettingsEntry(GameUserSettings.Effect.RecordUsedEffects, TargetPackage.Executable));

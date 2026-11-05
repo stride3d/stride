@@ -24,14 +24,15 @@ namespace Stride.Assets.Presentation;
 /// the editors find them in every assets assembly.
 /// </para>
 /// <para>
-/// It is found like the plugins of the packages: this assembly registers itself as an assets assembly (<c>CommonModule</c>)
-/// and the editor's plugin host registers the plugins of every assets assembly. Both editors load this assembly once, so
+/// A default plugin of the cross-platform editor: its host registers it (<c>Stride.Assets.Editor.Avalonia</c>), the discovery
+/// skips it. The WPF editor registers the same view models itself (<c>StrideDefaultAssetsPlugin.SharedViewModelTypes</c>), so
 /// each asset type has one view model, and each preview one view model, in each editor.
 /// </para>
 /// <para>
-/// When the default assets plugin moves here too (Phase 3), it takes these view models over and this plugin goes away.
+/// When the default assets plugins take these view models over (Phase 3), this plugin goes away.
 /// </para>
 /// </remarks>
+[EditorDefaultPlugin]
 public sealed class StrideSharedAssetsPlugin : StrideAssetsPlugin
 {
 }
