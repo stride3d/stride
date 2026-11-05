@@ -21,8 +21,8 @@ Since the editor cleanup also the animation and prefab preview compilers (`Anima
 
 Since Phase 3 (editor layer) also the two session-bound services that know Stride asset types, shared by both editors under
 the names of the cross-platform `Stride.Assets.Editor`: `Stride.Assets.Editor.Build.StrideShaderImporter` and
-`Stride.Assets.Editor.EditorGame.ContentLoader.EditorContentLoader`. The content loader reads two internal members of
-`GameStudioDatabase` (`Stride.Editor` gives this project its internals).
+`Stride.Assets.Editor.EditorGame.ContentLoader.EditorContentLoader`. The content loader asks
+`GameStudioDatabase.AnalyzeDependencies` (public) which assets depend on a modified one.
 
 Since Phase 3 (asset view models) also the asset view models that both editors share (animation, effect log, graphics
 compositor, material, model, precompiled sprite font, procedural model, skeleton, skybox, sprite font, sprite sheet; namespace

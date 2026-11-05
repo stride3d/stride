@@ -9,5 +9,3 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Stride.GameStudio" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Editor.Avalonia" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Editor.Tests" + Stride.PublicKeys.Default)]
-// The content loader, in the Stride assets layer, reads the dependency compiler of the database
-[assembly: InternalsVisibleTo("Stride.Assets.Presentation.Common" + Stride.PublicKeys.Default)]

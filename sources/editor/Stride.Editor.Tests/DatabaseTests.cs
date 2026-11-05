@@ -2,12 +2,18 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Assets;
+using Stride.Assets.Materials;
+using Stride.Assets.Textures;
 using Stride.Core.Assets;
+using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.IO;
+using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
 using Stride.Editor.Tests.Helpers;
 using Stride.Graphics;
+using Stride.Rendering.Materials;
+using Stride.Rendering.Materials.ComputeColors;
 
 namespace Stride.Editor.Tests;
 
@@ -52,6 +58,27 @@ public sealed class DatabaseTests
         Assert.NotNull(woodOutput);
         Assert.NotNull(oakOutput);
         Assert.Equal(oakOutput!.ObjectId, woodOutput!.ObjectId);
+    }
+
+    [Fact]
+    public async Task AnalyzingTheDependenciesOfAnAssetFindsTheAssetsItReferences()
+    {
+        var texture = new TextureAsset { Source = new UFile("wood.png") };
+        var material = new MaterialAsset();
+        material.Attributes.Diffuse = new MaterialDiffuseMapFeature(new ComputeTextureColor(AttachedReferenceManager.CreateProxyObject<Texture>(texture.Id, "Textures/Wood")));
+        using var fixture = await ServicesSessionFixture.OpenAsync(withBuilder: true, ("Textures/Wood", texture), ("Materials/Wood", material));
+        Assert.False(fixture.Result.HasErrors, fixture.Log);
+
+        // The content loader asks the database which assets a referencer depends on, and how, to know what to reload
+        BuildAssetNode node;
+        using ((await fixture.Database.ReserveSyncLock()).Lock())
+        {
+            node = fixture.Database.AnalyzeDependencies(fixture.Asset("Materials/Wood").AssetItem);
+        }
+
+        Assert.Equal(material.Id, node.AssetItem.Id);
+        var reference = Assert.Single(node.References, x => x.Target.AssetItem.Id == texture.Id);
+        Assert.True(reference.HasOne(BuildDependencyType.Runtime));
     }
 
     [Fact]
