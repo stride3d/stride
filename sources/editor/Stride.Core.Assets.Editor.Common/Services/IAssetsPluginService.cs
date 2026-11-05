@@ -8,9 +8,10 @@ using Stride.Core.Diagnostics;
 #nullable enable
 
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Presentation.Services;
 
 namespace Stride.Core.Assets.Editor.Services;
-public interface IAssetsPluginService
+public interface IAssetsPluginService : IPresentationPluginService
 {
     IReadOnlyList<AssetsPlugin> Plugins { get; }
 
@@ -41,16 +42,6 @@ public interface IAssetsPluginService
     /// Initializes the registered plugins for the editor of <paramref name="session"/>.
     /// </summary>
     void InitializeSession(ISessionViewModel session);
-
-    /// <summary>
-    /// Gets the types that the plugins register as primitive types, which the property grid does not expand.
-    /// </summary>
-    IEnumerable<Type> GetPrimitiveTypes(ISessionViewModel session);
-
-    /// <summary>
-    /// Gets the settings that the plugins add to the properties of the packages.
-    /// </summary>
-    IEnumerable<PackageSettingsEntry> GetProfileSettings();
 
     /// <summary>
     /// Gets the tools of the views of the game editors that the plugins register (<see cref="IEditorPluginContext.EditorViewToolTypes"/>),

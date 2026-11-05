@@ -24,6 +24,7 @@ using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Quantum;
 using Stride.Core.Translation;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Editor.ViewModels.SpriteEditor;
 
@@ -282,7 +283,7 @@ public sealed class SpriteInfoViewModel : DispatcherViewModel, IIsEditableViewMo
         if (((IAddChildViewModel)this).CanAddChildren(children, modifiers, out message))
             return true;
 
-        message = DragDropBehavior.InvalidDropAreaMessage;
+        message = DragDropMessages.InvalidDropArea;
         if (children.Any(x => x is not SpriteInfoViewModel))
             return false;
 

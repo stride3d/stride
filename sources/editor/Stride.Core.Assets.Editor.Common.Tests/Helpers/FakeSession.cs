@@ -34,13 +34,22 @@ public sealed class FakeSession : ISessionViewModel
     private readonly Dictionary<string, PackageCategoryViewModel> packageCategories;
 
     public FakeSession()
+        : this(null)
+    {
+    }
+
+    /// <summary>
+    /// Creates a session whose service provider holds <paramref name="pluginService"/> instead of <see cref="Plugins"/>, for example only
+    /// the part of the plugin service that the session objects use (<see cref="Stride.Core.Assets.Presentation.Services.IPresentationPluginService"/>).
+    /// </summary>
+    public FakeSession(object? pluginService)
     {
         Dialogs = DialogRecorder.Create();
         ServiceProvider = new ViewModelServiceProvider(
         [
             new NullDispatcherService(),
             UndoRedo,
-            Plugins,
+            pluginService ?? Plugins,
             ProgressWindows,
             Thumbnails,
             Dialogs,
@@ -106,9 +115,7 @@ public sealed class FakeSession : ISessionViewModel
 
     public ISessionObjectPropertiesViewModel AssetViewProperties => null!;
 
-    public SessionObjectPropertiesViewModel ActiveProperties { get; set; } = null!;
-
-    public IAssetSourceTrackerViewModel SourceTracker => null!;
+    public IAssetSourceTrackerViewModel SourceTracker { get; set; } = null!;
 
     public IAssetLogViewModel AssetLog => Log;
 
@@ -180,10 +187,6 @@ public sealed class FakeSession : ISessionViewModel
     public void UnregisterAsset(AssetViewModel asset) => assets.Remove(asset.Id);
 
     public void SetFileDeletedOutside(UFile filePath, bool deletedOutside) { }
-
-    public void ProcessAddedProjects(LoggerResult loggerResult, WorkProgressViewModel workProgress, bool packageAlreadyInSession) => throw new NotSupportedException();
-
-    public void ProcessRemovedProjects() => throw new NotSupportedException();
 
     public Task LoadAddedDependencies(LoggerResult loggerResult) => throw new NotSupportedException();
 

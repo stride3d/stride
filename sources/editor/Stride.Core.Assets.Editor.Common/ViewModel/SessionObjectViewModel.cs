@@ -9,6 +9,7 @@ using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.Translation;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModel
 {
@@ -92,7 +93,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
         bool IAddChildViewModel.CanAddChildren(IReadOnlyCollection<object> children, AddChildModifiers modifiers, out string message)
         {
-            message = DragDropBehavior.InvalidDropAreaMessage;
+            message = DragDropMessages.InvalidDropArea;
             return false;
         }
 

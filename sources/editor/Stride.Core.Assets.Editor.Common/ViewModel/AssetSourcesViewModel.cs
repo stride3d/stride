@@ -113,26 +113,25 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 return;
 
             updatingFromSource = true;
-            var logger = new LoggerResult();
-            var workProgress = new WorkProgressViewModel(ServiceProvider, logger)
+            try
             {
-                Title = "Update assets from source",
-                KeepOpen = KeepOpen.OnWarningsOrErrors,
-                IsIndeterminate = true,
-                IsCancellable = false,
-            };
-            workProgress.RegisterProgressStatus(logger, true);
-
-            workProgress.ServiceProvider.Get<IProgressWindowService>().ShowProgressWindow(workProgress, 500);
-
-            using (var transaction = asset.UndoRedoService.CreateTransaction())
-            {
-                await UpdateAssetFromSource(logger);
-                asset.UndoRedoService.SetName(transaction, $"Update [{asset.Url}] from its source(s)");
+                // The tracker of the session shows the progress window of the update
+                var tracker = asset.Session.SourceTracker;
+                if (tracker != null)
+                {
+                    await tracker.UpdateAssetsFromSourceAsync([asset]);
+                }
+                else
+                {
+                    using var transaction = asset.UndoRedoService.CreateTransaction();
+                    await UpdateAssetFromSource(new LoggerResult());
+                    asset.UndoRedoService.SetName(transaction, $"Update [{asset.Url}] from its source(s)");
+                }
             }
-
-            await workProgress.NotifyWorkFinished(false, logger.HasErrors);
-            updatingFromSource = false;
+            finally
+            {
+                updatingFromSource = false;
+            }
         }
     }
 }

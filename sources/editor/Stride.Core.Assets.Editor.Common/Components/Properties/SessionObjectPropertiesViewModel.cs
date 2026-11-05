@@ -22,7 +22,7 @@ public class SessionObjectPropertiesViewModel : PropertiesViewModel, ISessionObj
     private string? name;
     private bool showOverridesOnly;
 
-    public SessionObjectPropertiesViewModel(ISessionViewModel session)
+    public SessionObjectPropertiesViewModel(SessionViewModel session)
         : base(session.SafeArgument(nameof(session)).ServiceProvider, session.AssetNodeContainer)
     {
         Session = session;
@@ -52,7 +52,7 @@ public class SessionObjectPropertiesViewModel : PropertiesViewModel, ISessionObj
         RegisterNodePresenterUpdater(new SessionNodeUpdater(session));
     }
 
-    public ISessionViewModel Session { get; }
+    public SessionViewModel Session { get; }
 
     public string TypeDescription { get => typeDescription; set => SetValue(ref typeDescription, value); }
 

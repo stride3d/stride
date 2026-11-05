@@ -12,6 +12,7 @@ using Stride.Core.Assets.Diagnostics;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Presentation.Services;
 using Stride.Core.Assets.Editor.ViewModel.Logs;
 using Stride.Core.Assets.Editor.ViewModel.Progress;
 using Stride.Core.Assets.Templates;
@@ -214,13 +215,13 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// Creates the view models for each asset, directory, profile, project and reference of this package.
         /// </summary>
         /// <param name="loggerResult">The logger result of the current operation.</param>
-        /// <param name="workProgress">A <see cref="WorkProgressViewModel"/> instance to update on progresses. Can be <c>null</c>.</param>
+        /// <param name="workProgress">The progress to update.</param>
         /// <param name="cancellationToken">A cancellation token to cancel the load process. Can be <c>null</c>.</param>
-        internal void LoadPackageInformation(LoggerResult loggerResult, WorkProgressViewModel workProgress, CancellationToken? cancellationToken = null)
+        internal void LoadPackageInformation(LoggerResult loggerResult, IProgressViewModel workProgress, CancellationToken? cancellationToken = null)
         {
             if (workProgress == null) throw new ArgumentNullException(nameof(workProgress));
             var progress = workProgress.ProgressValue;
-            workProgress.UpdateProgressAsync($"Processing asset {progress + 1}/{workProgress.Maximum}...", progress);
+            workProgress.UpdateProgress($"Processing asset {progress + 1}/{workProgress.Maximum}...", progress);
 
             if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
                 return;
@@ -236,7 +237,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                     return;
 
                 var message = $"Processing asset {progress + 1}/{workProgress.Maximum}...";
-                workProgress.UpdateProgressAsync(message, progress);
+                workProgress.UpdateProgress(message, progress);
 
                 var url = GetDisplayDirectory(asset.Location);
                 DirectoryBaseViewModel directory;
@@ -256,14 +257,14 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
             FillRootAssetCollection();
 
-            workProgress.UpdateProgressAsync("Package processed", progress);
+            workProgress.UpdateProgress("Package processed", progress);
 
             foreach (var explicitDirectory in Package.ExplicitFolders)
             {
                 GetOrCreateAssetDirectory(explicitDirectory, false);
             }
 
-            var pluginService = Session.ServiceProvider.Get<IAssetsPluginService>();
+            var pluginService = Session.ServiceProvider.Get<IPresentationPluginService>();
             foreach (var property in pluginService.GetProfileSettings())
             {
                 RegisterSettings(property);
@@ -430,89 +431,6 @@ namespace Stride.Core.Assets.Editor.ViewModel
             foreach (var asset in assetList.Values)
             {
                 logger.Log(new AssetSerializableLogMessage(asset.Id, asset.Location, LogMessageType.Fatal, $"The asset {asset.Location} is incorrectly indexed in the package. Please report this issue."));
-            }
-        }
-
-        public async Task UpdatePackageTemplate(TemplateDescription template)
-        {
-            var loggerResult = new LoggerResult();
-
-            var workProgress = new WorkProgressViewModel(ServiceProvider, loggerResult)
-            {
-                Title = "Updating package...",
-                KeepOpen = KeepOpen.OnWarningsOrErrors,
-                IsIndeterminate = true,
-                IsCancellable = false
-            };
-            workProgress.RegisterProgressStatus(loggerResult, true);
-
-            var parameters = new PackageTemplateGeneratorParameters
-            {
-                Name = Package.Meta.Name,
-                OutputDirectory = Package.FullPath.GetFullDirectory(),
-                Description = template,
-                Package = Package,
-                Logger = loggerResult,
-            };
-
-            var generator = TemplateManager.FindTemplateGenerator(parameters);
-            if (generator == null)
-            {
-                await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Tr._p("Message", "Unable to retrieve template generator for the selected template. Aborting."), MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
-
-            // Errors might occur when generating the template. For the moment we consider them non-fatal and allow to open the project anyway.
-            await TemplateGeneratorHelper.RunTemplateGeneratorSafe(generator, parameters, workProgress);
-
-            Session.ProcessAddedProjects(loggerResult, workProgress, true);
-            Session.ProcessRemovedProjects();
-
-            await workProgress.NotifyWorkFinished(false, loggerResult.HasErrors);
-        }
-
-        public async Task AddExistingProject()
-        {
-            var file = await ServiceProvider.Get<IDialogService>()
-                .OpenFilePickerAsync(Session.SolutionPath?.GetFullDirectory(), [new FilePickerFilter("Visual Studio C# project") { Patterns = ["*.csproj"] }]);
-            if (file is not null)
-            {
-                var loggerResult = new LoggerResult();
-                var cancellationSource = new CancellationTokenSource();
-                var workProgress = new WorkProgressViewModel(ServiceProvider, loggerResult)
-                {
-                    Title = "Importing package...",
-                    KeepOpen = KeepOpen.OnWarningsOrErrors,
-                    IsIndeterminate = true,
-                    IsCancellable = false
-                };
-
-                using (var transaction = UndoRedoService.CreateTransaction())
-                {
-                    workProgress.RegisterProgressStatus(loggerResult, true);
-
-                    ServiceProvider.Get<IProgressWindowService>().ShowProgressWindow(workProgress, 500);
-
-                	await Task.Run(() =>
-                    {
-                        try
-                        {
-                            Package.AddExistingProject(file, loggerResult);
-                        }
-                        catch (Exception e)
-                        {
-                            loggerResult.Error("An exception occurred while importing the project", e);
-                        }
-
-                    }, cancellationSource.Token);
-
-                    RefreshPackageReferences();
-
-                    UndoRedoService.SetName(transaction, $"Import project '{file.GetFileNameWithoutExtension()}'");
-                }
-
-                // Notify that the task is finished
-                await workProgress.NotifyWorkFinished(cancellationSource.IsCancellationRequested, loggerResult.HasErrors);
             }
         }
 
