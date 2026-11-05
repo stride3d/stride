@@ -41,11 +41,25 @@ internal static class WindowTestHelper
     /// </summary>
     public static async Task ClickAsync(this Window window, Control control)
     {
+        // The mouse input first runs the pending jobs and renders, which may lay the control out elsewhere: aim once they ran
+        Dispatcher.UIThread.RunJobs();
+        AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+        Dispatcher.UIThread.RunJobs();
         var center = control.TranslatePoint(new Point(control.Bounds.Width / 2, control.Bounds.Height / 2), window)
             ?? throw new InvalidOperationException("The control is not in the window.");
-        window.MouseMove(center);
-        window.MouseDown(center, MouseButton.Left);
-        window.MouseUp(center, MouseButton.Left);
+        // When the input is slow (a busy machine), the tooltip of the control opens between the move and the press: in the small
+        // headless window it can cover the pointer and take the press, and the control is not clicked
+        ToolTip.SetServiceEnabled(window, false);
+        try
+        {
+            window.MouseMove(center);
+            window.MouseDown(center, MouseButton.Left);
+            window.MouseUp(center, MouseButton.Left);
+        }
+        finally
+        {
+            window.ClearValue(ToolTip.ServiceEnabledProperty);
+        }
         await PumpAsync();
     }
 
