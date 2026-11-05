@@ -11,8 +11,8 @@
        xmlns:sprite="clr-namespace:Stride.Assets.Sprite;assembly=Stride.Assets"
        xmlns:strings="clr-namespace:Stride.Assets.Presentation.Resources.Strings"
        xmlns:view="clr-namespace:Stride.Assets.Presentation.AssetEditors.SpriteEditor.Views"
-       xmlns:sevm="clr-namespace:Stride.Assets.Editor.ViewModels.SpriteEditor;assembly=Stride.Assets.Presentation.Common"
-       xmlns:evm="clr-namespace:Stride.Assets.Editor.ViewModels;assembly=Stride.Assets.Presentation.Common"
+       xmlns:sevm="clr-namespace:Stride.Assets.Editor.ViewModels.SpriteEditor;assembly=Stride.Assets.Editor"
+       xmlns:evm="clr-namespace:Stride.Assets.Editor.ViewModels;assembly=Stride.Assets.Editor"
        mc:Ignorable="d" 
        d:DesignHeight="300" d:DesignWidth="300" d:DataContext="{d:DesignInstance evm:SpriteSheetEditorViewModel}">
   <UserControl.Resources>

@@ -25,5 +25,4 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Stride.Assets.Presentation.Wpf")]
 [assembly: InternalsVisibleTo("Stride.Assets.Editor")]
 // The previews that both editors share (the signed distance field font shader of the font previews)
-[assembly: InternalsVisibleTo("Stride.Assets.Presentation.Common")]
 #endif
