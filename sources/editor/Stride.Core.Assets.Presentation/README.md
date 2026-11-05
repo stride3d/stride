@@ -11,13 +11,14 @@ The view models of the core assets: what a UI shows of a session and its content
 ## Content
 
 * The session objects, which reach the session through `ISessionViewModel`: `AssetViewModel` and `AssetViewModel<TAsset>`, packages and projects, directories and mount points, categories, dependencies and sources of an asset, `SessionNodeContainer`, the child, insert and reorder interfaces of drag and drop with `DragDropMessages`, and the session events.
-* The asset log view models (`ViewModel/Logs`).
+* The asset log view models (`ViewModels/Logs`).
 * The asset node view models (`AssetNodeViewModel`, its factory and command wrapper), the asset node presenters and their base classes (`IAssetNodePresenter`, `AssetNodePresenterFactory`, `AssetNodePresenterUpdaterBase`), and the content value change operations.
 * The asset composite bases: `AssetCompositeViewModel<TAsset>`, `AssetCompositeHierarchyViewModel<,>`, `AssetCompositeItemViewModel` and `IAssetPartViewModel`.
 * The data that these view models expose: `ThumbnailData`, `MenuCommandInfo`, the package settings wrapper and entries, `AssetViewModelAttribute`.
 
-The types keep the namespaces they had in `Stride.Core.Assets.Editor.Common` (mostly `Stride.Core.Assets.Editor.ViewModel` and `Stride.Core.Assets.Presentation.*`).
+The types are in the `Stride.Core.Assets.Presentation` namespaces (the session objects in `Stride.Core.Assets.Presentation.ViewModels`).
 
 ## Notes
 
+* The assembly registers itself as an assets assembly (`Module`), so the editor's scanning finds its asset view models, and it registers the gettext translation provider of its strings.
 * Any application that works with Stride core assets can use this library; it has no dependency on the Stride runtime.

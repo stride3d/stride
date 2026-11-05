@@ -14,9 +14,9 @@ The editor for the core assets, shared by the WPF and the cross-platform (Avalon
 * The Quantum node presenter commands, keys and updaters, the copy and paste processors and services, the asset builder service and the preview and thumbnail service contracts.
 * The editor and internal settings, the settings window, template description, add asset, fix references, asset picker and progress view models, the debug pages, notifications and the editor services (dialogs, clipboard, file explorer, documentation).
 
-The types keep the namespaces they had in `Stride.Core.Assets.Editor.Common` and before.
+The types are in the `Stride.Core.Assets.Editor` namespaces (view models in `Stride.Core.Assets.Editor.ViewModels`, paste processors in `Stride.Core.Assets.Editor.Components.CopyPasteProcessors`).
 
 ## Notes
 
-* The assembly registers itself as an assets assembly (`CommonModule`, `Module`), so the editor's scanning finds its types, and it registers the gettext translation provider.
+* The assembly registers itself as an assets assembly (`Module`, after the module of `Stride.Core.Assets.Presentation`), so the editor's scanning finds its types, and it registers the gettext translation provider of its strings.
 * It can theoretically be used for another engine that would only be based on the core assets and libraries, so it has no dependency on the Stride runtime.
