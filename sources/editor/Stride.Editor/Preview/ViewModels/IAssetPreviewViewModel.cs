@@ -3,7 +3,7 @@
 #nullable disable
 using Stride.Core.Assets.Presentation.ViewModels;
 
-namespace Stride.Editor.Preview.ViewModel
+namespace Stride.Editor.Preview.ViewModels
 {
     /// <summary>
     /// An interface that represents a view model that can be attached to an <see cref="IAssetPreview"/>.
