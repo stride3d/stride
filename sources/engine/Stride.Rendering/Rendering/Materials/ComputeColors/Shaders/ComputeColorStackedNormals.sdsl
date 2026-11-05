@@ -1,0 +1,31 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+shader ComputeColorStackedNormals<bool TIsNormalXY1, bool TIsNormalXY2> : ComputeColor
+{
+    compose ComputeColor color1;
+    compose ComputeColor color2;
+
+    override float4 Compute()
+    {
+        float3 t = color1.Compute().xyz;
+        float3 u = color2.Compute().xyz;
+
+        // See: https://blog.selfshadow.com/publications/blending-in-detail/        
+        t = t * float3( 2,  2, 2) + float3(-1, -1,  0);
+        u = u * float3(-2, -2, 2) + float3( 1,  1, -1);
+
+        if (TIsNormalXY1)
+        {
+            // t.z is expected to be within [0, 2], where [0, 1] is the negative, and [1, 2] is positive
+            t.z = 1 + sqrt(max(0, 1.0f - (t.x * t.x + t.y * t.y)));
+        }
+        if (TIsNormalXY2)
+        {
+            // u.z is expected to be within [-1, 1], where [-1, 0] is the negative, and [0, 1] is positive
+            u.z = sqrt(max(0, 1.0f - (u.x * u.x + u.y * u.y)));
+        }
+
+        float3 r = t*dot(t, u)/t.z - u;
+        return float4(r*0.5 + 0.5, 1);
+    }
+};
