@@ -9,13 +9,13 @@ using Stride.Core.Annotations;
 using Stride.Core.Collections;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
-using Stride.Assets.Presentation.AssetEditors.Gizmos;
 using Stride.Editor.Engine;
 using Stride.Engine;
 using Stride.Shaders.Compiler;
+using Stride.Assets.Editor.AssetEditors.Gizmos;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
 
-namespace Stride.Assets.Presentation.AssetEditors.SceneEditor.Game
+namespace Stride.Assets.Editor.AssetEditors.SceneEditor.Game
 {
     public sealed class SceneEditorGame : EntityHierarchyEditorGame
     {

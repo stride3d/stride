@@ -19,6 +19,7 @@ using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering.LightProbes;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels
 {

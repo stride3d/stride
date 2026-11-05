@@ -7,15 +7,15 @@ using System.Collections.Generic;
 using System.Reflection;
 using Stride.Core;
 using Stride.Core.Mathematics;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
 using Stride.Engine;
 using Stride.Extensions;
 using Stride.Engine.Gizmos;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
 
-namespace Stride.Assets.Presentation.AssetEditors.Gizmos
+namespace Stride.Assets.Editor.AssetEditors.Gizmos
 {
     public abstract class EntityGizmo : GizmoBase, IEntityGizmo
     {

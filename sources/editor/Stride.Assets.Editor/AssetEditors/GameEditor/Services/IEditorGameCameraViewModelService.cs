@@ -5,7 +5,7 @@
 using Stride.Core.Mathematics;
 using Stride.Editor.EditorGame.ViewModels;
 
-namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
+namespace Stride.Assets.Editor.AssetEditors.GameEditor.Services
 {
     /// <summary>
     /// The camera of the game of an editor, as the view models of the editor see it (UI thread): the setters post their

@@ -6,7 +6,7 @@ using Stride.Core.Settings;
 using Stride.Core.Translation;
 using Stride.Input;
 
-namespace Stride.Assets.Presentation.SceneEditor
+namespace Stride.Assets.Editor.SceneEditor
 {
     /// <summary>
     /// The Scene editor settings, which both editors read: the key bindings of the camera and the gizmos, the snap values and the questions.

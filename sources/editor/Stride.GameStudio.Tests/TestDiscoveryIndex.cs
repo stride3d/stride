@@ -37,6 +37,9 @@ using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Presentation.Annotations;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Editor.Preview.ViewModels;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
+using Stride.Assets.Editor.AssetEditors.Gizmos;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
 
 namespace Stride.GameStudio.Tests
 {

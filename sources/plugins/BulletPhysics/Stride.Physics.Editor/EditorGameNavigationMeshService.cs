@@ -13,9 +13,6 @@ using Stride.Core.Serialization;
 using Stride.Core.Quantum;
 using Stride.Assets.Entities;
 using Stride.Navigation.Assets;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
-using Stride.Assets.Presentation.AssetEditors.SceneEditor.Game;
-using Stride.Assets.Presentation.AssetEditors.SceneEditor.Services;
 using Stride.Editor.Build;
 using Stride.Editor.EditorGame.Game;
 using Stride.Engine;
@@ -27,10 +24,13 @@ using Stride.Navigation;
 using Stride.Rendering;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Assets;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Services;
+using Stride.Assets.Editor.AssetEditors.SceneEditor.Game;
+using Stride.Assets.Editor.AssetEditors.SceneEditor.Services;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
 
 namespace Stride.Physics.Editor
 {

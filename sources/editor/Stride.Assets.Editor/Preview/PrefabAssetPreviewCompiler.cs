@@ -13,9 +13,10 @@ using Stride.Assets.Entities;
 using Stride.Assets.Materials;
 using Stride.Assets.Sprite;
 using Stride.Assets.Textures;
+using Stride.Editor.Preview;
 using Stride.Rendering;
 
-namespace Stride.Editor.Preview
+namespace Stride.Assets.Editor.Preview
 {
     //do not compile sounds in the editor game
 

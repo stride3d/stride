@@ -5,13 +5,13 @@ using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Editor.Tests.Helpers;
 using Stride.Assets.Editor.ViewModels;
 using Stride.Assets.Entities;
-using Stride.Assets.Presentation.AssetEditors.GameEditor;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.Mathematics;
 using Stride.Core.Quantum;
 using Stride.Engine;
+using Stride.Assets.Editor.AssetEditors.GameEditor;
 
 namespace Stride.Assets.Editor.Tests;
 

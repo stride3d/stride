@@ -9,6 +9,7 @@ using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering.Sprites;
 using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.ViewModels;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels
 {

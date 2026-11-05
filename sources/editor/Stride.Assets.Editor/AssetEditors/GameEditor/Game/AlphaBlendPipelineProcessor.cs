@@ -4,7 +4,7 @@
 using Stride.Graphics;
 using Stride.Rendering;
 
-namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
+namespace Stride.Assets.Editor.AssetEditors.GameEditor.Game
 {
     public class AlphaBlendPipelineProcessor : PipelineProcessor
     {

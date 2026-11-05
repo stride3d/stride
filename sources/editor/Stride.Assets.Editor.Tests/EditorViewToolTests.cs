@@ -3,8 +3,6 @@
 
 using Stride.Assets.Editor.EditorGame.Tools;
 using Stride.Assets.Editor.Tests.Helpers;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Tools;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
 using Stride.Core;
 using Stride.Core.Assets.Editor.Editors;
 using Stride.Core.Assets.Editor.Services;
@@ -13,6 +11,8 @@ using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;
 using Stride.Editor.EditorGame.Tools;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
 
 namespace Stride.Assets.Editor.Tests;
 

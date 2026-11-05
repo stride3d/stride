@@ -14,9 +14,9 @@ using Stride.Core.Mathematics;
 using Stride.Core.Quantum;
 using Stride.Assets.Entities;
 using Stride.Assets.Quantum;
-using Stride.Assets.Presentation.ViewModel.CopyPasteProcessors;
 using Stride.Engine;
 using Stride.GameStudio.Tests.Helpers;
+using Stride.Assets.Editor.ViewModels.CopyPasteProcessors;
 
 namespace Stride.GameStudio.Tests
 {

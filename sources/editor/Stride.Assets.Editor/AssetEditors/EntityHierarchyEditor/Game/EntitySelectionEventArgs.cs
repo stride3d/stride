@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using Stride.Engine;
 
-namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
+namespace Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game
 {
     /// <summary>
     /// Arguments of the events fired by <see cref="EditorGameEntitySelectionService"/> when the selection changed.

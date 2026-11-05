@@ -6,7 +6,7 @@ using System;
 using Stride.Core;
 using Stride.Editor.EditorGame.ViewModels;
 
-namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
+namespace Stride.Assets.Editor.AssetEditors.GameEditor.Services
 {
     public interface IEditorGameSelectionViewModelService : IEditorGameViewModelService
     {

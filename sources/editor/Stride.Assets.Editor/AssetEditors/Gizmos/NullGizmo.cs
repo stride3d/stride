@@ -3,12 +3,11 @@
 #nullable disable
 using System.Linq;
 using System.Reflection;
-using Stride.Assets.Presentation.SceneEditor;
 using Stride.Engine;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
 
-namespace Stride.Assets.Presentation.AssetEditors.Gizmos
+namespace Stride.Assets.Editor.AssetEditors.Gizmos
 {
     public class NullGizmo<T> : EntityGizmo<T> where T : EntityComponent, new()
     {

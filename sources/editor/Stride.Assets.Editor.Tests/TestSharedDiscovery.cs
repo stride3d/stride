@@ -4,16 +4,17 @@
 using System.Runtime.CompilerServices;
 using Stride.Assets.Entities;
 using Stride.Assets.Models;
-using Stride.Assets.Presentation.AssetEditors.Gizmos;
-using Stride.Assets.Presentation.Thumbnails;
 using Stride.Core.Assets.Compiler;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
 using Stride.Core.Reflection;
 using Stride.Editor.Preview;
 using Stride.Editor.Thumbnails;
 using Stride.Engine.Gizmos;
+using Stride.Assets.Editor.AssetEditors.Gizmos;
+using Stride.Assets.Editor.Preview;
+using Stride.Assets.Editor.Thumbnails;
 
-namespace Stride.Assets.Presentation.Common.Tests;
+namespace Stride.Assets.Editor.Tests;
 
 /// <summary>
 /// The editor finds gizmos and thumbnail compilers by scanning the registered assets assemblies: loading the shared

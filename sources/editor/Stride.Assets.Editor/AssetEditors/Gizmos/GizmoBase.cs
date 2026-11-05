@@ -13,7 +13,7 @@ using Stride.Graphics;
 using Stride.Input;
 using Stride.Rendering;
 
-namespace Stride.Assets.Presentation.AssetEditors.Gizmos
+namespace Stride.Assets.Editor.AssetEditors.Gizmos
 {
     /// <summary>
     /// The base class for scene editor's gizmos.

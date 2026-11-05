@@ -14,7 +14,7 @@ using Stride.Editor.Thumbnails;
 using Stride.Graphics;
 using Stride.Rendering;
 
-namespace Stride.Assets.Presentation.Thumbnails
+namespace Stride.Assets.Editor.Thumbnails
 {
     /// <summary>
     /// The thumbnail builder for <see cref="SpriteSheetAsset"/>.

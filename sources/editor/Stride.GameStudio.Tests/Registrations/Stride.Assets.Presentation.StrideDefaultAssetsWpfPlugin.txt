@@ -60,6 +60,12 @@ PrimitiveTypes:
   Stride.Core.Assets.AssetReference
   Stride.Core.Serialization.UrlReferenceBase
 EnumImages:
+  Stride.Assets.Editor.AssetEditors.GameEditor.Transformation.Rotation -> System.Windows.Media.DrawingImage
+  Stride.Assets.Editor.AssetEditors.GameEditor.Transformation.Scale -> System.Windows.Media.DrawingImage
+  Stride.Assets.Editor.AssetEditors.GameEditor.Transformation.Translation -> System.Windows.Media.DrawingImage
+  Stride.Assets.Editor.AssetEditors.GameEditor.TransformationSpace.ObjectSpace -> System.Windows.Media.DrawingImage
+  Stride.Assets.Editor.AssetEditors.GameEditor.TransformationSpace.ViewSpace -> System.Windows.Media.DrawingImage
+  Stride.Assets.Editor.AssetEditors.GameEditor.TransformationSpace.WorldSpace -> System.Windows.Media.DrawingImage
   Stride.Assets.Editor.Preview.MaterialPreviewPrimitive.Capsule -> System.Windows.Media.Imaging.BitmapImage
   Stride.Assets.Editor.Preview.MaterialPreviewPrimitive.Cone -> System.Windows.Media.Imaging.BitmapImage
   Stride.Assets.Editor.Preview.MaterialPreviewPrimitive.Cube -> System.Windows.Media.Imaging.BitmapImage
@@ -68,12 +74,6 @@ EnumImages:
   Stride.Assets.Editor.Preview.MaterialPreviewPrimitive.Sphere -> System.Windows.Media.Imaging.BitmapImage
   Stride.Assets.Editor.Preview.MaterialPreviewPrimitive.Teapot -> System.Windows.Media.Imaging.BitmapImage
   Stride.Assets.Editor.Preview.MaterialPreviewPrimitive.Torus -> System.Windows.Media.Imaging.BitmapImage
-  Stride.Assets.Presentation.AssetEditors.GameEditor.Transformation.Rotation -> System.Windows.Media.DrawingImage
-  Stride.Assets.Presentation.AssetEditors.GameEditor.Transformation.Scale -> System.Windows.Media.DrawingImage
-  Stride.Assets.Presentation.AssetEditors.GameEditor.Transformation.Translation -> System.Windows.Media.DrawingImage
-  Stride.Assets.Presentation.AssetEditors.GameEditor.TransformationSpace.ObjectSpace -> System.Windows.Media.DrawingImage
-  Stride.Assets.Presentation.AssetEditors.GameEditor.TransformationSpace.ViewSpace -> System.Windows.Media.DrawingImage
-  Stride.Assets.Presentation.AssetEditors.GameEditor.TransformationSpace.WorldSpace -> System.Windows.Media.DrawingImage
   Stride.Core.PlatformType.Android -> System.Windows.Media.DrawingImage
   Stride.Core.PlatformType.Linux -> System.Windows.Media.DrawingImage
   Stride.Core.PlatformType.UWP -> System.Windows.Media.DrawingImage
@@ -122,12 +122,12 @@ TemplateProviders:
   Stride.Core.Assets.Editor.View.TypeMatchTemplateProvider EntityComponent
   Stride.Core.Assets.Editor.View.TypeMatchTemplateProvider SceneCameraSlotId
 CopyProcessors:
-  Stride.Assets.Presentation.ViewModel.CopyPasteProcessors.EntityComponentCopyProcessor
+  Stride.Assets.Editor.ViewModels.CopyPasteProcessors.EntityComponentCopyProcessor
 PasteProcessors:
-  Stride.Assets.Presentation.ViewModel.CopyPasteProcessors.EntityComponentPasteProcessor
-  Stride.Assets.Presentation.ViewModel.CopyPasteProcessors.EntityHierarchyPasteProcessor
+  Stride.Assets.Editor.ViewModels.CopyPasteProcessors.EntityComponentPasteProcessor
+  Stride.Assets.Editor.ViewModels.CopyPasteProcessors.EntityHierarchyPasteProcessor
 PostPasteProcessors:
-  Stride.Assets.Presentation.ViewModel.CopyPasteProcessors.ScenePostPasteProcessor
+  Stride.Assets.Editor.ViewModels.CopyPasteProcessors.ScenePostPasteProcessor
 SettingsKeys:
 ProfileSettings:
   Package/Game/Effect/EffectCompilation (Executable)

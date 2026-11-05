@@ -3,7 +3,6 @@
 
 using System.Runtime.InteropServices;
 using Stride.Assets.Editor.EditorGame;
-using Stride.Assets.Presentation.AssetEditors.Gizmos;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Gizmos;
@@ -14,6 +13,7 @@ using Stride.Rendering.LightProbes;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
 using Stride.Shaders;
+using Stride.Assets.Editor.AssetEditors.Gizmos;
 
 namespace Stride.Assets.Editor.Gizmos;
 

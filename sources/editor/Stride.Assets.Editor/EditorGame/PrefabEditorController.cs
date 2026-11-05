@@ -7,8 +7,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Stride.Assets.Editor.ViewModels;
 using Stride.Assets.Entities;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
-using Stride.Assets.Presentation.AssetEditors.PrefabEditor.Game;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core;
 using Stride.Core.Assets;
@@ -16,6 +14,8 @@ using Stride.Core.Quantum;
 using Stride.Editor.Engine;
 using Stride.Engine;
 using Stride.Shaders.Compiler;
+using Stride.Assets.Editor.AssetEditors.PrefabEditor.Game;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
 
 namespace Stride.Assets.Editor.EditorGame;
 

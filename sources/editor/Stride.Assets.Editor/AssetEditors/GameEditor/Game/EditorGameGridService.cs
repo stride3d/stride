@@ -7,14 +7,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Stride.Core.Mathematics;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
-using Stride.Assets.Presentation.AssetEditors.Gizmos;
 using Stride.Editor.EditorGame.Game;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
+using Stride.Assets.Editor.AssetEditors.Gizmos;
 
-namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
+namespace Stride.Assets.Editor.AssetEditors.GameEditor.Game
 {
     public class EditorGameGridService<TGridGizmo> : EditorGameServiceBase, IEditorGameGridViewModelService
         where TGridGizmo : GridGizmoBase, new()

@@ -12,6 +12,8 @@ using Stride.Assets.Presentation.SceneEditor;
 using Stride.Editor.EditorGame.Game;
 using Stride.Engine;
 using Stride.Rendering;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
+using Stride.Assets.Editor.SceneEditor;
 
 namespace Stride.Assets.Presentation.AssetEditors.AssetHighlighters
 {

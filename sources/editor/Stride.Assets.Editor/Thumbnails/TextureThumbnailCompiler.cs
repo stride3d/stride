@@ -15,7 +15,7 @@ using Stride.Editor.Resources;
 using Stride.Editor.Thumbnails;
 using Stride.Graphics;
 
-namespace Stride.Assets.Presentation.Thumbnails
+namespace Stride.Assets.Editor.Thumbnails
 {
     /// <summary>
     /// The thumbnail builder for <see cref="TextureAsset"/>.

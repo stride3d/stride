@@ -17,7 +17,7 @@ using Stride.Input;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
 
-namespace Stride.Assets.Presentation.SceneEditor
+namespace Stride.Assets.Editor.SceneEditor
 {
     internal struct PickingObjectInfo
     {

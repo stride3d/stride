@@ -11,7 +11,7 @@ using Stride.Editor.Resources;
 using Stride.Editor.Thumbnails;
 using Stride.Graphics;
 
-namespace Stride.Assets.Presentation.Thumbnails
+namespace Stride.Assets.Editor.Thumbnails
 {
     /// <summary>
     /// The compiler used by default to create thumbnails when the user has not explicitly defined the compiler to use for its asset.

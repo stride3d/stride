@@ -5,7 +5,7 @@
 using Stride.Core.Mathematics;
 using Stride.Editor.EditorGame.ViewModels;
 
-namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
+namespace Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 
 /// <summary>
 /// The game service that knows where the mouse is over the view of the game, for the entities created at the mouse (the

@@ -7,7 +7,7 @@ using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering;
 
-namespace Stride.Assets.Presentation.AssetEditors.Gizmos
+namespace Stride.Assets.Editor.AssetEditors.Gizmos
 {
     [EffectKeys]
     public abstract class GridGizmoBase : GizmoBase

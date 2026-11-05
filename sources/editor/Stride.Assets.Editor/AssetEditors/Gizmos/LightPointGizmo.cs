@@ -12,7 +12,7 @@ using Stride.Rendering.Lights;
 using Buffer = Stride.Graphics.Buffer;
 using Material = Stride.Rendering.Material;
 
-namespace Stride.Assets.Presentation.AssetEditors.Gizmos
+namespace Stride.Assets.Editor.AssetEditors.Gizmos
 {
     /// <summary>
     /// The gizmo for the ambient light component

@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Editor.EditorGame.ViewModels;
+using Stride.Assets.Editor.AssetEditors.GameEditor;
 
 namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
 {

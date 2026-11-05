@@ -9,7 +9,7 @@ using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Quantum;
 
-namespace Stride.Assets.Presentation.ViewModel.Commands
+namespace Stride.Assets.Editor.ViewModels.Commands
 {
     // TODO: this command is very similar to RenameStringKeyCommand - try to factorize them
     // TODO (revision): should use the same mechanism as Reorder Collection actually

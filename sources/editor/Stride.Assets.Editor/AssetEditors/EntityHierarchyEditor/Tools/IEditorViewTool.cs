@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Stride.Input;
 using Stride.Editor.EditorGame.Tools;
 
-namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Tools;
+namespace Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools;
 
 /// <summary>
 /// A tool of a view of the scene and prefab editors. Select, translate, rotate and scale are tools, and a plugin adds its

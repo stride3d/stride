@@ -8,8 +8,9 @@ using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Compiler;
 using Stride.Assets.Materials;
 using Stride.Assets.Models;
+using Stride.Editor.Preview;
 
-namespace Stride.Editor.Preview
+namespace Stride.Assets.Editor.Preview
 {
     [AssetCompiler(typeof(AnimationAsset), typeof(PreviewCompilationContext))]
     public class AnimationAssetPreviewCompiler : AnimationAssetCompiler

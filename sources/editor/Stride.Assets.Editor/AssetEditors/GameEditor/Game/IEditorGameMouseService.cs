@@ -4,7 +4,7 @@
 
 using Stride.Editor.EditorGame.Game;
 
-namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
+namespace Stride.Assets.Editor.AssetEditors.GameEditor.Game
 {
     /// <summary>
     /// An interface representing a service that can control the mouse.

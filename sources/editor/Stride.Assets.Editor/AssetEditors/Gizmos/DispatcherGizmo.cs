@@ -8,7 +8,7 @@ using Stride.Core;
 using Stride.Engine;
 using Stride.Engine.Gizmos;
 
-namespace Stride.Assets.Presentation.AssetEditors.Gizmos
+namespace Stride.Assets.Editor.AssetEditors.Gizmos
 {
     /// <summary>
     /// A gizmo used to dispatch work to sub-entity-gizmos.

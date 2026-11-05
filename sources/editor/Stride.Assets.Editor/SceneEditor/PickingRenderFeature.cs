@@ -5,7 +5,7 @@ using Stride.Core;
 using Stride.Engine;
 using Stride.Rendering;
 
-namespace Stride.Assets.Presentation.SceneEditor
+namespace Stride.Assets.Editor.SceneEditor
 {
     /// <summary>
     /// Performs picking.

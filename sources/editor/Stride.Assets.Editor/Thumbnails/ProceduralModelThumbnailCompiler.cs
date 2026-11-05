@@ -10,7 +10,7 @@ using Stride.Editor.Thumbnails;
 using Stride.Engine;
 using Stride.Rendering;
 
-namespace Stride.Assets.Presentation.Thumbnails
+namespace Stride.Assets.Editor.Thumbnails
 {
     // TODO: shall we set the same/similar priority as Model asset?
     [AssetCompiler(typeof(ProceduralModelAsset), typeof(ThumbnailCompilationContext))]

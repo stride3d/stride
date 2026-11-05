@@ -19,6 +19,7 @@ using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
 using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 

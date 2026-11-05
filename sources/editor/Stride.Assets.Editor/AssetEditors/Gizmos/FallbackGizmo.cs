@@ -3,7 +3,7 @@
 #nullable disable
 using Stride.Engine;
 
-namespace Stride.Assets.Presentation.AssetEditors.Gizmos
+namespace Stride.Assets.Editor.AssetEditors.Gizmos
 {
     public class FallbackGizmo : BillboardingGizmo<TransformComponent>
     {

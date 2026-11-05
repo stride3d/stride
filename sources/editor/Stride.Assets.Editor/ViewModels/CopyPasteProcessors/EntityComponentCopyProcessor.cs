@@ -9,7 +9,7 @@ using Stride.Core.Assets.Yaml;
 using Stride.Core.Annotations;
 using Stride.Engine;
 
-namespace Stride.Assets.Presentation.ViewModel.CopyPasteProcessors
+namespace Stride.Assets.Editor.ViewModels.CopyPasteProcessors
 {
     public class EntityComponentCopyProcessor : ICopyProcessor
     {

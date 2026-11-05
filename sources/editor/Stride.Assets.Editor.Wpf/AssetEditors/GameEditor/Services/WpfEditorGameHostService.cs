@@ -11,6 +11,7 @@ using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Controls;
 using Stride.Editor.EditorGame.Game;
 using Stride.Editor.Engine;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 using Point = System.Windows.Point;
 
 namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services;

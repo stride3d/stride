@@ -2,12 +2,12 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #nullable disable
 
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
 using Stride.Core.Annotations;
 using Stride.Core.Assets;
 using Stride.Engine;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Services;
 
-namespace Stride.Assets.Presentation.AssetEditors.SceneEditor.Services
+namespace Stride.Assets.Editor.AssetEditors.SceneEditor.Services
 {
     /// <summary>
     /// The controller of the scene editor, as the editor game services of the plugins see it.

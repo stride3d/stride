@@ -4,7 +4,7 @@
 
 using Stride.Core.Translation.Annotations;
 
-namespace Stride.Assets.Presentation.AssetEditors.GameEditor
+namespace Stride.Assets.Editor.AssetEditors.GameEditor
 {
     /// <summary>
     /// Represents the different working spaces during rendering

@@ -5,8 +5,6 @@ using System.Reflection;
 using Avalonia.Headless.XUnit;
 using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Editor.Avalonia.Tests.Helpers;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
-using Stride.Assets.Presentation.AssetEditors.SceneEditor.Services;
 using Stride.Audio.Editor;
 using Stride.Core.Reflection;
 using Stride.Editor.EditorGame.Game;
@@ -20,6 +18,8 @@ using Stride.Physics;
 using Stride.Physics.Editor;
 using Stride.Rendering.Voxels;
 using Stride.Voxels.Editor;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Services;
+using Stride.Assets.Editor.AssetEditors.SceneEditor.Services;
 
 namespace Stride.Assets.Editor.Avalonia.Tests;
 

@@ -21,7 +21,8 @@ using Stride.Graphics;
 using Stride.Graphics.Font;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
-using Stride.Assets.Presentation.AssetEditors.SceneEditor.Services;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 {

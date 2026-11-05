@@ -3,7 +3,6 @@
 #nullable disable
 using System;
 using System.Collections.Generic;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Extensions;
@@ -12,8 +11,9 @@ using Stride.Graphics.GeometricPrimitives;
 using Stride.Rendering;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
 
-namespace Stride.Assets.Presentation.AssetEditors.Gizmos
+namespace Stride.Assets.Editor.AssetEditors.Gizmos
 {
     /// <summary>
     /// A script that manages the grid in the scene editor.
