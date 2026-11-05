@@ -6,7 +6,7 @@ using Stride.Core.Annotations;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Quantum;
 
-namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewModels
+namespace Stride.Assets.Editor.ViewModels.GraphicsCompositorEditor
 {
     public abstract class GraphicsCompositorBlockViewModel : GraphicsCompositorItemViewModel, IGraphicsCompositorBlockViewModel
     {

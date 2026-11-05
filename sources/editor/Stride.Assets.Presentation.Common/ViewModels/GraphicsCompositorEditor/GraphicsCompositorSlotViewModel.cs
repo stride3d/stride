@@ -6,7 +6,7 @@ using Stride.Core.Extensions;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.ViewModels;
 
-namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewModels
+namespace Stride.Assets.Editor.ViewModels.GraphicsCompositorEditor
 {
     public abstract class GraphicsCompositorSlotViewModel : DispatcherViewModel, IGraphicsCompositorSlotViewModel
     {

@@ -3,7 +3,7 @@
 using System;
 using Stride.Core.Quantum;
 
-namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewModels
+namespace Stride.Assets.Editor.ViewModels.GraphicsCompositorEditor
 {
     /// <summary>
     /// Key for both the path to a reference field and its type

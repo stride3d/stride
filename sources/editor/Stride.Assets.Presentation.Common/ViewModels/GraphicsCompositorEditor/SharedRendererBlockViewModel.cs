@@ -8,9 +8,9 @@ using Stride.Core.Quantum;
 using Stride.Assets.Rendering;
 using Stride.Rendering.Compositing;
 
-namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewModels
+namespace Stride.Assets.Editor.ViewModels.GraphicsCompositorEditor
 {
-    public class SharedRendererBlockViewModel : SharedRendererBlockBaseViewModel
+    public sealed class SharedRendererBlockViewModel : SharedRendererBlockBaseViewModel
     {
         private readonly Dictionary<SharedRendererReferenceKey, IGraphicsCompositorSlotViewModel> outputSlotMap = new Dictionary<SharedRendererReferenceKey, IGraphicsCompositorSlotViewModel>();
         private readonly IObjectNode sharedRendererNode;
