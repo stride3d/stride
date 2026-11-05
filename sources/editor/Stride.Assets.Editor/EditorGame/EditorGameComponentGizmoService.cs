@@ -329,8 +329,7 @@ public sealed class EditorGameComponentGizmoService : EditorGameServiceBase, IEd
             if (attribute == null || !attribute.IsMainGizmo)
                 continue;
 
-            var componentIndex = StrideDefaultAssetsPlugin.ComponentOrders.IndexOf(t => t.type == component.GetType());
-            var order = componentIndex >= 0 ? StrideDefaultAssetsPlugin.ComponentOrders[componentIndex].order : default;
+            var order = EntityComponentMetadata.GetOrder(component.GetType());
             if (order > mainComponentOrder)
             {
                 mainComponentOrder = order;

@@ -252,8 +252,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                 if (attribute == null || !attribute.IsMainGizmo)
                     continue;
 
-                var compIndex = StrideDefaultAssetsPlugin.ComponentOrders.IndexOf(t => t.type == component.GetType());
-                var order = compIndex >= 0 ? StrideDefaultAssetsPlugin.ComponentOrders[compIndex].order : default(int);
+                var order = EntityComponentMetadata.GetOrder(component.GetType());
                 if (order > mainComponentOrder)
                 {
                     mainComponentOrder = order;

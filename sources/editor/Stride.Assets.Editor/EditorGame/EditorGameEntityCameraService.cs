@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Assets.Editor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Tools;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Assets.Presentation.SceneEditor;
@@ -54,6 +55,21 @@ public sealed class EditorGameEntityCameraService : EditorGameCameraService, IEd
     public EditorGameEntityCameraService(IEditorGameController controller)
         : base(controller)
     {
+    }
+
+    /// <summary>
+    /// Gets or sets the camera options of the view, when the user interface shows them: the speed keys and the projection
+    /// key go through them. Without them, the service changes the camera itself.
+    /// </summary>
+    public ICameraViewOptions? Options { get; set; }
+
+    /// <inheritdoc/>
+    public override void SwitchProjection()
+    {
+        if (Options is { } options)
+            options.SwitchProjection();
+        else
+            base.SwitchProjection();
     }
 
     /// <inheritdoc />
@@ -165,6 +181,12 @@ public sealed class EditorGameEntityCameraService : EditorGameCameraService, IEd
     /// </summary>
     private void ChangeMovementSpeed(int step)
     {
+        if (Options is { } options)
+        {
+            options.ChangeMovementSpeed(step);
+            return;
+        }
+
         var index = Array.FindIndex(AvailableMovementSpeeds, x => MathUtil.NearEqual(x, MoveSpeed));
         // A speed out of the steps (the default one) starts from the third step, as in the WPF scene editor
         if (index < 0)

@@ -4,16 +4,20 @@
 using System.Collections.Specialized;
 using Stride.Assets.Editor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Tools;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.Gizmos;
 using Stride.Assets.Presentation.SceneEditor;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core;
+using Stride.Core.BuildEngine;
 using Stride.Core.Extensions;
+using Stride.Core.Mathematics;
 using Stride.Editor.EditorGame.Game;
 using Stride.Engine;
 using Stride.Engine.Design;
+using Stride.Input;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
 using Stride.Rendering.Sprites;
@@ -38,6 +42,8 @@ public sealed class EditorGameEntitySelectionService : EditorGameMouseServiceBas
     private readonly EntitySelection selection = new();
     private PickingSceneRenderer? entityPicker;
     private EntityHierarchyEditorGame? game;
+    // The distance the mouse moved since the left button went down, in pixels: a drag doesn't select
+    private Vector2 mouseMoveAccumulator;
 
     public EditorGameEntitySelectionService(EntityHierarchyEditorController controller, EntityHierarchyEditorViewModel editor)
     {
@@ -250,7 +256,7 @@ public sealed class EditorGameEntitySelectionService : EditorGameMouseServiceBas
         controller.EnsureAssetAccess();
         selection.AddSelectable(id);
         // The entity may already be selected in the hierarchy
-        if (editor.FindPartViewModel(id) is EntityViewModel entity && editor.SelectedContent.Contains(entity))
+        if (FindElement(id) is { } entity && editor.SelectedContent.Contains(entity))
         {
             var oldSelectionIds = selection.GetSelectedRootIds();
             if (selection.Add(entity))
@@ -264,7 +270,7 @@ public sealed class EditorGameEntitySelectionService : EditorGameMouseServiceBas
         controller.EnsureAssetAccess();
         selection.RemoveSelectable(id);
         // The entity may be selected
-        if (editor.FindPartViewModel(id) is EntityViewModel entity)
+        if (FindElement(id) is { } entity)
         {
             var oldSelectionIds = selection.GetSelectedRootIds();
             if (selection.Remove(entity))
@@ -278,7 +284,40 @@ public sealed class EditorGameEntitySelectionService : EditorGameMouseServiceBas
         game = (EntityHierarchyEditorGame)editorGame;
 
         editor.SelectedContent.CollectionChanged += SelectedContentChanged;
+        // Without a tool service (the WPF editor), this service selects what is clicked in the view itself
+        if (editorGame.EditorServices.Get<IEditorGameToolService>() is null)
+            editorGame.Script.AddTask(ExecuteClickSelection);
         return Task.FromResult(true);
+    }
+
+    /// <summary>
+    /// Selects what is clicked in the view: a click selects, Ctrl + click adds or removes, a click on an empty area clears;
+    /// a drag (of a gizmo, of the camera) doesn't select (game thread).
+    /// </summary>
+    private async Task ExecuteClickSelection()
+    {
+        MicrothreadLocalDatabases.MountCommonDatabase();
+
+        while (Game.IsRunning)
+        {
+            await Game.Script.NextFrame();
+            if (!IsActive)
+                continue;
+
+            var input = Game.Input;
+            var backBuffer = Game.GraphicsDevice.Presenter.BackBuffer;
+            if (input.IsMouseButtonPressed(MouseButton.Left))
+                mouseMoveAccumulator = Vector2.Zero;
+            mouseMoveAccumulator += new Vector2(Math.Abs(input.MouseDelta.X * backBuffer.Width), Math.Abs(input.MouseDelta.Y * backBuffer.Height));
+
+            if (!IsMouseAvailable || !input.IsMouseButtonReleased(MouseButton.Left) || input.IsMouseButtonDown(MouseButton.Right))
+                continue;
+            if (mouseMoveAccumulator.Length() >= TransformationGizmo.TransformationStartPixelThreshold)
+                continue;
+
+            var addToSelection = input.IsKeyDown(Keys.LeftCtrl) || input.IsKeyDown(Keys.RightCtrl);
+            Select(GetEntityUnderMouse(out _), addToSelection);
+        }
     }
 
     private EntityHierarchyEditorGame Game => game ?? throw new InvalidOperationException("The service is not initialized.");
@@ -318,7 +357,7 @@ public sealed class EditorGameEntitySelectionService : EditorGameMouseServiceBas
         UpdateHierarchySelection(selectedContent =>
         {
             selectedContent.Clear();
-            if (editor.FindPartViewModel(entityId) is EntityViewModel viewModel)
+            if (FindElement(entityId) is { } viewModel)
                 selectedContent.Add(viewModel);
         });
     }
@@ -334,7 +373,7 @@ public sealed class EditorGameEntitySelectionService : EditorGameMouseServiceBas
 
         UpdateHierarchySelection(selectedContent =>
         {
-            if (editor.FindPartViewModel(entityId) is EntityViewModel viewModel)
+            if (FindElement(entityId) is { IsSelectable: true } viewModel)
                 selectedContent.Add(viewModel);
         });
     }
@@ -350,7 +389,7 @@ public sealed class EditorGameEntitySelectionService : EditorGameMouseServiceBas
 
         UpdateHierarchySelection(selectedContent =>
         {
-            if (editor.FindPartViewModel(entityId) is EntityViewModel viewModel)
+            if (FindElement(entityId) is { } viewModel)
                 selectedContent.Remove(viewModel);
         });
     }
@@ -374,12 +413,12 @@ public sealed class EditorGameEntitySelectionService : EditorGameMouseServiceBas
         switch (e.Action)
         {
             case NotifyCollectionChangedAction.Add:
-                foreach (var entity in e.NewItems!.OfType<EntityViewModel>())
-                    selection.Add(entity);
+                foreach (var element in e.NewItems!.OfType<EntityHierarchyItemViewModel>().SelectMany(SelectedElements))
+                    selection.Add(element);
                 break;
             case NotifyCollectionChangedAction.Remove:
-                foreach (var entity in e.OldItems!.OfType<EntityViewModel>())
-                    selection.Remove(entity);
+                foreach (var element in e.OldItems!.OfType<EntityHierarchyItemViewModel>().SelectMany(SelectedElements))
+                    selection.Remove(element);
                 break;
             case NotifyCollectionChangedAction.Reset:
                 selection.Clear();
@@ -388,6 +427,23 @@ public sealed class EditorGameEntitySelectionService : EditorGameMouseServiceBas
                 throw new NotSupportedException($"The selection doesn't support the {e.Action} change.");
         }
         RaiseSelectionUpdated(oldSelectionIds);
+    }
+
+    /// <summary>
+    /// Gets what the game selects for an item selected in the hierarchy, as in the WPF scene editor: a child scene as a
+    /// whole, which its gizmo moves, or the entities of an entity or of a folder.
+    /// </summary>
+    private static IEnumerable<EntityHierarchyElementViewModel> SelectedElements(EntityHierarchyItemViewModel item)
+    {
+        return item is SceneRootViewModel root ? [root] : item.InnerSubEntities;
+    }
+
+    /// <summary>
+    /// Finds the entity, or the scene, of the given id.
+    /// </summary>
+    private EntityHierarchyElementViewModel? FindElement(AbsoluteId id)
+    {
+        return editor.FindPartViewModel(id) as EntityHierarchyElementViewModel;
     }
 
     private void RaiseSelectionUpdated(IReadOnlyCollection<AbsoluteId> oldSelectionIds)

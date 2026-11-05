@@ -1,6 +1,7 @@
 Plugin: Stride.Assets.Editor.StrideEditorPlugin
 Services:
   Stride.Editor.Build.GameSettingsProviderService
+  Stride.Assets.Editor.ViewModels.EditorViewToolbarFactory
   Stride.Editor.Build.GameStudioBuilderService
   Stride.Editor.Build.GameStudioDatabase
 NodePresenterCommands:
