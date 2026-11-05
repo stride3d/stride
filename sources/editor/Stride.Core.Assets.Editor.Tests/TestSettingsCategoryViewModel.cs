@@ -9,7 +9,7 @@ using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Settings;
 using Stride.Core.Assets.Presentation.Components.Properties;
 
-namespace Stride.Core.Assets.Editor.Common.Tests;
+namespace Stride.Core.Assets.Editor.Tests;
 
 public sealed class TestSettingsCategoryViewModel
 {

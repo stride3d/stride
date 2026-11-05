@@ -3,7 +3,7 @@
 
 using System.Reflection;
 using Stride.Core.Assets.Editor.Annotations;
-using Stride.Core.Assets.Editor.Common.Tests.Helpers;
+using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.Presenters;
@@ -20,7 +20,7 @@ using Stride.Core.Assets.Presentation.Annotations;
 [assembly: EnumImage(PluginHostImageEnum.Declared, "TestPluginImage.txt")]
 [assembly: EnumImage(PluginHostImageEnum.Both, "TestPluginImage.txt")]
 
-namespace Stride.Core.Assets.Editor.Common.Tests.Helpers;
+namespace Stride.Core.Assets.Editor.Tests.Helpers;
 
 /// <summary>
 /// An editor host for the tests: the template providers go to a list, the editor views are <see cref="IEditorView"/>s and

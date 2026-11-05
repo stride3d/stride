@@ -21,7 +21,7 @@ using Stride.Core.Assets.Presentation.Services;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Presentation.ViewModels.Logs;
 
-namespace Stride.Core.Assets.Editor.Common.Tests.Helpers;
+namespace Stride.Core.Assets.Editor.Tests.Helpers;
 
 /// <summary>
 /// A session without any UI, for the tests of the session objects. It records what they ask of it.

@@ -3,7 +3,7 @@
 
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
 
-namespace Stride.Core.Assets.Editor.Common.Tests;
+namespace Stride.Core.Assets.Editor.Tests;
 
 public class TestAbstractNodeValue
 {

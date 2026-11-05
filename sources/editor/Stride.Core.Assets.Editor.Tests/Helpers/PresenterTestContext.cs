@@ -5,7 +5,7 @@ using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Quantum;
 
-namespace Stride.Core.Assets.Editor.Common.Tests.Helpers;
+namespace Stride.Core.Assets.Editor.Tests.Helpers;
 
 /// <summary>
 /// Builds node presenters for an object, without any updater or command, so tests can apply them one at a time.
