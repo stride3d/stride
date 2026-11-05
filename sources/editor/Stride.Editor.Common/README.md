@@ -5,7 +5,7 @@ Temporary home of the WPF-free code of `Stride.Editor.Wpf`, so that the plugin e
 ## Rules
 
 * No dependency on WPF, Windows Forms or Avalonia, and no Windows-only target framework (`$(StrideXplatEditorTargetFramework)`).
-* References: `Stride.Assets` and the engine, `Stride.TextureConverter`, `Stride.Core.Assets.Editor.Common`. Not the asset types
+* References: `Stride.Assets` and the engine, `Stride.TextureConverter`, `Stride.Core.Assets.Editor`. Not the asset types
   of `Stride.Assets.Models`: what needs them goes to `Stride.Assets.Presentation.Common`.
 * Types keep the namespaces they had in `Stride.Editor.Wpf`, which references this project, so WPF code compiles unchanged.
 * The assembly registers itself as an assets assembly (`CommonModule`), so the editor's scanning finds its types.
