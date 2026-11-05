@@ -6,6 +6,7 @@
 using System;
 using System.Threading.Tasks;
 using Stride.Input;
+using Stride.Editor.EditorGame.Tools;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Tools;
 

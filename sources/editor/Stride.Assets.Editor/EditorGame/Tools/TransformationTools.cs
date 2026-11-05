@@ -7,6 +7,7 @@ using Stride.Assets.Presentation.AssetEditors.GameEditor;
 using Stride.Assets.Presentation.AssetEditors.Gizmos;
 using Stride.Assets.Presentation.SceneEditor;
 using Stride.Core;
+using Stride.Editor.EditorGame.Tools;
 using Stride.Engine;
 using Stride.Input;
 

@@ -12,13 +12,13 @@ using Stride.Core.Extensions;
 using Stride.Assets;
 using Stride.Core.Annotations;
 using Stride.Editor.Preview.View;
-using Stride.Editor.Preview.ViewModel;
 using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering.Compositing;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Editor.Annotations;
 using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Editor.Preview.ViewModels;
 
 namespace Stride.Editor.Preview
 {

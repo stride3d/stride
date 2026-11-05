@@ -33,11 +33,11 @@ using Stride.Editor;
 using Stride.Editor.Annotations;
 using Stride.Editor.EditorGame.Game;
 using Stride.Editor.Preview;
-using Stride.Editor.Preview.ViewModel;
 using Stride.GameStudio.Avalonia.Tests.Helpers;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Presentation.Annotations;
 using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Editor.Preview.ViewModels;
 
 namespace Stride.GameStudio.Avalonia.Tests;
 

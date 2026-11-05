@@ -4,7 +4,7 @@
 using System;
 using Stride.Core.Annotations;
 using Stride.Editor.Preview;
-using Stride.Editor.Preview.ViewModel;
+using Stride.Editor.Preview.ViewModels;
 
 #nullable enable
 

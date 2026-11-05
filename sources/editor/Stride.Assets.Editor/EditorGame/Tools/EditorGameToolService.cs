@@ -20,6 +20,7 @@ using Stride.Engine;
 using Stride.Input;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
+using Stride.Editor.EditorGame.Tools;
 
 namespace Stride.Assets.Editor.EditorGame.Tools;
 

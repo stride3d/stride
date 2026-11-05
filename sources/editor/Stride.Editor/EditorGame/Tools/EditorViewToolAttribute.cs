@@ -5,7 +5,7 @@
 using System;
 using Stride.Core.Reflection;
 
-namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Tools;
+namespace Stride.Editor.EditorGame.Tools;
 
 /// <summary>
 /// Declares a tool of the views of the scene and prefab editors. The class implements <c>IEditorViewTool</c> and has a

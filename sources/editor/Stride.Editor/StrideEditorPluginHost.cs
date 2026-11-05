@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Tools;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Reflection;
@@ -13,7 +12,8 @@ using Stride.Core.Serialization.Contents;
 using Stride.Editor.Annotations;
 using Stride.Editor.Preview;
 using Stride.Editor.Preview.View;
-using Stride.Editor.Preview.ViewModel;
+using Stride.Editor.EditorGame.Tools;
+using Stride.Editor.Preview.ViewModels;
 
 #nullable enable
 

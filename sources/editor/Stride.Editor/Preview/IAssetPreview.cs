@@ -4,8 +4,8 @@
 using System;
 using System.Threading.Tasks;
 using Stride.Assets;
-using Stride.Editor.Preview.ViewModel;
 using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Editor.Preview.ViewModels;
 
 namespace Stride.Editor.Preview
 {
