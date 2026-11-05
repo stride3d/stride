@@ -150,7 +150,7 @@ namespace Stride.Assets.Models
                 host ??= root;
 
                 var baseName = Sanitize(safeModelName + "-" + Sanitize(string.IsNullOrEmpty(mesh.MeshName) ? "Mesh" : mesh.MeshName));
-                var modelName = MakeUnique(baseName, usedModelNames);
+                var modelName = MakeUniqueName(baseName, usedModelNames);
                 plan.Models.Add(new HierarchicalModelEntry
                 {
                     ModelName = modelName,
@@ -179,7 +179,7 @@ namespace Stride.Assets.Models
                 AssignModelNames(child, modelNamesPerNode);
         }
 
-        private static string MakeUnique(string baseName, HashSet<string> usedNames)
+        private static string MakeUniqueName(string baseName, HashSet<string> usedNames)
         {
             if (usedNames.Add(baseName))
                 return baseName;
