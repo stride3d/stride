@@ -4,6 +4,7 @@
 using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Editor.Preview;
 using Stride.Assets.Editor.Tests.Helpers;
+using Stride.Assets.Editor.ViewModels;
 using Stride.Assets.Editor.ViewModels.Preview;
 using Stride.Assets.Entities;
 using Stride.Assets.Materials;
@@ -144,7 +145,7 @@ public sealed class PluginTests
         Assert.Equal(["2D", "Camera", "Light", "Model"], StrideEditorPlugin.EntityFactoryCategories.Select(x => x.Name));
         Assert.Contains(StrideEditorPlugin.EntityFactoryCategories.Single(x => x.Name == "Light").Factories, x => x.Factory is EntityFactories.PointLightEntityFactory);
         // The add-asset policies still live in the WPF assembly: only the plugin packages bring some, and none is loaded here
-        Assert.Empty(StrideEditorPlugin.AddAssetPolicyTypeList);
+        Assert.Empty(AddAssetPolicyRegistry.PolicyTypes);
         Assert.Equal(2, registrations.ProfileSettings.Count);
     }
 

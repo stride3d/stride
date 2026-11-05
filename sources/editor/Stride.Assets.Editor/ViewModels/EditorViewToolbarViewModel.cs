@@ -394,12 +394,12 @@ public sealed class EditorViewSnapViewModel : DispatcherViewModel
 internal sealed class EditorViewToolbarFactory : IEditorViewOptionsFactory
 {
     /// <inheritdoc/>
-    public IEditorViewOptions? CreateViewOptions(IEntityHierarchyEditorViewModel editor, IEntityHierarchyEditorController controller)
+    public IEditorViewOptions? CreateViewOptions(EntityHierarchyEditorViewModel editor, EntityHierarchyEditorController controller)
     {
         if (controller.GetService<EditorGameToolService>() is not { } toolService)
             return null;
 
-        return new EditorViewToolbarViewModel(((EntityHierarchyEditorViewModel)editor).ServiceProvider, toolService, controller.GetService<IEditorGameSelectionViewModelService>(),
+        return new EditorViewToolbarViewModel(editor.ServiceProvider, toolService, controller.GetService<IEditorGameSelectionViewModelService>(),
             controller.GetService<EditorGameMaterialHighlightService>(), controller.GetService<EditorGameComponentGizmoService>(), controller.GetServices<IEditorGameOverlayService>(),
             controller.GetService<EditorGameLightProbeGizmoService>(), controller.GetService<IEditorGameCameraViewModelService>());
     }

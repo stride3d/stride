@@ -13,6 +13,7 @@ using Stride.Assets.Editor.ViewModels.Preview;
 using Stride.Assets.Presentation;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
+using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.Gizmos;
 using Stride.Assets.Presentation.AssetEditors.SceneEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.SceneEditor.Views;
@@ -47,7 +48,6 @@ namespace Stride.GameStudio.Tests
         [InlineData(typeof(IAddAssetPolicy), typeof(AddPrefabAssetPolicy))]
         [InlineData(typeof(AssetViewModel), typeof(CodeAssetViewModel))]
         [InlineData(typeof(IPreviewView), typeof(ModelPreviewView))]
-        [InlineData(typeof(IAssetEditorViewModel), typeof(SceneEditorViewModel))]
         [InlineData(typeof(IEditorView), typeof(SceneEditorView))]
         [InlineData(typeof(EditorGameServiceAttribute), typeof(EditorGameEntityTransformService))]
         public void DefaultPluginAssemblyIndexListsKnownTypes(Type key, Type expected)
@@ -118,8 +118,9 @@ namespace Stride.GameStudio.Tests
             Assert.Equal(new[] { typeof(GameSettingsViewModel) }, viewModels.Where(x => x.AssetType == typeof(Stride.Assets.GameSettingsAsset)).Select(x => x.ViewModel));
             Assert.All(new[] { typeof(SceneViewModel), typeof(PrefabViewModel), typeof(GameSettingsViewModel), typeof(EntityViewModel) },
                 x => Assert.Equal(typeof(StrideSharedAssetsPlugin).Assembly, x.Assembly));
-            // The scene and prefab editors stay WPF until they are shared
-            Assert.Equal(typeof(StrideDefaultAssetsPlugin).Assembly, typeof(SceneEditorViewModel).Assembly);
+            // So do their editors
+            Assert.Equal(typeof(StrideSharedAssetsPlugin).Assembly, typeof(Stride.Assets.Editor.ViewModels.SceneEditorViewModel).Assembly);
+            Assert.Equal(typeof(StrideSharedAssetsPlugin).Assembly, typeof(Stride.Assets.Editor.ViewModels.PrefabEditorViewModel).Assembly);
         }
 
         [Fact]
@@ -229,23 +230,67 @@ namespace Stride.GameStudio.Tests
 
             // The shared view cube serves the WPF scene and prefab editors, through the shared controller interface
             var declaration = typeof(EditorGameCameraOrientationService).GetCustomAttribute<EditorGameServiceAttribute>();
-            Assert.True(declaration.ControllerType.IsAssignableFrom(typeof(Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services.EntityHierarchyEditorController)));
-            // The WPF controllers run on the shared one
-            Assert.True(typeof(EditorGameController<EntityHierarchyEditorGame>).IsAssignableFrom(typeof(Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services.EntityHierarchyEditorController)));
-            // So do the shared grid and graphics compositor services
-            foreach (var serviceType in new[] { typeof(EditorGameViewportGridService), typeof(EditorGameGraphicsCompositorService) })
+            Assert.True(declaration.ControllerType.IsAssignableFrom(typeof(EntityHierarchyEditorController)));
+            // The scene and prefab controllers are the shared ones
+            Assert.Equal(typeof(StrideSharedAssetsPlugin).Assembly, typeof(EntityHierarchyEditorController).Assembly);
+            Assert.True(typeof(EditorGameController<EntityHierarchyEditorGame>).IsAssignableFrom(typeof(EntityHierarchyEditorController)));
+            // So are the grid, graphics compositor, gizmo, selection, material highlight and camera services
+            foreach (var serviceType in new[]
+            {
+                typeof(EditorGameViewportGridService), typeof(EditorGameGraphicsCompositorService), typeof(EditorGameComponentGizmoService),
+                typeof(EditorGameEntitySelectionService), typeof(EditorGameModelSelectionService), typeof(EditorGameMaterialHighlightService),
+                typeof(EditorGameEntityCameraService),
+            })
             {
                 Assert.Contains(serviceType, services);
                 Assert.Equal(typeof(StrideSharedAssetsPlugin).Assembly, serviceType.Assembly);
-                Assert.True(serviceType.GetCustomAttribute<EditorGameServiceAttribute>().ControllerType.IsAssignableFrom(typeof(Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services.EntityHierarchyEditorController)));
+                Assert.True(serviceType.GetCustomAttribute<EditorGameServiceAttribute>().ControllerType.IsAssignableFrom(typeof(EntityHierarchyEditorController)), serviceType.Name);
             }
+            // The prefab light service is shared too, and serves the prefab editor only
+            Assert.Contains(typeof(PrefabEditorLightService), services);
+            Assert.Equal(typeof(EntityHierarchyEditorController).Assembly, typeof(PrefabEditorLightService).Assembly);
+            Assert.True(typeof(PrefabEditorLightService).GetCustomAttribute<EditorGameServiceAttribute>().ControllerType.IsAssignableFrom(typeof(PrefabEditorController)));
+            Assert.False(typeof(PrefabEditorLightService).GetCustomAttribute<EditorGameServiceAttribute>().ControllerType.IsAssignableFrom(typeof(SceneEditorController)));
+
+            // The WPF hosting of the game is a WPF service, for the game of every editor (scenes, prefabs and UI)
+            Assert.Contains(typeof(WpfEditorGameHostService), services);
+            Assert.Equal(typeof(StrideDefaultAssetsPlugin).Assembly, typeof(WpfEditorGameHostService).Assembly);
+            Assert.Equal(typeof(IEditorGameController), typeof(WpfEditorGameHostService).GetCustomAttribute<EditorGameServiceAttribute>().ControllerType);
         }
 
         [Fact]
         public void TheSpriteSheetOpensInOneEditorInTheWpfEditor()
         {
-            // The plugin host registers the editors and editor views of the Stride plugins' assemblies. The shared sprite sheet
-            // editor (Stride.Assets.Presentation.Common) replaced the WPF one: one editor per asset, one WPF view per editor
+            // The shared sprite sheet editor (Stride.Assets.Presentation.Common) replaced the WPF one: one editor per asset, one
+            // WPF view per editor
+            var (editors, views) = CollectEditorsAndViews();
+
+            var spriteSheetEditor = typeof(Stride.Assets.Editor.ViewModels.SpriteSheetEditorViewModel);
+            Assert.Equal(new[] { spriteSheetEditor }, editors.Where(x => x.ViewModelType == typeof(SpriteSheetViewModel)).Select(x => x.Editor));
+            Assert.Equal(typeof(StrideSharedAssetsPlugin).Assembly, spriteSheetEditor.Assembly);
+            Assert.Equal(new[] { typeof(Stride.Assets.Presentation.AssetEditors.SpriteEditor.Views.SpriteEditorView) }, views.Where(x => x.EditorViewModelType == spriteSheetEditor).Select(x => x.View));
+        }
+
+        [Fact]
+        public void TheScenesAndPrefabsOpenInOneEditorInTheWpfEditor()
+        {
+            // The shared scene and prefab editors (Stride.Assets.Presentation.Common) replaced the WPF ones: one editor per
+            // asset, shown by the WPF views
+            var (editors, views) = CollectEditorsAndViews();
+
+            var sceneEditor = typeof(Stride.Assets.Editor.ViewModels.SceneEditorViewModel);
+            var prefabEditor = typeof(Stride.Assets.Editor.ViewModels.PrefabEditorViewModel);
+            Assert.Equal(new[] { sceneEditor }, editors.Where(x => x.ViewModelType == typeof(SceneViewModel)).Select(x => x.Editor));
+            Assert.Equal(new[] { prefabEditor }, editors.Where(x => x.ViewModelType == typeof(PrefabViewModel)).Select(x => x.Editor));
+            Assert.Equal(new[] { typeof(SceneEditorView) }, views.Where(x => x.EditorViewModelType == sceneEditor).Select(x => x.View));
+            Assert.Equal(new[] { typeof(Stride.Assets.Presentation.AssetEditors.PrefabEditor.Views.PrefabEditorView) }, views.Where(x => x.EditorViewModelType == prefabEditor).Select(x => x.View));
+            // The WPF view options come from the factory the WPF plugin registers
+            Assert.True(typeof(Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels.WpfEditorViewOptionsFactory).IsAssignableTo(typeof(Stride.Assets.Editor.ViewModels.IEditorViewOptionsFactory)));
+        }
+
+        private static (System.Collections.Generic.List<(Type ViewModelType, Type Editor)> Editors, System.Collections.Generic.List<(Type EditorViewModelType, Type View)> Views) CollectEditorsAndViews()
+        {
+            // The plugin host registers the editors and editor views of the Stride plugins' assemblies
             RuntimeHelpers.RunModuleConstructor(typeof(StrideDefaultAssetsPlugin).Module.ModuleHandle);
             var assemblies = AssemblyRegistry.Find(AssemblyCommonCategories.Assets);
             Assert.True(typeof(StrideSharedAssetsPlugin).IsAssignableTo(typeof(AssetsEditorPlugin)), "The shared plugin must be an AssetsEditorPlugin, or its editors are not registered.");
@@ -264,11 +309,7 @@ namespace Stride.GameStudio.Tests
                 .Distinct()
                 .ToList();
             Assert.Empty(Duplicates(views, x => x.EditorViewModelType, x => x.View));
-
-            var spriteSheetEditor = typeof(Stride.Assets.Editor.ViewModels.SpriteSheetEditorViewModel);
-            Assert.Equal(new[] { spriteSheetEditor }, editors.Where(x => x.ViewModelType == typeof(SpriteSheetViewModel)).Select(x => x.Editor));
-            Assert.Equal(typeof(StrideSharedAssetsPlugin).Assembly, spriteSheetEditor.Assembly);
-            Assert.Equal(new[] { typeof(Stride.Assets.Presentation.AssetEditors.SpriteEditor.Views.SpriteEditorView) }, views.Where(x => x.EditorViewModelType == spriteSheetEditor).Select(x => x.View));
+            return (editors, views);
         }
 
         private static System.Collections.Generic.IEnumerable<(TemplateDescription Description, Type Generator)> AssetTemplateCases()

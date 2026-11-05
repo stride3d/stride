@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Stride.Assets.Editor.ViewModels;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core.Annotations;
 using Stride.Core.Extensions;
@@ -70,7 +71,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
                     foreach (var lightProbe in entity.Components.OfType<LightProbeComponent>())
                     {
                         // Find this light probe in Quantum
-                        var assetNode = editor.NodeContainer.GetOrCreateNode(lightProbe);
+                        var assetNode = editor.Session.AssetNodeContainer.GetOrCreateNode(lightProbe);
                         var zeroCoefficients = new List<Color3>();
                         for (int i = 0; i < LightProbeGenerator.LambertHamonicOrder * LightProbeGenerator.LambertHamonicOrder; ++i)
                             zeroCoefficients.Add(default(Color3));
@@ -95,7 +96,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
                         if (matchingLightProbe != null)
                         {
                             // Find this light probe in Quantum
-                            var assetNode = editor.NodeContainer.GetOrCreateNode(matchingLightProbe);
+                            var assetNode = editor.Session.AssetNodeContainer.GetOrCreateNode(matchingLightProbe);
                             assetNode[nameof(LightProbeComponent.Coefficients)].Update(result[matchingLightProbe.Entity.Id]);
                         }
                     }

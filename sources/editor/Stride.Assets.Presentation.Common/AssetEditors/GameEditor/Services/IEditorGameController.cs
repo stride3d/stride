@@ -12,6 +12,8 @@ using Stride.Core.Presentation.Services;
 using Stride.Editor.EditorGame.ContentLoader;
 using Stride.Editor.EditorGame.ViewModels;
 
+using Stride.Editor.Engine;
+
 namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
 {
     public interface IEditorGameController : IDestroyable, IDispatcherService
@@ -47,6 +49,12 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
         /// </summary>
         [NotNull]
         object View { get; }
+
+        /// <summary>
+        /// Gets the viewport the game renders into.
+        /// </summary>
+        [NotNull]
+        IEditorGameViewport Viewport { get; }
 
         /// <summary>
         /// Starts and initialize the game thread.

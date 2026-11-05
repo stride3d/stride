@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using Stride.Assets.Editor.ViewModels;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core.Annotations;
 using Stride.Core.Presentation.Collections;

@@ -7,15 +7,12 @@ AssetEditorViewModelTypes:
   Stride.Assets.Presentation.ViewModel.ScriptSourceFileAssetViewModel -> Stride.Assets.Presentation.AssetEditors.ScriptEditor.ScriptEditorViewModel
   Stride.Assets.Presentation.ViewModel.VisualScriptViewModel -> Stride.Assets.Presentation.AssetEditors.VisualScriptEditor.VisualScriptEditorViewModel
   Stride.Assets.Presentation.ViewModels.GraphicsCompositorViewModel -> Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewModels.GraphicsCompositorEditorViewModel
-  Stride.Assets.Presentation.ViewModels.PrefabViewModel -> Stride.Assets.Presentation.AssetEditors.PrefabEditor.ViewModels.PrefabEditorViewModel
-  Stride.Assets.Presentation.ViewModels.SceneViewModel -> Stride.Assets.Presentation.AssetEditors.SceneEditor.ViewModels.SceneEditorViewModel
-  Stride.Assets.Presentation.ViewModels.SpriteSheetViewModel -> Stride.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels.SpriteSheetEditorViewModel
 AssetEditorViewTypes:
+  Stride.Assets.Editor.ViewModels.PrefabEditorViewModel -> Stride.Assets.Presentation.AssetEditors.PrefabEditor.Views.PrefabEditorView
+  Stride.Assets.Editor.ViewModels.SceneEditorViewModel -> Stride.Assets.Presentation.AssetEditors.SceneEditor.Views.SceneEditorView
+  Stride.Assets.Editor.ViewModels.SpriteSheetEditorViewModel -> Stride.Assets.Presentation.AssetEditors.SpriteEditor.Views.SpriteEditorView
   Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewModels.GraphicsCompositorEditorViewModel -> Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.Views.GraphicsCompositorEditorView
-  Stride.Assets.Presentation.AssetEditors.PrefabEditor.ViewModels.PrefabEditorViewModel -> Stride.Assets.Presentation.AssetEditors.PrefabEditor.Views.PrefabEditorView
-  Stride.Assets.Presentation.AssetEditors.SceneEditor.ViewModels.SceneEditorViewModel -> Stride.Assets.Presentation.AssetEditors.SceneEditor.Views.SceneEditorView
   Stride.Assets.Presentation.AssetEditors.ScriptEditor.ScriptEditorViewModel -> Stride.Assets.Presentation.AssetEditors.ScriptEditor.ScriptEditorView
-  Stride.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels.SpriteSheetEditorViewModel -> Stride.Assets.Presentation.AssetEditors.SpriteEditor.Views.SpriteEditorView
 AssetPreviewViewModelTypes:
 AssetPreviewViewTypes:
   Stride.Assets.Editor.Preview.AnimationPreview -> Stride.Assets.Presentation.Preview.Views.AnimationPreviewView

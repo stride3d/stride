@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Linq;
+using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
 using System.Threading.Tasks;
 using Stride.Assets.Presentation.AssetEditors.Gizmos;

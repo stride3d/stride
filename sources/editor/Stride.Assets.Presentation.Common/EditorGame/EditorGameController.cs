@@ -172,6 +172,7 @@ public abstract class EditorGameController<TEditorGame> : IEditorGameController
         Loader.Dispose();
         debugService?.UnregisterDebugPage(debugPage);
         IsDestroying = true;
+        Viewport.ReleaseView();
 
         // A game that never started runs no frame; StartGame refuses to start it from now on
         if (!gameThreadStarted)

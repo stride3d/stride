@@ -30,4 +30,12 @@ public interface IEditorGameViewport : IEmbeddedGameHost, IDisposable
     /// <param name="game">The game, which this viewport becomes the <see cref="EmbeddedGame.Host"/> of when the game has no window.</param>
     /// <returns>The context to run the game with.</returns>
     GameContext Attach(EmbeddedGame game);
+
+    /// <summary>
+    /// Releases the control that shows the game (UI thread), when the controller of the game is destroyed, before the
+    /// game exits. Does nothing by default.
+    /// </summary>
+    void ReleaseView()
+    {
+    }
 }

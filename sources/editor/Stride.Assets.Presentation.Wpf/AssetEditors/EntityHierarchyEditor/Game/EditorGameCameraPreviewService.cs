@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Stride.Assets.Editor.EditorGame;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
