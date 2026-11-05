@@ -4,6 +4,7 @@
 using System.Reflection;
 using Stride.Core;
 using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
@@ -18,7 +19,9 @@ namespace Stride.Assets.Presentation;
 /// </summary>
 /// <remarks>
 /// The editor-level registrations (node presenter commands and updaters, previews, gizmos, entity factories...) are in <c>Stride.Assets.Editor</c>.
+/// A default plugin of the cross-platform editor: its host registers it (<c>Stride.Assets.Editor.Avalonia</c>), the discovery skips it.
 /// </remarks>
+[EditorDefaultPlugin]
 public sealed class StrideDefaultAssetsPlugin : AssetsPlugin
 {
     private static bool initialized;

@@ -26,14 +26,19 @@ namespace Stride.Assets.Editor.Tests;
 public sealed class PluginTests
 {
     [Fact]
-    public void TheModulesRegisterTheDefaultAssetsAndEditorPlugins()
+    public void TheDefaultAssetsAndEditorPluginsAreLeftToTheirHost()
     {
+        // The host registers them (here the test module, in the editor Stride.Assets.Editor.Avalonia); the discovery skips them
         Assert.Contains(AssetsPlugin.RegisteredPlugins, x => x is StrideDefaultAssetsPlugin);
         Assert.Contains(AssetsPlugin.RegisteredPlugins, x => x is StrideEditorPlugin);
+        Assert.False(AssetsPlugin.IsDiscoverable(typeof(StrideDefaultAssetsPlugin)));
+        Assert.False(AssetsPlugin.IsDiscoverable(typeof(StrideEditorPlugin)));
+        // The plugins of the packages are still discovered
+        Assert.True(AssetsPlugin.IsDiscoverable(typeof(StrideSharedAssetsPlugin)));
     }
 
     [Fact]
-    public void TheEditorPluginUnregistersAndRegistersWithItsAssembly()
+    public void TheEditorPluginUnregistersWithItsAssemblyAndOnlyItsHostRegistersIt()
     {
         var assembly = typeof(StrideEditorPlugin).Assembly;
 
@@ -42,15 +47,15 @@ public sealed class PluginTests
         {
             Assert.Single(removed, x => x is StrideEditorPlugin);
             Assert.DoesNotContain(AssetsPlugin.RegisteredPlugins, x => x is StrideEditorPlugin);
+            // The discovery of the assembly does not bring the default plugin back
+            Assert.DoesNotContain(AssetsPlugin.RegisterPlugins(assembly), x => x is StrideEditorPlugin);
         }
         finally
         {
-            var added = AssetsPlugin.RegisterPlugins(assembly);
-            Assert.Single(added, x => x is StrideEditorPlugin);
+            if (!AssetsPlugin.RegisteredPlugins.Any(x => x is StrideEditorPlugin))
+                AssetsPlugin.RegisterPlugin(typeof(StrideEditorPlugin));
         }
         Assert.Single(AssetsPlugin.RegisteredPlugins, x => x is StrideEditorPlugin);
-        // Registering again adds nothing
-        Assert.Empty(AssetsPlugin.RegisterPlugins(assembly));
     }
 
     [Fact]

@@ -3,7 +3,6 @@
 
 using System.Runtime.CompilerServices;
 using Stride.Assets.Presentation;
-using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Reflection;
 
 namespace Stride.Assets.Editor;
@@ -19,6 +18,7 @@ internal static class Module
         RuntimeHelpers.RunModuleConstructor(typeof(Presentation.Module).Module.ModuleHandle);
         // The previews and thumbnail compilers of this assembly are discovered through the assets assemblies
         AssemblyRegistry.Register(typeof(Module).Assembly, AssemblyCommonCategories.Assets);
-        AssetsPlugin.RegisterPlugin(typeof(StrideEditorPlugin));
+        // The default plugin (StrideEditorPlugin) is registered by the cross-platform editor host, so that loading this
+        // assembly in another editor does not add it
     }
 }

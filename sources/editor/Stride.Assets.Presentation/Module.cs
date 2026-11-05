@@ -5,7 +5,6 @@ using System.Runtime.CompilerServices;
 using Stride.Assets.Entities;
 using Stride.Assets.Materials;
 using Stride.Assets.SpriteFont;
-using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Reflection;
 using Stride.Rendering;
@@ -26,6 +25,7 @@ internal static class Module
         RuntimeHelpers.RunModuleConstructor(typeof(PrefabAsset).Module.ModuleHandle);
         AssemblyRegistry.Register(typeof(Module).Assembly, AssemblyCommonCategories.Assets);
         AssetQuantumRegistry.RegisterAssembly(typeof(Module).Assembly);
-        AssetsPlugin.RegisterPlugin(typeof(StrideDefaultAssetsPlugin));
+        // The default plugin (StrideDefaultAssetsPlugin) is registered by the cross-platform editor host, so that loading this
+        // assembly in another editor does not add it
     }
 }
