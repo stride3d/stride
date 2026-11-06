@@ -342,6 +342,30 @@ public sealed class CurveEditorViewModelTests
     }
 
     [Fact]
+    public async Task FocusOnTheSelectionRedrawsTheView()
+    {
+        await using var test = await CurveEditorTestScene.OpenAsync();
+        var curve = test.OpenSizeCurve();
+        test.Draw();
+        var view = new CountingView(test.Editor);
+        ((IDrawingModel)test.Editor).Attach(view);
+        try
+        {
+            test.Editor.PreviewClickCommand.Execute(new CurveEditorClick(curve.ControlPoints.ElementAt(2).ActualPoint, CurveSelectionMode.Replace));
+            var before = view.Invalidations;
+
+            test.Editor.FocusCommand.Execute();
+
+            // The axes moved: the view draws again without waiting for the next input
+            Assert.True(view.Invalidations > before);
+        }
+        finally
+        {
+            ((IDrawingModel)test.Editor).Detach(view);
+        }
+    }
+
+    [Fact]
     public async Task RemovingACurveFromTheListIsNotAnEditOfTheAsset()
     {
         await using var test = await CurveEditorTestScene.OpenAsync();
@@ -366,5 +390,14 @@ public sealed class CurveEditorViewModelTests
     public void TheModifierKeysGiveTheSelectionModeOfTheWpfEditor(bool shift, bool control, bool other, CurveSelectionMode expected)
     {
         Assert.Equal(expected, CurveSelectionModes.FromModifiers(shift, control, other));
+    }
+
+    private sealed class CountingView(IDrawingModel model) : IDrawingView
+    {
+        public int Invalidations { get; private set; }
+
+        public IDrawingModel? Model => model;
+
+        public void InvalidateDrawing() => Invalidations++;
     }
 }

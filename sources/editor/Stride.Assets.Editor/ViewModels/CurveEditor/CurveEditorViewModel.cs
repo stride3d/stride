@@ -285,6 +285,8 @@ namespace Stride.Assets.Editor.ViewModels.CurveEditor
                         .Aggregate(new DrawingVector(), (c, s) => s.HasValue ? s.Value+ c : c) / count);
                     SelectedCurve.XAxis?.Center(center);
                     SelectedCurve.YAxis?.Center(center);
+                    // The axes moved: draw again now, not on the next input
+                    InvalidateView();
                     break;
             }
         }
