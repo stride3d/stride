@@ -4,7 +4,7 @@
 using System.Reflection;
 using Avalonia.Headless.XUnit;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
-using Stride.Assets.Editor.Avalonia.EditorGame;
+using Stride.Assets.Editor.EditorGame;
 using Stride.Core.Assets;
 using Stride.Core.Reflection;
 using Stride.Editor.EditorGame.Game;
@@ -15,16 +15,17 @@ namespace Stride.Assets.Editor.Avalonia.Tests;
 public sealed class EditorGameServiceTests
 {
     [AvaloniaFact]
-    public void TheMousePositionServiceIsCreatedForEveryEditorGame()
+    public void TheSharedMousePositionServiceIsCreatedForEveryEditorGame()
     {
-        var type = typeof(AvaloniaEditorGameMousePositionService);
+        var type = typeof(EditorGameMousePositionService);
+        var services = AssetRegistry.AssetAssemblies.SelectMany(x => AssemblyRegistry.GetScanTypes(x, typeof(EditorGameServiceAttribute))).Distinct().ToList();
 
-        // The editor games create the services of the assets assemblies: this assembly is one, as the WPF assets editor
+        // The editor games create the services of the assets assemblies: the shared one is the only pointer position service,
+        // it reads the pointer from the viewport of the game, which the Avalonia view fills
         Assert.Contains(type.Assembly, AssetRegistry.AssetAssemblies);
-        Assert.Contains(type, AssemblyRegistry.GetScanTypes(type.Assembly, typeof(EditorGameServiceAttribute)));
+        Assert.Equal([type], services.Where(x => typeof(IEditorGameMousePositionViewModelService).IsAssignableFrom(x)));
         Assert.Equal(typeof(IEditorGameController), type.GetCustomAttribute<EditorGameServiceAttribute>()!.ControllerType);
         // The scene editor asks the controller for it to place the entities of the assets dropped on the view
-        Assert.True(typeof(IEditorGameMousePositionViewModelService).IsAssignableFrom(type));
         Assert.True(typeof(IEditorGameViewModelService).IsAssignableFrom(type));
     }
 }

@@ -263,6 +263,10 @@ namespace Stride.GameStudio.Tests
             Assert.Contains(typeof(WpfEditorGameHostService), services);
             Assert.Equal(typeof(StrideDefaultAssetsWpfPlugin).Assembly, typeof(WpfEditorGameHostService).Assembly);
             Assert.Equal(typeof(IEditorGameController), typeof(WpfEditorGameHostService).GetCustomAttribute<EditorGameServiceAttribute>().ControllerType);
+            // The pointer position over the game is shared: one service for the game of every editor, which reads the WPF viewport
+            Assert.Equal(new[] { typeof(EditorGameMousePositionService) }, services.Where(x => typeof(IEditorGameMousePositionViewModelService).IsAssignableFrom(x)));
+            Assert.Equal(typeof(GizmoBase).Assembly, typeof(EditorGameMousePositionService).Assembly);
+            Assert.Equal(typeof(IEditorGameController), typeof(EditorGameMousePositionService).GetCustomAttribute<EditorGameServiceAttribute>().ControllerType);
         }
 
         [Theory]
