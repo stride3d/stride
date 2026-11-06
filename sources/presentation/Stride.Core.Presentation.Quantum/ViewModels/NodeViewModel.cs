@@ -484,8 +484,9 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
         finally
         {
             isRefreshing = false;
+            // Ends the indexer change even when the refresh throws, so the bindings that saw it start don't wait for it
+            OnPropertyChanged(IndexerPropertyName);
         }
-        OnPropertyChanged(IndexerPropertyName);
     }
 
     private void NotifyAssociatedDataChanges(IReadOnlyDictionary<string, object> previousData)

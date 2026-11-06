@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Presentation.Quantum.Tests.Helpers;
 using Stride.Core.Presentation.Quantum.ViewModels;
 
@@ -56,5 +57,50 @@ public sealed class TestNodeViewModelIndexer
         Assert.NotSame(oldChild, newChild);
         Assert.Equal("Item", newChild.Name);
         Assert.Equal("ccc", newChild.NodeValue);
+    }
+
+    [Fact]
+    public void ARefreshThatThrowsStillEndsItsIndexerChange()
+    {
+        var context = new TestContainerContext();
+        context.GraphViewModelService.AvailableUpdaters.Add(new StringOfRefUpdater());
+        var instance = new Types.ClassWithRef { String = "aaa", Ref = new Types.ClassWithRef { String = "bbb" } };
+        var viewModel = context.CreateInstanceContext(instance).CreateViewModel();
+        var node = viewModel.RootNode.GetChild(nameof(Types.ClassWithRef.Ref))!;
+        var indexerChanges = new List<string>();
+        node.PropertyChanging += (_, e) =>
+        {
+            if (e.PropertyName == "Item")
+                indexerChanges.Add("changing");
+        };
+        node.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == "Item")
+                indexerChanges.Add("changed");
+            // A handler of the refreshed data that throws, in the middle of the refresh
+            if (e.PropertyName == StringOfRefUpdater.Key)
+                throw new InvalidOperationException("Handler failure");
+        };
+
+        Assert.Throws<NodePresenterException>(() => node.NodeValue = new Types.ClassWithRef { String = "ccc" });
+
+        // A binding that saw the indexer changing also sees it changed, even when the refresh fails
+        Assert.Equal(["changing", "changed"], indexerChanges);
+    }
+
+    /// <summary>
+    /// Puts the string of the referenced object in the associated data of the node, so a new object changes it.
+    /// </summary>
+    private sealed class StringOfRefUpdater : NodePresenterUpdaterBase
+    {
+        public const string Key = "StringOfRef";
+
+        private static readonly PropertyKey<string> StringOfRef = new(Key, typeof(StringOfRefUpdater));
+
+        public override void UpdateNode(INodePresenter node)
+        {
+            if (node.Name == nameof(Types.ClassWithRef.Ref) && node.Value is Types.ClassWithRef value)
+                node.AttachedProperties.Set(StringOfRef, value.String);
+        }
     }
 }
