@@ -17,7 +17,8 @@ namespace Stride.GameStudio.Avalonia.Docking;
 /// <summary>
 /// The content of the panels and editors of the layout, in the main window and in the floating windows: the view of each
 /// built-in panel, with its view model as data context; the view the plugins registered for an editor; and, for a panel the
-/// shell does not know, its view model, which the data templates of the application (those of its plugin) show.
+/// shell does not know, the view its plugin registered for this editor, a data template of the application, or "no view for
+/// this editor".
 /// </summary>
 public sealed class DockViewLocator : IDataTemplate
 {
@@ -31,15 +32,16 @@ public sealed class DockViewLocator : IDataTemplate
             return null;
         dockable.View ??= param switch
         {
-            PanelDockable panel => BuildPanel(panel.ViewModel),
+            PanelDockable panel => BuildPanel(panel),
             EditorDocument document => BuildEditor(document),
             _ => null,
         };
         return dockable.View is { } view ? new DockableViewHost(dockable, view) : null;
     }
 
-    private static Control BuildPanel(IPanelViewModel viewModel)
+    private static Control BuildPanel(PanelDockable panel)
     {
+        var viewModel = panel.ViewModel;
         Control view = viewModel switch
         {
             SolutionExplorerPanelViewModel x => new SolutionExplorerView { DataContext = x.Session },
@@ -51,7 +53,8 @@ public sealed class DockViewLocator : IDataTemplate
             AssetLogPanelViewModel x => new AssetLogView { DataContext = x },
             OutputPanelViewModel x => new OutputView { DataContext = x },
             AssetPreviewPanelViewModel x => new AssetPreviewView { DataContext = x },
-            _ => new ContentControl { Content = viewModel, DataContext = viewModel },
+            // A panel of a plugin: the view its plugin registered for this editor (see DockPanelService.CreatePluginView)
+            _ => panel.CreatePluginView() ?? new ContentControl { Content = viewModel, DataContext = viewModel },
         };
         return view;
     }

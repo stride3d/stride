@@ -41,6 +41,10 @@ internal sealed class PluginService : StrideEditorPluginHost
     protected override Type AssetEditorViewType => typeof(IAssetEditorView);
 
     /// <inheritdoc />
+    /// <remarks>The views of the plugins are Avalonia controls.</remarks>
+    protected override Type ViewBaseType => typeof(global::Avalonia.Controls.Control);
+
+    /// <inheritdoc />
     /// <remarks>Only the Avalonia providers (<see cref="TemplateProviderBase"/>) are taken.</remarks>
     protected override bool AddTemplateProvider(ISessionViewModel session, ITemplateProvider provider)
     {

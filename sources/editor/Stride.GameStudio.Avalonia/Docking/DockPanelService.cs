@@ -3,6 +3,8 @@
 
 using System.Collections.Specialized;
 using System.ComponentModel;
+using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.Recycling;
 using Avalonia.Threading;
 using Dock.Model.Controls;
@@ -10,9 +12,11 @@ using Dock.Model.Core;
 using Dock.Model.Core.Events;
 using Dock.Model.Inpc.Controls;
 using Stride.Core.Assets.Editor.Panels;
+using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
+using Stride.Core.Translation;
 using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.GameStudio.Avalonia.Docking;
@@ -625,17 +629,10 @@ public sealed class DockPanelService : ViewModelBase, IPanelService, IDisposable
         if (session is null || Registry.Find(panel.PanelId) is not { } descriptor || descriptor.AllowsMultipleInstances != (panel.InstanceId.Length > 0))
             return null;
 
-        IPanelViewModel viewModel;
-        try
-        {
-            viewModel = descriptor.CreateViewModel(new PanelContext { Descriptor = descriptor, InstanceId = panel.InstanceId, Session = session, ServiceProvider = ServiceProvider });
-        }
-        catch (Exception e)
-        {
-            Log.Error($"The panel [{panel}] could not be created.", e);
+        var context = new PanelContext { Descriptor = descriptor, InstanceId = panel.InstanceId, Session = session, ServiceProvider = ServiceProvider };
+        if (!TryRunPanelCode(panel, () => descriptor.CreateViewModel(context), "created", out var viewModel))
             return null;
-        }
-        var dockable = new PanelDockable(viewModel, descriptor.AllowsMultipleInstances, OnPanelClose);
+        var dockable = new PanelDockable(viewModel, descriptor.AllowsMultipleInstances, OnPanelClose, CreatePluginView);
         dockables[panel] = dockable;
         return dockable;
     }
@@ -647,14 +644,114 @@ public sealed class DockPanelService : ViewModelBase, IPanelService, IDisposable
         ForgetView(dockable);
         dockable.ViewModel.IsShown = false;
         dockable.Dispose();
-        try
+        TryRunPanelCode(dockable.Ref, () =>
         {
             dockable.ViewModel.Destroy();
+            return true;
+        }, "destroyed", out _);
+    }
+
+    // The code of a panel (its view model created or destroyed) goes through the guard of the plugin host: a panel of a plugin
+    // that fails is turned off for the session, and leaves the View menu (its place stays in the saved layout)
+    private bool TryRunPanelCode<T>(PanelRef panel, Func<T> function, string verb, [System.Diagnostics.CodeAnalysis.MaybeNullWhen(false)] out T result)
+    {
+        var owner = Registry.GetOwner(panel.PanelId);
+        var contribution = PluginContributions.Panel(panel.PanelId);
+        if (ServiceProvider.TryGet<IAssetsPluginService>() is IPluginContributionGuard guard)
+        {
+            if (guard.TryRun(owner, contribution, function, out result))
+                return true;
+            // The guard logged it
+            if (guard.IsTurnedOff(owner, contribution))
+                TurnOff(panel.PanelId, owner);
+            return false;
+        }
+
+        // Without a plugin host (some tests), only logged
+        try
+        {
+            result = function();
+            return true;
         }
         catch (Exception e)
         {
-            Log.Error($"The panel [{dockable.Ref}] could not be destroyed.", e);
+            Log.Error($"The panel [{panel}] could not be {verb}.", e);
+            result = default;
+            return false;
         }
+    }
+
+    // Unregistered later, not while the registry raises the change that is creating it
+    private void TurnOff(string panelId, object? owner)
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (owner is not null && Equals(Registry.GetOwner(panelId), owner))
+                Registry.Unregister(panelId);
+        });
+    }
+
+    /// <summary>
+    /// The view of a panel that the shell does not know (a panel of a plugin): the view its plugin registered for its view
+    /// model type in this editor (<see cref="IEditorPluginContext.ViewTypes"/>), then a data template of the application, else
+    /// "no view for this editor", logged.
+    /// </summary>
+    internal Control CreatePluginView(IPanelViewModel viewModel)
+    {
+        var viewModelType = viewModel.GetType();
+        var plugins = ServiceProvider.TryGet<IAssetsPluginService>();
+        AssetsPlugin? viewOwner = null;
+        var viewType = plugins is EditorPluginHost host ? host.GetViewType(viewModelType, out viewOwner) : plugins?.GetViewType(viewModelType);
+        if (viewType is not null)
+        {
+            // The plugin that registered the view (a toolkit companion) answers for it, or else the panel's
+            var owner = (object?)viewOwner ?? Registry.GetOwner(viewModel.PanelId);
+            Control? view;
+            if (plugins is IPluginContributionGuard guard)
+            {
+                guard.TryRun(owner, PluginContributions.View(viewModelType), () => (Control)Activator.CreateInstance(viewType)!, out view);
+            }
+            else
+            {
+                try
+                {
+                    view = (Control)Activator.CreateInstance(viewType)!;
+                }
+                catch (Exception e)
+                {
+                    Log.Error($"The view of the panel [{viewModel.PanelId}] could not be created.", e);
+                    view = null;
+                }
+            }
+            if (view is null)
+                return CreatePlaceholder(Tr._p("Message", "The view of this panel failed. See the log."));
+            view.DataContext = viewModel;
+            return view;
+        }
+
+        if (Application.Current?.DataTemplates.Any(x => x is not DockViewLocator && x.Match(viewModel)) == true)
+            return new ContentControl { Content = viewModel, DataContext = viewModel };
+
+        var ownerName = Registry.GetOwner(viewModel.PanelId) is AssetsPlugin plugin ? plugin.GetType().FullName : "the editor";
+        Log.Warning($"The panel [{viewModel.PanelId}] of [{ownerName}] has no view for this editor: no view is registered for [{viewModelType.FullName}].");
+        return CreatePlaceholder(NoViewForThisEditor);
+    }
+
+    /// <summary>
+    /// What a panel shows when its plugin gives no view for this editor.
+    /// </summary>
+    public static string NoViewForThisEditor => Tr._p("Message", "No view for this editor");
+
+    private static TextBlock CreatePlaceholder(string text)
+    {
+        return new TextBlock
+        {
+            Text = text,
+            HorizontalAlignment = global::Avalonia.Layout.HorizontalAlignment.Center,
+            VerticalAlignment = global::Avalonia.Layout.VerticalAlignment.Center,
+            TextWrapping = global::Avalonia.Media.TextWrapping.Wrap,
+            Opacity = 0.5,
+        };
     }
 
     // A panel without a place in the layout goes where the default layout puts it, or in a new group on the right
