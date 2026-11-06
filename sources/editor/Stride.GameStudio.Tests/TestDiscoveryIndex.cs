@@ -249,8 +249,11 @@ namespace Stride.GameStudio.Tests
                 Assert.Equal(typeof(GizmoBase).Assembly, serviceType.Assembly);
                 Assert.True(serviceType.GetCustomAttribute<EditorGameServiceAttribute>().ControllerType.IsAssignableFrom(typeof(EntityHierarchyEditorController)), serviceType.Name);
             }
-            // The light probes have the shared gizmo
-            Assert.Equal(typeof(Stride.Assets.Editor.Gizmos.LightProbeGizmo), GizmoTypeRegistry.GizmoTypeDictionary[typeof(Stride.Engine.LightProbeComponent)]);
+            // The light probes have the shared gizmo, and only it. This reads the scan index, as the gizmo registry does: the
+            // registry itself is filled by the plugin when the editor initializes it, which takes the WPF application
+            var lightProbeGizmos = AssetRegistry.AssetAssemblies.SelectMany(x => AssemblyRegistry.GetScanTypes(x, typeof(GizmoComponentAttribute))).Distinct()
+                .Where(x => x.GetCustomAttribute<GizmoComponentAttribute>(true)?.ComponentType == typeof(Stride.Engine.LightProbeComponent)).ToList();
+            Assert.Equal(new[] { typeof(Stride.Assets.Editor.Gizmos.LightProbeGizmo) }, lightProbeGizmos);
             // The prefab light service is shared too, and serves the prefab editor only
             Assert.Contains(typeof(PrefabEditorLightService), services);
             Assert.Equal(typeof(EntityHierarchyEditorController).Assembly, typeof(PrefabEditorLightService).Assembly);
