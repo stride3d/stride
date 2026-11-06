@@ -8,6 +8,7 @@ using Stride.Engine;
 using Stride.SpriteStudio.Assets;
 using Stride.SpriteStudio.Runtime;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.ViewModels;
+using Stride.Core.Assets.Presentation.Services;
 
 namespace Stride.SpriteStudio.Editor;
 

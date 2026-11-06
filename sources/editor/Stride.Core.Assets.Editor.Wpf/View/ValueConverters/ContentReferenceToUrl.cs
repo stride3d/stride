@@ -12,6 +12,7 @@ using Stride.Core.Serialization.Contents;
 using Stride.Core.Presentation.Quantum.ViewModels;
 using Stride.Core.Translation;
 using Stride.Core.Translation.Presentation.ValueConverters;
+using Stride.Core.Assets.Presentation.Services;
 
 namespace Stride.Core.Assets.Editor.View.ValueConverters
 {
