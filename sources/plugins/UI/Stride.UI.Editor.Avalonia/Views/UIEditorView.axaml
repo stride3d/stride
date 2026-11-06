@@ -18,6 +18,90 @@
         <ResourceInclude Source="avares://Stride.Assets.Editor.Avalonia/Views/SceneEditorImages.axaml"/>
         <ResourceInclude Source="avares://Stride.UI.Editor.Avalonia/Views/UIEditorImages.axaml"/>
       </ResourceDictionary.MergedDictionaries>
+
+      <!-- The context menu of an element, of the tree's empty area (the root of the asset) and of the view, as the
+           UIElementMenus of the WPF UI editor. The view adds "Set current selection" and "View", and shows the element
+           part for the last selected element. The code-behind fills the panel lists and shows each part for the element
+           it opens on (tags: panel, canvas, grid, stack, element, view). -->
+      <ContextMenu x:Key="ElementContextMenu" x:DataType="vm:UIHierarchyItemViewModel">
+        <MenuItem Tag="selection" Header="{sd:LocalizeString Set current selection, Context=Menu}"/>
+        <MenuItem Tag="layoutHeader" Header="{sd:LocalizeString Layout, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"/>
+        <MenuItem Tag="groupInto" Header="{sd:LocalizeString Group into, Context=Menu}"/>
+        <Separator Tag="panel"/>
+        <MenuItem Tag="ungroup" Header="{sd:LocalizeString Ungroup, Context=Menu}" Command="{ReflectionBinding UngroupCommand}"/>
+        <MenuItem Tag="changeLayout" Header="{sd:LocalizeString Change layout type, Context=Menu}"/>
+
+        <!-- Canvas tools -->
+        <MenuItem Tag="canvasHeader" FontWeight="Bold" IsHitTestVisible="False"/>
+        <MenuItem Tag="canvas" Header="{sd:LocalizeString Pin origin, Context=Menu}">
+          <MenuItem Header="{sd:LocalizeString Top left, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.PinTopLeft}"/>
+          <MenuItem Header="{sd:LocalizeString Top, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.PinTop}"/>
+          <MenuItem Header="{sd:LocalizeString Top right, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.PinTopRight}"/>
+          <MenuItem Header="{sd:LocalizeString Left, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.PinLeft}"/>
+          <MenuItem Header="{sd:LocalizeString Center, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.PinCenter}"/>
+          <MenuItem Header="{sd:LocalizeString Right, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.PinRight}"/>
+          <MenuItem Header="{sd:LocalizeString Bottom left, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.PinBottomLeft}"/>
+          <MenuItem Header="{sd:LocalizeString Bottom, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.PinBottom}"/>
+          <MenuItem Header="{sd:LocalizeString Bottom right, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.PinBottomRight}"/>
+          <MenuItem Header="{sd:LocalizeString Front, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.PinFront}"/>
+          <MenuItem Header="{sd:LocalizeString Middle, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.PinMiddle}"/>
+          <MenuItem Header="{sd:LocalizeString Back, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.PinBack}"/>
+        </MenuItem>
+
+        <!-- Grid tools -->
+        <MenuItem Tag="gridHeader" FontWeight="Bold" IsHitTestVisible="False"/>
+        <MenuItem Tag="grid" Header="{sd:LocalizeString Row, Context=Menu}">
+          <MenuItem Header="{sd:LocalizeString Move up, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.MoveUp}"/>
+          <MenuItem Header="{sd:LocalizeString Move down, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.MoveDown}"/>
+        </MenuItem>
+        <MenuItem Tag="grid" Header="{sd:LocalizeString Column, Context=Menu}">
+          <MenuItem Header="{sd:LocalizeString Move left, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.MoveLeft}"/>
+          <MenuItem Header="{sd:LocalizeString Move right, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.MoveRight}"/>
+        </MenuItem>
+        <MenuItem Tag="grid" Header="{sd:LocalizeString Layer, Context=Menu}">
+          <MenuItem Header="{sd:LocalizeString Move back, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.MoveBack}"/>
+          <MenuItem Header="{sd:LocalizeString Move front, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.MoveFront}"/>
+        </MenuItem>
+
+        <!-- StackPanel tools -->
+        <MenuItem Tag="stackHeader" FontWeight="Bold" IsHitTestVisible="False"/>
+        <MenuItem Tag="stack" Header="{sd:LocalizeString Move up, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.MoveUp}"/>
+        <MenuItem Tag="stack" Header="{sd:LocalizeString Move down, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.MoveDown}"/>
+
+        <!-- Other actions, on the selection -->
+        <MenuItem Header="{sd:LocalizeString Action, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"/>
+        <MenuItem Header="{sd:LocalizeString Open library in editor, Context=Menu}" Command="{Binding Editor.OpenLibraryEditorCommand}"/>
+        <MenuItem Header="{sd:LocalizeString Select library in asset view, Context=Menu}" Command="{Binding Editor.SelectLibraryCommand}"/>
+        <MenuItem Header="{sd:LocalizeString Break link to library, Context=Menu}" Command="{Binding Editor.BreakLinkToLibraryCommand}"/>
+        <MenuItem Header="{sd:LocalizeString Create page from selection, Context=Menu}" Command="{Binding Editor.CreatePageCommand}"/>
+        <MenuItem Header="{sd:LocalizeString Create library from selection, Context=Menu}" Command="{Binding Editor.CreateLibraryCommand}"/>
+        <Separator/>
+        <MenuItem Header="{sd:LocalizeString Duplicate, Context=Menu}" InputGesture="Ctrl+D" Command="{Binding Editor.DuplicateSelectionCommand}"/>
+        <MenuItem Header="{sd:LocalizeString Cut, Context=Menu}" InputGesture="{x:Static sd:EditCommands.CutGesture}" Command="{Binding Editor.CutCommand}">
+          <MenuItem.Icon><Image Source="{StaticResource ImageCut}"/></MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Copy, Context=Menu}" InputGesture="{x:Static sd:EditCommands.CopyGesture}" Command="{Binding Editor.CopyCommand}">
+          <MenuItem.Icon><Image Source="{StaticResource ImageCopy}"/></MenuItem.Icon>
+        </MenuItem>
+        <!-- Pasted into the element, or as a root on the empty area -->
+        <MenuItem Tag="paste" Header="{sd:LocalizeString Paste, Context=Menu}" InputGesture="{x:Static sd:EditCommands.PasteGesture}" Command="{Binding Editor.PasteCommand}">
+          <MenuItem.Icon><Image Source="{StaticResource ImagePaste}"/></MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Delete, Context=Menu}" InputGesture="{x:Static sd:EditCommands.DeleteGesture}" Command="{Binding Editor.DeleteCommand}">
+          <MenuItem.Icon><Image Source="{StaticResource ImageDelete}"/></MenuItem.Icon>
+        </MenuItem>
+        <Separator Tag="element"/>
+        <MenuItem Tag="element" Header="{sd:LocalizeString Rename, Context=Menu}" InputGesture="{x:Static sd:EditCommands.RenameGesture}" Command="{ReflectionBinding RenameCommand}">
+          <MenuItem.Icon><Image Source="{StaticResource ImageRename}"/></MenuItem.Icon>
+        </MenuItem>
+
+        <!-- View options -->
+        <MenuItem Tag="view" Header="{sd:LocalizeString View, Context=Menu}">
+          <MenuItem Header="{sd:LocalizeString Zoom in, Context=Menu}" Command="{Binding Editor.ZoomInCommand}"/>
+          <MenuItem Header="{sd:LocalizeString Zoom out, Context=Menu}" Command="{Binding Editor.ZoomOutCommand}"/>
+          <MenuItem Header="{sd:LocalizeString Reset camera, Context=Menu}" Command="{Binding Editor.Camera.ResetCameraCommand}"/>
+        </MenuItem>
+      </ContextMenu>
     </ResourceDictionary>
   </UserControl.Resources>
   <UserControl.Styles>
@@ -192,6 +276,33 @@
           <sd:NumericTextBox x:Name="SnapBox" Width="50" Value="{Binding SnapValue}" DecimalPlaces="3" Minimum="0"
                              VerticalAlignment="Center"
                              ToolTip.Tip="{sd:LocalizeString Snaps to this value (0 to disable), Context=ToolTip}"/>
+          <Separator Width="1" Height="20" Margin="2,0"/>
+          <!-- The colors and thicknesses of the adorners, as the view settings popup of the WPF UI editor (not saved, as in
+               WPF) -->
+          <Button x:Name="ViewSettingsButton" Classes="tool" ToolTip.Tip="{sd:LocalizeString View settings, Context=ToolTip}">
+            <Image Source="{StaticResource ImageView}" Width="16" Height="16"/>
+            <Button.Flyout>
+              <Flyout Placement="BottomEdgeAlignedLeft">
+                <StackPanel x:Name="ViewSettingsPanel" MinWidth="280">
+                  <TextBlock Text="{sd:LocalizeString Colors}" FontWeight="Bold" Margin="4,2,4,6"/>
+                  <Grid ColumnDefinitions="Auto, *, 80" RowDefinitions="Auto, Auto, Auto, Auto" Margin="4">
+                    <TextBlock Grid.Row="0" Grid.Column="0" Margin="4" VerticalAlignment="Center" Text="{sd:LocalizeString Guideline}"/>
+                    <sd:ColorEditor Grid.Row="0" Grid.Column="1" Margin="2" Value="{Binding GuidelineColor}"/>
+                    <sd:NumericTextBox Grid.Row="0" Grid.Column="2" Margin="2" VerticalAlignment="Center" Value="{Binding GuidelineThickness}" DecimalPlaces="0" Minimum="1"/>
+                    <TextBlock Grid.Row="1" Grid.Column="0" Margin="4" VerticalAlignment="Center" Text="{sd:LocalizeString Highlight}"/>
+                    <sd:ColorEditor Grid.Row="1" Grid.Column="1" Margin="2" Value="{Binding HighlightColor}"/>
+                    <sd:NumericTextBox Grid.Row="1" Grid.Column="2" Margin="2" VerticalAlignment="Center" Value="{Binding HighlightThickness}" DecimalPlaces="0" Minimum="1"/>
+                    <TextBlock Grid.Row="2" Grid.Column="0" Margin="4" VerticalAlignment="Center" Text="{sd:LocalizeString Selection}"/>
+                    <sd:ColorEditor Grid.Row="2" Grid.Column="1" Margin="2" Value="{Binding SelectionColor}"/>
+                    <sd:NumericTextBox Grid.Row="2" Grid.Column="2" Margin="2" VerticalAlignment="Center" Value="{Binding SelectionThickness}" DecimalPlaces="0" Minimum="1"/>
+                    <TextBlock Grid.Row="3" Grid.Column="0" Margin="4" VerticalAlignment="Center" Text="{sd:LocalizeString Sizing}"/>
+                    <sd:ColorEditor Grid.Row="3" Grid.Column="1" Margin="2" Value="{Binding SizingColor}"/>
+                    <sd:NumericTextBox Grid.Row="3" Grid.Column="2" Margin="2" VerticalAlignment="Center" Value="{Binding SizingThickness}" DecimalPlaces="0" Minimum="1"/>
+                  </Grid>
+                </StackPanel>
+              </Flyout>
+            </Button.Flyout>
+          </Button>
         </StackPanel>
 
         <Panel x:Name="ViewArea" Background="Transparent">
