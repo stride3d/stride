@@ -116,7 +116,7 @@ namespace Stride.UI.Editor.ViewModels
         public override async Task NotifyGameSidePartAdded()
         {
             // Add adorner
-            await Editor.Controller.AdornerService.AddAdorner(Id.ObjectId, GetRootElementViewModel() == Editor.ActiveRoot);
+            await (Editor.Controller.AdornerService?.AddAdorner(Id.ObjectId, GetRootElementViewModel() == Editor.ActiveRoot) ?? Task.CompletedTask);
             propagator.NotifyGameSidePartAdded();
             await base.NotifyGameSidePartAdded();
         }
@@ -132,7 +132,7 @@ namespace Stride.UI.Editor.ViewModels
             nameNodeBinding.Dispose();
             propagator.Destroy();
             // Remove adorner
-            Editor.Controller.AdornerService.RemoveAdorner(Id.ObjectId).Forget();
+            Editor.Controller.AdornerService?.RemoveAdorner(Id.ObjectId).Forget();
             var basePrefabNode = Editor.Session.AssetNodeContainer.GetNode(UIElementDesign)[nameof(UIElementDesign.Base)];
             basePrefabNode.ValueChanged -= BaseElementChanged;
             base.Destroy();
@@ -201,7 +201,7 @@ namespace Stride.UI.Editor.ViewModels
         /// <seealso cref="Game.UIEditorGameAdornerService.DisableAdorner"/>
         internal Task DisableAdorner()
         {
-            return Editor.Controller.AdornerService.DisableAdorner(Id.ObjectId);
+            return Editor.Controller.AdornerService?.DisableAdorner(Id.ObjectId) ?? Task.CompletedTask;
         }
 
         /// <summary>
@@ -214,7 +214,7 @@ namespace Stride.UI.Editor.ViewModels
             Dispatcher.EnsureAccess();
             // Make sure the game side is ready
             await propagator.Initialized;
-            await Editor.Controller.AdornerService.EnableAdorner(Id.ObjectId);
+            await (Editor.Controller.AdornerService?.EnableAdorner(Id.ObjectId) ?? Task.CompletedTask);
         }
 
         /// <summary>
@@ -228,7 +228,7 @@ namespace Stride.UI.Editor.ViewModels
             Dispatcher.EnsureAccess();
             // Make sure the game side is ready
             await propagator.Initialized;
-            await Editor.Controller.AdornerService.SelectElement(Id.ObjectId);
+            await (Editor.Controller.AdornerService?.SelectElement(Id.ObjectId) ?? Task.CompletedTask);
         }
 
         /// <inheritdoc />
