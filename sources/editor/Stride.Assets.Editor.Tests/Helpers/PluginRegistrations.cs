@@ -3,6 +3,7 @@
 
 using System.Text;
 using Stride.Core.Assets.Editor.Components.Properties;
+using Stride.Core.Assets.Editor.Panels;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Views;
@@ -23,6 +24,7 @@ namespace Stride.Assets.Editor.Tests.Helpers;
 public sealed class PluginRegistrations : IEditorPluginContext
 {
     private readonly Dictionary<Type, object> legacyTypeImages = [];
+    private readonly Dictionary<Type, object> declaredRegistries = [];
 
     private PluginRegistrations(AssetsPlugin plugin)
     {
@@ -65,6 +67,22 @@ public sealed class PluginRegistrations : IEditorPluginContext
 
     public ListRecorder<PackageSettingsEntry> ProfileSettings { get; } = new();
 
+    public ListRecorder<PanelDescriptor> Panels { get; } = new();
+
+    public Recorder<Type, Type> ViewTypes { get; } = new();
+
+    /// <summary>
+    /// The contributions registered with <see cref="IEditorPluginContext.GetRegistry{T}"/>, for each type of contribution.
+    /// </summary>
+    public IReadOnlyDictionary<Type, object> DeclaredRegistries => declaredRegistries;
+
+    public ListRecorder<T> GetRegistry<T>() where T : class
+    {
+        if (!declaredRegistries.TryGetValue(typeof(T), out var registry))
+            declaredRegistries[typeof(T)] = registry = new ListRecorder<T>();
+        return (ListRecorder<T>)registry;
+    }
+
     IPluginMap<Type, Type> IEditorPluginContext.AssetViewModelTypes => AssetViewModelTypes;
 
     IPluginMap<Type, Type> IEditorPluginContext.AssetEditorViewModelTypes => AssetEditorViewModelTypes;
@@ -94,6 +112,12 @@ public sealed class PluginRegistrations : IEditorPluginContext
     IPluginRegistry<SettingsKey> IEditorPluginContext.SettingsKeys => SettingsKeys;
 
     IPluginRegistry<PackageSettingsEntry> IEditorPluginContext.ProfileSettings => ProfileSettings;
+
+    IPluginRegistry<PanelDescriptor> IEditorPluginContext.Panels => Panels;
+
+    IPluginMap<Type, Type> IEditorPluginContext.ViewTypes => ViewTypes;
+
+    IPluginRegistry<T> IEditorPluginContext.GetRegistry<T>() => GetRegistry<T>();
 
     /// <summary>
     /// The registrations of <paramref name="plugin"/>, in an editor whose editor views implement <paramref name="editorViewType"/>.
@@ -145,6 +169,13 @@ public sealed class PluginRegistrations : IEditorPluginContext
         Section(builder, nameof(SettingsKeys), SettingsKeys.Select(x => x.Name.ToString()));
         var profileSettings = (Plugin as AssetsEditorPlugin)?.ProfileSettings.Concat(ProfileSettings) ?? ProfileSettings;
         Section(builder, nameof(ProfileSettings), profileSettings.Select(x => $"{x.SettingsKey.Name} ({x.TargetPackage})"));
+        // Only for a plugin that has them: the recordings of the others predate them
+        if (Panels.Count > 0)
+            Section(builder, nameof(Panels), Panels.Select(x => x.Id));
+        if (ViewTypes.Count > 0)
+            Section(builder, nameof(ViewTypes), Sorted(ViewTypes));
+        foreach (var (type, registry) in declaredRegistries.OrderBy(x => Name(x.Key), StringComparer.Ordinal))
+            Section(builder, $"Registry<{Name(type)}>", ((System.Collections.IEnumerable)registry).Cast<object>().Select(x => x.ToString() ?? string.Empty));
         return builder.ToString();
     }
 

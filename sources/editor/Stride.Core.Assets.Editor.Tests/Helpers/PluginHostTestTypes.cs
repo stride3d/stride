@@ -49,6 +49,10 @@ public sealed class RecordingEditorPluginHost : EditorPluginHost
 
     protected override Type AssetEditorViewType => typeof(IEditorView);
 
+    public Type? PluginViewBaseType { get; init; }
+
+    protected override Type? ViewBaseType => PluginViewBaseType;
+
     protected override bool AddTemplateProvider(ISessionViewModel session, ITemplateProvider provider)
     {
         TemplateProviders.Add(provider);

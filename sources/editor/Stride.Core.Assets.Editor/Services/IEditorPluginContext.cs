@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Assets.Editor.Components.Properties;
+using Stride.Core.Assets.Editor.Panels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Views;
 using Stride.Core.Settings;
@@ -109,4 +110,26 @@ public interface IEditorPluginContext
     /// The settings that the plugin adds to the properties of the packages.
     /// </summary>
     IPluginRegistry<PackageSettingsEntry> ProfileSettings { get; }
+
+    /// <summary>
+    /// The panels of the plugin, shown in the main window and listed in its View menu. The plugin owns them: when it leaves,
+    /// they are unregistered and their open instances close. An editor that shows no panels (the WPF Game Studio) accepts them
+    /// and shows nothing.
+    /// </summary>
+    IPluginRegistry<PanelDescriptor> Panels { get; }
+
+    /// <summary>
+    /// The view type of each view model type, in the editor's toolkit: the views of the plugin's panels (and, later, of its
+    /// other contributions). The toolkit companion of a plugin fills it; a view model with no view in this editor shows
+    /// "no view for this editor". A registration for a base type covers the types derived from it.
+    /// </summary>
+    IPluginMap<Type, Type> ViewTypes { get; }
+
+    /// <summary>
+    /// A registry that another layer of the editor declares (<see cref="EditorPluginHost.DeclareRegistry{T}"/>), for the
+    /// contributions that this context does not name; the declaring layer usually gives it a typed extension method.
+    /// </summary>
+    /// <typeparam name="T">The type of the contributions.</typeparam>
+    /// <exception cref="InvalidOperationException">No layer of this editor declares a registry of <typeparamref name="T"/>.</exception>
+    IPluginRegistry<T> GetRegistry<T>() where T : class;
 }

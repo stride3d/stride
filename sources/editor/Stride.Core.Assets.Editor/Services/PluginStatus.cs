@@ -1,0 +1,118 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+#nullable enable
+
+namespace Stride.Core.Assets.Editor.Services;
+
+/// <summary>
+/// The state of a plugin in the editor's session.
+/// </summary>
+public enum PluginState
+{
+    /// <summary>
+    /// The plugin joined the session. Some of its contributions may have failed and been turned off (<see cref="PluginStatus.Errors"/>).
+    /// </summary>
+    Joined,
+
+    /// <summary>
+    /// The plugin could not join the session: what it registered before failing was removed.
+    /// </summary>
+    Failed,
+
+    /// <summary>
+    /// The user switched the plugin off: it did not join the session.
+    /// </summary>
+    Off,
+
+    /// <summary>
+    /// The plugin was built for another version of the editor: it did not join the session.
+    /// </summary>
+    Incompatible,
+}
+
+/// <summary>
+/// An error of a plugin: it could not join or initialize the session, or one of its contributions failed.
+/// </summary>
+public sealed class PluginError
+{
+    /// <param name="contribution">What failed (see <see cref="PluginContributions"/>).</param>
+    /// <param name="exception">The error.</param>
+    public PluginError(string contribution, Exception exception)
+    {
+        Contribution = contribution ?? throw new ArgumentNullException(nameof(contribution));
+        Exception = exception ?? throw new ArgumentNullException(nameof(exception));
+        Time = DateTimeOffset.Now;
+    }
+
+    /// <summary>
+    /// What failed: joining, initializing the session, or a contribution (see <see cref="PluginContributions"/>).
+    /// </summary>
+    public string Contribution { get; }
+
+    /// <summary>
+    /// The error.
+    /// </summary>
+    public Exception Exception { get; }
+
+    /// <summary>
+    /// When it happened.
+    /// </summary>
+    public DateTimeOffset Time { get; }
+
+    /// <inheritdoc />
+    public override string ToString() => $"{Contribution}: {Exception.Message}";
+}
+
+/// <summary>
+/// The state of a plugin and its errors, as the plugin host knew them when it was read (<see cref="EditorPluginHost.GetPluginStatus"/>).
+/// </summary>
+public sealed class PluginStatus
+{
+    internal PluginStatus(AssetsPlugin plugin, PluginState state, IReadOnlyList<PluginError> errors, IReadOnlyCollection<string> turnedOff)
+    {
+        Plugin = plugin;
+        State = state;
+        Errors = errors;
+        TurnedOffContributions = turnedOff;
+    }
+
+    /// <summary>
+    /// The plugin.
+    /// </summary>
+    public AssetsPlugin Plugin { get; }
+
+    /// <summary>
+    /// Its state.
+    /// </summary>
+    public PluginState State { get; }
+
+    /// <summary>
+    /// Its errors, oldest first.
+    /// </summary>
+    public IReadOnlyList<PluginError> Errors { get; }
+
+    /// <summary>
+    /// The contributions turned off for the session after they failed.
+    /// </summary>
+    public IReadOnlyCollection<string> TurnedOffContributions { get; }
+
+    /// <inheritdoc />
+    public override string ToString() => $"{Plugin.GetType().Name}: {State} ({Errors.Count} errors)";
+}
+
+/// <summary>
+/// The plugin a <see cref="EditorPluginHost.PluginStatusChanged"/> event is about.
+/// </summary>
+public sealed class PluginStatusChangedEventArgs(AssetsPlugin plugin, PluginStatus? status) : EventArgs
+{
+    /// <summary>
+    /// The plugin.
+    /// </summary>
+    public AssetsPlugin Plugin { get; } = plugin;
+
+    /// <summary>
+    /// Its new status, or null when it left the session.
+    /// </summary>
+    public PluginStatus? Status { get; } = status;
+}

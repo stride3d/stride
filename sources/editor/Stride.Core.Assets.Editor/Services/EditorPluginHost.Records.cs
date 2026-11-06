@@ -3,6 +3,7 @@
 
 using System.Reflection;
 using Stride.Core.Assets.Editor.Components.Properties;
+using Stride.Core.Assets.Editor.Panels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Presentation.Views;
@@ -173,8 +174,13 @@ public abstract partial class EditorPluginHost
     /// </summary>
     private sealed class EditorContext : IEditorPluginContext
     {
+        private readonly EditorPluginHost host;
+        private readonly PluginRecord record;
+
         public EditorContext(EditorPluginHost host, AssetsPlugin plugin, PluginRecord record, ISessionViewModel session, ILogger logger)
         {
+            this.host = host;
+            this.record = record;
             Plugin = plugin;
             Session = session;
             Logger = logger;
@@ -217,6 +223,8 @@ public abstract partial class EditorPluginHost
             EditorViewToolTypes = new Registry<Type>(type => host.RegisterEditorViewTool(record, type));
             SettingsKeys = new Registry<SettingsKey>(key => host.RegisterSettingsKey(record, key));
             ProfileSettings = new Registry<PackageSettingsEntry>(entry => RegisterInList(record, host.profileSettings, entry));
+            Panels = new Registry<PanelDescriptor>(descriptor => record.Add(host.Panels.Register(descriptor, plugin).Dispose));
+            ViewTypes = new Map<Type, Type>((viewModelType, viewType) => host.RegisterViewType(record, plugin, viewModelType, viewType));
         }
 
         public AssetsPlugin Plugin { get; }
@@ -254,6 +262,12 @@ public abstract partial class EditorPluginHost
         public IPluginRegistry<SettingsKey> SettingsKeys { get; }
 
         public IPluginRegistry<PackageSettingsEntry> ProfileSettings { get; }
+
+        public IPluginRegistry<PanelDescriptor> Panels { get; }
+
+        public IPluginMap<Type, Type> ViewTypes { get; }
+
+        public IPluginRegistry<T> GetRegistry<T>() where T : class => host.GetRegistry<T>(record, Plugin);
     }
 
     /// <summary>
@@ -321,6 +335,33 @@ public abstract partial class EditorPluginHost
         private Action<Action> OnCloseAction { get; }
 
         public void OnClose(Action action) => OnCloseAction(action);
+    }
+
+    /// <summary>
+    /// The state of a plugin, its errors and the contributions turned off after they failed; changed under the host's status lock.
+    /// </summary>
+    private sealed class StatusEntry
+    {
+        public PluginState State { get; set; } = PluginState.Joined;
+
+        public List<PluginError> Errors { get; } = [];
+
+        public HashSet<string> TurnedOff { get; } = [];
+
+        public PluginStatus Snapshot(AssetsPlugin plugin) => new(plugin, State, Errors.ToList(), TurnedOff.ToList());
+    }
+
+    private interface IDeclaredRegistry
+    {
+        int UnregisterOwner(object owner);
+    }
+
+    private sealed class DeclaredRegistry<T>(ContributionRegistry<T> registry) : IDeclaredRegistry
+        where T : class
+    {
+        public ContributionRegistry<T> Registry { get; } = registry;
+
+        public int UnregisterOwner(object owner) => Registry.UnregisterOwner(owner);
     }
 
     /// <summary>
