@@ -100,8 +100,8 @@ public sealed class UIPageEditorTests
     {
         await using var page = await OpenPageAsync();
         var grid = await page.AddRootAsync("Grid");
-        Drop(page, [page.Factory("Button")], page.RowCenter(grid));
-        Drop(page, [page.Factory("TextBlock")], page.RowCenter(grid));
+        await DropAsync(page, [page.Factory("Button")], page.RowCenter(grid));
+        await DropAsync(page, [page.Factory("TextBlock")], page.RowCenter(grid));
         var button = grid.Children[0];
         var text = grid.Children[1];
         await page.WaitForRowAsync(text);
@@ -182,7 +182,7 @@ public sealed class UIPageEditorTests
     {
         await using var page = await OpenPageAsync();
         var grid = await page.AddRootAsync("Grid");
-        Drop(page, [page.Factory("Button")], page.RowCenter(grid));
+        await DropAsync(page, [page.Factory("Button")], page.RowCenter(grid));
         var button = Assert.Single(grid.Children);
         await page.WaitForRowAsync(button);
         var history = page.Fixture.Session.ActionHistory;
@@ -221,7 +221,7 @@ public sealed class UIPageEditorTests
     {
         await using var page = await OpenPageAsync();
         var grid = await page.AddRootAsync("Grid");
-        Drop(page, [page.Factory("Button")], page.RowCenter(grid));
+        await DropAsync(page, [page.Factory("Button")], page.RowCenter(grid));
         var button = Assert.Single(grid.Children);
         await page.WaitForRowAsync(button);
         var history = page.Fixture.Session.ActionHistory;
@@ -272,6 +272,18 @@ public sealed class UIPageEditorTests
         await WindowTestHelper.WaitUntilAsync(() => page.TryRow(button) is not null, "the deepest row");
         Assert.True(page.Row(grid).IsExpanded);
         Assert.True(page.Row(stack).IsExpanded);
+    }
+
+    /// <summary>
+    /// Drops items on the tree, as <see cref="Drop"/>, and waits for the entry of the drop in the history: a test that counts the
+    /// entries counts from there.
+    /// </summary>
+    private static async Task DropAsync(PageFixture page, IReadOnlyCollection<object> items, Point positionInTree)
+    {
+        var history = page.Fixture.Session.ActionHistory;
+        var count = history.Transactions.Count;
+        Drop(page, items, positionInTree);
+        await WindowTestHelper.WaitUntilAsync(() => history.Transactions.Count > count, "the history entry of the drop");
     }
 
     private static void Drop(PageFixture page, IReadOnlyCollection<object> items, Point positionInTree)
@@ -357,13 +369,17 @@ public sealed class UIPageEditorTests
         public IUIElementFactory Factory(string name) => Editor.Factories.Single(x => x.Name == name);
 
         /// <summary>
-        /// Adds an element of the toolbox as the root of the page, through the empty area of the tree.
+        /// Adds an element of the toolbox as the root of the page, through the empty area of the tree, and waits for its entry in
+        /// the history (a test that counts the entries counts from there).
         /// </summary>
         public async Task<UIElementViewModel> AddRootAsync(string name)
         {
+            var history = Fixture.Session.ActionHistory;
+            var count = history.Transactions.Count;
             Drop(this, [Factory(name)], EmptyArea());
             var root = Assert.Single(Root.Children);
             await WaitForRowAsync(root);
+            await WindowTestHelper.WaitUntilAsync(() => history.Transactions.Count > count, "the history entry of the new root");
             return root;
         }
 
