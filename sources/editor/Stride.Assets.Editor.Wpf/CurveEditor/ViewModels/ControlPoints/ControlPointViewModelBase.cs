@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using Stride.Core.Annotations;
+using Stride.Core.Presentation.Drawing;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Quantum;
@@ -17,8 +18,6 @@ using Stride.Assets.Editor.ViewModels;
 
 namespace Stride.Assets.Presentation.CurveEditor.ViewModels
 {
-    using WindowsPoint = System.Windows.Point;
-    using WindowsVector = System.Windows.Vector;
 
     public abstract class ControlPointViewModelBase : DispatcherViewModel, IResizingTarget
     {
@@ -28,7 +27,7 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
         /// <summary>
         /// Starting point of the resizing, in screen coordinates.
         /// </summary>
-        private WindowsPoint startingPoint;
+        private DrawingPoint startingPoint;
 
         protected ControlPointViewModelBase([NotNull] CurveViewModelBase curve)
             : base(curve.SafeArgument(nameof(curve)).ServiceProvider)
@@ -50,7 +49,7 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
         /// <summary>
         /// Gets the actual point (in screen coordinates) that represents the Key/Value pair.
         /// </summary>
-        public WindowsPoint ActualPoint
+        public DrawingPoint ActualPoint
         {
             get
             {
@@ -146,7 +145,7 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
                 return;
             
             // Zooming might have change during the resizing, so we need to calculate from the original position
-            var vector = Curve.InverseTransformPoint(startingPoint + new WindowsVector(horizontalChange, verticalChange));
+            var vector = Curve.InverseTransformPoint(startingPoint + new DrawingVector(horizontalChange, verticalChange));
             CoerceResizing(ref vector, false);
             Key = vector.X;
             Value = vector.Y;
@@ -154,7 +153,7 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
 
         protected virtual void OnResizingDelta(ResizingDirection direction, double horizontalChange, double verticalChange)
         {
-            var changeVector = Curve.InverseTransformVector(new WindowsVector(horizontalChange, verticalChange));
+            var changeVector = Curve.InverseTransformVector(new DrawingVector(horizontalChange, verticalChange));
             CoerceResizing(ref changeVector, true);
             switch (direction)
             {

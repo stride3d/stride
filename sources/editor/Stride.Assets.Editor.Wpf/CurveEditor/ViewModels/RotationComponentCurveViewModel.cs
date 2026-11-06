@@ -4,13 +4,13 @@
 using System;
 using System.Collections.Generic;
 using Stride.Core.Annotations;
+using Stride.Core.Presentation.Drawing;
 using Stride.Core.Mathematics;
 using Stride.Core.Quantum;
 using Stride.Animations;
 
 namespace Stride.Assets.Presentation.CurveEditor.ViewModels
 {
-    using WindowsPoint = System.Windows.Point;
 
     /// <summary>
     /// Represents the curve of one component of a <see cref="Quaternion"/>.
@@ -31,7 +31,7 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
         public override string DisplayName => Component.ToString();
 
         /// <inheritdoc/>
-        public override void AddPoint(WindowsPoint point)
+        public override void AddPoint(DrawingPoint point)
         {
             var realPoint = InverseTransformPoint(point);
             // Make sure the curve is sampled

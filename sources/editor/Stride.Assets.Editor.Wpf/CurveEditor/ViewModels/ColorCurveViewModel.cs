@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
 using System.Linq;
-using System.Windows;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Drawing;
@@ -64,7 +63,7 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
         }
 
         /// <inheritdoc/>
-        protected override void RenderPoints(IDrawingContext drawingContext, ref Rect clippingRect, bool isCurrentCurve)
+        protected override void RenderPoints(IDrawingContext drawingContext, ref DrawingRect clippingRect, bool isCurrentCurve)
         {
             for (var i = 0; i < 4; ++i)
             {

@@ -32,7 +32,6 @@ SOFTWARE.
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Windows;
 using Stride.Core.Presentation.Drawing;
 using Stride.Assets.Presentation.CurveEditor.ViewModels;
 
@@ -250,8 +249,8 @@ namespace Stride.Assets.Presentation.CurveEditor
 
             double a0;
             double a1;
-            var majorSegments = new List<Point>();
-            var majorTickSegments = new List<Point>();
+            var majorSegments = new List<DrawingPoint>();
+            var majorTickSegments = new List<DrawingPoint>();
             GetTickPositions(axis, axis.TickStyle, axis.MajorTickSize, axis.Position, out a0, out a1);
 
             foreach (var value in MajorTickValues)
@@ -273,53 +272,53 @@ namespace Stride.Assets.Presentation.CurveEditor
 
                 if (isHorizontal)
                 {
-                    majorSegments.Add(new Point(transformedValue, plotAreaTop));
-                    majorSegments.Add(new Point(transformedValue, plotAreaBottom));
+                    majorSegments.Add(new DrawingPoint(transformedValue, plotAreaTop));
+                    majorSegments.Add(new DrawingPoint(transformedValue, plotAreaBottom));
                 }
                 else
                 {
-                    majorSegments.Add(new Point(plotAreaLeft, transformedValue));
-                    majorSegments.Add(new Point(plotAreaRight, transformedValue));
+                    majorSegments.Add(new DrawingPoint(plotAreaLeft, transformedValue));
+                    majorSegments.Add(new DrawingPoint(plotAreaRight, transformedValue));
                 }
 
                 if (axis.TickStyle != TickStyle.None && axis.MajorTickSize > 0)
                 {
                     if (isHorizontal)
                     {
-                        majorTickSegments.Add(new Point(transformedValue, axisPosition + a0));
-                        majorTickSegments.Add(new Point(transformedValue, axisPosition + a1));
+                        majorTickSegments.Add(new DrawingPoint(transformedValue, axisPosition + a0));
+                        majorTickSegments.Add(new DrawingPoint(transformedValue, axisPosition + a1));
                     }
                     else
                     {
-                        majorTickSegments.Add(new Point(axisPosition + a0, transformedValue));
-                        majorTickSegments.Add(new Point(axisPosition + a1, transformedValue));
+                        majorTickSegments.Add(new DrawingPoint(axisPosition + a0, transformedValue));
+                        majorTickSegments.Add(new DrawingPoint(axisPosition + a1, transformedValue));
                     } 
                 }
             }
 
             // Render the axis labels (numbers or category names)
-            var hAlign = HorizontalAlignment.Left;
-            var vAlign = VerticalAlignment.Top;
+            var hAlign = DrawingHorizontalAlignment.Left;
+            var vAlign = DrawingVerticalAlignment.Top;
             switch (axis.Position)
             {
                 case AxisPosition.Left:
-                    hAlign = HorizontalAlignment.Right;
-                    vAlign = VerticalAlignment.Center;
+                    hAlign = DrawingHorizontalAlignment.Right;
+                    vAlign = DrawingVerticalAlignment.Center;
                     break;
 
                 case AxisPosition.Right:
-                    hAlign = HorizontalAlignment.Left;
-                    vAlign = VerticalAlignment.Center;
+                    hAlign = DrawingHorizontalAlignment.Left;
+                    vAlign = DrawingVerticalAlignment.Center;
                     break;
 
                 case AxisPosition.Top:
-                    hAlign = HorizontalAlignment.Center;
-                    vAlign = VerticalAlignment.Bottom;
+                    hAlign = DrawingHorizontalAlignment.Center;
+                    vAlign = DrawingVerticalAlignment.Bottom;
                     break;
 
                 case AxisPosition.Bottom:
-                    hAlign = HorizontalAlignment.Center;
-                    vAlign = VerticalAlignment.Top;
+                    hAlign = DrawingHorizontalAlignment.Center;
+                    vAlign = DrawingVerticalAlignment.Top;
                     break;
 
                 case AxisPosition.None:
@@ -329,7 +328,7 @@ namespace Stride.Assets.Presentation.CurveEditor
                     throw new ArgumentOutOfRangeException();
             }
             var texts = new List<string>();
-            var textPositions = new List<Point>();
+            var textPositions = new List<DrawingPoint>();
             foreach (var value in MajorLabelValues)
             {
                 if (value < actualMinimum - eps || value > actualMaximum + eps)
@@ -347,23 +346,23 @@ namespace Stride.Assets.Presentation.CurveEditor
                     SnapTo(plotAreaBottom, ref transformedValue);
                 }
 
-                var point = new Point();
+                var point = new DrawingPoint();
                 switch (axis.Position)
                 {
                     case AxisPosition.Left:
-                        point = new Point(axisPosition + a1 - axis.AxisTickToLabelDistance, transformedValue);
+                        point = new DrawingPoint(axisPosition + a1 - axis.AxisTickToLabelDistance, transformedValue);
                         break;
 
                     case AxisPosition.Right:
-                        point = new Point(axisPosition + a1 + axis.AxisTickToLabelDistance, transformedValue);
+                        point = new DrawingPoint(axisPosition + a1 + axis.AxisTickToLabelDistance, transformedValue);
                         break;
 
                     case AxisPosition.Top:
-                        point = new Point(transformedValue, axisPosition + a1 - axis.AxisTickToLabelDistance);
+                        point = new DrawingPoint(transformedValue, axisPosition + a1 - axis.AxisTickToLabelDistance);
                         break;
 
                     case AxisPosition.Bottom:
-                        point = new Point(transformedValue, axisPosition + a1 + axis.AxisTickToLabelDistance);
+                        point = new DrawingPoint(transformedValue, axisPosition + a1 + axis.AxisTickToLabelDistance);
                         break;
 
                     case AxisPosition.None:
@@ -378,18 +377,18 @@ namespace Stride.Assets.Presentation.CurveEditor
                 textPositions.Add(point);
             }
             // Batch all the texts together
-            DrawingContext.DrawTexts(textPositions, TextColor, texts, axis.FontFamily, axis.FontSize, axis.FontWeight, hAlign, vAlign);
+            DrawingContext.DrawTexts(textPositions, TextColor, texts, axis.Font, hAlign, vAlign);
 
             if (drawAxisLine)
             {
                 // Draw the axis line (across the tick marks)
                 if (isHorizontal)
                 {
-                    DrawingContext.DrawLine(new Point(axis.Transform(actualMinimum), axisPosition), new Point(axis.Transform(actualMaximum), axisPosition), AxislineColor);
+                    DrawingContext.DrawLine(new DrawingPoint(axis.Transform(actualMinimum), axisPosition), new DrawingPoint(axis.Transform(actualMaximum), axisPosition), AxislineColor);
                 }
                 else
                 {
-                    DrawingContext.DrawLine(new Point(axisPosition, axis.Transform(actualMinimum)), new Point(axisPosition, axis.Transform(actualMaximum)), AxislineColor);
+                    DrawingContext.DrawLine(new DrawingPoint(axisPosition, axis.Transform(actualMinimum)), new DrawingPoint(axisPosition, axis.Transform(actualMaximum)), AxislineColor);
                 }
             }
             DrawingContext.DrawLineSegments(majorSegments, MajorColor, 2);
@@ -415,8 +414,8 @@ namespace Stride.Assets.Presentation.CurveEditor
 
             double a0;
             double a1;
-            var minorSegments = new List<Point>();
-            var minorTickSegments = new List<Point>();
+            var minorSegments = new List<DrawingPoint>();
+            var minorTickSegments = new List<DrawingPoint>();
 
             GetTickPositions(axis, axis.TickStyle, axis.MinorTickSize, axis.Position, out a0, out a1);
 
@@ -448,13 +447,13 @@ namespace Stride.Assets.Presentation.CurveEditor
                 // Draw the minor grid line
                 if (isHorizontal)
                 {
-                    minorSegments.Add(new Point(transformedValue, plotAreaTop));
-                    minorSegments.Add(new Point(transformedValue, plotAreaBottom));
+                    minorSegments.Add(new DrawingPoint(transformedValue, plotAreaTop));
+                    minorSegments.Add(new DrawingPoint(transformedValue, plotAreaBottom));
                 }
                 else
                 {
-                    minorSegments.Add(new Point(plotAreaLeft, transformedValue));
-                    minorSegments.Add(new Point(plotAreaRight, transformedValue));
+                    minorSegments.Add(new DrawingPoint(plotAreaLeft, transformedValue));
+                    minorSegments.Add(new DrawingPoint(plotAreaRight, transformedValue));
                 }
 
                 // Draw the minor tick
@@ -462,13 +461,13 @@ namespace Stride.Assets.Presentation.CurveEditor
                 {
                     if (isHorizontal)
                     {
-                        minorTickSegments.Add(new Point(transformedValue, axisPosition + a0));
-                        minorTickSegments.Add(new Point(transformedValue, axisPosition + a1));
+                        minorTickSegments.Add(new DrawingPoint(transformedValue, axisPosition + a0));
+                        minorTickSegments.Add(new DrawingPoint(transformedValue, axisPosition + a1));
                     }
                     else
                     {
-                        minorTickSegments.Add(new Point(axisPosition + a0, transformedValue));
-                        minorTickSegments.Add(new Point(axisPosition + a1, transformedValue));
+                        minorTickSegments.Add(new DrawingPoint(axisPosition + a0, transformedValue));
+                        minorTickSegments.Add(new DrawingPoint(axisPosition + a1, transformedValue));
                     } 
                 }
             }

@@ -3,6 +3,7 @@
 
 using System.Windows;
 using System.Windows.Input;
+using Stride.Core.Presentation.Drawing;
 
 namespace Stride.Assets.Presentation.CurveEditor.Views.Behaviors
 {
@@ -39,7 +40,7 @@ namespace Stride.Assets.Presentation.CurveEditor.Views.Behaviors
             }
 
             var position = e.MouseDevice.GetPosition((IInputElement)sender);
-            var current = InverseTransform(position);
+            var current = InverseTransform(position.ToDrawing());
             if (hasX)
             {
                 XAxis?.ZoomAt(zoomFactor, current.X);
@@ -52,7 +53,7 @@ namespace Stride.Assets.Presentation.CurveEditor.Views.Behaviors
             e.Handled = true;
         }
 
-        private Point InverseTransform(Point point)
+        private DrawingPoint InverseTransform(DrawingPoint point)
         {
             if (XAxis != null)
             {
@@ -61,10 +62,10 @@ namespace Stride.Assets.Presentation.CurveEditor.Views.Behaviors
 
             if (YAxis != null)
             {
-                return new Point(0, YAxis.InverseTransform(point.Y));
+                return new DrawingPoint(0, YAxis.InverseTransform(point.Y));
             }
 
-            return new Point();
+            return new DrawingPoint();
         }
 
         private void ZoomFactorIn()

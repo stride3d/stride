@@ -1,16 +1,11 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Windows;
-using System.Windows.Media;
-using Stride.Core.Annotations;
 using Stride.Core.Presentation.Drawing;
+using Color = Stride.Core.Mathematics.Color;
 
 namespace Stride.Core.Presentation.Extensions
 {
-    using Color = Stride.Core.Mathematics.Color;
 
     /// <summary>
     /// Provides extension methods for the <see cref="IDrawingContext" />.
@@ -46,16 +41,16 @@ namespace Stride.Core.Presentation.Extensions
         /// <param name="fillColor">The color of the shape's interior.</param>
         /// <param name="strokeColor">The color of the shape's outline.</param>
         /// <param name="thickness">The wifdth of the shape's outline. The default is <c>1</c>.</param>
-        /// <param name="lineJoin">The type of join that is used at the vertices of the shape. The default is <see cref="PenLineJoin.Miter"/>.</param>
+        /// <param name="lineJoin">The type of join that is used at the vertices of the shape. The default is <see cref="DrawingLineJoin.Miter"/>.</param>
         /// <param name="dashArray">The pattern of dashes and gaps that is used to outline the shape. The default is <c>null</c>.</param>
         /// <param name="dashOffset">The distance within the dash pattern where a dash begins. The default is <c>0</c>.</param>
         /// <param name="isHitTestVisible"><c>true</c> if hit testing should be enabled, <c>false</c> otherwise. The default is <c>false</c>.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void DrawCircle([NotNull] this IDrawingContext renderer, Point point, double radius, Color fillColor, Color strokeColor,
-            double thickness = 1.0, PenLineJoin lineJoin = PenLineJoin.Miter, ICollection<double> dashArray = null, double dashOffset = 0, bool isHitTestVisible = false)
+        public static void DrawCircle(this IDrawingContext renderer, DrawingPoint point, double radius, Color fillColor, Color strokeColor,
+            double thickness = 1.0, DrawingLineJoin lineJoin = DrawingLineJoin.Miter, ICollection<double>? dashArray = null, double dashOffset = 0, bool isHitTestVisible = false)
         {
             var diameter = radius*2;
-            renderer.DrawEllipse(point, new Size(diameter, diameter), fillColor, strokeColor, thickness, lineJoin, dashArray, dashOffset, isHitTestVisible);
+            renderer.DrawEllipse(point, new DrawingSize(diameter, diameter), fillColor, strokeColor, thickness, lineJoin, dashArray, dashOffset, isHitTestVisible);
         }
 
         /// <summary>
@@ -68,13 +63,13 @@ namespace Stride.Core.Presentation.Extensions
         /// <param name="fillColor">The color of the shape's interior.</param>
         /// <param name="strokeColor">The color of the shape's outline.</param>
         /// <param name="thickness">The wifdth of the shape's outline. The default is <c>1</c>.</param>
-        /// <param name="lineJoin">The type of join that is used at the vertices of the shape. The default is <see cref="PenLineJoin.Miter"/>.</param>
+        /// <param name="lineJoin">The type of join that is used at the vertices of the shape. The default is <see cref="DrawingLineJoin.Miter"/>.</param>
         /// <param name="dashArray">The pattern of dashes and gaps that is used to outline the shape. The default is <c>null</c>.</param>
         /// <param name="dashOffset">The distance within the dash pattern where a dash begins. The default is <c>0</c>.</param>
         /// <param name="isHitTestVisible"><c>true</c> if hit testing should be enabled, <c>false</c> otherwise. The default is <c>false</c>.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void DrawCircles([NotNull] this IDrawingContext renderer, [NotNull] IList<Point> points, double radius, Color fillColor, Color strokeColor,
-            double thickness = 1.0, PenLineJoin lineJoin = PenLineJoin.Miter, ICollection<double> dashArray = null, double dashOffset = 0, bool isHitTestVisible = false)
+        public static void DrawCircles(this IDrawingContext renderer, IList<DrawingPoint> points, double radius, Color fillColor, Color strokeColor,
+            double thickness = 1.0, DrawingLineJoin lineJoin = DrawingLineJoin.Miter, ICollection<double>? dashArray = null, double dashOffset = 0, bool isHitTestVisible = false)
         {
             renderer.DrawEllipses(points, radius, radius, fillColor, strokeColor, thickness, lineJoin, dashArray, dashOffset, isHitTestVisible);
         }
@@ -86,9 +81,7 @@ namespace Stride.Core.Presentation.Extensions
         /// <param name="point">The point.</param>
         /// <param name="color">Color of the text.</param>
         /// <param name="text">The text.</param>
-        /// <param name="fontFamily">The font family.</param>
-        /// <param name="fontSize">The font size.</param>
-        /// <param name="fontWeight">The font weight.</param>
+        /// <param name="font">The font.</param>
         /// <param name="hAlign">The horizontal alignment.</param>
         /// <param name="vAlign">The vertical alignment.</param>
         /// <param name="isHitTestVisible"><c>true</c> if hit testing should be enabled, <c>false</c> otherwise. The default is <c>false</c>.</param>
@@ -96,8 +89,8 @@ namespace Stride.Core.Presentation.Extensions
         /// <example>Subscript: H_{2}O
         /// Superscript: E=mc^{2}
         /// Both: A^{2}_{i,j}</example>
-        public static void DrawMathText([NotNull] this IDrawingContext renderer, Point point, Color color, string text, [NotNull] FontFamily fontFamily, double fontSize, FontWeight fontWeight,
-            HorizontalAlignment hAlign = HorizontalAlignment.Left, VerticalAlignment vAlign = VerticalAlignment.Top, bool isHitTestVisible = false)
+        public static void DrawMathText(this IDrawingContext renderer, DrawingPoint point, Color color, string text, DrawingFont font,
+            DrawingHorizontalAlignment hAlign = DrawingHorizontalAlignment.Left, DrawingVerticalAlignment vAlign = DrawingVerticalAlignment.Top, bool isHitTestVisible = false)
         {
             if (string.IsNullOrEmpty(text))
                 return;
@@ -106,11 +99,11 @@ namespace Stride.Core.Presentation.Extensions
             {
                 var x = point.X;
                 var y = point.Y;
-                InternalDrawMathText(renderer, x, y, color, text, fontFamily, fontSize, fontWeight, isHitTestVisible);
+                InternalDrawMathText(renderer, x, y, color, text, font, isHitTestVisible);
             }
             else
             {
-                renderer.DrawText(point, color, text, fontFamily, fontSize, fontWeight, hAlign, vAlign, isHitTestVisible);
+                renderer.DrawText(point, color, text, font, hAlign, vAlign, isHitTestVisible);
             }
         }
 
@@ -122,12 +115,10 @@ namespace Stride.Core.Presentation.Extensions
         /// <param name="y">The y.</param>
         /// <param name="s">The s.</param>
         /// <param name="color">The text color.</param>
-        /// <param name="fontFamily">The font family.</param>
-        /// <param name="fontSize">The font size.</param>
-        /// <param name="fontWeight">The font weight.</param>
+        /// <param name="font">The font.</param>
         /// <param name="isHitTestVisible"><c>true</c> if hit testing should be enabled, <c>false</c> otherwise. The default is <c>false</c>.</param>
         /// <returns>The size of the text.</returns>
-        private static void InternalDrawMathText([NotNull] IDrawingContext renderer, double x, double y, Color color, [NotNull] string s, [NotNull] FontFamily fontFamily, double fontSize, FontWeight fontWeight, bool isHitTestVisible)
+        private static void InternalDrawMathText(IDrawingContext renderer, double x, double y, Color color, string s, DrawingFont font, bool isHitTestVisible)
         {
             var i = 0;
 
@@ -136,18 +127,19 @@ namespace Stride.Core.Presentation.Extensions
             var currentY = y;
 
             // http://en.wikipedia.org/wiki/Subscript_and_superscript
+            var fontSize = font.Size;
             var superScriptYDisplacement = fontSize * SuperAlignment;
             var subscriptYDisplacement = fontSize * SubAlignment;
 
             var superscriptFontSize = fontSize * SuperSize;
             var subscriptFontSize = fontSize * SubSize;
 
-            Func<double, double, string, double, Size> drawText = (xb, yb, text, fSize) =>
+            Func<double, double, string, double, DrawingSize> drawText = (xb, yb, text, fSize) =>
             {
-                renderer.DrawText(new Point(xb, yb), color, text, fontFamily, fSize, fontWeight, isHitTestVisible: isHitTestVisible);
+                var sizedFont = font with { Size = fSize };
+                renderer.DrawText(new DrawingPoint(xb, yb), color, text, sizedFont, isHitTestVisible: isHitTestVisible);
 
-                var flatSize = renderer.MeasureText(text, fontFamily, fSize, fontWeight);
-                return new Size(flatSize.Width, flatSize.Height);
+                return renderer.MeasureText(text, sizedFont);
             };
 
             while (i < s.Length)

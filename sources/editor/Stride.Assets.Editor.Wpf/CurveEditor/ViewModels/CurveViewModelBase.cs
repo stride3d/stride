@@ -45,9 +45,6 @@ using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.CurveEditor.ViewModels
 {
-    using WindowsPoint = System.Windows.Point;
-    using WindowsVector = System.Windows.Vector;
-    using WindowsRect = System.Windows.Rect;
 
     /// <summary>
     /// Base class for all curves inside a curve editor.
@@ -157,7 +154,7 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
 
         internal event EventHandler AxisTransformChanged;
         
-        protected static void RenderLine([NotNull] IDrawingContext drawingContext, ref WindowsRect clippingRect, IList<WindowsPoint> points, Color color)
+        protected static void RenderLine([NotNull] IDrawingContext drawingContext, ref DrawingRect clippingRect, IList<DrawingPoint> points, Color color)
         {
             // FIXME: calculate (optimistic) clipped line beforehand so that points that are eventually outside of the clipped area are not given to the rendering context.
             // FIXME: note that in the end the curve is still clipped by the canvas Clip property.
@@ -221,27 +218,27 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal Vector2 InverseTransformPoint(WindowsPoint point)
+        internal Vector2 InverseTransformPoint(DrawingPoint point)
         {
             return (CheckAxes() ? XAxis.InverseTransform(point.X, point.Y, YAxis) : point).ToVector2();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal Vector2 InverseTransformVector(WindowsVector vector)
+        internal Vector2 InverseTransformVector(DrawingVector vector)
         {
-            return (CheckAxes() ? (WindowsVector)XAxis.InverseTransform(vector.X, vector.Y, YAxis, isVector: true) : vector).ToVector2();
+            return (CheckAxes() ? (DrawingVector)XAxis.InverseTransform(vector.X, vector.Y, YAxis, isVector: true) : vector).ToVector2();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal WindowsPoint TransformPoint(Vector2 point)
+        internal DrawingPoint TransformPoint(Vector2 point)
         {
-            return CheckAxes() ? XAxis.Transform(point.X, point.Y, YAxis) : point.ToWindowsPoint();
+            return CheckAxes() ? XAxis.Transform(point.X, point.Y, YAxis) : point.ToDrawingPoint();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal WindowsVector TransformVector(Vector2 point)
+        internal DrawingVector TransformVector(Vector2 point)
         {
-            return CheckAxes() ? (WindowsVector)XAxis.Transform(point.X, point.Y, YAxis, isVector: true) : point.ToWindowsVector();
+            return CheckAxes() ? (DrawingVector)XAxis.Transform(point.X, point.Y, YAxis, isVector: true) : point.ToDrawingVector();
         }
 
         /// <summary>
@@ -291,14 +288,14 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
         /// Gets the clipping rectangle.
         /// </summary>
         /// <returns>The clipping rectangle.</returns>
-        protected WindowsRect GetClippingRect()
+        protected DrawingRect GetClippingRect()
         {
             var minX = Math.Min(XAxis.ScreenMin.X, XAxis.ScreenMax.X);
             var minY = Math.Min(YAxis.ScreenMin.Y, YAxis.ScreenMax.Y);
             var maxX = Math.Max(XAxis.ScreenMin.X, XAxis.ScreenMax.X);
             var maxY = Math.Max(YAxis.ScreenMin.Y, YAxis.ScreenMax.Y);
 
-            return new WindowsRect(minX, minY, maxX - minX, maxY - minY);
+            return new DrawingRect(minX, minY, maxX - minX, maxY - minY);
         }
 
         /// <summary>
@@ -324,7 +321,7 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
         /// <param name="drawingContext"></param>
         /// <param name="clippingRect"></param>
         /// <param name="isCurrentCurve"></param>
-        protected virtual void RenderPoints(IDrawingContext drawingContext, ref WindowsRect clippingRect, bool isCurrentCurve)
+        protected virtual void RenderPoints(IDrawingContext drawingContext, ref DrawingRect clippingRect, bool isCurrentCurve)
         {
             // Default implementation does nothing
         }

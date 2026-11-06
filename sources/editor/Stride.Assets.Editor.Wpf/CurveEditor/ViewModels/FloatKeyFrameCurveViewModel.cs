@@ -2,12 +2,12 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Annotations;
+using Stride.Core.Presentation.Drawing;
 using Stride.Core.Quantum;
 using Stride.Animations;
 
 namespace Stride.Assets.Presentation.CurveEditor.ViewModels
 {
-    using WindowsPoint = System.Windows.Point;
 
     public sealed class FloatKeyFrameCurveViewModel : KeyFrameCurveViewModel<float>
     {
@@ -16,7 +16,7 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
         {
         }
 
-        public override void AddPoint(WindowsPoint point)
+        public override void AddPoint(DrawingPoint point)
         {
             var realPoint = InverseTransformPoint(point);
             var keyFrame = new AnimationKeyFrame<float>

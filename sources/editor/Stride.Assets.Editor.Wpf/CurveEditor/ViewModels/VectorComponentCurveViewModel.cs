@@ -3,13 +3,13 @@
 
 using System;
 using Stride.Core.Annotations;
+using Stride.Core.Presentation.Drawing;
 using Stride.Core.Mathematics;
 using Stride.Core.Quantum;
 using Stride.Animations;
 
 namespace Stride.Assets.Presentation.CurveEditor.ViewModels
 {
-    using WindowsPoint = System.Windows.Point;
     
     public enum VectorComponent
     {
@@ -57,7 +57,7 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
         public sealed override string DisplayName => Component.ToString();
 
         /// <inheritdoc/>
-        public sealed override void AddPoint(WindowsPoint point)
+        public sealed override void AddPoint(DrawingPoint point)
         {
             var realPoint = InverseTransformPoint(point);
             // Make sure the curve is sampled

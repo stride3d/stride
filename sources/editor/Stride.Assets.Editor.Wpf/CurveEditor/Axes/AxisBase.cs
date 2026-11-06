@@ -34,8 +34,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Windows;
-using System.Windows.Media;
 using Stride.Core.Presentation.Drawing;
 
 namespace Stride.Assets.Presentation.CurveEditor
@@ -183,19 +181,9 @@ namespace Stride.Assets.Presentation.CurveEditor
         public double EndPosition { get; set; } = 1;
 
         /// <summary>
-        /// Gets or sets the font. The default is Arial.
+        /// Gets or sets the font of the labels. The default is Arial, size <c>12</c>, normal weight.
         /// </summary>
-        public FontFamily FontFamily { get; } = new FontFamily("Arial");
-
-        /// <summary>
-        /// Gets or sets the size of the font. The default is <c>12</c>.
-        /// </summary>
-        public int FontSize { get; } = 12;
-
-        /// <summary>
-        /// Gets or sets the font weight. The default is <see cref="FontWeights.Normal"/>.
-        /// </summary>
-        public FontWeight FontWeight { get; set; } = FontWeights.Normal;
+        public DrawingFont Font { get; set; } = new DrawingFont("Arial", 12);
 
         /// <summary>
         /// Gets or sets the maximum length (screen space) of the intervals.
@@ -299,12 +287,12 @@ namespace Stride.Assets.Presentation.CurveEditor
         /// <summary>
         /// Gets or sets the screen coordinate of the maximum end of the axis.
         /// </summary>
-        public Point ScreenMax { get; protected set; }
+        public DrawingPoint ScreenMax { get; protected set; }
 
         /// <summary>
         /// Gets or sets the screen coordinate of the minimum end of the axis.
         /// </summary>
-        public Point ScreenMin { get; protected set; }
+        public DrawingPoint ScreenMin { get; protected set; }
 
         /// <summary>
         /// Gets or sets the start position of the axis on the plot area. The default value is <c>0</c>.
@@ -413,7 +401,7 @@ namespace Stride.Assets.Presentation.CurveEditor
         /// Center the axis on the given screen coordinates.
         /// </summary>
         /// <param name="point">The screen corrdinates.</param>
-        public void Center(Point point)
+        public void Center(DrawingPoint point)
         {
             if (IsHorizontal())
             {
@@ -493,10 +481,10 @@ namespace Stride.Assets.Presentation.CurveEditor
         /// <param name="yaxis">The y-axis.</param>
         /// <param name="isVector">True if the transform is a vector transform (i.e. only applies scale, not translation). The default value is False.</param>
         /// <returns>The data point.</returns>
-        public virtual Point InverseTransform(double x, double y, AxisBase yaxis, bool isVector = false)
+        public virtual DrawingPoint InverseTransform(double x, double y, AxisBase yaxis, bool isVector = false)
         {
             if (yaxis == null) throw new ArgumentNullException(nameof(yaxis), "Y axis should not be null when transforming.");
-            return new Point(InverseTransform(x, isVector), yaxis.InverseTransform(y, isVector));
+            return new DrawingPoint(InverseTransform(x, isVector), yaxis.InverseTransform(y, isVector));
         }
 
         /// <summary>
@@ -549,7 +537,7 @@ namespace Stride.Assets.Presentation.CurveEditor
         /// </summary>
         /// <param name="drawingContext">The drawing context.</param>
         /// <returns>The size of the axis.</returns>
-        public virtual Size Measure(IDrawingContext drawingContext)
+        public virtual DrawingSize Measure(IDrawingContext drawingContext)
         {
             IList<double> majorTickValues;
             IList<double> minorTickValues;
@@ -558,7 +546,7 @@ namespace Stride.Assets.Presentation.CurveEditor
             GetTickValues(out majorLabelValues, out majorTickValues, out minorTickValues);
             
             var texts = majorLabelValues.Select(FormatValue).ToList();
-            var maximumTextSize = drawingContext.MeasureTexts(texts, FontFamily, FontSize, FontWeight);
+            var maximumTextSize = drawingContext.MeasureTexts(texts, Font);
             var width = 0.0;
             var height = 0.0;
             if (IsVertical())
@@ -594,7 +582,7 @@ namespace Stride.Assets.Presentation.CurveEditor
                 height += maximumTextSize.Height;
             }
 
-            return new Size(width, height);
+            return new DrawingSize(width, height);
         }
         
         /// <summary>
@@ -602,7 +590,7 @@ namespace Stride.Assets.Presentation.CurveEditor
         /// </summary>
         /// <param name="ppt">The previous point (screen coordinates).</param>
         /// <param name="cpt">The current point (screen coordinates).</param>
-        public virtual void Pan(Point ppt, Point cpt)
+        public virtual void Pan(DrawingPoint ppt, DrawingPoint cpt)
         {
             var delta = IsHorizontal() ? cpt.X - ppt.X : cpt.Y - ppt.Y;
             Pan(delta);
@@ -693,10 +681,10 @@ namespace Stride.Assets.Presentation.CurveEditor
         /// <param name="yaxis">The y axis.</param>
         /// <param name="isVector">True if the transform is a vector transform (i.e. only applies scale, not translation). The default value is False.</param>
         /// <returns>The transformed point.</returns>
-        public virtual Point Transform(double x, double y, AxisBase yaxis, bool isVector = false)
+        public virtual DrawingPoint Transform(double x, double y, AxisBase yaxis, bool isVector = false)
         {
             if (yaxis == null) throw new ArgumentNullException(nameof(yaxis), "Y axis should not be null when transforming.");
-            return new Point(Transform(x, isVector), yaxis.Transform(y, isVector));
+            return new DrawingPoint(Transform(x, isVector), yaxis.Transform(y, isVector));
         }
 
         /// <summary>
@@ -893,7 +881,7 @@ namespace Stride.Assets.Presentation.CurveEditor
         /// Updates the actual minor and major step intervals.
         /// </summary>
         /// <param name="curveArea">The curve area rectangle.</param>
-        internal virtual void UpdateIntervals(Rect curveArea)
+        internal virtual void UpdateIntervals(DrawingRect curveArea)
         {
             var labelSize = IntervalLength;
             var length = IsHorizontal() ? curveArea.Width : curveArea.Height;
@@ -921,15 +909,15 @@ namespace Stride.Assets.Presentation.CurveEditor
         /// Updates the scale and offset properties of the transform from the specified boundary rectangle.
         /// </summary>
         /// <param name="bounds">The bounds.</param>
-        internal virtual void UpdateTransform(Rect bounds)
+        internal virtual void UpdateTransform(DrawingRect bounds)
         {
             var x0 = bounds.Left;
             var x1 = bounds.Right;
             var y0 = bounds.Bottom;
             var y1 = bounds.Top;
 
-            ScreenMin = new Point(x0, y1);
-            ScreenMax = new Point(x1, y0);
+            ScreenMin = new DrawingPoint(x0, y1);
+            ScreenMax = new DrawingPoint(x1, y0);
 
             var a0 = IsHorizontal() ? x0 : y0;
             var a1 = IsHorizontal() ? x1 : y1;
@@ -937,8 +925,8 @@ namespace Stride.Assets.Presentation.CurveEditor
             var dx = a1 - a0;
             a1 = a0 + (EndPosition * dx);
             a0 = a0 + (StartPosition * dx);
-            ScreenMin = new Point(a0, a1);
-            ScreenMax = new Point(a1, a0);
+            ScreenMin = new DrawingPoint(a0, a1);
+            ScreenMax = new DrawingPoint(a1, a0);
 
             if (ActualMaximum - ActualMinimum < double.Epsilon)
             {

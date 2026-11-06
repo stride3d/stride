@@ -15,7 +15,6 @@ using Stride.Assets.Editor.ViewModels;
 namespace Stride.Assets.Presentation.CurveEditor.ViewModels
 {
     using Color = Core.Mathematics.Color;
-    using WindowsPoint = System.Windows.Point;
 
     public interface IEditableCurveViewModel
     {
@@ -25,9 +24,9 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
         // FIXME: might remove this later when hit testing is done on the curve
         double ControlPointRadius { get; }
 
-        void AddPoint(WindowsPoint point);
+        void AddPoint(DrawingPoint point);
 
-        ControlPointViewModelBase GetClosestPoint(WindowsPoint position, double maximumDistance = double.PositiveInfinity);
+        ControlPointViewModelBase GetClosestPoint(DrawingPoint position, double maximumDistance = double.PositiveInfinity);
 
         bool RemovePoint(ControlPointViewModelBase point);
     }
@@ -67,9 +66,9 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
 
         public bool IsInitializing { get; private set; }
 
-        public abstract void AddPoint(WindowsPoint point);
+        public abstract void AddPoint(DrawingPoint point);
 
-        public ControlPointViewModelBase GetClosestPoint(WindowsPoint position, double maximumDistance)
+        public ControlPointViewModelBase GetClosestPoint(DrawingPoint position, double maximumDistance)
         {
             return CurveHelper.GetClosestPoint(ControlPoints, position, maximumDistance);
         }

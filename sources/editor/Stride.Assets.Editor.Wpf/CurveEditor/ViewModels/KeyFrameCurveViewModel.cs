@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Windows;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Collections;
@@ -15,7 +14,6 @@ using Stride.Animations;
 
 namespace Stride.Assets.Presentation.CurveEditor.ViewModels
 {
-    using WindowsPoint = System.Windows.Point;
 
     public abstract class KeyFrameCurveViewModel<TValue> : EditableCurveViewModel<TValue>
         where TValue : struct
@@ -161,13 +159,13 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
             }
         }
 
-        protected sealed override void RenderPoints([NotNull] IDrawingContext drawingContext, ref Rect clippingRect, bool isCurrentCurve)
+        protected sealed override void RenderPoints([NotNull] IDrawingContext drawingContext, ref DrawingRect clippingRect, bool isCurrentCurve)
         {
             var controlPointCount = controlPoints.Count;
             if (controlPointCount == 0)
             {
-                drawingContext.DrawTexts(new[] { clippingRect.GetCenterLocation() }, Color.LightGray, new[] { $"{Resources.Strings.KeyGestures.GestureAddPoint} to add a keyframe" },
-                    XAxis.FontFamily, XAxis.FontSize * 2, FontWeights.Bold, HorizontalAlignment.Center, VerticalAlignment.Center);
+                drawingContext.DrawTexts(new[] { clippingRect.Center }, Color.LightGray, new[] { $"{Resources.Strings.KeyGestures.GestureAddPoint} to add a keyframe" },
+                    XAxis.Font with { Size = XAxis.Font.Size * 2, Weight = DrawingFontWeight.Bold }, DrawingHorizontalAlignment.Center, DrawingVerticalAlignment.Center);
 
                 return;
             }
@@ -185,7 +183,7 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
             var sortedPoints = controlPoints.OrderBy(p => p.ActualPoint.X).ToList();
 #endif
             // sample the curve
-            var drawPoints = new List<WindowsPoint>();
+            var drawPoints = new List<DrawingPoint>();
             for (var i = 0; i < controlPointCount - 1; ++i)
             {
                 var samples = SampleControlPoints(sortedPoints[i], sortedPoints[i + 1]);
@@ -200,8 +198,8 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
                 return;
 
             // Retrieve actual points (and selected actual points)
-            var actualPoints = new List<WindowsPoint>();
-            var selectedActualPoints = new List<WindowsPoint>();
+            var actualPoints = new List<DrawingPoint>();
+            var selectedActualPoints = new List<DrawingPoint>();
             foreach (var controlPoint in controlPoints)
             {
                 var actualPoint = controlPoint.ActualPoint;

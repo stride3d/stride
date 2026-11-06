@@ -3,14 +3,14 @@
 
 using System.Collections.Generic;
 using Stride.Core.Annotations;
+using Stride.Core.Presentation.Drawing;
 
 namespace Stride.Assets.Presentation.CurveEditor.ViewModels
 {
-    using WindowsPoint = System.Windows.Point;
 
     internal static class CurveHelper
     {
-        public static ControlPointViewModelBase GetClosestPoint([ItemNotNull, NotNull]  IEnumerable<ControlPointViewModelBase> points, WindowsPoint position, double maximumDistance = double.PositiveInfinity)
+        public static ControlPointViewModelBase GetClosestPoint([ItemNotNull, NotNull]  IEnumerable<ControlPointViewModelBase> points, DrawingPoint position, double maximumDistance = double.PositiveInfinity)
         {
             ControlPointViewModelBase closest = null;
             var closestDistance = double.MaxValue;

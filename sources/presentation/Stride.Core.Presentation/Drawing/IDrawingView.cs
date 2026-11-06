@@ -8,7 +8,7 @@ namespace Stride.Core.Presentation.Drawing
         /// <summary>
         /// Gets the model.
         /// </summary>
-        IDrawingModel Model { get; }
+        IDrawingModel? Model { get; }
         
         /// <summary>
         /// Invalidates the drawing (not blocking the UI thread)

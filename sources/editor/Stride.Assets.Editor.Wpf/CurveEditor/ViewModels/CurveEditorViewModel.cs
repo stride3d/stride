@@ -10,6 +10,7 @@ using System.Windows.Input;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Annotations;
+using Stride.Core.Presentation.Drawing;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
@@ -19,9 +20,6 @@ using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.CurveEditor.ViewModels
 {
-    using WindowsPoint = System.Windows.Point;
-    using WindowsRect = System.Windows.Rect;
-    using WindowsVector = System.Windows.Vector;
 
     public partial class CurveEditorViewModel : DispatcherViewModel
     {
@@ -36,15 +34,15 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
             if (session == null) throw new ArgumentNullException(nameof(session));
             Session = session;
 
-            AddPointCommand = new AnonymousCommand<WindowsPoint>(serviceProvider, AddPoint);
+            AddPointCommand = new AnonymousCommand<DrawingPoint>(serviceProvider, AddPoint);
             ClearCurveCommand = new AnonymousCommand(serviceProvider, ClearSelectedCurve);
             DeleteSelectedPointsCommand = new AnonymousCommand(serviceProvider, DeleteSelectedPoints);
             FocusCommand = new AnonymousCommand(serviceProvider, Focus);
             NavigateToControlPointCommand = new AnonymousCommand<int>(serviceProvider, NavigateToControlPoint);
-            PreviewClickCommand = new AnonymousCommand<WindowsPoint>(serviceProvider, Click);
+            PreviewClickCommand = new AnonymousCommand<DrawingPoint>(serviceProvider, Click);
             RemoveSelectedCurveCommand = new AnonymousCommand(serviceProvider, RemoveSelectedCurve);
             ResetViewCommand = new AnonymousCommand<int>(serviceProvider, ResetAxes);
-            SelectCommand = new AnonymousCommand<WindowsRect>(serviceProvider, Select);
+            SelectCommand = new AnonymousCommand<DrawingRect>(serviceProvider, Select);
 
             SelectedControlPoints.CollectionChanged += SelectedControlPointsCollectionChanged;
 
@@ -129,7 +127,7 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
             SelectedCurve = curve;
         }
 
-        private void AddPoint(WindowsPoint point)
+        private void AddPoint(DrawingPoint point)
         {
             using (var transaction = UndoRedoService.CreateTransaction())
             {
@@ -162,7 +160,7 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
             SelectedControlPoints.Clear();
         }
 
-        private void Click(WindowsPoint point)
+        private void Click(DrawingPoint point)
         {
             var editableCurve = SelectedCurve as IEditableCurveViewModel;
             if (editableCurve == null)
@@ -184,7 +182,7 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
             if (!clickedPoint.IsSelected)
             {
                 // FIXME: do this atomically in the curve
-                Select(new WindowsRect(point.X - 2 * radius, point.Y - 2 * radius, 4 * radius, 4 * radius), true);
+                Select(new DrawingRect(point.X - 2 * radius, point.Y - 2 * radius, 4 * radius, 4 * radius), true);
             }
 
             IsControlPointHovered = true;
@@ -229,9 +227,9 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
                 default:
                     Debug.Assert(SelectedCurve != null);
                     // Focus on the selection
-                    var center = (WindowsPoint)(SelectedControlPoints
-                        .Select(s => (WindowsVector?)(s as ControlPointViewModelBase)?.ActualPoint)
-                        .Aggregate(new WindowsVector(), (c, s) => s.HasValue ? s.Value+ c : c) / count);
+                    var center = (DrawingPoint)(SelectedControlPoints
+                        .Select(s => (DrawingVector?)(s as ControlPointViewModelBase)?.ActualPoint)
+                        .Aggregate(new DrawingVector(), (c, s) => s.HasValue ? s.Value+ c : c) / count);
                     SelectedCurve.XAxis?.Center(center);
                     SelectedCurve.YAxis?.Center(center);
                     break;
@@ -338,12 +336,12 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
             InvalidateView();
         }
 
-        private void Select(WindowsRect selectionRect)
+        private void Select(DrawingRect selectionRect)
         {
             Select(selectionRect, false);
         }
 
-        private void Select(WindowsRect selectionRect, bool isSingleSelection)
+        private void Select(DrawingRect selectionRect, bool isSingleSelection)
         {
             var editableCurve = SelectedCurve as IEditableCurveViewModel;
             if (editableCurve == null)
@@ -353,7 +351,7 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
             IList<ControlPointViewModelBase> selectedPoints = editableCurve.ControlPoints.Where(c => selectionRect.Contains(c.ActualPoint)).ToList();
             if (selectedPoints.Count > 1 && isSingleSelection)
             {
-                var rectCenter = new WindowsPoint(selectionRect.Left + selectionRect.Width*0.5, selectionRect.Top + selectionRect.Height * 0.5);
+                var rectCenter = new DrawingPoint(selectionRect.Left + selectionRect.Width*0.5, selectionRect.Top + selectionRect.Height * 0.5);
                 var closest = CurveHelper.GetClosestPoint(selectedPoints, rectCenter);
                 selectedPoints = new[] { closest };
             }

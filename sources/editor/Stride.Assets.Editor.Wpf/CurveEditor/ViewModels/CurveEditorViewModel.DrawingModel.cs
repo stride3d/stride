@@ -33,7 +33,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Windows;
 using Stride.Core.Annotations;
 using Stride.Core.Presentation.Drawing;
 using Stride.Core.Presentation.Extensions;
@@ -54,13 +53,13 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
         };
         
         private IDrawingView canvasView;
-        private Rect curveArea;
+        private DrawingRect curveArea;
 
         /// <summary>
         /// Gets the actual curve area margins.
         /// </summary>
         /// <value>The actual curve area margins.</value>
-        public Thickness ActualCurveAreaMargins { get; private set; }
+        public DrawingThickness ActualCurveAreaMargins { get; private set; }
 
         /// <summary>
         /// Gets or sets the distance between two neighborhood tiers of the same AxisPosition.
@@ -71,19 +70,19 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
         /// Gets the area including both the curves and the axes.
         /// </summary>
         /// <value>The curve and axis area.</value>
-        public Rect CurveAndAxesArea { get; private set; }
+        public DrawingRect CurveAndAxesArea { get; private set; }
 
         /// <summary>
         /// Gets the curve area. This area is used to draw the series (not including axes).
         /// </summary>
         /// <value>The curve area.</value>
-        public Rect CurveArea { get { return curveArea; } private set { SetValue(ref curveArea, value); } }
+        public DrawingRect CurveArea { get { return curveArea; } private set { SetValue(ref curveArea, value); } }
 
         /// <summary>
         /// Gets or sets the margins around the curve area (this should be large enough to fit the axes).
         /// If any of the values is set to <c>double.NaN</c>, the margin is adjusted to the value required by the axes.
         /// </summary>
-        public Thickness CurveAreaMargins { get; set; }
+        public DrawingThickness CurveAreaMargins { get; set; }
 
         /// <summary>
         /// Gets the total height of the curve area (in device units).
@@ -94,7 +93,7 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
         /// Gets or sets the padding around the curve area.
         /// </summary>
         /// <value>The padding.</value>
-        public Thickness Padding { get; set; }
+        public DrawingThickness Padding { get; set; }
 
         /// <summary>
         /// Gets the total width of the curve area (in device units).
@@ -186,7 +185,7 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
             Height = height;
 
             // calculate curve area margins (i.e. the curve area without the axes)
-            ActualCurveAreaMargins = new Thickness(
+            ActualCurveAreaMargins = new DrawingThickness(
                 double.IsNaN(CurveAreaMargins.Left) ? 0 : CurveAreaMargins.Left,
                 double.IsNaN(CurveAreaMargins.Top) ? 0 : CurveAreaMargins.Top,
                 double.IsNaN(CurveAreaMargins.Right) ? 0 : CurveAreaMargins.Right,
@@ -224,7 +223,7 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
         partial void InitializeRendering()
         {
             // auto-margins
-            CurveAreaMargins = new Thickness(double.NaN);
+            CurveAreaMargins = new DrawingThickness(double.NaN);
         }
 
         /// <summary>
@@ -233,24 +232,24 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
         /// <param name="currentMargin">The current margin.</param>
         /// <param name="minBorderSize">Minimum size of the border.</param>
         /// <param name="borderPosition">The border position.</param>
-        private static void EnsureMarginIsBigEnough(ref Thickness currentMargin, double minBorderSize, AxisPosition borderPosition)
+        private static void EnsureMarginIsBigEnough(ref DrawingThickness currentMargin, double minBorderSize, AxisPosition borderPosition)
         {
             switch (borderPosition)
             {
                 case AxisPosition.Bottom:
-                    currentMargin = new Thickness(currentMargin.Left, currentMargin.Top, currentMargin.Right, Math.Max(currentMargin.Bottom, minBorderSize));
+                    currentMargin = new DrawingThickness(currentMargin.Left, currentMargin.Top, currentMargin.Right, Math.Max(currentMargin.Bottom, minBorderSize));
                     break;
 
                 case AxisPosition.Left:
-                    currentMargin = new Thickness(Math.Max(currentMargin.Left, minBorderSize), currentMargin.Top, currentMargin.Right, currentMargin.Bottom);
+                    currentMargin = new DrawingThickness(Math.Max(currentMargin.Left, minBorderSize), currentMargin.Top, currentMargin.Right, currentMargin.Bottom);
                     break;
 
                 case AxisPosition.Right:
-                    currentMargin = new Thickness(currentMargin.Left, currentMargin.Top, Math.Max(currentMargin.Right, minBorderSize), currentMargin.Bottom);
+                    currentMargin = new DrawingThickness(currentMargin.Left, currentMargin.Top, Math.Max(currentMargin.Right, minBorderSize), currentMargin.Bottom);
                     break;
 
                 case AxisPosition.Top:
-                    currentMargin = new Thickness(currentMargin.Left, Math.Max(currentMargin.Top, minBorderSize), currentMargin.Right, currentMargin.Bottom);
+                    currentMargin = new DrawingThickness(currentMargin.Left, Math.Max(currentMargin.Top, minBorderSize), currentMargin.Right, currentMargin.Bottom);
                     break;
 
                 case AxisPosition.None:
@@ -450,18 +449,18 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
         /// </summary>
         private void UpdateCurveArea()
         {
-            var curveArea = new Rect(Padding.Left, Padding.Top, Width - Padding.Left - Padding.Right, Height - Padding.Top - Padding.Bottom);
+            var curveArea = new DrawingRect(Padding.Left, Padding.Top, Width - Padding.Left - Padding.Right, Height - Padding.Top - Padding.Bottom);
 
             curveArea = curveArea.Deflate(ActualCurveAreaMargins);
             // Ensure the curve area is valid
             if (curveArea.Height < 0)
             {
-                curveArea = new Rect(curveArea.Left, curveArea.Top, curveArea.Width, 1);
+                curveArea = new DrawingRect(curveArea.Left, curveArea.Top, curveArea.Width, 1);
             }
 
             if (curveArea.Width < 0)
             {
-                curveArea = new Rect(curveArea.Left, curveArea.Top, 1, curveArea.Height);
+                curveArea = new DrawingRect(curveArea.Left, curveArea.Top, 1, curveArea.Height);
             }
             CurveArea = curveArea;
             CurveAndAxesArea = curveArea.Inflate(ActualCurveAreaMargins);

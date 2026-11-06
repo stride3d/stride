@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Windows;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Drawing;
@@ -81,7 +80,7 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
         public RotationDisplayMode DisplayMode { get { return displayMode; } set { SetValue(ref displayMode, value, Refresh); } }
 
         /// <inheritdoc/>
-        protected override void RenderPoints(IDrawingContext drawingContext, ref Rect clippingRect, bool isCurrentCurve)
+        protected override void RenderPoints(IDrawingContext drawingContext, ref DrawingRect clippingRect, bool isCurrentCurve)
         {
             var lineCount = DisplayMode == RotationDisplayMode.Euler ? 3 : 4;
             for (var i = 0; i < lineCount; ++i)
