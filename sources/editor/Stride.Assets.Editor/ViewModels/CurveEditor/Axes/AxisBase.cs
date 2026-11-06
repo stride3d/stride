@@ -406,12 +406,12 @@ namespace Stride.Assets.Editor.ViewModels.CurveEditor.Axes
         {
             if (IsHorizontal())
             {
-                var delta = (ScreenMax.X - ScreenMin.X) * 0.5 - point.X;
+                var delta = (ScreenMin.X + ScreenMax.X) * 0.5 - point.X;
                 Pan(delta);
             }
             else if (IsVertical())
             {
-                var delta = (ScreenMax.Y - ScreenMin.Y) * 0.5 - point.Y;
+                var delta = (ScreenMin.Y + ScreenMax.Y) * 0.5 - point.Y;
                 Pan(delta);
             }
         }
