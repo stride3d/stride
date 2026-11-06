@@ -304,6 +304,8 @@ public sealed class SceneTreeDropTests
 
             // The entities go through the property graph, as the editor adds them
             var graph = (AssetCompositeHierarchyPropertyGraph<EntityDesign, Entity>)sceneAsset.PropertyGraph!;
+            var history = fixture.Session.ActionHistory;
+            var count = history.Transactions.Count;
             using (fixture.Session.UndoRedoService.CreateTransaction())
             {
                 var box = new EntityDesign(new Entity("Box"));
@@ -313,6 +315,8 @@ public sealed class SceneTreeDropTests
                 graph.AddPartToAsset(new AssetPartCollection<EntityDesign, Entity> { parent }, parent, null, 1);
                 graph.AddPartToAsset(new AssetPartCollection<EntityDesign, Entity> { child }, child, parent.Entity, 0);
             }
+            // The history shows the transaction later: a test that counts the entries of its drop starts after it
+            await WindowTestHelper.WaitUntilAsync(() => history.Transactions.Count == count + 1, "the history entry of the entities");
 
             Dispatcher.UIThread.RunJobs();
             AvaloniaHeadlessPlatform.ForceRenderTimerTick();
