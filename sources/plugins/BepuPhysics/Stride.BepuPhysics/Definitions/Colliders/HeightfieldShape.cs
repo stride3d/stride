@@ -1,7 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System.Numerics;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using BepuPhysics;
@@ -11,9 +11,14 @@ using BepuPhysics.CollisionDetection.CollisionTasks;
 using BepuPhysics.Trees;
 using BepuUtilities;
 using BepuUtilities.Memory;
+using Stride.Core.Mathematics;
 using Stride.Heightfield;
 using Int2 = Stride.Core.Mathematics.Int2;
 using NRigidPose = BepuPhysics.RigidPose;
+using Quaternion = System.Numerics.Quaternion;
+using Vector2 = System.Numerics.Vector2;
+using Vector3 = System.Numerics.Vector3;
+using Vector4 = System.Numerics.Vector4;
 
 namespace Stride.BepuPhysics.Definitions.Colliders;
 
@@ -38,28 +43,31 @@ public unsafe struct HeightfieldShape : IShape
     /// <remarks>
     /// Last sample (<see cref="Subdivision"/>-1) should be at exactly {<see cref="Size"/>, <see cref="Size"/>},
     /// this value should therefore be equivalent to <see cref="Size"/> / (<see cref="Subdivision"/>-1)
+    /// <para/>
+    /// Effectively transforms a coordinate in [0, <see cref="Subdivision"/>-1] space into one in [0, <see cref="Size"/>]
     /// </remarks>
     public float SampleInterval;
 
     /// <summary>How many subdivisions (samples) there is per unit distance, (<see cref="Subdivision"/>-1) / <see cref="Size"/> in XZ, 1 in Y</summary>
+    /// <remarks>Effectively transforms a coordinate in [0, <see cref="Size"/>] space into one in [0, <see cref="Subdivision"/>-1]</remarks>
     public Vector3 SampleIntervalReciprocal;
 
-    /// <inheritdoc cref="Heightfield.Subdivision"/>
+    /// <inheritdoc cref="Stride.Heightfield.Heightfield.Subdivision"/>
     public int Subdivision;
 
-    /// <inheritdoc cref="Heightfield.Size"/>
+    /// <inheritdoc cref="Stride.Heightfield.Heightfield.Size"/>
     public float Size;
 
-    /// <inheritdoc cref="Heightfield.MinHeight"/>
+    /// <inheritdoc cref="Stride.Heightfield.Heightfield.MinHeight"/>
     public float MinHeight;
 
-    /// <inheritdoc cref="Heightfield.MaxHeight"/>
+    /// <inheritdoc cref="Stride.Heightfield.Heightfield.MaxHeight"/>
     public float MaxHeight;
 
-    /// <inheritdoc cref="Heightfield.CoarseBlocks"/>
+    /// <inheritdoc cref="Stride.Heightfield.Heightfield.CoarseBlocks"/>
     public HeightRange* CoarseBlocksAddress;
 
-    /// <inheritdoc cref="Heightfield.CoarseBlocksSubdivision"/>
+    /// <inheritdoc cref="Stride.Heightfield.Heightfield.CoarseBlocksSubdivision"/>
     public int CoarseBlocksSubdivision;
 
     /// <summary>
@@ -73,7 +81,7 @@ public unsafe struct HeightfieldShape : IShape
 
     [SkipLocalsInit]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private readonly void GetCellCornersInDiscreteSpace(Int2 cell, out Sample4 samples)
+    private readonly void GetCellCornersInSubdivisionSpace(Int2 cell, out Sample4 samples)
     {
         Unsafe.SkipInit(out samples); // They're all assigned, not sure why I have to do this nonsense
         samples[0] = new(cell, 0);
@@ -85,9 +93,9 @@ public unsafe struct HeightfieldShape : IShape
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private readonly void GetCellCornersInContinuousSpace(Int2 cellInSubdivSpace, out Vector3 p00, out Vector3 p10, out Vector3 p01, out Vector3 p11)
+    private readonly void GetCellCornersInSizeSpace(Int2 cellInSubdivSpace, out Vector3 p00, out Vector3 p10, out Vector3 p01, out Vector3 p11)
     {
-        GetCellCornersInDiscreteSpace(cellInSubdivSpace, out var samples);
+        GetCellCornersInSubdivisionSpace(cellInSubdivSpace, out var samples);
 
         float x0 = cellInSubdivSpace.X * SampleInterval;
         float z0 = cellInSubdivSpace.Y * SampleInterval;
@@ -100,16 +108,16 @@ public unsafe struct HeightfieldShape : IShape
         p11 = new Vector3(x1, samples[3].Height, z1);
     }
 
-    private readonly void GetTrianglesInContinuousSpace(Int2 cell, out Triangle tri0, out Triangle tri1)
+    private readonly void GetTrianglesInSizeSpace(Int2 cell, out Triangle tri0, out Triangle tri1)
     {
-        GetCellCornersInContinuousSpace(cell, out tri0.A, out tri0.B, out tri0.C, out tri1.C);
+        GetCellCornersInSizeSpace(cell, out tri0.A, out tri0.B, out tri0.C, out tri1.C);
 
         (tri1.A, tri1.B) = (tri0.C, tri0.B);
     }
 
-    private readonly void GetTrianglesInDiscreteSpace(Int2 cell, out Triangle tri0, out Triangle tri1)
+    private readonly void GetTrianglesInSubdivisionSpace(Int2 cell, out Triangle tri0, out Triangle tri1)
     {
-        GetCellCornersInDiscreteSpace(cell, out var sample4);
+        GetCellCornersInSubdivisionSpace(cell, out var sample4);
 
         tri0.A = new Vector3(sample4[0].SampleCoord.X, sample4[0].Height, sample4[0].SampleCoord.Y);
         tri0.B = new Vector3(sample4[1].SampleCoord.X, sample4[1].Height, sample4[1].SampleCoord.Y);
@@ -120,7 +128,7 @@ public unsafe struct HeightfieldShape : IShape
 
     public readonly void GetLocalChild(Int2 cell, out Triangle tri0, out Triangle tri1)
     {
-        GetTrianglesInContinuousSpace(cell, out tri0, out tri1);
+        GetTrianglesInSizeSpace(cell, out tri0, out tri1);
     }
 
     public readonly void GetPosedLocalChild(Int2 cell, out Triangle tri0, out Triangle tri1, out NRigidPose childPoseA, out NRigidPose childPoseB)
@@ -140,7 +148,7 @@ public unsafe struct HeightfieldShape : IShape
     }
 
     /// <summary>
-    /// Moves <see cref="worldSpacePoint"/> in bounds and returns the closest position <b><i>vertically</i></b> on this shape's surface
+    /// Moves <paramref name="worldSpacePoint"/> in bounds and returns the closest position <b><i>vertically</i></b> on this shape's surface
     /// </summary>
     /// <remarks>
     /// Not necessarily the closest point on the surface; consider the case of the cell below this point being very far below it,
@@ -153,9 +161,8 @@ public unsafe struct HeightfieldShape : IShape
         // as the search radius to find candidates. Continuously reducing the radius every time we find a new minima
         // Although this scales quite badly, especially if we don't use blocks to accelerate the query
 
-        // We're using the quaternion as is instead of CreateFromQuaternion,
-        // m3x3 * v is cheaper than q * v, but creating the m3x3 and inverting it is slower
-        var localPointInBounds = Vector3.Transform(worldSpacePoint - pose.Position, pose.Orientation);
+        Matrix3x3.CreateFromQuaternion(pose.Orientation, out var orientation);
+        Matrix3x3.TransformTranspose(worldSpacePoint - pose.Position, orientation, out var localPointInBounds);
 
         localPointInBounds = Vector3.Min(localPointInBounds, new Vector3(Size, MaxHeight, Size));
         localPointInBounds = Vector3.Max(localPointInBounds, new Vector3(0, MinHeight, 0));
@@ -168,7 +175,7 @@ public unsafe struct HeightfieldShape : IShape
         cell.X = int.Min(cell.X, Subdivision - 2);
         cell.Y = int.Min(cell.Y, Subdivision - 2);
 
-        GetCellCornersInDiscreteSpace(cell, out var samples);
+        GetCellCornersInSubdivisionSpace(cell, out var samples);
 
         var fracTopDown = new Vector2(localPointInCell.X - cell.X, localPointInCell.Z - cell.Y);
         float baryB;
@@ -195,8 +202,8 @@ public unsafe struct HeightfieldShape : IShape
         float aBAndC = float.MultiplyAddEstimate(c - a, baryC, aAndB);
         var localSnapped = localPointInBounds with { Y = aBAndC };
 
-        var iOrientation = Quaternion.Inverse(pose.Orientation);
-        return pose.Position + Vector3.Transform(localSnapped, iOrientation);
+        Matrix3x3.Transform(localSnapped, orientation, out localSnapped);
+        return pose.Position + localSnapped;
     }
 
     public readonly void ComputeBounds(Quaternion orientation, out Vector3 min, out Vector3 max)
@@ -378,6 +385,7 @@ public unsafe struct HeightfieldShape : IShape
                 cellsToNextBlock.X--;
                 if (cellsToNextBlock.X == 0)
                 {
+                    cellsToNextBlock.X = CoarseBlockInterval;
                     blockOffset.X++;
                     blockRange = CoarseBlocksAddress[blockOffset.Y + blockOffset.X];
                 }
@@ -513,9 +521,9 @@ public unsafe struct HeightfieldShape : IShape
         {
             // Less likely to have any rotation, so we're bundling early exits together
 
-            if (localDir.X == 0 && (localOrigin.X < 0 || localOrigin.X > Size))
+            if (localDir.X == 0 && (localOrigin.X < 0 || localOrigin.X > localMaxInclusive))
                 return; // Parallel to the bounds and outside in X
-            if (localDir.Z == 0 && (localOrigin.Z < 0 || localOrigin.Z > Size))
+            if (localDir.Z == 0 && (localOrigin.Z < 0 || localOrigin.Z > localMaxInclusive))
                 return; // Parallel to the bounds and outside in Z
 
             if (tCellEnter >= maximumT)
@@ -637,17 +645,23 @@ public unsafe struct HeightfieldShape : IShape
         where TRayHitHandler : struct, IShapeRayHitHandler
     {
         bool hit = false;
-        GetTrianglesInDiscreteSpace(cornerCoord, out var tri0, out var tri1);
-        if (Triangle.RayTest(tri0.A, tri0.B, tri0.C, origin, dir, out float t0, out var normal0) && t0 <= maximumT)
+        GetTrianglesInSubdivisionSpace(cornerCoord, out var tri0, out var tri1);
+        if (RayTestTriangleNoNormalize(tri0.A, tri0.B, tri0.C, origin, dir, out float t0, out var normal0) && t0 <= maximumT)
         {
+            // We're in subdiv-space, XZ ratio to Y is squished compared to world, but normals are built from the cross of the coordinates,
+            // swapping the squash ratio to the other dimensions. With them being swapped, we can just squish again to equalize it.
+            normal0 *= SampleIntervalReciprocal;
             if (orientation is { } m)
                 Matrix3x3.Transform(normal0, m, out normal0);
             normal0 = Vector3.Normalize(normal0);
             hitHandler.OnRayHit(ray, ref maximumT, t0, normal0, 0);
             hit = true;
         }
-        if (Triangle.RayTest(tri1.A, tri1.B, tri1.C, origin, dir, out float t1, out var normal1) && t1 <= maximumT)
+        if (RayTestTriangleNoNormalize(tri1.A, tri1.B, tri1.C, origin, dir, out float t1, out var normal1) && t1 <= maximumT)
         {
+            // We're in subdiv-space, XZ ratio to Y is squished compared to world, but normals are built from the cross of the coordinates,
+            // swapping the squash ratio to the other dimensions. With them being swapped, we can just squish again to equalize it.
+            normal1 *= SampleIntervalReciprocal;
             if (orientation is { } m)
                 Matrix3x3.Transform(normal1, m, out normal1);
             normal1 = Vector3.Normalize(normal1);
@@ -656,6 +670,44 @@ public unsafe struct HeightfieldShape : IShape
         }
 
         return hit;
+
+        // Lifted from Bepu's Triangle.RayTest with the last normalize stripped
+        static bool RayTestTriangleNoNormalize(Vector3 a, Vector3 b, Vector3 c, Vector3 origin, Vector3 direction, out float t, out Vector3 normal)
+        {
+            //Note that this assumes clockwise-in-right-hand winding. Rays coming from the opposite direction pass through; triangles are one sided.
+            var ab = b - a;
+            var ac = c - a;
+            normal = Vector3.Cross(ac, ab);
+            var dn = -Vector3.Dot(direction, normal);
+            if (dn <= 0)
+            {
+                t = 0;
+                normal = new Vector3();
+                return false;
+            }
+            var ao = origin - a;
+            t = Vector3.Dot(ao, normal);
+            if (t < 0)
+            {
+                //Impact occurred before the start of the ray.
+                return false;
+            }
+            var aoxd = Vector3.Cross(ao, direction);
+            var v = -Vector3.Dot(ac, aoxd);
+            if (v < 0 || v > dn)
+            {
+                //Invalid barycentric coordinate for b.
+                return false;
+            }
+            var w = Vector3.Dot(ab, aoxd);
+            if (w < 0 || v + w > dn)
+            {
+                //Invalid barycentric coordinate for b and/or c.
+                return false;
+            }
+            t /= dn;
+            return true;
+        }
     }
 
     public static ShapeBatch CreateShapeBatch(BufferPool pool, int initialCapacity, Shapes shapeBatches)

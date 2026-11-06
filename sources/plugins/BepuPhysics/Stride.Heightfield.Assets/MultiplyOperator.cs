@@ -7,19 +7,20 @@ using System.Collections.Generic;
 using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.BuildEngine;
+using Stride.Core.Mathematics;
 using Stride.Core.Serialization.Contents;
 
 namespace Stride.Heightfield.Assets;
 
 /// <summary>
-/// Concat multiple heightfields together multiplicatively 
+/// Concat multiple heightfields together multiplicatively
 /// </summary>
 [DataContract]
 [Display("Multiply")]
 public class MultiplyOperator : IHeightfieldLayerBuilder
 {
     /// <summary>
-    /// Each heightfield listed contributes multiplicatively to the final height 
+    /// Each heightfield listed contributes multiplicatively to the final height
     /// </summary>
     public readonly List<IHeightfieldLayerBuilder> Layers = new();
 
@@ -39,13 +40,24 @@ public class MultiplyOperator : IHeightfieldLayerBuilder
     public void BuildRuntimeRepresentation(float size, int subdivision, ICommandContext commandContext, IAssetFinder assetFinder, out IHeightfieldRuntimeLayer output, out float minHeight, out float maxHeight)
     {
         var runtime = new RuntimeLayer.MultiplyRuntimeLayer();
-        minHeight = 0;
-        maxHeight = 0;
+        minHeight = maxHeight = 0f;
         foreach (var layer in Layers)
         {
-            layer.BuildRuntimeRepresentation(size, subdivision, commandContext, assetFinder, out output, out var thisMinHeight, out var thisMaxHeight);
-            minHeight *= thisMinHeight;
-            maxHeight *= thisMaxHeight;
+            layer.BuildRuntimeRepresentation(size, subdivision, commandContext, assetFinder, out output, out var layerMinHeight, out var layerMaxHeight);
+            if (runtime.Layers.Count == 0)
+            {
+                minHeight = layerMinHeight;
+                maxHeight = layerMaxHeight;
+            }
+            else
+            {
+                float nn = minHeight * layerMinHeight;
+                float np = minHeight * layerMaxHeight;
+                float pn = maxHeight * layerMinHeight;
+                float pp = maxHeight * layerMaxHeight;
+                minHeight = float.Min(float.Min(nn, np), float.Min(pn, pp));
+                maxHeight = float.Max(float.Max(nn, np), float.Max(pn, pp));
+            }
             runtime.Layers.Add(output);
         }
 

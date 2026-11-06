@@ -75,11 +75,11 @@ public sealed class HeightfieldCollider : ICollider
         float sampleInterval = size / (subdivision - 1);
         float subdivisionsPerUnit = (subdivision - 1) / size;
 
-        Source.GetColliderData(out var sampler, out var coarseBlocks, out var coarseBlocksSubdivision);
+        Source.GetColliderData(out var sampler, out var coarseBlocks, out var coarseBlocksSubdivision, out var coarseBlockInterval);
 
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(coarseBlocksSubdivision, 0);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(coarseBlocksSubdivision, subdivision);
-        int coarseBlockWidth = subdivision / coarseBlocksSubdivision;
+        ArgumentOutOfRangeException.ThrowIfLessThan(coarseBlocksSubdivision * coarseBlockInterval, subdivision);
 
         ArgumentNullException.ThrowIfNull(coarseBlocks);
         ArgumentOutOfRangeException.ThrowIfLessThan(coarseBlocks.Length, coarseBlocksSubdivision * coarseBlocksSubdivision);
@@ -101,7 +101,7 @@ public sealed class HeightfieldCollider : ICollider
         shape.MaxHeight = maxHeight;
         shape.CoarseBlocksAddress = coarseBlocksAddress;
         shape.CoarseBlocksSubdivision = coarseBlocksSubdivision;
-        shape.CoarseBlockInterval = coarseBlockWidth;
+        shape.CoarseBlockInterval = coarseBlockInterval;
         shape.CoarseBlocksGCHandle = coarseBlocksHandle;
 
         _shape = shape;

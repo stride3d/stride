@@ -275,13 +275,12 @@ namespace Stride.BepuPhysics.Tests
 
                 var heightfield = SetupHeightfieldPlane(planeHeight, game, out _, out var collider, fieldPos, fieldRot);
 
-                Quaternion.Invert(fieldRot, out var iRot);
                 var random = new Random(1010);
                 for (int i = 0; i < 64; i++)
                 {
                     var posNorm = new Vector2(random.NextSingle(), random.NextSingle()) * heightfield.Size;
                     var target = new Vector3(posNorm.X, planeHeight, posNorm.Y);
-                    target = fieldPos + iRot * target;
+                    target = fieldPos + fieldRot * target;
 
                     var snapped = collider.SnapToSurface(target);
 
@@ -318,6 +317,7 @@ namespace Stride.BepuPhysics.Tests
 
         private class HeightfieldSourceTest(IHeightfieldSampler Sampler) : IHeightfieldPhysicsSource
         {
+            private const int CoarseBlockInterval = 10;
             private int _coarseBlocksSubdivision;
             private HeightRange[] _coarseBlocks = Array.Empty<HeightRange>();
             private bool _initialized = false;
@@ -354,26 +354,26 @@ namespace Stride.BepuPhysics.Tests
                 private set;
             }
 
-            public void GetColliderData(out IHeightfieldSampler sampler, out HeightRange[] coarseBlocks, out int coarseBlocksSubdivision)
+            public void GetColliderData(out IHeightfieldSampler sampler, out HeightRange[] coarseBlocks, out int coarseBlocksSubdivision, out int coarseBlockInterval)
             {
                 Initialize();
                 coarseBlocks = _coarseBlocks;
                 coarseBlocksSubdivision = _coarseBlocksSubdivision;
                 sampler = Sampler;
+                coarseBlockInterval = CoarseBlockInterval;
             }
 
             private void Initialize()
             {
                 _initialized = true;
 
-                int coarseBlockInterval = 10;
-                _coarseBlocksSubdivision = Subdivision / coarseBlockInterval + (Subdivision % coarseBlockInterval == 0 ? 0 : 1);
+                _coarseBlocksSubdivision = Subdivision / CoarseBlockInterval + (Subdivision % CoarseBlockInterval == 0 ? 0 : 1);
 
                 _coarseBlocks = new HeightRange[_coarseBlocksSubdivision * _coarseBlocksSubdivision];
                 _coarseBlocks.AsSpan().Fill(new HeightRange(float.PositiveInfinity, float.NegativeInfinity));
 
                 for (int i = 0; i < _coarseBlocks.Length; i++)
-                    _coarseBlocks[i] = HeightRange.ExtractRange(i, _coarseBlocksSubdivision, coarseBlockInterval, Subdivision, Sampler);
+                    _coarseBlocks[i] = HeightRange.ExtractRange(i, _coarseBlocksSubdivision, CoarseBlockInterval, Subdivision, Sampler);
 
                 float min = float.PositiveInfinity;
                 float max = float.NegativeInfinity;

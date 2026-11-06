@@ -44,9 +44,12 @@ public sealed class HeightfieldAsset : Asset
     } = 2048;
 
     /// <summary>
-    /// Amount of <see cref="Subdivision"/> along one axis per blocks.
-    /// Each block overlaps <see cref="CoarseBlockInterval"/>^2 height samples
+    /// Hint for the amount of <see cref="Subdivision"/> along one axis per blocks requested.
+    /// Each block overlaps <see cref="CoarseBlockInterval"/>^2 height samples.
     /// </summary>
+    /// <remarks>
+    /// This is a hint, the actual value used may be decreased slightly if we can fit more subdivisions within the same amount of memory.
+    /// </remarks>
     /// <exception cref="ArgumentOutOfRangeException">When value is less than or equal to zero</exception>
     public int CoarseBlockInterval
     {

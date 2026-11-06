@@ -33,7 +33,7 @@ public class Heightfield : IHeightfieldPhysicsSource, IHeightfieldRenderingSourc
     } = 1024;
 
     /// <inheritdoc cref="IHeightfieldSource.Subdivision" />
-    /// <exception cref="ArgumentOutOfRangeException">When value is less than or equal to zero</exception>
+    /// <exception cref="ArgumentOutOfRangeException">When value is less than two</exception>
     public int Subdivision
     {
         get;
@@ -66,6 +66,21 @@ public class Heightfield : IHeightfieldPhysicsSource, IHeightfieldRenderingSourc
     }
 
     /// <summary>
+    /// The amount of <see cref="Subdivision"/> along one axis per blocks requested.
+    /// Each block overlaps <see cref="CoarseBlockInterval"/>^2 height samples.
+    /// </summary>
+    /// <exception cref="ArgumentOutOfRangeException">When value is less than or equal to zero</exception>
+    public int CoarseBlockInterval
+    {
+        get;
+        set
+        {
+            ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(value, 0);
+            field = value;
+        }
+    }
+
+    /// <summary>
     /// <see cref="MinHeight"/> and <see cref="MaxHeight"/> define the bounding box of this heightfield,
     /// and these coarse blocks define sub-bounding boxes that encompass <see cref="CoarseBlocksSubdivision"/>^2 heightfield points.
     /// They are laid out in [x + y * <see cref="CoarseBlocksSubdivision"/>]
@@ -82,11 +97,12 @@ public class Heightfield : IHeightfieldPhysicsSource, IHeightfieldRenderingSourc
     public IHeightfieldRuntimeLayer TopmostLayer { get; set; } = null!;
 
     /// <inheritdoc cref="IHeightfieldPhysicsSource.GetColliderData" />
-    public void GetColliderData(out IHeightfieldSampler sampler, out HeightRange[] coarseBlocks, out int coarseBlocksSubdivision)
+    public void GetColliderData(out IHeightfieldSampler sampler, out HeightRange[] coarseBlocks, out int coarseBlocksSubdivision, out int coarseBlockInterval)
     {
         sampler = TopmostLayer.BuildHeightfieldFunction();
         coarseBlocksSubdivision = CoarseBlocksSubdivision;
         coarseBlocks = CoarseBlocks;
+        coarseBlockInterval = CoarseBlockInterval;
     }
 
     /// <inheritdoc cref="IHeightfieldRenderingSource.BuildGpuSideSampler" />

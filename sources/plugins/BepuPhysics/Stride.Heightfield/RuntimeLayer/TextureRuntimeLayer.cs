@@ -110,7 +110,7 @@ public record TextureRuntimeLayer : HeightfieldTextureSharedData, IHeightfieldRu
     public IComputeScalar BuildGpuSideSampler(MaterialGeneratorContext context)
     {
         if (Texture is null)
-            return new ComputeFloat(HeightMultiplier);
+            return new ComputeFloat(0f);
 
         var url = AttachedReferenceManager.GetUrl(Texture) ?? throw new NullReferenceException();
         var proxyObject = context.Content.Load<Texture>(url, ContentManagerLoaderSettings.StreamingDisabled);
@@ -131,7 +131,7 @@ public record TextureRuntimeLayer : HeightfieldTextureSharedData, IHeightfieldRu
             // In other words, px{0,0}'s center is at half a texel from uv{0,0}.
             // It is more accurate to sample from the center than the middle of two pixels
             // regardless of the filtering method.
-            Offset = new Vector2(0.5f) / size / Tiling,
+            Offset = new Vector2(0.5f) / size,
             // Same as above, we want the last pixel to be centered on uv{^1,^1}
             // Note: Scale happens first, then offset adds to the UV
             Scale = (size - Vector2.One) / size * Tiling

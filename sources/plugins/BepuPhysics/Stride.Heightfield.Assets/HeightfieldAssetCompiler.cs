@@ -54,7 +54,11 @@ internal sealed class HeightfieldAssetCompiler : AssetCompilerBase
             var heightfieldFunction = runtime.BuildHeightfieldFunction();
 
             var coarseBlockInterval = Parameters.CoarseBlockInterval;
-            var coarseBlocksSubdivision = Parameters.Subdivision / Parameters.CoarseBlockInterval + (Parameters.Subdivision % Parameters.CoarseBlockInterval == 0 ? 0 : 1);
+            var coarseBlocksSubdivision = Parameters.Subdivision / coarseBlockInterval + (Parameters.Subdivision % coarseBlockInterval == 0 ? 0 : 1);
+            // We might be able to fit more intervals within the same amount of memory, ex:
+            // Subdiv:31, Interval:15 -> 3 blocks which would cover coordinate [0, 45) with [31, 45) unused
+            // Instead we could Interval:11, same three blocks now covering [0, 33) with [31, 33) unused instead
+            coarseBlockInterval = Parameters.Subdivision / coarseBlocksSubdivision + (Parameters.Subdivision % coarseBlocksSubdivision == 0 ? 0 : 1);
             var coarseBlocks = new HeightRange[coarseBlocksSubdivision * coarseBlocksSubdivision];
             coarseBlocks.AsSpan().Fill(new HeightRange(float.PositiveInfinity, float.NegativeInfinity));
 
@@ -79,6 +83,7 @@ internal sealed class HeightfieldAssetCompiler : AssetCompilerBase
                 MinHeight = minHeight,
                 MaxHeight = maxHeight,
                 CoarseBlocksSubdivision = coarseBlocksSubdivision,
+                CoarseBlockInterval = coarseBlockInterval,
                 CoarseBlocks = coarseBlocks
             };
 
