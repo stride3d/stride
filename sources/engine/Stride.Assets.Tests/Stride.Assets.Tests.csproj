@@ -43,6 +43,8 @@
     <Compile Include="XunitAttributes.cs" />
     <Compile Include="TestMaterialGenerator.cs" />
     <Compile Include="AssetImportTests.cs" />
+    <Compile Include="TestModelImport.cs" />
+    <Compile Include="TestModelMaterialSlots.cs" />
     <Compile Include="TestMorphImport.cs" />
     <Compile Include="TestModelComponentMorphs.cs" />
     <Compile Include="TestDependencyResolver.cs" />
