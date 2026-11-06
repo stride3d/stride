@@ -101,7 +101,7 @@ internal sealed class ScaleTool() : TransformationTool(Transformation.Scale)
 /// operation.
 /// </summary>
 /// <remarks>
-/// The tool part of the WPF <c>EditorGameEntityTransformService</c>. Ctrl+drag does not duplicate the selection yet.
+/// The tool part of the WPF <c>EditorGameEntityTransformService</c>. A Ctrl+drag duplicates the selection first, and moves the copies.
 /// </remarks>
 internal abstract class TransformationTool(Transformation transformation) : IEditorViewTool
 {
