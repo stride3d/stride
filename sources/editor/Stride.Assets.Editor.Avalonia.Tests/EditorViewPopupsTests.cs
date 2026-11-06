@@ -188,7 +188,7 @@ public sealed class EditorViewPopupsTests
     public void TheLightProbeVolumesOptionGoesToTheGameAndTheSettings()
     {
         using var controller = new FakeController();
-        var lightProbes = new EditorGameLightProbeGizmoService();
+        var lightProbes = new EditorGameLightProbeGizmoService(controller);
         var gizmos = new EditorViewGizmosViewModel(serviceProvider, new EditorGameComponentGizmoService(controller), null, lightProbes);
 
         // As in WPF, a scene without settings hides the volumes
@@ -213,10 +213,26 @@ public sealed class EditorViewPopupsTests
     }
 
     [AvaloniaFact]
+    public async Task TheLightProbeComputationRunsOnTheGameThreadOfTheController()
+    {
+        using var controller = new FakeController();
+        IEditorGameLightProbeService lightProbes = new EditorGameLightProbeGizmoService(controller);
+
+        // The WPF lighting toolbar computes the light probes through the shared interface, on the game thread; a service
+        // whose game isn't running has no light probe to compute
+        Assert.Empty(await lightProbes.RequestLightProbesStep());
+        Assert.Equal(1, controller.Calls);
+        await lightProbes.UpdateLightProbeCoefficients();
+        Assert.Equal(2, controller.Calls);
+        lightProbes.IsLightProbeVolumesVisible = false;
+        Assert.False(lightProbes.IsLightProbeVolumesVisible);
+    }
+
+    [AvaloniaFact]
     public void TheGizmosPanelShowsTheLightProbeVolumesOptionWithTheService()
     {
         using var controller = new FakeController();
-        var lightProbes = new EditorGameLightProbeGizmoService { IsLightProbeVolumesVisible = false };
+        var lightProbes = new EditorGameLightProbeGizmoService(controller) { IsLightProbeVolumesVisible = false };
         var gizmos = new EditorViewGizmosViewModel(serviceProvider, new EditorGameComponentGizmoService(controller), null, lightProbes);
         var panel = new EditorViewGizmosPanel { DataContext = gizmos };
         var window = Show(panel);

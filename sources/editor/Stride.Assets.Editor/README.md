@@ -29,7 +29,7 @@ node presenter updaters of the Stride asset types. **Level: Editor.** `Stride.As
 ## Notes
 
 * The WPF editor registers the view models it shares with the cross-platform one from an explicit list
-  (`StrideDefaultAssetsWpfPlugin.SharedViewModelTypes`), and leaves out the cross-platform versions of a few editor game
-  services and gizmos it has its own versions of (`EditorGame/EditorGameDiscovery`).
+  (`StrideDefaultAssetsWpfPlugin.SharedViewModelTypes`), and leaves out the cross-platform tool service, as it has its own
+  transformation service (`EditorGame/EditorGameDiscovery`).
 * The goal is to be able to share that library with any application that wants to work with Stride assets and edit them.
 * It is Stride specific, but it can be used by other applications beside the GameStudio.

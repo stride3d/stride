@@ -14,7 +14,6 @@ using Stride.Assets.Presentation;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
-using Stride.Assets.Presentation.AssetEditors.Gizmos;
 using Stride.Assets.Presentation.AssetEditors.SceneEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.SceneEditor.Views;
 using Stride.Assets.Presentation.Preview.Views;
@@ -223,17 +222,10 @@ namespace Stride.GameStudio.Tests
         public void EachEditorGameServiceIsDeclaredOnceInTheWpfEditor()
         {
             // A controller creates the services the assets assemblies declare. The shared ones (Stride.Assets.Editor)
-            // replaced their WPF copies, and this editor leaves out the cross-platform editor's versions of its own (and of its
-            // light probe gizmo): no service is created twice under one name
+            // replaced their WPF copies, and this editor leaves out the cross-platform editor's tool service: no service is
+            // created twice under one name
             RuntimeHelpers.RunModuleConstructor(typeof(StrideDefaultAssetsWpfPlugin).Module.ModuleHandle);
-            foreach (var crossPlatformType in new[]
-            {
-                typeof(Stride.Assets.Editor.EditorGame.EditorGameLightProbeGizmoService), typeof(Stride.Assets.Editor.EditorGame.WireframeGizmoStageService),
-                typeof(Stride.Assets.Editor.EditorGame.Tools.EditorGameToolService), typeof(Stride.Assets.Editor.Gizmos.LightProbeGizmo),
-            })
-            {
-                Assert.True(EditorGameDiscovery.IsExcluded(crossPlatformType), crossPlatformType.Name);
-            }
+            Assert.True(EditorGameDiscovery.IsExcluded(typeof(Stride.Assets.Editor.EditorGame.Tools.EditorGameToolService)));
             var services = AssetRegistry.AssetAssemblies.SelectMany(x => AssemblyRegistry.GetScanTypes(x, typeof(EditorGameServiceAttribute))).Distinct()
                 .Where(x => !EditorGameDiscovery.IsExcluded(x)).ToList();
             Assert.Empty(Duplicates(services, x => x.Name, x => x));
@@ -246,18 +238,21 @@ namespace Stride.GameStudio.Tests
             // The scene and prefab controllers are the shared ones
             Assert.Equal(typeof(GizmoBase).Assembly, typeof(EntityHierarchyEditorController).Assembly);
             Assert.True(typeof(EditorGameController<EntityHierarchyEditorGame>).IsAssignableFrom(typeof(EntityHierarchyEditorController)));
-            // So are the grid, graphics compositor, gizmo, selection, material highlight and camera services
+            // So are the grid, graphics compositor, gizmo, selection, material highlight, camera, light probe and wireframe stage
+            // services
             foreach (var serviceType in new[]
             {
                 typeof(EditorGameViewportGridService), typeof(EditorGameGraphicsCompositorService), typeof(EditorGameComponentGizmoService),
                 typeof(EditorGameEntitySelectionService), typeof(EditorGameModelSelectionService), typeof(EditorGameMaterialHighlightService),
-                typeof(EditorGameEntityCameraService),
+                typeof(EditorGameEntityCameraService), typeof(EditorGameLightProbeGizmoService), typeof(WireframeGizmoStageService),
             })
             {
                 Assert.Contains(serviceType, services);
                 Assert.Equal(typeof(GizmoBase).Assembly, serviceType.Assembly);
                 Assert.True(serviceType.GetCustomAttribute<EditorGameServiceAttribute>().ControllerType.IsAssignableFrom(typeof(EntityHierarchyEditorController)), serviceType.Name);
             }
+            // The light probes have the shared gizmo
+            Assert.Equal(typeof(Stride.Assets.Editor.Gizmos.LightProbeGizmo), GizmoTypeRegistry.GizmoTypeDictionary[typeof(Stride.Engine.LightProbeComponent)]);
             // The prefab light service is shared too, and serves the prefab editor only
             Assert.Contains(typeof(PrefabEditorLightService), services);
             Assert.Equal(typeof(EntityHierarchyEditorController).Assembly, typeof(PrefabEditorLightService).Assembly);

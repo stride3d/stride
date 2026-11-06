@@ -21,7 +21,7 @@ namespace Stride.Assets.Editor.Gizmos;
 /// Shows a light probe as a small sphere lit by its coefficients.
 /// </summary>
 /// <remarks>
-/// The agnostic copy of the WPF <c>LightProbeGizmo</c>. <see cref="EditorGameLightProbeGizmoService"/> draws it.
+/// <see cref="EditorGameLightProbeGizmoService"/> draws it.
 /// </remarks>
 [GizmoComponent(typeof(LightProbeComponent), true)]
 public sealed class LightProbeGizmo : EntityGizmo<LightProbeComponent>
