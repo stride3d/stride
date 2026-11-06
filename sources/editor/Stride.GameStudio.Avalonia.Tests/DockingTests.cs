@@ -49,6 +49,8 @@ public sealed class DockingTests
                 "Asset preview", "-",
                 "Property grid", "Edit history", "-",
                 "Asset errors", "Output", "-",
+                // The panel of the test plugin (PanelPluginTests)
+                "New Notebook", "-",
                 "Reset layout",
             ], headers);
             // Every panel is visible in the default layout, and its entry is checked
@@ -280,7 +282,7 @@ public sealed class DockingTests
             await WindowTestHelper.PumpAsync();
 
             Assert.Empty(panels.Layout!.Windows!);
-            Assert.All(panels.Registry.Panels, x => Assert.True(panels.IsVisible(x.Id), x.Id));
+            Assert.All(panels.Registry.Panels.Where(x => !x.AllowsMultipleInstances), x => Assert.True(panels.IsVisible(x.Id), x.Id));
             Assert.Equal(DefaultPanelLayouts.Create(PanelLayoutKind.Normal).EnumeratePanels().Select(x => x.ToString()).Order(), panels.Snapshot().EnumeratePanels().Select(x => x.ToString()).Order());
             Assert.All(fixture.Main.ViewMenu.Items.Where(x => x.IsCheckable), x => Assert.True(x.IsChecked));
         }

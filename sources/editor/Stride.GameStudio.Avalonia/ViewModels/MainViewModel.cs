@@ -47,6 +47,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     private PreviewViewModel? preview;
     private UFile? sessionPath;
     private SessionEditorsRestorer? editorsRestorer;
+    private readonly List<PanelActivation> panelActivations = [];
     private string? sessionName;
     private string title = baseTitle;
 
@@ -436,6 +437,10 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
 
         // The panels, in the layout the session had in this editor (kept under the same path as its editors)
         Panels.OpenSession(Session, dataPath);
+        // The panels that come forward by themselves, as in WPF: the asset view when the solution explorer selects a folder, the
+        // Output on an error of the build (the code reload builds there too)
+        panelActivations.Add(PanelActivation.OnLocationChanged(Panels, BuiltInPanels.AssetView, Session.AssetCollection.SelectedLocations));
+        panelActivations.Add(PanelActivation.OnLog(Panels, BuiltInPanels.BuildLog, Build.BuildLog.Messages));
 
         // The build the session runs when it opens: thumbnails and previews wait for it. Shown before the editors open, which
         // takes long enough for a build that has nothing to do to finish
@@ -729,6 +734,9 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     internal void CloseSessionServices()
     {
         // The panels go before the services they show
+        foreach (var activation in panelActivations)
+            activation.Dispose();
+        panelActivations.Clear();
         Panels.CloseSession();
         Preview?.Dispose();
         Preview = null;
