@@ -773,6 +773,10 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels
         private void SaveSettings(SceneSettingsData settings)
         {
             Camera.SaveSettings(settings);
+            // The zoom is the size of the camera, which the wheel and the zoom commands change in the game without the view
+            // model of the camera: the size of the game's camera is saved, so that the editor opens again at the same zoom
+            if (Controller.GetService<IEditorGameCameraViewModelService>() is UIEditorGameCameraService { Component: { } camera })
+                settings.CamOrthographicSize = camera.OrthographicSize;
         }
 
         private void SelectLibrary()
