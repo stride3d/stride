@@ -81,6 +81,30 @@ public sealed class EditCurveCommandTests
     }
 
     [Fact]
+    public async Task OpeningACurveAddsNoEntryToTheUndoHistory()
+    {
+        await using var test = await CurveEditorTestScene.OpenAsync();
+        var service = new RecordingCurveEditorService();
+        test.Fixture.ServiceProvider.RegisterService(service);
+        try
+        {
+            var emitter = await PropertiesOfTheEmitter(test);
+            var history = test.UndoRedo.RetrieveAllTransactions().ToList();
+
+            // The command runs in a transaction ("Execute EditCurve"), as every node command, but the transaction stack drops an
+            // empty transaction
+            CurveProperty(emitter, "Updaters", 0, "SamplerMain").GetCommand(EditCurveCommand.CommandName)!.Execute(null);
+
+            Assert.Single(service.Opened);
+            Assert.Equal(history, test.UndoRedo.RetrieveAllTransactions());
+        }
+        finally
+        {
+            test.Fixture.ServiceProvider.UnregisterService(service);
+        }
+    }
+
+    [Fact]
     public async Task WithoutACurveEditorTheCommandLeavesTheCurveAsItIs()
     {
         await using var test = await CurveEditorTestScene.OpenAsync();
