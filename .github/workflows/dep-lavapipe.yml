@@ -636,44 +636,12 @@ jobs:
           name: Stride.Dependencies.Lavapipe.nupkg
           path: nupkg/*.nupkg
 
+  # Signing and pushing are shared by all dependencies: nuget.org trusts dep-publish.yml
   publish:
-    name: Sign & Publish to NuGet.org
     needs: pack
-    runs-on: windows-2025-vs2026
-    environment: production
-    steps:
-      # The sign tool version is pinned in build/package/dotnet-tools.json: check out only that file
-      - uses: actions/checkout@v7
-        with:
-          sparse-checkout: /build/package/dotnet-tools.json
-          sparse-checkout-cone-mode: false
-          persist-credentials: false
-
-      - name: Install signing tool
-        shell: pwsh
-        run: |
-          $version = (Get-Content build/package/dotnet-tools.json | ConvertFrom-Json).tools.sign.version
-          dotnet tool install sign --tool-path ./sign-tool --version $version
-
-      - name: Download artifact
-        uses: actions/download-artifact@v8
-        with:
-          name: Stride.Dependencies.Lavapipe.nupkg
-
-      - name: Sign NuGet package
-        shell: pwsh
-        run: |
-          ./sign-tool/sign code azure-key-vault *.nupkg `
-            --description "Stride" `
-            --description-url "https://stride3d.net" `
-            --publisher-name "Stride" `
-            --azure-key-vault-tenant-id "${{ secrets.STRIDE_SIGN_TENANT_ID }}" `
-            --azure-key-vault-client-id "${{ secrets.STRIDE_SIGN_CLIENT_ID }}" `
-            --azure-key-vault-client-secret "${{ secrets.STRIDE_SIGN_CLIENT_SECRET }}" `
-            --azure-key-vault-certificate "${{ secrets.STRIDE_SIGN_KEYVAULT_CERTIFICATE }}" `
-            --azure-key-vault-url "https://${{ secrets.STRIDE_SIGN_KEYVAULT_NAME }}.vault.azure.net/" `
-            -v Information
-
-      - name: Publish
-        run: |
-          dotnet nuget push *.nupkg --api-key "${{ secrets.STRIDE_NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/dep-publish.yml
+    with:
+      artifact: Stride.Dependencies.Lavapipe.nupkg

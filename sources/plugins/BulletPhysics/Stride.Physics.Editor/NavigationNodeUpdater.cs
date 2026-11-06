@@ -21,10 +21,10 @@ namespace Stride.Physics.Editor
 {
     public class NavigationNodeUpdater : AssetNodePresenterUpdaterBase
     {
-        private readonly SessionViewModel session;
+        private readonly ISessionViewModel session;
         private AssetViewModel gameSettingsAssetViewModel;
 
-        public NavigationNodeUpdater(SessionViewModel session)
+        public NavigationNodeUpdater(ISessionViewModel session)
         {
             this.session = session;
         }

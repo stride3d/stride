@@ -132,10 +132,10 @@ public class DotNetNewTemplateGenerator : SessionTemplateGenerator
     }
 
     /// <summary>
-    /// Instantiates each selected asset-pack item template into the generated game library dir
-    /// (next to the .sdpkg), dropping the pack's Assets/ + Resources/ into the project — the
-    /// dotnet new equivalent of the legacy New Game asset-pack copy. A failing pack is logged
-    /// but doesn't fail generation; the game itself is intact without it.
+    /// Instantiates each selected asset-pack item template into the folders the generated game
+    /// library lists, the way <c>stride new</c> does — the dotnet new equivalent of the legacy New
+    /// Game asset-pack copy. A failing pack is logged but doesn't fail generation; the game itself
+    /// is intact without it.
     /// </summary>
     protected virtual void InstantiateAssetPacks(SessionTemplateGeneratorParameters parameters, string sdpkgPath)
     {
@@ -150,7 +150,7 @@ public class DotNetNewTemplateGenerator : SessionTemplateGenerator
             return;
         }
 
-        var outputDir = Path.GetDirectoryName(sdpkgPath)!;
+        var package = new AssetPackPlacement.PackageProject(Path.ChangeExtension(sdpkgPath, ".csproj"), IsHead: false);
         var templates = DotNetNewTemplateBridge.Registry.GetTemplatesAsync().GetAwaiter().GetResult();
         foreach (var identity in identities)
         {
@@ -162,13 +162,16 @@ public class DotNetNewTemplateGenerator : SessionTemplateGenerator
             }
             try
             {
-                var creation = DotNetNewTemplateBridge.Registry
-                    .InstantiateAsync(packTemplate, packTemplate.ShortNameList.FirstOrDefault() ?? "asset-pack", outputDir, new Dictionary<string, string>())
-                    .GetAwaiter().GetResult();
-                if (creation.Status != CreationResultStatus.Success)
-                    log.Error($"Asset pack '{packTemplate.Name}' failed: {creation.Status} — {creation.ErrorMessage}");
-                else
-                    log.Info($"Added asset pack '{packTemplate.Name}'.");
+                var name = packTemplate.ShortNameList.FirstOrDefault() ?? "asset-pack";
+                AssetPackPlacement.AddAsync(async staging =>
+                {
+                    var creation = await DotNetNewTemplateBridge.Registry
+                        .InstantiateAsync(packTemplate, name, staging, new Dictionary<string, string>())
+                        .ConfigureAwait(false);
+                    if (creation.Status != CreationResultStatus.Success)
+                        throw new InvalidOperationException($"{creation.Status} — {creation.ErrorMessage}");
+                }, name, AssetPackPlacement.GetFolders(package)).GetAwaiter().GetResult();
+                log.Info($"Added asset pack '{packTemplate.Name}'.");
             }
             catch (Exception ex)
             {

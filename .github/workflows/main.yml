@@ -284,6 +284,16 @@ jobs:
     with:
       build-type: Debug
 
+  # Cross-platform (Avalonia) editor: builds its solution filter and runs its tests on Linux and Windows
+  # (one matrix job), with a coverage summary of the editor assemblies. Builds on its own, so it only
+  # waits for the path filter.
+  Editor-Tests-Avalonia:
+    needs: changes
+    if: (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft')) && needs.changes.outputs.editor == 'true'
+    uses: ./.github/workflows/test-editor-avalonia.yml
+    with:
+      build-type: Debug
+
   # Aggregate result for branch protection: mark only "Gate" as required.
   # Skipped jobs (path filters, draft PRs) are fine; failure/cancellation is not.
   # always() on purpose (unlike the !cancelled() test jobs): a cancelled run must
@@ -310,6 +320,7 @@ jobs:
       - macOS-Tests-Game
       - iOS-Tests-Game
       - Android-Tests-Game
+      - Editor-Tests-Avalonia
     if: always()
     runs-on: ubuntu-latest
     steps:

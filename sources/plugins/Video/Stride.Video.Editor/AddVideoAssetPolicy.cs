@@ -17,7 +17,7 @@ namespace Stride.Video.Editor
     {
         /// <inheritdoc />
         [NotNull]
-        protected override EntityComponent CreateComponentFromAsset(EntityHierarchyItemViewModel parent, AssetViewModel<VideoAsset> asset)
+        protected override EntityComponent CreateComponentFromAsset(IEntityHierarchyItemViewModel parent, AssetViewModel<VideoAsset> asset)
         {
             return new VideoComponent
             {

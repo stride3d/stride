@@ -144,6 +144,7 @@ namespace Stride.Navigation
         /// <summary>
         /// Hashes and entity's transform and it's collider shape settings
         /// </summary>
+        /// <remarks>The hash differs in each process, so a collider cached by another process always counts as changed.</remarks>
         /// <param name="collider">The collider to hash</param>
         /// <param name="includedCollisionGroups">The filter group for active collides, 
         ///     which is used to hash if this colliders participates in the navigation mesh build</param>

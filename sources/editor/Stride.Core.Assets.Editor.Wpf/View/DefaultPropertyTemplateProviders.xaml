@@ -14,7 +14,7 @@
                     xmlns:viewModel="clr-namespace:Stride.Core.Assets.Editor.ViewModel"
                     xmlns:adr="clr-namespace:Stride.Core.Presentation.Adorners;assembly=Stride.Core.Presentation.Wpf"
                     xmlns:qvm="clr-namespace:Stride.Core.Presentation.Quantum.ViewModels;assembly=Stride.Core.Presentation.Quantum"
-                    xmlns:assetCommands="clr-namespace:Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands"
+                    xmlns:assetCommands="clr-namespace:Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;assembly=Stride.Core.Assets.Editor.Common"
                     mc:Ignorable="d">
   <ResourceDictionary.MergedDictionaries>
     <ResourceDictionary Source="CommonResources.xaml"/>

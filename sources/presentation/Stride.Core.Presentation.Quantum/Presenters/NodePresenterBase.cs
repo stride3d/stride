@@ -48,9 +48,9 @@ public abstract class NodePresenterBase : IInitializingNodePresenter
 
     public IReadOnlyList<INodePresenter> Children => children;
 
-    public string DisplayName { get; set; }
+    public string DisplayName { get; set; } = null!;
 
-    public string Name { get; protected set; }
+    public string Name { get; protected set; } = null!;
 
     public List<INodePresenterCommand> Commands { get; } = [];
 
@@ -68,9 +68,9 @@ public abstract class NodePresenterBase : IInitializingNodePresenter
 
     public abstract ITypeDescriptor? Descriptor { get; }
 
-    public abstract object Value { get; }
+    public abstract object? Value { get; }
 
-    public string CombineKey { get; set; }
+    public string CombineKey { get; set; } = null!;
 
     public PropertyContainerClass AttachedProperties { get; } = [];
 
@@ -80,7 +80,7 @@ public abstract class NodePresenterBase : IInitializingNodePresenter
 
     protected abstract IObjectNode? ParentingNode { get; }
 
-    public abstract void UpdateValue(object newValue);
+    public abstract void UpdateValue(object? newValue);
 
     public abstract void AddItem(object value);
 

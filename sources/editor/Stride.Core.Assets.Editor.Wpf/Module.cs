@@ -13,6 +13,8 @@ namespace Stride.Core.Assets.Editor
         [ModuleInitializer]
         public static void Initialize()
         {
+            // Register the WPF-free part of this layer before this assembly, so it is scanned first
+            System.Runtime.CompilerServices.RuntimeHelpers.RunModuleConstructor(typeof(CommonModule).Module.ModuleHandle);
             AssemblyRegistry.Register(typeof(Module).GetTypeInfo().Assembly, AssemblyCommonCategories.Assets);
             AssetsPlugin.RegisterPlugin(typeof(CoreAssetsEditorPlugin));
             // Initialize translation

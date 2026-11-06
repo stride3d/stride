@@ -42,7 +42,10 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
             if (items == null || firstVisibleItemIndex > lastVisibleItemIndex)
                 return;
 
-            var session = items[0].Session;
+            // Thumbnails are a service of the editor's session
+            if (items[0].Session is not SessionViewModel session)
+                return;
+
             var visibleAssets = items.Subset(firstVisibleItemIndex, lastVisibleItemIndex - firstVisibleItemIndex + 1).OfType<AssetViewModel>();
             session.Thumbnails.IncreaseThumbnailPriority(visibleAssets);
         }

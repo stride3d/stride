@@ -20,7 +20,7 @@ public class TestDictionaries
 
     public class SimpleObject
     {
-        public string Name { get; set; }
+        public string? Name { get; set; }
         public override string ToString() => $"{{SimpleObject: {Name}}}";
     }
 
@@ -70,7 +70,7 @@ public class TestDictionaries
         var containerNode = nodeContainer.GetOrCreateNode(obj);
         var dictMemberNode = containerNode[memberName];
 
-        dictMemberNode.Target.Update(newValue, new NodeIndex(key));
+        dictMemberNode.Target!.Update(newValue, new NodeIndex(key));
 
         Assert.Equal(newValue, dictMemberNode.Target.Retrieve(new NodeIndex(key)));
         if (memberName == nameof(SimpleDictionaryContainer.StringIntDict))
@@ -90,11 +90,11 @@ public class TestDictionaries
         var containerNode = nodeContainer.GetOrCreateNode(obj);
         var dictMemberNode = containerNode[nameof(SimpleDictionaryContainer.StringIntDict)];
 
-        dictMemberNode.Target.Add(42, new NodeIndex("key2"));
+        dictMemberNode.Target!.Add(42, new NodeIndex("key2"));
 
         Assert.Equal(2, obj.StringIntDict.Count);
         Assert.Equal(42, obj.StringIntDict["key2"]);
-        Assert.Equal(2, dictMemberNode.Target.Indices.Count());
+        Assert.Equal(2, dictMemberNode.Target!.Indices!.Count());
     }
 
     [Fact]
@@ -108,11 +108,11 @@ public class TestDictionaries
         var containerNode = nodeContainer.GetOrCreateNode(obj);
         var dictMemberNode = containerNode[nameof(SimpleDictionaryContainer.StringIntDict)];
 
-        dictMemberNode.Target.Remove(20, new NodeIndex("key2"));
+        dictMemberNode.Target!.Remove(20, new NodeIndex("key2"));
 
         Assert.Equal(2, obj.StringIntDict.Count);
         Assert.False(obj.StringIntDict.ContainsKey("key2"));
-        Assert.Equal(2, dictMemberNode.Target.Indices.Count());
+        Assert.Equal(2, dictMemberNode.Target!.Indices!.Count());
     }
 
     [Fact]
@@ -130,7 +130,7 @@ public class TestDictionaries
 
         Assert.NotNull(dictMemberNode);
         Assert.True(dictMemberNode.IsReference);
-        Assert.NotNull(dictMemberNode.Target.ItemReferences);
+        Assert.NotNull(dictMemberNode.Target!.ItemReferences);
         Assert.Equal(2, dictMemberNode.Target.ItemReferences.Count);
     }
 
@@ -148,7 +148,7 @@ public class TestDictionaries
         var containerNode = nodeContainer.GetOrCreateNode(obj);
         var dictMemberNode = containerNode[nameof(ObjectDictionaryContainer.ObjectDict)];
 
-        dictMemberNode.Target.Update(item3, new NodeIndex("obj1"));
+        dictMemberNode.Target!.Update(item3, new NodeIndex("obj1"));
 
         Assert.Equal(item3, obj.ObjectDict["obj1"]);
         Assert.Equal(item3, dictMemberNode.Target.Retrieve(new NodeIndex("obj1")));

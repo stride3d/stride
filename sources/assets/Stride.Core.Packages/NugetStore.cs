@@ -608,7 +608,8 @@ public partial class NugetStore : INugetDownloadProgress
     /// <param name="version">Version of package to install.</param>
     /// <param name="targetFrameworks">The target frameworks to restore.</param>
     /// <param name="progress">The progress reporter, if provided.</param>
-    public async Task<NugetLocalPackage?> InstallPackage(string packageId, PackageVersion version, IEnumerable<string> targetFrameworks, ProgressReport? progress)
+    /// <param name="cancellationToken">Stops the restore, downloads included.</param>
+    public async Task<NugetLocalPackage?> InstallPackage(string packageId, PackageVersion version, IEnumerable<string> targetFrameworks, ProgressReport? progress, CancellationToken cancellationToken = default)
     {
         using (GetLocalRepositoryLock())
         {
@@ -628,7 +629,7 @@ public partial class NugetStore : INugetDownloadProgress
 
                 // Exactly this version: a bare version is ">=" to NuGet, which would silently take a higher one.
                 var exactVersion = new VersionRange(version.ToNuGetVersion(), includeMinVersion: true, version.ToNuGetVersion(), includeMaxVersion: true);
-                await RestorePackageCore(packageId, exactVersion, targetFrameworks, settings, installPath, "StrideLauncher", Path.Combine(Path.GetTempPath(), $"StrideLauncher-{packageId}-{version}"), OnPackageInstalled);
+                await RestorePackageCore(packageId, exactVersion, targetFrameworks, settings, installPath, "StrideLauncher", Path.Combine(Path.GetTempPath(), $"StrideLauncher-{packageId}-{version}"), OnPackageInstalled, cancellationToken);
 
                 if (packageId == "Xenko" && version < new PackageVersion(3, 0, 0, 0))
                 {
@@ -672,11 +673,11 @@ public partial class NugetStore : INugetDownloadProgress
         using (GetLocalRepositoryLock())
         {
             var exactVersion = new VersionRange(version.ToNuGetVersion(), includeMinVersion: true, version.ToNuGetVersion(), includeMaxVersion: true);
-            return await RestorePackageCore(packageId, exactVersion, targetFrameworks, restoreSettings, SettingsUtility.GetGlobalPackagesFolder(restoreSettings), "StrideCompanionPackages", outputPath, null);
+            return await RestorePackageCore(packageId, exactVersion, targetFrameworks, restoreSettings, SettingsUtility.GetGlobalPackagesFolder(restoreSettings), "StrideCompanionPackages", outputPath, null, CancellationToken.None);
         }
     }
 
-    private async Task<LockFile> RestorePackageCore(string packageId, VersionRange version, IEnumerable<string> targetFrameworks, ISettings restoreSettings, string installPath, string projectName, string outputPath, EventHandler<PackageOperationEventArgs>? packageInstalled)
+    private async Task<LockFile> RestorePackageCore(string packageId, VersionRange version, IEnumerable<string> targetFrameworks, ISettings restoreSettings, string installPath, string projectName, string outputPath, EventHandler<PackageOperationEventArgs>? packageInstalled, CancellationToken cancellationToken)
     {
         ActivityCorrelationId.StartNew();
 
@@ -763,7 +764,7 @@ public partial class NugetStore : INugetDownloadProgress
                 var command = new RestoreCommand(request.Request);
 
                 // Act
-                var result = await command.ExecuteAsync();
+                var result = await command.ExecuteAsync(cancellationToken);
 
                 if (!result.Success)
                 {

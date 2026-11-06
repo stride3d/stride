@@ -48,8 +48,9 @@ public class DynamicBuilder : IDisposable
     /// </summary>
     public void Dispose()
     {
+        // Cancelling does nothing until the builder runs, so the step is also told to stop
+        dynamicBuildStep.Stop();
         builder.CancelBuild();
-        dynamicBuildStep.NotifyNewWorkAvailable();
         builderThread.Join();
     }
 

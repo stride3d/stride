@@ -17,7 +17,6 @@ namespace Stride.Assets.Models
         /// <value>
         /// The material slot name.
         /// </value>
-        /// <userdoc>The .</userdoc>
         /// <userdoc>The name of the material as written in the imported model and the reference to the corresponding material asset.</userdoc>
         [DataMember(10)]
         public string Name { get; set; }

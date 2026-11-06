@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using System.Runtime.CompilerServices;
 using Stride.Core;
 using Stride.Core.Mathematics;
 
@@ -31,41 +30,33 @@ namespace Stride.Physics
 
         public bool IsValid() => Heightmap?.IsValid() ?? false;
 
-        public void CopyTo<T>(UnmanagedArray<T> heightStickArray, int index) where T : struct
+        public void CopyTo<T>(Span<T> heightStickArray) where T : struct
         {
             if (Heightmap == null) throw new InvalidOperationException($"{ nameof(Heightmap) } is a null");
-            if (heightStickArray == null) throw new ArgumentNullException(nameof(heightStickArray));
 
-            var heightStickArrayLength = heightStickArray.Length - index;
-            if (heightStickArrayLength <= 0) throw new IndexOutOfRangeException(nameof(index));
-
-            var typeOfT = typeof(T);
             T[] heights;
 
-            if (typeOfT == typeof(float))
+            if (typeof(T) == typeof(float))
             {
                 if (Heightmap.Floats == null) throw new InvalidOperationException($"{ nameof(Heightmap.Floats) } is a null.");
                 heights = (T[])(object)Heightmap.Floats;
             }
-            else if (typeOfT == typeof(short))
+            else if (typeof(T) == typeof(short))
             {
                 if (Heightmap.Shorts == null) throw new InvalidOperationException($"{ nameof(Heightmap.Shorts) } is a null.");
                 heights = (T[])(object)Heightmap.Shorts;
             }
-            else if (typeOfT == typeof(byte))
+            else if (typeof(T) == typeof(byte))
             {
                 if (Heightmap.Bytes == null) throw new InvalidOperationException($"{ nameof(Heightmap.Bytes) } is a null.");
                 heights = (T[])(object)Heightmap.Bytes;
             }
             else
             {
-                throw new NotSupportedException($"{ typeof(UnmanagedArray<T>) } type is not supported.");
+                throw new NotSupportedException($"{ typeof(Span<T>) } type is not supported.");
             }
 
-            var heightsLength = heights.Length;
-            if (heightStickArrayLength < heightsLength) throw new ArgumentException($"{ nameof(heightStickArray) }.{ nameof(heightStickArray.Length) } is not enough to copy.");
-
-            heightStickArray.Write(heights, index * Unsafe.SizeOf<T>(), 0, heightsLength);
+            heights.AsSpan().CopyTo(heightStickArray);
         }
 
         public bool Match(object obj)

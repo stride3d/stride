@@ -35,9 +35,9 @@ internal sealed class CoreAssetsEditorPlugin : AssetsEditorPlugin
         }
     }
 
-    public override void RegisterPasteProcessors(ICollection<IPasteProcessor> pasteProcessors, SessionViewModel session)
+    public override void RegisterPasteProcessors(ICollection<IPasteProcessor> pasteProcessors, ISessionViewModel session)
     {
         pasteProcessors.Add(new AssetPropertyPasteProcessor());
-        pasteProcessors.Add(new AssetItemPasteProcessor(session));
+        pasteProcessors.Add(new AssetItemPasteProcessor((SessionViewModel)session));
     }
 }

@@ -46,7 +46,7 @@ public sealed class CompanionPackage
     [DataMember(3)]
     public List<string> Replaces { get; } = [];
 
-    /// <summary>The UI toolkit of an <see cref="PackageKind.Editor"/> companion's views (Wpf); null for a toolkit-neutral one.</summary>
+    /// <summary>The UI toolkit of an <see cref="PackageKind.Editor"/> companion's views (Wpf or Avalonia); null for a toolkit-neutral one.</summary>
     [DataMember(4)]
     [DefaultValue(null)]
     public string? Toolkit { get; set; }

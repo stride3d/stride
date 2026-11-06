@@ -19,7 +19,7 @@ namespace Stride.SpriteStudio.Editor;
 /// </summary>
 public sealed class SpriteStudioEditorPlugin : StrideAssetsPlugin
 {
-    public override void InitializeSession(SessionViewModel session)
+    public override void InitializeSession(ISessionViewModel session)
     {
         session.AssetViewProperties.RegisterNodePresenterUpdater(new SpriteStudioNodeLinkNodeUpdater());
     }

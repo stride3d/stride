@@ -29,6 +29,7 @@
     <Compile Include="TestAssetFileExtensionDeclarations.cs" />
     <Compile Include="TestHeightmapAssetCompatibility.cs" />
     <Compile Include="TestPluginPackageUpgrade.cs" />
+    <Compile Include="TestUpgraderGates.cs" />
     <Compile Include="TestAudioProjectUpgrade.cs" />
     <Compile Include="TestAssetConstantsTargets.cs" />
     <Compile Include="TestFFmpegTool.cs" />
@@ -42,6 +43,8 @@
     <Compile Include="XunitAttributes.cs" />
     <Compile Include="TestMaterialGenerator.cs" />
     <Compile Include="AssetImportTests.cs" />
+    <Compile Include="TestModelImport.cs" />
+    <Compile Include="TestModelMaterialSlots.cs" />
     <Compile Include="TestMorphImport.cs" />
     <Compile Include="TestGltfMaterialImport.cs" />
     <Compile Include="TestLegacyTextureRoles.cs" />

@@ -18,7 +18,7 @@ public abstract class DispatcherViewModel : ViewModelBase
     protected DispatcherViewModel(IViewModelServiceProvider serviceProvider)
         : base(serviceProvider)
     {
-        Dispatcher = serviceProvider.Get<IDispatcherService>();
+        Dispatcher = serviceProvider.TryGet<IDispatcherService>() ?? new NullDispatcherService();
     }
 
     /// <summary>

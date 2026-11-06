@@ -38,9 +38,9 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             }
         }
 
-        public const RenderGroup TransformationGizmoGroup = RenderGroup.Group4;
+        public new const RenderGroup TransformationGizmoGroup = GizmoBase.TransformationGizmoGroup;
 
-        public const RenderGroupMask TransformationGizmoGroupMask = RenderGroupMask.Group4;
+        public new const RenderGroupMask TransformationGizmoGroupMask = GizmoBase.TransformationGizmoGroupMask;
 
         private bool transformationInitialized;
         private bool duplicationDone;
