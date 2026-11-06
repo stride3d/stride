@@ -54,6 +54,9 @@ jobs:
     # though the managed pack above runs on Linux.
     runs-on: windows-2025-vs2026
     environment: production
+    permissions:
+      contents: read
+      id-token: write # nuget.org trusted publishing
     steps:
       # The sign tool version is pinned in build/package/dotnet-tools.json: check out only that file
       - uses: actions/checkout@v7
@@ -87,6 +90,13 @@ jobs:
             --azure-key-vault-url "https://${{ secrets.STRIDE_SIGN_KEYVAULT_NAME }}.vault.azure.net/" `
             -v Information
 
+      # A short-lived key from nuget.org's trusted publishing policy for this workflow file, instead of a stored one
+      - name: NuGet login
+        id: nuget-login
+        uses: NuGet/login@v1
+        with:
+          user: ${{ vars.STRIDE_NUGET_USER }}
+
       - name: Publish
         run: |
-          dotnet nuget push *.nupkg --api-key "${{ secrets.STRIDE_NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+          dotnet nuget push *.nupkg --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
