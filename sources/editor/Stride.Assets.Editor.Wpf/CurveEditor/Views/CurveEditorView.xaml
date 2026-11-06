@@ -9,7 +9,8 @@
              xmlns:behaviors1="clr-namespace:Stride.Assets.Presentation.CurveEditor.Views.Behaviors"
              xmlns:cmd="clr-namespace:Stride.Core.Presentation.Commands;assembly=Stride.Core.Presentation"
              xmlns:strings="clr-namespace:Stride.Assets.Presentation.Resources.Strings"
-             xmlns:viewModels="clr-namespace:Stride.Assets.Presentation.CurveEditor.ViewModels"
+             xmlns:viewModels="clr-namespace:Stride.Assets.Editor.ViewModels.CurveEditor;assembly=Stride.Assets.Editor"
+             xmlns:controlPoints="clr-namespace:Stride.Assets.Editor.ViewModels.CurveEditor.ControlPoints;assembly=Stride.Assets.Editor"
              xmlns:views="clr-namespace:Stride.Assets.Presentation.CurveEditor.Views"
              mc:Ignorable="d"
              d:DesignHeight="300" d:DesignWidth="300" d:DataContext="{d:DesignInstance viewModels:CurveEditorViewModel}">
@@ -114,7 +115,7 @@
           <ContentControl Content="{Binding SingleSelectedControlPoint}"
                           IsEnabled="{Binding HasContent, RelativeSource={RelativeSource Self}}">
             <ContentControl.ContentTemplate>
-              <DataTemplate DataType="{x:Type viewModels:ControlPointViewModelBase}">
+              <DataTemplate DataType="{x:Type controlPoints:ControlPointViewModelBase}">
                 <StackPanel Orientation="Horizontal">
                   <TextBlock Text="{sd:Localize Key}" VerticalAlignment="Center" Margin="4 0 0 0" />
                   <sd:NumericTextBox Value="{Binding ActualKey, Mode=TwoWay}" Width="80" Margin="4 0 0 0"
@@ -140,15 +141,15 @@
             <i:Interaction.Behaviors>
               <!-- adding point -->
               <sd:OnMouseEventBehavior EventType="MouseLeftButtonDown" Modifiers="Alt"
-                                         Command="{Binding AddPointCommand, Converter={x:Static views:CurveEditorInputCommand.Geometry}}" />
+                                         Command="{Binding AddPointCommand, Converter={x:Static views:CurveEditorInputCommand.Position}}" />
               <!-- deleting point(s) -->
               <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Delete"
                                            Command="{Binding DeleteSelectedPointsCommand}" />
               <!-- clicking anywhere -->
               <sd:OnMouseEventBehavior EventType="PreviewMouseLeftButtonDown"
-                                         Command="{Binding PreviewClickCommand, Converter={x:Static views:CurveEditorInputCommand.Geometry}}" />
+                                         Command="{Binding PreviewClickCommand, Converter={x:Static views:CurveEditorInputCommand.Click}}" />
               <!-- selecting a range of point -->
-              <sd:SelectionRectangleBehavior Canvas="{Binding ElementName=SelectionCanvas}" Command="{Binding SelectCommand, Converter={x:Static views:CurveEditorInputCommand.Geometry}}"
+              <sd:SelectionRectangleBehavior Canvas="{Binding ElementName=SelectionCanvas}" Command="{Binding SelectCommand, Converter={x:Static views:CurveEditorInputCommand.Selection}}"
                                                IsEnabled="{sd:MultiBinding {Binding IsControlPointHovered, Converter={sd:InvertBool}},
                                                                              {Binding SelectedCurve, Converter={sd:ObjectToBool}},
                                                                              Converter={sd:AndMultiConverter}}" />

@@ -20,7 +20,7 @@ using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Core.Threading;
 using Stride.Animations;
-using Stride.Assets.Presentation.CurveEditor.ViewModels;
+using Stride.Assets.Editor.ViewModels.CurveEditor;
 using Stride.Assets.Presentation.CurveEditor.Views;
 using AvalonDock.Layout;
 using Stride.GameStudio.Helpers;
