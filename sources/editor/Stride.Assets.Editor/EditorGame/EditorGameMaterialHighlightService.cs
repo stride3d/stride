@@ -21,6 +21,7 @@ using Stride.Rendering.Compositing;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
 using Stride.Assets.Editor.SceneEditor;
+using Stride.Core.Assets.Presentation.Services;
 
 namespace Stride.Assets.Editor.EditorGame;
 

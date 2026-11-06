@@ -13,6 +13,7 @@ using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Quantum;
 using Stride.Core.Serialization;
 using Stride.Rendering;
+using Stride.Core.Assets.Presentation.Services;
 
 namespace Stride.Assets.Presentation.Templates
 {

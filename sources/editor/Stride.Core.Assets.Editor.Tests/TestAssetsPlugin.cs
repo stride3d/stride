@@ -5,6 +5,7 @@ using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Diagnostics;
 using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Presentation.Services;
 
 namespace Stride.Core.Assets.Editor.Tests;
 

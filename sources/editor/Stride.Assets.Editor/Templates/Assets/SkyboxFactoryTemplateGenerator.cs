@@ -11,6 +11,7 @@ using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Templates;
 using Stride.Core.IO;
 using Stride.Graphics;
+using Stride.Core.Assets.Presentation.Services;
 
 namespace Stride.Assets.Editor.Templates;
 

@@ -5,6 +5,7 @@ using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Presentation.Quantum.ViewModels;
+using Stride.Core.Assets.Presentation.Services;
 
 namespace Stride.Core.Assets.Editor.Tests;
 

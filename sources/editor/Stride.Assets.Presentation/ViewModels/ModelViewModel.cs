@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Stride.Assets.Models;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Annotations;
-using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Extensions;
@@ -20,6 +19,7 @@ using Stride.Core.Reflection;
 using Stride.Rendering;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Presentation.Annotations;
+using Stride.Core.Assets.Presentation.Services;
 
 namespace Stride.Assets.Presentation.ViewModels;
 

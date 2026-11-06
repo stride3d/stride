@@ -9,6 +9,7 @@ using Stride.Core.Assets.Editor.Services;
 using Stride.Core;
 using Stride.Engine;
 using Stride.Rendering;
+using Stride.Core.Assets.Presentation.Services;
 
 namespace Stride.Assets.Editor.EntityFactories;
 
