@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Diagnostics;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.IO;
 
@@ -30,6 +31,7 @@ public sealed class GameCodeWatcher : IDisposable
     /// </summary>
     public static readonly TimeSpan DefaultBurstDelay = TimeSpan.FromMilliseconds(500);
 
+    private static readonly Logger Log = GlobalLogger.GetLogger(nameof(GameCodeWatcher));
     private static readonly StringComparison PathComparison = OperatingSystem.IsLinux() ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
     private static readonly StringComparer PathComparer = OperatingSystem.IsLinux() ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
 
@@ -50,6 +52,14 @@ public sealed class GameCodeWatcher : IDisposable
     /// <param name="burstDelay">The time without a change that ends a burst; <see cref="DefaultBurstDelay"/> when <c>null</c>.</param>
     /// <param name="watchFileSystem">Whether to watch the file system; the tests report the changes with <see cref="OnFileChanged"/>.</param>
     public GameCodeWatcher(IEnumerable<string> codeProjects, IEnumerable<string>? otherProjects = null, TimeSpan? burstDelay = null, bool watchFileSystem = true)
+        : this(codeProjects, otherProjects, burstDelay, watchFileSystem, static (watcher, project) => watcher.Track(project))
+    {
+    }
+
+    /// <summary>
+    /// Watches the code of the given projects, with a given way to start watching the folder of a code project (the tests make it fail).
+    /// </summary>
+    internal GameCodeWatcher(IEnumerable<string> codeProjects, IEnumerable<string>? otherProjects, TimeSpan? burstDelay, bool watchFileSystem, Action<DirectoryWatcher, string> trackProject)
     {
         ArgumentNullException.ThrowIfNull(codeProjects);
         BurstDelay = burstDelay ?? DefaultBurstDelay;
@@ -62,13 +72,29 @@ public sealed class GameCodeWatcher : IDisposable
 
         if (watchFileSystem && CodeProjects.Count > 0)
         {
-            directoryWatcher = new DirectoryWatcher();
-            directoryWatcher.Modified += (_, e) => OnFileChanged(e);
-            // The watcher follows the folder of a file, and its subfolders
-            foreach (var project in CodeProjects)
-                directoryWatcher.Track(project);
+            var watcher = new DirectoryWatcher();
+            watcher.Modified += (_, e) => OnFileChanged(e);
+            try
+            {
+                // The watcher follows the folder of a file, and its subfolders
+                foreach (var project in CodeProjects)
+                    trackProject(watcher, project);
+                directoryWatcher = watcher;
+            }
+            catch (Exception e)
+            {
+                // On Linux, a file system watcher fails to start past the inotify limits (fs.inotify.max_user_instances): the
+                // session still opens, without the offer to reload the game code
+                watcher.Dispose();
+                Log.Warning("The code of the game is not watched: the editor will not offer to reload it when it changes.", e);
+            }
         }
     }
+
+    /// <summary>
+    /// Whether the file system is watched: it is not when the watcher could not start.
+    /// </summary>
+    public bool IsWatchingFileSystem => directoryWatcher is not null;
 
     /// <summary>
     /// The project files of the watched projects.

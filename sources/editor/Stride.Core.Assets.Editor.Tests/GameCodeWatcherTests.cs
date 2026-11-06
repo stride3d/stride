@@ -41,6 +41,25 @@ public sealed class GameCodeWatcherTests : IDisposable
     }
 
     [Fact]
+    public void AWatcherThatCannotStartLetsTheSessionOpen()
+    {
+        // As on Linux past the inotify limits
+        using var watcher = new GameCodeWatcher([game], [head], TimeSpan.FromMilliseconds(100), watchFileSystem: true,
+            (_, _) => throw new IOException("The configured user limit (128) on the number of inotify instances has been reached."));
+
+        Assert.False(watcher.IsWatchingFileSystem);
+        Assert.Equal([Path.GetFullPath(game)], watcher.CodeProjects);
+    }
+
+    [Fact]
+    public void TheCodeProjectsAreWatched()
+    {
+        using var watcher = new GameCodeWatcher([game], [head]);
+
+        Assert.True(watcher.IsWatchingFileSystem);
+    }
+
+    [Fact]
     public async Task TheSourcesAndTheProjectFileOfAWatchedProjectCount()
     {
         using var watcher = CreateWatcher();
