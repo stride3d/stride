@@ -59,6 +59,30 @@ public sealed class TestPanelLayoutResolver
         Assert.Contains(new PanelRef(BuiltInPanels.References), resolved.Layout.FindGroup(DefaultPanelLayouts.BottomGroup)!.Panels);
     }
 
+    [Fact]
+    public void APanelHiddenWhenTheSessionOpensIsHiddenInItsPlaceOnlyThen()
+    {
+        var registry = CreateBuiltInRegistry();
+        registry.Register(new PanelDescriptor
+        {
+            Id = "Tests.Curves",
+            Title = () => "Curves",
+            DefaultPlacement = PanelPlacement.Document,
+            HiddenWhenSessionOpens = true,
+            CreateViewModel = _ => throw new NotSupportedException(),
+        });
+        // The session closed with the panel shown, next to the asset view
+        var saved = PanelLayoutResolver.CreateDefault(PanelLayoutKind.Normal, registry);
+        Assert.Empty(saved.Hidden);
+
+        var opening = PanelLayoutResolver.Resolve(saved, PanelLayoutKind.Normal, registry, sessionOpening: true);
+        var later = PanelLayoutResolver.Resolve(saved, PanelLayoutKind.Normal, registry);
+
+        Assert.Equal(["Tests.Curves"], opening.Layout.Hidden);
+        Assert.Equal([BuiltInPanels.AssetView, "Tests.Curves"], Ids(opening.Layout.FindGroup(DefaultPanelLayouts.CenterGroup)));
+        Assert.Empty(later.Layout.Hidden);
+    }
+
     [Theory]
     [InlineData(PanelLayout.CurrentVersion + 1, PanelLayoutFallback.OtherVersion)]
     [InlineData(0, PanelLayoutFallback.OtherVersion)]

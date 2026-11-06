@@ -52,6 +52,7 @@ public readonly record struct PanelBounds(double X, double Y, double Width, doub
 /// <item>A registered panel missing from the layout joins the group the default layout gives it, or the group named by
 /// <see cref="PanelDescriptor.DefaultGroup"/>, or a new group at <see cref="PanelDescriptor.DefaultPlacement"/>; hidden
 /// if it is not <see cref="PanelDescriptor.VisibleByDefault"/>.</item>
+/// <item>When a session opens, a panel that is <see cref="PanelDescriptor.HiddenWhenSessionOpens"/> is hidden, in its place.</item>
 /// <item>A group left empty is dropped, and a split left with one node is replaced by that node.</item>
 /// </list>
 /// </remarks>
@@ -68,7 +69,9 @@ public static class PanelLayoutResolver
     /// <param name="saved">The saved layout, or null.</param>
     /// <param name="kind">Which of the two layouts of the session.</param>
     /// <param name="registry">The registered panels.</param>
-    public static PanelLayoutResolution Resolve(PanelLayout? saved, PanelLayoutKind kind, PanelRegistry registry)
+    /// <param name="sessionOpening">Whether the layout is the first one of its kind shown since the session opened: the panels
+    /// that are <see cref="PanelDescriptor.HiddenWhenSessionOpens"/> are then hidden.</param>
+    public static PanelLayoutResolution Resolve(PanelLayout? saved, PanelLayoutKind kind, PanelRegistry registry, bool sessionOpening = false)
     {
         ArgumentNullException.ThrowIfNull(registry);
 
@@ -82,6 +85,14 @@ public static class PanelLayoutResolver
         layout.Version = PanelLayout.CurrentVersion;
         Prune(layout, registry);
         AddMissingPanels(layout, defaults, kind, registry);
+        if (sessionOpening)
+        {
+            foreach (var descriptor in registry.Panels.Where(x => x.HiddenWhenSessionOpens && !x.AllowsMultipleInstances))
+            {
+                if (!layout.Hidden.Contains(descriptor.Id))
+                    layout.Hidden.Add(descriptor.Id);
+            }
+        }
         return new PanelLayoutResolution(layout, fallback);
     }
 
