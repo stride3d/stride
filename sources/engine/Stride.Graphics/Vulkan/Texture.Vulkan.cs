@@ -398,6 +398,7 @@ namespace Stride.Graphics
             var beginInfo = new VkCommandBufferBeginInfo { sType = VkStructureType.CommandBufferBeginInfo, flags = VkCommandBufferUsageFlags.OneTimeSubmit };
             GraphicsDevice.NativeDeviceApi.vkBeginCommandBuffer(commandBuffer, &beginInfo);
 
+            GraphicsDevice.UploadBufferLease uploadLease = null;
             if (dataBoxes != null && dataBoxes.Length > 0)
             {
                 // Buffer-to-image copies need to be aligned to the pixel size and 4 (always a power of 2)
@@ -414,7 +415,7 @@ namespace Stride.Graphics
                     totalSize += dataBoxes[i].SlicePitch * GetMipMapDescription(mipSlice).Depth;
                 }
 
-                var uploadMemory = GraphicsDevice.AllocateUploadBuffer(totalSize, out var uploadResource, out var uploadOffset);
+                var uploadMemory = GraphicsDevice.AllocateUploadBuffer(totalSize, out var uploadResource, out var uploadOffset, out uploadLease);
 
                 // Upload buffer barrier
                 var uploadBarrier = PipelineBarriers.BufferBarrier(uploadResource, VkPipelineStageFlags.Host, VkAccessFlags.HostWrite, VkPipelineStageFlags.Transfer, VkAccessFlags.TransferRead, (ulong) uploadOffset, (ulong) totalSize);
@@ -511,6 +512,10 @@ namespace Stride.Graphics
 
             var copyFenceValue = GraphicsDevice.ExecuteAndWaitCopyQueueGPU(commandBuffer);
             GraphicsDevice.NativeCopyCommandPools.Value.RecycleObject(GraphicsDevice.CopyFence.NextFenceValue, commandBuffer);
+
+            // The copy is done: the upload buffer can be unmapped
+            if (uploadLease != null)
+                GraphicsDevice.ReleaseUploadBuffer(uploadLease);
 
             // Make sure any subsequent CPU access (i.e. MapSubresource) will wait for copy command list to be finished
             CopyFenceValue = copyFenceValue;

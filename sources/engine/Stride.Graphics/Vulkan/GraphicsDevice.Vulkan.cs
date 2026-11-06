@@ -78,6 +78,7 @@ namespace Stride.Graphics
         private IntPtr nativeUploadBufferStart;
         private int nativeUploadBufferSize;
         private int nativeUploadBufferOffset;
+        private UploadBufferLease nativeUploadBufferLease;
         private object nativeUploadBufferLock = new();
 
         internal FenceHelper FrameFence;
@@ -737,7 +738,28 @@ namespace Stride.Graphics
             }
         }
 
-        internal unsafe IntPtr AllocateUploadBuffer(int size, out VkBuffer resource, out int offset)
+        /// <summary>
+        ///   The callers that took space in one upload buffer and are not done with it yet. An upload buffer that is
+        ///   replaced stays mapped and alive until the last of them calls <see cref="ReleaseUploadBuffer"/>.
+        /// </summary>
+        internal sealed class UploadBufferLease
+        {
+            internal VkBuffer Buffer;
+            internal VkDeviceMemory Memory;
+            internal int Count;
+            internal bool Replaced;
+        }
+
+        /// <summary>
+        ///   Takes <paramref name="size"/> bytes of the shared upload buffer.
+        /// </summary>
+        /// <param name="lease">
+        ///   Passed to <see cref="ReleaseUploadBuffer"/> once the caller no longer writes the memory and no copy it submitted
+        ///   reads it anymore; a copy recorded in a <see cref="CommandList"/> runs with the frame, which the collection of a
+        ///   replaced buffer already waits for. Until then another thread can replace the buffer without unmapping it.
+        /// </param>
+        /// <returns>A pointer to the mapped memory, at <paramref name="offset"/> in <paramref name="resource"/>.</returns>
+        internal unsafe IntPtr AllocateUploadBuffer(int size, out VkBuffer resource, out int offset, out UploadBufferLease lease)
         {
             lock (nativeUploadBufferLock)
             {
@@ -745,9 +767,9 @@ namespace Stride.Graphics
                 {
                     if (nativeUploadBuffer != VkBuffer.Null)
                     {
-                        NativeDeviceApi.vkUnmapMemory(NativeDevice, nativeUploadBufferMemory);
-                        Collect(nativeUploadBuffer);
-                        Collect(nativeUploadBufferMemory);
+                        nativeUploadBufferLease.Replaced = true;
+                        if (nativeUploadBufferLease.Count == 0)
+                            CollectUploadBuffer(nativeUploadBufferLease);
                     }
 
                     // Allocate new buffer
@@ -768,15 +790,38 @@ namespace Stride.Graphics
                     fixed (IntPtr* nativeUploadBufferStartPtr = &nativeUploadBufferStart)
                         NativeDeviceApi.vkMapMemory(NativeDevice, nativeUploadBufferMemory, 0, (ulong)nativeUploadBufferSize, VkMemoryMapFlags.None, (void**)nativeUploadBufferStartPtr);
                     nativeUploadBufferOffset = 0;
+                    nativeUploadBufferLease = new UploadBufferLease { Buffer = nativeUploadBuffer, Memory = nativeUploadBufferMemory };
                 }
 
                 // Bump allocate
+                nativeUploadBufferLease.Count++;
+                lease = nativeUploadBufferLease;
                 resource = nativeUploadBuffer;
                 offset = nativeUploadBufferOffset;
                 nativeUploadBufferOffset += size;
 
                 return nativeUploadBufferStart + offset;
             }
+        }
+
+        /// <summary>
+        ///   Ends a use of the upload buffer that <see cref="AllocateUploadBuffer"/> gave <paramref name="lease"/> for. The last
+        ///   use of a buffer that was replaced meanwhile unmaps it and collects it.
+        /// </summary>
+        internal void ReleaseUploadBuffer(UploadBufferLease lease)
+        {
+            lock (nativeUploadBufferLock)
+            {
+                if (--lease.Count == 0 && lease.Replaced)
+                    CollectUploadBuffer(lease);
+            }
+        }
+
+        private unsafe void CollectUploadBuffer(UploadBufferLease lease)
+        {
+            NativeDeviceApi.vkUnmapMemory(NativeDevice, lease.Memory);
+            Collect(lease.Buffer);
+            Collect(lease.Memory);
         }
 
         internal unsafe ulong ExecuteAndWaitCopyQueueGPU(VkCommandBuffer commandBuffer)
@@ -936,6 +981,7 @@ namespace Stride.Graphics
 
                 nativeUploadBuffer = VkBuffer.Null;
                 nativeUploadBufferMemory = VkDeviceMemory.Null;
+                nativeUploadBufferLease = null;
             }
 
             // Release fenced resources

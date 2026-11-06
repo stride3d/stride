@@ -172,6 +172,7 @@ namespace Stride.Graphics
                 GraphicsDevice.NativeDeviceApi.vkBeginCommandBuffer(commandBuffer, &beginInfo);
 
                 // Copy to upload buffer
+                GraphicsDevice.UploadBufferLease uploadLease = null;
                 if (dataPointer != IntPtr.Zero)
                 {
                     if (Usage == GraphicsResourceUsage.Dynamic)
@@ -184,7 +185,7 @@ namespace Stride.Graphics
                     else
                     {
                         var sizeInBytes = bufferDescription.SizeInBytes;
-                        var uploadMemory = GraphicsDevice.AllocateUploadBuffer(sizeInBytes, out var uploadResource, out var uploadOffset);
+                        var uploadMemory = GraphicsDevice.AllocateUploadBuffer(sizeInBytes, out var uploadResource, out var uploadOffset, out uploadLease);
 
                         MemoryUtilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) dataPointer, (uint) sizeInBytes);
 
@@ -217,6 +218,10 @@ namespace Stride.Graphics
 
                 var copyFenceValue = GraphicsDevice.ExecuteAndWaitCopyQueueGPU(commandBuffer);
                 GraphicsDevice.NativeCopyCommandPools.Value.RecycleObject(GraphicsDevice.CopyFence.NextFenceValue, commandBuffer);
+
+                // The copy is done: the upload buffer can be unmapped
+                if (uploadLease != null)
+                    GraphicsDevice.ReleaseUploadBuffer(uploadLease);
 
                 // Make sure any subsequent CPU access (i.e. MapSubresource) will wait for copy command list to be finished
                 CopyFenceValue = copyFenceValue;

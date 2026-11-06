@@ -1902,10 +1902,13 @@ namespace Stride.Graphics
             // Buffer-to-image copies need to be aligned to the pixel size and 4 (always a power of 2)
             var alignmentMask = (blockSize < 4 ? 4 : blockSize) - 1;
 
-            var uploadMemory = GraphicsDevice.AllocateUploadBuffer(lengthInBytes + alignmentMask, out var uploadResource, out var uploadOffset);
+            var uploadMemory = GraphicsDevice.AllocateUploadBuffer(lengthInBytes + alignmentMask, out var uploadResource, out var uploadOffset, out var uploadLease);
             var alignment = ((uploadOffset + alignmentMask) & ~alignmentMask) - uploadOffset;
 
             MemoryUtilities.CopyWithAlignmentFallback((void*) (uploadMemory + alignment), (void*) databox.DataPointer, (uint) lengthInBytes);
+
+            // The copy recorded below runs with the frame, which a replaced upload buffer is collected after
+            GraphicsDevice.ReleaseUploadBuffer(uploadLease);
 
             // The host wrote the upload buffer, the copy reads it
             AddPendingBarrier(PipelineBarriers.BufferBarrier(uploadResource, VkPipelineStageFlags.Host, VkAccessFlags.HostWrite, VkPipelineStageFlags.Transfer, VkAccessFlags.TransferRead,

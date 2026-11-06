@@ -237,7 +237,7 @@ namespace Stride.Graphics
                 // runtime enhanced Barrier can take over — non-Common initial states are
                 // rejected by the D3D12 enhanced/legacy interop check.
                 // TODO: D3D12: Move that to a shared upload heap
-                var uploadMemory = GraphicsDevice.AllocateUploadBuffer(SizeInBytes, out var uploadResource, out var uploadOffset);
+                var uploadMemory = GraphicsDevice.AllocateUploadBuffer(SizeInBytes, out var uploadResource, out var uploadOffset, out var uploadLease);
                 MemoryUtilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) dataPointer, (uint) SizeInBytes);
 
                 var commandList = GraphicsDevice.NativeCopyCommandList;
@@ -264,6 +264,9 @@ namespace Stride.Graphics
                     // Make sure any subsequent CPU access (i.e. MapSubresource) will wait for copy command list to be finished
                     CopyFenceValue = copyFenceValue;
                 }
+
+                // The copy is done: the upload buffer can be unmapped
+                GraphicsDevice.ReleaseUploadBuffer(uploadLease);
             }
 
             // Default-heap buffers live in Common — non-default heaps live in their

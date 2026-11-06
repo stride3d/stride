@@ -279,7 +279,7 @@ namespace Stride.Graphics
                         ref placedSubresources.GetReference(), ref rowCounts.GetReference(), ref rowSizeInBytes.GetReference(), ref textureCopySize);
 
                     nint uploadMemory = GraphicsDevice.AllocateUploadBuffer((int)textureCopySize,
-                        out ComPtr<ID3D12Resource> uploadResource, out int uploadOffset, D3D12.TextureDataPlacementAlignment);
+                        out ComPtr<ID3D12Resource> uploadResource, out int uploadOffset, out var uploadLease, D3D12.TextureDataPlacementAlignment);
 
                     for (int i = 0; i < subresourceCount; ++i)
                     {
@@ -342,6 +342,9 @@ namespace Stride.Graphics
                         result.Throw();
 
                     CopyFenceValue = GraphicsDevice.ExecuteAndWaitCopyQueueGPU();
+
+                    // The copy is done: the upload buffer can be unmapped
+                    GraphicsDevice.ReleaseUploadBuffer(uploadLease);
                 }
 
                 // Defer temp texture release until the copy queue finishes executing.
@@ -397,6 +400,7 @@ namespace Stride.Graphics
                         if (result.IsFailure)
                             result.Throw();
 
+                        GraphicsDevice.UploadBufferLease uploadLease = null;
                         if (hasInitData)
                         {
                             // Enhanced Barrier Common → CopyDest for the upload.
@@ -422,6 +426,7 @@ namespace Stride.Graphics
                             nint uploadMemory = GraphicsDevice.AllocateUploadBuffer((int) textureCopySize,
                                                                                     out ComPtr<ID3D12Resource> uploadResource,
                                                                                     out int uploadOffset,
+                                                                                    out uploadLease,
                                                                                     D3D12.TextureDataPlacementAlignment);
                             for (int i = 0; i < subresourceCount; ++i)
                             {
@@ -478,6 +483,10 @@ namespace Stride.Graphics
                             result.Throw();
 
                         var copyFenceValue = GraphicsDevice.ExecuteAndWaitCopyQueueGPU();
+
+                        // The copy is done: the upload buffer can be unmapped
+                        if (uploadLease != null)
+                            GraphicsDevice.ReleaseUploadBuffer(uploadLease);
 
                         // Make sure any subsequent CPU access (i.e. MapSubresource) will wait for copy command list to be finished
                         CopyFenceValue = copyFenceValue;

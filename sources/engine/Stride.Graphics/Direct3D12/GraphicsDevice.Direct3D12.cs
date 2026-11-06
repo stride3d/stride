@@ -236,6 +236,8 @@ namespace Stride.Graphics
         private ID3D12Resource* nativeUploadBuffer;
         private nint nativeUploadBufferMappedAddress;   // Start address of the upload buffer mapped to CPU memory
         private int nativeUploadBufferOffset;           // Offset in bytes from the start of the upload buffer where data can be written
+        private UploadBufferLease nativeUploadBufferLease;   // The callers not done with the current upload buffer
+        private readonly object nativeUploadBufferLock = new();
 
         /// <summary>
         ///   The size in bytes of a Descriptor in a Descriptor heap for Shader Resource Views (SRVs), Unordered Acess Views (UAVs), etc.
@@ -754,18 +756,29 @@ namespace Stride.Graphics
         ///   When the method returns, contains the offset in bytes from the start of <paramref name="resource"/>
         ///   where data can be written to.
         /// </param>
+        /// <param name="lease">
+        ///   Passed to <see cref="ReleaseUploadBuffer"/> once the caller no longer writes the memory and no copy it submitted
+        ///   reads it anymore; a copy recorded in a <see cref="CommandList"/> runs with the frame, which the release of a
+        ///   replaced buffer already waits for. Until then another thread can replace the buffer without unmapping it.
+        /// </param>
         /// <param name="alignment">Optional alignment requisites on the returned writeable address.</param>
         /// <returns>
         ///   A pointer to the mapped Buffer memory that can be written. It already takes into account the
         ///   <paramref name="offset"/>.
         /// </returns>
-        internal IntPtr AllocateUploadBuffer(int size, out ComPtr<ID3D12Resource> resource, out int offset, int alignment = 0)
+        internal IntPtr AllocateUploadBuffer(int size, out ComPtr<ID3D12Resource> resource, out int offset, out UploadBufferLease lease, int alignment = 0)
         {
-            // TODO: D3D12: Thread safety, should we simply use locks?
-
             Debug.Assert(size > 0, "Size must be greater than zero.");
             Debug.Assert(alignment >= 0, "Alignment must be zero or greater.");
 
+            lock (nativeUploadBufferLock)
+            {
+                return AllocateUploadBufferLocked(size, out resource, out offset, out lease, alignment);
+            }
+        }
+
+        private IntPtr AllocateUploadBufferLocked(int size, out ComPtr<ID3D12Resource> resource, out int offset, out UploadBufferLease lease, int alignment)
+        {
             // Ensure the correct alignment for the offset in the current upload buffer
             if (alignment > 0)
                 nativeUploadBufferOffset = (nativeUploadBufferOffset + alignment - 1) / alignment * alignment;
@@ -773,12 +786,12 @@ namespace Stride.Graphics
             // If we have no upload buffer ready or its size is insufficient
             if (nativeUploadBuffer is null || (ulong)(nativeUploadBufferOffset + size) > nativeUploadBuffer->GetDesc().Width)
             {
-                // Unmap any upload buffer and put it in temporary resources that may be disposed in the future
+                // The replaced upload buffer is unmapped and released once its last caller is done with it
                 if (nativeUploadBuffer is not null)
                 {
-                    nativeUploadBuffer->Unmap(Subresource: 0, pWrittenRange: null);
-
-                    FrameTemporaryResources.Enqueue(FrameFence.NextFenceValue, ToComPtr(nativeUploadBuffer));
+                    nativeUploadBufferLease.Replaced = true;
+                    if (nativeUploadBufferLease.Count == 0)
+                        ReleaseReplacedUploadBuffer(nativeUploadBufferLease);
                 }
 
                 // Allocate new buffer
@@ -820,13 +833,46 @@ namespace Stride.Graphics
 
                 nativeUploadBufferMappedAddress = (nint) mappedBufferAddress;
                 nativeUploadBufferOffset = 0;
+                nativeUploadBufferLease = new UploadBufferLease { Buffer = nativeUploadBuffer };
             }
 
             // Bump allocate
+            nativeUploadBufferLease.Count++;
+            lease = nativeUploadBufferLease;
             resource = ToComPtr(nativeUploadBuffer);
             offset = nativeUploadBufferOffset;
             nativeUploadBufferOffset += size;
             return nativeUploadBufferMappedAddress + offset;
+        }
+
+        /// <summary>
+        ///   The callers that took space in one upload buffer and are not done with it yet. An upload buffer that is
+        ///   replaced stays mapped and alive until the last of them calls <see cref="ReleaseUploadBuffer"/>.
+        /// </summary>
+        internal sealed class UploadBufferLease
+        {
+            internal ID3D12Resource* Buffer;
+            internal int Count;
+            internal bool Replaced;
+        }
+
+        /// <summary>
+        ///   Ends a use of the upload buffer that <see cref="AllocateUploadBuffer"/> gave <paramref name="lease"/> for. The last
+        ///   use of a buffer that was replaced meanwhile unmaps it and puts it in the temporary resources of the frame.
+        /// </summary>
+        internal void ReleaseUploadBuffer(UploadBufferLease lease)
+        {
+            lock (nativeUploadBufferLock)
+            {
+                if (--lease.Count == 0 && lease.Replaced)
+                    ReleaseReplacedUploadBuffer(lease);
+            }
+        }
+
+        private void ReleaseReplacedUploadBuffer(UploadBufferLease lease)
+        {
+            lease.Buffer->Unmap(Subresource: 0, pWrittenRange: null);
+            FrameTemporaryResources.Enqueue(FrameFence.NextFenceValue, ToComPtr(lease.Buffer));
         }
 
         /// <summary>
@@ -940,6 +986,7 @@ namespace Stride.Graphics
             SafeRelease(ref dispatchCommandSignature);
 
             SafeRelease(ref nativeUploadBuffer);
+            nativeUploadBufferLease = null;
 
             // Release all deferred resources (GPU is fully flushed at this point)
             FrameTemporaryResources.ReleaseAll();

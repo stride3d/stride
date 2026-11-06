@@ -2193,9 +2193,12 @@ namespace Stride.Graphics
             void UpdateBuffer()
             {
                 var uploadSize = region.Right - region.Left;
-                var uploadMemory = GraphicsDevice.AllocateUploadBuffer(uploadSize, out var uploadResource, out var uploadOffset);
+                var uploadMemory = GraphicsDevice.AllocateUploadBuffer(uploadSize, out var uploadResource, out var uploadOffset, out var uploadLease);
 
                 MemoryUtilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) sourceData.DataPointer, (uint) uploadSize);
+
+                // The copy recorded below runs with the frame, which a replaced upload buffer is released after
+                GraphicsDevice.ReleaseUploadBuffer(uploadLease);
 
                 ResourceBarrierTransition(resource, BarrierLayout.CopyDest);
                 FlushResourceBarriers();
