@@ -22,7 +22,7 @@ using Stride.Engine;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services
 {
-    public abstract class EntityHierarchyEditorController : AssetCompositeHierarchyEditorController<EntityHierarchyEditorGame, EntityDesign, Entity, EntityHierarchyElementViewModel>
+    public abstract class EntityHierarchyEditorController : AssetCompositeHierarchyEditorController<EntityHierarchyEditorGame, EntityDesign, Entity, EntityHierarchyElementViewModel>, IEntityHierarchyEditorController
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="EntityHierarchyEditorController"/> class.

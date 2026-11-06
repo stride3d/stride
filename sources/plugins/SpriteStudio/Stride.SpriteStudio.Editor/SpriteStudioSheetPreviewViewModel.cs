@@ -14,7 +14,7 @@ public class SpriteStudioSheetPreviewViewModel : AssetPreviewViewModel
 {
     private SpriteStudioSheetPreview spriteStudioSheetPreview;
 
-    public SpriteStudioSheetPreviewViewModel(SessionViewModel session)
+    public SpriteStudioSheetPreviewViewModel(ISessionViewModel session)
         : base(session)
     {
         ResetModelCommand = new AnonymousCommand(ServiceProvider, ResetModel);

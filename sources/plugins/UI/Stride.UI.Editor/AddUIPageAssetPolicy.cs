@@ -15,7 +15,7 @@ namespace Stride.UI.Editor
     {
         /// <inheritdoc />
         [NotNull]
-        protected override EntityComponent CreateComponentFromAsset(EntityHierarchyItemViewModel parent, UIPageViewModel asset)
+        protected override EntityComponent CreateComponentFromAsset(IEntityHierarchyItemViewModel parent, UIPageViewModel asset)
         {
             return new UIComponent
             {

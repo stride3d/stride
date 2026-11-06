@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Core.Annotations;
 using Stride.Core.Presentation.Quantum.Presenters;
 
 namespace Stride.Core.Presentation.Quantum.ViewModels;
@@ -40,17 +39,16 @@ public class NodeViewModelFactory : INodeViewModelFactory
                 }
                 if (typeMatch)
                 {
-                    CreateNodeViewModel(owner, parent, child.First().Type, child);
+                    CreateNodeViewModel(owner, parent, child[0].Type, child);
                 }
             }
         }
     }
 
-    [NotNull]
-    protected virtual NodeViewModel CreateNodeViewModel(GraphViewModel owner, NodeViewModel parent, Type nodeType, List<INodePresenter> nodePresenters, bool isRootNode = false)
+    protected virtual NodeViewModel CreateNodeViewModel(GraphViewModel owner, NodeViewModel? parent, Type nodeType, List<INodePresenter> nodePresenters, bool isRootNode = false)
     {
         // TODO: properly compute the name
-        var viewModel = new NodeViewModel(owner, parent, nodePresenters.First().Name, nodeType, nodePresenters);
+        var viewModel = new NodeViewModel(owner, parent, nodePresenters[0].Name, nodeType, nodePresenters);
         if (isRootNode)
         {
             owner.RootNode = viewModel;
@@ -59,7 +57,6 @@ public class NodeViewModelFactory : INodeViewModelFactory
         return viewModel;
     }
 
-    [NotNull]
     protected virtual IEnumerable<List<INodePresenter>> CombineChildren(List<INodePresenter> nodePresenters)
     {
         var dictionary = new Dictionary<string, List<INodePresenter>>();
@@ -67,11 +64,10 @@ public class NodeViewModelFactory : INodeViewModelFactory
         {
             foreach (var child in nodePresenter.Children)
             {
-                List<INodePresenter> presenters;
                 // TODO: properly implement CombineKey
-                if (!dictionary.TryGetValue(child.CombineKey, out presenters))
+                if (!dictionary.TryGetValue(child.CombineKey, out var presenters))
                 {
-                    presenters = new List<INodePresenter>();
+                    presenters = [];
                     dictionary.Add(child.CombineKey, presenters);
                 }
                 presenters.Add(child);
@@ -86,7 +82,7 @@ public class NodeViewModelFactory : INodeViewModelFactory
         {
             var member = nodePresenter as MemberNodePresenter;
             var displayAttribute = member?.MemberAttributes.OfType<DisplayAttribute>().FirstOrDefault();
-            if (displayAttribute != null && !displayAttribute.Browsable)
+            if (displayAttribute?.Browsable == false)
                 return false;
         }
         return true;

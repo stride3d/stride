@@ -38,7 +38,7 @@ using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModel
 {
-    public class SessionViewModel : DirtiableEditableViewModel, IAssetFinder
+    public class SessionViewModel : DirtiableEditableViewModel, IAssetFinder, ISessionViewModel
     {
         public static string StorePackageCategoryName = Tr._("External packages");
         public static string LocalPackageCategoryName = Tr._("Local packages");
@@ -71,7 +71,8 @@ namespace Stride.Core.Assets.Editor.ViewModel
         [NotNull]
         public Task SaveCompletion => session.SaveCompletion;
 
-        internal void SetFileDeletedOutside(UFile filePath, bool deletedOutside) => session.SetFileDeletedOutside(filePath, deletedOutside);
+        /// <inheritdoc/>
+        public void SetFileDeletedOutside(UFile filePath, bool deletedOutside) => session.SetFileDeletedOutside(filePath, deletedOutside);
 
         public UFile SolutionPath => session.SolutionPath;
 
@@ -345,6 +346,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 serviceProvider.RegisterService(documentationService);
                 serviceProvider.RegisterService(selectionService);
                 serviceProvider.RegisterService(copyPasteService);
+                serviceProvider.RegisterService(new ThumbnailDataFactory());
 
                 // Create the actual session view model.
                 sessionViewModel = new SessionViewModel(serviceProvider, loggerResult, session, editor);
@@ -389,6 +391,9 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
             // Create the service that handles copy/paste
             serviceProvider.RegisterService(new CopyPasteService());
+
+            // Create the service that creates the thumbnails of the session objects that need WPF images
+            serviceProvider.RegisterService(new ThumbnailDataFactory());
 
             // Create the undo/redo service for this session. We use an initial size of 0 to prevent asset upgrade to be cancellable.
             var undoRedoService = new UndoRedoService(0);
@@ -518,6 +523,11 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 }
 
                 message.AppendLine();
+                if (pendingUpgrades.Any(x => x.Dependency.Version.MinVersion > x.PackageUpgrader.Attribute.UpdatedVersionRange.MinVersion))
+                {
+                    message.AppendLine(Tr._p("Message", "This moves the project to an older version. It may not load correctly, and upgrades can run again when you go back to a newer version."));
+                    message.AppendLine();
+                }
                 message.AppendLine(Tr._p("Message", "Upgrading assets might break them. We also recommend committing or backing up your project first."));
 
                 var buttons = new[]
@@ -1268,6 +1278,26 @@ namespace Stride.Core.Assets.Editor.ViewModel
         {
             ((IDictionary<AssetId, AssetViewModel>)assetIdMap).Remove(asset.Id);
         }
+
+        IAssetCollectionViewModel ISessionViewModel.ActiveAssetView => ActiveAssetView;
+
+        ISessionObjectPropertiesViewModel ISessionViewModel.AssetViewProperties => AssetViewProperties;
+
+        IAssetSourceTrackerViewModel ISessionViewModel.SourceTracker => SourceTracker;
+
+        IAssetLogViewModel ISessionViewModel.AssetLog => AssetLog;
+
+        void ISessionViewModel.RegisterAsset(AssetViewModel asset) => RegisterAsset(asset);
+
+        void ISessionViewModel.UnregisterAsset(AssetViewModel asset) => UnregisterAsset(asset);
+
+        void ISessionViewModel.RefreshRootAssetSelection() => RefreshRootAssetSelection();
+
+        void ISessionViewModel.ProcessAddedProjects(LoggerResult loggerResult, WorkProgressViewModel workProgress, bool packageAlreadyInSession) => ProcessAddedProjects(loggerResult, workProgress, packageAlreadyInSession);
+
+        void ISessionViewModel.ProcessRemovedProjects() => ProcessRemovedProjects();
+
+        Task ISessionViewModel.LoadAddedDependencies(LoggerResult loggerResult) => LoadAddedDependencies(loggerResult);
 
         /// <summary>
         /// Attempts to close the session. If the session has unsaved changes, ask the user wether to save it or not. If the user cancels

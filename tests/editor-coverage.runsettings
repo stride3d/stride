@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Run settings for the code coverage of the editor tests (test-editor-avalonia.yml).
+  Collects Cobertura coverage with Microsoft Code Coverage (shipped with Microsoft.NET.Test.Sdk,
+  so the VSTest xUnit 2 and xunit.v3 test projects need no extra package), restricted to the
+  editor-side assemblies: engine, core and test assemblies stay out.
+  Local run: pass this file to dotnet test of sources/Stride.Editor.Avalonia.slnf with its settings option.
+-->
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="Code Coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+          <CodeCoverage>
+            <ModulePaths>
+              <Include>
+                <!-- Stride.Editor*, Stride.Core.Assets.Editor*, Stride.Assets.Editor*, the plugin editors (Stride.<Plugin>.Editor*) -->
+                <ModulePath>.*[\\/]Stride\.[\w.]*Editor[\w.]*\.dll$</ModulePath>
+                <!-- Stride.Core.Presentation*, Stride.Core.Assets.Presentation, Stride.Assets.Presentation* -->
+                <ModulePath>.*[\\/]Stride\.[\w.]*Presentation[\w.]*\.dll$</ModulePath>
+                <ModulePath>.*[\\/]Stride\.GameStudio\.Avalonia[\w.]*\.dll$</ModulePath>
+              </Include>
+              <Exclude>
+                <ModulePath>.*\.Tests\.dll$</ModulePath>
+              </Exclude>
+            </ModulePaths>
+          </CodeCoverage>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>

@@ -67,7 +67,7 @@ namespace Stride.Rendering.Images
         /// </summary>
         /// <value>The sigma ratio.</value>
         /// <userdoc>The sigma ratio of the Gaussian. The sigma ratio is used to calculate the sigma of the Gaussian. 
-        /// The actual formula is <c>sigma = radius / SigmaRatio</c></userdoc>
+        /// The actual formula is sigma = radius / SigmaRatio.</userdoc>
         [DataMember(20)]
         public float SigmaRatio
         {

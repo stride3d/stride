@@ -13,7 +13,7 @@ namespace Stride.UI.Editor
     [Display(20, "UI", "2D")]
     public class UIEntityFactory : EntityFactory
     {
-        public override Task<Entity> CreateEntity(EntityHierarchyItemViewModel parent)
+        public override Task<Entity> CreateEntity(IEntityHierarchyItemViewModel parent)
         {
             var name = ComputeNewName(parent, "UI");
             var component = new UIComponent();

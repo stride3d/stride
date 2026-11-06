@@ -185,7 +185,7 @@ namespace Stride.GameStudio.AssetsEditors
             if (wasActive)
             {
                 // make asset view active, as when closing the editor
-                asset.Session.ActiveProperties = asset.Session.AssetViewProperties;
+                session.ActiveProperties = session.AssetViewProperties;
             }
             // The pane stays at its place, and the layout stays the editor layout, while the editor is replaced
             openedAssets.Remove(editorAsset);
@@ -415,7 +415,7 @@ namespace Stride.GameStudio.AssetsEditors
         private void CloseEditorWindow([NotNull] AssetViewModel asset)
         {
             // make asset view active
-            asset.Session.ActiveProperties = asset.Session.AssetViewProperties;
+            session.ActiveProperties = session.AssetViewProperties;
             // remove editor
             RemoveAssetEditor(asset);
             // if no more editor open, change layout

@@ -24,18 +24,18 @@ public enum TextureOptions
     ///     The only resources that can be shared are 2D non-mipmapped Textures.
     ///   </para>
     ///   <para>
-    ///     <see cref="Shared"/> and the Direct3D-specific <c>SharedKeyedMutex</c> flag are mutually exclusive.
+    ///     <see cref="Shared"/> and the Direct3D-specific <see cref="SharedKeyedMutex"/> flag are mutually exclusive.
     ///   </para>
     ///   <para>
     ///     Note that, starting with Windows 8, it is recommended to enable resource data sharing between two or more Direct3D devices
-    ///     by using a combination of the Direct3D-specific <c>SharedNtHandle</c> and <c>SharedKeyedMutex</c> flags instead.
+    ///     by using a combination of the Direct3D-specific <see cref="SharedNtHandle"/> and <see cref="SharedKeyedMutex"/> flags instead.
     ///   </para>
     /// </remarks>
     Shared = 2,
 
-#if STRIDE_GRAPHICS_API_DIRECT3D11
     /// <summary>
-    ///   Enables the Texture to be synchronized by using <see cref="Silk.NET.DXGI.IDXGIKeyedMutex"/> APIs.
+    ///   Enables the Texture to be synchronized by using <c>IDXGIKeyedMutex</c> APIs. Only Direct3D 11 supports it; the
+    ///   other graphics APIs ignore it.
     /// </summary>
     /// <remarks>
     ///   <para>
@@ -47,11 +47,17 @@ public enum TextureOptions
     ///   <para>
     ///     <see cref="Shared"/> and <see cref="SharedKeyedMutex"/> are mutually exclusive.
     ///   </para>
+    ///   <para>
+    ///     The Texture acquires and releases its mutex with <see cref="Texture.TryAcquireSync"/> and
+    ///     <see cref="Texture.ReleaseSync"/>. Alone, this flag gives the Texture a global shared handle
+    ///     (<see cref="Texture.SharedHandle"/>); with <see cref="SharedNtHandle"/>, an NT handle.
+    ///   </para>
     /// </remarks>
-    SharedKeyedMutex = 256,  // TODO: Support KeyedMutex from Texture
+    SharedKeyedMutex = 256,
 
     /// <summary>
-    ///   Enable the use of NT HANDLE values when you create a shared Texture.
+    ///   Enable the use of NT HANDLE values when you create a shared Texture. Only Direct3D 11 supports it; the other
+    ///   graphics APIs ignore it.
     /// </summary>
     /// <remarks>
     ///   <para>
@@ -68,5 +74,4 @@ public enum TextureOptions
     ///   </para>
     /// </remarks>
     SharedNtHandle = 2048
-#endif
 }

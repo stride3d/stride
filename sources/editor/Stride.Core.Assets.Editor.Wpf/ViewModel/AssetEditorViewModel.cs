@@ -30,13 +30,14 @@ namespace Stride.Core.Assets.Editor.ViewModel
         public IUndoRedoService UndoRedoService => ServiceProvider.Get<IUndoRedoService>();
 
         [NotNull]
-        public SessionObjectPropertiesViewModel EditorProperties => Asset.Session.AssetViewProperties;
+        public SessionObjectPropertiesViewModel EditorProperties => Session.AssetViewProperties;
 
         /// <summary>
         /// The current session.
         /// </summary>
         [NotNull]
-        public SessionViewModel Session => Asset.Session;
+        /// <remarks>Asset editors only exist in the editor's session, so the session of their asset is always a <see cref="SessionViewModel"/>.</remarks>
+        public SessionViewModel Session => (SessionViewModel)Asset.Session;
 
         /// <inheritdoc/>
         public virtual AssetViewModel Asset { get; }

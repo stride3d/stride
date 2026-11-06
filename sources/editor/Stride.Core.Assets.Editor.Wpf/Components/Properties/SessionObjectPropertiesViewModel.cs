@@ -21,7 +21,7 @@ namespace Stride.Core.Assets.Editor.Components.Properties
     /// belongs to a session. It adds specific associated data and command related to the session, and updates
     /// the <see cref="SessionViewModel.ActiveProperties"/> property when it creates a new view model.
     /// </summary>
-    public class SessionObjectPropertiesViewModel : PropertiesViewModel
+    public class SessionObjectPropertiesViewModel : PropertiesViewModel, ISessionObjectPropertiesViewModel
     {
         private static bool contextLock;
         private string typeDescription;
