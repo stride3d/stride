@@ -215,8 +215,10 @@ internal sealed class ModelComponentNodeUpdater : AssetNodePresenterUpdaterBase
         if (modelReference == null)
             return null;
 
-        var modelUrl = AttachedReferenceManager.GetUrl(modelReference);
-        return session.AllAssets.FirstOrDefault(x => x.Url == modelUrl)?.Asset as IModelAsset;
+        // By id: a lookup in the session instead of a scan of its assets, whatever the form of the URL
+        return AttachedReferenceManager.GetAttachedReference(modelReference) is { } reference
+            ? session.GetAssetById(reference.Id)?.Asset as IModelAsset
+            : null;
     }
 
     private static void SetMaterial(IObjectNode materialNode, NodeIndex index, Material value)
