@@ -2,6 +2,7 @@ Plugin: Stride.UI.Editor.Views.UIEditorAvaloniaPlugin
 AssetViewModelTypes:
 AssetEditorViewModelTypes:
 AssetEditorViewTypes:
+  Stride.UI.Editor.ViewModels.UILibraryEditorViewModel -> Stride.UI.Editor.Views.UILibraryEditorView
   Stride.UI.Editor.ViewModels.UIPageEditorViewModel -> Stride.UI.Editor.Views.UIPageEditorView
 AssetPreviewViewModelTypes:
 AssetPreviewViewTypes:
