@@ -60,7 +60,7 @@ namespace Stride.Core.Assets.Editor.Components.Transactions
         /// </summary>
         internal void Refresh()
         {
-            var dirtying = transaction.Operations.SelectMany(Presentation.Dirtiables.DirtiableManager.GetDirtyingOperations);
+            var dirtying = transaction.Operations.SelectMany(Stride.Core.Presentation.Dirtiables.DirtiableManager.GetDirtyingOperations);
             IsDone = dirtying.All(x => x.IsDone);
         }
 

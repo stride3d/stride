@@ -103,7 +103,7 @@ namespace Stride.Core.Assets.Editor.Components.Transactions
             if (e.Transaction.Operations.Count == 0)
                 return;
 
-            var dirtying = e.Transaction.Operations.SelectMany(Presentation.Dirtiables.DirtiableManager.GetDirtyingOperations);
+            var dirtying = e.Transaction.Operations.SelectMany(Stride.Core.Presentation.Dirtiables.DirtiableManager.GetDirtyingOperations);
             var dirtiables = new HashSet<AssetViewModel>(dirtying.SelectMany(x => x.Dirtiables.OfType<AssetViewModel>()));
             if (dirtiables.Count > 0)
             {
@@ -114,7 +114,7 @@ namespace Stride.Core.Assets.Editor.Components.Transactions
 
         private void TransactionUndoneOrRedone(object sender, TransactionEventArgs e)
         {
-            var dirtying = e.Transaction.Operations.SelectMany(Presentation.Dirtiables.DirtiableManager.GetDirtyingOperations);
+            var dirtying = e.Transaction.Operations.SelectMany(Stride.Core.Presentation.Dirtiables.DirtiableManager.GetDirtyingOperations);
             var dirtiables = new HashSet<AssetViewModel>(dirtying.SelectMany(x => x.Dirtiables.OfType<AssetViewModel>()));
             if (dirtiables.Count > 0)
             {

@@ -4,10 +4,10 @@
 namespace Stride.Core.Assets.Presentation.Quantum.ViewModels;
 
 /// <summary>
-/// Interface representing protected properties of <see cref="IAssetNodeViewModel"/> instances.
+/// Interface representing protected properties of <see cref="AssetNodeViewModel"/> instances.
 /// </summary>
 /// <remarks>
-/// This interface is purely internal and exists only because implementations of <see cref="IAssetNodeViewModel"/>
+/// This interface is purely internal and exists only because implementations of <see cref="AssetNodeViewModel"/>
 /// all inherit from generic classes and do not have a common non-generic base.
 /// </remarks>
 internal interface IInternalAssetNodeViewModel

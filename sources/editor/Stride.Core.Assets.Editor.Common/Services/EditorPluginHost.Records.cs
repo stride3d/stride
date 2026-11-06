@@ -289,7 +289,7 @@ public abstract partial class EditorPluginHost
             });
             OnCloseAction = record.Add;
 
-            Presentation.Quantum.GraphViewModelService GetGraphService()
+            Stride.Core.Presentation.Quantum.GraphViewModelService GetGraphService()
             {
                 return host.GetGraphViewModelService(session) ?? throw new InvalidOperationException("The session has no property grid.");
             }

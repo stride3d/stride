@@ -6,7 +6,6 @@ using Stride.Core.Reflection;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.Components.CopyPasteProcessors;
 using Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors;
 using Stride.Core.Annotations;
 
@@ -28,6 +27,8 @@ public abstract class PastePropertyCommandBase : NodePresenterCommandBase
 
     protected virtual bool CanPaste(IReadOnlyCollection<INodePresenter> nodePresenters)
     {
+        ArgumentNullException.ThrowIfNull(nodePresenters);
+
         foreach (var nodePresenter in nodePresenters)
         {
             var assetNodePresenter = nodePresenter as IAssetNodePresenter;
