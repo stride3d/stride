@@ -139,9 +139,11 @@ public sealed class TagsViewModelTests
 
     private static void AssertHistoryEntry(EditorSessionFixture fixture, string name)
     {
-        // The action history records the transaction after the asset properties changed notification, asynchronously
+        // The action history records the transaction after the asset properties changed notification, asynchronously, through the
+        // dispatcher: read it there too, not while it is added to
         var history = fixture.Session.ActionHistory;
-        Assert.True(SpinWait.SpinUntil(() => history.Transactions.Any(x => x.Name == name), TimeSpan.FromSeconds(10)), $"No history entry '{name}'");
+        var dispatcher = fixture.Session.Dispatcher;
+        Assert.True(SpinWait.SpinUntil(() => dispatcher.Invoke(() => history.Transactions.Any(x => x.Name == name)), TimeSpan.FromSeconds(10)), $"No history entry '{name}'");
     }
 
     private static TagViewModel Tag(EditorSessionFixture fixture, string name) => fixture.Session.AssetTags.Tags.Single(x => x.Name == name);
