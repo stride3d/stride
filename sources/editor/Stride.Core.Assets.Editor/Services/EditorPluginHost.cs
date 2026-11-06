@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Components.Properties;
+using Stride.Core.Assets.Editor.Commands;
 using Stride.Core.Assets.Editor.Panels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Quantum;
@@ -102,6 +103,8 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginCo
         typeImages = new PluginMap<Type, object>(null);
         declaredEnumImages = new PluginMap<object, object>(null);
         declaredTypeImages = new PluginMap<Type, object>(null);
+        Commands = new ContributionRegistry<CommandDescriptor>(ValidateCommand);
+        ToolbarWidgets = new ContributionRegistry<ToolbarWidgetDescriptor>(ValidateToolbarWidget);
 
         if (plugins is null)
         {
@@ -544,6 +547,8 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginCo
         var joined = sessionPlugins.Remove(plugin);
         // Its panels and its contributions to the declared registries go, whoever registered them for it
         Panels.UnregisterOwner(plugin);
+        Commands.UnregisterOwner(plugin);
+        ToolbarWidgets.UnregisterOwner(plugin);
         foreach (var registry in declaredRegistries.Values)
             registry.UnregisterOwner(plugin);
         RemoveStatus(plugin);

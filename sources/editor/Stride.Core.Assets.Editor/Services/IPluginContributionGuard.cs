@@ -43,6 +43,16 @@ public interface IPluginContributionGuard
     /// <param name="result">Its result, or the default value when it failed.</param>
     /// <returns>True if the code ran without error; false if it failed or the contribution is turned off.</returns>
     bool TryRun<T>(object? owner, string contribution, Func<T> function, [MaybeNullWhen(false)] out T result);
+
+    /// <summary>
+    /// Runs asynchronous code of a contribution, unless it is turned off: a failure before or after its first await is
+    /// contained the same way.
+    /// </summary>
+    /// <param name="owner">The plugin that registered the contribution.</param>
+    /// <param name="contribution">The contribution (see <see cref="PluginContributions"/>).</param>
+    /// <param name="action">The code.</param>
+    /// <returns>True if the code ran without error; false if it failed or the contribution is turned off.</returns>
+    Task<bool> TryRunAsync(object? owner, string contribution, Func<Task> action);
 }
 
 /// <summary>
@@ -69,4 +79,15 @@ public static class PluginContributions
     /// The view of a view model, from the view map of the plugin (<see cref="IEditorPluginContext.ViewTypes"/>).
     /// </summary>
     public static string View(Type viewModelType) => $"View {viewModelType.FullName}";
+
+    /// <summary>
+    /// A command of the plugin (<see cref="IEditorPluginContext.Commands"/>): its title in a context, whether it can run, and
+    /// running it.
+    /// </summary>
+    public static string Command(string commandId) => $"Command {commandId}";
+
+    /// <summary>
+    /// A toolbar widget of the plugin (<see cref="IEditorPluginContext.ToolbarWidgets"/>): its view model, created and destroyed.
+    /// </summary>
+    public static string ToolbarWidget(string widgetId) => $"ToolbarWidget {widgetId}";
 }

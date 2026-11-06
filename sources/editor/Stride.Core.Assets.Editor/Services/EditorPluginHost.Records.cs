@@ -3,6 +3,7 @@
 
 using System.Reflection;
 using Stride.Core.Assets.Editor.Components.Properties;
+using Stride.Core.Assets.Editor.Commands;
 using Stride.Core.Assets.Editor.Panels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Quantum.Presenters;
@@ -225,6 +226,8 @@ public abstract partial class EditorPluginHost
             ProfileSettings = new Registry<PackageSettingsEntry>(entry => RegisterInList(record, host.profileSettings, entry));
             Panels = new Registry<PanelDescriptor>(descriptor => record.Add(host.Panels.Register(descriptor, plugin).Dispose));
             ViewTypes = new Map<Type, Type>((viewModelType, viewType) => host.RegisterViewType(record, plugin, viewModelType, viewType));
+            Commands = new Registry<CommandDescriptor>(command => record.Add(host.Commands.Register(command, plugin).Dispose));
+            ToolbarWidgets = new Registry<ToolbarWidgetDescriptor>(widget => record.Add(host.ToolbarWidgets.Register(widget, plugin).Dispose));
         }
 
         public AssetsPlugin Plugin { get; }
@@ -266,6 +269,10 @@ public abstract partial class EditorPluginHost
         public IPluginRegistry<PanelDescriptor> Panels { get; }
 
         public IPluginMap<Type, Type> ViewTypes { get; }
+
+        public IPluginRegistry<CommandDescriptor> Commands { get; }
+
+        public IPluginRegistry<ToolbarWidgetDescriptor> ToolbarWidgets { get; }
 
         public IPluginRegistry<T> GetRegistry<T>() where T : class => host.GetRegistry<T>(record, Plugin);
     }

@@ -126,6 +126,20 @@ public interface IEditorPluginContext
     IPluginMap<Type, Type> ViewTypes { get; }
 
     /// <summary>
+    /// The commands of the plugin, placed in the menus, the context menus and the toolbar of the editor at named locations
+    /// (<see cref="Commands.CommandLocations"/>), with their shortcuts. The plugin owns them: when it leaves, they go. An editor
+    /// that shows no plugin commands (the WPF Game Studio) accepts them and shows nothing.
+    /// </summary>
+    IPluginRegistry<Commands.CommandDescriptor> Commands { get; }
+
+    /// <summary>
+    /// The widgets of the plugin in the main toolbar, after the command buttons, shown with the views of
+    /// <see cref="ViewTypes"/>. The plugin owns them: when it leaves, they go and their view models are destroyed. An editor
+    /// that shows no plugin widgets (the WPF Game Studio) accepts them and shows nothing.
+    /// </summary>
+    IPluginRegistry<Commands.ToolbarWidgetDescriptor> ToolbarWidgets { get; }
+
+    /// <summary>
     /// A registry that another layer of the editor declares (<see cref="EditorPluginHost.DeclareRegistry{T}"/>), for the
     /// contributions that this context does not name; the declaring layer usually gives it a typed extension method.
     /// </summary>

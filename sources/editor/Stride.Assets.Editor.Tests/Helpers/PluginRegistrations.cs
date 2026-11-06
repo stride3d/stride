@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Text;
+using Stride.Core.Assets.Editor.Commands;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Panels;
 using Stride.Core.Assets.Editor.Services;
@@ -71,6 +72,10 @@ public sealed class PluginRegistrations : IEditorPluginContext
 
     public Recorder<Type, Type> ViewTypes { get; } = new();
 
+    public ListRecorder<CommandDescriptor> Commands { get; } = new();
+
+    public ListRecorder<ToolbarWidgetDescriptor> ToolbarWidgets { get; } = new();
+
     /// <summary>
     /// The contributions registered with <see cref="IEditorPluginContext.GetRegistry{T}"/>, for each type of contribution.
     /// </summary>
@@ -116,6 +121,10 @@ public sealed class PluginRegistrations : IEditorPluginContext
     IPluginRegistry<PanelDescriptor> IEditorPluginContext.Panels => Panels;
 
     IPluginMap<Type, Type> IEditorPluginContext.ViewTypes => ViewTypes;
+
+    IPluginRegistry<CommandDescriptor> IEditorPluginContext.Commands => Commands;
+
+    IPluginRegistry<ToolbarWidgetDescriptor> IEditorPluginContext.ToolbarWidgets => ToolbarWidgets;
 
     IPluginRegistry<T> IEditorPluginContext.GetRegistry<T>() => GetRegistry<T>();
 
@@ -180,6 +189,10 @@ public sealed class PluginRegistrations : IEditorPluginContext
             Section(builder, nameof(Panels), Panels.Select(x => x.Id));
         if (ViewTypes.Count > 0)
             Section(builder, nameof(ViewTypes), Sorted(ViewTypes));
+        if (Commands.Count > 0)
+            Section(builder, nameof(Commands), Commands.Select(x => $"{x.Id} [{string.Join(", ", x.Placements.Select(p => p.Location))}]"));
+        if (ToolbarWidgets.Count > 0)
+            Section(builder, nameof(ToolbarWidgets), ToolbarWidgets.Select(x => x.Id));
         foreach (var (type, registry) in declaredRegistries.OrderBy(x => Name(x.Key), StringComparer.Ordinal))
             Section(builder, $"Registry<{Name(type)}>", ((System.Collections.IEnumerable)registry).Cast<object>().Select(x => x.ToString() ?? string.Empty));
         return builder.ToString();

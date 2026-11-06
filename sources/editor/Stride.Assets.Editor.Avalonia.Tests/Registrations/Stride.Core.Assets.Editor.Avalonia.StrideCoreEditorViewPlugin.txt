@@ -77,3 +77,5 @@ PasteProcessors:
 PostPasteProcessors:
 SettingsKeys:
 ProfileSettings:
+Commands:
+  Stride.PropertyGrid.ToggleNestedProperties [PropertyGrid/Context]
