@@ -142,6 +142,7 @@ public sealed class BepuSimulation : IDisposable
     /// <summary>
     /// The number of seconds per step to simulate. Lossy, prefer <see cref="FixedTimeStep"/>.
     /// </summary>
+    /// <inheritdoc cref="FixedTimeStep"/>
     [Display(3, "Fixed Time Step (s)", CategoryTime)]
     public double FixedTimeStepSeconds
     {
@@ -289,7 +290,7 @@ public sealed class BepuSimulation : IDisposable
     /// <remarks>
     /// Larger values improve performance at the cost of stability and precision.
     /// <para/>
-    /// A value between zero and <see cref="MaximumTimeSpanToProcess"/> cause all physics ticks to be postponed or dropped,
+    /// A value larger than <see cref="MaximumTimeSpanToProcess"/> causes all physics ticks to be postponed or dropped,
     /// see remarks for that property.
     /// </remarks>
     [DataMemberIgnore]
