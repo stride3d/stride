@@ -12,6 +12,7 @@ The editor for the core assets, shared by the WPF and the cross-platform (Avalon
 * The session (`SessionViewModel`), the asset collection and filters, the asset editors and their manager, the main window contract (`IMainViewModel`), the action history, the build and run of the game.
 * The plugin contracts and host: `AssetsPlugin`, `AssetsEditorPlugin`, `IAssetsPluginService`, `EditorPluginHost`, the editor and view attributes, `IEditorView`.
 * The Quantum node presenter commands, keys and updaters, the copy and paste processors and services, the asset builder service and the preview and thumbnail service contracts.
+* The panels of the main window, independent of any docking library (`Stride.Core.Assets.Editor.Panels`): `PanelDescriptor` and `PanelRegistry` (the panels of the editor and of plugins, owned per plugin), `IPanelViewModel`, `IPanelService` (implemented by each shell), the View menu (`ViewMenuViewModel`), the layout format (`PanelLayout`) with its default layouts and fallback rules (`DefaultPanelLayouts`, `PanelLayoutResolver`), and the per-session layout store (`SessionPanelLayoutStore`).
 * The editor and internal settings, the settings window, template description, add asset, fix references, asset picker and progress view models, the debug pages, notifications and the editor services (dialogs, clipboard, file explorer, documentation).
 
 The types are in the `Stride.Core.Assets.Editor` namespaces (view models in `Stride.Core.Assets.Editor.ViewModels`, paste processors in `Stride.Core.Assets.Editor.Components.CopyPasteProcessors`).
