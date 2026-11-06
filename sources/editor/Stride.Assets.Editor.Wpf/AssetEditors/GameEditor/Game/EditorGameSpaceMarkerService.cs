@@ -3,7 +3,6 @@
 using System.Threading.Tasks;
 using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
-using Stride.Assets.Presentation.AssetEditors.Gizmos;
 using Stride.Editor.EditorGame.Game;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
 using Stride.Assets.Editor.AssetEditors.Gizmos;

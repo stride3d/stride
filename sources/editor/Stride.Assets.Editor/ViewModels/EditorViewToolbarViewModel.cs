@@ -35,7 +35,7 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel, IEditorVie
     private bool displaySelectionMask;
 
     internal EditorViewToolbarViewModel(IViewModelServiceProvider serviceProvider, EditorGameToolService service, IEditorGameSelectionViewModelService? selection, EditorGameMaterialHighlightService? materialHighlight,
-        EditorGameComponentGizmoService? componentGizmos = null, IEnumerable<IEditorGameOverlayService>? overlays = null, EditorGameLightProbeGizmoService? lightProbes = null,
+        EditorGameComponentGizmoService? componentGizmos = null, IEnumerable<IEditorGameOverlayService>? overlays = null, IEditorGameLightProbeService? lightProbes = null,
         IEditorGameCameraViewModelService? camera = null)
         : base(serviceProvider)
     {
@@ -401,6 +401,6 @@ internal sealed class EditorViewToolbarFactory : IEditorViewOptionsFactory
 
         return new EditorViewToolbarViewModel(editor.ServiceProvider, toolService, controller.GetService<IEditorGameSelectionViewModelService>(),
             controller.GetService<EditorGameMaterialHighlightService>(), controller.GetService<EditorGameComponentGizmoService>(), controller.GetServices<IEditorGameOverlayService>(),
-            controller.GetService<EditorGameLightProbeGizmoService>(), controller.GetService<IEditorGameCameraViewModelService>());
+            controller.GetService<IEditorGameLightProbeService>(), controller.GetService<IEditorGameCameraViewModelService>());
     }
 }

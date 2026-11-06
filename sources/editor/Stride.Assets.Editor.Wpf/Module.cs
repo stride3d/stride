@@ -21,13 +21,9 @@ namespace Stride.Assets.Presentation
         [Core.ModuleInitializer]
         public static void Initialize()
         {
-            // This editor has its own versions of the light probe and wireframe gizmos and of the transformation service of the
-            // cross-platform editor, in the toolkit-neutral layer: the editor games leave those out
-            EditorGameDiscovery.Exclude(
-                typeof(Stride.Assets.Editor.Gizmos.LightProbeGizmo),
-                typeof(Stride.Assets.Editor.EditorGame.EditorGameLightProbeGizmoService),
-                typeof(Stride.Assets.Editor.EditorGame.WireframeGizmoStageService),
-                typeof(Stride.Assets.Editor.EditorGame.Tools.EditorGameToolService));
+            // This editor has its own transformation service, in place of the tool service of the cross-platform editor, in the
+            // toolkit-neutral layer: the editor games leave it out
+            EditorGameDiscovery.Exclude(typeof(Stride.Assets.Editor.EditorGame.Tools.EditorGameToolService));
             // Register the toolkit-neutral part of this layer before this assembly, so it is scanned first
             RuntimeHelpers.RunModuleConstructor(typeof(Stride.Assets.Editor.StrideEditorPlugin).Module.ModuleHandle);
             RuntimeHelpers.RunModuleConstructor(typeof(SpriteFontAsset).Module.ModuleHandle);

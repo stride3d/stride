@@ -14,7 +14,7 @@ namespace Stride.Assets.Editor.EditorGame;
 /// the collider shapes of the Physics package, the shapes of the particle systems and the light shaft volumes.
 /// </summary>
 /// <remarks>
-/// The cross-platform copy of the WPF <c>WireframeGizmoStageService</c>: without it these gizmos are created, but never drawn.
+/// Without it these gizmos are created, but never drawn.
 /// </remarks>
 [EditorGameService(typeof(EntityHierarchyEditorController), Order = 140)]
 public sealed class WireframeGizmoStageService : EditorGameServiceBase
