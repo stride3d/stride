@@ -14,9 +14,13 @@ namespace Stride.Core.Assets.Editor.Settings
 {
     /// <summary>
     /// The <see cref="MRUAdditionalData"/> of the most recently used sessions, kept in the internal settings file. Each change reads
-    /// the file first and writes it at once, so that several editors running at the same time (WPF and Avalonia among them) keep
-    /// each other's changes.
+    /// the file first and writes it at once, so that it keeps the changes of the other editors running at the same time (WPF and
+    /// Avalonia among them).
     /// </summary>
+    /// <remarks>
+    /// Another write of the file can still undo a later change of another editor: the WPF Game Studio writes all its internal
+    /// settings as it last read them, these data included. The Avalonia Game Studio writes only the settings it changed.
+    /// </remarks>
     public sealed class MRUAdditionalDataCollection
     {
         private sealed class MostRecentlyUsedFileEqualityComparer : IEqualityComparer<MRUAdditionalData>

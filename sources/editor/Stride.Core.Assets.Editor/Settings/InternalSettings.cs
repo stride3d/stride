@@ -7,14 +7,19 @@ using Stride.Core.Settings;
 
 namespace Stride.Core.Assets.Editor.Settings;
 
+/// <summary>
+/// The internal (not user-facing) settings of the editor, in the file the WPF Game Studio uses too.
+/// </summary>
 public static class InternalSettings
 {
     private static readonly SettingsProfile profile;
+    private static readonly ChangedSettingsWriter writer;
 
     static InternalSettings()
     {
         profile = LoadProfile(true);
         SettingsContainer.CurrentProfile = profile;
+        writer = new ChangedSettingsWriter(SettingsContainer, profile, EditorPath.InternalConfigPath);
     }
 
     public static SettingsContainer SettingsContainer { get; } = new();
@@ -46,8 +51,11 @@ public static class InternalSettings
         return SettingsContainer.LoadSettingsProfile(EditorPath.InternalConfigPath, false, null, registerProfile) ?? SettingsContainer.CreateSettingsProfile(false);
     }
 
+    /// <summary>
+    /// Writes the settings this editor changed to the file: the values another editor wrote since stay.
+    /// </summary>
     public static void SaveProfile()
     {
-        SettingsContainer.SaveSettingsProfile(profile, EditorPath.InternalConfigPath);
+        writer.Write();
     }
 }
