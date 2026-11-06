@@ -23,14 +23,15 @@ public record SinusoidalWaveRuntimeLayer : SinusoidalWaveSharedData, IHeightfiel
     /// <inheritdoc/>
     public IHeightfieldFunction BuildHeightfieldFunction()
     {
-        var rezToBuff = (1f / HeightfieldResolution) * Tiling;
-        return new Function(rezToBuff, HeightMultiplier);
+        // Coords are [0,field-1] we want to remap them into [0,1] to match shader
+        var coordTransform = Tiling / (HeightfieldResolution - 1);
+        return new Function(coordTransform, HeightMultiplier);
     }
 
     /// <inheritdoc/>
     public IComputeScalar BuildGpuSideSampler(MaterialGeneratorContext context)
     {
-        return new ComputeBinaryScalar(new Shader{ Tiling = Tiling }, new ComputeFloat(HeightMultiplier), BinaryOperator.Multiply);
+        return new ComputeBinaryScalar(new Shader { Tiling = Tiling }, new ComputeFloat(HeightMultiplier), BinaryOperator.Multiply);
     }
 
     /// <summary>
@@ -64,13 +65,13 @@ public record SinusoidalWaveRuntimeLayer : SinusoidalWaveSharedData, IHeightfiel
         public override string ToString() => ShaderName;
     }
 
-    private readonly record struct Function(Vector2 Tiling, float Multiplier) : IHeightfieldFunction
+    private readonly record struct Function(Vector2 CoordTransform, float Multiplier) : IHeightfieldFunction
     {
         public void FillSamples(Span<Sample> samples)
         {
             foreach (ref var sample in samples)
             {
-                var coord = (Vector2)sample.SampleCoord * Tiling;
+                var coord = (Vector2)sample.SampleCoord * CoordTransform;
                 sample.Height = MathF.Sin(coord.X) * MathF.Cos(coord.Y) * Multiplier;
             }
         }

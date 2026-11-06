@@ -12,7 +12,7 @@ using Stride.Core.Serialization.Contents;
 namespace Stride.Heightfield.Assets;
 
 /// <summary>
-/// Compute the smooth minimum between two heightfields 
+/// Compute the smooth minimum between two heightfields
 /// </summary>
 [DataContract]
 [Display("Smooth Min")]
@@ -20,7 +20,11 @@ public class SmoothMinOperator : IHeightfieldLayerBuilder
 {
     public required IHeightfieldLayerBuilder? A, B;
 
-    public float Smoothness = 4;
+    /// <summary>
+    /// The smoothness or distance of the blend range between the two layers
+    /// </summary>
+    /// <remarks> Setting to a value of zero is ignored </remarks>
+    public float Smoothness { get; set => field = value != 0 ? value : field; } = 4;
 
     /// <inheritdoc/>
     public IEnumerable<ObjectUrl> GetInputFiles()
@@ -43,7 +47,7 @@ public class SmoothMinOperator : IHeightfieldLayerBuilder
         A?.BuildRuntimeRepresentation(size, subdivision, commandContext, assetFinder, out aOutput, out aMinHeight, out aMaxHeight);
         B?.BuildRuntimeRepresentation(size, subdivision, commandContext, assetFinder, out bOutput, out bMinHeight, out bMaxHeight);
 
-        minHeight = float.Min(aMinHeight, bMinHeight);
+        minHeight = float.Min(aMinHeight, bMinHeight) - Smoothness * 0.25f;
         maxHeight = float.Max(aMaxHeight, bMaxHeight);
 
         output = new RuntimeLayer.SmoothMinRuntimeLayer

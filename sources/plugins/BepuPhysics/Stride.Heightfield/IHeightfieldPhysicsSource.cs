@@ -14,5 +14,9 @@ public interface IHeightfieldPhysicsSource : IHeightfieldSource
     /// <param name="coarseBlocksSubdivision">
     /// Amount of blocks along one axis. <paramref name="coarseBlocks"/> holds <paramref name="coarseBlocksSubdivision"/>^2 blocks.
     /// </param>
-    void GetColliderData(out IHeightfieldSampler sampler, out HeightRange[] coarseBlocks, out int coarseBlocksSubdivision);
+    /// <param name="coarseBlockInterval">
+    /// The amount of samples that a block overlaps, <paramref name="coarseBlocksSubdivision"/> * <paramref name="coarseBlockInterval"/>
+    /// must equal or exceed the heightfield's <see cref="IHeightfieldSource.Subdivision"/>
+    /// </param>
+    void GetColliderData(out IHeightfieldSampler sampler, out HeightRange[] coarseBlocks, out int coarseBlocksSubdivision, out int coarseBlockInterval);
 }

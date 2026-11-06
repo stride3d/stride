@@ -117,6 +117,7 @@ internal class NormalFromHeightAssetCompiler : AssetCompilerBase
 
             await DispatcherLowPriority.ForBatchedAsync(texResolution.Y, (yStart, yEnd) =>
             {
+                var xyScale = 2f / (Vector2)texResolution * Parameters.SizeInUnits;
                 for (int y = yStart; y < yEnd; y++)
                 {
                     CancellationToken.ThrowIfCancellationRequested();
@@ -138,16 +139,17 @@ internal class NormalFromHeightAssetCompiler : AssetCompilerBase
 
                         coord.Y -= 1;
 
-                        var pixelNormalizedSize = 1f / (Vector2)texResolution;
-                        var vec = (d1 - d0) / (2f * pixelNormalizedSize * Parameters.SizeInUnits);
+                        var normalXY1 = (d1 - d0) / xyScale;
+                        // normalizing as if this vector == float3(x, y, 1)
+                        normalXY1 /= float.Sqrt(1f + normalXY1.LengthSquared());
                         // Remap into texture range
-                        vec = vec * 0.5f + new Vector2(0.5f);
+                        normalXY1 = normalXY1 * 0.5f + new Vector2(0.5f);
                         if (Parameters.InvertX)
-                            vec.X = 1 - vec.X;
+                            normalXY1.X = 1 - normalXY1.X;
                         if (Parameters.InvertY)
-                            vec.Y = 1 - vec.Y;
+                            normalXY1.Y = 1 - normalXY1.Y;
 
-                        span[x] = (Half2)vec;
+                        span[x] = (Half2)normalXY1;
                     }
                 }
             });

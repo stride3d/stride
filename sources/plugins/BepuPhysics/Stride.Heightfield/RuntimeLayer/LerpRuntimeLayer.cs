@@ -14,20 +14,34 @@ namespace Stride.Heightfield.RuntimeLayer;
 public record LerpRuntimeLayer : IHeightfieldRuntimeLayer
 {
     /// <summary>
-    /// Each heightfield listed contributes additively to the final height 
+    /// The height that would be used when <see cref="BlendFactor"/> is entirely black (equal or less than zero),
+    /// otherwise a blend of this and <see cref="White"/>
     /// </summary>
-    public required IHeightfieldRuntimeLayer? Black, White, BlendFactor;
+    public required IHeightfieldRuntimeLayer? Black;
+
+    /// <summary>
+    /// The height that would be displayed when <see cref="BlendFactor"/> is completely white (equal or greater than one),
+    /// otherwise a blend of this and <see cref="Black"/>
+    /// </summary>
+    public required IHeightfieldRuntimeLayer? White;
+
+    /// <summary>
+    /// The value used to blend between <see cref="Black"/> and <see cref="White"/>;
+    /// a value of 0.5 would display a color halfway between them,
+    /// a value closer to zero would tend towards <see cref="Black"/> while a value closer to one would tend towards <see cref="White"/>
+    /// </summary>
+    public required IHeightfieldRuntimeLayer? BlendFactor;
 
     /// <inheritdoc/>
     public IHeightfieldFunction BuildHeightfieldFunction()
     {
         var stack = new Collector();
-        var blackFunction = Black?.BuildHeightfieldFunction();
-        var whiteFunction = White?.BuildHeightfieldFunction();
-        var blendFunction = BlendFactor?.BuildHeightfieldFunction();
-        blackFunction?.AppendTo(stack);
-        whiteFunction?.AppendTo(stack);
-        blendFunction?.AppendTo(stack);
+        var blackFunction = Black?.BuildHeightfieldFunction() ?? new FixedHeightRuntimeLayer { Height = 0 }.BuildHeightfieldFunction();
+        var whiteFunction = White?.BuildHeightfieldFunction() ?? new FixedHeightRuntimeLayer { Height = 0 }.BuildHeightfieldFunction();
+        var blendFunction = BlendFactor?.BuildHeightfieldFunction() ?? new FixedHeightRuntimeLayer { Height = 0 }.BuildHeightfieldFunction();
+        blackFunction.AppendTo(stack);
+        whiteFunction.AppendTo(stack);
+        blendFunction.AppendTo(stack);
         return stack.GetFunction();
     }
 
@@ -168,7 +182,7 @@ public record LerpRuntimeLayer : IHeightfieldRuntimeLayer
                     // DETERMINISM: Result of ClampNative is architecture dependant, bepu does not offer cross-platform determinism right now, but this may change
                     //              The edge cases where this differs might not be observed when fed through lerp, to be validated
                     var t = float.ClampNative(blendFactor, 0, 1);
-                    samples[i].Height = float.Lerp(whiteHeight, blackHeight, t);
+                    samples[i].Height = float.Lerp(blackHeight, whiteHeight, t);
                 }
             }
             else

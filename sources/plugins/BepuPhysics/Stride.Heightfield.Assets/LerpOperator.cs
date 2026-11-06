@@ -12,13 +12,30 @@ using Stride.Core.Serialization.Contents;
 namespace Stride.Heightfield.Assets;
 
 /// <summary>
-/// Interpolates between two heightfields 
+/// Interpolates between two heightfields
 /// </summary>
 [DataContract]
 [Display("Lerp")]
 public class LerpOperator : IHeightfieldLayerBuilder
 {
-    public required IHeightfieldLayerBuilder? Black, White, BlendFactor;
+    /// <summary>
+    /// The height that would be used when <see cref="BlendFactor"/> is entirely black (equal or less than zero),
+    /// otherwise a blend of this and <see cref="White"/>
+    /// </summary>
+    public required IHeightfieldLayerBuilder? Black;
+
+    /// <summary>
+    /// The height that would be displayed when <see cref="BlendFactor"/> is completely white (equal or greater than one),
+    /// otherwise a blend of this and <see cref="Black"/>
+    /// </summary>
+    public required IHeightfieldLayerBuilder? White;
+
+    /// <summary>
+    /// The value used to blend between <see cref="Black"/> and <see cref="White"/>;
+    /// a value of 0.5 would display a color halfway between them,
+    /// a value closer to zero would tend towards <see cref="Black"/> while a value closer to one would tend towards <see cref="White"/>
+    /// </summary>
+    public required IHeightfieldLayerBuilder? BlendFactor;
 
     /// <inheritdoc/>
     public IEnumerable<ObjectUrl> GetInputFiles()

@@ -16,21 +16,22 @@ namespace Stride.Heightfield.RuntimeLayer;
 [DataContract]
 public record SmoothMinRuntimeLayer : IHeightfieldRuntimeLayer
 {
-    /// <summary>
-    /// Each heightfield listed contributes additively to the final height 
-    /// </summary>
     public required IHeightfieldRuntimeLayer? A, B;
 
-    public float Smoothness = 4;
+    /// <summary>
+    /// The smoothness or distance of the blend range between the two layers
+    /// </summary>
+    /// <remarks> Setting to a value of zero is ignored </remarks>
+    public float Smoothness { get; set => field = value != 0 ? value : field; } = 4;
 
     /// <inheritdoc/>
     public IHeightfieldFunction BuildHeightfieldFunction()
     {
         var stack = new Collector(Smoothness);
-        var functionA = A?.BuildHeightfieldFunction();
-        var functionB = B?.BuildHeightfieldFunction();
-        functionA?.AppendTo(stack);
-        functionB?.AppendTo(stack);
+        var functionA = A?.BuildHeightfieldFunction() ?? new FixedHeightRuntimeLayer { Height = 0 }.BuildHeightfieldFunction();
+        var functionB = B?.BuildHeightfieldFunction() ?? new FixedHeightRuntimeLayer { Height = 0 }.BuildHeightfieldFunction();
+        functionA.AppendTo(stack);
+        functionB.AppendTo(stack);
         return stack.GetFunction();
     }
 
@@ -98,6 +99,8 @@ public record SmoothMinRuntimeLayer : IHeightfieldRuntimeLayer
         public unsafe void FillSamples(Span<Sample> samples)
         {
             Span<Sample> bSamples = stackalloc Sample[samples.Length];
+            samples.CopyTo(bSamples);
+
             FuncA.FillSamples(samples);
             FuncB.FillSamples(bSamples);
             for (int i = 0; i < samples.Length; i++)
@@ -126,7 +129,7 @@ public record SmoothMinRuntimeLayer : IHeightfieldRuntimeLayer
 
         [MaybeNull] public required IComputeScalar B { get; set; }
 
-        public required float Smoothness { get; set; }
+        public required float Smoothness { get; set => field = value != 0 ? value : field; } = 4;
 
         /// <inheritdoc/>
         public override IEnumerable<IComputeNode> GetChildren([MaybeNull] object context = null)

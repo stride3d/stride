@@ -19,7 +19,7 @@ public record SinusoidalWaveSharedData
     public float HeightMultiplier { get; set; } = 10;
 
     /// <summary>
-    /// The amount of waves on each axis stretched over the whole <see cref="Heightfield"/>
+    /// Increases the amount of waves on each axis stretched over the whole <see cref="Heightfield"/>
     /// </summary>
     public Vector2 Tiling { get; set; } = new(100);
 }
