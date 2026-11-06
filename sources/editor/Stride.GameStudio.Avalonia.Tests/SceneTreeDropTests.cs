@@ -292,7 +292,7 @@ public sealed class SceneTreeDropTests
         var window = new MainWindow { DataContext = fixture.Main, Width = 1600, Height = 1000 };
         try
         {
-            window.Show();
+            await window.ShowAsync();
             var sceneAsset = (SceneViewModel)fixture.Asset("MainScene");
             fixture.Session.AssetCollection.SelectAssets([sceneAsset]);
             await WindowTestHelper.PumpAsync();

@@ -45,7 +45,7 @@ internal sealed class UIEditorFixture : IAsyncDisposable
             // A dialog of the session would wait forever for an answer in a headless test
             var dialogs = fixture.ReplaceDialogService();
             window = new MainWindow { DataContext = fixture.Main, Width = 1600, Height = 1000 };
-            window.Show();
+            await window.ShowAsync();
             // The shell registers the clipboard of its main window before the session opens; the headless platform keeps one in memory
             fixture.ServiceProvider.RegisterService(new ClipboardService(window.Clipboard!));
             await fixture.OpenAsync();

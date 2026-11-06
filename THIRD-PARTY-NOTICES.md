@@ -53,6 +53,7 @@ Stride uses the following open-source products.
 * [AsyncEx](https://github.com/StephenCleary/AsyncEx) (MIT License)
 * [AvalonDock](https://github.com/Dirkster99/AvalonDock) (Ms-PL)
 * [AvaloniaEdit](https://github.com/AvaloniaUI/AvaloniaEdit) (MIT License)
+* [Dock](https://github.com/wieslawsoltes/Dock) (MIT License)
 * [TextMateSharp](https://github.com/danipen/TextMateSharp) (MIT License), with [Oniguruma](https://github.com/kkos/oniguruma) (BSD 2-clause License)
 * [DocFX](https://dotnet.github.io/docfx/) (MIT License)
 * [ffmpeg](https://ffmpeg.org/) (GPL 3)

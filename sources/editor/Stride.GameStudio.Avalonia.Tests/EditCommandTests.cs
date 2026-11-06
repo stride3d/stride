@@ -35,7 +35,7 @@ public sealed class EditCommandTests
     {
         using var fixture = ShellSessionFixture.Create();
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var edit = window.GetLogicalDescendants().OfType<MenuItem>().Single(x => Equals(x.Header, "Edit"));
@@ -423,7 +423,7 @@ public sealed class EditCommandTests
     {
         var fixture = ShellSessionFixture.Create(assets);
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         // The shell registers the clipboard of its main window before the session opens; the headless platform keeps one in memory
         fixture.ServiceProvider.RegisterService(new ClipboardService(window.Clipboard!));
         Assert.True(await fixture.Main.OpenSession(fixture.PackagePath));

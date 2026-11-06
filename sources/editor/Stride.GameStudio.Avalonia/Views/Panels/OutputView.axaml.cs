@@ -3,11 +3,11 @@
 
 using Avalonia.Controls;
 
-namespace Stride.GameStudio.Avalonia.Views;
+namespace Stride.GameStudio.Avalonia.Views.Panels;
 
-public partial class EditorCollectionView : UserControl
+public sealed partial class OutputView : UserControl
 {
-    public EditorCollectionView()
+    public OutputView()
     {
         InitializeComponent();
     }

@@ -30,7 +30,7 @@ public sealed class PropertyGridReferenceTests
         using var fixture = await OpenModelWithSkeletonAsync();
         // The property grid alone, wider than in the main window of the headless screen
         var window = new Window { Content = new PropertyGridView { DataContext = fixture.Session.ActiveProperties } };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var field = await SkeletonFieldAsync(fixture, window);
@@ -63,7 +63,7 @@ public sealed class PropertyGridReferenceTests
         using var fixture = await OpenModelWithSkeletonAsync();
         // The property grid alone, wider than in the main window of the headless screen
         var window = new Window { Content = new PropertyGridView { DataContext = fixture.Session.ActiveProperties } };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var field = await SkeletonFieldAsync(fixture, window);

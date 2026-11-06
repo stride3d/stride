@@ -30,6 +30,8 @@ using Stride.Editor.Avalonia.Engine;
 using Stride.Editor.Avalonia.Preview;
 using Stride.Editor.Settings;
 using Stride.Editor.Thumbnails;
+using Dock.Settings;
+using Stride.GameStudio.Avalonia.Docking;
 using Stride.GameStudio.Avalonia.Services;
 using Stride.GameStudio.Avalonia.Settings;
 using Stride.GameStudio.Avalonia.ViewModels;
@@ -66,6 +68,8 @@ public partial class App : Application
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
+        // The views of the panels and editors of the main window and of its floating windows
+        DataTemplates.Add(new DockViewLocator());
 
         InitializePlugins();
 
@@ -78,6 +82,9 @@ public partial class App : Application
         SetVariant(GameStudioEditorSettings.ThemeVariant.GetValue());
         GameStudioEditorSettings.ThemeAccent.ChangesValidated += ThemeAccent_ChangesValidated;
         GameStudioEditorSettings.ThemeVariant.ChangesValidated += ThemeVariant_ChangesValidated;
+        // Floating windows of the OS, or drawn inside the main window; the setting applies to the next window that floats
+        DockSettings.UseManagedWindows = GameStudioEditorSettings.FloatingWindowsInsideMainWindow.GetValue();
+        GameStudioEditorSettings.FloatingWindowsInsideMainWindow.ChangesValidated += (_, _) => DockSettings.UseManagedWindows = GameStudioEditorSettings.FloatingWindowsInsideMainWindow.GetValue();
         return;
 
         void ThemeAccent_ChangesValidated(object? sender, ChangesValidatedEventArgs _)

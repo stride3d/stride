@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Avalonia.Controls;
+using Stride.Core.Assets.Editor.Panels;
 using Avalonia.Headless.XUnit;
 using Avalonia.VisualTree;
 using Stride.Assets.Models;
@@ -70,7 +71,7 @@ public sealed class AssetPreviewTests
         var first = fixture.Asset(FirstLocation);
         var second = fixture.Asset(SecondLocation);
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var panel = window.GetVisualDescendants().OfType<AssetPreviewView>().Single();
@@ -97,20 +98,19 @@ public sealed class AssetPreviewTests
         using var fixture = await OpenAsync();
         var preview = RegisterPreviewService(fixture);
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             fixture.Session.AssetCollection.SelectAssets([fixture.Asset(FirstLocation)]);
             await WindowTestHelper.PumpAsync();
-            var previewTab = window.GetVisualDescendants().OfType<TabItem>().Single(x => Equals(x.Header, "Asset preview"));
-            var historyTab = window.GetVisualDescendants().OfType<TabItem>().Single(x => Equals(x.Header, "Edit history"));
-
-            historyTab.IsSelected = true;
+            // The preview and the history share a group: selecting the history's tab hides the preview
+            Assert.Same(fixture.Main.Panels.FindDockable(BuiltInPanels.AssetPreview)!.Owner, fixture.Main.Panels.FindDockable(BuiltInPanels.ActionHistory)!.Owner);
+            fixture.Main.Panels.Show(BuiltInPanels.ActionHistory);
             await WindowTestHelper.PumpAsync();
             Assert.False(fixture.Main.Preview!.IsPreviewVisible);
             Assert.Equal((0, 1), (preview.ShowCount, preview.HideCount));
 
-            previewTab.IsSelected = true;
+            fixture.Main.Panels.Show(BuiltInPanels.AssetPreview);
             await WindowTestHelper.PumpAsync();
             Assert.True(fixture.Main.Preview.IsPreviewVisible);
             Assert.Equal((1, 1), (preview.ShowCount, preview.HideCount));
@@ -149,7 +149,7 @@ public sealed class AssetPreviewTests
         fixture.Session.AssetCollection.SelectAssets([fixture.Asset(FirstLocation)]);
         await WindowTestHelper.PumpAsync();
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
 
         await window.CloseAsync();
 

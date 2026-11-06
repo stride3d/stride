@@ -100,7 +100,7 @@ public sealed class AssetPickerTests
         var other = fixture.Asset(OtherSkeletonLocation);
         dialogs.PickAsset = picker => picker.FilteredAssets.Single(x => x == other);
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var pickup = await ShowModelAndFindPickupButtonAsync(fixture, window, model, skeleton);
@@ -132,7 +132,7 @@ public sealed class AssetPickerTests
         var model = fixture.Asset(ModelLocation);
         var skeleton = fixture.Asset(SkeletonLocation);
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var pickup = await ShowModelAndFindPickupButtonAsync(fixture, window, model, skeleton);

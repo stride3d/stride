@@ -115,6 +115,8 @@
     <AvaloniaBehaviorVersion>12.0.0</AvaloniaBehaviorVersion>
     <AvaloniaMarkViewVersion>12.2.1</AvaloniaMarkViewVersion>
     <AvaloniaEditVersion>12.0.0</AvaloniaEditVersion>
+    <!-- The docking of the Avalonia Game Studio, pinned to an exact version: its 4-part versions follow Avalonia's minimum version -->
+    <DockVersion>12.1.0.6</DockVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
@@ -136,6 +138,10 @@
     <!-- The code editor (scripts): AvaloniaEdit, and TextMate grammars for the highlighting -->
     <PackageVersion Include="Avalonia.AvaloniaEdit" Version="$(AvaloniaEditVersion)" />
     <PackageVersion Include="AvaloniaEdit.TextMate" Version="$(AvaloniaEditVersion)" />
+    <!-- The panels and editors of the Avalonia Game Studio's main window (Dock.Avalonia, MIT): only its shell references them -->
+    <PackageVersion Include="Dock.Avalonia" Version="$(DockVersion)" />
+    <PackageVersion Include="Dock.Avalonia.Themes.Fluent" Version="$(DockVersion)" />
+    <PackageVersion Include="Dock.Model.Inpc" Version="$(DockVersion)" />
   </ItemGroup>
   <!-- Windows/WPF dependencies -->
   <ItemGroup>

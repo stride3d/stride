@@ -9,6 +9,7 @@ using Stride.Core.Assets.Editor.Components.Build;
 using Stride.Core.Assets.Editor.Components.Status;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Components.Transactions;
+using Stride.Core.Assets.Editor.Panels;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModels;
@@ -24,6 +25,7 @@ using Stride.Core.Presentation.Windows;
 using Stride.Core.Translation;
 using Stride.Editor;
 using Stride.Editor.Build;
+using Stride.GameStudio.Avalonia.Docking;
 using Stride.GameStudio.Avalonia.Helpers;
 using Stride.GameStudio.Avalonia.Services;
 using Stride.GameStudio.Avalonia.Settings;
@@ -34,6 +36,8 @@ namespace Stride.GameStudio.Avalonia.ViewModels;
 internal sealed class MainViewModel : ViewModelBase, IMainViewModel
 {
     private const int RecentFilesCount = 10;
+    // The owner of the editor's own panels in the panel registry
+    private const string BuiltInPanelsOwner = "Stride.GameStudio";
     private static readonly string baseTitle = StrideGameStudio.EditorTitle;
     private static bool msBuildFound;
     private SessionViewModel? session;
@@ -84,6 +88,14 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         Build = new BuildAndRunViewModel(serviceProvider, Status);
         CodeReload = new GameCodeReloadViewModel(serviceProvider, Build, ReloadSessionAsync);
         Notifications = serviceProvider.TryGet<INotificationService>();
+        Build.PropertyChanged += BuildPropertyChanged;
+
+        // The panels of the main window: the editor's and the plugins' (the plugin host owns the registry, and removes the
+        // panels of a plugin that leaves); their layouts are kept per session
+        var registry = (serviceProvider.TryGet<IAssetsPluginService>() as EditorPluginHost)?.Panels ?? new PanelRegistry();
+        Panels = new DockPanelService(serviceProvider, registry, GameStudioInternalSettings.CreateSessionPanelLayouts());
+        RegisterBuiltInPanels(registry);
+        ViewMenu = new ViewMenuViewModel(serviceProvider, Panels);
 
         // The most recently used sessions of this and the earlier editor versions
         MRU = GameStudioInternalSettings.CreateMostRecentlyUsedFiles();
@@ -124,6 +136,16 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     /// The background operations shown in the notification bar; <c>null</c> when the host has no bar.
     /// </summary>
     public INotificationService? Notifications { get; }
+
+    /// <summary>
+    /// The panels and editors of the main window, and their layouts.
+    /// </summary>
+    public DockPanelService Panels { get; }
+
+    /// <summary>
+    /// The View menu: a toggle per panel, and Reset layout.
+    /// </summary>
+    public ViewMenuViewModel ViewMenu { get; }
 
     /// <summary>
     /// The asset preview panel of the session; <c>null</c> without a session.
@@ -412,6 +434,9 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
             sessionData.RemoveFile(dataPath);
         editorsRestorer = new SessionEditorsRestorer(Session, sessionData, dataPath);
 
+        // The panels, in the layout the session had in this editor (kept under the same path as its editors)
+        Panels.OpenSession(Session, dataPath);
+
         // The build the session runs when it opens: thumbnails and previews wait for it. Shown before the editors open, which
         // takes long enough for a build that has nothing to do to finish
         _ = ShowShaderImportAsync(Session);
@@ -444,6 +469,33 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
             history.RedoCommand.CanExecuteChanged += UpdateUndoRedo;
         }
         UpdateUndoRedo(null, EventArgs.Empty);
+    }
+
+    /// <summary>
+    /// Registers the panels of the editor: those of the session, the Output and the Asset preview.
+    /// </summary>
+    /// <remarks>
+    /// They replace those of an earlier main view model of the process, if any: the plugin host outlives it in the tests.
+    /// </remarks>
+    private void RegisterBuiltInPanels(PanelRegistry registry)
+    {
+        registry.UnregisterOwner(BuiltInPanelsOwner);
+        foreach (var descriptor in BuiltInPanels.CreateSessionPanels())
+            registry.Register(descriptor, BuiltInPanelsOwner);
+        registry.Register(BuiltInPanels.CreateOutputPanel(Build), BuiltInPanelsOwner);
+        // The preview service exists once the plugins have initialized the session, before the panels are created
+        registry.Register(BuiltInPanels.CreatePreviewPanel(context => new AssetPreviewPanelViewModel(context, Preview ?? throw new InvalidOperationException("The session has no preview."))), BuiltInPanelsOwner);
+    }
+
+    /// <summary>
+    /// A build brings the Output forward, as in WPF.
+    /// </summary>
+    private void BuildPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        // The Output shows its messages as seen while it is shown (OutputPanelViewModel); a build sets it, and the panel comes
+        // forward, even from a hidden or unselected tab
+        if (e.PropertyName == nameof(BuildAndRunViewModel.IsOutputVisible) && Build.IsOutputVisible)
+            Panels.Show(BuiltInPanels.BuildLog);
     }
 
     private void UpdateUndoRedo(object? sender, EventArgs e)
@@ -659,9 +711,14 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         // The editors open now are those to open next time; closing them below must not change it
         editorsRestorer?.Stop();
         editorsRestorer = null;
+        // The layout shown is saved, and stays the one with editors while they close
+        Panels.BeginClose();
 
         // What the editors had unsaved is now saved, or dropped by the user
-        return await session.EditorCollection.CloseAllEditorsAsync(false);
+        if (await session.EditorCollection.CloseAllEditorsAsync(false))
+            return true;
+        Panels.CancelClose();
+        return false;
     }
 
     /// <summary>
@@ -671,6 +728,8 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     /// </summary>
     internal void CloseSessionServices()
     {
+        // The panels go before the services they show
+        Panels.CloseSession();
         Preview?.Dispose();
         Preview = null;
         if (Build.CancelBuildCommand.IsEnabled)
