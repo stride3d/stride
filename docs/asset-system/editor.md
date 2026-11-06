@@ -49,6 +49,7 @@ What can be overridden or extended:
 
 - Add computed properties (read-only, no Quantum backing node required).
 - Override `UpdateAssetFromSource` (`protected internal virtual Task UpdateAssetFromSource(Logger logger)`) as a general refresh/sync hook: the editor calls it whenever the asset needs to be re-synchronized with external state (e.g. a source file change, a manual reload request, or another editor-triggered refresh).
+- Override `OnAssetReplaced` (`protected virtual void OnAssetReplaced(Asset previousAsset)`, calling the base implementation) when the view model keeps state built from the asset instance, such as event handlers on its Quantum nodes: the asset can be replaced by another instance while the view model lives on, when its file is changed outside of GameStudio and reloaded, or when an assembly reload replaces it as a whole.
 - Attach commands by creating `AnonymousCommand` instances and surfacing them as properties; command buttons can then be bound from XAML templates.
 - Access editor services through the inherited `ServiceProvider`.
 

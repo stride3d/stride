@@ -3,6 +3,7 @@
 
 using System.Linq;
 using Stride.Assets.Models;
+using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Quantum;
@@ -14,7 +15,7 @@ namespace Stride.Assets.Presentation.ViewModel
     [AssetViewModel<ProceduralModelAsset>]
     public class ProceduralModelViewModel : AssetViewModel<ProceduralModelAsset>
     {
-        private readonly IMemberNode typeNode;
+        private IMemberNode typeNode;
 
         public ProceduralModelViewModel(AssetViewModelConstructionParameters parameters)
             : base(parameters)
@@ -27,6 +28,15 @@ namespace Stride.Assets.Presentation.ViewModel
         {
             typeNode.ValueChanged -= TypeChanged;
             base.Destroy();
+        }
+
+        /// <inheritdoc />
+        protected override void OnAssetReplaced(Asset previousAsset)
+        {
+            typeNode.ValueChanged -= TypeChanged;
+            typeNode = AssetRootNode[nameof(ProceduralModelAsset.Type)];
+            typeNode.ValueChanged += TypeChanged;
+            base.OnAssetReplaced(previousAsset);
         }
 
         private void TypeChanged(object sender, MemberNodeChangeEventArgs e)

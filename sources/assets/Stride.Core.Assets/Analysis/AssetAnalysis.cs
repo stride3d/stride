@@ -91,11 +91,29 @@ public static class AssetAnalysis
 
         if (parameters.IsProcessingUPaths)
         {
-            // Find where this asset item was previously stored (in a different package for example)
-            CommonAnalysis.UpdatePaths(assetItem, assetReferences.Where(link => link.Reference is UPath), parameters);
-            // Source hashes are not processed by analysis, we need to manually indicate them to update
-            SourceHashesHelper.UpdateUPaths(assetItem.Asset, assetItem.FullPath.GetParent(), parameters.ConvertUPathTo);
+            UpdateUPaths(assetItem, assetReferences, parameters);
         }
+    }
+
+    /// <summary>
+    /// Converts the paths (<see cref="UPath"/>) in the given asset, its source hashes included, to absolute paths or to paths relative to its file,
+    /// as a package does for its assets: they are absolute once loaded, and relative in their files.
+    /// </summary>
+    /// <param name="assetItem">The asset item whose paths to convert.</param>
+    /// <param name="convertTo">The type of path to convert to.</param>
+    public static void ConvertUPaths(AssetItem assetItem, UPathType convertTo)
+    {
+        ArgumentNullException.ThrowIfNull(assetItem);
+
+        UpdateUPaths(assetItem, AssetReferenceAnalysis.Visit(assetItem.Asset), new AssetAnalysisParameters { IsProcessingUPaths = true, ConvertUPathTo = convertTo });
+    }
+
+    private static void UpdateUPaths(AssetItem assetItem, IEnumerable<AssetReferenceLink> assetReferences, AssetAnalysisParameters parameters)
+    {
+        // Find where this asset item was previously stored (in a different package for example)
+        CommonAnalysis.UpdatePaths(assetItem, assetReferences.Where(link => link.Reference is UPath), parameters);
+        // Source hashes are not processed by analysis, we need to manually indicate them to update
+        SourceHashesHelper.UpdateUPaths(assetItem.Asset, assetItem.FullPath.GetParent(), parameters.ConvertUPathTo);
     }
 
     internal static void UpdateAssetReferences(AssetItem assetItem, IEnumerable<AssetReferenceLink> assetReferences, ILogger log, AssetAnalysisParameters parameters)

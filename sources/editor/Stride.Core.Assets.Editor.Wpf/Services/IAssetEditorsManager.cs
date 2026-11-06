@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System;
 using System.Threading.Tasks;
 using Stride.Core.Assets.Editor.ViewModel;
 
@@ -56,6 +57,17 @@ namespace Stride.Core.Assets.Editor.Services
         /// </summary>
         /// <param name="asset">The asset for which to show an editor window.</param>
         Task OpenAssetEditorWindow(AssetViewModel asset);
+
+        /// <summary>
+        /// Closes the editor window for the given asset, invokes <paramref name="replaceAsset"/>, then opens an editor window for the asset again
+        /// in the same place. The new window is activated only if the previous one was active. If the asset is shown in the editor window
+        /// of another asset (<see cref="IMultipleAssetEditorViewModel"/>), that window is opened again. If no editor window shows this asset,
+        /// this method only invokes <paramref name="replaceAsset"/>.
+        /// </summary>
+        /// <param name="asset">The asset for which to open the editor window again.</param>
+        /// <param name="replaceAsset">The action that replaces the asset by another instance, while no editor works on it.</param>
+        /// <returns>A task that completes when the editor window has been opened again.</returns>
+        Task ReopenAssetEditorWindow(AssetViewModel asset, Action replaceAsset);
 
         /// <summary>
         /// Try to find an opened editor for the given asset.

@@ -38,6 +38,17 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
         public ICommandBase UpdateFromSourceCommand { get; }
 
+        /// <summary>
+        /// Takes the source hashes of the asset again, after it has been replaced by another instance. The source tracker
+        /// then reports whether its source files changed, as for a new asset.
+        /// </summary>
+        internal void OnAssetReplaced()
+        {
+            updatedHashes = SourceHashesHelper.GetAllHashes(asset.Asset);
+            currentSourceFiles.Clear();
+            currentSourceFiles.AddRange(updatedHashes.Keys);
+        }
+
         internal void UpdateUsedHashes(IReadOnlyList<UFile> files)
         {
             currentSourceFiles.Clear();

@@ -15,14 +15,12 @@ namespace Stride.Assets.Presentation.ViewModel
     {
         public const string AvailableFilters = "AvailableFilters";
 
-        private readonly GameSettingsAsset gameSettingsAsset;
         private RequiredDisplayOrientation displayOrientation;
 
         public GameSettingsViewModel(AssetViewModelConstructionParameters parameters)
             : base(parameters)
         {
-            gameSettingsAsset = (GameSettingsAsset)AssetItem.Asset;
-            displayOrientation = gameSettingsAsset.GetOrCreate<RenderingSettings>().DisplayOrientation;
+            displayOrientation = Asset.GetOrCreate<RenderingSettings>().DisplayOrientation;
         }
 
         protected override void OnSessionSaved()
@@ -30,7 +28,8 @@ namespace Stride.Assets.Presentation.ViewModel
             base.OnSessionSaved();
 
             //display orientation needs changes in ios / android manifest files
-            var currentOrientation = gameSettingsAsset.GetOrCreate<RenderingSettings>().DisplayOrientation;
+            // Asset rather than the instance seen at construction: it can be replaced, by a reload of its file for instance
+            var currentOrientation = Asset.GetOrCreate<RenderingSettings>().DisplayOrientation;
             if (displayOrientation != currentOrientation && Session.CurrentProject != null)
             {
                 GameSettingsAssetCompiler.SetPlatformOrientation(Session.CurrentProject.Project, currentOrientation);

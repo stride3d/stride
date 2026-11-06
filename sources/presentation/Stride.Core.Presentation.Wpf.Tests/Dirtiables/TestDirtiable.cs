@@ -104,5 +104,53 @@ namespace Stride.Core.Presentation.Tests.Dirtiables
                 Assert.False(dirtiable.IsDirty);
             }
         }
+
+        [Fact]
+        public void TestDirtiableSnapshotUndoRedo()
+        {
+            var stack = new TransactionStack(5);
+            using (var manager = new DirtiableManager(stack))
+            {
+                var dirtiable = new SimpleDirtiable();
+                var otherDirtiable = new SimpleDirtiable();
+                using (stack.CreateTransaction())
+                {
+                    stack.PushOperation(new SimpleDirtyingOperation([dirtiable, otherDirtiable]));
+                }
+                Assert.True(dirtiable.IsDirty);
+                Assert.True(otherDirtiable.IsDirty);
+                manager.CreateSnapshot(dirtiable);
+                Assert.False(dirtiable.IsDirty);
+                Assert.True(otherDirtiable.IsDirty);
+                stack.Rollback();
+                Assert.True(dirtiable.IsDirty);
+                Assert.False(otherDirtiable.IsDirty);
+                stack.Rollforward();
+                Assert.False(dirtiable.IsDirty);
+                Assert.True(otherDirtiable.IsDirty);
+            }
+        }
+
+        [Fact]
+        public void TestSaveAfterDirtiableSnapshot()
+        {
+            var stack = new TransactionStack(5);
+            using (var manager = new DirtiableManager(stack))
+            {
+                var dirtiable = new SimpleDirtiable();
+                using (stack.CreateTransaction())
+                {
+                    stack.PushOperation(new SimpleDirtyingOperation(dirtiable.Yield()));
+                }
+                manager.CreateSnapshot(dirtiable);
+                stack.Rollback();
+                Assert.True(dirtiable.IsDirty);
+                // A snapshot of the whole stack replaces the snapshot of the dirtiable
+                manager.CreateSnapshot();
+                Assert.False(dirtiable.IsDirty);
+                stack.Rollforward();
+                Assert.True(dirtiable.IsDirty);
+            }
+        }
     }
 }
