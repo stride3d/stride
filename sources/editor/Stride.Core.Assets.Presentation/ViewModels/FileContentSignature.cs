@@ -3,7 +3,7 @@
 
 #nullable enable
 
-namespace Stride.Core.Assets.Editor.Editors;
+namespace Stride.Core.Assets.Presentation.ViewModels;
 
 /// <summary>
 /// The state of a file on disk (existence, length and last write time), which tells an editor or an asset that another

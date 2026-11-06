@@ -12,7 +12,7 @@ using Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModel
 using Stride.Assets.Quantum;
 using Stride.Core;
 using Stride.Core.Assets.Analysis;
-using Stride.Core.Assets.Editor.Components.Properties;
+using Stride.Core.Assets.Presentation.Components.Properties;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Commands;

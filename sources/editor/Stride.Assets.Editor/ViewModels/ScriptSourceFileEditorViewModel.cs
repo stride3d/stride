@@ -4,7 +4,7 @@
 using System.Text;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Editor.Annotations;
-using Stride.Core.Assets.Editor.Editors;
+using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Commands;

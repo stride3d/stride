@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Stride.Assets.Entities;
-using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Quantum;

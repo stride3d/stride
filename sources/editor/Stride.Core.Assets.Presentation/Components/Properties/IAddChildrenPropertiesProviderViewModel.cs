@@ -6,7 +6,7 @@ using Stride.Core.Annotations;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Assets.Presentation.ViewModels;
 
-namespace Stride.Core.Assets.Editor.Components.Properties
+namespace Stride.Core.Assets.Presentation.Components.Properties
 {
     /// <summary>
     /// Similar to <see cref="IAddChildViewModel"/> but for <see cref="IPropertyProviderViewModel"/>
