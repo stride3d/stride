@@ -139,8 +139,10 @@ public sealed class PluginTests
         // The entity factories of the engine components come from the shared assembly, in the same categories as in WPF
         Assert.Equal(["2D", "Camera", "Light", "Model"], StrideEditorPlugin.EntityFactoryCategories.Select(x => x.Name));
         Assert.Contains(StrideEditorPlugin.EntityFactoryCategories.Single(x => x.Name == "Light").Factories, x => x.Factory is EntityFactories.PointLightEntityFactory);
-        // The add-asset policies still live in the WPF assembly: only the plugin packages bring some, and none is loaded here
-        Assert.Empty(AddAssetPolicyRegistry.PolicyTypes);
+        // The add-asset policies of the engine assets come from the shared assembly too
+        Assert.Contains(typeof(Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.ViewModels.AddPrefabAssetPolicy), AddAssetPolicyRegistry.PolicyTypes);
+        Assert.Contains(AddAssetPolicyRegistry.PolicyTypes, x => x.Name == "AddSceneAssetPolicy");
+        Assert.Contains(AddAssetPolicyRegistry.PolicyTypes, x => x.Name == "AddModelAssetPolicy");
         Assert.Equal(2, registrations.ProfileSettings.Count);
     }
 

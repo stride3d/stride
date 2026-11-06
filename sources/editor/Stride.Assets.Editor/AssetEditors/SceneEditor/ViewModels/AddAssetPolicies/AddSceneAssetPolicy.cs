@@ -1,21 +1,20 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 using System.Collections.Generic;
 using System.Linq;
 using Stride.Assets.Presentation.ViewModels;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Annotations;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Assets.Entities;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
-using Stride.Assets.Presentation.ViewModel;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.ViewModels;
 
-namespace Stride.Assets.Presentation.AssetEditors.SceneEditor.ViewModels
+namespace Stride.Assets.Editor.AssetEditors.SceneEditor.ViewModels
 {
-    internal class AddSceneAssetPolicy : CustomPolicyBase<SceneAsset, SceneViewModel>
+    internal sealed class AddSceneAssetPolicy : CustomPolicyBase<SceneAsset, SceneViewModel>
     {
         /// <inheritdoc />
         protected override bool CanAddOrInsert(IEntityHierarchyItemViewModel parent, SceneViewModel asset, AddChildModifiers modifiers, int index, out string message, params object[] messageArgs)

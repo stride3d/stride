@@ -50,7 +50,6 @@ namespace Stride.GameStudio.Tests
     {
         [Theory]
         [InlineData(typeof(AssetsPlugin), typeof(StrideDefaultAssetsWpfPlugin))]
-        [InlineData(typeof(IAddAssetPolicy), typeof(AddPrefabAssetPolicy))]
         [InlineData(typeof(AssetViewModel), typeof(CodeAssetViewModel))]
         [InlineData(typeof(IPreviewView), typeof(ModelPreviewView))]
         [InlineData(typeof(IEditorView), typeof(SceneEditorView))]
@@ -71,6 +70,7 @@ namespace Stride.GameStudio.Tests
         [InlineData(typeof(AssetViewModel), typeof(PrefabViewModel))]
         [InlineData(typeof(AssetViewModel), typeof(GameSettingsViewModel))]
         [InlineData(typeof(IEntityFactory), typeof(SpriteEntityFactory))]
+        [InlineData(typeof(IAddAssetPolicy), typeof(Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.ViewModels.AddPrefabAssetPolicy))]
         [InlineData(typeof(IAssetPreview), typeof(ModelPreview))]
         [InlineData(typeof(IAssetPreviewViewModel), typeof(ModelPreviewViewModel))]
         public void SharedAssemblyIndexListsKnownTypes(Type key, Type expected)
