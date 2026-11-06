@@ -57,15 +57,20 @@ public abstract class StrideEditorPluginHost : EditorPluginHost
 
     /// <inheritdoc />
     /// <remarks>
-    /// The assembly of a plugin also declares the tools of the views of the game editors (<see cref="EditorViewToolAttribute"/>).
-    /// The assembly of a <see cref="StrideAssetsPlugin"/> also declares its preview view models (<see cref="AssetPreviewViewModelAttribute"/>)
+    /// The assemblies of a plugin also declare the tools of the views of the game editors (<see cref="EditorViewToolAttribute"/>).
+    /// The assemblies of a <see cref="StrideAssetsPlugin"/> also declare its preview view models (<see cref="AssetPreviewViewModelAttribute"/>)
     /// and preview views (<see cref="AssetPreviewViewAttribute"/>).
     /// </remarks>
     protected override void ScanPlugin(AssetsPlugin plugin, IEditorPluginContext context)
     {
         base.ScanPlugin(plugin, context);
 
-        var assembly = plugin.GetType().Assembly;
+        foreach (var assembly in plugin.ScannedAssemblies)
+            ScanStrideAssembly(plugin, assembly, context);
+    }
+
+    private static void ScanStrideAssembly(AssetsPlugin plugin, Assembly assembly, IEditorPluginContext context)
+    {
         foreach (var type in AssemblyRegistry.GetScanTypes(assembly, typeof(EditorViewToolAttribute)))
         {
             // Each view creates its own instance of a tool

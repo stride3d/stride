@@ -150,6 +150,22 @@ public class TestEditorPluginHost
     public sealed class PluginHostAssetViewModel2(AssetViewModelConstructionParameters parameters) : AssetViewModel<PluginHostAsset>(parameters);
 
     /// <summary>
+    /// A plugin that covers no assembly, not even its own.
+    /// </summary>
+    public sealed class NoScanPlugin : AssetsPlugin
+    {
+        public override IReadOnlyList<System.Reflection.Assembly> ScannedAssemblies => [];
+    }
+
+    /// <summary>
+    /// A plugin that names the assembly to scan itself (here its own).
+    /// </summary>
+    public sealed class OwnAssemblyPlugin : AssetsPlugin
+    {
+        public override IReadOnlyList<System.Reflection.Assembly> ScannedAssemblies => [typeof(PluginHostAsset).Assembly];
+    }
+
+    /// <summary>
     /// A plugin that registers a preview view model on an open generic base, as the sprite batch previews do.
     /// </summary>
     public sealed class GenericPreviewPlugin : AssetsEditorPlugin
@@ -455,5 +471,24 @@ public class TestEditorPluginHost
         host.PluginsRemoved([first]);
         Assert.Null(PluginHostSettings.Container.GetSettingsKey(PluginHostSettings.Key.Name));
         Assert.False(host.HasImagesForEnum(session, typeof(PluginHostImageEnum)));
+    }
+
+    [Fact]
+    public void APluginRegistersWhatItsScannedAssembliesDeclareAndNotItsOwnAssembly()
+    {
+        Assert.Equal([typeof(ContextPlugin).Assembly], new ContextPlugin().ScannedAssemblies);
+
+        var (host, session, _, _) = Open(new NoScanPlugin());
+        Assert.Empty(host.AssetViewModelTypes);
+        Assert.Empty(host.AssetEditorViewModelTypes);
+        Assert.DoesNotContain(PluginHostSettings.Key, host.SettingsKeys);
+        Assert.False(host.HasImagesForEnum(session, typeof(PluginHostImageEnum)));
+        host.Dispose();
+
+        (host, session, _, _) = Open(new OwnAssemblyPlugin());
+        Assert.Equal(typeof(PluginHostAssetViewModel), host.GetAssetViewModelType(typeof(PluginHostAsset)));
+        Assert.Contains(PluginHostSettings.Key, host.SettingsKeys);
+        Assert.True(host.HasImagesForEnum(session, typeof(PluginHostImageEnum)));
+        host.Dispose();
     }
 }
