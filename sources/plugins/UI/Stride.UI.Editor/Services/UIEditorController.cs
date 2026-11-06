@@ -16,6 +16,7 @@ using Stride.Core.Mathematics;
 using Stride.Core.Quantum;
 using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 using Stride.UI.Editor.Game;
 using Stride.UI.Editor.ViewModels;
 using Stride.Assets.SpriteFont;

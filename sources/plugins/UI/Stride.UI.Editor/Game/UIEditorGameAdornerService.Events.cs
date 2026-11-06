@@ -6,7 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 using Stride.UI.Editor.Adorners;
 using Stride.UI.Editor.Services;
 using Stride.Assets.Presentation.ViewModel;

@@ -21,7 +21,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 /// of it. The viewport gives the pointer position over it to the shared <c>EditorGameMousePositionService</c>.
 /// </summary>
 [EditorGameService(typeof(IEditorGameController), Order = 10)]
-public sealed class WpfEditorGameHostService : EditorGameServiceBase
+public sealed class WpfEditorGameHostService : EditorGameServiceBase, IEditorGameCursorViewModelService
 {
     private readonly WpfEditorGameViewport viewport;
 
@@ -46,16 +46,13 @@ public sealed class WpfEditorGameHostService : EditorGameServiceBase
     /// </summary>
     public GameEngineHost EditorHost => viewport.Host;
 
-    /// <summary>
-    /// The distance, in screen pixels, a pointer moves while pressed before it counts as a drag.
-    /// </summary>
+    /// <inheritdoc/>
+    /// <remarks>The minimum drag distance of the system.</remarks>
     public Vector2 MinimumDragDistance => new((float)System.Windows.SystemParameters.MinimumHorizontalDragDistance, (float)System.Windows.SystemParameters.MinimumVerticalDragDistance);
 
     private EmbeddedGameForm? GameForm => viewport.Form;
 
-    /// <summary>
-    /// Changes the cursor shown over the game (any thread).
-    /// </summary>
+    /// <inheritdoc/>
     public void ChangeCursor(EditorGameCursor cursor)
     {
         if (viewport.IsReleased || GameForm is not { } form)
@@ -74,7 +71,8 @@ public sealed class WpfEditorGameHostService : EditorGameServiceBase
     }
 
     /// <summary>
-    /// Drags <paramref name="items"/> out of the editor game.
+    /// Drags <paramref name="items"/> out of the editor game (game thread). The WPF editor only: the UI editor's view
+    /// starts the drag of an element held with Alt through it.
     /// </summary>
     /// <returns>Whether the items were dropped somewhere.</returns>
     public bool StartDragDrop(params object[] items)
