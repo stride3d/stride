@@ -146,6 +146,9 @@ namespace Stride.Assets
                 Rewrite(
                     MemberToExtension("Stride.Engine.Game", "Audio", "Stride.Audio"),
                     MemberToExtension("Stride.Engine.ScriptComponent", "Audio", "Stride.Audio", throughMember: "Game")),
+
+                // 4.5: Bepu's MaxStepPerFrame was replaced by MaximumTimeSpanToProcess (no 1:1 mapping)
+                Rewrite(AssignmentRemove("Stride.BepuPhysics.BepuSimulation", "MaxStepPerFrame")),
             ]);
 
             // Structural csproj migrations, gated by the version each change landed at. Run against the

@@ -161,13 +161,6 @@ public sealed class BepuSimulation : IDisposable
     public float TimeScale { get; set; } = 1f;
 
     /// <summary>
-    /// Represents the maximum number of steps per frame to avoid a death loop
-    /// </summary>
-    [Display(5, "Max steps/frame", CategoryTime, Browsable = false)]
-    [Obsolete($"Use {nameof(MaximumTimeSpanToProcess)} and {nameof(DropPostponedTicks)} instead")]
-    public int MaxStepPerFrame { get; set; } = 3;
-
-    /// <summary>
     /// The span of time physics can catch up to when the game runs slow.
     /// Once exceeded, the rest is either postponed to next frame or dropped based on <see cref="DropPostponedTicks"/>.
     /// </summary>
