@@ -1,0 +1,12 @@
+<Project>
+  <!-- This package replaces the Assimp of Ultz.Native.Assimp, which Silk.NET.Assimp depends on, with a Stride build
+       (deps/assimp). Strip Silk's native assets so this build is the only one deployed. The strip is RID-agnostic,
+       so this package has to carry every RID that Stride supports for the importer. -->
+  <Target Name="_StrideDepsAssimpStripSilkNative" AfterTargets="ResolvePackageAssets">
+    <ItemGroup>
+      <RuntimeCopyLocalItems Remove="@(RuntimeCopyLocalItems)" Condition="'%(RuntimeCopyLocalItems.NuGetPackageId)' == 'Ultz.Native.Assimp'" />
+      <NativeCopyLocalItems Remove="@(NativeCopyLocalItems)" Condition="'%(NativeCopyLocalItems.NuGetPackageId)' == 'Ultz.Native.Assimp'" />
+      <RuntimeTargetsCopyLocalItems Remove="@(RuntimeTargetsCopyLocalItems)" Condition="'%(RuntimeTargetsCopyLocalItems.NuGetPackageId)' == 'Ultz.Native.Assimp'" />
+    </ItemGroup>
+  </Target>
+</Project>
