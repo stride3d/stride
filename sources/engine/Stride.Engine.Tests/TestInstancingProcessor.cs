@@ -149,6 +149,38 @@ namespace Stride.Engine.Tests
             Assert.Empty(failures);
         }
 
+        /// <summary>
+        /// A model set to null draws nothing and throws nothing: the render model keeps its meshes until a model is set again,
+        /// and the processor widens no box meanwhile. Set again, the model draws its instances.
+        /// </summary>
+        [Fact]
+        public void AModelSetToNullDrawsNothingAndItsInstancesAgainOnceSet()
+        {
+            var game = new TestInstancingProcessor(false, 0);
+            List<string> failures = null;
+            game.Script.AddTask(async () =>
+            {
+                game.ScreenShotAutomationEnabled = false;
+                for (int i = 0; i < 3; i++)
+                    await game.Script.NextFrame();
+
+                var model = game.modelComponent.Model;
+                game.modelComponent.Model = null;
+                for (int i = 0; i < 3; i++)
+                    await game.Script.NextFrame();
+
+                game.modelComponent.Model = model;
+                for (int i = 0; i < 3; i++)
+                    await game.Script.NextFrame();
+
+                failures = game.CheckGroups();
+                game.Exit();
+            });
+            RunGameTest(game);
+
+            Assert.Empty(failures);
+        }
+
         [Theory]
         [InlineData(false, 0)]
         [InlineData(false, 1)]

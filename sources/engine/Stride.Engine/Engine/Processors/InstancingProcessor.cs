@@ -159,7 +159,8 @@ namespace Stride.Engine.Processors
 
                 var modelComponent = instancingData.ModelComponent;
                 var renderModel = instancingData.RenderModel;
-                if (modelComponent != null && modelComponent.Enabled && renderModel?.Meshes != null && instancing.InstanceCount > 0)
+                // A model set to null leaves the render model's meshes in place until a model is set again
+                if (modelComponent != null && modelComponent.Enabled && renderModel?.Model != null && renderModel.Meshes != null && instancing.InstanceCount > 0)
                 {
                     // Bounding box: the render meshes of this group's render model take the mesh box widened by the instances. The
                     // model component's own box (MeshInfo.BoundingBox) stays as its transform computed it, so a scene instance with
