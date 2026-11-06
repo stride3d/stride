@@ -29,6 +29,19 @@ public abstract class AssetsPlugin
     public static IReadOnlyList<AssetsPlugin> RegisteredPlugins => registeredPlugins;
 
     /// <summary>
+    /// The assemblies whose declarations the editor registers in this plugin's name: the types they declare with attributes
+    /// (<see cref="AssetViewModelAttribute"/> and the other view and view model attributes), their
+    /// <see cref="EditorSettingsAttribute"/> keys and their declared images. By default, the plugin's own assembly.
+    /// </summary>
+    /// <remarks>
+    /// A plugin overrides it to cover an assembly that cannot hold a plugin itself, such as an assembly of asset view models
+    /// that does not reference the editor (<c>Stride.Assets.Presentation</c>, covered by the default assets plugin of
+    /// <c>Stride.Assets.Editor</c>). Each assembly should be covered by one plugin only: two plugins that scan the same
+    /// assembly register its types twice.
+    /// </remarks>
+    public virtual IReadOnlyList<Assembly> ScannedAssemblies => [GetType().Assembly];
+
+    /// <summary>
     /// Raised with the plugins that <see cref="DiscoverPlugins"/> registers from an asset assembly.
     /// </summary>
     public static event Action<IReadOnlyList<AssetsPlugin>>? PluginsDiscovered;

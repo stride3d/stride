@@ -230,12 +230,17 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
     }
 
     /// <summary>
-    /// Registers what the plugin's assembly declares with attributes, in the plugin's name.
+    /// Registers what the plugin's assemblies (<see cref="AssetsPlugin.ScannedAssemblies"/>) declare with attributes, in the
+    /// plugin's name.
     /// </summary>
     protected virtual void ScanPlugin(AssetsPlugin plugin, IEditorPluginContext context)
     {
-        var assembly = plugin.GetType().Assembly;
+        foreach (var assembly in plugin.ScannedAssemblies)
+            ScanPluginAssembly(plugin, assembly, context);
+    }
 
+    private void ScanPluginAssembly(AssetsPlugin plugin, Assembly assembly, IEditorPluginContext context)
+    {
         foreach (var type in AssemblyRegistry.GetScanTypes(assembly, typeof(AssetViewModel)))
         {
             if (typeof(AssetViewModel).IsAssignableFrom(type) && type.GetCustomAttribute<AssetViewModelAttribute>() is { } attribute)
@@ -411,7 +416,8 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
             var context = new EditorContext(this, plugin, record, session, pluginLogger);
             plugin.InitializePlugin(pluginLogger);
             ScanPlugin(plugin, context);
-            ScanDeclaredImages(plugin.GetType().Assembly, record);
+            foreach (var assembly in plugin.ScannedAssemblies)
+                ScanDeclaredImages(assembly, record);
             plugin.Initialize(context);
             return true;
         }
