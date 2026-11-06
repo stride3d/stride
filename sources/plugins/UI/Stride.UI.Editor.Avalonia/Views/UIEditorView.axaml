@@ -15,6 +15,7 @@
       <ResourceDictionary.MergedDictionaries>
         <ResourceInclude Source="avares://Stride.Core.Assets.Editor.Avalonia/Views/ImageResources.axaml"/>
         <ResourceInclude Source="avares://Stride.Assets.Editor.Avalonia/Themes/PreviewImages.axaml"/>
+        <ResourceInclude Source="avares://Stride.Assets.Editor.Avalonia/Views/SceneEditorImages.axaml"/>
         <ResourceInclude Source="avares://Stride.UI.Editor.Avalonia/Views/UIEditorImages.axaml"/>
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>

@@ -261,6 +261,8 @@ public sealed class UIPageEditorTests
         var button = Assert.Single(stack.Children);
         await page.WaitForRowAsync(button);
         var buttons = page.View.GetVisualDescendants().OfType<Button>().Where(x => x.Classes.Contains("tool")).ToList();
+        // Their icons come from the image dictionaries of the editor
+        Assert.All(buttons, x => Assert.NotNull(Assert.IsType<Image>(x.Content).Source));
 
         await page.Window.ClickAsync(buttons[1]);
         await WindowTestHelper.PumpAsync();
