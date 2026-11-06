@@ -29,13 +29,13 @@ namespace Stride.UI.Editor;
 /// </summary>
 public sealed class UIEditorPlugin : StrideAssetsPlugin
 {
-    public override void InitializeSession(SessionViewModel session)
+    public override void InitializeSession(ISessionViewModel session)
     {
         session.AssetViewProperties.RegisterNodePresenterUpdater(new UIAssetNodeUpdater());
     }
 
     /// <inheritdoc />
-    public override void RegisterPasteProcessors(ICollection<IPasteProcessor> pasteProcessors, SessionViewModel session)
+    public override void RegisterPasteProcessors(ICollection<IPasteProcessor> pasteProcessors, ISessionViewModel session)
     {
         pasteProcessors.Add(new UIHierarchyPasteProcessor());
     }

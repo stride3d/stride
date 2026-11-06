@@ -20,6 +20,8 @@ on:
         value: ${{ jobs.detect.outputs.android }}
       full:
         value: ${{ jobs.detect.outputs.full }}
+      editor:
+        value: ${{ jobs.detect.outputs.editor }}
 
 permissions:
   contents: read
@@ -34,6 +36,7 @@ jobs:
       ios-tests: ${{ steps.comments.outputs.comment_only == 'true' && 'false' || steps.filter.outputs.ios-tests || 'true' }}
       android: ${{ steps.comments.outputs.comment_only == 'true' && 'false' || steps.filter.outputs.android || 'true' }}
       full: ${{ steps.comments.outputs.comment_only == 'true' && 'false' || steps.filter.outputs.full || 'true' }}
+      editor: ${{ steps.comments.outputs.comment_only == 'true' && 'false' || steps.filter.outputs.editor || 'true' }}
     steps:
       - uses: actions/checkout@v7
         if: github.event_name == 'pull_request'
@@ -202,3 +205,32 @@ jobs:
               - 'tests/infra/Stride.*/**'
               - 'tests/enduser/Stride.Templates.Tests/**'
               - 'Stride.slnx'
+            # The Avalonia editor job: the folders of the projects sources/Stride.Editor.Avalonia.slnf builds,
+            # engine included (the filter compiles it, and the editor tests run on top of it), and its build inputs
+            editor:
+              - 'sources/assets/**'
+              - 'sources/buildengine/**'
+              - 'sources/core/**'
+              - 'sources/crashreport/**'
+              - 'sources/editor/**'
+              - 'sources/engine/**'
+              - 'sources/launcher/Stride.Launcher/Crash/**'
+              - 'sources/localization/**'
+              - 'sources/native/**'
+              - 'sources/plugins/**'
+              - 'sources/presentation/**'
+              - 'sources/sdk/**'
+              - 'sources/shaders/**'
+              - 'sources/shared/**'
+              - 'sources/tests/xunit.runner.stride/**'
+              - 'sources/tools/Stride.Importer.*/**'
+              - 'sources/tools/Stride.TextureConverter/**'
+              - 'sources/Directory.*'
+              - 'sources/Stride.Editor.Avalonia.sln*'  # the filter (.slnf), or the solution (.slnx) below editor-cleanup
+              - 'Stride.slnx'
+              - 'build/Stride.Local.props'
+              - 'deps/**'
+              - 'global.json'
+              - 'nuget.config'
+              - 'tests/editor-coverage.runsettings'
+              - '.github/workflows/test-editor-avalonia.yml'

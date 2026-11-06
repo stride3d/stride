@@ -6,9 +6,9 @@ using System.Collections.Specialized;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Stride.Core.Extensions;
-using Stride.Core.Transactions;
-using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.Dirtiables;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Transactions;
 
 namespace Stride.Core.Presentation.ViewModels;
 
@@ -25,7 +25,7 @@ public abstract class EditableViewModel : DispatcherViewModel
     protected EditableViewModel(IViewModelServiceProvider serviceProvider)
         : base(serviceProvider)
     {
-        if (serviceProvider.TryGet<IUndoRedoService>() == null)
+        if (serviceProvider.TryGet<IUndoRedoService>() is null)
             throw new ArgumentException($"The given {nameof(IViewModelServiceProvider)} instance does not contain an service implementing {nameof(IUndoRedoService)}.");
     }
 
@@ -34,7 +34,7 @@ public abstract class EditableViewModel : DispatcherViewModel
     /// <summary>
     /// Gets the undo/redo service used by this view model.
     /// </summary>
-    public IUndoRedoService UndoRedoService => ServiceProvider.Get<IUndoRedoService>();
+    public IUndoRedoService? UndoRedoService => ServiceProvider.TryGet<IUndoRedoService>();
 
     protected void RegisterMemberCollectionForActionStack(string name, INotifyCollectionChanged collection)
     {
@@ -161,7 +161,7 @@ public abstract class EditableViewModel : DispatcherViewModel
         foreach (string propertyName in propertyNames.Where(x => x != "IsDirty" && !uncancellableChanges.Contains(x)))
         {
             var propertyInfo = GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
-            if (propertyInfo?.GetSetMethod() != null && propertyInfo.GetSetMethod().IsPublic)
+            if (propertyInfo?.GetSetMethod() is not null && propertyInfo.GetSetMethod().IsPublic)
             {
                 preEditValues.Add(propertyName, propertyInfo.GetValue(this));
             }
@@ -182,7 +182,7 @@ public abstract class EditableViewModel : DispatcherViewModel
             {
                 var propertyInfo = GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
                 var postEditValue = propertyInfo?.GetValue(this);
-                if (!UndoRedoService.UndoRedoInProgress && !Equals(preEditValue, postEditValue))
+                if (UndoRedoService?.UndoRedoInProgress == false && !Equals(preEditValue, postEditValue))
                 {
                     var operation = CreatePropertyChangeOperation(displayName, propertyName, preEditValue);
                     UndoRedoService.PushOperation(operation);
@@ -195,14 +195,14 @@ public abstract class EditableViewModel : DispatcherViewModel
     protected virtual Operation CreatePropertyChangeOperation(string displayName, string propertyName, object? preEditValue)
     {
         var operation = new PropertyChangeOperation(propertyName, this, preEditValue, Dirtiables);
-        UndoRedoService.SetName(operation, displayName);
+        UndoRedoService!.SetName(operation, displayName);
         return operation;
     }
 
     protected virtual Operation CreateCollectionChangeOperation(string displayName, IList list, NotifyCollectionChangedEventArgs args)
     {
         var operation = new CollectionChangeOperation(list, args, Dirtiables);
-        UndoRedoService.SetName(operation, displayName);
+        UndoRedoService!.SetName(operation, displayName);
         return operation;
     }
 
@@ -228,7 +228,7 @@ public abstract class EditableViewModel : DispatcherViewModel
             {
                 if (!UndoRedoService.UndoRedoInProgress && createTransaction)
                 {
-                    if (transaction == null)
+                    if (transaction is null)
                         throw new InvalidOperationException("A transaction failed to be created.");
                     transaction.Complete();
                 }
@@ -242,7 +242,7 @@ public abstract class EditableViewModel : DispatcherViewModel
         if (propertyNames.Length == 0)
             throw new ArgumentOutOfRangeException(nameof(propertyNames), "This method must be invoked with at least one property name.");
 
-        if (hasChangedFunction == null || hasChangedFunction())
+        if (hasChangedFunction is null || hasChangedFunction())
         {
             ITransaction? transaction = null;
             if (!UndoRedoService.UndoRedoInProgress && createTransaction)
@@ -259,7 +259,7 @@ public abstract class EditableViewModel : DispatcherViewModel
             {
                 if (!UndoRedoService.UndoRedoInProgress && createTransaction)
                 {
-                    if (transaction == null)
+                    if (transaction is null)
                         throw new InvalidOperationException("A transaction failed to be created.");
                     transaction.Complete();
                 }
@@ -272,13 +272,13 @@ public abstract class EditableViewModel : DispatcherViewModel
     {
         string displayName = $"Update collection '{collectionName}' ({e.Action})";
         var list = sender as IList;
-        if (list == null)
+        if (list is null)
         {
             var toIListMethod = sender?.GetType().GetMethod("ToIList");
-            if (toIListMethod != null)
+            if (toIListMethod is not null)
                 list = (IList?)toIListMethod.Invoke(sender, []);
         }
-        if (!UndoRedoService.UndoRedoInProgress && !suspendedCollections.Contains(collectionName))
+        if (UndoRedoService?.UndoRedoInProgress == false && !suspendedCollections.Contains(collectionName))
         {
             using (UndoRedoService.CreateTransaction())
             {

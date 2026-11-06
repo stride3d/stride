@@ -1,0 +1,99 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2026-09-12 14:32:58+0200\n"
+"PO-Revision-Date: 2019-03-09 00:04+0000\n"
+"Last-Translator: Scorp121 <kurkinsn@gmail.com>\n"
+"Language-Team: Russian <https://hosted.weblate.org/projects/stride/"
+"coreassetseditor/ru/>\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Generator: Weblate 3.5.1-dev\n"
+
+#: ../editor/Stride.Core.Assets.Editor.Common/ViewModel/PackageViewModel.cs:443
+#. Error message when the template generator of the selected template is unreachable
+msgctxt "Message"
+msgid ""
+"Unable to retrieve template generator for the selected template. Aborting."
+msgstr "Невозможно сгенерировать выбранный шаблон. Отмена."
+
+#: ../editor/Stride.Core.Assets.Editor.Common/ViewModel/AssetViewModel.cs:663
+msgctxt "Message"
+msgid ""
+"Unable to rename asset to '{0}' because an asset with the same name exists "
+"in the same directory"
+msgstr ""
+"Невозможно переименовать ресурс в '{0}', так как ресурс с тем же именем "
+"существует в том же каталоге"
+
+#: ../editor/Stride.Core.Assets.Editor.Common/ViewModel/AssetViewModel.cs:668
+msgctxt "Message"
+msgid "Unable to rename asset with an empty name"
+msgstr "Невозможно переименовать ресурс в пустоту"
+
+#: ../editor/Stride.Core.Assets.Editor.Common/ViewModel/DirectoryViewModel.cs:106
+msgctxt "Message"
+msgid "This package that contains this folder can't be edited."
+msgstr "Пакет содержащий эту папку, не может быть отредактирован."
+
+#: ../editor/Stride.Core.Assets.Editor.Common/ViewModel/DirectoryViewModel.cs:143
+msgctxt "Message"
+msgid "Unable to rename folder. {0}"
+msgstr "Невозможно переименовать папку. {0}"
+
+#: ../editor/Stride.Core.Assets.Editor.Common/ViewModel/DirectoryViewModel.cs:168
+msgctxt "Message"
+msgid "A folder with the same name already exists in the parent folder."
+msgstr "Папка с таким именем уже существует в родительской папке."
+
+#: ../editor/Stride.Core.Assets.Editor.Common/ViewModel/DirectoryViewModel.cs:190
+msgctxt "Message"
+msgid "Path is a device name"
+msgstr "Путь - имя устройства"
+
+#: ../editor/Stride.Core.Assets.Editor.Common/ViewModel/PackageViewModel.cs:647
+msgctxt "Message"
+msgid "This package couldn't be renamed. {0}"
+msgstr "Этот пакет не может быть переименован. {0}"
+
+#: ../editor/Stride.Core.Assets.Editor.Common/ViewModel/PackageViewModel.cs:678
+msgctxt "Message"
+msgid "A package with the same name already exists in the session."
+msgstr "В сессии уже существует пакет с таким именем."
+
+#: ../editor/Stride.Core.Assets.Editor.Common/ViewModel/SessionObjectViewModel.cs:110
+msgctxt "Message"
+msgid "The name is too long."
+msgstr "Слишком длинное имя."
+
+#: ../editor/Stride.Core.Assets.Editor.Common/ViewModel/SessionObjectViewModel.cs:116
+msgctxt "Message"
+msgid "The name contains invalid characters."
+msgstr "Имя содержит недопустимые символы."
+
+#: ../editor/Stride.Core.Assets.Editor.Common/ViewModel/SessionObjectViewModel.cs:122
+msgctxt "Message"
+msgid "The name is empty."
+msgstr "Пустое имя."
+
+#: ../editor/Stride.Core.Assets.Editor.Common/Components/TemplateDescriptions/TemplateGeneratorHelper.cs:34
+#. Log message displayed when an operation has been canceled
+msgctxt "Log"
+msgid "Operation cancelled."
+msgstr "Операция отменена."
+
+#: ../editor/Stride.Core.Assets.Editor.Common/Components/TemplateDescriptions/TemplateGeneratorHelper.cs:41
+#: ../editor/Stride.Core.Assets.Editor.Common/Components/TemplateDescriptions/TemplateGeneratorHelper.cs:60
+#. Message displayed when an exception occurs while generating a template
+msgctxt "Log"
+msgid "An exception occurred while generating the template."
+msgstr "Возникла ошибка при создании шаблона."
+
+#: ../editor/Stride.Core.Assets.Editor.Common/View/Behaviors/DragDrop/DragDropBehavior.cs:25
+msgctxt "Message"
+msgid "Can't drop here"
+msgstr "Не могу переместить именно сюда"

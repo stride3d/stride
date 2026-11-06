@@ -116,7 +116,7 @@ public class GraphNodeLinker
     /// <summary>
     /// Gets or sets the action to execute when two nodes should be linked.
     /// </summary>
-    public Action<IGraphNode, IGraphNode>? LinkAction { get; set; }
+    public Action<IGraphNode, IGraphNode?>? LinkAction { get; set; }
 
     /// <summary>
     /// Visits and links the node of two different object hierarchies.
@@ -146,7 +146,7 @@ public class GraphNodeLinker
     /// <param name="targetNode">The node from the target hierarchy. Can be null.</param>
     /// <exception cref="ArgumentNullException">The source node is null.</exception>
     /// <remarks>The default implementation will simply invoke <see cref="LinkAction"/>.</remarks>
-    protected virtual void LinkNodes(IGraphNode sourceNode, IGraphNode targetNode)
+    protected virtual void LinkNodes(IGraphNode sourceNode, IGraphNode? targetNode)
     {
         ArgumentNullException.ThrowIfNull(sourceNode);
         LinkAction?.Invoke(sourceNode, targetNode);

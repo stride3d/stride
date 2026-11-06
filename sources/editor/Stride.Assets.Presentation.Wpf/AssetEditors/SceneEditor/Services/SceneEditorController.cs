@@ -22,7 +22,7 @@ using Stride.Shaders.Compiler;
 
 namespace Stride.Assets.Presentation.AssetEditors.SceneEditor.Services
 {
-    public sealed class SceneEditorController : EntityHierarchyEditorController
+    public sealed class SceneEditorController : EntityHierarchyEditorController, ISceneEditorController
     {
         private readonly object lookupMutex = new object();
         private readonly Dictionary<AssetId, Guid> assetToGameLookup = new Dictionary<AssetId, Guid>();

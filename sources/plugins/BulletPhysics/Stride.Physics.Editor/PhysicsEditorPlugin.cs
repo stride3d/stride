@@ -24,7 +24,7 @@ public sealed class PhysicsEditorPlugin : StrideAssetsPlugin
         Simulation.DisableSimulation = true;
     }
 
-    public override void InitializeSession(SessionViewModel session)
+    public override void InitializeSession(ISessionViewModel session)
     {
         session.AssetViewProperties.RegisterNodePresenterUpdater(new PhysicsNodeLinkNodeUpdater());
         session.AssetViewProperties.RegisterNodePresenterUpdater(new NavigationNodeUpdater(session));

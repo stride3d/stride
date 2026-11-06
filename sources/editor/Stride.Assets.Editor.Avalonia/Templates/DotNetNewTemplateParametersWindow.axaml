@@ -1,0 +1,100 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+        xmlns:local="using:Stride.Assets.Editor.Avalonia.Templates"
+        xmlns:tpl="using:Stride.Assets.Editor.Templates"
+        mc:Ignorable="d" d:DesignWidth="560" d:DesignHeight="600"
+        x:Class="Stride.Assets.Editor.Avalonia.Templates.DotNetNewTemplateParametersWindow"
+        x:DataType="tpl:DotNetNewTemplateParametersViewModel"
+        Title="{Binding Title}"
+        Width="560" SizeToContent="Height"
+        MinWidth="420" MaxHeight="760"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner">
+  <DockPanel Margin="16">
+    <!-- Buttons -->
+    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,12,0,0">
+      <Button x:Name="OkButton" MinWidth="80"
+              Content="{sd:LocalizeString OK, Context=Button}"
+              IsDefault="True"
+              Click="OnOkClick"/>
+      <Button x:Name="CancelButton" MinWidth="80"
+              Content="{sd:LocalizeString Cancel, Context=Button}"
+              IsCancel="True"
+              Click="OnCancelClick"/>
+    </StackPanel>
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Spacing="4">
+        <TextBlock Text="{Binding TemplateName}" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap"/>
+        <TextBlock Text="{Binding TemplateDescription}" TextWrapping="Wrap" Opacity="0.8"
+                   IsVisible="{Binding HasTemplateDescription}"/>
+        <!-- One row per user-facing parameter: a check box, a combo box, a list of check boxes or a text box -->
+        <ItemsControl x:Name="ParametersList" ItemsSource="{Binding Parameters}" Margin="0,8,0,0">
+          <ItemsControl.DataTemplates>
+            <DataTemplate DataType="tpl:BoolTemplateParameterViewModel">
+              <StackPanel Margin="0,6" Spacing="3">
+                <TextBlock Text="{Binding Label}" TextWrapping="Wrap"/>
+                <CheckBox Content="{sd:LocalizeString Enabled}" IsChecked="{Binding IsChecked}" IsEnabled="{Binding IsEnabled}"/>
+              </StackPanel>
+            </DataTemplate>
+            <DataTemplate DataType="tpl:ChoiceTemplateParameterViewModel">
+              <StackPanel Margin="0,6" Spacing="3">
+                <TextBlock Text="{Binding Label}" TextWrapping="Wrap"/>
+                <ComboBox ItemsSource="{Binding Choices}" SelectedItem="{Binding SelectedChoice}" IsEnabled="{Binding IsEnabled}"
+                          MinWidth="160" HorizontalAlignment="Left"/>
+              </StackPanel>
+            </DataTemplate>
+            <DataTemplate DataType="tpl:MultiChoiceTemplateParameterViewModel">
+              <StackPanel Margin="0,6" Spacing="3" IsEnabled="{Binding IsEnabled}">
+                <TextBlock Text="{Binding Label}" TextWrapping="Wrap"/>
+                <ItemsControl ItemsSource="{Binding Choices}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="tpl:TemplateChoiceViewModel">
+                      <CheckBox IsChecked="{Binding IsChecked}" Margin="0,2">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                          <!-- The icon of a platform, for the platforms parameter -->
+                          <Image Width="16" Height="16" VerticalAlignment="Center"
+                                 Source="{Binding Platform, Converter={x:Static local:PlatformIconConverter.Instance}}"
+                                 IsVisible="{Binding Platform, Converter={sd:ObjectToBool}}"/>
+                          <TextBlock Text="{Binding Label}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                      </CheckBox>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </DataTemplate>
+            <DataTemplate DataType="tpl:TextTemplateParameterViewModel">
+              <StackPanel Margin="0,6" Spacing="3">
+                <TextBlock Text="{Binding Label}" TextWrapping="Wrap"/>
+                <TextBox Text="{Binding Text}" IsEnabled="{Binding IsEnabled}"/>
+              </StackPanel>
+            </DataTemplate>
+          </ItemsControl.DataTemplates>
+        </ItemsControl>
+        <!-- The asset packs, for the templates that offer them -->
+        <StackPanel x:Name="AssetPacksPanel" Margin="0,6" Spacing="3" IsVisible="{Binding OffersAssetPacks}">
+          <TextBlock Text="{sd:LocalizeString Asset packs — Ready-made asset collections added to your project}" TextWrapping="Wrap"/>
+          <!-- The download of the AssetPacks package, until the packs are ready -->
+          <StackPanel x:Name="AssetPacksDownload" IsVisible="{Binding IsLoadingAssetPacks}">
+            <TextBlock Text="{Binding AssetPacksStatus}" TextWrapping="Wrap" Margin="0,2,0,3"/>
+            <ProgressBar Height="6" Minimum="0" Maximum="1"
+                         Value="{Binding AssetPacksDownloadProgress, Mode=OneWay}"
+                         IsIndeterminate="{Binding IsAssetPacksDownloadSizeUnknown}"/>
+          </StackPanel>
+          <TextBlock x:Name="NoAssetPacks" TextWrapping="Wrap" Margin="0,2" IsVisible="{Binding NoAssetPacksAvailable}"
+                     Text="{sd:LocalizeString No asset packs are available. The AssetPacks package could not be downloaded.}"/>
+          <ItemsControl x:Name="AssetPacksList" ItemsSource="{Binding AssetPacks}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="tpl:AssetPackViewModel">
+                <CheckBox Content="{Binding Label}" IsChecked="{Binding IsChecked}" Margin="0,2"/>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </StackPanel>
+    </ScrollViewer>
+  </DockPanel>
+</Window>

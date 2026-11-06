@@ -33,7 +33,7 @@ namespace Stride.Physics.Editor
         private static Dictionary<Graphics.GraphicsDevice, Dictionary<Color, Material>> MaterialCache = new Dictionary<Graphics.GraphicsDevice, Dictionary<Color, Material>>();
 
         // Using the same render group as transformation gizmo which means constraint gizmo is visible while inside another mesh
-        private static readonly RenderGroup GizmoRenderGroup = TransformationGizmo.TransformationGizmoGroup;
+        private static readonly RenderGroup GizmoRenderGroup = GizmoBase.TransformationGizmoGroup;
 
         private const float AxisConeRadius = 0.0118f;
         private const float AxisConeHeight = 0.03f;

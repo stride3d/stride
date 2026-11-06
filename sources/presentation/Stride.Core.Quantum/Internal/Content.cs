@@ -17,7 +17,7 @@ internal static class Content
     /// <param name="index">The index of the item to retrieve. If <see cref="NodeIndex.Empty"/> is passed, this method will return the value itself.</param>
     /// <param name="descriptor">The descriptor of the type of <paramref name="value"/>.</param>
     /// <returns>The value itself or the value of one of its item.</returns>
-    public static object? Retrieve(object value, NodeIndex index, ITypeDescriptor? descriptor)
+    public static object? Retrieve(object? value, NodeIndex index, ITypeDescriptor? descriptor)
     {
         if (!index.TryGetValue(out var indexValue))
             return value;

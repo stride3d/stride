@@ -28,7 +28,7 @@ using Stride.Graphics;
 
 namespace Stride.Editor.Preview
 {
-    public class GameStudioPreviewService : IAssetPreviewService, IPreviewBuilder
+    public class GameStudioPreviewService : IAssetPreviewService, IWpfPreviewBuilder
     {
         public static bool DisablePreview = false;
 
@@ -103,6 +103,9 @@ namespace Stride.Editor.Preview
         public bool IsDisposed { get; private set; }
 
         public GameStudioBuilderService AssetBuilderService { get; }
+
+        /// <inheritdoc />
+        AssetBuilderService IPreviewBuilder.AssetBuilderService => AssetBuilderService;
 
         public IDispatcherService Dispatcher { get; }
 

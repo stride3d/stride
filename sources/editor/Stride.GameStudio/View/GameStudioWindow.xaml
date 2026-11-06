@@ -11,11 +11,12 @@
         xmlns:vm="clr-namespace:Stride.GameStudio.ViewModels"
         xmlns:xcad="https://github.com/Dirkster99/AvalonDock"
         xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+        xmlns:assetvm="clr-namespace:Stride.Core.Assets.Editor.ViewModel;assembly=Stride.Core.Assets.Editor.Common"
         xmlns:system="clr-namespace:System;assembly=mscorlib"
         xmlns:cmd="clr-namespace:Stride.Core.Presentation.Commands;assembly=Stride.Core.Presentation"
         xmlns:viewModels="clr-namespace:Stride.Core.Presentation.Quantum.ViewModels;assembly=Stride.Core.Presentation.Quantum"
         xmlns:viewModels1="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;assembly=Stride.Core.Assets.Editor.Wpf"
-        xmlns:logs="clr-namespace:Stride.Core.Assets.Editor.ViewModel.Logs;assembly=Stride.Core.Assets.Editor.Wpf"
+        xmlns:logs="clr-namespace:Stride.Core.Assets.Editor.ViewModel.Logs;assembly=Stride.Core.Assets.Editor.Common"
         mc:Ignorable="d" d:DesignHeight="300" d:DesignWidth="300"
         Title="{Binding EditorTitle, RelativeSource={RelativeSource Self}}" Width="1280" Height="900" Style="{DynamicResource WindowChromeStyle}"
         PreviewMouseDown="EditorWindowPreviewMouseDown"
@@ -124,11 +125,11 @@
         <MenuItem ItemsSource="{Binding Session.ActiveAssetView.SingleSelectedAsset.AssetCommands}" IsCheckable="True"
                   Visibility="{Binding HasItems, RelativeSource={RelativeSource Self}, Converter={sd:VisibleOrCollapsed}, FallbackValue={sd:Collapsed}}">
           <MenuItem.ItemContainerStyle>
-            <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}" d:DataContext="{d:DesignInstance sd:MenuCommandInfo}">
+            <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}" d:DataContext="{d:DesignInstance assetvm:MenuCommandInfo}">
               <Setter Property="Command" Value="{Binding Command}" />
               <Setter Property="CommandParameter" Value="{Binding}" />
               <Setter Property="Header" Value="{Binding DisplayName}" />
-              <Setter Property="Icon" Value="{Binding Icon}" />
+              <Setter Property="Icon" Value="{Binding Icon, Converter={sd:MenuIconToImage}}" />
               <Setter Property="IsEnabled" Value="{Binding Command.IsEnabled, Mode=OneWay}" />
               <Setter Property="ToolTip" Value="{Binding Tooltip}" />
               <Setter Property="InputGestureText" Value="{Binding Gesture}" />
@@ -588,8 +589,8 @@
                         <sd:TreeView.ItemContainerStyle>
                           <Style TargetType="{x:Type sd:TreeViewItem}" BasedOn="{StaticResource {x:Type sd:TreeViewItem}}">
                             <Setter Property="IsExpanded" Value="{Binding Mode=OneTime, Converter={sd:AssetToExpandedAtInitialization}}"/>
-                            <Setter Property="IsEditable" Value="{Binding IsEditable, Mode=OneTime}" d:DataContext="{d:DesignInstance sd:IIsEditableViewModel}"/>
-                            <Setter Property="IsEditing" Value="{Binding IsEditing, Mode=TwoWay}" d:DataContext="{d:DesignInstance sd:IIsEditableViewModel}"/>
+                            <Setter Property="IsEditable" Value="{Binding IsEditable, Mode=OneTime}" d:DataContext="{d:DesignInstance assetvm:IIsEditableViewModel}"/>
+                            <Setter Property="IsEditing" Value="{Binding IsEditing, Mode=TwoWay}" d:DataContext="{d:DesignInstance assetvm:IIsEditableViewModel}"/>
                             <Setter Property="ContextMenu" Value="{StaticResource ContextMenu}"/>
                             <Setter Property="TemplateSelectorEdit" Value="{StaticResource SolutionTreeViewEditTemplate}"/>
                             <Setter Property="sd:Interaction.Behaviors">
