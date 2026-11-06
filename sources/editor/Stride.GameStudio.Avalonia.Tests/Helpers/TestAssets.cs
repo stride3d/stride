@@ -23,3 +23,27 @@ public sealed class TextPropertiesAsset : Asset
 
     public UDirectory? OutputDirectory { get; set; }
 }
+
+/// <summary>
+/// An asset with a property that has nested properties, one of them with its own: for the nested properties toggle.
+/// </summary>
+[DataContract("NestedPropertiesAsset")]
+[AssetDescription(".sdnestedpropertiestest")]
+public sealed class NestedPropertiesAsset : Asset
+{
+    public NestedPropertiesOuter Outer { get; set; } = new();
+}
+
+[DataContract("NestedPropertiesOuter")]
+public sealed class NestedPropertiesOuter
+{
+    public NestedPropertiesInner Inner { get; set; } = new();
+
+    public float Width { get; set; }
+}
+
+[DataContract("NestedPropertiesInner")]
+public sealed class NestedPropertiesInner
+{
+    public float Radius { get; set; }
+}

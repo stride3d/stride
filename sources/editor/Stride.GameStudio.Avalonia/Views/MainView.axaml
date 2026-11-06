@@ -39,10 +39,12 @@
   <Grid RowDefinitions="Auto, Auto, *, Auto, 25"
         Background="Transparent">
     <!-- Menus -->
-    <Menu Grid.Row="0" Grid.Column="0"
+    <Menu Name="MainMenu" Grid.Row="0" Grid.Column="0"
           VerticalAlignment="Top">
-      <!-- File menu -->
-      <MenuItem Header="{sd:LocalizeString _File, Context=Menu}">
+      <!-- File menu. Each main menu ends with the commands that the editor and the plugins place there (MainCommandSlots);
+           in this one they go before Exit. -->
+      <MenuItem Header="{sd:LocalizeString _File, Context=Menu}"
+                Name="FileMenu">
         <!-- A new session from a template (the project selection window), as WPF's File > New; its shortcut is a key binding of the
              main window, like Save -->
         <MenuItem Header="{sd:LocalizeString _New..., Context=Menu}"
@@ -73,7 +75,7 @@
         <MenuItem Header="{sd:LocalizeString _Reload project, Context=Menu}"
                   Command="{Binding ReloadCommand}"
                   IsEnabled="{Binding Session, Mode=OneWay, Converter={sd:ObjectToBool}}"/>
-        <Separator/>
+        <Separator Name="ExitSeparator"/>
         <MenuItem Header="{sd:LocalizeString E_xit, Context=Menu}"
                   Command="{Binding ExitCommand}"
                   HotKey="Alt+F4" InputGesture="{Binding $self.HotKey, Mode=OneTime}"/>
@@ -81,7 +83,8 @@
       <!-- Edit menu: its items act on the panel that has the focus, through the router of the view (see EditCommandRouter), as
            the application commands of WPF do. Their shortcuts are handled by the main window after the focused control, so
            that a text box keeps its own; the items only show them. -->
-      <MenuItem Header="{sd:LocalizeString Edit, Context=Menu}">
+      <MenuItem Header="{sd:LocalizeString Edit, Context=Menu}"
+                Name="EditMenu">
         <MenuItem Header="{sd:LocalizeString Undo, Context=Menu}"
                   Name="UndoMenuItem"
                   InputGesture="{x:Static sd:EditCommands.UndoGesture}">
@@ -145,6 +148,7 @@
       <!-- Project menu: build the current project and start its game, as WPF's Project menu does. The shortcuts are key bindings
            of the main window, like Save. -->
       <MenuItem Header="{sd:LocalizeString _Project, Context=Menu}"
+                Name="ProjectMenu"
                 IsEnabled="{Binding Session, Mode=OneWay, Converter={sd:ObjectToBool}}">
         <MenuItem Header="{sd:LocalizeString Build project, Context=Menu}"
                   Name="BuildProjectMenuItem"
@@ -180,8 +184,13 @@
           </MenuItem.Icon>
         </MenuItem>
       </MenuItem>
+      <!-- Tools menu: only the commands that the editor and the plugins place there, shown when it has some -->
+      <MenuItem Header="{sd:LocalizeString _Tools, Context=Menu}"
+                Name="ToolsMenu"
+                IsVisible="False"/>
       <!-- Help menu -->
-      <MenuItem Header="{sd:LocalizeString _Help, Context=Menu}">
+      <MenuItem Header="{sd:LocalizeString _Help, Context=Menu}"
+                Name="HelpMenu">
         <MenuItem Header="{sd:LocalizeString Online documentation, Context=Menu}"
             Command="{Binding OpenWebPageCommand}"
             CommandParameter="{x:Static gsh:StrideGameStudio.DocumentationUrl}"/>
@@ -210,7 +219,8 @@
       </MenuItem>
     </Menu>
 
-    <!-- Toolbar: the build buttons of the WPF toolbar, while a session is open -->
+    <!-- Toolbar: the build buttons of the WPF toolbar, while a session is open, then the command buttons and the widgets that
+         the editor and the plugins place there (MainCommandSlots) -->
     <sd:ToolBar Grid.Row="1"
                 Name="MainToolBar"
                 IsVisible="{Binding Session, Converter={sd:ObjectToBool}}">

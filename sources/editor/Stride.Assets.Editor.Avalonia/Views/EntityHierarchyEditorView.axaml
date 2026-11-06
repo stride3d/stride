@@ -3,6 +3,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+             xmlns:cmd="using:Stride.Core.Assets.Editor.Avalonia.Commands"
+             xmlns:scmd="using:Stride.Assets.Editor.Commands"
              xmlns:vm="using:Stride.Assets.Editor.ViewModels"
              xmlns:vm2="using:Stride.Assets.Presentation.ViewModels"
              xmlns:conv="using:Stride.Assets.Editor.Avalonia.Converters"
@@ -20,7 +22,8 @@
 
       <!-- The context menu of an empty area of the tree, as the WPF TreeViewContextMenu: the creation and the paste go to
            the root -->
-      <ContextMenu x:Key="RootContextMenu" x:DataType="vm:EntityHierarchyEditorViewModel">
+      <ContextMenu x:Key="RootContextMenu" x:DataType="vm:EntityHierarchyEditorViewModel"
+                   cmd:CommandSlot.Location="{x:Static scmd:SceneLocations.EntityTreeContext}">
         <MenuItem Header="{sd:LocalizeString Create, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"/>
         <MenuItem Header="{sd:LocalizeString Folder, Context=Menu}" Command="{Binding CreateFolderInRootCommand}">
           <MenuItem.Icon><Image Source="{StaticResource ImageNewFolder}"/></MenuItem.Icon>
@@ -61,7 +64,9 @@
 
       <!-- The context menu of an item of the tree, as the WPF TreeViewItemContextMenu: the creation and the paste go into
            the selection -->
-      <ContextMenu x:Key="ItemContextMenu" x:DataType="vm:EntityHierarchyEditorViewModel">
+      <ContextMenu x:Key="ItemContextMenu" x:DataType="vm:EntityHierarchyEditorViewModel"
+                   cmd:CommandSlot.Location="{x:Static scmd:SceneLocations.EntityTreeContext}"
+                   cmd:CommandSlot.Selection="{Binding SelectedContent}">
         <MenuItem Header="{sd:LocalizeString Create, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"/>
         <MenuItem Header="{sd:LocalizeString Folder, Context=Menu}" Command="{Binding CreateFolderInSelectionCommand}">
           <MenuItem.Icon><Image Source="{StaticResource ImageNewFolder}"/></MenuItem.Icon>

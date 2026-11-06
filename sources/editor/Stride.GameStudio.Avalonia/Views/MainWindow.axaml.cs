@@ -85,7 +85,9 @@ public partial class MainWindow : Window
     protected override void OnKeyDown(KeyEventArgs e)
     {
         base.OnKeyDown(e);
-        View.EditRouter.TryHandleKey(e);
+        // Then the shortcuts of the commands that the editor and the plugins register, after the focused control too
+        if (!View.EditRouter.TryHandleKey(e))
+            View.CommandSlots?.TryHandleKey(e);
     }
 
     protected override void OnLoaded(RoutedEventArgs _)
