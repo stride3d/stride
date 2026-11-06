@@ -14,7 +14,8 @@ The view models of the core assets: what a UI shows of a session and its content
 * The asset log view models (`ViewModels/Logs`).
 * The asset node view models (`AssetNodeViewModel`, its factory and command wrapper), the asset node presenters and their base classes (`IAssetNodePresenter`, `AssetNodePresenterFactory`, `AssetNodePresenterUpdaterBase`), and the content value change operations.
 * The asset composite bases: `AssetCompositeViewModel<TAsset>`, `AssetCompositeHierarchyViewModel<,>`, `AssetCompositeItemViewModel` and `IAssetPartViewModel`.
-* The data that these view models expose: `ThumbnailData`, `MenuCommandInfo`, the package settings wrapper and entries, `AssetViewModelAttribute`.
+* The data that these view models expose: `ThumbnailData`, `MenuCommandInfo`, `FileContentSignature`, the package settings wrapper and entries, `AssetViewModelAttribute`.
+* The small contracts and helpers that the asset view models of `Stride.Assets.Presentation` use: `IAddChildrenPropertiesProviderViewModel`, `IAssetCollectionViewModel.RunAssetTemplateAsync`, `ContentReferenceHelper`.
 
 The types are in the `Stride.Core.Assets.Presentation` namespaces (the session objects in `Stride.Core.Assets.Presentation.ViewModels`).
 
