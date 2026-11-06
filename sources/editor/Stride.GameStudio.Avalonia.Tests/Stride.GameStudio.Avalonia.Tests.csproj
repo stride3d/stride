@@ -26,6 +26,12 @@
     <ProjectReference Include="..\Stride.GameStudio.Avalonia\Stride.GameStudio.Avalonia.csproj" />
     <!-- A plugin package declaring type and enum images (the particle state control) -->
     <ProjectReference Include="..\..\plugins\Particles\Stride.Particles.Editor\Stride.Particles.Editor.csproj" />
+    <!-- The UI editor and its Avalonia views (the UI page editor tests) -->
+    <ProjectReference Include="..\..\plugins\UI\Stride.UI.Editor.Avalonia\Stride.UI.Editor.Avalonia.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- The standard library of the UI editor, which the UI page editor tests give their package as a library of its own -->
+    <None Include="..\..\plugins\UI\Stride.UI.Assets\Assets\StrideUILibrary.sduilib" Link="Assets\StrideUILibrary.sduilib" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <!-- The package of test templates of the Core.Assets.Editor tests (xunit 2, not referenced): the same file -->

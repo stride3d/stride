@@ -1,0 +1,240 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+             xmlns:vm="using:Stride.UI.Editor.ViewModels"
+             xmlns:local="using:Stride.UI.Editor.Views"
+             xmlns:dd="using:Stride.Core.Assets.Editor.Avalonia.DragDrop"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Stride.UI.Editor.Views.UIEditorView"
+             x:DataType="vm:UIEditorBaseViewModel"
+             Focusable="True">
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://Stride.Core.Assets.Editor.Avalonia/Views/ImageResources.axaml"/>
+        <ResourceInclude Source="avares://Stride.Assets.Editor.Avalonia/Themes/PreviewImages.axaml"/>
+        <ResourceInclude Source="avares://Stride.UI.Editor.Avalonia/Views/UIEditorImages.axaml"/>
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </UserControl.Resources>
+  <UserControl.Styles>
+    <Style Selector="Button.tool">
+      <Setter Property="Focusable" Value="False"/>
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Padding" Value="4"/>
+    </Style>
+    <Style Selector="Border.factory">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Padding" Value="20,2,4,2"/>
+    </Style>
+    <Style Selector="Border.factory:pointerover">
+      <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListLowBrush}"/>
+    </Style>
+    <!-- The active root of the tree is in bold, as in the WPF UI editor -->
+    <Style Selector="Grid.activeRoot TextBlock">
+      <Setter Property="FontWeight" Value="Bold"/>
+    </Style>
+  </UserControl.Styles>
+
+  <Panel>
+    <!-- Shown until the editor has its game and its hierarchy, as the loading message of the WPF UI editor -->
+    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                IsVisible="{Binding RootPart, Converter={x:Static ObjectConverters.IsNull}}">
+      <TextBlock Text="{sd:LocalizeString Loading...}" Margin="20" HorizontalAlignment="Center"/>
+      <TextBlock Text="{sd:LocalizeString This might take a few minutes the first time.}" Margin="20" HorizontalAlignment="Center"/>
+      <ProgressBar IsIndeterminate="True" Width="200" Height="20" Margin="20"/>
+    </StackPanel>
+
+    <Grid x:Name="EditorGrid" ColumnDefinitions="*, 4, 3*"
+          IsVisible="{Binding RootPart, Converter={x:Static ObjectConverters.IsNotNull}}">
+      <!-- Cut, Copy, Paste and Delete work wherever the focus is in the editor (the tree or the view), as the command
+           bindings of the WPF UI editor -->
+      <sd:EditCommands.Bindings>
+        <sd:EditCommandBinding Kind="Cut" Command="{Binding CutCommand}"/>
+        <sd:EditCommandBinding Kind="Copy" Command="{Binding CopyCommand}"/>
+        <sd:EditCommandBinding Kind="Paste" Command="{Binding PasteCommand}" CommandParameter="{sd:False}"/>
+        <sd:EditCommandBinding Kind="Delete" Command="{Binding DeleteCommand}"/>
+      </sd:EditCommands.Bindings>
+
+      <!-- Left panel: the properties of the UI, the toolbox and the tree -->
+      <DockPanel Grid.Column="0">
+        <Button DockPanel.Dock="Top" Margin="8" Padding="4" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                Content="{sd:LocalizeString UI properties, Context=Button}" Command="{Binding ShowPropertiesCommand}"/>
+        <Grid RowDefinitions="*, 4, *">
+          <!-- The toolbox: the elements of the standard library and of the UI libraries of the session, by library kind
+               then by category; an element is dragged to the tree or to the view -->
+          <DockPanel Grid.Row="0">
+            <TextBlock DockPanel.Dock="Top" Margin="4" FontWeight="Bold" Text="{sd:LocalizeString UI library}"/>
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+              <ItemsControl x:Name="Toolbox">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="local:UIElementFactoryGroup">
+                    <Expander IsExpanded="True" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="4,0">
+                      <Expander.Header>
+                        <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
+                      </Expander.Header>
+                      <ItemsControl ItemsSource="{Binding Groups}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="local:UIElementFactoryGroup">
+                            <Expander IsExpanded="True" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="0">
+                              <Expander.Header>
+                                <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
+                              </Expander.Header>
+                              <ItemsControl ItemsSource="{Binding Factories}">
+                                <ItemsControl.ItemTemplate>
+                                  <DataTemplate x:DataType="vm:IUIElementFactory">
+                                    <Border Classes="factory">
+                                      <Interaction.Behaviors>
+                                        <dd:ItemDragBehavior/>
+                                      </Interaction.Behaviors>
+                                      <TextBlock Text="{Binding Name}"/>
+                                    </Border>
+                                  </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                              </ItemsControl>
+                            </Expander>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </Expander>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+          </DockPanel>
+
+          <GridSplitter Grid.Row="1" ResizeDirection="Rows"/>
+
+          <!-- The visual tree -->
+          <DockPanel Grid.Row="2">
+            <!-- Rename only while the tree has the focus, as F2 in the WPF tree -->
+            <sd:EditCommands.Bindings>
+              <sd:EditCommandBinding Kind="Rename" Command="{Binding RenameCommand}"/>
+            </sd:EditCommands.Bindings>
+            <TextBlock DockPanel.Dock="Top" Margin="4" FontWeight="Bold" Text="{sd:LocalizeString Visual Tree}"/>
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="4" Margin="2">
+              <Button Classes="tool" Click="OnExpandAllClick"
+                      ToolTip.Tip="{sd:LocalizeString Expand all elements, Context=ToolTip}">
+                <Image Source="{StaticResource ImageExpandAllFolders}" Width="16" Height="16"/>
+              </Button>
+              <Button Classes="tool" Click="OnCollapseAllClick"
+                      ToolTip.Tip="{sd:LocalizeString Collapse all elements, Context=ToolTip}">
+                <Image Source="{StaticResource ImageCollapseAllFolders}" Width="16" Height="16"/>
+              </Button>
+            </StackPanel>
+            <TreeView x:Name="HierarchyTree"
+                      Focusable="True"
+                      ItemsSource="{Binding ((vm:UIRootViewModel)RootPart).Children, FallbackValue={x:Null}}"
+                      SelectedItems="{Binding SelectedContent}"
+                      SelectionMode="Multiple">
+              <!-- Drag and drop, as the WPF UI tree: the elements are dragged (the selection when the drag starts on it); a drop
+                   on a row adds as children, between two rows inserts there, on the empty area adds to the root of the asset;
+                   the elements of the toolbox drop too -->
+              <Interaction.Behaviors>
+                <dd:TreeViewDragDropBehavior CanInsert="True" AllowDropOnEmptyArea="True" EmptyAreaTarget="{Binding RootPart}"/>
+              </Interaction.Behaviors>
+              <Control.DataTemplates>
+                <TreeDataTemplate DataType="{x:Type vm:UIElementViewModel}" ItemsSource="{Binding Children}">
+                  <Grid ColumnDefinitions="*, Auto">
+                    <Classes.activeRoot>
+                      <MultiBinding Converter="{sd:AllEqualMulti}">
+                        <Binding Path="$parent[TreeView].((vm:UIEditorBaseViewModel)DataContext).ActiveRoot" FallbackValue="{x:Null}"/>
+                        <Binding/>
+                      </MultiBinding>
+                    </Classes.activeRoot>
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" ClipToBounds="True">
+                      <TextBlock Text="{Binding Name}" Margin="0,0,4,0" VerticalAlignment="Center" IsVisible="{Binding !IsEditing}"/>
+                      <!-- Renaming in place (F2): the box replaces the name while the item is editing -->
+                      <TextBox Text="{Binding Name, Mode=OneWay}" IsVisible="{Binding IsEditing}" MinWidth="80" Margin="0,0,4,0">
+                        <Interaction.Behaviors>
+                          <sd:InlineEditBehavior Name="{Binding Name, Mode=TwoWay}" IsEditing="{Binding IsEditing, Mode=TwoWay}"/>
+                        </Interaction.Behaviors>
+                      </TextBox>
+                      <TextBlock Text="{Binding ElementType.Name, StringFormat=[\{0\}]}" VerticalAlignment="Center"/>
+                      <TextBlock Text="{Binding SourceLibrary.Name, StringFormat=(Library: \{0\}), FallbackValue=''}" Margin="4,0,0,0"
+                                 VerticalAlignment="Center" Foreground="{DynamicResource SystemControlForegroundAccentBrush}"
+                                 IsVisible="{Binding SourceLibrary, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                    </StackPanel>
+                    <TextBlock Grid.Column="1" VerticalAlignment="Center" Margin="8,0,0,0"
+                               Text="{Binding Children.Count, StringFormat=(\{0\})}"
+                               IsVisible="{Binding !!Children.Count}"/>
+                  </Grid>
+                </TreeDataTemplate>
+              </Control.DataTemplates>
+            </TreeView>
+          </DockPanel>
+        </Grid>
+      </DockPanel>
+
+      <GridSplitter Grid.Column="1" ResizeDirection="Columns"/>
+
+      <!-- The view of the game -->
+      <DockPanel Grid.Column="2">
+        <!-- The zoom and the snap, as the toolbars of the WPF UI editor. Its items don't take the focus, so that the keys keep
+             going to the view. -->
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="4" Margin="2">
+          <Button Classes="tool" Command="{Binding ResetZoomCommand}"
+                  ToolTip.Tip="{sd:LocalizeString Reset zoom, Context=ToolTip}">
+            <Image Source="{StaticResource ImageZoomDefault}" Width="16" Height="16"/>
+          </Button>
+          <Button Classes="tool" Command="{Binding ZoomOutCommand}"
+                  ToolTip.Tip="{sd:LocalizeString Zoom out, Context=ToolTip}">
+            <Image Source="{StaticResource ImageZoomOut}" Width="16" Height="16"/>
+          </Button>
+          <Button Classes="tool" Command="{Binding ZoomInCommand}"
+                  ToolTip.Tip="{sd:LocalizeString Zoom in, Context=ToolTip}">
+            <Image Source="{StaticResource ImageZoomIn}" Width="16" Height="16"/>
+          </Button>
+          <Separator Width="1" Height="20" Margin="2,0"/>
+          <sd:NumericTextBox x:Name="SnapBox" Width="50" Value="{Binding SnapValue}" DecimalPlaces="3" Minimum="0"
+                             VerticalAlignment="Center"
+                             ToolTip.Tip="{sd:LocalizeString Snaps to this value (0 to disable), Context=ToolTip}"/>
+        </StackPanel>
+
+        <Panel x:Name="ViewArea" Background="Transparent">
+          <!-- The editor has no game without a graphics device (or with the previews turned off), as the scene editor -->
+          <TextBlock Text="{sd:LocalizeString The UI view is not available.}"
+                     HorizontalAlignment="Center" VerticalAlignment="Center"
+                     IsVisible="{Binding !HasGame}"/>
+          <!-- The game of the editor renders here; the elements of the toolbox and the UI assets dropped on it go under the
+               pointer, as in the WPF UI editor -->
+          <ContentControl x:Name="GameViewHost" Content="{Binding GameHost.GameView}"
+                          IsVisible="{Binding GameHost.LastException, Converter={x:Static ObjectConverters.IsNull}}">
+            <Interaction.Behaviors>
+              <dd:AddChildDropBehavior/>
+            </Interaction.Behaviors>
+          </ContentControl>
+
+          <!-- The game stopped on an error: the message, and the way to resume once the asset is fixed, as in the WPF UI
+               editor -->
+          <Border x:Name="CrashPanel" Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
+                  IsVisible="{Binding GameHost.LastException, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <Grid RowDefinitions="Auto, Auto, Auto" HorizontalAlignment="Center" VerticalAlignment="Center"
+                  MinWidth="400" MaxWidth="1200" Margin="20"
+                  Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+              <TextBlock Grid.Row="0" Margin="20" FontSize="20" FontWeight="Bold" TextWrapping="Wrap" MaxLines="3" TextTrimming="CharacterEllipsis"
+                         Text="{Binding GameHost.LastException.Message, StringFormat=Error: \{0\}, FallbackValue=''}"/>
+              <!-- The stack trace keeps its lines: it scrolls rather than wraps -->
+              <ScrollViewer Grid.Row="1" Margin="20,0" MaxHeight="400"
+                            HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <SelectableTextBlock Text="{Binding GameHost.LastException, FallbackValue=''}"/>
+              </ScrollViewer>
+              <StackPanel Grid.Row="2" Margin="20" Spacing="4">
+                <TextBlock HorizontalAlignment="Center"
+                           Text="{sd:LocalizeString Before you resume\, fix the failing asset (likely a UI page or UI library).}"/>
+                <UniformGrid HorizontalAlignment="Center" Rows="1" Columns="2">
+                  <Button Content="{sd:LocalizeString Resume, Context=Button}" Command="{Binding GameHost.ResumeCommand}"
+                          Padding="24,8" Margin="10,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                  <Button Content="{sd:LocalizeString Copy error to clipboard, Context=Button}" Command="{Binding GameHost.CopyErrorToClipboardCommand}"
+                          Padding="24,8" Margin="10,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                </UniformGrid>
+              </StackPanel>
+            </Grid>
+          </Border>
+        </Panel>
+      </DockPanel>
+    </Grid>
+  </Panel>
+</UserControl>
