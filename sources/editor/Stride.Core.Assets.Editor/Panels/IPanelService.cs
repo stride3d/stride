@@ -35,6 +35,12 @@ public interface IPanelService
     void Hide(string panelId);
 
     /// <summary>
+    /// The view model of a panel that is opened once (not <see cref="PanelDescriptor.AllowsMultipleInstances"/>), shown or hidden;
+    /// null when no session is open or the panel is not registered.
+    /// </summary>
+    IPanelViewModel? GetPanel(string panelId);
+
+    /// <summary>
     /// The open instances of a panel that can be opened several times, in the order they were opened.
     /// </summary>
     IReadOnlyList<IPanelViewModel> GetInstances(string panelId);

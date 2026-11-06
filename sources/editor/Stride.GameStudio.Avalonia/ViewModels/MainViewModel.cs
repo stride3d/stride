@@ -97,6 +97,8 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
         var host = serviceProvider.TryGet<IAssetsPluginService>() as EditorPluginHost;
         var registry = host?.Panels ?? new PanelRegistry();
         Panels = new DockPanelService(serviceProvider, registry, GameStudioInternalSettings.CreateSessionPanelLayouts());
+        // The plugins show their panels through it (the curve editor's "Edit curve")
+        serviceProvider.RegisterService(Panels);
         RegisterBuiltInPanels(registry, host);
         ViewMenu = new ViewMenuViewModel(serviceProvider, Panels);
         // In safe mode, a banner says how many plugins are off, with "Restart normally" and the Plugins panel

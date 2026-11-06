@@ -298,6 +298,12 @@ public sealed class DockPanelService : ViewModelBase, IPanelService, IDisposable
     }
 
     /// <inheritdoc />
+    public IPanelViewModel? GetPanel(string panelId)
+    {
+        return dockables.TryGetValue(new PanelRef(panelId), out var dockable) && !dockable.AllowsMultipleInstances ? dockable.ViewModel : null;
+    }
+
+    /// <inheritdoc />
     public IReadOnlyList<IPanelViewModel> GetInstances(string panelId)
     {
         return dockables.Values.Where(x => x.Ref.PanelId == panelId && x.AllowsMultipleInstances).Select(x => x.ViewModel).ToList();
