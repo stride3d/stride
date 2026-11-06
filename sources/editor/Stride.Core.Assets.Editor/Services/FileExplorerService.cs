@@ -24,7 +24,7 @@ public sealed class FileExplorerService : IFileExplorerService
 
         if (OperatingSystem.IsWindows())
         {
-            Process.Start(new ProcessStartInfo("explorer.exe", $"/select,\"{filePath}\"") { UseShellExecute = true });
+            Start(new ProcessStartInfo("explorer.exe", $"/select,\"{filePath}\"") { UseShellExecute = true });
             return;
         }
         if (OperatingSystem.IsMacOS())
@@ -32,7 +32,7 @@ public sealed class FileExplorerService : IFileExplorerService
             var startInfo = new ProcessStartInfo("open") { UseShellExecute = false };
             startInfo.ArgumentList.Add("-R");
             startInfo.ArgumentList.Add(filePath);
-            Process.Start(startInfo);
+            Start(startInfo);
             return;
         }
         // The file managers of the Linux desktops (Nautilus, Dolphin, Nemo, Thunar...) select the file through FileManager1;
@@ -48,7 +48,7 @@ public sealed class FileExplorerService : IFileExplorerService
     {
         ArgumentNullException.ThrowIfNull(folderPath);
 
-        Process.Start(new ProcessStartInfo(folderPath) { UseShellExecute = true });
+        Start(new ProcessStartInfo(folderPath) { UseShellExecute = true });
         return Task.CompletedTask;
     }
 
@@ -63,7 +63,7 @@ public sealed class FileExplorerService : IFileExplorerService
         {
             startInfo.Verb = startInfo.Verbs.FirstOrDefault(x => string.Equals(x, "edit", StringComparison.OrdinalIgnoreCase));
         }
-        Process.Start(startInfo);
+        Start(startInfo);
         return Task.CompletedTask;
     }
 
@@ -75,7 +75,7 @@ public sealed class FileExplorerService : IFileExplorerService
 
         var startInfo = new ProcessStartInfo(programPath) { UseShellExecute = false };
         startInfo.ArgumentList.Add(filePath);
-        Process.Start(startInfo);
+        Start(startInfo);
         return Task.CompletedTask;
     }
 
@@ -107,7 +107,16 @@ public sealed class FileExplorerService : IFileExplorerService
                 return false;
 
             using var timeout = new CancellationTokenSource(ShowItemsTimeout);
-            await process.WaitForExitAsync(timeout.Token);
+            try
+            {
+                await process.WaitForExitAsync(timeout.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                // dbus-send waits for an answer that doesn't come: stop it rather than leave it running
+                KillQuietly(process);
+                throw;
+            }
             return process.ExitCode == 0;
         }
         catch (Win32Exception)
@@ -119,6 +128,30 @@ public sealed class FileExplorerService : IFileExplorerService
         {
             // A file manager that doesn't answer: open the folder rather than wait
             return false;
+        }
+    }
+
+    /// <summary>
+    /// Starts a program that the editor does not follow: the process object is released at once.
+    /// </summary>
+    private static void Start(ProcessStartInfo startInfo)
+    {
+        Process.Start(startInfo)?.Dispose();
+    }
+
+    private static void KillQuietly(Process process)
+    {
+        try
+        {
+            process.Kill();
+        }
+        catch (InvalidOperationException)
+        {
+            // It exited in the meantime
+        }
+        catch (Win32Exception)
+        {
+            // It can't be stopped
         }
     }
 }
