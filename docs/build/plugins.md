@@ -100,7 +100,7 @@ The template's content is small but complete: a component and a content type (ru
   - `Initialize(IEditorPluginContext context)`, once per editor: images (`context.TypeImages`, `context.EnumImages`), primitive types, template providers, copy and paste processors, scene view tools (`context.EditorViewToolTypes`), settings keys, profile settings, panels and their views (see below);
   - `InitializeSession(ISessionPluginContext context)`, once the session is open: services (`context.Services`), property grid commands and updaters (`context.NodePresenterCommands`, `context.NodePresenterUpdaters`), and with `context.OnClose(...)` what to clean up.
 
-  The editor records each registration under the plugin and removes it when the plugin leaves: its assembly is reloaded or unloaded, or the session closes, which also runs the `OnClose` actions, newest first. The older `Register*` methods, `InitializePlugin` and `InitializeSession(ISessionViewModel)` still work, through the base methods: the editor removes what they register too, except the services that `InitializeSession(ISessionViewModel)` adds to the session directly and what a plugin keeps in static fields. The template's plugin class shows the two methods. Gizmos `[GizmoComponent(typeof(MyComponent), true)]` classes, tools of the scene and prefab views `[EditorViewTool]` classes (cross-platform editor; the plugin context registers them while the plugin is loaded), previews and their view models by the `AssetPreview` attributes. Views are WPF today; keep them in the `.Wpf` companion package so the `Editor` package stays toolkit-neutral (it references `Stride.Assets.Editor`, not a `*.Wpf` assembly). The editor's session, the hierarchy item an entity factory creates for and the editor game controller reach the plugin as interfaces (`ISessionViewModel`, `IEntityHierarchyItemViewModel`, `IEditorGameController` and its `IEntityHierarchyEditorController` / `ISceneEditorController` refinements): an editor game service declares the controller interface in its `[EditorGameService]` attribute and takes it, or `IAssetEditorViewModel`, in its constructor.
+  The editor records each registration under the plugin and removes it when the plugin leaves: its assembly is reloaded or unloaded, or the session closes, which also runs the `OnClose` actions, newest first. The older `Register*` methods, `InitializePlugin` and `InitializeSession(ISessionViewModel)` are obsolete (see [Migrating from the older plugin API](#migrating-from-the-older-plugin-api)) but still work, through the base methods: the editor removes what they register too, except the services that `InitializeSession(ISessionViewModel)` adds to the session directly and what a plugin keeps in static fields. The template's plugin class shows the two methods. Gizmos `[GizmoComponent(typeof(MyComponent), true)]` classes, tools of the scene and prefab views `[EditorViewTool]` classes (cross-platform editor; the plugin context registers them while the plugin is loaded), previews and their view models by the `AssetPreview` attributes. Views are WPF today; keep them in the `.Wpf` companion package so the `Editor` package stays toolkit-neutral (it references `Stride.Assets.Editor`, not a `*.Wpf` assembly). The editor's session, the hierarchy item an entity factory creates for and the editor game controller reach the plugin as interfaces (`ISessionViewModel`, `IEntityHierarchyItemViewModel`, `IEditorGameController` and its `IEntityHierarchyEditorController` / `ISceneEditorController` refinements): an editor game service declares the controller interface in its `[EditorGameService]` attribute and takes it, or `IAssetEditorViewModel`, in its constructor.
 - Editor settings: a static class marked `[EditorSettings]`, in the assembly of the plugin class, holds the plugin's settings keys (static fields or properties created in `EditorSettings.SettingsContainer`). Game Studio registers them with the plugin's assembly and removes them when the assembly is unloaded, so a reloaded assembly (a plugin project of the solution rebuilt, a package removed and added again) creates them again. `Stride.UI.Editor`'s `UIEditorSettings` is declared this way.
 - Asset templates: a `Templates/Assets/*.sdtpl` in the `Assets` package (`!TemplateAssetFactory`), listed under `TemplateFolders` in the package's `.sdpkg` next to the project (the template's `MyPlugin.Assets.sdpkg` shows the shape), packed with it. Without that list the asset type never appears in *Add asset*.
 - Render features: a class implementing `IRenderFeatureProvider` (in `Stride.Assets`) in the `Assets` or `Editor` package returns the render features the plugin needs, for the opaque and transparent stages it is given. The editor's preview and thumbnail compositors take them at runtime; `Stride.SpriteStudio.Editor`, `Stride.Particles.Editor` and `Stride.UI.Editor` work this way. A game's own compositor asset is the game's: the engine default it derives from carries no plugin feature, so a compositor created in Game Studio gets the features of its project's packages (its dependencies, `PackageTypeScope`), and for an existing one, once the game references the plugin, *Add package features* in the compositor editor adds the missing ones (through the property graph, so undo and the dirty flag follow). The engine's compositors carry no particle or UI feature since `Stride.Particles` and `Stride.UI` became plugins; upgrading a game's compositor derived from them keeps each of those features it had, now owned by the game's compositor, or removes it when the game does not reference that plugin.
@@ -113,6 +113,59 @@ These parts of the plugin context are new in the cross-platform Game Studio. The
 - **Views** (`context.ViewTypes`): the view type of a view model type, in the editor's toolkit. The neutral `Editor` package registers the panel; its toolkit companion (`.Avalonia`, `.Wpf`) registers the view, an Avalonia `Control` for the cross-platform editor, created with no argument and given the view model as `DataContext`. A registration for a base type covers the derived ones. A view model with no view in the running editor shows "No view for this editor", and a warning names the panel and the plugin.
 - **Registries of other layers** (`context.GetRegistry<T>()`): a layer of the editor declares the registry of its own contribution points (`EditorPluginHost.DeclareRegistry<T>()`), and usually gives it a typed extension method on the context. A contribution goes with its plugin, as the others. Asking for a registry that no layer of the editor declares throws, so the plugin does not join.
 - **Plugin states and failures**: the editor keeps a state per plugin (`EditorPluginHost.PluginStatuses`: joined, failed to join, and later switched off or incompatible) with its errors. The editor runs the code of a contribution (a panel's view model, a view) through a guard (`IPluginContributionGuard`): when it throws, the error is logged with the plugin's name and recorded in its state, that contribution is turned off until the session opens again (a panel leaves the View menu), and the rest of the plugin stays. A plugin that fails to join is left out without what it registered; one whose `InitializeSession` fails stays, with the error recorded.
+
+## Migrating from the older plugin API
+
+The API that plugins used before the plugin context is obsolete. It still works, and the editor removes what it registers when the plugin leaves, but a plugin that uses it gets a build warning naming the replacement. It will be removed in a later major version. Each group has its own warning id, so a plugin can silence one group while it moves (`<NoWarn>$(NoWarn);STRPLUGIN001</NoWarn>` or `#pragma warning disable STRPLUGIN001`).
+
+| Id | Obsolete | Replacement |
+|---|---|---|
+| `STRPLUGIN001` | The `Register*` methods of `AssetsPlugin` and `AssetsEditorPlugin` (`RegisterAssetViewModelTypes`, `RegisterPrimitiveTypes`, `RegisterAssetEditorViewModelTypes`, `RegisterAssetEditorViewTypes`, `RegisterAssetPreviewViewModelTypes`, `RegisterAssetPreviewViewTypes`, `RegisterEnumImages`, `RegisterTemplateProviders`, `RegisterCopyProcessors`, `RegisterPasteProcessors`, `RegisterPostPasteProcessors`) | `Initialize(IEditorPluginContext context)`, with the registry of the same name: `context.AssetViewModelTypes`, `context.PrimitiveTypes`, ... `context.PostPasteProcessors` |
+| `STRPLUGIN002` | `InitializePlugin(ILogger)`, `StrideAssetsPlugin.Initialize(ILogger)` and the helpers called from it: `RegisterEnumImage`, `RegisterTemplateProvider`, the instance `RegisterResourceDictionary(dictionary)` of `StrideAssetsWpfPlugin` and `StrideAssetsAvaloniaPlugin` | `Initialize(IEditorPluginContext context)`: `context.Logger`, `context.EnumImages`, `context.TemplateProviders`, and the static `RegisterResourceDictionary(context, dictionary)` |
+| `STRPLUGIN003` | `InitializeSession(ISessionViewModel)` | `InitializeSession(ISessionPluginContext context)`: `context.Session`, `context.Services`, `context.NodePresenterCommands`, `context.NodePresenterUpdaters`, `context.OnClose(...)` |
+| `STRPLUGIN004` | The static `AssetsEditorPlugin.TypeImages` and `TypeImagesDictionary` | `context.TypeImages`, or `[assembly: TypeImage(...)]`; the editor reads them through `IAssetsPluginService.GetImageForType` |
+| `STRPLUGIN005` | The `AssetsEditorPlugin.ProfileSettings` list | `context.ProfileSettings` |
+
+A plugin that overrides an obsolete method gets the compiler's own warning, `CS0672` ("overrides obsolete member"), instead of the group's id; the base method's message names the replacement.
+
+`AssetsPlugin.SessionLoaded` and `SessionDisposed` are gone (they were never called): a plugin does its session work in `InitializeSession(ISessionPluginContext context)` and its clean-up with `context.OnClose(...)`, which runs when the plugin leaves or the session closes, in both Game Studios.
+
+Before and after, for a plugin with an enum image, a template provider and a property grid command:
+
+```csharp
+// Before
+public sealed class MyEditorPlugin : StrideAssetsPlugin
+{
+    protected override void Initialize(ILogger logger)
+    {
+        RegisterEnumImage(MyMode.Fast, LoadImage("Fast.png"));
+        RegisterTemplateProvider(new MyTemplateProvider());
+    }
+
+    public override void InitializeSession(ISessionViewModel session)
+    {
+        // added the command to the property grid's service directly, and nothing removed it
+    }
+}
+
+// After
+public sealed class MyEditorPlugin : StrideAssetsPlugin
+{
+    public override void Initialize(IEditorPluginContext context)
+    {
+        base.Initialize(context);
+        context.EnumImages.Register(MyMode.Fast, LoadImage("Fast.png"));
+        context.TemplateProviders.Register(new MyTemplateProvider());
+    }
+
+    public override void InitializeSession(ISessionPluginContext context)
+    {
+        base.InitializeSession(context);
+        context.NodePresenterCommands.Register(new MyNodeCommand());
+        context.OnClose(() => { /* what the old SessionDisposed did */ });
+    }
+}
+```
 
 ## Reloading in Game Studio
 

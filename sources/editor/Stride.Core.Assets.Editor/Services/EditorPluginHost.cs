@@ -463,7 +463,10 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginCo
         try
         {
             var context = new EditorContext(this, plugin, record, session, pluginLogger);
+            // The older API, still called for the plugins that use it
+#pragma warning disable STRPLUGIN002
             plugin.InitializePlugin(pluginLogger);
+#pragma warning restore STRPLUGIN002
             ScanPlugin(plugin, context);
             foreach (var assembly in plugin.ScannedAssemblies)
                 ScanDeclaredImages(assembly, record);
@@ -659,7 +662,10 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginCo
     /// <inheritdoc />
     public IEnumerable<PackageSettingsEntry> GetProfileSettings()
     {
+        // The older API's list, still read for the plugins that use it
+#pragma warning disable STRPLUGIN005
         return Plugins.OfType<AssetsEditorPlugin>().SelectMany(x => x.ProfileSettings).Concat(profileSettings);
+#pragma warning restore STRPLUGIN005
     }
 
     /// <inheritdoc />

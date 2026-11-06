@@ -46,12 +46,15 @@ namespace Stride.Core.Assets.Editor.Wpf.Tests
         public void RegisterMethodsDefaultToAttributeScansOfThePluginAssembly()
         {
             var plugin = new DiscoveredPlugin();
+            // The old plugin API, which the editor still supports, is obsolete
+#pragma warning disable STRPLUGIN001
             var types = new System.Collections.Generic.Dictionary<Type, Type>();
             plugin.RegisterAssetViewModelTypes(types);
             Assert.Empty(types);
 
             var primitives = new System.Collections.Generic.List<Type>();
             plugin.RegisterPrimitiveTypes(primitives);
+#pragma warning restore STRPLUGIN001
             Assert.Empty(primitives);
         }
     }

@@ -64,6 +64,8 @@ public class TestEditorPluginHost
         }
     }
 
+    // The old plugin API, which the editor still supports, is obsolete
+#pragma warning disable CS0672
     /// <summary>
     /// A plugin written for the old API: it only overrides the <c>Register*</c> methods and the session initialization.
     /// </summary>
@@ -107,6 +109,7 @@ public class TestEditorPluginHost
             session.ServiceProvider.Get<RecordingEditorPluginHost>().GraphService.AvailableCommands.Add(Command);
         }
     }
+#pragma warning restore CS0672
 
     public sealed class FailingPlugin : AssetsEditorPlugin
     {

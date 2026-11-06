@@ -125,6 +125,8 @@ public sealed class PluginRegistrations : IEditorPluginContext
     public static PluginRegistrations Of(AssetsPlugin plugin, Type editorViewType)
     {
         var registrations = new PluginRegistrations(plugin);
+        // The old plugin API, which the editor still supports and these recordings cover, is obsolete
+#pragma warning disable STRPLUGIN002, STRPLUGIN004
         var typeImages = AssetsEditorPlugin.TypeImagesDictionary.ToDictionary();
         plugin.InitializePlugin(registrations.Logger);
         new Scanner(editorViewType).Scan(plugin, registrations);
@@ -135,6 +137,7 @@ public sealed class PluginRegistrations : IEditorPluginContext
             if (!typeImages.TryGetValue(type, out var previous) || !ReferenceEquals(previous, image))
                 registrations.legacyTypeImages[type] = image;
         }
+#pragma warning restore STRPLUGIN002, STRPLUGIN004
         return registrations;
     }
 
@@ -167,7 +170,10 @@ public sealed class PluginRegistrations : IEditorPluginContext
         if (EditorViewToolTypes.Count > 0)
             Section(builder, nameof(EditorViewToolTypes), EditorViewToolTypes.Select(Name).Order(StringComparer.Ordinal));
         Section(builder, nameof(SettingsKeys), SettingsKeys.Select(x => x.Name.ToString()));
+        // The old plugin API, which the editor still supports, is obsolete
+#pragma warning disable STRPLUGIN005
         var profileSettings = (Plugin as AssetsEditorPlugin)?.ProfileSettings.Concat(ProfileSettings) ?? ProfileSettings;
+#pragma warning restore STRPLUGIN005
         Section(builder, nameof(ProfileSettings), profileSettings.Select(x => $"{x.SettingsKey.Name} ({x.TargetPackage})"));
         // Only for a plugin that has them: the recordings of the others predate them
         if (Panels.Count > 0)
