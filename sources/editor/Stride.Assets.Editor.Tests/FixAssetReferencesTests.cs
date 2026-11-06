@@ -125,6 +125,26 @@ public sealed class FixAssetReferencesTests
         Assert.Same(other, Assert.Single(dialogs.FixAssetReferencesDialogs).SingleReplacementObject);
     }
 
+    [Fact]
+    public async Task AnotherAssetOfTheSameDeleteIsNotOfferedAsAReplacement()
+    {
+        using var fixture = await OpenAsync();
+        var (skeleton, other) = (fixture.Asset(SkeletonLocation), fixture.Asset(OtherSkeletonLocation));
+        var dialogs = Dialogs(fixture);
+        dialogs.PickAsset = _ => null;
+        dialogs.FixAssetReferences = fixReferences =>
+        {
+            fixReferences.PickupSingleReplacementObjectCommand.Execute();
+            return Task.FromResult(false);
+        };
+
+        // Nothing references the other skeleton, but it goes with this delete too
+        Assert.False(await fixture.Session.DeleteItems([skeleton, other], skipConfirmation: true));
+
+        var picker = Assert.Single(dialogs.AssetPickers);
+        Assert.Empty(picker.FilteredAssets);
+    }
+
     private static async Task<AssetsSessionFixture> OpenAsync()
     {
         var skeleton = new SkeletonAsset();

@@ -94,7 +94,8 @@ public sealed class FixAssetReferencesViewModel : FixReferencesViewModel<AssetVi
         return await ServiceProvider.Get<IEditorDialogService>().OpenAssetPickerAsync(
             session,
             acceptedTypes,
-            x => !IsInObjectsToFixList(x),
+            // Every asset of the delete goes, even one that nothing references: none can replace another
+            x => !hashIds.Contains(x.Id),
             initialLocation: objectToFix.Directory,
             message: Translation.Tr._p("Message", "Select an asset to replace the deleted asset"));
     }
