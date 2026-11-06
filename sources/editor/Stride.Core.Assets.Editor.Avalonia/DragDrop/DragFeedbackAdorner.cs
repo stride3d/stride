@@ -86,6 +86,8 @@ public sealed class DragFeedbackAdorner : Control
                 return;
             adorner = new DragFeedbackAdorner();
             AdornerLayer.SetAdornedElement(adorner, element);
+            // The message goes past the target when the pointer is near its edge
+            AdornerLayer.SetIsClipEnabled(adorner, false);
             layer.Children.Add(adorner);
         }
 
