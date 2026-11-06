@@ -90,7 +90,7 @@ public sealed class AssetsSessionFixture : IDisposable
         var directory = Path.Combine(Path.GetTempPath(), "Stride.Assets.Editor.Tests", Guid.NewGuid().ToString("N"));
         var assetsPlugin = new StrideDefaultAssetsPlugin();
         var editorPlugin = new StrideEditorPlugin { EnableThumbnailService = false };
-        var plugins = new TestPluginService(assetsPlugin, editorPlugin);
+        var plugins = new TestPluginService(assetsPlugin, editorPlugin, new TestEditorViewsPlugin());
         var serviceProvider = new ViewModelServiceProvider(
         [
             dispatcher,

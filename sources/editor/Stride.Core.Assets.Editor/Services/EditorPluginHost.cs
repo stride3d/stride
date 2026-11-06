@@ -598,9 +598,13 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
     }
 
     /// <inheritdoc />
+    /// <remarks>
+    /// An editor counts only when this editor has its view: a plugin may declare an editor whose view exists in another
+    /// editor only (e.g. a toolkit-neutral plugin with the views of one toolkit).
+    /// </remarks>
     public virtual bool HasEditorView(ISessionViewModel session, Type viewModelType)
     {
-        return editorViewModelTypes.Entries.Any(x => x.Key.IsAssignableFrom(viewModelType));
+        return GetEditorViewModelType(viewModelType) is { } editorViewModelType && GetEditorViewType(editorViewModelType) is not null;
     }
 
     /// <inheritdoc />

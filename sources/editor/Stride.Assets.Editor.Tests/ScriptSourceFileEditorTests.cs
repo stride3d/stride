@@ -6,6 +6,8 @@ using Stride.Assets.Editor.Tests.Helpers;
 using Stride.Assets.Editor.ViewModels;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Assets.Scripts;
+using Stride.Assets.Sprite;
+using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Presentation.Services;
 
@@ -277,6 +279,29 @@ public sealed class ScriptSourceFileEditorTests
         Assert.False(collection.TryGetAssetEditor<ScriptSourceFileEditorViewModel>(script, out _));
         Assert.Equal(Script, File.ReadAllText(PathOf(editor)));
         Assert.Equal(2, dialogs.Messages.Count);
+    }
+
+    [Fact]
+    public async Task TheEditorCollectionOpensOnlyTheEditorsThisEditorHasAViewFor()
+    {
+        using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, ("Player", new ScriptSourceFileAsset { Text = Script }), ("Sheet", new SpriteSheetAsset()));
+        var collection = fixture.Session.EditorCollection;
+        var plugins = fixture.ServiceProvider.Get<IAssetsPluginService>();
+        var sheet = fixture.Session.AllAssets.OfType<SpriteSheetViewModel>().Single();
+        var script = fixture.Session.AllAssets.OfType<ScriptSourceFileViewModel>().Single();
+
+        // The sprite sheet has an editor, whose view this editor doesn't have: it is neither offered nor opened
+        Assert.Equal(typeof(SpriteSheetEditorViewModel), plugins.GetEditorViewModelType(sheet.GetType()));
+        Assert.False(plugins.HasEditorView(fixture.Session, sheet.GetType()));
+        collection.OpenAssetEditor(sheet);
+        Assert.Empty(collection.Editors);
+        Assert.Null(collection.ActiveEditor);
+
+        // The script's editor has its view
+        Assert.True(plugins.HasEditorView(fixture.Session, script.GetType()));
+        collection.OpenAssetEditor(script);
+        Assert.IsType<ScriptSourceFileEditorViewModel>(Assert.Single(collection.Editors));
+        Assert.True(await collection.CloseAllEditorsAsync(false));
     }
 
     [Fact]
