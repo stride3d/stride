@@ -66,6 +66,12 @@ public interface IEditorViewTool : IDisposable
     /// <summary>
     /// Called every frame while the tool is active, before the clicks of the frame.
     /// </summary>
+    /// <remarks>
+    /// The view awaits the task, on the game thread, before it handles the clicks of the frame and moves to the next one: while
+    /// the task runs, the tools get no other input, and a task that never completes freezes the view. Complete it within the
+    /// frame, or within a few frames for a step that waits for the editor (in WPF, the duplication of a Ctrl+drag waits for
+    /// the copies to be selected).
+    /// </remarks>
     Task Update() => Task.CompletedTask;
 
     /// <summary>
