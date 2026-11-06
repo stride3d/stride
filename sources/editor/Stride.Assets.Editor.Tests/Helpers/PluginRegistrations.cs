@@ -231,7 +231,7 @@ public sealed class PluginRegistrations : IEditorPluginContext
     }
 
     // The attribute scans of the editors' host
-    private sealed class Scanner(Type editorViewType) : StrideEditorPluginHost([])
+    private sealed class Scanner(Type editorViewType) : SceneEditorPluginHost([])
     {
         protected override Type AssetEditorViewModelType => typeof(object);
 

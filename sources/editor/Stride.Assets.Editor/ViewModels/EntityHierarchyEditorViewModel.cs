@@ -187,7 +187,7 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     /// Gets the view options of the game, created by the <see cref="IEditorViewOptionsFactory"/> of the session, or
     /// <c>null</c> while the game has not loaded, or when the editor has no game.
     /// </summary>
-    public IEditorViewOptions? ViewOptions { get => viewOptions; private set => SetValue(ref viewOptions, value); }
+    public IEditorViewOptions? ViewOptions { get => viewOptions; internal set => SetValue(ref viewOptions, value); }
 
     /// <summary>
     /// Gets the command that moves the camera of the view to frame the entity given as parameter.

@@ -55,8 +55,11 @@ namespace Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game
         EntityPickingResult Pick();
 
         /// <summary>
-        /// Duplicates the currently selected entities. Note that this will trigger the selection of the duplicated entities.
+        /// Duplicates the currently selected entities, and waits until the copies are selected in the game.
         /// </summary>
-        Task<bool> DuplicateSelection();
+        /// <param name="cancellationToken">Stops the wait for the copies.</param>
+        /// <returns><c>true</c> once the copies are selected; <c>false</c> when nothing was duplicated, or when the copies
+        /// were not selected within 10 seconds or before the wait was canceled (a warning is logged then).</returns>
+        Task<bool> DuplicateSelection(CancellationToken cancellationToken = default);
     }
 }

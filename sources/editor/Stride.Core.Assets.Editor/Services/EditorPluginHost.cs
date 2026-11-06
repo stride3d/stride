@@ -69,8 +69,6 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginCo
     private readonly PluginMap<Type, object> declaredTypeImages;
     private readonly List<Type> primitiveTypes = [];
     private readonly List<PackageSettingsEntry> profileSettings = [];
-    // Replaced, never changed: the editor games read it on their threads. A type registered twice is listed twice
-    private volatile Type[] editorViewToolTypes = [];
     private readonly Dictionary<SettingsKey, int> settingsKeys = [];
 
     private ISessionViewModel? session;
@@ -158,15 +156,15 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginCo
     public IReadOnlyDictionary<Type, object> TypeImages => typeImages.Entries;
 
     /// <summary>
+    /// The logger of the plugins (module <see cref="PluginsLoggerModule"/>), for the layers of the editor that refuse or
+    /// report a contribution.
+    /// </summary>
+    protected ILogger PluginsLogger => pluginLogger;
+
+    /// <summary>
     /// The primitive types registered by the plugins, in registration order (a type registered twice is listed twice).
     /// </summary>
     public IReadOnlyList<Type> PrimitiveTypes => primitiveTypes;
-
-    /// <summary>
-    /// The tools of the views of the game editors registered by the plugins, in registration order (a type registered
-    /// twice is listed twice).
-    /// </summary>
-    public IReadOnlyList<Type> EditorViewToolTypes => editorViewToolTypes;
 
     /// <summary>
     /// The settings keys registered by the plugins.
@@ -662,9 +660,6 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginCo
     public IEnumerable<Type> GetPrimitiveTypes(ISessionViewModel session) => primitiveTypes;
 
     /// <inheritdoc />
-    public IReadOnlyList<Type> GetEditorViewToolTypes() => editorViewToolTypes.Distinct().ToList();
-
-    /// <inheritdoc />
     public IEnumerable<PackageSettingsEntry> GetProfileSettings()
     {
         // The older API's list, still read for the plugins that use it
@@ -913,18 +908,18 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginCo
         });
     }
 
-    private void RegisterEditorViewTool(PluginRecord record, Type type)
+    /// <summary>
+    /// Registers a tool of the scene and prefab views that a plugin gives through the obsolete
+    /// <see cref="IEditorPluginContext.EditorViewToolTypes"/>. The layer of the editor that has these views overrides it to
+    /// put the tool in its typed registry; this host has no such view, so the tool is logged and left out.
+    /// </summary>
+    /// <param name="plugin">The plugin that registers the tool.</param>
+    /// <param name="type">The type of the tool.</param>
+    /// <returns>What unregisters the tool when the plugin leaves, or null when the tool is left out.</returns>
+    protected virtual IDisposable? RegisterEditorViewToolType(AssetsPlugin plugin, Type type)
     {
-        if (!type.IsClass || type.IsAbstract || type.IsGenericTypeDefinition || type.GetConstructor(Type.EmptyTypes) is null)
-            throw new ArgumentException($"Type [{type.FullName}] must be a class with a public parameterless constructor: each view creates its own tool.", nameof(type));
-
-        editorViewToolTypes = [.. editorViewToolTypes, type];
-        record.Add(() =>
-        {
-            var index = Array.LastIndexOf(editorViewToolTypes, type);
-            if (index >= 0)
-                editorViewToolTypes = [.. editorViewToolTypes[..index], .. editorViewToolTypes[(index + 1)..]];
-        });
+        pluginLogger.Warning($"The tool [{type.FullName}] of the plugin [{plugin.GetType().FullName}] is left out: this editor has no scene view.");
+        return null;
     }
 
     private static void RegisterInList<T>(PluginRecord record, List<T> list, T item)

@@ -221,7 +221,11 @@ public abstract partial class EditorPluginHost
                 copyPasteService.RegisterProcessor(processor);
                 record.Add(() => copyPasteService.UnregisterProcessor(processor));
             });
-            EditorViewToolTypes = new Registry<Type>(type => host.RegisterEditorViewTool(record, type));
+            EditorViewToolTypes = new Registry<Type>(type =>
+            {
+                if (host.RegisterEditorViewToolType(plugin, type) is { } registration)
+                    record.Add(registration.Dispose);
+            });
             SettingsKeys = new Registry<SettingsKey>(key => host.RegisterSettingsKey(record, key));
             ProfileSettings = new Registry<PackageSettingsEntry>(entry => RegisterInList(record, host.profileSettings, entry));
             Panels = new Registry<PanelDescriptor>(descriptor => record.Add(host.Panels.Register(descriptor, plugin).Dispose));

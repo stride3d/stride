@@ -44,12 +44,6 @@ public interface IAssetsPluginService : IPresentationPluginService
     void InitializeSession(ISessionViewModel session);
 
     /// <summary>
-    /// Gets the tools of the views of the game editors that the plugins register (<see cref="IEditorPluginContext.EditorViewToolTypes"/>),
-    /// each type once, in registration order. Safe to read from any thread.
-    /// </summary>
-    IReadOnlyList<Type> GetEditorViewToolTypes() => [];
-
-    /// <summary>
     /// Gets the view type that the plugins register for <paramref name="viewModelType"/> or one of its base types
     /// (<see cref="IEditorPluginContext.ViewTypes"/>), in the editor's toolkit, or null.
     /// </summary>

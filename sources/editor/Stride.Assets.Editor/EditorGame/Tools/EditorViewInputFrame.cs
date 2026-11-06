@@ -40,4 +40,16 @@ internal sealed record EditorViewInputFrame
     /// Gets whether no other service (the camera during a drag) has the mouse.
     /// </summary>
     public bool IsMouseAvailable { get; init; } = true;
+
+    /// <summary>
+    /// Gets whether no other service than the camera has the mouse: the camera takes it on the press of the right button,
+    /// and a right click without drag still opens the context menu then.
+    /// </summary>
+    public bool IsMouseAvailableToContextMenu { get; init; } = true;
+
+    /// <summary>
+    /// Gets whether the camera moved during the frame (its keys move it while the right button is down): a right button
+    /// that moved the camera opens no context menu.
+    /// </summary>
+    public bool HasCameraMoved { get; init; }
 }

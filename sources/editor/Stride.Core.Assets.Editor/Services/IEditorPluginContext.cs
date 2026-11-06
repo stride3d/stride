@@ -96,9 +96,14 @@ public interface IEditorPluginContext
     IPluginRegistry<IAssetPostPasteProcessor> PostPasteProcessors { get; }
 
     /// <summary>
-    /// The tools of the views of the game editors (the scene and prefab editors): each view creates one instance of each
-    /// type. The host registers the tools that the plugin's assembly declares; a plugin can register more.
+    /// The tools of the views of the game editors (the scene and prefab editors), as bare types: each view creates one
+    /// instance of each type.
     /// </summary>
+    /// <remarks>
+    /// Obsolete: register a <c>SceneViewToolDescriptor</c> with <c>context.SceneViewTools()</c> (<c>Stride.Assets.Editor</c>), or
+    /// declare the tool with <c>[EditorViewTool]</c>. A type registered here goes to the same registry, with the same checks.
+    /// </remarks>
+    [Obsolete("Register a SceneViewToolDescriptor with context.SceneViewTools() (Stride.Assets.Editor), or declare the tool with [EditorViewTool]. See docs/build/plugins.md.", DiagnosticId = "STRPLUGIN006")]
     IPluginRegistry<Type> EditorViewToolTypes { get; }
 
     /// <summary>

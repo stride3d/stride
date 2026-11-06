@@ -1,18 +1,25 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using Stride.Assets.Editor.Commands;
 using Stride.Assets.Editor.ViewModels;
+using Stride.Assets.Editor.Avalonia.Converters;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Editors;
+using Stride.Core.Assets.Editor.Avalonia.Commands;
+using Stride.Core.Assets.Editor.Commands;
+using Stride.Core.Assets.Editor.ViewModels;
 
 namespace Stride.Assets.Editor.Avalonia.Views;
 
@@ -20,6 +27,8 @@ namespace Stride.Assets.Editor.Avalonia.Views;
 public partial class EntityHierarchyEditorView : UserControl, IAssetEditorView
 {
     private KeyModifiers pointerModifiers;
+    private EntityHierarchyEditorViewModel? editor;
+    private EditorViewToolbarViewModel? toolbar;
 
     public EntityHierarchyEditorView()
     {
@@ -31,6 +40,82 @@ public partial class EntityHierarchyEditorView : UserControl, IAssetEditorView
         HierarchyTree.AddHandler(PointerReleasedEvent, (_, e) => pointerModifiers = e.KeyModifiers, RoutingStrategies.Tunnel);
         HierarchyTree.AddHandler(KeyDownEvent, OnTreeKeyDown, RoutingStrategies.Tunnel);
     }
+
+    /// <summary>
+    /// Gets the context menu of the scene view while it is open, or null.
+    /// </summary>
+    internal ContextMenu? SceneViewContextMenu { get; private set; }
+
+    /// <inheritdoc />
+    protected override void OnDataContextChanged(EventArgs e)
+    {
+        base.OnDataContextChanged(e);
+        if (editor is not null)
+            editor.PropertyChanged -= OnEditorPropertyChanged;
+        editor = DataContext as EntityHierarchyEditorViewModel;
+        if (editor is not null)
+            editor.PropertyChanged += OnEditorPropertyChanged;
+        FollowToolbar();
+    }
+
+    private void OnEditorPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(EntityHierarchyEditorViewModel.ViewOptions))
+            FollowToolbar();
+    }
+
+    // The toolbar of the view raises the context menu requests of the game
+    private void FollowToolbar()
+    {
+        if (toolbar is not null)
+            toolbar.ContextMenuRequested -= OnSceneViewContextMenuRequested;
+        toolbar = editor?.ViewOptions as EditorViewToolbarViewModel;
+        if (toolbar is not null)
+            toolbar.ContextMenuRequested += OnSceneViewContextMenuRequested;
+    }
+
+    /// <summary>
+    /// Opens the context menu of the scene view at the cursor, after a right click without camera drag: the entries of the
+    /// active tool, then the commands of the plugins at <see cref="SceneLocations.SceneViewContext"/> (unless the tool's
+    /// entries replace them), with the click and the entity under it as their selection. Nothing opens when it would be empty.
+    /// </summary>
+    private void OnSceneViewContextMenuRequested(object? sender, EditorViewContextMenuViewModel request)
+    {
+        SceneViewContextMenu?.Close();
+        SceneViewContextMenu = null;
+        if (!IsAttachedToVisualTree() || !(request.ToolEntries.Count > 0 || request.ShowsCommands && HasSceneViewCommands()))
+            return;
+
+        var menu = new ContextMenu { DataContext = DataContext };
+        foreach (var entry in request.ToolEntries)
+        {
+            menu.Items.Add(new MenuItem
+            {
+                Header = entry.Title,
+                Command = entry.Command,
+                Icon = entry.IconPath is { } path ? new global::Avalonia.Controls.Shapes.Path { Data = new PathDataToGeometry().Convert(path, typeof(Geometry), null, System.Globalization.CultureInfo.InvariantCulture) as Geometry, Width = 16, Height = 16, Stretch = Stretch.None, Fill = Foreground } : null,
+            });
+        }
+        CommandSlot.SetSelection(menu, request.Selection);
+        if (request.ShowsCommands)
+            CommandSlot.SetLocation(menu, SceneLocations.SceneViewContext);
+        menu.Closed += (_, _) =>
+        {
+            if (SceneViewContextMenu == menu)
+                SceneViewContextMenu = null;
+        };
+        SceneViewContextMenu = menu;
+        // At the cursor, which the right button was just released over
+        menu.Open(GameViewHost);
+    }
+
+    private static bool HasSceneViewCommands()
+    {
+        var host = CommandSlot.FindHost(SessionViewModel.CurrentInstance);
+        return host is not null && CommandArrangement.Arrange(host.Commands.Items.Where(host.IsCommandAvailable), SceneLocations.SceneViewContext).Any(x => x.Count > 0);
+    }
+
+    private bool IsAttachedToVisualTree() => TopLevel.GetTopLevel(this) is not null;
 
     /// <inheritdoc />
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
@@ -143,6 +228,7 @@ public partial class EntityHierarchyEditorView : UserControl, IAssetEditorView
     /// <inheritdoc />
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
+        SceneViewContextMenu?.Close();
         (DataContext as EntityHierarchyEditorViewModel)?.HideGame();
         base.OnDetachedFromVisualTree(e);
     }
