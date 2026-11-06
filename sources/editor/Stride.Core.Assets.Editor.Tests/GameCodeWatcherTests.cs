@@ -136,7 +136,9 @@ public sealed class GameCodeWatcherTests : IDisposable
         var player = Path.Combine(gameDirectory, "Player.cs");
         File.WriteAllText(player, "public class Player { }");
         var burst = await bursts.Reader.ReadAsync().AsTask().WaitAsync(Timeout);
-        Assert.Contains(burst, x => x.FilePath == player && x.ProjectPath == game);
+        // The directory watcher reports lowercase paths on Windows
+        var pathComparison = OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+        Assert.Contains(burst, x => string.Equals(x.FilePath, player, pathComparison) && x.ProjectPath == game);
     }
 
     [Fact]

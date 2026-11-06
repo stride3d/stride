@@ -325,7 +325,8 @@ public sealed class BuildAndRunViewModelTests
 
         Assert.Equal(GameBuildOutcome.Failed, await buildAndRun.BuildAsync(false));
 
-        Assert.Contains($"Unable to load and compile project {fixture.Session.CurrentProject!.ProjectPath}", Messages(buildAndRun));
+        // The message names the project file as the build request does, with the separators of the OS
+        Assert.Contains($"Unable to load and compile project {fixture.Session.CurrentProject!.ProjectPath.ToOSPath()}", Messages(buildAndRun));
     }
 
     [Fact]
