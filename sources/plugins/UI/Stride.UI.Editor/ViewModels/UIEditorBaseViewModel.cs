@@ -9,9 +9,8 @@ using System.Threading.Tasks;
 using Stride.Assets.Editor.ViewModels;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Extensions;
+using Stride.Core.Assets.Editor.Internal;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.View.Behaviors;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Quantum;
 using Stride.Core;
@@ -28,14 +27,10 @@ using Stride.Core.Translation;
 using Stride.Assets.Editor.EditorGame;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Editor.Engine;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Assets.Editor.AssetEditors.GameEditor.ViewModels;
 using Stride.UI.Editor.Game;
 using Stride.UI.Editor.Services;
 using Stride.Assets.Quantum;
-using Stride.Assets.Presentation.SceneEditor;
-using Stride.Assets.Presentation.ViewModel;
 using Stride.UI.Assets;
 using Stride.Engine;
 using Stride.Engine.Processors;
@@ -465,8 +460,8 @@ namespace Stride.UI.Editor.ViewModels
                 var confirmMessage = Tr._p("Message", "Are you sure you want to delete this UI element?");
                 if (elementsToDelete.Count > 1)
                     confirmMessage = string.Format(Tr._p("Message", "Are you sure you want to delete these {0} UI elements?"), elementsToDelete.Count);
-                var buttons = DialogHelper.CreateButtons(new[] { Tr._p("Button", "Delete"), Tr._p("Button", "Cancel") }, 1, 2);
-                var result = await ServiceProvider.Get<IDialogService>().CheckedMessageBoxAsync(confirmMessage, false, DialogHelper.DontAskAgain, buttons, MessageBoxImage.Question);
+                var buttons = DialogButtons.Create(new[] { Tr._p("Button", "Delete"), Tr._p("Button", "Cancel") }, 1, 2);
+                var result = await ServiceProvider.Get<IDialogService>().CheckedMessageBoxAsync(confirmMessage, false, Tr._p("Settings", "Don't ask again"), buttons, MessageBoxImage.Question);
                 if (result.Result != 1)
                     return;
                 if (result.IsChecked == true)

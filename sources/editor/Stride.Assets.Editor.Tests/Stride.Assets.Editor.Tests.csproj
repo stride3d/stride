@@ -25,6 +25,7 @@
     <ProjectReference Include="..\..\plugins\BulletPhysics\Stride.Physics.Editor\Stride.Physics.Editor.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\plugins\Particles\Stride.Particles.Editor\Stride.Particles.Editor.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\plugins\SpriteStudio\Stride.SpriteStudio.Editor\Stride.SpriteStudio.Editor.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\plugins\UI\Stride.UI.Editor\Stride.UI.Editor.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\plugins\Video\Stride.Video.Editor\Stride.Video.Editor.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\plugins\Voxels\Stride.Voxels.Editor\Stride.Voxels.Editor.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>

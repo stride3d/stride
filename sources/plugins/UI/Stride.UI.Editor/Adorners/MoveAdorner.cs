@@ -3,7 +3,6 @@
 using Stride.Core.Mathematics;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 using Stride.UI.Editor.Game;
-using Stride.Assets.Presentation.ViewModel;
 using Stride.UI;
 using Stride.UI.Controls;
 using Stride.Assets.Editor.ViewModels.SpriteEditor;

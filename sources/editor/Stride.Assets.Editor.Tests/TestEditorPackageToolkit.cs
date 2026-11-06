@@ -21,6 +21,7 @@ public class TestEditorPackageToolkit
         "BulletPhysics/Stride.Physics.Editor",
         "Particles/Stride.Particles.Editor",
         "SpriteStudio/Stride.SpriteStudio.Editor",
+        "UI/Stride.UI.Editor",
         "Video/Stride.Video.Editor",
         "Voxels/Stride.Voxels.Editor",
     ];
@@ -29,7 +30,6 @@ public class TestEditorPackageToolkit
     [
         "Audio/Stride.Audio.Editor.Wpf",
         "SpriteStudio/Stride.SpriteStudio.Editor.Wpf",
-        "UI/Stride.UI.Editor",
         "UI/Stride.UI.Editor.Wpf",
     ];
 

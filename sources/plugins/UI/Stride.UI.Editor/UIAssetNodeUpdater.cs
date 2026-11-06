@@ -11,7 +11,6 @@ using Stride.Core.Extensions;
 using Stride.Core.Reflection;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Quantum;
-using Stride.Assets.Presentation.ViewModel;
 using Stride.UI;
 using Stride.UI.Editor.ViewModels;
 
