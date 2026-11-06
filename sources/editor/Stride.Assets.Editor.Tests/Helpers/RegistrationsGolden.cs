@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 
 #nullable enable
 
@@ -25,7 +26,7 @@ public static class RegistrationsGolden
     /// </summary>
     public static string? Compare(string name, string actual, [CallerFilePath] string testFile = "")
     {
-        var directory = Path.Combine(Path.GetDirectoryName(testFile)!, "Registrations");
+        var directory = Path.Combine(Path.GetDirectoryName(SourceFile(testFile))!, "Registrations");
         var path = Path.Combine(directory, name + ".txt");
         actual = Normalize(actual);
         if (!File.Exists(path) || Environment.GetEnvironmentVariable(UpdateVariable) == "1")
@@ -45,6 +46,30 @@ public static class RegistrationsGolden
         var added = actualLines.Except(expectedLines).Select(x => "+ " + x);
         var difference = string.Join(Environment.NewLine, lost.Concat(added));
         return $"The registrations of {name} differ from {path} (the order may differ too):{Environment.NewLine}{difference}{Environment.NewLine}Now:{Environment.NewLine}{actual}";
+    }
+
+    /// <summary>
+    /// The path of <paramref name="testFile"/> on this machine. A CI build (ContinuousIntegrationBuild) maps the repository
+    /// root to <c>/_/</c> in the compiled paths, so the file is looked up again from the test's output folder, which is in the
+    /// repository.
+    /// </summary>
+    private static string SourceFile(string testFile)
+    {
+        if (File.Exists(testFile))
+            return testFile;
+
+        var match = Regex.Match(testFile, @"^[/\\]_\d*[/\\](?<relative>.+)$");
+        if (!match.Success)
+            return testFile;
+
+        var relative = match.Groups["relative"].Value.Replace('\\', '/').Replace('/', Path.DirectorySeparatorChar);
+        for (var folder = new DirectoryInfo(AppContext.BaseDirectory); folder is not null; folder = folder.Parent)
+        {
+            var candidate = Path.Combine(folder.FullName, relative);
+            if (File.Exists(candidate))
+                return candidate;
+        }
+        return testFile;
     }
 
     private static string Normalize(string text) => text.Replace("\r\n", "\n").TrimEnd('\n') + "\n";
