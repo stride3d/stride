@@ -139,9 +139,10 @@ internal sealed class EntitySelection
         }
     }
 
+    // The folders are skipped, as in WPF: an entity in a folder of a selected entity is its child
     private static IEnumerable<EntityViewModel> Parents(EntityViewModel entity)
     {
-        for (var parent = entity.Parent as EntityViewModel; parent is not null; parent = parent.Parent as EntityViewModel)
+        for (var parent = entity.TransformParent as EntityViewModel; parent is not null; parent = parent.TransformParent as EntityViewModel)
         {
             yield return parent;
         }
@@ -149,11 +150,11 @@ internal sealed class EntitySelection
 
     private static IEnumerable<EntityViewModel> Descendants(EntityViewModel entity)
     {
-        var queue = new Queue<EntityViewModel>(entity.Children.OfType<EntityViewModel>());
+        var queue = new Queue<EntityViewModel>(entity.TransformChildren);
         while (queue.TryDequeue(out var child))
         {
             yield return child;
-            foreach (var grandChild in child.Children.OfType<EntityViewModel>())
+            foreach (var grandChild in child.TransformChildren)
             {
                 queue.Enqueue(grandChild);
             }

@@ -92,6 +92,29 @@ public sealed class EntitySelectionTests
         editor.Destroy();
     }
 
+    [Fact]
+    public async Task AnEntityInAFolderOfASelectedEntityIsNotARoot()
+    {
+        // Parent > Lights folder > Lamp: the gizmo moves Lamp with Parent, not a second time on its own
+        using var fixture = await EntityHierarchyEditorTests.OpenSceneAsync();
+        var parentEntity = fixture.Asset<SceneViewModel>("MainScene").Asset.Hierarchy.Parts.Values.Single(x => x.Entity.Name == "Parent").Entity;
+        EntityHierarchyFolderTests.AddEntity(fixture, "Lamp", "Lights", parentEntity, index: 1);
+        var editor = await EntityHierarchyEditorTests.OpenEditorAsync(fixture);
+        var (selection, entities) = SelectableScene(editor);
+        Assert.IsType<EntityFolderViewModel>(entities["Lamp"].Parent);
+
+        selection.Add(entities["Lamp"]);
+        selection.Add(entities["Parent"]);
+        Assert.Equal([entities["Parent"].Id], selection.GetSelectedRootIds());
+
+        selection.Remove(entities["Parent"]);
+        Assert.Equal([entities["Lamp"].Id], selection.GetSelectedRootIds());
+
+        selection.Add(entities["Parent"]);
+        Assert.Equal([entities["Parent"].Id], selection.GetSelectedRootIds());
+        editor.Destroy();
+    }
+
     /// <summary>
     /// A selection where every entity of the editor can be selected.
     /// </summary>
