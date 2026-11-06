@@ -91,7 +91,8 @@ namespace Stride.Core.Assets.Editor.Components.FixAssetReferences
         {
             var assetPicker = ServiceProvider.Get<IEditorDialogService>().CreateAssetPickerDialog(objectToFix.Session);
             assetPicker.Message = "Select an asset to replace the deleted asset";
-            assetPicker.Filter = x => !IsInObjectsToFixList(x);
+            // Every asset of the delete goes, even one that nothing references: none can replace another
+            assetPicker.Filter = x => !hashIds.Contains(x.Id);
             assetPicker.InitialLocation = objectToFix.Directory;
             assetPicker.AllowMultiSelection = false;
             Type assetType = objectToFix.AssetType;
