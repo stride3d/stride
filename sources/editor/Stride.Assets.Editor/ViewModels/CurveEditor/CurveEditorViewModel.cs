@@ -15,6 +15,8 @@ using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Animations;
+using Stride.Core.Mathematics;
+using Stride.Core.Reflection;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Assets.Editor.ViewModels.CurveEditor.ControlPoints;
 
@@ -81,6 +83,56 @@ namespace Stride.Assets.Editor.ViewModels.CurveEditor
         public ICommandBase SelectCommand { get; }
 
         internal IUndoRedoService UndoRedoService => Session.UndoRedoService;
+
+        /// <summary>
+        /// Whether the curve editor can show and edit a property of the given type: an <see cref="IComputeCurve{T}"/> of
+        /// <see cref="float"/>, <see cref="Vector2"/>, <see cref="Vector3"/>, <see cref="Vector4"/>, <see cref="Quaternion"/> or
+        /// <see cref="Color4"/>.
+        /// </summary>
+        public static bool CanEdit([NotNull] Type type)
+        {
+            return type.HasInterface(typeof(IComputeCurve<Color4>))
+                || type.HasInterface(typeof(IComputeCurve<float>))
+                || type.HasInterface(typeof(IComputeCurve<Quaternion>))
+                || type.HasInterface(typeof(IComputeCurve<Vector2>))
+                || type.HasInterface(typeof(IComputeCurve<Vector3>))
+                || type.HasInterface(typeof(IComputeCurve<Vector4>));
+        }
+
+        /// <summary>
+        /// Adds the given curve to the curve editor and selects it, or only selects it if it is already listed.
+        /// </summary>
+        /// <param name="curve">The curve, of a type the editor supports (<see cref="CanEdit"/>).</param>
+        /// <param name="name">The name of the curve.</param>
+        /// <returns><c>true</c> if the curve is supported, <c>false</c> otherwise (nothing changes then).</returns>
+        public bool AddCurve([NotNull] object curve, string name)
+        {
+            if (curve == null) throw new ArgumentNullException(nameof(curve));
+
+            switch (curve)
+            {
+                case IComputeCurve<Color4> color4Curve:
+                    AddCurve(color4Curve, name);
+                    return true;
+                case IComputeCurve<float> floatCurve:
+                    AddCurve(floatCurve, name);
+                    return true;
+                case IComputeCurve<Quaternion> quaternionCurve:
+                    AddCurve(quaternionCurve, name);
+                    return true;
+                case IComputeCurve<Vector2> vector2Curve:
+                    AddCurve(vector2Curve, name);
+                    return true;
+                case IComputeCurve<Vector3> vector3Curve:
+                    AddCurve(vector3Curve, name);
+                    return true;
+                case IComputeCurve<Vector4> vector4Curve:
+                    AddCurve(vector4Curve, name);
+                    return true;
+                default:
+                    return false;
+            }
+        }
 
         /// <summary>
         /// Adds the <paramref name="computeCurve"/> to the curve editor.

@@ -20,6 +20,7 @@ using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Core.Threading;
 using Stride.Animations;
+using Stride.Assets.Editor.Services;
 using Stride.Assets.Editor.ViewModels.CurveEditor;
 using Stride.Assets.Presentation.CurveEditor.Views;
 using AvalonDock.Layout;
@@ -29,7 +30,7 @@ using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.GameStudio.AssetsEditors
 {
-    internal sealed class AssetEditorsManager : IWpfAssetEditorsManager, IDestroyable
+    internal sealed class AssetEditorsManager : IWpfAssetEditorsManager, ICurveEditorService, IDestroyable
     {
         private readonly ConditionalWeakTable<IMultipleAssetEditorViewModel, NotifyCollectionChangedEventHandler> registeredHandlers = [];
         private readonly Dictionary<IAssetEditorViewModel, LayoutAnchorable> assetEditors = [];
@@ -84,30 +85,7 @@ namespace Stride.GameStudio.AssetsEditors
             editorViewModel ??= new CurveEditorViewModel(session.ServiceProvider, session);
 
             // Populate the editor view model
-            if (curve is IComputeCurve<Color4> color4curve)
-            {
-                editorViewModel.AddCurve(color4curve, name);
-            }
-            else if (curve is IComputeCurve<float> floatCurve)
-            {
-                editorViewModel.AddCurve(floatCurve, name);
-            }
-            else if (curve is IComputeCurve<Quaternion> quaternionCurve)
-            {
-                editorViewModel.AddCurve(quaternionCurve, name);
-            }
-            else if (curve is IComputeCurve<Vector2> vec2curve)
-            {
-                editorViewModel.AddCurve(vec2curve, name);
-            }
-            else if (curve is IComputeCurve<Vector3> vec3curve)
-            {
-                editorViewModel.AddCurve(vec3curve, name);
-            }
-            else if (curve is IComputeCurve<Vector4> vec4curve)
-            {
-                editorViewModel.AddCurve(vec4curve, name);
-            }
+            editorViewModel.AddCurve(curve, name);
 
             editorViewModel.Focus();
 
@@ -136,6 +114,12 @@ namespace Stride.GameStudio.AssetsEditors
         {
             RemoveCurveEditor(true);
         }
+
+        /// <inheritdoc/>
+        void ICurveEditorService.Open(object curve, string name) => OpenCurveEditorWindow(curve, name);
+
+        /// <inheritdoc/>
+        void ICurveEditorService.Close() => CloseCurveEditorWindow();
 
         private void RemoveCurveEditor(bool removePane)
         {

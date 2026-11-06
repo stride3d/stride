@@ -145,6 +145,8 @@ public sealed class StrideEditorPlugin : StrideAssetsPlugin
         context.NodePresenterCommands.Register(new SetComponentReferenceCommand());
         context.NodePresenterCommands.Register(new SetSymbolReferenceCommand());
         context.NodePresenterCommands.Register(new SkeletonNodePreserveAllCommand());
+        // Opens the curve editor of the editor, if it has one (ICurveEditorService)
+        context.NodePresenterCommands.Register(new EditCurveCommand(sessionViewModel));
 
         // updaters
         context.NodePresenterUpdaters.Register(new AnimationAssetNodeUpdater());
