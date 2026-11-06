@@ -4,7 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       run_id:
-        description: "Workflow run ID to pull capture artifacts from (the daily test-enduser run whose captures should become the new baselines). Empty = latest successful run."
+        description: "Workflow run ID to pull capture artifacts from: the daily test-enduser run, or a PR's run that captured the samples (PR Label Suites). Empty = latest successful test-enduser run on master."
+        type: string
+        default: ''
+      frames:
+        description: "Samples or frames to refresh, separated by spaces: 'ParticlesSample' takes all its frames, 'ParticlesSample/scene-3' one frame. Empty = every captured frame."
         type: string
         default: ''
       branch_name:
@@ -32,13 +36,15 @@ jobs:
         id: resolve
         env:
           GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ inputs.run_id }}
         run: |
-          if [ -n "${{ github.event.inputs.run_id }}" ]; then
-            echo "run_id=${{ github.event.inputs.run_id }}" >> "$GITHUB_OUTPUT"
+          if [ -n "$RUN_ID" ]; then
+            echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
           else
             # Latest successful run of the daily capture workflow.
             run_id=$(gh run list \
               --workflow=test-enduser.yml \
+              --branch=master \
               --status=success \
               --limit=1 \
               --json databaseId \
@@ -50,48 +56,88 @@ jobs:
             echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Download D3D11 capture artifact from run ${{ steps.resolve.outputs.run_id }}
-        # Baselines are sourced from D3D11 only — that's the gating matrix entry. D3D12/Vulkan
-        # are best-effort; their captures should not become the baseline reference.
+      - name: Download Windows D3D11 capture artifact from run ${{ steps.resolve.outputs.run_id }}
+        # Baselines are sourced from Windows D3D11 only — that's the gating matrix entry. D3D12/Vulkan
+        # are judged against it; their captures should not become the baseline reference.
+        # The name follows test-enduser.yml's screenshots-<platform>-<graphics-api>.
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p captures
           gh run download ${{ steps.resolve.outputs.run_id }} \
-            --name screenshots-Direct3D11 \
+            --name screenshots-Windows-Direct3D11 \
             --dir ./captures
           # Layout: captures/screenshot-out/<sample>/screenshots/<frame>.png
           find captures -maxdepth 4 -type d | head -40
 
       - name: Refresh tests/enduser/Stride.Samples.Tests/Fixtures/<Sample>/<frame>.png from captures
+        env:
+          FRAMES: ${{ inputs.frames }}
+          RUN_ID: ${{ steps.resolve.outputs.run_id }}
         run: |
           set -e
+          read -r -a filters <<< "$FRAMES"
+          declare -A used
           changed=0
           for sample_dir in captures/screenshot-out/*/; do
             sample=$(basename "$sample_dir")
             src="$sample_dir/screenshots"
             [ -d "$src" ] || continue
             dest="tests/enduser/Stride.Samples.Tests/Fixtures/$sample"
-            mkdir -p "$dest"
             for png in "$src"/*.png; do
               [ -f "$png" ] || continue
+              frame=$(basename "$png" .png)
+              if [ ${#filters[@]} -gt 0 ]; then
+                match=""
+                for f in "${filters[@]}"; do
+                  if [ "$f" = "$sample" ] || [ "$f" = "$sample/$frame" ]; then match="$f"; fi
+                done
+                [ -n "$match" ] || continue
+                used[$match]=1
+              fi
+              mkdir -p "$dest"
               cp "$png" "$dest/"
+              echo "  $sample/$frame"
               changed=$((changed + 1))
             done
           done
+          # A name that matches no capture is a typo or a sample the run didn't capture: stop rather than refresh less
+          for f in "${filters[@]}"; do
+            if [ -z "${used[$f]}" ]; then
+              echo "::error::'$f' matches no capture of run $RUN_ID"
+              exit 1
+            fi
+          done
           echo "Replaced $changed baseline PNG(s)."
 
+      # Plain git and gh, so no third-party action has to be on the repository's allowlist
       - name: Open PR with refreshed baselines
-        uses: peter-evans/create-pull-request@v8
-        with:
-          commit-message: "tests/enduser/Stride.Samples.Tests: refresh screenshot baselines from run ${{ steps.resolve.outputs.run_id }}"
-          title: "Refresh sample screenshot baselines (run ${{ steps.resolve.outputs.run_id }})"
-          body: |
-            Automated baseline refresh from the captures of `test-enduser.yml`
-            run [#${{ steps.resolve.outputs.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ steps.resolve.outputs.run_id }}).
-
-            Diff this PR against the previous baselines visually before merging — every PNG
-            replacement here becomes the new "approved" reference for daily comparison.
-          branch: ${{ github.event.inputs.branch_name || format('baselines/refresh-{0}', steps.resolve.outputs.run_id) }}
-          delete-branch: true
-          add-paths: tests/enduser/Stride.Samples.Tests/Fixtures/**/*.png
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ steps.resolve.outputs.run_id }}
+          BRANCH: ${{ inputs.branch_name || format('baselines/refresh-{0}', steps.resolve.outputs.run_id) }}
+          BASE: ${{ github.ref_name }}
+        run: |
+          set -e
+          fixtures=tests/enduser/Stride.Samples.Tests/Fixtures
+          if [ -z "$(git status --porcelain -- "$fixtures")" ]; then
+            echo "No baseline changed: the captures equal the committed references."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$BRANCH"
+          git add -- "$fixtures"
+          list=$(git diff --cached --name-only -- "$fixtures" | sed "s|^$fixtures/||; s|\.png$||; s|^|- |")
+          git commit -m "tests/enduser/Stride.Samples.Tests: refresh screenshot baselines from run $RUN_ID"
+          git push origin "$BRANCH"
+          {
+            echo "Automated baseline refresh from the captures of run [#$RUN_ID]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$RUN_ID)."
+            echo
+            echo "Diff this PR against the previous baselines visually before merging: every PNG replacement here becomes the new \"approved\" reference for daily comparison."
+            echo
+            echo "$list"
+          } > pr-body.md
+          gh pr create --base "$BASE" --head "$BRANCH" \
+            --title "Refresh sample screenshot baselines (run $RUN_ID)" \
+            --body-file pr-body.md
