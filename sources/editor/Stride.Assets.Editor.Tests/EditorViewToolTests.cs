@@ -122,6 +122,18 @@ public sealed class EditorViewToolTests
     }
 
     [Fact]
+    public void AViewHasTheEditorToolsWhateverPluginsAreRegistered()
+    {
+        // The WPF editor doesn't register the default plugin of the cross-platform one, which declares the editor tools
+        var tools = EditorGameToolService.CreateTools(EditorGameToolService.GetToolTypes([typeof(MeasureTool)]), new LoggerResult());
+        Assert.Equal([typeof(SelectTool), typeof(TranslateTool), typeof(RotateTool), typeof(ScaleTool), typeof(MeasureTool)], tools.Select(x => x.GetType()));
+
+        // A tool declared by a plugin too is created once
+        tools = EditorGameToolService.CreateTools(EditorGameToolService.GetToolTypes([typeof(TranslateTool)]), new LoggerResult());
+        Assert.Single(tools, x => x is TranslateTool);
+    }
+
+    [Fact]
     public void AViewWithoutTheEditorToolsStillHasTheSelectTool()
     {
         var tools = EditorGameToolService.CreateTools([typeof(MeasureTool)], new LoggerResult());

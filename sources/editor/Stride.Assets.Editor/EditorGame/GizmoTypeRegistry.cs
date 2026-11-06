@@ -12,8 +12,7 @@ namespace Stride.Assets.Editor.EditorGame;
 
 /// <summary>
 /// The gizmo type of each entity component type, from every registered asset assembly. Both editors share it: the default
-/// assets plugin of each editor registers the asset assemblies into it. The gizmos that the editor leaves out
-/// (<see cref="EditorGameDiscovery"/>) are not registered.
+/// assets plugin of each editor registers the asset assemblies into it.
 /// </summary>
 public static class GizmoTypeRegistry
 {
@@ -67,7 +66,7 @@ public static class GizmoTypeRegistry
         var types = new List<KeyValuePair<Type, Type>>();
         foreach (var type in AssemblyRegistry.GetScanTypes(assembly, typeof(GizmoComponentAttribute)))
         {
-            if (type.IsAssignableTo(typeof(IGizmo)) && !EditorGameDiscovery.IsExcluded(type) && type.GetCustomAttribute<GizmoComponentAttribute>(true) is { } attribute)
+            if (type.IsAssignableTo(typeof(IGizmo)) && type.GetCustomAttribute<GizmoComponentAttribute>(true) is { } attribute)
                 types.Add(KeyValuePair.Create(attribute.ComponentType, type));
         }
         return types;

@@ -231,6 +231,7 @@ public sealed class WpfEditorViewOptions : DispatcherViewModel, IEditorViewOptio
         if (controller.GetService<EditorGameEntityCameraService>() is { } camera && camera.Options == Camera)
             camera.Options = null;
         Overlays.Destroy();
+        Transform.Destroy();
         foreach (var modelComponent in modelComponents.Values)
             modelComponent.Destroy();
         modelComponents.Clear();

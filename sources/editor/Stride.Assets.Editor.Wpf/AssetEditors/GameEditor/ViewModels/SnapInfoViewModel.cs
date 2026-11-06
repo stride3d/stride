@@ -1,21 +1,21 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using Stride.Core.Annotations;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
-using Stride.Core.Presentation.ViewModels;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools;
 using Stride.Assets.Editor.AssetEditors.GameEditor;
-using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
+using Stride.Core.Annotations;
+using Stride.Core.Extensions;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
 {
     /// <summary>
     /// A view model representing the snapping parameters of an entity transformation.
     /// </summary>
-    public class SnapInfoViewModel : DispatcherViewModel
+    public sealed class SnapInfoViewModel : DispatcherViewModel
     {
-        private readonly IEditorGameController controller;
+        private readonly IEditorGameToolViewModelService service;
         private readonly Transformation transformation;
         private bool isActive;
         private float value;
@@ -24,29 +24,32 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
         /// Initializes a new instance of the <see cref="SnapInfoViewModel"/> class.
         /// </summary>
         /// <param name="serviceProvider">The service provider for this view model.</param>
-        /// <param name="controller">The controller of the editor game that can give access to a <see cref="IEditorGameTransformViewModelService"/>.</param>
+        /// <param name="service">The tool service of the editor game, which snaps the gizmos.</param>
         /// <param name="transformation">The transformation related to this view model.</param>
-        public SnapInfoViewModel([NotNull] IViewModelServiceProvider serviceProvider, [NotNull] IEditorGameController controller, Transformation transformation)
+        public SnapInfoViewModel([NotNull] IViewModelServiceProvider serviceProvider, [NotNull] IEditorGameToolViewModelService service, Transformation transformation)
             : base(serviceProvider)
         {
-            if (controller == null) throw new ArgumentNullException(nameof(controller));
-            this.controller = controller;
+            ArgumentNullException.ThrowIfNull(service);
+            this.service = service;
             this.transformation = transformation;
         }
 
         /// <summary>
         /// Gets or sets whether the snapping is currently active for the related transformation.
         /// </summary>
-        public bool IsActive { get { return isActive; } set { SetValue(ref isActive, value, UpdateSnap); } }
+        public bool IsActive { get { return isActive; } set { SetValue(ref isActive, value, Apply); } }
 
         /// <summary>
         /// Gets or sets the snapping value for the related transformation.
         /// </summary>
-        public float Value { get { return value; } set { SetValue(ref this.value, value, UpdateSnap); } }
+        public float Value { get { return value; } set { SetValue(ref this.value, value, Apply); } }
 
-        private void UpdateSnap()
+        /// <summary>
+        /// Gives the snap to the game.
+        /// </summary>
+        public void Apply()
         {
-            controller.GetService<IEditorGameTransformViewModelService>().UpdateSnap(transformation, Value, IsActive);
+            service.SetSnapAsync(transformation, Value, IsActive).Forget();
         }
     }
 }

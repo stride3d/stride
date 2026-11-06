@@ -5,7 +5,6 @@ using Stride.Core.Assets.Quantum;
 using Stride.Core.Reflection;
 using Stride.Core.Translation;
 using Stride.Core.Translation.Providers;
-using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Entities;
 using Stride.Assets.Presentation.Templates;
 using Stride.Assets.SpriteFont;
@@ -21,9 +20,6 @@ namespace Stride.Assets.Presentation
         [Core.ModuleInitializer]
         public static void Initialize()
         {
-            // This editor has its own transformation service, in place of the tool service of the cross-platform editor, in the
-            // toolkit-neutral layer: the editor games leave it out
-            EditorGameDiscovery.Exclude(typeof(Stride.Assets.Editor.EditorGame.Tools.EditorGameToolService));
             // Register the toolkit-neutral part of this layer before this assembly, so it is scanned first
             RuntimeHelpers.RunModuleConstructor(typeof(Stride.Assets.Editor.StrideEditorPlugin).Module.ModuleHandle);
             RuntimeHelpers.RunModuleConstructor(typeof(SpriteFontAsset).Module.ModuleHandle);
