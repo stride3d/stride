@@ -5,6 +5,7 @@ using System.Runtime.ExceptionServices;
 using System.Windows;
 using Stride.Assets.Editor.Tests.Helpers;
 using Stride.Assets.Presentation;
+using Stride.Assets.Templates;
 using Stride.Audio.Editor;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Presentation.Views;
@@ -24,7 +25,7 @@ namespace Stride.GameStudio.Tests;
 /// </summary>
 public class TestPluginRegistrations
 {
-    [Fact]
+    [SkippableFact]
     public void TheWpfPluginsRegisterTheSameAsBefore()
     {
         var differences = new List<string>();
@@ -50,12 +51,25 @@ public class TestPluginRegistrations
     {
         // The plugins of the core editor and of the Game Studio are internal
         yield return Create(typeof(Stride.Core.Assets.Editor.View.ValueConverters.TypeToResource).Assembly, "Stride.Core.Assets.Editor.CoreAssetsEditorPlugin");
-        yield return new StrideDefaultAssetsPlugin();
+        yield return CreateDefaultAssetsPlugin();
         yield return Create(typeof(PluginService).Assembly, "Stride.GameStudio.Plugin.StrideEditorPlugin");
         yield return new UIEditorPlugin();
         yield return new UIEditorWpfPlugin();
         yield return new AudioEditorWpfPlugin();
         yield return new SpriteStudioEditorWpfPlugin();
+    }
+
+    private static StrideDefaultAssetsPlugin CreateDefaultAssetsPlugin()
+    {
+        try
+        {
+            return new StrideDefaultAssetsPlugin();
+        }
+        catch (InvalidOperationException e) when (e.Message.StartsWith($"Could not find package {StrideDefaultTemplates.AssetTemplatesPackageName} ", StringComparison.Ordinal))
+        {
+            // The plugin loads the asset templates from the package store, which a CI machine doesn't have
+            throw new SkipException($"The {StrideDefaultTemplates.AssetTemplatesPackageName} package is not in the package store on this machine: {e.Message}");
+        }
     }
 
     private static AssetsPlugin Create(System.Reflection.Assembly assembly, string typeName)
