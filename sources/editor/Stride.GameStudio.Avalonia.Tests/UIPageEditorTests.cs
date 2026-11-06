@@ -1,8 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
@@ -10,15 +8,10 @@ using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Input.Raw;
-using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Stride.Core.Assets.Editor.Avalonia.DragDrop;
 using Stride.Core.Assets.Presentation.ViewModels;
-using Stride.Core.Reflection;
-using Stride.GameStudio.Avalonia.Services;
 using Stride.GameStudio.Avalonia.Tests.Helpers;
-using Stride.GameStudio.Avalonia.Views;
-using Stride.UI.Editor;
 using Stride.UI.Editor.ViewModels;
 using Stride.UI.Editor.Views;
 
@@ -64,7 +57,7 @@ public sealed class UIPageEditorTests
         var history = page.Fixture.Session.ActionHistory;
         var count = history.Transactions.Count;
 
-        Drop(page, [page.Factory("Grid")], page.EmptyArea());
+        page.Drop([page.Factory("Grid")], page.EmptyArea());
 
         var root = Assert.Single(page.Root.Children);
         Assert.Equal(typeof(Stride.UI.Panels.Grid), root.ElementType);
@@ -85,8 +78,8 @@ public sealed class UIPageEditorTests
         var history = page.Fixture.Session.ActionHistory;
         var count = history.Transactions.Count;
 
-        Drop(page, [page.Factory("Button")], page.RowCenter(grid));
-        Drop(page, [page.Factory("TextBlock")], page.RowCenter(grid));
+        page.Drop([page.Factory("Button")], page.RowCenter(grid));
+        page.Drop([page.Factory("TextBlock")], page.RowCenter(grid));
 
         Assert.Equal([typeof(Stride.UI.Controls.Button), typeof(Stride.UI.Controls.TextBlock)], grid.Children.Select(x => x.ElementType));
         await WindowTestHelper.WaitUntilAsync(() => history.Transactions.Count == count + 2, "the history entries");
@@ -100,8 +93,8 @@ public sealed class UIPageEditorTests
     {
         await using var page = await OpenPageAsync();
         var grid = await page.AddRootAsync("Grid");
-        await DropAsync(page, [page.Factory("Button")], page.RowCenter(grid));
-        await DropAsync(page, [page.Factory("TextBlock")], page.RowCenter(grid));
+        await page.DropAsync([page.Factory("Button")], page.RowCenter(grid));
+        await page.DropAsync([page.Factory("TextBlock")], page.RowCenter(grid));
         var button = grid.Children[0];
         var text = grid.Children[1];
         await page.WaitForRowAsync(text);
@@ -112,7 +105,7 @@ public sealed class UIPageEditorTests
         var target = page.Behavior.GetDropTarget([text], page.RowTopBand(button), AddChildModifiers.None);
         Assert.Equal(TreeViewDropKind.Insert, target.Kind);
         Assert.Equal(InsertPosition.Before, target.InsertPosition);
-        Drop(page, [text], page.RowTopBand(button));
+        page.Drop([text], page.RowTopBand(button));
 
         // A move recreates the view models of the moved elements
         Assert.Equal([text.Id, button.Id], grid.Children.Select(x => x.Id));
@@ -133,7 +126,7 @@ public sealed class UIPageEditorTests
 
         // Once the page has its root, the empty area adds into the root, as in the WPF UI editor
         var grid = await page.AddRootAsync("Grid");
-        Drop(page, [page.Factory("Canvas")], page.EmptyArea());
+        page.Drop([page.Factory("Canvas")], page.EmptyArea());
         Assert.Same(grid, Assert.Single(page.Root.Children));
         Assert.Equal(typeof(Stride.UI.Panels.Canvas), Assert.Single(grid.Children).ElementType);
     }
@@ -182,7 +175,7 @@ public sealed class UIPageEditorTests
     {
         await using var page = await OpenPageAsync();
         var grid = await page.AddRootAsync("Grid");
-        await DropAsync(page, [page.Factory("Button")], page.RowCenter(grid));
+        await page.DropAsync([page.Factory("Button")], page.RowCenter(grid));
         var button = Assert.Single(grid.Children);
         await page.WaitForRowAsync(button);
         var history = page.Fixture.Session.ActionHistory;
@@ -221,7 +214,7 @@ public sealed class UIPageEditorTests
     {
         await using var page = await OpenPageAsync();
         var grid = await page.AddRootAsync("Grid");
-        await DropAsync(page, [page.Factory("Button")], page.RowCenter(grid));
+        await page.DropAsync([page.Factory("Button")], page.RowCenter(grid));
         var button = Assert.Single(grid.Children);
         await page.WaitForRowAsync(button);
         var history = page.Fixture.Session.ActionHistory;
@@ -254,10 +247,10 @@ public sealed class UIPageEditorTests
     {
         await using var page = await OpenPageAsync();
         var grid = await page.AddRootAsync("Grid");
-        Drop(page, [page.Factory("StackPanel")], page.RowCenter(grid));
+        page.Drop([page.Factory("StackPanel")], page.RowCenter(grid));
         var stack = Assert.Single(grid.Children);
         await page.WaitForRowAsync(stack);
-        Drop(page, [page.Factory("Button")], page.RowCenter(stack));
+        page.Drop([page.Factory("Button")], page.RowCenter(stack));
         var button = Assert.Single(stack.Children);
         await page.WaitForRowAsync(button);
         var buttons = page.View.GetVisualDescendants().OfType<Button>().Where(x => x.Classes.Contains("tool")).ToList();
@@ -274,208 +267,5 @@ public sealed class UIPageEditorTests
         Assert.True(page.Row(stack).IsExpanded);
     }
 
-    /// <summary>
-    /// Drops items on the tree, as <see cref="Drop"/>, and waits for the entry of the drop in the history: a test that counts the
-    /// entries counts from there.
-    /// </summary>
-    private static async Task DropAsync(PageFixture page, IReadOnlyCollection<object> items, Point positionInTree)
-    {
-        var history = page.Fixture.Session.ActionHistory;
-        var count = history.Transactions.Count;
-        Drop(page, items, positionInTree);
-        await WindowTestHelper.WaitUntilAsync(() => history.Transactions.Count > count, "the history entry of the drop");
-    }
-
-    private static void Drop(PageFixture page, IReadOnlyCollection<object> items, Point positionInTree)
-    {
-        var point = page.ToWindow(positionInTree);
-        var data = AssetDragDropHelper.CreateItemData(items);
-        page.Window.DragDrop(point, RawDragEventType.DragEnter, data, DragDropEffects.Move, RawInputModifiers.None);
-        page.Window.DragDrop(point, RawDragEventType.DragOver, data, DragDropEffects.Move, RawInputModifiers.None);
-        page.Window.DragDrop(point, RawDragEventType.Drop, data, DragDropEffects.Move, RawInputModifiers.None);
-    }
-
-    /// <summary>
-    /// Opens a session with a new UI page, then its editor.
-    /// </summary>
-    private static async Task<PageFixture> OpenPageAsync()
-    {
-        UIEditorAssemblies.Register();
-        var fixture = ShellSessionFixture.Create(("Page", new Stride.UI.Assets.UIPageAsset()));
-        // The elements of the toolbox come from the libraries of the session: the standard library of the UI package, which
-        // this session doesn't load, is given to its package
-        File.Copy(Path.Combine(AppContext.BaseDirectory, "Assets", "StrideUILibrary.sduilib"), Path.Combine(fixture.PackageDirectory, "Assets", "UILibrary.sduilib"));
-        MainWindow? window = null;
-        try
-        {
-            // A dialog of the session would wait forever for an answer in a headless test
-            var dialogs = fixture.ReplaceDialogService();
-            window = new MainWindow { DataContext = fixture.Main, Width = 1600, Height = 1000 };
-            window.Show();
-            // The shell registers the clipboard of its main window before the session opens; the headless platform keeps one in memory
-            fixture.ServiceProvider.RegisterService(new ClipboardService(window.Clipboard!));
-            await fixture.OpenAsync();
-            var asset = Assert.IsType<UIPageViewModel>(fixture.Asset("Page"));
-            fixture.Session.AssetCollection.SelectAssets([asset]);
-            await WindowTestHelper.PumpAsync();
-            fixture.Session.EditSelectedContentCommand.Execute();
-            await WindowTestHelper.WaitUntilAsync(() => window.GetVisualDescendants().OfType<UIPageEditorView>().Any(), "the UI page editor");
-            var editor = Assert.IsType<UIPageEditorViewModel>(fixture.Session.EditorCollection.ActiveEditor);
-            var view = window.GetVisualDescendants().OfType<UIPageEditorView>().Single();
-            await WindowTestHelper.WaitUntilAsync(() => editor.RootPart is not null, "the hierarchy of the page");
-            Assert.False(editor.HasGame);
-            await WindowTestHelper.WaitUntilAsync(() => view.ToolboxGroups.Count > 0, "the toolbox");
-
-            Dispatcher.UIThread.RunJobs();
-            AvaloniaHeadlessPlatform.ForceRenderTimerTick();
-            Dispatcher.UIThread.RunJobs();
-            var tree = view.FindControl<TreeView>("HierarchyTree") ?? throw new InvalidOperationException("No tree in the UI editor.");
-            // The headless screen keeps the window small and its font is wide: the rows of the tree would scroll horizontally,
-            // and the scroll bar would cover the row the test points at
-            ScrollViewer.SetHorizontalScrollBarVisibility(tree, global::Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled);
-            Dispatcher.UIThread.RunJobs();
-            var behavior = global::Avalonia.Xaml.Interactivity.Interaction.GetBehaviors(tree).OfType<TreeViewDragDropBehavior>().Single();
-            return new PageFixture(fixture, dialogs, window, editor, view, tree, behavior);
-        }
-        catch
-        {
-            // What an editor started ends with it
-            await fixture.Session.EditorCollection.CloseAllEditorsAsync(false);
-            if (window is not null)
-                await window.CloseAsync();
-            fixture.Dispose();
-            throw;
-        }
-    }
-
-    private sealed class PageFixture(ShellSessionFixture fixture, RecordingDialogService dialogs, MainWindow window, UIPageEditorViewModel editor, UIPageEditorView view, TreeView tree, TreeViewDragDropBehavior behavior) : IAsyncDisposable
-    {
-        public ShellSessionFixture Fixture { get; } = fixture;
-
-        public RecordingDialogService Dialogs { get; } = dialogs;
-
-        public MainWindow Window { get; } = window;
-
-        public UIPageEditorViewModel Editor { get; } = editor;
-
-        public UIPageEditorView View { get; } = view;
-
-        public TreeView Tree { get; } = tree;
-
-        public TreeViewDragDropBehavior Behavior { get; } = behavior;
-
-        public UIRootViewModel Root => (UIRootViewModel)Editor.RootPart!;
-
-        public IUIElementFactory Factory(string name) => Editor.Factories.Single(x => x.Name == name);
-
-        /// <summary>
-        /// Adds an element of the toolbox as the root of the page, through the empty area of the tree, and waits for its entry in
-        /// the history (a test that counts the entries counts from there).
-        /// </summary>
-        public async Task<UIElementViewModel> AddRootAsync(string name)
-        {
-            var history = Fixture.Session.ActionHistory;
-            var count = history.Transactions.Count;
-            Drop(this, [Factory(name)], EmptyArea());
-            var root = Assert.Single(Root.Children);
-            await WaitForRowAsync(root);
-            await WindowTestHelper.WaitUntilAsync(() => history.Transactions.Count > count, "the history entry of the new root");
-            return root;
-        }
-
-        public async Task SelectAsync(UIElementViewModel element)
-        {
-            await Window.ClickAsync(NameOf(element));
-            await WindowTestHelper.WaitUntilAsync(() => Editor.SelectedContent.Count == 1 && Editor.SelectedContent.Contains(element), "the selection");
-        }
-
-        public async Task WaitForRowAsync(UIElementViewModel element)
-        {
-            await WindowTestHelper.WaitUntilAsync(() =>
-            {
-                foreach (var item in Tree.GetVisualDescendants().OfType<TreeViewItem>())
-                    item.IsExpanded = true;
-                return TryRow(element) is not null;
-            }, "the row of the element");
-            Dispatcher.UIThread.RunJobs();
-            AvaloniaHeadlessPlatform.ForceRenderTimerTick();
-            Dispatcher.UIThread.RunJobs();
-        }
-
-        public TreeViewItem? TryRow(UIElementViewModel element)
-        {
-            return Tree.GetVisualDescendants().OfType<TreeViewItem>().FirstOrDefault(x => ReferenceEquals(x.DataContext, element));
-        }
-
-        public TreeViewItem Row(UIElementViewModel element) => TryRow(element) ?? throw new InvalidOperationException($"No row {element.Name} in the tree.");
-
-        private TextBlock NameOf(UIElementViewModel element)
-        {
-            Row(element).BringIntoView();
-            Dispatcher.UIThread.RunJobs();
-            return Row(element).GetVisualDescendants().OfType<TextBlock>().First(x => x.Text == element.Name && ReferenceEquals(x.DataContext, element));
-        }
-
-        /// <summary>
-        /// Gets the bounds of the name of a row, relative to the tree.
-        /// </summary>
-        private Rect Header(UIElementViewModel element)
-        {
-            var text = NameOf(element);
-            var origin = text.TranslatePoint(default, Tree) ?? throw new InvalidOperationException("The row is not in the tree.");
-            var row = Row(element);
-            var header = row.GetVisualDescendants().OfType<Control>().FirstOrDefault(x => x.Name == "PART_Header" && ReferenceEquals(x.TemplatedParent, row)) ?? row;
-            var top = header.TranslatePoint(default, Tree)!.Value.Y;
-            // The name may go past the right edge of the tree, whose rows scroll: the bounds stop at the edge
-            var width = Math.Clamp(Tree.Bounds.Width - 24 - origin.X, 1, Math.Max(1, text.Bounds.Width));
-            return new Rect(origin.X, top, width, header.Bounds.Height);
-        }
-
-        public Point RowCenter(UIElementViewModel element) => Header(element).Center;
-
-        public Point RowTopBand(UIElementViewModel element)
-        {
-            var header = Header(element);
-            return new Point(header.Center.X, header.Y + 2);
-        }
-
-        /// <summary>
-        /// A point of the empty area of the tree, below its rows.
-        /// </summary>
-        public Point EmptyArea() => new(Tree.Bounds.Width / 2, Tree.Bounds.Height - 10);
-
-        public Point ToWindow(Point positionInTree) => Tree.TranslatePoint(positionInTree, Window) ?? throw new InvalidOperationException("The tree is not in the window.");
-
-        public async ValueTask DisposeAsync()
-        {
-            // What the editor started ends with it: closing waits for it
-            Assert.True(await Fixture.Session.EditorCollection.CloseAllEditorsAsync(false));
-            await Window.CloseAsync();
-            Fixture.Dispose();
-        }
-    }
-
-    /// <summary>
-    /// The assemblies of the UI editor, registered as a session that loads the UI package does (the editor package and its
-    /// Avalonia companion), once per process: the asset of the page is then a UI page for the session that opens it.
-    /// </summary>
-    private static class UIEditorAssemblies
-    {
-        private static bool registered;
-
-        public static void Register()
-        {
-            if (registered)
-                return;
-            registered = true;
-
-            Assembly[] assemblies = [typeof(Stride.UI.Assets.UIPageAsset).Assembly, typeof(UIEditorPlugin).Assembly, typeof(UIEditorAvaloniaPlugin).Assembly];
-            foreach (var assembly in assemblies)
-            {
-                // The assemblies register their scan indexes when they initialize
-                RuntimeHelpers.RunModuleConstructor(assembly.ManifestModule.ModuleHandle);
-                AssemblyRegistry.Register(assembly, AssemblyCommonCategories.Assets);
-            }
-        }
-    }
+    private static Task<UIEditorFixture> OpenPageAsync() => UIEditorFixture.OpenAsync<Stride.UI.Assets.UIPageAsset>("Page");
 }
