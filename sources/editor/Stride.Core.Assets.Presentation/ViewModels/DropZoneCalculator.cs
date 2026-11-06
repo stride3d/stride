@@ -1,17 +1,14 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Core.Assets.Presentation.ViewModels;
-
-namespace Stride.Core.Assets.Editor.Avalonia.DragDrop;
+namespace Stride.Core.Assets.Presentation.ViewModels;
 
 /// <summary>
 /// Splits a row into the drop zones of a drag and drop operation: an insert band along its top edge, an insert band along its
 /// bottom edge, and a drop zone in between.
 /// </summary>
 /// <remarks>
-/// The same zones as the WPF editor (<c>Stride.Core.Assets.Editor.View.Behaviors.DropZoneCalculator</c>), so that a gesture
-/// lands at the same place in both editors.
+/// The tree views of both editors use it, so that a gesture lands at the same place in each.
 /// </remarks>
 public static class DropZoneCalculator
 {
