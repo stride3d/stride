@@ -54,6 +54,13 @@ public sealed partial class AssetCollectionViewModel : IAddChildViewModel
 
     private IEditorDialogService EditorDialogs => ServiceProvider.Get<IEditorDialogService>();
 
+    /// <inheritdoc />
+    Task<List<AssetViewModel>> IAssetCollectionViewModel.RunAssetTemplateAsync(TemplateDescription template, IList<UFile> files)
+    {
+        ArgumentNullException.ThrowIfNull(template);
+        return RunAssetTemplateAsync(new TemplateDescriptionViewModel(ServiceProvider, template), files);
+    }
+
     /// <summary>
     /// Creates an asset from a template in the selected folder (or in the first folder accepting the asset type), and selects
     /// the new assets.
