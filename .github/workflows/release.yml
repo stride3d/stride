@@ -339,6 +339,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: read  # the nested ReleaseNotes job reads PRs
+      id-token: write  # release-deploy's nuget.org trusted publishing
     uses: ./.github/workflows/release-deploy.yml
     with:
       run-id: ${{ github.run_id }}
