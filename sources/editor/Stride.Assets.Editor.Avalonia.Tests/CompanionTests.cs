@@ -23,7 +23,7 @@ namespace Stride.Assets.Editor.Avalonia.Tests;
 /// </summary>
 public sealed class CompanionTests
 {
-    [Fact]
+    [AvaloniaFact]
     public void TheAudioCompanionRegistersTheSoundPreviewView()
     {
         var views = PluginRegistrations.Of(new AudioEditorAvaloniaPlugin(), typeof(IAssetEditorView)).AssetPreviewViewTypes;
@@ -32,7 +32,7 @@ public sealed class CompanionTests
         Assert.Equal(typeof(SoundPreview), Assert.Single(views).Key);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void TheSpriteStudioCompanionRegistersTheSheetPreviewView()
     {
         var views = PluginRegistrations.Of(new SpriteStudioEditorAvaloniaPlugin(), typeof(IAssetEditorView)).AssetPreviewViewTypes;
