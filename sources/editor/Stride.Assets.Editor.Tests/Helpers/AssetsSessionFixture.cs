@@ -81,7 +81,8 @@ public sealed class AssetsSessionFixture : IDisposable
         var plugins = new TestPluginService(assetsPlugin, editorPlugin);
         var serviceProvider = new ViewModelServiceProvider(
         [
-            new NullDispatcherService(),
+            // One dispatcher call at a time, as on the UI thread: the session raises its events on the thread pool
+            new ExclusiveDispatcherService(),
             new FakeEditorDialogService(),
             new FakeClipboardService(),
             plugins,

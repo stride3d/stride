@@ -89,7 +89,8 @@ public sealed class EditorSessionFixture : IDisposable
         var plugins = new FakePluginService();
         var serviceProvider = new ViewModelServiceProvider(
         [
-            new NullDispatcherService(),
+            // One dispatcher call at a time, as on the UI thread: the session raises its events on the thread pool
+            new ExclusiveDispatcherService(),
             dialogs,
             clipboard,
             plugins,
