@@ -11,8 +11,7 @@ namespace Stride.Core.Diagnostics;
 /// A profiler state contains information of a portion of code being profiled. See remarks.
 /// </summary>
 /// <remarks>
-/// This struct is not intended to be used directly but only through <see cref="Profiler.Begin"/>.
-/// You can still attach some attributes to it while profiling a portion of code.
+/// This struct is not intended to be used directly but only through <see cref="Profiler.Begin(ProfilingKey)"/>.
 /// </remarks>
 public struct ProfilingState : IDisposable
 {
@@ -59,7 +58,7 @@ public struct ProfilingState : IDisposable
 
     /// <summary>
     /// Gets or sets the TickFrequency used to convert <see cref="long"/> timestamp to <see cref="TimeSpan"/>.
-    /// By default for CPU events it's <see cref="Stopwatch.Frequency"/> and for GPU events it's set by the rendering code."/>
+    /// By default for CPU events it's <see cref="Stopwatch.Frequency"/> and for GPU events it's set by the rendering code.
     /// </summary>
     public long TickFrequency
     {
@@ -68,11 +67,11 @@ public struct ProfilingState : IDisposable
     }
 
     /// <summary>
-    /// Checks if the profiling key is enabled and update this instance. See remarks.
+    /// Updates internal enabled state based on if the profile is marked as enabled in the profiler.
     /// </summary>
     /// <remarks>
-    /// This can be used for long running profiling that are using markers and want to log markers if 
-    /// the profiling was activated at runtime.
+    /// This can be used by long-running profiles that use markers, to ensure events start or stop emitting when the
+    /// profile gets enabled or disabled at runtime.
     /// </remarks>
     public void CheckIfEnabled()
     {
@@ -81,25 +80,32 @@ public struct ProfilingState : IDisposable
 
     public void Dispose()
     {
-        // Perform a Start event only if the profiling is running
+        // Perform an End event only if the profiling is running
         if (!isEnabled) return;
 
         End();
     }
 
+    /// <summary>
+    /// Emits a Begin event. This method shouldn't be called if you used <see cref="Profiler.Begin(ProfilingKey)"/> or
+    /// <see cref="Profiler.Begin(ProfilingKey, string, ProfilingCustomValue?, ProfilingCustomValue?, ProfilingCustomValue?,
+    /// ProfilingCustomValue?)"/> to create this instance.
+    /// </summary>
     public void Begin()
     {
         EmitEvent(ProfilingMessageType.Begin);
     }
 
     /// <summary>
-    /// Emits a Begin event with the specified formatted text.
+    /// Emits a Begin event. This method shouldn't be called if you used <see cref="Profiler.Begin(ProfilingKey)"/> or
+    /// <see cref="Profiler.Begin(ProfilingKey, string, ProfilingCustomValue?, ProfilingCustomValue?, ProfilingCustomValue?,
+    /// ProfilingCustomValue?)"/> to create this instance.
     /// </summary>
-    /// <param name="text">The event text.</param>
-    /// <param name="value0">First value (can be int, float, long or double).</param>
-    /// <param name="value1">Second value (can be int, float, long or double).</param>
-    /// <param name="value2">Third value (can be int, float, long or double).</param>
-    /// <param name="value3">Fourth value (can be int, float, long or double).</param>
+    /// <param name="text">A message to pass with the event.</param>
+    /// <param name="value0">First optional value to pass with the event (can be int, float, long or double).</param>
+    /// <param name="value1">Second optional value to pass with the event (can be int, float, long or double).</param>
+    /// <param name="value2">Third optional value to pass with the event (can be int, float, long or double).</param>
+    /// <param name="value3">Fourth optional value to pass with the event (can be int, float, long or double).</param>
     public void Begin(string text, ProfilingCustomValue? value0 = null, ProfilingCustomValue? value1 = null, ProfilingCustomValue? value2 = null, ProfilingCustomValue? value3 = null)
     {
         EmitEvent(ProfilingMessageType.Begin, new ProfilingEventMessage(text, value0, value1, value2, value3));
@@ -122,26 +128,32 @@ public struct ProfilingState : IDisposable
     /// <summary>
     /// Emits a Mark event.
     /// </summary>
+    /// <remarks>
+    /// Mark events can highlight when and how many times specific parts of your code have been called.
+    /// </remarks>
     public void Mark()
     {
         EmitEvent(ProfilingMessageType.Mark);
     }
 
     /// <summary>
-    /// Emits a Mark profiling event with the specified text.
+    /// Emits a Mark event.
     /// </summary>
-    /// <param name="text">The event text.</param>
-    /// <param name="value0">First value (can be int, float, long or double).</param>
-    /// <param name="value1">Second value (can be int, float, long or double).</param>
-    /// <param name="value2">Third value (can be int, float, long or double).</param>
-    /// <param name="value3">Fourth value (can be int, float, long or double).</param>
+    /// <param name="text">A message to pass with the event.</param>
+    /// <param name="value0">First optional value to pass with the event (can be int, float, long or double).</param>
+    /// <param name="value1">Second optional value to pass with the event (can be int, float, long or double).</param>
+    /// <param name="value2">Third optional value to pass with the event (can be int, float, long or double).</param>
+    /// <param name="value3">Fourth optional value to pass with the event (can be int, float, long or double).</param>
+    /// <remarks>
+    /// Mark events can highlight when and how many times specific parts of your code have been called.
+    /// </remarks>
     public void Mark(string text, ProfilingCustomValue? value0 = null, ProfilingCustomValue? value1 = null, ProfilingCustomValue? value2 = null, ProfilingCustomValue? value3 = null)
     {
         EmitEvent(ProfilingMessageType.Mark, new ProfilingEventMessage(text, value0, value1, value2, value3));
     }
 
     /// <summary>
-    /// Emits a End profiling event.
+    /// Emits an End event.
     /// </summary>
     public void End()
     {
@@ -149,13 +161,13 @@ public struct ProfilingState : IDisposable
     }
 
     /// <summary>
-    /// Emits a End profiling event with the specified custom value.
+    /// Emits an End event.
     /// </summary>
-    /// <param name="text">The event text.</param>
-    /// <param name="value0">First value (can be int, float, long or double).</param>
-    /// <param name="value1">Second value (can be int, float, long or double).</param>
-    /// <param name="value2">Third value (can be int, float, long or double).</param>
-    /// <param name="value3">Fourth value (can be int, float, long or double).</param>
+    /// <param name="text">A message to pass with the event.</param>
+    /// <param name="value0">First optional value to pass with the event (can be int, float, long or double).</param>
+    /// <param name="value1">Second optional value to pass with the event (can be int, float, long or double).</param>
+    /// <param name="value2">Third optional value to pass with the event (can be int, float, long or double).</param>
+    /// <param name="value3">Fourth optional value to pass with the event (can be int, float, long or double).</param>
     public void End(string text, ProfilingCustomValue? value0 = null, ProfilingCustomValue? value1 = null, ProfilingCustomValue? value2 = null, ProfilingCustomValue? value3 = null)
     {
         EmitEvent(ProfilingMessageType.End, new ProfilingEventMessage(text, value0, value1, value2, value3));

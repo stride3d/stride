@@ -35,7 +35,7 @@ namespace Stride.Games
         private bool switchControl;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="WindowsMessageLoop"/> class.
+        /// Initializes a new instance of the <see cref="SDLMessageLoop"/> class.
         /// </summary>
         public SDLMessageLoop(Window control)
         {

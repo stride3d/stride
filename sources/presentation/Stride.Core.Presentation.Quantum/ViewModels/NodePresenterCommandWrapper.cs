@@ -60,7 +60,7 @@ public class NodePresenterCommandWrapper : CommandBase
     /// </summary>
     /// <param name="parameter">The parameter of the command.</param>
     /// <returns>A task that completes when the execution of the command is finished.</returns>
-    public virtual async Task Invoke(object parameter)
+    public virtual async Task Invoke(object? parameter)
     {
         var preExecuteResult = await Command.PreExecute(presenters, parameter);
         foreach (var presenter in presenters)

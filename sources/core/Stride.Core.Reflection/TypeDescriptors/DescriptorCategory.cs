@@ -4,7 +4,7 @@
 namespace Stride.Core.Reflection;
 
 /// <summary>
-/// A category used by <see cref="ITypeDescriptorBase"/>.
+/// A category used by <see cref="ITypeDescriptor"/>.
 /// </summary>
 public enum DescriptorCategory
 {

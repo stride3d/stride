@@ -1,0 +1,26 @@
+// PSMain(ExpectedResult=#666699FF, stream.EXTRA_COLOR=(0.2 0.4 0.6 0.8))
+
+namespace Stride.Shaders.Tests;
+
+// The shape of external CubeInstancingShader: the VS writes one component of a vertex attribute first, then reads the others.
+shader StreamCarryPartialWriteVertexInput
+{
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+    stream float4 ColorTarget : SV_Target0;
+    stream float4 ExtraColor : EXTRA_COLOR;
+    stream float4 Out;
+
+    void VSMain()
+    {
+        streams.ShadingPosition = streams.Position;
+        streams.ExtraColor.w = 1.0;
+        streams.ExtraColor.x += 0.2;
+        streams.Out = streams.ExtraColor;
+    }
+
+    void PSMain()
+    {
+        streams.ColorTarget = streams.Out;
+    }
+}

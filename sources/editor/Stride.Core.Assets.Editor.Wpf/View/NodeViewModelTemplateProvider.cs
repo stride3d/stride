@@ -5,6 +5,7 @@ using System;
 using Stride.Core.Annotations;
 using Stride.Core.Presentation.Quantum.ViewModels;
 using Stride.Core.Presentation.View;
+using Stride.Core.Presentation.Views;
 
 namespace Stride.Core.Assets.Editor.View
 {
@@ -30,7 +31,7 @@ namespace Stride.Core.Assets.Editor.View
 
         /// <summary>
         /// Indicates whether the given node matches the given type, either with the <see cref="Stride.Core.Presentation.Quantum.ViewModels.NodeViewModel.Type"/> property
-        /// or the type of the <see cref="Stride.Core.Presentation.Quantum.ViewModels.NodeViewModel.Value"/> property.
+        /// or the type of the <see cref="Stride.Core.Presentation.Quantum.ViewModels.NodeViewModel.NodeValue"/> property.
         /// </summary>
         /// <param name="node">The node to check.</param>
         /// <param name="type">The type to match.</param>

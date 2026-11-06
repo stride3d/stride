@@ -50,8 +50,7 @@ namespace Stride.UI.Controls
         /// <summary>
         /// The color of the overlay drawn upon underneath elements.
         /// </summary>
-        /// <userdoc>he color of the overlay drawn upon underneath elements.</userdoc>
-        /// <userdoc>he color of the overlay drawn upon underneath elements.</userdoc>
+        /// <userdoc>The color of the overlay drawn upon underneath elements.</userdoc>
         [DataMember]
         [Display(category: AppearanceCategory)]
         public Color OverlayColor

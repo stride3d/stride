@@ -8,11 +8,10 @@
 		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
 		<RootNamespace>Stride.Shaders.Generators</RootNamespace>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <!-- Ships inside Stride.Shaders.Compilers (its _PackGeneratorAnalyzerFiles), not as a package of its own. -->
+    <IsPackable>false</IsPackable>
     <!-- Forward referenced runtime deps to consumers as analyzer-set DLLs. -->
     <GetTargetPathDependsOn>$(GetTargetPathDependsOn);GetDependencyTargetPaths</GetTargetPathDependsOn>
-    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_PackGeneratorAnalyzerFiles</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
 
   <ItemGroup>
@@ -29,14 +28,6 @@
 			<TargetPathWithTargetPlatformMoniker Include="@(ReferenceCopyLocalPaths)"
 			                                     Condition="'%(Extension)' == '.dll' AND '%(ReferenceCopyLocalPaths.AssetType)' != 'native'"
 			                                     IncludeRuntimeDependency="false" />
-		</ItemGroup>
-	</Target>
-
-	<Target Name="_PackGeneratorAnalyzerFiles">
-		<ItemGroup>
-			<TfmSpecificPackageFile Include="$(OutputPath)*.dll"
-			                        Exclude="$(OutputPath)Microsoft.CodeAnalysis*.dll"
-			                        PackagePath="analyzers/dotnet/cs" />
 		</ItemGroup>
 	</Target>
 

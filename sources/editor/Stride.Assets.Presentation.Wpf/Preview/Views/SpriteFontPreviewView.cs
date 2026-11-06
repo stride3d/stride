@@ -6,7 +6,9 @@ using Stride.Editor.Preview.View;
 
 namespace Stride.Assets.Presentation.Preview.Views
 {
+#pragma warning disable CS0618
     [AssetPreviewView<PrecompiledSpriteFontPreview>]
+#pragma warning restore CS0618
     [AssetPreviewView<SpriteFontPreview>]
     public class SpriteFontPreviewView : StridePreviewView
     {

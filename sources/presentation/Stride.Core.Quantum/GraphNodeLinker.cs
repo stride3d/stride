@@ -116,7 +116,7 @@ public class GraphNodeLinker
     /// <summary>
     /// Gets or sets the action to execute when two nodes should be linked.
     /// </summary>
-    public Action<IGraphNode, IGraphNode>? LinkAction { get; set; }
+    public Action<IGraphNode, IGraphNode?>? LinkAction { get; set; }
 
     /// <summary>
     /// Visits and links the node of two different object hierarchies.
@@ -146,7 +146,7 @@ public class GraphNodeLinker
     /// <param name="targetNode">The node from the target hierarchy. Can be null.</param>
     /// <exception cref="ArgumentNullException">The source node is null.</exception>
     /// <remarks>The default implementation will simply invoke <see cref="LinkAction"/>.</remarks>
-    protected virtual void LinkNodes(IGraphNode sourceNode, IGraphNode targetNode)
+    protected virtual void LinkNodes(IGraphNode sourceNode, IGraphNode? targetNode)
     {
         ArgumentNullException.ThrowIfNull(sourceNode);
         LinkAction?.Invoke(sourceNode, targetNode);
@@ -174,8 +174,8 @@ public class GraphNodeLinker
     /// <param name="sourceReference">The reference in the source node for which to look for a correspondance in the target node.</param>
     /// <returns>A reference of the target node corresponding to the given reference in the source node, or null if there is no match.</returns>
     /// <remarks>
-    /// The source reference can either be directly the <see cref="IGraphNode.TargetReference"/> of the source node if this reference is
-    /// an <see cref="ObjectReference"/>, or one of the reference contained inside <see cref="IGraphNode.ItemReferences"/> if this reference
+    /// The source reference can either be directly the <see cref="IMemberNode.TargetReference"/> of the source node if this reference is
+    /// an <see cref="ObjectReference"/>, or one of the references contained inside <see cref="IObjectNode.ItemReferences"/> if this reference
     /// is a <see cref="ReferenceEnumerable"/>. The <see cref="NodeIndex"/> property indicates the index of the reference in this case.
     /// The default implementation returns a reference in the target node that matches the index of the source reference, if available.
     /// </remarks>

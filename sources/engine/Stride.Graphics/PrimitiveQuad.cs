@@ -12,7 +12,7 @@ namespace Stride.Graphics
     /// <summary>
     ///   A primitive triangle that can be used to draw a Texture or an Effect,
     ///   commonly used to draw full-screen.
-    ///   This is directly accessible from the <see cref="GraphicsDeviceExtensions.DrawQuad"/> method.
+    ///   This is directly accessible from the <see cref="GraphicsDeviceExtensions.DrawQuad(CommandList)"/> method.
     /// </summary>
     public class PrimitiveQuad : ComponentBase
     {

@@ -20,6 +20,8 @@ namespace Stride.Assets.Presentation
         [Core.ModuleInitializer]
         public static void Initialize()
         {
+            // Register the WPF-free part of this layer before this assembly, so it is scanned first
+            RuntimeHelpers.RunModuleConstructor(typeof(CommonModule).Module.ModuleHandle);
             RuntimeHelpers.RunModuleConstructor(typeof(SpriteFontAsset).Module.ModuleHandle);
             RuntimeHelpers.RunModuleConstructor(typeof(MaterialKeys).Module.ModuleHandle);
             RuntimeHelpers.RunModuleConstructor(typeof(Model).Module.ModuleHandle);

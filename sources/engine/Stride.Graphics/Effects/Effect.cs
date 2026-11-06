@@ -33,7 +33,6 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="device">The device.</param>
         /// <param name="bytecode">The bytecode.</param>
-        /// <param name="usedParameters">The parameters used to create this shader (from a sdfx).</param>
         /// <exception cref="System.ArgumentNullException">
         /// device
         /// or

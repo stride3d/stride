@@ -13,7 +13,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
     public class AddPrefabAssetPolicy : CreateEntitiesPolicyBase<PrefabAsset, PrefabViewModel>
     {
         /// <inheritdoc />
-        protected override bool CanAddOrInsert(EntityHierarchyItemViewModel parent, PrefabViewModel asset, AddChildModifiers modifiers, int index, out string message, params object[] messageArgs)
+        protected override bool CanAddOrInsert(IEntityHierarchyItemViewModel parent, PrefabViewModel asset, AddChildModifiers modifiers, int index, out string message, params object[] messageArgs)
         {
             var prefab = asset;
             if (prefab == parent.Asset || prefab.GatherAllBasePartAssets().Contains(parent.Asset))
@@ -34,7 +34,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
 
         /// <inheritdoc />
         [NotNull]
-        protected override AssetCompositeHierarchyData<EntityDesign, Entity> CreateEntitiesFromAsset(EntityHierarchyItemViewModel parent, PrefabViewModel asset)
+        protected override AssetCompositeHierarchyData<EntityDesign, Entity> CreateEntitiesFromAsset(IEntityHierarchyItemViewModel parent, PrefabViewModel asset)
         {
             return asset.Asset.CreatePrefabInstance(asset.Url);
         }

@@ -1,6 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Stride.Core;
+using System;
 using Stride.Core.Mathematics;
 
 namespace Stride.Physics
@@ -22,8 +22,7 @@ namespace Stride.Physics
         /// </summary>
         /// <typeparam name="T">The data type of the height</typeparam>
         /// <param name="heightStickArray">The destination to copy the data.</param>
-        /// <param name="index">The start index of the destination to copy the data.</param>
-        void CopyTo<T>(UnmanagedArray<T> heightStickArray, int index) where T : struct;
+        void CopyTo<T>(Span<T> heightStickArray) where T : struct;
 
         bool IsValid();
 

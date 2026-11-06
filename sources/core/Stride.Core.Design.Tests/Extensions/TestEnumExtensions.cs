@@ -40,6 +40,54 @@ public class TestEnumExtensions
         Assert.DoesNotContain(TestFlags.All, result);
     }
 
+    [Flags]
+    private enum ULongFlags : ulong
+    {
+        None = 0,
+        Flag1 = 1UL << 0,
+        Flag63 = 1UL << 63,
+        Combined = Flag1 | Flag63,
+        All = ulong.MaxValue
+    }
+
+    [Fact]
+    public void GetIndividualFlags_Type_WithULongFlags_ShouldReturnOnlyPowerOfTwoValues()
+    {
+        var result = EnumExtensions.GetIndividualFlags(typeof(ULongFlags)).Cast<ULongFlags>().ToList();
+
+        Assert.Equal(new[] { ULongFlags.Flag1, ULongFlags.Flag63 }, result);
+    }
+
+    [Flags]
+    private enum ULongAllFlags : ulong
+    {
+        None = 0,
+        Flag1 = 1UL << 0,
+        Flag63 = 1UL << 63,
+        All = ulong.MaxValue
+    }
+
+    [Fact]
+    public void GetIndividualFlags_Type_WithULongMaxValue_ShouldReturnOnlyPowerOfTwoValues()
+    {
+        var result = EnumExtensions.GetIndividualFlags(typeof(ULongAllFlags)).Cast<ULongAllFlags>().ToList();
+
+        Assert.Equal(new[] { ULongAllFlags.Flag1, ULongAllFlags.Flag63 }, result);
+    }
+
+    [Theory]
+    [InlineData(0UL, new ulong[0])]
+    [InlineData(1UL, new[] { 1UL })]
+    [InlineData(1UL << 63, new[] { 1UL << 63 })]
+    [InlineData((1UL << 63) | 1UL, new[] { 1UL, 1UL << 63 })]
+    [InlineData(ulong.MaxValue, new[] { 1UL, 1UL << 63 })]
+    public void GetIndividualFlags_Value_WithULongFlags_ShouldReturnOnlyIndividualFlagsSet(ulong bits, ulong[] expected)
+    {
+        var result = ((ULongFlags)bits).GetIndividualFlags().Select(Convert.ToUInt64).ToList();
+
+        Assert.Equal(expected, result);
+    }
+
     [Fact]
     public void GetAllFlags_WithSingleFlag_ShouldReturnThatFlag()
     {

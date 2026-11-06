@@ -19,7 +19,7 @@ namespace Stride.Video.Editor;
 /// </summary>
 public sealed class VideoEditorPlugin : StrideAssetsPlugin
 {
-    public override void InitializeSession(SessionViewModel session)
+    public override void InitializeSession(ISessionViewModel session)
     {
         session.AssetViewProperties.RegisterNodePresenterUpdater(new VideoAssetNodeUpdater());
     }

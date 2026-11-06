@@ -131,7 +131,6 @@ namespace Stride.Rendering
         /// </summary>
         /// <param name="effectName">Name of the effect.</param>
         /// <param name="compilerParameters">The compiler parameters.</param>
-        /// <param name="usedParameters">The used parameters.</param>
         /// <returns>A new instance of an effect.</returns>
         /// <exception cref="System.InvalidOperationException">Could not compile shader. Need fallback.</exception>
         public TaskOrResult<Effect> LoadEffect(string effectName, CompilerParameters compilerParameters)
@@ -191,9 +190,12 @@ namespace Stride.Rendering
                 {
                     // Unregister result
                     // TODO: Should we keep it so that failure never change?
-                    if (earlyCompilerCache.TryGetValue(effectName, out List<CompilerResults> effectCompilerResults))
+                    lock (earlyCompilerCache)
                     {
-                        effectCompilerResults.Remove(compilerResult);
+                        if (earlyCompilerCache.TryGetValue(effectName, out List<CompilerResults> effectCompilerResults))
+                        {
+                            effectCompilerResults.Remove(compilerResult);
+                        }
                     }
                 }
 
@@ -274,9 +276,13 @@ namespace Stride.Rendering
                 }
             }
 
-            foreach (var message in compilerResult.Messages)
+            // EffectCompilerCache logs what it compiles
+            if (compiler is not EffectCompilerCache)
             {
-                Log.Log(message);
+                foreach (var message in compilerResult.Messages)
+                {
+                    Log.Log(message);
+                }
             }
 
             return compilerResult;

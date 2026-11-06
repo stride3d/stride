@@ -82,7 +82,6 @@ namespace Stride.Input
         /// <summary>
         /// Initializes a new instance of the <see cref="InputManager"/> class.
         /// </summary>
-        /// <param name="gameContext">The game context.</param>
         public InputManager()
         {
             maskedEvents = new MaskedEventList<InputEvent>(this, events);
@@ -492,7 +491,7 @@ namespace Stride.Input
         }
 
         /// <summary>
-        /// Registers an object that listens for certain types of events using the specialized versions of <see cref="IInputEventListener&lt;"/>
+        /// Registers an object that listens for certain types of events using specialized versions of <see cref="IInputEventListener{TEventType}"/>.
         /// </summary>
         /// <param name="listener">The listener to register</param>
         /// <remarks>
@@ -659,7 +658,7 @@ namespace Stride.Input
         }
 
         /// <summary>
-        /// Inserts any registered event back into it's <see cref="InputEventPool&lt;"/>.
+        /// Inserts any registered event back into its <see cref="InputEventPool{TEventType}"/>.
         /// </summary>
         /// <param name="inputEvent">The event to insert into it's event pool</param>
         public void PoolInputEvent(InputEvent inputEvent)

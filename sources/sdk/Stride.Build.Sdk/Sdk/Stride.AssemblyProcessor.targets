@@ -163,9 +163,6 @@
       <!-- Start with explicit references for NuGet packages -->
       <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) @(StrideAddReference->'--add-reference=%22%(Identity)%22',' ')</StrideAssemblyProcessorOptions>
 
-      <!-- Documentation file -->
-      <StrideAssemblyProcessorOptions Condition="'$(DocumentationFile)' != ''">$(StrideAssemblyProcessorOptions) --docfile="$(DocumentationFile)"</StrideAssemblyProcessorOptions>
-
       <!-- References file (all references) -->
       <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) --references-file="$(IntermediateOutputPath)StrideReferences.cache"</StrideAssemblyProcessorOptions>
 
@@ -221,27 +218,6 @@
   <!-- Integration is via BeforeTargets="CopyFilesToOutputDirectory" on the target itself.
        PrepareForRunDependsOn cannot be used here because this file is imported BEFORE
        Microsoft.NET.Sdk Sdk.targets, which would overwrite the property value. -->
-
-  <!-- ================================================================ -->
-  <!-- User Documentation (.usrdoc) File Handling -->
-  <!-- ================================================================ -->
-  <Target Name="_StrideCopyUserDoc"
-          AfterTargets="StrideRunAssemblyProcessor"
-          Condition="'$(StridePublicApi)' == 'true' And '$(StrideAssemblyProcessor)' == 'true'">
-
-    <!-- Copy .usrdoc from intermediate to output directory -->
-    <Copy Condition="Exists('%(DocFileItem.RelativeDir)%(DocFileItem.Filename).usrdoc')"
-          SourceFiles="@(DocFileItem->'%(RelativeDir)%(Filename).usrdoc')"
-          DestinationFolder="$(OutDir)"
-          SkipUnchangedFiles="$(SkipCopyUnchangedFiles)"
-          OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
-          Retries="$(CopyRetryCount)"
-          RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
-          UseHardlinksIfPossible="$(CreateHardLinksForCopyFilesToOutputDirectoryIfPossible)"
-          UseSymboliclinksIfPossible="$(CreateSymbolicLinksForCopyFilesToOutputDirectoryIfPossible)">
-      <Output TaskParameter="DestinationFiles" ItemName="FileWrites"/>
-    </Copy>
-  </Target>
 
   <!-- ================================================================ -->
   <!-- Validation -->

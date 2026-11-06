@@ -37,6 +37,7 @@
     <ProjectReference Include="..\Stride.Assets.FFmpeg\Stride.Assets.FFmpeg.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\shared\Stride.NuGetResolver\ProjectVersionReader.cs" Link="ProjectVersionReader.cs" />
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>

@@ -51,6 +51,7 @@ namespace Stride.Graphics.Font
         /// Load this system.
         /// </summary>
         /// <param name="graphicsDevice">The graphics device.</param>
+        /// <param name="fileProviderService">The service providing access to font files.</param>
         /// <exception cref="System.ArgumentNullException">graphicsDevice</exception>
         public void Load(GraphicsDevice graphicsDevice, IDatabaseFileProviderService fileProviderService)
         {

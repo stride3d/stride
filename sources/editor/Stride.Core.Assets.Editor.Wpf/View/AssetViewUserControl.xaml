@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:viewModel="clr-namespace:Stride.Core.Assets.Editor.ViewModel"
+             xmlns:commonViewModel="clr-namespace:Stride.Core.Assets.Editor.ViewModel;assembly=Stride.Core.Assets.Editor.Common"
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              xmlns:view="clr-namespace:Stride.Core.Assets.Editor.View"
@@ -32,7 +33,7 @@
 
         <DataTemplate x:Key="AssetTileView">
           <DataTemplate.Resources>
-            <DataTemplate x:Key="ItemTemplate" DataType="{x:Type viewModel:ISessionObjectViewModel}">
+            <DataTemplate x:Key="ItemTemplate" DataType="{x:Type commonViewModel:ISessionObjectViewModel}">
               <HeaderedContentControl SnapsToDevicePixels="True" ToolTipService.InitialShowDelay="1">
                 <i:Interaction.Behaviors>
                   <sd:OnEventCommandBehavior EventName="MouseDoubleClick" Command="{Binding AssetDoubleClick, RelativeSource={RelativeSource AncestorType=view:AssetViewUserControl}}"
@@ -51,8 +52,8 @@
                     <!-- Badges: assets only -->
                     <ContentControl Content="{Binding}" Focusable="False">
                       <FrameworkElement.Resources>
-                        <DataTemplate DataType="{x:Type viewModel:SessionObjectViewModel}"/>
-                        <DataTemplate DataType="{x:Type viewModel:AssetViewModel}">
+                        <DataTemplate DataType="{x:Type commonViewModel:SessionObjectViewModel}"/>
+                        <DataTemplate DataType="{x:Type commonViewModel:AssetViewModel}">
                           <Grid>
                             <Border BorderBrush="{StaticResource NormalBorderBrush}" BorderThickness="2" CornerRadius="3" Background="{StaticResource NormalBrush}"
                                   HorizontalAlignment="Right" VerticalAlignment="Top" Visibility="{Binding Sources.NeedUpdateFromSource, Converter={sd:VisibleOrHidden}, FallbackValue={sd:Hidden}}" Margin="0,3,0,0">
@@ -105,14 +106,14 @@
                   <ContentControl Content="{Binding}">
                     <FrameworkElement.Resources>
                       <!-- default template (fallback) -->
-                      <DataTemplate DataType="{x:Type viewModel:SessionObjectViewModel}">
+                      <DataTemplate DataType="{x:Type commonViewModel:SessionObjectViewModel}">
                         <StackPanel>
                           <TextBlock Text="{Binding Name, StringFormat={sd:Localize Name: {0}}}" FontWeight="Bold"/>
                           <TextBlock Text="{Binding TypeDisplayName, StringFormat={sd:Localize Type: {0}}}"/>
                         </StackPanel>
                       </DataTemplate>
                       <!-- asset -->
-                      <DataTemplate DataType="{x:Type viewModel:AssetViewModel}">
+                      <DataTemplate DataType="{x:Type commonViewModel:AssetViewModel}">
                         <StackPanel>
                           <TextBlock Text="{Binding Url, StringFormat={sd:Localize URL: {0}}}" FontWeight="Bold"/>
                           <TextBlock Text="{Binding TypeDisplayName, StringFormat={sd:Localize Type: {0}}}"/>
@@ -144,7 +145,7 @@
                         </StackPanel>
                       </DataTemplate>
                       <!-- folder -->
-                      <DataTemplate DataType="{x:Type viewModel:DirectoryViewModel}">
+                      <DataTemplate DataType="{x:Type commonViewModel:DirectoryViewModel}">
                         <StackPanel>
                           <TextBlock Text="{Binding Path, StringFormat={sd:Localize URL: {0}}}" FontWeight="Bold"/>
                           <TextBlock Text="{Binding TypeDisplayName, StringFormat={sd:Localize Type: {0}}}"/>
@@ -157,7 +158,7 @@
               </HeaderedContentControl>
             </DataTemplate>
 
-            <DataTemplate  x:Key="EditItemTemplate" DataType="{x:Type viewModel:ISessionObjectViewModel}">
+            <DataTemplate  x:Key="EditItemTemplate" DataType="{x:Type commonViewModel:ISessionObjectViewModel}">
               <HeaderedContentControl>
                 <HeaderedContentControl.Header>
                   <Grid>
@@ -190,7 +191,7 @@
               </ItemsPanelTemplate>
             </controls:EditableContentListBox.ItemsPanel>
             <controls:EditableContentListBox.ItemContainerStyle>
-              <Style TargetType="controls:EditableContentListBoxItem" BasedOn="{StaticResource {x:Type controls:EditableContentListBoxItem}}" d:DataContext="{d:DesignInstance viewModel:ISessionObjectViewModel}">
+              <Style TargetType="controls:EditableContentListBoxItem" BasedOn="{StaticResource {x:Type controls:EditableContentListBoxItem}}" d:DataContext="{d:DesignInstance commonViewModel:ISessionObjectViewModel}">
                 <Setter Property="CanEdit" Value="{Binding IsEditable}"/>
                 <Setter Property="Background" Value="{StaticResource BackgroundBrush}"/>
                 <Setter Property="sd:Interaction.Behaviors">

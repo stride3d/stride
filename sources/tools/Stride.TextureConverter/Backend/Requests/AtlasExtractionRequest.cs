@@ -37,6 +37,7 @@ namespace Stride.TextureConverter.Requests
         /// Initializes a new instance of the <see cref="AtlasExtractionRequest"/> class. Used to extract a single texture.
         /// </summary>
         /// <param name="name">The name.</param>
+        /// <param name="minimimMipmapSize">The minimum size of mipmaps to extract.</param>
         public AtlasExtractionRequest(string name, int minimimMipmapSize)
         {
             Name = name;

@@ -37,8 +37,10 @@ namespace Stride.Shaders.Compiler
         private readonly Dictionary<ObjectId, Task<EffectBytecodeCompilerResult>> compilingShaders = new Dictionary<ObjectId, Task<EffectBytecodeCompilerResult>>();
         // Used when shader is compiled (esp. when CompileEffectAsynchronously is false, but also when true during some specific race conditions)
         private readonly Dictionary<ObjectId, EffectBytecodeCompilerResult> compiledShaders = new Dictionary<ObjectId, EffectBytecodeCompilerResult>();
+        // Failures already logged. A failed effect is retried every few seconds, but shader sources stay loaded until ResetCache, so until then it fails the same way.
+        private readonly HashSet<string> loggedFailures = [];
 
-        private readonly DatabaseFileProvider database;
+        private readonly IDatabaseFileProviderService databaseProvider;
         private readonly TaskSchedulerSelector taskSchedulerSelector;
 
         private int effectCompileCount;
@@ -50,10 +52,21 @@ namespace Stride.Shaders.Compiler
         /// </summary>
         public EffectBytecodeCacheLoadSource CurrentCache { get; set; } = EffectBytecodeCacheLoadSource.DynamicCache;
 
-        public EffectCompilerCache(EffectCompilerBase compiler, DatabaseFileProvider database, TaskSchedulerSelector taskSchedulerSelector = null) : base(compiler)
+        public EffectCompilerCache(EffectCompilerBase compiler, DatabaseFileProvider database, TaskSchedulerSelector taskSchedulerSelector = null)
+            : this(compiler, new DatabaseFileProviderService(database ?? throw new ArgumentNullException(nameof(database), "Using the cache requires a database.")), taskSchedulerSelector)
+        {
+        }
+
+        /// <summary>
+        /// Creates a cache that uses the database that <paramref name="databaseProvider"/> gives at each <see cref="Compile"/>.
+        /// </summary>
+        /// <param name="compiler">The compiler to use when the effect is not in the cache.</param>
+        /// <param name="databaseProvider">Gives the database of the caller. An asset build has one per command, and saves its index entries when the command ends.</param>
+        /// <param name="taskSchedulerSelector">Selects the scheduler of the compile tasks.</param>
+        public EffectCompilerCache(EffectCompilerBase compiler, IDatabaseFileProviderService databaseProvider, TaskSchedulerSelector taskSchedulerSelector = null) : base(compiler)
         {
             CompileEffectAsynchronously = true;
-            this.database = database ?? throw new ArgumentNullException(nameof(database), "Using the cache requires a database.");
+            this.databaseProvider = databaseProvider ?? throw new ArgumentNullException(nameof(databaseProvider));
             this.taskSchedulerSelector = taskSchedulerSelector;
         }
 
@@ -76,11 +89,15 @@ namespace Stride.Shaders.Compiler
                 {
                     compiledShaders.Remove(key);
                 }
+
+                loggedFailures.Clear();
             }
         }
 
         public override TaskOrResult<EffectBytecodeCompilerResult> Compile(ShaderMixinSource mixin, EffectCompilerParameters effectParameters, CompilerParameters compilerParameters, ObjectId effectInputHash)
         {
+            var database = databaseProvider.FileProvider;
+
             // Final url of the compiled bytecode
             var compiledUrl = string.Format("{0}/{1}", CompiledShadersKey, effectInputHash);
 
@@ -94,6 +111,10 @@ namespace Stride.Shaders.Compiler
                 if (database.ContentIndexMap.TryGetValue(compiledUrl, out bytecodeId))
                 {
                     bytecode = LoadEffectBytecode(database, bytecodeId);
+
+                    // An asset build rewrites its index from what its commands wrote
+                    if (bytecode.Key != null && CurrentCache == EffectBytecodeCacheLoadSource.StartupCache)
+                        database.ContentIndexMap[compiledUrl] = bytecodeId;
                 }
 
                 // On non Windows platform, we are expecting to have the bytecode stored directly
@@ -229,12 +250,15 @@ namespace Stride.Shaders.Compiler
             // If there are any errors, return immediately
             if (log.HasErrors)
             {
+                bool isNewFailure;
                 lock (compilingShaders)
                 {
                     compilingShaders.Remove(effectInputHash);
+                    isNewFailure = loggedFailures.Add(log.ToText());
                 }
 
-                log.CopyTo(effectLog);
+                if (isNewFailure)
+                    log.CopyTo(effectLog);
                 return new EffectBytecodeCompilerResult(null, log);
             }
 

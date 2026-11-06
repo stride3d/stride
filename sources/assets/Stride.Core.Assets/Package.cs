@@ -230,8 +230,8 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     public List<CompanionPackage> CompanionPackages { get; } = [];
 
     /// <summary>
-    /// The UI toolkit an <see cref="PackageKind.Editor"/> package's views are written for (StrideEditorToolkit, e.g.
-    /// <see cref="EditorToolkits.Wpf"/>); null for a toolkit-neutral package. Packed sdpkgs and build manifests carry
+    /// The UI toolkit an <see cref="PackageKind.Editor"/> package's views are written for (StrideEditorToolkit:
+    /// <see cref="EditorToolkits.Wpf"/> or <see cref="EditorToolkits.Avalonia"/>); null for a toolkit-neutral package. Packed sdpkgs and build manifests carry
     /// it; an authored sdpkg does not.
     /// </summary>
     [DataMember(108)]
@@ -950,6 +950,7 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     /// <param name="listAssetsInMsbuild">Specifies if we need to evaluate MSBuild files for assets.</param>
     /// <param name="filterFunc">A function that will filter assets loading</param>
     /// <param name="cancellationToken">The cancellation token.</param>
+    /// <param name="listAssetsOfUnknownType">Whether to include asset files whose tagged types are not loaded.</param>
     /// <returns>A logger that contains error messages while refreshing.</returns>
     /// <exception cref="InvalidOperationException">Package RootDirectory is null
     /// or
@@ -1017,9 +1018,6 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
 
     private void LoadAsset(AssetMigrationContext context, PackageLoadingAssetFile assetFile)
     {
-        var fileUPath = assetFile.FilePath;
-        var sourceFolder = assetFile.SourceFolder;
-
         // Check if asset has been deleted by an upgrader
         if (assetFile.Deleted)
         {
@@ -1034,22 +1032,34 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
             return;
         }
 
-        // An exception can occur here, so we make sure that loading a single asset is not going to break 
+        var assetItem = LoadAssetItem(context, assetFile);
+        if (assetItem is null)
+            return;
+
+        // Add to temporary assets
+        lock (TemporaryAssets)
+        {
+            TemporaryAssets.Add(assetItem);
+        }
+    }
+
+    private AssetItem? LoadAssetItem(AssetMigrationContext context, PackageLoadingAssetFile assetFile)
+    {
+        var fileUPath = assetFile.FilePath;
+        var sourceFolder = assetFile.SourceFolder;
+
+        // An exception can occur here, so we make sure that loading a single asset is not going to break
         // the loop
         try
         {
             AssetMigration.MigrateAssetIfNeeded(context, assetFile);
 
             // Try to load only if asset is not already in the package or assetRef.Asset is null
-            var assetPath = assetFile.AssetLocation;
-            var assetNamespace = Container?.AssetNamespace;
-            if (assetNamespace is not null)
-                assetPath = UPath.Combine(new UDirectory("/" + assetNamespace), assetPath);
-
+            var assetPath = GetLoadedLocation(assetFile);
             var assetFullPath = fileUPath.ToOSPath();
             var assetContent = assetFile.AssetContent;
 
-            var asset = LoadAsset(context.Log, Meta.Name, assetFullPath, assetPath.ToOSPath(), assetContent, assetNamespace, out var aliasOccurred, out var yamlMetadata);
+            var asset = LoadAsset(context.Log, Meta.Name, assetFullPath, assetPath.ToOSPath(), assetContent, Container?.AssetNamespace, out var aliasOccurred, out var yamlMetadata);
 
             // Create asset item
             var assetItem = new AssetItem(assetPath, asset, this)
@@ -1070,11 +1080,7 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
             // since there was no importer id and base.
             //FixAssetImport(assetItem);
 
-            // Add to temporary assets
-            lock (TemporaryAssets)
-            {
-                TemporaryAssets.Add(assetItem);
-            }
+            return assetItem;
         }
         catch (Exception ex)
         {
@@ -1086,7 +1092,54 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
 
             var assetReference = new AssetReference(AssetId.Empty, fileUPath.FullPath);
             context.Log.Error(this, assetReference, AssetMessageCode.AssetLoadingFailed, ex, fileUPath, ex.Message);
+            return null;
         }
+    }
+
+    /// <summary>
+    /// Loads a project asset (a file of the .csproj) that appeared after this package was loaded, with the same
+    /// asset type, location and id as if it had been there when the package was loaded.
+    /// </summary>
+    /// <param name="log">The log.</param>
+    /// <param name="filePath">The full path of the file.</param>
+    /// <param name="link">The link of the project item, or null if it has none.</param>
+    /// <param name="projectDirectory">The folder of the project file.</param>
+    /// <returns>
+    /// The asset item, not added to <see cref="Assets"/> yet, or null if the file could not be loaded or if an asset
+    /// already has its location (this file, or another one with the same name and another extension).
+    /// </returns>
+    public AssetItem? LoadProjectAsset(ILogger log, UFile filePath, UFile? link, UDirectory projectDirectory)
+    {
+        ArgumentNullException.ThrowIfNull(log);
+        ArgumentNullException.ThrowIfNull(filePath);
+        ArgumentNullException.ThrowIfNull(projectDirectory);
+
+        var assetFile = new PackageLoadingAssetFile(filePath, projectDirectory) { Link = link };
+        if (Assets.Find(GetLoadedLocation(assetFile)) is { } existing)
+        {
+            if (existing.FullPath != filePath)
+                log.Warning($"[{filePath}] is ignored: the asset [{existing.FullPath}] already has the location [{existing.Location}]");
+            return null;
+        }
+
+        return LoadAssetItem(new AssetMigrationContext(this, assetFile.ToReference(), filePath.ToOSPath(), log), assetFile);
+    }
+
+    /// <summary>
+    /// Gets the location that <see cref="LoadProjectAsset"/> gives to a file.
+    /// </summary>
+    public UFile GetProjectAssetLocation(UFile filePath, UFile? link, UDirectory projectDirectory)
+    {
+        return GetLoadedLocation(new PackageLoadingAssetFile(filePath, projectDirectory) { Link = link });
+    }
+
+    private UFile GetLoadedLocation(PackageLoadingAssetFile assetFile)
+    {
+        var assetPath = assetFile.AssetLocation;
+        var assetNamespace = Container?.AssetNamespace;
+        if (assetNamespace is not null)
+            assetPath = UPath.Combine(new UDirectory("/" + assetNamespace), assetPath);
+        return assetPath;
     }
 
     /// <summary>
@@ -1341,6 +1394,11 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
         return existingAssetFolders;
     }
 
+    /// <summary>
+    /// List a package's asset files
+    /// </summary>
+    /// <param name="package">The package whose assets are listed.</param>
+    /// <param name="listAssetsInMsbuild">Whether to evaluate MSBuild projects for assets.</param>
     /// <param name="listUnregisteredAssets">Every <c>.sd*</c> file is an asset file, whatever its type (packing).</param>
     /// <param name="listAssetsOfUnknownType">Also list <c>.sd*</c> files starting with a Yaml type tag whose type is not loaded.</param>
     public static List<PackageLoadingAssetFile> ListAssetFiles(Package package, bool listAssetsInMsbuild, bool listUnregisteredAssets, bool listAssetsOfUnknownType = false)

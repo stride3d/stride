@@ -266,6 +266,7 @@ namespace Stride.Core.Presentation.Drawing
 
             var brush = GetBrush(color);
             var typeFace = new Typeface(fontFamily, FontStyles.Normal, fontWeight, FontStretches.Normal);
+            var pixelsPerDip = VisualTreeHelper.GetDpi(Canvas).PixelsPerDip;
 
             var visual = new DrawingVisual();
             var context = visual.RenderOpen();
@@ -273,7 +274,7 @@ namespace Stride.Core.Presentation.Drawing
             {
                 var text = texts[i];
                 var point = points[i];
-                var formatted = new FormattedText(text, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, typeFace, fontSize, brush);
+                var formatted = new FormattedText(text, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, typeFace, fontSize, brush, pixelsPerDip);
                 var dx = 0.0;
                 var dy = 0.0;
                 if (hAlign != HorizontalAlignment.Left || vAlign != VerticalAlignment.Top)
@@ -518,7 +519,7 @@ namespace Stride.Core.Presentation.Drawing
         /// Gets a brush for the given <paramref name="color"/>.
         /// </summary>
         /// <remarks>Brushes are cached and frozen to improve performance.</remarks>
-        /// <seealso cref="Freezable.Freeze"/>
+        /// <seealso cref="Freezable.Freeze()"/>
         /// <param name="color"></param>
         /// <returns></returns>
         private Brush GetBrush(Color color)

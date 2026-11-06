@@ -576,12 +576,12 @@ public class SerializationTests2
         /// <summary>
         /// For this property, the deserializer is using the actual
         /// value of the list stored in this instance instead of
-        /// creating a new List&lt;T&gtl instance.
+        /// creating a new List&lt;T&gt; instance.
         /// </summary>
         public List<string> StringListByContent { get; }
 
         /// <summary>
-        /// Idem as for <see cref="StringList"/> but for dictionary.
+        /// Gets or sets the string map.
         /// </summary>
         /// <value>The string map.</value>
         public IDictionary<string, object> StringMap { get; set; }
@@ -595,7 +595,7 @@ public class SerializationTests2
         /// <summary>
         /// For this property, the deserializer is using the actual
         /// value of the list stored in this instance instead of
-        /// creating a new List&lt;T&gtl instance.
+        /// creating a new List&lt;T&gt; instance.
         /// </summary>
         /// <value>The content of the list by.</value>
         public List<string> ListByContent { get; }

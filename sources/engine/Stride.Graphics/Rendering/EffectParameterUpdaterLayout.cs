@@ -36,7 +36,7 @@ namespace Stride.Rendering
         /// <param name="graphicsDevice">
         ///   The Graphics Device used to create resource group layouts. Cannot be <see langword="null"/>.
         /// </param>
-        /// <param name="effect">
+        /// <param name="effectBytecode">
         ///   The effect whose parameters and constant buffers are processed. Cannot be <see langword="null"/>.
         /// </param>
         /// <param name="layouts">

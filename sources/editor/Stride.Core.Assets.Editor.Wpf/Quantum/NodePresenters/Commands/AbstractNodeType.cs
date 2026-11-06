@@ -25,7 +25,7 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands
         public override int Order => 0;
 
         /// <inheritdoc/>
-        public override string DisplayValue => DisplayAttribute.GetDisplayName(Type);
+        public override string DisplayValue => TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<DisplayAttribute>(Type)?.Name ?? Type.Name;
 
         /// <inheritdoc/>
         public override object GenerateValue(object currentValue)

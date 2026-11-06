@@ -47,7 +47,6 @@ namespace Stride.Core.Presentation.Graph.Controls
         /// <param name="source"></param>
         /// <param name="target"></param>
         /// <param name="edge"></param>
-        /// <param name="showLabels"></param>
         /// <param name="showArrows"></param>
         public NodeEdgeControl(VertexControl source, VertexControl target, object edge, bool showArrows = true)
             : base(source, target, edge, showArrows)

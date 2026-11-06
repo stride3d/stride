@@ -13,7 +13,7 @@ using static Vortice.Vulkan.Vulkan;
 namespace Stride.Graphics
 {
     /// <summary>
-    /// Provides methods to retrieve and manipulate graphics adapters. This is the equivalent to <see cref="Adapter1"/>.
+    /// Provides methods to retrieve and manipulate Vulkan graphics adapters. This is the equivalent to IDXGIAdapter1.
     /// </summary>
     /// <msdn-id>ff471329</msdn-id>
     /// <unmanaged>IDXGIAdapter1</unmanaged>
@@ -49,7 +49,9 @@ namespace Stride.Graphics
         /// <summary>
         /// Initializes a new instance of the <see cref="GraphicsAdapter" /> class.
         /// </summary>
-        /// <param name="physicalDevice">The default factory.</param>
+        /// <param name="defaultPhysicalDevice">The Vulkan physical device.</param>
+        /// <param name="properties">The physical device properties.</param>
+        /// <param name="driverProperties">The physical device driver properties.</param>
         /// <param name="adapterUid">The unique identifier of the adapter.</param>
         /// <param name="adapterOrdinal">The adapter ordinal.</param>
         /// <param name="enumerationIndex">The index of the physical device in the instance's enumeration order.</param>

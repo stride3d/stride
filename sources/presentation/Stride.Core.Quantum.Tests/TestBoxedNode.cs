@@ -9,9 +9,9 @@ public class TestBoxedNode
 {
     public class ClassWithBoxedPrimitive
     {
-        public object BoxedInt { get; set; }
-        public object BoxedString { get; set; }
-        public object BoxedStruct { get; set; }
+        public object? BoxedInt { get; set; }
+        public object? BoxedString { get; set; }
+        public object? BoxedStruct { get; set; }
     }
 
     public struct SimpleStruct
@@ -22,7 +22,7 @@ public class TestBoxedNode
 
     public class ClassWithBoxedList
     {
-        public object BoxedList { get; set; }
+        public object? BoxedList { get; set; }
     }
 
     [Fact]
@@ -50,7 +50,7 @@ public class TestBoxedNode
         var nodeContainer = new NodeContainer();
         var rootNode = nodeContainer.GetOrCreateNode(obj);
         var boxedMemberNode = rootNode[nameof(ClassWithBoxedPrimitive.BoxedInt)];
-        var targetNode = boxedMemberNode.Target;
+        var targetNode = boxedMemberNode.Target!;
 
         // Update through the member node
         boxedMemberNode.Update(100);
@@ -71,11 +71,11 @@ public class TestBoxedNode
         Assert.NotNull(boxedMemberNode);
         Assert.True(boxedMemberNode.IsReference);
 
-        var targetNode = boxedMemberNode.Target;
+        var targetNode = boxedMemberNode.Target!;
         Assert.NotNull(targetNode);
         Assert.IsType<BoxedNode>(targetNode);
 
-        var retrievedValue = (SimpleStruct)targetNode.Retrieve();
+        var retrievedValue = (SimpleStruct)targetNode.Retrieve()!;
         Assert.Equal(42, retrievedValue.Value);
         Assert.Equal("test", retrievedValue.Name);
     }
@@ -88,7 +88,7 @@ public class TestBoxedNode
         var nodeContainer = new NodeContainer();
         var rootNode = nodeContainer.GetOrCreateNode(obj);
         var boxedMemberNode = rootNode[nameof(ClassWithBoxedPrimitive.BoxedStruct)];
-        var targetNode = boxedMemberNode.Target;
+        var targetNode = boxedMemberNode.Target!;
 
         // Update a member of the boxed struct
         var valueMemberNode = targetNode[nameof(SimpleStruct.Value)];

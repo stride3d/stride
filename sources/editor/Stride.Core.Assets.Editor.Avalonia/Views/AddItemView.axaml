@@ -1,0 +1,70 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+             xmlns:conv="using:Stride.Core.Assets.Editor.Avalonia.Converters"
+             xmlns:views="using:Stride.Core.Assets.Editor.Avalonia.Views"
+             xmlns:vm="using:Stride.Core.Assets.Editor.Components.TemplateDescriptions"
+             mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="300"
+             x:Class="Stride.Core.Assets.Editor.Avalonia.Views.AddItemView"
+             x:DataType="vm:AddItemTemplateCollectionViewModel">
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://Stride.Core.Assets.Editor.Avalonia/Views/ImageResources.axaml"/>
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </UserControl.Resources>
+  <!-- The layout of the WPF add item control: the search box and the groups on the left, the templates of the selected group
+       (or the templates matching the search) on the right -->
+  <Grid ColumnDefinitions="Auto,Auto,*" MinHeight="300">
+    <!-- Top-aligned: its own height sizes the template list, as in the WPF control -->
+    <DockPanel x:Name="LeftPanel" Grid.Column="0" Margin="4" VerticalAlignment="Top">
+      <DockPanel DockPanel.Dock="Top" Margin="4">
+        <Button x:Name="ImportButton" DockPanel.Dock="Right" Margin="8,0,0,0" Padding="2" Width="24" Height="24" Click="OnImportClick"
+                VerticalAlignment="Center"
+                ToolTip.Tip="{sd:LocalizeString Import directly from files, Context=ToolTip}"
+                Command="{Binding $parent[views:AddItemView].SelectFilesToCreateItemCommand}"
+                IsVisible="{Binding $parent[views:AddItemView].SelectFilesToCreateItemCommand, Converter={x:Static ObjectConverters.IsNotNull}}">
+          <Image Source="{StaticResource ImageImportAsset}" Width="16" Height="16"/>
+        </Button>
+        <TextBox x:Name="SearchBox" VerticalAlignment="Center" MinWidth="160"
+                 PlaceholderText="{sd:LocalizeString Search, Context=Watermark}"
+                 Text="{Binding SearchToken, Mode=TwoWay}"
+                 KeyDown="OnSearchKeyDown"/>
+      </DockPanel>
+      <!-- The groups cannot be picked while a search narrows the list -->
+      <ListBox x:Name="Groups" MinWidth="160" VerticalAlignment="Top"
+               ItemsSource="{Binding RootGroup.SubGroups}"
+               IsEnabled="{Binding !IsSearching}"
+               SelectionChanged="OnGroupSelectionChanged">
+        <ListBox.ItemTemplate>
+          <DataTemplate DataType="vm:TemplateDescriptionGroupViewModel">
+            <TextBlock Text="{Binding Name}" Margin="10,2"/>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </DockPanel>
+    <Border Grid.Column="1" Width="1" Margin="0,4" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+            IsVisible="{Binding Templates.Count, Converter={sd:NumericToBool}}"/>
+    <!-- A click on a template (or Enter) validates it, as the WPF list does -->
+    <ListBox x:Name="Templates" Grid.Column="2" Width="500" Margin="4" Height="{Binding #LeftPanel.Bounds.Height}"
+             ItemsSource="{Binding Templates}"
+             SelectedItem="{Binding SelectedTemplate, Mode=TwoWay}"
+             IsVisible="{Binding Templates.Count, Converter={sd:NumericToBool}}">
+      <ListBox.ItemTemplate>
+        <DataTemplate DataType="vm:ITemplateDescriptionViewModel">
+          <DockPanel Height="56" Background="Transparent">
+            <Image DockPanel.Dock="Left" Width="48" Height="48" Margin="2"
+                   Source="{Binding Icon, Converter={x:Static conv:TemplateImageConverter.Instance}}"/>
+            <DockPanel Margin="18,0">
+              <TextBlock DockPanel.Dock="Top" FontSize="16" Text="{Binding Name}"/>
+              <TextBlock Text="{Binding Description}" TextWrapping="Wrap" TextTrimming="WordEllipsis"/>
+            </DockPanel>
+          </DockPanel>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+  </Grid>
+</UserControl>

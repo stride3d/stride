@@ -14,7 +14,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
         where TModelAsset : Asset, IModelAsset
     {
         [NotNull]
-        protected override EntityComponent CreateComponentFromAsset(EntityHierarchyItemViewModel parent, AssetViewModel<TModelAsset> asset)
+        protected override EntityComponent CreateComponentFromAsset(IEntityHierarchyItemViewModel parent, AssetViewModel<TModelAsset> asset)
         {
             return new ModelComponent
             {

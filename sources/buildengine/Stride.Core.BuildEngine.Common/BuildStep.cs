@@ -19,7 +19,7 @@ public abstract class BuildStep
     }
 
     /// <summary>
-    /// Callback that can transform the <see cref="IExecuteContext.Logger"/>.
+    /// Callback that can transform the <see cref="IPrepareContext.Logger"/>.
     /// </summary>
     /// <value>The module.</value>
     public TransformExecuteContextLoggerDelegate TransformExecuteContextLogger { get; set; }

@@ -231,7 +231,7 @@ namespace Stride.Rendering.Images
         /// <value>
         /// The temporal response.
         /// </value>
-        /// <userdoc><userdoc>How quickly reflections blend between the reflection in the current frame and the history buffer. Lower values produce reflections faster, but with more jittering. If the camera in your game doesn't move much, we recommend values closer to 1. The default value is 0.9.</userdoc></userdoc>
+        /// <userdoc>How quickly reflections blend between the reflection in the current frame and the history buffer. Lower values produce reflections faster, but with more jittering. If the camera in your game doesn't move much, we recommend values closer to 1. The default value is 0.9.</userdoc>
         [Display("Response", "Temporal")]
         [DefaultValue(0.9f)]
         [DataMemberRange(0.5, 1.0, 0.01, 0.1, 2)]

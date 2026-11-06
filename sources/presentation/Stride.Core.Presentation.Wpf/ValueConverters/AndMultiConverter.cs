@@ -17,8 +17,8 @@ namespace Stride.Core.Presentation.ValueConverters
             if (values.Length < 2)
                 throw new InvalidOperationException("This multi converter must be invoked with at least two elements");
 
-            var fallbackValue = parameter is bool && (bool)parameter;
-            var result = values.All(x => x == DependencyProperty.UnsetValue ? fallbackValue : (bool)x);
+            var fallbackValue = parameter is true;
+            var result = values.All(x => x == DependencyProperty.UnsetValue ? fallbackValue : x is true);
             return result.Box();
         }
     }

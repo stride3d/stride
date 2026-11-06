@@ -9,8 +9,7 @@ namespace Stride.Shaders.Spirv.Core;
 /// <summary>
 /// Representation of an instruction from a memory slice.
 /// </summary>
-/// <param name="Buffer"></param>
-/// <param name="Words"></param>
+/// <param name="Memory">The words that make up the instruction.</param>
 public record struct Instruction(Memory<int> Memory)
 {
     public static Instruction Empty { get; } = new(Memory<int>.Empty);
