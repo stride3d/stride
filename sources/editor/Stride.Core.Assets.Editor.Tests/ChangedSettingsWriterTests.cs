@@ -78,6 +78,44 @@ public sealed class ChangedSettingsWriterTests : IDisposable
         Assert.Equal("docked", otherKey.GetValue(other.LoadSettingsProfile(filePath, false)!, false));
     }
 
+    [Fact]
+    public void AKeyRegisteredAfterTheWriterKeepsTheValueAnotherEditorWroteSince()
+    {
+        // The file as both editors find it: a window height and a flag that differ from their defaults
+        var setup = new Editor(filePath);
+        var setupHeight = new SettingsKey<int>("Internal/WindowHeight", setup.Container, 0);
+        var setupFlag = new SettingsKey<bool>("Internal/WindowMaximized", setup.Container, false);
+        setupHeight.SetValue(100);
+        setupFlag.SetValue(true);
+        Assert.True(setup.Writer.Write());
+
+        // The first editor creates its writer before it registers these keys, as a Game Studio does with its own settings
+        var first = new Editor(filePath);
+        var firstHeight = new SettingsKey<int>("Internal/WindowHeight", first.Container, 0);
+        var firstFlag = new SettingsKey<bool>("Internal/WindowMaximized", first.Container, false);
+        Assert.Equal(100, firstHeight.GetValue());
+        Assert.True(firstFlag.GetValue());
+
+        // The other editor changes both and writes
+        var second = new Editor(filePath);
+        var secondHeight = new SettingsKey<int>("Internal/WindowHeight", second.Container, 0);
+        var secondFlag = new SettingsKey<bool>("Internal/WindowMaximized", second.Container, false);
+        secondHeight.SetValue(200);
+        secondFlag.SetValue(false);
+        Assert.True(second.Writer.Write());
+
+        // The first one only moved its window width: its first write keeps the other editor's values
+        first.Window.SetValue(300);
+        Assert.True(first.Writer.Write());
+
+        var file = new Editor(filePath);
+        var fileHeight = new SettingsKey<int>("Internal/WindowHeight", file.Container, 0);
+        var fileFlag = new SettingsKey<bool>("Internal/WindowMaximized", file.Container, false);
+        Assert.Equal(200, fileHeight.GetValue());
+        Assert.False(fileFlag.GetValue());
+        Assert.Equal(300, file.Window.GetValue());
+    }
+
     /// <summary>
     /// An editor with its own settings container over the shared file.
     /// </summary>

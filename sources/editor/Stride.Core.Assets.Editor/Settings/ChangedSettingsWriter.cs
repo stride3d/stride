@@ -41,7 +41,9 @@ internal sealed class ChangedSettingsWriter
         this.container = container;
         this.profile = profile;
         this.filePath = filePath;
-        fileAtStart = LoadFile();
+        // Registered in the container: the keys registered after this writer, such as the settings of each Game Studio, convert
+        // their values in it as in the profile. In a copy that is not registered they stay unread, and read as the key's default.
+        fileAtStart = container.LoadSettingsProfile(filePath, false, null, true) ?? container.CreateSettingsProfile(false, null, true);
     }
 
     /// <summary>
@@ -73,6 +75,7 @@ internal sealed class ChangedSettingsWriter
         }
     }
 
+    // Loaded at each write: the keys registered by then convert their values as it loads, so it needs no registration
     private SettingsProfile LoadFile()
     {
         return container.LoadSettingsProfile(filePath, false, null, false) ?? container.CreateSettingsProfile(false, null, false);
