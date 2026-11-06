@@ -11,7 +11,6 @@ using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Assets.Quantum;
 using Stride.Core;
 using Stride.Core.Assets;
-using Stride.Core.Assets.Editor.Quantum;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Assets.Quantum.Visitors;
