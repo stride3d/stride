@@ -49,6 +49,17 @@ public sealed class EditorGameServiceTests
     }
 
     [AvaloniaFact]
+    public void TheSharedRecoveryServiceIsCreatedForEveryEditorGame()
+    {
+        var type = typeof(EditorGameRecoveryService);
+
+        // An exception of the game of any editor pauses it and shows in the view of the editor, as in the WPF editor
+        Assert.Contains(type.Assembly, AssetRegistry.AssetAssemblies);
+        Assert.Equal([type], EditorGameServices().Where(x => typeof(IEditorGameRecoveryViewModelService).IsAssignableFrom(x)));
+        Assert.Equal(typeof(IEditorGameController), type.GetCustomAttribute<EditorGameServiceAttribute>()!.ControllerType);
+    }
+
+    [AvaloniaFact]
     public void TheCursorsTheGameAsksForShowOverTheView()
     {
         var viewport = new OffscreenGameViewport(new DispatcherService(Dispatcher.UIThread), new LoggerResult());

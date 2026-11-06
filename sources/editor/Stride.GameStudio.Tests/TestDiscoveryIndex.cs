@@ -269,6 +269,10 @@ namespace Stride.GameStudio.Tests
             Assert.Equal(new[] { typeof(EditorGameMousePositionService) }, services.Where(x => typeof(IEditorGameMousePositionViewModelService).IsAssignableFrom(x)));
             Assert.Equal(typeof(GizmoBase).Assembly, typeof(EditorGameMousePositionService).Assembly);
             Assert.Equal(typeof(IEditorGameController), typeof(EditorGameMousePositionService).GetCustomAttribute<EditorGameServiceAttribute>().ControllerType);
+            // The recovery after an exception of the game is shared too, for the game of every editor
+            Assert.Equal(new[] { typeof(EditorGameRecoveryService) }, services.Where(x => typeof(IEditorGameRecoveryViewModelService).IsAssignableFrom(x)));
+            Assert.Equal(typeof(GizmoBase).Assembly, typeof(EditorGameRecoveryService).Assembly);
+            Assert.Equal(typeof(IEditorGameController), typeof(EditorGameRecoveryService).GetCustomAttribute<EditorGameServiceAttribute>().ControllerType);
         }
 
         [Theory]
