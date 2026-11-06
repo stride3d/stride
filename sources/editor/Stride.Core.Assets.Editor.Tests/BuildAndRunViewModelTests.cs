@@ -153,6 +153,31 @@ public sealed class BuildAndRunViewModelTests
     }
 
     [Fact]
+    public async Task TheOutputPaneKeepsOnlyTheLastMessagesOfAGameThatLogsALot()
+    {
+        using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);
+        var (_, launcher) = RegisterFakes(fixture);
+        var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider) { Session = fixture.Session };
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(true));
+        var game = Assert.Single(launcher.Games);
+
+        // A game that logs every frame
+        var lineCount = BuildAndRunViewModel.MaximumOutputMessages * 2;
+        for (var i = 0; i < lineCount; ++i)
+            game.Output.Info($"Frame {i}");
+        await WaitForMessageAsync(buildAndRun, $"Frame {lineCount - 1}");
+
+        var messages = Messages(buildAndRun);
+        Assert.InRange(messages.Count, BuildAndRunViewModel.MaximumOutputMessages, BuildAndRunViewModel.MaximumOutputMessages * 11 / 10 + 1);
+        Assert.StartsWith("Older messages were removed", messages[0]);
+        Assert.Equal($"Frame {lineCount - 1}", messages[^1]);
+        Assert.DoesNotContain("Frame 0", messages);
+
+        game.Exit(0);
+        await WaitForMessageAsync(buildAndRun, $"{ProjectName} exited with code 0.");
+    }
+
+    [Fact]
     public async Task TheOutputOfARunningGameStaysAcrossBuilds()
     {
         using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);

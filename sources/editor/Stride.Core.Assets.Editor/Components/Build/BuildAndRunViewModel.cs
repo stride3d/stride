@@ -26,10 +26,15 @@ namespace Stride.Core.Assets.Editor.Components.Build;
 /// </remarks>
 public sealed class BuildAndRunViewModel : DispatcherViewModel
 {
+    /// <summary>
+    /// The number of messages the Output pane keeps: a game that logs every frame would otherwise grow it for as long as it runs.
+    /// </summary>
+    internal const int MaximumOutputMessages = 10_000;
+
     private readonly string outputTitleBase = Tr._p("Title", "Output");
     private readonly StatusViewModel? status;
     // The console output of the games started from the editor: it stays in the Output pane until they exit, across builds
-    private readonly List<LoggerResult> gameOutputs = [];
+    private readonly List<Logger> gameOutputs = [];
     private SessionViewModel? session;
     private IGameProjectBuild? currentBuild;
     private bool cancelRequested;
@@ -44,7 +49,11 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
     {
         this.status = status;
         outputTitle = outputTitleBase;
-        BuildLog = new LoggerViewModel(serviceProvider);
+        BuildLog = new LoggerViewModel(serviceProvider)
+        {
+            MaximumMessages = MaximumOutputMessages,
+            MaximumMessagesNotice = string.Format(Tr._p("Message", "Older messages were removed: the Output pane keeps the last {0}."), MaximumOutputMessages),
+        };
         BuildLog.Messages.CollectionChanged += BuildLogChanged;
         BuildProjectCommand = new AnonymousTaskCommand(serviceProvider, () => BuildAsync(false));
         StartProjectCommand = new AnonymousTaskCommand(serviceProvider, () => BuildAsync(true));
@@ -318,8 +327,8 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
             return false;
         }
 
-        // The game's own output is logged under its name
-        var output = new LoggerResult(project.Name);
+        // The game's own output is logged under its name, and only kept in the Output pane
+        var output = new GameOutputLogger(project.Name);
         IGameProcess game;
         try
         {
@@ -338,7 +347,7 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
         return true;
     }
 
-    private async Task ReportExitAsync(string name, IGameProcess game, LoggerResult output)
+    private async Task ReportExitAsync(string name, IGameProcess game, Logger output)
     {
         int? exitCode = null;
         Exception? error = null;
@@ -431,4 +440,22 @@ internal enum GameBuildOutcome
     /// The project was built but its game could not start.
     /// </summary>
     StartFailed,
+}
+
+/// <summary>
+/// The output of a game started from the editor: it keeps no message of its own, the Output pane (<see cref="LoggerViewModel"/>)
+/// shows them as they come.
+/// </summary>
+internal sealed class GameOutputLogger : Logger
+{
+    public GameOutputLogger(string module)
+    {
+        Module = module;
+        ActivateLog(LogMessageType.Debug);
+    }
+
+    /// <inheritdoc/>
+    protected override void LogRaw(ILogMessage logMessage)
+    {
+    }
 }
