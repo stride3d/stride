@@ -26,7 +26,7 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel, IEditorVie
     private const string ObjectSpaceIcon = "F1M8,8L4,8 4,7 8,7z M6,10L4,10 4,9 6,9z M13,10.586L11,12.586 11,5.707 13,3.707z M10.293,5L6,5 6,3 12.293,3z M10,13L3,13 3,6 10,6z M5,3.414L5,5 3.414,5z M5,2L2,5 2,14 10,14 11,14 14,11 14,2z";
     private const string ViewSpaceIcon = "F1M10,8C10,6.897 9.103,6 8,6 6.897,6 6,6.897 6,8 6,9.103 6.897,10 8,10 9.103,10 10,9.103 10,8 M11,8C11,9.654 9.654,11 8,11 6.346,11 5,9.654 5,8 5,6.346 6.346,5 8,5 9.654,5 11,6.346 11,8 M15,9L14,9C14,5.691 11.309,3 8,3 4.691,3 2,5.691 2,9L1,9C1,5.14 4.14,2 8,2 11.859,2 15,5.14 15,9";
 
-    private readonly EditorGameToolService service;
+    private readonly IEditorGameToolViewModelService service;
     private readonly IEditorGameSelectionViewModelService? selection;
     private readonly EditorGameMaterialHighlightService? materialHighlight;
     private readonly IEditorGameCameraViewModelService? camera;
@@ -34,7 +34,7 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel, IEditorVie
     private EditorViewSpaceViewModel space;
     private bool displaySelectionMask;
 
-    internal EditorViewToolbarViewModel(IViewModelServiceProvider serviceProvider, EditorGameToolService service, IEditorGameSelectionViewModelService? selection, EditorGameMaterialHighlightService? materialHighlight,
+    internal EditorViewToolbarViewModel(IViewModelServiceProvider serviceProvider, IEditorGameToolViewModelService service, IEditorGameSelectionViewModelService? selection, EditorGameMaterialHighlightService? materialHighlight,
         EditorGameComponentGizmoService? componentGizmos = null, IEnumerable<IEditorGameOverlayService>? overlays = null, IEditorGameLightProbeService? lightProbes = null,
         IEditorGameCameraViewModelService? camera = null)
         : base(serviceProvider)
@@ -160,24 +160,32 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel, IEditorVie
     }
 
     /// <summary>
-    /// Shows the gizmo and overlay options saved with the scene, and moves the camera where it was when the editor closed,
-    /// as in the WPF scene editor.
+    /// Shows the snaps, gizmo and overlay options saved with the scene, and moves the camera where it was when the editor
+    /// closed, as in the WPF scene editor.
     /// </summary>
     /// <remarks>
-    /// The other members of the settings (snaps, grid, ...) are not used by the Avalonia editor yet and stay as read.
+    /// The other members of the settings (grid, rendering, ...) are not used by the Avalonia editor yet and stay as read.
     /// </remarks>
     public void LoadSettings(SceneSettingsData settings)
     {
+        foreach (var snap in Snaps)
+        {
+            snap.LoadSettings(settings);
+        }
         Gizmos?.LoadSettings(settings);
         Overlays.LoadSettings(settings);
         camera?.LoadSettings(settings.CamPosition, settings.CamPitchYaw);
     }
 
     /// <summary>
-    /// Writes the gizmo and overlay options, and where the camera is, in the settings of the scene.
+    /// Writes the snaps, the gizmo and overlay options, and where the camera is, in the settings of the scene.
     /// </summary>
     public void SaveSettings(SceneSettingsData settings)
     {
+        foreach (var snap in Snaps)
+        {
+            snap.SaveSettings(settings);
+        }
         Gizmos?.SaveSettings(settings);
         Overlays.SaveSettings(settings);
         if (camera is not null)
@@ -344,14 +352,17 @@ public sealed class EditorViewSpaceViewModel : DispatcherViewModel
     public bool IsEnabled { get => isEnabled; internal set => SetValue(ref isEnabled, value); }
 }
 
+/// <summary>
+/// The snap of a transformation in the toolbar of the view of a scene or prefab editor.
+/// </summary>
 public sealed class EditorViewSnapViewModel : DispatcherViewModel
 {
-    private readonly EditorGameToolService service;
+    private readonly IEditorGameToolViewModelService service;
     private bool isActive;
     private double value;
     private bool isVisible;
 
-    internal EditorViewSnapViewModel(IViewModelServiceProvider serviceProvider, EditorGameToolService service, Transformation transformation, float value, string toolTip)
+    internal EditorViewSnapViewModel(IViewModelServiceProvider serviceProvider, IEditorGameToolViewModelService service, Transformation transformation, float value, string toolTip)
         : base(serviceProvider)
     {
         this.service = service;
@@ -386,6 +397,39 @@ public sealed class EditorViewSnapViewModel : DispatcherViewModel
     public bool IsVisible { get => isVisible; internal set => SetValue(ref isVisible, value); }
 
     internal Task ApplyAsync() => service.SetSnapAsync(Transformation, (float)value, isActive);
+
+    /// <summary>
+    /// Shows the snap saved with the scene.
+    /// </summary>
+    internal void LoadSettings(SceneSettingsData settings)
+    {
+        (Value, IsActive) = Transformation switch
+        {
+            Transformation.Translation => (settings.TranslationSnapValue, settings.TranslationSnapActive),
+            Transformation.Rotation => (settings.RotationSnapValue, settings.RotationSnapActive),
+            Transformation.Scale => (settings.ScaleSnapValue, settings.ScaleSnapActive),
+            _ => throw new InvalidOperationException($"Unknown transformation {Transformation}."),
+        };
+    }
+
+    /// <summary>
+    /// Writes the snap in the settings of the scene.
+    /// </summary>
+    internal void SaveSettings(SceneSettingsData settings)
+    {
+        switch (Transformation)
+        {
+            case Transformation.Translation:
+                (settings.TranslationSnapValue, settings.TranslationSnapActive) = ((float)Value, IsActive);
+                break;
+            case Transformation.Rotation:
+                (settings.RotationSnapValue, settings.RotationSnapActive) = ((float)Value, IsActive);
+                break;
+            case Transformation.Scale:
+                (settings.ScaleSnapValue, settings.ScaleSnapActive) = ((float)Value, IsActive);
+                break;
+        }
+    }
 }
 
 /// <summary>
@@ -396,7 +440,7 @@ internal sealed class EditorViewToolbarFactory : IEditorViewOptionsFactory
     /// <inheritdoc/>
     public IEditorViewOptions? CreateViewOptions(EntityHierarchyEditorViewModel editor, EntityHierarchyEditorController controller)
     {
-        if (controller.GetService<EditorGameToolService>() is not { } toolService)
+        if (controller.GetService<IEditorGameToolViewModelService>() is not { } toolService)
             return null;
 
         return new EditorViewToolbarViewModel(editor.ServiceProvider, toolService, controller.GetService<IEditorGameSelectionViewModelService>(),

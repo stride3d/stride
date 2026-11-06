@@ -54,7 +54,7 @@ namespace Stride.GameStudio.Tests
         [InlineData(typeof(AssetViewModel), typeof(CodeAssetViewModel))]
         [InlineData(typeof(IPreviewView), typeof(ModelPreviewView))]
         [InlineData(typeof(IEditorView), typeof(SceneEditorView))]
-        [InlineData(typeof(EditorGameServiceAttribute), typeof(EditorGameEntityTransformService))]
+        [InlineData(typeof(EditorGameServiceAttribute), typeof(EditorGameRenderModeService))]
         public void DefaultPluginAssemblyIndexListsKnownTypes(Type key, Type expected)
         {
             var assembly = typeof(StrideDefaultAssetsWpfPlugin).Assembly;
@@ -222,12 +222,9 @@ namespace Stride.GameStudio.Tests
         public void EachEditorGameServiceIsDeclaredOnceInTheWpfEditor()
         {
             // A controller creates the services the assets assemblies declare. The shared ones (Stride.Assets.Editor)
-            // replaced their WPF copies, and this editor leaves out the cross-platform editor's tool service: no service is
-            // created twice under one name
+            // replaced their WPF copies: no service is created twice under one name
             RuntimeHelpers.RunModuleConstructor(typeof(StrideDefaultAssetsWpfPlugin).Module.ModuleHandle);
-            Assert.True(EditorGameDiscovery.IsExcluded(typeof(Stride.Assets.Editor.EditorGame.Tools.EditorGameToolService)));
-            var services = AssetRegistry.AssetAssemblies.SelectMany(x => AssemblyRegistry.GetScanTypes(x, typeof(EditorGameServiceAttribute))).Distinct()
-                .Where(x => !EditorGameDiscovery.IsExcluded(x)).ToList();
+            var services = AssetRegistry.AssetAssemblies.SelectMany(x => AssemblyRegistry.GetScanTypes(x, typeof(EditorGameServiceAttribute))).Distinct().ToList();
             Assert.Empty(Duplicates(services, x => x.Name, x => x));
             Assert.Contains(typeof(EditorGameCameraOrientationService), services);
             Assert.Equal(typeof(GizmoBase).Assembly, typeof(EditorGameCameraOrientationService).Assembly);
@@ -238,13 +235,14 @@ namespace Stride.GameStudio.Tests
             // The scene and prefab controllers are the shared ones
             Assert.Equal(typeof(GizmoBase).Assembly, typeof(EntityHierarchyEditorController).Assembly);
             Assert.True(typeof(EditorGameController<EntityHierarchyEditorGame>).IsAssignableFrom(typeof(EntityHierarchyEditorController)));
-            // So are the grid, graphics compositor, gizmo, selection, material highlight, camera, light probe and wireframe stage
-            // services
+            // So are the grid, graphics compositor, gizmo, selection, material highlight, camera, light probe, wireframe stage
+            // and tool services
             foreach (var serviceType in new[]
             {
                 typeof(EditorGameViewportGridService), typeof(EditorGameGraphicsCompositorService), typeof(EditorGameComponentGizmoService),
                 typeof(EditorGameEntitySelectionService), typeof(EditorGameModelSelectionService), typeof(EditorGameMaterialHighlightService),
                 typeof(EditorGameEntityCameraService), typeof(EditorGameLightProbeGizmoService), typeof(WireframeGizmoStageService),
+                typeof(Stride.Assets.Editor.EditorGame.Tools.EditorGameToolService),
             })
             {
                 Assert.Contains(serviceType, services);

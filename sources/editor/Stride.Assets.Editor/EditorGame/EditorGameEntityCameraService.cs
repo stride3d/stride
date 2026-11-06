@@ -202,8 +202,8 @@ public sealed class EditorGameEntityCameraService : EditorGameCameraService, IEd
         // The active tool of the view may take the middle or right drags
         var tools = Game.EditorServices.Get<IEditorGameToolService>();
         var lbDown = Game.Input.IsMouseButtonDown(MouseButton.Left);
-        var mbDown = Game.Input.IsMouseButtonDown(MouseButton.Middle) && (tools?.IsDefaultInputOn(EditorViewDefaultInputs.CameraMiddleDrag) ?? true);
-        var rbDown = Game.Input.IsMouseButtonDown(MouseButton.Right) && (tools?.IsDefaultInputOn(EditorViewDefaultInputs.CameraRightDrag) ?? true);
+        var mbDown = Game.Input.IsMouseButtonDown(MouseButton.Middle) && tools.IsDefaultInputOn(EditorViewDefaultInputs.CameraMiddleDrag);
+        var rbDown = Game.Input.IsMouseButtonDown(MouseButton.Right) && tools.IsDefaultInputOn(EditorViewDefaultInputs.CameraRightDrag);
         var isAltDown = Game.Input.IsKeyDown(Keys.LeftAlt) || Game.Input.IsKeyDown(Keys.RightAlt);
 
         return new CameraInput

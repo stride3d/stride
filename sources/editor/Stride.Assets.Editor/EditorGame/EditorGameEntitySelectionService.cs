@@ -47,8 +47,6 @@ public sealed class EditorGameEntitySelectionService : EditorGameMouseServiceBas
     private readonly EntitySelection selection = new();
     private PickingSceneRenderer? entityPicker;
     private EntityHierarchyEditorGame? game;
-    // The distance the mouse moved since the left button went down, in pixels: a drag doesn't select
-    private Vector2 mouseMoveAccumulator;
 
     public EditorGameEntitySelectionService(EntityHierarchyEditorController controller, EntityHierarchyEditorViewModel editor)
     {
@@ -289,40 +287,7 @@ public sealed class EditorGameEntitySelectionService : EditorGameMouseServiceBas
         game = (EntityHierarchyEditorGame)editorGame;
 
         editor.SelectedContent.CollectionChanged += SelectedContentChanged;
-        // Without a tool service (the WPF editor), this service selects what is clicked in the view itself
-        if (editorGame.EditorServices.Get<IEditorGameToolService>() is null)
-            editorGame.Script.AddTask(ExecuteClickSelection);
         return Task.FromResult(true);
-    }
-
-    /// <summary>
-    /// Selects what is clicked in the view: a click selects, Ctrl + click adds or removes, a click on an empty area clears;
-    /// a drag (of a gizmo, of the camera) doesn't select (game thread).
-    /// </summary>
-    private async Task ExecuteClickSelection()
-    {
-        MicrothreadLocalDatabases.MountCommonDatabase();
-
-        while (Game.IsRunning)
-        {
-            await Game.Script.NextFrame();
-            if (!IsActive)
-                continue;
-
-            var input = Game.Input;
-            var backBuffer = Game.GraphicsDevice.Presenter.BackBuffer;
-            if (input.IsMouseButtonPressed(MouseButton.Left))
-                mouseMoveAccumulator = Vector2.Zero;
-            mouseMoveAccumulator += new Vector2(Math.Abs(input.MouseDelta.X * backBuffer.Width), Math.Abs(input.MouseDelta.Y * backBuffer.Height));
-
-            if (!IsMouseAvailable || !input.IsMouseButtonReleased(MouseButton.Left) || input.IsMouseButtonDown(MouseButton.Right))
-                continue;
-            if (mouseMoveAccumulator.Length() >= TransformationGizmo.TransformationStartPixelThreshold)
-                continue;
-
-            var addToSelection = input.IsKeyDown(Keys.LeftCtrl) || input.IsKeyDown(Keys.RightCtrl);
-            Select(GetEntityUnderMouse(out _), addToSelection);
-        }
     }
 
     private EntityHierarchyEditorGame Game => game ?? throw new InvalidOperationException("The service is not initialized.");
