@@ -119,6 +119,9 @@ public sealed class SettingsCompatibilityTests : IDisposable
         File.WriteAllText(path, WpfInternalSettings);
 
         var container = InternalSettings.SettingsContainer;
+        // A profile that isn't registered in the container doesn't get the keys registered after it loads: the static constructor
+        // registers them, whatever test ran before
+        RegisterKeys(typeof(GameStudioInternalSettings));
         var profile = container.LoadSettingsProfile(path, false, null, false);
         Assert.NotNull(profile);
         // What a session kept: its editors open again here
@@ -240,5 +243,11 @@ public sealed class SettingsCompatibilityTests : IDisposable
         {
             GameStudioInternalSettings.PanelSizes.SetValue(previous);
         }
+    }
+
+    private static void RegisterKeys(params Type[] settingsTypes)
+    {
+        foreach (var type in settingsTypes)
+            System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(type.TypeHandle);
     }
 }
