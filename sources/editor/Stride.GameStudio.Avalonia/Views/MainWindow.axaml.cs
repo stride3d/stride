@@ -7,6 +7,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using Stride.Core.Assets.Editor.Components.Build;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Avalonia.Extensions;
@@ -77,6 +78,9 @@ public partial class MainWindow : Window
         // Notify the launcher that Game Studio is ready (no-op when not launched from the launcher).
         App.LauncherNotifier?.Invoke();
         App.LauncherNotifier = null; // fire once
+
+        // A compiler crash of a build opens its reporter above this window (on Windows)
+        CompilerCrashRouting.SetOwnerWindow(TryGetPlatformHandle()?.Handle ?? 0);
 
         // Size the window to best fit the current screen size
         InitializeWindowSize();

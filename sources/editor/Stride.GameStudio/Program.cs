@@ -17,6 +17,7 @@ using Stride.Assets;
 using Stride.Assets.Presentation;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor;
+using Stride.Core.Assets.Editor.Components.Build;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views;
 using Stride.Core.Assets.Editor.Services;
@@ -428,7 +429,7 @@ public static partial class Program
                     var mainWindow = new GameStudioWindow(editor);
                     Application.Current.MainWindow = mainWindow;
                     WindowManager.ShowMainWindow(mainWindow);
-                    CompilerCrashRouting.SetOwnerWindow(mainWindow);
+                    CompilerCrashRouting.SetOwnerWindow(GetWindowHandle(mainWindow));
                     return;
                 }
                 // The session asked for did not load (cancelled or failed): exit instead of offering another one,
@@ -507,7 +508,7 @@ public static partial class Program
                 var mainWindow = new GameStudioWindow(editor);
                 Application.Current.MainWindow = mainWindow;
                 WindowManager.ShowMainWindow(mainWindow);
-                CompilerCrashRouting.SetOwnerWindow(mainWindow);
+                CompilerCrashRouting.SetOwnerWindow(GetWindowHandle(mainWindow));
             }
             else
             {
@@ -634,5 +635,21 @@ public static partial class Program
             NativeHelper.SendMessage(windowHandle, NativeHelper.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
         }
         launcherNotified = true;
+    }
+
+    /// <summary>
+    /// Gets the native handle of a shown window, or zero when it has none.
+    /// </summary>
+    private static nint GetWindowHandle(Window window)
+    {
+        try
+        {
+            return new System.Windows.Interop.WindowInteropHelper(window).Handle;
+        }
+        catch
+        {
+            // No owner: the reporter opens as a plain top-level window
+            return 0;
+        }
     }
 }

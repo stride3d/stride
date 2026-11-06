@@ -19,6 +19,9 @@ public sealed class MSBuildGameProjectBuilder : IGameProjectBuilder
         ArgumentNullException.ThrowIfNull(logger);
 
         var properties = new Dictionary<string, string>(request.Properties);
+        // An asset compiler crash of this build comes back to this editor, which hands it to the crash reporter once the build ends
+        if (CompilerCrashRouting.CrashDirectory is { } crashDirectory)
+            properties["StrideCrashDir"] = crashDirectory;
         var build = VSProjectHelper.CompileProjectAssemblyAsync(request.ProjectPath, logger, request.Target, request.Configuration, request.Platform, properties);
         return build is null ? null : new MSBuildGameProjectBuild(build, logger);
     }
@@ -44,6 +47,8 @@ public sealed class MSBuildGameProjectBuilder : IGameProjectBuilder
         private static async Task<bool> WaitAsync(ICancellableAsyncBuild build, ILogger logger)
         {
             var result = await build.BuildTask;
+            // The asset compiler ran, and wrote any crash, by the time the build ends
+            CompilerCrashRouting.SurfacePendingCrashes(logger);
             // MSBuild logs the errors of the projects but not an exception of its own: log it, unless it only says that the build
             // was canceled, as the user asked
             if (result.Exception is { } exception && !build.IsCanceled)
