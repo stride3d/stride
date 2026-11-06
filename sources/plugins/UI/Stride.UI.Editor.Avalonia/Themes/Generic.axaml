@@ -4,29 +4,29 @@
                     xmlns:views="using:Stride.UI.Editor.Views">
   <!-- The control themes of this assembly; UIEditorAvaloniaPlugin merges this dictionary into the application. -->
 
-  <!-- Thickness sides -->
+  <!-- Thickness sides (the arrows are mid gray: the WPF ones are white, for its dark theme) -->
   <DrawingImage x:Key="ImageThicknessLeft">
     <DrawingGroup>
       <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z"/>
-      <GeometryDrawing Brush="#FFFFFF" Geometry="F1M8.707,3.207L4.914,7 15,7 15,9 4.914,9 8.707,12.793 7.293,14.207 1.086,8 7.293,1.793z"/>
+      <GeometryDrawing Brush="#FF808080" Geometry="F1M8.707,3.207L4.914,7 15,7 15,9 4.914,9 8.707,12.793 7.293,14.207 1.086,8 7.293,1.793z"/>
     </DrawingGroup>
   </DrawingImage>
   <DrawingImage x:Key="ImageThicknessRight">
     <DrawingGroup>
       <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M0,0L16,0 16,16 0,16z"/>
-      <GeometryDrawing Brush="#FFFFFF" Geometry="F1M7.293,12.793L11.086,9 1,9 1,7 11.086,7 7.293,3.207 8.707,1.793 14.914,8 8.707,14.207z"/>
+      <GeometryDrawing Brush="#FF808080" Geometry="F1M7.293,12.793L11.086,9 1,9 1,7 11.086,7 7.293,3.207 8.707,1.793 14.914,8 8.707,14.207z"/>
     </DrawingGroup>
   </DrawingImage>
   <DrawingImage x:Key="ImageThicknessUp">
     <DrawingGroup>
       <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z"/>
-      <GeometryDrawing Brush="#FFFFFFFF" Geometry="F1M12.793,8.707L9,4.914 9,15 7,15 7,4.914 3.207,8.707 1.793,7.293 8,1.086 14.207,7.293z"/>
+      <GeometryDrawing Brush="#FF808080" Geometry="F1M12.793,8.707L9,4.914 9,15 7,15 7,4.914 3.207,8.707 1.793,7.293 8,1.086 14.207,7.293z"/>
     </DrawingGroup>
   </DrawingImage>
   <DrawingImage x:Key="ImageThicknessDown">
     <DrawingGroup>
       <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M0,0L16,0 16,16 0,16z"/>
-      <GeometryDrawing Brush="#FFFFFFFF" Geometry="F1M3.207,7.293L7,11.086 7,1 9,1 9,11.086 12.793,7.293 14.207,8.707 8,14.914 1.793,8.707z"/>
+      <GeometryDrawing Brush="#FF808080" Geometry="F1M3.207,7.293L7,11.086 7,1 9,1 9,11.086 12.793,7.293 14.207,8.707 8,14.914 1.793,8.707z"/>
     </DrawingGroup>
   </DrawingImage>
   <DrawingImage x:Key="ImageThicknessBack">
