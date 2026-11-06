@@ -15,6 +15,7 @@ using Stride.Assets.Sprite;
 using Stride.Core;
 using Stride.Core.Assets.Editor.Panels;
 using Stride.Core.Presentation.Avalonia.Commands;
+using Stride.Core.Presentation.Avalonia.Controls;
 using Stride.GameStudio.Avalonia.Docking;
 using Stride.GameStudio.Avalonia.Settings;
 using Stride.GameStudio.Avalonia.Tests.Helpers;
@@ -289,6 +290,36 @@ public sealed class DockingTests
         finally
         {
             await window.CloseAsync();
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task ThePropertyGridKeepsItsPropertiesAfterAReset()
+    {
+        using var fixture = await ShellSessionFixture.OpenAsync(("Sheet", new SpriteSheetAsset()));
+        var window = new MainWindow { DataContext = fixture.Main };
+        await window.ShowAsync();
+        try
+        {
+            fixture.Session.AssetCollection.SelectAssets([fixture.Asset("Sheet")]);
+            await WindowTestHelper.WaitUntilAsync(() => Shown() > 0, "the properties of the sheet");
+            var shown = Shown();
+
+            // The panels move into a new layout: the properties build their templates again
+            await fixture.Main.Panels.ResetLayoutAsync();
+            await WindowTestHelper.PumpAsync();
+            Assert.Equal(shown, Shown());
+        }
+        finally
+        {
+            await window.CloseAsync();
+        }
+
+        // The properties that show a row (some, such as the sprites of the sheet, are hidden)
+        int Shown()
+        {
+            var properties = window.GetVisualDescendants().OfType<PropertyGridView>().Single().FindControl<PropertyView>("Properties")!;
+            return properties.ItemsPanelRoot?.Children.Count(x => x.Bounds.Height > 0) ?? 0;
         }
     }
 
