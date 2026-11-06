@@ -26,11 +26,16 @@ public static class RegistrationsGolden
     /// </summary>
     public static string? Compare(string name, string actual, [CallerFilePath] string testFile = "")
     {
-        var directory = Path.Combine(Path.GetDirectoryName(SourceFile(testFile))!, "Registrations");
+        var sourceDirectory = Path.GetDirectoryName(SourceFile(testFile))!;
+        var directory = Path.Combine(sourceDirectory, "Registrations");
         var path = Path.Combine(directory, name + ".txt");
         actual = Normalize(actual);
         if (!File.Exists(path) || Environment.GetEnvironmentVariable(UpdateVariable) == "1")
         {
+            // A file is only recorded next to the sources; without them there is nothing to compare with
+            if (!Directory.Exists(sourceDirectory))
+                return $"The registrations of {name} can't be compared: the test sources aren't in {sourceDirectory}.";
+
             Directory.CreateDirectory(directory);
             File.WriteAllText(path, actual);
             return $"The registrations of {name} were recorded in {path}: check them in.";
