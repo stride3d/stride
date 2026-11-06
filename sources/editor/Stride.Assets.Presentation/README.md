@@ -19,8 +19,9 @@ by the WPF and the cross-platform (Avalonia) Game Studio. **Level: Presentation.
   through `IEntityHierarchyEditorViewModel`, which each editor implements.
 * The small contracts they use: `IEntityHierarchyItemViewModel`, `IEditorDesignPartViewModel<,>`, the add-asset policy
   interface and `IScriptCompilationProvider`.
-* `StrideDefaultAssetsPlugin`: a default plugin of the cross-platform editor, which its host registers. The WPF editor
-  registers the view models it shares itself.
+* No plugin: the cross-platform editor registers these view models through `StrideDefaultAssetsPlugin` of
+  `Stride.Assets.Editor`, which names this assembly in its `ScannedAssemblies`. The WPF editor registers the view models
+  it shares itself.
 
 ## Notes
 

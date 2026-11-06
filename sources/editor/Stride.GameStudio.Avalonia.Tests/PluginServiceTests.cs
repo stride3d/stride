@@ -87,7 +87,7 @@ public sealed class PluginServiceTests
         // The view models that both editors share come from Stride.Assets.Presentation, through the default assets plugin; the
         // WPF assembly is not loaded
         Assert.Contains(service.SessionPlugins, x => x is StrideDefaultAssetsPlugin);
-        Assert.Equal(typeof(StrideDefaultAssetsPlugin).Assembly, typeof(MaterialViewModel).Assembly);
+        Assert.Equal([typeof(MaterialViewModel).Assembly], service.SessionPlugins.OfType<StrideDefaultAssetsPlugin>().Single().ScannedAssemblies);
         Assert.DoesNotContain(AppDomain.CurrentDomain.GetAssemblies(), x => x.GetName().Name == "Stride.Assets.Editor.Wpf");
 
         var declarations = assemblies
@@ -290,7 +290,7 @@ public sealed class PluginServiceTests
         using var fixture = await ShellSessionFixture.OpenAsync(("Sheet", new SpriteSheetAsset()));
 
         // The shared asset view model (Stride.Assets.Presentation) replaced its copy; the editor stays per toolkit
-        var assemblies = fixture.Plugins.Plugins.Select(x => x.GetType().Assembly).Distinct().ToList();
+        var assemblies = fixture.Plugins.Plugins.SelectMany(x => x.ScannedAssemblies).Distinct().ToList();
         var viewModels = assemblies
             .SelectMany(x => AssemblyRegistry.GetScanTypes(x, typeof(AssetViewModel)))
             .Select(x => (x.GetCustomAttribute<AssetViewModelAttribute>()?.AssetType, ViewModel: x))
@@ -300,7 +300,7 @@ public sealed class PluginServiceTests
         Assert.Empty(Duplicates(viewModels, x => x.AssetType!, x => x.ViewModel));
 
         Assert.Equal([typeof(VisualScriptViewModel)], viewModels.Where(x => x.AssetType == typeof(VisualScriptAsset)).Select(x => x.ViewModel));
-        Assert.Equal(typeof(StrideDefaultAssetsPlugin).Assembly, typeof(VisualScriptViewModel).Assembly);
+        Assert.Equal([typeof(VisualScriptViewModel).Assembly], new StrideDefaultAssetsPlugin().ScannedAssemblies);
         Assert.Equal(typeof(VisualScriptViewModel), fixture.Plugins.GetAssetViewModelType(typeof(VisualScriptAsset)));
         Assert.Equal(typeof(VisualScriptEditorViewModel), fixture.Plugins.GetEditorViewModelType(typeof(VisualScriptViewModel)));
     }

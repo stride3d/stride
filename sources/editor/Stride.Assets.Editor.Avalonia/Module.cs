@@ -3,7 +3,6 @@
 
 using System.Runtime.CompilerServices;
 using Stride.Assets.Editor.Avalonia.Templates;
-using Stride.Assets.Presentation;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Reflection;
 using Stride.Editor.Avalonia.Preview.Views;

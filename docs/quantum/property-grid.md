@@ -52,11 +52,11 @@ When a property grid opens for an asset, `AssetNodePresenterFactory` runs the fo
 
 The tree is rebuilt whenever a node's value changes (so `UpdateNode` is called again for affected nodes, and `FinalizeTree` is called again for the whole tree).
 
-**Updater registration:** Updaters are NOT auto-discovered. You must register your updater explicitly in the plugin class for your assembly. For engine assets in `Stride.Assets.Presentation`, register in `StrideDefaultAssetsPlugin` (`sources/editor/Stride.Assets.Editor.Wpf/StrideDefaultAssetsPlugin.cs`) inside its constructor:
+**Updater registration:** Updaters are NOT auto-discovered. You must register your updater explicitly in the plugin class for your assembly. For engine assets, register in `StrideEditorPlugin` (`sources/editor/Stride.Assets.Editor/StrideEditorPlugin.cs`) and, while the WPF editor lives, in `StrideDefaultAssetsWpfPlugin` (`sources/editor/Stride.Assets.Editor.Wpf/StrideDefaultAssetsWpfPlugin.cs`), in their `InitializeSession`:
 
 ```csharp
-// In StrideDefaultAssetsPlugin constructor:
-RegisterNodePresenterUpdater(new %%AssetName%%AssetNodeUpdater());
+// In the plugin's InitializeSession(ISessionPluginContext context):
+context.NodePresenterUpdaters.Register(new %%AssetName%%AssetNodeUpdater());
 ```
 
 ## `INodePresenterUpdater` — The Main Extension Point
