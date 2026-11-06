@@ -10,6 +10,8 @@ using Stride.Core.Assets.Editor.Services;
 using Stride.Particles.Editor;
 using Stride.Physics.Editor;
 using Stride.SpriteStudio.Editor;
+using Stride.UI.Editor;
+using Stride.UI.Editor.Views;
 using Stride.Video.Editor;
 
 namespace Stride.Assets.Editor.Avalonia.Tests;
@@ -26,10 +28,12 @@ public sealed class PluginRegistrationTests
         nameof(StrideEditorViewPlugin),
         nameof(AudioEditorAvaloniaPlugin),
         nameof(SpriteStudioEditorAvaloniaPlugin),
+        nameof(UIEditorAvaloniaPlugin),
         nameof(AudioEditorPlugin),
         nameof(ParticlesEditorPlugin),
         nameof(PhysicsEditorPlugin),
         nameof(SpriteStudioEditorPlugin),
+        nameof(UIEditorPlugin),
         nameof(VideoEditorPlugin),
     ];
 
@@ -41,10 +45,12 @@ public sealed class PluginRegistrationTests
         nameof(StrideCoreEditorViewPlugin),
         nameof(AudioEditorAvaloniaPlugin),
         nameof(SpriteStudioEditorAvaloniaPlugin),
+        nameof(UIEditorAvaloniaPlugin),
         nameof(AudioEditorPlugin),
         nameof(ParticlesEditorPlugin),
         nameof(PhysicsEditorPlugin),
         nameof(SpriteStudioEditorPlugin),
+        nameof(UIEditorPlugin),
         nameof(VideoEditorPlugin),
     ];
 
@@ -78,6 +84,8 @@ public sealed class PluginRegistrationTests
         nameof(ParticlesEditorPlugin) => new ParticlesEditorPlugin(),
         nameof(PhysicsEditorPlugin) => new PhysicsEditorPlugin(),
         nameof(SpriteStudioEditorPlugin) => new SpriteStudioEditorPlugin(),
+        nameof(UIEditorAvaloniaPlugin) => new UIEditorAvaloniaPlugin(),
+        nameof(UIEditorPlugin) => new UIEditorPlugin(),
         nameof(VideoEditorPlugin) => new VideoEditorPlugin(),
         _ => throw new ArgumentOutOfRangeException(nameof(name)),
     };

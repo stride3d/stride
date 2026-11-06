@@ -16,6 +16,7 @@ internal static class Module
         RuntimeHelpers.RunModuleConstructor(typeof(StrideEditorViewPlugin).Module.ModuleHandle);
         RuntimeHelpers.RunModuleConstructor(typeof(Stride.Audio.Editor.AudioEditorAvaloniaPlugin).Module.ModuleHandle);
         RuntimeHelpers.RunModuleConstructor(typeof(Stride.SpriteStudio.Editor.SpriteStudioEditorAvaloniaPlugin).Module.ModuleHandle);
+        RuntimeHelpers.RunModuleConstructor(typeof(Stride.UI.Editor.Views.UIEditorAvaloniaPlugin).Module.ModuleHandle);
 
         // The template providers scan the loaded assemblies for types: the assets assemblies need MSBuild resolvable, like in the editor
         PackageSessionPublicHelper.FindAndSetMSBuildVersion();

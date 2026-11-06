@@ -1,0 +1,18 @@
+Plugin: Stride.UI.Editor.Views.UIEditorAvaloniaPlugin
+AssetViewModelTypes:
+AssetEditorViewModelTypes:
+AssetEditorViewTypes:
+AssetPreviewViewModelTypes:
+AssetPreviewViewTypes:
+PrimitiveTypes:
+EnumImages:
+TypeImages:
+TemplateProviders:
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeAndPropertyNameMatchTemplateProvider Single_Rotation
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider StripDefinition
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider Thickness
+CopyProcessors:
+PasteProcessors:
+PostPasteProcessors:
+SettingsKeys:
+ProfileSettings:

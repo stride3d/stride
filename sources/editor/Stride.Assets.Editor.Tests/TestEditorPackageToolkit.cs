@@ -37,6 +37,7 @@ public class TestEditorPackageToolkit
     [
         "Audio/Stride.Audio.Editor.Avalonia",
         "SpriteStudio/Stride.SpriteStudio.Editor.Avalonia",
+        "UI/Stride.UI.Editor.Avalonia",
     ];
 
     // The neutral packages whose views come in one companion per toolkit
@@ -44,6 +45,7 @@ public class TestEditorPackageToolkit
     [
         "Audio/Stride.Audio.Editor",
         "SpriteStudio/Stride.SpriteStudio.Editor",
+        "UI/Stride.UI.Editor",
     ];
 
     public static TheoryData<string> Neutral => new(NeutralPackages);

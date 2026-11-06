@@ -1,0 +1,83 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+                    xmlns:views="using:Stride.UI.Editor.Views">
+  <!-- The control themes of this assembly; UIEditorAvaloniaPlugin merges this dictionary into the application. -->
+
+  <!-- Thickness sides -->
+  <DrawingImage x:Key="ImageThicknessLeft">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z"/>
+      <GeometryDrawing Brush="#FFFFFF" Geometry="F1M8.707,3.207L4.914,7 15,7 15,9 4.914,9 8.707,12.793 7.293,14.207 1.086,8 7.293,1.793z"/>
+    </DrawingGroup>
+  </DrawingImage>
+  <DrawingImage x:Key="ImageThicknessRight">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M0,0L16,0 16,16 0,16z"/>
+      <GeometryDrawing Brush="#FFFFFF" Geometry="F1M7.293,12.793L11.086,9 1,9 1,7 11.086,7 7.293,3.207 8.707,1.793 14.914,8 8.707,14.207z"/>
+    </DrawingGroup>
+  </DrawingImage>
+  <DrawingImage x:Key="ImageThicknessUp">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z"/>
+      <GeometryDrawing Brush="#FFFFFFFF" Geometry="F1M12.793,8.707L9,4.914 9,15 7,15 7,4.914 3.207,8.707 1.793,7.293 8,1.086 14.207,7.293z"/>
+    </DrawingGroup>
+  </DrawingImage>
+  <DrawingImage x:Key="ImageThicknessDown">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M0,0L16,0 16,16 0,16z"/>
+      <GeometryDrawing Brush="#FFFFFFFF" Geometry="F1M3.207,7.293L7,11.086 7,1 9,1 9,11.086 12.793,7.293 14.207,8.707 8,14.914 1.793,8.707z"/>
+    </DrawingGroup>
+  </DrawingImage>
+  <DrawingImage x:Key="ImageThicknessBack">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z"/>
+      <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M15,0.9995L5,0.9995 5,6.9995 2,6.9995 2,13.9995 9,13.9995 9,10.9995 15,10.9995z"/>
+      <GeometryDrawing Brush="#FF414141" Geometry="F1M6,1.9995L6,6.9995 8,6.9995 8,3.9995 12,3.9995 12,7.9995 9,7.9995 9,9.9995 14,9.9995 14,1.9995z M8,12.9995L3,12.9995 3,7.9995 8,7.9995z"/>
+      <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M12,7.9995L9,7.9995 9,6.9995 8,6.9995 8,3.9995 12,3.9995z"/>
+    </DrawingGroup>
+  </DrawingImage>
+  <DrawingImage x:Key="ImageThicknessFront">
+    <DrawingGroup>
+      <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z"/>
+      <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M8.0001,0.9997L8.0001,3.9997 2.0011,3.9997 2.0011,14.0007 12.0001,14.0007 12.0001,7.9997 15.0001,7.9997 15.0001,0.9997z"/>
+      <GeometryDrawing Brush="#FF424242" Geometry="F1M9,7L5,7 5,11 9,11z M11,13L3,13 3,5 11,5z M14,2L14,7 12,7 12,4 9,4 9,2z"/>
+      <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M9,11L5,11 5,7 9,7z"/>
+    </DrawingGroup>
+  </DrawingImage>
+
+  <!-- Thickness editor: left and right, top and bottom, back and front -->
+  <ControlTheme x:Key="{x:Type views:ThicknessEditor}" TargetType="views:ThicknessEditor">
+    <Setter Property="Focusable" Value="False"/>
+    <Setter Property="Template">
+      <ControlTemplate TargetType="views:ThicknessEditor">
+        <Grid ColumnDefinitions="Auto, *, Auto, *" RowDefinitions="Auto, Auto, Auto">
+          <Image Grid.Row="0" Grid.Column="0" Width="16" Height="16" Margin="2,0" ToolTip.Tip="Left" Source="{StaticResource ImageThicknessLeft}"/>
+          <sd:NumericTextBox x:Name="PART_Left" Grid.Row="0" Grid.Column="1" Margin="1" TextAlignment="Center"
+                             Value="{Binding Left, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                             DecimalPlaces="{TemplateBinding DecimalPlaces}" PlaceholderText="{TemplateBinding PlaceholderText}"/>
+          <Image Grid.Row="0" Grid.Column="2" Width="16" Height="16" Margin="2,0" ToolTip.Tip="Right" Source="{StaticResource ImageThicknessRight}"/>
+          <sd:NumericTextBox x:Name="PART_Right" Grid.Row="0" Grid.Column="3" Margin="1" TextAlignment="Center"
+                             Value="{Binding Right, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                             DecimalPlaces="{TemplateBinding DecimalPlaces}" PlaceholderText="{TemplateBinding PlaceholderText}"/>
+          <Image Grid.Row="1" Grid.Column="0" Width="16" Height="16" Margin="2,0" ToolTip.Tip="Top" Source="{StaticResource ImageThicknessUp}"/>
+          <sd:NumericTextBox x:Name="PART_Top" Grid.Row="1" Grid.Column="1" Margin="1" TextAlignment="Center"
+                             Value="{Binding Top, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                             DecimalPlaces="{TemplateBinding DecimalPlaces}" PlaceholderText="{TemplateBinding PlaceholderText}"/>
+          <Image Grid.Row="1" Grid.Column="2" Width="16" Height="16" Margin="2,0" ToolTip.Tip="Bottom" Source="{StaticResource ImageThicknessDown}"/>
+          <sd:NumericTextBox x:Name="PART_Bottom" Grid.Row="1" Grid.Column="3" Margin="1" TextAlignment="Center"
+                             Value="{Binding Bottom, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                             DecimalPlaces="{TemplateBinding DecimalPlaces}" PlaceholderText="{TemplateBinding PlaceholderText}"/>
+          <Image Grid.Row="2" Grid.Column="0" Width="16" Height="16" Margin="2,0" ToolTip.Tip="Back" Source="{StaticResource ImageThicknessBack}"/>
+          <sd:NumericTextBox x:Name="PART_Back" Grid.Row="2" Grid.Column="1" Margin="1" TextAlignment="Center"
+                             Value="{Binding Back, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                             DecimalPlaces="{TemplateBinding DecimalPlaces}" PlaceholderText="{TemplateBinding PlaceholderText}"/>
+          <Image Grid.Row="2" Grid.Column="2" Width="16" Height="16" Margin="2,0" ToolTip.Tip="Front" Source="{StaticResource ImageThicknessFront}"/>
+          <sd:NumericTextBox x:Name="PART_Front" Grid.Row="2" Grid.Column="3" Margin="1" TextAlignment="Center"
+                             Value="{Binding Front, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                             DecimalPlaces="{TemplateBinding DecimalPlaces}" PlaceholderText="{TemplateBinding PlaceholderText}"/>
+        </Grid>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+</ResourceDictionary>
