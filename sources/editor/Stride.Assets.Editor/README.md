@@ -22,9 +22,11 @@ node presenter updaters of the Stride asset types. **Level: Editor.** `Stride.As
   build services that know Stride asset types (`Build/StrideShaderImporter`, `EditorGame/ContentLoader`).
 * The asset template generators and the view models of their dialogs (`Templates`), the entity factories and add-asset
   policies (`EntityFactories`), the copy and paste processors, the node presenter commands, keys and updaters (`Quantum`).
-* `StrideEditorPlugin` (with `StrideDefaultAssetsPlugin` of `Stride.Assets.Presentation`): the default plugins of the
-  cross-platform editor. The discovery skips them (`EditorDefaultPlugin`); the cross-platform host registers them
-  (`Stride.Assets.Editor.Avalonia`), so that the WPF editor, which loads this assembly too, keeps its own.
+* `StrideDefaultAssetsPlugin` and `StrideEditorPlugin`: the default plugins of the cross-platform editor. The discovery
+  skips them (`EditorDefaultPlugin`); the cross-platform host registers them (`Stride.Assets.Editor.Avalonia`), so that
+  the WPF editor, which loads this assembly too, keeps its own. `StrideEditorPlugin` covers this assembly;
+  `StrideDefaultAssetsPlugin` covers the asset view models of `Stride.Assets.Presentation` (`ScannedAssemblies`), which
+  cannot hold a plugin since it does not reference the editor layer.
 
 ## Notes
 

@@ -34,7 +34,7 @@ public sealed class DefaultPluginLoadingTests
         var context = new IsolatedContext(Path.GetDirectoryName(typeof(StrideEditorPlugin).Assembly.Location)!);
         try
         {
-            var presentation = context.LoadFromAssemblyName(typeof(StrideDefaultAssetsPlugin).Assembly.GetName());
+            var presentation = context.LoadFromAssemblyName(typeof(EntityComponentMetadata).Assembly.GetName());
             var editor = context.LoadFromAssemblyName(typeof(StrideEditorPlugin).Assembly.GetName());
             RuntimeHelpers.RunModuleConstructor(presentation.ManifestModule.ModuleHandle);
             RuntimeHelpers.RunModuleConstructor(editor.ManifestModule.ModuleHandle);

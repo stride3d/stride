@@ -1,4 +1,4 @@
-Plugin: Stride.Assets.Presentation.StrideDefaultAssetsPlugin
+Plugin: Stride.Assets.Editor.StrideDefaultAssetsPlugin
 AssetViewModelTypes:
   Stride.Assets.Effect.EffectLogAsset -> Stride.Assets.Presentation.ViewModels.EffectLogViewModel
   Stride.Assets.Entities.PrefabAsset -> Stride.Assets.Presentation.ViewModels.PrefabViewModel

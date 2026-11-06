@@ -25,7 +25,7 @@ internal static class Module
         RuntimeHelpers.RunModuleConstructor(typeof(PrefabAsset).Module.ModuleHandle);
         AssemblyRegistry.Register(typeof(Module).Assembly, AssemblyCommonCategories.Assets);
         AssetQuantumRegistry.RegisterAssembly(typeof(Module).Assembly);
-        // The default plugin (StrideDefaultAssetsPlugin) is registered by the cross-platform editor host, so that loading this
-        // assembly in another editor does not add it
+        // This assembly holds no plugin: the cross-platform editor's StrideDefaultAssetsPlugin (Stride.Assets.Editor) covers
+        // its view models, and the WPF editor registers the ones it shares itself
     }
 }
