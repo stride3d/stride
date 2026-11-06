@@ -153,6 +153,15 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
     }
 
     /// <summary>
+    /// The global properties of the build of the game code before a reload, the ones the WPF editor sets.
+    /// </summary>
+    internal static readonly IReadOnlyDictionary<string, string> ReloadBuildProperties = new Dictionary<string, string>
+    {
+        ["SolutionPlatform"] = "Any CPU",
+        ["StrideBuildEngineLogVerbose"] = "true",
+    };
+
+    /// <summary>
     /// Builds projects of the game code, one after the other, before the editor loads them again: their errors show in the Output
     /// pane, and a failure stops the reload. The session is not saved: nothing it holds goes into these builds.
     /// </summary>
@@ -175,8 +184,8 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
             BuildLog.AddLogger(logger);
             foreach (var projectPath in projectPaths)
             {
-                // As the session builds the projects it loads: no platform, no other property
-                var request = new GameProjectBuildRequest(projectPath, "AnyCPU", new Dictionary<string, string>());
+                // As the WPF editor builds the game code it reloads (DebuggingViewModel.BuildProject)
+                var request = new GameProjectBuildRequest(projectPath, "AnyCPU", ReloadBuildProperties);
                 var (outcome, _) = await BuildProjectAsync(Path.GetFileNameWithoutExtension(projectPath), request, logger);
                 if (outcome != GameBuildOutcome.Succeeded)
                     return outcome;

@@ -33,6 +33,9 @@ public sealed class GameCodeReloadViewModelTests
         var request = Assert.Single(test.Builder.Requests);
         Assert.Equal(test.ProjectPath, request.ProjectPath);
         Assert.Equal("AnyCPU", request.Platform);
+        // The properties the WPF editor sets for this build
+        Assert.Equal("Any CPU", request.Properties["SolutionPlatform"]);
+        Assert.Equal("true", request.Properties["StrideBuildEngineLogVerbose"]);
         Assert.Equal(1, test.Restarts);
     }
 
