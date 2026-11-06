@@ -30,7 +30,7 @@ using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Editor.Engine;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
+using Stride.Assets.Editor.AssetEditors.GameEditor.ViewModels;
 using Stride.UI.Editor.Game;
 using Stride.UI.Editor.Services;
 using Stride.Assets.Quantum;

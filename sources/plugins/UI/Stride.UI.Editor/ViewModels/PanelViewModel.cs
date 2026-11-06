@@ -12,7 +12,6 @@ using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Quantum;
-using Stride.Assets.Presentation.Extensions;
 using Stride.Assets.Quantum;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.UI.Assets;
@@ -583,12 +582,13 @@ namespace Stride.UI.Editor.ViewModels
         [NotNull]
         private static Grid CreateGrid(int colums, int rows, int layers, StripType stripType)
         {
-            var generator = (Func<StripDefinition>)(() => new StripDefinition { Type = stripType });
             var grid = new Grid();
-            grid.ColumnDefinitions.AddRange(generator.Repeat(colums));
-            grid.RowDefinitions.AddRange(generator.Repeat(rows));
-            grid.LayerDefinitions.AddRange(generator.Repeat(layers));
+            grid.ColumnDefinitions.AddRange(CreateStrips(colums));
+            grid.RowDefinitions.AddRange(CreateStrips(rows));
+            grid.LayerDefinitions.AddRange(CreateStrips(layers));
             return grid;
+
+            IEnumerable<StripDefinition> CreateStrips(int count) => Enumerable.Range(0, count).Select(_ => new StripDefinition { Type = stripType });
         }
 
         [NotNull]

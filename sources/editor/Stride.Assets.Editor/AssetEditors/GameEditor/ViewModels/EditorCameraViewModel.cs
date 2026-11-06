@@ -1,20 +1,17 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
+#nullable disable
 using Stride.Assets.Editor.ViewModels;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Commands;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
-using Stride.Assets.Presentation.SceneEditor;
 using Stride.Engine.Processors;
 using Stride.Core.Presentation.ViewModels;
-using Stride.Assets.Editor.AssetEditors;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 
-namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
+namespace Stride.Assets.Editor.AssetEditors.GameEditor.ViewModels
 {
-    public class EditorCameraViewModel : DispatcherViewModel, ICameraViewOptions
+    public sealed class EditorCameraViewModel : DispatcherViewModel, ICameraViewOptions
     {
         private readonly IEditorGameController controller;
         

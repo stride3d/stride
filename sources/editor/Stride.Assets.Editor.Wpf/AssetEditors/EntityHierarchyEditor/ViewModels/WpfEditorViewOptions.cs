@@ -20,6 +20,7 @@ using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
+using Stride.Assets.Editor.AssetEditors.GameEditor.ViewModels;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 
