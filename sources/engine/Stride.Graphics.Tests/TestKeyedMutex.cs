@@ -47,6 +47,8 @@ public class TestKeyedMutex : GraphicTestGameBase
                 options: TextureOptions.SharedKeyedMutex | TextureOptions.SharedNtHandle);
 
             Assert.False(texture.HasKeyedMutex);
+            Assert.Equal(IntPtr.Zero, texture.SharedHandle);
+            Assert.Equal(string.Empty, texture.SharedNtHandleName);
         });
     }
 #endif
