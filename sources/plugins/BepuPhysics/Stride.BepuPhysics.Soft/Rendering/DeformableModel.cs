@@ -14,15 +14,16 @@ using Buffer = Stride.Graphics.Buffer;
 namespace Stride.BepuPhysics.Soft.Rendering;
 
 /// <summary>
-/// A copy of a soft body's model whose vertices follow its particles: either rewritten every frame on the CPU
-/// (every authored attribute kept), or deformed by the vertex shader from the particles uploaded as a buffer.
+/// A copy of a soft body's model whose vertices follow its particles: either rewritten every frame on the CPU, or deformed by
+/// the vertex shader from the particles uploaded as a buffer. Both modes share the same stream 0 (the authored vertex bytes,
+/// snapshotted at construction), so every authored attribute reaches the pixel shader whatever the mode.
 /// </summary>
 internal sealed class DeformableModel : IDisposable
 {
     private static readonly ConditionalWeakTable<Model, Model> SourceOfModel = new();
 
-    // One entry per source Mesh, in source.Meshes order; empty on GPU mode (the vertex shader reads the mesh at rest)
-    private readonly MeshBuffer[] _meshBuffers = [];
+    // One entry per source Mesh, in source.Meshes order; carries stream 0 (= the authored vertex bytes, snapshot) for both modes.
+    private readonly MeshBuffer[] _meshBuffers;
     private readonly Vector3[] _particles;
 
     // CPU scratch; empty on GPU mode
@@ -30,7 +31,7 @@ internal sealed class DeformableModel : IDisposable
     private readonly Vector3[] _normals = [];
     private readonly Vector4[] _tangents = [];
 
-    // GPU state; null on CPU mode
+    // GPU state; null on CPU mode. Holds the particle buffer and stream 1 (per-vertex binding to the particles).
     private readonly GpuDeformation? _gpu;
 
     public Model Model { get; }
@@ -55,37 +56,18 @@ internal sealed class DeformableModel : IDisposable
         foreach (var material in source.Materials)
             Model.Materials.Add(material);
 
-        if (mode == SoftBodyDeformationMode.Gpu)
+        bool gpu = mode == SoftBodyDeformationMode.Gpu;
+        if (!gpu)
         {
-            // GPU: the mesh at rest with per-vertex binding is uploaded once; the vertex shader moves vertices from the particle buffer.
+            _positions = new Vector3[vertexCount];
+            _normals = new Vector3[vertexCount];
+            _tangents = new Vector4[vertexCount];
+        }
+        else
+        {
             _gpu = new GpuDeformation(device, topology);
-            for (int m = 0; m < source.Meshes.Count; m++)
-            {
-                var sourceMesh = source.Meshes[m];
-                var part = meshPool.Parts[m];
-                var binding = new VertexBufferBinding(_gpu.VertexBuffer, _gpu.Layout, part.VertexCount, _gpu.Layout.VertexStride * part.FirstVertex);
-                var mesh = new Mesh
-                {
-                    MaterialIndex = sourceMesh.MaterialIndex,
-                    Draw = new MeshDraw
-                    {
-                        PrimitiveType = sourceMesh.Draw.PrimitiveType,
-                        StartLocation = sourceMesh.Draw.StartLocation,
-                        DrawCount = sourceMesh.Draw.DrawCount,
-                        VertexBuffers = [binding],
-                        IndexBuffer = sourceMesh.Draw.IndexBuffer,
-                    },
-                };
-                _gpu.Bind(mesh);
-                Model.Meshes.Add(mesh);
-            }
-            return;
         }
 
-        // CPU: the authored vertex bytes are snapshot and rewritten each frame at the position/normal/tangent offsets.
-        _positions = new Vector3[vertexCount];
-        _normals = new Vector3[vertexCount];
-        _tangents = new Vector4[vertexCount];
         _meshBuffers = new MeshBuffer[source.Meshes.Count];
         for (int m = 0; m < source.Meshes.Count; m++)
         {
@@ -112,12 +94,17 @@ internal sealed class DeformableModel : IDisposable
             var working = new byte[inner.Length];
             inner.CopyTo(working);
 
-            var vertexBuffer = Buffer.Vertex.New(device, bufferSize: working.Length, usage: GraphicsResourceUsage.Dynamic);
+            // CPU mode rewrites Working every frame, so the buffer is Dynamic and is uploaded each frame from the snapshot.
+            // GPU mode uploads the snapshot once at creation and never touches it again, so the buffer is Default (static)
+            // and the Working snapshot is not kept.
+            var vertexBuffer = gpu
+                ? Buffer.Vertex.New(device, (ReadOnlySpan<byte>)working, GraphicsResourceUsage.Default)
+                : Buffer.Vertex.New(device, bufferSize: working.Length, usage: GraphicsResourceUsage.Dynamic);
             var vertexBinding = new VertexBufferBinding(vertexBuffer, declaration, part.VertexCount);
 
             _meshBuffers[m] = new MeshBuffer
             {
-                Working = working,
+                Working = gpu ? [] : working,
                 VertexBuffer = vertexBuffer,
                 Binding = vertexBinding,
                 Stride = stride,
@@ -128,7 +115,13 @@ internal sealed class DeformableModel : IDisposable
                 VertexCount = part.VertexCount,
             };
 
-            Model.Meshes.Add(new Mesh
+            // GPU mode: stream 1 carries the per-vertex binding to the particles; the authored declaration (stream 0) keeps
+            // its slice of the global vertex pool, so the input assembler finds the binding at the same vertex id as the authored data.
+            VertexBufferBinding[] vertexBuffers = gpu
+                ? [vertexBinding, new VertexBufferBinding(_gpu!.BindingBuffer, _gpu.BindingLayout, part.VertexCount, _gpu.BindingLayout.VertexStride * part.FirstVertex)]
+                : [vertexBinding];
+
+            var mesh = new Mesh
             {
                 MaterialIndex = sourceMesh.MaterialIndex,
                 Draw = new MeshDraw
@@ -136,10 +129,13 @@ internal sealed class DeformableModel : IDisposable
                     PrimitiveType = sourceMesh.Draw.PrimitiveType,
                     StartLocation = sourceMesh.Draw.StartLocation,
                     DrawCount = sourceMesh.Draw.DrawCount,
-                    VertexBuffers = [vertexBinding],
+                    VertexBuffers = vertexBuffers,
                     IndexBuffer = sourceMesh.Draw.IndexBuffer,
                 },
-            });
+            };
+            if (gpu)
+                _gpu!.Bind(mesh);
+            Model.Meshes.Add(mesh);
         }
     }
 

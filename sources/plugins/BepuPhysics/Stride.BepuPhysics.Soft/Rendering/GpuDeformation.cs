@@ -12,47 +12,38 @@ using Buffer = Stride.Graphics.Buffer;
 namespace Stride.BepuPhysics.Soft.Rendering;
 
 /// <summary>
-/// The GPU side of a <see cref="DeformableModel"/>: the mesh at rest with how each vertex is bound to the particles, uploaded once,
-/// and the particles, uploaded every frame for the <c>SoftBodyDeformation</c> shaders.
+/// The GPU side of a <see cref="DeformableModel"/>: per-vertex binding to the particles in a second vertex stream alongside the
+/// authored mesh (stream 0), and the particles themselves uploaded every frame for the <c>SoftBodyDeformation</c> shaders.
 /// </summary>
+/// <remarks>
+/// The authored vertex buffer passes through unchanged as stream 0, carrying every semantic the mesh declared (position, normal,
+/// tangent, texture coordinates, colours, extra UVs, bone indices and weights...). The binding stream only adds the semantics
+/// the deformation shaders read: <c>SOFTBODYCORNERS0/1</c> + <c>SOFTBODYCELL</c> for a volumetric lattice, or <c>SOFTBODYPARTICLE</c>
+/// + <c>SOFTBODYRING</c> for a cloth. The vertex shader overwrites <c>Position</c>, <c>meshNormal</c> and <c>meshTangent</c>
+/// from the particles; every other authored attribute reaches the pixel shader through the usual semantics.
+/// </remarks>
 internal sealed class GpuDeformation : IDisposable
 {
     [StructLayout(LayoutKind.Sequential)]
-    private struct LatticeVertex
+    private struct LatticeBinding
     {
         public static readonly VertexDeclaration Layout = new(
-            VertexElement.Position<Vector3>(),
-            VertexElement.Normal<Vector3>(),
-            VertexElement.Tangent<Vector4>(),
-            VertexElement.TextureCoordinate<Vector2>(),
             new VertexElement("SOFTBODYCORNERS", 0, PixelFormat.R32G32B32A32_UInt),
             new VertexElement("SOFTBODYCORNERS", 1, PixelFormat.R32G32B32A32_UInt),
             new VertexElement("SOFTBODYCELL", PixelFormat.R32G32B32_Float));
 
-        public Vector3 Position;
-        public Vector3 Normal;
-        public Vector4 Tangent;
-        public Vector2 TexCoord;
         public UInt4 Corners0;
         public UInt4 Corners1;
         public Vector3 Cell;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    private struct SurfaceVertex
+    private struct SurfaceBinding
     {
         public static readonly VertexDeclaration Layout = new(
-            VertexElement.Position<Vector3>(),
-            VertexElement.Normal<Vector3>(),
-            VertexElement.Tangent<Vector4>(),
-            VertexElement.TextureCoordinate<Vector2>(),
             new VertexElement("SOFTBODYPARTICLE", PixelFormat.R32_UInt),
             new VertexElement("SOFTBODYRING", PixelFormat.R32G32_UInt));
 
-        public Vector3 Position;
-        public Vector3 Normal;
-        public Vector4 Tangent;
-        public Vector2 TexCoord;
         public uint Particle;
         public uint RingStart;
         public uint RingCount;
@@ -70,9 +61,11 @@ internal sealed class GpuDeformation : IDisposable
     private readonly Vector4[] _particles;
     private readonly float _latticeMargin;
 
-    public Buffer VertexBuffer { get; }
+    /// <summary> Stream 1 buffer: per-vertex binding to the particles. Alongside the authored vertex buffer (stream 0) in each mesh's VertexBuffers. </summary>
+    public Buffer BindingBuffer { get; }
 
-    public VertexDeclaration Layout { get; }
+    /// <summary> Vertex declaration of the binding stream (stream 1) </summary>
+    public VertexDeclaration BindingLayout { get; }
 
     public GpuDeformation(GraphicsDevice device, SoftBodyTopology topology)
     {
@@ -82,19 +75,15 @@ internal sealed class GpuDeformation : IDisposable
         var mesh = topology.Mesh;
         if (topology.LatticeCoordinates is { } coordinates)
         {
-            var vertices = new LatticeVertex[mesh.Positions.Length];
-            var bindings = MemoryMarshal.Cast<int, uint>(topology.BindingParticles.AsSpan());
+            var bindings = new LatticeBinding[mesh.Positions.Length];
+            var raw = MemoryMarshal.Cast<int, uint>(topology.BindingParticles.AsSpan());
             float extrapolation = 0f;
-            for (int v = 0; v < vertices.Length; v++)
+            for (int v = 0; v < bindings.Length; v++)
             {
-                var corners = bindings.Slice(v * 8, 8);
+                var corners = raw.Slice(v * 8, 8);
                 var cell = coordinates[v];
-                vertices[v] = new LatticeVertex
+                bindings[v] = new LatticeBinding
                 {
-                    Position = mesh.Positions[v],
-                    Normal = mesh.Normals[v],
-                    Tangent = mesh.Tangents[v],
-                    TexCoord = mesh.TexCoords[v],
                     Corners0 = new UInt4(corners[0], corners[1], corners[2], corners[3]),
                     Corners1 = new UInt4(corners[4], corners[5], corners[6], corners[7]),
                     Cell = cell,
@@ -105,29 +94,25 @@ internal sealed class GpuDeformation : IDisposable
 
             // A vertex inside its cell stays within the bounds of the particles; one beyond the lattice by a fraction of a cell, given cells stretched up to twice their size
             _latticeMargin = extrapolation * topology.Spacing * 2f;
-            Layout = LatticeVertex.Layout;
-            VertexBuffer = Buffer.Vertex.New(device, MemoryMarshal.AsBytes(vertices.AsSpan()));
+            BindingLayout = LatticeBinding.Layout;
+            BindingBuffer = Buffer.Vertex.New(device, MemoryMarshal.AsBytes(bindings.AsSpan()));
         }
         else
         {
             var (ring, ringStarts) = BuildRings(topology);
-            var vertices = new SurfaceVertex[mesh.Positions.Length];
-            for (int v = 0; v < vertices.Length; v++)
+            var bindings = new SurfaceBinding[mesh.Positions.Length];
+            for (int v = 0; v < bindings.Length; v++)
             {
-                vertices[v] = new SurfaceVertex
+                bindings[v] = new SurfaceBinding
                 {
-                    Position = mesh.Positions[v],
-                    Normal = mesh.Normals[v],
-                    Tangent = mesh.Tangents[v],
-                    TexCoord = mesh.TexCoords[v],
                     Particle = (uint)topology.BindingParticles[v],
                     RingStart = (uint)ringStarts[v],
                     RingCount = (uint)(ringStarts[v + 1] - ringStarts[v]),
                 };
             }
 
-            Layout = SurfaceVertex.Layout;
-            VertexBuffer = Buffer.Vertex.New(device, MemoryMarshal.AsBytes(vertices.AsSpan()));
+            BindingLayout = SurfaceBinding.Layout;
+            BindingBuffer = Buffer.Vertex.New(device, MemoryMarshal.AsBytes(bindings.AsSpan()));
             // A structured buffer cannot be empty
             _ringBuffer = Buffer.Structured.New(device, MemoryMarshal.AsBytes(ring.Length > 0 ? ring.AsSpan() : [default]), Marshal.SizeOf<RingTriangle>());
         }
@@ -234,7 +219,7 @@ internal sealed class GpuDeformation : IDisposable
 
     public void Dispose()
     {
-        VertexBuffer.Dispose();
+        BindingBuffer.Dispose();
         _particleBuffer.Dispose();
         _ringBuffer?.Dispose();
     }
