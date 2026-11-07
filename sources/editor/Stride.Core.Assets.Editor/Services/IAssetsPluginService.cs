@@ -66,4 +66,16 @@ public interface IAssetsPluginService : IPresentationPluginService
     /// <param name="sessionPath">The session's file, or null for a session that has none yet (a new project).</param>
     [Experimental("STREXP002")]
     ICompanionPackageFilter? GetCompanionPackageFilter(UFile? sessionPath) => null;
+
+    /// <summary>
+    /// Whether the editor runs in safe mode: only the built-in Editor packages load (<see cref="BuiltInPlugins"/>).
+    /// </summary>
+    [Experimental("STREXP002")]
+    bool SafeMode => false;
+
+    /// <summary>
+    /// The marker written while the plugins join a session (<see cref="PluginLoadingMarker"/>), or null.
+    /// </summary>
+    [Experimental("STREXP002")]
+    PluginLoadingMarker? LoadingMarker => null;
 }

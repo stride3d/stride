@@ -37,6 +37,29 @@ public sealed class StartupOptionsTests
     }
 
     [Fact]
+    public void SafeModeIsKeptOnARestart()
+    {
+        var options = StartupOptions.Parse(["--safe-mode", "/home/user/MyGame/MyGame.sln"]);
+
+        Assert.True(options.SafeMode);
+        Assert.Equal("/home/user/MyGame/MyGame.sln", options.InitialSessionPath?.FullPath);
+        Assert.Empty(options.UnknownArguments);
+        Assert.Equal(["--safe-mode", "/NewProject"], options.GetRestartArguments(null, launcherNotified: true));
+    }
+
+    [Fact]
+    public void SafeModeChosenAfterACrashIsKeptOnARestartOnce()
+    {
+        var options = StartupOptions.Parse(["--safe-mode"]);
+        Assert.False(StartupOptions.Parse([]).SafeMode);
+
+        // Chosen again from the offer after a crash: still one argument
+        options.EnableSafeMode();
+
+        Assert.Equal(["--safe-mode", "/NewProject"], options.GetRestartArguments(null, launcherNotified: true));
+    }
+
+    [Fact]
     public void ThePathArgumentIsTheSessionToOpen()
     {
         var options = StartupOptions.Parse(["/DisableThumbnails", "/DisablePreview", "/DebugEditorGraphics", "C:/Games/MyGame/MyGame.sln"]);

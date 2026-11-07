@@ -180,6 +180,72 @@ public sealed class TestPluginStates : IDisposable
     }
 
     [Fact]
+    public void InSafeModeAPluginClassOutsideTheEditorAndTheBuiltInPackagesDoesNotJoin()
+    {
+        // The test assembly stands for an assembly of the session (the game's, or a package it references): not an Editor
+        // companion, so the filter never saw it
+        var plugin = new TestEditorPluginHost.NoScanPlugin();
+        var host = new RecordingEditorPluginHost([plugin]) { SafeMode = true, IsEditorAssembly = _ => false };
+        var log = new LoggerResult();
+        try
+        {
+            host.GetCompanionPackageFilter(new UFile("/Projects/Game/Game.sln"));
+            host.RegisterSession(new FakeSession(), log);
+
+            Assert.DoesNotContain(plugin, host.SessionPlugins);
+            var name = typeof(TestEditorPluginHost.NoScanPlugin).Assembly.GetName().Name;
+            var status = Assert.Single(host.PluginStatuses);
+            Assert.Equal((name, PluginState.Off, (PluginOffReason?)PluginOffReason.SafeMode), (status.Name, status.State, status.OffReason));
+            Assert.Single(log.Messages, x => x.Text.Contains("does not join the session: Game Studio runs in safe mode", StringComparison.Ordinal));
+        }
+        finally
+        {
+            host.Dispose();
+        }
+    }
+
+    [Fact]
+    public void APluginClassOfASwitchedOffPackageDoesNotJoinHoweverItWasLoaded()
+    {
+        var plugin = new TestEditorPluginHost.NoScanPlugin();
+        var other = new TestEditorPluginHost.NoScanPlugin();
+        var name = typeof(TestEditorPluginHost.NoScanPlugin).Assembly.GetName().Name!;
+        var host = new RecordingEditorPluginHost([plugin]) { DisabledCompanions = CreateStore(), IsEditorAssembly = _ => false };
+        var game = new UFile("/Projects/Game/Game.sln");
+        host.DisabledCompanions.Set(game, name, switchedOff: true);
+        try
+        {
+            host.GetCompanionPackageFilter(game);
+            host.RegisterSession(new FakeSession(), new LoggerResult());
+
+            Assert.DoesNotContain(plugin, host.SessionPlugins);
+            var status = Assert.Single(host.PluginStatuses);
+            Assert.Equal((name, PluginState.Off, (PluginOffReason?)PluginOffReason.SwitchedOff), (status.Name, status.State, status.OffReason));
+        }
+        finally
+        {
+            host.Dispose();
+        }
+
+        // Without anything switched off, and out of safe mode, it joins; and so does a plugin of the editor itself in safe mode
+        var normal = new RecordingEditorPluginHost([other]) { IsEditorAssembly = _ => false };
+        var safe = new RecordingEditorPluginHost([plugin]) { SafeMode = true };
+        try
+        {
+            normal.RegisterSession(new FakeSession(), new LoggerResult());
+            safe.RegisterSession(new FakeSession(), new LoggerResult());
+            Assert.Contains(other, normal.SessionPlugins);
+            Assert.Contains(plugin, safe.SessionPlugins);
+            Assert.Empty(safe.PluginStatuses.Where(x => x.State == PluginState.Off));
+        }
+        finally
+        {
+            normal.Dispose();
+            safe.Dispose();
+        }
+    }
+
+    [Fact]
     public void WithoutStoreNothingIsSwitchedOff()
     {
         var host = new RecordingEditorPluginHost([]);

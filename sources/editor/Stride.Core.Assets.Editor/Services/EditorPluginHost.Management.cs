@@ -2,7 +2,10 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+using System.Runtime.Loader;
 using Stride.Core.Assets.Editor.Settings;
+using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 
 #nullable enable
@@ -20,6 +23,13 @@ public abstract partial class EditorPluginHost
     public bool SafeMode { get; set; }
 
     /// <summary>
+    /// The marker written while the plugins join a session and removed once it has opened (<see cref="InitializeSession"/>),
+    /// or null to write none (tests, other hosts). The editors set the user's (<see cref="PluginLoadingMarker.CreateDefault"/>).
+    /// </summary>
+    [Experimental("STREXP002")]
+    public PluginLoadingMarker? LoadingMarker { get; set; }
+
+    /// <summary>
     /// Where the Editor packages switched off per session are kept, or null when nothing is switched off (tests, other hosts).
     /// The editors set the user's store (<see cref="DisabledEditorCompanionStore.CreateDefault"/>).
     /// </summary>
@@ -35,7 +45,44 @@ public abstract partial class EditorPluginHost
     public ICompanionPackageFilter GetCompanionPackageFilter(UFile? sessionPath)
     {
         var switchedOff = sessionPath is not null && DisabledCompanions is { } store ? store.Get(sessionPath) : [];
-        return new EditorCompanionFilter(switchedOff, SafeMode, RecordOff);
+        return companionFilter = new EditorCompanionFilter(switchedOff, SafeMode, RecordOff);
+    }
+
+    // The filter of the session being opened: a plugin class of a package it leaves out stays out, however it was loaded
+    private EditorCompanionFilter? companionFilter;
+
+    /// <summary>
+    /// Whether an assembly is part of the editor itself (its plugins always join): by default, one loaded in the default load
+    /// context, where the packages of a session never load. Tests replace it.
+    /// </summary>
+    internal Func<Assembly, bool> IsEditorAssembly { get; set; } = assembly => AssemblyLoadContext.GetLoadContext(assembly) == AssemblyLoadContext.Default;
+
+    // The filter only sees the Editor companions: a plugin class can also come in another assembly of the session (the game's
+    // own, a package it references, a package switched off but still reached as a NuGet dependency). In safe mode only the
+    // editor's own plugins and those of the built-in packages join; otherwise the plugins of a package switched off don't.
+    private bool IsLeftOut(AssetsPlugin plugin)
+    {
+        var assembly = plugin.GetType().Assembly;
+        if (assembly.GetName() is not { Name: { } name } assemblyName || IsEditorAssembly(assembly))
+            return false;
+        var version = assemblyName.Version is { } v ? new PackageVersion(new Version(v.Major, v.Minor, Math.Max(v.Build, 0))) : null;
+        if (BuiltInPlugins.IsBuiltIn(name, version))
+            return false;
+
+        PluginOffReason reason;
+        if (SafeMode)
+            reason = PluginOffReason.SafeMode;
+        else if (companionFilter is { } filter && filter.SwitchedOff.Contains(name))
+            reason = PluginOffReason.SwitchedOff;
+        else
+            return false;
+
+        if (RecordOffOnce(name, reason))
+        {
+            var why = reason == PluginOffReason.SafeMode ? "Game Studio runs in safe mode" : "its package is switched off";
+            PluginsLogger.Info($"The plugin [{plugin.GetType().FullName}] of [{name}] does not join the session: {why}.");
+        }
+        return true;
     }
 
     /// <summary>
@@ -52,17 +99,21 @@ public abstract partial class EditorPluginHost
 
     // A package left out by the session's filter: nothing of it was loaded, so it is known by its package name. Called on the
     // thread that loads the session, before the plugins join it.
-    private void RecordOff(string packageName, PluginOffReason reason)
+    private void RecordOff(string packageName, PluginOffReason reason) => RecordOffOnce(packageName, reason);
+
+    // False when it was already recorded with that reason
+    private bool RecordOffOnce(string packageName, PluginOffReason reason)
     {
         PluginStatus status;
         lock (statusLock)
         {
             if (unloadedStatuses.TryGetValue(packageName, out var existing) && existing.Entry.State == PluginState.Off && existing.Entry.OffReason == reason)
-                return;
+                return false;
             var entry = new StatusEntry { State = PluginState.Off, OffReason = reason };
             unloadedStatuses[packageName] = (packageName, entry);
             status = entry.Snapshot(packageName);
         }
         PluginStatusChanged?.Invoke(this, new PluginStatusChangedEventArgs(null, status.Name, status));
+        return true;
     }
 }

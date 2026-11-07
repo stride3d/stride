@@ -71,7 +71,12 @@ partial class SessionViewModel
     /// Creates a new session from a template (a new project), and opens it.
     /// </summary>
     /// <returns>The session, or <c>null</c> when the template could not be run.</returns>
-    public static async Task<SessionViewModel?> CreateNewSessionAsync(NewSessionParameters newSessionParameters, IMainViewModel main, IViewModelServiceProvider serviceProvider)
+    public static Task<SessionViewModel?> CreateNewSessionAsync(NewSessionParameters newSessionParameters, IMainViewModel main, IViewModelServiceProvider serviceProvider)
+    {
+        return WithLoadingMarkerAsync(serviceProvider, null, () => CreateNewSessionCoreAsync(newSessionParameters, main, serviceProvider));
+    }
+
+    private static async Task<SessionViewModel?> CreateNewSessionCoreAsync(NewSessionParameters newSessionParameters, IMainViewModel main, IViewModelServiceProvider serviceProvider)
     {
         var loggerResult = new LoggerResult();
         var session = new PackageSession
@@ -166,9 +171,34 @@ partial class SessionViewModel
     /// Opens the session of the given solution or package file.
     /// </summary>
     /// <returns>The session, or <c>null</c> when it could not be opened or the opening was cancelled.</returns>
-    public static async Task<SessionViewModel?> OpenSessionAsync(UFile path, PackageSessionResult sessionResult, IMainViewModel main, IViewModelServiceProvider serviceProvider, CancellationToken token = default)
+    public static Task<SessionViewModel?> OpenSessionAsync(UFile path, PackageSessionResult sessionResult, IMainViewModel main, IViewModelServiceProvider serviceProvider, CancellationToken token = default)
     {
         ArgumentNullException.ThrowIfNull(path);
+        return WithLoadingMarkerAsync(serviceProvider, path, () => OpenSessionCoreAsync(path, sessionResult, main, serviceProvider, token));
+    }
+
+    // The plugins join the session while it loads: the editor's marker says so until the session has opened (the plugin host
+    // removes it once they have initialized it), so that a crash meanwhile is known at the next start. A session that failed
+    // to open, or whose opening was cancelled, did not crash: its marker goes at once.
+    private static async Task<SessionViewModel?> WithLoadingMarkerAsync(IViewModelServiceProvider serviceProvider, UFile? path, Func<Task<SessionViewModel?>> open)
+    {
+        var marker = serviceProvider.TryGet<IAssetsPluginService>()?.LoadingMarker;
+        marker?.Write(path);
+        SessionViewModel? session = null;
+        try
+        {
+            session = await open();
+            return session;
+        }
+        finally
+        {
+            if (session is null)
+                marker?.Remove();
+        }
+    }
+
+    private static async Task<SessionViewModel?> OpenSessionCoreAsync(UFile path, PackageSessionResult sessionResult, IMainViewModel main, IViewModelServiceProvider serviceProvider, CancellationToken token)
+    {
 
         var undoRedoService = RegisterSessionServices(serviceProvider);
 

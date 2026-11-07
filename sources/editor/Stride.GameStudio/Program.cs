@@ -64,6 +64,10 @@ public static partial class Program
     private static bool enableThumbnailServices = true;
     private static bool resetGraphicsApiPreference;
     private static bool launcherNotified;
+    // --safe-mode, or chosen after a start that died while plugins were loading: only the plugins of Stride load
+    private static bool safeMode;
+    // The AutoTesting host drives the editor itself: no marker, no question at startup
+    private static bool offerSafeMode = true;
     private static Mutex instanceMutex;
     private static readonly string AppDllPath = typeof(Program).Assembly.Location;
 
@@ -130,6 +134,7 @@ public static partial class Program
     public static void Run(IList<string> args, Action<Application, Dispatcher>? appHosted = null)
     {
         diagLogEnabled = appHosted != null;
+        offerSafeMode = appHosted == null;
         DiagLog($"Run entered. args=[{string.Join(", ", args)}]");
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
         AppDomain.CurrentDomain.UnhandledException -= StartupFailureDialog;
@@ -204,6 +209,11 @@ public static partial class Program
                 {
                     Forward(args[i]);
                     enableThumbnailServices = false;
+                }
+                else if (args[i] == "--safe-mode")
+                {
+                    Forward(args[i]);
+                    safeMode = true;
                 }
                 else if (args[i] == "/DisablePreview")
                 {
@@ -418,6 +428,20 @@ public static partial class Program
                 return;
             }
 
+            // The last start died while plugins were loading: offer safe mode once, before any session loads (the question
+            // replaces the one about the startup session that failed to load)
+            if (offerSafeMode && serviceProvider.Get<IAssetsPluginService>() is PluginService { LoadingMarker: { } marker } plugins && marker.FindLeftBehind().Count > 0)
+            {
+                if (await marker.OfferSafeModeAsync(serviceProvider.Get<IDialogService>()) && !safeMode)
+                {
+                    safeMode = true;
+                    plugins.SafeMode = true;
+                    Forward("--safe-mode");
+                }
+                InternalSettings.LoadingStartupSession.SetValue(false);
+                InternalSettings.Save();
+            }
+
             // We use a MRU that contains the older version projects to display in the editor
             var mru = new MostRecentlyUsedFileCollection(InternalSettings.LoadProfileCopy, GameStudioInternalSettings.MostRecentlyUsedSessions, InternalSettings.SaveProfile);
             mru.LoadFromSettings();
@@ -608,7 +632,8 @@ public static partial class Program
         var dispatcherService = new DispatcherService(Dispatcher.CurrentDispatcher);
         var dialogService = new StrideDialogService(dispatcherService, StrideGameStudio.EditorName);
         // The plugins switched off per session are the user's, in the internal settings both editors read
-        var pluginService = new PluginService { DisabledCompanions = DisabledEditorCompanionStore.CreateDefault() };
+        // (and safe mode, and the marker of a start that dies while plugins load, beside the user's settings)
+        var pluginService = new PluginService { DisabledCompanions = DisabledEditorCompanionStore.CreateDefault(), SafeMode = safeMode, LoadingMarker = offerSafeMode ? PluginLoadingMarker.CreateDefault() : null };
         var services = new List<object>{ new DispatcherService(Dispatcher.CurrentDispatcher), dialogService, pluginService };
         if (renderDocManager != null)
             services.Add(renderDocManager);

@@ -367,6 +367,8 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginCo
         foreach (var plugin in Plugins.ToList())
             TryInitializeSession(plugin, session);
         sessionOpened = true;
+        // The plugins have joined and initialized the session: a crash from now on is not one while they load
+        LoadingMarker?.Remove();
     }
 
     /// <summary>
@@ -472,8 +474,9 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginCo
     // other plugins still join
     private bool TryJoin(AssetsPlugin plugin, ISessionViewModel session)
     {
-        if (!sessionPlugins.Add(plugin))
+        if (sessionPlugins.Contains(plugin) || IsLeftOut(plugin))
             return false;
+        sessionPlugins.Add(plugin);
 
         var record = GetRecord(plugin);
         var undoCount = record.Count;
