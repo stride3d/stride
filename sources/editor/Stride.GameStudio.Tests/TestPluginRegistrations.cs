@@ -52,7 +52,6 @@ public class TestPluginRegistrations
         // The plugins of the core editor and of the Game Studio are internal
         yield return Create(typeof(Stride.Core.Assets.Editor.View.ValueConverters.TypeToResource).Assembly, "Stride.Core.Assets.Editor.CoreAssetsEditorPlugin");
         yield return CreateDefaultAssetsPlugin();
-        yield return new StrideSharedAssetsPlugin();
         yield return Create(typeof(PluginService).Assembly, "Stride.GameStudio.Plugin.StrideEditorPlugin");
         yield return new UIEditorPlugin();
         yield return new UIEditorWpfPlugin();
@@ -60,11 +59,11 @@ public class TestPluginRegistrations
         yield return new SpriteStudioEditorWpfPlugin();
     }
 
-    private static StrideDefaultAssetsPlugin CreateDefaultAssetsPlugin()
+    private static StrideDefaultAssetsWpfPlugin CreateDefaultAssetsPlugin()
     {
         try
         {
-            return new StrideDefaultAssetsPlugin();
+            return new StrideDefaultAssetsWpfPlugin();
         }
         catch (InvalidOperationException e) when (e.Message.StartsWith($"Could not find package {StrideDefaultTemplates.AssetTemplatesPackageName} ", StringComparison.Ordinal))
         {

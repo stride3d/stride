@@ -1,15 +1,15 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Tools;
-using Stride.Assets.Presentation.AssetEditors.GameEditor;
-using Stride.Assets.Presentation.AssetEditors.Gizmos;
-using Stride.Assets.Presentation.SceneEditor;
 using Stride.Core;
 using Stride.Editor.EditorGame.Tools;
 using Stride.Engine;
 using Stride.Input;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools;
+using Stride.Assets.Editor.AssetEditors.GameEditor;
+using Stride.Assets.Editor.AssetEditors.Gizmos;
+using Stride.Assets.Editor.SceneEditor;
 
 namespace Stride.Assets.Editor.EditorGame.Tools;
 

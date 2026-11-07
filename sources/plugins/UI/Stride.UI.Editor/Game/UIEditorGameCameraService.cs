@@ -12,6 +12,7 @@ using Stride.Editor.EditorGame.Game;
 using Stride.Engine;
 using Stride.Input;
 using Stride.UI.Editor.Services;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 
 namespace Stride.UI.Editor.Game
 {

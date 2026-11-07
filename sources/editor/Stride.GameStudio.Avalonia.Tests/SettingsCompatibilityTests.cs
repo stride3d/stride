@@ -5,7 +5,6 @@ using System.Globalization;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.VisualTree;
-using Stride.Assets.Presentation.SceneEditor;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor;
 using Stride.Core.Assets.Editor.Annotations;
@@ -19,6 +18,7 @@ using Stride.Editor.Settings;
 using Stride.GameStudio.Avalonia.Settings;
 using Stride.GameStudio.Avalonia.Tests.Helpers;
 using Stride.GameStudio.Avalonia.Views;
+using Stride.Assets.Editor.SceneEditor;
 
 namespace Stride.GameStudio.Avalonia.Tests;
 

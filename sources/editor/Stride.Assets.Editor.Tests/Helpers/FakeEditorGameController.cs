@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Quantum;
@@ -11,6 +10,7 @@ using Stride.Editor.EditorGame.ContentLoader;
 using Stride.Editor.EditorGame.ViewModels;
 using Stride.Editor.Engine;
 using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 
 namespace Stride.Assets.Editor.Tests.Helpers;
 

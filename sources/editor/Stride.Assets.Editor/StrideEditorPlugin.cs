@@ -8,10 +8,7 @@ using Stride.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Assets.Editor.Quantum.NodePresenters.Updaters;
 using Stride.Assets.Editor.EntityFactories;
 using Stride.Assets.Editor.ViewModels;
-using Stride.Assets.Presentation.AssetEditors.ScriptEditor;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
-using Stride.Assets.Presentation.SceneEditor;
-using Stride.Assets.Presentation.ViewModel.CopyPasteProcessors;
 using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Annotations;
@@ -32,6 +29,9 @@ using Stride.Editor.Thumbnails;
 using Stride.Engine.Gizmos;
 using Stride.Core.Assets.Presentation.Components.Properties;
 using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Assets.Editor.AssetEditors.ScriptEditor;
+using Stride.Assets.Editor.SceneEditor;
+using Stride.Assets.Editor.ViewModels.CopyPasteProcessors;
 
 namespace Stride.Assets.Editor;
 
@@ -42,7 +42,9 @@ namespace Stride.Assets.Editor;
 /// </summary>
 /// <remarks>
 /// The preview service and the views belong to the toolkit companion (<c>Stride.Assets.Editor.Avalonia</c>).
+/// A default plugin of the cross-platform editor: its host registers it (<c>Stride.Assets.Editor.Avalonia</c>), the discovery skips it.
 /// </remarks>
+[EditorDefaultPlugin]
 public sealed class StrideEditorPlugin : StrideAssetsPlugin
 {
     /// <summary>

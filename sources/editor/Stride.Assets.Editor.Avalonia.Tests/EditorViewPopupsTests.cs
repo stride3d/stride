@@ -10,8 +10,6 @@ using Stride.Assets.Editor.Avalonia.Views;
 using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Editor.Avalonia.Tests.Helpers;
 using Stride.Assets.Editor.ViewModels;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Quantum;
@@ -28,6 +26,8 @@ using Stride.Engine;
 using Stride.Physics;
 using Stride.Physics.Editor;
 using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Services;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 
 namespace Stride.Assets.Editor.Avalonia.Tests;
 

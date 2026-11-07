@@ -218,7 +218,7 @@ public class EditorScreenshotTests
             ["platforms"] = "windows",
         });
 
-        StrideDefaultAssetsPlugin.LoadDefaultTemplates();
+        StrideDefaultAssetsWpfPlugin.LoadDefaultTemplates();
         var template = TemplateManager.FindTemplates(session).FirstOrDefault(t => t.Id == templateGuid)
             ?? throw new InvalidOperationException($"Template {templateGuid} not found in catalog");
         parameters.Description = template;

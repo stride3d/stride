@@ -6,8 +6,8 @@ using Avalonia.Headless.XUnit;
 using Avalonia.Media;
 using Stride.Assets.Editor.Avalonia.Converters;
 using Stride.Assets.Editor.Tests.Helpers;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Tools;
 using Stride.Core.Assets.Editor.Editors;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools;
 
 namespace Stride.Assets.Editor.Avalonia.Tests;
 

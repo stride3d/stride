@@ -8,10 +8,9 @@ using Stride.Core.Assets;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Quantum;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Editor.EditorGame.ContentLoader;
 using Stride.Navigation;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 
 namespace Stride.Physics.Editor;
 

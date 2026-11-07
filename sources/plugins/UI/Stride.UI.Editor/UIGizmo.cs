@@ -4,6 +4,7 @@
 using Stride.Assets.Presentation.AssetEditors.Gizmos;
 using Stride.Engine;
 using Stride.Engine.Gizmos;
+using Stride.Assets.Editor.AssetEditors.Gizmos;
 
 namespace Stride.UI.Editor
 {

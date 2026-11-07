@@ -49,7 +49,7 @@
     </ProjectReference>
     <!-- The toolkit-neutral editor assemblies (net10.0) that the Editor project of the plugin template references: it builds
          with the game on every platform, unlike the WPF editor packages below -->
-    <ProjectReference Include="..\..\..\sources\editor\Stride.Assets.Presentation.Common\Stride.Assets.Presentation.Common.csproj">
+    <ProjectReference Include="..\..\..\sources\editor\Stride.Assets.Editor\Stride.Assets.Editor.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>

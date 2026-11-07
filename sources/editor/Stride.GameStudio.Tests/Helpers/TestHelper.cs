@@ -3,8 +3,8 @@
 using System;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Quantum;
-using Stride.Assets.Presentation.ViewModel.CopyPasteProcessors;
 using Stride.Core.Assets.Editor.Components.CopyPasteProcessors;
+using Stride.Assets.Editor.ViewModels.CopyPasteProcessors;
 
 namespace Stride.GameStudio.Tests.Helpers
 {

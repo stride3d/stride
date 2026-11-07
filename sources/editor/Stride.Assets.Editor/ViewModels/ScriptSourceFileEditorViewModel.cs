@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Text;
-using Stride.Assets.Presentation.AssetEditors.ScriptEditor;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Editors;
@@ -12,6 +11,7 @@ using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Translation;
+using Stride.Assets.Editor.AssetEditors.ScriptEditor;
 
 namespace Stride.Assets.Editor.ViewModels;
 

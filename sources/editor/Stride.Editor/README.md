@@ -15,7 +15,7 @@ service, and the session-bound services that build assets for the editor games a
 * It does not reference `Stride.Assets.Models`, and uses `Stride.Assets` only for what the editor games share: the game
   settings (with the editor and rendering settings), the platform configuration, the default font and the render features.
   The services that work on other Stride asset types (the shader importer, the content loader, the preview compilers) are
-  in `Stride.Assets.Presentation.Common`. Its content loader asks `GameStudioDatabase.AnalyzeDependencies` which assets
+  in `Stride.Assets.Editor`. Its content loader asks `GameStudioDatabase.AnalyzeDependencies` which assets
   depend on a modified one.
 
 ## Implementations

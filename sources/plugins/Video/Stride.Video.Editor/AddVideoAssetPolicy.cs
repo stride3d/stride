@@ -10,6 +10,7 @@ using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Engine;
 using Stride.Video.Assets;
 using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.ViewModels;
 
 namespace Stride.Video.Editor
 {

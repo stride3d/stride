@@ -421,7 +421,7 @@ public static partial class Program
             var mru = new MostRecentlyUsedFileCollection(InternalSettings.LoadProfileCopy, GameStudioInternalSettings.MostRecentlyUsedSessions, InternalSettings.SaveProfile);
             mru.LoadFromSettings();
             var editor = new GameStudioViewModel(serviceProvider, mru);
-            AssetsPlugin.RegisterPlugin(typeof(StrideDefaultAssetsPlugin));
+            AssetsPlugin.RegisterPlugin(typeof(StrideDefaultAssetsWpfPlugin));
             var strideEditorPlugin = (StrideEditorPlugin)AssetsPlugin.RegisterPlugin(typeof(StrideEditorPlugin));
             strideEditorPlugin.EnableThumbnailService = enableThumbnailServices;
 

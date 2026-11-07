@@ -117,7 +117,7 @@ xmlns:loc="using:Stride.Core.Presentation.Avalonia.MarkupExtensions"
 |--------|-----------------|
 | `Stride.Core.Presentation` | `sources/presentation/Stride.Core.Presentation` |
 | `Stride.Core.Presentation.Wpf` | `sources/presentation/Stride.Core.Presentation.Wpf` |
-| `Stride.Assets.Presentation.Wpf` | `sources/editor/Stride.Assets.Presentation.Wpf` |
+| `Stride.Assets.Editor.Wpf` | `sources/editor/Stride.Assets.Editor.Wpf` |
 | `Stride.Core.Assets.Editor.Wpf` | `sources/editor/Stride.Core.Assets.Editor.Wpf` |
 | `Stride.Core.Assets.Presentation` | `sources/editor/Stride.Core.Assets.Presentation` |
 | `Stride.Core.Assets.Editor` | `sources/editor/Stride.Core.Assets.Editor` |
