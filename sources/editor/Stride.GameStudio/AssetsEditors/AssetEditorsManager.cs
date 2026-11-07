@@ -291,7 +291,7 @@ namespace Stride.GameStudio.AssetsEditors
         /// Opens (and activates) an editor window for the given asset. If an editor window for this asset already exists, simply activates it.
         /// </summary>
         /// <param name="asset">The asset for which to show an editor window.</param>
-        /// <param name="saveSettings">True if <see cref="MRUAdditionalData.OpenedAssets"/> should be updated, false otherwise. Note that if the editor fail to load it will not be updated.</param>
+        /// <param name="saveSettings">True if <see cref="Stride.Core.Assets.Editor.Settings.MRUAdditionalData.OpenedAssets"/> should be updated, false otherwise. Note that if the editor fail to load it will not be updated.</param>
         /// <param name="editorPane">The pane in which to show the editor window if the asset has no editor yet, or null to look for it or create it.</param>
         /// <param name="activate">True if the editor window should be activated, false otherwise.</param>
         /// <returns></returns>

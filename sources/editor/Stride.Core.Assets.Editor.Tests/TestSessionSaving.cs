@@ -52,6 +52,8 @@ public sealed class TestSessionSaving
         Assert.True(SpinWait.SpinUntil(() => fixture.Session.ActionHistory.Transactions.Last().IsSavePoint, TimeSpan.FromSeconds(10)));
         // The progress window of the opening, then the one of the save
         Assert.Equal(2, fixture.Dialogs.ProgressWindows.Count);
+        // As in WPF, a save that takes less than half a second shows no window
+        Assert.Equal(500, fixture.Dialogs.ProgressWindowDelays[^1]);
         Assert.Empty(fixture.Dialogs.Messages);
     }
 

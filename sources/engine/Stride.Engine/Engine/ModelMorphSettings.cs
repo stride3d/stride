@@ -60,6 +60,13 @@ public sealed class ModelMorphSettings
         }
     }
 
+    // Saved only when there is a weight, as missing weights are 0
+    private bool ShouldSerializeWeights() => Weights.Count > 0;
+
+    // Whether these are the settings of a new component, which the component doesn't save
+    [DataMemberIgnore]
+    internal bool IsDefault => Enabled && Weights.Count == 0;
+
     // Bumped by any authored change, so that the component reapplies the authored weights on its next frame.
     [DataMemberIgnore]
     internal int Version

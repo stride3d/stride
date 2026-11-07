@@ -18,6 +18,11 @@ public interface IAssetsPluginService
 
     object? GetImageForEnum(ISessionViewModel? session, object value);
 
+    /// <summary>
+    /// Gets the image that the plugins register or declare for <paramref name="type"/> itself (not for its base types), or null.
+    /// </summary>
+    object? GetImageForType(Type type) => null;
+
     bool HasEditorView(ISessionViewModel session, Type viewModelType);
 
     Type? GetAssetViewModelType(Type assetType);
@@ -46,4 +51,10 @@ public interface IAssetsPluginService
     /// Gets the settings that the plugins add to the properties of the packages.
     /// </summary>
     IEnumerable<PackageSettingsEntry> GetProfileSettings();
+
+    /// <summary>
+    /// Gets the tools of the views of the game editors that the plugins register (<see cref="IEditorPluginContext.EditorViewToolTypes"/>),
+    /// each type once, in registration order. Safe to read from any thread.
+    /// </summary>
+    IReadOnlyList<Type> GetEditorViewToolTypes() => [];
 }

@@ -53,6 +53,10 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
         [NotNull]
         protected internal virtual IEditorGameController Controller { get; }
 
+        /// <inheritdoc/>
+        /// <remarks>The game reads the scene editor settings, which the plugins register, on every frame.</remarks>
+        public override Task Stopped => Controller.GameEnded;
+
         [NotNull]
         public ICommandBase CopyErrorToClipboardCommand { get; }
 

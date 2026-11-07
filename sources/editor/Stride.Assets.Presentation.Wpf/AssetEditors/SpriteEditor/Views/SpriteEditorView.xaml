@@ -31,7 +31,7 @@
           Gesture="{sd:KeyGesture {x:Static strings:KeyGestures.GestureSelectPreviousSprite}}"/>
     <KeyBinding Command="{Binding SelectNextSpriteCommand}" CommandParameter="{sd:Int 1}"
           Gesture="{sd:KeyGesture {x:Static strings:KeyGestures.GestureSelectNextSprite}}"/>
-    <KeyBinding Command="{Binding AddNewSpriteCommand}" Gesture="{sd:KeyGesture {x:Static strings:KeyGestures.GestureNewSprite}}"/>
+    <KeyBinding Command="{Binding AddNewImageCommand}" Gesture="{sd:KeyGesture {x:Static strings:KeyGestures.GestureNewSprite}}"/>
     <KeyBinding Command="{Binding DuplicateSelectedImagesCommand}" Gesture="{sd:KeyGesture {x:Static strings:KeyGestures.GestureDuplicateSelection}}"/>
     <KeyBinding Command="{Binding UseWholeImageCommand}" Gesture="{sd:KeyGesture {x:Static strings:KeyGestures.GestureSelectWholeImage}}"/>
     <KeyBinding Command="{x:Static view:SpriteEditorView.ActivateMagicWand}" Key="{sd:Key {x:Static strings:KeyGestures.GestureMagicWand}}"/>

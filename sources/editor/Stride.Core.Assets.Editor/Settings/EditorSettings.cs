@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Runtime.CompilerServices;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
@@ -12,8 +13,8 @@ namespace Stride.Core.Assets.Editor.Settings;
 
 public static class EditorSettings
 {
-    private static SettingsProfile? profile;
-    public static SettingsContainer SettingsContainer { get; } = new();
+    // One container with the keys declared in the shared projects (ExternalToolsSettings...), which the WPF editor reads too
+    public static SettingsContainer SettingsContainer { get; } = SharedEditorSettings.SettingsContainer;
 
     public static readonly string AlwaysDeleteWithoutAsking = Tr._p("Settings", "Always delete {0} without asking");
     public static readonly string AlwaysSaveNewScriptsWithoutAsking = Tr._p("Settings", "Always save new scripts without asking");
@@ -28,6 +29,8 @@ public static class EditorSettings
 
     static EditorSettings()
     {
+        // The External tools keys are declared in the shared project
+        RuntimeHelpers.RunClassConstructor(typeof(ExternalToolsSettings).TypeHandle);
         AskBeforeDeletingAssets = new SettingsKey<bool>("Interface/AskBeforeDeletingAssets", SettingsContainer, true)
         {
             DisplayName = $"{Interface}/{Tr._p("Settings", "Ask before deleting assets")}",
@@ -156,7 +159,7 @@ public static class EditorSettings
 
     public static void Initialize()
     {
-        profile = SettingsContainer.LoadSettingsProfile(EditorPath.EditorConfigPath, true) ?? SettingsContainer.CreateSettingsProfile(true);
+        SharedEditorSettings.Load(EditorPath.EditorConfigPath);
 
         // Settings that requires a restart must register here
         UseEffectCompilerServer.ChangesValidated += (_, _) => NeedRestart = true;
@@ -167,7 +170,7 @@ public static class EditorSettings
 
     public static void Save()
     {
-        SettingsContainer.SaveSettingsProfile(profile!, EditorPath.EditorConfigPath);
+        SharedEditorSettings.Save();
     }
 
     public static IEnumerable<SettingsCommand> GetAllCommands()

@@ -36,7 +36,7 @@ flowchart LR
 | Editor Tier 2 | `AssetViewModel<T>` subclass | `Stride.Assets.Presentation.Wpf` | `sources/editor/Stride.Assets.Presentation.Wpf/ViewModel/` |
 | Editor Tier 3 VM | `AssetEditorViewModel` subclass | `Stride.Assets.Presentation.Wpf` | `sources/editor/Stride.Assets.Presentation.Wpf/AssetEditors/` |
 | Editor Tier 3 View | `IEditorView` XAML control | `Stride.Assets.Presentation.Wpf` | `sources/editor/Stride.Assets.Presentation.Wpf/AssetEditors/` |
-| Template | `.sdtpl` YAML file | `Stride.Assets.Presentation.Wpf` | `sources/editor/Stride.Assets.Presentation.Wpf/Templates/Assets/` |
+| Template | `.sdtpl` YAML file | `Stride.Assets.Templates` (package shared by both editors) | `sources/editor/Stride.Assets.Templates/Templates/Assets/` |
 
 ## Choose a Base Class for the Asset
 

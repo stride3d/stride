@@ -137,12 +137,13 @@ public class FileVersionTracker : IDisposable
                     using var stream = new DigestStream(Stream.Null);
                     fileStream.CopyTo(stream);
                     hash = stream.CurrentHash;
+                    storage[inputVersionKey] = hash;
                 }
                 catch (Exception ex)
                 {
+                    // Not kept: the key may still describe a readable file (locked for now, or deleted then restored with its date)
                     log.Debug($"Cannot calculate hash for file [{filePath}]", ex);
                 }
-                storage[inputVersionKey] = hash;
             }
         }
 
@@ -171,10 +172,12 @@ public struct FileVersionKey : IEquatable<FileVersionKey>
         LastModifiedDate = DateTime.MinValue;
         FileSize = -1;
 
-        if (File.Exists(path))
+        // FileInfo reads the date and the size once, when Exists is read: a file deleted afterwards does not make Length throw
+        var fileInfo = new FileInfo(path);
+        if (fileInfo.Exists)
         {
-            LastModifiedDate = File.GetLastWriteTime(path);
-            FileSize = new FileInfo(path).Length;
+            LastModifiedDate = fileInfo.LastWriteTime;
+            FileSize = fileInfo.Length;
         }
     }
 

@@ -54,15 +54,13 @@ namespace Stride.Importer.ThreeD
 
         private static Assimp CreateAssimpApi()
         {
-            // On Windows the default loader picks the single shipped Assimp64.dll (Assimp 6.0.2).
+            // On Windows the default loader picks Stride.Dependencies.Assimp's Assimp64.dll.
             if (Platform.Type == PlatformType.Windows)
                 return Assimp.GetApi();
 
             // Silk.NET's Assimp binding still requests the legacy Assimp 5 SONAME (libassimp.so.5 /
-            // libassimp.5.dylib) even though its managed types match Assimp 6. Ultz.Native.Assimp 6.x
-            // ships both the old (.so.5) and new (.so.6) binaries, so the default loader binds the
-            // stale Assimp 5 lib on Linux/macOS and corrupts animation keys. Resolve the highest-version
-            // native library ourselves and build the API from it.
+            // libassimp.5.dylib) even though its managed types match Assimp 6. Stride.Dependencies.Assimp
+            // ships only the new one, so locate it ourselves and build the API from it.
             var libraryPath = NativeLibraryHelper.LocateLibrary("libassimp", typeof(MeshConverter));
             return new Assimp(Assimp.CreateDefaultContext([libraryPath]));
         }
@@ -102,16 +100,10 @@ namespace Stride.Importer.ThreeD
                     postProcessFlags |= aiPostProcessSteps.aiProcess_RemoveRedundantMaterials;
                 }
 
-                var scene = Initialize(inputFilename, outputFilename, importFlags, postProcessFlags);
-                // If scene is null, something went wrong inside Assimp
+                var scene = Initialize(inputFilename, outputFilename, importFlags, postProcessFlags, out var error);
                 if (scene == null)
                 {
-                    var error = assimp.GetErrorStringS();
-                    if (error.Length > 0)
-                    {
-                        Logger.Error($"Assimp: {error}");
-                    }
-
+                    Logger.Error(error);
                     return null;
                 }
 
@@ -182,6 +174,8 @@ namespace Stride.Importer.ThreeD
             if (deduplicateMaterials)
             {
                 scene = assimp.ApplyPostProcessing(scene, (uint)aiPostProcessSteps.aiProcess_RemoveRedundantMaterials);
+                if (scene == null)
+                    throw new InvalidOperationException(PostProcessingError(inputFilename));
             }
 
             var meshSlots = materialSlots != null ? FindMeshSlots(scene, meshMaterials, materialSlots) : null;
@@ -256,7 +250,21 @@ namespace Stride.Importer.ThreeD
             return ProcessSkeleton(scene);
         }
 
+        /// <summary>
+        /// Imports and post-processes a file, and throws when Assimp can't read it.
+        /// </summary>
         private unsafe Scene* Initialize(string inputFilename, string outputFilename, uint importFlags, aiPostProcessSteps postProcessFlags)
+        {
+            var scene = Initialize(inputFilename, outputFilename, importFlags, postProcessFlags, out var error);
+            if (scene == null)
+                throw new InvalidOperationException(error);
+            return scene;
+        }
+
+        /// <summary>
+        /// Imports and post-processes a file, or returns <c>null</c> with the reason in <paramref name="error"/>.
+        /// </summary>
+        private unsafe Scene* Initialize(string inputFilename, string outputFilename, uint importFlags, aiPostProcessSteps postProcessFlags, out string error)
         {
             ResetConversionData();
 
@@ -268,10 +276,19 @@ namespace Stride.Importer.ThreeD
             assimp.SetImportPropertyInteger(propStore, "IMPORT_FBX_PRESERVE_PIVOTS", 0); // Trade some issues for others, see: https://github.com/assimp/assimp/issues/894, https://github.com/assimp/assimp/issues/1974
             assimp.SetImportPropertyFloat(propStore, "APP_SCALE_FACTOR", .01f);
             var scene = assimp.ImportFileExWithProperties(inputFilename, importFlags, null, propStore);
+            assimp.ReleasePropertyStore(propStore);
+
+            if (scene == null)
+            {
+                var reason = assimp.GetErrorStringS();
+                error = reason.Length > 0 ? $"Assimp can't read {inputFilename}: {reason}" : $"Assimp can't read {inputFilename}.";
+                return null;
+            }
 
             postProcessFlags |= aiPostProcessSteps.aiProcess_CalcTangentSpace
                                 | aiPostProcessSteps.aiProcess_Triangulate
                                 | aiPostProcessSteps.aiProcess_GenNormals
+                                | aiPostProcessSteps.aiProcess_JoinIdenticalVertices
                                 | aiPostProcessSteps.aiProcess_SortByPType
                                 | aiPostProcessSteps.aiProcess_FlipWindingOrder
                                 | aiPostProcessSteps.aiProcess_FlipUVs
@@ -279,9 +296,12 @@ namespace Stride.Importer.ThreeD
                                 | aiPostProcessSteps.aiProcess_LimitBoneWeights;
 
             scene = assimp.ApplyPostProcessing(scene, (uint)postProcessFlags);
-            assimp.ReleasePropertyStore(propStore);
+            error = scene == null ? PostProcessingError(inputFilename) : null;
             return scene;
         }
+
+        // GetErrorString gives the reason of a failed import only, not of a failed post-processing step
+        private static string PostProcessingError(string inputFilename) => $"Assimp can't post-process {inputFilename}.";
 
         private unsafe Model ConvertAssimpScene(Scene* scene, int[] meshSlots)
         {

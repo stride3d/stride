@@ -69,6 +69,13 @@ public abstract class AssetEditorViewModel : DispatcherViewModel, IAssetEditorVi
     public virtual Task EditorInitialized => Task.CompletedTask;
 
     /// <summary>
+    /// A task that completes once the editor, after <see cref="ViewModelBase.Destroy"/>, runs nothing more on other threads, such as
+    /// the frames of the game of a scene editor. The session waits for it before the plugins leave and take their settings keys
+    /// with them, which those threads read. Editors that stop asynchronously override it.
+    /// </summary>
+    public virtual Task Stopped => Task.CompletedTask;
+
+    /// <summary>
     /// Initializes this editor asynchronously. The default initialization has nothing to do and succeeds.
     /// </summary>
     /// <returns>A task that completes when the initialization has ended, with <c>true</c> when it succeeded.</returns>

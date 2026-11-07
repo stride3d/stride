@@ -45,6 +45,13 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// <inheritdoc/>
         public virtual Task EditorInitialized => Task.CompletedTask; // FIXME might not be necessary, but implementing editor might have different initialization logic
 
+        /// <summary>
+        /// A task that completes once the editor, after <see cref="Stride.Core.Presentation.ViewModels.ViewModelBase.Destroy"/>, runs nothing more on other
+        /// threads, such as the frames of the game of a scene editor. The editor waits for it before the plugins leave and take their
+        /// settings keys with them, which those threads read. Editors that stop asynchronously override it.
+        /// </summary>
+        public virtual Task Stopped => Task.CompletedTask;
+
         /// <inheritdoc/>
         public abstract Task<bool> Initialize();
 

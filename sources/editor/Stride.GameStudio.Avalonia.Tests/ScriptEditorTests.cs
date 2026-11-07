@@ -143,6 +143,8 @@ public sealed class ScriptEditorTests
         try
         {
             var (editor, view) = await TypeAsync(fixture, window, "// ");
+            // The main view model forgets the session when the editor exits
+            var session = fixture.Session;
 
             // The first button saves; the window closes once the file is written
             await window.CloseAsync();
@@ -150,7 +152,7 @@ public sealed class ScriptEditorTests
 
             Assert.Single(dialogs.Messages);
             Assert.Equal("// " + Script, File.ReadAllText(editor.Asset.AssetItem.FullPath.ToOSPath()));
-            Assert.Empty(fixture.Session.EditorCollection.Editors);
+            Assert.Empty(session.EditorCollection.Editors);
         }
         finally
         {

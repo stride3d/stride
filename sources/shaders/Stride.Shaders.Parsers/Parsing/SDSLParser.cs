@@ -9,9 +9,11 @@ namespace Stride.Shaders.Parsing;
 /// </summary>
 public static class SDSLParser
 {
-    public static ParseResult Parse(string code)
+    /// <summary>Parses a shader file.</summary>
+    /// <param name="isEffectFile">Whether the code is an .sdfx file, where <c>shader</c> can declare an effect (see <see cref="SDFX.AST.ShaderEffect.ShaderKeyword"/>).</param>
+    public static ParseResult Parse(string code, bool isEffectFile = false)
     {
         var c = new CommentProcessedCode(code);
-        return Grammar.Match<CommentProcessedCode, ShaderFileParser, ShaderFile>(c);
+        return Grammar.Match<CommentProcessedCode, ShaderFileParser, ShaderFile>(c, new ShaderFileParser { IsEffectFile = isEffectFile });
     }
 }

@@ -245,7 +245,7 @@ public sealed class AssetTemplateGeneratorTests
         }
         catch (InvalidOperationException e)
         {
-            throw new SkipException("The Stride.Assets.Presentation.Wpf package is not in the package store on this machine: " + e.Message);
+            throw new SkipException($"The {StrideDefaultTemplates.AssetTemplatesPackageName} package is not in the package store on this machine: {e.Message}");
         }
 
         var templates = TemplateManager.FindTemplates(TemplateScope.Asset)

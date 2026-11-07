@@ -31,18 +31,6 @@ public sealed class TemplateProviderTests
     }
 
     [AvaloniaFact]
-    public void TheViewPluginRegistersTheDefaultProviders()
-    {
-        var expected = new DefaultPropertyTemplateProviders().Values.OfType<TemplateProviderBase>().Count();
-        var registered = new List<ITemplateProvider>();
-
-        new StrideCoreEditorViewPlugin().RegisterTemplateProviders(registered);
-
-        Assert.Equal(expected, registered.Count);
-        Assert.All(registered, provider => Assert.IsAssignableFrom<TemplateProviderBase>(provider));
-    }
-
-    [AvaloniaFact]
     public void TheSelectorBuildsTheMatchingTemplateOnly()
     {
         var providers = new DefaultPropertyTemplateProviders().Values.OfType<TemplateProviderBase>().ToList();

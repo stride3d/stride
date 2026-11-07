@@ -24,6 +24,8 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia" />
+    <!-- The grid of the asset errors -->
+    <PackageReference Include="Avalonia.Controls.DataGrid" />
     <!-- Conditions below are needed to remove AvaloniaUI.DiagnosticsSupport package from build output in Release configuration. -->
     <PackageReference Include="AvaloniaUI.DiagnosticsSupport">
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>

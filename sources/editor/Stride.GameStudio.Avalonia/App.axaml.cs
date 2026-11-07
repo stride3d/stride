@@ -15,6 +15,7 @@ using MarkView.Avalonia.Rendering;
 using Stride.Assets;
 using Stride.Assets.Editor;
 using Stride.Assets.Templates;
+using Stride.Core.Assets.Editor.Components.Build;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModels;
@@ -27,6 +28,7 @@ using Stride.Core.Settings;
 using Stride.Core.Translation;
 using Stride.Editor.Avalonia.Engine;
 using Stride.Editor.Avalonia.Preview;
+using Stride.Editor.Settings;
 using Stride.Editor.Thumbnails;
 using Stride.GameStudio.Avalonia.Services;
 using Stride.GameStudio.Avalonia.Settings;
@@ -68,6 +70,8 @@ public partial class App : Application
         InitializePlugins();
 
         EditorSettings.Initialize();
+        // The Remote settings of the WPF editor, declared in the shared project: shown, though this editor deploys to no remote host yet
+        RuntimeHelpers.RunClassConstructor(typeof(RemoteSettings).TypeHandle);
         InitializeLogging();
         InitializeLanguage();
         SetAccent(EditorSettings.ThemeAccent.GetValue().ToAvaloniaColor());
@@ -276,6 +280,8 @@ public partial class App : Application
         // layers below them first
         RuntimeHelpers.RunModuleConstructor(typeof(Core.Assets.Editor.Avalonia.StrideCoreEditorViewPlugin).Module.ModuleHandle);
         RuntimeHelpers.RunModuleConstructor(typeof(Assets.Editor.Avalonia.StrideEditorViewPlugin).Module.ModuleHandle);
+        // The thumbnails of the reference fields in the property grid are engine images
+        Core.Assets.Editor.Avalonia.Converters.ThumbnailToImage.PresenterConverter = new Converters.StrideImage();
 
         // The command line options of the services
         StrideConfig.GraphicsDebugMode = Options.DebugEditorGraphics;
@@ -374,6 +380,11 @@ public partial class App : Application
             new PluginService(dispatcherService),
             // The folder and static thumbnails are PNGs embedded in this assembly (Resources/*.png)
             new ThumbnailDataFactory(typeof(App).Assembly),
+            // Build project and Start project
+            new MSBuildGameProjectBuilder(),
+            new GameProcessLauncher(),
+            // Explore: show in the file manager, open with another program
+            new FileExplorerService(),
         };
         // The clipboard belongs to the main window; there is none in a headless host
         if (DialogService.MainWindow?.Clipboard is { } clipboard)

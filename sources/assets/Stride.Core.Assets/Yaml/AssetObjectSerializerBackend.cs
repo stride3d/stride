@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Core.Assets;
 using Stride.Core.Assets.Yaml;
 using Stride.Core.Annotations;
 using Stride.Core.Reflection;
@@ -287,9 +288,10 @@ public class AssetObjectSerializerBackend : DefaultObjectSerializerBackend
 
     public override bool ShouldSerialize(IMemberDescriptor member, ref ObjectContext objectContext)
     {
+        YamlAssetPath? path = null;
         if (objectContext.SerializerContext.Properties.TryGetValue(OverrideDictionaryKey, out var overrides))
         {
-            var path = GetCurrentPath(ref objectContext, true);
+            path = GetCurrentPath(ref objectContext, true);
             path.PushMember(member.Name);
 
             var overrideType = overrides.TryGet(path);
@@ -297,7 +299,40 @@ public class AssetObjectSerializerBackend : DefaultObjectSerializerBackend
                 return true;
         }
 
-        return base.ShouldSerialize(member, ref objectContext);
+        if (base.ShouldSerialize(member, ref objectContext))
+            return true;
+
+        // A member skipped as holding nothing (its ShouldSerialize method or default value) is still written when a
+        // derived asset overrides something in it or deletes an item it inherits: these are saved within it
+        var value = member.Get(objectContext.Instance);
+        if (value is null || value is string || value.GetType().IsPrimitive || value.GetType().IsEnum)
+            return false;
+        if (path is not null && overrides!.Any(x => x.Value != OverrideType.Base && x.Key.StartsWith(path)))
+            return true;
+        return DeletedItemsFinder.HasDeletedItems(value);
+    }
+
+    private sealed class DeletedItemsFinder : DataVisitorBase
+    {
+        private bool found;
+
+        public static bool HasDeletedItems(object value)
+        {
+            var finder = new DeletedItemsFinder();
+            finder.Visit(value);
+            return finder.found;
+        }
+
+        public override void VisitObject(object obj, ObjectDescriptor descriptor, bool visitMembers)
+        {
+            if (CollectionItemIdHelper.TryGetCollectionItemIds(obj, out var ids) && ids.DeletedCount > 0)
+                found = true;
+            if (!found)
+                base.VisitObject(obj, descriptor, visitMembers);
+        }
+
+        // As CollectionIdGenerator: a reference to the content of another asset is not part of this one
+        protected override bool CanVisit(object obj) => !found && !AssetRegistry.IsExactContentType(obj.GetType()) && base.CanVisit(obj);
     }
 
     public static YamlAssetPath GetCurrentPath(ref ObjectContext objectContext, bool clone)

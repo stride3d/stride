@@ -4,57 +4,33 @@
 using Stride.Core.Assets.Editor.Avalonia.Views;
 using Stride.Core.Assets.Editor.Components.CopyPasteProcessors;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors;
 using Stride.Core.Assets.Editor.ViewModels;
-using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Avalonia.Views;
-using Stride.Core.Presentation.Views;
 
 namespace Stride.Core.Assets.Editor.Avalonia;
 
+/// <summary>
+/// The Avalonia views of the core editor: the default property templates and the paste processors of the properties and
+/// of the assets.
+/// </summary>
 public sealed class StrideCoreEditorViewPlugin : AssetsEditorPlugin
 {
-    public override void InitializePlugin(ILogger logger)
+    /// <inheritdoc />
+    public override void Initialize(IEditorPluginContext context)
     {
-        // nothing for now
-    }
+        base.Initialize(context);
 
-    public override void InitializeSession(ISessionViewModel session)
-    {
-        // nothing for now
-    }
-
-    public override void RegisterAssetPreviewViewModelTypes(IDictionary<Type, Type> assetPreviewViewModelTypes)
-    {
-        // nothing for now
-    }
-
-    public override void RegisterAssetPreviewViewTypes(IDictionary<Type, Type> assetPreviewViewTypes)
-    {
-        // nothing for now
-    }
-
-    public override void RegisterPasteProcessors(ICollection<IPasteProcessor> pasteProcessors, ISessionViewModel session)
-    {
-        // Same processors as the WPF CoreAssetsEditorPlugin
-        pasteProcessors.Add(new AssetPropertyPasteProcessor());
-        pasteProcessors.Add(new AssetItemPasteProcessor((SessionViewModel)session));
-    }
-
-    public override void RegisterPrimitiveTypes(ICollection<Type> primitiveTypes)
-    {
-        // nothing for now
-    }
-
-    public override void RegisterTemplateProviders(ICollection<ITemplateProvider> templateProviders)
-    {
         foreach (var (_, value) in new DefaultPropertyTemplateProviders())
         {
             if (value is TemplateProviderBase provider)
             {
-                templateProviders.Add(provider);
+                context.TemplateProviders.Register(provider);
             }
         }
+
+        // Same processors as the WPF CoreAssetsEditorPlugin
+        context.PasteProcessors.Register(new AssetPropertyPasteProcessor());
+        context.PasteProcessors.Register(new AssetItemPasteProcessor((SessionViewModel)context.Session));
     }
 }

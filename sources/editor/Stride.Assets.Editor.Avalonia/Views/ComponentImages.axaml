@@ -1,0 +1,208 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:engine="clr-namespace:Stride.Engine;assembly=Stride.Engine"
+                    x:Class="Stride.Assets.Editor.Avalonia.Views.ComponentImages">
+  <!-- The images of the entity components, copied from the WPF ImageDictionary (Stride.Assets.Presentation.Wpf): the
+       plugin registers them as type images, which give the icons of the entities in the scene hierarchy -->
+
+  <DrawingImage x:Key="{x:Type engine:EntityComponent}" >
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+        <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M6.6357,1.5235L-0.000300000000000189,6.4995 -0.000300000000000189,7.2945 4.9307,14.9645 13.6827,15.5485 16.0007,9.1765 16.0007,8.9285 14.8577,0.9355z" />
+        <GeometryDrawing Geometry="F1M2.5,7L7.5,3.333 13,3 10,7z">
+          <GeometryDrawing.Brush>
+            <RadialGradientBrush Center="5.0410156,0.5834961" GradientOrigin="5.0410156,0.5834961" RadiusX="10.5010653" RadiusY="8.3708401">
+              <RadialGradientBrush.GradientStops>
+                <GradientStop Offset="0" Color="#FF424242" />
+                <GradientStop Offset="0.31749001145362854" Color="#FF424242" />
+                <GradientStop Offset="0.72620999813079834" Color="#FFDADADA" />
+                <GradientStop Offset="0.83784844405818149" Color="#FFDDDDDD" />
+                <GradientStop Offset="0.86700815320661206" Color="#FFE5E5E5" />
+                <GradientStop Offset="0.88653413547491056" Color="#FFEEEEEE" />
+                <GradientStop Offset="0.90172807292217527" Color="#FFF9F9F9" />
+                <GradientStop Offset="0.90909099578857422" Color="#FFFFFFFF" />
+                <GradientStop Offset="0.90909099578857422" Color="#FFFFFFFF" />
+                <GradientStop Offset="1" Color="#FFFFFFFF" />
+              </RadialGradientBrush.GradientStops>
+            </RadialGradientBrush>
+          </GeometryDrawing.Brush>
+        </GeometryDrawing>
+        <GeometryDrawing Geometry="F1M3,8L6,13 12.042,13.292 10,8z">
+          <GeometryDrawing.Brush>
+            <RadialGradientBrush Center="4.2290039,16.5214844" GradientOrigin="4.2290039,16.5214844" RadiusX="12.608866700000002" RadiusY="12.6088667">
+              <RadialGradientBrush.GradientStops>
+                <GradientStop Offset="0" Color="#FF424242" />
+                <GradientStop Offset="0.296970009803772" Color="#FF424242" />
+                <GradientStop Offset="0.71515202522277832" Color="#FFDADADA" />
+                <GradientStop Offset="1" Color="#FFDADADA" />
+              </RadialGradientBrush.GradientStops>
+            </RadialGradientBrush>
+          </GeometryDrawing.Brush>
+        </GeometryDrawing>
+        <GeometryDrawing Geometry="F1M11,7.5L13.5,4 14.333,8.75 12.875,12.625z">
+          <GeometryDrawing.Brush>
+            <RadialGradientBrush Center="20.7910156,9.3535156" GradientOrigin="20.7910156,9.3535156" RadiusX="10.0091438" RadiusY="10.009143799999999">
+              <RadialGradientBrush.GradientStops>
+                <GradientStop Offset="0" Color="#FF424242" />
+                <GradientStop Offset="0.16969700157642365" Color="#FF424242" />
+                <GradientStop Offset="0.62698698609028725" Color="#FF5F5F5F" />
+                <GradientStop Offset="0.77695261410038619" Color="#FF868686" />
+                <GradientStop Offset="0.88207790437377831" Color="#FFAAAAAA" />
+                <GradientStop Offset="0.9661722571905571" Color="#FFCCCCCC" />
+                <GradientStop Offset="1" Color="#FFDADADA" />
+                <GradientStop Offset="1" Color="#FFDADADA" />
+              </RadialGradientBrush.GradientStops>
+            </RadialGradientBrush>
+          </GeometryDrawing.Brush>
+        </GeometryDrawing>
+        <GeometryDrawing Brush="#FF424242" Geometry="F1M12.875,12.625L11,7.5 13.5,4 14.333,8.75z M6,13L3,8 10,8 12.042,13.292z M7.5,3.333L13,3 10,7 2.5,7z M14,2L7,2.5 1,7 5.5,14 13,14.5 15,9z" />
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+
+  <DrawingImage x:Key="{x:Type engine:AnimationComponent}" >
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+        <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M8.9901,4.5709L3.7401,2.9939 4.3081,3.9999 9.99999999997669E-05,3.9999 9.99999999997669E-05,6.9999 1.0001,6.9999 1.0001,7.9999 9.99999999997669E-05,7.9999 9.99999999997669E-05,10.9999 4.0281,10.9999 2.6201,13.0999 8.7871,11.2599 12.3621,15.9999 12.6661,15.9999 12.6661,9.5379 16.0001,8.3479 16.0001,6.9079 12.6601,5.8649 12.6741,0.3039z" />
+        <GeometryDrawing Brush="#FF424242" Geometry="F1M15,7.6436L11.658,6.6006 11.667,2.9996 9.323,5.7146 5.833,4.6666 7.5,7.6176 5,11.3466 9.167,10.1026 11.667,13.4166 11.667,8.8336z M1,9.9996L4,9.9996 4,8.9996 1,8.9996z M2,7.9996L4,7.9996 4,6.9996 2,6.9996z M1,4.9996L4,4.9996 4,5.9996 1,5.9996z" />
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+
+  <DrawingImage x:Key="{x:Type engine:BackgroundComponent}" >
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+        <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M0,14L16,14 16,1.999 0,1.999z" />
+        <GeometryDrawing Brush="#FF424242" Geometry="F1M14,12L2,12 2,4 14,4z M1,13L15,13 15,3 1,3z" />
+        <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M14,12L2.001,12 2.001,4 14,4z" />
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+
+  <DrawingImage x:Key="{x:Type engine:CameraComponent}" >
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+        <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M11.5,14L11.5,15 0.5,15 0.5,7 1.909,7C1.101,6.431 0.571999999999999,5.491 0.571999999999999,4.43 0.571999999999999,2.697 1.982,1.288 3.715,1.288 4.542,1.288 5.296,1.609 5.858,2.133 6.419,1.609 7.173,1.288 8,1.288 9.732,1.288 11.143,2.697 11.143,4.43 11.143,5.491 10.614,6.431 9.807,7L11.5,7 11.5,8 15.5,6.131 15.5,15.868z" />
+        <GeometryDrawing Brush="#FF424242" Geometry="F1M1,14L10,14 10,8 1,8z M8,6.572C9.182,6.572 10.143,5.613 10.143,4.43 10.143,3.245 9.182,2.288 8,2.288 6.816,2.288 5.858,3.245 5.858,4.43 5.858,5.613 6.816,6.572 8,6.572 M11,10L11,12 14,14 14,8z M1.572,4.43C1.572,3.245 2.532,2.288 3.715,2.288 4.898,2.288 5.858,3.245 5.858,4.43 5.858,5.613 4.898,6.572 3.715,6.572 2.532,6.572 1.572,5.613 1.572,4.43" />
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+
+  <DrawingImage x:Key="{x:Type engine:LightComponent}" >
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+        <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M13.5391,4.249C13.0961,2.076,10.7531,8.88178419700125E-16,9.2711,8.88178419700125E-16L6.7031,8.88178419700125E-16C6.3291,8.88178419700125E-16 6.1351,0.152 6.1351,0.152 4.0371,0.793000000000001 2.4981,2.725 2.4761,4.878 2.4301,5.341 2.3731,7.16 4.1761,8.658 4.6891,9.125 5.3941,10.629 5.4761,11.026L5.4951,11.1 5.5391,11.214 5.5391,13.035 5.5391,14.436 7.0531,16 9.0331,16 10.5391,14.433 10.5391,13.035 10.5391,12.035 10.5391,11.208 10.5771,11.093 10.5901,11.026C10.6701,10.644 11.3901,9.133 11.8601,8.703 12.9581,7.791 13.3831,6.789 13.5391,6.039z" />
+        <GeometryDrawing Brush="#FFFFCC00" Geometry="F1M9.5781,6.0029L9.1011,8.9999 8.5391,8.9999 8.5391,6.0559 8.5561,5.9999C9.6381,5.9999,9.4831,4.9999,9.4831,4.9999L6.5391,4.9999 6.5391,5.0719C6.5431,5.2949,6.6271,5.9999,7.5391,5.9999L7.5391,8.9999 6.9761,8.9999 6.8281,8.2889 6.4651,6.0029C5.8141,6.0029,5.6061,5.5719,5.5391,5.2739L5.5391,4.8749C5.5391,4.0769,6.4301,3.9999,6.4301,3.9999L9.5391,3.9999C9.5391,3.9999 10.5391,4.1249 10.5391,4.9999 10.5391,4.9999 10.5671,6.0029 9.5781,6.0029 M12.6131,5.0499L12.6111,5.0359 12.6191,4.9589C12.6191,2.7809 10.7641,0.9809 8.4801,0.942900000000001 8.4281,0.8529 7.1371,0.9649 7.1371,0.9649L7.1371,0.976900000000001C5.0641,1.2319 3.4671,2.9639 3.4761,4.9469 3.4671,5.0139 3.2461,6.5889 4.8481,7.9219 5.5681,8.5749 6.3491,10.3099 6.4571,10.8259L6.5331,10.9999 9.5351,10.9999 9.6091,10.8239C9.7171,10.3089 10.5151,8.5759 11.2231,7.9359 12.8031,6.6199 12.6231,5.1129 12.6131,5.0499" />
+        <GeometryDrawing Brush="#FF838383" Geometry="F1M6.549,13L9.549,13 9.549,12.035 6.549,12.035z" />
+        <GeometryDrawing Brush="#FF838383" Geometry="F1M7.4785,15.0205L8.6035,15.0205 9.5355,14.0355 6.5335,14.0355z" />
+        <GeometryDrawing Brush="#FF838383" Geometry="F1M6.549,13L9.549,13 9.549,12.035 6.549,12.035z" />
+        <GeometryDrawing Brush="#FF838383" Geometry="F1M7.4785,15.0205L8.6035,15.0205 9.5355,14.0355 6.5335,14.0355z" />
+        <GeometryDrawing Brush="#FFEFEFF0" Geometry="F1M9.5781,6.0029L9.1011,8.9999 8.5081,8.9999 8.5081,6.0559 8.5401,5.9999C9.6221,5.9999,9.4831,4.9999,9.4831,4.9999L6.5081,4.9999 6.5081,5.0719C6.5081,5.2949,6.5081,5.9999,7.5081,5.9999L7.5081,8.9999 6.9761,8.9999 6.8201,8.2889 6.4491,6.0029C5.7991,6.0029,5.5081,5.5719,5.5081,5.2739L5.5081,4.8749C5.5081,4.0769,6.4301,3.9999,6.4301,3.9999L9.5391,3.9999C9.5391,3.9999 10.5391,4.1249 10.5391,4.9999 10.5391,4.9999 10.5671,6.0029 9.5781,6.0029" />
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+
+  <DrawingImage x:Key="{x:Type engine:ModelComponent}" >
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+        <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M7.0002,-0.000199999999999534L7.0002,5.9998 1.0002,5.9998 1.0002,14.9998 16.0002,14.9998 16.0002,-0.000199999999999534z" />
+        <GeometryDrawing Brush="#FF424242" Geometry="F1M14,7L9,7 9,2 14,2z M14,13L9,13 9,8 14,8z M8,13L3,13 3,8 8,8z M8,1L8,7 2,7 2,14 15,14 15,1z" />
+        <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M14,2L9,2 9,7 14,7z M14,8L9,8 9,13 14,13z M8,13L3,13 3,8 8,8z" />
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+
+  <DrawingImage x:Key="{x:Type engine:ModelNodeLinkComponent}" >
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,0L16,16 0,16 0,0z" />
+        <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M16,7.5C16,9.43,14.416,11,12.469,11L3.531,11C1.584,11 0,9.43 0,7.5 0,5.57 1.584,4 3.531,4L12.469,4C14.416,4,16,5.57,16,7.5" />
+        <GeometryDrawing Brush="#FF424242" Geometry="F1M12.4687,5L7.9997,5C6.6027,5,5.5077,6.098,5.5077,7.5L6.5077,7.5C6.5077,6.659,7.1627,6,7.9997,6L12.4687,6C13.3267,6 13.9997,6.659 13.9997,7.5 13.9997,8.341 13.3267,9 12.4687,9L10.9997,9 10.9997,10 12.4687,10C13.8647,10 14.9997,8.878 14.9997,7.5 14.9997,6.121 13.8647,5 12.4687,5 M10.4917,7.484C10.4917,8.895,9.3977,10,7.9997,10L3.5307,10C2.1357,10 0.999700000000001,8.878 0.999700000000001,7.5 0.999700000000001,6.121 2.1357,5 3.5307,5L4.9997,5 4.9997,6 3.5307,6C2.6727,6 1.9997,6.659 1.9997,7.5 1.9997,8.341 2.6727,9 3.5307,9L7.9997,9C8.8367,9,9.4917,8.334,9.4917,7.484z" />
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+
+  <DrawingImage x:Key="{x:Type engine:ScriptComponent}" >
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+        <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M16,3C16,4.654,14.654,6,13,6L13,13C13,14.654,11.654,16,10,16L3,16C2.199,16 1.446,15.688 0.879,15.121 0.311999999999999,14.555 0,13.801 0,13 0,12.199 0.311999999999999,11.445 0.879,10.879 1.201,10.557 1.583,10.317 2,10.17L2,3C2,1.346,3.346,0,5,0L13,0C14.654,0,16,1.346,16,3" />
+        <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M4,3L4,11 10,11C10.276,11 10.5,11.224 10.5,11.5 10.5,11.776 10.276,12 10,12 9.733,12 9.482,12.104 9.293,12.293 9.104,12.482 9,12.733 9,13 9,13.267 9.104,13.518 9.293,13.707 9.482,13.896 9.733,14 10,14 10.551,14 11,13.552 11,13L11,9 11,3C11,2.634,11.106,2.295,11.278,2L5,2C4.449,2,4,2.449,4,3 M8.267,12L3,12C2.733,12 2.482,12.104 2.293,12.293 2.104,12.482 2,12.733 2,13 2,13.267 2.104,13.518 2.293,13.707 2.482,13.896 2.733,14 3,14L8.277,14C8.101,13.698 8,13.358 8,13 8,12.644 8.093,12.301 8.267,12 M14,3C14,3.551,13.551,4,13,4L12,4 12,3C12,2.449 12.449,2 13,2 13.551,2 14,2.449 14,3" />
+        <GeometryDrawing Brush="#FF424242" Geometry="F1M13,4L12,4 12,3C12,2.449 12.449,2 13,2 13.551,2 14,2.449 14,3 14,3.551 13.551,4 13,4 M11,3L11,9 11,13C11,13.552 10.551,14 10,14 9.733,14 9.482,13.896 9.293,13.707 9.104,13.518 9,13.267 9,13 9,12.733 9.104,12.482 9.293,12.293 9.482,12.104 9.733,12 10,12 10.276,12 10.5,11.776 10.5,11.5 10.5,11.224 10.276,11 10,11L4,11 4,3C4,2.449,4.449,2,5,2L11.278,2C11.106,2.295,11,2.634,11,3 M3,14C2.733,14 2.482,13.896 2.293,13.707 2.104,13.518 2,13.267 2,13 2,12.733 2.104,12.482 2.293,12.293 2.482,12.104 2.733,12 3,12L8.267,12C8.093,12.301 8,12.644 8,13 8,13.358 8.101,13.698 8.277,14z M13,1L5,1C3.897,1,3,1.897,3,3L3,11C2.466,11 1.964,11.208 1.586,11.586 1.208,11.964 1,12.466 1,13 1,13.534 1.208,14.036 1.586,14.414 1.964,14.792 2.466,15 3,15L10,15C11.103,15,12,14.103,12,13L12,9 12,5 13,5C14.103,5 15,4.103 15,3 15,1.897 14.103,1 13,1" />
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+
+  <DrawingImage x:Key="{x:Type engine:SpriteComponent}" >
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+        <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M0,15L16,15 16,0 0,0z" />
+        <GeometryDrawing Brush="#FF424242" Geometry="F1M13,6L12,6 12,7 13,7z M6,5L7,5 7,4 6,4z M9,6L8,6 8,7 9,7z M11,6L10,6 10,7 11,7z M14,2L7,2 7,3 6,3 6,2 2,2 2,6 3,6 3,7 2,7 2,13 6,13 6,12 7,12 7,13 14,13z M15,14L1,14 1,1 15,1z M4,7L5,7 5,6 4,6z M6,7L7,7 7,6 6,6z M6,9L7,9 7,8 6,8z M6,10L7,10 7,11 6,11z" />
+        <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M6,5L6,5 6,4 6,4 7,4 7,4 7,5 7,5z M13,6L13,7 13,7 12,7 12,7 12,6 12,6 13,6z M11,6L11,7 11,7 10,7 10,7 10,6 10,6 11,6z M9,6L9,7 9,7 8,7 8,7 8,6 8,6 9,6z M7,6L7,7 7,7 6,7 6,7 6,6 6,6 7,6z M7,8L7,9 6,9 6,8 6,8 7,8z M7,11L6,11 6,10 7,10z M5,6L5,7 5,7 4,7 4,7 4,6 4,6 5,6z M7,2L7,3 6,3 6,2 2,2 2,6 3,6 3,7 2,7 2,13 6,13 6,12 7,12 7,13 14,13 14,5 14,2z" />
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+
+  <DrawingImage x:Key="{x:Type engine:TransformComponent}" >
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+        <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M6.6357,1.5235L-0.000300000000000189,6.4995 -0.000300000000000189,7.2945 4.9307,14.9645 13.6827,15.5485 16.0007,9.1765 16.0007,8.9285 14.8577,0.9355z" />
+        <GeometryDrawing Geometry="F1M2.5,7L7.5,3.333 13,3 10,7z">
+          <GeometryDrawing.Brush>
+            <RadialGradientBrush Center="5.0410156,0.5834961" GradientOrigin="5.0410156,0.5834961" RadiusX="10.5010653" RadiusY="8.3708401">
+              <RadialGradientBrush.GradientStops>
+                <GradientStop Offset="0" Color="#FF424242" />
+                <GradientStop Offset="0.31749001145362854" Color="#FF424242" />
+                <GradientStop Offset="0.72620999813079834" Color="#FFDADADA" />
+                <GradientStop Offset="0.83784844405818149" Color="#FFDDDDDD" />
+                <GradientStop Offset="0.86700815320661206" Color="#FFE5E5E5" />
+                <GradientStop Offset="0.88653413547491056" Color="#FFEEEEEE" />
+                <GradientStop Offset="0.90172807292217527" Color="#FFF9F9F9" />
+                <GradientStop Offset="0.90909099578857422" Color="#FFFFFFFF" />
+                <GradientStop Offset="0.90909099578857422" Color="#FFFFFFFF" />
+                <GradientStop Offset="1" Color="#FFFFFFFF" />
+              </RadialGradientBrush.GradientStops>
+            </RadialGradientBrush>
+          </GeometryDrawing.Brush>
+        </GeometryDrawing>
+        <GeometryDrawing Geometry="F1M3,8L6,13 12.042,13.292 10,8z">
+          <GeometryDrawing.Brush>
+            <RadialGradientBrush Center="4.2290039,16.5214844" GradientOrigin="4.2290039,16.5214844" RadiusX="12.608866700000002" RadiusY="12.6088667">
+              <RadialGradientBrush.GradientStops>
+                <GradientStop Offset="0" Color="#FF424242" />
+                <GradientStop Offset="0.296970009803772" Color="#FF424242" />
+                <GradientStop Offset="0.71515202522277832" Color="#FFDADADA" />
+                <GradientStop Offset="1" Color="#FFDADADA" />
+              </RadialGradientBrush.GradientStops>
+            </RadialGradientBrush>
+          </GeometryDrawing.Brush>
+        </GeometryDrawing>
+        <GeometryDrawing Geometry="F1M11,7.5L13.5,4 14.333,8.75 12.875,12.625z">
+          <GeometryDrawing.Brush>
+            <RadialGradientBrush Center="20.7910156,9.3535156" GradientOrigin="20.7910156,9.3535156" RadiusX="10.0091438" RadiusY="10.009143799999999">
+              <RadialGradientBrush.GradientStops>
+                <GradientStop Offset="0" Color="#FF424242" />
+                <GradientStop Offset="0.16969700157642365" Color="#FF424242" />
+                <GradientStop Offset="0.62698698609028725" Color="#FF5F5F5F" />
+                <GradientStop Offset="0.77695261410038619" Color="#FF868686" />
+                <GradientStop Offset="0.88207790437377831" Color="#FFAAAAAA" />
+                <GradientStop Offset="0.9661722571905571" Color="#FFCCCCCC" />
+                <GradientStop Offset="1" Color="#FFDADADA" />
+                <GradientStop Offset="1" Color="#FFDADADA" />
+              </RadialGradientBrush.GradientStops>
+            </RadialGradientBrush>
+          </GeometryDrawing.Brush>
+        </GeometryDrawing>
+        <GeometryDrawing Brush="#FF424242" Geometry="F1M12.875,12.625L11,7.5 13.5,4 14.333,8.75z M6,13L3,8 10,8 12.042,13.292z M7.5,3.333L13,3 10,7 2.5,7z M14,2L7,2.5 1,7 5.5,14 13,14.5 15,9z" />
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+</ResourceDictionary>

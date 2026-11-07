@@ -162,6 +162,7 @@ namespace Stride.Assets
             registry.Project("4.2.0.0", UpgradeProjectTo42);
             registry.Project("4.3.0.0", UpgradeProjectTo43);
             registry.Project("4.4.0.0", UpgradeProjectTo44);
+            registry.Project("4.4.2.0", UpgradeEffectShaderKeywords);
             registry.Project("4.5.0.0", UpgradeProjectTo45);
             registry.Project("4.5.0.0", AddPluginPackageReferences);
         }
@@ -329,10 +330,7 @@ namespace Stride.Assets
 
                 // Skip build output (Roslyn-generated copies live in obj/, copies may be staged in bin/)
                 var rel = Path.GetRelativePath(projectDir, file).Replace('\\', '/');
-                if (rel.StartsWith("obj/", StringComparison.OrdinalIgnoreCase)
-                    || rel.StartsWith("bin/", StringComparison.OrdinalIgnoreCase)
-                    || rel.Contains("/obj/", StringComparison.OrdinalIgnoreCase)
-                    || rel.Contains("/bin/", StringComparison.OrdinalIgnoreCase))
+                if (IsBuildOutput(rel))
                     continue;
 
                 try
@@ -475,12 +473,7 @@ namespace Stride.Assets
         internal static IEnumerable<string> FindMissingPluginPackages(string projectDir, IEnumerable<string> referencedPackages)
         {
             var assetExtensions = Directory.EnumerateFiles(projectDir, "*.sd*", SearchOption.AllDirectories)
-                .Where(file =>
-                {
-                    var relative = Path.GetRelativePath(projectDir, file).Replace('\\', '/');
-                    return !relative.StartsWith("obj/", StringComparison.OrdinalIgnoreCase) && !relative.StartsWith("bin/", StringComparison.OrdinalIgnoreCase)
-                        && !relative.Contains("/obj/", StringComparison.OrdinalIgnoreCase) && !relative.Contains("/bin/", StringComparison.OrdinalIgnoreCase);
-                })
+                .Where(file => !IsBuildOutput(Path.GetRelativePath(projectDir, file).Replace('\\', '/')))
                 .Select(Path.GetExtension)
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
             var referenced = referencedPackages.ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -491,5 +484,9 @@ namespace Stride.Assets
                 .Distinct()
                 .ToList();
         }
+
+        private static bool IsBuildOutput(string relativePath)
+            => relativePath.StartsWith("obj/", StringComparison.OrdinalIgnoreCase) || relativePath.StartsWith("bin/", StringComparison.OrdinalIgnoreCase)
+                || relativePath.Contains("/obj/", StringComparison.OrdinalIgnoreCase) || relativePath.Contains("/bin/", StringComparison.OrdinalIgnoreCase);
     }
 }

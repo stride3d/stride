@@ -1,0 +1,1 @@
+not an image: the test host keeps the bytes
