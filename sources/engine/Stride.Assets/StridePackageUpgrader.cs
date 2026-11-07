@@ -162,6 +162,11 @@ namespace Stride.Assets
                 // targets, and also forgets them.
                 Rewrite(
                     MemberRename("Stride.Graphics.CommandList", "UnsetRenderTargets", "ResetTargets")),
+
+                // 4.5.1: CommandList.ResetQueryPool is gone: Vulkan resets a pool itself before writing it again, Direct3D 12
+                // had nothing to reset. Its calls only go.
+                Rewrite(
+                    FluentCallRemove("Stride.Graphics.CommandList", "ResetQueryPool")),
             ]);
 
             // Structural csproj migrations, gated by the version each change landed at. Run against the

@@ -1245,11 +1245,6 @@ namespace Stride.Graphics
                 currentCommandList.NativeCommandList.EndEvent();
         }
 
-        // TODO: Unused, remove?
-        public void ResetQueryPool(QueryPool queryPool)
-        {
-        }
-
         /// <summary>
         ///   Clears the specified Depth-Stencil Buffer.
         /// </summary>

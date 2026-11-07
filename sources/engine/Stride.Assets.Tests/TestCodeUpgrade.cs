@@ -620,6 +620,49 @@ public class TestCodeUpgrade
     }
 
     [Fact]
+    public async Task FluentCallRemoveDropsTheCallsOfAMethodReturningNothing()
+    {
+        // The 4.5.1 shape: CommandList.ResetQueryPool went, the pools reset themselves.
+        var source = """
+            namespace TestNs
+            {
+                class Pool { }
+                class Target
+                {
+                    public static Target Current() => new();
+                    public void ResetQueryPool(Pool pool) { }
+                }
+                class Other
+                {
+                    public void ResetQueryPool(Pool pool) { }
+                }
+                class Usage
+                {
+                    void A(Target t, Pool p)
+                    {
+                        t.ResetQueryPool(p);
+                        t?.ResetQueryPool(p);
+                        Target.Current().ResetQueryPool(p);
+                    }
+                    void B(Target t, Pool p) => t.ResetQueryPool(p);
+                    System.Action C(Target t, Pool p) => () => t.ResetQueryPool(p);
+                    void D(Other o, Pool p) => o.ResetQueryPool(p);
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, Rewrite(FluentCallRemove("TestNs.Target", "ResetQueryPool")));
+
+        Assert.DoesNotContain("t.ResetQueryPool", result);
+        Assert.DoesNotContain("t?.ResetQueryPool", result);
+        // A receiver that is a call keeps its side effects.
+        Assert.Contains("Target.Current();", result);
+        // The unrelated same-named method is untouched.
+        Assert.Contains("o.ResetQueryPool(p)", result);
+        AssertCompiles(result);
+    }
+
+    [Fact]
     public async Task FluentCallRemoveKeepsTheReceiver()
     {
         // The 4.4 shape: Buffer.RecreateWith returned its receiver and went away with the device reset recovery.

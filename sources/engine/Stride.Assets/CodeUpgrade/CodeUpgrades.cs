@@ -251,6 +251,7 @@ public static partial class CodeUpgrades
     /// <paramref name="methodName"/> on <paramref name="declaringType"/> (its full metadata name) and
     /// replaces each invocation by its receiver, preserving trivia. Also handles conditional access
     /// (<c>x?.Foo(a)</c> → <c>x</c>). Other reference forms (method groups, cref) are left untouched.
+    /// A removed method that returned nothing fits too: its calls are statements, which go.
     /// </summary>
     public static SymbolRewrite FluentCallRemove(string declaringType, string methodName)
     {

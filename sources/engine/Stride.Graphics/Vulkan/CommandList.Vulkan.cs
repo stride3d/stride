@@ -1178,7 +1178,7 @@ namespace Stride.Graphics
         ///   Resets all the queries of a pool, so they can be written again.
         /// </summary>
         /// <param name="queryPool">The QueryPool to reset.</param>
-        public void ResetQueryPool(QueryPool queryPool)
+        private void ResetQueryPool(QueryPool queryPool)
         {
             // Not allowed inside a render pass
             BeginCommandOutsideRenderPass();

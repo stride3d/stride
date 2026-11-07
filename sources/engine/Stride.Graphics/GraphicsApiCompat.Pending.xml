@@ -26,19 +26,6 @@
     <Left>Vulkan</Left>
     <Right>Direct3D11</Right>
   </Suppression>
-  <!-- CommandList.ResetQueryPool: Vulkan resets its query pools itself, Direct3D 11 and Direct3D 12 have nothing to reset. -->
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:Stride.Graphics.CommandList.ResetQueryPool(Stride.Graphics.QueryPool)</Target>
-    <Left>Direct3D12</Left>
-    <Right>Direct3D11</Right>
-  </Suppression>
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>M:Stride.Graphics.CommandList.ResetQueryPool(Stride.Graphics.QueryPool)</Target>
-    <Left>Vulkan</Left>
-    <Right>Direct3D11</Right>
-  </Suppression>
   <!-- Texture.HasStencil: a public, writable field on Direct3D 12 only, internal on the other APIs. -->
   <Suppression>
     <DiagnosticId>CP0002</DiagnosticId>
