@@ -9,6 +9,7 @@ using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.ViewModel.Logs;
 using Stride.Core.Assets.Editor.ViewModel.Progress;
 using Stride.Core.Assets.Quantum;
+using Stride.Core.Assets.Templates;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Collections;
@@ -100,6 +101,11 @@ namespace Stride.Core.Assets.Editor.ViewModel
         ISessionObjectPropertiesViewModel AssetViewProperties { get; }
 
         /// <summary>
+        /// Gets or sets the properties panel that is currently active (the one of the asset view or of an editor).
+        /// </summary>
+        SessionObjectPropertiesViewModel ActiveProperties { get; set; }
+
+        /// <summary>
         /// Gets the tracker of the source files of the assets.
         /// </summary>
         IAssetSourceTrackerViewModel SourceTracker { get; }
@@ -147,9 +153,33 @@ namespace Stride.Core.Assets.Editor.ViewModel
         Type GetAssetViewModelType(AssetItem assetItem);
 
         /// <summary>
+        /// Gets the templates of the given scope that the packages of the session provide.
+        /// </summary>
+        IEnumerable<TemplateDescription> FindTemplates(TemplateScope scope);
+
+        /// <summary>
         /// Notifies that the properties of the given assets have changed, once their dependencies are up to date.
         /// </summary>
         void NotifyAssetPropertiesChanged(IReadOnlyCollection<AssetViewModel> assets);
+
+        /// <summary>
+        /// Notifies that the properties of the given assets have changed, once their dependencies are up to date, and completes
+        /// once <see cref="AssetPropertiesChanged"/> has been raised.
+        /// </summary>
+        Task NotifyAssetPropertiesChangedAsync(IReadOnlyCollection<AssetViewModel> assets);
+
+        /// <summary>
+        /// Adds a task that the session objects run in the background to the work of the session, rather than leave it
+        /// running unseen.
+        /// </summary>
+        /// <param name="task">The task.</param>
+        /// <returns>The task.</returns>
+        Task TrackBackgroundWork(Task task);
+
+        /// <summary>
+        /// Updates whether the session has changes that are not saved, once dirty flags changed (after a change, an undo or a redo).
+        /// </summary>
+        void UpdateHasUnsavedChanges();
 
         /// <summary>
         /// Checks that the asset view models of each package match the assets of the package.

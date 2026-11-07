@@ -205,7 +205,7 @@ internal class EditorDialogService : DialogService, IEditorDialogService, IProgr
         }, token);
     }
 
-    public async Task<AssetViewModel?> OpenAssetPickerAsync(SessionViewModel session, IEnumerable<Type> acceptedTypes, Func<AssetViewModel, bool>? filter = null, AssetViewModel? initialAsset = null, DirectoryBaseViewModel? initialLocation = null, string? message = null)
+    public async Task<AssetViewModel?> OpenAssetPickerAsync(ISessionViewModel session, IEnumerable<Type> acceptedTypes, Func<AssetViewModel, bool>? filter = null, AssetViewModel? initialAsset = null, DirectoryBaseViewModel? initialLocation = null, string? message = null)
     {
         if (MainWindow is null) return null;
 

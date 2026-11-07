@@ -10,6 +10,7 @@ using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModel.Logs;
 using Stride.Core.Assets.Editor.ViewModel.Progress;
 using Stride.Core.Assets.Quantum;
+using Stride.Core.Assets.Templates;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Collections;
@@ -29,6 +30,7 @@ public sealed class FakeSession : ISessionViewModel
     public const string StorePackagesCategory = "External packages";
 
     private readonly Dictionary<AssetId, AssetViewModel> assets = [];
+    private readonly List<Task> backgroundWork = [];
     private readonly Dictionary<string, PackageCategoryViewModel> packageCategories;
 
     public FakeSession()
@@ -104,6 +106,8 @@ public sealed class FakeSession : ISessionViewModel
 
     public ISessionObjectPropertiesViewModel AssetViewProperties => null!;
 
+    public SessionObjectPropertiesViewModel ActiveProperties { get; set; } = null!;
+
     public IAssetSourceTrackerViewModel SourceTracker => null!;
 
     public IAssetLogViewModel AssetLog => Log;
@@ -125,6 +129,39 @@ public sealed class FakeSession : ISessionViewModel
     public Type GetAssetViewModelType(AssetItem assetItem) => typeof(AssetViewModel<>);
 
     public void NotifyAssetPropertiesChanged(IReadOnlyCollection<AssetViewModel> assets) => NotifiedAssetChanges.Add(assets);
+
+    public Task NotifyAssetPropertiesChangedAsync(IReadOnlyCollection<AssetViewModel> assets)
+    {
+        NotifyAssetPropertiesChanged(assets);
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Gets the work that the session objects run in the background (<see cref="TrackBackgroundWork"/>), for the tests to
+    /// wait for it.
+    /// </summary>
+    public Task BackgroundWork
+    {
+        get
+        {
+            lock (backgroundWork)
+                return Task.WhenAll(backgroundWork.ToList());
+        }
+    }
+
+    public Task TrackBackgroundWork(Task task)
+    {
+        ArgumentNullException.ThrowIfNull(task);
+        lock (backgroundWork)
+            backgroundWork.Add(task);
+        return task;
+    }
+
+    public void UpdateHasUnsavedChanges()
+    {
+    }
+
+    public IEnumerable<TemplateDescription> FindTemplates(TemplateScope scope) => [];
 
     public void CheckConsistency() => throw new NotSupportedException();
 

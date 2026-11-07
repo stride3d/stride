@@ -18,7 +18,7 @@ namespace Stride.Core.Assets.Editor.Services
     /// <summary>
     /// This interface represents the dialog service used for the editor. It extends <see cref="IDialogService2"/> with some editor-specific dialogs.
     /// </summary>
-    public interface IEditorDialogService : IDialogService2, IProgressWindowService
+    public interface IEditorDialogService : IDialogService2, IProgressWindowService, IAssetPickerService
     {
         /// <summary>
         /// Shows a notification window in the lower right corner of the primary screen.
@@ -110,11 +110,12 @@ namespace Stride.Core.Assets.Editor.Services
         /// Creates a fix references dialog.
         /// </summary>
         /// <param name="serviceProvider">The service provider for view models.</param>
+        /// <param name="session">The session whose assets are picked as replacements.</param>
         /// <param name="assets">The list of assets to fix.</param>
         /// <param name="dependencyManager">The dependency manager.</param>
         /// <returns>An instance of the <see cref="IFixReferencesDialog"/> interface.</returns>
         [NotNull]
-        IFixReferencesDialog CreateFixAssetReferencesDialog([NotNull] IViewModelServiceProvider serviceProvider, [ItemNotNull, NotNull] IReadOnlyCollection<AssetViewModel> assets, [NotNull] IAssetDependencyManager dependencyManager);
+        IFixReferencesDialog CreateFixAssetReferencesDialog([NotNull] IViewModelServiceProvider serviceProvider, [NotNull] SessionViewModel session, [ItemNotNull, NotNull] IReadOnlyCollection<AssetViewModel> assets, [NotNull] IAssetDependencyManager dependencyManager);
 
         void ClearKeyboardFocus();
 

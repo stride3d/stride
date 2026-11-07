@@ -19,6 +19,7 @@ using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModel.Logs;
 using Stride.Core.Assets.Editor.ViewModel.Progress;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Annotations;
@@ -328,9 +329,6 @@ namespace Stride.Core.Assets.Editor.ViewModel
             SessionViewModel sessionViewModel;
             try
             {
-                // Create the service that handles property documentation
-                var documentationService = new UserDocumentationService();
-
                 // Create the service that handles selection
                 var selectionService = new SelectionService(serviceProvider.Get<IDispatcherService>());
 
@@ -342,7 +340,6 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 serviceProvider.RegisterService(undoRedoService);
 
                 // Register session-specific services
-                serviceProvider.RegisterService(documentationService);
                 serviceProvider.RegisterService(selectionService);
                 serviceProvider.RegisterService(copyPasteService);
                 serviceProvider.RegisterService(new ThumbnailDataFactory());
@@ -381,9 +378,6 @@ namespace Stride.Core.Assets.Editor.ViewModel
         public static async Task<SessionViewModel> OpenSession(string path, IViewModelServiceProvider serviceProvider, EditorViewModel editor, PackageSessionResult sessionResult)
         {
             if (path == null) throw new ArgumentNullException(nameof(path));
-
-            // Create the service that handles property documentation
-            serviceProvider.RegisterService(new UserDocumentationService());
 
             // Create the service that handles selection
             serviceProvider.RegisterService(new SelectionService(serviceProvider.Get<IDispatcherService>()));
@@ -621,6 +615,9 @@ namespace Stride.Core.Assets.Editor.ViewModel
             // Gather all data from plugins
             PluginService.RegisterSession(this, logger);
 
+            // Create the service that handles property documentation
+            serviceProvider.RegisterService(new UserDocumentationService(this));
+
             // Initialize the undo/redo debug view model
             undoRedoStackPage = EditorDebugTools.CreateUndoRedoDebugPage(undoRedoService, "Undo/redo stack");
             ActionHistory = new ActionHistoryViewModel(this);
@@ -655,10 +652,10 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
             // Initialize the tag view model of the the asset view
             // TODO: can we merge this in the AssetPropertiesViewModel?
-            AssetTags = new TagsViewModel(ActiveAssetView);
+            AssetTags = new TagsViewModel(ServiceProvider, ActiveAssetView);
 
             // Initialize the reference view model related to the main asset view
-            References = new ReferencesViewModel(this, ActiveAssetView);
+            References = new ReferencesViewModel(this, new AssetCollectionViewModel(ServiceProvider, this, AssetCollectionViewModel.AllFilterCategories));
 
             // Construct package categories
             var localPackageName = session.SolutionPath != null ? string.Format(Tr._(@"Solution '{0}'"), session.SolutionPath.GetFileNameWithoutExtension()) : LocalPackageCategoryName;
@@ -767,7 +764,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 }
             }
 
-            SourceTracker = new AssetSourceTrackerViewModel(ServiceProvider, session, this);
+            SourceTracker = new AssetSourceTrackerViewModel(this, session);
             UpdateSessionState();
 
             // This transaction is done to prevent action responding to undoRedoService.TransactionCompletion to occur during loading
@@ -1164,13 +1161,24 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// Since notifications will be raised asynchronously, <paramref name="assets"/> collection should not be modified after it has been passed to this method.
         /// If necessary, caller must provide a copy.
         /// </remarks>
-        public async void NotifyAssetPropertiesChanged([ItemNotNull, NotNull] IReadOnlyCollection<AssetViewModel> assets)
+        public void NotifyAssetPropertiesChanged([ItemNotNull, NotNull] IReadOnlyCollection<AssetViewModel> assets)
+        {
+            NotifyAssetPropertiesChangedAsync(assets).Forget();
+        }
+
+        /// <inheritdoc cref="NotifyAssetPropertiesChanged"/>
+        /// <returns>A task that completes once <see cref="AssetPropertiesChanged"/> has been raised.</returns>
+        public async Task NotifyAssetPropertiesChangedAsync([ItemNotNull, NotNull] IReadOnlyCollection<AssetViewModel> assets)
         {
             var tasks = assets.Select(x => AssetDependenciesViewModel.NotifyAssetChanged(x.Session, x)).ToList();
             await Task.WhenAll(tasks);
             // We raise this event from a task because it will trigger heavy work on the different subscribers
-            Task.Run(() => AssetPropertiesChanged?.Invoke(this, new AssetChangedEventArgs(assets))).Forget();
+            await Task.Run(() => AssetPropertiesChanged?.Invoke(this, new AssetChangedEventArgs(assets)));
         }
+
+        /// <inheritdoc/>
+        /// <remarks>The WPF session does not wait for its background work: it returns the task as it is.</remarks>
+        public Task TrackBackgroundWork(Task task) => task ?? throw new ArgumentNullException(nameof(task));
 
         private void NotifySessionStateChanged()
         {
@@ -1268,6 +1276,11 @@ namespace Stride.Core.Assets.Editor.ViewModel
         void ISessionViewModel.UnregisterAsset(AssetViewModel asset) => UnregisterAsset(asset);
 
         void ISessionViewModel.RefreshRootAssetSelection() => RefreshRootAssetSelection();
+
+        // The WPF Game Studio does not show the unsaved changes in its window title (the cross-platform editor does)
+        void ISessionViewModel.UpdateHasUnsavedChanges()
+        {
+        }
 
         void ISessionViewModel.ProcessAddedProjects(LoggerResult loggerResult, WorkProgressViewModel workProgress, bool packageAlreadyInSession) => ProcessAddedProjects(loggerResult, workProgress, packageAlreadyInSession);
 
@@ -1965,7 +1978,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                             .Any(x => GetAssetById(x.Item.Id) != null);
                     if (hasReferencesToFix)
                     {
-                        var fixReferenceDialog = ServiceProvider.Get<IEditorDialogService>().CreateFixAssetReferencesDialog(ServiceProvider, allAssetsToDelete, DependencyManager);
+                        var fixReferenceDialog = ServiceProvider.Get<IEditorDialogService>().CreateFixAssetReferencesDialog(ServiceProvider, this, allAssetsToDelete, DependencyManager);
                         var fixResult = await fixReferenceDialog.ShowModal();
                         if (fixResult == DialogResult.Cancel)
                             return false;
