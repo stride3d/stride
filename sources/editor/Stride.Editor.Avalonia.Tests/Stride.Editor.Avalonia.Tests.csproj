@@ -27,6 +27,11 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Stride.Editor.Avalonia\Stride.Editor.Avalonia.csproj" />
+    <!-- The thumbnails of the Avalonia editor (Avalonia bitmaps): their tests need the Skia drawing of this project -->
+    <ProjectReference Include="..\Stride.Core.Assets.Editor.Avalonia\Stride.Core.Assets.Editor.Avalonia.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\Stride.Editor.Tests\Resources\StaticThumbnail.png" Link="Resources\StaticThumbnail.png" LogicalName="Stride.Editor.Avalonia.Tests.Resources.StaticThumbnail.png" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
