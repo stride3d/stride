@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Stride.Core.Mathematics;
 
 namespace Stride.BepuPhysics.Soft.Topology;
@@ -57,19 +59,27 @@ internal sealed class SoftBodyTopology
     /// <summary> Carries the normal and tangent of a lattice vertex along the deformation of the cell it is in, unnormalized </summary>
     public void DeformFrame(int vertex, ReadOnlySpan<Vector3> particles, out Vector3 normal, out Vector4 tangent)
     {
-        // Columns of the jacobian of the trilinear interpolation over the cell's corners
+        // Columns of the jacobian of the trilinear interpolation over the cell's corners.
+        // Fully unrolled: an eight-iteration loop with four reads each is slower than this.
         var t = LatticeCoordinates![vertex];
-        Vector3 dx = default, dy = default, dz = default;
-        for (int corner = 0; corner < 8; corner++)
-        {
-            float sx = (corner & 1) != 0 ? 1f : -1f, wx = (corner & 1) != 0 ? t.X : 1f - t.X;
-            float sy = (corner & 2) != 0 ? 1f : -1f, wy = (corner & 2) != 0 ? t.Y : 1f - t.Y;
-            float sz = (corner & 4) != 0 ? 1f : -1f, wz = (corner & 4) != 0 ? t.Z : 1f - t.Z;
-            var p = particles[BindingParticles[vertex * 8 + corner]];
-            dx += p * (sx * wy * wz);
-            dy += p * (wx * sy * wz);
-            dz += p * (wx * wy * sz);
-        }
+        float tx = t.X, ty = t.Y, tz = t.Z;
+        float ux = 1f - tx, uy = 1f - ty, uz = 1f - tz;
+
+        ref int bp = ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(BindingParticles), (nint)vertex * 8);
+        ref Vector3 pb = ref MemoryMarshal.GetReference(particles);
+        var p0 = Unsafe.Add(ref pb, Unsafe.Add(ref bp, 0));
+        var p1 = Unsafe.Add(ref pb, Unsafe.Add(ref bp, 1));
+        var p2 = Unsafe.Add(ref pb, Unsafe.Add(ref bp, 2));
+        var p3 = Unsafe.Add(ref pb, Unsafe.Add(ref bp, 3));
+        var p4 = Unsafe.Add(ref pb, Unsafe.Add(ref bp, 4));
+        var p5 = Unsafe.Add(ref pb, Unsafe.Add(ref bp, 5));
+        var p6 = Unsafe.Add(ref pb, Unsafe.Add(ref bp, 6));
+        var p7 = Unsafe.Add(ref pb, Unsafe.Add(ref bp, 7));
+
+        // d/dt_x, d/dt_y, d/dt_z of the trilinear blend, assembled as pair differences.
+        var dx = (p1 - p0) * (uy * uz) + (p3 - p2) * (ty * uz) + (p5 - p4) * (uy * tz) + (p7 - p6) * (ty * tz);
+        var dy = (p2 - p0) * (ux * uz) + (p3 - p1) * (tx * uz) + (p6 - p4) * (ux * tz) + (p7 - p5) * (tx * tz);
+        var dz = (p4 - p0) * (ux * uy) + (p5 - p1) * (tx * uy) + (p6 - p2) * (ux * ty) + (p7 - p3) * (tx * ty);
 
         // Normals transform with the cofactor matrix, which is the inverse transpose up to a scale
         var n = Mesh.Normals[vertex];
