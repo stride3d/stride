@@ -114,6 +114,31 @@ public class SoftBodyTests : GameTestBase
     }
 
     [Fact]
+    public static void OneTouchingEventPerStepWithABodyLargeEnoughToSplitAcrossWorkers()
+    {
+        RunScene(async scene =>
+        {
+            var events = new TouchingHandler();
+            // Resolution 10 gives 11^3 = 1331 particles, enough that the narrow phase hands pairs to several workers
+            // regardless of the machine's core count.
+            var body = new VolumetricSoftBodyComponent { Resolution = 10, ContactEventHandler = events, SleepThreshold = 0f };
+            scene.Add(body, new CubeProceduralModel(), new Vector3(0f, 1f, 0f));
+
+            await Seconds(body, 1.5f);
+            for (int step = 0; step < 10; step++)
+            {
+                events.Calls = 0;
+                await body.Simulation!.AfterUpdate();
+                Assert.Equal(1, events.Calls);
+            }
+
+            // Resting on the floor through many particles; the merged groups all carry the same up-pointing normal
+            Assert.True(events.Groups > 10);
+            Assert.All(events.Normals, normal => Assert.True(normal.Y > 0.9f, $"Normal {normal}"));
+        });
+    }
+
+    [Fact]
     public static void ParticlesRespectTheCollisionMatrix()
     {
         RunScene(async scene =>
