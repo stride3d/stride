@@ -69,7 +69,7 @@ public class EffectGenerator : IIncrementalGenerator
         try
         {
             var preprocessedText = MonoGamePreProcessor.Run(file.GetText()?.ToString() ?? throw new InvalidOperationException($"Could not read file content for {file.Path}"), file.Path);
-            var parsed = SDSLParser.Parse(preprocessedText);
+            var parsed = SDSLParser.Parse(preprocessedText, isEffectFile: isSdfx);
             if (parsed.Errors.Count > 0)
             {
                 var sb = new StringBuilder();
@@ -84,10 +84,18 @@ public class EffectGenerator : IIncrementalGenerator
 
             // .sdfx files must declare 'effect', not 'shader' — catch the mistake here
             // instead of silently emitting unbuildable C#.
-            if (isSdfx && parsed.AST is Parsing.ShaderFile sdfxFile && HasShaderClassDeclaration(sdfxFile))
+            if (isSdfx && parsed.AST is Parsing.ShaderFile sdfxFile)
             {
-                var message = $"'{Path.GetFileName(file.Path)}' contains a 'shader' declaration. Use 'effect' (or 'partial effect') inside .sdfx files; 'shader' / 'partial shader' belongs in .sdsl.";
-                return ($"#error {message}", [], [(message, 0, 0)]);
+                var errors = new List<(string Message, int Line, int Column)>();
+                foreach (var declaration in Declarations(sdfxFile))
+                {
+                    if (declaration is Parsing.SDFX.AST.ShaderEffect { ShaderKeyword: { } keyword } effect)
+                        errors.Add((string.Format(SDSLErrorMessages.SDSL0313, $"{(effect.IsPartial ? "partial " : "")}effect {effect.Name.Name}"), keyword.Line, keyword.Column));
+                    else if (declaration is Parsing.SDSL.AST.ShaderClass shaderClass)
+                        errors.Add(($"'{Path.GetFileName(file.Path)}' contains a 'shader' declaration. Use 'effect' (or 'partial effect') inside .sdfx files; 'shader' / 'partial shader' belongs in .sdsl.", shaderClass.Info.Line, shaderClass.Info.Column));
+                }
+                if (errors.Count > 0)
+                    return (string.Join("\n", errors.Select(x => $"#error {x.Message}")), [], errors);
             }
 
             var effectCodeWriter = new EffectCodeWriter { CSharpTypeExists = csharpTypeExists };
@@ -104,17 +112,8 @@ public class EffectGenerator : IIncrementalGenerator
         }
     }
 
-    private static bool HasShaderClassDeclaration(Parsing.ShaderFile ast)
-    {
-        foreach (var d in ast.RootDeclarations)
-            if (d is Parsing.SDSL.AST.ShaderClass)
-                return true;
-        foreach (var ns in ast.Namespaces)
-            foreach (var d in ns.Declarations)
-                if (d is Parsing.SDSL.AST.ShaderClass)
-                    return true;
-        return false;
-    }
+    private static IEnumerable<Parsing.ShaderDeclaration> Declarations(Parsing.ShaderFile ast)
+        => ast.RootDeclarations.Concat(ast.Namespaces.SelectMany(x => x.Declarations));
 
     public static string GetSafeHintName(string absolutePath)
     {

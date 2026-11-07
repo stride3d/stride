@@ -142,6 +142,7 @@ namespace Stride.Assets
             registry.Project("4.2.0.0", UpgradeProjectTo42);
             registry.Project("4.3.0.0", UpgradeProjectTo43);
             registry.Project("4.4.0.0", UpgradeProjectTo44);
+            registry.Project("4.4.2.0", UpgradeEffectShaderKeywords);
         }
 
         private static bool IsSkippedPackage(string packageName)
@@ -307,10 +308,7 @@ namespace Stride.Assets
 
                 // Skip build output (Roslyn-generated copies live in obj/, copies may be staged in bin/)
                 var rel = Path.GetRelativePath(projectDir, file).Replace('\\', '/');
-                if (rel.StartsWith("obj/", StringComparison.OrdinalIgnoreCase)
-                    || rel.StartsWith("bin/", StringComparison.OrdinalIgnoreCase)
-                    || rel.Contains("/obj/", StringComparison.OrdinalIgnoreCase)
-                    || rel.Contains("/bin/", StringComparison.OrdinalIgnoreCase))
+                if (IsBuildOutput(rel))
                     continue;
 
                 try
@@ -367,5 +365,9 @@ namespace Stride.Assets
             if (renamedCount > 0)
                 log.Info($"Renamed {renamedCount} legacy generated shader file(s) to .bak. The Roslyn source generator now produces these into obj/. Delete the .bak files when you've verified the upgrade.");
         }
+
+        private static bool IsBuildOutput(string relativePath)
+            => relativePath.StartsWith("obj/", StringComparison.OrdinalIgnoreCase) || relativePath.StartsWith("bin/", StringComparison.OrdinalIgnoreCase)
+                || relativePath.Contains("/obj/", StringComparison.OrdinalIgnoreCase) || relativePath.Contains("/bin/", StringComparison.OrdinalIgnoreCase);
     }
 }

@@ -109,7 +109,9 @@ public class KeysGeneratorTests
     [Theory]
     [InlineData("Shader.sdsl", "shader S\n{\n    float F() { return 1 }\n};", "Shader.sdsl(3,")]
     [InlineData("Effects.sdfx", "namespace Game\n{\n    effect E\n    {\n        using params P;\n        using params P;\n    }\n}", "Effects.sdfx(6,9): error SDSL: Unexpected declaration of using params. This variable is already declared in this scope")]
-    [InlineData("Effects.sdfx", "namespace Game { shader S { }; }", "error SDSL: 'Effects.sdfx' contains a 'shader' declaration.")]
+    [InlineData("Effects.sdfx", "namespace Game\n{\n    shader S { float4 F() { return 0; } };\n}", "Effects.sdfx(3,5): error SDSL: 'Effects.sdfx' contains a 'shader' declaration.")]
+    [InlineData("Effects.sdfx", "namespace Game\n{\n    shader E\n    {\n        mixin A;\n        mixin child B;\n    };\n}", "Effects.sdfx(3,5): error SDSL0313: An .sdfx file declares an effect with 'effect', not 'shader': write 'effect E'")]
+    [InlineData("Effects.sdfx", "partial shader E { mixin A; }", "Effects.sdfx(1,9): error SDSL0313: An .sdfx file declares an effect with 'effect', not 'shader': write 'partial effect E'")]
     public void AnErrorOfAShaderFileIsADiagnosticOfThatFile(string path, string text, string message)
     {
         var (generated, errors) = Build([(path, text)], "using Game.Missing; class UsesTheEffects { }");
