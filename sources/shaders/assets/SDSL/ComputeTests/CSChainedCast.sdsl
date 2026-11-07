@@ -1,0 +1,33 @@
+// CSMain(structuredbuffer.Values="4: 7.75 -2.5", structuredbuffer.Results="4: 0 0 0 0 0 0 0 0 0 0", expected.Results="14 6 14 14 4 10 9 -14 1 -8")
+
+namespace Stride.Shaders.Tests;
+
+// A cast whose operand is another cast, a sign or a parenthesized value, with the values DXC gives.
+// (a) - b with a variable a stays a subtraction
+shader CSChainedCast
+{
+    RWStructuredBuffer<float> Values;
+    RWStructuredBuffer<int> Results;
+
+    [numthreads(1, 1, 1)]
+    void CSMain()
+    {
+        float f = Values[0];
+        float n = Values[1];
+        float a = f;
+        float b = n;
+        float2 v = float2(f, -n);
+
+        Results[0] = (int)((float)(uint)f * 2);
+        Results[1] = (int)((float)(uint)-n * 3);
+        Results[2] = (int)((float)(uint)(f) * 2);
+        int2 r = (int2)((float2)(uint2)v * 2);
+        Results[3] = r.x;
+        Results[4] = r.y;
+        Results[5] = (int)((a) - b);
+        Results[6] = (int)((int)(a) - b);
+        Results[7] = (int)(-(float)(int)f * 2);
+        Results[8] = (int)!(bool)(uint)(n + 2.5);
+        Results[9] = (int)~(uint)f;
+    }
+};
