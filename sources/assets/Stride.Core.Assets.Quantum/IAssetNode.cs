@@ -28,6 +28,13 @@ public interface IAssetNode : IGraphNode
     void SetContent(string key, IGraphNode node);
 
     /// <summary>
+    /// Removes a node attached with the given key.
+    /// </summary>
+    /// <param name="key">The key representing the type of attached node.</param>
+    /// <returns><c>true</c> if a node was removed; otherwise, <c>false</c>.</returns>
+    bool RemoveContent(string key);
+
+    /// <summary>
     /// Retrieves an attached node.
     /// </summary>
     /// <param name="key">The key representing the type of attached node.</param>
