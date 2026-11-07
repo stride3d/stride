@@ -1,0 +1,433 @@
+!SceneAsset
+Id: b1ceb6db-e76e-4c37-be81-72941ddd6b9a
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds:
+    - 805ec36b-feab-40fb-93cd-8f5083937659
+    - cd7db7bc-2d8e-45be-a6d9-4b7e9008e949
+    - 7cdb3d4a-151d-4851-a736-fec1bba593d3
+    - feaab56f-3f56-48e0-83be-dfe2f38f65a6
+    - 465718fa-96e7-4d3b-897d-8e7075b1a9ae
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! 1ff1c9b8-7a14-4338-b9a1-e4bd7ebcf24e
+        - ref!! 9112d7e8-fdb1-477e-acd6-58dd61783773
+        - ref!! 4f2bc840-2327-44a4-8030-294d3d1e44ab
+        - ref!! 6c7778b3-439b-4d70-a265-0b61a0c38c99
+        - ref!! 36396dfa-6aa4-4489-a7f5-e45f569bb082
+        - ref!! c3648c46-3fef-42fd-a935-6c2663254381
+        - ref!! c209d00b-1c57-4f36-97b3-bb81facd00a1
+        - ref!! 3113203c-2276-420b-bf0d-fce00d95dc58
+        - ref!! 2b57370f-e61c-41c5-b8c4-df6619837e29
+        - ref!! 88b61bbb-5855-43b2-959d-b5393a6bfe7f
+    Parts:
+        -   Folder: GlobalLights
+            Entity:
+                Id: 1ff1c9b8-7a14-4338-b9a1-e4bd7ebcf24e
+                Name: Directional light
+                Components:
+                    5ab3300ae74fa14a9efcaa1f506407ce: !TransformComponent
+                        Id: 50324630-1cfe-4606-aba2-6bd3dcfb75a5
+                        Position: {X: 1.0, Y: 15.0, Z: 0.0}
+                        Rotation: {X: -0.5540323, Y: 0.212012157, Z: 0.1484525, W: 0.7912401}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    209f95c46d53de41a3dfff661934ae6c: !LightComponent
+                        Id: 3e4128dd-c80b-4781-85a0-d87dd176e32d
+                        Type: !LightDirectional
+                            Color: !ColorRgbProvider
+                                Value: {R: 1.0, G: 1.0, B: 1.0}
+                            Shadow:
+                                Enabled: true
+                                Filter: !LightShadowMapFilterTypePcf
+                                    FilterSize: Filter5x5
+                                Size: XLarge
+                                DepthRange: {}
+                                PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
+                                BiasParameters: {}
+                                ComputeTransmittance: false
+                        Intensity: 5.0
+        -   Entity:
+                Id: 2b57370f-e61c-41c5-b8c4-df6619837e29
+                Name: EasternChunkLoading
+                Components:
+                    7a46f842d9b46727fc1ff8e879e12913: !TransformComponent
+                        Id: 64044078-cf46-4c78-8937-e72b05cf6ec9
+                        Position: {X: -20.0, Y: 1.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    0f5a078e7c288bdabbfd0c78f0c7f52a: !RigidbodyComponent
+                        Id: 00eee251-501b-4d85-b1b2-cdf1d7608ee4
+                        CollisionGroup: CustomFilter10
+                        CanCollideWith: CharacterFilter
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: true
+                        IsKinematic: true
+                        Mass: 1.0
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            a75542f5626ada7100185d195096639f: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 24.0, Y: 3.0, Z: 24.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    2eac96e8c90a836d8754e3f24fa1a99e: !Gameplay.SceneStreaming,TopDownRPG.Game
+                        Id: 5b6e2307-e465-4da0-8d84-b9624682ef9f
+                        Url: feaab56f-3f56-48e0-83be-dfe2f38f65a6:EasternChunk
+                        Trigger: !RigidbodyComponent ref!! 00eee251-501b-4d85-b1b2-cdf1d7608ee4
+        -   Entity:
+                Id: 3113203c-2276-420b-bf0d-fce00d95dc58
+                Name: SouthernChunkLoading
+                Components:
+                    7a46f842d9b46727fc1ff8e879e12913: !TransformComponent
+                        Id: a70153d4-f35b-4557-a19d-849afaf51283
+                        Position: {X: 0.0, Y: 1.0, Z: -20.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    0f5a078e7c288bdabbfd0c78f0c7f52a: !RigidbodyComponent
+                        Id: 52032222-a039-47be-9d21-4a6c3adca582
+                        CollisionGroup: CustomFilter10
+                        CanCollideWith: CharacterFilter
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: true
+                        IsKinematic: true
+                        Mass: 1.0
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            a75542f5626ada7100185d195096639f: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 24.0, Y: 3.0, Z: 24.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    2eac96e8c90a836d8754e3f24fa1a99e: !Gameplay.SceneStreaming,TopDownRPG.Game
+                        Id: 276ff6f0-dcc0-4945-b13e-f2dd2664b4e0
+                        Url: 7cdb3d4a-151d-4851-a736-fec1bba593d3:SouthernChunk
+                        Trigger: !RigidbodyComponent ref!! 52032222-a039-47be-9d21-4a6c3adca582
+        -   Entity:
+                Id: 36396dfa-6aa4-4489-a7f5-e45f569bb082
+                Name: GameLogic
+                Components:
+                    43ce4968fb19bf47ae1229cc663d55f5: !TransformComponent
+                        Id: 5f11b257-7dc1-4fe5-ab3a-b2f0c779f822
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+        -   Entity:
+                Id: 4bee36d8-5cb2-4c41-9f7d-c32e44b969f2
+                Name: CameraTarget
+                Components:
+                    39d4bdb202782a41869f2a6d53da4edf: !TransformComponent
+                        Id: c86bda83-ff49-48f5-9ffe-2af8289a30c7
+                        Position: {X: 0.0, Y: 1.65, Z: 0.0}
+                        Rotation: {X: -0.3535534, Y: -0.3535534, Z: -0.14644663, W: 0.853553355}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            a116d811cab5bf4da5211050e1d34e10: ref!! 642702f0-8168-421b-85d9-6908a3475213
+        -   Entity:
+                Id: 4f2bc840-2327-44a4-8030-294d3d1e44ab
+                Name: PlayerCharacter
+                Components:
+                    b296752080481e41b569d385767428ce: !TransformComponent
+                        Id: a0674fec-e754-437f-936d-b6703ed67863
+                        Position: {X: 0.0, Y: 0.097, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            1245d3c0d097e44e8295e28dad432562: ref!! 959fe163-fada-4ebe-a47e-ea68eb6b2979
+                            39d4bdb202782a41869f2a6d53da4edf: ref!! c86bda83-ff49-48f5-9ffe-2af8289a30c7
+                    b978a0332590234b9f3a3537f50e75ae: !CharacterComponent
+                        Id: 04b129a8-2c6e-4f86-86e6-751881be7073
+                        CollisionGroup: CharacterFilter
+                        CanCollideWith: DefaultFilter, StaticFilter, KinematicFilter, DebrisFilter, SensorTrigger, CharacterFilter, CustomFilter1, CustomFilter3, CustomFilter4, CustomFilter5, CustomFilter6, CustomFilter7, CustomFilter8, CustomFilter9, CustomFilter10
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        FallSpeed: 10.0
+                        MaxSlope: {Radians: 0.7853982}
+                        JumpSpeed: 0.0
+                        Gravity: {X: 0.0, Y: -40.0, Z: 0.0}
+                        ColliderShapes:
+                            56a5239435c0e54188f913fd5d2f5dee: !CapsuleColliderShapeDesc
+                                Length: 1.2
+                                Radius: 0.4
+                                LocalOffset: {X: 0.0, Y: 0.95, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    f722a19496166946a5d26eaf23d2ae03: !TopDownRPG.Player.PlayerController,TopDownRPG.Game
+                        Id: b874c24c-dd1f-495a-84f9-5cba7ae3e7ed
+                        MaxRunSpeed: 8.5
+                        DestinationThreshold: 0.2
+                        CornerSlowdown: 0.6
+                        DestinationSlowdown: 0.4
+                        PunchCollision: ref!! fe1e1273-322f-4e93-9e58-116364ce45ee
+                        AttackDistance: 1.25
+                        AttackCooldown: 0.65
+                    809bf66aef692646891c293be4ca17b2: !TopDownRPG.Player.PlayerInput,TopDownRPG.Game
+                        Id: 7c35c8ec-56df-4adf-b58f-49a9ed2533b5
+                        ControllerIndex: 0
+                        DeadZone: 0.25
+                        Highlight: ref!! 6c7778b3-439b-4d70-a265-0b61a0c38c99
+                        HighlightMaterial: 4de4aa42-6f84-472f-8b50-7f4d8229723a:HighlightMaterial
+                        Camera: ref!! b6afcaff-bb62-430d-9e9d-ca2791f43f6c
+                        ClickEffect: 154d2027-e615-463b-a0e4-71b20f452eb1:VFXPrefabs/vfx-ClickEffect
+                    46ae7b6257b0c84e8a26b517d4b95492: !NavigationComponent
+                        Id: 96bc18b0-3cef-4327-b945-5919437fe4d3
+                        NavigationMesh: null
+                        GroupId: 9398904c-72b7-ca9b-e966-23346704ae98
+                    9de419e9d8df993a86667389e26853fb: !Gameplay.EnableDynamicNavigation,TopDownRPG.Game
+                        Id: 7635d00b-9365-4fac-afb7-bfb87a7d0041
+                        Priority: 20000
+        -   Entity:
+                Id: 6c7778b3-439b-4d70-a265-0b61a0c38c99
+                Name: Highlight
+                Components:
+                    39c709a832f3f340b936f0c83b068505: !TransformComponent
+                        Id: 66bd1a68-5d3c-494a-adb3-b8a59da1e9db
+                        Position: {X: 0.0, Y: 20.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    1368fd29754b5e48a7a6da94c8c5fe8a: !ModelComponent
+                        Id: a8977b74-0f40-4447-a985-adc59698f2de
+                        Model: 4d95a3a3-0cbc-4df9-9ec7-31c8f2165248:Cube
+                        IsShadowCaster: false
+                        Materials:
+                            8f46c33571e26d4bb19356e1ee060013~0: 4de4aa42-6f84-472f-8b50-7f4d8229723a:HighlightMaterial
+        -   Entity:
+                Id: 7f250db2-af29-4e4e-b6e2-4906b671660f
+                Name: PunchCollision
+                Components:
+                    651acbbf06fe12468058e1f473b74a32: !TransformComponent
+                        Id: e00f225e-3597-432a-bc45-67f143a89706
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    0e97484315c962489b6376c3130914c7: !ModelNodeLinkComponent
+                        Id: d144a934-9148-4cc3-b443-ede9c6c5c3ef
+                        Target: null
+                        NodeName: CATRigRArmPalm
+                    13f15cf5c64fb5429ce1a586368259bd: !RigidbodyComponent
+                        Id: fe1e1273-322f-4e93-9e58-116364ce45ee
+                        CollisionGroup: CharacterFilter
+                        CanCollideWith: CustomFilter2
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: true
+                        IsKinematic: true
+                        Mass: 1.0
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            08c9e89242b2974891270864e1ec3692: !SphereColliderShapeDesc
+                                Is2D: false
+                                Radius: 0.2
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+        -   Folder: null
+            Entity:
+                Id: 88b61bbb-5855-43b2-959d-b5393a6bfe7f
+                Name: WesternChunkLoading
+                Components:
+                    7a46f842d9b46727fc1ff8e879e12913: !TransformComponent
+                        Id: ea3a6d2e-2718-4653-9884-6b45bbed38d7
+                        Position: {X: 20.0, Y: 1.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    0f5a078e7c288bdabbfd0c78f0c7f52a: !RigidbodyComponent
+                        Id: 06ed6375-b5de-40e6-88e8-16ba15e8f474
+                        CollisionGroup: CustomFilter10
+                        CanCollideWith: CharacterFilter
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: true
+                        IsKinematic: true
+                        Mass: 1.0
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            a75542f5626ada7100185d195096639f: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 24.0, Y: 3.0, Z: 24.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    2eac96e8c90a836d8754e3f24fa1a99e: !Gameplay.SceneStreaming,TopDownRPG.Game
+                        Id: 0d6efc2a-7d05-4295-aa27-1438d51972c0
+                        Url: 465718fa-96e7-4d3b-897d-8e7075b1a9ae:WesternChunk
+                        Trigger: !RigidbodyComponent ref!! 06ed6375-b5de-40e6-88e8-16ba15e8f474
+        -   Folder: GlobalLights
+            Entity:
+                Id: 9112d7e8-fdb1-477e-acd6-58dd61783773
+                Name: Skybox
+                Components:
+                    6e987687711b70418c85dff5a9bbc2ec: !TransformComponent
+                        Id: 15cb07af-f17c-4f4d-97e7-40dde615753e
+                        Position: {X: 0.0, Y: 15.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    197b9ba9a8d24847a1b8d7261d35f329: !LightComponent
+                        Id: 20568876-3fe2-4602-b415-80760464236a
+                        Type: !LightSkybox
+                            Skybox: b63b5ab8-3600-4675-8b3f-8b5636350572:Skybox
+                        Intensity: 1.5
+                    aa0620582b7241f8b026bafcf0a07f05: !BackgroundComponent
+                        Id: d754d852-ea85-46ee-8b20-67625d64e7af
+                        Texture: cf628a7c-f4ca-4fc7-aa7d-27882f030380:Skybox Texture
+                        Intensity: 3.0
+        -   Entity:
+                Id: b068b67c-8307-4cd2-85cc-80f255865e54
+                Name: MannequinModel
+                Components:
+                    1245d3c0d097e44e8295e28dad432562: !TransformComponent
+                        Id: 959fe163-fada-4ebe-a47e-ea68eb6b2979
+                        Position: {X: 0.0, Y: 4.76837158E-07, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            651acbbf06fe12468058e1f473b74a32: ref!! e00f225e-3597-432a-bc45-67f143a89706
+                    0fa4902c57c2de428808e383912863ea: !ModelComponent
+                        Id: 4ab656cb-fceb-42ac-b714-b2df6cc2a11c
+                        Model: f68ea240-695a-4de5-9884-60d77544fcd6:Models/mannequinModel
+                        Materials: {}
+                    978eabfaac453f4d9375495d32bc299f: !TopDownRPG.Player.AnimationController,TopDownRPG.Game
+                        Id: 02134ed9-2d03-4e40-adc3-0cc966234728
+                        AnimationComponent: ref!! 04aca6c6-5637-4c54-8ea5-1b1da75d2d90
+                        AnimationIdle: 5f286f7e-7d38-44cf-9bc1-3aad7be4f0fa:Animations/Idle
+                        AnimationWalk: 9d61b261-66aa-40ed-88ed-3cc448f890c0:Animations/Walk
+                        AnimationRun: 448ca260-c8b7-4f63-9bf6-e58a5970a830:Animations/Run
+                        AnimationPunch: 141615e7-9144-488a-860d-0abd7a9ace44:Animations/Punch
+                        WalkThreshold: 0.25
+                        TimeFactor: 1.0
+                    5847b2c0adfcf347a100f94d96c5d325: !AnimationComponent
+                        Id: 04aca6c6-5637-4c54-8ea5-1b1da75d2d90
+                        Animations: {}
+        -   Entity:
+                Id: c209d00b-1c57-4f36-97b3-bb81facd00a1
+                Name: NorthernChunkLoading
+                Components:
+                    7a46f842d9b46727fc1ff8e879e12913: !TransformComponent
+                        Id: b0ce34dd-880a-41b6-b763-4c2fd01e420b
+                        Position: {X: 0.0, Y: 1.0, Z: 20.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    0f5a078e7c288bdabbfd0c78f0c7f52a: !RigidbodyComponent
+                        Id: 34034a61-5c72-4401-8c28-f112ab89f36b
+                        CollisionGroup: CustomFilter10
+                        CanCollideWith: CharacterFilter
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: true
+                        IsKinematic: true
+                        Mass: 1.0
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            a75542f5626ada7100185d195096639f: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 24.0, Y: 3.0, Z: 24.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    2eac96e8c90a836d8754e3f24fa1a99e: !Gameplay.SceneStreaming,TopDownRPG.Game
+                        Id: 1f7da7c0-2b66-4b6b-b5c2-924baea7652c
+                        Url: cd7db7bc-2d8e-45be-a6d9-4b7e9008e949:NorthernChunk
+                        Trigger: !RigidbodyComponent ref!! 34034a61-5c72-4401-8c28-f112ab89f36b
+        -   Entity:
+                Id: c3648c46-3fef-42fd-a935-6c2663254381
+                Name: CentralChunkLoading
+                Components:
+                    7a46f842d9b46727fc1ff8e879e12913: !TransformComponent
+                        Id: 58ac5c8b-c02a-419c-bcda-8c4c70138524
+                        Position: {X: 0.0, Y: 1.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    0f5a078e7c288bdabbfd0c78f0c7f52a: !RigidbodyComponent
+                        Id: 78b1ff69-cfed-4a09-8c1b-eb12cbf817b1
+                        CollisionGroup: CustomFilter10
+                        CanCollideWith: CharacterFilter
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: true
+                        IsKinematic: true
+                        Mass: 1.0
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            a75542f5626ada7100185d195096639f: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 24.0, Y: 3.0, Z: 24.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                    2eac96e8c90a836d8754e3f24fa1a99e: !Gameplay.SceneStreaming,TopDownRPG.Game
+                        Id: 399f44ea-00ce-44fc-80ff-474e65ec1c9b
+                        Url: 805ec36b-feab-40fb-93cd-8f5083937659:CentralChunk
+                        Trigger: !RigidbodyComponent ref!! 78b1ff69-cfed-4a09-8c1b-eb12cbf817b1
+        -   Entity:
+                Id: f7e977f3-a569-4ae2-a4e8-89afaf7e0817
+                Name: Camera
+                Components:
+                    a116d811cab5bf4da5211050e1d34e10: !TransformComponent
+                        Id: 642702f0-8168-421b-85d9-6908a3475213
+                        Position: {X: 0.0, Y: 0.0, Z: 12.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    1fb7d1656248fc4eb7c13c9d933979c7: !CameraComponent
+                        Id: b6afcaff-bb62-430d-9e9d-ca2791f43f6c
+                        Name: null
+                        Projection: Perspective
+                        Slot: c15adccd-88f4-4cd9-a45a-55ce9f8e89e5
