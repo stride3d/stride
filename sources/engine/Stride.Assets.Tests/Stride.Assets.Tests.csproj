@@ -48,6 +48,7 @@
     <Compile Include="TestModelBones.cs" />
     <Compile Include="TestMorphImport.cs" />
     <Compile Include="TestModelComponentMorphs.cs" />
+    <Compile Include="TestModelAssetMorphTargetNames.cs" />
     <Compile Include="TestDependencyResolver.cs" />
     <Compile Include="TestPrefabAsset.cs" />
     <Compile Include="TestGraphicsCompositorUpgrader.cs" />
