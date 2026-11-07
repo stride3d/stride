@@ -95,6 +95,24 @@ namespace Stride.Assets.Tests
             Assert.Equal("This Font Does Not Exist 12345", ((SystemFontProvider)Load(yaml).FontSource).FontName);
         }
 
+        // A new font names Arial, so the editor shows a name and the asset is the same on every system
+        [Fact]
+        public void NewFontsNameArial()
+        {
+            Stride.Core.Assets.AssetFactory<SpriteFontAsset>[] factories =
+            [
+                new OfflineRasterizedSpriteFontFactory(),
+                new RuntimeRasterizedSpriteFontFactory(),
+                new SignedDistanceFieldSpriteFontFactory(),
+            ];
+            foreach (var factory in factories)
+            {
+                var font = factory.New();
+                Assert.Equal("Arial", Assert.IsType<SystemFontProvider>(font.FontSource).FontName);
+                Assert.Contains("FontName: Arial", Save(font));
+            }
+        }
+
         private static string Save(SpriteFontAsset font)
         {
             using var stream = new MemoryStream();
