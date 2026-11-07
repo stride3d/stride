@@ -162,9 +162,9 @@ namespace Stride.Assets
             registry.Project("4.2.0.0", UpgradeProjectTo42);
             registry.Project("4.3.0.0", UpgradeProjectTo43);
             registry.Project("4.4.0.0", UpgradeProjectTo44);
+            registry.Project("4.4.2.0", UpgradeEffectShaderKeywords);
             registry.Project("4.5.0.0", UpgradeProjectTo45);
             registry.Project("4.5.0.0", AddPluginPackageReferences);
-            registry.Project("4.5.1.0", UpgradeEffectShaderKeywords);
         }
 
         private static bool IsSkippedPackage(string packageName)

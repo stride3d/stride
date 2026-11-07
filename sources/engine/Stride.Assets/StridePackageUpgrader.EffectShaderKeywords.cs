@@ -13,7 +13,7 @@ namespace Stride.Assets
 {
     public partial class StridePackageUpgrader
     {
-        // 4.5.1: the .sdfx files of Stride 4.3 and older could declare an effect with `shader`, which 4.4 and later reject
+        // 4.4.2: the .sdfx files of Stride 4.3 and older could declare an effect with `shader`, which 4.4 and later reject
         // (SDSL0313): `effect` takes its place.
         internal static void UpgradeEffectShaderKeywords(ProjectUpgradeContext context)
         {

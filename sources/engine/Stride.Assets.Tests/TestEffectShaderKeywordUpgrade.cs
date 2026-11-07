@@ -11,7 +11,7 @@ using Xunit;
 namespace Stride.Assets.Tests
 {
     /// <summary>
-    /// The 4.5.1 project upgrade: an .sdfx of Stride 4.3 and older that declares an effect with <c>shader</c> declares it with
+    /// The 4.4.2 project upgrade: an .sdfx of Stride 4.3 and older that declares an effect with <c>shader</c> declares it with
     /// <c>effect</c>.
     /// </summary>
     public class TestEffectShaderKeywordUpgrade : IDisposable
