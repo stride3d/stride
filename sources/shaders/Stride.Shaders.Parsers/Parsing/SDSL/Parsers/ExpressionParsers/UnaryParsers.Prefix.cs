@@ -37,7 +37,8 @@ public record struct PrefixParser : IParser<Expression>
             var op = ((char)scanner.Peek()).ToOperator();
             scanner.Advance(1);
             Parsers.Spaces0(ref scanner, result, out _);
-            if (PostfixParser.Postfix(ref scanner, result, out var lit))
+            // Any unary operand, as for - and +: ~(uint)x, !!x
+            if (Prefix(ref scanner, result, out var lit))
             {
                 parsed = new PrefixExpression(op, lit, scanner[position..scanner.Position]);
                 return true;
@@ -118,7 +119,11 @@ public record struct PrefixParser : IParser<Expression>
         if (!s2) { scanner.Position = position; return Parsers.Exit(ref scanner, result, out parsed, position, orError); }
         var s3 = Parsers.FollowedBy(ref scanner, Tokens.Char(')'), withSpaces: true, advance: true);
         if (!s3) { scanner.Position = position; return Parsers.Exit(ref scanner, result, out parsed, position, orError); }
-        var s4 = Parsers.FollowedBy(ref scanner, result, PostfixParser.Postfix, out Expression? expression, withSpaces: true, advance: true);
+        // A reserved word can't name a variable, so (float) is always a cast and takes any unary operand, as in HLSL:
+        // (float)(uint)x, (float)-x. Another name could be a variable: (a) - b stays a subtraction, but (a)(uint)x is a cast.
+        var s4 = Reserved.Keywords.Contains(typeName!.Name)
+            ? Parsers.FollowedBy(ref scanner, result, Prefix, out Expression? expression, withSpaces: true, advance: true)
+            : Parsers.FollowedBy(ref scanner, result, CastOrPostfix, out expression, withSpaces: true, advance: true);
         if (!s4) {
             scanner.Position = position;
             return Parsers.Exit(ref scanner, result, out parsed, position, orError);
@@ -126,4 +131,8 @@ public record struct PrefixParser : IParser<Expression>
         parsed = new CastExpression(typeName!, Operator.Cast, expression!, scanner[position..scanner.Position]);
         return true;
     }
+
+    static bool CastOrPostfix<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Expression parsed, in ParseError? orError = null)
+        where TScanner : struct, IScanner
+        => Parsers.Alternatives(ref scanner, result, out parsed, orError, Cast, PostfixParser.Postfix);
 }
