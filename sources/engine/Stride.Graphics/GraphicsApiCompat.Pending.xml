@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Members that differ between the graphics APIs and are candidates for removal from all of them, waiting on a decision. Remove an entry when its member is removed or added to every API. -->
+<Suppressions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <!-- CommandList.SetStreamTargets: stream output is unreachable, no shader can declare it (SDSL0170). Direct3D 11 takes a span, Direct3D 12 and Vulkan an array. -->
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:Stride.Graphics.CommandList.SetStreamTargets(System.ReadOnlySpan{Stride.Graphics.Buffer})</Target>
+    <Left>Direct3D11</Left>
+    <Right>Direct3D12</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:Stride.Graphics.CommandList.SetStreamTargets(System.ReadOnlySpan{Stride.Graphics.Buffer})</Target>
+    <Left>Direct3D11</Left>
+    <Right>Vulkan</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:Stride.Graphics.CommandList.SetStreamTargets(Stride.Graphics.Buffer[])</Target>
+    <Left>Direct3D12</Left>
+    <Right>Direct3D11</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:Stride.Graphics.CommandList.SetStreamTargets(Stride.Graphics.Buffer[])</Target>
+    <Left>Vulkan</Left>
+    <Right>Direct3D11</Right>
+  </Suppression>
+  <!-- CommandList.UnsetRenderTargets: CommandList.ResetTargets does the same on every API and keeps the bound targets in step. -->
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:Stride.Graphics.CommandList.UnsetRenderTargets</Target>
+    <Left>Direct3D11</Left>
+    <Right>Direct3D12</Right>
+  </Suppression>
+  <!-- CommandList.ResetQueryPool: Vulkan resets its query pools itself, Direct3D 11 and Direct3D 12 have nothing to reset. -->
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:Stride.Graphics.CommandList.ResetQueryPool(Stride.Graphics.QueryPool)</Target>
+    <Left>Direct3D12</Left>
+    <Right>Direct3D11</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>M:Stride.Graphics.CommandList.ResetQueryPool(Stride.Graphics.QueryPool)</Target>
+    <Left>Vulkan</Left>
+    <Right>Direct3D11</Right>
+  </Suppression>
+  <!-- Texture.HasStencil: a public, writable field on Direct3D 12 only, internal on the other APIs. -->
+  <Suppression>
+    <DiagnosticId>CP0002</DiagnosticId>
+    <Target>F:Stride.Graphics.Texture.HasStencil</Target>
+    <Left>Direct3D12</Left>
+    <Right>Direct3D11</Right>
+  </Suppression>
+</Suppressions>
