@@ -10,10 +10,10 @@ using Stride.Assets.Models;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
+using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Quantum.ViewModels;
-using Stride.Core.Presentation.Services;
 using Stride.Core.Quantum;
 using Stride.Core.Serialization;
 using Stride.Engine;
@@ -144,7 +144,8 @@ public sealed class ModelComponentTests
         model.Materials.Add(new ModelMaterial { Name = "Skin", MaterialInstance = new MaterialInstance() });
         // The material of the second slot is the material asset
         model.Materials.Add(new ModelMaterial { MaterialInstance = new MaterialInstance(AttachedReferenceManager.CreateProxyObject<Material>(material.Id, "Material")) });
-        var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: true, new NullDispatcherService(), [("MainScene", new SceneAsset()), ("Model", model), ("Material", material), .. others]);
+        // One dispatcher call at a time, as on the UI thread: the session raises its events on the thread pool
+        var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: true, new ExclusiveDispatcherService(), [("MainScene", new SceneAsset()), ("Model", model), ("Material", material), .. others]);
         Assert.False(fixture.Result.HasErrors, fixture.Log);
 
         var graph = (AssetCompositeHierarchyPropertyGraph<EntityDesign, Entity>)fixture.Asset<SceneViewModel>("MainScene").PropertyGraph;

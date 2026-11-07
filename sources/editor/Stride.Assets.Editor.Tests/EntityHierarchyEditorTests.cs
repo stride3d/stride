@@ -7,6 +7,7 @@ using Stride.Assets.Entities;
 using Stride.Assets.Presentation.AssetEditors.GameEditor;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Services;
@@ -148,7 +149,8 @@ public sealed class EntityHierarchyEditorTests
     /// </summary>
     internal static async Task<AssetsSessionFixture> OpenSceneAsync(IDispatcherService? dispatcher = null)
     {
-        var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: true, dispatcher ?? new NullDispatcherService(), ("MainScene", new SceneAsset()));
+        // One dispatcher call at a time, as on the UI thread: the session raises its events on the thread pool
+        var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: true, dispatcher ?? new ExclusiveDispatcherService(), ("MainScene", new SceneAsset()));
         Assert.False(fixture.Result.HasErrors, fixture.Log);
 
         // The entities go through the property graph, as the editor adds them: a scene saved by the test would need the
