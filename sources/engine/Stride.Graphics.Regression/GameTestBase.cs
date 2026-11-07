@@ -156,7 +156,7 @@ namespace Stride.Graphics.Regression
         {
             AssetBundleName = FindBundleName(GetType());
 
-            ConsoleLogMode = ConsoleLogMode.Always;
+            ConsoleLogMode = ConsoleLogMode.StandardOutput;
 
             // Override the default Graphic Device manager and settings
             GraphicsDeviceManager.Dispose();
