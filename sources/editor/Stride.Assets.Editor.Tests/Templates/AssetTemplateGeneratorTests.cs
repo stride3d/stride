@@ -243,10 +243,12 @@ public sealed class AssetTemplateGeneratorTests
         // The package is read here, not registered with the TemplateManager (StrideDefaultTemplates.LoadAssetTemplates): the
         // manager has no unregistration, and the package's templates would stay listed for every later test of the process. Its
         // skeleton template then doubled the one ModelViewModelTests adds to its session.
-        var packageFile = PackageStore.Instance.GetPackageFileName(StrideDefaultTemplates.AssetTemplatesPackageName, new PackageVersionRange(new PackageVersion(StrideVersion.NuGetVersion)));
-        Skip.If(packageFile is null, $"The {StrideDefaultTemplates.AssetTemplatesPackageName} package is not in the package store on this machine.");
+        // A machine without the package in its package store (CI) reads the repository's package file
+        var packageFile = PackageStore.Instance.GetPackageFileName(StrideDefaultTemplates.AssetTemplatesPackageName, new PackageVersionRange(new PackageVersion(StrideVersion.NuGetVersion)))?.ToOSPath()
+            ?? FindRepositoryTemplatesPackage();
+        Skip.If(packageFile is null, $"The {StrideDefaultTemplates.AssetTemplatesPackageName} package is neither in the package store nor in a repository above this test.");
         var logger = new LoggerResult();
-        var package = Package.Load(logger, packageFile!.ToOSPath(), new PackageLoadParameters { LoadAssemblyReferences = false, AutoLoadTemporaryAssets = false });
+        var package = Package.Load(logger, packageFile!, new PackageLoadParameters { LoadAssemblyReferences = false, AutoLoadTemporaryAssets = false });
         Assert.False(logger.HasErrors, logger.ToText());
 
         var templates = package.Templates
@@ -260,6 +262,18 @@ public sealed class AssetTemplateGeneratorTests
         Assert.NotEmpty(known);
         var withoutGenerator = known.Where(x => TemplateManager.FindTemplateGenerator<AssetTemplateGeneratorParameters>(x) is null).Select(x => x.Name).ToList();
         Assert.Empty(withoutGenerator);
+    }
+
+    private static string? FindRepositoryTemplatesPackage()
+    {
+        var relativePath = Path.Combine("sources", "editor", StrideDefaultTemplates.AssetTemplatesPackageName, $"{StrideDefaultTemplates.AssetTemplatesPackageName}.sdpkg");
+        for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
+        {
+            var packageFile = Path.Combine(directory.FullName, relativePath);
+            if (File.Exists(packageFile))
+                return packageFile;
+        }
+        return null;
     }
 
     private static async Task<AssetsSessionFixture> OpenAsync(params (string Location, Asset Asset)[] assets)
