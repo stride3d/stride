@@ -66,6 +66,11 @@ public static class PluginContributions
     public const string Join = "Join";
 
     /// <summary>
+    /// The plugin's assembly loading: the editor's check of the editor version it was built for (<see cref="EditorApiCheck"/>).
+    /// </summary>
+    public const string Load = "Load";
+
+    /// <summary>
     /// The plugin initializing the session (<see cref="AssetsPlugin.InitializeSession(ISessionPluginContext)"/>).
     /// </summary>
     public const string InitializeSession = "InitializeSession";

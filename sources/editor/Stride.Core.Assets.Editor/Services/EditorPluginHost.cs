@@ -63,6 +63,8 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginCo
     // The state and the errors of each plugin that joined or failed to join; read from any thread
     private readonly object statusLock = new();
     private readonly Dictionary<AssetsPlugin, StatusEntry> statuses = [];
+    // The plugins whose assembly was not loaded (incompatible), by assembly path
+    private readonly Dictionary<string, (string Name, StatusEntry Entry)> unloadedStatuses = new(StringComparer.OrdinalIgnoreCase);
     private readonly PluginMap<object, object> enumImages;
     private readonly PluginMap<Type, object> typeImages;
     private readonly PluginMap<object, object> declaredEnumImages;
@@ -101,6 +103,7 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginCo
         typeImages = new PluginMap<Type, object>(null);
         declaredEnumImages = new PluginMap<object, object>(null);
         declaredTypeImages = new PluginMap<Type, object>(null);
+        AssemblyLoadCheck = new EditorApiCheck(RecordIncompatible);
         Commands = new ContributionRegistry<CommandDescriptor>(ValidateCommand);
         ToolbarWidgets = new ContributionRegistry<ToolbarWidgetDescriptor>(ValidateToolbarWidget);
 
@@ -183,16 +186,24 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginCo
     public IReadOnlyDictionary<Type, Type> ViewTypes => viewTypes.Entries;
 
     /// <summary>
-    /// The state and the errors of each plugin that joined the session or failed to join it, in the order they joined.
+    /// The state and the errors of each plugin that joined the session or failed to join it, in the order they joined, then
+    /// of each plugin whose assembly was not loaded (<see cref="PluginState.Incompatible"/>), in the order they were refused.
     /// </summary>
     public IReadOnlyList<PluginStatus> PluginStatuses
     {
         get
         {
             lock (statusLock)
-                return statuses.Select(x => x.Value.Snapshot(x.Key)).ToList();
+                return statuses.Select(x => x.Value.Snapshot(x.Key)).Concat(unloadedStatuses.Values.Select(x => x.Entry.Snapshot(x.Name))).ToList();
         }
     }
+
+    /// <summary>
+    /// The check that each assembly of the session's packages passes before it loads (<see cref="EditorApiCheck"/>): a plugin
+    /// built for a newer editor is not loaded, and gets the <see cref="PluginState.Incompatible"/> state here. The editor gives
+    /// it to the session it opens.
+    /// </summary>
+    public IAssemblyLoadCheck AssemblyLoadCheck { get; }
 
     /// <summary>
     /// Raised when a plugin joins, fails to join or leaves the session, and when one of its contributions fails. Raised on
@@ -374,6 +385,7 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginCo
             TryLeave(plugin);
         foreach (var assembly in assemblyRecords.Keys.ToList())
             RemoveAssembly(assembly);
+        ClearUnloadedStatuses();
         GC.SuppressFinalize(this);
     }
 
@@ -831,7 +843,7 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginCo
             update(entry);
             status = entry.Snapshot(plugin);
         }
-        PluginStatusChanged?.Invoke(this, new PluginStatusChangedEventArgs(plugin, status));
+        PluginStatusChanged?.Invoke(this, new PluginStatusChangedEventArgs(plugin, status.Name, status));
     }
 
     private void RemoveStatus(AssetsPlugin plugin)
@@ -840,7 +852,34 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginCo
         lock (statusLock)
             removed = statuses.Remove(plugin);
         if (removed)
-            PluginStatusChanged?.Invoke(this, new PluginStatusChangedEventArgs(plugin, null));
+            PluginStatusChanged?.Invoke(this, new PluginStatusChangedEventArgs(plugin, plugin.GetType().FullName ?? plugin.GetType().Name, null));
+    }
+
+    // A plugin built for a newer editor: its assembly is not loaded, so it is known by its assembly only. Called on the
+    // thread that loads the session, before the plugins join it.
+    private void RecordIncompatible(IncompatiblePluginException error)
+    {
+        PluginStatus status;
+        lock (statusLock)
+        {
+            var entry = new StatusEntry { State = PluginState.Incompatible };
+            entry.Errors.Add(new PluginError(PluginContributions.Load, error));
+            unloadedStatuses[error.AssemblyPath] = (error.AssemblyName, entry);
+            status = entry.Snapshot(error.AssemblyName);
+        }
+        PluginStatusChanged?.Invoke(this, new PluginStatusChangedEventArgs(null, status.Name, status));
+    }
+
+    private void ClearUnloadedStatuses()
+    {
+        List<string> names;
+        lock (statusLock)
+        {
+            names = unloadedStatuses.Values.Select(x => x.Name).ToList();
+            unloadedStatuses.Clear();
+        }
+        foreach (var name in names)
+            PluginStatusChanged?.Invoke(this, new PluginStatusChangedEventArgs(null, name, null));
     }
 
     private void RegisterViewType(PluginRecord record, AssetsPlugin plugin, Type viewModelType, Type viewType)

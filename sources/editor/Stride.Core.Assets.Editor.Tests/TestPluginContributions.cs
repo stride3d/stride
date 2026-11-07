@@ -253,7 +253,7 @@ public sealed class TestPluginContributions
         var failing = new TestEditorPluginHost.FailingPlugin();
         var host = new RecordingEditorPluginHost([plugin, failing]);
         host.DeclareRegistry<Widget>();
-        var changes = new List<(AssetsPlugin Plugin, PluginState? State)>();
+        var changes = new List<(AssetsPlugin? Plugin, PluginState? State)>();
         host.PluginStatusChanged += (_, e) => changes.Add((e.Plugin, e.Status?.State));
         var session = new FakeSession();
         session.ServiceProvider.RegisterService(host);

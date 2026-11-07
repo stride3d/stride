@@ -686,6 +686,13 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     public string? EditorToolkit { get; set; }
 
     /// <summary>
+    /// The check that each assembly of a package passes before it loads into this session (the editor's plugin version
+    /// check), or null to load them all. A load whose parameters give one sets it, so later loads with default parameters
+    /// use it too.
+    /// </summary>
+    public IAssemblyLoadCheck? AssemblyLoadCheck { get; set; }
+
+    /// <summary>
     /// Gets the packages referenced by the current package.
     /// </summary>
     /// <returns>IEnumerable&lt;Package&gt;.</returns>
@@ -750,6 +757,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
         if (!File.Exists(projectPath)) throw new FileNotFoundException("Unable to find project", projectPath);
 
         var loadParameters = loadParametersArg ?? PackageLoadParameters.Default();
+        AssemblyLoadCheck ??= loadParameters.AssemblyLoadCheck;
 
         Package package;
         PackageContainer project;
@@ -903,7 +911,8 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
             sessionResult.Clear();
             sessionResult.Progress("Loading..", 0, 1);
 
-            var session = new PackageSession();
+            // The assemblies of the projects load with them, so the session needs the check from the start
+            var session = new PackageSession { AssemblyLoadCheck = loadParameters.AssemblyLoadCheck };
 
             var cancelToken = loadParameters.CancelToken;
             SolutionProject? firstProject = null;
@@ -1080,6 +1089,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     public void LoadMissingDependencies(ILogger log, PackageLoadParameters? loadParametersArg = null)
     {
         var loadParameters = loadParametersArg ?? PackageLoadParameters.Default();
+        AssemblyLoadCheck ??= loadParameters.AssemblyLoadCheck;
 
         var cancelToken = loadParameters.CancelToken;
 
@@ -1170,6 +1180,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     public void LoadMissingAssets(ILogger log, IEnumerable<Package> packages, PackageLoadParameters? loadParametersArg = null)
     {
         var loadParameters = loadParametersArg ?? PackageLoadParameters.Default();
+        AssemblyLoadCheck ??= loadParameters.AssemblyLoadCheck;
 
         var cancelToken = loadParameters.CancelToken;
         List<AssetLoadingInfo> assetLoadInfos = [];

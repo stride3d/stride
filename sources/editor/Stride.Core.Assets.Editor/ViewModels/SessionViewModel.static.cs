@@ -74,7 +74,13 @@ partial class SessionViewModel
     public static async Task<SessionViewModel?> CreateNewSessionAsync(NewSessionParameters newSessionParameters, IMainViewModel main, IViewModelServiceProvider serviceProvider)
     {
         var loggerResult = new LoggerResult();
-        var session = new PackageSession { LoadEditorPackages = true, EditorToolkit = main.EditorToolkitName };
+        var session = new PackageSession
+        {
+            LoadEditorPackages = true,
+            EditorToolkit = main.EditorToolkitName,
+            // A plugin built for a newer editor is not loaded
+            AssemblyLoadCheck = serviceProvider.TryGet<IAssetsPluginService>()?.AssemblyLoadCheck,
+        };
 
         var workProgress = new WorkProgressViewModel(serviceProvider, loggerResult)
         {
@@ -306,6 +312,8 @@ partial class SessionViewModel
             BackupBeforeUpgrade = true,
             LoadEditorPackages = true,
             EditorToolkit = editorToolkit,
+            // A plugin built for a newer editor is not loaded
+            AssemblyLoadCheck = serviceProvider.TryGet<IAssetsPluginService>()?.AssemblyLoadCheck,
             // An asset of a missing plugin stays in the session as an unloadable asset
             LoadAssetsOfUnknownType = true,
         };

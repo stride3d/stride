@@ -70,6 +70,12 @@ public sealed class PackageLoadParameters
     public string? EditorToolkit { get; set; }
 
     /// <summary>
+    /// A check that each assembly of a package passes before it loads (the editor's plugin version check), or null to load
+    /// them all. The session keeps the first one it is given (<see cref="PackageSession.AssemblyLoadCheck"/>) for later loads.
+    /// </summary>
+    public IAssemblyLoadCheck? AssemblyLoadCheck { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether to automatically compile projects that don't have their assembly generated.
     /// </summary>
     /// <value><c>true</c> if [automatic compile projects]; otherwise, <c>false</c>.</value>

@@ -48,4 +48,10 @@ public interface IAssetsPluginService : IPresentationPluginService
     /// (<see cref="IEditorPluginContext.ViewTypes"/>), in the editor's toolkit, or null.
     /// </summary>
     Type? GetViewType(Type viewModelType) => null;
+
+    /// <summary>
+    /// The check that each assembly of a session's packages passes before it loads (<see cref="EditorApiCheck"/>), or null to
+    /// load them all. The editor gives it to the sessions it opens.
+    /// </summary>
+    IAssemblyLoadCheck? AssemblyLoadCheck => null;
 }

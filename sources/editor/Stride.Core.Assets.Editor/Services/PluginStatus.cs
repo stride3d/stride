@@ -26,7 +26,8 @@ public enum PluginState
     Off,
 
     /// <summary>
-    /// The plugin was built for another version of the editor: it did not join the session.
+    /// The plugin was built for a newer version of the editor: its assembly was not loaded, and it did not join the session
+    /// (<see cref="EditorApiCheck"/>, <see cref="IncompatiblePluginException"/>).
     /// </summary>
     Incompatible,
 }
@@ -69,18 +70,24 @@ public sealed class PluginError
 /// </summary>
 public sealed class PluginStatus
 {
-    internal PluginStatus(AssetsPlugin plugin, PluginState state, IReadOnlyList<PluginError> errors, IReadOnlyCollection<string> turnedOff)
+    internal PluginStatus(AssetsPlugin? plugin, string name, PluginState state, IReadOnlyList<PluginError> errors, IReadOnlyCollection<string> turnedOff)
     {
         Plugin = plugin;
+        Name = name;
         State = state;
         Errors = errors;
         TurnedOffContributions = turnedOff;
     }
 
     /// <summary>
-    /// The plugin.
+    /// The plugin, or null when its assembly was not loaded (<see cref="PluginState.Incompatible"/>).
     /// </summary>
-    public AssetsPlugin Plugin { get; }
+    public AssetsPlugin? Plugin { get; }
+
+    /// <summary>
+    /// The name of the plugin: the full name of its type, or the name of its assembly when the assembly was not loaded.
+    /// </summary>
+    public string Name { get; }
 
     /// <summary>
     /// Its state.
@@ -98,18 +105,23 @@ public sealed class PluginStatus
     public IReadOnlyCollection<string> TurnedOffContributions { get; }
 
     /// <inheritdoc />
-    public override string ToString() => $"{Plugin.GetType().Name}: {State} ({Errors.Count} errors)";
+    public override string ToString() => $"{Name}: {State} ({Errors.Count} errors)";
 }
 
 /// <summary>
 /// The plugin a <see cref="EditorPluginHost.PluginStatusChanged"/> event is about.
 /// </summary>
-public sealed class PluginStatusChangedEventArgs(AssetsPlugin plugin, PluginStatus? status) : EventArgs
+public sealed class PluginStatusChangedEventArgs(AssetsPlugin? plugin, string name, PluginStatus? status) : EventArgs
 {
     /// <summary>
-    /// The plugin.
+    /// The plugin, or null when its assembly was not loaded (<see cref="PluginState.Incompatible"/>).
     /// </summary>
-    public AssetsPlugin Plugin { get; } = plugin;
+    public AssetsPlugin? Plugin { get; } = plugin;
+
+    /// <summary>
+    /// The name of the plugin (<see cref="PluginStatus.Name"/>).
+    /// </summary>
+    public string Name { get; } = name;
 
     /// <summary>
     /// Its new status, or null when it left the session.
