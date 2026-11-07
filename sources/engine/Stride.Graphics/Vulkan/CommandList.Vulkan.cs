@@ -72,6 +72,7 @@ namespace Stride.Graphics
         private uint allocatedSetCount;
 
         private uint? activeStencilReference = 0;
+        private Color4 blendFactor = Color4.White;
 
         private CompiledCommandList currentCommandList;
 
@@ -313,6 +314,7 @@ namespace Stride.Graphics
             BindDescriptorSets();
             SetViewportImpl();
             GraphicsDevice.NativeDeviceApi.vkCmdSetStencilReference(currentCommandList.NativeCommandBuffer, VkStencilFaceFlags.FrontAndBack, activeStencilReference ?? 0);
+            GraphicsDevice.NativeDeviceApi.vkCmdSetBlendConstants(currentCommandList.NativeCommandBuffer, blendFactor.R, blendFactor.G, blendFactor.B, blendFactor.A);
 
             // A read-only depth view drops depth and stencil writes instead of being invalid
             // usage, matching D3D12's read-only depth-stencil view behavior
@@ -492,6 +494,18 @@ namespace Stride.Graphics
                 activeStencilReference = (uint) stencilReference;
                 GraphicsDevice.NativeDeviceApi.vkCmdSetStencilReference(currentCommandList.NativeCommandBuffer, VkStencilFaceFlags.FrontAndBack, activeStencilReference.Value);
             }
+        }
+
+        /// <summary>
+        ///   Sets the blend factors used by the blend states that use <see cref="Blend.BlendFactor"/> or
+        ///   <see cref="Blend.InverseBlendFactor"/>.
+        /// </summary>
+        /// <param name="blendFactor">The blend factor for each RGBA component. It is <see cref="Color4.White"/> until set.</param>
+        /// <seealso cref="SetPipelineState(PipelineState)"/>
+        public void SetBlendFactor(Color4 blendFactor)
+        {
+            // Each draw sets it on the command buffer (PrepareDraw)
+            this.blendFactor = blendFactor;
         }
 
         public void SetPipelineState(PipelineState pipelineState)

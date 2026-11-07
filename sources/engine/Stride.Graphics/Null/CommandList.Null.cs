@@ -144,6 +144,15 @@ namespace Stride.Graphics
             NullHelper.ToImplement();
         }
 
+        /// <summary>
+        ///   Sets the blend factors used by the blend states that use <see cref="Blend.BlendFactor"/>.
+        /// </summary>
+        /// <param name="blendFactor">The blend factor for each RGBA component.</param>
+        public void SetBlendFactor(Color4 blendFactor)
+        {
+            NullHelper.ToImplement();
+        }
+
         public void SetPipelineState(PipelineState pipelineState)
         {
             NullHelper.ToImplement();
