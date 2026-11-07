@@ -29,7 +29,10 @@ internal sealed class SoftBodyProcessor : EntityProcessor<SoftBodyComponent, Sof
 
     private static readonly Logger Logger = GlobalLogger.GetLogger(nameof(SoftBodyProcessor));
 
-    private readonly List<DeformableModel> _retired = new();
+    /// <summary> The deformation and upload of every soft body, each frame </summary>
+    internal static readonly ProfilingKey DrawKey = new("SoftBodyProcessor.Draw");
+
+    private readonly List<IDisposable> _retired = new(); // Models and buffers retired during the last frame
     private readonly List<SoftBodyComponent> _drawn = new();
     private GraphicsDevice? _device;
     private GraphicsContext? _context;
@@ -103,11 +106,16 @@ internal sealed class SoftBodyProcessor : EntityProcessor<SoftBodyComponent, Sof
             }
 
             var mode = DeformationMode(component);
-            if (renderModel is null || renderModel.Topology != topology || renderModel.Mode != mode)
+            if (renderModel is null || renderModel.Topology != topology)
             {
                 Release(component, data);
                 renderModel = component.RenderModel = new DeformableModel(_device, Services, component.SourceModel!, topology, mode);
                 modelComponent.Model = renderModel.Model;
+            }
+            else
+            {
+                // Switching the mode in place keeps Model identity, so what follows the model (node links, skeleton bodies, animations) is left alone
+                renderModel.SetMode(_device, mode, _retired);
             }
         }
     }
@@ -117,6 +125,7 @@ internal sealed class SoftBodyProcessor : EntityProcessor<SoftBodyComponent, Sof
         if (_context is null)
             return;
 
+        using var _ = Profiler.Begin(DrawKey);
         _drawn.Clear();
         bool anyOnGpu = false;
         foreach (var (component, _) in ComponentDatas)
@@ -177,8 +186,8 @@ internal sealed class SoftBodyProcessor : EntityProcessor<SoftBodyComponent, Sof
 
     private void DisposeRetired()
     {
-        foreach (var renderModel in _retired)
-            renderModel.Dispose();
+        foreach (var retired in _retired)
+            retired.Dispose();
         _retired.Clear();
     }
 }

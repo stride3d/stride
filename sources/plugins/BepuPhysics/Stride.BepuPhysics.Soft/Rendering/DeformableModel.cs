@@ -22,17 +22,17 @@ internal sealed class DeformableModel : IDisposable
 {
     private static readonly ConditionalWeakTable<Model, Model> SourceOfModel = new();
 
-    // One entry per source Mesh, in source.Meshes order; carries stream 0 (= the authored vertex bytes, snapshot) for both modes.
+    // Per source mesh, built once, mutable buffers swapped by SetMode in place.
     private readonly MeshBuffer[] _meshBuffers;
     private readonly Vector3[] _particles;
 
-    // CPU scratch; empty on GPU mode
-    private readonly Vector3[] _positions = [];
-    private readonly Vector3[] _normals = [];
-    private readonly Vector4[] _tangents = [];
+    // CPU scratch; empty on GPU mode (reallocated by SetMode when switching to CPU)
+    private Vector3[] _positions = [];
+    private Vector3[] _normals = [];
+    private Vector4[] _tangents = [];
 
-    // GPU state; null on CPU mode. Holds the particle buffer and stream 1 (per-vertex binding to the particles).
-    private readonly GpuDeformation? _gpu;
+    // GPU state; null on CPU mode (recreated by SetMode when switching to GPU)
+    private GpuDeformation? _gpu;
 
     public Model Model { get; }
 
@@ -44,30 +44,20 @@ internal sealed class DeformableModel : IDisposable
     {
         Topology = topology;
         var meshPool = topology.Mesh;
-        int vertexCount = meshPool.Positions.Length;
 
         _particles = new Vector3[topology.ParticleCount];
 
         if (source.Meshes.Count != meshPool.Parts.Length)
             throw new InvalidOperationException($"A deformable model expected {source.Meshes.Count} mesh ranges from the topology, got {meshPool.Parts.Length}.");
 
-        Model = new Model();
+        Model = new Model { Skeleton = source.Skeleton };
         SourceOfModel.AddOrUpdate(Model, source);
         foreach (var material in source.Materials)
             Model.Materials.Add(material);
 
-        bool gpu = mode == SoftBodyDeformationMode.Gpu;
-        if (!gpu)
-        {
-            _positions = new Vector3[vertexCount];
-            _normals = new Vector3[vertexCount];
-            _tangents = new Vector4[vertexCount];
-        }
-        else
-        {
-            _gpu = new GpuDeformation(device, topology);
-        }
-
+        // The authored vertex bytes are snapshotted once per source mesh, into Working, and live there in both modes:
+        // CPU mode rewrites position/normal/tangent in Working every frame; GPU mode uploads Working to a static buffer
+        // once per SetMode. Keeping Working alive lets SetMode rebuild either mode without re-reading the source mesh.
         _meshBuffers = new MeshBuffer[source.Meshes.Count];
         for (int m = 0; m < source.Meshes.Count; m++)
         {
@@ -81,47 +71,29 @@ internal sealed class DeformableModel : IDisposable
             if (sourceBinding.Count != part.VertexCount)
                 throw new InvalidOperationException($"Soft body topology reports {part.VertexCount} vertices for '{sourceMesh.Name}', the source binding has {sourceBinding.Count}.");
 
-            int stride = declaration.VertexStride;
             int positionOffset = FindOffset<PositionSemantic>(declaration, PixelFormat.R32G32B32_Float, sourceMesh.Name);
             int normalOffset = FindOffset<NormalSemantic>(declaration, PixelFormat.R32G32B32_Float, sourceMesh.Name);
             int tangentOffset = FindOffset<TangentSemantic>(declaration, PixelFormat.R32G32B32A32_Float, sourceMesh.Name);
 
-            // Snapshot of the source bytes, taken once: the authored attributes we do not touch (texture coordinates, colors,
-            // bone indices, extra UVs...) are set in Working here and never rewritten, since Deform only overwrites position,
-            // normal and tangent at known offsets. DataInner accounts for the binding offset and length.
             var readable = new VertexBufferHelper(sourceBinding, services, out _);
             var inner = readable.DataInner;
             var working = new byte[inner.Length];
             inner.CopyTo(working);
 
-            // CPU mode rewrites Working every frame, so the buffer is Dynamic and is uploaded each frame from the snapshot.
-            // GPU mode uploads the snapshot once at creation and never touches it again, so the buffer is Default (static)
-            // and the Working snapshot is not kept.
-            var vertexBuffer = gpu
-                ? Buffer.Vertex.New(device, (ReadOnlySpan<byte>)working, GraphicsResourceUsage.Default)
-                : Buffer.Vertex.New(device, bufferSize: working.Length, usage: GraphicsResourceUsage.Dynamic);
-            var vertexBinding = new VertexBufferBinding(vertexBuffer, declaration, part.VertexCount);
-
             _meshBuffers[m] = new MeshBuffer
             {
-                Working = gpu ? [] : working,
-                VertexBuffer = vertexBuffer,
-                Binding = vertexBinding,
-                Stride = stride,
+                Working = working,
+                Declaration = declaration,
+                Stride = declaration.VertexStride,
                 PositionOffset = positionOffset,
                 NormalOffset = normalOffset,
                 TangentOffset = tangentOffset,
                 FirstVertex = part.FirstVertex,
                 VertexCount = part.VertexCount,
+                VertexBuffer = null!, // Set by SetMode
             };
 
-            // GPU mode: stream 1 carries the per-vertex binding to the particles; the authored declaration (stream 0) keeps
-            // its slice of the global vertex pool, so the input assembler finds the binding at the same vertex id as the authored data.
-            VertexBufferBinding[] vertexBuffers = gpu
-                ? [vertexBinding, new VertexBufferBinding(_gpu!.BindingBuffer, _gpu.BindingLayout, part.VertexCount, _gpu.BindingLayout.VertexStride * part.FirstVertex)]
-                : [vertexBinding];
-
-            var mesh = new Mesh
+            Model.Meshes.Add(new Mesh
             {
                 MaterialIndex = sourceMesh.MaterialIndex,
                 Draw = new MeshDraw
@@ -129,13 +101,77 @@ internal sealed class DeformableModel : IDisposable
                     PrimitiveType = sourceMesh.Draw.PrimitiveType,
                     StartLocation = sourceMesh.Draw.StartLocation,
                     DrawCount = sourceMesh.Draw.DrawCount,
-                    VertexBuffers = vertexBuffers,
                     IndexBuffer = sourceMesh.Draw.IndexBuffer,
+                    VertexBuffers = [], // Filled by SetMode
                 },
-            };
+            });
+        }
+
+        SetMode(device, mode, retired: []);
+    }
+
+    /// <summary>
+    /// Switches the buffers and draws of the meshes to <paramref name="mode"/>, in place: the model and its meshes stay, so
+    /// does whatever follows them (model component, skeleton bodies, node links). The previous mode's GPU buffers go to
+    /// <paramref name="retired"/>, to dispose of once the renderer no longer uses them.
+    /// </summary>
+    public void SetMode(GraphicsDevice device, SoftBodyDeformationMode mode, ICollection<IDisposable> retired)
+    {
+        bool built = _gpu is not null || (_meshBuffers.Length > 0 && _meshBuffers[0].VertexBuffer is not null);
+        if (built && mode == Mode)
+            return;
+
+        if (_gpu is not null)
+            retired.Add(_gpu);
+        foreach (var buffer in _meshBuffers)
+        {
+            if (buffer.VertexBuffer is { } vb)
+                retired.Add(vb);
+        }
+        _gpu = null;
+
+        bool gpu = mode == SoftBodyDeformationMode.Gpu;
+        int vertexCount = Topology.Mesh.Positions.Length;
+
+        if (gpu)
+        {
+            _gpu = new GpuDeformation(device, Topology);
+            _positions = [];
+            _normals = [];
+            _tangents = [];
+        }
+        else
+        {
+            _positions = new Vector3[vertexCount];
+            _normals = new Vector3[vertexCount];
+            _tangents = new Vector4[vertexCount];
+        }
+
+        for (int m = 0; m < _meshBuffers.Length; m++)
+        {
+            var buffer = _meshBuffers[m];
+
+            // CPU mode rewrites Working every frame, so the buffer is Dynamic and is uploaded each frame from the snapshot.
+            // GPU mode uploads the snapshot once at creation and never touches it again, so the buffer is Default (static).
+            var vertexBuffer = gpu
+                ? Buffer.Vertex.New(device, (ReadOnlySpan<byte>)buffer.Working, GraphicsResourceUsage.Default)
+                : Buffer.Vertex.New(device, bufferSize: buffer.Working.Length, usage: GraphicsResourceUsage.Dynamic);
+            var vertexBinding = new VertexBufferBinding(vertexBuffer, buffer.Declaration, buffer.VertexCount);
+            buffer.VertexBuffer = vertexBuffer;
+            buffer.Binding = vertexBinding;
+
+            // GPU mode: stream 1 carries the per-vertex binding to the particles; the authored declaration (stream 0) keeps
+            // its slice of the global vertex pool, so the input assembler finds the binding at the same vertex id as the authored data.
+            VertexBufferBinding[] vertexBuffers = gpu
+                ? [vertexBinding, new VertexBufferBinding(_gpu!.BindingBuffer, _gpu.BindingLayout, buffer.VertexCount, _gpu.BindingLayout.VertexStride * buffer.FirstVertex)]
+                : [vertexBinding];
+
+            var mesh = Model.Meshes[m];
+            mesh.Draw.VertexBuffers = vertexBuffers;
             if (gpu)
                 _gpu!.Bind(mesh);
-            Model.Meshes.Add(mesh);
+            else
+                GpuDeformation.Unbind(mesh);
         }
     }
 
@@ -300,20 +336,21 @@ internal sealed class DeformableModel : IDisposable
     public void Dispose()
     {
         foreach (var buffer in _meshBuffers)
-            buffer.VertexBuffer.Dispose();
+            buffer.VertexBuffer?.Dispose();
         _gpu?.Dispose();
     }
 
     private sealed class MeshBuffer
     {
         public required byte[] Working;
-        public required Buffer VertexBuffer;
-        public required VertexBufferBinding Binding;
+        public required VertexDeclaration Declaration;
         public required int Stride;
         public required int PositionOffset;
         public required int NormalOffset;
         public required int TangentOffset;
         public required int FirstVertex;
         public required int VertexCount;
+        public required Buffer VertexBuffer; // Mutable: swapped by SetMode
+        public VertexBufferBinding Binding;  // Mutable: swapped by SetMode
     }
 }
