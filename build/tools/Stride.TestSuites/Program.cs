@@ -3,7 +3,8 @@
 
 // Resolves which test suites a run needs, so a CI lane or a local build only builds those: either the
 // explicit list given with --projects, or the suites a `dotnet test --filter` expression can hit.
-// Suites are the test projects Stride.Tests.Combined references; for a filter, each is scanned for its
+// Suites are the test projects Stride.Tests.Combined references, and those of the solution filter given
+// with --slnf (it can list suites the mobile runner doesn't); for a filter, each is scanned for its
 // test methods (syntax only, no compilation) and the filter is evaluated against their fully qualified
 // names with the same engine vstest uses, so the tool and the run agree.
 //
@@ -51,8 +52,12 @@ if (!File.Exists(combined))
     return 2;
 }
 
+var suites = SuitesOf(combined);
+if (slnf is not null)
+    suites = suites.Concat(TestProjectsOf(slnf)).DistinctBy(SuiteName, StringComparer.OrdinalIgnoreCase).ToList();
+
 // Empty means every suite
-var needed = Resolve(projects, filter, combined);
+var needed = Resolve(projects, filter, suites);
 
 if (slnf is null)
 {
@@ -61,10 +66,10 @@ if (slnf is null)
     return 0;
 }
 
-Console.WriteLine(FilterSolution(slnf, needed, combined));
+Console.WriteLine(FilterSolution(slnf, needed, suites));
 return 0;
 
-static List<string> Resolve(string? projects, string? filter, string combined)
+static List<string> Resolve(string? projects, string? filter, List<string> suites)
 {
     if (!string.IsNullOrWhiteSpace(projects))
     {
@@ -83,7 +88,7 @@ static List<string> Resolve(string? projects, string? filter, string combined)
         return [];
     }
 
-    var matching = SuitesOf(combined)
+    var matching = suites
         .Where(suite => TestsIn(suite).Any(test => Matches(expression, test)))
         .Select(SuiteName)
         .ToList();
@@ -113,6 +118,19 @@ static List<string> SuitesOf(string combined)
         .Where(item => item.TryGetProperty("StrideTestSuiteRef", out var tag) && tag.GetString() == "true")
         .Select(item => Path.GetFullPath(Path.Combine(directory, item.GetProperty("Identity").GetString()!)))
         .ToList();
+}
+
+// The test projects (*.Tests) a solution filter lists, as full paths. Its project paths are relative to
+// the solution it filters.
+static IEnumerable<string> TestProjectsOf(string slnf)
+{
+    var solution = JsonNode.Parse(File.ReadAllText(slnf))!["solution"]!;
+    var solutionPath = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(slnf))!, solution["path"]!.GetValue<string>().Replace('\\', '/'));
+    var directory = Path.GetDirectoryName(Path.GetFullPath(solutionPath))!;
+    return solution["projects"]!.AsArray()
+        .Select(project => project!.GetValue<string>())
+        .Where(project => SuiteName(project).EndsWith(".Tests", StringComparison.OrdinalIgnoreCase))
+        .Select(project => Path.GetFullPath(Path.Combine(directory, project.Replace('\\', '/'))));
 }
 
 // Every method carrying a test attribute in the suite's sources, as namespace.Type.Method. Scans the
@@ -165,12 +183,12 @@ static bool Matches(FilterExpressionWrapper expression, TestMethod test)
 // A solution filter next to the original with only the needed suites; other projects in it (the
 // runner, helpers) are kept. The original is the answer when every suite is needed. Nothing is the
 // answer when none of the needed suites is in this filter: the run has nothing to build from it.
-static string FilterSolution(string slnf, List<string> needed, string combined)
+static string FilterSolution(string slnf, List<string> needed, List<string> suitePaths)
 {
     if (needed.Count == 0)
         return slnf;
 
-    var suites = SuitesOf(combined).Select(SuiteName).ToHashSet(StringComparer.OrdinalIgnoreCase);
+    var suites = suitePaths.Select(SuiteName).ToHashSet(StringComparer.OrdinalIgnoreCase);
     var root = JsonNode.Parse(File.ReadAllText(slnf))!;
     var projects = root["solution"]!["projects"]!.AsArray().Select(project => project!.GetValue<string>()).ToList();
 
