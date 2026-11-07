@@ -263,21 +263,28 @@ public sealed class AssetTemplateGeneratorTests
     private static async Task<AssetsSessionFixture> OpenAsync(params (string Location, Asset Asset)[] assets)
     {
         _ = LazyTemplates.Value;
-        var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, assets);
+        // Opened and changed in the dispatcher, as on the UI thread, where the handlers of the session's thread pool events run too
+        var dispatcher = new ExclusiveDispatcherService(strict: true);
+        var fixture = await dispatcher.InvokeTask(async () =>
+        {
+            var opened = await AssetsSessionFixture.OpenAsync(initializeEditor: false, dispatcher, assets);
+            opened.Session.AssetCollection.SelectedLocations.Add(opened.Package);
+            return opened;
+        });
         Assert.False(fixture.Result.HasErrors, fixture.Log);
-        fixture.Session.AssetCollection.SelectedLocations.Add(fixture.Package);
         return fixture;
     }
 
     private static async Task<List<AssetViewModel>> RunAsync(AssetsSessionFixture fixture, Guid templateId, IList<UFile>? files = null)
     {
+        var dispatcher = fixture.ServiceProvider.Get<IDispatcherService>();
         var template = new TemplateDescriptionViewModel(fixture.ServiceProvider, LazyTemplates.Value.Templates.Single(x => x.Id == templateId));
-        var transactions = fixture.Session.ActionHistory.Transactions.Count;
-        var assets = await fixture.Session.AssetCollection.RunAssetTemplateAsync(template, files);
+        var transactions = dispatcher.Invoke(() => fixture.Session.ActionHistory.Transactions.Count);
+        var assets = await dispatcher.InvokeTask(() => fixture.Session.AssetCollection.RunAssetTemplateAsync(template, files));
         // The action history records the creation once the asset notifications are done, on another thread: wait for it, so that
         // the test does not change the selection (nor close the session) in the middle of them
         if (assets.Count > 0)
-            Assert.True(SpinWait.SpinUntil(() => fixture.Session.ActionHistory.Transactions.Count > transactions, TimeSpan.FromSeconds(10)), "the creation to be recorded");
+            Assert.True(SpinWait.SpinUntil(() => dispatcher.Invoke(() => fixture.Session.ActionHistory.Transactions.Count > transactions), TimeSpan.FromSeconds(10)), "the creation to be recorded");
         return assets;
     }
 
