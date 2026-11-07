@@ -63,7 +63,8 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginCo
     // The state and the errors of each plugin that joined or failed to join; read from any thread
     private readonly object statusLock = new();
     private readonly Dictionary<AssetsPlugin, StatusEntry> statuses = [];
-    // The plugins whose assembly was not loaded (incompatible), by assembly path
+    // The plugins whose assembly was not loaded (incompatible), by assembly path, and whose package was not loaded (off), by
+    // package name
     private readonly Dictionary<string, (string Name, StatusEntry Entry)> unloadedStatuses = new(StringComparer.OrdinalIgnoreCase);
     private readonly PluginMap<object, object> enumImages;
     private readonly PluginMap<Type, object> typeImages;
@@ -188,7 +189,8 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginCo
 
     /// <summary>
     /// The state and the errors of each plugin that joined the session or failed to join it, in the order they joined, then
-    /// of each plugin whose assembly was not loaded (<see cref="PluginState.Incompatible"/>), in the order they were refused.
+    /// of each plugin whose assembly or package was not loaded (<see cref="PluginState.Incompatible"/>, <see cref="PluginState.Off"/>),
+    /// in the order they were left out.
     /// </summary>
     [Experimental("STREXP002")]
     public IReadOnlyList<PluginStatus> PluginStatuses

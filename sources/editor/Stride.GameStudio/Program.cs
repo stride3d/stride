@@ -607,7 +607,8 @@ public static partial class Program
         // TODO: this should be done elsewhere
         var dispatcherService = new DispatcherService(Dispatcher.CurrentDispatcher);
         var dialogService = new StrideDialogService(dispatcherService, StrideGameStudio.EditorName);
-        var pluginService = new PluginService();
+        // The plugins switched off per session are the user's, in the internal settings both editors read
+        var pluginService = new PluginService { DisabledCompanions = DisabledEditorCompanionStore.CreateDefault() };
         var services = new List<object>{ new DispatcherService(Dispatcher.CurrentDispatcher), dialogService, pluginService };
         if (renderDocManager != null)
             services.Add(renderDocManager);

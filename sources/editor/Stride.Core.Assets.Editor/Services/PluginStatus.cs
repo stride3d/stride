@@ -24,7 +24,8 @@ public enum PluginState
     Failed,
 
     /// <summary>
-    /// The user switched the plugin off: it did not join the session.
+    /// The plugin's package was not loaded: the user switched it off, or the editor runs in safe mode
+    /// (<see cref="PluginStatus.OffReason"/>). It did not join the session.
     /// </summary>
     Off,
 
@@ -33,6 +34,23 @@ public enum PluginState
     /// (<see cref="EditorApiCheck"/>, <see cref="IncompatiblePluginException"/>).
     /// </summary>
     Incompatible,
+}
+
+/// <summary>
+/// Why a plugin is <see cref="PluginState.Off"/>.
+/// </summary>
+[Experimental("STREXP002")]
+public enum PluginOffReason
+{
+    /// <summary>
+    /// The user switched the plugin's package off for this session (<see cref="Settings.DisabledEditorCompanionStore"/>).
+    /// </summary>
+    SwitchedOff,
+
+    /// <summary>
+    /// The editor runs in safe mode: only the editor's own plugins and the engine's (<see cref="BuiltInPlugins"/>) load.
+    /// </summary>
+    SafeMode,
 }
 
 /// <summary>
@@ -75,22 +93,24 @@ public sealed class PluginError
 [Experimental("STREXP002")]
 public sealed class PluginStatus
 {
-    internal PluginStatus(AssetsPlugin? plugin, string name, PluginState state, IReadOnlyList<PluginError> errors, IReadOnlyCollection<string> turnedOff)
+    internal PluginStatus(AssetsPlugin? plugin, string name, PluginState state, IReadOnlyList<PluginError> errors, IReadOnlyCollection<string> turnedOff, PluginOffReason? offReason = null)
     {
         Plugin = plugin;
         Name = name;
         State = state;
         Errors = errors;
         TurnedOffContributions = turnedOff;
+        OffReason = offReason;
     }
 
     /// <summary>
-    /// The plugin, or null when its assembly was not loaded (<see cref="PluginState.Incompatible"/>).
+    /// The plugin, or null when its assembly was not loaded (<see cref="PluginState.Incompatible"/>, <see cref="PluginState.Off"/>).
     /// </summary>
     public AssetsPlugin? Plugin { get; }
 
     /// <summary>
-    /// The name of the plugin: the full name of its type, or the name of its assembly when the assembly was not loaded.
+    /// The name of the plugin: the full name of its type; the name of its assembly when the assembly was refused
+    /// (<see cref="PluginState.Incompatible"/>); the name of its package when the package was not loaded (<see cref="PluginState.Off"/>).
     /// </summary>
     public string Name { get; }
 
@@ -98,6 +118,11 @@ public sealed class PluginStatus
     /// Its state.
     /// </summary>
     public PluginState State { get; }
+
+    /// <summary>
+    /// Why the plugin is <see cref="PluginState.Off"/>, or null in the other states.
+    /// </summary>
+    public PluginOffReason? OffReason { get; }
 
     /// <summary>
     /// Its errors, oldest first.
@@ -110,7 +135,7 @@ public sealed class PluginStatus
     public IReadOnlyCollection<string> TurnedOffContributions { get; }
 
     /// <inheritdoc />
-    public override string ToString() => $"{Name}: {State} ({Errors.Count} errors)";
+    public override string ToString() => OffReason is { } reason ? $"{Name}: {State}, {reason}" : $"{Name}: {State} ({Errors.Count} errors)";
 }
 
 /// <summary>
@@ -120,7 +145,7 @@ public sealed class PluginStatus
 public sealed class PluginStatusChangedEventArgs(AssetsPlugin? plugin, string name, PluginStatus? status) : EventArgs
 {
     /// <summary>
-    /// The plugin, or null when its assembly was not loaded (<see cref="PluginState.Incompatible"/>).
+    /// The plugin, or null when its assembly was not loaded (<see cref="PluginState.Incompatible"/>, <see cref="PluginState.Off"/>).
     /// </summary>
     public AssetsPlugin? Plugin { get; } = plugin;
 

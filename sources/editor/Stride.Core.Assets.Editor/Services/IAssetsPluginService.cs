@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Diagnostics;
+using Stride.Core.IO;
 
 #nullable enable
 
@@ -57,4 +58,12 @@ public interface IAssetsPluginService : IPresentationPluginService
     /// </summary>
     [Experimental("STREXP002")]
     IAssemblyLoadCheck? AssemblyLoadCheck => null;
+
+    /// <summary>
+    /// The filter of the Editor companions a session loads (the plugins switched off for that session, safe mode), or null to
+    /// load them all. The editor gives it to the sessions it opens.
+    /// </summary>
+    /// <param name="sessionPath">The session's file, or null for a session that has none yet (a new project).</param>
+    [Experimental("STREXP002")]
+    ICompanionPackageFilter? GetCompanionPackageFilter(UFile? sessionPath) => null;
 }

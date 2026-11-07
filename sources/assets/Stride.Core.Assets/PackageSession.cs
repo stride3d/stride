@@ -694,6 +694,13 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     public IAssemblyLoadCheck? AssemblyLoadCheck { get; set; }
 
     /// <summary>
+    /// Decides which <see cref="PackageKind.Editor"/> companions this session loads (the editor's switched-off plugins and safe
+    /// mode), or null to load them all. A load whose parameters give one sets it, so later loads with default parameters use it too.
+    /// </summary>
+    [Experimental("STREXP002")]
+    public ICompanionPackageFilter? CompanionPackageFilter { get; set; }
+
+    /// <summary>
     /// Gets the packages referenced by the current package.
     /// </summary>
     /// <returns>IEnumerable&lt;Package&gt;.</returns>
@@ -759,6 +766,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
 
         var loadParameters = loadParametersArg ?? PackageLoadParameters.Default();
         AssemblyLoadCheck ??= loadParameters.AssemblyLoadCheck;
+        CompanionPackageFilter ??= loadParameters.CompanionPackageFilter;
 
         Package package;
         PackageContainer project;
@@ -913,7 +921,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
             sessionResult.Progress("Loading..", 0, 1);
 
             // The assemblies of the projects load with them, so the session needs the check from the start
-            var session = new PackageSession { AssemblyLoadCheck = loadParameters.AssemblyLoadCheck };
+            var session = new PackageSession { AssemblyLoadCheck = loadParameters.AssemblyLoadCheck, CompanionPackageFilter = loadParameters.CompanionPackageFilter };
 
             var cancelToken = loadParameters.CancelToken;
             SolutionProject? firstProject = null;
@@ -1091,6 +1099,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     {
         var loadParameters = loadParametersArg ?? PackageLoadParameters.Default();
         AssemblyLoadCheck ??= loadParameters.AssemblyLoadCheck;
+        CompanionPackageFilter ??= loadParameters.CompanionPackageFilter;
 
         var cancelToken = loadParameters.CancelToken;
 
@@ -1182,6 +1191,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     {
         var loadParameters = loadParametersArg ?? PackageLoadParameters.Default();
         AssemblyLoadCheck ??= loadParameters.AssemblyLoadCheck;
+        CompanionPackageFilter ??= loadParameters.CompanionPackageFilter;
 
         var cancelToken = loadParameters.CancelToken;
         List<AssetLoadingInfo> assetLoadInfos = [];

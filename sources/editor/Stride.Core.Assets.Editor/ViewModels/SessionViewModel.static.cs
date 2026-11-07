@@ -80,6 +80,8 @@ partial class SessionViewModel
             EditorToolkit = main.EditorToolkitName,
             // A plugin built for a newer editor is not loaded
             AssemblyLoadCheck = serviceProvider.TryGet<IAssetsPluginService>()?.AssemblyLoadCheck,
+            // Nothing is switched off for a new project yet; in safe mode, only the built-in plugins load
+            CompanionPackageFilter = serviceProvider.TryGet<IAssetsPluginService>()?.GetCompanionPackageFilter(null),
         };
 
         var workProgress = new WorkProgressViewModel(serviceProvider, loggerResult)
@@ -196,7 +198,7 @@ partial class SessionViewModel
                 try
                 {
                     // Load the session file (package or solution)
-                    PackageSession.Load(path, sessionResult, CreatePackageLoadParameters(serviceProvider, main.EditorToolkitName, token));
+                    PackageSession.Load(path, sessionResult, CreatePackageLoadParameters(serviceProvider, path, main.EditorToolkitName, token));
                     if (!token.IsCancellationRequested)
                     {
                         // Load references
@@ -300,7 +302,8 @@ partial class SessionViewModel
         }
     }
 
-    private static PackageLoadParameters CreatePackageLoadParameters(IViewModelServiceProvider serviceProvider, string editorToolkit, CancellationToken token)
+    // The session keeps the companion filter of its first load: later loads (a dependency or a project added) give none
+    private static PackageLoadParameters CreatePackageLoadParameters(IViewModelServiceProvider serviceProvider, UFile? path, string editorToolkit, CancellationToken token)
     {
         // Snapshot every file the upgrade overwrites into a timestamped backup folder under the solution.
         // Copy-on-write, so it costs nothing unless an upgrade actually runs and modifies files. The dialog
@@ -314,6 +317,8 @@ partial class SessionViewModel
             EditorToolkit = editorToolkit,
             // A plugin built for a newer editor is not loaded
             AssemblyLoadCheck = serviceProvider.TryGet<IAssetsPluginService>()?.AssemblyLoadCheck,
+            // Nor the plugins switched off for this session, nor in safe mode those that are not built-in
+            CompanionPackageFilter = path is not null ? serviceProvider.TryGet<IAssetsPluginService>()?.GetCompanionPackageFilter(path) : null,
             // An asset of a missing plugin stays in the session as an unloadable asset
             LoadAssetsOfUnknownType = true,
         };

@@ -20,6 +20,7 @@ partial class PackageSession
     /// <param name="log">The logger for package loading.</param>
     /// <param name="loadEditorPackages">Whether to load editor companion packages.</param>
     /// <param name="editorToolkit">The editor's UI toolkit (Wpf or Avalonia); Editor companions for another toolkit are skipped.</param>
+    /// <remarks>An Editor companion is also skipped when the session's <see cref="CompanionPackageFilter"/> says so.</remarks>
     internal void LoadCompanionPackages(string? rootDirectory, ILogger log, bool loadEditorPackages, string? editorToolkit)
     {
         var loadedByName = new Dictionary<string, StandalonePackage>(StringComparer.OrdinalIgnoreCase);
@@ -32,6 +33,10 @@ partial class PackageSession
         // Every replacement counts, whichever package declares it and whether or not this host takes the replacing entry
         var replaced = new HashSet<string>(Packages.SelectMany(p => p.CompanionPackages).SelectMany(c => c.Replaces), StringComparer.OrdinalIgnoreCase);
 
+        // The Editor companions the editor leaves out, decided before anything loads: one that is already in the session (a
+        // project of the solution) must not bring its own companions in, whatever order the packages are visited in
+        var filteredOut = FindFilteredOutCompanions(replaced, loadEditorPackages, editorToolkit, log);
+
         var visited = new HashSet<Package>();
         while (true)
         {
@@ -39,29 +44,94 @@ partial class PackageSession
             if (package is null)
                 break;
             visited.Add(package);
+            if (package.Meta.Name is { } packageName && filteredOut.GetValueOrDefault(packageName))
+                continue;
             foreach (var companion in package.CompanionPackages.ToList())
             {
                 foreach (var name in companion.Replaces)
                     replaced.Add(name);
                 if (companion.Name is not null && replaced.Contains(companion.Name))
                     continue;
-                if (IsLoadedByThisHost(companion, loadEditorPackages, editorToolkit))
-                    LoadCompanionPackage(package, companion, loadedByName, rootDirectory, log);
-                else
+                if (!IsLoadedByThisHost(companion, loadEditorPackages, editorToolkit))
                     SkipCompanionPackage(package, companion, loadEditorPackages, editorToolkit, log);
+                else if (IsFilteredOut(package, companion, filteredOut, log))
+                    MarkSkippedProject(companion);
+                else
+                    LoadCompanionPackage(package, companion, loadedByName, rootDirectory, log);
             }
         }
     }
 
+    // The filter's decision for each Editor companion of the packages in the session (true: left out), and the companions
+    // that a companion left out declares, left out with it. The decisions are kept for the session: the filter is asked, and
+    // logs why it leaves a companion out, once per companion, however many times the companions load
+    private Dictionary<string, bool> FindFilteredOutCompanions(HashSet<string> replaced, bool loadEditorPackages, string? editorToolkit, ILogger log)
+    {
+        if (CompanionPackageFilter is null || !loadEditorPackages)
+            return new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+
+        var decisions = companionFilterDecisions;
+
+        foreach (var package in Packages.ToList())
+        {
+            foreach (var companion in package.CompanionPackages)
+            {
+                if (companion.Name is not null && !replaced.Contains(companion.Name) && IsLoadedByThisHost(companion, loadEditorPackages, editorToolkit))
+                    IsFilteredOut(package, companion, decisions, log);
+            }
+        }
+        bool added;
+        do
+        {
+            added = false;
+            foreach (var package in Packages.Where(p => p.Meta.Name is { } name && decisions.GetValueOrDefault(name)).ToList())
+            {
+                foreach (var companion in package.CompanionPackages.Where(c => c is { Kind: PackageKind.Editor, Name: not null }))
+                {
+                    if (decisions.TryAdd(companion.Name!, true) || !decisions[companion.Name!])
+                    {
+                        decisions[companion.Name!] = true;
+                        MarkSkippedProject(companion);
+                        added = true;
+                    }
+                }
+            }
+        }
+        while (added);
+        return decisions;
+    }
+
+    // The filter's decisions, kept for the session (see FindFilteredOutCompanions)
+    private readonly Dictionary<string, bool> companionFilterDecisions = new(StringComparer.OrdinalIgnoreCase);
+
+    // The Editor companions of another toolkit whose skipping was logged: once per session
+    private readonly HashSet<string> reportedOtherToolkitCompanions = new(StringComparer.OrdinalIgnoreCase);
+
     // A companion this host does not take can still be a project of the solution: its assembly is not loaded either
     private void SkipCompanionPackage(Package package, CompanionPackage companion, bool loadEditorPackages, string? editorToolkit, ILogger log)
     {
-        if (loadEditorPackages && companion.Kind == PackageKind.Editor)
+        if (loadEditorPackages && companion.Kind == PackageKind.Editor && reportedOtherToolkitCompanions.Add(companion.Name ?? string.Empty))
             log.Info($"[{companion.Name}], declared by [{package.Meta.Name}], is written for the {companion.Toolkit} editor; this editor ({editorToolkit ?? "no toolkit"}) does not load it.");
 
+        MarkSkippedProject(companion);
+    }
+
+    private void MarkSkippedProject(CompanionPackage companion)
+    {
         var project = Projects.OfType<SolutionProject>().FirstOrDefault(p => string.Equals(p.Package.Meta.Name, companion.Name, StringComparison.OrdinalIgnoreCase));
         if (project is not null)
             project.IsSkippedByThisHost = true;
+    }
+
+    // The editor can leave out an Editor companion it would load (a plugin the user switched off, safe mode), asked once per
+    // companion; an Assets companion always loads, since the assets of the session need its types
+    private bool IsFilteredOut(Package package, CompanionPackage companion, Dictionary<string, bool> decisions, ILogger log)
+    {
+        if (companion.Kind != PackageKind.Editor || companion.Name is not { } name || CompanionPackageFilter is not { } filter)
+            return false;
+        if (!decisions.TryGetValue(name, out var filteredOut))
+            decisions[name] = filteredOut = !filter.ShouldLoad(package, companion, log);
+        return filteredOut;
     }
 
     // Which host loads which companion: the asset compiler takes the Assets kind, the editor takes every kind, the

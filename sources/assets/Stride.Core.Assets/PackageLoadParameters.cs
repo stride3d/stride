@@ -78,6 +78,14 @@ public sealed class PackageLoadParameters
     public IAssemblyLoadCheck? AssemblyLoadCheck { get; set; }
 
     /// <summary>
+    /// Decides which <see cref="PackageKind.Editor"/> companions the session loads (the editor's switched-off plugins and safe
+    /// mode), or null to load them all. The session keeps the first one it is given (<see cref="PackageSession.CompanionPackageFilter"/>)
+    /// for later loads.
+    /// </summary>
+    [Experimental("STREXP002")]
+    public ICompanionPackageFilter? CompanionPackageFilter { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether to automatically compile projects that don't have their assembly generated.
     /// </summary>
     /// <value><c>true</c> if [automatic compile projects]; otherwise, <c>false</c>.</value>

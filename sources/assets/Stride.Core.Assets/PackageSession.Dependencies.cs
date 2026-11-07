@@ -542,6 +542,7 @@ partial class PackageSession
         ArgumentNullException.ThrowIfNull(log);
         var loadParameters = loadParametersArg ?? PackageLoadParameters.Default();
         AssemblyLoadCheck ??= loadParameters.AssemblyLoadCheck;
+        CompanionPackageFilter ??= loadParameters.CompanionPackageFilter;
 
         var loaded = new HashSet<Package>(Packages);
         try

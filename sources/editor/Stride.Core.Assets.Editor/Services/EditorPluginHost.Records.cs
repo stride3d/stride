@@ -359,10 +359,12 @@ public abstract partial class EditorPluginHost
 
         public HashSet<string> TurnedOff { get; } = [];
 
+        public PluginOffReason? OffReason { get; init; }
+
         public PluginStatus Snapshot(AssetsPlugin plugin) => new(plugin, plugin.GetType().FullName ?? plugin.GetType().Name, State, Errors.ToList(), TurnedOff.ToList());
 
-        // A plugin whose assembly was not loaded: no instance, its assembly's name
-        public PluginStatus Snapshot(string name) => new(null, name, State, Errors.ToList(), TurnedOff.ToList());
+        // A plugin whose assembly or package was not loaded: no instance, the name of its assembly or package
+        public PluginStatus Snapshot(string name) => new(null, name, State, Errors.ToList(), TurnedOff.ToList(), OffReason);
     }
 
     private interface IDeclaredRegistry

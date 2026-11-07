@@ -371,7 +371,8 @@ public partial class App : Application
         var services = new List<object>
         {
             dispatcherService,
-            new PluginService(dispatcherService),
+            // The plugins switched off per session are the user's, in the internal settings both editors read
+            new PluginService(dispatcherService) { DisabledCompanions = DisabledEditorCompanionStore.CreateDefault() },
             // The thumbnails are Avalonia bitmaps; the folder icon is a PNG embedded in this assembly (Resources/*.png)
             new Core.Assets.Editor.Avalonia.Services.ThumbnailDataFactory(typeof(App).Assembly),
             // Build project and Start project

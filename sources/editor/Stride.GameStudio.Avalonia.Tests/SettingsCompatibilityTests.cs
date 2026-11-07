@@ -298,6 +298,45 @@ public sealed class SettingsCompatibilityTests : IDisposable
         Assert.Equal(new Dictionary<string, bool> { ["Tests.Stats"] = true }, visibility[otherSceneId]);
     }
 
+    [AvaloniaFact]
+    public void ThePluginsSwitchedOffPassThroughAWpfEditorThatDoesNotKnowThemAsTheyAre()
+    {
+        var path = Path.Combine(directory, "GameStudioInternal.conf");
+        File.WriteAllText(path, WpfInternalSettings);
+        var game = new UFile("C:/Projects/MyGame/MyGame.sln");
+
+        // This editor switches a plugin off for a session, under a key of its own, which both editors of this version read
+        var container = new SettingsContainer();
+        var key = new SettingsKey<List<DisabledEditorCompanions>>(InternalSettings.DisabledEditorCompanions.Name, container, () => new List<DisabledEditorCompanions>());
+        // The store writes the editor's current profile, as InternalSettings has
+        var profile = container.LoadSettingsProfile(path, false, null, false);
+        Assert.NotNull(profile);
+        container.CurrentProfile = profile;
+        var store = new DisabledEditorCompanionStore(() => profile, key, () => Assert.True(container.SaveSettingsProfile(profile, path)));
+        store.Set(game, "MyPlugin.Editor", switchedOff: true);
+        Assert.Contains("Internal/DisabledEditorCompanions:", File.ReadAllText(path));
+
+        // A WPF editor of an earlier version knows its window only: it changes it and saves
+        var wpfContainer = new SettingsContainer();
+        var wpfWidth = new SettingsKey<int>("Internal/WindowWidth", wpfContainer, 0);
+        var wpfProfile = wpfContainer.LoadSettingsProfile(path, false, null, false);
+        Assert.NotNull(wpfProfile);
+        wpfWidth.SetValue(1300, wpfProfile);
+        Assert.True(wpfContainer.SaveSettingsProfile(wpfProfile, path));
+
+        // Both read the entry back as it was written
+        var reloadedContainer = new SettingsContainer();
+        var reloadedKey = new SettingsKey<List<DisabledEditorCompanions>>(InternalSettings.DisabledEditorCompanions.Name, reloadedContainer, () => new List<DisabledEditorCompanions>());
+        var reloaded = reloadedContainer.LoadSettingsProfile(path, false, null, false);
+        Assert.NotNull(reloaded);
+        var entry = Assert.Single(reloadedKey.GetValue(reloaded, true));
+        Assert.Equal(game, entry.FilePath);
+        Assert.Equal(["MyPlugin.Editor"], entry.Packages);
+        var saved = File.ReadAllText(path);
+        Assert.Contains("Internal/WindowWidth: 1300", saved);
+        Assert.Contains("DockingLayoutVersion: 9", saved);
+    }
+
     private static void RegisterKeys(params Type[] settingsTypes)
     {
         foreach (var type in settingsTypes)
