@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2026-11-07 10:57:07+0000\n"
+"POT-Creation-Date: 2026-11-07 13:08:09+0000\n"
 "PO-Revision-Date: 2019-03-09 00:04+0000\n"
 "Last-Translator: Scorp121 <kurkinsn@gmail.com>\n"
 "Language-Team: Russian <https://hosted.weblate.org/projects/stride/"
@@ -185,7 +185,7 @@ msgstr "Выбрать источник..."
 
 #: ../editor/Stride.Assets.Editor/Templates/Assets/AssetFromFileTemplateGenerator.cs:55
 #: ../editor/Stride.Assets.Editor/Templates/Assets/ScriptTemplateGenerator.cs:129
-#: ../editor/Stride.Assets.Editor/ViewModels/EntityHierarchyEditorViewModel.cs:954
+#: ../editor/Stride.Assets.Editor/ViewModels/EntityHierarchyEditorViewModel.cs:955
 #: ../editor/Stride.Assets.Editor/ViewModels/ScriptSourceFileEditorViewModel.cs:252
 msgctxt "Button"
 msgid "Cancel"
@@ -263,7 +263,7 @@ msgctxt "Message"
 msgid "Are you sure you want to delete these {0} entities?"
 msgstr "Вы уверены, что хотите удалить {0} сущность(и/ей)?"
 
-#: ../editor/Stride.Assets.Editor/ViewModels/EntityHierarchyEditorViewModel.cs:954
+#: ../editor/Stride.Assets.Editor/ViewModels/EntityHierarchyEditorViewModel.cs:955
 msgctxt "Button"
 msgid "Delete"
 msgstr "Удалить"
@@ -331,3 +331,8 @@ msgstr "Возникла проблема при редактировании и
 msgctxt "Message"
 msgid "There was a problem opening Explorer.{0}"
 msgstr "Возникла проблема с открытием проводника.{0}"
+
+#: ../editor/Stride.Assets.Editor/ViewModels/EntityHierarchyEditorViewModel.cs:954
+msgctxt "Settings"
+msgid "Always delete entities without asking"
+msgstr ""

@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2026-11-07 10:57:07+0000\n"
+"POT-Creation-Date: 2026-11-07 13:08:09+0000\n"
 "PO-Revision-Date: 2019-03-18 16:04+0000\n"
 "Last-Translator: pansan <sinkhile@live.cn>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
@@ -184,7 +184,7 @@ msgstr "选择源..."
 
 #: ../editor/Stride.Assets.Editor/Templates/Assets/AssetFromFileTemplateGenerator.cs:55
 #: ../editor/Stride.Assets.Editor/Templates/Assets/ScriptTemplateGenerator.cs:129
-#: ../editor/Stride.Assets.Editor/ViewModels/EntityHierarchyEditorViewModel.cs:954
+#: ../editor/Stride.Assets.Editor/ViewModels/EntityHierarchyEditorViewModel.cs:955
 #: ../editor/Stride.Assets.Editor/ViewModels/ScriptSourceFileEditorViewModel.cs:252
 msgctxt "Button"
 msgid "Cancel"
@@ -261,7 +261,7 @@ msgctxt "Message"
 msgid "Are you sure you want to delete these {0} entities?"
 msgstr "您确定要删除这些 {0} 实体吗?"
 
-#: ../editor/Stride.Assets.Editor/ViewModels/EntityHierarchyEditorViewModel.cs:954
+#: ../editor/Stride.Assets.Editor/ViewModels/EntityHierarchyEditorViewModel.cs:955
 msgctxt "Button"
 msgid "Delete"
 msgstr "删除"
@@ -329,3 +329,8 @@ msgstr "在编辑图像时出现了一个问题。{0}"
 msgctxt "Message"
 msgid "There was a problem opening Explorer.{0}"
 msgstr "打开资源管理器时出现了一个问题。{0}"
+
+#: ../editor/Stride.Assets.Editor/ViewModels/EntityHierarchyEditorViewModel.cs:954
+msgctxt "Settings"
+msgid "Always delete entities without asking"
+msgstr ""

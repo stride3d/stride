@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2026-11-07 10:57:07+0000\n"
+"POT-Creation-Date: 2026-11-07 13:08:09+0000\n"
 "PO-Revision-Date: 2019-11-23 13:05+0000\n"
 "Last-Translator: hyeonzii <guswl9_9@naver.com>\n"
 "Language-Team: Korean <https://hosted.weblate.org/projects/stride/"
@@ -184,7 +184,7 @@ msgstr "소스 선택..."
 
 #: ../editor/Stride.Assets.Editor/Templates/Assets/AssetFromFileTemplateGenerator.cs:55
 #: ../editor/Stride.Assets.Editor/Templates/Assets/ScriptTemplateGenerator.cs:129
-#: ../editor/Stride.Assets.Editor/ViewModels/EntityHierarchyEditorViewModel.cs:954
+#: ../editor/Stride.Assets.Editor/ViewModels/EntityHierarchyEditorViewModel.cs:955
 #: ../editor/Stride.Assets.Editor/ViewModels/ScriptSourceFileEditorViewModel.cs:252
 msgctxt "Button"
 msgid "Cancel"
@@ -261,7 +261,7 @@ msgctxt "Message"
 msgid "Are you sure you want to delete these {0} entities?"
 msgstr "이러한 {0}개 entity를 삭제하시겠습니까?"
 
-#: ../editor/Stride.Assets.Editor/ViewModels/EntityHierarchyEditorViewModel.cs:954
+#: ../editor/Stride.Assets.Editor/ViewModels/EntityHierarchyEditorViewModel.cs:955
 msgctxt "Button"
 msgid "Delete"
 msgstr "삭제"
@@ -329,3 +329,8 @@ msgstr "이미지를 편집하는 동안 문제가 발생했습니다. {0}"
 msgctxt "Message"
 msgid "There was a problem opening Explorer.{0}"
 msgstr "탐색기를 여는 데 문제가 발생했습니다. {0}"
+
+#: ../editor/Stride.Assets.Editor/ViewModels/EntityHierarchyEditorViewModel.cs:954
+msgctxt "Settings"
+msgid "Always delete entities without asking"
+msgstr ""

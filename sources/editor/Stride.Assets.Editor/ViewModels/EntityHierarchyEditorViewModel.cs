@@ -950,7 +950,8 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
             // TODO: we should compute the actual total number of entities to be deleted here (children recursively, etc.)
             if (entitiesToDelete.Count > 1)
                 confirmMessage = string.Format(Tr._p("Message", "Are you sure you want to delete these {0} entities?"), entitiesToDelete.Count);
-            var checkedMessage = string.Format(Core.Assets.Editor.Settings.EditorSettings.AlwaysDeleteWithoutAsking, "entities");
+            // A whole sentence, so that each language can translate it
+            var checkedMessage = Tr._p("Settings", "Always delete entities without asking");
             var buttons = DialogButtons.Create([Tr._p("Button", "Delete"), Tr._p("Button", "Cancel")], 1, 2);
             var result = await ServiceProvider.Get<IDialogService>().CheckedMessageBoxAsync(confirmMessage, false, checkedMessage, buttons, MessageBoxImage.Question);
             if (result.Result != 1)
