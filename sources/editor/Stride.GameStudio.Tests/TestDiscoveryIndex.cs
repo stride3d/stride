@@ -45,7 +45,7 @@ namespace Stride.GameStudio.Tests
         [Theory]
         [InlineData(typeof(AssetsPlugin), typeof(StrideDefaultAssetsPlugin))]
         [InlineData(typeof(IAddAssetPolicy), typeof(AddPrefabAssetPolicy))]
-        [InlineData(typeof(AssetViewModel), typeof(SceneViewModel))]
+        [InlineData(typeof(AssetViewModel), typeof(CodeAssetViewModel))]
         [InlineData(typeof(IPreviewView), typeof(ModelPreviewView))]
         [InlineData(typeof(IAssetEditorViewModel), typeof(SceneEditorViewModel))]
         [InlineData(typeof(IEditorView), typeof(SceneEditorView))]
@@ -62,6 +62,9 @@ namespace Stride.GameStudio.Tests
         [InlineData(typeof(GizmoComponentAttribute), typeof(CameraGizmo))]
         [InlineData(typeof(AssetsPlugin), typeof(StrideSharedAssetsPlugin))]
         [InlineData(typeof(AssetViewModel), typeof(MaterialViewModel))]
+        [InlineData(typeof(AssetViewModel), typeof(SceneViewModel))]
+        [InlineData(typeof(AssetViewModel), typeof(PrefabViewModel))]
+        [InlineData(typeof(AssetViewModel), typeof(GameSettingsViewModel))]
         [InlineData(typeof(IEntityFactory), typeof(SpriteEntityFactory))]
         [InlineData(typeof(IAssetPreview), typeof(ModelPreview))]
         [InlineData(typeof(IAssetPreviewViewModel), typeof(ModelPreviewViewModel))]
@@ -96,6 +99,27 @@ namespace Stride.GameStudio.Tests
                 .Select(x => $"{x.Key.Name}: {string.Join(", ", x.Select(y => y.ViewModel.FullName))}")
                 .ToList();
             Assert.Empty(duplicates);
+        }
+
+        [Fact]
+        public void TheScenesPrefabsAndGameSettingsHaveTheSharedViewModelsInTheWpfEditor()
+        {
+            // The shared view models of the entity hierarchies (Stride.Assets.Presentation.Common) replaced the WPF ones
+            RuntimeHelpers.RunModuleConstructor(typeof(StrideDefaultAssetsPlugin).Module.ModuleHandle);
+            var viewModels = AssemblyRegistry.Find(AssemblyCommonCategories.Assets)
+                .SelectMany(x => AssemblyRegistry.GetScanTypes(x, typeof(AssetViewModel)))
+                .Select(x => (x.GetCustomAttribute<AssetViewModelAttribute>()?.AssetType, ViewModel: x))
+                .Where(x => x.AssetType is not null)
+                .Distinct()
+                .ToList();
+
+            Assert.Equal(new[] { typeof(SceneViewModel) }, viewModels.Where(x => x.AssetType == typeof(Stride.Assets.Entities.SceneAsset)).Select(x => x.ViewModel));
+            Assert.Equal(new[] { typeof(PrefabViewModel) }, viewModels.Where(x => x.AssetType == typeof(Stride.Assets.Entities.PrefabAsset)).Select(x => x.ViewModel));
+            Assert.Equal(new[] { typeof(GameSettingsViewModel) }, viewModels.Where(x => x.AssetType == typeof(Stride.Assets.GameSettingsAsset)).Select(x => x.ViewModel));
+            Assert.All(new[] { typeof(SceneViewModel), typeof(PrefabViewModel), typeof(GameSettingsViewModel), typeof(EntityViewModel) },
+                x => Assert.Equal(typeof(StrideSharedAssetsPlugin).Assembly, x.Assembly));
+            // The scene and prefab editors stay WPF until they are shared
+            Assert.Equal(typeof(StrideDefaultAssetsPlugin).Assembly, typeof(SceneEditorViewModel).Assembly);
         }
 
         [Fact]

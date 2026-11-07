@@ -4,8 +4,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using Stride.Assets.Models;
-using Stride.Assets.Presentation.NodePresenters.Keys;
-using Stride.Core.Assets.Editor.Quantum.NodePresenters;
+using Stride.Assets.Editor.Quantum.NodePresenters.Keys;
+using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Engine;
 using Stride.Rendering;

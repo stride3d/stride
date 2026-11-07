@@ -7,6 +7,7 @@ using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core;
 using Stride.Core.Annotations;
+using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Presentation.Collections;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
@@ -32,7 +33,7 @@ namespace Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewM
         [ItemNotNull, NotNull]
         public ObservableSet<object> SelectedContent { get; } = new ObservableSet<object>();
 
-        public abstract IEditorGamePartViewModel FindPartViewModel(AbsoluteId id);
+        public abstract IAssetPartViewModel FindPartViewModel(AbsoluteId id);
 
         public void FixupAndRestoreSelection([NotNull] IEnumerable<object> previousSelection, [NotNull] IReadOnlyCollection<object> newSelection)
         {
@@ -42,7 +43,7 @@ namespace Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewM
                 if (!newSelection.Contains(item))
                     continue;
 
-                var part = item as IEditorGamePartViewModel;
+                var part = item as IAssetPartViewModel;
                 if (part == null)
                 {
                     fixedUpSelection.Add(item);
@@ -81,7 +82,7 @@ namespace Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewM
         /// <seealso cref="SelectionService.RegisterSelectionScope"/>
         protected virtual AbsoluteId? GetSelectedObjectId(object obj)
         {
-            return (obj as IEditorGamePartViewModel)?.Id;
+            return (obj as IAssetPartViewModel)?.Id;
         }
     }
 }

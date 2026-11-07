@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
+using Stride.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Quantum.Presenters;

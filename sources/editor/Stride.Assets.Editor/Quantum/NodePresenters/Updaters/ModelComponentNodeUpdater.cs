@@ -8,7 +8,7 @@ using Stride.Assets.Models;
 using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Extensions;
-using Stride.Core.Assets.Editor.Quantum.NodePresenters;
+using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
 using Stride.Core.Assets.Editor.Services;

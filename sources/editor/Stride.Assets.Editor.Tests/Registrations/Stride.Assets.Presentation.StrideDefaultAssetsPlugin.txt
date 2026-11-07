@@ -1,8 +1,5 @@
 Plugin: Stride.Assets.Presentation.StrideDefaultAssetsPlugin
 AssetViewModelTypes:
-  Stride.Assets.Entities.PrefabAsset -> Stride.Assets.Presentation.ViewModels.PrefabViewModel
-  Stride.Assets.Entities.SceneAsset -> Stride.Assets.Presentation.ViewModels.SceneViewModel
-  Stride.Assets.GameSettingsAsset -> Stride.Assets.Presentation.ViewModels.GameSettingsViewModel
   Stride.Assets.Scripts.ScriptSourceFileAsset -> Stride.Assets.Presentation.ViewModels.ScriptSourceFileViewModel
   Stride.Assets.Scripts.VisualScriptAsset -> Stride.Assets.Presentation.ViewModels.VisualScriptViewModel
   Stride.Core.Assets.SourceCodeAsset -> Stride.Assets.Presentation.ViewModels.SourceCodeAssetViewModel

@@ -1,7 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Core.Assets.Editor.Quantum.NodePresenters;
+using Stride.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.Presenters;
@@ -14,11 +15,8 @@ namespace Stride.Assets.Presentation.ViewModel
 {
     public class CameraComponentViewModel : DispatcherViewModel
     {
-        private readonly EntityViewModel entity;
-
-        public CameraComponentViewModel(IViewModelServiceProvider serviceProvider, EntityViewModel entity) : base(serviceProvider)
+        public CameraComponentViewModel(IViewModelServiceProvider serviceProvider) : base(serviceProvider)
         {
-            this.entity = entity;
         }
 
         public void FinalizeNodePresenterTree(IAssetNodePresenter root)

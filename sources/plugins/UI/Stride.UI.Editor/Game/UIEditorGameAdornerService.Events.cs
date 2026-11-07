@@ -15,6 +15,7 @@ using Stride.Input;
 using Stride.Rendering.UI;
 using Stride.UI;
 using Stride.Assets.Editor.ViewModels.SpriteEditor;
+using Stride.Assets.Editor.ViewModels;
 
 namespace Stride.UI.Editor.Game
 {

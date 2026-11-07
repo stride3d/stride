@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Presentation.Services;
-using Stride.Core.Assets.Editor.Quantum.NodePresenters;
+using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
 using Stride.Core.Assets;
 using Stride.Assets.Editor.Templates;
 using Stride.Core;

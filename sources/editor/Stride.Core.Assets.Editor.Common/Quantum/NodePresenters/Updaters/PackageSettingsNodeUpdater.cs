@@ -5,6 +5,7 @@ using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Extensions;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
 using Stride.Core.Presentation.Quantum.Presenters;
+using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
 
 namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters;
 

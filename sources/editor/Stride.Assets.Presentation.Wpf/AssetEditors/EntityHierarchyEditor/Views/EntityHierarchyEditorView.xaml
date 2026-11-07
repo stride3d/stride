@@ -11,7 +11,7 @@
              xmlns:gameEditor="clr-namespace:Stride.Assets.Presentation.AssetEditors.GameEditor;assembly=Stride.Assets.Presentation.Common"
              xmlns:ehvm="clr-namespace:Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels"
              xmlns:ehv="clr-namespace:Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Views"
-             xmlns:svm="clr-namespace:Stride.Assets.Presentation.AssetEditors.SceneEditor.ViewModels"
+             xmlns:pvm="clr-namespace:Stride.Assets.Presentation.ViewModels;assembly=Stride.Assets.Presentation.Common"
              xmlns:entityFactories="clr-namespace:Stride.Assets.Editor.EntityFactories;assembly=Stride.Assets.Presentation.Common"
              xmlns:views="clr-namespace:Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.Views"
              xmlns:cmd="clr-namespace:Stride.Core.Presentation.Commands;assembly=Stride.Core.Presentation"
@@ -62,7 +62,7 @@
         </Setter>
       </Style>
 
-      <ContextMenu x:Key="TreeViewContextMenu" d:DataContext="{d:DesignInstance ehvm:EntityHierarchyRootViewModel}">
+      <ContextMenu x:Key="TreeViewContextMenu" d:DataContext="{d:DesignInstance pvm:EntityHierarchyRootViewModel}">
         <MenuItem Header="{sd:Localize Create, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
         <MenuItem Header="{sd:Localize Folder, Context=Menu}" Command="{Binding Editor.CreateFolderInRootCommand}"/>
         <MenuItem Header="{sd:Localize Empty entity, Context=Menu}" Command="{Binding Editor.CreateEntityInRootCommand}"/>
@@ -106,7 +106,7 @@
         <MenuItem Header="Rename" InputGestureText="F2" Command="{Binding Editor.EntityWithGizmo.RenameCommand, FallbackValue={x:Static cmd:DisabledCommand.Instance}}" Icon="{sd:Image {StaticResource ImageRename}}"/>
       </ContextMenu>
 
-      <ContextMenu x:Key="TreeViewItemContextMenu" d:DataContext="{d:DesignInstance ehvm:EntityHierarchyElementViewModel}">
+      <ContextMenu x:Key="TreeViewItemContextMenu" d:DataContext="{d:DesignInstance pvm:EntityHierarchyElementViewModel}">
         <MenuItem Header="{sd:Localize Create, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
         <MenuItem Header="{sd:Localize Folder, Context=Menu}" Command="{Binding Editor.CreateFolderInSelectionCommand}"/>
         <MenuItem Header="{sd:Localize Empty entity, Context=Menu}" Command="{Binding Editor.CreateEntityInSelectionCommand}"/>
@@ -136,7 +136,7 @@
           </MenuItem.Template>
         </MenuItem>
         <MenuItem Header="{sd:Localize Actions, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
-        <MenuItem Header="{sd:Localize Set as active scene, Context=Menu}" Command="{Binding Editor.SetActiveRootCommand}" Visibility="{Binding Converter={sd:Chained {sd:MatchType}, {sd:VisibleOrCollapsed}, Parameter1={x:Type svm:SceneRootViewModel}}, FallbackValue={sd:Collapsed}}"
+        <MenuItem Header="{sd:Localize Set as active scene, Context=Menu}" Command="{Binding Editor.SetActiveRootCommand}" Visibility="{Binding Converter={sd:Chained {sd:MatchType}, {sd:VisibleOrCollapsed}, Parameter1={x:Type pvm:SceneRootViewModel}}, FallbackValue={sd:Collapsed}}"
                   IsChecked="{sd:MultiBinding {Binding Mode=OneWay}, {Binding Editor.ActiveRoot, Mode=OneWay}, Converter={sd:AllEqualMultiConverter}}" />
         <MenuItem Header="{sd:Localize Open prefab in editor, Context=Menu}" Command="{Binding Editor.OpenPrefabEditorCommand, FallbackValue={x:Static cmd:DisabledCommand.Instance}}" />
         <MenuItem Header="{sd:Localize Select prefab in asset view, Context=Menu}" Command="{Binding Editor.SelectPrefabCommand, FallbackValue={x:Static cmd:DisabledCommand.Instance}}" />
@@ -258,7 +258,7 @@
             <FrameworkElement.Resources>
               <SolidColorBrush x:Key="UnloadedColor" Color="Gray" />
               <!-- Name style -->
-              <Style x:Key="NameStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource {x:Type TextBlock}}" d:DataContext="{d:DesignInstance ehvm:EntityHierarchyItemViewModel}">
+              <Style x:Key="NameStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource {x:Type TextBlock}}" d:DataContext="{d:DesignInstance pvm:EntityHierarchyItemViewModel}">
                 <Setter Property="Margin" Value="4,0"/>
                 <Setter Property="Text" Value="{Binding Name}"/>
                 <Style.Triggers>
@@ -271,7 +271,7 @@
                 </Style.Triggers>
               </Style>
               <!-- Loading style -->
-              <Style x:Key="LoadingStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource {x:Type TextBlock}}" d:DataContext="{d:DesignInstance ehvm:EntityHierarchyElementViewModel}">
+              <Style x:Key="LoadingStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource {x:Type TextBlock}}" d:DataContext="{d:DesignInstance pvm:EntityHierarchyElementViewModel}">
                 <Setter Property="Margin" Value="4,0"/>
                 <Setter Property="Foreground" Value="{StaticResource LoadingAssetMessageFromBrush}" />
                 <Setter Property="Text" Value="{sd:Localize Loading...}" />
@@ -308,7 +308,7 @@
               <!-- Load button -->
               <Image x:Key="LoadImage" x:Shared="False" Source="{StaticResource ImageLoadEntity}" Height="16" Width="16" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
               <Image x:Key="UnloadImage" x:Shared="False" Source="{StaticResource ImageUnloadEntity}" Height="16" Width="16" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
-              <Style x:Key="LoadButtonStyle" TargetType="{x:Type Button}" BasedOn="{StaticResource {x:Type Button}}" d:DataContext="{d:DesignInstance ehvm:EntityHierarchyElementViewModel}">
+              <Style x:Key="LoadButtonStyle" TargetType="{x:Type Button}" BasedOn="{StaticResource {x:Type Button}}" d:DataContext="{d:DesignInstance pvm:EntityHierarchyElementViewModel}">
                 <Setter Property="Command" Value="{Binding LoadCommand, FallbackValue={x:Static cmd:DisabledCommand.Instance}}"/>
                 <EventSetter Event="Click" Handler="LoadOrLockButton_OnClick"/>
                 <Setter Property="Content" Value="{StaticResource UnloadImage}"/>
@@ -321,7 +321,7 @@
               <!-- Lock button -->
               <Image x:Key="LockImage" x:Shared="False" Source="{StaticResource ImageLockEntity}" Height="16" Width="16" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
               <Image x:Key="UnlockImage" x:Shared="False" Source="{StaticResource ImageUnlockEntity}" Height="16" Width="16" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
-              <Style x:Key="LockButtonStyle" TargetType="{x:Type Button}" BasedOn="{StaticResource {x:Type Button}}" d:DataContext="{d:DesignInstance ehvm:EntityHierarchyElementViewModel}">
+              <Style x:Key="LockButtonStyle" TargetType="{x:Type Button}" BasedOn="{StaticResource {x:Type Button}}" d:DataContext="{d:DesignInstance pvm:EntityHierarchyElementViewModel}">
                 <Setter Property="Command" Value="{Binding LockCommand, FallbackValue={x:Static cmd:DisabledCommand.Instance}}"/>
                 <EventSetter Event="Click" Handler="LoadOrLockButton_OnClick"/>
                 <Setter Property="IsEnabled" Value="{Binding IsLoaded, Mode=OneWay}"/>
@@ -333,11 +333,11 @@
                 </Style.Triggers>
               </Style>
               <!-- Default template -->
-              <HierarchicalDataTemplate DataType="{x:Type ehvm:EntityHierarchyItemViewModel}" ItemsSource="{Binding Children}">
+              <HierarchicalDataTemplate DataType="{x:Type pvm:EntityHierarchyItemViewModel}" ItemsSource="{Binding Children}">
                 <TextBlock Style="{StaticResource NameStyle}"/>
               </HierarchicalDataTemplate>
               <!-- Folder template -->
-              <HierarchicalDataTemplate DataType="{x:Type ehvm:EntityFolderViewModel}" ItemsSource="{Binding Children}">
+              <HierarchicalDataTemplate DataType="{x:Type pvm:EntityFolderViewModel}" ItemsSource="{Binding Children}">
                 <StackPanel Orientation="Horizontal">
                   <Image Source="{StaticResource FolderIcon}"
                          MaxWidth="16" MaxHeight="16" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
@@ -345,7 +345,7 @@
                 </StackPanel>
               </HierarchicalDataTemplate>
               <!-- Entity template -->
-              <HierarchicalDataTemplate DataType="{x:Type ehvm:EntityViewModel}" ItemsSource="{Binding Children}">
+              <HierarchicalDataTemplate DataType="{x:Type pvm:EntityViewModel}" ItemsSource="{Binding Children}">
                 <DockPanel>
                   <!-- Focus button -->
                   <Button DockPanel.Dock="Right"
@@ -387,7 +387,7 @@
                 </DockPanel>
               </HierarchicalDataTemplate>
               <!-- Scene template -->
-              <HierarchicalDataTemplate DataType="{x:Type svm:SceneRootViewModel}" ItemsSource="{Binding Children}">
+              <HierarchicalDataTemplate DataType="{x:Type pvm:SceneRootViewModel}" ItemsSource="{Binding Children}">
                 <DockPanel>
                   <!-- Focus button -->
                   <!-- FIXME place holder until we have a selectable gizmo for the scene anchor -->
@@ -442,8 +442,8 @@
               </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemContainerStyle>
-              <Style TargetType="{x:Type sd:TreeViewItem}" BasedOn="{StaticResource {x:Type sd:TreeViewItem}}" d:DataContext="{d:DesignInstance ehvm:EntityHierarchyItemViewModel}">
-                <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" d:DataContext="{d:DesignInstance ehvm:EntityHierarchyItemViewModel}"/>
+              <Style TargetType="{x:Type sd:TreeViewItem}" BasedOn="{StaticResource {x:Type sd:TreeViewItem}}" d:DataContext="{d:DesignInstance pvm:EntityHierarchyItemViewModel}">
+                <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" d:DataContext="{d:DesignInstance pvm:EntityHierarchyItemViewModel}"/>
                 <Setter Property="IsEditable" Value="{Binding IsEditable, Mode=OneTime}"/>
                 <Setter Property="IsEditing" Value="{Binding IsEditing, Mode=TwoWay}"/>
                 <Setter Property="Visibility" Value="{Binding IsVisible, Mode=OneWay, Converter={sd:VisibleOrCollapsed}}"/>
@@ -451,7 +451,7 @@
                 <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
                 <Setter Property="TemplateEdit">
                   <Setter.Value>
-                    <DataTemplate DataType="{x:Type ehvm:EntityViewModel}">
+                    <DataTemplate DataType="{x:Type pvm:EntityViewModel}">
                       <StackPanel Orientation="Horizontal">
                         <Image Source="{Binding Components, Converter={pvc:EntityComponentToResource}}"
                                MaxWidth="16" MaxHeight="16" RenderOptions.BitmapScalingMode="NearestNeighbor"/>

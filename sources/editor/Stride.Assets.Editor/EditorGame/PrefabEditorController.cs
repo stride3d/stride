@@ -92,6 +92,22 @@ public sealed class PrefabEditorController : EntityHierarchyEditorController
         return InvokeAsync(() => Game.LoadEntities(gameSideEntities));
     }
 
+    /// <summary>
+    /// Unloads the entities of <paramref name="root"/> from the game (UI thread).
+    /// </summary>
+    /// <param name="root">The root of the prefab.</param>
+    public Task UnloadEntities(PrefabRootViewModel root)
+    {
+        EnsureAssetAccess();
+
+        var entityIds = root.InnerSubEntities.Select(e => e.Id).ToList();
+        return InvokeAsync(() =>
+        {
+            var gameSideEntities = entityIds.Select(FindPart).OfType<Entity>();
+            Game.UnloadEntities(gameSideEntities);
+        });
+    }
+
     /// <inheritdoc />
     public override AbsoluteId GetAbsoluteId(Entity entity)
     {

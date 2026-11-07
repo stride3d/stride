@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Assets.Quantum.Visitors;
 using Stride.Core;

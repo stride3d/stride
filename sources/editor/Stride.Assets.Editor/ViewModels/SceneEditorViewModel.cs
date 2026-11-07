@@ -5,7 +5,6 @@ using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.ViewModels;
-using Stride.Core.Extensions;
 using Stride.Editor.Engine;
 
 namespace Stride.Assets.Editor.ViewModels;
@@ -22,7 +21,7 @@ public sealed class SceneEditorViewModel : EntityHierarchyEditorViewModel, IAsse
 
     protected override SceneRootViewModel CreateRootPartViewModel()
     {
-        return new SceneRootViewModel(Asset);
+        return new SceneRootViewModel(Asset, this);
     }
 
     /// <inheritdoc />
@@ -32,13 +31,29 @@ public sealed class SceneEditorViewModel : EntityHierarchyEditorViewModel, IAsse
     }
 
     /// <inheritdoc />
-    protected override async Task OnGameContentLoaded()
+    protected override async Task LoadHierarchyAsync()
     {
-        await base.OnGameContentLoaded();
+        await base.LoadHierarchyAsync();
 
-        // The child scenes are not supported yet: the scene is loaded alone
-        var root = (SceneRootViewModel)HierarchyRoot;
-        await ((SceneEditorController)Controller!).LoadScenes([root]);
-        await LinkToGameSide(root.Children.BreadthFirst(x => x.Children).OfType<EntityViewModel>());
+        // The edited scene is always loaded; its child scenes load as they were when the editor closed
+        await HierarchyRoot.RequestLoading(true);
+    }
+
+    /// <inheritdoc />
+    protected override Task LoadRootsIntoGameAsync(IReadOnlyCollection<EntityHierarchyRootViewModel> roots)
+    {
+        return ((SceneEditorController)Controller!).LoadScenes(roots.Cast<SceneRootViewModel>().ToList());
+    }
+
+    /// <inheritdoc />
+    protected override Task UnloadRootsFromGameAsync(IReadOnlyCollection<EntityHierarchyRootViewModel> roots)
+    {
+        return ((SceneEditorController)Controller!).UnloadScenes(roots.Cast<SceneRootViewModel>());
+    }
+
+    /// <inheritdoc />
+    public override Task UpdateSceneOffsetAsync(SceneRootViewModel root)
+    {
+        return Controller is SceneEditorController controller ? controller.UpdateSceneAnchorPosition(root) : Task.CompletedTask;
     }
 }

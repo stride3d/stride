@@ -3,7 +3,7 @@
 using Stride.Core.Annotations;
 using Stride.Core.Presentation.Quantum.Presenters;
 
-namespace Stride.Core.Assets.Editor.Quantum.NodePresenters
+namespace Stride.Core.Assets.Presentation.Quantum.NodePresenters
 {
     public abstract class AssetNodePresenterUpdaterBase : NodePresenterUpdaterBase
     {

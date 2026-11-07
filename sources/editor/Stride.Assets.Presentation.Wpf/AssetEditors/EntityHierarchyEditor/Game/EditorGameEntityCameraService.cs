@@ -3,6 +3,7 @@
 
 using System;
 using Stride.Assets.Editor.EditorGame;
+using Stride.Assets.Presentation.ViewModels;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;

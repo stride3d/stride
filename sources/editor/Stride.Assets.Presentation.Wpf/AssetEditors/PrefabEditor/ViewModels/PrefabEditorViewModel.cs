@@ -1,8 +1,12 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Stride.Assets.Presentation.ViewModels;
 using Stride.Core.Annotations;
+using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Extensions;
 using Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor;
@@ -49,7 +53,19 @@ namespace Stride.Assets.Presentation.AssetEditors.PrefabEditor.ViewModels
         /// <inheritdoc />
         protected override AssetCompositeItemViewModel CreateRootPartViewModel()
         {
-            return new PrefabRootViewModel(this, Asset);
+            return new PrefabRootViewModel(Asset, this);
+        }
+
+        /// <inheritdoc />
+        protected override Task LoadRootsIntoGameAsync(IReadOnlyCollection<EntityHierarchyRootViewModel> roots)
+        {
+            return Task.WhenAll(roots.Cast<PrefabRootViewModel>().Select(x => Controller.LoadEntities(x)));
+        }
+
+        /// <inheritdoc />
+        protected override Task UnloadRootsFromGameAsync(IReadOnlyCollection<EntityHierarchyRootViewModel> roots)
+        {
+            return Task.WhenAll(roots.Cast<PrefabRootViewModel>().Select(x => Controller.UnloadEntities(x)));
         }
 
         /// <inheritdoc />

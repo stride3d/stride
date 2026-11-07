@@ -9,7 +9,7 @@ using Stride.Assets.Materials;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Editor.Extensions;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
-using Stride.Core.Assets.Editor.Quantum.NodePresenters;
+using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Rendering.Materials.ComputeColors;
 using Stride.Rendering.Materials;
