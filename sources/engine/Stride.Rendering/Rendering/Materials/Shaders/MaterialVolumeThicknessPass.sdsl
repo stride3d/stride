@@ -1,0 +1,56 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Materials
+{
+    /// <summary>
+    /// Adds a see-through volume's optical depth along each pixel's ray: back faces add their depth, front faces take theirs
+    /// away, each times the material's absorption, so additive blending sums every segment of every volume on the ray.
+    /// </summary>
+    /// <remarks>
+    /// A face behind the opaque scene counts at the scene's depth, so a volume ends where it goes into a wall or the ground, and
+    /// one wholly behind the scene adds nothing. A camera inside a volume has lost the front face to the near plane, which counts
+    /// as a depth of zero. Absorbing and scattering media are summed apart, as they blend differently: the first target gets their
+    /// optical depths, the second counts their faces, the last two, with separate segments, keep the nearest and farthest front and back
+    /// depths of each medium, so the faces of two volumes one behind the other each find their own segment.
+    /// </remarks>
+    shader MaterialVolumeThicknessPass : ShaderBase, PositionStream4, MaterialVolumeDepth
+    {
+        cbuffer PerMaterial
+        {
+            [Link("MaterialVolume.Absorption")]
+            stage float VolumeAbsorption;
+
+            [Link("MaterialVolume.Scattering")]
+            stage float VolumeScattering;
+        }
+
+        stage override void PSMain()
+        {
+            int2 pixel = (int2)streams.ShadingPosition.xy;
+            float depth = VolumeLinearDepth(streams.ShadingPosition.z);
+            float scene = VolumeSceneDepth(pixel);
+            bool hidden = depth > scene * (1 + CoplanarTolerance);
+            float rayPerDepth = VolumeRayPerDepth(streams.PositionWS.xyz, depth);
+
+            bool front = streams.IsFrontFace;
+            float clamped = min(depth, scene);
+            float opticalDepth = VolumeAbsorption * (front ? -clamped : clamped) * rayPerDepth;
+            // Front faces (hidden ones weighted apart), back faces
+            float2 faces = (front ? float2(hidden ? HiddenFaceWeight : 1, 0) : float2(0, 1)) / FaceCountSteps;
+
+            // Absorbing media go to x (xy for the faces), scattering ones to y (zw)
+            float2 medium = float2(1 - VolumeScattering, VolumeScattering);
+            streams.ColorTarget = float4(opticalDepth * medium, 0, 0);
+            streams.ColorTarget1 = float4(faces * medium.x, faces * medium.y);
+
+#if STRIDE_RENDER_TARGET_COUNT > 2
+            // With separate segments: front (visible only) and back depths, blended with min into the third target and max into the fourth
+            bool visibleFront = front && !hidden;
+            float2 nearest = float2(visibleFront ? depth : NoDepth, front ? NoDepth : clamped);
+            float2 farthest = float2(visibleFront ? depth : 0, front ? 0 : clamped);
+            streams.ColorTarget2 = float4(lerp(float2(NoDepth, NoDepth), nearest, medium.x), lerp(float2(NoDepth, NoDepth), nearest, medium.y));
+            streams.ColorTarget3 = float4(farthest * medium.x, farthest * medium.y);
+#endif
+        }
+    };
+}

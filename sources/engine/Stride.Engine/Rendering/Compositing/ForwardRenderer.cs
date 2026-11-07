@@ -27,6 +27,17 @@ namespace Stride.Rendering.Compositing
     {
         private static readonly ProfilingKey CollectCoreKey = new ProfilingKey("ForwardRenderer.CollectCore");
         private static readonly ProfilingKey DrawCoreKey = new ProfilingKey("ForwardRenderer.DrawCore");
+        private static readonly ProfilingKey VolumeThicknessProfilingKey = new ProfilingKey("Compositing.VolumeThickness");
+
+        // Optical depth is a difference of large depths, summed: full float precision, absorbing and scattering apart.
+        // Face counts, front and back for each, are small integers in steps of 1/255.
+        // Nearest and farthest face depths per medium only tell which volume a face belongs to: half floats.
+        private const PixelFormat VolumeOpticalDepthFormat = PixelFormat.R32G32_Float;
+        private const PixelFormat VolumeFacesFormat = PixelFormat.R8G8B8A8_UNorm;
+        private const PixelFormat VolumeDepthsFormat = PixelFormat.R16G16B16A16_Float;
+
+        // The largest half float: no face on the pixel for the nearest depths
+        private const float VolumeNoDepth = 65504f;
 
         // TODO: should we use GraphicsDeviceManager.PreferredBackBufferFormat?
         public const PixelFormat DepthBufferFormat = PixelFormat.D24_UNorm_S8_UInt;
@@ -77,6 +88,19 @@ namespace Stride.Rendering.Compositing
         /// The G-Buffer render stage to render depth buffer and possibly some other extra info to buffers (i.e. normals)
         /// </summary>
         public RenderStage GBufferRenderStage { get; set; }
+
+        /// <summary>
+        /// The render stage that sums the thickness of see-through materials whose opacity grows with thickness. Without it, they blend with their alpha as usual.
+        /// </summary>
+        /// <remarks>Needs <see cref="BindDepthAsResourceDuringTransparentRendering"/>, as a volume ends at the opaque scene behind it.</remarks>
+        public RenderStage VolumeThicknessRenderStage { get; set; }
+
+        /// <summary>
+        /// Gets or sets whether the volume thickness stage also keeps the nearest and farthest faces of each medium, so that two volumes
+        /// of a medium one behind the other on a pixel (fog in front of water) each take their own thickness instead of sharing it.
+        /// </summary>
+        /// <remarks>Costs two more render targets, 16 bytes per pixel, while a volume is in view.</remarks>
+        public bool SeparateVolumeSegments { get; set; }
 
         /// <summary>
         /// The post effects renderer.
@@ -239,6 +263,21 @@ namespace Stride.Rendering.Compositing
             {
                 GBufferRenderStage.Output = new RenderOutputDescription(PixelFormat.None, context.RenderOutput.DepthStencilFormat);
             }
+
+            if (VolumeThicknessRenderStage != null)
+            {
+                // Through the validator, the pass shader knows how many targets it writes (STRIDE_RENDER_TARGET_COUNT)
+                var validator = VolumeThicknessRenderStage.OutputValidator;
+                validator.BeginCustomValidation(PixelFormat.None);
+                validator.Add<VolumeThicknessTargetSemantic>(VolumeOpticalDepthFormat);
+                validator.Add<VolumeThicknessTargetSemantic>(VolumeFacesFormat);
+                if (SeparateVolumeSegments)
+                {
+                    validator.Add<VolumeThicknessTargetSemantic>(VolumeDepthsFormat);
+                    validator.Add<VolumeThicknessTargetSemantic>(VolumeDepthsFormat);
+                }
+                validator.EndCustomValidation();
+            }
         }
 
         protected virtual void ValidateOpaqueStageOutput(RenderOutputValidator renderOutputValidator, RenderContext renderContext)
@@ -289,6 +328,11 @@ namespace Stride.Rendering.Compositing
             if (GBufferRenderStage != null && LightProbes)
             {
                 context.RenderView.RenderStages.Add(GBufferRenderStage);
+            }
+
+            if (VolumeThicknessRenderStage != null)
+            {
+                context.RenderView.RenderStages.Add(VolumeThicknessRenderStage);
             }
         }
 
@@ -557,11 +601,17 @@ namespace Stride.Rendering.Compositing
 
                         var renderTargetSRV = ResolveRenderTargetAsSRV(drawContext);
 
+                        var (volumeOpticalDepth, volumeFaces, volumeNearest, volumeFarthest) = DrawVolumeThickness(drawContext, depthStencilSRV);
+
                         SetTransparentStageRenderTargets(drawContext);
 
                         renderSystem.Draw(drawContext, context.RenderView, TransparentRenderStage);
 
                         Context.Allocator.ReleaseReference(renderTargetSRV);
+                        Context.Allocator.ReleaseReference(volumeOpticalDepth);
+                        Context.Allocator.ReleaseReference(volumeFaces);
+                        Context.Allocator.ReleaseReference(volumeNearest);
+                        Context.Allocator.ReleaseReference(volumeFarthest);
                     }
                 }
 
@@ -830,6 +880,80 @@ namespace Stride.Rendering.Compositing
             var declaredCount = TransparentRenderStage.Output.RenderTargetCount;
             if (declaredCount >= 1 && commandList.RenderTargetCount > declaredCount)
                 commandList.SetRenderTargets(commandList.DepthStencilBuffer, commandList.RenderTargets.Slice(0, declaredCount));
+        }
+
+        /// <summary>
+        /// Sums the optical depth of the see-through volumes in view and counts their faces, then binds them for their materials,
+        /// which blend their share in the transparent stage.
+        /// </summary>
+        /// <returns>The targets, to release once the transparent stage is drawn; null when there was nothing to draw.</returns>
+        private (Texture OpticalDepth, Texture Faces, Texture Nearest, Texture Farthest) DrawVolumeThickness(RenderDrawContext drawContext, Texture depthStencilSRV)
+        {
+            var renderView = drawContext.RenderContext.RenderView;
+            if (VolumeThicknessRenderStage == null || depthStencilSRV == null || !HasRenderNodes(renderView, VolumeThicknessRenderStage))
+                return default;
+
+            var commandList = drawContext.CommandList;
+            var colorTarget = commandList.RenderTargets[0];
+            var opticalDepth = Context.Allocator.GetTemporaryTexture2D(TextureDescription.New2D(colorTarget.ViewWidth, colorTarget.ViewHeight, VolumeOpticalDepthFormat, TextureFlags.RenderTarget | TextureFlags.ShaderResource));
+            var faces = Context.Allocator.GetTemporaryTexture2D(TextureDescription.New2D(colorTarget.ViewWidth, colorTarget.ViewHeight, VolumeFacesFormat, TextureFlags.RenderTarget | TextureFlags.ShaderResource));
+            // Without separate segments, 1x1 stand-ins tell the materials to share the sums
+            var depthsWidth = SeparateVolumeSegments ? colorTarget.ViewWidth : 1;
+            var depthsHeight = SeparateVolumeSegments ? colorTarget.ViewHeight : 1;
+            var nearest = Context.Allocator.GetTemporaryTexture2D(TextureDescription.New2D(depthsWidth, depthsHeight, VolumeDepthsFormat, TextureFlags.RenderTarget | TextureFlags.ShaderResource));
+            var farthest = Context.Allocator.GetTemporaryTexture2D(TextureDescription.New2D(depthsWidth, depthsHeight, VolumeDepthsFormat, TextureFlags.RenderTarget | TextureFlags.ShaderResource));
+
+            using (drawContext.QueryManager.BeginProfile(Color.Green, VolumeThicknessProfilingKey))
+            using (drawContext.PushRenderTargetsAndRestore())
+            {
+                commandList.ResourceBarrierTransition(opticalDepth, BarrierLayout.RenderTarget);
+                commandList.ResourceBarrierTransition(faces, BarrierLayout.RenderTarget);
+                if (SeparateVolumeSegments)
+                {
+                    commandList.ResourceBarrierTransition(nearest, BarrierLayout.RenderTarget);
+                    commandList.ResourceBarrierTransition(farthest, BarrierLayout.RenderTarget);
+                }
+                commandList.Clear(opticalDepth, new Color4(0, 0, 0, 0));
+                commandList.Clear(faces, new Color4(0, 0, 0, 0));
+                if (SeparateVolumeSegments)
+                {
+                    commandList.Clear(nearest, new Color4(VolumeNoDepth));
+                    commandList.Clear(farthest, new Color4(0, 0, 0, 0));
+                    commandList.SetRenderTargetsAndViewport(null, opticalDepth, faces, nearest, farthest);
+                }
+                else
+                {
+                    commandList.SetRenderTargetsAndViewport(null, opticalDepth, faces);
+                }
+                drawContext.RenderContext.RenderSystem.Draw(drawContext, renderView, VolumeThicknessRenderStage);
+            }
+
+            commandList.ResourceBarrierTransition(opticalDepth, BarrierLayout.ShaderResource);
+            commandList.ResourceBarrierTransition(faces, BarrierLayout.ShaderResource);
+            commandList.ResourceBarrierTransition(nearest, BarrierLayout.ShaderResource);
+            commandList.ResourceBarrierTransition(farthest, BarrierLayout.ShaderResource);
+            foreach (var renderFeature in drawContext.RenderContext.RenderSystem.RenderFeatures)
+            {
+                if (renderFeature is RootRenderFeature rootRenderFeature)
+                {
+                    rootRenderFeature.BindPerViewShaderResource("VolumeOpticalDepth", renderView, opticalDepth);
+                    rootRenderFeature.BindPerViewShaderResource("VolumeFaces", renderView, faces);
+                    rootRenderFeature.BindPerViewShaderResource("VolumeNearest", renderView, nearest);
+                    rootRenderFeature.BindPerViewShaderResource("VolumeFarthest", renderView, farthest);
+                }
+            }
+
+            return (opticalDepth, faces, nearest, farthest);
+        }
+
+        private static bool HasRenderNodes(RenderView renderView, RenderStage renderStage)
+        {
+            foreach (var renderViewStage in renderView.RenderStages)
+            {
+                if (renderViewStage.Index == renderStage.Index)
+                    return renderViewStage.RenderNodes?.Count > 0;
+            }
+            return false;
         }
 
         private Texture ResolveRenderTargetAsSRV(RenderDrawContext drawContext)
