@@ -68,6 +68,12 @@ public partial class App : Application
     /// </summary>
     public static PluginLoadingMarker? LoadingMarker { get; set; }
 
+    /// <summary>
+    /// The extensions of the user (<see cref="EditorExtensionService"/>), which every session loads, set by the desktop host; none
+    /// in tests and headless hosts.
+    /// </summary>
+    public static EditorExtensionService? Extensions { get; set; }
+
     private static EditorProcessService? processService;
     private IViewModelServiceProvider? serviceProvider;
     private MainViewModel? mainViewModel;
@@ -406,8 +412,8 @@ public partial class App : Application
         {
             dispatcherService,
             // The plugins switched off per session are the user's, in the internal settings both editors read
-            // (and safe mode, and the marker of a start that dies while plugins load, set by the desktop host)
-            new PluginService(dispatcherService) { DisabledCompanions = DisabledEditorCompanionStore.CreateDefault(), SafeMode = Options.SafeMode, LoadingMarker = LoadingMarker },
+            // (and safe mode, the marker of a start that dies while plugins load and the user's extensions, set by the desktop host)
+            new PluginService(dispatcherService) { DisabledCompanions = DisabledEditorCompanionStore.CreateDefault(), SafeMode = Options.SafeMode, LoadingMarker = LoadingMarker, Extensions = Extensions },
             // The thumbnails are Avalonia bitmaps; the folder icon is a PNG embedded in this assembly (Resources/*.png)
             new Core.Assets.Editor.Avalonia.Services.ThumbnailDataFactory(typeof(App).Assembly),
             // Build project and Start project

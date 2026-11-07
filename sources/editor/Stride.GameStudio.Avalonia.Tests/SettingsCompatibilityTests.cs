@@ -337,6 +337,46 @@ public sealed class SettingsCompatibilityTests : IDisposable
         Assert.Contains("DockingLayoutVersion: 9", saved);
     }
 
+    [AvaloniaFact]
+    public void TheExtensionsPassThroughAWpfEditorThatDoesNotKnowThemAsTheyAre()
+    {
+        var path = Path.Combine(directory, "GameStudioInternal.conf");
+        File.WriteAllText(path, WpfInternalSettings);
+        var editorVersion = new Version(4, 5);
+
+        // This editor installs an extension and switches another off, under a key of its own, which both editors read
+        var container = new SettingsContainer();
+        var key = new SettingsKey<List<EditorExtensionList>>(InternalSettings.ExtensionPackages.Name, container, () => new List<EditorExtensionList>());
+        var profile = container.LoadSettingsProfile(path, false, null, false);
+        Assert.NotNull(profile);
+        container.CurrentProfile = profile;
+        var store = new EditorExtensionStore(() => profile, key, () => Assert.True(container.SaveSettingsProfile(profile, path)));
+        store.Set(editorVersion, new EditorExtension { Id = "MyTool.Editor", Version = "1.2.0" });
+        store.Set(editorVersion, new EditorExtension { Id = "MyViews.Editor.Avalonia", Version = "0.3.0", Toolkit = "Avalonia", IsOff = true });
+        Assert.Contains("Internal/EditorExtensions:", File.ReadAllText(path));
+
+        // A WPF editor of an earlier version knows its window only: it changes it and saves
+        var wpfContainer = new SettingsContainer();
+        var wpfWidth = new SettingsKey<int>("Internal/WindowWidth", wpfContainer, 0);
+        var wpfProfile = wpfContainer.LoadSettingsProfile(path, false, null, false);
+        Assert.NotNull(wpfProfile);
+        wpfWidth.SetValue(1300, wpfProfile);
+        Assert.True(wpfContainer.SaveSettingsProfile(wpfProfile, path));
+
+        // Both read the list back as it was written
+        var reloadedContainer = new SettingsContainer();
+        var reloadedKey = new SettingsKey<List<EditorExtensionList>>(InternalSettings.ExtensionPackages.Name, reloadedContainer, () => new List<EditorExtensionList>());
+        var reloaded = reloadedContainer.LoadSettingsProfile(path, false, null, false);
+        Assert.NotNull(reloaded);
+        var list = Assert.Single(reloadedKey.GetValue(reloaded, true));
+        Assert.Equal("4.5", list.EditorVersion);
+        Assert.Equal([("MyTool.Editor", "1.2.0", (string?)null, false), ("MyViews.Editor.Avalonia", "0.3.0", "Avalonia", true)],
+            list.Packages.Select(x => (x.Id, x.Version, x.Toolkit, x.IsOff)));
+        var saved = File.ReadAllText(path);
+        Assert.Contains("Internal/WindowWidth: 1300", saved);
+        Assert.Contains("DockingLayoutVersion: 9", saved);
+    }
+
     private static void RegisterKeys(params Type[] settingsTypes)
     {
         foreach (var type in settingsTypes)

@@ -26,6 +26,10 @@
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <!-- A NuGet setup of its own (feed, global packages folder, nuget.config) in a temp folder, for the extension tests -->
+    <Compile Include="..\..\assets\Stride.Core.Assets.Tests\Helpers\LocalPackageFeed.cs">
+      <Link>Helpers\LocalPackageFeed.cs</Link>
+    </Compile>
   </ItemGroup>
 
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.targets" />

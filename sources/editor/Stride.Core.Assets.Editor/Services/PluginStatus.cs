@@ -43,7 +43,8 @@ public enum PluginState
 public enum PluginOffReason
 {
     /// <summary>
-    /// The user switched the plugin's package off for this session (<see cref="PluginSwitchService"/>).
+    /// The user switched the plugin's package off for this session (<see cref="PluginSwitchService"/>), or an extension off
+    /// everywhere (<see cref="EditorExtensionService.SetOff"/>).
     /// </summary>
     SwitchedOff,
 
@@ -51,6 +52,17 @@ public enum PluginOffReason
     /// The editor runs in safe mode: only the editor's own plugins and the engine's (<see cref="BuiltInPlugins"/>) load.
     /// </summary>
     SafeMode,
+
+    /// <summary>
+    /// An extension installed after the session opened: it loads with the next session (a restart).
+    /// </summary>
+    AddedSinceStart,
+
+    /// <summary>
+    /// An extension that a package of the session also brings (the project uses the same plugin): the session's own version
+    /// loads, not the extension.
+    /// </summary>
+    InProject,
 }
 
 /// <summary>

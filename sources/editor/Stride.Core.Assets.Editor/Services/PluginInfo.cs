@@ -39,6 +39,11 @@ public enum PluginSource
     /// A dev-redirect package, loaded from its source tree (a development build of the package).
     /// </summary>
     DevRedirect,
+
+    /// <summary>
+    /// An extension the user installed (<see cref="EditorExtensionService"/>): it loads with every session.
+    /// </summary>
+    Extension,
 }
 
 /// <summary>
@@ -117,12 +122,18 @@ public sealed class PluginInfo
     public bool IsBuiltIn => Source is PluginSource.BuiltIn or PluginSource.Editor;
 
     /// <summary>
+    /// Whether it is an extension the user installed: it is switched off everywhere (<see cref="EditorExtensionService.SetOff"/>),
+    /// not per session.
+    /// </summary>
+    public bool IsExtension => Source == PluginSource.Extension;
+
+    /// <summary>
     /// Whether the user can switch it off for the session (<see cref="PluginSwitchService"/>): never a built-in one, nor one
-    /// known only by the name of an assembly (not by its package).
+    /// known only by the name of an assembly (not by its package), nor an extension (switched off everywhere instead).
     /// </summary>
     public bool CanSwitchOff
     {
-        get => !IsBuiltIn && canSwitchOff;
+        get => !IsBuiltIn && !IsExtension && canSwitchOff;
         init => canSwitchOff = value;
     }
 

@@ -87,6 +87,8 @@ partial class SessionViewModel
             AssemblyLoadCheck = serviceProvider.TryGet<IAssetsPluginService>()?.AssemblyLoadCheck,
             // Nothing is switched off for a new project yet; in safe mode, only the built-in plugins load
             CompanionPackageFilter = serviceProvider.TryGet<IAssetsPluginService>()?.GetCompanionPackageFilter(null),
+            // The user's extensions load with every session
+            CompanionPackageSource = serviceProvider.TryGet<IAssetsPluginService>()?.GetCompanionPackageSource(),
         };
 
         var workProgress = new WorkProgressViewModel(serviceProvider, loggerResult)
@@ -349,6 +351,8 @@ partial class SessionViewModel
             AssemblyLoadCheck = serviceProvider.TryGet<IAssetsPluginService>()?.AssemblyLoadCheck,
             // Nor the plugins switched off for this session, nor in safe mode those that are not built-in
             CompanionPackageFilter = path is not null ? serviceProvider.TryGet<IAssetsPluginService>()?.GetCompanionPackageFilter(path) : null,
+            // The user's extensions load with every session
+            CompanionPackageSource = serviceProvider.TryGet<IAssetsPluginService>()?.GetCompanionPackageSource(),
             // An asset of a missing plugin stays in the session as an unloadable asset
             LoadAssetsOfUnknownType = true,
         };

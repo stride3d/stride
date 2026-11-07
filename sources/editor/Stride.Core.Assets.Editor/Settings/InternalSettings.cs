@@ -24,6 +24,7 @@ public static class InternalSettings
         writer = new ChangedSettingsWriter(SettingsContainer, profile, EditorPath.InternalConfigPath);
         // Changed by the other editors running at the same time: each change reads the file first (DisabledEditorCompanionStore)
         KeepFileValueOnSave(DisabledEditorCompanions);
+        KeepFileValueOnSave(ExtensionPackages);
     }
 
     public static SettingsContainer SettingsContainer { get; } = new();
@@ -54,6 +55,12 @@ public static class InternalSettings
     /// The Editor packages switched off per session (<see cref="DisabledEditorCompanionStore"/>), read by both editors.
     /// </summary>
     public static SettingsKey<List<DisabledEditorCompanions>> DisabledEditorCompanions { get; } = new("Internal/DisabledEditorCompanions", SettingsContainer, () => new List<DisabledEditorCompanions>());
+
+    /// <summary>
+    /// The extensions the user installed, per editor major.minor version (<see cref="EditorExtensionStore"/>), read by both
+    /// editors.
+    /// </summary>
+    public static SettingsKey<List<EditorExtensionList>> ExtensionPackages { get; } = new("Internal/EditorExtensions", SettingsContainer, () => new List<EditorExtensionList>());
 
     /// <summary>
     /// Loads a copy of the internal settings from the file, without registering it as the current profile.

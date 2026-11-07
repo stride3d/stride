@@ -68,6 +68,12 @@ public interface IAssetsPluginService : IPresentationPluginService
     ICompanionPackageFilter? GetCompanionPackageFilter(UFile? sessionPath) => null;
 
     /// <summary>
+    /// The companions the editor adds to every session it opens (the user's extensions), or null for none.
+    /// </summary>
+    [Experimental("STREXP002")]
+    ICompanionPackageSource? GetCompanionPackageSource() => null;
+
+    /// <summary>
     /// Whether the editor runs in safe mode: only the built-in Editor packages load (<see cref="BuiltInPlugins"/>).
     /// </summary>
     [Experimental("STREXP002")]

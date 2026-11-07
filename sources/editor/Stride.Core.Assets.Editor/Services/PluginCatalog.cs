@@ -4,6 +4,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Xml.Linq;
+using Stride.Core.Extensions;
 
 #nullable enable
 
@@ -31,10 +32,16 @@ public static class PluginCatalog
         var listed = new HashSet<PluginStatus>();
         var result = new List<PluginInfo>();
 
+        // The extensions loaded in the session, with the companions they brought: listed once, as extensions
+        var extensionPackages = session is not null ? FindExtensionPackages(session) : new Dictionary<string, List<PackageContainer>>(StringComparer.OrdinalIgnoreCase);
+        var extensionTree = new HashSet<string>(extensionPackages.Values.SelectMany(x => x).Select(x => x.Package.Meta.Name).NotNull(), StringComparer.OrdinalIgnoreCase);
+
         if (session is not null)
         {
             foreach (var (name, declaration, declaredVersion) in FindEditorCompanions(session))
             {
+                if (extensionTree.Contains(name))
+                    continue;
                 var container = session.Projects.FirstOrDefault(p => string.Equals(p.Package.Meta.Name, name, StringComparison.OrdinalIgnoreCase));
                 var off = statuses.FirstOrDefault(x => x.State == PluginState.Off && string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase));
                 // Neither loaded nor left out by the editor: another host's (a toolkit this editor isn't), or it failed to restore
@@ -47,6 +54,9 @@ public static class PluginCatalog
                 result.Add(Describe(host, name, declaration, container?.Package.Meta.Version ?? declaredVersion, container, assemblies, own));
             }
         }
+
+        foreach (var extension in DescribeExtensions(host, session, extensionPackages, statuses, listed))
+            result.Add(extension);
 
         // A plugin left out whose package the session does not declare (any more), or an assembly without a plugin whose
         // declared images could not be read: listed by its name, so that its state and errors still show. Only a package left
@@ -164,6 +174,99 @@ public static class PluginCatalog
     private static string? WebPage(string? url)
     {
         return Uri.TryCreate(url, UriKind.Absolute, out var uri) && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps) ? url : null;
+    }
+
+    // The extensions of the session and of the user's list, loaded or not: one entry per extension, with what its package and the
+    // companions it brought did
+    private static IEnumerable<PluginInfo> DescribeExtensions(EditorPluginHost host, PackageSession? session, Dictionary<string, List<PackageContainer>> loaded,
+        IReadOnlyList<PluginStatus> statuses, HashSet<PluginStatus> listed)
+    {
+        var toolkit = session?.EditorToolkit;
+        bool ForThisEditor(string? extensionToolkit) => extensionToolkit is null || toolkit is null || string.Equals(extensionToolkit, toolkit, StringComparison.OrdinalIgnoreCase);
+
+        // What the session read when it opened, then what the user installed since
+        var known = new Dictionary<string, (PackageVersion? Version, string? Toolkit)>(StringComparer.OrdinalIgnoreCase);
+        foreach (var companion in session?.SourceCompanionPackages ?? [])
+        {
+            if (companion.Name is { } name && ForThisEditor(companion.Toolkit))
+                known.TryAdd(name, (companion.Version, companion.Toolkit));
+        }
+        foreach (var extension in host.Extensions?.GetExtensions() ?? [])
+        {
+            if (extension.Id is { } id && ForThisEditor(extension.Toolkit) && !known.ContainsKey(id))
+                known[id] = (extension.Version is not null && PackageVersion.TryParse(extension.Version, out var version) ? version : null, extension.Toolkit);
+        }
+
+        var asked = new HashSet<string>(session?.SourceCompanionPackages?.Select(x => x.Name).NotNull() ?? [], StringComparer.OrdinalIgnoreCase);
+        var declared = new HashSet<string>(session?.Packages.SelectMany(p => p.CompanionPackages).Select(c => c.Name).NotNull() ?? [], StringComparer.OrdinalIgnoreCase);
+        foreach (var (name, (version, extensionToolkit)) in known)
+        {
+            var containers = loaded.GetValueOrDefault(name) ?? [];
+            var container = containers.FirstOrDefault();
+            var assemblies = containers.SelectMany(GetAssemblyPaths).ToList();
+            var off = statuses.FirstOrDefault(x => x.State == PluginState.Off && string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase));
+            var own = statuses.Where(x => !listed.Contains(x) && (off == x || (container is not null && BelongsTo(x, assemblies)))).ToList();
+            listed.UnionWith(own);
+
+            if (container is null && off is null)
+            {
+                // Not loaded and not left out by the filter: why
+                if (!asked.Contains(name))
+                    own = [new PluginStatus(null, name, PluginState.Off, [], [], PluginOffReason.AddedSinceStart)];
+                else if (declared.Contains(name) || session!.Projects.Any(p => string.Equals(p.Package.Meta.Name, name, StringComparison.OrdinalIgnoreCase)))
+                    own = [new PluginStatus(null, name, PluginState.Off, [], [], PluginOffReason.InProject)];
+                else
+                    own = [new PluginStatus(null, name, PluginState.Failed, [new PluginError(PluginContributions.Load, new InvalidOperationException($"The extension [{name}] version [{version}] could not be loaded: see the load log of the project."))], [])];
+            }
+
+            var actualVersion = container?.Package.Meta.Version ?? version;
+            var nuspec = FindNuspec(name, actualVersion, container) is { } path ? ReadNuspec(path) : null;
+            var offStatus = own.FirstOrDefault(x => x.State == PluginState.Off);
+            yield return new PluginInfo
+            {
+                Id = name,
+                Version = actualVersion,
+                DisplayName = nuspec?.Title ?? name,
+                Authors = nuspec?.Authors,
+                Description = nuspec?.Description,
+                IconPath = nuspec?.IconPath,
+                ProjectUrl = nuspec?.ProjectUrl,
+                License = nuspec?.License,
+                Kind = PackageKind.Editor,
+                Toolkit = extensionToolkit,
+                Source = PluginSource.Extension,
+                EditorApiVersion = ReadEditorApiVersion(assemblies),
+                Contributions = CountContributions(host, own),
+                State = GetState(own),
+                OffReason = offStatus?.OffReason,
+                Statuses = own,
+            };
+        }
+    }
+
+    // The extensions the session loaded, each with its own package then the companions it brought (their companions too)
+    private static Dictionary<string, List<PackageContainer>> FindExtensionPackages(PackageSession session)
+    {
+        var result = new Dictionary<string, List<PackageContainer>>(StringComparer.OrdinalIgnoreCase);
+        foreach (var name in session.LoadedSourceCompanionPackages)
+        {
+            var containers = new List<PackageContainer>();
+            var queue = new Queue<string>([name]);
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { name };
+            while (queue.TryDequeue(out var next))
+            {
+                if (session.Projects.FirstOrDefault(p => string.Equals(p.Package.Meta.Name, next, StringComparison.OrdinalIgnoreCase)) is not { } container)
+                    continue;
+                containers.Add(container);
+                foreach (var companion in container.Package.CompanionPackages.Where(c => c is { Kind: PackageKind.Editor, Name: not null }))
+                {
+                    if (seen.Add(companion.Name!))
+                        queue.Enqueue(companion.Name!);
+                }
+            }
+            result[name] = containers;
+        }
+        return result;
     }
 
     // Each Editor companion declared for this editor, with its declaration and its version (the declaring package's when

@@ -48,6 +48,8 @@ public sealed class PluginSwitchService
     public bool SwitchOff(UFile sessionPath, PluginInfo plugin)
     {
         ArgumentNullException.ThrowIfNull(plugin);
+        if (plugin.IsExtension)
+            throw new InvalidOperationException($"[{plugin.Id}] is an extension: it is switched off everywhere, with EditorExtensionService.SetOff.");
         if (!plugin.CanSwitchOff || BuiltInPlugins.IsBuiltIn(plugin.Id, plugin.Version))
             throw new InvalidOperationException($"[{plugin.Id}] is built into the editor and can't be switched off.");
         return store.Set(sessionPath, plugin.Id, switchedOff: true);

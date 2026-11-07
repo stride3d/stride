@@ -75,6 +75,8 @@ internal sealed class Program
             App.ProcessLauncher = new EditorProcessLauncher(typeof(Program).Assembly.Location);
             // The marker of a start that dies while plugins load, beside the user's settings (both editors share them)
             App.LoadingMarker = PluginLoadingMarker.CreateDefault();
+            // The extensions the user installed, listed in the internal settings both editors read, their packages beside them
+            App.Extensions = EditorExtensionService.CreateDefault();
 
             BuildAvaloniaApp()
                 .StartWithClassicDesktopLifetime(args, ShutdownMode.OnMainWindowClose);

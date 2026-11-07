@@ -632,8 +632,15 @@ public static partial class Program
         var dispatcherService = new DispatcherService(Dispatcher.CurrentDispatcher);
         var dialogService = new StrideDialogService(dispatcherService, StrideGameStudio.EditorName);
         // The plugins switched off per session are the user's, in the internal settings both editors read
-        // (and safe mode, and the marker of a start that dies while plugins load, beside the user's settings)
-        var pluginService = new PluginService { DisabledCompanions = DisabledEditorCompanionStore.CreateDefault(), SafeMode = safeMode, LoadingMarker = offerSafeMode ? PluginLoadingMarker.CreateDefault() : null };
+        // (and safe mode, and the marker of a start that dies while plugins load, beside the user's settings); so are the
+        // extensions the user installed, which every session loads (none in the AutoTesting host)
+        var pluginService = new PluginService
+        {
+            DisabledCompanions = DisabledEditorCompanionStore.CreateDefault(),
+            SafeMode = safeMode,
+            LoadingMarker = offerSafeMode ? PluginLoadingMarker.CreateDefault() : null,
+            Extensions = offerSafeMode ? EditorExtensionService.CreateDefault() : null,
+        };
         var services = new List<object>{ new DispatcherService(Dispatcher.CurrentDispatcher), dialogService, pluginService };
         if (renderDocManager != null)
             services.Add(renderDocManager);

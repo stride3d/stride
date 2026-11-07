@@ -10,21 +10,25 @@ namespace Stride.Core.Assets.Editor.Services;
 
 /// <summary>
 /// The editor's choice of the Editor companions a session loads: every one but those the user switched off for the session,
-/// or in safe mode only the built-in ones (<see cref="BuiltInPlugins"/>). A built-in package always loads.
+/// or in safe mode only the built-in ones (<see cref="BuiltInPlugins"/>). A built-in package always loads. An extension (a
+/// companion the editor adds, with no declaring package) loads unless the user switched it off, or in safe mode.
 /// </summary>
 [Experimental("STREXP002")]
 public sealed class EditorCompanionFilter : ICompanionPackageFilter
 {
     private readonly HashSet<string> switchedOff;
+    private readonly HashSet<string> switchedOffExtensions;
     private readonly Action<string, PluginOffReason>? skipped;
 
     /// <param name="switchedOff">The names of the packages the user switched off for the session.</param>
     /// <param name="safeMode">Whether the editor runs in safe mode: only the built-in packages load.</param>
     /// <param name="skipped">Called with the name of each package left out and why, after it is logged.</param>
-    public EditorCompanionFilter(IEnumerable<string> switchedOff, bool safeMode, Action<string, PluginOffReason>? skipped = null)
+    /// <param name="switchedOffExtensions">The names of the extensions the user switched off (in every session).</param>
+    public EditorCompanionFilter(IEnumerable<string> switchedOff, bool safeMode, Action<string, PluginOffReason>? skipped = null, IEnumerable<string>? switchedOffExtensions = null)
     {
         ArgumentNullException.ThrowIfNull(switchedOff);
         this.switchedOff = new HashSet<string>(switchedOff, StringComparer.OrdinalIgnoreCase);
+        this.switchedOffExtensions = new HashSet<string>(switchedOffExtensions ?? [], StringComparer.OrdinalIgnoreCase);
         SafeMode = safeMode;
         this.skipped = skipped;
     }
@@ -39,15 +43,22 @@ public sealed class EditorCompanionFilter : ICompanionPackageFilter
     /// </summary>
     public IReadOnlyCollection<string> SwitchedOff => switchedOff;
 
+    /// <summary>
+    /// The names of the extensions the user switched off (in every session).
+    /// </summary>
+    public IReadOnlyCollection<string> SwitchedOffExtensions => switchedOffExtensions;
+
     /// <inheritdoc />
-    public bool ShouldLoad(Package declaringPackage, CompanionPackage companion, ILogger log)
+    /// <remarks>A companion with no declaring package is an extension (<see cref="EditorExtensionService"/>).</remarks>
+    public bool ShouldLoad(Package? declaringPackage, CompanionPackage companion, ILogger log)
     {
-        ArgumentNullException.ThrowIfNull(declaringPackage);
         ArgumentNullException.ThrowIfNull(companion);
         ArgumentNullException.ThrowIfNull(log);
         var name = companion.Name;
         if (name is null)
             return true;
+        if (declaringPackage is null)
+            return ShouldLoadExtension(name, log);
 
         var version = companion.Version ?? declaringPackage.Meta.Version;
         if (BuiltInPlugins.IsBuiltIn(name, version))
@@ -68,6 +79,27 @@ public sealed class EditorCompanionFilter : ICompanionPackageFilter
         {
             reason = PluginOffReason.SwitchedOff;
             log.Info($"[{name}], declared by [{declaringPackage.Meta.Name}], is not loaded: it is switched off for this session.");
+        }
+        else
+        {
+            return true;
+        }
+        skipped?.Invoke(name, reason);
+        return false;
+    }
+
+    private bool ShouldLoadExtension(string name, ILogger log)
+    {
+        PluginOffReason reason;
+        if (SafeMode)
+        {
+            reason = PluginOffReason.SafeMode;
+            log.Info($"The extension [{name}] is not loaded: Game Studio runs in safe mode.");
+        }
+        else if (switchedOffExtensions.Contains(name))
+        {
+            reason = PluginOffReason.SwitchedOff;
+            log.Info($"The extension [{name}] is not loaded: it is switched off.");
         }
         else
         {
