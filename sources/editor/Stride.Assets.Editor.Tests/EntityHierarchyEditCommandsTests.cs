@@ -49,6 +49,7 @@ public sealed class EntityHierarchyEditCommandsTests
         var editor = await OpenEditorAsync(fixture);
         var parent = FindEntity(editor, "Parent");
         editor.SelectedContent.Add(parent);
+        await editor.PropertiesRefreshCompletion;
         var names = RecordUndoNames(fixture);
 
         editor.CopyCommand.Execute();
@@ -78,6 +79,7 @@ public sealed class EntityHierarchyEditCommandsTests
         editor.CopyCommand.Execute();
         editor.SelectedContent.Clear();
         editor.SelectedContent.Add(parent);
+        await editor.PropertiesRefreshCompletion;
         var names = RecordUndoNames(fixture);
 
         editor.PasteCommand.Execute(false);
@@ -98,6 +100,7 @@ public sealed class EntityHierarchyEditCommandsTests
         editor.SelectedContent.Clear();
         var lights = (EntityFolderViewModel)editor.HierarchyRoot.Children.Single(x => x.Name == "Lights");
         editor.SelectedContent.Add(lights);
+        await editor.PropertiesRefreshCompletion;
 
         editor.PasteCommand.Execute(false);
 
@@ -116,6 +119,7 @@ public sealed class EntityHierarchyEditCommandsTests
         editor.CopyCommand.Execute();
         editor.SelectedContent.Clear();
         editor.SelectedContent.Add(FindEntity(editor, "Box"));
+        await editor.PropertiesRefreshCompletion;
 
         editor.PasteCommand.Execute(false);
 
@@ -134,6 +138,7 @@ public sealed class EntityHierarchyEditCommandsTests
         using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         editor.SelectedContent.Add(FindEntity(editor, "Parent"));
+        await editor.PropertiesRefreshCompletion;
         var names = RecordUndoNames(fixture);
 
         editor.CutCommand.Execute();
@@ -162,6 +167,7 @@ public sealed class EntityHierarchyEditCommandsTests
         var editor = await OpenEditorAsync(fixture);
         var dialogs = (FakeEditorDialogService)fixture.ServiceProvider.Get<IDialogService>();
         editor.SelectedContent.Add(FindEntity(editor, "Parent"));
+        await editor.PropertiesRefreshCompletion;
         var names = RecordUndoNames(fixture);
 
         dialogs.Answer = MessageBoxResult.Cancel;
@@ -191,6 +197,7 @@ public sealed class EntityHierarchyEditCommandsTests
         EntityHierarchyFolderTests.AddEntity(fixture, "Sun", "Lights", parent: null, index: 2);
         var editor = await OpenEditorAsync(fixture);
         editor.SelectedContent.Add(editor.HierarchyRoot.Children.Single(x => x.Name == "Lights"));
+        await editor.PropertiesRefreshCompletion;
         var names = RecordUndoNames(fixture);
 
         editor.DeleteCommand.Execute();
@@ -216,6 +223,7 @@ public sealed class EntityHierarchyEditCommandsTests
         editor.SelectedContent.Add(parent);
         // The child goes with its parent: it is not duplicated twice
         editor.SelectedContent.Add(FindEntity(editor, "Child"));
+        await editor.PropertiesRefreshCompletion;
         var names = RecordUndoNames(fixture);
 
         editor.DuplicateSelectionCommand.Execute();
@@ -239,6 +247,7 @@ public sealed class EntityHierarchyEditCommandsTests
         EntityHierarchyFolderTests.AddEntity(fixture, "Sun", "Lights", parent: null, index: 2);
         var editor = await OpenEditorAsync(fixture);
         editor.SelectedContent.Add(FindEntity(editor, "Sun"));
+        await editor.PropertiesRefreshCompletion;
 
         editor.DuplicateSelectionCommand.Execute();
 

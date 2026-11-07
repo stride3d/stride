@@ -57,6 +57,12 @@ public abstract class AssetCompositeHierarchyEditorViewModel<TAssetPartDesign, T
     public ObservableSet<TItemViewModel> SelectedItems { get; } = [];
 
     /// <summary>
+    /// Gets a task that completes when the property grid shows the current selection: the refreshes that the changes of the
+    /// selection started have ended. The property grid builds its nodes on another thread, so the parts should not change before then.
+    /// </summary>
+    public Task PropertiesRefreshCompletion { get; private set; } = Task.CompletedTask;
+
+    /// <summary>
     /// Gets the command that copies the selected parts, with their children, to the clipboard.
     /// </summary>
     public ICommandBase CopyCommand { get; }
@@ -617,6 +623,15 @@ public abstract class AssetCompositeHierarchyEditorViewModel<TAssetPartDesign, T
         SelectedContent.AddRange(SelectedItems);
     }
 
+    // Refreshes the property grid asynchronously
+    private void StartPropertiesRefresh()
+    {
+        var refresh = RefreshEditorProperties();
+        // A refresh that this one supersedes can still be building its nodes (an empty selection returns at once): wait for both
+        PropertiesRefreshCompletion = PropertiesRefreshCompletion.IsCompleted ? refresh : Task.WhenAll(PropertiesRefreshCompletion, refresh);
+        refresh.Forget();
+    }
+
     private void SelectedContentCollectionChanged(object? sender, NotifyCollectionChangedEventArgs args)
     {
         if (updateSelectionGuard)
@@ -626,8 +641,7 @@ public abstract class AssetCompositeHierarchyEditorViewModel<TAssetPartDesign, T
         {
             updateSelectionGuard = true;
             SelectedContentCollectionChanged(args.Action);
-            // Refresh the property grid asynchronously
-            RefreshEditorProperties().Forget();
+            StartPropertiesRefresh();
             UpdateCommands();
         }
         finally
@@ -645,8 +659,7 @@ public abstract class AssetCompositeHierarchyEditorViewModel<TAssetPartDesign, T
         {
             updateSelectionGuard = true;
             SelectedItemsCollectionChanged(args.Action);
-            // Refresh the property grid asynchronously
-            RefreshEditorProperties().Forget();
+            StartPropertiesRefresh();
             UpdateCommands();
         }
         finally

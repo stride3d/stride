@@ -66,6 +66,7 @@ public sealed class EntityHierarchyEditorTests
         var parent = FindEntity(editor, "Parent");
         var child = FindEntity(editor, "Child");
         editor.SelectedContent.Add(child);
+        await editor.PropertiesRefreshCompletion;
         Record(editor.HierarchyRoot, out var removed);
 
         DeleteEntity(fixture, editor, parent.AssetSideEntity);
