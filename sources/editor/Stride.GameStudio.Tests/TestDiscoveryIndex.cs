@@ -14,7 +14,6 @@ using Stride.Assets.Presentation;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
-using Stride.Assets.Presentation.AssetEditors.Gizmos;
 using Stride.Assets.Presentation.AssetEditors.SceneEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.SceneEditor.Views;
 using Stride.Assets.Presentation.Preview.Views;
@@ -55,7 +54,7 @@ namespace Stride.GameStudio.Tests
         [InlineData(typeof(AssetViewModel), typeof(CodeAssetViewModel))]
         [InlineData(typeof(IPreviewView), typeof(ModelPreviewView))]
         [InlineData(typeof(IEditorView), typeof(SceneEditorView))]
-        [InlineData(typeof(EditorGameServiceAttribute), typeof(EditorGameEntityTransformService))]
+        [InlineData(typeof(EditorGameServiceAttribute), typeof(EditorGameRenderModeService))]
         public void DefaultPluginAssemblyIndexListsKnownTypes(Type key, Type expected)
         {
             var assembly = typeof(StrideDefaultAssetsWpfPlugin).Assembly;
@@ -223,19 +222,9 @@ namespace Stride.GameStudio.Tests
         public void EachEditorGameServiceIsDeclaredOnceInTheWpfEditor()
         {
             // A controller creates the services the assets assemblies declare. The shared ones (Stride.Assets.Editor)
-            // replaced their WPF copies, and this editor leaves out the cross-platform editor's versions of its own (and of its
-            // light probe gizmo): no service is created twice under one name
+            // replaced their WPF copies: no service is created twice under one name
             RuntimeHelpers.RunModuleConstructor(typeof(StrideDefaultAssetsWpfPlugin).Module.ModuleHandle);
-            foreach (var crossPlatformType in new[]
-            {
-                typeof(Stride.Assets.Editor.EditorGame.EditorGameLightProbeGizmoService), typeof(Stride.Assets.Editor.EditorGame.WireframeGizmoStageService),
-                typeof(Stride.Assets.Editor.EditorGame.Tools.EditorGameToolService), typeof(Stride.Assets.Editor.Gizmos.LightProbeGizmo),
-            })
-            {
-                Assert.True(EditorGameDiscovery.IsExcluded(crossPlatformType), crossPlatformType.Name);
-            }
-            var services = AssetRegistry.AssetAssemblies.SelectMany(x => AssemblyRegistry.GetScanTypes(x, typeof(EditorGameServiceAttribute))).Distinct()
-                .Where(x => !EditorGameDiscovery.IsExcluded(x)).ToList();
+            var services = AssetRegistry.AssetAssemblies.SelectMany(x => AssemblyRegistry.GetScanTypes(x, typeof(EditorGameServiceAttribute))).Distinct().ToList();
             Assert.Empty(Duplicates(services, x => x.Name, x => x));
             Assert.Contains(typeof(EditorGameCameraOrientationService), services);
             Assert.Equal(typeof(GizmoBase).Assembly, typeof(EditorGameCameraOrientationService).Assembly);
@@ -246,18 +235,25 @@ namespace Stride.GameStudio.Tests
             // The scene and prefab controllers are the shared ones
             Assert.Equal(typeof(GizmoBase).Assembly, typeof(EntityHierarchyEditorController).Assembly);
             Assert.True(typeof(EditorGameController<EntityHierarchyEditorGame>).IsAssignableFrom(typeof(EntityHierarchyEditorController)));
-            // So are the grid, graphics compositor, gizmo, selection, material highlight and camera services
+            // So are the grid, graphics compositor, gizmo, selection, material highlight, camera, light probe, wireframe stage
+            // and tool services
             foreach (var serviceType in new[]
             {
                 typeof(EditorGameViewportGridService), typeof(EditorGameGraphicsCompositorService), typeof(EditorGameComponentGizmoService),
                 typeof(EditorGameEntitySelectionService), typeof(EditorGameModelSelectionService), typeof(EditorGameMaterialHighlightService),
-                typeof(EditorGameEntityCameraService),
+                typeof(EditorGameEntityCameraService), typeof(EditorGameLightProbeGizmoService), typeof(WireframeGizmoStageService),
+                typeof(Stride.Assets.Editor.EditorGame.Tools.EditorGameToolService),
             })
             {
                 Assert.Contains(serviceType, services);
                 Assert.Equal(typeof(GizmoBase).Assembly, serviceType.Assembly);
                 Assert.True(serviceType.GetCustomAttribute<EditorGameServiceAttribute>().ControllerType.IsAssignableFrom(typeof(EntityHierarchyEditorController)), serviceType.Name);
             }
+            // The light probes have the shared gizmo, and only it. This reads the scan index, as the gizmo registry does: the
+            // registry itself is filled by the plugin when the editor initializes it, which takes the WPF application
+            var lightProbeGizmos = AssetRegistry.AssetAssemblies.SelectMany(x => AssemblyRegistry.GetScanTypes(x, typeof(GizmoComponentAttribute))).Distinct()
+                .Where(x => x.GetCustomAttribute<GizmoComponentAttribute>(true)?.ComponentType == typeof(Stride.Engine.LightProbeComponent)).ToList();
+            Assert.Equal(new[] { typeof(Stride.Assets.Editor.Gizmos.LightProbeGizmo) }, lightProbeGizmos);
             // The prefab light service is shared too, and serves the prefab editor only
             Assert.Contains(typeof(PrefabEditorLightService), services);
             Assert.Equal(typeof(EntityHierarchyEditorController).Assembly, typeof(PrefabEditorLightService).Assembly);

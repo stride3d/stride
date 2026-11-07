@@ -54,7 +54,7 @@ internal sealed class TranslateTool() : TransformationTool(Transformation.Transl
     public override Keys Shortcut => SceneEditorSettings.TranslationGizmo.GetValue();
 
     /// <inheritdoc />
-    protected override TransformationGizmo CreateGizmo() => new TranslationGizmo();
+    private protected override TransformationGizmo CreateGizmo() => new TranslationGizmo();
 }
 
 /// <summary>
@@ -74,7 +74,7 @@ internal sealed class RotateTool() : TransformationTool(Transformation.Rotation)
     public override Keys Shortcut => SceneEditorSettings.RotationGizmo.GetValue();
 
     /// <inheritdoc />
-    protected override TransformationGizmo CreateGizmo() => new RotationGizmo();
+    private protected override TransformationGizmo CreateGizmo() => new RotationGizmo();
 }
 
 /// <summary>
@@ -94,7 +94,7 @@ internal sealed class ScaleTool() : TransformationTool(Transformation.Scale)
     public override Keys Shortcut => SceneEditorSettings.ScaleGizmo.GetValue();
 
     /// <inheritdoc />
-    protected override TransformationGizmo CreateGizmo() => new ScaleGizmo();
+    private protected override TransformationGizmo CreateGizmo() => new ScaleGizmo();
 }
 
 /// <summary>
@@ -103,18 +103,24 @@ internal sealed class ScaleTool() : TransformationTool(Transformation.Scale)
 /// operation.
 /// </summary>
 /// <remarks>
-/// The tool part of the WPF <c>EditorGameEntityTransformService</c>. A Ctrl+drag duplicates the selection first, and moves the copies.
+/// The toolbars of both user interfaces find the tool of a transformation by its type. A Ctrl+drag duplicates the selection
+/// first, and moves the copies.
 /// </remarks>
-internal abstract class TransformationTool(Transformation transformation) : IEditorViewTool
+public abstract class TransformationTool : IEditorViewTool
 {
     private EditorViewToolContext? context;
     private TransformationGizmo? gizmo;
     private bool isActive;
 
+    private protected TransformationTool(Transformation transformation)
+    {
+        Transformation = transformation;
+    }
+
     /// <summary>
     /// Gets the transformation of the tool.
     /// </summary>
-    public Transformation Transformation { get; } = transformation;
+    public Transformation Transformation { get; }
 
     /// <inheritdoc />
     public abstract string Name { get; }
@@ -192,7 +198,7 @@ internal abstract class TransformationTool(Transformation transformation) : IEdi
     /// <summary>
     /// Creates the gizmo of the tool.
     /// </summary>
-    protected abstract TransformationGizmo CreateGizmo();
+    private protected abstract TransformationGizmo CreateGizmo();
 
     private void UpdateIsEnabled()
     {
