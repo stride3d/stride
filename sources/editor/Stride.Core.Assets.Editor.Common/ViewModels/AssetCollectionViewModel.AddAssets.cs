@@ -19,6 +19,7 @@ using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Translation;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModels;
 
@@ -195,7 +196,7 @@ public sealed partial class AssetCollectionViewModel : IAddChildViewModel
             message = Tr._p("Message", "Drop files");
             return true;
         }
-        message = DragDropBehavior.InvalidDropAreaMessage;
+        message = DragDropMessages.InvalidDropArea;
         return false;
     }
 

@@ -26,6 +26,7 @@ using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Quantum;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Editor.ViewModels;
 
@@ -710,7 +711,7 @@ public sealed class SpriteSheetEditorViewModel : AssetEditorViewModel<SpriteShee
     {
         if (children.Any(x => x is not UFile))
         {
-            message = DragDropBehavior.InvalidDropAreaMessage;
+            message = DragDropMessages.InvalidDropArea;
             return false;
         }
         message = "Add images using the selected files";

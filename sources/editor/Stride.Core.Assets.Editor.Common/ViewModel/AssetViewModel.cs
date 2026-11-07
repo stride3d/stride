@@ -11,6 +11,7 @@ using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Quantum;
 using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Presentation.Services;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Annotations;
 using Stride.Core.Diagnostics;
@@ -83,7 +84,6 @@ namespace Stride.Core.Assets.Editor.ViewModel
         private bool updatingUrl;
         private ThumbnailData thumbnailData;
         private AssetItem assetItem;
-        private IAssetEditorViewModel editor;
         private AssetViewModel replacedBy;
         /// <summary>
         /// Initializes a new instance of the <see cref="AssetViewModel"/> class.
@@ -636,8 +636,8 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 if (Session.ActiveAssetView.SelectedAssets.Count == 1)
                 {
                     // Refresh the preview so the built asset(s) are updated regarding to the url change
-                    var previewService = ServiceProvider.TryGet<IAssetPreviewService>();
-                    previewService?.SetAssetToPreview(this);
+                    var previewUpdater = ServiceProvider.TryGet<IAssetPreviewUpdater>();
+                    previewUpdater?.SetAssetToPreview(this);
                 }
             }
             return true;

@@ -13,6 +13,7 @@ using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Annotations;
 using Stride.Core.Presentation.Adorners;
 using Stride.Core.Presentation.Extensions;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.View.Behaviors
 {
@@ -352,7 +353,7 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
             {
                 var dragContainer = new DragContainer(itemsToDrag)
                 {
-                    Message = DragDropBehavior.InvalidDropAreaMessage
+                    Message = DragDropMessages.InvalidDropArea
                 };
                 data = dragContainer;
             }
@@ -369,7 +370,7 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
             if (dragContainer != null)
             {
                 dragContainer.Acceptance = DropAcceptance.Rejected;
-                dragContainer.Message = DragDropBehavior.InvalidDropAreaMessage;
+                dragContainer.Message = DragDropMessages.InvalidDropArea;
             }
 
             var itemsToDrop = DragDropHelper.GetItemsToDrop(dragContainer, data as DataObject);
@@ -399,7 +400,7 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
             if (dragContainer != null)
             {
                 dragContainer.Acceptance = DropAcceptance.Rejected;
-                dragContainer.Message = DragDropBehavior.InvalidDropAreaMessage;
+                dragContainer.Message = DragDropMessages.InvalidDropArea;
             }
 
             // Check if we can drop and if we have a valid target.
@@ -421,7 +422,7 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
                 // A rejected insertion falls through to the add path, so that the item itself becomes the target.
                 // A no-op stops here, otherwise the row below would answer a gesture that points at this one.
                 var acceptance = DropAcceptance.Rejected;
-                message = DragDropBehavior.InvalidDropAreaMessage;
+                message = DragDropMessages.InvalidDropArea;
                 if (target != null)
                     acceptance = target.GetInsertChildrenAcceptance(itemsToDrop, insertPosition, ComputeModifiers(), out message);
                 if (acceptance != DropAcceptance.Rejected)

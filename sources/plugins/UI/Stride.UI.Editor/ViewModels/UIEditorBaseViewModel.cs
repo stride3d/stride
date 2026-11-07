@@ -867,7 +867,7 @@ namespace Stride.UI.Editor.ViewModels
 
         private UIElementViewModel GetDropTarget(ref Vector3 worldPosition, IReadOnlyCollection<object> children, AddChildModifiers modifiers, out string message)
         {
-            message = DragDropBehavior.InvalidDropAreaMessage;
+            message = DragDropMessages.InvalidDropArea;
 
             var elements = GetElementsAtPosition(ref worldPosition);
             if (elements == null)

@@ -167,7 +167,7 @@ namespace Stride.UI.Editor.ViewModels
                     continue;
                 }
 
-                message = DragDropBehavior.InvalidDropAreaMessage;
+                message = DragDropMessages.InvalidDropArea;
                 return false;
             }
 

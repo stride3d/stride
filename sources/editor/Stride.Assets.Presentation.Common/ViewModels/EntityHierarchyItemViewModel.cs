@@ -511,7 +511,7 @@ public abstract class EntityHierarchyItemViewModel : AssetCompositeItemViewModel
                 accepted = true;
                 continue;
             }
-            message = DragDropBehavior.InvalidDropAreaMessage;
+            message = DragDropMessages.InvalidDropArea;
             return DropAcceptance.Rejected;
         }
 
@@ -872,7 +872,7 @@ public abstract class EntityHierarchyItemViewModel : AssetCompositeItemViewModel
         var addIndex = GetAddIndex(children);
         if (addIndex < -1)
         {
-            message = DragDropBehavior.InvalidDropAreaMessage;
+            message = DragDropMessages.InvalidDropArea;
             return DropAcceptance.Rejected;
         }
         return CanAddOrInsertChildren(children, true, modifiers, addIndex, out message);
@@ -883,7 +883,7 @@ public abstract class EntityHierarchyItemViewModel : AssetCompositeItemViewModel
         if (!SupportsInsertion)
         {
             // The caller then adds the items as children of this item instead, and it replaces this message.
-            message = DragDropBehavior.InvalidDropAreaMessage;
+            message = DragDropMessages.InvalidDropArea;
             return DropAcceptance.Rejected;
         }
 
