@@ -62,6 +62,41 @@
         </MenuItem>
       </ContextMenu>
 
+      <!-- The built-in entries of the context menu of the scene view, as the menu of the WPF scene view: they come after the
+           entries of the active tool and before the commands of the plugins (see OnSceneViewContextMenuRequested). The
+           entities are created at the cursor. -->
+      <ContextMenu x:Key="SceneViewMenu" x:DataType="vm:EntityHierarchyEditorViewModel">
+        <MenuItem Header="{sd:LocalizeString Create, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"/>
+        <MenuItem Header="{sd:LocalizeString Empty entity, Context=Menu}" Command="{Binding CreateEntityCommand}"/>
+        <!-- The categories of entity factories go here (see EntityHierarchyEditorView.AddFactoryItems) -->
+        <Separator Tag="Factories" IsVisible="False"/>
+        <MenuItem Header="{sd:LocalizeString Actions, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"/>
+        <MenuItem Header="{sd:LocalizeString Open prefab in editor, Context=Menu}" Command="{Binding OpenPrefabEditorCommand}"/>
+        <MenuItem Header="{sd:LocalizeString Select prefab in asset view, Context=Menu}" Command="{Binding SelectPrefabCommand}"/>
+        <MenuItem Header="{sd:LocalizeString Break link to prefab, Context=Menu}" Command="{Binding BreakLinkToPrefabCommand}"/>
+        <MenuItem Header="{sd:LocalizeString Create prefab from selection, Context=Menu}" Command="{Binding CreatePrefabFromSelectionCommand}"/>
+        <Separator/>
+        <MenuItem Header="{sd:LocalizeString Duplicate, Context=Menu}" InputGesture="Ctrl+D"
+                  Command="{Binding DuplicateSelectionCommand}"/>
+        <MenuItem Header="{sd:LocalizeString Cut, Context=Menu}" InputGesture="{x:Static sd:EditCommands.CutGesture}"
+                  Command="{Binding CutCommand}">
+          <MenuItem.Icon><Image Source="{StaticResource ImageCut}"/></MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Copy, Context=Menu}" InputGesture="{x:Static sd:EditCommands.CopyGesture}"
+                  Command="{Binding CopyCommand}">
+          <MenuItem.Icon><Image Source="{StaticResource ImageCopy}"/></MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Delete, Context=Menu}" InputGesture="{x:Static sd:EditCommands.DeleteGesture}"
+                  Command="{Binding DeleteCommand}">
+          <MenuItem.Icon><Image Source="{StaticResource ImageDelete}"/></MenuItem.Icon>
+        </MenuItem>
+        <Separator/>
+        <MenuItem Header="{sd:LocalizeString Rename, Context=Menu}" InputGesture="{x:Static sd:EditCommands.RenameGesture}"
+                  Command="{Binding RenameCommand}">
+          <MenuItem.Icon><Image Source="{StaticResource ImageRename}"/></MenuItem.Icon>
+        </MenuItem>
+      </ContextMenu>
+
       <!-- The context menu of an item of the tree, as the WPF TreeViewItemContextMenu: the creation and the paste go into
            the selection -->
       <ContextMenu x:Key="ItemContextMenu" x:DataType="vm:EntityHierarchyEditorViewModel"

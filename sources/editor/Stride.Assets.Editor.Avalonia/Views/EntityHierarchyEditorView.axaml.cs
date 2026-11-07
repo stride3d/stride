@@ -53,6 +53,10 @@ public partial class EntityHierarchyEditorView : UserControl, IAssetEditorView
     /// </summary>
     internal ContextMenu? SceneViewContextMenu { get; private set; }
 
+    private const string ToolEntryTag = "ToolEntry";
+
+    private bool sceneViewMenuInitialized;
+
     /// <inheritdoc />
     protected override void OnDataContextChanged(EventArgs e)
     {
@@ -163,43 +167,56 @@ public partial class EntityHierarchyEditorView : UserControl, IAssetEditorView
 
     /// <summary>
     /// Opens the context menu of the scene view at the cursor, after a right click without camera drag: the entries of the
-    /// active tool, then the commands of the plugins at <see cref="SceneLocations.SceneViewContext"/> (unless the tool's
-    /// entries replace them), with the click and the entity under it as their selection. Nothing opens when it would be empty.
+    /// active tool, then the entries of the editor (as the menu of the WPF scene view: create an entity at the cursor, and the
+    /// actions on the selection), then the commands of the plugins at <see cref="SceneLocations.SceneViewContext"/>, with
+    /// the click and the entity under it as their selection. A tool's menu that replaces the others shows alone, and an
+    /// empty one keeps the menu closed.
     /// </summary>
     private void OnSceneViewContextMenuRequested(object? sender, EditorViewContextMenuViewModel request)
     {
         SceneViewContextMenu?.Close();
         SceneViewContextMenu = null;
-        if (!IsAttachedToVisualTree() || !(request.ToolEntries.Count > 0 || request.ShowsCommands && HasSceneViewCommands()))
+        if (!IsAttachedToVisualTree() || DataContext is not EntityHierarchyEditorViewModel editor || !(request.ToolEntries.Count > 0 || request.ShowsCommands))
             return;
 
-        var menu = new ContextMenu { DataContext = DataContext };
+        // One menu, filled again at each request, as the menus of the tree
+        var menu = (ContextMenu)Resources["SceneViewMenu"]!;
+        if (!sceneViewMenuInitialized)
+        {
+            sceneViewMenuInitialized = true;
+            menu.Closed += (_, _) =>
+            {
+                if (SceneViewContextMenu == menu)
+                    SceneViewContextMenu = null;
+            };
+        }
+        menu.DataContext = editor;
+        foreach (var item in menu.Items.OfType<Control>().Where(x => Equals(x.Tag, ToolEntryTag) || CommandSlot.IsSlotItem(x)).ToList())
+            menu.Items.Remove(item);
+        AddFactoryItems(menu.Items, editor.CreateEntityCommand);
+        // The entries of the editor show unless the tool's replace them
+        foreach (var item in menu.Items.OfType<Control>().Where(x => !Equals(x.Tag, "Factories")))
+            item.IsVisible = request.ShowsCommands;
+
+        var index = 0;
         foreach (var entry in request.ToolEntries)
         {
-            menu.Items.Add(new MenuItem
+            menu.Items.Insert(index++, new MenuItem
             {
                 Header = entry.Title,
                 Command = entry.Command,
+                Tag = ToolEntryTag,
                 Icon = entry.IconPath is { } path ? new global::Avalonia.Controls.Shapes.Path { Data = new PathDataToGeometry().Convert(path, typeof(Geometry), null, System.Globalization.CultureInfo.InvariantCulture) as Geometry, Width = 16, Height = 16, Stretch = Stretch.None, Fill = Foreground } : null,
             });
         }
+        if (index > 0 && request.ShowsCommands)
+            menu.Items.Insert(index, new Separator { Tag = ToolEntryTag });
+
         CommandSlot.SetSelection(menu, request.Selection);
-        if (request.ShowsCommands)
-            CommandSlot.SetLocation(menu, SceneLocations.SceneViewContext);
-        menu.Closed += (_, _) =>
-        {
-            if (SceneViewContextMenu == menu)
-                SceneViewContextMenu = null;
-        };
+        CommandSlot.SetLocation(menu, request.ShowsCommands ? SceneLocations.SceneViewContext : null);
         SceneViewContextMenu = menu;
         // At the cursor, which the right button was just released over
         menu.Open(GameViewHost);
-    }
-
-    private static bool HasSceneViewCommands()
-    {
-        var host = CommandSlot.FindHost(SessionViewModel.CurrentInstance);
-        return host is not null && CommandArrangement.Arrange(host.Commands.Items.Where(host.IsCommandAvailable), SceneLocations.SceneViewContext).Any(x => x.Count > 0);
     }
 
     private bool IsAttachedToVisualTree() => TopLevel.GetTopLevel(this) is not null;

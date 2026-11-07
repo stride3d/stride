@@ -18,7 +18,7 @@ namespace Stride.GameStudio.Avalonia.Tests;
 
 /// <summary>
 /// The context menu of the scene view, which a right click without camera drag opens (the game side decides which clicks
-/// open it: <c>EditorViewToolSetTests</c>): the entries of the active tool, then the commands of the plugins at
+/// open it: <c>EditorViewToolSetTests</c>): the entries of the active tool, then those of the editor, then the commands of the plugins at
 /// <see cref="SceneLocations.SceneViewContext"/>, with the click and the entity under the cursor as their selection.
 /// </summary>
 public sealed class SceneViewContextMenuTests
@@ -60,8 +60,11 @@ public sealed class SceneViewContextMenuTests
             var menu = scene.View.SceneViewContextMenu;
             Assert.NotNull(menu);
             Assert.True(menu.IsOpen);
-            // The tool's entries first, then the commands of the plugins in their group
-            Assert.Equal(["Paint here", "-", "Place here"], Describe(menu));
+            // The tool's entries first, then the entries of the editor (as in the WPF scene view), then the commands of the
+            // plugins in their group
+            var items = Describe(menu);
+            Assert.Equal(["Paint here", "-", "Create", "Empty entity"], items.Take(4));
+            Assert.Equal(["Rename", "-", "Place here"], items.TakeLast(3));
 
             var command = Assert.IsType<DescriptorCommand>(menu.Items.OfType<MenuItem>().Single(x => Equals(x.Tag, "Tests.SceneView")).Command);
             Assert.True(await command.ExecuteAsync());
@@ -84,8 +87,11 @@ public sealed class SceneViewContextMenuTests
             await WindowTestHelper.PumpAsync();
             menu = scene.View.SceneViewContextMenu;
             Assert.NotNull(menu);
-            Assert.Equal(["Place here"], Describe(menu));
-            command = Assert.IsType<DescriptorCommand>(menu.Items.OfType<MenuItem>().Single().Command);
+            items = Describe(menu);
+            Assert.Equal("Create", items[0]);
+            Assert.DoesNotContain("Paint here", items);
+            Assert.Equal("Place here", items[^1]);
+            command = Assert.IsType<DescriptorCommand>(menu.Items.OfType<MenuItem>().Single(x => Equals(x.Tag, "Tests.SceneView")).Command);
             Assert.True(await command.ExecuteAsync());
             Assert.Equal<object>([click], runs[^1].Selection);
             menu.Close();
@@ -144,24 +150,32 @@ public sealed class SceneViewContextMenuTests
     }
 
     [AvaloniaFact]
-    public async Task NoMenuOpensWhenThereIsNothingToShow()
+    public async Task WithoutToolEntriesOrPluginCommandsTheMenuShowsTheEntriesOfTheEditor()
     {
         await using var scene = await SceneTreeDropTests.OpenSceneAsync();
         var tools = new FakeToolService();
         var toolbar = AttachToolbar(scene, tools);
         try
         {
-            // No plugin command at the place, no tool entry: the right click opens nothing, as in the WPF scene view
-            var requests = 0;
-            toolbar.ContextMenuRequested += (_, _) => requests++;
+            // No plugin command at the place, no tool entry: the menu of the WPF scene view, the creation at the cursor and
+            // the actions on the selection
             tools.RaiseContextMenu(new EditorViewContextMenuRequest { Click = Click(), Tool = tools.Tools[0] });
             await WindowTestHelper.PumpAsync();
 
-            Assert.Equal(1, requests);
-            Assert.Null(scene.View.SceneViewContextMenu);
+            var menu = scene.View.SceneViewContextMenu;
+            Assert.NotNull(menu);
+            Assert.True(menu.IsOpen);
+            var items = Describe(menu);
+            Assert.Equal(["Create", "Empty entity"], items.Take(2));
+            Assert.Equal(["Actions", "Open prefab in editor", "Select prefab in asset view", "Break link to prefab", "Create prefab from selection", "-", "Duplicate", "Cut", "Copy", "Delete", "-", "Rename"],
+                items.SkipWhile(x => x != "Actions"));
+            Assert.Same(scene.Editor.CreateEntityCommand, menu.Items.OfType<MenuItem>().Single(x => Equals(x.Header, "Empty entity")).Command);
+            Assert.DoesNotContain(menu.Items.OfType<Control>(), CommandSlot.IsSlotItem);
+            menu.Close();
         }
         finally
         {
+            scene.View.SceneViewContextMenu?.Close();
             DetachToolbar(scene, toolbar);
         }
     }
