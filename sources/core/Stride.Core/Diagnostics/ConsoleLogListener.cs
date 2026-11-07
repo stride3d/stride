@@ -37,16 +37,21 @@ public partial class ConsoleLogListener : LogListener
         return LogMode switch
         {
             ConsoleLogMode.None => false,
-            ConsoleLogMode.Always => true,
+            ConsoleLogMode.Always or ConsoleLogMode.StandardOutput => true,
             _ => Platform.IsRunningDebugAssembly, // Auto: debug builds only, so a shipped game never shows a console
         };
     }
 
     /// <summary>
-    /// Whether this listener opens a console window for its output. <see cref="ConsoleLogMode.Always"/> does
-    /// unconditionally; otherwise not while a debugger already shows the messages.
+    /// Whether this listener opens a console window when the process has none. <see cref="ConsoleLogMode.Always"/> does
+    /// unconditionally, <see cref="ConsoleLogMode.StandardOutput"/> never; otherwise not while a debugger already shows the messages.
     /// </summary>
-    private bool OpensConsole => LogMode == ConsoleLogMode.Always || !Debugger.IsAttached;
+    private bool OpensConsole => LogMode switch
+    {
+        ConsoleLogMode.Always => true,
+        ConsoleLogMode.StandardOutput => false,
+        _ => !Debugger.IsAttached,
+    };
 
     protected override void OnLog(ILogMessage logMessage)
     {
@@ -150,15 +155,21 @@ public partial class ConsoleLogListener : LogListener
             return;
         }
 
-        // try to attach to the parent console, if the program is run directly from a console
-        var attachedToConsole = AttachConsole(-1);
-        if (!attachedToConsole)
-        {
-            // Else open a new console
-            ShowConsole();
-        }
-
         isConsoleActive = true;
+
+        // The output already goes to a console, visible or hidden, or is redirected: keep it as the parent process set it
+        if (HasStandardOutput())
+            return;
+
+        // Else attach to the parent console, if the program is run directly from a console, or open a new one
+        if (!AttachConsole(-1))
+            ShowConsole();
+    }
+
+    private static bool HasStandardOutput()
+    {
+        var handle = GetStdHandle(unchecked((uint)StdOutConsoleHandle));
+        return handle != IntPtr.Zero && handle != new IntPtr(-1) && GetFileType(new SafeFileHandle(handle, false)) != FILE_TYPE_UNKNOWN;
     }
 
     public static void ShowConsole()
@@ -263,6 +274,7 @@ public partial class ConsoleLogListener : LogListener
     private const uint GENERIC_WRITE = 0x40000000;
     private const uint FILE_SHARE_WRITE = 0x00000002;
     private const uint OPEN_EXISTING = 3;
+    private const int FILE_TYPE_UNKNOWN = 0;
 
     [LibraryImport("kernel32.dll", EntryPoint = "CreateFileW", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
     private static partial SafeFileHandle CreateFile(string fileName, uint desiredAccess, uint shareMode, IntPtr securityAttributes, uint creationDisposition, uint flagsAndAttributes, IntPtr templateFile);
