@@ -188,11 +188,7 @@ jobs:
             } >> "$GITHUB_ENV"
           fi
 
-      - name: Start iOS Simulator (background)
-        # Kick the simulator boot off early so its ~50s first-boot data migration
-        # (PreferencesMigrator etc.) happens in parallel with the build. We block on
-        # readiness in a later step right before tests run. It comes after the resolve step:
-        # a cold boot next to the resolver's restore and build stretched that step to 3 min.
+      - name: Pick iOS Simulator
         run: |
           set -e
           UDID=$(xcrun simctl list devices --json | python3 -c '
@@ -209,8 +205,7 @@ jobs:
             xcrun simctl list devices
             exit 1
           fi
-          echo "Booting $UDID"
-          xcrun simctl boot $UDID
+          echo "Picked $UDID"
           echo "IOS_SIM_UDID=$UDID" >> $GITHUB_ENV
 
       - name: Build iOS test .app bundle
@@ -236,10 +231,11 @@ jobs:
           path: build.binlog
           if-no-files-found: ignore
 
-      - name: Wait for iOS Simulator boot
-        # Block on the boot we kicked off earlier. If the build took longer than the simulator's
-        # first-boot migration, this is instant; otherwise we wait the remaining seconds.
-        run: xcrun simctl bootstatus $IOS_SIM_UDID -b
+      - name: Boot iOS Simulator
+        # After the build: a first boot (data migration) next to the build makes it 2-3 times slower on the runner
+        run: |
+          xcrun simctl boot $IOS_SIM_UDID
+          xcrun simctl bootstatus $IOS_SIM_UDID -b
 
       - name: Run tests on iOS Simulator
         shell: pwsh
