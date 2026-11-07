@@ -112,7 +112,7 @@ These parts of the plugin context are new in the cross-platform Game Studio. The
 - **Panels** (`context.Panels`): a `PanelDescriptor` (`Stride.Core.Assets.Editor.Panels`) with an id `<plugin>.<name>` that never changes once released, a title, a default place and a factory of `IPanelViewModel` (derive from `PanelViewModel`). The panel is listed in the View menu, a panel with `AllowsMultipleInstances` gets a "New" entry, and the layouts remember where it was. The plugin owns it: when the plugin leaves, the panel leaves the View menu, its open instances close, and the saved layout keeps its place for its return.
 - **Views** (`context.ViewTypes`): the view type of a view model type, in the editor's toolkit. The neutral `Editor` package registers the panel; its toolkit companion (`.Avalonia`, `.Wpf`) registers the view, an Avalonia `Control` for the cross-platform editor, created with no argument and given the view model as `DataContext`. A registration for a base type covers the derived ones. A view model with no view in the running editor shows "No view for this editor", and a warning names the panel and the plugin.
 - **Registries of other layers** (`context.GetRegistry<T>()`): a layer of the editor declares the registry of its own contribution points (`EditorPluginHost.DeclareRegistry<T>()`), and usually gives it a typed extension method on the context. A contribution goes with its plugin, as the others. Asking for a registry that no layer of the editor declares throws, so the plugin does not join.
-- **Plugin states and failures**: the editor keeps a state per plugin (`EditorPluginHost.PluginStatuses`: joined, failed to join, and later switched off or incompatible) with its errors. The editor runs the code of a contribution (a panel's view model, a view) through a guard (`IPluginContributionGuard`): when it throws, the error is logged with the plugin's name and recorded in its state, that contribution is turned off until the session opens again (a panel leaves the View menu), and the rest of the plugin stays. A plugin that fails to join is left out without what it registered; one whose `InitializeSession` fails stays, with the error recorded.
+- **Plugin states and failures**: the editor keeps a state per plugin (`EditorPluginHost.PluginStatuses`: joined, failed to join, incompatible (see [Editor versions and experimental API](#editor-versions-and-experimental-api)), and later switched off) with its errors. The editor runs the code of a contribution (a panel's view model, a view) through a guard (`IPluginContributionGuard`): when it throws, the error is logged with the plugin's name and recorded in its state, that contribution is turned off until the session opens again (a panel leaves the View menu), and the rest of the plugin stays. A plugin that fails to join is left out without what it registered; one whose `InitializeSession` fails stays, with the error recorded.
 
 ## Commands, menus and toolbars
 
@@ -188,6 +188,36 @@ public sealed class MyEditorPlugin : StrideAssetsPlugin
     }
 }
 ```
+
+## Editor versions and experimental API
+
+**Which Game Studio a plugin needs.** Before a plugin assembly loads, Game Studio reads which versions of its own assemblies the plugin was built against (`Stride.Core.Presentation`, `Stride.Core.Presentation.Quantum`, `Stride.Core.Assets.Presentation`, `Stride.Core.Assets.Editor`, `Stride.Assets.Presentation`, `Stride.Editor`, `Stride.Assets.Editor`, and the `.Avalonia` and `.Wpf` assemblies of each toolkit), without loading it. Only the major and minor versions count: a patch release keeps the assembly version (`4.5.0.0` for every 4.5.x), so a plugin built against 4.5.0 works with 4.5.3 and the other way round.
+
+- A plugin built against a newer major or minor version than the running Game Studio is not loaded. The session's log says what it needs ("The plugin [MyPlugin.Editor] of the package [MyPlugin] needs Game Studio 4.6: it was built against Stride.Assets.Editor 4.6.0.0, and this Game Studio is 4.5. It is not loaded."), and its state is *incompatible* (`PluginState.Incompatible`, with an `IncompatiblePluginException` among its errors; `PluginStatus.Plugin` is null, since nothing of it was loaded, and `Name` is its assembly's name). The WPF Game Studio logs it and goes on without it. The plugin's assets still load, since its `Assets` package references no editor assembly and is not checked; they open without the plugin's editors, previews and gizmos.
+- A plugin built against the same version, or an older one, loads as before. If it uses something that is gone from the newer editor, the contribution that uses it fails when it runs, and the contribution guard turns it off alone (see [Panels, views and plugin states](#panels-views-and-plugin-states)).
+- An assembly that references none of these (the `Runtime` and `Assets` packages of a plugin) is not checked.
+
+A game is normally edited with the Game Studio of its own Stride version, so its plugins meet the editor they were built for: the check matters for a plugin package built against another Stride version than the game.
+
+**Experimental API.** The parts of the plugin API added for the cross-platform Game Studio can still change between minor versions. They are marked `[Experimental]`, with one id per area, so a plugin that uses them says so: until it opts in, the compiler reports an error at each use, naming the id.
+
+| Id | Area | API |
+|---|---|---|
+| `STREXP001` | Panels, views and registries of other layers | `context.Panels`, `context.ViewTypes`, `context.GetRegistry<T>()`, `IAssetsPluginService.GetViewType`, `ContributionRegistry<T>`, and the members of `EditorPluginHost` behind them (`ViewTypes`, `GetViewType`, `DeclareRegistry`, `GetDeclaredRegistry`) |
+| `STREXP002` | Plugin states, the contribution guard and the version check | `PluginState`, `PluginStatus`, `PluginError`, `PluginStatusChangedEventArgs`, `IPluginContributionGuard`, `PluginContributions`, `EditorApiCheck`, `IncompatiblePluginException`, `IAssemblyLoadCheck`, and the members of `EditorPluginHost` behind them (`PluginStatuses`, `GetPluginStatus`, `PluginStatusChanged`, `AssemblyLoadCheck`, `TryRun`, `TryRunAsync`, `IsTurnedOff`) |
+| `STREXP003` | Commands, menus and toolbars | `context.Commands`, `context.ToolbarWidgets`, the types of `Stride.Core.Assets.Editor.Commands` (`CommandDescriptor`, `CommandPlacement`, `CommandLocations`, `CommandContext`, `CommandGesture`, `ToolbarWidgetDescriptor`, ...), `SceneLocations`, and the Avalonia `CommandSlot`, `DescriptorCommand` and `PropertyGridCommands` |
+| `STREXP004` | Tools of the scene and prefab views | `context.SceneViewTools()`, `SceneViewToolDescriptor`, `IEditorViewTool.Update(CancellationToken)` and `GetContextMenu`, `EditorViewContextMenu`, `EditorViewMenuEntry`, and the view's context menu |
+| `STREXP005` | Widgets of the scene and prefab views | `context.SceneViewWidgets()`, `SceneViewWidgetDescriptor`, `SceneViewWidgetContext`, `SceneViewEdge`, and the view models of the widgets |
+
+To use an area, opt in to its id in the `Editor` project, for the whole project:
+
+```xml
+<PropertyGroup>
+  <NoWarn>$(NoWarn);STREXP003</NoWarn>
+</PropertyGroup>
+```
+
+or around the code that uses it (`#pragma warning disable STREXP003`). Opting in says that the plugin may need changes for a later minor version of Game Studio: an experimental member can change or go in any minor release. The rest of the plugin API (the plugin context's other registries, the attributes, the asset view models and editors) follows the usual rules: it changes only in a major version, after a release where it is obsolete (see [Migrating from the older plugin API](#migrating-from-the-older-plugin-api)). The `STREXP` ids are not the `STRPLUGIN` ids of the obsolete API: an experimental member is new and can still move, an obsolete one is old and will go.
 
 ## Reloading in Game Studio
 
