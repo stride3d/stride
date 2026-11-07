@@ -300,6 +300,18 @@ namespace Stride.Graphics
 
             return isSupported;
         }
+
+        private partial string GetUnsupportedReason()
+        {
+#if STRIDE_GRAPHICS_API_DIRECT3D12
+            // Creates and releases a device on this adapter
+            return D3D12Runtime.IsEnhancedBarriersSupported(NativeAdapter.AsIUnknown())
+                ? null
+                : $"its driver has no Direct3D 12 Enhanced Barriers. Update it to use this GPU ({D3D12Runtime.EnhancedBarriersDriverVersions}).";
+#else
+            return null;
+#endif
+        }
     }
 }
 

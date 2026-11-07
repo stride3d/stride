@@ -17,6 +17,27 @@ namespace Stride.Graphics
     {
         private GraphicsOutput[] graphicsOutputs;
 
+        private bool unsupportedReasonChecked;
+        private string unsupportedReason;
+
+        /// <summary>
+        ///   Gets why Stride can't create a device on this adapter, or <see langword="null"/> when it can.
+        /// </summary>
+        internal string UnsupportedReason
+        {
+            get
+            {
+                if (!unsupportedReasonChecked)
+                {
+                    unsupportedReason = GetUnsupportedReason();
+                    unsupportedReasonChecked = true;
+                }
+                return unsupportedReason;
+            }
+        }
+
+        private partial string GetUnsupportedReason();
+
         /// <summary>
         ///   Gets the <see cref="GraphicsOutput"/>s attached to this adapter.
         /// </summary>
