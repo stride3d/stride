@@ -8,7 +8,6 @@ using Stride.Assets.Presentation.ViewModels;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Mathematics;
-using Stride.Core.Presentation.Services;
 using Stride.Engine;
 using static Stride.Assets.Editor.Tests.EntityHierarchyEditorTests;
 
@@ -164,7 +163,7 @@ public sealed class EntityHierarchyLoadingTests
     /// </summary>
     internal static async Task<AssetsSessionFixture> OpenScenesAsync()
     {
-        var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: true, new NullDispatcherService(), ("MainScene", new SceneAsset()), ("ChildScene", new SceneAsset { Offset = new Vector3(5, 0, 0) }));
+        var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: true, ("MainScene", new SceneAsset()), ("ChildScene", new SceneAsset { Offset = new Vector3(5, 0, 0) }));
         Assert.False(fixture.Result.HasErrors, fixture.Log);
 
         var main = fixture.Asset<SceneViewModel>("MainScene");
