@@ -19,6 +19,12 @@ namespace Stride.Assets.SpriteFont
     {
         private static readonly Logger Log = GlobalLogger.GetLogger("SystemFontProvider");
 
+        /// <summary>
+        /// The font name of a new sprite font. Arial is on Windows and macOS, and builds as its metric-compatible Liberation
+        /// Sans on Linux.
+        /// </summary>
+        public const string NewFontName = "Arial";
+
         // The font found by GetFontPath, which can be a metric-compatible fallback of the requested one
         private string resolvedFontName;
 
