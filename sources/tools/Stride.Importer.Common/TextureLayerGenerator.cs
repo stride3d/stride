@@ -42,5 +42,26 @@ namespace Stride.Importer.Common
 
             return currentTexture;
         }
+
+        /// <summary>
+        /// Creates a scalar texture node that reads one channel of the texture referenced by a mesh material.
+        /// </summary>
+        public static ComputeTextureScalar GenerateMaterialTextureScalarNode(
+            string sourceTextureFile,
+            uint textureUVSetIndex,
+            ColorChannel channel,
+            TextureAddressMode addressModeU,
+            TextureAddressMode addressModeV
+        )
+        {
+            var texture = AttachedReferenceManager.CreateProxyObject<Texture>(AssetId.Empty, Path.GetFileNameWithoutExtension(sourceTextureFile));
+
+            return new ComputeTextureScalar(texture, (TextureCoordinate)textureUVSetIndex, Vector2.One, Vector2.Zero)
+            {
+                Channel = channel,
+                AddressModeU = addressModeU,
+                AddressModeV = addressModeV,
+            };
+        }
     }
 }

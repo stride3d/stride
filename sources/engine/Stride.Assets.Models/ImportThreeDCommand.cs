@@ -42,6 +42,7 @@ namespace Stride.Assets.Models
             var converter = CreateMeshConverter(commandContext);
             converter.MorphNormals = MorphNormals;
             converter.MorphTangents = MorphTangents;
+            converter.LegacyTangentHandedness = LegacyTangentHandedness;
 
             var sceneData = converter.Convert(SourcePath, Location, DeduplicateMaterials, Materials.Select(x => x.Name).ToList());
             return sceneData;

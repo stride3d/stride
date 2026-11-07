@@ -18,10 +18,11 @@ namespace Stride.Assets.Textures
         /// Indicating whether the Y-component of normals should be inverted, to compensate for a flipped tangent-space.
         /// </summary>
         /// <userdoc>
-        /// Indicates that a positive Y-component (green) faces up in tangent space. This options depends on your normal maps generation tools.
+        /// Checked: the map is in OpenGL format (Y+). Unchecked: DirectX format (Y-). Tools such as Substance Painter let you choose this on export, so check your export settings. If details look lit from the wrong side vertically, change this setting.
         /// </userdoc>
         [DataMember(10)]
         [DefaultValue(true)]
+        [Display("OpenGL format (Y+)")]
         public bool InvertY { get; set; } = true;
 
         bool ITextureType.ColorKeyEnabled => false;
