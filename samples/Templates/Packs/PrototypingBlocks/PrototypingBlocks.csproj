@@ -5,6 +5,6 @@
   <ItemGroup>
     <PackageReference Include="Stride.Core" Version="4.4.0" />
     <PackageReference Include="Stride.Engine" Version="4.4.0" />
-    <PackageReference Include="Stride.Physics" Version="4.4.0" />
+    <PackageReference Include="Stride.BepuPhysics" Version="4.4.0" />
   </ItemGroup>
 </Project>
