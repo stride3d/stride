@@ -706,6 +706,27 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     public ICompanionPackageFilter? CompanionPackageFilter { get; set; }
 
     /// <summary>
+    /// Companion packages that the host adds to this session besides those its packages declare (the editor's extensions), or
+    /// null for none. A load whose parameters give one sets it, so later loads with default parameters use it too.
+    /// </summary>
+    [Experimental("STREXP002")]
+    public ICompanionPackageSource? CompanionPackageSource { get; set; }
+
+    /// <summary>
+    /// The companions <see cref="CompanionPackageSource"/> gave this session, read at its first load with editor packages; null
+    /// before that, or without a source.
+    /// </summary>
+    [Experimental("STREXP002")]
+    public IReadOnlyList<CompanionPackage>? SourceCompanionPackages { get; private set; }
+
+    /// <summary>
+    /// The names of the companions of <see cref="SourceCompanionPackages"/> that this session loaded (restored or found),
+    /// whatever their state after that.
+    /// </summary>
+    [Experimental("STREXP002")]
+    public IReadOnlyCollection<string> LoadedSourceCompanionPackages => loadedSourceCompanions;
+
+    /// <summary>
     /// Gets the packages referenced by the current package.
     /// </summary>
     /// <returns>IEnumerable&lt;Package&gt;.</returns>
@@ -772,6 +793,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
         var loadParameters = loadParametersArg ?? PackageLoadParameters.Default();
         AssemblyLoadCheck ??= loadParameters.AssemblyLoadCheck;
         CompanionPackageFilter ??= loadParameters.CompanionPackageFilter;
+        CompanionPackageSource ??= loadParameters.CompanionPackageSource;
 
         Package package;
         PackageContainer project;
@@ -926,7 +948,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
             sessionResult.Progress("Loading..", 0, 1);
 
             // The assemblies of the projects load with them, so the session needs the check from the start
-            var session = new PackageSession { AssemblyLoadCheck = loadParameters.AssemblyLoadCheck, CompanionPackageFilter = loadParameters.CompanionPackageFilter };
+            var session = new PackageSession { AssemblyLoadCheck = loadParameters.AssemblyLoadCheck, CompanionPackageFilter = loadParameters.CompanionPackageFilter, CompanionPackageSource = loadParameters.CompanionPackageSource };
 
             var cancelToken = loadParameters.CancelToken;
             SolutionProject? firstProject = null;
@@ -1105,6 +1127,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
         var loadParameters = loadParametersArg ?? PackageLoadParameters.Default();
         AssemblyLoadCheck ??= loadParameters.AssemblyLoadCheck;
         CompanionPackageFilter ??= loadParameters.CompanionPackageFilter;
+        CompanionPackageSource ??= loadParameters.CompanionPackageSource;
 
         var cancelToken = loadParameters.CancelToken;
 
@@ -1197,6 +1220,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
         var loadParameters = loadParametersArg ?? PackageLoadParameters.Default();
         AssemblyLoadCheck ??= loadParameters.AssemblyLoadCheck;
         CompanionPackageFilter ??= loadParameters.CompanionPackageFilter;
+        CompanionPackageSource ??= loadParameters.CompanionPackageSource;
 
         var cancelToken = loadParameters.CancelToken;
         List<AssetLoadingInfo> assetLoadInfos = [];

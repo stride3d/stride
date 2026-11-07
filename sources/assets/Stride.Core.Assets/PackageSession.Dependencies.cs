@@ -543,6 +543,7 @@ partial class PackageSession
         var loadParameters = loadParametersArg ?? PackageLoadParameters.Default();
         AssemblyLoadCheck ??= loadParameters.AssemblyLoadCheck;
         CompanionPackageFilter ??= loadParameters.CompanionPackageFilter;
+        CompanionPackageSource ??= loadParameters.CompanionPackageSource;
 
         var loaded = new HashSet<Package>(Packages);
         try

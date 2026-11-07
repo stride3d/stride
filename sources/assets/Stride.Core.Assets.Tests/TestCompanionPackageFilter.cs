@@ -168,7 +168,7 @@ public class TestCompanionPackageFilter
 
         public List<string> Skipped { get; } = [];
 
-        public bool ShouldLoad(Package declaringPackage, CompanionPackage companion, ILogger log)
+        public bool ShouldLoad(Package? declaringPackage, CompanionPackage companion, ILogger log)
         {
             Asked.Add(companion.Name!);
             if (!names.Contains(companion.Name!))

@@ -86,6 +86,14 @@ public sealed class PackageLoadParameters
     public ICompanionPackageFilter? CompanionPackageFilter { get; set; }
 
     /// <summary>
+    /// Companion packages that the host adds to the session besides those its packages declare (the editor's extensions), or
+    /// null for none. The session keeps the first one it is given (<see cref="PackageSession.CompanionPackageSource"/>) for
+    /// later loads.
+    /// </summary>
+    [Experimental("STREXP002")]
+    public ICompanionPackageSource? CompanionPackageSource { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether to automatically compile projects that don't have their assembly generated.
     /// </summary>
     /// <value><c>true</c> if [automatic compile projects]; otherwise, <c>false</c>.</value>

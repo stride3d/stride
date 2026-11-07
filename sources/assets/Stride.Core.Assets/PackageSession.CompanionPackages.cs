@@ -38,11 +38,19 @@ partial class PackageSession
         var filteredOut = FindFilteredOutCompanions(replaced, loadEditorPackages, editorToolkit, log);
 
         var visited = new HashSet<Package>();
+        var sourceVisited = false;
         while (true)
         {
             var package = Packages.FirstOrDefault(p => !visited.Contains(p));
             if (package is null)
-                break;
+            {
+                // Once the declared companions are in, the ones the host adds (their own companions come with the next turns)
+                if (sourceVisited || !loadEditorPackages)
+                    break;
+                sourceVisited = true;
+                LoadSourceCompanionPackages(replaced, filteredOut, loadedByName, rootDirectory, log, editorToolkit);
+                continue;
+            }
             visited.Add(package);
             if (package.Meta.Name is { } packageName && filteredOut.GetValueOrDefault(packageName))
                 continue;
@@ -101,6 +109,85 @@ partial class PackageSession
         return decisions;
     }
 
+    // The companions the host adds (ICompanionPackageSource), read at the first load with editor packages. One that a package
+    // of the session already brings, or declares, is not added: the session's own one loads
+    private void LoadSourceCompanionPackages(HashSet<string> replaced, Dictionary<string, bool> filteredOut, Dictionary<string, StandalonePackage> loadedByName, string? rootDirectory, ILogger log, string? editorToolkit)
+    {
+        if (CompanionPackageSource is not { } source)
+            return;
+        if (SourceCompanionPackages is null)
+        {
+            try
+            {
+                SourceCompanionPackages = source.GetCompanionPackages(log).Where(x => x is not null).ToList();
+            }
+            catch (Exception ex)
+            {
+                log.Error("Could not read the packages the editor adds to the session.", ex);
+                SourceCompanionPackages = [];
+            }
+        }
+
+        var declared = new HashSet<string>(Packages.SelectMany(p => p.CompanionPackages).Select(c => c.Name).NotNull(), StringComparer.OrdinalIgnoreCase);
+        foreach (var companion in SourceCompanionPackages)
+        {
+            if (companion.Name is not { } name || loadedSourceCompanions.Contains(name))
+                continue;
+            if (companion.Version is not { } version)
+            {
+                log.Warning($"[{name}], added by the editor, has no version: it is not loaded.");
+                continue;
+            }
+            if (replaced.Contains(name))
+                continue;
+            if (!IsLoadedByThisHost(companion, loadEditorPackages: true, editorToolkit))
+            {
+                if (companion.Kind == PackageKind.Editor && reportedOtherToolkitCompanions.Add(name))
+                    log.Info($"[{name}], added by the editor, is written for the {companion.Toolkit} editor; this editor ({editorToolkit ?? "no toolkit"}) does not load it.");
+                continue;
+            }
+            if (declared.Contains(name) || Projects.Any(p => string.Equals(p.Package.Meta.Name, name, StringComparison.OrdinalIgnoreCase)))
+            {
+                var inSession = Projects.FirstOrDefault(p => string.Equals(p.Package.Meta.Name, name, StringComparison.OrdinalIgnoreCase))?.Package.Meta.Version;
+                log.Info($"[{name}] version [{version}], added by the editor, is also a package of this session{(inSession is not null ? $" (version [{inSession}])" : "")}: the session's one loads.");
+                continue;
+            }
+            if (IsFilteredOut(null, companion, filteredOut, log))
+                continue;
+
+            var loaded = LoadCompanionPackage(name, version, loadedByName, rootDirectory, log, source.PackageSources);
+            if (loaded is null)
+            {
+                log.Error($"{companion.Kind} package [{name}] version [{version}], added by the editor, was not found.");
+                continue;
+            }
+            // NuGet takes a package from any of its sources: the editor checks that the restored one is the package it added
+            if (!source.IsRestoredPackageExpected(name, version, log))
+            {
+                Projects.Remove(loaded);
+                loadedByName.Remove(name);
+                continue;
+            }
+            // A packed package states its kind and toolkit: one that is not what the editor added it as stays out
+            if (loaded.Package.Kind != companion.Kind || (loaded.Package.Toolkit is not null && !string.Equals(loaded.Package.Toolkit, editorToolkit, StringComparison.OrdinalIgnoreCase)))
+            {
+                log.Error($"[{name}], added by the editor as {(companion.Kind == PackageKind.Editor ? "an" : "a")} {companion.Kind} package, is {(loaded.Package.Kind == PackageKind.Editor ? "an" : "a")} {loaded.Package.Kind} package for the {loaded.Package.Toolkit ?? "neutral"} toolkit: it is not loaded.");
+                Projects.Remove(loaded);
+                loadedByName.Remove(name);
+                continue;
+            }
+            loaded.IsCompanionPackage = true;
+            loadedSourceCompanions.Add(name);
+            sourcePackageNames.Add(name);
+        }
+    }
+
+    // The names of the companions the host added that this session loaded
+    private readonly HashSet<string> loadedSourceCompanions = new(StringComparer.OrdinalIgnoreCase);
+
+    // Those, with the companions they declare: restored from the source's feeds too
+    private readonly HashSet<string> sourcePackageNames = new(StringComparer.OrdinalIgnoreCase);
+
     // The filter's decisions, kept for the session (see FindFilteredOutCompanions)
     private readonly Dictionary<string, bool> companionFilterDecisions = new(StringComparer.OrdinalIgnoreCase);
 
@@ -125,7 +212,7 @@ partial class PackageSession
 
     // The editor can leave out an Editor companion it would load (a plugin the user switched off, safe mode), asked once per
     // companion; an Assets companion always loads, since the assets of the session need its types
-    private bool IsFilteredOut(Package package, CompanionPackage companion, Dictionary<string, bool> decisions, ILogger log)
+    private bool IsFilteredOut(Package? package, CompanionPackage companion, Dictionary<string, bool> decisions, ILogger log)
     {
         if (companion.Kind != PackageKind.Editor || companion.Name is not { } name || CompanionPackageFilter is not { } filter)
             return false;
@@ -161,7 +248,11 @@ partial class PackageSession
             return;
         if (companion is null)
         {
-            var loaded = LoadCompanionPackage(companionName, version, loadedByName, rootDirectory, log);
+            // The companions of a package the host added come from where it came from
+            var fromSource = package.Meta.Name is { } declaringName && sourcePackageNames.Contains(declaringName);
+            var loaded = LoadCompanionPackage(companionName, version, loadedByName, rootDirectory, log, fromSource ? CompanionPackageSource?.PackageSources : null);
+            if (loaded is not null && fromSource)
+                sourcePackageNames.Add(companionName);
             if (loaded is null)
             {
                 log.Error($"{kind} package [{companionName}] version [{version}], declared by [{package.Meta.Name}], was not found; assets of that package cannot be compiled or edited.");
@@ -238,7 +329,7 @@ partial class PackageSession
         while (added);
     }
 
-    private StandalonePackage? LoadCompanionPackage(string name, PackageVersion version, Dictionary<string, StandalonePackage> loadedByName, string? rootDirectory, ILogger log)
+    private StandalonePackage? LoadCompanionPackage(string name, PackageVersion version, Dictionary<string, StandalonePackage> loadedByName, string? rootDirectory, ILogger log, IReadOnlyList<string>? additionalSources = null)
     {
         if (TryLoadDevRedirectPackage(name, version, log) is { } devRedirect)
             return devRedirect;
@@ -249,7 +340,7 @@ partial class PackageSession
         try
         {
             var outputPath = rootDirectory is not null ? Path.Combine(rootDirectory, "obj", "stride", "companions", name) : Path.Combine(Path.GetTempPath(), "stride-companions", name);
-            lockFile = PackageStore.Instance.RestorePackage(name, version, hostFramework, rootDirectory, outputPath).Result;
+            lockFile = PackageStore.Instance.RestorePackage(name, version, hostFramework, rootDirectory, outputPath, additionalSources ?? []).Result;
         }
         catch (Exception ex)
         {
