@@ -581,6 +581,45 @@ public class TestCodeUpgrade
     }
 
     [Fact]
+    public async Task MemberRenameRenamesOnlyTheMatchingMember()
+    {
+        // The 4.5.1 shape: CommandList.UnsetRenderTargets became ResetTargets.
+        var source = """
+            namespace TestNs
+            {
+                class Target
+                {
+                    public void UnsetRenderTargets() { }
+                    public void ResetTargets() { }
+                }
+                class Other
+                {
+                    public void UnsetRenderTargets() { }
+                }
+                class Usage
+                {
+                    void A(Target t)
+                    {
+                        t.UnsetRenderTargets();
+                        t?.UnsetRenderTargets();
+                        System.Action action = t.UnsetRenderTargets;
+                    }
+                    void B(Other o) => o.UnsetRenderTargets();
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, Rewrite(MemberRename("TestNs.Target", "UnsetRenderTargets", "ResetTargets")));
+
+        Assert.Contains("t.ResetTargets();", result);
+        Assert.Contains("t?.ResetTargets();", result);
+        Assert.Contains("System.Action action = t.ResetTargets;", result);
+        // The unrelated same-named method is untouched.
+        Assert.Contains("o.UnsetRenderTargets()", result);
+        AssertCompiles(result);
+    }
+
+    [Fact]
     public async Task FluentCallRemoveKeepsTheReceiver()
     {
         // The 4.4 shape: Buffer.RecreateWith returned its receiver and went away with the device reset recovery.

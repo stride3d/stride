@@ -131,14 +131,6 @@ namespace Stride.Graphics
             NullHelper.ToImplement();
         }
 
-        /// <summary>
-        /// Unset the render targets.
-        /// </summary>
-        public void UnsetRenderTargets()
-        {
-            NullHelper.ToImplement();
-        }
-
         public void SetStencilReference(int stencilReference)
         {
             NullHelper.ToImplement();

@@ -316,14 +316,6 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Unsets the Render Targets currently bound to the pipeline.
-        /// </summary>
-        public void UnsetRenderTargets()
-        {
-            nativeDeviceContext->OMSetRenderTargets(NumViews: 0, ppRenderTargetViews: null, pDepthStencilView: null);
-        }
-
-        /// <summary>
         ///   Sets a Constant Buffer to the shader pipeline.
         /// </summary>
         /// <param name="stage">The shader stage.</param>

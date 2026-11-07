@@ -224,6 +224,28 @@ public static partial class CodeUpgrades
     }
 
     /// <summary>
+    /// Migrates an instance member renamed on its type: <c>x.Foo(a)</c> → <c>x.Bar(a)</c>. Matches the member
+    /// <paramref name="memberName"/> on <paramref name="declaringType"/> (its full metadata name) and renames each
+    /// reference, keeping its receiver, arguments and trivia; conditional access and method groups too.
+    /// </summary>
+    public static SymbolRewrite MemberRename(string declaringType, string memberName, string newMemberName)
+    {
+        ArgumentNullException.ThrowIfNull(declaringType);
+        ArgumentNullException.ThrowIfNull(memberName);
+        ArgumentNullException.ThrowIfNull(newMemberName);
+        return new SymbolRewrite(
+            compilation => ResolveMembers(compilation, declaringType, memberName),
+            (editor, referenceNode, symbol) =>
+            {
+                if (referenceNode is not SimpleNameSyntax name || name.Identifier.ValueText != memberName)
+                    return;
+
+                // WithIdentifier keeps the type argument list of a generic name
+                editor.ReplaceNode(name, name.WithIdentifier(SyntaxFactory.Identifier(name.Identifier.LeadingTrivia, newMemberName, name.Identifier.TrailingTrivia)));
+            });
+    }
+
+    /// <summary>
     /// Migrates a removed method that returned its receiver, so that the call can simply go:
     /// <c>Buffer.New(...).RecreateWith(data)</c> → <c>Buffer.New(...)</c>. Matches the method
     /// <paramref name="methodName"/> on <paramref name="declaringType"/> (its full metadata name) and

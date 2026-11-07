@@ -273,13 +273,6 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Unsets the render targets.
-        /// </summary>
-        public void UnsetRenderTargets()
-        {
-        }
-
-        /// <summary>
         ///   Vulkan implementation that sets a scissor rectangle to the rasterizer stage.
         /// </summary>
         /// <param name="scissorRectangle">The scissor rectangle to set.</param>

@@ -156,6 +156,14 @@ namespace Stride.Assets
                 DispatcherCallbacksToStaticLambdas(),
             ]);
 
+            registry.Code("4.5.1.0",
+            [
+                // 4.5.1: CommandList.UnsetRenderTargets is gone from every graphics API; ResetTargets unbinds the same
+                // targets, and also forgets them.
+                Rewrite(
+                    MemberRename("Stride.Graphics.CommandList", "UnsetRenderTargets", "ResetTargets")),
+            ]);
+
             // Structural csproj migrations, gated by the version each change landed at. Run against the
             // NEW-version project (after the reference bump) by UpgradeBeforeAssembliesLoaded.
             registry.Project("4.1.0.0", UpgradeProjectTo41);
