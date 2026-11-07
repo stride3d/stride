@@ -23,6 +23,7 @@ public sealed class EntityCreationTests
         using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         editor.SelectedContent.Add(FindEntity(editor, "Parent"));
+        await editor.PropertiesRefreshCompletion;
         var names = RecordUndoNames(fixture);
 
         editor.CreateEntityInRootCommand.Execute(null);
@@ -47,6 +48,7 @@ public sealed class EntityCreationTests
         var editor = await OpenEditorAsync(fixture);
         var parent = FindEntity(editor, "Parent");
         editor.SelectedContent.Add(parent);
+        await editor.PropertiesRefreshCompletion;
 
         editor.CreateEntityInSelectionCommand.Execute(new PointLightEntityFactory());
 
@@ -57,6 +59,7 @@ public sealed class EntityCreationTests
         var lights = (EntityFolderViewModel)editor.HierarchyRoot.Children.Single(x => x.Name == "Lights");
         editor.SelectedContent.Clear();
         editor.SelectedContent.Add(lights);
+        await editor.PropertiesRefreshCompletion;
 
         editor.CreateEntityInSelectionCommand.Execute(null);
 
@@ -114,6 +117,7 @@ public sealed class EntityCreationTests
         var editor = await OpenEditorAsync(fixture);
         var parent = FindEntity(editor, "Parent");
         editor.SelectedContent.Add(parent);
+        await editor.PropertiesRefreshCompletion;
 
         editor.CreateFolderInSelectionCommand.Execute();
 

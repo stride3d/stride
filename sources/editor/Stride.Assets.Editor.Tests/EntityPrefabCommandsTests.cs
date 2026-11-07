@@ -22,6 +22,7 @@ public sealed class EntityPrefabCommandsTests
         var parent = FindEntity(editor, "Parent");
         Assert.False(editor.CreatePrefabFromSelectionCommand.IsEnabled);
         editor.SelectedContent.Add(parent);
+        await editor.PropertiesRefreshCompletion;
         Assert.False(editor.OpenPrefabEditorCommand.IsEnabled);
         var undoRedo = fixture.Session.UndoRedoService;
         var names = new List<string?>();
@@ -52,10 +53,12 @@ public sealed class EntityPrefabCommandsTests
         var editor = await OpenEditorAsync(fixture);
         var parent = FindEntity(editor, "Parent");
         editor.SelectedContent.Add(parent);
+        await editor.PropertiesRefreshCompletion;
         editor.CreatePrefabFromSelectionCommand.Execute();
         // The commands follow the selection
         editor.SelectedContent.Clear();
         editor.SelectedContent.Add(parent);
+        await editor.PropertiesRefreshCompletion;
         Assert.True(editor.BreakLinkToPrefabCommand.IsEnabled);
         Assert.True(editor.OpenPrefabEditorCommand.IsEnabled);
         Assert.True(editor.SelectPrefabCommand.IsEnabled);
