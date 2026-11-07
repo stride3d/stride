@@ -62,7 +62,7 @@ public sealed class ModelViewModelTests
             var undoRedo = fixture.ServiceProvider.Get<IUndoRedoService>();
             var transactions = fixture.Session.ActionHistory.Transactions.Count;
 
-            await model.CreateSkeletonAsync();
+            await fixture.Session.Dispatcher.InvokeTask(model.CreateSkeletonAsync);
             WaitForHistory(fixture, transactions);
 
             var skeleton = Assert.Single(fixture.Session.AllAssets, x => x.Asset is SkeletonAsset);
@@ -72,7 +72,7 @@ public sealed class ModelViewModelTests
             Assert.Equal(transactions + 1, fixture.Session.ActionHistory.Transactions.Count);
             Assert.Equal("Create Skeleton", fixture.Session.ActionHistory.Transactions.Last().Name);
 
-            undoRedo.Undo();
+            fixture.Session.Dispatcher.Invoke(undoRedo.Undo);
 
             Assert.Null(model.Asset.Skeleton);
             Assert.DoesNotContain(fixture.Session.AllAssets, x => x.Asset is SkeletonAsset);
@@ -90,7 +90,7 @@ public sealed class ModelViewModelTests
         var model = fixture.Asset<ModelViewModel>("Robot");
         var transactions = fixture.Session.ActionHistory.Transactions.Count;
 
-        await model.CreateSkeletonAsync();
+        await fixture.Session.Dispatcher.InvokeTask(model.CreateSkeletonAsync);
 
         Assert.Null(model.Asset.Skeleton);
         Assert.DoesNotContain(fixture.Session.AllAssets, x => x.Asset is SkeletonAsset);
@@ -117,7 +117,7 @@ public sealed class ModelViewModelTests
             FullPath = new UFile(Path.Combine(fixture.Directory, "DefaultSkeleton" + TemplateDescription.FileExtension)),
         });
         // The asset view creates the new assets in its selected folder
-        fixture.Session.AssetCollection.SelectedLocations.Add(fixture.Package);
+        fixture.Session.Dispatcher.Invoke(() => fixture.Session.AssetCollection.SelectedLocations.Add(fixture.Package));
         return fixture;
     }
 
