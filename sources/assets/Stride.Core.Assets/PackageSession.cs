@@ -275,6 +275,11 @@ public class StandalonePackage : PackageContainer
     /// </summary>
     public bool IsCompanionPackage { get; set; }
 
+    /// <summary>
+    /// True for a dev-redirect package: a stub in the package store that loads the package from its source tree.
+    /// </summary>
+    public bool IsDevRedirectPackage { get; set; }
+
     public override string ToString() => $"Package: {Package.Meta.Name}";
 }
 

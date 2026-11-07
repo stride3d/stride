@@ -906,7 +906,7 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginCo
             {
                 if (viewTypeOwners.TryGetValue(viewModelType, out var owner) && owner == plugin)
                     viewTypeOwners.Remove(viewModelType);
-            });
+            }, counted: false);
         }
     }
 
@@ -915,7 +915,7 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginCo
     {
         var registry = GetDeclaredRegistry<T>()
             ?? throw new InvalidOperationException($"No registry of [{typeof(T).FullName}] is declared in this editor.");
-        return new Registry<T>(item => record.Add(registry.Register(item, plugin).Dispose));
+        return new Registry<T>(record, typeof(T).Name, item => record.Add(registry.Register(item, plugin).Dispose));
     }
 
     /// <summary>

@@ -38,6 +38,18 @@ public abstract partial class EditorPluginHost
         return new EditorCompanionFilter(switchedOff, SafeMode, RecordOff);
     }
 
+    /// <summary>
+    /// What a plugin registered and still has in place, counted by kind of contribution: the member of the plugin context it
+    /// came through (<c>AssetEditorViewModelTypes</c>, <c>Panels</c>, <c>Commands</c>...), or the type of a registry that a
+    /// layer of the editor declared (<see cref="DeclareRegistry{T}"/>).
+    /// </summary>
+    [Experimental("STREXP002")]
+    public IReadOnlyDictionary<string, int> GetContributionCounts(AssetsPlugin plugin)
+    {
+        ArgumentNullException.ThrowIfNull(plugin);
+        return records.TryGetValue(plugin, out var record) ? record.CountByKind() : new Dictionary<string, int>();
+    }
+
     // A package left out by the session's filter: nothing of it was loaded, so it is known by its package name. Called on the
     // thread that loads the session, before the plugins join it.
     private void RecordOff(string packageName, PluginOffReason reason)

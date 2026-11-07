@@ -43,7 +43,7 @@ public enum PluginState
 public enum PluginOffReason
 {
     /// <summary>
-    /// The user switched the plugin's package off for this session (<see cref="Settings.DisabledEditorCompanionStore"/>).
+    /// The user switched the plugin's package off for this session (<see cref="PluginSwitchService"/>).
     /// </summary>
     SwitchedOff,
 

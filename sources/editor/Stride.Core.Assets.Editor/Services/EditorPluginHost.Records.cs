@@ -24,10 +24,48 @@ public abstract partial class EditorPluginHost
     private sealed class PluginRecord
     {
         private readonly List<Action> undoActions = [];
+        // The kind of contribution of each registration (the context member it came through), or null for the host's own
+        private readonly List<string?> kinds = [];
+        private string? currentKind;
 
         public int Count => undoActions.Count;
 
-        public void Add(Action undo) => undoActions.Add(undo);
+        public void Add(Action undo, bool counted = true)
+        {
+            undoActions.Add(undo);
+            kinds.Add(counted ? currentKind : null);
+        }
+
+        /// <summary>
+        /// Runs a registration of a kind of contribution: what it adds to the record is counted under that kind.
+        /// </summary>
+        public void Within(string kind, Action register)
+        {
+            var previous = currentKind;
+            currentKind = kind;
+            try
+            {
+                register();
+            }
+            finally
+            {
+                currentKind = previous;
+            }
+        }
+
+        /// <summary>
+        /// The number of registrations of each kind of contribution that are still in place.
+        /// </summary>
+        public Dictionary<string, int> CountByKind()
+        {
+            var counts = new Dictionary<string, int>(StringComparer.Ordinal);
+            foreach (var kind in kinds)
+            {
+                if (kind is not null)
+                    counts[kind] = counts.GetValueOrDefault(kind) + 1;
+            }
+            return counts;
+        }
 
         /// <summary>
         /// Undoes the registrations from <paramref name="index"/> on, newest first; one that fails is reported and the others still run.
@@ -38,6 +76,7 @@ public abstract partial class EditorPluginHost
             {
                 var undo = undoActions[i];
                 undoActions.RemoveAt(i);
+                kinds.RemoveAt(i);
                 try
                 {
                     undo();
@@ -157,17 +196,18 @@ public abstract partial class EditorPluginHost
         }
     }
 
-    private sealed class Registry<T>(Action<T> register) : IPluginRegistry<T>
+    // A registry of the context: what it registers is counted under its kind in the plugin's record
+    private sealed class Registry<T>(PluginRecord record, string kind, Action<T> register) : IPluginRegistry<T>
         where T : notnull
     {
-        public void Register(T item) => register(item);
+        public void Register(T item) => record.Within(kind, () => register(item));
     }
 
-    private sealed class Map<TKey, TValue>(Action<TKey, TValue> register) : IPluginMap<TKey, TValue>
+    private sealed class Map<TKey, TValue>(PluginRecord record, string kind, Action<TKey, TValue> register) : IPluginMap<TKey, TValue>
         where TKey : notnull
         where TValue : notnull
     {
-        public void Register(TKey key, TValue value) => register(key, value);
+        public void Register(TKey key, TValue value) => record.Within(kind, () => register(key, value));
     }
 
     /// <summary>
@@ -185,53 +225,53 @@ public abstract partial class EditorPluginHost
             Plugin = plugin;
             Session = session;
             Logger = logger;
-            AssetViewModelTypes = new Map<Type, Type>((key, value) => record.Add(host.assetViewModelTypes.Register(key, value)));
-            AssetEditorViewModelTypes = new Map<Type, Type>((key, value) => record.Add(host.editorViewModelTypes.Register(key, value)));
-            AssetEditorViewTypes = new Map<Type, Type>((key, value) => record.Add(host.editorViewTypes.Register(key, value)));
-            AssetPreviewViewModelTypes = new Map<Type, Type>((key, value) => record.Add(host.previewViewModelTypes.Register(key, value)));
-            AssetPreviewViewTypes = new Map<Type, Type>((key, value) => record.Add(host.previewViewTypes.Register(key, value)));
-            PrimitiveTypes = new Registry<Type>(type => RegisterInList(record, host.primitiveTypes, type));
-            EnumImages = new Map<object, object>((value, image) => record.Add(host.enumImages.Register(value, image)));
-            TypeImages = new Map<Type, object>((type, image) => record.Add(host.typeImages.Register(type, image)));
-            TemplateProviders = new Registry<ITemplateProvider>(provider =>
+            AssetViewModelTypes = new Map<Type, Type>(record, nameof(AssetViewModelTypes), (key, value) => record.Add(host.assetViewModelTypes.Register(key, value)));
+            AssetEditorViewModelTypes = new Map<Type, Type>(record, nameof(AssetEditorViewModelTypes), (key, value) => record.Add(host.editorViewModelTypes.Register(key, value)));
+            AssetEditorViewTypes = new Map<Type, Type>(record, nameof(AssetEditorViewTypes), (key, value) => record.Add(host.editorViewTypes.Register(key, value)));
+            AssetPreviewViewModelTypes = new Map<Type, Type>(record, nameof(AssetPreviewViewModelTypes), (key, value) => record.Add(host.previewViewModelTypes.Register(key, value)));
+            AssetPreviewViewTypes = new Map<Type, Type>(record, nameof(AssetPreviewViewTypes), (key, value) => record.Add(host.previewViewTypes.Register(key, value)));
+            PrimitiveTypes = new Registry<Type>(record, nameof(PrimitiveTypes), type => RegisterInList(record, host.primitiveTypes, type));
+            EnumImages = new Map<object, object>(record, nameof(EnumImages), (value, image) => record.Add(host.enumImages.Register(value, image)));
+            TypeImages = new Map<Type, object>(record, nameof(TypeImages), (type, image) => record.Add(host.typeImages.Register(type, image)));
+            TemplateProviders = new Registry<ITemplateProvider>(record, nameof(TemplateProviders), provider =>
             {
                 if (host.AddTemplateProvider(session, provider))
                     record.Add(() => host.RemoveTemplateProvider(session, provider));
             });
             // Without a copy and paste service, the session has nothing to copy or paste with: the processors are left out
             var copyPasteService = session.ServiceProvider.TryGet<ICopyPasteService>();
-            CopyProcessors = new Registry<ICopyProcessor>(processor =>
+            CopyProcessors = new Registry<ICopyProcessor>(record, nameof(CopyProcessors), processor =>
             {
                 if (copyPasteService is null)
                     return;
                 copyPasteService.RegisterProcessor(processor);
                 record.Add(() => copyPasteService.UnregisterProcessor(processor));
             });
-            PasteProcessors = new Registry<IPasteProcessor>(processor =>
+            PasteProcessors = new Registry<IPasteProcessor>(record, nameof(PasteProcessors), processor =>
             {
                 if (copyPasteService is null)
                     return;
                 copyPasteService.RegisterProcessor(processor);
                 record.Add(() => copyPasteService.UnregisterProcessor(processor));
             });
-            PostPasteProcessors = new Registry<IAssetPostPasteProcessor>(processor =>
+            PostPasteProcessors = new Registry<IAssetPostPasteProcessor>(record, nameof(PostPasteProcessors), processor =>
             {
                 if (copyPasteService is null)
                     return;
                 copyPasteService.RegisterProcessor(processor);
                 record.Add(() => copyPasteService.UnregisterProcessor(processor));
             });
-            EditorViewToolTypes = new Registry<Type>(type =>
+            EditorViewToolTypes = new Registry<Type>(record, nameof(EditorViewToolTypes), type =>
             {
                 if (host.RegisterEditorViewToolType(plugin, type) is { } registration)
                     record.Add(registration.Dispose);
             });
-            SettingsKeys = new Registry<SettingsKey>(key => host.RegisterSettingsKey(record, key));
-            ProfileSettings = new Registry<PackageSettingsEntry>(entry => RegisterInList(record, host.profileSettings, entry));
-            Panels = new Registry<PanelDescriptor>(descriptor => record.Add(host.Panels.Register(descriptor, plugin).Dispose));
-            ViewTypes = new Map<Type, Type>((viewModelType, viewType) => host.RegisterViewType(record, plugin, viewModelType, viewType));
-            Commands = new Registry<CommandDescriptor>(command => record.Add(host.Commands.Register(command, plugin).Dispose));
-            ToolbarWidgets = new Registry<ToolbarWidgetDescriptor>(widget => record.Add(host.ToolbarWidgets.Register(widget, plugin).Dispose));
+            SettingsKeys = new Registry<SettingsKey>(record, nameof(SettingsKeys), key => host.RegisterSettingsKey(record, key));
+            ProfileSettings = new Registry<PackageSettingsEntry>(record, nameof(ProfileSettings), entry => RegisterInList(record, host.profileSettings, entry));
+            Panels = new Registry<PanelDescriptor>(record, nameof(Panels), descriptor => record.Add(host.Panels.Register(descriptor, plugin).Dispose));
+            ViewTypes = new Map<Type, Type>(record, nameof(ViewTypes), (viewModelType, viewType) => host.RegisterViewType(record, plugin, viewModelType, viewType));
+            Commands = new Registry<CommandDescriptor>(record, nameof(Commands), command => record.Add(host.Commands.Register(command, plugin).Dispose));
+            ToolbarWidgets = new Registry<ToolbarWidgetDescriptor>(record, nameof(ToolbarWidgets), widget => record.Add(host.ToolbarWidgets.Register(widget, plugin).Dispose));
         }
 
         public AssetsPlugin Plugin { get; }
@@ -294,26 +334,26 @@ public abstract partial class EditorPluginHost
             Plugin = plugin;
             Session = session;
             Logger = logger;
-            Services = new Registry<object>(service =>
+            Services = new Registry<object>(record, nameof(Services), service =>
             {
                 session.ServiceProvider.RegisterService(service);
                 record.Add(() => session.ServiceProvider.UnregisterService(service));
             });
-            NodePresenterCommands = new Registry<INodePresenterCommand>(command =>
+            NodePresenterCommands = new Registry<INodePresenterCommand>(record, nameof(NodePresenterCommands), command =>
             {
                 var commands = GetGraphService().AvailableCommands;
                 commands.Add(command);
                 registeredCommands.Add(command);
                 record.Add(() => commands.Remove(command));
             });
-            NodePresenterUpdaters = new Registry<INodePresenterUpdater>(updater =>
+            NodePresenterUpdaters = new Registry<INodePresenterUpdater>(record, nameof(NodePresenterUpdaters), updater =>
             {
                 var updaters = GetGraphService().AvailableUpdaters;
                 updaters.Add(updater);
                 registeredUpdaters.Add(updater);
                 record.Add(() => updaters.Remove(updater));
             });
-            OnCloseAction = record.Add;
+            OnCloseAction = undo => record.Add(undo, counted: false);
 
             Stride.Core.Presentation.Quantum.GraphViewModelService GetGraphService()
             {
