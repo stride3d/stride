@@ -75,7 +75,7 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        var assets = context.AnalyzerConfigOptionsProvider.Select((options, _) =>
+        var assets = context.AnalyzerConfigOptionsProvider.Select(static (options, _) =>
         {
             if (!options.GlobalOptions.TryGetValue("build_property.StrideAssetPaths", out var encodedPaths) || string.IsNullOrEmpty(encodedPaths))
                 return [];
