@@ -8,6 +8,7 @@ using Stride.Core.Presentation.Quantum;
 using Stride.Core.Quantum;
 using Stride.Animations;
 using Stride.Assets.Presentation.ViewModel;
+using Stride.Assets.Editor.ViewModels.SpriteEditor;
 
 namespace Stride.Assets.Presentation.CurveEditor.ViewModels
 {

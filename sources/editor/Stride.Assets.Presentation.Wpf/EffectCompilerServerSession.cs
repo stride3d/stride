@@ -22,6 +22,7 @@ using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Dirtiables;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Extensions;
+using Stride.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation
 {

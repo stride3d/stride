@@ -27,6 +27,7 @@ using Stride.Assets.Presentation.AssetEditors.SpriteEditor.Services;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.Assets.Sprite;
 using Stride.Core.Assets.Editor.Annotations;
+using Stride.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels
 {

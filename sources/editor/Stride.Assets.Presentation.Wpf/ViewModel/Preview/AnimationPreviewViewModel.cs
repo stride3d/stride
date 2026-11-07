@@ -7,6 +7,7 @@ using Stride.Core.Presentation.Commands;
 using Stride.Assets.Presentation.Preview;
 using Stride.Editor.Annotations;
 using Stride.Editor.Preview;
+using Stride.Assets.Editor.ViewModels.Preview;
 
 namespace Stride.Assets.Presentation.ViewModel.Preview
 {

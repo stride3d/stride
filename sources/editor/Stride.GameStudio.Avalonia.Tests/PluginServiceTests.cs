@@ -1,18 +1,24 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Reflection;
 using Avalonia.Headless.XUnit;
 using Stride.Assets.Editor;
 using Stride.Assets.Editor.Avalonia;
 using Stride.Assets.Editor.Avalonia.Views;
 using Stride.Assets.Editor.ViewModels;
+using Stride.Assets.Materials;
+using Stride.Assets.Models;
 using Stride.Assets.Presentation;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Assets.Sprite;
 using Stride.Core.Assets.Editor;
+using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Avalonia;
+using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Diagnostics;
+using Stride.Core.Reflection;
 using Stride.Core.Presentation.Quantum;
 using Stride.GameStudio.Avalonia.Tests.Helpers;
 
@@ -52,6 +58,35 @@ public sealed class PluginServiceTests
         Assert.Equal(typeof(SpriteSheetEditorView), service.GetEditorViewType(typeof(SpriteSheetEditorViewModel)));
         Assert.True(service.HasEditorView(fixture.Session, typeof(SpriteSheetViewModel)));
         Assert.Contains(typeof(Stride.Core.Assets.AssetReference), service.GetPrimitiveTypes(fixture.Session));
+    }
+
+    [AvaloniaFact]
+    public async Task EachAssetTypeHasOneViewModel()
+    {
+        using var fixture = await ShellSessionFixture.OpenAsync(("Sheet", new SpriteSheetAsset()));
+        var service = fixture.Plugins;
+        var assemblies = AssemblyRegistry.Find(AssemblyCommonCategories.Assets);
+
+        // The shared view models come from Stride.Assets.Presentation.Common, through its own plugin; the WPF assembly is not
+        // loaded
+        Assert.Contains(service.SessionPlugins, x => x is StrideSharedAssetsPlugin);
+        Assert.Equal(typeof(StrideSharedAssetsPlugin).Assembly, typeof(MaterialViewModel).Assembly);
+        Assert.DoesNotContain(AppDomain.CurrentDomain.GetAssemblies(), x => x.GetName().Name == "Stride.Assets.Presentation.Wpf");
+
+        var declarations = assemblies
+            .SelectMany(x => AssemblyRegistry.GetScanTypes(x, typeof(AssetViewModel)))
+            .Select(x => (x.GetCustomAttribute<AssetViewModelAttribute>()?.AssetType, ViewModel: x))
+            .Where(x => x.AssetType is not null)
+            .ToList();
+        var duplicates = declarations
+            .GroupBy(x => x.AssetType)
+            .Where(x => x.Count() > 1)
+            .Select(x => $"{x.Key!.Name}: {string.Join(", ", x.Select(y => y.ViewModel.FullName))}");
+        Assert.Empty(duplicates);
+        // Every declared view model is the one the editor resolves for its asset type
+        Assert.All(declarations, x => Assert.Equal(x.ViewModel, service.GetAssetViewModelType(x.AssetType!)));
+        Assert.Equal(typeof(MaterialViewModel), service.GetAssetViewModelType(typeof(MaterialAsset)));
+        Assert.Equal(typeof(ModelViewModel), service.GetAssetViewModelType(typeof(ModelAsset)));
     }
 
     [AvaloniaFact]

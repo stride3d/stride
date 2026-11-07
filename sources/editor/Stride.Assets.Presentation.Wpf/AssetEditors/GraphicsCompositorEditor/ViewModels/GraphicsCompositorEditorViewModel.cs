@@ -25,6 +25,7 @@ using Stride.Assets.Rendering;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
+using Stride.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewModels
 {

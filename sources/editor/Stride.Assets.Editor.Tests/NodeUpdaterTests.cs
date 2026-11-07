@@ -5,13 +5,16 @@ using Stride.Assets.Editor.Quantum.NodePresenters.Updaters;
 using Stride.Assets.Editor.Tests.Helpers;
 using Stride.Assets.Materials;
 using Stride.Assets.Models;
+using Stride.Assets.Rendering;
 using Stride.Assets.Sprite;
 using Stride.Core;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
+using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Quantum.ViewModels;
 using Stride.Graphics;
 using Stride.Rendering;
+using Stride.Rendering.Compositing;
 using Stride.Rendering.Materials;
 
 namespace Stride.Assets.Editor.Tests;
@@ -113,6 +116,27 @@ public sealed class NodeUpdaterTests
         var sprite = Assert.Single(sprites.Children);
         Assert.False(sprite.GetChild(hidden)!.IsVisible);
         Assert.True(sprite.GetChild(shown)!.IsVisible);
+    }
+
+    [Fact]
+    public async Task ASharedRendererIsNamedAfterTheDisplayNameOfItsType()
+    {
+        var forward = new ForwardRenderer();
+        var compositor = new GraphicsCompositorAsset { Game = new SceneCameraRenderer { Child = forward } };
+        compositor.SharedRenderers.Add(forward);
+        using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, ("Compositor", compositor));
+        Assert.False(fixture.Result.HasErrors, fixture.Log);
+        fixture.Session.AssetViewProperties.RegisterNodePresenterUpdater(new GraphicsCompositorAssetNodeUpdater());
+
+        var root = await fixture.PropertiesOf(fixture.Asset("Compositor"));
+
+        // The display name comes from the attribute registry, as in the WPF editor (it also knows the attributes registered at
+        // run time); the forward renderer declares "Forward renderer"
+        var child = root.GetChild(nameof(GraphicsCompositorAsset.Game))?.GetChild(nameof(SceneCameraRenderer.Child));
+        Assert.NotNull(child);
+        Assert.Equal("Shared: Forward renderer", child.AssociatedData[DisplayData.AttributeDisplayName]);
+        var entries = Assert.IsAssignableFrom<IEnumerable<AbstractNodeEntry>>(child.AssociatedData[AbstractNodeEntryData.AbstractNodeMatchingEntries]);
+        Assert.Contains(entries, x => x.DisplayValue == "Shared: Forward renderer");
     }
 
     [Fact]
