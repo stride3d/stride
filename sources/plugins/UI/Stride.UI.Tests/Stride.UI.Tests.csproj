@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="XunitAttributes.cs" />
+    <Compile Include="UISystemInputCaptureTests.cs" />
     <Compile Include="Events\EventManagerTests.cs" />
     <Compile Include="Events\MyTestRoutedEventArgs.cs" />
     <Compile Include="Events\MyTestRoutedEventHandler.cs" />
@@ -57,6 +58,7 @@
     <Compile Include="Regression\BillboardModeTests.cs" />
     <Compile Include="Regression\BorderImageTest.cs" />
     <Compile Include="Regression\BorderTest.cs" />
+    <Compile Include="Regression\InputCaptureTest.cs" />
     <Compile Include="Regression\ButtonTest.cs" />
     <Compile Include="Regression\CanvasGridTest.cs" />
     <Compile Include="Regression\ChildrenMeasurementTest.cs" />

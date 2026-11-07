@@ -34,5 +34,13 @@ namespace Stride.Input
         /// <remarks>Input devices are always updated after their respective input source</remarks>
         /// <param name="inputEvents">A list that gets filled with input events that were generated since the last frame</param>
         void Update(List<InputEvent> inputEvents);
+
+        /// <summary>
+        /// The capture state of this device. Only <see cref="InputManager"/> changes it.
+        /// </summary>
+        /// <remarks>
+        /// Return the same instance on every call, for example from <c>{ get; } = new DeviceCaptureState();</c>.
+        /// </remarks>
+        DeviceCaptureState CaptureState { get; }
     }
 }
