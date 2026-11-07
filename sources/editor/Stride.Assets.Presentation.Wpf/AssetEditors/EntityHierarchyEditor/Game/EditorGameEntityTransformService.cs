@@ -255,6 +255,8 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                         }
                     }
 
+                    RotationGizmo.UseLinearMovement = SceneEditorSettings.UseLinearMovementForRotation.GetValue();
+
                     IEnumerable<Task> tasks;
                     lock (transformationGizmos)
                     {

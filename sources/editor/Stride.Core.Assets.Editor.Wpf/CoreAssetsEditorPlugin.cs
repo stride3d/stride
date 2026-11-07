@@ -2,42 +2,38 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Windows;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors;
-using Stride.Core.Diagnostics;
 
 #nullable enable
 
 namespace Stride.Core.Assets.Editor;
 
+/// <summary>
+/// The WPF views of the core editor: the enum images of its image dictionary, and the paste processors of the properties
+/// and of the assets.
+/// </summary>
 internal sealed class CoreAssetsEditorPlugin : AssetsEditorPlugin
 {
     private ResourceDictionary? imageDictionary;
 
-    public override void InitializePlugin(ILogger logger)
+    /// <inheritdoc />
+    public override void Initialize(IEditorPluginContext context)
     {
+        base.Initialize(context);
+
         imageDictionary ??= (ResourceDictionary)Application.LoadComponent(new Uri("/Stride.Core.Assets.Editor.Wpf;component/View/ImageDictionary.xaml", UriKind.RelativeOrAbsolute));
-    }
-
-    public override void RegisterEnumImages(IDictionary<object, object> enumImages)
-    {
-        if (imageDictionary is null) return;
-
         foreach (var entry in imageDictionary.Keys)
         {
             if (entry is Enum && imageDictionary[entry] is { } image)
             {
-                enumImages.Add(entry, image);
+                context.EnumImages.Register(entry, image);
             }
         }
-    }
 
-    public override void RegisterPasteProcessors(ICollection<IPasteProcessor> pasteProcessors, ISessionViewModel session)
-    {
-        pasteProcessors.Add(new AssetPropertyPasteProcessor());
-        pasteProcessors.Add(new AssetItemPasteProcessor((SessionViewModel)session));
+        context.PasteProcessors.Register(new AssetPropertyPasteProcessor());
+        context.PasteProcessors.Register(new AssetItemPasteProcessor((SessionViewModel)context.Session));
     }
 }

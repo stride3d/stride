@@ -108,18 +108,48 @@ public sealed class EditorCollectionViewModel : DispatcherViewModel, IAssetEdito
 
     /// <summary>
     /// Closes every editor, see <see cref="CloseAssetEditorAsync"/>. It stops at the first editor that the user keeps open;
-    /// the editors closed before it stay closed.
+    /// the editors closed before it stay closed. Once all are closed, it waits until they have stopped
+    /// (<see cref="AssetEditorViewModel.Stopped"/>), as long as <see cref="StopTimeout"/> at most: the session closes next,
+    /// and the plugins leave with the settings keys that the games of the editors read on every frame.
     /// </summary>
     /// <param name="save"><c>true</c> to save the changes, <c>false</c> to drop them, <c>null</c> to ask the user.</param>
     /// <returns><c>true</c> when every editor is closed, <c>false</c> when the user kept one open.</returns>
     public async Task<bool> CloseAllEditorsAsync(bool? save)
     {
+        var closedEditors = new List<AssetEditorViewModel>();
         foreach (var editor in editors.ToList())
         {
             if (!await CloseAssetEditorAsync(editor.Asset, save))
                 return false;
+            closedEditors.Add(editor);
         }
+
+        await WaitUntilStoppedAsync(closedEditors);
         return true;
+    }
+
+    /// <summary>
+    /// How long <see cref="CloseAllEditorsAsync"/> waits for the closed editors to stop; a game that hangs does not keep the
+    /// editor from closing.
+    /// </summary>
+    internal TimeSpan StopTimeout { get; set; } = TimeSpan.FromSeconds(10);
+
+    private async Task WaitUntilStoppedAsync(IReadOnlyCollection<AssetEditorViewModel> closedEditors)
+    {
+        // A faulted or cancelled stop counts as stopped: the editor runs nothing more either way
+        var stopped = Task.WhenAll(closedEditors.Select(x => x.Stopped.ContinueWith(_ => { }, TaskScheduler.Default)));
+        if (stopped.IsCompleted)
+            return;
+
+        try
+        {
+            await stopped.WaitAsync(StopTimeout);
+        }
+        catch (TimeoutException)
+        {
+            var running = closedEditors.Where(x => !x.Stopped.IsCompleted).Select(x => x.Asset.Url);
+            GlobalLogger.GetLogger(nameof(EditorCollectionViewModel)).Warning($"The editors of {string.Join(", ", running)} did not stop within {StopTimeout.TotalSeconds} seconds; the session closes anyway.");
+        }
     }
 
     /// <summary>

@@ -24,6 +24,7 @@
       "sources\\editor\\Stride.Assets.Presentation.Common.Tests\\Stride.Assets.Presentation.Common.Tests.csproj",
       "sources\\editor\\Stride.Assets.Presentation.Common\\Stride.Assets.Presentation.Common.csproj",
       "sources\\editor\\Stride.Assets.Presentation\\Stride.Assets.Presentation.csproj",
+      "sources\\editor\\Stride.Assets.Templates\\Stride.Assets.Templates.csproj",
       "sources\\editor\\Stride.Core.Assets.Editor.Avalonia.Tests\\Stride.Core.Assets.Editor.Avalonia.Tests.csproj",
       "sources\\editor\\Stride.Core.Assets.Editor.Avalonia\\Stride.Core.Assets.Editor.Avalonia.csproj",
       "sources\\editor\\Stride.Core.Assets.Editor.Common.Tests\\Stride.Core.Assets.Editor.Common.Tests.csproj",

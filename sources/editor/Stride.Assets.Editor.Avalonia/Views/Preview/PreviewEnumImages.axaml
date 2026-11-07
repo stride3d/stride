@@ -1,0 +1,15 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:preview="using:Stride.Assets.Editor.Preview"
+                    x:Class="Stride.Assets.Editor.Avalonia.Views.Preview.PreviewEnumImages">
+  <!-- The images of the enum values of the previews, registered by StrideEditorViewPlugin as the WPF image dictionary
+       (Stride.Assets.Presentation.Wpf, View/ImageDictionary.xaml) registers them: the primitives of the material preview -->
+  <DrawingImage x:Key="{x:Static preview:MaterialPreviewPrimitive.Sphere}"><ImageDrawing Rect="0,0,16,16" ImageSource="/Assets/Icons/sphere.png"/></DrawingImage>
+  <DrawingImage x:Key="{x:Static preview:MaterialPreviewPrimitive.Cube}"><ImageDrawing Rect="0,0,16,16" ImageSource="/Assets/Icons/cube.png"/></DrawingImage>
+  <DrawingImage x:Key="{x:Static preview:MaterialPreviewPrimitive.Cylinder}"><ImageDrawing Rect="0,0,16,16" ImageSource="/Assets/Icons/cylinder.png"/></DrawingImage>
+  <DrawingImage x:Key="{x:Static preview:MaterialPreviewPrimitive.Torus}"><ImageDrawing Rect="0,0,16,16" ImageSource="/Assets/Icons/torus.png"/></DrawingImage>
+  <DrawingImage x:Key="{x:Static preview:MaterialPreviewPrimitive.Plane}"><ImageDrawing Rect="0,0,16,16" ImageSource="/Assets/Icons/plane.png"/></DrawingImage>
+  <DrawingImage x:Key="{x:Static preview:MaterialPreviewPrimitive.Teapot}"><ImageDrawing Rect="0,0,16,16" ImageSource="/Assets/Icons/teapot.png"/></DrawingImage>
+  <DrawingImage x:Key="{x:Static preview:MaterialPreviewPrimitive.Cone}"><ImageDrawing Rect="0,0,16,16" ImageSource="/Assets/Icons/cone.png"/></DrawingImage>
+  <DrawingImage x:Key="{x:Static preview:MaterialPreviewPrimitive.Capsule}"><ImageDrawing Rect="0,0,16,16" ImageSource="/Assets/Icons/capsule.png"/></DrawingImage>
+</ResourceDictionary>

@@ -36,6 +36,9 @@ public class EffectCodeWriter : ShaderWriter
     /// <summary>The full names the C# type of each struct key can have, collected while writing.</summary>
     public HashSet<string> CSharpTypeCandidates { get; } = [];
 
+    /// <summary>The errors found while writing, also written as <c>#error</c> lines in the text.</summary>
+    public IReadOnlyList<(string Message, TextLocation Location)> Errors => logging;
+
     public bool Run(Node node)
     {
         void LogErrors()

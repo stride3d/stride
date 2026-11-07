@@ -3,6 +3,9 @@
 
 using Avalonia.Headless.XUnit;
 using Stride.Assets.Editor.Avalonia.Views;
+using Stride.Assets.Editor.Tests.Helpers;
+using Stride.Core.Assets.Editor.Avalonia;
+using Stride.Core.Assets.Editor.Editors;
 using Stride.Core.Assets.Editor.Avalonia.Tests.Helpers;
 using Stride.Core.Assets.Editor.Avalonia.Views;
 using Stride.Core.Diagnostics;
@@ -33,14 +36,22 @@ public sealed class TemplateProviderTests
     public void TheViewPluginRegistersTheEntityProviders()
     {
         var expected = new EntityPropertyTemplateProviders().Values.OfType<TemplateProviderBase>().Count();
-        var registered = new List<ITemplateProvider>();
-        var plugin = new StrideEditorViewPlugin();
 
-        plugin.InitializePlugin(new LoggerResult());
-        plugin.RegisterTemplateProviders(registered);
+        var registered = PluginRegistrations.Of(new StrideEditorViewPlugin(), typeof(IAssetEditorView)).TemplateProviders;
 
         Assert.Equal(expected, registered.Count);
         Assert.Contains(registered, x => x is EntityReferenceTemplateProvider);
+    }
+
+    [AvaloniaFact]
+    public void TheCoreViewPluginRegistersTheDefaultProviders()
+    {
+        var expected = new DefaultPropertyTemplateProviders().Values.OfType<TemplateProviderBase>().Count();
+
+        var registered = PluginRegistrations.Of(new StrideCoreEditorViewPlugin(), typeof(IAssetEditorView)).TemplateProviders;
+
+        Assert.Equal(expected, registered.Count);
+        Assert.All(registered, provider => Assert.IsAssignableFrom<TemplateProviderBase>(provider));
     }
 
     [AvaloniaFact]

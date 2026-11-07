@@ -10,4 +10,6 @@ namespace Stride.Assets.Editor.Avalonia.Views.Preview;
 [AssetPreviewView<TexturePreview>]
 public class TexturePreviewView : StridePreviewView
 {
+    /// <inheritdoc />
+    protected override Type StyleKeyOverride => typeof(TexturePreviewView);
 }

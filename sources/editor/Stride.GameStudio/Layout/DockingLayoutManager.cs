@@ -28,7 +28,7 @@ namespace Stride.GameStudio.Layout
     /// </summary>
     internal class DockingLayoutManager
     {
-        private readonly MRUAdditionalDataCollection mruDataCollection = new MRUAdditionalDataCollection(InternalSettings.LoadProfileCopy, GameStudioInternalSettings.MostRecentlyUsedSessionsData, InternalSettings.WriteFile);
+        private readonly MRUAdditionalDataCollection mruDataCollection = MRUAdditionalDataLayouts.CreateCollection();
         private readonly GameStudioWindow gameStudioWindow;
         private readonly SessionViewModel session;
         private bool isInEditorLayout;

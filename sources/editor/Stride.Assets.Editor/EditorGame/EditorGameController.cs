@@ -55,8 +55,10 @@ public abstract class EditorGameController<TEditorGame> : IEditorGameController
     private readonly TaskCompletionSource<bool> gameStartedTaskSource = new();
     private readonly TaskCompletionSource<bool> gameContentLoadedTaskSource = new();
     private readonly CancellationTokenSource gameEndedCancellation = new();
+    private readonly TaskCompletionSource gameEndedTaskSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private EditorGameServiceRegistry? serviceRegistry;
     private volatile bool gameEnded;
+    private bool gameThreadStarted;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="EditorGameController{TEditorGame}"/> class (UI thread).
@@ -101,6 +103,9 @@ public abstract class EditorGameController<TEditorGame> : IEditorGameController
 
     /// <inheritdoc/>
     public Task GameContentLoaded => gameContentLoadedTaskSource.Task;
+
+    /// <inheritdoc/>
+    public Task GameEnded => gameEndedTaskSource.Task;
 
     /// <summary>
     /// Gets the viewport the game renders into.
@@ -159,6 +164,10 @@ public abstract class EditorGameController<TEditorGame> : IEditorGameController
         Loader.Dispose();
         debugService?.UnregisterDebugPage(debugPage);
         IsDestroying = true;
+
+        // A game that never started runs no frame; StartGame refuses to start it from now on
+        if (!gameThreadStarted)
+            gameEndedTaskSource.TrySetResult();
 
         // Clean after everything
         PostTask(async _ =>
@@ -222,6 +231,7 @@ public abstract class EditorGameController<TEditorGame> : IEditorGameController
         if (IsDestroying)
             throw new InvalidOperationException("This controller is being destroyed.");
         // Run the game in its own thread
+        gameThreadStarted = true;
         gameThread.Start();
         // Wait for the game to start
         return await gameStartedTaskSource.Task;
@@ -443,6 +453,7 @@ public abstract class EditorGameController<TEditorGame> : IEditorGameController
             {
                 gameStartedTaskSource.TrySetException(e);
                 gameContentLoadedTaskSource.TrySetException(e);
+                gameEndedTaskSource.TrySetResult();
             }
             return;
         }
@@ -464,7 +475,14 @@ public abstract class EditorGameController<TEditorGame> : IEditorGameController
             gameEndedCancellation.Cancel();
             // An editor waiting for a game that never loaded its content (the run failed) doesn't wait forever
             gameContentLoadedTaskSource.TrySetCanceled();
-            DisposeGameAndViewport();
+            try
+            {
+                DisposeGameAndViewport();
+            }
+            finally
+            {
+                gameEndedTaskSource.TrySetResult();
+            }
         }
     }
 

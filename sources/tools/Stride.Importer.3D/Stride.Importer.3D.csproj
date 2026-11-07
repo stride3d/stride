@@ -16,7 +16,11 @@
     <Folder Include="Material\" />
   </ItemGroup>
   <ItemGroup>
+    <!-- Assimp: we use the managed bindings from Silk.NET but replace the native library with our own build,
+         which has fixes not upstream. See deps/assimp and the dep-assimp.yml workflow. -->
     <PackageReference Include="Silk.NET.Assimp" />
+    <PackageReference Include="Ultz.Native.Assimp" ExcludeAssets="all" PrivateAssets="all" />
+    <PackageReference Include="Stride.Dependencies.Assimp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Stride.Importer.Common\Stride.Importer.Common.csproj" />

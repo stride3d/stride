@@ -4,6 +4,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Stride.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Editors;
@@ -27,6 +28,8 @@ public sealed partial class ScriptSourceFileEditorView : UserControl, IAssetEdit
         Editor.TextEdited += OnEditorTextEdited;
         // The text area of the editor handles the focus event it raises
         Editor.AddHandler(GotFocusEvent, OnEditorGotFocus, handledEventsToo: true);
+        // Ctrl+wheel changes the font size, as in WPF; before the editor scrolls with it
+        Editor.AddHandler(PointerWheelChangedEvent, OnEditorPointerWheelChanged, RoutingStrategies.Tunnel);
     }
 
     /// <inheritdoc />
@@ -70,4 +73,13 @@ public sealed partial class ScriptSourceFileEditorView : UserControl, IAssetEdit
     private void OnWindowActivated(object? sender, EventArgs e) => viewModel?.CheckExternalChanges();
 
     private void OnTextReloaded(object? sender, string text) => Editor.LoadText(text);
+
+    private void OnEditorPointerWheelChanged(object? sender, PointerWheelEventArgs e)
+    {
+        if (viewModel is null || !e.KeyModifiers.HasFlag(KeyModifiers.Control) || e.Delta.Y == 0)
+            return;
+
+        viewModel.FontSize += e.Delta.Y > 0 ? 1 : -1;
+        e.Handled = true;
+    }
 }

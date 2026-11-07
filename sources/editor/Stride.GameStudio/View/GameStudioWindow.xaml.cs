@@ -253,6 +253,7 @@ namespace Stride.GameStudio.View
         private async Task SaveAndClose()
         {
             isSavingAndClosing = true;
+            IDisposable pluginService = null;
             try
             {
                 // Save MRUs
@@ -270,11 +271,15 @@ namespace Stride.GameStudio.View
 
                     // Close all windows (except if the user interrupt the flow)
                     // Since all dirty assets must have been saved before, we don't need to ask for any user confirmation
+                    var closedEditors = assetEditorsManager.EditorViewModels.OfType<AssetEditorViewModel>().ToList();
                     assetEditorsManager.CloseAllEditorWindows(false);
 
-                    // Let the running thumbnail command finish, without blocking the UI thread it might need. A stuck command must not prevent closing.
-                    await Task.WhenAny(Editor.Session.Thumbnails.StopAsync(), Task.Delay(TimeSpan.FromSeconds(10)));
+                    // Let the running thumbnail command finish, and the games of the closed editors end (they read the settings keys
+                    // that the plugins take away below), without blocking the UI thread they might need. A stuck one must not prevent closing.
+                    var editorsStopped = Task.WhenAll(closedEditors.Select(x => x.Stopped.ContinueWith(_ => { }, TaskScheduler.Default)));
+                    await Task.WhenAny(Task.WhenAll(Editor.Session.Thumbnails.StopAsync(), editorsStopped), Task.Delay(TimeSpan.FromSeconds(10)));
 
+                    pluginService = Editor.Session.ServiceProvider.TryGet<IAssetsPluginService>() as IDisposable;
                     Editor.Session.Destroy();
 
                     // Save opened assets
@@ -298,6 +303,9 @@ namespace Stride.GameStudio.View
                 var studio = Editor as GameStudioViewModel;
                 studio?.Destroy();
 
+                // The plugins leave the destroyed session last: what they registered goes and their close actions run
+                pluginService?.Dispose();
+
                 closingTask?.SetResult(true);
                 // Shutdown after all other operations have completed
                 await Application.Current.Dispatcher.InvokeAsync(Application.Current.Shutdown, DispatcherPriority.ContextIdle);
@@ -315,14 +323,14 @@ namespace Stride.GameStudio.View
         /// <param name="assetIds">The list of asset ids for which to reopen the editor.</param>
         private async Task ReopenAssetEditors(IReadOnlyCollection<AssetId> assetIds)
         {
-            if (assetIds.Count == 0)
+            // Open assets
+            var assets = assetIds.Select(x => Editor.Session.GetAssetById(x)).NotNull().ToList();
+            if (assets.Count == 0)
             {
-                // If no data, try to open the default scene
+                // If no data, or none of the assets exists anymore, try to open the default scene
                 await OpenDefaultScene(Editor.Session);
                 return;
             }
-            // Open assets
-            var assets = assetIds.Select(x => Editor.Session.GetAssetById(x)).NotNull().ToList();
             Editor.Session.ActiveAssetView.SelectAssets(assets.Last().Yield());
             foreach (var asset in assets)
             {

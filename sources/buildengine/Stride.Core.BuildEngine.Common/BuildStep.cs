@@ -114,6 +114,9 @@ public abstract class BuildStep
     /// </summary>
     public event EventHandler<BuildStepEventArgs> StepProcessed;
 
+    // Orders the result of the step with the subscriptions of ExecutedAsync
+    private readonly object processedLock = new();
+
     /// <summary>
     /// Execute the BuildStep, usually resulting in scheduling tasks in the scheduler 
     /// </summary>
@@ -147,13 +150,18 @@ public abstract class BuildStep
 
     public Task<BuildStep> ExecutedAsync()
     {
-        // Already processed?
-        if (Processed)
-            return Task.FromResult(this);
+        // A step that another thread processes between the check and the subscription would never complete the task:
+        // RegisterResult sets the status under the same lock, so it raises the event to this subscription
+        lock (processedLock)
+        {
+            // Already processed?
+            if (Processed)
+                return Task.FromResult(this);
 
-        var tcs = new TaskCompletionSource<BuildStep>();
-        StepProcessed += (sender, e) => tcs.TrySetResult(e.Step);
-        return tcs.Task;
+            var tcs = new TaskCompletionSource<BuildStep>();
+            StepProcessed += (sender, e) => tcs.TrySetResult(e.Step);
+            return tcs.Task;
+        }
     }
 
     /// <summary>
@@ -163,7 +171,10 @@ public abstract class BuildStep
     /// <param name="status">The result status.</param>
     internal void RegisterResult(IExecuteContext executeContext, ResultStatus status)
     {
-        Status = status;
+        lock (processedLock)
+        {
+            Status = status;
+        }
 
         //executeContext.Logger.Debug("Step timer for {0}: callbacks: {1}ms, total: {2}ms", this, CallbackWatch.ElapsedMilliseconds, MicroThreadWatch.ElapsedMilliseconds);
 

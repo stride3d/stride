@@ -171,7 +171,12 @@ namespace Stride.Core.Assets.Editor.ViewModel
         public override string TypeDisplayName => "Package";
 
         /// <inheritdoc/>
-        public override IEnumerable<IDirtiable> Dirtiables => base.Dirtiables.Concat(Session.Dirtiables);
+        /// <remarks>
+        /// A read-only package (a package of the dependencies) is never saved, so its changes are not unsaved changes of the
+        /// session: when the session opens, it reconciles the assets of such a package with their archetype (the voxel graphics
+        /// compositor with the default one of the engine), which must not make the session dirty.
+        /// </remarks>
+        public override IEnumerable<IDirtiable> Dirtiables => Package.IsReadOnly ? base.Dirtiables : base.Dirtiables.Concat(Session.Dirtiables);
 
         bool IPropertyProviderViewModel.CanProvidePropertiesViewModel => true;
 
