@@ -1,6 +1,5 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -105,8 +104,8 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
         var typeTable = context.CompilationProvider.Combine(hasAssets)
             .Select(static (data, cancellationToken) => data.Right
                 ? ResolveExtensionTypes(data.Left, cancellationToken)
-                : ImmutableArray<ExtensionType>.Empty)
-            .WithComparer(TypeTableComparer.Instance);
+                : [])
+            .WithComparer(SequentialListComparer<ExtensionType>.Instance);
 
         var conflict = context.CompilationProvider.Combine(config).Combine(hasAssets)
             .Select(static (data, _) => data.Right
@@ -132,7 +131,7 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
 
     // Maps each asset extension to its runtime type from declarations and visible asset types.
     // Sorted so the array compares equal.
-    private static ImmutableArray<ExtensionType> ResolveExtensionTypes(Compilation compilation, CancellationToken cancellationToken)
+    private static List<ExtensionType> ResolveExtensionTypes(Compilation compilation, CancellationToken cancellationToken)
     {
         var extensionTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         var extensionAttribute = compilation.GetTypeByMetadataName(AssetFileExtensionAttributeFullName);
@@ -151,7 +150,7 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
         return extensionTypes
             .OrderBy(pair => pair.Key, StringComparer.OrdinalIgnoreCase)
             .Select(pair => new ExtensionType(pair.Key, pair.Value))
-            .ToImmutableArray();
+            .ToList();
 
         static IEnumerable<IAssemblySymbol> GetAllAssemblies(Compilation compilation)
         {
@@ -170,33 +169,7 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
             ? new ConflictInfo(true, config.Namespace, config.ClassName, suggestion)
             : ConflictInfo.None;
 
-    // ImmutableArray equality is by-reference, so compare element-wise to let equal tables cache.
-    private sealed class TypeTableComparer : IEqualityComparer<ImmutableArray<ExtensionType>>
-    {
-        public static readonly TypeTableComparer Instance = new();
-
-        public bool Equals(ImmutableArray<ExtensionType> x, ImmutableArray<ExtensionType> y)
-        {
-            if (x.Length != y.Length)
-                return false;
-            for (var i = 0; i < x.Length; i++)
-            {
-                if (!x[i].Equals(y[i]))
-                    return false;
-            }
-            return true;
-        }
-
-        public int GetHashCode(ImmutableArray<ExtensionType> obj)
-        {
-            var hash = 17;
-            foreach (var entry in obj)
-                hash = unchecked(hash * 31 + entry.GetHashCode());
-            return hash;
-        }
-    }
-
-    private static void Emit(SourceProductionContext context, List<AssetEntry> assets, ImmutableArray<ExtensionType> typeTable, Config config, ConflictInfo conflict)
+    private static void Emit(SourceProductionContext context, List<AssetEntry> assets, List<ExtensionType> typeTable, Config config, ConflictInfo conflict)
     {
         // Extension -> runtime type (empty = untyped); a file with an unknown extension gets no constant
         var extensionTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
