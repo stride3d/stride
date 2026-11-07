@@ -57,7 +57,7 @@ public class ScriptSourceFileViewModel : SourceCodeViewModel<ScriptSourceFileAss
     }
 
     /// <inheritdoc />
-    protected override void Initialize()
+    protected internal override void Initialize()
     {
         // The base class reads the text of a project file
         base.Initialize();
@@ -66,7 +66,7 @@ public class ScriptSourceFileViewModel : SourceCodeViewModel<ScriptSourceFileAss
     }
 
     /// <inheritdoc />
-    protected override void OnSessionSaving()
+    protected internal override void OnSessionSaving()
     {
         base.OnSessionSaving();
         if (filePath == null || hasUnsavedText)
@@ -91,7 +91,7 @@ public class ScriptSourceFileViewModel : SourceCodeViewModel<ScriptSourceFileAss
     }
 
     /// <inheritdoc />
-    protected override void OnSessionSaved()
+    protected internal override void OnSessionSaved()
     {
         base.OnSessionSaved();
         // The session wrote the script (or had nothing to write): its file is the one of its current name. With unsaved

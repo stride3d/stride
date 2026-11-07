@@ -45,7 +45,7 @@ public sealed class GameSettingsViewModel : AssetViewModel<GameSettingsAsset>
     }
 
     /// <inheritdoc />
-    protected override void OnSessionSaved()
+    protected internal override void OnSessionSaved()
     {
         base.OnSessionSaved();
 

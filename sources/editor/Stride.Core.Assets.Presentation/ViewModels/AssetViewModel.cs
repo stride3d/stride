@@ -424,7 +424,7 @@ namespace Stride.Core.Assets.Presentation.ViewModels
             {
                 clearReplacesCommand.IsEnabled = IsReplacing;
                 OnPropertyChanged(nameof(IsReplacing), nameof(ReplacesUrl));
-                Session.CheckAssetReplacements(this);
+                Session.Internals().CheckAssetReplacements(this);
             }
         }
 
@@ -472,7 +472,7 @@ namespace Stride.Core.Assets.Presentation.ViewModels
         private void BaseContentChanged(INodeChangeEventArgs e, IGraphNode node)
         {
             // Ignore base change if we are fixing up assets.
-            if (Session.IsInFixupAssetContext)
+            if (Session.Internals().IsInFixupAssetContext)
                 return;
 
             if (!UndoRedoService.UndoRedoInProgress)
@@ -485,7 +485,7 @@ namespace Stride.Core.Assets.Presentation.ViewModels
         private void AssetPropertyChanged(object sender, INodeChangeEventArgs e)
         {
             // Ignore asset property change if we are fixing up assets.
-            if (Session.IsInFixupAssetContext)
+            if (Session.Internals().IsInFixupAssetContext)
                 return;
 
             var index = (e as ItemChangeEventArgs)?.Index ?? NodeIndex.Empty;
@@ -657,7 +657,7 @@ namespace Stride.Core.Assets.Presentation.ViewModels
         {
             MarkAsDeleted();
             IsDeletedOutside = deletedOutside;
-            Session.SetFileDeletedOutside(AssetItem.FullPath, deletedOutside);
+            Session.Internals().SetFileDeletedOutside(AssetItem.FullPath, deletedOutside);
             Directory.RemoveAsset(this, false);
             SetValueUncancellable(ref directory, null, nameof(Directory));
         }
@@ -671,7 +671,7 @@ namespace Stride.Core.Assets.Presentation.ViewModels
             targetDirectory.AddAsset(this, false);
             InitialUndelete(false);
             IsDeletedOutside = false;
-            Session.SetFileDeletedOutside(AssetItem.FullPath, false);
+            Session.Internals().SetFileDeletedOutside(AssetItem.FullPath, false);
         }
 
         internal bool IsFileOfAnotherAsset()
@@ -685,7 +685,7 @@ namespace Stride.Core.Assets.Presentation.ViewModels
             if (IsDeleted)
             {
                 package.Assets.Remove(AssetItem);
-                Session.UnregisterAsset(this);
+                Session.Internals().UnregisterAsset(this);
                 Directory.Package.DeletedAssetsList.Add(this);
                 if (PropertyGraph != null)
                 {
@@ -695,7 +695,7 @@ namespace Stride.Core.Assets.Presentation.ViewModels
             else
             {
                 package.Assets.Add(AssetItem);
-                Session.RegisterAsset(this);
+                Session.Internals().RegisterAsset(this);
                 Directory.Package.DeletedAssetsList.Remove(this);
                 if (!Initializing && PropertyGraph != null)
                 {
@@ -708,7 +708,7 @@ namespace Stride.Core.Assets.Presentation.ViewModels
             // Replacement diagnostics cross-reference assets (duplicates, targets), so deleting or
             // restoring one can affect others' validity
             if (!Initializing && (Asset.Replaces != null || Session.HasAssetReplacements))
-                Session.CheckAssetReplacements(this);
+                Session.Internals().CheckAssetReplacements(this);
         }
 
         private bool IsNewNameValid(string newName, out string error)
@@ -776,7 +776,7 @@ namespace Stride.Core.Assets.Presentation.ViewModels
             var childAssetItem = new AssetItem(childUrl, childAsset);
             targetDirectory.Package.CreateAsset(targetDirectory, childAssetItem, true, null);
             if (replaces)
-                Session.CheckAssetReplacements();
+                Session.Internals().CheckAssetReplacements();
         }
 
         private void ClearReplaces()

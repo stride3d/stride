@@ -81,7 +81,7 @@ public sealed class ScriptSourceFileEditorViewModel : AssetEditorViewModel<Scrip
         {
             SaveCommand.IsEnabled = value;
             Asset.SetHasUnsavedText(value);
-            Session.UpdateHasUnsavedChanges();
+            Session.Internals().UpdateHasUnsavedChanges();
         });
     }
 
@@ -229,7 +229,7 @@ public sealed class ScriptSourceFileEditorViewModel : AssetEditorViewModel<Scrip
     {
         // The edits that the user dropped (Don't save) go with the editor: the script has the text of its file again
         Asset.SetHasUnsavedText(false);
-        Session.UpdateHasUnsavedChanges();
+        Session.Internals().UpdateHasUnsavedChanges();
         base.Destroy();
     }
 

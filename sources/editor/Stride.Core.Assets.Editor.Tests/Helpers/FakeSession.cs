@@ -26,7 +26,7 @@ namespace Stride.Core.Assets.Editor.Tests.Helpers;
 /// <summary>
 /// A session without any UI, for the tests of the session objects. It records what they ask of it.
 /// </summary>
-public sealed class FakeSession : ISessionViewModel
+public sealed class FakeSession : ISessionViewModel, ISessionInternals
 {
     public const string LocalPackagesCategory = "Local packages";
     public const string StorePackagesCategory = "External packages";

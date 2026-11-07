@@ -111,11 +111,6 @@ namespace Stride.Core.Assets.Presentation.ViewModels
         IAssetLogViewModel AssetLog { get; }
 
         /// <summary>
-        /// Gets whether the session is currently in a special context to fix up assets.
-        /// </summary>
-        bool IsInFixupAssetContext { get; }
-
-        /// <summary>
         /// Gets whether any asset of the session declares <see cref="Asset.Replaces"/>.
         /// </summary>
         bool HasAssetReplacements { get; }
@@ -172,22 +167,6 @@ namespace Stride.Core.Assets.Presentation.ViewModels
         Task TrackBackgroundWork(Task task);
 
         /// <summary>
-        /// Updates whether the session has changes that are not saved, once dirty flags changed (after a change, an undo or a redo).
-        /// </summary>
-        void UpdateHasUnsavedChanges();
-
-        /// <summary>
-        /// Checks that the asset view models of each package match the assets of the package.
-        /// </summary>
-        void CheckConsistency();
-
-        /// <summary>
-        /// Validates every <see cref="Asset.Replaces"/> declaration of the session.
-        /// </summary>
-        /// <param name="changedAsset">An asset whose messages are cleared when it no longer declares a replacement.</param>
-        void CheckAssetReplacements(AssetViewModel changedAsset = null);
-
-        /// <summary>
         /// Gets the package in which the given assets are marked as root by default.
         /// </summary>
         PackageViewModel GetDefaultRootAssetTarget(IReadOnlyCollection<AssetViewModel> assets);
@@ -196,35 +175,5 @@ namespace Stride.Core.Assets.Presentation.ViewModels
         /// Toggles the given assets as root assets of the given package.
         /// </summary>
         void ToggleRootAsset(IReadOnlyCollection<AssetViewModel> assets, PackageViewModel target);
-
-        /// <summary>
-        /// Refreshes the root asset state of the selection.
-        /// </summary>
-        void RefreshRootAssetSelection();
-
-        /// <summary>
-        /// Registers an asset so it can be found using the <see cref="GetAssetById"/> method. This method is intended to be invoked only by <see cref="AssetViewModel"/>.
-        /// </summary>
-        /// <param name="asset">The asset to register.</param>
-        void RegisterAsset(AssetViewModel asset);
-
-        /// <summary>
-        /// Unregisters an asset previously registered with <see cref="RegisterAsset"/>. This method is intended to be invoked only by <see cref="AssetViewModel"/>.
-        /// </summary>
-        /// <param name="asset">The asset to unregister.</param>
-        void UnregisterAsset(AssetViewModel asset);
-
-        /// <summary>
-        /// Records whether the file of a deleted project asset was deleted outside Game Studio, so that a save does not delete a file that
-        /// came back. This method is intended to be invoked only by <see cref="AssetViewModel"/>.
-        /// </summary>
-        /// <param name="filePath">The full path of the file of the asset.</param>
-        /// <param name="deletedOutside">Whether the file was deleted outside Game Studio.</param>
-        void SetFileDeletedOutside(UFile filePath, bool deletedOutside);
-
-        /// <summary>
-        /// Loads what a dependency that was just added brings to the projects.
-        /// </summary>
-        Task LoadAddedDependencies(LoggerResult loggerResult);
     }
 }

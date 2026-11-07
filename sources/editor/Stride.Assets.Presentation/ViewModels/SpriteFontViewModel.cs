@@ -98,7 +98,7 @@ public class SpriteFontViewModel : AssetViewModel<SpriteFontAsset>
             UndoRedoService.SetName(transaction, $"Create Asset '{precompiledName}'");
         }
 
-        Session.CheckConsistency();
+        Session.Internals().CheckConsistency();
         if (assetViewModel != null)
         {
             Session.ActiveAssetView.SelectAssetCommand.Execute(assetViewModel);

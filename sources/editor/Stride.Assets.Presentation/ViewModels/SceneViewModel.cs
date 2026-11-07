@@ -130,7 +130,7 @@ public sealed class SceneViewModel : EntityHierarchyViewModel, IAssetViewModel<S
     }
 
     /// <inheritdoc />
-    protected override void Initialize()
+    protected internal override void Initialize()
     {
         base.Initialize();
 

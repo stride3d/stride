@@ -23,7 +23,7 @@ public abstract class SourceCodeViewModel<TSourceCodeAsset> : AssetViewModel<TSo
     public UFile FullPath => AssetItem.FullPath;
 
     /// <inheritdoc/>
-    protected override void Initialize()
+    protected internal override void Initialize()
     {
         base.Initialize();
 

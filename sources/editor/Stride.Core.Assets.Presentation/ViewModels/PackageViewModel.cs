@@ -329,7 +329,7 @@ namespace Stride.Core.Assets.Presentation.ViewModels
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-            Session.RefreshRootAssetSelection();
+            Session.Internals().RefreshRootAssetSelection();
         }
 
         public AssetViewModel CreateAsset(DirectoryBaseViewModel directory, AssetItem assetItem, bool canUndoRedoCreation, LoggerResult loggerResult)
@@ -468,7 +468,7 @@ namespace Stride.Core.Assets.Presentation.ViewModels
                     await VSProjectHelper.RestoreNugetPackages(log, solutionPath != null && File.Exists(solutionPath) ? solutionPath : project2.FullPath);
 
                     // The packages not in the session yet, with their companions (a plugin's asset and editor types)
-                    await Session.LoadAddedDependencies(log);
+                    await Session.Internals().LoadAddedDependencies(log);
                 }
             }
         }

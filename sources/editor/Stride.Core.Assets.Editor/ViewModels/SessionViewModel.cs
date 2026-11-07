@@ -40,7 +40,7 @@ namespace Stride.Core.Assets.Editor.ViewModels;
 /// <summary>
 /// The session of the editor: the packages, their assets, the asset view (<see cref="AssetCollection"/>) and the asset editors (<see cref="EditorCollection"/>).
 /// </summary>
-public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAssetFinder, ISessionViewModel
+public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAssetFinder, ISessionViewModel, ISessionInternals
 {
     public static readonly string StorePackageCategoryName = Tr._("External packages");
     public static readonly string LocalPackageCategoryName = Tr._("Local packages");
@@ -472,7 +472,7 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
 
     void ISessionViewModel.NotifyAssetPropertiesChanged(IReadOnlyCollection<AssetViewModel> assets) => NotifyAssetPropertiesChanged(assets);
 
-    Task ISessionViewModel.LoadAddedDependencies(LoggerResult loggerResult) => LoadAddedDependenciesAsync(loggerResult);
+    Task ISessionInternals.LoadAddedDependencies(LoggerResult loggerResult) => LoadAddedDependenciesAsync(loggerResult);
 
     /// <inheritdoc />
     public AssetViewModel? GetAssetById(AssetId id)

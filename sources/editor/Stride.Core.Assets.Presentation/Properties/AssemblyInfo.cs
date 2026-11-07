@@ -15,3 +15,6 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Stride.Core.Assets.Editor.Avalonia" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Core.Assets.Editor.Tests" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Core.Assets.Editor.Avalonia.Tests" + Stride.PublicKeys.Default)]
+// The shared Stride layers, which call the session plumbing (ISessionInternals)
+[assembly: InternalsVisibleTo("Stride.Assets.Presentation" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.Assets.Editor" + Stride.PublicKeys.Default)]
