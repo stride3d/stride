@@ -1143,17 +1143,15 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
         // Ask confirmation (for assets and directories)
         if ((assetsToDelete.Count > 0 || directoriesToDelete.Count > 0) && !skipConfirmation && EditorSettings.AskBeforeDeletingAssets.GetValue())
         {
-            var messageParts = new List<string>();
-            if (assetsToDelete.Count == 1)
-                messageParts.Add("this asset");
-            else if (assetsToDelete.Count > 1)
-                messageParts.Add($"these {assetsToDelete.Count} assets");
-            if (directoriesToDelete.Count == 1)
-                messageParts.Add("this folder");
-            else if (directoriesToDelete.Count > 1)
-                messageParts.Add($"these {directoriesToDelete.Count} folders");
-
-            var message = $"Are you sure you want to delete {string.Join(" and ", messageParts)}?";
+            // Whole sentences, so that each language can translate them
+            var message = (assetsToDelete.Count, directoriesToDelete.Count) switch
+            {
+                (1, 0) => Tr._p("Message", "Are you sure you want to delete this asset?"),
+                (_, 0) => string.Format(Tr._p("Message", "Are you sure you want to delete these {0} assets?"), assetsToDelete.Count),
+                (0, 1) => Tr._p("Message", "Are you sure you want to delete this folder?"),
+                (0, _) => string.Format(Tr._p("Message", "Are you sure you want to delete these {0} folders?"), directoriesToDelete.Count),
+                _ => Tr._p("Message", "Are you sure you want to delete the selected assets and folders?"),
+            };
             var checkedMessage = Tr._p("Settings", "Always delete without asking");
             var buttons = DialogButtons.Create([Tr._p("Button", "Delete"), Tr._p("Button", "Cancel")], 1, 2);
             var result = await Dialogs.CheckedMessageBoxAsync(message, false, checkedMessage, buttons, MessageBoxImage.Question);
