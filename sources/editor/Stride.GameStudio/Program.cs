@@ -154,6 +154,8 @@ public static partial class Program
         var mru = new MostRecentlyUsedFileCollection(InternalSettings.LoadProfileCopy, GameStudioInternalSettings.MostRecentlyUsedSessions, InternalSettings.SaveProfile);
         mru.LoadFromSettings();
 
+        // The settings translate their names when their class is first used: the language comes first, read from the file
+        InitializeLanguageSettings(EditorLanguageSettings.Read(EditorPath.EditorConfigPath));
         EditorSettings.Initialize();
         // The theme of this editor (the Avalonia editor has its own)
         Stride.Core.Presentation.Themes.ThemesSettings.Initialize();
@@ -399,7 +401,6 @@ public static partial class Program
     {
         try
         {
-            InitializeLanguageSettings();
             var serviceProvider = InitializeServiceProvider();
 
             try
@@ -614,10 +615,10 @@ public static partial class Program
         return serviceProvider;
     }
 
-    private static void InitializeLanguageSettings()
+    private static void InitializeLanguageSettings(SupportedLanguage language)
     {
-        TranslationManager.Instance.RegisterProvider(new GettextTranslationProvider());
-        TranslationManager.Instance.CurrentLanguage = EditorSettings.Language.GetValue().GetCulture();
+        TranslationManager.Instance.RegisterProvider(new GettextTranslationProvider(typeof(Program).Assembly));
+        TranslationManager.Instance.CurrentLanguage = language.GetCulture();
     }
 
     internal static void NotifyGameStudioStarted()

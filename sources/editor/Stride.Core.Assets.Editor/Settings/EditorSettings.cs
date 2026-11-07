@@ -52,7 +52,7 @@ public static class EditorSettings
             DisplayName = $"{Interface}/{Tr._p("Settings", "Ask before saving new scripts")}",
             Description = Tr._p("Settings", "Ask before saving new scripts"),
         };
-        Language = new SettingsKey<SupportedLanguage>("Interface/Language", SettingsContainer, SupportedLanguage.MachineDefault)
+        Language = new SettingsKey<SupportedLanguage>(EditorLanguageSettings.LanguageKeyName, SettingsContainer, SupportedLanguage.MachineDefault)
         {
             DisplayName = $"{Interface}/{Tr._p("Settings", "Language")}",
         };
