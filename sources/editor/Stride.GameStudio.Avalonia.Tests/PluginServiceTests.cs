@@ -6,6 +6,7 @@ using Avalonia.Headless.XUnit;
 using Stride.Assets.Editor;
 using Stride.Assets.Editor.Avalonia;
 using Stride.Assets.Editor.Avalonia.Views;
+using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Editor.EntityFactories;
 using Stride.Assets.Editor.Preview;
 using Stride.Assets.Editor.Templates;
@@ -17,6 +18,7 @@ using Stride.Assets.Presentation;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Assets.Sprite;
 using Stride.Assets.Textures;
+using Stride.Core.Assets;
 using Stride.Core.Assets.Editor;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Avalonia;
@@ -28,6 +30,7 @@ using Stride.Core.Reflection;
 using Stride.Core.Presentation.Quantum;
 using Stride.Editor;
 using Stride.Editor.Annotations;
+using Stride.Editor.EditorGame.Game;
 using Stride.Editor.Preview;
 using Stride.Editor.Preview.ViewModel;
 using Stride.GameStudio.Avalonia.Tests.Helpers;
@@ -222,6 +225,21 @@ public sealed class PluginServiceTests
             .Where(x => x.Count() > 1)
             .Select(x => $"{x.Key}: {string.Join(", ", x.Select(y => type(y).FullName))}")
             .ToArray();
+    }
+
+    [AvaloniaFact]
+    public void EachEditorGameServiceIsDeclaredOnce()
+    {
+        // A controller creates the services the assets assemblies declare. The shared ones (Stride.Assets.Presentation.Common)
+        // replaced their copies: no service is declared twice under one name
+        var services = AssetRegistry.AssetAssemblies.SelectMany(x => AssemblyRegistry.GetScanTypes(x, typeof(EditorGameServiceAttribute))).Distinct().ToList();
+        Assert.Empty(Duplicates(services, x => x.Name, x => x));
+        Assert.Contains(typeof(EditorGameCameraOrientationService), services);
+        Assert.Equal(typeof(StrideSharedAssetsPlugin).Assembly, typeof(EditorGameCameraOrientationService).Assembly);
+
+        // The shared view cube serves the scene and prefab editors of both editors, through their shared controller interface
+        var declaration = typeof(EditorGameCameraOrientationService).GetCustomAttribute<EditorGameServiceAttribute>()!;
+        Assert.True(declaration.ControllerType.IsAssignableFrom(typeof(EntityHierarchyEditorController)));
     }
 
     [AvaloniaFact]

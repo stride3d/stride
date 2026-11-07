@@ -36,5 +36,13 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
         void ResetCamera(Vector3 viewDirection);
 
         void ResetCamera(CameraOrientation orientation);
+
+        /// <summary>
+        /// Switches between the perspective and the orthographic projections (game thread).
+        /// </summary>
+        /// <remarks>
+        /// An editor whose view models show the projection switches it through them, so that they show and save the new one.
+        /// </remarks>
+        void SwitchProjection();
     }
 }
