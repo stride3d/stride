@@ -12,5 +12,4 @@ ColliderShapes:
         Scaling: {X: 1.0, Y: 1.0, Z: 1.0}
         Margin: 0.04
         Decomposition:
-            MinimumVolumePercentErrorAllowed: 0.9999999776482582
             Enabled: false
