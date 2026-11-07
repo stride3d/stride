@@ -252,7 +252,7 @@ namespace Stride.GameStudio.AssetsEditors
         /// Opens (and activates) an editor window for the given asset. If an editor window for this asset already exists, simply activates it.
         /// </summary>
         /// <param name="asset">The asset for which to show an editor window.</param>
-        /// <param name="saveSettings">True if <see cref="MRUAdditionalData.OpenedAssets"/> should be updated, false otherwise. Note that if the editor fail to load it will not be updated.</param>
+        /// <param name="saveSettings">True if <see cref="Stride.Core.Assets.Editor.Settings.MRUAdditionalData.OpenedAssets"/> should be updated, false otherwise. Note that if the editor fail to load it will not be updated.</param>
         /// <returns></returns>
         internal async Task OpenAssetEditorWindow([NotNull] AssetViewModel asset, bool saveSettings)
         {

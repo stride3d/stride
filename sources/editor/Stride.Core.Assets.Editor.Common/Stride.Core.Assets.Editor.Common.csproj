@@ -20,6 +20,8 @@
     <ProjectReference Include="..\..\assets\Stride.Core.Assets\Stride.Core.Assets.csproj" />
     <ProjectReference Include="..\..\assets\Stride.Core.Assets.Quantum\Stride.Core.Assets.Quantum.csproj" />
     <ProjectReference Include="..\..\presentation\Stride.Core.Presentation.Quantum\Stride.Core.Presentation.Quantum.csproj" />
+    <!-- The routing of the asset compiler's crashes to the crash reporter, for the builds of both editors (Components/Build) -->
+    <ProjectReference Include="..\..\crashreport\Stride.CrashReport\Stride.CrashReport.csproj" />
   </ItemGroup>
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
 </Project>

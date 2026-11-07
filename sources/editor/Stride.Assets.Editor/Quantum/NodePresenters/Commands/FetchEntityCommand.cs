@@ -5,6 +5,7 @@ using Stride.Assets.Editor.ViewModels;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core;
 using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Extensions;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Engine;
 
@@ -53,7 +54,6 @@ internal sealed class FetchEntityCommand : SyncNodePresenterCommandBase
 
         editor.SelectedItems.Clear();
         editor.SelectedItems.Add(viewModel);
-        // FIXME xplat-editor
-        //editor.Controller.GetService<IEditorGameEntityCameraViewModelService>().CenterOnEntity(viewModel);
+        editor.FocusOnEntityAsync(viewModel).Forget();
     }
 }

@@ -52,9 +52,7 @@ public sealed class PluginTests
     [Fact]
     public void TheDefaultAssetsPluginDeclaresTheAssetViewModels()
     {
-        var types = new Dictionary<Type, Type>();
-
-        new StrideDefaultAssetsPlugin().RegisterAssetViewModelTypes(types);
+        var types = PluginRegistrations.Of(new StrideDefaultAssetsPlugin(), typeof(Stride.Core.Assets.Editor.Editors.IAssetEditorView)).AssetViewModelTypes;
 
         Assert.Equal(typeof(MaterialViewModel), types[typeof(MaterialAsset)]);
         Assert.Equal(typeof(SceneViewModel), types[typeof(SceneAsset)]);
@@ -66,32 +64,29 @@ public sealed class PluginTests
     [Fact]
     public void TheDefaultAssetsPluginDeclaresTheReferencesAsPrimitiveTypes()
     {
-        var types = new List<Type>();
-
-        new StrideDefaultAssetsPlugin().RegisterPrimitiveTypes(types);
+        var types = PluginRegistrations.Of(new StrideDefaultAssetsPlugin(), typeof(Stride.Core.Assets.Editor.Editors.IAssetEditorView)).PrimitiveTypes;
 
         Assert.Contains(typeof(AssetReference), types);
         Assert.Contains(typeof(UrlReferenceBase), types);
     }
 
     [Fact]
-    public void TheEditorPluginDeclaresTheContentReferencesAsPrimitiveTypes()
+    public async Task TheEditorDeclaresTheContentReferencesAsPrimitiveTypesOnce()
     {
-        var types = new List<Type>();
+        using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false);
 
-        new StrideEditorPlugin().RegisterPrimitiveTypes(types);
-
-        // The content types serialized as references are not expanded by the property grid
-        Assert.Contains(typeof(Stride.Graphics.Texture), types);
-        Assert.Contains(typeof(Stride.Rendering.Model), types);
+        // The content types serialized as references are not expanded by the property grid; the host registers them once,
+        // whatever the number of plugins
+        var types = fixture.Plugins.GetPrimitiveTypes(fixture.Session).ToList();
+        Assert.Single(types, x => x == typeof(Stride.Graphics.Texture));
+        Assert.Single(types, x => x == typeof(Stride.Rendering.Model));
+        Assert.Empty(PluginRegistrations.Of(new StrideEditorPlugin(), typeof(Stride.Core.Assets.Editor.Editors.IAssetEditorView)).PrimitiveTypes);
     }
 
     [Fact]
     public void TheEditorPluginDeclaresThePreviewViewModels()
     {
-        var types = new Dictionary<Type, Type>();
-
-        new StrideEditorPlugin().RegisterAssetPreviewViewModelTypes(types);
+        var types = PluginRegistrations.Of(new StrideEditorPlugin(), typeof(Stride.Core.Assets.Editor.Editors.IAssetEditorView)).AssetPreviewViewModelTypes;
 
         Assert.Equal(typeof(TexturePreviewViewModel), types[typeof(TexturePreview)]);
         Assert.Equal(typeof(AnimationPreviewViewModel), types[typeof(AnimationPreview)]);
@@ -116,18 +111,17 @@ public sealed class PluginTests
     [Fact]
     public void TheEditorPluginCollectsTheGizmosOfTheAssetAssemblies()
     {
-        var plugin = new StrideEditorPlugin();
-
-        plugin.InitializePlugin(new LoggerResult());
+        var registrations = PluginRegistrations.Of(new StrideEditorPlugin(), typeof(Stride.Core.Assets.Editor.Editors.IAssetEditorView));
 
         // The shared editor assembly declares the gizmos of the engine components
         Assert.Equal(typeof(Stride.Assets.Presentation.AssetEditors.Gizmos.CameraGizmo), StrideEditorPlugin.GizmoTypeDictionary[typeof(Stride.Engine.CameraComponent)]);
         Assert.Equal(typeof(Stride.Assets.Presentation.AssetEditors.Gizmos.DispatcherLightGizmo), StrideEditorPlugin.GizmoTypeDictionary[typeof(Stride.Engine.LightComponent)]);
-        // The engine's entity factories and add-asset policies still live in the WPF assembly: only the plugin packages
-        // bring some, and none is loaded here
-        Assert.Empty(StrideEditorPlugin.EntityFactoryCategories);
+        // The editor assembly has copies of the engine's entity factories of the WPF assembly, in the same categories
+        Assert.Equal(["2D", "Camera", "Light", "Model"], StrideEditorPlugin.EntityFactoryCategories.Select(x => x.Name));
+        Assert.Contains(StrideEditorPlugin.EntityFactoryCategories.Single(x => x.Name == "Light").Factories, x => x.Factory is EntityFactories.PointLightEntityFactory);
+        // The add-asset policies still live in the WPF assembly: only the plugin packages bring some, and none is loaded here
         Assert.Empty(StrideEditorPlugin.AddAssetPolicyTypeList);
-        Assert.Equal(2, plugin.ProfileSettings.Count);
+        Assert.Equal(2, registrations.ProfileSettings.Count);
     }
 
     [Fact]

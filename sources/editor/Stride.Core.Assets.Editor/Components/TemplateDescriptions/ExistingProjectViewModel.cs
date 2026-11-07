@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System.Diagnostics;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Templates;
 using Stride.Core.IO;
@@ -27,7 +26,7 @@ public sealed class ExistingProjectViewModel : DispatcherViewModel, ITemplateDes
         Id = Guid.NewGuid();
         this.removeAction = removeAction;
         OpenCommand = new AnonymousCommand(serviceProvider, () => openAction(this));
-        ExploreCommand = new AnonymousCommand(serviceProvider, Explore);
+        ExploreCommand = new AnonymousTaskCommand(serviceProvider, ExploreAsync);
         CopySolutionPathCommand = new AnonymousTaskCommand(serviceProvider, () => CopyToClipboardAsync(Path.ToOSPath()));
         CopyFolderPathCommand = new AnonymousTaskCommand(serviceProvider, () => CopyToClipboardAsync(Path.GetFullDirectory().ToOSPath()));
         RemoveCommand = new AnonymousCommand(serviceProvider, () => this.removeAction(this));
@@ -86,16 +85,12 @@ public sealed class ExistingProjectViewModel : DispatcherViewModel, ITemplateDes
         return $"{nameof(ExistingProjectViewModel)} [{Path}]";
     }
 
-    private void Explore()
+    private async Task ExploreAsync()
     {
         try
         {
-            var path = Path.ToOSPath();
-            // Windows' explorer selects the file; the other file managers open its folder
-            var startInfo = OperatingSystem.IsWindows()
-                ? new ProcessStartInfo("explorer.exe", $"/select,\"{path}\"") { UseShellExecute = true }
-                : new ProcessStartInfo(Path.GetFullDirectory().ToOSPath()) { UseShellExecute = true };
-            Process.Start(startInfo);
+            var explorer = ServiceProvider.TryGet<IFileExplorerService>() ?? new FileExplorerService();
+            await explorer.ShowFileAsync(Path.ToOSPath());
         }
         catch (Exception)
         {

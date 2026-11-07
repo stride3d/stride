@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Assets.Editor.Components.AddAssets;
+using Stride.Core.Assets.Editor.Components.FixAssetReferences;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
@@ -22,6 +23,11 @@ public sealed class FakeEditorDialogService : IEditorDialogService, IProgressWin
 
     public List<WorkProgressViewModel> ProgressWindows { get; } = [];
 
+    /// <summary>
+    /// The delay before each progress window of <see cref="ProgressWindows"/> opens, in milliseconds; 0 when it opens at once.
+    /// </summary>
+    public List<int> ProgressWindowDelays { get; } = [];
+
     public List<WorkProgressViewModel> Notifications { get; } = [];
 
     /// <summary>
@@ -29,18 +35,34 @@ public sealed class FakeEditorDialogService : IEditorDialogService, IProgressWin
     /// </summary>
     public MessageBoxResult Answer { get; set; } = MessageBoxResult.OK;
 
+    /// <summary>
+    /// The state of the check box of the next checked message boxes; <c>null</c> keeps the state they open with.
+    /// </summary>
+    public bool? CheckBoxAnswer { get; set; }
+
+    /// <summary>
+    /// Completes when the main window is in front (<see cref="WaitForMainWindowActiveAsync"/>); at once by default.
+    /// </summary>
+    public Task MainWindowActive { get; set; } = Task.CompletedTask;
+
     public bool HasMainWindow => false;
+
+    public Task WaitForMainWindowActiveAsync(CancellationToken token = default) => MainWindowActive.WaitAsync(token);
 
     public void Exit(int exitCode = 0)
     {
     }
 
-    public void ShowProgressWindow(WorkProgressViewModel workProgress) => ProgressWindows.Add(workProgress);
+    public void ShowProgressWindow(WorkProgressViewModel workProgress) => ShowProgressWindow(workProgress, 0);
 
     /// <summary>
     /// Records the progress window without opening it: the work does not wait for a window to close.
     /// </summary>
-    public void ShowProgressWindow(WorkProgressViewModel workProgress, int minDelay) => ProgressWindows.Add(workProgress);
+    public void ShowProgressWindow(WorkProgressViewModel workProgress, int minDelay)
+    {
+        ProgressWindows.Add(workProgress);
+        ProgressWindowDelays.Add(minDelay);
+    }
 
     public void ShowNotification(WorkProgressViewModel workProgress) => Notifications.Add(workProgress);
 
@@ -59,6 +81,23 @@ public sealed class FakeEditorDialogService : IEditorDialogService, IProgressWin
         var picker = new AssetPickerViewModel(session, acceptedTypes, filter, initialAsset, initialLocation) { Message = message };
         AssetPickers.Add(picker);
         return Task.FromResult(PickAsset(picker));
+    }
+
+    /// <summary>
+    /// The fix-references dialogs opened so far.
+    /// </summary>
+    public List<FixAssetReferencesViewModel> FixAssetReferencesDialogs { get; } = [];
+
+    /// <summary>
+    /// Acts as the user in the next fix-references dialogs (runs its commands) and returns whether the dialog was completed;
+    /// cancels them by default.
+    /// </summary>
+    public Func<FixAssetReferencesViewModel, Task<bool>> FixAssetReferences { get; set; } = _ => Task.FromResult(false);
+
+    public Task<bool> ShowFixAssetReferencesDialogAsync(FixAssetReferencesViewModel fixReferences)
+    {
+        FixAssetReferencesDialogs.Add(fixReferences);
+        return FixAssetReferences(fixReferences);
     }
 
     /// <summary>
@@ -96,13 +135,13 @@ public sealed class FakeEditorDialogService : IEditorDialogService, IProgressWin
     public Task<CheckedMessageBoxResult> CheckedMessageBoxAsync(string message, bool? isChecked, string checkboxMessage, MessageBoxButton buttons = MessageBoxButton.OK, MessageBoxImage image = MessageBoxImage.None)
     {
         Messages.Add(message);
-        return Task.FromResult(new CheckedMessageBoxResult(Answer, isChecked));
+        return Task.FromResult(new CheckedMessageBoxResult(Answer, CheckBoxAnswer ?? isChecked));
     }
 
     public Task<CheckedMessageBoxResult> CheckedMessageBoxAsync(string message, bool? isChecked, string checkboxMessage, IReadOnlyCollection<DialogButtonInfo> buttons, MessageBoxImage image = MessageBoxImage.None)
     {
         Messages.Add(message);
-        return Task.FromResult(new CheckedMessageBoxResult(ButtonResult(buttons), isChecked));
+        return Task.FromResult(new CheckedMessageBoxResult(ButtonResult(buttons), CheckBoxAnswer ?? isChecked));
     }
 
     public Task<int> CheckedMessageBoxAsync(string message, IReadOnlyCollection<DialogCheckBoxInfo> checkBoxes, IReadOnlyCollection<DialogButtonInfo> buttons, MessageBoxImage image = MessageBoxImage.None)

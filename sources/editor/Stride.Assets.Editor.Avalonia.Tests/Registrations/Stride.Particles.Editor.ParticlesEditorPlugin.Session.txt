@@ -1,0 +1,5 @@
+Plugin: Stride.Particles.Editor.ParticlesEditorPlugin
+Services:
+NodePresenterCommands:
+NodePresenterUpdaters:
+  Stride.Particles.Editor.ParticleSystemNodeUpdater

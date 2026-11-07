@@ -10,6 +10,19 @@ namespace Stride.Core.Presentation.Avalonia.Controls;
 // FIXME xplat-editor make it work with Avalonia's TimePicker
 public sealed class TimeSpanEditor : TemplatedControl
 {
+    private bool interlock;
+    private bool templateApplied;
+    private AvaloniaProperty? initializingProperty;
+
+    static TimeSpanEditor()
+    {
+        ValueProperty.Changed.AddClassHandler<TimeSpanEditor>((sender, _) => sender.OnValuePropertyChanged());
+        DaysProperty.Changed.AddClassHandler<TimeSpanEditor>((sender, e) => sender.OnComponentPropertyChanged(e));
+        HoursProperty.Changed.AddClassHandler<TimeSpanEditor>((sender, e) => sender.OnComponentPropertyChanged(e));
+        MinutesProperty.Changed.AddClassHandler<TimeSpanEditor>((sender, e) => sender.OnComponentPropertyChanged(e));
+        SecondsProperty.Changed.AddClassHandler<TimeSpanEditor>((sender, e) => sender.OnComponentPropertyChanged(e));
+    }
+
     public static readonly StyledProperty<TimeSpan?> ValueProperty =
         AvaloniaProperty.Register<TimeSpanEditor, TimeSpan?>(nameof(Value), defaultBindingMode: BindingMode.TwoWay);
 
@@ -64,6 +77,14 @@ public sealed class TimeSpanEditor : TemplatedControl
         set => SetValue(SecondsProperty, value);
     }
 
+    /// <inheritdoc/>
+    protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
+    {
+        templateApplied = false;
+        base.OnApplyTemplate(e);
+        templateApplied = true;
+    }
+
     /// <summary>
     /// Updates the properties corresponding to the components of the time span from the given time span value.
     /// </summary>
@@ -99,4 +120,59 @@ public sealed class TimeSpanEditor : TemplatedControl
         throw new ArgumentException($"Property {property} is unsupported by method {nameof(UpdateValueFromComponent)}.");
     }
 
+    /// <summary>
+    /// Raised when the <see cref="Value"/> property is modified.
+    /// </summary>
+    private void OnValuePropertyChanged()
+    {
+        var isInitializing = !templateApplied && initializingProperty is null;
+        if (isInitializing)
+            initializingProperty = ValueProperty;
+
+        if (!interlock)
+        {
+            interlock = true;
+            UpdateComponentsFromValue(Value);
+            interlock = false;
+        }
+
+        UpdateBinding(ValueProperty);
+        if (isInitializing)
+            initializingProperty = null;
+    }
+
+    /// <summary>
+    /// Raised when either of the <see cref="Days"/>, <see cref="Hours"/>, <see cref="Minutes"/> or <see cref="Seconds"/> properties are modified.
+    /// </summary>
+    /// <param name="e">The event data.</param>
+    private void OnComponentPropertyChanged(AvaloniaPropertyChangedEventArgs e)
+    {
+        var isInitializing = !templateApplied && initializingProperty is null;
+        if (isInitializing)
+            initializingProperty = e.Property;
+
+        if (!interlock)
+        {
+            interlock = true;
+            Value = UpdateValueFromComponent(e.Property);
+            UpdateComponentsFromValue(Value);
+            interlock = false;
+        }
+
+        UpdateBinding(e.Property);
+        if (isInitializing)
+            initializingProperty = null;
+    }
+
+    /// <summary>
+    /// Updates the binding of the given property.
+    /// </summary>
+    /// <param name="property">The property.</param>
+    private void UpdateBinding(AvaloniaProperty property)
+    {
+        if (property != initializingProperty)
+        {
+            BindingOperations.GetBindingExpressionBase(this, property)?.UpdateSource();
+        }
+    }
 }

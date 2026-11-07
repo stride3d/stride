@@ -26,6 +26,14 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
         Task GameContentLoaded { get; }
 
         /// <summary>
+        /// A task that completes once the game thread runs no more frame: its loop has ended, after <see cref="IDestroyable.Destroy"/>
+        /// or a failure, or it never started. Code that the game reads on every frame, such as the settings keys of the plugins,
+        /// can go once it completes.
+        /// </summary>
+        [NotNull]
+        Task GameEnded { get; }
+
+        /// <summary>
         /// The <see cref="SessionNodeContainer"/> to use to create Quantum graphs for game side elements.
         /// </summary>
         /// <remarks>

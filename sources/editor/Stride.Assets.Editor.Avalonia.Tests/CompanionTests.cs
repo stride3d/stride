@@ -8,7 +8,9 @@ using Avalonia.Headless.XUnit;
 using Avalonia.Markup.Xaml.Styling;
 using Avalonia.VisualTree;
 using Stride.Assets.Editor.Avalonia.Views.Preview;
+using Stride.Assets.Editor.Tests.Helpers;
 using Stride.Audio.Editor;
+using Stride.Core.Assets.Editor.Editors;
 using Stride.Core.Diagnostics;
 using Stride.Editor.Avalonia.Preview.Views;
 using Stride.SpriteStudio.Editor;
@@ -21,23 +23,19 @@ namespace Stride.Assets.Editor.Avalonia.Tests;
 /// </summary>
 public sealed class CompanionTests
 {
-    [Fact]
+    [AvaloniaFact]
     public void TheAudioCompanionRegistersTheSoundPreviewView()
     {
-        var views = new Dictionary<Type, Type>();
-
-        new AudioEditorAvaloniaPlugin().RegisterAssetPreviewViewTypes(views);
+        var views = PluginRegistrations.Of(new AudioEditorAvaloniaPlugin(), typeof(IAssetEditorView)).AssetPreviewViewTypes;
 
         Assert.Equal(typeof(SoundPreviewView), Assert.Single(views).Value);
         Assert.Equal(typeof(SoundPreview), Assert.Single(views).Key);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void TheSpriteStudioCompanionRegistersTheSheetPreviewView()
     {
-        var views = new Dictionary<Type, Type>();
-
-        new SpriteStudioEditorAvaloniaPlugin().RegisterAssetPreviewViewTypes(views);
+        var views = PluginRegistrations.Of(new SpriteStudioEditorAvaloniaPlugin(), typeof(IAssetEditorView)).AssetPreviewViewTypes;
 
         Assert.Equal(typeof(SpriteStudioSheetPreviewView), views[typeof(SpriteStudioSheetPreview)]);
         Assert.Single(views);
@@ -46,7 +44,7 @@ public sealed class CompanionTests
     [AvaloniaFact]
     public void TheSoundPreviewViewGetsItsThemeFromThePlugin()
     {
-        new AudioEditorAvaloniaPlugin().InitializePlugin(new LoggerResult());
+        PluginRegistrations.Of(new AudioEditorAvaloniaPlugin(), typeof(IAssetEditorView));
         var view = new SoundPreviewView();
         var window = new Window { Content = view };
 
@@ -66,8 +64,8 @@ public sealed class CompanionTests
     {
         var plugin = new AudioEditorAvaloniaPlugin();
 
-        plugin.InitializePlugin(new LoggerResult());
-        plugin.InitializePlugin(new LoggerResult());
+        PluginRegistrations.Of(plugin, typeof(IAssetEditorView));
+        PluginRegistrations.Of(plugin, typeof(IAssetEditorView));
 
         Assert.Single(Application.Current!.Resources.MergedDictionaries, x => x is ResourceInclude include && include.Source == AudioEditorAvaloniaPlugin.ThemesUri);
     }
@@ -75,6 +73,8 @@ public sealed class CompanionTests
     [AvaloniaFact]
     public void TheSheetPreviewViewSharesTheModelTemplate()
     {
+        // The model view's theme comes from the editor's view plugin, which the editor initializes before the companions
+        PluginRegistrations.Of(new StrideEditorViewPlugin(), typeof(IAssetEditorView));
         var view = new SpriteStudioSheetPreviewView();
         var window = new Window { Content = view };
 
@@ -82,5 +82,6 @@ public sealed class CompanionTests
 
         Assert.IsAssignableFrom<ModelPreviewView>(view);
         Assert.Single(view.GetVisualDescendants().OfType<ContentPresenter>(), x => x.Name == StridePreviewView.PartStrideView);
+        Assert.Single(view.GetVisualDescendants().OfType<Button>(), x => x.Name == "PART_ResetCamera");
     }
 }

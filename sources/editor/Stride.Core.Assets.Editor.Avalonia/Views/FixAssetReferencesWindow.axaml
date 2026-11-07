@@ -1,0 +1,108 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+        xmlns:caec="using:Stride.Core.Assets.Editor.Avalonia.Converters"
+        xmlns:far="using:Stride.Core.Assets.Editor.Components.FixAssetReferences"
+        mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="600"
+        x:Class="Stride.Core.Assets.Editor.Avalonia.Views.FixAssetReferencesWindow"
+        x:DataType="far:FixAssetReferencesViewModel"
+        Width="1024" Height="600"
+        MinWidth="600" MinHeight="400"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner">
+  <!-- Port of the WPF FixAssetReferencesWindow: the references to an asset being deleted, replaced with another asset or cleared -->
+  <Window.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://Stride.Core.Assets.Editor.Avalonia/Views/ImageResources.axaml"/>
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </Window.Resources>
+  <Grid RowDefinitions="Auto, Auto, Auto, Auto, *, Auto">
+    <!-- The asset whose references to fix -->
+    <DockPanel Grid.Row="0">
+      <Image Margin="10" DockPanel.Dock="Left" Width="64" Height="64"
+             Source="{Binding CurrentObjectToReplace.ThumbnailData.Presenter, Converter={caec:ThumbnailToImage}, FallbackValue={x:Null}}"/>
+      <TextBlock x:Name="DescriptionText" Margin="10,20" VerticalAlignment="Center" TextWrapping="Wrap"/>
+    </DockPanel>
+
+    <!-- One replacement for every reference -->
+    <RadioButton x:Name="SingleReplaceRadioButton" Grid.Row="1" Margin="20,10" GroupName="FixMode"
+                 IsChecked="{Binding UseSingleReplace}"
+                 Content="{sd:LocalizeString Replace all the references with a reference to a different asset:, Context=Button}"/>
+    <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="4" Margin="30,0,0,0" IsEnabled="{Binding UseSingleReplace}">
+      <TextBox x:Name="SingleReplacementTextBox" MinWidth="300" IsReadOnly="True"
+               PlaceholderText="{sd:LocalizeString Select an asset, Context=Watermark}"
+               Text="{Binding SingleReplacementObject.Url, FallbackValue={x:Null}}"/>
+      <Button x:Name="PickupSingleReplacementButton" Background="Transparent"
+              Command="{Binding PickupSingleReplacementObjectCommand}"
+              ToolTip.Tip="{sd:LocalizeString Select asset, Context=ToolTip}">
+        <Image Source="{StaticResource ImagePickup}" Width="16" Height="16"/>
+      </Button>
+    </StackPanel>
+
+    <!-- A replacement per reference -->
+    <RadioButton x:Name="IndividualReplaceRadioButton" Grid.Row="3" Margin="20,10" GroupName="FixMode"
+                 IsChecked="{Binding !UseSingleReplace}"
+                 Content="{sd:LocalizeString Replace references individually:, Context=Button}"/>
+    <Border Grid.Row="4" Margin="20,0" BorderThickness="1" BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+            IsEnabled="{Binding !UseSingleReplace}">
+      <DockPanel>
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="2*, 3*" Margin="6,4">
+          <TextBlock Grid.Column="0" FontWeight="Bold" Text="{sd:LocalizeString Referencer}"/>
+          <TextBlock Grid.Column="1" FontWeight="Bold" Text="{sd:LocalizeString Replacement asset}"/>
+        </Grid>
+        <ScrollViewer>
+          <ItemsControl x:Name="Replacements" ItemsSource="{Binding CurrentReplacements}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="far:AssetReferenceReplacementViewModel">
+                <Grid ColumnDefinitions="2*, 3*" Margin="6,2">
+                  <TextBlock Grid.Column="0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                             Text="{Binding Referencer.Url}" ToolTip.Tip="{Binding Referencer.Url}"/>
+                  <DockPanel Grid.Column="1">
+                    <CheckBox x:Name="ClearCheckBox" DockPanel.Dock="Left" Margin="10,0"
+                              IsChecked="{Binding DontFixReference}"
+                              Content="{sd:LocalizeString Clear this reference, Context=Button}"/>
+                    <Button DockPanel.Dock="Right" Background="Transparent"
+                            IsEnabled="{Binding !DontFixReference}"
+                            Command="{Binding PickupReplacementObjectCommand}"
+                            ToolTip.Tip="{sd:LocalizeString Select asset, Context=ToolTip}">
+                      <Image Source="{StaticResource ImagePickup}" Width="16" Height="16"/>
+                    </Button>
+                    <TextBox Margin="10,0" MinWidth="200" IsReadOnly="True"
+                             IsEnabled="{Binding !DontFixReference}"
+                             PlaceholderText="{sd:LocalizeString Select an asset, Context=Watermark}"
+                             Text="{Binding ReplacementObject.Url, FallbackValue={x:Null}}"/>
+                  </DockPanel>
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+      </DockPanel>
+    </Border>
+
+    <!-- Buttons -->
+    <UniformGrid Grid.Row="5" Rows="1" Margin="20">
+      <Button x:Name="DoneButton" Margin="10,0,0,0" Padding="10,4" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+              IsDefault="True"
+              Content="{sd:LocalizeString Done, Context=Button}"
+              Command="{Binding FixReferencesCommand}"/>
+      <Button x:Name="ClearReferencesButton" Margin="10,0,0,0" Padding="10,4" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+              Content="{sd:LocalizeString Clear references, Context=Button}"
+              Command="{Binding ClearReferencesCommand}"
+              ToolTip.Tip="{sd:LocalizeString Clear the references of the current asset, Context=ToolTip}"/>
+      <Button x:Name="ClearAllReferencesButton" Margin="10,0,0,0" Padding="10,4" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+              Content="{sd:LocalizeString Clear all references, Context=Button}"
+              Command="{Binding ClearAllReferencesCommand}"
+              ToolTip.Tip="{sd:LocalizeString Clear references for all assets being deleted, Context=ToolTip}"/>
+      <Button x:Name="CancelButton" Margin="10,0,0,0" Padding="10,4" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+              IsCancel="True"
+              Content="{sd:LocalizeString Cancel, Context=Button}"
+              ToolTip.Tip="{sd:LocalizeString Cancel operation, Context=ToolTip}"
+              Click="OnCancelClick"/>
+    </UniformGrid>
+  </Grid>
+</Window>

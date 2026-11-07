@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Components.Status;
 using Stride.Core.Assets.Editor.Settings;
+using Stride.Core.Assets.Editor.Components.Build;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core;
 using Stride.Core.Diagnostics;

@@ -28,6 +28,7 @@ public sealed class SceneEditorGameTests
 
         Assert.Null(editor.GameView);
         editor.Destroy();
+        Assert.True(editor.Stopped.IsCompleted);
     }
 
     [Fact]
@@ -47,6 +48,9 @@ public sealed class SceneEditorGameTests
         Assert.True(viewport.IsDisposed);
         Assert.False(viewport.GameWasDisposedFirst);
         editor.Destroy();
+
+        // The game thread ended with the failure: the session closing after the editor has nothing to wait for
+        await editor.Stopped.WaitAsync(TimeSpan.FromSeconds(30));
     }
 
     private sealed class FailingViewportService : IEditorGameViewportService

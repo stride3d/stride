@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Collections.Specialized;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Diagnostics;
+using Stride.Core.Assets.Editor.Components.FixAssetReferences;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Components.Transactions;
@@ -113,6 +114,9 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
         // Initialize the reference view model related to the main asset view
         References = new ReferencesViewModel(this);
 
+        // The tags of the selected assets, in the header of the property grid
+        AssetTags = new TagsViewModel(AssetCollection);
+
         // Construct package categories
         var localPackageName = session.SolutionPath != null ? string.Format(Tr._(@"Solution '{0}'"), session.SolutionPath.GetFileNameWithoutExtension()) : LocalPackageCategoryName;
         packageCategories.Add(LocalPackageCategoryName, new PackageCategoryViewModel(localPackageName, this));
@@ -140,6 +144,7 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
         ToggleIsRootOnSelectedAssetCommand = new AnonymousCommand(ServiceProvider, () => ToggleRootAsset(AssetCollection.SelectedAssets, RootAssetDefaultTarget));
         PreviousSelectionCommand = new AnonymousCommand(ServiceProvider, () => { SelectionService?.NavigateBackward(); UpdateSelectionCommands(); });
         NextSelectionCommand = new AnonymousCommand(ServiceProvider, () => { SelectionService?.NextSelection(); UpdateSelectionCommands(); });
+        InitializeExploreCommands();
 
         // This event must be subscribed before we create the package view models
         PackageCategories.ForEach(x => x.Value.Content.CollectionChanged += PackageCollectionChanged);
@@ -258,6 +263,11 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
     public IReadOnlyDictionary<string, PackageCategoryViewModel> PackageCategories => packageCategories;
 
     public ReferencesViewModel References { get; }
+
+    /// <summary>
+    /// Gets the tags of the assets selected in the asset view.
+    /// </summary>
+    public TagsViewModel AssetTags { get; }
 
     /// <summary>
     /// Gets the package the root-asset toggle targets for the current selection (see <see cref="GetDefaultRootAssetTarget"/>).
@@ -684,6 +694,7 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
         ActionHistory.Destroy();
         Thumbnails.Destroy();
         AssetLog.Destroy();
+        AssetTags.Destroy();
 
         if (ServiceProvider.TryGet<IEditorDebugService>() is { } debugService)
         {
@@ -816,7 +827,8 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
             package.PreparePackageForSaving();
         }
 
-        ServiceProvider.Get<IEditorDialogService>().ShowProgressWindow(workProgress);
+        // As in WPF, after half a second: a fast save shows no window
+        ServiceProvider.Get<IProgressWindowService>().ShowProgressWindow(workProgress, 500);
 
         // Ensure saving is finished
         await Task.Run(() =>
@@ -1154,9 +1166,12 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
                         .Any(x => GetAssetById(x.Item.Id) != null);
                 if (hasReferencesToFix)
                 {
-                    // FIXME xplat-editor: port the fix-references dialog (FixReferencesViewModel); until then the deletion is refused rather than leaving broken references
-                    await Dialogs.MessageBoxAsync(Tr._p("Message", "Other assets reference the assets to delete. Fixing those references is not available yet: remove the references first."), MessageBoxButton.OK, MessageBoxImage.Information);
-                    return false;
+                    var fixReferences = new FixAssetReferencesViewModel(ServiceProvider, this, allAssetsToDelete, DependencyManager);
+                    fixReferences.Initialize(allAssetsToDelete);
+                    if (!fixReferences.IsCompleted && !await ServiceProvider.Get<IEditorDialogService>().ShowFixAssetReferencesDialogAsync(fixReferences))
+                        return false;
+
+                    fixReferences.ProcessFixes();
                 }
             }
 
@@ -1312,20 +1327,27 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
 
     private void AutoSelectCurrentProject()
     {
+        // The executable of the editor's own platform, which Start project can run, then the Windows one as in the WPF editor
         var executableProjects = LocalPackages
             .OfType<ProjectViewModel>()
-            .Where(x => x.Type == ProjectType.Executable && x.Platform == PlatformType.Windows);
+            .Where(x => x.Type == ProjectType.Executable)
+            .ToList();
 
-        PackageViewModel? selectedProject = executableProjects
-            // Prefer solutions with an existing *.sdpkg
-            .FirstOrDefault(x => x.PackageContainer is SolutionProject { IsImplicitProject: false });
-
-        selectedProject ??= executableProjects.FirstOrDefault();
+        PackageViewModel? selectedProject = SelectExecutable(executableProjects, Platform.Type)
+            ?? SelectExecutable(executableProjects, PlatformType.Windows);
         selectedProject ??= LocalPackages.FirstOrDefault();
 
         if (selectedProject != null)
         {
             SetCurrentProject(selectedProject);
+        }
+
+        static ProjectViewModel? SelectExecutable(List<ProjectViewModel> executableProjects, PlatformType platform)
+        {
+            var candidates = executableProjects.Where(x => x.Platform == platform).ToList();
+            // Prefer solutions with an existing *.sdpkg
+            return candidates.FirstOrDefault(x => x.PackageContainer is SolutionProject { IsImplicitProject: false })
+                ?? candidates.FirstOrDefault();
         }
     }
 
@@ -1651,6 +1673,7 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
         ActivatePackagePropertiesCommand.IsEnabled = packageSelected || directorySelected;
         EditSelectedContentCommand.IsEnabled = AssetCollection.SingleSelectedContent is DirectoryViewModel || asset is { IsEditable: true } && PluginService.HasEditorView(this, asset.GetType());
         ToggleIsRootOnSelectedAssetCommand.IsEnabled = RootAssetDefaultTarget != null && AssetCollection.SelectedAssets.Count > 0 && AssetCollection.SelectedAssets.All(x => !x.Dependencies.ForcedRoot);
+        UpdateExploreCommands();
         UpdateSelectionCommands();
 
         SessionStateChanged?.Invoke(this, new SessionStateChangedEventArgs());

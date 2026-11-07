@@ -167,6 +167,7 @@
     <Project Path="sources/editor/Stride.Assets.Editor/Stride.Assets.Editor.csproj" />
     <Project Path="sources/editor/Stride.Assets.Presentation.Common/Stride.Assets.Presentation.Common.csproj" />
     <Project Path="sources/editor/Stride.Assets.Presentation/Stride.Assets.Presentation.csproj" />
+    <Project Path="sources/editor/Stride.Assets.Templates/Stride.Assets.Templates.csproj" />
     <Project Path="sources/editor/Stride.Core.Assets.Editor.Common/Stride.Core.Assets.Editor.Common.csproj" />
     <Project Path="sources/editor/Stride.Core.Assets.Editor/Stride.Core.Assets.Editor.csproj" />
     <Project Path="sources/editor/Stride.Core.Assets.Presentation/Stride.Core.Assets.Presentation.csproj" />

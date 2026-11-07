@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Avalonia.Markup.Xaml.Styling;
-using Stride.Core.Diagnostics;
+using Stride.Core.Assets.Editor.Services;
 using Stride.Editor.Avalonia;
 
 namespace Stride.Audio.Editor;
@@ -19,8 +19,10 @@ public sealed class AudioEditorAvaloniaPlugin : StrideAssetsAvaloniaPlugin
     public static readonly Uri ThemesUri = new("avares://Stride.Audio.Editor.Avalonia/Themes/Generic.axaml");
 
     /// <inheritdoc />
-    protected override void Initialize(ILogger logger)
+    public override void Initialize(IEditorPluginContext context)
     {
-        RegisterControlThemes(logger, new ResourceInclude(ThemesUri) { Source = ThemesUri });
+        base.Initialize(context);
+
+        RegisterControlThemes(context.Logger, new ResourceInclude(ThemesUri) { Source = ThemesUri });
     }
 }
