@@ -156,7 +156,9 @@ internal sealed class DeformableModel : IDisposable
         var worldToLocal = Matrix.Invert(world);
         world.Decompose(out var scale, out Quaternion rotation, out _);
         var toLocal = Quaternion.Conjugate(rotation);
-        var bounds = new BoundingBox(new Vector3(float.MaxValue), new Vector3(float.MinValue));
+        var invScale = new Vector3(1f / scale.X, 1f / scale.Y, 1f / scale.Z);
+        var boundsMin = new Vector3(float.MaxValue);
+        var boundsMax = new Vector3(float.MinValue);
         var sourceNormals = Topology.Mesh.Normals;
         var sourceTangents = Topology.Mesh.Tangents;
 
@@ -164,28 +166,41 @@ internal sealed class DeformableModel : IDisposable
         {
             // Template copy restores every attribute the source authored; the writes below only overwrite position, normal and tangent.
             buffer.Template.AsSpan().CopyTo(buffer.Working);
-            var working = buffer.Working.AsSpan();
+            ref byte workingBase = ref MemoryMarshal.GetArrayDataReference(buffer.Working);
+            ref Vector3 positionBase = ref MemoryMarshal.GetArrayDataReference(_positions);
+            ref Vector3 normalBase = ref MemoryMarshal.GetArrayDataReference(_normals);
+            ref Vector4 tangentBase = ref MemoryMarshal.GetArrayDataReference(_tangents);
+            ref Vector3 sourceNormalBase = ref MemoryMarshal.GetArrayDataReference(sourceNormals);
+            ref Vector4 sourceTangentBase = ref MemoryMarshal.GetArrayDataReference(sourceTangents);
             int stride = buffer.Stride;
             int firstVertex = buffer.FirstVertex;
-            for (int i = 0; i < buffer.VertexCount; i++)
+            int positionOffset = buffer.PositionOffset;
+            int normalOffset = buffer.NormalOffset;
+            int tangentOffset = buffer.TangentOffset;
+            int count = buffer.VertexCount;
+            for (int i = 0; i < count; i++)
             {
                 int mergedId = firstVertex + i;
                 int byteStart = i * stride;
 
-                var position = Vector3.TransformCoordinate(_positions[mergedId], worldToLocal);
+                var position = Vector3.TransformCoordinate(Unsafe.Add(ref positionBase, mergedId), worldToLocal);
                 // Undoing the scale stretches normals the other way than directions, as the inverse transpose would
-                var normal = SafeNormalize(Vector3.Transform(_normals[mergedId], toLocal) * scale, sourceNormals[mergedId]);
-                var raw = Vector3.Transform((Vector3)_tangents[mergedId], toLocal) / scale;
+                var normal = SafeNormalize(Vector3.Transform(Unsafe.Add(ref normalBase, mergedId), toLocal) * scale, Unsafe.Add(ref sourceNormalBase, mergedId));
+                var rawTangent = Unsafe.Add(ref tangentBase, mergedId);
+                var raw = Vector3.Transform((Vector3)rawTangent, toLocal) * invScale;
                 raw -= normal * Vector3.Dot(normal, raw);
-                var tangent = new Vector4(SafeNormalize(raw, (Vector3)sourceTangents[mergedId]), _tangents[mergedId].W);
+                var tangent = new Vector4(SafeNormalize(raw, (Vector3)Unsafe.Add(ref sourceTangentBase, mergedId)), rawTangent.W);
 
-                MemoryMarshal.Write(working.Slice(byteStart + buffer.PositionOffset, 12), in position);
-                MemoryMarshal.Write(working.Slice(byteStart + buffer.NormalOffset, 12), in normal);
-                MemoryMarshal.Write(working.Slice(byteStart + buffer.TangentOffset, 16), in tangent);
+                Unsafe.WriteUnaligned(ref Unsafe.Add(ref workingBase, byteStart + positionOffset), position);
+                Unsafe.WriteUnaligned(ref Unsafe.Add(ref workingBase, byteStart + normalOffset), normal);
+                Unsafe.WriteUnaligned(ref Unsafe.Add(ref workingBase, byteStart + tangentOffset), tangent);
 
-                BoundingBox.Merge(ref bounds, ref position, out bounds);
+                boundsMin = Vector3.Min(boundsMin, position);
+                boundsMax = Vector3.Max(boundsMax, position);
             }
         }
+
+        var bounds = new BoundingBox(boundsMin, boundsMax);
 
         var sphere = BoundingSphere.FromBox(bounds);
         foreach (var mesh in Model.Meshes)
