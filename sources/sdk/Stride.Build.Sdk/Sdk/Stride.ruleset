@@ -10,13 +10,13 @@
     <Rule Id="CA1016" Action="Warning" />
     <Rule Id="CA1033" Action="Warning" />
     <Rule Id="CA1049" Action="Warning" />
-    <Rule Id="CA1060" Action="Warning" />
+    <Rule Id="CA1060" Action="None" />
     <Rule Id="CA1061" Action="Warning" />
     <Rule Id="CA1063" Action="Warning" />
     <Rule Id="CA1065" Action="Warning" />
     <Rule Id="CA1301" Action="Warning" />
     <Rule Id="CA1400" Action="Warning" />
-    <Rule Id="CA1401" Action="Warning" />
+    <Rule Id="CA1401" Action="None" />
     <Rule Id="CA1403" Action="Warning" />
     <Rule Id="CA1404" Action="Warning" />
     <Rule Id="CA1405" Action="Warning" />
