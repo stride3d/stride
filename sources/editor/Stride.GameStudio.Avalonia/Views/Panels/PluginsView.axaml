@@ -1,0 +1,218 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+             xmlns:caecv="using:Stride.Core.Assets.Editor.Avalonia.Converters"
+             xmlns:caepl="using:Stride.Core.Assets.Editor.Plugins"
+             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="400"
+             x:Class="Stride.GameStudio.Avalonia.Views.Panels.PluginsView"
+             x:DataType="caepl:PluginsPanelViewModel">
+  <UserControl.Styles>
+    <!-- What needs attention stands out; what is off is dimmed -->
+    <Style Selector="TextBlock.state.attention">
+      <Setter Property="Foreground" Value="#E05050"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+    </Style>
+    <Style Selector="TextBlock.state.off">
+      <Setter Property="Opacity" Value="0.6"/>
+    </Style>
+    <Style Selector="TextBlock.group">
+      <Setter Property="FontWeight" Value="Bold"/>
+      <Setter Property="Opacity" Value="0.8"/>
+      <Setter Property="Margin" Value="0,6,0,2"/>
+    </Style>
+    <Style Selector="TextBlock.label">
+      <Setter Property="Opacity" Value="0.7"/>
+      <Setter Property="Margin" Value="0,0,12,2"/>
+    </Style>
+    <Style Selector="Border.bar">
+      <Setter Property="Padding" Value="8,4"/>
+      <Setter Property="BorderThickness" Value="0,0,0,1"/>
+      <Setter Property="BorderBrush" Value="Gray"/>
+    </Style>
+  </UserControl.Styles>
+
+  <DockPanel>
+    <!-- A switch waits for a restart, or safe mode is on: "Restart to apply" / "Restart normally" opens the project again -->
+    <Border Name="RestartBar" Classes="bar" DockPanel.Dock="Top" Background="#30E0A040"
+            IsVisible="{Binding ShowsRestart}">
+      <Grid ColumnDefinitions="*, Auto">
+        <TextBlock Grid.Column="0" VerticalAlignment="Center" TextWrapping="Wrap" Text="{Binding RestartMessage}"/>
+        <Button Name="RestartButton" Grid.Column="1" Margin="8,0,0,0"
+                Content="{Binding RestartText}" Command="{Binding RestartCommand}"/>
+      </Grid>
+    </Border>
+
+    <!-- How many plugins, how many need attention or are off -->
+    <Border Classes="bar" DockPanel.Dock="Top">
+      <Grid ColumnDefinitions="*, Auto">
+        <TextBlock Name="Summary" Grid.Column="0" VerticalAlignment="Center" Text="{Binding Summary}"/>
+        <Button Grid.Column="1" Content="{sd:LocalizeString Refresh, Context=Button}" Command="{Binding RefreshCommand}"
+                ToolTip.Tip="{sd:LocalizeString Read the plugins and their states again, Context=ToolTip}"/>
+      </Grid>
+    </Border>
+
+    <Grid ColumnDefinitions="2*, 4, 3*">
+      <!-- The plugins, what needs attention first, then what is off, the project's and the built-in ones -->
+      <ListBox Name="PluginList" Grid.Column="0"
+               ItemsSource="{Binding Plugins}"
+               SelectedItem="{Binding SelectedPlugin}">
+        <ListBox.ItemTemplate>
+          <DataTemplate DataType="caepl:PluginItemViewModel">
+            <StackPanel>
+              <TextBlock Classes="group" Text="{Binding GroupTitle}" IsVisible="{Binding IsFirstOfGroup}"/>
+              <Grid ColumnDefinitions="20, *, Auto, Auto">
+                <Image Grid.Column="0" Width="16" Height="16" VerticalAlignment="Center"
+                       Source="{Binding IconPath, Converter={x:Static caecv:TemplateImageConverter.Instance}}"
+                       IsVisible="{Binding IconPath, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                <TextBlock Grid.Column="1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis">
+                  <Run Text="{Binding DisplayName}"/>
+                  <Run Text="{Binding VersionText}" Foreground="Gray"/>
+                </TextBlock>
+                <TextBlock Grid.Column="2" Classes="state" Margin="8,0" VerticalAlignment="Center"
+                           Classes.attention="{Binding NeedsAttention}" Classes.off="{Binding !IsLoaded}"
+                           Text="{Binding StateText}"/>
+                <!-- A third-party plugin's switch: switching off asks first; it applies at the next opening -->
+                <ToggleSwitch Grid.Column="3" Name="PluginSwitch" VerticalAlignment="Center" Margin="0" MinWidth="0"
+                              OnContent="" OffContent=""
+                              IsVisible="{Binding CanSwitch}"
+                              IsChecked="{Binding IsOn, Mode=OneWay}"
+                              Command="{Binding ToggleCommand}"
+                              ToolTip.Tip="{sd:LocalizeString Switch this plugin on or off for this project; it applies when Game Studio opens the project again, Context=ToolTip}"/>
+              </Grid>
+            </StackPanel>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+
+      <GridSplitter Grid.Column="1" ResizeDirection="Columns"/>
+
+      <!-- The selected plugin: what it is, where it comes from, what it contributes, its state and its errors -->
+      <ScrollViewer Grid.Column="2" Padding="8,4">
+        <Panel>
+          <TextBlock Opacity="0.6" TextWrapping="Wrap"
+                     IsVisible="{Binding SelectedPlugin, Converter={x:Static ObjectConverters.IsNull}}"
+                     Text="{sd:LocalizeString Select a plugin to see its details and errors.}"/>
+          <ContentControl Name="Details" Content="{Binding SelectedPlugin}">
+            <ContentControl.ContentTemplate>
+              <DataTemplate DataType="caepl:PluginItemViewModel">
+          <StackPanel Spacing="6">
+            <Grid ColumnDefinitions="Auto, *">
+              <Image Grid.Column="0" Width="32" Height="32" Margin="0,0,8,0" VerticalAlignment="Top"
+                     Source="{Binding IconPath, Converter={x:Static caecv:TemplateImageConverter.Instance}}"
+                     IsVisible="{Binding IconPath, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+              <StackPanel Grid.Column="1">
+                <SelectableTextBlock FontSize="16" FontWeight="SemiBold" Text="{Binding DisplayName}"/>
+                <SelectableTextBlock Opacity="0.7">
+                  <Run Text="{Binding Id}"/>
+                  <Run Text="{Binding VersionText}"/>
+                </SelectableTextBlock>
+              </StackPanel>
+            </Grid>
+
+            <StackPanel Orientation="Horizontal" Spacing="12">
+              <TextBlock Name="DetailState" Classes="state" VerticalAlignment="Center"
+                         Classes.attention="{Binding NeedsAttention}" Classes.off="{Binding !IsLoaded}"
+                         Text="{Binding StateText}"/>
+              <ToggleSwitch Name="DetailSwitch" VerticalAlignment="Center"
+                            OnContent="" OffContent=""
+                            IsVisible="{Binding CanSwitch}"
+                            IsChecked="{Binding IsOn, Mode=OneWay}"
+                            Command="{Binding ToggleCommand}"/>
+            </StackPanel>
+            <SelectableTextBlock TextWrapping="Wrap" Text="{Binding StateDetail}"
+                                 IsVisible="{Binding StateDetail, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+            <TextBlock TextWrapping="Wrap" FontStyle="Italic" IsVisible="{Binding IsPending}"
+                       Text="{sd:LocalizeString Changed: it applies when Game Studio opens this project again (Restart to apply).}"/>
+            <TextBlock TextWrapping="Wrap" Opacity="0.7" IsVisible="{Binding IsBuiltIn}"
+                       Text="{sd:LocalizeString Built into Game Studio: it cannot be switched off.}"/>
+
+            <!-- A built-in plugin named in the project's list of switched-off plugins: the editor warned and loaded it -->
+            <Border Name="ListedBuiltIn" Padding="6" Background="#30E0A040" IsVisible="{Binding IsListedBuiltIn}">
+              <Grid ColumnDefinitions="*, Auto">
+                <TextBlock Grid.Column="0" TextWrapping="Wrap" VerticalAlignment="Center"
+                           Text="{sd:LocalizeString The list of plugins switched off for this project names this plugin. It is built into Game Studio and always loads (a warning when the project opens).}"/>
+                <Button Name="ClearEntryButton" Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center"
+                        Content="{sd:LocalizeString Clear the entry, Context=Button}" Command="{Binding ClearEntryCommand}"/>
+              </Grid>
+            </Border>
+
+            <SelectableTextBlock TextWrapping="Wrap" Text="{Binding Description}"
+                                 IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+            <Grid ColumnDefinitions="Auto, *" RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto">
+              <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="{sd:LocalizeString Source}"/>
+              <SelectableTextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SourceText}"/>
+              <TextBlock Grid.Row="1" Grid.Column="0" Classes="label" Text="{sd:LocalizeString Kind}"/>
+              <SelectableTextBlock Grid.Row="1" Grid.Column="1" Text="{Binding KindText}"/>
+              <TextBlock Grid.Row="2" Grid.Column="0" Classes="label" Text="{sd:LocalizeString Authors}"
+                         IsVisible="{Binding Authors, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+              <SelectableTextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Authors}"
+                                   IsVisible="{Binding Authors, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+              <TextBlock Grid.Row="3" Grid.Column="0" Classes="label" Text="{sd:LocalizeString Built for Game Studio}"
+                         IsVisible="{Binding EditorApiText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+              <SelectableTextBlock Grid.Row="3" Grid.Column="1" Text="{Binding EditorApiText}"
+                                   IsVisible="{Binding EditorApiText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+              <TextBlock Grid.Row="4" Grid.Column="0" Classes="label" Text="{sd:LocalizeString License}"
+                         IsVisible="{Binding License, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+              <SelectableTextBlock Grid.Row="4" Grid.Column="1" Text="{Binding License}"
+                                   IsVisible="{Binding License, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+              <TextBlock Grid.Row="5" Grid.Column="0" Classes="label" Text="{sd:LocalizeString Project page}"
+                         IsVisible="{Binding ProjectUrl, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+              <HyperlinkButton Grid.Row="5" Grid.Column="1" Padding="0" Content="{Binding ProjectUrl}" NavigateUri="{Binding ProjectUrl}"
+                               IsVisible="{Binding ProjectUrl, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+            </Grid>
+
+            <TextBlock FontWeight="SemiBold" Text="{sd:LocalizeString What it adds to Game Studio}"
+                       IsVisible="{Binding Contributions.Count}"/>
+            <ItemsControl ItemsSource="{Binding Contributions}" Margin="8,0,0,0">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="x:String">
+                  <SelectableTextBlock Text="{Binding}"/>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- Its errors: joining, loading, the contributions the guard turned off; with the time, and copied as text -->
+            <Grid ColumnDefinitions="*, Auto" IsVisible="{Binding HasErrors}">
+              <TextBlock Grid.Column="0" FontWeight="SemiBold" VerticalAlignment="Center" Text="{sd:LocalizeString Errors}"/>
+              <Button Name="CopyErrorsButton" Grid.Column="1" Content="{sd:LocalizeString Copy all, Context=Button}"
+                      Command="{Binding CopyErrorsCommand}"
+                      ToolTip.Tip="{sd:LocalizeString Copy the errors of this plugin with their details, Context=ToolTip}"/>
+            </Grid>
+            <ItemsControl Name="ErrorList" ItemsSource="{Binding Errors}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="caepl:PluginErrorViewModel">
+                  <Border Margin="0,0,0,6" Padding="6" BorderThickness="1" BorderBrush="#60E05050">
+                    <StackPanel Spacing="2">
+                      <Grid ColumnDefinitions="*, Auto">
+                        <SelectableTextBlock Grid.Column="0" TextWrapping="Wrap">
+                          <Run Text="{Binding TimeText}" FontWeight="SemiBold"/>
+                          <Run Text="{Binding Contribution}" FontWeight="SemiBold"/>
+                          <Run Text="{Binding PluginName}" Foreground="Gray"/>
+                        </SelectableTextBlock>
+                        <Button Grid.Column="1" Content="{sd:LocalizeString Copy, Context=Button}"
+                                Command="{Binding $parent[ItemsControl].((caepl:PluginItemViewModel)DataContext).CopyErrorCommand}"
+                                CommandParameter="{Binding}"/>
+                      </Grid>
+                      <TextBlock Opacity="0.7" FontStyle="Italic" IsVisible="{Binding IsTurnedOff}"
+                                 Text="{sd:LocalizeString Turned off for this session.}"/>
+                      <SelectableTextBlock TextWrapping="Wrap" Text="{Binding Message}"/>
+                      <Expander Header="{sd:LocalizeString Details}">
+                        <SelectableTextBlock TextWrapping="Wrap" FontSize="11" Text="{Binding Details}"/>
+                      </Expander>
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+              </DataTemplate>
+            </ContentControl.ContentTemplate>
+          </ContentControl>
+        </Panel>
+      </ScrollViewer>
+    </Grid>
+  </DockPanel>
+</UserControl>

@@ -140,22 +140,36 @@ public sealed class StartupOptions
     }
 
     /// <summary>
+    /// Turns safe mode off, for the editors this one restarts into (and the next session it opens, when it has opened none).
+    /// </summary>
+    public void DisableSafeMode()
+    {
+        SafeMode = false;
+        ForwardedArguments.RemoveAll(x => x.Option == "--safe-mode");
+    }
+
+    /// <summary>
     /// The command line of a new editor process that opens another session, as the WPF Game Studio builds it (<c>Program.RestartArgs</c>):
     /// the options of this command line, then the session to open, or <c>/NewProject</c> for the project selection.
     /// </summary>
     /// <param name="sessionPath">The session to open; <c>null</c> for the project selection.</param>
     /// <param name="launcherNotified">Whether this editor told the launcher that it started: the new one does not again.</param>
-    public List<string> GetRestartArguments(UFile? sessionPath, bool launcherNotified)
+    /// <param name="safeMode">Whether the new editor runs in safe mode; null to keep this one's mode.</param>
+    public List<string> GetRestartArguments(UFile? sessionPath, bool launcherNotified, bool? safeMode = null)
     {
         var result = new List<string>();
         foreach (var (option, value) in ForwardedArguments)
         {
             if (launcherNotified && option.StartsWith("/Launcher", StringComparison.Ordinal))
                 continue;
+            if (safeMode == false && option == "--safe-mode")
+                continue;
             result.Add(option);
             if (value is not null)
                 result.Add(value);
         }
+        if (safeMode == true && !result.Contains("--safe-mode"))
+            result.Add("--safe-mode");
         result.Add(sessionPath is not null ? sessionPath.ToOSPath() : "/NewProject");
         return result;
     }

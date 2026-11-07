@@ -211,6 +211,7 @@ public partial class App : Application
             Options.EnableSafeMode();
             if (viewModel.ServiceProvider.TryGet<PluginService>() is { } pluginService)
                 pluginService.SafeMode = true;
+            viewModel.SafeModeBanner?.Update();
         }
         InternalSettings.LoadingStartupSession.SetValue(false);
         InternalSettings.Save();

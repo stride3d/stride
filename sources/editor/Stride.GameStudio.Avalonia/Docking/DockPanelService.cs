@@ -360,8 +360,8 @@ public sealed class DockPanelService : ViewModelBase, IPanelService, IDisposable
         }
         baselines.Clear();
         var reset = PanelLayoutResolver.CreateDefault(kind, Registry);
-        // Every single panel is visible again, as WPF's reset
-        reset.Hidden.Clear();
+        // Every single panel is visible again, as WPF's reset, except those hidden by default (the Plugins panel)
+        reset.Hidden.RemoveAll(id => Registry.Find(id)?.VisibleByDefault != false);
         Apply(reset);
         // The open instances are kept, at their default place
         foreach (var instance in dockables.Values.Where(x => x.AllowsMultipleInstances && !IsInLayout(x)).ToList())

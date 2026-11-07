@@ -6,6 +6,7 @@ using Avalonia.Controls.Templates;
 using Avalonia.Data;
 using Avalonia.Layout;
 using Stride.Core.Assets.Editor.Panels;
+using Stride.Core.Assets.Editor.Plugins;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.GameStudio.Avalonia.ViewModels;
@@ -53,6 +54,7 @@ public sealed class DockViewLocator : IDataTemplate
             AssetLogPanelViewModel x => new AssetLogView { DataContext = x },
             OutputPanelViewModel x => new OutputView { DataContext = x },
             AssetPreviewPanelViewModel x => new AssetPreviewView { DataContext = x },
+            PluginsPanelViewModel x => new PluginsView { DataContext = x },
             // A panel of a plugin: the view its plugin registered for this editor (see DockPanelService.CreatePluginView)
             _ => panel.CreatePluginView() ?? new ContentControl { Content = viewModel, DataContext = viewModel },
         };

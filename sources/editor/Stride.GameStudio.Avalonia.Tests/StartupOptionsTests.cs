@@ -60,6 +60,22 @@ public sealed class StartupOptionsTests
     }
 
     [Fact]
+    public void ARestartCanLeaveOrEnterSafeMode()
+    {
+        var options = StartupOptions.Parse(["--safe-mode", "/DisableThumbnails"]);
+
+        // "Restart normally" and "Restart to apply" leave it; the other options stay
+        Assert.Equal(["/DisableThumbnails", "/NewProject"], options.GetRestartArguments(null, launcherNotified: true, safeMode: false));
+        Assert.Equal(["--safe-mode", "/DisableThumbnails", "/NewProject"], options.GetRestartArguments(null, launcherNotified: true, safeMode: true));
+        Assert.Equal(["/DisableThumbnails", "--safe-mode", "/NewProject"], StartupOptions.Parse(["/DisableThumbnails"]).GetRestartArguments(null, launcherNotified: true, safeMode: true));
+
+        // Turned off for this editor: its next restarts go without it
+        options.DisableSafeMode();
+        Assert.False(options.SafeMode);
+        Assert.Equal(["/DisableThumbnails", "/NewProject"], options.GetRestartArguments(null, launcherNotified: true));
+    }
+
+    [Fact]
     public void ThePathArgumentIsTheSessionToOpen()
     {
         var options = StartupOptions.Parse(["/DisableThumbnails", "/DisablePreview", "/DebugEditorGraphics", "C:/Games/MyGame/MyGame.sln"]);
