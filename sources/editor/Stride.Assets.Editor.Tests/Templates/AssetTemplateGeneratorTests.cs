@@ -265,7 +265,9 @@ public sealed class AssetTemplateGeneratorTests
         _ = LazyTemplates.Value;
         var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, assets);
         Assert.False(fixture.Result.HasErrors, fixture.Log);
-        fixture.Session.AssetCollection.SelectedLocations.Add(fixture.Package);
+        // The selection and the template runs go through the dispatcher, as on the UI thread: the views that follow the selection
+        // refresh in the change, and must not race the refresh the session dispatches after an edit
+        fixture.Session.Dispatcher.Invoke(() => fixture.Session.AssetCollection.SelectedLocations.Add(fixture.Package));
         return fixture;
     }
 
@@ -273,7 +275,7 @@ public sealed class AssetTemplateGeneratorTests
     {
         var template = new TemplateDescriptionViewModel(fixture.ServiceProvider, LazyTemplates.Value.Templates.Single(x => x.Id == templateId));
         var transactions = fixture.Session.ActionHistory.Transactions.Count;
-        var assets = await fixture.Session.AssetCollection.RunAssetTemplateAsync(template, files);
+        var assets = await fixture.Session.Dispatcher.InvokeTask(() => fixture.Session.AssetCollection.RunAssetTemplateAsync(template, files));
         // The action history records the creation once the asset notifications are done, on another thread: wait for it, so that
         // the test does not change the selection (nor close the session) in the middle of them
         if (assets.Count > 0)

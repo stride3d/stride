@@ -51,7 +51,7 @@ public sealed class TestSessionCore
         {
             setting.SetValue(new UFile(editor));
             var wood = fixture.Session.AllAssets.Single();
-            fixture.Assets.SelectAssets([wood]);
+            fixture.OnUiThread(() => fixture.Assets.SelectAssets([wood]));
 
             // The test asset has no editor: as a text asset, it can be edited anyway
             Assert.True(fixture.Session.EditSelectedContentCommand.IsEnabled);
@@ -75,7 +75,7 @@ public sealed class TestSessionCore
         var session = fixture.Session;
         Assert.False(session.IsUpdatePackageEnabled);
 
-        fixture.Assets.SelectedLocations.Add(fixture.Package);
+        fixture.OnUiThread(() => fixture.Assets.SelectedLocations.Add(fixture.Package));
 
         Assert.True(SpinWait.SpinUntil(() => session.IsUpdatePackageEnabled, TimeSpan.FromSeconds(10)));
         Assert.True(session.AddDependencyCommand.IsEnabled);
@@ -97,7 +97,7 @@ public sealed class TestSessionCore
     public async Task AddDependencyTellsWhenNoPackageCanBeAdded()
     {
         using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
-        fixture.Assets.SelectedLocations.Add(fixture.Package);
+        fixture.OnUiThread(() => fixture.Assets.SelectedLocations.Add(fixture.Package));
 
         fixture.Session.AddDependencyCommand.Execute();
 
@@ -112,7 +112,7 @@ public sealed class TestSessionCore
         using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var session = fixture.Session;
         session.SuggestedPackages.Add(new PackageName("Some.Suggested.Package", new PackageVersion("1.0.0")));
-        fixture.Assets.SelectedLocations.Add(fixture.Package);
+        fixture.OnUiThread(() => fixture.Assets.SelectedLocations.Add(fixture.Package));
 
         session.AddDependencyCommand.Execute();
 
@@ -196,15 +196,15 @@ public sealed class TestSessionCore
         var session = fixture.Session;
         var wood = session.AllAssets.Single();
         var picker = new AssetCollectionViewModel(session);
-        picker.UpdateAssetsCollection([wood]);
+        fixture.OnUiThread(() => picker.UpdateAssetsCollection([wood]));
 
-        picker.SelectAssets([wood]);
+        fixture.OnUiThread(() => picker.SelectAssets([wood]));
 
         Assert.Same(session.AssetViewProperties, session.ActiveProperties);
         Assert.Null(picker.AssetViewProperties.ViewModel);
         Assert.Null(session.AssetViewProperties.ViewModel);
 
-        fixture.Assets.SelectAssets([wood]);
+        fixture.OnUiThread(() => fixture.Assets.SelectAssets([wood]));
 
         Assert.True(SpinWait.SpinUntil(() => session.AssetViewProperties.ViewModel is not null, TimeSpan.FromSeconds(10)));
         Assert.Same(session.AssetViewProperties, session.ActiveProperties);

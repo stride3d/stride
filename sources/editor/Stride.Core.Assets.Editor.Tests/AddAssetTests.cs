@@ -131,7 +131,7 @@ public sealed class AddAssetTests
     {
         using var fixture = await OpenAsync();
         var folder = fixture.Package.GetOrCreateAssetDirectory("Generated", false);
-        fixture.Assets.SelectedLocations.Add(folder);
+        fixture.OnUiThread(() => fixture.Assets.SelectedLocations.Add(folder));
         var template = FindTemplate(fixture, TestTemplatePackage.AssetFactoryId);
 
         var created = await RunAsync(fixture, template, null);
@@ -177,8 +177,8 @@ public sealed class AddAssetTests
         Assert.Contains("select a directory or package", Assert.Single(fixture.Dialogs.Messages));
 
         // Two folders selected
-        fixture.Assets.SelectedLocations.Add(fixture.Package);
-        fixture.Assets.SelectedLocations.Add(fixture.Session.AllAssets.Single().Directory);
+        fixture.OnUiThread(() => fixture.Assets.SelectedLocations.Add(fixture.Package));
+        fixture.OnUiThread(() => fixture.Assets.SelectedLocations.Add(fixture.Session.AllAssets.Single().Directory));
         Assert.Empty(await RunAsync(fixture, template, null));
         Assert.Equal(2, fixture.Dialogs.Messages.Count);
         Assert.Contains("multiple locations", fixture.Dialogs.Messages[1]);
@@ -190,7 +190,7 @@ public sealed class AddAssetTests
     public async Task ATemplateThatIsNotAnAssetTemplateIsRefused()
     {
         using var fixture = await OpenAsync();
-        fixture.Assets.SelectedLocations.Add(fixture.Package);
+        fixture.OnUiThread(() => fixture.Assets.SelectedLocations.Add(fixture.Package));
 
         // A template of the asset scope that does not describe an asset (listed by nothing, but a plugin could run it)
         var template = new TemplateDescriptionViewModel(fixture.ServiceProvider, TestTemplatePackage.Package.Templates.Single(x => x.Id == TestTemplatePackage.AssetId));
@@ -205,7 +205,7 @@ public sealed class AddAssetTests
     public async Task AFailedOrCancelledGenerationCreatesNothing()
     {
         using var fixture = await OpenAsync();
-        fixture.Assets.SelectedLocations.Add(fixture.Package);
+        fixture.OnUiThread(() => fixture.Assets.SelectedLocations.Add(fixture.Package));
         var template = FindTemplate(fixture, TestTemplatePackage.AssetFactoryId);
 
         // The session opening showed its own progress window
@@ -277,7 +277,7 @@ public sealed class AddAssetTests
         using var files = new TemporaryFiles();
         var wood = files.Write("Wood" + TestTemplatePackage.OtherImportExtension);
         var stone = files.Write("Stone" + TestTemplatePackage.OtherImportExtension);
-        fixture.Assets.SelectedLocations.Add(fixture.Package);
+        fixture.OnUiThread(() => fixture.Assets.SelectedLocations.Add(fixture.Package));
         // The files stay where they are (the second button of the copy prompt: No)
         fixture.Dialogs.PickButton = _ => 2;
 
@@ -316,7 +316,7 @@ public sealed class AddAssetTests
         using var fixture = await OpenAsync();
         using var files = new TemporaryFiles();
         var wood = files.Write("Wood" + TestTemplatePackage.OtherImportExtension);
-        fixture.Assets.SelectedLocations.Add(fixture.Package);
+        fixture.OnUiThread(() => fixture.Assets.SelectedLocations.Add(fixture.Package));
         // The first button of the copy prompt (Yes), then the default location of the resource
         fixture.Dialogs.PickButton = _ => 1;
         fixture.Dialogs.Answer = MessageBoxResult.Yes;
@@ -339,7 +339,7 @@ public sealed class AddAssetTests
         using var fixture = await OpenAsync();
         using var files = new TemporaryFiles();
         var wood = files.Write("Wood" + TestTemplatePackage.ImportExtension);
-        fixture.Assets.SelectedLocations.Add(fixture.Package);
+        fixture.OnUiThread(() => fixture.Assets.SelectedLocations.Add(fixture.Package));
         fixture.Dialogs.PickButton = _ => 2;
 
         // Cancelled: nothing is created
@@ -366,7 +366,7 @@ public sealed class AddAssetTests
         using var files = new TemporaryFiles();
         var wood = files.Write("Wood" + TestTemplatePackage.ImportExtension);
         var stone = files.Write("Stone" + TestTemplatePackage.OtherImportExtension);
-        fixture.Assets.SelectedLocations.Add(fixture.Package);
+        fixture.OnUiThread(() => fixture.Assets.SelectedLocations.Add(fixture.Package));
         fixture.Dialogs.PickButton = _ => 2;
         fixture.Dialogs.PickAssetTemplate = templates => templates.Templates.Single(x => x.Template.Id == TestTemplatePackage.ImportId).Template;
 
@@ -423,7 +423,7 @@ public sealed class AddAssetTests
     private static async Task<List<AssetViewModel>> RunAsync(EditorSessionFixture fixture, ITemplateDescriptionViewModel? template, IList<UFile>? files = null)
     {
         var transactions = fixture.Session.ActionHistory.Transactions.Count;
-        var assets = await fixture.Assets.RunAssetTemplateAsync(template, files);
+        var assets = await fixture.OnUiThreadAsync(() => fixture.Assets.RunAssetTemplateAsync(template, files));
         if (assets.Count > 0)
             WaitForHistory(fixture, transactions);
         return assets;
@@ -433,14 +433,14 @@ public sealed class AddAssetTests
     {
         var assets = fixture.Session.AllAssets.Count();
         var transactions = fixture.Session.ActionHistory.Transactions.Count;
-        await fixture.Assets.AddFilesAsync(files);
+        await fixture.OnUiThreadAsync(() => fixture.Assets.AddFilesAsync(files));
         if (fixture.Session.AllAssets.Count() > assets)
             WaitForHistory(fixture, transactions);
     }
 
     /// <summary>
-    /// Waits for the background work of a creation: the history entry, and the selection of the new assets, which the asset
-    /// view refreshes from a pool thread with the test's null dispatcher (the editor's dispatcher serializes this).
+    /// Waits for the background work of a creation: the history entry, which the action history adds once the asset notifications
+    /// are done, and the selection of the new assets.
     /// </summary>
     private static void WaitForHistory(EditorSessionFixture fixture, int transactions)
     {

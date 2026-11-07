@@ -43,7 +43,7 @@ public sealed class TestSessionSatellites
     {
         using var fixture = await EditorSessionFixture.OpenAsync(("Wood", "wood"));
         var wood = fixture.Session.GetAssetByUrl(EditorSessionFixture.Url("Wood"))!;
-        fixture.Assets.SelectAssets([wood]);
+        fixture.OnUiThread(() => fixture.Assets.SelectAssets([wood]));
         var provider = new AssetInitialDirectoryProvider(fixture.Session);
 
         // As in WPF, the folder of the asset file, in the asset folder of the package (not next to the package file)
