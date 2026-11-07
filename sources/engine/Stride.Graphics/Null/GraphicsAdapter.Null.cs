@@ -72,6 +72,8 @@ namespace Stride.Graphics
             NullHelper.ToImplement();
             return false;
         }
+
+        private partial string GetUnsupportedReason() => null;
     }
 }
 

@@ -29,6 +29,11 @@ internal static unsafe class D3D12Runtime
     public static readonly Guid CLSID_D3D12DeviceRemovedExtendedData = new(0x4a75bbc4, 0x9ff4, 0x4ad8, 0x9f, 0x18, 0xab, 0xae, 0x84, 0xdc, 0x5f, 0xf2);
     private static readonly Guid CLSID_D3D12SDKConfiguration = new(0x7cda6aca, 0xa03e, 0x49c8, 0x94, 0x58, 0x03, 0x34, 0xd2, 0x0e, 0x07, 0xce);
 
+    /// <summary>
+    ///   The first GPU driver versions with Enhanced Barriers, for the messages that ask to update a driver.
+    /// </summary>
+    public const string EnhancedBarriersDriverVersions = "NVIDIA 531.18+, AMD 23.5.2+, Intel 31.0.101.4032+";
+
     private static readonly D3D12 d3d12 = D3D12.GetApi();
 
     private static readonly object initializationLock = new();
@@ -62,6 +67,30 @@ internal static unsafe class D3D12Runtime
             ? factory->CreateDevice(adapter, featureLevel, &deviceGuid, (void**) null)
             : d3d12.CreateDevice(adapter, featureLevel, &deviceGuid, (void**) null);
         return result.IsSuccess;
+    }
+
+    /// <summary>
+    ///   Checks that <paramref name="device"/> supports Enhanced Barriers.
+    /// </summary>
+    public static bool IsEnhancedBarriersSupported(ID3D12Device* device)
+    {
+        // CheckFeatureSupport fails with E_INVALIDARG unless the size is exactly the size of the struct
+        var options12 = default(FeatureDataD3D12Options12);
+        HResult result = device->CheckFeatureSupport(Feature.D3D12Options12, ref options12, (uint) sizeof(FeatureDataD3D12Options12));
+        return result.IsSuccess && options12.EnhancedBarriersSupported;
+    }
+
+    /// <summary>
+    ///   Checks that a device on <paramref name="adapter"/> supports Enhanced Barriers, with a device created and released for it.
+    /// </summary>
+    public static bool IsEnhancedBarriersSupported(ComPtr<IUnknown> adapter)
+    {
+        if (CreateDevice(adapter, D3DFeatureLevel.Level110, out var device).IsFailure)
+            return false;
+
+        var isSupported = IsEnhancedBarriersSupported(device.Handle);
+        device.Dispose();
+        return isSupported;
     }
 
     /// <summary>
