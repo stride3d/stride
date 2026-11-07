@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Reflection;
 
@@ -76,4 +77,16 @@ public interface IAssetImporter
     /// <param name="rawAssetPath">The path to a raw asset on the disk.</param>
     /// <param name="importParameters">The parameters. It is mandatory to call <see cref="GetDefaultParameters"/> and pass the parameters instance here</param>
     IEnumerable<AssetItem> Import(UFile rawAssetPath, AssetImporterParameters importParameters);
+
+    /// <summary>
+    /// Gets the other files that importing a raw asset reads, such as the texture files of a model.
+    /// </summary>
+    /// <remarks>
+    /// The editor uses this to copy those files along with a raw asset that it copies into the project's resource folders.
+    /// It reads the raw asset where it is now, so implementations must not write any file.
+    /// </remarks>
+    /// <param name="rawAssetPath">The path to a raw asset on the disk.</param>
+    /// <param name="logger">The logger for messages from reading the raw asset.</param>
+    /// <returns>The files that exist, with where the importer reads each one; empty when the importer reads no other files.</returns>
+    IEnumerable<RawAssetDependency> GetSourceDependencies(UFile rawAssetPath, Logger logger) => [];
 }

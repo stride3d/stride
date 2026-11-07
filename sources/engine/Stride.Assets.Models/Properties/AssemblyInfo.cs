@@ -17,3 +17,4 @@ using System.Runtime.InteropServices;
 [assembly: Guid("b094265f-f46a-4b4a-9e28-59134ac3d4ba")]
 
 [assembly: InternalsVisibleTo("Stride.Assets.Model.Serializers")]
+[assembly: InternalsVisibleTo("Stride.Assets.Tests")]

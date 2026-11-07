@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Stride.Core.Assets;
 using Stride.Core;
 using Stride.Core.Diagnostics;
@@ -35,6 +36,14 @@ namespace Stride.Assets.Models
 
             var entityInfo = meshConverter.ExtractEntity(localPath.FullPath, null, importParameters.IsTypeSelectedForOutput<TextureAsset>(), deduplicateMaterials);
             return entityInfo;
+        }
+
+        /// <inheritdoc/>
+        public override IEnumerable<RawAssetDependency> GetSourceDependencies(UFile rawAssetPath, Logger logger)
+        {
+            return new Importer.ThreeD.MeshConverter(logger).FindSourceFiles(rawAssetPath.FullPath)
+                .Select(file => new RawAssetDependency(new UFile(file.Source), file.RelativePath))
+                .ToList();
         }
 
         /// <inheritdoc/>
