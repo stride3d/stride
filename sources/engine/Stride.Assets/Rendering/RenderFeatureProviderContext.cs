@@ -26,6 +26,15 @@ public sealed class RenderFeatureProviderContext
     public RenderStage TransparentStage { get; }
 
     /// <summary>
+    ///   An optional render stage that occurs after post-processing effects in the graphics compositor.
+    /// </summary>
+    /// <value>
+    ///   The render stage that occurs after post-processing effects in the graphics compositor.
+    ///   It can be <see langword="null"/> when the compositor has no such stage.
+    /// </value>
+    public RenderStage AfterPostEffectsStage { get; }
+
+    /// <summary>
     ///   Finds a render stage by its name in the graphics compositor.
     /// </summary>
     /// <param name="name">The name of the render stage to find.</param>
@@ -49,6 +58,7 @@ public sealed class RenderFeatureProviderContext
 
         OpaqueStage = renderStages.FirstOrDefault(x => x.Name == "Opaque");
         TransparentStage = renderStages.FirstOrDefault(x => x.Name == "Transparent");
+        AfterPostEffectsStage = renderStages.FirstOrDefault(x => x.Name == "AfterPostEffects");
     }
 
     /// <summary>
@@ -62,5 +72,6 @@ public sealed class RenderFeatureProviderContext
 
         OpaqueStage = renderStages.FirstOrDefault(x => x.Name == "Opaque");
         TransparentStage = renderStages.FirstOrDefault(x => x.Name == "Transparent");
+        AfterPostEffectsStage = renderStages.FirstOrDefault(x => x.Name == "AfterPostEffects");
     }
 }

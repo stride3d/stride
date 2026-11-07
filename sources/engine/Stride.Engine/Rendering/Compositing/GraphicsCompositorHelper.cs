@@ -25,6 +25,9 @@ namespace Stride.Rendering.Compositing
         {
             var opaqueRenderStage = new RenderStage("Opaque", "Main") { SortMode = new StateChangeSortMode() };
             var transparentRenderStage = new RenderStage("Transparent", "Main") { SortMode = new BackToFrontSortMode() };
+            // NOTE: For now, AfterPostEffectsRenderStage is only used for full-screen UI elements, so we will use BackToFrontSortMode() as regular UI elements.
+            //       If in the future we want to use AfterPostEffectsRenderStage for other purposes, we might want to change this to StateChangeSortMode() or make it configurable.
+            var afterPostEffectsRenderStage = new RenderStage("AfterPostEffects", "AfterPostEffects") { SortMode = new BackToFrontSortMode() };
             var shadowCasterRenderStage = new RenderStage("ShadowMapCaster", "ShadowMapCaster") { SortMode = new FrontToBackSortMode() };
             var shadowCasterCubeMapRenderStage = new RenderStage("ShadowMapCasterCubeMap", "ShadowMapCasterCubeMap") { SortMode = new FrontToBackSortMode() };
             var shadowCasterParaboloidRenderStage = new RenderStage("ShadowMapCasterParaboloid", "ShadowMapCasterParaboloid") { SortMode = new FrontToBackSortMode() };
@@ -53,6 +56,7 @@ namespace Stride.Rendering.Compositing
                 Clear = { Color = clearColor ?? Color.CornflowerBlue },
                 OpaqueRenderStage = opaqueRenderStage,
                 TransparentRenderStage = transparentRenderStage,
+                AfterPostEffectsRenderStage = afterPostEffectsRenderStage,
                 ShadowMapRenderStages = { shadowCasterRenderStage, shadowCasterParaboloidRenderStage, shadowCasterCubeMapRenderStage },
                 PostEffects = postProcessingEffects,
             };
@@ -118,6 +122,7 @@ namespace Stride.Rendering.Compositing
                 {
                     opaqueRenderStage,
                     transparentRenderStage,
+                    afterPostEffectsRenderStage,
                     shadowCasterRenderStage,
                     shadowCasterParaboloidRenderStage,
                     shadowCasterCubeMapRenderStage,

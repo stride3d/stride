@@ -38,6 +38,11 @@ RenderStages:
         Name: GBuffer
         EffectSlotName: GBuffer
         SortMode: !FrontToBackSortMode {}
+    f0e8b835930244b7aa3fcb23a7893e7a:
+        Id: 5e6bb469-b8ef-4db6-a83d-74af5eb43313
+        Name: AfterPostEffects
+        EffectSlotName: AfterPostEffects
+        SortMode: !BackToFrontSortMode {}
     54e148fa49ca18c6b30f86e89ec95388*:
         Id: ffa492d9-b8a2-4d74-abe8-d82c542fc526
         Name: VoxelizationPassFirst
@@ -139,6 +144,7 @@ SharedRenderers:
             61b557b74893400898c007d5ece5e87f: ref!! 7cebf9d3-bf10-4e25-939e-e36c465efecf
             5c382f66ee524c498d26d9aaf19fc9c3: ref!! aeb202d1-2b31-4082-916c-1faee73ad2ad
         GBufferRenderStage: ref!! 259cf50a-634a-4ac6-846e-4f843be0a38f
+        AfterPostEffectsRenderStage: ref!! 5e6bb469-b8ef-4db6-a83d-74af5eb43313
         PostEffects: null
         LightShafts: null
         VRSettings:
@@ -194,6 +200,7 @@ SharedRenderers:
             2c30bde04a82472ebe084a0eff302ec7: ref!! 7cebf9d3-bf10-4e25-939e-e36c465efecf
             d8b4310b947d4c6bafddd0d0367e6bf2: ref!! aeb202d1-2b31-4082-916c-1faee73ad2ad
         GBufferRenderStage: ref!! 259cf50a-634a-4ac6-846e-4f843be0a38f
+        AfterPostEffectsRenderStage: ref!! 5e6bb469-b8ef-4db6-a83d-74af5eb43313
         PostEffects: !PostProcessingEffects ref!! dbb783b1-cca8-44b3-8e10-48deaf86f59f
         LightShafts: null
         VRSettings:

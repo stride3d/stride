@@ -68,6 +68,15 @@ namespace Stride.Rendering.Compositing
         public RenderStage TransparentRenderStage { get; set; }
 
         /// <summary>
+        ///   An optional render stage drawn to the non-MSAA output target after post effects and MSAA resolve.
+        /// </summary>
+        /// <value>
+        ///   The render stage drawn after post effects and MSAA resolve.
+        ///   Can be set to <see langword="null"/>.
+        /// </value>
+        public RenderStage AfterPostEffectsRenderStage { get; set; }
+
+        /// <summary>
         /// The shadow map render stages for shadow casters. No shadow rendering will happen if null.
         /// </summary>
         [MemberCollection(NotNullItems = true)]
@@ -290,6 +299,11 @@ namespace Stride.Rendering.Compositing
             {
                 context.RenderView.RenderStages.Add(GBufferRenderStage);
             }
+
+            if (AfterPostEffectsRenderStage != null)
+            {
+                context.RenderView.RenderStages.Add(AfterPostEffectsRenderStage);
+            }
         }
 
         protected override unsafe void CollectCore(RenderContext context)
@@ -310,6 +324,11 @@ namespace Stride.Rendering.Compositing
                 context.RenderOutput = new RenderOutputDescription(PostEffects != null ? PixelFormat.R16G16B16A16_Float : context.RenderOutput.RenderTargetFormat0, DepthBufferFormat, actualMultisampleCount);
 
                 CollectStages(context);
+
+                if (AfterPostEffectsRenderStage != null)
+                {
+                    AfterPostEffectsRenderStage.Output = context.RenderOutput;
+                }
 
                 if (VRSettings.Enabled && VRSettings.VRDevice != null)
                 {
@@ -606,6 +625,15 @@ namespace Stride.Rendering.Compositing
                         {
                             drawContext.CommandList.Copy(renderTargets[colorTargetIndex], viewOutputTarget);
                         }
+                    }
+                }
+
+                if (AfterPostEffectsRenderStage != null)
+                {
+                    using (drawContext.PushRenderTargetsAndRestore())
+                    {
+                        drawContext.CommandList.SetRenderTarget(viewDepthStencil, viewOutputTarget);
+                        renderSystem.Draw(drawContext, context.RenderView, AfterPostEffectsRenderStage);
                     }
                 }
 
