@@ -464,9 +464,11 @@ partial class PackageSession
         return OperatingSystem.IsWindows() ? $"net{version}.0-windows7.0" : $"net{version}.0";
     }
 
+    // The folder whose NuGet settings the restores use: the solution's, or for a session opened from a project (its
+    // SolutionPath is empty, not null) the first project's
     private string? GetRootDirectory()
     {
-        return SolutionPath is not null
+        return HasSolution
             ? Path.GetDirectoryName(SolutionPath.ToOSPath())
             : Projects.OfType<SolutionProject>().Select(x => Path.GetDirectoryName(x.FullPath.ToOSPath())).FirstOrDefault();
     }
