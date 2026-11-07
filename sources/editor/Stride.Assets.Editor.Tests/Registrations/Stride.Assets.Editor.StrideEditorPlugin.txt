@@ -5,7 +5,6 @@ AssetEditorViewModelTypes:
   Stride.Assets.Presentation.ViewModels.PrefabViewModel -> Stride.Assets.Editor.ViewModels.PrefabEditorViewModel
   Stride.Assets.Presentation.ViewModels.SceneViewModel -> Stride.Assets.Editor.ViewModels.SceneEditorViewModel
   Stride.Assets.Presentation.ViewModels.ScriptSourceFileViewModel -> Stride.Assets.Editor.ViewModels.ScriptSourceFileEditorViewModel
-  Stride.Assets.Presentation.ViewModels.SpriteSheetViewModel -> Stride.Assets.Editor.ViewModels.SpriteSheetEditorViewModel
   Stride.Assets.Presentation.ViewModels.VisualScriptViewModel -> Stride.Assets.Editor.ViewModels.VisualScriptEditorViewModel
 AssetEditorViewTypes:
 AssetPreviewViewModelTypes:

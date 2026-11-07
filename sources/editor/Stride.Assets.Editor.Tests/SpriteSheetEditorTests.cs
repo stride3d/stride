@@ -250,6 +250,40 @@ public sealed class SpriteSheetEditorTests
     }
 
     [Fact]
+    public async Task ThePasteIsDisabledWhileTheClipboardHoldsNoSprite()
+    {
+        using var test = await SpriteSheetTest.OpenAsync();
+        var editor = test.Editor;
+        test.Clipboard.Text = "Some text";
+
+        Assert.False(editor.PasteImageCommand.CanExecute(null));
+
+        editor.SelectedSprites.Add(editor.Sprites[0]);
+        editor.CopyImageCommand.Execute();
+
+        Assert.True(editor.PasteImageCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public async Task ThePasteStaysEnabledWithAClipboardThatAnswersLater()
+    {
+        using var test = await SpriteSheetTest.OpenAsync();
+        var editor = test.Editor;
+        var pendingRead = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        test.Clipboard.PendingRead = pendingRead.Task;
+        try
+        {
+            // Waiting for the clipboard on the UI thread would never end: the paste checks the content when it runs
+            Assert.True(editor.PasteImageCommand.CanExecute(null));
+        }
+        finally
+        {
+            pendingRead.SetResult(null);
+            test.Clipboard.PendingRead = null;
+        }
+    }
+
+    [Fact]
     public async Task PasteIgnoresAClipboardWithoutSprites()
     {
         using var test = await SpriteSheetTest.OpenAsync();

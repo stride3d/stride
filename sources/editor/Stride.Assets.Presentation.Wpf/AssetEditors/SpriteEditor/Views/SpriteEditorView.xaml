@@ -11,9 +11,10 @@
        xmlns:sprite="clr-namespace:Stride.Assets.Sprite;assembly=Stride.Assets"
        xmlns:strings="clr-namespace:Stride.Assets.Presentation.Resources.Strings"
        xmlns:view="clr-namespace:Stride.Assets.Presentation.AssetEditors.SpriteEditor.Views"
-       xmlns:sevm="clr-namespace:Stride.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels"
+       xmlns:sevm="clr-namespace:Stride.Assets.Editor.ViewModels.SpriteEditor;assembly=Stride.Assets.Presentation.Common"
+       xmlns:evm="clr-namespace:Stride.Assets.Editor.ViewModels;assembly=Stride.Assets.Presentation.Common"
        mc:Ignorable="d" 
-       d:DesignHeight="300" d:DesignWidth="300" d:DataContext="{d:DesignInstance sevm:SpriteSheetEditorViewModel}">
+       d:DesignHeight="300" d:DesignWidth="300" d:DataContext="{d:DesignInstance evm:SpriteSheetEditorViewModel}">
   <UserControl.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
@@ -376,7 +377,7 @@
                 <sd:CursorOverrideRule When="{Binding DataContext.ToolMode, Source={sd:XamlRoot}, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static sevm:SpriteSheetEditorToolMode.MagicWand}, Mode=OneWay}"
                                          Cursor="{x:Static view:SpriteEditorView.MagicWandCursor}" ForceCursor="True" />
               </sd:MultiOverrideCursorBehavior>
-              <sd:OnMouseEventBehavior EventType="PreviewMouseDown" Command="{Binding FindSpriteRegionCommand}"/>
+              <behaviors:SpriteImagePickBehavior Command="{Binding FindSpriteRegionCommand}"/>
             </i:Interaction.Behaviors>
             <Image.LayoutTransform>
               <TransformGroup>
@@ -427,11 +428,11 @@
                          Margin="4.1"
                          StrokeThickness="2" Stroke="{Binding BorderColor, Converter={sd:ColorConverter}}" Fill="Transparent" />
               <Rectangle x:Name="SpriteBorders"
-                         Margin="{Binding CurrentSprite.SpriteBorders.ActualBorders, Mode=OneWay, Converter={sd:SumThickness}, ConverterParameter={sd:Thickness 5}}"
+                         Margin="{Binding CurrentSprite.SpriteBorders.ActualBorders, Mode=OneWay, Converter={valueConverters:SpriteVectorToThickness}, ConverterParameter={sd:Thickness 5}}"
                          Visibility="{Binding Type, Converter={sd:Chained {sd:IsEqualToParam}, {sd:VisibleOrCollapsed}, Parameter1={x:Static sprite:SpriteSheetType.UI}}, Mode=OneWay}"
                          StrokeThickness="2" Stroke="{Binding BorderColor, Converter={sd:ColorConverter}}" StrokeDashArray="4 4" Fill="Transparent"/>
               <Canvas x:Name="SpriteCenter"
-                      Margin="{Binding CurrentSprite.SpriteCenter.ActualCenter, Mode=OneWay, Converter={sd:SumThickness}, ConverterParameter={sd:Thickness -2}}"
+                      Margin="{Binding CurrentSprite.SpriteCenter.ActualCenter, Mode=OneWay, Converter={valueConverters:SpriteVectorToThickness}, ConverterParameter={sd:Thickness -2}}"
                       Visibility="{Binding Type, Converter={sd:Chained {sd:IsEqualToParam}, {sd:VisibleOrCollapsed}, Parameter1={x:Static sprite:SpriteSheetType.Sprite2D}}, Mode=OneWay}">
                 <Path Height="16" Width="16" Stretch="UniformToFill" Fill="{Binding BorderColor, Converter={sd:ColorConverter}}"
                       Data="F1 M 35,19L 41,19L 41,35L 57,35L 57,41L 41,41L 41,57L 35,57L 35,41L 19,41L 19,35L 35,35L 35,19 Z " />
@@ -494,7 +495,7 @@
               </Grid>
               <!-- Center tool -->
               <Canvas Visibility="{Binding ToolMode, Converter={sd:Chained {sd:IsEqualToParam}, {sd:VisibleOrCollapsed}, Parameter1={x:Static sevm:SpriteSheetEditorToolMode.SpriteCenter}}, Mode=OneWay}"
-                      Margin="{Binding CurrentSprite.SpriteCenter.ActualCenter, Mode=OneWay, Converter={sd:SumThickness}, ConverterParameter={sd:Thickness -2}}">
+                      Margin="{Binding CurrentSprite.SpriteCenter.ActualCenter, Mode=OneWay, Converter={valueConverters:SpriteVectorToThickness}, ConverterParameter={sd:Thickness -2}}">
                 <Thumb Height="16" Width="16" Cursor="SizeAll">
                   <i:Interaction.Behaviors>
                     <behaviors:ThumbBehavior Target="{Binding CurrentSprite.SpriteCenter}" Direction="Center" />
@@ -503,7 +504,7 @@
               </Canvas>
               <!-- Borders tool -->
               <Grid Visibility="{Binding ToolMode, Converter={sd:Chained {sd:IsEqualToParam}, {sd:VisibleOrCollapsed}, Parameter1={x:Static sevm:SpriteSheetEditorToolMode.Borders}}, Mode=OneWay}"
-                    Margin="{Binding CurrentSprite.SpriteBorders.ActualBorders, Mode=OneWay}">
+                    Margin="{Binding CurrentSprite.SpriteBorders.ActualBorders, Mode=OneWay, Converter={valueConverters:SpriteVectorToThickness}}">
                 <Thumb Height="10" Width="10" Cursor="SizeNWSE" VerticalAlignment="Top" HorizontalAlignment="Left">
                   <i:Interaction.Behaviors>
                     <behaviors:ThumbBehavior Target="{Binding CurrentSprite.SpriteBorders}" Direction="TopLeft"/>
