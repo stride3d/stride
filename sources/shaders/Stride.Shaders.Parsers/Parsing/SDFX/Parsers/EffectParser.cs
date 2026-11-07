@@ -8,6 +8,9 @@ namespace Stride.Shaders.Parsing.SDFX;
 
 public record struct EffectParser : IParser<ShaderEffect>
 {
+    /// <summary>Whether <c>shader</c> declares an effect too (see <see cref="ShaderEffect.ShaderKeyword"/>).</summary>
+    public bool AcceptsShaderKeyword { get; init; }
+
     public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderEffect parsed, in ParseError? orError = null) where TScanner : struct, IScanner
     {
         var position = scanner.Position;
@@ -16,11 +19,15 @@ public record struct EffectParser : IParser<ShaderEffect>
         if (!isPartial)
             scanner.Position = position;
 
-        if (Tokens.Literal("effect", ref scanner, advance: true) && SDSL.Parsers.Spaces1(ref scanner, result, out _))
+        var keywordStart = scanner.Position;
+        var isShaderKeyword = AcceptsShaderKeyword && Tokens.Literal("shader", ref scanner, advance: true);
+        if ((isShaderKeyword || Tokens.Literal("effect", ref scanner, advance: true)) && SDSL.Parsers.Spaces1(ref scanner, result, out _))
         {
             if (LiteralsParser.TypeName(ref scanner, result, out var effectName) && SDSL.Parsers.Spaces0(ref scanner, result, out _))
             {
                 parsed = new((TypeName)effectName, isPartial, new());
+                if (isShaderKeyword)
+                    parsed.ShaderKeyword = scanner[keywordStart..(keywordStart + "shader".Length)];
                 if (EffectStatementParsers.EffectBlock(ref scanner, result, out var s) && SDSL.Parsers.Spaces0(ref scanner, result, out _))
                 {
                     // Optional semi-colon
