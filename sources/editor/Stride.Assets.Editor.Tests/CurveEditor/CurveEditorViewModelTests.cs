@@ -354,6 +354,16 @@ public sealed class CurveEditorViewModelTests
     }
 
     [Fact]
+    public void AxisLabelsHaveNoRoundingNoise()
+    {
+        var axis = new Stride.Assets.Editor.ViewModels.CurveEditor.Axes.LinearAxis();
+
+        // The labels are sums of intervals: 0.2 * 3 is 0.6000000000000001
+        Assert.Equal(0.6.ToString(System.Globalization.CultureInfo.CurrentCulture), axis.FormatValue(0.2 * 3));
+        Assert.Equal("2.5", axis.FormatValue(2.5).Replace(System.Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator, "."));
+    }
+
+    [Fact]
     public async Task FocusOnTheSelectionRedrawsTheView()
     {
         await using var test = await CurveEditorTestScene.OpenAsync();

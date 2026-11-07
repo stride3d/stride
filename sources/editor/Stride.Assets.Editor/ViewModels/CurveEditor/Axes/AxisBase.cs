@@ -303,7 +303,8 @@ namespace Stride.Assets.Editor.ViewModels.CurveEditor.Axes
         public double StartPosition { get; set; }
         
         /// <summary>
-        /// Gets or sets the string format used for formatting the axis values. The default value is <c>null</c>.
+        /// Gets or sets the string format used for formatting the axis values. The default value is <c>null</c>: at most 15
+        /// significant digits.
         /// </summary>
         public string StringFormat { get; set; }
 
@@ -447,7 +448,9 @@ namespace Stride.Assets.Editor.ViewModels.CurveEditor.Axes
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public string FormatValue(double x)
         {
-            return x.ToString(StringFormat, CultureInfo.CurrentCulture);
+            // 15 digits by default, as .NET Framework did: the shortest round-trip form shows the sums of the intervals with their
+            // noise (0.6000000000000001)
+            return x.ToString(StringFormat ?? "G15", CultureInfo.CurrentCulture);
         }
 
         /// <summary>
