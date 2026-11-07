@@ -4,38 +4,26 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.BepuPhysics.Soft.Topology;
+using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
+using Stride.Graphics.Semantics;
 using Stride.Rendering;
 using Buffer = Stride.Graphics.Buffer;
 
 namespace Stride.BepuPhysics.Soft.Rendering;
 
 /// <summary>
-/// A copy of a soft body's model whose vertices are rewritten every frame from the position of its particles.
+/// A copy of a soft body's model whose vertex positions, normals and tangents are rewritten every frame from the
+/// position of its particles. Every other attribute of the source vertex buffer (texture coordinates, colors, extra
+/// UVs...) is kept as the source authored it.
 /// </summary>
 internal sealed class DeformableModel : IDisposable
 {
-    [StructLayout(LayoutKind.Sequential)]
-    private struct Vertex
-    {
-        public static readonly VertexDeclaration Layout = new(
-            VertexElement.Position<Vector3>(),
-            VertexElement.Normal<Vector3>(),
-            VertexElement.Tangent<Vector4>(),
-            VertexElement.TextureCoordinate<Vector2>());
-
-        public Vector3 Position;
-        public Vector3 Normal;
-        public Vector4 Tangent;
-        public Vector2 TexCoord;
-    }
-
     private static readonly ConditionalWeakTable<Model, Model> SourceOfModel = new();
 
-    private readonly Buffer _vertexBuffer;
-    private readonly Buffer _indexBuffer;
-    private readonly Vertex[] _vertices;
+    // One entry per source Mesh, in source.Meshes order
+    private readonly MeshBuffer[] _meshBuffers;
     private readonly Vector3[] _particles;
     private readonly Vector3[] _positions;
     private readonly Vector3[] _normals;
@@ -45,45 +33,97 @@ internal sealed class DeformableModel : IDisposable
 
     public SoftBodyTopology Topology { get; }
 
-    public DeformableModel(GraphicsDevice device, Model source, SoftBodyTopology topology)
+    public DeformableModel(GraphicsDevice device, IServiceRegistry services, Model source, SoftBodyTopology topology)
     {
         Topology = topology;
-        var mesh = topology.Mesh;
-        int vertexCount = mesh.Positions.Length;
+        var meshPool = topology.Mesh;
+        int vertexCount = meshPool.Positions.Length;
 
-        _vertices = new Vertex[vertexCount];
-        for (int i = 0; i < vertexCount; i++)
-            _vertices[i].TexCoord = mesh.TexCoords[i];
         _particles = new Vector3[topology.ParticleCount];
         _positions = new Vector3[vertexCount];
         _normals = new Vector3[vertexCount];
         _tangents = new Vector4[vertexCount];
 
-        _vertexBuffer = Buffer.Vertex.New(device, bufferSize: vertexCount * Vertex.Layout.VertexStride, usage: GraphicsResourceUsage.Dynamic);
-        _indexBuffer = Buffer.Index.New(device, mesh.Indices);
+        if (source.Meshes.Count != meshPool.Parts.Length)
+            throw new InvalidOperationException($"A deformable model expected {source.Meshes.Count} mesh ranges from the topology, got {meshPool.Parts.Length}.");
 
+        _meshBuffers = new MeshBuffer[source.Meshes.Count];
         Model = new Model();
         SourceOfModel.AddOrUpdate(Model, source);
         foreach (var material in source.Materials)
             Model.Materials.Add(material);
 
-        var vertexBinding = new VertexBufferBinding(_vertexBuffer, Vertex.Layout, vertexCount);
-        var indexBinding = new IndexBufferBinding(_indexBuffer, true, mesh.Indices.Length);
-        foreach (var part in mesh.Parts)
+        for (int m = 0; m < source.Meshes.Count; m++)
         {
+            var sourceMesh = source.Meshes[m];
+            var part = meshPool.Parts[m];
+            if (sourceMesh.Draw.VertexBuffers.Length != 1)
+                throw new NotSupportedException($"Soft bodies only support source meshes with a single vertex stream, '{sourceMesh.Name}' has {sourceMesh.Draw.VertexBuffers.Length}.");
+
+            var sourceBinding = sourceMesh.Draw.VertexBuffers[0];
+            var declaration = sourceBinding.Declaration;
+            if (sourceBinding.Count != part.VertexCount)
+                throw new InvalidOperationException($"Soft body topology reports {part.VertexCount} vertices for '{sourceMesh.Name}', the source binding has {sourceBinding.Count}.");
+
+            int stride = declaration.VertexStride;
+            int positionOffset = FindOffset<PositionSemantic>(declaration, PixelFormat.R32G32B32_Float, sourceMesh.Name);
+            int normalOffset = FindOffset<NormalSemantic>(declaration, PixelFormat.R32G32B32_Float, sourceMesh.Name);
+            int tangentOffset = FindOffset<TangentSemantic>(declaration, PixelFormat.R32G32B32A32_Float, sourceMesh.Name);
+
+            // A template snapshot of the source bytes, re-copied to the working buffer before each deformation so attributes we
+            // do not touch stay authored. DataInner accounts for the binding offset and length.
+            var readable = new VertexBufferHelper(sourceBinding, services, out _);
+            var inner = readable.DataInner;
+            var template = new byte[inner.Length];
+            inner.CopyTo(template);
+
+            var working = new byte[template.Length];
+            template.AsSpan().CopyTo(working);
+
+            var vertexBuffer = Buffer.Vertex.New(device, bufferSize: template.Length, usage: GraphicsResourceUsage.Dynamic);
+            var vertexBinding = new VertexBufferBinding(vertexBuffer, declaration, part.VertexCount);
+
+            _meshBuffers[m] = new MeshBuffer
+            {
+                Template = template,
+                Working = working,
+                VertexBuffer = vertexBuffer,
+                Binding = vertexBinding,
+                Stride = stride,
+                PositionOffset = positionOffset,
+                NormalOffset = normalOffset,
+                TangentOffset = tangentOffset,
+                FirstVertex = part.FirstVertex,
+                VertexCount = part.VertexCount,
+            };
+
             Model.Meshes.Add(new Mesh
             {
-                MaterialIndex = part.MaterialIndex,
+                MaterialIndex = sourceMesh.MaterialIndex,
                 Draw = new MeshDraw
                 {
-                    PrimitiveType = PrimitiveType.TriangleList,
-                    StartLocation = part.FirstIndex,
-                    DrawCount = part.IndexCount,
+                    PrimitiveType = sourceMesh.Draw.PrimitiveType,
+                    StartLocation = sourceMesh.Draw.StartLocation,
+                    DrawCount = sourceMesh.Draw.DrawCount,
                     VertexBuffers = [vertexBinding],
-                    IndexBuffer = indexBinding,
+                    IndexBuffer = sourceMesh.Draw.IndexBuffer,
                 },
             });
         }
+    }
+
+    private static int FindOffset<TSemantic>(VertexDeclaration declaration, PixelFormat expected, string meshName) where TSemantic : ISemantic
+    {
+        string semanticName = TSemantic.Name;
+        foreach (var entry in declaration.EnumerateWithOffsets())
+        {
+            if (entry.VertexElement.SemanticName != semanticName || entry.VertexElement.SemanticIndex != 0)
+                continue;
+            if (entry.VertexElement.Format != expected)
+                throw new NotSupportedException($"Soft body deformation writes {semanticName} as {expected}, '{meshName}' has {entry.VertexElement.Format}.");
+            return entry.Offset;
+        }
+        throw new NotSupportedException($"Soft body deformation expected {semanticName} in '{meshName}', the vertex declaration has none.");
     }
 
     /// <summary> The model a deformable model was copied from, or <paramref name="model"/> itself when it is not one, such as on a cloned entity </summary>
@@ -117,16 +157,34 @@ internal sealed class DeformableModel : IDisposable
         world.Decompose(out var scale, out Quaternion rotation, out _);
         var toLocal = Quaternion.Conjugate(rotation);
         var bounds = new BoundingBox(new Vector3(float.MaxValue), new Vector3(float.MinValue));
-        for (int i = 0; i < _vertices.Length; i++)
+        var sourceNormals = Topology.Mesh.Normals;
+        var sourceTangents = Topology.Mesh.Tangents;
+
+        foreach (var buffer in _meshBuffers)
         {
-            ref var vertex = ref _vertices[i];
-            vertex.Position = Vector3.TransformCoordinate(_positions[i], worldToLocal);
-            // Undoing the scale stretches normals the other way than directions, as the inverse transpose would
-            vertex.Normal = SafeNormalize(Vector3.Transform(_normals[i], toLocal) * scale, Topology.Mesh.Normals[i]);
-            var tangent = Vector3.Transform((Vector3)_tangents[i], toLocal) / scale;
-            tangent -= vertex.Normal * Vector3.Dot(vertex.Normal, tangent);
-            vertex.Tangent = new Vector4(SafeNormalize(tangent, (Vector3)Topology.Mesh.Tangents[i]), _tangents[i].W);
-            BoundingBox.Merge(ref bounds, ref vertex.Position, out bounds);
+            // Template copy restores every attribute the source authored; the writes below only overwrite position, normal and tangent.
+            buffer.Template.AsSpan().CopyTo(buffer.Working);
+            var working = buffer.Working.AsSpan();
+            int stride = buffer.Stride;
+            int firstVertex = buffer.FirstVertex;
+            for (int i = 0; i < buffer.VertexCount; i++)
+            {
+                int mergedId = firstVertex + i;
+                int byteStart = i * stride;
+
+                var position = Vector3.TransformCoordinate(_positions[mergedId], worldToLocal);
+                // Undoing the scale stretches normals the other way than directions, as the inverse transpose would
+                var normal = SafeNormalize(Vector3.Transform(_normals[mergedId], toLocal) * scale, sourceNormals[mergedId]);
+                var raw = Vector3.Transform((Vector3)_tangents[mergedId], toLocal) / scale;
+                raw -= normal * Vector3.Dot(normal, raw);
+                var tangent = new Vector4(SafeNormalize(raw, (Vector3)sourceTangents[mergedId]), _tangents[mergedId].W);
+
+                MemoryMarshal.Write(working.Slice(byteStart + buffer.PositionOffset, 12), in position);
+                MemoryMarshal.Write(working.Slice(byteStart + buffer.NormalOffset, 12), in normal);
+                MemoryMarshal.Write(working.Slice(byteStart + buffer.TangentOffset, 16), in tangent);
+
+                BoundingBox.Merge(ref bounds, ref position, out bounds);
+            }
         }
 
         var sphere = BoundingSphere.FromBox(bounds);
@@ -137,11 +195,14 @@ internal sealed class DeformableModel : IDisposable
         }
         Model.BoundingBox = bounds;
         Model.BoundingSphere = sphere;
-
     }
 
     /// <summary> Sends the vertices computed by <see cref="Deform"/> to the GPU </summary>
-    public void Upload(CommandList commandList) => _vertexBuffer.SetData<Vertex>(commandList, _vertices.AsSpan());
+    public void Upload(CommandList commandList)
+    {
+        foreach (var buffer in _meshBuffers)
+            buffer.VertexBuffer.SetData<byte>(commandList, buffer.Working.AsSpan());
+    }
 
     /// <summary> Carries the authored normals and tangents along the deformation of the lattice cell each vertex is in </summary>
     private void DeformFrames(Vector3[] coordinates)
@@ -171,7 +232,21 @@ internal sealed class DeformableModel : IDisposable
 
     public void Dispose()
     {
-        _vertexBuffer.Dispose();
-        _indexBuffer.Dispose();
+        foreach (var buffer in _meshBuffers)
+            buffer.VertexBuffer.Dispose();
+    }
+
+    private sealed class MeshBuffer
+    {
+        public required byte[] Template;
+        public required byte[] Working;
+        public required Buffer VertexBuffer;
+        public required VertexBufferBinding Binding;
+        public required int Stride;
+        public required int PositionOffset;
+        public required int NormalOffset;
+        public required int TangentOffset;
+        public required int FirstVertex;
+        public required int VertexCount;
     }
 }

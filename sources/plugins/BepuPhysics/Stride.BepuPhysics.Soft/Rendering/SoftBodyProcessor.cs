@@ -90,7 +90,7 @@ internal sealed class SoftBodyProcessor : EntityProcessor<SoftBodyComponent, Sof
             if (renderModel is null || renderModel.Topology != topology)
             {
                 Release(component, data);
-                renderModel = component.RenderModel = new DeformableModel(_device, component.SourceModel!, topology);
+                renderModel = component.RenderModel = new DeformableModel(_device, Services, component.SourceModel!, topology);
                 modelComponent.Model = renderModel.Model;
             }
         }
