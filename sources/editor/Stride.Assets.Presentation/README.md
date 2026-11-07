@@ -8,9 +8,10 @@ by the WPF and the cross-platform (Avalonia) Game Studio. **Level: Presentation.
 * It can reference any Stride libraries, as long as they are cross-platform.
 * It should be platform-agnostic as well as UI-agnostic.
   In other words, no dependencies on platform (e.g. Windows), or UI library (e.g. Avalonia, WPF) are allowed.
-* It references `Stride.Assets`, `Stride.Assets.Models` and `Stride.Core.Assets.Presentation`. It also references
-  `Stride.Core.Assets.Editor` for the plugin base (`AssetsPlugin`) and the asset view model contracts it uses; it does not
-  reference `Stride.Editor` or `Stride.Assets.Editor`.
+* It references `Stride.Assets`, `Stride.Assets.Models` and `Stride.Core.Assets.Presentation` only. It does not reference
+  the editor layer (`Stride.Core.Assets.Editor`, `Stride.Editor`, `Stride.Assets.Editor`): the contracts its view models
+  use are in `Stride.Core.Assets.Presentation`, and its plugin is in `Stride.Assets.Editor`. `LayeringTests`
+  (`Stride.Assets.Editor.Tests`) checks it.
 
 ## Implementations
 
@@ -19,8 +20,9 @@ by the WPF and the cross-platform (Avalonia) Game Studio. **Level: Presentation.
   through `IEntityHierarchyEditorViewModel`, which each editor implements.
 * The small contracts they use: `IEntityHierarchyItemViewModel`, `IEditorDesignPartViewModel<,>`, the add-asset policy
   interface and `IScriptCompilationProvider`.
-* `StrideDefaultAssetsPlugin`: a default plugin of the cross-platform editor, which its host registers. The WPF editor
-  registers the view models it shares itself.
+* No plugin: the cross-platform editor registers these view models through `StrideDefaultAssetsPlugin` of
+  `Stride.Assets.Editor`, which names this assembly in its `ScannedAssemblies`. The WPF editor registers the view models
+  it shares itself.
 
 ## Notes
 

@@ -17,6 +17,7 @@ using Stride.Core.IO;
 using Stride.Core.Serialization;
 using Stride.Core.Settings;
 using Stride.Rendering;
+using Stride.Core.Assets.Presentation.Services;
 
 namespace Stride.Assets.Editor.Templates;
 

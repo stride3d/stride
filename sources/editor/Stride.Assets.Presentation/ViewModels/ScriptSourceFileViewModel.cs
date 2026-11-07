@@ -4,7 +4,6 @@
 using Stride.Assets.Scripts;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Annotations;
-using Stride.Core.Assets.Editor.Editors;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Presentation.Annotations;
 

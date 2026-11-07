@@ -3,6 +3,8 @@
 #nullable disable
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Stride.Core.Assets.Templates;
+using Stride.Core.IO;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
 
@@ -51,5 +53,13 @@ namespace Stride.Core.Assets.Presentation.ViewModels
         /// <param name="deletedOutside">If <c>true</c>, the files of these assets were deleted outside the editor.</param>
         /// <returns><c>true</c> if the content was deleted, <c>false</c> if the deletion was cancelled.</returns>
         Task<bool> DeleteContent(IReadOnlyCollection<object> locations, bool skipConfirmation = false, bool deletedOutside = false);
+
+        /// <summary>
+        /// Runs an asset template in the folder where the view creates assets, and selects the new assets.
+        /// </summary>
+        /// <param name="template">The asset template to run.</param>
+        /// <param name="files">The source files to import, or <c>null</c> when the template asks for them itself.</param>
+        /// <returns>The new assets; none when nothing was created.</returns>
+        Task<List<AssetViewModel>> RunAssetTemplateAsync(TemplateDescription template, IList<UFile> files);
     }
 }

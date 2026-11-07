@@ -17,7 +17,7 @@ public sealed class ModuleTests
         var assets = AssemblyRegistry.Find(AssemblyCommonCategories.Assets);
 
         Assert.Contains(typeof(Stride.Editor.Thumbnails.ThumbnailCompilerBase<>).Assembly, assets);
-        Assert.Contains(typeof(StrideDefaultAssetsPlugin).Assembly, assets);
+        Assert.Contains(typeof(Stride.Assets.Presentation.ViewModels.MaterialViewModel).Assembly, assets);
         Assert.Contains(typeof(StrideEditorPlugin).Assembly, assets);
     }
 }

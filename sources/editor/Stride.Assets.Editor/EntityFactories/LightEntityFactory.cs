@@ -12,6 +12,7 @@ using Stride.Core;
 using Stride.Engine;
 using Stride.Rendering.Lights;
 using Stride.Rendering.Skyboxes;
+using Stride.Core.Assets.Presentation.Services;
 
 namespace Stride.Assets.Editor.EntityFactories;
 

@@ -9,6 +9,7 @@ using Stride.Core.Presentation.Quantum.ViewModels;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
 using Stride.Core.Translation;
+using Stride.Core.Assets.Presentation.Services;
 
 namespace Stride.Core.Assets.Editor.Avalonia.Converters;
 

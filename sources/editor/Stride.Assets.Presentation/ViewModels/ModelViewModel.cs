@@ -9,9 +9,6 @@ using System.Threading.Tasks;
 using Stride.Assets.Models;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Annotations;
-using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
-using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Extensions;
@@ -22,6 +19,7 @@ using Stride.Core.Reflection;
 using Stride.Rendering;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Presentation.Annotations;
+using Stride.Core.Assets.Presentation.Services;
 
 namespace Stride.Assets.Presentation.ViewModels;
 
@@ -158,16 +156,15 @@ public class ModelViewModel : ImportedAssetViewModel<ModelAsset>
             return;
 
         // Templates run in the asset view of the editor's session
-        if (Session is not SessionViewModel session)
+        if (Session.ActiveAssetView is not { } assetView)
             return;
 
         using (var transaction = UndoRedoService.CreateTransaction())
         {
-            var template = session.FindTemplates(TemplateScope.Asset).SingleOrDefault(x => x.Id == SkeletonFromFileTemplateId);
+            var template = Session.FindTemplates(TemplateScope.Asset).SingleOrDefault(x => x.Id == SkeletonFromFileTemplateId);
             if (template != null)
             {
-                var viewModel = new TemplateDescriptionViewModel(ServiceProvider, template);
-                var skeleton = (await session.AssetCollection.RunAssetTemplateAsync(viewModel, [source])).SingleOrDefault();
+                var skeleton = (await assetView.RunAssetTemplateAsync(template, [source])).SingleOrDefault();
                 if (skeleton == null)
                     return;
 

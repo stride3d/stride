@@ -10,6 +10,7 @@ using Stride.Core.Extensions;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Quantum;
 using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Presentation.Services;
 
 namespace Stride.Core.Assets.Editor.Components.FixAssetReferences;
 

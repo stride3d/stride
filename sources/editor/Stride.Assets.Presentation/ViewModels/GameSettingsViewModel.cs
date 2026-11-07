@@ -3,12 +3,12 @@
 #nullable enable
 
 using Stride.Core.Assets.Editor.Annotations;
-using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Serialization;
 using Stride.Engine;
 using Stride.Graphics;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Presentation.Annotations;
+using Stride.Core.Assets.Presentation.Services;
 
 namespace Stride.Assets.Presentation.ViewModels;
 

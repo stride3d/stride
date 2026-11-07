@@ -36,23 +36,30 @@ public sealed class PluginTests
     }
 
     [Fact]
-    public void TheEditorPluginUnregistersWithItsAssemblyAndOnlyItsHostRegistersIt()
+    public void TheDefaultPluginsUnregisterWithTheirAssemblyAndOnlyTheirHostRegistersThem()
     {
+        // Both default plugins live in Stride.Assets.Editor
         var assembly = typeof(StrideEditorPlugin).Assembly;
+        Assert.Same(assembly, typeof(StrideDefaultAssetsPlugin).Assembly);
 
         var removed = AssetsPlugin.UnregisterPlugins(assembly);
         try
         {
             Assert.Single(removed, x => x is StrideEditorPlugin);
-            Assert.DoesNotContain(AssetsPlugin.RegisteredPlugins, x => x is StrideEditorPlugin);
-            // The discovery of the assembly does not bring the default plugin back
-            Assert.DoesNotContain(AssetsPlugin.RegisterPlugins(assembly), x => x is StrideEditorPlugin);
+            Assert.Single(removed, x => x is StrideDefaultAssetsPlugin);
+            Assert.DoesNotContain(AssetsPlugin.RegisteredPlugins, x => x is StrideEditorPlugin or StrideDefaultAssetsPlugin);
+            // The discovery of the assembly does not bring the default plugins back
+            Assert.DoesNotContain(AssetsPlugin.RegisterPlugins(assembly), x => x is StrideEditorPlugin or StrideDefaultAssetsPlugin);
         }
         finally
         {
+            // In the order of their host
+            if (!AssetsPlugin.RegisteredPlugins.Any(x => x is StrideDefaultAssetsPlugin))
+                AssetsPlugin.RegisterPlugin(typeof(StrideDefaultAssetsPlugin));
             if (!AssetsPlugin.RegisteredPlugins.Any(x => x is StrideEditorPlugin))
                 AssetsPlugin.RegisterPlugin(typeof(StrideEditorPlugin));
         }
+        Assert.Single(AssetsPlugin.RegisteredPlugins, x => x is StrideDefaultAssetsPlugin);
         Assert.Single(AssetsPlugin.RegisteredPlugins, x => x is StrideEditorPlugin);
     }
 
@@ -125,7 +132,7 @@ public sealed class PluginTests
         Assert.Contains(typeof(TexturePreview), previews);
         Assert.Contains(typeof(ScenePreview), previews);
         Assert.Contains(typeof(SkyboxPreview), previews);
-        Assert.Empty(Stride.Core.Reflection.AssemblyRegistry.GetScanTypes(typeof(StrideDefaultAssetsPlugin).Assembly, typeof(Stride.Editor.Preview.IAssetPreview)));
+        Assert.Empty(Stride.Core.Reflection.AssemblyRegistry.GetScanTypes(typeof(MaterialViewModel).Assembly, typeof(Stride.Editor.Preview.IAssetPreview)));
     }
 
     [Fact]

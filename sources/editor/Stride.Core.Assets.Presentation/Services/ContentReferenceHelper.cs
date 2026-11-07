@@ -7,7 +7,7 @@ using Stride.Core.Reflection;
 using Stride.Core.Serialization;
 using Stride.Core.Assets.Presentation.ViewModels;
 
-namespace Stride.Core.Assets.Editor.Services
+namespace Stride.Core.Assets.Presentation.Services
 {
     public class ContentReferenceHelper
     {
