@@ -4,6 +4,7 @@
 #if (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
 using System;
 using System.Collections.Generic;
+using System.Windows.Forms;
 using SharpDX.XInput;
 
 namespace Stride.Input
@@ -15,12 +16,30 @@ namespace Stride.Input
     {
         private const int XInputGamePadCount = 4;
 
+        private readonly Control uiControl;
         private readonly List<int> devicesToRemove = new List<int>();
 
         // Always monitored gamepads
         private Controller[] controllers;
         private Guid[] controllerIds;
         private GamePadXInput[] devices;
+
+        /// <summary>
+        /// Creates the XInput source.
+        /// </summary>
+        /// <param name="uiControl">
+        /// The game's control. While its top-level window has no focus, gamepads only return towards rest (see <see cref="BackgroundInputFilter"/>).
+        /// With <c>null</c>, gamepads are not filtered.
+        /// </param>
+        public InputSourceWindowsXInput(Control uiControl)
+        {
+            this.uiControl = uiControl;
+        }
+
+        /// <summary>
+        /// Gets whether the game window has focus.
+        /// </summary>
+        internal bool HasFocus => WindowsInputFocus.HasFocus(uiControl);
 
         public static bool IsSupported()
         {
