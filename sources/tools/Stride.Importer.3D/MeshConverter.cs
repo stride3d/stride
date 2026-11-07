@@ -244,6 +244,7 @@ namespace Stride.Importer.ThreeD
             postProcessFlags |= aiPostProcessSteps.aiProcess_CalcTangentSpace
                                 | aiPostProcessSteps.aiProcess_Triangulate
                                 | aiPostProcessSteps.aiProcess_GenNormals
+                                | aiPostProcessSteps.aiProcess_JoinIdenticalVertices
                                 | aiPostProcessSteps.aiProcess_SortByPType
                                 | aiPostProcessSteps.aiProcess_FlipWindingOrder
                                 | aiPostProcessSteps.aiProcess_FlipUVs
