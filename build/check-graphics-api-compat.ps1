@@ -3,7 +3,7 @@
 
 # Checks that the Direct3D 11, Direct3D 12 and Vulkan builds of Stride.Graphics have the same public API: a game compiles
 # against one and runs on any, so a member missing on one is a MissingMethodException at run time. Run it after building
-# the three (-p:StrideGraphicsApiDependentBuildAll=true). The members that differ on purpose are in the suppression files
+# the three (-p:StrideGraphicsApiDependentBuildAll=true). The members that differ on purpose are in the suppression file
 # next to Stride.Graphics.csproj; -GenerateSuppressionFile writes all the differences found to a new file to compare.
 param(
     [string]$Configuration = 'Debug',
@@ -15,7 +15,7 @@ $ErrorActionPreference = 'Stop'
 $repository = Split-Path $PSScriptRoot -Parent
 $project = Join-Path $repository 'sources/engine/Stride.Graphics'
 $bin = Join-Path $project "bin/$Configuration/net10.0"
-$suppressionFiles = @('GraphicsApiCompat.BackendOnly.xml', 'GraphicsApiCompat.Pending.xml') | ForEach-Object { Join-Path $project $_ }
+$suppressionFile = Join-Path $project 'GraphicsApiCompat.BackendOnly.xml'
 
 # The assemblies the API refers to: the .NET reference pack, the Stride assemblies next to each build, and the compile
 # assets of the NuGet packages (the native bindings are not copied to the output)
@@ -56,7 +56,7 @@ foreach ($option in '--left-assemblies-transformation-pattern', '--right-assembl
     $arguments.Add($option); $arguments.Add('.*(Direct3D11|Direct3D12|Vulkan).Stride.Graphics.dll;$1')
 }
 $arguments.Add('--create-work-item-per-assembly')
-foreach ($file in $suppressionFiles) { $arguments.Add('--suppression-file'); $arguments.Add($file) }
+$arguments.Add('--suppression-file'); $arguments.Add($suppressionFile)
 if ($GenerateSuppressionFile) {
     $arguments.Add('--generate-suppression-file')
     $arguments.Add('--suppression-output-file'); $arguments.Add((Join-Path $project 'GraphicsApiCompat.Generated.xml'))
@@ -67,12 +67,12 @@ $ErrorActionPreference = 'Continue'
 $output = dotnet dnx --yes Microsoft.DotNet.ApiCompat.Tool@10.0.403 -- @arguments 2>&1 | ForEach-Object { $line = "$_"; Write-Host $line; $line }
 $exitCode = $LASTEXITCODE
 if ($exitCode -ne 0) {
-    Write-Host "The graphics APIs differ in the public API of Stride.Graphics. Add the member to the backends that lack it; if it differs on purpose, add it to a suppression file in $project."
+    Write-Host "The graphics APIs differ in the public API of Stride.Graphics. Add the member to the backends that lack it; if it differs on purpose, add it to $suppressionFile."
     exit $exitCode
 }
-# The tool reports a suppression of a difference that is gone without failing: keep the files exact
+# The tool reports a suppression of a difference that is gone without failing: keep the file exact
 if ($output -match '^Unnecessary suppressions found') {
-    Write-Host "Remove the suppressions above from the files in $project."
+    Write-Host "Remove the suppressions above from $suppressionFile."
     exit 1
 }
 Write-Host 'Direct3D 11, Direct3D 12 and Vulkan have the same public API in Stride.Graphics.'

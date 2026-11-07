@@ -167,6 +167,12 @@ namespace Stride.Assets
                 // had nothing to reset. Its calls only go.
                 Rewrite(
                     FluentCallRemove("Stride.Graphics.CommandList", "ResetQueryPool")),
+
+                // 4.5.1: CommandList.SetStreamTargets is gone: no shader declares stream output since 4.4 (SDSL0170), so the
+                // bound buffers were never written. Its calls only go; a compute shader writing a RWStructuredBuffer replaces
+                // stream output.
+                Rewrite(
+                    FluentCallRemove("Stride.Graphics.CommandList", "SetStreamTargets")),
             ]);
 
             // Structural csproj migrations, gated by the version each change landed at. Run against the

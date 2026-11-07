@@ -115,15 +115,6 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Sets the stream targets.
-        /// </summary>
-        /// <param name="buffers">The buffers.</param>
-        public void SetStreamTargets(params Buffer[] buffers)
-        {
-            NullHelper.ToImplement();
-        }
-
-        /// <summary>
         /// Unset the read/write buffers.
         /// </summary>
         public void UnsetReadWriteBuffers()

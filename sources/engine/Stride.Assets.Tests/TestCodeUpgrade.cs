@@ -663,6 +663,38 @@ public class TestCodeUpgrade
     }
 
     [Fact]
+    public async Task FluentCallRemoveDropsTheCallsOfEveryOverload()
+    {
+        // The 4.5.1 shape: CommandList.SetStreamTargets went, with a span overload on Direct3D 11 and an array one elsewhere.
+        var source = """
+            namespace TestNs
+            {
+                class Buffer { }
+                class Target
+                {
+                    public void SetStreamTargets(params System.ReadOnlySpan<Buffer> buffers) { }
+                    public void SetStreamTargets(params Buffer[] buffers) { }
+                }
+                class Usage
+                {
+                    void A(Target t, Buffer b, Buffer[] all)
+                    {
+                        t.SetStreamTargets(b);
+                        t.SetStreamTargets(all);
+                        t.SetStreamTargets();
+                        t.SetStreamTargets(new System.ReadOnlySpan<Buffer>(all));
+                    }
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, Rewrite(FluentCallRemove("TestNs.Target", "SetStreamTargets")));
+
+        Assert.DoesNotContain("t.SetStreamTargets", result);
+        AssertCompiles(result);
+    }
+
+    [Fact]
     public async Task FluentCallRemoveKeepsTheReceiver()
     {
         // The 4.4 shape: Buffer.RecreateWith returned its receiver and went away with the device reset recovery.

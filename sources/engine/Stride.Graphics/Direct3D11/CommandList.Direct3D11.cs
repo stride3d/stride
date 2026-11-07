@@ -269,37 +269,6 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Sets the stream output Buffers.
-        /// </summary>
-        /// <param name="buffers">
-        ///   The Buffers to set for stream output.
-        ///   Specify <see langword="null"/> or an empty array to unset any bound output Buffer.
-        /// </param>
-        public void SetStreamTargets(params ReadOnlySpan<Buffer> buffers)
-        {
-            var numBuffers = buffers.Length;
-
-            if (numBuffers > 0)
-            {
-                scoped Span<ComPtr<ID3D11Buffer>> streamOutputBuffers = stackalloc ComPtr<ID3D11Buffer>[numBuffers];
-                scoped Span<uint> streamOutputOffsets = stackalloc uint[numBuffers];
-
-                for (int i = 0; i < numBuffers; ++i)
-                {
-                    streamOutputBuffers[i] = buffers[i].NativeBuffer.Handle;
-                    streamOutputOffsets[i] = 0;
-                }
-                nativeDeviceContext->SOSetTargets((uint) numBuffers,
-                                                  ref streamOutputBuffers.GetReference(),
-                                                  in streamOutputOffsets.GetReference());
-            }
-            else
-            {
-                nativeDeviceContext->SOSetTargets(NumBuffers: 0, ppSOTargets: null, pOffsets: null);
-            }
-        }
-
-        /// <summary>
         ///   Sets the viewports to the rasterizer stage.
         /// </summary>
         private unsafe void SetViewportImpl()

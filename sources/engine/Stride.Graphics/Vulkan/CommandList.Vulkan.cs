@@ -213,14 +213,6 @@ namespace Stride.Graphics
             renderingDirty = true;
         }
 
-        /// <summary>
-        /// Sets the stream targets.
-        /// </summary>
-        /// <param name="buffers">The buffers.</param>
-        public void SetStreamTargets(params Buffer[] buffers)
-        {
-        }
-
         private unsafe void BindPipeline()
         {
             if (!pipelineDirty)
