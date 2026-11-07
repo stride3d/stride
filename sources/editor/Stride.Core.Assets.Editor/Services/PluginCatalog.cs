@@ -19,7 +19,8 @@ public static class PluginCatalog
 {
     /// <summary>
     /// The plugins of the editor and of a session: one entry per Editor package the session's packages declare for this
-    /// editor (loaded, switched off, or left out in safe mode), then one per assembly of the editor's own plugins.
+    /// editor (loaded, switched off, or left out in safe mode), then one per plugin that was not loaded and that no declared
+    /// package explains (by its name), then one per assembly of the editor's own plugins.
     /// </summary>
     /// <param name="host">The plugin host of the editor.</param>
     /// <param name="session">The session, or null before one is open.</param>
@@ -45,6 +46,22 @@ public static class PluginCatalog
                 listed.UnionWith(own);
                 result.Add(Describe(host, name, declaration, container?.Package.Meta.Version ?? declaredVersion, container, assemblies, own));
             }
+        }
+
+        // A plugin left out whose package the session does not declare (any more): listed by its name, so that its state and
+        // errors still show
+        foreach (var status in statuses.Where(x => x.Plugin is null && !listed.Contains(x)))
+        {
+            listed.Add(status);
+            result.Add(new PluginInfo
+            {
+                Id = status.Name,
+                DisplayName = status.Name,
+                Source = PluginSource.Package,
+                State = status.State,
+                OffReason = status.OffReason,
+                Statuses = [status],
+            });
         }
 
         // The editor's own plugins, by assembly
