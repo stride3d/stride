@@ -1,8 +1,9 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <!-- Exposes the project's authored assets to Roslyn components as AdditionalFiles
-       (with their asset-folder root and the resolved asset URL namespace), feeding the
-       asset URL constants generator in Stride.Assets.Generators. -->
+  <!-- Exposes the project's authored assets to Roslyn components as StrideAssetPaths,
+       a pipe-separated list of relative paths to all potential asset files under the package's asset folders.
+       This feeds the asset URL constants generator in Stride.Assets.Generators.
+       Shaders are also exposed through AdditionalFiles for Stride.Shaders.Generators. -->
 
   <PropertyGroup>
     <StrideAssetConstantsImported>true</StrideAssetConstantsImported>
@@ -127,7 +128,7 @@
     </Task>
   </UsingTask>
 
-  <!-- Before GenerateMSBuildEditorConfigFileCore so both the items' metadata and the
+  <!-- Before GenerateMSBuildEditorConfigFileCore so both the asset paths property and the
        resolved namespace property land in the analyzer config; runs in design-time
        builds too, keeping IDE IntelliSense in sync with on-disk assets. -->
   <Target Name="StrideCollectAssetConstants"
