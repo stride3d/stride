@@ -1,12 +1,15 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 #nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using Stride.Core.BuildEngine;
 using Stride.Core;
 using Stride.Core.Annotations;
@@ -22,6 +25,7 @@ using Stride.Rendering;
 using Stride.Rendering.Compositing;
 using Stride.Rendering.Lights;
 using Stride.Shaders.Compiler;
+
 using StrideEffects;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
 using Stride.Assets.Editor.AssetEditors.Gizmos;
@@ -259,9 +263,8 @@ namespace Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game
             var defaultGraphicsCompositor = GraphicsCompositorHelper.CreateDefault(true, EditorGraphicsCompositorHelper.EditorForwardShadingEffect);
 
             // The render features the loaded packages bring (IRenderFeatureProvider, e.g. UI), as in previews and thumbnails
-            var opaqueStage = defaultGraphicsCompositor.RenderStages.First(x => x.Name == "Opaque");
-            var transparentStage = defaultGraphicsCompositor.RenderStages.First(x => x.Name == "Transparent");
-            RenderFeatureProviders.AddPackageRenderFeatures(defaultGraphicsCompositor, opaqueStage, transparentStage);
+            var context = new RenderFeatureProviderContext(defaultGraphicsCompositor);
+            RenderFeatureProviders.AddPackageRenderFeatures(defaultGraphicsCompositor, context);
 
             // Make the game switch to this graphics compositor
             UpdateGraphicsCompositor(defaultGraphicsCompositor);

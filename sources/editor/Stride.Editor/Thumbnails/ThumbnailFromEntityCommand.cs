@@ -1,9 +1,11 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 #nullable disable
+
 using System;
-using System.Linq;
 using System.Threading.Tasks;
+
 using Stride.Core.Assets;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
@@ -12,7 +14,6 @@ using Stride.Assets.Rendering;
 using Stride.Editor.Engine;
 using Stride.Engine;
 using Stride.Graphics;
-using Stride.Rendering;
 using Stride.Rendering.Compositing;
 using Stride.Rendering.Lights;
 
@@ -46,12 +47,10 @@ namespace Stride.Editor.Thumbnails
         /// <inheritdoc/>
         protected override GraphicsCompositor CreateSharedGraphicsCompositor(GraphicsDevice device)
         {
-            var result = GraphicsCompositorHelper.CreateDefault(false, ModelEffectName, null, ThumbnailBackgroundColor);
+            var result = GraphicsCompositorHelper.CreateDefault(enablePostEffects: false, ModelEffectName, camera: null, ThumbnailBackgroundColor);
 
-            var opaqueStage = result.RenderStages.First(x => x.Name.Equals("Opaque"));
-            var transparentStage = result.RenderStages.First(x => x.Name.Equals("Transparent"));
-
-            RenderFeatureProviders.AddPackageRenderFeatures(result, opaqueStage, transparentStage);
+            var context = new RenderFeatureProviderContext(result);
+            RenderFeatureProviders.AddPackageRenderFeatures(result, context);
 
             return result;
         }
