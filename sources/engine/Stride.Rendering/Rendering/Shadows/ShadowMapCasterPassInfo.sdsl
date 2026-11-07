@@ -1,0 +1,21 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Shadows
+{
+    /// <summary>
+    /// Tells a material shader whether the current view is a shadow map.
+    /// </summary>
+    /// <remarks>
+    /// A material whose surface is computed in the pixel shader (a ray-marched volume, a parallax
+    /// search) can settle for a depth good enough for a shadow and skip the rest.
+    /// <see cref="Materials.MaterialRenderFeature"/> writes the flag for every view.
+    /// </remarks>
+    shader ShadowMapCasterPassInfo
+    {
+        cbuffer PerView.ShadowMapView
+        {
+            /// 1 in a shadow map view, 0 in every other view, the camera's depth-only prepass included.
+            stage float ShadowMapViewFlag;
+        }
+    };
+}
