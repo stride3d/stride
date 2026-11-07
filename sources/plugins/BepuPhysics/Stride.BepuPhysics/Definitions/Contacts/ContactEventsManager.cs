@@ -205,11 +205,17 @@ internal class ContactEventsManager : IDisposable
         if (aListener == false && bListener == false)
             return;
 
+        var componentA = _simulation.GetComponent(pair.A);
+        var componentB = _simulation.GetComponent(pair.B);
+
         // Self contacts of a collidable spanning multiple bodies are not reported
-        if (aListener && bListener && ReferenceEquals(_simulation.GetComponent(pair.A), _simulation.GetComponent(pair.B)))
+        if (aListener && bListener && ReferenceEquals(componentA, componentB))
             return;
 
-        IPerTypeManifoldStore.StoreManifold(_manifoldStoresPerWorker, workerIndex, ref manifold, pair, childIndexA, childIndexB);
+        uint ownerA = componentA.CollidableReference!.Value.Packed;
+        uint ownerB = componentB.CollidableReference!.Value.Packed;
+        var ownerSortedPair = ownerA > ownerB ? (ownerA, ownerB) : (ownerB, ownerA);
+        IPerTypeManifoldStore.StoreManifold(_manifoldStoresPerWorker, workerIndex, ref manifold, pair, childIndexA, childIndexB, ownerSortedPair);
     }
 
     private void RunManifoldEvent<TManifold>(Span<ContactGroup<TManifold>> unsafeInfos) where TManifold : unmanaged, IContactManifold<TManifold>
@@ -314,15 +320,58 @@ internal class ContactEventsManager : IDisposable
                 typeStore.CollectTouchingPairs(this);
         }
 
-        foreach (var workerStore in _manifoldStoresPerWorker)
+        // A soft body can touch through particles spread across several workers; merge every worker's
+        // per-type list into worker 0 so RunEvents sees the full set in one pass and OnTouching fires once per step.
+        MergeWorkersIntoWorkerZero();
+
+        if (_manifoldStoresPerWorker.Length > 0)
         {
-            foreach (var typeStore in workerStore)
-                typeStore.RunEvents(this);
+            foreach (var typeStore in _manifoldStoresPerWorker[0])
+                typeStore?.RunEvents(this);
         }
 
         //Remove any stale collisions. Stale collisions are those which should have received a new manifold update but did not because the manifold is no longer active.
         foreach (var pair in _outdatedPairs)
             ClearCollision(pair);
+    }
+
+    private void MergeWorkersIntoWorkerZero()
+    {
+        if (_manifoldStoresPerWorker.Length <= 1)
+            return;
+
+        int maxTypes = 0;
+        for (int w = 0; w < _manifoldStoresPerWorker.Length; w++)
+        {
+            if (_manifoldStoresPerWorker[w].Length > maxTypes)
+                maxTypes = _manifoldStoresPerWorker[w].Length;
+        }
+
+        if (maxTypes == 0)
+            return;
+
+        IPerTypeManifoldStore.EnsureWorkerSlots(_manifoldStoresPerWorker, 0, maxTypes);
+        var destStore = _manifoldStoresPerWorker[0];
+
+        bool anyMerged = false;
+        for (int w = 1; w < _manifoldStoresPerWorker.Length; w++)
+        {
+            var workerStore = _manifoldStoresPerWorker[w];
+            for (int t = 0; t < workerStore.Length; t++)
+            {
+                var src = workerStore[t];
+                if (src is null || src.IsEmpty())
+                    continue;
+                destStore[t].MergeFrom(src);
+                anyMerged = true;
+            }
+        }
+
+        if (anyMerged)
+        {
+            foreach (var typeStore in destStore)
+                typeStore?.SortByOwnerKey();
+        }
     }
 
     /// <summary>
@@ -356,14 +405,6 @@ internal class ContactEventsManager : IDisposable
         return false;
     }
 
-    /// <summary> The pair of collidables owning the two sides of <paramref name="pair"/>, sorted as <see cref="OrderedPair"/> does </summary>
-    private (uint A, uint B) OwnerKey(CollidablePair pair)
-    {
-        uint a = _simulation.GetComponent(pair.A).CollidableReference!.Value.Packed;
-        uint b = _simulation.GetComponent(pair.B).CollidableReference!.Value.Packed;
-        return a > b ? (a, b) : (b, a);
-    }
-
     private void AddIfTouching<TManifold>(in ContactGroup<TManifold> group) where TManifold : unmanaged, IContactManifold<TManifold>
     {
         for (int j = 0; j < group.Manifold.Count; ++j)
@@ -386,34 +427,34 @@ internal class ContactEventsManager : IDisposable
 
         void ClearEventsOf(uint packed);
 
-        public static unsafe void StoreManifold<TManifold>(IPerTypeManifoldStore[][] manifoldLists, int workerIndex, ref TManifold manifold, CollidablePair pair, int childIndexA, int childIndexB) where TManifold : unmanaged, IContactManifold<TManifold>
+        void MergeFrom(IPerTypeManifoldStore other);
+
+        void SortByOwnerKey();
+
+        internal static unsafe void EnsureWorkerSlots(IPerTypeManifoldStore[][] manifoldLists, int workerIndex, int slotCount)
         {
             var manifoldsForWorker = manifoldLists[workerIndex];
-            int typeIndex = TypeIndex<TManifold>.Index;
-            if (manifoldsForWorker.Length <= typeIndex)
+            if (manifoldsForWorker.Length >= slotCount)
+                return;
+
+            Array.Resize(ref manifoldsForWorker, slotCount);
+            for (int j = 0; j < manifoldsForWorker.Length; j++)
             {
-                // This type does not have a list to store those manifolds, make space and create an instance
-
-                Array.Resize(ref manifoldsForWorker, typeIndex + 1);
-                // Ensure we have stores for all previous types up to this one
-                for (int j = 0; j < manifoldsForWorker.Length; j++)
-                {
-                    ref var spot = ref manifoldsForWorker[j];
-                    if (spot == null!)
-                        spot = manifoldStoreConstructors[j]();
-                }
-
-                manifoldLists[workerIndex] = manifoldsForWorker;
+                ref var spot = ref manifoldsForWorker[j];
+                if (spot == null!)
+                    spot = manifoldStoreConstructors[j]();
             }
+            manifoldLists[workerIndex] = manifoldsForWorker;
+        }
 
-            var handler = (ListOf<TManifold>)manifoldsForWorker[typeIndex];
+        public static unsafe void StoreManifold<TManifold>(IPerTypeManifoldStore[][] manifoldLists, int workerIndex, ref TManifold manifold, CollidablePair pair, int childIndexA, int childIndexB, (uint A, uint B) ownerSortedPair) where TManifold : unmanaged, IContactManifold<TManifold>
+        {
+            int typeIndex = TypeIndex<TManifold>.Index;
+            EnsureWorkerSlots(manifoldLists, workerIndex, typeIndex + 1);
+            var handler = (ListOf<TManifold>)manifoldLists[workerIndex][typeIndex];
 
-            var newValue = new ContactGroup<TManifold>(ref manifold, pair, childIndexA, childIndexB);
-            int index = handler.BinarySearch(newValue, Comparer<TManifold>.SharedInstance);
-            if (index < 0)
-                handler.Insert(~index, newValue);
-            else
-                handler.Insert(index, newValue);
+            // Appended in insertion order; the single sort on worker 0 after merge groups events by owner.
+            handler.Add(new ContactGroup<TManifold>(ref manifold, pair, childIndexA, childIndexB, ownerSortedPair));
         }
 
         private static int indexMax = -1;
@@ -460,20 +501,33 @@ internal class ContactEventsManager : IDisposable
                     eventsManager.AddIfTouching(group);
             }
 
-            private OwnerComparer? _byOwner;
+            public void MergeFrom(IPerTypeManifoldStore other)
+            {
+                var source = (ListOf<TManifold>)other;
+                if (source.Count == 0)
+                    return;
+
+                int oldCount = Count;
+                int newCount = oldCount + source.Count;
+                EnsureCapacity(newCount);
+                CollectionsMarshal.SetCount(this, newCount);
+                var dest = CollectionsMarshal.AsSpan(this).Slice(oldCount, source.Count);
+                CollectionsMarshal.AsSpan(source).CopyTo(dest);
+                source.Clear();
+            }
+
+            public void SortByOwnerKey() => Sort(OwnerComparer.Instance);
 
             public void RunEvents(ContactEventsManager eventsManager)
             {
-                // A collidable spanning multiple bodies touches through many body pairs, they are reported as one
-                _byOwner ??= new OwnerComparer();
-                _byOwner.Manager = eventsManager;
-                Sort(_byOwner);
-
+                // The list is already sorted by owner key: StoreManifold appends on each worker, Flush merges
+                // worker 1..N into worker 0 and sorts once. A collidable spanning multiple bodies touches through
+                // many body pairs, reported here as one range.
                 for (int i = Count - 1; i >= 0; i--) // reverse as the scope may end up calling ClearRelatedContacts
                 {
-                    var refPair = eventsManager.OwnerKey(this[i].Pair);
+                    var refPair = this[i].OwnerSortedPair;
                     int endExclusive = i + 1;
-                    for (; i > 0 && eventsManager.OwnerKey(this[i - 1].Pair) == refPair; i--){ } // Find the range of collisions sharing the same pair
+                    for (; i > 0 && this[i - 1].OwnerSortedPair == refPair; i--){ } // Find the range of collisions sharing the same pair
 
                     var transientSpan = CollectionsMarshal.AsSpan(this)[i..endExclusive];
 
@@ -487,28 +541,34 @@ internal class ContactEventsManager : IDisposable
 
             private sealed class OwnerComparer : IComparer<ContactGroup<TManifold>>
             {
-                public ContactEventsManager Manager = null!;
+                public static readonly OwnerComparer Instance = new();
 
                 public int Compare(ContactGroup<TManifold> x, ContactGroup<TManifold> y)
                 {
-                    var (xa, xb) = Manager.OwnerKey(x.Pair);
-                    var (ya, yb) = Manager.OwnerKey(y.Pair);
-                    int aComp = xa.CompareTo(ya);
+                    int aComp = x.OwnerSortedPair.A.CompareTo(y.OwnerSortedPair.A);
                     if (aComp != 0)
                         return aComp;
-                    int bComp = xb.CompareTo(yb);
+                    int bComp = x.OwnerSortedPair.B.CompareTo(y.OwnerSortedPair.B);
                     return bComp != 0 ? bComp : Comparer<TManifold>.SharedInstance.Compare(x, y);
                 }
             }
 
             public void ClearEventsOf(uint packed)
             {
-                var spanOfThis = CollectionsMarshal.AsSpan(this);
-                for (int i = spanOfThis.Length - 1; i >= 0; i--)
+                // Scan once and keep the pairs that do not involve the removed collidable; cheaper than a per-hit RemoveAt.
+                var span = CollectionsMarshal.AsSpan(this);
+                int kept = 0;
+                for (int i = 0; i < span.Length; i++)
                 {
-                    if (spanOfThis[i].Pair.A.Packed == packed || spanOfThis[i].Pair.B.Packed == packed)
-                        RemoveAt(i);
+                    ref var group = ref span[i];
+                    if (group.Pair.A.Packed == packed || group.Pair.B.Packed == packed)
+                        continue;
+                    if (kept != i)
+                        span[kept] = group;
+                    kept++;
                 }
+                if (kept != span.Length)
+                    RemoveRange(kept, span.Length - kept);
             }
         }
     }
