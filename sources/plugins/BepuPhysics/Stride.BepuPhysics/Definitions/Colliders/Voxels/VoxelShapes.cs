@@ -192,17 +192,34 @@ internal static unsafe class VoxelShapeHelpers
 
         Span<int> children = stackalloc int[TShape.MaxChildrenPerCell];
         var reach = shape.ChildReach;
+        var cellsX = grid.CellsX;
+        var cellsY = grid.CellsY;
+        var cellsZ = grid.CellsZ;
+        var maxX = cellsX - 1;
+        var maxY = cellsY - 1;
+        var maxZ = cellsZ - 1;
         var t = tEnter;
         while (t <= tExit && t <= maximumT)
         {
             // Each DDA cell owns the ray span [t, tNextBoundary); a hit outside it is reported by the cell that owns its time, so RayCastPenetrating sees it once.
             var tNextBoundary = MathF.Min(MathF.Min(tMaxX, tMaxY), tMaxZ);
-            for (int cx = Math.Max(x - reach, 0); cx <= Math.Min(x + reach, grid.CellsX - 1); ++cx)
+            if (reach == 0)
             {
-                for (int cy = Math.Max(y - reach, 0); cy <= Math.Min(y + reach, grid.CellsY - 1); ++cy)
+                // Box and sphere shapes without overshoot: one cell per DDA step, no neighbour walk.
+                TestCell(ref shape, x, y, z, children, origin, direction, orientation, ray, t, tNextBoundary, ref maximumT, ref hitHandler);
+            }
+            else
+            {
+                var cxEnd = Math.Min(x + reach, maxX);
+                var cyEnd = Math.Min(y + reach, maxY);
+                var czEnd = Math.Min(z + reach, maxZ);
+                for (int cx = Math.Max(x - reach, 0); cx <= cxEnd; ++cx)
                 {
-                    for (int cz = Math.Max(z - reach, 0); cz <= Math.Min(z + reach, grid.CellsZ - 1); ++cz)
-                        TestCell(ref shape, cx, cy, cz, children, origin, direction, orientation, ray, t, tNextBoundary, ref maximumT, ref hitHandler);
+                    for (int cy = Math.Max(y - reach, 0); cy <= cyEnd; ++cy)
+                    {
+                        for (int cz = Math.Max(z - reach, 0); cz <= czEnd; ++cz)
+                            TestCell(ref shape, cx, cy, cz, children, origin, direction, orientation, ray, t, tNextBoundary, ref maximumT, ref hitHandler);
+                    }
                 }
             }
 
@@ -211,7 +228,7 @@ internal static unsafe class VoxelShapeHelpers
                 x += stepX;
                 t = tMaxX;
                 tMaxX += tDeltaX;
-                if ((uint)x >= (uint)grid.CellsX)
+                if ((uint)x >= (uint)cellsX)
                     return;
             }
             else if (tMaxY < tMaxZ)
@@ -219,7 +236,7 @@ internal static unsafe class VoxelShapeHelpers
                 y += stepY;
                 t = tMaxY;
                 tMaxY += tDeltaY;
-                if ((uint)y >= (uint)grid.CellsY)
+                if ((uint)y >= (uint)cellsY)
                     return;
             }
             else
@@ -227,7 +244,7 @@ internal static unsafe class VoxelShapeHelpers
                 z += stepZ;
                 t = tMaxZ;
                 tMaxZ += tDeltaZ;
-                if ((uint)z >= (uint)grid.CellsZ)
+                if ((uint)z >= (uint)cellsZ)
                     return;
             }
         }
