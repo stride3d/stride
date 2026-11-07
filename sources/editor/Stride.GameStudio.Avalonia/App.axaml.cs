@@ -368,7 +368,7 @@ public partial class App : Application
             // The thumbnails are Avalonia bitmaps; the folder icon is a PNG embedded in this assembly (Resources/*.png)
             new Core.Assets.Editor.Avalonia.Services.ThumbnailDataFactory(typeof(App).Assembly),
             // Build project and Start project
-            new MSBuildGameProjectBuilder(),
+            new MSBuildGameProjectBuilder(new BuildCrashRouting()),
             new GameProcessLauncher(),
             // Explore: show in the file manager, open with another program
             new FileExplorerService(),

@@ -4,10 +4,8 @@
 #nullable enable
 
 using System.Globalization;
-using Stride.Core.Diagnostics;
-using Stride.CrashReport;
 
-namespace Stride.Core.Assets.Editor.Components.Build;
+namespace Stride.CrashReport;
 
 /// <summary>
 /// Routes asset-compiler crashes from a build this GameStudio triggered back to this GameStudio, so it can
@@ -15,7 +13,8 @@ namespace Stride.Core.Assets.Editor.Components.Build;
 /// per-instance crash directory (passed to the compiler via the <c>StrideCrashDir</c> MSBuild property, which
 /// the compiler targets turn into <c>STRIDE_CRASH_DIR</c> on the compiler process only), and after the build
 /// this GameStudio hands any crash that landed there to the out-of-process reporter. Both Game Studios route their
-/// builds through it: the WPF one in its debugging view model, the Avalonia one in its game project builder.
+/// builds through it: the WPF one in its debugging view model, the Avalonia one through the crash routing it gives its game
+/// project builder.
 /// </summary>
 /// <remarks>
 /// Routing is by process inheritance (the compiler inherits the dir this instance chose for its own builds),
@@ -157,8 +156,10 @@ public static class CompilerCrashRouting
     /// surface the headless compiler defers to). No-op when nothing crashed or routing is off. If the reporter
     /// can't be resolved, the crash stays on disk and a hint points at <c>stride crash send</c>.
     /// </summary>
-    public static void SurfacePendingCrashes(ILogger logger)
+    /// <param name="warn">Reports a warning to the user, for example to the build log.</param>
+    public static void SurfacePendingCrashes(Action<string> warn)
     {
+        ArgumentNullException.ThrowIfNull(warn);
         string? dir;
         lock (gate)
             dir = directory;
@@ -181,12 +182,12 @@ public static class CompilerCrashRouting
                         continue; // already handed to a reporter by an earlier build in this session
                 }
                 if (!NativeCrashReporting.TrySpawnReporter(run, ownerWindow))
-                    logger.Warning($"The asset build crashed; the report was saved to {run} (submit it with 'stride crash send').");
+                    warn($"The asset build crashed; the report was saved to {run} (submit it with 'stride crash send').");
             }
         }
         catch (Exception e)
         {
-            logger.Warning($"Could not surface an asset-build crash: {e.Message}");
+            warn($"Could not surface an asset-build crash: {e.Message}");
         }
     }
 }

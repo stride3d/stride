@@ -44,6 +44,8 @@
     <!-- The editor's own plugin layers (Stride.Assets.Presentation, Stride.Assets.Editor, Stride.Assets.Editor.Avalonia and the core editor views):
          loaded by App.InitializePlugins. Plugin packages (Audio, SpriteStudio, ...) are never referenced: they come as companions of the session's packages. -->
     <ProjectReference Include="..\Stride.Assets.Editor.Avalonia\Stride.Assets.Editor.Avalonia.csproj" />
+    <!-- The asset compiler crashes of the game builds come back through CompilerCrashRouting (Services/BuildCrashRouting.cs) -->
+    <ProjectReference Include="..\..\crashreport\Stride.CrashReport\Stride.CrashReport.csproj" />
   </ItemGroup>
 
   <!-- The most recently used sessions, shared with the WPF Game Studio's Stride.Core.Assets.Editor.Wpf -->

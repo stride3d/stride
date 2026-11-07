@@ -4,7 +4,7 @@ The editor for the core assets, shared by the WPF and the cross-platform (Avalon
 
 ## Dependencies
 
-* `Stride.Core.Assets.Presentation` (and through it the core assets libraries), `Stride.CrashReport` for the crashes of the asset compiler during a build, and MSBuild for the game build (located at runtime).
+* `Stride.Core.Assets.Presentation` (and through it the core assets libraries) and MSBuild for the game build (located at runtime).
 * Platform-agnostic and UI-agnostic: no dependency on Windows, WPF or Avalonia (`$(StrideXplatEditorTargetFramework)`). Each editor adds its UI in its own project (`Stride.Core.Assets.Editor.Wpf`, `Stride.Core.Assets.Editor.Avalonia`).
 
 ## Content
