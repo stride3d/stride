@@ -107,14 +107,16 @@ internal struct VoxelGridData<TSource> where TSource : unmanaged, IVoxelDensityS
 
     /// <summary>Whether a cell carries a box or sphere child: the mean of its corners is at or above the iso level.</summary>
     /// <remarks>The mean keeps the blocky surface within half a cell of the iso-surface, on either side.</remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool CellIsSolid(int cx, int cy, int cz)
     {
         if ((uint)cx >= (uint)CellsX || (uint)cy >= (uint)CellsY || (uint)cz >= (uint)CellsZ)
             return false;
-        var sum = 0f;
-        for (int corner = 0; corner < CornerCount; ++corner)
-            sum += CornerDensity(cx, cy, cz, corner);
-        return sum / CornerCount >= IsoLevel;
+        // The 8 cube corners inlined, in the order TriangleTable expects (see CubeCorners). Avoids the byte lookup and bounds checks of CornerDensity per corner on the hot path.
+        int x1 = cx + 1, y1 = cy + 1, z1 = cz + 1;
+        var sum = DensityAt(cx, cy, cz) + DensityAt(x1, cy, cz) + DensityAt(x1, cy, z1) + DensityAt(cx, cy, z1)
+            + DensityAt(cx, y1, cz) + DensityAt(x1, y1, cz) + DensityAt(x1, y1, z1) + DensityAt(cx, y1, z1);
+        return sum >= IsoLevel * CornerCount;
     }
 
     public readonly Vector3 CellCentre(int cx, int cy, int cz)
@@ -169,15 +171,22 @@ internal struct VoxelGridData<TSource> where TSource : unmanaged, IVoxelDensityS
     }
 
     /// <summary>Marching cubes case of a cell: bit i is set when corner i is air.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly int CubeIndex(int cx, int cy, int cz)
     {
-        var cubeIndex = 0;
-        for (int corner = 0; corner < CornerCount; ++corner)
-        {
-            if (CornerDensity(cx, cy, cz, corner) < IsoLevel)
-                cubeIndex |= 1 << corner;
-        }
-        return cubeIndex;
+        // The 8 cube corners inlined, in the order TriangleTable expects (see CubeCorners). Avoids the byte lookup and shifts per corner on the hot path.
+        int x1 = cx + 1, y1 = cy + 1, z1 = cz + 1;
+        var iso = IsoLevel;
+        int c = 0;
+        if (DensityAt(cx, cy, cz) < iso) c |= 1;
+        if (DensityAt(x1, cy, cz) < iso) c |= 2;
+        if (DensityAt(x1, cy, z1) < iso) c |= 4;
+        if (DensityAt(cx, cy, z1) < iso) c |= 8;
+        if (DensityAt(cx, y1, cz) < iso) c |= 16;
+        if (DensityAt(x1, y1, cz) < iso) c |= 32;
+        if (DensityAt(x1, y1, z1) < iso) c |= 64;
+        if (DensityAt(cx, y1, z1) < iso) c |= 128;
+        return c;
     }
 
     /// <summary>Local point where the iso-surface crosses one edge of a cell.</summary>
