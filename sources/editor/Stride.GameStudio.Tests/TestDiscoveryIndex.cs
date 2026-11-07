@@ -258,17 +258,18 @@ namespace Stride.GameStudio.Tests
             Assert.Equal(typeof(IEditorGameController), typeof(WpfEditorGameHostService).GetCustomAttribute<EditorGameServiceAttribute>().ControllerType);
         }
 
-        [Fact]
-        public void TheSpriteSheetOpensInOneEditorInTheWpfEditor()
+        [Theory]
+        [InlineData(typeof(SpriteSheetViewModel), typeof(Stride.Assets.Editor.ViewModels.SpriteSheetEditorViewModel), typeof(Stride.Assets.Presentation.AssetEditors.SpriteEditor.Views.SpriteEditorView))]
+        [InlineData(typeof(GraphicsCompositorViewModel), typeof(Stride.Assets.Editor.ViewModels.GraphicsCompositorEditorViewModel), typeof(Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.Views.GraphicsCompositorEditorView))]
+        public void TheSharedEditorsOpenTheirAssetInOneEditorInTheWpfEditor(Type assetViewModelType, Type editorType, Type viewType)
         {
-            // The shared sprite sheet editor (Stride.Assets.Presentation.Common) replaced the WPF one: one editor per asset, one
-            // WPF view per editor
+            // The shared editors (Stride.Assets.Presentation.Common) replaced the WPF ones: one editor per asset, one WPF view per
+            // editor
             var (editors, views) = CollectEditorsAndViews();
 
-            var spriteSheetEditor = typeof(Stride.Assets.Editor.ViewModels.SpriteSheetEditorViewModel);
-            Assert.Equal(new[] { spriteSheetEditor }, editors.Where(x => x.ViewModelType == typeof(SpriteSheetViewModel)).Select(x => x.Editor));
-            Assert.Equal(typeof(StrideSharedAssetsPlugin).Assembly, spriteSheetEditor.Assembly);
-            Assert.Equal(new[] { typeof(Stride.Assets.Presentation.AssetEditors.SpriteEditor.Views.SpriteEditorView) }, views.Where(x => x.EditorViewModelType == spriteSheetEditor).Select(x => x.View));
+            Assert.Equal(new[] { editorType }, editors.Where(x => x.ViewModelType == assetViewModelType).Select(x => x.Editor));
+            Assert.Equal(typeof(StrideSharedAssetsPlugin).Assembly, editorType.Assembly);
+            Assert.Equal(new[] { viewType }, views.Where(x => x.EditorViewModelType == editorType).Select(x => x.View));
         }
 
         [Fact]

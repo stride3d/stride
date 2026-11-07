@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using System.Windows.Input;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Presentation.Commands;
@@ -11,9 +10,9 @@ using Stride.Core.Reflection;
 using Stride.Core.Quantum;
 using Stride.Rendering.Compositing;
 
-namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewModels
+namespace Stride.Assets.Editor.ViewModels.GraphicsCompositorEditor
 {
-    public class SharedRendererFactoryViewModel : DispatcherViewModel
+    public sealed class SharedRendererFactoryViewModel : DispatcherViewModel
     {
         [NotNull] private readonly IObjectNode sharedRenderersNode;
 
@@ -32,7 +31,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewM
 
         public Type Type { get; }
 
-        public ICommand CreateCommand { get; }
+        public ICommandBase CreateCommand { get; }
 
         private void Create()
         {

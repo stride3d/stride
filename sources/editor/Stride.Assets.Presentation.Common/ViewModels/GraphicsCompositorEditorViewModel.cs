@@ -20,19 +20,19 @@ using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Quantum;
 using Stride.Core.Translation;
-using Stride.Assets.Presentation.ViewModel;
 using Stride.Assets.Rendering;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
+using Stride.Assets.Editor.ViewModels.GraphicsCompositorEditor;
 using Stride.Assets.Presentation.ViewModels;
 
-namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewModels
+namespace Stride.Assets.Editor.ViewModels
 {
     [AssetEditorViewModel<GraphicsCompositorViewModel>]
-    public class GraphicsCompositorEditorViewModel : AssetEditorViewModel
+    public sealed class GraphicsCompositorEditorViewModel : AssetEditorViewModel<GraphicsCompositorViewModel>
     {
-        protected readonly GraphViewModelService ViewModelService;
+        private readonly GraphViewModelService viewModelService;
 
         private readonly IObjectNode graphicsCompositorNode;
         private readonly IObjectNode renderStagesNode;
@@ -43,10 +43,10 @@ namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewM
         public GraphicsCompositorEditorViewModel([NotNull] GraphicsCompositorViewModel graphicsCompositor) : base(graphicsCompositor)
         {
             // Create the service needed to manage observable view models
-            ViewModelService = new GraphViewModelService(Session.AssetNodeContainer);
+            viewModelService = new GraphViewModelService(Session.AssetNodeContainer);
 
             // Update the service provider of this view model to contains the ObservableViewModelService we created.
-            ServiceProvider = new ViewModelServiceProvider(ServiceProvider, ViewModelService.Yield());
+            ServiceProvider = new ViewModelServiceProvider(ServiceProvider, viewModelService.Yield());
 
             // Get some quantum nodes
             graphicsCompositorNode = Session.AssetNodeContainer.GetNode(graphicsCompositor.Asset);
@@ -68,8 +68,6 @@ namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewM
             AddNewCameraSlotCommand = new AnonymousCommand(ServiceProvider, AddNewCameraSlot);
             RemoveSelectedCameraSlotsCommand = new AnonymousCommand(ServiceProvider, RemoveSelectedCameraSlots);
         }
-
-        public override GraphicsCompositorViewModel Asset => (GraphicsCompositorViewModel)base.Asset;
 
         public ObservableList<RenderStageViewModel> RenderStages { get; } = new ObservableList<RenderStageViewModel>();
 
@@ -111,7 +109,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewM
 
         public ICommandBase RemoveSelectedCameraSlotsCommand { get; }
 
-        public sealed override Task<bool> Initialize()
+        public override Task<bool> Initialize()
         {
             // Add a block that represents entry points
             var entryPointOutputs = new[]

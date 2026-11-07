@@ -7,11 +7,12 @@
              xmlns:graphx="clr-namespace:GraphX.Controls;assembly=GraphX.WPF.Controls"
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
              xmlns:sskkgraph="http://schemas.stride3d.net/xaml/presentation/graph"
-             xmlns:vm="clr-namespace:Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewModels"
+             xmlns:vm="clr-namespace:Stride.Assets.Editor.ViewModels.GraphicsCompositorEditor;assembly=Stride.Assets.Presentation.Common"
+             xmlns:evm="clr-namespace:Stride.Assets.Editor.ViewModels;assembly=Stride.Assets.Presentation.Common"
              xmlns:v="clr-namespace:Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.Views"
              Focusable="True"
              mc:Ignorable="d"
-             d:DesignHeight="300" d:DesignWidth="300" d:DataContext="{d:DesignInstance vm:GraphicsCompositorEditorViewModel}">
+             d:DesignHeight="300" d:DesignWidth="300" d:DataContext="{d:DesignInstance evm:GraphicsCompositorEditorViewModel}">
   <UserControl.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>

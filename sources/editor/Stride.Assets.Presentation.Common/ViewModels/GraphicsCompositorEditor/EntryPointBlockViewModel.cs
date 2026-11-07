@@ -5,12 +5,12 @@ using System.Linq;
 using Stride.Core.Annotations;
 using Stride.Core.Quantum;
 
-namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewModels
+namespace Stride.Assets.Editor.ViewModels.GraphicsCompositorEditor
 {
     /// <summary>
     /// Represent a single property of an <see cref="IObjectNode"/>.
     /// </summary>
-    public class EntryPointBlockViewModel : SharedRendererBlockBaseViewModel
+    public sealed class EntryPointBlockViewModel : SharedRendererBlockBaseViewModel
     {
         private readonly IObjectNode graphicsCompositorNode;
         private readonly string[] entryPoints;

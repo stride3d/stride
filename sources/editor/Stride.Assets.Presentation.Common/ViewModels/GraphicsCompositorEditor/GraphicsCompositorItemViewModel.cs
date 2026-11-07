@@ -10,7 +10,7 @@ using Stride.Core.Presentation.Quantum;
 using Stride.Core.Quantum;
 using Stride.Core.Presentation.ViewModels;
 
-namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewModels
+namespace Stride.Assets.Editor.ViewModels.GraphicsCompositorEditor
 {
     /// <summary>
     /// Common view model for items that will display in the property grid for <see cref="GraphicsCompositorEditorViewModel"/>.

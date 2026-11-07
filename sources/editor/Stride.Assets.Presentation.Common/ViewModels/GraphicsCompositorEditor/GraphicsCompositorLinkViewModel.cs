@@ -4,9 +4,9 @@ using System;
 using Stride.Core.Annotations;
 using Stride.Core.Presentation.ViewModels;
 
-namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewModels
+namespace Stride.Assets.Editor.ViewModels.GraphicsCompositorEditor
 {
-    public class GraphicsCompositorLinkViewModel : DispatcherViewModel, IGraphicsCompositorLinkViewModel
+    public sealed class GraphicsCompositorLinkViewModel : DispatcherViewModel, IGraphicsCompositorLinkViewModel
     {
         public GraphicsCompositorLinkViewModel([NotNull] IViewModelServiceProvider serviceProvider, [NotNull] GraphicsCompositorSlotViewModel source, [NotNull] GraphicsCompositorSlotViewModel target)
             : base(serviceProvider)

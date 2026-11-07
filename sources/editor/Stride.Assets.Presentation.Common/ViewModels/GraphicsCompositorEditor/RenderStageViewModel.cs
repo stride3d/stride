@@ -6,12 +6,12 @@ using Stride.Core.Quantum;
 using Stride.Assets.Rendering;
 using Stride.Rendering;
 
-namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewModels
+namespace Stride.Assets.Editor.ViewModels.GraphicsCompositorEditor
 {
     /// <summary>
     /// View model for <see cref="RenderStage"/>.
     /// </summary>
-    public class RenderStageViewModel : GraphicsCompositorItemViewModel
+    public sealed class RenderStageViewModel : GraphicsCompositorItemViewModel
     {
         private readonly IObjectNode renderStageNode;
         private readonly MemberGraphNodeBinding<string> nameNodeBinding;

@@ -4,7 +4,8 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewModels;
+using Stride.Assets.Editor.ViewModels;
+using Stride.Assets.Editor.ViewModels.GraphicsCompositorEditor;
 using Stride.Core.Assets.Editor.Annotations;
 
 namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.Views

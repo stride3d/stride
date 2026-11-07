@@ -7,7 +7,8 @@ using System.Linq;
 using Stride.Core.Annotations;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Graph.ViewModel;
-using Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewModels;
+using Stride.Assets.Editor.ViewModels;
+using Stride.Assets.Editor.ViewModels.GraphicsCompositorEditor;
 
 namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.Views
 {

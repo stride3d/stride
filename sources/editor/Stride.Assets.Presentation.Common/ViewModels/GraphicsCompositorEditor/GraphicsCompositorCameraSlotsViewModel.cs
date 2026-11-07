@@ -12,12 +12,12 @@ using Stride.Assets.Rendering;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
 
-namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewModels
+namespace Stride.Assets.Editor.ViewModels.GraphicsCompositorEditor
 {
     /// <summary>
     /// View model for <see cref="SceneCameraSlot"/>.
     /// </summary>
-    public class GraphicsCompositorCameraSlotsViewModel : GraphicsCompositorItemViewModel
+    public sealed class GraphicsCompositorCameraSlotsViewModel : GraphicsCompositorItemViewModel
     {
         private readonly IObjectNode cameraSlotNode;
 

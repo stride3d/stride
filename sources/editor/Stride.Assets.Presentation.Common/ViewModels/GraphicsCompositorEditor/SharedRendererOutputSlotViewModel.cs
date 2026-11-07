@@ -4,25 +4,25 @@ using System.Linq;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Quantum;
 
-namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewModels
+namespace Stride.Assets.Editor.ViewModels.GraphicsCompositorEditor
 {
-    public class SharedRendererOutputSlotViewModel : GraphicsCompositorSlotViewModel
+    public sealed class SharedRendererOutputSlotViewModel : GraphicsCompositorSlotViewModel
     {
-        protected readonly NodeAccessor Accessor;
+        private readonly NodeAccessor accessor;
         private readonly SharedRendererReferenceKey slotKey;
 
         public SharedRendererOutputSlotViewModel(GraphicsCompositorBlockViewModel block, string name, SharedRendererReferenceKey slotKey)
             : base(block, name)
         {
             this.slotKey = slotKey;
-            Accessor = slotKey.Path.GetAccessor();
-            if (Accessor.Index != NodeIndex.Empty)
+            accessor = slotKey.Path.GetAccessor();
+            if (accessor.Index != NodeIndex.Empty)
             {
-                ((IObjectNode)Accessor.Node).ItemChanged += ItemChanged;
+                ((IObjectNode)accessor.Node).ItemChanged += ItemChanged;
             }
             else
             {
-                ((IMemberNode)Accessor.Node).ValueChanged += ValueChanged;
+                ((IMemberNode)accessor.Node).ValueChanged += ValueChanged;
             }
 
         }
@@ -34,13 +34,13 @@ namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewM
         public override void Destroy()
         {
             base.Destroy();
-            if (Accessor.Index != NodeIndex.Empty)
+            if (accessor.Index != NodeIndex.Empty)
             {
-                ((IObjectNode)Accessor.Node).ItemChanged -= ItemChanged;
+                ((IObjectNode)accessor.Node).ItemChanged -= ItemChanged;
             }
             else
             {
-                ((IMemberNode)Accessor.Node).ValueChanged -= ValueChanged;
+                ((IMemberNode)accessor.Node).ValueChanged -= ValueChanged;
             }
         }
 
@@ -56,7 +56,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewM
         public override bool CanLinkTo(GraphicsCompositorSlotViewModel target)
         {
             var sharedRenderer = target as SharedRendererInputSlotViewModel;
-            return sharedRenderer != null && Accessor.AcceptValue(sharedRenderer.GetSharedRenderer());
+            return sharedRenderer != null && accessor.AcceptValue(sharedRenderer.GetSharedRenderer());
         }
 
         public override void LinkTo(IGraphicsCompositorSlotViewModel target)
@@ -66,10 +66,10 @@ namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewM
                 var sharedRenderer = target as SharedRendererInputSlotViewModel;
                 if (sharedRenderer != null)
                 {
-                    if (Accessor.AcceptValue(sharedRenderer.GetSharedRenderer()))
+                    if (accessor.AcceptValue(sharedRenderer.GetSharedRenderer()))
                     {
                         var newValue = sharedRenderer.GetSharedRenderer();
-                        Accessor.UpdateValue(newValue);
+                        accessor.UpdateValue(newValue);
                     }
                 }
                 ServiceProvider.Get<IUndoRedoService>().SetName(transaction, $"Connect {Name} to {target.Name}");
@@ -80,14 +80,14 @@ namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewM
         {
             using (var transaction = ServiceProvider.Get<IUndoRedoService>().CreateTransaction())
             {
-                Accessor.UpdateValue(null);
+                accessor.UpdateValue(null);
                 ServiceProvider.Get<IUndoRedoService>().SetName(transaction, "Clear link");
             }
         }
 
         public override void UpdateLink()
         {
-            var value = Accessor.RetrieveValue();
+            var value = accessor.RetrieveValue();
             foreach (var link in Links.Cast<GraphicsCompositorLinkViewModel>().ToList())
             {
                 link.Destroy();
@@ -115,7 +115,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewM
 
         private void ItemChanged(object sender, ItemChangeEventArgs e)
         {
-            if (e.ChangeType == ContentChangeType.CollectionUpdate && e.Index == Accessor.Index)
+            if (e.ChangeType == ContentChangeType.CollectionUpdate && e.Index == accessor.Index)
             {
                 UpdateLink();
             }
