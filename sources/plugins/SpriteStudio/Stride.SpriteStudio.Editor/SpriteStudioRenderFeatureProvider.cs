@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections.Generic;
+
 using Stride.Assets.Rendering;
 using Stride.Rendering;
 using Stride.SpriteStudio.Runtime;
@@ -9,11 +10,13 @@ using Stride.SpriteStudio.Runtime;
 namespace Stride.SpriteStudio.Editor;
 
 /// <summary>
-/// Draws SpriteStudio sheets: in the entity previews and thumbnails, and in a game compositor on request.
+///   Exposes the SpriteStudio render feature to the rendering system so it can be registered in the graphics compositor
+///   when the SpriteStudio package is loaded.
+///   The feature draws SpriteStudio sheets: in the entity previews and thumbnails, and in a game compositor on request.
 /// </summary>
 public sealed class SpriteStudioRenderFeatureProvider : IRenderFeatureProvider
 {
-    public IEnumerable<RootRenderFeature> CreateRenderFeatures(RenderStage opaqueStage, RenderStage transparentStage)
+    public IEnumerable<RootRenderFeature> CreateRenderFeatures(RenderFeatureProviderContext context)
     {
         yield return new SpriteStudioRenderFeature
         {
@@ -22,9 +25,9 @@ public sealed class SpriteStudioRenderFeatureProvider : IRenderFeatureProvider
                 new SimpleGroupToRenderStageSelector
                 {
                     EffectName = "SpriteStudio",
-                    RenderStage = transparentStage,
-                },
-            },
+                    RenderStage = context.TransparentStage
+                }
+            }
         };
     }
 }
