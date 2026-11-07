@@ -337,9 +337,6 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 // Create the service that handles copy/paste
                 var copyPasteService = new CopyPasteService();
 
-                // Create the service that gives the shared property commands access to the clipboard
-                var clipboardService = new ClipboardService();
-
                 // Create the undo/redo service for this session. We use an initial size of 0 to prevent asset upgrade to be cancellable.
                 var undoRedoService = new UndoRedoService(0);
                 serviceProvider.RegisterService(undoRedoService);
@@ -348,7 +345,6 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 serviceProvider.RegisterService(documentationService);
                 serviceProvider.RegisterService(selectionService);
                 serviceProvider.RegisterService(copyPasteService);
-                serviceProvider.RegisterService(clipboardService);
                 serviceProvider.RegisterService(new ThumbnailDataFactory());
 
                 // Create the actual session view model.
@@ -394,9 +390,6 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
             // Create the service that handles copy/paste
             serviceProvider.RegisterService(new CopyPasteService());
-
-            // Create the service that gives the shared property commands access to the clipboard
-            serviceProvider.RegisterService(new ClipboardService());
 
             // Create the service that creates the thumbnails of the session objects that need WPF images
             serviceProvider.RegisterService(new ThumbnailDataFactory());

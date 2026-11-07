@@ -38,7 +38,6 @@ using System.Windows.Markup;
 [assembly: XmlnsPrefix("http://schemas.stride3d.net/xaml/presentation", "sd")]
 [assembly: XmlnsDefinition("http://schemas.stride3d.net/xaml/presentation", "Stride.Core.Assets.Editor")]
 [assembly: XmlnsDefinition("http://schemas.stride3d.net/xaml/presentation", "Stride.Core.Assets.Editor.Components.Status.Views")]
-[assembly: XmlnsDefinition("http://schemas.stride3d.net/xaml/presentation", "Stride.Core.Assets.Editor.Settings.ViewModels")]
 [assembly: XmlnsDefinition("http://schemas.stride3d.net/xaml/presentation", "Stride.Core.Assets.Editor.View")]
 [assembly: XmlnsDefinition("http://schemas.stride3d.net/xaml/presentation", "Stride.Core.Assets.Editor.View.Behaviors")]
 [assembly: XmlnsDefinition("http://schemas.stride3d.net/xaml/presentation", "Stride.Core.Assets.Editor.View.Controls")]

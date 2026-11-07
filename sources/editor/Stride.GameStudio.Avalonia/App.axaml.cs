@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Diagnostics;
-using System.Globalization;
 using System.Runtime.CompilerServices;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -15,6 +14,7 @@ using MarkView.Avalonia.Rendering;
 using Stride.Assets;
 using Stride.Assets.Editor;
 using Stride.Assets.Templates;
+using Stride.Core.Assets.Editor;
 using Stride.Core.Assets.Editor.Components.Build;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
@@ -74,10 +74,10 @@ public partial class App : Application
         RuntimeHelpers.RunClassConstructor(typeof(RemoteSettings).TypeHandle);
         InitializeLogging();
         InitializeLanguage();
-        SetAccent(EditorSettings.ThemeAccent.GetValue().ToAvaloniaColor());
-        SetVariant(EditorSettings.ThemeVariant.GetValue());
-        EditorSettings.ThemeAccent.ChangesValidated += ThemeAccent_ChangesValidated;
-        EditorSettings.ThemeVariant.ChangesValidated += ThemeVariant_ChangesValidated;
+        SetAccent(GameStudioEditorSettings.ThemeAccent.GetValue().ToAvaloniaColor());
+        SetVariant(GameStudioEditorSettings.ThemeVariant.GetValue());
+        GameStudioEditorSettings.ThemeAccent.ChangesValidated += ThemeAccent_ChangesValidated;
+        GameStudioEditorSettings.ThemeVariant.ChangesValidated += ThemeVariant_ChangesValidated;
         return;
 
         void ThemeAccent_ChangesValidated(object? sender, ChangesValidatedEventArgs _)
@@ -350,22 +350,11 @@ public partial class App : Application
     }
 
     /// <summary>
-    /// The language of the editor, from the settings ("MachineDefault" or a culture name).
+    /// The language of the editor, from the settings (the same values as the WPF Game Studio).
     /// </summary>
     private static void InitializeLanguage()
     {
-        var language = EditorSettings.Language.GetValue();
-        try
-        {
-            TranslationManager.Instance.CurrentLanguage = string.IsNullOrEmpty(language) || language == "MachineDefault"
-                ? CultureInfo.InstalledUICulture
-                : CultureInfo.GetCultureInfo(language);
-        }
-        catch (CultureNotFoundException e)
-        {
-            Log.Warning($"The language [{language}] of the settings is unknown; the machine's language is used.", e);
-            TranslationManager.Instance.CurrentLanguage = CultureInfo.InstalledUICulture;
-        }
+        TranslationManager.Instance.CurrentLanguage = EditorSettings.Language.GetValue().GetCulture();
     }
 
     /// <summary>

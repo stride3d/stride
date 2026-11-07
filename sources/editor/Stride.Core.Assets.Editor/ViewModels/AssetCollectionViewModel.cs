@@ -23,28 +23,6 @@ using Stride.Core.Translation;
 
 namespace Stride.Core.Assets.Editor.ViewModels;
 
-public enum FilterCategory
-{
-    AssetName,
-    AssetTag,
-    AssetType
-}
-
-public enum SortRule
-{
-    Name,
-    TypeOrderThenName,
-    DirtyThenName,
-    ModificationDateThenName,
-}
-
-public enum DisplayAssetMode
-{
-    AssetInSelectedFolderOnly,
-    AssetAndFolderInSelectedFolder,
-    AssetInSelectedFolderAndSubFolder,
-}
-
 /// <summary>
 /// The assets shown in an asset view, with their filters and selection. The editors of the assets are managed by <see cref="EditorCollectionViewModel"/>.
 /// </summary>

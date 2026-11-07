@@ -4,6 +4,7 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;
 using Stride.Core.Assets.Editor.Services;
 
@@ -46,7 +47,7 @@ namespace Stride.Core.Assets.Editor.Components.AddAssets.View
 
         private void Validate()
         {
-            SelectedTemplate = ViewModel.SelectedTemplate.Key;
+            SelectedTemplate = ViewModel.SelectedTemplate?.Template;
             Result = SelectedTemplate != null ? Stride.Core.Presentation.Services.DialogResult.Ok : Stride.Core.Presentation.Services.DialogResult.Cancel;
             Close();
         }

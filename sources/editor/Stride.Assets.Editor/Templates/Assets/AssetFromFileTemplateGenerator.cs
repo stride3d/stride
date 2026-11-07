@@ -126,7 +126,7 @@ public class AssetFromFileTemplateGenerator : AssetFactoryTemplateGenerator
 
         var list = result.ToList();
         InternalSettings.FileDialogLastImportDirectory.SetValue(list[0].GetFullDirectory());
-        InternalSettings.SaveProfile();
+        InternalSettings.Save();
         return list;
     }
 
