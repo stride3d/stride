@@ -125,14 +125,23 @@ public sealed class TestAssetCollection
         var wood = fixture.Session.AllAssets.Single(x => x.Name == "Wood");
         var stone = fixture.Session.AllAssets.Single(x => x.Name == "Stone");
 
-        fixture.Assets.SelectAssets([wood]);
-        wood.Name = "Oak";
+        // The test plays the UI thread: it selects and renames on the dispatcher, one at a time with the refresh of the references
+        // that the session dispatches from the thread pool after each rename
+        var dispatcher = fixture.Session.Dispatcher;
+        dispatcher.Invoke(() =>
+        {
+            fixture.Assets.SelectAssets([wood]);
+            wood.Name = "Oak";
+        });
 
         Assert.Equal([wood], preview.Assets);
 
         // With several assets selected, the preview shows none of them: nothing to refresh
-        fixture.Assets.SelectAssets([wood, stone]);
-        wood.Name = "Pine";
+        dispatcher.Invoke(() =>
+        {
+            fixture.Assets.SelectAssets([wood, stone]);
+            wood.Name = "Pine";
+        });
 
         Assert.Equal([wood], preview.Assets);
     }
