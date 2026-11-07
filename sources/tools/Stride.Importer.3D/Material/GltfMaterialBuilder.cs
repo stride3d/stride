@@ -22,7 +22,7 @@ namespace Stride.Importer.ThreeD.Material
     {
         private const string AlphaModeKey = "$mat.gltf.alphaMode";
         private const string AlphaCutoffKey = "$mat.gltf.alphaCutoff";
-        private const string TextureStrengthKey = "$tex.file.strength";
+        private const string TextureStrengthKey = "$tex.strength";
         private const string TextureScaleKey = "$tex.scale";
 
         /// <summary>
