@@ -70,22 +70,19 @@ internal sealed class DeformableModel : IDisposable
             int normalOffset = FindOffset<NormalSemantic>(declaration, PixelFormat.R32G32B32_Float, sourceMesh.Name);
             int tangentOffset = FindOffset<TangentSemantic>(declaration, PixelFormat.R32G32B32A32_Float, sourceMesh.Name);
 
-            // A template snapshot of the source bytes, re-copied to the working buffer before each deformation so attributes we
-            // do not touch stay authored. DataInner accounts for the binding offset and length.
+            // Snapshot of the source bytes, taken once: the authored attributes we do not touch (texture coordinates, colors,
+            // bone indices, extra UVs...) are set in Working here and never rewritten, since Deform only overwrites position,
+            // normal and tangent at known offsets. DataInner accounts for the binding offset and length.
             var readable = new VertexBufferHelper(sourceBinding, services, out _);
             var inner = readable.DataInner;
-            var template = new byte[inner.Length];
-            inner.CopyTo(template);
+            var working = new byte[inner.Length];
+            inner.CopyTo(working);
 
-            var working = new byte[template.Length];
-            template.AsSpan().CopyTo(working);
-
-            var vertexBuffer = Buffer.Vertex.New(device, bufferSize: template.Length, usage: GraphicsResourceUsage.Dynamic);
+            var vertexBuffer = Buffer.Vertex.New(device, bufferSize: working.Length, usage: GraphicsResourceUsage.Dynamic);
             var vertexBinding = new VertexBufferBinding(vertexBuffer, declaration, part.VertexCount);
 
             _meshBuffers[m] = new MeshBuffer
             {
-                Template = template,
                 Working = working,
                 VertexBuffer = vertexBuffer,
                 Binding = vertexBinding,
@@ -164,8 +161,7 @@ internal sealed class DeformableModel : IDisposable
 
         foreach (var buffer in _meshBuffers)
         {
-            // Template copy restores every attribute the source authored; the writes below only overwrite position, normal and tangent.
-            buffer.Template.AsSpan().CopyTo(buffer.Working);
+            // Working keeps the source attributes we never touch, written once at construction; here we only overwrite position, normal and tangent.
             ref byte workingBase = ref MemoryMarshal.GetArrayDataReference(buffer.Working);
             ref Vector3 positionBase = ref MemoryMarshal.GetArrayDataReference(_positions);
             ref Vector3 normalBase = ref MemoryMarshal.GetArrayDataReference(_normals);
@@ -253,7 +249,6 @@ internal sealed class DeformableModel : IDisposable
 
     private sealed class MeshBuffer
     {
-        public required byte[] Template;
         public required byte[] Working;
         public required Buffer VertexBuffer;
         public required VertexBufferBinding Binding;
