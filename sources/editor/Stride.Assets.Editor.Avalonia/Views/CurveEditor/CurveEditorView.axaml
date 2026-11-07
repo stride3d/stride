@@ -142,7 +142,8 @@
         <sd:EditCommands.Bindings>
           <sd:EditCommandBinding Kind="Delete" Command="{Binding DeleteSelectedPointsCommand}"/>
         </sd:EditCommands.Bindings>
-        <sd:DrawingCanvas Name="Canvas" Model="{Binding}">
+        <!-- Dark, as the WPF editor's: the drawing's colors (light gray axes, white selection rings) are made for a dark background -->
+        <sd:DrawingCanvas Name="Canvas" Model="{Binding}" Background="#FF2D2D30">
           <sd:DrawingCanvas.ContextMenu>
             <ContextMenu Name="CurveContextMenu">
               <MenuItem Header="{sd:LocalizeString Curve, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"
@@ -189,7 +190,7 @@
           </sd:TrackerControl.IsVisible>
         </sd:TrackerControl>
         <!-- An empty editor says how to open a curve -->
-        <TextBlock Name="Hint" HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" Opacity="0.6"
+        <TextBlock Name="Hint" HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" Opacity="0.8" Foreground="LightGray"
                    IsVisible="{Binding SelectedCurve, Converter={x:Static ObjectConverters.IsNull}}"
                    Text="{sd:LocalizeString Use the Edit curve button of a curve property (in a particle system for example) to edit the curve here.}"/>
       </Grid>
