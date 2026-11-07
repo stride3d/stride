@@ -1,0 +1,55 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+/// <summary>
+/// Moves the vertex of a soft body's mesh to follow the particles, before anything else in the vertex shader reads it.
+/// </summary>
+/// <remarks>
+/// The vertex is deformed in world space, where the particles are, then written back in the mesh's space so the rest of the
+/// pipeline (world transform, normal mapping, tessellation, shadow and picking passes) handles it as any other vertex.
+/// </remarks>
+shader SoftBodyDeformation : ShaderBase, Transformation, PositionStream4, NormalStream
+{
+    rgroup PerDraw.SoftBody
+    {
+        // World space position of each particle; in w, how far the vertices of a surface on it are pushed along their normal
+        stage StructuredBuffer<float4> Particles;
+    }
+
+    // Below this squared length a vector is considered zero, as the CPU deformation does
+    static const float ZeroLengthSquared = 1e-24;
+
+    float3 Particle(uint index)
+    {
+        return Particles[index].xyz;
+    }
+
+    float3 SafeNormalize(float3 value, float3 fallback)
+    {
+        float lengthSquared = dot(value, value);
+        return lengthSquared > ZeroLengthSquared ? value * rsqrt(lengthSquared) : fallback;
+    }
+
+    // Writes the vertex, deformed in world space, into the mesh's streams; the rest normal and tangent are the fallbacks of degenerate frames
+    void SetMeshVertex(float3 positionWS, float3 normalWS, float3 tangentWS, float tangentSign)
+    {
+        streams.Position = mul(float4(positionWS, 1), WorldInverse);
+
+        // Normals go back to mesh space with the transpose of the world matrix, directions with its inverse
+        float3 normal = SafeNormalize(mul((float3x3)World, normalWS), streams.meshNormal);
+        float3 tangent = mul(tangentWS, (float3x3)WorldInverse);
+        tangent -= normal * dot(normal, tangent);
+        streams.meshTangent = float4(SafeNormalize(tangent, streams.meshTangent.xyz), tangentSign);
+        streams.meshNormal = normal;
+    }
+
+    void Deform()
+    {
+    }
+
+    stage override void VSMain()
+    {
+        Deform();
+        base.VSMain();
+    }
+};

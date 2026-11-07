@@ -1,0 +1,43 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+/// <summary>
+/// Moves a vertex embedded in a cell of a volumetric soft body's lattice: trilinear interpolation of the cell's eight corners for the position,
+/// the jacobian of that interpolation for the normal (through its cofactors) and the tangent.
+/// </summary>
+shader SoftBodyLatticeDeformation : SoftBodyDeformation
+{
+    // Corners are numbered by their offset on each axis: bit 0 is x, bit 1 is y and bit 2 is z
+    stage stream uint4 CellCorners0 : SOFTBODYCORNERS0;
+    stage stream uint4 CellCorners1 : SOFTBODYCORNERS1;
+
+    // Position of the vertex in its cell, in cells, outside [0, 1] for vertices beyond the lattice
+    stage stream float3 CellCoordinates : SOFTBODYCELL;
+
+    override void Deform()
+    {
+        float3 t = streams.CellCoordinates;
+        float3 p0 = Particle(streams.CellCorners0.x), p1 = Particle(streams.CellCorners0.y);
+        float3 p2 = Particle(streams.CellCorners0.z), p3 = Particle(streams.CellCorners0.w);
+        float3 p4 = Particle(streams.CellCorners1.x), p5 = Particle(streams.CellCorners1.y);
+        float3 p6 = Particle(streams.CellCorners1.z), p7 = Particle(streams.CellCorners1.w);
+
+        // Along x, then y, then z; each derivative is the difference across its axis, interpolated over the two others
+        float3 y0z0 = lerp(p0, p1, t.x), y1z0 = lerp(p2, p3, t.x);
+        float3 y0z1 = lerp(p4, p5, t.x), y1z1 = lerp(p6, p7, t.x);
+        float3 z0 = lerp(y0z0, y1z0, t.y), z1 = lerp(y0z1, y1z1, t.y);
+        float3 position = lerp(z0, z1, t.z);
+
+        float3 dx = lerp(lerp(p1 - p0, p3 - p2, t.y), lerp(p5 - p4, p7 - p6, t.y), t.z);
+        float3 dy = lerp(y1z0 - y0z0, y1z1 - y0z1, t.z);
+        float3 dz = z1 - z0;
+
+        // Normals transform with the cofactor matrix, the inverse transpose up to a scale that the normalization removes
+        float3 n = streams.meshNormal;
+        float3 normal = cross(dy, dz) * n.x + cross(dz, dx) * n.y + cross(dx, dy) * n.z;
+        float4 restTangent = streams.meshTangent;
+        float3 tangent = dx * restTangent.x + dy * restTangent.y + dz * restTangent.z;
+
+        SetMeshVertex(position, normal, tangent, restTangent.w);
+    }
+};

@@ -8,6 +8,7 @@
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--serialization --parameter-key</StrideAssemblyProcessorOptions>
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
+    <StridePackAssets>true</StridePackAssets>
   </PropertyGroup>
 
   <ItemGroup>

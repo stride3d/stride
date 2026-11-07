@@ -14,45 +14,79 @@ using Buffer = Stride.Graphics.Buffer;
 namespace Stride.BepuPhysics.Soft.Rendering;
 
 /// <summary>
-/// A copy of a soft body's model whose vertex positions, normals and tangents are rewritten every frame from the
-/// position of its particles. Every other attribute of the source vertex buffer (texture coordinates, colors, extra
-/// UVs...) is kept as the source authored it.
+/// A copy of a soft body's model whose vertices follow its particles: either rewritten every frame on the CPU
+/// (every authored attribute kept), or deformed by the vertex shader from the particles uploaded as a buffer.
 /// </summary>
 internal sealed class DeformableModel : IDisposable
 {
     private static readonly ConditionalWeakTable<Model, Model> SourceOfModel = new();
 
-    // One entry per source Mesh, in source.Meshes order
-    private readonly MeshBuffer[] _meshBuffers;
+    // One entry per source Mesh, in source.Meshes order; empty on GPU mode (the vertex shader reads the mesh at rest)
+    private readonly MeshBuffer[] _meshBuffers = [];
     private readonly Vector3[] _particles;
-    private readonly Vector3[] _positions;
-    private readonly Vector3[] _normals;
-    private readonly Vector4[] _tangents;
+
+    // CPU scratch; empty on GPU mode
+    private readonly Vector3[] _positions = [];
+    private readonly Vector3[] _normals = [];
+    private readonly Vector4[] _tangents = [];
+
+    // GPU state; null on CPU mode
+    private readonly GpuDeformation? _gpu;
 
     public Model Model { get; }
 
     public SoftBodyTopology Topology { get; }
 
-    public DeformableModel(GraphicsDevice device, IServiceRegistry services, Model source, SoftBodyTopology topology)
+    public SoftBodyDeformationMode Mode => _gpu is null ? SoftBodyDeformationMode.Cpu : SoftBodyDeformationMode.Gpu;
+
+    public DeformableModel(GraphicsDevice device, IServiceRegistry services, Model source, SoftBodyTopology topology, SoftBodyDeformationMode mode)
     {
         Topology = topology;
         var meshPool = topology.Mesh;
         int vertexCount = meshPool.Positions.Length;
 
         _particles = new Vector3[topology.ParticleCount];
-        _positions = new Vector3[vertexCount];
-        _normals = new Vector3[vertexCount];
-        _tangents = new Vector4[vertexCount];
 
         if (source.Meshes.Count != meshPool.Parts.Length)
             throw new InvalidOperationException($"A deformable model expected {source.Meshes.Count} mesh ranges from the topology, got {meshPool.Parts.Length}.");
 
-        _meshBuffers = new MeshBuffer[source.Meshes.Count];
         Model = new Model();
         SourceOfModel.AddOrUpdate(Model, source);
         foreach (var material in source.Materials)
             Model.Materials.Add(material);
 
+        if (mode == SoftBodyDeformationMode.Gpu)
+        {
+            // GPU: the mesh at rest with per-vertex binding is uploaded once; the vertex shader moves vertices from the particle buffer.
+            _gpu = new GpuDeformation(device, topology);
+            for (int m = 0; m < source.Meshes.Count; m++)
+            {
+                var sourceMesh = source.Meshes[m];
+                var part = meshPool.Parts[m];
+                var binding = new VertexBufferBinding(_gpu.VertexBuffer, _gpu.Layout, part.VertexCount, _gpu.Layout.VertexStride * part.FirstVertex);
+                var mesh = new Mesh
+                {
+                    MaterialIndex = sourceMesh.MaterialIndex,
+                    Draw = new MeshDraw
+                    {
+                        PrimitiveType = sourceMesh.Draw.PrimitiveType,
+                        StartLocation = sourceMesh.Draw.StartLocation,
+                        DrawCount = sourceMesh.Draw.DrawCount,
+                        VertexBuffers = [binding],
+                        IndexBuffer = sourceMesh.Draw.IndexBuffer,
+                    },
+                };
+                _gpu.Bind(mesh);
+                Model.Meshes.Add(mesh);
+            }
+            return;
+        }
+
+        // CPU: the authored vertex bytes are snapshot and rewritten each frame at the position/normal/tangent offsets.
+        _positions = new Vector3[vertexCount];
+        _normals = new Vector3[vertexCount];
+        _tangents = new Vector4[vertexCount];
+        _meshBuffers = new MeshBuffer[source.Meshes.Count];
         for (int m = 0; m < source.Meshes.Count; m++)
         {
             var sourceMesh = source.Meshes[m];
@@ -130,6 +164,26 @@ internal sealed class DeformableModel : IDisposable
     public void Deform(SoftBodyComponent body, Matrix world)
     {
         body.CopyParticlePositions(_particles);
+
+        if (_gpu is not null)
+        {
+            // The vertex shader does the per-vertex deformation; here we only hand over the particles and the bounds.
+            var gpuWorldToLocal = Matrix.Invert(world);
+            float surfaceOffset = body.Collider is Colliders.ParticleCollider cloth ? cloth.ActualRadius * 0.1f : 0f;
+            world.Decompose(out var gpuScale, out Quaternion _, out _);
+            float localSurfaceOffset = surfaceOffset * MathF.Max(MathF.Max(1f / MathF.Max(gpuScale.X, 1e-6f), 1f / MathF.Max(gpuScale.Y, 1e-6f)), 1f / MathF.Max(gpuScale.Z, 1e-6f));
+            var gpuBounds = _gpu.Update(_particles, gpuWorldToLocal, surfaceOffset, localSurfaceOffset);
+            var gpuSphere = BoundingSphere.FromBox(gpuBounds);
+            foreach (var mesh in Model.Meshes)
+            {
+                mesh.BoundingBox = gpuBounds;
+                mesh.BoundingSphere = gpuSphere;
+            }
+            Model.BoundingBox = gpuBounds;
+            Model.BoundingSphere = gpuSphere;
+            return;
+        }
+
         Topology.Deform(_particles, _positions);
 
         // Normals and tangents are first found in world space
@@ -208,9 +262,15 @@ internal sealed class DeformableModel : IDisposable
         Model.BoundingSphere = sphere;
     }
 
-    /// <summary> Sends the vertices computed by <see cref="Deform"/> to the GPU </summary>
+    /// <summary> Sends the vertices or particles computed by <see cref="Deform"/> to the GPU </summary>
     public void Upload(CommandList commandList)
     {
+        if (_gpu is not null)
+        {
+            _gpu.Upload(commandList);
+            return;
+        }
+
         foreach (var buffer in _meshBuffers)
             buffer.VertexBuffer.SetData<byte>(commandList, buffer.Working.AsSpan());
     }
@@ -245,6 +305,7 @@ internal sealed class DeformableModel : IDisposable
     {
         foreach (var buffer in _meshBuffers)
             buffer.VertexBuffer.Dispose();
+        _gpu?.Dispose();
     }
 
     private sealed class MeshBuffer

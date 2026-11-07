@@ -145,6 +145,13 @@ public abstract class SoftBodyComponent : CollidableComponent
     [Display(category: CategorySoftBody)]
     public List<SoftBodyPin> Pins { get; } = new();
 
+    /// <summary>
+    /// Where the vertices of the model are moved to follow the particles, both look the same.
+    /// </summary>
+    [Display(category: CategorySoftBody)]
+    [DefaultValue(SoftBodyDeformationMode.Gpu)]
+    public SoftBodyDeformationMode DeformationMode { get; set; } = SoftBodyDeformationMode.Gpu;
+
     /// <summary> The amount of particles, zero until the body is part of a simulation </summary>
     [DataMemberIgnore]
     public int ParticleCount => _particles.Length;

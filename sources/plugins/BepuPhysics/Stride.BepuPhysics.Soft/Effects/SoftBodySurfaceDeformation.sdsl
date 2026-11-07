@@ -1,0 +1,55 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+/// <summary>
+/// Moves a vertex of a cloth onto its particle, its normal and tangent are summed over the triangles around it.
+/// </summary>
+shader SoftBodySurfaceDeformation : SoftBodyDeformation
+{
+    // A triangle around a vertex, seen from it: its two other particles, in the order whose cross product points outward,
+    // and how much of the edge to each one the triangle's tangent takes
+    struct RingTriangle
+    {
+        uint Next;
+        uint Previous;
+        float NextWeight;
+        float PreviousWeight;
+    };
+
+    rgroup PerDraw.SoftBodySurface
+    {
+        stage StructuredBuffer<RingTriangle> Ring;
+    }
+
+    stage stream uint SurfaceParticle : SOFTBODYPARTICLE;
+
+    // The first triangle of the vertex in Ring and the amount of them
+    stage stream uint2 SurfaceRing : SOFTBODYRING;
+
+    // Below this squared length a tangent is replaced by any direction across the normal, as the CPU deformation does
+    static const float ZeroTangentSquared = 1e-12;
+
+    override void Deform()
+    {
+        float4 particle = Particles[streams.SurfaceParticle];
+        float3 position = particle.xyz;
+        float3 normal = 0;
+        float3 tangent = 0;
+        for (uint i = 0; i < streams.SurfaceRing.y; i++)
+        {
+            RingTriangle around = Ring[streams.SurfaceRing.x + i];
+            float3 next = Particle(around.Next) - position;
+            float3 previous = Particle(around.Previous) - position;
+            normal += cross(next, previous);
+            tangent += next * around.NextWeight + previous * around.PreviousWeight;
+        }
+
+        normal = SafeNormalize(normal, 0);
+        tangent -= normal * dot(normal, tangent);
+        float3 across = cross(normal, abs(normal.x) < 0.9 ? float3(1, 0, 0) : float3(0, 1, 0));
+        tangent = dot(tangent, tangent) < ZeroTangentSquared ? across : tangent;
+
+        // Pushed along its normal, so the two faces of a double sided cloth do not fight over the same depth
+        SetMeshVertex(position + normal * particle.w, normal, tangent, 1);
+    }
+};
