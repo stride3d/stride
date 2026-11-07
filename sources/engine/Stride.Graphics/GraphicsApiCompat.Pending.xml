@@ -26,11 +26,4 @@
     <Left>Vulkan</Left>
     <Right>Direct3D11</Right>
   </Suppression>
-  <!-- Texture.HasStencil: a public, writable field on Direct3D 12 only, internal on the other APIs. -->
-  <Suppression>
-    <DiagnosticId>CP0002</DiagnosticId>
-    <Target>F:Stride.Graphics.Texture.HasStencil</Target>
-    <Left>Direct3D12</Left>
-    <Right>Direct3D11</Right>
-  </Suppression>
 </Suppressions>
