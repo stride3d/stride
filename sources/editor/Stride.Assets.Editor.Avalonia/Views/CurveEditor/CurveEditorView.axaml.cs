@@ -4,7 +4,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data.Converters;
-using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Stride.Assets.Editor.ViewModels.CurveEditor;
 using Stride.Core.Presentation.Avalonia.Drawing;
@@ -14,8 +13,8 @@ namespace Stride.Assets.Editor.Avalonia.Views.CurveEditor;
 
 /// <summary>
 /// The view of the curve editor panel: the curves opened, and the selected one drawn with its axes in a
-/// <see cref="Core.Presentation.Avalonia.Controls.DrawingCanvas"/>. The middle button pans and the wheel zooms, both axes, or
-/// the keys only with Control, or the values only with Shift, as in WPF.
+/// <see cref="Core.Presentation.Avalonia.Controls.DrawingCanvas"/>, where its keys are edited. The pointer input of the curve area
+/// is in <see cref="CurveEditorPointerHandler"/>.
 /// </summary>
 public sealed partial class CurveEditorView : UserControl
 {
@@ -29,84 +28,24 @@ public sealed partial class CurveEditorView : UserControl
     /// </summary>
     public static IValueConverter DrawingRectToRect { get; } = new FuncValueConverter<DrawingRect, Rect>(x => x.ToAvalonia());
 
-    private Point? panPosition;
+    /// <summary>
+    /// Whether a number of selected keys is not zero, for the commands that act on the selected keys.
+    /// </summary>
+    public static IValueConverter IsNotZero { get; } = new FuncValueConverter<int, bool>(x => x != 0);
+
+    /// <summary>
+    /// Whether a curve has keys to edit, for the key toolbar and the menu items that edit keys.
+    /// </summary>
+    public static IValueConverter IsEditable { get; } = new FuncValueConverter<object?, bool>(x => x is IEditableCurveViewModel);
+
+    private readonly CurveEditorPointerHandler pointerHandler;
 
     public CurveEditorView()
     {
         AvaloniaXamlLoader.Load(this);
-        var canvas = this.Get<Control>("Canvas");
-        canvas.PointerPressed += OnCanvasPointerPressed;
-        canvas.PointerMoved += OnCanvasPointerMoved;
-        canvas.PointerReleased += OnCanvasPointerReleased;
-        canvas.PointerCaptureLost += (_, _) => panPosition = null;
-        canvas.PointerWheelChanged += OnCanvasPointerWheelChanged;
-    }
-
-    private CurveEditorViewModel? Editor => DataContext as CurveEditorViewModel;
-
-    /// <summary>
-    /// The axes a pan or a zoom applies to, from the modifier keys held.
-    /// </summary>
-    public static CurveAxes GetAxes(KeyModifiers modifiers)
-    {
-        return CurveAxes.FromModifiers(modifiers.HasFlag(KeyModifiers.Shift), modifiers.HasFlag(KeyModifiers.Control),
-            (modifiers & (KeyModifiers.Alt | KeyModifiers.Meta)) != 0);
-    }
-
-    private void OnCanvasPointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-        var canvas = (Control)sender!;
-        var point = e.GetCurrentPoint(canvas);
-        if (!point.Properties.IsMiddleButtonPressed || Editor?.SelectedCurve is null || !GetAxes(e.KeyModifiers).Any)
-            return;
-
-        // Middle drag pans the view
-        Focus();
-        panPosition = point.Position;
-        e.Pointer.Capture(canvas);
-        e.Handled = true;
-    }
-
-    private void OnCanvasPointerMoved(object? sender, PointerEventArgs e)
-    {
-        if (panPosition is not { } previous)
-            return;
-
-        var canvas = (Control)sender!;
-        var point = e.GetCurrentPoint(canvas);
-        if (!point.Properties.IsMiddleButtonPressed)
-        {
-            StopPanning(e.Pointer);
-            return;
-        }
-
-        Editor?.Pan(previous.ToDrawing(), point.Position.ToDrawing(), GetAxes(e.KeyModifiers));
-        panPosition = point.Position;
-        e.Handled = true;
-    }
-
-    private void OnCanvasPointerReleased(object? sender, PointerReleasedEventArgs e)
-    {
-        if (panPosition is null || e.InitialPressMouseButton != MouseButton.Middle)
-            return;
-
-        StopPanning(e.Pointer);
-        e.Handled = true;
-    }
-
-    private void OnCanvasPointerWheelChanged(object? sender, PointerWheelEventArgs e)
-    {
-        var axes = GetAxes(e.KeyModifiers);
-        if (Editor is not { SelectedCurve: not null } editor || !axes.Any || e.Delta.Y == 0)
-            return;
-
-        editor.Zoom(e.GetPosition((Control)sender!).ToDrawing(), e.Delta.Y > 0, axes);
-        e.Handled = true;
-    }
-
-    private void StopPanning(IPointer pointer)
-    {
-        panPosition = null;
-        pointer.Capture(null);
+        pointerHandler = new CurveEditorPointerHandler(this.Get<Control>("Canvas"), this.Get<Control>("CurveArea"), this.Get<Control>("SelectionRectangle"),
+            () => DataContext as CurveEditorViewModel);
+        // The context menu's "Add point" adds the key where the menu was opened
+        this.Get<ContextMenu>("CurveContextMenu").Opening += (_, _) => this.Get<MenuItem>("AddPointMenuItem").CommandParameter = pointerHandler.LastRightClickPosition;
     }
 }

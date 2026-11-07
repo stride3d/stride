@@ -5,6 +5,8 @@
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
              xmlns:aevc="using:Stride.Assets.Editor.Avalonia.Views.CurveEditor"
              xmlns:vm="using:Stride.Assets.Editor.ViewModels.CurveEditor"
+             xmlns:cp="using:Stride.Assets.Editor.ViewModels.CurveEditor.ControlPoints"
+             xmlns:s="using:System"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="400"
              x:Class="Stride.Assets.Editor.Avalonia.Views.CurveEditor.CurveEditorView"
              x:DataType="vm:CurveEditorViewModel"
@@ -33,6 +35,9 @@
         <TextBlock Text="{sd:LocalizeString Curves:}" VerticalAlignment="Center"/>
       </DockPanel>
       <TreeView Name="CurveList" ItemsSource="{Binding Curves}" SelectedItem="{Binding SelectedCurve, Mode=TwoWay}" SelectionMode="Single">
+        <sd:EditCommands.Bindings>
+          <sd:EditCommandBinding Kind="Delete" Command="{Binding RemoveSelectedCurveCommand}"/>
+        </sd:EditCommands.Bindings>
         <TreeView.Styles>
           <Style Selector="TreeViewItem" x:DataType="vm:CurveViewModelBase">
             <Setter Property="IsExpanded" Value="True"/>
@@ -69,6 +74,48 @@
                   ToolTip.Tip="{sd:LocalizeString Fit view to curve width, Context=ToolTip}">
             <Image Source="{StaticResource ImageFitCurveWidth}" Width="16" Height="16"/>
           </Button>
+        </sd:ToolBar>
+        <!-- The keys of a curve that has keys -->
+        <sd:ToolBar Name="KeyToolBar" IsVisible="{Binding SelectedCurve, Converter={x:Static aevc:CurveEditorView.IsEditable}}">
+          <Button Name="DeletePointsButton" Command="{Binding DeleteSelectedPointsCommand}"
+                  IsEnabled="{Binding SelectedControlPoints.Count, Converter={x:Static aevc:CurveEditorView.IsNotZero}}"
+                  ToolTip.Tip="{sd:LocalizeString Delete selected points, Context=ToolTip}">
+            <Image Source="{DynamicResource ImageRemove}" Width="16" Height="16"/>
+          </Button>
+          <Separator/>
+          <Button Name="FirstKeyButton" Command="{Binding NavigateToControlPointCommand}" CommandParameter="{x:Static s:Int32.MinValue}"
+                  ToolTip.Tip="{sd:LocalizeString First key, Context=ToolTip}">
+            <Image Source="{StaticResource ImageFirstPoint}" Width="16" Height="16"/>
+          </Button>
+          <Button Name="PreviousKeyButton" Command="{Binding NavigateToControlPointCommand}" CommandParameter="{sd:Int -1}"
+                  ToolTip.Tip="{sd:LocalizeString Previous key, Context=ToolTip}">
+            <Image Source="{StaticResource ImagePreviousPoint}" Width="16" Height="16"/>
+          </Button>
+          <Button Name="NextKeyButton" Command="{Binding NavigateToControlPointCommand}" CommandParameter="{sd:Int 1}"
+                  ToolTip.Tip="{sd:LocalizeString Next key, Context=ToolTip}">
+            <Image Source="{StaticResource ImageNextPoint}" Width="16" Height="16"/>
+          </Button>
+          <Button Name="LastKeyButton" Command="{Binding NavigateToControlPointCommand}" CommandParameter="{x:Static s:Int32.MaxValue}"
+                  ToolTip.Tip="{sd:LocalizeString Last key, Context=ToolTip}">
+            <Image Source="{StaticResource ImageLastPoint}" Width="16" Height="16"/>
+          </Button>
+          <!-- The key and the value of the selected key, when one is selected -->
+          <ContentControl Name="SelectedKey" Content="{Binding SingleSelectedControlPoint}">
+            <ContentControl.DataTemplates>
+              <DataTemplate DataType="cp:ControlPointViewModelBase">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Text="{sd:LocalizeString Key}" VerticalAlignment="Center" Margin="4 0 0 0"/>
+                  <sd:NumericTextBox Name="KeyBox" Value="{Binding ActualKey, Mode=TwoWay}" Width="80" Margin="4 0 0 0"
+                                     LargeChange="0.01" SmallChange="0.001" DecimalPlaces="6"/>
+                  <TextBlock Text="{sd:LocalizeString Value}" VerticalAlignment="Center" Margin="4 0 0 0"/>
+                  <sd:NumericTextBox Name="ValueBox" Value="{Binding ActualValue, Mode=TwoWay}" Width="80" Margin="4 0 0 0"
+                                     LargeChange="10" SmallChange="1" DecimalPlaces="6"/>
+                </StackPanel>
+              </DataTemplate>
+            </ContentControl.DataTemplates>
+          </ContentControl>
+        </sd:ToolBar>
+        <sd:ToolBar Name="OtherToolBar">
           <!-- The display mode of a rotation curve that is not a list of keys -->
           <ContentControl Content="{Binding SelectedCurve}">
             <ContentControl.DataTemplates>
@@ -85,8 +132,52 @@
       </sd:ToolBarTray>
 
       <!-- The curve area -->
-      <Grid Name="CurveArea" Background="Transparent" Margin="20">
-        <sd:DrawingCanvas Name="Canvas" Model="{Binding}"/>
+      <Grid Name="CurveArea" Background="Transparent" Margin="20" Focusable="True">
+        <Grid.KeyBindings>
+          <KeyBinding Gesture="Home" Command="{Binding NavigateToControlPointCommand}" CommandParameter="{x:Static s:Int32.MinValue}"/>
+          <KeyBinding Gesture="Left" Command="{Binding NavigateToControlPointCommand}" CommandParameter="{sd:Int -1}"/>
+          <KeyBinding Gesture="Right" Command="{Binding NavigateToControlPointCommand}" CommandParameter="{sd:Int 1}"/>
+          <KeyBinding Gesture="End" Command="{Binding NavigateToControlPointCommand}" CommandParameter="{x:Static s:Int32.MaxValue}"/>
+        </Grid.KeyBindings>
+        <sd:EditCommands.Bindings>
+          <sd:EditCommandBinding Kind="Delete" Command="{Binding DeleteSelectedPointsCommand}"/>
+        </sd:EditCommands.Bindings>
+        <sd:DrawingCanvas Name="Canvas" Model="{Binding}">
+          <sd:DrawingCanvas.ContextMenu>
+            <ContextMenu Name="CurveContextMenu">
+              <MenuItem Header="{sd:LocalizeString Curve, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"
+                        IsVisible="{Binding SelectedCurve, Converter={x:Static aevc:CurveEditorView.IsEditable}}"/>
+              <MenuItem Name="AddPointMenuItem" Header="{sd:LocalizeString Add point, Context=Menu}" Command="{Binding AddPointCommand}"
+                        IsVisible="{Binding SelectedCurve, Converter={x:Static aevc:CurveEditorView.IsEditable}}">
+                <MenuItem.Icon><Image Source="{DynamicResource ImageAdd}"/></MenuItem.Icon>
+              </MenuItem>
+              <MenuItem Name="DeletePointsMenuItem" Header="{sd:LocalizeString Delete selected points, Context=Menu}" InputGesture="{x:Static sd:EditCommands.DeleteGesture}"
+                        Command="{Binding DeleteSelectedPointsCommand}"
+                        IsEnabled="{Binding SelectedControlPoints.Count, Converter={x:Static aevc:CurveEditorView.IsNotZero}}"
+                        IsVisible="{Binding SelectedCurve, Converter={x:Static aevc:CurveEditorView.IsEditable}}">
+                <MenuItem.Icon><Image Source="{DynamicResource ImageRemove}"/></MenuItem.Icon>
+              </MenuItem>
+              <MenuItem Name="ClearCurveMenuItem" Header="{sd:LocalizeString Clear whole curve, Context=Menu}" Command="{Binding ClearCurveCommand}"
+                        IsVisible="{Binding SelectedCurve, Converter={x:Static aevc:CurveEditorView.IsEditable}}">
+                <MenuItem.Icon><Image Source="{DynamicResource ImageClear}"/></MenuItem.Icon>
+              </MenuItem>
+              <MenuItem Header="{sd:LocalizeString View, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"/>
+              <MenuItem Header="{sd:LocalizeString Fit to curve, Context=Menu}" Command="{Binding ResetViewCommand}" CommandParameter="{sd:Int 0}">
+                <MenuItem.Icon><Image Source="{StaticResource ImageFitCurve}"/></MenuItem.Icon>
+              </MenuItem>
+              <MenuItem Header="{sd:LocalizeString Fit to curve height, Context=Menu}" Command="{Binding ResetViewCommand}" CommandParameter="{sd:Int 1}">
+                <MenuItem.Icon><Image Source="{StaticResource ImageFitCurveHeight}"/></MenuItem.Icon>
+              </MenuItem>
+              <MenuItem Header="{sd:LocalizeString Fit to curve width, Context=Menu}" Command="{Binding ResetViewCommand}" CommandParameter="{sd:Int -1}">
+                <MenuItem.Icon><Image Source="{StaticResource ImageFitCurveWidth}"/></MenuItem.Icon>
+              </MenuItem>
+            </ContextMenu>
+          </sd:DrawingCanvas.ContextMenu>
+        </sd:DrawingCanvas>
+        <!-- The selection rectangle, while it is drawn -->
+        <Canvas IsHitTestVisible="False">
+          <Rectangle Name="SelectionRectangle" Stroke="#FF3399FF" StrokeThickness="1" Fill="#333399FF"/>
+        </Canvas>
         <sd:TrackerControl Name="Tracker" TrackPointer="True" Opacity="0.6"
                            LineExtents="{Binding CurveArea, Converter={x:Static aevc:CurveEditorView.DrawingRectToRect}}">
           <sd:TrackerControl.IsVisible>
