@@ -135,13 +135,13 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
     {
         var extensionTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         var extensionAttribute = compilation.GetTypeByMetadataName(AssetFileExtensionAttributeFullName);
-        foreach (var assembly in GetAllAssemblies(compilation))
+        foreach (var assembly in compilation.SourceModule.ReferencedAssemblySymbols.Concat([compilation.Assembly]))
         {
             cancellationToken.ThrowIfCancellationRequested();
             foreach (var pair in ReadDeclaredExtensions(assembly, extensionAttribute))
                 extensionTypes[pair.Key] = pair.Value;
         }
-        foreach (var assembly in GetAllAssemblies(compilation))
+        foreach (var assembly in compilation.SourceModule.ReferencedAssemblySymbols.Concat([compilation.Assembly]))
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (assembly.Modules.Any(module => module.ReferencedAssemblies.Any(identity => identity.Name == StrideCoreAssetsAssemblyName)))
@@ -151,17 +151,6 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
             .OrderBy(pair => pair.Key, StringComparer.OrdinalIgnoreCase)
             .Select(pair => new ExtensionType(pair.Key, pair.Value))
             .ToList();
-
-        static IEnumerable<IAssemblySymbol> GetAllAssemblies(Compilation compilation)
-        {
-            foreach (var reference in compilation.References)
-            {
-                if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assemblySymbol)
-                    yield return assemblySymbol;
-            }
-
-            yield return compilation.Assembly;
-        }
     }
 
     private static ConflictInfo ResolveConflict(Compilation compilation, Config config)
