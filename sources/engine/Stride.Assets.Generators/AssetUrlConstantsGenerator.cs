@@ -8,7 +8,7 @@ namespace Stride.Assets.Generators;
 
 /// <summary>
 /// Generates typed <c>UrlReference</c> constants for the project's authored assets, exposed as
-/// AdditionalFiles by Stride.AssetConstants.targets, so game code can write
+/// the property StrideAssetPaths by Stride.AssetConstants.targets, so game code can write
 /// <c>Assets.Materials.Ground</c> instead of a URL string.
 /// </summary>
 [Generator]
