@@ -17,6 +17,7 @@ using Stride.Assets.Models;
 using Stride.Assets.Presentation;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Assets.Rendering;
+using Stride.Assets.Scripts;
 using Stride.Assets.Sprite;
 using Stride.Assets.Textures;
 using Stride.Core.Assets;
@@ -279,6 +280,27 @@ public sealed class PluginServiceTests
         Assert.Equal(typeof(StrideSharedAssetsPlugin).Assembly, editorType.Assembly);
         Assert.Equal([viewType], views.Where(x => x.EditorViewModelType == editorType).Select(x => x.View));
         Assert.Equal(editorType, fixture.Plugins.GetEditorViewModelType(assetViewModelType));
+    }
+
+    [AvaloniaFact]
+    public async Task TheVisualScriptHasOneAssetViewModelTheSharedOne()
+    {
+        using var fixture = await ShellSessionFixture.OpenAsync(("Sheet", new SpriteSheetAsset()));
+
+        // The shared asset view model (Stride.Assets.Presentation.Common) replaced its copy; the editor stays per toolkit
+        var assemblies = fixture.Plugins.Plugins.Select(x => x.GetType().Assembly).Distinct().ToList();
+        var viewModels = assemblies
+            .SelectMany(x => AssemblyRegistry.GetScanTypes(x, typeof(AssetViewModel)))
+            .Select(x => (x.GetCustomAttribute<AssetViewModelAttribute>()?.AssetType, ViewModel: x))
+            .Where(x => x.AssetType is not null)
+            .Distinct()
+            .ToList();
+        Assert.Empty(Duplicates(viewModels, x => x.AssetType!, x => x.ViewModel));
+
+        Assert.Equal([typeof(VisualScriptViewModel)], viewModels.Where(x => x.AssetType == typeof(VisualScriptAsset)).Select(x => x.ViewModel));
+        Assert.Equal(typeof(StrideSharedAssetsPlugin).Assembly, typeof(VisualScriptViewModel).Assembly);
+        Assert.Equal(typeof(VisualScriptViewModel), fixture.Plugins.GetAssetViewModelType(typeof(VisualScriptAsset)));
+        Assert.Equal(typeof(VisualScriptEditorViewModel), fixture.Plugins.GetEditorViewModelType(typeof(VisualScriptViewModel)));
     }
 
     [AvaloniaFact]

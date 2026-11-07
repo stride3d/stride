@@ -313,6 +313,30 @@ namespace Stride.GameStudio.Tests
             return (editors, views);
         }
 
+        [Fact]
+        public void TheVisualScriptHasOneAssetViewModelTheSharedOneInTheWpfEditor()
+        {
+            // The shared asset view model (Stride.Assets.Presentation.Common) replaced the WPF one; the WPF editor stays
+            RuntimeHelpers.RunModuleConstructor(typeof(StrideDefaultAssetsPlugin).Module.ModuleHandle);
+            var assemblies = AssemblyRegistry.Find(AssemblyCommonCategories.Assets);
+
+            var viewModels = assemblies
+                .SelectMany(x => AssemblyRegistry.GetScanTypes(x, typeof(Stride.Core.Assets.Editor.ViewModel.AssetViewModel)))
+                .Select(x => (x.GetCustomAttribute<Stride.Core.Assets.Editor.Annotations.AssetViewModelAttribute>()?.AssetType, ViewModel: x))
+                .Where(x => x.AssetType is not null)
+                .Distinct()
+                .ToList();
+            Assert.Empty(Duplicates(viewModels, x => x.AssetType, x => x.ViewModel));
+            Assert.Equal(new[] { typeof(Stride.Assets.Presentation.ViewModels.VisualScriptViewModel) }, viewModels.Where(x => x.AssetType == typeof(Stride.Assets.Scripts.VisualScriptAsset)).Select(x => x.ViewModel));
+            Assert.Equal(typeof(StrideSharedAssetsPlugin).Assembly, typeof(Stride.Assets.Presentation.ViewModels.VisualScriptViewModel).Assembly);
+
+            var editors = assemblies
+                .SelectMany(x => AssemblyRegistry.GetScanTypes(x, typeof(IAssetEditorViewModel)))
+                .Where(x => x.GetCustomAttribute<AssetEditorViewModelAttribute>()?.ViewModelType == typeof(Stride.Assets.Presentation.ViewModels.VisualScriptViewModel))
+                .Distinct();
+            Assert.Equal(new[] { typeof(Stride.Assets.Presentation.AssetEditors.VisualScriptEditor.VisualScriptEditorViewModel) }, editors);
+        }
+
         private static System.Collections.Generic.IEnumerable<(TemplateDescription Description, Type Generator)> AssetTemplateCases()
         {
             static TemplateAssetFactoryDescription Factory(string name, Guid id, string assetTypeName, bool importSource = false)
