@@ -163,7 +163,7 @@ internal sealed class DeformableModel : IDisposable
             // GPU mode: stream 1 carries the per-vertex binding to the particles; the authored declaration (stream 0) keeps
             // its slice of the global vertex pool, so the input assembler finds the binding at the same vertex id as the authored data.
             VertexBufferBinding[] vertexBuffers = gpu
-                ? [vertexBinding, new VertexBufferBinding(_gpu!.BindingBuffer, _gpu.BindingLayout, buffer.VertexCount, _gpu.BindingLayout.VertexStride * buffer.FirstVertex)]
+                ? [vertexBinding, new VertexBufferBinding(_gpu!.BindingBuffer, _gpu.BindingLayout, buffer.VertexCount, vertexOffset: _gpu.BindingLayout.VertexStride * buffer.FirstVertex)]
                 : [vertexBinding];
 
             var mesh = Model.Meshes[m];
