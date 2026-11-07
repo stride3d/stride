@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -9,46 +9,63 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using Xunit;
-using Stride.Assets.Entities;
 using Stride.Core.Assets;
+using Stride.Core.Assets.Analysis;
 using Stride.Core.Diagnostics;
+using Stride.Core.IO;
+using Stride.Core.Reflection;
 
 namespace Stride.Assets.Tests
 {
     /// <summary>
-    /// Opens scenes saved by released versions as a project upgrade does (migration, then load), saves them again and
-    /// compares the result with the expected file next to them, or with the scene when it has none. See SceneUpgrade/README.md.
+    /// Opens asset files saved by released versions as a project upgrade does (migration, then load), saves them again
+    /// and compares the result with the expected file next to them, or with the file when it has none. See AssetUpgrade/README.md.
     /// </summary>
-    public class TestSceneUpgrader
+    public class TestAssetUpgrade
     {
-        private const string UpdateVariable = "STRIDE_SCENE_UPGRADE_UPDATE";
+        private const string UpdateVariable = "STRIDE_ASSET_UPGRADE_UPDATE";
 
-        private static readonly string FixturesDirectory = Path.Combine(AppContext.BaseDirectory, "SceneUpgrade", "Fixtures");
+        private static readonly string FixturesDirectory = Path.Combine(AppContext.BaseDirectory, "AssetUpgrade", "Fixtures");
+
+        static TestAssetUpgrade()
+        {
+            // Registers what nothing else here loads, as the editor does with the packages of a project: the particle types
+            // (components, the render feature of compositors) and the asset types of the physics plugins, with their upgraders
+            RuntimeHelpers.RunModuleConstructor(typeof(Stride.Particles.Components.ParticleSystemComponent).Module.ModuleHandle);
+            AssemblyRegistry.Register(typeof(Stride.Physics.Assets.ColliderShapeAsset).Assembly, AssemblyCommonCategories.Assets);
+            AssemblyRegistry.Register(typeof(Stride.BepuPhysics.Assets.HullAsset).Assembly, AssemblyCommonCategories.Assets);
+        }
 
         public static IEnumerable<object[]> Fixtures()
-            => Directory.EnumerateFiles(FixturesDirectory, "*.sdscene").Order(StringComparer.Ordinal).Select(path => new object[] { Path.GetFileName(path) });
+            => Directory.EnumerateFiles(FixturesDirectory).Order(StringComparer.Ordinal).Select(path => new object[] { Path.GetFileName(path) });
 
         [Theory]
         [MemberData(nameof(Fixtures))]
-        public void UpgradesSceneOfARelease(string fixture)
+        public void UpgradesAssetOfARelease(string fixture)
         {
             var path = Path.Combine(FixturesDirectory, fixture);
+            // The warnings of the migration are what upgraders tell the user (a V-HACD upgrader says its output may
+            // differ); those of the load are what didn't load
+            var migrationLogger = new LoggerResult();
             var logger = new LoggerResult();
 
             var file = new PackageLoadingAssetFile(path, FixturesDirectory);
-            var context = new AssetMigrationContext(null, file.ToReference(), file.FilePath.ToOSPath(), logger);
+            var context = new AssetMigrationContext(null, file.ToReference(), file.FilePath.ToOSPath(), migrationLogger);
             AssetMigration.MigrateAssetIfNeeded(context, file);
+            // A package is no asset, so the load asks for any type
             var loaded = file.AssetContent is { } migrated
-                ? AssetFileSerializer.Load<SceneAsset>(new MemoryStream(migrated), path, logger)
-                : AssetFileSerializer.Load<SceneAsset>(path, logger);
+                ? AssetFileSerializer.Load<object>(new MemoryStream(migrated), path, logger)
+                : AssetFileSerializer.Load<object>(path, logger);
 
+            ConvertPaths(loaded.Asset, fixture, UPathType.Absolute, logger);
+            ConvertPaths(loaded.Asset, fixture, UPathType.Relative, logger);
             using var stream = new MemoryStream();
             AssetFileSerializer.Save(stream, loaded.Asset, loaded.YamlMetadata, logger);
             var upgraded = Normalize(Encoding.UTF8.GetString(stream.ToArray()));
 
-            foreach (var message in logger.Messages)
+            foreach (var message in migrationLogger.Messages.Concat(logger.Messages))
                 Console.WriteLine(message);
-            Assert.False(logger.HasErrors, $"{fixture}: the upgrade logged errors");
+            Assert.False(migrationLogger.HasErrors || logger.HasErrors, $"{fixture}: the upgrade logged errors");
             // The scripts of the sample can't load, its game assembly isn't here; every engine type must
             var notLoaded = logger.Messages
                 .Where(message => message.Type == LogMessageType.Warning && !IsScriptOfTheSample(message.ToString()))
@@ -62,7 +79,7 @@ namespace Stride.Assets.Tests
             var expectedPath = Path.Combine(FixturesDirectory, "..", "Expected", fixture);
             if (Environment.GetEnvironmentVariable(UpdateVariable) == "1")
             {
-                var sourcePath = Path.Combine(SourceDirectory(), "SceneUpgrade", "Expected", fixture);
+                var sourcePath = Path.Combine(SourceDirectory(), "AssetUpgrade", "Expected", fixture);
                 if (changed)
                 {
                     Directory.CreateDirectory(Path.GetDirectoryName(sourcePath));
@@ -72,7 +89,7 @@ namespace Stride.Assets.Tests
                 else if (File.Exists(sourcePath))
                 {
                     File.Delete(sourcePath);
-                    Console.WriteLine($"Expected file removed, the upgrade no longer changes the scene: {sourcePath}");
+                    Console.WriteLine($"Expected file removed, the upgrade no longer changes the file: {sourcePath}");
                 }
                 return;
             }
@@ -81,15 +98,28 @@ namespace Stride.Assets.Tests
             var expected = hasExpected ? Normalize(File.ReadAllText(expectedPath)) : original;
             if (upgraded != expected)
             {
-                var actualPath = Path.Combine(Path.GetTempPath(), "stride-scene-upgrade", fixture);
+                var actualPath = Path.Combine(Path.GetTempPath(), "stride-asset-upgrade", fixture);
                 Directory.CreateDirectory(Path.GetDirectoryName(actualPath));
                 File.WriteAllText(actualPath, upgraded);
                 var what = hasExpected
-                    ? (changed ? $"differs from SceneUpgrade/Expected/{fixture}" : $"is the scene as it was, not SceneUpgrade/Expected/{fixture}")
-                    : "differs from the scene, which has no expected file";
-                Assert.Fail($"{fixture}: the upgraded scene {what} at line {FirstDifferentLine(upgraded, expected)}. "
+                    ? (changed ? $"differs from AssetUpgrade/Expected/{fixture}" : $"is the file as it was, not AssetUpgrade/Expected/{fixture}")
+                    : "differs from the file, which has no expected file";
+                Assert.Fail($"{fixture}: the upgraded file {what} at line {FirstDifferentLine(upgraded, expected)}. "
                     + $"It is written to {actualPath}; if the change is expected, run the test with {UpdateVariable}=1.");
             }
+        }
+
+        // As a session does after the load and before the save: the paths of an asset, its source hashes among them, are
+        // absolute while it is loaded
+        private static void ConvertPaths(object loaded, string fixture, UPathType convertTo, ILogger logger)
+        {
+            if (loaded is not Asset asset)
+                return;
+            var package = new Package { FullPath = Path.Combine(FixturesDirectory, "Fixtures.sdpkg") };
+            var item = new AssetItem(Path.GetFileNameWithoutExtension(fixture), asset) { SourceFolder = UDirectory.This };
+            package.Assets.Add(item);
+            AssetAnalysis.Run(item, logger, new AssetAnalysisParameters { IsProcessingUPaths = true, ConvertUPathTo = convertTo });
+            package.Assets.Remove(item);
         }
 
         // The exception of the warning names the tag the load can't resolve: [!Gameplay.SceneStreaming,TopDownRPG.Game]
