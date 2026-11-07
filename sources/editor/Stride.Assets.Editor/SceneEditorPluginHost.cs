@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Widgets;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Services;
@@ -12,7 +13,7 @@ namespace Stride.Assets.Editor;
 
 /// <summary>
 /// The plugin host of the editors that have the scene and prefab editors (both Game Studios): it declares the contribution
-/// points of these editors, which the plugins reach through typed methods of their context (<see cref="ScenePluginContextExtensions"/>),
+/// points of these editors (tools and widgets), which the plugins reach through typed methods of their context (<see cref="ScenePluginContextExtensions"/>),
 /// and finds the scene view tools that the assemblies of a plugin declare (<see cref="EditorViewToolAttribute"/>).
 /// </summary>
 public abstract class SceneEditorPluginHost : StrideEditorPluginHost
@@ -22,6 +23,7 @@ public abstract class SceneEditorPluginHost : StrideEditorPluginHost
         : base(plugins, dispatcher)
     {
         SceneViewTools = DeclareRegistry<SceneViewToolDescriptor>(SceneViewToolDescriptor.Validate);
+        SceneViewWidgets = DeclareRegistry<SceneViewWidgetDescriptor>(ValidateSceneViewWidget);
     }
 
     /// <summary>
@@ -29,6 +31,12 @@ public abstract class SceneEditorPluginHost : StrideEditorPluginHost
     /// follow its changes.
     /// </summary>
     public ContributionRegistry<SceneViewToolDescriptor> SceneViewTools { get; }
+
+    /// <summary>
+    /// The widgets of the views of the scene and prefab editors that the plugins register, each with its owner: the open
+    /// editors follow its changes.
+    /// </summary>
+    public ContributionRegistry<SceneViewWidgetDescriptor> SceneViewWidgets { get; }
 
     /// <inheritdoc />
     /// <remarks>
@@ -58,5 +66,16 @@ public abstract class SceneEditorPluginHost : StrideEditorPluginHost
             return null;
         }
         return SceneViewTools.Register(descriptor, plugin);
+    }
+
+    private void ValidateSceneViewWidget(SceneViewWidgetDescriptor widget)
+    {
+        ArgumentNullException.ThrowIfNull(widget);
+        if (string.IsNullOrWhiteSpace(widget.Id))
+            throw new ArgumentException("A scene view widget needs an identifier.", nameof(widget));
+        if (widget.Title is null || widget.CreateViewModel is null)
+            throw new ArgumentException($"The scene view widget [{widget.Id}] needs a title and a view model.", nameof(widget));
+        if (SceneViewWidgets.Items.Any(x => x.Id == widget.Id))
+            throw new ArgumentException($"A scene view widget with the identifier [{widget.Id}] is already registered.", nameof(widget));
     }
 }

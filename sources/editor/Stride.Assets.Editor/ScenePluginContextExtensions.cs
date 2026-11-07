@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Widgets;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Diagnostics;
 
@@ -23,6 +24,19 @@ public static class ScenePluginContextExtensions
     {
         ArgumentNullException.ThrowIfNull(context);
         return new RefusingRegistry(context.GetRegistry<SceneViewToolDescriptor>(), context);
+    }
+
+    /// <summary>
+    /// The widgets of the views of the scene and prefab editors, docked on an edge of the view over the game: each editor
+    /// creates the view model of a widget the first time it shows, and destroys it when it closes or the plugin leaves. The
+    /// toolkit companion of the plugin registers the view (<see cref="IEditorPluginContext.ViewTypes"/>).
+    /// </summary>
+    /// <param name="context">The context of the plugin.</param>
+    /// <exception cref="ArgumentException">On registration: a widget without an identifier, or whose identifier is taken.</exception>
+    public static IPluginRegistry<SceneViewWidgetDescriptor> SceneViewWidgets(this IEditorPluginContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        return context.GetRegistry<SceneViewWidgetDescriptor>();
     }
 
     // Logs and leaves out a tool the views cannot use, rather than failing the plugin as the registry would
@@ -53,5 +67,14 @@ public static class ScenePluginContributions
     {
         ArgumentNullException.ThrowIfNull(toolType);
         return $"SceneViewTool {toolType.FullName}";
+    }
+
+    /// <summary>
+    /// A widget of the scene and prefab views: its title, and the creation and destruction of its view model.
+    /// </summary>
+    public static string SceneViewWidget(string widgetId)
+    {
+        ArgumentNullException.ThrowIfNull(widgetId);
+        return $"SceneViewWidget {widgetId}";
     }
 }

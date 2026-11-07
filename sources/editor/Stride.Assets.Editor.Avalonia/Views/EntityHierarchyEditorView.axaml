@@ -386,6 +386,23 @@
             </Flyout>
           </Button.Flyout>
         </Button>
+        <!-- Widgets: the widgets of the plugins on the edges of the view, each shown or hidden for this scene -->
+        <Button x:Name="WidgetsButton" x:DataType="vm:SceneViewWidgetsViewModel" Focusable="False" Background="Transparent" Padding="6"
+                DataContext="{Binding $parent[local:EntityHierarchyEditorView].((vm:EntityHierarchyEditorViewModel)DataContext).SceneViewWidgets}"
+                IsVisible="{Binding HasWidgets, FallbackValue=False}" ToolTip.Tip="Widgets...">
+          <Path Classes="icon" Data="M2,2 H7 V7 H2 Z M9,2 H14 V7 H9 Z M2,9 H7 V14 H2 Z M9,9 H14 V14 H9 Z" />
+          <Button.Flyout>
+            <Flyout Placement="BottomEdgeAlignedLeft">
+              <ItemsControl ItemsSource="{Binding Widgets}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:SceneViewWidgetViewModel">
+                    <CheckBox Content="{Binding Title}" IsChecked="{Binding IsVisible}" Focusable="False" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </Flyout>
+          </Button.Flyout>
+        </Button>
       </StackPanel>
 
       <!-- The game of the editor renders here; the text shows while it has no game (yet) -->
@@ -399,6 +416,15 @@
             <dd:AddChildDropBehavior/>
           </Interaction.Behaviors>
         </ContentControl>
+        <!-- The widgets of the plugins, on the edges of the view over the game; the panels have no background, so the pointer
+             reaches the game everywhere but on a widget -->
+        <DockPanel x:Name="WidgetLayer">
+          <StackPanel x:Name="TopWidgets" DockPanel.Dock="Top" Orientation="Horizontal" Spacing="4" Margin="4" HorizontalAlignment="Left" />
+          <StackPanel x:Name="BottomWidgets" DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="4" Margin="4" HorizontalAlignment="Left" />
+          <StackPanel x:Name="LeftWidgets" DockPanel.Dock="Left" Orientation="Vertical" Spacing="4" Margin="4" VerticalAlignment="Top" />
+          <StackPanel x:Name="RightWidgets" DockPanel.Dock="Right" Orientation="Vertical" Spacing="4" Margin="4" VerticalAlignment="Top" />
+          <Panel />
+        </DockPanel>
       </Panel>
     </DockPanel>
   </Grid>

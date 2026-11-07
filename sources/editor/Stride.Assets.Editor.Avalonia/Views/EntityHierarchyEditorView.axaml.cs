@@ -9,6 +9,7 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Widgets;
 using Stride.Assets.Editor.Commands;
 using Stride.Assets.Editor.ViewModels;
 using Stride.Assets.Editor.Avalonia.Converters;
@@ -19,16 +20,22 @@ using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Editors;
 using Stride.Core.Assets.Editor.Avalonia.Commands;
 using Stride.Core.Assets.Editor.Commands;
+using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Diagnostics;
 
 namespace Stride.Assets.Editor.Avalonia.Views;
 
 [AssetEditorView<EntityHierarchyEditorViewModel>]
 public partial class EntityHierarchyEditorView : UserControl, IAssetEditorView
 {
+    private static readonly Logger WidgetLog = GlobalLogger.GetLogger(nameof(EntityHierarchyEditorView));
+
     private KeyModifiers pointerModifiers;
     private EntityHierarchyEditorViewModel? editor;
     private EditorViewToolbarViewModel? toolbar;
+    private SceneViewWidgetsViewModel? widgets;
+    private readonly Dictionary<SceneViewWidgetViewModel, Control?> widgetViews = [];
 
     public EntityHierarchyEditorView()
     {
@@ -56,13 +63,93 @@ public partial class EntityHierarchyEditorView : UserControl, IAssetEditorView
         if (editor is not null)
             editor.PropertyChanged += OnEditorPropertyChanged;
         FollowToolbar();
+        // One set of widgets per editor, which this view shows
+        FollowWidgets(editor?.GetOrCreateSceneViewWidgets());
     }
 
     private void OnEditorPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(EntityHierarchyEditorViewModel.ViewOptions))
             FollowToolbar();
+        else if (e.PropertyName == nameof(EntityHierarchyEditorViewModel.SceneViewWidgets))
+            FollowWidgets(editor?.SceneViewWidgets);
     }
+
+    private void FollowWidgets(SceneViewWidgetsViewModel? newWidgets)
+    {
+        if (widgets == newWidgets)
+            return;
+        if (widgets is not null)
+            widgets.WidgetsChanged -= OnWidgetsChanged;
+        widgets = newWidgets;
+        if (widgets is not null)
+            widgets.WidgetsChanged += OnWidgetsChanged;
+        UpdateWidgetViews();
+    }
+
+    private void OnWidgetsChanged(object? sender, EventArgs e) => UpdateWidgetViews();
+
+    /// <summary>
+    /// Docks the widgets that show on their edges, in order, with the views their plugins register for this editor.
+    /// </summary>
+    private void UpdateWidgetViews()
+    {
+        foreach (var panel in new[] { TopWidgets, BottomWidgets, LeftWidgets, RightWidgets })
+            panel.Children.Clear();
+        var shown = new HashSet<SceneViewWidgetViewModel>();
+        if (widgets is not null)
+        {
+            foreach (var (edge, panel) in new[] { (SceneViewEdge.Top, TopWidgets), (SceneViewEdge.Bottom, BottomWidgets), (SceneViewEdge.Left, LeftWidgets), (SceneViewEdge.Right, RightWidgets) })
+            {
+                foreach (var widget in widgets.GetShownWidgets(edge))
+                {
+                    shown.Add(widget);
+                    if (!widgetViews.TryGetValue(widget, out var view))
+                        widgetViews[widget] = view = CreateWidgetView(widgets, widget);
+                    if (view is not null)
+                        panel.Children.Add(view);
+                }
+            }
+        }
+        // The views of the widgets that left; a hidden widget keeps its view for when it shows again
+        foreach (var widget in widgetViews.Keys.Where(x => !shown.Contains(x) && (widgets is null || !widgets.Widgets.Contains(x))).ToList())
+        {
+            if (widgetViews.Remove(widget, out var view) && view is not null)
+                view.DataContext = null;
+        }
+    }
+
+    // The view of a widget: the one its plugin registers for this editor, created through the guard
+    private Control? CreateWidgetView(SceneViewWidgetsViewModel set, SceneViewWidgetViewModel widget)
+    {
+        if (widget.Content is not { } content || editor?.ServiceProvider.TryGet<IAssetsPluginService>() is not EditorPluginHost host)
+            return null;
+
+        var viewType = host.GetViewType(content.GetType(), out var viewOwner);
+        var owner = (object?)viewOwner ?? set.GetOwner(widget.Descriptor);
+        if (viewType is null)
+        {
+            WidgetLog.Warning($"The scene view widget [{widget.Id}] of the plugin [{owner?.GetType().FullName}] has no view for this editor.");
+            return null;
+        }
+        return host.TryRun(owner, PluginContributions.View(content.GetType()), () =>
+        {
+            var control = (Control)Activator.CreateInstance(viewType)!;
+            control.DataContext = content;
+            return control;
+        }, out var created) ? created : null;
+    }
+
+    /// <summary>
+    /// Gets the views of the widgets docked on the edges of the view, by edge.
+    /// </summary>
+    internal IReadOnlyDictionary<SceneViewEdge, Panel> WidgetPanels => new Dictionary<SceneViewEdge, Panel>
+    {
+        [SceneViewEdge.Top] = TopWidgets,
+        [SceneViewEdge.Bottom] = BottomWidgets,
+        [SceneViewEdge.Left] = LeftWidgets,
+        [SceneViewEdge.Right] = RightWidgets,
+    };
 
     // The toolbar of the view raises the context menu requests of the game
     private void FollowToolbar()

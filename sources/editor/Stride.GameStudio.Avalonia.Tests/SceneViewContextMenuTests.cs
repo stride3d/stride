@@ -195,7 +195,7 @@ public sealed class SceneViewContextMenuTests
         }
     }
 
-    private static EditorViewToolbarViewModel AttachToolbar(SceneTreeDropTests.SceneFixture scene, FakeToolService tools)
+    internal static EditorViewToolbarViewModel AttachToolbar(SceneTreeDropTests.SceneFixture scene, FakeToolService tools)
     {
         var editor = scene.Editor;
         // The headless editor has no game: the toolbar of its view gets a tool service without a game
@@ -204,7 +204,7 @@ public sealed class SceneViewContextMenuTests
         return toolbar;
     }
 
-    private static void DetachToolbar(SceneTreeDropTests.SceneFixture scene, EditorViewToolbarViewModel toolbar)
+    internal static void DetachToolbar(SceneTreeDropTests.SceneFixture scene, EditorViewToolbarViewModel toolbar)
     {
         scene.Editor.ViewOptions = null;
         toolbar.Destroy();
@@ -220,7 +220,7 @@ public sealed class SceneViewContextMenuTests
     /// <summary>
     /// The tool service of a view without a game: the calls to the game thread run at once.
     /// </summary>
-    private sealed class FakeToolService : IEditorGameToolViewModelService
+    internal sealed class FakeToolService : IEditorGameToolViewModelService
     {
         public IReadOnlyList<IEditorViewTool> Tools { get; private set; } = [new SelectTool(), new TranslateTool(), new RotateTool(), new ScaleTool()];
 

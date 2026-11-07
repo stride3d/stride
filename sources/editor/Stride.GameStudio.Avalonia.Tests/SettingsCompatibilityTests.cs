@@ -20,6 +20,8 @@ using Stride.GameStudio.Avalonia.Settings;
 using Stride.GameStudio.Avalonia.Tests.Helpers;
 using Stride.GameStudio.Avalonia.Views;
 using Stride.Assets.Editor.SceneEditor;
+using Stride.Assets.Editor.ViewModels;
+using Stride.Core.Settings;
 
 namespace Stride.GameStudio.Avalonia.Tests;
 
@@ -250,6 +252,50 @@ public sealed class SettingsCompatibilityTests : IDisposable
             InternalSettings.FileDialogLastImportDirectory.SetValue(previousDirectory);
             InternalSettings.SaveProfile();
         }
+    }
+
+    [AvaloniaFact]
+    public void TheWidgetsOfAScenePassThroughTheWpfEditorAsTheyAre()
+    {
+        var path = Path.Combine(directory, "MyGame.sdpkg.user");
+        var sceneId = AssetId.New();
+        var otherSceneId = AssetId.New();
+
+        // This editor writes the scene settings, which both editors share, and the scene view widgets, under a key of their own
+        var container = new SettingsContainer();
+        var sceneSettings = new SettingsKey<Dictionary<AssetId, SceneSettingsData>>(PackageSceneSettings.SceneSettings.Name, container, () => new Dictionary<AssetId, SceneSettingsData>());
+        var widgets = new SettingsKey<Dictionary<AssetId, Dictionary<string, bool>>>(PackageSceneViewWidgets.Visibility.Name, container, () => new Dictionary<AssetId, Dictionary<string, bool>>());
+        var profile = container.CreateSettingsProfile(true);
+        sceneSettings.SetValue(new Dictionary<AssetId, SceneSettingsData> { [sceneId] = new() { CamMoveSpeed = 3 } }, profile);
+        widgets.SetValue(new Dictionary<AssetId, Dictionary<string, bool>>
+        {
+            [sceneId] = new() { ["Tests.Stats"] = false, ["Tests.Ruler"] = true },
+            [otherSceneId] = new() { ["Tests.Stats"] = true },
+        }, profile);
+        Assert.True(container.SaveSettingsProfile(profile, path));
+        Assert.Contains("Package/SceneViewWidgets", File.ReadAllText(path));
+
+        // The WPF editor knows the scene settings only: it changes them and saves
+        var wpfContainer = new SettingsContainer();
+        var wpfSceneSettings = new SettingsKey<Dictionary<AssetId, SceneSettingsData>>(PackageSceneSettings.SceneSettings.Name, wpfContainer, () => new Dictionary<AssetId, SceneSettingsData>());
+        var wpfProfile = wpfContainer.LoadSettingsProfile(path, false, null, false);
+        Assert.NotNull(wpfProfile);
+        var wpfValue = new Dictionary<AssetId, SceneSettingsData>(wpfSceneSettings.GetValue(wpfProfile, true));
+        Assert.Equal(3, wpfValue[sceneId].CamMoveSpeed);
+        wpfValue[sceneId].CamMoveSpeed = 5;
+        wpfSceneSettings.SetValue(wpfValue, wpfProfile);
+        Assert.True(wpfContainer.SaveSettingsProfile(wpfProfile, path));
+
+        // This editor reads both back: the widgets as it left them
+        var reloadedContainer = new SettingsContainer();
+        var reloadedSceneSettings = new SettingsKey<Dictionary<AssetId, SceneSettingsData>>(PackageSceneSettings.SceneSettings.Name, reloadedContainer, () => new Dictionary<AssetId, SceneSettingsData>());
+        var reloadedWidgets = new SettingsKey<Dictionary<AssetId, Dictionary<string, bool>>>(PackageSceneViewWidgets.Visibility.Name, reloadedContainer, () => new Dictionary<AssetId, Dictionary<string, bool>>());
+        var reloaded = reloadedContainer.LoadSettingsProfile(path, false, null, false);
+        Assert.NotNull(reloaded);
+        Assert.Equal(5, reloadedSceneSettings.GetValue(reloaded, true)[sceneId].CamMoveSpeed);
+        var visibility = reloadedWidgets.GetValue(reloaded, true);
+        Assert.Equal(new Dictionary<string, bool> { ["Tests.Stats"] = false, ["Tests.Ruler"] = true }, visibility[sceneId]);
+        Assert.Equal(new Dictionary<string, bool> { ["Tests.Stats"] = true }, visibility[otherSceneId]);
     }
 
     private static void RegisterKeys(params Type[] settingsTypes)
