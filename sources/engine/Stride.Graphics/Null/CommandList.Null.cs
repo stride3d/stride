@@ -164,11 +164,6 @@ namespace Stride.Graphics
             NullHelper.ToImplement();
         }
 
-        public void ResourceBarrierTransition(GraphicsResource resource, GraphicsResourceState newState)
-        {
-            NullHelper.ToImplement();
-        }
-
         public void SetDescriptorSets(int index, DescriptorSet[] descriptorSets)
         {
             NullHelper.ToImplement();

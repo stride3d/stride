@@ -698,14 +698,6 @@ namespace Stride.Graphics
                 UnbindUnorderedAccess(resource, subresource);
         }
 
-        public void ResourceBarrierTransition(GraphicsResource resource, GraphicsResourceState newState)
-        {
-            if (newState == GraphicsResourceState.UnorderedAccess)
-                UnbindShaderResource(resource, uint.MaxValue);
-            else
-                UnbindUnorderedAccess(resource, uint.MaxValue);
-        }
-
         /// <summary>
         ///   Gets a value indicating whether a Shader Resource View is bound to a slot of a stage (for tests).
         /// </summary>

@@ -930,27 +930,6 @@ namespace Stride.Graphics
                                                  BarrierMapping.ToVkPipelineStageFlags(layoutAfter), BarrierMapping.ToVkAccessFlags(layoutAfter), BarrierMapping.ToVkImageLayout(layoutAfter));
         }
 
-        [Obsolete("Use BarrierLayout overload instead.")]
-        public void ResourceBarrierTransition(GraphicsResource resource, GraphicsResourceState newState)
-        {
-            var layout = (int)newState switch
-            {
-                0x04 => BarrierLayout.RenderTarget,
-                0x08 => BarrierLayout.UnorderedAccess,
-                0x10 => BarrierLayout.DepthStencilWrite,
-                0x20 => BarrierLayout.DepthStencilRead,
-                0x80 => BarrierLayout.ShaderResource,
-                0xC0 => BarrierLayout.ShaderResource,
-                0x200 => BarrierLayout.IndirectArgument,
-                0x400 => BarrierLayout.CopyDest,
-                0x800 => BarrierLayout.CopySource,
-                0x1000 => BarrierLayout.ResolveDest,
-                0x2000 => BarrierLayout.ResolveSource,
-                _ => BarrierLayout.Common,
-            };
-            ResourceBarrierTransition(resource, layout);
-        }
-
         /// <summary>
         ///   Ensures the pipeline stage mask is compatible with the access flags in a buffer barrier.
         ///   HOST_READ/HOST_WRITE access requires VK_PIPELINE_STAGE_HOST_BIT, which is not included
