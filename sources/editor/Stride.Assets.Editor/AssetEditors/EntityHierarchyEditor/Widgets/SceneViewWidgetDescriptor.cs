@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools;
 using Stride.Assets.Editor.ViewModels;
 using Stride.Core;
@@ -11,6 +12,7 @@ namespace Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Widgets;
 /// <summary>
 /// The edge of the view of a scene or prefab editor that a widget docks on, over the game.
 /// </summary>
+[Experimental("STREXP005")]
 public enum SceneViewEdge
 {
     /// <summary>
@@ -46,6 +48,7 @@ public enum SceneViewEdge
 /// turned off for the session and the error is logged with the plugin's name. The cross-platform Game Studio shows the
 /// widgets; the WPF one accepts them and shows nothing.
 /// </remarks>
+[Experimental("STREXP005")]
 public sealed class SceneViewWidgetDescriptor
 {
     /// <summary>
@@ -87,6 +90,7 @@ public sealed class SceneViewWidgetDescriptor
 /// <summary>
 /// What a widget of the view of a scene or prefab editor works with.
 /// </summary>
+[Experimental("STREXP005")]
 public sealed class SceneViewWidgetContext
 {
     /// <summary>

@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using Stride.Core.Assets.Editor.Commands;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.ViewModels;
@@ -16,16 +17,19 @@ public abstract partial class EditorPluginHost
     /// The commands that the editor and the plugins place in the menus, the context menus and the toolbar
     /// (<see cref="IEditorPluginContext.Commands"/>), each with its owner: the shells follow its changes.
     /// </summary>
+    [Experimental("STREXP003")]
     public ContributionRegistry<CommandDescriptor> Commands { get; }
 
     /// <summary>
     /// The widgets of the main toolbar (<see cref="IEditorPluginContext.ToolbarWidgets"/>), each with its owner.
     /// </summary>
+    [Experimental("STREXP003")]
     public ContributionRegistry<ToolbarWidgetDescriptor> ToolbarWidgets { get; }
 
     /// <summary>
     /// Whether a command can be shown: it is registered and not turned off after a failure.
     /// </summary>
+    [Experimental("STREXP003")]
     public bool IsCommandAvailable(CommandDescriptor command)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -35,6 +39,7 @@ public abstract partial class EditorPluginHost
     /// <summary>
     /// The title of a command in a context (<see cref="CommandDescriptor.ContextTitle"/>), else its title.
     /// </summary>
+    [Experimental("STREXP003")]
     public string GetCommandTitle(CommandDescriptor command, CommandContext? context)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -60,6 +65,7 @@ public abstract partial class EditorPluginHost
     /// Whether a command can run in a context: false when it is turned off, or when its <see cref="CommandDescriptor.CanExecute"/>
     /// says so or throws (which turns it off).
     /// </summary>
+    [Experimental("STREXP003")]
     public bool CanExecuteCommand(CommandDescriptor command, CommandContext context)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -75,6 +81,7 @@ public abstract partial class EditorPluginHost
     /// Runs a command in a context, unless it is turned off or cannot run there.
     /// </summary>
     /// <returns>True if the command ran without error; false if it failed (it is then turned off), is turned off, or cannot run.</returns>
+    [Experimental("STREXP003")]
     public async Task<bool> ExecuteCommandAsync(CommandDescriptor command, CommandContext context)
     {
         if (!CanExecuteCommand(command, context))
@@ -87,6 +94,7 @@ public abstract partial class EditorPluginHost
     /// for each one that is not bound.
     /// </summary>
     /// <param name="reserved">The shortcuts that the shell already uses, each with what uses it.</param>
+    [Experimental("STREXP003")]
     public CommandGestureBindings ResolveCommandGestures(IEnumerable<KeyValuePair<string, string>> reserved)
     {
         var bindings = CommandGestureBindings.Resolve(reserved, Commands.Items.Where(IsCommandAvailable), DescribeCommand);
@@ -98,6 +106,7 @@ public abstract partial class EditorPluginHost
     /// <summary>
     /// Whether a toolbar widget can be shown: it is registered and not turned off after a failure.
     /// </summary>
+    [Experimental("STREXP003")]
     public bool IsToolbarWidgetAvailable(ToolbarWidgetDescriptor widget)
     {
         ArgumentNullException.ThrowIfNull(widget);
@@ -108,6 +117,7 @@ public abstract partial class EditorPluginHost
     /// Creates the view model of a toolbar widget through the guard.
     /// </summary>
     /// <returns>The view model, or null when the widget is turned off or its creation failed (it is then turned off).</returns>
+    [Experimental("STREXP003")]
     public IDestroyable? CreateToolbarWidget(ToolbarWidgetDescriptor widget, ToolbarWidgetContext context)
     {
         ArgumentNullException.ThrowIfNull(widget);
@@ -120,6 +130,7 @@ public abstract partial class EditorPluginHost
     /// <summary>
     /// Destroys the view model of a toolbar widget through the guard.
     /// </summary>
+    [Experimental("STREXP003")]
     public void DestroyToolbarWidget(ToolbarWidgetDescriptor widget, IDestroyable viewModel)
     {
         ArgumentNullException.ThrowIfNull(widget);
@@ -128,6 +139,7 @@ public abstract partial class EditorPluginHost
     }
 
     /// <inheritdoc />
+    [Experimental("STREXP002")]
     public async Task<bool> TryRunAsync(object? owner, string contribution, Func<Task> action)
     {
         ArgumentNullException.ThrowIfNull(contribution);

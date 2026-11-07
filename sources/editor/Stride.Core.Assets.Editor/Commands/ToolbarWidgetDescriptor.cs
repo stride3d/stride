@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Commands;
@@ -15,6 +16,7 @@ namespace Stride.Core.Assets.Editor.Commands;
 /// The editor creates the view model and the view through its contribution guard: when one of them throws, the widget is
 /// turned off for the session and the error is logged with the plugin's name.
 /// </remarks>
+[Experimental("STREXP003")]
 public sealed class ToolbarWidgetDescriptor
 {
     /// <summary>

@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using Stride.Core.Diagnostics;
@@ -25,6 +26,7 @@ namespace Stride.Core.Assets.Editor.Services;
 /// one the check cannot read: the loader reports its own errors.
 /// </para>
 /// </remarks>
+[Experimental("STREXP002")]
 public sealed class EditorApiCheck : IAssemblyLoadCheck
 {
     private readonly Action<IncompatiblePluginException>? refused;
@@ -165,6 +167,7 @@ public sealed class EditorApiCheck : IAssemblyLoadCheck
 /// <summary>
 /// The error of a plugin built for a newer editor than the one running: it is not loaded (<see cref="PluginState.Incompatible"/>).
 /// </summary>
+[Experimental("STREXP002")]
 public sealed class IncompatiblePluginException : Exception
 {
     /// <param name="assemblyPath">The path of the plugin's assembly.</param>

@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Panels;
 using Stride.Core.Diagnostics;
@@ -121,6 +122,7 @@ public interface IEditorPluginContext
     /// they are unregistered and their open instances close. An editor that shows no panels (the WPF Game Studio) accepts them
     /// and shows nothing.
     /// </summary>
+    [Experimental("STREXP001")]
     IPluginRegistry<PanelDescriptor> Panels { get; }
 
     /// <summary>
@@ -128,6 +130,7 @@ public interface IEditorPluginContext
     /// other contributions). The toolkit companion of a plugin fills it; a view model with no view in this editor shows
     /// "no view for this editor". A registration for a base type covers the types derived from it.
     /// </summary>
+    [Experimental("STREXP001")]
     IPluginMap<Type, Type> ViewTypes { get; }
 
     /// <summary>
@@ -135,6 +138,7 @@ public interface IEditorPluginContext
     /// (<see cref="Commands.CommandLocations"/>), with their shortcuts. The plugin owns them: when it leaves, they go. An editor
     /// that shows no plugin commands (the WPF Game Studio) accepts them and shows nothing.
     /// </summary>
+    [Experimental("STREXP003")]
     IPluginRegistry<Commands.CommandDescriptor> Commands { get; }
 
     /// <summary>
@@ -142,6 +146,7 @@ public interface IEditorPluginContext
     /// <see cref="ViewTypes"/>. The plugin owns them: when it leaves, they go and their view models are destroyed. An editor
     /// that shows no plugin widgets (the WPF Game Studio) accepts them and shows nothing.
     /// </summary>
+    [Experimental("STREXP003")]
     IPluginRegistry<Commands.ToolbarWidgetDescriptor> ToolbarWidgets { get; }
 
     /// <summary>
@@ -150,5 +155,6 @@ public interface IEditorPluginContext
     /// </summary>
     /// <typeparam name="T">The type of the contributions.</typeparam>
     /// <exception cref="InvalidOperationException">No layer of this editor declares a registry of <typeparamref name="T"/>.</exception>
+    [Experimental("STREXP001")]
     IPluginRegistry<T> GetRegistry<T>() where T : class;
 }

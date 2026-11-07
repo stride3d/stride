@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace Stride.Core.Assets.Editor.Commands;
 
 /// <summary>
@@ -13,6 +15,7 @@ namespace Stride.Core.Assets.Editor.Commands;
 /// contribution guard (<see cref="Services.IPluginContributionGuard"/>): when one of them throws, the error is logged with the
 /// plugin's name and the command is turned off for the session, while the rest of the plugin stays.
 /// </remarks>
+[Experimental("STREXP003")]
 public sealed class CommandDescriptor
 {
     /// <summary>

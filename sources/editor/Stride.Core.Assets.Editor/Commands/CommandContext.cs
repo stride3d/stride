@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using Stride.Core.Assets.Editor.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Commands;
@@ -8,6 +9,7 @@ namespace Stride.Core.Assets.Editor.Commands;
 /// <summary>
 /// What a command acts on: the session, where it was invoked, and the selection of that place.
 /// </summary>
+[Experimental("STREXP003")]
 public sealed class CommandContext
 {
     /// <summary>

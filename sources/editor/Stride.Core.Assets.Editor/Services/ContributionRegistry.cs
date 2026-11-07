@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections.Specialized;
+using System.Diagnostics.CodeAnalysis;
 
 #nullable enable
 
@@ -17,6 +18,7 @@ namespace Stride.Core.Assets.Editor.Services;
 /// never changed.
 /// </remarks>
 /// <typeparam name="T">The type of the contributions.</typeparam>
+[Experimental("STREXP001")]
 public sealed class ContributionRegistry<T> : INotifyCollectionChanged
     where T : class
 {

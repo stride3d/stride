@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using Stride.Core;
 
 namespace Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools;
@@ -9,6 +10,7 @@ namespace Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools;
 /// What the active tool adds to the context menu of its view (<see cref="IEditorViewTool.GetContextMenu"/>), which a right
 /// click without camera drag opens.
 /// </summary>
+[Experimental("STREXP004")]
 public sealed class EditorViewContextMenu
 {
     /// <summary>
@@ -26,6 +28,7 @@ public sealed class EditorViewContextMenu
 /// <summary>
 /// An entry of the context menu of a view, which the active tool gives (<see cref="EditorViewContextMenu"/>).
 /// </summary>
+[Experimental("STREXP004")]
 public sealed class EditorViewMenuEntry
 {
     /// <summary>
@@ -53,6 +56,7 @@ public sealed class EditorViewMenuEntry
 /// <summary>
 /// A right click without camera drag in a view, which opens its context menu (<see cref="IEditorGameToolViewModelService.ContextMenuRequested"/>).
 /// </summary>
+[Experimental("STREXP004")]
 public sealed class EditorViewContextMenuRequest
 {
     /// <summary>

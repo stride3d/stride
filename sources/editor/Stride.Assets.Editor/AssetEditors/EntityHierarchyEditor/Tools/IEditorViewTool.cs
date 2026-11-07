@@ -4,6 +4,7 @@
 #nullable enable
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Stride.Input;
@@ -86,6 +87,7 @@ public interface IEditorViewTool : IDisposable
     /// <remarks>
     /// The view awaits the task, on the game thread, before it handles the clicks of the frame and moves to the next one.
     /// </remarks>
+    [Experimental("STREXP004")]
     Task Update(CancellationToken cancellationToken) => Update();
 
     /// <summary>
@@ -105,6 +107,7 @@ public interface IEditorViewTool : IDisposable
     /// A tool that does not keep <see cref="EditorViewDefaultInputs.CameraRightDrag"/> also gets the click in
     /// <see cref="OnClick"/>, first. To keep the menu closed, return an empty menu that replaces the others.
     /// </remarks>
+    [Experimental("STREXP004")]
     EditorViewContextMenu? GetContextMenu(EditorViewClick click) => null;
 
     /// <summary>

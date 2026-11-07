@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -194,6 +195,7 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     /// <summary>
     /// The widgets of the view, once the view asked for them (<see cref="GetOrCreateSceneViewWidgets"/>), or null.
     /// </summary>
+    [Experimental("STREXP005")]
     public SceneViewWidgetsViewModel? SceneViewWidgets { get => sceneViewWidgets; private set => SetValue(ref sceneViewWidgets, value); }
 
     /// <summary>
@@ -201,6 +203,7 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     /// created the first time a view that shows them asks: an editor whose view shows no widget (WPF) runs none of them.
     /// </summary>
     /// <returns>The widgets, or null once the editor is destroyed.</returns>
+    [Experimental("STREXP005")]
     public SceneViewWidgetsViewModel? GetOrCreateSceneViewWidgets()
     {
         if (IsDestroyed)

@@ -4,6 +4,7 @@
 using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Editor.EditorGame.Tools;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core;
 using Stride.Core.Extensions;
@@ -76,6 +77,7 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel, IEditorVie
     /// <summary>
     /// Raised when a right click without camera drag opens the context menu of the view (UI thread).
     /// </summary>
+    [Experimental("STREXP004")]
     public event EventHandler<EditorViewContextMenuViewModel>? ContextMenuRequested;
 
     /// <summary>
@@ -542,6 +544,7 @@ internal sealed class EditorViewToolbarFactory : IEditorViewOptionsFactory
 /// the plugins at <c>SceneLocations.SceneViewContext</c>, with the click as their selection, and the entries of the active
 /// tool.
 /// </summary>
+[Experimental("STREXP004")]
 public sealed class EditorViewContextMenuViewModel
 {
     internal EditorViewContextMenuViewModel(EditorViewClick click, EntityViewModel? entity, IReadOnlyList<EditorViewMenuEntryViewModel> toolEntries, bool showsCommands)
@@ -583,6 +586,7 @@ public sealed class EditorViewContextMenuViewModel
 /// <summary>
 /// An entry that the active tool gives for the context menu of its view.
 /// </summary>
+[Experimental("STREXP004")]
 public sealed class EditorViewMenuEntryViewModel : DispatcherViewModel
 {
     internal EditorViewMenuEntryViewModel(IViewModelServiceProvider serviceProvider, EditorViewMenuEntry entry, Func<Task<bool>> run)

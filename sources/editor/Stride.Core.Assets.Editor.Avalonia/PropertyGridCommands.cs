@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using Avalonia;
 using Stride.Core.Assets.Editor.Avalonia.Views;
 using Stride.Core.Assets.Editor.Commands;
@@ -13,6 +14,7 @@ namespace Stride.Core.Assets.Editor.Avalonia;
 /// <summary>
 /// The built-in commands of the context menu of a property in the property grid (<see cref="CommandLocations.PropertyGridContext"/>).
 /// </summary>
+[Experimental("STREXP003")]
 public static class PropertyGridCommands
 {
     /// <summary>

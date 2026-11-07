@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Widgets;
 using Stride.Core.Assets.Editor.Services;
@@ -30,12 +31,14 @@ public abstract class SceneEditorPluginHost : StrideEditorPluginHost
     /// The tools of the views of the scene and prefab editors that the plugins register, each with its owner: the open views
     /// follow its changes.
     /// </summary>
+    [Experimental("STREXP004")]
     public ContributionRegistry<SceneViewToolDescriptor> SceneViewTools { get; }
 
     /// <summary>
     /// The widgets of the views of the scene and prefab editors that the plugins register, each with its owner: the open
     /// editors follow its changes.
     /// </summary>
+    [Experimental("STREXP005")]
     public ContributionRegistry<SceneViewWidgetDescriptor> SceneViewWidgets { get; }
 
     /// <inheritdoc />

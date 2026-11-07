@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using Stride.Core.Assets.Editor.Commands;
 
 namespace Stride.Assets.Editor.Commands;
@@ -9,6 +10,7 @@ namespace Stride.Assets.Editor.Commands;
 /// The locations of the scene and prefab editors where commands can be placed (<see cref="CommandPlacement.Location"/>),
 /// besides the editor's own (<see cref="CommandLocations"/>).
 /// </summary>
+[Experimental("STREXP003")]
 public static class SceneLocations
 {
     /// <summary>

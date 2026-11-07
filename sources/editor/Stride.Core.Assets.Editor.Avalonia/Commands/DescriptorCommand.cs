@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Windows.Input;
 using Stride.Core.Assets.Editor.Commands;
 using Stride.Core.Assets.Editor.Services;
@@ -12,6 +13,7 @@ namespace Stride.Core.Assets.Editor.Avalonia.Commands;
 /// The <see cref="ICommand"/> of a menu item, a toolbar button or a shortcut that runs a <see cref="CommandDescriptor"/>
 /// through the plugin host, in the context that the place it is shown gives when it runs.
 /// </summary>
+[Experimental("STREXP003")]
 public sealed class DescriptorCommand : ICommand
 {
     private readonly EditorPluginHost host;

@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Widgets;
 using Stride.Core.Assets.Editor.Services;
@@ -20,6 +21,7 @@ public static class ScenePluginContextExtensions
     /// with a public parameterless constructor) is logged and left out, and the plugin joins without it.
     /// </summary>
     /// <param name="context">The context of the plugin.</param>
+    [Experimental("STREXP004")]
     public static IPluginRegistry<SceneViewToolDescriptor> SceneViewTools(this IEditorPluginContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -33,6 +35,7 @@ public static class ScenePluginContextExtensions
     /// </summary>
     /// <param name="context">The context of the plugin.</param>
     /// <exception cref="ArgumentException">On registration: a widget without an identifier, or whose identifier is taken.</exception>
+    [Experimental("STREXP005")]
     public static IPluginRegistry<SceneViewWidgetDescriptor> SceneViewWidgets(this IEditorPluginContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -63,6 +66,7 @@ public static class ScenePluginContributions
     /// <summary>
     /// A tool of the scene and prefab views: its members, called by every view.
     /// </summary>
+    [Experimental("STREXP004")]
     public static string SceneViewTool(Type toolType)
     {
         ArgumentNullException.ThrowIfNull(toolType);
@@ -72,6 +76,7 @@ public static class ScenePluginContributions
     /// <summary>
     /// A widget of the scene and prefab views: its title, and the creation and destruction of its view model.
     /// </summary>
+    [Experimental("STREXP005")]
     public static string SceneViewWidget(string widgetId)
     {
         ArgumentNullException.ThrowIfNull(widgetId);

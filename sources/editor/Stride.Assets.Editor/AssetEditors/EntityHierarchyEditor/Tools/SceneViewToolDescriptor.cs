@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Stride.Core.Assets.Editor.Services;
 
@@ -11,6 +12,7 @@ namespace Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools;
 /// or declares it (<see cref="EditorViewToolAttribute"/>): each open view creates one instance of the type, and the views
 /// add and remove it as the plugin joins and leaves.
 /// </summary>
+[Experimental("STREXP004")]
 public sealed class SceneViewToolDescriptor
 {
     /// <summary>

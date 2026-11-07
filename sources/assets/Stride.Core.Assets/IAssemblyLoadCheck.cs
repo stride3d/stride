@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using Stride.Core.Diagnostics;
 
 namespace Stride.Core.Assets;
@@ -9,6 +10,7 @@ namespace Stride.Core.Assets;
 /// A check that an assembly of a package passes before the session loads it (<see cref="PackageLoadParameters.AssemblyLoadCheck"/>).
 /// The editor uses it to leave out a plugin built for a newer editor; the session itself checks nothing.
 /// </summary>
+[Experimental("STREXP002")]
 public interface IAssemblyLoadCheck
 {
     /// <summary>

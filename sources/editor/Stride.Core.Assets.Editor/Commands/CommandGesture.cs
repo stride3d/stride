@@ -9,6 +9,7 @@ namespace Stride.Core.Assets.Editor.Commands;
 /// The modifier keys of a <see cref="CommandGesture"/>.
 /// </summary>
 [Flags]
+[Experimental("STREXP003")]
 public enum CommandModifiers
 {
     None = 0,
@@ -26,6 +27,7 @@ public enum CommandModifiers
 /// and the case of their parts, so that the editor can tell when two commands claim the same shortcut. Each shell turns it
 /// into a gesture of its toolkit from <see cref="ToString"/>.
 /// </summary>
+[Experimental("STREXP003")]
 public readonly record struct CommandGesture
 {
     private CommandGesture(CommandModifiers modifiers, string key)

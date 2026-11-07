@@ -690,6 +690,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     /// check), or null to load them all. A load whose parameters give one sets it, so later loads with default parameters
     /// use it too.
     /// </summary>
+    [Experimental("STREXP002")]
     public IAssemblyLoadCheck? AssemblyLoadCheck { get; set; }
 
     /// <summary>

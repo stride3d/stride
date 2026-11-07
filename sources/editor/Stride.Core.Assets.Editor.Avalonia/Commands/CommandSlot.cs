@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -19,6 +20,7 @@ namespace Stride.Core.Assets.Editor.Avalonia.Commands;
 /// context menu with <see cref="LocationProperty"/> fills it each time it opens, with the selection of its view
 /// (<see cref="SelectionProperty"/>); the main window fills the slots of its menus itself (<see cref="Fill"/>).
 /// </summary>
+[Experimental("STREXP003")]
 public static class CommandSlot
 {
     /// <summary>

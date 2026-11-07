@@ -183,12 +183,14 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginCo
     /// <summary>
     /// The view type of each view model type registered by the plugins (<see cref="IEditorPluginContext.ViewTypes"/>).
     /// </summary>
+    [Experimental("STREXP001")]
     public IReadOnlyDictionary<Type, Type> ViewTypes => viewTypes.Entries;
 
     /// <summary>
     /// The state and the errors of each plugin that joined the session or failed to join it, in the order they joined, then
     /// of each plugin whose assembly was not loaded (<see cref="PluginState.Incompatible"/>), in the order they were refused.
     /// </summary>
+    [Experimental("STREXP002")]
     public IReadOnlyList<PluginStatus> PluginStatuses
     {
         get
@@ -203,17 +205,20 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginCo
     /// built for a newer editor is not loaded, and gets the <see cref="PluginState.Incompatible"/> state here. The editor gives
     /// it to the session it opens.
     /// </summary>
+    [Experimental("STREXP002")]
     public IAssemblyLoadCheck AssemblyLoadCheck { get; }
 
     /// <summary>
     /// Raised when a plugin joins, fails to join or leaves the session, and when one of its contributions fails. Raised on
     /// the thread where it happened, the editor's thread except for a contribution run on another one.
     /// </summary>
+    [Experimental("STREXP002")]
     public event EventHandler<PluginStatusChangedEventArgs>? PluginStatusChanged;
 
     /// <summary>
     /// The base type of the views of the editor's toolkit (<see cref="IEditorPluginContext.ViewTypes"/>), or null to accept any type.
     /// </summary>
+    [Experimental("STREXP001")]
     protected virtual Type? ViewBaseType => null;
 
     /// <summary>
@@ -706,12 +711,14 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginCo
     public Type? GetPreviewViewType(Type previewType) => TryGetTypeOrBase(previewType, previewViewTypes.Entries);
 
     /// <inheritdoc />
+    [Experimental("STREXP001")]
     public Type? GetViewType(Type viewModelType) => GetViewType(viewModelType, out _);
 
     /// <summary>
     /// Gets the view type that the plugins register for <paramref name="viewModelType"/> or one of its base types, and the
     /// plugin that registered it: the owner to give the guard when the view is created.
     /// </summary>
+    [Experimental("STREXP001")]
     public Type? GetViewType(Type viewModelType, out AssetsPlugin? owner)
     {
         owner = null;
@@ -738,6 +745,7 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginCo
     /// <param name="validate">Checks a contribution before it is registered, and throws to refuse it; or null.</param>
     /// <returns>The registry, which the declaring layer reads and follows.</returns>
     /// <exception cref="InvalidOperationException">A registry of <typeparamref name="T"/> is already declared.</exception>
+    [Experimental("STREXP001")]
     public ContributionRegistry<T> DeclareRegistry<T>(Action<T>? validate = null)
         where T : class
     {
@@ -752,6 +760,7 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginCo
     /// <summary>
     /// The registry of <typeparamref name="T"/> that a layer of the editor declared (<see cref="DeclareRegistry{T}"/>), or null.
     /// </summary>
+    [Experimental("STREXP001")]
     public ContributionRegistry<T>? GetDeclaredRegistry<T>()
         where T : class
     {
@@ -761,6 +770,7 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginCo
     /// <summary>
     /// The state and the errors of a plugin, or null when it has not joined the session (or has left it).
     /// </summary>
+    [Experimental("STREXP002")]
     public PluginStatus? GetPluginStatus(AssetsPlugin plugin)
     {
         lock (statusLock)
@@ -768,6 +778,7 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginCo
     }
 
     /// <inheritdoc />
+    [Experimental("STREXP002")]
     public bool IsTurnedOff(object? owner, string contribution)
     {
         if (owner is not AssetsPlugin plugin)
@@ -777,6 +788,7 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginCo
     }
 
     /// <inheritdoc />
+    [Experimental("STREXP002")]
     public bool TryRun(object? owner, string contribution, Action action)
     {
         ArgumentNullException.ThrowIfNull(action);
@@ -788,6 +800,7 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginCo
     }
 
     /// <inheritdoc />
+    [Experimental("STREXP002")]
     public bool TryRun<T>(object? owner, string contribution, Func<T> function, [MaybeNullWhen(false)] out T result)
     {
         ArgumentNullException.ThrowIfNull(contribution);
@@ -955,6 +968,7 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginCo
     /// <param name="plugin">The plugin that registers the tool.</param>
     /// <param name="type">The type of the tool.</param>
     /// <returns>What unregisters the tool when the plugin leaves, or null when the tool is left out.</returns>
+    [Experimental("STREXP004")]
     protected virtual IDisposable? RegisterEditorViewToolType(AssetsPlugin plugin, Type type)
     {
         pluginLogger.Warning($"The tool [{type.FullName}] of the plugin [{plugin.GetType().FullName}] is left out: this editor has no scene view.");

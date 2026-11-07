@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Diagnostics;
 
@@ -47,11 +48,13 @@ public interface IAssetsPluginService : IPresentationPluginService
     /// Gets the view type that the plugins register for <paramref name="viewModelType"/> or one of its base types
     /// (<see cref="IEditorPluginContext.ViewTypes"/>), in the editor's toolkit, or null.
     /// </summary>
+    [Experimental("STREXP001")]
     Type? GetViewType(Type viewModelType) => null;
 
     /// <summary>
     /// The check that each assembly of a session's packages passes before it loads (<see cref="EditorApiCheck"/>), or null to
     /// load them all. The editor gives it to the sessions it opens.
     /// </summary>
+    [Experimental("STREXP002")]
     IAssemblyLoadCheck? AssemblyLoadCheck => null;
 }

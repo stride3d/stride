@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
+
 #nullable enable
 
 namespace Stride.Core.Assets.Editor.Services;
@@ -8,6 +10,7 @@ namespace Stride.Core.Assets.Editor.Services;
 /// <summary>
 /// The state of a plugin in the editor's session.
 /// </summary>
+[Experimental("STREXP002")]
 public enum PluginState
 {
     /// <summary>
@@ -35,6 +38,7 @@ public enum PluginState
 /// <summary>
 /// An error of a plugin: it could not join or initialize the session, or one of its contributions failed.
 /// </summary>
+[Experimental("STREXP002")]
 public sealed class PluginError
 {
     /// <param name="contribution">What failed (see <see cref="PluginContributions"/>).</param>
@@ -68,6 +72,7 @@ public sealed class PluginError
 /// <summary>
 /// The state of a plugin and its errors, as the plugin host knew them when it was read (<see cref="EditorPluginHost.GetPluginStatus"/>).
 /// </summary>
+[Experimental("STREXP002")]
 public sealed class PluginStatus
 {
     internal PluginStatus(AssetsPlugin? plugin, string name, PluginState state, IReadOnlyList<PluginError> errors, IReadOnlyCollection<string> turnedOff)
@@ -111,6 +116,7 @@ public sealed class PluginStatus
 /// <summary>
 /// The plugin a <see cref="EditorPluginHost.PluginStatusChanged"/> event is about.
 /// </summary>
+[Experimental("STREXP002")]
 public sealed class PluginStatusChangedEventArgs(AssetsPlugin? plugin, string name, PluginStatus? status) : EventArgs
 {
     /// <summary>

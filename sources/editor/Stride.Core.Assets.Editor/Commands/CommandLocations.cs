@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace Stride.Core.Assets.Editor.Commands;
 
 /// <summary>
@@ -12,6 +14,7 @@ namespace Stride.Core.Assets.Editor.Commands;
 /// is shown only when it has commands. A context menu fills its part when it opens, with the selection of its view. The
 /// main toolbar shows its commands as buttons after the build buttons.
 /// </remarks>
+[Experimental("STREXP003")]
 public static class CommandLocations
 {
     /// <summary>

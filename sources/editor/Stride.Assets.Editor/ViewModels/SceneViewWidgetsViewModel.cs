@@ -3,6 +3,7 @@
 
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Diagnostics.CodeAnalysis;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Widgets;
 using Stride.Core;
 using Stride.Core.Assets;
@@ -19,6 +20,7 @@ namespace Stride.Assets.Editor.ViewModels;
 /// its own, next to <see cref="PackageSceneSettings.SceneSettings"/>, which both editors share: the WPF Game Studio, which
 /// shows no widget, keeps it as it is.
 /// </summary>
+[Experimental("STREXP005")]
 public static class PackageSceneViewWidgets
 {
     public static readonly SettingsKey<Dictionary<AssetId, Dictionary<string, bool>>> Visibility = new("Package/SceneViewWidgets",
@@ -34,6 +36,7 @@ public static class PackageSceneViewWidgets
 /// The view of the editor creates it (<see cref="EntityHierarchyEditorViewModel.GetOrCreateSceneViewWidgets"/>), so an editor
 /// that shows no widget runs no code of them. The code of the plugins runs through the contribution guard of the host.
 /// </remarks>
+[Experimental("STREXP005")]
 public sealed class SceneViewWidgetsViewModel : DispatcherViewModel
 {
     private static readonly Logger Log = GlobalLogger.GetLogger(nameof(SceneViewWidgetsViewModel));
@@ -260,6 +263,7 @@ public sealed class SceneViewWidgetsViewModel : DispatcherViewModel
 /// <summary>
 /// A widget of the view of a scene or prefab editor, in the Widgets list and, when it shows, on its edge of the view.
 /// </summary>
+[Experimental("STREXP005")]
 public sealed class SceneViewWidgetViewModel : DispatcherViewModel
 {
     private readonly SceneViewWidgetsViewModel widgets;

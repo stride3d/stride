@@ -16,6 +16,7 @@ namespace Stride.Core.Assets.Editor.Services;
 /// The owner of a contribution is the plugin that registered it. Code of the editor itself (any other owner, or null) is run
 /// the same way, but its failure is only logged: nothing is turned off.
 /// </remarks>
+[Experimental("STREXP002")]
 public interface IPluginContributionGuard
 {
     /// <summary>
@@ -58,6 +59,7 @@ public interface IPluginContributionGuard
 /// <summary>
 /// The names of what can fail in a plugin, as <see cref="PluginError.Contribution"/> and the guard (<see cref="IPluginContributionGuard"/>) give them.
 /// </summary>
+[Experimental("STREXP002")]
 public static class PluginContributions
 {
     /// <summary>

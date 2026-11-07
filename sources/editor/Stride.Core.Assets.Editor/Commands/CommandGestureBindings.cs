@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace Stride.Core.Assets.Editor.Commands;
 
 /// <summary>
@@ -12,6 +14,7 @@ namespace Stride.Core.Assets.Editor.Commands;
 /// A shortcut needs Ctrl, Alt or Meta, unless its key is a function key (F1 to F24): a plain or shifted key would be taken
 /// from the text boxes.
 /// </remarks>
+[Experimental("STREXP003")]
 public sealed class CommandGestureBindings
 {
     private CommandGestureBindings(IReadOnlyList<(CommandGesture Gesture, CommandDescriptor Command)> bindings, IReadOnlyList<string> warnings)
