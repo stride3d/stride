@@ -373,6 +373,9 @@ namespace Stride.Assets.Editor.ViewModels.CurveEditor
 
         private void ResetAxes(int option = 0)
         {
+            // The ranges of the data are computed when the view updates the model: a curve that was just added (the "Edit curve"
+            // command adds and focuses it at once) has none yet, and the view would fit the empty default range
+            UpdateOverride(true);
             foreach (var axis in Axes)
             {
                 if (axis.IsHorizontal() && option <= 0)

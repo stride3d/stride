@@ -342,6 +342,18 @@ public sealed class CurveEditorViewModelTests
     }
 
     [Fact]
+    public async Task ACurveOpensFittedInTheView()
+    {
+        await using var test = await CurveEditorTestScene.OpenAsync();
+
+        // Added then focused before it is ever drawn, as the "Edit curve" command does
+        var curve = test.OpenSizeCurve();
+
+        var area = test.Editor.CurveArea.Inflate(new DrawingThickness(1));
+        Assert.All(curve.ControlPoints, x => Assert.True(area.Contains(x.ActualPoint), $"{x.ActualPoint} outside {area}"));
+    }
+
+    [Fact]
     public async Task FocusOnTheSelectionRedrawsTheView()
     {
         await using var test = await CurveEditorTestScene.OpenAsync();
