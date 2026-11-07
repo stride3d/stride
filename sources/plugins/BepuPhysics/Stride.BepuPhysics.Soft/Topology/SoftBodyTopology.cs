@@ -91,6 +91,32 @@ internal sealed class SoftBodyTopology
     /// <summary> Writes the position of every vertex of <see cref="Mesh"/> given the current position of each particle </summary>
     public void Deform(ReadOnlySpan<Vector3> particles, Span<Vector3> vertices)
     {
+        // Lattice vertices bind to the eight corners of the cell they are in: inlined, no bounds checks.
+        if (BindingStride == 8)
+        {
+            ref int bpBase = ref MemoryMarshal.GetArrayDataReference(BindingParticles);
+            ref float bwBase = ref MemoryMarshal.GetArrayDataReference(BindingWeights);
+            ref Vector3 pb = ref MemoryMarshal.GetReference(particles);
+            ref Vector3 vb = ref MemoryMarshal.GetReference(vertices);
+            int count = vertices.Length;
+            for (int v = 0; v < count; v++)
+            {
+                nint off = (nint)v * 8;
+                ref int bp = ref Unsafe.Add(ref bpBase, off);
+                ref float bw = ref Unsafe.Add(ref bwBase, off);
+                var p = Unsafe.Add(ref pb, Unsafe.Add(ref bp, 0)) * Unsafe.Add(ref bw, 0)
+                      + Unsafe.Add(ref pb, Unsafe.Add(ref bp, 1)) * Unsafe.Add(ref bw, 1)
+                      + Unsafe.Add(ref pb, Unsafe.Add(ref bp, 2)) * Unsafe.Add(ref bw, 2)
+                      + Unsafe.Add(ref pb, Unsafe.Add(ref bp, 3)) * Unsafe.Add(ref bw, 3)
+                      + Unsafe.Add(ref pb, Unsafe.Add(ref bp, 4)) * Unsafe.Add(ref bw, 4)
+                      + Unsafe.Add(ref pb, Unsafe.Add(ref bp, 5)) * Unsafe.Add(ref bw, 5)
+                      + Unsafe.Add(ref pb, Unsafe.Add(ref bp, 6)) * Unsafe.Add(ref bw, 6)
+                      + Unsafe.Add(ref pb, Unsafe.Add(ref bp, 7)) * Unsafe.Add(ref bw, 7);
+                Unsafe.Add(ref vb, v) = p;
+            }
+            return;
+        }
+
         int stride = BindingStride;
         for (int v = 0, b = 0; v < vertices.Length; v++, b += stride)
         {
