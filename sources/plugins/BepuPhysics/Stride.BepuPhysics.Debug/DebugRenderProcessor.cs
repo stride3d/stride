@@ -266,17 +266,21 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
         Span<ShapeTransform> transforms = stackalloc ShapeTransform[collidable.Collider.Transforms];
         collidable.Collider.GetLocalTransforms(collidable, transforms);
 
-        WireFrameRenderObject[] wireframes = new WireFrameRenderObject[transforms.Length];
+        var wireframeList = new List<WireFrameRenderObject>(shapeData.Count);
         for (int i = 0; i < shapeData.Count; i++)
         {
             var data = shapeData[i];
+            // An empty mesh (an all-air voxel grid, or a mesh collider with no data) would fail to make a zero-size GPU buffer on D3D11 and Vulkan.
+            if (data.Vertices.Length == 0)
+                continue;
 
             var wireframe = WireFrameRenderObject.New(_game.GraphicsDevice, data.Indices, data.Vertices);
             wireframe.Color = GetCurrentColor(collidable);
             Matrix.Transformation(ref transforms[i].Scale, ref transforms[i].RotationLocal, ref transforms[i].PositionLocal, out wireframe.CollidableBaseMatrix);
-            wireframes[i] = wireframe;
+            wireframeList.Add(wireframe);
             _visibilityGroup.RenderObjects.Add(wireframe);
         }
+        var wireframes = wireframeList.ToArray();
         _wireFrameRenderObject.Add(collidable, (wireframes, cache)); // We have to store the cache alongside it to ensure it doesn't get discarded for future calls to GetModelCache with the same model
     }
 
