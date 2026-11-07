@@ -129,6 +129,12 @@ public abstract class VoxelColliderBase<TSource> : ICollider
         if (_component is null || !TryBuildGrid(MeshCollider.ComputeMeshScale(_component).ToNumeric(), out var grid))
             return false;
 
+        // The child index packs the cell and, for the triangle shapes, the slot; keep its space inside an int.
+        var slotsPerCell = _cellShape is VoxelCellShape.MarchingCubes or VoxelCellShape.SurfaceNets ? VoxelTriangleShape<TSource>.SlotsPerCell : 1;
+        var childCount = (long)grid.CellsX * grid.CellsY * grid.CellsZ * slotsPerCell;
+        if (childCount > int.MaxValue)
+            throw new InvalidOperationException($"A {grid.CellsX}x{grid.CellsY}x{grid.CellsZ} grid of {_cellShape} cells has {childCount} children, over the {int.MaxValue} the index space holds.");
+
         VoxelCollisionTasks.EnsureRegistered<TSource>(shapes);
         // The grid is centred on its box, which is where the mass is spread.
         var extent = grid.Extent;

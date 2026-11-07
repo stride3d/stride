@@ -46,7 +46,10 @@ public sealed unsafe class VoxelCollider : VoxelColliderBase<FloatVoxelSource>, 
         ArgumentOutOfRangeException.ThrowIfLessThan(samplesX, MinSamplesPerAxis);
         ArgumentOutOfRangeException.ThrowIfLessThan(samplesY, MinSamplesPerAxis);
         ArgumentOutOfRangeException.ThrowIfLessThan(samplesZ, MinSamplesPerAxis);
-        var count = samplesX * samplesY * samplesZ;
+        var countLong = (long)samplesX * samplesY * samplesZ;
+        if (countLong > int.MaxValue)
+            throw new ArgumentException($"A {samplesX}x{samplesY}x{samplesZ} grid has {countLong} samples, over the {int.MaxValue} the index space holds.", nameof(samplesX));
+        var count = (int)countLong;
         if (samples.Length < count)
             throw new ArgumentException($"A {samplesX}x{samplesY}x{samplesZ} grid needs {count} samples, got {samples.Length}.", nameof(samples));
 
