@@ -20,7 +20,7 @@ using Stride.Rendering.Compositing;
 using Stride.Rendering;
 using Stride.Rendering.Sprites;
 
-namespace Stride.Assets.Presentation.Preview
+namespace Stride.Assets.Editor.Preview
 {
     /// <summary>
     /// An implementation of the <see cref="AssetPreview"/> class that simply build an asset and create an entity for it

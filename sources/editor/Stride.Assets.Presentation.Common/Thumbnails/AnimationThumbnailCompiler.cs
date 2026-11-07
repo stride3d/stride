@@ -13,7 +13,7 @@ using Stride.Core.Serialization.Contents;
 using Stride.Animations;
 using Stride.Assets.Models;
 using Stride.Assets.Presentation.Resources.Thumbnails;
-using Stride.Assets.Presentation.Preview;
+using Stride.Assets.Editor.Preview;
 using Stride.Editor.Resources;
 using Stride.Editor.Thumbnails;
 using Stride.Engine;

@@ -7,8 +7,8 @@
     xmlns:behaviors="clr-namespace:Stride.Assets.Presentation.View.Behaviors"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:viewModel="clr-namespace:Stride.Assets.Presentation.ViewModel.Preview"
-    xmlns:preview="clr-namespace:Stride.Assets.Presentation.Preview"
+    xmlns:viewModel="clr-namespace:Stride.Assets.Editor.ViewModels.Preview;assembly=Stride.Assets.Presentation.Common"
+    xmlns:preview="clr-namespace:Stride.Assets.Editor.Preview;assembly=Stride.Assets.Presentation.Common"
     mc:Ignorable="d">
   <ResourceDictionary.MergedDictionaries>
     <ResourceDictionary Source="/Stride.Core.Assets.Editor.Wpf;component/View/CommonResources.xaml"/>

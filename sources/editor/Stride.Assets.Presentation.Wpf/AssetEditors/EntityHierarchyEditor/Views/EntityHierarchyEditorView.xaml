@@ -12,7 +12,7 @@
              xmlns:ehvm="clr-namespace:Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels"
              xmlns:ehv="clr-namespace:Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Views"
              xmlns:svm="clr-namespace:Stride.Assets.Presentation.AssetEditors.SceneEditor.ViewModels"
-             xmlns:entityFactories="clr-namespace:Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories"
+             xmlns:entityFactories="clr-namespace:Stride.Assets.Editor.EntityFactories;assembly=Stride.Assets.Presentation.Common"
              xmlns:views="clr-namespace:Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.Views"
              xmlns:cmd="clr-namespace:Stride.Core.Presentation.Commands;assembly=Stride.Core.Presentation"
              xmlns:core="clr-namespace:Stride.Core.Presentation.Core;assembly=Stride.Core.Presentation"

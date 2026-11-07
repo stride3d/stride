@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 using Stride.Core.Mathematics;
 
-namespace Stride.Assets.Presentation.Preview
+namespace Stride.Assets.Editor.Preview
 {
     public interface ITextureBasePreview
     {
