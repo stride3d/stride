@@ -28,6 +28,7 @@
       <PackagePath Required="true" />
       <AssetNamespace />
       <PackageName />
+      <ShaderFiles ParameterType="Microsoft.Build.Framework.ITaskItem[]" Output="true" />
       <AssetFiles ParameterType="System.String" Output="true" />
       <ResolvedNamespace ParameterType="System.String" Output="true" />
     </ParameterGroup>
@@ -36,7 +37,8 @@
       <Using Namespace="System.Collections.Generic" />
       <Using Namespace="System.IO" />
       <Using Namespace="System.Linq" />
-      <Code Type="Fragment" Language="cs"><![CDATA[
+      <Code Type="Fragment" Language="cs">
+                  <![CDATA[
         Func<string, string> unquote = s =>
         {
             s = s.Trim();
@@ -82,7 +84,8 @@
 
         var baseDir = Path.GetDirectoryName(Path.GetFullPath(PackagePath));
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var items = new List<string>();
+        var assets = new List<string>();
+        var shaders = new List<Microsoft.Build.Framework.ITaskItem>();
         var excludedDirectories = new HashSet<string>(new[] { "bin", "obj", ".git", ".vs" }, StringComparer.OrdinalIgnoreCase);
         foreach (var folderPath in folderPaths)
         {
@@ -94,7 +97,10 @@
                 if (!seen.Add(file))
                     continue;
                 // Skip package files and build/VCS directories (an asset folder can be '.')
-                if (string.Equals(Path.GetExtension(file), ".sdpkg", StringComparison.OrdinalIgnoreCase))
+                var extension = Path.GetExtension(file);
+                if (extension is null)
+                    continue;
+                if (string.Equals(extension, ".sdpkg", StringComparison.OrdinalIgnoreCase))
                     continue;
                 var folderPrefix = folder.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar.ToString();
                 if (!file.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar).StartsWith(folderPrefix, StringComparison.OrdinalIgnoreCase))
@@ -103,11 +109,20 @@
                 var relativeDirectory = Path.GetDirectoryName(relativePath) ?? "";
                 if (relativeDirectory.Split(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries).Any(excludedDirectories.Contains))
                     continue;
-                items.Add(Uri.EscapeDataString(relativePath));
+                if (string.Equals(extension, ".sdsl", StringComparison.OrdinalIgnoreCase) || string.Equals(extension, ".sdfx", StringComparison.OrdinalIgnoreCase))
+                {
+                    shaders.Add(new Microsoft.Build.Utilities.TaskItem(file));
+                }
+                else if (extension.StartsWith(".sd", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Only .sd* files can be asset files
+                    assets.Add(Uri.EscapeDataString(relativePath));
+                }
             }
         }
-        items.Sort(StringComparer.OrdinalIgnoreCase);
-        AssetFiles = string.Join("|", items);
+        assets.Sort(StringComparer.OrdinalIgnoreCase);
+        AssetFiles = string.Join("|", assets);
+        ShaderFiles = shaders.ToArray();
       ]]></Code>
     </Task>
   </UsingTask>
@@ -139,9 +154,13 @@
         PackagePath="$(_StrideAssetConstantsPackagePath)"
         AssetNamespace="$(StrideAssetNamespace)"
         PackageName="$(_StrideAssetConstantsPackageName)">
+      <Output TaskParameter="ShaderFiles" ItemName="_StrideShaderFile" />
       <Output TaskParameter="AssetFiles" PropertyName="StrideAssetPaths" />
       <Output TaskParameter="ResolvedNamespace" PropertyName="StrideAssetUrlNamespace" />
     </StrideCollectAssetConstantsInputs>
+    <ItemGroup>
+      <AdditionalFiles Include="@(_StrideShaderFile)" />
+    </ItemGroup>
   </Target>
 
 </Project>
