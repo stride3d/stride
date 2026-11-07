@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Stride.Core.Assets;
 using Stride.Core;
 using Stride.Core.Assets.Serializers;
@@ -164,6 +165,7 @@ namespace Stride.Assets
             registry.Project("4.4.0.0", UpgradeProjectTo44);
             registry.Project("4.5.0.0", UpgradeProjectTo45);
             registry.Project("4.5.0.0", AddPluginPackageReferences);
+            registry.Project("4.5.1.0", UpgradeEffectShaderKeywords);
         }
 
         private static bool IsSkippedPackage(string packageName)
@@ -329,10 +331,7 @@ namespace Stride.Assets
 
                 // Skip build output (Roslyn-generated copies live in obj/, copies may be staged in bin/)
                 var rel = Path.GetRelativePath(projectDir, file).Replace('\\', '/');
-                if (rel.StartsWith("obj/", StringComparison.OrdinalIgnoreCase)
-                    || rel.StartsWith("bin/", StringComparison.OrdinalIgnoreCase)
-                    || rel.Contains("/obj/", StringComparison.OrdinalIgnoreCase)
-                    || rel.Contains("/bin/", StringComparison.OrdinalIgnoreCase))
+                if (IsBuildOutput(rel))
                     continue;
 
                 try
@@ -475,12 +474,7 @@ namespace Stride.Assets
         internal static IEnumerable<string> FindMissingPluginPackages(string projectDir, IEnumerable<string> referencedPackages)
         {
             var assetExtensions = Directory.EnumerateFiles(projectDir, "*.sd*", SearchOption.AllDirectories)
-                .Where(file =>
-                {
-                    var relative = Path.GetRelativePath(projectDir, file).Replace('\\', '/');
-                    return !relative.StartsWith("obj/", StringComparison.OrdinalIgnoreCase) && !relative.StartsWith("bin/", StringComparison.OrdinalIgnoreCase)
-                        && !relative.Contains("/obj/", StringComparison.OrdinalIgnoreCase) && !relative.Contains("/bin/", StringComparison.OrdinalIgnoreCase);
-                })
+                .Where(file => !IsBuildOutput(Path.GetRelativePath(projectDir, file).Replace('\\', '/')))
                 .Select(Path.GetExtension)
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
             var referenced = referencedPackages.ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -491,5 +485,67 @@ namespace Stride.Assets
                 .Distinct()
                 .ToList();
         }
+
+        // 4.5.1: the .sdfx files of Stride 4.3 and older could declare an effect with `shader`, which 4.4 and later reject
+        // (SDSL0313): `effect` takes its place.
+        internal static void UpgradeEffectShaderKeywords(ProjectUpgradeContext context)
+        {
+            var projectDir = context.ProjectFullPath.GetFullDirectory().ToOSPath();
+            foreach (var file in Directory.EnumerateFiles(projectDir, "*.sdfx", SearchOption.AllDirectories))
+            {
+                var relative = Path.GetRelativePath(projectDir, file).Replace('\\', '/');
+                if (IsBuildOutput(relative))
+                    continue;
+
+                try
+                {
+                    var bytes = File.ReadAllBytes(file);
+                    var hasBom = bytes is [0xEF, 0xBB, 0xBF, ..];
+                    var encoding = new UTF8Encoding(hasBom);
+                    var text = encoding.GetString(bytes, hasBom ? 3 : 0, bytes.Length - (hasBom ? 3 : 0));
+                    if (UpgradeEffectShaderKeywords(text, out var count) is not { } upgraded)
+                        continue;
+
+                    context.Backup?.Snapshot(file);
+                    File.WriteAllText(file, upgraded, encoding);
+                    context.Log.Info($"[{relative}]: {count} effect(s) declared with 'shader' are now declared with 'effect'.");
+                }
+                catch (Exception e)
+                {
+                    context.Log.Warning($"Could not upgrade the effect file [{relative}]", e);
+                }
+            }
+        }
+
+        /// <summary>
+        /// The text of an .sdfx file with <c>effect</c> in place of the <c>shader</c> keyword of each effect declared with it, or
+        /// <c>null</c> when it has none or doesn't parse (its build then reports the error).
+        /// </summary>
+        internal static string UpgradeEffectShaderKeywords(string text, out int count)
+        {
+            count = 0;
+            var parsed = Stride.Shaders.Parsing.SDSLParser.Parse(text, isEffectFile: true);
+            if (parsed.Errors.Count > 0 || parsed.AST is not Stride.Shaders.Parsing.ShaderFile file)
+                return null;
+
+            // The parser reads a copy of the text with its comments blanked, so its offsets are those of the text
+            var offsets = file.RootDeclarations.Concat(file.Namespaces.SelectMany(x => x.Declarations))
+                .OfType<Stride.Shaders.Parsing.SDFX.AST.ShaderEffect>()
+                .Where(x => x.ShaderKeyword != null)
+                .Select(x => x.ShaderKeyword.Value.Range.GetOffsetAndLength(text.Length).Offset)
+                .ToList();
+            if (offsets.Count == 0 || offsets.Any(x => !text.AsSpan(x).StartsWith("shader", StringComparison.Ordinal)))
+                return null;
+
+            var upgraded = new StringBuilder(text);
+            foreach (var offset in offsets)
+                upgraded.Remove(offset, "shader".Length).Insert(offset, "effect");
+            count = offsets.Count;
+            return upgraded.ToString();
+        }
+
+        private static bool IsBuildOutput(string relativePath)
+            => relativePath.StartsWith("obj/", StringComparison.OrdinalIgnoreCase) || relativePath.StartsWith("bin/", StringComparison.OrdinalIgnoreCase)
+                || relativePath.Contains("/obj/", StringComparison.OrdinalIgnoreCase) || relativePath.Contains("/bin/", StringComparison.OrdinalIgnoreCase);
     }
 }
