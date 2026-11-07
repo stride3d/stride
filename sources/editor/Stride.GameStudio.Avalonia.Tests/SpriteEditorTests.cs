@@ -122,9 +122,11 @@ public sealed class SpriteEditorTests
                 Assert.Equal(["Frame 0", "Frame 1"], editor.Sprites.Select(x => x.Name));
                 Assert.Equal(["Paste 1 images", "Delete sprites"], names);
 
+                // The history records the delete (and enables its undo command) from the thread pool: Ctrl+Z before it does is ignored
+                await WindowTestHelper.WaitUntilAsync(() => fixture.Session.ActionHistory.Transactions.LastOrDefault()?.Name == "Delete sprites"
+                    && fixture.Session.ActionHistory.UndoCommand.IsEnabled, "the history to record the delete");
                 window.KeyPressQwerty(PhysicalKey.Z, RawInputModifiers.Control);
-                await WindowTestHelper.PumpAsync();
-                Assert.Equal(3, editor.Sprites.Count);
+                await WindowTestHelper.WaitUntilAsync(() => editor.Sprites.Count == 3, "the undo of the delete");
             }
             finally
             {
