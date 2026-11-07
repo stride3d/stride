@@ -10,7 +10,6 @@ using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Collections;
@@ -132,8 +131,9 @@ public sealed partial class AssetCollectionViewModel : DispatcherViewModel, IAss
     /// </summary>
     public bool IsMainView { get; }
 
-    // FIXME: do we need both ActiveProperties and AssetCollection.AssetViewProperties?
-    //        could be related to reusing this class for ReferencesViewModel and EditorDialogService
+    /// <summary>
+    /// Gets the properties of the objects selected in this asset view. Only the main view fills them (see <see cref="IsMainView"/>).
+    /// </summary>
     public SessionObjectPropertiesViewModel AssetViewProperties { get; }
 
     public IReadOnlyObservableCollection<AssetViewModel> Assets => assets;
@@ -997,6 +997,11 @@ public sealed partial class AssetCollectionViewModel : DispatcherViewModel, IAss
             return;
 
         UpdateCommands();
+
+        // As in WPF, only the main asset view shows its selection in the property grid: selecting in another view (the
+        // references, a picker) does not take the property grid
+        if (!IsMainView)
+            return;
 
         AssetViewProperties.UpdateTypeAndName(SelectedAssets, x => x.TypeDisplayName, x => x.Url, "assets");
         await AssetViewProperties.GenerateSelectionPropertiesAsync(SelectedAssets);

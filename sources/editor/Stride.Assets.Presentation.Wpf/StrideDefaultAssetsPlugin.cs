@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Windows;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Services;

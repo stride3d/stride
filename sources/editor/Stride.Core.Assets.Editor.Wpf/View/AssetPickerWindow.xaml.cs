@@ -8,6 +8,7 @@ using System.Windows;
 using Stride.Core.Assets.Editor.Extensions;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Controls;

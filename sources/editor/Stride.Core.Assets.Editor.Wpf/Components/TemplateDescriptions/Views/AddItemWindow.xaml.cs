@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Windows.Input;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
-using Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.ViewModels;

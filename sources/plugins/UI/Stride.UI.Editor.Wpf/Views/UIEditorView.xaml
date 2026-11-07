@@ -281,11 +281,11 @@
             <ToolBarTray DockPanel.Dock="Top">
               <ToolBar>
                 <Button Command="{x:Static views:AssetCompositeHierarchyTreeViewHelper.ExpandAllItems}" CommandTarget="{Binding ElementName=HierarchyTreeView}"
-                        ToolTip="{sd:Localize Expand all elements, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                        ToolTip="{sd:Localize Expand all elements, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
                   <Image Source="{StaticResource ImageExpandAllFolders}" />
                 </Button>
                 <Button Command="{x:Static views:AssetCompositeHierarchyTreeViewHelper.CollapseAllItems}" CommandTarget="{Binding ElementName=HierarchyTreeView}"
-                        ToolTip="{sd:Localize Collapse all elements, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                        ToolTip="{sd:Localize Collapse all elements, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
                   <Image Source="{StaticResource ImageCollapseAllFolders}" />
                 </Button>
               </ToolBar>
@@ -375,15 +375,15 @@
             <Button Background="Transparent" Margin="2"
                     Content="{sd:Image {StaticResource ImageZoomDefault}, 16, 16, NearestNeighbor}"
                     Command="{Binding ResetZoomCommand}"
-                    ToolTip="{sd:Localize Reset zoom, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
+                    ToolTip="{sd:Localize Reset zoom, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True" />
             <Button Background="Transparent" Margin="2"
                     Content="{sd:Image {StaticResource ImageZoomOut}, 16, 16, NearestNeighbor}"
                     Command="{Binding ZoomOutCommand}"
-                    ToolTip="{sd:Localize Zoom out, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
+                    ToolTip="{sd:Localize Zoom out, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True" />
             <Button Background="Transparent" Margin="2"
                     Content="{sd:Image {StaticResource ImageZoomIn}, 16, 16, NearestNeighbor}"
                     Command="{Binding ZoomInCommand}"
-                    ToolTip="{sd:Localize Zoom in, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
+                    ToolTip="{sd:Localize Zoom in, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True" />
           </ToolBar>
           <ToolBar>
             <sd:NumericTextBox Margin="2" Width="50" ToolTip="{sd:Localize Snaps to this value (0 to disable), Context=ToolTip}"

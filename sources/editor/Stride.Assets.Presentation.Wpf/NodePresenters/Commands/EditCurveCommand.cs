@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Mathematics;
 using Stride.Core.Reflection;
 using Stride.Core.Presentation.Quantum.Presenters;
@@ -49,7 +50,7 @@ namespace Stride.Assets.Presentation.NodePresenters.Commands
             if (currentValue != null)
             {
                 // TODO: we should display the path instead of the name for the title
-                session.ServiceProvider.Get<IAssetEditorsManager>().OpenCurveEditorWindow(currentValue, nodePresenter.Name);
+                session.ServiceProvider.Get<IWpfAssetEditorsManager>().OpenCurveEditorWindow(currentValue, nodePresenter.Name);
             }
         }
 

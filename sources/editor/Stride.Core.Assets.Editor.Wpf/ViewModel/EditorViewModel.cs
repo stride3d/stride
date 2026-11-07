@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Stride.Core.Assets.Editor.Components.Status;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.MostRecentlyUsedFiles;
@@ -21,7 +22,7 @@ using Stride.Core.Translation;
 
 namespace Stride.Core.Assets.Editor.ViewModel
 {
-    public abstract class EditorViewModel : ViewModelBase
+    public abstract class EditorViewModel : ViewModelBase, IMainViewModel
     {
         public const string PackageFileExtension = Package.PackageFileExtension;
         public const string SolutionFileExtension = ".slnx";
@@ -45,7 +46,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             MRU = mru;
             MRU.MostRecentlyUsedFiles.CollectionChanged += MostRecentlyUsedFiles_CollectionChanged;
 
-            serviceProvider.Get<IEditorDialogService>().RegisterDefaultTemplateProviders();
+            serviceProvider.Get<IWpfEditorDialogService>().RegisterDefaultTemplateProviders();
 
             EditorName = editorName;
             EditorVersionMajor = editorVersionMajor;
@@ -100,8 +101,18 @@ namespace Stride.Core.Assets.Editor.ViewModel
         public ICommandBase DebugCommand { get; }
 #endif
 
-        // Temporary, until we integrate a proper text editor in the studio
-        protected internal virtual IEnumerable<string> TextAssetTypes => Enumerable.Empty<string>();
+        /// <inheritdoc />
+        public string EditorToolkitName => EditorToolkits.Wpf;
+
+        /// <inheritdoc />
+        /// <remarks>Temporary, until we integrate a proper text editor in the studio.</remarks>
+        public virtual IEnumerable<string> TextAssetTypes => Enumerable.Empty<string>();
+
+        /// <inheritdoc />
+        public void AddRecentFile(UFile filePath)
+        {
+            MRU.AddFile(filePath, EditorVersionMajor);
+        }
 
 #if DEBUG
         public void DebugFunction()
@@ -115,7 +126,8 @@ namespace Stride.Core.Assets.Editor.ViewModel
             if (Session != null)
                 throw new InvalidOperationException("A session is already open in this instance.");
 
-            var newSession = await SessionViewModel.CreateNewSession(this, ServiceProvider, newSessionParameters);
+            RegisterSessionServices();
+            var newSession = await SessionViewModel.CreateNewSessionAsync(newSessionParameters, this, ServiceProvider);
             if (newSession != null)
             {
                 Session = newSession;
@@ -176,7 +188,8 @@ namespace Stride.Core.Assets.Editor.ViewModel
             }
 
             var sessionResult = new PackageSessionResult();
-            var loadedSession = await SessionViewModel.OpenSession(filePath, ServiceProvider, this, sessionResult);
+            RegisterSessionServices();
+            var loadedSession = await SessionViewModel.OpenSessionAsync(filePath, sessionResult, this, ServiceProvider);
 
             // Loading has failed
             if (loadedSession == null)
@@ -216,6 +229,20 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 var message = $"{Tr._p("Message", "An error occurred while opening the file.")}{ex.FormatSummary(true)}";
                 await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        /// <summary>
+        /// Registers the services of the WPF editor that the session uses, before it opens: the thumbnails of the session objects
+        /// that need WPF images.
+        /// </summary>
+        protected virtual void RegisterSessionServices()
+        {
+            if (ServiceProvider.TryGet<ThumbnailDataFactory>() == null)
+                ServiceProvider.RegisterService(new ThumbnailDataFactory());
+            if (ServiceProvider.TryGet<IEditorDebugService>() == null)
+                ServiceProvider.RegisterService(new WpfEditorDebugService(ServiceProvider));
+            if (ServiceProvider.TryGet<IVisualStudioService>() == null)
+                ServiceProvider.RegisterService(new VisualStudioService());
         }
 
         protected abstract void RestartAndCreateNewSession();
@@ -275,7 +302,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
         private void OpenSettingsWindow()
         {
-            ServiceProvider.Get<IEditorDialogService>().ShowSettingsWindow(ServiceProvider);
+            ServiceProvider.Get<IWpfEditorDialogService>().ShowSettingsWindow(ServiceProvider);
         }
     }
 }

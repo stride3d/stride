@@ -42,7 +42,7 @@ public static partial class Program
             GlobalLogger.GetLogger("GameStudio").Error("The WPF render thread failed; Game Studio restarts.", exception);
 
             var session = GameStudioViewModel.GameStudio?.Session;
-            var sessionPath = session?.SessionFilePath?.ToOSPath();
+            var sessionPath = session?.SolutionPath?.ToOSPath();
 
             // The UI thread doesn't pump while the boxes are up (see ShowNativeMessageBox)
             try { DisableProcessWindowsGhosting(); } catch { /* cosmetic */ }

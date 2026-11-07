@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
-using Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Annotations;
 using Stride.Core.Extensions;

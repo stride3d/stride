@@ -8,7 +8,7 @@ namespace Stride.Core.Assets.Editor.Internal;
 /// <summary>
 /// Builds the buttons of a message box from their captions, as the WPF <c>DialogHelper.CreateButtons</c> does.
 /// </summary>
-internal static class DialogButtons
+public static class DialogButtons
 {
     /// <summary>
     /// Creates one button per caption. The result of a button is its 1-based index.

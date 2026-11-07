@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Stride.Core.Annotations;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Extensions;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories
@@ -25,7 +26,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFa
         /// <returns>The picked asset, or <c>null</c> when the user cancelled.</returns>
         public static async Task<AssetViewModel> PickupAsset([NotNull] ISessionViewModel session, [NotNull] IEnumerable<Type> assetTypes)
         {
-            var dialogService = session.ServiceProvider.Get<IEditorDialogService>();
+            var dialogService = session.ServiceProvider.Get<IWpfEditorDialogService>();
             var assetPicker = dialogService.CreateAssetPickerDialog((SessionViewModel)session);
             assetPicker.Message = "Select the asset to use for this entity";
             assetPicker.AcceptedTypes.AddRange(assetTypes);

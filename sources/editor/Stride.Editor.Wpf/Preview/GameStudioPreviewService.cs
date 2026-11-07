@@ -12,6 +12,7 @@ using Stride.Core.Assets.Compiler;
 using Stride.Core.Assets.Editor.Extensions;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.BuildEngine;
 using Stride.Core;
 using Stride.Core.Diagnostics;
@@ -72,7 +73,7 @@ namespace Stride.Editor.Preview
             gameSettingsProvider = session.ServiceProvider.Get<GameSettingsProviderService>();
 
             Logger = GlobalLogger.GetLogger("Preview");
-            loggerDebugPage = EditorDebugTools.CreateLogDebugPage(Logger, "Preview");
+            loggerDebugPage = EditorDebugTools.CreateLogDebugPage(session.ServiceProvider, Logger, "Preview", true);
 
             previewGameSettings = GameSettingsFactory.Create();
             previewGameSettings.GetOrCreate<RenderingSettings>().DefaultGraphicsProfile = GraphicsProfile.Level_11_0;

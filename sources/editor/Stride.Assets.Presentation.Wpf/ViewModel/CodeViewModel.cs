@@ -19,6 +19,7 @@ using Stride.Assets.Scripts;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
@@ -508,7 +509,7 @@ namespace Stride.Assets.Presentation.ViewModel
             // Project is dirty, ask user if he really wants to auto-reload
             if (isProjectDirty)
             {
-                var dialogResult = projectViewModel.ServiceProvider.Get<IEditorDialogService>().BlockingMessageBox(
+                var dialogResult = projectViewModel.ServiceProvider.Get<IDialogService2>().BlockingMessageBox(
                     string.Format(
                         Tr._p("Message", "Game Studio can't auto-reload the project file {0} because you have local changes such as new or deleted scripts.\r\n\r\nClick OK to keep reloading or Cancel to keep the current version."),
                         Path.GetFileName(project.FilePath)), MessageBoxButton.OKCancel);
@@ -567,7 +568,7 @@ namespace Stride.Assets.Presentation.ViewModel
             if (dirtyAssetsToDelete.Count > 0)
             {
                 // Check if user is OK with deleting those dirty assets?
-                var dialogResult = projectViewModel.ServiceProvider.Get<IEditorDialogService>().BlockingMessageBox(
+                var dialogResult = projectViewModel.ServiceProvider.Get<IDialogService2>().BlockingMessageBox(
                     string.Format(
                         Tr._p("Message", "The following source files in the {0} project have been deleted externally, but have unsaved changes in Game Studio. Do you want to delete these files?\r\n\r\n{1}"),
                        Path.GetFileName(project.FilePath), string.Join("\r\n", dirtyAssetsToDelete.Select(x => x.AssetItem.FullPath.ToOSPath()))),

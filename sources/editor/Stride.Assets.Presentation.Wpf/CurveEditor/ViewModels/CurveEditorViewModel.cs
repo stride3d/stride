@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Windows.Input;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Annotations;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Collections;

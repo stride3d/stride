@@ -22,6 +22,8 @@ Since Phase 3 (core services) the copy and paste and selection services, the edi
 
 Since Phase 3 (session satellites) the view models around the session, which reach it through `ISessionViewModel` and `IAssetCollectionViewModel`: the action history, tags, thumbnails, asset log, references and source tracker; then the session node presenter commands, keys and updaters (fetch and pick up asset, initial directory providers, `SessionData`, `SessionNodeUpdater`, `DocumentationNodeUpdater`), `UserDocumentationService`, the asset nodes debug view models, `SessionObjectPropertiesViewModel`, the new project and add asset template collections, the fix asset references view models, and `IAssetPickerService`, the asset picker that each editor's dialog service opens.
 
+Since Phase 3 (session core) the session itself: `SessionViewModel` (with `CurrentInstance` for view-side code that runs without a session), `AssetCollectionViewModel` and `AssetFilterViewModel`, `AssetEditorViewModel`, `EditorCollectionViewModel`, `IMainViewModel` (the main window view model each editor implements), `IAssetEditorsManager`, `IEditorDialogService`, `IEditorDebugService`, the update package view models, `CodeEditorOpenerService` with `IVisualStudioService` (implemented by the WPF editor on Windows) and the delayed notifications helper. The WPF-only members stay in `IWpfEditorDialogService` and `IWpfAssetEditorsManager`, in `Stride.Core.Assets.Editor.Wpf`.
+
 ## Notes
 
 * This project goes away in Phase 3 of the port, when its code merges into the agnostic editor projects.

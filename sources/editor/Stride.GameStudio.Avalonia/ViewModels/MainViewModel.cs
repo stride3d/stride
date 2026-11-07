@@ -100,6 +100,16 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
 
     public StatusViewModel Status { get; }
 
+    /// <inheritdoc/>
+    public string EditorToolkitName => EditorToolkits.Avalonia;
+
+    /// <inheritdoc/>
+    /// <remarks>As in WPF, the shaders open with the shader editor of the settings.</remarks>
+    public IEnumerable<string> TextAssetTypes { get; } = [nameof(Stride.Assets.Effect.EffectShaderAsset), nameof(Stride.Assets.Effect.EffectCompositorAsset)];
+
+    /// <inheritdoc/>
+    public void AddRecentFile(UFile filePath) => MRU.AddFile(filePath, StrideGameStudio.EditorVersionMajor);
+
     /// <summary>
     /// Builds the current project of the session and starts its game (the Project menu, the toolbar and the Output pane).
     /// </summary>
@@ -593,9 +603,9 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
 
     private async Task OnSave()
     {
-        // A saved session goes to the top of the recent sessions, as in WPF
-        if (session is not null && await session.SaveSessionAsync() && sessionPath is not null)
-            MRU.AddFile(sessionPath, StrideGameStudio.EditorVersionMajor);
+        // A saved session goes to the top of the recent sessions (AddRecentFile), as in WPF
+        if (session is not null)
+            await session.SaveSessionAsync();
     }
 
     private async Task OnReload()

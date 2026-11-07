@@ -10,7 +10,6 @@ using Stride.Core.Quantum;
 using System.Collections.Generic;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
-using Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters;
 using Stride.Core.Assets;
@@ -20,6 +19,7 @@ using Stride.Engine;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors;
 using Stride.Core.Presentation.Dirtiables;
 
@@ -67,7 +67,7 @@ namespace Stride.Assets.Presentation.NodePresenters.Commands
 
             var viewModel = new TemplateDescriptionViewModel(serviceProvider, template);
             var customParameters = ScriptTemplateGenerator.GetAssetOverrideParameters(parameter as string, true);
-            var assetViewModel = (await session.ActiveAssetView.RunAssetTemplate(viewModel, null, customParameters)).FirstOrDefault();
+            var assetViewModel = (await session.AssetCollection.RunAssetTemplateAsync(viewModel, null, customParameters)).FirstOrDefault();
 
             if (assetViewModel == null)
                 return;

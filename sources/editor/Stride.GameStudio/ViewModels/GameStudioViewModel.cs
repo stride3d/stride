@@ -42,7 +42,8 @@ namespace Stride.GameStudio.ViewModels
             NewSessionCommand = new AnonymousCommand(serviceProvider, RestartAndCreateNewSession);
             OpenAboutPageCommand = new AnonymousCommand(serviceProvider, OpenAboutPage);
             OpenSessionCommand = new AnonymousTaskCommand<UFile>(serviceProvider, RestartAndOpenSession);
-            ReloadSessionCommand = new AnonymousTaskCommand(serviceProvider, () => RestartAndOpenSession(Session.SessionFilePath));
+            ReloadSessionCommand = new AnonymousTaskCommand(serviceProvider, () => RestartAndOpenSession(Session.SolutionPath));
+            CloseSessionCommand = new AnonymousCommand(serviceProvider, RestartAndCloseSession);
             GraphicsDeviceLoss.Lost += OnGraphicsDeviceLost;
         }
 
@@ -77,13 +78,28 @@ namespace Stride.GameStudio.ViewModels
         [NotNull]
         public ICommandBase ReloadSessionCommand { get; }
 
-        protected internal override IEnumerable<string> TextAssetTypes
+        /// <summary>
+        /// Closes the session (File > Close): after the usual save prompt, the studio restarts on the project selection window,
+        /// as the cross-platform editor does.
+        /// </summary>
+        [NotNull]
+        public ICommandBase CloseSessionCommand { get; }
+
+        public override IEnumerable<string> TextAssetTypes
         {
             get
             {
                 yield return nameof(EffectShaderAsset);
                 yield return nameof(EffectCompositorAsset);
             }
+        }
+
+        private void RestartAndCloseSession()
+        {
+            // The project selection window, without reopening the last session
+            restartSessionPath = null;
+            restartNewProject = true;
+            CloseAndRestart();
         }
 
         protected override void RestartAndCreateNewSession()
@@ -142,7 +158,7 @@ namespace Stride.GameStudio.ViewModels
                 await ServiceProvider.Get<IDialogService>().MessageBoxAsync(
                     Tr._p("Message", "The graphics device was lost ({0}). Game Studio needs to restart to use it again.").ToFormat(exception.Status),
                     MessageBoxButton.OK, MessageBoxImage.Warning);
-                await RestartAndOpenSession(Session.SessionFilePath);
+                await RestartAndOpenSession(Session.SolutionPath);
             }).Forget();
         }
 

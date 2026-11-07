@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Stride.Core.Assets.Editor.Components.Status;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.BuildEngine;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
@@ -31,8 +32,8 @@ namespace Stride.Editor.Build
             this.createDebugTools = createDebugTools;
             if (createDebugTools)
             {
-                assetBuilderServiceDebugPage = EditorDebugTools.CreateLogDebugPage(Logger, "AssetBuilderService");
-                effectCompilerServiceDebugPage = EditorDebugTools.CreateLogDebugPage(GlobalLogger.GetLogger("EffectCompilerCache"), "EffectCompilerCache");
+                assetBuilderServiceDebugPage = EditorDebugTools.CreateLogDebugPage(sessionViewModel.ServiceProvider, Logger, "AssetBuilderService", true);
+                effectCompilerServiceDebugPage = EditorDebugTools.CreateLogDebugPage(sessionViewModel.ServiceProvider, GlobalLogger.GetLogger("EffectCompilerCache"), "EffectCompilerCache", true);
             }
 
             SessionViewModel = sessionViewModel ?? throw new ArgumentNullException(nameof(sessionViewModel));

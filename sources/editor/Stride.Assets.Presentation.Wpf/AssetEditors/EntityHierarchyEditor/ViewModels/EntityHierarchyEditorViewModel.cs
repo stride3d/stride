@@ -174,7 +174,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
 
             EditorDebugTools.UnregisterDebugPage(debugPage);
 
-            Session.ActiveAssetView.SelectedAssets.CollectionChanged -= SelectedAssetsChanged;
+            Session.AssetCollection.SelectedAssets.CollectionChanged -= SelectedAssetsChanged;
             Session.AssetPropertiesChanged -= ReferencedModelChanged;
 
             // Unregister editor view models
@@ -294,7 +294,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
         /// <inheritdoc />
         protected override async Task<bool> InitializeEditor()
         {
-            Session.ActiveAssetView.SelectedAssets.CollectionChanged += SelectedAssetsChanged;
+            Session.AssetCollection.SelectedAssets.CollectionChanged += SelectedAssetsChanged;
             Session.AssetPropertiesChanged += ReferencedModelChanged;
             if (!await base.InitializeEditor())
                 return false;
@@ -671,7 +671,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
 
         private void SelectedAssetsChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            Controller.GetService<IEditorGameAssetHighlighterViewModelService>()?.HighlightAssets(Session.ActiveAssetView.SelectedAssets);
+            Controller.GetService<IEditorGameAssetHighlighterViewModelService>()?.HighlightAssets(Session.AssetCollection.SelectedAssets);
         }
 
         // TODO: this is code for re-selection after undo/redo, it is here for reference and can be removed once the feature is re-implemented
@@ -734,7 +734,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
             var prefabs = new HashSet<PrefabViewModel>(SelectedItems.Select(x => x.SourcePrefab).NotNull());
             foreach (var prefab in prefabs)
             {
-                ServiceProvider.Get<IAssetEditorsManager>().OpenAssetEditorWindow(prefab);
+                ServiceProvider.Get<IAssetEditorsManager>().OpenAssetEditorAsync(prefab);
             }
         }
 
@@ -742,7 +742,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
         {
             var prefab = EntityWithGizmo?.SourcePrefab;
             if (prefab != null)
-                Session.ActiveAssetView.SelectAssets(prefab.Yield());
+                Session.AssetCollection.SelectAssets(prefab.Yield());
         }
 
         private void SetActiveRoot()

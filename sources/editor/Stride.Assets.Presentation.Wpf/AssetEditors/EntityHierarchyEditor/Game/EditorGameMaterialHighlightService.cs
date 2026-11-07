@@ -327,7 +327,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                 return;
 
             var materialAsset = ContentReferenceHelper.GetReferenceTarget(viewModel.Editor.Session, material);
-            editor.Session.ActiveAssetView.SelectAssetCommand.Execute(materialAsset);
+            editor.Session.AssetCollection.SelectAssetCommand.Execute(materialAsset);
         }
 
         private void HighlightMaterialInPropertyGrid(string materialName)
