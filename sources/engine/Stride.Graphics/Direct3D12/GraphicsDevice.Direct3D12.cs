@@ -109,12 +109,6 @@ namespace Stride.Graphics
         internal readonly object QueueLock = new();
 
         /// <summary>
-        ///   Highest <see cref="CopyFence"/> value already waited on from a main-queue submit.
-        ///   Starts at 1 so the first submit doesn't wait on an unsignaled value.
-        /// </summary>
-        private ulong lastGPUSyncCopyFenceToCommandFence = 1;
-
-        /// <summary>
         ///   The requested graphics profile for the Graphics Device.
         /// </summary>
         internal GraphicsProfile RequestedProfile;
@@ -392,17 +386,10 @@ namespace Stride.Graphics
 
             lock (QueueLock)
             {
+                // No GPU wait on the Command List or copy fences: the copies go to this same queue
+                // (ExecuteAndWaitCopyQueueGPU), and a queue runs its ExecuteCommandLists calls in order.
+                // Waiting here on a value this queue signals drained the GPU before each submission.
                 var commandListFenceValue = CommandListFence.NextFenceValue++;
-
-                if (commandListFenceValue > 0)
-                    CommandListFence.Wait(NativeCommandQueue, commandListFenceValue);
-
-                var copyFenceValue = CopyFence.NextFenceValue;
-                if (copyFenceValue > lastGPUSyncCopyFenceToCommandFence)
-                {
-                    CopyFence.Wait(NativeCommandQueue, copyFenceValue);
-                    lastGPUSyncCopyFenceToCommandFence = copyFenceValue;
-                }
 
                 // A Command List whose assumed layouts need barriers runs after them, and after the ones before it
                 int pendingCount = 0;
@@ -1232,17 +1219,8 @@ namespace Stride.Graphics
             ulong commandListFenceValue;
             lock (QueueLock)
             {
+                // No GPU wait on our own fences, as in ExecuteCommandLists
                 commandListFenceValue = CommandListFence.NextFenceValue++;
-
-                if (commandListFenceValue > 0)
-                    CommandListFence.Wait(NativeCommandQueue, commandListFenceValue);
-
-                var copyFenceValue = CopyFence.NextFenceValue;
-                if (copyFenceValue > lastGPUSyncCopyFenceToCommandFence)
-                {
-                    CopyFence.Wait(NativeCommandQueue, copyFenceValue);
-                    lastGPUSyncCopyFenceToCommandFence = copyFenceValue;
-                }
 
                 if (RecordLayoutCorrections(commandList.RecordedTransitions, commandListFenceValue + 1))
                 {
