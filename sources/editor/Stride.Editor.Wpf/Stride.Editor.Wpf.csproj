@@ -27,7 +27,7 @@
     <ProjectReference Include="..\..\engine\Stride.Assets.Models\Stride.Assets.Models.csproj" />
     <ProjectReference Include="..\..\tools\Stride.TextureConverter\Stride.TextureConverter.csproj" />
     <ProjectReference Include="..\Stride.Core.Assets.Editor.Wpf\Stride.Core.Assets.Editor.Wpf.csproj" />
-    <ProjectReference Include="..\Stride.Editor.Common\Stride.Editor.Common.csproj" />
+    <ProjectReference Include="..\Stride.Editor\Stride.Editor.csproj" />
     <ProjectReference Include="..\..\core\Stride.Core.MicroThreading\Stride.Core.MicroThreading.csproj" />
   </ItemGroup>
   <ItemGroup>

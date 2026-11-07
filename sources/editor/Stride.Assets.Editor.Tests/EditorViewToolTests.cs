@@ -12,6 +12,7 @@ using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;
+using Stride.Editor.EditorGame.Tools;
 
 namespace Stride.Assets.Editor.Tests;
 

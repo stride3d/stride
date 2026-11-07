@@ -580,8 +580,7 @@ namespace Stride.Assets.Editor.EditorGame.ContentLoader
                     // Find dependent assets
                     foreach (var referencer in assetToProcess.Dependencies.ReferencerAssets)
                     {
-                        var node = database.AssetDependenciesCompiler.BuildDependencyManager.FindOrCreateNode(referencer.AssetItem, typeof(AssetCompilationContext));
-                        node.Analyze(database.CompilerContext);
+                        var node = database.AnalyzeDependencies(referencer.AssetItem);
                         foreach (var reference in node.References)
                         {
                             // Check if this reference is actually a compile-time dependency
