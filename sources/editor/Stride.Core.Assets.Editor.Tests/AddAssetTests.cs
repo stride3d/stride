@@ -227,33 +227,43 @@ public sealed class AddAssetTests
     public async Task TheAddAssetDialogRunsThePickedTemplateInTheSelectedFolder()
     {
         using var fixture = await OpenAsync();
+        // The test plays the UI thread: it changes the selection and runs the command on the dispatcher, so that the command's
+        // continuations and the work the session dispatches from the thread pool (the history, the selection of the new asset)
+        // run one at a time with what the test does, instead of racing it on the collections of the asset view
+        var dispatcher = fixture.Session.Dispatcher;
         var folder = fixture.Package.GetOrCreateAssetDirectory("Picked", false);
-        fixture.Assets.SelectedLocations.Add(folder);
+        dispatcher.Invoke(() => fixture.Assets.SelectedLocations.Add(folder));
         fixture.Dialogs.PickAddAssetTemplate = templates => templates.RootGroup.GetTemplatesRecursively().Single(x => x.Id == TestTemplatePackage.AssetFactoryId);
 
-        fixture.Assets.ShowAddAssetDialogCommand.Execute();
-        Assert.True(SpinWait.SpinUntil(() => fixture.Session.AllAssets.Any(), TimeSpan.FromSeconds(10)), "the asset to be created");
-        WaitForHistory(fixture, 0);
+        dispatcher.Invoke(() => fixture.Assets.ShowAddAssetDialogCommand.Execute());
+        Assert.True(SpinWait.SpinUntil(() => dispatcher.Invoke(() => fixture.Assets.SelectedAssets.Count > 0 && fixture.Session.ActionHistory.Transactions.Count > 0),
+            TimeSpan.FromSeconds(10)), "the asset to be created, recorded and selected");
 
         // The dialog proposes the templates for the selected folder
-        var dialog = Assert.Single(fixture.Dialogs.AddAssetDialogs);
-        Assert.Same(folder, dialog.CurrentDirectory);
-        Assert.Contains(dialog.RootGroup.GetTemplatesRecursively(), x => x.Id == TestTemplatePackage.AssetFactoryId);
-        var asset = Assert.Single(fixture.Session.AllAssets);
-        Assert.Equal(EditorSessionFixture.Url("Picked/" + TestTemplatePackage.AssetFactoryDefaultOutputName), asset.Url);
-        Assert.Equal([asset], fixture.Assets.SelectedAssets);
+        dispatcher.Invoke(() =>
+        {
+            var dialog = Assert.Single(fixture.Dialogs.AddAssetDialogs);
+            Assert.Same(folder, dialog.CurrentDirectory);
+            Assert.Contains(dialog.RootGroup.GetTemplatesRecursively(), x => x.Id == TestTemplatePackage.AssetFactoryId);
+            var asset = Assert.Single(fixture.Session.AllAssets);
+            Assert.Equal(EditorSessionFixture.Url("Picked/" + TestTemplatePackage.AssetFactoryDefaultOutputName), asset.Url);
+            Assert.Equal([asset], fixture.Assets.SelectedAssets);
+        });
 
         // Cancelling the dialog creates nothing
         fixture.Dialogs.PickAddAssetTemplate = _ => null;
-        fixture.Assets.ShowAddAssetDialogCommand.Execute();
-        Assert.True(SpinWait.SpinUntil(() => fixture.Dialogs.AddAssetDialogs.Count == 2, TimeSpan.FromSeconds(10)), "the dialog to open");
-        Assert.Single(fixture.Session.AllAssets);
+        dispatcher.Invoke(() => fixture.Assets.ShowAddAssetDialogCommand.Execute());
+        Assert.True(SpinWait.SpinUntil(() => dispatcher.Invoke(() => fixture.Dialogs.AddAssetDialogs.Count == 2), TimeSpan.FromSeconds(10)), "the dialog to open");
+        dispatcher.Invoke(() => Assert.Single(fixture.Session.AllAssets));
 
         // The dialog needs a folder
-        fixture.Assets.SelectedLocations.Clear();
-        fixture.Assets.ShowAddAssetDialogCommand.Execute();
-        Assert.True(SpinWait.SpinUntil(() => fixture.Dialogs.Messages.Count == 1, TimeSpan.FromSeconds(10)), "the message");
-        Assert.Equal(2, fixture.Dialogs.AddAssetDialogs.Count);
+        dispatcher.Invoke(() =>
+        {
+            fixture.Assets.SelectedLocations.Clear();
+            fixture.Assets.ShowAddAssetDialogCommand.Execute();
+        });
+        Assert.True(SpinWait.SpinUntil(() => dispatcher.Invoke(() => fixture.Dialogs.Messages.Count == 1), TimeSpan.FromSeconds(10)), "the message");
+        dispatcher.Invoke(() => Assert.Equal(2, fixture.Dialogs.AddAssetDialogs.Count));
     }
 
     [Fact]
