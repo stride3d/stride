@@ -19,9 +19,13 @@ public sealed class FetchEntityCommandTests
         using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var box = FindEntity(editor, "Box");
-        editor.SelectedItems.Add(FindEntity(editor, "Parent"));
-
-        FetchEntityCommand.Fetch(fixture.Asset<SceneViewModel>("MainScene"), box.AssetSideEntity.Transform);
+        // The test plays the UI thread: the selection changes (of the editor, and of the asset view that follows it) run on the
+        // dispatcher, one at a time with the refresh of the references that the session dispatches after the edits of the fixture
+        fixture.Session.Dispatcher.Invoke(() =>
+        {
+            editor.SelectedItems.Add(FindEntity(editor, "Parent"));
+            FetchEntityCommand.Fetch(fixture.Asset<SceneViewModel>("MainScene"), box.AssetSideEntity.Transform);
+        });
 
         Assert.Equal([box], editor.SelectedItems);
         editor.Destroy();
@@ -35,7 +39,7 @@ public sealed class FetchEntityCommandTests
         var child = ((SceneRootViewModel)editor.HierarchyRoot).ChildScenes.Single();
         var lamp = child.InnerSubEntities.Single();
 
-        FetchEntityCommand.Fetch(fixture.Asset<SceneViewModel>("ChildScene"), lamp.AssetSideEntity);
+        fixture.Session.Dispatcher.Invoke(() => FetchEntityCommand.Fetch(fixture.Asset<SceneViewModel>("ChildScene"), lamp.AssetSideEntity));
 
         Assert.Equal([lamp], editor.SelectedItems);
         editor.Destroy();
@@ -49,7 +53,7 @@ public sealed class FetchEntityCommandTests
         var box = FindEntity(editor, "Box").AssetSideEntity;
         editor.Destroy();
 
-        FetchEntityCommand.Fetch(fixture.Asset<SceneViewModel>("MainScene"), box);
+        fixture.Session.Dispatcher.Invoke(() => FetchEntityCommand.Fetch(fixture.Asset<SceneViewModel>("MainScene"), box));
 
         Assert.Null(fixture.Asset<SceneViewModel>("MainScene").HierarchyRoot);
     }
