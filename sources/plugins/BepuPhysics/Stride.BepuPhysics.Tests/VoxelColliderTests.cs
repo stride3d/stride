@@ -138,6 +138,15 @@ namespace Stride.BepuPhysics.Tests
         }
 
         [Fact]
+        public static void SetDataRejectsGridsBeyondTheIndexSpace()
+        {
+            // 2000 * 2000 * 600 = 2.4 billion samples, past the int index space; rejected before allocating anything.
+            using var collider = new VoxelCollider();
+            Assert.Throws<ArgumentException>(() => collider.SetData(2000, 2000, 600, ReadOnlySpan<float>.Empty));
+            Assert.False(collider.HasData);
+        }
+
+        [Fact]
         public static void InvalidSettingsKeepTheirPreviousValue()
         {
             // The property grid sets them as they are typed: nothing may throw
@@ -339,6 +348,69 @@ namespace Stride.BepuPhysics.Tests
 
                 Assert.Equal(surface + 0.5f, sphere.Transform.Position.Y, tolerance);
                 Assert.Equal(surface + 0.5f, box.Transform.Position.Y, tolerance);
+
+                game.Exit();
+            });
+            RunGameTest(game);
+        }
+
+        [Fact]
+        public static void BoxChildrenRotateWithTheBody()
+        {
+            var game = new GameTest();
+            game.Script.AddTask(async () =>
+            {
+                game.ScreenShotAutomationEnabled = false;
+
+                // A 2x2x2 solid cube (one layer of cells); SealBorder would otherwise empty the border cells.
+                var field = new float[27];
+                Array.Fill(field, 1f);
+                var collider = new VoxelCollider { CellShape = VoxelCellShape.Box, IsoLevel = IsoLevel, SealBorder = false };
+                collider.SetData(3, 3, 3, field);
+                var terrain = new Entity { new StaticComponent { Collider = collider } };
+                // The body pose is at the collider's centre of mass, (1, 1, 1) in local; a 45° Z rotation sends
+                // it to (0, sqrt(2), 1) in world. The box's top corner, local (1, 1, 0), reaches (0, 2 * sqrt(2), 1).
+                terrain.Transform.Rotation = Quaternion.RotationZ(MathF.PI / 4f);
+                game.SceneSystem.SceneInstance.RootScene.Entities.Add(terrain);
+
+                Assert.True(terrain.GetSimulation().RayCast(new Vector3(0f, 10f, 0f), -Vector3.UnitY, 20f, out var hit));
+                Assert.Equal(2f * MathF.Sqrt(2f), hit.Point.Y, Tolerance);
+                Assert.True(hit.Normal.Y > 0.5f, $"Normal {hit.Normal}");
+
+                game.Exit();
+            });
+            RunGameTest(game);
+        }
+
+        [Fact]
+        public static void OversizedSpheresCoverTheirOvershoot()
+        {
+            var game = new GameTest();
+            game.Script.AddTask(async () =>
+            {
+                game.ScreenShotAutomationEnabled = false;
+
+                // One cell, so the compound is a single sphere; SphereRadiusScale 1.4 gives radius 0.7 around the body's world centre (0.5, 0.5, 0.5).
+                var collider = new VoxelCollider { CellShape = VoxelCellShape.Sphere, IsoLevel = IsoLevel, SealBorder = false, SphereRadiusScale = 1.4f };
+                collider.SetData(2, 2, 2, [1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f]);
+                var terrain = new Entity { new StaticComponent { Collider = collider } };
+                game.SceneSystem.SceneInstance.RootScene.Entities.Add(terrain);
+                var simulation = terrain.GetSimulation();
+
+                // x = 1.1 is outside the cell's AABB (world [0, 1]) but inside the sphere's overshoot (world [-0.2, 1.2]).
+                // Without the bounds padding the query would clip to the cell box and miss the sphere.
+                Assert.True(simulation.RayCast(new Vector3(1.1f, 10f, 0.5f), -Vector3.UnitY, 20f, out var hit));
+                // Lateral distance 0.6 from the sphere's centre; the ray lands 0.5 + sqrt(0.13) above the ground.
+                Assert.Equal(0.5f + MathF.Sqrt(0.13f), hit.Point.Y, Tolerance);
+                Assert.True(hit.Normal.Y > 0f, $"Normal {hit.Normal}");
+
+                // A small body dropped on the top of the sphere rests on the overshoot (world y = 1.2), 0.2 past the cell's own top.
+                var ball = new Entity { new BodyComponent { Collider = new CompoundCollider { Colliders = { new SphereCollider { Radius = 0.05f } } } } };
+                ball.Transform.Position = new Vector3(0.5f, 3f, 0.5f);
+                game.SceneSystem.SceneInstance.RootScene.Entities.Add(ball);
+                while (game.UpdateTime.Total.TotalSeconds < 3d)
+                    await simulation.AfterUpdate();
+                Assert.Equal(1.2f + 0.05f, ball.Transform.Position.Y, 0.05f);
 
                 game.Exit();
             });
