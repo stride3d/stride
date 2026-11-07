@@ -206,6 +206,31 @@ namespace Stride.Graphics
             return true;
             //return SharpDX.Direct3D11.Device.IsSupportedFeatureLevel(this.NativeAdapter, (SharpDX.Direct3D.FeatureLevel)graphicsProfile);
         }
+
+        private partial string GetUnsupportedReason()
+        {
+            // Stride uses Vulkan 1.3 core features and entry points
+            if (NativeApiVersion < VkVersion.Version_1_3)
+                return $"it supports only Vulkan {DriverInfo.ApiVersion}, but Stride requires Vulkan 1.3.";
+
+            var vulkan13Features = new VkPhysicalDeviceVulkan13Features { sType = VkStructureType.PhysicalDeviceVulkan13Features };
+            var vulkan12Features = new VkPhysicalDeviceVulkan12Features { sType = VkStructureType.PhysicalDeviceVulkan12Features };
+            unsafe
+            {
+                vulkan12Features.pNext = &vulkan13Features;
+                var features = new VkPhysicalDeviceFeatures2 { sType = VkStructureType.PhysicalDeviceFeatures2, pNext = &vulkan12Features };
+                GraphicsAdapterFactory.GetInstance(enableValidation: false).NativeInstanceApi.vkGetPhysicalDeviceFeatures2(GetPhysicalDevice(enableValidation: false), &features);
+            }
+
+            if (!vulkan12Features.timelineSemaphore)
+                return "it has no Vulkan timeline semaphores, which Stride requires.";
+
+            // The backend renders with vkCmdBeginRendering and no render pass objects, and submits with vkQueueSubmit2
+            if (!vulkan13Features.dynamicRendering || !vulkan13Features.synchronization2)
+                return "it has no Vulkan dynamic rendering and synchronization2, which Stride requires.";
+
+            return null;
+        }
     }
 }
 

@@ -732,13 +732,7 @@ namespace Stride.Graphics
             //
             void RequireEnhancedBarriersSupport()
             {
-                // CheckFeatureSupport validates the struct size exactly — passing an oversized
-                // buffer returns E_INVALIDARG and the query silently fails. Use the Silk.NET
-                // struct + ref overload so size and field offsets stay correct.
-                var options12 = default(FeatureDataD3D12Options12);
-                HResult hr = nativeDevice->CheckFeatureSupport(Silk.NET.Direct3D12.Feature.D3D12Options12, ref options12,
-                                                                (uint) sizeof(FeatureDataD3D12Options12));
-                if (!hr.IsSuccess || !options12.EnhancedBarriersSupported)
+                if (!D3D12Runtime.IsEnhancedBarriersSupported(nativeDevice))
                 {
                     var runtimeHint = D3D12Runtime.IsAgilitySDKLoaded
                         ? ""
@@ -746,7 +740,7 @@ namespace Stride.Graphics
                           "(the Windows 10 runtime has no Enhanced Barriers), and install the Windows updates from September 2023 or newer.";
                     throw new GraphicsDeviceException(
                         "D3D12 Enhanced Barriers are required but not supported by this device/driver. " +
-                        "Update to a recent GPU driver (NVIDIA 531.18+, AMD 23.5.2+, Intel 31.0.101.4032+)." + runtimeHint);
+                        $"Update to a recent GPU driver ({D3D12Runtime.EnhancedBarriersDriverVersions})." + runtimeHint);
                 }
             }
         }

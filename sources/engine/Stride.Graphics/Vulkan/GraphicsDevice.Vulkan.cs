@@ -529,9 +529,8 @@ namespace Stride.Graphics
             if (availableExtensionProperties.Contains(VK_KHR_SWAPCHAIN_EXTENSION_NAME))
                 desiredExtensionProperties.Add(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
-            // Stride uses Vulkan 1.3 core features and entry points
-            if (Adapter.NativeApiVersion < VkVersion.Version_1_3)
-                throw new NotSupportedException($"Vulkan: Device supports only Vulkan {Adapter.DriverInfo.ApiVersion}, but Stride requires Vulkan 1.3.");
+            if (Adapter.UnsupportedReason is { } unsupportedReason)
+                throw new NotSupportedException($"Vulkan: {Adapter.Description} can't be used: {unsupportedReason}");
 
             // Vulkan portability spec: if VK_KHR_portability_subset is advertised, the app MUST enable it.
             // MoltenVK is the only ICD that advertises it; conformant drivers do not.
@@ -604,14 +603,6 @@ namespace Stride.Graphics
                 pNext = isPortabilitySubsetDevice ? (void*)&portabilitySubsetFeatures : &supportedVulkan11Features,
             };
             NativeInstanceApi.vkGetPhysicalDeviceFeatures2(NativePhysicalDevice, &physicalDeviceFeatures2);
-
-            if (!supportedVulkan12Features.timelineSemaphore)
-                throw new InvalidOperationException("Vulkan: Timeline semaphores are not supported by this device, but are required by Stride.");
-
-            // Dynamic rendering is required: the backend renders with vkCmdBeginRendering and
-            // creates no render pass objects. Synchronization2 is required for vkQueueSubmit2.
-            if (!supportedVulkan13Features.dynamicRendering || !supportedVulkan13Features.synchronization2)
-                throw new NotSupportedException("Vulkan: Dynamic rendering and synchronization2 are not supported by this device, but are required by Stride.");
 
             var enabledVulkan13Features = new VkPhysicalDeviceVulkan13Features
             {
