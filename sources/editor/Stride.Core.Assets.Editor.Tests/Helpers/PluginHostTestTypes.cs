@@ -19,6 +19,8 @@ using Stride.Core.Assets.Presentation.Annotations;
 [assembly: TypeImage(typeof(PluginHostDeclaredType), "TestPluginImage.txt")]
 [assembly: EnumImage(PluginHostImageEnum.Declared, "TestPluginImage.txt")]
 [assembly: EnumImage(PluginHostImageEnum.Both, "TestPluginImage.txt")]
+// An image file that was not pulled from Git LFS: the pointer text instead of the image (TestDeclaredImageFailures)
+[assembly: TypeImage(typeof(PluginHostBrokenImageType), "TestBrokenImage.txt")]
 
 namespace Stride.Core.Assets.Editor.Tests.Helpers;
 
@@ -61,7 +63,12 @@ public sealed class RecordingEditorPluginHost : EditorPluginHost
 
     protected override void RemoveTemplateProvider(ISessionViewModel session, ITemplateProvider provider) => TemplateProviders.Remove(provider);
 
-    protected override object DecodeImage(byte[] data) => data;
+    /// <summary>
+    /// Decodes the declared images; by default the bytes of the resource are the image.
+    /// </summary>
+    public Func<byte[], object>? ImageDecoder { get; init; }
+
+    protected override object DecodeImage(byte[] data) => ImageDecoder?.Invoke(data) ?? data;
 
     protected override GraphViewModelService GetGraphViewModelService(ISessionViewModel session) => GraphService;
 }
@@ -100,6 +107,8 @@ public sealed class PluginHostEditorView : IEditorView
 }
 
 public sealed class PluginHostDeclaredType;
+
+public sealed class PluginHostBrokenImageType;
 
 public enum PluginHostImageEnum
 {

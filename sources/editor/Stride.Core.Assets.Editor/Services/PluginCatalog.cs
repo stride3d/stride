@@ -48,8 +48,9 @@ public static class PluginCatalog
             }
         }
 
-        // A plugin left out whose package the session does not declare (any more): listed by its name, so that its state and
-        // errors still show
+        // A plugin left out whose package the session does not declare (any more), or an assembly without a plugin whose
+        // declared images could not be read: listed by its name, so that its state and errors still show. Only a package left
+        // out is named by its package, so only that one can be switched (on again)
         foreach (var status in statuses.Where(x => x.Plugin is null && !listed.Contains(x)))
         {
             listed.Add(status);
@@ -61,6 +62,7 @@ public static class PluginCatalog
                 State = status.State,
                 OffReason = status.OffReason,
                 Statuses = [status],
+                CanSwitchOff = status.State == PluginState.Off,
             });
         }
 
@@ -243,7 +245,8 @@ public static class PluginCatalog
             var assemblyName = plugin.GetType().Assembly.GetName().Name;
             return assemblies.Any(x => string.Equals(x, location, StringComparison.OrdinalIgnoreCase) || string.Equals(Path.GetFileNameWithoutExtension(x), assemblyName, StringComparison.OrdinalIgnoreCase));
         }
-        return status.State == PluginState.Incompatible && assemblies.Any(x => string.Equals(Path.GetFileNameWithoutExtension(x), status.Name, StringComparison.OrdinalIgnoreCase));
+        // An incompatible assembly, or an assembly whose declared images could not be read, by its name
+        return status.State != PluginState.Off && assemblies.Any(x => string.Equals(Path.GetFileNameWithoutExtension(x), status.Name, StringComparison.OrdinalIgnoreCase));
     }
 
     private static List<string> GetAssemblyPaths(PackageContainer container)

@@ -97,4 +97,10 @@ public static class PluginContributions
     /// A toolbar widget of the plugin (<see cref="IEditorPluginContext.ToolbarWidgets"/>): its view model, created and destroyed.
     /// </summary>
     public static string ToolbarWidget(string widgetId) => $"ToolbarWidget {widgetId}";
+
+    /// <summary>
+    /// An image that the plugin's assembly declares (<see cref="Annotations.TypeImageAttribute"/>,
+    /// <see cref="Annotations.EnumImageAttribute"/>), by its resource name: the editor could not decode it, and left it out.
+    /// </summary>
+    public static string Image(string resourceName) => $"Image {resourceName}";
 }

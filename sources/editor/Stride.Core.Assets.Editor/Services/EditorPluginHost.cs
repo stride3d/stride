@@ -66,6 +66,8 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginCo
     // The plugins whose assembly was not loaded (incompatible), by assembly path, and whose package was not loaded (off), by
     // package name
     private readonly Dictionary<string, (string Name, StatusEntry Entry)> unloadedStatuses = new(StringComparer.OrdinalIgnoreCase);
+    // The registered assemblies without a plugin in the session whose declared images could not be read, by assembly
+    private readonly Dictionary<Assembly, (string Name, StatusEntry Entry)> assemblyStatuses = [];
     private readonly PluginMap<object, object> enumImages;
     private readonly PluginMap<Type, object> typeImages;
     private readonly PluginMap<object, object> declaredEnumImages;
@@ -198,7 +200,10 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginCo
         get
         {
             lock (statusLock)
-                return statuses.Select(x => x.Value.Snapshot(x.Key)).Concat(unloadedStatuses.Values.Select(x => x.Entry.Snapshot(x.Name))).ToList();
+                return statuses.Select(x => x.Value.Snapshot(x.Key))
+                    .Concat(unloadedStatuses.Values.Select(x => x.Entry.Snapshot(x.Name)))
+                    .Concat(assemblyStatuses.Values.Select(x => x.Entry.Snapshot(x.Name)))
+                    .ToList();
         }
     }
 
@@ -492,7 +497,7 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginCo
 #pragma warning restore STRPLUGIN002
             ScanPlugin(plugin, context);
             foreach (var assembly in plugin.ScannedAssemblies)
-                ScanDeclaredImages(assembly, record);
+                ScanDeclaredImages(assembly, record, plugin);
             plugin.Initialize(context);
             UpdateStatus(plugin, _ => { });
             return true;
@@ -631,8 +636,10 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginCo
             record.UndoFrom(0, pluginLogger);
     }
 
-    // The images the assembly declares, once per assembly; they come after the ones the plugins register
-    private void ScanDeclaredImages(Assembly assembly, PluginRecord record)
+    // The images the assembly declares, once per assembly; they come after the ones the plugins register. An image that
+    // can't be decoded is left out and reported on the plugin (or on the assembly when no plugin of the session has it); the
+    // other images still show, and the session still opens
+    private void ScanDeclaredImages(Assembly assembly, PluginRecord record, AssetsPlugin? plugin = null)
     {
         if (declaredImageAssemblies.ContainsKey(assembly))
             return;
@@ -641,7 +648,17 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginCo
         record.Add(() => declaredImageAssemblies.Remove(assembly));
         foreach (var declared in DeclaredImageResources.Read(assembly))
         {
-            if (DecodeImage(declared.Data) is not { } image)
+            object? image;
+            try
+            {
+                image = DecodeImage(declared.Data);
+            }
+            catch (Exception e)
+            {
+                ReportImageFailure(assembly, record, plugin, declared, e);
+                continue;
+            }
+            if (image is null)
                 continue;
 
             switch (declared.Target)
@@ -654,6 +671,82 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginCo
                     break;
             }
         }
+    }
+
+    // A declared image that could not be decoded: turned off alone, on the plugin of the assembly when the session has one,
+    // otherwise on the assembly's own status (by its name, as long as it is registered)
+    private void ReportImageFailure(Assembly assembly, PluginRecord record, AssetsPlugin? plugin, DeclaredImage declared, Exception exception)
+    {
+        var resource = declared.ResourceName ?? declared.Target.ToString() ?? "?";
+        var contribution = PluginContributions.Image(resource);
+        var assemblyName = assembly.GetName().Name ?? assembly.FullName ?? "?";
+        plugin ??= FindSessionPlugin(assembly);
+        bool known;
+        lock (statusLock)
+            known = plugin is not null && statuses.ContainsKey(plugin);
+        if (known)
+        {
+            pluginLogger.Warning($"The image [{resource}] declared by [{assemblyName}] for the plugin [{plugin!.GetType().FullName}] could not be read: it is left out.", exception);
+            UpdateStatus(plugin, x =>
+            {
+                x.TurnedOff.Add(contribution);
+                x.Errors.Add(new PluginError(contribution, exception));
+            });
+            return;
+        }
+
+        pluginLogger.Warning($"The image [{resource}] declared by [{assemblyName}] could not be read: it is left out.", exception);
+        PluginStatus status;
+        bool added = false;
+        lock (statusLock)
+        {
+            if (!assemblyStatuses.TryGetValue(assembly, out var item))
+            {
+                assemblyStatuses[assembly] = item = (assemblyName, new StatusEntry());
+                added = true;
+            }
+            item.Entry.TurnedOff.Add(contribution);
+            item.Entry.Errors.Add(new PluginError(contribution, exception));
+            status = item.Entry.Snapshot(item.Name);
+        }
+        if (added)
+            record.Add(() => RemoveAssemblyStatus(assembly));
+        PluginStatusChanged?.Invoke(this, new PluginStatusChangedEventArgs(null, status.Name, status));
+    }
+
+    // The plugin of the session that the assembly belongs to, or whose declarations it scans
+    private AssetsPlugin? FindSessionPlugin(Assembly assembly)
+    {
+        foreach (var plugin in sessionPlugins)
+        {
+            if (plugin.GetType().Assembly == assembly)
+                return plugin;
+        }
+        foreach (var plugin in sessionPlugins)
+        {
+            try
+            {
+                if (plugin.ScannedAssemblies.Contains(assembly))
+                    return plugin;
+            }
+            catch (Exception e)
+            {
+                pluginLogger.Warning($"Could not read the assemblies of the plugin [{plugin.GetType().FullName}].", e);
+            }
+        }
+        return null;
+    }
+
+    private void RemoveAssemblyStatus(Assembly assembly)
+    {
+        string? name = null;
+        lock (statusLock)
+        {
+            if (assemblyStatuses.Remove(assembly, out var item))
+                name = item.Name;
+        }
+        if (name is not null)
+            PluginStatusChanged?.Invoke(this, new PluginStatusChangedEventArgs(null, name, null));
     }
 
     /// <inheritdoc />

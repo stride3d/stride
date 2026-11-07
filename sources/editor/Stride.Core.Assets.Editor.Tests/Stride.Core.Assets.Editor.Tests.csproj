@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\TestPluginImage.txt" />
+    <EmbeddedResource Include="Resources\TestBrokenImage.txt" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">

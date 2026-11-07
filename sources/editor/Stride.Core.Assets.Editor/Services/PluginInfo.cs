@@ -47,6 +47,8 @@ public enum PluginSource
 [Experimental("STREXP002")]
 public sealed class PluginInfo
 {
+    private readonly bool canSwitchOff = true;
+
     /// <summary>
     /// The package id (or the assembly name of one of the editor's own plugins).
     /// </summary>
@@ -108,9 +110,14 @@ public sealed class PluginInfo
     public bool IsBuiltIn => Source == PluginSource.BuiltIn;
 
     /// <summary>
-    /// Whether the user can switch it off for the session (<see cref="PluginSwitchService"/>).
+    /// Whether the user can switch it off for the session (<see cref="PluginSwitchService"/>): never a built-in one, nor one
+    /// known only by the name of an assembly (not by its package).
     /// </summary>
-    public bool CanSwitchOff => !IsBuiltIn;
+    public bool CanSwitchOff
+    {
+        get => !IsBuiltIn && canSwitchOff;
+        init => canSwitchOff = value;
+    }
 
     /// <summary>
     /// The major and minor version of the editor its assemblies were built against (the highest editor assembly they

@@ -13,4 +13,10 @@ namespace Stride.Core.Assets.Editor.Services;
 /// </summary>
 /// <param name="Target">The type, or the enum value, the image is for.</param>
 /// <param name="Data">The content of the image file.</param>
-public sealed record DeclaredImage(object Target, byte[] Data);
+public sealed record DeclaredImage(object Target, byte[] Data)
+{
+    /// <summary>
+    /// The name of the embedded resource the image was read from, as the declaration gives it; null when unknown.
+    /// </summary>
+    public string? ResourceName { get; init; }
+}
