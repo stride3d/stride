@@ -32,6 +32,11 @@ public enum PluginGroup
     Project,
 
     /// <summary>
+    /// The extensions the user installed, on or off (unless they need attention).
+    /// </summary>
+    Extensions,
+
+    /// <summary>
     /// The editor's own assemblies with plugins (<see cref="PluginSource.Editor"/>), on.
     /// </summary>
     GameStudio,
@@ -44,7 +49,7 @@ public enum PluginGroup
 
 /// <summary>
 /// A plugin package in the Plugins panel (<see cref="PluginsPanelViewModel"/>): what it is, where it comes from, what it
-/// contributes, its state and errors, and its switch.
+/// contributes, its state and errors, and its switch. An extension's switch applies to every project, and it can be removed.
 /// </summary>
 [Experimental("STREXP002")]
 public sealed class PluginItemViewModel : ViewModelBase
@@ -62,6 +67,7 @@ public sealed class PluginItemViewModel : ViewModelBase
         ClearEntryCommand = new AnonymousCommand(ServiceProvider, () => ClearEntry());
         CopyErrorsCommand = new AnonymousTaskCommand(ServiceProvider, CopyErrorsAsync);
         CopyErrorCommand = new AnonymousTaskCommand<PluginErrorViewModel>(ServiceProvider, CopyErrorAsync);
+        RemoveCommand = new AnonymousTaskCommand(ServiceProvider, () => RemoveAsync(), () => CanRemove);
         Errors = CreateErrors(info);
     }
 
@@ -95,6 +101,7 @@ public sealed class PluginItemViewModel : ViewModelBase
         PluginSource.Package => Tr._p("Plugins", "Package"),
         PluginSource.SolutionProject => Tr._p("Plugins", "Project of the solution"),
         PluginSource.DevRedirect => Tr._p("Plugins", "Development build (dev redirect)"),
+        PluginSource.Extension => Tr._p("Plugins", "Extension (installed for every project)"),
         _ => info.Source.ToString(),
     };
 
@@ -153,6 +160,9 @@ public sealed class PluginItemViewModel : ViewModelBase
     /// </summary>
     public string StateText => (info.State, info.OffReason) switch
     {
+        (PluginState.Off, _) when info.IsExtension && info.OffReason != PluginOffReason.AddedSinceStart && !IsInstalled => Tr._p("Plugins", "Off: removed"),
+        (PluginState.Off, PluginOffReason.AddedSinceStart) => Tr._p("Plugins", "Added"),
+        (PluginState.Off, PluginOffReason.InProject) => Tr._p("Plugins", "Off: in the project"),
         (PluginState.Joined, _) when Errors.Count > 0 => Tr._p("Plugins", "On, with errors"),
         (PluginState.Joined, _) => Tr._p("Plugins", "On"),
         (PluginState.Failed, _) => Tr._p("Plugins", "Failed"),
@@ -167,11 +177,15 @@ public sealed class PluginItemViewModel : ViewModelBase
     /// </summary>
     public string StateDetail => (info.State, info.OffReason) switch
     {
+        (PluginState.Off, _) when info.IsExtension && info.OffReason != PluginOffReason.AddedSinceStart && !IsInstalled => Tr._p("Plugins", "It was removed: it leaves this list when Game Studio opens a project again."),
         (PluginState.Joined, _) when Errors.Count > 0 => Tr._p("Plugins", "Some of its contributions failed and were turned off for this session; the others work."),
         (PluginState.Failed, _) => Tr._p("Plugins", "It could not join the project: what it registered before failing was removed."),
         (PluginState.Incompatible, _) => Errors.Select(x => x.Error.Exception).OfType<IncompatiblePluginException>().FirstOrDefault()?.Message
             ?? Tr._p("Plugins", "It was built for a newer Game Studio and was not loaded."),
         (PluginState.Off, PluginOffReason.SafeMode) => Tr._p("Plugins", "Game Studio runs in safe mode: only the plugins of Stride load."),
+        (PluginState.Off, PluginOffReason.AddedSinceStart) => Tr._p("Plugins", "It was installed after this project opened: it loads when Game Studio opens a project again."),
+        (PluginState.Off, PluginOffReason.InProject) => Tr._p("Plugins", "The project uses this plugin itself: the project's version is loaded, not the extension."),
+        (PluginState.Off, _) when info.IsExtension => Tr._p("Plugins", "It is switched off in every project: it was not loaded."),
         (PluginState.Off, _) => Tr._p("Plugins", "It is switched off for this project: it was not loaded."),
         _ => string.Empty,
     };
@@ -183,6 +197,7 @@ public sealed class PluginItemViewModel : ViewModelBase
     {
         PluginState.Failed or PluginState.Incompatible => PluginGroup.NeedsAttention,
         PluginState.Joined when Errors.Count > 0 => PluginGroup.NeedsAttention,
+        _ when info.IsExtension => PluginGroup.Extensions,
         PluginState.Off => PluginGroup.Off,
         _ when info.Source == PluginSource.Editor => PluginGroup.GameStudio,
         _ when info.IsBuiltIn => PluginGroup.BuiltIn,
@@ -197,6 +212,7 @@ public sealed class PluginItemViewModel : ViewModelBase
         PluginGroup.NeedsAttention => Tr._p("Plugins", "Needs attention"),
         PluginGroup.Off => Tr._p("Plugins", "Off"),
         PluginGroup.Project => Tr._p("Plugins", "Plugins of the project"),
+        PluginGroup.Extensions => Tr._p("Plugins", "Extensions"),
         PluginGroup.GameStudio => Tr._p("Plugins", "Part of Game Studio"),
         PluginGroup.BuiltIn => Tr._p("Plugins", "Built-in plugins"),
         _ => Group.ToString(),
@@ -244,14 +260,31 @@ public sealed class PluginItemViewModel : ViewModelBase
     };
 
     /// <summary>
-    /// Whether the user can switch it on or off here: a third-party package, in a session with a file.
+    /// Whether it is an extension the user installed: switched off in every project, and removed here.
     /// </summary>
-    public bool CanSwitch => info.CanSwitchOff && owner.CanSwitch;
+    public bool IsExtension => info.IsExtension;
 
     /// <summary>
-    /// Whether it is on from the next opening of the project: not in the project's list of switched-off packages.
+    /// Whether it is an extension that is installed now (it may have been removed since the session opened).
     /// </summary>
-    public bool IsOn => !owner.IsSwitchedOff(info.Id);
+    public bool IsInstalled => IsExtension && owner.GetExtension(info.Id) is not null;
+
+    /// <summary>
+    /// Whether the user can switch it on or off here: a third-party package, in a session with a file; or an installed
+    /// extension.
+    /// </summary>
+    public bool CanSwitch => IsExtension ? IsInstalled && owner.CanManageExtensions : info.CanSwitchOff && owner.CanSwitch;
+
+    /// <summary>
+    /// Whether it can be removed: an installed extension.
+    /// </summary>
+    public bool CanRemove => IsInstalled && owner.CanManageExtensions;
+
+    /// <summary>
+    /// Whether it is on from the next opening of the project: not in the project's list of switched-off packages; for an
+    /// extension, installed and not switched off.
+    /// </summary>
+    public bool IsOn => IsExtension ? owner.GetExtension(info.Id) is { IsOff: false } : !owner.IsSwitchedOff(info.Id);
 
     /// <summary>
     /// Whether it is loaded now: not off.
@@ -259,10 +292,27 @@ public sealed class PluginItemViewModel : ViewModelBase
     public bool IsLoaded => info.State != PluginState.Off;
 
     /// <summary>
-    /// Whether its switch changed since the session opened: it applies when Game Studio restarts. In safe mode, what is
-    /// switched applies when it restarts normally, so nothing is pending here.
+    /// Whether its switch changed since the session opened, or the extension was added or removed since: it applies when Game
+    /// Studio restarts. In safe mode, what is switched applies when it restarts normally, so nothing is pending here; an
+    /// extension the project also has never loads as an extension.
     /// </summary>
-    public bool IsPending => CanSwitch && !owner.SafeMode && IsOn != IsLoaded;
+    public bool IsPending => !owner.SafeMode && info.OffReason != PluginOffReason.InProject && (IsExtension || CanSwitch) && IsOn != IsLoaded;
+
+    /// <summary>
+    /// What changed and waits for a restart, in a sentence, or an empty string.
+    /// </summary>
+    public string PendingText => !IsPending ? string.Empty
+        : !IsExtension ? Tr._p("Plugins", "Changed: it applies when Game Studio opens this project again (Restart to apply).")
+        : !IsInstalled ? Tr._p("Plugins", "Removed: it goes when Game Studio opens a project again (Restart to apply).")
+        : info.OffReason == PluginOffReason.AddedSinceStart ? Tr._p("Plugins", "Added: it loads when Game Studio opens a project again (Restart to apply).")
+        : Tr._p("Plugins", "Changed: it applies in every project when Game Studio opens a project again (Restart to apply).");
+
+    /// <summary>
+    /// The tooltip of its switch.
+    /// </summary>
+    public string SwitchToolTip => IsExtension
+        ? Tr._p("ToolTip", "Switch this extension on or off for every project; it applies when Game Studio opens a project again")
+        : Tr._p("ToolTip", "Switch this plugin on or off for this project; it applies when Game Studio opens the project again");
 
     /// <summary>
     /// Whether it is built in but the project's list of switched-off packages names it: the editor loaded it anyway and warned
@@ -279,6 +329,11 @@ public sealed class PluginItemViewModel : ViewModelBase
     /// Removes the entry that names a built-in plugin from the project's list (<see cref="IsListedBuiltIn"/>).
     /// </summary>
     public ICommandBase ClearEntryCommand { get; }
+
+    /// <summary>
+    /// Removes the extension, after asking (<see cref="CanRemove"/>).
+    /// </summary>
+    public ICommandBase RemoveCommand { get; }
 
     /// <summary>
     /// Copies all its errors, with their contribution, time and details.
@@ -302,6 +357,12 @@ public sealed class PluginItemViewModel : ViewModelBase
         {
             if (!CanSwitch || on == IsOn)
                 return false;
+            if (IsExtension)
+            {
+                if (!on && !await owner.ConfirmSwitchOffExtensionAsync(info))
+                    return false;
+                return owner.SwitchExtension(info, on);
+            }
             if (!on && !await owner.ConfirmSwitchOffAsync(info))
                 return false;
             return owner.Switch(info, on);
@@ -309,8 +370,21 @@ public sealed class PluginItemViewModel : ViewModelBase
         finally
         {
             // A switch in the view shows the new state as soon as it is clicked: it goes back if nothing changed
-            OnPropertyChanged(nameof(IsOn), nameof(IsPending));
+            OnPropertyChanged(nameof(IsOn), nameof(IsPending), nameof(PendingText));
         }
+    }
+
+    /// <summary>
+    /// Removes the extension from every project, from the next start, after asking.
+    /// </summary>
+    /// <returns>True when it was removed; false when the user cancelled, or it is not an installed extension.</returns>
+    public async Task<bool> RemoveAsync()
+    {
+        if (!CanRemove)
+            return false;
+        var removed = await owner.RemoveExtensionAsync(info);
+        UpdateSwitch();
+        return removed;
     }
 
     /// <summary>
@@ -345,7 +419,8 @@ public sealed class PluginItemViewModel : ViewModelBase
         OnPropertyChanged(nameof(Info), nameof(DisplayName), nameof(VersionText), nameof(SourceText), nameof(KindText), nameof(Authors), nameof(Description),
             nameof(IconPath), nameof(ProjectUrl), nameof(License), nameof(EditorApiText), nameof(Contributions), nameof(State), nameof(OffReason), nameof(StateText),
             nameof(StateDetail), nameof(Group), nameof(GroupTitle), nameof(NeedsAttention), nameof(Errors), nameof(HasErrors), nameof(IsBuiltIn), nameof(IsPartOfGameStudio), nameof(BuiltInDetail), nameof(CanSwitch),
-            nameof(IsOn), nameof(IsLoaded), nameof(IsPending), nameof(IsListedBuiltIn));
+            nameof(IsOn), nameof(IsLoaded), nameof(IsPending), nameof(IsListedBuiltIn), nameof(IsExtension), nameof(IsInstalled), nameof(CanRemove), nameof(PendingText),
+            nameof(SwitchToolTip));
     }
 
     /// <summary>
@@ -353,7 +428,7 @@ public sealed class PluginItemViewModel : ViewModelBase
     /// </summary>
     internal void UpdateSwitch()
     {
-        OnPropertyChanged(nameof(CanSwitch), nameof(IsOn), nameof(IsPending), nameof(IsListedBuiltIn));
+        OnPropertyChanged(nameof(CanSwitch), nameof(IsOn), nameof(IsPending), nameof(IsListedBuiltIn), nameof(IsInstalled), nameof(CanRemove), nameof(PendingText), nameof(StateText), nameof(StateDetail));
     }
 
     /// <inheritdoc />

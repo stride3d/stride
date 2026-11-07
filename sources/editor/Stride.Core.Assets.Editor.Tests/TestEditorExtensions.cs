@@ -239,7 +239,7 @@ public sealed class TestEditorExtensions : IDisposable
     public void AnExtensionInstalledAfterTheSessionOpenedWaitsForTheNextOne()
     {
         var host = CreateHost();
-        AddExtensionPackage("Tool.Editor");
+        AddExtensionPackage("Tool.Editor", title: "A tool");
         try
         {
             using var session = OpenSession(host, out _);
@@ -247,6 +247,8 @@ public sealed class TestEditorExtensions : IDisposable
 
             var info = Assert.Single(PluginCatalog.Collect(host, session), x => x.Id == "Tool.Editor");
             Assert.Equal((PluginState.Off, PluginOffReason.AddedSinceStart, PluginSource.Extension), (info.State, info.OffReason, info.Source));
+            // Not restored yet: its title is read from the package in the feed
+            Assert.Equal("A tool", info.DisplayName);
             Assert.DoesNotContain(session.Projects, x => x.Package.Meta.Name == "Tool.Editor");
         }
         finally

@@ -44,11 +44,23 @@
       </Grid>
     </Border>
 
-    <!-- How many plugins, how many need attention or are off -->
+    <!-- How many plugins, how many need attention or are off; the user's extensions are added here -->
     <Border Classes="bar" DockPanel.Dock="Top">
-      <Grid ColumnDefinitions="*, Auto">
+      <Grid ColumnDefinitions="*, Auto, Auto">
         <TextBlock Name="Summary" Grid.Column="0" VerticalAlignment="Center" Text="{Binding Summary}"/>
-        <Button Grid.Column="1" Content="{sd:LocalizeString Refresh, Context=Button}" Command="{Binding RefreshCommand}"
+        <!-- An extension is an Editor package installed for every project: it loads when Game Studio opens a project again -->
+        <DropDownButton Name="AddExtensionButton" Grid.Column="1" Margin="0,0,6,0"
+                        Content="{sd:LocalizeString Add an extension, Context=Button}"
+                        IsVisible="{Binding CanManageExtensions}"
+                        ToolTip.Tip="{sd:LocalizeString Install an editor extension for every project from a NuGet package or a folder of packages; it loads when Game Studio opens a project again, Context=ToolTip}">
+          <DropDownButton.Flyout>
+            <MenuFlyout Placement="BottomEdgeAlignedRight">
+              <MenuItem Name="AddExtensionFromFileItem" Header="{sd:LocalizeString From a package file (.nupkg)..., Context=Menu}" Command="{Binding AddExtensionFromFileCommand}"/>
+              <MenuItem Name="AddExtensionFromFolderItem" Header="{sd:LocalizeString From a folder of packages..., Context=Menu}" Command="{Binding AddExtensionFromFolderCommand}"/>
+            </MenuFlyout>
+          </DropDownButton.Flyout>
+        </DropDownButton>
+        <Button Grid.Column="2" Content="{sd:LocalizeString Refresh, Context=Button}" Command="{Binding RefreshCommand}"
                 ToolTip.Tip="{sd:LocalizeString Read the plugins and their states again, Context=ToolTip}"/>
       </Grid>
     </Border>
@@ -77,13 +89,14 @@
                 <TextBlock Grid.Column="2" Classes="state" Margin="8,0" VerticalAlignment="Center"
                            Classes.attention="{Binding NeedsAttention}" Classes.off="{Binding !IsLoaded}"
                            Text="{Binding StateText}"/>
-                <!-- A third-party plugin's switch: switching off asks first; it applies at the next opening -->
+                <!-- A third-party plugin's switch (this project), or an extension's (every project): switching off asks
+                     first; it applies at the next opening -->
                 <ToggleSwitch Grid.Column="3" Name="PluginSwitch" VerticalAlignment="Center" Margin="0" MinWidth="0"
                               OnContent="" OffContent=""
                               IsVisible="{Binding CanSwitch}"
                               IsChecked="{Binding IsOn, Mode=OneWay}"
                               Command="{Binding ToggleCommand}"
-                              ToolTip.Tip="{sd:LocalizeString Switch this plugin on or off for this project; it applies when Game Studio opens the project again, Context=ToolTip}"/>
+                              ToolTip.Tip="{Binding SwitchToolTip}"/>
               </Grid>
             </StackPanel>
           </DataTemplate>
@@ -125,12 +138,19 @@
                             OnContent="" OffContent=""
                             IsVisible="{Binding CanSwitch}"
                             IsChecked="{Binding IsOn, Mode=OneWay}"
-                            Command="{Binding ToggleCommand}"/>
+                            Command="{Binding ToggleCommand}"
+                            ToolTip.Tip="{Binding SwitchToolTip}"/>
+              <!-- An extension leaves every project at the next opening -->
+              <Button Name="RemoveExtensionButton" VerticalAlignment="Center"
+                      Content="{sd:LocalizeString Remove, Context=Button}"
+                      IsVisible="{Binding CanRemove}"
+                      Command="{Binding RemoveCommand}"
+                      ToolTip.Tip="{sd:LocalizeString Remove this extension from every project; it goes when Game Studio opens a project again, Context=ToolTip}"/>
             </StackPanel>
             <SelectableTextBlock TextWrapping="Wrap" Text="{Binding StateDetail}"
                                  IsVisible="{Binding StateDetail, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
-            <TextBlock TextWrapping="Wrap" FontStyle="Italic" IsVisible="{Binding IsPending}"
-                       Text="{sd:LocalizeString Changed: it applies when Game Studio opens this project again (Restart to apply).}"/>
+            <TextBlock Name="PendingText" TextWrapping="Wrap" FontStyle="Italic" IsVisible="{Binding IsPending}"
+                       Text="{Binding PendingText}"/>
             <TextBlock TextWrapping="Wrap" Opacity="0.7" IsVisible="{Binding IsBuiltIn}"
                        Text="{Binding BuiltInDetail}"/>
 

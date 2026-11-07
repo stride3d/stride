@@ -4,6 +4,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Stride.Core.Assets.Editor.Panels;
 using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
@@ -15,8 +16,10 @@ namespace Stride.Core.Assets.Editor.Plugins;
 
 /// <summary>
 /// The Plugins panel: the plugins of the editor and of the session (<see cref="PluginCatalog"/>), what needs attention first,
-/// with their state, errors and switch, and "Restart to apply" once a switch changed. It follows the plugin host's
-/// <see cref="EditorPluginHost.PluginStatusChanged"/>, and empties when the session closes (the panel is destroyed).
+/// with their state, errors and switch, and "Restart to apply" once a switch changed. Its extensions section adds the user's
+/// extensions (<see cref="EditorExtensionService"/>) from a <c>.nupkg</c> file or a folder, removes them and switches them off.
+/// It follows the plugin host's <see cref="EditorPluginHost.PluginStatusChanged"/>, and empties when the session closes (the
+/// panel is destroyed).
 /// </summary>
 /// <remarks>
 /// Toolkit-neutral: the cross-platform Game Studio shows it; the WPF one has no Plugins panel.
@@ -30,6 +33,8 @@ public sealed class PluginsPanelViewModel : PanelViewModel
     private readonly UFile? sessionFile;
     private readonly IEditorRestartService? restart;
     private readonly IDispatcherService? dispatcher;
+    private readonly EditorExtensionService? extensions;
+    private readonly string? editorToolkit;
     private readonly string baseTitle;
     private PluginItemViewModel? selectedPlugin;
     private int refreshQueued;
@@ -60,10 +65,14 @@ public sealed class PluginsPanelViewModel : PanelViewModel
         this.sessionFile = sessionFile;
         this.restart = restart;
         switchService = host.DisabledCompanions is { } store ? new PluginSwitchService(store) : null;
+        extensions = host.Extensions;
+        editorToolkit = context.EditorSession.PackageSession.EditorToolkit;
         dispatcher = ServiceProvider.TryGet<IDispatcherService>();
         baseTitle = Title;
         RestartCommand = new AnonymousTaskCommand(ServiceProvider, () => RestartAsync(), () => restart is not null);
         RefreshCommand = new AnonymousCommand(ServiceProvider, Refresh);
+        AddExtensionFromFileCommand = new AnonymousTaskCommand(ServiceProvider, AddExtensionFromFileAsync, () => CanManageExtensions);
+        AddExtensionFromFolderCommand = new AnonymousTaskCommand(ServiceProvider, AddExtensionFromFolderAsync, () => CanManageExtensions);
         host.PluginStatusChanged += PluginStatusChanged;
         Refresh();
     }
@@ -100,7 +109,23 @@ public sealed class PluginsPanelViewModel : PanelViewModel
     public bool CanSwitch => switchService is not null && sessionFile is not null;
 
     /// <summary>
-    /// Whether a switch changed since the session opened: it applies when Game Studio restarts (<see cref="RestartCommand"/>).
+    /// Whether the user's extensions can be added, removed and switched off here: the editor keeps them.
+    /// </summary>
+    public bool CanManageExtensions => extensions is not null;
+
+    /// <summary>
+    /// Asks for a <c>.nupkg</c> file and installs its extension (<see cref="AddExtensionsAsync"/>).
+    /// </summary>
+    public ICommandBase AddExtensionFromFileCommand { get; }
+
+    /// <summary>
+    /// Asks for a folder and installs its extensions (<see cref="AddExtensionsAsync"/>).
+    /// </summary>
+    public ICommandBase AddExtensionFromFolderCommand { get; }
+
+    /// <summary>
+    /// Whether a switch changed since the session opened, or an extension was added or removed: it applies when Game Studio
+    /// restarts (<see cref="RestartCommand"/>).
     /// </summary>
     public bool NeedsRestart => Plugins.Any(x => x.IsPending);
 
@@ -115,7 +140,7 @@ public sealed class PluginsPanelViewModel : PanelViewModel
     /// </summary>
     public string RestartMessage => SafeMode
         ? Tr._p("Plugins", "Game Studio runs in safe mode: the plugins of the project are off. What you switch applies when it restarts normally.")
-        : Tr._p("Plugins", "The plugins you switched change when Game Studio opens this project again.");
+        : Tr._p("Plugins", "What you changed in the plugins and extensions applies when Game Studio opens this project again.");
 
     /// <summary>
     /// The text of the restart button.
@@ -137,6 +162,33 @@ public sealed class PluginsPanelViewModel : PanelViewModel
     /// </summary>
     /// <returns>True when the editor restarts; false when the user kept the session, or the editor can't restart.</returns>
     public Task<bool> RestartAsync() => restart?.RestartAsync(safeMode: false) ?? Task.FromResult(false);
+
+    /// <summary>
+    /// Installs the extension of a <c>.nupkg</c> file, or the extensions of a folder, for every project, from the next start of
+    /// Game Studio (<see cref="EditorExtensionService"/>). What was refused is shown in a message, and the first extension
+    /// installed is selected.
+    /// </summary>
+    /// <param name="path">The <c>.nupkg</c> file or the folder.</param>
+    /// <returns>True when at least one extension was installed.</returns>
+    public async Task<bool> AddExtensionsAsync(string path)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(path);
+        if (extensions is null)
+            return false;
+        var result = Directory.Exists(path) ? extensions.InstallFromFolder(path, editorToolkit) : extensions.InstallFromFile(path, editorToolkit);
+        Refresh();
+        if (result.Installed.FirstOrDefault() is { } first)
+            SelectedPlugin = Plugins.FirstOrDefault(x => string.Equals(x.Id, first.Id, StringComparison.OrdinalIgnoreCase)) ?? SelectedPlugin;
+        if (result.Problems.Count > 0)
+        {
+            var message = (result.Installed.Count > 0
+                    ? string.Format(Tr._p("Plugins", "Installed: {0}. Some packages were not installed:"), string.Join(", ", result.Installed.Select(x => x.Id)))
+                    : Tr._p("Plugins", "No extension was installed:"))
+                + Environment.NewLine + string.Join(Environment.NewLine, result.Problems.Select(x => "- " + x));
+            await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, result.Installed.Count > 0 ? MessageBoxImage.Warning : MessageBoxImage.Error);
+        }
+        return result.Installed.Count > 0;
+    }
 
     /// <summary>
     /// Reads the plugins and their states again, keeping the selection.
@@ -237,6 +289,60 @@ public sealed class PluginsPanelViewModel : PanelViewModel
     }
 
     /// <summary>
+    /// The user's extension with this id, as installed now, or null (not installed, or removed since the session opened).
+    /// </summary>
+    internal EditorExtension? GetExtension(string id) => extensions?.Find(id);
+
+    /// <summary>
+    /// Asks whether to switch an extension off, with what goes, in every project.
+    /// </summary>
+    internal async Task<bool> ConfirmSwitchOffExtensionAsync(PluginInfo info)
+    {
+        var summary = PluginSwitchService.DescribeSwitchOff(info);
+        var message = summary.Message + Environment.NewLine + Environment.NewLine
+            + Tr._p("Plugins", "It stays installed, and applies when Game Studio opens a project again: use Restart to apply.");
+        var buttons = new[]
+        {
+            new DialogButtonInfo { Content = Tr._p("Button", "Switch off"), Result = 1, IsDefault = true },
+            new DialogButtonInfo { Content = Tr._p("Button", "Cancel"), Result = 2, IsCancel = true },
+        };
+        return await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, buttons, MessageBoxImage.Question) == 1;
+    }
+
+    /// <summary>
+    /// Switches an extension on or off in the user's list, and updates the restart bar.
+    /// </summary>
+    internal bool SwitchExtension(PluginInfo info, bool on)
+    {
+        if (extensions is null)
+            return false;
+        var changed = extensions.SetOff(info.Id, !on);
+        UpdateSwitches();
+        return changed;
+    }
+
+    /// <summary>
+    /// Removes an extension, after asking: it goes from every project when Game Studio restarts.
+    /// </summary>
+    internal async Task<bool> RemoveExtensionAsync(PluginInfo info)
+    {
+        if (extensions is null)
+            return false;
+        var message = string.Format(Tr._p("Plugins", "Remove the extension {0}? It goes from every project when Game Studio opens a project again: use Restart to apply."), info.DisplayName);
+        var buttons = new[]
+        {
+            new DialogButtonInfo { Content = Tr._p("Button", "Remove"), Result = 1, IsDefault = true },
+            new DialogButtonInfo { Content = Tr._p("Button", "Cancel"), Result = 2, IsCancel = true },
+        };
+        if (await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, buttons, MessageBoxImage.Question) != 1)
+            return false;
+        var removed = extensions.Remove(info.Id);
+        Refresh();
+        UpdateSwitches();
+        return removed;
+    }
+
+    /// <summary>
     /// Copies a text to the clipboard, when the editor has one.
     /// </summary>
     internal Task CopyAsync(string text) => ServiceProvider.TryGet<IClipboardService>()?.SetTextAsync(text) ?? Task.CompletedTask;
@@ -264,7 +370,21 @@ public sealed class PluginsPanelViewModel : PanelViewModel
         Summary = string.Join(", ", parts);
         AttentionCount = Plugins.Count(x => x.NeedsAttention);
         Title = AttentionCount > 0 ? $"{baseTitle} ({AttentionCount})" : baseTitle;
-        OnPropertyChanged(nameof(NeedsRestart), nameof(ShowsRestart), nameof(RestartMessage), nameof(RestartText), nameof(SafeMode), nameof(CanSwitch));
+        OnPropertyChanged(nameof(NeedsRestart), nameof(ShowsRestart), nameof(RestartMessage), nameof(RestartText), nameof(SafeMode), nameof(CanSwitch), nameof(CanManageExtensions));
+    }
+
+    private async Task AddExtensionFromFileAsync()
+    {
+        var file = await ServiceProvider.Get<IDialogService>().OpenFilePickerAsync(null, [new FilePickerFilter(Tr._p("Plugins", "NuGet package")) { Patterns = ["*.nupkg"] }]);
+        if (file is not null)
+            await AddExtensionsAsync(file.ToOSPath());
+    }
+
+    private async Task AddExtensionFromFolderAsync()
+    {
+        var folder = await ServiceProvider.Get<IDialogService>().OpenFolderPickerAsync();
+        if (folder is not null)
+            await AddExtensionsAsync(folder.ToOSPath());
     }
 
     // Raised on the thread that changed the status (a session loading, a contribution failing): read again on the UI

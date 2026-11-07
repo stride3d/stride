@@ -91,7 +91,9 @@ public sealed class PluginSwitchService
         if (counts.Keys.Count(x => x.StartsWith("SceneView", StringComparison.Ordinal)) > 0)
             whatGoes.Add(Counted(Tr._p("Plugins", "its tools and widgets of the scene view"), counts.Where(x => x.Key.StartsWith("SceneView", StringComparison.Ordinal)).Sum(x => x.Value)));
 
-        var message = string.Format(Tr._p("Plugins", "Switching off {0} takes away, from the next opening of this project:"), plugin.DisplayName)
+        var message = string.Format(plugin.IsExtension
+                ? Tr._p("Plugins", "Switching off {0} takes away, in every project, from the next opening of a project:")
+                : Tr._p("Plugins", "Switching off {0} takes away, from the next opening of this project:"), plugin.DisplayName)
             + Environment.NewLine + string.Join(Environment.NewLine, whatGoes.Select(x => "- " + x))
             + Environment.NewLine + Environment.NewLine
             + Tr._p("Plugins", "Its assets still open, with the generic property grid and no editor of their own.");

@@ -14,9 +14,11 @@ namespace Stride.Core.Assets.Tests.Helpers;
 /// </summary>
 internal sealed class LocalPackageFeed : IDisposable
 {
-    public LocalPackageFeed()
+    /// <param name="root">The folder to set up (a test session's folder, so that its restores use this setup), or null for a new
+    /// temporary one. It is deleted when disposed.</param>
+    public LocalPackageFeed(string? root = null)
     {
-        Root = Path.Combine(Path.GetTempPath(), "stride-feed-tests", Guid.NewGuid().ToString("N"));
+        Root = root ?? Path.Combine(Path.GetTempPath(), "stride-feed-tests", Guid.NewGuid().ToString("N"));
         FeedDirectory = Path.Combine(Root, "feed");
         PackagesDirectory = Path.Combine(Root, "packages");
         Directory.CreateDirectory(FeedDirectory);

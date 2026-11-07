@@ -74,6 +74,17 @@ public sealed class EditorExtensionService
     public IReadOnlyList<EditorExtension> GetExtensions() => store.Get(EditorVersion);
 
     /// <summary>
+    /// The <c>.nupkg</c> file of a package in the user's feed, or null when the feed doesn't have it.
+    /// </summary>
+    public string? FindFeedPackage(string id, PackageVersion version)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(id);
+        ArgumentNullException.ThrowIfNull(version);
+        var path = Path.Combine(FeedDirectory, $"{id}.{version}.nupkg");
+        return File.Exists(path) ? path : null;
+    }
+
+    /// <summary>
     /// The installed extension with this id, or null.
     /// </summary>
     public EditorExtension? Find(string id)

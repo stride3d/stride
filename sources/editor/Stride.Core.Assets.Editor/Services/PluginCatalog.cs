@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Diagnostics.CodeAnalysis;
+using System.IO.Compression;
 using System.Reflection;
 using System.Xml.Linq;
 using Stride.Core.Extensions;
@@ -161,12 +162,36 @@ public static class PluginCatalog
         {
             return null;
         }
+        return ReadMetadata(metadata, Path.GetDirectoryName(Path.GetFullPath(nuspecPath))!);
+    }
+
+    // The fields of the .nuspec inside a .nupkg file that was not extracted (an extension added since the session opened, in
+    // the user's feed): its icon is not shown
+    private static NuspecFields? ReadPackedNuspec(string nupkgPath)
+    {
+        XElement? metadata;
+        try
+        {
+            using var archive = ZipFile.OpenRead(nupkgPath);
+            if (archive.Entries.FirstOrDefault(x => !x.FullName.Contains('/') && x.FullName.EndsWith(".nuspec", StringComparison.OrdinalIgnoreCase)) is not { } entry)
+                return null;
+            using var stream = entry.Open();
+            metadata = XDocument.Load(stream).Root?.Elements().FirstOrDefault(x => x.Name.LocalName == "metadata");
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidDataException or System.Xml.XmlException)
+        {
+            return null;
+        }
+        return ReadMetadata(metadata, directory: null);
+    }
+
+    private static NuspecFields? ReadMetadata(XElement? metadata, string? directory)
+    {
         if (metadata is null)
             return null;
 
         string? Get(string element) => metadata.Elements().FirstOrDefault(x => x.Name.LocalName == element)?.Value.Trim() is { Length: > 0 } value ? value : null;
-        var directory = Path.GetDirectoryName(Path.GetFullPath(nuspecPath))!;
-        var icon = Get("icon") is { } iconFile && File.Exists(Path.Combine(directory, iconFile)) ? Path.GetFullPath(Path.Combine(directory, iconFile)) : null;
+        var icon = directory is not null && Get("icon") is { } iconFile && File.Exists(Path.Combine(directory, iconFile)) ? Path.GetFullPath(Path.Combine(directory, iconFile)) : null;
         return new NuspecFields(Get("id"), Get("version"), Get("title"), Get("authors"), Get("description"), icon, WebPage(Get("projectUrl")), Get("license") ?? Get("licenseUrl"));
     }
 
@@ -220,7 +245,9 @@ public static class PluginCatalog
             }
 
             var actualVersion = container?.Package.Meta.Version ?? version;
-            var nuspec = FindNuspec(name, actualVersion, container) is { } path ? ReadNuspec(path) : null;
+            var nuspec = FindNuspec(name, actualVersion, container) is { } path ? ReadNuspec(path)
+                : host.Extensions is { } extensions && actualVersion is not null && extensions.FindFeedPackage(name, actualVersion) is { } packed ? ReadPackedNuspec(packed)
+                : null;
             var offStatus = own.FirstOrDefault(x => x.State == PluginState.Off);
             yield return new PluginInfo
             {
