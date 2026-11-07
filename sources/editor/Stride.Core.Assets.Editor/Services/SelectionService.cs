@@ -150,6 +150,13 @@ public class SelectionService
 
     private void CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
+        // The selection is UI state: the transaction and the clearing of the other scopes run on the dispatcher, inline when the change
+        // comes from it, so that they never race the dispatched refreshes of the views that react to the selection
+        dispatcher.Invoke(() => OnCollectionChanged(sender, e));
+    }
+
+    private void OnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
         if (stack.RollInProgress)
             return;
 
