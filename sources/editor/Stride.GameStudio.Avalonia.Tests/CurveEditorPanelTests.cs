@@ -192,7 +192,7 @@ public sealed class CurveEditorPanelTests
         Assert.Single(service.Editor.Curves);
     }
 
-    private static async Task<SceneFixture> OpenSceneAsync()
+    internal static async Task<SceneFixture> OpenSceneAsync()
     {
         var fixture = ShellSessionFixture.Create(("MainScene", new SceneAsset()));
         fixture.ReplaceDialogService();
@@ -242,7 +242,7 @@ public sealed class CurveEditorPanelTests
         }
     }
 
-    private sealed class SceneFixture(ShellSessionFixture fixture, MainWindow window, SceneEditorViewModel editor) : IAsyncDisposable
+    internal sealed class SceneFixture(ShellSessionFixture fixture, MainWindow window, SceneEditorViewModel editor) : IAsyncDisposable
     {
         private readonly List<Window> windows = [];
 
