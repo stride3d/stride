@@ -61,10 +61,17 @@ namespace Stride.Assets.Editor.ViewModels.CurveEditor.ControlPoints
                     return;
 
                 var actualPoint = ActualPoint;
+                var wasSelected = IsSelected;
                 // remove
                 editableCurve.RemovePoint(this);
                 // re-add
                 editableCurve.AddPoint(actualPoint);
+                // The key is a new point now: it stays selected
+                if (wasSelected && editableCurve.GetClosestPoint(actualPoint, 1) is { IsSelected: false } point)
+                {
+                    point.IsSelected = true;
+                    editableCurve.Editor.SelectedControlPoints.Add(point);
+                }
             }
         }
 

@@ -152,7 +152,7 @@ namespace Stride.Assets.Editor.ViewModels.CurveEditor
             }
         }
 
-        protected CurveEditorViewModel Editor { get; }
+        protected internal CurveEditorViewModel Editor { get; }
 
         internal event EventHandler AxisTransformChanged;
         

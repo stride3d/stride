@@ -225,6 +225,51 @@ public sealed class CurveEditorViewModelTests
     }
 
     [Fact]
+    public async Task AKeyDraggedPastItsNeighborStaysSelected()
+    {
+        await using var test = await CurveEditorTestScene.OpenAsync();
+        var curve = test.OpenSizeCurve();
+        var editor = test.Editor;
+        editor.PreviewClickCommand.Execute(new CurveEditorClick(test.ScreenPoint(0.5f, 3), CurveSelectionMode.Replace));
+        Assert.Single(editor.SelectedControlPoints);
+        // Past the last key: the key is removed and added again after it, as a new point
+        var offset = test.ScreenPoint(0.7f, 0).X - test.ScreenPoint(0, 0).X;
+        IResizingTarget target = Assert.IsAssignableFrom<IResizingTarget>(curve);
+
+        target.OnResizingStarted(ResizingDirection.Center);
+        target.OnResizingDelta(ResizingDirection.Center, offset, 0);
+        target.OnResizingCompleted(ResizingDirection.Center, offset, 0);
+
+        Assert.Equal([0f, 1f, 1.2f], test.SizeKeys().Select(x => (float)Math.Round(x.Key, 3)));
+        // The new point of the moved key is the selection, and the one it replaced has left it
+        var selected = Assert.IsAssignableFrom<ControlPointViewModelBase>(Assert.Single(editor.SelectedControlPoints));
+        Assert.Same(curve.ControlPoints.ElementAt(2), selected);
+        Assert.True(selected.IsSelected);
+        Assert.Same(selected, editor.SingleSelectedControlPoint);
+        // The navigation goes on from it
+        editor.NavigateToControlPointCommand.Execute(-1);
+        Assert.Same(curve.ControlPoints.ElementAt(1), Assert.Single(editor.SelectedControlPoints));
+    }
+
+    [Fact]
+    public async Task AKeyThatGoesLeavesTheSelection()
+    {
+        await using var test = await CurveEditorTestScene.OpenAsync();
+        var curve = test.OpenSizeCurve();
+        var editor = test.Editor;
+        editor.AddPointCommand.Execute(test.ScreenPoint(0.25f, 2));
+        editor.PreviewClickCommand.Execute(new CurveEditorClick(test.ScreenPoint(0.25f, 2), CurveSelectionMode.Replace));
+        Assert.Single(editor.SelectedControlPoints);
+
+        // Undoing the add removes the selected key: the selection is empty, not a destroyed point
+        test.UndoRedo.Undo();
+
+        Assert.Equal(3, curve.ControlPoints.Count);
+        Assert.Empty(editor.SelectedControlPoints);
+        Assert.Null(editor.SingleSelectedControlPoint);
+    }
+
+    [Fact]
     public async Task DeletingTheSelectedKeysAndClearingTheCurveAreOneUndoEntryEach()
     {
         await using var test = await CurveEditorTestScene.OpenAsync();

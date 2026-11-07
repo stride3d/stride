@@ -254,7 +254,7 @@ namespace Stride.Assets.Editor.ViewModels.CurveEditor
             using (var transaction = UndoRedoService.CreateTransaction())
             {
                 DeletePoints(SelectedControlPoints.Cast<ControlPointViewModelBase>(), editableCurve);
-                UndoRedoService.SetName(transaction, $"Delete {SelectedControlPoints.Count} point{(count > 1 ? "s" : "")} from curve '{selectedCurve.DisplayName}'");
+                UndoRedoService.SetName(transaction, $"Delete {count} point{(count > 1 ? "s" : "")} from curve '{selectedCurve.DisplayName}'");
             }
         }
 

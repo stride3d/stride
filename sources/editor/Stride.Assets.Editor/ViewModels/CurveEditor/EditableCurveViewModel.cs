@@ -148,6 +148,9 @@ namespace Stride.Assets.Editor.ViewModels.CurveEditor
                 foreach (ControlPointViewModelBase c in e.OldItems)
                 {
                     c.PropertyChanged -= ControlPointPropertyChanged;
+                    // A removed point leaves the selection, which would otherwise keep a destroyed point
+                    if (c.IsSelected)
+                        Editor.SelectedControlPoints.Remove(c);
                     c.Destroy();
                 }
             }
