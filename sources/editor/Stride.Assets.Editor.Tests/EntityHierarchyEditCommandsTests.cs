@@ -271,7 +271,7 @@ public sealed class EntityHierarchyEditCommandsTests
 
         Assert.Same(duplicate, await Task.WhenAny(duplicate, Task.Delay(TimeSpan.FromSeconds(10))));
         Assert.False(await duplicate);
-        // The copy is made: the drag moves the selection as it is
+        // The copy stays in the scene (undo removes it): the gizmo cancels the drag, and nothing moves
         Assert.Equal(["Box", "Box", "Parent"], editor.HierarchyRoot.Children.Select(x => x.Name));
         editor.Destroy();
     }

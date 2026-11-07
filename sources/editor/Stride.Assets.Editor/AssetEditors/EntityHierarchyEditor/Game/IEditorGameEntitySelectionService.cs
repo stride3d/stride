@@ -59,7 +59,8 @@ namespace Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game
         /// </summary>
         /// <param name="cancellationToken">Stops the wait for the copies.</param>
         /// <returns><c>true</c> once the copies are selected; <c>false</c> when nothing was duplicated, or when the copies
-        /// were not selected within 10 seconds or before the wait was canceled (a warning is logged then).</returns>
+        /// were not selected within 10 seconds or before the wait was canceled (a warning is logged then, and the transformation
+        /// gizmo cancels its drag: nothing moves).</returns>
         Task<bool> DuplicateSelection(CancellationToken cancellationToken = default);
     }
 }

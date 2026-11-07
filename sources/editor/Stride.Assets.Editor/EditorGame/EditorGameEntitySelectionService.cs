@@ -148,8 +148,8 @@ public sealed class EditorGameEntitySelectionService : EditorGameMouseServiceBas
     /// <inheritdoc/>
     /// <remarks>
     /// Ctrl+drag with a gizmo: the copies are made in the hierarchy (UI thread), and the task completes once the game
-    /// selects them, so that the gizmo moves the copies. When they are not selected in time, the gizmo moves the selection as
-    /// it is.
+    /// selects them, so that the gizmo moves the copies. When they are not selected in time, the gizmo cancels the drag:
+    /// nothing moves, and the copies stay where the originals are.
     /// </remarks>
     public async Task<bool> DuplicateSelection(CancellationToken cancellationToken = default)
     {
@@ -192,7 +192,7 @@ public sealed class EditorGameEntitySelectionService : EditorGameMouseServiceBas
             }
             catch (Exception e) when (e is TimeoutException or OperationCanceledException)
             {
-                Log.Warning($"The copies of the selection were not selected {(e is TimeoutException ? $"within {DuplicateSelectionTimeout.TotalSeconds:0.###} seconds" : "before the drag was canceled")}: the drag moves the selection as it is.");
+                Log.Warning($"The copies of the selection were not selected {(e is TimeoutException ? $"within {DuplicateSelectionTimeout.TotalSeconds:0.###} seconds" : "before the drag was canceled")}: the drag is canceled, and nothing moves.");
                 return false;
             }
             return true;
