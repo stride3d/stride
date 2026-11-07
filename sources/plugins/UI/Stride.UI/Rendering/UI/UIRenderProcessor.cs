@@ -2,8 +2,8 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections.Generic;
+
 using Stride.Engine;
-using Stride.Rendering;
 
 namespace Stride.Rendering.UI
 {
@@ -24,7 +24,7 @@ namespace Stride.Rendering.UI
         {
             UIRoots = new List<RenderUIElement>();
         }
-        
+
         public override void Draw(RenderContext gameTime)
         {
             UIRoots.Clear();
@@ -36,6 +36,8 @@ namespace Stride.Rendering.UI
 
                 if (!renderUIElement.Enabled)
                     continue;
+
+                var isFullScreenChanged = renderUIElement.IsFullScreen != uiComponent.IsFullScreen;
 
                 // TODO GRAPHICS REFACTOR: Proper bounding box.
                 //renderSprite.BoundingBox = new BoundingBoxExt(new Vector3(float.NegativeInfinity), new Vector3(float.PositiveInfinity));
@@ -53,11 +55,14 @@ namespace Stride.Rendering.UI
                 renderUIElement.SnapText = uiComponent.SnapText;
                 renderUIElement.IsFixedSize = uiComponent.IsFixedSize;
 
-                if (renderUIElement.RenderGroup != uiComponent.RenderGroup)
+                if (isFullScreenChanged ||
+                    renderUIElement.RenderGroup != uiComponent.RenderGroup)
                 {
+                    renderUIElement.IsFullScreen = uiComponent.IsFullScreen;
                     renderUIElement.RenderGroup = uiComponent.RenderGroup;
 
-                    // Forces VisibilityGroup.ReevaluateActiveRenderStages for this render object since RenderGroup is used for render stage selection
+                    // Forces a re-evaluation of active render stages in the VisibilityGroup for this render object
+                    // when a selector-dependent UI property changes (e.g., IsFullScreen or RenderGroup)
                     VisibilityGroup.RenderObjects.Remove(renderUIElement);
                     VisibilityGroup.RenderObjects.Add(renderUIElement);
                 }
@@ -79,11 +84,13 @@ namespace Stride.Rendering.UI
         protected override RenderUIElement GenerateComponentData(Entity entity, UIComponent component)
         {
             return new RenderUIElement
-            { 
+            {
                 Source = component,
-                // RenderGroup must be up to date from the start as VisibilityGroup.ReevaluateActiveRenderStages
+
+                // RenderGroup must be up to date from the start as VisibilityGroup.ReevaluateActiveRenderStages()
                 // reads from it for this objects' initial render stage
-                RenderGroup = component.RenderGroup 
+                RenderGroup = component.RenderGroup,
+                IsFullScreen = component.IsFullScreen
             };
         }
 
