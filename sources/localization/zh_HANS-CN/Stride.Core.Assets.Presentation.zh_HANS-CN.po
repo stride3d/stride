@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2026-09-12 14:32:58+0200\n"
+"POT-Creation-Date: 2026-11-07 10:57:06+0000\n"
 "PO-Revision-Date: 2019-09-03 01:25+0000\n"
 "Last-Translator: 陈宇航 <xiaocunzhangh@outlook.com>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
@@ -13,84 +13,74 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Weblate 3.9-dev\n"
 
-#: ../editor/Stride.Core.Assets.Editor.Common/ViewModel/PackageViewModel.cs:443
-#. Error message when the template generator of the selected template is unreachable
-msgctxt "Message"
-msgid ""
-"Unable to retrieve template generator for the selected template. Aborting."
-msgstr "无法检索所选模板的模板生成器。正在终止。"
-
-#: ../editor/Stride.Core.Assets.Editor.Common/ViewModel/AssetViewModel.cs:663
+#: ../editor/Stride.Core.Assets.Presentation/ViewModels/AssetViewModel.cs:718
 msgctxt "Message"
 msgid ""
 "Unable to rename asset to '{0}' because an asset with the same name exists "
 "in the same directory"
 msgstr "无法将资产重命名为 '{0}'，因为同目录下有同名的资产"
 
-#: ../editor/Stride.Core.Assets.Editor.Common/ViewModel/AssetViewModel.cs:668
+#: ../editor/Stride.Core.Assets.Presentation/ViewModels/AssetViewModel.cs:723
 msgctxt "Message"
 msgid "Unable to rename asset with an empty name"
 msgstr "无法用空名称重命名资产"
 
-#: ../editor/Stride.Core.Assets.Editor.Common/ViewModel/DirectoryViewModel.cs:106
+#: ../editor/Stride.Core.Assets.Presentation/ViewModels/DirectoryViewModel.cs:109
 msgctxt "Message"
 msgid "This package that contains this folder can't be edited."
 msgstr "无法编辑包含此文件夹的包。"
 
-#: ../editor/Stride.Core.Assets.Editor.Common/ViewModel/DirectoryViewModel.cs:143
+#: ../editor/Stride.Core.Assets.Presentation/ViewModels/DirectoryViewModel.cs:149
 msgctxt "Message"
 msgid "Unable to rename folder. {0}"
 msgstr "无法重命名文件夹。{0}"
 
-#: ../editor/Stride.Core.Assets.Editor.Common/ViewModel/DirectoryViewModel.cs:168
+#: ../editor/Stride.Core.Assets.Presentation/ViewModels/DirectoryViewModel.cs:174
 msgctxt "Message"
 msgid "A folder with the same name already exists in the parent folder."
 msgstr "父级文件夹中已经有一个同名文件夹。"
 
-#: ../editor/Stride.Core.Assets.Editor.Common/ViewModel/DirectoryViewModel.cs:190
+#: ../editor/Stride.Core.Assets.Presentation/ViewModels/DirectoryViewModel.cs:196
 msgctxt "Message"
 msgid "Path is a device name"
 msgstr "路径即设备名称"
 
-#: ../editor/Stride.Core.Assets.Editor.Common/ViewModel/PackageViewModel.cs:647
+#: ../editor/Stride.Core.Assets.Presentation/ViewModels/PackageViewModel.cs:585
 msgctxt "Message"
 msgid "This package couldn't be renamed. {0}"
 msgstr "无法重命名此包。{0}"
 
-#: ../editor/Stride.Core.Assets.Editor.Common/ViewModel/PackageViewModel.cs:678
+#: ../editor/Stride.Core.Assets.Presentation/ViewModels/PackageViewModel.cs:616
 msgctxt "Message"
 msgid "A package with the same name already exists in the session."
 msgstr "会话中存在同名的包。"
 
-#: ../editor/Stride.Core.Assets.Editor.Common/ViewModel/SessionObjectViewModel.cs:110
+#: ../editor/Stride.Core.Assets.Presentation/ViewModels/SessionObjectViewModel.cs:111
 msgctxt "Message"
 msgid "The name is too long."
 msgstr "名字太长了。"
 
-#: ../editor/Stride.Core.Assets.Editor.Common/ViewModel/SessionObjectViewModel.cs:116
+#: ../editor/Stride.Core.Assets.Presentation/ViewModels/SessionObjectViewModel.cs:117
 msgctxt "Message"
 msgid "The name contains invalid characters."
 msgstr "名称包含无效字符。"
 
-#: ../editor/Stride.Core.Assets.Editor.Common/ViewModel/SessionObjectViewModel.cs:122
+#: ../editor/Stride.Core.Assets.Presentation/ViewModels/SessionObjectViewModel.cs:123
 msgctxt "Message"
 msgid "The name is empty."
 msgstr "名称为空。"
 
-#: ../editor/Stride.Core.Assets.Editor.Common/Components/TemplateDescriptions/TemplateGeneratorHelper.cs:34
-#. Log message displayed when an operation has been canceled
-msgctxt "Log"
-msgid "Operation cancelled."
-msgstr "操作被取消。"
-
-#: ../editor/Stride.Core.Assets.Editor.Common/Components/TemplateDescriptions/TemplateGeneratorHelper.cs:41
-#: ../editor/Stride.Core.Assets.Editor.Common/Components/TemplateDescriptions/TemplateGeneratorHelper.cs:60
-#. Message displayed when an exception occurs while generating a template
-msgctxt "Log"
-msgid "An exception occurred while generating the template."
-msgstr "生成模板时发生异常。"
-
-#: ../editor/Stride.Core.Assets.Editor.Common/View/Behaviors/DragDrop/DragDropBehavior.cs:25
+#: ../editor/Stride.Core.Assets.Presentation/ViewModels/DragDropMessages.cs:17
 msgctxt "Message"
 msgid "Can't drop here"
 msgstr "不能放置在这里"
+
+#: ../editor/Stride.Core.Assets.Presentation/ViewModels/AssetDependenciesViewModel.cs:87
+msgctxt "Message"
+msgid "Included in build as root (always)"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Presentation/ViewModels/AssetDependenciesViewModel.cs:88
+msgctxt "Message"
+msgid "Included in build as root (in {0})"
+msgstr ""

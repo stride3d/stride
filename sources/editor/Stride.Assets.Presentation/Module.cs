@@ -7,6 +7,8 @@ using Stride.Assets.Materials;
 using Stride.Assets.SpriteFont;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Reflection;
+using Stride.Core.Translation;
+using Stride.Core.Translation.Providers;
 using Stride.Rendering;
 using Stride.Rendering.Materials;
 
@@ -25,6 +27,8 @@ internal static class Module
         RuntimeHelpers.RunModuleConstructor(typeof(PrefabAsset).Module.ModuleHandle);
         AssemblyRegistry.Register(typeof(Module).Assembly, AssemblyCommonCategories.Assets);
         AssetQuantumRegistry.RegisterAssembly(typeof(Module).Assembly);
+        // Each assembly translates its own strings: Tr._p looks the catalog up by the calling assembly
+        TranslationManager.Instance.RegisterProvider(new GettextTranslationProvider(typeof(Module).Assembly));
         // This assembly holds no plugin: the cross-platform editor's StrideDefaultAssetsPlugin (Stride.Assets.Editor) covers
         // its view models, and the WPF editor registers the ones it shares itself
     }

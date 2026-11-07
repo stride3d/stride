@@ -5,6 +5,7 @@
     <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
+    <StrideLocalized>true</StrideLocalized>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>

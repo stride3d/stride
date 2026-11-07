@@ -4,6 +4,8 @@
 using System.Runtime.CompilerServices;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Reflection;
+using Stride.Core.Translation;
+using Stride.Core.Translation.Providers;
 using Stride.Editor.Thumbnails;
 
 namespace Stride.Assets.Editor;
@@ -21,6 +23,8 @@ internal static class Module
         // assemblies
         AssemblyRegistry.Register(typeof(Module).Assembly, AssemblyCommonCategories.Assets);
         AssetQuantumRegistry.RegisterAssembly(typeof(Module).Assembly);
+        // Each assembly translates its own strings: Tr._p looks the catalog up by the calling assembly
+        TranslationManager.Instance.RegisterProvider(new GettextTranslationProvider(typeof(Module).Assembly));
         // The default plugin (StrideEditorPlugin) is registered by the cross-platform editor host, so that loading this
         // assembly in another editor does not add it
     }
