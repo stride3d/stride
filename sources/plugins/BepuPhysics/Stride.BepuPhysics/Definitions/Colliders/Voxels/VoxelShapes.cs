@@ -63,18 +63,15 @@ internal static unsafe class VoxelShapeHelpers
         var grid = shape.Layout;
         var extent = grid.Extent;
         Matrix3x3.CreateFromQuaternion(orientation, out var basis);
-        min = new Vector3(float.MaxValue);
-        max = new Vector3(float.MinValue);
-        for (int i = 0; i < VoxelCell.CornerCount; ++i)
-        {
-            var corner = grid.Origin + new Vector3(
-                (i & 1) != 0 ? extent.X : 0f,
-                (i & 2) != 0 ? extent.Y : 0f,
-                (i & 4) != 0 ? extent.Z : 0f);
-            Matrix3x3.Transform(corner, basis, out var rotated);
-            min = Vector3.Min(rotated, min);
-            max = Vector3.Max(rotated, max);
-        }
+        // The eight corners are origin + {0 or extent.X} * basisX + {0 or extent.Y} * basisY + {0 or extent.Z} * basisZ.
+        // Their axis-aligned bounds are the per-axis signed extent of each basis column added to the rotated origin: positive components grow max, negative ones grow min.
+        Matrix3x3.Transform(grid.Origin, basis, out var origin);
+        var gX = extent.X * basis.X;
+        var gY = extent.Y * basis.Y;
+        var gZ = extent.Z * basis.Z;
+        var zero = Vector3.Zero;
+        min = origin + Vector3.Min(gX, zero) + Vector3.Min(gY, zero) + Vector3.Min(gZ, zero);
+        max = origin + Vector3.Max(gX, zero) + Vector3.Max(gY, zero) + Vector3.Max(gZ, zero);
         // A child that sticks out of the grid box (an oversized sphere, say) widens the shape's bounds by its overshoot.
         var pad = shape.BoundsPadding;
         if (pad != Vector3.Zero)
