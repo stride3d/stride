@@ -33,6 +33,7 @@ namespace Stride.Assets.Tests
                     -   Path: !dir Effects
                 """);
             File.WriteAllText(Path.Combine(directory, "MyGame.Game", "Assets", "Texture.sdtex"), "!Texture");
+            File.WriteAllText(Path.Combine(directory, "MyGame.Game", "Assets", "Readme.txt"), "Not an asset");
             File.WriteAllText(Path.Combine(directory, "MyGame.Game", "Effects", "MyShader.sdsl"), "shader MyShader { };");
         }
 
@@ -46,7 +47,7 @@ namespace Stride.Assets.Tests
         {
             var outputs = CollectOutputs("MyGame.Game", "MyGame.Game", @"$(MSBuildThisFileDirectory)MyGame.Game.sdpkg", projectReference: null);
 
-            Assert.Equal("Texture.sdtex", outputs.AssetPaths);
+            Assert.Equal("Texture.sdtex", outputs.AssetPaths); // Files whose extension is not prefixed with "sd" are ignored
             Assert.Equal(["MyShader.sdsl"], outputs.ShaderFiles);
         }
 
