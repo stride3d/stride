@@ -11,10 +11,10 @@
        actually populates the value for SDK conditions to consume. -->
   <PropertyGroup>
     <StrideTargetFramework>$(TargetFramework)</StrideTargetFramework>
-    <StrideTargetFramework Condition="$(TargetFramework.StartsWith('$(StrideFrameworkWindows)'))">$(StrideFrameworkWindows)</StrideTargetFramework>
-    <StrideTargetFramework Condition="$(TargetFramework.StartsWith('$(StrideFrameworkAndroid)'))">$(StrideFrameworkAndroid)</StrideTargetFramework>
-    <StrideTargetFramework Condition="$(TargetFramework.StartsWith('$(StrideFrameworkiOS)'))">$(StrideFrameworkiOS)</StrideTargetFramework>
-    <StrideTargetFramework Condition="$(TargetFramework.StartsWith('$(StrideFrameworkmacOS)'))">$(StrideFrameworkmacOS)</StrideTargetFramework>
+    <StrideTargetFramework Condition="'$(TargetPlatformIdentifier)' == 'Windows'">$(StrideFrameworkWindows)</StrideTargetFramework>
+    <StrideTargetFramework Condition="'$(TargetPlatformIdentifier)' == 'Android'">$(StrideFrameworkAndroid)</StrideTargetFramework>
+    <StrideTargetFramework Condition="'$(TargetPlatformIdentifier)' == 'iOS'">$(StrideFrameworkiOS)</StrideTargetFramework>
+    <StrideTargetFramework Condition="'$(TargetPlatformIdentifier)' == 'MacOS'">$(StrideFrameworkmacOS)</StrideTargetFramework>
   </PropertyGroup>
 
   <!-- Re-derive StridePlatform from the now-known StrideTargetFramework. Stride.Platform.props
