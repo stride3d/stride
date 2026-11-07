@@ -66,6 +66,48 @@ namespace Stride.Assets.Tests
             Assert.Contains(expectedEquivalent, candidates);
         }
 
+        // A font without a name uses the default of the system without saving it, so the asset is the same on every system
+        [Fact]
+        public void DefaultFontIsNotSaved()
+        {
+            var font = new SpriteFontAsset { FontSource = new SystemFontProvider() };
+            var yaml = Save(font);
+            Assert.DoesNotContain("FontName", yaml);
+
+            var loaded = Load(yaml);
+            var provider = Assert.IsType<SystemFontProvider>(loaded.FontSource);
+            Assert.Null(provider.FontName);
+            Assert.False(string.IsNullOrEmpty(provider.GetFontName()));
+            Assert.NotNull(provider.GetFontPath());
+            Assert.Null(provider.FontName);
+            Assert.DoesNotContain("FontName", Save(loaded));
+        }
+
+        // A name the user chose is saved as it is, even where the font found is a fallback
+        [Fact]
+        public void ChosenFontIsSavedAsItIs()
+        {
+            var provider = new SystemFontProvider("This Font Does Not Exist 12345");
+            Assert.NotNull(provider.GetFontPath());
+
+            var yaml = Save(new SpriteFontAsset { FontSource = provider });
+            Assert.Contains("FontName: This Font Does Not Exist 12345", yaml);
+            Assert.Equal("This Font Does Not Exist 12345", ((SystemFontProvider)Load(yaml).FontSource).FontName);
+        }
+
+        private static string Save(SpriteFontAsset font)
+        {
+            using var stream = new MemoryStream();
+            Stride.Core.Assets.AssetFileSerializer.Save(stream, font, null);
+            return System.Text.Encoding.UTF8.GetString(stream.ToArray());
+        }
+
+        private static SpriteFontAsset Load(string yaml)
+        {
+            using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(yaml));
+            return Stride.Core.Assets.AssetFileSerializer.Load<SpriteFontAsset>(stream, "Font.sdfnt").Asset;
+        }
+
         // Serif/mono requests must not collapse to the sans default (the bug this fixes).
         [Theory]
         [InlineData("Times New Roman")]
