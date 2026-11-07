@@ -78,6 +78,22 @@ public sealed class TestPluginLoadingMarker : IDisposable
     }
 
     [Fact]
+    public void AMarkerWithTheIdOfThisEditorButAnotherStartTimeIsLeftBehind()
+    {
+        // An editor that died, and this one started with its process id (a restarted container or Wine prefix)
+        WriteMarker(Environment.ProcessId, "/Projects/Game/Game.sln", 1);
+
+        var left = Assert.Single(marker.FindLeftBehind());
+
+        Assert.Equal(marker.FilePath, left.FilePath);
+        Assert.Equal("Game.sln", left.SessionPath?.GetFileName());
+        // Once this editor writes its own, it is its own again
+        marker.Write(null);
+        Assert.Empty(marker.FindLeftBehind());
+        marker.Remove();
+    }
+
+    [Fact]
     public void AnotherProcessThatGotTheSameIdIsNotTheEditorThatLeftTheMarker()
     {
         var other = FindOtherProcess();

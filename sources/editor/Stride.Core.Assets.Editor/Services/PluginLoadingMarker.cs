@@ -149,12 +149,11 @@ public sealed class PluginLoadingMarker
 
     private static bool IsRunning(int processId, long startTime)
     {
-        if (processId == Environment.ProcessId)
-            return true;
         try
         {
-            using var process = Process.GetProcessById(processId);
-            // Another process that got the same id later
+            // A process that got the same id later is not the one that wrote the marker, this editor included (a restarted
+            // container or Wine prefix gives the same id to each start)
+            using var process = processId == Environment.ProcessId ? Process.GetCurrentProcess() : Process.GetProcessById(processId);
             return startTime == 0 || process.StartTime.ToUniversalTime().Ticks == startTime;
         }
         catch (Exception e) when (e is ArgumentException or InvalidOperationException or System.ComponentModel.Win32Exception or NotSupportedException)
