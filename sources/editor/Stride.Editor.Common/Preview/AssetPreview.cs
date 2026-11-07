@@ -7,7 +7,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Extensions;
 using Stride.Assets;
 using Stride.Core.Annotations;
@@ -18,6 +17,7 @@ using Stride.Graphics;
 using Stride.Rendering.Compositing;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Editor.Annotations;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Editor.Preview
 {

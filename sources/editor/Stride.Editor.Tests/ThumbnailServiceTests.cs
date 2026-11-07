@@ -4,7 +4,7 @@
 using Stride.Assets;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.Common.Tests.Helpers;
+using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.BuildEngine;
@@ -13,6 +13,7 @@ using Stride.Core.Storage;
 using Stride.Editor.Tests.Helpers;
 using Stride.Editor.Thumbnails;
 using Stride.Graphics;
+using Stride.Core.Assets.Presentation.Services;
 
 namespace Stride.Editor.Tests;
 

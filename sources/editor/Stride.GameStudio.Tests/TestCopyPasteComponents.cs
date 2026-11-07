@@ -5,13 +5,13 @@ using System;
 using Xunit;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors;
 using Stride.Core.Assets.Quantum;
 using Stride.Core;
 using Stride.Core.Quantum;
 using Stride.Assets.Entities;
 using Stride.Engine;
 using Stride.GameStudio.Tests.Helpers;
+using Stride.Core.Assets.Editor.Components.CopyPasteProcessors;
 
 namespace Stride.GameStudio.Tests
 {

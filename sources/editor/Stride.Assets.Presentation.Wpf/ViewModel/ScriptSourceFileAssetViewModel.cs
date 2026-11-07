@@ -24,6 +24,8 @@ using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Translation;
+using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Presentation.Annotations;
 using TextDocument = ICSharpCode.AvalonEdit.Document.TextDocument;
 
 namespace Stride.Assets.Presentation.ViewModel

@@ -21,6 +21,7 @@ using Stride.Assets.Presentation.ViewModel;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Assets.Scripts;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.AssetEditors.VisualScriptEditor
 {

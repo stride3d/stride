@@ -21,6 +21,7 @@ using Stride.Core.Collections;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
+using Stride.Core.Assets.Presentation.ViewModels;
 using Project = Microsoft.CodeAnalysis.Project;
 
 namespace Stride.Assets.Presentation.AssetEditors

@@ -5,11 +5,11 @@
 using System;
 using System.Linq;
 using Stride.Assets.Models;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Quantum;
 using Stride.Core.Serialization;
 using Stride.Engine;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Editor.ViewModels;
 

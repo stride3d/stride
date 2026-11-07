@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
         xmlns:view="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views"
-        xmlns:templates="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions;assembly=Stride.Core.Assets.Editor.Common"
+        xmlns:templates="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions;assembly=Stride.Core.Assets.Editor"
         mc:Ignorable="d" ResizeMode="NoResize"
         Title="{sd:Localize Add asset...}"
         SizeToContent="WidthAndHeight"

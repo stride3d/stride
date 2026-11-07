@@ -3,7 +3,7 @@
 #nullable enable
 
 using Stride.Assets.Editor.EditorGame;
-using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 
 namespace Stride.Assets.Editor.ViewModels;
 

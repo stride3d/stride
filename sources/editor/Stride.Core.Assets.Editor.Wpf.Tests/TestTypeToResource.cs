@@ -9,6 +9,8 @@ using Stride.Core.Assets.Editor.View.ValueConverters;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Diagnostics;
 using Xunit;
+using Stride.Core.Assets.Presentation.Components.Properties;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 #nullable enable
 

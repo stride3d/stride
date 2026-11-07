@@ -123,7 +123,7 @@ public sealed class FixAssetReferencesWindowTests
         }
     }
 
-    private static FixAssetReferencesViewModel Create(ShellSessionFixture fixture, Core.Assets.Editor.ViewModel.AssetViewModel deleted)
+    private static FixAssetReferencesViewModel Create(ShellSessionFixture fixture, Core.Assets.Presentation.ViewModels.AssetViewModel deleted)
     {
         var fixReferences = new FixAssetReferencesViewModel(fixture.Session.ServiceProvider, fixture.Session, [deleted], fixture.Session.DependencyManager);
         fixReferences.Initialize([deleted]);

@@ -10,6 +10,7 @@ using Stride.Assets.Presentation.ViewModel;
 using Stride.Assets.Scripts;
 using Stride.Engine;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels
 {

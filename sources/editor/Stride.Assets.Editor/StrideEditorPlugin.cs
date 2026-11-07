@@ -18,7 +18,6 @@ using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
@@ -31,6 +30,8 @@ using Stride.Editor;
 using Stride.Editor.Build;
 using Stride.Editor.Thumbnails;
 using Stride.Engine.Gizmos;
+using Stride.Core.Assets.Presentation.Components.Properties;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Editor;
 

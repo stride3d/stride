@@ -3,9 +3,9 @@
 #nullable enable
 
 using Stride.Assets.Editor.Preview;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Presentation.Commands;
 using Stride.Editor.Annotations;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Editor.ViewModels.Preview;
 

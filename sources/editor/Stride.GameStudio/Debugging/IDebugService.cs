@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Diagnostics;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.GameStudio.Debugging
 {

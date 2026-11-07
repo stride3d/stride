@@ -3,11 +3,11 @@
 
 using System;
 using System.Linq;
-using Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors;
 using Stride.Core.Extensions;
 using Stride.Core.Reflection;
 using Stride.Core.Quantum;
 using Stride.Engine;
+using Stride.Core.Assets.Editor.Components.CopyPasteProcessors;
 
 namespace Stride.Assets.Presentation.ViewModel.CopyPasteProcessors
 {

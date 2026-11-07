@@ -15,7 +15,6 @@ using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Tests.Helpers;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
@@ -23,6 +22,7 @@ using Stride.Core.Presentation.Services;
 using Stride.Core.Serialization;
 using Stride.Graphics;
 using Stride.Rendering.ProceduralModels;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Editor.Tests.Templates;
 

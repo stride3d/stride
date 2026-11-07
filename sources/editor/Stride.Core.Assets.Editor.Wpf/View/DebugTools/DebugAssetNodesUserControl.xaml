@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:editorViewModels="clr-namespace:Stride.Core.Assets.Editor.ViewModels;assembly=Stride.Core.Assets.Editor.Common"
+             xmlns:editorViewModels="clr-namespace:Stride.Core.Assets.Editor.ViewModels;assembly=Stride.Core.Assets.Editor"
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
              xmlns:q="clr-namespace:Stride.Core.Quantum;assembly=Stride.Core.Quantum"
              mc:Ignorable="d" 

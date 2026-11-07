@@ -4,8 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors;
 using Stride.Assets.Entities;
+using Stride.Core.Assets.Editor.Components.CopyPasteProcessors;
 
 namespace Stride.Assets.Presentation.ViewModel.CopyPasteProcessors
 {

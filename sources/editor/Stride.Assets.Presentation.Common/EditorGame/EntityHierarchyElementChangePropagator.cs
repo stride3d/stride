@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 using Stride.Assets.Entities;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Core;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Quantum;
 using Stride.Engine;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Editor.EditorGame;
 

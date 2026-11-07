@@ -26,6 +26,7 @@ using Stride.Editor.Build;
 using Stride.Editor.Engine;
 using Stride.Games;
 using Stride.Graphics;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Editor.Preview
 {

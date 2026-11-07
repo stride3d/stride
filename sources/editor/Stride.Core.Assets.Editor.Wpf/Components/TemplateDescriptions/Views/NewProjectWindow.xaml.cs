@@ -11,6 +11,7 @@ using Stride.Core.IO;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.View;
 using Stride.Core.Presentation.Windows;
+using Stride.Core.Assets.Editor.ViewModels;
 using MessageBoxImage = Stride.Core.Presentation.Services.MessageBoxImage;
 
 namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views

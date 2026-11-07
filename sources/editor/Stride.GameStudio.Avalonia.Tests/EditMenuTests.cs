@@ -7,9 +7,9 @@ using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.LogicalTree;
 using Avalonia.VisualTree;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.GameStudio.Avalonia.Tests.Helpers;
 using Stride.GameStudio.Avalonia.Views;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.GameStudio.Avalonia.Tests;
 

@@ -3,7 +3,7 @@
 
 using Stride.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Core;
-using Stride.Core.Assets.Editor.Common.Tests.Helpers;
+using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Engine;
 
 namespace Stride.Assets.Editor.Tests;

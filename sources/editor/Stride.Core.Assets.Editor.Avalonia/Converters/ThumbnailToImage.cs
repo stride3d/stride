@@ -10,7 +10,7 @@ using Stride.Core.Presentation.Avalonia.Converters;
 namespace Stride.Core.Assets.Editor.Avalonia.Converters;
 
 /// <summary>
-/// Gives the image of a thumbnail (<see cref="Stride.Core.Assets.Editor.Services.ThumbnailData.Presenter"/>) to an Avalonia <c>Image</c>: the thumbnails of
+/// Gives the image of a thumbnail (<see cref="Stride.Core.Assets.Presentation.Services.ThumbnailData.Presenter"/>) to an Avalonia <c>Image</c>: the thumbnails of
 /// the Avalonia editor are Avalonia bitmaps (<see cref="Stride.Core.Assets.Editor.Avalonia.Services.ThumbnailDataFactory"/>), so this only filters out what
 /// isn't one.
 /// </summary>

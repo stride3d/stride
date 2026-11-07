@@ -2,9 +2,8 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Assets.Presentation.ViewModels;
-using Stride.Core.Assets.Editor.View.Behaviors;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Mathematics;
+using Stride.Core.Assets.Presentation.ViewModels;
 using static Stride.Assets.Editor.Tests.EntityHierarchyEditorTests;
 using static Stride.Assets.Editor.Tests.EntityHierarchyLoadingTests;
 

@@ -10,6 +10,7 @@ using Stride.Assets.Presentation.SceneEditor.Services;
 using Stride.Core.Extensions;
 using Stride.Engine;
 using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.NodePresenters.Commands
 {

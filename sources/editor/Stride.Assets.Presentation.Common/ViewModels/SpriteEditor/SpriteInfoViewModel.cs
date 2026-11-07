@@ -11,8 +11,6 @@ using System.Threading.Tasks;
 using Stride.Assets.Sprite;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.View.Behaviors;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
@@ -25,6 +23,7 @@ using Stride.Core.Presentation.Windows;
 using Stride.Core.Quantum;
 using Stride.Core.Translation;
 using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Presentation.Components.Properties;
 
 namespace Stride.Assets.Editor.ViewModels.SpriteEditor;
 

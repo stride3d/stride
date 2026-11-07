@@ -34,6 +34,9 @@ using Stride.Editor.Preview.View;
 using Stride.Editor.Preview.ViewModel;
 using Stride.Engine.Gizmos;
 using Xunit;
+using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Assets.Presentation.Annotations;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.GameStudio.Tests
 {
@@ -321,8 +324,8 @@ namespace Stride.GameStudio.Tests
             var assemblies = AssemblyRegistry.Find(AssemblyCommonCategories.Assets);
 
             var viewModels = assemblies
-                .SelectMany(x => AssemblyRegistry.GetScanTypes(x, typeof(Stride.Core.Assets.Editor.ViewModel.AssetViewModel)))
-                .Select(x => (x.GetCustomAttribute<Stride.Core.Assets.Editor.Annotations.AssetViewModelAttribute>()?.AssetType, ViewModel: x))
+                .SelectMany(x => AssemblyRegistry.GetScanTypes(x, typeof(Stride.Core.Assets.Presentation.ViewModels.AssetViewModel)))
+                .Select(x => (x.GetCustomAttribute<Stride.Core.Assets.Presentation.Annotations.AssetViewModelAttribute>()?.AssetType, ViewModel: x))
                 .Where(x => x.AssetType is not null)
                 .Distinct()
                 .ToList();

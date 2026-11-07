@@ -5,7 +5,7 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Interop;
 
-using Stride.Core.Assets.Editor.ViewModel.Progress;
+using Stride.Core.Assets.Editor.ViewModels.Progress;
 
 namespace Stride.Core.Assets.Editor.View
 {
