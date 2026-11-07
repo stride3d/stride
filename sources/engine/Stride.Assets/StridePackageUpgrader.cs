@@ -158,20 +158,13 @@ namespace Stride.Assets
 
             registry.Code("4.5.1.0",
             [
-                // 4.5.1: CommandList.UnsetRenderTargets is gone from every graphics API; ResetTargets unbinds the same
-                // targets, and also forgets them.
+                // 4.5.1: CommandList members that only some graphics APIs had are gone (#3858):
+                // UnsetRenderTargets becomes ResetTargets, which unbinds the same targets and also forgets them;
+                // ResetQueryPool had nothing to do (Vulkan resets a pool itself, Direct3D 12's was empty);
+                // SetStreamTargets bound buffers no shader could write since 4.4 (SDSL0170).
                 Rewrite(
-                    MemberRename("Stride.Graphics.CommandList", "UnsetRenderTargets", "ResetTargets")),
-
-                // 4.5.1: CommandList.ResetQueryPool is gone: Vulkan resets a pool itself before writing it again, Direct3D 12
-                // had nothing to reset. Its calls only go.
-                Rewrite(
-                    FluentCallRemove("Stride.Graphics.CommandList", "ResetQueryPool")),
-
-                // 4.5.1: CommandList.SetStreamTargets is gone: no shader declares stream output since 4.4 (SDSL0170), so the
-                // bound buffers were never written. Its calls only go; a compute shader writing a RWStructuredBuffer replaces
-                // stream output.
-                Rewrite(
+                    MemberRename("Stride.Graphics.CommandList", "UnsetRenderTargets", "ResetTargets"),
+                    FluentCallRemove("Stride.Graphics.CommandList", "ResetQueryPool"),
                     FluentCallRemove("Stride.Graphics.CommandList", "SetStreamTargets")),
             ]);
 
