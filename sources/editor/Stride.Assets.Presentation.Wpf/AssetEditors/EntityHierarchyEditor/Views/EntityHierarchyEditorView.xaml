@@ -9,7 +9,7 @@
              xmlns:pvc="clr-namespace:Stride.Assets.Presentation.ValueConverters"
              xmlns:assetEditors="clr-namespace:Stride.Assets.Presentation.AssetEditors;assembly=Stride.Assets.Presentation.Common"
              xmlns:gameEditor="clr-namespace:Stride.Assets.Presentation.AssetEditors.GameEditor;assembly=Stride.Assets.Presentation.Common"
-             xmlns:ehvm="clr-namespace:Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels"
+             xmlns:ehvm="clr-namespace:Stride.Assets.Editor.ViewModels;assembly=Stride.Assets.Presentation.Common"
              xmlns:ehv="clr-namespace:Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Views"
              xmlns:pvm="clr-namespace:Stride.Assets.Presentation.ViewModels;assembly=Stride.Assets.Presentation.Common"
              xmlns:entityFactories="clr-namespace:Stride.Assets.Editor.EntityFactories;assembly=Stride.Assets.Presentation.Common"
@@ -155,7 +155,7 @@
     </ResourceDictionary>
   </UserControl.Resources>
   <UserControl.InputBindings>
-    <KeyBinding Command="{Binding Grid.ToggleCommand}" Gesture="{sd:KeyGesture {x:Static strings:KeyGestures.GestureToggleGrid}}"/>
+    <KeyBinding Command="{Binding ViewOptions.Grid.ToggleCommand}" Gesture="{sd:KeyGesture {x:Static strings:KeyGestures.GestureToggleGrid}}"/>
     <KeyBinding Command="{Binding DuplicateSelectionCommand}" Gesture="{sd:KeyGesture {}Ctrl+D}"/>
   </UserControl.InputBindings>
   <i:Interaction.Behaviors>
@@ -165,7 +165,7 @@
     <sd:CommandBindingBehavior RoutedCommand="{x:Static ehv:EntityHierarchyEditorView.FocusOnSelection}" Command="{Binding EntityWithGizmo.FocusOnEntityCommand, FallbackValue={x:Static cmd:DisabledCommand.Instance}, Mode=OneWay}"/>
   </i:Interaction.Behaviors>
   <Grid>
-    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding SceneInitialized, Converter={sd:VisibleOrCollapsed}, ConverterParameter={sd:False}}">
+    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding GameHost.SceneInitialized, Converter={sd:VisibleOrCollapsed}, ConverterParameter={sd:False}}">
       <TextBlock Text="{sd:Localize Loading scene...}" Margin="20" HorizontalAlignment="Center"/>
       <TextBlock Text="{sd:Localize This might take a few minutes the first time.}" Margin="20" HorizontalAlignment="Center"/>
       <ProgressBar IsIndeterminate="True" Width="200" Height="20" Margin="20" BorderThickness="1"/>
@@ -177,7 +177,7 @@
           <Setter Property="DataContext" Value="{x:Null}"/>
           <Setter Property="Visibility" Value="Collapsed"/>
           <Style.Triggers>
-            <DataTrigger Binding="{Binding DataContext.SceneInitialized, RelativeSource={RelativeSource AncestorType={x:Type ehv:EntityHierarchyEditorView}}}" Value="True">
+            <DataTrigger Binding="{Binding DataContext.GameHost.SceneInitialized, RelativeSource={RelativeSource AncestorType={x:Type ehv:EntityHierarchyEditorView}}}" Value="True">
               <Setter Property="DataContext" Value="{Binding DataContext, RelativeSource={RelativeSource AncestorType={x:Type ehv:EntityHierarchyEditorView}}}"/>
               <Setter Property="Visibility" Value="Visible"/>
             </DataTrigger>
@@ -501,19 +501,19 @@
               <Popup IsOpen="{Binding ElementName=ToggleGrid, Path=IsChecked}" StaysOpen="False" PlacementTarget="{Binding ElementName=ToggleGrid}">
                 <Grid Background="{StaticResource BackgroundBrush}" MinWidth="130" MinHeight="100">
                   <StackPanel>
-                    <CheckBox Content="Show Grid" Margin="8" IsChecked="{Binding Grid.IsVisible}"/>
+                    <CheckBox Content="Show Grid" Margin="8" IsChecked="{Binding ViewOptions.Grid.IsVisible}"/>
                     <Border Padding="8,2" Background="{StaticResource NormalBrush}" HorizontalAlignment="Stretch">
                       <TextBlock Text="{sd:Localize Grid axis}" FontWeight="Bold"/>
                     </Border>
                     <DockPanel Margin="8">
-                      <CheckBox Content="{sd:Localize X, Context=Button}" IsChecked="{Binding Grid.IsXAxisVisible}" Margin="4"/>
-                      <CheckBox Content="{sd:Localize Y, Context=Button}" IsChecked="{Binding Grid.IsYAxisVisible}" Margin="4"/>
-                      <CheckBox Content="{sd:Localize Z, Context=Button}" IsChecked="{Binding Grid.IsZAxisVisible}" Margin="4"/>
+                      <CheckBox Content="{sd:Localize X, Context=Button}" IsChecked="{Binding ViewOptions.Grid.IsXAxisVisible}" Margin="4"/>
+                      <CheckBox Content="{sd:Localize Y, Context=Button}" IsChecked="{Binding ViewOptions.Grid.IsYAxisVisible}" Margin="4"/>
+                      <CheckBox Content="{sd:Localize Z, Context=Button}" IsChecked="{Binding ViewOptions.Grid.IsZAxisVisible}" Margin="4"/>
                     </DockPanel>
                     <Border Padding="8,2" Background="{StaticResource NormalBrush}" HorizontalAlignment="Stretch">
                       <TextBlock Text="{sd:Localize Grid opacity}" FontWeight="Bold"/>
                     </Border>
-                    <sd:NumericTextBox Value="{Binding Grid.Alpha}" SmallChange="0.1"  Minimum="0" Maximum="1" DecimalPlaces="3" Margin="8"/>
+                    <sd:NumericTextBox Value="{Binding ViewOptions.Grid.Alpha}" SmallChange="0.1"  Minimum="0" Maximum="1" DecimalPlaces="3" Margin="8"/>
                   </StackPanel>
                 </Grid>
               </Popup>
@@ -533,13 +533,13 @@
                     </Border>
                     <StackPanel Margin="4">
                       <DockPanel Margin="4">
-                        <sd:NumericTextBox DockPanel.Dock="Right" Width="50" Value="{Binding Lighting.LightProbeBounces}" Minimum="0" DecimalPlaces="3" Margin="2"/>
+                        <sd:NumericTextBox DockPanel.Dock="Right" Width="50" Value="{Binding ViewOptions.Lighting.LightProbeBounces}" Minimum="0" DecimalPlaces="3" Margin="2"/>
                         <TextBlock Text="{sd:Localize Bounces:}" VerticalAlignment="Center"/>
                       </DockPanel>
                       <UniformGrid Columns="2">
                         <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="4" Padding="4"
                                 ToolTip="{sd:Localize Compute lighting using light probes, Context=ToolTip}"
-                                Command="{Binding Lighting.RequestLightProbesComputeCommand}">
+                                Command="{Binding ViewOptions.Lighting.RequestLightProbesComputeCommand}">
                           <StackPanel Orientation="Horizontal">
                             <Image Source="{StaticResource ImageLightProbesCompute}" Width="16" Height="16" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
                             <TextBlock Text="Compute" VerticalAlignment="Center" Margin="4"/>
@@ -547,7 +547,7 @@
                         </Button>
                         <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="4" Padding="4"
                                 ToolTip="{sd:Localize Reset light probes, Context=ToolTip}"
-                                Command="{Binding Lighting.RequestLightProbesResetCommand}">
+                                Command="{Binding ViewOptions.Lighting.RequestLightProbesResetCommand}">
                           <StackPanel Orientation="Horizontal">
                             <Image Source="{StaticResource ImageLightProbesReset}" Width="16" Height="16" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
                             <TextBlock Text="{sd:Localize Reset}" VerticalAlignment="Center" Margin="4"/>
@@ -561,7 +561,7 @@
                     <StackPanel Margin="4">
                       <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="4" Padding="4"
                               ToolTip="{sd:Localize Generate a cubemap from the scene view and save as a texture, Context=ToolTip}"
-                              Command="{Binding Lighting.CaptureCubemapCommand}">
+                              Command="{Binding ViewOptions.Lighting.CaptureCubemapCommand}">
                         <StackPanel Orientation="Horizontal">
                           <Image Source="{StaticResource ImageGenerateCubeMap}" Width="16" Height="16" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
                           <TextBlock Text="{sd:Localize Capture}" VerticalAlignment="Center" Margin="4"/>
@@ -583,11 +583,11 @@
                 <Grid Background="{StaticResource BackgroundBrush}" MinWidth="200" MaxWidth="400" MaxHeight="400">
                   <DockPanel Margin="5,2">
                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
-                      <Button Content="{sd:Localize All, Context=Button}" Margin="5" Command="{Binding Overlays.ToggleAllCommand}" CommandParameter="{sd:True}" Width="40"/>
-                      <Button Content="{sd:Localize None, Context=Button}" Margin="5" Command="{Binding Overlays.ToggleAllCommand}" CommandParameter="{sd:False}" Width="40"/>
+                      <Button Content="{sd:Localize All, Context=Button}" Margin="5" Command="{Binding ViewOptions.Overlays.ToggleAllCommand}" CommandParameter="{sd:True}" Width="40"/>
+                      <Button Content="{sd:Localize None, Context=Button}" Margin="5" Command="{Binding ViewOptions.Overlays.ToggleAllCommand}" CommandParameter="{sd:False}" Width="40"/>
                     </StackPanel>
                     <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="3">
-                      <ItemsControl ItemsSource="{Binding Overlays.Sections}">
+                      <ItemsControl ItemsSource="{Binding ViewOptions.Overlays.Sections}">
                         <ItemsControl.ItemTemplate>
                           <DataTemplate>
                             <StackPanel>
@@ -630,34 +630,34 @@
                       <TextBlock DockPanel.Dock="Left" Text="{sd:Localize Transformation gizmo size:}" Margin="5"/>
                       <Slider HorizontalAlignment="Stretch" Height="18" Margin="5" Minimum="0"
                               Maximum="{Binding Length, Source={x:Static core:Utils.ZoomFactors}, Converter={sd:SumNum}, ConverterParameter=-1}"
-                              Value="{Binding Transform.GizmoSize, Converter={sd:ItemToIndex}, ConverterParameter={x:Static core:Utils.ZoomFactors}}"/>
+                              Value="{Binding ViewOptions.Transform.GizmoSize, Converter={sd:ItemToIndex}, ConverterParameter={x:Static core:Utils.ZoomFactors}}"/>
                       <DockPanel>
                         <TextBlock DockPanel.Dock="Left" Text="{sd:Localize Component gizmo size:}" Margin="5"/>
-                        <CheckBox IsChecked="{Binding EntityGizmos.FixedSize}" Content="{sd:Localize Fixed, Context=Button}" HorizontalAlignment="Right" Margin="5"/>
+                        <CheckBox IsChecked="{Binding ViewOptions.EntityGizmos.FixedSize}" Content="{sd:Localize Fixed, Context=Button}" HorizontalAlignment="Right" Margin="5"/>
                       </DockPanel>
                       <Slider HorizontalAlignment="Stretch" Height="18" Margin="5" Minimum="0"
                               Maximum="{Binding Length, Source={x:Static core:Utils.ZoomFactors}, Converter={sd:SumNum}, ConverterParameter=-1}"
-                              Value="{Binding EntityGizmos.GizmoSize, Converter={sd:ItemToIndex}, ConverterParameter={x:Static core:Utils.ZoomFactors}}"/>
+                              Value="{Binding ViewOptions.EntityGizmos.GizmoSize, Converter={sd:ItemToIndex}, ConverterParameter={x:Static core:Utils.ZoomFactors}}"/>
                       <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
-                        <CheckBox Content="{sd:Localize Camera preview, Context=Button}" Margin="5" IsChecked="{Binding DisplayCameraPreview}"/>
-                        <CheckBox Content="{sd:Localize Light probe volumes, Context=Button}" Margin="5" IsChecked="{Binding Lighting.LightProbeWireframeVisible}"/>
+                        <CheckBox Content="{sd:Localize Camera preview, Context=Button}" Margin="5" IsChecked="{Binding ViewOptions.DisplayCameraPreview}"/>
+                        <CheckBox Content="{sd:Localize Light probe volumes, Context=Button}" Margin="5" IsChecked="{Binding ViewOptions.Lighting.LightProbeWireframeVisible}"/>
                       </StackPanel>
                     </StackPanel>
                     <Separator Margin="5" Height="2" HorizontalAlignment="Stretch" DockPanel.Dock="Top"/>
                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
-                      <Button Content="{sd:Localize All, Context=Button}" Margin="5" Command="{Binding EntityGizmos.ToggleAllGizmosCommand}" CommandParameter="{sd:True}" Width="40"/>
-                      <Button Content="{sd:Localize None, Context=Button}" Margin="5" Command="{Binding EntityGizmos.ToggleAllGizmosCommand}" CommandParameter="{sd:False}" Width="40"/>
+                      <Button Content="{sd:Localize All, Context=Button}" Margin="5" Command="{Binding ViewOptions.EntityGizmos.ToggleAllGizmosCommand}" CommandParameter="{sd:True}" Width="40"/>
+                      <Button Content="{sd:Localize None, Context=Button}" Margin="5" Command="{Binding ViewOptions.EntityGizmos.ToggleAllGizmosCommand}" CommandParameter="{sd:False}" Width="40"/>
                     </StackPanel>
                     <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="3">
                       <StackPanel>
-                        <ItemsControl ItemsSource="{Binding EntityGizmos.ActiveGizmos}" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.CanContentScroll="True">
+                        <ItemsControl ItemsSource="{Binding ViewOptions.EntityGizmos.ActiveGizmos}" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.CanContentScroll="True">
                           <ItemsControl.ItemTemplate>
                             <DataTemplate>
                               <CheckBox Content="{Binding ComponentName, Mode=OneWay}" IsChecked="{Binding IsActive}" Margin="2"/>
                             </DataTemplate>
                           </ItemsControl.ItemTemplate>
                         </ItemsControl>
-                        <CheckBox Content="{sd:Localize Other entities, Context=Button}" IsChecked="{Binding EntityGizmos.FallbackGizmo.IsActive}" Margin="2"/>
+                        <CheckBox Content="{sd:Localize Other entities, Context=Button}" IsChecked="{Binding ViewOptions.EntityGizmos.FallbackGizmo.IsActive}" Margin="2"/>
                       </StackPanel>
                     </ScrollViewer>
                   </DockPanel>
@@ -678,22 +678,22 @@
                       <TextBlock Text="{sd:Localize Projection}" FontWeight="Bold"/>
                     </Border>
                     <StackPanel Margin="4">
-                      <RadioButton Content="{sd:Localize Perspective, Context=Button}" IsChecked="{Binding Camera.OrthographicProjection, Converter={sd:InvertBool}}" Margin="4"/>
-                      <RadioButton Content="{sd:Localize Orthographic, Context=Button}" IsChecked="{Binding Camera.OrthographicProjection}" Margin="4"/>
+                      <RadioButton Content="{sd:Localize Perspective, Context=Button}" IsChecked="{Binding ViewOptions.Camera.OrthographicProjection, Converter={sd:InvertBool}}" Margin="4"/>
+                      <RadioButton Content="{sd:Localize Orthographic, Context=Button}" IsChecked="{Binding ViewOptions.Camera.OrthographicProjection}" Margin="4"/>
                       <sd:KeyValueGrid>
                         <TextBlock DockPanel.Dock="Left" Text="{sd:Localize Near plane:}" Margin="5"/>
-                        <sd:NumericTextBox Value="{Binding Camera.NearPlane}" DecimalPlaces="4" HorizontalAlignment="Stretch" Margin="5" Minimum="0"/>
+                        <sd:NumericTextBox Value="{Binding ViewOptions.Camera.NearPlane}" DecimalPlaces="4" HorizontalAlignment="Stretch" Margin="5" Minimum="0"/>
                         <TextBlock DockPanel.Dock="Left" Text="{sd:Localize Far plane:}" Margin="5"/>
-                        <sd:NumericTextBox Value="{Binding Camera.FarPlane}" DecimalPlaces="4" HorizontalAlignment="Stretch" Margin="5" Minimum="0"/>
+                        <sd:NumericTextBox Value="{Binding ViewOptions.Camera.FarPlane}" DecimalPlaces="4" HorizontalAlignment="Stretch" Margin="5" Minimum="0"/>
                         <TextBlock DockPanel.Dock="Left" Text="{sd:Localize Field of view:}" Margin="5"
-                                   Visibility="{Binding Camera.OrthographicProjection, Converter={sd:Chained {sd:InvertBool}, {sd:VisibleOrCollapsed}}}"/>
-                        <sd:NumericTextBox Value="{Binding Camera.FieldOfView}" DecimalPlaces="1"  HorizontalAlignment="Stretch" Margin="5" Minimum="0" Maximum="180"
-                                             Visibility="{Binding Camera.OrthographicProjection, Converter={sd:Chained {sd:InvertBool}, {sd:VisibleOrCollapsed}}}"/>
-                        <Slider sd:KeyValueGrid.UseFullRow="True" HorizontalAlignment="Stretch" Height="18" Margin="5" Minimum="0" Maximum="180" Value="{Binding Camera.FieldOfView}"
-                                Visibility="{Binding Camera.OrthographicProjection, Converter={sd:Chained {sd:InvertBool}, {sd:VisibleOrCollapsed}}}"/>
-                        <TextBlock DockPanel.Dock="Left" Text="{sd:Localize Orthographic size:}" Margin="5" Visibility="{Binding Camera.OrthographicProjection, Converter={sd:VisibleOrCollapsed}}"/>
-                        <sd:NumericTextBox Value="{Binding Camera.OrthographicSize}" HorizontalAlignment="Stretch" DecimalPlaces="4" Margin="5" Minimum="0"
-                                             Visibility="{Binding Camera.OrthographicProjection, Converter={sd:VisibleOrCollapsed}}"/>
+                                   Visibility="{Binding ViewOptions.Camera.OrthographicProjection, Converter={sd:Chained {sd:InvertBool}, {sd:VisibleOrCollapsed}}}"/>
+                        <sd:NumericTextBox Value="{Binding ViewOptions.Camera.FieldOfView}" DecimalPlaces="1"  HorizontalAlignment="Stretch" Margin="5" Minimum="0" Maximum="180"
+                                             Visibility="{Binding ViewOptions.Camera.OrthographicProjection, Converter={sd:Chained {sd:InvertBool}, {sd:VisibleOrCollapsed}}}"/>
+                        <Slider sd:KeyValueGrid.UseFullRow="True" HorizontalAlignment="Stretch" Height="18" Margin="5" Minimum="0" Maximum="180" Value="{Binding ViewOptions.Camera.FieldOfView}"
+                                Visibility="{Binding ViewOptions.Camera.OrthographicProjection, Converter={sd:Chained {sd:InvertBool}, {sd:VisibleOrCollapsed}}}"/>
+                        <TextBlock DockPanel.Dock="Left" Text="{sd:Localize Orthographic size:}" Margin="5" Visibility="{Binding ViewOptions.Camera.OrthographicProjection, Converter={sd:VisibleOrCollapsed}}"/>
+                        <sd:NumericTextBox Value="{Binding ViewOptions.Camera.OrthographicSize}" HorizontalAlignment="Stretch" DecimalPlaces="4" Margin="5" Minimum="0"
+                                             Visibility="{Binding ViewOptions.Camera.OrthographicProjection, Converter={sd:VisibleOrCollapsed}}"/>
                       </sd:KeyValueGrid>
                     </StackPanel>
                     <Border Padding="8,2" Background="{StaticResource NormalBrush}" HorizontalAlignment="Stretch">
@@ -701,31 +701,31 @@
                     </Border>
                     <UniformGrid Columns="3" Margin="4,4,4,2">
                         <TextBlock DockPanel.Dock="Left" Text="{sd:Localize Speed:}" Margin="5,5,5,2"/>
-                        <TextBlock DockPanel.Dock="Right" Text="{Binding Camera.MoveSpeed}" Margin="5,5,0,2" TextAlignment="Right"/>
+                        <TextBlock DockPanel.Dock="Right" Text="{Binding ViewOptions.Camera.MoveSpeed}" Margin="5,5,0,2" TextAlignment="Right"/>
                         <TextBlock DockPanel.Dock="Left" Text="x" Margin="0,5,5,2" TextAlignment="Left"/>
                     </UniformGrid>
-                      <Slider sd:KeyValueGrid.UseFullRow="True" HorizontalAlignment="Stretch" Height="18" Margin="5,2,5,5" Minimum="0" Maximum="{Binding Camera.AvailableMovementSpeedCount}" Value="{Binding Camera.MoveSpeedIndex}"/>
+                      <Slider sd:KeyValueGrid.UseFullRow="True" HorizontalAlignment="Stretch" Height="18" Margin="5,2,5,5" Minimum="0" Maximum="{Binding ViewOptions.Camera.AvailableMovementSpeedCount}" Value="{Binding ViewOptions.Camera.MoveSpeedIndex}"/>
                     <Border Padding="8,2" Background="{StaticResource NormalBrush}" HorizontalAlignment="Stretch">
                       <TextBlock Text="{sd:Localize Orientation}" FontWeight="Bold"/>
                     </Border>
                     <UniformGrid Columns="2" Margin="4">
-                      <Button Content="{sd:Localize Front, Context=Button}" Command="{Binding Camera.ResetCameraOrientationCommand}" CommandParameter="{x:Static assetEditors:CameraOrientation.Front}"
+                      <Button Content="{sd:Localize Front, Context=Button}" Command="{Binding ViewOptions.Camera.ResetCameraOrientationCommand}" CommandParameter="{x:Static assetEditors:CameraOrientation.Front}"
                               Style="{StaticResource TransparentButtonStyle}" Margin="2" HorizontalAlignment="Center"/>
-                      <Button Content="{sd:Localize Back, Context=Button}" Command="{Binding Camera.ResetCameraOrientationCommand}" CommandParameter="{x:Static assetEditors:CameraOrientation.Back}"
+                      <Button Content="{sd:Localize Back, Context=Button}" Command="{Binding ViewOptions.Camera.ResetCameraOrientationCommand}" CommandParameter="{x:Static assetEditors:CameraOrientation.Back}"
                               Style="{StaticResource TransparentButtonStyle}" Margin="2" HorizontalAlignment="Center"/>
-                      <Button Content="{sd:Localize Top, Context=Button}" Command="{Binding Camera.ResetCameraOrientationCommand}" CommandParameter="{x:Static assetEditors:CameraOrientation.Top}"
+                      <Button Content="{sd:Localize Top, Context=Button}" Command="{Binding ViewOptions.Camera.ResetCameraOrientationCommand}" CommandParameter="{x:Static assetEditors:CameraOrientation.Top}"
                               Style="{StaticResource TransparentButtonStyle}" Margin="2" HorizontalAlignment="Center"/>
-                      <Button Content="{sd:Localize Bottom, Context=Button}" Command="{Binding Camera.ResetCameraOrientationCommand}" CommandParameter="{x:Static assetEditors:CameraOrientation.Bottom}"
+                      <Button Content="{sd:Localize Bottom, Context=Button}" Command="{Binding ViewOptions.Camera.ResetCameraOrientationCommand}" CommandParameter="{x:Static assetEditors:CameraOrientation.Bottom}"
                               Style="{StaticResource TransparentButtonStyle}" Margin="2" HorizontalAlignment="Center"/>
-                      <Button Content="{sd:Localize Left, Context=Button}" Command="{Binding Camera.ResetCameraOrientationCommand}" CommandParameter="{x:Static assetEditors:CameraOrientation.Left}"
+                      <Button Content="{sd:Localize Left, Context=Button}" Command="{Binding ViewOptions.Camera.ResetCameraOrientationCommand}" CommandParameter="{x:Static assetEditors:CameraOrientation.Left}"
                               Style="{StaticResource TransparentButtonStyle}" Margin="2" HorizontalAlignment="Center"/>
-                      <Button Content="{sd:Localize Right, Context=Button}" Command="{Binding Camera.ResetCameraOrientationCommand}" CommandParameter="{x:Static assetEditors:CameraOrientation.Right}"
+                      <Button Content="{sd:Localize Right, Context=Button}" Command="{Binding ViewOptions.Camera.ResetCameraOrientationCommand}" CommandParameter="{x:Static assetEditors:CameraOrientation.Right}"
                               Style="{StaticResource TransparentButtonStyle}" Margin="2" HorizontalAlignment="Center"/>
                     </UniformGrid>
                   </StackPanel>
                 </Grid>
               </Popup>
-              <ComboBox ItemsSource="{Binding Rendering.AvailableRenderModes}" SelectedItem="{Binding Rendering.RenderMode}" DisplayMemberPath="Name" Width="80">
+              <ComboBox ItemsSource="{Binding ViewOptions.Rendering.AvailableRenderModes}" SelectedItem="{Binding ViewOptions.Rendering.RenderMode}" DisplayMemberPath="Name" Width="80">
                 <ComboBox.ItemContainerStyle>
                   <Style TargetType="{x:Type ComboBoxItem}" BasedOn="{StaticResource {x:Type ComboBoxItem}}">
                     <Style.Triggers>
@@ -745,43 +745,43 @@
               </ComboBox>
             </WrapPanel>
             <WrapPanel>
-              <ListBox Style="{StaticResource EnumListBox}" SelectedItem="{Binding Transform.ActiveTransformation, Mode=TwoWay}"
+              <ListBox Style="{StaticResource EnumListBox}" SelectedItem="{Binding ViewOptions.Transform.ActiveTransformation, Mode=TwoWay}"
                        ItemsSource="{Binding Source={x:Type gameEditor:Transformation}, Converter={sd:EnumValues}}"/>
-              <ToggleButton IsChecked="{Binding Transform.TranslationSnap.IsActive}" Height="28" Background="Transparent"
-                            Visibility="{Binding Transform.ActiveTransformation, Mode=OneWay,
+              <ToggleButton IsChecked="{Binding ViewOptions.Transform.TranslationSnap.IsActive}" Height="28" Background="Transparent"
+                            Visibility="{Binding ViewOptions.Transform.ActiveTransformation, Mode=OneWay,
                                                  Converter={sd:Chained {sd:IsEqualToParam}, {sd:VisibleOrCollapsed}, Parameter1={x:Static gameEditor:Transformation.Translation}}}"
                             ToolTip="{sd:Localize Snap translations to this value, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
                 <StackPanel Orientation="Horizontal">
                   <Image Source="{StaticResource ImageTranslateSnap}" Width="16" Height="16" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
-                  <sd:NumericTextBox Width="50" Value="{Binding Transform.TranslationSnap.Value}" Minimum="0" DecimalPlaces="3" Margin="2"/>
+                  <sd:NumericTextBox Width="50" Value="{Binding ViewOptions.Transform.TranslationSnap.Value}" Minimum="0" DecimalPlaces="3" Margin="2"/>
                 </StackPanel>
               </ToggleButton>
-              <ToggleButton IsChecked="{Binding Transform.RotationSnap.IsActive}" Height="28" Background="Transparent"
-                            Visibility="{Binding Transform.ActiveTransformation, Mode=OneWay,
+              <ToggleButton IsChecked="{Binding ViewOptions.Transform.RotationSnap.IsActive}" Height="28" Background="Transparent"
+                            Visibility="{Binding ViewOptions.Transform.ActiveTransformation, Mode=OneWay,
                                                  Converter={sd:Chained {sd:IsEqualToParam}, {sd:VisibleOrCollapsed}, Parameter1={x:Static gameEditor:Transformation.Rotation}}}"
                             ToolTip="{sd:Localize Snap rotations to this value, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
                 <StackPanel Orientation="Horizontal">
                   <Image Source="{StaticResource ImageRotateSnap}" Width="16" Height="16" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
-                  <sd:NumericTextBox Width="50" Value="{Binding Transform.RotationSnap.Value}" Minimum="0" DecimalPlaces="3" Margin="2"/>
+                  <sd:NumericTextBox Width="50" Value="{Binding ViewOptions.Transform.RotationSnap.Value}" Minimum="0" DecimalPlaces="3" Margin="2"/>
                 </StackPanel>
               </ToggleButton>
-              <ToggleButton IsChecked="{Binding Transform.ScaleSnap.IsActive}" Height="28" Background="Transparent"
-                            Visibility="{Binding Transform.ActiveTransformation, Mode=OneWay,
+              <ToggleButton IsChecked="{Binding ViewOptions.Transform.ScaleSnap.IsActive}" Height="28" Background="Transparent"
+                            Visibility="{Binding ViewOptions.Transform.ActiveTransformation, Mode=OneWay,
                                                  Converter={sd:Chained {sd:IsEqualToParam}, {sd:VisibleOrCollapsed}, Parameter1={x:Static gameEditor:Transformation.Scale}}}"
                             ToolTip="{sd:Localize Snap scale to this factor, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
                 <StackPanel Orientation="Horizontal">
                   <Image Source="{StaticResource ImageScaleSnap}" Width="16" Height="16" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
-                  <sd:NumericTextBox Width="50" Value="{Binding Transform.ScaleSnap.Value}" Minimum="0" DecimalPlaces="3" Margin="2"/>
+                  <sd:NumericTextBox Width="50" Value="{Binding ViewOptions.Transform.ScaleSnap.Value}" Minimum="0" DecimalPlaces="3" Margin="2"/>
                 </StackPanel>
               </ToggleButton>
               <Separator Background="{StaticResource ToggleButtonNormalBackground}"/>
-              <ListBox Style="{StaticResource EnumListBox}" SelectedItem="{Binding Transform.Space, Mode=TwoWay}"
+              <ListBox Style="{StaticResource EnumListBox}" SelectedItem="{Binding ViewOptions.Transform.Space, Mode=TwoWay}"
                      ItemsSource="{Binding Source={x:Type gameEditor:TransformationSpace}, Converter={sd:EnumValues}}">
                 <ListBox.ItemContainerStyle>
                   <Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource EnumListBoxItemContainerStyle}">
                     <Style.Triggers>
                       <DataTrigger Binding="{sd:MultiBinding {Binding},
-                                                               {Binding DataContext.Transform.AvailableSpaces, RelativeSource={RelativeSource AncestorType=ListBox}},
+                                                               {Binding DataContext.ViewOptions.Transform.AvailableSpaces, RelativeSource={RelativeSource AncestorType=ListBox}},
                                                                Converter={pvc:CollectionContainsItem}}" Value="False">
                         <Setter Property="IsEnabled" Value="False"/>
                       </DataTrigger>
@@ -790,10 +790,10 @@
                 </ListBox.ItemContainerStyle>
               </ListBox>
               <Separator Background="{StaticResource ToggleButtonNormalBackground}"/>
-              <ToggleButton IsChecked="{Binding MaterialSelectionMode}" Background="Transparent"
+              <ToggleButton IsChecked="{Binding ViewOptions.MaterialSelectionMode}" Background="Transparent"
                             Content="{sd:Image {StaticResource ImageToggleMaterialMode}, 16, 16, NearestNeighbor}" Width="28" Height="28"
                             ToolTip="{sd:Localize Toggle material selection (click a selected asset to select its material), Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True" />
-              <ToggleButton IsChecked="{Binding DisplaySelectionMask}" Background="Transparent"
+              <ToggleButton IsChecked="{Binding ViewOptions.DisplaySelectionMask}" Background="Transparent"
                             Content="{sd:Image {StaticResource ImageToggleSelectionMask}, 16, 16, NearestNeighbor}" Width="28" Height="28"
                             ToolTip="{sd:Localize Show or hide selection mask, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True" />
               <Separator Background="{StaticResource ToggleButtonNormalBackground}"/>
@@ -888,14 +888,14 @@
             </ContextMenu>
           </Grid.ContextMenu>
           <Grid>
-            <ContentPresenter x:Name="SceneView" Visibility="{Binding LastException, Converter={sd:Chained {sd:ObjectToBool}, {sd:InvertBool}, {sd:VisibleOrCollapsed}}}">
+            <ContentPresenter x:Name="SceneView" Visibility="{Binding GameHost.LastException, Converter={sd:Chained {sd:ObjectToBool}, {sd:InvertBool}, {sd:VisibleOrCollapsed}}}">
               <ContentPresenter.InputBindings>
                 <KeyBinding Key="F" Command="{x:Static ehv:EntityHierarchyEditorView.FocusOnSelection}"/>
               </ContentPresenter.InputBindings>
             </ContentPresenter>
 
             <!-- Crash message -->
-            <Grid Visibility="{Binding LastException, Converter={sd:Chained {sd:ObjectToBool}, {sd:VisibleOrCollapsed}}}">
+            <Grid Visibility="{Binding GameHost.LastException, Converter={sd:Chained {sd:ObjectToBool}, {sd:VisibleOrCollapsed}}}">
               <Border HorizontalAlignment="Stretch"
                       VerticalAlignment="Stretch"
                       Background="{StaticResource BackgroundBrush}" />
@@ -909,18 +909,18 @@
                   <RowDefinition Height="*" />
                   <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <TextBox Text="{Binding LastException.Message, StringFormat=Error: {0}, Mode=OneWay}" Foreground="{StaticResource TextBrush}" Margin="20"
+                <TextBox Text="{Binding GameHost.LastException.Message, StringFormat=Error: {0}, Mode=OneWay}" Foreground="{StaticResource TextBrush}" Margin="20"
                          IsReadOnly="True" TextWrapping="Wrap" BorderThickness="0" Background="Transparent" FontWeight="Bold"
                          ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Hidden" FontSize="20"/>
-                <TextBox Text="{Binding LastException, Mode=OneWay}" Foreground="{StaticResource TextBrush}" Margin="20"
+                <TextBox Text="{Binding GameHost.LastException, Mode=OneWay}" Foreground="{StaticResource TextBrush}" Margin="20"
                          IsReadOnly="True" TextWrapping="Wrap" BorderThickness="0" Background="Transparent" Grid.Row="1"
                          ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Hidden" />
                 <StackPanel Grid.Row="2" Orientation="Vertical" Margin="20">
                   <TextBlock Text="{sd:Localize Before you resume\, fix the failing asset (likely a graphics compositor or scene).}" Margin="0,8" HorizontalAlignment="Center"/>
                   <UniformGrid HorizontalAlignment="Center" Rows="1" Columns="2">
-                    <Button Content="{sd:Localize Resume, Context=Button}" Command="{Binding ResumeCommand}"
+                    <Button Content="{sd:Localize Resume, Context=Button}" Command="{Binding GameHost.ResumeCommand}"
                             Padding="24,8" HorizontalAlignment="Stretch" Margin="10,0"/>
-                    <Button Content="{sd:Localize Copy error to clipboard, Context=Button}" Command="{Binding CopyErrorToClipboardCommand}"
+                    <Button Content="{sd:Localize Copy error to clipboard, Context=Button}" Command="{Binding GameHost.CopyErrorToClipboardCommand}"
                             Padding="24,8" HorizontalAlignment="Stretch" Margin="10,0"/>
                   </UniformGrid>
                 </StackPanel>

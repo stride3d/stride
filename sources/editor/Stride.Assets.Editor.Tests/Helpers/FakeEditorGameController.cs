@@ -10,6 +10,7 @@ using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Services;
 using Stride.Editor.EditorGame.ContentLoader;
 using Stride.Editor.EditorGame.ViewModels;
+using Stride.Editor.Engine;
 
 namespace Stride.Assets.Editor.Tests.Helpers;
 
@@ -37,6 +38,12 @@ internal sealed class FakeEditorGameController : IEditorGameController, IDisposa
     public Task GameEnded => Task.CompletedTask;
 
     public SessionNodeContainer GameSideNodeContainer { get; }
+
+    /// <inheritdoc/>
+    public object View { get; } = new();
+
+    /// <inheritdoc/>
+    public IEditorGameViewport Viewport => throw new NotSupportedException();
 
     /// <summary>
     /// Gets how many times the propagators asked the game to evaluate its render stages again, once per propagated change.

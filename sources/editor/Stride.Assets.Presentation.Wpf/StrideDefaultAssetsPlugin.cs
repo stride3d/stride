@@ -5,6 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Windows;
+using Stride.Assets.Editor.EditorGame;
+using Stride.Assets.Editor.ViewModels;
+using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets;
@@ -40,31 +43,6 @@ namespace Stride.Assets.Presentation
 {
     public sealed class StrideDefaultAssetsPlugin : StrideAssetsWpfPlugin
     {
-        /// <summary>
-        /// Comparer for component types.
-        /// </summary>
-        private class ComponentTypeComparer : EqualityComparer<Type>
-        {
-            public static new readonly ComponentTypeComparer Default = new ComponentTypeComparer();
-
-            /// <summary>
-            /// Compares two component types and returns <c>true</c> if the types match, i.e.:
-            /// <list type="bullet">
-            /// <item>both types are identical</item>
-            /// <item>first type is a subclass of the second type (e.g. StartupScript is a subclass of ScriptComponent)</item>
-            /// </list>
-            /// </summary>
-            public override bool Equals([NotNull] Type x, [NotNull] Type y)
-            {
-                return ReferenceEquals(x, y) || x.IsSubclassOf(y); // && y.IsSubclassOf(typeof(EntityComponent))
-            }
-
-            public override int GetHashCode(Type obj)
-            {
-                return 1; // must all match the same hash so that Equals is called
-            }
-        }
-
         private static ResourceDictionary imageDictionary;
         private static ResourceDictionary animationPropertyTemplateDictionary;
         private static ResourceDictionary entityPropertyTemplateDictionary;
@@ -75,21 +53,10 @@ namespace Stride.Assets.Presentation
         private static ResourceDictionary visualScriptingTemplateDictionary;
         private static ResourceDictionary visualScriptingGraphTemplatesDictionary;
         // Replaced, never changed: the editor games read them on their threads while an assembly registers
-        private static volatile IReadOnlyDictionary<Type, Type> gizmoTypes = new Dictionary<Type, Type>();
         private static volatile IReadOnlyDictionary<Type, Type> assetHighlighterTypes = new Dictionary<Type, Type>();
         private static readonly object TypeMapsLock = new object();
-        // Replaced, never changed: an assembly can register on any thread (a package loaded by a background task)
-        private static volatile IReadOnlyList<Type> addAssetPolicyTypes = [];
-        private static readonly object AddAssetPolicyTypesLock = new object();
-
-        public static IReadOnlyDictionary<Type, Type> GizmoTypeDictionary => gizmoTypes;
 
         public static IReadOnlyDictionary<Type, Type> AssetHighlighterTypesDictionary => assetHighlighterTypes;
-
-        /// <summary>
-        /// The <see cref="IAddAssetPolicy"/> implementations of every asset assembly, in registration order.
-        /// </summary>
-        public static IReadOnlyList<Type> AddAssetPolicyTypeList => addAssetPolicyTypes;
 
         private static readonly ObservableList<EntityFactoryCategory> EntityFactoryCategoryList = new ObservableList<EntityFactoryCategory>();
 
@@ -97,8 +64,6 @@ namespace Stride.Assets.Presentation
         /// The entity factories ("Add entity" menu) of every asset assembly, grouped by category.
         /// </summary>
         public static IReadOnlyObservableList<EntityFactoryCategory> EntityFactoryCategories => EntityFactoryCategoryList;
-
-        public static IReadOnlyList<(Type type, int order)> ComponentOrders { get; private set; } = new List<(Type, int)>();
 
         public StrideDefaultAssetsPlugin()
         {
@@ -145,7 +110,7 @@ namespace Stride.Assets.Presentation
 
             AssemblyRegistry.AssemblyRegistered += (sender, e) =>
             {
-                SetTypeExpandRuleFallback(e.Assembly.GetTypes());
+                EntityComponentMetadata.SetDisplayFallback(e.Assembly.GetTypes());
 
                 if (e.Categories.Contains(AssemblyCommonCategories.Assets))
                 {
@@ -161,7 +126,7 @@ namespace Stride.Assets.Presentation
                 }
             };
 
-            SetTypeExpandRuleFallback(typeof(EntityComponent).GetInheritedInstantiableTypes().ToArray());
+            EntityComponentMetadata.SetDisplayFallback(typeof(EntityComponent).GetInheritedInstantiableTypes());
 
             foreach (var assembly in AssetRegistry.AssetAssemblies)
                 OnRegisteredAssetAssembly(assembly);
@@ -190,7 +155,7 @@ namespace Stride.Assets.Presentation
             context.PasteProcessors.Register(new EntityHierarchyPasteProcessor());
             context.PostPasteProcessors.Register(new ScenePostPasteProcessor());
 
-            RegisterComponentOrders(context.Logger);
+            EntityComponentMetadata.RegisterComponentOrders(context.Logger);
         }
 
         /// <inheritdoc />
@@ -201,6 +166,9 @@ namespace Stride.Assets.Presentation
             var session = context.Session;
             var sessionViewModel = (SessionViewModel)session;
             context.Services.Register(new StrideDialogService());
+            // The scene and prefab editors run their game in a WinForms form, and show the toolbar of the WPF editor
+            context.Services.Register(WpfEditorGameViewport.Service);
+            context.Services.Register(new WpfEditorViewOptionsFactory());
             var assetsViewModel = new StrideAssetsViewModel(sessionViewModel);
 
             context.NodePresenterCommands.Register(new FetchEntityCommand());
@@ -254,75 +222,17 @@ namespace Stride.Assets.Presentation
         }
 
         /// <summary>
-        /// Get the component type which has the highest order (according to <see cref="ComponentOrderAttribute"/>)
-        /// or <see langword="null"/> if none of the given <paramref name="componentTypes"/> were registered.
-        /// </summary>
-        /// <remarks>If two components (or more) share the same order, the last registered will be returned.</remarks>
-        /// <param name="componentTypes"></param>
-        /// <returns></returns>
-        [CanBeNull]
-        public static Type GetHighestOrderComponent([ItemNotNull, NotNull] IEnumerable<Type> componentTypes)
-        {
-            return GetComponentsByOrder(componentTypes, false).FirstOrDefault();
-        }
-
-        /// <summary>
-        /// Get the component type which has the lowest order (according to <see cref="ComponentOrderAttribute"/>)
-        /// or <see langword="null"/> if none of the given <paramref name="componentTypes"/> were registered.
-        /// </summary>
-        /// <remarks>If two components (or more) share the same order, the last registered will be returned.</remarks>
-        /// <param name="componentTypes"></param>
-        /// <returns></returns>
-        [CanBeNull]
-        public static Type GetLowestOrderComponent([ItemNotNull, NotNull] IEnumerable<Type> componentTypes)
-        {
-            return GetComponentsByOrder(componentTypes, true).FirstOrDefault();
-        }
-
-        /// <summary>
-        /// Returns an enumeration of component types ordered according to their <see cref="DisplayAttribute.Order"/>.
-        /// </summary>
-        /// <remarks>If two components (or more) share the same order, the last registered will be returned first.</remarks>
-        /// <param name="componentTypes">An enumeration of component types</param>
-        /// <param name="ascending">True if the order is from the lowest order to the highest, False otherwise.</param>
-        /// <returns></returns>
-        [NotNull]
-        public static IEnumerable<Type> GetComponentsByOrder([ItemNotNull, NotNull] IEnumerable<Type> componentTypes, bool ascending)
-        {
-            // Note: ComponentOrders contains the component type in reverse registration order (last registered first).
-            // Enumerable.OrderBy and Enumerable.OrderByDescending are stable, so order is preserved.
-            var filtered = ComponentOrders.Join(componentTypes, t => t.type, c => c, (t, c) => t, ComponentTypeComparer.Default);
-            return (ascending ? filtered.OrderBy(t => t.order) : filtered.OrderByDescending(t => t.order)).Select(t => t.type);
-        }
-
-        /// <summary>
-        /// Update display name of scripts to have a decent default value if user didn't set one.
-        /// </summary>
-        private static void SetTypeExpandRuleFallback(Type[] types)
-        {
-            foreach (var type in types)
-            {
-                if (type.IsAssignableTo(typeof(EntityComponent)) && TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<DisplayAttribute>(type, false) == null)
-                {
-                    TypeDescriptorFactory.Default.AttributeRegistry.Register(type, new DisplayAttribute(type.Name) { Expand = ExpandRule.Once });
-                }
-            }
-        }
-
-        /// <summary>
         /// Gizmos, asset highlighters, add-asset policies and entity factories of <paramref name="assembly"/>, discovered
         /// through its source-generated scan index.
         /// </summary>
         private void OnRegisteredAssetAssembly(Assembly assembly)
         {
+            GizmoTypeRegistry.RegisterAssembly(assembly);
             lock (TypeMapsLock)
             {
-                gizmoTypes = WithTypes(gizmoTypes, GetGizmoTypes(assembly));
                 assetHighlighterTypes = WithTypes(assetHighlighterTypes, GetAssetHighlighterTypes(assembly));
             }
-            var policyTypes = AssemblyRegistry.GetScanTypes(assembly, typeof(IAddAssetPolicy)).Where(IsAddAssetPolicy).ToList();
-            lock (AddAssetPolicyTypesLock)
-                addAssetPolicyTypes = [.. addAssetPolicyTypes, .. policyTypes.Except(addAssetPolicyTypes)];
+            AddAssetPolicyRegistry.RegisterAssembly(assembly);
 
             var factoryTypes = AssemblyRegistry.GetScanTypes(assembly, typeof(IEntityFactory)).ToArray();
             OnUiThread(() => RegisterEntityFactories(factoryTypes));
@@ -330,29 +240,15 @@ namespace Stride.Assets.Presentation
 
         private void OnUnregisteredAssetAssembly(Assembly assembly)
         {
+            GizmoTypeRegistry.UnregisterAssembly(assembly);
             lock (TypeMapsLock)
             {
-                gizmoTypes = WithoutTypes(gizmoTypes, GetGizmoTypes(assembly));
                 assetHighlighterTypes = WithoutTypes(assetHighlighterTypes, GetAssetHighlighterTypes(assembly));
             }
-            var policyTypes = AssemblyRegistry.GetScanTypes(assembly, typeof(IAddAssetPolicy)).ToHashSet();
-            lock (AddAssetPolicyTypesLock)
-                addAssetPolicyTypes = addAssetPolicyTypes.Where(x => !policyTypes.Contains(x)).ToList();
+            AddAssetPolicyRegistry.UnregisterAssembly(assembly);
 
             var factoryTypes = AssemblyRegistry.GetScanTypes(assembly, typeof(IEntityFactory)).ToArray();
             OnUiThread(() => UnregisterEntityFactories(factoryTypes));
-        }
-
-        // Component type -> gizmo type
-        private static List<KeyValuePair<Type, Type>> GetGizmoTypes(Assembly assembly)
-        {
-            var types = new List<KeyValuePair<Type, Type>>();
-            foreach (var type in AssemblyRegistry.GetScanTypes(assembly, typeof(GizmoComponentAttribute)))
-            {
-                if (type.IsAssignableTo(typeof(IGizmo)) && type.GetCustomAttribute<GizmoComponentAttribute>(true) is {} attribute)
-                    types.Add(KeyValuePair.Create(attribute.ComponentType, type));
-            }
-            return types;
         }
 
         // Asset type -> highlighter type
@@ -443,38 +339,6 @@ namespace Stride.Assets.Presentation
                 if (category.Factories.Count == 0)
                     EntityFactoryCategoryList.Remove(category);
             }
-        }
-
-        private static bool IsAddAssetPolicy(Type type)
-        {
-            return type.IsAssignableTo(typeof(IAddAssetPolicy)) && type.IsClass && !type.IsAbstract && !type.IsGenericTypeDefinition && type.GetConstructor(Type.EmptyTypes) != null;
-        }
-
-        private static void RegisterComponentOrders(ILogger logger)
-        {
-            // TODO: iterate on plugin assembly or register component type in the plugin registry
-            var hashSet = new HashSet<int>();
-            var componentTypes = AssetRegistry.AssetAssemblies.SelectMany(x => x.GetTypes().Where(y => typeof(EntityComponent).IsAssignableFrom(y)));
-            var orders = new List<(Type, int)>();
-            foreach (var type in componentTypes)
-            {
-                // Check with inheritance to ensure they have a reachable display attribute
-                var attrib = TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<ComponentOrderAttribute>(type, false);
-                if (attrib != null)
-                {
-                    // Disable logging for an order with the same value. It's an order, not a key, so it should not log any warning messages (see this with ben)
-                    if (!hashSet.Add(attrib.Order))
-                    {
-                        var other = orders.First(t => t.Item2 == attrib.Order);
-                        logger.Warning($"Two entity components have explicitly the same order value ({attrib.Order}): [{other.Item1}], [{type}]");
-                    }
-                    // tuples are added in the order the component are registered
-                    orders.Add((type, attrib.Order));
-                }
-            }
-            // Reverse the order so that last registered component appears first.
-            orders.Reverse();
-            ComponentOrders = orders;
         }
     }
 }

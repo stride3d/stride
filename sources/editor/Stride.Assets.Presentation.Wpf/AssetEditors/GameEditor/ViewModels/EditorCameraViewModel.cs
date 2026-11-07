@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using Stride.Assets.Editor.ViewModels;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Commands;
@@ -11,7 +12,7 @@ using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
 {
-    public class EditorCameraViewModel : DispatcherViewModel
+    public class EditorCameraViewModel : DispatcherViewModel, ICameraViewOptions
     {
         private readonly IEditorGameController controller;
         
@@ -126,6 +127,18 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
         public void DecreaseMovementSpeed()
         {
             MoveSpeedIndex--;
+        }
+
+        /// <inheritdoc/>
+        void ICameraViewOptions.ChangeMovementSpeed(int step)
+        {
+            Dispatcher.InvokeAsync(() => MoveSpeedIndex += step);
+        }
+
+        /// <inheritdoc/>
+        void ICameraViewOptions.SwitchProjection()
+        {
+            Dispatcher.InvokeAsync(() => OrthographicProjection = !OrthographicProjection);
         }
     }
 }

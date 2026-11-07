@@ -9,8 +9,8 @@ using System.IO;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using Stride.Assets.Editor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
 using Stride.Assets.Rendering;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Quantum;
@@ -250,7 +250,7 @@ namespace Stride.Assets.Presentation.AssemblyReloading
         {
             if (swappedAssemblies.Contains(editor.GetType().Assembly))
                 return true;
-            if (editor is not GameEditorViewModel { Controller: IEditorGameAccess { EditorGame: { } game } controller })
+            if (editor is not IGameEditorViewModel { GameHost.Controller: { } controller } || controller.GetService<WpfEditorGameHostService>()?.EditorGame is not { } game)
                 return false;
 
             return editorCode

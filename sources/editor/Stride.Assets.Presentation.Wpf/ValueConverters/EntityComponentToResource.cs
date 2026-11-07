@@ -17,7 +17,7 @@ namespace Stride.Assets.Presentation.ValueConverters
         {
             var components = (IEnumerable<EntityComponent>)value;
             var componentTypes = components.Select(x => x.GetType());
-            var compToUse = StrideDefaultAssetsPlugin.GetHighestOrderComponent(componentTypes);
+            var compToUse = EntityComponentMetadata.GetHighestOrderComponent(componentTypes);
             return TypeToResource.FetchResourceFromType(compToUse, true);
         }
     }

@@ -3,9 +3,11 @@
 
 using System.Reflection;
 using Stride.Assets.Editor.Build;
+using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Assets.Editor.Quantum.NodePresenters.Updaters;
 using Stride.Assets.Editor.EntityFactories;
+using Stride.Assets.Editor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.ScriptEditor;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Assets.Presentation.SceneEditor;
@@ -53,12 +55,6 @@ public sealed class StrideEditorPlugin : StrideAssetsPlugin
     /// <summary>Run the sweep at most this often across launches, tracked via the marker file's mtime.</summary>
     private static readonly TimeSpan GcInterval = TimeSpan.FromHours(24);
 
-    // Replaced, never changed: the editor games read them on their threads while an assembly registers
-    private static volatile IReadOnlyDictionary<Type, Type> gizmoTypes = new Dictionary<Type, Type>();
-    private static readonly object TypeMapsLock = new();
-    // Replaced, never changed: an assembly can register on any thread (a package loaded by a background task)
-    private static volatile IReadOnlyList<Type> addAssetPolicyTypes = [];
-    private static readonly object AddAssetPolicyTypesLock = new();
     private static readonly ObservableList<EntityFactoryCategory> EntityFactoryCategoryList = [];
     private static bool assemblyHooksRegistered;
 
@@ -66,16 +62,6 @@ public sealed class StrideEditorPlugin : StrideAssetsPlugin
     /// Whether <see cref="InitializeSession(ISessionPluginContext)"/> creates the thumbnail service. Tests without a graphics device turn it off.
     /// </summary>
     public bool EnableThumbnailService { get; set; } = true;
-
-    /// <summary>
-    /// Entity component type to gizmo type, from every registered asset assembly.
-    /// </summary>
-    public static IReadOnlyDictionary<Type, Type> GizmoTypeDictionary => gizmoTypes;
-
-    /// <summary>
-    /// The <see cref="IAddAssetPolicy"/> implementations of every asset assembly, in registration order.
-    /// </summary>
-    public static IReadOnlyList<Type> AddAssetPolicyTypeList => addAssetPolicyTypes;
 
     /// <summary>
     /// The entity factories ("Add entity" menu) of every asset assembly, grouped by category.
@@ -136,6 +122,9 @@ public sealed class StrideEditorPlugin : StrideAssetsPlugin
 
         var settingsProvider = new GameSettingsProviderService(session);
         context.Services.Register(settingsProvider);
+
+        // The scene and prefab editors show the toolbar of the Avalonia view as their view options
+        context.Services.Register(new EditorViewToolbarFactory());
 
         var builderService = new GameStudioBuilderService(sessionViewModel, settingsProvider, new StrideShaderImporter(), buildDirectory);
         context.Services.Register(builderService);
@@ -324,13 +313,8 @@ public sealed class StrideEditorPlugin : StrideAssetsPlugin
     /// </summary>
     private static void OnRegisteredAssetAssembly(Assembly assembly)
     {
-        lock (TypeMapsLock)
-        {
-            gizmoTypes = WithTypes(gizmoTypes, GetGizmoTypes(assembly));
-        }
-        var policyTypes = AssemblyRegistry.GetScanTypes(assembly, typeof(IAddAssetPolicy)).Where(IsAddAssetPolicy).ToList();
-        lock (AddAssetPolicyTypesLock)
-            addAssetPolicyTypes = [.. addAssetPolicyTypes, .. policyTypes.Except(addAssetPolicyTypes)];
+        GizmoTypeRegistry.RegisterAssembly(assembly);
+        AddAssetPolicyRegistry.RegisterAssembly(assembly);
 
         var factoryTypes = AssemblyRegistry.GetScanTypes(assembly, typeof(IEntityFactory)).ToArray();
         lock (EntityFactoryCategoryList)
@@ -339,51 +323,12 @@ public sealed class StrideEditorPlugin : StrideAssetsPlugin
 
     private static void OnUnregisteredAssetAssembly(Assembly assembly)
     {
-        lock (TypeMapsLock)
-        {
-            gizmoTypes = WithoutTypes(gizmoTypes, GetGizmoTypes(assembly));
-        }
-        var policyTypes = AssemblyRegistry.GetScanTypes(assembly, typeof(IAddAssetPolicy)).ToHashSet();
-        lock (AddAssetPolicyTypesLock)
-            addAssetPolicyTypes = addAssetPolicyTypes.Where(x => !policyTypes.Contains(x)).ToList();
+        GizmoTypeRegistry.UnregisterAssembly(assembly);
+        AddAssetPolicyRegistry.UnregisterAssembly(assembly);
 
         var factoryTypes = AssemblyRegistry.GetScanTypes(assembly, typeof(IEntityFactory)).ToArray();
         lock (EntityFactoryCategoryList)
             UnregisterEntityFactories(factoryTypes);
-    }
-
-    // Component type -> gizmo type
-    private static List<KeyValuePair<Type, Type>> GetGizmoTypes(Assembly assembly)
-    {
-        var types = new List<KeyValuePair<Type, Type>>();
-        foreach (var type in AssemblyRegistry.GetScanTypes(assembly, typeof(GizmoComponentAttribute)))
-        {
-            if (type.IsAssignableTo(typeof(IGizmo)) && type.GetCustomAttribute<GizmoComponentAttribute>(true) is { } attribute)
-                types.Add(KeyValuePair.Create(attribute.ComponentType, type));
-        }
-        return types;
-    }
-
-    // The last registered type wins: two assemblies may declare one for the same key, and a reload can register the
-    // new copy before the old one goes
-    private static Dictionary<Type, Type> WithTypes(IReadOnlyDictionary<Type, Type> map, List<KeyValuePair<Type, Type>> types)
-    {
-        var result = new Dictionary<Type, Type>(map);
-        foreach (var (key, type) in types)
-            result[key] = type;
-        return result;
-    }
-
-    // Only the types the assembly registered: a key another assembly took since keeps its type
-    private static Dictionary<Type, Type> WithoutTypes(IReadOnlyDictionary<Type, Type> map, List<KeyValuePair<Type, Type>> types)
-    {
-        var result = new Dictionary<Type, Type>(map);
-        foreach (var (key, type) in types)
-        {
-            if (result.TryGetValue(key, out var current) && current == type)
-                result.Remove(key);
-        }
-        return result;
     }
 
     private static bool IsEntityFactory(Type type)
@@ -425,10 +370,5 @@ public sealed class StrideEditorPlugin : StrideAssetsPlugin
             if (category.Factories.Count == 0)
                 EntityFactoryCategoryList.Remove(category);
         }
-    }
-
-    private static bool IsAddAssetPolicy(Type type)
-    {
-        return type.IsAssignableTo(typeof(IAddAssetPolicy)) && type.IsClass && !type.IsAbstract && !type.IsGenericTypeDefinition && type.GetConstructor(Type.EmptyTypes) != null;
     }
 }

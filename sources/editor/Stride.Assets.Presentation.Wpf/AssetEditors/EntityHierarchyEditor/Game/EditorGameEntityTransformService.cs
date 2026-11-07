@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Stride.Assets.Editor.EditorGame;
+using Stride.Assets.Editor.ViewModels;
 using Stride.Core.BuildEngine;
 using Stride.Core;
 using Stride.Core.Annotations;
@@ -231,19 +233,19 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                         // Activate transformation snapping
                         if (game.Input.IsKeyPressed(SceneEditorSettings.TranslationGizmo.GetValue()))
                         {
-                            await editor.Dispatcher.InvokeAsync(() => editor.Transform.ActiveTransformation = Transformation.Translation);
+                            await editor.Dispatcher.InvokeAsync(() => SetActiveTransformation(Transformation.Translation));
                         }
 
                         // Activate rotation snapping
                         if (game.Input.IsKeyPressed(SceneEditorSettings.RotationGizmo.GetValue()))
                         {
-                            await editor.Dispatcher.InvokeAsync(() => editor.Transform.ActiveTransformation = Transformation.Rotation);
+                            await editor.Dispatcher.InvokeAsync(() => SetActiveTransformation(Transformation.Rotation));
                         }
 
                         // Activate scale snapping
                         if (game.Input.IsKeyPressed(SceneEditorSettings.ScaleGizmo.GetValue()))
                         {
-                            await editor.Dispatcher.InvokeAsync(() => editor.Transform.ActiveTransformation = Transformation.Scale);
+                            await editor.Dispatcher.InvokeAsync(() => SetActiveTransformation(Transformation.Scale));
                         }
 
                         // Toggle between different snapping methods
@@ -251,7 +253,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                         {
                             var current = activeTransformation;
                             var next = (int)(current + 1) % Enum.GetValues<Transformation>().Length;
-                            await editor.Dispatcher.InvokeAsync(() => editor.Transform.ActiveTransformation = (Transformation)next);
+                            await editor.Dispatcher.InvokeAsync(() => SetActiveTransformation((Transformation)next));
                         }
                     }
 
@@ -301,6 +303,13 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                 dynamicSnappingInUse = true;
                 activeTransformationGizmo.UseSnap = true;
             }
+        }
+
+        private void SetActiveTransformation(Transformation transformation)
+        {
+            // The toolbar of the editor shows the active transformation, and gives it back to this service
+            if (editor.ViewOptions is WpfEditorViewOptions options)
+                options.Transform.ActiveTransformation = transformation;
         }
 
         private void UpdateModifiedEntitiesList(object sender, [NotNull] EntitySelectionEventArgs e)

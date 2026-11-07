@@ -44,7 +44,7 @@ public sealed class PluginEditorsTests
     [InlineData(typeof(VoxelVolumeComponent), typeof(VoxelVolumeGizmo), false)]
     public void ThePluginGizmosAreFound(Type componentType, Type gizmoType, bool hiddenByDefault)
     {
-        Assert.Equal(gizmoType, StrideEditorPlugin.GizmoTypeDictionary[componentType]);
+        Assert.Equal(gizmoType, GizmoTypeRegistry.GizmoTypeDictionary[componentType]);
         Assert.Equal(hiddenByDefault, gizmoType.GetCustomAttribute<GizmoComponentAttribute>()!.HiddenByDefault);
     }
 

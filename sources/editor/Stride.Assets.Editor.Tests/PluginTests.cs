@@ -1,8 +1,10 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Editor.Preview;
 using Stride.Assets.Editor.Tests.Helpers;
+using Stride.Assets.Editor.ViewModels;
 using Stride.Assets.Editor.ViewModels.Preview;
 using Stride.Assets.Entities;
 using Stride.Assets.Materials;
@@ -137,13 +139,13 @@ public sealed class PluginTests
         var registrations = PluginRegistrations.Of(new StrideEditorPlugin(), typeof(Stride.Core.Assets.Editor.Editors.IAssetEditorView));
 
         // The shared editor assembly declares the gizmos of the engine components
-        Assert.Equal(typeof(Stride.Assets.Presentation.AssetEditors.Gizmos.CameraGizmo), StrideEditorPlugin.GizmoTypeDictionary[typeof(Stride.Engine.CameraComponent)]);
-        Assert.Equal(typeof(Stride.Assets.Presentation.AssetEditors.Gizmos.DispatcherLightGizmo), StrideEditorPlugin.GizmoTypeDictionary[typeof(Stride.Engine.LightComponent)]);
+        Assert.Equal(typeof(Stride.Assets.Presentation.AssetEditors.Gizmos.CameraGizmo), GizmoTypeRegistry.GizmoTypeDictionary[typeof(Stride.Engine.CameraComponent)]);
+        Assert.Equal(typeof(Stride.Assets.Presentation.AssetEditors.Gizmos.DispatcherLightGizmo), GizmoTypeRegistry.GizmoTypeDictionary[typeof(Stride.Engine.LightComponent)]);
         // The entity factories of the engine components come from the shared assembly, in the same categories as in WPF
         Assert.Equal(["2D", "Camera", "Light", "Model"], StrideEditorPlugin.EntityFactoryCategories.Select(x => x.Name));
         Assert.Contains(StrideEditorPlugin.EntityFactoryCategories.Single(x => x.Name == "Light").Factories, x => x.Factory is EntityFactories.PointLightEntityFactory);
         // The add-asset policies still live in the WPF assembly: only the plugin packages bring some, and none is loaded here
-        Assert.Empty(StrideEditorPlugin.AddAssetPolicyTypeList);
+        Assert.Empty(AddAssetPolicyRegistry.PolicyTypes);
         Assert.Equal(2, registrations.ProfileSettings.Count);
     }
 

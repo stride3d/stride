@@ -24,6 +24,7 @@ using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Settings;
 using Stride.Editor.EditorGame.ContentLoader;
 using Stride.Editor.EditorGame.ViewModels;
+using Stride.Editor.Engine;
 using Stride.Engine;
 using Stride.Physics;
 using Stride.Physics.Editor;
@@ -177,7 +178,7 @@ public sealed class EditorViewPopupsTests
         using var controller = new FakeController();
         var gizmos = new EditorViewGizmosViewModel(serviceProvider, new EditorGameComponentGizmoService(controller), null);
 
-        Assert.Equal(typeof(Gizmos.LightProbeGizmo), StrideEditorPlugin.GizmoTypeDictionary[typeof(LightProbeComponent)]);
+        Assert.Equal(typeof(Gizmos.LightProbeGizmo), GizmoTypeRegistry.GizmoTypeDictionary[typeof(LightProbeComponent)]);
         // As in WPF: the light probes are a main gizmo, not one hidden by default
         Assert.True(Find(gizmos, typeof(LightProbeComponent)).IsActive);
         Assert.DoesNotContain(DisplayAttribute.GetDisplayName(typeof(LightProbeComponent)), SceneSettingsData.CreateDefault().HiddenGizmos);
@@ -418,6 +419,10 @@ public sealed class EditorViewPopupsTests
         public Task GameEnded => Task.CompletedTask;
 
         public SessionNodeContainer GameSideNodeContainer => throw new NotSupportedException();
+
+        public object View => throw new NotSupportedException();
+
+        public IEditorGameViewport Viewport => throw new NotSupportedException();
 
         public Task<bool> StartGame() => Task.FromResult(true);
 

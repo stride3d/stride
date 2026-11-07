@@ -17,10 +17,9 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using AvalonDock.Layout;
 using Stride.Assets.Editor.EntityFactories;
+using Stride.Assets.Editor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
-using Stride.Assets.Presentation.AssetEditors.SceneEditor.ViewModels;
 using Stride.GameStudio.AssetsEditors;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views;
@@ -373,7 +372,7 @@ internal sealed class UITestHost
             if (session.ServiceProvider.TryGet<IAssetEditorsManager>() is not AssetEditorsManager aem) return list;
             foreach (var editorVm in aem.EditorViewModels)
             {
-                if (editorVm is GameEditorViewModel { Controller: IEditorGameAccess access } && access.EditorGame is { IsRunning: true, IsEditorHidden: false } game)
+                if (GetEditorGame(editorVm) is { IsRunning: true, IsEditorHidden: false } game)
                     list.Add(new WatchedGame(game, game.DrawTime?.FrameCount ?? 0));
             }
             return list;
@@ -389,13 +388,20 @@ internal sealed class UITestHost
             if (session?.ServiceProvider.TryGet<IAssetEditorsManager>() is not AssetEditorsManager aem) return null;
             foreach (var editorVm in aem.EditorViewModels)
             {
-                if (editorVm is GameEditorViewModel { Controller: IEditorGameAccess access } gameEditor
-                    && access.EditorGame is { IsRunning: true } game
-                    && (string.Equals(gameEditor.Asset.Url, idOrTitle, StringComparison.Ordinal)
-                        || gameEditor.Asset.Url.EndsWith("/" + idOrTitle, StringComparison.Ordinal)))
+                if (GetEditorGame(editorVm) is { IsRunning: true } game
+                    && (string.Equals(editorVm.Asset.Url, idOrTitle, StringComparison.Ordinal)
+                        || editorVm.Asset.Url.EndsWith("/" + idOrTitle, StringComparison.Ordinal)))
                     return game;
             }
             return null;
+        }
+
+        /// <summary>
+        /// Returns the game of a game editor (scene, prefab or UI), once its game services are initialized.
+        /// </summary>
+        private static EditorServiceGame? GetEditorGame(IAssetEditorViewModel editor)
+        {
+            return editor is IGameEditorViewModel { GameHost.Controller: { } controller } ? controller.GetService<WpfEditorGameHostService>()?.EditorGame : null;
         }
 
         /// <summary>

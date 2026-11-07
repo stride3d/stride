@@ -49,6 +49,11 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
             }
         }
 
+        /// <summary>
+        /// Gets whether the editor closed: the WPF element that showed the form is disposed.
+        /// </summary>
+        public bool IsReleased { get; private set; }
+
         /// <inheritdoc/>
         public object View => Host;
 
@@ -67,10 +72,11 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
         }
 
         /// <summary>
-        /// Disposes the WPF element that shows the form, if it was created (UI thread, when the editor closes).
+        /// Disposes the WPF element that shows the form, if it was created (UI thread, when the controller is destroyed).
         /// </summary>
-        public void DisposeHost()
+        public void ReleaseView()
         {
+            IsReleased = true;
             Form?.Host?.Dispose();
         }
 

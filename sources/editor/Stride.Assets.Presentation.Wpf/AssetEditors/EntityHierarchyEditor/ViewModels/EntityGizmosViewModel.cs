@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Stride.Assets.Editor.EditorGame;
+using Stride.Assets.Editor.ViewModels;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Extensions;
@@ -27,7 +29,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
         {
             if (controller == null) throw new ArgumentNullException(nameof(controller));
             this.controller = controller;
-            activeGizmos.AddRange(typeof(EntityComponent).GetInheritedTypes().Where(x => StrideDefaultAssetsPlugin.GizmoTypeDictionary.ContainsKey(x)).OrderBy(x => TypeDescriptorFactory.Default.AttributeRegistry.GetDisplayName(x)).Select(x => new GizmoViewModel(ServiceProvider, x, controller)));
+            activeGizmos.AddRange(typeof(EntityComponent).GetInheritedTypes().Where(x => GizmoTypeRegistry.GizmoTypeDictionary.ContainsKey(x)).OrderBy(x => TypeDescriptorFactory.Default.AttributeRegistry.GetDisplayName(x)).Select(x => new GizmoViewModel(ServiceProvider, x, controller)));
             FallbackGizmo = new GizmoViewModel(ServiceProvider, typeof(TransformComponent), controller);
             ToggleAllGizmosCommand = new AnonymousCommand<bool>(ServiceProvider, value => ActiveGizmos.ForEach(x => x.IsActive = value));
         }

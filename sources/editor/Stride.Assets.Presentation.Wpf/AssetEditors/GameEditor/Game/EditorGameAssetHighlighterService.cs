@@ -5,13 +5,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Stride.Assets.Editor.EditorGame;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Annotations;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Extensions;
 using Stride.Assets.Presentation.AssetEditors.AssetHighlighters;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
 using Stride.Editor.EditorGame.Game;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
 
@@ -24,7 +25,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
         private readonly Dictionary<Type, AssetHighlighter> assetHighlighters = new Dictionary<Type, AssetHighlighter>();
         private EditorServiceGame game;
 
-        public EditorGameAssetHighlighterService(IEditorGameController controller, [NotNull] GameEditorViewModel editor)
+        public EditorGameAssetHighlighterService(IEditorGameController controller, [NotNull] AssetEditorViewModel editor)
         {
             this.controller = controller;
             var dependencyManager = editor.Session.DependencyManager;

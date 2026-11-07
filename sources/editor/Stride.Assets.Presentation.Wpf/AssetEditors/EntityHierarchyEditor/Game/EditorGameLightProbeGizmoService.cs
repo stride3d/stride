@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Stride.Assets.Editor.EditorGame;
+using Stride.Assets.Editor.ViewModels;
 using Stride.Core;
 using Stride.Core.Collections;
 using Stride.Core.Mathematics;

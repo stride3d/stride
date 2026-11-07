@@ -2,9 +2,10 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Threading.Tasks;
+using Stride.Assets.Editor.EditorGame;
+using Stride.Assets.Editor.ViewModels;
 using Stride.Core.Annotations;
 using Stride.Core.Extensions;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
 using Stride.Editor.EditorGame.Game;
 
 namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
@@ -15,13 +16,13 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
     [EditorGameService(typeof(IEditorGameController), Order = 20)]
     public class EditorGameRecoveryService : EditorGameServiceBase, IEditorGameRecoveryViewModelService
     {
-        private readonly GameEditorViewModel editor;
+        private readonly EditorGameHost host;
 
-        public EditorGameRecoveryService([NotNull] GameEditorViewModel editor)
+        public EditorGameRecoveryService([NotNull] IGameEditorViewModel editor)
         {
             if (editor == null) throw new ArgumentNullException(nameof(editor));
 
-            this.editor = editor;
+            host = editor.GameHost;
         }
 
         /// <inheritdoc />
@@ -31,14 +32,14 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
 
         void IEditorGameRecoveryViewModelService.Resume()
         {
-            editor.Dispatcher.EnsureAccess();
+            host.Dispatcher.EnsureAccess();
 
             if (!IsActive)
                 return;
 
             // Remove faulted flag
             Game.Faulted = false;
-            editor.LastException = null;
+            host.LastException = null;
         }
 
         protected override Task<bool> Initialize(EditorServiceGame editorGame)
@@ -54,7 +55,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
                 return;
 
             e.Handled = true;
-            editor.Dispatcher.InvokeAsync(() => editor.LastException = e.Exception).Forget();
+            host.Dispatcher.InvokeAsync(() => host.LastException = e.Exception).Forget();
         }
     }
 }

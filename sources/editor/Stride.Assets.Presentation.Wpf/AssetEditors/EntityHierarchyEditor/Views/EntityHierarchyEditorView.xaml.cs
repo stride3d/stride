@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Stride.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Presentation.Controls;
@@ -44,7 +45,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Views
                 return false;
             }
 
-            SceneView.Content = hierarchyEditor.Controller.EditorHost;
+            SceneView.Content = hierarchyEditor.GameHost.GameView;
             SceneView.InvalidateVisual();
 
             editorInitializationNotifier.SetResult();

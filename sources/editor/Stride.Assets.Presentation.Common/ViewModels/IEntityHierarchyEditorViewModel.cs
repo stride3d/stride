@@ -5,7 +5,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
+using Stride.Core;
 using Stride.Core.Assets;
+using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Presentation.Collections;
 
 namespace Stride.Assets.Presentation.ViewModels;
@@ -35,6 +37,11 @@ public interface IEntityHierarchyEditorViewModel
     /// Gets the policies that turn an asset dropped on the hierarchy into components or entities.
     /// </summary>
     IReadOnlyList<IAddAssetPolicy> AddAssetPolicies { get; }
+
+    /// <summary>
+    /// Finds the view model of the part with the given id, in any root that the editor shows, or <c>null</c>.
+    /// </summary>
+    IAssetPartViewModel? FindPartViewModel(AbsoluteId id);
 
     /// <summary>
     /// Clears the selection.
