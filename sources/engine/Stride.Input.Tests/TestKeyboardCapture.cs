@@ -142,6 +142,26 @@ public class TestKeyboardCapture
     }
 
     [Fact]
+    public void ReleaseByAScriptHidesBothEdgesOfAKeyThatWentUpThenDownInThatFrame()
+    {
+        using var headless = new HeadlessInput();
+        var owner = new object();
+        headless.Input.TryCapture(headless.Keyboard, owner);
+        headless.Keyboard.SimulateDown(Keys.W);
+        headless.Update();
+
+        headless.Keyboard.SimulateUp(Keys.W);
+        headless.Keyboard.SimulateDown(Keys.W);
+        headless.Update();
+        headless.Input.Release(headless.Keyboard, owner);
+
+        Assert.False(headless.Input.IsKeyDown(Keys.W));
+        Assert.False(headless.Input.IsKeyPressed(Keys.W));
+        Assert.False(headless.Input.IsKeyReleased(Keys.W));
+        Assert.DoesNotContain(Keys.W, headless.Keyboard.ReleasedKeys);
+    }
+
+    [Fact]
     public void ReleaseInTheCapturePhaseKeepsATapFromThatFrame()
     {
         using var headless = new HeadlessInput();

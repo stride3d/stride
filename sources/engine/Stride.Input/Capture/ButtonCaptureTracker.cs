@@ -114,7 +114,7 @@ public sealed class ButtonCaptureTracker<T>
             // A tap from this frame is not hidden: its press is visible, so its release must be too.
             foreach (var item in rawReleased)
             {
-                if (!rawNewPresses.Contains(item))
+                if (!rawNewPresses.Contains(item) || suppressed.Contains(item))
                     releasedWhileSuppressed.Add(item);
             }
         }
