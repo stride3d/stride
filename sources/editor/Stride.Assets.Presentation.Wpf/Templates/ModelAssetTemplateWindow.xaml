@@ -4,7 +4,8 @@
                   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                   xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
-                  xmlns:templates="clr-namespace:Stride.Assets.Presentation.Templates"
+                  xmlns:templates="clr-namespace:Stride.Assets.Editor.Templates;assembly=Stride.Assets.Presentation.Common"
+                  xmlns:local="clr-namespace:Stride.Assets.Presentation.Templates"
                   xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
                   mc:Ignorable="d" SizeToContent="Height" Width="480"
                   Style="{DynamicResource WindowChromeStyle}" Title="{sd:Localize Import from model}"
@@ -39,7 +40,7 @@
         <RadioButton Content="{sd:Localize No skeleton, Context=Button}" Margin="5" IsChecked="{Binding DontImportSkeleton}" GroupName="Skeleton"/>
         <RadioButton Content="{sd:Localize Use another skeleton for this model:, Context=Button}" Margin="5" IsChecked="{Binding ReuseSkeleton}" x:Name="ReuseRadioButton" GroupName="Skeleton"/>
         <StackPanel>
-          <ContentPresenter Margin="25,5,5,5" Content="{Binding ReferenceViewModel.RootNode.Skeleton}"
+          <ContentPresenter Margin="25,5,5,5" Content="{Binding ReferenceViewModel.RootNode.Skeleton, RelativeSource={RelativeSource AncestorType=local:ModelAssetTemplateWindow}}"
                           ContentTemplate="{StaticResource SimpleContentReferencePropertyTemplate}">
             <i:Interaction.Behaviors>
               <sd:OnEventSetPropertyBehavior EventName="Click" EventOwnerType="{x:Type Button}"

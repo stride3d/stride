@@ -8,6 +8,7 @@ using Stride.Assets.Editor.Avalonia;
 using Stride.Assets.Editor.Avalonia.Views;
 using Stride.Assets.Editor.EntityFactories;
 using Stride.Assets.Editor.Preview;
+using Stride.Assets.Editor.Templates;
 using Stride.Assets.Editor.ViewModels;
 using Stride.Assets.Editor.ViewModels.Preview;
 using Stride.Assets.Materials;
@@ -21,6 +22,7 @@ using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Avalonia;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Templates;
 using Stride.Core.Diagnostics;
 using Stride.Core.Reflection;
 using Stride.Core.Presentation.Quantum;
@@ -156,6 +158,60 @@ public sealed class PluginServiceTests
         Assert.Contains(factories, x => x.Type == typeof(SkyboxLightEntityFactory));
         Assert.Empty(Duplicates(factories, x => x.Type, x => x.Type));
         Assert.Empty(Duplicates(factories, x => x.Entry, x => x.Type));
+    }
+
+    [AvaloniaFact]
+    public void EachAssetTemplateHasOneGenerator()
+    {
+        // The editor's module registered the shared generators (Stride.Assets.Presentation.Common) once, with the Avalonia dialogs
+        var generators = RegisteredTemplateGenerators();
+        var shared = generators.Where(x => x.GetType().Namespace == typeof(AssetTemplateGenerator).Namespace).ToList();
+        Assert.All(shared, x => Assert.Equal(typeof(StrideSharedAssetsPlugin).Assembly, x.GetType().Assembly));
+        Assert.Empty(Duplicates(shared, x => x.GetType(), x => x.GetType()));
+        Assert.Equal(10, shared.Count);
+
+        // Each kind of asset template resolves to its own generator, the specific ones before the generic ones
+        foreach (var (description, expected) in AssetTemplateCases())
+        {
+            var generator = TemplateManager.FindTemplateGenerator<AssetTemplateGeneratorParameters>(description);
+            Assert.True(expected == generator?.GetType(), $"{description.Name}: {generator?.GetType().FullName ?? "no generator"} instead of {expected.Name}");
+        }
+    }
+
+    /// <summary>
+    /// The template generators registered with the <see cref="TemplateManager"/>, which does not list them.
+    /// </summary>
+    internal static List<ITemplateGenerator> RegisteredTemplateGenerators()
+    {
+        const BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Static;
+        var generators = (List<ITemplateGenerator>)typeof(TemplateManager).GetField("Generators", flags)!.GetValue(null)!;
+        lock (typeof(TemplateManager).GetField("ThisLock", flags)!.GetValue(null)!)
+        {
+            return [.. generators];
+        }
+    }
+
+    /// <summary>
+    /// A description of each kind of asset template of the Stride package, with the generator that must create it.
+    /// </summary>
+    internal static IEnumerable<(TemplateDescription Description, Type Generator)> AssetTemplateCases()
+    {
+        static TemplateAssetFactoryDescription Factory(string name, Guid id, string assetTypeName, bool importSource = false)
+            => new() { Id = id, Name = name, Scope = TemplateScope.Asset, AssetTypeName = assetTypeName, ImportSource = importSource };
+
+        yield return (Factory("Material", Guid.NewGuid(), nameof(MaterialAsset)), typeof(AssetFactoryTemplateGenerator));
+        yield return (Factory("Texture", Guid.NewGuid(), nameof(TextureAsset), importSource: true), typeof(AssetFromFileTemplateGenerator));
+        var derived = Factory("Graphics compositor", Guid.NewGuid(), nameof(Stride.Assets.Rendering.GraphicsCompositorAsset));
+        derived.DerivedFrom = "GraphicsCompositor";
+        yield return (derived, typeof(DerivedAssetTemplateGenerator));
+        yield return (Factory("Procedural model", ProceduralModelFactoryTemplateGenerator.TemplateId, nameof(Stride.Assets.Models.ProceduralModelAsset)), typeof(ProceduralModelFactoryTemplateGenerator));
+        yield return (Factory("Skybox", SkyboxFactoryTemplateGenerator.TemplateId, nameof(Stride.Assets.Skyboxes.SkyboxAsset)), typeof(SkyboxFactoryTemplateGenerator));
+        yield return (Factory("Model", ModelFromFileTemplateGenerator.Id, nameof(ModelAsset), importSource: true), typeof(ModelFromFileTemplateGenerator));
+        yield return (Factory("Skeleton", SkeletonFromFileTemplateGenerator.Id, nameof(SkeletonAsset), importSource: true), typeof(SkeletonFromFileTemplateGenerator));
+        yield return (Factory("Animation", AnimationFromFileTemplateGenerator.Id, nameof(AnimationAsset), importSource: true), typeof(AnimationFromFileTemplateGenerator));
+        yield return (Factory("Sprite sheet", SpriteSheetFromFileTemplateGenerator.SpriteSheetId, nameof(SpriteSheetAsset), importSource: true), typeof(SpriteSheetFromFileTemplateGenerator));
+        yield return (Factory("UI sprite sheet", SpriteSheetFromFileTemplateGenerator.UISpriteSheetId, nameof(SpriteSheetAsset), importSource: true), typeof(SpriteSheetFromFileTemplateGenerator));
+        yield return (new TemplateAssetDescription { Id = Guid.NewGuid(), Name = "Script", Scope = TemplateScope.Asset, AssetTypeName = "ScriptSourceFileAsset" }, typeof(ScriptTemplateGenerator));
     }
 
     private static string[] Duplicates<T, TKey>(IEnumerable<T> items, Func<T, TKey> key, Func<T, Type> type)

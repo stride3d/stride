@@ -13,7 +13,7 @@ using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters;
 using Stride.Core.Assets;
-using Stride.Assets.Presentation.Templates;
+using Stride.Assets.Editor.Templates;
 using Stride.Core;
 using Stride.Engine;
 using Stride.Assets.Presentation.ViewModel;
