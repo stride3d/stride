@@ -38,8 +38,7 @@
       <Using Namespace="System.Collections.Generic" />
       <Using Namespace="System.IO" />
       <Using Namespace="System.Linq" />
-      <Code Type="Fragment" Language="cs">
-                  <![CDATA[
+      <Code Type="Fragment" Language="cs"><![CDATA[
         Func<string, string> unquote = s =>
         {
             s = s.Trim();
@@ -99,8 +98,6 @@
                     continue;
                 // Skip package files and build/VCS directories (an asset folder can be '.')
                 var extension = Path.GetExtension(file);
-                if (extension is null)
-                    continue;
                 if (string.Equals(extension, ".sdpkg", StringComparison.OrdinalIgnoreCase))
                     continue;
                 var folderPrefix = folder.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar.ToString();
