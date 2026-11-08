@@ -22,6 +22,7 @@ public sealed class GameCodeReloadViewModelTests
     [Fact]
     public async Task AChangeAsksOnceThenReloadBuildsTheChangedProjectAndRestarts()
     {
+        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await ReloadTest.CreateAsync();
         test.Dialogs.PickButton = _ => ReloadButton;
         Assert.False(test.Reload.ReloadCommand.IsEnabled);
@@ -42,6 +43,7 @@ public sealed class GameCodeReloadViewModelTests
     [Fact]
     public async Task DontReloadKeepsTheChangesPendingAndTheNextChangesDoNotAskAgain()
     {
+        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await ReloadTest.CreateAsync();
         test.Dialogs.PickButton = _ => DontReloadButton;
 
@@ -67,6 +69,7 @@ public sealed class GameCodeReloadViewModelTests
     [Fact]
     public async Task ClosingTheQuestionWithoutAnAnswerKeepsTheChangesPending()
     {
+        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await ReloadTest.CreateAsync();
         test.Dialogs.PickButton = _ => 0;
 
@@ -81,6 +84,7 @@ public sealed class GameCodeReloadViewModelTests
     [Fact]
     public async Task KeepingTheSessionInTheSaveQuestionKeepsTheChangesPending()
     {
+        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await ReloadTest.CreateAsync(restarts: false);
         test.Dialogs.PickButton = _ => ReloadButton;
 
@@ -97,6 +101,7 @@ public sealed class GameCodeReloadViewModelTests
     [InlineData(false)]
     public async Task DontAskAgainStoresTheAnswer(bool reload)
     {
+        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await ReloadTest.CreateAsync();
         test.Dialogs.PickButton = _ => reload ? ReloadButton : DontReloadButton;
         test.Dialogs.CheckBoxAnswer = true;
@@ -113,6 +118,7 @@ public sealed class GameCodeReloadViewModelTests
     [Fact]
     public async Task WithoutAskingTheSettingReloadsOrNot()
     {
+        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await ReloadTest.CreateAsync();
         EditorSettings.AskBeforeReloadingAssemblies.SetValue(false, test.Settings);
         EditorSettings.AutoReloadAssemblies.SetValue(true, test.Settings);
@@ -138,6 +144,7 @@ public sealed class GameCodeReloadViewModelTests
     [Fact]
     public async Task AChangeDuringABuildAsksWhenTheBuildEnds()
     {
+        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await ReloadTest.CreateAsync();
         test.Dialogs.PickButton = _ => DontReloadButton;
         test.Builder.CompleteAtOnce = false;
@@ -162,6 +169,7 @@ public sealed class GameCodeReloadViewModelTests
     [Fact]
     public async Task TheQuestionWaitsForTheMainWindow()
     {
+        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await ReloadTest.CreateAsync();
         test.Dialogs.PickButton = _ => DontReloadButton;
         var mainWindowActive = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -179,6 +187,7 @@ public sealed class GameCodeReloadViewModelTests
     [Fact]
     public async Task AFailedBuildKeepsTheSessionAndTheNextChangeAsksAgain()
     {
+        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await ReloadTest.CreateAsync();
         test.Dialogs.PickButton = _ => ReloadButton;
         test.Builder.Succeed = false;
@@ -201,6 +210,7 @@ public sealed class GameCodeReloadViewModelTests
     [Fact]
     public async Task ACancelledBuildKeepsTheChangesPending()
     {
+        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await ReloadTest.CreateAsync();
         test.Dialogs.PickButton = _ => ReloadButton;
         test.Builder.CompleteAtOnce = false;
@@ -223,6 +233,7 @@ public sealed class GameCodeReloadViewModelTests
     [Fact]
     public async Task AnotherSessionForgetsTheChanges()
     {
+        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await ReloadTest.CreateAsync();
         test.Dialogs.PickButton = _ => DontReloadButton;
         test.Change("Player.cs");
@@ -314,12 +325,11 @@ public sealed class GameCodeReloadViewModelTests
             Reload.OnCodeChanged(files.Select(x => new GameCodeChange(ProjectPath, Path.Combine(directory, x))).ToList());
         }
 
-        public ValueTask DisposeAsync()
+        public async ValueTask DisposeAsync()
         {
             Reload.Destroy();
             Build.Destroy();
-            Fixture.Dispose();
-            return ValueTask.CompletedTask;
+            await Fixture.DisposeAsync();
         }
     }
 }

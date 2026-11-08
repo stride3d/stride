@@ -20,7 +20,8 @@ public sealed class TestSessionSatellites
     [Fact]
     public async Task TheAssetLogRequiresASession()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync();
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await EditorSessionFixture.OpenAsync();
 
         Assert.Throws<ArgumentNullException>(() => new AssetLogViewModel(fixture.ServiceProvider, null!));
     }
@@ -28,7 +29,8 @@ public sealed class TestSessionSatellites
     [Fact]
     public async Task UpdatingFromSourceOpensItsProgressWindowAfterADelay()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Wood", "wood"));
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Wood", "wood"));
         var tracker = fixture.Session.SourceTracker!;
 
         tracker.UpdateSelectedAssetsFromSourceCommand.Execute();
@@ -41,7 +43,8 @@ public sealed class TestSessionSatellites
     [Fact]
     public async Task TheFolderOfTheSelectedAssetIsItsFileFolder()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Wood", "wood"));
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Wood", "wood"));
         var wood = fixture.Session.GetAssetByUrl(EditorSessionFixture.Url("Wood"))!;
         fixture.OnUiThread(() => fixture.Assets.SelectAssets([wood]));
         var provider = new AssetInitialDirectoryProvider(fixture.Session);
@@ -55,7 +58,8 @@ public sealed class TestSessionSatellites
     [Fact]
     public async Task TheDocumentationAndThePropertiesCheckTheirArguments()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync();
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await EditorSessionFixture.OpenAsync();
         var documentation = fixture.ServiceProvider.Get<UserDocumentationService>();
 
         Assert.Throws<ArgumentNullException>(() => documentation.GetMemberDocumentation(null!, typeof(object)));

@@ -13,7 +13,8 @@ public sealed class TestAssetCollection
     [Fact]
     public async Task SelectingAssetsSelectsTheirLocation()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Textures/Stone", "stone"), ("Models/Tree", "tree"));
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Textures/Stone", "stone"), ("Models/Tree", "tree"));
         var assets = fixture.Assets;
         var wood = fixture.Session.AllAssets.Single(x => x.Name == "Wood");
 
@@ -34,7 +35,8 @@ public sealed class TestAssetCollection
     [Fact]
     public async Task SelectingAPackageListsItsAssets()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Models/Tree", "tree"));
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Models/Tree", "tree"));
         var assets = fixture.Assets;
 
         // The main view remembers the display mode across sessions: start from the default one
@@ -54,7 +56,8 @@ public sealed class TestAssetCollection
     [Fact]
     public async Task NameFiltersNarrowTheAssets()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Textures/Stone", "stone"), ("Models/Tree", "tree"));
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Textures/Stone", "stone"), ("Models/Tree", "tree"));
         var assets = fixture.Assets;
         fixture.SelectPackageRecursively();
 
@@ -75,7 +78,8 @@ public sealed class TestAssetCollection
     [Fact]
     public async Task TypeFiltersListTheAssetTypesOfTheSession()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var assets = fixture.Assets;
         fixture.SelectPackageRecursively();
 
@@ -93,7 +97,8 @@ public sealed class TestAssetCollection
     [Fact]
     public async Task RenamingAnAssetIsUndoable()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var asset = fixture.Session.AllAssets.Single();
         var undoRedo = fixture.Session.UndoRedoService!;
 
@@ -106,7 +111,7 @@ public sealed class TestAssetCollection
         Assert.Equal(EditorSessionFixture.Url("Textures/Oak"), asset.Url);
         Assert.True(fixture.Session.IsDirty);
         // The action history records the transaction after the asset properties changed notification, asynchronously
-        Assert.True(SpinWait.SpinUntil(() => fixture.Session.ActionHistory.CanUndo, TimeSpan.FromSeconds(10)));
+        await ExclusiveDispatcherService.WaitUntilAsync(() => fixture.Session.ActionHistory.CanUndo, "the rename in the history");
 
         undoRedo.Undo();
         Assert.Equal(EditorSessionFixture.Url("Textures/Wood"), asset.Url);
@@ -119,7 +124,8 @@ public sealed class TestAssetCollection
     [Fact]
     public async Task RenamingTheSingleSelectedAssetRefreshesThePreview()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Textures/Stone", "stone"));
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Textures/Stone", "stone"));
         var preview = new PreviewRecorder();
         fixture.ServiceProvider.RegisterService(preview);
         var wood = fixture.Session.AllAssets.Single(x => x.Name == "Wood");
@@ -149,7 +155,8 @@ public sealed class TestAssetCollection
     [Fact]
     public async Task DeletingAnAssetIsUndoable()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Textures/Stone", "stone"));
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Textures/Stone", "stone"));
         var session = fixture.Session;
         var wood = session.AllAssets.Single(x => x.Name == "Wood");
         var directory = wood.Directory;
@@ -175,7 +182,8 @@ public sealed class TestAssetCollection
     [Fact]
     public async Task CopyAndPasteDuplicateTheAssetInTheSelectedFolder()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var session = fixture.Session;
         var assets = fixture.Assets;
         var wood = session.AllAssets.Single();
@@ -206,7 +214,8 @@ public sealed class TestAssetCollection
     [Fact]
     public async Task PastingNeedsASingleTargetFolder()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var assets = fixture.Assets;
         fixture.Clipboard.Text = "irrelevant";
 

@@ -16,7 +16,11 @@ namespace Stride.Core.Assets.Editor.Tests.Helpers;
 /// <summary>
 /// A package saved to a temporary folder and opened through the agnostic <see cref="SessionViewModel"/>, with fake services.
 /// </summary>
-public sealed class EditorSessionFixture : IDisposable
+/// <remarks>
+/// Its dispatcher gives the access of the UI thread to the dispatched work only: a test opens, changes and disposes the session after
+/// <c>await ExclusiveDispatcherService.SwitchTo()</c>, as the editor does on its UI thread.
+/// </remarks>
+public sealed class EditorSessionFixture : IAsyncDisposable
 {
     public const string PackageName = "TestGame";
 
@@ -136,12 +140,7 @@ public sealed class EditorSessionFixture : IDisposable
     /// </summary>
     public async Task<EditorSessionFixture> ReopenAsync()
     {
-        if (!destroyed)
-        {
-            destroyed = true;
-            Session.Destroy();
-            WaitForBackgroundWork(Session);
-        }
+        await DestroyAsync();
         ownsDirectory = false;
         return await OpenCoreAsync(Directory);
     }
@@ -163,7 +162,7 @@ public sealed class EditorSessionFixture : IDisposable
         var serviceProvider = new ViewModelServiceProvider(
         [
             // One dispatcher call at a time, as on the UI thread: the session raises its events on the thread pool
-            new ExclusiveDispatcherService(),
+            new ExclusiveDispatcherService(strict: true),
             dialogs,
             clipboard,
             plugins,
@@ -174,6 +173,7 @@ public sealed class EditorSessionFixture : IDisposable
 
     private async Task OpenSessionAsync(UFile path)
     {
+        ServiceProvider.Get<IDispatcherService>().EnsureAccess();
         var session = await SessionViewModel.OpenSessionAsync(path, Result, new FakeMainViewModel(ServiceProvider), ServiceProvider);
         if (session is null)
             throw new InvalidOperationException("The session could not be opened:" + Environment.NewLine + Log);
@@ -210,14 +210,9 @@ public sealed class EditorSessionFixture : IDisposable
         return (TestEditorAsset)AssetFileSerializer.Load<TestEditorAsset>(path).Asset;
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
-        if (!destroyed)
-        {
-            destroyed = true;
-            Session.Destroy();
-            WaitForBackgroundWork(Session);
-        }
+        await DestroyAsync();
         if (!ownsDirectory)
             return;
         try
@@ -231,12 +226,23 @@ public sealed class EditorSessionFixture : IDisposable
     }
 
     /// <summary>
-    /// Waits for the background work of a destroyed session to end: nothing the test started may outlive it.
+    /// Destroys the session in the dispatcher, then waits for its background work to end, letting the dispatched work run: nothing
+    /// the test started may outlive it.
     /// </summary>
-    internal static void WaitForBackgroundWork(SessionViewModel session)
+    private async Task DestroyAsync()
     {
-        if (!session.BackgroundWork.Wait(TimeSpan.FromSeconds(30)))
+        if (destroyed)
+            return;
+        destroyed = true;
+        ServiceProvider.Get<IDispatcherService>().Invoke(Session.Destroy);
+        try
+        {
+            await Session.BackgroundWork.WaitAsync(TimeSpan.FromSeconds(30));
+        }
+        catch (TimeoutException)
+        {
             throw new TimeoutException("The background work of the session did not end within 30 seconds of its destruction.");
+        }
     }
 
     private UFile WriteSolution(PlatformType[] heads)

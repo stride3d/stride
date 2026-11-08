@@ -18,7 +18,8 @@ public sealed class TestSessionSaving
     [Fact]
     public async Task EditingAnAssetMakesTheSessionDirty()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Textures/Stone", "stone"));
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Textures/Stone", "stone"));
         var wood = fixture.Session.AllAssets.Single(x => x.Name == "Wood");
         var stone = fixture.Session.AllAssets.Single(x => x.Name == "Stone");
         Assert.False(fixture.Session.HasUnsavedAssets());
@@ -36,11 +37,12 @@ public sealed class TestSessionSaving
     [Fact]
     public async Task SavingWritesTheEditAndMakesTheSessionClean()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var wood = fixture.Session.AllAssets.Single();
         Edit(fixture, wood, "oak");
         // The action history records the transaction asynchronously, after the asset properties changed notification
-        Assert.True(SpinWait.SpinUntil(() => fixture.Session.ActionHistory.Transactions.Count > 0, TimeSpan.FromSeconds(10)));
+        await ExclusiveDispatcherService.WaitUntilAsync(() => fixture.Session.ActionHistory.Transactions.Count > 0, "the edit in the history");
 
         Assert.True(await fixture.Session.SaveSessionAsync());
 
@@ -49,7 +51,7 @@ public sealed class TestSessionSaving
         Assert.False(fixture.Session.IsDirty);
         Assert.False(fixture.Session.HasUnsavedAssets());
         // The edit history marks where the session was saved
-        Assert.True(SpinWait.SpinUntil(() => fixture.Session.ActionHistory.Transactions.Last().IsSavePoint, TimeSpan.FromSeconds(10)));
+        await ExclusiveDispatcherService.WaitUntilAsync(() => fixture.Session.ActionHistory.Transactions.Last().IsSavePoint, "the save point in the history");
         // The progress window of the opening, then the one of the save
         Assert.Equal(2, fixture.Dialogs.ProgressWindows.Count);
         // As in WPF, a save that takes less than half a second shows no window
@@ -60,7 +62,8 @@ public sealed class TestSessionSaving
     [Fact]
     public async Task UndoingBackToTheSaveMakesTheSessionClean()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var wood = fixture.Session.AllAssets.Single();
         var undoRedo = fixture.Session.UndoRedoService!;
         Edit(fixture, wood, "oak");
@@ -90,7 +93,8 @@ public sealed class TestSessionSaving
     [Fact]
     public async Task TheUnsavedStateFollowsEditsUndoRedoAndSaves()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var wood = fixture.Session.AllAssets.Single();
         var undoRedo = fixture.Session.UndoRedoService!;
         var changes = 0;
@@ -114,7 +118,8 @@ public sealed class TestSessionSaving
     [Fact]
     public async Task AFailedSaveKeepsTheSessionDirty()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var wood = fixture.Session.AllAssets.Single();
         Edit(fixture, wood, "oak");
 
@@ -137,7 +142,8 @@ public sealed class TestSessionSaving
     [Fact]
     public async Task ClosingACleanSessionDoesNotAsk()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
 
         Assert.True(await fixture.Session.CloseAsync());
 
@@ -147,7 +153,8 @@ public sealed class TestSessionSaving
     [Fact]
     public async Task ClosingADirtySessionAsksSaveDontSaveOrCancel()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var wood = fixture.Session.AllAssets.Single();
         Edit(fixture, wood, "oak");
         IReadOnlyCollection<DialogButtonInfo>? asked = null;
@@ -176,7 +183,8 @@ public sealed class TestSessionSaving
     [Fact]
     public async Task ClosingAfterAFailedSaveTellsTheUserAndKeepsTheSession()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var wood = fixture.Session.AllAssets.Single();
         Edit(fixture, wood, "oak");
         var path = wood.AssetItem.FullPath.ToOSPath();
