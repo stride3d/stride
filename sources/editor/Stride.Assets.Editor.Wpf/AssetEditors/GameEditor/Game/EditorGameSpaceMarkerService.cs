@@ -2,9 +2,8 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Threading.Tasks;
 using Stride.Assets.Editor.EditorGame;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Editor.EditorGame.Game;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Services;
 using Stride.Assets.Editor.AssetEditors.Gizmos;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
 

@@ -1,10 +1,15 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 using Stride.Assets.Editor.ViewModels;
-using Stride.Assets.Presentation.AssetEditors.GameEditor;
 using Stride.Rendering.Materials;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Services;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
+using Stride.Assets.Editor.EditorGame;
 
-namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor
+namespace Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor
 {
     /// <summary>
     /// Describes an editor rendering mode. They will be displayed in scene editor combobox (Game, Editor, Diffuse, etc...)
@@ -34,6 +39,11 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor
         /// Gets the name.
         /// </summary>
         public string Name { get; private set; }
+
+        /// <summary>
+        /// Gets whether this item only separates the other render modes in a list (its name is "-").
+        /// </summary>
+        public bool IsSeparator => Name == "-";
 
         /// <summary>
         /// Gets the render mode.

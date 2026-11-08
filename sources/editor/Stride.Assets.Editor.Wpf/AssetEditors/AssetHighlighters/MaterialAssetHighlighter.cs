@@ -9,7 +9,7 @@ using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Assets.Materials;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
-using Stride.Assets.Presentation.SceneEditor;
+using Stride.Assets.Editor.EditorGame;
 using Stride.Editor.EditorGame.Game;
 using Stride.Engine;
 using Stride.Rendering;

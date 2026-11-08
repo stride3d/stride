@@ -21,6 +21,8 @@ using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 using Stride.Assets.Editor.AssetEditors.GameEditor.ViewModels;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.ViewModels;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 
@@ -159,8 +161,7 @@ public sealed class WpfEditorViewOptions : DispatcherViewModel, IEditorViewOptio
         EntityGizmos.LoadSettings(settings);
         DisplaySelectionMask = settings.SelectionMaskVisible;
         Grid.LoadSettings(settings);
-        Lighting.LightProbeWireframeVisible = settings.LightProbeWireframe;
-        Lighting.LightProbeBounces = settings.LightProbeBounces;
+        Lighting.LoadSettings(settings);
         MaterialSelectionMode = false;
         Overlays.LoadSettings(settings);
         Rendering.LoadSettings(settings);
@@ -177,8 +178,7 @@ public sealed class WpfEditorViewOptions : DispatcherViewModel, IEditorViewOptio
         Transform.SaveSettings(settings);
         settings.SelectionMaskVisible = DisplaySelectionMask;
         Grid.SaveSettings(settings);
-        settings.LightProbeWireframe = Lighting.LightProbeWireframeVisible;
-        settings.LightProbeBounces = Lighting.LightProbeBounces;
+        Lighting.SaveSettings(settings);
         Overlays.SaveSettings(settings);
         Rendering.SaveSettings(settings);
         EntityGizmos.SaveSettings(settings);
