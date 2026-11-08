@@ -109,7 +109,7 @@ internal sealed class SoftBodyProcessor : EntityProcessor<SoftBodyComponent, Sof
         }
 
         // Bodies deform independently, only the uploads go through the command list
-        Dispatcher.For(0, _drawn.Count, i => _drawn[i].RenderModel!.Deform(_drawn[i], _drawn[i].Entity.Transform.WorldMatrix));
+        Dispatcher.For(0, _drawn.Count, _drawn, static (drawn, i) => drawn[i].RenderModel!.Deform(drawn[i], drawn[i].Entity.Transform.WorldMatrix));
         foreach (var component in _drawn)
             component.RenderModel!.Upload(_context.CommandList);
     }
