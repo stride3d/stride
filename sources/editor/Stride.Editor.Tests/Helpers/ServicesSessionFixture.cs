@@ -92,7 +92,7 @@ public sealed class ServicesSessionFixture : IAsyncDisposable
     {
         var directory = Path.Combine(Path.GetTempPath(), "Stride.Editor.Tests", Guid.NewGuid().ToString("N"));
         var dialogs = new FakeEditorDialogService();
-        var dispatcher = new ExclusiveDispatcherService(strict: true);
+        var dispatcher = new ExclusiveDispatcherService();
         dispatcher.EnsureAccess();
         var serviceProvider = new ViewModelServiceProvider(
         [

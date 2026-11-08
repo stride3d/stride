@@ -157,7 +157,7 @@ public sealed class EntityHierarchyEditorTests
     internal static async Task<AssetsSessionFixture> OpenSceneAsync(IDispatcherService? dispatcher = null)
     {
         // One dispatcher call at a time, as on the UI thread: the session raises its events on the thread pool
-        var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: true, dispatcher ?? new ExclusiveDispatcherService(strict: true), ("MainScene", new SceneAsset()));
+        var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: true, dispatcher ?? new ExclusiveDispatcherService(), ("MainScene", new SceneAsset()));
         Assert.False(fixture.Result.HasErrors, fixture.Log);
 
         // The entities go through the property graph, as the editor adds them: a scene saved by the test would need the

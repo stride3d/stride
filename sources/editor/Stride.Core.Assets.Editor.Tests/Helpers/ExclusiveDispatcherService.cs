@@ -17,16 +17,18 @@ namespace Stride.Core.Assets.Editor.Tests.Helpers;
 /// while it changes. Run inline in the caller's context, an async method started there (the delayed refresh of the asset log) would post its
 /// continuation to the micro-thread after it has completed ("MicroThread is already completed but still posting continuations"). These crash
 /// the test host. A test that reads what dispatched work changes reads it through the dispatcher too.
+/// <para>
+/// Only the dispatched work has the access of the UI thread, as in the editor: a test changes the session in the dispatcher
+/// (<see cref="SwitchTo"/>), and the view models fail on a change made elsewhere instead of racing the dispatched work now and then.
+/// </para>
 /// </remarks>
-/// <param name="strict">Whether only the dispatched work has the access of the UI thread, as in the editor. Its tests then change the session
-/// through the dispatcher, and the view models fail on a change made elsewhere instead of racing the dispatched work now and then.</param>
-public sealed class ExclusiveDispatcherService(bool strict = false) : IDispatcherService
+public sealed class ExclusiveDispatcherService : IDispatcherService
 {
-    public bool CheckAccess() => !strict || ExclusiveContext.IsEntered;
+    public bool CheckAccess() => ExclusiveContext.IsEntered;
 
     public void EnsureAccess(bool inDispatcherThread = true)
     {
-        if (strict && CheckAccess() != inDispatcherThread)
+        if (CheckAccess() != inDispatcherThread)
             throw new InvalidOperationException(inDispatcherThread
                 ? $"Not in the exclusive dispatcher context: the test changes the session after await {nameof(ExclusiveDispatcherService)}.{nameof(SwitchTo)}()."
                 : "In the exclusive dispatcher context.");

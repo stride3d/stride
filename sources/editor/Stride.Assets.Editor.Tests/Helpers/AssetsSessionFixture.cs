@@ -80,7 +80,7 @@ public sealed class AssetsSessionFixture : IAsyncDisposable
     public static Task<AssetsSessionFixture> OpenAsync(bool initializeEditor, params (string Location, Asset Asset)[] assets)
     {
         // One dispatcher call at a time, as on the UI thread: the session raises its events on the thread pool
-        return OpenAsync(initializeEditor, new ExclusiveDispatcherService(strict: true), assets);
+        return OpenAsync(initializeEditor, new ExclusiveDispatcherService(), assets);
     }
 
     /// <summary>

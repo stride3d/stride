@@ -162,7 +162,7 @@ public sealed class EditorSessionFixture : IAsyncDisposable
         var serviceProvider = new ViewModelServiceProvider(
         [
             // One dispatcher call at a time, as on the UI thread: the session raises its events on the thread pool
-            new ExclusiveDispatcherService(strict: true),
+            new ExclusiveDispatcherService(),
             dialogs,
             clipboard,
             plugins,
