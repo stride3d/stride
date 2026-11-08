@@ -170,14 +170,21 @@ namespace Stride.Rendering.Images
             Parameters.Set(TemporalAntiAliasShaderKeys.u_WeightLow2, *(Vector4*)&weights[1]);
         }
 
+        protected override void PreDrawCore(RenderDrawContext context)
+        {
+            // The previous frame is an input like the others: set it before the base class moves the inputs to a readable layout
+            // and binds them, as it was last written as a render target
+            if (previousTexture != null)
+                SetInput(3, previousTexture);
+
+            base.PreDrawCore(context);
+        }
+
         protected override void DrawCore(RenderDrawContext context)
         {
             // Note: if no previous texture yet, skip rendering
             if (previousTexture != null)
-            {
-                SetInput(3, previousTexture);
                 base.DrawCore(context);
-            }
 
             // Copy current state for next frame
             {
