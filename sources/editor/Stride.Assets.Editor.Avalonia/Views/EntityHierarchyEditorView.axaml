@@ -7,6 +7,10 @@
              xmlns:scmd="using:Stride.Assets.Editor.Commands"
              xmlns:vm="using:Stride.Assets.Editor.ViewModels"
              xmlns:vm2="using:Stride.Assets.Presentation.ViewModels"
+             xmlns:ae="using:Stride.Assets.Editor.AssetEditors"
+             xmlns:eh="using:Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor"
+             xmlns:ehvm="using:Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.ViewModels"
+             xmlns:gevm="using:Stride.Assets.Editor.AssetEditors.GameEditor.ViewModels"
              xmlns:conv="using:Stride.Assets.Editor.Avalonia.Converters"
              xmlns:local="using:Stride.Assets.Editor.Avalonia.Views"
              xmlns:dd="using:Stride.Core.Assets.Editor.Avalonia.DragDrop"
@@ -399,6 +403,63 @@
           </ToggleButton>
         </Panel>
         <Separator Width="1" Height="20" Margin="2,0" />
+        <!-- Grid: as the grid popup of the WPF scene editor -->
+        <Button x:Name="GridButton" x:DataType="vm:EditorViewToolbarViewModel" Focusable="False" Background="Transparent" Padding="6"
+                IsVisible="{Binding Grid, Converter={x:Static ObjectConverters.IsNotNull}}" ToolTip.Tip="Viewport grid settings...">
+          <Image Source="{StaticResource ImageGrid}" Width="16" Height="16"/>
+          <Button.Flyout>
+            <Flyout Placement="BottomEdgeAlignedLeft">
+              <StackPanel x:DataType="gevm:EditorGridViewModel" DataContext="{Binding Grid}" MinWidth="130" Spacing="4">
+                <CheckBox Content="Show grid" IsChecked="{Binding IsVisible}"/>
+                <TextBlock Text="Grid axis" FontWeight="Bold"/>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <CheckBox Content="X" IsChecked="{Binding IsXAxisVisible}"/>
+                  <CheckBox Content="Y" IsChecked="{Binding IsYAxisVisible}"/>
+                  <CheckBox Content="Z" IsChecked="{Binding IsZAxisVisible}"/>
+                </StackPanel>
+                <TextBlock Text="Grid opacity" FontWeight="Bold"/>
+                <sd:NumericTextBox Value="{Binding Alpha}" SmallChange="0.1" Minimum="0" Maximum="1" DecimalPlaces="3"/>
+              </StackPanel>
+            </Flyout>
+          </Button.Flyout>
+        </Button>
+        <!-- Lighting: light probes and cubemaps, as the lighting popup of the WPF scene editor -->
+        <Button x:Name="LightingButton" x:DataType="vm:EditorViewToolbarViewModel" Focusable="False" Background="Transparent" Padding="6"
+                IsVisible="{Binding Lighting, Converter={x:Static ObjectConverters.IsNotNull}}" ToolTip.Tip="Light probes and cubemaps...">
+          <Image Source="{StaticResource ImageLighting}" Width="16" Height="16"/>
+          <Button.Flyout>
+            <Flyout Placement="BottomEdgeAlignedLeft">
+              <StackPanel x:DataType="ehvm:EditorLightingViewModel" DataContext="{Binding Lighting}" MinWidth="180" Spacing="4">
+                <TextBlock Text="Light probes" FontWeight="Bold"/>
+                <DockPanel>
+                  <sd:NumericTextBox DockPanel.Dock="Right" Width="60" Value="{Binding LightProbeBounces}" Minimum="0" DecimalPlaces="0"/>
+                  <TextBlock Text="Bounces:" VerticalAlignment="Center"/>
+                </DockPanel>
+                <UniformGrid Columns="2">
+                  <Button HorizontalAlignment="Stretch" Margin="2" Command="{Binding RequestLightProbesComputeCommand}" ToolTip.Tip="Compute lighting using light probes">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                      <Image Source="{StaticResource ImageLightProbesCompute}" Width="16" Height="16"/>
+                      <TextBlock Text="Compute" VerticalAlignment="Center"/>
+                    </StackPanel>
+                  </Button>
+                  <Button HorizontalAlignment="Stretch" Margin="2" Command="{Binding RequestLightProbesResetCommand}" ToolTip.Tip="Reset light probes">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                      <Image Source="{StaticResource ImageLightProbesReset}" Width="16" Height="16"/>
+                      <TextBlock Text="Reset" VerticalAlignment="Center"/>
+                    </StackPanel>
+                  </Button>
+                </UniformGrid>
+                <TextBlock Text="Cubemap" FontWeight="Bold"/>
+                <Button HorizontalAlignment="Stretch" Margin="2" Command="{Binding CaptureCubemapCommand}" ToolTip.Tip="Generate a cubemap from the scene view and save as a texture">
+                  <StackPanel Orientation="Horizontal" Spacing="4">
+                    <Image Source="{StaticResource ImageGenerateCubeMap}" Width="16" Height="16"/>
+                    <TextBlock Text="Capture" VerticalAlignment="Center"/>
+                  </StackPanel>
+                </Button>
+              </StackPanel>
+            </Flyout>
+          </Button.Flyout>
+        </Button>
         <!-- Overlays: what the services of the game draw on request, the navigation meshes of the Physics package for
              instance; as the overlays popup of the WPF scene editor -->
         <Button x:DataType="vm:EditorViewToolbarViewModel" Focusable="False" Background="Transparent" Padding="6"
@@ -417,10 +478,75 @@
           <Image Source="{StaticResource ImageGizmos}" Width="16" Height="16"/>
           <Button.Flyout>
             <Flyout Placement="BottomEdgeAlignedLeft">
-              <local:EditorViewGizmosPanel DataContext="{Binding Gizmos}"/>
+              <StackPanel>
+                <local:EditorViewGizmosPanel DataContext="{Binding Gizmos}"/>
+                <CheckBox Content="Camera preview" IsChecked="{Binding DisplayCameraPreview}" IsVisible="{Binding HasCameraPreview}" Margin="0,2"/>
+              </StackPanel>
             </Flyout>
           </Button.Flyout>
         </Button>
+        <!-- Camera: projection, planes, speed and orientation, as the camera popup of the WPF scene editor -->
+        <Button x:Name="CameraButton" x:DataType="vm:EditorViewToolbarViewModel" Focusable="False" Background="Transparent" Padding="6"
+                IsVisible="{Binding Camera, Converter={x:Static ObjectConverters.IsNotNull}}" ToolTip.Tip="Editor camera options...">
+          <Image Source="{StaticResource ImageCameraSettings}" Width="16" Height="16"/>
+          <Button.Flyout>
+            <Flyout Placement="BottomEdgeAlignedLeft">
+              <StackPanel x:DataType="gevm:EditorCameraViewModel" DataContext="{Binding Camera}" Width="200" Spacing="4">
+                <TextBlock Text="Projection" FontWeight="Bold"/>
+                <RadioButton GroupName="CameraProjection" Content="Perspective" IsChecked="{Binding !OrthographicProjection, Mode=OneWay}"/>
+                <RadioButton GroupName="CameraProjection" Content="Orthographic" IsChecked="{Binding OrthographicProjection}"/>
+                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" >
+                  <TextBlock Grid.Row="0" Text="Near plane:" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                  <sd:NumericTextBox Grid.Row="0" Grid.Column="1" Value="{Binding NearPlane}" DecimalPlaces="4" Minimum="0"/>
+                  <TextBlock Grid.Row="1" Text="Far plane:" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                  <sd:NumericTextBox Grid.Row="1" Grid.Column="1" Value="{Binding FarPlane}" DecimalPlaces="4" Minimum="0"/>
+                  <TextBlock Grid.Row="2" Text="Field of view:" VerticalAlignment="Center" Margin="0,0,6,0" IsVisible="{Binding !OrthographicProjection}"/>
+                  <sd:NumericTextBox Grid.Row="2" Grid.Column="1" Value="{Binding FieldOfView}" DecimalPlaces="1" Minimum="0" Maximum="180" IsVisible="{Binding !OrthographicProjection}"/>
+                  <Slider Grid.Row="3" Grid.ColumnSpan="2" Minimum="0" Maximum="180" Value="{Binding FieldOfView}" IsVisible="{Binding !OrthographicProjection}"/>
+                  <TextBlock Grid.Row="4" Text="Orthographic size:" VerticalAlignment="Center" Margin="0,0,6,0" IsVisible="{Binding OrthographicProjection}"/>
+                  <sd:NumericTextBox Grid.Row="4" Grid.Column="1" Value="{Binding OrthographicSize}" DecimalPlaces="4" Minimum="0" IsVisible="{Binding OrthographicProjection}"/>
+                </Grid>
+                <TextBlock Text="Movement" FontWeight="Bold"/>
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                  <TextBlock Text="Speed:"/>
+                  <TextBlock Text="{Binding MoveSpeed}"/>
+                  <TextBlock Text="x"/>
+                </StackPanel>
+                <Slider Minimum="0" Maximum="{Binding AvailableMovementSpeedCount}" SmallChange="1" LargeChange="1" IsSnapToTickEnabled="True" TickFrequency="1"
+                        Value="{Binding MoveSpeedIndex}"/>
+                <TextBlock Text="Orientation" FontWeight="Bold"/>
+                <UniformGrid Columns="2">
+                  <Button Content="Front" HorizontalAlignment="Stretch" Margin="2" Command="{Binding ResetCameraOrientationCommand}" CommandParameter="{x:Static ae:CameraOrientation.Front}"/>
+                  <Button Content="Back" HorizontalAlignment="Stretch" Margin="2" Command="{Binding ResetCameraOrientationCommand}" CommandParameter="{x:Static ae:CameraOrientation.Back}"/>
+                  <Button Content="Top" HorizontalAlignment="Stretch" Margin="2" Command="{Binding ResetCameraOrientationCommand}" CommandParameter="{x:Static ae:CameraOrientation.Top}"/>
+                  <Button Content="Bottom" HorizontalAlignment="Stretch" Margin="2" Command="{Binding ResetCameraOrientationCommand}" CommandParameter="{x:Static ae:CameraOrientation.Bottom}"/>
+                  <Button Content="Left" HorizontalAlignment="Stretch" Margin="2" Command="{Binding ResetCameraOrientationCommand}" CommandParameter="{x:Static ae:CameraOrientation.Left}"/>
+                  <Button Content="Right" HorizontalAlignment="Stretch" Margin="2" Command="{Binding ResetCameraOrientationCommand}" CommandParameter="{x:Static ae:CameraOrientation.Right}"/>
+                </UniformGrid>
+              </StackPanel>
+            </Flyout>
+          </Button.Flyout>
+        </Button>
+        <!-- Render mode: the editor, the game preview, or one stream of the materials -->
+        <Panel x:DataType="vm:EditorViewToolbarViewModel" DataContext="{Binding Rendering}" VerticalAlignment="Center"
+               IsVisible="{Binding $self.DataContext, Converter={x:Static ObjectConverters.IsNotNull}}">
+        <ComboBox x:Name="RenderModeBox" x:DataType="ehvm:EditorRenderingViewModel" Focusable="False" Width="110"
+                  ItemsSource="{Binding AvailableRenderModes}" SelectedItem="{Binding RenderMode}">
+          <ComboBox.Styles>
+            <Style Selector="ComboBoxItem">
+              <Setter Property="IsEnabled" Value="{ReflectionBinding !IsSeparator}"/>
+            </Style>
+          </ComboBox.Styles>
+          <ComboBox.ItemTemplate>
+            <DataTemplate x:DataType="eh:EditorRenderMode">
+              <Panel>
+                <TextBlock Text="{Binding Name}" IsVisible="{Binding !IsSeparator}"/>
+                <Separator IsVisible="{Binding IsSeparator}" Margin="0,2"/>
+              </Panel>
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+        </Panel>
         <!-- Widgets: the widgets of the plugins on the edges of the view, each shown or hidden for this scene -->
         <Button x:Name="WidgetsButton" x:DataType="vm:SceneViewWidgetsViewModel" Focusable="False" Background="Transparent" Padding="6"
                 DataContext="{Binding $parent[local:EntityHierarchyEditorView].((vm:EntityHierarchyEditorViewModel)DataContext).SceneViewWidgets}"
