@@ -58,6 +58,24 @@ public class DebugRenderComponent : SyncScript
     [DataMember]
     public float ContactSize { get; set; } = 0.25f;
 
+    /// <summary>
+    /// Whether to draw a cross marker at the world position of every soft body particle.
+    /// </summary>
+    [DataMember]
+    public bool ShowSoftBodyParticles { get; set; } = true;
+
+    /// <summary>
+    /// Whether to draw a colored line for every soft body spring (white stretch, cyan shear, yellow bend).
+    /// </summary>
+    [DataMember]
+    public bool ShowSoftBodySprings { get; set; } = true;
+
+    /// <summary>
+    /// Half-length of the cross marker for a soft body particle, in world units.
+    /// </summary>
+    [DataMember]
+    public float SoftBodyParticleSize { get; set; } = 0.015f;
+
     public override void Update()
     {
         if (Input.IsKeyPressed(Key))

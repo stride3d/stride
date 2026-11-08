@@ -33,6 +33,20 @@ public sealed class LineRenderObject : RenderObject, IDisposable
     }
 
     /// <summary>
+    /// Grows the buffer so <paramref name="additionalSegments"/> can be added without resizing.
+    /// </summary>
+    public void Reserve(int additionalSegments)
+    {
+        var needed = VertexCount + additionalSegments * 2;
+        if (needed <= _vertices.Length)
+            return;
+        var cap = _vertices.Length;
+        while (cap < needed)
+            cap *= 2;
+        Array.Resize(ref _vertices, cap);
+    }
+
+    /// <summary>
     /// Adds a segment from <paramref name="start"/> to <paramref name="end"/>.
     /// </summary>
     /// <param name="start">The world-space start of the segment.</param>

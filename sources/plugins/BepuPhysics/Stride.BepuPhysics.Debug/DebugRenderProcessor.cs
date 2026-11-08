@@ -1,10 +1,13 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Buffers;
 using Stride.BepuPhysics.Debug.Effects;
 using Stride.BepuPhysics.Debug.Effects.RenderFeatures;
 using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Definitions.Colliders;
+using Stride.BepuPhysics.Soft;
+using Stride.BepuPhysics.Soft.Topology;
 using Stride.BepuPhysics.Systems;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -28,6 +31,8 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
     private VisibilityGroup _visibilityGroup = null!;
     private BepuConfiguration? _bepuConfiguration;
     private readonly LineRenderObject _contactLines = new();
+    private readonly LineRenderObject _softBodyLines = new();
+    private bool _softBodyLinesRegistered;
     private readonly Dictionary<BepuSimulation, ContactRecorder> _contactRecorders = new();
     private readonly Dictionary<CollidableComponent, (WireFrameRenderObject[] Wireframes, object? cache)> _wireFrameRenderObject = new();
 
@@ -48,7 +53,11 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
 
                 _visible = value;
                 if (_visible)
+                {
                     _visibilityGroup.RenderObjects.Add(_contactLines);
+                    _visibilityGroup.RenderObjects.Add(_softBodyLines);
+                    _softBodyLinesRegistered = true;
+                }
                 else
                     Clear();
                 UpdateShapeTracking(proc);
@@ -134,6 +143,7 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
     {
         Clear();
         _contactLines.Dispose();
+        _softBodyLines.Dispose();
     }
 
     public override void Draw(RenderContext context)
@@ -224,6 +234,69 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
         {
             StopRecordingContacts();
         }
+
+        _softBodyLines.Clear();
+        if (_visible && _component is { } opts && (opts.ShowSoftBodyParticles || opts.ShowSoftBodySprings)
+            && _sceneSystem.SceneInstance.GetProcessor<CollidableProcessor>() is { } collidablesProc)
+        {
+            DrawSoftBodies(collidablesProc, opts);
+        }
+    }
+
+    private void DrawSoftBodies(CollidableProcessor collidables, DebugRenderComponent opts)
+    {
+        for (var it = collidables.ComponentDataEnumerator; it.MoveNext();)
+        {
+            if (it.Current.Key is not SoftBodyComponent soft) continue;
+            var edges = soft.DebugEdges;
+            var particleCount = soft.ParticleCount;
+            if (particleCount == 0) continue;
+
+            var showParticles = opts.ShowSoftBodyParticles;
+            var showSprings = opts.ShowSoftBodySprings;
+
+            _softBodyLines.Reserve((showParticles ? particleCount * 3 : 0) + (showSprings ? edges.Length : 0));
+
+            var positions = ArrayPool<Vector3>.Shared.Rent(particleCount);
+            try
+            {
+                if (!soft.TryGetParticleWorldPositions(positions.AsSpan(0, particleCount)))
+                    continue;
+
+                if (showParticles)
+                {
+                    var r = opts.SoftBodyParticleSize;
+                    var ux = new Vector3(r, 0, 0);
+                    var uy = new Vector3(0, r, 0);
+                    var uz = new Vector3(0, 0, r);
+                    var cParticle = Color.Red;
+                    for (int i = 0; i < particleCount; i++)
+                    {
+                        var p = positions[i];
+                        _softBodyLines.AddLine(p - ux, p + ux, cParticle);
+                        _softBodyLines.AddLine(p - uy, p + uy, cParticle);
+                        _softBodyLines.AddLine(p - uz, p + uz, cParticle);
+                    }
+                }
+
+                if (showSprings)
+                {
+                    var cStretch = Color.White;
+                    var cShear = Color.Cyan;
+                    var cBend = Color.Yellow;
+                    for (int i = 0; i < edges.Length; i++)
+                    {
+                        var edge = edges[i];
+                        var color = edge.Kind switch { EdgeKind.Stretch => cStretch, EdgeKind.Shear => cShear, EdgeKind.Bend => cBend, _ => cStretch };
+                        _softBodyLines.AddLine(positions[edge.A], positions[edge.B], color);
+                    }
+                }
+            }
+            finally
+            {
+                ArrayPool<Vector3>.Shared.Return(positions);
+            }
+        }
     }
 
     /// <summary> Draws the feature in the main view's transparent stage, or its opaque one; never in a shadow map or G-buffer stage </summary>
@@ -302,6 +375,12 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
 
     private void Clear()
     {
+        _softBodyLines.Clear();
+        if (_softBodyLinesRegistered)
+        {
+            _visibilityGroup?.RenderObjects.Remove(_softBodyLines);
+            _softBodyLinesRegistered = false;
+        }
         ClearShapes();
         StopRecordingContacts();
         _contactLines.Clear();
