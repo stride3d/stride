@@ -2,16 +2,16 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Text;
-using Stride.Assets.Presentation.AssetEditors.ScriptEditor;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Editor.Annotations;
-using Stride.Core.Assets.Editor.Editors;
+using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Translation;
+using Stride.Assets.Editor.AssetEditors.ScriptEditor;
 
 namespace Stride.Assets.Editor.ViewModels;
 
@@ -81,7 +81,7 @@ public sealed class ScriptSourceFileEditorViewModel : AssetEditorViewModel<Scrip
         {
             SaveCommand.IsEnabled = value;
             Asset.SetHasUnsavedText(value);
-            Session.UpdateHasUnsavedChanges();
+            Session.Internals().UpdateHasUnsavedChanges();
         });
     }
 
@@ -229,7 +229,7 @@ public sealed class ScriptSourceFileEditorViewModel : AssetEditorViewModel<Scrip
     {
         // The edits that the user dropped (Don't save) go with the editor: the script has the text of its file again
         Asset.SetHasUnsavedText(false);
-        Session.UpdateHasUnsavedChanges();
+        Session.Internals().UpdateHasUnsavedChanges();
         base.Destroy();
     }
 

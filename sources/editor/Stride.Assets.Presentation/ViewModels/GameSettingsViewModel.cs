@@ -1,12 +1,14 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable enable
 
 using Stride.Core.Assets.Editor.Annotations;
-using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Serialization;
 using Stride.Engine;
 using Stride.Graphics;
+using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Presentation.Annotations;
+using Stride.Core.Assets.Presentation.Services;
 
 namespace Stride.Assets.Presentation.ViewModels;
 
@@ -43,11 +45,12 @@ public sealed class GameSettingsViewModel : AssetViewModel<GameSettingsAsset>
     }
 
     /// <inheritdoc />
-    protected override void OnSessionSaved()
+    protected internal override void OnSessionSaved()
     {
         base.OnSessionSaved();
 
         // Display orientation needs changes in iOS / Android manifest files
+        // Asset rather than the instance seen at construction: it can be replaced, by a reload of its file for instance
         var currentOrientation = Asset.GetOrCreate<RenderingSettings>().DisplayOrientation;
         if (displayOrientation != currentOrientation && Session.CurrentProject != null)
         {

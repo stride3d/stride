@@ -1145,10 +1145,14 @@ namespace Stride.Games
 
                         try
                         {
-                            GraphicsDevice.Presenter.Resize(newWidth, newHeight, newFormat);
+                            // ApplyChanges can run while a frame records (BeginRun, an update), whose Command List uses the old buffers
+                            game.ChangePresenterBuffers(() =>
+                            {
+                                GraphicsDevice.Presenter.Resize(newWidth, newHeight, newFormat);
 
-                            // Change full screen if needed
-                            GraphicsDevice.Presenter.IsFullScreen = graphicsDeviceInformation.PresentationParameters.IsFullScreen;
+                                // Change full screen if needed
+                                GraphicsDevice.Presenter.IsFullScreen = graphicsDeviceInformation.PresentationParameters.IsFullScreen;
+                            });
                         }
                         // A resize can come from a window event, outside the game loop that reports a lost device
                         catch (Exception ex) when (ex is not GraphicsDeviceException && GraphicsDevice.GraphicsDeviceStatus is var status && status != GraphicsDeviceStatus.Normal)

@@ -1,9 +1,10 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable enable
 
 using Stride.Assets.Models;
 using Stride.Assets.Presentation.ViewModels;
-using Stride.Core.Assets.Editor.Quantum.NodePresenters;
+using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
 
 namespace Stride.Assets.Editor.Quantum.NodePresenters.Updaters;
 

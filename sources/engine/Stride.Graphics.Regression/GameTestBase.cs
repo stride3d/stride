@@ -78,6 +78,13 @@ namespace Stride.Graphics.Regression
         public int StopOnFrameCount { get; set; }
 
         /// <summary>
+        ///   Gets or sets the kind of context the Game runs in, such as a window for a test of the swap-chain.
+        ///   <see langword="null"/> (the default) runs headless when <see cref="ScreenShotAutomationEnabled"/>
+        ///   is set, and in a window otherwise.
+        /// </summary>
+        public AppContextType? ContextType { get; set; }
+
+        /// <summary>
         ///   Maximum per-channel color difference (0-255) allowed when comparing images.
         ///   Default is 2. Increase for tests with expected minor numerical differences.
         /// </summary>
@@ -149,7 +156,7 @@ namespace Stride.Graphics.Regression
         {
             AssetBundleName = FindBundleName(GetType());
 
-            ConsoleLogMode = ConsoleLogMode.Always;
+            ConsoleLogMode = ConsoleLogMode.StandardOutput;
 
             // Override the default Graphic Device manager and settings
             GraphicsDeviceManager.Dispose();

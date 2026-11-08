@@ -8,11 +8,10 @@ using Stride.Assets.Presentation.ViewModels;
 using Stride.Assets.Sprite;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Tests.Helpers;
-using Stride.Core.Assets.Editor.View.Behaviors;
-using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
+using Stride.Core.Assets.Editor.Components.CopyPasteProcessors;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Editor.Tests;
 
@@ -247,6 +246,40 @@ public sealed class SpriteSheetEditorTests
         test.Undo();
 
         Assert.Equal(3, editor.Sprites.Count);
+    }
+
+    [Fact]
+    public async Task ThePasteIsDisabledWhileTheClipboardHoldsNoSprite()
+    {
+        using var test = await SpriteSheetTest.OpenAsync();
+        var editor = test.Editor;
+        test.Clipboard.Text = "Some text";
+
+        Assert.False(editor.PasteImageCommand.CanExecute(null));
+
+        editor.SelectedSprites.Add(editor.Sprites[0]);
+        editor.CopyImageCommand.Execute();
+
+        Assert.True(editor.PasteImageCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public async Task ThePasteStaysEnabledWithAClipboardThatAnswersLater()
+    {
+        using var test = await SpriteSheetTest.OpenAsync();
+        var editor = test.Editor;
+        var pendingRead = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        test.Clipboard.PendingRead = pendingRead.Task;
+        try
+        {
+            // Waiting for the clipboard on the UI thread would never end: the paste checks the content when it runs
+            Assert.True(editor.PasteImageCommand.CanExecute(null));
+        }
+        finally
+        {
+            pendingRead.SetResult(null);
+            test.Clipboard.PendingRead = null;
+        }
     }
 
     [Fact]

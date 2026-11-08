@@ -59,17 +59,38 @@ public class TestPluginRegistrations
         yield return new SpriteStudioEditorWpfPlugin();
     }
 
-    private static StrideDefaultAssetsPlugin CreateDefaultAssetsPlugin()
+    private static StrideDefaultAssetsWpfPlugin CreateDefaultAssetsPlugin()
     {
         try
         {
-            return new StrideDefaultAssetsPlugin();
+            return new StrideDefaultAssetsWpfPlugin();
         }
-        catch (InvalidOperationException e) when (e.Message.StartsWith($"Could not find package {StrideDefaultTemplates.AssetTemplatesPackageName} ", StringComparison.Ordinal))
+        catch (InvalidOperationException e) when (IsMissingTemplatesPackage(e))
         {
-            // The plugin loads the asset templates from the package store, which a CI machine doesn't have
-            throw new SkipException($"The {StrideDefaultTemplates.AssetTemplatesPackageName} package is not in the package store on this machine: {e.Message}");
+            // The plugin loads the asset templates from the package store, which a CI machine doesn't have: the templates then come
+            // from the repository's package file, and the plugin keeps them
+            var packageFile = FindRepositoryTemplatesPackage()
+                ?? throw new SkipException($"The {StrideDefaultTemplates.AssetTemplatesPackageName} package is neither in the package store nor in a repository above this test: {e.Message}");
+            StrideDefaultTemplates.LoadAssetTemplates(packageFile, loadAssemblyReferences: false);
+            return new StrideDefaultAssetsWpfPlugin();
         }
+    }
+
+    private static bool IsMissingTemplatesPackage(InvalidOperationException e)
+    {
+        return e.Message.StartsWith($"Could not find package {StrideDefaultTemplates.AssetTemplatesPackageName} ", StringComparison.Ordinal);
+    }
+
+    private static string? FindRepositoryTemplatesPackage()
+    {
+        var relativePath = Path.Combine("sources", "editor", StrideDefaultTemplates.AssetTemplatesPackageName, $"{StrideDefaultTemplates.AssetTemplatesPackageName}.sdpkg");
+        for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
+        {
+            var packageFile = Path.Combine(directory.FullName, relativePath);
+            if (File.Exists(packageFile))
+                return packageFile;
+        }
+        return null;
     }
 
     private static AssetsPlugin Create(System.Reflection.Assembly assembly, string typeName)

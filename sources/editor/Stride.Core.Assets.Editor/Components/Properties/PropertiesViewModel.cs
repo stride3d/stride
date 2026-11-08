@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters;
@@ -37,6 +38,7 @@ public abstract class PropertiesViewModel : DispatcherViewModel
     protected PropertiesViewModel(IViewModelServiceProvider serviceProvider, NodeContainer nodeContainer)
         : base(serviceProvider)
     {
+        ArgumentNullException.ThrowIfNull(nodeContainer);
         NodeContainer = nodeContainer;
 
         // Create the service needed to manage graph view models
@@ -89,6 +91,10 @@ public abstract class PropertiesViewModel : DispatcherViewModel
     public void RegisterNodePresenterUpdater(INodePresenterUpdater nodeUpdater) => ViewModelService.AvailableUpdaters.Add(nodeUpdater);
 
     public void UnregisterNodePresenterUpdater(INodePresenterUpdater nodeUpdater) => ViewModelService.AvailableUpdaters.Remove(nodeUpdater);
+
+    public IReadOnlyCollection<INodePresenterCommand> NodePresenterCommands => ViewModelService.AvailableCommands;
+
+    public IReadOnlyCollection<INodePresenterUpdater> NodePresenterUpdaters => ViewModelService.AvailableUpdaters;
 
     // TODO: remove processViewModel
     public async Task<GraphViewModel?> GenerateSelectionPropertiesAsync(IEnumerable<IPropertyProviderViewModel> selectedObjects)

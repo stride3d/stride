@@ -9,6 +9,8 @@ using Stride.Core.Assets.Quantum.Tests;
 using Stride.Core.Presentation.Dirtiables;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Quantum;
+using Stride.Core.Assets.Presentation.Quantum;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Wpf.Tests
 {

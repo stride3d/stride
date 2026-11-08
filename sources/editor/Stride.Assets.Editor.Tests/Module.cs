@@ -2,7 +2,9 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Runtime.CompilerServices;
+using Stride.Assets.Presentation;
 using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Services;
 
 namespace Stride.Assets.Editor.Tests;
 
@@ -12,8 +14,11 @@ internal static class Module
     [Stride.Core.ModuleInitializer]
     internal static void Initialize()
     {
-        // The asset types, their view models and the editor plugin: the agnostic editor layer registers everything below it
+        // The asset types and their view models: the agnostic editor layer registers everything below it
         RuntimeHelpers.RunModuleConstructor(typeof(Stride.Assets.Editor.Module).Module.ModuleHandle);
+        // The default plugins of the cross-platform editor, which its host registers (Stride.Assets.Editor.Avalonia)
+        AssetsPlugin.RegisterPlugin(typeof(StrideDefaultAssetsPlugin));
+        AssetsPlugin.RegisterPlugin(typeof(StrideEditorPlugin));
 
         // PackageSession needs MSBuild, like in the editor
         PackageSessionPublicHelper.FindAndSetMSBuildVersion();

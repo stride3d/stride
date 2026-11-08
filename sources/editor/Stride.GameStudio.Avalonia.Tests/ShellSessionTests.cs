@@ -11,11 +11,11 @@ using Stride.Assets.Presentation.ViewModels;
 using Stride.Assets.Sprite;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Presentation.Avalonia.Controls;
 using Stride.GameStudio.Avalonia.Tests.Helpers;
 using Stride.GameStudio.Avalonia.Views;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.GameStudio.Avalonia.Tests;
 
@@ -48,9 +48,9 @@ public sealed class ShellSessionTests
     {
         // The host decides which companions the session loads: the neutral ones and the Avalonia ones, never the Wpf ones
         // (the filter itself is tested in Stride.Core.Assets.Tests.TestCompanionToolkits)
-        Assert.Equal(EditorToolkits.Avalonia, SessionViewModel.EditorToolkitName);
-
         using var fixture = await ShellSessionFixture.OpenAsync(("Sheet", new SpriteSheetAsset()));
+        Assert.Equal(EditorToolkits.Avalonia, fixture.Main.EditorToolkitName);
+        Assert.Same(fixture.Main, fixture.Session.Main);
 
         var packageSession = fixture.Package.Package.Session;
         Assert.NotNull(packageSession);
@@ -104,7 +104,7 @@ public sealed class ShellSessionTests
             // The solution explorer lists the package categories, the asset view the assets of the selected location
             var solutionExplorer = window.GetVisualDescendants().OfType<SolutionExplorerView>().Single();
             var tree = solutionExplorer.GetVisualDescendants().OfType<TreeView>().Single();
-            Assert.Contains(tree.Items.Cast<object>(), x => x is Stride.Core.Assets.Editor.ViewModel.ICategoryViewModel);
+            Assert.Contains(tree.Items.Cast<object>(), x => x is Stride.Core.Assets.Presentation.ViewModels.ICategoryViewModel);
 
             fixture.Session.AssetCollection.SelectedLocations.Clear();
             fixture.Session.AssetCollection.SelectedLocations.Add(fixture.Package);

@@ -1,13 +1,13 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModels;
-using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.Presenters;
+using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Presentation.Services;
 
 namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
 
@@ -20,13 +20,13 @@ public class PickupAssetCommand : ChangeValueWithPickerCommandBase
     /// <summary>
     /// The current session.
     /// </summary>
-    protected readonly SessionViewModel Session;
+    protected readonly ISessionViewModel Session;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PickupAssetCommand"/> class.
     /// </summary>
     /// <param name="session">The current session.</param>
-    public PickupAssetCommand(SessionViewModel session)
+    public PickupAssetCommand(ISessionViewModel session)
     {
         Session = session;
     }
@@ -50,10 +50,10 @@ public class PickupAssetCommand : ChangeValueWithPickerCommandBase
         var targetType = (Type)parameter;
         // The picker opens on the current target of the reference, or else on the folder of the selected assets
         var asset = GetCurrentTarget(currentValue);
-        var initialLocation = asset?.Directory ?? Session.AssetCollection.SelectedAssets.Select(x => x.Directory).FirstOrDefault();
+        var initialLocation = asset?.Directory ?? Session.ActiveAssetView.SelectedAssets.Select(x => x.Directory).FirstOrDefault();
 
-        var dialogService = Session.ServiceProvider.Get<IEditorDialogService>();
-        var pickedAsset = await dialogService.OpenAssetPickerAsync(Session, GetAssetTypes(targetType), x => FilterAsset(x, targetType), asset, initialLocation);
+        var assetPicker = Session.ServiceProvider.Get<IAssetPickerService>();
+        var pickedAsset = await assetPicker.OpenAssetPickerAsync(Session, GetAssetTypes(targetType), x => FilterAsset(x, targetType), asset, initialLocation);
 
         return new PickerResult
         {

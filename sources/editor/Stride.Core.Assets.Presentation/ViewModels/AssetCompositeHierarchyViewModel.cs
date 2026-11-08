@@ -1,8 +1,9 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Specialized;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Extensions;
 using Stride.Core.Quantum;
@@ -32,9 +33,26 @@ public abstract class AssetCompositeHierarchyViewModel<TAssetPartDesign, TAssetP
         base.Destroy();
     }
 
-    public AssetCompositeHierarchyPropertyGraph<TAssetPartDesign, TAssetPart> AssetHierarchyPropertyGraph => (AssetCompositeHierarchyPropertyGraph<TAssetPartDesign, TAssetPart>)PropertyGraph;
+    /// <inheritdoc />
+    protected override void OnAssetReplaced(Asset previousAsset)
+    {
+        var previousHierarchy = ((AssetCompositeHierarchy<TAssetPartDesign, TAssetPart>)previousAsset).Hierarchy;
+        previousHierarchy.Parts.Values.ForEach(UntrackBaseChanges);
+        NodeContainer.GetNode(previousHierarchy.Parts).ItemChanged -= PartsChanged;
 
-    public abstract AssetCompositeItemViewModel CreatePartViewModel(TAssetPartDesign partDesign);
+        Asset.Hierarchy.Parts.Values.ForEach(TrackBaseChanges);
+        NodeContainer.GetNode(Asset.Hierarchy.Parts).ItemChanged += PartsChanged;
+
+        base.OnAssetReplaced(previousAsset);
+    }
+
+    /// <inheritdoc />
+    internal override bool DerivesFrom(AssetId baseId)
+    {
+        return base.DerivesFrom(baseId) || Asset.Hierarchy.Parts.Values.Any(x => x.Base?.BasePartAsset.Id == baseId);
+    }
+
+    public AssetCompositeHierarchyPropertyGraph<TAssetPartDesign, TAssetPart> AssetHierarchyPropertyGraph => (AssetCompositeHierarchyPropertyGraph<TAssetPartDesign, TAssetPart>)PropertyGraph;
 
     /// <summary>
     /// Gathers all base assets used in the composition of this asset, recursively.

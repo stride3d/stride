@@ -1,13 +1,13 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 
 using System.Diagnostics.CodeAnalysis;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModels;
 
@@ -41,6 +41,17 @@ public sealed class EditorCollectionViewModel : DispatcherViewModel, IAssetEdito
 
     public SessionViewModel Session { get; }
 
+    /// <inheritdoc/>
+    public Task OpenAssetEditorAsync(AssetViewModel asset)
+    {
+        OpenAssetEditor(asset);
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Opens the editor of the given asset, or makes it the active one when it is open already.
+    /// </summary>
+    /// <param name="asset">The asset to edit.</param>
     public void OpenAssetEditor(AssetViewModel asset)
     {
         if (openedAssets.TryGetValue(asset, out var editor))
@@ -49,16 +60,55 @@ public sealed class EditorCollectionViewModel : DispatcherViewModel, IAssetEdito
              return;
         }
 
+        CreateAssetEditor(asset, editors.Count, true);
+    }
+
+    private void CreateAssetEditor(AssetViewModel asset, int index, bool activate)
+    {
         var editorType = ServiceProvider.TryGet<IAssetsPluginService>()?.GetEditorViewModelType(asset.GetType());
         if (editorType is not null)
         {
-            editor = (AssetEditorViewModel)Activator.CreateInstance(editorType, asset)!;
+            var editor = (AssetEditorViewModel)Activator.CreateInstance(editorType, asset)!;
             openedAssets.Add(asset, editor);
-            editors.Add(editor);
-            ActiveEditor = editor;
+            editors.Insert(index, editor);
+            if (activate)
+                ActiveEditor = editor;
             // The editor starts what it needs once it is open (e.g. the game of a scene editor)
             InitializeEditorAsync(editor);
         }
+    }
+
+    /// <inheritdoc/>
+    public Task ReopenAssetEditorAsync(AssetViewModel asset, Action replaceAsset)
+    {
+        ArgumentNullException.ThrowIfNull(asset);
+        ArgumentNullException.ThrowIfNull(replaceAsset);
+
+        if (!openedAssets.TryGetValue(asset, out var editor) || !editor.PreviewClose(false))
+        {
+            replaceAsset();
+            return Task.CompletedTask;
+        }
+
+        // The new editor takes the place of the previous one in the tabs
+        var index = editors.IndexOf(editor);
+        var wasActive = ActiveEditor == editor;
+        if (wasActive)
+            ActiveEditor = null;
+        openedAssets.Remove(asset);
+        editors.Remove(editor);
+        editor.Destroy();
+
+        try
+        {
+            replaceAsset();
+        }
+        finally
+        {
+            // Even if the replacement failed, the editor does not stay closed
+            CreateAssetEditor(asset, index, wasActive);
+        }
+        return Task.CompletedTask;
     }
 
     private static async void InitializeEditorAsync(AssetEditorViewModel editor)
@@ -75,13 +125,8 @@ public sealed class EditorCollectionViewModel : DispatcherViewModel, IAssetEdito
         }
     }
 
-    /// <summary>
-    /// Closes the editor of an asset once it agrees (see <see cref="AssetEditorViewModel.PreviewCloseAsync"/>): it saves its
-    /// changes or drops them as <paramref name="save"/> says, or as the user chooses when it is <c>null</c>.
-    /// </summary>
-    /// <param name="asset">The asset whose editor closes.</param>
-    /// <param name="save"><c>true</c> to save the changes, <c>false</c> to drop them, <c>null</c> to ask the user.</param>
-    /// <returns><c>true</c> when the editor is closed or the asset has none, <c>false</c> when the user kept it open.</returns>
+    /// <inheritdoc/>
+    /// <remarks>The editor agrees through <see cref="AssetEditorViewModel.PreviewCloseAsync"/>.</remarks>
     public async Task<bool> CloseAssetEditorAsync(AssetViewModel asset, bool? save)
     {
         if (!openedAssets.TryGetValue(asset, out var editor))
@@ -106,14 +151,12 @@ public sealed class EditorCollectionViewModel : DispatcherViewModel, IAssetEdito
         return true;
     }
 
-    /// <summary>
-    /// Closes every editor, see <see cref="CloseAssetEditorAsync"/>. It stops at the first editor that the user keeps open;
-    /// the editors closed before it stay closed. Once all are closed, it waits until they have stopped
-    /// (<see cref="AssetEditorViewModel.Stopped"/>), as long as <see cref="StopTimeout"/> at most: the session closes next,
-    /// and the plugins leave with the settings keys that the games of the editors read on every frame.
-    /// </summary>
-    /// <param name="save"><c>true</c> to save the changes, <c>false</c> to drop them, <c>null</c> to ask the user.</param>
-    /// <returns><c>true</c> when every editor is closed, <c>false</c> when the user kept one open.</returns>
+    /// <inheritdoc/>
+    /// <remarks>
+    /// It stops at the first editor that the user keeps open; the editors closed before it stay closed. Once all are closed, it
+    /// waits until they have stopped (<see cref="AssetEditorViewModel.Stopped"/>), as long as <see cref="StopTimeout"/> at most:
+    /// the session closes next, and the plugins leave with the settings keys that the games of the editors read on every frame.
+    /// </remarks>
     public async Task<bool> CloseAllEditorsAsync(bool? save)
     {
         var closedEditors = new List<AssetEditorViewModel>();
@@ -164,7 +207,7 @@ public sealed class EditorCollectionViewModel : DispatcherViewModel, IAssetEdito
         }
     }
 
-    public bool TryGetAssetEditor<TEditor>(AssetViewModel asset, [MaybeNullWhen(false)] out TEditor assetEditor) where TEditor : AssetEditorViewModel
+    public bool TryGetAssetEditor<TEditor>(AssetViewModel asset, [MaybeNullWhen(false)] out TEditor assetEditor) where TEditor : IAssetEditorViewModel
     {
         if (openedAssets.TryGetValue(asset, out var found) && found is TEditor editor)
         {
@@ -172,7 +215,7 @@ public sealed class EditorCollectionViewModel : DispatcherViewModel, IAssetEdito
             return true;
         }
 
-        assetEditor = null;
+        assetEditor = default;
         return false;
     }
 }

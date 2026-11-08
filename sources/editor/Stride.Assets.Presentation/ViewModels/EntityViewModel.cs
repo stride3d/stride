@@ -1,24 +1,34 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable enable
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
 using Stride.Assets.Entities;
+using Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels;
 using Stride.Assets.Quantum;
 using Stride.Core;
 using Stride.Core.Assets.Analysis;
-using Stride.Core.Assets.Editor.Components.Properties;
-using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Presentation.Components.Properties;
 using Stride.Core.Assets.Quantum;
-using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Quantum;
 using Stride.Engine;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Presentation.ViewModels;
 
-public sealed class EntityViewModel : EntityHierarchyElementViewModel, IAssetPropertyProviderViewModel
+/// <summary>
+/// An entity of the hierarchy of a scene or a prefab.
+/// </summary>
+[DebuggerDisplay("Entity = {Name}")]
+public sealed class EntityViewModel : EntityHierarchyElementViewModel, IEditorDesignPartViewModel<EntityDesign, Entity>, IAddChildrenPropertiesProviderViewModel
 {
     private readonly MemberGraphNodeBinding<string> nameNodeBinding;
     private readonly ObjectGraphNodeBinding<EntityComponentCollection> componentsNodeBinding;
@@ -27,24 +37,28 @@ public sealed class EntityViewModel : EntityHierarchyElementViewModel, IAssetPro
     private PrefabViewModel? sourcePrefab;
 
     public EntityViewModel(EntityHierarchyViewModel asset, EntityDesign entityDesign)
-        : base(asset, GetOrCreateChildPartDesigns((EntityHierarchyAssetBase)asset.Asset, entityDesign))
+        : base(asset, GetOrCreateChildPartDesigns((EntityHierarchyAssetBase)asset.Asset, entityDesign), entityDesign.Entity)
     {
+        if (entityDesign.Entity == null) throw new ArgumentException(@"entity must contain a non-null asset entity.", nameof(entityDesign));
+
         EntityDesign = entityDesign;
 
-        var assetNode = asset.Session.AssetNodeContainer.GetOrCreateNode(entityDesign.Entity);
-        nameNodeBinding = new MemberGraphNodeBinding<string>(assetNode[nameof(Entity.Name)], nameof(Name), OnPropertyChanging, OnPropertyChanged, ServiceProvider.TryGet<IUndoRedoService>());
-        componentsNodeBinding = new ObjectGraphNodeBinding<EntityComponentCollection>(assetNode[nameof(Entity.Components)].Target!, nameof(Components), OnPropertyChanging, OnPropertyChanged, ServiceProvider.TryGet<IUndoRedoService>(), false);
-        transformChildrenNode = asset.Session.AssetNodeContainer.GetOrCreateNode(entityDesign.Entity.Transform)[nameof(TransformComponent.Children)].Target!;
+        var nodeContainer = asset.Session.AssetNodeContainer;
+        var assetNode = nodeContainer.GetOrCreateNode(entityDesign.Entity);
+        nameNodeBinding = new MemberGraphNodeBinding<string>(assetNode[nameof(Entity.Name)], nameof(Name), OnPropertyChanging, OnPropertyChanged, UndoRedoService);
+        componentsNodeBinding = new ObjectGraphNodeBinding<EntityComponentCollection>(assetNode[nameof(Entity.Components)].Target!, nameof(Components), OnPropertyChanging, OnPropertyChanged, UndoRedoService, false);
+        transformChildrenNode = nodeContainer.GetOrCreateNode(entityDesign.Entity.Transform)[nameof(TransformComponent.Children)].Target!;
         transformChildrenNode.ItemChanging += TransformChildrenChanging;
         transformChildrenNode.ItemChanged += TransformChildrenChanged;
         RenameCommand = new AnonymousCommand(ServiceProvider, () => IsEditing = true);
+        FocusOnEntityCommand = new AnonymousTaskCommand(ServiceProvider, FocusOnEntity);
 
         UpdateSourcePrefab();
-        basePrefabNode = asset.Session.AssetNodeContainer.GetOrCreateNode(entityDesign)[nameof(EntityDesign.Base)];
+        basePrefabNode = nodeContainer.GetOrCreateNode(entityDesign)[nameof(EntityDesign.Base)];
         basePrefabNode.ValueChanged += BasePrefabChanged;
     }
 
-    public IEnumerable<EntityComponent> Components => componentsNodeBinding.GetNodeValue();
+    public IEnumerable<EntityComponent> Components => componentsNodeBinding.GetNodeValue() ?? [];
 
     public Entity AssetSideEntity => EntityDesign.Entity;
 
@@ -62,6 +76,9 @@ public sealed class EntityViewModel : EntityHierarchyElementViewModel, IAssetPro
     }
 
     /// <inheritdoc/>
+    public override bool IsEditing { get => base.IsEditing; set { base.IsEditing = value; FocusOnEntityCommand.IsEnabled = !value; } }
+
+    /// <inheritdoc/>
     public override int EntityCount => AssetSideEntity.Transform.Children.Count;
 
     /// <summary>
@@ -70,15 +87,21 @@ public sealed class EntityViewModel : EntityHierarchyElementViewModel, IAssetPro
     public ICommandBase RenameCommand { get; }
 
     /// <summary>
+    /// Gets the command that moves the camera of the editor to this entity, when it is loaded.
+    /// </summary>
+    public ICommandBase FocusOnEntityCommand { get; }
+
+    /// <summary>
     /// Gets the prefab this entity is an instance of, or <c>null</c> when it is not part of a prefab instance.
     /// </summary>
     public PrefabViewModel? SourcePrefab { get => sourcePrefab; private set => SetValue(ref sourcePrefab, value); }
 
-    internal EntityDesign EntityDesign { get; }
+    /// <summary>
+    /// Gets the design of this entity: the entity and its folder.
+    /// </summary>
+    public EntityDesign EntityDesign { get; }
 
-    bool IPropertyProviderViewModel.CanProvidePropertiesViewModel => true;
-
-    AssetViewModel IAssetPropertyProviderViewModel.RelatedAsset => Asset;
+    EntityDesign IEditorDesignPartViewModel<EntityDesign, Entity>.PartDesign => EntityDesign;
 
     /// <inheritdoc/>
     public override void Destroy()
@@ -113,7 +136,7 @@ public sealed class EntityViewModel : EntityHierarchyElementViewModel, IAssetPro
     }
 
     /// <summary>
-    /// Adds a copy of this entity, with its children, right after it in the same folder (Ctrl+D in the WPF scene editor).
+    /// Adds a copy of this entity, with its children, right after it in the same folder (Ctrl+D in the editor).
     /// </summary>
     /// <returns>The view model of the copy.</returns>
     public EntityViewModel Duplicate()
@@ -121,16 +144,63 @@ public sealed class EntityViewModel : EntityHierarchyElementViewModel, IAssetPro
         if (Parent is null)
             throw new InvalidOperationException($"{nameof(Parent)} cannot be null");
 
-        var asset = (EntityHierarchyViewModel)Asset;
-        var clonedHierarchy = EntityHierarchyPropertyGraph.CloneSubHierarchies(asset.Session.AssetNodeContainer, asset.Asset, AssetSideEntity.Id.Yield(), SubHierarchyCloneFlags.GenerateNewIdsForIdentifiableObjects, out _);
+        var clonedHierarchy = EntityHierarchyPropertyGraph.CloneSubHierarchies(Asset.Session.AssetNodeContainer, Asset.Asset, AssetSideEntity.Id.Yield(), SubHierarchyCloneFlags.GenerateNewIdsForIdentifiableObjects, out _);
         AssetPartsAnalysis.GenerateNewBaseInstanceIds(clonedHierarchy);
 
         var addedRoot = clonedHierarchy.Parts[clonedHierarchy.RootParts.Single().Id];
         addedRoot.Folder = (Parent as EntityFolderViewModel)?.Path;
-        asset.AssetHierarchyPropertyGraph.AddPartToAsset(clonedHierarchy.Parts, addedRoot, (Parent.Owner as EntityViewModel)?.AssetSideEntity, Parent.Owner.IndexOfEntity(this) + 1);
+
+        // rename the entity to avoid having the same names
+        addedRoot.Entity.Name = EntityNames.ComputeNewName(Parent, addedRoot.Entity.Name);
+        Asset.AssetHierarchyPropertyGraph.AddPartToAsset(clonedHierarchy.Parts, addedRoot, (Parent.Owner as EntityViewModel)?.AssetSideEntity, Parent.Owner.IndexOfEntity(this) + 1);
 
         // The view model exists at that point
+        // TODO: Offset a bit (by 1 scene unit horizontally?) the cloned entity so it appears distincly from the source entity
         return Parent.Owner.TransformChildren.First(x => x.AssetSideEntity == addedRoot.Entity);
+    }
+
+    /// <inheritdoc />
+    protected override int GetInsertionIndex(InsertPosition position)
+    {
+        if (Parent == null) throw new InvalidOperationException($"{nameof(Parent)} cannot be null");
+        var index = Parent.Owner.IndexOfEntity(this);
+        if (position == InsertPosition.After)
+            ++index;
+
+        return index;
+    }
+
+    /// <inheritdoc />
+    protected override Task OnLoadingRequested(bool load, bool recursive)
+    {
+        // TODO: we don't support explicit loading request on entities for the moment.
+        // TODO: in the future to allow loading/unloading a specific entity, we will need to call AddPart/RemovePart here
+        // TODO: and handle all issues releated to references (i.e. what happens when we unload an entity that is still referenced by another loaded entity)
+        IsLoaded = load;
+        if (!recursive)
+            return Task.CompletedTask;
+
+        // Update IsLoaded property recursively
+        foreach (var entity in TransformChildren.BreadthFirst(x => x.TransformChildren))
+        {
+            entity.IsLoaded = load;
+        }
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc />
+    protected override Task OnLockingRequested(bool @lock, bool recursive)
+    {
+        IsLocked = @lock;
+        if (!recursive)
+            return Task.CompletedTask;
+
+        // Update IsLocked property recursively
+        foreach (var entity in TransformChildren.BreadthFirst(x => x.TransformChildren))
+        {
+            entity.IsLocked = @lock;
+        }
+        return Task.CompletedTask;
     }
 
     // TODO: turn this non-static and put it in the base - just keep the entity-specific part here. This need to rework a bit how we initialize folders
@@ -145,6 +215,11 @@ public sealed class EntityViewModel : EntityHierarchyElementViewModel, IAssetPro
             if (child.Entity != childDesign.Entity) throw new InvalidOperationException();
             yield return childDesign;
         }
+    }
+
+    private Task FocusOnEntity()
+    {
+        return IsLoaded && Editor is { } editor ? editor.FocusOnEntityAsync(this) : Task.CompletedTask;
     }
 
     private void BasePrefabChanged(object? sender, MemberNodeChangeEventArgs e)
@@ -177,24 +252,60 @@ public sealed class EntityViewModel : EntityHierarchyElementViewModel, IAssetPro
             case ContentChangeType.CollectionRemove:
                 RemoveEntity(((TransformComponent)e.OldValue!).Entity, e.Index.Int);
                 break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(e));
         }
     }
 
     /// <inheritdoc/>
-    GraphNodePath IAssetPropertyProviderViewModel.GetAbsolutePathToRootNode()
+    bool IAddChildrenPropertiesProviderViewModel.CanAddChildren(IReadOnlyCollection<object> children, AddChildModifiers modifiers, out string message)
     {
-        return GetNodePath();
+        return ((IAddChildViewModel)this).CanAddChildren(children, modifiers, out message);
     }
 
     /// <inheritdoc/>
-    IObjectNode IPropertyProviderViewModel.GetRootNode()
+    void IAddChildrenPropertiesProviderViewModel.AddChildren(IReadOnlyCollection<object> children, AddChildModifiers modifiers)
     {
-        return Asset.Session.AssetNodeContainer.GetOrCreateNode(AssetSideEntity);
+        var undoRedo = UndoRedoService;
+        foreach (var asset in children.OfType<AssetViewModel>())
+        {
+            var component = CreateComponentFromAsset(asset);
+            if (component == null)
+                continue;
+
+            // 3 cases:
+            // - If AllowMultipleComponents is true, we add at the end
+            // - If AllowMultipleComponents is true and the component doesn't exist yet, we replace
+            // - If AllowMultipleComponents is false and the component already exists, we replace
+
+            // Retrieve list of components to check if we need to add or replace
+            var assetSideEntityNode = Asset.Session.AssetNodeContainer.GetNode(AssetSideEntity)!;
+            var componentsNode = assetSideEntityNode[nameof(Entity.Components)].Target!;
+            var components = AssetSideEntity.Components;
+
+            var replaceIndex = -1;
+
+            // Only try to replace in case AllowMultipleComponents is not set
+            if (!EntityComponentAttributes.Get(component.GetType()).AllowMultipleComponents)
+            {
+                // Find the replace index (if a component of same type already exists)
+                replaceIndex = components.IndexOf(x => x.GetType() == component.GetType());
+            }
+
+            // Add or replace the component
+            using var transaction = undoRedo?.CreateTransaction();
+            if (replaceIndex == -1)
+            {
+                componentsNode.Add(component);
+                if (transaction != null)
+                    undoRedo!.SetName(transaction, $"Add component {component.GetType().Name}");
+            }
+            else
+            {
+                componentsNode.Update(component, new NodeIndex(replaceIndex));
+                if (transaction != null)
+                    undoRedo!.SetName(transaction, $"Replace component {component.GetType().Name}");
+            }
+        }
     }
-
-    /// <inheritdoc/>
-    bool IPropertyProviderViewModel.ShouldConstructItem(IObjectNode collection, NodeIndex index) => ((IPropertyProviderViewModel)Asset).ShouldConstructItem(collection, index);
-
-    /// <inheritdoc/>
-    bool IPropertyProviderViewModel.ShouldConstructMember(IMemberNode member) => ((IPropertyProviderViewModel)Asset).ShouldConstructMember(member);
 }

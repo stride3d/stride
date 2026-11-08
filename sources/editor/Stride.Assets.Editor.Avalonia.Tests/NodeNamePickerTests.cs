@@ -10,7 +10,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Stride.Assets.Editor.Avalonia.Views;
 using Stride.Assets.Models;
-using Stride.Assets.Presentation.NodePresenters.Keys;
+using Stride.Assets.Editor.Quantum.NodePresenters.Keys;
 using Stride.Core.Assets.Editor.Avalonia.Tests.Helpers;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Presentation.Quantum.ViewModels;

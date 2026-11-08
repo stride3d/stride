@@ -1,16 +1,28 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Core.Assets.Editor.Components.Properties;
-using Stride.Core.Assets.Editor.ViewModel;
+#nullable enable
+
+using System.Diagnostics;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Quantum;
+using Stride.Core.Assets.Presentation.Components.Properties;
 
 namespace Stride.Core.Assets.Presentation.ViewModels;
 
-public abstract class AssetCompositeItemViewModel : DispatcherViewModel
+/// <summary>
+/// A view model representing an item, real or virtual, of a hierarchical composite asset.
+/// </summary>
+public abstract class AssetCompositeItemViewModel : DispatcherViewModel, IChildViewModel
 {
+    private AssetCompositeItemViewModel? parent;
+    private bool isVisible = true;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AssetCompositeItemViewModel"/> class.
+    /// </summary>
+    /// <param name="asset">The related asset.</param>
     protected AssetCompositeItemViewModel(AssetViewModel asset)
         : base(asset.ServiceProvider)
     {
@@ -23,9 +35,41 @@ public abstract class AssetCompositeItemViewModel : DispatcherViewModel
     public AssetViewModel Asset { get; }
 
     /// <summary>
+    /// Gets or sets whether this item is displayed: the filter of the editor hides the items that don't match it.
+    /// </summary>
+    public bool IsVisible { get => isVisible; set => SetValue(ref isVisible, value); }
+
+    /// <summary>
     /// Gets or sets the name of this item.
     /// </summary>
     public abstract string? Name { get; set; }
+
+    /// <summary>
+    /// The parent of this item.
+    /// </summary>
+    public AssetCompositeItemViewModel? Parent
+    {
+        get => parent;
+        protected set
+        {
+            if (value == parent)
+            {
+                Debug.WriteLine("Ineffective change to the Parent.");
+            }
+            SetValue(ref parent, value);
+        }
+    }
+
+    /// <inheritdoc/>
+    public override void Destroy()
+    {
+        // The children go with their parent
+        foreach (var child in EnumerateChildren().ToList())
+        {
+            child.Destroy();
+        }
+        base.Destroy();
+    }
 
     /// <summary>
     /// Enumerates all child items of this <see cref="AssetCompositeItemViewModel"/>.
@@ -41,27 +85,59 @@ public abstract class AssetCompositeItemViewModel : DispatcherViewModel
     public abstract GraphNodePath GetNodePath();
 
     protected IObjectNode GetNode() => Asset.Session.AssetNodeContainer.GetNode(Asset.Asset);
+
+    /// <inheritdoc/>
+    IChildViewModel? IChildViewModel.GetParent()
+    {
+        return Parent;
+    }
+
+    /// <inheritdoc/>
+    string IChildViewModel.GetName()
+    {
+        return (this as IAssetPartViewModel)?.Id.ToString() ?? Name ?? string.Empty;
+    }
 }
 
-public abstract class AssetCompositeItemViewModel<TAssetViewModel, TItemViewModel> : AssetCompositeItemViewModel
+/// <summary>
+/// A view model representing an item, real or virtual, of a hierarchical composite asset.
+/// </summary>
+/// <typeparam name="TAssetViewModel">The type of the related asset.</typeparam>
+/// <typeparam name="TParentViewModel">The type of the parent item.</typeparam>
+/// <typeparam name="TChildViewModel">The type of the child items.</typeparam>
+public abstract class AssetCompositeItemViewModel<TAssetViewModel, TParentViewModel, TChildViewModel> : AssetCompositeItemViewModel
     where TAssetViewModel : AssetViewModel
-    where TItemViewModel : AssetCompositeItemViewModel<TAssetViewModel, TItemViewModel>
+    where TParentViewModel : AssetCompositeItemViewModel<TAssetViewModel, TParentViewModel, TChildViewModel>
+    where TChildViewModel : AssetCompositeItemViewModel<TAssetViewModel, TParentViewModel, TChildViewModel>
 {
-    private readonly ObservableList<TItemViewModel> children = new();
-    private TItemViewModel? parent;
+    private readonly ObservableList<TChildViewModel> children = [];
 
-    protected AssetCompositeItemViewModel(AssetViewModel asset)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AssetCompositeItemViewModel{TAssetViewModel,TParentViewModel,TChildViewModel}"/> class.
+    /// </summary>
+    /// <param name="asset">The related asset.</param>
+    protected AssetCompositeItemViewModel(TAssetViewModel asset)
         : base(asset)
     {
     }
 
-    public IReadOnlyObservableList<TItemViewModel> Children => children;
+    /// <summary>
+    /// The related asset.
+    /// </summary>
+    public new TAssetViewModel Asset => (TAssetViewModel)base.Asset;
 
-    public TItemViewModel? Parent
-    {
-        get => parent;
-        protected set => SetValue(ref parent, value);
-    }
+    /// <summary>
+    /// The children collection of this item.
+    /// </summary>
+    public IReadOnlyObservableList<TChildViewModel> Children => children;
+
+    /// <summary>
+    /// The parent of this item.
+    /// </summary>
+    public new TParentViewModel? Parent { get => (TParentViewModel?)base.Parent; protected set => base.Parent = value; }
+
+    /// <inheritdoc/>
+    public override IEnumerable<AssetCompositeItemViewModel> EnumerateChildren() => Children;
 
     /// <inheritdoc/>
     public override void Destroy()
@@ -75,10 +151,11 @@ public abstract class AssetCompositeItemViewModel<TAssetViewModel, TItemViewMode
     /// </summary>
     /// <param name="item">The item to add to the collection.</param>
     /// <exception cref="ArgumentNullException"><paramref name="item"/> is <c>null</c>.</exception>
-    protected void AddItem(TItemViewModel item)
+    protected void AddItem(TChildViewModel item)
     {
+        ArgumentNullException.ThrowIfNull(item);
         children.Add(item);
-        item.Parent = (TItemViewModel)this;
+        item.Parent = (TParentViewModel)this;
     }
 
     /// <summary>
@@ -86,20 +163,15 @@ public abstract class AssetCompositeItemViewModel<TAssetViewModel, TItemViewMode
     /// </summary>
     /// <param name="items">An enumeration of items to add to the collection.</param>
     /// <exception cref="ArgumentNullException"><paramref name="items"/> is <c>null</c>.</exception>
-    protected void AddItems(IEnumerable<TItemViewModel> items)
+    protected void AddItems(IEnumerable<TChildViewModel> items)
     {
+        ArgumentNullException.ThrowIfNull(items);
         foreach (var item in items)
         {
             children.Add(item);
-            item.Parent = (TItemViewModel)this;
+            item.Parent = (TParentViewModel)this;
         }
     }
-
-    /// <summary>
-    /// Enumerates all child items of this <see cref="AssetCompositeItemViewModel"/>.
-    /// </summary>
-    /// <returns>A sequence containing all child items of this instance.</returns>
-    public override IEnumerable<AssetCompositeItemViewModel> EnumerateChildren() => Children;
 
     /// <summary>
     /// Inserts an <paramref name="item"/> to the <see cref="Children"/> collection at the specified <paramref name="index"/>.
@@ -108,10 +180,11 @@ public abstract class AssetCompositeItemViewModel<TAssetViewModel, TItemViewMode
     /// <param name="item">The item to insert into the collection.</param>
     /// <exception cref="ArgumentNullException"><paramref name="item"/> is <c>null</c>.</exception>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="index"/> is not a valid index in the collection.</exception>
-    protected void InsertItem(int index, TItemViewModel item)
+    protected void InsertItem(int index, TChildViewModel item)
     {
+        ArgumentNullException.ThrowIfNull(item);
         children.Insert(index, item);
-        item.Parent = (TItemViewModel)this;
+        item.Parent = (TParentViewModel)this;
     }
 
     /// <summary>
@@ -119,8 +192,9 @@ public abstract class AssetCompositeItemViewModel<TAssetViewModel, TItemViewMode
     /// </summary>
     /// <param name="item">The item to remove from the collection.</param>
     /// <returns><c>true</c> if item was successfully removed from the collection; otherwise, <c>false</c>.</returns>
-    protected bool RemoveItem(TItemViewModel item)
+    protected bool RemoveItem(TChildViewModel item)
     {
+        ArgumentNullException.ThrowIfNull(item);
         if (!children.Remove(item))
             return false;
         item.Parent = null;
@@ -137,5 +211,24 @@ public abstract class AssetCompositeItemViewModel<TAssetViewModel, TItemViewMode
         var item = children[index];
         children.RemoveAt(index);
         item.Parent = null;
+    }
+}
+
+/// <summary>
+/// A view model representing an item, real or virtual, of a hierarchical composite asset.
+/// </summary>
+/// <typeparam name="TAssetViewModel">The type of the related asset.</typeparam>
+/// <typeparam name="TItemViewModel">The type of the parent and child items.</typeparam>
+public abstract class AssetCompositeItemViewModel<TAssetViewModel, TItemViewModel> : AssetCompositeItemViewModel<TAssetViewModel, TItemViewModel, TItemViewModel>
+    where TAssetViewModel : AssetViewModel
+    where TItemViewModel : AssetCompositeItemViewModel<TAssetViewModel, TItemViewModel>
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AssetCompositeItemViewModel{TAssetViewModel,TItemViewModel}"/> class.
+    /// </summary>
+    /// <param name="asset">The related asset.</param>
+    protected AssetCompositeItemViewModel(TAssetViewModel asset)
+        : base(asset)
+    {
     }
 }

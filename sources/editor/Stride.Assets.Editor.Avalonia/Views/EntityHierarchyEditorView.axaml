@@ -7,6 +7,7 @@
              xmlns:vm2="using:Stride.Assets.Presentation.ViewModels"
              xmlns:conv="using:Stride.Assets.Editor.Avalonia.Converters"
              xmlns:local="using:Stride.Assets.Editor.Avalonia.Views"
+             xmlns:dd="using:Stride.Core.Assets.Editor.Avalonia.DragDrop"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Stride.Assets.Editor.Avalonia.Views.EntityHierarchyEditorView"
              x:DataType="vm:EntityHierarchyEditorViewModel">
@@ -141,6 +142,12 @@
                 ItemsSource="{Binding HierarchyRoot, Mode=OneWay, Converter={sd:Yield}}"
                 SelectedItems="{Binding SelectedContent}"
                 SelectionMode="Multiple">
+        <!-- Drag and drop, as the WPF scene tree: entities, folders and child scenes are dragged (the selection when the
+             drag starts on it); a drop on a row adds as children, between two rows inserts there, on the empty area adds
+             assets to the scene; the assets of the asset view drop too (a prefab, a model, a scene onto a scene...) -->
+        <Interaction.Behaviors>
+          <dd:TreeViewDragDropBehavior CanInsert="True" AllowDropOnEmptyArea="True"/>
+        </Interaction.Behaviors>
         <!-- Cut, Copy and Rename only while the tree has the focus, as the command bindings of the WPF tree -->
         <sd:EditCommands.Bindings>
           <sd:EditCommandBinding Kind="Cut" Command="{Binding CutCommand}"/>
@@ -257,7 +264,8 @@
       <!-- The transformation toolbar: the tools, the space of the gizmos, the material selection mode and the selection
            mask. Its items don't take the focus, so that the keys keep going to the view. -->
       <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="4" Margin="2"
-                  DataContext="{Binding Toolbar}"
+                  x:DataType="vm:EditorViewToolbarViewModel"
+                  DataContext="{Binding $parent[local:EntityHierarchyEditorView].((vm:EntityHierarchyEditorViewModel)DataContext).ViewOptions}"
                   IsVisible="{Binding $self.DataContext, Converter={x:Static ObjectConverters.IsNotNull}}">
         <StackPanel.Styles>
           <Style Selector="ListBox.toolbar">
@@ -379,8 +387,13 @@
       <Panel>
         <TextBlock Text="The scene view is not available."
                    HorizontalAlignment="Center" VerticalAlignment="Center"
-                   IsVisible="{Binding GameView, Converter={x:Static ObjectConverters.IsNull}}" />
-        <ContentControl x:Name="GameViewHost" Content="{Binding GameView}" />
+                   IsVisible="{Binding GameHost.GameView, Converter={x:Static ObjectConverters.IsNull}}" />
+        <!-- Assets dropped on the view add their entities under the pointer, as in the WPF scene editor -->
+        <ContentControl x:Name="GameViewHost" Content="{Binding GameHost.GameView}">
+          <Interaction.Behaviors>
+            <dd:AddChildDropBehavior/>
+          </Interaction.Behaviors>
+        </ContentControl>
       </Panel>
     </DockPanel>
   </Grid>

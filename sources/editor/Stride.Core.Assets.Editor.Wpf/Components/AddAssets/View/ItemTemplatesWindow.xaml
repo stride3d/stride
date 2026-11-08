@@ -5,6 +5,7 @@
                        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                        xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
                        xmlns:view="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views"
+                       xmlns:cvt="clr-namespace:Stride.Core.Assets.Editor.View.ValueConverters"
                        mc:Ignorable="d" ResizeMode="NoResize" SizeToContent="WidthAndHeight"
                        Icon="{DynamicResource EditorIcon}" ShowInTaskbar="False"
                        Style="{DynamicResource WindowChromeStyle}"
@@ -24,15 +25,15 @@
         <!-- TODO: this template is used in many places - factorize it! -->
         <DataTemplate>
           <DockPanel Height="56">
-            <Image Source="{Binding Key.Icon, Mode=OneWay}" DockPanel.Dock="Left" Width="48" Height="48" Margin="2"/>
+            <Image Source="{Binding Template.Icon, Mode=OneWay, Converter={cvt:TemplateImageToImageSource}}" DockPanel.Dock="Left" Width="48" Height="48" Margin="2"/>
             <DockPanel Margin="18,0">
-              <TextBlock DockPanel.Dock="Top" FontSize="16" Text="{Binding Key.Name, Mode=OneWay}"/>
+              <TextBlock DockPanel.Dock="Top" FontSize="16" Text="{Binding Template.Name, Mode=OneWay}"/>
               <TextBlock DockPanel.Dock="Bottom" Visibility="{Binding DataContext.FileCount, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type ListBox}},
                                                                       Converter={sd:Chained {sd:NumericToBool}, {sd:VisibleOrCollapsed}}}"
                          FontStyle="Italic" Margin="12,0" HorizontalAlignment="Right">
-                <Run Text="{Binding Value, Mode=OneWay}"/> <Run Text="{Binding DataContext.FileCount, StringFormat={sd:Localize out of {0} file(s)}, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}"/>
+                <Run Text="{Binding FileCount, Mode=OneWay}"/> <Run Text="{Binding DataContext.FileCount, StringFormat={sd:Localize out of {0} file(s)}, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}"/>
               </TextBlock>
-              <TextBlock Text="{Binding Key.Description, Mode=OneWay}" TextWrapping="Wrap" TextTrimming="WordEllipsis"/>
+              <TextBlock Text="{Binding Template.Description, Mode=OneWay}" TextWrapping="Wrap" TextTrimming="WordEllipsis"/>
             </DockPanel>
           </DockPanel>
         </DataTemplate>

@@ -5,6 +5,7 @@ using System.Globalization;
 
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Presentation.ValueConverters;
 
 namespace Stride.Core.Assets.Editor.View.ValueConverters
@@ -23,7 +24,7 @@ namespace Stride.Core.Assets.Editor.View.ValueConverters
         /// </summary>
         public static object FetchResourceFromType(Type type, bool tryBase)
         {
-            var pluginService = type is null ? null : SessionViewModel.Instance?.ServiceProvider.TryGet<IAssetsPluginService>();
+            var pluginService = type is null ? null : SessionViewModel.CurrentInstance?.ServiceProvider.TryGet<IAssetsPluginService>();
             return FetchResourceFromType(type, tryBase, pluginService);
         }
 

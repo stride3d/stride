@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using Silk.NET.Core.Native;
 using Silk.NET.DXGI;
 using Rectangle = Stride.Core.Mathematics.Rectangle;
+using Vector2 = Stride.Core.Mathematics.Vector2;
 
 namespace Stride.Graphics;
 
@@ -54,7 +55,8 @@ internal static unsafe class WindowsDisplayProvider
                             var name = new string(desc.DeviceName);
                             var modes = ReadModes(output);
                             var current = ReadCurrentMode(name, refreshRates);
-                            outputs.Add(new DisplayInfo(name, bounds, current, modes, luid, desc.Monitor));
+                            var details = ReadDetails(output, desc.DeviceName, desc.Rotation);
+                            outputs.Add(new DisplayInfo(name, bounds, current, modes, luid, desc.Monitor, details));
                         }
                         finally { output.Dispose(); }
                     }
@@ -64,6 +66,36 @@ internal static unsafe class WindowsDisplayProvider
         }
         finally { factory.Dispose(); }
         return outputs.ToArray();
+    }
+
+    private static DisplayDetails ReadDetails(ComPtr<IDXGIOutput> output, char* deviceName, ModeRotation modeRotation)
+    {
+        var rotation = modeRotation switch
+        {
+            ModeRotation.Rotate90 => DisplayRotation.Rotate90,
+            ModeRotation.Rotate180 => DisplayRotation.Rotate180,
+            ModeRotation.Rotate270 => DisplayRotation.Rotate270,
+            _ => DisplayRotation.Default
+        };
+
+        // The monitor's name, such as the model, rather than the name of its desktop source
+        DisplayDevice device = default;
+        device.Size = (uint)sizeof(DisplayDevice);
+        var description = EnumDisplayDevicesW(deviceName, 0, &device, 0) ? new string(device.DeviceString) : new string(deviceName);
+
+        if (((HResult)output.QueryInterface(out ComPtr<IDXGIOutput6> output6)).IsFailure)
+            return DisplayDetails.Sdr(description, rotation);
+        try
+        {
+            OutputDesc1 desc;
+            if (((HResult)output6.GetDesc1(&desc)).IsFailure)
+                return DisplayDetails.Sdr(description, rotation);
+
+            return new DisplayDetails(description, rotation, (ColorSpaceType)desc.ColorSpace, (int)desc.BitsPerColor,
+                desc.MinLuminance, desc.MaxLuminance, desc.MaxFullFrameLuminance,
+                *(Vector2*)desc.RedPrimary, *(Vector2*)desc.GreenPrimary, *(Vector2*)desc.BluePrimary, *(Vector2*)desc.WhitePoint);
+        }
+        finally { output6.Dispose(); }
     }
 
     private static DisplayMode[] ReadModes(ComPtr<IDXGIOutput> output)
@@ -199,9 +231,25 @@ internal static unsafe class WindowsDisplayProvider
         [FieldOffset(184)] public uint Frequency;
     }
 
+    // DISPLAY_DEVICEW
+    [StructLayout(LayoutKind.Sequential)]
+    private struct DisplayDevice
+    {
+        public uint Size;
+        public fixed char DeviceName[32];
+        public fixed char DeviceString[128];
+        public uint StateFlags;
+        public fixed char DeviceId[128];
+        public fixed char DeviceKey[128];
+    }
+
     [DllImport("user32.dll", CharSet = CharSet.Unicode, ExactSpelling = true)]
     [return: MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
     private static extern bool EnumDisplaySettingsW(string deviceName, int mode, DeviceMode* settings);
+
+    [DllImport("user32.dll", ExactSpelling = true)]
+    [return: MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
+    private static extern bool EnumDisplayDevicesW(char* device, uint deviceIndex, DisplayDevice* displayDevice, uint flags);
 
     [DllImport("user32.dll", ExactSpelling = true)]
     private static extern int GetDisplayConfigBufferSizes(uint flags, uint* pathCount, uint* modeCount);

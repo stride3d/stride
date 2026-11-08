@@ -1,15 +1,16 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Editor.Components.FixReferences;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Quantum;
+using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Presentation.Services;
 
 namespace Stride.Core.Assets.Editor.Components.FixAssetReferences;
 
@@ -19,11 +20,11 @@ namespace Stride.Core.Assets.Editor.Components.FixAssetReferences;
 /// </summary>
 public sealed class FixAssetReferencesViewModel : FixReferencesViewModel<AssetViewModel>
 {
-    private readonly SessionViewModel session;
+    private readonly ISessionViewModel session;
     private readonly IAssetDependencyManager dependencyManager;
     private readonly HashSet<AssetId> hashIds;
 
-    public FixAssetReferencesViewModel(IViewModelServiceProvider serviceProvider, SessionViewModel session, IEnumerable<AssetViewModel> deletedObjects, IAssetDependencyManager dependencyManager)
+    public FixAssetReferencesViewModel(IViewModelServiceProvider serviceProvider, ISessionViewModel session, IEnumerable<AssetViewModel> deletedObjects, IAssetDependencyManager dependencyManager)
         : base(serviceProvider)
     {
         ArgumentNullException.ThrowIfNull(session);
@@ -91,7 +92,7 @@ public sealed class FixAssetReferencesViewModel : FixReferencesViewModel<AssetVi
     public override async Task<AssetViewModel?> PickupObject(AssetViewModel objectToFix, Type propertyType)
     {
         IEnumerable<Type> acceptedTypes = AssetRegistry.CanPropertyHandleAssets(propertyType, out var assetTypes) ? assetTypes : [objectToFix.AssetType];
-        return await ServiceProvider.Get<IEditorDialogService>().OpenAssetPickerAsync(
+        return await ServiceProvider.Get<IAssetPickerService>().OpenAssetPickerAsync(
             session,
             acceptedTypes,
             // Every asset of the delete goes, even one that nothing references: none can replace another

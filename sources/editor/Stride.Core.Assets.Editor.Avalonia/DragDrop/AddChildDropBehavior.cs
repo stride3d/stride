@@ -1,21 +1,25 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Xaml.Interactivity;
-using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Avalonia.DragDrop;
 
 /// <summary>
-/// Accepts dropped assets on an item whose data context takes children (<see cref="IAddChildViewModel"/>), such as a folder of
-/// the solution explorer. Attach it to the root of the item's template.
+/// Accepts dropped assets (or other dragged items, such as entities) on an element whose data context takes children
+/// (<see cref="IAddChildViewModel"/>), such as a folder of the solution explorer or the view of the scene editor. Attach it
+/// to the root of the item's template, or to the element.
 /// </summary>
 /// <remarks>
 /// As the drop on the WPF solution explorer, the drop goes through <see cref="IAddChildViewModel.CanAddChildren"/> and
 /// <see cref="IAddChildViewModel.AddChildren"/>: a folder moves the assets to itself, one transaction of the undo history
 /// ("Move asset ...").
+/// While something is dragged over the element, it shows the message of its data context next to the pointer, which tells
+/// why a refused drop is refused (<see cref="DragFeedbackAdorner"/>), as the WPF drag window does.
 /// </remarks>
 public sealed class AddChildDropBehavior : StyledElementBehavior<Control>
 {
@@ -25,6 +29,7 @@ public sealed class AddChildDropBehavior : StyledElementBehavior<Control>
         global::Avalonia.Input.DragDrop.SetAllowDrop(AssociatedObject!, true);
         AssociatedObject!.AddHandler(global::Avalonia.Input.DragDrop.DragEnterEvent, OnDragOver);
         AssociatedObject!.AddHandler(global::Avalonia.Input.DragDrop.DragOverEvent, OnDragOver);
+        AssociatedObject!.AddHandler(global::Avalonia.Input.DragDrop.DragLeaveEvent, OnDragLeave);
         AssociatedObject!.AddHandler(global::Avalonia.Input.DragDrop.DropEvent, OnDrop);
     }
 
@@ -32,7 +37,9 @@ public sealed class AddChildDropBehavior : StyledElementBehavior<Control>
     {
         AssociatedObject!.RemoveHandler(global::Avalonia.Input.DragDrop.DragEnterEvent, OnDragOver);
         AssociatedObject!.RemoveHandler(global::Avalonia.Input.DragDrop.DragOverEvent, OnDragOver);
+        AssociatedObject!.RemoveHandler(global::Avalonia.Input.DragDrop.DragLeaveEvent, OnDragLeave);
         AssociatedObject!.RemoveHandler(global::Avalonia.Input.DragDrop.DropEvent, OnDrop);
+        DragFeedbackAdorner.Clear(AssociatedObject);
         base.OnDetaching();
     }
 
@@ -51,20 +58,36 @@ public sealed class AddChildDropBehavior : StyledElementBehavior<Control>
 
     private void OnDragOver(object? sender, DragEventArgs e)
     {
-        var assets = AssetDragDropHelper.GetAssets(e.DataTransfer);
-        var target = GetDropTarget(assets, AssetDragDropHelper.ToAddChildModifiers(e.KeyModifiers), out _);
+        var items = AssetDragDropHelper.GetItems(e.DataTransfer);
+        var target = GetDropTarget(items, AssetDragDropHelper.ToAddChildModifiers(e.KeyModifiers), out var message);
+        if (items.Count > 0 && AssociatedObject is { } element)
+        {
+            if (target is null && string.IsNullOrEmpty(message))
+                message = DragDropMessages.InvalidDropArea;
+            var acceptance = target is not null ? DropAcceptance.Accepted : DropAcceptance.Rejected;
+            DragFeedbackAdorner.Show(element, e.GetPosition(element), acceptance, message, new Rect(element.Bounds.Size));
+        }
         e.DragEffects = target is not null ? DragDropEffects.Move : DragDropEffects.None;
         e.Handled = true;
     }
 
+    private void OnDragLeave(object? sender, DragEventArgs e)
+    {
+        // Moving over a child of the element leaves the child; only leaving the element ends the feedback
+        if (AssociatedObject is { } element && !new Rect(element.Bounds.Size).Contains(e.GetPosition(element)))
+            DragFeedbackAdorner.Clear(element);
+    }
+
     private void OnDrop(object? sender, DragEventArgs e)
     {
-        var assets = AssetDragDropHelper.GetAssets(e.DataTransfer);
+        if (AssociatedObject is { } element)
+            DragFeedbackAdorner.Clear(element);
+        var items = AssetDragDropHelper.GetItems(e.DataTransfer);
         var modifiers = AssetDragDropHelper.ToAddChildModifiers(e.KeyModifiers);
-        if (GetDropTarget(assets, modifiers, out _) is not { } target)
+        if (GetDropTarget(items, modifiers, out _) is not { } target)
             return;
 
-        target.AddChildren(assets, modifiers);
+        target.AddChildren(items, modifiers);
         e.DragEffects = DragDropEffects.Move;
         e.Handled = true;
     }

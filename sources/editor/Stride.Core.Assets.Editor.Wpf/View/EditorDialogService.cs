@@ -13,11 +13,11 @@ using Stride.Core.Assets.Editor.Components.AddAssets;
 using Stride.Core.Assets.Editor.Components.AddAssets.View;
 using Stride.Core.Assets.Editor.Components.FixAssetReferences;
 using Stride.Core.Assets.Editor.Components.FixAssetReferences.Views;
-using Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;
+using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Assets.Editor.ViewModel.Progress;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Extensions;
 using Stride.Core.Settings;
@@ -28,12 +28,14 @@ using Stride.Core.Presentation.View;
 using Stride.Core.Presentation.Views;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Assets.Editor.ViewModels.Progress;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.View
 {
-    using MessageBoxImage = Presentation.Services.MessageBoxImage;
+    using MessageBoxImage = Stride.Core.Presentation.Services.MessageBoxImage;
 
-    public class EditorDialogService : DialogService, IEditorDialogService
+    public class EditorDialogService : DialogService, IWpfEditorDialogService
     {
         private struct PendingWorkProgress
         {
@@ -94,58 +96,94 @@ namespace Stride.Core.Assets.Editor.View
             settingsWindow.ShowModal().Forget();
         }
 
-        public INewProjectDialog CreateNewProjectDialog(SessionViewModel session)
+        /// <inheritdoc />
+        public async Task<NewPackageParameters> ShowNewProjectDialogAsync(SessionViewModel session)
         {
             var newPackageWindow = new NewProjectWindow();
             var templates = new NewProjectTemplateCollectionViewModel(session.ServiceProvider, session);
             newPackageWindow.DataContext = templates;
-            return newPackageWindow;
+            newPackageWindow.DefaultOutputDirectory = session.SolutionPath.GetFullDirectory();
+            var result = await newPackageWindow.ShowModal();
+            return result == DialogResult.Ok ? newPackageWindow.Parameters : null;
         }
 
-        public IItemTemplateDialog CreateAddAssetDialog(SessionViewModel session, DirectoryBaseViewModel directory)
+        /// <inheritdoc />
+        public async Task<ITemplateDescriptionViewModel> ShowAddAssetDialogAsync(AddAssetTemplateCollectionViewModel templates)
         {
-            // TODO: We can't share session.ActiveAssetView.AddAssetTemplateCollection view model (used for Add asset popup) with the add asset context menu
+            // TODO: We can't share session.AssetCollection.AddAssetTemplateCollection view model (used for Add asset popup) with the add asset context menu
             // because they are fighting each other, probably due to two-way bindings (on the SearchToken?)
-            //var addAssetWindow = new AddItemWindow(session.ServiceProvider, session.ActiveAssetView.AddAssetTemplateCollection);
-            var addAssetWindow = new AddItemWindow(session.ServiceProvider, new AddAssetTemplateCollectionViewModel(session));
-            return addAssetWindow;
+            var addAssetWindow = new AddItemWindow(templates.ServiceProvider, templates);
+            var result = await addAssetWindow.ShowModal();
+            return result == DialogResult.Ok ? addAssetWindow.SelectedTemplate : null;
         }
 
-        public IItemTemplateDialog CreateAssetTemplatesDialog(SessionViewModel session, DirectoryBaseViewModel directory, IEnumerable<TemplateAssetDescription> templates)
+        /// <inheritdoc />
+        public async Task<TemplateDescriptionViewModel> ShowAssetTemplatesDialogAsync(AssetTemplatesViewModel templates)
         {
-            var viewModel = new AssetTemplatesViewModel(session.ServiceProvider, templates);
-            var window = new ItemTemplatesWindow(viewModel);
-            return window;
-        }
-
-        public IItemTemplateDialog CreateAssetTemplatesDialog(SessionViewModel session, DirectoryBaseViewModel directory, int fileCount, IEnumerable<KeyValuePair<TemplateAssetDescription, int>> templates)
-        {
-            var viewModel = new AssetTemplatesViewModel(session.ServiceProvider, fileCount, templates);
-            var window = new ItemTemplatesWindow(viewModel);
-            return window;
+            var window = new ItemTemplatesWindow(templates);
+            var result = await window.ShowModal();
+            return result == DialogResult.Ok ? window.SelectedTemplate as TemplateDescriptionViewModel : null;
         }
 
         public IAssetPickerDialog CreateAssetPickerDialog(SessionViewModel session)
         {
             var assetPickerWindow = new AssetPickerWindow(session);
-            var assetView = new AssetCollectionViewModel(session.ServiceProvider, session, new[] { FilterCategory.AssetName, FilterCategory.AssetTag });
+            var assetView = new AssetCollectionViewModel(session, filterCategories: new[] { FilterCategory.AssetName, FilterCategory.AssetTag });
             assetPickerWindow.AssetView = assetView;
             return assetPickerWindow;
         }
 
-        public IPackagePickerDialog CreatePackagePickerDialog(SessionViewModel session)
+        /// <inheritdoc />
+        public async Task<AssetViewModel> OpenAssetPickerAsync(ISessionViewModel session, IEnumerable<Type> acceptedTypes, Func<AssetViewModel, bool> filter = null, AssetViewModel initialAsset = null, DirectoryBaseViewModel initialLocation = null, string message = null)
         {
-            var packagePickerWindow = new PackagePickerWindow(session);
-            return packagePickerWindow;
+            if (session == null) throw new ArgumentNullException(nameof(session));
+            if (acceptedTypes == null) throw new ArgumentNullException(nameof(acceptedTypes));
+
+            // The picker window is created on the UI thread: the property grid's commands can ask for it from another one
+            var assetPicker = Dispatcher.Invoke(() => CreateAssetPickerDialog((SessionViewModel)session));
+            if (message != null)
+                assetPicker.Message = message;
+            assetPicker.Filter = filter;
+            assetPicker.InitialLocation = initialLocation;
+            assetPicker.InitialAsset = initialAsset;
+            assetPicker.AllowMultiSelection = false;
+            assetPicker.AcceptedTypes.AddRange(acceptedTypes);
+
+            var result = await assetPicker.ShowModal();
+            return result == Stride.Core.Presentation.Services.DialogResult.Ok ? assetPicker.SelectedAssets.FirstOrDefault() : null;
         }
 
-        public IFixReferencesDialog CreateFixAssetReferencesDialog(IViewModelServiceProvider serviceProvider, IReadOnlyCollection<AssetViewModel> assets, IAssetDependencyManager dependencyManager)
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<PickablePackageViewModel>> ShowPackagePickerDialogAsync(SessionViewModel session, Func<PickablePackageViewModel, bool> filter)
         {
-            var fixReferencesWindow = new FixAssetReferencesWindow(serviceProvider);
-            var viewModel = new FixAssetReferencesViewModel(serviceProvider, assets, dependencyManager, fixReferencesWindow);
-            viewModel.Initialize(assets);
-            fixReferencesWindow.DataContext = viewModel;
-            return fixReferencesWindow;
+            var packagePicker = new PackagePickerWindow(session) { Filter = filter };
+            var result = await ((IPackagePickerDialog)packagePicker).ShowModal();
+            return result == DialogResult.Ok ? ((IPackagePickerDialog)packagePicker).SelectedPackages : null;
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> ShowFixAssetReferencesDialogAsync(FixAssetReferencesViewModel fixReferences)
+        {
+            var fixReferencesWindow = new FixAssetReferencesWindow(fixReferences.ServiceProvider);
+            // The last reference fixed closes the window
+            fixReferences.Completed += (_, _) => fixReferencesWindow.RequestClose(DialogResult.Ok);
+            fixReferencesWindow.DataContext = fixReferences;
+            var result = await fixReferencesWindow.ShowModal();
+            return result != DialogResult.Cancel;
+        }
+
+        /// <inheritdoc />
+        /// <remarks>As everywhere in the WPF editor, the window opens after half a second: a quick work shows none.</remarks>
+        public void ShowProgressWindow(WorkProgressViewModel workProgress)
+        {
+            ShowProgressWindow(workProgress, 500);
+        }
+
+        /// <inheritdoc />
+        /// <remarks>The WPF editor has no notification bar: the progress shows in a progress window.</remarks>
+        public void ShowNotification(WorkProgressViewModel workProgress)
+        {
+            ShowProgressWindow(workProgress, 500);
         }
 
         public async void ShowProgressWindow(WorkProgressViewModel workProgress, int minDelay)
@@ -325,7 +363,9 @@ namespace Stride.Core.Assets.Editor.View
             }
         }
 
-        public void AddDelayedNotification(SettingsKey<bool> confirmationSettingsKey, string message, string yesCaption, string noCaption, Action yesAction, Action noAction, SettingsKey<bool> yesNoSettingsKey)
+        /// <inheritdoc />
+        /// <remarks>The task completes once the question is asked, or queued until <see cref="ShowDelayedNotifications"/>.</remarks>
+        public Task AddDelayedNotification(SettingsKey<bool> confirmationSettingsKey, string message, string yesCaption, string noCaption, Action yesAction, Action noAction, SettingsKey<bool> yesNoSettingsKey)
         {
             if (confirmationSettingsKey == null) throw new ArgumentNullException(nameof(confirmationSettingsKey));
             if (message == null) throw new ArgumentNullException(nameof(message));
@@ -334,7 +374,7 @@ namespace Stride.Core.Assets.Editor.View
 
             // Prevent duplicate
             if (delayedNotifications.Any(t => ReferenceEquals(t.Item1, confirmationSettingsKey)))
-                return;
+                return Task.CompletedTask;
 
             Action action = async () =>
             {
@@ -367,11 +407,12 @@ namespace Stride.Core.Assets.Editor.View
             {
                 // Execute immediately
                 Dispatcher.Invoke(action);
-                return;
+                return Task.CompletedTask;
             }
 
             // Add a new question
             delayedNotifications.Enqueue(Tuple.Create((SettingsKey)confirmationSettingsKey, action));
+            return Task.CompletedTask;
         }
 
         public void ShowDelayedNotifications()

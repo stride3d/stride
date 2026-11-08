@@ -1,0 +1,338 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2026-11-07 13:08:09+0000\n"
+"PO-Revision-Date: 2019-08-16 12:24+0000\n"
+"Last-Translator: meriaizen86 <shinkitsunemaru@gmail.com>\n"
+"Language-Team: Spanish <https://hosted.weblate.org/projects/stride/"
+"assetspresentation/es/>\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 3.8\n"
+
+#: ../editor/Stride.Assets.Editor/AssetEditors/GameEditor/Transformation.cs:17
+msgid "Use translation gizmo"
+msgstr "Usar el gizmo de traslación"
+
+#: ../editor/Stride.Assets.Editor/AssetEditors/GameEditor/Transformation.cs:23
+msgid "Use rotation gizmo"
+msgstr "Usar el gizmo de rotación"
+
+#: ../editor/Stride.Assets.Editor/AssetEditors/GameEditor/Transformation.cs:29
+msgid "Use scale gizmo"
+msgstr "Usar el gizmo de escala"
+
+#: ../editor/Stride.Assets.Editor/AssetEditors/GameEditor/TransformationSpace.cs:17
+msgid "Use world coordinates for transformations"
+msgstr "Utilizar las coordenadas del mundo para las transformaciones"
+
+#: ../editor/Stride.Assets.Editor/AssetEditors/GameEditor/TransformationSpace.cs:23
+msgid "Use local coordinates for transformations"
+msgstr "Utilizar coordenadas locales para las transformaciones"
+
+#: ../editor/Stride.Assets.Editor/AssetEditors/GameEditor/TransformationSpace.cs:29
+msgid "Use current camera projection coordinates for transformations"
+msgstr ""
+"Utilizar las coordenadas de la proyección de la cámara actual para las "
+"transformaciones"
+
+#: ../editor/Stride.Assets.Editor/AssetEditors/ScriptEditor/ScriptEditorSettings.cs:16
+msgctxt "Settings"
+msgid "Script editor"
+msgstr "Editor de scripts"
+
+#: ../editor/Stride.Assets.Editor/AssetEditors/ScriptEditor/ScriptEditorSettings.cs:23
+msgctxt "Settings"
+msgid "Font size"
+msgstr "Tamaño de la fuente"
+
+#: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:17
+msgctxt "Settings"
+msgid "Key bindings"
+msgstr "Atajos de teclado"
+
+#: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:18
+msgctxt "Settings"
+msgid "Scene editor"
+msgstr "Editor de escena"
+
+#: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:19
+msgctxt "Settings"
+msgid "Viewport settings"
+msgstr "Ajustes del viewport"
+
+#: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:26
+msgctxt "Settings"
+msgid "Move camera forward"
+msgstr "Mover la cámara hacia adelante"
+
+#: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:30
+msgctxt "Settings"
+msgid "Move camera backward"
+msgstr "Mover la cámara hacia atrás"
+
+#: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:34
+msgctxt "Settings"
+msgid "Move camera left"
+msgstr "Mover la cámara a la izquierda"
+
+#: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:38
+msgctxt "Settings"
+msgid "Move camera right"
+msgstr "Mover la cámara a la derecha"
+
+#: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:42
+msgctxt "Settings"
+msgid "Move camera up"
+msgstr "Mover la cámara hacia arriba"
+
+#: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:46
+msgctxt "Settings"
+msgid "Move camera down"
+msgstr "Mover la cámara hacia abajo"
+
+#: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:50
+msgctxt "Settings"
+msgid "Increase camera speed"
+msgstr ""
+
+#: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:54
+msgctxt "Settings"
+msgid "Decrease camera speed"
+msgstr ""
+
+#: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:58
+msgctxt "Settings"
+msgid "Invert mouse panning axis"
+msgstr "Invertir el eje de desplazamiento del ratón"
+
+#: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:62
+msgctxt "Settings"
+msgid "Center view on selection"
+msgstr "Centro de la vista en la selección"
+
+#: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:66
+msgctxt "Settings"
+msgid "Snap selection to the grid"
+msgstr "Selección de ajuste a la cuadrícula"
+
+#: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:70
+msgctxt "Settings"
+msgid "Use snapping while selection is beeing manipulated"
+msgstr ""
+
+#: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:74
+msgctxt "Settings"
+msgid "Switch to translation mode"
+msgstr "Cambiar a modo de traslación"
+
+#: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:78
+msgctxt "Settings"
+msgid "Switch to rotation mode"
+msgstr "Cambiar al modo de rotación"
+
+#: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:82
+msgctxt "Settings"
+msgid "Switch to scale mode"
+msgstr "Cambiar al modo de escala"
+
+#: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:86
+msgctxt "Settings"
+msgid "Switch to next gizmo mode"
+msgstr "Cambiar al siguiente modo de gizmo"
+
+#: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:90
+msgctxt "Settings"
+msgid "Default snap distance for translation"
+msgstr "Distancia de ajuste por defecto para la traslación"
+
+#: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:94
+msgctxt "Settings"
+msgid "Default snap angle for rotation"
+msgstr "Ángulo de ajuste predeterminado para la rotación"
+
+#: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:98
+msgctxt "Settings"
+msgid "Default snap factor for scale"
+msgstr "Factor de ajuste por defecto para la escala"
+
+#: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:102
+msgctxt "Settings"
+msgid "Display direction names instead of XYZ components"
+msgstr ""
+
+#: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:106
+msgctxt "Settings"
+msgid "Use linear movement for the rotation gizmo"
+msgstr ""
+
+#: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:110
+msgctxt "Settings"
+msgid "Ask before deleting entities"
+msgstr "Preguntar antes de eliminar entidades"
+
+#: ../editor/Stride.Assets.Editor/Templates/Assets/AssetFromFileTemplateGenerator.cs:53
+msgctxt "Button"
+msgid "Create"
+msgstr "Crear"
+
+#: ../editor/Stride.Assets.Editor/Templates/Assets/AssetFromFileTemplateGenerator.cs:54
+msgctxt "Button"
+msgid "Select a source..."
+msgstr "Seleccione una fuente..."
+
+#: ../editor/Stride.Assets.Editor/Templates/Assets/AssetFromFileTemplateGenerator.cs:55
+#: ../editor/Stride.Assets.Editor/Templates/Assets/ScriptTemplateGenerator.cs:129
+#: ../editor/Stride.Assets.Editor/ViewModels/EntityHierarchyEditorViewModel.cs:955
+#: ../editor/Stride.Assets.Editor/ViewModels/ScriptSourceFileEditorViewModel.cs:252
+msgctxt "Button"
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: ../editor/Stride.Assets.Editor/Templates/Assets/AssetFromFileTemplateGenerator.cs:58
+msgctxt "Message"
+msgid "Do you want to create this {0} without a source file?"
+msgstr "¿Desea crear este {0} sin un archivo de origen?"
+
+#: ../editor/Stride.Assets.Editor/Templates/Assets/ImportModelFromFileViewModel.cs:46
+msgctxt "Title"
+msgid "Import from model"
+msgstr ""
+
+#: ../editor/Stride.Assets.Editor/Templates/Assets/ImportModelFromFileViewModel.cs:121
+msgctxt "Label"
+msgid "(none)"
+msgstr ""
+
+#: ../editor/Stride.Assets.Editor/Templates/Assets/ScriptNameViewModel.cs:60
+msgctxt "Title"
+msgid "New script"
+msgstr ""
+
+#: ../editor/Stride.Assets.Editor/Templates/Assets/ScriptNameViewModel.cs:116
+msgctxt "Message"
+msgid "The names you entered are invalid or empty."
+msgstr "Los nombres introducidos no son válidos o están vacíos."
+
+#: ../editor/Stride.Assets.Editor/Templates/Assets/ScriptTemplateGenerator.cs:128
+#: ../editor/Stride.Assets.Editor/ViewModels/ScriptSourceFileEditorViewModel.cs:250
+msgctxt "Button"
+msgid "Save"
+msgstr "Guardar"
+
+#: ../editor/Stride.Assets.Editor/Templates/Assets/ScriptTemplateGenerator.cs:131
+msgctxt "Message"
+msgid "You can't use scripts until you save them. Do you want to save now?"
+msgstr "No puede utilizar script hasta que se guarden. ¿Quieres guardar?"
+
+#: ../editor/Stride.Assets.Editor/Templates/ProjectLibraryViewModel.cs:36
+msgctxt "Title"
+msgid "New code library"
+msgstr ""
+
+#: ../editor/Stride.Assets.Editor/Templates/ProjectLibraryViewModel.cs:37
+msgctxt "Label"
+msgid "Library name:"
+msgstr ""
+
+#: ../editor/Stride.Assets.Editor/Templates/ProjectLibraryViewModel.cs:96
+msgctxt "Message"
+msgid "A project with this name exists already."
+msgstr ""
+
+#: ../editor/Stride.Assets.Editor/Templates/ProjectLibraryViewModel.cs:101
+msgctxt "Message"
+msgid "Type a valid library name. Error with {0}"
+msgstr "Escriba un nombre válido de la librería. Error con {0}"
+
+#: ../editor/Stride.Assets.Editor/Templates/ProjectLibraryViewModel.cs:106
+msgctxt "Message"
+msgid "Type a valid namespace name. Error with {0}"
+msgstr "Escriba un nombre de espacio de nombres válido. Error con {0}"
+
+#: ../editor/Stride.Assets.Editor/ViewModels/EntityHierarchyEditorViewModel.cs:949
+msgctxt "Message"
+msgid "Are you sure you want to delete this entity?"
+msgstr "¿Está seguro de que desea eliminar esta entidad?"
+
+#: ../editor/Stride.Assets.Editor/ViewModels/EntityHierarchyEditorViewModel.cs:952
+msgctxt "Message"
+msgid "Are you sure you want to delete these {0} entities?"
+msgstr "¿Está seguro de que desea eliminar estas {0} entidades?"
+
+#: ../editor/Stride.Assets.Editor/ViewModels/EntityHierarchyEditorViewModel.cs:955
+msgctxt "Button"
+msgid "Delete"
+msgstr "Eliminar"
+
+#: ../editor/Stride.Assets.Editor/ViewModels/GraphicsCompositorEditorViewModel.cs:409
+msgctxt "Message"
+msgid ""
+"The package render features need an Opaque and a Transparent render stage to "
+"render into."
+msgstr ""
+
+#: ../editor/Stride.Assets.Editor/ViewModels/GraphicsCompositorEditorViewModel.cs:418
+msgctxt "Message"
+msgid ""
+"The compositor already has every render feature the packages of its project "
+"provide."
+msgstr ""
+
+#: ../editor/Stride.Assets.Editor/ViewModels/ScriptSourceFileEditorViewModel.cs:187
+msgctxt "Message"
+msgid ""
+"The file {0} changed on disk since it was opened.\r\n"
+"\r\n"
+"Do you want to overwrite it with your changes?"
+msgstr ""
+
+#: ../editor/Stride.Assets.Editor/ViewModels/ScriptSourceFileEditorViewModel.cs:223
+msgctxt "Log"
+msgid "The script {0} could not be saved. {1}"
+msgstr ""
+
+#: ../editor/Stride.Assets.Editor/ViewModels/ScriptSourceFileEditorViewModel.cs:251
+msgctxt "Button"
+msgid "Don't save"
+msgstr "No guardar"
+
+#: ../editor/Stride.Assets.Editor/ViewModels/ScriptSourceFileEditorViewModel.cs:254
+msgctxt "Message"
+msgid ""
+"The script {0} has unsaved changes.\r\n"
+"\r\n"
+"Do you want to save them?"
+msgstr ""
+
+#: ../editor/Stride.Assets.Editor/ViewModels/ScriptSourceFileEditorViewModel.cs:268
+msgctxt "Message"
+msgid ""
+"The script {0} could not be saved.\r\n"
+"\r\n"
+"{1}"
+msgstr ""
+
+#: ../editor/Stride.Assets.Editor/ViewModels/SpriteEditor/SpriteInfoViewModel.cs:185
+#: ../editor/Stride.Assets.Editor/ViewModels/SpriteEditor/SpriteInfoViewModel.cs:208
+msgctxt "Message"
+msgid "Couldn't find the file"
+msgstr "No se pudo encontrar el archivo"
+
+#: ../editor/Stride.Assets.Editor/ViewModels/SpriteEditor/SpriteInfoViewModel.cs:195
+msgctxt "Message"
+msgid "There was a problem while editing the image.{0}"
+msgstr "Hubo un problema al editar la imagen. {0}"
+
+#: ../editor/Stride.Assets.Editor/ViewModels/SpriteEditor/SpriteInfoViewModel.cs:217
+msgctxt "Message"
+msgid "There was a problem opening Explorer.{0}"
+msgstr "Hubo un problema al abrir el Explorador.{0}"
+
+#: ../editor/Stride.Assets.Editor/ViewModels/EntityHierarchyEditorViewModel.cs:954
+msgctxt "Settings"
+msgid "Always delete entities without asking"
+msgstr ""

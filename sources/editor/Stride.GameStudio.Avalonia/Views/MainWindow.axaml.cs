@@ -7,11 +7,11 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
-using Stride.Core.Assets.Editor.Components.Build;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Avalonia.Extensions;
+using Stride.CrashReport;
 using Stride.GameStudio.Avalonia.Settings;
 using Stride.GameStudio.Avalonia.ViewModels;
 
@@ -207,7 +207,7 @@ public partial class MainWindow : Window
             GameStudioInternalSettings.WindowTop.SetValue(position.Y);
             View.SavePanelSizes();
             // Write the settings file
-            InternalSettings.SaveProfile();
+            InternalSettings.Save();
         }
 
         void Shutdown()

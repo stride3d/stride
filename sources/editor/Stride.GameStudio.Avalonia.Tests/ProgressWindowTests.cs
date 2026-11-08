@@ -4,7 +4,6 @@
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.Interactivity;
-using Stride.Core.Assets.Editor.ViewModel.Progress;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Avalonia.Services;
 using Stride.Core.Presentation.ViewModels;
@@ -12,6 +11,7 @@ using Stride.Core.Presentation.Windows;
 using Stride.GameStudio.Avalonia.Services;
 using Stride.GameStudio.Avalonia.Tests.Helpers;
 using Stride.GameStudio.Avalonia.Views;
+using Stride.Core.Assets.Editor.ViewModels.Progress;
 using MessageBox = Stride.Core.Presentation.Avalonia.Windows.MessageBox;
 
 namespace Stride.GameStudio.Avalonia.Tests;

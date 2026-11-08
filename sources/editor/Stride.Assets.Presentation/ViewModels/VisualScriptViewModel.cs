@@ -1,12 +1,15 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable enable
 
+using System;
 using Stride.Assets.Scripts;
+using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Annotations;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Quantum;
+using Stride.Core.Assets.Presentation.Annotations;
 
 namespace Stride.Assets.Presentation.ViewModels;
 
@@ -14,10 +17,10 @@ namespace Stride.Assets.Presentation.ViewModels;
 /// View model for <see cref="VisualScriptAsset"/>.
 /// </summary>
 [AssetViewModel<VisualScriptAsset>]
-public class VisualScriptViewModel : AssetCompositeViewModel<VisualScriptAsset>
+public sealed class VisualScriptViewModel : AssetCompositeViewModel<VisualScriptAsset>
 {
-    private readonly IObjectNode propertiesContent;
-    private readonly IObjectNode methodsContent;
+    private IObjectNode propertiesContent;
+    private IObjectNode methodsContent;
 
     public VisualScriptViewModel(AssetViewModelConstructionParameters parameters)
         : base(parameters)
@@ -76,6 +79,24 @@ public class VisualScriptViewModel : AssetCompositeViewModel<VisualScriptAsset>
         // Remove
         var itemIndex = new NodeIndex(index);
         methodsContent.Remove(method, itemIndex);
+    }
+
+    /// <inheritdoc/>
+    protected override void OnAssetReplaced(Asset previousAsset)
+    {
+        methodsContent.ItemChanged -= MethodsContentChanged;
+        var rootNode = Session.AssetNodeContainer.GetOrCreateNode(Asset);
+        propertiesContent = rootNode[nameof(VisualScriptAsset.Properties)].Target!;
+        methodsContent = rootNode[nameof(VisualScriptAsset.Methods)].Target!;
+        methodsContent.ItemChanged += MethodsContentChanged;
+
+        foreach (var method in Methods)
+            method.Destroy();
+        Methods.Clear();
+        foreach (var method in Asset.Methods)
+            Methods.Add(new VisualScriptMethodViewModel(this, method));
+
+        base.OnAssetReplaced(previousAsset);
     }
 
     /// <inheritdoc/>

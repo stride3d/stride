@@ -1,62 +1,84 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable enable
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using Stride.Assets.Editor.EditorGame;
-using Stride.Assets.Editor.EditorGame.Tools;
+using Stride.Assets.Editor.EntityFactories;
 using Stride.Assets.Entities;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
-using Stride.Assets.Presentation.AssetEditors.GameEditor;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
-using Stride.Assets.Presentation.SceneEditor;
-using Stride.Assets.Presentation.ViewModel.CopyPasteProcessors;
+using Stride.Assets.Models;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Internal;
 using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
+using Stride.Core.Serialization;
 using Stride.Core.Translation;
+using Stride.Editor.EditorGame.ContentLoader;
 using Stride.Editor.Engine;
 using Stride.Engine;
+using Stride.Assets.Editor.AssetEditors.GameEditor;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
+using Stride.Assets.Editor.SceneEditor;
+using Stride.Assets.Editor.ViewModels.CopyPasteProcessors;
 
 namespace Stride.Assets.Editor.ViewModels;
 
-public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEditorViewModel<EntityDesign, Entity, EntityHierarchyViewModel, EntityHierarchyItemViewModel>
+/// <summary>
+/// The editor of a scene or a prefab: the hierarchy of its entities and the game that shows them.
+/// </summary>
+public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEditorViewModel<EntityDesign, Entity, EntityHierarchyViewModel, EntityViewModel>,
+    IEntityHierarchyEditorViewModel, IGameEditorViewModel, IAddChildViewModel
 {
     private static readonly Logger Log = GlobalLogger.GetLogger("EntityHierarchyEditor");
 
     private readonly Dictionary<AbsoluteId, GameEditorChangePropagator> propagators = [];
+    // Completes once the game is loaded, or once the editor knows it has none
+    private readonly TaskCompletionSource initialized = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private IReadOnlyList<IAddAssetPolicy>? addAssetPolicies;
+    private EntityHierarchyRootViewModel? activeRoot;
     private readonly ModelComponentChangeHandler modelComponentChanges;
     // Latest dragged morph weights, waiting for the next game frame
     private readonly Dictionary<(AbsoluteId Entity, Guid Component, string Target), float> previewWeights = [];
     private bool previewPosted;
-    private object? gameView;
-    private EditorViewToolbarViewModel? toolbar;
+    private IEditorViewOptions? viewOptions;
     private bool isGameLoaded;
+    private bool compilingAssets;
     private string filterPattern = string.Empty;
 
     protected EntityHierarchyEditorViewModel(EntityHierarchyViewModel asset)
         : base(asset)
     {
+        GameHost = new EditorGameHost(ServiceProvider);
+        InitializeRootPart();
         HierarchyRoot.EntityAdded += EntityAdded;
         HierarchyRoot.EntityRemoved += EntityRemoved;
-        HierarchyRoot.LockChanged += LockChanged;
+        HierarchyRoot.SelectableChanged += SelectableChanged;
         // The root is expanded when the editor opens, as in the WPF scene editor
         HierarchyRoot.IsExpanded = true;
         FocusOnEntityCommand = new AnonymousTaskCommand<EntityViewModel>(ServiceProvider, FocusOnEntityAsync) { IsEnabled = false };
         FocusOnSelectionCommand = new AnonymousTaskCommand(ServiceProvider, FocusOnSelectionAsync) { IsEnabled = false };
         // Whichever side the selection changes from (the tree or the game)
         SelectedItems.CollectionChanged += SelectedItemsChanged;
-        CreateEntityInRootCommand = new AnonymousTaskCommand<IEntityFactory?>(ServiceProvider, x => CreateEntity(x, HierarchyRoot));
-        CreateEntityInSelectionCommand = new AnonymousTaskCommand<IEntityFactory?>(ServiceProvider, x => CreateEntity(x, SelectedContent.FirstOrDefault() as EntityHierarchyItemViewModel ?? HierarchyRoot));
-        CreateFolderInRootCommand = new AnonymousCommand(ServiceProvider, () => CreateFolder(HierarchyRoot, true));
-        CreateFolderInSelectionCommand = new AnonymousCommand(ServiceProvider, () => CreateFolder(SelectedContent.FirstOrDefault() as EntityHierarchyItemViewModel ?? HierarchyRoot, true));
+        // The entities and folders created without a parent go into the active root, as in the WPF scene editor
+        CreateEntityCommand = new AnonymousTaskCommand<IEntityFactory?>(ServiceProvider, x => CreateEntity(x, ActiveRoot, true));
+        CreateEntityInRootCommand = new AnonymousTaskCommand<IEntityFactory?>(ServiceProvider, x => CreateEntity(x, ActiveRoot));
+        CreateEntityInSelectionCommand = new AnonymousTaskCommand<IEntityFactory?>(ServiceProvider, x => CreateEntity(x, SelectedContent.FirstOrDefault() as EntityHierarchyItemViewModel ?? ActiveRoot));
+        CreateFolderInRootCommand = new AnonymousCommand(ServiceProvider, () => CreateFolder(ActiveRoot, true));
+        CreateFolderInSelectionCommand = new AnonymousCommand(ServiceProvider, () => CreateFolder(SelectedContent.FirstOrDefault() as EntityHierarchyItemViewModel ?? ActiveRoot, true));
+        SetActiveRootCommand = new AnonymousCommand(ServiceProvider, SetActiveRoot);
         RenameCommand = new AnonymousCommand(ServiceProvider, Rename);
         CreatePrefabFromSelectionCommand = new AnonymousCommand(ServiceProvider, CreatePrefabFromSelection);
         OpenPrefabEditorCommand = new AnonymousCommand(ServiceProvider, OpenPrefabEditor);
@@ -64,15 +86,52 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
         BreakLinkToPrefabCommand = new AnonymousCommand(ServiceProvider, () => BreakLinkToBase("prefab"));
         UpdateCommands();
         modelComponentChanges = new ModelComponentChangeHandler(asset);
+        // The properties of a selected entity show the target names and import settings of its model asset
+        Session.AssetPropertiesChanged += ReferencedModelChanged;
     }
 
-    public EntityHierarchyRootViewModel HierarchyRoot => (EntityHierarchyRootViewModel)RootPart;
+    /// <summary>
+    /// Gets the root of the hierarchy: the edited scene, with its child scenes, or the edited prefab.
+    /// </summary>
+    public EntityHierarchyRootViewModel HierarchyRoot => (EntityHierarchyRootViewModel)RootPart!;
+
+    /// <inheritdoc/>
+    public EditorGameHost GameHost { get; }
+
+    /// <inheritdoc/>
+    /// <remarks>The edited scene or prefab by default.</remarks>
+    public EntityHierarchyRootViewModel ActiveRoot { get => activeRoot ?? HierarchyRoot; set => SetValue(ref activeRoot, value); }
+
+    /// <inheritdoc/>
+    public IReadOnlyList<IAddAssetPolicy> AddAssetPolicies => addAssetPolicies ??= AddAssetPolicyRegistry.CreatePolicies();
 
     /// <summary>
-    /// Gets the command that creates an entity at the root of the hierarchy, with the factory given as parameter, or an
+    /// Gets the selected entity that has the transformation gizmo: the last selected one, or <c>null</c>.
+    /// </summary>
+    public EntityViewModel? EntityWithGizmo => SelectedItems.LastOrDefault();
+
+    /// <summary>
+    /// Gets whether the game is compiling assets the entities reference.
+    /// </summary>
+    public bool CompilingAssets { get => compilingAssets; private set => SetValue(ref compilingAssets, value); }
+
+    /// <summary>
+    /// Gets the command that creates an entity in the active root, at the point of the scene under the last right click of
+    /// the view, with the factory given as parameter, or an empty entity when the parameter is <c>null</c>.
+    /// </summary>
+    public ICommandBase CreateEntityCommand { get; }
+
+    /// <summary>
+    /// Gets the command that creates an entity at the root of the active root, with the factory given as parameter, or an
     /// empty entity when the parameter is <c>null</c>.
     /// </summary>
     public ICommandBase CreateEntityInRootCommand { get; }
+
+    /// <summary>
+    /// Gets the command that makes the last selected root (a scene) the active root: the entities created without a
+    /// parent, pasted at the root or dropped on the view go into it.
+    /// </summary>
+    public ICommandBase SetActiveRootCommand { get; }
 
     /// <summary>
     /// Gets the command that creates an entity in the first selected item (an entity or a folder), or at the root of the
@@ -125,16 +184,10 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     public ICommandBase CreateFolderInSelectionCommand { get; }
 
     /// <summary>
-    /// Gets the control that shows the game of the editor, or <c>null</c> while the game has not started, or when the
-    /// editor has no game (the session has no game viewport, the game could not start).
+    /// Gets the view options of the game, created by the <see cref="IEditorViewOptionsFactory"/> of the session, or
+    /// <c>null</c> while the game has not loaded, or when the editor has no game.
     /// </summary>
-    public object? GameView { get => gameView; private set => SetValue(ref gameView, value); }
-
-    /// <summary>
-    /// Gets the toolbar of the view of the game, or <c>null</c> while the game has not loaded, or when the editor has no
-    /// game.
-    /// </summary>
-    public EditorViewToolbarViewModel? Toolbar { get => toolbar; private set => SetValue(ref toolbar, value); }
+    public IEditorViewOptions? ViewOptions { get => viewOptions; private set => SetValue(ref viewOptions, value); }
 
     /// <summary>
     /// Gets the command that moves the camera of the view to frame the entity given as parameter.
@@ -149,11 +202,11 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     /// <summary>
     /// Gets the controller of the game of the editor, or <c>null</c> when the editor has no game.
     /// </summary>
-    protected EntityHierarchyEditorController? Controller { get; private set; }
+    public EntityHierarchyEditorController? Controller => GameHost.Controller as EntityHierarchyEditorController;
 
     /// <inheritdoc/>
     /// <remarks>The game reads the scene editor settings, which the plugins register, on every frame.</remarks>
-    public override Task Stopped => Controller?.GameEnded ?? Task.CompletedTask;
+    public override Task Stopped => GameHost.Stopped;
 
     /// <summary>
     /// Starts the game of the editor and loads the hierarchy into it, when the session can show a game.
@@ -161,48 +214,63 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     /// <returns><c>false</c> when the game could not start; the editor still works without it.</returns>
     public override async Task<bool> Initialize()
     {
+        try
+        {
+            return await InitializeGame();
+        }
+        finally
+        {
+            // Whatever happened, the hierarchy stops waiting for the game
+            initialized.TrySetResult();
+        }
+    }
+
+    private async Task<bool> InitializeGame()
+    {
         if (!await base.Initialize())
             return false;
 
-        // Without a viewport (no graphics device, previews turned off) the editor has no game view
+        // Without a viewport (no graphics device, previews turned off) the editor has no game view: the hierarchy is
+        // loaded without a game
         if (ServiceProvider.TryGet<IEditorGameViewportService>() is not { } viewportService)
+        {
+            initialized.TrySetResult();
+            await LoadHierarchyAsync();
             return true;
+        }
 
         try
         {
             if (CreateController(viewportService) is not { } controller)
+            {
+                initialized.TrySetResult();
+                await LoadHierarchyAsync();
                 return true;
+            }
 
-            Controller = controller;
-            if (!await controller.StartGame())
-                return false;
-            GameView = controller.View;
-
-            // Wait for the game to be fully initialized (including services).
-            await controller.GameContentLoaded;
-            if (IsDestroyed)
-                return false;
-
-            if (!await controller.CreateScene())
+            controller.Loader.AssetLoading += AssetLoadingChanged;
+            controller.Loader.AssetLoaded += AssetLoadingChanged;
+            if (!await GameHost.StartAsync(controller) || IsDestroyed)
                 return false;
 
             // From now on, the entities the asset gets or loses are added to or removed from the game
             isGameLoaded = true;
-            await OnGameContentLoaded();
+            initialized.TrySetResult();
+            await LoadHierarchyAsync();
             UpdateFocusCommands();
 
-            if (controller.GetService<EditorGameToolService>() is { } toolService)
+            if (ServiceProvider.TryGet<IEditorViewOptionsFactory>()?.CreateViewOptions(this, controller) is { } options)
             {
-                var gameToolbar = new EditorViewToolbarViewModel(ServiceProvider, toolService, controller.GetService<IEditorGameSelectionViewModelService>(), controller.GetService<EditorGameMaterialHighlightService>(),
-                    controller.GetService<EditorGameComponentGizmoService>(), controller.GetServices<IEditorGameOverlayService>(),
-                    controller.GetService<EditorGameLightProbeGizmoService>());
-                await gameToolbar.InitializeAsync();
+                await options.InitializeAsync();
                 if (IsDestroyed)
-                    gameToolbar.Destroy();
+                    options.Destroy();
                 else
                 {
-                    LoadSettings(gameToolbar);
-                    Toolbar = gameToolbar;
+                    LoadSettings(options);
+                    ViewOptions = options;
+                    // The entities already in the game
+                    foreach (var entity in propagators.Keys.Select(FindPartViewModel).OfType<EntityViewModel>())
+                        options.OnEntityLinked(entity);
                 }
             }
             return true;
@@ -210,7 +278,6 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
         catch (Exception e) when (!IsDestroyed)
         {
             Log.Error($"The game of the editor of {Asset.Url} could not start.", e);
-            GameView = null;
             return false;
         }
         catch (Exception) when (IsDestroyed)
@@ -226,31 +293,39 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
 
         // As WPF, the settings first, before the toolbar and the game go
         SaveSettings();
+        initialized.TrySetResult();
         HierarchyRoot.EntityAdded -= EntityAdded;
         HierarchyRoot.EntityRemoved -= EntityRemoved;
-        HierarchyRoot.LockChanged -= LockChanged;
+        HierarchyRoot.SelectableChanged -= SelectableChanged;
         SelectedItems.CollectionChanged -= SelectedItemsChanged;
+        Session.AssetPropertiesChanged -= ReferencedModelChanged;
+        if (Controller is { } controller)
+        {
+            controller.Loader.AssetLoading -= AssetLoadingChanged;
+            controller.Loader.AssetLoaded -= AssetLoadingChanged;
+        }
         modelComponentChanges.Dispose();
         foreach (var propagator in propagators.Values)
             propagator.Destroy();
         propagators.Clear();
-        Toolbar?.Destroy();
-        Toolbar = null;
-        GameView = null;
-        Controller?.Destroy();
+        ViewOptions?.Destroy();
+        ViewOptions = null;
+        GameHost.Destroy();
 
         base.Destroy();
     }
 
     /// <summary>
-    /// Shows the view options saved for this scene or prefab in the user settings of its package, shared with the WPF editor.
+    /// Shows the view options saved for this scene or prefab in the user settings of its package, shared by both editors,
+    /// and moves the camera where it was.
     /// </summary>
-    private void LoadSettings(EditorViewToolbarViewModel gameToolbar)
+    private void LoadSettings(IEditorViewOptions options)
     {
         try
         {
             var sceneSettings = Asset.Directory.Package.UserSettings.GetValue(PackageSceneSettings.SceneSettings);
-            gameToolbar.LoadSettings(sceneSettings.TryGetValue(Asset.Asset.Id, out var settings) ? settings : SceneSettingsData.CreateDefault());
+            var settings = sceneSettings.TryGetValue(Asset.Asset.Id, out var saved) ? saved : SceneSettingsData.CreateDefault();
+            options.LoadSettings(settings);
         }
         catch (Exception e)
         {
@@ -259,13 +334,13 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     }
 
     /// <summary>
-    /// Saves the view options of this scene or prefab in the user settings of its package, keeping the members the Avalonia
-    /// editor does not use as they were.
+    /// Saves the view options of this scene or prefab in the user settings of its package, keeping the members the view
+    /// options of this user interface don't show as they were.
     /// </summary>
     private void SaveSettings()
     {
         // Without a game, nothing was shown that could have changed
-        if (Toolbar is not { } gameToolbar)
+        if (ViewOptions is not { } options)
             return;
 
         try
@@ -278,7 +353,7 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
                 settings = SceneSettingsData.CreateDefault();
                 sceneSettings.Add(Asset.Asset.Id, settings);
             }
-            gameToolbar.SaveSettings(settings);
+            SaveSettings(settings);
             userSettings.SetValue(PackageSceneSettings.SceneSettings, sceneSettings);
             userSettings.Save();
         }
@@ -289,11 +364,19 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     }
 
     /// <summary>
+    /// Writes the view options into the given settings: the editor of a scene adds its own.
+    /// </summary>
+    protected virtual void SaveSettings(SceneSettingsData settings)
+    {
+        ViewOptions?.SaveSettings(settings);
+    }
+
+    /// <summary>
     /// Lets the game render: its view is shown.
     /// </summary>
     public void ShowGame()
     {
-        Controller?.OnShowGame();
+        GameHost.ShowGame();
     }
 
     /// <summary>
@@ -301,33 +384,55 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     /// </summary>
     public void HideGame()
     {
-        Controller?.OnHideGame();
+        GameHost.HideGame();
     }
 
     /// <summary>
-    /// Writes the transformations of entities moved in the game (by a transformation gizmo) back to the asset, as one
+    /// Writes the transformations of elements moved in the game (by a transformation gizmo) back to the asset, as one
     /// undoable operation.
     /// </summary>
-    /// <param name="transformations">The new transformations, by entity.</param>
+    /// <param name="transformations">The new transformations, by entity or root.</param>
     public void UpdateTransformations(IReadOnlyDictionary<AbsoluteId, TransformationTRS> transformations)
     {
         var undoRedoService = Session.UndoRedoService;
         using var transaction = undoRedoService.CreateTransaction();
         foreach (var (id, transformation) in transformations)
         {
-            if (FindPartViewModel(id) is not EntityViewModel entity)
-                continue;
-
-            var node = Session.AssetNodeContainer.GetNode(entity.AssetSideEntity.Transform);
-            // Update properties only when they actually changed
-            if ((Vector3)node[nameof(TransformComponent.Position)].Retrieve()! != transformation.Position)
-                node[nameof(TransformComponent.Position)].Update(transformation.Position);
-            if ((Quaternion)node[nameof(TransformComponent.Rotation)].Retrieve()! != transformation.Rotation)
-                node[nameof(TransformComponent.Rotation)].Update(transformation.Rotation);
-            if ((Vector3)node[nameof(TransformComponent.Scale)].Retrieve()! != transformation.Scale)
-                node[nameof(TransformComponent.Scale)].Update(transformation.Scale);
+            if (GetObjectToSelect(id) is EntityHierarchyElementViewModel element)
+                UpdateTransformations(element, transformation);
         }
         undoRedoService.SetName(transaction, "Update transformation");
+    }
+
+    /// <summary>
+    /// Writes the transformation of an element moved in the game back to the asset: the transformation of an entity by
+    /// default. The editor of a scene moves its child scenes.
+    /// </summary>
+    protected virtual void UpdateTransformations(EntityHierarchyElementViewModel element, TransformationTRS transformation)
+    {
+        if (element is not EntityViewModel entity)
+            return;
+
+        var node = Session.AssetNodeContainer.GetNode(entity.AssetSideEntity.Transform);
+        // Update properties only when they actually changed
+        if ((Vector3)node[nameof(TransformComponent.Position)].Retrieve()! != transformation.Position)
+            node[nameof(TransformComponent.Position)].Update(transformation.Position);
+        if ((Quaternion)node[nameof(TransformComponent.Rotation)].Retrieve()! != transformation.Rotation)
+            node[nameof(TransformComponent.Rotation)].Update(transformation.Rotation);
+        if ((Vector3)node[nameof(TransformComponent.Scale)].Retrieve()! != transformation.Scale)
+            node[nameof(TransformComponent.Scale)].Update(transformation.Scale);
+    }
+
+    /// <summary>
+    /// Gets the root of the hierarchy that holds the given entity: the scene or prefab, or the child scene.
+    /// </summary>
+    public static EntityHierarchyRootViewModel GetRoot(EntityViewModel entity)
+    {
+        ArgumentNullException.ThrowIfNull(entity);
+        var rootEntity = entity;
+        while (rootEntity.TransformParent is EntityViewModel parentEntity)
+            rootEntity = parentEntity;
+        return rootEntity.TransformParent as EntityHierarchyRootViewModel ?? throw new InvalidOperationException($"{entity} is not contained in a hierarchy.");
     }
 
     /// <summary>
@@ -337,7 +442,7 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     /// <returns>A task that completes once the camera has moved, or at once when the editor has no game.</returns>
     public Task FocusOnEntityAsync(EntityViewModel entity)
     {
-        if (!isGameLoaded || Controller is not { } controller || controller.GetService<EditorGameEntityCameraService>() is not { } camera)
+        if (!entity.IsLoaded || !isGameLoaded || Controller is not { } controller || controller.GetService<EditorGameEntityCameraService>() is not { } camera)
             return Task.CompletedTask;
 
         var materialHighlight = controller.GetService<EditorGameMaterialHighlightService>();
@@ -385,12 +490,141 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     }
 
     /// <summary>
-    /// Called once the game has loaded its content and created its scene: the hierarchy can be loaded into it.
+    /// Called once the game has loaded its content and created its scene, or once the editor knows it has no game: the
+    /// edited scene or prefab can be loaded (<see cref="EntityHierarchyElementViewModel.RequestLoading"/>).
     /// </summary>
-    protected virtual Task OnGameContentLoaded()
+    protected virtual Task LoadHierarchyAsync()
     {
         return Task.CompletedTask;
     }
+
+    /// <inheritdoc/>
+    public async Task LoadRootsAsync(IReadOnlyCollection<EntityHierarchyRootViewModel> roots)
+    {
+        await initialized.Task;
+        if (IsDestroyed || !isGameLoaded || Controller is null)
+            return;
+
+        await LoadRootsIntoGameAsync(roots);
+        if (IsDestroyed)
+            return;
+        await LinkToGameSide(roots.SelectMany(x => x.InnerSubEntities.BreadthFirst(e => e.TransformChildren)));
+    }
+
+    /// <inheritdoc/>
+    public async Task UnloadRootsAsync(IReadOnlyCollection<EntityHierarchyRootViewModel> roots)
+    {
+        await initialized.Task;
+        if (IsDestroyed || !isGameLoaded || Controller is not { } controller)
+            return;
+
+        var selection = controller.GetService<IEditorGameSelectionViewModelService>();
+        foreach (var entity in roots.SelectMany(x => x.InnerSubEntities.BreadthFirst(e => e.TransformChildren)))
+        {
+            UnlinkFromGameSide(entity);
+            selection?.RemoveSelectable(entity.Id);
+        }
+        await UnloadRootsFromGameAsync(roots);
+    }
+
+    /// <inheritdoc/>
+    public virtual Task UpdateSceneOffsetAsync(SceneRootViewModel root)
+    {
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc/>
+    public async Task<bool> IsSceneLoadedOnOpenAsync(SceneRootViewModel root)
+    {
+        // The edited scene is always loaded (LoadHierarchyAsync)
+        if (root.ParentScene is null)
+            return false;
+
+        await initialized.Task;
+        if (IsDestroyed)
+            return false;
+
+        try
+        {
+            var sceneSettings = root.Asset.Directory.Package.UserSettings.GetValue(PackageSceneSettings.SceneSettings);
+            return (sceneSettings.TryGetValue(root.Asset.Id, out var settings) ? settings : SceneSettingsData.CreateDefault()).SceneLoaded;
+        }
+        catch (Exception e)
+        {
+            Log.Warning($"The settings of {root.Asset.Url} could not be read.", e);
+            return false;
+        }
+    }
+
+    /// <inheritdoc/>
+    public void SaveSceneLoaded(SceneRootViewModel root)
+    {
+        try
+        {
+            var userSettings = root.Asset.Directory.Package.UserSettings;
+            // A copy: without settings yet, the value is the default dictionary of the key, shared by every package
+            var sceneSettings = new Dictionary<AssetId, SceneSettingsData>(userSettings.GetValue(PackageSceneSettings.SceneSettings));
+            if (!sceneSettings.TryGetValue(root.Asset.Id, out var settings))
+            {
+                settings = SceneSettingsData.CreateDefault();
+                sceneSettings.Add(root.Asset.Id, settings);
+            }
+            settings.SceneLoaded = root.IsLoaded;
+            userSettings.SetValue(PackageSceneSettings.SceneSettings, sceneSettings);
+            userSettings.Save();
+        }
+        catch (Exception e)
+        {
+            Log.Warning($"The settings of {root.Asset.Url} could not be saved.", e);
+        }
+    }
+
+    /// <inheritdoc/>
+    ISet<AssetId> IEntityHierarchyEditorViewModel.GatherAllBasePartAssets(EntityViewModel entity, bool includeChildren)
+    {
+        return GatherAllBasePartAssets(entity, includeChildren);
+    }
+
+    /// <inheritdoc/>
+    bool IAddChildViewModel.CanAddChildren(IReadOnlyCollection<object> children, AddChildModifiers modifiers, out string message)
+    {
+        // Only assets can be dropped on the view
+        if (children.Any(x => x is not AssetViewModel))
+        {
+            message = "Only assets can be dropped here";
+            return false;
+        }
+        return ((IAddChildViewModel)ActiveRoot).CanAddChildren(children, modifiers, out message);
+    }
+
+    /// <inheritdoc/>
+    void IAddChildViewModel.AddChildren(IReadOnlyCollection<object> children, AddChildModifiers modifiers)
+    {
+        // The entities of the dropped assets go under the mouse, in the active root
+        var root = ActiveRoot;
+        var position = GetMousePositionInRoot(root, false);
+        IReadOnlyCollection<EntityViewModel> newEntities;
+        var undoRedo = Session.UndoRedoService;
+        using (var transaction = undoRedo.CreateTransaction())
+        {
+            newEntities = root.AddEntitiesFromAssets(children, root.Asset.Asset.Hierarchy.RootParts.Count, modifiers, position);
+            undoRedo.SetName(transaction, "Create entities");
+        }
+
+        // The new entities are selected
+        ClearSelection();
+        SelectedContent.AddRange(newEntities);
+    }
+
+    /// <summary>
+    /// Loads the given roots into the game (UI thread).
+    /// </summary>
+    protected abstract Task LoadRootsIntoGameAsync(IReadOnlyCollection<EntityHierarchyRootViewModel> roots);
+
+    /// <summary>
+    /// Unloads the given roots from the game, in this order (UI thread).
+    /// </summary>
+    protected abstract Task UnloadRootsFromGameAsync(IReadOnlyCollection<EntityHierarchyRootViewModel> roots);
 
     /// <summary>
     /// Links the given entities, whose game-side clones were just added to the game, to the game side, and loads the
@@ -403,18 +637,41 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
             return Task.CompletedTask;
 
         var selection = controller.GetService<IEditorGameSelectionViewModelService>();
-        var added = new List<GameEditorChangePropagator>();
+        var added = new List<Task>();
         foreach (var entity in entities)
         {
             var propagator = new EntityHierarchyElementChangePropagator(this, controller, entity.Asset, entity.Id, entity.AssetSideEntity);
             propagators.Add(entity.Id, propagator);
-            added.Add(propagator);
+            added.Add(NotifyLinkedAsync(entity, propagator));
             propagator.NotifyGameSidePartAdded();
             // The clone of the entity is in the game: it can be selected there, unless it is locked
             if (!entity.IsLocked)
                 selection?.AddSelectable(entity.Id);
         }
-        return Task.WhenAll(added.Select(x => x.Initialized));
+        return Task.WhenAll(added);
+    }
+
+    /// <summary>
+    /// Tells the view options that an entity is in the game, once its game-side clone is initialized.
+    /// </summary>
+    private async Task NotifyLinkedAsync(EntityViewModel entity, GameEditorChangePropagator propagator)
+    {
+        await propagator.Initialized;
+        // The entity left the game while its propagator initialized
+        if (!IsDestroyed && propagators.TryGetValue(entity.Id, out var current) && current == propagator)
+            ViewOptions?.OnEntityLinked(entity);
+    }
+
+    /// <summary>
+    /// Destroys the propagator of an entity that leaves the game, and tells the view options.
+    /// </summary>
+    private void UnlinkFromGameSide(EntityViewModel entity)
+    {
+        if (propagators.Remove(entity.Id, out var propagator))
+        {
+            propagator.Destroy();
+            ViewOptions?.OnEntityUnlinked(entity);
+        }
     }
 
     /// <summary>
@@ -422,7 +679,8 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     /// </summary>
     private async void EntityAdded(object? sender, EntityHierarchyChangedEventArgs e)
     {
-        if (!isGameLoaded || Controller is not { } controller)
+        // An entity of an unloaded scene is not in the game
+        if (!isGameLoaded || Controller is not { } controller || !e.Entity.IsLoaded)
             return;
 
         try
@@ -445,19 +703,20 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     }
 
     /// <summary>
-    /// A locked entity cannot be selected in the game, as in the WPF scene editor: it leaves the selection of the game, and
-    /// the gizmos cannot move it. It can still be selected in the hierarchy.
+    /// A locked or unloaded entity cannot be selected in the game, as in the WPF scene editor: it leaves the selection of
+    /// the game, and the gizmos cannot move it. It can still be selected in the hierarchy.
     /// </summary>
-    private void LockChanged(object? sender, EntityHierarchyElementEventArgs e)
+    private void SelectableChanged(object? sender, EntityHierarchyElementEventArgs e)
     {
-        if (e.Element is not EntityViewModel entity || !propagators.ContainsKey(entity.Id))
+        // An entity not in the game yet becomes selectable once it is linked to it; a scene is in the game when loaded
+        if (e.Element is EntityViewModel entity && !propagators.ContainsKey(entity.Id))
             return;
 
         var selection = Controller?.GetService<IEditorGameSelectionViewModelService>();
-        if (entity.IsLocked)
-            selection?.RemoveSelectable(entity.Id);
+        if (e.Element.IsSelectable)
+            selection?.AddSelectable(e.Element.Id);
         else
-            selection?.AddSelectable(entity.Id);
+            selection?.RemoveSelectable(e.Element.Id);
     }
 
     /// <summary>
@@ -466,11 +725,12 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     private async void EntityRemoved(object? sender, EntityHierarchyChangedEventArgs e)
     {
         var entities = SelfAndDescendants(e.Entity).ToList();
+        // Only an entity linked to the game (of a loaded scene) has a clone in the game
+        var inGame = propagators.ContainsKey(e.Entity.Id);
         var selection = isGameLoaded ? Controller?.GetService<IEditorGameSelectionViewModelService>() : null;
         foreach (var entity in entities)
         {
-            if (propagators.Remove(entity.Id, out var propagator))
-                propagator.Destroy();
+            UnlinkFromGameSide(entity);
             selection?.RemoveSelectable(entity.Id);
         }
         foreach (var entity in entities)
@@ -478,7 +738,7 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
             SelectedContent.Remove(entity);
         }
 
-        if (!isGameLoaded || Controller is not { } controller)
+        if (!isGameLoaded || Controller is not { } controller || !inGame)
             return;
 
         try
@@ -527,14 +787,19 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     /// </summary>
     /// <param name="factory">The factory of the entity, or <c>null</c> for an empty entity.</param>
     /// <param name="parent">The root of the hierarchy, an entity or a folder.</param>
+    /// <param name="atMousePosition">Whether the entity goes at the point of the scene under the last right click of the
+    /// view, as the entity menu of the view.</param>
     /// <returns>The view model of the new entity, or <c>null</c> when the factory created nothing (the user cancelled).</returns>
-    public async Task<EntityViewModel?> CreateEntity(IEntityFactory? factory, EntityHierarchyItemViewModel parent)
+    public async Task<EntityViewModel?> CreateEntity(IEntityFactory? factory, EntityHierarchyItemViewModel parent, bool atMousePosition = false)
     {
         ArgumentNullException.ThrowIfNull(parent);
 
-        var entity = factory != null ? await factory.CreateEntity(new EntityHierarchyItemAdapter(parent)) : new Entity { Name = "Entity" };
+        var entity = factory != null ? await factory.CreateEntity(parent) : new Entity { Name = EntityFactory.ComputeNewName(parent, "Entity") };
         if (entity is null)
             return null;
+
+        if (atMousePosition && parent is EntityHierarchyRootViewModel root)
+            entity.Transform.Position = GetMousePositionInRoot(root, true);
 
         // The item ids of the collections of the new entity exist before it goes into the asset
         AssetCollectionItemIdHelper.GenerateMissingItemIds(entity);
@@ -606,7 +871,7 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     public ISet<EntityViewModel> DuplicateSelectedEntities()
     {
         // The selected entities without a selected ancestor
-        var entitiesToDuplicate = GetCommonRoots(SelectedItems.OfType<EntityViewModel>().ToList());
+        var entitiesToDuplicate = GetCommonRoots(SelectedItems.ToList());
         if (entitiesToDuplicate.Count == 0)
             return entitiesToDuplicate;
 
@@ -626,9 +891,37 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     }
 
     /// <inheritdoc/>
-    protected override EntityDesign? GetPartDesign(EntityHierarchyItemViewModel item)
+    protected override EntityDesign GetPartDesign(EntityViewModel item)
     {
-        return (item as EntityViewModel)?.EntityDesign;
+        return item.EntityDesign;
+    }
+
+    /// <inheritdoc/>
+    /// <remarks>The root, the entities and the folders can be selected, and the child scenes.</remarks>
+    protected override object? GetObjectToSelect(AbsoluteId id)
+    {
+        if (id == HierarchyRoot.Id)
+            return HierarchyRoot;
+
+        return HierarchyRoot.Children.BreadthFirst(x => x.Children).FirstOrDefault(x => x switch
+        {
+            EntityHierarchyElementViewModel element => element.Id == id,
+            EntityFolderViewModel folder => folder.Id == id,
+            _ => false,
+        });
+    }
+
+    /// <inheritdoc/>
+    protected override AbsoluteId? GetSelectedObjectId(object obj)
+    {
+        return (obj as EntityHierarchyElementViewModel)?.Id ?? (obj as EntityFolderViewModel)?.Id;
+    }
+
+    /// <inheritdoc/>
+    /// <remarks>Into the active root, as in the WPF scene editor.</remarks>
+    protected override AssetCompositeItemViewModel GetPasteRoot()
+    {
+        return ActiveRoot;
     }
 
     /// <inheritdoc/>
@@ -650,14 +943,15 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
         if (!CanDelete())
             return;
 
-        var entitiesToDelete = GetCommonRoots(SelectedItems.OfType<EntityViewModel>().ToList());
+        var entitiesToDelete = GetCommonRoots(SelectedItems.ToList());
         if (SceneEditorSettings.AskBeforeDeletingEntities.GetValue())
         {
             var confirmMessage = Tr._p("Message", "Are you sure you want to delete this entity?");
             // TODO: we should compute the actual total number of entities to be deleted here (children recursively, etc.)
             if (entitiesToDelete.Count > 1)
                 confirmMessage = string.Format(Tr._p("Message", "Are you sure you want to delete these {0} entities?"), entitiesToDelete.Count);
-            var checkedMessage = string.Format(Core.Assets.Editor.Settings.EditorSettings.AlwaysDeleteWithoutAsking, "entities");
+            // A whole sentence, so that each language can translate it
+            var checkedMessage = Tr._p("Settings", "Always delete entities without asking");
             var buttons = DialogButtons.Create([Tr._p("Button", "Delete"), Tr._p("Button", "Cancel")], 1, 2);
             var result = await ServiceProvider.Get<IDialogService>().CheckedMessageBoxAsync(confirmMessage, false, checkedMessage, buttons, MessageBoxImage.Question);
             if (result.Result != 1)
@@ -691,13 +985,13 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     }
 
     /// <inheritdoc/>
-    protected override ISet<EntityHierarchyItemViewModel> DuplicateSelection()
+    protected override ISet<EntityViewModel> DuplicateSelection()
     {
-        return DuplicateSelectedEntities().Cast<EntityHierarchyItemViewModel>().ToHashSet();
+        return DuplicateSelectedEntities();
     }
 
     /// <inheritdoc/>
-    protected override void PrepareToCopy(AssetCompositeHierarchyData<EntityDesign, Entity> clonedHierarchy, ICollection<EntityHierarchyItemViewModel> commonRoots, ICollection<EntityHierarchyItemViewModel> commonParts)
+    protected override void PrepareToCopy(AssetCompositeHierarchyData<EntityDesign, Entity> clonedHierarchy, ICollection<AssetCompositeItemViewModel> commonRoots, ICollection<EntityViewModel> commonParts)
     {
         // No folder by default
         foreach (var entity in clonedHierarchy.Parts.Values)
@@ -718,7 +1012,7 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     }
 
     /// <inheritdoc/>
-    protected override void AttachPropertiesForPaste(ref PropertyContainer propertyContainer, EntityHierarchyItemViewModel pasteTarget)
+    protected override void AttachPropertiesForPaste(ref PropertyContainer propertyContainer, AssetCompositeItemViewModel pasteTarget)
     {
         // Into a folder: the pasted entities go to that folder
         if ((pasteTarget as EntityFolderViewModel)?.Path is { Length: > 0 } folder)
@@ -736,7 +1030,7 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
         DuplicateSelectionCommand.IsEnabled = GetCommonRoots(SelectedContent.OfType<EntityHierarchyItemViewModel>().ToList()).Count > 0;
         RenameCommand.IsEnabled = SelectedContent.LastOrDefault() is EntityHierarchyItemViewModel { IsEditable: true };
 
-        var prefabInstanceSelected = SelectedItems.OfType<EntityViewModel>().Any(x => x.SourcePrefab != null);
+        var prefabInstanceSelected = SelectedItems.Any(x => x.SourcePrefab != null);
         CreatePrefabFromSelectionCommand.IsEnabled = SelectedItems.Count >= 1;
         BreakLinkToPrefabCommand.IsEnabled = prefabInstanceSelected;
         OpenPrefabEditorCommand.IsEnabled = prefabInstanceSelected;
@@ -750,7 +1044,7 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
 
     private void OpenPrefabEditor()
     {
-        foreach (var prefab in SelectedItems.OfType<EntityViewModel>().Select(x => x.SourcePrefab).NotNull().Distinct())
+        foreach (var prefab in SelectedItems.Select(x => x.SourcePrefab).NotNull().Distinct())
         {
             Session.EditorCollection.OpenAssetEditor(prefab);
         }
@@ -759,8 +1053,60 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     private void SelectPrefab()
     {
         // The entity with the transformation gizmo, as in the WPF scene editor
-        if ((SelectedItems.LastOrDefault() as EntityViewModel)?.SourcePrefab is { } prefab)
+        if (EntityWithGizmo?.SourcePrefab is { } prefab)
             Session.AssetCollection.SelectAssets(prefab.Yield());
+    }
+
+    private void SetActiveRoot()
+    {
+        if (SelectedContent.LastOrDefault() is EntityHierarchyRootViewModel root)
+            ActiveRoot = root;
+    }
+
+    /// <summary>
+    /// Gets the point of the scene under the mouse, in the space of the given root (a child scene has an offset), snapped
+    /// to the translation snap of the view, or the origin when the editor has no game.
+    /// </summary>
+    private Vector3 GetMousePositionInRoot(EntityHierarchyRootViewModel root, bool lastRightClick)
+    {
+        if (!isGameLoaded || Controller?.GetService<IEditorGameMousePositionViewModelService>() is not { } mouse)
+            return Vector3.Zero;
+
+        var position = mouse.GetMousePositionInScene(lastRightClick);
+        if (ViewOptions is { } options)
+            position = options.SnapPosition(position);
+        for (var scene = root as SceneRootViewModel; scene is not null; scene = scene.ParentScene)
+            position -= scene.Offset;
+        return position;
+    }
+
+    /// <summary>
+    /// Shows whether the game compiles assets (game thread or UI thread).
+    /// </summary>
+    private void AssetLoadingChanged(object? sender, ContentLoadEventArgs e)
+    {
+        Dispatcher.InvokeAsync(() => CompilingAssets = !IsDestroyed && e.ContentLoadingCount > 0).Forget();
+    }
+
+    /// <summary>
+    /// Refreshes the properties of the selected entities when the model asset of one of them changed: they show its target
+    /// names and import settings, including when the change is undone or redone.
+    /// </summary>
+    private void ReferencedModelChanged(object? sender, AssetChangedEventArgs e)
+    {
+        var changedModelIds = e.Assets.Where(x => x.Asset is ModelAsset).Select(x => x.Id).ToHashSet();
+        if (changedModelIds.Count == 0)
+            return;
+
+        Dispatcher.InvokeAsync(() =>
+        {
+            if (IsDestroyed || Session.ActiveProperties != EditorProperties)
+                return;
+
+            var modelReferences = SelectedItems.SelectMany(x => x.AssetSideEntity.Components.OfType<ModelComponent>()).Select(x => AttachedReferenceManager.GetAttachedReference(x.Model));
+            if (modelReferences.Any(x => x is not null && changedModelIds.Contains(x.Id)))
+                EditorProperties.RefreshSelectedPropertiesAsync().Forget();
+        }).Forget();
     }
 
     private void Rename()
@@ -800,12 +1146,21 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     {
         SelectedItems.Clear();
         SelectedItems.AddRange(SelectedContent.Cast<EntityHierarchyItemViewModel>().SelectMany(x => x.InnerSubEntities));
+        OnPropertyChanging(nameof(EntityWithGizmo));
+        OnPropertyChanged(nameof(EntityWithGizmo));
+    }
+
+    protected override void SelectedItemsCollectionChanged(NotifyCollectionChangedAction action)
+    {
+        base.SelectedItemsCollectionChanged(action);
+        OnPropertyChanging(nameof(EntityWithGizmo));
+        OnPropertyChanged(nameof(EntityWithGizmo));
     }
 
     private Task FocusOnSelectionAsync()
     {
         // The entity with the transformation gizmo, as in the WPF scene editor
-        return SelectedItems.LastOrDefault() is EntityViewModel entity ? FocusOnEntityAsync(entity) : Task.CompletedTask;
+        return EntityWithGizmo is { } entity ? FocusOnEntityAsync(entity) : Task.CompletedTask;
     }
 
     private void SelectedItemsChanged(object? sender, NotifyCollectionChangedEventArgs e) => UpdateFocusCommands();
@@ -813,6 +1168,6 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     private void UpdateFocusCommands()
     {
         FocusOnEntityCommand.IsEnabled = isGameLoaded;
-        FocusOnSelectionCommand.IsEnabled = isGameLoaded && SelectedItems.LastOrDefault() is EntityViewModel;
+        FocusOnSelectionCommand.IsEnabled = isGameLoaded && EntityWithGizmo is not null;
     }
 }

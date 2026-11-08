@@ -1,12 +1,11 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
-using Stride.Assets.Presentation.AssetEditors.Gizmos;
 using Stride.Editor.EditorGame.Game;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
+using Stride.Assets.Editor.AssetEditors.Gizmos;
 
 namespace Stride.Assets.Editor.EditorGame;
 
@@ -15,7 +14,7 @@ namespace Stride.Assets.Editor.EditorGame;
 /// the collider shapes of the Physics package, the shapes of the particle systems and the light shaft volumes.
 /// </summary>
 /// <remarks>
-/// The cross-platform copy of the WPF <c>WireframeGizmoStageService</c>: without it these gizmos are created, but never drawn.
+/// Without it these gizmos are created, but never drawn.
 /// </remarks>
 [EditorGameService(typeof(EntityHierarchyEditorController), Order = 140)]
 public sealed class WireframeGizmoStageService : EditorGameServiceBase

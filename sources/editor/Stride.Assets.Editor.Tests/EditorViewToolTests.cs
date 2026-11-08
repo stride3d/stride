@@ -3,8 +3,6 @@
 
 using Stride.Assets.Editor.EditorGame.Tools;
 using Stride.Assets.Editor.Tests.Helpers;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Tools;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
 using Stride.Core;
 using Stride.Core.Assets.Editor.Editors;
 using Stride.Core.Assets.Editor.Services;
@@ -12,6 +10,9 @@ using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Input;
+using Stride.Editor.EditorGame.Tools;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
 
 namespace Stride.Assets.Editor.Tests;
 
@@ -118,6 +119,18 @@ public sealed class EditorViewToolTests
         var error = Assert.Single(logger.Messages, x => x.Type == LogMessageType.Error);
         Assert.Contains(typeof(ToolThatCannotBeCreated).FullName!, error.Text);
         Assert.Contains(typeof(ToolThatCannotBeCreated).Assembly.GetName().Name!, error.Text);
+    }
+
+    [Fact]
+    public void AViewHasTheEditorToolsWhateverPluginsAreRegistered()
+    {
+        // The WPF editor doesn't register the default plugin of the cross-platform one, which declares the editor tools
+        var tools = EditorGameToolService.CreateTools(EditorGameToolService.GetToolTypes([typeof(MeasureTool)]), new LoggerResult());
+        Assert.Equal([typeof(SelectTool), typeof(TranslateTool), typeof(RotateTool), typeof(ScaleTool), typeof(MeasureTool)], tools.Select(x => x.GetType()));
+
+        // A tool declared by a plugin too is created once
+        tools = EditorGameToolService.CreateTools(EditorGameToolService.GetToolTypes([typeof(TranslateTool)]), new LoggerResult());
+        Assert.Single(tools, x => x is TranslateTool);
     }
 
     [Fact]

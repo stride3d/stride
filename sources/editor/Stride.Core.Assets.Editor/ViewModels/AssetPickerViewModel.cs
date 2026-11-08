@@ -1,10 +1,10 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModels;
 
@@ -14,7 +14,7 @@ namespace Stride.Core.Assets.Editor.ViewModels;
 /// </summary>
 public sealed class AssetPickerViewModel : DispatcherViewModel
 {
-    private readonly SessionViewModel session;
+    private readonly ISessionViewModel session;
     private string searchText = string.Empty;
     private AssetViewModel? selectedAsset;
     private object? selectedLocation;
@@ -24,7 +24,7 @@ public sealed class AssetPickerViewModel : DispatcherViewModel
     /// <param name="filter">An additional condition on the listed assets, or <c>null</c>.</param>
     /// <param name="initialAsset">The asset selected when the picker opens (the current value of a reference), or <c>null</c>.</param>
     /// <param name="initialLocation">The folder selected when the picker opens and there is no initial asset, or <c>null</c> for every location.</param>
-    public AssetPickerViewModel(SessionViewModel session, IEnumerable<Type> acceptedTypes, Func<AssetViewModel, bool>? filter = null, AssetViewModel? initialAsset = null, DirectoryBaseViewModel? initialLocation = null)
+    public AssetPickerViewModel(ISessionViewModel session, IEnumerable<Type> acceptedTypes, Func<AssetViewModel, bool>? filter = null, AssetViewModel? initialAsset = null, DirectoryBaseViewModel? initialLocation = null)
         : base(session.SafeArgument(nameof(session)).ServiceProvider)
     {
         this.session = session;

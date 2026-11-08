@@ -1,0 +1,873 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2026-11-07 12:10:02+0000\n"
+"PO-Revision-Date: 2019-03-29 12:04+0000\n"
+"Last-Translator: Rui Mendes <xz9@protonmail.com>\n"
+"Language-Team: Portuguese <https://hosted.weblate.org/projects/stride/"
+"gamestudio/pt/>\n"
+"Language: pt\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: Weblate 3.6-dev\n"
+
+#. Error message when the template generator of the selected template is unreachable
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/AssetCollectionViewModel.AddAssets.cs:466
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:1109
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:1840
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.static.cs:108
+msgctxt "Message"
+msgid ""
+"Unable to retrieve template generator for the selected template. Aborting."
+msgstr ""
+
+#. Log message displayed when an operation has been canceled
+#: ../editor/Stride.Core.Assets.Editor/Components/TemplateDescriptions/TemplateGeneratorHelper.cs:35
+msgctxt "Log"
+msgid "Operation cancelled."
+msgstr ""
+
+#. Message displayed when an exception occurs while generating a template
+#: ../editor/Stride.Core.Assets.Editor/Components/TemplateDescriptions/TemplateGeneratorHelper.cs:42
+#: ../editor/Stride.Core.Assets.Editor/Components/TemplateDescriptions/TemplateGeneratorHelper.cs:61
+msgctxt "Log"
+msgid "An exception occurred while generating the template."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Components/AddAssets/AssetTemplatesViewModel.cs:76
+msgctxt "Label"
+msgid "{0} out of {1} file(s)"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Components/Build/BuildAndRunViewModel.cs:35
+msgctxt "Title"
+msgid "Output"
+msgstr "Saída"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/Build/BuildAndRunViewModel.cs:56
+msgctxt "Message"
+msgid "Older messages were removed: the Output pane keeps the last {0}."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Components/Build/BuildAndRunViewModel.cs:211
+msgctxt "Status"
+msgid "Building..."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Components/Build/BuildAndRunViewModel.cs:223
+msgctxt "Status"
+msgid "Build successful"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Components/Build/BuildAndRunViewModel.cs:224
+msgctxt "Status"
+msgid "Build cancelled"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Components/Build/BuildAndRunViewModel.cs:225
+msgctxt "Status"
+msgid "Build failed"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Components/Build/BuildAndRunViewModel.cs:280
+msgctxt "Message"
+msgid ""
+"To process the build, set an executable project as the current project in "
+"the solution explorer."
+msgstr ""
+
+#. Message displayed when the user cancels the saving of the current session when trying to build
+#: ../editor/Stride.Core.Assets.Editor/Components/Build/BuildAndRunViewModel.cs:287
+msgctxt "Message"
+msgid "To build, save the project first."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Components/Build/BuildAndRunViewModel.cs:317
+msgctxt "Message"
+msgid ""
+"The current project {0} is a library: set the executable project of a "
+"platform as the current project in the solution explorer."
+msgstr ""
+
+#. Displayed when user tries to run a project that is not on a supported platform (for execution).
+#: ../editor/Stride.Core.Assets.Editor/Components/Build/BuildAndRunViewModel.cs:324
+msgctxt "Message"
+msgid "Platform {0} isn't supported for execution."
+msgstr "A plataforma {0} não é suportada para executar."
+
+#: ../editor/Stride.Core.Assets.Editor/Components/Build/BuildAndRunViewModel.cs:349
+msgctxt "Message"
+msgid "Building {0}..."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Components/Build/BuildAndRunViewModel.cs:355
+msgctxt "Message"
+msgid "Unable to load and compile project {0}"
+msgstr "Não foi possível carregar e compilar o projeto {0}"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/Build/BuildAndRunViewModel.cs:370
+msgctxt "Message"
+msgid "Build of {0} failed with {1} error(s)."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Components/Build/BuildAndRunViewModel.cs:371
+msgctxt "Message"
+msgid "Build of {0} failed."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Components/Build/BuildAndRunViewModel.cs:375
+msgctxt "Message"
+msgid "Build of {0} succeeded."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Components/Build/BuildAndRunViewModel.cs:380
+msgctxt "Message"
+msgid "An exception occurred during compilation."
+msgstr ""
+
+#. Log message displayed when an exception occurs while building the project. {0}: The exception message
+#: ../editor/Stride.Core.Assets.Editor/Components/Build/BuildAndRunViewModel.cs:381
+msgctxt "Message"
+msgid "An exception occurred while compiling the project: {0}"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Components/Build/BuildAndRunViewModel.cs:387
+msgctxt "Message"
+msgid "Build of {0} cancelled."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Components/Build/BuildAndRunViewModel.cs:401
+msgctxt "Message"
+msgid ""
+"{0} is a {1} game: this editor can only start the games of its own platform "
+"({2})."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Components/Build/BuildAndRunViewModel.cs:414
+msgctxt "Message"
+msgid "Unable to start {0}."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Components/Build/BuildAndRunViewModel.cs:420
+msgctxt "Message"
+msgid "{0} started (process {1})."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Components/Build/BuildAndRunViewModel.cs:442
+msgctxt "Message"
+msgid "Lost track of {0}."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Components/Build/BuildAndRunViewModel.cs:444
+#: ../editor/Stride.Core.Assets.Editor/Components/Build/BuildAndRunViewModel.cs:446
+msgctxt "Message"
+msgid "{0} exited with code {1}."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Components/Build/GameCodeReloadViewModel.cs:218
+msgctxt "Message"
+msgid ""
+"Some game code files have been modified. Do you want to reload the "
+"assemblies?"
+msgstr ""
+"Alguns ficheiros de código do jogo foram alterados. Quer recarregar as "
+"montagens?"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/Build/GameCodeReloadViewModel.cs:219
+msgctxt "Message"
+msgid "The editor restarts on the project to load them."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Components/Build/GameCodeReloadViewModel.cs:220
+msgctxt "Button"
+msgid "Reload"
+msgstr "Recarregar"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/Build/GameCodeReloadViewModel.cs:220
+msgctxt "Button"
+msgid "Don't reload"
+msgstr "Não recarregar"
+
+#: ../editor/Stride.Core.Assets.Editor/Components/Build/GameCodeReloadViewModel.cs:221
+#: ../editor/Stride.Core.Assets.Editor/Services/DelayedNotifications.cs:45
+msgctxt "Settings"
+msgid "Don't ask again"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Components/FixAssetReferences/FixAssetReferencesViewModel.cs:101
+msgctxt "Message"
+msgid "Select an asset to replace the deleted asset"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Components/Properties/PropertiesViewModel.cs:145
+msgctxt "Properties"
+msgid "Loading properties..."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Components/Properties/SessionObjectPropertiesViewModel.cs:124
+msgctxt "Properties"
+msgid "There was a problem loading properties of the selection."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Services/CodeEditorOpenerService.cs:90
+msgctxt "Message"
+msgid "An error occurred while starting {0}."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Services/CodeEditorOpenerService.cs:107
+msgctxt "Message"
+msgid "The session currently open is not a {0} session."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:19
+msgctxt "Settings"
+msgid "Always delete {0} without asking"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:20
+msgctxt "Settings"
+msgid "Always save new scripts without asking"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:23
+msgctxt "Settings"
+msgid "Environment"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:25
+msgctxt "Settings"
+msgid "Interface"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:26
+msgctxt "Settings"
+msgid "Logging"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:27
+msgctxt "Settings"
+msgid "Tools"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:37
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:38
+msgctxt "Settings"
+msgid "Ask before deleting assets"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:42
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:43
+msgctxt "Settings"
+msgid "Ask before reloading assemblies"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:47
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:48
+msgctxt "Settings"
+msgid "Automatically reload assemblies"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:52
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:53
+msgctxt "Settings"
+msgid "Ask before saving new scripts"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:57
+msgctxt "Settings"
+msgid "Language"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:61
+msgctxt "Settings"
+msgid "Reset"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:62
+msgctxt "Settings"
+msgid "Reset Game Studio layout"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:66
+msgctxt "Settings"
+msgid "Automatically reload last session at startup"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:71
+msgctxt "Settings"
+msgid "Use effect compiler server for mobile platforms"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:75
+msgctxt "Settings"
+msgid "Graphics API (Game Studio only)"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:83
+msgctxt "Settings"
+msgid "Debugger output level (Game Studio only)"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:84
+msgctxt "Settings"
+msgid ""
+"Minimum level of the messages Game Studio writes to the attached debugger's "
+"output"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/ExternalToolsSettings.cs:19
+msgctxt "Settings"
+msgid "External tools"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/ExternalToolsSettings.cs:26
+msgctxt "Settings"
+msgid "Default text editor"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/Settings/ExternalToolsSettings.cs:30
+msgctxt "Settings"
+msgid "Shader editor"
+msgstr ""
+
+#. IDE: Integrated development environment (http://en.wikipedia.org/wiki/Integrated_development_environment)
+#: ../editor/Stride.Core.Assets.Editor/Settings/ExternalToolsSettings.cs:40
+msgctxt "Settings"
+msgid "Default IDE"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/AssetCollectionViewModel.AddAssets.cs:85
+msgctxt "Message"
+msgid ""
+"Unable to use the selected template because it is not an asset template."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/AssetCollectionViewModel.AddAssets.cs:157
+msgctxt "Message"
+msgid "These files aren't supported."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/AssetCollectionViewModel.AddAssets.cs:196
+msgctxt "Message"
+msgid ""
+"This location is invalid. Please select a package folder in the Solution "
+"explorer."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/AssetCollectionViewModel.AddAssets.cs:202
+msgctxt "Message"
+msgid "Drop files"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/AssetCollectionViewModel.AddAssets.cs:294
+msgctxt "Message"
+msgid "Do you want to place the resource in the default location ?"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/AssetCollectionViewModel.AddAssets.cs:320
+msgctxt "Message"
+msgid "The selected directory is not a subdirectory of the resources folder!"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/AssetCollectionViewModel.AddAssets.cs:338
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/AssetCollectionViewModel.AddAssets.cs:346
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/AssetCollectionViewModel.AddAssets.cs:353
+msgctxt "Button"
+msgid "Yes"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/AssetCollectionViewModel.AddAssets.cs:339
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/AssetCollectionViewModel.AddAssets.cs:347
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/AssetCollectionViewModel.AddAssets.cs:354
+msgctxt "Button"
+msgid "No"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/AssetCollectionViewModel.AddAssets.cs:340
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/AssetCollectionViewModel.AddAssets.cs:348
+msgctxt "Button"
+msgid "Yes to all"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/AssetCollectionViewModel.AddAssets.cs:341
+msgctxt "Button"
+msgid "No to all"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/AssetCollectionViewModel.AddAssets.cs:375
+msgctxt "Message"
+msgid ""
+"Source file '{0}' is not inside of your project's resource folders, do you "
+"want to copy it?"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/AssetCollectionViewModel.AddAssets.cs:412
+msgctxt "Message"
+msgid ""
+"The file '{0}' already exists, it will get overwritten if you continue, do "
+"you really want to proceed?"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/AssetCollectionViewModel.AddAssets.cs:439
+msgctxt "Message"
+msgid "An error occurred while copying the asset to the resources folder: {0}"
+msgstr ""
+
+#. Title of the AddAssetWindow
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/AssetCollectionViewModel.AddAssets.cs:472
+msgctxt "Title"
+msgid "Add asset…"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/AssetCollectionViewModel.AddAssets.cs:617
+msgctxt "Message"
+msgid ""
+"Game Studio can't create assets in multiple locations. In the solution "
+"explorer, select a single directory or package to create the asset in."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/AssetCollectionViewModel.AddAssets.cs:622
+msgctxt "Message"
+msgid ""
+"Game Studio can't create an asset here. In the solution explorer, select a "
+"directory or package to create the asset in."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/AssetCollectionViewModel.AddAssets.cs:629
+msgctxt "Message"
+msgid ""
+"Game Studio can't create an asset here because the selected directory or "
+"package can't be edited. In the solution explorer, select a directory or "
+"package to create the asset in."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/AssetCollectionViewModel.cs:678
+msgctxt "Message"
+msgid "Read-only folders can't be cut."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/AssetCollectionViewModel.cs:692
+msgctxt "Message"
+msgid "The asset {0} can't be deleted. {1}{2}"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/AssetCollectionViewModel.cs:721
+msgctxt "Message"
+msgid "{0} can't be deleted. {1}{2}"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/AssetCollectionViewModel.cs:768
+msgctxt "Message"
+msgid ""
+"Unable to cut or copy a selection that contains a folder and one of its "
+"subfolders."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/AssetCollectionViewModel.cs:837
+msgctxt "Message"
+msgid "Select a valid asset folder to paste the selection to."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/AssetCollectionViewModel.cs:845
+msgctxt "Message"
+msgid "This package or directory can't be modified."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/AssetLogViewModel.cs:58
+msgctxt "Log"
+msgid "Asset builds"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/AssetLogViewModel.cs:59
+msgctxt "Log"
+msgid "Thumbnails"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/AssetLogViewModel.cs:60
+msgctxt "Log"
+msgid "Asset replacements"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/AssetLogViewModel.cs:61
+msgctxt "Log"
+msgid "Project load"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/AssetLogViewModel.cs:62
+msgctxt "Log"
+msgid "Package consistency"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/AssetLogViewModel.cs:233
+msgctxt "Log"
+msgid "Sources"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/AssetLogViewModel.cs:234
+msgctxt "Log"
+msgid "Sources ({0}/{1})"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:45
+msgid "External packages"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:46
+msgid "Local packages"
+msgstr ""
+
+#. {0} is a file name
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:124
+msgid "Solution '{0}'"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:619
+msgctxt "Menu"
+msgid "Include in build as root asset"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:620
+msgctxt "Menu"
+msgid "Don't include in build as root asset (in {0})"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:620
+msgctxt "Menu"
+msgid "Include in build as root asset (in {0})"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:683
+msgctxt "Title"
+msgid "Adding dependency..."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:701
+msgctxt "Log"
+msgid "There was a problem loading the new dependencies."
+msgstr ""
+
+#. Title for the progress window of the session saving
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:844
+msgctxt "Title"
+msgid "Saving session..."
+msgstr ""
+
+#. Log message displayed when an exception occurs while saving a session.
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:884
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:954
+msgctxt "Log"
+msgid "There was a problem saving the solution. {0}"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:971
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.Explore.cs:265
+msgctxt "Button"
+msgid "Save"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:971
+msgctxt "Button"
+msgid "Don't save"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:973
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:1156
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:1239
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:1266
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:1316
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.Explore.cs:265
+msgctxt "Button"
+msgid "Cancel"
+msgstr ""
+
+#. Message displayed when closing an unsaved project
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:979
+msgctxt "Message"
+msgid "The project has unsaved changes. Do you want to save it?"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:998
+msgctxt "Message"
+msgid "Some assets couldn't be saved. Their changes are lost."
+msgstr ""
+
+#. Message displayed when a session managed to save some files while some others have failed.
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:1001
+msgctxt "Message"
+msgid "Some assets couldn't be saved. Check the assets and try again."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:1033
+msgctxt "Title"
+msgid "Importing project..."
+msgstr ""
+
+#. Log message displayed when an exception occurs while importing a package.
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:1054
+msgctxt "Log"
+msgid "There was a problem importing the package."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:1090
+msgctxt "Title"
+msgid "Creating project..."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:1155
+msgctxt "Settings"
+msgid "Always delete without asking"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:1156
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:1239
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:1266
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:1316
+msgctxt "Button"
+msgid "Delete"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:1177
+msgctxt "Message"
+msgid "Stride can't delete the {0} asset. {1}{2}"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:1186
+msgctxt "Message"
+msgid "Stride can't delete the {0} folder. {1}{2}"
+msgstr ""
+
+#. Message displayed when the user tries to delete a system package
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:1232
+msgctxt "Message"
+msgid "Stride can't delete the system package."
+msgstr ""
+
+#. Message displayed when the user is about to delete a package from the session
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:1240
+msgctxt "Message"
+msgid ""
+"Are you sure you want to delete this package? The package files will remain "
+"on the disk."
+msgstr ""
+
+#. Message displayed when the user is about to delete a dependency from the package
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:1267
+msgctxt "Message"
+msgid "Are you sure you want to delete this dependency?"
+msgstr ""
+
+#. Message displayed when the user tries to delete the root asset directory of a package
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:1308
+msgctxt "Message"
+msgid "Asset root folders can't be deleted."
+msgstr ""
+
+#. Message displayed when the user is about to delete a project from the package
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:1317
+msgctxt "Message"
+msgid "Are you sure you want to delete these projects?"
+msgstr ""
+
+#. Message displayed when a single location is selected but invalid for directory creation
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:1444
+msgctxt "Message"
+msgid "Folders can only be created in the Assets hierarchy of a package."
+msgstr ""
+
+#. Message displayed when some of the multiple selected locations are invalid for directory creation
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:1445
+msgctxt "Message"
+msgid ""
+"Game Studio can't create a folder in some of the locations you selected. "
+"Folders can only be created in the Assets hierarchy of a package."
+msgstr ""
+
+#. Message displayed when the selection contains zero or multiple packages but a single one is required
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:1786
+msgctxt "Message"
+msgid "Please select a single package."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:1874
+msgctxt "Message"
+msgid "(already available through another dependency)"
+msgstr ""
+
+#. Message displayed when the user try to add dependencies to a package but no acceptable package is available
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:1889
+msgctxt "Message"
+msgid ""
+"There are no packages that can be added as dependencies to this package."
+msgstr ""
+
+#. Message displayed when trying to explore an unsaved asset
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.Explore.cs:115
+msgctxt "Message"
+msgid "You need to save the asset before you can explore it."
+msgstr ""
+
+#. Message displayed when an exception occurs while trying to explore an asset
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.Explore.cs:126
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.Explore.cs:168
+msgctxt "Message"
+msgid "There was a problem starting the file explorer."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.Explore.cs:144
+msgctxt "Message"
+msgid "This asset doesn't have a source file."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.Explore.cs:161
+msgctxt "Message"
+msgid "Source file and path no longer exists."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.Explore.cs:177
+msgctxt "Message"
+msgid ""
+"This asset has unsaved changes. To open it, you need to save it first. Do "
+"you want to save the session now?"
+msgstr ""
+
+#. Error displayed when trying to open the source file of an asset that has no source file
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.Explore.cs:191
+msgctxt "Message"
+msgid "This asset doesn't have a source file to open."
+msgstr ""
+
+#. Message displayed when trying to open a modified asset with the text editor
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.Explore.cs:207
+msgctxt "Message"
+msgid ""
+"This asset has unsaved changes. To open it, you need to save the session "
+"first. Do you want to save now?"
+msgstr ""
+
+#. Message displayed when trying to open an unsaved file with the text editor
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.Explore.cs:213
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.Explore.cs:244
+msgctxt "Message"
+msgid "You need to save the file before you can open it."
+msgstr ""
+
+#. Message displayed when an exception occurs while trying to open a file with the text editor
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.Explore.cs:229
+msgctxt "Message"
+msgid ""
+"There was a problem starting the text editor. Make sure the path to the text "
+"editor in Settings is correct."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.Explore.cs:251
+msgctxt "Message"
+msgid "An error occurred while opening the file."
+msgstr ""
+
+#. Title for the progress window of the session creation
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.static.cs:81
+msgctxt "Title"
+msgid "Creating session..."
+msgstr ""
+
+#. Title for the progress window of the session loading
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.static.cs:172
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.static.cs:173
+msgctxt "Title"
+msgid "Opening session..."
+msgstr ""
+
+#. Log message displayed when an exception occurs while opening a session.
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.static.cs:209
+msgctxt "Log"
+msgid "There was a problem opening the solution."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.static.cs:318
+msgctxt "Message"
+msgid "The following dependencies in the **{0}** package need to be upgraded:"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.static.cs:323
+msgctxt "Message"
+msgid ""
+"- Dependency to **{0}** must be upgraded from version **{1}** to **{2}**"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.static.cs:329
+msgctxt "Message"
+msgid ""
+"This moves the project to an older version. It may not load correctly, and "
+"upgrades can run again when you go back to a newer version."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.static.cs:332
+msgctxt "Message"
+msgid ""
+"Upgrading assets might break them. We also recommend committing or backing "
+"up your project first."
+msgstr ""
+
+#. Displayed in a button (must be short)
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.static.cs:336
+msgctxt "Button"
+msgid "Upgrade"
+msgstr ""
+
+#. Displayed in a button (must be short)
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.static.cs:337
+msgctxt "Button"
+msgid "Skip"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.static.cs:339
+msgctxt "Message"
+msgid "Do this for every package in the solution"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.static.cs:340
+msgctxt "Message"
+msgid "Back up each modified file to a timestamped folder under the solution"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SettingsViewModel.cs:52
+msgctxt "Message"
+msgid "Some changes will be applied after you restart Game Studio."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SettingsViewModel.cs:89
+msgctxt "Properties"
+msgid "Select a settings category."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SettingsViewModel.cs:99
+msgctxt "Properties"
+msgid "There was a problem loading the Settings page."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:1149
+msgctxt "Message"
+msgid "Are you sure you want to delete this asset?"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:1150
+msgctxt "Message"
+msgid "Are you sure you want to delete these {0} assets?"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:1151
+msgctxt "Message"
+msgid "Are you sure you want to delete this folder?"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:1152
+msgctxt "Message"
+msgid "Are you sure you want to delete these {0} folders?"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:1153
+msgctxt "Message"
+msgid "Are you sure you want to delete the selected assets and folders?"
+msgstr ""

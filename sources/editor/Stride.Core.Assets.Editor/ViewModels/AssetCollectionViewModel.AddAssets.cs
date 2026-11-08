@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 
 using System.Threading.Tasks.Dataflow;
 using Stride.Core.Assets.Editor.Components.AddAssets;
@@ -7,9 +8,6 @@ using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Internal;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
-using Stride.Core.Assets.Editor.View.Behaviors;
-using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Assets.Editor.ViewModel.Progress;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Assets.Tracking;
 using Stride.Core.Diagnostics;
@@ -19,6 +17,8 @@ using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Translation;
+using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Editor.ViewModels.Progress;
 
 namespace Stride.Core.Assets.Editor.ViewModels;
 
@@ -53,6 +53,13 @@ public sealed partial class AssetCollectionViewModel : IAddChildViewModel
     public ICommandBase ShowAddAssetDialogCommand { get; }
 
     private IEditorDialogService EditorDialogs => ServiceProvider.Get<IEditorDialogService>();
+
+    /// <inheritdoc />
+    Task<List<AssetViewModel>> IAssetCollectionViewModel.RunAssetTemplateAsync(TemplateDescription template, IList<UFile> files)
+    {
+        ArgumentNullException.ThrowIfNull(template);
+        return RunAssetTemplateAsync(new TemplateDescriptionViewModel(ServiceProvider, template), files);
+    }
 
     /// <summary>
     /// Creates an asset from a template in the selected folder (or in the first folder accepting the asset type), and selects
@@ -195,7 +202,7 @@ public sealed partial class AssetCollectionViewModel : IAddChildViewModel
             message = Tr._p("Message", "Drop files");
             return true;
         }
-        message = DragDropBehavior.InvalidDropAreaMessage;
+        message = DragDropMessages.InvalidDropArea;
         return false;
     }
 
@@ -266,7 +273,7 @@ public sealed partial class AssetCollectionViewModel : IAddChildViewModel
         if (files.Count > 0)
         {
             InternalSettings.FileDialogLastImportDirectory.SetValue(files[0].GetFullDirectory());
-            InternalSettings.SaveProfile();
+            InternalSettings.Save();
             await AddFilesAsync(files);
         }
     }

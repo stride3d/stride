@@ -1,9 +1,12 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable enable
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Stride.Assets.Entities;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core;
 using Stride.Core.Assets.Editor.ViewModels;
@@ -12,6 +15,8 @@ using Stride.Core.Assets.Quantum.Visitors;
 using Stride.Core.Extensions;
 using Stride.Editor.Engine;
 using Stride.Engine;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Services;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
 
 namespace Stride.Assets.Editor.EditorGame;
 

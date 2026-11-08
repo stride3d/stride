@@ -7,7 +7,7 @@ composited through the GPU interop of Avalonia's compositor by `GpuFramePresente
 resources) and the `ImageToBitmap` converter that shows the `Stride.Graphics.Image` thumbnails of `Stride.Editor`.
 
 `IAvaloniaPreviewBuilder` is the Avalonia counterpart of `IWpfPreviewBuilder`: the toolkit-neutral `IPreviewBuilder` of
-`Stride.Editor.Common` does not expose the hosting control.
+`Stride.Editor` does not expose the hosting control.
 
 ## Notes
 

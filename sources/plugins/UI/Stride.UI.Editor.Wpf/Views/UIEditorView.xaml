@@ -8,7 +8,7 @@
              xmlns:cm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
              xmlns:cmd="clr-namespace:Stride.Core.Presentation.Commands;assembly=Stride.Core.Presentation"
              xmlns:panels="clr-namespace:Stride.UI.Panels;assembly=Stride.UI"
-             xmlns:views="clr-namespace:Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.Views;assembly=Stride.Assets.Presentation.Wpf"
+             xmlns:views="clr-namespace:Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.Views;assembly=Stride.Assets.Editor.Wpf"
              xmlns:views1="clr-namespace:Stride.UI.Editor.Views"
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
              mc:Ignorable="d" 
@@ -18,7 +18,7 @@
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="/Stride.Core.Assets.Editor.Wpf;component/View/CommonResources.xaml" />
-        <ResourceDictionary Source="/Stride.Assets.Presentation.Wpf;component/View/ImageDictionary.xaml" />
+        <ResourceDictionary Source="/Stride.Assets.Editor.Wpf;component/View/ImageDictionary.xaml" />
       </ResourceDictionary.MergedDictionaries>
 
       <CollectionViewSource x:Key="FactoryCollection" Source="{Binding Factories, Mode=OneWay}">
@@ -281,11 +281,11 @@
             <ToolBarTray DockPanel.Dock="Top">
               <ToolBar>
                 <Button Command="{x:Static views:AssetCompositeHierarchyTreeViewHelper.ExpandAllItems}" CommandTarget="{Binding ElementName=HierarchyTreeView}"
-                        ToolTip="{sd:Localize Expand all elements, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                        ToolTip="{sd:Localize Expand all elements, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
                   <Image Source="{StaticResource ImageExpandAllFolders}" />
                 </Button>
                 <Button Command="{x:Static views:AssetCompositeHierarchyTreeViewHelper.CollapseAllItems}" CommandTarget="{Binding ElementName=HierarchyTreeView}"
-                        ToolTip="{sd:Localize Collapse all elements, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                        ToolTip="{sd:Localize Collapse all elements, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
                   <Image Source="{StaticResource ImageCollapseAllFolders}" />
                 </Button>
               </ToolBar>
@@ -375,15 +375,15 @@
             <Button Background="Transparent" Margin="2"
                     Content="{sd:Image {StaticResource ImageZoomDefault}, 16, 16, NearestNeighbor}"
                     Command="{Binding ResetZoomCommand}"
-                    ToolTip="{sd:Localize Reset zoom, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
+                    ToolTip="{sd:Localize Reset zoom, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True" />
             <Button Background="Transparent" Margin="2"
                     Content="{sd:Image {StaticResource ImageZoomOut}, 16, 16, NearestNeighbor}"
                     Command="{Binding ZoomOutCommand}"
-                    ToolTip="{sd:Localize Zoom out, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
+                    ToolTip="{sd:Localize Zoom out, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True" />
             <Button Background="Transparent" Margin="2"
                     Content="{sd:Image {StaticResource ImageZoomIn}, 16, 16, NearestNeighbor}"
                     Command="{Binding ZoomInCommand}"
-                    ToolTip="{sd:Localize Zoom in, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
+                    ToolTip="{sd:Localize Zoom in, Context=ToolTip}" sd:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True" />
           </ToolBar>
           <ToolBar>
             <sd:NumericTextBox Margin="2" Width="50" ToolTip="{sd:Localize Snaps to this value (0 to disable), Context=ToolTip}"
@@ -487,10 +487,10 @@
             <sd:FrameworkElementDragDropBehavior DragVisualTemplate="{StaticResource DragVisualTemplate}" CanDrag="False" />
           </i:Interaction.Behaviors>
           <Grid>
-            <ContentPresenter x:Name="SceneView" Visibility="{Binding LastException, Converter={sd:Chained {sd:ObjectToBool}, {sd:InvertBool}, {sd:VisibleOrCollapsed}}}"/>
+            <ContentPresenter x:Name="SceneView" Visibility="{Binding GameHost.LastException, Converter={sd:Chained {sd:ObjectToBool}, {sd:InvertBool}, {sd:VisibleOrCollapsed}}}"/>
             
             <!-- Crash message -->
-            <Grid Visibility="{Binding LastException, Converter={sd:Chained {sd:ObjectToBool}, {sd:VisibleOrCollapsed}}}">
+            <Grid Visibility="{Binding GameHost.LastException, Converter={sd:Chained {sd:ObjectToBool}, {sd:VisibleOrCollapsed}}}">
               <Border HorizontalAlignment="Stretch"
                       VerticalAlignment="Stretch"
                       Background="{StaticResource BackgroundBrush}" />
@@ -504,18 +504,18 @@
                   <RowDefinition Height="*" />
                   <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <TextBox Text="{Binding LastException.Message, StringFormat=Error: {0}, Mode=OneWay}" Foreground="{StaticResource TextBrush}" Margin="20"
+                <TextBox Text="{Binding GameHost.LastException.Message, StringFormat=Error: {0}, Mode=OneWay}" Foreground="{StaticResource TextBrush}" Margin="20"
                          IsReadOnly="True" TextWrapping="Wrap" BorderThickness="0" Background="Transparent" FontWeight="Bold"
                          ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Hidden" FontSize="20"/>
-                <TextBox Text="{Binding LastException, Mode=OneWay}" Foreground="{StaticResource TextBrush}" Margin="20"
+                <TextBox Text="{Binding GameHost.LastException, Mode=OneWay}" Foreground="{StaticResource TextBrush}" Margin="20"
                          IsReadOnly="True" TextWrapping="Wrap" BorderThickness="0" Background="Transparent" Grid.Row="1"
                          ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Hidden" />
                 <StackPanel Grid.Row="2" Orientation="Vertical" Margin="20">
                   <TextBlock Text="{sd:Localize Before you resume\, fix the failing asset (likely a UI page or UI library).}" Margin="0,0,0,4" HorizontalAlignment="Center"/>
                   <UniformGrid HorizontalAlignment="Center" Rows="1" Columns="2">
-                    <Button Content="{sd:Localize Resume, Context=Button}" Command="{Binding ResumeCommand}"
+                    <Button Content="{sd:Localize Resume, Context=Button}" Command="{Binding GameHost.ResumeCommand}"
                             Padding="24,8" HorizontalAlignment="Stretch" Margin="10,0"/>
-                    <Button Content="{sd:Localize Copy error to clipboard, Context=Button}" Command="{Binding CopyErrorToClipboardCommand}"
+                    <Button Content="{sd:Localize Copy error to clipboard, Context=Button}" Command="{Binding GameHost.CopyErrorToClipboardCommand}"
                             Padding="24,8" HorizontalAlignment="Stretch" Margin="10,0"/>
                   </UniformGrid>
                 </StackPanel>

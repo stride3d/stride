@@ -581,6 +581,120 @@ public class TestCodeUpgrade
     }
 
     [Fact]
+    public async Task MemberRenameRenamesOnlyTheMatchingMember()
+    {
+        // The 4.5.1 shape: CommandList.UnsetRenderTargets became ResetTargets.
+        var source = """
+            namespace TestNs
+            {
+                class Target
+                {
+                    public void UnsetRenderTargets() { }
+                    public void ResetTargets() { }
+                }
+                class Other
+                {
+                    public void UnsetRenderTargets() { }
+                }
+                class Usage
+                {
+                    void A(Target t)
+                    {
+                        t.UnsetRenderTargets();
+                        t?.UnsetRenderTargets();
+                        System.Action action = t.UnsetRenderTargets;
+                    }
+                    void B(Other o) => o.UnsetRenderTargets();
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, Rewrite(MemberRename("TestNs.Target", "UnsetRenderTargets", "ResetTargets")));
+
+        Assert.Contains("t.ResetTargets();", result);
+        Assert.Contains("t?.ResetTargets();", result);
+        Assert.Contains("System.Action action = t.ResetTargets;", result);
+        // The unrelated same-named method is untouched.
+        Assert.Contains("o.UnsetRenderTargets()", result);
+        AssertCompiles(result);
+    }
+
+    [Fact]
+    public async Task FluentCallRemoveDropsTheCallsOfAMethodReturningNothing()
+    {
+        // The 4.5.1 shape: CommandList.ResetQueryPool went, the pools reset themselves.
+        var source = """
+            namespace TestNs
+            {
+                class Pool { }
+                class Target
+                {
+                    public static Target Current() => new();
+                    public void ResetQueryPool(Pool pool) { }
+                }
+                class Other
+                {
+                    public void ResetQueryPool(Pool pool) { }
+                }
+                class Usage
+                {
+                    void A(Target t, Pool p)
+                    {
+                        t.ResetQueryPool(p);
+                        t?.ResetQueryPool(p);
+                        Target.Current().ResetQueryPool(p);
+                    }
+                    void B(Target t, Pool p) => t.ResetQueryPool(p);
+                    System.Action C(Target t, Pool p) => () => t.ResetQueryPool(p);
+                    void D(Other o, Pool p) => o.ResetQueryPool(p);
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, Rewrite(FluentCallRemove("TestNs.Target", "ResetQueryPool")));
+
+        Assert.DoesNotContain("t.ResetQueryPool", result);
+        Assert.DoesNotContain("t?.ResetQueryPool", result);
+        // A receiver that is a call keeps its side effects.
+        Assert.Contains("Target.Current();", result);
+        // The unrelated same-named method is untouched.
+        Assert.Contains("o.ResetQueryPool(p)", result);
+        AssertCompiles(result);
+    }
+
+    [Fact]
+    public async Task FluentCallRemoveDropsTheCallsOfEveryOverload()
+    {
+        // The 4.5.1 shape: CommandList.SetStreamTargets went, with a span overload on Direct3D 11 and an array one elsewhere.
+        var source = """
+            namespace TestNs
+            {
+                class Buffer { }
+                class Target
+                {
+                    public void SetStreamTargets(params System.ReadOnlySpan<Buffer> buffers) { }
+                    public void SetStreamTargets(params Buffer[] buffers) { }
+                }
+                class Usage
+                {
+                    void A(Target t, Buffer b, Buffer[] all)
+                    {
+                        t.SetStreamTargets(b);
+                        t.SetStreamTargets(all);
+                        t.SetStreamTargets();
+                        t.SetStreamTargets(new System.ReadOnlySpan<Buffer>(all));
+                    }
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, Rewrite(FluentCallRemove("TestNs.Target", "SetStreamTargets")));
+
+        Assert.DoesNotContain("t.SetStreamTargets", result);
+        AssertCompiles(result);
+    }
+
+    [Fact]
     public async Task FluentCallRemoveKeepsTheReceiver()
     {
         // The 4.4 shape: Buffer.RecreateWith returned its receiver and went away with the device reset recovery.

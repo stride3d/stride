@@ -1,0 +1,57 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2026-11-07 10:57:07+0000\n"
+"PO-Revision-Date: 2019-08-16 12:24+0000\n"
+"Last-Translator: meriaizen86 <shinkitsunemaru@gmail.com>\n"
+"Language-Team: Spanish <https://hosted.weblate.org/projects/stride/"
+"assetspresentation/es/>\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 3.8\n"
+
+#: ../editor/Stride.Editor/Settings/RemoteSettings.cs:18
+msgctxt "Settings"
+msgid "Remote"
+msgstr "Remoto"
+
+#: ../editor/Stride.Editor/Settings/RemoteSettings.cs:25
+msgctxt "Settings"
+msgid "Host"
+msgstr "Host"
+
+#: ../editor/Stride.Editor/Settings/RemoteSettings.cs:29
+msgctxt "Settings"
+msgid "Port"
+msgstr "Puerto"
+
+#: ../editor/Stride.Editor/Settings/RemoteSettings.cs:33
+msgctxt "Settings"
+msgid "Username"
+msgstr "Nombre de usuario"
+
+#: ../editor/Stride.Editor/Settings/RemoteSettings.cs:37
+msgctxt "Settings"
+msgid "Password"
+msgstr "Contraseña"
+
+#. Location where to deploy.
+#: ../editor/Stride.Editor/Settings/RemoteSettings.cs:41
+msgctxt "Settings"
+msgid "Location"
+msgstr "Ubicación"
+
+#. Ask if we should prompt user with the crendential dialogs if necessary.
+#: ../editor/Stride.Editor/Settings/RemoteSettings.cs:45
+msgctxt "Settings"
+msgid "Ask for credentials when deploying game"
+msgstr "Solicitar las credenciales cuando se despliega el juego"
+
+#. Name of X display where to launch game.
+#: ../editor/Stride.Editor/Settings/RemoteSettings.cs:49
+msgctxt "Settings"
+msgid "X Display"
+msgstr "Display X"

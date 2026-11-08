@@ -8,7 +8,6 @@ using Avalonia.VisualTree;
 using Stride.Assets.Editor.Avalonia.Views.Preview;
 using Stride.Assets.Editor.Preview;
 using Stride.Assets.Editor.Tests.Helpers;
-using Stride.Assets.Presentation.Preview;
 using Stride.Core.Assets.Editor.Editors;
 using Stride.Editor.Avalonia.Preview.Views;
 using Stride.Editor.Preview;

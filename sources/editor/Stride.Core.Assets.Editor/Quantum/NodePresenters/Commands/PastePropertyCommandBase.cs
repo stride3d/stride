@@ -1,14 +1,14 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 
 using System.Collections;
 using Stride.Core.Reflection;
 using Stride.Core.Presentation.Quantum.Presenters;
-using Stride.Core.Assets.Editor.Quantum.NodePresenters;
+using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.Components.CopyPasteProcessors;
-using Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors;
 using Stride.Core.Annotations;
+using Stride.Core.Assets.Editor.Components.CopyPasteProcessors;
 
 namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
 
@@ -28,6 +28,8 @@ public abstract class PastePropertyCommandBase : NodePresenterCommandBase
 
     protected virtual bool CanPaste(IReadOnlyCollection<INodePresenter> nodePresenters)
     {
+        ArgumentNullException.ThrowIfNull(nodePresenters);
+
         foreach (var nodePresenter in nodePresenters)
         {
             var assetNodePresenter = nodePresenter as IAssetNodePresenter;
@@ -41,7 +43,11 @@ public abstract class PastePropertyCommandBase : NodePresenterCommandBase
             if (clipboard == null)
                 return false;
 
-            if (!copyPasteService.CanPaste(clipboard.GetTextAsync().Result, asset.GetType(), (nodePresenter as ItemNodePresenter)?.OwnerCollection.Type ?? nodePresenter.Type))
+            // Some clipboards answer through the UI thread's event loop (X11, when another program owns the clipboard): waiting for
+            // them here, on the UI thread, would never end. The content is checked only when the clipboard answers at once (always
+            // in WPF); otherwise the paste checks it.
+            var text = clipboard.GetTextAsync();
+            if (text.IsCompleted && !(text.IsCompletedSuccessfully && copyPasteService.CanPaste(text.Result, asset.GetType(), GetTargetType(nodePresenter))))
                 return false;
 
             // Cannot paste into read-only collection
@@ -67,7 +73,12 @@ public abstract class PastePropertyCommandBase : NodePresenterCommandBase
             return;
 
         var copyPasteService = asset.ServiceProvider.Get<ICopyPasteService>();
-        var result = copyPasteService.DeserializeCopiedData(text, asset.Asset, (nodePresenter as ItemNodePresenter)?.OwnerCollection.Type ?? nodePresenter.Type);
+        var targetType = GetTargetType(nodePresenter);
+        // The command can be enabled before the content of the clipboard is known (see CanPaste)
+        if (!copyPasteService.CanPaste(text, asset.Asset.GetType(), targetType))
+            return;
+
+        var result = copyPasteService.DeserializeCopiedData(text, asset.Asset, targetType);
         if (result.Items.Count == 0)
             return;
 
@@ -88,6 +99,11 @@ public abstract class PastePropertyCommandBase : NodePresenterCommandBase
         var propertyContainer = new PropertyContainer { { AssetPropertyPasteProcessor.IsReplaceKey, replace } };
         await (item.Processor?.Paste(item, asset.PropertyGraph, ref nodeAccessor, ref propertyContainer) ?? Task.CompletedTask);
         actionService.SetName(transaction, replace ? "Replace property" : "Paste property");
+    }
+
+    private static Type GetTargetType(INodePresenter nodePresenter)
+    {
+        return (nodePresenter as ItemNodePresenter)?.OwnerCollection.Type ?? nodePresenter.Type;
     }
 
     private static bool IsInReadOnlyCollection(INodePresenter? nodePresenter)

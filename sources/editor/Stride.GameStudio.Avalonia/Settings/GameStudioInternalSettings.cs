@@ -61,22 +61,8 @@ internal static class GameStudioInternalSettings
     static GameStudioInternalSettings()
     {
         MostRecentlyUsedSessions.FallbackDeserializers.Add(LegacyMRUDeserializer);
-    }
-
-    /// <summary>
-    /// Loads a copy of the internal settings from the file, without registering it as the current profile.
-    /// </summary>
-    public static SettingsProfile LoadProfileCopy()
-    {
-        return SettingsContainer.LoadSettingsProfile(EditorPath.InternalConfigPath, false, null, false) ?? SettingsContainer.CreateSettingsProfile(false);
-    }
-
-    /// <summary>
-    /// Writes the current profile of the internal settings to the file.
-    /// </summary>
-    public static void WriteFile()
-    {
-        InternalSettings.SaveProfile();
+        // Another editor instance may have changed the list since this one started
+        InternalSettings.KeepFileValueOnSave(MostRecentlyUsedSessions);
     }
 
     /// <summary>
@@ -84,7 +70,7 @@ internal static class GameStudioInternalSettings
     /// </summary>
     public static MostRecentlyUsedFileCollection CreateMostRecentlyUsedFiles()
     {
-        var mru = new MostRecentlyUsedFileCollection(LoadProfileCopy, MostRecentlyUsedSessions, WriteFile);
+        var mru = new MostRecentlyUsedFileCollection(InternalSettings.LoadProfileCopy, MostRecentlyUsedSessions, InternalSettings.SaveProfile);
         mru.LoadFromSettings();
         return mru;
     }
@@ -94,7 +80,7 @@ internal static class GameStudioInternalSettings
     /// </summary>
     public static MRUAdditionalDataCollection CreateMostRecentlyUsedSessionsData()
     {
-        return new MRUAdditionalDataCollection(LoadProfileCopy, MostRecentlyUsedSessionsData, WriteFile);
+        return new MRUAdditionalDataCollection(InternalSettings.LoadProfileCopy, MostRecentlyUsedSessionsData, InternalSettings.SaveProfile);
     }
 
     private static Lazy<Rect> WorkArea => new(() =>
