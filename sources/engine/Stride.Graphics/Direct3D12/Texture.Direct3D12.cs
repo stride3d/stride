@@ -60,7 +60,7 @@ namespace Stride.Graphics
         /// <summary>
         ///   A value indicating whether the Texture is a Depth-Stencil Buffer with a stencil component.
         /// </summary>
-        public bool HasStencil;
+        internal bool HasStencil;
 
 
         /// <summary>
