@@ -374,12 +374,24 @@ public static class Dispatcher
         Sort(collection.Items, 0, collection.Count, comparer);
     }
 
+    /// <summary>
+    /// A range of at most this many items is sorted with <see cref="Array.Sort{T}(T[], int, int, IComparer{T})"/> on one thread.
+    /// </summary>
+    private const int SortSequentialThreshold = 2048;
+
     public static void Sort<T>(T[] collection, int index, int length, IComparer<T> comparer)
     {
         using var _ = Profiler.Begin(DispatcherSortKey);
 
         if (length <= 0)
             return;
+
+        // A list the parallel sort would sort on one thread anyway: no shared state, queue or wait
+        if (length <= SortSequentialThreshold || MaxDegreeOfParallelism <= 1)
+        {
+            Array.Sort(collection, index, length, comparer);
+            return;
+        }
 
         var state = SortState.Acquire(MaxDegreeOfParallelism);
 
@@ -404,8 +416,6 @@ public static class Dispatcher
 
     private static void SortOnThread<T>(T[] collection, IComparer<T> comparer, SortState state)
     {
-        const int sequentialThreshold = 2048;
-
         var hasChild = false;
         try
         {
@@ -420,7 +430,7 @@ public static class Dispatcher
                     continue;
                 }
 
-                if (range.Right - range.Left < sequentialThreshold)
+                if (range.Right - range.Left < SortSequentialThreshold)
                 {
                     // Sort small collections sequentially
                     Array.Sort(collection, range.Left, range.Right - range.Left + 1, comparer);

@@ -19,6 +19,10 @@ public class DispatcherTests
         { "reversed", 10_000 },
         { "all equal", 10_000 },
         { "random", 100 },
+        // The largest list sorted on one thread, and the smallest one split
+        { "random", 2048 },
+        { "random", 2049 },
+        { "few keys", 2049 },
     };
 
     [Theory]
