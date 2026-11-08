@@ -94,7 +94,7 @@ public static class EnumExtensions
 
     private static ulong ToUInt64Bits(Enum value)
     {
-        return Type.GetTypeCode(Enum.GetUnderlyingType(value.GetType())) switch
+        return value.GetTypeCode() switch
         {
             TypeCode.SByte => unchecked((byte)Convert.ToSByte(value)),
             TypeCode.Int16 => unchecked((ushort)Convert.ToInt16(value)),
