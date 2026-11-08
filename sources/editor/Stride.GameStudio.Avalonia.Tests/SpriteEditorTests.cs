@@ -122,9 +122,10 @@ public sealed class SpriteEditorTests
                 Assert.Equal(["Frame 0", "Frame 1"], editor.Sprites.Select(x => x.Name));
                 Assert.Equal(["Paste 1 images", "Delete sprites"], names);
 
+                // Ctrl+Z is enabled once the history lists the delete, which it does after the asset notifications on the thread pool
+                await WindowTestHelper.WaitUntilAsync(() => fixture.Session.ActionHistory.Transactions.Any(x => x.Name == "Delete sprites"), "the delete in the history");
                 window.KeyPressQwerty(PhysicalKey.Z, RawInputModifiers.Control);
-                await WindowTestHelper.PumpAsync();
-                Assert.Equal(3, editor.Sprites.Count);
+                await WindowTestHelper.WaitUntilAsync(() => editor.Sprites.Count == 3, "the undo of the delete");
             }
             finally
             {
