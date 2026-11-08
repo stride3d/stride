@@ -42,6 +42,11 @@ internal struct AssetObjectNodeExtended
         contents[key] = node;
     }
 
+    public readonly bool RemoveContent(string key)
+    {
+        return contents.Remove(key);
+    }
+
     public readonly IGraphNode? GetContent(string key)
     {
         contents.TryGetValue(key, out var node);
