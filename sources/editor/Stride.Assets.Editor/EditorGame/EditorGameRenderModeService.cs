@@ -1,27 +1,25 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Editor.ViewModels;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
-using Stride.Assets.Presentation.AssetEditors.GameEditor;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
-using Stride.Assets.Presentation.SceneEditor;
 using Stride.Editor.EditorGame.Game;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Services;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 
-namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
+namespace Stride.Assets.Editor.EditorGame
 {
     [EditorGameService(typeof(EntityHierarchyEditorController), Order = 120)]
-    public class EditorGameRenderModeService : EditorGameServiceBase, IEditorGameRenderModeService, IEditorGameRenderModeViewModelService
+    public sealed class EditorGameRenderModeService : EditorGameServiceBase, IEditorGameRenderModeService, IEditorGameRenderModeViewModelService
     {
         private EntityHierarchyEditorGame game;
         private MaterialFilterRenderFeature materialFilterRenderFeature;

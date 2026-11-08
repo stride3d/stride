@@ -1,11 +1,18 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 using System.Threading.Tasks;
 using Stride.Editor.EditorGame.ViewModels;
 using Stride.Graphics;
 using Stride.Rendering.Compositing;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
+using Stride.Assets.Editor.EditorGame;
+using Stride.Assets.Editor.ViewModels;
 
-namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services
+namespace Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Services
 {
     /// <summary>
     /// Cubemap capture service.

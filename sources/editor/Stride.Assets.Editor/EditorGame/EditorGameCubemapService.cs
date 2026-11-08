@@ -1,23 +1,23 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Editor.ViewModels;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
 using Stride.Editor.EditorGame.Game;
 using Stride.Graphics;
 using Stride.Rendering.Skyboxes;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Services;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 
-namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
+namespace Stride.Assets.Editor.EditorGame
 {
     [EditorGameService(typeof(EntityHierarchyEditorController), Order = 160)]
-    public class EditorGameCubemapService : EditorGameServiceBase, IEditorGameCubemapService
+    public sealed class EditorGameCubemapService : EditorGameServiceBase, IEditorGameCubemapService
     {
         private readonly EntityHierarchyEditorViewModel editor;
 
@@ -45,8 +45,6 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
         {
             return await editor.Controller.InvokeAsync(() =>
             {
-                editor.ServiceProvider.TryGet<RenderDocManager>()?.StartFrameCapture(game.GraphicsDevice, IntPtr.Zero);
-
                 var editorCompositor = game.EditorSceneSystem.GraphicsCompositor.Game;
                 try
                 {
@@ -64,8 +62,6 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                 finally
                 {
                     game.EditorSceneSystem.GraphicsCompositor.Game = editorCompositor;
-
-                    editor.ServiceProvider.TryGet<RenderDocManager>()?.EndFrameCapture(game.GraphicsDevice, IntPtr.Zero);
                 }
             });
         }

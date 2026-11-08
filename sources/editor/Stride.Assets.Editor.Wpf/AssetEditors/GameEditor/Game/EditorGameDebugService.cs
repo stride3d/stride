@@ -4,7 +4,7 @@
 using System.Threading.Tasks;
 using Stride.Core.Serialization.Contents;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
-using Stride.Assets.Presentation.SceneEditor;
+using Stride.Assets.Editor.EditorGame;
 using Stride.Editor.EditorGame.Game;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 

@@ -1,17 +1,14 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Stride.Assets.Editor.EditorGame;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Assets.SpriteFont;
 using Stride.Assets.SpriteFont.Compiler;
 using Stride.Editor.Build;
@@ -23,11 +20,15 @@ using Stride.Rendering;
 using Stride.Rendering.Compositing;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Services;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
+using Stride.Assets.Editor.ViewModels;
 
-namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
+namespace Stride.Assets.Editor.EditorGame
 {
     [EditorGameService(typeof(SceneEditorController), Order = 300)]
-    public class EditorGameCameraPreviewService : EditorGameServiceBase, IEditorGameCameraPreviewService, IEditorGameCameraPreviewViewModelService
+    public sealed class EditorGameCameraPreviewService : EditorGameServiceBase, IEditorGameCameraPreviewService, IEditorGameCameraPreviewViewModelService
     {
         private readonly IEditorGameController controller;
         private SpriteBatch incrustBatch;
