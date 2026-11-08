@@ -38,6 +38,10 @@
     <Compile Include="..\Stride.Core.Assets.Editor.Tests\Helpers\TestTemplatePackage.cs">
       <Link>Helpers\TestTemplatePackage.cs</Link>
     </Compile>
+    <!-- The dispatcher pump of the view tests -->
+    <Compile Include="..\Stride.Core.Assets.Editor.Avalonia.Tests\Helpers\DispatcherPump.cs">
+      <Link>Helpers\DispatcherPump.cs</Link>
+    </Compile>
     <!-- The fake builder and game launcher of the build view model tests -->
     <Compile Include="..\Stride.Core.Assets.Editor.Tests\Helpers\FakeGameProjectBuilder.cs">
       <Link>Helpers\FakeGameProjectBuilder.cs</Link>

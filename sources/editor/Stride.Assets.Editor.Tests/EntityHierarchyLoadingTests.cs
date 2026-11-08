@@ -100,7 +100,7 @@ public sealed class EntityHierarchyLoadingTests
 
         editor = await OpenEditorAsync(fixture);
         child = ((SceneRootViewModel)editor.HierarchyRoot).ChildScenes.Single();
-        await WaitUntilAsync(() => child.IsLoaded);
+        await ExclusiveDispatcherService.WaitUntilAsync(() => child.IsLoaded, "the child scene to load");
 
         Assert.True(child.InnerSubEntities.Single().IsLoaded);
         editor.Destroy();
@@ -126,7 +126,7 @@ public sealed class EntityHierarchyLoadingTests
         Assert.Equal(["Box", "Parent"], root.Children.Select(x => x.Name));
         Assert.Same(root, editor.ActiveRoot);
         // The root of the child scene is destroyed once it is unloaded
-        await WaitUntilAsync(() => fixture.Asset<SceneViewModel>("ChildScene").HierarchyRoot is null);
+        await ExclusiveDispatcherService.WaitUntilAsync(() => fixture.Asset<SceneViewModel>("ChildScene").HierarchyRoot is null, "the child scene to unload");
 
         undoRedo.Undo();
 
@@ -184,18 +184,5 @@ public sealed class EntityHierarchyLoadingTests
             main.Children.Add(childScene);
         }
         return fixture;
-    }
-
-    /// <summary>
-    /// Waits for a change the hierarchy makes once the editor is initialized, on another thread in the tests.
-    /// </summary>
-    internal static async Task WaitUntilAsync(Func<bool> condition)
-    {
-        var timeout = DateTime.UtcNow + TimeSpan.FromSeconds(10);
-        while (!condition())
-        {
-            Assert.True(DateTime.UtcNow < timeout, "The condition was not met in time.");
-            await Task.Delay(10);
-        }
     }
 }

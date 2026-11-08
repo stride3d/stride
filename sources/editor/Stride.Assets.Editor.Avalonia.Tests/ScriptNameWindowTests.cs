@@ -10,6 +10,7 @@ using Avalonia.Threading;
 using Stride.Assets.Editor.Avalonia.Templates;
 using Stride.Assets.Editor.Templates;
 using Stride.Core.Assets.Templates;
+using static Stride.Core.Assets.Editor.Avalonia.Tests.Helpers.DispatcherPump;
 
 namespace Stride.Assets.Editor.Avalonia.Tests;
 
@@ -107,23 +108,6 @@ public sealed class ScriptNameWindowTests
         window.MouseMove(center);
         window.MouseDown(center, MouseButton.Left);
         window.MouseUp(center, MouseButton.Left);
-    }
-
-    private static async Task PumpAsync()
-    {
-        await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Background);
-    }
-
-    private static async Task WaitUntilAsync(Func<bool> condition, string what, int timeoutMilliseconds = 5000)
-    {
-        var deadline = DateTime.UtcNow.AddMilliseconds(timeoutMilliseconds);
-        while (!condition())
-        {
-            if (DateTime.UtcNow > deadline)
-                throw new TimeoutException($"Timed out waiting for {what}.");
-            await Task.Delay(25);
-            await PumpAsync();
-        }
     }
 
     private static async Task CloseAsync(Window window)
