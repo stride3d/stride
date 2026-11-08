@@ -231,6 +231,23 @@ internal class EditorDialogService : DialogService, IEditorDialogService, IProgr
         });
     }
 
+    /// <inheritdoc/>
+    /// <remarks>As in WPF, one package is picked; the window adds a search box.</remarks>
+    public async Task<IReadOnlyCollection<PickablePackageViewModel>?> ShowPackagePickerDialogAsync(SessionViewModel session, Func<PickablePackageViewModel, bool> filter)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        if (MainWindow is null) return null;
+
+        var candidates = await session.SuggestPackagesToAddAsync();
+        return await Dispatcher.InvokeTask(async () =>
+        {
+            var picker = new PackagePickerViewModel(serviceProvider, candidates, filter);
+            var window = new PackagePickerWindow { DataContext = picker };
+            var picked = await window.ShowDialog<bool>(ActiveWindow ?? MainWindow);
+            return picked ? picker.SelectedPackages : null;
+        });
+    }
+
     public async Task<ITemplateDescriptionViewModel?> ShowAddAssetDialogAsync(AddAssetTemplateCollectionViewModel templates)
     {
         ArgumentNullException.ThrowIfNull(templates);
