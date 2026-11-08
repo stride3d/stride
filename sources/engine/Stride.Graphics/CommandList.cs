@@ -248,6 +248,8 @@ namespace Stride.Graphics
             depthStencilBuffer = null;
             DepthStencilAccess = DepthStencilAccess.Write;
             renderTargets.AsSpan().Clear();
+            // Else RenderTargets keeps null entries, which a flush (Direct3D 12) binds again
+            renderTargetCount = 0;
         }
 
         /// <summary>
