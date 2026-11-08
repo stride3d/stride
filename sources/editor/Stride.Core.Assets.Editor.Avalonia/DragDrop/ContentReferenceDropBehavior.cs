@@ -12,13 +12,14 @@ using Stride.Core.Assets.Presentation.ViewModels;
 namespace Stride.Core.Assets.Editor.Avalonia.DragDrop;
 
 /// <summary>
-/// Accepts dropped assets on a reference property of the property grid. Attach it to the root of the property's template: its
+/// Accepts dropped assets, or items of an editor (the entities of the scene tree), on a reference property of the property grid. Attach it to the root of the property's template: its
 /// data context is the <see cref="NodeViewModel"/>.
 /// </summary>
 /// <remarks>
 /// As the WPF <c>ReferenceHostDragDropBehavior</c>, the drop goes through the reference handler that the node updaters attach
 /// to the node (<see cref="ReferenceData"/>; <c>ContentReferenceViewModel</c> for an asset reference): it checks that the asset
-/// fits the property and sets it with the <c>SetContentReference</c> command, one transaction of the undo history.
+/// fits the property and sets it with the <c>SetContentReference</c> command, one transaction of the undo history. An entity or
+/// component property takes an entity of the same asset (<c>EntityReferenceViewModel</c>, <c>ComponentReferenceViewModel</c>).
 /// </remarks>
 public sealed class ContentReferenceDropBehavior : StyledElementBehavior<Control>
 {
@@ -57,20 +58,20 @@ public sealed class ContentReferenceDropBehavior : StyledElementBehavior<Control
 
     private void OnDragOver(object? sender, DragEventArgs e)
     {
-        var assets = AssetDragDropHelper.GetAssets(e.DataTransfer);
-        var target = GetDropTarget(assets, AssetDragDropHelper.ToAddChildModifiers(e.KeyModifiers), out _);
+        var items = AssetDragDropHelper.GetItems(e.DataTransfer);
+        var target = GetDropTarget(items, AssetDragDropHelper.ToAddChildModifiers(e.KeyModifiers), out _);
         e.DragEffects = target is not null ? DragDropEffects.Link : DragDropEffects.None;
         e.Handled = true;
     }
 
     private void OnDrop(object? sender, DragEventArgs e)
     {
-        var assets = AssetDragDropHelper.GetAssets(e.DataTransfer);
+        var items = AssetDragDropHelper.GetItems(e.DataTransfer);
         var modifiers = AssetDragDropHelper.ToAddChildModifiers(e.KeyModifiers);
-        if (GetDropTarget(assets, modifiers, out _) is not { } target)
+        if (GetDropTarget(items, modifiers, out _) is not { } target)
             return;
 
-        target.AddChildren(assets, modifiers);
+        target.AddChildren(items, modifiers);
         e.DragEffects = DragDropEffects.Link;
         e.Handled = true;
     }

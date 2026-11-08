@@ -67,6 +67,9 @@ public sealed class StrideEditorViewPlugin : StrideAssetsAvaloniaPlugin
         if (context.Session is SessionViewModel sessionViewModel)
             context.Services.Register(new CurveEditorPanelService(sessionViewModel));
 
+        // The Pick buttons of the entity and component properties show the entity picker
+        context.Services.Register(new AvaloniaEntityPickerService());
+
         if (GameStudioPreviewService.DisablePreview)
             return;
 

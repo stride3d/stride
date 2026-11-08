@@ -8,6 +8,7 @@
                     xmlns:caev="using:Stride.Core.Assets.Editor.Avalonia.Views"
                     xmlns:cpqvm="using:Stride.Core.Presentation.Quantum.ViewModels"
                     xmlns:data="using:Stride.Data"
+                    xmlns:dd="using:Stride.Core.Assets.Editor.Avalonia.DragDrop"
                     xmlns:engine="using:Stride.Engine"
                     xmlns:models="using:Stride.Assets.Models"
                     xmlns:s="using:System"
@@ -27,7 +28,11 @@
   </aev:EntityComponentReferenceTemplateProvider>
   <aev:EntityComponentReferenceTemplateProvider x:Key="EntityComponentReferenceTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="cpqvm:NodeViewModel">
-      <DockPanel>
+      <DockPanel Background="Transparent">
+        <!-- Accepts an entity dragged from the scene tree, as in WPF -->
+        <Interaction.Behaviors>
+          <dd:ContentReferenceDropBehavior/>
+        </Interaction.Behaviors>
         <UniformGrid Rows="1" DockPanel.Dock="Right">
           <Button IsVisible="{Binding [HasCommand_PickupComponent]}"
                   Command="{Binding [PickupComponent]}"
@@ -87,7 +92,11 @@
   <!-- Provider for Entity -->
   <aev:EntityReferenceTemplateProvider x:Key="EntityReferenceTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="cpqvm:NodeViewModel">
-      <DockPanel>
+      <DockPanel Background="Transparent">
+        <!-- Accepts an entity dragged from the scene tree, as in WPF -->
+        <Interaction.Behaviors>
+          <dd:ContentReferenceDropBehavior/>
+        </Interaction.Behaviors>
         <UniformGrid Rows="1" DockPanel.Dock="Right">
           <Button IsVisible="{Binding [HasCommand_PickupEntity]}"
                   Command="{Binding [PickupEntity]}"
