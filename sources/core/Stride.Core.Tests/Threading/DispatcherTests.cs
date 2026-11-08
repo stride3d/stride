@@ -68,6 +68,34 @@ public class DispatcherTests
     }
 
     [Fact]
+    public void Slow_Items_Run_On_Several_Threads()
+    {
+        if (Dispatcher.MaxDegreeOfParallelism <= 1 || Environment.ProcessorCount <= 1)
+            return;
+
+        // Each helper wakes the next one, so a job of slow items still spreads past the caller
+        var threads = new System.Collections.Concurrent.ConcurrentDictionary<int, bool>();
+        Dispatcher.For(0, Dispatcher.MaxDegreeOfParallelism * 4, threads, static (threads, _) =>
+        {
+            threads.TryAdd(Environment.CurrentManagedThreadId, true);
+            Thread.Sleep(1);
+        });
+        Assert.True(threads.Count > 1, $"{threads.Count} thread(s)");
+    }
+
+    [Fact]
+    public void Many_Short_And_Nested_Jobs_Cover_Their_Ranges_Once()
+    {
+        const int jobs = 2000, size = 50;
+        var hits = new int[jobs * size];
+        Dispatcher.For(0, jobs, hits, static (hits, job) =>
+            Dispatcher.For(job * size, (job + 1) * size, hits, static (hits, index) => Interlocked.Increment(ref hits[index])));
+        for (int job = 0; job < jobs; job++)
+            Dispatcher.For(job * size, (job + 1) * size, hits, static (hits, index) => Interlocked.Increment(ref hits[index]));
+        Assert.All(hits, hit => Assert.Equal(2, hit));
+    }
+
+    [Fact]
     public void Empty_Range_Does_Not_Call_The_Callback()
     {
         var calls = new int[1];
