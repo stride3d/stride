@@ -338,18 +338,18 @@ public sealed class EditCommandTests
                 locations.Add(folder);
                 await WindowTestHelper.PumpAsync();
                 var items = await OpenAsync(menu, tree);
-                Assert.Equal(["Folder", "Create folder", "Package", "Package properties", "Solution", "Add existing project...", "Actions", "Cut", "Copy", "Paste", "Delete", "Rename", "Asset", "Add asset...", "Explore", "Show in Explorer"], Describe(items));
-                Assert.Equal(["Create folder", "Package properties", "Add existing project...", "Cut", "Copy", "Paste", "Delete", "Rename", "Add asset...", "Show in Explorer"], Enabled(items));
+                Assert.Equal(["Folder", "Create folder", "Package", "Package properties", "Solution", "Add existing project...", "Open in IDE", "Actions", "Cut", "Copy", "Paste", "Delete", "Rename", "Asset", "Add asset...", "Explore", "Show in Explorer"], Describe(items));
+                Assert.Equal(["Create folder", "Package properties", "Add existing project...", "Open in IDE", "Cut", "Copy", "Paste", "Delete", "Rename", "Add asset...", "Show in Explorer"], Enabled(items));
                 menu.Close();
                 await WindowTestHelper.PumpAsync();
 
-                // The project: it can be made the current project
+                // The project: it can be made the current project, updated with a package template, and given a dependency
                 locations.Clear();
                 locations.Add(fixture.Package);
                 await WindowTestHelper.PumpAsync();
                 items = await OpenAsync(menu, tree);
-                Assert.Equal(["Folder", "Create folder", "Package", "Set as current project", "Package properties", "Solution", "Add existing project...", "Actions", "Cut", "Copy", "Paste", "Delete", "Rename", "Asset", "Add asset...", "Explore", "Show in Explorer"], Describe(items));
-                Assert.Equal(["Create folder", "Set as current project", "Package properties", "Add existing project...", "Cut", "Copy", "Paste", "Delete", "Rename", "Add asset...", "Show in Explorer"], Enabled(items));
+                Assert.Equal(["Folder", "Create folder", "Package", "Update package", "Add dependency...", "Set as current project", "Package properties", "Solution", "Add existing project...", "Open in IDE", "Actions", "Cut", "Copy", "Paste", "Delete", "Rename", "Asset", "Add asset...", "Explore", "Show in Explorer"], Describe(items));
+                Assert.Equal(["Create folder", "Update package", "Add dependency...", "Set as current project", "Package properties", "Add existing project...", "Open in IDE", "Cut", "Copy", "Paste", "Delete", "Rename", "Add asset...", "Show in Explorer"], Enabled(items));
                 menu.Close();
                 await WindowTestHelper.PumpAsync();
             }

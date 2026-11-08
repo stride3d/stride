@@ -58,6 +58,8 @@ public partial class MainView : UserControl
                 commandSlots = new MainCommandSlots(this, viewModel, host);
         }
         UpdateRecentSessionsMenu();
+        if (OpenWithIDEButton.Flyout is MenuFlyout openWith)
+            FillOpenWithIDEMenu(openWith.Items);
         UpdateViewMenu();
         UpdateDockWindow();
     }
@@ -204,6 +206,24 @@ public partial class MainView : UserControl
             {
                 item.Command = entry.Command;
             }
+            items.Add(item);
+        }
+    }
+
+    /// <summary>
+    /// Fills the toolbar's Open with drop-down as WPF does: one item per IDE (<see cref="MainViewModel.AvailableIDEs"/>), each
+    /// opening the solution with it (<see cref="Core.Assets.Editor.ViewModels.SessionViewModel.OpenInIDECommand"/> of the session
+    /// open then). The items are made with the view model, as those of Open recent, so that the flyout has them when it opens.
+    /// </summary>
+    internal void FillOpenWithIDEMenu(ItemCollection items)
+    {
+        items.Clear();
+        if (viewModel is null)
+            return;
+        foreach (var ide in viewModel.AvailableIDEs)
+        {
+            var item = new MenuItem { Header = ide.DisplayName, CommandParameter = ide };
+            item.Bind(MenuItem.CommandProperty, new Binding($"{nameof(MainViewModel.Session)}.{nameof(Core.Assets.Editor.ViewModels.SessionViewModel.OpenInIDECommand)}") { Source = viewModel });
             items.Add(item);
         }
     }

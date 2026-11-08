@@ -1,0 +1,16 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:ctd="using:Stride.Core.Assets.Editor.Components.TemplateDescriptions">
+  <!-- The items of the Update package submenu (Project menu and solution explorer), as in WPF: the name and the description of a
+       package template; clicking one updates the selected package with it -->
+  <DataTemplate x:Key="PackageTemplateHeaderTemplate" DataType="ctd:PackageTemplateViewModel">
+    <StackPanel MaxWidth="384">
+      <TextBlock Text="{Binding Name}" FontSize="14"/>
+      <TextBlock Text="{Binding Description}" Opacity="0.7" TextWrapping="Wrap"/>
+    </StackPanel>
+  </DataTemplate>
+  <ControlTheme x:Key="PackageTemplateMenuItemTheme" TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}"
+                x:DataType="ctd:PackageTemplateViewModel">
+    <Setter Property="Command" Value="{Binding UpdatePackageCommand}"/>
+  </ControlTheme>
+</ResourceDictionary>
