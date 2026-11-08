@@ -26,7 +26,8 @@ public sealed class DatabaseTests
     {
         var packageDirectory = ServicesSessionFixture.NewPackageDirectory();
         var source = ServicesSessionFixture.WriteResource(packageDirectory, "wood.txt", "wood");
-        using var fixture = await ServicesSessionFixture.OpenAsync(withBuilder: true, ("Textures/Wood", new RawAsset { Source = new UFile(source) }));
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await ServicesSessionFixture.OpenAsync(withBuilder: true, ("Textures/Wood", new RawAsset { Source = new UFile(source) }));
         var wood = fixture.Asset("Textures/Wood");
 
         await fixture.Database.Build(wood.AssetItem).WaitAsync(Timeout);
@@ -44,7 +45,8 @@ public sealed class DatabaseTests
         var oakSource = ServicesSessionFixture.WriteResource(packageDirectory, "oak.txt", "oak, replacing wood");
         var wood = new RawAsset { Source = new UFile(woodSource) };
         var oak = new RawAsset { Source = new UFile(oakSource), Replaces = new AssetReference(wood.Id, ServicesSessionFixture.Url("Textures/Wood")) };
-        using var fixture = await ServicesSessionFixture.OpenAsync(withBuilder: true, ("Textures/Wood", wood), ("Textures/Oak", oak));
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await ServicesSessionFixture.OpenAsync(withBuilder: true, ("Textures/Wood", wood), ("Textures/Oak", oak));
         Assert.False(fixture.Result.HasErrors, fixture.Log);
         Assert.True(fixture.Session.HasAssetReplacements);
         var woodAsset = fixture.Asset("Textures/Wood");
@@ -66,7 +68,8 @@ public sealed class DatabaseTests
         var texture = new TextureAsset { Source = new UFile("wood.png") };
         var material = new MaterialAsset();
         material.Attributes.Diffuse = new MaterialDiffuseMapFeature(new ComputeTextureColor(AttachedReferenceManager.CreateProxyObject<Texture>(texture.Id, "Textures/Wood")));
-        using var fixture = await ServicesSessionFixture.OpenAsync(withBuilder: true, ("Textures/Wood", texture), ("Materials/Wood", material));
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await ServicesSessionFixture.OpenAsync(withBuilder: true, ("Textures/Wood", texture), ("Materials/Wood", material));
         Assert.False(fixture.Result.HasErrors, fixture.Log);
 
         // The content loader asks the database which assets a referencer depends on, and how, to know what to reload
@@ -90,7 +93,8 @@ public sealed class DatabaseTests
         gameSettings.GetOrCreate<RenderingSettings>().ColorSpace = ColorSpace.Gamma;
         gameSettings.GetOrCreate<RenderingSettings>().DefaultGraphicsProfile = GraphicsProfile.Level_10_0;
         gameSettings.Defaults.Add(new TestSectionSettings { Value = 7 });
-        using var fixture = await ServicesSessionFixture.OpenAsync(withBuilder: true,
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await ServicesSessionFixture.OpenAsync(withBuilder: true,
             (GameSettingsAsset.GameSettingsLocation, gameSettings),
             ("Sections/Dependent", new SectionDependentAsset { Value = "dependent" }));
         Assert.False(fixture.Result.HasErrors, fixture.Log);

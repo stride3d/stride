@@ -7,6 +7,7 @@ using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.IO;
+using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Editor.Build;
 using Stride.Core.Assets.Presentation.ViewModels;
@@ -17,7 +18,11 @@ namespace Stride.Editor.Tests.Helpers;
 /// A package with the given assets, saved to a temporary folder and opened through the agnostic <see cref="SessionViewModel"/>,
 /// with the editor's build services registered the way the GameStudio plugin registers them.
 /// </summary>
-public sealed class ServicesSessionFixture : IDisposable
+/// <remarks>
+/// Its dispatcher gives the access of the UI thread to the dispatched work only: a test opens, changes and disposes the session after
+/// <c>await ExclusiveDispatcherService.SwitchTo()</c>, as the editor does on its UI thread.
+/// </remarks>
+public sealed class ServicesSessionFixture : IAsyncDisposable
 {
     public const string PackageName = "TestGame";
 
@@ -87,9 +92,11 @@ public sealed class ServicesSessionFixture : IDisposable
     {
         var directory = Path.Combine(Path.GetTempPath(), "Stride.Editor.Tests", Guid.NewGuid().ToString("N"));
         var dialogs = new FakeEditorDialogService();
+        var dispatcher = new ExclusiveDispatcherService(strict: true);
+        dispatcher.EnsureAccess();
         var serviceProvider = new ViewModelServiceProvider(
         [
-            new ExclusiveDispatcherService(),
+            dispatcher,
             dialogs,
             new FakeClipboardService(),
             new FakePluginService(),
@@ -135,23 +142,37 @@ public sealed class ServicesSessionFixture : IDisposable
     /// </summary>
     public static string NewPackageDirectory() => Path.Combine(Path.GetTempPath(), "Stride.Editor.Tests", Guid.NewGuid().ToString("N"), PackageName);
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         if (!disposed)
         {
             disposed = true;
             if (Builder != null)
             {
-                Builder.Database.Dispose();
-                Builder.Dispose();
-                // The object database is process-wide (the editor opens one session per process); the next fixture opens its own
-                Stride.Core.BuildEngine.Builder.CloseObjectDatabase();
+                // The builder waits for its thread, which can dispatch work: outside the dispatcher
+                await Task.Run(() =>
+                {
+                    Builder.Database.Dispose();
+                    Builder.Dispose();
+                    // The object database is process-wide (the editor opens one session per process); the next fixture opens its own
+                    Stride.Core.BuildEngine.Builder.CloseObjectDatabase();
+                });
             }
-            SettingsProvider?.Dispose();
-            Session.Destroy();
+            var dispatcher = ServiceProvider.Get<IDispatcherService>();
+            dispatcher.Invoke(() =>
+            {
+                SettingsProvider?.Dispose();
+                Session.Destroy();
+            });
             // Nothing the test started may outlive it
-            if (!Session.BackgroundWork.Wait(TimeSpan.FromSeconds(30)))
+            try
+            {
+                await Session.BackgroundWork.WaitAsync(TimeSpan.FromSeconds(30));
+            }
+            catch (TimeoutException)
+            {
                 throw new TimeoutException("The background work of the session did not end within 30 seconds of its destruction.");
+            }
         }
         try
         {
