@@ -7,8 +7,8 @@ how to keep the engine AOT-clean when contributing.
 
 The Stride engine **runtime** assemblies are NativeAOT- and trim-clean: a sample publishes with
 `PublishAot` and runs (renders, captures, tears down) with no ILC errors. This is verified in CI by
-the test guards below. The **editor** (Game Studio) is WPF and is not AOT-published — AOT applies to
-shipped games only.
+the test guards below. The **editors** (the WPF Game Studio and the cross-platform Avalonia one) are not
+AOT-published — AOT applies to shipped games only.
 
 ## Publishing a game
 

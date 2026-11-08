@@ -8,7 +8,7 @@ Stride's editor is built on a ViewModel layer that sits above Quantum and the as
 flowchart TD
     A["ITransactionStack + Operation<br/>Stride.Core.Design · Stride.Core.Transactions<br/>sources/core/Stride.Core.Design/Transactions/<br/>Shared interface and base type — each consumer creates its own instance"]
     B["IUndoRedoService<br/>Stride.Core.Presentation<br/>sources/presentation/Stride.Core.Presentation/Services/<br/>Wraps stack with naming, dirtiable sync, and save-point tracking"]
-    C["SelectionService<br/>Stride.Core.Assets.Editor.Wpf<br/>sources/editor/Stride.Core.Assets.Editor.Wpf/Services/<br/>Separate unbounded stack; records selection snapshots"]
+    C["SelectionService<br/>Stride.Core.Assets.Editor<br/>sources/editor/Stride.Core.Assets.Editor/Services/<br/>Separate unbounded stack; records selection snapshots"]
 
     A -. "uses" .-> B
     A -. "uses" .-> C
@@ -16,7 +16,7 @@ flowchart TD
 
 ## Projects
 
-The editor codebase spans `sources/presentation/` (MVVM framework, Quantum-to-UI binding, shared controls) and `sources/editor/` (editor infrastructure and concrete asset editors). ViewModels are platform-agnostic; WPF coupling belongs in XAML files, code-behind, and WPF-specific service implementations. See [projects.md](projects.md) for the full project map and assembly reference.
+The editor codebase spans `sources/presentation/` (MVVM framework, Quantum-to-UI binding, shared controls) and `sources/editor/` (editor infrastructure and concrete asset editors). There are two Game Studios: the WPF one (`Stride.GameStudio`, Windows only) and the cross-platform one (`Stride.GameStudio.Avalonia`), which is being ported. They share the ViewModels, services and plugins, which live in toolkit-neutral projects; each toolkit adds its views in a `.Wpf` or `.Avalonia` project. See [projects.md](projects.md) for the full project map, the layering rules and where new code goes.
 
 ## When You Need These Systems
 
@@ -49,6 +49,6 @@ The editor codebase spans `sources/presentation/` (MVVM framework, Quantum-to-UI
 |---|---|
 | [undo-redo.md](undo-redo.md) | `ITransactionStack`, `IUndoRedoService`, `DirtyingOperation`, `IMergeableOperation`, `IDirtiable`, dirty-flag synchronisation |
 | [navigation.md](navigation.md) | `SelectionService`, selection history snapshots, back/forward navigation |
-| [projects.md](projects.md) | Project inventory, WPF boundary rule, assembly map |
-| [custom-editor.md](custom-editor.md) | Custom asset editor: base class, registration, lifecycle, services, MVVM patterns |
-| [editors.md](editors.md) | Existing editors catalogue: SpriteSheet, Scene, Prefab, UIPage, UILibrary, GraphicsCompositor, Script, VisualScript |
+| [projects.md](projects.md) | Project inventory, layering and toolkit rules, assembly map, where to put new code |
+| [custom-editor.md](custom-editor.md) | Custom asset editor: base class, registration, lifecycle, WPF and Avalonia views, services, MVVM patterns |
+| [editors.md](editors.md) | Existing editors catalogue (SpriteSheet, Scene, Prefab, UIPage, UILibrary, GraphicsCompositor, Script, VisualScript) and which Game Studio has a view for each |

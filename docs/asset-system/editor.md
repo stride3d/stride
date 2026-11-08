@@ -2,7 +2,7 @@
 
 ## Role
 
-The editor layer determines how an asset is presented and edited in GameStudio. Three tiers exist with increasing complexity. Choose the lowest tier that meets your needs — Tier 1 requires no editor code at all.
+The editor layer determines how an asset is presented and edited in Game Studio. Both Game Studios (WPF and the cross-platform Avalonia one) share the ViewModels; only the views are written per toolkit (see [editor/projects.md](../editor/projects.md)). Three tiers exist with increasing complexity. Choose the lowest tier that meets your needs — Tier 1 requires no editor code at all.
 
 ## Tier 1: Automatic Property Grid (No Code Required)
 
@@ -27,13 +27,13 @@ This tier is active automatically for every asset that has no custom `AssetViewM
 Create a class that inherits `AssetViewModel<TAsset>` and decorate it with `[AssetViewModel<TAsset>]`. The framework discovers and instantiates it automatically when the asset is selected in GameStudio.
 
 ```csharp
-using Stride.Core.Assets.Editor.Annotations;
-using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Presentation.Annotations;
+using Stride.Core.Assets.Presentation.ViewModels;
 
-namespace Stride.Assets.Presentation.ViewModel;
+namespace Stride.Assets.Presentation.ViewModels;
 
 [AssetViewModel<%%AssetName%%Asset>]
-public class %%AssetName%%ViewModel : AssetViewModel<%%AssetName%%Asset>
+public sealed class %%AssetName%%ViewModel : AssetViewModel<%%AssetName%%Asset>
 {
     public %%AssetName%%ViewModel(AssetViewModelConstructionParameters parameters)
         : base(parameters)
@@ -56,7 +56,7 @@ Keep the ViewModel thin — business logic belongs in the asset class itself, no
 
 ### Assembly Placement
 
-`Stride.Assets.Editor.Wpf` (`sources/editor/Stride.Assets.Editor.Wpf/`). This assembly is editor-only and must not be referenced by runtime or compiler assemblies.
+`Stride.Assets.Presentation` (`sources/editor/Stride.Assets.Presentation/ViewModels/`), or the `Editor` package of the asset's plugin. This assembly is toolkit-neutral and editor-only: it must not reference WPF, Avalonia or the editor layer (`Stride.Core.Assets.Editor`), and must not be referenced by runtime or compiler assemblies. The WPF editor registers the shared view models from a list (`StrideDefaultAssetsWpfPlugin.SharedViewModelTypes`), so add a new one there too.
 
 ## Tier 3: Full Custom Editor
 
@@ -68,12 +68,12 @@ Create a class inheriting `AssetEditorViewModel`, decorated with `[AssetEditorVi
 
 ```csharp
 using Stride.Core.Assets.Editor.Annotations;
-using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 
-namespace Stride.Assets.Presentation.AssetEditors.%%AssetName%%Editor.ViewModels;
+namespace Stride.Assets.Editor.ViewModels;
 
 [AssetEditorViewModel<%%AssetName%%ViewModel>]
-public class %%AssetName%%EditorViewModel : AssetEditorViewModel
+public sealed class %%AssetName%%EditorViewModel : AssetEditorViewModel<%%AssetName%%ViewModel>
 {
     public %%AssetName%%EditorViewModel(%%AssetName%%ViewModel asset)
         : base(asset)
@@ -99,19 +99,19 @@ public class %%AssetName%%EditorViewModel : AssetEditorViewModel
 
 Key members inherited from `AssetEditorViewModel`:
 
-- `Asset` — the `AssetViewModel` passed to the constructor (cast it to your typed subclass as needed).
+- `Asset` — the `AssetViewModel` passed to the constructor (typed when you derive from `AssetEditorViewModel<TAssetViewModel>`).
 - `UndoRedoService` — the undo/redo stack; use it for all mutating operations so that Ctrl+Z/Ctrl+Y work correctly.
 - `ServiceProvider` — access editor services such as `IEditorDialogService`.
 - `Session` — the current `SessionViewModel`, providing access to the full asset database.
 
-### View (XAML)
+### Views
 
-Create a WPF `UserControl` (partial class) that implements `IEditorView` and is decorated with `[AssetEditorView<TEditorViewModel>]`. The view is the control shown inside the editor tab when the asset is opened.
+Each Game Studio needs its own view, decorated with `[AssetEditorView<TEditorViewModel>]`; the view is the control shown inside the editor tab when the asset is opened. The Avalonia view is a `UserControl` that implements the marker interface `IAssetEditorView`, with the ViewModel as its `DataContext` (see [custom-editor.md](../editor/custom-editor.md#avalonia)). The WPF view is a `UserControl` (partial class) that implements `IEditorView` and initializes the editor:
 
 ```csharp
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 
 namespace Stride.Assets.Presentation.AssetEditors.%%AssetName%%Editor.Views;
 
@@ -152,8 +152,8 @@ Matching XAML stub (`%%AssetName%%EditorView.xaml`):
 
 ### Assembly Placement
 
-Both the ViewModel and View live in `Stride.Assets.Presentation`. Place the ViewModel under `AssetEditors/%%AssetName%%Editor/ViewModels/` and the View under `AssetEditors/%%AssetName%%Editor/Views/`, following the convention used by `SpriteEditor`, `GraphicsCompositorEditor`, `SceneEditor`, etc.
+The ViewModel lives in `Stride.Assets.Editor`, under `ViewModels/` (helper types in `ViewModels/%%AssetName%%Editor/`). The Avalonia view lives in `Stride.Assets.Editor.Avalonia`, under `Views/`; the WPF view in `Stride.Assets.Editor.Wpf`, under `AssetEditors/%%AssetName%%Editor/Views/`, following `SpriteEditor`, `GraphicsCompositorEditor`, `SceneEditor`, etc. For a plugin's asset, use the plugin's neutral `Editor` package and its `.Avalonia` and `.Wpf` companions.
 
 ### How the Editor Opens
 
-When a user double-clicks an asset whose `AssetViewModel` type has a registered `[AssetEditorViewModel<T>]` attribute, GameStudio's `AssetEditorsManager` finds the editor ViewModel type, instantiates it, then finds the matching `[AssetEditorView<T>]` view, creates it, and calls `InitializeEditor`. No additional registration code is needed beyond the attributes.
+When a user double-clicks an asset whose `AssetViewModel` type has a registered `[AssetEditorViewModel<T>]` attribute, the editor finds the editor ViewModel type, instantiates it, then finds the matching `[AssetEditorView<T>]` view and creates it. In the WPF Game Studio, `AssetEditorsManager` calls the view's `InitializeEditor`; in the cross-platform one, `EditorCollectionViewModel` calls the ViewModel's `Initialize` and the editor area builds the view. No additional registration code is needed beyond the attributes.

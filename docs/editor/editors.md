@@ -2,20 +2,21 @@
 
 ## Overview
 
-The concrete asset editors live in `Stride.Assets.Editor.Wpf` under `sources/editor/Stride.Assets.Editor.Wpf/AssetEditors/`, except the editors of plugin assets, which live in the plugin's `Editor` package: the UI page and library editors are in `Stride.UI.Editor` (view models) and `Stride.UI.Editor.Wpf` (views), under `sources/plugins/UI/`. Most editor folders contain a `ViewModels/` subdirectory and a `Views/` subdirectory; ScriptEditor and VisualScriptEditor are exceptions where files sit flat at the folder root. The table below is the entry point for locating any existing editor; its folders are relative to `AssetEditors/` unless they name a project.
+The editor view models live in the toolkit-neutral `Stride.Assets.Editor` (`sources/editor/Stride.Assets.Editor/ViewModels/`), shared by both Game Studios. Each toolkit adds its views: `Stride.Assets.Editor.Wpf` (`AssetEditors/<EditorName>/Views/`) and `Stride.Assets.Editor.Avalonia` (`Views/`). The editors of plugin assets live in the plugin's `Editor` package: the UI page and library editors are in `Stride.UI.Editor` (view models, still built for WPF) and `Stride.UI.Editor.Wpf` (views), under `sources/plugins/UI/`. A few editors are still WPF only, view models included: the Roslyn script editor, the visual script editor and the curve editor, in `Stride.Assets.Editor.Wpf/AssetEditors/` and `CurveEditor/`. The table below is the entry point for locating any existing editor.
 
 ## Editors
 
-| Editor | Asset type | Base class | Game viewport | Folder |
-|---|---|---|---|---|
-| `SpriteSheetEditorViewModel` | `SpriteSheetAsset` | `AssetEditorViewModel` | No | `SpriteEditor/` |
-| `SceneEditorViewModel` | `SceneAsset` | `EntityHierarchyEditorViewModel` | Yes | `EntityHierarchyEditor/` |
-| `PrefabEditorViewModel` | `PrefabAsset` | `EntityHierarchyEditorViewModel` | Yes | `EntityHierarchyEditor/` |
-| `UIPageEditorViewModel` | `UIPageAsset` | `AssetCompositeHierarchyEditorViewModel` | Yes | `Stride.UI.Editor/ViewModels/` |
-| `UILibraryEditorViewModel` | `UILibraryAsset` | `AssetCompositeHierarchyEditorViewModel` | Yes | `Stride.UI.Editor/ViewModels/` |
-| `GraphicsCompositorEditorViewModel` | `GraphicsCompositorAsset` | `AssetEditorViewModel` | No | `GraphicsCompositorEditor/` |
-| `ScriptEditorViewModel` | Script assets | `AssetEditorViewModel` | No | `ScriptEditor/` |
-| `VisualScriptEditorViewModel` | `VisualScriptAsset` | `AssetEditorViewModel` | No | `VisualScriptEditor/` |
+| Editor | Asset type | Base class | Game viewport | View model | Views |
+|---|---|---|---|---|---|
+| `SpriteSheetEditorViewModel` | `SpriteSheetAsset` | `AssetEditorViewModel<SpriteSheetViewModel>` | No | `Stride.Assets.Editor` | WPF, Avalonia |
+| `SceneEditorViewModel` | `SceneAsset` | `EntityHierarchyEditorViewModel` | Yes | `Stride.Assets.Editor` | WPF, Avalonia |
+| `PrefabEditorViewModel` | `PrefabAsset` | `EntityHierarchyEditorViewModel` | Yes | `Stride.Assets.Editor` | WPF, Avalonia |
+| `UIPageEditorViewModel` | `UIPageAsset` | `UIEditorBaseViewModel` | Yes | `Stride.UI.Editor` | WPF |
+| `UILibraryEditorViewModel` | `UILibraryAsset` | `UIEditorBaseViewModel` | Yes | `Stride.UI.Editor` | WPF |
+| `GraphicsCompositorEditorViewModel` | `GraphicsCompositorAsset` | `AssetEditorViewModel<GraphicsCompositorViewModel>` | No | `Stride.Assets.Editor` | WPF; Avalonia: placeholder (the property grid edits the asset) |
+| `ScriptEditorViewModel` | Script assets | `AssetEditorViewModel` | No | `Stride.Assets.Editor.Wpf` (Roslyn) | WPF |
+| `ScriptSourceFileEditorViewModel` | Script assets | `AssetEditorViewModel<ScriptSourceFileViewModel>` | No | `Stride.Assets.Editor` | Avalonia (text editor with C# highlighting, no Roslyn features) |
+| `VisualScriptEditorViewModel` | `VisualScriptAsset` | `AssetEditorViewModel` | No | `Stride.Assets.Editor.Wpf` | WPF; Avalonia: placeholder (visual scripting is not ported) |
 
 ### SpriteSheetEditorViewModel
 
@@ -25,12 +26,12 @@ The concrete asset editors live in `Stride.Assets.Editor.Wpf` under `sources/edi
 
 | Class | Role |
 |---|---|
-| `SpriteSheetEditorViewModel` | Editor ViewModel |
-| `SpriteEditorView` | XAML view |
-| `ViewportViewModel` | Lightweight render preview (no full game loop) |
+| `SpriteSheetEditorViewModel` | Editor ViewModel (`Stride.Assets.Editor/ViewModels/`) |
+| `SpriteEditorView` / `SpriteSheetEditorView` | WPF view / Avalonia view |
+| `ViewportViewModel` | Zoom and scroll of the image (`ViewModels/SpriteEditor/`), no game loop |
 
 **Notable:**
-- Uses `ViewportViewModel` for rendering instead of `IEditorGameController` — lighter than a full game editor.
+- Uses `ViewportViewModel` and the view's image instead of `IEditorGameController` — lighter than a full game editor.
 - Implements `IAddChildViewModel` to support dragging textures onto the editor to add new sprites.
 
 ### SceneEditorViewModel / PrefabEditorViewModel
@@ -41,19 +42,20 @@ The concrete asset editors live in `Stride.Assets.Editor.Wpf` under `sources/edi
 
 | Class | Role |
 |---|---|
-| `EntityHierarchyEditorViewModel` | Shared base ViewModel (`EntityHierarchyEditor/ViewModels/`) |
+| `EntityHierarchyEditorViewModel` | Shared base ViewModel (`Stride.Assets.Editor/ViewModels/`) |
 | `SceneEditorViewModel` | Thin subclass for scenes |
 | `PrefabEditorViewModel` | Thin subclass for prefabs |
-| `EntityViewModel` | Part ViewModel for each entity in the hierarchy |
-| `EditorCameraViewModel` | Camera movement and controls (lives in `GameEditor/ViewModels/`, shared infrastructure) |
-| `EntityGizmosViewModel` | Gizmo overlay (translate/rotate/scale handles) |
-| `EntityHierarchyEditorView` | Abstract base view |
-| `SceneEditorView` / `PrefabEditorView` | Concrete views |
+| `EntityViewModel` | Part ViewModel for each entity in the hierarchy (`Stride.Assets.Presentation/ViewModels/`) |
+| `EditorGameHost` | The editor game of the view (`Stride.Assets.Editor/EditorGame/`), exposed as `IGameEditorViewModel.GameHost` |
+| `EditorViewToolbarViewModel`, `EditorViewGizmosViewModel`, `EditorViewOverlaysViewModel` | The scene view's toolbar, gizmo and overlay options of the cross-platform editor |
+| `EditorCameraViewModel`, `EntityGizmosViewModel` | The WPF camera options and gizmo overlay (`Stride.Assets.Editor.Wpf/AssetEditors/`), not ported yet |
+| `EntityHierarchyEditorView` | Base view: WPF (abstract, with `SceneEditorView` / `PrefabEditorView`) and Avalonia (one view for both) |
 
 **Notable:**
 - Most logic is in `EntityHierarchyEditorViewModel`; the concrete subclasses are thin.
 - Scene and prefab differ primarily in which hierarchy root they load and whether archetype (prefab base) linking is active.
-- The view code-behind injects the game host into the XAML panel: `SceneView.Content = hierarchyEditor.Controller.EditorHost`.
+- The WPF view code-behind injects the game host into the XAML panel: `SceneView.Content = hierarchyEditor.Controller.EditorHost`. The Avalonia view binds a `ContentControl` to `GameHost.GameView`, an offscreen game view (`Stride.Editor.Avalonia/Engine/`).
+- The scene view options of WPF (camera menu, grid, render mode, light probes, cubemap capture) are not in the cross-platform editor yet.
 
 ### UIPageEditorViewModel / UILibraryEditorViewModel
 
@@ -63,7 +65,7 @@ The concrete asset editors live in `Stride.Assets.Editor.Wpf` under `sources/edi
 
 | Class | Role |
 |---|---|
-| `UIEditorBaseViewModel` | Shared base ViewModel (`Stride.UI.Editor/ViewModels/`) |
+| `UIEditorBaseViewModel` | Shared base ViewModel (`Stride.UI.Editor/ViewModels/`), an `AssetCompositeHierarchyEditorViewModel` and `IGameEditorViewModel` |
 | `UIPageEditorViewModel` | Subclass for UI pages |
 | `UILibraryEditorViewModel` | Subclass for UI libraries |
 | `UIElementViewModel` | Part ViewModel for each UI element |
@@ -82,13 +84,13 @@ The concrete asset editors live in `Stride.Assets.Editor.Wpf` under `sources/edi
 
 | Class | Role |
 |---|---|
-| `GraphicsCompositorEditorViewModel` | Editor ViewModel (`GraphicsCompositorEditor/ViewModels/`) |
+| `GraphicsCompositorEditorViewModel` | Editor ViewModel (`Stride.Assets.Editor/ViewModels/`, its blocks in `ViewModels/GraphicsCompositorEditor/`) |
 | `GraphicsCompositorEditorView` | XAML view |
 | `SharedRendererFactoryViewModel` | Factory/list for shared renderer blocks |
 | `RenderStageViewModel` | Node ViewModel for render stages |
 
 **Notable:**
-- Uses `Stride.Core.Presentation.Graph` for the WPF node-graph canvas.
+- The WPF view uses `Stride.Core.Presentation.Wpf.Graph` (GraphX) for the node-graph canvas. The Avalonia view is a placeholder until the editor has an Avalonia graph control; the property grid edits the asset meanwhile.
 - Does **not** use `IEditorGameController` — no live game instance; the compositor is a pure data-structure editor.
 
 ### ScriptEditorViewModel
@@ -99,8 +101,9 @@ The concrete asset editors live in `Stride.Assets.Editor.Wpf` under `sources/edi
 
 | Class | Role |
 |---|---|
-| `ScriptEditorViewModel` | Editor ViewModel (`ScriptEditor/`) |
-| `ScriptEditorView` | XAML view |
+| `ScriptEditorViewModel` | WPF editor ViewModel (`Stride.Assets.Editor.Wpf/AssetEditors/ScriptEditor/`), with RoslynPad |
+| `ScriptSourceFileEditorViewModel` | Cross-platform editor ViewModel (`Stride.Assets.Editor/ViewModels/`): the file's text, saved by the editor; the Avalonia view uses AvaloniaEdit with TextMate C# highlighting |
+| `ScriptEditorView` / `ScriptSourceFileEditorView` | WPF view / Avalonia view |
 
 **Notable:**
 - The lightest editor — mostly a shell around the embedded code editor control.
@@ -114,7 +117,7 @@ The concrete asset editors live in `Stride.Assets.Editor.Wpf` under `sources/edi
 
 | Class | Role |
 |---|---|
-| `VisualScriptEditorViewModel` | Editor ViewModel (`VisualScriptEditor/`) |
+| `VisualScriptEditorViewModel` | Editor ViewModel (`Stride.Assets.Editor.Wpf/AssetEditors/VisualScriptEditor/`) |
 | `VisualScriptMethodEditorViewModel` | Per-method graph editing |
 | `VisualScriptBlockViewModel` | Node ViewModel for each block |
 | `VisualScriptLinkViewModel` | Edge ViewModel for each connection |
@@ -122,10 +125,11 @@ The concrete asset editors live in `Stride.Assets.Editor.Wpf` under `sources/edi
 **Notable:**
 - Similar to `GraphicsCompositorEditorViewModel` in structure: a pure data-structure editor with no game instance.
 - ViewModel files sit at the folder root (no `ViewModels/` subdir); views are in `Views/` as usual.
+- WPF only. Visual scripting is not planned for the cross-platform editor: `Stride.Assets.Editor` has an empty `VisualScriptEditorViewModel` with a placeholder Avalonia view, so the asset still opens.
 
 ## Shared Game Editor Infrastructure
 
-All game-viewport editors (Scene, Prefab, UIPage, UILibrary) inherit from `GameEditorViewModel` and run a game instance via `IEditorGameController`. The controller manages the game loop on a background thread; results are marshalled back to the ViewModel via `IDispatcherService`.
+All game-viewport editors (Scene, Prefab, UIPage, UILibrary) implement `IGameEditorViewModel` (its `GameHost` is the editor game shown by the view) and run a game instance via `IEditorGameController` (`Stride.Assets.Editor/AssetEditors/GameEditor/Services/`; base implementation `EditorGameController<TEditorGame>` in `Stride.Assets.Editor/EditorGame/`). The controller manages the game loop on a background thread; results are marshalled back to the ViewModel via `IDispatcherService`.
 
 **Key implication for contributors:** property changes in these editors can originate from either the UI thread (user interaction) or the game thread (simulation update). Code that modifies ViewModel state from the game thread must dispatch to the UI thread via `Asset.Dispatcher` (`AssetEditorViewModel.Asset` inherits `Dispatcher` from `DispatcherViewModel`):
 

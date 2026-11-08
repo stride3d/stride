@@ -59,6 +59,21 @@ dotnet build Stride.slnx
 
 Stride auto-selects the native toolchain: MSVC when running under `MSBuild.exe` with the VS C++ tools loaded (VS Developer Command Prompt or IDE), Clang in every other case — including `dotnet build` from a Developer Command Prompt. See [SDK-GUIDE.md → Native Build Mode](SDK-GUIDE.md#native-build-mode-clang--msvc) for the full logic.
 
+## Building the Cross-Platform Game Studio
+
+Next to the WPF Game Studio (`Stride.GameStudio`, Windows only), the repository holds the cross-platform Game Studio, built on Avalonia and still being ported (see [../editor/projects.md](../editor/projects.md)). Its projects and tests form the solution filter `sources/Stride.Editor.Avalonia.slnf`, which builds on Windows and Linux:
+
+```bash
+dotnet build sources/Stride.Editor.Avalonia.slnf -p:StridePlatforms=Linux   # or Windows
+dotnet test sources/Stride.Editor.Avalonia.slnf --no-build                  # headless UI tests included
+dotnet run --project sources/editor/Stride.GameStudio.Avalonia.Desktop      # start it
+```
+
+* On Linux, install `lld` (native code of the filter) and the Vulkan loader (`libvulkan1`) for the editor's viewports and the tests that open a graphics device. Pull the Git LFS files first (`git lfs pull`): the `deps/` binaries and some editor images are stored in LFS.
+* It takes the WPF Game Studio's command line (a session path, `/NewProject`, `/DisableThumbnails`, `/DisablePreview`...) plus `--project <path>` and `--viewport-readback`, which reads the viewport frames back through the CPU instead of sharing them with the compositor on the GPU (for a driver that misbehaves).
+* The `Test Editor (Avalonia)` workflow (`.github/workflows/test-editor-avalonia.yml`) builds and tests the filter on Linux and Windows.
+* A new toolkit-neutral or Avalonia editor project goes in both `Stride.slnx` and the filter.
+
 ## Running a Sample Against Your Local Build
 
 Instantiates a sample from the locally built template packages, bound to this checkout's engine build (`-devN` dev version — see [versioning.md](versioning.md)). Works in both package modes:

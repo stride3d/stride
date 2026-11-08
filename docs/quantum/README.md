@@ -9,8 +9,8 @@ flowchart TD
     A["Stride.Core.Quantum<br/>sources/presentation/Stride.Core.Quantum/<br/>Live node graph over .NET objects"]
     B["Stride.Core.Assets.Quantum<br/>sources/assets/Stride.Core.Assets.Quantum/<br/>Override tracking, base-asset linking"]
     C["Stride.Core.Presentation.Quantum<br/>sources/presentation/Stride.Core.Presentation.Quantum/<br/>INodePresenter — property grid view model"]
-    D["Stride.Core.Assets.Editor.Wpf<br/>sources/editor/Stride.Core.Assets.Editor.Wpf/Quantum/<br/>IAssetNodePresenter, AssetNodePresenterUpdaterBase"]
-    E["Stride.Assets.Presentation<br/>sources/editor/Stride.Assets.Editor.Wpf/NodePresenters/<br/>Concrete updaters per asset type"]
+    D["Stride.Core.Assets.Presentation<br/>sources/editor/Stride.Core.Assets.Presentation/Quantum/<br/>IAssetNodePresenter, AssetNodePresenterUpdaterBase"]
+    E["Stride.Assets.Editor<br/>sources/editor/Stride.Assets.Editor/Quantum/NodePresenters/<br/>Concrete updaters per asset type"]
 
     A --> B
     B --> C
@@ -24,7 +24,7 @@ flowchart TD
 2. **Override semantics** — `AssetPropertyGraph` links each node to its counterpart in the base asset graph (if any) and marks inherited vs. overridden values.
 3. **Presenter tree** — `AssetNodePresenterFactory` walks the node graph and creates one `IAssetNodePresenter` per node.
 4. **Updaters run** — all registered `INodePresenterUpdater` implementations get `UpdateNode()` called per node, then `FinalizeTree()` called once for the full tree.
-5. **Property grid binds** — the WPF property grid binds to the presenter tree: `DisplayName` → label, `Value/UpdateValue` → input control, `IsVisible/IsReadOnly` → visibility and editability, `AttachedProperties` → input constraints.
+5. **Property grid binds** — the property grid (`PropertyView`, one control per toolkit in `Stride.Core.Presentation.Wpf` and `Stride.Core.Presentation.Avalonia`, its templates in `Stride.Core.Assets.Editor.Wpf` and `Stride.Core.Assets.Editor.Avalonia`) binds to the presenter tree: `DisplayName` → label, `Value/UpdateValue` → input control, `IsVisible/IsReadOnly` → visibility and editability, `AttachedProperties` → input constraints.
 
 ## When You Need Quantum
 

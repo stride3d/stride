@@ -52,7 +52,7 @@ When a property grid opens for an asset, `AssetNodePresenterFactory` runs the fo
 
 The tree is rebuilt whenever a node's value changes (so `UpdateNode` is called again for affected nodes, and `FinalizeTree` is called again for the whole tree).
 
-**Updater registration:** Updaters are NOT auto-discovered. You must register your updater explicitly in the plugin class for your assembly. For engine assets, register in `StrideEditorPlugin` (`sources/editor/Stride.Assets.Editor/StrideEditorPlugin.cs`) and, while the WPF editor lives, in `StrideDefaultAssetsWpfPlugin` (`sources/editor/Stride.Assets.Editor.Wpf/StrideDefaultAssetsWpfPlugin.cs`), in their `InitializeSession`:
+**Updater registration:** Updaters are NOT auto-discovered. You must register your updater explicitly in the plugin class for your assembly. For engine assets, register in `StrideEditorPlugin` (`sources/editor/Stride.Assets.Editor/StrideEditorPlugin.cs`, the cross-platform editor) and, while the WPF editor lives, in `StrideDefaultAssetsWpfPlugin` (`sources/editor/Stride.Assets.Editor.Wpf/StrideDefaultAssetsWpfPlugin.cs`), in their `InitializeSession`:
 
 ```csharp
 // In the plugin's InitializeSession(ISessionPluginContext context):
@@ -64,12 +64,12 @@ context.NodePresenterUpdaters.Register(new %%AssetName%%AssetNodeUpdater());
 Subclass `AssetNodePresenterUpdaterBase` and override `UpdateNode` and/or `FinalizeTree`. Note that the public `UpdateNode(INodePresenter)` and `FinalizeTree(INodePresenter)` methods (which the framework calls) are `sealed` in `AssetNodePresenterUpdaterBase`. Only the `protected` overloads that take `IAssetNodePresenter` are open for override — these are what you implement:
 
 ```csharp
-// sources/editor/Stride.Assets.Editor.Wpf/NodePresenters/Updaters/%%AssetName%%AssetNodeUpdater.cs
-using Stride.Core.Assets.Editor.Quantum.NodePresenters;
+// sources/editor/Stride.Assets.Editor/Quantum/NodePresenters/Updaters/%%AssetName%%AssetNodeUpdater.cs
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
+using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
 using Stride.Assets.%%AssetName%%;
 
-namespace Stride.Assets.Presentation.NodePresenters.Updaters;
+namespace Stride.Assets.Editor.Quantum.NodePresenters.Updaters;
 
 internal sealed class %%AssetName%%AssetNodeUpdater : AssetNodePresenterUpdaterBase
 {
@@ -197,6 +197,6 @@ root[sizeCategory][nameof(TextureAsset.Height)]
 | Type | Assembly | Location |
 |---|---|---|
 | `INodePresenter`, `INodePresenterUpdater` interfaces | `Stride.Core.Presentation.Quantum` | `sources/presentation/Stride.Core.Presentation.Quantum/Presenters/` |
-| `IAssetNodePresenter`, `AssetNodePresenterUpdaterBase` | `Stride.Core.Assets.Editor.Wpf` | `sources/editor/Stride.Core.Assets.Editor.Wpf/Quantum/NodePresenters/` |
-| Attached property key classes (`NumericData`, `DisplayData`, `CategoryData`) | `Stride.Core.Assets.Editor.Wpf` | `sources/editor/Stride.Core.Assets.Editor.Wpf/Quantum/NodePresenters/Keys/` |
-| Your `%%AssetName%%AssetNodeUpdater` | `Stride.Assets.Editor.Wpf` | `sources/editor/Stride.Assets.Editor.Wpf/NodePresenters/Updaters/` |
+| `IAssetNodePresenter`, `AssetNodePresenterUpdaterBase` | `Stride.Core.Assets.Presentation` | `sources/editor/Stride.Core.Assets.Presentation/Quantum/NodePresenters/` |
+| Attached property key classes (`NumericData`, `DisplayData`, `CategoryData`) | `Stride.Core.Assets.Editor` | `sources/editor/Stride.Core.Assets.Editor/Quantum/NodePresenters/Keys/` |
+| Your `%%AssetName%%AssetNodeUpdater` | `Stride.Assets.Editor` | `sources/editor/Stride.Assets.Editor/Quantum/NodePresenters/Updaters/` |
