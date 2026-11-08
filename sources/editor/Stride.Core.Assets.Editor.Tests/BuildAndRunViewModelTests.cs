@@ -284,8 +284,9 @@ public sealed class BuildAndRunViewModelTests
         var build = await started.WaitAsync(TimeSpan.FromSeconds(30));
         buildAndRun.CancelBuildCommand.Execute();
 
-        Assert.True(build.IsCanceled);
+        // The cancel can come before the view model takes the started build as the current one: it cancels it then
         Assert.Equal(GameBuildOutcome.Canceled, await building);
+        Assert.True(build.IsCanceled);
         Assert.Empty(launcher.Games);
         Assert.Contains($"Build of {ProjectName} cancelled.", Messages(buildAndRun));
         Assert.Equal("Build cancelled", status.CurrentStatus);
