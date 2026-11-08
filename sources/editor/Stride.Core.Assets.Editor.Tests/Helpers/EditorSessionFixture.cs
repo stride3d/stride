@@ -225,24 +225,12 @@ public sealed class EditorSessionFixture : IAsyncDisposable
         }
     }
 
-    /// <summary>
-    /// Destroys the session in the dispatcher, then waits for its background work to end, letting the dispatched work run: nothing
-    /// the test started may outlive it.
-    /// </summary>
     private async Task DestroyAsync()
     {
         if (destroyed)
             return;
         destroyed = true;
-        ServiceProvider.Get<IDispatcherService>().Invoke(Session.Destroy);
-        try
-        {
-            await Session.BackgroundWork.WaitAsync(TimeSpan.FromSeconds(30));
-        }
-        catch (TimeoutException)
-        {
-            throw new TimeoutException("The background work of the session did not end within 30 seconds of its destruction.");
-        }
+        await SessionTeardown.DestroyAsync(Session);
     }
 
     private UFile WriteSolution(PlatformType[] heads)

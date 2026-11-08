@@ -137,22 +137,7 @@ public sealed class AssetsSessionFixture : IAsyncDisposable
         {
             disposed = true;
             var builder = ServiceProvider.TryGet<GameStudioBuilderService>();
-            if (builder != null)
-            {
-                // The builder waits for its thread, which can dispatch work: outside the dispatcher
-                await Task.Run(() =>
-                {
-                    builder.Database.Dispose();
-                    builder.Dispose();
-                    // The object database is process-wide (the editor opens one session per process); the next fixture opens its own
-                    Stride.Core.BuildEngine.Builder.CloseObjectDatabase();
-                });
-            }
-            ServiceProvider.Get<IDispatcherService>().Invoke(() =>
-            {
-                ServiceProvider.TryGet<GameSettingsProviderService>()?.Dispose();
-                Session.Destroy();
-            });
+            await SessionTeardown.DestroyAsync(Session, [builder?.Database, builder], [ServiceProvider.TryGet<GameSettingsProviderService>()]);
         }
         try
         {

@@ -7,7 +7,6 @@ using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.IO;
-using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Editor.Build;
 using Stride.Core.Assets.Presentation.ViewModels;
@@ -147,32 +146,7 @@ public sealed class ServicesSessionFixture : IAsyncDisposable
         if (!disposed)
         {
             disposed = true;
-            if (Builder != null)
-            {
-                // The builder waits for its thread, which can dispatch work: outside the dispatcher
-                await Task.Run(() =>
-                {
-                    Builder.Database.Dispose();
-                    Builder.Dispose();
-                    // The object database is process-wide (the editor opens one session per process); the next fixture opens its own
-                    Stride.Core.BuildEngine.Builder.CloseObjectDatabase();
-                });
-            }
-            var dispatcher = ServiceProvider.Get<IDispatcherService>();
-            dispatcher.Invoke(() =>
-            {
-                SettingsProvider?.Dispose();
-                Session.Destroy();
-            });
-            // Nothing the test started may outlive it
-            try
-            {
-                await Session.BackgroundWork.WaitAsync(TimeSpan.FromSeconds(30));
-            }
-            catch (TimeoutException)
-            {
-                throw new TimeoutException("The background work of the session did not end within 30 seconds of its destruction.");
-            }
+            await SessionTeardown.DestroyAsync(Session, [Builder?.Database, Builder], [SettingsProvider]);
         }
         try
         {
