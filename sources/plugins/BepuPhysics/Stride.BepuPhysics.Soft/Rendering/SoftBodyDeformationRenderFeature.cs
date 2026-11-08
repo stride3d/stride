@@ -43,14 +43,15 @@ internal sealed class SoftBodyDeformationRenderFeature : SubRenderFeature
         var deformationInfos = RootRenderFeature.RenderData.GetData(_deformationInfoKey);
         var renderEffects = RootRenderFeature.RenderData.GetData(_renderEffectKey);
         int effectSlotCount = ((RootEffectRenderFeature)RootRenderFeature).EffectPermutationSlotCount;
+        var state = (self: this, deformationInfos, renderEffects, effectSlotCount);
 
-        Dispatcher.ForEach(RootRenderFeature.ObjectNodeReferences, objectNodeReference =>
+        Dispatcher.ForEach(RootRenderFeature.ObjectNodeReferences, state, static (s, objectNodeReference) =>
         {
-            var objectNode = RootRenderFeature.GetObjectNode(objectNodeReference);
+            var objectNode = s.self.RootRenderFeature.GetObjectNode(objectNodeReference);
             var renderMesh = (RenderMesh)objectNode.RenderObject;
             var staticObjectNode = renderMesh.StaticObjectNode;
 
-            ref var info = ref deformationInfos[staticObjectNode];
+            ref var info = ref s.deformationInfos[staticObjectNode];
             var parameters = renderMesh.Mesh.Parameters;
             if (parameters != info.Parameters || parameters.PermutationCounter != info.PermutationCounter)
             {
@@ -61,10 +62,10 @@ internal sealed class SoftBodyDeformationRenderFeature : SubRenderFeature
             if (info.Shader is null)
                 return;
 
-            for (int i = 0; i < effectSlotCount; ++i)
+            for (int i = 0; i < s.effectSlotCount; ++i)
             {
-                var renderEffect = renderEffects[staticObjectNode * effectSlotCount + i];
-                if (renderEffect != null && renderEffect.IsUsedDuringThisFrame(RenderSystem))
+                var renderEffect = s.renderEffects[staticObjectNode * s.effectSlotCount + i];
+                if (renderEffect != null && renderEffect.IsUsedDuringThisFrame(s.self.RenderSystem))
                     renderEffect.EffectValidator.ValidateParameter(StrideEffectBaseKeys.ExtensionPostVertexStageShader, info.Shader);
             }
         });
@@ -73,24 +74,25 @@ internal sealed class SoftBodyDeformationRenderFeature : SubRenderFeature
     public override void Prepare(RenderDrawContext context)
     {
         var renderNodes = ((RootEffectRenderFeature)RootRenderFeature).RenderNodes;
-        Dispatcher.ForBatched(renderNodes.Count, (from, toExclusive) =>
+        var state = (self: this, renderNodes);
+
+        Dispatcher.ForBatched(renderNodes.Count, state, static (s, from, toExclusive) =>
         {
             for (int i = from; i < toExclusive; i++)
             {
-                var renderNode = renderNodes[i];
+                var renderNode = s.renderNodes[i];
                 var perDrawLayout = renderNode.RenderEffect.Reflection?.PerDrawLayout;
                 if (perDrawLayout is null)
                     continue;
 
-                // Only effects compiled with the deformation shader have the group
-                var particlesGroup = perDrawLayout.GetLogicalGroup(_particlesGroup);
+                var particlesGroup = perDrawLayout.GetLogicalGroup(s.self._particlesGroup);
                 if (particlesGroup.DescriptorEntryStart == -1)
                     continue;
 
                 var parameters = ((RenderMesh)renderNode.RenderObject).Mesh.Parameters;
                 renderNode.Resources.DescriptorSet.SetShaderResourceView(particlesGroup.DescriptorEntryStart, parameters.Get(SoftBodyDeformationKeys.Particles));
 
-                var ringGroup = perDrawLayout.GetLogicalGroup(_ringGroup);
+                var ringGroup = perDrawLayout.GetLogicalGroup(s.self._ringGroup);
                 if (ringGroup.DescriptorEntryStart != -1)
                     renderNode.Resources.DescriptorSet.SetShaderResourceView(ringGroup.DescriptorEntryStart, parameters.Get(SoftBodySurfaceDeformationKeys.Ring));
             }
