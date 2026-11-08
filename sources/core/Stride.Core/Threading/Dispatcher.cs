@@ -387,7 +387,7 @@ public static class Dispatcher
         {
             // Initial partition
             Interlocked.Increment(ref state.OpLeft);
-            state.Partitions.Enqueue(new SortRange(index, length - 1));
+            state.Partitions.Enqueue(new SortRange(index, index + length - 1));
 
             // Sort recursively
             state.AddReference();
@@ -426,24 +426,23 @@ public static class Dispatcher
                 }
                 else
                 {
-                    var pivot = Partition(collection, range.Left, range.Right, comparer);
+                    var (leftEnd, rightStart) = Partition(collection, range.Left, range.Right, comparer);
 
                     int delta = -1;
                     // Add work items
-                    if (pivot - 1 > range.Left)
+                    if (leftEnd > range.Left)
                         delta++;
 
-                    if (range.Right > pivot + 1)
+                    if (range.Right > rightStart)
                         delta++;
 
                     Interlocked.Add(ref state.OpLeft, delta);
 
-                    if (pivot - 1 > range.Left)
-                        state.Partitions.Enqueue(new SortRange(range.Left, pivot - 1));
+                    if (leftEnd > range.Left)
+                        state.Partitions.Enqueue(new SortRange(range.Left, leftEnd));
 
-
-                    if (range.Right > pivot + 1)
-                        state.Partitions.Enqueue(new SortRange(pivot + 1, range.Right));
+                    if (range.Right > rightStart)
+                        state.Partitions.Enqueue(new SortRange(rightStart, range.Right));
 
 
                     // Add a new worker if necessary
@@ -468,7 +467,11 @@ public static class Dispatcher
         }
     }
 
-    private static int Partition<T>(T[] collection, int left, int right, IComparer<T> comparer)
+    /// <summary>
+    /// Hoare partition around the median of three: afterwards, items up to <c>LeftEnd</c> are not greater than the pivot,
+    /// items from <c>RightStart</c> are not smaller, and items between the two are equal to it, already in place.
+    /// </summary>
+    private static (int LeftEnd, int RightStart) Partition<T>(T[] collection, int left, int right, IComparer<T> comparer)
     {
         int i = left, j = right;
         var mid = (left + right) / 2;
@@ -480,10 +483,10 @@ public static class Dispatcher
         if (comparer.Compare(collection[right], collection[mid]) < 0)
             Swap(collection, mid, right);
 
+        // The value, not the slot: the swaps below can move the item at mid
+        var pivot = collection[mid];
         while (i <= j)
         {
-            var pivot = collection[mid];
-
             while (comparer.Compare(collection[i], pivot) < 0)
             {
                 i++;
@@ -500,7 +503,7 @@ public static class Dispatcher
             }
         }
 
-        return mid;
+        return (j, i);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
