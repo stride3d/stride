@@ -414,7 +414,9 @@ public static class Dispatcher
             {
                 if (!state.Partitions.TryDequeue(out var range))
                 {
-                    sw.SpinOnce();
+                    // Other threads are still sorting their parts, for well under a millisecond: no Sleep(1), which lasts until
+                    // the next timer tick (15.6 ms by default on Windows)
+                    sw.SpinOnce(sleep1Threshold: -1);
                     continue;
                 }
 
