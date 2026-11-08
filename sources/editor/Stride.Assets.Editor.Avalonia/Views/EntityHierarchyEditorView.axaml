@@ -114,6 +114,9 @@
         <!-- The categories of entity factories go here (see EntityHierarchyEditorView.AddFactoryItems) -->
         <Separator Tag="Factories" IsVisible="False"/>
         <MenuItem Header="{sd:LocalizeString Actions, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"/>
+        <!-- On a child scene only, checked on the active one: new entities go to the active scene (see OnTreeContextRequested) -->
+        <MenuItem Tag="SetActiveRoot" Header="{sd:LocalizeString Set as active scene, Context=Menu}" ToggleType="CheckBox"
+                  Command="{Binding SetActiveRootCommand}"/>
         <MenuItem Header="{sd:LocalizeString Open prefab in editor, Context=Menu}" Command="{Binding OpenPrefabEditorCommand}"/>
         <MenuItem Header="{sd:LocalizeString Select prefab in asset view, Context=Menu}" Command="{Binding SelectPrefabCommand}"/>
         <MenuItem Header="{sd:LocalizeString Break link to prefab, Context=Menu}" Command="{Binding BreakLinkToPrefabCommand}"/>
@@ -572,20 +575,46 @@
                    HorizontalAlignment="Center" VerticalAlignment="Center"
                    IsVisible="{Binding GameHost.GameView, Converter={x:Static ObjectConverters.IsNull}}" />
         <!-- Assets dropped on the view add their entities under the pointer, as in the WPF scene editor -->
-        <ContentControl x:Name="GameViewHost" Content="{Binding GameHost.GameView}">
+        <ContentControl x:Name="GameViewHost" Content="{Binding GameHost.GameView}"
+                        IsVisible="{Binding GameHost.LastException, Converter={x:Static ObjectConverters.IsNull}}">
           <Interaction.Behaviors>
             <dd:AddChildDropBehavior/>
           </Interaction.Behaviors>
         </ContentControl>
         <!-- The widgets of the plugins, on the edges of the view over the game; the panels have no background, so the pointer
              reaches the game everywhere but on a widget -->
-        <DockPanel x:Name="WidgetLayer">
+        <DockPanel x:Name="WidgetLayer" IsVisible="{Binding GameHost.LastException, Converter={x:Static ObjectConverters.IsNull}}">
           <StackPanel x:Name="TopWidgets" DockPanel.Dock="Top" Orientation="Horizontal" Spacing="4" Margin="4" HorizontalAlignment="Left" />
           <StackPanel x:Name="BottomWidgets" DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="4" Margin="4" HorizontalAlignment="Left" />
           <StackPanel x:Name="LeftWidgets" DockPanel.Dock="Left" Orientation="Vertical" Spacing="4" Margin="4" VerticalAlignment="Top" />
           <StackPanel x:Name="RightWidgets" DockPanel.Dock="Right" Orientation="Vertical" Spacing="4" Margin="4" VerticalAlignment="Top" />
           <Panel />
         </DockPanel>
+        <!-- The game stopped on an exception (EditorGameRecoveryService): the error, with Resume and Copy, as in the WPF scene
+             editor -->
+        <Panel x:Name="GameErrorPane" Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
+               IsVisible="{Binding GameHost.LastException, Converter={x:Static ObjectConverters.IsNotNull}}">
+          <Border HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="400" MaxWidth="1200" Margin="20" Padding="20"
+                  Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+            <DockPanel>
+              <SelectableTextBlock DockPanel.Dock="Top" FontSize="20" FontWeight="Bold" TextWrapping="Wrap" Margin="0,0,0,12"
+                                   Text="{Binding GameHost.LastException.Message, StringFormat=Error: {0}, FallbackValue={x:Null}}"/>
+              <StackPanel DockPanel.Dock="Bottom" Spacing="8" Margin="0,12,0,0">
+                <TextBlock HorizontalAlignment="Center" TextWrapping="Wrap"
+                           Text="{sd:LocalizeString Before you resume\, fix the failing asset (likely a graphics compositor or scene).}"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="20">
+                  <Button x:Name="ResumeButton" Content="{sd:LocalizeString Resume, Context=Button}" Padding="24,8"
+                          Command="{Binding GameHost.ResumeCommand}"/>
+                  <Button x:Name="CopyErrorButton" Content="{sd:LocalizeString Copy error to clipboard, Context=Button}" Padding="24,8"
+                          Command="{Binding GameHost.CopyErrorToClipboardCommand}"/>
+                </StackPanel>
+              </StackPanel>
+              <ScrollViewer MaxHeight="400" HorizontalScrollBarVisibility="Disabled">
+                <SelectableTextBlock TextWrapping="Wrap" Text="{Binding GameHost.LastException, FallbackValue={x:Null}}"/>
+              </ScrollViewer>
+            </DockPanel>
+          </Border>
+        </Panel>
       </Panel>
     </DockPanel>
   </Grid>

@@ -263,15 +263,30 @@ public partial class EntityHierarchyEditorView : UserControl, IAssetEditorView
 
     private void OnTreeContextRequested(object? sender, ContextRequestedEventArgs e)
     {
-        var onItem = (e.Source as Visual)?.FindAncestorOfType<TreeViewItem>(true) is not null;
+        var item = (e.Source as Visual)?.FindAncestorOfType<TreeViewItem>(true);
+        var onItem = item is not null;
         var menu = (ContextMenu)Resources[onItem ? "ItemContextMenu" : "RootContextMenu"]!;
         menu.DataContext = DataContext;
+        if (onItem && DataContext is EntityHierarchyEditorViewModel activeEditor)
+            UpdateSetActiveRootItem(menu, item!.DataContext, activeEditor);
         if (DataContext is EntityHierarchyEditorViewModel editor)
             AddFactoryItems(menu.Items, onItem ? editor.CreateEntityInSelectionCommand : editor.CreateEntityInRootCommand);
         // Opened here rather than through the ContextMenu property: a menu set while the event is routed would only open
         // at the next request
         menu.Open(HierarchyTree);
         e.Handled = true;
+    }
+
+    /// <summary>
+    /// Shows "Set as active scene" on a scene only, checked when it is the active one, as in the WPF scene editor.
+    /// </summary>
+    internal static void UpdateSetActiveRootItem(ContextMenu menu, object? clickedItem, EntityHierarchyEditorViewModel editor)
+    {
+        if (menu.Items.OfType<MenuItem>().FirstOrDefault(x => Equals(x.Tag, "SetActiveRoot")) is not { } setActiveRoot)
+            return;
+
+        setActiveRoot.IsVisible = clickedItem is SceneRootViewModel;
+        setActiveRoot.IsChecked = clickedItem is not null && clickedItem == editor.ActiveRoot;
     }
 
     private void OnLockClick(object? sender, RoutedEventArgs e)
