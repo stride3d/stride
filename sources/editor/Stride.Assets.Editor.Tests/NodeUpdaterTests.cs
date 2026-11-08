@@ -10,6 +10,7 @@ using Stride.Assets.Sprite;
 using Stride.Core;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
+using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Quantum.ViewModels;
 using Stride.Graphics;
@@ -30,7 +31,8 @@ public sealed class NodeUpdaterTests
     {
         var gameSettings = GameSettingsFactory.Create();
         gameSettings.SplashScreenTexture = null!;
-        using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, ("GameSettings", gameSettings));
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, ("GameSettings", gameSettings));
         fixture.Session.AssetViewProperties.RegisterNodePresenterUpdater(new GameSettingsAssetNodeUpdater());
 
         var root = await fixture.PropertiesOf(fixture.Asset("GameSettings"));
@@ -53,7 +55,8 @@ public sealed class NodeUpdaterTests
         var material = new MaterialAsset();
         material.Layers.Add(new MaterialBlendLayer { Name = "Dirt" });
         material.Layers.Add(new MaterialBlendLayer());
-        using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, ("Material", material));
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, ("Material", material));
         fixture.Session.AssetViewProperties.RegisterNodePresenterUpdater(new MaterialAssetNodeUpdater());
 
         var root = await fixture.PropertiesOf(fixture.Asset("Material"));
@@ -79,7 +82,8 @@ public sealed class NodeUpdaterTests
         var model = new ModelAsset { Source = new UFile("model.fbx"), ImportMorphTargets = false };
         model.Materials.Add(new ModelMaterial { Name = "Skin" });
         model.Materials.Add(new ModelMaterial());
-        using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, ("Model", model));
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, ("Model", model));
         fixture.Session.AssetViewProperties.RegisterNodePresenterUpdater(new ModelAssetNodeUpdater());
 
         var root = await fixture.PropertiesOf(fixture.Asset("Model"));
@@ -104,7 +108,8 @@ public sealed class NodeUpdaterTests
     {
         var sheet = new SpriteSheetAsset { Type = type };
         sheet.Sprites.Add(new SpriteInfo { Name = "Sprite" });
-        using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, ("Sheet", sheet));
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, ("Sheet", sheet));
         fixture.Session.AssetViewProperties.RegisterNodePresenterUpdater(new SpriteSheetAssetNodeUpdater());
 
         var root = await fixture.PropertiesOf(fixture.Asset("Sheet"));
@@ -124,7 +129,8 @@ public sealed class NodeUpdaterTests
         var forward = new ForwardRenderer();
         var compositor = new GraphicsCompositorAsset { Game = new SceneCameraRenderer { Child = forward } };
         compositor.SharedRenderers.Add(forward);
-        using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, ("Compositor", compositor));
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, ("Compositor", compositor));
         Assert.False(fixture.Result.HasErrors, fixture.Log);
         fixture.Session.AssetViewProperties.RegisterNodePresenterUpdater(new GraphicsCompositorAssetNodeUpdater());
 
@@ -144,7 +150,8 @@ public sealed class NodeUpdaterTests
     {
         var gameSettings = GameSettingsFactory.Create();
         gameSettings.SplashScreenTexture = null!;
-        using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: true, ("GameSettings", gameSettings));
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: true, ("GameSettings", gameSettings));
 
         var root = await fixture.PropertiesOf(fixture.Asset("GameSettings"));
 

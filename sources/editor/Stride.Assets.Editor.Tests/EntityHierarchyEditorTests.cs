@@ -24,7 +24,8 @@ public sealed class EntityHierarchyEditorTests
     [Fact]
     public async Task AnEntityAddedToTheSceneGetsAViewModelAndIsAnnounced()
     {
-        using var fixture = await OpenSceneAsync();
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var added = Record(editor.HierarchyRoot, out _);
 
@@ -44,7 +45,8 @@ public sealed class EntityHierarchyEditorTests
     [Fact]
     public async Task AChildEntityGoesUnderTheViewModelOfItsParent()
     {
-        using var fixture = await OpenSceneAsync();
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var parent = FindEntity(editor, "Parent");
         var added = Record(editor.HierarchyRoot, out _);
@@ -61,7 +63,8 @@ public sealed class EntityHierarchyEditorTests
     [Fact]
     public async Task ADeletedEntityLeavesTheTreeAndTheSelectionWithItsChildren()
     {
-        using var fixture = await OpenSceneAsync();
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var parent = FindEntity(editor, "Parent");
         var child = FindEntity(editor, "Child");
@@ -82,7 +85,8 @@ public sealed class EntityHierarchyEditorTests
     [Fact]
     public async Task UndoingADeletionBringsTheEntityBackAtItsPlace()
     {
-        using var fixture = await OpenSceneAsync();
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var parent = FindEntity(editor, "Parent");
         DeleteEntity(fixture, editor, parent.AssetSideEntity);
@@ -101,7 +105,8 @@ public sealed class EntityHierarchyEditorTests
     [Fact]
     public async Task TheTransformationsOfAGizmoMoveAreOneUndoableOperation()
     {
-        using var fixture = await OpenSceneAsync();
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var box = FindEntity(editor, "Box");
         var parent = FindEntity(editor, "Parent");
@@ -132,7 +137,8 @@ public sealed class EntityHierarchyEditorTests
     [Fact]
     public async Task WithoutAGameTheCameraCannotFrameTheSelection()
     {
-        using var fixture = await OpenSceneAsync();
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var box = FindEntity(editor, "Box");
 
@@ -151,7 +157,7 @@ public sealed class EntityHierarchyEditorTests
     internal static async Task<AssetsSessionFixture> OpenSceneAsync(IDispatcherService? dispatcher = null)
     {
         // One dispatcher call at a time, as on the UI thread: the session raises its events on the thread pool
-        var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: true, dispatcher ?? new ExclusiveDispatcherService(), ("MainScene", new SceneAsset()));
+        var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: true, dispatcher ?? new ExclusiveDispatcherService(strict: true), ("MainScene", new SceneAsset()));
         Assert.False(fixture.Result.HasErrors, fixture.Log);
 
         // The entities go through the property graph, as the editor adds them: a scene saved by the test would need the

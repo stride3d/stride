@@ -20,7 +20,8 @@ public sealed class EntityHierarchyEditCommandsTests
     [Fact]
     public async Task TheCommandsNeedASelectionAndTheRootCannotBeDeleted()
     {
-        using var fixture = await OpenSceneAsync();
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
 
         Assert.False(editor.CopyCommand.IsEnabled);
@@ -45,7 +46,8 @@ public sealed class EntityHierarchyEditCommandsTests
     [Fact]
     public async Task CopyThenPasteIntoTheRootAddsACopyAsOneUndoEntry()
     {
-        using var fixture = await OpenSceneAsync();
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var parent = FindEntity(editor, "Parent");
         editor.SelectedContent.Add(parent);
@@ -71,7 +73,8 @@ public sealed class EntityHierarchyEditCommandsTests
     [Fact]
     public async Task PasteIntoTheSelectionAddsChildrenToTheSelectedEntity()
     {
-        using var fixture = await OpenSceneAsync();
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var box = FindEntity(editor, "Box");
         var parent = FindEntity(editor, "Parent");
@@ -92,7 +95,8 @@ public sealed class EntityHierarchyEditCommandsTests
     [Fact]
     public async Task PasteIntoAFolderPutsTheEntitiesInIt()
     {
-        using var fixture = await OpenSceneAsync();
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await OpenSceneAsync();
         EntityHierarchyFolderTests.AddEntity(fixture, "Sun", "Lights", parent: null, index: 2);
         var editor = await OpenEditorAsync(fixture);
         editor.SelectedContent.Add(FindEntity(editor, "Box"));
@@ -112,7 +116,8 @@ public sealed class EntityHierarchyEditCommandsTests
     [Fact]
     public async Task ACopiedFolderComesWithItsSubFolders()
     {
-        using var fixture = await OpenSceneAsync();
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await OpenSceneAsync();
         EntityHierarchyFolderTests.AddEntity(fixture, "Tree", "Props/Nature", parent: null, index: 2);
         var editor = await OpenEditorAsync(fixture);
         editor.SelectedContent.Add(editor.HierarchyRoot.Children.Single(x => x.Name == "Props"));
@@ -135,7 +140,8 @@ public sealed class EntityHierarchyEditCommandsTests
     [Fact]
     public async Task CutRemovesTheSelectionAsOneUndoEntryAndPasteBringsItBack()
     {
-        using var fixture = await OpenSceneAsync();
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         editor.SelectedContent.Add(FindEntity(editor, "Parent"));
         await editor.PropertiesRefreshCompletion;
@@ -163,7 +169,8 @@ public sealed class EntityHierarchyEditCommandsTests
     [Fact]
     public async Task DeleteAsksFirstThenDeletesAsOneUndoEntry()
     {
-        using var fixture = await OpenSceneAsync();
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var dialogs = (FakeEditorDialogService)fixture.ServiceProvider.Get<IDialogService>();
         editor.SelectedContent.Add(FindEntity(editor, "Parent"));
@@ -193,7 +200,8 @@ public sealed class EntityHierarchyEditCommandsTests
     [Fact]
     public async Task DeletingAFolderDeletesItsEntitiesAndTheUndoBringsBothBack()
     {
-        using var fixture = await OpenSceneAsync();
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await OpenSceneAsync();
         EntityHierarchyFolderTests.AddEntity(fixture, "Sun", "Lights", parent: null, index: 2);
         var editor = await OpenEditorAsync(fixture);
         editor.SelectedContent.Add(editor.HierarchyRoot.Children.Single(x => x.Name == "Lights"));
@@ -215,7 +223,8 @@ public sealed class EntityHierarchyEditCommandsTests
     [Fact]
     public async Task DuplicateAddsACopyNextToEachSelectedEntityAndSelectsTheCopies()
     {
-        using var fixture = await OpenSceneAsync();
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var box = FindEntity(editor, "Box");
         var parent = FindEntity(editor, "Parent");
@@ -243,7 +252,8 @@ public sealed class EntityHierarchyEditCommandsTests
     [Fact]
     public async Task ADuplicatedEntityStaysInItsFolder()
     {
-        using var fixture = await OpenSceneAsync();
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await OpenSceneAsync();
         EntityHierarchyFolderTests.AddEntity(fixture, "Sun", "Lights", parent: null, index: 2);
         var editor = await OpenEditorAsync(fixture);
         editor.SelectedContent.Add(FindEntity(editor, "Sun"));

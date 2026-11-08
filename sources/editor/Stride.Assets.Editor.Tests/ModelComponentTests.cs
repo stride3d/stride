@@ -30,7 +30,8 @@ public sealed class ModelComponentTests
     [Fact]
     public async Task TheMaterialsShowOneRowPerSlotOfTheModel()
     {
-        using var fixture = await OpenSceneAsync(new ModelAsset { Source = new UFile("model.fbx"), ImportMorphTargets = false });
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await OpenSceneAsync(new ModelAsset { Source = new UFile("model.fbx"), ImportMorphTargets = false });
         var editor = await EntityHierarchyEditorTests.OpenEditorAsync(fixture);
 
         var component = await PropertiesOfModelComponent(fixture, editor);
@@ -51,7 +52,8 @@ public sealed class ModelComponentTests
     [Fact]
     public async Task OverridingASlotAddsTheMaterialOfTheComponent()
     {
-        using var fixture = await OpenSceneAsync(new ModelAsset { Source = new UFile("model.fbx"), ImportMorphTargets = false });
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await OpenSceneAsync(new ModelAsset { Source = new UFile("model.fbx"), ImportMorphTargets = false });
         var editor = await EntityHierarchyEditorTests.OpenEditorAsync(fixture);
         var entity = EntityHierarchyEditorTests.FindEntity(editor, "Model");
         var modelComponent = entity.AssetSideEntity.Get<ModelComponent>()!;
@@ -71,7 +73,8 @@ public sealed class ModelComponentTests
     {
         var model = new ModelAsset { Source = new UFile("model.fbx"), ImportMorphTargets = true };
         model.MorphTargetNames.AddRange(["Smile", "Blink", "Smile"]);
-        using var fixture = await OpenSceneAsync(model);
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await OpenSceneAsync(model);
         var editor = await EntityHierarchyEditorTests.OpenEditorAsync(fixture);
         var modelComponent = EntityHierarchyEditorTests.FindEntity(editor, "Model").AssetSideEntity.Get<ModelComponent>()!;
         var undoRedo = fixture.Session.UndoRedoService;
@@ -108,7 +111,8 @@ public sealed class ModelComponentTests
         model.MorphTargetNames.AddRange(["Smile", "Blink"]);
         var other = new ModelAsset { Source = new UFile("other.fbx"), ImportMorphTargets = true };
         other.MorphTargetNames.Add("Smile");
-        using var fixture = await OpenSceneAsync(model, ("Other", other));
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await OpenSceneAsync(model, ("Other", other));
         var editor = await EntityHierarchyEditorTests.OpenEditorAsync(fixture);
         var modelComponent = EntityHierarchyEditorTests.FindEntity(editor, "Model").AssetSideEntity.Get<ModelComponent>()!;
         var componentNode = fixture.Session.AssetNodeContainer.GetNode(modelComponent);
@@ -145,7 +149,7 @@ public sealed class ModelComponentTests
         // The material of the second slot is the material asset
         model.Materials.Add(new ModelMaterial { MaterialInstance = new MaterialInstance(AttachedReferenceManager.CreateProxyObject<Material>(material.Id, "Material")) });
         // One dispatcher call at a time, as on the UI thread: the session raises its events on the thread pool
-        var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: true, new ExclusiveDispatcherService(), [("MainScene", new SceneAsset()), ("Model", model), ("Material", material), .. others]);
+        var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: true, [("MainScene", new SceneAsset()), ("Model", model), ("Material", material), .. others]);
         Assert.False(fixture.Result.HasErrors, fixture.Log);
 
         var graph = (AssetCompositeHierarchyPropertyGraph<EntityDesign, Entity>)fixture.Asset<SceneViewModel>("MainScene").PropertyGraph;

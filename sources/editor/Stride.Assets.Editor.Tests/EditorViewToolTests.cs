@@ -6,6 +6,7 @@ using Stride.Assets.Editor.Tests.Helpers;
 using Stride.Core;
 using Stride.Core.Assets.Editor.Editors;
 using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Engine;
@@ -33,7 +34,8 @@ public sealed class EditorViewToolTests
     [Fact]
     public async Task TheToolsOfAPluginComeAndGoWithThePlugin()
     {
-        using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false);
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false);
         var host = new TestPluginService(new MeasurePlugin());
         host.RegisterSession(fixture.Session, new LoggerResult());
         try
@@ -61,7 +63,8 @@ public sealed class EditorViewToolTests
     [Fact]
     public async Task APluginCanRegisterAToolItself()
     {
-        using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false);
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false);
         var host = new TestPluginService(new ToolRegisteringPlugin(typeof(UndeclaredTool)), new ToolRegisteringPlugin(typeof(UndeclaredTool)));
         host.RegisterSession(fixture.Session, new LoggerResult());
         try
@@ -80,7 +83,8 @@ public sealed class EditorViewToolTests
     [Fact]
     public async Task APluginThatRegistersAToolTheViewsCannotCreateDoesNotJoin()
     {
-        using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false);
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false);
         var plugin = new ToolRegisteringPlugin(typeof(AbstractTool));
         var logger = new LoggerResult();
         var host = new TestPluginService(plugin);

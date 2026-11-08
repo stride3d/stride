@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Editor.Tests.Helpers;
 using static Stride.Assets.Editor.Tests.EntityHierarchyEditorTests;
 
 namespace Stride.Assets.Editor.Tests;
@@ -14,7 +15,8 @@ public sealed class EntityHierarchyFilterAndLockTests
     [Fact]
     public async Task TheFilterShowsTheMatchingItemsAndTheirParents()
     {
-        using var fixture = await OpenSceneAsync();
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await OpenSceneAsync();
         EntityHierarchyFolderTests.AddEntity(fixture, "Sun light", "Lights", parent: null, index: 2);
         var editor = await OpenEditorAsync(fixture);
         var lights = editor.HierarchyRoot.Children.Single(x => x.Name == "Lights");
@@ -43,7 +45,8 @@ public sealed class EntityHierarchyFilterAndLockTests
     [Fact]
     public async Task RenameEditsTheLastSelectedEntityOrFolder()
     {
-        using var fixture = await OpenSceneAsync();
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await OpenSceneAsync();
         EntityHierarchyFolderTests.AddEntity(fixture, "Sun", "Lights", parent: null, index: 2);
         var editor = await OpenEditorAsync(fixture);
         Assert.False(editor.RenameCommand.IsEnabled);
@@ -66,7 +69,8 @@ public sealed class EntityHierarchyFilterAndLockTests
     [Fact]
     public async Task LockingAnEntityLocksItsChildrenOnlyWithCtrlButTheRootLocksEverything()
     {
-        using var fixture = await OpenSceneAsync();
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var parent = FindEntity(editor, "Parent");
         var child = FindEntity(editor, "Child");

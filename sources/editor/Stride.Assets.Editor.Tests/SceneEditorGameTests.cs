@@ -5,6 +5,7 @@ using Stride.Assets.Editor.Tests.Helpers;
 using Stride.Assets.Editor.ViewModels;
 using Stride.Assets.Entities;
 using Stride.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Diagnostics;
 using Stride.Editor.Engine;
 using Stride.Games;
@@ -20,7 +21,8 @@ public sealed class SceneEditorGameTests
     [Fact]
     public async Task WithoutAGameViewportTheSceneEditorOpensWithoutAGameView()
     {
-        using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: true, ("MainScene", new SceneAsset()));
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: true, ("MainScene", new SceneAsset()));
         Assert.False(fixture.Result.HasErrors, fixture.Log);
         var editor = new SceneEditorViewModel(fixture.Asset<SceneViewModel>("MainScene"));
 
@@ -34,7 +36,8 @@ public sealed class SceneEditorGameTests
     [Fact]
     public async Task AGameThatCannotStartLeavesTheSceneEditorOpenWithoutAGameView()
     {
-        using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: true, ("MainScene", new SceneAsset()));
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: true, ("MainScene", new SceneAsset()));
         Assert.False(fixture.Result.HasErrors, fixture.Log);
         var viewportService = new FailingViewportService();
         fixture.ServiceProvider.RegisterService(viewportService);

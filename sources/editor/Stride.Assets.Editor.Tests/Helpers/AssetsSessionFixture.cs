@@ -21,7 +21,11 @@ namespace Stride.Assets.Editor.Tests.Helpers;
 /// A session over a small project of Stride assets, with the default assets plugin and the editor plugin registered the way
 /// the editor shell registers them.
 /// </summary>
-public sealed class AssetsSessionFixture : IDisposable
+/// <remarks>
+/// Its dispatcher gives the access of the UI thread to the dispatched work only: a test opens, changes and disposes the session after
+/// <c>await ExclusiveDispatcherService.SwitchTo()</c>, as the editor does on its UI thread.
+/// </remarks>
+public sealed class AssetsSessionFixture : IAsyncDisposable
 {
     public const string PackageName = "TestGame";
 
@@ -76,7 +80,7 @@ public sealed class AssetsSessionFixture : IDisposable
     public static Task<AssetsSessionFixture> OpenAsync(bool initializeEditor, params (string Location, Asset Asset)[] assets)
     {
         // One dispatcher call at a time, as on the UI thread: the session raises its events on the thread pool
-        return OpenAsync(initializeEditor, new ExclusiveDispatcherService(), assets);
+        return OpenAsync(initializeEditor, new ExclusiveDispatcherService(strict: true), assets);
     }
 
     /// <summary>
@@ -87,6 +91,7 @@ public sealed class AssetsSessionFixture : IDisposable
     /// <param name="dispatcher">The dispatcher of the UI thread; the session must be opened from it.</param>
     public static async Task<AssetsSessionFixture> OpenAsync(bool initializeEditor, IDispatcherService dispatcher, params (string Location, Asset Asset)[] assets)
     {
+        dispatcher.EnsureAccess();
         var directory = Path.Combine(Path.GetTempPath(), "Stride.Assets.Editor.Tests", Guid.NewGuid().ToString("N"));
         var assetsPlugin = new StrideDefaultAssetsPlugin();
         var editorPlugin = new StrideEditorPlugin { EnableThumbnailService = false };
@@ -119,7 +124,7 @@ public sealed class AssetsSessionFixture : IDisposable
         return graph?.RootNode ?? throw new InvalidOperationException($"No properties for {asset.Url}.");
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         if (!disposed)
         {
@@ -127,13 +132,20 @@ public sealed class AssetsSessionFixture : IDisposable
             var builder = ServiceProvider.TryGet<GameStudioBuilderService>();
             if (builder != null)
             {
-                builder.Database.Dispose();
-                builder.Dispose();
-                // The object database is process-wide (the editor opens one session per process); the next fixture opens its own
-                Stride.Core.BuildEngine.Builder.CloseObjectDatabase();
+                // The builder waits for its thread, which can dispatch work: outside the dispatcher
+                await Task.Run(() =>
+                {
+                    builder.Database.Dispose();
+                    builder.Dispose();
+                    // The object database is process-wide (the editor opens one session per process); the next fixture opens its own
+                    Stride.Core.BuildEngine.Builder.CloseObjectDatabase();
+                });
             }
-            ServiceProvider.TryGet<GameSettingsProviderService>()?.Dispose();
-            Session.Destroy();
+            ServiceProvider.Get<IDispatcherService>().Invoke(() =>
+            {
+                ServiceProvider.TryGet<GameSettingsProviderService>()?.Dispose();
+                Session.Destroy();
+            });
         }
         try
         {

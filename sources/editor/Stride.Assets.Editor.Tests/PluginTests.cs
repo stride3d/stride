@@ -16,6 +16,7 @@ using Stride.Assets.Sprite;
 using Stride.Assets.Textures;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Diagnostics;
 using Stride.Core.Serialization;
 using Stride.Editor.Build;
@@ -94,7 +95,8 @@ public sealed class PluginTests
     [Fact]
     public async Task TheEditorDeclaresTheContentReferencesAsPrimitiveTypesOnce()
     {
-        using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false);
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false);
 
         // The content types serialized as references are not expanded by the property grid; the host registers them once,
         // whatever the number of plugins
@@ -158,7 +160,8 @@ public sealed class PluginTests
     {
         var gameSettings = GameSettingsFactory.Create();
         gameSettings.SplashScreenTexture = null!;
-        using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: true, ("GameSettings", gameSettings));
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: true, ("GameSettings", gameSettings));
 
         Assert.NotNull(fixture.ServiceProvider.TryGet<GameSettingsProviderService>());
         var builder = fixture.ServiceProvider.TryGet<GameStudioBuilderService>();

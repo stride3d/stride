@@ -5,6 +5,7 @@ using Stride.Assets.Editor.Tests.Helpers;
 using Stride.Assets.Entities;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Engine;
 using static Stride.Assets.Editor.Tests.EntityHierarchyEditorTests;
 
@@ -19,7 +20,8 @@ public sealed class EntityHierarchyFolderTests
     [Fact]
     public async Task TheEntitiesOfAFolderGoUnderItAndTheFoldersComeFirstSortedByName()
     {
-        using var fixture = await OpenSceneAsync();
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await OpenSceneAsync();
         AddEntity(fixture, "Tree", "Props/Nature", parent: null, index: 2);
         AddEntity(fixture, "Barrel", "Props", parent: null, index: 3);
         AddEntity(fixture, "Sun", "Lights", parent: null, index: 4);
@@ -42,7 +44,8 @@ public sealed class EntityHierarchyFolderTests
     [Fact]
     public async Task AnEntityAddedInAFolderCreatesItAndTheUndoTakesBothAway()
     {
-        using var fixture = await OpenSceneAsync();
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var parent = FindEntity(editor, "Parent");
         var added = Record(editor.HierarchyRoot, out _);
@@ -72,7 +75,8 @@ public sealed class EntityHierarchyFolderTests
     [Fact]
     public async Task RenamingAFolderMovesItsEntitiesAndCanBeUndone()
     {
-        using var fixture = await OpenSceneAsync();
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await OpenSceneAsync();
         AddEntity(fixture, "Tree", "Props/Nature", parent: null, index: 2);
         AddEntity(fixture, "Sun", "Lights", parent: null, index: 3);
         var editor = await OpenEditorAsync(fixture);
@@ -99,7 +103,8 @@ public sealed class EntityHierarchyFolderTests
     [Fact]
     public async Task AFolderCannotTakeTheNameOfASiblingOrAnInvalidName()
     {
-        using var fixture = await OpenSceneAsync();
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await OpenSceneAsync();
         AddEntity(fixture, "Tree", "Props", parent: null, index: 2);
         AddEntity(fixture, "Sun", "Lights", parent: null, index: 3);
         var editor = await OpenEditorAsync(fixture);
@@ -117,7 +122,8 @@ public sealed class EntityHierarchyFolderTests
     [Fact]
     public async Task AnEmptyFolderIsKeptWhenItsLastEntityLeaves()
     {
-        using var fixture = await OpenSceneAsync();
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await OpenSceneAsync();
         var tree = AddEntity(fixture, "Tree", "Props", parent: null, index: 2);
         var editor = await OpenEditorAsync(fixture);
 

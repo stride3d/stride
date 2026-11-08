@@ -3,6 +3,7 @@
 
 using Stride.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Editor.Tests.Helpers;
 using static Stride.Assets.Editor.Tests.EntityHierarchyEditorTests;
 using static Stride.Assets.Editor.Tests.EntityHierarchyLoadingTests;
 
@@ -16,7 +17,8 @@ public sealed class FetchEntityCommandTests
     [Fact]
     public async Task FetchingAComponentSelectsItsEntityInTheEditor()
     {
-        using var fixture = await OpenSceneAsync();
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var box = FindEntity(editor, "Box");
         // The test plays the UI thread: the selection changes (of the editor, and of the asset view that follows it) run on the
@@ -34,7 +36,8 @@ public sealed class FetchEntityCommandTests
     [Fact]
     public async Task FetchingAnEntityOfAChildSceneSelectsItInTheEditorOfTheRootScene()
     {
-        using var fixture = await OpenScenesAsync();
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await OpenScenesAsync();
         var editor = await OpenEditorAsync(fixture);
         var child = ((SceneRootViewModel)editor.HierarchyRoot).ChildScenes.Single();
         var lamp = child.InnerSubEntities.Single();
@@ -48,7 +51,8 @@ public sealed class FetchEntityCommandTests
     [Fact]
     public async Task FetchingAnEntityOfASceneThatNoEditorShowsDoesNothing()
     {
-        using var fixture = await OpenSceneAsync();
+        await ExclusiveDispatcherService.SwitchTo();
+        await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var box = FindEntity(editor, "Box").AssetSideEntity;
         editor.Destroy();
