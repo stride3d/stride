@@ -5,7 +5,6 @@ using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Editor.Tests.Helpers;
 using Stride.Assets.Editor.ViewModels;
 using Stride.Assets.Presentation.ViewModels;
-using Stride.Core.Assets.Editor.Tests.Helpers;
 
 namespace Stride.Assets.Editor.Tests;
 
@@ -18,7 +17,6 @@ public sealed class EntitySelectionTests
     [Fact]
     public async Task AnEntityNotInTheGameIsNotSelected()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EntityHierarchyEditorTests.OpenSceneAsync();
         var editor = await EntityHierarchyEditorTests.OpenEditorAsync(fixture);
         var box = EntityHierarchyEditorTests.FindEntity(editor, "Box");
@@ -37,7 +35,6 @@ public sealed class EntitySelectionTests
     [Fact]
     public async Task ASelectedParentIsTheRootOfItsSelectedChildren()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EntityHierarchyEditorTests.OpenSceneAsync();
         var editor = await EntityHierarchyEditorTests.OpenEditorAsync(fixture);
         var (selection, entities) = SelectableScene(editor);
@@ -57,7 +54,6 @@ public sealed class EntitySelectionTests
     [Fact]
     public async Task RemovingARootMakesItsTopmostSelectedDescendantsRoots()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EntityHierarchyEditorTests.OpenSceneAsync();
         var editor = await EntityHierarchyEditorTests.OpenEditorAsync(fixture);
         // Parent > Child > Grandchild, and Parent > Second child
@@ -82,7 +78,6 @@ public sealed class EntitySelectionTests
     [Fact]
     public async Task ClearingEmptiesTheSelectionButKeepsTheSelectableEntities()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EntityHierarchyEditorTests.OpenSceneAsync();
         var editor = await EntityHierarchyEditorTests.OpenEditorAsync(fixture);
         var (selection, entities) = SelectableScene(editor);
@@ -101,7 +96,6 @@ public sealed class EntitySelectionTests
     public async Task AnEntityInAFolderOfASelectedEntityIsNotARoot()
     {
         // Parent > Lights folder > Lamp: the gizmo moves Lamp with Parent, not a second time on its own
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EntityHierarchyEditorTests.OpenSceneAsync();
         var parentEntity = fixture.Asset<SceneViewModel>("MainScene").Asset.Hierarchy.Parts.Values.Single(x => x.Entity.Name == "Parent").Entity;
         EntityHierarchyFolderTests.AddEntity(fixture, "Lamp", "Lights", parentEntity, index: 1);

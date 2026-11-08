@@ -17,7 +17,6 @@ public sealed class TestSessionReopening
     public async Task AReadOnlyAssetReconciledWithItsArchetypeLeavesTheSessionClean()
     {
         var (archetype, derived) = ArchetypeAndOutdatedDerivedAsset();
-        await ExclusiveDispatcherService.SwitchTo();
         await using var first = await EditorSessionFixture.OpenAsync(readOnly: true, ("Base", archetype), ("Derived", derived));
         AssertReconciled(first);
 
@@ -32,7 +31,6 @@ public sealed class TestSessionReopening
     public async Task AnEditableAssetReconciledWithItsArchetypeStillHasToBeSaved()
     {
         var (archetype, derived) = ArchetypeAndOutdatedDerivedAsset();
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(readOnly: false, ("Base", archetype), ("Derived", derived));
         var asset = AssertReconciled(fixture);
 

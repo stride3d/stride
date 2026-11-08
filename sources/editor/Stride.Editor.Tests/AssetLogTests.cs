@@ -8,7 +8,6 @@ using Stride.Core.Assets.Presentation.ViewModels.Logs;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Services;
-using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Editor.Tests.Helpers;
 
 namespace Stride.Editor.Tests;
@@ -23,7 +22,6 @@ public sealed class AssetLogTests
     {
         var packageDirectory = ServicesSessionFixture.NewPackageDirectory();
         var source = ServicesSessionFixture.WriteResource(packageDirectory, "wood.txt", "wood");
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await ServicesSessionFixture.OpenAsync(withBuilder: false, ("Textures/Wood", new RawAsset { Source = new UFile(source) }));
         var log = fixture.Session.AssetLog;
         var wood = fixture.Asset("Textures/Wood");

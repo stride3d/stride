@@ -18,7 +18,6 @@ public sealed class TestSessionSaving
     [Fact]
     public async Task EditingAnAssetMakesTheSessionDirty()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Textures/Stone", "stone"));
         var wood = fixture.Session.AllAssets.Single(x => x.Name == "Wood");
         var stone = fixture.Session.AllAssets.Single(x => x.Name == "Stone");
@@ -37,7 +36,6 @@ public sealed class TestSessionSaving
     [Fact]
     public async Task SavingWritesTheEditAndMakesTheSessionClean()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var wood = fixture.Session.AllAssets.Single();
         Edit(fixture, wood, "oak");
@@ -62,7 +60,6 @@ public sealed class TestSessionSaving
     [Fact]
     public async Task UndoingBackToTheSaveMakesTheSessionClean()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var wood = fixture.Session.AllAssets.Single();
         var undoRedo = fixture.Session.UndoRedoService!;
@@ -93,7 +90,6 @@ public sealed class TestSessionSaving
     [Fact]
     public async Task TheUnsavedStateFollowsEditsUndoRedoAndSaves()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var wood = fixture.Session.AllAssets.Single();
         var undoRedo = fixture.Session.UndoRedoService!;
@@ -118,7 +114,6 @@ public sealed class TestSessionSaving
     [Fact]
     public async Task AFailedSaveKeepsTheSessionDirty()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var wood = fixture.Session.AllAssets.Single();
         Edit(fixture, wood, "oak");
@@ -142,7 +137,6 @@ public sealed class TestSessionSaving
     [Fact]
     public async Task ClosingACleanSessionDoesNotAsk()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
 
         Assert.True(await fixture.Session.CloseAsync());
@@ -153,7 +147,6 @@ public sealed class TestSessionSaving
     [Fact]
     public async Task ClosingADirtySessionAsksSaveDontSaveOrCancel()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var wood = fixture.Session.AllAssets.Single();
         Edit(fixture, wood, "oak");
@@ -183,7 +176,6 @@ public sealed class TestSessionSaving
     [Fact]
     public async Task ClosingAfterAFailedSaveTellsTheUserAndKeepsTheSession()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var wood = fixture.Session.AllAssets.Single();
         Edit(fixture, wood, "oak");

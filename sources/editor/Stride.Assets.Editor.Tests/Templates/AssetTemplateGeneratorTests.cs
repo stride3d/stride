@@ -60,7 +60,6 @@ public sealed class AssetTemplateGeneratorTests
     [Fact]
     public async Task TheMaterialTemplateCreatesAnEmptyMaterialWithAUniqueName()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
 
         var material = Assert.Single(await RunAsync(fixture, MaterialId));
@@ -80,7 +79,6 @@ public sealed class AssetTemplateGeneratorTests
     [Fact]
     public async Task TheCubeTemplateCreatesAProceduralModelWithTheCubeFactory()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
 
         var cube = Assert.Single(await RunAsync(fixture, CubeId));
@@ -93,7 +91,6 @@ public sealed class AssetTemplateGeneratorTests
     [Fact]
     public async Task TheSkyboxTemplateAsksForACubemapTexture()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync(("Textures/Sky", new TextureAsset { Source = new UFile("sky.dds") }));
         var sky = fixture.Asset("Textures/Sky");
         var dialogs = Dialogs(fixture);
@@ -118,7 +115,6 @@ public sealed class AssetTemplateGeneratorTests
     [Fact]
     public async Task TheScriptTemplateAsksTheNamesAndWritesTheScriptFromTheTemplateFile()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         // Don't save the session for the new script
         Dialogs(fixture).PickButton = _ => 2;
@@ -151,7 +147,6 @@ public sealed class AssetTemplateGeneratorTests
     [Fact]
     public async Task TheCompositorTemplateDerivesFromTheBaseAsset()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync(("Base", new GraphicsCompositorAsset()));
         var baseAsset = fixture.Asset("Base");
 
@@ -166,7 +161,6 @@ public sealed class AssetTemplateGeneratorTests
     [Fact]
     public async Task TheTextureTemplateImportsTheSourceFiles()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         using var files = new TemporaryFiles();
         var logo = files.Write("Logo.png", Png);
@@ -187,7 +181,6 @@ public sealed class AssetTemplateGeneratorTests
     [Fact]
     public async Task TheTextureTemplateCanCreateATextureWithoutASourceFile()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         var dialogs = Dialogs(fixture);
         // "Create" (the first button) when asked about the missing source
@@ -203,7 +196,6 @@ public sealed class AssetTemplateGeneratorTests
     [Fact]
     public async Task TheSpriteSheetTemplateMakesOneSpritePerImage()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         using var files = new TemporaryFiles();
         var walk = files.Write("Walk.png", Png);
@@ -222,7 +214,6 @@ public sealed class AssetTemplateGeneratorTests
     [Fact]
     public async Task TheModelTemplateAsksTheImportOptionsBeforeImporting()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         using var files = new TemporaryFiles();
         var model = files.Write("Robot.fbx", []);
@@ -285,7 +276,7 @@ public sealed class AssetTemplateGeneratorTests
         return null;
     }
 
-    private static async Task<AssetsSessionFixture> OpenAsync(params (string Location, Asset Asset)[] assets)
+    private static async DispatcherTask<AssetsSessionFixture> OpenAsync(params (string Location, Asset Asset)[] assets)
     {
         _ = LazyTemplates.Value;
         var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, assets);

@@ -14,7 +14,6 @@ public sealed class TestSessionOpening
     [Fact]
     public async Task OpeningAPackageLoadsItsAssets()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Textures/Stone", "stone"), ("Models/Tree", "tree"));
         var session = fixture.Session;
 
@@ -35,7 +34,6 @@ public sealed class TestSessionOpening
     [Fact]
     public async Task TheAssetCollectionIsTheMainViewOfTheSession()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Models/Tree", "tree"));
         var session = fixture.Session;
 
@@ -54,7 +52,6 @@ public sealed class TestSessionOpening
     [Fact]
     public async Task TheEditorCollectionIsSeparateFromTheAssetCollection()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var session = fixture.Session;
 
@@ -72,7 +69,6 @@ public sealed class TestSessionOpening
     [Fact]
     public async Task TheSessionServicesAreRegisteredInTheProvider()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
 
         var undoRedo = fixture.ServiceProvider.Get<IUndoRedoService>();
@@ -88,7 +84,6 @@ public sealed class TestSessionOpening
     [Fact]
     public async Task SavingWritesTheModifiedAssets()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var asset = fixture.Session.AllAssets.Single();
 
@@ -107,7 +102,6 @@ public sealed class TestSessionOpening
     [Fact]
     public async Task ClosingTheSessionStopsWhatItRunsInTheBackground()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var packageSession = fixture.Session.PackageSession;
         // The session follows the changes of the source files of its assets, with a file watcher and a thread

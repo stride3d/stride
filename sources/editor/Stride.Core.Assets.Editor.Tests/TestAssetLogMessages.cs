@@ -31,7 +31,6 @@ public sealed class TestAssetLogMessages
     [Fact]
     public async Task AMessageOfTheBuildLogOfAnAssetIsAboutThisAsset()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var log = fixture.Session.AssetLog;
         var wood = fixture.Session.AllAssets.Single();
@@ -53,7 +52,6 @@ public sealed class TestAssetLogMessages
     [Fact]
     public async Task ADoubleClickOnAMessageSelectsItsAsset()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Materials/Stone", "stone"));
         var log = fixture.Session.AssetLog;
         var wood = fixture.Session.AllAssets.Single(x => x.Name == "Wood");
@@ -74,7 +72,6 @@ public sealed class TestAssetLogMessages
     [Fact]
     public async Task ADoubleClickOnAMessageAboutNoAssetChangesNothing()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var log = fixture.Session.AssetLog;
         var wood = fixture.Session.AllAssets.Single();

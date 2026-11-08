@@ -4,7 +4,6 @@
 using Stride.Assets.Editor.Build;
 using Stride.Assets.Editor.Tests.Helpers;
 using Stride.Assets.Entities;
-using Stride.Core.Assets.Editor.Tests.Helpers;
 
 namespace Stride.Assets.Editor.Tests;
 
@@ -13,7 +12,6 @@ public sealed class ShaderImporterTests
     [Fact]
     public async Task APackageWithoutShadersYieldsOnlyTheCacheUpdateStep()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, ("Prefab", new PrefabAsset()));
         var importer = new StrideShaderImporter();
 

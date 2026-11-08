@@ -8,7 +8,6 @@ using Stride.Assets.Models;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Assets.Sprite;
 using Stride.Assets.Textures;
-using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Serialization;
@@ -24,7 +23,6 @@ public sealed class AssetViewModelTests
     {
         var gameSettings = GameSettingsFactory.Create();
         gameSettings.SplashScreenTexture = null!;
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false,
             ("Material", new MaterialAsset()),
             ("Model", new ModelAsset { Source = new UFile("model.fbx") }),
@@ -50,7 +48,6 @@ public sealed class AssetViewModelTests
     {
         var gameSettings = GameSettingsFactory.Create();
         gameSettings.SplashScreenTexture = null!;
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, ("GameSettings", gameSettings));
 
         var viewModel = fixture.Asset<GameSettingsViewModel>("GameSettings");
@@ -62,7 +59,6 @@ public sealed class AssetViewModelTests
     [Fact]
     public async Task ScenesAreParentedThroughTheirChildrenCollection()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false,
             ("Root", new SceneAsset()),
             ("Child", new SceneAsset()),
@@ -97,7 +93,6 @@ public sealed class AssetViewModelTests
         root.ChildrenIds.Add(child.Id);
         // Both sides of the relationship are saved: the child references its parent scene
         child.Parent = AttachedReferenceManager.CreateProxyObject<Scene>(root.Id, "Root");
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, ("Root", root), ("Child", child));
 
         var rootViewModel = fixture.Asset<SceneViewModel>("Root");
@@ -110,7 +105,6 @@ public sealed class AssetViewModelTests
     [Fact]
     public async Task ThePrefabHasNoPropertiesOfItsOwn()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, ("Prefab", new PrefabAsset()));
 
         var prefab = fixture.Asset<PrefabViewModel>("Prefab");

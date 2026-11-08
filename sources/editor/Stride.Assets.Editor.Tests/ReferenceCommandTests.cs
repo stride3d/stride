@@ -65,7 +65,6 @@ public sealed class ReferenceCommandTests
         scene.Hierarchy.RootParts.Add(entity);
         var gameSettings = GameSettingsFactory.Create();
         gameSettings.SplashScreenTexture = null!;
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await Helpers.AssetsSessionFixture.OpenAsync(initializeEditor: true, ("Scene", scene), ("GameSettings", gameSettings));
 
         var root = await fixture.PropertiesOf(fixture.Asset("GameSettings"));

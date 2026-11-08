@@ -20,7 +20,6 @@ public sealed class EntityCreationTests
     [Fact]
     public async Task AnEmptyEntityGoesLastAtTheRootSelectedAndBeingRenamed()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         editor.SelectedContent.Add(FindEntity(editor, "Parent"));
@@ -44,7 +43,6 @@ public sealed class EntityCreationTests
     [Fact]
     public async Task AnEntityCreatedInTheSelectionGoesUnderTheSelectedEntityOrFolder()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenSceneAsync();
         EntityHierarchyFolderTests.AddEntity(fixture, "Sun", "Lights", parent: null, index: 2);
         var editor = await OpenEditorAsync(fixture);
@@ -73,7 +71,6 @@ public sealed class EntityCreationTests
     [Fact]
     public async Task AFactoryThatAsksForAnAssetCreatesNothingWhenThePickerIsCancelled()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var dialogs = (FakeEditorDialogService)fixture.ServiceProvider.Get<IEditorDialogService>();
@@ -91,7 +88,6 @@ public sealed class EntityCreationTests
     [Fact]
     public async Task ANewFolderHasAFreeNameAndTheUndoRemovesIt()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var names = RecordUndoNames(fixture);
@@ -117,7 +113,6 @@ public sealed class EntityCreationTests
     [Fact]
     public async Task AFolderCreatedInTheSelectionGoesUnderTheSelectedEntity()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var parent = FindEntity(editor, "Parent");

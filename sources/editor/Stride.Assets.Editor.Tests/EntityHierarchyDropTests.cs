@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Assets.Presentation.ViewModels;
-using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Mathematics;
 using Stride.Core.Assets.Presentation.ViewModels;
 using static Stride.Assets.Editor.Tests.EntityHierarchyEditorTests;
@@ -20,7 +19,6 @@ public sealed class EntityHierarchyDropTests
     [Fact]
     public async Task AnEntityDroppedOnAnotherBecomesItsLastChildAsOneUndoEntry()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var box = FindEntity(editor, "Box");
@@ -50,7 +48,6 @@ public sealed class EntityHierarchyDropTests
     [Fact]
     public async Task AnEntityCannotBeDroppedOnItselfOrOnItsChildren()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var parent = FindEntity(editor, "Parent");
@@ -68,7 +65,6 @@ public sealed class EntityHierarchyDropTests
     [Fact]
     public async Task AnEntityDroppedBeforeAnotherIsInsertedNextToIt()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var box = FindEntity(editor, "Box");
@@ -85,7 +81,6 @@ public sealed class EntityHierarchyDropTests
     [Fact]
     public async Task AFolderDroppedOnAnEntityMovesItsEntitiesWithTheirPaths()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         AddEntity(fixture, editor, "Tree", null, 2);
@@ -112,7 +107,6 @@ public sealed class EntityHierarchyDropTests
     [Fact]
     public async Task WithAltAnEntityKeepsItsWorldPositionAcrossTheOffsetOfAChildScene()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenScenesAsync();
         var editor = await OpenEditorAsync(fixture);
         var root = (SceneRootViewModel)editor.HierarchyRoot;

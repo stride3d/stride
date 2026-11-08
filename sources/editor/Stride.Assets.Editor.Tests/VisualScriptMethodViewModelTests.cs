@@ -21,7 +21,6 @@ public sealed class VisualScriptMethodViewModelTests
     [Fact]
     public async Task WithoutACompilationProviderTheBlocksKeepTheirSlots()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await VisualScriptTest.OpenAsync(withCompilation: false);
         var names = test.RecordUndoNames();
 
@@ -34,7 +33,6 @@ public sealed class VisualScriptMethodViewModelTests
     [Fact]
     public async Task RegeneratingTheSlotsOfABlockIsOneUndoEntry()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await VisualScriptTest.OpenAsync(withCompilation: true);
         var names = test.RecordUndoNames();
 
@@ -54,7 +52,6 @@ public sealed class VisualScriptMethodViewModelTests
     [Fact]
     public async Task RegeneratingKeepsTheIdsValuesAndLinksOfTheSlotsThatStay()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await VisualScriptTest.OpenAsync(withCompilation: true);
         await test.Method.RegenerateSlots();
         var (first, second) = test.Blocks;
@@ -90,7 +87,6 @@ public sealed class VisualScriptMethodViewModelTests
     [Fact]
     public async Task BlocksAndLinksAreAddedAndRemovedByTheirId()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await VisualScriptTest.OpenAsync(withCompilation: true);
         await test.Method.RegenerateSlots();
         var (first, second) = test.Blocks;
@@ -160,7 +156,7 @@ public sealed class VisualScriptMethodViewModelTests
 
         public Stride.Core.Presentation.Services.IUndoRedoService UndoRedo => fixture.Session.UndoRedoService;
 
-        public static async Task<VisualScriptTest> OpenAsync(bool withCompilation)
+        public static async DispatcherTask<VisualScriptTest> OpenAsync(bool withCompilation)
         {
             // Two blocks saved without their slots
             var method = new Method("Update");

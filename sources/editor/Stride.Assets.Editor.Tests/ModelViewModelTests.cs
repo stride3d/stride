@@ -33,7 +33,6 @@ public sealed class ModelViewModelTests
     [Fact]
     public async Task TheModelHasTheCreateSkeletonCommand()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, ("Robot", new ModelAsset { Source = new UFile("Robot.fbx") }));
 
         var model = fixture.Asset<ModelViewModel>("Robot");
@@ -53,7 +52,6 @@ public sealed class ModelViewModelTests
         TemplateManager.Register(generator);
         try
         {
-            await ExclusiveDispatcherService.SwitchTo();
             await using var fixture = await OpenAsync(new ModelAsset());
             var model = fixture.Asset<ModelViewModel>("Robot");
             // The source is in the resource folder of the package, so the import does not offer to copy it there
@@ -89,7 +87,6 @@ public sealed class ModelViewModelTests
     [Fact]
     public async Task CreateSkeletonDoesNothingWithoutASourceFile()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync(new ModelAsset());
         var model = fixture.Asset<ModelViewModel>("Robot");
         var transactions = fixture.Session.ActionHistory.Transactions.Count;
@@ -105,7 +102,7 @@ public sealed class ModelViewModelTests
     /// Opens a session with the model, and the skeleton import template of the Stride package (<c>DefaultSkeleton.sdtpl</c>)
     /// in the session's package, so that it goes away with the session.
     /// </summary>
-    private static async Task<AssetsSessionFixture> OpenAsync(ModelAsset model)
+    private static async DispatcherTask<AssetsSessionFixture> OpenAsync(ModelAsset model)
     {
         var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, ("Robot", model));
         Assert.False(fixture.Result.HasErrors, fixture.Log);

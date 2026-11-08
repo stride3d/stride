@@ -19,7 +19,6 @@ public sealed class TestExploreCommands
     [Fact]
     public async Task ShowInExplorerSelectsTheFileOfTheLastSelectedAsset()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Textures/Stone", "stone"));
         var explorer = Register(fixture);
         var session = fixture.Session;
@@ -38,7 +37,6 @@ public sealed class TestExploreCommands
     [Fact]
     public async Task ShowInExplorerOpensTheFolderOfADirectory()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var explorer = Register(fixture);
         var textures = fixture.Session.AllAssets.Single().Directory;
@@ -51,7 +49,6 @@ public sealed class TestExploreCommands
     [Fact]
     public async Task ShowInExplorerSelectsTheProjectOfAPackage()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var explorer = Register(fixture);
 
@@ -70,7 +67,6 @@ public sealed class TestExploreCommands
     [Fact]
     public async Task ShowInExplorerAsksToSaveAnAssetThatHasNoFile()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var explorer = Register(fixture);
         var wood = fixture.Session.AllAssets.Single();
@@ -85,7 +81,6 @@ public sealed class TestExploreCommands
     [Fact]
     public async Task AFileManagerThatCantStartIsReported()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var explorer = Register(fixture);
         explorer.Fail = true;
@@ -98,7 +93,6 @@ public sealed class TestExploreCommands
     [Fact]
     public async Task TheAssetCommandsNeedASingleAsset()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Textures/Stone", "stone"));
         var session = fixture.Session;
         var assets = session.AllAssets.ToList();
@@ -122,7 +116,6 @@ public sealed class TestExploreCommands
     [Fact]
     public async Task OpenAssetFileEditsTheFile()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var explorer = Register(fixture);
 
@@ -134,7 +127,6 @@ public sealed class TestExploreCommands
     [Fact]
     public async Task AnAssetWithoutSourceFileHasNoSourceToOpenOrShow()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var explorer = Register(fixture);
         var wood = fixture.Session.AllAssets.Single();
@@ -149,7 +141,6 @@ public sealed class TestExploreCommands
     [Fact]
     public async Task OpenWithTextEditorUsesTheEditorOfTheSettings()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var explorer = Register(fixture);
         var wood = fixture.Session.AllAssets.Single();
@@ -174,7 +165,6 @@ public sealed class TestExploreCommands
     public async Task OpenWithTextEditorFallsBackToTheEditorOfTheSystemOutsideWindows()
     {
         Skip.If(OperatingSystem.IsWindows(), "Windows has the Notepad of the default setting.");
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var explorer = Register(fixture);
 

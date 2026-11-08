@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Assets.Presentation.ViewModels;
-using Stride.Core.Assets.Editor.Tests.Helpers;
 using static Stride.Assets.Editor.Tests.EntityHierarchyEditorTests;
 
 namespace Stride.Assets.Editor.Tests;
@@ -15,7 +14,6 @@ public sealed class EntityHierarchyFilterAndLockTests
     [Fact]
     public async Task TheFilterShowsTheMatchingItemsAndTheirParents()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenSceneAsync();
         EntityHierarchyFolderTests.AddEntity(fixture, "Sun light", "Lights", parent: null, index: 2);
         var editor = await OpenEditorAsync(fixture);
@@ -45,7 +43,6 @@ public sealed class EntityHierarchyFilterAndLockTests
     [Fact]
     public async Task RenameEditsTheLastSelectedEntityOrFolder()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenSceneAsync();
         EntityHierarchyFolderTests.AddEntity(fixture, "Sun", "Lights", parent: null, index: 2);
         var editor = await OpenEditorAsync(fixture);
@@ -69,7 +66,6 @@ public sealed class EntityHierarchyFilterAndLockTests
     [Fact]
     public async Task LockingAnEntityLocksItsChildrenOnlyWithCtrlButTheRootLocksEverything()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var parent = FindEntity(editor, "Parent");

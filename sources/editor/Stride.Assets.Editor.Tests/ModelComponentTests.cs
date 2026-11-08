@@ -30,7 +30,6 @@ public sealed class ModelComponentTests
     [Fact]
     public async Task TheMaterialsShowOneRowPerSlotOfTheModel()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenSceneAsync(new ModelAsset { Source = new UFile("model.fbx"), ImportMorphTargets = false });
         var editor = await EntityHierarchyEditorTests.OpenEditorAsync(fixture);
 
@@ -52,7 +51,6 @@ public sealed class ModelComponentTests
     [Fact]
     public async Task OverridingASlotAddsTheMaterialOfTheComponent()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenSceneAsync(new ModelAsset { Source = new UFile("model.fbx"), ImportMorphTargets = false });
         var editor = await EntityHierarchyEditorTests.OpenEditorAsync(fixture);
         var entity = EntityHierarchyEditorTests.FindEntity(editor, "Model");
@@ -73,7 +71,6 @@ public sealed class ModelComponentTests
     {
         var model = new ModelAsset { Source = new UFile("model.fbx"), ImportMorphTargets = true };
         model.MorphTargetNames.AddRange(["Smile", "Blink", "Smile"]);
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenSceneAsync(model);
         var editor = await EntityHierarchyEditorTests.OpenEditorAsync(fixture);
         var modelComponent = EntityHierarchyEditorTests.FindEntity(editor, "Model").AssetSideEntity.Get<ModelComponent>()!;
@@ -111,7 +108,6 @@ public sealed class ModelComponentTests
         model.MorphTargetNames.AddRange(["Smile", "Blink"]);
         var other = new ModelAsset { Source = new UFile("other.fbx"), ImportMorphTargets = true };
         other.MorphTargetNames.Add("Smile");
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenSceneAsync(model, ("Other", other));
         var editor = await EntityHierarchyEditorTests.OpenEditorAsync(fixture);
         var modelComponent = EntityHierarchyEditorTests.FindEntity(editor, "Model").AssetSideEntity.Get<ModelComponent>()!;
@@ -142,7 +138,7 @@ public sealed class ModelComponentTests
     /// <summary>
     /// A scene with a "Model" entity whose model component references the model asset at "Model", with two material slots.
     /// </summary>
-    private static async Task<AssetsSessionFixture> OpenSceneAsync(ModelAsset model, params (string Location, Asset Asset)[] others)
+    private static async DispatcherTask<AssetsSessionFixture> OpenSceneAsync(ModelAsset model, params (string Location, Asset Asset)[] others)
     {
         var material = new MaterialAsset();
         model.Materials.Add(new ModelMaterial { Name = "Skin", MaterialInstance = new MaterialInstance() });

@@ -36,7 +36,6 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task TheEditorListsTheSpritesInOrderWithTheirImageSize()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
 
@@ -51,7 +50,6 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task SelectingASingleSpriteMakesItTheCurrentSprite()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
 
@@ -65,7 +63,6 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task TheCommandsOnTheSelectionNeedASelection()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
 
@@ -95,7 +92,6 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task AddNewSpriteAddsAndSelectsItAsOneUndoEntry()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
         var names = await test.RecordUndoNamesAsync();
@@ -120,7 +116,6 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task DeleteRemovesTheSelectedSpritesAndSelectsTheNextOneAsOneUndoEntry()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
         editor.SelectedSprites.Add(editor.Sprites[0]);
@@ -143,7 +138,6 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task DuplicateAddsCopiesAtTheEndAndSelectsThemAsOneUndoEntry()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
         editor.SelectedSprites.Add(editor.Sprites[1]);
@@ -166,7 +160,6 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task MoveReordersTheSelectedSpritesAsOneUndoEntry()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
         editor.SelectedSprites.Add(editor.Sprites[0]);
@@ -193,7 +186,6 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task DroppingSpritesOnASpriteMovesThemAsOneUndoEntry()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
         var names = await test.RecordUndoNamesAsync();
@@ -216,7 +208,6 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task DroppingImageFilesAddsSpritesAsOneUndoEntry()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
         var source = editor.Sprites[0].Source!;
@@ -237,7 +228,6 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task CopyThenPasteAddsTheCopiedSpritesAsOneUndoEntry()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
         editor.SelectedSprites.Add(editor.Sprites[0]);
@@ -261,7 +251,6 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task ThePasteIsDisabledWhileTheClipboardHoldsNoSprite()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
         test.Clipboard.Text = "Some text";
@@ -277,7 +266,6 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task ThePasteStaysEnabledWithAClipboardThatAnswersLater()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
         var pendingRead = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -297,7 +285,6 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task PasteIgnoresAClipboardWithoutSprites()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
         test.Clipboard.Text = "Some text";
@@ -312,7 +299,6 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task RenameEditsTheNameOfTheSelectedSprite()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
         var sprite = editor.Sprites[1];
@@ -337,7 +323,6 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task UseWholeImageSetsTheRegionOfTheSelectedSpritesAsOneUndoEntry()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
         editor.SelectedSprites.Add(editor.Sprites[0]);
@@ -358,7 +343,6 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task TheRegionIsClampedToTheImage()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await SpriteSheetTest.OpenAsync();
         var region = test.Editor.Sprites[0].TextureRegion;
 
@@ -370,7 +354,6 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task DraggingAHandleResizesTheRegionAsOneUndoEntry()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
         var region = editor.Sprites[0].TextureRegion;
@@ -397,7 +380,6 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task DraggingTheRegionMovesItInsideTheImage()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await SpriteSheetTest.OpenAsync();
         var region = test.Editor.Sprites[0].TextureRegion;
         var names = await test.RecordUndoNamesAsync();
@@ -415,7 +397,6 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task DraggingABorderHandleResizesTheBordersAsOneUndoEntry()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await SpriteSheetTest.OpenAsync(SpriteSheetType.UI);
         var borders = test.Editor.Sprites[1].SpriteBorders;
         var names = await test.RecordUndoNamesAsync();
@@ -439,7 +420,6 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task TheBordersAreClampedToTheRegion()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await SpriteSheetTest.OpenAsync(SpriteSheetType.UI);
         var borders = test.Editor.Sprites[1].SpriteBorders;
 
@@ -454,7 +434,6 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task LockedBordersKeepTheirDistanceToTheSidesWhenTheRegionIsResized()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await SpriteSheetTest.OpenAsync(SpriteSheetType.UI);
         var sprite = test.Editor.Sprites[1];
         sprite.SpriteBorders.Borders = new Vector4(2, 2, 2, 2);
@@ -474,7 +453,6 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task DraggingTheCenterMovesItAsOneUndoEntry()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await SpriteSheetTest.OpenAsync();
         var center = test.Editor.Sprites[0].SpriteCenter;
         var names = await test.RecordUndoNamesAsync();
@@ -498,7 +476,6 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task TheMagicWandSetsTheRegionToTheSpriteUnderTheMouseAsOneUndoEntry()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await SpriteSheetTest.OpenAsync(SpriteSheetType.UI);
         var editor = test.Editor;
         var sprite = editor.Sprites[0];
@@ -532,7 +509,6 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task TheMagicWandCanDelimitTheSpritesWithTheColorKey()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
         var sprite = editor.Sprites[0];
@@ -555,7 +531,6 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task ThePickerSetsTheColorKeyAndEndsTheTool()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
         editor.SelectedSprites.Add(editor.Sprites[0]);
@@ -579,7 +554,6 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task SelectNextSpriteCyclesThroughTheSprites()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
         editor.SelectedSprites.Add(editor.Sprites[2]);
@@ -596,7 +570,6 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task TheSpriteSheetPropertiesAreUndoable()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
         var names = await test.RecordUndoNamesAsync();
@@ -642,7 +615,6 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task FocusOnRegionScrollsToTheMiddleOfTheRegion()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
         editor.SelectedSprites.Add(editor.Sprites[1]);
@@ -659,7 +631,6 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task TheImageCacheGivesAnRgbaImageAndReloadsAChangedFile()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await SpriteSheetTest.OpenAsync();
         var cache = test.Editor.Cache!;
         var source = test.Editor.Sprites[0].Source;
@@ -702,7 +673,7 @@ public sealed class SpriteSheetEditorTests
 
         public FakeClipboardService Clipboard => (FakeClipboardService)fixture.ServiceProvider.Get<IClipboardService>();
 
-        public static async Task<SpriteSheetTest> OpenAsync(SpriteSheetType type = SpriteSheetType.Sprite2D)
+        public static async DispatcherTask<SpriteSheetTest> OpenAsync(SpriteSheetType type = SpriteSheetType.Sprite2D)
         {
             var imageDirectory = Path.Combine(Path.GetTempPath(), "Stride.Assets.Editor.Tests", "Sprites", Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(imageDirectory);

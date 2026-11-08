@@ -20,7 +20,6 @@ public sealed class ContentReferenceDisplayUrlTests
     [Fact]
     public async Task TheUrlOfTheGameIsShownWithoutItsNamespace()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Materials/Wood", "wood"), ("Stone", "stone"));
         var wood = fixture.Session.GetAssetByUrl(EditorSessionFixture.Url("Materials/Wood"))!;
         var stone = fixture.Session.GetAssetByUrl(EditorSessionFixture.Url("Stone"))!;
@@ -33,7 +32,6 @@ public sealed class ContentReferenceDisplayUrlTests
     [Fact]
     public async Task EmptyBrokenAndDifferentReferencesShowAText()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Wood", "wood"));
 
         Assert.Equal(("", ContentReferenceHelper.EmptyReference), Split(fixture, null));

@@ -16,7 +16,6 @@ public sealed class BuilderServiceTests
     [Fact]
     public async Task TheServiceOpensWithItsDatabaseAndEffectCompiler()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await ServicesSessionFixture.OpenAsync(withBuilder: true, ("Textures/Wood", new TestEditorAsset { Value = "wood" }));
         var builder = fixture.Builder;
 
@@ -32,7 +31,6 @@ public sealed class BuilderServiceTests
     [Fact]
     public async Task WaitForShadersReturnsWithoutAShaderImporter()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await ServicesSessionFixture.OpenAsync(withBuilder: true, ("Textures/Wood", new TestEditorAsset { Value = "wood" }));
 
         // Nothing to import: the WPF studio would wait for the shaders of the Stride package
@@ -46,7 +44,6 @@ public sealed class BuilderServiceTests
     public async Task TheBuilderBuildsTheStepsOfItsShaderImporter()
     {
         var importer = new FakeShaderImporter();
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await ServicesSessionFixture.OpenWithShaderImporterAsync(importer, ("Textures/Wood", new TestEditorAsset { Value = "wood" }));
         var builder = fixture.Builder;
 
@@ -62,7 +59,6 @@ public sealed class BuilderServiceTests
     [Fact]
     public async Task BuildUnitsRunInPriorityOrder()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await ServicesSessionFixture.OpenAsync(withBuilder: true, ("Textures/Wood", new TestEditorAsset { Value = "wood" }));
         var builder = fixture.Builder;
         var order = new List<string>();
@@ -96,7 +92,6 @@ public sealed class BuilderServiceTests
     [Fact]
     public async Task ARemovedBuildUnitIsNeverPrepared()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await ServicesSessionFixture.OpenAsync(withBuilder: true, ("Textures/Wood", new TestEditorAsset { Value = "wood" }));
         var builder = fixture.Builder;
         var order = new List<string>();
@@ -120,7 +115,6 @@ public sealed class BuilderServiceTests
     [Fact]
     public async Task DisposingTheServiceStopsIt()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         var fixture = await ServicesSessionFixture.OpenAsync(withBuilder: true, ("Textures/Wood", new TestEditorAsset { Value = "wood" }));
         var builder = fixture.Builder;
 

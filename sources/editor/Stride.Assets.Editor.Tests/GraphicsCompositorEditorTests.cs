@@ -24,7 +24,6 @@ public sealed class GraphicsCompositorEditorTests
     [Fact]
     public async Task TheEditorShowsTheEntryPointsTheSharedRenderersAndTheirLinks()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await CompositorTest.OpenAsync();
         var editor = test.Editor;
 
@@ -52,7 +51,6 @@ public sealed class GraphicsCompositorEditorTests
     [Fact]
     public async Task TheFactoriesListTheInstantiableSharedRenderersByName()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await CompositorTest.OpenAsync();
         var factories = test.Editor.SharedRendererFactories;
 
@@ -67,7 +65,6 @@ public sealed class GraphicsCompositorEditorTests
     [Fact]
     public async Task AFactoryAddsASharedRendererBlockAndUndoRemovesIt()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await CompositorTest.OpenAsync();
         var editor = test.Editor;
         var names = await test.RecordUndoNamesAsync();
@@ -89,7 +86,6 @@ public sealed class GraphicsCompositorEditorTests
     [Fact]
     public async Task LinkingAnEntryPointSetsItsRendererAndClearingTheLinkResetsIt()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await CompositorTest.OpenAsync();
         var editor = test.Editor;
         var names = await test.RecordUndoNamesAsync();
@@ -118,7 +114,6 @@ public sealed class GraphicsCompositorEditorTests
     [Fact]
     public async Task DeletingASelectedLinkClearsItsSlot()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await CompositorTest.OpenAsync();
         var editor = test.Editor;
         var names = await test.RecordUndoNamesAsync();
@@ -140,7 +135,6 @@ public sealed class GraphicsCompositorEditorTests
     [Fact]
     public async Task DeletingASelectedSharedRendererRemovesItsBlockAndTheReferencesToIt()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await CompositorTest.OpenAsync();
         var editor = test.Editor;
         var names = await test.RecordUndoNamesAsync();
@@ -167,7 +161,6 @@ public sealed class GraphicsCompositorEditorTests
     [Fact]
     public async Task AddingAndRemovingRenderStagesIsOneUndoEntryEach()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await CompositorTest.OpenAsync();
         var editor = test.Editor;
         var names = await test.RecordUndoNamesAsync();
@@ -192,7 +185,6 @@ public sealed class GraphicsCompositorEditorTests
     [Fact]
     public async Task RenamingARenderStageEditsTheAsset()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await CompositorTest.OpenAsync();
         var editor = test.Editor;
 
@@ -208,7 +200,6 @@ public sealed class GraphicsCompositorEditorTests
     [Fact]
     public async Task AddingAndRemovingRenderFeaturesAndCameraSlotsIsOneUndoEntryEach()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await CompositorTest.OpenAsync();
         var editor = test.Editor;
         var names = await test.RecordUndoNamesAsync();
@@ -236,7 +227,6 @@ public sealed class GraphicsCompositorEditorTests
     [Fact]
     public async Task SelectingAnItemShowsItsPropertiesUnderItsKind()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await CompositorTest.OpenAsync();
         var editor = test.Editor;
         var properties = editor.EditorProperties;
@@ -257,7 +247,6 @@ public sealed class GraphicsCompositorEditorTests
     [Fact]
     public async Task ThePackageFeaturesNeedAnOpaqueAndATransparentStage()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var test = await CompositorTest.OpenAsync();
         var editor = test.Editor;
         editor.RenderStages[0].Name = "Solid";
@@ -301,7 +290,7 @@ public sealed class GraphicsCompositorEditorTests
         /// </summary>
         public ISharedRenderer Debug { get; }
 
-        public static async Task<CompositorTest> OpenAsync()
+        public static async DispatcherTask<CompositorTest> OpenAsync()
         {
             var forward = new ForwardRenderer();
             var asset = new GraphicsCompositorAsset();

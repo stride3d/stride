@@ -19,8 +19,8 @@ namespace Stride.Editor.Tests.Helpers;
 /// with the editor's build services registered the way the GameStudio plugin registers them.
 /// </summary>
 /// <remarks>
-/// Its dispatcher gives the access of the UI thread to the dispatched work only: a test opens, changes and disposes the session after
-/// <c>await ExclusiveDispatcherService.SwitchTo()</c>, as the editor does on its UI thread.
+/// Its dispatcher gives the access of the UI thread to the dispatched work only: the session opens in it, and a test that awaits the open
+/// goes on there (<see cref="DispatcherTask{TResult}"/>), changes and disposes the session there, as the editor does on its UI thread.
 /// </remarks>
 public sealed class ServicesSessionFixture : IAsyncDisposable
 {
@@ -74,18 +74,18 @@ public sealed class ServicesSessionFixture : IAsyncDisposable
     /// Saves a package with the given assets (location relative to the package, asset) and opens it with the build services.
     /// </summary>
     /// <param name="withBuilder">Whether to create the builder service (and its database); the thumbnail tests need it, a session-only test does not.</param>
-    public static Task<ServicesSessionFixture> OpenAsync(bool withBuilder, params (string Location, Asset Asset)[] assets)
+    public static DispatcherTask<ServicesSessionFixture> OpenAsync(bool withBuilder, params (string Location, Asset Asset)[] assets)
     {
         // The shader importer is a Stride assets one (Stride.Assets.Editor): this layer builds without it
-        return OpenAsync(withBuilder, null, assets);
+        return DispatcherTask.InDispatcher(() => OpenAsync(withBuilder, null, assets));
     }
 
     /// <summary>
     /// Saves a package with the given assets and opens it with the build services, the builder importing shaders with the given importer.
     /// </summary>
-    public static Task<ServicesSessionFixture> OpenWithShaderImporterAsync(IShaderImporter shaderImporter, params (string Location, Asset Asset)[] assets)
+    public static DispatcherTask<ServicesSessionFixture> OpenWithShaderImporterAsync(IShaderImporter shaderImporter, params (string Location, Asset Asset)[] assets)
     {
-        return OpenAsync(true, shaderImporter, assets);
+        return DispatcherTask.InDispatcher(() => OpenAsync(true, shaderImporter, assets));
     }
 
     private static async Task<ServicesSessionFixture> OpenAsync(bool withBuilder, IShaderImporter? shaderImporter, (string Location, Asset Asset)[] assets)

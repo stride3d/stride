@@ -26,7 +26,6 @@ public sealed class ScriptSourceFileEditorTests
     [Fact]
     public async Task TheEditorShowsTheTextOfTheScript()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         var editor = NewEditor(fixture);
 
@@ -38,7 +37,6 @@ public sealed class ScriptSourceFileEditorTests
     [Fact]
     public async Task AnEditEnablesTheSaveUntilTheTextIsBackToTheFile()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         var editor = NewEditor(fixture);
 
@@ -54,7 +52,6 @@ public sealed class ScriptSourceFileEditorTests
     [Fact]
     public async Task SavingWritesTheFileAndTheScript()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         var editor = NewEditor(fixture);
         editor.OnTextEdited(Edited);
@@ -71,7 +68,6 @@ public sealed class ScriptSourceFileEditorTests
     [Fact]
     public async Task AnExternalChangeIsReloadedWhenTheTextHasNoEdit()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         var editor = NewEditor(fixture);
         var reloads = new List<string>();
@@ -89,7 +85,6 @@ public sealed class ScriptSourceFileEditorTests
     [Fact]
     public async Task AFileThatCannotBeReadIsReloadedAtTheNextCheck()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         var editor = NewEditor(fixture);
         var reloads = new List<string>();
@@ -112,7 +107,6 @@ public sealed class ScriptSourceFileEditorTests
     [Fact]
     public async Task AnExternalChangeDoesNotReplaceTheEdits()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         var editor = NewEditor(fixture);
         var reloads = new List<string>();
@@ -130,7 +124,6 @@ public sealed class ScriptSourceFileEditorTests
     [Fact]
     public async Task SavingOverAnExternalChangeAsksFirst()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         var editor = NewEditor(fixture);
         var dialogs = Dialogs(fixture);
@@ -157,7 +150,6 @@ public sealed class ScriptSourceFileEditorTests
     [InlineData(true)]
     public async Task SavingKeepsTheByteOrderMarkOfTheFile(bool hasByteOrderMark)
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         var script = fixture.Session.AllAssets.OfType<ScriptSourceFileViewModel>().Single();
         File.WriteAllText(script.AssetItem.FullPath.ToOSPath(), Script, new UTF8Encoding(hasByteOrderMark));
@@ -174,7 +166,6 @@ public sealed class ScriptSourceFileEditorTests
     [Fact]
     public async Task SavingWithoutEditDoesNothing()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         var editor = NewEditor(fixture);
         File.WriteAllText(PathOf(editor), External);
@@ -188,7 +179,6 @@ public sealed class ScriptSourceFileEditorTests
     [Fact]
     public async Task ClosingWithoutEditDoesNotAsk()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         var editor = NewEditor(fixture);
 
@@ -202,7 +192,6 @@ public sealed class ScriptSourceFileEditorTests
     [InlineData(MessageBoxResult.Cancel, false, Script)]
     public async Task ClosingWithEditsAsksTheUser(MessageBoxResult answer, bool closes, string file)
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         var editor = NewEditor(fixture);
         var dialogs = Dialogs(fixture);
@@ -223,7 +212,6 @@ public sealed class ScriptSourceFileEditorTests
     [InlineData(false, Script)]
     public async Task ClosingWithAnAnswerSavesOrDropsWithoutAsking(bool save, string file)
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         var editor = NewEditor(fixture);
         editor.OnTextEdited(Edited);
@@ -237,7 +225,6 @@ public sealed class ScriptSourceFileEditorTests
     [Fact]
     public async Task ClosingKeepsTheEditorWhenTheSaveDidNotHappen()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         var editor = NewEditor(fixture);
         var dialogs = Dialogs(fixture);
@@ -255,7 +242,6 @@ public sealed class ScriptSourceFileEditorTests
     [Fact]
     public async Task ASynchronousCloseNeverDropsEdits()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         var editor = NewEditor(fixture);
         Assert.True(editor.PreviewClose(null));
@@ -271,7 +257,6 @@ public sealed class ScriptSourceFileEditorTests
     [Fact]
     public async Task TheEditorCollectionClosesItsEditorsOnceTheyAgree()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         var collection = fixture.Session.EditorCollection;
         var script = fixture.Session.AllAssets.OfType<ScriptSourceFileViewModel>().Single();
@@ -322,7 +307,6 @@ public sealed class ScriptSourceFileEditorTests
     [Fact]
     public async Task TheFontSizeStaysInItsRange()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         var editor = NewEditor(fixture);
 
@@ -334,7 +318,7 @@ public sealed class ScriptSourceFileEditorTests
         Assert.Equal(16, editor.FontSize);
     }
 
-    private static async Task<AssetsSessionFixture> OpenAsync()
+    private static async DispatcherTask<AssetsSessionFixture> OpenAsync()
     {
         var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, ("Player", new ScriptSourceFileAsset { Text = Script }));
         Assert.False(fixture.Result.HasErrors, fixture.Log);

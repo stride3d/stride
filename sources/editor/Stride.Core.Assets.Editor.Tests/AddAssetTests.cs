@@ -24,7 +24,6 @@ public sealed class AddAssetTests
     [Fact]
     public async Task TheAddAssetListGroupsTheAssetTemplatesOfTheSession()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         var templates = fixture.Assets.AddAssetTemplateCollection;
 
@@ -57,7 +56,6 @@ public sealed class AddAssetTests
     [Fact]
     public async Task SearchingListsTheMatchingTemplatesOfEveryGroupByName()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         var templates = fixture.Assets.AddAssetTemplateCollection;
         templates.SelectedGroup = templates.RootGroup.SubGroups.Single(x => x.Name == TestTemplatePackage.AssetGroup);
@@ -91,7 +89,6 @@ public sealed class AddAssetTests
     [Fact]
     public async Task SelectingATemplateProposesANameUniqueInTheTargetFolder()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync((TestTemplatePackage.AssetFactoryDefaultOutputName, "existing"));
         var templates = fixture.Assets.AddAssetTemplateCollection;
         var factory = templates.RootGroup.GetTemplatesRecursively().Single(x => x.Id == TestTemplatePackage.AssetFactoryId);
@@ -113,7 +110,6 @@ public sealed class AddAssetTests
     [Fact]
     public async Task TheListFollowsTheAssetTypesOfTheSession()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         var templates = fixture.Assets.AddAssetTemplateCollection;
         var group = templates.RootGroup.SubGroups.Single(x => x.Name == TestTemplatePackage.AssetGroup);
@@ -133,7 +129,6 @@ public sealed class AddAssetTests
     [Fact]
     public async Task RunningATemplateCreatesTheAssetInTheSelectedFolderAndSelectsIt()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         var folder = fixture.Package.GetOrCreateAssetDirectory("Generated", false);
         fixture.OnUiThread(() => fixture.Assets.SelectedLocations.Add(folder));
@@ -174,7 +169,6 @@ public sealed class AddAssetTests
     [Fact]
     public async Task RunningATemplateNeedsASingleFolder()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync(("Textures/Wood", "wood"));
         var template = FindTemplate(fixture, TestTemplatePackage.AssetFactoryId);
 
@@ -195,7 +189,6 @@ public sealed class AddAssetTests
     [Fact]
     public async Task ATemplateThatIsNotAnAssetTemplateIsRefused()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         fixture.OnUiThread(() => fixture.Assets.SelectedLocations.Add(fixture.Package));
 
@@ -211,7 +204,6 @@ public sealed class AddAssetTests
     [Fact]
     public async Task AFailedOrCancelledGenerationCreatesNothing()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         fixture.OnUiThread(() => fixture.Assets.SelectedLocations.Add(fixture.Package));
         var template = FindTemplate(fixture, TestTemplatePackage.AssetFactoryId);
@@ -238,7 +230,6 @@ public sealed class AddAssetTests
     [Fact]
     public async Task TheAddAssetDialogRunsThePickedTemplateInTheSelectedFolder()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         // The test plays the UI thread: it changes the selection and runs the command on the dispatcher, so that the command's
         // continuations and the work the session dispatches from the thread pool (the history, the selection of the new asset)
@@ -282,7 +273,6 @@ public sealed class AddAssetTests
     [Fact]
     public async Task AddingFilesImportsThemWithTheTemplateOfTheirExtension()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         using var files = new TemporaryFiles();
         var wood = files.Write("Wood" + TestTemplatePackage.OtherImportExtension);
@@ -323,7 +313,6 @@ public sealed class AddAssetTests
     [Fact]
     public async Task AddingFilesCopiesThemIntoTheResourcesFolderWhenAsked()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         using var files = new TemporaryFiles();
         var wood = files.Write("Wood" + TestTemplatePackage.OtherImportExtension);
@@ -347,7 +336,6 @@ public sealed class AddAssetTests
     [Fact]
     public async Task AddingFilesSeveralTemplatesImportAsksWhichOne()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         using var files = new TemporaryFiles();
         var wood = files.Write("Wood" + TestTemplatePackage.ImportExtension);
@@ -374,7 +362,6 @@ public sealed class AddAssetTests
     [Fact]
     public async Task AddingFilesOfSeveralKindsImportsTheOnesThePickedTemplateAccepts()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         using var files = new TemporaryFiles();
         var wood = files.Write("Wood" + TestTemplatePackage.ImportExtension);
@@ -422,7 +409,7 @@ public sealed class AddAssetTests
         }
     }
 
-    private static Task<EditorSessionFixture> OpenAsync(params (string Location, string Value)[] assets)
+    private static DispatcherTask<EditorSessionFixture> OpenAsync(params (string Location, string Value)[] assets)
     {
         // The generator and the importers are registered once the first test asks for them
         _ = Generator;

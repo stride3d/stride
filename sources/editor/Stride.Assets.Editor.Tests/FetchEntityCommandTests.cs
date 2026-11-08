@@ -3,7 +3,6 @@
 
 using Stride.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Assets.Presentation.ViewModels;
-using Stride.Core.Assets.Editor.Tests.Helpers;
 using static Stride.Assets.Editor.Tests.EntityHierarchyEditorTests;
 using static Stride.Assets.Editor.Tests.EntityHierarchyLoadingTests;
 
@@ -17,7 +16,6 @@ public sealed class FetchEntityCommandTests
     [Fact]
     public async Task FetchingAComponentSelectsItsEntityInTheEditor()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var box = FindEntity(editor, "Box");
@@ -36,7 +34,6 @@ public sealed class FetchEntityCommandTests
     [Fact]
     public async Task FetchingAnEntityOfAChildSceneSelectsItInTheEditorOfTheRootScene()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenScenesAsync();
         var editor = await OpenEditorAsync(fixture);
         var child = ((SceneRootViewModel)editor.HierarchyRoot).ChildScenes.Single();
@@ -51,7 +48,6 @@ public sealed class FetchEntityCommandTests
     [Fact]
     public async Task FetchingAnEntityOfASceneThatNoEditorShowsDoesNothing()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var box = FindEntity(editor, "Box").AssetSideEntity;

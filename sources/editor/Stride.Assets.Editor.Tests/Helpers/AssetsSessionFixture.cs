@@ -22,8 +22,8 @@ namespace Stride.Assets.Editor.Tests.Helpers;
 /// the editor shell registers them.
 /// </summary>
 /// <remarks>
-/// Its dispatcher gives the access of the UI thread to the dispatched work only: a test opens, changes and disposes the session after
-/// <c>await ExclusiveDispatcherService.SwitchTo()</c>, as the editor does on its UI thread.
+/// Its dispatcher gives the access of the UI thread to the dispatched work only: the session opens in it, and a test that awaits the open
+/// goes on there (<see cref="DispatcherTask{TResult}"/>), changes and disposes the session there, as the editor does on its UI thread.
 /// </remarks>
 public sealed class AssetsSessionFixture : IAsyncDisposable
 {
@@ -77,7 +77,7 @@ public sealed class AssetsSessionFixture : IAsyncDisposable
     /// Saves a package with the given assets (location relative to the package, asset) and opens it.
     /// </summary>
     /// <param name="initializeEditor">Whether to run the editor plugin's session initialization (build services, commands and updaters).</param>
-    public static Task<AssetsSessionFixture> OpenAsync(bool initializeEditor, params (string Location, Asset Asset)[] assets)
+    public static DispatcherTask<AssetsSessionFixture> OpenAsync(bool initializeEditor, params (string Location, Asset Asset)[] assets)
     {
         // One dispatcher call at a time, as on the UI thread: the session raises its events on the thread pool
         return OpenAsync(initializeEditor, new ExclusiveDispatcherService(), assets);
@@ -88,8 +88,15 @@ public sealed class AssetsSessionFixture : IAsyncDisposable
     /// dispatcher as the UI thread.
     /// </summary>
     /// <param name="initializeEditor">Whether to run the editor plugin's session initialization (build services, commands and updaters).</param>
-    /// <param name="dispatcher">The dispatcher of the UI thread; the session must be opened from it.</param>
-    public static async Task<AssetsSessionFixture> OpenAsync(bool initializeEditor, IDispatcherService dispatcher, params (string Location, Asset Asset)[] assets)
+    /// <param name="dispatcher">The dispatcher of the UI thread; an exclusive one opens the session in it, another one from it.</param>
+    public static DispatcherTask<AssetsSessionFixture> OpenAsync(bool initializeEditor, IDispatcherService dispatcher, params (string Location, Asset Asset)[] assets)
+    {
+        return dispatcher is ExclusiveDispatcherService
+            ? DispatcherTask.InDispatcher(() => OpenCoreAsync(initializeEditor, dispatcher, assets))
+            : new DispatcherTask<AssetsSessionFixture>(OpenCoreAsync(initializeEditor, dispatcher, assets));
+    }
+
+    private static async Task<AssetsSessionFixture> OpenCoreAsync(bool initializeEditor, IDispatcherService dispatcher, (string Location, Asset Asset)[] assets)
     {
         dispatcher.EnsureAccess();
         var directory = Path.Combine(Path.GetTempPath(), "Stride.Assets.Editor.Tests", Guid.NewGuid().ToString("N"));

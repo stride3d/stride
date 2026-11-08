@@ -18,8 +18,9 @@ namespace Stride.Core.Assets.Editor.Tests.Helpers;
 /// continuation to the micro-thread after it has completed ("MicroThread is already completed but still posting continuations"). These crash
 /// the test host. A test that reads what dispatched work changes reads it through the dispatcher too.
 /// <para>
-/// Only the dispatched work has the access of the UI thread, as in the editor: a test changes the session in the dispatcher
-/// (<see cref="SwitchTo"/>), and the view models fail on a change made elsewhere instead of racing the dispatched work now and then.
+/// Only the dispatched work has the access of the UI thread, as in the editor: a test changes the session in the dispatcher, where
+/// the open of its fixture goes on (<see cref="DispatcherTask{TResult}"/>, or <see cref="SwitchTo"/> for a test that opens none), and the
+/// view models fail on a change made elsewhere instead of racing the dispatched work now and then.
 /// </para>
 /// </remarks>
 public sealed class ExclusiveDispatcherService : IDispatcherService
@@ -30,7 +31,8 @@ public sealed class ExclusiveDispatcherService : IDispatcherService
     {
         if (CheckAccess() != inDispatcherThread)
             throw new InvalidOperationException(inDispatcherThread
-                ? $"Not in the exclusive dispatcher context: the test changes the session after await {nameof(ExclusiveDispatcherService)}.{nameof(SwitchTo)}()."
+                ? "Not in the exclusive dispatcher context: a test changes the session after it awaited the open of its fixture, which goes on in"
+                  + $" the dispatcher (a helper that wraps the open returns a {nameof(DispatcherTask)}<T>), or after await {nameof(ExclusiveDispatcherService)}.{nameof(SwitchTo)}()."
                 : "In the exclusive dispatcher context.");
     }
 
@@ -57,7 +59,8 @@ public sealed class ExclusiveDispatcherService : IDispatcherService
     /// view models check, and each of its awaits lets the other dispatched work run.
     /// </summary>
     /// <remarks>
-    /// A blocking wait in the method blocks the dispatched work too: it waits with <see cref="WaitUntilAsync"/> or an await instead.
+    /// The opens of the session fixtures do this already: a test that opens one needs no switch. A blocking wait in the method blocks the
+    /// dispatched work too: it waits with <see cref="WaitUntilAsync"/> or an await instead.
     /// </remarks>
     public static DispatcherAwaitable SwitchTo() => default;
 

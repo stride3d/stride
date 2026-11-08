@@ -26,7 +26,6 @@ public sealed class TestSessionCore
     [Fact]
     public async Task SavingPutsTheSessionAtTheTopOfTheRecentFiles()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var main = (FakeMainViewModel)fixture.Session.Main;
         Assert.Empty(main.RecentFiles);
@@ -40,7 +39,6 @@ public sealed class TestSessionCore
     [Fact]
     public async Task TheTextAssetsOpenWithTheShaderEditor()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var main = (FakeMainViewModel)fixture.Session.Main;
         main.TextAssetTypes.Add(nameof(TestEditorAsset));
@@ -73,7 +71,6 @@ public sealed class TestSessionCore
     [Fact]
     public async Task SelectingAProjectEnablesUpdatePackageAndAddDependency()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var session = fixture.Session;
         Assert.False(session.IsUpdatePackageEnabled);
@@ -88,7 +85,6 @@ public sealed class TestSessionCore
     [Fact]
     public async Task UpdatePackageNeedsASingleSelectedPackage()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var template = fixture.Session.FindTemplates(Templates.TemplateScope.Package).FirstOrDefault() ?? new Templates.TemplateDescription { Name = "Test" };
 
@@ -100,7 +96,6 @@ public sealed class TestSessionCore
     [Fact]
     public async Task AddDependencyTellsWhenNoPackageCanBeAdded()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         fixture.OnUiThread(() => fixture.Assets.SelectedLocations.Add(fixture.Package));
 
@@ -114,7 +109,6 @@ public sealed class TestSessionCore
     [Fact]
     public async Task AddDependencyOffersTheSuggestedPackagesButNotThePackageItself()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var session = fixture.Session;
         session.SuggestedPackages.Add(new PackageName("Some.Suggested.Package", new PackageVersion("1.0.0")));
@@ -134,7 +128,6 @@ public sealed class TestSessionCore
     [Fact]
     public async Task OpenInIDETellsWhenTheSessionHasNoSolution()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         Assert.True(string.IsNullOrEmpty(fixture.Session.SolutionPath));
 
@@ -146,7 +139,6 @@ public sealed class TestSessionCore
     [Fact]
     public async Task OpenInIDEBringsTheVisualStudioThatHasTheSolutionOpenToTheFront()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenGameAsync(PlatformType.Windows);
         var visualStudio = new FakeVisualStudioService();
         ((ViewModelServiceProvider)fixture.ServiceProvider).RegisterService(visualStudio);
@@ -160,7 +152,6 @@ public sealed class TestSessionCore
     [Fact]
     public async Task ADelayedNotificationWaitsForTheMainWindowAndIsAskedOnce()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync();
         var dialogs = fixture.Dialogs;
         var mainWindowActive = new TaskCompletionSource();
@@ -186,7 +177,6 @@ public sealed class TestSessionCore
     [Fact]
     public async Task ADelayedNotificationThatShouldNotBeAskedRunsTheRememberedAnswer()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync();
         var container = new SettingsContainer();
         var ask = new SettingsKey<bool>("Test/AskBeforeSomething", container, false);
@@ -202,7 +192,6 @@ public sealed class TestSessionCore
     [Fact]
     public async Task OnlyTheMainAssetViewShowsItsSelectionInThePropertyGrid()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var session = fixture.Session;
         var wood = session.AllAssets.Single();
@@ -224,7 +213,6 @@ public sealed class TestSessionCore
     [Fact]
     public async Task AnAssetEditorShowsItsPropertiesInThePropertiesOfTheMainAssetView()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var wood = fixture.Session.AllAssets.Single();
         var editor = new TestAssetEditorViewModel(wood);

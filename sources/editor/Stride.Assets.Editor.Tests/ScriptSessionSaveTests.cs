@@ -23,7 +23,6 @@ public sealed class ScriptSessionSaveTests
     [Fact]
     public async Task AnEditMakesTheScriptDirtyUntilTheTextIsBackToTheFile()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         var (script, editor) = OpenEditor(fixture);
 
@@ -47,7 +46,6 @@ public sealed class ScriptSessionSaveTests
     [Fact]
     public async Task SavingTheSessionSavesTheEditsOfTheOpenEditor()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         var (script, editor) = OpenEditor(fixture);
         editor.OnTextEdited(Edited);
@@ -66,7 +64,6 @@ public sealed class ScriptSessionSaveTests
     [Fact]
     public async Task SavingTheSessionKeepsTheEditsWhenTheUserKeepsAChangeOfAnotherProgram()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         var (script, editor) = OpenEditor(fixture);
         var dialogs = Dialogs(fixture);
@@ -88,7 +85,6 @@ public sealed class ScriptSessionSaveTests
     [Fact]
     public async Task SavingTheSessionTakesTheChangeOfAnotherProgramWhenTheTextHasNoEdit()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         var (script, editor) = OpenEditor(fixture);
         File.WriteAllText(PathOf(script), External);
@@ -105,7 +101,6 @@ public sealed class ScriptSessionSaveTests
     [Fact]
     public async Task SavingARenamedScriptKeepsTheChangeOfAnotherProgram()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         var (script, editor) = OpenEditor(fixture);
         var oldPath = PathOf(script);
@@ -126,7 +121,6 @@ public sealed class ScriptSessionSaveTests
     [InlineData(true)]
     public async Task SavingARenamedScriptWithoutAnEditorKeepsTheChangeOfAnotherProgram(bool openAndCloseTheEditorFirst)
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         var script = fixture.Session.AllAssets.OfType<ScriptSourceFileViewModel>().Single();
         if (openAndCloseTheEditorFirst)
@@ -148,7 +142,6 @@ public sealed class ScriptSessionSaveTests
     [Fact]
     public async Task EachChangeOfAnotherProgramIsTakenAtTheNextSave()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         var script = fixture.Session.AllAssets.OfType<ScriptSourceFileViewModel>().Single();
         File.WriteAllText(PathOf(script), External);
@@ -168,7 +161,6 @@ public sealed class ScriptSessionSaveTests
     [Fact]
     public async Task ARenameBeforeTheSaveKeepsTheText()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         var (script, editor) = OpenEditor(fixture);
         var reloads = new List<string>();
@@ -193,7 +185,6 @@ public sealed class ScriptSessionSaveTests
     [Fact]
     public async Task SavingTheSessionSavesTheEditsOfARenamedScriptToTheNewFile()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         var (script, editor) = OpenEditor(fixture);
         var oldPath = PathOf(script);
@@ -211,7 +202,6 @@ public sealed class ScriptSessionSaveTests
     [Fact]
     public async Task EditsAfterASavedRenameAreSavedToTheNewFile()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         var (script, editor) = OpenEditor(fixture);
         script.Name = "Hero";
@@ -228,7 +218,6 @@ public sealed class ScriptSessionSaveTests
     [Fact]
     public async Task AScriptThatCannotBeWrittenFailsTheSessionSave()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, ("Scripts/Player", new ScriptSourceFileAsset { Text = Script }));
         Assert.False(fixture.Result.HasErrors, fixture.Log);
         var (script, editor) = OpenEditor(fixture);
@@ -251,7 +240,6 @@ public sealed class ScriptSessionSaveTests
     [Fact]
     public async Task ClosingTheSessionAsksOnceForTheEditsOfTheScript()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         var (script, editor) = OpenEditor(fixture);
         var dialogs = Dialogs(fixture);
@@ -271,7 +259,6 @@ public sealed class ScriptSessionSaveTests
     [Fact]
     public async Task DroppingTheEditsMakesTheScriptCleanAgain()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenAsync();
         var (script, editor) = OpenEditor(fixture);
         editor.OnTextEdited(Edited);
@@ -286,7 +273,7 @@ public sealed class ScriptSessionSaveTests
         Assert.Equal(Script, File.ReadAllText(PathOf(script)));
     }
 
-    private static async Task<AssetsSessionFixture> OpenAsync()
+    private static async DispatcherTask<AssetsSessionFixture> OpenAsync()
     {
         var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, ("Player", new ScriptSourceFileAsset { Text = Script }));
         Assert.False(fixture.Result.HasErrors, fixture.Log);

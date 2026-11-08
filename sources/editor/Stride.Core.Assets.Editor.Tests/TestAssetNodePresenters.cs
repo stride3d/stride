@@ -20,7 +20,6 @@ public sealed class TestAssetNodePresenters
     [Fact]
     public async Task ReorderableCollectionsGetTheReorderItemViewModel()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var asset = CreateAsset(fixture, "Lists", new TestListEditorAsset());
 
@@ -35,7 +34,6 @@ public sealed class TestAssetNodePresenters
     [Fact]
     public async Task ADerivedAssetAloneHasABase()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var wood = fixture.Session.AllAssets.Single();
         var derived = CreateDerivedAsset(fixture, wood);
@@ -50,7 +48,6 @@ public sealed class TestAssetNodePresenters
     [Fact]
     public async Task AMultiSelectionHasABaseOnlyWhenEveryAssetHasOne()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var wood = fixture.Session.AllAssets.Single();
         var derived = CreateDerivedAsset(fixture, wood);
@@ -66,7 +63,6 @@ public sealed class TestAssetNodePresenters
     [Fact]
     public async Task AMultiSelectionIsOverriddenOnlyWhenEveryAssetOverridesTheProperty()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var wood = fixture.Session.AllAssets.Single();
         var first = CreateDerivedAsset(fixture, wood);

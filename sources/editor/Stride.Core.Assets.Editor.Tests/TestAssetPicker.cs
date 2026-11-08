@@ -14,7 +14,6 @@ public sealed class TestAssetPicker
     [Fact]
     public async Task ThePickerListsTheAcceptedTypesOnly()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Wood", "wood"), ("Stone" + EditorSessionFixture.OtherSuffix, "stone"), ("Tree", "tree"));
 
         var picker = new AssetPickerViewModel(fixture.Session, [typeof(TestEditorAsset)]);
@@ -26,7 +25,6 @@ public sealed class TestAssetPicker
     [Fact]
     public async Task NoAcceptedTypeListsEveryAsset()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Wood", "wood"), ("Stone" + EditorSessionFixture.OtherSuffix, "stone"));
 
         var picker = new AssetPickerViewModel(fixture.Session, []);
@@ -37,7 +35,6 @@ public sealed class TestAssetPicker
     [Fact]
     public async Task TheFilterAndTheSearchTextNarrowTheList()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Wood", "wood"), ("Woodland", "woodland"), ("Stone", "stone"));
 
         var picker = new AssetPickerViewModel(fixture.Session, [typeof(TestEditorAsset)], x => x.Name != "Woodland");
@@ -53,7 +50,6 @@ public sealed class TestAssetPicker
     [Fact]
     public async Task ALocationListsItsAssetsAndTheOnesOfItsSubFolders()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Textures/Old/Stone", "stone"), ("Models/Tree", "tree"));
         var picker = new AssetPickerViewModel(fixture.Session, []);
         var textures = fixture.Package.AssetMountPoint.SubDirectories.Single(x => x.Name == "Textures");
@@ -72,7 +68,6 @@ public sealed class TestAssetPicker
     [Fact]
     public async Task ThePickerOpensOnTheInitialAssetAndItsFolder()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Models/Tree", "tree"));
         var wood = fixture.Session.AllAssets.Single(x => x.Name == "Wood");
 
@@ -86,7 +81,6 @@ public sealed class TestAssetPicker
     [Fact]
     public async Task AnInitialAssetThatIsNotAcceptedIsNotSelected()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Wood", "wood"), ("Stone" + EditorSessionFixture.OtherSuffix, "stone"));
         var stone = fixture.Session.AllAssets.Single(x => x.Name == "Stone");
 
@@ -99,7 +93,6 @@ public sealed class TestAssetPicker
     [Fact]
     public async Task NarrowingTheListClearsASelectionItNoLongerHolds()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Wood", "wood"), ("Stone", "stone"));
         var picker = new AssetPickerViewModel(fixture.Session, []);
         picker.SelectedAsset = picker.FilteredAssets.Single(x => x.Name == "Stone");

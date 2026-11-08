@@ -5,7 +5,6 @@ using Stride.Assets.Editor.Tests.Helpers;
 using Stride.Assets.Presentation;
 using Stride.Core.Assets.Editor.Editors;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Editor.Build;
 
 namespace Stride.Assets.Editor.Tests;
@@ -33,7 +32,6 @@ public sealed class PluginRegistrationTests
     {
         var gameSettings = GameSettingsFactory.Create();
         gameSettings.SplashScreenTexture = null!;
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, ("GameSettings", gameSettings));
 
         var registrations = SessionRegistrations.Of(new StrideEditorPlugin { EnableThumbnailService = false }, fixture.Session);

@@ -15,7 +15,6 @@ public sealed class TagsViewModelTests
     [Fact]
     public async Task TheTagsAreTheUnionOfTheSelectedAssetsTags()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Wood", "wood"), ("Stone", "stone"));
         var (wood, stone) = (Asset(fixture, "Wood"), Asset(fixture, "Stone"));
         wood.Tags.Add("nature");
@@ -41,7 +40,6 @@ public sealed class TagsViewModelTests
     [Fact]
     public async Task AddingATagTagsEverySelectedAssetInOneUndoableStep()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Wood", "wood"), ("Stone", "stone"));
         var (wood, stone) = (Asset(fixture, "Wood"), Asset(fixture, "Stone"));
         var undoRedo = fixture.Session.UndoRedoService!;
@@ -68,7 +66,6 @@ public sealed class TagsViewModelTests
     [Fact]
     public async Task ABlankTagAddsNothing()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Wood", "wood"));
         var wood = Asset(fixture, "Wood");
         fixture.OnUiThread(() => fixture.Assets.SelectAssets([wood]));
@@ -83,7 +80,6 @@ public sealed class TagsViewModelTests
     [Fact]
     public async Task AddingATagToAllCompletesTheAssetsThatMissIt()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Wood", "wood"), ("Stone", "stone"));
         var (wood, stone) = (Asset(fixture, "Wood"), Asset(fixture, "Stone"));
         wood.Tags.Add("nature");
@@ -100,7 +96,6 @@ public sealed class TagsViewModelTests
     [Fact]
     public async Task RemovingATagUntagsEverySelectedAsset()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Wood", "wood"), ("Stone", "stone"));
         var (wood, stone) = (Asset(fixture, "Wood"), Asset(fixture, "Stone"));
         var undoRedo = fixture.Session.UndoRedoService!;
@@ -124,7 +119,6 @@ public sealed class TagsViewModelTests
     [Fact]
     public async Task OnlyTheSelectedAssetsRefreshTheTags()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Wood", "wood"), ("Stone", "stone"));
         var (wood, stone) = (Asset(fixture, "Wood"), Asset(fixture, "Stone"));
         fixture.OnUiThread(() => fixture.Assets.SelectAssets([wood]));

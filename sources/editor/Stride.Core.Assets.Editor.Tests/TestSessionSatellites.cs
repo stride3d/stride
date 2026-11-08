@@ -20,7 +20,6 @@ public sealed class TestSessionSatellites
     [Fact]
     public async Task TheAssetLogRequiresASession()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync();
 
         Assert.Throws<ArgumentNullException>(() => new AssetLogViewModel(fixture.ServiceProvider, null!));
@@ -29,7 +28,6 @@ public sealed class TestSessionSatellites
     [Fact]
     public async Task UpdatingFromSourceOpensItsProgressWindowAfterADelay()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Wood", "wood"));
         var tracker = fixture.Session.SourceTracker!;
 
@@ -43,7 +41,6 @@ public sealed class TestSessionSatellites
     [Fact]
     public async Task TheFolderOfTheSelectedAssetIsItsFileFolder()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync(("Wood", "wood"));
         var wood = fixture.Session.GetAssetByUrl(EditorSessionFixture.Url("Wood"))!;
         fixture.OnUiThread(() => fixture.Assets.SelectAssets([wood]));
@@ -58,7 +55,6 @@ public sealed class TestSessionSatellites
     [Fact]
     public async Task TheDocumentationAndThePropertiesCheckTheirArguments()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await EditorSessionFixture.OpenAsync();
         var documentation = fixture.ServiceProvider.Get<UserDocumentationService>();
 

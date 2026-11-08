@@ -23,7 +23,6 @@ public sealed class EntityHierarchyLoadingTests
     [Fact]
     public async Task TheEditedSceneIsLoadedWithItsEntitiesAndUnloadingItUnloadsThem()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var root = editor.HierarchyRoot;
@@ -47,7 +46,6 @@ public sealed class EntityHierarchyLoadingTests
     [Fact]
     public async Task AnEntityAddedToALoadedSceneIsLoadedAndNotOtherwise()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var parent = FindEntity(editor, "Parent");
@@ -66,7 +64,6 @@ public sealed class EntityHierarchyLoadingTests
     [Fact]
     public async Task AChildSceneComesAfterTheEntitiesAndIsNotLoadedByDefault()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenScenesAsync();
         var editor = await OpenEditorAsync(fixture);
         var root = (SceneRootViewModel)editor.HierarchyRoot;
@@ -91,7 +88,6 @@ public sealed class EntityHierarchyLoadingTests
     [Fact]
     public async Task AChildSceneLoadedWhenTheEditorClosedIsLoadedWhenItOpens()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenScenesAsync();
         var editor = await OpenEditorAsync(fixture);
         var child = ((SceneRootViewModel)editor.HierarchyRoot).ChildScenes.Single();
@@ -113,7 +109,6 @@ public sealed class EntityHierarchyLoadingTests
     [Fact]
     public async Task RemovingAChildSceneRemovesItsRootAndTheActiveRootComesBack()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenScenesAsync();
         var editor = await OpenEditorAsync(fixture);
         var root = (SceneRootViewModel)editor.HierarchyRoot;
@@ -143,7 +138,6 @@ public sealed class EntityHierarchyLoadingTests
     [Fact]
     public async Task LockingASceneLocksItsEntitiesAndItsChildScenesOnlyWithCtrl()
     {
-        await ExclusiveDispatcherService.SwitchTo();
         await using var fixture = await OpenScenesAsync();
         var editor = await OpenEditorAsync(fixture);
         var root = (SceneRootViewModel)editor.HierarchyRoot;
@@ -168,7 +162,7 @@ public sealed class EntityHierarchyLoadingTests
     /// The scene of <see cref="OpenSceneAsync"/>, with a child scene "ChildScene" at (5, 0, 0) that has a "Lamp" entity at
     /// (1, 0, 0).
     /// </summary>
-    internal static async Task<AssetsSessionFixture> OpenScenesAsync()
+    internal static async DispatcherTask<AssetsSessionFixture> OpenScenesAsync()
     {
         var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: true, ("MainScene", new SceneAsset()), ("ChildScene", new SceneAsset { Offset = new Vector3(5, 0, 0) }));
         Assert.False(fixture.Result.HasErrors, fixture.Log);
