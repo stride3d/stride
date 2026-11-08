@@ -56,7 +56,12 @@ public sealed class PluginsPanelTests
             // The editor's own plugins: built in, on, without a switch
             Assert.NotEmpty(panel.Plugins);
             Assert.All(panel.Plugins, x => Assert.Equal((PluginState.Joined, true, false), (x.State, x.IsBuiltIn, x.CanSwitch)));
-            Assert.Equal(PluginGroup.BuiltIn, panel.Plugins[0].Group);
+            // Game Studio's own assemblies come in their own group, with Game Studio's icon in the icon column
+            Assert.Equal(PluginGroup.GameStudio, panel.Plugins[0].Group);
+            Assert.All(panel.Plugins.Where(x => x.Group == PluginGroup.GameStudio), x => Assert.True(x.IsPartOfGameStudio));
+            var icons = view.GetVisualDescendants().OfType<Image>().Where(x => x.Name == "GameStudioIcon").ToList();
+            Assert.NotEmpty(icons);
+            Assert.All(icons, x => Assert.True(x.IsVisible && x.Source is not null && Grid.GetColumn(x) == 0));
             Assert.All(view.GetVisualDescendants().OfType<ToggleSwitch>().Where(x => x.Name == "PluginSwitch"), x => Assert.False(x.IsVisible));
             Assert.False(view.GetVisualDescendants().OfType<Border>().Single(x => x.Name == "RestartBar").IsVisible);
             Assert.Equal($"{panel.Plugins.Count} plugins", panel.Summary);

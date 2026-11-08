@@ -54,7 +54,7 @@
     </Border>
 
     <Grid ColumnDefinitions="2*, 4, 3*">
-      <!-- The plugins, what needs attention first, then what is off, the project's and the built-in ones -->
+      <!-- The plugins, what needs attention first, then what is off, the project's, Game Studio's own and the built-in ones -->
       <ListBox Name="PluginList" Grid.Column="0"
                ItemsSource="{Binding Plugins}"
                SelectedItem="{Binding SelectedPlugin}">
@@ -63,9 +63,13 @@
             <StackPanel>
               <TextBlock Classes="group" Text="{Binding GroupTitle}" IsVisible="{Binding IsFirstOfGroup}"/>
               <Grid ColumnDefinitions="20, *, Auto, Auto">
+                <!-- The icon column is kept for every row: Game Studio's own parts have its icon, so that no row looks like a
+                     child of the row above -->
                 <Image Grid.Column="0" Width="16" Height="16" VerticalAlignment="Center"
                        Source="{Binding IconPath, Converter={x:Static caecv:TemplateImageConverter.Instance}}"
                        IsVisible="{Binding IconPath, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                <Image Grid.Column="0" Name="GameStudioIcon" Width="16" Height="16" VerticalAlignment="Center"
+                       Source="/Assets/GameStudio.ico" IsVisible="{Binding IsPartOfGameStudio}"/>
                 <TextBlock Grid.Column="1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis">
                   <Run Text="{Binding DisplayName}"/>
                   <Run Text="{Binding VersionText}" Foreground="Gray"/>
@@ -102,6 +106,8 @@
               <Image Grid.Column="0" Width="32" Height="32" Margin="0,0,8,0" VerticalAlignment="Top"
                      Source="{Binding IconPath, Converter={x:Static caecv:TemplateImageConverter.Instance}}"
                      IsVisible="{Binding IconPath, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+              <Image Grid.Column="0" Width="32" Height="32" Margin="0,0,8,0" VerticalAlignment="Top"
+                     Source="/Assets/GameStudio.ico" IsVisible="{Binding IsPartOfGameStudio}"/>
               <StackPanel Grid.Column="1">
                 <SelectableTextBlock FontSize="16" FontWeight="SemiBold" Text="{Binding DisplayName}"/>
                 <SelectableTextBlock Opacity="0.7">
@@ -126,7 +132,7 @@
             <TextBlock TextWrapping="Wrap" FontStyle="Italic" IsVisible="{Binding IsPending}"
                        Text="{sd:LocalizeString Changed: it applies when Game Studio opens this project again (Restart to apply).}"/>
             <TextBlock TextWrapping="Wrap" Opacity="0.7" IsVisible="{Binding IsBuiltIn}"
-                       Text="{sd:LocalizeString Built into Game Studio: it cannot be switched off.}"/>
+                       Text="{Binding BuiltInDetail}"/>
 
             <!-- A built-in plugin named in the project's list of switched-off plugins: the editor warned and loaded it -->
             <Border Name="ListedBuiltIn" Padding="6" Background="#30E0A040" IsVisible="{Binding IsListedBuiltIn}">

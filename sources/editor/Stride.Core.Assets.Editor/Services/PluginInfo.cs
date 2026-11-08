@@ -20,6 +20,12 @@ public enum PluginSource
     BuiltIn,
 
     /// <summary>
+    /// Part of the editor itself: one of its own assemblies with plugins (not a package). Built in too: it can't be switched
+    /// off.
+    /// </summary>
+    Editor,
+
+    /// <summary>
     /// A package restored from a feed, at the version the game's package declares.
     /// </summary>
     Package,
@@ -105,9 +111,10 @@ public sealed class PluginInfo
     public PluginSource Source { get; init; }
 
     /// <summary>
-    /// Whether it is built into the editor: it can't be switched off and stays on in safe mode.
+    /// Whether it is built into the editor (an engine plugin package at the editor's version, or part of the editor itself):
+    /// it can't be switched off and stays on in safe mode.
     /// </summary>
-    public bool IsBuiltIn => Source == PluginSource.BuiltIn;
+    public bool IsBuiltIn => Source is PluginSource.BuiltIn or PluginSource.Editor;
 
     /// <summary>
     /// Whether the user can switch it off for the session (<see cref="PluginSwitchService"/>): never a built-in one, nor one

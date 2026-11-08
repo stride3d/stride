@@ -189,7 +189,8 @@ public sealed class TestPluginInfo : IDisposable
             var info = Assert.Single(PluginCatalog.Collect(host, session: null));
 
             Assert.Equal(typeof(TestPluginInfo).Assembly.GetName().Name, info.Id);
-            Assert.Equal(PluginSource.BuiltIn, info.Source);
+            Assert.Equal(PluginSource.Editor, info.Source);
+            Assert.True(info.IsBuiltIn);
             Assert.False(info.CanSwitchOff);
             Assert.Equal(PluginState.Joined, info.State);
             Assert.Equal(3, info.Contributions.Values.Sum());

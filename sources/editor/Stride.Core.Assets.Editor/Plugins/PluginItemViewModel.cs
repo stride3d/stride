@@ -32,7 +32,12 @@ public enum PluginGroup
     Project,
 
     /// <summary>
-    /// The plugins of the editor and of the engine, on.
+    /// The editor's own assemblies with plugins (<see cref="PluginSource.Editor"/>), on.
+    /// </summary>
+    GameStudio,
+
+    /// <summary>
+    /// The engine's plugin packages, built in, on.
     /// </summary>
     BuiltIn,
 }
@@ -86,6 +91,7 @@ public sealed class PluginItemViewModel : ViewModelBase
     public string SourceText => info.Source switch
     {
         PluginSource.BuiltIn => Tr._p("Plugins", "Built into Game Studio"),
+        PluginSource.Editor => Tr._p("Plugins", "Part of Game Studio"),
         PluginSource.Package => Tr._p("Plugins", "Package"),
         PluginSource.SolutionProject => Tr._p("Plugins", "Project of the solution"),
         PluginSource.DevRedirect => Tr._p("Plugins", "Development build (dev redirect)"),
@@ -178,6 +184,7 @@ public sealed class PluginItemViewModel : ViewModelBase
         PluginState.Failed or PluginState.Incompatible => PluginGroup.NeedsAttention,
         PluginState.Joined when Errors.Count > 0 => PluginGroup.NeedsAttention,
         PluginState.Off => PluginGroup.Off,
+        _ when info.Source == PluginSource.Editor => PluginGroup.GameStudio,
         _ when info.IsBuiltIn => PluginGroup.BuiltIn,
         _ => PluginGroup.Project,
     };
@@ -190,7 +197,8 @@ public sealed class PluginItemViewModel : ViewModelBase
         PluginGroup.NeedsAttention => Tr._p("Plugins", "Needs attention"),
         PluginGroup.Off => Tr._p("Plugins", "Off"),
         PluginGroup.Project => Tr._p("Plugins", "Plugins of the project"),
-        PluginGroup.BuiltIn => Tr._p("Plugins", "Built into Game Studio"),
+        PluginGroup.GameStudio => Tr._p("Plugins", "Part of Game Studio"),
+        PluginGroup.BuiltIn => Tr._p("Plugins", "Built-in plugins"),
         _ => Group.ToString(),
     };
 
@@ -218,6 +226,22 @@ public sealed class PluginItemViewModel : ViewModelBase
     /// Whether it is built in: it has no switch.
     /// </summary>
     public bool IsBuiltIn => info.IsBuiltIn;
+
+    /// <summary>
+    /// Whether it is part of Game Studio itself (one of the editor's own assemblies, not a package): the panel shows Game
+    /// Studio's icon for it.
+    /// </summary>
+    public bool IsPartOfGameStudio => info.Source == PluginSource.Editor;
+
+    /// <summary>
+    /// Why it has no switch, for a built-in one; an empty string otherwise.
+    /// </summary>
+    public string BuiltInDetail => info.Source switch
+    {
+        PluginSource.Editor => Tr._p("Plugins", "Part of Game Studio: it cannot be switched off."),
+        PluginSource.BuiltIn => Tr._p("Plugins", "Built into Game Studio: it cannot be switched off."),
+        _ => string.Empty,
+    };
 
     /// <summary>
     /// Whether the user can switch it on or off here: a third-party package, in a session with a file.
@@ -320,7 +344,7 @@ public sealed class PluginItemViewModel : ViewModelBase
         Errors = CreateErrors(newInfo);
         OnPropertyChanged(nameof(Info), nameof(DisplayName), nameof(VersionText), nameof(SourceText), nameof(KindText), nameof(Authors), nameof(Description),
             nameof(IconPath), nameof(ProjectUrl), nameof(License), nameof(EditorApiText), nameof(Contributions), nameof(State), nameof(OffReason), nameof(StateText),
-            nameof(StateDetail), nameof(Group), nameof(GroupTitle), nameof(NeedsAttention), nameof(Errors), nameof(HasErrors), nameof(IsBuiltIn), nameof(CanSwitch),
+            nameof(StateDetail), nameof(Group), nameof(GroupTitle), nameof(NeedsAttention), nameof(Errors), nameof(HasErrors), nameof(IsBuiltIn), nameof(IsPartOfGameStudio), nameof(BuiltInDetail), nameof(CanSwitch),
             nameof(IsOn), nameof(IsLoaded), nameof(IsPending), nameof(IsListedBuiltIn));
     }
 

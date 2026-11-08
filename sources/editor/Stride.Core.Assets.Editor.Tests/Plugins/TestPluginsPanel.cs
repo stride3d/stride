@@ -49,6 +49,34 @@ public sealed class TestPluginsPanel : IDisposable
     }
 
     [Fact]
+    public async Task GameStudiosOwnPartsComeInTheirOwnGroupBeforeTheBuiltInPlugins()
+    {
+        await using var fixture = await EditorSessionFixture.OpenAsync();
+        var (host, _, session) = CreateHost();
+        PluginInfo[] infos =
+        [
+            new() { Id = "Stride.UI.Editor", DisplayName = "Stride.UI.Editor", Version = EditorPackageVersion, Source = PluginSource.BuiltIn, State = PluginState.Joined },
+            new() { Id = "Stride.Core.Assets.Editor.Avalonia", DisplayName = "Stride.Core.Assets.Editor.Avalonia", Version = EditorPackageVersion, Source = PluginSource.Editor, Toolkit = EditorToolkits.Avalonia, State = PluginState.Joined },
+            new() { Id = "Plugin.Editor", DisplayName = "Plugin.Editor", Version = new PackageVersion("1.0.0"), Source = PluginSource.Package, State = PluginState.Joined },
+            new() { Id = "Stride.Assets.Editor", DisplayName = "Stride.Assets.Editor", Version = EditorPackageVersion, Source = PluginSource.Editor, State = PluginState.Joined },
+        ];
+        var panel = CreatePanel(fixture, host, session, collect: () => infos);
+
+        Assert.Equal(["Plugin.Editor", "Stride.Assets.Editor", "Stride.Core.Assets.Editor.Avalonia", "Stride.UI.Editor"], panel.Plugins.Select(x => x.Id));
+        Assert.Equal([PluginGroup.Project, PluginGroup.GameStudio, PluginGroup.GameStudio, PluginGroup.BuiltIn], panel.Plugins.Select(x => x.Group));
+        Assert.Equal([true, true, false, true], panel.Plugins.Select(x => x.IsFirstOfGroup));
+        Assert.Equal(["Plugins of the project", "Part of Game Studio", "Part of Game Studio", "Built-in plugins"], panel.Plugins.Select(x => x.GroupTitle));
+        Assert.Equal([false, true, true, false], panel.Plugins.Select(x => x.IsPartOfGameStudio));
+
+        var own = panel.Plugins[2];
+        Assert.Equal(("Part of Game Studio", "Editor, Avalonia", "Part of Game Studio: it cannot be switched off."), (own.SourceText, own.KindText, own.BuiltInDetail));
+        Assert.True(own.IsBuiltIn);
+        Assert.False(own.CanSwitch);
+        Assert.Equal("Built into Game Studio: it cannot be switched off.", panel.Plugins[3].BuiltInDetail);
+        Assert.Equal(string.Empty, panel.Plugins[0].BuiltInDetail);
+    }
+
+    [Fact]
     public async Task ThePanelListsThePluginsWithTheirStatesWhatNeedsAttentionFirst()
     {
         await using var fixture = await EditorSessionFixture.OpenAsync();

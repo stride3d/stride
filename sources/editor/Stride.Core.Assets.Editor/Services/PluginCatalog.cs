@@ -78,7 +78,7 @@ public static class PluginCatalog
                 Id = name.Name ?? group.Key.FullName ?? "",
                 Version = version,
                 DisplayName = name.Name ?? "",
-                Source = PluginSource.BuiltIn,
+                Source = PluginSource.Editor,
                 EditorApiVersion = new Version(BuiltInPlugins.EditorVersion.Major, BuiltInPlugins.EditorVersion.Minor),
                 Contributions = CountContributions(host, own),
                 State = GetState(own),
