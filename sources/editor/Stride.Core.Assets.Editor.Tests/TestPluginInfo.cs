@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Reflection;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.Tests.Helpers;
@@ -192,11 +193,40 @@ public sealed class TestPluginInfo : IDisposable
             Assert.False(info.CanSwitchOff);
             Assert.Equal(PluginState.Joined, info.State);
             Assert.Equal(3, info.Contributions.Values.Sum());
+            // The build version, not the assembly version pinned to major.minor.0; no toolkit referenced: any toolkit
+            var informational = typeof(TestPluginInfo).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion;
+            Assert.Equal(PluginCatalog.ParseBuildVersion(informational), info.Version);
+            Assert.NotNull(info.Version);
+            Assert.Null(info.Toolkit);
         }
         finally
         {
             host.Dispose();
         }
+    }
+
+    [Theory]
+    [InlineData("4.5.1-dev", "4.5.1-dev")]
+    [InlineData("4.5.1-dev+g1a2b3c4d", "4.5.1-dev")]
+    [InlineData("4.5.1-beta+g1a2b3c4d", "4.5.1-beta")]
+    [InlineData("4.5.1.0", "4.5.1.0")]
+    [InlineData("", null)]
+    [InlineData("+g1a2b3c4d", null)]
+    [InlineData("not a version", null)]
+    public void TheBuildVersionOfAnAssemblyDropsItsBuildMetadata(string text, string? expected)
+    {
+        Assert.Equal(expected, PluginCatalog.ParseBuildVersion(text)?.ToString());
+    }
+
+    [Theory]
+    [InlineData(new[] { "System.Runtime", "Avalonia.Base", "Stride.Core" }, EditorToolkits.Avalonia)]
+    [InlineData(new[] { "Avalonia" }, EditorToolkits.Avalonia)]
+    [InlineData(new[] { "System.Runtime", "PresentationFramework" }, EditorToolkits.Wpf)]
+    [InlineData(new[] { "PresentationCore", "WindowsBase" }, EditorToolkits.Wpf)]
+    [InlineData(new[] { "System.Runtime", "Stride.Core.Assets.Editor", "Stride.Avalonian" }, null)]
+    public void TheToolkitOfAnEditorAssemblyComesFromTheToolkitItReferences(string[] references, string? expected)
+    {
+        Assert.Equal(expected, PluginCatalog.ReadToolkit(references));
     }
 
     [Fact]

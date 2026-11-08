@@ -51,7 +51,7 @@ public static class PluginCatalog
         foreach (var group in statuses.Where(x => x.Plugin is not null && !listed.Contains(x)).GroupBy(x => x.Plugin!.GetType().Assembly))
         {
             var name = group.Key.GetName();
-            var version = name.Version is { } v ? new PackageVersion(new Version(v.Major, v.Minor, Math.Max(v.Build, 0))) : null;
+            var version = ReadBuildVersion(group.Key);
             var own = group.ToList();
             listed.UnionWith(own);
             result.Add(new PluginInfo
@@ -64,9 +64,54 @@ public static class PluginCatalog
                 Contributions = CountContributions(host, own),
                 State = GetState(own),
                 Statuses = own,
+                Toolkit = ReadToolkit(group.Key.GetReferencedAssemblies().Select(x => x.Name)),
             });
         }
         return result;
+    }
+
+    /// <summary>
+    /// The build version of one of the editor's own assemblies: its informational version without build metadata (a local
+    /// build reads 4.5.1-dev, like the engine's plugin packages), else its file version, else its assembly version (which
+    /// Stride pins to major.minor.0).
+    /// </summary>
+    internal static PackageVersion? ReadBuildVersion(Assembly assembly)
+    {
+        return ParseBuildVersion(assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion)
+            ?? ParseBuildVersion(assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version)
+            ?? (assembly.GetName().Version is { } v ? new PackageVersion(new Version(v.Major, v.Minor, Math.Max(v.Build, 0))) : null);
+    }
+
+    /// <summary>
+    /// A version as an assembly attribute writes it, without its build metadata (<c>+g&lt;hash&gt;</c>), or null when it
+    /// is not a version.
+    /// </summary>
+    internal static PackageVersion? ParseBuildVersion(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return null;
+        var metadata = text.IndexOf('+');
+        var version = (metadata >= 0 ? text[..metadata] : text).Trim();
+        return version.Length > 0 && PackageVersion.TryParse(version, out var result) ? result : null;
+    }
+
+    /// <summary>
+    /// The UI toolkit of one of the editor's own assemblies, from the toolkit assemblies it references: Avalonia's, or WPF's;
+    /// null for a toolkit-neutral one. The editor's own assemblies have no package declaration to say it.
+    /// </summary>
+    internal static string? ReadToolkit(IEnumerable<string?> referencedAssemblies)
+    {
+        string? toolkit = null;
+        foreach (var name in referencedAssemblies)
+        {
+            if (name is null)
+                continue;
+            if (name == "Avalonia" || name.StartsWith("Avalonia.", StringComparison.Ordinal))
+                return EditorToolkits.Avalonia;
+            if (name is "PresentationFramework" or "PresentationCore")
+                toolkit = EditorToolkits.Wpf;
+        }
+        return toolkit;
     }
 
     /// <summary>
