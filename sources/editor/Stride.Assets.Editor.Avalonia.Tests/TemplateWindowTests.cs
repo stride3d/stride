@@ -12,6 +12,8 @@ using Microsoft.TemplateEngine.Abstractions;
 using Stride.Assets.Editor.Avalonia.Templates;
 using Stride.Assets.Editor.Templates;
 using Stride.Assets.Editor.Tests.Helpers;
+using Stride.Core;
+using Stride.Core.Assets;
 using Stride.Core.Presentation.Avalonia.Services;
 using Stride.Core.Presentation.ViewModels;
 using static Stride.Core.Assets.Editor.Avalonia.Tests.Helpers.DispatcherPump;
@@ -19,7 +21,7 @@ using static Stride.Core.Assets.Editor.Avalonia.Tests.Helpers.DispatcherPump;
 namespace Stride.Assets.Editor.Avalonia.Tests;
 
 /// <summary>
-/// The dialogs the dotnet new, code library and plugin generators show before they run.
+/// The dialogs the dotnet new, code library, plugin and update platforms generators show before they run.
 /// </summary>
 public sealed class TemplateWindowTests
 {
@@ -160,6 +162,61 @@ public sealed class TemplateWindowTests
             await PumpAsync();
             window.Click(window.OkButton);
             await WaitUntilAsync(() => !window.IsVisible, "the window to close");
+        }
+        finally
+        {
+            await CloseAsync(window);
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task ThePlatformsWindowNeedsAPlatformAndConfirmsTheRemovals()
+    {
+        SolutionPlatform Platform(PlatformType type, bool available) => new() { Name = type.ToString(), Type = type, IsAvailable = available };
+        var platforms = new UpdatePlatformsViewModel([Platform(PlatformType.Windows, true), Platform(PlatformType.Linux, true), Platform(PlatformType.Android, false)], [PlatformType.Windows, PlatformType.Linux]);
+        var window = new UpdatePlatformsWindow { DataContext = platforms };
+        var confirmations = new List<string>();
+        var confirm = false;
+        window.ConfirmRemoval = message => { confirmations.Add(message); return Task.FromResult(confirm); };
+        window.Show();
+        try
+        {
+            await PumpAsync();
+            // The installed platforms are checked; Windows can't be unchecked, as in WPF
+            Assert.Equal([true, true, false], platforms.Platforms.Select(x => x.IsSelected));
+            Assert.Equal([false, true, true], platforms.Platforms.Select(x => x.CanBeUnselected));
+            var checkBoxes = window.PlatformList.GetVisualDescendants().OfType<CheckBox>().ToList();
+            Assert.Equal(["Windows", "Linux", "Android"], checkBoxes.Select(x => x.Content));
+            Assert.False(checkBoxes[0].IsEnabled);
+
+            // Without a platform, OK says one is needed and the window stays
+            foreach (var platform in platforms.Platforms)
+                platform.IsSelected = false;
+            await PumpAsync();
+            window.Click(window.OkButton);
+            await PumpAsync();
+            Assert.True(window.IsVisible);
+            Assert.True(window.ErrorLabel.IsVisible);
+            Assert.Empty(confirmations);
+
+            // Unchecking Linux removes its project: the user is asked, and saying no keeps the window
+            platforms.Platforms[0].IsSelected = true;
+            platforms.Platforms[2].IsSelected = true;
+            await PumpAsync();
+            Assert.True(platforms.Platforms[1].MarkedToRemove);
+            window.Click(window.OkButton);
+            await PumpAsync();
+            Assert.True(window.IsVisible);
+            Assert.Equal(["Are you sure you want to remove these 1 platform(s) from the package?"], confirmations);
+
+            // Saying yes closes it, with the checked platforms
+            confirm = true;
+            platforms.ForcePlatformRegeneration = true;
+            window.Click(window.OkButton);
+            await WaitUntilAsync(() => !window.IsVisible, "the window to close");
+            var result = platforms.ToResult();
+            Assert.Equal([PlatformType.Windows, PlatformType.Android], result.SelectedPlatforms);
+            Assert.True(result.ForceRegeneration);
         }
         finally
         {
