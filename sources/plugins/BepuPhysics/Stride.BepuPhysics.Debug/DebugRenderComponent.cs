@@ -14,7 +14,7 @@ namespace Stride.BepuPhysics.Debug;
 /// <remarks> Wireframes and contact lines are expanded by geometry shaders, so this needs <see cref="Stride.Graphics.GraphicsProfile.Level_10_0"/> or higher. </remarks>
 [DataContract]
 [DefaultEntityComponentProcessor(typeof(DebugRenderProcessor), ExecutionMode = ExecutionMode.Runtime)]
-[ComponentCategory("Bepu - Debug")]
+[ComponentCategory("Physics - Bepu Debug")]
 public class DebugRenderComponent : SyncScript
 {
     internal DebugRenderProcessor? _processor;
