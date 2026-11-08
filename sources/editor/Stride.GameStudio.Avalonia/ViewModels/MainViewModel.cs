@@ -14,6 +14,7 @@ using Stride.Core.Assets.Editor.Plugins;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.CodeEditorSupport;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
@@ -51,6 +52,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
     private readonly List<PanelActivation> panelActivations = [];
     private string? sessionName;
     private string title = baseTitle;
+    private IReadOnlyList<IDEInfo>? availableIDEs;
 
 #if DEBUG
     // Note: only required for the Avalonia designer
@@ -160,6 +162,12 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
     /// The panels and editors of the main window, and their layouts.
     /// </summary>
     public DockPanelService Panels { get; }
+
+    /// <summary>
+    /// The IDEs Open in IDE can start, as the WPF toolbar lists them: the default one (of the settings), then the installed ones.
+    /// Looked up the first time they are shown.
+    /// </summary>
+    public IReadOnlyList<IDEInfo> AvailableIDEs => availableIDEs ??= [IDEInfo.DefaultIDE, .. IDEInfoVersions.AvailableIDEs()];
 
     /// <summary>
     /// The View menu: a toggle per panel, and Reset layout.

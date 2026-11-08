@@ -15,6 +15,7 @@
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
         <ResourceInclude Source="avares://Stride.Core.Assets.Editor.Avalonia/Views/ImageResources.axaml"/>
+        <ResourceInclude Source="avares://Stride.GameStudio.Avalonia/Views/PackageMenuResources.axaml"/>
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </UserControl.Resources>
@@ -52,7 +53,25 @@
           </MenuItem>
 
           <MenuItem Header="{sd:LocalizeString Package, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"
-                    IsVisible="{sd:MultiBinding {Binding SetCurrentProjectCommand.IsEnabled}, {Binding ActivatePackagePropertiesCommand.IsEnabled}, Converter={sd:OrMulti}}"/>
+                    IsVisible="{sd:MultiBinding {Binding IsUpdatePackageEnabled}, {Binding AddDependencyCommand.IsEnabled}, {Binding SetCurrentProjectCommand.IsEnabled}, {Binding ActivatePackagePropertiesCommand.IsEnabled}, Converter={sd:OrMulti}}"/>
+          <MenuItem Header="{sd:LocalizeString Update package, Context=Menu}"
+                    x:Name="SolutionUpdatePackageMenuItem"
+                    ItemsSource="{Binding UpdatePackageViewModel.Templates}"
+                    ItemTemplate="{StaticResource PackageTemplateHeaderTemplate}"
+                    ItemContainerTheme="{StaticResource PackageTemplateMenuItemTheme}"
+                    IsVisible="{Binding IsUpdatePackageEnabled}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImageAddNewProject}"/>
+            </MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="{sd:LocalizeString Add dependency..., Context=Menu}"
+                    x:Name="SolutionAddDependencyMenuItem"
+                    Command="{Binding AddDependencyCommand}"
+                    IsVisible="{Binding AddDependencyCommand.IsEnabled}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImageAddDependency}"/>
+            </MenuItem.Icon>
+          </MenuItem>
           <MenuItem Header="{sd:LocalizeString Set as current project, Context=Menu}"
                     Command="{Binding SetCurrentProjectCommand}"
                     CommandParameter="{Binding AssetCollection.SelectedLocations}"
@@ -70,7 +89,7 @@
           </MenuItem>
 
           <MenuItem Header="{sd:LocalizeString Solution, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"
-                    IsVisible="{sd:MultiBinding {Binding NewProjectCommand.IsEnabled}, {Binding AddExistingProjectCommand.IsEnabled}, Converter={sd:OrMulti}}"/>
+                    IsVisible="{sd:MultiBinding {Binding NewProjectCommand.IsEnabled}, {Binding AddExistingProjectCommand.IsEnabled}, {Binding OpenInIDECommand.IsEnabled}, Converter={sd:OrMulti}}"/>
           <MenuItem Header="{sd:LocalizeString New project..., Context=Menu}"
                     Command="{Binding NewProjectCommand}"
                     IsVisible="{Binding NewProjectCommand.IsEnabled}">
@@ -83,6 +102,14 @@
                     IsVisible="{Binding AddExistingProjectCommand.IsEnabled}">
             <MenuItem.Icon>
               <Image Source="{StaticResource ImageAddExistingProject}"/>
+            </MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="{sd:LocalizeString Open in IDE, Context=Menu}"
+                    x:Name="SolutionOpenInIDEMenuItem"
+                    Command="{Binding OpenInIDECommand}"
+                    IsVisible="{Binding OpenInIDECommand.IsEnabled}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImageCodeEditor}"/>
             </MenuItem.Icon>
           </MenuItem>
 

@@ -20,6 +20,9 @@
   </Design.DataContext>
   <UserControl.Resources>
     <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://Stride.GameStudio.Avalonia/Views/PackageMenuResources.axaml"/>
+      </ResourceDictionary.MergedDictionaries>
       <!-- An entry of File > Open recent: the version in bold, then the path, shortened in the middle, as in WPF -->
       <DataTemplate x:Key="RecentSessionHeaderTemplate" DataType="gsvm:RecentSessionViewModel">
         <Grid ColumnDefinitions="30, Auto">
@@ -175,6 +178,34 @@
           </MenuItem.Icon>
         </MenuItem>
         <Separator/>
+        <!-- The package commands of WPF's Project menu, on the package selected in the solution explorer: Update package (shown
+             when a project is selected) lists the package templates, Add dependency opens the package picker -->
+        <MenuItem Header="{sd:LocalizeString Update package, Context=Menu}"
+                  Name="UpdatePackageMenuItem"
+                  ItemsSource="{Binding Session.UpdatePackageViewModel.Templates, FallbackValue={x:Null}}"
+                  ItemTemplate="{StaticResource PackageTemplateHeaderTemplate}"
+                  ItemContainerTheme="{StaticResource PackageTemplateMenuItemTheme}"
+                  IsVisible="{Binding Session.IsUpdatePackageEnabled, FallbackValue=False}">
+          <MenuItem.Icon>
+            <Image Source="{StaticResource ImageAddNewProject}"/>
+          </MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Add dependency..., Context=Menu}"
+                  Name="AddDependencyMenuItem"
+                  Command="{Binding Session.AddDependencyCommand, FallbackValue={x:Null}}">
+          <MenuItem.Icon>
+            <Image Source="{StaticResource ImageAddDependency}"/>
+          </MenuItem.Icon>
+        </MenuItem>
+        <Separator/>
+        <!-- Opens the solution in the IDE of the settings; the toolbar's drop-down picks another installed IDE -->
+        <MenuItem Header="{sd:LocalizeString Open in IDE, Context=Menu}"
+                  Name="OpenInIDEMenuItem"
+                  Command="{Binding Session.OpenInIDECommand, FallbackValue={x:Null}}">
+          <MenuItem.Icon>
+            <Image Source="{StaticResource ImageCodeEditor}"/>
+          </MenuItem.Icon>
+        </MenuItem>
         <!-- Enabled while the game code has changes the editor did not load: they load in a new editor on the project -->
         <MenuItem Header="{sd:LocalizeString Reload game assemblies, Context=Menu}"
                   Name="ReloadGameCodeMenuItem"
@@ -261,6 +292,20 @@
               ToolTip.ShowOnDisabled="True">
         <Image Source="{StaticResource ImageStopBuild}" Width="16" Height="16"/>
       </Button>
+      <!-- Open in IDE (the IDE of the settings), and the installed IDEs to open the solution with, as on the WPF toolbar -->
+      <Button Name="OpenInIDEButton"
+              Command="{Binding Session.OpenInIDECommand, FallbackValue={x:Null}}"
+              ToolTip.Tip="{sd:LocalizeString Open in IDE, Context=ToolTip}"
+              ToolTip.ShowOnDisabled="True">
+        <Image Source="{StaticResource ImageCodeEditor}" Width="16" Height="16"/>
+      </Button>
+      <DropDownButton Name="OpenWithIDEButton"
+                      Padding="0"
+                      ToolTip.Tip="{sd:LocalizeString Open with..., Context=ToolTip}">
+        <DropDownButton.Flyout>
+          <MenuFlyout Placement="BottomEdgeAlignedLeft"/>
+        </DropDownButton.Flyout>
+      </DropDownButton>
       <Button Name="ReloadGameCodeButton"
               Command="{Binding CodeReload.ReloadCommand}"
               ToolTip.Tip="{sd:LocalizeString Reload the game assemblies: build the changed code and open the project in a new editor, Context=ToolTip}"
