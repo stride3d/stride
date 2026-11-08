@@ -19,15 +19,13 @@ namespace Stride.Engine.Processors
             {
                 component.Master = FindMasterInParents(component.Entity);
             }
-            else
-            {
-                component.ConnectInstancing();
-            }
+
+            component.ConnectToMaster();
         }
 
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] InstanceComponent component, [NotNull] InstanceComponent data)
         {
-            component.DisconnectInstancing();
+            component.DisconnectFromMaster();
         }
 
         private InstancingComponent FindMasterInParents(Entity entity)
