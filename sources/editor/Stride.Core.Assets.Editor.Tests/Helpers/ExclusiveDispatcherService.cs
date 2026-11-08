@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Runtime.CompilerServices;
 using Stride.Core.Presentation.Services;
 
 namespace Stride.Core.Assets.Editor.Tests.Helpers;
@@ -26,7 +27,9 @@ public sealed class ExclusiveDispatcherService(bool strict = false) : IDispatche
     public void EnsureAccess(bool inDispatcherThread = true)
     {
         if (strict && CheckAccess() != inDispatcherThread)
-            throw new InvalidOperationException(inDispatcherThread ? "Not in the exclusive dispatcher context." : "In the exclusive dispatcher context.");
+            throw new InvalidOperationException(inDispatcherThread
+                ? $"Not in the exclusive dispatcher context: the test changes the session after await {nameof(ExclusiveDispatcherService)}.{nameof(SwitchTo)}()."
+                : "In the exclusive dispatcher context.");
     }
 
     public void Invoke(Action callback) => ExclusiveContext.Run(() => { callback(); return true; });
@@ -46,6 +49,49 @@ public sealed class ExclusiveDispatcherService(bool strict = false) : IDispatche
     public Task<TResult> InvokeTask<TResult>(Func<Task<TResult>> task, CancellationToken token = default) => ExclusiveContext.Run(task);
 
     public Task LowPriorityInvokeAsync(Action callback, CancellationToken token = default) => InvokeAsync(callback, token);
+
+    /// <summary>
+    /// Continues the calling async method in the dispatcher, as on the UI thread of the editor: until it ends, it has the access the
+    /// view models check, and each of its awaits lets the other dispatched work run.
+    /// </summary>
+    /// <remarks>
+    /// A blocking wait in the method blocks the dispatched work too: it waits with <see cref="WaitUntilAsync"/> or an await instead.
+    /// </remarks>
+    public static DispatcherAwaitable SwitchTo() => default;
+
+    /// <summary>
+    /// Waits until the given condition holds, checking it between the dispatched work.
+    /// </summary>
+    /// <param name="condition">The condition, run in the dispatcher.</param>
+    /// <param name="what">What the condition waits for, for the timeout message.</param>
+    /// <param name="timeout">How long to wait; 10 seconds by default.</param>
+    /// <exception cref="TimeoutException">The condition did not hold within the timeout.</exception>
+    public static async Task WaitUntilAsync(Func<bool> condition, string what, TimeSpan? timeout = null)
+    {
+        var deadline = DateTime.UtcNow + (timeout ?? TimeSpan.FromSeconds(10));
+        while (!ExclusiveContext.Run(condition))
+        {
+            if (DateTime.UtcNow > deadline)
+                throw new TimeoutException($"Timed out waiting for {what}.");
+            await Task.Delay(10);
+        }
+    }
+
+    /// <summary>
+    /// The awaitable of <see cref="SwitchTo"/>.
+    /// </summary>
+    public readonly struct DispatcherAwaitable : INotifyCompletion
+    {
+        public DispatcherAwaitable GetAwaiter() => this;
+
+        public bool IsCompleted => ExclusiveContext.IsEntered;
+
+        public void OnCompleted(Action continuation) => ExclusiveContext.Instance.Post(_ => continuation(), null);
+
+        public void GetResult()
+        {
+        }
+    }
 }
 
 /// <summary>
@@ -53,7 +99,7 @@ public sealed class ExclusiveDispatcherService(bool strict = false) : IDispatche
 /// </summary>
 internal sealed class ExclusiveContext : SynchronizationContext
 {
-    private static readonly ExclusiveContext Instance = new();
+    public static readonly ExclusiveContext Instance = new();
     private static readonly object Gate = new();
 
     public static bool IsEntered => Monitor.IsEntered(Gate);
