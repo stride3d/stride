@@ -79,10 +79,13 @@ public static class Dispatcher
             itemsPerBatch /= 2; // Batches of 2 instead of 4 to allow faster threads to steal more of the work
 #endif
 
-        var batch = BatchState<TJob>.Borrow(itemsPerBatch: itemsPerBatch, endExclusive: (uint)items, references: batchCount, batchJob);
+        // One helper for now, each helper wakes the next one while items are left (see TypeAdapter).
+        // Waking every helper from here costs the caller a system call per sleeping thread before it starts its own share,
+        // and on a short job most of them arrive once all the items are taken.
+        var batch = BatchState<TJob>.Borrow(itemsPerBatch: itemsPerBatch, endExclusive: (uint)items, references: 2, helpersLeft: batchCount - 2, batchJob);
         try
         {
-            ThreadPool.Instance.QueueUnsafeWorkItem(batch, &TypeAdapter<TJob>, batchCount - 1);
+            ThreadPool.Instance.QueueUnsafeWorkItem(batch, &TypeAdapter<TJob>);
 
             ProcessBatch(batchJob, batch);
 
@@ -101,12 +104,19 @@ public static class Dispatcher
         }
     }
 
-    private static void TypeAdapter<TJob>(object obj) where TJob : IBatchJob
+    private static unsafe void TypeAdapter<TJob>(object obj) where TJob : IBatchJob
     {
         var batch = obj as BatchState<TJob>; // 'as' and assert instead of direct cast to improve performance
         Debug.Assert(batch is not null);
         try
         {
+            // Wake the next helper before this one's share, only while items are left to take
+            if (Volatile.Read(ref batch.Index) < batch.Total && Interlocked.Decrement(ref batch.HelpersLeft) >= 0)
+            {
+                batch.AddReference();
+                ThreadPool.Instance.QueueUnsafeWorkItem(batch, &TypeAdapter<TJob>);
+            }
+
             ProcessBatch(batch.Job, batch);
         }
         finally
@@ -523,11 +533,14 @@ public static class Dispatcher
 
         public uint Index, Total, ItemsPerBatch, ItemsDone;
 
+        /// <summary>The helpers that may still be woken, see <see cref="TypeAdapter{TJob}"/>.</summary>
+        public int HelpersLeft;
+
         public TJob Job;
 
         public Exception? ExceptionThrown;
 
-        public static BatchState<TJob> Borrow(uint itemsPerBatch, uint endExclusive, int references, TJob job)
+        public static BatchState<TJob> Borrow(uint itemsPerBatch, uint endExclusive, int references, int helpersLeft, TJob job)
         {
             if (!Pool.TryPop(out var state))
                 state = new();
@@ -538,9 +551,12 @@ public static class Dispatcher
             state.ItemsDone = 0;
             state.ExceptionThrown = null;
             state.referenceCount = references;
+            state.HelpersLeft = helpersLeft;
             state.Job = job;
             return state;
         }
+
+        public void AddReference() => Interlocked.Increment(ref referenceCount);
 
         public void Release()
         {
