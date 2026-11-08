@@ -64,6 +64,22 @@ public abstract class SoftBodyComponent : CollidableComponent
     }
 
     /// <summary>
+    /// The radius of each particle, zero picks one from the spacing between particles.
+    /// </summary>
+    /// <remarks>
+    /// Larger particles close the gaps other objects could slip through, but keep them further from the surface.
+    /// Wraps the <see cref="ParticleCollider.Radius"/> of the collider so the usual soft body settings cover the
+    /// only knob a <see cref="ParticleCollider"/> exposes.
+    /// </remarks>
+    [Display(category: CategorySoftBody)]
+    [DefaultValue(0f)]
+    public float ParticleRadius
+    {
+        get => (Collider as ParticleCollider)?.Radius ?? 0f;
+        set { if (Collider is ParticleCollider p) p.Radius = value; }
+    }
+
+    /// <summary>
     /// The mass of the whole body, spread evenly over its particles.
     /// </summary>
     [Display(category: CategorySoftBody)]
@@ -278,6 +294,25 @@ public abstract class SoftBodyComponent : CollidableComponent
     internal virtual void BeforeStep(float deltaTime) { }
 
     internal BodyReference Particle(int index) => Simulation!.Simulation.Bodies[_particles[index]];
+
+    /// <summary>
+    /// Fills <paramref name="destination"/> with the current world position of every particle, in <see cref="ParticleCount"/> order.
+    /// Returns false when the body is not yet in a simulation.
+    /// </summary>
+    internal bool TryGetParticleWorldPositions(Span<Vector3> destination)
+    {
+        if (_particles.Length == 0 || Simulation is null || destination.Length < _particles.Length)
+            return false;
+        var bodies = Simulation.Simulation.Bodies;
+        for (int i = 0; i < _particles.Length; i++)
+            destination[i] = bodies[_particles[i]].Pose.Position.ToStride();
+        return true;
+    }
+
+    /// <summary>
+    /// Read-only view over the edges built for this body's topology. Empty when the body has no topology yet.
+    /// </summary>
+    internal ReadOnlySpan<Edge> DebugEdges => Topology is null ? default : Topology.Edges;
 
     /// <summary> Builds the topology for the current model if it changed, false when this body cannot be created yet </summary>
     internal bool TryPrepareTopology(out float spacing)
