@@ -11,11 +11,12 @@ Stride uses the following open-source products.
 * [Silk.NET](https://github.com/dotnet/Silk.NET) (MIT License)
 * [DirectXTex](http://directxtex.codeplex.com) (Ms-PL)
 * [DirectXTk](https://directxtk.codeplex.com/) (Ms-PL)
+* [FFmpeg.AutoGen](https://github.com/Ruslan-B/FFmpeg.AutoGen) (LGPL 3.0), used by the video plugin
 * [FreeType](http://www.freetype.org/) (FreeType License)
 * [JetBrains.Annotations](https://github.com/JetBrains/ExternalAnnotations/) (MIT License)
 * [Irony](https://irony.codeplex.com/) (MIT License)
 * [LZ4 for .NET](https://github.com/MiloszKrajewski/K4os.Compression.LZ4) (MIT License)
-* [ImageSharp](https://github.com/SixLabors/ImageSharp) (Apache License 2.0)
+* [ImageSharp](https://github.com/SixLabors/ImageSharp) (Six Labors Split License: Apache License 2.0 for open-source use)
 * [MurmurHash](https://github.com/darrenkopp/murmurhash-net) (Apache License 2.0)
 * [NativePath](https://github.com/sinkingsugar/NativePath) (MIT License)
 * [OpenVR SDK](https://github.com/ValveSoftware/openvr) (BSD-3-Clause)
@@ -37,8 +38,8 @@ Stride uses the following open-source products.
 ### Linux, iOS, Android
 * [Mono Class Libraries](https://github.com/mono/mono/tree/master/mcs/class) (MIT License)
 
-### Android
-* [Android.Play.ExpansionLibrary](https://github.com/mattleibow/Android.Play.ExpansionLibrary) (Apache License 2.0)
+### macOS, iOS
+* [MoltenVK](https://github.com/KhronosGroup/MoltenVK) (Apache License 2.0)
 
 ## Editor & Build
 
@@ -50,25 +51,42 @@ Stride uses the following open-source products.
 ### Opensource
 
 * [Assimp](http://assimp.sourceforge.net/) (BSD 3-clause License)
+* [astc-encoder](https://github.com/ARM-software/astc-encoder) (Apache License 2.0)
 * [AsyncEx](https://github.com/StephenCleary/AsyncEx) (MIT License)
 * [AvalonDock](https://github.com/Dirkster99/AvalonDock) (Ms-PL)
+* [AvalonEdit](https://github.com/icsharpcode/AvalonEdit) (MIT License)
+* [Avalonia](https://github.com/AvaloniaUI/Avalonia) (MIT License), with [SkiaSharp and HarfBuzzSharp](https://github.com/mono/SkiaSharp) (MIT License)
 * [AvaloniaEdit](https://github.com/AvaloniaUI/AvaloniaEdit) (MIT License)
 * [TextMateSharp](https://github.com/danipen/TextMateSharp) (MIT License), with [Oniguruma](https://github.com/kkos/oniguruma) (BSD 2-clause License)
-* [DocFX](https://dotnet.github.io/docfx/) (MIT License)
+* [ClrMD](https://github.com/microsoft/clrmd) (MIT License)
+* [CommunityToolkit.HighPerformance](https://github.com/CommunityToolkit/dotnet) (MIT License)
+* CppNet, a port of [JCPP](https://github.com/shevek/jcpp) (Apache License 2.0)
 * [ffmpeg](https://ffmpeg.org/) (GPL 3)
 * [Gettext.NET](https://sourceforge.net/projects/gettextnet/) (LGPL 2.1, [modified binaries](https://github.com/stride3d/gettextnet))
-* [ImageMagick](http://www.imagemagick.org/)
+* [GraphX](https://github.com/panthernet/GraphX) (Apache License 2.0, [Stride's build](https://www.nuget.org/packages/Stride.GraphX.WPF.Controls))
+* [Inter](https://github.com/rsms/inter) font (SIL Open Font License 1.1)
+* [JetBrains Rider PathLocator](https://github.com/JetBrains/resharper-unity) (Apache License 2.0)
+* [MarkView.Avalonia](https://github.com/Kryptos-FR/MarkView.Avalonia) (MIT License), with [Markdig](https://github.com/xoofx/markdig) (BSD 2-clause License), [Mermaider](https://github.com/nullean/mermaider) and [Svg.Skia](https://github.com/wieslawsoltes/Svg.Skia) (MIT License)
 * [Markdown.XAML](https://github.com/theunrepentantgeek/Markdown.XAML) (MIT License)
+* [Microsoft.Xaml.Behaviors.Wpf](https://github.com/microsoft/XamlBehaviorsWpf) (MIT License)
+* [MSBuild](https://github.com/dotnet/msbuild) and [Roslyn](https://github.com/dotnet/roslyn) (MIT License)
 * [msdfgen](https://github.com/Chlumsky/msdfgen) (MIT License)
 * [Mono.Cecil](https://github.com/jbevain/cecil) (MIT License)
 * [Mono.Options](http://www.mono-project.com/) and [Mono.TextTemplating](https://github.com/mono/t4) (MIT License)
 * [NShader](http://nshader.codeplex.com/) (Ms-PL)
+* [Newtonsoft.Json](https://github.com/JamesNK/Newtonsoft.Json) (MIT License)
 * [NuGet](https://github.com/NuGet/NuGet.Client) (Apache License 2.0)
 * [xunit](https://xunit.github.io/) (Apache License 2.0)
 * [Oxyplot](https://github.com/oxyplot/oxyplot) (MIT License)
+* [RoslynPad](https://github.com/roslynpad/roslynpad) (MIT License)
+* [Sentry](https://github.com/getsentry/sentry-dotnet) (MIT License)
+* [ServiceWire](https://github.com/tylerjensen/ServiceWire) (Apache License 2.0)
 * [SLNTools](https://slntools.codeplex.com) (MIT License)
+* [SPIRV-Cross](https://github.com/KhronosGroup/SPIRV-Cross) and [SPIRV-Tools](https://github.com/KhronosGroup/SPIRV-Tools) (Apache License 2.0)
+* [SSH.NET](https://github.com/sshnet/SSH.NET) (MIT License)
 * [WPFToolKit](http://wpftoolkit.codeplex.com/) (Ms-PL)
 * [XamlMarkdown](https://github.com/Kryptos-FR/XamlMarkdown/) (MIT License)
+* [Xaml.Behaviors for Avalonia](https://github.com/wieslawsoltes/Xaml.Behaviors) (MIT License)
 * [DotRecast](https://github.com/ikpil/DotRecast) (Zlib license)
 
 ### Fugue Icons
