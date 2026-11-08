@@ -59,6 +59,9 @@ public sealed class StrideEditorViewPlugin : StrideAssetsAvaloniaPlugin
         // "Edit curve" shows the curve editor panel
         context.Services.Register(new CurveEditorPanelService(context.Session));
 
+        // The Pick buttons of the entity and component properties show the entity picker
+        context.Services.Register(new AvaloniaEntityPickerService());
+
         if (GameStudioPreviewService.DisablePreview)
             return;
 

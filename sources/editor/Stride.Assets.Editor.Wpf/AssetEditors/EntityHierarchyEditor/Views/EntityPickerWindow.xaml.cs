@@ -9,7 +9,7 @@ using Stride.Assets.Presentation.ViewModels;
 using Stride.Core.Annotations;
 using Stride.Core.Presentation.Collections;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
-using Stride.Assets.Presentation.SceneEditor.Services;
+using Stride.Assets.Editor.Services;
 using Stride.Engine;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Views
@@ -17,7 +17,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Views
     /// <summary>
     /// Interaction logic for EntityPickerWindow.xaml
     /// </summary>
-    public partial class EntityPickerWindow : INotifyPropertyChanged, IEntityPickerDialog
+    public partial class EntityPickerWindow : INotifyPropertyChanged
     {
         private EntityHierarchyItemViewModelWrapper selectedEntity;
 
