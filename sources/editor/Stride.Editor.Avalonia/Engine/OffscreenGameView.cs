@@ -3,6 +3,7 @@
 
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
@@ -49,7 +50,29 @@ public sealed class OffscreenGameView : Control, IOffscreenFrameSink
     {
         MinWidth = 32;
         MinHeight = 32;
+        // The pointer over the view, including while something is dragged over it: the game gets no pointer move during a drag
+        AddHandler(PointerMovedEvent, (_, e) => LastPointerPosition = e.GetPosition(this), handledEventsToo: true);
+        AddHandler(PointerPressedEvent, (_, e) =>
+        {
+            LastPointerPosition = e.GetPosition(this);
+            if (e.GetCurrentPoint(this).Properties.IsRightButtonPressed)
+                LastRightClickPosition = LastPointerPosition;
+        }, handledEventsToo: true);
+        AddHandler(DragDrop.DragEnterEvent, (_, e) => LastPointerPosition = e.GetPosition(this), handledEventsToo: true);
+        AddHandler(DragDrop.DragOverEvent, (_, e) => LastPointerPosition = e.GetPosition(this), handledEventsToo: true);
+        AddHandler(DragDrop.DropEvent, (_, e) => LastPointerPosition = e.GetPosition(this), handledEventsToo: true);
     }
+
+    /// <summary>
+    /// Gets the last position of the pointer over the view, relative to it: its last move, press, or drag over the view
+    /// (UI thread). <c>null</c> until the pointer comes over the view.
+    /// </summary>
+    public Point? LastPointerPosition { get; private set; }
+
+    /// <summary>
+    /// Gets the position of the last right click on the view, relative to it (UI thread), which opens its context menu.
+    /// </summary>
+    public Point? LastRightClickPosition { get; private set; }
 
     /// <summary>
     /// Raised on the UI thread when the size of the control in device pixels changes: the game sizes its back buffer after it.

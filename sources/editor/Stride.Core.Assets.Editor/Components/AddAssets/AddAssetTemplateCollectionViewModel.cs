@@ -1,24 +1,24 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
-using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Extensions;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Components.AddAssets;
 
 /// <summary>
-/// The asset templates of a session (see <see cref="SessionViewModel.FindTemplates"/>), grouped as their descriptions say: the
+/// The asset templates of a session (see <see cref="ISessionViewModel.FindTemplates"/>), grouped as their descriptions say: the
 /// list of the Add asset button and of the Add asset dialog.
 /// </summary>
 public sealed class AddAssetTemplateCollectionViewModel : AddItemTemplateCollectionViewModel
 {
-    private readonly SessionViewModel session;
+    private readonly ISessionViewModel session;
     private DirectoryBaseViewModel? currentDirectory;
 
-    public AddAssetTemplateCollectionViewModel(SessionViewModel session)
+    public AddAssetTemplateCollectionViewModel(ISessionViewModel session)
         : base(session.SafeArgument(nameof(session)).ServiceProvider)
     {
         this.session = session;

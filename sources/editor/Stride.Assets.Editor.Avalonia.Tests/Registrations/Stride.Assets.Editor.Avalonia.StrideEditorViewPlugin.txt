@@ -16,13 +16,13 @@ AssetPreviewViewTypes:
   Stride.Assets.Editor.Preview.PrecompiledSpriteFontPreview -> Stride.Assets.Editor.Avalonia.Views.Preview.SpriteFontPreviewView
   Stride.Assets.Editor.Preview.PrefabModelPreview -> Stride.Assets.Editor.Avalonia.Views.Preview.ModelPreviewView
   Stride.Assets.Editor.Preview.PrefabPreview -> Stride.Assets.Editor.Avalonia.Views.Preview.ModelPreviewView
+  Stride.Assets.Editor.Preview.PreviewFromSpriteBatch`1 -> Stride.Assets.Editor.Avalonia.Views.Preview.SpritePreviewView
   Stride.Assets.Editor.Preview.ProceduralModelPreview -> Stride.Assets.Editor.Avalonia.Views.Preview.ModelPreviewView
   Stride.Assets.Editor.Preview.ScenePreview -> Stride.Assets.Editor.Avalonia.Views.Preview.ScenePreviewView
   Stride.Assets.Editor.Preview.SkyboxPreview -> Stride.Assets.Editor.Avalonia.Views.Preview.SkyboxPreviewView
   Stride.Assets.Editor.Preview.SpriteFontPreview -> Stride.Assets.Editor.Avalonia.Views.Preview.SpriteFontPreviewView
   Stride.Assets.Editor.Preview.SpriteSheetPreview -> Stride.Assets.Editor.Avalonia.Views.Preview.SpriteSheetPreviewView
   Stride.Assets.Editor.Preview.TexturePreview -> Stride.Assets.Editor.Avalonia.Views.Preview.TexturePreviewView
-  Stride.Assets.Presentation.Preview.PreviewFromSpriteBatch`1 -> Stride.Assets.Editor.Avalonia.Views.Preview.SpritePreviewView
 PrimitiveTypes:
 EnumImages:
   Stride.Assets.Editor.Preview.MaterialPreviewPrimitive.Capsule -> Avalonia.Media.DrawingImage

@@ -1,0 +1,15 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
+using Stride.Engine;
+
+namespace Stride.Assets.Editor.AssetEditors.Gizmos
+{
+    public class FallbackGizmo : BillboardingGizmo<TransformComponent>
+    {
+        public FallbackGizmo(EntityComponent component)
+            : base(component, "Fallback", GizmoResources.FallbackGizmo)
+        {
+        }
+    }
+}

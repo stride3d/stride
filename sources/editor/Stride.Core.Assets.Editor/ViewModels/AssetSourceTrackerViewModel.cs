@@ -1,10 +1,9 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 
 using System.Threading.Tasks.Dataflow;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Assets.Editor.ViewModel.Progress;
 using Stride.Core.Assets.Tracking;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
@@ -14,18 +13,36 @@ using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Storage;
+using Stride.Core.Assets.Editor.ViewModels.Progress;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModels;
 
+/// <summary>
+/// Tracks the source files of the assets of a session, and updates the assets whose source files changed.
+/// </summary>
 public sealed class AssetSourceTrackerViewModel : DispatcherViewModel, IAssetSourceTrackerViewModel
 {
+    /// <summary>
+    /// The delay before the progress window of an update from source opens, in milliseconds: a quick update shows no window.
+    /// </summary>
+    public const int ProgressWindowDelay = 500;
+
+    private readonly ISessionViewModel session;
+    private readonly PackageSession packageSession;
     private readonly CancellationTokenSource cts = new();
     private readonly ObservableSet<AssetViewModel> assetsToUpdate = [];
 
-    public AssetSourceTrackerViewModel(SessionViewModel session)
-        : base(session.ServiceProvider)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AssetSourceTrackerViewModel"/> class.
+    /// </summary>
+    /// <param name="session">The session view model.</param>
+    /// <param name="packageSession">The package session, whose source tracker this view model listens to.</param>
+    public AssetSourceTrackerViewModel(ISessionViewModel session, PackageSession packageSession)
+        : base(session.SafeArgument().ServiceProvider)
     {
-        Session = session;
+        this.session = session;
+        this.packageSession = packageSession.SafeArgument();
         UpdateSelectedAssetsFromSourceCommand = new AnonymousTaskCommand(ServiceProvider, UpdateSelectedAssetsFromSourceAsync);
         UpdateAllAssetsWithModifiedSourceCommand = new AnonymousTaskCommand(ServiceProvider, UpdateAllAssetsWithModifiedSourceAsync) { IsEnabled = false };
 
@@ -33,10 +50,14 @@ public sealed class AssetSourceTrackerViewModel : DispatcherViewModel, IAssetSou
         session.TrackBackgroundWork(PullSourceFileChangesUntilDestroyedAsync());
     }
 
-    public SessionViewModel Session { get; }
-
+    /// <summary>
+    /// Gets the command that will reimport the selected assets from their source files.
+    /// </summary>
     public ICommandBase UpdateSelectedAssetsFromSourceCommand { get; }
 
+    /// <summary>
+    /// Gets the command that will reimport all pending assets.
+    /// </summary>
     public ICommandBase UpdateAllAssetsWithModifiedSourceCommand { get; }
 
     /// <summary>
@@ -44,7 +65,10 @@ public sealed class AssetSourceTrackerViewModel : DispatcherViewModel, IAssetSou
     /// </summary>
     public IReadOnlyObservableCollection<AssetViewModel> AssetsToUpdate => assetsToUpdate;
 
-    public BroadcastBlock<IReadOnlyList<SourceFileChangedData>> SourceFileChanged => Session.PackageSession.SourceTracker.SourceFileChanged;
+    /// <summary>
+    /// Gets a broadcast block from which asset source file events are sent.
+    /// </summary>
+    public BroadcastBlock<IReadOnlyList<SourceFileChangedData>> SourceFileChanged => packageSession.SourceTracker.SourceFileChanged;
 
     public override void Destroy()
     {
@@ -54,7 +78,7 @@ public sealed class AssetSourceTrackerViewModel : DispatcherViewModel, IAssetSou
 
     public ObjectId GetCurrentHash(UFile file)
     {
-        return Session.PackageSession.SourceTracker.GetCurrentHash(file);
+        return packageSession.SourceTracker.GetCurrentHash(file);
     }
 
     public void UpdateAssetStatus(AssetViewModel asset)
@@ -69,12 +93,18 @@ public sealed class AssetSourceTrackerViewModel : DispatcherViewModel, IAssetSou
 
     private Task UpdateSelectedAssetsFromSourceAsync()
     {
-        return UpdateAssetsFromSourceAsync(Session.AssetCollection.SelectedAssets);
+        return UpdateAssetsFromSourceAsync(session.ActiveAssetView.SelectedAssets);
     }
 
     private Task UpdateAllAssetsWithModifiedSourceAsync()
     {
-        return UpdateAssetsFromSourceAsync(Session.AllAssets.Where(x => x.Sources.NeedUpdateFromSource));
+        return UpdateAssetsFromSourceAsync(session.AllAssets.Where(x => x.Sources.NeedUpdateFromSource));
+    }
+
+    /// <inheritdoc />
+    public Task UpdateAssetsFromSourceAsync(IReadOnlyCollection<AssetViewModel> assets)
+    {
+        return UpdateAssetsFromSourceAsync((IEnumerable<AssetViewModel>)assets);
     }
 
     private async Task UpdateAssetsFromSourceAsync(IEnumerable<AssetViewModel> assets)
@@ -89,13 +119,15 @@ public sealed class AssetSourceTrackerViewModel : DispatcherViewModel, IAssetSou
         };
         workProgress.RegisterProgressStatus(logger, true);
 
-        workProgress.ServiceProvider.Get<IEditorDialogService>().ShowProgressWindow(workProgress);
+        workProgress.ServiceProvider.Get<IProgressWindowService>().ShowProgressWindow(workProgress, ProgressWindowDelay);
         var undoRedo = ServiceProvider.Get<IUndoRedoService>();
         using (var transaction = undoRedo.CreateTransaction())
         {
             var tasks = new List<Task>();
+            var updated = new List<AssetViewModel>();
             foreach (var asset in assets)
             {
+                updated.Add(asset);
                 logger.Verbose($"Updating {asset.Url}...");
                 var task = asset.Sources.UpdateAssetFromSource(logger);
                 // Continuation might swallow exceptions, careful to keep the original task like this
@@ -104,7 +136,8 @@ public sealed class AssetSourceTrackerViewModel : DispatcherViewModel, IAssetSou
             }
             await Task.WhenAll(tasks);
             logger.Info("Update completed...");
-            undoRedo.SetName(transaction, $"Update {tasks.Count} asset(s) from their source(s)");
+            // One asset (its "Update from source" button) keeps the name it had when the asset ran the update itself
+            undoRedo.SetName(transaction, updated.Count == 1 ? $"Update [{updated[0].Url}] from its source(s)" : $"Update {tasks.Count} asset(s) from their source(s)");
         }
 
         await workProgress.NotifyWorkFinished(false, logger.HasErrors);
@@ -127,7 +160,7 @@ public sealed class AssetSourceTrackerViewModel : DispatcherViewModel, IAssetSou
 
     private async Task PullSourceFileChangesAsync(CancellationToken token)
     {
-        var sourceTracker = Session.PackageSession.SourceTracker;
+        var sourceTracker = packageSession.SourceTracker;
         var bufferBlock = new BufferBlock<IReadOnlyList<SourceFileChangedData>>();
         var changedAssets = new HashSet<AssetViewModel>();
         var sourceFileChanges = new List<SourceFileChangedData>();
@@ -154,8 +187,8 @@ public sealed class AssetSourceTrackerViewModel : DispatcherViewModel, IAssetSou
                 {
                     var sourceFileChange = sourceFileChanges[i];
                     // Look first in the assets of the session, then in the list of deleted assets.
-                    var asset = Session.GetAssetById(sourceFileChange.AssetId)
-                                ?? Session.AllPackages.SelectMany(x => x.DeletedAssets).FirstOrDefault(x => x.Id == sourceFileChange.AssetId);
+                    var asset = session.GetAssetById(sourceFileChange.AssetId)
+                                ?? session.AllPackages.SelectMany(x => x.DeletedAssets).FirstOrDefault(x => x.Id == sourceFileChange.AssetId);
                     if (asset is null)
                         continue;
 
@@ -189,7 +222,7 @@ public sealed class AssetSourceTrackerViewModel : DispatcherViewModel, IAssetSou
                 // Notify all changed assets at once.
                 if (changedAssets.Count > 0)
                 {
-                    Session.NotifyAssetPropertiesChangedAsync(changedAssets.ToList()).Forget();
+                    session.NotifyAssetPropertiesChangedAsync(changedAssets.ToList()).Forget();
                     changedAssets.Clear();
                 }
             }

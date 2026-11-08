@@ -1,5 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -84,6 +86,19 @@ namespace Stride.Editor.Build
         public Task<ISyncLockable> ReserveSyncLock() => databaseLock.ReserveSyncLock();
 
         public Task<IDisposable> LockAsync() => databaseLock.LockAsync();
+
+        /// <summary>
+        /// Analyzes the build dependencies of an asset in the compilation context of the editor games.
+        /// </summary>
+        /// <param name="assetItem">The asset to analyze.</param>
+        /// <returns>The build node of the asset, whose <see cref="BuildAssetNode.References"/> tell which assets it depends on, and how.</returns>
+        /// <remarks>The caller holds the lock of the database (<see cref="ReserveSyncLock"/>).</remarks>
+        public BuildAssetNode AnalyzeDependencies(AssetItem assetItem)
+        {
+            var node = AssetDependenciesCompiler.BuildDependencyManager.FindOrCreateNode(assetItem, typeof(AssetCompilationContext));
+            node.Analyze(CompilerContext);
+            return node;
+        }
 
         public async Task<IDisposable> MountInCurrentMicroThread()
         {

@@ -8,11 +8,10 @@ using Stride.Assets.Models;
 using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Extensions;
-using Stride.Core.Assets.Editor.Quantum.NodePresenters;
+using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Collections;
@@ -23,6 +22,7 @@ using Stride.Core.Quantum;
 using Stride.Core.Serialization;
 using Stride.Engine;
 using Stride.Rendering;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Editor.Quantum.NodePresenters.Updaters;
 
@@ -50,7 +50,7 @@ internal sealed class ModelComponentNodeUpdater : AssetNodePresenterUpdaterBase
             // Morph settings follow the model, and are only shown when it has morph targets.
             var morphs = node[nameof(ModelComponent.Morphs)];
             morphs.AddDependency(model, true);
-            morphs.IsVisible = GetMorphTargetNames(GetModelAsset(node.Asset.Session, component.Model)).Length != 0;
+            morphs.IsVisible = ModelComponentChangeHandler.GetMorphTargetNames(ModelComponentChangeHandler.GetModelAsset(node.Asset.Session, component.Model)).Length != 0;
         }
 
         if (node.Value is ModelMorphSettings settings)
@@ -75,7 +75,7 @@ internal sealed class ModelComponentNodeUpdater : AssetNodePresenterUpdaterBase
             return;
 
         var session = node.Asset.Session;
-        var names = GetMorphTargetNames(GetModelAsset(session, component.Model));
+        var names = ModelComponentChangeHandler.GetMorphTargetNames(ModelComponentChangeHandler.GetModelAsset(session, component.Model));
         if (names.Length == 0)
             return;
 
@@ -117,7 +117,7 @@ internal sealed class ModelComponentNodeUpdater : AssetNodePresenterUpdaterBase
     private static void UpdateMaterials(IAssetNodePresenter node, ModelComponent component)
     {
         var session = node.Asset.Session;
-        var model = GetModelAsset(session, component.Model);
+        var model = ModelComponentChangeHandler.GetModelAsset(session, component.Model);
         if (model is null)
             return;
 
@@ -164,7 +164,7 @@ internal sealed class ModelComponentNodeUpdater : AssetNodePresenterUpdaterBase
 
     private static Task FetchMaterial(ISessionViewModel session, object? material)
     {
-        return session is SessionViewModel sessionViewModel && material is not null ? FetchAssetCommand.Fetch(sessionViewModel, material) : Task.CompletedTask;
+        return material is not null ? FetchAssetCommand.Fetch(session, material) : Task.CompletedTask;
     }
 
     private static EntityHierarchyEditorViewModel? GetEditor(AssetViewModel asset)
@@ -203,24 +203,6 @@ internal sealed class ModelComponentNodeUpdater : AssetNodePresenterUpdaterBase
     /// <summary>
     /// Distinct morph target names of a model asset, empty when it has none or doesn't import them.
     /// </summary>
-    internal static string[] GetMorphTargetNames(IModelAsset? model)
-    {
-        return model is ModelAsset { ImportMorphTargets: true } asset
-            ? asset.MorphTargetNames.Distinct(StringComparer.Ordinal).ToArray()
-            : [];
-    }
-
-    internal static IModelAsset? GetModelAsset(ISessionViewModel session, object? modelReference)
-    {
-        if (modelReference == null)
-            return null;
-
-        // By id: a lookup in the session instead of a scan of its assets, whatever the form of the URL
-        return AttachedReferenceManager.GetAttachedReference(modelReference) is { } reference
-            ? session.GetAssetById(reference.Id)?.Asset as IModelAsset
-            : null;
-    }
-
     private static void SetMaterial(IObjectNode materialNode, NodeIndex index, Material value)
     {
         if (materialNode.Indices.Contains(index))
@@ -240,7 +222,7 @@ internal sealed class ModelComponentNodeUpdater : AssetNodePresenterUpdaterBase
             return materialNode.Retrieve(index);
         }
 
-        var model = GetModelAsset(session, component.Model);
+        var model = ModelComponentChangeHandler.GetModelAsset(session, component.Model);
         // During specific operations such as changes of the referenced model, this getter can be used while we're not currently in sync with the collection
         // of the model. In this case, return null.
         if (model == null || model.Materials.Count <= index.Int)

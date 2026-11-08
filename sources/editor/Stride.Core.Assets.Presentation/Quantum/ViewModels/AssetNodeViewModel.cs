@@ -1,14 +1,15 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 
 using System.ComponentModel;
-using Stride.Core.Assets.Editor.Quantum.NodePresenters;
-using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Presentation.Quantum.ViewModels;
 using Stride.Core.Presentation.Services;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Presentation.Quantum.ViewModels;
 
@@ -53,13 +54,14 @@ public class AssetNodeViewModel : NodeViewModel, IInternalAssetNodeViewModel
         base.Destroy();
     }
 
-    public bool HasBase => NodePresenters.First().HasBase;
+    public bool HasBase => NodePresenters.All(x => x.HasBase);
 
-    public bool IsInherited => NodePresenters.First().IsInherited;
+    public bool IsInherited => NodePresenters.All(x => x.IsInherited);
 
-    public bool IsOverridden => NodePresenters.First().IsOverridden;
+    public bool IsOverridden => NodePresenters.All(x => x.IsOverridden);
 
-    public bool IsObjectReference => NodePresenters.First().IsObjectReference(NodeValue);
+    [Obsolete]
+    public bool IsObjectReference => NodePresenters.All(x => x.IsObjectReference(x.Value));
 
     private new IEnumerable<IAssetNodePresenter> NodePresenters => base.NodePresenters.Cast<IAssetNodePresenter>();
 
@@ -155,8 +157,8 @@ public class AssetNodeViewModel : NodeViewModel, IInternalAssetNodeViewModel
         if (!overrideChanging)
         {
             overrideChanging = true;
-            OnPropertyChanging(nameof(HasBase), nameof(IsInherited), nameof(IsOverridden));
             ((IInternalAssetNodeViewModel?)Parent)?.ChildOverrideChanging();
+            OnPropertyChanging(nameof(HasBase), nameof(IsOverridden), nameof(IsInherited));
         }
     }
 
@@ -164,7 +166,7 @@ public class AssetNodeViewModel : NodeViewModel, IInternalAssetNodeViewModel
     {
         if (overrideChanging)
         {
-            OnPropertyChanged(nameof(HasBase), nameof(IsInherited), nameof(IsOverridden));
+            OnPropertyChanged(nameof(HasBase), nameof(IsOverridden), nameof(IsInherited));
             ((IInternalAssetNodeViewModel?)Parent)?.ChildOverrideChanged();
             overrideChanging = false;
         }

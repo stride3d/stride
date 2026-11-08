@@ -2,9 +2,9 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Assets;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Editor.Preview;
-using Stride.Editor.Preview.ViewModel;
+using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Editor.Preview.ViewModels;
 
 namespace Stride.Editor.Avalonia.Tests.Helpers;
 

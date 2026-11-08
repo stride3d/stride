@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2026-09-12 15:24:52+0200\n"
+"POT-Creation-Date: 2026-11-07 10:57:05+0000\n"
 "PO-Revision-Date: 2019-04-07 09:05+0000\n"
 "Last-Translator: Louies <louies0623@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://hosted.weblate.org/projects/"

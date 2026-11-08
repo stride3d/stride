@@ -3,8 +3,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:viewModel="clr-namespace:Stride.Core.Assets.Editor.ViewModel"
-             xmlns:commonViewModel="clr-namespace:Stride.Core.Assets.Editor.ViewModel;assembly=Stride.Core.Assets.Editor.Common"
+             xmlns:editorvm="clr-namespace:Stride.Core.Assets.Editor.ViewModels;assembly=Stride.Core.Assets.Editor"
+             xmlns:editorViewModels="clr-namespace:Stride.Core.Assets.Editor.ViewModels;assembly=Stride.Core.Assets.Editor"
+             xmlns:commonViewModel="clr-namespace:Stride.Core.Assets.Presentation.ViewModels;assembly=Stride.Core.Assets.Presentation"
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              xmlns:view="clr-namespace:Stride.Core.Assets.Editor.View"
@@ -16,7 +17,7 @@
              xmlns:strings="clr-namespace:Stride.Core.Assets.Editor.Resources.Strings"
              xmlns:templateViews="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views"
              xmlns:services="clr-namespace:Stride.Core.Assets.Editor.Services"
-             mc:Ignorable="d" d:DataContext="{d:DesignInstance viewModel:AssetCollectionViewModel}" Focusable="True"
+             mc:Ignorable="d" d:DataContext="{d:DesignInstance editorvm:AssetCollectionViewModel}" Focusable="True"
              d:DesignHeight="300" d:DesignWidth="300" x:Name="AssetView" BorderThickness="1" BorderBrush="{DynamicResource MenuBorderBrush}">
   <!-- DataContext is AssetCollection, set in code-behind -->
   <DockPanel x:Name="RootContainer" DataContext="{x:Null}">
@@ -227,7 +228,7 @@
       <ToolBar>
         <!--  NEW ASSET  -->
         <ToggleButton x:Name="Toggle" Style="{StaticResource {x:Static ToolBar.ToggleButtonStyleKey}}"
-                      ToolTip="{sd:Localize Add an asset to this location, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Editor.Status}"
+                      ToolTip="{sd:Localize Add an asset to this location, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Main.Status}"
                       Visibility="{Binding CanAddAssets, ElementName=AssetView, Converter={sd:VisibleOrCollapsed}}">
           <StackPanel Orientation="Horizontal">
             <Image Source="{StaticResource ImageNewAsset}" />
@@ -252,7 +253,7 @@
         </Popup>
         <!--  UPDATE ASSETS FROM SOURCE BUTTON  -->
         <Button Command="{Binding Session.SourceTracker.UpdateAllAssetsWithModifiedSourceCommand}"
-                ToolTip="{sd:ToolTip {sd:Localize Update assets whose source files have changed, Context=ToolTip}, {x:Static strings:KeyGestures.UpdateAllAssetsWithModifiedSource}}" status:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True"
+                ToolTip="{sd:ToolTip {sd:Localize Update assets whose source files have changed, Context=ToolTip}, {x:Static strings:KeyGestures.UpdateAllAssetsWithModifiedSource}}" status:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True"
                 Visibility="{Binding CanEditAssets, ElementName=AssetView, Converter={sd:VisibleOrCollapsed}}">
           <DockPanel>
             <TextBlock DockPanel.Dock="Right" Margin="3,0" Visibility="{Binding Session.SourceTracker.AssetsToUpdate.Count, Converter={sd:Chained {sd:NumericToBool}, {sd:VisibleOrCollapsed}}}"
@@ -279,7 +280,7 @@
         <Button Command="{Binding Session.ImportEffectLogCommand}"
                 IsEnabled="{Binding Session.ImportEffectLogPendingCount, Converter={sd:NumericToBool}}"
                 Visibility="{Binding CanEditAssets, ElementName=AssetView, Converter={sd:VisibleOrCollapsed}}"
-                ToolTip="{sd:Localize Import last effects compiled remotely, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                ToolTip="{sd:Localize Import last effects compiled remotely, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
           <DockPanel>
             <TextBlock DockPanel.Dock="Right" Margin="3,0" Visibility="{Binding Session.ImportEffectLogPendingCount, Converter={sd:Chained {sd:IsGreater}, {sd:VisibleOrCollapsed},  Parameter1={sd:Double 0}}}"
                        Text="{Binding Session.ImportEffectLogPendingCount, StringFormat=({0})}" VerticalAlignment="Center" />
@@ -305,7 +306,7 @@
         <Separator/>
         <!--  EDIT  -->
         <Button Command="{Binding Session.EditSelectedContentCommand}" Visibility="{Binding CanEditAssets, ElementName=AssetView, Converter={sd:VisibleOrCollapsed}}"
-                ToolTip="{sd:ToolTip {sd:Localize Open asset in dedicated editor, Context=ToolTip}, {x:Static strings:KeyGestures.EditAsset}}" status:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                ToolTip="{sd:ToolTip {sd:Localize Open asset in dedicated editor, Context=ToolTip}, {x:Static strings:KeyGestures.EditAsset}}" status:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
           <Image Source="{StaticResource ImageEditAsset}" />
         </Button>
         <Separator Visibility="{Binding CanEditAssets, ElementName=AssetView, Converter={sd:VisibleOrCollapsed}}" />
@@ -314,47 +315,47 @@
           <MenuItem StaysOpenOnClick="True" Style="{StaticResource ToolBarIconMenuItemStyle}">
             <MenuItem.Icon>
               <Image Source="{StaticResource ImageView}" MaxHeight="16" MaxWidth="16"
-                     ToolTip="{sd:Localize Asset view options, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True"/>
+                     ToolTip="{sd:Localize Asset view options, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True"/>
             </MenuItem.Icon>
             <MenuItem.Resources>
               <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}" />
             </MenuItem.Resources>
             <MenuItem Header="{sd:Localize Display, Context=Menu}" Style="{StaticResource MenuGroupWithItemsStyle}" Visibility="{Binding CanRecursivelyDisplayAssets, ElementName=AssetView, Converter={sd:VisibleOrCollapsed}}">
               <MenuItem Header="{sd:Localize Assets in selected folder only, Context=Menu}" IsCheckable="False"
-                        Command="{Binding ChangeDisplayAssetModeCommand}" CommandParameter="{x:Static viewModel:DisplayAssetMode.AssetInSelectedFolderOnly}"
-                        IsChecked="{Binding DisplayAssetMode, Mode=OneWay, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static viewModel:DisplayAssetMode.AssetInSelectedFolderOnly}}" />
+                        Command="{Binding ChangeDisplayAssetModeCommand}" CommandParameter="{x:Static editorViewModels:DisplayAssetMode.AssetInSelectedFolderOnly}"
+                        IsChecked="{Binding DisplayAssetMode, Mode=OneWay, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static editorViewModels:DisplayAssetMode.AssetInSelectedFolderOnly}}" />
               <MenuItem Header="{sd:Localize Assets and folders in selected folder, Context=Menu}" IsCheckable="False"
-                        Command="{Binding ChangeDisplayAssetModeCommand}" CommandParameter="{x:Static viewModel:DisplayAssetMode.AssetAndFolderInSelectedFolder}"
-                        IsChecked="{Binding DisplayAssetMode, Mode=OneWay, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static viewModel:DisplayAssetMode.AssetAndFolderInSelectedFolder}}" />
+                        Command="{Binding ChangeDisplayAssetModeCommand}" CommandParameter="{x:Static editorViewModels:DisplayAssetMode.AssetAndFolderInSelectedFolder}"
+                        IsChecked="{Binding DisplayAssetMode, Mode=OneWay, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static editorViewModels:DisplayAssetMode.AssetAndFolderInSelectedFolder}}" />
               <MenuItem Header="{sd:Localize Assets in selected folder and subfolders, Context=Menu}" IsCheckable="False"
-                        Command="{Binding ChangeDisplayAssetModeCommand}" CommandParameter="{x:Static viewModel:DisplayAssetMode.AssetInSelectedFolderAndSubFolder}"
-                        IsChecked="{Binding DisplayAssetMode, Mode=OneWay, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static viewModel:DisplayAssetMode.AssetInSelectedFolderAndSubFolder}}" />
+                        Command="{Binding ChangeDisplayAssetModeCommand}" CommandParameter="{x:Static editorViewModels:DisplayAssetMode.AssetInSelectedFolderAndSubFolder}"
+                        IsChecked="{Binding DisplayAssetMode, Mode=OneWay, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static editorViewModels:DisplayAssetMode.AssetInSelectedFolderAndSubFolder}}" />
             </MenuItem>
             <MenuItem Header="Sort by" Style="{StaticResource MenuGroupSeparatorStyle}" />
             <MenuItem Header="{sd:Localize Name, Context=Menu}" IsCheckable="False"
-                      Command="{Binding SortAssetsCommand}" CommandParameter="{x:Static viewModel:SortRule.Name}"
-                      IsChecked="{Binding SortRule, Mode=OneWay, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static viewModel:SortRule.Name}}"/>
+                      Command="{Binding SortAssetsCommand}" CommandParameter="{x:Static editorViewModels:SortRule.Name}"
+                      IsChecked="{Binding SortRule, Mode=OneWay, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static editorViewModels:SortRule.Name}}"/>
             <MenuItem Header="{sd:Localize Date modified, Context=Menu}" IsCheckable="False"
-                      Command="{Binding SortAssetsCommand}" CommandParameter="{x:Static viewModel:SortRule.ModificationDateThenName}"
-                      IsChecked="{Binding SortRule, Mode=OneWay, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static viewModel:SortRule.ModificationDateThenName}}"/>
+                      Command="{Binding SortAssetsCommand}" CommandParameter="{x:Static editorViewModels:SortRule.ModificationDateThenName}"
+                      IsChecked="{Binding SortRule, Mode=OneWay, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static editorViewModels:SortRule.ModificationDateThenName}}"/>
             <MenuItem Header="{sd:Localize Type, Context=Menu}" IsCheckable="False"
-                      Command="{Binding SortAssetsCommand}" CommandParameter="{x:Static viewModel:SortRule.TypeOrderThenName}"
-                      IsChecked="{Binding SortRule, Mode=OneWay, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static viewModel:SortRule.TypeOrderThenName}}"/>
+                      Command="{Binding SortAssetsCommand}" CommandParameter="{x:Static editorViewModels:SortRule.TypeOrderThenName}"
+                      IsChecked="{Binding SortRule, Mode=OneWay, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static editorViewModels:SortRule.TypeOrderThenName}}"/>
             <MenuItem Header="{sd:Localize Unsaved changes, Context=Menu}" IsCheckable="False"
-                      Command="{Binding SortAssetsCommand}" CommandParameter="{x:Static viewModel:SortRule.DirtyThenName}"
-                      IsChecked="{Binding SortRule, Mode=OneWay, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static viewModel:SortRule.DirtyThenName}}"/>
+                      Command="{Binding SortAssetsCommand}" CommandParameter="{x:Static editorViewModels:SortRule.DirtyThenName}"
+                      IsChecked="{Binding SortRule, Mode=OneWay, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static editorViewModels:SortRule.DirtyThenName}}"/>
             <MenuItem Style="{StaticResource MenuGroupWithItemsStyle}">
               <MenuItem.Header>
                 <DockPanel LastChildFill="False">
                   <TextBlock DockPanel.Dock="Left" Text="View" FontWeight="Bold" />
                   <Button DockPanel.Dock="Right" Margin="4 0 0 0" Background="Transparent"
                           Command="view:AssetViewUserControl.ZoomInCommand"
-                          ToolTip="{sd:Localize Zoom in, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                          ToolTip="{sd:Localize Zoom in, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
                     <Image Source="{StaticResource ImageZoomIn}"/>
                   </Button>
                   <Button DockPanel.Dock="Right" Background="Transparent"
                           Command="view:AssetViewUserControl.ZoomOutCommand"
-                          ToolTip="{sd:Localize Zoom out, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                          ToolTip="{sd:Localize Zoom out, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
                     <Image Source="{StaticResource ImageZoomOut}"/>
                   </Button>
                 </DockPanel>
@@ -375,7 +376,7 @@
         <sd:SearchComboBox Width="120" WatermarkContent="{sd:Localize Add a filter...}"
                              ItemsSource="{Binding AvailableAssetFilters}" SearchText="{Binding AssetFilterPattern}" ClearTextAfterSelection="True"
                              Command="{Binding AddAssetFilterCommand}" AlternativeCommand="{Binding RefreshAssetFilterCommand}" AlternativeModifiers="Shift"
-                             Grid.IsSharedSizeScope="True" x:Name="FilterSearchComboBox" status:ToolTipHelper.Status="{Binding Session.Editor.Status}"
+                             Grid.IsSharedSizeScope="True" x:Name="FilterSearchComboBox" status:ToolTipHelper.Status="{Binding Session.Main.Status}"
                              ToolTip="{sd:Localize Filter assets by name\, type or tag}" ToolTipService.ShowOnDisabled="True">
           <sd:SearchComboBox.ItemTemplate>
             <DataTemplate>
@@ -402,7 +403,7 @@
           </sd:SearchComboBox.ItemTemplate>
         </sd:SearchComboBox>
         <Button Command="{Binding ClearAssetFiltersCommand}" Visibility="{Binding CurrentAssetFilters.Count, Converter={sd:Chained {sd:NumericToBool}, {sd:VisibleOrCollapsed}}}"
-                ToolTip="{sd:Localize Clear filters, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                ToolTip="{sd:Localize Clear filters, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Main.Status}" ToolTipService.ShowOnDisabled="True">
           <Image Source="{StaticResource ImageClearFilters}"/>
         </Button>
       </ToolBar>
@@ -416,10 +417,10 @@
                 <Style TargetType="{x:Type sd:TagControl}" BasedOn="{StaticResource {x:Type sd:TagControl}}">
                   <Style.Triggers>
                     <!--  Background Color  -->
-                    <DataTrigger Binding="{Binding Category}" Value="{x:Static viewModel:FilterCategory.AssetType}">
+                    <DataTrigger Binding="{Binding Category}" Value="{x:Static editorViewModels:FilterCategory.AssetType}">
                       <Setter Property="Background" Value="#D7AA67" />
                     </DataTrigger>
-                    <DataTrigger Binding="{Binding Category}" Value="{x:Static viewModel:FilterCategory.AssetName}">
+                    <DataTrigger Binding="{Binding Category}" Value="{x:Static editorViewModels:FilterCategory.AssetName}">
                       <Setter Property="Background" Value="#84CE80" />
                     </DataTrigger>
                     <!--  Opacity  -->

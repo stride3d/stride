@@ -1,24 +1,29 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable enable
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using Stride.Assets.Presentation;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
-using Stride.Assets.Presentation.AssetEditors.Gizmos;
-using Stride.Assets.Presentation.SceneEditor;
 using Stride.Core;
 using Stride.Core.BuildEngine;
 using Stride.Core.Extensions;
 using Stride.Editor.EditorGame.Game;
-using Stride.Editor.EditorGame.ViewModels;
 using Stride.Engine;
 using Stride.Engine.Design;
 using Stride.Engine.Gizmos;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
 using Stride.Rendering.Sprites;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Services;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
+using Stride.Assets.Editor.AssetEditors.Gizmos;
+using Stride.Assets.Editor.SceneEditor;
 
 namespace Stride.Assets.Editor.EditorGame;
 
@@ -30,7 +35,7 @@ namespace Stride.Assets.Editor.EditorGame;
 /// The cross-platform counterpart of the WPF <c>EditorGameComponentGizmoService</c>.
 /// </remarks>
 [EditorGameService(typeof(EntityHierarchyEditorController), Order = 190)]
-public sealed class EditorGameComponentGizmoService : EditorGameServiceBase, IEditorGameComponentGizmoService, IEditorGameViewModelService
+public sealed class EditorGameComponentGizmoService : EditorGameServiceBase, IEditorGameComponentGizmoService, IEditorGameComponentGizmoViewModelService
 {
     /// <summary>
     /// Set on the root entity of a gizmo while its component is selected (the light probe gizmos draw a wireframe then).
@@ -53,7 +58,7 @@ public sealed class EditorGameComponentGizmoService : EditorGameServiceBase, IEd
 
         // The default visibilities of the WPF scene settings: the gizmos hidden by default and the fallback gizmo stay hidden
         gizmoVisibilities[typeof(FallbackGizmo)] = false;
-        foreach (var gizmoType in StrideEditorPlugin.GizmoTypeDictionary.Values)
+        foreach (var gizmoType in GizmoTypeRegistry.GizmoTypeDictionary.Values)
         {
             if (gizmoType.GetCustomAttribute<GizmoComponentAttribute>(true) is { HiddenByDefault: true })
                 gizmoVisibilities[gizmoType] = false;
@@ -329,8 +334,7 @@ public sealed class EditorGameComponentGizmoService : EditorGameServiceBase, IEd
             if (attribute == null || !attribute.IsMainGizmo)
                 continue;
 
-            var componentIndex = StrideDefaultAssetsPlugin.ComponentOrders.IndexOf(t => t.type == component.GetType());
-            var order = componentIndex >= 0 ? StrideDefaultAssetsPlugin.ComponentOrders[componentIndex].order : default;
+            var order = EntityComponentMetadata.GetOrder(component.GetType());
             if (order > mainComponentOrder)
             {
                 mainComponentOrder = order;
@@ -427,7 +431,7 @@ public sealed class EditorGameComponentGizmoService : EditorGameServiceBase, IEd
     {
         Type? gizmoType;
         var type = componentType;
-        while (!StrideEditorPlugin.GizmoTypeDictionary.TryGetValue(type, out gizmoType))
+        while (!GizmoTypeRegistry.GizmoTypeDictionary.TryGetValue(type, out gizmoType))
         {
             type = type.BaseType ?? throw new ArgumentException(@"The given type is not an EntityComponent type", nameof(componentType));
             if (type == typeof(EntityComponent))

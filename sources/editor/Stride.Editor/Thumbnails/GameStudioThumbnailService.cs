@@ -1,10 +1,13 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Compiler;
@@ -20,6 +23,7 @@ using Stride.Editor.Build;
 using Stride.Editor.Resources;
 using Stride.Graphics;
 using Stride.Shaders.Compiler;
+using Stride.Core.Assets.Presentation.Services;
 
 namespace Stride.Editor.Thumbnails
 {
@@ -288,9 +292,13 @@ namespace Stride.Editor.Thumbnails
             ThumbnailData? thumbnailData = null;
             if (e.ThumbnailStream != null)
             {
-                var stream = new MemoryStream();
-                e.ThumbnailStream.CopyTo(stream);
-                thumbnailData = new BitmapThumbnailData(e.ThumbnailId, stream);
+                // The view of each editor shows its own image type: the factory of the host decodes the PNG (no factory, no UI: no image)
+                if (session.ServiceProvider.TryGet<IThumbnailDataFactory>() is { } factory)
+                {
+                    var stream = new MemoryStream();
+                    e.ThumbnailStream.CopyTo(stream);
+                    thumbnailData = factory.CreateFromStream(e.ThumbnailId, stream);
+                }
             }
 
             if (e.Result != ThumbnailBuildResult.Cancelled)

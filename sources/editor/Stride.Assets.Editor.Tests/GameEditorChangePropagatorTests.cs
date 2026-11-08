@@ -4,13 +4,14 @@
 using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Editor.Tests.Helpers;
 using Stride.Assets.Editor.ViewModels;
-using Stride.Assets.Presentation.AssetEditors.GameEditor;
+using Stride.Assets.Entities;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.Mathematics;
 using Stride.Core.Quantum;
 using Stride.Engine;
+using Stride.Assets.Editor.AssetEditors.GameEditor;
 
 namespace Stride.Assets.Editor.Tests;
 
@@ -86,7 +87,20 @@ public sealed class GameEditorChangePropagatorTests
         Assert.Equal(count, await context.Controller.InvokeAsync(() => context.Controller.RenderStageReevaluationCount));
     });
 
-    private static async Task RunAsync(Func<PropagatorContext, Task> test)
+    [Fact]
+    public Task TheCompositeHierarchyPropagatorLeavesTheChildPartsToTheEditor() => RunAsync(async context =>
+    {
+        var child = EntityHierarchyEditorTests.AddEntity(context.Fixture, context.Editor, "Child", context.Box.AssetSideEntity, 0);
+        Assert.Same(context.Box.AssetSideEntity.Transform, child.Transform.Parent);
+
+        // The change of the box is replayed (it got a child)...
+        context.Box.Name = "Renamed";
+        await context.WaitForGameSide(x => x.Name == "Renamed");
+        // ...but the child part, which the editor adds itself, is not cloned into the game-side box
+        Assert.Empty(await context.Controller.InvokeAsync(() => context.GameSideBox.Transform.Children.ToList()));
+    }, (editor, controller, box) => new GameEditorChangePropagator<EntityDesign, Entity>(editor, controller, box.Asset, box.Id, box.AssetSideEntity));
+
+    private static async Task RunAsync(Func<PropagatorContext, Task> test, Func<SceneEditorViewModel, FakeEditorGameController, EntityViewModel, GameEditorChangePropagator>? createPropagator = null)
     {
         using var ui = new ThreadDispatcherService("Fake UI thread");
         await ui.Run(async () =>
@@ -99,7 +113,7 @@ public sealed class GameEditorChangePropagatorTests
             // The game-side clone, as the controller of a real game makes it
             var gameSideBox = AssetCloner.Clone(box.AssetSideEntity, AssetClonerFlags.ReferenceAsNull);
             await controller.InvokeAsync(() => controller.AddGameSidePart(box.Id, gameSideBox));
-            var propagator = new EntityHierarchyElementChangePropagator(editor, controller, box.Asset, box.Id, box.AssetSideEntity);
+            var propagator = createPropagator?.Invoke(editor, controller, box) ?? new EntityHierarchyElementChangePropagator(editor, controller, box.Asset, box.Id, box.AssetSideEntity);
             propagator.NotifyGameSidePartAdded();
             await propagator.Initialized.WaitAsync(Timeout);
             try

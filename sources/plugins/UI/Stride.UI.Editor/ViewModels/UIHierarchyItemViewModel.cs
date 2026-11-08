@@ -4,12 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Stride.Core.Assets.Editor.View.Behaviors;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Annotations;
 using Stride.Core.Extensions;
-using Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels;
 using Stride.Assets.Quantum;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.UI.Assets;
@@ -19,19 +20,33 @@ namespace Stride.UI.Editor.ViewModels
     public abstract class UIHierarchyItemViewModel : AssetCompositeItemViewModel<UIBaseViewModel, UIHierarchyItemViewModel, UIElementViewModel>, IAddChildViewModel, IInsertChildViewModel
     {
         protected UIHierarchyItemViewModel([NotNull] UIEditorBaseViewModel editor, [NotNull] UIBaseViewModel asset, [CanBeNull] IEnumerable<UIElementDesign> children)
-            : base(editor, asset)
+            : base(asset)
         {
+            Editor = editor;
             if (children != null)
             {
                 AddItems(children.Select(child => (UIElementViewModel)Editor.CreatePartViewModel(Asset, child)));
             }
         }
 
+        /// <summary>
+        /// The related editor.
+        /// </summary>
         [NotNull]
-        public new UIEditorBaseViewModel Editor => (UIEditorBaseViewModel)base.Editor;
+        public UIEditorBaseViewModel Editor { get; }
 
         [NotNull]
         protected UIAssetBase UIAsset => (UIAssetBase)Asset.Asset;
+
+        /// <summary>
+        /// Notifies the view model that the game-side part of the object it represents has been added to the game scene.
+        /// </summary>
+        /// <returns>A task that completes when the actions to undertake from this notification are done.</returns>
+        [NotNull]
+        public virtual Task NotifyGameSidePartAdded()
+        {
+            return Task.CompletedTask;
+        }
 
         /// <summary>
         /// Indicates whether this instance can add or insert the given children.
@@ -152,7 +167,7 @@ namespace Stride.UI.Editor.ViewModels
                     continue;
                 }
 
-                message = DragDropBehavior.InvalidDropAreaMessage;
+                message = DragDropMessages.InvalidDropArea;
                 return false;
             }
 

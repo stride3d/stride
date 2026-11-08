@@ -1,16 +1,21 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+#nullable enable
+
+using System;
+using System.Threading.Tasks;
 using Stride.Assets.Presentation.AssetEditors;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Core.Mathematics;
 using Stride.Editor.EditorGame.Game;
 using Stride.Engine;
 using Stride.Engine.Processors;
 using Stride.Input;
 using Stride.Rendering.Compositing;
+using Stride.Assets.Editor.AssetEditors;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
 
 namespace Stride.Assets.Editor.EditorGame;
 
@@ -19,10 +24,10 @@ namespace Stride.Assets.Editor.EditorGame;
 /// compositor of the game as its external camera.
 /// </summary>
 /// <remarks>
-/// The cross-platform counterpart of the WPF <c>EditorGameCameraService</c>, without the view model side yet (projection,
-/// speed and the camera settings saved with the scene).
+/// The view models of the editor reach it on the UI thread through <see cref="IEditorGameCameraViewModelService"/>: its
+/// setters post their change to the game thread.
 /// </remarks>
-public abstract class EditorGameCameraService : EditorGameMouseServiceBase, IEditorGameCameraService
+public abstract class EditorGameCameraService : EditorGameMouseServiceBase, IEditorGameCameraService, IEditorGameCameraViewModelService
 {
     public static readonly Vector3 DefaultPosition = new(4, 2, 4);
     public static readonly float DefaultPitch = -MathUtil.Pi / 12.0f;
@@ -114,6 +119,45 @@ public abstract class EditorGameCameraService : EditorGameMouseServiceBase, IEdi
         };
         ResetCamera(viewDirection);
     }
+
+    /// <inheritdoc />
+    public virtual void SwitchProjection()
+    {
+        IsOrthographic = !IsOrthographic;
+    }
+
+    /// <inheritdoc />
+    public void LoadSettings(Vector3 position, Vector2 pitchYaw)
+    {
+        Controller.InvokeAsync(() =>
+        {
+            SetCurrentPosition(position);
+            SetCurrentPitch(pitchYaw.X);
+            SetCurrentYaw(pitchYaw.Y);
+            // Also when the editor is hidden, and its camera inactive
+            UpdateViewMatrix();
+        });
+    }
+
+    /// <inheritdoc />
+    public (Vector3 Position, Vector2 PitchYaw) SaveSettings()
+    {
+        return (Position, new Vector2(Pitch, Yaw));
+    }
+
+    void IEditorGameCameraViewModelService.SetOrthographicProjection(bool value) => Controller.InvokeAsync(() => IsOrthographic = value);
+
+    void IEditorGameCameraViewModelService.SetOrthographicSize(float value) => Controller.InvokeAsync(() => Component.OrthographicSize = value);
+
+    void IEditorGameCameraViewModelService.SetNearPlane(float value) => Controller.InvokeAsync(() => Component.NearClipPlane = value);
+
+    void IEditorGameCameraViewModelService.SetFarPlane(float value) => Controller.InvokeAsync(() => Component.FarClipPlane = value);
+
+    void IEditorGameCameraViewModelService.SetFieldOfView(float value) => Controller.InvokeAsync(() => Component.VerticalFieldOfView = value);
+
+    void IEditorGameCameraViewModelService.ResetCamera() => Reset();
+
+    void IEditorGameCameraViewModelService.ResetCameraOrientation(CameraOrientation orientation) => Controller.InvokeAsync(() => ResetCamera(orientation));
 
     /// <inheritdoc />
     protected override Task<bool> Initialize(EditorServiceGame editorGame)

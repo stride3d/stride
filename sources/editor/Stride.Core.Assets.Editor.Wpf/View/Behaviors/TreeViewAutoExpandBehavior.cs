@@ -7,6 +7,7 @@ using Microsoft.Xaml.Behaviors;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Controls;
+using Stride.Core.Assets.Presentation.ViewModels;
 using TreeView = Stride.Core.Presentation.Controls.TreeView;
 using TreeViewItem = Stride.Core.Presentation.Controls.TreeViewItem;
 

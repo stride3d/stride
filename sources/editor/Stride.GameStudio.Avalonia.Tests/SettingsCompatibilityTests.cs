@@ -1,21 +1,24 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Globalization;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.VisualTree;
-using Stride.Assets.Presentation.SceneEditor;
 using Stride.Core.Assets;
+using Stride.Core.Assets.Editor;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Presentation.Avalonia.Controls;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.IO;
+using Stride.Core.MostRecentlyUsedFiles;
 using Stride.Editor.Settings;
 using Stride.GameStudio.Avalonia.Settings;
 using Stride.GameStudio.Avalonia.Tests.Helpers;
 using Stride.GameStudio.Avalonia.Views;
+using Stride.Assets.Editor.SceneEditor;
 
 namespace Stride.GameStudio.Avalonia.Tests;
 
@@ -33,6 +36,7 @@ public sealed class SettingsCompatibilityTests : IDisposable
         Settings:
             ExternalTools/ShaderEditor: !file C:/Tools/ShaderEdit.exe
             Interface/AskBeforeDeletingAssets: false
+            Interface/Language: French
             Remote/Credentials/Host: build-machine
             Remote/Credentials/Port: 2222
             SceneEditor/KeyBindings/MoveCamForward: Z
@@ -93,6 +97,11 @@ public sealed class SettingsCompatibilityTests : IDisposable
         Assert.NotNull(profile);
         // The shared settings: the editor's own, the external tools, the remote host, the scene and script editors
         Assert.False(EditorSettings.AskBeforeDeletingAssets.GetValue(profile, true));
+        // The language has the values of the WPF editor, which this editor maps to the same cultures
+        Assert.Equal(SupportedLanguage.French, EditorSettings.Language.GetValue(profile, true));
+        Assert.Equal("fr-FR", EditorSettings.Language.GetValue(profile, true).GetCulture().Name);
+        Assert.Equal(CultureInfo.InstalledUICulture, SupportedLanguage.MachineDefault.GetCulture());
+        Assert.Same(ExternalToolsSettings.ShaderEditor, EditorSettings.ShaderEditor);
         Assert.Equal(new UFile("C:/Tools/ShaderEdit.exe"), ExternalToolsSettings.ShaderEditor.GetValue(profile, true));
         Assert.Equal("build-machine", RemoteSettings.Host.GetValue(profile, true));
         Assert.Equal(2222, RemoteSettings.Port.GetValue(profile, true));
@@ -202,6 +211,38 @@ public sealed class SettingsCompatibilityTests : IDisposable
         {
             EditorSettings.ResetEditorLayout.Command = previousCommand;
             await window.CloseAsync();
+        }
+    }
+
+    [AvaloniaFact]
+    public void SavingTheInternalSettingsKeepsTheRecentSessionsAnotherEditorWrote()
+    {
+        var previousSessions = GameStudioInternalSettings.MostRecentlyUsedSessions.GetValue();
+        var previousDirectory = InternalSettings.FileDialogLastImportDirectory.GetValue();
+        try
+        {
+            // Another editor instance adds a session to the file
+            var other = InternalSettings.LoadProfileCopy();
+            var sessions = new MRUDictionary { ["4.5"] = [new MostRecentlyUsedFile(new UFile("C:/Projects/Other/Other.sln"))] };
+            GameStudioInternalSettings.MostRecentlyUsedSessions.SetValue(sessions, other);
+            Assert.True(InternalSettings.SettingsContainer.SaveSettingsProfile(other, EditorPath.InternalConfigPath));
+
+            // This one, which read the file before, saves another internal setting
+            GameStudioInternalSettings.MostRecentlyUsedSessions.SetValue(new MRUDictionary());
+            InternalSettings.FileDialogLastImportDirectory.SetValue("C:/Imports");
+            InternalSettings.Save();
+
+            var saved = InternalSettings.LoadProfileCopy();
+            Assert.Equal("C:/Imports", InternalSettings.FileDialogLastImportDirectory.GetValue(saved, true));
+            var file = Assert.Single(Assert.Single(GameStudioInternalSettings.MostRecentlyUsedSessions.GetValue(saved, true)).Value);
+            Assert.Equal(new UFile("C:/Projects/Other/Other.sln"), file.FilePath);
+            Assert.Single(Assert.Single(GameStudioInternalSettings.MostRecentlyUsedSessions.GetValue()).Value);
+        }
+        finally
+        {
+            GameStudioInternalSettings.MostRecentlyUsedSessions.SetValue(previousSessions);
+            InternalSettings.FileDialogLastImportDirectory.SetValue(previousDirectory);
+            InternalSettings.SaveProfile();
         }
     }
 

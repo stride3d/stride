@@ -116,8 +116,14 @@ xmlns:loc="using:Stride.Core.Presentation.Avalonia.MarkupExtensions"
 | Domain | Source directory |
 |--------|-----------------|
 | `Stride.Core.Presentation` | `sources/presentation/Stride.Core.Presentation` |
-| `Stride.Assets.Presentation` | `sources/editor/Stride.Assets.Presentation.Wpf` |
-| `Stride.Core.Assets.Editor` | `sources/editor/Stride.Core.Assets.Editor.Wpf` |
+| `Stride.Core.Presentation.Wpf` | `sources/presentation/Stride.Core.Presentation.Wpf` |
+| `Stride.Assets.Editor.Wpf` | `sources/editor/Stride.Assets.Editor.Wpf` |
+| `Stride.Core.Assets.Editor.Wpf` | `sources/editor/Stride.Core.Assets.Editor.Wpf` |
+| `Stride.Core.Assets.Presentation` | `sources/editor/Stride.Core.Assets.Presentation` |
+| `Stride.Core.Assets.Editor` | `sources/editor/Stride.Core.Assets.Editor` |
+| `Stride.Assets.Presentation` | `sources/editor/Stride.Assets.Presentation` |
+| `Stride.Assets.Editor` | `sources/editor/Stride.Assets.Editor` |
+| `Stride.Editor` | `sources/editor/Stride.Editor` |
 | `Stride.GameStudio` | `sources/editor/Stride.GameStudio` |
 
 ## Working with .po files

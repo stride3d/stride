@@ -1,12 +1,14 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable enable
 
+using System;
 using Stride.Assets.Scripts;
 using Stride.Core.Assets.Editor.Annotations;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Quantum;
+using Stride.Core.Assets.Presentation.Annotations;
 
 namespace Stride.Assets.Presentation.ViewModels;
 
@@ -14,7 +16,7 @@ namespace Stride.Assets.Presentation.ViewModels;
 /// View model for <see cref="VisualScriptAsset"/>.
 /// </summary>
 [AssetViewModel<VisualScriptAsset>]
-public class VisualScriptViewModel : AssetCompositeViewModel<VisualScriptAsset>
+public sealed class VisualScriptViewModel : AssetCompositeViewModel<VisualScriptAsset>
 {
     private readonly IObjectNode propertiesContent;
     private readonly IObjectNode methodsContent;

@@ -11,8 +11,6 @@ using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Components.Transactions;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
-using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Assets.Editor.ViewModel.Progress;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
@@ -29,6 +27,7 @@ using Stride.Editor.Build;
 using Stride.GameStudio.Avalonia.Helpers;
 using Stride.GameStudio.Avalonia.Services;
 using Stride.GameStudio.Avalonia.Settings;
+using Stride.Core.Assets.Editor.ViewModels.Progress;
 
 namespace Stride.GameStudio.Avalonia.ViewModels;
 
@@ -99,6 +98,16 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     }
 
     public StatusViewModel Status { get; }
+
+    /// <inheritdoc/>
+    public string EditorToolkitName => EditorToolkits.Avalonia;
+
+    /// <inheritdoc/>
+    /// <remarks>As in WPF, the shaders open with the shader editor of the settings.</remarks>
+    public IEnumerable<string> TextAssetTypes { get; } = [nameof(Stride.Assets.Effect.EffectShaderAsset), nameof(Stride.Assets.Effect.EffectCompositorAsset)];
+
+    /// <inheritdoc/>
+    public void AddRecentFile(UFile filePath) => MRU.AddFile(filePath, StrideGameStudio.EditorVersionMajor);
 
     /// <summary>
     /// Builds the current project of the session and starts its game (the Project menu, the toolbar and the Output pane).
@@ -244,19 +253,19 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
             if (result != 1)
             {
                 InternalSettings.LoadingStartupSession.SetValue(false);
-                InternalSettings.SaveProfile();
+                InternalSettings.Save();
                 return false;
             }
         }
 
         // Safe-guard - this will warn that the startup session makes the editor crash while loading.
         InternalSettings.LoadingStartupSession.SetValue(true);
-        InternalSettings.SaveProfile();
+        InternalSettings.Save();
 
         var sessionResult = await OpenSession(initialSessionPath, token);
 
         InternalSettings.LoadingStartupSession.SetValue(false);
-        InternalSettings.SaveProfile();
+        InternalSettings.Save();
 
         return sessionResult;
     }
@@ -379,7 +388,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     {
         MRU.AddFile(filePath, StrideGameStudio.EditorVersionMajor);
         InternalSettings.FileDialogLastOpenSessionDirectory.SetValue(filePath.GetFullDirectory());
-        InternalSettings.SaveProfile();
+        InternalSettings.Save();
 
         sessionPath = filePath;
         Session = loadedSession;
@@ -593,9 +602,9 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
 
     private async Task OnSave()
     {
-        // A saved session goes to the top of the recent sessions, as in WPF
-        if (session is not null && await session.SaveSessionAsync() && sessionPath is not null)
-            MRU.AddFile(sessionPath, StrideGameStudio.EditorVersionMajor);
+        // A saved session goes to the top of the recent sessions (AddRecentFile), as in WPF
+        if (session is not null)
+            await session.SaveSessionAsync();
     }
 
     private async Task OnReload()

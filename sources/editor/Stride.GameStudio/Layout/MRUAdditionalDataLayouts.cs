@@ -17,7 +17,7 @@ namespace Stride.GameStudio.Layout
         /// </summary>
         public static MRUAdditionalDataCollection CreateCollection()
         {
-            return new MRUAdditionalDataCollection(InternalSettings.LoadProfileCopy, GameStudioInternalSettings.MostRecentlyUsedSessionsData, InternalSettings.WriteFile, ResetAllLayouts);
+            return new MRUAdditionalDataCollection(InternalSettings.LoadProfileCopy, GameStudioInternalSettings.MostRecentlyUsedSessionsData, InternalSettings.SaveProfile, ResetAllLayouts);
         }
 
         public static void ResetAllLayouts(this MRUAdditionalDataCollection collection, UFile filePath)

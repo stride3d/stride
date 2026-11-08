@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 
 using System.ComponentModel;
 using Stride.Core.Annotations;
@@ -7,7 +8,7 @@ using Stride.Core.Reflection;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Quantum;
-using Stride.Core.Assets.Editor.Quantum.NodePresenters;
+using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
 
 namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
 
@@ -84,6 +85,8 @@ public class AddPrimitiveKeyCommand : SyncNodePresenterCommandBase
     /// <exception cref="ArgumentNullException">type is null.</exception>
     private static object? CreateInstance(Type type)
     {
+        ArgumentNullException.ThrowIfNull(type);
+
         // abstract type cannot be instantiated
         if (type.IsAbstract)
             return null;

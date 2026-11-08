@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 
 using System.Collections;
 using System.Collections.Concurrent;
@@ -13,12 +14,9 @@ using Stride.Core.Assets.Editor.Components.Transactions;
 using Stride.Core.Assets.Editor.Internal;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
-using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Assets.Editor.ViewModel.Logs;
-using Stride.Core.Assets.Editor.ViewModel.Progress;
-using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Assets.Templates;
+using Stride.Core.CodeEditorSupport;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
@@ -32,19 +30,21 @@ using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Reflection;
 using Stride.Core.Translation;
+using Stride.Core.Assets.Editor.ViewModels.Progress;
+using Stride.Core.Assets.Presentation.Components.Properties;
+using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels.Logs;
 
 namespace Stride.Core.Assets.Editor.ViewModels;
 
 /// <summary>
 /// The session of the editor: the packages, their assets, the asset view (<see cref="AssetCollection"/>) and the asset editors (<see cref="EditorCollection"/>).
 /// </summary>
-public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAssetFinder, ISessionViewModel
+public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAssetFinder, ISessionViewModel, ISessionInternals
 {
     public static readonly string StorePackageCategoryName = Tr._("External packages");
     public static readonly string LocalPackageCategoryName = Tr._("Local packages");
     public const string SolutionExtension = ".slnx";
-    /// <summary>The UI toolkit of this editor; only the Editor companion packages for it are loaded.</summary>
-    public const string EditorToolkitName = EditorToolkits.Avalonia;
     public const int SaveIrreversibleSourceFileOperationsMessageCount = 5;
 
     private readonly ConcurrentDictionary<AssetId, AssetViewModel> assetIdMap = [];
@@ -62,6 +62,9 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
     private string rootAssetToggleHeader = string.Empty;
     private bool selectionIsRoot;
     private bool hasUnsavedChanges;
+    private ICommandBase? importEffectLogCommand;
+    private int importEffectLogPendingCount;
+    private bool isUpdatePackageEnabled;
     private bool isInFixupAssetContext;
     private bool sessionStateUpdating;
     // Non-zero while a raise is scheduled
@@ -112,15 +115,16 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
         AssetLog = new AssetLogViewModel(ServiceProvider, this);
 
         // Initialize the reference view model related to the main asset view
-        References = new ReferencesViewModel(this);
+        References = new ReferencesViewModel(this, new AssetCollectionViewModel(this));
 
         // The tags of the selected assets, in the header of the property grid
-        AssetTags = new TagsViewModel(AssetCollection);
+        AssetTags = new TagsViewModel(ServiceProvider, AssetCollection);
 
         // Construct package categories
         var localPackageName = session.SolutionPath != null ? string.Format(Tr._(@"Solution '{0}'"), session.SolutionPath.GetFileNameWithoutExtension()) : LocalPackageCategoryName;
         packageCategories.Add(LocalPackageCategoryName, new PackageCategoryViewModel(localPackageName, this));
         packageCategories.Add(StorePackageCategoryName, new PackageCategoryViewModel(StorePackageCategoryName, this));
+        UpdatePackageViewModel = new UpdatePackageTemplateCollectionViewModel(this);
         LocalPackages.CollectionChanged += LocalPackagesCollectionChanged;
         // Asset assemblies add or remove asset types
         AssemblyRegistry.AssemblyRegistered += AssetAssembliesChanged;
@@ -136,6 +140,8 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
             if (directory != null)
                 await directory.Package.Properties.GenerateSelectionPropertiesAsync(directory.Package.Yield());
         });
+        OpenInIDECommand = new AnonymousTaskCommand<IDEInfo?>(ServiceProvider, x => CodeEditorOpenerService.StartOrToggle(this, x));
+        AddDependencyCommand = new AnonymousTaskCommand(ServiceProvider, AddDependencyAsync);
         NewDirectoryCommand = new AnonymousTaskCommand<IEnumerable<object>>(ServiceProvider, CreateNewFolderInDirectoriesAsync);
         RenameDirectoryOrPackageCommand = new AnonymousCommand<IEnumerable>(ServiceProvider, x => RenameDirectoryOrPackage(x.Cast<object>().LastOrDefault()));
         DeleteSelectedSolutionItemsCommand = new AnonymousTaskCommand(ServiceProvider, async () => await DeleteItems(AssetCollection.SelectedLocations));
@@ -242,6 +248,22 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
     public bool IsEditorInitialized { get; private set; }
 
     /// <summary>
+    /// Gets or sets the command that imports the effects that the game compiled at run time (the effect log); the effect compiler
+    /// session of the editor sets it when the game sends new effects.
+    /// </summary>
+    public ICommandBase? ImportEffectLogCommand { get => importEffectLogCommand; set => SetValueUncancellable(ref importEffectLogCommand, value); }
+
+    /// <summary>
+    /// Gets or sets the number of effects that <see cref="ImportEffectLogCommand"/> would import.
+    /// </summary>
+    public int ImportEffectLogPendingCount { get => importEffectLogPendingCount; set => SetValueUncancellable(ref importEffectLogPendingCount, value); }
+
+    /// <summary>
+    /// Gets whether the Update package menu is enabled: a project is selected.
+    /// </summary>
+    public bool IsUpdatePackageEnabled { get => isUpdatePackageEnabled; private set => SetValueUncancellable(ref isUpdatePackageEnabled, value); }
+
+    /// <summary>
     /// Gets whether the session is currently in a special context to fix up assets.
     /// </summary>
     /// <seealso cref="CreateAssetFixupContext"/>
@@ -311,7 +333,17 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
 
     public ThumbnailsViewModel Thumbnails { get; }
 
+    /// <summary>
+    /// Gets the package templates of the Update package menu.
+    /// </summary>
+    public UpdatePackageTemplateCollectionViewModel UpdatePackageViewModel { get; }
+
     public ICommandBase ActivatePackagePropertiesCommand { get; }
+
+    /// <summary>
+    /// Adds dependencies to the selected package, picked in the package picker (<see cref="IEditorDialogService.ShowPackagePickerDialogAsync"/>).
+    /// </summary>
+    public ICommandBase AddDependencyCommand { get; }
 
     public ICommandBase AddExistingProjectCommand { get; }
 
@@ -327,6 +359,12 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
     public ICommandBase NewProjectCommand { get; }
 
     public ICommandBase NextSelectionCommand { get; }
+
+    /// <summary>
+    /// Opens the solution in an IDE, or brings the Visual Studio instance that has it open to the front (see <see cref="CodeEditorOpenerService"/>).
+    /// Its parameter is the <see cref="IDEInfo"/>, <c>null</c> for the IDE of the settings.
+    /// </summary>
+    public ICommandBase OpenInIDECommand { get; }
 
     public ICommandBase PreviousSelectionCommand { get; }
 
@@ -388,7 +426,10 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
 
     internal SelectionService? SelectionService => ServiceProvider.TryGet<SelectionService>();
 
-    private IDialogService Dialogs => ServiceProvider.Get<IDialogService>();
+    /// <summary>
+    /// Gets the dialog service of the editor.
+    /// </summary>
+    public IEditorDialogService Dialogs => ServiceProvider.Get<IEditorDialogService>();
 
     /// <summary>
     /// Raised when some assets are modified.
@@ -431,11 +472,7 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
 
     void ISessionViewModel.NotifyAssetPropertiesChanged(IReadOnlyCollection<AssetViewModel> assets) => NotifyAssetPropertiesChanged(assets);
 
-    void ISessionViewModel.ProcessAddedProjects(LoggerResult loggerResult, WorkProgressViewModel workProgress, bool packageAlreadyInSession) => ProcessAddedProjects(loggerResult, workProgress, packageAlreadyInSession);
-
-    void ISessionViewModel.ProcessRemovedProjects() => ProcessRemovedProjects();
-
-    Task ISessionViewModel.LoadAddedDependencies(LoggerResult loggerResult) => LoadAddedDependenciesAsync(loggerResult);
+    Task ISessionInternals.LoadAddedDependencies(LoggerResult loggerResult) => LoadAddedDependenciesAsync(loggerResult);
 
     /// <inheritdoc />
     public AssetViewModel? GetAssetById(AssetId id)
@@ -657,7 +694,7 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
         {
             try
             {
-                session.LoadAddedDependencies(loggerResult, CreatePackageLoadParameters(ServiceProvider, cancellationSource.Token));
+                session.LoadAddedDependencies(loggerResult, CreatePackageLoadParameters(ServiceProvider, Main.EditorToolkitName, cancellationSource.Token));
             }
             catch (Exception e)
             {
@@ -869,6 +906,19 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
         if (success)
         {
             ActionHistory.NotifySave();
+
+            // Add entry to MRU: priority to the sln, then the first local package
+            // (a session opened from a package file has an empty solution path)
+            var mruPath = session.SolutionPath;
+            if (string.IsNullOrEmpty(mruPath) && session.LocalPackages.Any())
+            {
+                mruPath = session.LocalPackages.First().FullPath;
+            }
+            if (!string.IsNullOrEmpty(mruPath))
+            {
+                Main.AddRecentFile(mruPath);
+            }
+
             AllPackages.ForEach(x => x.OnSessionSaved());
         }
 
@@ -997,7 +1047,7 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
         {
             try
             {
-                package = session.AddExistingProject(projectPath, loggerResult, CreatePackageLoadParameters(ServiceProvider, cancellationSource.Token)).Package;
+                package = session.AddExistingProject(projectPath, loggerResult, CreatePackageLoadParameters(ServiceProvider, Main.EditorToolkitName, cancellationSource.Token)).Package;
             }
             catch (Exception e)
             {
@@ -1093,17 +1143,15 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
         // Ask confirmation (for assets and directories)
         if ((assetsToDelete.Count > 0 || directoriesToDelete.Count > 0) && !skipConfirmation && EditorSettings.AskBeforeDeletingAssets.GetValue())
         {
-            var messageParts = new List<string>();
-            if (assetsToDelete.Count == 1)
-                messageParts.Add("this asset");
-            else if (assetsToDelete.Count > 1)
-                messageParts.Add($"these {assetsToDelete.Count} assets");
-            if (directoriesToDelete.Count == 1)
-                messageParts.Add("this folder");
-            else if (directoriesToDelete.Count > 1)
-                messageParts.Add($"these {directoriesToDelete.Count} folders");
-
-            var message = $"Are you sure you want to delete {string.Join(" and ", messageParts)}?";
+            // Whole sentences, so that each language can translate them
+            var message = (assetsToDelete.Count, directoriesToDelete.Count) switch
+            {
+                (1, 0) => Tr._p("Message", "Are you sure you want to delete this asset?"),
+                (_, 0) => string.Format(Tr._p("Message", "Are you sure you want to delete these {0} assets?"), assetsToDelete.Count),
+                (0, 1) => Tr._p("Message", "Are you sure you want to delete this folder?"),
+                (0, _) => string.Format(Tr._p("Message", "Are you sure you want to delete these {0} folders?"), directoriesToDelete.Count),
+                _ => Tr._p("Message", "Are you sure you want to delete the selected assets and folders?"),
+            };
             var checkedMessage = Tr._p("Settings", "Always delete without asking");
             var buttons = DialogButtons.Create([Tr._p("Button", "Delete"), Tr._p("Button", "Cancel")], 1, 2);
             var result = await Dialogs.CheckedMessageBoxAsync(message, false, checkedMessage, buttons, MessageBoxImage.Question);
@@ -1472,7 +1520,7 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
             undoRedoService.SetName(transaction, $"Upgrade assets ({upgradedAssets.Count})");
         }
 
-        SourceTracker = new AssetSourceTrackerViewModel(this);
+        SourceTracker = new AssetSourceTrackerViewModel(this, session);
         UpdateSessionState();
 
         // This transaction is done to prevent action responding to undoRedoService.TransactionCompletion to occur during loading
@@ -1639,6 +1687,7 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
         var packageSelected = false;
         var projectSelected = false;
         var directorySelected = false;
+        var canAddDependency = false;
         var canDelete = AssetCollection.SelectedLocations.Count > 0;
         var canRename = AssetCollection.SelectedLocations.Count > 0;
         foreach (var location in AssetCollection.SelectedLocations.OfType<SessionObjectViewModel>())
@@ -1646,14 +1695,20 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
             if (location is PackageViewModel { IsEditable: true } package)
             {
                 packageSelected = true;
+                canAddDependency = true;
                 projectSelected = package is ProjectViewModel;
             }
             if (location is DirectoryBaseViewModel)
             {
                 directorySelected = true;
             }
-            if (location is PackageReferenceViewModel)
+            if (location is DependencyCategoryViewModel dependencies)
             {
+                canAddDependency = dependencies.Parent.IsEditable;
+            }
+            if (location is PackageReferenceViewModel packageReference)
+            {
+                canAddDependency = packageReference.Referencer.IsEditable;
                 canRename = false;
             }
             if (!location.IsEditable)
@@ -1666,12 +1721,14 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
         var asset = AssetCollection.SingleSelectedAsset;
 
         NewProjectCommand.IsEnabled = !string.IsNullOrWhiteSpace(SolutionPath);
+        IsUpdatePackageEnabled = projectSelected;
+        AddDependencyCommand.IsEnabled = canAddDependency;
         SetCurrentProjectCommand.IsEnabled = projectSelected;
         DeleteSelectedSolutionItemsCommand.IsEnabled = canDelete;
         RenameDirectoryOrPackageCommand.IsEnabled = canRename;
         NewDirectoryCommand.IsEnabled = packageSelected || directorySelected;
         ActivatePackagePropertiesCommand.IsEnabled = packageSelected || directorySelected;
-        EditSelectedContentCommand.IsEnabled = AssetCollection.SingleSelectedContent is DirectoryViewModel || asset is { IsEditable: true } && PluginService.HasEditorView(this, asset.GetType());
+        EditSelectedContentCommand.IsEnabled = AssetCollection.SingleSelectedContent is DirectoryViewModel || asset is { IsEditable: true } && (IsTextAsset(asset) || PluginService.HasEditorView(this, asset.GetType()));
         ToggleIsRootOnSelectedAssetCommand.IsEnabled = RootAssetDefaultTarget != null && AssetCollection.SelectedAssets.Count > 0 && AssetCollection.SelectedAssets.All(x => !x.Dependencies.ForcedRoot);
         UpdateExploreCommands();
         UpdateSelectionCommands();
@@ -1698,7 +1755,14 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
         var asset = AssetCollection.SingleSelectedAsset;
         if (asset != null)
         {
-            EditorCollection.OpenAssetEditor(asset);
+            // Temporary code while we don't have an integrated text editor.
+            if (IsTextAsset(asset))
+            {
+                OpenWithTextEditorAsync(asset, ExternalToolsSettings.ShaderEditor).Forget();
+                return;
+            }
+
+            ServiceProvider.Get<IAssetEditorsManager>().OpenAssetEditorAsync(asset).Forget();
         }
 
         // Folder
@@ -1706,6 +1770,133 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
         {
             AssetCollection.SelectedLocations.Clear();
             AssetCollection.SelectedLocations.Add(folder);
+        }
+    }
+
+    /// <summary>
+    /// Whether the asset opens with the shader editor of the settings instead of an asset editor (<see cref="IMainViewModel.TextAssetTypes"/>).
+    /// </summary>
+    private bool IsTextAsset(AssetViewModel asset) => Main.TextAssetTypes.Contains(asset.AssetType.Name);
+
+    /// <summary>
+    /// Gets the package of the single selected location, and tells the user when there is none.
+    /// </summary>
+    private async Task<PackageViewModel?> RequestSingleSelectedPackageAsync()
+    {
+        var message = Tr._p("Message", "Please select a single package.");
+        if (AssetCollection.SelectedLocations.Count != 1)
+        {
+            await Dialogs.MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Information);
+            return null;
+        }
+
+        var selectedPackage = GetContainerPackage(AssetCollection.SelectedLocations[0]);
+        if (selectedPackage == null)
+        {
+            await Dialogs.MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        return selectedPackage;
+    }
+
+    /// <summary>
+    /// Updates the selected package with the given package template (the Update package menu).
+    /// </summary>
+    /// <param name="templateDescription">The package template.</param>
+    public async Task UpdatePackageTemplateAsync(TemplateDescription templateDescription)
+    {
+        var selectedPackage = await RequestSingleSelectedPackageAsync();
+        if (selectedPackage == null)
+            return;
+
+        await UpdatePackageTemplateAsync(selectedPackage, templateDescription);
+    }
+
+    private async Task UpdatePackageTemplateAsync(PackageViewModel package, TemplateDescription template)
+    {
+        var loggerResult = new LoggerResult();
+
+        var workProgress = new WorkProgressViewModel(ServiceProvider, loggerResult)
+        {
+            Title = "Updating package...",
+            KeepOpen = KeepOpen.OnWarningsOrErrors,
+            IsIndeterminate = true,
+            IsCancellable = false
+        };
+        workProgress.RegisterProgressStatus(loggerResult, true);
+
+        var parameters = new PackageTemplateGeneratorParameters
+        {
+            Name = package.Package.Meta.Name,
+            OutputDirectory = package.Package.FullPath.GetFullDirectory(),
+            Description = template,
+            Package = package.Package,
+            Logger = loggerResult,
+        };
+
+        var generator = TemplateManager.FindTemplateGenerator(parameters);
+        if (generator == null)
+        {
+            await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Tr._p("Message", "Unable to retrieve template generator for the selected template. Aborting."), MessageBoxButton.OK, MessageBoxImage.Error);
+            return;
+        }
+
+        // Errors might occur when generating the template. For the moment we consider them non-fatal and allow to open the project anyway.
+        await TemplateGeneratorHelper.RunTemplateGeneratorSafe(generator, parameters, workProgress);
+
+        ProcessAddedProjects(loggerResult, workProgress, true);
+        ProcessRemovedProjects();
+
+        await workProgress.NotifyWorkFinished(false, loggerResult.HasErrors);
+    }
+
+    private async Task AddDependencyAsync()
+    {
+        var selectedPackage = await RequestSingleSelectedPackageAsync();
+        if (selectedPackage == null)
+            return;
+
+        // Hide packages already referenced directly, companions, executables, and the selected package and its dependents.
+        // A suggested package available through another dependency stays, marked: a direct reference is what
+        // [GameSystem] needs. Any other package already available (the engine's own) is hidden.
+        var container = selectedPackage.Package.Container;
+        var referencedNames = new HashSet<string>(container.DirectDependencies.Select(d => d.Name), StringComparer.OrdinalIgnoreCase);
+        var availableNames = new HashSet<string>(container.FlattenedDependencies.Select(d => d.Name), StringComparer.OrdinalIgnoreCase);
+        var suggestedNames = new HashSet<string>(SuggestedPackages.Select(p => p.Id), StringComparer.OrdinalIgnoreCase);
+        var companionNames = new HashSet<string>(AllPackages.SelectMany(p => p.Package.CompanionPackages).Select(c => c.Name), StringComparer.OrdinalIgnoreCase);
+        bool Filter(PickablePackageViewModel x)
+        {
+            if (referencedNames.Contains(x.Name) || companionNames.Contains(x.Name))
+                return false;
+            var available = availableNames.Contains(x.Name);
+            if (available && !suggestedNames.Contains(x.Name))
+                return false;
+            x.Note = available ? Tr._p("Message", "(already available through another dependency)") : null;
+
+            if (x is not LoadedPickablePackageViewModel loadedPackage)
+                return true;
+
+            var package = loadedPackage.Package.Package;
+            if (package.Kind != PackageKind.Runtime || package.Container is StandalonePackage { IsCompanionPackage: true } or SolutionProject { Type: ProjectType.Executable })
+                return false;
+
+            return !(loadedPackage.Package == selectedPackage || loadedPackage.Package.DependsOn(selectedPackage));
+        }
+
+        // The same list the picker shows: the loaded packages and the suggested ones not loaded yet
+        if (!(await SuggestPackagesToAddAsync()).Any(Filter))
+        {
+            await Dialogs.MessageBoxAsync(Tr._p("Message", "There are no packages that can be added as dependencies to this package."), MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        var packages = await Dialogs.ShowPackagePickerDialogAsync(this, Filter);
+        if (packages is null)
+            return;
+
+        foreach (var package in packages)
+        {
+            await selectedPackage.AddDependency(package);
         }
     }
     #endregion // Commands

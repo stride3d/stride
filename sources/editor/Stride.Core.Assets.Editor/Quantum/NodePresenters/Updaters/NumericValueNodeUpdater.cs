@@ -1,11 +1,12 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 
 using System.Reflection;
 using Stride.Core.Annotations;
 using Stride.Core.Reflection;
 using Stride.Core.Presentation.Quantum.Presenters;
-using Stride.Core.Assets.Editor.Quantum.NodePresenters;
+using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
 
 namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters;
@@ -24,6 +25,8 @@ public sealed class NumericValueNodeUpdater : NodePresenterUpdaterBase
 
     public void UpdateNode(INodePresenter node, MemberInfo memberInfo)
     {
+        ArgumentNullException.ThrowIfNull(memberInfo);
+
         var stepRange = TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<DataMemberRangeAttribute>(memberInfo);
         var isNumeric = node.Type.IsNumeric();
         // If the type is integral numeric, we don't want decimal places
@@ -65,9 +68,12 @@ public sealed class NumericValueNodeUpdater : NodePresenterUpdaterBase
     /// <param name="type">The type for which to get the minimum value.</param>
     /// <returns>The minimum value of the given type.</returns>
     /// <exception cref="ArgumentException">The given type is not a numeric type.</exception>
-    /// <remarks>A type is numeric when <see cref="TypeExtensions.IsNumeric"/> returns true.</remarks>
+    /// <remarks>A type is numeric when <see cref="Stride.Core.Reflection.TypeExtensions.IsNumeric"/> returns true.</remarks>
     public static object GetMinimum(Type type)
     {
+        if (type.IsEnum)
+            throw new ArgumentException("Numeric type expected");
+
         return Type.GetTypeCode(type) switch
         {
             TypeCode.Byte => byte.MinValue,
@@ -81,7 +87,7 @@ public sealed class NumericValueNodeUpdater : NodePresenterUpdaterBase
             TypeCode.Single => float.MinValue,
             TypeCode.Double => double.MinValue,
             TypeCode.Decimal => decimal.MinValue,
-            _ => new ArgumentException("Numeric type expected")
+            _ => throw new ArgumentException("Numeric type expected")
         };
     }
 
@@ -91,23 +97,26 @@ public sealed class NumericValueNodeUpdater : NodePresenterUpdaterBase
     /// <param name="type">The type for which to get the maximum value.</param>
     /// <returns>The maximum value of the given type.</returns>
     /// <exception cref="ArgumentException">The given type is not a numeric type.</exception>
-    /// <remarks>A type is numeric when <see cref="TypeExtensions.IsNumeric"/> returns true.</remarks>
-public static object GetMaximum(Type type)
-{
-    return Type.GetTypeCode(type) switch
+    /// <remarks>A type is numeric when <see cref="Stride.Core.Reflection.TypeExtensions.IsNumeric"/> returns true.</remarks>
+    public static object GetMaximum(Type type)
     {
-        TypeCode.Byte => byte.MaxValue,
-        TypeCode.SByte => sbyte.MaxValue,
-        TypeCode.Int16 => short.MaxValue,
-        TypeCode.UInt16 => ushort.MaxValue,
-        TypeCode.Int32 => int.MaxValue,
-        TypeCode.UInt32 => uint.MaxValue,
-        TypeCode.Int64 => long.MaxValue,
-        TypeCode.UInt64 => ulong.MaxValue,
-        TypeCode.Single => float.MaxValue,
-        TypeCode.Double => double.MaxValue,
-        TypeCode.Decimal => decimal.MaxValue,
-        _ => new ArgumentException("Numeric type expected")
-    };
-}
+        if (type.IsEnum)
+            throw new ArgumentException("Numeric type expected");
+
+        return Type.GetTypeCode(type) switch
+        {
+            TypeCode.Byte => byte.MaxValue,
+            TypeCode.SByte => sbyte.MaxValue,
+            TypeCode.Int16 => short.MaxValue,
+            TypeCode.UInt16 => ushort.MaxValue,
+            TypeCode.Int32 => int.MaxValue,
+            TypeCode.UInt32 => uint.MaxValue,
+            TypeCode.Int64 => long.MaxValue,
+            TypeCode.UInt64 => ulong.MaxValue,
+            TypeCode.Single => float.MaxValue,
+            TypeCode.Double => double.MaxValue,
+            TypeCode.Decimal => decimal.MaxValue,
+            _ => throw new ArgumentException("Numeric type expected")
+        };
+    }
 }

@@ -1,6 +1,11 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable enable
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Stride.Assets.Materials;
 using Stride.Assets.Models;
 using Stride.Assets.Textures;
@@ -12,6 +17,7 @@ using Stride.Core.IO;
 using Stride.Core.Serialization;
 using Stride.Core.Settings;
 using Stride.Rendering;
+using Stride.Core.Assets.Presentation.Services;
 
 namespace Stride.Assets.Editor.Templates;
 

@@ -7,6 +7,7 @@ using System.Windows.Threading;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Annotations;
 using Stride.Core.Extensions;
+using Stride.Core.Assets.Presentation.ViewModels;
 using TreeView = Stride.Core.Presentation.Controls.TreeView;
 
 namespace Stride.Core.Assets.Editor.Extensions

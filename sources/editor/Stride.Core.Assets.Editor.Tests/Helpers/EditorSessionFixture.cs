@@ -1,16 +1,15 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Core.Assets.Editor.Common.Tests.Helpers;
+using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Assets.Editor.Components.CopyPasteProcessors;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Tests.Helpers;
 
@@ -69,10 +68,35 @@ public sealed class EditorSessionFixture : IDisposable
     /// </summary>
     public void SelectPackageRecursively()
     {
-        Assets.DisplayAssetMode = DisplayAssetMode.AssetInSelectedFolderAndSubFolder;
-        Assets.SelectedLocations.Clear();
-        Assets.SelectedLocations.Add(Package);
+        OnUiThread(() =>
+        {
+            Assets.DisplayAssetMode = DisplayAssetMode.AssetInSelectedFolderAndSubFolder;
+            Assets.SelectedLocations.Clear();
+            Assets.SelectedLocations.Add(Package);
+        });
     }
+
+    /// <summary>
+    /// Runs the action as the UI thread of the editor would: on the session's dispatcher, one at a time with the work the session
+    /// dispatches from the thread pool.
+    /// </summary>
+    /// <remarks>
+    /// A test changes the selection, or runs what changes it, through this: the views that follow the selection (the references,
+    /// the tags) refresh in the change, and a refresh on the test thread races the one the session dispatches after an edit.
+    /// </remarks>
+    public void OnUiThread(Action action) => Session.Dispatcher.Invoke(action);
+
+    /// <inheritdoc cref="OnUiThread(Action)"/>
+    public T OnUiThread<T>(Func<T> action) => Session.Dispatcher.Invoke(action);
+
+    /// <summary>
+    /// Starts the asynchronous action on the session's dispatcher, as the UI thread of the editor would: its continuations run there too.
+    /// </summary>
+    /// <inheritdoc cref="OnUiThread(Action)" path="/remarks"/>
+    public Task OnUiThreadAsync(Func<Task> action) => Session.Dispatcher.InvokeTask(action);
+
+    /// <inheritdoc cref="OnUiThreadAsync(Func{Task})"/>
+    public Task<T> OnUiThreadAsync<T>(Func<Task<T>> action) => Session.Dispatcher.InvokeTask(action);
 
     /// <summary>
     /// The messages of the loading, for assertion failures.

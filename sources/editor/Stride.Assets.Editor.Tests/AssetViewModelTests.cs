@@ -8,11 +8,11 @@ using Stride.Assets.Models;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Assets.Sprite;
 using Stride.Assets.Textures;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Serialization;
 using Stride.Engine;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Editor.Tests;
 

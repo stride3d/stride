@@ -1,18 +1,23 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable enable
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
+using System.Linq;
 using Stride.Assets.Entities;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Annotations;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Quantum;
 using Stride.Core.Serialization;
 using Stride.Engine;
+using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Presentation.Annotations;
 
 namespace Stride.Assets.Presentation.ViewModels;
 
@@ -125,7 +130,7 @@ public sealed class SceneViewModel : EntityHierarchyViewModel, IAssetViewModel<S
     }
 
     /// <inheritdoc />
-    protected override void Initialize()
+    protected internal override void Initialize()
     {
         base.Initialize();
 

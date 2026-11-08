@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -9,8 +10,6 @@ using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
-using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Collections;
@@ -20,30 +19,9 @@ using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Reflection;
 using Stride.Core.Translation;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModels;
-
-public enum FilterCategory
-{
-    AssetName,
-    AssetTag,
-    AssetType
-}
-
-public enum SortRule
-{
-    Name,
-    TypeOrderThenName,
-    DirtyThenName,
-    ModificationDateThenName,
-}
-
-public enum DisplayAssetMode
-{
-    AssetInSelectedFolderOnly,
-    AssetAndFolderInSelectedFolder,
-    AssetInSelectedFolderAndSubFolder,
-}
 
 /// <summary>
 /// The assets shown in an asset view, with their filters and selection. The editors of the assets are managed by <see cref="EditorCollectionViewModel"/>.
@@ -154,8 +132,9 @@ public sealed partial class AssetCollectionViewModel : DispatcherViewModel, IAss
     /// </summary>
     public bool IsMainView { get; }
 
-    // FIXME: do we need both ActiveProperties and AssetCollection.AssetViewProperties?
-    //        could be related to reusing this class for ReferencesViewModel and EditorDialogService
+    /// <summary>
+    /// Gets the properties of the objects selected in this asset view. Only the main view fills them (see <see cref="IsMainView"/>).
+    /// </summary>
     public SessionObjectPropertiesViewModel AssetViewProperties { get; }
 
     public IReadOnlyObservableCollection<AssetViewModel> Assets => assets;
@@ -1019,6 +998,11 @@ public sealed partial class AssetCollectionViewModel : DispatcherViewModel, IAss
             return;
 
         UpdateCommands();
+
+        // As in WPF, only the main asset view shows its selection in the property grid: selecting in another view (the
+        // references, a picker) does not take the property grid
+        if (!IsMainView)
+            return;
 
         AssetViewProperties.UpdateTypeAndName(SelectedAssets, x => x.TypeDisplayName, x => x.Url, "assets");
         await AssetViewProperties.GenerateSelectionPropertiesAsync(SelectedAssets);

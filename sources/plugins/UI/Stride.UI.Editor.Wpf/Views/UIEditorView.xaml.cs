@@ -7,6 +7,7 @@ using System.Windows.Interop;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.UI.Editor.ViewModels;
+using Stride.Core.Assets.Editor.ViewModels;
 
 namespace Stride.UI.Editor.Views
 {
@@ -40,7 +41,7 @@ namespace Stride.UI.Editor.Views
                 return false;
             }
 
-            SceneView.Content = uiEditor.Controller.EditorHost;
+            SceneView.Content = uiEditor.GameHost.GameView;
             SceneView.InvalidateVisual();
 
             editorInitializationNotifier.SetResult();

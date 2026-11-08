@@ -1,16 +1,18 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 
 using System.Collections;
 using Stride.Core.Assets.Editor.Internal;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
+using Stride.Core.Settings;
 using Stride.Core.Translation;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModels;
 
@@ -54,7 +56,7 @@ partial class SessionViewModel
         ExploreSourceFileCommand = new AnonymousTaskCommand<AssetViewModel?>(ServiceProvider, ExploreSourceFileAsync);
         OpenAssetFileCommand = new AnonymousTaskCommand<AssetViewModel?>(ServiceProvider, OpenAssetFileAsync);
         OpenSourceFileCommand = new AnonymousTaskCommand<AssetViewModel?>(ServiceProvider, OpenSourceFileAsync);
-        OpenWithTextEditorCommand = new AnonymousTaskCommand<AssetViewModel?>(ServiceProvider, OpenWithTextEditorAsync);
+        OpenWithTextEditorCommand = new AnonymousTaskCommand<AssetViewModel?>(ServiceProvider, x => OpenWithTextEditorAsync(x, ExternalToolsSettings.DefaultTextEditor));
     }
 
     private void UpdateExploreCommands()
@@ -193,7 +195,11 @@ partial class SessionViewModel
         await OpenFileAsync(source);
     }
 
-    private async Task OpenWithTextEditorAsync(AssetViewModel? asset)
+    /// <summary>
+    /// Opens the file of an asset with the text editor of the given setting: the default text editor, or the shader editor for the
+    /// text assets of the editor (<see cref="IMainViewModel.TextAssetTypes"/>).
+    /// </summary>
+    private async Task OpenWithTextEditorAsync(AssetViewModel? asset, SettingsKey<UFile> setting)
     {
         if (asset?.Directory?.Package is null)
             return;
@@ -208,7 +214,6 @@ partial class SessionViewModel
             return;
         }
 
-        var setting = ExternalToolsSettings.DefaultTextEditor;
         var editor = setting.GetValue();
         var editorPath = editor is not null ? Environment.ExpandEnvironmentVariables(editor.ToOSPath()) : string.Empty;
         try

@@ -19,9 +19,9 @@ namespace Stride.Core.Assets.Tests;
 public class TestEditorToolkitInference(ITestOutputHelper output)
 {
     [Theory]
-    [InlineData("""<ProjectReference Include="../Stride.Assets.Presentation.Common/Stride.Assets.Presentation.Common.csproj" /><PackageReference Include="Stride.Core" />""", "", null)]
-    [InlineData("""<ProjectReference Include="../Stride.Assets.Presentation.Wpf/Stride.Assets.Presentation.Wpf.csproj" />""", "", EditorToolkits.Wpf)]
-    [InlineData("""<PackageReference Include="Stride.Assets.Presentation.Wpf" />""", "", EditorToolkits.Wpf)]
+    [InlineData("""<ProjectReference Include="../Stride.Assets.Editor/Stride.Assets.Editor.csproj" /><PackageReference Include="Stride.Core" />""", "", null)]
+    [InlineData("""<ProjectReference Include="../Stride.Assets.Editor.Wpf/Stride.Assets.Editor.Wpf.csproj" />""", "", EditorToolkits.Wpf)]
+    [InlineData("""<PackageReference Include="Stride.Assets.Editor.Wpf" />""", "", EditorToolkits.Wpf)]
     [InlineData("", "<UseWPF>true</UseWPF>", EditorToolkits.Wpf)]
     [InlineData("""<ProjectReference Include="../Stride.Core.Presentation.Avalonia/Stride.Core.Presentation.Avalonia.csproj" />""", "", EditorToolkits.Avalonia)]
     [InlineData("""<PackageReference Include="Dock.Avalonia" />""", "", EditorToolkits.Avalonia)]
@@ -29,7 +29,7 @@ public class TestEditorToolkitInference(ITestOutputHelper output)
     [InlineData("""<PackageReference Include="Avalonia.Desktop" />""", "", EditorToolkits.Avalonia)]
     [InlineData("""<PackageReference Include="AvaloniaEdit.TextMate" />""", "", EditorToolkits.Avalonia)]
     // An explicit toolkit wins over the references
-    [InlineData("""<PackageReference Include="Avalonia" /><ProjectReference Include="../Stride.Assets.Presentation.Wpf/Stride.Assets.Presentation.Wpf.csproj" />""", "<StrideEditorToolkit>Wpf</StrideEditorToolkit>", EditorToolkits.Wpf)]
+    [InlineData("""<PackageReference Include="Avalonia" /><ProjectReference Include="../Stride.Assets.Editor.Wpf/Stride.Assets.Editor.Wpf.csproj" />""", "<StrideEditorToolkit>Wpf</StrideEditorToolkit>", EditorToolkits.Wpf)]
     public void EditorPackageToolkitComesFromItsReferences(string items, string properties, string? toolkit)
     {
         var (exitCode, text) = Evaluate(items, "<StridePackageKind>Editor</StridePackageKind>" + properties, "GetStridePackageIdentity");
@@ -50,7 +50,7 @@ public class TestEditorToolkitInference(ITestOutputHelper output)
     }
 
     [Theory]
-    [InlineData("""<ProjectReference Include="../Stride.Assets.Presentation.Wpf/Stride.Assets.Presentation.Wpf.csproj" /><ProjectReference Include="../Stride.Core.Presentation.Avalonia/Stride.Core.Presentation.Avalonia.csproj" />""", "", "Stride.Assets.Presentation.Wpf", "Stride.Core.Presentation.Avalonia")]
+    [InlineData("""<ProjectReference Include="../Stride.Assets.Editor.Wpf/Stride.Assets.Editor.Wpf.csproj" /><ProjectReference Include="../Stride.Core.Presentation.Avalonia/Stride.Core.Presentation.Avalonia.csproj" />""", "", "Stride.Assets.Editor.Wpf", "Stride.Core.Presentation.Avalonia")]
     [InlineData("""<PackageReference Include="Avalonia" />""", "<UseWPF>true</UseWPF>", "UseWPF", "Avalonia")]
     public void EditorPackageBuiltAgainstBothEditorsFails(string items, string properties, string wpfCause, string avaloniaCause)
     {

@@ -1,11 +1,15 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable enable
 
-using Stride.Assets.Editor.Quantum.NodePresenters.Updaters;
-using Stride.Core.Assets.Editor.ViewModel;
+using System;
+using System.Linq;
+using Stride.Assets.Models;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Quantum;
+using Stride.Core.Serialization;
 using Stride.Engine;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Editor.ViewModels;
 
@@ -52,12 +56,36 @@ internal sealed class ModelComponentChangeHandler : IDisposable
         }
 
         // Keep the weights of targets the new model also has, so swapping between variants of a model keeps the pose.
-        var kept = ModelComponentNodeUpdater.GetMorphTargetNames(ModelComponentNodeUpdater.GetModelAsset(asset.Session, e.NewValue)).ToHashSet(StringComparer.Ordinal);
+        var kept = GetMorphTargetNames(GetModelAsset(asset.Session, e.NewValue)).ToHashSet(StringComparer.Ordinal);
         var weights = nodeContainer.GetNode(component.Morphs.Weights);
         foreach (var index in weights.Indices.ToList())
         {
             if (!kept.Contains((string)index.Value))
                 weights.Remove(weights.Retrieve(index), index);
         }
+    }
+
+    /// <summary>
+    /// The morph targets of <paramref name="model"/> that the editor shows: none when the model does not import them.
+    /// </summary>
+    internal static string[] GetMorphTargetNames(IModelAsset? model)
+    {
+        return model is ModelAsset { ImportMorphTargets: true } asset
+            ? asset.MorphTargetNames.Distinct(StringComparer.Ordinal).ToArray()
+            : [];
+    }
+
+    /// <summary>
+    /// The model asset that <paramref name="modelReference"/> points to in <paramref name="session"/>, if any.
+    /// </summary>
+    internal static IModelAsset? GetModelAsset(ISessionViewModel session, object? modelReference)
+    {
+        if (modelReference == null)
+            return null;
+
+        // By id: a lookup in the session instead of a scan of its assets, whatever the form of the URL
+        return AttachedReferenceManager.GetAttachedReference(modelReference) is { } reference
+            ? session.GetAssetById(reference.Id)?.Asset as IModelAsset
+            : null;
     }
 }

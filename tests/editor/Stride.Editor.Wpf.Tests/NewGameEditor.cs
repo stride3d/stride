@@ -6,7 +6,7 @@
 using System;
 using System.Threading.Tasks;
 using Stride.Assets;
-using Stride.Assets.Presentation.Templates;
+using Stride.Assets.Editor.Templates;
 using Stride.Core.Mathematics;
 using Stride.GameStudio.AutoTesting;
 

@@ -6,12 +6,12 @@ using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.VisualTree;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Avalonia.Controls;
 using Stride.Core.Presentation.Quantum.ViewModels;
 using Stride.GameStudio.Avalonia.Tests.Helpers;
 using Stride.GameStudio.Avalonia.Views;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.GameStudio.Avalonia.Tests;
 

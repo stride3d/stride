@@ -1,7 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable enable
 
-using Stride.Assets.Presentation.Preview;
 using Stride.Core.Assets;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
@@ -9,7 +9,7 @@ using Stride.Rendering;
 
 namespace Stride.Assets.Editor.Preview;
 
-public abstract class FontPreview<T> : PreviewFromSpriteBatch<T>
+public abstract class FontPreview<T> : PreviewFromSpriteBatch<T>, IFontPreview
     where T : Asset
 {
     private string? previewText = "";
@@ -25,11 +25,7 @@ public abstract class FontPreview<T> : PreviewFromSpriteBatch<T>
         return sdfFontEffect ?? (sdfFontEffect = new EffectInstance(new Graphics.Effect(device, SpriteSignedDistanceFieldFontShader.Bytecode) { Name = "SDFFontEffectAssetPreview" }));
     }
 
-    /// <summary>
-    /// Sets a string to preview using the sprite font. If the given string is null or empty, it will display the
-    /// sprite font texture instead.
-    /// </summary>
-    /// <param name="str">The string to preview.</param>
+    /// <inheritdoc />
     public void SetPreviewString(string? str)
     {
         previewText = str;
