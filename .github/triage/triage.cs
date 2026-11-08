@@ -289,7 +289,8 @@ sealed class Triage(GitHub github, Config config)
     }
 
     // GitHub notifies nobody when changes merged in the base give a PR conflicts: the label shows them, and once they are a
-    // day old a comment tells the author (at most once a week)
+    // day old a comment tells the author. One comment while the label stays on (new conflicts on top of old ones get
+    // none), and at most one a week.
     async Task ApplyConflicts(Pr pr)
     {
         var conflicting = pr.Mergeable == "CONFLICTING";
@@ -300,13 +301,17 @@ sealed class Triage(GitHub github, Config config)
             await Write($"#{pr.Number}: remove `{ConflictLabel}`", () => github.RemoveLabel(pr.Number, ConflictLabel));
 
         var now = DateTimeOffset.UtcNow;
-        if (!conflicting || !labeled || !pr.LabelAdded.TryGetValue(ConflictLabel, out var since) || (now - since).TotalHours < config.ConflictNudgeHours
-            || pr.IsDraft || pr.AuthorIsBot || NoAuthorNudge(pr)
-            || pr.BotComments.Any(x => x.Body.Contains(ConflictMarker, StringComparison.Ordinal) && (now - x.At).TotalDays < config.ConflictNudgeMinDays))
+        if (!conflicting || !labeled || !pr.LabelAdded.TryGetValue(ConflictLabel, out var labeledAt) || pr.IsDraft || pr.AuthorIsBot || NoAuthorNudge(pr))
+            return;
+        // A draft with conflicts gets its day after it is marked ready
+        var since = labeledAt > pr.ReadyAt ? labeledAt : pr.ReadyAt;
+        var nudges = pr.BotComments.Where(x => x.Body.Contains(ConflictMarker, StringComparison.Ordinal)).ToList();
+        if ((now - since).TotalHours < config.ConflictNudgeHours
+            || nudges.Any(x => x.At >= labeledAt || (now - x.At).TotalDays < config.ConflictNudgeMinDays))
             return;
 
         var body = $"@{pr.Author}, this PR has merge conflicts with `{pr.Base}`: changes merged there since your last update touch the same lines. GitHub does not send a notification for this, so here is one. Could you rebase it on `{pr.Base}`, or merge `{pr.Base}` into it? If a conflict is not clear, just ask here and a maintainer can help."
-            + $"\n\n{ConflictMarker}\n<sub>Posted by the triage workflow after a PR has had conflicts for {config.ConflictNudgeHours} hours, at most once every {config.ConflictNudgeMinDays} days. {StopAuthorNudges(pr)}</sub>";
+            + $"\n\n{ConflictMarker}\n<sub>Posted by the triage workflow after a PR has had conflicts for {config.ConflictNudgeHours} hours, once until they are solved. {StopAuthorNudges(pr)}</sub>";
         var hours = (int)(now - since).TotalHours;
         if (config.NudgeConflicts)
             await Write($"#{pr.Number}: conflicts nudge ({hours} hours)", () => github.Comment(pr.Number, body));
