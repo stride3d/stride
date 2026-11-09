@@ -11,6 +11,7 @@ using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Graphics.GeometricPrimitives;
 using Stride.Graphics.Regression;
+using Stride.Rendering;
 using Stride.Rendering.ProceduralModels;
 using Xunit;
 
@@ -138,6 +139,36 @@ public class SoftBodyTests : GameTestBase
         });
     }
 
+    /// <summary>
+    /// Half on the floor and half on a plate, the particles of the body alternate between the two in the order the narrow phase
+    /// reports them: each of the two collidables still gets a single event per step, with one worker as with many.
+    /// </summary>
+    [Theory]
+    [InlineData(1)]
+    [InlineData(-1)]
+    public static void OneTouchingEventPerStepAndPerCollidableTouched(int threadCount)
+    {
+        RunScene(async scene =>
+        {
+            var events = new PerOtherHandler();
+            var body = new VolumetricSoftBodyComponent { Resolution = 3, ContactEventHandler = events, SleepThreshold = 0f };
+            var plate = new StaticComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider { Size = new Vector3(1f, 0.04f, 2f) } } } };
+            scene.Add(plate, new Vector3(0.5f, 0.02f, 0f));
+            scene.Add(body, new CubeProceduralModel(), new Vector3(0f, 1f, 0f));
+            body.Simulation!.ThreadCount = threadCount;
+
+            await Seconds(body, 1.5f);
+            for (int step = 0; step < 10; step++)
+            {
+                events.Calls.Clear();
+                await body.Simulation!.AfterUpdate();
+                Assert.Equal(2, events.Calls.Count);
+                Assert.All(events.Calls, call => Assert.True(call.Value.Count == 1, $"{call.Value.Count} events with {call.Value.Groups} groups for {call.Key.Entity}"));
+                Assert.All(events.Calls, call => Assert.True(call.Value.Groups > 1));
+            }
+        });
+    }
+
     [Fact]
     public static void ParticlesRespectTheCollisionMatrix()
     {
@@ -182,14 +213,26 @@ public class SoftBodyTests : GameTestBase
         }
     }
 
-    private static async Task Seconds(SoftBodyComponent body, float seconds)
+    private sealed class PerOtherHandler : IContactHandler
+    {
+        public bool NoContactResponse => false;
+        public readonly System.Collections.Generic.Dictionary<CollidableComponent, (int Count, int Groups)> Calls = new();
+
+        public void OnTouching<TManifold>(Contacts<TManifold> contacts) where TManifold : unmanaged, IContactManifold<TManifold>
+        {
+            Calls.TryGetValue(contacts.Other, out var call);
+            Calls[contacts.Other] = (call.Count + 1, contacts.Groups.Length);
+        }
+    }
+
+    internal static async Task Seconds(SoftBodyComponent body, float seconds)
     {
         var simulation = body.Simulation!;
         for (int steps = (int)(seconds * 60f); steps > 0; steps--)
             await simulation.AfterUpdate();
     }
 
-    private static void RunScene(Func<TestScene, Task> test)
+    internal static void RunScene(Func<TestScene, Task> test)
     {
         var game = new TestGame();
         Exception? failure = null;
@@ -216,19 +259,36 @@ public class SoftBodyTests : GameTestBase
             System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw(failure);
     }
 
-    private sealed class TestScene(TestGame game)
+    internal sealed class TestScene(TestGame game)
     {
+        public Game Game => game;
+
         /// <summary> Adds an entity with a model generated from <paramref name="shape"/> and <paramref name="body"/> </summary>
         public Entity Add(SoftBodyComponent body, PrimitiveProceduralModelBase shape, Vector3 position)
         {
-            var entity = new Entity { new ModelComponent(new ProceduralModelDescriptor(shape).GenerateModel(game.Services)), body };
+            return Add(body, new ProceduralModelDescriptor(shape).GenerateModel(game.Services), position);
+        }
+
+        /// <summary> Adds an entity with <paramref name="model"/> and <paramref name="body"/> </summary>
+        public Entity Add(SoftBodyComponent body, Model model, Vector3 position)
+        {
+            var entity = new Entity { new ModelComponent(model), body };
+            entity.Transform.Position = position;
+            game.SceneSystem.SceneInstance.RootScene.Entities.Add(entity);
+            return entity;
+        }
+
+        /// <summary> Adds an entity with <paramref name="component"/> </summary>
+        public Entity Add(EntityComponent component, Vector3 position)
+        {
+            var entity = new Entity { component };
             entity.Transform.Position = position;
             game.SceneSystem.SceneInstance.RootScene.Entities.Add(entity);
             return entity;
         }
     }
 
-    private sealed class TestGame : GameTestBase
+    internal sealed class TestGame : GameTestBase
     {
         public TestGame()
         {
