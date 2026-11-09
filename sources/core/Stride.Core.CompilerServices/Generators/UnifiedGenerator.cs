@@ -27,13 +27,9 @@ public sealed partial class UnifiedGenerator : IIncrementalGenerator
             foreach (var assembly in compilation.SourceModule.ReferencedAssemblySymbols)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                if (assembly.Name != "Stride.Core")
-                {
-                    continue;
-                }
                 foreach (var module in assembly.Modules)
                 {
-                    if (!module.ReferencedAssemblies.Any(i => i.Name == "Stride.Core"))
+                    if (!module.ReferencedAssemblies.Any(i => i.Name == "Stride.Core") && assembly.Name != "Stride.Core")
                         continue;
 
                     foreach (var type in module.GetAllTypes())
