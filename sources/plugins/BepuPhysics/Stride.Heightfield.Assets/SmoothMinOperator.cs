@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using Stride.Core;
+using Stride.Core.Annotations;
 using Stride.Core.Assets;
 using Stride.Core.BuildEngine;
 using Stride.Core.Serialization.Contents;
@@ -24,6 +25,7 @@ public class SmoothMinOperator : IHeightfieldLayerBuilder
     /// The smoothness or distance of the blend range between the two layers
     /// </summary>
     /// <remarks> Setting to a value below or equal to zero is ignored </remarks>
+    [DataMemberRange(minimum: float.Epsilon)]
     public float Smoothness { get; set => field = value > 0 ? value : field; } = 4;
 
     /// <inheritdoc/>

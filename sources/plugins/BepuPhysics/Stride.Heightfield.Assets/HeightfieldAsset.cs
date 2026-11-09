@@ -5,6 +5,7 @@
 
 using System;
 using Stride.Core;
+using Stride.Core.Annotations;
 using Stride.Core.Assets;
 
 namespace Stride.Heightfield.Assets;
@@ -21,6 +22,7 @@ public sealed class HeightfieldAsset : Asset
 
     /// <inheritdoc cref="Heightfield.Size" />
     /// <exception cref="ArgumentOutOfRangeException">When value is less than or equal to zero</exception>
+    [DataMemberRange(minimum: float.Epsilon)]
     public float Size
     {
         get;
@@ -33,6 +35,7 @@ public sealed class HeightfieldAsset : Asset
 
     /// <inheritdoc cref="Heightfield.Subdivision" />
     /// <exception cref="ArgumentOutOfRangeException">When value is less than or equal to zero</exception>
+    [DataMemberRange(minimum: 1)]
     public int Subdivision
     {
         get;
@@ -51,6 +54,7 @@ public sealed class HeightfieldAsset : Asset
     /// This is a hint, the actual value used may be decreased slightly if we can fit more subdivisions within the same amount of memory.
     /// </remarks>
     /// <exception cref="ArgumentOutOfRangeException">When value is less than or equal to zero</exception>
+    [DataMemberRange(minimum: 1)]
     public int CoarseBlockInterval
     {
         get;

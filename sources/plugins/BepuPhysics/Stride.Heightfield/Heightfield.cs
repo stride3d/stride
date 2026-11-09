@@ -22,6 +22,7 @@ public class Heightfield : IHeightfieldPhysicsSource, IHeightfieldRenderingSourc
 {
     /// <inheritdoc cref="IHeightfieldSource.Size" />
     /// <exception cref="ArgumentOutOfRangeException">When value is less than or equal to zero</exception>
+    [DataMemberRange(minimum: float.Epsilon)]
     public float Size
     {
         get;
@@ -34,6 +35,7 @@ public class Heightfield : IHeightfieldPhysicsSource, IHeightfieldRenderingSourc
 
     /// <inheritdoc cref="IHeightfieldSource.Subdivision" />
     /// <exception cref="ArgumentOutOfRangeException">When value is less than two</exception>
+    [DataMemberRange(minimum: 2)]
     public int Subdivision
     {
         get;
@@ -55,6 +57,7 @@ public class Heightfield : IHeightfieldPhysicsSource, IHeightfieldRenderingSourc
     /// <see cref="CoarseBlocks"/> holds <see cref="CoarseBlocksSubdivision"/>^2 blocks.
     /// </summary>
     /// <exception cref="ArgumentOutOfRangeException">When value is less than or equal to zero</exception>
+    [DataMemberRange(minimum: 1)]
     public int CoarseBlocksSubdivision
     {
         get;
@@ -70,6 +73,7 @@ public class Heightfield : IHeightfieldPhysicsSource, IHeightfieldRenderingSourc
     /// Each block overlaps <see cref="CoarseBlockInterval"/>^2 height samples.
     /// </summary>
     /// <exception cref="ArgumentOutOfRangeException">When value is less than or equal to zero</exception>
+    [DataMemberRange(minimum: 1)]
     public int CoarseBlockInterval
     {
         get;

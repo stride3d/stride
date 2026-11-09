@@ -3,6 +3,7 @@
 
 using System.ComponentModel;
 using Stride.Core;
+using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Design;
@@ -50,6 +51,7 @@ public class HeightfieldModelComponent : EntityComponent
     /// Increase this value and reduce maximum subdivision on your tessellation to alleviate this issue.
     /// </remarks>
     /// <exception cref="ArgumentOutOfRangeException">Value must be greater than one</exception>
+    [DataMemberRange(minimum: 2)]
     public int Tessellation
     {
         get;

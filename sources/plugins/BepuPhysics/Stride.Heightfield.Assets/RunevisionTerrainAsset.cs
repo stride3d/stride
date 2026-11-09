@@ -53,7 +53,7 @@ public sealed class RunevisionTerrainAsset : Asset
     /// <summary>
     /// The input heightfield data to apply the erosion filter over
     /// </summary>
-    [Display(null, "Settings")]
+    [Display(null, "Settings"), NotNull]
     public required IHeightInput HeightInput
     {
         get;
@@ -67,7 +67,7 @@ public sealed class RunevisionTerrainAsset : Asset
     /// <summary>
     /// The settings used by the erosion filter
     /// </summary>
-    [Display(null, "Settings")]
+    [Display(null, "Settings"), NotNull]
     public RunevisionTerrainErosion.Settings Settings
     {
         get;
