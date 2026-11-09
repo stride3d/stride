@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Stride.BepuPhysics.Definitions.Colliders;
 using Stride.BepuPhysics.Soft.Rendering;
@@ -28,7 +29,8 @@ public class DeformationModeTests : GameTestBase
 {
     /// <summary>
     /// A volumetric body squashed on the floor and a cloth bent in the middle of its swing, frozen, then drawn with each deformation mode:
-    /// both images must match, shadows and normal mapped lighting included.
+    /// both images must match, shadows and normal mapped lighting included. With them, a body whose mesh is under a node that turns
+    /// and stretches it, and one whose mesh has no tangents.
     /// </summary>
     [Fact]
     public static void GpuDeformationLooksLikeCpuDeformation()
@@ -54,12 +56,16 @@ public class DeformationModeTests : GameTestBase
                 using (var cpu = await game.Capture(bodies, SoftBodyDeformationMode.Cpu))
                 using (var stream = File.Create(cpuPath))
                     cpu.Save(stream, ImageFileType.Png);
+                // What the CPU deformation leaves in the vertices is not the rest pose, the switch must not start from it
+                Assert.All(bodies, body => Assert.True(DistanceToRestPose(body) > 1e-3f, $"{body.Entity.Name} is {DistanceToRestPose(body)} away from its rest pose"));
                 var models = bodies.Select(b => b.Entity.Get<ModelComponent>()!.Model).ToArray();
                 using var gpu = await game.Capture(bodies, SoftBodyDeformationMode.Gpu);
                 // The mode switches in place: what follows the model (node links, skeleton bodies) is left alone
                 Assert.Equal(models, bodies.Select(b => b.Entity.Get<ModelComponent>()!.Model));
                 using (var stream = File.Create(gpuPath))
                     gpu.Save(stream, ImageFileType.Png);
+                // The vertex shader deforms what is in the vertex buffer: the rest pose, in the space of the model
+                Assert.All(bodies, body => Assert.Equal(0f, DistanceToRestPose(body)));
 
                 ImageTester.CompareImage(gpu, cpuPath, out stats);
             }
@@ -78,6 +84,34 @@ public class DeformationModeTests : GameTestBase
         Assert.True(stats.TotalPixels > 0, message);
         Assert.True(stats.PixelsAtDiff3Plus <= stats.TotalPixels / 1000, message);
         Assert.True(stats.PSNR > 45.0, message);
+    }
+
+    /// <summary> How far the normals and tangents in the vertices of a body are from the ones of its rest pose, at most </summary>
+    private static float DistanceToRestPose(SoftBodyComponent body)
+    {
+        var renderModel = body.RenderModel!;
+        var rest = renderModel.Topology.Mesh;
+        float distance = 0f;
+        for (int m = 0; m < rest.Parts.Length; m++)
+        {
+            var declaration = renderModel.Model.Meshes[m].Draw.VertexBuffers[0].Declaration;
+            var bytes = renderModel.VertexBytes(m);
+            int stride = declaration.VertexStride;
+            foreach (var element in declaration.EnumerateWithOffsets())
+            {
+                if (element.VertexElement.SemanticIndex != 0 || element.VertexElement.SemanticName is not ("NORMAL" or "TANGENT"))
+                    continue;
+
+                for (int i = 0; i < rest.Parts[m].VertexCount; i++)
+                {
+                    int vertex = rest.Parts[m].FirstVertex + i;
+                    var expected = element.VertexElement.SemanticName == "NORMAL" ? rest.Normals[vertex] : (Vector3)rest.Tangents[vertex];
+                    var actual = MemoryMarshal.Read<Vector3>(bytes[(i * stride + element.Offset)..]);
+                    distance = MathF.Max(distance, Vector3.Distance(expected, actual));
+                }
+            }
+        }
+        return distance;
     }
 
     private sealed class RenderGame : GameTestBase
@@ -123,7 +157,7 @@ public class DeformationModeTests : GameTestBase
 
             // Volumetric: dropped onto the floor, it squashes and wobbles
             var jelly = new VolumetricSoftBodyComponent { Resolution = 4 };
-            var jellyEntity = new Entity { new ModelComponent(Model(new SphereProceduralModel { Radius = 0.35f, Tessellation = 24 }, Material(new Color(255, 111, 89), normalMapped: true))), jelly };
+            var jellyEntity = new Entity("Jelly") { new ModelComponent(Model(new SphereProceduralModel { Radius = 0.35f, Tessellation = 24 }, Material(new Color(255, 111, 89), normalMapped: true))), jelly };
             jellyEntity.Transform.Position = new Vector3(-0.55f, 0.8f, 0f);
             root.Add(jellyEntity);
 
@@ -131,11 +165,41 @@ public class DeformationModeTests : GameTestBase
             var edge = new BoundingBox(new Vector3(-0.51f, -1f, -1f), new Vector3(-0.49f, 1f, 1f));
             var cloth = new ClothComponent { Pins = { new SoftBodyPin { Region = edge } } };
             var plane = new PlaneProceduralModel { Size = new Vector2(1f), Tessellation = new Int2(16), Normal = NormalDirection.UpY, GenerateBackFace = true };
-            var clothEntity = new Entity { new ModelComponent(Model(plane, Material(new Color(61, 125, 216), normalMapped: true))), cloth };
+            // Its tangents carry a handedness of -1, as mirrored texture coordinates give them: both modes leave it to the mesh
+            var clothModel = VertexLayoutTests.WithLayout(this, plane, VertexLayoutTests.Float3, VertexLayoutTests.Float3, VertexLayoutTests.Float4, out _);
+            clothModel.Materials.Clear();
+            clothModel.Materials.Add(new MaterialInstance(Material(new Color(61, 125, 216), normalMapped: true)));
+            var clothEntity = new Entity("Cloth") { new ModelComponent(clothModel), cloth };
             clothEntity.Transform.Position = new Vector3(0.75f, 1.3f, -0.3f);
             root.Add(clothEntity);
 
-            return [jelly, cloth];
+            // Volumetric, its mesh under a node that turns and stretches it, as the meshes of an imported model can be:
+            // what is in its vertices is in the space of the node, the rest pose in the space of the model
+            var nodedModel = Model(new SphereProceduralModel { Radius = 0.25f, Tessellation = 24 }, Material(new Color(96, 190, 120), normalMapped: true));
+            nodedModel.Skeleton = new Skeleton
+            {
+                Nodes =
+                [
+                    new ModelNodeDefinition { Name = "Root", ParentIndex = -1, Flags = ModelNodeFlags.Default, Transform = new TransformTRS { Rotation = Quaternion.Identity, Scale = Vector3.One } },
+                    new ModelNodeDefinition { Name = "Mesh", ParentIndex = 0, Flags = ModelNodeFlags.Default, Transform = new TransformTRS { Rotation = Quaternion.RotationYawPitchRoll(0.8f, 0.5f, 0.3f), Scale = new Vector3(1f, 1.4f, 0.8f) } },
+                ],
+            };
+            nodedModel.Meshes[0].NodeIndex = 1;
+            var noded = new VolumetricSoftBodyComponent { Resolution = 4 };
+            var nodedEntity = new Entity("Noded") { new ModelComponent(nodedModel), noded };
+            nodedEntity.Transform.Position = new Vector3(0.05f, 0.8f, 0.9f);
+            root.Add(nodedEntity);
+
+            // Volumetric, without tangents in its mesh, as a model imported from a file without them
+            var bareModel = VertexLayoutTests.WithLayout(this, new SphereProceduralModel { Radius = 0.3f, Tessellation = 16 }, VertexLayoutTests.Float3, VertexLayoutTests.Float3, VertexLayoutTests.Absent, out _);
+            bareModel.Materials.Clear();
+            bareModel.Materials.Add(new MaterialInstance(Material(new Color(230, 200, 80), normalMapped: false)));
+            var bare = new VolumetricSoftBodyComponent { Resolution = 4 };
+            var bareEntity = new Entity("Bare") { new ModelComponent(bareModel), bare };
+            bareEntity.Transform.Position = new Vector3(-1.3f, 0.8f, 0.3f);
+            root.Add(bareEntity);
+
+            return [jelly, cloth, noded, bare];
         }
 
         /// <summary> Draws the frozen bodies with <paramref name="mode"/> once every effect is compiled, and reads the back buffer </summary>
