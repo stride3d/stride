@@ -1588,9 +1588,13 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
                             }
                         }
 
-                        asset.AssetFolders = profile.AssetFolders;
-                        asset.ResourceFolders = profile.ResourceFolders;
-                        asset.OutputGroupDirectories = profile.OutputGroupDirectories;
+                        // A profile without one of these leaves the package's own: copied, the missing one would load as null
+                        if (profile.AssetFolders is not null)
+                            asset.AssetFolders = profile.AssetFolders;
+                        if (profile.ResourceFolders is not null)
+                            asset.ResourceFolders = profile.ResourceFolders;
+                        if (profile.OutputGroupDirectories is not null)
+                            asset.OutputGroupDirectories = profile.OutputGroupDirectories;
                     }
                 }
 
