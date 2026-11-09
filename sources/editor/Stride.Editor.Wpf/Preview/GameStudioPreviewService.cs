@@ -161,9 +161,6 @@ namespace Stride.Editor.Preview
             PreviewGame = new PreviewGame(AssetBuilderService.EffectCompiler);
             var context = new GameContextWinforms(gameForm) { InitializeDatabase = false };
 
-            // Wait for shaders to be loaded
-            AssetBuilderService.WaitForShaders();
-
             if (!DisablePreview)
             {
                 PreviewGame.GraphicsDeviceManager.DeviceCreated += GraphicsDeviceManagerDeviceCreated;
@@ -214,6 +211,9 @@ namespace Stride.Editor.Preview
             var graphicsProfile = PreviewGame.GraphicsDeviceManager.GraphicsDevice.Features.CurrentProfile;
             //ThumbnailService.ThumbnailBuilderContext.GetGameSettingsAsset().Get<RenderingSettings>().DefaultGraphicsProfile = graphicsProfile;
             previewCompileContext.GetGameSettingsAsset().GetOrCreate<RenderingSettings>().DefaultGraphicsProfile = graphicsProfile;
+
+            // Only the effects need the system shaders: the device is created while they are imported, the content after
+            AssetBuilderService.WaitForShaders();
         }
 
         public void SetAssetToPreview(AssetViewModel asset)
