@@ -29,7 +29,6 @@ Defaults:
                 Deterministic: false
                 FixedTimeStepSeconds: 0.0166666
                 TimeScale: 1.0
-                MaxStepPerFrame: 5
                 UsePerBodyAttributes: true
                 PoseGravity: {X: 0.0, Y: -9.8, Z: 0.0}
                 PoseLinearDamping: 0.05
@@ -43,7 +42,6 @@ Defaults:
                 Deterministic: false
                 FixedTimeStepSeconds: 0.0166666
                 TimeScale: 1.0
-                MaxStepPerFrame: 3
                 UsePerBodyAttributes: true
                 PoseGravity: {X: 0.0, Y: -30.0, Z: 0.0}
                 PoseLinearDamping: 0.05
@@ -57,7 +55,6 @@ Defaults:
                 Deterministic: false
                 FixedTimeStepSeconds: 0.0166666
                 TimeScale: 1.0
-                MaxStepPerFrame: 3
                 UsePerBodyAttributes: false
                 PoseGravity: {X: 0.0, Y: -9.8, Z: 0.0}
                 PoseLinearDamping: 0.05
