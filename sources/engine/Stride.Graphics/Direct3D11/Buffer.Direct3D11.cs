@@ -134,9 +134,6 @@ namespace Stride.Graphics
                 if (bufferDescription.BufferFlags.HasFlag(BufferFlags.ArgumentBuffer))
                     bufferDesc.MiscFlags |= (uint) ResourceMiscFlag.DrawindirectArgs;
 
-                if (bufferDescription.BufferFlags.HasFlag(BufferFlags.StreamOutput))
-                    bufferDesc.BindFlags |= (uint) BindFlag.StreamOutput;
-
                 if (bufferDesc.Usage == Silk.NET.Direct3D11.Usage.Dynamic)
                 {
                     bufferDesc.CPUAccessFlags = (uint) CpuAccessFlag.Write;
