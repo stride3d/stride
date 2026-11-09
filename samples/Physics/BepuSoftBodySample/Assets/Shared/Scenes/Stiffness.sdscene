@@ -128,10 +128,6 @@ Hierarchy:
                         CameraEntity: ref!! 7b3b8d87-a1c2-84f7-ff19-cd7f49aaa25f
                         MarkerPrefab: 3075790f-ed9d-6dac-f16a-f38a848b055c:Prefabs/Marker
                         BallPrefab: 93d5a3da-f3a6-2397-f88c-146ee67bac7a:Prefabs/Ball
-                    b446ec7813c3b662c3283cdd5f3333ef: !BepuSoftBodySample.Game.Components.ParticleViewComponent,BepuSoftBodySample.Game
-                        Id: 0160560b-c1c7-96e4-dda1-e3b5a1ec742e
-                        ParticleMaterial: 3e38fbde-13b9-e3b0-e472-cb12e55512a4:Materials/Particle
-                        PinnedMaterial: 12f5ec95-8de0-100e-ddc7-10bcd7660756:Materials/PinnedParticle
         -   Entity:
                 Id: 6c852e49-7c81-4c68-c2d4-adb58401eadd
                 Name: Cube 3 Hz
@@ -151,7 +147,7 @@ Hierarchy:
                         Id: a3780f23-a18a-2f0c-b4f7-2c59fd183643
                         Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft {}
                         Mass: 1.0
-                        Resolution: 6
+                        Resolution: 10
                         Stiffness: 3.0
                         ShearStiffness: 3.0
                         VolumeStiffness: 3.0
@@ -205,7 +201,7 @@ Hierarchy:
                         Id: 8960607c-93d2-e6ca-1a93-9350cfff60ff
                         Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft {}
                         Mass: 1.0
-                        Resolution: 6
+                        Resolution: 10
                         Stiffness: 6.0
                         ShearStiffness: 6.0
                         VolumeStiffness: 6.0
@@ -259,7 +255,7 @@ Hierarchy:
                         Id: 40f27397-137f-4017-bc8d-7e9de65a9a8a
                         Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft {}
                         Mass: 1.0
-                        Resolution: 6
+                        Resolution: 10
                         Stiffness: 12.0
                         ShearStiffness: 12.0
                         VolumeStiffness: 12.0
@@ -313,7 +309,7 @@ Hierarchy:
                         Id: 7cfda697-a7dc-2079-6628-c36fae652883
                         Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft {}
                         Mass: 1.0
-                        Resolution: 6
+                        Resolution: 10
                         Stiffness: 25.0
                         ShearStiffness: 25.0
                         VolumeStiffness: 25.0
@@ -367,7 +363,7 @@ Hierarchy:
                         Id: 30497e91-87ad-f354-db77-0486731cacf5
                         Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft {}
                         Mass: 1.0
-                        Resolution: 6
+                        Resolution: 10
                         Stiffness: 50.0
                         ShearStiffness: 50.0
                         VolumeStiffness: 50.0

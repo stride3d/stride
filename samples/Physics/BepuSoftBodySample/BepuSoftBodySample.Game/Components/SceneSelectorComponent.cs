@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Stride.BepuPhysics.Debug;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
 using Stride.Engine;
@@ -23,7 +24,8 @@ namespace BepuSoftBodySample.Game.Components
     {
         // In the units of the UI, 720 of them fit in the height of the window
         private const float SidebarWidth = 270f;
-        private const float RowHeight = 34f;
+        private const float RowHeight = 29f;
+        private const float ToggleHeight = 22f;
 
         private static readonly Color PanelColor = new(14, 16, 22, 236);
         private static readonly Color CaptionColor = new(14, 16, 22, 190);
@@ -31,6 +33,7 @@ namespace BepuSoftBodySample.Game.Components
         private static readonly Color SelectedColor = new(255, 126, 66, 52);
         private static readonly Color HoverColor = new(255, 255, 255, 24);
         private static readonly Color Transparent = new(0, 0, 0, 0);
+        private static readonly Color OffColor = new(70, 75, 88, 255);
         private static readonly Color TextColor = new(255, 255, 255, 255);
         private static readonly Color MutedColor = new(186, 192, 204, 255);
         private static readonly Color DescriptionColor = new(222, 226, 234, 255);
@@ -42,9 +45,8 @@ namespace BepuSoftBodySample.Game.Components
             ("PgUp PgDn", "previous, next scene"),
             ("Right mouse", "look around"),
             ("W A S D", "move, Shift to go faster"),
-            ("Left mouse", "grab a body"),
-            ("F", "throw it"),
-            ("B", "show the particles"),
+            ("Left mouse", "grab a body, F to throw it"),
+            ("F11", "debug view"),
         ];
 
         public Scene? MainScene { get; set; }
@@ -57,6 +59,9 @@ namespace BepuSoftBodySample.Game.Components
         public UIComponent? SelectorUI { get; set; }
 
         private readonly List<(Border Row, Border Mark, TextBlock Name)> _rows = [];
+        private readonly List<(Border Box, TextBlock Label, Func<bool> IsOn)> _toggles = [];
+        private DebugRenderComponent? _debug;
+        private bool _hideModels, _modelsHidden;
         private Scene? _loaded;
         private int _current = -1;
         private int _hovered = -1;
@@ -73,6 +78,10 @@ namespace BepuSoftBodySample.Game.Components
 
             MainScene ??= Entity.Scene;
             _camera = MainScene.Entities.Select(e => e.Get<CameraComponent>()).FirstOrDefault(c => c is not null);
+
+            // The debug view of the physics plugin, off until the menu or its key asks for it
+            _debug = new DebugRenderComponent { Visible = false };
+            Entity.Add(_debug);
 
             if (SelectorUI is not null && Font is not null)
                 SelectorUI.Page = new UIPage { RootElement = BuildMenu() };
@@ -92,6 +101,9 @@ namespace BepuSoftBodySample.Game.Components
             if (SceneList.Count > 0 && Input.IsKeyPressed(Keys.PageUp))
                 SetScene((_current + SceneList.Count - 1) % SceneList.Count);
 
+            RefreshToggles(); // The key of the debug view changes it too
+            if (_hideModels || _modelsHidden)
+                ShowModels(_hideModels == false); // Every frame while they are hidden, scenes keep adding entities
             CenterViewBesideSidebar();
         }
 
@@ -180,10 +192,20 @@ namespace BepuSoftBodySample.Game.Components
             }
 
             var header = new StackPanel { Orientation = Orientation.Vertical, VerticalAlignment = VerticalAlignment.Top };
-            header.Children.Add(Text("SOFT BODIES", 27f, TextColor, margin: new Thickness(22f, 26f, 0f, 0f)));
+            header.Children.Add(Text("SOFT BODIES", 27f, TextColor, margin: new Thickness(22f, 20f, 0f, 0f)));
             header.Children.Add(Text("Stride + Bepu Physics v2", 13f, MutedColor, margin: new Thickness(23f, 4f, 0f, 0f)));
             header.Children.Add(new Border { BackgroundColor = Accent, Height = 2f, Width = 44f, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(23f, 14f, 0f, 0f) });
             header.Children.Add(list);
+            if (_debug is { } debug)
+            {
+                header.Children.Add(Text("DEBUG VIEW", 11f, MutedColor, margin: new Thickness(23f, 16f, 0f, 5f)));
+                header.Children.Add(BuildToggle("Physics debug view", () => debug.Visible, on => debug.Visible = on));
+                header.Children.Add(BuildToggle("Colliders", () => debug.Visible && debug.ShowShapes, on => Show(debug, on, d => d.ShowShapes = on)));
+                header.Children.Add(BuildToggle("Soft body particles", () => debug.Visible && debug.ShowSoftBodyParticles, on => Show(debug, on, d => d.ShowSoftBodyParticles = on)));
+                header.Children.Add(BuildToggle("Soft body springs", () => debug.Visible && debug.ShowSoftBodySprings, on => Show(debug, on, d => d.ShowSoftBodySprings = on)));
+                header.Children.Add(BuildToggle("Contacts", () => debug.Visible && debug.ShowContactPoints, on => Show(debug, on, d => d.ShowContactPoints = d.ShowContactNormals = on)));
+                header.Children.Add(BuildToggle("Hide the models", () => _hideModels, on => Show(debug, on, _ => _hideModels = on)));
+            }
 
             var sidebar = Layer();
             sidebar.Width = SidebarWidth;
@@ -242,6 +264,62 @@ namespace BepuSoftBodySample.Game.Components
 
             _rows.Add((row, mark, name));
             return row;
+        }
+
+        /// <summary> Shows or hides every model of the scene being played, to leave the debug view alone on screen </summary>
+        private void ShowModels(bool visible)
+        {
+            _modelsHidden = visible == false;
+            if (_loaded is null)
+                return;
+
+            foreach (var entity in _loaded.Entities)
+                ShowModels(entity, visible);
+        }
+
+        private static void ShowModels(Entity entity, bool visible)
+        {
+            // The markers of the gravity gun are shown and hidden by it
+            if (entity.Name != "Marker" && entity.Get<ModelComponent>() is { } model)
+                model.Enabled = visible;
+            foreach (var child in entity.Transform.Children)
+                ShowModels(child.Entity, visible);
+        }
+
+        /// <summary> Turning a layer of the debug view on turns the debug view on with it </summary>
+        private static void Show(DebugRenderComponent debug, bool on, Action<DebugRenderComponent> set)
+        {
+            set(debug);
+            if (on)
+                debug.Visible = true;
+        }
+
+        private UIElement BuildToggle(string label, Func<bool> isOn, Action<bool> set)
+        {
+            var box = new Border { Width = 10f, Height = 10f, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(23f, 0f, 11f, 0f), BackgroundColor = OffColor };
+            var text = Text(label, 13f, MutedColor);
+            text.VerticalAlignment = VerticalAlignment.Center;
+
+            var content = new StackPanel { Orientation = Orientation.Horizontal };
+            content.Children.Add(box);
+            content.Children.Add(text);
+
+            var row = new Border { Height = ToggleHeight, BackgroundColor = Transparent, Content = content, CanBeHitByUser = true };
+            row.MouseOverStateChanged += (_, args) => row.BackgroundColor = args.NewValue != MouseOverState.MouseOverNone ? HoverColor : Transparent;
+            row.TouchUp += (_, _) => set(isOn() == false);
+
+            _toggles.Add((box, text, isOn));
+            return row;
+        }
+
+        private void RefreshToggles()
+        {
+            foreach (var (box, label, isOn) in _toggles)
+            {
+                bool on = isOn();
+                box.BackgroundColor = on ? Accent : OffColor;
+                label.TextColor = on ? TextColor : MutedColor;
+            }
         }
 
         private TextBlock Text(string text, float size, Color color, Thickness margin = default, float width = float.NaN)

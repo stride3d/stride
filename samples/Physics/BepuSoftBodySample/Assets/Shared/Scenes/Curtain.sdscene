@@ -124,10 +124,6 @@ Hierarchy:
                         CameraEntity: ref!! 92d26a37-e918-c9b6-303e-e825179730b4
                         MarkerPrefab: 3075790f-ed9d-6dac-f16a-f38a848b055c:Prefabs/Marker
                         BallPrefab: 93d5a3da-f3a6-2397-f88c-146ee67bac7a:Prefabs/Ball
-                    cb6ba4d32d793c8fca5da4a406a583b5: !BepuSoftBodySample.Game.Components.ParticleViewComponent,BepuSoftBodySample.Game
-                        Id: 6fed2914-992e-bc76-d952-c452e4b07731
-                        ParticleMaterial: 3e38fbde-13b9-e3b0-e472-cb12e55512a4:Materials/Particle
-                        PinnedMaterial: 12f5ec95-8de0-100e-ddc7-10bcd7660756:Materials/PinnedParticle
         -   Entity:
                 Id: cbe852f2-eaa1-3325-5397-b07c4deaa349
                 Name: Rail

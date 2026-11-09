@@ -4,7 +4,7 @@ SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Type: !PlaneProceduralModel
     Size: {X: 3.0, Y: 3.0}
-    Tessellation: {X: 28, Y: 28}
+    Tessellation: {X: 40, Y: 40}
     Normal: UpY
     GenerateBackFace: true
     Scale: {X: 1.0, Y: 1.0, Z: 1.0}

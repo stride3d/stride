@@ -16,6 +16,7 @@ namespace BepuSoftBodySample.Game.Components;
 public class SoftSpawnerComponent : SyncScript
 {
     private readonly Random _random = new(1);
+    private readonly List<(Entity Entity, float Radius)> _copies = new();
     private float _time;
     private int _spawned;
 
@@ -37,25 +38,55 @@ public class SoftSpawnerComponent : SyncScript
     /// <summary> Each copy is scaled by a random factor between one and this </summary>
     public float MaximumScale { get; set; } = 1.3f;
 
+    /// <summary> The radius of a copy at a scale of one: a copy only appears where it does not overlap the ones dropped before it </summary>
+    public float Radius { get; set; } = 0.5f;
+
     public override void Update()
     {
         if (Prefab is null)
             return;
 
         _time += (float)Game.UpdateTime.Elapsed.TotalSeconds;
-        while (_spawned < Count && _time >= _spawned * Interval)
+        if (_spawned < Count && _time >= _spawned * Interval)
         {
-            var offset = new Vector3(_random.NextSingle() - 0.5f, _random.NextSingle() - 0.5f, _random.NextSingle() - 0.5f) * Spread;
             var scale = MathUtil.Lerp(1f, MaximumScale, _random.NextSingle());
+            if (FindFreeSpot(Radius * scale, out var position) == false)
+                return; // The ones before it are still in the way, it waits for them to fall
+
             foreach (var entity in Prefab.Instantiate())
             {
-                entity.Transform.Position = Entity.Transform.WorldMatrix.TranslationVector + offset;
+                entity.Transform.Position = position;
                 entity.Transform.Scale *= scale;
                 if (Materials.Count > 0 && entity.Get<ModelComponent>() is { } model)
                     model.Materials[0] = Materials[_spawned % Materials.Count];
                 Entity.Scene.Entities.Add(entity);
+                _copies.Add((entity, Radius * scale));
             }
             _spawned++;
         }
+    }
+
+    /// <summary> Looks for a place in the box where a copy of that radius touches none of the copies already there </summary>
+    private bool FindFreeSpot(float radius, out Vector3 position)
+    {
+        var center = Entity.Transform.WorldMatrix.TranslationVector;
+        for (int attempt = 0; attempt < 12; attempt++)
+        {
+            position = center + new Vector3(_random.NextSingle() - 0.5f, _random.NextSingle() - 0.5f, _random.NextSingle() - 0.5f) * Spread;
+            bool free = true;
+            foreach (var (copy, copyRadius) in _copies)
+            {
+                // A soft body moves its entity along with its particles
+                if (Vector3.Distance(copy.Transform.WorldMatrix.TranslationVector, position) < (radius + copyRadius) * 1.05f)
+                {
+                    free = false;
+                    break;
+                }
+            }
+            if (free)
+                return true;
+        }
+        position = default;
+        return false;
     }
 }

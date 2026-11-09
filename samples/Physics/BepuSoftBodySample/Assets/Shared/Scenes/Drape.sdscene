@@ -122,10 +122,6 @@ Hierarchy:
                         CameraEntity: ref!! c0ea8576-90d0-f5b4-8f8a-b155d2a6edbf
                         MarkerPrefab: 3075790f-ed9d-6dac-f16a-f38a848b055c:Prefabs/Marker
                         BallPrefab: 93d5a3da-f3a6-2397-f88c-146ee67bac7a:Prefabs/Ball
-                    2268baad665382f0ce02a72bd25c849e: !BepuSoftBodySample.Game.Components.ParticleViewComponent,BepuSoftBodySample.Game
-                        Id: 5a769f2a-5eba-0aeb-2abc-5b07e096da80
-                        ParticleMaterial: 3e38fbde-13b9-e3b0-e472-cb12e55512a4:Materials/Particle
-                        PinnedMaterial: 12f5ec95-8de0-100e-ddc7-10bcd7660756:Materials/PinnedParticle
         -   Entity:
                 Id: 6535dde2-6cde-e4c1-3799-5380ff2ff2e3
                 Name: Ball

@@ -6,6 +6,7 @@
   <ItemGroup>
     <PackageReference Include="Stride.Assets" Version="4.4.0" />
     <PackageReference Include="Stride.BepuPhysics" Version="4.4.0" />
+    <PackageReference Include="Stride.BepuPhysics.Debug" Version="4.4.0" />
     <PackageReference Include="Stride.BepuPhysics.Soft" Version="4.4.0" />
     <PackageReference Include="Stride.Core.Assets" Version="4.4.0" />
     <PackageReference Include="Stride.Engine" Version="4.4.0" />

@@ -127,10 +127,6 @@ Hierarchy:
                         CameraEntity: ref!! 48b8fd72-20e7-2692-66da-94b1847a6446
                         MarkerPrefab: 3075790f-ed9d-6dac-f16a-f38a848b055c:Prefabs/Marker
                         BallPrefab: 93d5a3da-f3a6-2397-f88c-146ee67bac7a:Prefabs/Ball
-                    aec71b4fb62388079a6e83eac4164fa2: !BepuSoftBodySample.Game.Components.ParticleViewComponent,BepuSoftBodySample.Game
-                        Id: 8fda25fe-3619-67c1-0d48-7d3ecc01c704
-                        ParticleMaterial: 3e38fbde-13b9-e3b0-e472-cb12e55512a4:Materials/Particle
-                        PinnedMaterial: 12f5ec95-8de0-100e-ddc7-10bcd7660756:Materials/PinnedParticle
         -   Entity:
                 Id: 7d018402-e40a-18e1-7609-8e6c43375a36
                 Name: Peg 0 0
@@ -359,7 +355,7 @@ Hierarchy:
                         Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft {}
                         Mass: 2.0
                         FrictionCoefficient: 0.3
-                        Resolution: 10
+                        Resolution: 16
                         Stiffness: 8.0
                         ShearStiffness: 8.0
                         VolumeStiffness: 15.0

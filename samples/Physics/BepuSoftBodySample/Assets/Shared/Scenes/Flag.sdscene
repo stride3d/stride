@@ -120,10 +120,6 @@ Hierarchy:
                         CameraEntity: ref!! 182ab3ae-ea6c-e582-66d6-10be0e14b124
                         MarkerPrefab: 3075790f-ed9d-6dac-f16a-f38a848b055c:Prefabs/Marker
                         BallPrefab: 93d5a3da-f3a6-2397-f88c-146ee67bac7a:Prefabs/Ball
-                    8a3e3eaa5a18be6590590c4af982419b: !BepuSoftBodySample.Game.Components.ParticleViewComponent,BepuSoftBodySample.Game
-                        Id: 6dcbc79e-d4e1-6e00-5251-ad5b992d25fe
-                        ParticleMaterial: 3e38fbde-13b9-e3b0-e472-cb12e55512a4:Materials/Particle
-                        PinnedMaterial: 12f5ec95-8de0-100e-ddc7-10bcd7660756:Materials/PinnedParticle
         -   Entity:
                 Id: 33b7d812-61f4-393a-7a7c-3d92195a7519
                 Name: Pole

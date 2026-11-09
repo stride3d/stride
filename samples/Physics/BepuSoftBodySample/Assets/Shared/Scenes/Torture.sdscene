@@ -124,10 +124,6 @@ Hierarchy:
                         CameraEntity: ref!! 6e412671-5e02-b6c0-4ccd-ce0d6ba38119
                         MarkerPrefab: 3075790f-ed9d-6dac-f16a-f38a848b055c:Prefabs/Marker
                         BallPrefab: 93d5a3da-f3a6-2397-f88c-146ee67bac7a:Prefabs/Ball
-                    a9eb8d0d9f10f7e487408da5117127cf: !BepuSoftBodySample.Game.Components.ParticleViewComponent,BepuSoftBodySample.Game
-                        Id: c8b19175-3b2e-65c5-75ad-b7c3e64d65c9
-                        ParticleMaterial: 3e38fbde-13b9-e3b0-e472-cb12e55512a4:Materials/Particle
-                        PinnedMaterial: 12f5ec95-8de0-100e-ddc7-10bcd7660756:Materials/PinnedParticle
         -   Entity:
                 Id: f1040480-5b6a-ac69-6e8a-c03c3fce716c
                 Name: Unlimited cube

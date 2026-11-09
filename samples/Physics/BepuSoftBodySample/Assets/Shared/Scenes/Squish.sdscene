@@ -122,10 +122,6 @@ Hierarchy:
                         CameraEntity: ref!! b2d2cef9-1601-3479-4f30-098d99c097d6
                         MarkerPrefab: 3075790f-ed9d-6dac-f16a-f38a848b055c:Prefabs/Marker
                         BallPrefab: 93d5a3da-f3a6-2397-f88c-146ee67bac7a:Prefabs/Ball
-                    3a1a7432c3199ad10ced2dc8009148ff: !BepuSoftBodySample.Game.Components.ParticleViewComponent,BepuSoftBodySample.Game
-                        Id: 463a2953-86a7-5cfb-1149-ab00426b7a13
-                        ParticleMaterial: 3e38fbde-13b9-e3b0-e472-cb12e55512a4:Materials/Particle
-                        PinnedMaterial: 12f5ec95-8de0-100e-ddc7-10bcd7660756:Materials/PinnedParticle
         -   Entity:
                 Id: 4682bcb1-e97a-21b3-8057-69fa2c93656c
                 Name: Soft ball
