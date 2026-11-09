@@ -16,8 +16,9 @@ namespace Stride.BepuPhysics.Soft.Rendering;
 /// authored mesh (stream 0), and the particles themselves uploaded every frame for the <c>SoftBodyDeformation</c> shaders.
 /// </summary>
 /// <remarks>
-/// The authored vertex buffer passes through unchanged as stream 0, carrying every semantic the mesh declared (position, normal,
-/// tangent, texture coordinates, colours, extra UVs, bone indices and weights...). The binding stream only adds the semantics
+/// The authored vertex buffer is stream 0, carrying every semantic the mesh declared (position, normal, tangent, texture
+/// coordinates, colours, extra UVs, bone indices and weights...); <see cref="DeformableModel"/> only rewrites its position,
+/// normal and tangent as the rest pose of the topology, in the space of the model. The binding stream only adds the semantics
 /// the deformation shaders read: <c>SOFTBODYCORNERS0/1</c> + <c>SOFTBODYCELL</c> for a volumetric lattice, or <c>SOFTBODYPARTICLE</c>
 /// + <c>SOFTBODYRING</c> for a cloth. The vertex shader overwrites <c>Position</c>, <c>meshNormal</c> and <c>meshTangent</c>
 /// from the particles; every other authored attribute reaches the pixel shader through the usual semantics.

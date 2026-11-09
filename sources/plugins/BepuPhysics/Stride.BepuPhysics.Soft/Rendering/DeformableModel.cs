@@ -56,8 +56,9 @@ internal sealed class DeformableModel : IDisposable
             Model.Materials.Add(material);
 
         // The authored vertex bytes are snapshotted once per source mesh, into Working, and live there in both modes:
-        // CPU mode rewrites position/normal/tangent in Working every frame; GPU mode uploads Working to a static buffer
-        // once per SetMode. Keeping Working alive lets SetMode rebuild either mode without re-reading the source mesh.
+        // CPU mode rewrites position/normal/tangent in Working every frame; GPU mode writes their rest pose there and
+        // uploads Working to a static buffer, once per SetMode. Keeping Working alive lets SetMode rebuild either mode
+        // without re-reading the source mesh.
         _meshBuffers = new MeshBuffer[source.Meshes.Count];
         for (int m = 0; m < source.Meshes.Count; m++)
         {
@@ -153,7 +154,10 @@ internal sealed class DeformableModel : IDisposable
             var buffer = _meshBuffers[m];
 
             // CPU mode rewrites Working every frame, so the buffer is Dynamic and is uploaded each frame from the snapshot.
-            // GPU mode uploads the snapshot once at creation and never touches it again, so the buffer is Default (static).
+            // GPU mode uploads the snapshot once at creation and never touches it again, so the buffer is Default (static);
+            // the vertex shader deforms the rest pose it finds there.
+            if (gpu)
+                WriteRestPose(buffer);
             var vertexBuffer = gpu
                 ? Buffer.Vertex.New(device, (ReadOnlySpan<byte>)buffer.Working, GraphicsResourceUsage.Default)
                 : Buffer.Vertex.New(device, bufferSize: buffer.Working.Length, usage: GraphicsResourceUsage.Dynamic);
@@ -173,6 +177,27 @@ internal sealed class DeformableModel : IDisposable
                 _gpu!.Bind(mesh);
             else
                 GpuDeformation.Unbind(mesh);
+        }
+    }
+
+    /// <summary>
+    /// Writes the position, normal and tangent of the rest pose over the vertices of a mesh, as the topology has them: in the
+    /// space of the model, where the authored bytes are in the space of the node of their mesh, and whatever the last CPU
+    /// deformation left there.
+    /// </summary>
+    private void WriteRestPose(MeshBuffer buffer)
+    {
+        var rest = Topology.Mesh;
+        ref byte workingBase = ref MemoryMarshal.GetArrayDataReference(buffer.Working);
+        for (int i = 0; i < buffer.VertexCount; i++)
+        {
+            int mergedId = buffer.FirstVertex + i;
+            int byteStart = i * buffer.Stride;
+            Unsafe.WriteUnaligned(ref Unsafe.Add(ref workingBase, byteStart + buffer.PositionOffset), rest.Positions[mergedId]);
+            if (buffer.NormalOffset >= 0)
+                Unsafe.WriteUnaligned(ref Unsafe.Add(ref workingBase, byteStart + buffer.NormalOffset), rest.Normals[mergedId]);
+            if (buffer.TangentOffset >= 0)
+                Unsafe.WriteUnaligned(ref Unsafe.Add(ref workingBase, byteStart + buffer.TangentOffset), (Vector3)rest.Tangents[mergedId]);
         }
     }
 
@@ -338,7 +363,10 @@ internal sealed class DeformableModel : IDisposable
         }
     }
 
-    /// <summary> The vertices of a mesh as last computed by <see cref="Deform"/>, laid out as its vertex declaration says </summary>
+    /// <summary>
+    /// The vertices of a mesh, laid out as its vertex declaration says: as last computed by <see cref="Deform"/> on the CPU,
+    /// or the rest pose the vertex shader deforms on the GPU
+    /// </summary>
     internal ReadOnlySpan<byte> VertexBytes(int meshIndex) => _meshBuffers[meshIndex].Working;
 
     private static Vector3 SafeNormalize(Vector3 value, Vector3 fallback)
