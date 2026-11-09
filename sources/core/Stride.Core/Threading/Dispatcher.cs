@@ -165,6 +165,16 @@ public static partial class Dispatcher
     /// </summary>
     private const int SortSequentialThreshold = 2048;
 
+    /// <summary>
+    /// Sorts a range of <paramref name="collection"/>, splitting a range of more than 2,048 items between threads.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">
+    /// <paramref name="comparer"/> threw inside <see cref="Array.Sort{T}(T[], int, int, IComparer{T})"/>, which sorts every
+    /// range of at most 2,048 items; the comparer's exception is the inner exception.
+    /// </exception>
+    /// <exception cref="Exception">
+    /// <paramref name="comparer"/> threw while a larger range was split; it is rethrown once the other threads have stopped.
+    /// </exception>
     public static void Sort<T>(T[] collection, int index, int length, IComparer<T> comparer)
     {
         using var _ = Profiler.Begin(DispatcherSortKey);
@@ -193,6 +203,10 @@ public static partial class Dispatcher
 
             // Wait for all work to finish
             state.WaitCompletion();
+
+            var ex = Volatile.Read(ref state.ExceptionThrown);
+            if (ex != null)
+                ExceptionDispatchInfo.Capture(ex).Throw();
         }
         finally
         {
@@ -206,7 +220,7 @@ public static partial class Dispatcher
         try
         {
             var sw = new SpinWait();
-            while (Volatile.Read(ref state.OpLeft) != 0)
+            while (Volatile.Read(ref state.OpLeft) != 0 && Volatile.Read(ref state.ExceptionThrown) == null)
             {
                 if (!state.Partitions.TryDequeue(out var range))
                 {
@@ -256,6 +270,12 @@ public static partial class Dispatcher
                     }
                 }
             }
+        }
+        catch (Exception e)
+        {
+            // Stops the other threads; the caller rethrows it. Rethrowing here would escape the worker thread's root
+            // callback and fail-fast the process
+            Interlocked.CompareExchange(ref state.ExceptionThrown, e, null);
         }
         finally
         {
@@ -398,12 +418,15 @@ public static partial class Dispatcher
 
         public int OpLeft;
 
+        public Exception? ExceptionThrown;
+
         public static SortState Acquire(int MaxWorkerCount)
         {
             var state = Pool.Acquire();
             state.referenceCount = 1;
             state.OpLeft = 0;
             state.MaxWorkerCount = MaxWorkerCount;
+            state.ExceptionThrown = null;
             state.Finished.Reset();
             return state;
         }
@@ -417,6 +440,9 @@ public static partial class Dispatcher
         {
             if (Interlocked.Decrement(ref referenceCount) == 0)
             {
+                // An exception leaves ranges in the queue. Clear() allocates a new segment even on an empty queue
+                if (!Partitions.IsEmpty)
+                    Partitions.Clear();
                 Pool.Release(this);
             }
         }
@@ -425,8 +451,15 @@ public static partial class Dispatcher
         {
             // Might as well steal some work instead of just waiting,
             // also helps prevent potential deadlocks from badly threaded code
-            while (Volatile.Read(ref OpLeft) != 0 && !Finished.WaitOne(0))
+            while (Volatile.Read(ref OpLeft) != 0 && Volatile.Read(ref ExceptionThrown) == null && !Finished.WaitOne(0))
                 ThreadPool.Instance.TryCooperate();
+
+            // After an exception, waits for the helpers to stop, so that none writes to the list once Sort has thrown
+            if (Volatile.Read(ref ExceptionThrown) != null)
+            {
+                while (Volatile.Read(ref referenceCount) > 1)
+                    ThreadPool.Instance.TryCooperate();
+            }
         }
     }
 
