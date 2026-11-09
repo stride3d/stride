@@ -5,10 +5,16 @@ Tags: []
 Attributes:
     MicroSurface: !MaterialGlossinessMapFeature
         GlossinessMap: !ComputeFloat
-            Value: 0.3
+            Value: 0.4
     Diffuse: !MaterialDiffuseMapFeature
-        DiffuseMap: !ComputeColor
-            Value: {R: 0.227451, G: 0.235294, B: 0.25098, A: 1.0}
+        DiffuseMap: !ComputeTextureColor
+            Texture: 6af549d8-80c4-4e1d-8bc1-e40afb127fa8:Textures/FloorGrid
+            FallbackValue:
+                Value: {R: 0.55, G: 0.57, B: 0.6, A: 1.0}
+            Filtering: Anisotropic
+            Scale: {X: 100.0, Y: 100.0}
+            Offset: {X: 0.0, Y: 0.0}
+            Swizzle: null
     DiffuseModel: !MaterialDiffuseLambertModelFeature {}
     Specular: !MaterialMetalnessMapFeature
         MetalnessMap: !ComputeFloat

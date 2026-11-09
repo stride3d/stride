@@ -24,8 +24,8 @@ Hierarchy:
                 Components:
                     8fd6714afc5090d16e50534dad591c7d: !TransformComponent
                         Id: 95e373d0-b8d1-0de2-e466-af5aeefcf16e
-                        Position: {X: 0.0, Y: 2.6, Z: 5.5}
-                        Rotation: {X: -0.152738, Y: 0.0, Z: 0.0, W: 0.988267}
+                        Position: {X: 0.0, Y: 2.8, Z: 7.2}
+                        Rotation: {X: -0.1025, Y: 0.0, Z: 0.0, W: 0.994733}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     d20dd2a7e3c07ecd972017287a52dc81: !BepuSoftBodySample.Game.Components.Camera.BasicCameraControllerComponent,BepuSoftBodySample.Game

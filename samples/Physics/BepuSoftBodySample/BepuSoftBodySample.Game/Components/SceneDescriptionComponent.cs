@@ -5,18 +5,14 @@ using Stride.Engine;
 
 namespace BepuSoftBodySample.Game.Components
 {
+    /// <summary> What a scene shows, in a sentence: <see cref="SceneSelectorComponent"/> writes it under the name of the scene </summary>
     [ComponentCategory("BepuSoftBodyDemo")]
     public class SceneDescriptionComponent : SyncScript
     {
-
         public string Description { get; set; } = "";
 
-        public override void Start()
-        {
-        }
         public override void Update()
         {
-            DebugText.Print($"{Description}", new(Game.Window.PreferredWindowedSize.X - 900, 10));
         }
     }
 }

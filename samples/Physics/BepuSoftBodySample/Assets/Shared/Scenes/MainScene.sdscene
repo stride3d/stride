@@ -34,7 +34,7 @@ Hierarchy:
                             87e3af66017a2f3d91ed6bd66755441e: dc62d24b-9e2f-33fa-4237-539b001dc34a:Scenes/Drape
                             0f24322bf0f35b3b854e2a9f9a21ed60: 5090329d-9d00-f585-5a29-71cf6a6bb3b2:Scenes/Curtain
                             0f5f835e84ff9a297c0565baf75f70b6: b45bd398-2402-2057-720d-d10db4223b8f:Scenes/Trampoline
-                        Library: 7f5992a9-3c70-491c-a8f5-08b8e703b204:UILibrary
+                        Font: 92ff5fff-a19a-40da-bf5b-ec6b74534d29:Font
                         SelectorUI: ref!! a12ce69a-d656-74ac-8da4-c6b243d33f26
         -   Entity:
                 Id: b21f1107-e1d1-ac90-d236-bce56be27160
@@ -48,7 +48,7 @@ Hierarchy:
                         Children: {}
                     f6f409001ced30667627355e4e42cf29: !UIComponent
                         Id: a12ce69a-d656-74ac-8da4-c6b243d33f26
-                        Page: eefb526f-3c21-4b2e-8d80-cf13273e5ce2:UI/SceneSelectPage
+                        Page: null
                         Resolution: {X: 1280.0, Y: 720.0, Z: 1000.0}
                         Size: {X: 1.28, Y: 0.72, Z: 1.0}
                         ResolutionStretch: FixedHeightAdaptableWidth
