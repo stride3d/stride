@@ -15,6 +15,8 @@ namespace Stride.Core.BuildEngine;
 [DataSerializerGlobal(typeof(KeyValuePairSerializer<FileVersionKey, ObjectId>))]
 public sealed class FileVersionStorage : DictionaryStore<FileVersionKey, ObjectId>
 {
+    private static readonly TimeSpan PruneInterval = TimeSpan.FromDays(1);
+
     /// <summary>
     /// Initializes a new instance of the <see cref="FileVersionStorage"/> class.
     /// </summary>
@@ -28,6 +30,11 @@ public sealed class FileVersionStorage : DictionaryStore<FileVersionKey, ObjectI
     /// </summary>
     /// <param name="storagePath">The storage path.</param>
     /// <returns><c>true</c> if the storage path was successfully compacted, <c>false</c> otherwise.</returns>
+    /// <remarks>
+    /// Keeps the newest entry of each path, and drops the entries of files that were missing when they were read.
+    /// At most once per day, it also drops the entries in folders that no longer exist. The write time of
+    /// the file <c>&lt;storagePath&gt;.pruned</c> records when this last happened.
+    /// </remarks>
     public static bool Compact(string storagePath)
     {
         FileStream fileStreamExclusive;
@@ -44,18 +51,36 @@ public sealed class FileVersionStorage : DictionaryStore<FileVersionKey, ObjectI
         {
             using var localTracker = new FileVersionStorage(fileStreamExclusive) { UseTransaction = true, AutoLoadNewValues = false };
             localTracker.LoadNewValues();
+            var values = localTracker.GetValues();
             var latestVersion = new Dictionary<string, KeyValuePair<FileVersionKey, ObjectId>>(StringComparer.OrdinalIgnoreCase);
-            foreach (var keyValue in localTracker.GetValues())
+            foreach (var keyValue in values)
             {
+                // A key without a size describes a missing file (older versions kept their failed reads): it matches no file to hash
+                if (keyValue.Key.FileSize < 0)
+                    continue;
+
                 var filePath = keyValue.Key.Path;
                 if (!latestVersion.TryGetValue(filePath, out var previousKeyValue) || keyValue.Key.LastModifiedDate > previousKeyValue.Key.LastModifiedDate)
                 {
                     latestVersion[filePath] = keyValue;
                 }
             }
-            localTracker.Reset();
-            localTracker.AddValues(latestVersion.Values);
-            localTracker.Save();
+
+            var pruneMarkerPath = storagePath + ".pruned";
+            var prune = DateTime.UtcNow - File.GetLastWriteTimeUtc(pruneMarkerPath) >= PruneInterval;
+            if (prune)
+                RemoveEntriesInMissingDirectories(latestVersion);
+
+            // Nothing to drop: the file is kept as it is
+            if (latestVersion.Count < values.Length)
+            {
+                localTracker.Reset();
+                localTracker.AddValues(latestVersion.Values);
+                localTracker.Save();
+            }
+
+            if (prune)
+                File.WriteAllBytes(pruneMarkerPath, []);
         }
         catch (Exception)
         {
@@ -63,6 +88,30 @@ public sealed class FileVersionStorage : DictionaryStore<FileVersionKey, ObjectI
 
         }
         return true;
+    }
+
+    private static void RemoveEntriesInMissingDirectories(Dictionary<string, KeyValuePair<FileVersionKey, ObjectId>> latestVersion)
+    {
+        // One check per folder, and a missing folder answers for its subfolders
+        var directoryExists = new Dictionary<string, bool>(StringComparer.Ordinal);
+        bool DirectoryExists(string? directory)
+        {
+            if (string.IsNullOrEmpty(directory))
+                return true;
+
+            if (!directoryExists.TryGetValue(directory, out var exists))
+            {
+                exists = DirectoryExists(Path.GetDirectoryName(directory)) && Directory.Exists(directory);
+                directoryExists[directory] = exists;
+            }
+            return exists;
+        }
+
+        foreach (var filePath in latestVersion.Keys.ToList())
+        {
+            if (!DirectoryExists(Path.GetDirectoryName(filePath)))
+                latestVersion.Remove(filePath);
+        }
     }
 
     protected override List<KeyValuePair<FileVersionKey, ObjectId>> ReadEntries(System.IO.Stream localStream)
