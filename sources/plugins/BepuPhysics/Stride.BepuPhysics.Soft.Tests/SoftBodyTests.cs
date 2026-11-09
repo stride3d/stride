@@ -169,6 +169,33 @@ public class SoftBodyTests : GameTestBase
         });
     }
 
+    /// <summary>
+    /// The particles of a soft body have more constraints than the solver has batches for: the rest goes to its fallback batch,
+    /// whose slots are not all filled. The contact recorder of the debug view goes through every batch after each step.
+    /// </summary>
+    [Fact]
+    public static void DebugContactRecorderGoesThroughTheFallbackBatch()
+    {
+        RunScene(async scene =>
+        {
+            var lower = new VolumetricSoftBodyComponent { Resolution = 4, SleepThreshold = 0f };
+            var upper = new VolumetricSoftBodyComponent { Resolution = 4, SleepThreshold = 0f };
+            scene.Add(lower, new CubeProceduralModel(), new Vector3(0f, 0.8f, 0f));
+            scene.Add(upper, new CubeProceduralModel(), new Vector3(0.3f, 2.2f, 0.2f));
+
+            var simulation = lower.Simulation!.Simulation;
+            using var recorder = new Stride.BepuPhysics.Debug.ContactRecorder(simulation);
+            bool fallbackUsed = false;
+            for (int step = 0; step < 150; step++)
+            {
+                await lower.Simulation!.AfterUpdate();
+                fallbackUsed |= simulation.Solver.Sets[0].Batches.Count > simulation.Solver.FallbackBatchThreshold;
+            }
+
+            Assert.True(fallbackUsed, "The solver never used its fallback batch, this scene no longer covers what it is for");
+        });
+    }
+
     [Fact]
     public static void ParticlesRespectTheCollisionMatrix()
     {
