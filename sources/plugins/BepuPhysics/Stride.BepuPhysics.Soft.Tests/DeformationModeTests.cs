@@ -205,8 +205,7 @@ public class DeformationModeTests : GameTestBase
         /// <summary> Draws the frozen bodies with <paramref name="mode"/> once every effect is compiled, and reads the back buffer </summary>
         public async Task<Image> Capture(IReadOnlyList<SoftBodyComponent> bodies, SoftBodyDeformationMode mode)
         {
-            foreach (var body in bodies)
-                body.DeformationMode = mode;
+            Services.GetOrCreate<SoftBodyConfiguration>().DeformationMode = mode;
             for (int frame = 0; frame < 600 && (frame < 4 || IsCompiling()); frame++)
                 await Script.NextFrame();
             Assert.False(IsCompiling(), "Effects still compiling");

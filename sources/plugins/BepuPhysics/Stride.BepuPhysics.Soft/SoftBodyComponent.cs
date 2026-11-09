@@ -145,13 +145,6 @@ public abstract class SoftBodyComponent : CollidableComponent
     [Display(category: CategorySoftBody)]
     public List<SoftBodyPin> Pins { get; } = new();
 
-    /// <summary>
-    /// Where the vertices of the model are moved to follow the particles, both look the same.
-    /// <see cref="SoftBodyDeformationMode.Default"/> leaves it to the <see cref="SoftBodyConfiguration"/> of the game settings.
-    /// </summary>
-    [Display(category: CategorySoftBody)]
-    [DefaultValue(SoftBodyDeformationMode.Default)]
-    public SoftBodyDeformationMode DeformationMode { get; set; } = SoftBodyDeformationMode.Default;
 
     /// <summary>
     /// How the vertices of the model follow the particles of a volumetric body, cloths are not concerned.

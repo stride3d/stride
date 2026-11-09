@@ -3,19 +3,20 @@
 
 using Stride.Core;
 using Stride.Data;
+using Stride.Engine.Design;
 
 namespace Stride.BepuPhysics.Soft;
 
 /// <summary>
-/// What the soft bodies of a game do when they are not told otherwise, set in the game settings next to the configuration of Bepu.
+/// The settings of the soft bodies of a game, set in the game settings next to the configuration of Bepu
+/// and reached the same way: <c>Services.GetOrCreate&lt;SoftBodyConfiguration&gt;()</c>. Changes apply to the bodies already there.
 /// </summary>
 [DataContract("SoftBodyConfiguration")]
 [Display("Bepu Soft Bodies")]
-public class SoftBodyConfiguration : Configuration
+public class SoftBodyConfiguration : Configuration, IService
 {
     /// <summary>
-    /// Where the models of the soft bodies whose <see cref="SoftBodyComponent.DeformationMode"/> is
-    /// <see cref="SoftBodyDeformationMode.Default"/> are deformed.
+    /// Where the models of the soft bodies are deformed, both look the same.
     /// </summary>
     public SoftBodyDeformationMode DeformationMode { get; set; } = SoftBodyDeformationMode.Gpu;
 
@@ -24,4 +25,10 @@ public class SoftBodyConfiguration : Configuration
     /// <see cref="SoftBodyDeformationQuality.Default"/> follow their particles.
     /// </summary>
     public SoftBodyDeformationQuality DeformationQuality { get; set; } = SoftBodyDeformationQuality.Smooth;
+
+    /// <summary> The section of the game settings, or the defaults for a game without game settings </summary>
+    public static IService NewInstance(IServiceRegistry services)
+    {
+        return services.GetService<IGameSettingsService>()?.Settings is { } settings ? settings.GetOrCreateConfiguration<SoftBodyConfiguration>() : new SoftBodyConfiguration();
+    }
 }

@@ -207,13 +207,14 @@ public class DeformScalingBench
             };
             root.Add(floor);
 
+            Services.GetOrCreate<SoftBodyConfiguration>().DeformationMode = _mode;
             int totalParticles = 0, totalVertices = 0;
             float spacing = 1.2f;
             int side = (int)Math.Ceiling(Math.Sqrt(_scn.Count));
             for (int i = 0; i < _scn.Count; i++)
             {
                 int cx = i % side, cz = i / side;
-                var soft = new VolumetricSoftBodyComponent { Resolution = _scn.R, DeformationMode = _mode };
+                var soft = new VolumetricSoftBodyComponent { Resolution = _scn.R };
                 var model = MakeModel(new SphereProceduralModel { Radius = 0.35f, Tessellation = _scn.Tess }, new Color(255, 111, 89));
                 var entity = new Entity { new ModelComponent(model), soft };
                 entity.Transform.Position = new Vector3((cx - side * 0.5f) * spacing, 1.5f + (i * 0.02f), (cz - side * 0.5f) * spacing);

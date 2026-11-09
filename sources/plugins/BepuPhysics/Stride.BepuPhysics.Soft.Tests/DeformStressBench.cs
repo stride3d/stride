@@ -135,7 +135,8 @@ public class DeformStressBench
             };
             root.Add(floor);
 
-            var soft = new VolumetricSoftBodyComponent { Resolution = 10, DeformationMode = _mode };
+            Services.GetOrCreate<SoftBodyConfiguration>().DeformationMode = _mode;
+            var soft = new VolumetricSoftBodyComponent { Resolution = 10 };
             var model = MakeModel(new SphereProceduralModel { Radius = 0.5f, Tessellation = 288 }, new Color(255, 111, 89));
             var entity = new Entity { new ModelComponent(model), soft };
             entity.Transform.Position = new Vector3(0f, 2f, 0f);

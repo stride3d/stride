@@ -6,7 +6,6 @@ using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.Threading;
 using Stride.Engine;
-using Stride.Engine.Design;
 using Stride.Games;
 using Stride.Graphics;
 using Stride.Rendering;
@@ -54,9 +53,7 @@ internal sealed class SoftBodyProcessor : EntityProcessor<SoftBodyComponent, Sof
         _device = deviceService?.GraphicsDevice;
         _context = Services.GetService<GraphicsContext>();
         _sceneSystem = Services.GetService<SceneSystem>();
-        // What the bodies left to the game settings do; a game without that section gets its defaults
-        if (Services.GetService<IGameSettingsService>()?.Settings is { } settings)
-            _configuration = settings.GetOrCreateConfiguration<SoftBodyConfiguration>();
+        _configuration = Services.GetOrCreate<SoftBodyConfiguration>();
         // Vertex shaders read structured buffers from Direct3D 11 on; effects compile for the shader profile, when one is set
         var shaderProfile = (deviceService as GraphicsDeviceManager)?.ShaderProfile ?? _device?.Features.RequestedProfile;
         _gpuSupported = _device?.Features.CurrentProfile >= GraphicsProfile.Level_11_0 && shaderProfile >= GraphicsProfile.Level_11_0;
@@ -110,7 +107,7 @@ internal sealed class SoftBodyProcessor : EntityProcessor<SoftBodyComponent, Sof
                 continue;
             }
 
-            var mode = DeformationMode(component);
+            var mode = DeformationMode();
             var quality = DeformationQuality(component);
             if (renderModel is null || renderModel.Topology != topology)
             {
@@ -158,11 +155,10 @@ internal sealed class SoftBodyProcessor : EntityProcessor<SoftBodyComponent, Sof
         return quality == SoftBodyDeformationQuality.Fast ? SoftBodyDeformationQuality.Fast : SoftBodyDeformationQuality.Smooth;
     }
 
-    /// <summary> CPU or GPU: what the body asks for, or the game settings when it leaves it to them, as far as the device can do it </summary>
-    private SoftBodyDeformationMode DeformationMode(SoftBodyComponent component)
+    /// <summary> CPU or GPU, as the settings say and as far as the device can do it </summary>
+    private SoftBodyDeformationMode DeformationMode()
     {
-        var mode = component.DeformationMode != SoftBodyDeformationMode.Default ? component.DeformationMode : _configuration.DeformationMode;
-        if (mode == SoftBodyDeformationMode.Cpu)
+        if (_configuration.DeformationMode == SoftBodyDeformationMode.Cpu)
             return SoftBodyDeformationMode.Cpu;
         if (_gpuSupported)
             return SoftBodyDeformationMode.Gpu;

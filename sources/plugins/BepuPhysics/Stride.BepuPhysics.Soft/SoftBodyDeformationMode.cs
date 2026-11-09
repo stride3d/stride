@@ -4,15 +4,10 @@
 namespace Stride.BepuPhysics.Soft;
 
 /// <summary>
-/// Where the vertices of a soft body's model are moved to follow its particles.
+/// Where the vertices of the soft bodies' models are moved to follow their particles, see <see cref="SoftBodyConfiguration.DeformationMode"/>.
 /// </summary>
 public enum SoftBodyDeformationMode
 {
-    /// <summary>
-    /// As <see cref="SoftBodyConfiguration.DeformationMode"/> says in the game settings, <see cref="Gpu"/> when it says nothing.
-    /// </summary>
-    Default,
-
     /// <summary>
     /// Only the particles are sent to the GPU each frame, the vertex shader of every pass moves the vertices, normals and tangents.
     /// </summary>
