@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.ObjectModel;
-using GraphX.PCL.Common.Models;
+using GraphX.Common.Models;
 
 namespace Stride.Core.Presentation.Graph.ViewModel
 {

@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-             xmlns:graphx="clr-namespace:GraphX.Controls;assembly=GraphX.WPF.Controls"
+             xmlns:graphx="clr-namespace:GraphX.Controls;assembly=GraphX.Core.Controls"
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
              xmlns:sskkgraph="http://schemas.stride3d.net/xaml/presentation/graph"
              xmlns:vm="clr-namespace:Stride.Assets.Editor.ViewModels.GraphicsCompositorEditor;assembly=Stride.Assets.Editor"

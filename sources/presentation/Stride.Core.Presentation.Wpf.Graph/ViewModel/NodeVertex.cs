@@ -3,7 +3,7 @@
 using System;
 using System.Collections.ObjectModel;
 using GraphX.Controls;
-using GraphX.PCL.Common.Models;
+using GraphX.Common.Models;
 
 namespace Stride.Core.Presentation.Graph.ViewModel
 {
