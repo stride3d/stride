@@ -43,7 +43,7 @@ internal class StrideVersion
     /// (release-deploy.yml) and by each PR that adds a code or project upgrader: their gates compare only this number,
     /// so a new gate needs a new number. YAML asset upgraders use their own per-asset versions and don't need a bump.
     /// </summary>
-    public const string Patch = "1";
+    public const string Patch = "2";
 
     /// <summary>
     /// The prerelease suffix, -beta with no number or empty for a stable release: the number already moves at every

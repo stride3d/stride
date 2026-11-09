@@ -154,9 +154,6 @@ namespace Stride.Assets
                 // 4.5: the assembly processor no longer pools the delegates passed to the Dispatcher; its callbacks take
                 // their captures as a state, in a static lambda (#3680).
                 DispatcherCallbacksToStaticLambdas(),
-
-                // 4.5: Bepu's MaxStepPerFrame was replaced by MaximumTimeSpanToProcess (no 1:1 mapping)
-                Rewrite(AssignmentRemove("Stride.BepuPhysics.BepuSimulation", "MaxStepPerFrame")),
             ]);
 
             registry.Code("4.5.1.0",
@@ -169,6 +166,12 @@ namespace Stride.Assets
                     MemberRename("Stride.Graphics.CommandList", "UnsetRenderTargets", "ResetTargets"),
                     FluentCallRemove("Stride.Graphics.CommandList", "ResetQueryPool"),
                     FluentCallRemove("Stride.Graphics.CommandList", "SetStreamTargets")),
+            ]);
+
+            registry.Code("4.5.2.0",
+            [
+                // 4.5.2: Bepu's MaxStepPerFrame was replaced by MaximumTimeSpanToProcess (no 1:1 mapping)
+                Rewrite(AssignmentRemove("Stride.BepuPhysics.BepuSimulation", "MaxStepPerFrame")),
             ]);
 
             // Structural csproj migrations, gated by the version each change landed at. Run against the
