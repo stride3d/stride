@@ -186,6 +186,11 @@ namespace Stride.Engine
         public bool AutoLoadDefaultSettings { get; set; }
 
         /// <summary>
+        /// Whether this game runs inside the editor (scene, prefab and preview games).
+        /// </summary>
+        protected virtual bool IsEditorGame => false;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="Game"/> class.
         /// </summary>
         public Game()
@@ -350,6 +355,8 @@ namespace Stride.Engine
             // Add it first so that it can obtained by the UI system
             var inputSystem = new InputSystem(Services);
             Input = inputSystem.Manager;
+            // No editor game reads a gamepad, and their sources slow its start
+            Input.UseGamePadSources = !IsEditorGame;
             Services.AddService(Input);
             GameSystems.Add(inputSystem);
 
