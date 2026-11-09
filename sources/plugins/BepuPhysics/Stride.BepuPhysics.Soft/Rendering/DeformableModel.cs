@@ -66,9 +66,10 @@ internal sealed class DeformableModel : IDisposable
                 throw new InvalidOperationException($"Soft body topology reports {part.VertexCount} vertices for '{sourceMesh.Name}', the source binding has {sourceBinding.Count}.");
 
             int stride = declaration.VertexStride;
-            int positionOffset = FindOffset<PositionSemantic>(declaration, PixelFormat.R32G32B32_Float, sourceMesh.Name);
-            int normalOffset = FindOffset<NormalSemantic>(declaration, PixelFormat.R32G32B32_Float, sourceMesh.Name);
-            int tangentOffset = FindOffset<TangentSemantic>(declaration, PixelFormat.R32G32B32A32_Float, sourceMesh.Name);
+            // A mesh may come without normals or tangents, the importer only writes the ones its source file has
+            int positionOffset = FindOffset<PositionSemantic>(declaration, sourceMesh.Name, required: true);
+            int normalOffset = FindOffset<NormalSemantic>(declaration, sourceMesh.Name, required: false);
+            int tangentOffset = FindOffset<TangentSemantic>(declaration, sourceMesh.Name, required: false);
 
             // Snapshot of the source bytes, taken once: the authored attributes we do not touch (texture coordinates, colors,
             // bone indices, extra UVs...) are set in Working here and never rewritten, since Deform only overwrites position,
@@ -109,18 +110,25 @@ internal sealed class DeformableModel : IDisposable
         }
     }
 
-    private static int FindOffset<TSemantic>(VertexDeclaration declaration, PixelFormat expected, string meshName) where TSemantic : ISemantic
+    /// <summary> Where the three floats <see cref="Deform"/> writes for a semantic are in a vertex, -1 when the mesh has none </summary>
+    private static int FindOffset<TSemantic>(VertexDeclaration declaration, string meshName, bool required) where TSemantic : ISemantic
     {
         string semanticName = TSemantic.Name;
         foreach (var entry in declaration.EnumerateWithOffsets())
         {
             if (entry.VertexElement.SemanticName != semanticName || entry.VertexElement.SemanticIndex != 0)
                 continue;
-            if (entry.VertexElement.Format != expected)
-                throw new NotSupportedException($"Soft body deformation writes {semanticName} as {expected}, '{meshName}' has {entry.VertexElement.Format}.");
+
+            // Only x, y and z are written: the fourth float of a wider element, such as the handedness of a tangent, stays as authored
+            var format = entry.VertexElement.Format;
+            if (format is not (PixelFormat.R32G32B32_Float or PixelFormat.R32G32B32A32_Float))
+                throw new NotSupportedException($"Soft body deformation writes {semanticName} as {PixelFormat.R32G32B32_Float} or {PixelFormat.R32G32B32A32_Float}, '{meshName}' has {format}.");
             return entry.Offset;
         }
-        throw new NotSupportedException($"Soft body deformation expected {semanticName} in '{meshName}', the vertex declaration has none.");
+
+        if (required)
+            throw new NotSupportedException($"Soft body deformation expected {semanticName} in '{meshName}', the vertex declaration has none.");
+        return -1;
     }
 
     /// <summary> The model a deformable model was copied from, or <paramref name="model"/> itself when it is not one, such as on a cloned entity </summary>
@@ -182,14 +190,17 @@ internal sealed class DeformableModel : IDisposable
                 var position = Vector3.TransformCoordinate(Unsafe.Add(ref positionBase, mergedId), worldToLocal);
                 // Undoing the scale stretches normals the other way than directions, as the inverse transpose would
                 var normal = SafeNormalize(Vector3.Transform(Unsafe.Add(ref normalBase, mergedId), toLocal) * scale, Unsafe.Add(ref sourceNormalBase, mergedId));
-                var rawTangent = Unsafe.Add(ref tangentBase, mergedId);
-                var raw = Vector3.Transform((Vector3)rawTangent, toLocal) * invScale;
-                raw -= normal * Vector3.Dot(normal, raw);
-                var tangent = new Vector4(SafeNormalize(raw, (Vector3)Unsafe.Add(ref sourceTangentBase, mergedId)), rawTangent.W);
 
                 Unsafe.WriteUnaligned(ref Unsafe.Add(ref workingBase, byteStart + positionOffset), position);
-                Unsafe.WriteUnaligned(ref Unsafe.Add(ref workingBase, byteStart + normalOffset), normal);
-                Unsafe.WriteUnaligned(ref Unsafe.Add(ref workingBase, byteStart + tangentOffset), tangent);
+                if (normalOffset >= 0)
+                    Unsafe.WriteUnaligned(ref Unsafe.Add(ref workingBase, byteStart + normalOffset), normal);
+                if (tangentOffset >= 0)
+                {
+                    var tangent = Vector3.Transform((Vector3)Unsafe.Add(ref tangentBase, mergedId), toLocal) * invScale;
+                    tangent -= normal * Vector3.Dot(normal, tangent);
+                    tangent = SafeNormalize(tangent, (Vector3)Unsafe.Add(ref sourceTangentBase, mergedId));
+                    Unsafe.WriteUnaligned(ref Unsafe.Add(ref workingBase, byteStart + tangentOffset), tangent);
+                }
 
                 boundsMin = Vector3.Min(boundsMin, position);
                 boundsMax = Vector3.Max(boundsMax, position);
@@ -235,6 +246,9 @@ internal sealed class DeformableModel : IDisposable
         }
     }
 
+    /// <summary> The vertices of a mesh as last computed by <see cref="Deform"/>, laid out as its vertex declaration says </summary>
+    internal ReadOnlySpan<byte> VertexBytes(int meshIndex) => _meshBuffers[meshIndex].Working;
+
     private static Vector3 SafeNormalize(Vector3 value, Vector3 fallback)
     {
         var length = value.Length();
@@ -253,6 +267,7 @@ internal sealed class DeformableModel : IDisposable
         public required Buffer VertexBuffer;
         public required VertexBufferBinding Binding;
         public required int Stride;
+        // Where the three floats written for each semantic are in a vertex, -1 for the ones the mesh does not have
         public required int PositionOffset;
         public required int NormalOffset;
         public required int TangentOffset;
