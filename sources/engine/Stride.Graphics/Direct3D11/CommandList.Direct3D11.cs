@@ -158,8 +158,12 @@ namespace Stride.Graphics
         /// <summary>
         ///   Closes and executes the Command List.
         /// </summary>
+        /// <remarks>
+        ///   This flushes the immediate context, so that a frame with no swap-chain <c>Present</c> (headless) reaches the GPU too.
+        /// </remarks>
         public partial void Flush()
         {
+            nativeDeviceContext->Flush();
         }
 
         /// <summary>
