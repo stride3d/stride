@@ -588,7 +588,7 @@ public class CompanionPackageTests
             this.output = output;
             version = TestEnvironment.ResolveStrideVersion();
             var fixtures = TestEnvironment.FixturesDir();
-            caseDir = Path.Combine(Path.GetTempPath(), "stride-packaging-tests", $"{name}-{Guid.NewGuid():N}");
+            caseDir = Path.Combine(TestEnvironment.CasesRoot, $"{name}-{Guid.NewGuid():N}");
             pluginDir = Path.Combine(caseDir, "Plugin");
             assetsDir = Path.Combine(caseDir, "PluginAssets");
             consumerDir = Path.Combine(caseDir, "consumer");
