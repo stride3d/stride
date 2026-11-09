@@ -6,7 +6,8 @@ using Stride.Core.Mathematics;
 namespace Stride.BepuPhysics.Soft.Topology;
 
 /// <summary>
-/// Turns the vertices of a surface into particles, its edges into stretch constraints and each pair of adjacent triangles into a bend constraint.
+/// Turns the vertices of a surface into particles, its edges into stretch constraints and each pair of adjacent triangles into a bend constraint,
+/// or a shear one when the two triangles are the halves of a quad.
 /// </summary>
 internal static class ClothBuilder
 {
@@ -35,7 +36,8 @@ internal static class ClothBuilder
         // For each edge, the vertex opposite to it in the first triangle that used it
         var oppositeOfEdge = new Dictionary<long, int>();
         var edges = new List<Edge>();
-        var bendPairs = new HashSet<long>();
+        // The two vertices facing each other across an edge shared by two triangles, and whether that edge is the diagonal their quad was cut along
+        var bendPairs = new Dictionary<long, bool>();
         var indices = mesh.Indices;
         Span<int> triangle = stackalloc int[3];
         for (int t = 0; t + 2 < indices.Length; t += 3)
@@ -54,7 +56,13 @@ internal static class ClothBuilder
                 {
                     // Second triangle on this edge, or a back face sharing all three particles
                     if (otherOpposite != opposite)
-                        bendPairs.Add(Key(otherOpposite, opposite));
+                    {
+                        // The longest edge of both triangles: they are the two halves of a quad, cut along this edge
+                        float shared = Vector3.Distance(restPositions[a], restPositions[b]) * 1.001f;
+                        bool diagonal = shared >= Vector3.Distance(restPositions[a], restPositions[opposite]) && shared >= Vector3.Distance(restPositions[b], restPositions[opposite])
+                            && shared >= Vector3.Distance(restPositions[a], restPositions[otherOpposite]) && shared >= Vector3.Distance(restPositions[b], restPositions[otherOpposite]);
+                        bendPairs[Key(otherOpposite, opposite)] = diagonal;
+                    }
                 }
                 else
                 {
@@ -69,10 +77,12 @@ internal static class ClothBuilder
             totalLength += Vector3.Distance(restPositions[edge.A], restPositions[edge.B]);
         float spacing = edges.Count > 0 ? totalLength / edges.Count : 1f;
 
-        foreach (var pair in bendPairs)
+        // Across the diagonal of a quad is its other diagonal. Left to a bend constraint, a surface cut the same way everywhere,
+        // as a plane is, would hold along one diagonal and give along the other: it resists shearing as the first one does.
+        foreach (var (pair, diagonal) in bendPairs)
         {
             if (oppositeOfEdge.ContainsKey(pair) == false)
-                edges.Add(new Edge((int)(pair >> 32), (int)(pair & 0xFFFFFFFF), EdgeKind.Bend));
+                edges.Add(new Edge((int)(pair >> 32), (int)(pair & 0xFFFFFFFF), diagonal ? EdgeKind.Shear : EdgeKind.Bend));
         }
 
         var selfCollisionCells = new Int3[restPositions.Count];
