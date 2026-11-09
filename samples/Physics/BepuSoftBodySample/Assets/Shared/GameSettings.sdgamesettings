@@ -5,8 +5,6 @@ Tags: []
 DefaultScene: 42768715-911d-119e-181c-a015d67c3445:Scenes/MainScene
 GraphicsCompositor: d73e0972-7612-40f1-8a01-f671944b13b0:GraphicsCompositor
 Defaults:
-    - !Stride.Audio.AudioEngineSettings,Stride.Audio
-        HrtfSupport: false
     - !Stride.Assets.EditorSettings,Stride.Assets
         RenderingMode: HDR
     - !Stride.Graphics.RenderingSettings,Stride.Graphics

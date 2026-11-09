@@ -38,11 +38,11 @@ Hierarchy:
                 Name: TextButton
                 Content: !TextBlock ref!! 7d2744c2-f276-471f-9251-21ed9c5ca8dd
                 PressedImage: !SpriteFromSheet
-                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:/Stride.Engine/StrideUIDesigns
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:/Stride.UI.Assets/StrideUIDesigns
                     CurrentFrame: 2
                 NotPressedImage: !SpriteFromSheet
-                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:/Stride.Engine/StrideUIDesigns
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:/Stride.UI.Assets/StrideUIDesigns
                     CurrentFrame: 1
                 MouseOverImage: !SpriteFromSheet
-                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:/Stride.Engine/StrideUIDesigns
+                    Sheet: 1be3340c-b797-4557-bff7-d9be92dfdb42:/Stride.UI.Assets/StrideUIDesigns
                 Color: {R: 255, G: 255, B: 255, A: 255}

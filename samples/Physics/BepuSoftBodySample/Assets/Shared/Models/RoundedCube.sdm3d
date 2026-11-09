@@ -1,6 +1,6 @@
 !Model
 Id: b54720aa-7056-3232-c868-e8e3add8cde4
-SerializedVersion: {Stride: 2.0.0.0}
+SerializedVersion: {Stride: 2.1.0.0}
 Tags: []
 Source: !file ../../../Resources/Models/RoundedCube.obj
 Skeleton: null
@@ -12,3 +12,4 @@ Materials:
             Material: null
 DeduplicateMaterials: false
 Modifiers: {}
+ImportMorphTargets: false
