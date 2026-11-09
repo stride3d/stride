@@ -49,7 +49,8 @@ shader SoftBodySurfaceDeformation : SoftBodyDeformation
         float3 across = cross(normal, abs(normal.x) < 0.9 ? float3(1, 0, 0) : float3(0, 1, 0));
         tangent = dot(tangent, tangent) < ZeroTangentSquared ? across : tangent;
 
-        // Pushed along its normal, so the two faces of a double sided cloth do not fight over the same depth
-        SetMeshVertex(position + normal * particle.w, normal, tangent, 1);
+        // Pushed along its normal, so the two faces of a double sided cloth do not fight over the same depth.
+        // The handedness of the tangent is the mesh's to say, as with the CPU deformation which only rewrites its direction.
+        SetMeshVertex(position + normal * particle.w, normal, tangent, streams.meshTangent.w);
     }
 };
