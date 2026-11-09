@@ -35,6 +35,7 @@
     <Compile Include="TestModelMaterialSlots.cs" />
     <Compile Include="TestModelBones.cs" />
     <Compile Include="TestDependencyResolver.cs" />
+    <Compile Include="TestEffectLogStore.cs" />
     <Compile Include="TestPrefabAsset.cs" />
     <Compile Include="TestSceneUpgrader.cs" />
     <Compile Include="TestSystemFontProvider.cs" />
