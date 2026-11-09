@@ -69,7 +69,7 @@ public class VertexLayoutTests : GameTestBase
             await SoftBodyTests.Seconds(body, 0.1f);
 
             var model = WithLayout(scene.Game, new CubeProceduralModel(), position, normal, tangent, out _);
-            var exception = Assert.Throws<NotSupportedException>(() => new DeformableModel(scene.Game.GraphicsDevice, scene.Game.Services, model, body.Topology!, SoftBodyDeformationMode.Cpu));
+            var exception = Assert.Throws<NotSupportedException>(() => new DeformableModel(scene.Game.GraphicsDevice, scene.Game.Services, model, body.Topology!, SoftBodyDeformationMode.Cpu, SoftBodyDeformationQuality.Fast));
             Assert.Contains(refused, exception.Message);
         });
     }

@@ -55,10 +55,15 @@ internal sealed class GpuDeformation : IDisposable
     internal readonly record struct RingTriangle(uint Next, uint Previous, float NextWeight, float PreviousWeight);
 
     private static readonly ShaderClassSource LatticeShader = new("SoftBodyLatticeDeformation");
+    private static readonly ShaderClassSource SmoothLatticeShader = new("SoftBodySmoothLatticeDeformation");
     private static readonly ShaderClassSource SurfaceShader = new("SoftBodySurfaceDeformation");
 
     private readonly Buffer _particleBuffer;
     private readonly Buffer? _ringBuffer;
+    private readonly Buffer? _frameBuffer; // Three vectors per particle, for the smooth deformation of a lattice
+    private readonly SoftBodyTopology _topology;
+    private readonly Vector3[] _frames = [];
+    private readonly Vector4[] _wideFrames = [];
     private readonly Vector4[] _particles;
     private readonly float _latticeMargin;
 
@@ -68,9 +73,17 @@ internal sealed class GpuDeformation : IDisposable
     /// <summary> Vertex declaration of the binding stream (stream 1) </summary>
     public VertexDeclaration BindingLayout { get; }
 
-    public GpuDeformation(GraphicsDevice device, SoftBodyTopology topology)
+    /// <param name="smooth"> For a lattice, whether its vertices blend the frames of the particles rather than the particles alone </param>
+    public GpuDeformation(GraphicsDevice device, SoftBodyTopology topology, bool smooth)
     {
+        _topology = topology;
         _particles = new Vector4[topology.ParticleCount];
+        if (smooth && topology.LatticeNeighbors is not null)
+        {
+            _frames = new Vector3[topology.ParticleCount * 3];
+            _wideFrames = new Vector4[topology.ParticleCount * 3];
+            _frameBuffer = Buffer.New<Vector4>(device, _wideFrames.Length, BufferFlags.ShaderResource | BufferFlags.StructuredBuffer, GraphicsResourceUsage.Dynamic);
+        }
         _particleBuffer = Buffer.New<Vector4>(device, topology.ParticleCount, BufferFlags.ShaderResource | BufferFlags.StructuredBuffer, GraphicsResourceUsage.Dynamic);
 
         var mesh = topology.Mesh;
@@ -122,8 +135,9 @@ internal sealed class GpuDeformation : IDisposable
     /// <summary> Makes <paramref name="mesh"/> deformed by the vertex shader from the buffers of this deformation </summary>
     public void Bind(Mesh mesh)
     {
-        mesh.Parameters.Set(StrideEffectBaseKeys.ExtensionPostVertexStageShader, _ringBuffer is null ? LatticeShader : SurfaceShader);
+        mesh.Parameters.Set(StrideEffectBaseKeys.ExtensionPostVertexStageShader, _ringBuffer is not null ? SurfaceShader : _frameBuffer is not null ? SmoothLatticeShader : LatticeShader);
         mesh.Parameters.Set(SoftBodyDeformationKeys.Particles, _particleBuffer);
+        mesh.Parameters.Set(SoftBodySmoothLatticeDeformationKeys.Frames, _frameBuffer);
         if (_ringBuffer is not null)
             mesh.Parameters.Set(SoftBodySurfaceDeformationKeys.Ring, _ringBuffer);
     }
@@ -135,6 +149,7 @@ internal sealed class GpuDeformation : IDisposable
         mesh.Parameters.Set(StrideEffectBaseKeys.ExtensionPostVertexStageShader, null);
         mesh.Parameters.Set(SoftBodyDeformationKeys.Particles, null);
         mesh.Parameters.Set(SoftBodySurfaceDeformationKeys.Ring, null);
+        mesh.Parameters.Set(SoftBodySmoothLatticeDeformationKeys.Frames, null);
     }
 
     /// <summary> Takes the particles for the next upload and returns their bounds in the space of <paramref name="worldToLocal"/>, grown to contain the vertices </summary>
@@ -150,12 +165,23 @@ internal sealed class GpuDeformation : IDisposable
             BoundingBox.Merge(ref bounds, ref local, out bounds);
         }
 
+        if (_frameBuffer is not null)
+        {
+            _topology.ComputeParticleFrames(particles, _frames);
+            for (int i = 0; i < _frames.Length; i++)
+                _wideFrames[i] = new Vector4(_frames[i], 0f);
+        }
+
         var margin = _latticeMargin + MathF.Abs(localSurfaceOffset);
         return new BoundingBox(bounds.Minimum - new Vector3(margin), bounds.Maximum + new Vector3(margin));
     }
 
     /// <summary> Sends the particles taken by <see cref="Update"/> to the GPU </summary>
-    public void Upload(CommandList commandList) => _particleBuffer.SetData<Vector4>(commandList, _particles.AsSpan());
+    public void Upload(CommandList commandList)
+    {
+        _particleBuffer.SetData<Vector4>(commandList, _particles.AsSpan());
+        _frameBuffer?.SetData<Vector4>(commandList, _wideFrames.AsSpan());
+    }
 
     /// <summary>
     /// For each vertex of a surface, the triangles around it as the CPU deformation sums them: normals from the cross product of the edges,
@@ -223,5 +249,6 @@ internal sealed class GpuDeformation : IDisposable
         BindingBuffer.Dispose();
         _particleBuffer.Dispose();
         _ringBuffer?.Dispose();
+        _frameBuffer?.Dispose();
     }
 }

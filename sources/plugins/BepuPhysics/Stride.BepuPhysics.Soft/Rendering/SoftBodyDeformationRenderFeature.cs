@@ -28,6 +28,7 @@ internal sealed class SoftBodyDeformationRenderFeature : SubRenderFeature
     private StaticObjectPropertyKey<DeformationInfo> _deformationInfoKey;
     private LogicalGroupReference _particlesGroup;
     private LogicalGroupReference _ringGroup;
+    private LogicalGroupReference _framesGroup;
 
     protected override void InitializeCore()
     {
@@ -36,6 +37,7 @@ internal sealed class SoftBodyDeformationRenderFeature : SubRenderFeature
         _deformationInfoKey = RootRenderFeature.RenderData.CreateStaticObjectKey<DeformationInfo>();
         _particlesGroup = root.CreateDrawLogicalGroup("SoftBody");
         _ringGroup = root.CreateDrawLogicalGroup("SoftBodySurface");
+        _framesGroup = root.CreateDrawLogicalGroup("SoftBodyFrames");
     }
 
     public override void PrepareEffectPermutations(RenderDrawContext context)
@@ -91,6 +93,10 @@ internal sealed class SoftBodyDeformationRenderFeature : SubRenderFeature
 
                 var parameters = ((RenderMesh)renderNode.RenderObject).Mesh.Parameters;
                 renderNode.Resources.DescriptorSet.SetShaderResourceView(particlesGroup.DescriptorEntryStart, parameters.Get(SoftBodyDeformationKeys.Particles));
+
+                var framesGroup = perDrawLayout.GetLogicalGroup(s.self._framesGroup);
+                if (framesGroup.DescriptorEntryStart != -1)
+                    renderNode.Resources.DescriptorSet.SetShaderResourceView(framesGroup.DescriptorEntryStart, parameters.Get(SoftBodySmoothLatticeDeformationKeys.Frames));
 
                 var ringGroup = perDrawLayout.GetLogicalGroup(s.self._ringGroup);
                 if (ringGroup.DescriptorEntryStart != -1)

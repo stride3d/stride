@@ -66,6 +66,23 @@ internal static class LatticeBuilder
             }
         }
 
+        // The particles a step away from each particle along each axis, where the lattice goes on
+        var neighbors = new int[restPositions.Count * 6];
+        for (int particle = 0; particle < restPositions.Count; particle++)
+        {
+            var node = selfCollisionCells[particle];
+            for (int axis = 0; axis < 3; axis++)
+            {
+                for (int side = 0; side < 2; side++)
+                {
+                    var next = node;
+                    next[axis] += side == 0 ? -1 : 1;
+                    bool inside = next[axis] >= 0 && next[axis] < nodes[axis];
+                    neighbors[particle * 6 + axis * 2 + side] = inside ? particleOfNode[CellIndex(next.X, next.Y, next.Z, nodes)] : -1;
+                }
+            }
+        }
+
         var edges = new List<Edge>();
         var tetrahedra = new List<Tetrahedron>();
         var knownEdges = new HashSet<long>();
@@ -126,6 +143,7 @@ internal static class LatticeBuilder
             BindingParticles = bindingParticles,
             BindingWeights = bindingWeights,
             LatticeCoordinates = latticeCoordinates,
+            LatticeNeighbors = neighbors,
             Mesh = mesh,
         };
     }

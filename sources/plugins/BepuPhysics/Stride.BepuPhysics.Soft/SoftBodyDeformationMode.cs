@@ -9,6 +9,11 @@ namespace Stride.BepuPhysics.Soft;
 public enum SoftBodyDeformationMode
 {
     /// <summary>
+    /// As <see cref="SoftBodyConfiguration.DeformationMode"/> says in the game settings, <see cref="Gpu"/> when it says nothing.
+    /// </summary>
+    Default,
+
+    /// <summary>
     /// Only the particles are sent to the GPU each frame, the vertex shader of every pass moves the vertices, normals and tangents.
     /// </summary>
     /// <remarks> Falls back to <see cref="Cpu"/> when the graphics profile is below <see cref="Graphics.GraphicsProfile.Level_11_0"/>. </remarks>

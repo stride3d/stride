@@ -52,6 +52,11 @@ internal sealed class SoftBodyTopology
     /// </summary>
     public Vector3[]? LatticeCoordinates { get; init; }
 
+    /// <summary>
+    /// For lattices, six particles per particle: the ones a step away along -x, +x, -y, +y, -z and +z, -1 where the lattice ends.
+    /// </summary>
+    public int[]? LatticeNeighbors { get; init; }
+
     public required SourceMesh Mesh { get; init; }
 
     public int ParticleCount => RestPositions.Length;
@@ -86,6 +91,80 @@ internal sealed class SoftBodyTopology
         normal = Vector3.Cross(dy, dz) * n.X + Vector3.Cross(dz, dx) * n.Y + Vector3.Cross(dx, dy) * n.Z;
         var restTangent = Mesh.Tangents[vertex];
         tangent = new Vector4(dx * restTangent.X + dy * restTangent.Y + dz * restTangent.Z, restTangent.W);
+    }
+
+    /// <summary>
+    /// For each particle of a lattice, how the lattice is deformed around it: where a step along x, y and z of the lattice leads,
+    /// three vectors per particle. Taken from the particles on both sides where there are two, from the only one otherwise.
+    /// </summary>
+    public void ComputeParticleFrames(ReadOnlySpan<Vector3> particles, Span<Vector3> frames)
+    {
+        var neighbors = LatticeNeighbors!;
+        for (int particle = 0; particle < particles.Length; particle++)
+        {
+            for (int axis = 0; axis < 3; axis++)
+            {
+                int before = neighbors[particle * 6 + axis * 2], after = neighbors[particle * 6 + axis * 2 + 1];
+                frames[particle * 3 + axis] =
+                    before >= 0 && after >= 0 ? (particles[after] - particles[before]) * 0.5f
+                    : after >= 0 ? particles[after] - particles[particle]
+                    : before >= 0 ? particles[particle] - particles[before]
+                    : default;
+            }
+        }
+    }
+
+    /// <summary>
+    /// The position, normal and tangent of a lattice vertex, the last two unnormalized, as the eight particles of its cell
+    /// expect them: each one carries the vertex along with its frame, as a bone would, and the vertex blends them.
+    /// </summary>
+    /// <remarks>
+    /// The weights level off on the faces of the cell, where only the particles of the face have a say: the surface and its
+    /// normals are the same seen from the cell on either side, which <see cref="Deform"/> and <see cref="DeformFrame"/> do not give.
+    /// </remarks>
+    public void DeformSmooth(int vertex, ReadOnlySpan<Vector3> particles, ReadOnlySpan<Vector3> frames, out Vector3 position, out Vector3 normal, out Vector4 tangent)
+    {
+        var t = LatticeCoordinates![vertex];
+        SmoothStep(t.X, out float sx, out float dsx);
+        SmoothStep(t.Y, out float sy, out float dsy);
+        SmoothStep(t.Z, out float sz, out float dsz);
+
+        position = default;
+        Vector3 dx = default, dy = default, dz = default;
+        for (int corner = 0; corner < 8; corner++)
+        {
+            // Corners are numbered by their offset on each axis: bit 0 is x, bit 1 is y and bit 2 is z
+            float cx = corner & 1, cy = (corner >> 1) & 1, cz = corner >> 2;
+            float wx = cx > 0f ? sx : 1f - sx, wy = cy > 0f ? sy : 1f - sy, wz = cz > 0f ? sz : 1f - sz;
+            float dwx = cx > 0f ? dsx : -dsx, dwy = cy > 0f ? dsy : -dsy, dwz = cz > 0f ? dsz : -dsz;
+            float weight = wx * wy * wz;
+
+            int particle = BindingParticles[vertex * 8 + corner];
+            var stepX = frames[particle * 3];
+            var stepY = frames[particle * 3 + 1];
+            var stepZ = frames[particle * 3 + 2];
+
+            // Where this particle would put the vertex, were the lattice deformed everywhere as it is around it
+            var expected = particles[particle] + stepX * (t.X - cx) + stepY * (t.Y - cy) + stepZ * (t.Z - cz);
+            position += expected * weight;
+            dx += expected * (dwx * wy * wz) + stepX * weight;
+            dy += expected * (wx * dwy * wz) + stepY * weight;
+            dz += expected * (wx * wy * dwz) + stepZ * weight;
+        }
+
+        // Normals transform with the cofactor matrix, which is the inverse transpose up to a scale
+        var n = Mesh.Normals[vertex];
+        normal = Vector3.Cross(dy, dz) * n.X + Vector3.Cross(dz, dx) * n.Y + Vector3.Cross(dx, dy) * n.Z;
+        var restTangent = Mesh.Tangents[vertex];
+        tangent = new Vector4(dx * restTangent.X + dy * restTangent.Y + dz * restTangent.Z, restTangent.W);
+    }
+
+    /// <summary> 3t² - 2t³ and its slope, flat at both ends and beyond them, where vertices outside the lattice are </summary>
+    private static void SmoothStep(float t, out float value, out float slope)
+    {
+        t = Math.Clamp(t, 0f, 1f);
+        value = t * t * (3f - 2f * t);
+        slope = 6f * t * (1f - t);
     }
 
     /// <summary> Writes the position of every vertex of <see cref="Mesh"/> given the current position of each particle </summary>

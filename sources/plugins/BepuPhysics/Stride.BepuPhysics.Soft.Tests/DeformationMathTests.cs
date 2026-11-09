@@ -50,6 +50,100 @@ public class DeformationMathTests
         }
     }
 
+    /// <summary> Under one linear map, the smooth deformation puts every vertex, normal and tangent where the map does </summary>
+    [Theory]
+    [MemberData(nameof(Deformations))]
+    public static void SmoothDeformationReproducesALinearMap(int deformation)
+    {
+        var map = Affine(deformation);
+        Matrix.Transpose(Matrix.Invert(map), out var normalMap);
+        var topology = LatticeBuilder.Build(Grid(4, closedBox: true, clockwise: false), 3, 0.5f);
+        var particles = Array.ConvertAll(topology.RestPositions, p => Vector3.TransformCoordinate(p, map));
+        var frames = new Vector3[particles.Length * 3];
+        topology.ComputeParticleFrames(particles, frames);
+        var flip = map.Determinant() < 0f ? -1f : 1f;
+
+        for (int v = 0; v < topology.Mesh.Positions.Length; v++)
+        {
+            topology.DeformSmooth(v, particles, frames, out var position, out var normal, out var tangent);
+            AssertNear(Vector3.TransformCoordinate(topology.Mesh.Positions[v], map), position, $"position of vertex {v}");
+            AssertNear(Vector3.Normalize(Vector3.TransformNormal(topology.Mesh.Normals[v], normalMap)) * flip, Vector3.Normalize(normal), $"normal of vertex {v}");
+            AssertNear(Vector3.Normalize(Vector3.TransformNormal((Vector3)topology.Mesh.Tangents[v], map)), Vector3.Normalize((Vector3)tangent), $"tangent of vertex {v}");
+            Assert.Equal(topology.Mesh.Tangents[v].W, tangent.W);
+        }
+    }
+
+    /// <summary>
+    /// A point on the face between two cells of a bent lattice, seen from each of the two: the smooth deformation gives it one
+    /// position and one normal, the fast one gives it one position and two normals, which is the fold its shading shows.
+    /// </summary>
+    [Fact]
+    public static void SmoothDeformationHasOneNormalAcrossTheFaceOfACell()
+    {
+        var lattice = LatticeBuilder.Build(Grid(4, closedBox: true, clockwise: false), 4, 0.5f);
+        var origin = lattice.RestPositions[0];
+        foreach (var rest in lattice.RestPositions)
+            origin = Vector3.Min(origin, rest);
+        int ParticleAt(int x, int y, int z)
+        {
+            int particle = Array.FindIndex(lattice.RestPositions, rest => Vector3.Distance(rest, origin + new Vector3(x, y, z) * lattice.Spacing) < lattice.Spacing * 0.01f);
+            Assert.True(particle >= 0, $"No particle at {x}, {y}, {z}");
+            return particle;
+        }
+
+        // The same point as the +x face of the cell at 1, 1, 1 and as the -x face of the cell at 2, 1, 1
+        var corners = new int[16];
+        for (int corner = 0; corner < 8; corner++)
+        {
+            corners[corner] = ParticleAt(1 + (corner & 1), 1 + ((corner >> 1) & 1), 1 + (corner >> 2));
+            corners[8 + corner] = ParticleAt(2 + (corner & 1), 1 + ((corner >> 1) & 1), 1 + (corner >> 2));
+        }
+        var normal = Vector3.Normalize(new Vector3(0.2f, 1f, 0.3f));
+        var tangent = new Vector4(Vector3.Normalize(Vector3.Cross(normal, Vector3.UnitX)), 1f);
+        var point = new SourceMesh
+        {
+            Positions = [default, default],
+            Normals = [normal, normal],
+            Tangents = [tangent, tangent],
+            TexCoords = [default, default],
+            Indices = [],
+            Parts = [],
+        };
+        var topology = new SoftBodyTopology
+        {
+            RestPositions = lattice.RestPositions,
+            SelfCollisionCells = lattice.SelfCollisionCells,
+            Edges = lattice.Edges,
+            Tetrahedra = lattice.Tetrahedra,
+            Spacing = lattice.Spacing,
+            BindingStride = 8,
+            BindingParticles = corners,
+            BindingWeights = new float[16],
+            LatticeCoordinates = [new Vector3(1f, 0.3f, 0.6f), new Vector3(0f, 0.3f, 0.6f)],
+            LatticeNeighbors = lattice.LatticeNeighbors,
+            Mesh = point,
+        };
+
+        // Bent and twisted, nothing a single linear map would do
+        var particles = Array.ConvertAll(lattice.RestPositions, rest =>
+        {
+            var local = (rest - origin) / lattice.Spacing;
+            return rest + new Vector3(0.05f * local.Y * local.Y, 0.12f * local.X * local.X - 0.04f * local.Z * local.X, 0.03f * local.X * local.Y) * lattice.Spacing;
+        });
+        var frames = new Vector3[particles.Length * 3];
+        topology.ComputeParticleFrames(particles, frames);
+
+        topology.DeformSmooth(0, particles, frames, out var positionA, out var normalA, out var tangentA);
+        topology.DeformSmooth(1, particles, frames, out var positionB, out var normalB, out var tangentB);
+        AssertNear(positionA, positionB, "smooth position from both cells");
+        AssertNear(Vector3.Normalize(normalA), Vector3.Normalize(normalB), "smooth normal from both cells");
+        AssertNear(Vector3.Normalize((Vector3)tangentA), Vector3.Normalize((Vector3)tangentB), "smooth tangent from both cells");
+
+        topology.DeformFrame(0, particles, out var fastNormalA, out _);
+        topology.DeformFrame(1, particles, out var fastNormalB, out _);
+        Assert.True(Vector3.Distance(Vector3.Normalize(fastNormalA), Vector3.Normalize(fastNormalB)) > 0.02f, "The fast deformation was expected to fold here");
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]

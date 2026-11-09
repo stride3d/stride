@@ -30,6 +30,7 @@ internal sealed class DeformableModel : IDisposable
     private Vector3[] _positions = [];
     private Vector3[] _normals = [];
     private Vector4[] _tangents = [];
+    private Vector3[] _frames = []; // Three per particle, for the smooth deformation of a lattice
 
     // GPU state; null on CPU mode (recreated by SetMode when switching to GPU)
     private GpuDeformation? _gpu;
@@ -40,7 +41,12 @@ internal sealed class DeformableModel : IDisposable
 
     public SoftBodyDeformationMode Mode => _gpu is null ? SoftBodyDeformationMode.Cpu : SoftBodyDeformationMode.Gpu;
 
-    public DeformableModel(GraphicsDevice device, IServiceRegistry services, Model source, SoftBodyTopology topology, SoftBodyDeformationMode mode)
+    /// <summary> How the vertices follow the particles of a lattice, <see cref="SoftBodyDeformationQuality.Fast"/> for a cloth, which has none </summary>
+    public SoftBodyDeformationQuality Quality { get; private set; }
+
+    /// <param name="mode"> <see cref="SoftBodyDeformationMode.Cpu"/> or <see cref="SoftBodyDeformationMode.Gpu"/> </param>
+    /// <param name="quality"> <see cref="SoftBodyDeformationQuality.Fast"/> or <see cref="SoftBodyDeformationQuality.Smooth"/> </param>
+    public DeformableModel(GraphicsDevice device, IServiceRegistry services, Model source, SoftBodyTopology topology, SoftBodyDeformationMode mode, SoftBodyDeformationQuality quality)
     {
         Topology = topology;
         var meshPool = topology.Mesh;
@@ -109,7 +115,7 @@ internal sealed class DeformableModel : IDisposable
             });
         }
 
-        SetMode(device, mode, retired: []);
+        SetMode(device, mode, quality, retired: []);
     }
 
     /// <summary>
@@ -117,11 +123,16 @@ internal sealed class DeformableModel : IDisposable
     /// does whatever follows them (model component, skeleton bodies, node links). The previous mode's GPU buffers go to
     /// <paramref name="retired"/>, to dispose of once the renderer no longer uses them.
     /// </summary>
-    public void SetMode(GraphicsDevice device, SoftBodyDeformationMode mode, ICollection<IDisposable> retired)
+    public void SetMode(GraphicsDevice device, SoftBodyDeformationMode mode, SoftBodyDeformationQuality quality, ICollection<IDisposable> retired)
     {
+        // Only lattices have something to smooth
+        bool smooth = quality == SoftBodyDeformationQuality.Smooth && Topology.LatticeNeighbors is not null;
+        quality = smooth ? SoftBodyDeformationQuality.Smooth : SoftBodyDeformationQuality.Fast;
+
         bool built = _gpu is not null || (_meshBuffers.Length > 0 && _meshBuffers[0].VertexBuffer is not null);
-        if (built && mode == Mode)
+        if (built && mode == Mode && quality == Quality)
             return;
+        Quality = quality;
 
         if (_gpu is not null)
             retired.Add(_gpu);
@@ -137,16 +148,18 @@ internal sealed class DeformableModel : IDisposable
 
         if (gpu)
         {
-            _gpu = new GpuDeformation(device, Topology);
+            _gpu = new GpuDeformation(device, Topology, smooth);
             _positions = [];
             _normals = [];
             _tangents = [];
+            _frames = [];
         }
         else
         {
             _positions = new Vector3[vertexCount];
             _normals = new Vector3[vertexCount];
             _tangents = new Vector4[vertexCount];
+            _frames = smooth ? new Vector3[Topology.ParticleCount * 3] : [];
         }
 
         for (int m = 0; m < _meshBuffers.Length; m++)
@@ -249,15 +262,21 @@ internal sealed class DeformableModel : IDisposable
             return;
         }
 
-        Topology.Deform(_particles, _positions);
-
-        // Normals and tangents are first found in world space
-        if (Topology.LatticeCoordinates is { } coordinates)
+        // Positions, normals and tangents are first found in world space
+        if (Quality == SoftBodyDeformationQuality.Smooth)
         {
+            Topology.ComputeParticleFrames(_particles, _frames);
+            for (int v = 0; v < _positions.Length; v++)
+                Topology.DeformSmooth(v, _particles, _frames, out _positions[v], out _normals[v], out _tangents[v]);
+        }
+        else if (Topology.LatticeCoordinates is { } coordinates)
+        {
+            Topology.Deform(_particles, _positions);
             DeformFrames(coordinates);
         }
         else
         {
+            Topology.Deform(_particles, _positions);
             RebuildFrames();
 
             // Pushes the two faces of a double sided model apart, just enough for them not to fight over the same depth

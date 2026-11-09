@@ -147,10 +147,19 @@ public abstract class SoftBodyComponent : CollidableComponent
 
     /// <summary>
     /// Where the vertices of the model are moved to follow the particles, both look the same.
+    /// <see cref="SoftBodyDeformationMode.Default"/> leaves it to the <see cref="SoftBodyConfiguration"/> of the game settings.
     /// </summary>
     [Display(category: CategorySoftBody)]
-    [DefaultValue(SoftBodyDeformationMode.Gpu)]
-    public SoftBodyDeformationMode DeformationMode { get; set; } = SoftBodyDeformationMode.Gpu;
+    [DefaultValue(SoftBodyDeformationMode.Default)]
+    public SoftBodyDeformationMode DeformationMode { get; set; } = SoftBodyDeformationMode.Default;
+
+    /// <summary>
+    /// How the vertices of the model follow the particles of a volumetric body, cloths are not concerned.
+    /// <see cref="SoftBodyDeformationQuality.Default"/> leaves it to the <see cref="SoftBodyConfiguration"/> of the game settings.
+    /// </summary>
+    [Display(category: CategorySoftBody)]
+    [DefaultValue(SoftBodyDeformationQuality.Default)]
+    public SoftBodyDeformationQuality DeformationQuality { get; set; } = SoftBodyDeformationQuality.Default;
 
     /// <summary> The amount of particles, zero until the body is part of a simulation </summary>
     [DataMemberIgnore]

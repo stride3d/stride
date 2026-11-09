@@ -194,7 +194,7 @@ public class DeformationModeTests : GameTestBase
             var bareModel = VertexLayoutTests.WithLayout(this, new SphereProceduralModel { Radius = 0.3f, Tessellation = 16 }, VertexLayoutTests.Float3, VertexLayoutTests.Float3, VertexLayoutTests.Absent, out _);
             bareModel.Materials.Clear();
             bareModel.Materials.Add(new MaterialInstance(Material(new Color(230, 200, 80), normalMapped: false)));
-            var bare = new VolumetricSoftBodyComponent { Resolution = 4 };
+            var bare = new VolumetricSoftBodyComponent { Resolution = 4, DeformationQuality = SoftBodyDeformationQuality.Fast }; // The others are smooth, as bodies are unless told otherwise
             var bareEntity = new Entity("Bare") { new ModelComponent(bareModel), bare };
             bareEntity.Transform.Position = new Vector3(-1.3f, 0.8f, 0.3f);
             root.Add(bareEntity);
@@ -211,6 +211,8 @@ public class DeformationModeTests : GameTestBase
                 await Script.NextFrame();
             Assert.False(IsCompiling(), "Effects still compiling");
             Assert.All(bodies, body => Assert.Equal(mode, body.RenderModel?.Mode));
+            // Volumetric bodies are smooth unless they ask for the fast deformation, a cloth has nothing to smooth
+            Assert.All(bodies, body => Assert.Equal(body is VolumetricSoftBodyComponent && body.DeformationQuality != SoftBodyDeformationQuality.Fast ? SoftBodyDeformationQuality.Smooth : SoftBodyDeformationQuality.Fast, body.RenderModel?.Quality));
 
             _captureRequested = true;
             while (_capture is null)
