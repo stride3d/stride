@@ -172,9 +172,15 @@ namespace Stride.Shaders.Compiler
                                 outputHash = new ObjectId(outputHashBuffer);
                             }
 
+                            // Already loaded or compiled: give the same object, as the effect system makes one Effect per object
+                            if (bytecodes.TryGetValue(outputHash, out var loaded) && !IsBytecodeObsolete(loaded.Key))
+                            {
+                                bytecode = loaded;
+                            }
+
                             // Load bytecode from the shared output file
                             var bytecodePath = GetAppCachePath(mixin.Name, outputHash);
-                            if (VirtualFileSystem.ApplicationCache.FileExists(bytecodePath))
+                            if (bytecode.Key == null && VirtualFileSystem.ApplicationCache.FileExists(bytecodePath))
                             {
                                 using var stream = VirtualFileSystem.ApplicationCache.OpenStream(
                                     bytecodePath, VirtualFileMode.Open, VirtualFileAccess.Read, VirtualFileShare.Read);
@@ -325,7 +331,12 @@ namespace Stride.Shaders.Compiler
                     database.ObjectDatabase.Write(memoryStream, effectInputHash, true);
                 }
 
-                if (!bytecodes.ContainsKey(newBytecodeId))
+                if (bytecodes.TryGetValue(newBytecodeId, out var known))
+                {
+                    // Another permutation compiled to the same bytecode: give its object, so both get one Effect
+                    compiledShader = new EffectBytecodeCompilerResult(known.Key, compiledShader.CompilationLog);
+                }
+                else
                 {
                     log.Verbose($"New effect compiled #{effectCompileCount} [{effectInputHash}] (db: {newBytecodeId})\r\n{compilerParameters?.ToStringPermutationsDetailed()}");
                     Interlocked.Increment(ref effectCompileCount);
