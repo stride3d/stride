@@ -131,14 +131,15 @@ internal class ContactEventsManager : IDisposable
     /// <summary> Drops this step's manifolds involving <paramref name="collidable"/>, its references must still be valid </summary>
     public void ClearStoredManifoldsOf(CollidableComponent collidable)
     {
-        for (int i = 0; i < collidable.CollidableCount; i++)
+        if (collidable.CollidableReference is not { } reference)
+            return;
+
+        // Every group of a collidable carries the same owner key, however many bodies it spans: one scan per store is enough
+        uint owner = reference.Packed;
+        foreach (var workerStore in _manifoldStoresPerWorker)
         {
-            uint packed = collidable.GetCollidableReference(i).Packed;
-            foreach (var workerStore in _manifoldStoresPerWorker)
-            {
-                foreach (var typeStore in workerStore)
-                    typeStore.ClearEventsOf(packed);
-            }
+            foreach (var typeStore in workerStore)
+                typeStore.ClearEventsOf(owner);
         }
     }
 
@@ -353,7 +354,6 @@ internal class ContactEventsManager : IDisposable
         IPerTypeManifoldStore.EnsureWorkerSlots(_manifoldStoresPerWorker, 0, maxTypes);
         var destStore = _manifoldStoresPerWorker[0];
 
-        bool anyMerged = false;
         for (int w = 1; w < _manifoldStoresPerWorker.Length; w++)
         {
             var workerStore = _manifoldStoresPerWorker[w];
@@ -363,14 +363,7 @@ internal class ContactEventsManager : IDisposable
                 if (src is null || src.IsEmpty())
                     continue;
                 destStore[t].MergeFrom(src);
-                anyMerged = true;
             }
-        }
-
-        if (anyMerged)
-        {
-            foreach (var typeStore in destStore)
-                typeStore?.SortByOwnerKey();
         }
     }
 
@@ -425,11 +418,10 @@ internal class ContactEventsManager : IDisposable
 
         void RunEvents(ContactEventsManager eventsManager);
 
-        void ClearEventsOf(uint packed);
+        /// <summary> Removes the groups of the collidable whose owner key is <paramref name="owner"/> </summary>
+        void ClearEventsOf(uint owner);
 
         void MergeFrom(IPerTypeManifoldStore other);
-
-        void SortByOwnerKey();
 
         internal static unsafe void EnsureWorkerSlots(IPerTypeManifoldStore[][] manifoldLists, int workerIndex, int slotCount)
         {
@@ -453,7 +445,7 @@ internal class ContactEventsManager : IDisposable
             EnsureWorkerSlots(manifoldLists, workerIndex, typeIndex + 1);
             var handler = (ListOf<TManifold>)manifoldLists[workerIndex][typeIndex];
 
-            // Appended in insertion order; the single sort on worker 0 after merge groups events by owner.
+            // Appended in arrival order, RunEvents sorts by owner once every worker is merged
             handler.Add(new ContactGroup<TManifold>(ref manifold, pair, childIndexA, childIndexB, ownerSortedPair));
         }
 
@@ -516,13 +508,14 @@ internal class ContactEventsManager : IDisposable
                 source.Clear();
             }
 
-            public void SortByOwnerKey() => Sort(OwnerComparer.Instance);
-
             public void RunEvents(ContactEventsManager eventsManager)
             {
-                // The list is already sorted by owner key: StoreManifold appends on each worker, Flush merges
-                // worker 1..N into worker 0 and sorts once. A collidable spanning multiple bodies touches through
-                // many body pairs, reported here as one range.
+                // StoreManifold appends on each worker and Flush merges worker 1..N into worker 0, whatever the amount of
+                // workers the groups are in arrival order here. Sorted by owner, the body pairs of a collidable spanning
+                // multiple bodies and the children of a compound are each reported as one range.
+                if (Count > 1)
+                    Sort(OwnerComparer.Instance);
+
                 for (int i = Count - 1; i >= 0; i--) // reverse as the scope may end up calling ClearRelatedContacts
                 {
                     var refPair = this[i].OwnerSortedPair;
@@ -553,7 +546,7 @@ internal class ContactEventsManager : IDisposable
                 }
             }
 
-            public void ClearEventsOf(uint packed)
+            public void ClearEventsOf(uint owner)
             {
                 // Scan once and keep the pairs that do not involve the removed collidable; cheaper than a per-hit RemoveAt.
                 var span = CollectionsMarshal.AsSpan(this);
@@ -561,7 +554,7 @@ internal class ContactEventsManager : IDisposable
                 for (int i = 0; i < span.Length; i++)
                 {
                     ref var group = ref span[i];
-                    if (group.Pair.A.Packed == packed || group.Pair.B.Packed == packed)
+                    if (group.OwnerSortedPair.A == owner || group.OwnerSortedPair.B == owner)
                         continue;
                     if (kept != i)
                         span[kept] = group;
