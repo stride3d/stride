@@ -10,7 +10,7 @@ using Xunit;
 namespace Stride.Assets.Tests
 {
     /// <summary>
-    /// Stride.AssetConstants.targets: which package's assets a project passes to its generators as AdditionalFiles.
+    /// Stride.AssetConstants.targets: assets are exposed through StrideAssetPaths and shaders through AdditionalFiles.
     /// </summary>
     public class TestAssetConstantsTargets : IDisposable
     {
@@ -33,6 +33,7 @@ namespace Stride.Assets.Tests
                     -   Path: !dir Effects
                 """);
             File.WriteAllText(Path.Combine(directory, "MyGame.Game", "Assets", "Texture.sdtex"), "!Texture");
+            File.WriteAllText(Path.Combine(directory, "MyGame.Game", "Assets", "Readme.txt"), "Not an asset");
             File.WriteAllText(Path.Combine(directory, "MyGame.Game", "Effects", "MyShader.sdsl"), "shader MyShader { };");
         }
 
@@ -44,18 +45,20 @@ namespace Stride.Assets.Tests
         [Fact]
         public void GameLibraryCollectsItsPackage()
         {
-            var files = CollectAdditionalFiles("MyGame.Game", "MyGame.Game", @"$(MSBuildThisFileDirectory)MyGame.Game.sdpkg", projectReference: null);
+            var outputs = CollectOutputs("MyGame.Game", "MyGame.Game", @"$(MSBuildThisFileDirectory)MyGame.Game.sdpkg", projectReference: null);
 
-            Assert.Equal(["MyShader.sdsl", "Texture.sdtex"], files);
+            Assert.Equal("Texture.sdtex", outputs.AssetPaths); // Files whose extension is not prefixed with "sd" are ignored
+            Assert.Equal(["MyShader.sdsl"], outputs.ShaderFiles);
         }
 
         [Fact]
         public void PlatformHeadDoesNotCollectItsGameLibraryPackage()
         {
             // Generating the game's shaders again in the head duplicates their keys and effects
-            var files = CollectAdditionalFiles("MyGame.Windows", "MyGame.Windows", @"$(MSBuildThisFileDirectory)..\MyGame.Game\MyGame.Game.sdpkg", @"..\MyGame.Game\MyGame.Game.csproj");
+            var outputs = CollectOutputs("MyGame.Windows", "MyGame.Windows", @"$(MSBuildThisFileDirectory)..\MyGame.Game\MyGame.Game.sdpkg", @"..\MyGame.Game\MyGame.Game.csproj");
 
-            Assert.Empty(files);
+            Assert.Empty(outputs.AssetPaths);
+            Assert.Empty(outputs.ShaderFiles);
         }
 
         [Fact]
@@ -71,12 +74,13 @@ namespace Stride.Assets.Tests
             Directory.CreateDirectory(Path.Combine(directory, "MyGame.Windows", "Assets"));
             File.WriteAllText(Path.Combine(directory, "MyGame.Windows", "Assets", "HeadTexture.sdtex"), "!Texture");
 
-            var files = CollectAdditionalFiles("MyGame.Windows", "MyGame.Windows", @"$(MSBuildThisFileDirectory)..\MyGame.Game\MyGame.Game.sdpkg", @"..\MyGame.Game\MyGame.Game.csproj");
+            var outputs = CollectOutputs("MyGame.Windows", "MyGame.Windows", @"$(MSBuildThisFileDirectory)..\MyGame.Game\MyGame.Game.sdpkg", @"..\MyGame.Game\MyGame.Game.csproj");
 
-            Assert.Equal(["HeadTexture.sdtex"], files);
+            Assert.Equal("HeadTexture.sdtex", outputs.AssetPaths);
+            Assert.Empty(outputs.ShaderFiles);
         }
 
-        private string[] CollectAdditionalFiles(string projectDirectory, string projectName, string currentPackagePath, string? projectReference)
+        private (string AssetPaths, string[] ShaderFiles) CollectOutputs(string projectDirectory, string projectName, string currentPackagePath, string? projectReference)
         {
             var path = Path.Combine(directory, projectDirectory, projectName + ".csproj");
             var reference = projectReference is not null ? $"""<ProjectReference Include="{projectReference}" />""" : "";
@@ -94,7 +98,9 @@ namespace Stride.Assets.Tests
 
             var project = new ProjectInstance(path, null, null, new ProjectCollection());
             Assert.True(project.Build("StrideCollectAssetConstants", null));
-            return project.GetItems("AdditionalFiles").Select(x => Path.GetFileName(x.EvaluatedInclude)).Order(StringComparer.Ordinal).ToArray();
+            var assetPaths = project.GetPropertyValue("StrideAssetPaths");
+            var shaderFiles = project.GetItems("AdditionalFiles").Select(x => Path.GetFileName(x.EvaluatedInclude)).Order(StringComparer.Ordinal).ToArray();
+            return (assetPaths, shaderFiles);
         }
     }
 }
