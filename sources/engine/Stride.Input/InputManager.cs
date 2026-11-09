@@ -413,6 +413,7 @@ namespace Stride.Input
         /// </summary>
         /// <remarks>
         /// This method could take several milliseconds and should be used at specific time in a game where performance is not crucial (pause, configuration screen...etc.)
+        /// Some sources, such as DirectInput, scan on a worker thread: the devices they find are added by a later <see cref="Update"/>.
         /// </remarks>
         public void Scan()
         {
