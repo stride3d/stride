@@ -19,7 +19,7 @@ namespace Stride.Assets.Tests
         /// <summary>
         /// Test upgrade of scene assets from samples. This test makes sense when code has been changed but samples are not yet updated.
         /// </summary>
-        [Fact]
+        [SkippableFact]
         public void Test()
         {
             var logger = new LoggerResult();
@@ -29,6 +29,9 @@ namespace Stride.Assets.Tests
             while (dir is not null && !File.Exists(Path.Combine(dir, "Stride.slnx")))
                 dir = Path.GetDirectoryName(dir);
             var samplesPath = Path.Combine(dir ?? throw new DirectoryNotFoundException("Could not find Stride solution root"), "samples");
+            // The CI lanes that check out without samples/ (Linux and macOS game tests) can't run it;
+            // the Windows API-neutral lane checks them out
+            Skip.IfNot(Directory.Exists(samplesPath), "samples/ is not checked out");
             var files = Directory.EnumerateFiles(samplesPath, "*.sdscene", SearchOption.AllDirectories);
 
             foreach (var sceneFile in files)
