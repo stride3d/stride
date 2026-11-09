@@ -451,6 +451,33 @@ public struct Vector3 : IEquatable<Vector3>, ISpanFormattable
     }
 
     /// <summary>
+    /// Rounds each component of this vector down to its preceding whole value
+    /// </summary>
+    /// <example> <code>Floor({1.9, -1.60, 0.0}) -> {1.0, -2.0, 0.0}</code> </example>
+    public static Vector3 Floor(Vector3 value)
+    {
+        return new Vector3(MathF.Floor(value.X), MathF.Floor(value.Y), MathF.Floor(value.Z));
+    }
+
+    /// <summary>
+    /// Rounds each component of this vector up to its following whole value
+    /// </summary>
+    /// <example> <code>Ceiling({1.9, -1.60, 0.0}) -> {2.0, -1.0, 0.0}</code> </example>
+    public static Vector3 Ceiling(Vector3 value)
+    {
+        return new Vector3(MathF.Ceiling(value.X), MathF.Ceiling(value.Y), MathF.Ceiling(value.Z));
+    }
+
+    /// <summary>
+    /// Rounds each component of this vector to its nearest whole value
+    /// </summary>
+    /// <example> <code>Round({1.9, -1.60, 0.0}) -> {2.0, -2.0, 0.0}</code> </example>
+    public static Vector3 Round(Vector3 value)
+    {
+        return new Vector3(MathF.Round(value.X), MathF.Round(value.Y), MathF.Round(value.Z));
+    }
+
+    /// <summary>
     /// Returns a <see cref="Stride.Core.Mathematics.Vector3"/> containing the 3D Cartesian coordinates of a point specified in Barycentric coordinates relative to a 3D triangle.
     /// </summary>
     /// <param name="value1">A <see cref="Stride.Core.Mathematics.Vector3"/> containing the 3D Cartesian coordinates of vertex 1 of the triangle.</param>
