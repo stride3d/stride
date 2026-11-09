@@ -23,8 +23,8 @@ public class SmoothMinOperator : IHeightfieldLayerBuilder
     /// <summary>
     /// The smoothness or distance of the blend range between the two layers
     /// </summary>
-    /// <remarks> Setting to a value of zero is ignored </remarks>
-    public float Smoothness { get; set => field = value != 0 ? value : field; } = 4;
+    /// <remarks> Setting to a value below or equal to zero is ignored </remarks>
+    public float Smoothness { get; set => field = value > 0 ? value : field; } = 4;
 
     /// <inheritdoc/>
     public IEnumerable<ObjectUrl> GetInputFiles()

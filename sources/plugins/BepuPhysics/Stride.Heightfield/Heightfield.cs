@@ -66,7 +66,7 @@ public class Heightfield : IHeightfieldPhysicsSource, IHeightfieldRenderingSourc
     }
 
     /// <summary>
-    /// The amount of <see cref="Subdivision"/> along one axis per blocks requested.
+    /// The amount of <see cref="Subdivision"/> along one axis per blocks.
     /// Each block overlaps <see cref="CoarseBlockInterval"/>^2 height samples.
     /// </summary>
     /// <exception cref="ArgumentOutOfRangeException">When value is less than or equal to zero</exception>

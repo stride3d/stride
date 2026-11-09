@@ -21,8 +21,8 @@ public record SmoothMinRuntimeLayer : IHeightfieldRuntimeLayer
     /// <summary>
     /// The smoothness or distance of the blend range between the two layers
     /// </summary>
-    /// <remarks> Setting to a value of zero is ignored </remarks>
-    public float Smoothness { get; set => field = value != 0 ? value : field; } = 4;
+    /// <remarks> Setting to a value below or equal to zero is ignored </remarks>
+    public float Smoothness { get; set => field = value > 0 ? value : field; } = 4;
 
     /// <inheritdoc/>
     public IHeightfieldFunction BuildHeightfieldFunction()
@@ -129,7 +129,7 @@ public record SmoothMinRuntimeLayer : IHeightfieldRuntimeLayer
 
         [MaybeNull] public required IComputeScalar B { get; set; }
 
-        public required float Smoothness { get; set => field = value != 0 ? value : field; } = 4;
+        public required float Smoothness { get; set => field = value > 0 ? value : field; } = 4;
 
         /// <inheritdoc/>
         public override IEnumerable<IComputeNode> GetChildren([MaybeNull] object context = null)
