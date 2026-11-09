@@ -86,4 +86,52 @@ public class DispatcherTests
             Dispatcher.For(job * size, (job + 1) * size, index => Interlocked.Increment(ref hits[index]));
         Assert.All(hits, hit => Assert.Equal(2, hit));
     }
+
+    [Fact]
+    public void Sort_Rethrows_A_Comparer_Exception_Thrown_On_A_Helper()
+    {
+        if (Dispatcher.MaxDegreeOfParallelism <= 1)
+            return;
+
+        var random = new Random(3);
+        var items = Enumerable.Range(0, 1_000_000).Select(_ => random.Next()).ToArray();
+        var caller = Environment.CurrentManagedThreadId;
+        // Throws on the helpers only: the caller goes on with its parts until it sees the exception
+        var comparer = Comparer<int>.Create((x, y) => Environment.CurrentManagedThreadId != caller ? throw new InvalidOperationException() : x.CompareTo(y));
+
+        // Thrown by a partition as it is, wrapped by Array.Sort in an InvalidOperationException
+        Assert.Throws<InvalidOperationException>(() => Dispatcher.Sort(items, 0, items.Length, comparer));
+    }
+
+    [Fact]
+    public void Sort_Stops_Its_Helpers_Before_It_Rethrows()
+    {
+        if (Dispatcher.MaxDegreeOfParallelism <= 1)
+            return;
+
+        var random = new Random(4);
+        var items = Enumerable.Range(0, 1_000_000).Select(_ => random.Next()).ToArray();
+        var caller = Environment.CurrentManagedThreadId;
+        var helperStarted = 0;
+        // Throws on the caller once a helper works on the list
+        var comparer = Comparer<int>.Create((x, y) =>
+        {
+            if (Environment.CurrentManagedThreadId != caller)
+                Volatile.Write(ref helperStarted, 1);
+            else if (Volatile.Read(ref helperStarted) != 0)
+                throw new InvalidOperationException();
+            return x.CompareTo(y);
+        });
+
+        Assert.Throws<InvalidOperationException>(() => Dispatcher.Sort(items, 0, items.Length, comparer));
+
+        // No thread writes to the list once Sort has thrown
+        var after = (int[])items.Clone();
+        Thread.Sleep(100);
+        Assert.Equal(after, items);
+
+        // And the next sort is not slowed or broken by them
+        Dispatcher.Sort(items, 0, items.Length, Comparer<int>.Default);
+        Assert.Equal(after.Order(), items);
+    }
 }
