@@ -250,6 +250,9 @@ public sealed class RunevisionTerrainAsset : Asset
         public float DefaultHeight = 0.45f;
         public float Tiling = 1f;
         public float HeightMultiplier = 0.3f;
+        /// <userdoc>
+        /// The texture to sample height from. Prefer high precision textures, 16 bits per color channel or more
+        /// </userdoc>
         public required Texture Texture;
 
         /// <inheritdoc/>
