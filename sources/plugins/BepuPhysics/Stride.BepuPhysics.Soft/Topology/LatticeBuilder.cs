@@ -37,6 +37,9 @@ internal static class LatticeBuilder
         if (Array.IndexOf(occupied, true) < 0)
             throw new InvalidOperationException("The mesh does not enclose any volume at this resolution, it must be closed, or the resolution higher");
 
+        // A part of the mesh thinner than a cell may hold no cell center, what it links would come apart
+        ConnectIslands(occupied, size);
+
         // Particles sit on the corners of occupied cells
         var nodes = new Int3(size.X + 1, size.Y + 1, size.Z + 1);
         var particleOfNode = new int[nodes.X * nodes.Y * nodes.Z];
@@ -126,6 +129,91 @@ internal static class LatticeBuilder
             Mesh = mesh,
         };
     }
+
+    /// <summary>
+    /// Occupies the cells it takes for every occupied cell to be reached from any other through the faces of occupied cells,
+    /// so the body is a single piece: each island of cells is joined to the closest cell of the others by the cells on the way.
+    /// </summary>
+    internal static void ConnectIslands(bool[] occupied, Int3 size)
+    {
+        var island = new int[occupied.Length];
+        var islandSizes = new List<int>();
+        var queue = new Queue<int>();
+        while (true)
+        {
+            Array.Fill(island, -1);
+            islandSizes.Clear();
+            for (int start = 0; start < occupied.Length; start++)
+            {
+                if (occupied[start] == false || island[start] >= 0)
+                    continue;
+
+                int cells = 0;
+                island[start] = islandSizes.Count;
+                queue.Enqueue(start);
+                while (queue.TryDequeue(out int cell))
+                {
+                    cells++;
+                    var at = CellAt(cell, size);
+                    for (int axis = 0; axis < 3; axis++)
+                    {
+                        for (int step = -1; step <= 1; step += 2)
+                        {
+                            var next = at;
+                            next[axis] += step;
+                            if (next[axis] < 0 || next[axis] >= size[axis])
+                                continue;
+                            int neighbor = CellIndex(next.X, next.Y, next.Z, size);
+                            if (occupied[neighbor] && island[neighbor] < 0)
+                            {
+                                island[neighbor] = islandSizes.Count;
+                                queue.Enqueue(neighbor);
+                            }
+                        }
+                    }
+                }
+                islandSizes.Add(cells);
+            }
+            if (islandSizes.Count <= 1)
+                return;
+
+            // The smallest island first: it is the cheapest to look for a neighbor from
+            int smallest = islandSizes.IndexOf(islandSizes.Min());
+            var from = default(Int3);
+            var to = default(Int3);
+            int closest = int.MaxValue;
+            for (int a = 0; a < occupied.Length; a++)
+            {
+                if (island[a] != smallest)
+                    continue;
+                var cellA = CellAt(a, size);
+                for (int b = 0; b < occupied.Length; b++)
+                {
+                    if (island[b] < 0 || island[b] == smallest)
+                        continue;
+                    var delta = CellAt(b, size) - cellA;
+                    int distance = delta.X * delta.X + delta.Y * delta.Y + delta.Z * delta.Z;
+                    if (distance < closest)
+                    {
+                        closest = distance;
+                        from = cellA;
+                        to = CellAt(b, size);
+                    }
+                }
+            }
+
+            // One step at a time along the axis with the most left to go, so each cell shares a face with the one before
+            while (from != to)
+            {
+                var left = to - from;
+                int axis = Math.Abs(left.X) >= Math.Abs(left.Y) && Math.Abs(left.X) >= Math.Abs(left.Z) ? 0 : Math.Abs(left.Y) >= Math.Abs(left.Z) ? 1 : 2;
+                from[axis] += Math.Sign(left[axis]);
+                occupied[CellIndex(from.X, from.Y, from.Z, size)] = true;
+            }
+        }
+    }
+
+    private static Int3 CellAt(int index, Int3 size) => new(index % size.X, index / size.X % size.Y, index / (size.X * size.Y));
 
     private static int CellIndex(int x, int y, int z, Int3 size) => (z * size.Y + y) * size.X + x;
 

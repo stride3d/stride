@@ -80,6 +80,41 @@ public class TopologyTests
         Assert.Throws<InvalidOperationException>(() => LatticeBuilder.Build(Grid(4, doubleSided: false), 4, 0.5f));
     }
 
+    /// <summary> Two boxes held together by a rod too thin to hold the center of a cell: the lattice still is a single piece </summary>
+    [Fact]
+    public static void LatticeJoinsThePartsLinkedByAThinOne()
+    {
+        var positions = new List<Vector3>();
+        var indices = new List<int>();
+        foreach (var (size, offset) in new[] { (Vector3.One, new Vector3(-1.5f, 0f, 0f)), (Vector3.One, new Vector3(1.5f, 0f, 0f)), (new Vector3(2f, 0.02f, 0.02f), new Vector3(0f, 0.3f, 0.3f)) })
+        {
+            var box = Box(size);
+            int first = positions.Count;
+            positions.AddRange(box.Positions.Select(position => position + offset));
+            indices.AddRange(box.Indices.Select(index => index + first));
+        }
+        var topology = LatticeBuilder.Build(FromTriangles(positions, indices), 8, 0.5f);
+
+        // Every particle is reached from the first one through the edges
+        var reached = new bool[topology.ParticleCount];
+        var pending = new Stack<int>([0]);
+        reached[0] = true;
+        var neighbors = topology.Edges.SelectMany(edge => new[] { (edge.A, edge.B), (edge.B, edge.A) }).ToLookup(pair => pair.Item1, pair => pair.Item2);
+        while (pending.TryPop(out int particle))
+        {
+            foreach (int neighbor in neighbors[particle])
+            {
+                if (reached[neighbor] == false)
+                {
+                    reached[neighbor] = true;
+                    pending.Push(neighbor);
+                }
+            }
+        }
+        Assert.All(reached, Assert.True);
+        Assert.True(topology.RestPositions.Any(position => MathF.Abs(position.X) < 0.5f), "No particle between the two boxes");
+    }
+
     [Fact]
     public static void ClothWeldsBothFaces()
     {
