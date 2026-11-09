@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -47,14 +48,38 @@ public static class EffectBytecodeSourceWriter
     {
         var buffer = new MemoryStream();
         bytecode.WriteTo(buffer);
+        var bufferArray = buffer.ToArray();
+
+        // The shader of each stage starts and ends a line: a change elsewhere (the reflection, another stage)
+        // then moves none of its lines, and a regenerated file has a small diff
+        var sectionBreaks = new List<int>();
+        var searchStart = 0;
+        foreach (var stage in bytecode.Stages ?? [])
+        {
+            if (stage.Data is not { Length: > 0 })
+                continue;
+            var offset = bufferArray.AsSpan(searchStart).IndexOf(stage.Data);
+            if (offset < 0)
+                continue;
+            sectionBreaks.Add(searchStart + offset);
+            searchStart += offset + stage.Data.Length;
+            sectionBreaks.Add(searchStart);
+        }
 
         var bufferAsText = new StringBuilder();
-        var bufferArray = buffer.ToArray();
+        var lineStart = 0;
+        var nextBreak = 0;
         for (int i = 0; i < bufferArray.Length; i++)
         {
-            bufferAsText.Append(bufferArray[i]).Append(", ");
-            if (i > 0 && (i % 64) == 0)
+            var sectionStart = false;
+            for (; nextBreak < sectionBreaks.Count && sectionBreaks[nextBreak] <= i; nextBreak++)
+                sectionStart = true;
+            if (i > lineStart && (sectionStart || i - lineStart == 64))
+            {
                 bufferAsText.Append('\n');
+                lineStart = i;
+            }
+            bufferAsText.Append(bufferArray[i]).Append(", ");
         }
 
         // The generated file only holds the bytecode field, one part of a class declared elsewhere
