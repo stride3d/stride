@@ -115,6 +115,27 @@ public class TopologyTests
         Assert.True(topology.RestPositions.Any(position => MathF.Abs(position.X) < 0.5f), "No particle between the two boxes");
     }
 
+    /// <summary>
+    /// A grid whose quads are all cut along the same diagonal: the other diagonal of each quad is held as firmly, by a shear
+    /// constraint of the same length, or the cloth would be stiff one way and loose the other.
+    /// </summary>
+    [Fact]
+    public static void ClothHoldsBothDiagonalsOfItsQuads()
+    {
+        const int cells = 4;
+        var topology = ClothBuilder.Build(Grid(cells, doubleSided: false));
+        var diagonals = topology.Edges.Where(edge => edge.Kind == EdgeKind.Stretch && Length(edge) > topology.Edges.Where(e => e.Kind == EdgeKind.Stretch).Min(Length) * 1.2f).ToArray();
+        var shears = topology.Edges.Where(edge => edge.Kind == EdgeKind.Shear).ToArray();
+
+        Assert.Equal(cells * cells, diagonals.Length);
+        Assert.Equal(cells * cells, shears.Length);
+        Assert.All(shears, shear => Assert.Equal(Length(diagonals[0]), Length(shear), 4));
+        // What folds the cloth over the edges between two quads is still a bend constraint
+        Assert.Contains(topology.Edges, edge => edge.Kind == EdgeKind.Bend);
+
+        float Length(Edge edge) => Vector3.Distance(topology.RestPositions[edge.A], topology.RestPositions[edge.B]);
+    }
+
     [Fact]
     public static void ClothWeldsBothFaces()
     {
@@ -125,8 +146,10 @@ public class TopologyTests
         Assert.Equal(1, topology.BindingStride);
         // Rows, columns and one diagonal per quad
         Assert.Equal(2 * cells * (cells + 1) + cells * cells, topology.Edges.Count(e => e.Kind == EdgeKind.Stretch));
-        // One per interior edge, the back faces do not add any
-        Assert.Equal(2 * cells * (cells - 1) + cells * cells, topology.Edges.Count(e => e.Kind == EdgeKind.Bend));
+        // The other diagonal of each quad
+        Assert.Equal(cells * cells, topology.Edges.Count(e => e.Kind == EdgeKind.Shear));
+        // One per edge between two quads, the back faces do not add any
+        Assert.Equal(2 * cells * (cells - 1), topology.Edges.Count(e => e.Kind == EdgeKind.Bend));
         Assert.DoesNotContain(topology.Edges, e => e.A == e.B);
         AssertRestShapeReproducesMesh(topology);
     }
