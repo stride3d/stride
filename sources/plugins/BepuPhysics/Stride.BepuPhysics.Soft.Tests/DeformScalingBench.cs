@@ -28,7 +28,7 @@ namespace Stride.BepuPhysics.Soft.Tests;
 
 /// <summary>
 /// GPU vs CPU soft body deformation scaling bench across three axes: body quantity, lattice density (particles),
-/// and mesh tessellation (vertices). Gated by env var <c>STRIDE_DEFORM_SCALING=1</c>.
+/// and mesh tessellation (vertices). Skipped unless the environment variable <c>STRIDE_DEFORM_SCALING</c> is 1 (expensive, ~20 min).
 /// </summary>
 /// <remarks>
 /// Writes a markdown report at <c>%TEMP%\Stride.BepuPhysics.Soft.Tests\bench_report.md</c>. Each scenario runs 100
@@ -38,13 +38,9 @@ namespace Stride.BepuPhysics.Soft.Tests;
 /// </remarks>
 public class DeformScalingBench
 {
-    [Fact]
+    [BenchFact("STRIDE_DEFORM_SCALING")]
     public static void Scaling()
     {
-        // Bench, no-op unless gated in explicitly (expensive, ~20 min)
-        if (Environment.GetEnvironmentVariable("STRIDE_DEFORM_SCALING") != "1")
-            return;
-
         var folder = Path.Combine(Path.GetTempPath(), "Stride.BepuPhysics.Soft.Tests");
         Directory.CreateDirectory(folder);
         var report = Path.Combine(folder, "bench_report.md");

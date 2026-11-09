@@ -28,16 +28,13 @@ namespace Stride.BepuPhysics.Soft.Tests;
 /// <summary>
 /// Visible stress bench: one high-tessellation soft body (R=10, tess=288, ~166k verts) falls on a floor,
 /// run once in CPU mode and once in GPU mode. Opens a 1280×720 window so you can watch; title bar shows
-/// mode + median CPU/GPU frame times. Gated by <c>STRIDE_DEFORM_STRESS=1</c>.
+/// mode + median CPU/GPU frame times. Skipped unless the environment variable <c>STRIDE_DEFORM_STRESS</c> is 1.
 /// </summary>
 public class DeformStressBench
 {
-    [Fact]
+    [BenchFact("STRIDE_DEFORM_STRESS")]
     public static void Stress()
     {
-        if (Environment.GetEnvironmentVariable("STRIDE_DEFORM_STRESS") != "1")
-            return;
-
         var folder = Path.Combine(Path.GetTempPath(), "Stride.BepuPhysics.Soft.Tests");
         Directory.CreateDirectory(folder);
         var report = Path.Combine(folder, "stress_report.md");
