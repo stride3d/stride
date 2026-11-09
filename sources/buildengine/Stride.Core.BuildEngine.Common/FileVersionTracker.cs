@@ -32,13 +32,20 @@ public class FileVersionTracker : IDisposable
     /// Gets the default file version tracker for this machine.
     /// </summary>
     /// <returns>FileVersionTracker.</returns>
+    /// <remarks>
+    /// The file is <c>stride/FileVersionTracker.cache</c> in the local application data folder, unless the
+    /// <c>STRIDE_FILE_VERSION_CACHE</c> environment variable gives the path of another file. Child processes inherit
+    /// the variable, so builds in throwaway folders, such as tests, can keep their entries out of the machine's file.
+    /// </remarks>
     public static FileVersionTracker GetDefault()
     {
         lock (lockDefaultTracker)
         {
             if (defaultFileVersionTracker == null)
             {
-                var filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), DefaultFileVersionTrackerFile);
+                var filePath = Environment.GetEnvironmentVariable("STRIDE_FILE_VERSION_CACHE") is { Length: > 0 } cachePath
+                    ? Path.GetFullPath(cachePath)
+                    : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), DefaultFileVersionTrackerFile);
                 var directory = Path.GetDirectoryName(filePath);
                 if (directory != null && !Directory.Exists(directory))
                 {

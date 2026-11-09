@@ -115,7 +115,7 @@ public class AssetPluginPackagingTests : IDisposable
         var version = TestEnvironment.ResolveStrideVersion();
         var fixtures = TestEnvironment.FixturesDir();
 
-        var caseDir = Path.Combine(Path.GetTempPath(), "stride-packaging-tests",
+        var caseDir = Path.Combine(TestEnvironment.CasesRoot,
             $"plugin-{(viaProjectReference ? "proj" : declareAssetAssembly ? "pos" : "neg")}-{Guid.NewGuid():N}");
         caseDirs.Add(caseDir);
         var pluginDir = Path.Combine(caseDir, "plugin");
