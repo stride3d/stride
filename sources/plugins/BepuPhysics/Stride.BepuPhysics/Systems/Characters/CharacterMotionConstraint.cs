@@ -1,8 +1,5 @@
-
-
-
-
-
+// Like some of the other files in this project, this is lifted almost wholesale from bepu's Demos, comments are left as-is
+// to improve diffing and added context. No license header provided, refer to Bepu's Apache License https://github.com/bepu/bepuphysics2
 
 using BepuUtilities;
 using BepuPhysics;
