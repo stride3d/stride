@@ -262,7 +262,7 @@ public partial class App : Application
 
         if (EditorSettings.ReloadLastSession.GetValue())
         {
-            var mru = GameStudioInternalSettings.CreateMostRecentlyUsedFiles();
+            var mru = RecentSessionsSettings.CreateMostRecentlyUsedFiles();
             return mru.MostRecentlyUsedFiles.FirstOrDefault()?.FilePath;
         }
         return null;

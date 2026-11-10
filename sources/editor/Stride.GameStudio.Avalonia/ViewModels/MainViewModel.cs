@@ -108,7 +108,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
             SafeModeBanner = new SafeModeBannerViewModel(serviceProvider, host, this, () => Panels.Show(BuiltInPanels.Plugins), () => session is not null);
 
         // The most recently used sessions of this and the earlier editor versions
-        MRU = GameStudioInternalSettings.CreateMostRecentlyUsedFiles();
+        MRU = RecentSessionsSettings.CreateMostRecentlyUsedFiles();
         MRU.MostRecentlyUsedFiles.CollectionChanged += (_, _) => UpdateRecentFiles();
         UpdateRecentFiles();
     }
@@ -455,7 +455,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
 
         // The editors of the last session, or the default scene, now that the plugins have registered the editors; keyed by the
         // solution
-        var sessionData = GameStudioInternalSettings.CreateMostRecentlyUsedSessionsData();
+        var sessionData = RecentSessionsSettings.CreateMostRecentlyUsedSessionsData();
         var dataPath = UPath.IsNullOrEmpty(Session.SolutionPath) ? filePath : Session.SolutionPath;
         if (isNew)
             sessionData.RemoveFile(dataPath);

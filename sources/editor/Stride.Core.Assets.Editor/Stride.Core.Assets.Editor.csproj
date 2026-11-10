@@ -28,5 +28,8 @@
     <!-- The routing of the asset compiler's crashes to the crash reporter, for the builds of both editors (Components/Build) -->
   </ItemGroup>
 
+  <!-- The most recently used sessions, which both editors keep (Settings/RecentSessionsSettings) -->
+  <Import Project="../Stride.Core.MostRecentlyUsedFiles/Stride.Core.MostRecentlyUsedFiles.projitems" Label="Shared" />
+
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
 </Project>
