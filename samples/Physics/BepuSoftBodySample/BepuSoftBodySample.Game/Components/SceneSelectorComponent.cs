@@ -9,6 +9,7 @@ using Stride.BepuPhysics;
 using Stride.BepuPhysics.Components;
 using Stride.BepuPhysics.Debug;
 using Stride.BepuPhysics.Soft;
+using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
 using Stride.Engine;
@@ -29,8 +30,8 @@ namespace BepuSoftBodySample.Game.Components
     {
         // In the units of the UI, 720 of them fit in the height of the window
         private const float SidebarWidth = 270f;
-        private const float RowHeight = 29f;
-        private const float ToggleHeight = 22f;
+        private const float RowHeight = 26f;
+        private const float ToggleHeight = 21f;
 
         private static readonly Color PanelColor = new(14, 16, 22, 236);
         private static readonly Color CaptionColor = new(14, 16, 22, 190);
@@ -48,10 +49,8 @@ namespace BepuSoftBodySample.Game.Components
             ("Tab", "hide the menu"),
             ("R", "restart the scene"),
             ("PgUp PgDn", "previous, next scene"),
-            ("Right mouse", "look around"),
-            ("W A S D", "move, Shift to go faster"),
+            ("Right mouse", "look, W A S D to move"),
             ("Left mouse", "grab a body, F to throw it"),
-            ("F11", "debug view"),
         ];
 
         public Scene? MainScene { get; set; }
@@ -246,7 +245,7 @@ namespace BepuSoftBodySample.Game.Components
             header.Children.Add(list);
             if (_debug is { } debug)
             {
-                header.Children.Add(Text("DEBUG VIEW", 11f, MutedColor, margin: new Thickness(23f, 16f, 0f, 5f)));
+                header.Children.Add(Text("DEBUG VIEW (F11)", 11f, MutedColor, margin: new Thickness(23f, 14f, 0f, 4f)));
                 header.Children.Add(BuildToggle("Physics debug view", () => debug.Visible, on => debug.Visible = on));
                 header.Children.Add(BuildToggle("Colliders", () => debug.Visible && debug.ShowShapes, on => Show(debug, on, d => d.ShowShapes = on)));
                 header.Children.Add(BuildToggle("Soft body particles", () => debug.Visible && debug.ShowSoftBodyParticles, on => Show(debug, on, d => d.ShowSoftBodyParticles = on)));
@@ -254,6 +253,14 @@ namespace BepuSoftBodySample.Game.Components
                 header.Children.Add(BuildToggle("Contacts", () => debug.Visible && debug.ShowContactPoints, on => Show(debug, on, d => d.ShowContactPoints = d.ShowContactNormals = on)));
                 header.Children.Add(BuildToggle("Hide the models", () => _hideModels, on => Show(debug, on, _ => _hideModels = on)));
             }
+
+            // The settings of the soft bodies, the ones of the game settings: changing them here switches every body at once
+            var softBodies = Services.GetOrCreate<SoftBodyConfiguration>();
+            header.Children.Add(Text("SOFT BODIES", 11f, MutedColor, margin: new Thickness(23f, 12f, 0f, 4f)));
+            header.Children.Add(BuildToggle("Deformed on the GPU", () => softBodies.DeformationMode == SoftBodyDeformationMode.Gpu,
+                on => softBodies.DeformationMode = on ? SoftBodyDeformationMode.Gpu : SoftBodyDeformationMode.Cpu));
+            header.Children.Add(BuildToggle("Smooth deformation", () => softBodies.DeformationQuality == SoftBodyDeformationQuality.Smooth,
+                on => softBodies.DeformationQuality = on ? SoftBodyDeformationQuality.Smooth : SoftBodyDeformationQuality.Fast));
 
             var sidebar = Layer();
             sidebar.Width = SidebarWidth;
