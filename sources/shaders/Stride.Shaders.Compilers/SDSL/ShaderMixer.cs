@@ -274,6 +274,14 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         }
         foreach (var i in temp)
         {
+            if (i.Op is Op.OpDPdxFine or Op.OpDPdyFine or Op.OpDPdxCoarse or Op.OpDPdyCoarse)
+            {
+                context.Add(new OpCapability(Capability.DerivativeControl));
+                break;
+            }
+        }
+        foreach (var i in temp)
+        {
             // ImageGatherExtended is required when Offset (0x10) or ConstOffsets (0x20) image operands are used
             // The ImageOperands word position varies by instruction layout
             var imageOperandsIndex = i.Op switch

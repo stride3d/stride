@@ -230,8 +230,8 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     public List<CompanionPackage> CompanionPackages { get; } = [];
 
     /// <summary>
-    /// The UI toolkit an <see cref="PackageKind.Editor"/> package's views are written for (StrideEditorToolkit, e.g.
-    /// <see cref="EditorToolkits.Wpf"/>); null for a toolkit-neutral package. Packed sdpkgs and build manifests carry
+    /// The UI toolkit an <see cref="PackageKind.Editor"/> package's views are written for (StrideEditorToolkit:
+    /// <see cref="EditorToolkits.Wpf"/> or <see cref="EditorToolkits.Avalonia"/>); null for a toolkit-neutral package. Packed sdpkgs and build manifests carry
     /// it; an authored sdpkg does not.
     /// </summary>
     [DataMember(108)]
@@ -1588,9 +1588,13 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
                             }
                         }
 
-                        asset.AssetFolders = profile.AssetFolders;
-                        asset.ResourceFolders = profile.ResourceFolders;
-                        asset.OutputGroupDirectories = profile.OutputGroupDirectories;
+                        // A profile without one of these leaves the package's own: copied, the missing one would load as null
+                        if (profile.AssetFolders is not null)
+                            asset.AssetFolders = profile.AssetFolders;
+                        if (profile.ResourceFolders is not null)
+                            asset.ResourceFolders = profile.ResourceFolders;
+                        if (profile.OutputGroupDirectories is not null)
+                            asset.OutputGroupDirectories = profile.OutputGroupDirectories;
                     }
                 }
 

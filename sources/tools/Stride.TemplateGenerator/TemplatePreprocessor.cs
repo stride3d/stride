@@ -93,6 +93,13 @@ internal class TemplatePreprocessor
     public string? EngineVersion { get; set; }
 
     /// <summary>
+    /// With <see cref="EngineVersion"/>, stamps only the <c>$EngineVersion$</c> literals: concrete versions stay as the
+    /// sample commits them. A release pack does this, as a sample's version records the upgrader gates it had, so a
+    /// sample behind the engine still runs the gates above its version when it is upgraded.
+    /// </summary>
+    public bool KeepSampleVersions { get; set; }
+
+    /// <summary>
     /// Parsed from the input's <c>.sdtpl</c> file (if present). Drives template.json metadata
     /// (Name, Description, identity, etc.) and per-template parameter opt-in via the
     /// <see cref="SdtplMetadata.Parameters"/> list. Null when the input dir has no .sdtpl —
@@ -442,7 +449,7 @@ internal class TemplatePreprocessor
     private static readonly string[] NonEnginePackagePrefixes =
     {
         "Stride.Awesome.Shaders", "Stride.Community", "Stride.Dependencies.", "Stride.GNU.",
-        "Stride.GraphX", "Stride.Mono.", "Stride.OpenTK", "Stride.QuickGraph",
+        "Stride.Mono.", "Stride.OpenTK",
     };
 
     private static bool IsNonEnginePackage(string packageId)
@@ -468,7 +475,7 @@ internal class TemplatePreprocessor
                 var value = version is XAttribute attribute ? attribute.Value : ((XElement)version).Value;
                 // A remaining $placeholder$ is someone else's substitution point; community
                 // packages keep their committed version.
-                if (value.Contains('$') || value == EngineVersion || IsNonEnginePackage(include))
+                if (KeepSampleVersions || value.Contains('$') || value == EngineVersion || IsNonEnginePackage(include))
                     continue;
                 if (version is XAttribute versionAttribute)
                     versionAttribute.Value = EngineVersion;

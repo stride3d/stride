@@ -13,9 +13,9 @@ using System.Windows.Markup;
 
 using GraphX;
 using GraphX.Controls;
-using GraphX.PCL.Common.Enums;
-using GraphX.PCL.Logic.Algorithms.LayoutAlgorithms;
-using GraphX.PCL.Logic.Algorithms.OverlapRemoval;
+using GraphX.Common.Enums;
+using GraphX.Logic.Algorithms.LayoutAlgorithms;
+using GraphX.Logic.Algorithms.OverlapRemoval;
 using QuickGraph;
 
 using Stride.Core.Presentation.Graph.ViewModel;

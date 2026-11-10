@@ -1,0 +1,218 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+                    xmlns:aeb="using:Stride.Assets.Editor.Avalonia.Behaviors"
+                    xmlns:aev="using:Stride.Assets.Editor.Avalonia.Views"
+                    xmlns:caec="using:Stride.Core.Assets.Editor.Avalonia.Converters"
+                    xmlns:caeqnpc="using:Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands"
+                    xmlns:caev="using:Stride.Core.Assets.Editor.Avalonia.Views"
+                    xmlns:cpqvm="using:Stride.Core.Presentation.Quantum.ViewModels"
+                    xmlns:data="using:Stride.Data"
+                    xmlns:engine="using:Stride.Engine"
+                    xmlns:models="using:Stride.Assets.Models"
+                    xmlns:s="using:System"
+                    x:Class="Stride.Assets.Editor.Avalonia.Views.EntityPropertyTemplateProviders">
+  <ResourceDictionary.MergedDictionaries>
+    <ResourceInclude Source="avares://Stride.Core.Assets.Editor.Avalonia/Views/DefaultPropertyTemplateProviders.axaml"/>
+  </ResourceDictionary.MergedDictionaries>
+
+  <!-- Providers for EntityComponent -->
+  <caev:TypeMatchTemplateProvider x:Key="EntityComponentHeaderTemplateProvider" Type="engine:EntityComponent" caev:PropertyViewHelper.TemplateCategory="PropertyHeader"
+                                  OverrideRule="Most" Template="{StaticResource ReadOnlyPropertyHeaderTemplate}"/>
+  <aev:EntityComponentReferenceTemplateProvider x:Key="EntityComponentReferenceHeaderTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyHeader"
+                                                OverrideRule="All" Template="{StaticResource DefaultPropertyHeaderTemplate}">
+    <aev:EntityComponentReferenceTemplateProvider.OverriddenProviderNames>
+      <s:String>EntityComponent</s:String>
+    </aev:EntityComponentReferenceTemplateProvider.OverriddenProviderNames>
+  </aev:EntityComponentReferenceTemplateProvider>
+  <aev:EntityComponentReferenceTemplateProvider x:Key="EntityComponentReferenceTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <DockPanel>
+        <UniformGrid Rows="1" DockPanel.Dock="Right">
+          <Button IsVisible="{Binding [HasCommand_PickupComponent]}"
+                  Command="{Binding [PickupComponent]}"
+                  CommandParameter="{sd:MultiBinding {Binding [OwnerAsset]}, {Binding Type},
+                                                     Converter={sd:MultiToTuple}}"
+                  ToolTip.Tip="{sd:LocalizeString Select an asset, Context=ToolTip}">
+            <Image Source="{StaticResource ImagePickup}" Width="16" Height="16"/>
+          </Button>
+          <Button IsVisible="{Binding [HasCommand_CreateNewInstance]}"
+                  Command="{Binding [CreateNewInstance]}"
+                  CommandParameter="{x:Static caeqnpc:AbstractNodeValue.Null}"
+                  ToolTip.Tip="{sd:LocalizeString Clear the reference, Context=ToolTip}">
+            <Image Source="{StaticResource ImageClear}" Width="16" Height="16"/>
+          </Button>
+          <Button IsVisible="{Binding [HasCommand_FetchEntity]}"
+                  Command="{Binding [FetchEntity]}"
+                  CommandParameter="{Binding [OwnerAsset]}"
+                  ToolTip.Tip="{sd:LocalizeString Select the referenced asset, Context=ToolTip}">
+            <Image Source="{StaticResource ImageFetchAsset}" Width="16" Height="16"/>
+          </Button>
+        </UniformGrid>
+        <TextBox x:Name="TextBox" IsReadOnly="True" Margin="5"
+                 Text="{Binding ((engine:EntityComponent)NodeValue).Entity.Name, Mode=OneWay, FallbackValue={x:Null}}"/>
+      </DockPanel>
+    </DataTemplate>
+  </aev:EntityComponentReferenceTemplateProvider>
+
+  <!-- Providers for EntityComponentCollection -->
+  <aev:EntityComponentCollectionTemplateProvider x:Key="EntityComponentCollectionHeaderTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyHeader"
+                                                 OverrideRule="All">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <Border caev:PropertyViewHelper.Increment="0" caev:PropertyViewHelper.IsExpanded="True"
+              IsVisible="{Binding IsVisible}">
+        <Border x:Name="PART_Name"
+                MinHeight="26" Margin="4,4,1,8"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                ToolTip.Tip="{Binding [Documentation]}">
+          <!-- TODO AddEntityComponentUserControl -->
+          <ToggleButton x:Name="ToggleButton">
+            <DockPanel Margin="4">
+              <TextBlock DockPanel.Dock="Left"
+                         Width="16" Height="16"
+                         Text="➕"/>
+              <TextBlock Margin="4,0"
+                         Text="{sd:LocalizeString Add component}" FontStyle="Italic"/>
+            </DockPanel>
+          </ToggleButton>
+        </Border>
+      </Border>
+    </DataTemplate>
+  </aev:EntityComponentCollectionTemplateProvider>
+  <aev:EntityComponentCollectionTemplateProvider x:Key="EntityComponentCollectionFooterTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyFooter"
+                                                 OverrideRule="All">
+    <DataTemplate/>
+  </aev:EntityComponentCollectionTemplateProvider>
+
+  <!-- Provider for Entity -->
+  <aev:EntityReferenceTemplateProvider x:Key="EntityReferenceTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <DockPanel>
+        <UniformGrid Rows="1" DockPanel.Dock="Right">
+          <Button IsVisible="{Binding [HasCommand_PickupEntity]}"
+                  Command="{Binding [PickupEntity]}"
+                  CommandParameter="{sd:MultiBinding {Binding [OwnerAsset]}, {Binding Source={x:Static AvaloniaProperty.UnsetValue}},
+                                                     Converter={sd:MultiToTuple}}"
+                  ToolTip.Tip="{sd:LocalizeString Select an asset, Context=ToolTip}">
+            <Image Source="{StaticResource ImagePickup}" Width="16" Height="16"/>
+          </Button>
+          <Button IsVisible="{Binding [HasCommand_CreateNewInstance]}"
+                  Command="{Binding [CreateNewInstance]}"
+                  CommandParameter="{x:Static caeqnpc:AbstractNodeValue.Null}"
+                  ToolTip.Tip="{sd:LocalizeString Clear the reference, Context=ToolTip}">
+            <Image Source="{StaticResource ImageClear}" Width="16" Height="16"/>
+          </Button>
+          <Button IsVisible="{Binding [HasCommand_FetchEntity]}"
+                  Command="{Binding [FetchEntity]}"
+                  CommandParameter="{Binding [OwnerAsset]}"
+                  ToolTip.Tip="{sd:LocalizeString Select the referenced asset, Context=ToolTip}">
+            <Image Source="{StaticResource ImageFetchAsset}" Width="16" Height="16"/>
+          </Button>
+        </UniformGrid>
+        <TextBox x:Name="TextBox" IsReadOnly="True" Margin="5"
+                 Text="{Binding ((engine:Entity)NodeValue).Name, Mode=OneWay, FallbackValue={x:Null}}"/>
+      </DockPanel>
+    </DataTemplate>
+  </aev:EntityReferenceTemplateProvider>
+
+  <!-- Providers for configuration and settings -->
+  <caev:ListItemTemplateProvider x:Key="ConfigurationHeaderTemplateProvider" Type="data:Configuration" caev:PropertyViewHelper.TemplateCategory="PropertyHeader"
+                                 OverrideRule="Most" Template="{StaticResource ReadOnlyPropertyHeaderTemplate}"/>
+  <aev:GameSettingAddConfigurationTemplateProvider x:Key="GameSettingAddConfigurationHeaderTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyHeader"
+                                                   OverrideRule="All">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <Border caev:PropertyViewHelper.Increment="0" caev:PropertyViewHelper.IsExpanded="True"
+              IsVisible="{Binding IsVisible}" />
+    </DataTemplate>
+  </aev:GameSettingAddConfigurationTemplateProvider>
+  <aev:GameSettingAddConfigurationTemplateProvider x:Key="GameSettingAddConfigurationFooterTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyFooter"
+                                                   OverrideRule="All">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <StackPanel Margin="10,2,5,2" Orientation="Horizontal">
+        <TextBlock Text="{sd:LocalizeString Add Configuration}" TextTrimming="CharacterEllipsis" FontStyle="Italic" Margin="0,0,2,0"/>
+        <Button Theme="{StaticResource AddNewItemButtonTheme}"/>
+        <ComboBox x:Name="InstanceTypeSelectionComboBox"
+                  ItemsSource="{Binding [AbstractNodeMatchingEntries]}"
+                  Theme="{StaticResource AddItemComboBoxTheme}" Margin="2,0">
+          <Interaction.Behaviors>
+            <EventTriggerBehavior EventName="DropDownClosed"
+                                  IsEnabled="{Binding #InstanceTypeSelectionComboBox.SelectedItem, Converter={sd:ObjectToBool}}">
+              <InvokeCommandAction Command="{Binding [AddNewItem]}"
+                                   CommandParameter="{Binding #InstanceTypeSelectionComboBox.SelectedItem}"/>
+              <ChangePropertyAction PropertyName="SelectedItem" Value="{x:Null}"/>
+            </EventTriggerBehavior>
+          </Interaction.Behaviors>
+        </ComboBox>
+      </StackPanel>
+    </DataTemplate>
+  </aev:GameSettingAddConfigurationTemplateProvider>
+
+  <!-- Providers for the morph weights of a ModelComponent -->
+  <aev:MorphWeightsTemplateProvider x:Key="MorphWeightsHeaderTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyHeader"
+                                    OverrideRule="All">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <Grid caev:PropertyViewHelper.Increment="0" Margin="15,0,0,0" IsVisible="{Binding IsVisible}">
+        <Border Background="{DynamicResource PropertyHeaderBackground}" Opacity="0.5" Margin="6" MinHeight="20"/>
+        <DockPanel Margin="10,4">
+          <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+            <Button Content="{sd:LocalizeString Min All}" Command="{Binding [MinAllMorphWeights]}" Margin="2,0" Padding="6,1"
+                    ToolTip.Tip="{sd:LocalizeString Set all morph weights to -1, Context=ToolTip}"/>
+            <Button Content="{sd:LocalizeString Reset All}" Command="{Binding [ResetAllMorphWeights]}" Margin="2,0" Padding="6,1"
+                    ToolTip.Tip="{sd:LocalizeString Set all morph weights to 0, Context=ToolTip}"/>
+            <Button Content="{sd:LocalizeString Max All}" Command="{Binding [MaxAllMorphWeights]}" Margin="2,0" Padding="6,1"
+                    ToolTip.Tip="{sd:LocalizeString Set all morph weights to 1, Context=ToolTip}"/>
+          </StackPanel>
+          <ToggleButton DockPanel.Dock="Left" Width="8" Height="8" HorizontalAlignment="Left"
+                        Template="{StaticResource TreeExpanderToggleButton}"
+                        IsChecked="{Binding $parent[sd:PropertyViewItem].IsExpanded}"/>
+          <TextBlock Text="{Binding DisplayName, Mode=OneWay}" Margin="8,0,0,0" VerticalAlignment="Center"/>
+        </DockPanel>
+      </Grid>
+    </DataTemplate>
+  </aev:MorphWeightsTemplateProvider>
+  <!-- The slider covers -1 to 1 and applies its value on release; the text box accepts any weight, and the slider is
+       bound one way, so its range never clamps a weight -->
+  <aev:MorphWeightTemplateProvider x:Key="MorphWeightTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor"
+                                   OverrideRule="All">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="3*"/>
+          <ColumnDefinition Width="*" MinWidth="60"/>
+        </Grid.ColumnDefinitions>
+        <Slider Grid.Column="0" Height="22" VerticalAlignment="Center"
+                Value="{Binding NodeValue, Mode=OneWay, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}}"
+                Minimum="{Binding [Minimum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}, FallbackValue={sd:Double -1}}"
+                Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}, FallbackValue={sd:Double 1}}"
+                SmallChange="{Binding [SmallStep], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}}"
+                LargeChange="{Binding [LargeStep], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}}">
+          <Interaction.Behaviors>
+            <aeb:LiveSliderEditBehavior Preview="{ReflectionBinding [MorphWeightPreview]}"/>
+          </Interaction.Behaviors>
+        </Slider>
+        <sd:NumericTextBox Grid.Column="1" Margin="6,2,2,2"
+                           Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}, UpdateSourceTrigger=Explicit}"
+                           DecimalPlaces="3"/>
+      </Grid>
+    </DataTemplate>
+  </aev:MorphWeightTemplateProvider>
+
+  <!-- The node name of a node link (model node link, physics components, SpriteStudio node links): an editable list of the
+       nodes of the skeleton, filtered by the text, as the FilteringComboBox of the WPF editor -->
+  <aev:ModelNodeNameTemplateProvider x:Key="ModelNodeNameTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor" OverrideRule="All">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <AutoCompleteBox Text="{Binding NodeValue, Converter={caec:DifferentValuesToString}, UpdateSourceTrigger=Explicit}"
+                       ItemsSource="{ReflectionBinding Parent[AvailableNodes]}" ValueMemberBinding="{ReflectionBinding Name}"
+                       FilterMode="Contains" MinimumPrefixLength="0" MaxDropDownHeight="300">
+        <AutoCompleteBox.ItemTemplate>
+          <DataTemplate DataType="models:NodeInformation">
+            <TextBlock Text="{Binding Name}" Margin="{Binding Depth, Converter={sd:NumericToThickness}, ConverterParameter={sd:Thickness 4,0,0,0}}"/>
+          </DataTemplate>
+        </AutoCompleteBox.ItemTemplate>
+        <Interaction.Behaviors>
+          <aeb:NodeNamePickerBehavior/>
+        </Interaction.Behaviors>
+      </AutoCompleteBox>
+    </DataTemplate>
+  </aev:ModelNodeNameTemplateProvider>
+</ResourceDictionary>

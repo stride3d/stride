@@ -290,9 +290,9 @@ public sealed class RecentProjectViewModel : DispatcherViewModel
             }
             return;
         }
-        // Game Studio doesn't open a project on an older version, unless one of them is a local build
-        if (option!.Build is null && version is StrideStoreVersionViewModel && projectVersion is { IsLocalBuild: false }
-            && version.InstalledVersion < projectVersion)
+        // Game Studio doesn't open a project on a newer version, unless it's a switch it accepts
+        if (option!.Build is null && version is StrideStoreVersionViewModel && projectVersion is not null
+            && version.InstalledVersion is { } installed && installed < projectVersion && !OpensNewerProject(projectVersion, installed))
         {
             message = string.Format(Strings.ErrorVersionTooOld, projectVersion, version.InstalledVersion);
             await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Information);
@@ -323,9 +323,8 @@ public sealed class RecentProjectViewModel : DispatcherViewModel
         }
 
         // Every installed version but the one a click opens the project with, and none that Game Studio doesn't
-        // open it with: below its major.minor, or an older build of it (unless one of them is a local build).
+        // open it with: below its major.minor, or an older build of it (unless it's a switch Game Studio accepts).
         // The builds of the project's major.minor are listed one by one, as they are the ones it's on
-        var olderRefused = projectVersion is { IsLocalBuild: false };
         foreach (var version in versions)
         {
             if (version is StrideStoreVersionViewModel storeVersion && new Version(version.Major, version.Minor) == StrideVersion)
@@ -334,7 +333,7 @@ public sealed class RecentProjectViewModel : DispatcherViewModel
                 {
                     if (defaultOption?.Version == version && defaultOption.TargetVersion == build.Version)
                         continue;
-                    if (olderRefused && build.Version < projectVersion && !build.Version.IsLocalBuild)
+                    if (projectVersion is not null && build.Version < projectVersion && !OpensNewerProject(projectVersion, build.Version))
                         continue;
                     CompatibleVersions.Add(new(version, build, projectVersion));
                 }
@@ -376,14 +375,33 @@ public sealed class RecentProjectViewModel : DispatcherViewModel
 
         var builds = sameMinor.AlternateVersions.Where(x => x.LocalPackage is not null).ToList();
         var build = builds.FirstOrDefault(x => x.Version == projectVersion)
-            ?? builds.Where(x => projectVersion is null || projectVersion.IsLocalBuild || x.Version >= projectVersion).MaxBy(x => x.Version);
+            ?? builds.Where(x => projectVersion is null || x.Version >= projectVersion || OpensNewerProject(projectVersion, x.Version)).MaxBy(x => x.Version);
         return new(sameMinor, build, projectVersion);
     }
 
     /// <summary>
+    /// Gets whether the Game Studio of <paramref name="editorVersion"/> opens a project on the newer
+    /// <paramref name="projectVersion"/>. A copy of its rule, PackageSession.IsVersionSwitch: from 4.5, a version with the
+    /// same number (the same upgrader gates), or one of them a local or nightly build and the editor on the same major.minor
+    /// or newer. Before 4.5, only that last case with a local build.
+    /// </summary>
+    internal static bool OpensNewerProject(PackageVersion projectVersion, PackageVersion editorVersion)
+    {
+        var editorLine = new Version(editorVersion.Version.Major, editorVersion.Version.Minor);
+        var switchBuild = projectVersion.IsLocalBuild || editorVersion.IsLocalBuild;
+        if (editorLine >= new Version(4, 5))
+        {
+            if (projectVersion.Version == editorVersion.Version)
+                return true;
+            switchBuild |= projectVersion.IsNightly || editorVersion.IsNightly;
+        }
+        return switchBuild && editorLine >= new Version(projectVersion.Version.Major, projectVersion.Version.Minor);
+    }
+
+    /// <summary>
     /// Gets whether opening a project on <paramref name="projectVersion"/> with <paramref name="targetVersion"/> upgrades
-    /// it, that is Game Studio doesn't open it with <paramref name="projectVersion"/> anymore: a newer version, unless
-    /// one of them is a local build and the target has the same major.minor (4.4.0-beta8 and 4.4.0-dev3 switch).
+    /// it: a newer version, unless one of them is a local build and the target has the same major.minor (4.4.0-beta8 and
+    /// 4.4.0-dev3 switch). A newer nightly or a build with the same number stays an upgrade, even if Game Studio can go back.
     /// </summary>
     internal static bool IsUpgrade(PackageVersion? projectVersion, PackageVersion? targetVersion)
     {

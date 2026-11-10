@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Annotations;
+using Stride.Editor.Engine;
 using Stride.UI.Editor.Services;
 using Stride.UI.Editor.ViewModels;
 
@@ -15,10 +16,10 @@ namespace Stride.UI.Editor.Services
         /// <summary>
         /// Initializes a new instance of the <see cref="UIEditorController"/> class.
         /// </summary>
-        /// <param name="asset">The UI library associated with this instance.</param>
         /// <param name="editor">The editor associated with this instance.</param>
-        public UILibraryEditorController([NotNull] AssetViewModel asset, [NotNull] UILibraryEditorViewModel editor)
-            : base(asset, editor)
+        /// <param name="viewportService">The viewport service of the session, which creates the viewport of the game.</param>
+        public UILibraryEditorController([NotNull] UILibraryEditorViewModel editor, [NotNull] IEditorGameViewportService viewportService)
+            : base(editor, viewportService)
         {
         }
     }

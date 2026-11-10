@@ -154,6 +154,9 @@
     <Project Path="sources/presentation/Stride.Core.Presentation.Quantum.Tests/Stride.Core.Presentation.Quantum.Tests.csproj" />
     <Project Path="sources/presentation/Stride.Core.Quantum.Tests/Stride.Core.Quantum.Tests.csproj" />
   </Folder>
+  <Folder Name="/51-Presentation.Tests/Avalonia/">
+    <Project Path="sources/presentation/Stride.Core.Presentation.Avalonia.Tests/Stride.Core.Presentation.Avalonia.Tests.csproj" />
+  </Folder>
   <Folder Name="/51-Presentation.Tests/Wpf/">
     <Project Path="sources/presentation/Stride.Core.Presentation.Wpf.Tests/Stride.Core.Presentation.Wpf.Tests.csproj" />
   </Folder>
@@ -161,20 +164,42 @@
     <Project Path="sources/crashreport/Stride.CrashReport/Stride.CrashReport.csproj" />
     <Project Path="sources/crashreport/Stride.CrashReporter/Stride.CrashReporter.csproj" />
     <Project Path="sources/crashreport/Stride.CrashReport.TestProbe/Stride.CrashReport.TestProbe.csproj" />
+    <Project Path="sources/editor/Stride.Assets.Editor/Stride.Assets.Editor.csproj" />
+    <Project Path="sources/editor/Stride.Assets.Presentation/Stride.Assets.Presentation.csproj" />
+    <Project Path="sources/editor/Stride.Assets.Templates/Stride.Assets.Templates.csproj" />
+    <Project Path="sources/editor/Stride.Core.Assets.Editor/Stride.Core.Assets.Editor.csproj" />
+    <Project Path="sources/editor/Stride.Core.Assets.Presentation/Stride.Core.Assets.Presentation.csproj" />
+    <Project Path="sources/editor/Stride.Editor/Stride.Editor.csproj" />
     <Project Path="sources/engine/Stride.Debugger/Stride.Debugger.csproj" />
   </Folder>
+  <Folder Name="/60-Editor/Avalonia/">
+    <Project Path="sources/editor/Stride.Assets.Editor.Avalonia/Stride.Assets.Editor.Avalonia.csproj" />
+    <Project Path="sources/editor/Stride.Core.Assets.Editor.Avalonia/Stride.Core.Assets.Editor.Avalonia.csproj" />
+    <Project Path="sources/editor/Stride.Editor.Avalonia/Stride.Editor.Avalonia.csproj" />
+    <Project Path="sources/editor/Stride.GameStudio.Avalonia.Desktop/Stride.GameStudio.Avalonia.Desktop.csproj" />
+    <Project Path="sources/editor/Stride.GameStudio.Avalonia/Stride.GameStudio.Avalonia.csproj" />
+  </Folder>
   <Folder Name="/60-Editor/Wpf/">
-    <Project Path="sources/editor/Stride.Assets.Presentation.Wpf/Stride.Assets.Presentation.Wpf.csproj" />
+    <Project Path="sources/editor/Stride.Assets.Editor.Wpf/Stride.Assets.Editor.Wpf.csproj" />
     <Project Path="sources/editor/Stride.Core.Assets.Editor.Wpf/Stride.Core.Assets.Editor.Wpf.csproj" />
     <Project Path="sources/editor/Stride.Editor.Wpf/Stride.Editor.Wpf.csproj" />
     <Project Path="sources/editor/Stride.GameStudio/Stride.GameStudio.csproj" DefaultStartup="true" />
   </Folder>
   <Folder Name="/61-Editor.Tests/">
     <Project Path="sources/crashreport/Stride.CrashReport.Tests/Stride.CrashReport.Tests.csproj" />
+    <Project Path="sources/editor/Stride.Assets.Editor.Tests/Stride.Assets.Editor.Tests.csproj" />
     <Project Path="sources/editor/Stride.Core.Assets.Editor.Tests/Stride.Core.Assets.Editor.Tests.csproj" />
+    <Project Path="sources/editor/Stride.Core.Assets.Editor.Wpf.Tests/Stride.Core.Assets.Editor.Wpf.Tests.csproj" />
+    <Project Path="sources/editor/Stride.Editor.Tests/Stride.Editor.Tests.csproj" />
     <Project Path="sources/editor/Stride.GameStudio.AutoTesting/Stride.GameStudio.AutoTesting.csproj" />
     <Project Path="sources/editor/Stride.GameStudio.Tests/Stride.GameStudio.Tests.csproj" />
-    <Project Path="tests/editor/Stride.Editor.Tests/Stride.Editor.Tests.csproj" />
+    <Project Path="tests/editor/Stride.Editor.Wpf.Tests/Stride.Editor.Wpf.Tests.csproj" />
+  </Folder>
+  <Folder Name="/61-Editor.Tests/Avalonia/">
+    <Project Path="sources/editor/Stride.Assets.Editor.Avalonia.Tests/Stride.Assets.Editor.Avalonia.Tests.csproj" />
+    <Project Path="sources/editor/Stride.Core.Assets.Editor.Avalonia.Tests/Stride.Core.Assets.Editor.Avalonia.Tests.csproj" />
+    <Project Path="sources/editor/Stride.Editor.Avalonia.Tests/Stride.Editor.Avalonia.Tests.csproj" />
+    <Project Path="sources/editor/Stride.GameStudio.Avalonia.Tests/Stride.GameStudio.Avalonia.Tests.csproj" />
   </Folder>
   <Folder Name="/70-StrideAssets/">
     <Project Path="sources/engine/Stride.Assets.Models/Stride.Assets.Models.csproj" />
@@ -199,6 +224,7 @@
   </Folder>
   <Folder Name="/80-Plugins/Audio/">
     <Project Path="sources/plugins/Audio/Stride.Audio.Assets/Stride.Audio.Assets.csproj" />
+    <Project Path="sources/plugins/Audio/Stride.Audio.Editor.Avalonia/Stride.Audio.Editor.Avalonia.csproj" />
     <Project Path="sources/plugins/Audio/Stride.Audio.Editor.Wpf/Stride.Audio.Editor.Wpf.csproj" />
     <Project Path="sources/plugins/Audio/Stride.Audio.Editor/Stride.Audio.Editor.csproj" />
     <Project Path="sources/plugins/Audio/Stride.Audio.Tests/Stride.Audio.Tests.csproj" />
@@ -225,6 +251,8 @@
   </Folder>
   <Folder Name="/80-Plugins/SpriteStudio/">
     <Project Path="sources/plugins/SpriteStudio/Stride.SpriteStudio.Assets/Stride.SpriteStudio.Assets.csproj" />
+    <Project Path="sources/plugins/SpriteStudio/Stride.SpriteStudio.Editor.Avalonia/Stride.SpriteStudio.Editor.Avalonia.csproj" />
+    <Project Path="sources/plugins/SpriteStudio/Stride.SpriteStudio.Editor.Wpf/Stride.SpriteStudio.Editor.Wpf.csproj" />
     <Project Path="sources/plugins/SpriteStudio/Stride.SpriteStudio.Editor/Stride.SpriteStudio.Editor.csproj" />
     <Project Path="sources/plugins/SpriteStudio/Stride.SpriteStudio.Runtime/Stride.SpriteStudio.Runtime.csproj" />
   </Folder>

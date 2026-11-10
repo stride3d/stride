@@ -48,6 +48,7 @@ ipch/
 obj/
 .stride-backup-*/
 TestResults/
+CoverageReport/
 .vs/
 .idea/
 Cache/

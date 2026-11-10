@@ -11,6 +11,8 @@ namespace Stride.Editor
         [ModuleInitializer]
         public static void Initialize()
         {
+            // Register the cross-platform part of this layer (Stride.Editor) before this assembly, so it is scanned first
+            System.Runtime.CompilerServices.RuntimeHelpers.RunModuleConstructor(typeof(StrideAssetsPlugin).Module.ModuleHandle);
             // Currently, we are adding this assembly as part of the "assets" in order for the thumbnail types to be accessible through the AssemblyRegistry
             AssemblyRegistry.Register(typeof(Module).Assembly, AssemblyCommonCategories.Assets);
         }

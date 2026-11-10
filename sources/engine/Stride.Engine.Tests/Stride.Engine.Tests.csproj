@@ -41,10 +41,12 @@
     <Compile Include="SpriteAnimationTest.cs" />
     <Compile Include="TesselationTest.cs" />
     <Compile Include="EffectFallbackTest.cs" />
+    <Compile Include="EffectSystemTests.cs" />
     <Compile Include="TestEntity.cs" />
     <Compile Include="TestEntityManager.Benchmark.cs" />
     <Compile Include="TestEntityManager.cs" />
     <Compile Include="TestCameraProcessor.cs" />
+    <Compile Include="TestInstancingProcessor.cs" />
     <Compile Include="TestPreferredGraphicsProfiles.cs" />
     <Compile Include="TestTransformComponent.cs" />
     <Compile Include="TestUpdateEngine.cs" />

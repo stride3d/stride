@@ -313,13 +313,14 @@ partial class PackageSession
                     }
                     if (dependencyVersion.MinVersion > editorVersion)
                     {
-                        // A project on a newer version: never downgraded, unless a local build is on either side, which
-                        // can be swapped for another build of the same major.minor or newer (4.4.0-dev3 <-> 4.4.0-beta8)
-                        if (!IsLocalBuildSwitch(dependencyVersion.MinVersion, editorVersion))
+                        // A project on a newer version: never downgraded, unless it's a switch between two versions
+                        // with the same gates, or between builds where one is a local or nightly build
+                        if (!IsVersionSwitch(dependencyVersion.MinVersion, editorVersion))
                         {
                             log.Error($"Project [{project.Name}] uses [{dependencyName}] version [{dependencyVersion.MinVersion}], newer than this editor's [{editorVersion}]: open it with version [{dependencyVersion.MinVersion}] or newer");
                             return;
                         }
+                        log.Warning($"Project [{project.Name}] moves [{dependencyName}] to an older version, from [{dependencyVersion.MinVersion}] to [{editorVersion}]: it may not load correctly, and upgrades can run again when it goes back to a newer version");
                     }
 
                     // Check if upgrade is allowed
@@ -561,11 +562,13 @@ partial class PackageSession
         LoadMissingAssets(log, Packages.Where(p => !loaded.Contains(p)).ToList(), dependencyLoadParameters);
     }
 
-    // Switching a project from a newer version to the editor's: only when one of them is a local (dev) build, and the
-    // editor isn't below the project's major.minor.
-    internal static bool IsLocalBuildSwitch(PackageVersion projectVersion, PackageVersion editorVersion)
+    // Switching a project from a newer version to the editor's: with the same number, which means the same upgrader
+    // gates, or when one of them is a local or nightly build and the editor isn't below the project's major.minor.
+    internal static bool IsVersionSwitch(PackageVersion projectVersion, PackageVersion editorVersion)
     {
-        if (!projectVersion.IsLocalBuild && !editorVersion.IsLocalBuild)
+        if (projectVersion.Version == editorVersion.Version)
+            return true;
+        if (!projectVersion.IsLocalBuild && !projectVersion.IsNightly && !editorVersion.IsLocalBuild && !editorVersion.IsNightly)
             return false;
         return (editorVersion.Version.Major, editorVersion.Version.Minor).CompareTo((projectVersion.Version.Major, projectVersion.Version.Minor)) >= 0;
     }

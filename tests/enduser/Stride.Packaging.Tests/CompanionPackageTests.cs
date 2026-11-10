@@ -30,10 +30,12 @@ public class CompanionPackageTests
 
     /// <summary>
     /// The editor package loads at the version its runtime package declares, which is the runtime's own version
-    /// for the in-repo packages (the dev suffix included), and states the kind the runtime declares. It references
-    /// the WPF editor assemblies, so both record the Wpf toolkit.
+    /// for the in-repo packages (the dev suffix included), and states the kind the runtime declares. Both record the
+    /// toolkit of the editor assemblies it references: none for the toolkit-neutral Editor packages, whose views are in
+    /// companions of their own.
     /// </summary>
-    private static void AssertDeclaredEditorPackage(PackageSession session, string runtimeName, Package editorPackage)
+    /// <param name="toolkit">The expected toolkit, null for a toolkit-neutral Editor package.</param>
+    private static void AssertDeclaredEditorPackage(PackageSession session, string runtimeName, Package editorPackage, string? toolkit = null)
     {
         var runtime = session.Packages.Single(p => p.Meta.Name == runtimeName);
         var declaration = Assert.Single(runtime.CompanionPackages, c => c.Kind == PackageKind.Editor);
@@ -41,8 +43,9 @@ public class CompanionPackageTests
         Assert.Equal(runtime.Meta.Version, declaration.Version);
         Assert.Equal(runtime.Meta.Version, editorPackage.Meta.Version);
         Assert.Equal(PackageKind.Editor, editorPackage.Kind);
-        Assert.Equal("Wpf", declaration.Toolkit);
-        Assert.Equal("Wpf", editorPackage.Toolkit);
+        // A toolkit-neutral package may record no toolkit as an empty one
+        Assert.Equal(toolkit ?? string.Empty, declaration.Toolkit ?? string.Empty);
+        Assert.Equal(toolkit ?? string.Empty, editorPackage.Toolkit ?? string.Empty);
     }
 
     [Fact]
@@ -421,9 +424,10 @@ public class CompanionPackageTests
         Assert.True(((StandalonePackage)editorPackage.Container).IsCompanionPackage);
         AssertDeclaredEditorPackage(editorSession, "Stride.Audio", editorPackage);
 
-        // The sound preview's WPF view is a companion of Stride.Audio.Editor written for the Wpf toolkit: the WPF
-        // editor loads it, an editor of another toolkit leaves both out
-        var viewDeclaration = Assert.Single(editorPackage.CompanionPackages);
+        // The sound preview has a view for each toolkit, companions of Stride.Audio.Editor: the WPF editor loads the
+        // WPF one, the Avalonia editor the Avalonia one, both with the toolkit-neutral Stride.Audio.Editor
+        Assert.Equal(2, editorPackage.CompanionPackages.Count);
+        var viewDeclaration = Assert.Single(editorPackage.CompanionPackages, x => x.Toolkit == "Wpf");
         Assert.Equal("Stride.Audio.Editor.Wpf", viewDeclaration.Name);
         Assert.Equal(PackageKind.Editor, viewDeclaration.Kind);
         Assert.Equal("Wpf", viewDeclaration.Toolkit);
@@ -431,10 +435,13 @@ public class CompanionPackageTests
         Assert.Equal(PackageKind.Editor, viewPackage.Kind);
         Assert.Equal("Wpf", viewPackage.Toolkit);
         Assert.True(((StandalonePackage)viewPackage.Container).IsCompanionPackage);
+        Assert.DoesNotContain(editorSession.Packages, p => p.Meta.Name == "Stride.Audio.Editor.Avalonia");
 
         var otherEditorSession = c.LoadConsumerProjectSession(loadEditorPackages: true, editorToolkit: "Avalonia");
-        Assert.DoesNotContain(otherEditorSession.Packages, p => p.Meta.Name == "Stride.Audio.Editor");
+        Assert.Contains(otherEditorSession.Packages, p => p.Meta.Name == "Stride.Audio.Editor");
         Assert.DoesNotContain(otherEditorSession.Packages, p => p.Meta.Name == "Stride.Audio.Editor.Wpf");
+        var otherViewPackage = Assert.Single(otherEditorSession.Packages, p => p.Meta.Name == "Stride.Audio.Editor.Avalonia");
+        Assert.Equal("Avalonia", otherViewPackage.Toolkit);
     }
 
     [Fact]
@@ -468,7 +475,8 @@ public class CompanionPackageTests
             return;
         var editorSession = c.LoadConsumerProjectSession(loadEditorPackages: true);
         var editorPackage = Assert.Single(editorSession.Packages, p => p.Meta.Name == "Stride.UI.Editor");
-        AssertDeclaredEditorPackage(editorSession, "Stride.UI", editorPackage);
+        // Unlike the other plugin Editor packages, Stride.UI.Editor still references the WPF editor assemblies
+        AssertDeclaredEditorPackage(editorSession, "Stride.UI", editorPackage, "Wpf");
         var viewDeclaration = Assert.Single(editorPackage.CompanionPackages);
         Assert.Equal("Stride.UI.Editor.Wpf", viewDeclaration.Name);
         Assert.Equal("Wpf", viewDeclaration.Toolkit);
@@ -503,9 +511,9 @@ public class CompanionPackageTests
         Assert.True(((StandalonePackage)editorPackage.Container).IsCompanionPackage);
         AssertDeclaredEditorPackage(editorSession, "Stride.Voxels", editorPackage);
 
-        // An editor of another toolkit leaves it out
+        // It is toolkit-neutral: an editor of another toolkit loads it too
         var otherEditorSession = c.LoadConsumerProjectSession(loadEditorPackages: true, editorToolkit: "Avalonia");
-        Assert.DoesNotContain(otherEditorSession.Packages, p => p.Meta.Name == "Stride.Voxels.Editor");
+        Assert.Contains(otherEditorSession.Packages, p => p.Meta.Name == "Stride.Voxels.Editor");
     }
 
     [Fact]
@@ -580,7 +588,7 @@ public class CompanionPackageTests
             this.output = output;
             version = TestEnvironment.ResolveStrideVersion();
             var fixtures = TestEnvironment.FixturesDir();
-            caseDir = Path.Combine(Path.GetTempPath(), "stride-packaging-tests", $"{name}-{Guid.NewGuid():N}");
+            caseDir = Path.Combine(TestEnvironment.CasesRoot, $"{name}-{Guid.NewGuid():N}");
             pluginDir = Path.Combine(caseDir, "Plugin");
             assetsDir = Path.Combine(caseDir, "PluginAssets");
             consumerDir = Path.Combine(caseDir, "consumer");

@@ -1,9 +1,10 @@
 {
-  "os": "macOS 26.6.2",
+  "os": "macOS 26.7.2",
   "cpu": "Apple M1 (Virtual)",
+  "cpuFeatures": "NEON",
   "gpu": "Apple Paravirtual device",
   "gpuVendorId": "0x106B",
-  "gpuDeviceId": "0x1A060205",
+  "gpuDeviceId": "0x1A070205",
   "driverId": "Moltenvk",
   "driverName": "MoltenVK",
   "driverInfo": "1.4.2",

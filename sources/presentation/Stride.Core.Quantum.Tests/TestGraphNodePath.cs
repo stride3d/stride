@@ -16,7 +16,7 @@ public class TestGraphNodePath
     {
         public int IntMember;
         public Struct StructMember;
-        public Class ClassMember;
+        public Class? ClassMember;
         public List<Class> ListMember = [];
     }
 
@@ -113,14 +113,14 @@ public class TestGraphNodePath
         // IEquatable<GraphNodePath>.Equals
         Assert.True(path.Equals(equal));
         Assert.False(path.Equals(different));
-        Assert.False(path.Equals((GraphNodePath)null));
+        Assert.False(path.Equals((GraphNodePath?)null));
 
         // object.Equals override: reference-equal, value-equal, different, wrong type, null
         Assert.True(path.Equals((object)path));
         Assert.True(path.Equals((object)equal));
         Assert.False(path.Equals((object)different));
         Assert.False(path.Equals("not a path"));
-        Assert.False(path.Equals((object)null));
+        Assert.False(path.Equals((object?)null));
 
         // == / != operators
         Assert.True(path == equal);
@@ -234,8 +234,8 @@ public class TestGraphNodePath
         path.PushTarget();
         path.PushMember(nameof(Struct.StringMember));
         var structNode = rootNode[nameof(Class.StructMember)];
-        var targetNode = rootNode[nameof(Class.StructMember)].Target;
-        var memberNode = rootNode[nameof(Class.StructMember)].Target[nameof(Struct.StringMember)];
+        var targetNode = rootNode[nameof(Class.StructMember)].Target!;
+        var memberNode = rootNode[nameof(Class.StructMember)].Target![nameof(Struct.StringMember)];
         IGraphNode[] nodes = [rootNode, structNode, targetNode, memberNode];
         Assert.NotNull(targetNode);
         Assert.NotNull(memberNode);
@@ -259,8 +259,8 @@ public class TestGraphNodePath
         var path = new GraphNodePath(rootNode);
         path.PushMember(nameof(Class.ClassMember));
         path.PushTarget();
-        var targetNode = nodeContainer.GetNode(obj.ClassMember);
-        IGraphNode[] nodes = [rootNode, rootNode[nameof(Class.ClassMember)], targetNode];
+        var targetNode = nodeContainer.GetNode(obj.ClassMember!);
+        IGraphNode[] nodes = [rootNode, rootNode[nameof(Class.ClassMember)], targetNode!];
         Assert.NotNull(targetNode);
         Assert.False(path.IsEmpty);
         Assert.StrictEqual(rootNode, path.RootNode);
@@ -283,9 +283,9 @@ public class TestGraphNodePath
         path.PushMember(nameof(Class.ClassMember));
         path.PushTarget();
         path.PushMember(nameof(Class.IntMember));
-        var targetNode = nodeContainer.GetNode(obj.ClassMember);
-        var intNode = targetNode[nameof(Class.IntMember)];
-        IGraphNode[] nodes = [rootNode, rootNode[nameof(Class.ClassMember)], targetNode, intNode];
+        var targetNode = nodeContainer.GetNode(obj.ClassMember!);
+        var intNode = targetNode![nameof(Class.IntMember)];
+        IGraphNode[] nodes = [rootNode, rootNode[nameof(Class.ClassMember)], targetNode!, intNode];
         Assert.NotNull(targetNode);
         Assert.NotNull(intNode);
         Assert.False(path.IsEmpty);
@@ -310,7 +310,7 @@ public class TestGraphNodePath
         path.PushTarget();
         path.PushIndex(new NodeIndex(1));
         var targetNode = nodeContainer.GetNode(obj.ListMember[1]);
-        IGraphNode[] nodes = [rootNode, rootNode[nameof(Class.ListMember)], rootNode[nameof(Class.ListMember)].Target, targetNode];
+        IGraphNode[] nodes = [rootNode, rootNode[nameof(Class.ListMember)], rootNode[nameof(Class.ListMember)].Target!, targetNode!];
         Assert.NotNull(targetNode);
         Assert.False(path.IsEmpty);
         Assert.StrictEqual(rootNode, path.RootNode);
@@ -335,8 +335,8 @@ public class TestGraphNodePath
         path.PushIndex(new NodeIndex(1));
         path.PushMember(nameof(Class.IntMember));
         var targetNode = nodeContainer.GetNode(obj.ListMember[1]);
-        var intNode = targetNode[nameof(Class.IntMember)];
-        IGraphNode[] nodes = [rootNode, rootNode[nameof(Class.ListMember)], rootNode[nameof(Class.ListMember)].Target, targetNode, intNode];
+        var intNode = targetNode![nameof(Class.IntMember)];
+        IGraphNode[] nodes = [rootNode, rootNode[nameof(Class.ListMember)], rootNode[nameof(Class.ListMember)].Target!, targetNode!, intNode];
         Assert.NotNull(targetNode);
         Assert.NotNull(intNode);
         Assert.False(path.IsEmpty);
@@ -429,7 +429,7 @@ public class TestGraphNodePath
 
         var memberPath = new Reflection.MemberPath();
         memberPath.Push(rootNode.Descriptor.Members.First(m => m.Name == nameof(Class.ClassMember)));
-        var nestedNode = nodeContainer.GetNode(nested);
+        var nestedNode = nodeContainer.GetNode(nested)!;
         memberPath.Push(nestedNode.Descriptor.Members.First(m => m.Name == nameof(Class.IntMember)));
 
         var path = GraphNodePath.From(rootNode, memberPath, out var index);
@@ -448,7 +448,7 @@ public class TestGraphNodePath
 
         var memberPath = new Reflection.MemberPath();
         memberPath.Push(rootNode.Descriptor.Members.First(m => m.Name == nameof(Class.ListMember)));
-        var listDescriptor = (Reflection.CollectionDescriptor)rootNode[nameof(Class.ListMember)].Target.Descriptor;
+        var listDescriptor = (Reflection.CollectionDescriptor)rootNode[nameof(Class.ListMember)].Target!.Descriptor;
         memberPath.Push(listDescriptor, 1);
 
         var path = GraphNodePath.From(rootNode, memberPath, out var index);
@@ -467,9 +467,9 @@ public class TestGraphNodePath
 
         var memberPath = new Reflection.MemberPath();
         memberPath.Push(rootNode.Descriptor.Members.First(m => m.Name == nameof(Class.ListMember)));
-        var listDescriptor = (Reflection.CollectionDescriptor)rootNode[nameof(Class.ListMember)].Target.Descriptor;
+        var listDescriptor = (Reflection.CollectionDescriptor)rootNode[nameof(Class.ListMember)].Target!.Descriptor;
         memberPath.Push(listDescriptor, 1);
-        var itemNode = nodeContainer.GetNode(obj.ListMember[1]);
+        var itemNode = nodeContainer.GetNode(obj.ListMember[1])!;
         memberPath.Push(itemNode.Descriptor.Members.First(m => m.Name == nameof(Class.IntMember)));
 
         var path = GraphNodePath.From(rootNode, memberPath, out var index);
@@ -565,9 +565,9 @@ public class TestGraphNodePath
         // Create a complex member path
         var originalMemberPath = new Reflection.MemberPath();
         originalMemberPath.Push(rootNode.Descriptor.Members.First(m => m.Name == nameof(Class.ListMember)));
-        var listDescriptor = (Reflection.CollectionDescriptor)rootNode[nameof(Class.ListMember)].Target.Descriptor;
+        var listDescriptor = (Reflection.CollectionDescriptor)rootNode[nameof(Class.ListMember)].Target!.Descriptor;
         originalMemberPath.Push(listDescriptor, 1);
-        var itemNode = nodeContainer.GetNode(obj.ListMember[1]);
+        var itemNode = nodeContainer.GetNode(obj.ListMember[1])!;
         originalMemberPath.Push(itemNode.Descriptor.Members.First(m => m.Name == nameof(Class.ClassMember)));
 
         // Convert to GraphNodePath

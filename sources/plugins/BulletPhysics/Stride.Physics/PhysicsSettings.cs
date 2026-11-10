@@ -29,8 +29,8 @@ namespace Stride.Physics
         public float FixedTimeStep = 1.0f / 60.0f;
 
         /// <userdoc>
-        /// Amount of time in seconds allotted to update the physics simulation when the update rate is lower than <see cref="FixedTimeStep"/>.
-        /// When the whole game takes longer than <see cref="FixedTimeStep"/> to display one frame, the simulation has to tick multiple times to catch up.
+        /// Amount of time in seconds allotted to update the physics simulation when the update rate is lower than the fixed time step.
+        /// When the whole game takes longer than the fixed time step to display one frame, the simulation has to tick multiple times to catch up.
         /// Those additional ticks may themselves make the current frame take longer, leading to a negative feedback loop for your game's performances.
         /// This variable will 'slow down' the simulation instead.
         /// </userdoc>

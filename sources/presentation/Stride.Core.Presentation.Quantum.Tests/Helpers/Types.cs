@@ -67,6 +67,19 @@ public static class Types
         public Dictionary<string, float> Dictionary { get; set; } = [];
     }
 
+    public class ClassWithMembersNamedLikeTheViewModel
+    {
+        // The name of the indexer of NodeViewModel (this[string])
+        public required string Item { get; set; }
+        // The name of a property of NodeViewModel
+        public required string Children { get; set; }
+    }
+
+    public class ClassWithRefToMembersNamedLikeTheViewModel
+    {
+        public ClassWithMembersNamedLikeTheViewModel? Ref { get; set; }
+    }
+
     public class ClassWithRefCollection
     {
         [Display(1)]

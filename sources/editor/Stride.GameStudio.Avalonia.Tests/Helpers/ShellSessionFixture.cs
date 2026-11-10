@@ -1,0 +1,241 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using System.Diagnostics;
+using Avalonia.Threading;
+using Stride.Assets.Editor;
+using Stride.Core;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Components.Build;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.Tests.Helpers;
+using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.IO;
+using Stride.Core.Presentation.ViewModels;
+using Stride.Editor.Build;
+using Stride.GameStudio.Avalonia.Services;
+using Stride.GameStudio.Avalonia.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels;
+
+namespace Stride.GameStudio.Avalonia.Tests.Helpers;
+
+/// <summary>
+/// A small package of Stride assets opened by the shell's <see cref="MainViewModel"/>, with the services the shell's
+/// <see cref="App"/> registers: what the desktop host does when it starts with a session path.
+/// </summary>
+internal sealed class ShellSessionFixture : IDisposable
+{
+    public const string PackageName = "TestGame";
+
+    private bool disposed;
+    private SessionViewModel? openedSession;
+    // The plugins unregister the session's services when they leave it (the editor exits or restarts): kept to dispose them
+    private GameStudioBuilderService? builder;
+    private GameSettingsProviderService? settingsProvider;
+
+    private ShellSessionFixture(string directory, ViewModelServiceProvider serviceProvider)
+    {
+        Directory = directory;
+        ServiceProvider = serviceProvider;
+        Main = new MainViewModel(serviceProvider);
+    }
+
+    public string Directory { get; }
+
+    public string PackageDirectory => Path.Combine(Directory, PackageName);
+
+    public UFile PackagePath => new(Path.Combine(PackageDirectory, PackageName + Stride.Core.Assets.Package.PackageFileExtension));
+
+    public ViewModelServiceProvider ServiceProvider { get; }
+
+    public MainViewModel Main { get; }
+
+    public PluginService Plugins => ServiceProvider.Get<PluginService>();
+
+    /// <summary>
+    /// The session the main view model opened; null when the package was not opened (yet).
+    /// </summary>
+    public SessionViewModel Session => Main.Session ?? throw new InvalidOperationException("No session is open.");
+
+    public PackageViewModel Package => Session.LocalPackages.Single();
+
+    /// <summary>
+    /// The location of an asset of the package, as the session names it (the package name prefixes it).
+    /// </summary>
+    public static string Url(string location) => "/" + PackageName + "/" + location;
+
+    public AssetViewModel Asset(string location) => Session.GetAssetByUrl(Url(location)) ?? throw new InvalidOperationException($"No asset at {location}");
+
+    /// <summary>
+    /// Writes a package with the given assets (location relative to the package, asset); <see cref="OpenAsync"/> opens it.
+    /// </summary>
+    public static ShellSessionFixture Create(params (string Location, Asset Asset)[] assets) => Create(null, assets);
+
+    /// <summary>
+    /// Writes a package with the given assets and opens it through the main view model, the way the shell opens the session
+    /// of its command line.
+    /// </summary>
+    public static Task<ShellSessionFixture> OpenAsync(params (string Location, Asset Asset)[] assets) => OpenAsync(null, assets);
+
+    /// <summary>
+    /// Writes a package whose project is the executable of a platform (the head of a game) and opens it, as <see cref="OpenAsync"/>.
+    /// </summary>
+    public static Task<ShellSessionFixture> OpenExecutableAsync(PlatformType platform, params (string Location, Asset Asset)[] assets) => OpenAsync(platform, assets);
+
+    private static ShellSessionFixture Create(PlatformType? executablePlatform, (string Location, Asset Asset)[] assets)
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "Stride.GameStudio.Avalonia.Tests", Guid.NewGuid().ToString("N"));
+        var fixture = new ShellSessionFixture(directory, App.InitializeServiceProvider());
+        fixture.WritePackage(assets, executablePlatform);
+        return fixture;
+    }
+
+    private static async Task<ShellSessionFixture> OpenAsync(PlatformType? executablePlatform, (string Location, Asset Asset)[] assets)
+    {
+        var fixture = Create(executablePlatform, assets);
+        try
+        {
+            await fixture.OpenAsync();
+        }
+        catch
+        {
+            fixture.Dispose();
+            throw;
+        }
+        return fixture;
+    }
+
+    /// <summary>
+    /// Opens the package that <c>Create</c> wrote through the main view model, as the static <c>OpenAsync</c> does: a test
+    /// can prepare the settings of the session in between.
+    /// </summary>
+    public async Task OpenAsync()
+    {
+        var opened = await Main.OpenSession(PackagePath);
+        // What the session does in the background once open, so that the tests start from a session at rest
+        if (Main.Session is { } session)
+            await session.Initialization;
+        if (opened != true || Main.Session is null)
+            throw new InvalidOperationException($"The session could not be opened ({opened}).");
+
+        // The main view model forgets it when the editor restarts; it is still destroyed with the fixture
+        openedSession = Main.Session;
+        builder = openedSession.ServiceProvider.TryGet<GameStudioBuilderService>();
+        settingsProvider = openedSession.ServiceProvider.TryGet<GameSettingsProviderService>();
+    }
+
+    /// <summary>
+    /// Replaces the shell's dialog service by one that records the message boxes instead of showing them.
+    /// </summary>
+    public RecordingDialogService ReplaceDialogService()
+    {
+        ServiceProvider.UnregisterService(ServiceProvider.Get<EditorDialogService>());
+        var dialogs = new RecordingDialogService();
+        ServiceProvider.RegisterService(dialogs);
+        return dialogs;
+    }
+
+    /// <summary>
+    /// Replaces the builder and the game launcher of the shell by fakes that record the builds and the games.
+    /// </summary>
+    public (FakeGameProjectBuilder Builder, FakeGameLauncher Launcher) ReplaceGameBuilder()
+    {
+        ServiceProvider.UnregisterService(ServiceProvider.Get<IGameProjectBuilder>());
+        ServiceProvider.UnregisterService(ServiceProvider.Get<IGameLauncher>());
+        var builder = new FakeGameProjectBuilder();
+        var launcher = new FakeGameLauncher();
+        ServiceProvider.RegisterService(builder);
+        ServiceProvider.RegisterService(launcher);
+        return (builder, launcher);
+    }
+
+    public void Dispose()
+    {
+        if (disposed)
+            return;
+        disposed = true;
+
+        // The preview panel owns the preview service of the session
+        Main.Preview?.Dispose();
+        if ((Main.Session ?? openedSession) is { } session)
+        {
+            var builder = this.builder ?? session.ServiceProvider.TryGet<GameStudioBuilderService>();
+            if (builder != null)
+            {
+                builder.Database.Dispose();
+                builder.Dispose();
+                // The object database is process-wide (the editor opens one session per process); the next fixture opens its own
+                Stride.Core.BuildEngine.Builder.CloseObjectDatabase();
+            }
+            (settingsProvider ?? session.ServiceProvider.TryGet<GameSettingsProviderService>())?.Dispose();
+            session.Destroy();
+            WaitForBackgroundWork(session);
+        }
+        Plugins.Dispose();
+
+        try
+        {
+            System.IO.Directory.Delete(Directory, true);
+        }
+        catch (IOException)
+        {
+            // Best effort
+        }
+    }
+
+    /// <summary>
+    /// Waits for the background work of a destroyed session to end: nothing the test started may outlive it.
+    /// </summary>
+    /// <remarks>
+    /// Some of it ends on the UI thread, where the tests run: its jobs run meanwhile.
+    /// </remarks>
+    private static void WaitForBackgroundWork(SessionViewModel session)
+    {
+        var work = session.BackgroundWork;
+        var elapsed = Stopwatch.StartNew();
+        while (!work.Wait(TimeSpan.FromMilliseconds(10)))
+        {
+            if (elapsed.Elapsed > TimeSpan.FromSeconds(30))
+                throw new TimeoutException("The background work of the session did not end within 30 seconds of its destruction.");
+            if (Dispatcher.UIThread.CheckAccess())
+                Dispatcher.UIThread.RunJobs();
+        }
+    }
+
+    private void WritePackage((string Location, Asset Asset)[] assets, PlatformType? executablePlatform)
+    {
+        System.IO.Directory.CreateDirectory(Path.Combine(PackageDirectory, "Assets"));
+
+        // A .csproj next to the package makes it a project of the solution, hence editable. It declares that it holds no
+        // asset types so that the session does not build it. An executable declares its platform, as the heads of a game do.
+        var executable = executablePlatform is { } platform
+            ? "    <OutputType>Exe</OutputType>" + Environment.NewLine +
+              $"    <StridePlatform>{platform}</StridePlatform>" + Environment.NewLine
+            : string.Empty;
+        File.WriteAllText(Path.Combine(PackageDirectory, PackageName + ".csproj"),
+            "<Project Sdk=\"Microsoft.NET.Sdk\">" + Environment.NewLine +
+            "  <PropertyGroup>" + Environment.NewLine +
+            "    <TargetFramework>net10.0</TargetFramework>" + Environment.NewLine +
+            executable +
+            "    <StrideContainsAssetTypes>false</StrideContainsAssetTypes>" + Environment.NewLine +
+            "  </PropertyGroup>" + Environment.NewLine +
+            "</Project>" + Environment.NewLine);
+
+        var package = new Stride.Core.Assets.Package
+        {
+            FullPath = PackagePath,
+            Meta = { Name = PackageName, Version = new Stride.Core.PackageVersion("1.0.0") },
+            AssetFolders = { new AssetFolder("Assets") },
+            ResourceFolders = { "Resources" },
+        };
+        AssetFileSerializer.Save(PackagePath.ToOSPath(), package, null);
+
+        foreach (var (location, asset) in assets)
+        {
+            var extension = AssetRegistry.GetDefaultExtension(asset.GetType()) ?? throw new InvalidOperationException($"{asset.GetType()} has no AssetDescription");
+            var path = Path.Combine(PackageDirectory, "Assets", location + extension);
+            System.IO.Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            AssetFileSerializer.Save(path, asset, null);
+        }
+    }
+}

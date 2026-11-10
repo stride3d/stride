@@ -135,7 +135,7 @@ public class GraphNodeChangeListener : INotifyNodeValueChange, INotifyNodeItemCh
             case ContentChangeType.CollectionRemove:
                 if (node.IsReference && e.OldValue != null)
                 {
-                    var removedNode = (node as IObjectNode)?.ItemReferences[((ItemChangeEventArgs)e).Index].TargetNode;
+                    var removedNode = (node as IObjectNode)?.ItemReferences?[((ItemChangeEventArgs)e).Index].TargetNode;
                     if (removedNode != null)
                     {
                         // TODO: review this
@@ -169,12 +169,12 @@ public class GraphNodeChangeListener : INotifyNodeValueChange, INotifyNodeItemCh
                     if (!arg.Index.IsEmpty)
                     {
                         index = arg.Index;
-                        addedNode = objectNode.ItemReferences[arg.Index].TargetNode;
+                        addedNode = objectNode.ItemReferences![arg.Index].TargetNode;
                     }
                     else
                     {
                         // TODO: review this
-                        var reference = objectNode.ItemReferences.First(x => x.TargetNode!.Retrieve() == e.NewValue);
+                        var reference = objectNode.ItemReferences!.First(x => x.TargetNode!.Retrieve() == e.NewValue);
                         index = reference.Index;
                         addedNode = reference.TargetNode;
                     }

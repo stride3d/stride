@@ -22,6 +22,7 @@
     <!-- Test-only artefact — never auto-pack/deploy this. -->
     <StrideSkipAutoPack>true</StrideSkipAutoPack>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <IsPackable>false</IsPackable>
     <!-- Same per-API layout as Game Studio, so a test run can pick the API at launch. -->
     <StrideMultiGraphicsApiHost>true</StrideMultiGraphicsApiHost>
   </PropertyGroup>

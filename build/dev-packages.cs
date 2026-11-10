@@ -387,34 +387,58 @@ foreach (var stubName in generatedStubs)
     File.Copy(Path.Combine(nugetDevDir, stubName), Path.Combine(binPackagesDir, stubName), overwrite: true);
 Console.WriteLine($"Mirrored {generatedStubs.Count} stub package(s) into bin/packages");
 
-// Prune this worktree's superseded versions from NugetDev (shared across worktrees, so it grows
-// on every version bump otherwise). The -devN suffix identifies the owner: any older stamp with
-// the same suffix belongs to this worktree; its manifest lists exactly what was deployed, so
-// delete those files (and their bin/packages mirrors) plus the stamp. Other suffixes untouched.
+// Prune this worktree's superseded versions from NugetDev (shared across worktrees) and from the NuGet
+// cache: each version bump would otherwise leave about 0.45 GB behind per checkout. A build adopting its
+// first project on a new number does it too, since a full run is rare. The -devN suffix identifies the owner:
+// any older stamp with the same suffix belongs to this worktree; its manifest lists exactly what was deployed,
+// so delete those files (their bin/packages mirrors and extracted copies) plus the stamp. Other suffixes untouched.
+// A package in use stays on the stamp, the only list of what to prune, so the next run tries it again.
 var suffixIdx = version.IndexOf('-');
-if (adopt.Length == 0 && suffixIdx >= 0)
+if (suffixIdx >= 0)
 {
     var suffix = version[suffixIdx..];
-    foreach (var oldStamp in Directory.GetFiles(nugetDevDir, ".devpackages-*"))
+    using var mutex = new Mutex(false, @"Global\StrideDevPackages");
+    try { mutex.WaitOne(); } catch (AbandonedMutexException) { /* the holder died; what's left is pruned again next time */ }
+    try
     {
-        var stampName = Path.GetFileName(oldStamp);
-        if (stampName.EndsWith(".inputs")) continue;
-        var oldVersion = stampName[".devpackages-".Length..];
-        if (oldVersion == version || !oldVersion.EndsWith(suffix, StringComparison.OrdinalIgnoreCase)) continue;
-
-        var removed = 0;
-        foreach (var pkgName in File.ReadAllLines(oldStamp).Where(l => !string.IsNullOrWhiteSpace(l)))
+        foreach (var oldStamp in Directory.GetFiles(nugetDevDir, ".devpackages-*"))
         {
-            foreach (var dir in new[] { nugetDevDir, binPackagesDir })
+            var stampName = Path.GetFileName(oldStamp);
+            if (stampName.EndsWith(".inputs") || stampName.EndsWith(".stubs")) continue;
+            var oldVersion = stampName[".devpackages-".Length..];
+            if (oldVersion == version || !oldVersion.EndsWith(suffix, StringComparison.OrdinalIgnoreCase)) continue;
+
+            var removed = 0;
+            var inUse = new List<string>();
+            foreach (var pkgName in File.ReadAllLines(oldStamp).Where(l => !string.IsNullOrWhiteSpace(l)))
             {
-                var stale = Path.Combine(dir, pkgName);
-                if (File.Exists(stale)) { File.Delete(stale); removed++; }
+                var left = false;
+                foreach (var dir in new[] { nugetDevDir, binPackagesDir })
+                {
+                    var stale = Path.Combine(dir, pkgName);
+                    try { if (File.Exists(stale)) { File.Delete(stale); removed++; } }
+                    catch (Exception e) when (e is IOException or UnauthorizedAccessException) { left = true; }
+                }
+
+                var suffixedName = "." + oldVersion + ".nupkg";
+                if (pkgName.EndsWith(suffixedName, StringComparison.OrdinalIgnoreCase)
+                    && !TryDeleteWholeFolder(Path.Combine(nugetPackagesDir, pkgName[..^suffixedName.Length].ToLowerInvariant(), oldVersion)))
+                    left = true;
+                if (left)
+                    inUse.Add(pkgName);
             }
+            if (inUse.Count > 0)
+                File.WriteAllLines(oldStamp, inUse);
+            else
+                File.Delete(oldStamp);
+            foreach (var side in new[] { ".inputs", ".stubs" })
+                if (File.Exists(oldStamp + side)) File.Delete(oldStamp + side);
+            Console.WriteLine($"Pruned superseded {oldVersion}: {removed} package file(s)" + (inUse.Count > 0 ? $", {inUse.Count} package(s) in use, left for the next run" : ""));
         }
-        File.Delete(oldStamp);
-        foreach (var side in new[] { ".inputs", ".stubs" })
-            if (File.Exists(oldStamp + side)) File.Delete(oldStamp + side);
-        Console.WriteLine($"Pruned superseded {oldVersion}: {removed} package file(s)");
+    }
+    finally
+    {
+        mutex.ReleaseMutex();
     }
 }
 
@@ -484,6 +508,26 @@ static bool SetDevPackagesFlag(string strideRoot, bool enable)
 
     doc.Save(localPropsPath);
     return true;
+}
+
+// False when a file of the folder is in use, and then nothing is deleted: Directory.Delete alone would leave a loaded
+// DLL in a folder without its .nupkg, and NuGet can't reinstall over that. Same check as StridePruneOldDevSlots
+// (Stride.AutoPackDeploy.targets); keep the two in step.
+static bool TryDeleteWholeFolder(string folder)
+{
+    if (!Directory.Exists(folder))
+        return true;
+    try
+    {
+        foreach (var file in Directory.GetFiles(folder, "*", SearchOption.AllDirectories))
+            using (File.Open(file, FileMode.Open, FileAccess.ReadWrite, FileShare.None)) { }
+        Directory.Delete(folder, true);
+        return true;
+    }
+    catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+    {
+        return false;
+    }
 }
 
 // Is <path> inside <dir>? Separator-terminated so a sibling whose name merely extends dir's (Stride.Core vs
