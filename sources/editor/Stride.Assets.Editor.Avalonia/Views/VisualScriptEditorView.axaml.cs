@@ -8,8 +8,12 @@ using Stride.Core.Assets.Editor.Editors;
 
 namespace Stride.Assets.Editor.Avalonia.Views;
 
+/// <summary>
+/// The view of a visual script in this Game Studio: visual scripting is not ported, so it says to open the asset in the WPF Game
+/// Studio, which keeps the visual script editor.
+/// </summary>
 [AssetEditorView<VisualScriptEditorViewModel>]
-public partial class VisualScriptEditorView : UserControl, IAssetEditorView
+public sealed partial class VisualScriptEditorView : UserControl, IAssetEditorView
 {
     public VisualScriptEditorView()
     {
