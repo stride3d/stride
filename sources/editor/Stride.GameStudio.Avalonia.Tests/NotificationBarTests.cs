@@ -5,11 +5,11 @@ using System.Collections.Specialized;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.VisualTree;
-using Stride.Core.Assets.Editor.ViewModel.Progress;
 using Stride.Core.Diagnostics;
 using Stride.Editor.Build;
 using Stride.GameStudio.Avalonia.Tests.Helpers;
 using Stride.GameStudio.Avalonia.Views;
+using Stride.Core.Assets.Editor.ViewModels.Progress;
 
 namespace Stride.GameStudio.Avalonia.Tests;
 

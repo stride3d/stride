@@ -4,15 +4,18 @@
 using System.Diagnostics;
 using Avalonia.Threading;
 using Stride.Assets.Editor;
+using Stride.Core;
 using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Components.Build;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.IO;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Editor.Build;
 using Stride.GameStudio.Avalonia.Services;
 using Stride.GameStudio.Avalonia.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.GameStudio.Avalonia.Tests.Helpers;
 
@@ -26,6 +29,9 @@ internal sealed class ShellSessionFixture : IDisposable
 
     private bool disposed;
     private SessionViewModel? openedSession;
+    // The plugins unregister the session's services when they leave it (the editor exits or restarts): kept to dispose them
+    private GameStudioBuilderService? builder;
+    private GameSettingsProviderService? settingsProvider;
 
     private ShellSessionFixture(string directory, ViewModelServiceProvider serviceProvider)
     {
@@ -63,33 +69,59 @@ internal sealed class ShellSessionFixture : IDisposable
     /// <summary>
     /// Writes a package with the given assets (location relative to the package, asset); <see cref="OpenAsync"/> opens it.
     /// </summary>
-    public static ShellSessionFixture Create(params (string Location, Asset Asset)[] assets)
-    {
-        var directory = Path.Combine(Path.GetTempPath(), "Stride.GameStudio.Avalonia.Tests", Guid.NewGuid().ToString("N"));
-        var fixture = new ShellSessionFixture(directory, App.InitializeServiceProvider());
-        fixture.WritePackage(assets);
-        return fixture;
-    }
+    public static ShellSessionFixture Create(params (string Location, Asset Asset)[] assets) => Create(null, assets);
 
     /// <summary>
     /// Writes a package with the given assets and opens it through the main view model, the way the shell opens the session
     /// of its command line.
     /// </summary>
-    public static async Task<ShellSessionFixture> OpenAsync(params (string Location, Asset Asset)[] assets)
+    public static Task<ShellSessionFixture> OpenAsync(params (string Location, Asset Asset)[] assets) => OpenAsync(null, assets);
+
+    /// <summary>
+    /// Writes a package whose project is the executable of a platform (the head of a game) and opens it, as <see cref="OpenAsync"/>.
+    /// </summary>
+    public static Task<ShellSessionFixture> OpenExecutableAsync(PlatformType platform, params (string Location, Asset Asset)[] assets) => OpenAsync(platform, assets);
+
+    private static ShellSessionFixture Create(PlatformType? executablePlatform, (string Location, Asset Asset)[] assets)
     {
-        var fixture = Create(assets);
-        var opened = await fixture.Main.OpenSession(fixture.PackagePath);
-        // What the session does in the background once open, so that the tests start from a session at rest
-        if (fixture.Main.Session is { } session)
-            await session.Initialization;
-        if (opened != true || fixture.Main.Session is null)
+        var directory = Path.Combine(Path.GetTempPath(), "Stride.GameStudio.Avalonia.Tests", Guid.NewGuid().ToString("N"));
+        var fixture = new ShellSessionFixture(directory, App.InitializeServiceProvider());
+        fixture.WritePackage(assets, executablePlatform);
+        return fixture;
+    }
+
+    private static async Task<ShellSessionFixture> OpenAsync(PlatformType? executablePlatform, (string Location, Asset Asset)[] assets)
+    {
+        var fixture = Create(executablePlatform, assets);
+        try
+        {
+            await fixture.OpenAsync();
+        }
+        catch
         {
             fixture.Dispose();
-            throw new InvalidOperationException($"The session could not be opened ({opened}).");
+            throw;
         }
-        // The main view model forgets it when the editor restarts; it is still destroyed with the fixture
-        fixture.openedSession = fixture.Main.Session;
         return fixture;
+    }
+
+    /// <summary>
+    /// Opens the package that <c>Create</c> wrote through the main view model, as the static <c>OpenAsync</c> does: a test
+    /// can prepare the settings of the session in between.
+    /// </summary>
+    public async Task OpenAsync()
+    {
+        var opened = await Main.OpenSession(PackagePath);
+        // What the session does in the background once open, so that the tests start from a session at rest
+        if (Main.Session is { } session)
+            await session.Initialization;
+        if (opened != true || Main.Session is null)
+            throw new InvalidOperationException($"The session could not be opened ({opened}).");
+
+        // The main view model forgets it when the editor restarts; it is still destroyed with the fixture
+        openedSession = Main.Session;
+        builder = openedSession.ServiceProvider.TryGet<GameStudioBuilderService>();
+        settingsProvider = openedSession.ServiceProvider.TryGet<GameSettingsProviderService>();
     }
 
     /// <summary>
@@ -103,6 +135,20 @@ internal sealed class ShellSessionFixture : IDisposable
         return dialogs;
     }
 
+    /// <summary>
+    /// Replaces the builder and the game launcher of the shell by fakes that record the builds and the games.
+    /// </summary>
+    public (FakeGameProjectBuilder Builder, FakeGameLauncher Launcher) ReplaceGameBuilder()
+    {
+        ServiceProvider.UnregisterService(ServiceProvider.Get<IGameProjectBuilder>());
+        ServiceProvider.UnregisterService(ServiceProvider.Get<IGameLauncher>());
+        var builder = new FakeGameProjectBuilder();
+        var launcher = new FakeGameLauncher();
+        ServiceProvider.RegisterService(builder);
+        ServiceProvider.RegisterService(launcher);
+        return (builder, launcher);
+    }
+
     public void Dispose()
     {
         if (disposed)
@@ -113,7 +159,7 @@ internal sealed class ShellSessionFixture : IDisposable
         Main.Preview?.Dispose();
         if ((Main.Session ?? openedSession) is { } session)
         {
-            var builder = session.ServiceProvider.TryGet<GameStudioBuilderService>();
+            var builder = this.builder ?? session.ServiceProvider.TryGet<GameStudioBuilderService>();
             if (builder != null)
             {
                 builder.Database.Dispose();
@@ -121,7 +167,7 @@ internal sealed class ShellSessionFixture : IDisposable
                 // The object database is process-wide (the editor opens one session per process); the next fixture opens its own
                 Stride.Core.BuildEngine.Builder.CloseObjectDatabase();
             }
-            session.ServiceProvider.TryGet<GameSettingsProviderService>()?.Dispose();
+            (settingsProvider ?? session.ServiceProvider.TryGet<GameSettingsProviderService>())?.Dispose();
             session.Destroy();
             WaitForBackgroundWork(session);
         }
@@ -156,16 +202,21 @@ internal sealed class ShellSessionFixture : IDisposable
         }
     }
 
-    private void WritePackage((string Location, Asset Asset)[] assets)
+    private void WritePackage((string Location, Asset Asset)[] assets, PlatformType? executablePlatform)
     {
         System.IO.Directory.CreateDirectory(Path.Combine(PackageDirectory, "Assets"));
 
         // A .csproj next to the package makes it a project of the solution, hence editable. It declares that it holds no
-        // asset types so that the session does not build it.
+        // asset types so that the session does not build it. An executable declares its platform, as the heads of a game do.
+        var executable = executablePlatform is { } platform
+            ? "    <OutputType>Exe</OutputType>" + Environment.NewLine +
+              $"    <StridePlatform>{platform}</StridePlatform>" + Environment.NewLine
+            : string.Empty;
         File.WriteAllText(Path.Combine(PackageDirectory, PackageName + ".csproj"),
             "<Project Sdk=\"Microsoft.NET.Sdk\">" + Environment.NewLine +
             "  <PropertyGroup>" + Environment.NewLine +
             "    <TargetFramework>net10.0</TargetFramework>" + Environment.NewLine +
+            executable +
             "    <StrideContainsAssetTypes>false</StrideContainsAssetTypes>" + Environment.NewLine +
             "  </PropertyGroup>" + Environment.NewLine +
             "</Project>" + Environment.NewLine);

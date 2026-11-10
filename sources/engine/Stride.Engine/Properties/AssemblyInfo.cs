@@ -21,10 +21,10 @@ using System.Runtime.InteropServices;
 // Make internals Stride visible to Stride assemblies
 // TODO: Needed for ParameterCollection getters, but it would be better to avoid this kind of dependency.
 [assembly: InternalsVisibleTo("Stride.Assets" + Stride.PublicKeys.Default)]
-[assembly: InternalsVisibleTo("Stride.Assets.Presentation.Wpf" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.Assets.Editor.Wpf" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Editor.Wpf" + Stride.PublicKeys.Default)]
-[assembly: InternalsVisibleTo("Stride.Editor.Common" + Stride.PublicKeys.Default)]
-[assembly: InternalsVisibleTo("Stride.Assets.Presentation.Common" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.Editor" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.Assets.Editor" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Engine.Serializers" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Engine.Shaders" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Assets.Tests" + Stride.PublicKeys.Default)]

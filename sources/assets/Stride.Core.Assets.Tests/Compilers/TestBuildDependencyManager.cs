@@ -1,10 +1,16 @@
 using System.Runtime.ExceptionServices;
+using Stride.Assets;
+using Stride.Assets.Materials;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Compiler;
 using Stride.Core.BuildEngine;
 using Stride.Core.Diagnostics;
+using Stride.Core.IO;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
+using Stride.Graphics;
+using Stride.Rendering;
+using Stride.Rendering.Materials;
 
 namespace Stride.Core.Assets.Tests.Compilers;
 
@@ -105,6 +111,78 @@ public class TestBuildDependencyManager : CompilerTestBase
         var builder = new Builder(GlobalLogger.GetLogger("Test"), buildPath, "");
         builder.Root.Add(assetBuildResult.BuildSteps);
         builder.Run(Builder.Mode.Build, false);
+        RethrowAssertsFromThread(ex);
+    }
+
+    [Fact]
+    public void TestCompileMaterialWithDependency()
+    {
+        var package = new Package { FullPath = new UFile(@"C:\Projects\Package.sdpkg") };
+        // ReSharper disable once UnusedVariable - we need a package session to compile
+        var packageSession = new PackageSession(package);
+        var gameSettingsAsset = new GameSettingsAsset { Defaults = { new RenderingSettings() } };
+        var diffuseAssetA = new AssetItem("Diffuse Asset A", new DiffuseFeatureAsset(), package);
+        var diffuseAssetB = new AssetItem("Diffuse Asset B", new DiffuseFeatureAsset(), package);
+        var matAssetA = new AssetItem("Material Asset A", new MaterialAsset
+        {
+            Attributes =
+            {
+                Diffuse = CreateRef<DiffuseFeatureContent>(diffuseAssetA)
+            }, 
+        }, package);
+        var matAssetB = new AssetItem("Material Asset B", new MaterialAsset
+        {
+            Attributes =
+            {
+                Diffuse = CreateRef<DiffuseFeatureContent>(diffuseAssetB)
+            }, 
+            Layers =
+            {
+                new()
+                {
+                    Material = CreateRef<Material>(matAssetA)
+                }
+            }
+        }, package);
+        var otherAssets = new List<AssetItem>
+        {
+            diffuseAssetA,
+            diffuseAssetB,
+            matAssetA,
+            matAssetB
+        };
+        otherAssets.ForEach(x => package.Assets.Add(x));
+        package.RootAssets.Add(new AssetReference(matAssetB.Id, matAssetB.Location));
+
+        // Create context
+        var context = new AssetCompilerContext { CompilationContext = typeof(AssetCompilationContext) };
+        context.SetGameSettingsAsset(gameSettingsAsset);
+        // Builds the project
+        Exception? ex = null;
+        DiffuseFeatureContent.AssertFunc = generatorContext =>
+        {
+            // Diffuse assets must have been compiled before
+            try
+            {
+                Assert.Contains(diffuseAssetA, TestCompilerBase.CompiledAssets);
+                Assert.Contains(diffuseAssetB, TestCompilerBase.CompiledAssets);
+            }
+            catch (Exception e)
+            {
+                ex = e;
+            }
+        };
+
+        var assetBuilder = new PackageCompiler(new RootPackageAssetEnumerator(package));
+        var assetBuildResult = assetBuilder.Prepare(context);
+        Assert.Equal(3, assetBuildResult.BuildSteps.Count);
+        var buildPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        var builder = new Builder(GlobalLogger.GetLogger("Test"), buildPath, "");
+        builder.Root.Add(assetBuildResult.BuildSteps);
+
+        var buildResult = builder.Run(Builder.Mode.Build, false);
+        Assert.Equal(BuildResultCode.Successful, buildResult);
+
         RethrowAssertsFromThread(ex);
     }
 
@@ -297,6 +375,25 @@ public class TestBuildDependencyManager : CompilerTestBase
     public class MyAsset12Compiler : TestAssertCompiler<MyAsset12> { }
     [AssetCompiler(typeof(MyAsset13), typeof(AssetCompilationContext))]
     public class MyAsset13Compiler : TestAssertCompiler<MyAsset13> { }
+
+    [DataContract, ReferenceSerializer, DataSerializerGlobal(typeof(ReferenceSerializer<DiffuseFeatureContent>), Profile = "Content")]
+    public class DiffuseFeatureContent : IMaterialDiffuseFeature
+    {
+        public static Action<MaterialGeneratorContext>? AssertFunc;
+
+        public void Visit(MaterialGeneratorContext context)
+        {
+            AssertFunc?.Invoke(context);
+        }
+
+        public bool Enabled { get; set; }
+    }
+
+    [DataContract, AssetDescription(".sdmytest"), AssetContentType(typeof(DiffuseFeatureContent))]
+    public class DiffuseFeatureAsset : Asset { }
+
+    [AssetCompiler(typeof(DiffuseFeatureAsset), typeof(AssetCompilationContext))]
+    public class DiffuseFeatureAssetCompiler : TestAssertCompiler<DiffuseFeatureAsset> { }
 
     #endregion Types
 }

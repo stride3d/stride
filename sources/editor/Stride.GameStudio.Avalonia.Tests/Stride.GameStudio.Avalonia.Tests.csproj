@@ -24,11 +24,20 @@
   <ItemGroup>
     <!-- The shell itself: the tests run its App headless, with its services and plugins -->
     <ProjectReference Include="..\Stride.GameStudio.Avalonia\Stride.GameStudio.Avalonia.csproj" />
+    <!-- A plugin package declaring type and enum images (the particle state control) -->
+    <ProjectReference Include="..\..\plugins\Particles\Stride.Particles.Editor\Stride.Particles.Editor.csproj" />
   </ItemGroup>
   <ItemGroup>
     <!-- The package of test templates of the Core.Assets.Editor tests (xunit 2, not referenced): the same file -->
     <Compile Include="..\Stride.Core.Assets.Editor.Tests\Helpers\TestTemplatePackage.cs">
       <Link>Helpers\TestTemplatePackage.cs</Link>
+    </Compile>
+    <!-- The fake builder and game launcher of the build view model tests -->
+    <Compile Include="..\Stride.Core.Assets.Editor.Tests\Helpers\FakeGameProjectBuilder.cs">
+      <Link>Helpers\FakeGameProjectBuilder.cs</Link>
+    </Compile>
+    <Compile Include="..\Stride.Core.Assets.Editor.Tests\Helpers\FakeGameLauncher.cs">
+      <Link>Helpers\FakeGameLauncher.cs</Link>
     </Compile>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>

@@ -13,14 +13,14 @@ namespace Stride.Core.Assets.Editor
         [ModuleInitializer]
         public static void Initialize()
         {
-            // Register the WPF-free part of this layer before this assembly, so it is scanned first
-            System.Runtime.CompilerServices.RuntimeHelpers.RunModuleConstructor(typeof(CommonModule).Module.ModuleHandle);
+            // Register the cross-platform part of this layer (Stride.Core.Assets.Editor, which registers Stride.Core.Assets.Presentation first) before this assembly, so it is scanned first
+            System.Runtime.CompilerServices.RuntimeHelpers.RunModuleConstructor(typeof(AssetsPlugin).Module.ModuleHandle);
             AssemblyRegistry.Register(typeof(Module).GetTypeInfo().Assembly, AssemblyCommonCategories.Assets);
             AssetsPlugin.RegisterPlugin(typeof(CoreAssetsEditorPlugin));
             // Initialize translation
             TranslationManager.Instance.RegisterProvider(new GettextTranslationProvider());
             // HACK
-            Presentation.Quantum.ViewModels.NodeViewModel.UnsetValue = System.Windows.DependencyProperty.UnsetValue;
+            Stride.Core.Presentation.Quantum.ViewModels.NodeViewModel.UnsetValue = System.Windows.DependencyProperty.UnsetValue;
         }
     }
 }

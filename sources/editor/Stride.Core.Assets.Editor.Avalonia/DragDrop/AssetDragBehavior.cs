@@ -5,7 +5,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Xaml.Interactivity;
-using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Avalonia.DragDrop;
 
@@ -13,6 +13,9 @@ namespace Stride.Core.Assets.Editor.Avalonia.DragDrop;
 /// Starts dragging the asset of an item when the pointer moves past a small distance with the left button down. Attach it to the
 /// root of the item template of an asset list: its data context is the <see cref="AssetViewModel"/>.
 /// </summary>
+/// <remarks>
+/// The asset can be linked (a reference of the property grid) or moved (a folder of the solution explorer).
+/// </remarks>
 public sealed class AssetDragBehavior : StyledElementBehavior<Control>
 {
     private const double DragThreshold = 4.0;
@@ -64,7 +67,7 @@ public sealed class AssetDragBehavior : StyledElementBehavior<Control>
         Reset();
         try
         {
-            await global::Avalonia.Input.DragDrop.DoDragDropAsync(savedArgs, AssetDragDropHelper.CreateData([asset]), DragDropEffects.Link);
+            await global::Avalonia.Input.DragDrop.DoDragDropAsync(savedArgs, AssetDragDropHelper.CreateData([asset]), DragDropEffects.Link | DragDropEffects.Move);
         }
         catch (Exception)
         {

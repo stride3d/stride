@@ -1,0 +1,21 @@
+Plugin: Stride.UI.Editor.UIEditorPlugin
+AssetViewModelTypes:
+  Stride.UI.Assets.UILibraryAsset -> Stride.UI.Editor.ViewModels.UILibraryViewModel
+  Stride.UI.Assets.UIPageAsset -> Stride.UI.Editor.ViewModels.UIPageViewModel
+AssetEditorViewModelTypes:
+  Stride.UI.Editor.ViewModels.UILibraryViewModel -> Stride.UI.Editor.ViewModels.UILibraryEditorViewModel
+  Stride.UI.Editor.ViewModels.UIPageViewModel -> Stride.UI.Editor.ViewModels.UIPageEditorViewModel
+AssetEditorViewTypes:
+AssetPreviewViewModelTypes:
+AssetPreviewViewTypes:
+PrimitiveTypes:
+EnumImages:
+TypeImages:
+TemplateProviders:
+CopyProcessors:
+PasteProcessors:
+  Stride.UI.Editor.UIHierarchyPasteProcessor
+PostPasteProcessors:
+SettingsKeys:
+  UIEditor/AskBeforeDeletingUIElements
+ProfileSettings:

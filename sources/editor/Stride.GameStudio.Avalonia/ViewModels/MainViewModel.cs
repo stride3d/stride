@@ -5,13 +5,12 @@ using System.ComponentModel;
 using System.Diagnostics;
 using Avalonia;
 using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Components.Build;
 using Stride.Core.Assets.Editor.Components.Status;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Components.Transactions;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
-using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Assets.Editor.ViewModel.Progress;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
@@ -23,10 +22,12 @@ using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Translation;
+using Stride.Editor;
 using Stride.Editor.Build;
 using Stride.GameStudio.Avalonia.Helpers;
 using Stride.GameStudio.Avalonia.Services;
 using Stride.GameStudio.Avalonia.Settings;
+using Stride.Core.Assets.Editor.ViewModels.Progress;
 
 namespace Stride.GameStudio.Avalonia.ViewModels;
 
@@ -41,6 +42,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     private ActionHistoryViewModel? history;
     private PreviewViewModel? preview;
     private UFile? sessionPath;
+    private SessionEditorsRestorer? editorsRestorer;
     private string? sessionName;
     private string title = baseTitle;
 
@@ -79,6 +81,8 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
 
         Status = new StatusViewModel(ServiceProvider);
         Status.PushStatus("Ready");
+        Build = new BuildAndRunViewModel(serviceProvider, Status);
+        CodeReload = new GameCodeReloadViewModel(serviceProvider, Build, ReloadSessionAsync);
         Notifications = serviceProvider.TryGet<INotificationService>();
 
         // The most recently used sessions of this and the earlier editor versions
@@ -94,6 +98,27 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     }
 
     public StatusViewModel Status { get; }
+
+    /// <inheritdoc/>
+    public string EditorToolkitName => EditorToolkits.Avalonia;
+
+    /// <inheritdoc/>
+    /// <remarks>As in WPF, the shaders open with the shader editor of the settings.</remarks>
+    public IEnumerable<string> TextAssetTypes { get; } = [nameof(Stride.Assets.Effect.EffectShaderAsset), nameof(Stride.Assets.Effect.EffectCompositorAsset)];
+
+    /// <inheritdoc/>
+    public void AddRecentFile(UFile filePath) => MRU.AddFile(filePath, StrideGameStudio.EditorVersionMajor);
+
+    /// <summary>
+    /// Builds the current project of the session and starts its game (the Project menu, the toolbar and the Output pane).
+    /// </summary>
+    public BuildAndRunViewModel Build { get; }
+
+    /// <summary>
+    /// Watches the game code of the session and reloads it when it changes, by opening the session again in a new editor (the
+    /// Project menu and the toolbar).
+    /// </summary>
+    public GameCodeReloadViewModel CodeReload { get; }
 
     /// <summary>
     /// The background operations shown in the notification bar; <c>null</c> when the host has no bar.
@@ -228,19 +253,19 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
             if (result != 1)
             {
                 InternalSettings.LoadingStartupSession.SetValue(false);
-                InternalSettings.SaveProfile();
+                InternalSettings.Save();
                 return false;
             }
         }
 
         // Safe-guard - this will warn that the startup session makes the editor crash while loading.
         InternalSettings.LoadingStartupSession.SetValue(true);
-        InternalSettings.SaveProfile();
+        InternalSettings.Save();
 
         var sessionResult = await OpenSession(initialSessionPath, token);
 
         InternalSettings.LoadingStartupSession.SetValue(false);
-        InternalSettings.SaveProfile();
+        InternalSettings.Save();
 
         return sessionResult;
     }
@@ -318,7 +343,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
             return false;
         }
 
-        AttachSession(createdSession, createdSession.SolutionPath);
+        AttachSession(createdSession, createdSession.SolutionPath, isNew: true);
         return true;
     }
 
@@ -353,13 +378,17 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     }
 
     /// <summary>
-    /// Makes an opened or created session the editor's: the recent files, the title, the plugins' session services and the preview.
+    /// Makes an opened or created session the editor's: the recent files, the title, the plugins' session services, the preview,
+    /// then the editors of the last session or the default scene.
     /// </summary>
-    private void AttachSession(SessionViewModel loadedSession, UFile filePath)
+    /// <param name="loadedSession">The session.</param>
+    /// <param name="filePath">The file the session was opened from.</param>
+    /// <param name="isNew">Whether the session was just created: what an older session at the same path kept is forgotten, as in WPF.</param>
+    private void AttachSession(SessionViewModel loadedSession, UFile filePath, bool isNew = false)
     {
         MRU.AddFile(filePath, StrideGameStudio.EditorVersionMajor);
         InternalSettings.FileDialogLastOpenSessionDirectory.SetValue(filePath.GetFullDirectory());
-        InternalSettings.SaveProfile();
+        InternalSettings.Save();
 
         sessionPath = filePath;
         Session = loadedSession;
@@ -375,8 +404,18 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         // It owns the preview service that a plugin has just registered, and the preview game with it
         Preview = new PreviewViewModel(Session);
 
-        // The build the session runs when it opens: thumbnails and previews wait for it
+        // The editors of the last session, or the default scene, now that the plugins have registered the editors; keyed by the
+        // solution, as in WPF
+        var sessionData = GameStudioInternalSettings.CreateMostRecentlyUsedSessionsData();
+        var dataPath = UPath.IsNullOrEmpty(Session.SolutionPath) ? filePath : Session.SolutionPath;
+        if (isNew)
+            sessionData.RemoveFile(dataPath);
+        editorsRestorer = new SessionEditorsRestorer(Session, sessionData, dataPath);
+
+        // The build the session runs when it opens: thumbnails and previews wait for it. Shown before the editors open, which
+        // takes long enough for a build that has nothing to do to finish
         _ = ShowShaderImportAsync(Session);
+        editorsRestorer.Restore();
     }
 
     /// <summary>
@@ -386,6 +425,8 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     private void OnSessionChanged()
     {
         SaveCommand.IsEnabled = session is not null;
+        Build.Session = session;
+        CodeReload.Session = session;
         if (titleSession is not null)
             titleSession.PropertyChanged -= SessionPropertyChanged;
         titleSession = session;
@@ -561,15 +602,23 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
 
     private async Task OnSave()
     {
+        // A saved session goes to the top of the recent sessions (AddRecentFile), as in WPF
         if (session is not null)
             await session.SaveSessionAsync();
     }
 
     private async Task OnReload()
     {
-        // The same session in a fresh editor, as WPF's Reload project does
-        if (session is not null && sessionPath is { } path)
-            await RestartAsync(path);
+        await ReloadSessionAsync();
+    }
+
+    /// <summary>
+    /// Opens the same session in a fresh editor, as WPF's Reload project does, after asking whether to save it.
+    /// </summary>
+    /// <returns><c>true</c> when the editor restarts, <c>false</c> when the user kept the session open or there is none.</returns>
+    private async Task<bool> ReloadSessionAsync()
+    {
+        return session is not null && sessionPath is { } path && await RestartAsync(path);
     }
 
     /// <summary>
@@ -607,18 +656,29 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         if (!await session.CloseAsync())
             return false;
 
+        // The editors open now are those to open next time; closing them below must not change it
+        editorsRestorer?.Stop();
+        editorsRestorer = null;
+
         // What the editors had unsaved is now saved, or dropped by the user
         return await session.EditorCollection.CloseAllEditorsAsync(false);
     }
 
     /// <summary>
-    /// Forgets the session before the editor restarts, and exits its preview game: the next editor starts its own.
+    /// Forgets the session before the editor restarts or exits, and exits its preview game: the next editor starts its own.
+    /// A build of the session stops; the games it started keep running. The plugins leave the session: what they registered
+    /// goes and their close actions run.
     /// </summary>
-    private void CloseSessionServices()
+    internal void CloseSessionServices()
     {
         Preview?.Dispose();
         Preview = null;
+        if (Build.CancelBuildCommand.IsEnabled)
+            Build.CancelBuildCommand.Execute();
+        Build.Session = null;
+        CodeReload.Session = null;
         session = null;
+        (ServiceProvider.TryGet<IAssetsPluginService>() as IDisposable)?.Dispose();
     }
 
     private void OnExit()

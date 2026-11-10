@@ -1,15 +1,20 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+#nullable enable
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.Assets.Editor.EditorGame.ContentLoader;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Diagnostics;
@@ -25,6 +30,8 @@ using Stride.Engine.Processors;
 using Stride.Games;
 using Stride.Graphics;
 using Stride.Shaders.Compiler;
+using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 
 namespace Stride.Assets.Editor.EditorGame;
 
@@ -42,8 +49,9 @@ public delegate TEditorGame EditorGameFactory<out TEditorGame>(TaskCompletionSou
 /// and gives the editor access to it: the services of the game, and the work posted to the game thread.
 /// </summary>
 /// <remarks>
-/// The cross-platform counterpart of the WPF <c>EditorGameController</c>, without its game form: the game has no
-/// window, the viewport shows its frames. Mouse cursor changes and drag and drop are not supported yet.
+/// Shared by both editors: the viewport is the hosting of the UI toolkit. The WPF controllers derive from
+/// <c>WpfEditorGameController</c>, which gives the game a WinForms form and adds the cursor, the mouse position and drag
+/// and drop; the Avalonia viewport shows the frames of a game without a window, and has none of them yet.
 /// </remarks>
 /// <typeparam name="TEditorGame">The type of the game.</typeparam>
 public abstract class EditorGameController<TEditorGame> : IEditorGameController
@@ -55,8 +63,10 @@ public abstract class EditorGameController<TEditorGame> : IEditorGameController
     private readonly TaskCompletionSource<bool> gameStartedTaskSource = new();
     private readonly TaskCompletionSource<bool> gameContentLoadedTaskSource = new();
     private readonly CancellationTokenSource gameEndedCancellation = new();
+    private readonly TaskCompletionSource gameEndedTaskSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private EditorGameServiceRegistry? serviceRegistry;
     private volatile bool gameEnded;
+    private bool gameThreadStarted;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="EditorGameController{TEditorGame}"/> class (UI thread).
@@ -101,6 +111,9 @@ public abstract class EditorGameController<TEditorGame> : IEditorGameController
 
     /// <inheritdoc/>
     public Task GameContentLoaded => gameContentLoadedTaskSource.Task;
+
+    /// <inheritdoc/>
+    public Task GameEnded => gameEndedTaskSource.Task;
 
     /// <summary>
     /// Gets the viewport the game renders into.
@@ -159,6 +172,11 @@ public abstract class EditorGameController<TEditorGame> : IEditorGameController
         Loader.Dispose();
         debugService?.UnregisterDebugPage(debugPage);
         IsDestroying = true;
+        Viewport.ReleaseView();
+
+        // A game that never started runs no frame; StartGame refuses to start it from now on
+        if (!gameThreadStarted)
+            gameEndedTaskSource.TrySetResult();
 
         // Clean after everything
         PostTask(async _ =>
@@ -222,6 +240,7 @@ public abstract class EditorGameController<TEditorGame> : IEditorGameController
         if (IsDestroying)
             throw new InvalidOperationException("This controller is being destroyed.");
         // Run the game in its own thread
+        gameThreadStarted = true;
         gameThread.Start();
         // Wait for the game to start
         return await gameStartedTaskSource.Task;
@@ -423,8 +442,9 @@ public abstract class EditorGameController<TEditorGame> : IEditorGameController
             // The game renders offscreen into the viewport
             context = Viewport.Attach(Game);
 
-            // Wait for shaders to be loaded
-            Asset.ServiceProvider.Get<GameStudioBuilderService>().WaitForShaders();
+            // Only the effects need the system shaders: the game creates its device while they are imported, and waits for
+            // them before its systems load their content
+            Game.GraphicsDeviceManager.DeviceCreated += WaitForShaders;
 
             // Create and register services
             serviceRegistry = new EditorGameServiceRegistry();
@@ -443,6 +463,7 @@ public abstract class EditorGameController<TEditorGame> : IEditorGameController
             {
                 gameStartedTaskSource.TrySetException(e);
                 gameContentLoadedTaskSource.TrySetException(e);
+                gameEndedTaskSource.TrySetResult();
             }
             return;
         }
@@ -464,7 +485,21 @@ public abstract class EditorGameController<TEditorGame> : IEditorGameController
             gameEndedCancellation.Cancel();
             // An editor waiting for a game that never loaded its content (the run failed) doesn't wait forever
             gameContentLoadedTaskSource.TrySetCanceled();
-            DisposeGameAndViewport();
+            try
+            {
+                DisposeGameAndViewport();
+            }
+            finally
+            {
+                gameEndedTaskSource.TrySetResult();
+            }
+        }
+
+        // Game thread, inside Game.Run
+        void WaitForShaders(object? sender, EventArgs e)
+        {
+            Game.GraphicsDeviceManager.DeviceCreated -= WaitForShaders;
+            Asset.ServiceProvider.Get<GameStudioBuilderService>().WaitForShaders();
         }
     }
 

@@ -34,6 +34,7 @@ namespace Stride.Core.Presentation.ViewModel
 
         private int updateInterval = DefaultUpdateInterval;
         private bool updatePending;
+        private ILogMessage trimNotice;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LoggerViewModel"/> class.
@@ -121,6 +122,22 @@ namespace Stride.Core.Presentation.ViewModel
         /// Gets the minimum level of message that will be recorded by this view model.
         /// </summary>
         public LogMessageType MinLevel { get; set; } = LogMessageType.Debug;
+
+        /// <summary>
+        /// Gets or sets the maximum number of messages that <see cref="Messages"/> keeps: past it, the oldest messages go, and
+        /// <see cref="MaximumMessagesNotice"/> shows first. Zero, the default, keeps every message.
+        /// </summary>
+        /// <remarks>
+        /// The messages go by batches of a tenth of the maximum, so that a logger that logs a lot does not remove one message
+        /// for each new one.
+        /// </remarks>
+        public int MaximumMessages { get; set; }
+
+        /// <summary>
+        /// Gets or sets the text of the warning that shows first in <see cref="Messages"/> once older messages went
+        /// (<see cref="MaximumMessages"/>).
+        /// </summary>
+        public string MaximumMessagesNotice { get; set; } = "Older messages were removed.";
 
         /// <summary>
         /// Gets the command that will add a logger to monitor.
@@ -288,6 +305,35 @@ namespace Stride.Core.Presentation.ViewModel
                         logger.Add(messageToAdd.Item2);
                     }
                 }
+                TrimMessages();
+            }
+        }
+
+        /// <summary>
+        /// Removes the oldest messages past <see cref="MaximumMessages"/>, and shows <see cref="MaximumMessagesNotice"/> first.
+        /// </summary>
+        private void TrimMessages()
+        {
+            var maximum = MaximumMessages;
+            if (maximum <= 0)
+                return;
+
+            // The notice stays first and is not counted
+            var start = trimNotice != null && messages.Count > 0 && ReferenceEquals(messages[0], trimNotice) ? 1 : 0;
+            var count = messages.Count - start - maximum;
+            if (count <= maximum / 10)
+                return;
+
+            var removed = new HashSet<ILogMessage>(messages.Skip(start).Take(count), ReferenceEqualityComparer.Instance);
+            messages.RemoveRange(start, count);
+            foreach (var loggerMessages in Loggers.Values)
+            {
+                loggerMessages.RemoveAll(removed.Contains);
+            }
+            if (start == 0)
+            {
+                trimNotice = new LogMessage(null, LogMessageType.Warning, MaximumMessagesNotice);
+                messages.Insert(0, trimNotice);
             }
         }
 

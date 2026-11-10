@@ -42,7 +42,7 @@ namespace Stride.Assets.Effect
             var urlRoot = originalSourcePath.GetParent();
 
             var stream = new MemoryStream(Encoding.UTF8.GetBytes(((EffectLogAsset)assetItem.Asset).Text));
-            using (var recordedEffectCompile = new EffectLogStore(stream))
+            using (var recordedEffectCompile = new EffectLogStore(stream, result, originalSourcePath.ToOSPath()))
             {
                 recordedEffectCompile.LoadNewValues();
 

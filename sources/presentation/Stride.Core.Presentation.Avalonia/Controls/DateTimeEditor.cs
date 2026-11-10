@@ -10,6 +10,21 @@ namespace Stride.Core.Presentation.Avalonia.Controls;
 // FIXME xplat-editor make it work with Avalonia's DatePicker and TimePicker
 public sealed class DateTimeEditor : TemplatedControl
 {
+    private bool interlock;
+    private bool templateApplied;
+    private AvaloniaProperty? initializingProperty;
+
+    static DateTimeEditor()
+    {
+        ValueProperty.Changed.AddClassHandler<DateTimeEditor>((sender, _) => sender.OnValuePropertyChanged());
+        YearProperty.Changed.AddClassHandler<DateTimeEditor>((sender, e) => sender.OnComponentPropertyChanged(e));
+        MonthProperty.Changed.AddClassHandler<DateTimeEditor>((sender, e) => sender.OnComponentPropertyChanged(e));
+        DayProperty.Changed.AddClassHandler<DateTimeEditor>((sender, e) => sender.OnComponentPropertyChanged(e));
+        HourProperty.Changed.AddClassHandler<DateTimeEditor>((sender, e) => sender.OnComponentPropertyChanged(e));
+        MinuteProperty.Changed.AddClassHandler<DateTimeEditor>((sender, e) => sender.OnComponentPropertyChanged(e));
+        SecondProperty.Changed.AddClassHandler<DateTimeEditor>((sender, e) => sender.OnComponentPropertyChanged(e));
+    }
+
     public static readonly StyledProperty<DateTime?> ValueProperty =
         AvaloniaProperty.Register<DateTimeEditor, DateTime?>(nameof(Value), defaultBindingMode: BindingMode.TwoWay);
 
@@ -80,6 +95,14 @@ public sealed class DateTimeEditor : TemplatedControl
     {
         get => GetValue(SecondProperty);
         set => SetValue(SecondProperty, value);
+    }
+
+    /// <inheritdoc/>
+    protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
+    {
+        templateApplied = false;
+        base.OnApplyTemplate(e);
+        templateApplied = true;
     }
 
     /// <summary>
@@ -156,5 +179,61 @@ public sealed class DateTimeEditor : TemplatedControl
         }
 
         throw new ArgumentException($"Property {property} is unsupported by method {nameof(UpdateValueFromComponent)}.");
+    }
+
+    /// <summary>
+    /// Raised when the <see cref="Value"/> property is modified.
+    /// </summary>
+    private void OnValuePropertyChanged()
+    {
+        var isInitializing = !templateApplied && initializingProperty is null;
+        if (isInitializing)
+            initializingProperty = ValueProperty;
+
+        if (!interlock)
+        {
+            interlock = true;
+            UpdateComponentsFromValue(Value);
+            interlock = false;
+        }
+
+        UpdateBinding(ValueProperty);
+        if (isInitializing)
+            initializingProperty = null;
+    }
+
+    /// <summary>
+    /// Raised when either of the <see cref="Year"/>, <see cref="Month"/>, <see cref="Day"/>, <see cref="Hour"/>, <see cref="Minute"/> or <see cref="Second"/> properties are modified.
+    /// </summary>
+    /// <param name="e">The event data.</param>
+    private void OnComponentPropertyChanged(AvaloniaPropertyChangedEventArgs e)
+    {
+        var isInitializing = !templateApplied && initializingProperty is null;
+        if (isInitializing)
+            initializingProperty = e.Property;
+
+        if (!interlock)
+        {
+            interlock = true;
+            Value = UpdateValueFromComponent(e.Property);
+            UpdateComponentsFromValue(Value);
+            interlock = false;
+        }
+
+        UpdateBinding(e.Property);
+        if (isInitializing)
+            initializingProperty = null;
+    }
+
+    /// <summary>
+    /// Updates the binding of the given property.
+    /// </summary>
+    /// <param name="property">The property.</param>
+    private void UpdateBinding(AvaloniaProperty property)
+    {
+        if (property != initializingProperty)
+        {
+            BindingOperations.GetBindingExpressionBase(this, property)?.UpdateSource();
+        }
     }
 }

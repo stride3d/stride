@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 
 using Stride.Core.Annotations;
 using Stride.Core.Assets.Editor.Components.Properties;
@@ -11,6 +12,7 @@ using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Quantum;
 using Stride.Core.Settings;
+using Stride.Core.Assets.Presentation.Components.Properties;
 
 namespace Stride.Core.Assets.Editor.ViewModels;
 
@@ -44,7 +46,8 @@ public sealed class SettingsCategoryViewModel : DispatcherViewModel, IPropertyPr
             if (displayName.StartsWith(settingsPath, StringComparison.Ordinal) && !displayName[pathLength..].Contains('/'))
             {
                 var settingsObject = PackageSettingsWrapper.SettingsKeyWrapper.Create(key, profile);
-                settingsList.Add(key.DisplayName.GetFileName()!, settingsObject);
+                // By name, as in WPF: a translation can give two settings the same display name (#3260)
+                settingsList.Add(key.Name, settingsObject);
             }
         }
 
@@ -54,7 +57,7 @@ public sealed class SettingsCategoryViewModel : DispatcherViewModel, IPropertyPr
             var displayName = command.DisplayName.ToString();
             if (displayName.StartsWith(settingsPath, StringComparison.Ordinal) && !displayName[pathLength..].Contains('/'))
             {
-                settingsList.Add(command.DisplayName.GetFileName()!, command);
+                settingsList.Add(command.Name, command);
             }
         }
 
@@ -79,7 +82,8 @@ public sealed class SettingsCategoryViewModel : DispatcherViewModel, IPropertyPr
 
 
     /// <summary>
-    /// A dictionary representing the different settings objects (<see cref="SettingsKey"/> or <see cref="SettingsCommand"/>) indexed by their display name.
+    /// A dictionary representing the different settings objects (<see cref="SettingsKey"/> or <see cref="SettingsCommand"/>) indexed by their name;
+    /// the settings window shows their display name (<see cref="Settings.ViewModels.SettingsPropertyNodeUpdater"/>).
     /// </summary>
     internal IReadOnlyDictionary<string, object> SettingsList => settingsList;
 

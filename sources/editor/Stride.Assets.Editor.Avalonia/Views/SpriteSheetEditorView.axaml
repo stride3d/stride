@@ -2,14 +2,456 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
              xmlns:vm="using:Stride.Assets.Editor.ViewModels"
+             xmlns:se="using:Stride.Assets.Editor.ViewModels.SpriteEditor"
+             xmlns:sprite="using:Stride.Assets.Sprite"
+             xmlns:conv="using:Stride.Assets.Editor.Avalonia.Converters"
+             xmlns:beh="using:Stride.Assets.Editor.Avalonia.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Stride.Assets.Editor.Avalonia.Views.SpriteSheetEditorView"
-             x:DataType="vm:SpriteSheetEditorViewModel">
-  <DockPanel>
-    <Grid DockPanel.Dock="Top">
-      <TextBlock Text="SpriteSheet Editor" />
-    </Grid>
-    <TextBlock Text="{Binding Asset.Name}" />
-  </DockPanel>
+             x:DataType="vm:SpriteSheetEditorViewModel"
+             Focusable="True">
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://Stride.Core.Assets.Editor.Avalonia/Views/ImageResources.axaml"/>
+        <ResourceInclude Source="avares://Stride.Assets.Editor.Avalonia/Themes/PreviewImages.axaml"/>
+        <ResourceInclude Source="avares://Stride.Assets.Editor.Avalonia/Views/SpriteEditorImages.axaml"/>
+      </ResourceDictionary.MergedDictionaries>
+
+      <!-- The context menu of the sprites, as the WPF one. The view opens it with the editor as its data context. -->
+      <ContextMenu x:Key="SpriteContextMenu" x:DataType="vm:SpriteSheetEditorViewModel">
+        <MenuItem Header="{sd:LocalizeString Add new sprite, Context=Menu}" Command="{Binding AddNewImageCommand}">
+          <MenuItem.Icon><Image Source="{StaticResource ImageAdd}"/></MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Duplicate sprite, Context=Menu}" Command="{Binding DuplicateSelectedImagesCommand}">
+          <MenuItem.Icon><Image Source="{StaticResource ImageDuplicateSprite}"/></MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Edit image, Context=Menu}" Command="{Binding CurrentSprite.EditImageCommand, FallbackValue={x:Null}}"
+                  IsEnabled="{Binding CurrentSprite, Converter={x:Static ObjectConverters.IsNotNull}}">
+          <MenuItem.Icon><Image Source="{StaticResource ImageOpenSourceFile}"/></MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Show image in explorer, Context=Menu}" Command="{Binding CurrentSprite.ExploreCommand, FallbackValue={x:Null}}"
+                  IsEnabled="{Binding CurrentSprite, Converter={x:Static ObjectConverters.IsNotNull}}">
+          <MenuItem.Icon><Image Source="{StaticResource ImageExplore}"/></MenuItem.Icon>
+        </MenuItem>
+        <Separator/>
+        <MenuItem Header="{sd:LocalizeString Copy, Context=Menu}" InputGesture="{x:Static sd:EditCommands.CopyGesture}"
+                  Command="{Binding CopyImageCommand}">
+          <MenuItem.Icon><Image Source="{StaticResource ImageCopy}"/></MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Paste, Context=Menu}" InputGesture="{x:Static sd:EditCommands.PasteGesture}"
+                  Command="{Binding PasteImageCommand}">
+          <MenuItem.Icon><Image Source="{StaticResource ImagePaste}"/></MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Delete, Context=Menu}" InputGesture="{x:Static sd:EditCommands.DeleteGesture}"
+                  Command="{Binding RemoveImageCommand}">
+          <MenuItem.Icon><Image Source="{StaticResource ImageRemove}"/></MenuItem.Icon>
+        </MenuItem>
+      </ContextMenu>
+    </ResourceDictionary>
+  </UserControl.Resources>
+  <UserControl.Styles>
+    <Style Selector="Button.tool, ToggleButton.tool">
+      <Setter Property="Focusable" Value="False"/>
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Padding" Value="4"/>
+      <Setter Property="Margin" Value="1,0"/>
+    </Style>
+    <Style Selector="Image.icon">
+      <Setter Property="Width" Value="16"/>
+      <Setter Property="Height" Value="16"/>
+    </Style>
+    <!-- The handles of the region, borders and center: invisible areas that the mouse drags, as the WPF thumbs -->
+    <Style Selector="Thumb.handle">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Border Background="{TemplateBinding Background}"/>
+        </ControlTemplate>
+      </Setter>
+    </Style>
+  </UserControl.Styles>
+  <Grid ColumnDefinitions="*, 5, 3*">
+
+    <!-- Left panel: the sprite sheet properties and the sprites -->
+    <DockPanel Grid.Column="0">
+      <Button DockPanel.Dock="Top" Margin="8" Padding="4" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+              Content="{sd:LocalizeString Sprite sheet properties, Context=Button}"
+              Command="{Binding DisplaySpriteSheetPropertiesCommand}"/>
+      <DockPanel DockPanel.Dock="Top">
+        <TextBlock DockPanel.Dock="Top" Margin="8" VerticalAlignment="Center" Text="{sd:LocalizeString Sheet type:}"/>
+        <ListBox x:Name="SheetTypeList" Margin="4"
+                 ItemsSource="{Binding Source={x:Type sprite:SpriteSheetType}, Converter={sd:EnumValues}}"
+                 SelectedItem="{Binding Type, Mode=TwoWay}">
+          <ListBox.ItemsPanel>
+            <ItemsPanelTemplate>
+              <UniformGrid Rows="1"/>
+            </ItemsPanelTemplate>
+          </ListBox.ItemsPanel>
+          <ListBox.ItemTemplate>
+            <DataTemplate>
+              <TextBlock HorizontalAlignment="Center" Text="{Binding Converter={x:Static conv:SpriteEditorConverters.CamelCaseToWords}}"/>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
+      <DockPanel DockPanel.Dock="Top" Margin="8">
+        <CheckBox x:Name="ColorKeyCheckBox" DockPanel.Dock="Top" VerticalAlignment="Center"
+                  Content="{sd:LocalizeString Use color key, Context=Button}" IsChecked="{Binding ColorKeyEnabled}"
+                  ToolTip.Tip="{sd:LocalizeString If enabled\, the sprite uses the given color as transparency, Context=ToolTip}"/>
+        <!-- Hidden rather than collapsed, as in WPF: the list below doesn't move -->
+        <Grid ColumnDefinitions="*, Auto" Margin="21,4,0,0" Opacity="{Binding ColorKeyEnabled, Converter={sd:BoolToOpacity}}"
+              IsHitTestVisible="{Binding ColorKeyEnabled}">
+          <sd:ColorEditor Grid.Column="0" Value="{Binding ColorKey}"/>
+          <ToggleButton Grid.Column="1" Classes="tool" Margin="4,0,0,0"
+                        IsChecked="{Binding ToolMode, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static se:SpriteSheetEditorToolMode.ColorPick}, Mode=OneWay}"
+                        Command="{Binding ToggleToolModeCommand}" CommandParameter="{x:Static se:SpriteSheetEditorToolMode.ColorPick}"
+                        ToolTip.Tip="{sd:LocalizeString To select the color key\,  select a pixel color from the image, Context=ToolTip}">
+            <Image Classes="icon" Source="{StaticResource ImagePicker}"/>
+          </ToggleButton>
+        </Grid>
+      </DockPanel>
+      <DockPanel DockPanel.Dock="Top" Margin="8">
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+          <Button Classes="tool" Command="{Binding AddNewImageCommand}"
+                  ToolTip.Tip="{sd:LocalizeString Add a new empty sprite (Ctrl+U), Context=ToolTip}">
+            <Image Classes="icon" Source="{StaticResource ImageAdd}"/>
+          </Button>
+          <Button Classes="tool" Command="{Binding DuplicateSelectedImagesCommand}"
+                  ToolTip.Tip="{sd:LocalizeString Duplicate selected sprites (Ctrl+D), Context=ToolTip}">
+            <Image Classes="icon" Source="{StaticResource ImageDuplicateSprite}"/>
+          </Button>
+          <Button Classes="tool" Command="{Binding RemoveImageCommand}"
+                  ToolTip.Tip="{sd:LocalizeString Delete selected sprites, Context=ToolTip}">
+            <Image Classes="icon" Source="{StaticResource ImageRemove}"/>
+          </Button>
+          <Button Classes="tool" Command="{Binding MoveImageCommand}" CommandParameter="{sd:Int -1}"
+                  ToolTip.Tip="{sd:LocalizeString Move selected sprites up, Context=ToolTip}">
+            <Image Classes="icon" Source="{StaticResource ImageUp}"/>
+          </Button>
+          <Button Classes="tool" Command="{Binding MoveImageCommand}" CommandParameter="{sd:Int 1}"
+                  ToolTip.Tip="{sd:LocalizeString Move selected sprites down, Context=ToolTip}">
+            <Image Classes="icon" Source="{StaticResource ImageDown}"/>
+          </Button>
+        </StackPanel>
+        <TextBlock VerticalAlignment="Center" Text="{sd:LocalizeString Sprites:}"/>
+      </DockPanel>
+      <ListBox x:Name="SpriteList" Margin="8" Focusable="True"
+               ItemsSource="{Binding Sprites}"
+               SelectedItems="{Binding SelectedSprites}"
+               SelectionMode="Multiple">
+        <!-- Copy, Paste, Delete and Rename while the list has the focus, as the command bindings of the WPF list -->
+        <sd:EditCommands.Bindings>
+          <sd:EditCommandBinding Kind="Copy" Command="{Binding CopyImageCommand}"/>
+          <sd:EditCommandBinding Kind="Paste" Command="{Binding PasteImageCommand}"/>
+          <sd:EditCommandBinding Kind="Delete" Command="{Binding RemoveImageCommand}"/>
+          <sd:EditCommandBinding Kind="Rename" Command="{Binding RenameCommand}"/>
+        </sd:EditCommands.Bindings>
+        <!-- Drag the sprites to reorder them, drop image files to add sprites, as the WPF ListBoxDragDropBehavior -->
+        <Interaction.Behaviors>
+          <beh:SpriteListDragDropBehavior/>
+        </Interaction.Behaviors>
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="se:SpriteInfoViewModel">
+            <StackPanel Orientation="Horizontal" Background="Transparent" DoubleTapped="OnSpriteDoubleTapped">
+              <TextBlock VerticalAlignment="Center" Text="{Binding Index, StringFormat=[\{0\}]}"/>
+              <TextBlock Margin="5,0,0,0" VerticalAlignment="Center" Text="{Binding Name}" IsVisible="{Binding !IsEditing}"/>
+              <!-- Renaming in place (F2, double click): the box replaces the name while the sprite is editing -->
+              <TextBox Margin="5,0,0,0" Width="128" Text="{Binding Name, Mode=OneWay}" IsVisible="{Binding IsEditing}">
+                <Interaction.Behaviors>
+                  <sd:InlineEditBehavior Name="{Binding Name, Mode=TwoWay}" IsEditing="{Binding IsEditing, Mode=TwoWay}"/>
+                </Interaction.Behaviors>
+              </TextBox>
+            </StackPanel>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </DockPanel>
+
+    <GridSplitter Grid.Column="1" ResizeDirection="Columns" Background="#FF1D1D1D"/>
+
+    <!-- Zero or more than one sprite selected -->
+    <TextBlock Grid.Column="2" Margin="20" HorizontalAlignment="Center" VerticalAlignment="Center"
+               Text="{sd:LocalizeString Select a single image from the left panel}"
+               IsVisible="{Binding !#SpritePanel.IsVisible}"/>
+    <!-- Exactly one sprite selected -->
+    <DockPanel x:Name="SpritePanel" Grid.Column="2"
+               IsVisible="{Binding SelectedSprites.Count, Converter={sd:IsEqualToParam}, ConverterParameter={sd:Int 1}}">
+      <StackPanel x:Name="SpriteToolBar" DockPanel.Dock="Top" Orientation="Horizontal" Margin="2">
+        <Button Classes="tool" Command="{Binding SelectNextSpriteCommand}" CommandParameter="{sd:Int -1}"
+                ToolTip.Tip="{sd:LocalizeString Select previous sprite (Ctrl+J), Context=ToolTip}">
+          <Image Classes="icon" Source="{StaticResource ImagePrevious}"/>
+        </Button>
+        <Button Classes="tool" Command="{Binding SelectNextSpriteCommand}" CommandParameter="{sd:Int 1}"
+                ToolTip.Tip="{sd:LocalizeString Select next sprite (Ctrl+K), Context=ToolTip}">
+          <Image Classes="icon" Source="{StaticResource ImageNext}"/>
+        </Button>
+        <Separator Width="1" Height="20" Margin="2,0"/>
+        <Button Classes="tool" Command="{Binding Viewport.ZoomOutCommand}"
+                ToolTip.Tip="{sd:LocalizeString Zoom out, Context=ToolTip}">
+          <Image Classes="icon" Source="{StaticResource ImageZoomOut}"/>
+        </Button>
+        <Button Classes="tool" Command="{Binding Viewport.ZoomInCommand}"
+                ToolTip.Tip="{sd:LocalizeString Zoom in, Context=ToolTip}">
+          <Image Classes="icon" Source="{StaticResource ImageZoomIn}"/>
+        </Button>
+        <Button Classes="tool" Command="{Binding Viewport.ScaleToRealSizeCommand}"
+                ToolTip.Tip="{sd:LocalizeString Scale to real pixel size, Context=ToolTip}">
+          <Image Classes="icon" Source="{StaticResource ImageScaleOnRealSize}"/>
+        </Button>
+        <Button Classes="tool" Command="{Binding Viewport.FitOnScreenCommand}"
+                ToolTip.Tip="{sd:LocalizeString Fit image to screen, Context=ToolTip}">
+          <Image Classes="icon" Source="{StaticResource ImageFitOnScreen}"/>
+        </Button>
+        <Button Classes="tool" Command="{Binding FocusOnRegionCommand}"
+                ToolTip.Tip="{sd:LocalizeString Center view on current sprite region (F), Context=ToolTip}">
+          <Image Classes="icon" Source="{StaticResource ImageFocusOnRegion}"/>
+        </Button>
+        <Separator Width="1" Height="20" Margin="2,0"/>
+        <Button Classes="tool" ToolTip.Tip="{sd:LocalizeString Change selection rectangle color, Context=ToolTip}">
+          <Border Width="16" Height="16" BorderThickness="1" BorderBrush="{Binding BorderColor, Converter={sd:ColorConverter}}"/>
+          <Button.Flyout>
+            <Flyout Placement="BottomEdgeAlignedLeft">
+              <sd:Color4Editor MinWidth="160" Value="{Binding BorderColor}"/>
+            </Flyout>
+          </Button.Flyout>
+        </Button>
+        <ToggleButton Classes="tool" IsChecked="{Binding SelectionHighlightEnabled, Mode=OneWay}"
+                      Command="{Binding ToggleSelectionHighlightCommand}"
+                      ToolTip.Tip="{sd:LocalizeString Highlight the current selection, Context=ToolTip}">
+          <Image Classes="icon" Source="{StaticResource ImageHighlightSelection}"/>
+        </ToggleButton>
+        <Separator Width="1" Height="20" Margin="2,0"/>
+        <Button Classes="tool" Command="{Binding UseWholeImageCommand}"
+                ToolTip.Tip="{sd:LocalizeString Select entire image (Ctrl+W), Context=ToolTip}">
+          <Image Classes="icon" Source="{StaticResource ImageSelectAll}"/>
+        </Button>
+        <!-- Magic wand, and how it delimits the sprites -->
+        <ToggleButton Classes="tool"
+                      IsChecked="{Binding ToolMode, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static se:SpriteSheetEditorToolMode.MagicWand}, Mode=OneWay}"
+                      Command="{Binding ToggleToolModeCommand}" CommandParameter="{x:Static se:SpriteSheetEditorToolMode.MagicWand}"
+                      ToolTip.Tip="{sd:LocalizeString Select the sprite region using the magic wand (M), Context=ToolTip}">
+          <Image Classes="icon" Source="{StaticResource ImageMagicWand}"/>
+        </ToggleButton>
+        <Button Classes="tool" Padding="2,4" ToolTip.Tip="{sd:LocalizeString Magic wand options, Context=ToolTip}">
+          <Path Width="6" Height="4" Stretch="Fill" Fill="{DynamicResource SystemControlForegroundBaseHighBrush}" Data="M0,0 L8,0 4,4 z"/>
+          <Button.Flyout>
+            <Flyout Placement="BottomEdgeAlignedLeft">
+              <StackPanel Margin="5">
+                <RadioButton Margin="4" GroupName="MagicWand" IsChecked="{Binding MagicWandUseTransparency}"
+                             Content="{sd:LocalizeString Use transparency, Context=Button}"/>
+                <RadioButton Margin="4" GroupName="MagicWand" IsChecked="{Binding !MagicWandUseTransparency}"
+                             Content="{sd:LocalizeString Use color key, Context=Button}"/>
+              </StackPanel>
+            </Flyout>
+          </Button.Flyout>
+        </Button>
+        <Separator Width="1" Height="20" Margin="2,0"/>
+        <!-- Sprite center (2D sprite sheets) -->
+        <ToggleButton Classes="tool"
+                      IsVisible="{Binding Type, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static sprite:SpriteSheetType.Sprite2D}}"
+                      IsChecked="{Binding ToolMode, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static se:SpriteSheetEditorToolMode.SpriteCenter}, Mode=OneWay}"
+                      Command="{Binding ToggleToolModeCommand}" CommandParameter="{x:Static se:SpriteSheetEditorToolMode.SpriteCenter}"
+                      ToolTip.Tip="{sd:LocalizeString Move the sprite center, Context=ToolTip}">
+          <Path Width="16" Height="16" Stretch="UniformToFill" Fill="{Binding BorderColor, Converter={sd:ColorConverter}}"
+                Data="F1 M 56,36L 56,40L 40,40L 40,56L 36,56L 36,40L 20,40L 20,36L 36,36L 36,20L 40,20L 40,36L 56,36 Z M 8,37L 8,39L 3.01401,39L 3,38L 3.01401,37L 8,37 Z M 13,37L 13,39L 10,39L 10,37L 13,37 Z M 18,37L 18,39L 15,39L 15,37L 18,37 Z M 39,8.00005L 37,8.00005L 37,3.01403L 38,3.00002L 39,3.01403L 39,8.00005 Z M 39,18.0001L 37,18.0001L 37,15.0001L 39,15.0001L 39,18.0001 Z M 37,10.0001L 39,10.0001L 39,13.0001L 37,13.0001L 37,10.0001 Z M 68,39L 68,37L 72.986,37L 73,38L 72.986,39L 68,39 Z M 63,39L 63,37L 66,37L 66,39L 63,39 Z M 57.9999,39L 57.9999,37L 61,37L 61,39L 57.9999,39 Z M 37,68L 39,68L 39,72.986L 38,73L 37,72.986L 37,68 Z M 37,63L 39,63L 39,66L 37,66L 37,63 Z M 37,58L 39,58L 39,61L 37,61L 37,58 Z "/>
+        </ToggleButton>
+        <!-- Sprite borders (UI sprite sheets), and whether they keep their distance to the sides of the region -->
+        <ToggleButton Classes="tool"
+                      IsVisible="{Binding Type, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static sprite:SpriteSheetType.UI}}"
+                      IsChecked="{Binding ToolMode, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static se:SpriteSheetEditorToolMode.Borders}, Mode=OneWay}"
+                      Command="{Binding ToggleToolModeCommand}" CommandParameter="{x:Static se:SpriteSheetEditorToolMode.Borders}"
+                      ToolTip.Tip="{sd:LocalizeString Resize the sprite borders, Context=ToolTip}">
+          <Rectangle Width="16" Height="16" StrokeThickness="1" StrokeDashArray="2,2" Stroke="{Binding BorderColor, Converter={sd:ColorConverter}}"/>
+        </ToggleButton>
+        <ToggleButton Classes="tool"
+                      IsVisible="{Binding Type, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static sprite:SpriteSheetType.UI}}"
+                      IsChecked="{Binding CurrentSprite.SpriteBorders.Locked, Mode=TwoWay, FallbackValue=False}">
+          <Panel>
+            <Image Classes="icon" Source="{StaticResource ImageLocked}" IsVisible="{Binding CurrentSprite.SpriteBorders.Locked, FallbackValue=False}"
+                   ToolTip.Tip="{sd:LocalizeString Unlock the sprite borders, Context=ToolTip}"/>
+            <Image Classes="icon" Source="{StaticResource ImageUnlocked}" IsVisible="{Binding !CurrentSprite.SpriteBorders.Locked, FallbackValue=True}"
+                   ToolTip.Tip="{sd:LocalizeString Lock the sprite borders, Context=ToolTip}"/>
+          </Panel>
+        </ToggleButton>
+      </StackPanel>
+
+      <ScrollViewer x:Name="ImageScrollViewer" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+        <Interaction.Behaviors>
+          <beh:SpriteViewportBehavior Viewport="{Binding Viewport}"/>
+        </Interaction.Behaviors>
+        <Panel Margin="10" HorizontalAlignment="Left" VerticalAlignment="Top">
+          <!-- The checkerboard under the transparent pixels -->
+          <Rectangle Width="{Binding Viewport.ActualContentWidth}" Height="{Binding Viewport.ActualContentHeight}"
+                     HorizontalAlignment="Left" VerticalAlignment="Top">
+            <Rectangle.Fill>
+              <DrawingBrush Stretch="None" TileMode="Tile" DestinationRect="0,0,16,16">
+                <DrawingBrush.Drawing>
+                  <DrawingGroup>
+                    <GeometryDrawing Geometry="M0,0 L16,0 16,16, 0,16Z" Brush="LightGray"/>
+                    <GeometryDrawing Geometry="M0,8 L16,8 16,16, 8,16 8,0 0,0Z" Brush="Gray"/>
+                  </DrawingGroup>
+                </DrawingBrush.Drawing>
+              </DrawingBrush>
+            </Rectangle.Fill>
+          </Rectangle>
+          <!-- The image of the sprite, at the zoom of the viewport. The pixel tools pick in it. -->
+          <Image x:Name="SpriteImage" HorizontalAlignment="Left" VerticalAlignment="Top" Stretch="Fill"
+                 RenderOptions.BitmapInterpolationMode="None"
+                 Width="{Binding Viewport.ActualContentWidth}" Height="{Binding Viewport.ActualContentHeight}"
+                 Cursor="{Binding ToolMode, Converter={x:Static conv:SpriteEditorConverters.ToolModeToCursor}}">
+            <Image.Source>
+              <MultiBinding Converter="{x:Static conv:SpriteEditorConverters.SourceToBitmap}">
+                <Binding Path="CurrentSprite.Source" FallbackValue="{x:Null}"/>
+                <Binding Path="Cache"/>
+              </MultiBinding>
+            </Image.Source>
+          </Image>
+          <!-- The tools: the region, borders and center of the sprite and their handles -->
+          <Canvas x:Name="ToolsCanvas" IsHitTestVisible="{Binding !UsingPixelTool}">
+            <!-- Dark background around the region (selection highlight) -->
+            <Border Canvas.Left="0" Canvas.Top="0" Opacity="0.75" BorderBrush="#FF0F0F0F"
+                    Width="{Binding Viewport.ActualContentWidth}" Height="{Binding Viewport.ActualContentHeight}"
+                    IsVisible="{Binding SelectionHighlightEnabled}">
+              <Border.BorderThickness>
+                <MultiBinding Converter="{x:Static conv:SpriteEditorConverters.ToThickness}">
+                  <Binding Path="CurrentSprite.TextureRegion.ActualLeft" FallbackValue="0"/>
+                  <Binding Path="CurrentSprite.TextureRegion.ActualTop" FallbackValue="0"/>
+                  <Binding Path="CurrentSprite.TextureRegion.ActualRightOffset" FallbackValue="0"/>
+                  <Binding Path="CurrentSprite.TextureRegion.ActualBottomOffset" FallbackValue="0"/>
+                </MultiBinding>
+              </Border.BorderThickness>
+            </Border>
+            <!-- The region with a margin of 6 for the handles: left/top offsets are equal, width/height offsets are the
+                 double of them -->
+            <Panel x:Name="RegionPanel"
+                   Canvas.Left="{Binding CurrentSprite.TextureRegion.ActualLeft, Converter={x:Static conv:SpriteEditorConverters.AddDouble}, ConverterParameter={sd:Double -6}, FallbackValue=0}"
+                   Canvas.Top="{Binding CurrentSprite.TextureRegion.ActualTop, Converter={x:Static conv:SpriteEditorConverters.AddDouble}, ConverterParameter={sd:Double -6}, FallbackValue=0}"
+                   Width="{Binding CurrentSprite.TextureRegion.ActualWidth, Converter={x:Static conv:SpriteEditorConverters.AddDouble}, ConverterParameter={sd:Double 12}, FallbackValue=0}"
+                   Height="{Binding CurrentSprite.TextureRegion.ActualHeight, Converter={x:Static conv:SpriteEditorConverters.AddDouble}, ConverterParameter={sd:Double 12}, FallbackValue=0}">
+              <!-- Border margin is equal to (left/top offset of the panel - border thickness + 0.1) -->
+              <Rectangle x:Name="TextureRegionBorder" Margin="4.1" StrokeThickness="2" Fill="Transparent"
+                         Stroke="{Binding BorderColor, Converter={sd:ColorConverter}}"/>
+              <Rectangle x:Name="SpriteBordersRectangle" StrokeThickness="2" StrokeDashArray="4,4" Fill="Transparent"
+                         Stroke="{Binding BorderColor, Converter={sd:ColorConverter}}"
+                         Margin="{Binding CurrentSprite.SpriteBorders.ActualBorders, Converter={x:Static conv:SpriteEditorConverters.Vector4ToThickness}, ConverterParameter={sd:Double 5}, FallbackValue=5}"
+                         IsVisible="{Binding Type, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static sprite:SpriteSheetType.UI}}"/>
+              <Canvas x:Name="SpriteCenterMarker"
+                      Margin="{Binding CurrentSprite.SpriteCenter.ActualCenter, Converter={x:Static conv:SpriteEditorConverters.Vector2ToThickness}, ConverterParameter={sd:Double -2}, FallbackValue=0}"
+                      IsVisible="{Binding Type, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static sprite:SpriteSheetType.Sprite2D}}">
+                <Path Width="16" Height="16" Stretch="UniformToFill" Fill="{Binding BorderColor, Converter={sd:ColorConverter}}"
+                      Data="F1 M 35,19L 41,19L 41,35L 57,35L 57,41L 41,41L 41,57L 35,57L 35,41L 19,41L 19,35L 35,35L 35,19 Z "/>
+              </Canvas>
+              <!-- Size tools -->
+              <Grid x:Name="RegionHandles"
+                    IsVisible="{Binding ToolMode, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static se:SpriteSheetEditorToolMode.None}}">
+                <Thumb Classes="handle" Margin="10" Cursor="SizeAll">
+                  <Interaction.Behaviors>
+                    <beh:ResizingThumbBehavior Target="{Binding CurrentSprite.TextureRegion}" Direction="Center"/>
+                  </Interaction.Behaviors>
+                </Thumb>
+                <Thumb Classes="handle" Width="10" Height="10" Cursor="TopLeftCorner" HorizontalAlignment="Left" VerticalAlignment="Top">
+                  <Interaction.Behaviors>
+                    <beh:ResizingThumbBehavior Target="{Binding CurrentSprite.TextureRegion}" Direction="TopLeft"/>
+                  </Interaction.Behaviors>
+                </Thumb>
+                <Thumb Classes="handle" Height="10" Margin="10,0" Cursor="SizeNorthSouth" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+                  <Interaction.Behaviors>
+                    <beh:ResizingThumbBehavior Target="{Binding CurrentSprite.TextureRegion}" Direction="Top"/>
+                  </Interaction.Behaviors>
+                </Thumb>
+                <Thumb Classes="handle" Width="10" Height="10" Cursor="TopRightCorner" HorizontalAlignment="Right" VerticalAlignment="Top">
+                  <Interaction.Behaviors>
+                    <beh:ResizingThumbBehavior Target="{Binding CurrentSprite.TextureRegion}" Direction="TopRight"/>
+                  </Interaction.Behaviors>
+                </Thumb>
+                <Thumb Classes="handle" Width="10" Margin="0,10" Cursor="SizeWestEast" HorizontalAlignment="Left" VerticalAlignment="Stretch">
+                  <Interaction.Behaviors>
+                    <beh:ResizingThumbBehavior Target="{Binding CurrentSprite.TextureRegion}" Direction="Left"/>
+                  </Interaction.Behaviors>
+                </Thumb>
+                <Thumb Classes="handle" Width="10" Margin="0,10" Cursor="SizeWestEast" HorizontalAlignment="Right" VerticalAlignment="Stretch">
+                  <Interaction.Behaviors>
+                    <beh:ResizingThumbBehavior Target="{Binding CurrentSprite.TextureRegion}" Direction="Right"/>
+                  </Interaction.Behaviors>
+                </Thumb>
+                <Thumb Classes="handle" Width="10" Height="10" Cursor="BottomLeftCorner" HorizontalAlignment="Left" VerticalAlignment="Bottom">
+                  <Interaction.Behaviors>
+                    <beh:ResizingThumbBehavior Target="{Binding CurrentSprite.TextureRegion}" Direction="BottomLeft"/>
+                  </Interaction.Behaviors>
+                </Thumb>
+                <Thumb Classes="handle" Height="10" Margin="10,0" Cursor="SizeNorthSouth" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
+                  <Interaction.Behaviors>
+                    <beh:ResizingThumbBehavior Target="{Binding CurrentSprite.TextureRegion}" Direction="Bottom"/>
+                  </Interaction.Behaviors>
+                </Thumb>
+                <Thumb Classes="handle" Width="10" Height="10" Cursor="BottomRightCorner" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+                  <Interaction.Behaviors>
+                    <beh:ResizingThumbBehavior Target="{Binding CurrentSprite.TextureRegion}" Direction="BottomRight"/>
+                  </Interaction.Behaviors>
+                </Thumb>
+              </Grid>
+              <!-- Center tool -->
+              <Canvas x:Name="CenterHandle"
+                      IsVisible="{Binding ToolMode, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static se:SpriteSheetEditorToolMode.SpriteCenter}}"
+                      Margin="{Binding CurrentSprite.SpriteCenter.ActualCenter, Converter={x:Static conv:SpriteEditorConverters.Vector2ToThickness}, ConverterParameter={sd:Double -2}, FallbackValue=0}">
+                <Thumb Classes="handle" Width="16" Height="16" Cursor="SizeAll">
+                  <Interaction.Behaviors>
+                    <beh:ResizingThumbBehavior Target="{Binding CurrentSprite.SpriteCenter}" Direction="Center"/>
+                  </Interaction.Behaviors>
+                </Thumb>
+              </Canvas>
+              <!-- Borders tool -->
+              <Grid x:Name="BorderHandles"
+                    IsVisible="{Binding ToolMode, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static se:SpriteSheetEditorToolMode.Borders}}"
+                    Margin="{Binding CurrentSprite.SpriteBorders.ActualBorders, Converter={x:Static conv:SpriteEditorConverters.Vector4ToThickness}, ConverterParameter={sd:Double 0}, FallbackValue=0}">
+                <Thumb Classes="handle" Width="10" Height="10" Cursor="TopLeftCorner" HorizontalAlignment="Left" VerticalAlignment="Top">
+                  <Interaction.Behaviors>
+                    <beh:ResizingThumbBehavior Target="{Binding CurrentSprite.SpriteBorders}" Direction="TopLeft"/>
+                  </Interaction.Behaviors>
+                </Thumb>
+                <Thumb Classes="handle" Height="10" Margin="10,0" Cursor="SizeNorthSouth" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+                  <Interaction.Behaviors>
+                    <beh:ResizingThumbBehavior Target="{Binding CurrentSprite.SpriteBorders}" Direction="Top"/>
+                  </Interaction.Behaviors>
+                </Thumb>
+                <Thumb Classes="handle" Width="10" Height="10" Cursor="TopRightCorner" HorizontalAlignment="Right" VerticalAlignment="Top">
+                  <Interaction.Behaviors>
+                    <beh:ResizingThumbBehavior Target="{Binding CurrentSprite.SpriteBorders}" Direction="TopRight"/>
+                  </Interaction.Behaviors>
+                </Thumb>
+                <Thumb Classes="handle" Width="10" Margin="0,10" Cursor="SizeWestEast" HorizontalAlignment="Left" VerticalAlignment="Stretch">
+                  <Interaction.Behaviors>
+                    <beh:ResizingThumbBehavior Target="{Binding CurrentSprite.SpriteBorders}" Direction="Left"/>
+                  </Interaction.Behaviors>
+                </Thumb>
+                <Thumb Classes="handle" Width="10" Margin="0,10" Cursor="SizeWestEast" HorizontalAlignment="Right" VerticalAlignment="Stretch">
+                  <Interaction.Behaviors>
+                    <beh:ResizingThumbBehavior Target="{Binding CurrentSprite.SpriteBorders}" Direction="Right"/>
+                  </Interaction.Behaviors>
+                </Thumb>
+                <Thumb Classes="handle" Width="10" Height="10" Cursor="BottomLeftCorner" HorizontalAlignment="Left" VerticalAlignment="Bottom">
+                  <Interaction.Behaviors>
+                    <beh:ResizingThumbBehavior Target="{Binding CurrentSprite.SpriteBorders}" Direction="BottomLeft"/>
+                  </Interaction.Behaviors>
+                </Thumb>
+                <Thumb Classes="handle" Height="10" Margin="10,0" Cursor="SizeNorthSouth" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
+                  <Interaction.Behaviors>
+                    <beh:ResizingThumbBehavior Target="{Binding CurrentSprite.SpriteBorders}" Direction="Bottom"/>
+                  </Interaction.Behaviors>
+                </Thumb>
+                <Thumb Classes="handle" Width="10" Height="10" Cursor="BottomRightCorner" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+                  <Interaction.Behaviors>
+                    <beh:ResizingThumbBehavior Target="{Binding CurrentSprite.SpriteBorders}" Direction="BottomRight"/>
+                  </Interaction.Behaviors>
+                </Thumb>
+              </Grid>
+            </Panel>
+          </Canvas>
+        </Panel>
+      </ScrollViewer>
+    </DockPanel>
+  </Grid>
 </UserControl>

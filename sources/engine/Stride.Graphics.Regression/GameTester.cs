@@ -59,9 +59,12 @@ namespace Stride.Graphics.Regression
                 try
                 {
                     // Use headless context when not in interactive mode (no window/display needed)
-                    var context = game is GameTestBase { ScreenShotAutomationEnabled: true }
-                        ? GameContextFactory.NewGameContext(AppContextType.Headless)
-                        : null; // null = auto-detect (creates a window)
+                    var context = game switch
+                    {
+                        GameTestBase { ContextType: { } contextType } => GameContextFactory.NewGameContext(contextType),
+                        GameTestBase { ScreenShotAutomationEnabled: true } => GameContextFactory.NewGameContext(AppContextType.Headless),
+                        _ => null, // null = auto-detect (creates a window)
+                    };
                     game.Run(context);
                 }
                 finally

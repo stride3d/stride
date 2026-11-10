@@ -1,10 +1,13 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Compiler;
@@ -20,6 +23,7 @@ using Stride.Editor.Build;
 using Stride.Editor.Resources;
 using Stride.Graphics;
 using Stride.Shaders.Compiler;
+using Stride.Core.Assets.Presentation.Services;
 
 namespace Stride.Editor.Thumbnails
 {
@@ -33,12 +37,21 @@ namespace Stride.Editor.Thumbnails
         private readonly Dictionary<AssetId, ThumbnailContinuation?> thumbnailsInProgressAndContinuation = new Dictionary<AssetId, ThumbnailContinuation?>();
         private readonly SessionViewModel session;
         private readonly GameStudioBuilderService assetBuilderService;
-        private readonly ThumbnailListCompiler? thumbnailCompiler;
         private readonly Func<AssetItem, GameSettingsAsset, bool, ListBuildStep>? headlessCompile;
         private readonly AssetCompilerRegistry compilerRegistry;
         private readonly List<ThumbnailPriorityItem> assetsToIncreasePriority = new List<ThumbnailPriorityItem>();
-        private readonly ThumbnailGenerator? generator;
         private bool thumbnailThreadShouldTerminate;
+
+        // The generator (a graphics device) takes 0.35 to 0.7 s to create: the first thumbnail creates it on the builder's
+        // thread, not the opening of the session on the UI thread. generatorLock guards the fields below: the session can
+        // close while the generator is created.
+        private static readonly Logger Log = GlobalLogger.GetLogger("Thumbnails");
+        private readonly Func<ThumbnailGenerator>? createGenerator;
+        private readonly object generatorLock = new object();
+        private ThumbnailGenerator? generator;
+        private ThumbnailListCompiler? thumbnailCompiler;
+        private Task? generatorCreation;
+        private bool generatorClosed;
 
         /// <summary>Stops the loop of <see cref="StartPushNotificationsTask"/>.</summary>
         private readonly CancellationTokenSource notificationsCancellation = new();
@@ -54,7 +67,7 @@ namespace Stride.Editor.Thumbnails
         private readonly GameSettingsProviderService gameSettingsProviderService;
 
         public GameStudioThumbnailService(SessionViewModel session, GameSettingsProviderService settingsProvider, GameStudioBuilderService assetBuilderService)
-            : this(session, settingsProvider, assetBuilderService, new ThumbnailGenerator((EffectCompilerBase)assetBuilderService.EffectCompiler), null)
+            : this(session, settingsProvider, assetBuilderService, () => new ThumbnailGenerator((EffectCompilerBase)assetBuilderService.EffectCompiler), null)
         {
         }
 
@@ -68,17 +81,15 @@ namespace Stride.Editor.Thumbnails
         {
         }
 
-        private GameStudioThumbnailService(SessionViewModel session, GameSettingsProviderService settingsProvider, GameStudioBuilderService assetBuilderService, ThumbnailGenerator? generator, Func<AssetItem, GameSettingsAsset, bool, ListBuildStep>? headlessCompile)
+        private GameStudioThumbnailService(SessionViewModel session, GameSettingsProviderService settingsProvider, GameStudioBuilderService assetBuilderService, Func<ThumbnailGenerator>? createGenerator, Func<AssetItem, GameSettingsAsset, bool, ListBuildStep>? headlessCompile)
         {
             this.session = session ?? throw new ArgumentNullException(nameof(session));
             this.assetBuilderService = assetBuilderService ?? throw new ArgumentNullException(nameof(assetBuilderService));
-            this.generator = generator;
+            this.createGenerator = createGenerator;
             this.headlessCompile = headlessCompile;
 
             compilerRegistry = new AssetCompilerRegistry { DefaultCompiler = new CustomAssetThumbnailCompiler() };
             compilerRegistry.RegisterAttributeCompilers<StaticThumbnailAttribute>(typeof(ThumbnailCompilationContext), CreateStaticThumbnailCompiler);
-            if (generator != null)
-                thumbnailCompiler = new ThumbnailListCompiler(generator, ThumbnailBuilt, compilerRegistry);
 
             gameSettingsProviderService = settingsProvider ?? throw new ArgumentNullException(nameof(settingsProvider));
             gameSettingsProviderService.GameSettingsChanged += GameSettingsChanged;
@@ -87,17 +98,81 @@ namespace Stride.Editor.Thumbnails
         }
 
         /// <inheritdoc/>
-        public Task StopAsync()
+        public async Task StopAsync()
         {
             RemoveQueuedBuildUnits();
-            return generator?.StopAsync() ?? Task.CompletedTask;
+            Task creation;
+            lock (generatorLock)
+            {
+                generatorClosed = true;
+                creation = generatorCreation ?? Task.CompletedTask;
+            }
+
+            // A generator whose creation ends now is disposed by that creation
+            await creation;
+            ThumbnailGenerator? current;
+            lock (generatorLock)
+                current = generator;
+            if (current != null)
+                await current.StopAsync();
         }
 
         public void Dispose()
         {
             RemoveQueuedBuildUnits();
-            generator?.Dispose();
+            ThumbnailGenerator? current;
+            lock (generatorLock)
+            {
+                generatorClosed = true;
+                current = generator;
+            }
+            current?.Dispose();
             gameSettingsProviderService.GameSettingsChanged -= GameSettingsChanged;
+        }
+
+        /// <summary>
+        /// Gets the compiler of the thumbnails, and creates the generator the first time.
+        /// </summary>
+        /// <returns>The compiler, or <c>null</c> once the service is stopped or when the generator could not be created.</returns>
+        private ThumbnailListCompiler? GetOrCreateThumbnailCompiler()
+        {
+            TaskCompletionSource created;
+            lock (generatorLock)
+            {
+                // Only the first call creates the generator; the builder prepares its build units one at a time anyway
+                if (generatorClosed || generatorCreation != null)
+                    return thumbnailCompiler;
+                created = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+                generatorCreation = created.Task;
+            }
+
+            try
+            {
+                var newGenerator = createGenerator!();
+                lock (generatorLock)
+                {
+                    if (!generatorClosed)
+                    {
+                        generator = newGenerator;
+                        thumbnailCompiler = new ThumbnailListCompiler(newGenerator, ThumbnailBuilt, compilerRegistry);
+                        return thumbnailCompiler;
+                    }
+                }
+
+                // The session closed meanwhile: nothing else disposes this generator
+                newGenerator.Dispose();
+                return null;
+            }
+            catch (Exception e)
+            {
+                // No thumbnail is built then: the next build units find no compiler
+                Log.Error("The thumbnail generator could not be created.", e);
+                return null;
+            }
+            finally
+            {
+                created.SetResult();
+            }
         }
 
         private void RemoveQueuedBuildUnits()
@@ -180,8 +255,17 @@ namespace Stride.Editor.Thumbnails
             return compiler?.IsStatic ?? true;
         }
 
-        public ListBuildStep Compile(AssetItem asset, GameSettingsAsset gameSettings)
+        public ListBuildStep? Compile(AssetItem asset, GameSettingsAsset gameSettings)
         {
+            var compiler = headlessCompile == null ? GetOrCreateThumbnailCompiler() : null;
+            if (headlessCompile == null && compiler == null)
+            {
+                // Stopped, or no generator: this thumbnail is not built
+                lock (hashLock)
+                    thumbnailQueueHash.Remove(asset.Id);
+                return null;
+            }
+
             // Mark thumbnail as being compiled
             lock (hashLock)
             {
@@ -190,8 +274,8 @@ namespace Stride.Editor.Thumbnails
             }
 
             var staticThumbnail = HasStaticThumbnail(asset.Asset.GetType());
-            return thumbnailCompiler != null
-                ? thumbnailCompiler.Compile(asset, gameSettings, staticThumbnail)
+            return compiler != null
+                ? compiler.Compile(asset, gameSettings, staticThumbnail)
                 : headlessCompile!(asset, gameSettings, staticThumbnail);
         }
 
@@ -288,9 +372,13 @@ namespace Stride.Editor.Thumbnails
             ThumbnailData? thumbnailData = null;
             if (e.ThumbnailStream != null)
             {
-                var stream = new MemoryStream();
-                e.ThumbnailStream.CopyTo(stream);
-                thumbnailData = new BitmapThumbnailData(e.ThumbnailId, stream);
+                // The view of each editor shows its own image type: the factory of the host decodes the PNG (no factory, no UI: no image)
+                if (session.ServiceProvider.TryGet<IThumbnailDataFactory>() is { } factory)
+                {
+                    var stream = new MemoryStream();
+                    e.ThumbnailStream.CopyTo(stream);
+                    thumbnailData = factory.CreateFromStream(e.ThumbnailId, stream);
+                }
             }
 
             if (e.Result != ThumbnailBuildResult.Cancelled)

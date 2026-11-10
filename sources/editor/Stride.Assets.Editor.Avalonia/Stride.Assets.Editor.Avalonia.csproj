@@ -7,7 +7,7 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-    <!-- Like Stride.Assets.Presentation.Wpf this assembly is part of the editor host, not an Editor package, so it declares
+    <!-- Like Stride.Assets.Editor.Wpf this assembly is part of the editor host, not an Editor package, so it declares
          no StridePackageKind and no StrideEditorToolkit (the toolkit check requires StridePackageKind Editor). -->
   </PropertyGroup>
 
@@ -15,6 +15,10 @@
     <Compile Include="../../shared/SharedAssemblyInfo.cs">
       <Link>Properties/SharedAssemblyInfo.cs</Link>
     </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
 
   <ItemGroup>

@@ -171,19 +171,4 @@ public sealed class ProcessRestartTests
         var path = Path.Combine(fixture.PackageDirectory, "Assets", AssetLocation + ".sdtextpropertiestest");
         return ((TextPropertiesAsset)AssetFileSerializer.Load<TextPropertiesAsset>(path).Asset).Label;
     }
-
-    private sealed class RecordingProcessLauncher : IEditorProcessLauncher
-    {
-        public List<IReadOnlyList<string>> Starts { get; } = [];
-
-        public EditorProcessService Service { get; set; } = null!;
-
-        public Action? Started { get; set; }
-
-        public void Start(IReadOnlyList<string> arguments)
-        {
-            Starts.Add([.. arguments]);
-            Started?.Invoke();
-        }
-    }
 }

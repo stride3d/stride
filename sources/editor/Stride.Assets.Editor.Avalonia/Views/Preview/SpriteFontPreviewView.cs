@@ -11,4 +11,6 @@ namespace Stride.Assets.Editor.Avalonia.Views.Preview;
 [AssetPreviewView<PrecompiledSpriteFontPreview>]
 public class SpriteFontPreviewView : StridePreviewView
 {
+    /// <inheritdoc />
+    protected override Type StyleKeyOverride => typeof(SpriteFontPreviewView);
 }

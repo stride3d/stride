@@ -4,7 +4,6 @@
 using Microsoft.CSharp.RuntimeBinder;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Assets.Yaml;

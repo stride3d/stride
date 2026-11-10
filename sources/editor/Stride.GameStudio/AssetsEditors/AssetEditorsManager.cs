@@ -13,6 +13,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Extensions;
@@ -24,10 +25,11 @@ using Stride.Assets.Presentation.CurveEditor.Views;
 using AvalonDock.Layout;
 using Stride.GameStudio.Helpers;
 using Stride.GameStudio.Layout;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.GameStudio.AssetsEditors
 {
-    internal sealed class AssetEditorsManager : IAssetEditorsManager, IDestroyable
+    internal sealed class AssetEditorsManager : IWpfAssetEditorsManager, IDestroyable
     {
         private readonly ConditionalWeakTable<IMultipleAssetEditorViewModel, NotifyCollectionChangedEventHandler> registeredHandlers = [];
         private readonly Dictionary<IAssetEditorViewModel, LayoutAnchorable> assetEditors = [];
@@ -160,9 +162,21 @@ namespace Stride.GameStudio.AssetsEditors
 
         /// <inheritdoc/>
         [NotNull]
-        public Task OpenAssetEditorWindow([NotNull] AssetViewModel asset)
+        public Task OpenAssetEditorAsync([NotNull] AssetViewModel asset)
         {
             return OpenAssetEditorWindow(asset, true);
+        }
+
+        /// <inheritdoc/>
+        public Task<bool> CloseAssetEditorAsync([NotNull] AssetViewModel asset, bool? save)
+        {
+            return Task.FromResult(CloseAssetEditorWindow(asset, save));
+        }
+
+        /// <inheritdoc/>
+        public Task<bool> CloseAllEditorsAsync(bool? save)
+        {
+            return Task.FromResult(CloseAllEditorWindows(save));
         }
 
         /// <inheritdoc/>
@@ -252,7 +266,7 @@ namespace Stride.GameStudio.AssetsEditors
         /// Opens (and activates) an editor window for the given asset. If an editor window for this asset already exists, simply activates it.
         /// </summary>
         /// <param name="asset">The asset for which to show an editor window.</param>
-        /// <param name="saveSettings">True if <see cref="MRUAdditionalData.OpenedAssets"/> should be updated, false otherwise. Note that if the editor fail to load it will not be updated.</param>
+        /// <param name="saveSettings">True if <see cref="Stride.Core.Assets.Editor.Settings.MRUAdditionalData.OpenedAssets"/> should be updated, false otherwise. Note that if the editor fail to load it will not be updated.</param>
         /// <returns></returns>
         internal async Task OpenAssetEditorWindow([NotNull] AssetViewModel asset, bool saveSettings)
         {
@@ -564,16 +578,16 @@ namespace Stride.GameStudio.AssetsEditors
 
             if (editorPane.Content is FrameworkElement element && element?.DataContext is AssetViewModel asset)
             {
-                if (openedAssets.TryGetValue(asset, out var editor) && editor is Assets.Presentation.AssetEditors.GameEditor.ViewModels.GameEditorViewModel gameEditor)
+                if (openedAssets.TryGetValue(asset, out var editor) && editor is Assets.Editor.ViewModels.IGameEditorViewModel gameEditor)
                 {
                     // A tab/sub-window is visible via IsSelected, not IsVisible
                     if (editorPane.IsSelected)
                     {
-                        gameEditor.ShowGame();
+                        gameEditor.GameHost.ShowGame();
                     }
                     else
                     {
-                        gameEditor.HideGame();
+                        gameEditor.GameHost.HideGame();
                     }
                 }
             }

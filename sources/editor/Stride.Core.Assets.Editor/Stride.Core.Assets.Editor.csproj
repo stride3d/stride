@@ -5,6 +5,7 @@
     <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
+    <StrideLocalized>true</StrideLocalized>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
@@ -17,7 +18,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- The build of the game (Components/Build): MSBuild is located at runtime, as in Stride.Core.Assets -->
+    <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Build.Framework" ExcludeAssets="runtime" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="../../editor/Stride.Core.Assets.Presentation/Stride.Core.Assets.Presentation.csproj" />
+    <!-- The routing of the asset compiler's crashes to the crash reporter, for the builds of both editors (Components/Build) -->
   </ItemGroup>
 
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />

@@ -4,16 +4,16 @@
 using Stride.Assets.Presentation;
 using Stride.Core;
 using Stride.Core.Assets;
-using Stride.Core.Assets.Editor.Common.Tests.Helpers;
+using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Tests.Helpers;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Quantum.ViewModels;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Editor.Build;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Editor.Tests.Helpers;
 
@@ -73,7 +73,19 @@ public sealed class AssetsSessionFixture : IDisposable
     /// Saves a package with the given assets (location relative to the package, asset) and opens it.
     /// </summary>
     /// <param name="initializeEditor">Whether to run the editor plugin's session initialization (build services, commands and updaters).</param>
-    public static async Task<AssetsSessionFixture> OpenAsync(bool initializeEditor, params (string Location, Asset Asset)[] assets)
+    public static Task<AssetsSessionFixture> OpenAsync(bool initializeEditor, params (string Location, Asset Asset)[] assets)
+    {
+        // One dispatcher call at a time, as on the UI thread: the session raises its events on the thread pool
+        return OpenAsync(initializeEditor, new ExclusiveDispatcherService(), assets);
+    }
+
+    /// <summary>
+    /// Saves a package with the given assets (location relative to the package, asset) and opens it, with the given
+    /// dispatcher as the UI thread.
+    /// </summary>
+    /// <param name="initializeEditor">Whether to run the editor plugin's session initialization (build services, commands and updaters).</param>
+    /// <param name="dispatcher">The dispatcher of the UI thread; the session must be opened from it.</param>
+    public static async Task<AssetsSessionFixture> OpenAsync(bool initializeEditor, IDispatcherService dispatcher, params (string Location, Asset Asset)[] assets)
     {
         var directory = Path.Combine(Path.GetTempPath(), "Stride.Assets.Editor.Tests", Guid.NewGuid().ToString("N"));
         var assetsPlugin = new StrideDefaultAssetsPlugin();
@@ -81,7 +93,7 @@ public sealed class AssetsSessionFixture : IDisposable
         var plugins = new TestPluginService(assetsPlugin, editorPlugin);
         var serviceProvider = new ViewModelServiceProvider(
         [
-            new NullDispatcherService(),
+            dispatcher,
             new FakeEditorDialogService(),
             new FakeClipboardService(),
             plugins,

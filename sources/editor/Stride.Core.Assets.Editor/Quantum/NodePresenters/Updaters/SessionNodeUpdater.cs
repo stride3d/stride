@@ -1,20 +1,22 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModels;
-using Stride.Core.Assets.Editor.Quantum.NodePresenters;
+using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
 using Stride.Core.Reflection;
 using Stride.Core.Serialization;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters;
 
 public sealed class SessionNodeUpdater : AssetNodePresenterUpdaterBase
 {
-    private readonly SessionViewModel session;
+    private readonly ISessionViewModel session;
 
-    public SessionNodeUpdater(SessionViewModel session)
+    public SessionNodeUpdater(ISessionViewModel session)
     {
         this.session = session;
     }

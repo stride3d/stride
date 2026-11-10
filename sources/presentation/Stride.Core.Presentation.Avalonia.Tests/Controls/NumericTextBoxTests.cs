@@ -110,4 +110,51 @@ public sealed class NumericTextBoxTests
 
         Assert.Equal(7.0, box.Value);
     }
+
+    [AvaloniaFact]
+    public void ChangingTheDecimalPlacesRoundsTheShownValue()
+    {
+        // A float shown as a double: what the property grid gets for 0.65f
+        var (_, box) = Show(new NumericTextBox { Value = (double)0.65f });
+        Assert.Equal("0.6499999761581421", box.Text);
+
+        box.DecimalPlaces = 6;
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.Equal("0.65", box.Text);
+        // Only the text is rounded
+        Assert.Equal((double)0.65f, box.Value);
+    }
+
+    [AvaloniaTheory]
+    [InlineData(PhysicalKey.ArrowUp, RawInputModifiers.None, 1.5)]
+    [InlineData(PhysicalKey.ArrowDown, RawInputModifiers.None, 0.5)]
+    [InlineData(PhysicalKey.ArrowUp, RawInputModifiers.Shift, 11)]
+    [InlineData(PhysicalKey.ArrowDown, RawInputModifiers.Shift, -9)]
+    [InlineData(PhysicalKey.PageUp, RawInputModifiers.None, 11)]
+    [InlineData(PhysicalKey.PageDown, RawInputModifiers.None, -9)]
+    public void TheArrowsAndPagesChangeTheValueByASmallOrLargeStep(PhysicalKey key, RawInputModifiers modifiers, double expected)
+    {
+        var (window, box) = Show(new NumericTextBox { Value = 1, SmallChange = 0.5, LargeChange = 10 });
+        box.GetVisualDescendants().OfType<TextBox>().Single().Focus();
+
+        window.KeyPressQwerty(key, modifiers);
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.Equal(expected, box.Value);
+        Assert.Equal(expected.ToString(System.Globalization.CultureInfo.InvariantCulture), box.Text);
+    }
+
+    [AvaloniaFact]
+    public void TheStepsStayWithinTheBounds()
+    {
+        var (window, box) = Show(new NumericTextBox { Minimum = 0, Maximum = 2, Value = 1.5, SmallChange = 1 });
+        box.GetVisualDescendants().OfType<TextBox>().Single().Focus();
+
+        window.KeyPressQwerty(PhysicalKey.ArrowUp, RawInputModifiers.None);
+        Assert.Equal(2.0, box.Value);
+
+        window.KeyPressQwerty(PhysicalKey.PageDown, RawInputModifiers.None);
+        Assert.Equal(0.0, box.Value);
+    }
 }

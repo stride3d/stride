@@ -5,6 +5,7 @@ using Stride.Assets;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Tests.Helpers;
+using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.BuildEngine;
 using Stride.Core.Diagnostics;
@@ -12,6 +13,7 @@ using Stride.Core.Storage;
 using Stride.Editor.Tests.Helpers;
 using Stride.Editor.Thumbnails;
 using Stride.Graphics;
+using Stride.Core.Assets.Presentation.Services;
 
 namespace Stride.Editor.Tests;
 
@@ -223,15 +225,19 @@ public sealed class ThumbnailServiceTests
 
         var log = new LoggerResult();
         log.Warning("The font could not be loaded");
-        var png = new MemoryStream(Stride.Core.Assets.Editor.Annotations.DeclaredResources.Read(typeof(ThumbnailServiceTests).Assembly, "StaticThumbnail.png")!);
-        service.NotifyThumbnailBuilt(new ThumbnailBuiltEventArgs { AssetId = asset.Id, Url = asset.Url, Result = ThumbnailBuildResult.Succeeded, ThumbnailId = ObjectId.New(), ThumbnailStream = png, BuildLog = log });
+        var pngBytes = Stride.Core.Assets.Editor.Annotations.DeclaredResources.Read(typeof(ThumbnailServiceTests).Assembly, "StaticThumbnail.png")!;
+        var thumbnailId = ObjectId.New();
+        service.NotifyThumbnailBuilt(new ThumbnailBuiltEventArgs { AssetId = asset.Id, Url = asset.Url, Result = ThumbnailBuildResult.Succeeded, ThumbnailId = thumbnailId, ThumbnailStream = new MemoryStream(pngBytes), BuildLog = log });
 
         var args = Assert.Single(completed);
         Assert.Equal(asset.Id, args.AssetId);
-        var data = Assert.IsType<BitmapThumbnailData>(args.Data);
+        // The thumbnail data comes from the factory of the host (each editor shows its own image type), with a copy of the PNG
+        var factory = Assert.IsType<FakeThumbnailDataFactory>(fixture.Session.ServiceProvider.Get<IThumbnailDataFactory>());
+        var stream = Assert.IsType<MemoryStream>(Assert.Single(factory.Streams));
+        Assert.Equal(pngBytes, stream.ToArray());
+        var data = Assert.IsType<FakeThumbnailData>(args.Data);
         await data.PrepareForPresentation(fixture.Session.Dispatcher);
-        var image = Assert.IsType<Image>(data.Presenter);
-        Assert.True(image.Description.Width > 0);
+        Assert.Same(stream, data.Presenter);
         // The thumbnail log of the asset shows why the thumbnail is broken
         Assert.Contains(fixture.Session.AssetLog.FilteredMessages.Concat(fixture.Session.AssetLog.Messages), x => x.Text.Contains("font"));
     }

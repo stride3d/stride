@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2026-09-12 15:24:52+0200\n"
+"POT-Creation-Date: 2026-11-07 10:57:05+0000\n"
 "PO-Revision-Date: 2019-02-18 00:29+0000\n"
 "Last-Translator: Allan Nordhøy <epost@anotheragency.no>\n"
 "Language-Team: Norwegian Bokmål <https://hosted.weblate.org/projects/stride/"

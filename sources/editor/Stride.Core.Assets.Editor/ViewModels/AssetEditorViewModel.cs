@@ -1,11 +1,13 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 
 using Stride.Core.Assets.Editor.Components.Properties;
-using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Diagnostics;
+using Stride.Core.Extensions;
+using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModels;
 
@@ -36,8 +38,6 @@ public class AssetEditorViewModel<TAsset> : AssetEditorViewModel, IAssetEditorVi
 
     /// <inheritdoc cref="IAssetEditorViewModel{T}.Asset" />
     public override TAsset Asset => (TAsset)base.Asset;
-
-    public SessionObjectPropertiesViewModel EditorProperties => Session.ActiveProperties;
 }
 
 /// <summary>
@@ -60,13 +60,32 @@ public abstract class AssetEditorViewModel : DispatcherViewModel, IAssetEditorVi
     /// <summary>
     /// The current session.
     /// </summary>
+    /// <remarks>Asset editors only exist in the editor's session, so the session of their asset is always a <see cref="SessionViewModel"/>.</remarks>
     public SessionViewModel Session => (SessionViewModel)Asset.Session;
+
+    /// <summary>
+    /// The undo/redo service used by this view model.
+    /// </summary>
+    public IUndoRedoService UndoRedoService => ServiceProvider.Get<IUndoRedoService>();
+
+    /// <summary>
+    /// The properties that the editor shows in the property grid: those of the main asset view of the session
+    /// (<see cref="SessionViewModel.AssetViewProperties"/>), which become the active properties when they change.
+    /// </summary>
+    public SessionObjectPropertiesViewModel EditorProperties => Session.AssetViewProperties;
 
     /// <summary>
     /// A task that completes once the editor is initialized; the content loader of an editor game waits for it before
     /// reloading changed assets. Editors with an asynchronous initialization override it.
     /// </summary>
     public virtual Task EditorInitialized => Task.CompletedTask;
+
+    /// <summary>
+    /// A task that completes once the editor, after <see cref="ViewModelBase.Destroy"/>, runs nothing more on other threads, such as
+    /// the frames of the game of a scene editor. The session waits for it before the plugins leave and take their settings keys
+    /// with them, which those threads read. Editors that stop asynchronously override it.
+    /// </summary>
+    public virtual Task Stopped => Task.CompletedTask;
 
     /// <summary>
     /// Initializes this editor asynchronously. The default initialization has nothing to do and succeeds.
@@ -107,5 +126,15 @@ public abstract class AssetEditorViewModel : DispatcherViewModel, IAssetEditorVi
     public virtual Task<bool> PreviewCloseAsync(bool? save)
     {
         return Task.FromResult(PreviewClose(save));
+    }
+
+    /// <summary>
+    /// Shows the properties of the <see cref="Asset"/>.
+    /// </summary>
+    protected void ShowAssetProperties()
+    {
+        EditorProperties.TypeDescription = Asset.TypeDisplayName;
+        EditorProperties.Name = Asset.Name;
+        EditorProperties.GenerateSelectionPropertiesAsync(Asset.Yield()).Forget();
     }
 }

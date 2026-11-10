@@ -46,6 +46,10 @@ public sealed class TemplateWindowTests
             Assert.True(window.IsVisible);
             Assert.Same(viewModel, window.Parameters);
             Assert.Equal("New project — Test game", window.Title);
+            // The name of the template in the header band, as in WPF
+            var band = window.FindControl<Border>("HeaderBand")!;
+            Assert.True(band.IsVisible);
+            Assert.Equal(viewModel.TemplateName, Assert.IsType<TextBlock>(band.Child).Text);
 
             // One row per user-facing parameter, with the control of its type
             Assert.Equal(4, window.ParametersList.ItemCount);

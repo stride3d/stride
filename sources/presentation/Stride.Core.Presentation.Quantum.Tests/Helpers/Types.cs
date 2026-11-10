@@ -75,6 +75,11 @@ public static class Types
         public required string Children { get; set; }
     }
 
+    public class ClassWithRefToMembersNamedLikeTheViewModel
+    {
+        public ClassWithMembersNamedLikeTheViewModel? Ref { get; set; }
+    }
+
     public class ClassWithRefCollection
     {
         [Display(1)]

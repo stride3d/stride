@@ -10,7 +10,7 @@
     <RootNamespace>Stride.Core.Presentation.Graph</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Stride.GraphX.WPF.Controls" />
+    <PackageReference Include="GraphX" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">

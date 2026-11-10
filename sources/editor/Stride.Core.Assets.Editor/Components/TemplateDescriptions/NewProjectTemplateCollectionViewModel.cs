@@ -1,13 +1,14 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 
 using Stride.Core.Assets.Editor.Settings;
-using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 
@@ -24,7 +25,7 @@ public sealed class NewProjectTemplateCollectionViewModel : ProjectTemplateColle
     private readonly TemplateDescriptionGroupViewModel rootGroup;
     private bool arePropertiesValid;
 
-    public NewProjectTemplateCollectionViewModel(IViewModelServiceProvider serviceProvider, SessionViewModel session)
+    public NewProjectTemplateCollectionViewModel(IViewModelServiceProvider serviceProvider, ISessionViewModel session)
         : base(serviceProvider)
     {
         ArgumentNullException.ThrowIfNull(session);
@@ -52,7 +53,7 @@ public sealed class NewProjectTemplateCollectionViewModel : ProjectTemplateColle
         SelectedGroup = rootGroup;
     }
 
-    public SessionViewModel Session { get; }
+    public ISessionViewModel Session { get; }
 
     /// <summary>
     /// The result of the last <see cref="ValidateProperties"/>.

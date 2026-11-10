@@ -1,9 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 
-using Stride.Core.Assets.Editor.ViewModels;
-using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
@@ -11,23 +9,31 @@ using Stride.Core.Presentation.Dirtiables;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Transactions;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Components.Transactions;
 
+/// <summary>
+/// A view model representing transactions that can be undone/redone and that affect the dirty flag of <see cref="AssetViewModel"/>.
+/// </summary>
 public sealed class ActionHistoryViewModel : DispatcherViewModel
 {
     private readonly IUndoRedoService service;
-    private readonly SessionViewModel session;
+    private readonly ISessionViewModel session;
     private readonly ObservableList<TransactionViewModel> transactions = [];
 
-    public ActionHistoryViewModel(SessionViewModel session)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ActionHistoryViewModel"/> class.
+    /// </summary>
+    /// <param name="session">The session this view model belongs to.</param>
+    public ActionHistoryViewModel(ISessionViewModel session)
         : base(session.SafeArgument().ServiceProvider)
     {
         this.session = session;
         service = ServiceProvider.Get<IUndoRedoService>();
         transactions.CollectionChanged += (_, _) => RefreshUndoRedoStatus();
-        UndoCommand = new AnonymousCommand(ServiceProvider, () => { service.Undo(); session.CheckConsistency(); RefreshUndoRedoStatus(); });
-        RedoCommand = new AnonymousCommand(ServiceProvider, () => { service.Redo(); session.CheckConsistency(); RefreshUndoRedoStatus(); });
+        UndoCommand = new AnonymousCommand(ServiceProvider, () => { service.Undo(); session.Internals().CheckConsistency(); RefreshUndoRedoStatus(); });
+        RedoCommand = new AnonymousCommand(ServiceProvider, () => { service.Redo(); session.Internals().CheckConsistency(); RefreshUndoRedoStatus(); });
         RefreshUndoRedoStatus();
     }
 
@@ -100,7 +106,7 @@ public sealed class ActionHistoryViewModel : DispatcherViewModel
     private void TransactionDiscarded(object? sender, TransactionsDiscardedEventArgs e)
     {
         Dispatcher.Invoke(() => transactions.RemoveWhere(x => e.Transactions.Any(y => x.Id == y.Id)));
-        session.UpdateHasUnsavedChanges();
+        session.Internals().UpdateHasUnsavedChanges();
     }
 
     // Note: the dirtiable manager of the undo/redo service handles the events of the stack before this view model, so the dirty
@@ -110,7 +116,7 @@ public sealed class ActionHistoryViewModel : DispatcherViewModel
         if (e.Transaction.Operations.Count == 0)
             return;
 
-        session.UpdateHasUnsavedChanges();
+        session.Internals().UpdateHasUnsavedChanges();
 
         var dirtying = e.Transaction.Operations.SelectMany(DirtiableManager.GetDirtyingOperations);
         var dirtiables = new HashSet<AssetViewModel>(dirtying.SelectMany(x => x.Dirtiables.OfType<AssetViewModel>()));
@@ -123,7 +129,7 @@ public sealed class ActionHistoryViewModel : DispatcherViewModel
 
     private async void TransactionUndoneOrRedone(object? sender, TransactionEventArgs e)
     {
-        session.UpdateHasUnsavedChanges();
+        session.Internals().UpdateHasUnsavedChanges();
         var dirtying = e.Transaction.Operations.SelectMany(DirtiableManager.GetDirtyingOperations);
         var dirtiables = new HashSet<AssetViewModel>(dirtying.SelectMany(x => x.Dirtiables.OfType<AssetViewModel>()));
         if (dirtiables.Count > 0)

@@ -3,6 +3,7 @@
 
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Data;
 using Avalonia.Headless.XUnit;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -81,6 +82,121 @@ public sealed class EditorControlTests
         editor.Y = 5;
 
         Assert.Equal(new Vector3(1, 5, 3), editor.Value);
+    }
+
+    [AvaloniaFact]
+    public void TimeSpanEditorSplitsTheValueIntoComponents()
+    {
+        var editor = Show(new TimeSpanEditor { Value = new TimeSpan(1, 2, 3, 4, 500) });
+
+        Assert.Equal(1, editor.Days);
+        Assert.Equal(2, editor.Hours);
+        Assert.Equal(3, editor.Minutes);
+        Assert.Equal(4.5, editor.Seconds);
+
+        var boxes = editor.GetVisualDescendants().OfType<NumericTextBox>().ToList();
+        Assert.Equal([1.0, 2.0, 3.0, 4.5], boxes.Select(x => x.Value));
+    }
+
+    [AvaloniaFact]
+    public void TimeSpanEditorComponentsUpdateTheValue()
+    {
+        var editor = Show(new TimeSpanEditor { Value = new TimeSpan(1, 2, 3, 4) });
+
+        editor.Hours = 5;
+        Assert.Equal(new TimeSpan(1, 5, 3, 4), editor.Value);
+
+        editor.Seconds = 30.25;
+        Assert.Equal(new TimeSpan(1, 5, 3, 30, 250), editor.Value);
+    }
+
+    [AvaloniaFact]
+    public void TimeSpanEditorFollowsValueChanges()
+    {
+        var editor = Show(new TimeSpanEditor { Value = TimeSpan.FromSeconds(10) });
+
+        editor.Value = TimeSpan.FromMinutes(90);
+
+        Assert.Equal(0, editor.Days);
+        Assert.Equal(1, editor.Hours);
+        Assert.Equal(30, editor.Minutes);
+        Assert.Equal(0.0, editor.Seconds);
+    }
+
+    [AvaloniaFact]
+    public void TimeSpanEditorWritesComponentEditsToTheBoundSource()
+    {
+        var source = new TimeSpanSource { Duration = new TimeSpan(0, 0, 1, 0) };
+        var editor = new TimeSpanEditor { DataContext = source };
+        editor.Bind(TimeSpanEditor.ValueProperty, new Binding(nameof(TimeSpanSource.Duration)));
+        Show(editor);
+
+        Assert.Equal(1, editor.Minutes);
+
+        editor.Minutes = 2;
+
+        Assert.Equal(new TimeSpan(0, 0, 2, 0), source.Duration);
+    }
+
+    [AvaloniaFact]
+    public void DateTimeEditorSplitsTheValueIntoComponents()
+    {
+        var editor = Show(new DateTimeEditor { Value = new DateTime(2026, 10, 29, 18, 52, 30, 500) });
+
+        Assert.Equal(2026, editor.Year);
+        Assert.Equal(10, editor.Month);
+        Assert.Equal(29, editor.Day);
+        Assert.Equal(18, editor.Hour);
+        Assert.Equal(52, editor.Minute);
+        Assert.Equal(30.5, editor.Second);
+    }
+
+    [AvaloniaFact]
+    public void DateTimeEditorComponentsUpdateTheValue()
+    {
+        var editor = Show(new DateTimeEditor { Value = new DateTime(2026, 1, 31, 10, 0, 0) });
+
+        editor.Hour = 12;
+        Assert.Equal(new DateTime(2026, 1, 31, 12, 0, 0), editor.Value);
+
+        // The day is clamped to the days of the new month
+        editor.Month = 2;
+        Assert.Equal(new DateTime(2026, 2, 28, 12, 0, 0), editor.Value);
+        Assert.Equal(28, editor.Day);
+    }
+
+    [AvaloniaFact]
+    public void DateTimeEditorWritesComponentEditsToTheBoundSource()
+    {
+        var source = new DateTimeSource { Date = new DateTime(2026, 10, 29) };
+        var editor = new DateTimeEditor { DataContext = source };
+        editor.Bind(DateTimeEditor.ValueProperty, new Binding(nameof(DateTimeSource.Date)));
+        Show(editor);
+
+        editor.Year = 2027;
+
+        Assert.Equal(new DateTime(2027, 10, 29), source.Date);
+    }
+
+    [AvaloniaFact]
+    public void DateTimeEditorEditsTheComponentsInADropDown()
+    {
+        var editor = Show(new DateTimeEditor { Value = new DateTime(2026, 10, 29, 18, 52, 30) });
+        var toggle = editor.GetVisualDescendants().OfType<ToggleButton>().Single(x => x.Name == "PickerToggleButton");
+        var popup = editor.GetVisualDescendants().OfType<Popup>().Single();
+        Assert.False(popup.IsOpen);
+
+        toggle.IsChecked = true;
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.True(popup.IsOpen);
+        var boxes = popup.Child!.GetVisualDescendants().OfType<NumericTextBox>().ToList();
+        Assert.Equal([2026.0, 10.0, 29.0, 18.0, 52.0, 30.0], boxes.Select(x => x.Value));
+
+        boxes[2].Value = 1;
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.Equal(new DateTime(2026, 10, 1, 18, 52, 30), editor.Value);
     }
 
     [AvaloniaFact]
@@ -230,5 +346,15 @@ public sealed class EditorControlTests
         Assert.Equal(typeof(Vector4Editor), Vector4Editor.WProperty.OwnerType);
         Assert.Equal(typeof(Int3Editor), Int3Editor.ZProperty.OwnerType);
         Assert.Equal(typeof(TimeSpanEditor), TimeSpanEditor.PlaceholderTextProperty.OwnerType);
+    }
+
+    private sealed class TimeSpanSource
+    {
+        public TimeSpan? Duration { get; set; }
+    }
+
+    private sealed class DateTimeSource
+    {
+        public DateTime? Date { get; set; }
     }
 }

@@ -24,14 +24,27 @@ public sealed class NumericTextBox : TemplatedControl
 
     static NumericTextBox()
     {
+        DecimalPlacesProperty.Changed.AddClassHandler<NumericTextBox>(OnDecimalPlacesPropertyChanged);
         MaximumProperty.Changed.AddClassHandler<NumericTextBox>(OnMaximumPropertyChanged);
         MinimumProperty.Changed.AddClassHandler<NumericTextBox>(OnMinimumPropertyChanged);
         TextProperty.Changed.AddClassHandler<NumericTextBox, string?>(OnTextPropertyChanged);
         ValueProperty.Changed.AddClassHandler<NumericTextBox, double?>(OnValuePropertyChanged);
     }
 
+    public NumericTextBox()
+    {
+        // The inner text box moves its caret with the arrows: the steps take them first, as the WPF class bindings of the text box do
+        AddHandler(KeyDownEvent, OnPreviewKeyDown, RoutingStrategies.Tunnel);
+    }
+
     public static readonly StyledProperty<int> DecimalPlacesProperty =
         AvaloniaProperty.Register<NumericTextBox, int>(nameof(DecimalPlaces), -1);
+
+    public static readonly StyledProperty<double> LargeChangeProperty =
+        AvaloniaProperty.Register<NumericTextBox, double>(nameof(LargeChange), 10.0);
+
+    public static readonly StyledProperty<double> SmallChangeProperty =
+        AvaloniaProperty.Register<NumericTextBox, double>(nameof(SmallChange), 1.0);
 
     public static readonly StyledProperty<double> MaximumProperty =
         AvaloniaProperty.Register<NumericTextBox, double>(nameof(Maximum), double.MaxValue, defaultBindingMode: BindingMode.TwoWay);
@@ -58,6 +71,24 @@ public sealed class NumericTextBox : TemplatedControl
     {
         get => GetValue(DecimalPlacesProperty);
         set => SetValue(DecimalPlacesProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the amount added or removed by Page Up, Page Down, or Shift with the Up and Down arrows.
+    /// </summary>
+    public double LargeChange
+    {
+        get => GetValue(LargeChangeProperty);
+        set => SetValue(LargeChangeProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the amount added or removed by the Up and Down arrows.
+    /// </summary>
+    public double SmallChange
+    {
+        get => GetValue(SmallChangeProperty);
+        set => SetValue(SmallChangeProperty, value);
     }
 
     public double Maximum
@@ -143,6 +174,26 @@ public sealed class NumericTextBox : TemplatedControl
     {
         CommitInput(true);
         base.OnLostFocus(e);
+    }
+
+    private void OnPreviewKeyDown(object? sender, KeyEventArgs e)
+    {
+        var large = e.Key is Key.PageUp or Key.PageDown || e.KeyModifiers.HasFlag(KeyModifiers.Shift);
+        double? delta = e.Key switch
+        {
+            Key.Up or Key.PageUp => large ? LargeChange : SmallChange,
+            Key.Down or Key.PageDown => -(large ? LargeChange : SmallChange),
+            _ => null,
+        };
+        if (delta is not { } change || e.KeyModifiers.HasFlag(KeyModifiers.Control) || e.KeyModifiers.HasFlag(KeyModifiers.Alt))
+            return;
+
+        // Increasing an empty value starts from the minimum, decreasing it from the maximum, as in WPF
+        var value = (Value ?? (change > 0 ? Minimum : Maximum)) + change;
+        SetCurrentValue(ValueProperty, MathUtil.Clamp(value, Minimum, Maximum));
+        BindingOperations.GetBindingExpressionBase(this, ValueProperty)?.UpdateSource();
+        TextBox?.SelectAll();
+        e.Handled = true;
     }
 
     private bool CommitInput(bool forceTextUpdate = false)
@@ -271,6 +322,15 @@ public sealed class NumericTextBox : TemplatedControl
         finally
         {
             isTextChangedFromUI = false;
+        }
+    }
+
+    private static void OnDecimalPlacesPropertyChanged(NumericTextBox sender, AvaloniaPropertyChangedEventArgs _)
+    {
+        // The rounding of the displayed value changed
+        if (sender.IsInitialized)
+        {
+            sender.SyncTextAndValueProperties(false, null, true);
         }
     }
 

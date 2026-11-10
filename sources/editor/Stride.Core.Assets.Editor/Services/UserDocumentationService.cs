@@ -1,12 +1,14 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 
+using System.Collections.Concurrent;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Xml;
-using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Reflection;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Services;
 
@@ -14,19 +16,22 @@ public sealed class UserDocumentationService
 {
     private static readonly Logger Log = GlobalLogger.GetLogger(nameof(UserDocumentationService));
 
-    private readonly Dictionary<string, string> cachedDocumentations = [];
-    private readonly HashSet<string> undocumentedAssemblies = [];
-    private readonly HashSet<string> documentedAssemblies = [];
-    private readonly object lockObj = new();
-    private readonly SessionViewModel session;
+    // The property grid reads the documentation from several threads while a reload of the game code clears it (#3682)
+    private readonly ConcurrentDictionary<string, string> cachedDocumentations = new();
+    /// <summary>
+    /// The assemblies whose documentation was looked for, and whether they have one.
+    /// </summary>
+    private readonly ConcurrentDictionary<string, bool> assemblies = new();
+    private readonly ISessionViewModel session;
 
-    public UserDocumentationService(SessionViewModel session)
+    public UserDocumentationService(ISessionViewModel session)
     {
         this.session = session;
     }
 
     public string? GetMemberDocumentation(IMemberDescriptor member, Type rootType)
     {
+        ArgumentNullException.ThrowIfNull(member);
         string result;
         string key;
 
@@ -36,11 +41,8 @@ public sealed class UserDocumentationService
             // Remove generic type arguments specifications
             key = $"{prefix}:{rootType.FullName}.{member.Name}";
 
-            lock (lockObj)
-            {
-                if (cachedDocumentations.TryGetValue(key, out result))
-                    return result;
-            }
+            if (cachedDocumentations.TryGetValue(key, out result))
+                return result;
         }
 
         if (!CacheAssemblyDocumentation(member.DeclaringType.Assembly))
@@ -51,14 +53,12 @@ public sealed class UserDocumentationService
         // Remove generic type arguments specifications
         key = $"{prefix}:{declaringType}.{member.Name}";
 
-        lock (lockObj)
-        {
-            return cachedDocumentations.TryGetValue(key, out result) ? result : null;
-        }
+        return cachedDocumentations.TryGetValue(key, out result) ? result : null;
     }
 
     public string? GetPropertyKeyDocumentation(PropertyKey propertyKey)
     {
+        ArgumentNullException.ThrowIfNull(propertyKey);
         var ownerType = propertyKey.OwnerType;
         if (ownerType == null)
             return null;
@@ -70,21 +70,14 @@ public sealed class UserDocumentationService
         var suffix = propertyKey.Name.Split('.').Last();
         var key = $"F:{declaringType}.{suffix}";
 
-        lock (lockObj)
-        {
-            return cachedDocumentations.TryGetValue(key, out string result) ? result : null;
-        }
+        return cachedDocumentations.TryGetValue(key, out string result) ? result : null;
     }
 
     public void ClearCachedAssemblyDocumentation(Assembly assembly)
     {
         var assemblyName = assembly.GetName().Name;
 
-        lock (lockObj)
-        {
-            documentedAssemblies.Remove(assemblyName);
-            undocumentedAssemblies.Remove(assemblyName);
-        }
+        assemblies.TryRemove(assemblyName, out _);
     }
 
     public bool CacheAssemblyDocumentation(Assembly assembly)
@@ -95,55 +88,51 @@ public sealed class UserDocumentationService
 
         var assemblyName = assembly.GetName().Name;
 
-        // Check if the assembly has already been marked as undocumented
-        if (undocumentedAssemblies.Contains(assemblyName))
-            return false;
+        // Return early if the assembly has already been processed
+        if (assemblies.TryGetValue(assemblyName, out var documented))
+            return documented;
 
-        // If no documentation has been loaded yet, attempt to load it now
-        if (!documentedAssemblies.Contains(assemblyName))
+        // No documentation has been loaded yet, attempt to load it now
+        var location = assembly.Location;
+        if (string.IsNullOrEmpty(location) && session.CurrentProject?.Package != null)
         {
-            var location = assembly.Location;
-            if (string.IsNullOrEmpty(location) && session.CurrentProject?.Package != null)
+            //Try to find the assembly in the loaded assemblies, since Location won't be populated in the case of User assemblies
+            var package = session.CurrentProject.Package;
+
+            if (package.Container is SolutionProject solutionProject && solutionProject.Type == ProjectType.Executable)
             {
-                //Try to find the assembly in the loaded assemblies, since Location won't be populated in the case of User assemblies
-                var package = session.CurrentProject.Package;
-
-                if (package.Container is SolutionProject solutionProject && solutionProject.Type == ProjectType.Executable)
+                Log.Info($"Package {solutionProject.Name} is a solution project. Attempting to cache documentation for dependencies.");
+                foreach (var dep in solutionProject.DirectDependencies)
                 {
-                    Log.Info($"Package {solutionProject.Name} is a solution project. Attempting to cache documentation for dependencies.");
-                    foreach (var dep in solutionProject.DirectDependencies)
-                    {
-                        var docPath = Path.Combine(Path.GetDirectoryName(solutionProject.TargetPath) ?? "", dep.Name + ".xml");
+                    var docPath = Path.Combine(Path.GetDirectoryName(solutionProject.TargetPath) ?? "", dep.Name + ".xml");
 
-                        CacheAssemblyDocumentationFromPath(dep.Name, docPath);
-                    }
-                }
-                else
-                {
-                    foreach (var asm in package.LoadedAssemblies)
-                    {
-                        var name = asm.Assembly.GetName();
-                        if (name.Name == assemblyName)
-                        {
-                            CacheAssemblyDocumentationFromPath(assemblyName, asm.Path);
-                            break;
-                        }
-                    }
+                    CacheAssemblyDocumentationFromPath(dep.Name, docPath);
                 }
             }
             else
             {
-                CacheAssemblyDocumentationFromPath(assemblyName, location);
+                foreach (var asm in package.LoadedAssemblies)
+                {
+                    var name = asm.Assembly.GetName();
+                    if (name.Name == assemblyName)
+                    {
+                        CacheAssemblyDocumentationFromPath(assemblyName, asm.Path);
+                        break;
+                    }
+                }
             }
-
+        }
+        else
+        {
+            CacheAssemblyDocumentationFromPath(assemblyName, location);
         }
 
-        return documentedAssemblies.Contains(assemblyName);
+        return assemblies.TryGetValue(assemblyName, out documented) && documented;
     }
 
     private void CacheAssemblyDocumentationFromPath(string assemblyName, string location)
     {
-        if (string.IsNullOrEmpty(location) || documentedAssemblies.Contains(assemblyName))
+        if (string.IsNullOrEmpty(location) || (assemblies.TryGetValue(assemblyName, out var documented) && documented))
         {
             return;
         }
@@ -156,18 +145,12 @@ public sealed class UserDocumentationService
             // Fallback to XML assembly.
             if (!CacheXmlDocumentation(basePath + ".xml"))
             {
-                lock (lockObj)
-                {
-                    undocumentedAssemblies.Add(assemblyName);
-                }
+                assemblies[assemblyName] = false;
                 return;
             }
         }
 
-        lock (lockObj)
-        {
-            documentedAssemblies.Add(assemblyName);
-        }
+        assemblies[assemblyName] = true;
     }
 
     /// <summary>
@@ -199,10 +182,7 @@ public sealed class UserDocumentationService
                         continue;
                     }
 
-                    lock (lockObj)
-                    {
-                        cachedDocumentations[key] = documentation;
-                    }
+                    cachedDocumentations[key] = documentation;
                 }
             }
         }
@@ -250,10 +230,7 @@ public sealed class UserDocumentationService
                     var key = line.Substring(0, separator);
                     var documentation = line.Substring(separator + 1);
 
-                    lock (lockObj)
-                    {
-                        cachedDocumentations[key] = documentation;
-                    }
+                    cachedDocumentations[key] = documentation;
                 }
             }
         }

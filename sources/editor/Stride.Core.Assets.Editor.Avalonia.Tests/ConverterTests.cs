@@ -5,8 +5,12 @@ using System.Globalization;
 using Avalonia;
 using Stride.Core.Assets.Editor.Avalonia.Converters;
 using Stride.Core.Assets.Editor.Avalonia.Tests.Helpers;
+using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Quantum.ViewModels;
+using Stride.Core.Assets.Presentation.Components.Properties;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Avalonia.Tests;
 
@@ -28,6 +32,19 @@ public sealed class ConverterTests
         Assert.Null(new DifferentValuesToString().Convert(marker, typeof(string), null, Culture));
         Assert.Equal("3", new DifferentValuesToString().Convert(3, typeof(string), null, Culture));
         Assert.Equal(string.Empty, new DifferentValuesToString().Convert(null, typeof(string), null, Culture));
+    }
+
+    [Theory]
+    [InlineData("Ground", "Ground")]
+    [InlineData("NavigationMesh", "Navigation\u200BMesh")]
+    [InlineData("Texture2D", "Texture\u200B2D")]
+    [InlineData("LOD0", "LOD\u200B0")]
+    [InlineData("my_asset", "my_\u200Basset")]
+    public void NameBreakingLineLetsTheTilesWrapNamesBetweenWords(string name, string expected)
+    {
+        // As the WPF asset tiles: a zero-width space after a symbol and between the words of a camel-cased name
+        Assert.Equal(expected, new NameBreakingLine().Convert(name, typeof(string), null, Culture));
+        Assert.Null(new NameBreakingLine().Convert(null, typeof(string), null, Culture));
     }
 
     [Fact]
@@ -59,9 +76,59 @@ public sealed class ConverterTests
         Assert.Equal("base-image", new TypeToResource().Convert(typeof(Derived), typeof(object), null, Culture));
     }
 
+    [Fact]
+    public void TypeToResourceAsksThePluginHostAlongTheBaseTypes()
+    {
+        // The images that the plugins of the session register or the registered assemblies declare
+        var pluginService = new ImagesPluginService(new() { [typeof(HostBase)] = "host-image" });
+
+        Assert.Equal("host-image", TypeToResource.FetchResourceFromType(typeof(HostBase), true, pluginService));
+        Assert.Equal("host-image", TypeToResource.FetchResourceFromType(typeof(HostDerived), true, pluginService));
+        Assert.Null(TypeToResource.FetchResourceFromType(typeof(HostDerived), false, pluginService));
+        Assert.Null(TypeToResource.FetchResourceFromType(typeof(HostBase), true, null));
+    }
+
     private class Base;
 
     private sealed class Derived : Base;
+
+    private class HostBase;
+
+    private sealed class HostDerived : HostBase;
+
+    /// <summary>
+    /// A plugin service with type images only.
+    /// </summary>
+    private sealed class ImagesPluginService(Dictionary<Type, object> images) : IAssetsPluginService
+    {
+        public IReadOnlyList<AssetsPlugin> Plugins => [];
+
+        public object? GetImageForType(Type type) => images.GetValueOrDefault(type);
+
+        public bool HasImagesForEnum(ISessionViewModel? session, Type enumType) => false;
+
+        public object? GetImageForEnum(ISessionViewModel? session, object value) => null;
+
+        public bool HasEditorView(ISessionViewModel session, Type viewModelType) => false;
+
+        public Type? GetAssetViewModelType(Type assetType) => null;
+
+        public Type? GetEditorViewModelType(Type viewModelType) => null;
+
+        public Type? GetEditorViewType(Type editorViewModelType) => null;
+
+        public Type? GetPreviewViewModelType(Type previewType) => null;
+
+        public Type? GetPreviewViewType(Type previewType) => null;
+
+        public void RegisterSession(ISessionViewModel session, ILogger logger) => throw new NotSupportedException();
+
+        public void InitializeSession(ISessionViewModel session) => throw new NotSupportedException();
+
+        public IEnumerable<Type> GetPrimitiveTypes(ISessionViewModel session) => [];
+
+        public IEnumerable<PackageSettingsEntry> GetProfileSettings() => [];
+    }
 
     /// <summary>
     /// A plugin exposing the type images to the tests.

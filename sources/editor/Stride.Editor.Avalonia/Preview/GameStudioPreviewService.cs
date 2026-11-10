@@ -12,7 +12,6 @@ using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Compiler;
 using Stride.Core.Assets.Editor.Extensions;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.BuildEngine;
 using Stride.Core;
@@ -28,6 +27,7 @@ using Stride.Editor.Preview;
 using Stride.Games;
 using Stride.Graphics;
 using Stride.Shaders.Compiler;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Editor.Avalonia.Preview
 {
@@ -154,11 +154,15 @@ namespace Stride.Editor.Avalonia.Preview
         private void StrideUIThread()
         {
             // No window: the game renders into an offscreen back buffer that the viewport shows
-            PreviewGame = new PreviewGame(AssetBuilderService.EffectCompiler);
+            var previewGame = new PreviewGame(AssetBuilderService.EffectCompiler);
+            lock (previewLock)
+            {
+                PreviewGame = previewGame;
+                // An asset selected before the game existed (the asset of the editors that open with the session) shows first
+                if (previewBuildQueue != null)
+                    PreviewGame.Script.AddTask(ChangePreviewAsset);
+            }
             var context = viewport.Attach(PreviewGame);
-
-            // Wait for shaders to be loaded
-            AssetBuilderService.WaitForShaders();
 
             if (!DisablePreview)
             {
@@ -210,6 +214,9 @@ namespace Stride.Editor.Avalonia.Preview
             var graphicsProfile = PreviewGame.GraphicsDeviceManager.GraphicsDevice.Features.CurrentProfile;
             //ThumbnailService.ThumbnailBuilderContext.GetGameSettingsAsset().Get<RenderingSettings>().DefaultGraphicsProfile = graphicsProfile;
             previewCompileContext.GetGameSettingsAsset().GetOrCreate<RenderingSettings>().DefaultGraphicsProfile = graphicsProfile;
+
+            // Only the effects need the system shaders: the device is created while they are imported, the content after
+            AssetBuilderService.WaitForShaders();
         }
 
         public void SetAssetToPreview(AssetViewModel asset)
@@ -217,6 +224,9 @@ namespace Stride.Editor.Avalonia.Preview
             lock (previewLock)
             {
                 previewBuildQueue = asset;
+                // The game thread has not created the game yet: it takes the asset when it does
+                if (PreviewGame is null)
+                    return;
             }
             if (!previewGameEnded)
                 PreviewGame.Script.AddTask(ChangePreviewAsset);

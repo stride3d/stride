@@ -72,6 +72,7 @@ namespace Stride.Graphics
         private uint allocatedSetCount;
 
         private uint? activeStencilReference = 0;
+        private Color4 blendFactor = Color4.White;
 
         private CompiledCommandList currentCommandList;
 
@@ -212,14 +213,6 @@ namespace Stride.Graphics
             renderingDirty = true;
         }
 
-        /// <summary>
-        /// Sets the stream targets.
-        /// </summary>
-        /// <param name="buffers">The buffers.</param>
-        public void SetStreamTargets(params Buffer[] buffers)
-        {
-        }
-
         private unsafe void BindPipeline()
         {
             if (!pipelineDirty)
@@ -272,13 +265,6 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Unsets the render targets.
-        /// </summary>
-        public void UnsetRenderTargets()
-        {
-        }
-
-        /// <summary>
         ///   Vulkan implementation that sets a scissor rectangle to the rasterizer stage.
         /// </summary>
         /// <param name="scissorRectangle">The scissor rectangle to set.</param>
@@ -313,6 +299,7 @@ namespace Stride.Graphics
             BindDescriptorSets();
             SetViewportImpl();
             GraphicsDevice.NativeDeviceApi.vkCmdSetStencilReference(currentCommandList.NativeCommandBuffer, VkStencilFaceFlags.FrontAndBack, activeStencilReference ?? 0);
+            GraphicsDevice.NativeDeviceApi.vkCmdSetBlendConstants(currentCommandList.NativeCommandBuffer, blendFactor.R, blendFactor.G, blendFactor.B, blendFactor.A);
 
             // A read-only depth view drops depth and stencil writes instead of being invalid
             // usage, matching D3D12's read-only depth-stencil view behavior
@@ -492,6 +479,18 @@ namespace Stride.Graphics
                 activeStencilReference = (uint) stencilReference;
                 GraphicsDevice.NativeDeviceApi.vkCmdSetStencilReference(currentCommandList.NativeCommandBuffer, VkStencilFaceFlags.FrontAndBack, activeStencilReference.Value);
             }
+        }
+
+        /// <summary>
+        ///   Sets the blend factors used by the blend states that use <see cref="Blend.BlendFactor"/> or
+        ///   <see cref="Blend.InverseBlendFactor"/>.
+        /// </summary>
+        /// <param name="blendFactor">The blend factor for each RGBA component. It is <see cref="Color4.White"/> until set.</param>
+        /// <seealso cref="SetPipelineState(PipelineState)"/>
+        public void SetBlendFactor(Color4 blendFactor)
+        {
+            // Each draw sets it on the command buffer (PrepareDraw)
+            this.blendFactor = blendFactor;
         }
 
         public void SetPipelineState(PipelineState pipelineState)
@@ -930,27 +929,6 @@ namespace Stride.Graphics
                                                  BarrierMapping.ToVkPipelineStageFlags(layoutAfter), BarrierMapping.ToVkAccessFlags(layoutAfter), BarrierMapping.ToVkImageLayout(layoutAfter));
         }
 
-        [Obsolete("Use BarrierLayout overload instead.")]
-        public void ResourceBarrierTransition(GraphicsResource resource, GraphicsResourceState newState)
-        {
-            var layout = (int)newState switch
-            {
-                0x04 => BarrierLayout.RenderTarget,
-                0x08 => BarrierLayout.UnorderedAccess,
-                0x10 => BarrierLayout.DepthStencilWrite,
-                0x20 => BarrierLayout.DepthStencilRead,
-                0x80 => BarrierLayout.ShaderResource,
-                0xC0 => BarrierLayout.ShaderResource,
-                0x200 => BarrierLayout.IndirectArgument,
-                0x400 => BarrierLayout.CopyDest,
-                0x800 => BarrierLayout.CopySource,
-                0x1000 => BarrierLayout.ResolveDest,
-                0x2000 => BarrierLayout.ResolveSource,
-                _ => BarrierLayout.Common,
-            };
-            ResourceBarrierTransition(resource, layout);
-        }
-
         /// <summary>
         ///   Ensures the pipeline stage mask is compatible with the access flags in a buffer barrier.
         ///   HOST_READ/HOST_WRITE access requires VK_PIPELINE_STAGE_HOST_BIT, which is not included
@@ -1192,7 +1170,7 @@ namespace Stride.Graphics
         ///   Resets all the queries of a pool, so they can be written again.
         /// </summary>
         /// <param name="queryPool">The QueryPool to reset.</param>
-        public void ResetQueryPool(QueryPool queryPool)
+        private void ResetQueryPool(QueryPool queryPool)
         {
             // Not allowed inside a render pass
             BeginCommandOutsideRenderPass();

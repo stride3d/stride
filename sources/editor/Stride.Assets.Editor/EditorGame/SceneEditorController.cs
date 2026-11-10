@@ -1,19 +1,25 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable enable
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Stride.Assets.Editor.ViewModels;
 using Stride.Assets.Entities;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
-using Stride.Assets.Presentation.AssetEditors.SceneEditor.Game;
-using Stride.Assets.Presentation.AssetEditors.SceneEditor.Services;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
+using Stride.Core.Quantum;
 using Stride.Editor.Engine;
 using Stride.Engine;
 using Stride.Shaders.Compiler;
+using Stride.Assets.Editor.AssetEditors.SceneEditor.Game;
+using Stride.Assets.Editor.AssetEditors.SceneEditor.Services;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
 
 namespace Stride.Assets.Editor.EditorGame;
 
@@ -38,6 +44,55 @@ public sealed class SceneEditorController : EntityHierarchyEditorController, ISc
 
     private new SceneEditorGame Game => (SceneEditorGame)base.Game;
 
+    /// <inheritdoc />
+    /// <seealso cref="SceneEditorGame.LoadEntity"/>
+    public override Task AddPart(EntityHierarchyItemViewModel parent, Entity assetSideEntity)
+    {
+        EnsureAssetAccess();
+
+        var gameSideEntity = ClonePartForGameSide((AssetCompositeHierarchy<EntityDesign, Entity>)parent.Asset.Asset, assetSideEntity);
+        return InvokeAsync(() =>
+        {
+            Logger.Debug($"Adding entity {assetSideEntity.Id} to game-side scene");
+            if (parent is SceneRootViewModel)
+            {
+                Game.LoadEntity(gameSideEntity, parent.Id.ObjectId);
+            }
+            else
+            {
+                var parentEntity = (Entity?)FindPart(parent.Id)
+                                   ?? throw new InvalidOperationException($"The parent {parent.Id} of the entity {assetSideEntity.Id} is not in the game.");
+                GameSideNodeContainer.GetNode(parentEntity.Transform.Children).Add(gameSideEntity.Transform);
+            }
+        });
+    }
+
+    /// <inheritdoc />
+    /// <seealso cref="SceneEditorGame.UnloadEntity"/>
+    public override Task RemovePart(EntityHierarchyItemViewModel parent, Entity assetSideEntity)
+    {
+        EnsureAssetAccess();
+
+        var partId = new AbsoluteId(parent.Id.AssetId, assetSideEntity.Id);
+        return InvokeAsync(() =>
+        {
+            Logger.Debug($"Removing entity {assetSideEntity.Id} from game-side scene");
+            var entity = (Entity?)FindPart(partId)
+                         ?? throw new InvalidOperationException($"The entity {assetSideEntity.Id} is not in the game.");
+            if (parent is SceneRootViewModel)
+            {
+                Game.UnloadEntity(entity, parent.Id.ObjectId);
+            }
+            else
+            {
+                var parentEntity = (Entity?)FindPart(parent.Id)
+                                   ?? throw new InvalidOperationException($"The parent {parent.Id} of the entity {assetSideEntity.Id} is not in the game.");
+                var index = parentEntity.Transform.Children.IndexOf(entity.Transform);
+                GameSideNodeContainer.GetNode(parentEntity.Transform.Children).Remove(entity.Transform, new NodeIndex(index));
+            }
+        });
+    }
+
     /// <summary>
     /// Loads the scenes represented by the provided <paramref name="roots"/> into the game (UI thread).
     /// </summary>
@@ -60,18 +115,18 @@ public sealed class SceneEditorController : EntityHierarchyEditorController, ISc
                 gameToAssetLookup[sceneId] = assetId;
             }
         }
-        // The child scenes are not supported yet: each scene is a root, at the origin
         var scenesToLoad = roots.Select(root => new
         {
             Id = root.Id.ObjectId,
-            ParentId = Guid.Empty,
+            root.Offset,
+            ParentId = root.ParentScene?.Id.ObjectId ?? Guid.Empty,
             GameSideEntities = ClonePartsForGameSide((AssetCompositeHierarchy<EntityDesign, Entity>)root.Asset.Asset, root.InnerSubEntities.Select(x => x.AssetSideEntity)).ToList(),
         }).ToList();
         await InvokeAsync(() =>
         {
             foreach (var scene in scenesToLoad)
             {
-                var position = Vector3.Zero;
+                var position = scene.Offset;
                 var rotation = Quaternion.Identity;
                 var scale = Vector3.One;
                 Logger.Debug($"Loading scene {scene.Id}");
@@ -120,6 +175,26 @@ public sealed class SceneEditorController : EntityHierarchyEditorController, ISc
                 gameToAssetLookup.Remove(scene.Id);
             }
         }
+    }
+
+    /// <summary>
+    /// Moves the scene represented by <paramref name="root"/> to its offset from its parent scene (UI thread).
+    /// </summary>
+    /// <param name="root">The root representing the scene.</param>
+    /// <seealso cref="SceneEditorGame.UpdateSceneAnchor"/>
+    public Task UpdateSceneAnchorPosition(SceneRootViewModel root)
+    {
+        EnsureAssetAccess();
+
+        var sceneId = root.Id.ObjectId;
+        var position = root.Offset;
+        var rotation = Quaternion.Identity;
+        var scale = Vector3.One;
+        return InvokeAsync(() =>
+        {
+            Logger.Debug($"Updating anchor of scene {sceneId}");
+            Game.UpdateSceneAnchor(sceneId, ref position, ref rotation, ref scale);
+        });
     }
 
     /// <inheritdoc />

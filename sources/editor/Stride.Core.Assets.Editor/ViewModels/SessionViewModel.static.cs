@@ -1,13 +1,11 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 
 using System.Diagnostics;
 using System.Text;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Assets.Editor.ViewModel.Logs;
-using Stride.Core.Assets.Editor.ViewModel.Progress;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
@@ -16,6 +14,8 @@ using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Translation;
+using Stride.Core.Assets.Editor.ViewModels.Progress;
+using Stride.Core.Assets.Presentation.ViewModels.Logs;
 
 namespace Stride.Core.Assets.Editor.ViewModels;
 
@@ -48,13 +48,33 @@ partial class SessionViewModel
     }
 
     /// <summary>
+    /// The current instance of <see cref="SessionViewModel"/>, or null when no session is open.
+    /// </summary>
+    /// <remarks>For view-side code that also runs without a session, such as a converter.</remarks>
+    public static SessionViewModel? CurrentInstance
+    {
+        get
+        {
+            semaphore.Wait();
+            try
+            {
+                return instance;
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        }
+    }
+
+    /// <summary>
     /// Creates a new session from a template (a new project), and opens it.
     /// </summary>
     /// <returns>The session, or <c>null</c> when the template could not be run.</returns>
     public static async Task<SessionViewModel?> CreateNewSessionAsync(NewSessionParameters newSessionParameters, IMainViewModel main, IViewModelServiceProvider serviceProvider)
     {
         var loggerResult = new LoggerResult();
-        var session = new PackageSession { LoadEditorPackages = true, EditorToolkit = EditorToolkitName };
+        var session = new PackageSession { LoadEditorPackages = true, EditorToolkit = main.EditorToolkitName };
 
         var workProgress = new WorkProgressViewModel(serviceProvider, loggerResult)
         {
@@ -148,7 +168,9 @@ partial class SessionViewModel
         token = cancellationSource.Token;
         var workProgress = new WorkProgressViewModel(serviceProvider, sessionResult)
         {
-            Title = Tr._p("Title", "Opening session..."),
+            Title = EditorPath.EditorEnvironment != null
+                ? $"{Tr._p("Title", "Opening session...")} ({EditorPath.EditorEnvironment})"
+                : Tr._p("Title", "Opening session..."),
             KeepOpen = KeepOpen.OnWarningsOrErrors,
             IsIndeterminate = true,
             IsCancellable = true,
@@ -168,7 +190,7 @@ partial class SessionViewModel
                 try
                 {
                     // Load the session file (package or solution)
-                    PackageSession.Load(path, sessionResult, CreatePackageLoadParameters(serviceProvider, token));
+                    PackageSession.Load(path, sessionResult, CreatePackageLoadParameters(serviceProvider, main.EditorToolkitName, token));
                     if (!token.IsCancellationRequested)
                     {
                         // Load references
@@ -272,7 +294,7 @@ partial class SessionViewModel
         }
     }
 
-    private static PackageLoadParameters CreatePackageLoadParameters(IViewModelServiceProvider serviceProvider, CancellationToken token)
+    private static PackageLoadParameters CreatePackageLoadParameters(IViewModelServiceProvider serviceProvider, string editorToolkit, CancellationToken token)
     {
         // Snapshot every file the upgrade overwrites into a timestamped backup folder under the solution.
         // Copy-on-write, so it costs nothing unless an upgrade actually runs and modifies files. The dialog
@@ -283,7 +305,7 @@ partial class SessionViewModel
             CancelToken = token,
             BackupBeforeUpgrade = true,
             LoadEditorPackages = true,
-            EditorToolkit = EditorToolkitName,
+            EditorToolkit = editorToolkit,
             // An asset of a missing plugin stays in the session as an unloadable asset
             LoadAssetsOfUnknownType = true,
         };
@@ -302,6 +324,11 @@ partial class SessionViewModel
             }
 
             message.AppendLine();
+            if (pendingUpgrades.Any(x => x.Dependency.Version!.MinVersion > x.PackageUpgrader.Attribute.UpdatedVersionRange!.MinVersion))
+            {
+                message.AppendLine(Tr._p("Message", "This moves the project to an older version. It may not load correctly, and upgrades can run again when you go back to a newer version."));
+                message.AppendLine();
+            }
             message.AppendLine(Tr._p("Message", "Upgrading assets might break them. We also recommend committing or backing up your project first."));
 
             var buttons = new[]

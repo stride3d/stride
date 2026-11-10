@@ -12,6 +12,7 @@ using Stride.UI.Editor.ViewModels;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.UI.Assets;
 using Stride.UI;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.UI.Editor.ViewModels
 {

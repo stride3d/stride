@@ -289,7 +289,8 @@ public sealed class DotNetNewTemplateParametersViewModel : DispatcherViewModel
                 NoAssetPacksAvailable = true;
                 return;
             }
-            AssetPacks.AddRange(packs.Select(x => new AssetPackViewModel(x)));
+            // By name, as WPF shows them on Windows (the order of the template registry follows the file system)
+            AssetPacks.AddRange(packs.OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase).Select(x => new AssetPackViewModel(x)));
         });
     }
 

@@ -7,7 +7,8 @@ using Avalonia.Headless.XUnit;
 using Avalonia.VisualTree;
 using Stride.Assets.Editor.Avalonia.Views.Preview;
 using Stride.Assets.Editor.Preview;
-using Stride.Assets.Presentation.Preview;
+using Stride.Assets.Editor.Tests.Helpers;
+using Stride.Core.Assets.Editor.Editors;
 using Stride.Editor.Avalonia.Preview.Views;
 using Stride.Editor.Preview;
 
@@ -15,12 +16,10 @@ namespace Stride.Assets.Editor.Avalonia.Tests;
 
 public sealed class PreviewViewTests
 {
-    [Fact]
+    [AvaloniaFact]
     public void TheViewPluginRegistersThePreviewViews()
     {
-        var views = new Dictionary<Type, Type>();
-
-        new StrideEditorViewPlugin().RegisterAssetPreviewViewTypes(views);
+        var views = PluginRegistrations.Of(new StrideEditorViewPlugin(), typeof(IAssetEditorView)).AssetPreviewViewTypes;
 
         Assert.Equal(typeof(TexturePreviewView), views[typeof(TexturePreview)]);
         Assert.Equal(typeof(AnimationPreviewView), views[typeof(AnimationPreview)]);
@@ -48,17 +47,37 @@ public sealed class PreviewViewTests
     }
 
     [AvaloniaTheory]
-    [InlineData(typeof(TexturePreviewView))]
-    [InlineData(typeof(ModelPreviewView))]
-    [InlineData(typeof(SpritePreviewView))]
     [InlineData(typeof(AnimationPreviewView))]
-    public void ThePreviewViewsShareTheStrideTemplate(Type viewType)
+    [InlineData(typeof(EntityPreviewView))]
+    [InlineData(typeof(MaterialPreviewView))]
+    [InlineData(typeof(ModelPreviewView))]
+    [InlineData(typeof(SkyboxPreviewView))]
+    [InlineData(typeof(SpriteFontPreviewView))]
+    [InlineData(typeof(SpritePreviewView))]
+    [InlineData(typeof(SpriteSheetPreviewView))]
+    [InlineData(typeof(TexturePreviewView))]
+    public void ThePreviewViewsKeepTheGameViewInTheirTemplate(Type viewType)
     {
+        // The view plugin merges the themes of the views, as in the editor
+        PluginRegistrations.Of(new StrideEditorViewPlugin(), typeof(IAssetEditorView));
         var view = Assert.IsAssignableFrom<StridePreviewView>(Activator.CreateInstance(viewType));
         var window = new Window { Content = view };
 
         window.Show();
 
         Assert.Single(view.GetVisualDescendants().OfType<ContentPresenter>(), x => x.Name == StridePreviewView.PartStrideView);
+    }
+
+    [AvaloniaFact]
+    public void TheScenePreviewViewShowsAMessageInPlaceOfTheGameView()
+    {
+        var view = new ScenePreviewView();
+        var window = new Window { Content = view };
+
+        window.Show();
+
+        Assert.DoesNotContain(view.GetVisualDescendants().OfType<ContentPresenter>(), x => x.Name == StridePreviewView.PartStrideView);
+        var message = Assert.Single(view.GetVisualDescendants().OfType<TextBlock>());
+        Assert.Equal("Scenes can't be previewed. To see the scene, open it in the scene editor.", message.Text);
     }
 }

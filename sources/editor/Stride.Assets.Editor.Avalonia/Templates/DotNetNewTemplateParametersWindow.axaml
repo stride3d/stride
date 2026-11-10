@@ -25,9 +25,15 @@
               IsCancel="True"
               Click="OnCancelClick"/>
     </StackPanel>
+    <!-- The name of the template in a band of the accent color, as the header of the WPF window -->
+    <Border x:Name="HeaderBand" DockPanel.Dock="Top" Margin="0,0,0,8">
+      <Border.Background>
+        <SolidColorBrush Color="{DynamicResource SystemAccentColorDark1}"/>
+      </Border.Background>
+      <TextBlock Text="{Binding TemplateName}" FontSize="16" Foreground="White" TextWrapping="Wrap" Margin="20,10"/>
+    </Border>
     <ScrollViewer HorizontalScrollBarVisibility="Disabled">
       <StackPanel Spacing="4">
-        <TextBlock Text="{Binding TemplateName}" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap"/>
         <TextBlock Text="{Binding TemplateDescription}" TextWrapping="Wrap" Opacity="0.8"
                    IsVisible="{Binding HasTemplateDescription}"/>
         <!-- One row per user-facing parameter: a check box, a combo box, a list of check boxes or a text box -->

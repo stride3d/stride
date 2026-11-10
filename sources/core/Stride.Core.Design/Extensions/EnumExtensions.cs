@@ -19,7 +19,7 @@ public static class EnumExtensions
         {
             ulong flag = 0x1;
 
-            var bits = Convert.ToUInt64(value);
+            var bits = ToUInt64Bits(value);
             if (bits == 0L)
                 continue; // skip the zero value
 
@@ -59,7 +59,7 @@ public static class EnumExtensions
     /// <returns></returns>
     public static Enum GetEnum(Type enumType, IEnumerable<Enum> flags)
     {
-        var value = flags.Select(Convert.ToUInt64).Aggregate<ulong, ulong>(0, (current, bits) => current | bits);
+        var value = flags.Select(ToUInt64Bits).Aggregate<ulong, ulong>(0, (current, bits) => current | bits);
         return (Enum)Enum.ToObject(enumType, value);
     }
 
@@ -71,7 +71,7 @@ public static class EnumExtensions
     /// <returns>An enumerable of flags from the list of flags that are contained in the given value.</returns>
     private static IEnumerable<Enum> GetFlags(Enum value, IList<Enum> flags)
     {
-        var bits = Convert.ToUInt64(value);
+        var bits = ToUInt64Bits(value);
         // Empty flag enum
         if (bits == 0L)
             return Enumerable.Empty<Enum>();
@@ -79,7 +79,7 @@ public static class EnumExtensions
         var results = new List<Enum>();
         for (var i = flags.Count - 1; i >= 0; i--)
         {
-            var mask = Convert.ToUInt64(flags[i]);
+            var mask = ToUInt64Bits(flags[i]);
             if (mask == 0L)
                 continue;
 
@@ -90,5 +90,17 @@ public static class EnumExtensions
         }
 
         return results.Reverse<Enum>();
+    }
+
+    private static ulong ToUInt64Bits(Enum value)
+    {
+        return value.GetTypeCode() switch
+        {
+            TypeCode.SByte => unchecked((byte)Convert.ToSByte(value)),
+            TypeCode.Int16 => unchecked((ushort)Convert.ToInt16(value)),
+            TypeCode.Int32 => unchecked((uint)Convert.ToInt32(value)),
+            TypeCode.Int64 => unchecked((ulong)Convert.ToInt64(value)),
+            _ => Convert.ToUInt64(value)
+        };
     }
 }

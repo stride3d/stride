@@ -15,6 +15,9 @@ namespace Stride.Core.Presentation.Avalonia.Services;
 // Note: this class is shared with the Launcher. Beware before adding new dependencies.
 public class DialogService : IDialogService
 {
+    // UI thread
+    private int openMessageBoxes;
+
     public DialogService(IDispatcherService dispatcher)
     {
         Dispatcher = dispatcher;
@@ -33,6 +36,11 @@ public class DialogService : IDialogService
     public static Window? ActiveWindow => GetActiveWindow(MainWindow);
 
     protected IDispatcherService Dispatcher { get; }
+
+    /// <summary>
+    /// Whether a message box of this service is open (UI thread): a progress window waits for it to close, as it would hide it.
+    /// </summary>
+    protected bool IsMessageBoxOpen => openMessageBoxes > 0;
 
     protected IStorageProvider? StorageProvider => ActiveWindow?.StorageProvider;
 
@@ -165,26 +173,45 @@ public class DialogService : IDialogService
 
     public async Task<CheckedMessageBoxResult> CheckedMessageBoxAsync(string message, bool? isChecked, string checkboxMessage, MessageBoxButton buttons, MessageBoxImage image)
     {
-        return await Dispatcher.InvokeTask(() => CheckedMessageBox.ShowAsync(ApplicationName, message, isChecked, checkboxMessage, IDialogService.GetButtons(buttons), image, ActiveWindow));
+        return await ShowMessageBoxAsync(() => CheckedMessageBox.ShowAsync(ApplicationName, message, isChecked, checkboxMessage, IDialogService.GetButtons(buttons), image, ActiveWindow));
     }
 
     public async Task<CheckedMessageBoxResult> CheckedMessageBoxAsync(string message, bool? isChecked, string checkboxMessage, IReadOnlyCollection<DialogButtonInfo> buttons, MessageBoxImage image = MessageBoxImage.None)
     {
-        return await Dispatcher.InvokeTask(() => CheckedMessageBox.ShowAsync(ApplicationName, message, isChecked, checkboxMessage, buttons, image, ActiveWindow));
+        return await ShowMessageBoxAsync(() => CheckedMessageBox.ShowAsync(ApplicationName, message, isChecked, checkboxMessage, buttons, image, ActiveWindow));
     }
 
     public async Task<int> CheckedMessageBoxAsync(string message, IReadOnlyCollection<DialogCheckBoxInfo> checkBoxes, IReadOnlyCollection<DialogButtonInfo> buttons, MessageBoxImage image = MessageBoxImage.None)
     {
-        return await Dispatcher.InvokeTask(() => MultiCheckedMessageBox.ShowAsync(ApplicationName, message, checkBoxes, buttons, image, ActiveWindow));
+        return await ShowMessageBoxAsync(() => MultiCheckedMessageBox.ShowAsync(ApplicationName, message, checkBoxes, buttons, image, ActiveWindow));
     }
 
     public async Task<MessageBoxResult> MessageBoxAsync(string message, MessageBoxButton buttons, MessageBoxImage image)
     {
-        return (MessageBoxResult)await Dispatcher.InvokeTask(() => MessageBox.ShowAsync(ApplicationName, message, IDialogService.GetButtons(buttons), image, ActiveWindow));
+        return (MessageBoxResult)await ShowMessageBoxAsync(() => MessageBox.ShowAsync(ApplicationName, message, IDialogService.GetButtons(buttons), image, ActiveWindow));
     }
 
     public async Task<int> MessageBoxAsync(string message, IReadOnlyCollection<DialogButtonInfo> buttons, MessageBoxImage image = MessageBoxImage.None)
     {
-        return await Dispatcher.InvokeTask(() => MessageBox.ShowAsync(ApplicationName, message, buttons, image, ActiveWindow));
+        return await ShowMessageBoxAsync(() => MessageBox.ShowAsync(ApplicationName, message, buttons, image, ActiveWindow));
+    }
+
+    /// <summary>
+    /// Shows a message box on the UI thread, counted in <see cref="IsMessageBoxOpen"/> until it closes.
+    /// </summary>
+    private Task<T> ShowMessageBoxAsync<T>(Func<Task<T>> show)
+    {
+        return Dispatcher.InvokeTask(async () =>
+        {
+            ++openMessageBoxes;
+            try
+            {
+                return await show();
+            }
+            finally
+            {
+                --openMessageBoxes;
+            }
+        });
     }
 }

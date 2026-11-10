@@ -1,6 +1,10 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+#nullable enable
+
+using System;
+using System.Collections.Generic;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Assets.Quantum.Visitors;
@@ -30,6 +34,42 @@ internal sealed class ContentReferenceCollector : AssetGraphVisitorBase
     /// Gets the references collected so far.
     /// </summary>
     public List<ContentReferenceAccessor> ContentReferences { get; } = [];
+
+    /// <summary>
+    /// Forgets the references collected so far.
+    /// </summary>
+    public void Reset()
+    {
+        ContentReferences.Clear();
+    }
+
+    /// <summary>
+    /// Collects the references of a node, or of one item of it when <paramref name="index"/> is not empty.
+    /// </summary>
+    public void Visit(IAssetNode node, NodeIndex index)
+    {
+        if (index == NodeIndex.Empty)
+        {
+            // Normal case, no index
+            Visit(node);
+        }
+        else if (node.IsReference)
+        {
+            // A collection of reference types: start the visit from the target item
+            if (((IObjectNode)node).IndexedTarget(index) is { } target)
+            {
+                Visit(target);
+            }
+        }
+        else if (AssetRegistry.CanBeAssignedToContentTypes(node.Descriptor.GetInnerCollectionType(), checkIsUrlType: false))
+        {
+            // A collection of content: collect the item
+            var gameContent = node.GetContent(GameEditorChangePropagator.GameSideContentKey);
+            var id = AttachedReferenceManager.GetAttachedReference(node.Retrieve(index))?.Id ?? AssetId.Empty;
+            if (gameContent != null)
+                CollectContentReference(id, gameContent, index);
+        }
+    }
 
     /// <inheritdoc />
     protected override void VisitNode(IGraphNode node)

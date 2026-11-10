@@ -1,8 +1,7 @@
 name: "Dep: Build & Deploy Assimp"
 
-# Skeleton workflow: the full implementation lives on a feature branch.
-# This exists on master only so the workflow can be triggered with workflow_dispatch
-# and the expected inputs. Run it against the feature branch ref for the real build.
+# Builds the Assimp of Stride.Dependencies.Assimp: upstream at a tag, plus the patches in deps/assimp.
+# The managed bindings stay Silk.NET.Assimp, so a new Assimp must keep the struct layouts those bindings expect.
 
 on:
   workflow_dispatch:
@@ -16,12 +15,182 @@ on:
         default: v6.0.5
         required: true
 
+env:
+  CMAKE_OPTIONS: -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DASSIMP_BUILD_ZLIB=ON -DASSIMP_WARNINGS_AS_ERRORS=OFF -DASSIMP_BUILD_TESTS=OFF -DASSIMP_BUILD_ASSIMP_TOOLS=OFF
+
 jobs:
-  placeholder:
-    name: Skeleton (run on feature branch for real build)
-    runs-on: ubuntu-latest
+  build-windows:
+    name: Build Assimp (Windows ${{ matrix.arch }})
+    runs-on: windows-2025-vs2026
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { arch: x64, rid: win-x64 }
+          - { arch: ARM64, rid: win-arm64 }
+    outputs:
+      commit: ${{ steps.info.outputs.commit }}
     steps:
-      - name: Notice
+      - uses: actions/checkout@v7
+        with: { path: stride-src, sparse-checkout: deps/assimp }
+
+      - uses: actions/checkout@v7
+        with:
+          repository: assimp/assimp
+          ref: ${{ github.event.inputs.ref }}
+          path: assimp-src
+
+      - name: Record build info
+        id: info
+        shell: pwsh
+        run: '"commit=$(git -C assimp-src rev-parse HEAD)" >> $env:GITHUB_OUTPUT'
+
+      - name: Apply patches
+        shell: pwsh
+        run: Get-ChildItem stride-src/deps/assimp/*.patch | ForEach-Object { git -C assimp-src apply --verbose $_.FullName; if ($LASTEXITCODE) { exit $LASTEXITCODE } }
+
+      - name: Build
+        shell: pwsh
         run: |
-          echo "This is a skeleton. The real build lives on a feature branch."
-          echo "Trigger this workflow against that branch ref to run the actual build."
+          cmake -S assimp-src -B _build -A ${{ matrix.arch }} -Thost=x64 $env:CMAKE_OPTIONS.Split(' ')
+          cmake --build _build --config Release --parallel
+
+      - name: Collect output
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force assimp-out | Out-Null
+          # Silk.NET expects the DLL named "Assimp64"
+          Copy-Item (Get-Item _build/bin/Release/assimp-*-mt.dll).FullName assimp-out/Assimp64.dll
+          Copy-Item assimp-src/LICENSE assimp-out/LICENSE
+
+      - uses: actions/upload-artifact@v7
+        with: { name: 'assimp-${{ matrix.rid }}', path: assimp-out/ }
+
+  build-linux:
+    name: Build Assimp (Linux x64)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+        with: { path: stride-src, sparse-checkout: deps/assimp }
+
+      - uses: actions/checkout@v7
+        with:
+          repository: assimp/assimp
+          ref: ${{ github.event.inputs.ref }}
+          path: assimp-src
+
+      - name: Apply patches
+        run: for patch in stride-src/deps/assimp/*.patch; do git -C assimp-src apply --verbose "$PWD/$patch"; done
+
+      - name: Build
+        run: |
+          sudo apt-get update && sudo apt-get install -y cmake ninja-build
+          cmake -S assimp-src -B _build -G Ninja $CMAKE_OPTIONS
+          cmake --build _build
+
+      - name: Collect output
+        run: |
+          mkdir -p assimp-out
+          cp -L _build/bin/libassimp.so.6 assimp-out/libassimp.so.6
+          strip assimp-out/libassimp.so.6
+
+      - uses: actions/upload-artifact@v7
+        with: { name: assimp-linux-x64, path: assimp-out/ }
+
+  build-macos:
+    name: Build Assimp (macOS ARM64)
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v7
+        with: { path: stride-src, sparse-checkout: deps/assimp }
+
+      - uses: actions/checkout@v7
+        with:
+          repository: assimp/assimp
+          ref: ${{ github.event.inputs.ref }}
+          path: assimp-src
+
+      - name: Apply patches
+        run: for patch in stride-src/deps/assimp/*.patch; do git -C assimp-src apply --verbose "$PWD/$patch"; done
+
+      - name: Build
+        run: |
+          brew install ninja || true
+          # The system zlib: Assimp's bundled one doesn't compile against the macOS SDK's stdio.h
+          cmake -S assimp-src -B _build -G Ninja -DCMAKE_OSX_ARCHITECTURES=arm64 $CMAKE_OPTIONS -DASSIMP_BUILD_ZLIB=OFF
+          cmake --build _build
+
+      - name: Collect output
+        run: |
+          mkdir -p assimp-out
+          cp -L _build/bin/libassimp.6.dylib assimp-out/libassimp.6.dylib
+
+      - uses: actions/upload-artifact@v7
+        with: { name: assimp-osx-arm64, path: assimp-out/ }
+
+  pack:
+    name: Pack NuGet
+    needs: [build-windows, build-linux, build-macos]
+    runs-on: windows-2025-vs2026
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with: { pattern: 'assimp-*', path: artifacts }
+
+      - name: Prepare package contents
+        shell: pwsh
+        run: |
+          foreach ($rid in 'win-x64', 'win-arm64', 'linux-x64', 'osx-arm64') {
+            New-Item -ItemType Directory -Force deps/assimp/$rid | Out-Null
+            Copy-Item artifacts/assimp-$rid/* deps/assimp/$rid/ -Exclude LICENSE
+          }
+          New-Item -ItemType Directory -Force deps/assimp/tools | Out-Null
+          Copy-Item artifacts/assimp-win-x64/LICENSE deps/assimp/tools/LICENSE.txt
+
+      - name: Write VERSION.txt and README.md
+        shell: pwsh
+        run: |
+          $lines = @(
+            "Assimp ${{ github.event.inputs.ref }}"
+            "Repository: https://github.com/assimp/assimp"
+            "Commit: ${{ needs.build-windows.outputs.commit }}"
+            "Patches: $((Get-ChildItem deps/assimp/*.patch).Name -join ', ')"
+            ""
+            "Stride: ${{ github.server_url }}/${{ github.repository }} @ ${{ github.sha }}"
+            "Built: $(Get-Date -AsUTC -Format yyyy-MM-dd)"
+            "Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          )
+          $lines | Set-Content deps/assimp/tools/VERSION.txt
+          $block = @('```') + $lines + @('```')
+          $block | Add-Content $env:GITHUB_STEP_SUMMARY
+          @(
+            "# Stride.Dependencies.Assimp"
+            ""
+            "Assimp shared library for the Stride 3D importer."
+            ""
+            "## Build"
+            ""
+          ) + $block | Set-Content deps/assimp/README.md
+
+      - name: Pack NuGet
+        shell: pwsh
+        run: |
+          $commitHash = '${{ needs.build-windows.outputs.commit }}'.Substring(0, 7)
+          nuget pack deps/assimp/Stride.Dependencies.Assimp.nuspec `
+            -Version "${{ github.event.inputs.version }}" `
+            -Properties "ref=${{ github.event.inputs.ref }};commit=$commitHash;strideCommit=${{ github.sha }}" `
+            -OutputDirectory nupkg
+
+      - uses: actions/upload-artifact@v7
+        with: { name: Stride.Dependencies.Assimp.nupkg, path: nupkg/*.nupkg }
+
+  # Signing and pushing are shared by all dependencies: nuget.org trusts dep-publish.yml
+  publish:
+    needs: pack
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/dep-publish.yml
+    with:
+      artifact: Stride.Dependencies.Assimp.nupkg

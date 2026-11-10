@@ -56,7 +56,7 @@ Keep the ViewModel thin — business logic belongs in the asset class itself, no
 
 ### Assembly Placement
 
-`Stride.Assets.Presentation.Wpf` (`sources/editor/Stride.Assets.Presentation.Wpf/`). This assembly is editor-only and must not be referenced by runtime or compiler assemblies.
+`Stride.Assets.Editor.Wpf` (`sources/editor/Stride.Assets.Editor.Wpf/`). This assembly is editor-only and must not be referenced by runtime or compiler assemblies.
 
 ## Tier 3: Full Custom Editor
 

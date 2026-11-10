@@ -152,6 +152,12 @@ namespace Stride.Core.Assets
             }
         }
 
+        // Native packages replaced by a Stride build, and the package that replaces each
+        private static readonly Dictionary<string, string> ReplacedNativePackages = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Ultz.Native.Assimp"] = "Stride.Dependencies.Assimp",
+        };
+
         public static List<string> ListNativeLibs(LockFile lockFile)
         {
             var libs = new List<string>();
@@ -159,8 +165,14 @@ namespace Stride.Core.Assets
             var libPaths = GetLibPaths(lockFile);
 
             var target = lockFile.Targets.Last();
+            var packageNames = target.Libraries.Select(lib => lib.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
             foreach (var lib in target.Libraries)
             {
+                // A package that replaces another's native library: the replaced one isn't listed, as the package's
+                // build targets do for a project's output (same file name, and the last one registered would win)
+                if (ReplacedNativePackages.TryGetValue(lib.Name, out var replacement) && packageNames.Contains(replacement))
+                    continue;
+
                 if (libPaths.TryGetValue(ValueTuple.Create(lib.Name, lib.Version), out var libPath))
                 {
                     foreach (var n in lib.NativeLibraries)

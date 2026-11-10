@@ -1,15 +1,16 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 
 using System.Reflection;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Quantum;
+using Stride.Core.Extensions;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Quantum;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModels;
 
@@ -17,7 +18,7 @@ public class DebugAssetNodeCollectionViewModel : DispatcherViewModel, IDebugPage
 {
     private static readonly FieldInfo FieldInfoListener;
     private static readonly FieldInfo FieldInfoRegisteredNodes;
-    private readonly SessionViewModel session;
+    private readonly ISessionViewModel session;
 
     private object? selectedNode;
     private static readonly Dictionary<Guid, AssetViewModel> NodeToAssetMap = new();
@@ -31,8 +32,8 @@ public class DebugAssetNodeCollectionViewModel : DispatcherViewModel, IDebugPage
         FieldInfoRegisteredNodes = fieldInfoRegisteredNodes ?? throw new MissingFieldException("GraphNodeChangeListener is missing the RegisteredNodes private member.");
     }
 
-    public DebugAssetNodeCollectionViewModel(SessionViewModel session)
-        : base(session.ServiceProvider)
+    public DebugAssetNodeCollectionViewModel(ISessionViewModel session)
+        : base(session.SafeArgument().ServiceProvider)
     {
         this.session = session;
 

@@ -4,13 +4,14 @@
 using System.Text;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Editor.Annotations;
-using Stride.Core.Assets.Editor.Editors;
+using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Translation;
+using Stride.Assets.Editor.AssetEditors.ScriptEditor;
 
 namespace Stride.Assets.Editor.ViewModels;
 
@@ -35,7 +36,8 @@ public sealed class ScriptSourceFileEditorViewModel : AssetEditorViewModel<Scrip
     private string savedText;
     private string currentText;
     private bool isModified;
-    private int fontSize = 13;
+    // The size of the last editor, shared with the WPF script editor
+    private int fontSize = Math.Clamp(ScriptEditorSettings.FontSize.GetValue(), MinimumFontSize, MaximumFontSize);
     private FileContentSignature signature;
     // The file that the text was read from or saved to: until the session saves a rename, the script keeps its old file
     private string? filePath;
@@ -79,17 +81,25 @@ public sealed class ScriptSourceFileEditorViewModel : AssetEditorViewModel<Scrip
         {
             SaveCommand.IsEnabled = value;
             Asset.SetHasUnsavedText(value);
-            Session.UpdateHasUnsavedChanges();
+            Session.Internals().UpdateHasUnsavedChanges();
         });
     }
 
     /// <summary>
-    /// Gets or sets the font size of the editor, between <see cref="MinimumFontSize"/> and <see cref="MaximumFontSize"/>.
+    /// Gets or sets the font size of the editor, between <see cref="MinimumFontSize"/> and <see cref="MaximumFontSize"/>. A change
+    /// is saved in the settings (<see cref="ScriptEditorSettings.FontSize"/>), as in WPF, for the next editors.
     /// </summary>
     public int FontSize
     {
         get => fontSize;
-        set => SetValue(ref fontSize, Math.Clamp(value, MinimumFontSize, MaximumFontSize));
+        set
+        {
+            if (SetValue(ref fontSize, Math.Clamp(value, MinimumFontSize, MaximumFontSize)))
+            {
+                ScriptEditorSettings.FontSize.SetValue(fontSize);
+                ScriptEditorSettings.Save();
+            }
+        }
     }
 
     private string? FilePath => Asset.AssetItem.FullPath?.ToOSPath();
@@ -219,7 +229,7 @@ public sealed class ScriptSourceFileEditorViewModel : AssetEditorViewModel<Scrip
     {
         // The edits that the user dropped (Don't save) go with the editor: the script has the text of its file again
         Asset.SetHasUnsavedText(false);
-        Session.UpdateHasUnsavedChanges();
+        Session.Internals().UpdateHasUnsavedChanges();
         base.Destroy();
     }
 

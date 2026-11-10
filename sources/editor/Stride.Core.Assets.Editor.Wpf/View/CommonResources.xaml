@@ -5,7 +5,7 @@
                     xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
                     xmlns:view="clr-namespace:Stride.Core.Assets.Editor.View"
                     xmlns:viewModel="clr-namespace:Stride.Core.Assets.Editor.ViewModel"
-                    xmlns:commonViewModel="clr-namespace:Stride.Core.Assets.Editor.ViewModel;assembly=Stride.Core.Assets.Editor.Common"
+                    xmlns:commonViewModel="clr-namespace:Stride.Core.Assets.Presentation.ViewModels;assembly=Stride.Core.Assets.Presentation"
                     xmlns:behaviors="clr-namespace:Stride.Core.Assets.Editor.View.Behaviors"
                     mc:Ignorable="d">
 

@@ -4,17 +4,18 @@
 using Avalonia.Controls;
 using Stride.Core.Assets.Editor.Avalonia.Views;
 using Stride.Core.Assets.Editor.Components.AddAssets;
+using Stride.Core.Assets.Editor.Components.FixAssetReferences;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
-using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Assets.Editor.ViewModel.Progress;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Avalonia.Services;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.GameStudio.Avalonia.Views;
+using Stride.Core.Assets.Editor.ViewModels.Progress;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.GameStudio.Avalonia.Services;
 
@@ -74,7 +75,11 @@ internal class EditorDialogService : DialogService, IEditorDialogService, IProgr
         if (!workProgress.WorkDone || workProgress.ShouldStayOpen())
         {
             workProgress.NotifyWindowWillOpen();
-            OpenProgressWindow(workProgress);
+            // A message box that is up would be hidden by the window: the window waits for it to close
+            if (Dispatcher.Invoke(() => IsMessageBoxOpen))
+                ShowProgressWindowAfterDelayAsync(workProgress, 0).Forget();
+            else
+                OpenProgressWindow(workProgress);
         }
         else
         {
@@ -85,7 +90,8 @@ internal class EditorDialogService : DialogService, IEditorDialogService, IProgr
     /// <inheritdoc/>
     /// <remarks>
     /// As in WPF, the window opens when the delay is over while the work goes on, or as soon as the work finishes when it should stay
-    /// open (its errors); it does not open at all when the work finishes before the delay without a reason to stay open.
+    /// open (its errors); it does not open at all when the work finishes before the delay without a reason to stay open. It also
+    /// waits for the message boxes that are up (the upgrade question asked while a session loads), which it would hide.
     /// </remarks>
     public void ShowProgressWindow(WorkProgressViewModel workProgress, int minDelay)
     {
@@ -111,6 +117,9 @@ internal class EditorDialogService : DialogService, IEditorDialogService, IProgr
         {
             workProgress.WorkFinished -= OnWorkFinished;
         }
+
+        while (await Dispatcher.InvokeAsync(() => IsMessageBoxOpen))
+            await Task.Delay(100);
 
         await Dispatcher.InvokeAsync(() =>
         {
@@ -170,7 +179,33 @@ internal class EditorDialogService : DialogService, IEditorDialogService, IProgr
         });
     }
 
-    public async Task<AssetViewModel?> OpenAssetPickerAsync(SessionViewModel session, IEnumerable<Type> acceptedTypes, Func<AssetViewModel, bool>? filter = null, AssetViewModel? initialAsset = null, DirectoryBaseViewModel? initialLocation = null, string? message = null)
+    /// <inheritdoc/>
+    /// <remarks>
+    /// As WPF's delayed notifications, the question waits for the editor to come to the front again (the user edits the code in an
+    /// IDE), and for the dialog that is up to close: the main window is activated then.
+    /// </remarks>
+    public async Task WaitForMainWindowActiveAsync(CancellationToken token = default)
+    {
+        await Dispatcher.InvokeTask(async () =>
+        {
+            while (MainWindow is { } mainWindow && !(mainWindow.IsActive && ReferenceEquals(ActiveWindow, mainWindow)))
+            {
+                var activated = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+                void OnActivated(object? sender, EventArgs e) => activated.TrySetResult();
+                mainWindow.Activated += OnActivated;
+                try
+                {
+                    await activated.Task.WaitAsync(token);
+                }
+                finally
+                {
+                    mainWindow.Activated -= OnActivated;
+                }
+            }
+        }, token);
+    }
+
+    public async Task<AssetViewModel?> OpenAssetPickerAsync(ISessionViewModel session, IEnumerable<Type> acceptedTypes, Func<AssetViewModel, bool>? filter = null, AssetViewModel? initialAsset = null, DirectoryBaseViewModel? initialLocation = null, string? message = null)
     {
         if (MainWindow is null) return null;
 
@@ -178,8 +213,21 @@ internal class EditorDialogService : DialogService, IEditorDialogService, IProgr
         {
             var picker = new AssetPickerViewModel(session, acceptedTypes, filter, initialAsset, initialLocation) { Message = message };
             var window = new AssetPickerWindow { DataContext = picker };
-            var picked = await window.ShowDialog<bool>(MainWindow);
+            // Over the dialog it is picked for, if any (the fix-references dialog): on closing, the owner comes back to the front
+            var picked = await window.ShowDialog<bool>(ActiveWindow ?? MainWindow);
             return picked ? picker.SelectedAsset : null;
+        });
+    }
+
+    public async Task<bool> ShowFixAssetReferencesDialogAsync(FixAssetReferencesViewModel fixReferences)
+    {
+        ArgumentNullException.ThrowIfNull(fixReferences);
+        if (MainWindow is null) return false;
+
+        return await Dispatcher.InvokeTask(async () =>
+        {
+            var window = new FixAssetReferencesWindow { DataContext = fixReferences };
+            return await window.ShowDialog<bool>(ActiveWindow ?? MainWindow);
         });
     }
 

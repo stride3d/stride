@@ -2,9 +2,9 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Assets.Editor.Tests.Helpers;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.Windows;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Tests;
 
@@ -52,6 +52,8 @@ public sealed class TestSessionSaving
         Assert.True(SpinWait.SpinUntil(() => fixture.Session.ActionHistory.Transactions.Last().IsSavePoint, TimeSpan.FromSeconds(10)));
         // The progress window of the opening, then the one of the save
         Assert.Equal(2, fixture.Dialogs.ProgressWindows.Count);
+        // As in WPF, a save that takes less than half a second shows no window
+        Assert.Equal(500, fixture.Dialogs.ProgressWindowDelays[^1]);
         Assert.Empty(fixture.Dialogs.Messages);
     }
 

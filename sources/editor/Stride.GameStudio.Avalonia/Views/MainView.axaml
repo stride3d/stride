@@ -3,10 +3,13 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+             xmlns:caec="using:Stride.Core.Assets.Editor.Avalonia.Converters"
              xmlns:caect="using:Stride.Core.Assets.Editor.Components.Transactions"
+             xmlns:caectl="using:Stride.Core.Assets.Editor.Avalonia.Controls"
              xmlns:caevm="using:Stride.Core.Assets.Editor.ViewModels"
-             xmlns:capvm="using:Stride.Core.Assets.Editor.ViewModel"
-             xmlns:caevmp="using:Stride.Core.Assets.Editor.ViewModel.Progress"
+             xmlns:capvm="using:Stride.Core.Assets.Presentation.ViewModels"
+             xmlns:caevml="using:Stride.Core.Assets.Presentation.ViewModels.Logs"
+             xmlns:caevmp="using:Stride.Core.Assets.Editor.ViewModels.Progress"
              xmlns:cpc="using:Stride.Core.Presentation.Commands"
              xmlns:gsc="using:Stride.GameStudio.Avalonia.Converters"
              xmlns:gsh="using:Stride.GameStudio.Avalonia.Helpers"
@@ -25,6 +28,13 @@
       <ResourceDictionary.MergedDictionaries>
         <ResourceInclude Source="avares://Stride.Core.Assets.Editor.Avalonia/Views/ImageResources.axaml"/>
       </ResourceDictionary.MergedDictionaries>
+      <!-- An entry of File > Open recent: the version in bold, then the path, shortened in the middle, as in WPF -->
+      <DataTemplate x:Key="RecentSessionHeaderTemplate" DataType="gsvm:RecentSessionViewModel">
+        <Grid ColumnDefinitions="30, Auto">
+          <TextBlock Grid.Column="0" Text="{Binding Version}" FontWeight="Bold"/>
+          <TextBlock Grid.Column="1" Text="{Binding DisplayPath}" MaxWidth="320" TextTrimming="PathSegmentEllipsis"/>
+        </Grid>
+      </DataTemplate>
     </ResourceDictionary>
   </UserControl.Resources>
   <!-- The Edit commands that no panel handles, as the command bindings of the WPF window: Undo and Redo act on the session
@@ -34,7 +44,7 @@
     <sd:EditCommandBinding Kind="Redo" Command="{Binding RedoCommand}"/>
   </sd:EditCommands.Bindings>
 
-  <Grid RowDefinitions="Auto, *, Auto, 25"
+  <Grid RowDefinitions="Auto, Auto, *, Auto, 25"
         Background="Transparent">
     <!-- Menus -->
     <Menu Grid.Row="0" Grid.Column="0"
@@ -54,21 +64,10 @@
                   Command="{Binding CloseCommand}"
                   IsEnabled="{Binding Session, Mode=OneWay, Converter={sd:ObjectToBool}}"/>
         <Separator/>
-        <!-- Recent sessions (the most recently used sessions of this editor version or an earlier one) -->
+        <!-- Recent sessions (the most recently used sessions of this editor version or an earlier one), then "Clear list", as in
+             WPF: the items are made by the view (MainView.UpdateRecentSessionsMenu) since a menu shows either items or a source -->
         <MenuItem Header="{sd:LocalizeString Open _recent, Context=Menu}"
                   Name="RecentSessionsMenu"
-                  ItemsSource="{Binding RecentFiles}"
-                  IsEnabled="{Binding RecentFiles.Count, Mode=OneWay, Converter={sd:NumericToBool}}">
-          <MenuItem.ItemContainerTheme>
-            <ControlTheme TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}" x:DataType="gsvm:RecentSessionViewModel">
-              <Setter Property="Header" Value="{Binding Name}"/>
-              <Setter Property="ToolTip.Tip" Value="{Binding FilePath}"/>
-              <Setter Property="Command" Value="{Binding OpenCommand}"/>
-            </ControlTheme>
-          </MenuItem.ItemContainerTheme>
-        </MenuItem>
-        <MenuItem Header="{sd:LocalizeString Clear recent sessions, Context=Menu}"
-                  Command="{Binding ClearRecentFilesCommand}"
                   IsEnabled="{Binding RecentFiles.Count, Mode=OneWay, Converter={sd:NumericToBool}}"/>
         <Separator/>
         <!-- Save and reload, as in the WPF editor: Save is enabled whenever a session is open. Its shortcut is a key binding
@@ -146,6 +145,44 @@
                   Command="{Binding OpenSettingsWindowCommand}"
                   IsEnabled="{Binding Session, Mode=OneWay, Converter={sd:ObjectToBool}}"/>
       </MenuItem>
+      <!-- Project menu: build the current project and start its game, as WPF's Project menu does. The shortcuts are key bindings
+           of the main window, like Save. -->
+      <MenuItem Header="{sd:LocalizeString _Project, Context=Menu}"
+                IsEnabled="{Binding Session, Mode=OneWay, Converter={sd:ObjectToBool}}">
+        <MenuItem Header="{sd:LocalizeString Build project, Context=Menu}"
+                  Name="BuildProjectMenuItem"
+                  Command="{Binding Build.BuildProjectCommand}"
+                  InputGesture="{x:Static gsvw:MainView.BuildProjectGesture}">
+          <MenuItem.Icon>
+            <Image Source="{StaticResource ImageBuildProject}"/>
+          </MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Start project, Context=Menu}"
+                  Name="StartProjectMenuItem"
+                  Command="{Binding Build.StartProjectCommand}"
+                  InputGesture="{x:Static gsvw:MainView.StartProjectGesture}">
+          <MenuItem.Icon>
+            <Image Source="{StaticResource ImageStartProject}"/>
+          </MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Cancel build, Context=Menu}"
+                  Name="CancelBuildMenuItem"
+                  Command="{Binding Build.CancelBuildCommand}"
+                  InputGesture="{x:Static gsvw:MainView.CancelBuildGesture}">
+          <MenuItem.Icon>
+            <Image Source="{StaticResource ImageStopBuild}"/>
+          </MenuItem.Icon>
+        </MenuItem>
+        <Separator/>
+        <!-- Enabled while the game code has changes the editor did not load: they load in a new editor on the project -->
+        <MenuItem Header="{sd:LocalizeString Reload game assemblies, Context=Menu}"
+                  Name="ReloadGameCodeMenuItem"
+                  Command="{Binding CodeReload.ReloadCommand}">
+          <MenuItem.Icon>
+            <Image Source="{StaticResource ImageReloadAssemblies}"/>
+          </MenuItem.Icon>
+        </MenuItem>
+      </MenuItem>
       <!-- Help menu -->
       <MenuItem Header="{sd:LocalizeString _Help, Context=Menu}">
         <MenuItem Header="{sd:LocalizeString Online documentation, Context=Menu}"
@@ -176,10 +213,59 @@
       </MenuItem>
     </Menu>
 
-    <!-- Session area -->
-    <Grid Grid.Row="1"
+    <!-- Toolbar: the build buttons of the WPF toolbar, while a session is open -->
+    <sd:ToolBar Grid.Row="1"
+                Name="MainToolBar"
+                IsVisible="{Binding Session, Converter={sd:ObjectToBool}}">
+      <sd:ToolBar.Styles>
+        <!-- The icon of a disabled button is dimmed, as in WPF -->
+        <Style Selector="Button:disabled Image">
+          <Setter Property="Opacity" Value="0.25"/>
+        </Style>
+        <!-- The reload button blinks while the game code has changes to load, as in WPF -->
+        <Style Selector="Button#ReloadGameCodeButton:not(:disabled) Image">
+          <Style.Animations>
+            <Animation Duration="0:0:0.5" IterationCount="Infinite" PlaybackDirection="Alternate">
+              <KeyFrame Cue="0%">
+                <Setter Property="Opacity" Value="1"/>
+              </KeyFrame>
+              <KeyFrame Cue="100%">
+                <Setter Property="Opacity" Value="0.3"/>
+              </KeyFrame>
+            </Animation>
+          </Style.Animations>
+        </Style>
+      </sd:ToolBar.Styles>
+      <Button Name="BuildProjectButton"
+              Command="{Binding Build.BuildProjectCommand}"
+              ToolTip.Tip="{sd:LocalizeString Build the project (F6), Context=ToolTip}"
+              ToolTip.ShowOnDisabled="True">
+        <Image Source="{StaticResource ImageBuildProject}" Width="16" Height="16"/>
+      </Button>
+      <Button Name="StartProjectButton"
+              Command="{Binding Build.StartProjectCommand}"
+              ToolTip.Tip="{sd:LocalizeString Build the project and start the game (F5), Context=ToolTip}"
+              ToolTip.ShowOnDisabled="True">
+        <Image Source="{StaticResource ImageStartProject}" Width="16" Height="16"/>
+      </Button>
+      <Button Name="CancelBuildButton"
+              Command="{Binding Build.CancelBuildCommand}"
+              ToolTip.Tip="{sd:LocalizeString Cancel the current build (Ctrl+F6), Context=ToolTip}"
+              ToolTip.ShowOnDisabled="True">
+        <Image Source="{StaticResource ImageStopBuild}" Width="16" Height="16"/>
+      </Button>
+      <Button Name="ReloadGameCodeButton"
+              Command="{Binding CodeReload.ReloadCommand}"
+              ToolTip.Tip="{sd:LocalizeString Reload the game assemblies: build the changed code and open the project in a new editor, Context=ToolTip}"
+              ToolTip.ShowOnDisabled="True">
+        <Image Source="{StaticResource ImageReloadAssemblies}" Width="16" Height="16"/>
+      </Button>
+    </sd:ToolBar>
+
+    <!-- Session area: the sizes its splitters set are kept in the internal settings (MainView.SavePanelSizes) -->
+    <Grid x:Name="SessionPanels" Grid.Row="2"
           RowDefinitions="2*, 2, *">
-      <Grid Grid.Row="0"
+      <Grid x:Name="TopPanels" Grid.Row="0"
             ColumnDefinitions="2*, 2, *">
         <!-- Editors -->
         <gsvw:EditorCollectionView Grid.Column="0"
@@ -188,27 +274,15 @@
                                  Padding="2"
                                  DataContext="{Binding Session?.EditorCollection}"/>
         <GridSplitter Grid.Column="1" ResizeDirection="Auto"/>
-        <Grid Grid.Column="2"
-              RowDefinitions="Auto, *">
-          <StackPanel Grid.Row="0"
-                      Orientation="Horizontal">
-            <Button Content="{sd:LocalizeString Previous, Context=Button}"
-                    Command="{Binding Session?.PreviousSelectionCommand, TargetNullValue={x:Static cpc:DisabledCommand.Instance}}"
-                    HotKey="Alt+Left" ToolTip.Tip="{Binding $self.HotKey, Mode=OneTime}"/>
-            <Button Content="{sd:LocalizeString Next, Context=Button}"
-                    Command="{Binding Session?.NextSelectionCommand, TargetNullValue={x:Static cpc:DisabledCommand.Instance}}"
-                    HotKey="Alt+Right" ToolTip.Tip="{Binding $self.HotKey, Mode=OneTime}"/>
-          </StackPanel>
-          <!-- Property Grid -->
-          <gsvw:PropertyGridView Grid.Row="1"
+        <!-- Property Grid, with the navigation in the selection history in its header as in WPF -->
+        <gsvw:PropertyGridView Grid.Column="2"
                                BorderThickness="2"
                                BorderBrush="Orange"
                                Padding="2"
                                DataContext="{Binding Session?.ActiveProperties}"/>
-        </Grid>
       </Grid>
       <GridSplitter Grid.Row="1" ResizeDirection="Auto"/>
-      <Grid Grid.Row="2"
+      <Grid x:Name="BottomPanels" Grid.Row="2"
             ColumnDefinitions="*, 2, 2*, 2, *">
         <!-- Solution Explorer -->
         <gsvw:SolutionExplorerView Grid.Column="0"
@@ -225,12 +299,42 @@
                                   Padding="2"
                                   DataContext="{Binding Session?.AssetCollection}"/>
           </TabItem>
-          <TabItem Header="Asset errors">
-            <sd:TextLogViewer LogMessages="{Binding Session?.AssetLog.FilteredMessages}"
-                              ShowDebugMessages="False" ShowVerboseMessages="False" ShowInfoMessages="False"/>
+          <!-- The warnings and errors of the assets, with their count in the title, as WPF's Asset errors pane -->
+          <TabItem Name="AssetLogTab"
+                   Header="{Binding Session?.AssetLog.ErrorCount, FallbackValue=0, Converter={sd:Localize Text=Asset error ({0}), Plural=Asset errors ({0}), IsStringFormat=True, Context=View}}">
+            <caectl:GridLogViewer LogMessages="{Binding Session?.AssetLog.FilteredMessages}"
+                                  SelectMessageCommand="{Binding Session?.AssetLog.SelectMessageAssetCommand}"
+                                  ShowDebugMessages="False" ShowVerboseMessages="False" ShowInfoMessages="False">
+              <caectl:GridLogViewer.ToolBarContent>
+                <StackPanel Orientation="Horizontal" DataContext="{Binding Session?.AssetLog}" x:DataType="caevm:AssetLogViewModel">
+                  <ComboBox Name="AssetLogScope" MinWidth="100" VerticalAlignment="Center"
+                            SelectedValue="{Binding Scope}" SelectedValueBinding="{Binding Tag, DataType=ComboBoxItem}"
+                            ToolTip.Tip="{sd:LocalizeString Show the messages of all assets or only of the selected ones (and the assets they use), Context=ToolTip}">
+                    <ComboBoxItem Content="{sd:LocalizeString All assets}" Tag="{x:Static caevml:AssetLogScope.AllAssets}"/>
+                    <ComboBoxItem Content="{sd:LocalizeString Selected assets}" Tag="{x:Static caevml:AssetLogScope.SelectedAssets}"/>
+                  </ComboBox>
+                  <Menu Name="AssetLogSources" VerticalAlignment="Center" Background="Transparent">
+                    <MenuItem Header="{Binding SourcesHeader}">
+                      <MenuItem Header="{sd:LocalizeString Show all sources, Context=Menu}" Command="{Binding ShowAllSourcesCommand}"/>
+                      <Separator/>
+                      <MenuItem Header="{Binding Sources[0].DisplayName}" ToggleType="CheckBox" IsChecked="{Binding Sources[0].IsShown, Mode=TwoWay}" StaysOpenOnClick="True"/>
+                      <MenuItem Header="{Binding Sources[1].DisplayName}" ToggleType="CheckBox" IsChecked="{Binding Sources[1].IsShown, Mode=TwoWay}" StaysOpenOnClick="True"/>
+                      <MenuItem Header="{Binding Sources[2].DisplayName}" ToggleType="CheckBox" IsChecked="{Binding Sources[2].IsShown, Mode=TwoWay}" StaysOpenOnClick="True"/>
+                      <MenuItem Header="{Binding Sources[3].DisplayName}" ToggleType="CheckBox" IsChecked="{Binding Sources[3].IsShown, Mode=TwoWay}" StaysOpenOnClick="True"/>
+                      <MenuItem Header="{Binding Sources[4].DisplayName}" ToggleType="CheckBox" IsChecked="{Binding Sources[4].IsShown, Mode=TwoWay}" StaysOpenOnClick="True"/>
+                    </MenuItem>
+                  </Menu>
+                </StackPanel>
+              </caectl:GridLogViewer.ToolBarContent>
+            </caectl:GridLogViewer>
           </TabItem>
-          <TabItem Header="Output">
-            <sd:TextLogViewer ShowDebugMessages="False" ShowVerboseMessages="False"/>
+          <!-- The log of the last build and the output of the games started from the editor; a build selects it, and its title
+               has a "*" while it has messages that were not seen, as WPF's Output pane -->
+          <TabItem Name="OutputTab"
+                   Header="{Binding Build.OutputTitle}"
+                   IsSelected="{Binding Build.IsOutputVisible, Mode=TwoWay}">
+            <sd:TextLogViewer LogMessages="{Binding Build.BuildLog.Messages}"
+                              ShowDebugMessages="False" ShowVerboseMessages="False"/>
           </TabItem>
         </TabControl>
         <GridSplitter Grid.Column="3" ResizeDirection="Auto"/>
@@ -296,7 +400,7 @@
                       </Interaction.Behaviors>
                       <TextBlock Text="Asset: " />
                       <TextBlock Text="{Binding Name}" />
-                      <Image Source="{Binding ThumbnailData.Presenter, Converter={gsc:StrideImage}, FallbackValue={x:Static AvaloniaProperty.UnsetValue}}"
+                      <Image Source="{Binding ThumbnailData.Presenter, Converter={caec:ThumbnailToImage}, FallbackValue={x:Static AvaloniaProperty.UnsetValue}}"
                              Width="64" Height="64"/>
                     </StackPanel>
                   </DataTemplate>
@@ -309,7 +413,7 @@
     </Grid>
 
     <!-- Notifications: the background operations in progress, each until it finishes -->
-    <ItemsControl Grid.Row="2"
+    <ItemsControl Grid.Row="3"
                   ItemsSource="{Binding Notifications?.ActiveNotifications}"
                   IsVisible="{Binding $self.ItemCount, Converter={sd:NumericToBool}}">
       <ItemsControl.ItemTemplate>
@@ -341,7 +445,7 @@
     </ItemsControl>
 
     <!-- Status bar -->
-    <Grid Grid.Row="3"
+    <Grid Grid.Row="4"
           IsVisible="{Binding Session, Converter={sd:ObjectToBool}}"
           ColumnDefinitions="2*, Auto, *, Auto, *, 100">
       <TextBlock Grid.Column="0"
@@ -355,7 +459,7 @@
       <TextBlock Grid.Column="2"
                  Margin="8,0"
                  VerticalAlignment="Center">
-        <Run Text="{Binding Session?.AssetCollection.SelectedContent.Count, Mode=OneWay, Converter={sd:Localize Text={}{0} item, Plural={}{0} items, IsStringFormat=True, Context=StatusBar}}"/>
+        <Run Text="{Binding Session?.AssetCollection.FilteredContent.Count, Mode=OneWay, Converter={sd:Localize Text={}{0} item, Plural={}{0} items, IsStringFormat=True, Context=StatusBar}}"/>
         <Run Text="{Binding Session?.AssetCollection.SelectedContent.Count, Mode=OneWay, Converter={sd:Localize Text=({0} selected), Plural=({0} selected), IsStringFormat=True, Context=StatusBar}}"/>
       </TextBlock>
       <Border Grid.Column="3"

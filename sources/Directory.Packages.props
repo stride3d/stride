@@ -8,7 +8,7 @@
   </PropertyGroup>
   <!-- Runtime dependencies -->
   <ItemGroup>
-    <PackageVersion Include="BepuPhysics" Version="2.5.0-beta.28" />
+    <PackageVersion Include="BepuPhysics" Version="2.5.0-beta.33" />
     <PackageVersion Include="CommunityToolkit.HighPerformance" Version="8.4.0" />
     <PackageVersion Include="DotRecast.Core" Version="2025.2.1" />
     <PackageVersion Include="DotRecast.Detour" Version="2025.2.1" />
@@ -75,6 +75,7 @@
     <PackageVersion Include="NuGet.Resolver" Version="7.3.1" />
     <PackageVersion Include="Sentry" Version="6.8.0" />
     <PackageVersion Include="Silk.NET.Assimp" Version="$(SilkVersion)" />
+    <PackageVersion Include="Ultz.Native.Assimp" Version="6.0.2" />
     <PackageVersion Include="SixLabors.ImageSharp" Version="3.1.12" />
     <PackageVersion Include="StbImageSharp" Version="2.30.15" />
     <PackageVersion Include="Stride.GNU.Gettext" Version="3.0.0" />
@@ -102,6 +103,7 @@
     <!-- 3.2.2 is the minimum for Avalonia.Headless.XUnit 12.1 (xunit.v3.extensibility.core 3.2.2) -->
     <PackageVersion Include="xunit.v3" Version="3.2.2" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
+    <PackageVersion Include="Stride.Dependencies.Assimp" Version="6.0.5.2" />
     <PackageVersion Include="Stride.Dependencies.SpirvCross" Version="2026.10.17" />
     <PackageVersion Include="Stride.Dependencies.SPIRVTools" Version="2026.6.3" />
     <PackageVersion Include="Stride.Dependencies.Lavapipe" Version="2026.10.12" />
@@ -141,7 +143,7 @@
     <PackageVersion Include="Dirkster.AvalonDock" Version="4.72.1" />
     <PackageVersion Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.77" />
     <PackageVersion Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
-    <PackageVersion Include="Stride.GraphX.WPF.Controls" Version="2.4.0" />
+    <PackageVersion Include="GraphX" Version="3.0.0" />
     <PackageVersion Include="RoslynPad.Editor.Windows" Version="5.0.0" />
     <PackageVersion Include="RoslynPad.Roslyn" Version="5.0.0" />
     <PackageVersion Include="RoslynPad.Roslyn.Windows" Version="5.0.0" />

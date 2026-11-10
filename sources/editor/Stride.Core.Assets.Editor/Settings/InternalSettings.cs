@@ -1,20 +1,27 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 
-using Stride.Core.Assets.Editor.ViewModel.Logs;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Settings;
+using Stride.Core.Assets.Presentation.ViewModels.Logs;
 
 namespace Stride.Core.Assets.Editor.Settings;
 
+/// <summary>
+/// The internal (not user-facing) settings of the editor, in the file the WPF Game Studio uses too.
+/// </summary>
 public static class InternalSettings
 {
     private static readonly SettingsProfile profile;
+    private static readonly ChangedSettingsWriter writer;
+    private static readonly List<Action<SettingsProfile>> fileValueRestorers = [];
 
     static InternalSettings()
     {
         profile = LoadProfile(true);
         SettingsContainer.CurrentProfile = profile;
+        writer = new ChangedSettingsWriter(SettingsContainer, profile, EditorPath.InternalConfigPath);
     }
 
     public static SettingsContainer SettingsContainer { get; } = new();
@@ -41,13 +48,57 @@ public static class InternalSettings
 
     public static SettingsKey<List<string>> AssetLogHiddenSources { get; } = new("Internal/AssetLogHiddenSources", SettingsContainer, () => new List<string>());
 
+    /// <summary>
+    /// Loads a copy of the internal settings from the file, without registering it as the current profile.
+    /// </summary>
+    public static SettingsProfile LoadProfileCopy()
+    {
+        return LoadProfile(false);
+    }
+
+    /// <summary>
+    /// Registers a key that other instances of the editors also write, such as the most recently used sessions: <see cref="Save"/>
+    /// writes the value the file has for it, not the one this instance read at startup.
+    /// </summary>
+    public static void KeepFileValueOnSave<T>(SettingsKey<T> key)
+    {
+        ArgumentNullException.ThrowIfNull(key);
+        lock (fileValueRestorers)
+        {
+            fileValueRestorers.Add(latest => key.SetValue(key.GetValue(latest, true)));
+        }
+    }
+
+    /// <summary>
+    /// Saves the internal settings into the file, keeping the file's value of the keys registered with <see cref="KeepFileValueOnSave"/>.
+    /// </summary>
+    public static void Save()
+    {
+        Action<SettingsProfile>[] restorers;
+        lock (fileValueRestorers)
+        {
+            restorers = [.. fileValueRestorers];
+        }
+        if (restorers.Length > 0)
+        {
+            // These keys are modified and saved by the classes that own them (MostRecentlyUsedFileCollection...): reload the latest version from the file
+            var latest = LoadProfileCopy();
+            foreach (var restore in restorers)
+                restore(latest);
+        }
+        SaveProfile();
+    }
+
+    /// <summary>
+    /// Writes the settings this editor changed to the file: the values another editor wrote since stay.
+    /// </summary>
+    public static void SaveProfile()
+    {
+        writer.Write();
+    }
+
     private static SettingsProfile LoadProfile(bool registerProfile)
     {
         return SettingsContainer.LoadSettingsProfile(EditorPath.InternalConfigPath, false, null, registerProfile) ?? SettingsContainer.CreateSettingsProfile(false);
-    }
-
-    public static void SaveProfile()
-    {
-        SettingsContainer.SaveSettingsProfile(profile, EditorPath.InternalConfigPath);
     }
 }

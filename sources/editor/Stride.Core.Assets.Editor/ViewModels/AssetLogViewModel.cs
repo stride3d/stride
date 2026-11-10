@@ -1,12 +1,12 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 
 using System.Runtime.CompilerServices;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Diagnostics;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
-using Stride.Core.Assets.Editor.ViewModel.Logs;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
@@ -15,6 +15,8 @@ using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.ViewModel;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Translation;
+using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels.Logs;
 
 namespace Stride.Core.Assets.Editor.ViewModels;
 
@@ -31,7 +33,7 @@ public sealed class AssetLogViewModel : LoggerViewModel, IAssetLogViewModel
     // Above this many changes in one update, the shown messages are replaced at once instead of one by one
     private const int MaxIncrementalChanges = 1000;
 
-    private readonly SessionViewModel session;
+    private readonly ISessionViewModel session;
     private readonly Dictionary<LogKey, Logger> loggers = [];
     private readonly HashSet<Logger> createdLoggers = [];
     private readonly ConditionalWeakTable<ILogMessage, AssetEntryMessage> assetEntryMessages = new();
@@ -40,9 +42,10 @@ public sealed class AssetLogViewModel : LoggerViewModel, IAssetLogViewModel
     private AssetLogScope scope;
     private string sourcesHeader = string.Empty;
 
-    public AssetLogViewModel(IViewModelServiceProvider serviceProvider, SessionViewModel session)
+    public AssetLogViewModel(IViewModelServiceProvider serviceProvider, ISessionViewModel session)
         : base(serviceProvider)
     {
+        ArgumentNullException.ThrowIfNull(session);
         MinLevel = LogMessageType.Warning;
         this.session = session;
         FilteredMessages = [];
@@ -59,9 +62,10 @@ public sealed class AssetLogViewModel : LoggerViewModel, IAssetLogViewModel
             CreateSource(ConsistencyLogName, Tr._p("Log", "Package consistency")),
         ];
         ShowAllSourcesCommand = new AnonymousCommand(serviceProvider, () => Sources.ForEach(x => x.IsShown = true));
+        SelectMessageAssetCommand = new AnonymousCommand<ILogMessage?>(serviceProvider, SelectMessageAsset);
         UpdateSourcesState();
 
-        session.AssetCollection.SelectedAssets.CollectionChanged += (_, _) =>
+        session.ActiveAssetView.SelectedAssets.CollectionChanged += (_, _) =>
         {
             if (Scope == AssetLogScope.SelectedAssets)
                 RefreshFilteredMessages();
@@ -112,6 +116,24 @@ public sealed class AssetLogViewModel : LoggerViewModel, IAssetLogViewModel
     public string SourcesHeader { get => sourcesHeader; private set => SetValue(ref sourcesHeader, value); }
 
     public ICommandBase ShowAllSourcesCommand { get; }
+
+    /// <summary>
+    /// Gets the command that selects in the asset view the asset a message is about (double-click on a message).
+    /// </summary>
+    public ICommandBase SelectMessageAssetCommand { get; }
+
+    /// <summary>
+    /// Gets the URL of the asset a message is about, as the Asset column of the log shows it, or null if it is about no asset.
+    /// </summary>
+    public static UFile? GetAssetUrl(ILogMessage? message)
+    {
+        return message switch
+        {
+            AssetSerializableLogMessage assetMessage when !string.IsNullOrEmpty(assetMessage.AssetUrl) => assetMessage.AssetUrl,
+            AssetLogMessage assetMessage => assetMessage.AssetReference?.Location,
+            _ => null,
+        };
+    }
 
     /// <summary>
     /// Replaces the log of the given name for the given asset.
@@ -188,6 +210,15 @@ public sealed class AssetLogViewModel : LoggerViewModel, IAssetLogViewModel
         }
     }
 
+    private void SelectMessageAsset(ILogMessage? message)
+    {
+        // A message without the URL of its asset is not shown as about an asset (empty Asset column), as in WPF
+        if (GetAssetUrl(message) is null || GetAssetId(message!) is not { } id || session.GetAssetById(id) is not { } asset)
+            return;
+
+        session.ActiveAssetView.SelectAssets([asset]);
+    }
+
     private void SourcesChanged()
     {
         InternalSettings.AssetLogHiddenSources.SetValue(Sources.Where(x => !x.IsShown).Select(x => x.Id).ToList());
@@ -235,7 +266,7 @@ public sealed class AssetLogViewModel : LoggerViewModel, IAssetLogViewModel
         waiting = false;
 
         var selectedOnly = Scope == AssetLogScope.SelectedAssets;
-        var selection = selectedOnly ? await Dispatcher.InvokeAsync(() => session.AssetCollection.SelectedAssets.ToList()) : [];
+        var selection = selectedOnly ? await Dispatcher.InvokeAsync(() => session.ActiveAssetView.SelectedAssets.ToList()) : [];
         var ids = await Task.Run(() =>
         {
             var result = new HashSet<AssetId>();

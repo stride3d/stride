@@ -165,12 +165,10 @@
     <Project Path="sources/crashreport/Stride.CrashReporter/Stride.CrashReporter.csproj" />
     <Project Path="sources/crashreport/Stride.CrashReport.TestProbe/Stride.CrashReport.TestProbe.csproj" />
     <Project Path="sources/editor/Stride.Assets.Editor/Stride.Assets.Editor.csproj" />
-    <Project Path="sources/editor/Stride.Assets.Presentation.Common/Stride.Assets.Presentation.Common.csproj" />
     <Project Path="sources/editor/Stride.Assets.Presentation/Stride.Assets.Presentation.csproj" />
-    <Project Path="sources/editor/Stride.Core.Assets.Editor.Common/Stride.Core.Assets.Editor.Common.csproj" />
+    <Project Path="sources/editor/Stride.Assets.Templates/Stride.Assets.Templates.csproj" />
     <Project Path="sources/editor/Stride.Core.Assets.Editor/Stride.Core.Assets.Editor.csproj" />
     <Project Path="sources/editor/Stride.Core.Assets.Presentation/Stride.Core.Assets.Presentation.csproj" />
-    <Project Path="sources/editor/Stride.Editor.Common/Stride.Editor.Common.csproj" />
     <Project Path="sources/editor/Stride.Editor/Stride.Editor.csproj" />
     <Project Path="sources/engine/Stride.Debugger/Stride.Debugger.csproj" />
   </Folder>
@@ -182,7 +180,7 @@
     <Project Path="sources/editor/Stride.GameStudio.Avalonia/Stride.GameStudio.Avalonia.csproj" />
   </Folder>
   <Folder Name="/60-Editor/Wpf/">
-    <Project Path="sources/editor/Stride.Assets.Presentation.Wpf/Stride.Assets.Presentation.Wpf.csproj" />
+    <Project Path="sources/editor/Stride.Assets.Editor.Wpf/Stride.Assets.Editor.Wpf.csproj" />
     <Project Path="sources/editor/Stride.Core.Assets.Editor.Wpf/Stride.Core.Assets.Editor.Wpf.csproj" />
     <Project Path="sources/editor/Stride.Editor.Wpf/Stride.Editor.Wpf.csproj" />
     <Project Path="sources/editor/Stride.GameStudio/Stride.GameStudio.csproj" DefaultStartup="true" />
@@ -190,8 +188,6 @@
   <Folder Name="/61-Editor.Tests/">
     <Project Path="sources/crashreport/Stride.CrashReport.Tests/Stride.CrashReport.Tests.csproj" />
     <Project Path="sources/editor/Stride.Assets.Editor.Tests/Stride.Assets.Editor.Tests.csproj" />
-    <Project Path="sources/editor/Stride.Assets.Presentation.Common.Tests/Stride.Assets.Presentation.Common.Tests.csproj" />
-    <Project Path="sources/editor/Stride.Core.Assets.Editor.Common.Tests/Stride.Core.Assets.Editor.Common.Tests.csproj" />
     <Project Path="sources/editor/Stride.Core.Assets.Editor.Tests/Stride.Core.Assets.Editor.Tests.csproj" />
     <Project Path="sources/editor/Stride.Core.Assets.Editor.Wpf.Tests/Stride.Core.Assets.Editor.Wpf.Tests.csproj" />
     <Project Path="sources/editor/Stride.Editor.Tests/Stride.Editor.Tests.csproj" />

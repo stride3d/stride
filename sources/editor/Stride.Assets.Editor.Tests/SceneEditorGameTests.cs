@@ -26,8 +26,9 @@ public sealed class SceneEditorGameTests
 
         Assert.True(await editor.Initialize());
 
-        Assert.Null(editor.GameView);
+        Assert.Null(editor.GameHost.GameView);
         editor.Destroy();
+        Assert.True(editor.Stopped.IsCompleted);
     }
 
     [Fact]
@@ -41,12 +42,15 @@ public sealed class SceneEditorGameTests
 
         Assert.False(await editor.Initialize());
 
-        Assert.Null(editor.GameView);
+        Assert.Null(editor.GameHost.GameView);
         var viewport = Assert.Single(viewportService.Viewports);
         // The game thread let the viewport go, before the game: the GPU objects of the viewport belong to the game's device
         Assert.True(viewport.IsDisposed);
         Assert.False(viewport.GameWasDisposedFirst);
         editor.Destroy();
+
+        // The game thread ended with the failure: the session closing after the editor has nothing to wait for
+        await editor.Stopped.WaitAsync(TimeSpan.FromSeconds(30));
     }
 
     private sealed class FailingViewportService : IEditorGameViewportService

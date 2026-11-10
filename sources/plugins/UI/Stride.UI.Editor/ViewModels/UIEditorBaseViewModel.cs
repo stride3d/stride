@@ -6,11 +6,13 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Stride.Assets.Editor.ViewModels;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Extensions;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.View.Behaviors;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Quantum;
 using Stride.Core;
 using Stride.Core.Annotations;
@@ -23,7 +25,9 @@ using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Quantum;
 using Stride.Core.Translation;
-using Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels;
+using Stride.Assets.Editor.EditorGame;
+using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Editor.Engine;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
@@ -37,13 +41,14 @@ using Stride.Engine;
 using Stride.Engine.Processors;
 using Stride.UI;
 using Stride.UI.Panels;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 
 namespace Stride.UI.Editor.ViewModels
 {
     /// <summary>
     /// Base class for the view model of an <see cref="UIBaseViewModel"/> editor.
     /// </summary>
-    public abstract class UIEditorBaseViewModel : AssetCompositeHierarchyEditorViewModel<UIElementDesign, UIElement, UIElementViewModel>, IAddChildViewModel
+    public abstract class UIEditorBaseViewModel : AssetCompositeHierarchyEditorViewModel<UIElementDesign, UIElement, UIBaseViewModel, UIElementViewModel>, IAddChildViewModel, IGameEditorViewModel
     {
         public static readonly ILogger EditorLogger = GlobalLogger.GetLogger("UI");
 
@@ -66,10 +71,13 @@ namespace Stride.UI.Editor.ViewModels
         /// Initializes a new instance of the <see cref="UIBaseViewModel"/> class.
         /// </summary>
         /// <param name="asset">The asset related to this editor.</param>
-        /// <param name="controllerFactory">A factory to create the associated <see cref="IEditorGameController"/>.</param>
-        protected UIEditorBaseViewModel([NotNull] UIBaseViewModel asset, [NotNull] Func<GameEditorViewModel, IEditorGameController> controllerFactory)
-            : base(asset, controllerFactory)
+        /// <param name="controllerFactory">A factory to create the controller of the game, from the editor and the viewport service of the session.</param>
+        protected UIEditorBaseViewModel([NotNull] UIBaseViewModel asset, [NotNull] Func<UIEditorBaseViewModel, IEditorGameViewportService, UIEditorController> controllerFactory)
+            : base(asset)
         {
+            GameHost = new EditorGameHost(ServiceProvider);
+            // The game starts with the editor; its controller exists from now on, for the view models that use it
+            Controller = controllerFactory(this, ServiceProvider.Get<IEditorGameViewportService>());
             Camera = new EditorCameraViewModel(ServiceProvider, Controller);
 
             BreakLinkToLibraryCommand = new AnonymousCommand(ServiceProvider, BreakLinkToLibrary);
@@ -176,7 +184,13 @@ namespace Stride.UI.Editor.ViewModels
         internal new UIBaseViewModel Asset => (UIBaseViewModel)base.Asset;
 
         [NotNull]
-        internal new UIEditorController Controller => (UIEditorController)base.Controller;
+        internal UIEditorController Controller { get; }
+
+        /// <inheritdoc/>
+        public EditorGameHost GameHost { get; }
+
+        /// <inheritdoc/>
+        public override Task Stopped => Controller.GameEnded;
 
         [NotNull]
         public ICommandBase BreakLinkToLibraryCommand { get; }
@@ -242,7 +256,13 @@ namespace Stride.UI.Editor.ViewModels
             // We should save settings first, before starting to destroy everything
             SaveSettings();
 
-            Session.ActiveAssetView.Assets.CollectionChanged -= AssetsCollectionChanged;
+            Session.AssetCollection.Assets.CollectionChanged -= AssetsCollectionChanged;
+
+            // The host destroys the controller once the game started
+            var started = GameHost.Controller != null;
+            GameHost.Destroy();
+            if (!started)
+                Controller.Destroy();
 
             base.Destroy();
         }
@@ -296,30 +316,57 @@ namespace Stride.UI.Editor.ViewModels
         }
 
         /// <inheritdoc/>
-        protected override async Task<bool> InitializeEditor()
+        public sealed override Task<bool> Initialize()
         {
-            if (!await base.InitializeEditor())
+            return InitializeEditor();
+        }
+
+        /// <summary>
+        /// Starts the game, creates the root of the hierarchy once the game has its scene, and initializes the editor.
+        /// </summary>
+        /// <returns><c>false</c> when the game could not start.</returns>
+        protected virtual async Task<bool> InitializeEditor()
+        {
+            Dispatcher.EnsureAccess();
+
+            if (!await GameHost.StartAsync(Controller))
                 return false;
+
+            LoadSettings();
+            // The parts add their elements to the game: it must have its scene
+            InitializeRootPart();
 
             // Initialize the libraries
             InitializeLibraries();
-            Session.ActiveAssetView.Assets.CollectionChanged += AssetsCollectionChanged;
+            Session.AssetCollection.Assets.CollectionChanged += AssetsCollectionChanged;
 
             ShowAssetProperties();
             return true;
         }
 
-        /// <inheritdoc/>
-        public override AssetCompositeItemViewModel CreatePartViewModel(AssetCompositeHierarchyViewModel<UIElementDesign, UIElement> asset, UIElementDesign partDesign)
+        /// <summary>
+        /// Creates the view model of the given element of the given asset.
+        /// </summary>
+        /// <param name="asset">The UI page or library.</param>
+        /// <param name="partDesign">The design of the element.</param>
+        /// <returns>The view model of the element.</returns>
+        [NotNull]
+        public AssetCompositeItemViewModel CreatePartViewModel([NotNull] AssetCompositeHierarchyViewModel<UIElementDesign, UIElement> asset, [NotNull] UIElementDesign partDesign)
         {
             return UIElementViewModelFactory.Instance.ProvideViewModel(this, (UIBaseViewModel)asset, partDesign);
         }
 
         /// <inheritdoc/>
-        protected override Task OnGameContentLoaded()
+        protected override UIElementDesign GetPartDesign(UIElementViewModel item)
         {
-            LoadSettings();
-            return base.OnGameContentLoaded();
+            return item.UIElementDesign;
+        }
+
+        /// <inheritdoc/>
+        protected override (Type TargetMemberType, Type[] ExpectedTypes) GetPasteTypes(bool asRoot)
+        {
+            // Elements go into the root, or into a panel or a content control
+            return (asRoot ? typeof(AssetCompositeHierarchyData<UIElementDesign, UIElement>) : typeof(UIElement), [typeof(AssetCompositeHierarchyData<UIElementDesign, UIElement>)]);
         }
 
         private async void ActiveRootChanged(UIElementViewModel previousRoot, UIElementViewModel newRoot)
@@ -388,19 +435,16 @@ namespace Stride.UI.Editor.ViewModels
         }
 
         /// <inheritdoc />
+        /// <remarks>The clipboard is read when the paste runs: a clipboard without UI elements pastes nothing.</remarks>
         protected override bool CanPaste(bool asRoot)
         {
-            var copyPasteService = ServiceProvider.TryGet<ICopyPasteService>();
-            if (copyPasteService == null)
+            if (!base.CanPaste(asRoot))
                 return false;
 
             if (asRoot)
-            {
-                return PasteAsRootMonitor.Get(() =>
-                        copyPasteService.CanPaste(ClipboardText, Asset.AssetType, typeof(AssetCompositeHierarchyData<UIElementDesign, UIElement>), typeof(AssetCompositeHierarchyData<UIElementDesign, UIElement>)));
-            }
+                return true;
 
-            var canAddOrInsert = SelectedItems.All(element =>
+            return SelectedItems.All(element =>
             {
                 var contentControl = element as ContentControlViewModel;
                 if (contentControl != null)
@@ -409,10 +453,6 @@ namespace Stride.UI.Editor.ViewModels
                 }
                 return element is PanelViewModel;
             });
-            if (!canAddOrInsert)
-                return false;
-
-            return PasteMonitor.Get(() => copyPasteService.CanPaste(ClipboardText, Asset.AssetType, typeof(UIElement), typeof(AssetCompositeHierarchyData<UIElementDesign, UIElement>)));
         }
 
         /// <inheritdoc />
@@ -710,7 +750,7 @@ namespace Stride.UI.Editor.ViewModels
             var libraries = new HashSet<UILibraryViewModel>(SelectedItems.Select(x => x.SourceLibrary).NotNull());
             foreach (var library in libraries)
             {
-                ServiceProvider.Get<IAssetEditorsManager>().OpenAssetEditorWindow(library);
+                ServiceProvider.Get<IAssetEditorsManager>().OpenAssetEditorAsync(library);
             }
         }
 
@@ -778,7 +818,7 @@ namespace Stride.UI.Editor.ViewModels
         {
             var library = LastSelectedElement?.SourceLibrary;
             if (library != null)
-                Session.ActiveAssetView.SelectAssets(library.Yield());
+                Session.AssetCollection.SelectAssets(library.Yield());
         }
 
         private void SetCurrentSelection(AbsoluteId elementId)
@@ -828,7 +868,7 @@ namespace Stride.UI.Editor.ViewModels
 
         private UIElementViewModel GetDropTarget(ref Vector3 worldPosition, IReadOnlyCollection<object> children, AddChildModifiers modifiers, out string message)
         {
-            message = DragDropBehavior.InvalidDropAreaMessage;
+            message = DragDropMessages.InvalidDropArea;
 
             var elements = GetElementsAtPosition(ref worldPosition);
             if (elements == null)

@@ -52,11 +52,13 @@
     </FluentTheme>
     <StyleInclude Source="avares://MarkView.Avalonia/Themes/MarkdownTheme.axaml" />
     <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
+    <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
     <!-- FIXME xplat-editor aggregate all custom styles into a single style/theme -->
     <StyleInclude Source="avares://Stride.Core.Presentation.Avalonia/Themes/EditorStyles.axaml"/>
     <StyleInclude Source="avares://Stride.Core.Presentation.Avalonia/Themes/HyperlinkStyle.axaml"/>
     <StyleInclude Source="avares://Stride.Core.Presentation.Avalonia/Themes/SearchComboBoxStyle.axaml"/>
     <StyleInclude Source="avares://Stride.Core.Presentation.Avalonia/Themes/TextLogViewerStyle.axaml"/>
     <StyleInclude Source="avares://Stride.Core.Presentation.Avalonia/Themes/ToolBarStyle.axaml"/>
+    <StyleInclude Source="avares://Stride.Core.Assets.Editor.Avalonia/Themes/GridLogViewerStyle.axaml"/>
   </Application.Styles>
 </Application>

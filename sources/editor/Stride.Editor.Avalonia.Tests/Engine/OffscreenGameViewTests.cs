@@ -5,6 +5,8 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
+using Avalonia.Input;
+using Avalonia.Input.Raw;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Threading;
@@ -60,6 +62,37 @@ public sealed class OffscreenGameViewTests
 
         Assert.NotSame(first, other);
         Assert.Equal(new PixelSize(8, 4), other.PixelSize);
+    }
+
+    [AvaloniaFact]
+    public void TheViewKnowsThePointerWhileItMovesAndWhileSomethingIsDraggedOverIt()
+    {
+        var view = new OffscreenGameView { Width = 100, Height = 100 };
+        // The view of the scene editor is inside a drop target, whose AllowDrop it inherits
+        var host = new ContentControl { Content = view };
+        DragDrop.SetAllowDrop(host, true);
+        var window = new Window { Content = host, SizeToContent = SizeToContent.WidthAndHeight };
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+        Assert.Null(view.LastPointerPosition);
+
+        window.MouseMove(new Point(25, 75));
+        Assert.Equal(new Point(25, 75), view.LastPointerPosition);
+
+        // The game gets no pointer move during a drag: the view keeps the position of the drag
+        var data = new DataTransfer();
+        window.DragDrop(new Point(40, 10), RawDragEventType.DragEnter, data, DragDropEffects.Move, RawInputModifiers.None);
+        window.DragDrop(new Point(60, 20), RawDragEventType.DragOver, data, DragDropEffects.Move, RawInputModifiers.None);
+        Assert.Equal(new Point(60, 20), view.LastPointerPosition);
+        window.DragDrop(new Point(70, 30), RawDragEventType.Drop, data, DragDropEffects.Move, RawInputModifiers.None);
+        Assert.Equal(new Point(70, 30), view.LastPointerPosition);
+
+        // A right click is kept for the menu of the view
+        Assert.Null(view.LastRightClickPosition);
+        window.MouseDown(new Point(10, 90), MouseButton.Right);
+        window.MouseUp(new Point(10, 90), MouseButton.Right);
+        Assert.Equal(new Point(10, 90), view.LastRightClickPosition);
+        window.Close();
     }
 
     [AvaloniaFact]

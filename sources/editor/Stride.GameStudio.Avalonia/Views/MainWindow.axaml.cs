@@ -9,7 +9,9 @@ using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Extensions;
+using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Avalonia.Extensions;
+using Stride.CrashReport;
 using Stride.GameStudio.Avalonia.Settings;
 using Stride.GameStudio.Avalonia.ViewModels;
 
@@ -20,10 +22,16 @@ public partial class MainWindow : Window
     private TaskCompletionSource<bool>? closingTask;
     private bool closeConfirmed;
     private Size restoreBounds;
+    private PixelPoint restorePosition;
 
     public MainWindow()
     {
         InitializeComponent();
+        PositionChanged += (_, e) =>
+        {
+            if (WindowState == WindowState.Normal)
+                restorePosition = e.Point;
+        };
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
         {
             lifetime.ShutdownRequested += OnShutdownRequested;
@@ -66,6 +74,14 @@ public partial class MainWindow : Window
     /// evaluates the key bindings of the window before it raises the key event, so a <see cref="KeyBinding"/> would act on
     /// the session instead of the text.
     /// </summary>
+    protected override void OnDataContextChanged(EventArgs e)
+    {
+        base.OnDataContextChanged(e);
+        // Settings > Interface > Reset Game Studio layout: the sizes of the panels, as WPF resets its docking layout
+        if (DataContext is MainViewModel mainViewModel)
+            EditorSettings.ResetEditorLayout.Command = new AnonymousCommand(mainViewModel.ServiceProvider, View.ResetPanelSizes);
+    }
+
     protected override void OnKeyDown(KeyEventArgs e)
     {
         base.OnKeyDown(e);
@@ -78,6 +94,9 @@ public partial class MainWindow : Window
         App.LauncherNotifier?.Invoke();
         App.LauncherNotifier = null; // fire once
 
+        // A compiler crash of a build opens its reporter above this window (on Windows)
+        CompilerCrashRouting.SetOwnerWindow(TryGetPlatformHandle()?.Handle ?? 0);
+
         // Size the window to best fit the current screen size
         InitializeWindowSize();
         return;
@@ -88,6 +107,9 @@ public partial class MainWindow : Window
             var previousWorkAreaHeight = GameStudioInternalSettings.WorkAreaHeight.GetValue();
             var wasWindowMaximized = GameStudioInternalSettings.WindowMaximized.GetValue();
             var (workArea, scaling) = this.GetWorkingArea();
+            var previousPosition = new PixelPoint(GameStudioInternalSettings.WindowLeft.GetValue(), GameStudioInternalSettings.WindowTop.GetValue());
+            // Kept for the next start while the window stays maximized
+            restorePosition = previousPosition;
 
             if (wasWindowMaximized || previousWorkAreaWidth > workArea.Width || previousWorkAreaHeight > workArea.Height)
             {
@@ -103,11 +125,30 @@ public partial class MainWindow : Window
                 // Set window size
                 Width = Math.Min(previousWindowWidth, workArea.Width);
                 Height = Math.Min(previousWindowHeight, workArea.Height);
-                // Window is centered by default
-                this.CenterToArea(workArea, scaling);
+                // The window goes back where it was, if that is still on a screen; it is centered otherwise
+                if (IsOnScreen(previousPosition, PixelSize.FromSize(new Size(Width, Height), scaling)))
+                    Position = previousPosition;
+                else
+                    this.CenterToArea(workArea, scaling);
                 WindowState = WindowState.Normal;
             }
         }
+    }
+
+    /// <summary>
+    /// Whether enough of a window at this position shows on one of the screens to be moved with the mouse.
+    /// </summary>
+    private bool IsOnScreen(PixelPoint position, PixelSize size)
+    {
+        if (position.X == GameStudioInternalSettings.NoPosition || position.Y == GameStudioInternalSettings.NoPosition)
+            return false;
+
+        var bounds = new PixelRect(position, size);
+        return Screens.All.Any(screen =>
+        {
+            var visible = screen.WorkingArea.Intersect(bounds);
+            return visible.Width >= 100 && visible.Height >= 50;
+        });
     }
 
     protected override void OnResized(WindowResizedEventArgs e)
@@ -138,8 +179,8 @@ public partial class MainWindow : Window
             // Internal settings
             SaveInternalSettings();
 
-            // Exit the preview game before the process does (it renders on its own thread)
-            (DataContext as MainViewModel)?.Preview?.Dispose();
+            // Exit the preview game before the process does (it renders on its own thread), and let the plugins leave
+            (DataContext as MainViewModel)?.CloseSessionServices();
 
             closingTask?.SetResult(true);
             // Shutdown after all other operations have completed
@@ -161,8 +202,12 @@ public partial class MainWindow : Window
             GameStudioInternalSettings.WindowWidth.SetValue((int)Math.Max(800, WindowState == WindowState.Maximized ? restoreBounds.Width : Bounds.Width));
             GameStudioInternalSettings.WindowHeight.SetValue((int)Math.Max(600, WindowState == WindowState.Maximized ? restoreBounds.Height : Bounds.Height));
             GameStudioInternalSettings.WindowMaximized.SetValue(WindowState == WindowState.Maximized);
+            var position = WindowState == WindowState.Normal ? Position : restorePosition;
+            GameStudioInternalSettings.WindowLeft.SetValue(position.X);
+            GameStudioInternalSettings.WindowTop.SetValue(position.Y);
+            View.SavePanelSizes();
             // Write the settings file
-            InternalSettings.SaveProfile();
+            InternalSettings.Save();
         }
 
         void Shutdown()

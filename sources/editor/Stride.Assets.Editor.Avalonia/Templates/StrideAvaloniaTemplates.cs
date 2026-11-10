@@ -28,7 +28,7 @@ internal static class StrideAvaloniaTemplates
         QuantumTemplateRegistration.Register(new AddLibraryGenerator(new AvaloniaAddLibraryParameterPrompt()));
         QuantumTemplateRegistration.Register(new AddPluginGenerator(new AvaloniaAddPluginParameterPrompt()));
 
-        // The asset generators (the agnostic copies of the WPF ones) with the Avalonia dialogs of the script and model templates
+        // The asset generators, shared with the WPF editor, with the Avalonia dialogs of the script and model templates
         StrideAssetTemplates.Register(new AvaloniaScriptNamePrompt(), new AvaloniaModelImportPrompt());
     }
 }

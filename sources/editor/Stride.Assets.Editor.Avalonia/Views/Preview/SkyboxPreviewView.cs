@@ -10,4 +10,6 @@ namespace Stride.Assets.Editor.Avalonia.Views.Preview;
 [AssetPreviewView<SkyboxPreview>]
 public class SkyboxPreviewView : StridePreviewView
 {
+    /// <inheritdoc />
+    protected override Type StyleKeyOverride => typeof(SkyboxPreviewView);
 }

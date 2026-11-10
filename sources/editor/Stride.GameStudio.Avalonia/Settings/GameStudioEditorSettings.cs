@@ -3,6 +3,7 @@
 
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.IO;
+using Stride.Core.Mathematics;
 using Stride.Core.Settings;
 using Stride.Core.Translation;
 using Stride.GameStudio.Avalonia.Helpers;
@@ -21,10 +22,24 @@ internal static class GameStudioEditorSettings
         {
             DisplayName = $"{EditorSettings.Interface}/{Tr._p("Settings", "Default session to load")}"
         };
+        // The theme of this editor: the WPF Game Studio has its own (Themes/ThemeName), so these keys are not in EditorSettings
+        ThemeAccent = new SettingsKey<Color>("Interface/Theme/Accent", EditorSettings.SettingsContainer, default(Color))
+        {
+            DisplayName = $"{EditorSettings.Interface}/{Tr._p("Settings", "Theme Accent")}",
+        };
+        ThemeVariant = new SettingsKey<string>("Interface/Theme/Variant", EditorSettings.SettingsContainer, "Default")
+        {
+            DisplayName = $"{EditorSettings.Interface}/{Tr._p("Settings", "Theme Variant")}",
+            GetAcceptableValues = () => ["Default", "Dark", "Light"],
+        };
     }
 
     /// <summary>
     /// The session to open at startup when no path is given on the command line.
     /// </summary>
     public static SettingsKey<UFile> StartupSession { get; }
+
+    public static SettingsKey<Color> ThemeAccent { get; }
+
+    public static SettingsKey<string> ThemeVariant { get; }
 }

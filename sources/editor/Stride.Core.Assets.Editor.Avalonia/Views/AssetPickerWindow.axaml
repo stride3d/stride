@@ -4,7 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
         xmlns:caevm="using:Stride.Core.Assets.Editor.ViewModels"
-        xmlns:capvm="using:Stride.Core.Assets.Editor.ViewModel"
+        xmlns:capvm="using:Stride.Core.Assets.Presentation.ViewModels"
         mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="500"
         x:Class="Stride.Core.Assets.Editor.Avalonia.Views.AssetPickerWindow"
         x:DataType="caevm:AssetPickerViewModel"

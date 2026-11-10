@@ -7,7 +7,7 @@ param(
 )
 
 # Same list as TemplatePreprocessor.NonEnginePackagePrefixes: these Stride.* packages don't follow the engine.
-$nonEnginePrefixes = 'Stride.Awesome.Shaders', 'Stride.Community', 'Stride.Dependencies.', 'Stride.GNU.', 'Stride.GraphX', 'Stride.Mono.', 'Stride.OpenTK', 'Stride.QuickGraph'
+$nonEnginePrefixes = 'Stride.Awesome.Shaders', 'Stride.Community', 'Stride.Dependencies.', 'Stride.GNU.', 'Stride.Mono.', 'Stride.OpenTK'
 
 function Get-Number([string]$version) {
     [version](($version -split '-')[0])

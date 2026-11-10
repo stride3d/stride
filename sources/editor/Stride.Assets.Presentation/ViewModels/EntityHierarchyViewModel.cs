@@ -1,9 +1,10 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable enable
 
+using System;
 using Stride.Animations;
 using Stride.Assets.Entities;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Quantum;
 using Stride.Core.Reflection;
@@ -18,8 +19,16 @@ public abstract class EntityHierarchyViewModel : AssetCompositeHierarchyViewMode
     {
     }
 
+    /// <summary>
+    /// Gets the root of the hierarchy of the open editor of this asset, or <c>null</c> when no editor is open.
+    /// </summary>
+    /// <remarks>
+    /// The undo and redo of the folders, which exist only in the editor, go through it.
+    /// </remarks>
+    public EntityHierarchyRootViewModel? HierarchyRoot { get; internal set; }
+
     /// <inheritdoc />
-    public override EntityViewModel CreatePartViewModel(EntityDesign partDesign)
+    public EntityViewModel CreatePartViewModel(EntityDesign partDesign)
     {
         return new EntityViewModel(this, partDesign);
     }

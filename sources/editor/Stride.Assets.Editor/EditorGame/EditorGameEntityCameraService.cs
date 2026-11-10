@@ -1,12 +1,19 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable enable
 
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
+using System;
+using System.Linq;
+using Stride.Assets.Editor.ViewModels;
 using Stride.Core.Mathematics;
 using Stride.Editor.EditorGame.Game;
+using Stride.Editor.EditorGame.ViewModels;
 using Stride.Editor.Engine;
 using Stride.Engine;
 using Stride.Input;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
+using Stride.Assets.Editor.SceneEditor;
 
 namespace Stride.Assets.Editor.EditorGame;
 
@@ -20,27 +27,28 @@ namespace Stride.Assets.Editor.EditorGame;
 /// <item>Middle button: pan. Middle and right buttons: move forward and backward.</item>
 /// <item>Wheel: zoom. Alt and right button: zoom. Alt and left button: orbit.</item>
 /// <item>+ and -: change the speed.</item>
+/// <item>F, in the view or the hierarchy: frame the last selected entity (<see cref="SetTarget"/>, through the editor).</item>
 /// </list>
-/// The key bindings are the defaults of the WPF scene editor settings; the settings are not read yet.
+/// The key bindings are the scene editor settings (<see cref="SceneEditorSettings"/>), shared with the WPF editor.
 /// </remarks>
 [EditorGameService(typeof(EntityHierarchyEditorController), Order = 110)]
-public sealed class EditorGameEntityCameraService : EditorGameCameraService
+public sealed class EditorGameEntityCameraService : EditorGameCameraService, IEditorGameViewModelService
 {
     /// <summary>
     /// The movement speeds the speed keys step through, as in the WPF scene editor.
     /// </summary>
     private static readonly float[] AvailableMovementSpeeds = [0.05f, 0.1f, 0.5f, 1.0f, 1.5f, 2.5f, 5.0f, 10.0f, 15.0f, 30.0f, 45.0f, 60.0f, 80.0f, 100.0f, 130.0f, 180.0f, 250.0f, 400.0f, 500.0f, 700.0f, 1000.0f];
 
-    // The default key bindings of the WPF scene editor (SceneEditorSettings)
-    private const Keys MoveCamForward = Keys.W;
-    private const Keys MoveCamBackward = Keys.S;
-    private const Keys MoveCamLeft = Keys.A;
-    private const Keys MoveCamRight = Keys.D;
-    private const Keys MoveCamUpward = Keys.E;
-    private const Keys MoveCamDownward = Keys.Q;
-    private const Keys IncreaseCamSpeed = Keys.OemPlus;
-    private const Keys DecreaseCamSpeed = Keys.OemMinus;
-    private const bool InvertPanningAxis = true;
+    // The key bindings of the scene editor settings, read as they are used so that a change applies at once, as in WPF
+    private static Keys MoveCamForward => SceneEditorSettings.MoveCamForward.GetValue();
+    private static Keys MoveCamBackward => SceneEditorSettings.MoveCamBackward.GetValue();
+    private static Keys MoveCamLeft => SceneEditorSettings.MoveCamLeft.GetValue();
+    private static Keys MoveCamRight => SceneEditorSettings.MoveCamRight.GetValue();
+    private static Keys MoveCamUpward => SceneEditorSettings.MoveCamUpward.GetValue();
+    private static Keys MoveCamDownward => SceneEditorSettings.MoveCamDownward.GetValue();
+    private static Keys IncreaseCamSpeed => SceneEditorSettings.IncreaseCamSpeed.GetValue();
+    private static Keys DecreaseCamSpeed => SceneEditorSettings.DecreaseCamSpeed.GetValue();
+    private static bool InvertPanningAxis => SceneEditorSettings.InvertPanningAxis.GetValue();
 
     private const float PanningSpeedModifier = 0.033f;
 
@@ -50,6 +58,21 @@ public sealed class EditorGameEntityCameraService : EditorGameCameraService
     public EditorGameEntityCameraService(IEditorGameController controller)
         : base(controller)
     {
+    }
+
+    /// <summary>
+    /// Gets or sets the camera options of the view, when the user interface shows them: the speed keys and the projection
+    /// key go through them. Without them, the service changes the camera itself.
+    /// </summary>
+    public ICameraViewOptions? Options { get; set; }
+
+    /// <inheritdoc/>
+    public override void SwitchProjection()
+    {
+        if (Options is { } options)
+            options.SwitchProjection();
+        else
+            base.SwitchProjection();
     }
 
     /// <inheritdoc />
@@ -161,6 +184,12 @@ public sealed class EditorGameEntityCameraService : EditorGameCameraService
     /// </summary>
     private void ChangeMovementSpeed(int step)
     {
+        if (Options is { } options)
+        {
+            options.ChangeMovementSpeed(step);
+            return;
+        }
+
         var index = Array.FindIndex(AvailableMovementSpeeds, x => MathUtil.NearEqual(x, MoveSpeed));
         // A speed out of the steps (the default one) starts from the third step, as in the WPF scene editor
         if (index < 0)
@@ -170,9 +199,11 @@ public sealed class EditorGameEntityCameraService : EditorGameCameraService
 
     private CameraInput GetInput()
     {
+        // The active tool of the view may take the middle or right drags
+        var tools = Game.EditorServices.Get<IEditorGameToolService>();
         var lbDown = Game.Input.IsMouseButtonDown(MouseButton.Left);
-        var mbDown = Game.Input.IsMouseButtonDown(MouseButton.Middle);
-        var rbDown = Game.Input.IsMouseButtonDown(MouseButton.Right);
+        var mbDown = Game.Input.IsMouseButtonDown(MouseButton.Middle) && tools.IsDefaultInputOn(EditorViewDefaultInputs.CameraMiddleDrag);
+        var rbDown = Game.Input.IsMouseButtonDown(MouseButton.Right) && tools.IsDefaultInputOn(EditorViewDefaultInputs.CameraRightDrag);
         var isAltDown = Game.Input.IsKeyDown(Keys.LeftAlt) || Game.Input.IsKeyDown(Keys.RightAlt);
 
         return new CameraInput

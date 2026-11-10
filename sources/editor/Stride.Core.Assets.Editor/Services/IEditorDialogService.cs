@@ -1,16 +1,19 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 
 using Stride.Core.Assets.Editor.Components.AddAssets;
+using Stride.Core.Assets.Editor.Components.FixAssetReferences;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
-using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Assets.Editor.ViewModel.Progress;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Presentation.Services;
+using Stride.Core.Settings;
+using Stride.Core.Assets.Editor.ViewModels.Progress;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Services;
 
-public interface IEditorDialogService : IDialogService
+public interface IEditorDialogService : IDialogService, IAssetPickerService
 {
     void ShowProgressWindow(WorkProgressViewModel workProgress);
 
@@ -27,6 +30,16 @@ public interface IEditorDialogService : IDialogService
     /// </summary>
     void ClearKeyboardFocus()
     {
+    }
+
+    /// <summary>
+    /// Waits until a question can be asked without interrupting the user: the main window of the editor is in front, with no dialog
+    /// over it, as the delayed notifications of the WPF editor wait for. A host that cannot tell completes at once.
+    /// </summary>
+    /// <param name="token">Stops waiting; the task is then cancelled.</param>
+    Task WaitForMainWindowActiveAsync(CancellationToken token = default)
+    {
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -76,14 +89,46 @@ public interface IEditorDialogService : IDialogService
     }
 
     /// <summary>
-    /// Shows the asset picker (see <see cref="AssetPickerViewModel"/>) and waits for the user to pick an asset.
+    /// Shows the references to fix before assets are deleted (see <see cref="FixAssetReferencesViewModel"/>) and waits for the
+    /// user to decide what to do with each of them. A host without the dialog cancels.
     /// </summary>
-    /// <param name="session">The session whose assets are listed.</param>
-    /// <param name="acceptedTypes">The asset types to list (and their derived types); empty lists every type.</param>
-    /// <param name="filter">An additional condition on the listed assets, or <c>null</c>.</param>
-    /// <param name="initialAsset">The asset selected when the picker opens, or <c>null</c>.</param>
-    /// <param name="initialLocation">The folder selected when the picker opens and there is no initial asset, or <c>null</c>.</param>
-    /// <param name="message">A text shown above the assets (what the asset is picked for), or <c>null</c>.</param>
-    /// <returns>The picked asset, or <c>null</c> when the user cancelled.</returns>
-    Task<AssetViewModel?> OpenAssetPickerAsync(SessionViewModel session, IEnumerable<Type> acceptedTypes, Func<AssetViewModel, bool>? filter = null, AssetViewModel? initialAsset = null, DirectoryBaseViewModel? initialLocation = null, string? message = null);
+    /// <param name="fixReferences">The references to fix, initialized with the deleted assets.</param>
+    /// <returns><c>true</c> when the user handled every reference (the caller then applies the fixes with
+    /// <see cref="Components.FixReferences.FixReferencesViewModel{T}.ProcessFixes"/>); <c>false</c> when they cancelled.</returns>
+    Task<bool> ShowFixAssetReferencesDialogAsync(FixAssetReferencesViewModel fixReferences)
+    {
+        return Task.FromResult(false);
+    }
+
+    /// <summary>
+    /// Shows the package picker of the Add dependency command, which lists the loaded and the suggested packages of the session
+    /// that pass the given filter. A host without a package picker returns <c>null</c>.
+    /// </summary>
+    /// <param name="session">The session.</param>
+    /// <param name="filter">The packages that can be picked.</param>
+    /// <returns>The picked packages, or <c>null</c> when the user cancelled.</returns>
+    Task<IReadOnlyCollection<PickablePackageViewModel>?> ShowPackagePickerDialogAsync(SessionViewModel session, Func<PickablePackageViewModel, bool> filter)
+    {
+        return Task.FromResult<IReadOnlyCollection<PickablePackageViewModel>?>(null);
+    }
+
+    /// <summary>
+    /// Asks a yes/no question once the main window is active and nothing else is up (see <see cref="WaitForMainWindowActiveAsync"/>),
+    /// with a "don't ask again" box, then runs the action of the answer. A question already waiting for the same setting is not
+    /// asked twice.
+    /// </summary>
+    /// <param name="confirmationSettingsKey">Whether to ask; the "don't ask again" box sets it to <c>false</c>.</param>
+    /// <param name="message">The question.</param>
+    /// <param name="yesCaption">The caption of the yes button.</param>
+    /// <param name="noCaption">The caption of the no button.</param>
+    /// <param name="yesAction">What a yes does.</param>
+    /// <param name="noAction">What a no does.</param>
+    /// <param name="yesNoSettingsKey">The answer to use when the question is not asked; "don't ask again" saves the answer there.
+    /// Without it, the answer is yes, and only a yes can be remembered.</param>
+    /// <returns>A task that completes when the question was answered and its action ran. A host that keeps its own queue of
+    /// questions (the WPF editor) may complete it as soon as the question is queued.</returns>
+    Task AddDelayedNotification(SettingsKey<bool> confirmationSettingsKey, string message, string yesCaption, string noCaption, Action? yesAction = null, Action? noAction = null, SettingsKey<bool>? yesNoSettingsKey = null)
+    {
+        return DelayedNotifications.AskAsync(this, confirmationSettingsKey, message, yesCaption, noCaption, yesAction, noAction, yesNoSettingsKey);
+    }
 }

@@ -1,9 +1,10 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 
+using System.Runtime.CompilerServices;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
-using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Quantum.ViewModels;
 using Stride.Core.Settings;
 using Stride.Core.Translation;
@@ -12,14 +13,15 @@ namespace Stride.Core.Assets.Editor.Settings;
 
 public static class EditorSettings
 {
-    private static SettingsProfile? profile;
-    public static SettingsContainer SettingsContainer { get; } = new();
+    // One container with the keys declared in the shared projects (ExternalToolsSettings...), which the WPF editor reads too
+    public static SettingsContainer SettingsContainer { get; } = SharedEditorSettings.SettingsContainer;
 
     public static readonly string AlwaysDeleteWithoutAsking = Tr._p("Settings", "Always delete {0} without asking");
     public static readonly string AlwaysSaveNewScriptsWithoutAsking = Tr._p("Settings", "Always save new scripts without asking");
 
     // Categories
     public static readonly string Environment = Tr._p("Settings", "Environment");
+    public static readonly string ExternalTools = ExternalToolsSettings.ExternalTools;
     public static readonly string Interface = Tr._p("Settings", "Interface");
     public static readonly string Logging = Tr._p("Settings", "Logging");
     public static readonly string Tools = Tr._p("Settings", "Tools");
@@ -28,6 +30,8 @@ public static class EditorSettings
 
     static EditorSettings()
     {
+        // The External tools keys are declared in the shared project
+        RuntimeHelpers.RunClassConstructor(typeof(ExternalToolsSettings).TypeHandle);
         AskBeforeDeletingAssets = new SettingsKey<bool>("Interface/AskBeforeDeletingAssets", SettingsContainer, true)
         {
             DisplayName = $"{Interface}/{Tr._p("Settings", "Ask before deleting assets")}",
@@ -48,18 +52,9 @@ public static class EditorSettings
             DisplayName = $"{Interface}/{Tr._p("Settings", "Ask before saving new scripts")}",
             Description = Tr._p("Settings", "Ask before saving new scripts"),
         };
-        Language = new SettingsKey<string>("Interface/Language", SettingsContainer, "MachineDefault")
+        Language = new SettingsKey<SupportedLanguage>(EditorLanguageSettings.LanguageKeyName, SettingsContainer, SupportedLanguage.MachineDefault)
         {
             DisplayName = $"{Interface}/{Tr._p("Settings", "Language")}",
-        };
-        ThemeAccent = new SettingsKey<Color>("Interface/Theme/Accent", SettingsContainer, default(Color))
-        {
-            DisplayName = $"{Interface}/{Tr._p("Settings", "Theme Accent")}",
-        };
-        ThemeVariant = new SettingsKey<string>("Interface/Theme/Variant", SettingsContainer, "Default")
-        {
-            DisplayName = $"{Interface}/{Tr._p("Settings", "Theme Variant")}",
-            GetAcceptableValues = () => ["Default", "Dark", "Light"],
         };
         ResetEditorLayout = new SettingsCommand("Interface/ResetEditorLayout")
         {
@@ -118,6 +113,12 @@ public static class EditorSettings
         return levels;
     }
 
+    public static SettingsKey<UFile> DefaultTextEditor => ExternalToolsSettings.DefaultTextEditor;
+
+    public static SettingsKey<UFile> ShaderEditor => ExternalToolsSettings.ShaderEditor;
+
+    public static SettingsKey<string> DefaultIDE => ExternalToolsSettings.DefaultIDE;
+
     public static SettingsKey<bool> AskBeforeDeletingAssets { get; }
 
     public static SettingsKey<bool> AskBeforeReloadingAssemblies { get; }
@@ -126,11 +127,7 @@ public static class EditorSettings
 
     public static SettingsKey<bool> AskBeforeSavingNewScripts { get; }
 
-    public static SettingsKey<string> Language { get; }
-
-    public static SettingsKey<Color> ThemeAccent { get; }
-
-    public static SettingsKey<string> ThemeVariant { get; }
+    public static SettingsKey<SupportedLanguage> Language { get; }
 
     public static SettingsCommand ResetEditorLayout { get; }
 
@@ -156,7 +153,7 @@ public static class EditorSettings
 
     public static void Initialize()
     {
-        profile = SettingsContainer.LoadSettingsProfile(EditorPath.EditorConfigPath, true) ?? SettingsContainer.CreateSettingsProfile(true);
+        SharedEditorSettings.Load(EditorPath.EditorConfigPath);
 
         // Settings that requires a restart must register here
         UseEffectCompilerServer.ChangesValidated += (_, _) => NeedRestart = true;
@@ -167,7 +164,7 @@ public static class EditorSettings
 
     public static void Save()
     {
-        SettingsContainer.SaveSettingsProfile(profile!, EditorPath.EditorConfigPath);
+        SharedEditorSettings.Save();
     }
 
     public static IEnumerable<SettingsCommand> GetAllCommands()

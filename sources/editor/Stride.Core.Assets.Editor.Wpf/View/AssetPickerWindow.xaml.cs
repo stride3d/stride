@@ -8,11 +8,13 @@ using System.Windows;
 using Stride.Core.Assets.Editor.Extensions;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Controls;
 using Stride.Core.Presentation.Extensions;
 using Stride.Core.Presentation.Services;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.View
 {
@@ -95,7 +97,7 @@ namespace Stride.Core.Assets.Editor.View
 
             await base.ShowModal();
 
-            if (Result == Presentation.Services.DialogResult.Ok)
+            if (Result == Stride.Core.Presentation.Services.DialogResult.Ok)
             {
                 selectedAssets.AddRange(AssetView.SelectedAssets);
             }
@@ -130,7 +132,7 @@ namespace Stride.Core.Assets.Editor.View
             var asset = AssetView.SingleSelectedAsset;
             if (asset != null)
             {
-                Result = Presentation.Services.DialogResult.Ok;
+                Result = Stride.Core.Presentation.Services.DialogResult.Ok;
                 Close();
             }
         }
