@@ -3,21 +3,20 @@
 
 using System.Collections.Specialized;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModels;
-using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Presentation.ViewModels;
 
-namespace Stride.GameStudio.Avalonia.ViewModels;
+namespace Stride.Core.Assets.Editor.ViewModels;
 
 /// <summary>
-/// The asset preview panel: it previews the asset selected alone in the asset view (or the active asset of an editor) with
-/// the <see cref="IAssetPreviewService"/> of the session, and shows the view the service builds.
+/// The asset preview panel of both editors: it previews the asset selected alone in the asset view (or the active asset of an
+/// editor) with the <see cref="IAssetPreviewService"/> of the session, and shows the view the service builds.
 /// </summary>
 /// <remarks>
 /// It lives as long as the session and owns the preview service, which runs the preview game: the view only binds to it, so
 /// hiding the panel pauses the rendering instead of tearing the game down.
 /// </remarks>
-internal sealed class PreviewViewModel : DispatcherViewModel, IDisposable
+public sealed class PreviewViewModel : DispatcherViewModel, IDisposable
 {
     private readonly SessionViewModel session;
     private IAssetPreviewService? previewService;
@@ -26,7 +25,7 @@ internal sealed class PreviewViewModel : DispatcherViewModel, IDisposable
     private bool isDisposed;
 
     public PreviewViewModel(SessionViewModel session)
-        : base(session.ServiceProvider)
+        : base((session ?? throw new ArgumentNullException(nameof(session))).ServiceProvider)
     {
         this.session = session;
         session.AssetCollection.SelectedAssets.CollectionChanged += SelectedAssetsCollectionChanged;
@@ -61,7 +60,8 @@ internal sealed class PreviewViewModel : DispatcherViewModel, IDisposable
     }
 
     /// <summary>
-    /// Gets the preview service of the session, once a plugin has registered it (none with <c>/DisablePreview</c>).
+    /// Gets the preview service of the session, once a plugin has registered it (none with <c>/DisablePreview</c> in the
+    /// Avalonia editor).
     /// </summary>
     private IAssetPreviewService? PreviewService
     {
@@ -75,6 +75,14 @@ internal sealed class PreviewViewModel : DispatcherViewModel, IDisposable
                 previewService.PreviewAssetUpdated += PreviewAssetUpdated;
             return previewService;
         }
+    }
+
+    /// <inheritdoc/>
+    public override void Destroy()
+    {
+        EnsureNotDestroyed(nameof(PreviewViewModel));
+        Dispose();
+        base.Destroy();
     }
 
     /// <summary>

@@ -196,7 +196,8 @@ namespace Stride.GameStudio.View
 
         private void UpdateAssetPreviewAnchorable(LayoutAnchorable anchorable)
         {
-            (Editor as GameStudioViewModel)?.Preview?.RenderPreviewCommand?.Execute(anchorable.IsSelected);
+            if ((Editor as GameStudioViewModel)?.Preview is { } preview)
+                preview.IsPreviewVisible = anchorable.IsSelected;
         }
 
         private void InitializeWindowSize()
