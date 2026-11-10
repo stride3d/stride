@@ -3,9 +3,13 @@ name: Refresh Shader Corpus
 # Rebuilds sources/shaders/Stride.Shaders.Tests/Corpus/corpus.json from empty (see Corpus/README.md), out of what the
 # current code compiles: the samples and the editor run with capture on, the game test suites too, and the
 # EmbeddedEffects.yaml lists of Stride.Graphics add the effects whose bytecode is embedded (runtime never compiles them).
-# Then snapshot.txt and uncovered.txt are updated. The result is uploaded as an artifact, and optionally opened as a PR.
+# Then snapshot.txt and uncovered.txt are updated. The result is uploaded as an artifact, and opened as a PR by the weekly
+# run or when asked: one PR, updated by each run until it is merged.
 
 on:
+  # Weekly, so the corpus follows rendering and material changes without anyone having to remember
+  schedule:
+    - cron: '0 3 * * 1'
   workflow_dispatch:
     inputs:
       open-pr:
@@ -15,6 +19,9 @@ on:
 
 permissions:
   contents: read
+
+concurrency:
+  group: refresh-shader-corpus
 
 jobs:
   Samples:
@@ -102,20 +109,20 @@ jobs:
             sources/shaders/Stride.Shaders.Tests/Corpus/uncovered.txt
             corpus-sources.txt
       - name: Open PR with the refreshed corpus
-        if: inputs.open-pr
+        if: inputs.open-pr || github.event_name == 'schedule'
         uses: peter-evans/create-pull-request@v8
         with:
           # A PR opened with the default token starts no workflows, so it would never get the corpus jobs or Gate
           token: ${{ secrets.GH_PAT }}
           commit-message: "Shaders: refresh the shader corpus from run ${{ github.run_id }}"
-          title: "Refresh the shader corpus (run ${{ github.run_id }})"
+          title: "Refresh the shader corpus"
           body: |
             Automated refresh of the shader corpus from [run #${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}):
             samples, editor and game test suites captured, plus the embedded effects of Stride.Graphics.
 
             The run summary lists the permutations per source. A corpus change is expected after rendering or material
-            changes; a compiler PR should not need one.
-          branch: shader-corpus/refresh-${{ github.run_id }}
+            changes; a compiler PR should not need one. Each later run updates this PR until it is merged.
+          branch: shader-corpus/refresh
           delete-branch: true
           add-paths: |
             sources/shaders/Stride.Shaders.Tests/Corpus/corpus.json

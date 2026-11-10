@@ -49,14 +49,33 @@ Explicit tests run when selected in the IDE, or from the command line with `-- x
 
 ## Workflow for a compiler change
 
-```
-dotnet test sources/shaders/Stride.Shaders.Tests --filter "FullyQualifiedName~ShaderCorpusTests.SaveBaseline" -- xUnit.Explicit=on
-# ... change the compiler, rebuild ...
-dotnet test sources/shaders/Stride.Shaders.Tests --filter "FullyQualifiedName~ShaderCorpusTests.MatchesBaseline" -- xUnit.Explicit=on
-```
+From the repository root (`dotnet test` builds the test project first):
 
-Read `ShaderCorpus/report.txt` and `ShaderCorpus/diff.txt`. If the changes are expected, run `UpdateSnapshot` and
-commit `snapshot.txt`; say in the PR which permutations changed and why.
+1. On the commit before the change, save a baseline. It is kept next to the test assembly, so it survives a branch
+   switch.
+
+   ```
+   dotnet test sources/shaders/Stride.Shaders.Tests --filter "FullyQualifiedName~ShaderCorpusTests.SaveBaseline" -- xUnit.Explicit=on
+   ```
+
+2. Change the compiler, then compare with the baseline:
+
+   ```
+   dotnet test sources/shaders/Stride.Shaders.Tests --filter "FullyQualifiedName~ShaderCorpusTests.MatchesBaseline" -- xUnit.Explicit=on
+   ```
+
+   Read `report.txt` and `diff.txt` in `ShaderCorpus/` next to the test assembly (on Windows,
+   `bin/Tests/Stride.Shaders.Tests/Windows-Direct3D11/Debug/ShaderCorpus/`).
+
+3. If the changes are expected, rewrite the snapshot, commit `snapshot.txt`, and say in the PR which permutations
+   changed and why:
+
+   ```
+   dotnet test sources/shaders/Stride.Shaders.Tests --filter "FullyQualifiedName~ShaderCorpusTests.UpdateSnapshot" -- xUnit.Explicit=on
+   ```
+
+The CI check alone is `--filter "FullyQualifiedName~ShaderCorpusTests.CompilerOutputUnchanged"`, without
+`xUnit.Explicit`.
 
 Legalization keeps functions and the order of declarations, so `legal` also changes when a function only moved to another
 mixin node, or when two copies of a function became one. Baseline runs (`SaveBaseline`, `MatchesBaseline`) therefore also
@@ -75,9 +94,13 @@ generic parameter since): reported, not a failure. A permutation that compiled b
 Refresh the corpus after rendering or material changes, and when `CompilerOutputUnchanged` reports a new engine
 shader that no permutation mixes (`uncovered.txt`). A compiler PR should not need a refresh.
 
-The corpus is rebuilt from empty, out of what the current code really compiles, by the **Refresh Shader Corpus**
-workflow (`.github/workflows/refresh-shader-corpus.yml`, manual dispatch: GitHub offers it once the file is on the
-default branch, and it then runs on any branch that has it). It:
+The corpus is rebuilt from empty, out of what the current code really compiles, by the
+[**Refresh Shader Corpus**](https://github.com/stride3d/stride/actions/workflows/refresh-shader-corpus.yml) workflow
+(`.github/workflows/refresh-shader-corpus.yml`). It runs every Monday on master: when the corpus changed, it opens the
+PR "Refresh the shader corpus", or updates it if it is still open. So a missed refresh is caught within a week, and a
+shader listed in `uncovered.txt` leaves it once a sample or a test compiles it. It can also be started by hand, on any
+branch that has the file: **Run workflow** on its page (needs write access), or
+`gh workflow run refresh-shader-corpus.yml --repo stride3d/stride --ref <branch> -f open-pr=true`. It:
 
 - runs with capture on the samples (`test-enduser.yml`, Windows Direct3D11 leg), the editor (`test-windows-editor.yml`,
   Direct3D11 leg) and the game test suites (`test-windows-game.yml`, Direct3D11 leg, all of

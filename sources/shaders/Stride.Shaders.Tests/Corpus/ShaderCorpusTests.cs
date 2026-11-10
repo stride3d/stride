@@ -116,7 +116,7 @@ public partial class ShaderCorpusTests
         text.AppendLine($"Shader corpus coverage (against Corpus/uncovered.txt): {lines.Count} differences");
         foreach (var line in lines)
             text.AppendLine(line);
-        text.AppendLine($"Capture an effect that uses a new shader (see Corpus/README.md), or run {nameof(UpdateSnapshot)} to rewrite uncovered.txt.");
+        text.AppendLine($"Capture an effect that uses a new shader (see sources/shaders/Stride.Shaders.Tests/Corpus/README.md), or run {nameof(UpdateSnapshot)} to rewrite uncovered.txt: the weekly corpus refresh takes it out once a sample or a test compiles it.");
         return (true, text.ToString());
     }
 
@@ -299,7 +299,7 @@ public partial class ShaderCorpusTests
             }
             else if (lines.Count > 0)
             {
-                text.AppendLine($"For a readable diff: {nameof(SaveBaseline)} on the base commit, then {nameof(MatchesBaseline)} here. If the change is expected: {nameof(UpdateSnapshot)}, and commit Corpus/snapshot.txt.");
+                text.AppendLine($"For a readable diff: {nameof(SaveBaseline)} on the base commit, then {nameof(MatchesBaseline)} here (commands in sources/shaders/Stride.Shaders.Tests/Corpus/README.md). If the change is expected: {nameof(UpdateSnapshot)}, and commit Corpus/snapshot.txt.");
             }
         }
         return (lines.Count > 0, text.ToString());
