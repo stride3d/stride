@@ -2,14 +2,194 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
              xmlns:vm="using:Stride.Assets.Editor.ViewModels"
+             xmlns:gc="using:Stride.Assets.Editor.ViewModels.GraphicsCompositorEditor"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Stride.Assets.Editor.Avalonia.Views.GraphicsCompositorEditorView"
-             x:DataType="vm:GraphicsCompositorEditorViewModel">
-  <DockPanel>
-    <Grid DockPanel.Dock="Top">
-      <TextBlock Text="GraphicsCompositor Editor" />
+             x:DataType="vm:GraphicsCompositorEditorViewModel"
+             Focusable="True">
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://Stride.Core.Assets.Editor.Avalonia/Views/ImageResources.axaml"/>
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </UserControl.Resources>
+  <UserControl.Styles>
+    <Style Selector="Button.tool, DropDownButton.tool">
+      <Setter Property="Focusable" Value="False"/>
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Padding" Value="4"/>
+      <Setter Property="Margin" Value="1,0"/>
+    </Style>
+    <Style Selector="Image.icon">
+      <Setter Property="Width" Value="16"/>
+      <Setter Property="Height" Value="16"/>
+    </Style>
+    <Style Selector="TextBlock.slotName">
+      <Setter Property="Foreground" Value="#FFEBEBEB"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
+      <Setter Property="Margin" Value="10,0,2,0"/>
+    </Style>
+  </UserControl.Styles>
+  <!-- Delete removes what is selected, in the lists or in the graph, as the command binding of the WPF view -->
+  <sd:EditCommands.Bindings>
+    <sd:EditCommandBinding Kind="Delete" Command="{Binding DeleteSelectionCommand}"/>
+  </sd:EditCommands.Bindings>
+
+  <Grid ColumnDefinitions="*, 5, 3*">
+
+    <!-- Left: the render stages, the render features and the camera slots, as in WPF -->
+    <Grid Grid.Column="0" RowDefinitions="*, 5, *, 5, *">
+      <DockPanel Grid.Row="0">
+        <DockPanel DockPanel.Dock="Top" Margin="8">
+          <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+            <Button Classes="tool" Command="{Binding AddNewRenderStageCommand}"
+                    ToolTip.Tip="{sd:LocalizeString Add a render stage, Context=ToolTip}">
+              <Image Classes="icon" Source="{StaticResource ImageAdd}"/>
+            </Button>
+            <Button Classes="tool" Command="{Binding RemoveSelectedRenderStagesCommand}"
+                    ToolTip.Tip="{sd:LocalizeString Delete the selected render stages, Context=ToolTip}">
+              <Image Classes="icon" Source="{StaticResource ImageRemove}"/>
+            </Button>
+          </StackPanel>
+          <TextBlock VerticalAlignment="Center" Text="{sd:LocalizeString Render stages:}"/>
+        </DockPanel>
+        <ListBox x:Name="RenderStageList" Margin="8"
+                 ItemsSource="{Binding RenderStages}" SelectedItems="{Binding SelectedRenderStages}" SelectionMode="Multiple"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="gc:RenderStageViewModel">
+              <Panel Background="Transparent" DoubleTapped="OnRenameItemDoubleTapped">
+                <TextBlock Margin="5,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" IsVisible="{Binding !#RenameBox.IsVisible}">
+                  <Run Text="{Binding Name, Mode=OneWay}" FontWeight="Bold"/>
+                  <Run Text="{Binding EffectSlotName, Mode=OneWay, StringFormat=' (Slot {0})'}" Foreground="Gray"/>
+                </TextBlock>
+                <!-- Renaming in place (double click, F2), as the WPF editable list -->
+                <TextBox x:Name="RenameBox" Margin="5,0,0,0" IsVisible="False" Text="{Binding Name, Mode=OneWay}">
+                  <Interaction.Behaviors>
+                    <sd:InlineEditBehavior Name="{Binding Name, Mode=TwoWay}" IsEditing="{Binding #RenameBox.IsVisible, Mode=TwoWay}"/>
+                  </Interaction.Behaviors>
+                </TextBox>
+              </Panel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
+
+      <GridSplitter Grid.Row="1" ResizeDirection="Rows" Background="#FF1D1D1D"/>
+
+      <DockPanel Grid.Row="2">
+        <DockPanel DockPanel.Dock="Top" Margin="8">
+          <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+            <!-- The render feature types, as the add item combo box of the WPF view -->
+            <DropDownButton x:Name="AddRenderFeatureButton" Classes="tool"
+                            ToolTip.Tip="{sd:LocalizeString Add a render feature, Context=ToolTip}">
+              <Image Classes="icon" Source="{StaticResource ImageAdd}"/>
+              <DropDownButton.Flyout>
+                <MenuFlyout Placement="BottomEdgeAlignedRight"/>
+              </DropDownButton.Flyout>
+            </DropDownButton>
+            <Button Classes="tool" Content="{sd:LocalizeString Add package features, Context=Button}" Command="{Binding AddPackageRenderFeaturesCommand}"
+                    ToolTip.Tip="{sd:LocalizeString Add the render features of the referenced packages (plugins) this compositor lacks, Context=ToolTip}"/>
+            <Button Classes="tool" Command="{Binding RemoveSelectedRenderFeaturesCommand}"
+                    ToolTip.Tip="{sd:LocalizeString Delete the selected render features, Context=ToolTip}">
+              <Image Classes="icon" Source="{StaticResource ImageRemove}"/>
+            </Button>
+          </StackPanel>
+          <TextBlock VerticalAlignment="Center" Text="{sd:LocalizeString Render features:}"/>
+        </DockPanel>
+        <ListBox x:Name="RenderFeatureList" Margin="8"
+                 ItemsSource="{Binding RenderFeatures}" SelectedItems="{Binding SelectedRenderFeatures}" SelectionMode="Multiple"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="gc:RenderFeatureViewModel">
+              <TextBlock Margin="5,0,0,0" TextTrimming="CharacterEllipsis" Text="{Binding Title}"/>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
+
+      <GridSplitter Grid.Row="3" ResizeDirection="Rows" Background="#FF1D1D1D"/>
+
+      <DockPanel Grid.Row="4">
+        <DockPanel DockPanel.Dock="Top" Margin="8">
+          <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+            <Button Classes="tool" Command="{Binding AddNewCameraSlotCommand}"
+                    ToolTip.Tip="{sd:LocalizeString Add a camera slot, Context=ToolTip}">
+              <Image Classes="icon" Source="{StaticResource ImageAdd}"/>
+            </Button>
+            <Button Classes="tool" Command="{Binding RemoveSelectedCameraSlotsCommand}"
+                    ToolTip.Tip="{sd:LocalizeString Delete the selected camera slots, Context=ToolTip}">
+              <Image Classes="icon" Source="{StaticResource ImageRemove}"/>
+            </Button>
+          </StackPanel>
+          <TextBlock VerticalAlignment="Center" Text="{sd:LocalizeString Camera slots:}"/>
+        </DockPanel>
+        <ListBox x:Name="CameraSlotList" Margin="8"
+                 ItemsSource="{Binding CameraSlots}" SelectedItems="{Binding SelectedCameraSlots}" SelectionMode="Multiple"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="gc:GraphicsCompositorCameraSlotsViewModel">
+              <Panel Background="Transparent" DoubleTapped="OnRenameItemDoubleTapped">
+                <TextBlock Margin="5,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" FontWeight="Bold"
+                           Text="{Binding Name}" IsVisible="{Binding !#RenameBox.IsVisible}"/>
+                <TextBox x:Name="RenameBox" Margin="5,0,0,0" IsVisible="False" Text="{Binding Name, Mode=OneWay}">
+                  <Interaction.Behaviors>
+                    <sd:InlineEditBehavior Name="{Binding Name, Mode=TwoWay}" IsEditing="{Binding #RenameBox.IsVisible, Mode=TwoWay}"/>
+                  </Interaction.Behaviors>
+                </TextBox>
+              </Panel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
     </Grid>
-    <TextBlock Text="{Binding Asset.Name}" />
-  </DockPanel>
+
+    <GridSplitter Grid.Column="1" ResizeDirection="Columns" Background="#FF1D1D1D"/>
+
+    <!-- Right: the blocks and their links. The view gives the graph its links and commands (GraphicsCompositorGraph). -->
+    <sd:NodeGraphControl x:Name="Graph" Grid.Column="2" Nodes="{Binding Blocks}">
+      <sd:NodeGraphControl.ContextMenu>
+        <ContextMenu x:Name="GraphContextMenu">
+          <MenuItem x:Name="CreateRendererMenuItem" Header="{sd:LocalizeString Create, Context=Menu}"/>
+          <Separator/>
+          <MenuItem Header="{sd:LocalizeString Delete selection, Context=Menu}" InputGesture="{x:Static sd:EditCommands.DeleteGesture}"
+                    Command="{Binding DeleteSelectionCommand}">
+            <MenuItem.Icon><Image Source="{StaticResource ImageRemove}"/></MenuItem.Icon>
+          </MenuItem>
+        </ContextMenu>
+      </sd:NodeGraphControl.ContextMenu>
+      <sd:NodeGraphControl.NodeTemplate>
+        <DataTemplate x:DataType="gc:GraphicsCompositorBlockViewModel">
+          <StackPanel MinWidth="120">
+            <Border Background="#FF194756" CornerRadius="2,2,0,0" Padding="10,2">
+              <TextBlock HorizontalAlignment="Center" FontWeight="Bold" Foreground="#FFEBEBEB" Text="{Binding Title}"/>
+            </Border>
+            <Grid ColumnDefinitions="Auto, *" Margin="0,3">
+              <!-- A shared renderer has one input: the renderer itself, with no name -->
+              <ItemsControl Grid.Column="0" ItemsSource="{Binding InputSlots}" VerticalAlignment="Top">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="gc:IGraphicsCompositorSlotViewModel">
+                    <sd:NodeGraphConnector Margin="3,1" Slot="{Binding}" Direction="Input"/>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <ItemsControl Grid.Column="1" ItemsSource="{Binding OutputSlots}" HorizontalAlignment="Right">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="gc:IGraphicsCompositorSlotViewModel">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                      <TextBlock Classes="slotName" Text="{Binding Name}"/>
+                      <sd:NodeGraphConnector Margin="3,1" Slot="{Binding}" Direction="Output"/>
+                    </StackPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </Grid>
+          </StackPanel>
+        </DataTemplate>
+      </sd:NodeGraphControl.NodeTemplate>
+    </sd:NodeGraphControl>
+  </Grid>
 </UserControl>

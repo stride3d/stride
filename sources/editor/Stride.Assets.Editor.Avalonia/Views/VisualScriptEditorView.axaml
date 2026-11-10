@@ -2,14 +2,15 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
              xmlns:vm="using:Stride.Assets.Editor.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Stride.Assets.Editor.Avalonia.Views.VisualScriptEditorView"
              x:DataType="vm:VisualScriptEditorViewModel">
-  <DockPanel>
-    <Grid DockPanel.Dock="Top">
-      <TextBlock Text="VisualScript Editor" />
-    </Grid>
-    <TextBlock Text="{Binding Asset.Name}" />
-  </DockPanel>
+  <!-- Visual scripting is not ported: the WPF Game Studio keeps its editor -->
+  <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="560" Spacing="8">
+    <TextBlock x:Name="AssetName" HorizontalAlignment="Center" FontWeight="Bold" Text="{Binding Asset.Url}"/>
+    <TextBlock x:Name="Message" TextWrapping="Wrap" TextAlignment="Center"
+               Text="{sd:LocalizeString This Game Studio cannot edit visual scripts. Open this asset in the WPF Game Studio (Windows) to edit it.}"/>
+  </StackPanel>
 </UserControl>
