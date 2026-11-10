@@ -19,10 +19,7 @@ namespace Stride.Input
     /// </summary>
     internal partial class InputSourceWindowsDirectInput : InputSourceBase
     {
-        private const int HwndMessage = -3;
-
         private readonly Control? uiControl;
-        private NativeWindow? helperWindow;
         private readonly HashSet<Guid> devicesToRemove = new HashSet<Guid>();
         private InputManager? inputManager;
         private DirectInput? directInput;
@@ -48,10 +45,6 @@ namespace Stride.Input
             this.inputManager = inputManager;
             directInput = new DirectInput();
 
-            // As in SDL, devices are read in the background through a hidden message-only window, so they do not depend on the game window.
-            helperWindow = new NativeWindow();
-            helperWindow.CreateHandle(new CreateParams { Parent = new IntPtr(HwndMessage) });
-
             Scan();
         }
 
@@ -70,9 +63,6 @@ namespace Stride.Input
             // Dispose DirectInput
             directInput?.Dispose();
             directInput = null;
-
-            helperWindow?.DestroyHandle();
-            helperWindow = null;
         }
 
         public override void Update()
@@ -200,7 +190,7 @@ namespace Stride.Input
             GameControllerDirectInput controller;
             try
             {
-                controller = new GameControllerDirectInput(this, directInput, deviceInstance, helperWindow!.Handle);
+                controller = new GameControllerDirectInput(this, directInput, deviceInstance);
             }
             catch (SharpDXException ex)
             {

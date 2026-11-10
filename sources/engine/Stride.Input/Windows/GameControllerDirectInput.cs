@@ -38,8 +38,7 @@ namespace Stride.Input
         /// <param name="source">The input source that owns the controller.</param>
         /// <param name="directInput">The DirectInput instance.</param>
         /// <param name="instance">The device to open.</param>
-        /// <param name="window">The window the device is associated with. The device is read in the background, so it does not have to be the game window.</param>
-        public GameControllerDirectInput(InputSourceWindowsDirectInput source, DirectInput directInput, DeviceInstance instance, IntPtr window)
+        public GameControllerDirectInput(InputSourceWindowsDirectInput source, DirectInput directInput, DeviceInstance instance)
         {
             Source = source;
             this.source = source;
@@ -50,7 +49,8 @@ namespace Stride.Input
             IList<DeviceObjectInstance> objects;
             try
             {
-                joystick.SetCooperativeLevel(window, CooperativeLevel.NonExclusive | CooperativeLevel.Background);
+                // Read in the background with no window, so the device does not depend on the game window.
+                joystick.SetCooperativeLevel(IntPtr.Zero, CooperativeLevel.NonExclusive | CooperativeLevel.Background);
                 objects = joystick.GetObjects();
             }
             catch
