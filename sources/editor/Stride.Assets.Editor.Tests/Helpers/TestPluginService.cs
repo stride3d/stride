@@ -22,8 +22,6 @@ public sealed class TestPluginService : SceneEditorPluginHost
     {
     }
 
-    protected override Type AssetEditorViewModelType => typeof(AssetEditorViewModel);
-
     protected override Type AssetEditorViewType => typeof(IAssetEditorView);
 
     protected override bool AddTemplateProvider(ISessionViewModel session, ITemplateProvider provider) => false;
