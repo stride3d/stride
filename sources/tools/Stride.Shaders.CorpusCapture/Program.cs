@@ -1,7 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-// Builds the shader corpus used by the Stride.Shaders.Tests snapshot test, from empty, out of the given sources:
+// Builds the shader corpus used by the Stride.Shaders.Tests corpus test, from empty, out of the given sources:
 //   --corpus <corpus.json>       the entries of an existing corpus, to add captures to it
 //   --embedded <file or folder>  lists of the effects embedded in Stride.Graphics (EmbeddedEffects.yaml): a shader class each
 //   --capture <folder>           folders written by ShaderCorpusCapture (STRIDE_SHADER_CORPUS_CAPTURE), searched recursively

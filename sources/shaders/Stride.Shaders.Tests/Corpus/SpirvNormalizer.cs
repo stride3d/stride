@@ -17,15 +17,38 @@ namespace Stride.Shaders.Parsers.Tests.Corpus;
 /// </summary>
 static class SpirvNormalizer
 {
-    public static string Normalize(ReadOnlySpan<int> words, bool keepNames)
+    /// <param name="locations">When set, receives the source line of each line of the text (from the <c>OpLine</c> before
+    /// its instruction), or null.</param>
+    public static string Normalize(ReadOnlySpan<int> words, bool keepNames, List<SourceLocation?>? locations = null)
     {
         using var input = SpirvBytecode.CreateFromSpan(words.ToArray().AsSpan());
         using var output = new SpirvBuffer();
 
         var remap = new Dictionary<int, int>();
         var names = new List<OpData>();
+        var files = new Dictionary<int, string>();
+        SourceLocation? location = null;
+        var instructionLocations = new List<SourceLocation?>();
         foreach (var i in input.Buffer)
         {
+            if (locations != null)
+            {
+                if (i.Op == Op.OpString)
+                {
+                    var file = (OpString)i;
+                    files[file.ResultId] = file.Value;
+                }
+                else if (i.Op == Op.OpLine)
+                {
+                    OpLine line = i;
+                    location = files.TryGetValue(line.File, out var file) ? new SourceLocation(file, line.Line) : null;
+                }
+                // An OpLine also ends with its block
+                else if (i.Op is Op.OpNoLine or Op.OpFunction or Op.OpLabel)
+                {
+                    location = null;
+                }
+            }
             if (i.Op is Op.OpName or Op.OpMemberName)
             {
                 if (keepNames)
@@ -43,6 +66,7 @@ static class SpirvNormalizer
                 id = newId;
             });
             output.Add(data);
+            instructionLocations.Add(location);
         }
 
         // Names go after the capabilities, entry points and execution modes, like in a real module; names of removed
@@ -60,6 +84,7 @@ static class SpirvNormalizer
                 target = newTarget;
                 if (name.Op == Op.OpName)
                     namedIds.Add(newTarget);
+                instructionLocations.Insert(insertIndex, null);
                 output.Insert(insertIndex++, name);
             }
             else
@@ -98,7 +123,17 @@ static class SpirvNormalizer
         // Split leaves an empty string after the final newline. The padding is removed: Dis aligns on the longest name, so
         // one longer name would change every line.
         var lines = text.Split('\n');
-        return string.Join('\n', lines[..^(addedNames + 1)].Select(x => x.TrimStart())) + "\n";
+        lines = lines[..^(addedNames + 1)];
+        if (locations != null)
+        {
+            // One line per instruction, after the header
+            var headerLength = lines.Length - instructionLocations.Count;
+            if (headerLength < 0 || lines[..headerLength].Any(x => x.Trim() is [not ';', ..]))
+                throw new InvalidOperationException($"The disassembly has {lines.Length} lines for {instructionLocations.Count} instructions");
+            locations.AddRange(Enumerable.Repeat<SourceLocation?>(null, headerLength));
+            locations.AddRange(instructionLocations);
+        }
+        return string.Join('\n', lines.Select(x => x.TrimStart())) + "\n";
     }
 
     /// <summary>
@@ -213,3 +248,8 @@ static class SpirvNormalizer
         }
     }
 }
+
+/// <summary>
+/// A line of a source file, as an <c>OpLine</c> gives it: <paramref name="File"/> is the path the compiler was given.
+/// </summary>
+readonly record struct SourceLocation(string File, int Line);

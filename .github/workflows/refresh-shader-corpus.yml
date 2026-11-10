@@ -3,8 +3,8 @@ name: Refresh Shader Corpus
 # Rebuilds sources/shaders/Stride.Shaders.Tests/Corpus/corpus.json from empty (see Corpus/README.md), out of what the
 # current code compiles: the samples and the editor run with capture on, the game test suites too, and the
 # EmbeddedEffects.yaml lists of Stride.Graphics add the effects whose bytecode is embedded (runtime never compiles them).
-# Then snapshot.txt and uncovered.txt are updated. The result is uploaded as an artifact, and opened as a PR by the weekly
-# run or when asked: one PR, updated by each run until it is merged.
+# The result is uploaded as an artifact, and opened as a PR by the weekly run or when asked: one PR, updated by each run
+# until it is merged.
 
 on:
   # Weekly, so the corpus follows rendering and material changes without anyone having to remember
@@ -82,20 +82,13 @@ jobs:
           dotnet run --project sources\tools\Stride.Shaders.CorpusCapture -p:StridePlatforms=Windows -p:StrideGraphicsApis=Direct3D11 -- `
             --embedded sources\engine\Stride.Graphics --capture captures | Tee-Object corpus-sources.txt
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Update the snapshot
-        run: |
-          dotnet build sources\shaders\Stride.Shaders.Tests\Stride.Shaders.Tests.csproj -nr:false -v:m -p:WarningLevel=0 -p:StridePlatforms=Windows
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          dotnet test sources\shaders\Stride.Shaders.Tests\Stride.Shaders.Tests.csproj --no-build `
-            --filter "FullyQualifiedName~ShaderCorpusTests.UpdateSnapshot" -- xUnit.Explicit=on
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Report
         run: |
-          $snapshot = 'sources/shaders/Stride.Shaders.Tests/Corpus/snapshot.txt'
-          $removed = (git diff -U0 -- $snapshot | Select-String '^-[^-]' | Measure-Object).Count
-          $added = (git diff -U0 -- $snapshot | Select-String '^\+[^+]' | Measure-Object).Count
+          $corpus = 'sources/shaders/Stride.Shaders.Tests/Corpus/corpus.json'
+          $before = @(git show "HEAD:$corpus" | Out-String | ConvertFrom-Json).Count
+          $after = @(Get-Content $corpus -Raw | ConvertFrom-Json).Count
           "## Shader corpus refresh`n" >> $env:GITHUB_STEP_SUMMARY
-          "snapshot.txt: $added line(s) added, $removed removed (one line per permutation and platform)`n" >> $env:GITHUB_STEP_SUMMARY
+          "corpus.json: $after permutations (was $before)`n" >> $env:GITHUB_STEP_SUMMARY
           '```' >> $env:GITHUB_STEP_SUMMARY
           Get-Content corpus-sources.txt >> $env:GITHUB_STEP_SUMMARY
           '```' >> $env:GITHUB_STEP_SUMMARY
@@ -105,8 +98,6 @@ jobs:
           name: shader-corpus-refresh
           path: |
             sources/shaders/Stride.Shaders.Tests/Corpus/corpus.json
-            sources/shaders/Stride.Shaders.Tests/Corpus/snapshot.txt
-            sources/shaders/Stride.Shaders.Tests/Corpus/uncovered.txt
             corpus-sources.txt
       - name: Open PR with the refreshed corpus
         if: inputs.open-pr || github.event_name == 'schedule'
@@ -126,5 +117,3 @@ jobs:
           delete-branch: true
           add-paths: |
             sources/shaders/Stride.Shaders.Tests/Corpus/corpus.json
-            sources/shaders/Stride.Shaders.Tests/Corpus/snapshot.txt
-            sources/shaders/Stride.Shaders.Tests/Corpus/uncovered.txt

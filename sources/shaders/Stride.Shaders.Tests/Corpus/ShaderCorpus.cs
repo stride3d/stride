@@ -15,7 +15,7 @@ using Stride.Shaders.Spirv.Tools;
 namespace Stride.Shaders.Parsers.Tests.Corpus;
 
 /// <summary>
-/// The permutations the snapshot test compiles: the captured corpus (<c>corpus.json</c>, see <c>Corpus/README.md</c>) plus one
+/// The permutations the corpus test compiles: the captured corpus (<c>corpus.json</c>, see <c>Corpus/README.md</c>) plus one
 /// entry per <c>RenderTests</c> shader.
 /// </summary>
 static class ShaderCorpus
@@ -27,8 +27,8 @@ static class ShaderCorpus
     public static readonly GraphicsPlatform[] Platforms = [GraphicsPlatform.Direct3D11, GraphicsPlatform.Vulkan];
 
     /// <summary>
-    /// The platforms of this run: all of them, or those listed in STRIDE_SHADER_CORPUS_PLATFORMS (comma-separated; the CI
-    /// lanes check one each).
+    /// The platforms of this run: all of them, or those listed in STRIDE_SHADER_CORPUS_PLATFORMS (comma-separated; each CI
+    /// job checks one).
     /// </summary>
     public static GraphicsPlatform[] SelectedPlatforms { get; } = Environment.GetEnvironmentVariable("STRIDE_SHADER_CORPUS_PLATFORMS") is { Length: > 0 } platforms
         ? platforms.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Select(Enum.Parse<GraphicsPlatform>).ToArray()
@@ -130,7 +130,7 @@ static class ShaderCorpus
     /// </summary>
     public static ShaderLoaderBase CreateLoader() => new IndexShaderLoader(ShaderIndex.Value);
 
-    /// <param name="optimize">Also fills <see cref="CorpusResult.Optimized"/> (slower; for baseline runs).</param>
+    /// <param name="optimize">Also fills <see cref="CorpusResult.Optimized"/>.</param>
     public static CorpusResult Compile(CorpusItem item, GraphicsPlatform platform, ShaderLoaderBase sharedLoader, bool optimize = false)
     {
         // RenderTests files hold several shaders and reuse names across files: each one gets its own loader
@@ -201,15 +201,19 @@ static class ShaderCorpus
             }
         }
 
+        var strictLocations = new List<SourceLocation?>();
+        var legalizedLocations = new List<SourceLocation?>();
         var result = new CorpusResult(item, null, null,
             Strict: SpirvNormalizer.Normalize(words, keepNames: false),
-            StrictNamed: SpirvNormalizer.Normalize(words, keepNames: true),
+            StrictNamed: SpirvNormalizer.Normalize(words, keepNames: true, strictLocations),
             Legalized: legalizedWords != null ? SpirvNormalizer.Normalize(legalizedWords, keepNames: false) : legalizationError,
-            LegalizedNamed: legalizedWords != null ? SpirvNormalizer.Normalize(legalizedWords, keepNames: true) : legalizationError,
+            LegalizedNamed: legalizedWords != null ? SpirvNormalizer.Normalize(legalizedWords, keepNames: true, legalizedLocations) : legalizationError,
             Reflection: ReflectionText(reflection!),
             Explain: mixer.Explanation ?? "")
         {
             Platform = platform,
+            StrictLocations = strictLocations,
+            LegalizedLocations = legalizedWords != null ? legalizedLocations : null,
             Optimized = optimized,
             MixTime = mixTime,
             LegalizeTime = legalizeTime,
@@ -299,6 +303,15 @@ sealed record CorpusResult(CorpusItem Item, string? Error, string? ErrorDetail, 
     /// Snapshot key and output path: <c>Vulkan/StrideForwardShadingEffect.98f4d62b70</c>.
     /// </summary>
     public string Key => $"{Platform}/{Item.Id}";
+
+    /// <summary>
+    /// The source line of each line of <see cref="StrictNamed"/> and <see cref="LegalizedNamed"/>. Not hashed: a line that
+    /// moved in a .sdsl file is not a change.
+    /// </summary>
+    public IReadOnlyList<SourceLocation?>? StrictLocations { get; init; }
+
+    /// <inheritdoc cref="StrictLocations"/>
+    public IReadOnlyList<SourceLocation?>? LegalizedLocations { get; init; }
 
     /// <summary>
     /// The legalized code after <c>spirv-opt -O --unify-const --canonicalize-ids</c>, normalized: what runs, whatever the
