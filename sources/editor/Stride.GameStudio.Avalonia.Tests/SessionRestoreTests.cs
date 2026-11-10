@@ -128,12 +128,12 @@ public sealed class SessionRestoreTests
     {
         using var fixture = ShellSessionFixture.Create(("Sheet", new SpriteSheetAsset()));
         var other = new MRUAdditionalData(Path.Combine(fixture.Directory, "Other", "Other.sln")) { DockingLayout = "<Layout />", DockingLayoutEditors = "<EditorLayout />", DockingLayoutVersion = 3 };
-        GameStudioInternalSettings.CreateMostRecentlyUsedSessionsData().UpdateData(other);
+        RecentSessionsSettings.CreateMostRecentlyUsedSessionsData().UpdateData(other);
 
         await fixture.OpenAsync();
         fixture.Session.EditorCollection.OpenAssetEditor(fixture.Asset("Sheet"));
 
-        var kept = GameStudioInternalSettings.CreateMostRecentlyUsedSessionsData().GetData(other.FilePath);
+        var kept = RecentSessionsSettings.CreateMostRecentlyUsedSessionsData().GetData(other.FilePath);
         Assert.NotNull(kept);
         Assert.Equal("<Layout />", kept.DockingLayout);
         Assert.Equal("<EditorLayout />", kept.DockingLayoutEditors);
@@ -143,11 +143,11 @@ public sealed class SessionRestoreTests
 
     private static void SetOpenedAssets(ShellSessionFixture fixture, params AssetId[] assets)
     {
-        GameStudioInternalSettings.CreateMostRecentlyUsedSessionsData().UpdateOpenedAssets(fixture.PackagePath, assets);
+        RecentSessionsSettings.CreateMostRecentlyUsedSessionsData().UpdateOpenedAssets(fixture.PackagePath, assets);
     }
 
     private static List<AssetId> OpenedAssets(ShellSessionFixture fixture)
     {
-        return GameStudioInternalSettings.CreateMostRecentlyUsedSessionsData().GetData(fixture.PackagePath)?.OpenedAssets.ToList() ?? [];
+        return RecentSessionsSettings.CreateMostRecentlyUsedSessionsData().GetData(fixture.PackagePath)?.OpenedAssets.ToList() ?? [];
     }
 }

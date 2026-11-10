@@ -15,9 +15,9 @@ using Stride.Core.Yaml;
 namespace Stride.GameStudio.Avalonia.Settings;
 
 /// <summary>
-/// The internal (not user-facing) settings of the Avalonia Game Studio, in the settings file shared by the editors: the most
-/// recently used sessions and what each of them keeps, under the shared keys; the main window placement and the panel
-/// layouts of the sessions, under keys of its own.
+/// The internal (not user-facing) settings of the Avalonia Game Studio, in the same file as the WPF Game Studio's: the main
+/// window placement and the panel layouts of the sessions, under keys of its own. The recent sessions are shared with WPF
+/// (<see cref="RecentSessionsSettings"/>).
 /// </summary>
 internal static class GameStudioInternalSettings
 {
@@ -44,47 +44,15 @@ internal static class GameStudioInternalSettings
 
     /// <summary>
     /// The panel layouts of the recent sessions (with and without editors), in the editor's own format: the other editors
-    /// keep their docking layouts in <see cref="MostRecentlyUsedSessionsData"/>, and never read this key.
+    /// keep their docking layouts in <see cref="RecentSessionsSettings.MostRecentlyUsedSessionsData"/>, and never read this key.
     /// </summary>
     /// <remarks>The key <c>Internal/Avalonia/PanelSizes</c> of earlier versions is no longer read.</remarks>
     public static readonly SettingsKey<List<SessionPanelLayouts>> SessionLayouts = new("Internal/Avalonia/SessionLayouts", SettingsContainer, () => new List<SessionPanelLayouts>());
 
-    /// <summary>
-    /// The most recently used sessions, per editor version (every editor reads and writes this key).
-    /// </summary>
-    public static readonly SettingsKey<MRUDictionary> MostRecentlyUsedSessions = new("Internal/MostRecentlyUsedSessions", SettingsContainer, () => new MRUDictionary());
-
-    /// <summary>
-    /// What the editors keep for each recent session: the assets open in an editor, which every editor restores, and the docking
-    /// layouts of the other editors, which this editor keeps as they are.
-    /// </summary>
-    public static readonly SettingsKey<List<MRUAdditionalData>> MostRecentlyUsedSessionsData = new("Internal/MostRecentlyUsedSessionsData2", SettingsContainer, () => new List<MRUAdditionalData>());
-
     static GameStudioInternalSettings()
     {
-        MostRecentlyUsedSessions.FallbackDeserializers.Add(LegacyMRUDeserializer);
-        // Another editor instance may have changed the list since this one started
-        InternalSettings.KeepFileValueOnSave(MostRecentlyUsedSessions);
         // Written at once by each change (SessionPanelLayoutStore); another editor instance may have changed it since
         InternalSettings.KeepFileValueOnSave(SessionLayouts);
-    }
-
-    /// <summary>
-    /// Creates the collection of the most recently used sessions over the settings file.
-    /// </summary>
-    public static MostRecentlyUsedFileCollection CreateMostRecentlyUsedFiles()
-    {
-        var mru = new MostRecentlyUsedFileCollection(InternalSettings.LoadProfileCopy, MostRecentlyUsedSessions, InternalSettings.SaveProfile);
-        mru.LoadFromSettings();
-        return mru;
-    }
-
-    /// <summary>
-    /// Creates the collection of what the editors keep for each recent session, over the settings file.
-    /// </summary>
-    public static MRUAdditionalDataCollection CreateMostRecentlyUsedSessionsData()
-    {
-        return new MRUAdditionalDataCollection(InternalSettings.LoadProfileCopy, MostRecentlyUsedSessionsData, InternalSettings.SaveProfile);
     }
 
     /// <summary>
@@ -105,16 +73,4 @@ internal static class GameStudioInternalSettings
         // fallback to a reasonable value
         return new Rect(0, 0, 800, 600);
     });
-
-    // The MRU of Stride 1.3 was a plain list of files
-    private static object LegacyMRUDeserializer(EventReader eventReader)
-    {
-        const string legacyVersion = "1.3";
-        var mru = (List<UFile>)SettingsYamlSerializer.Default.Deserialize(eventReader, typeof(List<UFile>))!;
-        var initialTimestamp = DateTime.UtcNow.Ticks;
-        return new MRUDictionary
-        {
-            { legacyVersion, mru.Select(x => new MostRecentlyUsedFile(x) { Timestamp = initialTimestamp-- }).ToList() }
-        };
-    }
 }

@@ -137,7 +137,7 @@ public sealed class SettingsCompatibilityTests : IDisposable
         var profile = container.LoadSettingsProfile(path, false, null, false);
         Assert.NotNull(profile);
         // What a session kept: its editors open again here
-        var data = Assert.Single(GameStudioInternalSettings.MostRecentlyUsedSessionsData.GetValue(profile, true));
+        var data = Assert.Single(RecentSessionsSettings.MostRecentlyUsedSessionsData.GetValue(profile, true));
         Assert.Equal(new UFile("C:/Projects/MyGame/MyGame.sln"), data.FilePath);
         Assert.Equal([AssetId.Parse(OpenedAsset)], data.OpenedAssets);
         // The window of the WPF editor is not this editor's
@@ -150,7 +150,7 @@ public sealed class SettingsCompatibilityTests : IDisposable
         var layouts = new SessionPanelLayouts { FilePath = data.FilePath, Timestamp = 1, Normal = DefaultPanelLayouts.Create(PanelLayoutKind.Normal) };
         GameStudioInternalSettings.SessionLayouts.SetValue([layouts], profile);
         data.OpenedAssets.Clear();
-        GameStudioInternalSettings.MostRecentlyUsedSessionsData.SetValue([data], profile);
+        RecentSessionsSettings.MostRecentlyUsedSessionsData.SetValue([data], profile);
         Assert.True(container.SaveSettingsProfile(profile, path));
 
         var saved = File.ReadAllText(path);
@@ -175,7 +175,7 @@ public sealed class SettingsCompatibilityTests : IDisposable
         Assert.Equal(data.FilePath, reloadedLayouts.FilePath);
         Assert.Equal(DefaultPanelLayouts.Create(PanelLayoutKind.Normal).EnumeratePanels(), reloadedLayouts.Normal!.EnumeratePanels());
         Assert.Null(reloadedLayouts.Editors);
-        Assert.Empty(Assert.Single(GameStudioInternalSettings.MostRecentlyUsedSessionsData.GetValue(reloaded, true)).OpenedAssets);
+        Assert.Empty(Assert.Single(RecentSessionsSettings.MostRecentlyUsedSessionsData.GetValue(reloaded, true)).OpenedAssets);
     }
 
     [AvaloniaFact]
@@ -224,30 +224,30 @@ public sealed class SettingsCompatibilityTests : IDisposable
     [AvaloniaFact]
     public void SavingTheInternalSettingsKeepsTheRecentSessionsAnotherEditorWrote()
     {
-        var previousSessions = GameStudioInternalSettings.MostRecentlyUsedSessions.GetValue();
+        var previousSessions = RecentSessionsSettings.MostRecentlyUsedSessions.GetValue();
         var previousDirectory = InternalSettings.FileDialogLastImportDirectory.GetValue();
         try
         {
             // Another editor instance adds a session to the file
             var other = InternalSettings.LoadProfileCopy();
             var sessions = new MRUDictionary { ["4.5"] = [new MostRecentlyUsedFile(new UFile("C:/Projects/Other/Other.sln"))] };
-            GameStudioInternalSettings.MostRecentlyUsedSessions.SetValue(sessions, other);
+            RecentSessionsSettings.MostRecentlyUsedSessions.SetValue(sessions, other);
             Assert.True(InternalSettings.SettingsContainer.SaveSettingsProfile(other, EditorPath.InternalConfigPath));
 
             // This one, which read the file before, saves another internal setting
-            GameStudioInternalSettings.MostRecentlyUsedSessions.SetValue(new MRUDictionary());
+            RecentSessionsSettings.MostRecentlyUsedSessions.SetValue(new MRUDictionary());
             InternalSettings.FileDialogLastImportDirectory.SetValue("C:/Imports");
             InternalSettings.Save();
 
             var saved = InternalSettings.LoadProfileCopy();
             Assert.Equal("C:/Imports", InternalSettings.FileDialogLastImportDirectory.GetValue(saved, true));
-            var file = Assert.Single(Assert.Single(GameStudioInternalSettings.MostRecentlyUsedSessions.GetValue(saved, true)).Value);
+            var file = Assert.Single(Assert.Single(RecentSessionsSettings.MostRecentlyUsedSessions.GetValue(saved, true)).Value);
             Assert.Equal(new UFile("C:/Projects/Other/Other.sln"), file.FilePath);
-            Assert.Single(Assert.Single(GameStudioInternalSettings.MostRecentlyUsedSessions.GetValue()).Value);
+            Assert.Single(Assert.Single(RecentSessionsSettings.MostRecentlyUsedSessions.GetValue()).Value);
         }
         finally
         {
-            GameStudioInternalSettings.MostRecentlyUsedSessions.SetValue(previousSessions);
+            RecentSessionsSettings.MostRecentlyUsedSessions.SetValue(previousSessions);
             InternalSettings.FileDialogLastImportDirectory.SetValue(previousDirectory);
             InternalSettings.SaveProfile();
         }

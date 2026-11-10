@@ -3,23 +3,21 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Windows;
 
 using Stride.Core.Assets.Editor.Settings;
-using Stride.Core.IO;
-using Stride.Core.MostRecentlyUsedFiles;
 using Stride.Core.Settings;
-using Stride.Core.Yaml;
 
 namespace Stride.GameStudio
 {
+    /// <summary>
+    /// The internal (not user-facing) settings of the WPF Game Studio: its window and panels, and its docking layouts. The recent
+    /// sessions are shared with the Avalonia editor (<see cref="RecentSessionsSettings"/>).
+    /// </summary>
     public static class GameStudioInternalSettings
     {
         public static SettingsContainer SettingsContainer => InternalSettings.SettingsContainer;
 
-        public static SettingsKey<MRUDictionary> MostRecentlyUsedSessions = new SettingsKey<MRUDictionary>("Internal/MostRecentlyUsedSessions", SettingsContainer, () => new MRUDictionary());
-        public static SettingsKey<List<MRUAdditionalData>> MostRecentlyUsedSessionsData = new SettingsKey<List<MRUAdditionalData>>("Internal/MostRecentlyUsedSessionsData2", SettingsContainer, () => new List<MRUAdditionalData>());
         public static SettingsKey<bool> WindowMaximized = new SettingsKey<bool>("Internal/WindowMaximized", SettingsContainer, false);
         public static SettingsKey<int> WindowWidth = new SettingsKey<int>("Internal/WindowWidth", SettingsContainer, (int)SystemParameters.WorkArea.Width);
         public static SettingsKey<int> WindowHeight = new SettingsKey<int>("Internal/WindowHeight", SettingsContainer, (int)SystemParameters.WorkArea.Height);
@@ -48,24 +46,5 @@ namespace Stride.GameStudio
         /// </summary>
         /// <remarks>Bump when making changes to layout and want to force user to reset to default version.</remarks>
         internal const int CurrentLayoutVersion = 1;
-
-        static GameStudioInternalSettings()
-        {
-            MostRecentlyUsedSessions.FallbackDeserializers.Add(LegacyMRUDeserializer);
-            // Another editor instance may have changed the list since this one started
-            InternalSettings.KeepFileValueOnSave(MostRecentlyUsedSessions);
-        }
-
-        // The MRU of Stride 1.3 was a plain list of files
-        private static object LegacyMRUDeserializer(EventReader eventReader)
-        {
-            const string legacyVersion = "1.3";
-            var mru = (List<UFile>)SettingsYamlSerializer.Default.Deserialize(eventReader, typeof(List<UFile>));
-            var initialTimestamp = DateTime.UtcNow.Ticks;
-            return new MRUDictionary
-            {
-                { legacyVersion, mru.Select(x => new MostRecentlyUsedFile(x) { Timestamp = initialTimestamp-- }).ToList() }
-            };
-        }
     }
 }
