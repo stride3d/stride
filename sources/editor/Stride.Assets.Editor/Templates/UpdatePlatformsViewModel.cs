@@ -78,9 +78,10 @@ public sealed class UpdatePlatformEntryViewModel : ViewModelBase
     public PlatformType Platform => SolutionPlatform.Type;
 
     /// <summary>
-    /// Gets whether the platform can be unchecked: Windows can't, as in WPF.
+    /// Gets whether the platform's box can be changed: Windows can't be unchecked, as in WPF, but a package without a Windows
+    /// project can get one back.
     /// </summary>
-    public bool CanBeUnselected => Platform != PlatformType.Windows;
+    public bool CanBeUnselected => Platform != PlatformType.Windows || !IsAlreadyInstalled;
 
     public bool IsSelected
     {

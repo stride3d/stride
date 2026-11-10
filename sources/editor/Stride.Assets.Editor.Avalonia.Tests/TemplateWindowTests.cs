@@ -225,6 +225,33 @@ public sealed class TemplateWindowTests
     }
 
     [AvaloniaFact]
+    public async Task ThePlatformsWindowLetsWindowsBeAddedBackToAPackageWithoutIt()
+    {
+        SolutionPlatform Platform(PlatformType type) => new() { Name = type.ToString(), Type = type, IsAvailable = true };
+        // A game whose Windows project was removed
+        var platforms = new UpdatePlatformsViewModel([Platform(PlatformType.Windows), Platform(PlatformType.Linux)], [PlatformType.Linux]);
+        var window = new UpdatePlatformsWindow { DataContext = platforms };
+        window.Show();
+        try
+        {
+            await PumpAsync();
+            // Windows isn't installed, so its box is enabled and can be checked
+            Assert.Equal([false, true], platforms.Platforms.Select(x => x.IsSelected));
+            Assert.Equal([true, true], platforms.Platforms.Select(x => x.CanBeUnselected));
+            var checkBoxes = window.PlatformList.GetVisualDescendants().OfType<CheckBox>().ToList();
+            Assert.True(checkBoxes[0].IsEnabled);
+            checkBoxes[0].IsChecked = true;
+            await PumpAsync();
+            Assert.True(platforms.Platforms[0].IsSelected);
+            Assert.Equal([PlatformType.Windows, PlatformType.Linux], platforms.ToResult().SelectedPlatforms);
+        }
+        finally
+        {
+            await CloseAsync(window);
+        }
+    }
+
+    [AvaloniaFact]
     public async Task ThePluginWindowAsksNoNamespace()
     {
         var plugin = new ProjectLibraryViewModel("MyPlugin", _ => false, "New plugin", showNamespace: false, nameLabel: "Plugin name:");
