@@ -21,8 +21,7 @@ public class SoftBodyConfiguration : Configuration, IService
     public SoftBodyDeformationMode DeformationMode { get; set; } = SoftBodyDeformationMode.Gpu;
 
     /// <summary>
-    /// How the models of the volumetric soft bodies whose <see cref="SoftBodyComponent.DeformationQuality"/> is
-    /// <see cref="SoftBodyDeformationQuality.Default"/> follow their particles.
+    /// How the models of the volumetric soft bodies follow their particles: smooth, or cheaper and folded along the cells of their lattice.
     /// </summary>
     public SoftBodyDeformationQuality DeformationQuality { get; set; } = SoftBodyDeformationQuality.Smooth;
 

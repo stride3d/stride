@@ -108,7 +108,7 @@ internal sealed class SoftBodyProcessor : EntityProcessor<SoftBodyComponent, Sof
             }
 
             var mode = DeformationMode();
-            var quality = DeformationQuality(component);
+            var quality = _configuration.DeformationQuality;
             if (renderModel is null || renderModel.Topology != topology)
             {
                 Release(component, data);
@@ -148,12 +148,6 @@ internal sealed class SoftBodyProcessor : EntityProcessor<SoftBodyComponent, Sof
             component.RenderModel!.Upload(_context.CommandList);
     }
 
-    /// <summary> Fast or smooth: what the body asks for, or the game settings when it leaves it to them </summary>
-    private SoftBodyDeformationQuality DeformationQuality(SoftBodyComponent component)
-    {
-        var quality = component.DeformationQuality != SoftBodyDeformationQuality.Default ? component.DeformationQuality : _configuration.DeformationQuality;
-        return quality == SoftBodyDeformationQuality.Fast ? SoftBodyDeformationQuality.Fast : SoftBodyDeformationQuality.Smooth;
-    }
 
     /// <summary> CPU or GPU, as the settings say and as far as the device can do it </summary>
     private SoftBodyDeformationMode DeformationMode()
