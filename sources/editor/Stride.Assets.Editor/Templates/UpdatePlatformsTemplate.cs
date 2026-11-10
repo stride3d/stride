@@ -10,8 +10,7 @@ namespace Stride.Assets.Editor.Templates;
 
 /// <summary>
 /// Registers the Update platforms template of the Update package menu: the <see cref="UpdatePlatformsGenerator"/> with the platforms
-/// prompt of an editor, and its synthetic description, which no dotnet new template backs. The same registration as the WPF
-/// <c>StrideTemplates</c>, for the cross-platform editor.
+/// prompt of an editor, and its synthetic description, which no dotnet new template backs. Both editors register it.
 /// </summary>
 public static class UpdatePlatformsTemplate
 {
