@@ -3,8 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using Stride.BepuPhysics;
+using Stride.BepuPhysics.Components;
 using Stride.BepuPhysics.Debug;
+using Stride.BepuPhysics.Soft;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
 using Stride.Engine;
@@ -17,10 +21,11 @@ using Stride.UI.Panels;
 namespace BepuSoftBodySample.Game.Components
 {
     /// <summary>
-    /// The menu of the sample: a side bar listing the scenes, and a caption describing the one being played.
+    /// The menu of the sample: a side bar listing the scenes, a caption describing the one being played,
+    /// and how fast it runs: frames per second, the time a step of the simulation takes and the particles it moves.
     /// </summary>
     [ComponentCategory("BepuSoftBodyDemo")]
-    public class SceneSelectorComponent : SyncScript
+    public class SceneSelectorComponent : SyncScript, ISimulationUpdate
     {
         // In the units of the UI, 720 of them fit in the height of the window
         private const float SidebarWidth = 270f;
@@ -71,6 +76,13 @@ namespace BepuSoftBodySample.Game.Components
         private CameraComponent? _camera;
         private float _shift;
 
+        // What the corner of the view says, refreshed twice a second
+        private readonly Stopwatch _stepWatch = new();
+        private TextBlock? _frameRate, _stepTime, _particleCount;
+        private double _stepSeconds;
+        private int _steps, _frames;
+        private float _statisticsTime;
+
         public override void Start()
         {
             Game.Window.AllowUserResizing = true;
@@ -101,6 +113,7 @@ namespace BepuSoftBodySample.Game.Components
             if (SceneList.Count > 0 && Input.IsKeyPressed(Keys.PageUp))
                 SetScene((_current + SceneList.Count - 1) % SceneList.Count);
 
+            RefreshStatistics();
             RefreshToggles(); // The key of the debug view changes it too
             if (_hideModels || _modelsHidden)
                 ShowModels(_hideModels == false); // Every frame while they are hidden, scenes keep adding entities
@@ -111,6 +124,41 @@ namespace BepuSoftBodySample.Game.Components
         {
             if (_camera is not null)
                 _camera.UseCustomProjectionMatrix = false;
+        }
+
+        public void SimulationUpdate(BepuSimulation simulation, float simTimeStep)
+        {
+            _stepWatch.Restart();
+        }
+
+        public void AfterSimulationUpdate(BepuSimulation simulation, float simTimeStep)
+        {
+            _stepSeconds += _stepWatch.Elapsed.TotalSeconds;
+            _steps++;
+        }
+
+        private void RefreshStatistics()
+        {
+            _frames++;
+            _statisticsTime += (float)Game.UpdateTime.Elapsed.TotalSeconds;
+            if (_statisticsTime < 0.5f || _frameRate is null)
+                return;
+
+            int particles = 0;
+            if (_loaded is not null)
+            {
+                foreach (var entity in _loaded.Entities)
+                    particles += entity.Get<SoftBodyComponent>()?.ParticleCount ?? 0;
+            }
+
+            _frameRate.Text = $"{_frames / _statisticsTime:0} FPS";
+            // The whole step of the simulation, soft bodies and everything else, averaged over the steps since the last refresh
+            _stepTime!.Text = _steps > 0 ? FormattableString.Invariant($"physics step {_stepSeconds / _steps * 1000.0:0.0} ms") : "physics step -";
+            _particleCount!.Text = $"{particles} particles";
+            _frames = 0;
+            _steps = 0;
+            _stepSeconds = 0.0;
+            _statisticsTime = 0f;
         }
 
         private void SetScene(int index)
@@ -232,8 +280,26 @@ namespace BepuSoftBodySample.Game.Components
                 Content = captionText,
             };
 
+            _frameRate = Text("", 15f, TextColor);
+            _stepTime = Text("", 13f, DescriptionColor, margin: new Thickness(0f, 3f, 0f, 0f));
+            _particleCount = Text("", 13f, MutedColor, margin: new Thickness(0f, 2f, 0f, 0f));
+            _frameRate.HorizontalAlignment = _stepTime.HorizontalAlignment = _particleCount.HorizontalAlignment = HorizontalAlignment.Right;
+            var statisticsText = new StackPanel { Orientation = Orientation.Vertical, Margin = new Thickness(14f, 9f, 14f, 10f) };
+            statisticsText.Children.Add(_frameRate);
+            statisticsText.Children.Add(_stepTime);
+            statisticsText.Children.Add(_particleCount);
+            var statistics = new Border
+            {
+                BackgroundColor = CaptionColor,
+                HorizontalAlignment = HorizontalAlignment.Right,
+                VerticalAlignment = VerticalAlignment.Top,
+                Margin = new Thickness(0f, 14f, 14f, 0f),
+                Content = statisticsText,
+            };
+
             var root = Layer();
             root.Children.Add(_caption);
+            root.Children.Add(statistics);
             root.Children.Add(sidebar);
             return root;
         }

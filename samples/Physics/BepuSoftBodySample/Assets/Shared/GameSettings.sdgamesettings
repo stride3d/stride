@@ -34,7 +34,7 @@ Defaults:
                 PoseLinearDamping: 0.03
                 PoseAngularDamping: 0.03
                 SolverIteration: 1
-                SolverSubStep: 8
+                SolverSubStep: 16
                 SoftStartDuration: 0:00:00:01.0000000
                 SoftStartSubstepFactor: 4
 SplashScreenTexture: d26edb11-10bd-403c-b3c2-9c7fcccf25e5:/Stride.Engine/StrideDefaultSplashScreen
