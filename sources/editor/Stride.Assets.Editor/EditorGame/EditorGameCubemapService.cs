@@ -13,6 +13,7 @@ using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Services;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
+using Stride.Assets.Editor.Services;
 
 namespace Stride.Assets.Editor.EditorGame
 {
@@ -45,6 +46,10 @@ namespace Stride.Assets.Editor.EditorGame
         {
             return await editor.Controller.InvokeAsync(() =>
             {
+                // A frame debugger capture of the cubemap, if the editor has one (RenderDoc in the WPF Game Studio)
+                var frameCapture = editor.ServiceProvider.TryGet<IGraphicsFrameCaptureService>();
+                frameCapture?.StartFrameCapture(game.GraphicsDevice);
+
                 var editorCompositor = game.EditorSceneSystem.GraphicsCompositor.Game;
                 try
                 {
@@ -62,6 +67,8 @@ namespace Stride.Assets.Editor.EditorGame
                 finally
                 {
                     game.EditorSceneSystem.GraphicsCompositor.Game = editorCompositor;
+
+                    frameCapture?.EndFrameCapture(game.GraphicsDevice);
                 }
             });
         }
