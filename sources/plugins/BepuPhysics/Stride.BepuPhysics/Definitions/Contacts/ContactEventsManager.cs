@@ -27,6 +27,9 @@ internal class ContactEventsManager : IDisposable
     private IndexSet _bodyListenerFlags;
     private IPerTypeManifoldStore[][] _manifoldStoresPerWorker;
 
+    // Groups of one event copied on the stack before the handlers run, larger events go through a pooled array
+    private const int MaxGroupsOnStack = 64;
+
     public ContactEventsManager(BufferPool pool, BepuSimulation simulation, int workerCount)
     {
         _pool = pool;
@@ -221,10 +224,32 @@ internal class ContactEventsManager : IDisposable
 
     private void RunManifoldEvent<TManifold>(Span<ContactGroup<TManifold>> unsafeInfos) where TManifold : unmanaged, IContactManifold<TManifold>
     {
+        // A collidable spanning multiple bodies can touch another one through hundreds of body pairs, more than the stack should take
+        if (unsafeInfos.Length > MaxGroupsOnStack)
+        {
+            var rented = System.Buffers.ArrayPool<ContactGroup<TManifold>>.Shared.Rent(unsafeInfos.Length);
+            try
+            {
+                var copy = rented.AsSpan(0, unsafeInfos.Length);
+                unsafeInfos.CopyTo(copy);
+                RunManifoldEventOnCopy(copy);
+            }
+            finally
+            {
+                System.Buffers.ArrayPool<ContactGroup<TManifold>>.Shared.Return(rented);
+            }
+            return;
+        }
+
         // We have to do a stackalloc'ed copy as On*Touching may end up clearing the memory region where unsafeInfos resides through ClearEventsOf
         Span<ContactGroup<TManifold>> safeInfos = stackalloc ContactGroup<TManifold>[unsafeInfos.Length];
         unsafeInfos.CopyTo(safeInfos);
+        RunManifoldEventOnCopy(safeInfos);
+    }
 
+    /// <param name="safeInfos"> A copy the handlers cannot reach, whatever they remove from the simulation </param>
+    private void RunManifoldEventOnCopy<TManifold>(Span<ContactGroup<TManifold>> safeInfos) where TManifold : unmanaged, IContactManifold<TManifold>
+    {
         var orderedPair = new OrderedPair(_simulation.GetComponent(safeInfos[0].Pair.A), _simulation.GetComponent(safeInfos[0].Pair.B));
 
         _outdatedPairs.Remove(orderedPair);
