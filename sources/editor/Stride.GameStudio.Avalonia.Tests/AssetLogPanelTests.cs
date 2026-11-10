@@ -9,11 +9,11 @@ using Avalonia.VisualTree;
 using Stride.Assets.Sprite;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Avalonia.Controls;
-using Stride.Core.Assets.Editor.ViewModel.Logs;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.GameStudio.Avalonia.Tests.Helpers;
 using Stride.GameStudio.Avalonia.Views;
+using Stride.Core.Assets.Presentation.ViewModels.Logs;
 
 namespace Stride.GameStudio.Avalonia.Tests;
 
@@ -174,7 +174,7 @@ public sealed class AssetLogPanelTests
     /// <summary>
     /// Gives the asset a build log with an error and a warning, as the build service does after building it.
     /// </summary>
-    private static void Build(ShellSessionFixture fixture, Stride.Core.Assets.Editor.ViewModel.AssetViewModel asset)
+    private static void Build(ShellSessionFixture fixture, Stride.Core.Assets.Presentation.ViewModels.AssetViewModel asset)
     {
         var log = new LoggerResult();
         log.Error(BuildError);

@@ -4,17 +4,14 @@ using System.Collections.Generic;
 using Stride.Core.Assets.Editor.Components.DebugTools.UndoRedo.Views;
 using Stride.Core.Assets.Editor.View.DebugTools;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModel;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Services
 {
-    public interface IDebugPage
-    {
-        string Title { get; set; }
-    }
-
     public static class EditorDebugTools
     {
         internal static readonly List<IDebugPage> DebugPages = new List<IDebugPage>();
@@ -52,9 +49,14 @@ namespace Stride.Core.Assets.Editor.Services
         /// </summary>
         public static IDebugPage CreateLogDebugPage(Logger logger, string title, bool register = true)
         {
-            var dispatcher = SessionViewModel.Instance.ServiceProvider.Get<IDispatcherService>();
+            return CreateLogDebugPage(SessionViewModel.Instance.ServiceProvider, logger, title, register);
+        }
+
+        public static IDebugPage CreateLogDebugPage(IViewModelServiceProvider serviceProvider, Logger logger, string title, bool register)
+        {
+            var dispatcher = serviceProvider.Get<IDispatcherService>();
             dispatcher.EnsureAccess();
-            var loggerViewModel = new LoggerViewModel(SessionViewModel.Instance.ServiceProvider, logger);
+            var loggerViewModel = new LoggerViewModel(serviceProvider, logger);
             var page = new DebugLogUserControl(loggerViewModel) { Title = title };
             if (register)
             {
@@ -65,9 +67,14 @@ namespace Stride.Core.Assets.Editor.Services
 
         public static IDebugPage CreateUndoRedoDebugPage(IUndoRedoService service, string title, bool register = true)
         {
-            var dispatcher = SessionViewModel.Instance.ServiceProvider.Get<IDispatcherService>();
+            return CreateUndoRedoDebugPage(SessionViewModel.Instance.ServiceProvider, service, title, register);
+        }
+
+        public static IDebugPage CreateUndoRedoDebugPage(IViewModelServiceProvider serviceProvider, IUndoRedoService service, string title, bool register)
+        {
+            var dispatcher = serviceProvider.Get<IDispatcherService>();
             dispatcher.EnsureAccess();
-            var page = new DebugUndoRedoUserControl(SessionViewModel.Instance.ServiceProvider, service) { Title = title };
+            var page = new DebugUndoRedoUserControl(serviceProvider, service) { Title = title };
             if (register)
             {
                 RegisterDebugPage(page);

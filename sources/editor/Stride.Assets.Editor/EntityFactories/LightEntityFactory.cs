@@ -1,7 +1,9 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable enable
 
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories;
+using System;
+using System.Threading.Tasks;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Assets.Skyboxes;
 using Stride.Core.Assets.Editor.Services;
@@ -10,6 +12,7 @@ using Stride.Core;
 using Stride.Engine;
 using Stride.Rendering.Lights;
 using Stride.Rendering.Skyboxes;
+using Stride.Core.Assets.Presentation.Services;
 
 namespace Stride.Assets.Editor.EntityFactories;
 

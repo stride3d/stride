@@ -1,12 +1,16 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable enable
 
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using Stride.Assets.Sprite;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.View.Behaviors;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
@@ -18,6 +22,8 @@ using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Quantum;
 using Stride.Core.Translation;
+using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Presentation.Components.Properties;
 
 namespace Stride.Assets.Editor.ViewModels.SpriteEditor;
 
@@ -276,7 +282,7 @@ public sealed class SpriteInfoViewModel : DispatcherViewModel, IIsEditableViewMo
         if (((IAddChildViewModel)this).CanAddChildren(children, modifiers, out message))
             return true;
 
-        message = DragDropBehavior.InvalidDropAreaMessage;
+        message = DragDropMessages.InvalidDropArea;
         if (children.Any(x => x is not SpriteInfoViewModel))
             return false;
 

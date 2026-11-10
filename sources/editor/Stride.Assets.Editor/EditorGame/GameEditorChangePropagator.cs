@@ -1,11 +1,14 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+#nullable enable
+
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Core;
 using Stride.Core.Assets;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Assets.Quantum.Visitors;
@@ -13,6 +16,8 @@ using Stride.Core.Extensions;
 using Stride.Core.Quantum;
 using Stride.Core.Reflection;
 using Stride.Core.Serialization;
+using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 
 namespace Stride.Assets.Editor.EditorGame;
 
@@ -403,5 +408,50 @@ public abstract class GameEditorChangePropagator
     {
         var node = (IAssetNode)assetNode;
         node.SetContent(GameSideContentKey, gameNode!);
+    }
+}
+
+/// <summary>
+/// The propagator of a part of an asset composite hierarchy (an entity, a UI element): a reference to another part of
+/// the asset targets the game-side clone of that part, and the addition or the removal of a child part is left to the
+/// editor.
+/// </summary>
+/// <typeparam name="TAssetPartDesign">The type of the design of the parts of the asset.</typeparam>
+/// <typeparam name="TAssetPart">The type of the parts of the asset.</typeparam>
+public class GameEditorChangePropagator<TAssetPartDesign, TAssetPart> : GameEditorChangePropagator
+    where TAssetPartDesign : class, IAssetPartDesign<TAssetPart>
+    where TAssetPart : class, IIdentifiable
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GameEditorChangePropagator{TAssetPartDesign, TAssetPart}"/> class (UI thread).
+    /// </summary>
+    /// <param name="editor">The editor of the asset.</param>
+    /// <param name="controller">The controller of the game of the editor.</param>
+    /// <param name="asset">The asset the part belongs to, whose property graph is an <see cref="AssetCompositeHierarchyPropertyGraph{TAssetPartDesign, TAssetPart}"/>.</param>
+    /// <param name="ownerId">The identifier of the part.</param>
+    /// <param name="assetSidePart">The asset-side part.</param>
+    public GameEditorChangePropagator(AssetEditorViewModel editor, IEditorGameController controller, AssetViewModel asset, AbsoluteId ownerId, TAssetPart assetSidePart)
+        : base(editor, controller, asset, ownerId, assetSidePart)
+    {
+    }
+
+    /// <inheritdoc />
+    protected override async Task<bool> PropagatePartReference(IGraphNode gameSideNode, object? value, INodeChangeEventArgs e)
+    {
+        var index = (e as ItemChangeEventArgs)?.Index ?? NodeIndex.Empty;
+        // The addition or removal of a child part is not a change of this part: the editor adds and removes the clones
+        if (((AssetCompositeHierarchyPropertyGraph<TAssetPartDesign, TAssetPart>)Asset.PropertyGraph).IsChildPartReference(e.Node, index))
+            return true;
+
+        if (value is not TAssetPart assetPart)
+            return false;
+
+        var id = new AbsoluteId(OwnerId.AssetId, assetPart.Id);
+        await Controller.InvokeAsync(() =>
+        {
+            var instance = Controller.FindGameSidePart(id);
+            UpdateGameSideContent(gameSideNode, instance, e.ChangeType, index);
+        });
+        return true;
     }
 }

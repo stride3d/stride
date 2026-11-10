@@ -156,12 +156,25 @@ namespace Stride.Assets
                 DispatcherCallbacksToStaticLambdas(),
             ]);
 
+            registry.Code("4.5.1.0",
+            [
+                // 4.5.1: CommandList members that only some graphics APIs had are gone (#3858):
+                // UnsetRenderTargets becomes ResetTargets, which unbinds the same targets and also forgets them;
+                // ResetQueryPool had nothing to do (Vulkan resets a pool itself, Direct3D 12's was empty);
+                // SetStreamTargets bound buffers no shader could write since 4.4 (SDSL0170).
+                Rewrite(
+                    MemberRename("Stride.Graphics.CommandList", "UnsetRenderTargets", "ResetTargets"),
+                    FluentCallRemove("Stride.Graphics.CommandList", "ResetQueryPool"),
+                    FluentCallRemove("Stride.Graphics.CommandList", "SetStreamTargets")),
+            ]);
+
             // Structural csproj migrations, gated by the version each change landed at. Run against the
             // NEW-version project (after the reference bump) by UpgradeBeforeAssembliesLoaded.
             registry.Project("4.1.0.0", UpgradeProjectTo41);
             registry.Project("4.2.0.0", UpgradeProjectTo42);
             registry.Project("4.3.0.0", UpgradeProjectTo43);
             registry.Project("4.4.0.0", UpgradeProjectTo44);
+            registry.Project("4.4.2.0", UpgradeEffectShaderKeywords);
             registry.Project("4.5.0.0", UpgradeProjectTo45);
             registry.Project("4.5.0.0", AddPluginPackageReferences);
         }
@@ -329,10 +342,7 @@ namespace Stride.Assets
 
                 // Skip build output (Roslyn-generated copies live in obj/, copies may be staged in bin/)
                 var rel = Path.GetRelativePath(projectDir, file).Replace('\\', '/');
-                if (rel.StartsWith("obj/", StringComparison.OrdinalIgnoreCase)
-                    || rel.StartsWith("bin/", StringComparison.OrdinalIgnoreCase)
-                    || rel.Contains("/obj/", StringComparison.OrdinalIgnoreCase)
-                    || rel.Contains("/bin/", StringComparison.OrdinalIgnoreCase))
+                if (IsBuildOutput(rel))
                     continue;
 
                 try
@@ -475,12 +485,7 @@ namespace Stride.Assets
         internal static IEnumerable<string> FindMissingPluginPackages(string projectDir, IEnumerable<string> referencedPackages)
         {
             var assetExtensions = Directory.EnumerateFiles(projectDir, "*.sd*", SearchOption.AllDirectories)
-                .Where(file =>
-                {
-                    var relative = Path.GetRelativePath(projectDir, file).Replace('\\', '/');
-                    return !relative.StartsWith("obj/", StringComparison.OrdinalIgnoreCase) && !relative.StartsWith("bin/", StringComparison.OrdinalIgnoreCase)
-                        && !relative.Contains("/obj/", StringComparison.OrdinalIgnoreCase) && !relative.Contains("/bin/", StringComparison.OrdinalIgnoreCase);
-                })
+                .Where(file => !IsBuildOutput(Path.GetRelativePath(projectDir, file).Replace('\\', '/')))
                 .Select(Path.GetExtension)
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
             var referenced = referencedPackages.ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -491,5 +496,9 @@ namespace Stride.Assets
                 .Distinct()
                 .ToList();
         }
+
+        private static bool IsBuildOutput(string relativePath)
+            => relativePath.StartsWith("obj/", StringComparison.OrdinalIgnoreCase) || relativePath.StartsWith("bin/", StringComparison.OrdinalIgnoreCase)
+                || relativePath.Contains("/obj/", StringComparison.OrdinalIgnoreCase) || relativePath.Contains("/bin/", StringComparison.OrdinalIgnoreCase);
     }
 }

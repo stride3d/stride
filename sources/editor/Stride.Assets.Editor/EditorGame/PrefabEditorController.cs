@@ -1,10 +1,12 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable enable
 
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 using Stride.Assets.Editor.ViewModels;
 using Stride.Assets.Entities;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
-using Stride.Assets.Presentation.AssetEditors.PrefabEditor.Game;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core;
 using Stride.Core.Assets;
@@ -12,6 +14,8 @@ using Stride.Core.Quantum;
 using Stride.Editor.Engine;
 using Stride.Engine;
 using Stride.Shaders.Compiler;
+using Stride.Assets.Editor.AssetEditors.PrefabEditor.Game;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
 
 namespace Stride.Assets.Editor.EditorGame;
 
@@ -90,6 +94,22 @@ public sealed class PrefabEditorController : EntityHierarchyEditorController
 
         var gameSideEntities = ClonePartsForGameSide((AssetCompositeHierarchy<EntityDesign, Entity>)root.Asset.Asset, root.InnerSubEntities.Select(x => x.AssetSideEntity)).ToList();
         return InvokeAsync(() => Game.LoadEntities(gameSideEntities));
+    }
+
+    /// <summary>
+    /// Unloads the entities of <paramref name="root"/> from the game (UI thread).
+    /// </summary>
+    /// <param name="root">The root of the prefab.</param>
+    public Task UnloadEntities(PrefabRootViewModel root)
+    {
+        EnsureAssetAccess();
+
+        var entityIds = root.InnerSubEntities.Select(e => e.Id).ToList();
+        return InvokeAsync(() =>
+        {
+            var gameSideEntities = entityIds.Select(FindPart).OfType<Entity>();
+            Game.UnloadEntities(gameSideEntities);
+        });
     }
 
     /// <inheritdoc />

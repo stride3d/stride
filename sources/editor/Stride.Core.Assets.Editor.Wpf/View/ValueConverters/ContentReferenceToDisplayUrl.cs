@@ -2,13 +2,9 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Globalization;
-using System.Reflection;
 
-using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Serialization;
-using Stride.Core.Serialization.Contents;
-using Stride.Core.Presentation.Quantum.ViewModels;
+using Stride.Core.Assets.Editor.Components.Properties;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Translation;
 using Stride.Core.Translation.Presentation.ValueConverters;
 
@@ -21,7 +17,7 @@ namespace Stride.Core.Assets.Editor.View.ValueConverters
     {
         public override object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return ContentReferenceDisplayUrl.Split(value, Assembly).Name;
+            return ContentReferenceDisplayUrl.Split(value, SessionViewModel.Instance, TranslationManager.Instance.GetString("(Different values)", Assembly)).Name;
         }
     }
 
@@ -34,35 +30,7 @@ namespace Stride.Core.Assets.Editor.View.ValueConverters
     {
         public override object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return ContentReferenceDisplayUrl.Split(value, Assembly).Location;
-        }
-    }
-
-    internal static class ContentReferenceDisplayUrl
-    {
-        public static (string Location, string Name) Split(object value, Assembly assembly)
-        {
-            if (value == null)
-                return (string.Empty, ContentReferenceHelper.EmptyReference);
-
-            if (value == NodeViewModel.DifferentValues)
-                return (string.Empty, TranslationManager.Instance.GetString("(Different values)", assembly));
-
-            var contentReference = value as IReference ?? AttachedReferenceManager.GetOrCreateAttachedReference(value);
-            var asset = contentReference != null && contentReference.Id != AssetId.Empty ? SessionViewModel.Instance.GetAssetById(contentReference.Id) : null;
-            if (asset == null)
-                return (string.Empty, ContentReferenceHelper.BrokenReference);
-
-            // In-scope namespaces resolve by unqualified URL for the open game; display them unqualified too
-            var url = asset.Url;
-            if (asset.AssetItem.Package?.Container is { AssetNamespace: { } assetNamespace } container
-                && SessionViewModel.Instance.IsAssetNamespaceInScope(assetNamespace))
-            {
-                url = container.Unqualify(url).FullPath;
-            }
-
-            var slash = url.LastIndexOf('/');
-            return slash < 0 ? (string.Empty, url) : (url.Substring(0, slash), url.Substring(slash + 1));
+            return ContentReferenceDisplayUrl.Split(value, SessionViewModel.Instance, TranslationManager.Instance.GetString("(Different values)", Assembly)).Location;
         }
     }
 }

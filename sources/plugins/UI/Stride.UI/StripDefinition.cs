@@ -53,7 +53,7 @@ namespace Stride.UI
         /// <remarks>The value is coerced in the range [<see cref="MinimumSize"/>, <see cref="float.PositiveInfinity"/>].</remarks>
         /// <userdoc>The maximum size of the strip in virtual pixels.</userdoc>
         [DataMember]
-        [DataMemberRange(0.0f, 3)]
+        [DataMemberRange(minimum: 0.0f, decimalPlaces: 3)]
         [DefaultValue(float.PositiveInfinity)]
         public float MaximumSize
         {
@@ -73,7 +73,7 @@ namespace Stride.UI
         /// <remarks>The value is coerced in the range [0, <see cref="float.MaxValue"/>].</remarks>
         /// <userdoc>The minimum size of the strip in virtual pixels.</userdoc>
         [DataMember]
-        [DataMemberRange(0.0f, 3)]
+        [DataMemberRange(minimum: 0.0f, decimalPlaces: 3)]
         [DefaultValue(0)]
         public float MinimumSize
         {
@@ -115,7 +115,7 @@ namespace Stride.UI
         /// <remarks>The value is coerced in the range [0, <see cref="float.MaxValue"/>].</remarks>
         /// <userdoc>The size value of the strip.</userdoc>
         [DataMember]
-        [DataMemberRange(0.0f, 3)]
+        [DataMemberRange(minimum: 0.0f, decimalPlaces: 3)]
         [DefaultValue(1.0f)]
         public float SizeValue
         {

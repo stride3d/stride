@@ -11,6 +11,10 @@ This project contains the base views and templates of the editors.
 
 Templates for the property grid are here.
 
+`Services` holds the thumbnails of the Avalonia editor: `ThumbnailDataFactory` (the `IThumbnailDataFactory` the shell
+registers), `BitmapThumbnailData` (the PNG a thumbnail build produced) and `ResourceThumbnailData` (an image embedded in the
+shell). Their presenter is an Avalonia bitmap, which the views show through `ThumbnailToImage`.
+
 ## Notes
 
 * The goal is to be able to share that library with any application that wants to work with Stride core assets.

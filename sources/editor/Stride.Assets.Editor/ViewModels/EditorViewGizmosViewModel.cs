@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Services;
 using Stride.Assets.Editor.EditorGame;
 using Stride.Core;
 using Stride.Core.Extensions;
@@ -26,19 +27,19 @@ public sealed class EditorViewGizmosViewModel : DispatcherViewModel
 {
     private readonly EditorGameComponentGizmoService service;
     private readonly Func<float, Task>? setTransformationGizmoSize;
-    private readonly EditorGameLightProbeGizmoService? lightProbes;
+    private readonly IEditorGameLightProbeService? lightProbes;
     private int transformationGizmoSizeIndex = Utils.ZoomFactorIdentityIndex;
     private int componentGizmoSizeIndex = Utils.ZoomFactorIdentityIndex;
 
     internal EditorViewGizmosViewModel(IViewModelServiceProvider serviceProvider, EditorGameComponentGizmoService service, Func<float, Task>? setTransformationGizmoSize,
-        EditorGameLightProbeGizmoService? lightProbes = null)
+        IEditorGameLightProbeService? lightProbes = null)
         : base(serviceProvider)
     {
         this.service = service;
         this.setTransformationGizmoSize = setTransformationGizmoSize;
         this.lightProbes = lightProbes;
 
-        var gizmoTypes = StrideEditorPlugin.GizmoTypeDictionary;
+        var gizmoTypes = GizmoTypeRegistry.GizmoTypeDictionary;
         Gizmos = typeof(EntityComponent).GetInheritedTypes()
             .Where(gizmoTypes.ContainsKey)
             .Select(x => new EditorViewGizmoViewModel(ServiceProvider, service, x, !IsHiddenByDefault(gizmoTypes[x])))

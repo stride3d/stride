@@ -70,7 +70,7 @@ public static class SpriteEditorConverters
 
     private static class Cursors
     {
-        // The WPF cursors (Stride.Assets.Presentation.Wpf/Resources/*.cur) as images, with the same hot spots
+        // The WPF cursors (Stride.Assets.Editor.Wpf/Resources/*.cur) as images, with the same hot spots
         public static readonly Cursor ColorPicker = Load("ColorPicker", new PixelPoint(3, 28));
 
         public static readonly Cursor MagicWand = Load("MagicWand", new PixelPoint(3, 3));

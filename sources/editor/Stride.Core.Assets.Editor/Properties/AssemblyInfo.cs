@@ -9,3 +9,8 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Stride.Core.Assets.Editor.Tests" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Assets.Editor" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.GameStudio.Avalonia.Tests" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.Core.Assets.Editor.Wpf" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.GameStudio" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.GameStudio.Avalonia" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.Core.Assets.Editor.Wpf.Tests" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.Core.Assets.Editor.Avalonia.Tests" + Stride.PublicKeys.Default)]

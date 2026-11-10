@@ -10,11 +10,8 @@ using Stride.Assets.Editor.Avalonia.Views;
 using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Editor.Avalonia.Tests.Helpers;
 using Stride.Assets.Editor.ViewModels;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Core;
 using Stride.Core.Assets;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
@@ -24,9 +21,16 @@ using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Settings;
 using Stride.Editor.EditorGame.ContentLoader;
 using Stride.Editor.EditorGame.ViewModels;
+using Stride.Editor.Engine;
 using Stride.Engine;
 using Stride.Physics;
 using Stride.Physics.Editor;
+using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Services;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools;
+using Stride.Assets.Editor.AssetEditors.GameEditor;
+using Stride.Assets.Editor.EditorGame.Tools;
 
 namespace Stride.Assets.Editor.Avalonia.Tests;
 
@@ -177,7 +181,7 @@ public sealed class EditorViewPopupsTests
         using var controller = new FakeController();
         var gizmos = new EditorViewGizmosViewModel(serviceProvider, new EditorGameComponentGizmoService(controller), null);
 
-        Assert.Equal(typeof(Gizmos.LightProbeGizmo), StrideEditorPlugin.GizmoTypeDictionary[typeof(LightProbeComponent)]);
+        Assert.Equal(typeof(Gizmos.LightProbeGizmo), GizmoTypeRegistry.GizmoTypeDictionary[typeof(LightProbeComponent)]);
         // As in WPF: the light probes are a main gizmo, not one hidden by default
         Assert.True(Find(gizmos, typeof(LightProbeComponent)).IsActive);
         Assert.DoesNotContain(DisplayAttribute.GetDisplayName(typeof(LightProbeComponent)), SceneSettingsData.CreateDefault().HiddenGizmos);
@@ -187,7 +191,7 @@ public sealed class EditorViewPopupsTests
     public void TheLightProbeVolumesOptionGoesToTheGameAndTheSettings()
     {
         using var controller = new FakeController();
-        var lightProbes = new EditorGameLightProbeGizmoService();
+        var lightProbes = new EditorGameLightProbeGizmoService(controller);
         var gizmos = new EditorViewGizmosViewModel(serviceProvider, new EditorGameComponentGizmoService(controller), null, lightProbes);
 
         // As in WPF, a scene without settings hides the volumes
@@ -212,10 +216,91 @@ public sealed class EditorViewPopupsTests
     }
 
     [AvaloniaFact]
+    public void TheToolbarGivesTheSnapsAndGizmoSizeOfTheSceneToTheToolService()
+    {
+        using var controller = new FakeController();
+        var tools = new FakeToolService();
+        var toolbar = new EditorViewToolbarViewModel(serviceProvider, tools, null, null, new EditorGameComponentGizmoService(controller));
+
+        // The snaps and the size of the transformation gizmos saved with the scene reach the game through the interface
+        var settings = new SceneSettingsData
+        {
+            TranslationSnapValue = 0.5f, TranslationSnapActive = true,
+            RotationSnapValue = 15f, RotationSnapActive = false,
+            ScaleSnapValue = 2f, ScaleSnapActive = true,
+            TransformationGizmoSize = 2.0,
+        };
+        toolbar.LoadSettings(settings);
+        Assert.Equal((0.5f, true), tools.Snaps[Transformation.Translation]);
+        Assert.Equal((15f, false), tools.Snaps[Transformation.Rotation]);
+        Assert.Equal((2f, true), tools.Snaps[Transformation.Scale]);
+        Assert.Equal(2f, tools.GizmoSize);
+
+        // A change in the toolbar goes to the game, and is saved with the scene
+        toolbar.Snaps.Single(x => x.Transformation == Transformation.Rotation).Value = 45;
+        Assert.Equal((45f, false), tools.Snaps[Transformation.Rotation]);
+        toolbar.Gizmos!.TransformationGizmoSizeIndex = Array.IndexOf(Core.Presentation.Core.Utils.ZoomFactors, 0.5);
+        Assert.Equal(0.5f, tools.GizmoSize);
+        var saved = new SceneSettingsData();
+        toolbar.SaveSettings(saved);
+        Assert.Equal((0.5f, true, 45f, false, 2f, true, 0.5), (saved.TranslationSnapValue, saved.TranslationSnapActive, saved.RotationSnapValue, saved.RotationSnapActive,
+            saved.ScaleSnapValue, saved.ScaleSnapActive, saved.TransformationGizmoSize));
+        toolbar.Destroy();
+    }
+
+    [AvaloniaFact]
+    public async Task TheToolbarAndTheKeysOfTheGameSwitchTheToolsOfTheToolService()
+    {
+        using var controller = new FakeController();
+        var tools = new FakeToolService();
+        var toolbar = new EditorViewToolbarViewModel(serviceProvider, tools, null, null);
+        await toolbar.InitializeAsync();
+        Assert.Same(tools.Tools[1], toolbar.ActiveTool?.Tool);
+
+        // A tool picked in the toolbar becomes the active tool of the game
+        toolbar.ActiveTool = toolbar.Tools.Single(x => x.Tool is TransformationTool { Transformation: Transformation.Scale });
+        Assert.IsType<ScaleTool>(tools.Active);
+        // The scale gizmo works in the object space, and only its snap shows
+        Assert.Equal(TransformationSpace.ObjectSpace, toolbar.Space?.Space);
+        Assert.Equal([Transformation.Scale], toolbar.Snaps.Where(x => x.IsVisible).Select(x => x.Transformation));
+
+        // A key of the game (Q) changes the tool: the toolbar follows
+        tools.RaiseActiveToolChanged(tools.Tools[0]);
+        Dispatcher.UIThread.RunJobs();
+        Assert.IsType<SelectTool>(toolbar.ActiveTool?.Tool);
+        Assert.DoesNotContain(toolbar.Snaps, x => x.IsVisible);
+        Assert.All(toolbar.Spaces, x => Assert.False(x.IsEnabled));
+
+        // The space goes to the game
+        tools.RaiseActiveToolChanged(tools.Tools[1]);
+        Dispatcher.UIThread.RunJobs();
+        toolbar.Space = toolbar.Spaces.Single(x => x.Space == TransformationSpace.ViewSpace);
+        Assert.Equal(TransformationSpace.ViewSpace, tools.Space);
+        toolbar.Destroy();
+        Assert.False(tools.HasActiveToolChangedHandlers);
+    }
+
+    [AvaloniaFact]
+    public async Task TheLightProbeComputationRunsOnTheGameThreadOfTheController()
+    {
+        using var controller = new FakeController();
+        IEditorGameLightProbeService lightProbes = new EditorGameLightProbeGizmoService(controller);
+
+        // The WPF lighting toolbar computes the light probes through the shared interface, on the game thread; a service
+        // whose game isn't running has no light probe to compute
+        Assert.Empty(await lightProbes.RequestLightProbesStep());
+        Assert.Equal(1, controller.Calls);
+        await lightProbes.UpdateLightProbeCoefficients();
+        Assert.Equal(2, controller.Calls);
+        lightProbes.IsLightProbeVolumesVisible = false;
+        Assert.False(lightProbes.IsLightProbeVolumesVisible);
+    }
+
+    [AvaloniaFact]
     public void TheGizmosPanelShowsTheLightProbeVolumesOptionWithTheService()
     {
         using var controller = new FakeController();
-        var lightProbes = new EditorGameLightProbeGizmoService { IsLightProbeVolumesVisible = false };
+        var lightProbes = new EditorGameLightProbeGizmoService(controller) { IsLightProbeVolumesVisible = false };
         var gizmos = new EditorViewGizmosViewModel(serviceProvider, new EditorGameComponentGizmoService(controller), null, lightProbes);
         var panel = new EditorViewGizmosPanel { DataContext = gizmos };
         var window = Show(panel);
@@ -403,6 +488,61 @@ public sealed class EditorViewPopupsTests
     }
 
     /// <summary>
+    /// A tool service without a game: it records what the toolbar gives it.
+    /// </summary>
+    private sealed class FakeToolService : IEditorGameToolViewModelService
+    {
+        public IReadOnlyList<IEditorViewTool> Tools { get; } = [new SelectTool(), new TranslateTool(), new RotateTool(), new ScaleTool()];
+
+        public IEditorViewTool? Active { get; private set; }
+
+        public TransformationSpace Space { get; private set; } = TransformationSpace.WorldSpace;
+
+        public float GizmoSize { get; private set; } = 1f;
+
+        public Dictionary<Transformation, (float Value, bool IsActive)> Snaps { get; } = [];
+
+        public bool HasActiveToolChangedHandlers => ActiveToolChanged is not null;
+
+        public event EventHandler<IEditorViewTool>? ActiveToolChanged;
+
+        public event EventHandler<IEditorViewTool>? ToolFailed { add { } remove { } }
+
+        public void RaiseActiveToolChanged(IEditorViewTool tool)
+        {
+            Active = tool;
+            ActiveToolChanged?.Invoke(this, tool);
+        }
+
+        public Task<(IEditorViewTool ActiveTool, IReadOnlyList<IEditorViewTool> FailedTools)> GetStateAsync()
+            => Task.FromResult((Active ?? Tools[1], (IReadOnlyList<IEditorViewTool>)[]));
+
+        public Task<bool> ActivateAsync(IEditorViewTool tool)
+        {
+            Active = tool;
+            return Task.FromResult(true);
+        }
+
+        public Task SetSpaceAsync(TransformationSpace space)
+        {
+            Space = space;
+            return Task.CompletedTask;
+        }
+
+        public Task SetGizmoSizeAsync(float size)
+        {
+            GizmoSize = size;
+            return Task.CompletedTask;
+        }
+
+        public Task SetSnapAsync(Transformation transformation, float value, bool isActive)
+        {
+            Snaps[transformation] = (value, isActive);
+            return Task.CompletedTask;
+        }
+    }
+
+    /// <summary>
     /// A game controller without a game: the calls to the game thread run at once, and are counted.
     /// </summary>
     private sealed class FakeController : IEditorGameController, IDisposable
@@ -418,6 +558,10 @@ public sealed class EditorViewPopupsTests
         public Task GameEnded => Task.CompletedTask;
 
         public SessionNodeContainer GameSideNodeContainer => throw new NotSupportedException();
+
+        public object View => throw new NotSupportedException();
+
+        public IEditorGameViewport Viewport => throw new NotSupportedException();
 
         public Task<bool> StartGame() => Task.FromResult(true);
 

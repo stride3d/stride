@@ -1,11 +1,11 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable enable
 
 using System.Collections.Specialized;
 using System.Text.RegularExpressions;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Assets.Yaml;
@@ -25,35 +25,41 @@ namespace Stride.Core.Assets.Editor.ViewModels;
 /// </summary>
 /// <typeparam name="TAssetPartDesign">The type of a part design.</typeparam>
 /// <typeparam name="TAssetPart">The type of a part.</typeparam>
-/// <typeparam name="TAssetViewModel"></typeparam>
-/// <typeparam name="TItemViewModel">The type of a real <see cref="AssetCompositeItemViewModel"/> that can be copied/cut/pasted.</typeparam>
+/// <typeparam name="TAssetViewModel">The type of the edited asset.</typeparam>
+/// <typeparam name="TItemViewModel">The type of the view model of a part: an item that can be copied, cut and pasted. The
+/// other items of the hierarchy (its root, the folders of the scene editor) are <see cref="AssetCompositeItemViewModel"/>.</typeparam>
 public abstract class AssetCompositeHierarchyEditorViewModel<TAssetPartDesign, TAssetPart, TAssetViewModel, TItemViewModel>
     : AssetCompositeEditorViewModel<AssetCompositeHierarchy<TAssetPartDesign, TAssetPart>, AssetCompositeHierarchyViewModel<TAssetPartDesign, TAssetPart>>
     where TAssetPartDesign : class, IAssetPartDesign<TAssetPart>
     where TAssetPart : class, IIdentifiable
     where TAssetViewModel : AssetCompositeHierarchyViewModel<TAssetPartDesign, TAssetPart>
-    where TItemViewModel : AssetCompositeItemViewModel<TAssetViewModel, TItemViewModel>
+    where TItemViewModel : AssetCompositeItemViewModel, IAssetPartViewModel
 {
-    private TItemViewModel rootPart;
+    private AssetCompositeItemViewModel? rootPart;
     private bool updateSelectionGuard;
 
     protected AssetCompositeHierarchyEditorViewModel(TAssetViewModel asset)
         : base(asset)
     {
-        rootPart = CreateRootPartViewModel();
-
         CopyCommand = new AnonymousTaskCommand(ServiceProvider, Copy, CanCopy);
         CutCommand = new AnonymousTaskCommand(ServiceProvider, Cut, CanCut);
         DeleteCommand = new AnonymousTaskCommand(ServiceProvider, Delete, CanDelete);
         DuplicateSelectionCommand = new AnonymousCommand(ServiceProvider, () => DuplicateSelection());
-        PasteCommand = new AnonymousTaskCommand<bool>(ServiceProvider, Paste, _ => CanPaste());
+        PasteCommand = new AnonymousTaskCommand<bool>(ServiceProvider, Paste, CanPaste);
 
         SelectedContent.CollectionChanged += SelectedContentCollectionChanged;
         SelectedItems.CollectionChanged += SelectedItemsCollectionChanged;
     }
 
-    public TItemViewModel RootPart { get => rootPart; private set => SetValue(ref rootPart, value); }
+    /// <summary>
+    /// Gets the item that holds the root parts of the asset, or <c>null</c> until <see cref="InitializeRootPart"/>.
+    /// </summary>
+    public AssetCompositeItemViewModel? RootPart { get => rootPart; private set => SetValue(ref rootPart, value); }
 
+    /// <summary>
+    /// Gets the selected parts: the parts in <see cref="AssetCompositeEditorViewModel{TAsset,TAssetViewModel}.SelectedContent"/>
+    /// by default.
+    /// </summary>
     public ObservableSet<TItemViewModel> SelectedItems { get; } = [];
 
     /// <summary>
@@ -122,7 +128,7 @@ public abstract class AssetCompositeHierarchyEditorViewModel<TAssetPartDesign, T
     {
         ArgumentNullException.ThrowIfNull(item);
 
-        var partDesign = GetPartDesign(item) ?? throw new ArgumentException("The item is not a part.", nameof(item));
+        var partDesign = GetPartDesign(item);
         var assetParts = partDesign.Yield();
         if (includeChildren)
         {
@@ -138,7 +144,7 @@ public abstract class AssetCompositeHierarchyEditorViewModel<TAssetPartDesign, T
     /// Gets the items of the given collection that have no ancestor in the collection.
     /// </summary>
     public static ISet<TViewModel> GetCommonRoots<TViewModel>(IReadOnlyCollection<TViewModel> items)
-        where TViewModel : TItemViewModel
+        where TViewModel : AssetCompositeItemViewModel
     {
         var hashSet = new HashSet<TViewModel>(items);
         foreach (var item in items)
@@ -191,14 +197,28 @@ public abstract class AssetCompositeHierarchyEditorViewModel<TAssetPartDesign, T
         return RootPart?.EnumerateChildren().BreadthFirst(x => x.EnumerateChildren()).FirstOrDefault(part => part is IAssetPartViewModel viewModel && viewModel.Id == id) as IAssetPartViewModel;
     }
 
-    protected abstract TItemViewModel CreateRootPartViewModel();
+    /// <summary>
+    /// Creates the item that holds the root parts of the asset, for <see cref="InitializeRootPart"/>.
+    /// </summary>
+    protected abstract AssetCompositeItemViewModel CreateRootPartViewModel();
+
+    /// <summary>
+    /// Creates <see cref="RootPart"/>, with the view models of every part. An editor whose parts need its game calls it
+    /// once the game has started, others in their constructor.
+    /// </summary>
+    protected void InitializeRootPart()
+    {
+        if (RootPart is not null)
+            throw new InvalidOperationException("The root part is already created.");
+        RootPart = CreateRootPartViewModel();
+    }
 
     protected abstract Task RefreshEditorProperties();
 
     /// <summary>
-    /// Gets the design of the part an item represents, or <c>null</c> when the item is not a part (the root, a folder).
+    /// Gets the design of the part of the given view model.
     /// </summary>
-    protected abstract TAssetPartDesign? GetPartDesign(TItemViewModel item);
+    protected abstract TAssetPartDesign GetPartDesign(TItemViewModel item);
 
     /// <summary>
     /// Gets the type of the member the parts are pasted into, and the types of the data the clipboard can hold, for
@@ -229,7 +249,7 @@ public abstract class AssetCompositeHierarchyEditorViewModel<TAssetPartDesign, T
         // The selected parts of each asset
         foreach (var group in SelectedItems.GroupBy(x => (AssetCompositeHierarchyViewModel<TAssetPartDesign, TAssetPart>)x.Asset))
         {
-            group.Key.AssetHierarchyPropertyGraph.BreakBasePartLinks(group.Select(GetPartDesign).NotNull());
+            group.Key.AssetHierarchyPropertyGraph.BreakBasePartLinks(group.Select(GetPartDesign));
         }
         undoRedo.SetName(transaction, $"Break link to {baseTypeName}");
     }
@@ -270,7 +290,7 @@ public abstract class AssetCompositeHierarchyEditorViewModel<TAssetPartDesign, T
                 // The hierarchy from the parts that are roots of the selection
                 var selectedRoots = GetCommonRoots(group.ToList());
                 var flags = SubHierarchyCloneFlags.CleanExternalReferences | SubHierarchyCloneFlags.GenerateNewIdsForIdentifiableObjects;
-                var subHierarchy = AssetCompositeHierarchyPropertyGraph<TAssetPartDesign, TAssetPart>.CloneSubHierarchies(nodeContainer, currentAsset.Asset, selectedRoots.Select(GetPartDesign).NotNull().Select(x => x.Part.Id), flags, out var idRemapping);
+                var subHierarchy = AssetCompositeHierarchyPropertyGraph<TAssetPartDesign, TAssetPart>.CloneSubHierarchies(nodeContainer, currentAsset.Asset, selectedRoots.Select(x => GetPartDesign(x).Part.Id), flags, out var idRemapping);
                 AssetPartsAnalysis.GenerateNewBaseInstanceIds(subHierarchy);
                 clonedHierarchy.MergeInto(subHierarchy);
 
@@ -366,7 +386,8 @@ public abstract class AssetCompositeHierarchyEditorViewModel<TAssetPartDesign, T
     /// Whether <see cref="PasteCommand"/> can be executed. The clipboard can only be read asynchronously: the command checks its
     /// content when it runs, and does nothing when the clipboard holds nothing to paste.
     /// </summary>
-    protected bool CanPaste()
+    /// <param name="asRoot">Whether the paste goes to the root of the asset.</param>
+    protected virtual bool CanPaste(bool asRoot)
     {
         return ServiceProvider.TryGet<ICopyPasteService>() is not null && ServiceProvider.TryGet<IClipboardService>() is not null;
     }
@@ -374,7 +395,7 @@ public abstract class AssetCompositeHierarchyEditorViewModel<TAssetPartDesign, T
     /// <summary>
     /// Checks whether the given paste data can be pasted into the given item.
     /// </summary>
-    protected virtual bool CanPasteIntoItem(IPasteResult pasteResult, TItemViewModel item, out string? error)
+    protected virtual bool CanPasteIntoItem(IPasteResult pasteResult, AssetCompositeItemViewModel item, out string? error)
     {
         ArgumentNullException.ThrowIfNull(pasteResult);
 
@@ -396,6 +417,9 @@ public abstract class AssetCompositeHierarchyEditorViewModel<TAssetPartDesign, T
     /// <param name="asRoot"><c>true</c> to paste at the root of the asset; otherwise, into the selected items.</param>
     protected virtual async Task Paste(bool asRoot)
     {
+        if (RootPart is null)
+            return;
+
         var text = await GetPastedTextAsync(asRoot);
         if (text is null)
             return;
@@ -406,12 +430,12 @@ public abstract class AssetCompositeHierarchyEditorViewModel<TAssetPartDesign, T
         if (asRoot)
         {
             // Paste at the root level
-            await PasteIntoItems(text, RootPart.Yield());
+            await PasteIntoItems(text, GetPasteRoot().Yield());
             actionName = $"Paste into {Asset.Name}";
         }
         else
         {
-            var selectedItems = SelectedContent.OfType<TItemViewModel>().ToList();
+            var selectedItems = SelectedContent.OfType<AssetCompositeItemViewModel>().ToList();
             if (selectedItems.Count == 0)
                 return;
             // Paste into the selected items
@@ -420,6 +444,14 @@ public abstract class AssetCompositeHierarchyEditorViewModel<TAssetPartDesign, T
         }
 
         undoRedo.SetName(transaction, actionName);
+    }
+
+    /// <summary>
+    /// Gets the item a paste at the root of the asset goes into: <see cref="RootPart"/> by default.
+    /// </summary>
+    protected virtual AssetCompositeItemViewModel GetPasteRoot()
+    {
+        return RootPart ?? throw new InvalidOperationException("The root part is not created yet.");
     }
 
     /// <summary>
@@ -441,13 +473,13 @@ public abstract class AssetCompositeHierarchyEditorViewModel<TAssetPartDesign, T
     /// <summary>
     /// Pastes the given copied text into the given items.
     /// </summary>
-    protected async Task PasteIntoItems(string text, IEnumerable<TItemViewModel> items)
+    protected async Task PasteIntoItems(string text, IEnumerable<AssetCompositeItemViewModel> items)
     {
         ArgumentNullException.ThrowIfNull(items);
         if (ServiceProvider.TryGet<ICopyPasteService>() is not { } copyPasteService)
             return;
 
-        var pasteResults = new Dictionary<TItemViewModel, IPasteResult>();
+        var pasteResults = new Dictionary<AssetCompositeItemViewModel, IPasteResult>();
         foreach (var item in items)
         {
             var pasteResult = copyPasteService.DeserializeCopiedData(text, item.Asset.Asset, typeof(TAssetPart));
@@ -480,7 +512,7 @@ public abstract class AssetCompositeHierarchyEditorViewModel<TAssetPartDesign, T
     /// </summary>
     /// <param name="propertyContainer">The container into which to attach the properties</param>
     /// <param name="pasteTarget">The view model of the item into which the paste will occur.</param>
-    protected virtual void AttachPropertiesForPaste(ref PropertyContainer propertyContainer, TItemViewModel pasteTarget)
+    protected virtual void AttachPropertiesForPaste(ref PropertyContainer propertyContainer, AssetCompositeItemViewModel pasteTarget)
     {
         // Do nothing by default.
     }
@@ -491,7 +523,7 @@ public abstract class AssetCompositeHierarchyEditorViewModel<TAssetPartDesign, T
     /// <param name="clonedHierarchy">The hierarchy to prepare, that has been cloned out of the actual parts.</param>
     /// <param name="commonRoots">The view models of the actual items that are being copied (including parts and virtual items).</param>
     /// <param name="commonParts">The view models of the actual parts that are being copied.</param>
-    protected virtual void PrepareToCopy(AssetCompositeHierarchyData<TAssetPartDesign, TAssetPart> clonedHierarchy, ICollection<TItemViewModel> commonRoots, ICollection<TItemViewModel> commonParts)
+    protected virtual void PrepareToCopy(AssetCompositeHierarchyData<TAssetPartDesign, TAssetPart> clonedHierarchy, ICollection<AssetCompositeItemViewModel> commonRoots, ICollection<TItemViewModel> commonParts)
     {
         // Do nothing by default
     }
@@ -531,10 +563,9 @@ public abstract class AssetCompositeHierarchyEditorViewModel<TAssetPartDesign, T
         var undoRedo = Session.UndoRedoService;
         using var transaction = undoRedo.CreateTransaction();
         // RemovePartFromAsset, not DeletePart, keeps the references to the cut parts: a paste into the same asset restores them
-        foreach (var item in items.SelectMany(x => x.CommonParts).DepthFirst(x => x.Children).Reverse())
+        foreach (var item in items.SelectMany(x => x.CommonParts).DepthFirst(x => x.EnumerateChildren().OfType<TItemViewModel>()).Reverse())
         {
-            if (GetPartDesign(item) is { } partDesign)
-                ((AssetCompositeHierarchyPropertyGraph<TAssetPartDesign, TAssetPart>)item.Asset.PropertyGraph!).RemovePartFromAsset(partDesign);
+            ((AssetCompositeHierarchyPropertyGraph<TAssetPartDesign, TAssetPart>)item.Asset.PropertyGraph!).RemovePartFromAsset(GetPartDesign(item));
         }
         undoRedo.SetName(transaction, "Cut selection");
     }
@@ -542,17 +573,17 @@ public abstract class AssetCompositeHierarchyEditorViewModel<TAssetPartDesign, T
     /// <summary>
     /// The selected items to copy, by asset: the items without a selected ancestor, and the parts among them.
     /// </summary>
-    private List<(ICollection<TItemViewModel> CommonRoots, ICollection<TItemViewModel> CommonParts, AssetCompositeHierarchyViewModel<TAssetPartDesign, TAssetPart> Asset)> GetCopiedItems()
+    private List<(ICollection<AssetCompositeItemViewModel> CommonRoots, ICollection<TItemViewModel> CommonParts, AssetCompositeHierarchyViewModel<TAssetPartDesign, TAssetPart> Asset)> GetCopiedItems()
     {
-        return SelectedContent.OfType<TItemViewModel>().GroupBy(x => x.Asset).Select(group =>
+        return SelectedContent.OfType<AssetCompositeItemViewModel>().GroupBy(x => x.Asset).Select(group =>
         {
-            var commonRoots = (ICollection<TItemViewModel>)GetCommonRoots(group.ToList());
+            var commonRoots = (ICollection<AssetCompositeItemViewModel>)GetCommonRoots(group.ToList());
             var commonParts = (ICollection<TItemViewModel>)GetCommonRoots(SelectedItems.Where(x => x.Asset == group.Key).ToList());
             return (commonRoots, commonParts, (AssetCompositeHierarchyViewModel<TAssetPartDesign, TAssetPart>)group.Key);
         }).ToList();
     }
 
-    private async Task<bool> CopyToClipboardAsync(IEnumerable<(ICollection<TItemViewModel> CommonRoots, ICollection<TItemViewModel> CommonParts, AssetCompositeHierarchyViewModel<TAssetPartDesign, TAssetPart> Asset)> items)
+    private async Task<bool> CopyToClipboardAsync(IEnumerable<(ICollection<AssetCompositeItemViewModel> CommonRoots, ICollection<TItemViewModel> CommonParts, AssetCompositeHierarchyViewModel<TAssetPartDesign, TAssetPart> Asset)> items)
     {
         if (ServiceProvider.TryGet<ICopyPasteService>() is not { } copyPasteService || ServiceProvider.TryGet<IClipboardService>() is not { } clipboard)
             return false;
@@ -561,7 +592,7 @@ public abstract class AssetCompositeHierarchyEditorViewModel<TAssetPartDesign, T
         {
             var text = copyPasteService.CopyFromAssets(items.Select(x =>
             {
-                var partIds = x.CommonParts.Select(GetPartDesign).NotNull().Select(r => r.Part.Id);
+                var partIds = x.CommonParts.Select(r => GetPartDesign(r).Part.Id);
                 var hierarchy = AssetCompositeHierarchyPropertyGraph<TAssetPartDesign, TAssetPart>.CloneSubHierarchies(Session.AssetNodeContainer, x.Asset.Asset, partIds, SubHierarchyCloneFlags.None, out _);
                 PrepareToCopy(hierarchy, x.CommonRoots, x.CommonParts);
                 return ((AssetPropertyGraph)x.Asset.AssetHierarchyPropertyGraph, (AssetId?)x.Asset.Id, (object)hierarchy, false);

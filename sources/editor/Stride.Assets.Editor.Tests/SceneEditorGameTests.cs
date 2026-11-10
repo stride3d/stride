@@ -26,7 +26,7 @@ public sealed class SceneEditorGameTests
 
         Assert.True(await editor.Initialize());
 
-        Assert.Null(editor.GameView);
+        Assert.Null(editor.GameHost.GameView);
         editor.Destroy();
         Assert.True(editor.Stopped.IsCompleted);
     }
@@ -42,7 +42,7 @@ public sealed class SceneEditorGameTests
 
         Assert.False(await editor.Initialize());
 
-        Assert.Null(editor.GameView);
+        Assert.Null(editor.GameHost.GameView);
         var viewport = Assert.Single(viewportService.Viewports);
         // The game thread let the viewport go, before the game: the GPU objects of the viewport belong to the game's device
         Assert.True(viewport.IsDisposed);

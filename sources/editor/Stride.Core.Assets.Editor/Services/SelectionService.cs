@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 
 using System.Collections.Specialized;
 using Stride.Core.Extensions;
@@ -91,6 +92,10 @@ public class SelectionService
     /// <returns>The scope corresponding to the collections.</returns>
     public SelectionScope RegisterSelectionScope(Func<AbsoluteId, object?> idToObject, Func<object, AbsoluteId?> objectToId, params INotifyCollectionChanged[] collections)
     {
+        ArgumentNullException.ThrowIfNull(idToObject);
+        ArgumentNullException.ThrowIfNull(objectToId);
+        ArgumentNullException.ThrowIfNull(collections);
+
         var scope = new SelectionScope(collections, idToObject, objectToId);
         foreach (var collection in scope.Collections)
             collection.CollectionChanged += CollectionChanged;
@@ -149,6 +154,13 @@ public class SelectionService
     }
 
     private void CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        // The selection is UI state: the transaction and the clearing of the other scopes run on the dispatcher, inline when the change
+        // comes from it, so that they never race the dispatched refreshes of the views that react to the selection
+        dispatcher.Invoke(() => OnCollectionChanged(sender, e));
+    }
+
+    private void OnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         if (stack.RollInProgress)
             return;

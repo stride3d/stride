@@ -1,16 +1,19 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 
-using Stride.Core.Assets.Editor.Quantum.NodePresenters;
+using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Presentation.Quantum.ViewModels;
+using Stride.Core.Extensions;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Translation;
+using Stride.Core.Assets.Presentation.Components.Properties;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Components.Properties;
 
@@ -22,7 +25,7 @@ public class SessionObjectPropertiesViewModel : PropertiesViewModel, ISessionObj
     private bool showOverridesOnly;
 
     public SessionObjectPropertiesViewModel(SessionViewModel session)
-        : base(session.ServiceProvider, session.AssetNodeContainer)
+        : base(session.SafeArgument(nameof(session)).ServiceProvider, session.AssetNodeContainer)
     {
         Session = session;
 
@@ -68,6 +71,11 @@ public class SessionObjectPropertiesViewModel : PropertiesViewModel, ISessionObj
 
     public void UpdateTypeAndName<T>(IEnumerable<T> selection, int count, Func<T, string> getObjType, Func<T, string> getObjName, string objTypePlural)
     {
+        // A selection in another scope clears this one while the properties are suppressed: the header keeps describing the new
+        // selection, as the properties do (see GenerateSelectionPropertiesAsync)
+        if (ServiceProvider.TryGet<SelectionService>()?.PropertySelectionSuppressed ?? false)
+            return;
+
         switch (count)
         {
             case 0:

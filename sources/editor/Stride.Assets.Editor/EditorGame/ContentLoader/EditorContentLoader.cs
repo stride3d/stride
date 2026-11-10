@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
@@ -11,7 +13,6 @@ using System.Threading.Tasks.Dataflow;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Compiler;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core;
 using Stride.Core.Diagnostics;
@@ -29,6 +30,7 @@ using Stride.Editor.Build;
 using Stride.Editor.EditorGame.ContentLoader;
 using Stride.Editor.EditorGame.Game;
 using Stride.Graphics;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Editor.EditorGame.ContentLoader
 {
@@ -578,8 +580,7 @@ namespace Stride.Assets.Editor.EditorGame.ContentLoader
                     // Find dependent assets
                     foreach (var referencer in assetToProcess.Dependencies.ReferencerAssets)
                     {
-                        var node = database.AssetDependenciesCompiler.BuildDependencyManager.FindOrCreateNode(referencer.AssetItem, typeof(AssetCompilationContext));
-                        node.Analyze(database.CompilerContext);
+                        var node = database.AnalyzeDependencies(referencer.AssetItem);
                         foreach (var reference in node.References)
                         {
                             // Check if this reference is actually a compile-time dependency

@@ -21,7 +21,7 @@ public sealed class EntityComponentToResource : OneWayValueConverter<EntityCompo
         if (value is not IEnumerable<EntityComponent> components)
             return null;
 
-        var componentType = StrideDefaultAssetsPlugin.GetComponentsByOrder(components.Select(x => x.GetType()), false).FirstOrDefault();
+        var componentType = EntityComponentMetadata.GetComponentsByOrder(components.Select(x => x.GetType()), false).FirstOrDefault();
         return TypeToResource.FetchResourceFromType(componentType, true);
     }
 }

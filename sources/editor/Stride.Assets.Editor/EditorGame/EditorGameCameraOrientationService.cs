@@ -1,13 +1,19 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
-using Stride.Assets.Presentation.AssetEditors.Gizmos;
-using Stride.Assets.Presentation.SceneEditor;
+#nullable enable
+
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Stride.Core.Mathematics;
 using Stride.Editor.EditorGame.Game;
 using Stride.Input;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Services;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
+using Stride.Assets.Editor.AssetEditors.Gizmos;
+using Stride.Assets.Editor.SceneEditor;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
 
 namespace Stride.Assets.Editor.EditorGame;
 
@@ -17,10 +23,9 @@ namespace Stride.Assets.Editor.EditorGame;
 /// perspective and the orthographic projections.
 /// </summary>
 /// <remarks>
-/// The cross-platform counterpart of the WPF <c>EditorGameCameraOrientationService</c>. The direction names are hidden,
-/// as in the default WPF scene editor settings, which are not read yet.
+/// The direction names follow the <see cref="SceneEditorSettings.DisplayDirectionNames"/> setting.
 /// </remarks>
-[EditorGameService(typeof(EntityHierarchyEditorController), Order = 180)]
+[EditorGameService(typeof(IEntityHierarchyEditorController), Order = 180)]
 public sealed class EditorGameCameraOrientationService : EditorGameMouseServiceBase
 {
     private EntityHierarchyEditorGame? game;
@@ -104,7 +109,7 @@ public sealed class EditorGameCameraOrientationService : EditorGameMouseServiceB
         // Looking along an axis, a click on its face switches the projection
         if (Gizmo.IsViewParallelToAxis && element.LengthSquared() == 1)
         {
-            Camera.IsOrthographic = !Camera.IsOrthographic;
+            Camera.SwitchProjection();
         }
         else
         {

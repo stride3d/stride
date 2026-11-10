@@ -19,6 +19,8 @@ namespace Stride.Engine
     {
         private InstancingComponent master;
         private InstancingEntityTransform connectedInstancing;
+        private bool isInProcessor;
+        private bool isMasterEventSubscribed;
 
         /// <summary>
         /// Gets or sets the referenced <see cref="InstancingComponent"/> to instance.
@@ -35,18 +37,13 @@ namespace Stride.Engine
             {
                 if (value != master)
                 {
-                    DisconnectInstancing();
-
-                    // Remove previous event handler
-                    if (master != null)
-                        master.InstancingChanged -= Master_InstancingChanged;
-
+                    var shouldReconnect = isInProcessor;
+                    DisconnectFromMaster();
                     master = value;
 
-                    if (master != null)
+                    if (shouldReconnect)
                     {
-                        master.InstancingChanged += Master_InstancingChanged;
-                        ConnectInstancing();
+                        ConnectToMaster();
                     }
                 }
             }
@@ -58,7 +55,32 @@ namespace Stride.Engine
             ConnectInstancing();
         }
 
-        internal void ConnectInstancing()
+        internal void ConnectToMaster()
+        {
+            isInProcessor = true;
+
+            if (master != null && !isMasterEventSubscribed)
+            {
+                master.InstancingChanged += Master_InstancingChanged;
+                isMasterEventSubscribed = true;
+            }
+
+            ConnectInstancing();
+        }
+
+        internal void DisconnectFromMaster()
+        {
+            isInProcessor = false;
+            DisconnectInstancing();
+
+            if (master != null && isMasterEventSubscribed)
+            {
+                master.InstancingChanged -= Master_InstancingChanged;
+                isMasterEventSubscribed = false;
+            }
+        }
+
+        private void ConnectInstancing()
         {
             if (connectedInstancing == null && master != null && master.Type is InstancingEntityTransform instancing)
             {
@@ -67,7 +89,7 @@ namespace Stride.Engine
             }
         }
 
-        internal void DisconnectInstancing()
+        private void DisconnectInstancing()
         {
             if (connectedInstancing != null)
             {

@@ -1,15 +1,19 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable enable
 
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Tools;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
-using Stride.Assets.Presentation.SceneEditor;
+using System;
+using System.Linq;
+using Stride.Assets.Editor.ViewModels;
 using Stride.Core.Mathematics;
 using Stride.Editor.EditorGame.Game;
 using Stride.Editor.EditorGame.ViewModels;
 using Stride.Editor.Engine;
 using Stride.Engine;
 using Stride.Input;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
+using Stride.Assets.Editor.SceneEditor;
 
 namespace Stride.Assets.Editor.EditorGame;
 
@@ -54,6 +58,21 @@ public sealed class EditorGameEntityCameraService : EditorGameCameraService, IEd
     public EditorGameEntityCameraService(IEditorGameController controller)
         : base(controller)
     {
+    }
+
+    /// <summary>
+    /// Gets or sets the camera options of the view, when the user interface shows them: the speed keys and the projection
+    /// key go through them. Without them, the service changes the camera itself.
+    /// </summary>
+    public ICameraViewOptions? Options { get; set; }
+
+    /// <inheritdoc/>
+    public override void SwitchProjection()
+    {
+        if (Options is { } options)
+            options.SwitchProjection();
+        else
+            base.SwitchProjection();
     }
 
     /// <inheritdoc />
@@ -165,6 +184,12 @@ public sealed class EditorGameEntityCameraService : EditorGameCameraService, IEd
     /// </summary>
     private void ChangeMovementSpeed(int step)
     {
+        if (Options is { } options)
+        {
+            options.ChangeMovementSpeed(step);
+            return;
+        }
+
         var index = Array.FindIndex(AvailableMovementSpeeds, x => MathUtil.NearEqual(x, MoveSpeed));
         // A speed out of the steps (the default one) starts from the third step, as in the WPF scene editor
         if (index < 0)
@@ -177,8 +202,8 @@ public sealed class EditorGameEntityCameraService : EditorGameCameraService, IEd
         // The active tool of the view may take the middle or right drags
         var tools = Game.EditorServices.Get<IEditorGameToolService>();
         var lbDown = Game.Input.IsMouseButtonDown(MouseButton.Left);
-        var mbDown = Game.Input.IsMouseButtonDown(MouseButton.Middle) && (tools?.IsDefaultInputOn(EditorViewDefaultInputs.CameraMiddleDrag) ?? true);
-        var rbDown = Game.Input.IsMouseButtonDown(MouseButton.Right) && (tools?.IsDefaultInputOn(EditorViewDefaultInputs.CameraRightDrag) ?? true);
+        var mbDown = Game.Input.IsMouseButtonDown(MouseButton.Middle) && tools.IsDefaultInputOn(EditorViewDefaultInputs.CameraMiddleDrag);
+        var rbDown = Game.Input.IsMouseButtonDown(MouseButton.Right) && tools.IsDefaultInputOn(EditorViewDefaultInputs.CameraRightDrag);
         var isAltDown = Game.Input.IsKeyDown(Keys.LeftAlt) || Game.Input.IsKeyDown(Keys.RightAlt);
 
         return new CameraInput

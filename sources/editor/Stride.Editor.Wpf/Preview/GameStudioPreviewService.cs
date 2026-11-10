@@ -12,6 +12,7 @@ using Stride.Core.Assets.Compiler;
 using Stride.Core.Assets.Editor.Extensions;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.BuildEngine;
 using Stride.Core;
 using Stride.Core.Diagnostics;
@@ -25,6 +26,7 @@ using Stride.Editor.Build;
 using Stride.Editor.Engine;
 using Stride.Games;
 using Stride.Graphics;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Editor.Preview
 {
@@ -72,7 +74,7 @@ namespace Stride.Editor.Preview
             gameSettingsProvider = session.ServiceProvider.Get<GameSettingsProviderService>();
 
             Logger = GlobalLogger.GetLogger("Preview");
-            loggerDebugPage = EditorDebugTools.CreateLogDebugPage(Logger, "Preview");
+            loggerDebugPage = EditorDebugTools.CreateLogDebugPage(session.ServiceProvider, Logger, "Preview", true);
 
             previewGameSettings = GameSettingsFactory.Create();
             previewGameSettings.GetOrCreate<RenderingSettings>().DefaultGraphicsProfile = GraphicsProfile.Level_11_0;
@@ -159,9 +161,6 @@ namespace Stride.Editor.Preview
             PreviewGame = new PreviewGame(AssetBuilderService.EffectCompiler);
             var context = new GameContextWinforms(gameForm) { InitializeDatabase = false };
 
-            // Wait for shaders to be loaded
-            AssetBuilderService.WaitForShaders();
-
             if (!DisablePreview)
             {
                 PreviewGame.GraphicsDeviceManager.DeviceCreated += GraphicsDeviceManagerDeviceCreated;
@@ -212,6 +211,9 @@ namespace Stride.Editor.Preview
             var graphicsProfile = PreviewGame.GraphicsDeviceManager.GraphicsDevice.Features.CurrentProfile;
             //ThumbnailService.ThumbnailBuilderContext.GetGameSettingsAsset().Get<RenderingSettings>().DefaultGraphicsProfile = graphicsProfile;
             previewCompileContext.GetGameSettingsAsset().GetOrCreate<RenderingSettings>().DefaultGraphicsProfile = graphicsProfile;
+
+            // Only the effects need the system shaders: the device is created while they are imported, the content after
+            AssetBuilderService.WaitForShaders();
         }
 
         public void SetAssetToPreview(AssetViewModel asset)

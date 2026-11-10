@@ -4,7 +4,6 @@
 using Stride.Assets.Editor.Tests.Helpers;
 using Stride.Assets.Editor.ViewModels;
 using Stride.Assets.Entities;
-using Stride.Assets.Presentation.AssetEditors.GameEditor;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Tests.Helpers;
@@ -12,6 +11,7 @@ using Stride.Core.Assets.Quantum;
 using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Services;
 using Stride.Engine;
+using Stride.Assets.Editor.AssetEditors.GameEditor;
 
 namespace Stride.Assets.Editor.Tests;
 

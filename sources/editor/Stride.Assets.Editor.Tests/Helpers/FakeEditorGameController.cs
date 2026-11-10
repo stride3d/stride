@@ -1,15 +1,16 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Core;
 using Stride.Core.Assets;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Services;
 using Stride.Editor.EditorGame.ContentLoader;
 using Stride.Editor.EditorGame.ViewModels;
+using Stride.Editor.Engine;
+using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 
 namespace Stride.Assets.Editor.Tests.Helpers;
 
@@ -37,6 +38,12 @@ internal sealed class FakeEditorGameController : IEditorGameController, IDisposa
     public Task GameEnded => Task.CompletedTask;
 
     public SessionNodeContainer GameSideNodeContainer { get; }
+
+    /// <inheritdoc/>
+    public object View { get; } = new();
+
+    /// <inheritdoc/>
+    public IEditorGameViewport Viewport => throw new NotSupportedException();
 
     /// <summary>
     /// Gets how many times the propagators asked the game to evaluate its render stages again, once per propagated change.

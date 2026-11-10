@@ -1,6 +1,6 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-  <!-- The icons of the WPF scene editor (Stride.Assets.Presentation.Wpf and Stride.Core.Assets.Editor.Wpf image dictionaries) -->
+  <!-- The icons of the WPF scene editor (Stride.Assets.Editor.Wpf and Stride.Core.Assets.Editor.Wpf image dictionaries) -->
 
   <DrawingImage x:Key="FolderIcon">
     <DrawingImage.Drawing>

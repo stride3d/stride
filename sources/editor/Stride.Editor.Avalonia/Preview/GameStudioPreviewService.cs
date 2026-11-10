@@ -12,7 +12,6 @@ using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Compiler;
 using Stride.Core.Assets.Editor.Extensions;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.BuildEngine;
 using Stride.Core;
@@ -28,6 +27,7 @@ using Stride.Editor.Preview;
 using Stride.Games;
 using Stride.Graphics;
 using Stride.Shaders.Compiler;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Editor.Avalonia.Preview
 {
@@ -164,9 +164,6 @@ namespace Stride.Editor.Avalonia.Preview
             }
             var context = viewport.Attach(PreviewGame);
 
-            // Wait for shaders to be loaded
-            AssetBuilderService.WaitForShaders();
-
             if (!DisablePreview)
             {
                 PreviewGame.GraphicsDeviceManager.DeviceCreated += GraphicsDeviceManagerDeviceCreated;
@@ -217,6 +214,9 @@ namespace Stride.Editor.Avalonia.Preview
             var graphicsProfile = PreviewGame.GraphicsDeviceManager.GraphicsDevice.Features.CurrentProfile;
             //ThumbnailService.ThumbnailBuilderContext.GetGameSettingsAsset().Get<RenderingSettings>().DefaultGraphicsProfile = graphicsProfile;
             previewCompileContext.GetGameSettingsAsset().GetOrCreate<RenderingSettings>().DefaultGraphicsProfile = graphicsProfile;
+
+            // Only the effects need the system shaders: the device is created while they are imported, the content after
+            AssetBuilderService.WaitForShaders();
         }
 
         public void SetAssetToPreview(AssetViewModel asset)

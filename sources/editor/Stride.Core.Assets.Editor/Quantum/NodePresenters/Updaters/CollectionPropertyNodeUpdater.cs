@@ -1,11 +1,13 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 
 using Stride.Core.Annotations;
 using Stride.Core.Reflection;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
-using Stride.Core.Assets.Editor.Quantum.NodePresenters;
+using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
+using Stride.Core.Assets.Editor.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters;
 
@@ -25,8 +27,8 @@ internal sealed class CollectionPropertyNodeUpdater : AssetNodePresenterUpdaterB
         }
         if (memberCollection != null)
         {
-            //if (memberCollection.CanReorderItems)
-            //    node.AttachedProperties.Add(CollectionData.ReorderCollectionItemKey, new ReorderCollectionItemViewModel());
+            if (memberCollection.CanReorderItems)
+                node.AttachedProperties.Add(CollectionData.ReorderCollectionItemKey, new ReorderCollectionItemViewModel());
             if (memberCollection.ReadOnly)
                 node.AttachedProperties.Add(CollectionData.ReadOnlyCollectionKey, true);
         }

@@ -55,15 +55,15 @@ public sealed class TestAssetLogMessages
         var log = fixture.Session.AssetLog;
         var wood = fixture.Session.AllAssets.Single(x => x.Name == "Wood");
         var stone = fixture.Session.AllAssets.Single(x => x.Name == "Stone");
-        fixture.Assets.SelectAssets([stone]);
+        fixture.OnUiThread(() => fixture.Assets.SelectAssets([stone]));
 
-        log.SelectMessageAssetCommand.Execute(new AssetSerializableLogMessage(wood.Id, wood.AssetItem.Location, LogMessageType.Error, "error"));
+        fixture.OnUiThread(() => log.SelectMessageAssetCommand.Execute(new AssetSerializableLogMessage(wood.Id, wood.AssetItem.Location, LogMessageType.Error, "error")));
 
         // The folder of the asset is shown, as WPF does
         Assert.Equal([wood], fixture.Assets.SelectedAssets);
         Assert.Contains(wood.Directory, fixture.Assets.SelectedLocations);
 
-        log.SelectMessageAssetCommand.Execute(new AssetLogMessage(null, new AssetReference(stone.Id, stone.AssetItem.Location), LogMessageType.Error, "error"));
+        fixture.OnUiThread(() => log.SelectMessageAssetCommand.Execute(new AssetLogMessage(null, new AssetReference(stone.Id, stone.AssetItem.Location), LogMessageType.Error, "error")));
 
         Assert.Equal([stone], fixture.Assets.SelectedAssets);
     }
@@ -74,12 +74,12 @@ public sealed class TestAssetLogMessages
         using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var log = fixture.Session.AssetLog;
         var wood = fixture.Session.AllAssets.Single();
-        fixture.Assets.SelectAssets([wood]);
+        fixture.OnUiThread(() => fixture.Assets.SelectAssets([wood]));
 
-        log.SelectMessageAssetCommand.Execute(new LogMessage("Session", LogMessageType.Error, "error"));
+        fixture.OnUiThread(() => log.SelectMessageAssetCommand.Execute(new LogMessage("Session", LogMessageType.Error, "error")));
         // An asset that is not in the session (deleted since the message)
-        log.SelectMessageAssetCommand.Execute(new AssetSerializableLogMessage(AssetId.New(), new UFile("Textures/Gone"), LogMessageType.Error, "error"));
-        log.SelectMessageAssetCommand.Execute(null);
+        fixture.OnUiThread(() => log.SelectMessageAssetCommand.Execute(new AssetSerializableLogMessage(AssetId.New(), new UFile("Textures/Gone"), LogMessageType.Error, "error")));
+        fixture.OnUiThread(() => log.SelectMessageAssetCommand.Execute(null));
 
         Assert.Equal([wood], fixture.Assets.SelectedAssets);
     }

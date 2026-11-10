@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Assets.Editor.Preview;
-using Stride.Assets.Presentation.Preview;
 using Stride.Editor.Annotations;
 using Stride.Editor.Avalonia.Preview.Views;
 

@@ -4,8 +4,8 @@
 using Stride.Assets.Scripts;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Annotations;
-using Stride.Core.Assets.Editor.Editors;
-using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Presentation.Annotations;
 
 namespace Stride.Assets.Presentation.ViewModels;
 
@@ -57,7 +57,7 @@ public class ScriptSourceFileViewModel : SourceCodeViewModel<ScriptSourceFileAss
     }
 
     /// <inheritdoc />
-    protected override void Initialize()
+    protected internal override void Initialize()
     {
         // The base class reads the text of a project file
         base.Initialize();
@@ -66,7 +66,7 @@ public class ScriptSourceFileViewModel : SourceCodeViewModel<ScriptSourceFileAss
     }
 
     /// <inheritdoc />
-    protected override void OnSessionSaving()
+    protected internal override void OnSessionSaving()
     {
         base.OnSessionSaving();
         if (filePath == null || hasUnsavedText)
@@ -91,7 +91,7 @@ public class ScriptSourceFileViewModel : SourceCodeViewModel<ScriptSourceFileAss
     }
 
     /// <inheritdoc />
-    protected override void OnSessionSaved()
+    protected internal override void OnSessionSaved()
     {
         base.OnSessionSaved();
         // The session wrote the script (or had nothing to write): its file is the one of its current name. With unsaved

@@ -1,14 +1,8 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Reflection;
 using Stride.Assets.Editor.ViewModels;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Tools;
-using Stride.Assets.Presentation.AssetEditors.GameEditor;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
-using Stride.Assets.Presentation.AssetEditors.Gizmos;
-using Stride.Assets.Presentation.SceneEditor;
 using Stride.Core;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.BuildEngine;
@@ -20,25 +14,32 @@ using Stride.Engine;
 using Stride.Input;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
+using Stride.Editor.EditorGame.Tools;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools;
+using Stride.Assets.Editor.AssetEditors.GameEditor;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
+using Stride.Assets.Editor.AssetEditors.Gizmos;
+using Stride.Assets.Editor.SceneEditor;
 
 namespace Stride.Assets.Editor.EditorGame.Tools;
 
 /// <summary>
-/// The tools of the view of a scene or prefab editor: select, translate, rotate, scale and the tools of the plugins. It
-/// arbitrates the input of the view between the active tool, the selection and the camera
-/// (<see cref="EditorViewToolSet"/>), and has the keys of the transformation gizmos of the WPF scene editor.
+/// The tools of the view of a scene or prefab editor, in both user interfaces: select, translate, rotate, scale and the
+/// tools of the plugins. It arbitrates the input of the view between the active tool, the selection and the camera
+/// (<see cref="EditorViewToolSet"/>), and has the keys of the transformation gizmos of the WPF scene editor. The toolbar of
+/// each user interface drives it through <see cref="IEditorGameToolViewModelService"/>.
 /// </summary>
 /// <remarks>
 /// <list type="bullet">
 /// <item>Q: select. W: translate. E: rotate. R: scale. Space: next transformation.</item>
 /// <item>Shift while dragging a gizmo: snap. N: snap the selection to the grid.</item>
 /// </list>
-/// The keys are the scene editor settings (<see cref="SceneEditorSettings"/>), shared with the WPF editor; the snap values are
-/// the defaults of the WPF scene settings, which are not read yet. The cross-platform counterpart of the WPF
-/// <c>EditorGameEntityTransformService</c>.
+/// The keys are the scene editor settings (<see cref="SceneEditorSettings"/>). The snaps and the gizmo size come from the
+/// settings of the scene, through the toolbar.
 /// </remarks>
 [EditorGameService(typeof(EntityHierarchyEditorController), Order = 210)]
-public sealed class EditorGameToolService : EditorGameMouseServiceBase, IEditorGameToolService, IEditorGameViewModelService
+public sealed class EditorGameToolService : EditorGameMouseServiceBase, IEditorGameToolService, IEditorGameToolViewModelService
 {
     // The key bindings of the scene editor settings, read as they are used so that a change applies at once, as in WPF (the
     // switch key when the view opens)
@@ -52,6 +53,9 @@ public sealed class EditorGameToolService : EditorGameMouseServiceBase, IEditorG
     private EditorViewToolContext? context;
     private EntityHierarchyEditorGame? game;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EditorGameToolService"/> class.
+    /// </summary>
     public EditorGameToolService(EntityHierarchyEditorController controller, EntityHierarchyEditorViewModel editor)
     {
         this.controller = controller;
@@ -74,20 +78,16 @@ public sealed class EditorGameToolService : EditorGameMouseServiceBase, IEditorG
     /// <inheritdoc/>
     public IEditorViewTool ActiveTool => ToolSet.ActiveTool;
 
-    /// <summary>
-    /// Gets the tools of the view, in toolbar order, once the service is initialized (any thread: the list does not change).
-    /// </summary>
-    internal IReadOnlyList<IEditorViewTool> Tools => toolSet?.Tools ?? [];
 
-    /// <summary>
-    /// Raised with the new active tool (game thread).
-    /// </summary>
-    internal event EventHandler<IEditorViewTool>? ActiveToolChanged;
+    /// <inheritdoc/>
+    /// <remarks>Any thread: the list does not change.</remarks>
+    public IReadOnlyList<IEditorViewTool> Tools => toolSet?.Tools ?? [];
 
-    /// <summary>
-    /// Raised with a tool turned off after an error (game thread).
-    /// </summary>
-    internal event EventHandler<IEditorViewTool>? ToolFailed;
+    /// <inheritdoc/>
+    public event EventHandler<IEditorViewTool>? ActiveToolChanged;
+
+    /// <inheritdoc/>
+    public event EventHandler<IEditorViewTool>? ToolFailed;
 
     private EditorViewToolSet ToolSet => toolSet ?? throw new InvalidOperationException("The service is not initialized.");
 
@@ -100,43 +100,32 @@ public sealed class EditorGameToolService : EditorGameMouseServiceBase, IEditorG
     /// <inheritdoc/>
     public bool IsDefaultInputOn(EditorViewDefaultInputs inputs) => toolSet?.IsDefaultInputOn(inputs) ?? true;
 
-    /// <summary>
-    /// Gets the active tool and the tools turned off after an error.
-    /// </summary>
-    internal Task<(IEditorViewTool ActiveTool, IReadOnlyList<IEditorViewTool> FailedTools)> GetStateAsync()
+    /// <inheritdoc/>
+    public Task<(IEditorViewTool ActiveTool, IReadOnlyList<IEditorViewTool> FailedTools)> GetStateAsync()
     {
         return controller.InvokeAsync(() => (ToolSet.ActiveTool, (IReadOnlyList<IEditorViewTool>)ToolSet.Tools.Where(ToolSet.IsFailed).ToList()));
     }
 
-    /// <summary>
-    /// Makes a tool the active one.
-    /// </summary>
-    /// <returns><c>false</c> when the tool was turned off.</returns>
-    internal Task<bool> ActivateAsync(IEditorViewTool tool)
+    /// <inheritdoc/>
+    public Task<bool> ActivateAsync(IEditorViewTool tool)
     {
         return controller.InvokeAsync(() => ToolSet.Activate(tool));
     }
 
-    /// <summary>
-    /// Sets the space of the translation and rotation gizmos.
-    /// </summary>
-    internal Task SetSpaceAsync(TransformationSpace space)
+    /// <inheritdoc/>
+    public Task SetSpaceAsync(TransformationSpace space)
     {
         return controller.InvokeAsync(() => Context.Transformation.Space = space);
     }
 
-    /// <summary>
-    /// Sets the size of the transformation gizmos.
-    /// </summary>
-    internal Task SetGizmoSizeAsync(float size)
+    /// <inheritdoc/>
+    public Task SetGizmoSizeAsync(float size)
     {
         return controller.InvokeAsync(() => Context.Transformation.GizmoSize = size);
     }
 
-    /// <summary>
-    /// Sets the snap of a transformation, and whether it snaps without the snap key.
-    /// </summary>
-    internal Task SetSnapAsync(Transformation transformation, float value, bool isActive)
+    /// <inheritdoc/>
+    public Task SetSnapAsync(Transformation transformation, float value, bool isActive)
     {
         return controller.InvokeAsync(() => Context.Transformation.SetSnap(transformation, value, isActive));
     }
@@ -162,8 +151,8 @@ public sealed class EditorGameToolService : EditorGameMouseServiceBase, IEditorG
         AddGizmoRenderStages(game);
 
         context = new EditorViewToolContext(game, controller, Selection, Services.Get<IEditorGameCameraService>(), UpdateTransformations);
-        var toolTypes = editor.ServiceProvider.TryGet<IAssetsPluginService>()?.GetEditorViewToolTypes() ?? [];
-        var tools = CreateTools(toolTypes, controller.Logger);
+        var pluginToolTypes = editor.ServiceProvider.TryGet<IAssetsPluginService>()?.GetEditorViewToolTypes() ?? [];
+        var tools = CreateTools(GetToolTypes(pluginToolTypes), controller.Logger);
         toolSet = new EditorViewToolSet(tools, tools.OfType<TransformationTool>().ToList(), SwitchGizmo, controller.Logger);
         toolSet.ActiveToolChanged += ToolSetActiveToolChanged;
         toolSet.ToolFailed += ToolSetToolFailed;
@@ -175,6 +164,16 @@ public sealed class EditorGameToolService : EditorGameMouseServiceBase, IEditorG
         // After the selection changes, which the controller posts with the default priority (0), as in the WPF scene editor
         game.Script.AddTask(Update, 1);
         return Task.FromResult(true);
+    }
+
+    /// <summary>
+    /// Gets the types of the tools of a view: the built-in tools (select, translate, rotate and scale), then the tools of the
+    /// plugins. The built-in tools don't depend on the plugins the user interface registers: the WPF editor doesn't register
+    /// the default plugin of the cross-platform one, which declares them.
+    /// </summary>
+    internal static IEnumerable<Type> GetToolTypes(IEnumerable<Type> pluginToolTypes)
+    {
+        return new[] { typeof(SelectTool), typeof(TranslateTool), typeof(RotateTool), typeof(ScaleTool) }.Concat(pluginToolTypes).Distinct();
     }
 
     /// <summary>

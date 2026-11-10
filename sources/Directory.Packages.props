@@ -8,7 +8,7 @@
   </PropertyGroup>
   <!-- Runtime dependencies -->
   <ItemGroup>
-    <PackageVersion Include="BepuPhysics" Version="2.5.0-beta.28" />
+    <PackageVersion Include="BepuPhysics" Version="2.5.0-beta.33" />
     <PackageVersion Include="CommunityToolkit.HighPerformance" Version="8.4.0" />
     <PackageVersion Include="DotRecast.Core" Version="2025.2.1" />
     <PackageVersion Include="DotRecast.Detour" Version="2025.2.1" />
@@ -143,7 +143,7 @@
     <PackageVersion Include="Dirkster.AvalonDock" Version="4.72.1" />
     <PackageVersion Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.77" />
     <PackageVersion Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
-    <PackageVersion Include="Stride.GraphX.WPF.Controls" Version="2.4.0" />
+    <PackageVersion Include="GraphX" Version="3.0.0" />
     <PackageVersion Include="RoslynPad.Editor.Windows" Version="5.0.0" />
     <PackageVersion Include="RoslynPad.Roslyn" Version="5.0.0" />
     <PackageVersion Include="RoslynPad.Roslyn.Windows" Version="5.0.0" />

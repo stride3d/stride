@@ -1,6 +1,9 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable enable
 
+using System.Collections.Generic;
+using System.Linq;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core;
 
@@ -79,14 +82,17 @@ internal sealed class EntitySelection
     }
 
     /// <summary>
-    /// Adds a selectable entity to the selection (UI thread).
+    /// Adds a selectable entity, or a selectable child scene, to the selection (UI thread).
     /// </summary>
-    /// <returns><c>false</c> when the entity can't be selected or was already selected.</returns>
-    public bool Add(EntityViewModel entity)
+    /// <returns><c>false</c> when the element can't be selected or was already selected.</returns>
+    public bool Add(EntityHierarchyElementViewModel entity)
     {
         lock (lockObject)
         {
-            if (!selectableIds.Contains(entity.Id) || !selectedIds.Add(entity.Id))
+            // An entity is selectable once it is in the game; a scene, which the game moves as a whole, while it is loaded
+            // and not locked, as in the WPF scene editor
+            var isSelectable = entity is EntityViewModel ? selectableIds.Contains(entity.Id) : entity.IsSelectable;
+            if (!isSelectable || !selectedIds.Add(entity.Id))
                 return false;
 
             // A selected parent stays the root
@@ -107,7 +113,7 @@ internal sealed class EntitySelection
     /// Removes an entity from the selection (UI thread).
     /// </summary>
     /// <returns><c>false</c> when the entity was not selected.</returns>
-    public bool Remove(EntityViewModel entity)
+    public bool Remove(EntityHierarchyElementViewModel entity)
     {
         lock (lockObject)
         {
@@ -140,15 +146,15 @@ internal sealed class EntitySelection
     }
 
     // The folders are skipped, as in WPF: an entity in a folder of a selected entity is its child
-    private static IEnumerable<EntityViewModel> Parents(EntityViewModel entity)
+    private static IEnumerable<EntityHierarchyElementViewModel> Parents(EntityHierarchyElementViewModel entity)
     {
-        for (var parent = entity.TransformParent as EntityViewModel; parent is not null; parent = parent.TransformParent as EntityViewModel)
+        for (var parent = entity.TransformParent; parent is not null; parent = parent.TransformParent)
         {
             yield return parent;
         }
     }
 
-    private static IEnumerable<EntityViewModel> Descendants(EntityViewModel entity)
+    private static IEnumerable<EntityViewModel> Descendants(EntityHierarchyElementViewModel entity)
     {
         var queue = new Queue<EntityViewModel>(entity.TransformChildren);
         while (queue.TryDequeue(out var child))

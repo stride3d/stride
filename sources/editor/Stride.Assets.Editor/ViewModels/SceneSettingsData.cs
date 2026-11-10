@@ -1,11 +1,15 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable enable
 
+using System;
+using System.Collections.Generic;
 using System.Reflection;
 using Stride.Assets.Editor.EditorGame;
 using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.Mathematics;
+using Stride.Core.Reflection;
 using Stride.Core.Settings;
 using Stride.Engine;
 using Stride.Engine.Gizmos;
@@ -17,10 +21,8 @@ namespace Stride.Assets.Editor.ViewModels;
 /// The settings of the view of a scene or prefab editor, saved per asset in the user settings of its package.
 /// </summary>
 /// <remarks>
-/// The agnostic copy of the WPF <c>SceneSettingsData</c>, member for member and with the same data contract, so both
-/// editors read and write the same <see cref="PackageSceneSettings.SceneSettings"/> entries: the Avalonia editor keeps the
-/// members it does not use yet as it read them. Until the Phase 3 consolidation, a member added to one copy must be added
-/// to the other.
+/// Both editors read and write the same <see cref="PackageSceneSettings.SceneSettings"/> entries: an editor keeps the members
+/// it does not use as it read them.
 /// </remarks>
 [DataContract(nameof(SceneSettingsData))]
 public sealed class SceneSettingsData
@@ -87,11 +89,11 @@ public sealed class SceneSettingsData
     public static SceneSettingsData CreateDefault()
     {
         // The transform gizmo is the fallback shown on entities without any other gizmo; the rest is what the gizmo classes declare
-        var hiddenGizmos = new List<string> { DisplayAttribute.GetDisplayName(typeof(TransformComponent)) };
-        foreach (var gizmo in StrideEditorPlugin.GizmoTypeDictionary)
+        var hiddenGizmos = new List<string> { TypeDescriptorFactory.Default.AttributeRegistry.GetDisplayName(typeof(TransformComponent)) };
+        foreach (var gizmo in GizmoTypeRegistry.GizmoTypeDictionary)
         {
             if (gizmo.Value.GetCustomAttribute<GizmoComponentAttribute>(true) is { HiddenByDefault: true })
-                hiddenGizmos.Add(DisplayAttribute.GetDisplayName(gizmo.Key));
+                hiddenGizmos.Add(TypeDescriptorFactory.Default.AttributeRegistry.GetDisplayName(gizmo.Key));
         }
 
         return new SceneSettingsData { HiddenGizmos = hiddenGizmos };
@@ -99,7 +101,7 @@ public sealed class SceneSettingsData
 }
 
 /// <summary>
-/// The rendering mode of the view of a scene editor, saved by name in <see cref="SceneSettingsData"/> (the WPF <c>RenderMode</c>).
+/// The rendering mode of the view of a scene editor, saved by name in <see cref="SceneSettingsData"/>.
 /// </summary>
 public enum SceneRenderMode
 {
@@ -114,7 +116,7 @@ public enum SceneRenderMode
 }
 
 /// <summary>
-/// The scene settings key of the package user settings, shared with the WPF editor.
+/// The scene settings key of the package user settings, shared by both editors.
 /// </summary>
 public static class PackageSceneSettings
 {

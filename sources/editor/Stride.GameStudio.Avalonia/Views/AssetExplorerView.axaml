@@ -7,7 +7,7 @@
              xmlns:caec="using:Stride.Core.Assets.Editor.Avalonia.Converters"
              xmlns:caev="using:Stride.Core.Assets.Editor.Avalonia.Views"
              xmlns:dd="using:Stride.Core.Assets.Editor.Avalonia.DragDrop"
-             xmlns:capvm="using:Stride.Core.Assets.Editor.ViewModel"
+             xmlns:capvm="using:Stride.Core.Assets.Presentation.ViewModels"
              xmlns:gscv="using:Stride.GameStudio.Avalonia.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Stride.GameStudio.Avalonia.Views.AssetExplorerView"
@@ -471,7 +471,7 @@
               </StackPanel>
             </ToolTip.Tip>
             <Border Classes="tileThumbnail">
-              <Image Source="{Binding ThumbnailData.Presenter, Converter={gscv:StrideImage}, FallbackValue={x:Null}}"/>
+              <Image Source="{Binding ThumbnailData.Presenter, Converter={caec:ThumbnailToImage}, FallbackValue={x:Null}}"/>
             </Border>
             <Panel Classes="tileName">
               <TextBlock Classes="tileLabel" HorizontalAlignment="Center" Text="{Binding Name, Converter={caec:NameBreakingLine}}" IsVisible="{Binding !IsEditing}"/>
@@ -535,7 +535,7 @@
             </ToolTip.Tip>
             <Panel>
               <Border Classes="tileThumbnail">
-                <Image Source="{Binding ThumbnailData.Presenter, Converter={gscv:StrideImage}, FallbackValue={x:Null}}"/>
+                <Image Source="{Binding ThumbnailData.Presenter, Converter={caec:ThumbnailToImage}, FallbackValue={x:Null}}"/>
               </Border>
               <!-- The thumbnail is being made -->
               <ProgressBar Width="32" Height="8" MinWidth="32" IsIndeterminate="True"

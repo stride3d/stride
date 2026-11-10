@@ -5,6 +5,7 @@
     <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
+    <StrideLocalized>true</StrideLocalized>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
@@ -24,6 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../../editor/Stride.Core.Assets.Presentation/Stride.Core.Assets.Presentation.csproj" />
+    <!-- The routing of the asset compiler's crashes to the crash reporter, for the builds of both editors (Components/Build) -->
   </ItemGroup>
 
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />

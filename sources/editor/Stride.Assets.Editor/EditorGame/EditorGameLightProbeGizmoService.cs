@@ -1,14 +1,12 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Services;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 using Stride.Assets.Editor.Gizmos;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
-using Stride.Assets.Presentation.SceneEditor;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Editor.EditorGame.Game;
-using Stride.Editor.EditorGame.ViewModels;
 using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering;
@@ -16,25 +14,25 @@ using Stride.Rendering.Compositing;
 using Stride.Rendering.LightProbes;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
+using Stride.Assets.Editor.SceneEditor;
 using Buffer = Stride.Graphics.Buffer;
 
 namespace Stride.Assets.Editor.EditorGame;
 
 /// <summary>
 /// Draws the light probe gizmos (<see cref="LightProbeGizmo"/>), and the volumes between the light probes of the scene as
-/// a yellow wireframe ("Light probe volumes" in the gizmo options).
+/// a yellow wireframe ("Light probe volumes" in the gizmo options); computes the coefficients of the light probes for the
+/// lighting toolbar of the WPF scene editor.
 /// </summary>
-/// <remarks>
-/// The agnostic copy of the WPF <c>EditorGameLightProbeGizmoService</c>, without the light probe computation of the WPF
-/// lighting toolbar (<c>IEditorGameLightProbeService</c>), which the Avalonia scene editor does not have yet.
-/// </remarks>
 [EditorGameService(typeof(EntityHierarchyEditorController), Order = 150)]
-public sealed class EditorGameLightProbeGizmoService : EditorGameServiceBase, IEditorGameViewModelService
+public sealed class EditorGameLightProbeGizmoService : EditorGameServiceBase, IEditorGameLightProbeService
 {
     // Wireframe lightprobes mesh
     public const RenderGroupMask LightProbeWireGroupMask = RenderGroupMask.Group29;
     public const RenderGroup LightProbeWireGroup = RenderGroup.Group29;
 
+    private readonly IEditorGameController controller;
     private readonly List<IReferencable> wireframeResources = [];
     private EntityHierarchyEditorGame? game;
     // Root debug entity, which will have child entities attached to it for every debug element
@@ -44,12 +42,20 @@ public sealed class EditorGameLightProbeGizmoService : EditorGameServiceBase, IE
     private bool isWireframeVisible = true;
     private LightProbeRuntimeData? currentLightProbeRuntimeData;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EditorGameLightProbeGizmoService"/> class.
+    /// </summary>
+    /// <param name="controller">The controller of the editor game, which runs the computation of the light probes on the game thread.</param>
+    public EditorGameLightProbeGizmoService(IEditorGameController controller)
+    {
+        ArgumentNullException.ThrowIfNull(controller);
+        this.controller = controller;
+    }
+
     /// <inheritdoc/>
     public override IEnumerable<Type> Dependencies { get { yield return typeof(IEditorGameComponentGizmoService); } }
 
-    /// <summary>
-    /// Gets or sets whether the volumes between the light probes show.
-    /// </summary>
+    /// <inheritdoc/>
     public bool IsLightProbeVolumesVisible
     {
         get => isWireframeVisible;
@@ -65,6 +71,44 @@ public sealed class EditorGameLightProbeGizmoService : EditorGameServiceBase, IE
     }
 
     private EntityHierarchyEditorGame Game => game ?? throw new InvalidOperationException("The service is not initialized.");
+
+    /// <inheritdoc/>
+    public Task UpdateLightProbeCoefficients()
+    {
+        return controller.InvokeAsync(() =>
+        {
+            game?.SceneSystem.SceneInstance?.GetProcessor<LightProbeProcessor>()?.UpdateLightProbeCoefficients();
+        });
+    }
+
+    /// <inheritdoc/>
+    public Task<Dictionary<Guid, List<Color3>>> RequestLightProbesStep()
+    {
+        return controller.InvokeAsync(() =>
+        {
+            // Note: only the first light probe processor is computed
+            var runtimeData = game?.SceneSystem.SceneInstance?.GetProcessor<LightProbeProcessor>()?.VisibilityGroup.Tags.Get(LightProbeRenderer.CurrentLightProbes);
+            if (game is null || runtimeData is null)
+                return new Dictionary<Guid, List<Color3>>();
+
+            var editorCompositor = game.EditorSceneSystem.GraphicsCompositor.Game;
+            try
+            {
+                // The gizmos don't light the probes
+                game.EditorSceneSystem.GraphicsCompositor.Game = null;
+
+                // Render the coefficients of the light probes
+                var lightProbes = LightProbeGenerator.GenerateCoefficients(game);
+
+                // TODO: Use LightProbe Id instead of entity id once copy/paste and duplicate properly remap them
+                return lightProbes.ToDictionary(x => x.Key.Entity.Id, x => x.Value);
+            }
+            finally
+            {
+                game.EditorSceneSystem.GraphicsCompositor.Game = editorCompositor;
+            }
+        });
+    }
 
     /// <inheritdoc/>
     protected override Task<bool> Initialize(EditorServiceGame editorGame)
@@ -356,9 +400,6 @@ public sealed class EditorGameLightProbeGizmoService : EditorGameServiceBase, IE
 /// <summary>
 /// Draws the lines of a render stage with anti-aliasing and blending, without writing the depth.
 /// </summary>
-/// <remarks>
-/// The agnostic copy of the WPF <c>AntiAliasLinePipelineProcessor</c>.
-/// </remarks>
 internal sealed class AntiAliasLinePipelineProcessor : PipelineProcessor
 {
     public RenderStage? RenderStage { get; set; }

@@ -8,6 +8,7 @@ using Avalonia.Input;
 using Avalonia.VisualTree;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Presentation.Avalonia.Commands;
 using Stride.Core.Presentation.Avalonia.Controls;
 using Stride.Core.Presentation.Quantum.ViewModels;
@@ -53,7 +54,7 @@ public partial class PropertyGridView : UserControl
         if (e.Key != Key.Enter || sender is not TextBox textBox)
             return;
 
-        if (DataContext is SessionObjectPropertiesViewModel { Session.AssetTags.AddTagCommand: { } addTag } && addTag.CanExecute(textBox.Text))
+        if (DataContext is SessionObjectPropertiesViewModel { Session: SessionViewModel { AssetTags.AddTagCommand: { } addTag } } && addTag.CanExecute(textBox.Text))
         {
             addTag.Execute(textBox.Text);
         }

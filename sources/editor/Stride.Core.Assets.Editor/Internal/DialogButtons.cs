@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 
 using Stride.Core.Presentation.Windows;
 
@@ -8,7 +9,7 @@ namespace Stride.Core.Assets.Editor.Internal;
 /// <summary>
 /// Builds the buttons of a message box from their captions, as the WPF <c>DialogHelper.CreateButtons</c> does.
 /// </summary>
-internal static class DialogButtons
+public static class DialogButtons
 {
     /// <summary>
     /// Creates one button per caption. The result of a button is its 1-based index.

@@ -98,7 +98,7 @@ public class PluginTemplateTests
         Assert.NotEmpty(Directory.GetFiles(Path.Combine(solutionDir, "Bin"), pluginName + ".dll", SearchOption.AllDirectories));
 
         // The reloaded solution in Game Studio: the runtime declares both companions, found as solution projects. The Editor
-        // project is toolkit-neutral (net10.0, Stride.Assets.Presentation.Common), so it builds with the game on every platform.
+        // project is toolkit-neutral (net10.0, Stride.Assets.Editor), so it builds with the game on every platform.
         var reloaded = new PackageSessionResult();
         loadParameters.LoadEditorPackages = true;
         loadParameters.EditorToolkit = "Wpf";

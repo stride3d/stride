@@ -55,8 +55,6 @@ internal static class NuGetConsumerFeed
                   <package pattern="Stride.GNU.*" />
                   <package pattern="Stride.Mono.*" />
                   <package pattern="Stride.Dependencies.*" />
-                  <package pattern="Stride.GraphX.*" />
-                  <package pattern="Stride.QuickGraph" />
                 </packageSource>
                 <packageSource key="stride-local">
                   <package pattern="Stride" />
@@ -74,7 +72,10 @@ internal sealed record ExecResult(int ExitCode, string Output);
 
 internal static class Dotnet
 {
-    /// <summary>Run a <c>dotnet</c> command, streaming output to the test log; returns exit code + captured output.</summary>
+    /// <summary>
+    /// Run a <c>dotnet</c> command in a case's temp tree, streaming output to the test log; returns exit code + captured output.
+    /// The asset compilers it starts hash files into the case's own file version cache, not the machine's.
+    /// </summary>
     public static ExecResult Exec(IEnumerable<string> args, string workingDir, ITestOutputHelper output, int timeoutMin)
     {
         var psi = new ProcessStartInfo("dotnet")
@@ -84,6 +85,7 @@ internal static class Dotnet
             RedirectStandardOutput = true,
             WorkingDirectory = workingDir,
         };
+        psi.Environment["STRIDE_FILE_VERSION_CACHE"] = Path.Combine(TestEnvironment.CaseDirectory(workingDir), "FileVersionTracker.cache");
         foreach (var arg in args)
             psi.ArgumentList.Add(arg);
 

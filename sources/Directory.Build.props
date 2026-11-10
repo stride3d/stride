@@ -16,5 +16,8 @@
          that, and nothing needs it: Sentry is only used at send time. This property is the only switch;
          ExcludeAssets="analyzers" on the reference doesn't keep the SDK from loading the generator. -->
     <SentryDisableSourceGenerator>true</SentryDisableSourceGenerator>
+    <!-- CS1591: Missing XML comment for publicly visible type or member
+         VSTHRD200: Use "Async" suffix for async methods -->
+    <NoWarn>$(NoWarn);CS1591;VSTHRD200</NoWarn>
   </PropertyGroup>
 </Project>

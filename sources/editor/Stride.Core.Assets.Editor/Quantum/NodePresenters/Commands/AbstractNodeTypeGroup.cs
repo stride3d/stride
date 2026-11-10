@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 
 using Stride.Core.Extensions;
 
@@ -18,6 +19,11 @@ public sealed class AbstractNodeTypeGroup : AbstractNodeEntry
     /// <exception cref="ArgumentNullException">If groupName or types is null or empty.</exception>
     public AbstractNodeTypeGroup(string groupName, IEnumerable<AbstractNodeType> types)
     {
+        if (string.IsNullOrEmpty(groupName))
+        {
+            throw new ArgumentNullException(nameof(groupName));
+        }
+
         if (types.IsNullOrEmpty())
         {
             throw new ArgumentNullException(nameof(types));

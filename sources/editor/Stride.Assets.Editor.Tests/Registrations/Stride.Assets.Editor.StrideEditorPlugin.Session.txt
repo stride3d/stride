@@ -1,25 +1,26 @@
 Plugin: Stride.Assets.Editor.StrideEditorPlugin
 Services:
   Stride.Editor.Build.GameSettingsProviderService
+  Stride.Assets.Editor.ViewModels.EditorViewToolbarFactory
   Stride.Editor.Build.GameStudioBuilderService
   Stride.Editor.Build.GameStudioDatabase
 NodePresenterCommands:
   Stride.Assets.Editor.Quantum.NodePresenters.Commands.FetchEntityCommand
   Stride.Assets.Editor.Quantum.NodePresenters.Commands.SetEntityReferenceCommand
   Stride.Assets.Editor.Quantum.NodePresenters.Commands.SetComponentReferenceCommand
-  Stride.Assets.Presentation.NodePresenters.Commands.SetSymbolReferenceCommand
-  Stride.Assets.Presentation.NodePresenters.Commands.SkeletonNodePreserveAllCommand
+  Stride.Assets.Editor.Quantum.NodePresenters.Commands.SetSymbolReferenceCommand
+  Stride.Assets.Editor.Quantum.NodePresenters.Commands.SkeletonNodePreserveAllCommand
 NodePresenterUpdaters:
   Stride.Assets.Editor.Quantum.NodePresenters.Updaters.AnimationAssetNodeUpdater
   Stride.Assets.Editor.Quantum.NodePresenters.Updaters.CameraSlotNodeUpdater
   Stride.Assets.Editor.Quantum.NodePresenters.Updaters.EntityHierarchyAssetNodeUpdater
   Stride.Assets.Editor.Quantum.NodePresenters.Updaters.GameSettingsAssetNodeUpdater
   Stride.Assets.Editor.Quantum.NodePresenters.Updaters.GraphicsCompositorAssetNodeUpdater
-  Stride.Assets.Presentation.NodePresenters.Updaters.FXAAEffectNodeUpdater
+  Stride.Assets.Editor.Quantum.NodePresenters.Updaters.FXAAEffectNodeUpdater
   Stride.Assets.Editor.Quantum.NodePresenters.Updaters.MaterialAssetNodeUpdater
   Stride.Assets.Editor.Quantum.NodePresenters.Updaters.ModelAssetNodeUpdater
   Stride.Assets.Editor.Quantum.NodePresenters.Updaters.ModelComponentNodeUpdater
-  Stride.Assets.Presentation.NodePresenters.Updaters.ModelNodeLinkNodeUpdater
+  Stride.Assets.Editor.Quantum.NodePresenters.Updaters.ModelNodeLinkNodeUpdater
   Stride.Assets.Editor.Quantum.NodePresenters.Updaters.SkeletonAssetNodeUpdater
   Stride.Assets.Editor.Quantum.NodePresenters.Updaters.SpriteSheetAssetNodeUpdater
   Stride.Assets.Editor.Quantum.NodePresenters.Updaters.TextureAssetNodeUpdater

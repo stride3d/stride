@@ -1,14 +1,18 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable enable
 
+using System.Collections.Generic;
+using System.Linq;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Assets.Rendering;
 using Stride.Core;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters;
-using Stride.Core.Assets.Editor.Quantum.NodePresenters;
+using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
 using Stride.Core.Extensions;
+using Stride.Core.Reflection;
 using Stride.Rendering.Compositing;
 using Stride.Rendering;
 
@@ -76,5 +80,5 @@ internal sealed class GraphicsCompositorAssetNodeUpdater : AssetNodePresenterUpd
         }
         base.FinalizeTree(root);
     }
-    private static string GetSharedRendererDisplayName(ISharedRenderer sharedRenderer) => $"Shared: {DisplayAttribute.GetDisplayName(sharedRenderer.GetType())}";
+    private static string GetSharedRendererDisplayName(ISharedRenderer sharedRenderer) => $"Shared: {TypeDescriptorFactory.Default.AttributeRegistry.GetDisplayName(sharedRenderer.GetType())}";
 }

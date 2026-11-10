@@ -6,7 +6,7 @@
                     xmlns:preview="using:Stride.Assets.Editor.Preview"
                     xmlns:caec="using:Stride.Core.Assets.Editor.Avalonia.Converters"
                     xmlns:graphics="using:Stride.Graphics">
-  <!-- The control themes of the preview views of this assembly, ported from the WPF ones (Stride.Assets.Presentation.Wpf,
+  <!-- The control themes of the preview views of this assembly, ported from the WPF ones (Stride.Assets.Editor.Wpf,
        Themes/Generic.xaml); StrideEditorViewPlugin merges this dictionary into the application. Each view keeps the game
        view of the preview in its PART_StrideView presenter and adds the controls of its view model around it. -->
   <ResourceDictionary.MergedDictionaries>

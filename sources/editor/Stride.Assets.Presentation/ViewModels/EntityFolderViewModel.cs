@@ -1,7 +1,11 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable enable
 
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Stride.Assets.Entities;
 using Stride.Core;
 using Stride.Core.Extensions;
@@ -25,7 +29,7 @@ public sealed class EntityFolderViewModel : EntityHierarchyItemViewModel
     /// <summary>
     /// Folder paths and names ignore the case.
     /// </summary>
-    internal const StringComparison FolderCase = StringComparison.OrdinalIgnoreCase;
+    public const StringComparison FolderCase = StringComparison.OrdinalIgnoreCase;
 
     private string name;
 

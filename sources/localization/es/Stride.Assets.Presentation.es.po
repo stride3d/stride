@@ -1,0 +1,44 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2026-11-07 10:57:06+0000\n"
+"PO-Revision-Date: 2019-08-16 12:24+0000\n"
+"Last-Translator: meriaizen86 <shinkitsunemaru@gmail.com>\n"
+"Language-Team: Spanish <https://hosted.weblate.org/projects/stride/"
+"assetspresentation/es/>\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 3.8\n"
+
+#: ../editor/Stride.Assets.Presentation/ViewModels/EntityFolderViewModel.cs:161
+msgctxt "Message"
+msgid ""
+"Unable to rename the folder '{0}' to '{1}'. A folder with the same name "
+"already exists."
+msgstr ""
+"No se ha podido renombrar el directorio '{0}' a '{1}'. Ya existe un "
+"directorio con el mismo nombre."
+
+#: ../editor/Stride.Assets.Presentation/ViewModels/SpriteFontViewModel.cs:53
+msgctxt "Message"
+msgid ""
+"**Only static fonts can be precompiled.**\r\n"
+"\r\n"
+"Clear the _Is Dynamic_ property on this font and try again."
+msgstr ""
+"**Sólo se pueden precompilar fuentes estáticas.**\n"
+"\n"
+"Borre la propiedad _Is Dynamic_ de esta fuente e inténtelo de nuevo."
+
+#: ../editor/Stride.Assets.Presentation/ViewModels/SpriteFontViewModel.cs:73
+msgctxt "Button"
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: ../editor/Stride.Assets.Presentation/ViewModels/SpriteFontViewModel.cs:75
+msgctxt "Message"
+msgid "Which color space do you want to use?"
+msgstr "¿Qué espacio de color desea utilizar?"

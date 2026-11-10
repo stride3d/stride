@@ -1,7 +1,13 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable enable
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Stride.Assets.Editor.ViewModels.SpriteEditor;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Assets.Sprite;
@@ -9,8 +15,6 @@ using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.View.Behaviors;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
@@ -20,6 +24,7 @@ using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Quantum;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Editor.ViewModels;
 
@@ -88,11 +93,6 @@ public sealed class SpriteSheetEditorViewModel : AssetEditorViewModel<SpriteShee
     /// Raised when <see cref="Initialize"/> created the <see cref="Cache"/> of the images.
     /// </summary>
     internal event EventHandler<EventArgs>? Initialized;
-
-    /// <summary>
-    /// Gets the undo/redo service of the session.
-    /// </summary>
-    public IUndoRedoService UndoRedoService => ServiceProvider.Get<IUndoRedoService>();
 
     /// <summary>
     /// Gets or sets the type of the sprite sheet: 2D sprites have a center, UI sprites have borders.
@@ -229,9 +229,9 @@ public sealed class SpriteSheetEditorViewModel : AssetEditorViewModel<SpriteShee
     public ICommandBase CopyImageCommand { get; }
 
     /// <summary>
-    /// Gets the command that adds the sprites of the clipboard at the end and selects them, as one undoable operation. The
-    /// clipboard can only be read asynchronously: the command checks its content when it runs, and does nothing when it
-    /// holds no sprite.
+    /// Gets the command that adds the sprites of the clipboard at the end and selects them, as one undoable operation. It is
+    /// disabled when a clipboard that answers at once holds no sprite; a clipboard that answers later is checked when the
+    /// command runs, which then does nothing when it holds no sprite.
     /// </summary>
     public ICommandBase PasteImageCommand { get; }
 
@@ -393,7 +393,14 @@ public sealed class SpriteSheetEditorViewModel : AssetEditorViewModel<SpriteShee
 
     private bool CanPasteImages()
     {
-        return ServiceProvider.TryGet<ICopyPasteService>() is not null && ServiceProvider.TryGet<IClipboardService>() is not null;
+        if (ServiceProvider.TryGet<ICopyPasteService>() is not { } copyPasteService || ServiceProvider.TryGet<IClipboardService>() is not { } clipboard)
+            return false;
+
+        // As in the WPF editor, the command is disabled when the clipboard holds no sprite. Some clipboards answer through the
+        // UI thread's event loop (X11, when another program owns the clipboard): waiting for them here, on the UI thread, would
+        // never end. The content is checked only when the clipboard answers at once (always in WPF); otherwise the paste checks it.
+        var text = clipboard.GetTextAsync();
+        return !text.IsCompleted || (text.IsCompletedSuccessfully && copyPasteService.CanPaste(text.Result, typeof(List<SpriteInfo>), typeof(List<SpriteInfo>), typeof(List<SpriteInfo>)));
     }
 
     private async Task PasteImages()
@@ -546,9 +553,7 @@ public sealed class SpriteSheetEditorViewModel : AssetEditorViewModel<SpriteShee
     private void DisplaySpriteSheetProperties()
     {
         SelectedSprites.Clear();
-        EditorProperties.TypeDescription = Asset.TypeDisplayName;
-        EditorProperties.Name = Asset.Name;
-        EditorProperties.GenerateSelectionPropertiesAsync(Asset.Yield()).Forget();
+        ShowAssetProperties();
     }
 
     private void AddNewImage()
@@ -704,7 +709,7 @@ public sealed class SpriteSheetEditorViewModel : AssetEditorViewModel<SpriteShee
     {
         if (children.Any(x => x is not UFile))
         {
-            message = DragDropBehavior.InvalidDropAreaMessage;
+            message = DragDropMessages.InvalidDropArea;
             return false;
         }
         message = "Add images using the selected files";

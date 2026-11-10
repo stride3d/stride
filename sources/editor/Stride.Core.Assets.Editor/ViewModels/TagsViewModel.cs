@@ -1,14 +1,15 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 
 using System.Collections.Specialized;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Core;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModels;
 
@@ -24,16 +25,17 @@ public sealed class TagsViewModel : DispatcherViewModel
 
     private readonly AutoUpdatingSortedObservableCollection<TagViewModel> tags = new(new AnonymousComparer<TagViewModel>((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal)));
     private readonly HashSet<AssetViewModel> monitoredAssets = [];
-    private readonly AssetCollectionViewModel assetCollection;
+    private readonly IAssetCollectionViewModel assetCollection;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TagsViewModel"/> class.
     /// </summary>
-    /// <param name="assetCollection">The <see cref="AssetCollectionViewModel"/> that will be used to track the list of selected assets.</param>
-    public TagsViewModel(AssetCollectionViewModel assetCollection)
-        : base(assetCollection.ServiceProvider)
+    /// <param name="serviceProvider">The service provider of the session.</param>
+    /// <param name="assetCollection">The asset view that will be used to track the list of selected assets.</param>
+    public TagsViewModel(IViewModelServiceProvider serviceProvider, IAssetCollectionViewModel assetCollection)
+        : base(serviceProvider)
     {
-        this.assetCollection = assetCollection;
+        this.assetCollection = assetCollection.SafeArgument();
         assetCollection.SelectedAssets.CollectionChanged += SelectedAssetsChanged;
         AddTagCommand = new AnonymousCommand<string?>(ServiceProvider, AddTag);
     }
@@ -51,7 +53,7 @@ public sealed class TagsViewModel : DispatcherViewModel
     /// <summary>
     /// Gets the action service to use for transactions.
     /// </summary>
-    public IUndoRedoService UndoRedoService => assetCollection.Session.UndoRedoService;
+    public IUndoRedoService UndoRedoService => ServiceProvider.Get<IUndoRedoService>();
 
     /// <summary>
     /// Gets a command that will add the string given as parameter as a tag for all currently selected assets.
@@ -180,7 +182,7 @@ public sealed class TagViewModel : DispatcherViewModel
     /// <summary>
     /// Gets the list of assets that contain this tag.
     /// </summary>
-    /// <remarks>The <see cref="ObservableList{AssetViewModel}.Clear"/> method is not supported and will throw an exception.</remarks>
+    /// <remarks>Clearing this collection is not supported and will throw an exception.</remarks>
     public ObservableList<AssetViewModel> Assets { get; } = [];
 
     /// <summary>

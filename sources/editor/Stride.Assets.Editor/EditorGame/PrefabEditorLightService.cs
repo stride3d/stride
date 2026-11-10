@@ -1,11 +1,14 @@
-// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable enable
 
-using Stride.Assets.Presentation.AssetEditors.Gizmos;
+using System;
+using System.Threading.Tasks;
 using Stride.Core.Mathematics;
 using Stride.Editor.EditorGame.Game;
 using Stride.Engine;
 using Stride.Rendering.Lights;
+using Stride.Assets.Editor.AssetEditors.Gizmos;
 
 namespace Stride.Assets.Editor.EditorGame;
 

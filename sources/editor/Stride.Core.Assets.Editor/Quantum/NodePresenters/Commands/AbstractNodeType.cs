@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
 
 using Stride.Core.Annotations;
 using Stride.Core.Extensions;
@@ -23,7 +24,7 @@ public sealed class AbstractNodeType : AbstractNodeEntry
     public override int Order => 0;
 
     /// <inheritdoc/>
-    public override string DisplayValue => DisplayAttribute.GetDisplayName(Type);
+    public override string DisplayValue => TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<DisplayAttribute>(Type)?.Name ?? Type.Name;
 
     /// <inheritdoc/>
     public override object? GenerateValue(object currentValue)

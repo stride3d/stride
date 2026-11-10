@@ -240,10 +240,13 @@ public sealed class PreviewControlsTests
         Assert.NotNull(Part<Slider>(view, "PART_FrameSlider"));
     }
 
-    [AvaloniaFact]
-    public async Task TheSpriteFontViewSendsItsTextAfterADelay()
+    [AvaloniaTheory]
+    // Both font previews share the font view: the precompiled one needs a font view model too
+    [InlineData(typeof(SpriteFontPreviewViewModel))]
+    [InlineData(typeof(PrecompiledSpriteFontPreviewViewModel))]
+    public async Task TheSpriteFontViewSendsItsTextAfterADelay(Type viewModelType)
     {
-        var viewModel = new SpriteFontPreviewViewModel(PreviewSession.Create());
+        var viewModel = (SpriteFontPreviewViewModel)Activator.CreateInstance(viewModelType, PreviewSession.Create())!;
         var view = Show<SpriteFontPreviewView>(viewModel);
         var text = Part<TextBox>(view, "PART_PreviewText");
 

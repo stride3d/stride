@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Animations;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories;
+using Stride.Assets.Editor.EntityFactories;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Engine;
 using Stride.Particles.Components;

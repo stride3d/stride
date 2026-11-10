@@ -1,14 +1,16 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable enable
 
+using System;
 using Stride.Core.Assets.Templates;
 
 namespace Stride.Assets.Editor.Templates;
 
 /// <summary>
-/// Registers the asset template generators of the editor with the <see cref="TemplateManager"/>, in the order of the WPF
-/// <c>StrideTemplates</c>: the generic factory and import generators first, then the specific ones, which win (the manager
-/// searches the most recent generator first).
+/// Registers the asset template generators with the <see cref="TemplateManager"/>, for both editors, each with its own dialogs: the
+/// generic factory and import generators first, then the specific ones, which win (the manager searches the most recent generator
+/// first).
 /// </summary>
 public static class StrideAssetTemplates
 {

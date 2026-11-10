@@ -1,11 +1,11 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Assets.Presentation.ViewModel.Preview;
+using Stride.Assets.Editor.ViewModels.Preview;
 using Stride.Core.Presentation.Commands;
 using Stride.Editor.Annotations;
 using Stride.Editor.Preview;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Audio.Editor
 {

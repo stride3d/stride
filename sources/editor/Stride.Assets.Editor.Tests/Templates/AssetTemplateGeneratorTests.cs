@@ -15,18 +15,19 @@ using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Tests.Helpers;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Templates;
+using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Serialization;
 using Stride.Graphics;
 using Stride.Rendering.ProceduralModels;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Editor.Tests.Templates;
 
 /// <summary>
-/// The asset template generators of the editor (the agnostic copies of the WPF ones), run through the asset view of a session
+/// The asset template generators (shared by both editors), run through the asset view of a session
 /// over template descriptions written like the ones of the Stride package.
 /// </summary>
 public sealed class AssetTemplateGeneratorTests
@@ -239,16 +240,19 @@ public sealed class AssetTemplateGeneratorTests
     public void EveryAssetTemplateOfTheStridePackageHasAGenerator()
     {
         _ = LazyTemplates.Value;
-        try
-        {
-            StrideDefaultTemplates.LoadAssetTemplates(loadAssemblyReferences: false);
-        }
-        catch (InvalidOperationException e)
-        {
-            throw new SkipException($"The {StrideDefaultTemplates.AssetTemplatesPackageName} package is not in the package store on this machine: {e.Message}");
-        }
+        // The package is read here, not registered with the TemplateManager (StrideDefaultTemplates.LoadAssetTemplates): the
+        // manager has no unregistration, and the package's templates would stay listed for every later test of the process. Its
+        // skeleton template then doubled the one ModelViewModelTests adds to its session.
+        // A machine without the package in its package store (CI) reads the repository's package file
+        var packageFile = PackageStore.Instance.GetPackageFileName(StrideDefaultTemplates.AssetTemplatesPackageName, new PackageVersionRange(new PackageVersion(StrideVersion.NuGetVersion)))?.ToOSPath()
+            ?? FindRepositoryTemplatesPackage();
+        Skip.If(packageFile is null, $"The {StrideDefaultTemplates.AssetTemplatesPackageName} package is neither in the package store nor in a repository above this test.");
+        var logger = new LoggerResult();
+        var package = Package.Load(logger, packageFile!, new PackageLoadParameters { LoadAssemblyReferences = false, AutoLoadTemporaryAssets = false });
+        Assert.False(logger.HasErrors, logger.ToText());
 
-        var templates = TemplateManager.FindTemplates(TemplateScope.Asset)
+        var templates = package.Templates
+            .Where(x => x.Scope == TemplateScope.Asset)
             .OfType<TemplateAssetDescription>()
             .Where(x => x.FullPath.FullPath.Contains("/Templates/Assets/", StringComparison.OrdinalIgnoreCase))
             .ToList();
@@ -260,12 +264,26 @@ public sealed class AssetTemplateGeneratorTests
         Assert.Empty(withoutGenerator);
     }
 
+    private static string? FindRepositoryTemplatesPackage()
+    {
+        var relativePath = Path.Combine("sources", "editor", StrideDefaultTemplates.AssetTemplatesPackageName, $"{StrideDefaultTemplates.AssetTemplatesPackageName}.sdpkg");
+        for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
+        {
+            var packageFile = Path.Combine(directory.FullName, relativePath);
+            if (File.Exists(packageFile))
+                return packageFile;
+        }
+        return null;
+    }
+
     private static async Task<AssetsSessionFixture> OpenAsync(params (string Location, Asset Asset)[] assets)
     {
         _ = LazyTemplates.Value;
         var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, assets);
         Assert.False(fixture.Result.HasErrors, fixture.Log);
-        fixture.Session.AssetCollection.SelectedLocations.Add(fixture.Package);
+        // The selection and the template runs go through the dispatcher, as on the UI thread: the views that follow the selection
+        // refresh in the change, and must not race the refresh the session dispatches after an edit
+        fixture.Session.Dispatcher.Invoke(() => fixture.Session.AssetCollection.SelectedLocations.Add(fixture.Package));
         return fixture;
     }
 
@@ -273,7 +291,7 @@ public sealed class AssetTemplateGeneratorTests
     {
         var template = new TemplateDescriptionViewModel(fixture.ServiceProvider, LazyTemplates.Value.Templates.Single(x => x.Id == templateId));
         var transactions = fixture.Session.ActionHistory.Transactions.Count;
-        var assets = await fixture.Session.AssetCollection.RunAssetTemplateAsync(template, files);
+        var assets = await fixture.Session.Dispatcher.InvokeTask(() => fixture.Session.AssetCollection.RunAssetTemplateAsync(template, files));
         // The action history records the creation once the asset notifications are done, on another thread: wait for it, so that
         // the test does not change the selection (nor close the session) in the middle of them
         if (assets.Count > 0)

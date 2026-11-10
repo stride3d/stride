@@ -6,6 +6,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Xaml.Interactivity;
 using Stride.Assets.Editor.ViewModels.SpriteEditor;
+using Stride.Assets.Editor.ViewModels;
 
 namespace Stride.Assets.Editor.Avalonia.Behaviors;
 

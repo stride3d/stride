@@ -3,10 +3,10 @@
 
 using Stride.Core.Assets.Editor.Editors;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Presentation.Views;
 using Stride.Editor;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Editor.Tests.Helpers;
 

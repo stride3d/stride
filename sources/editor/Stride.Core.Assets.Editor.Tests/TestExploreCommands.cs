@@ -4,9 +4,9 @@
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.Tests.Helpers;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.IO;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Tests;
 
@@ -25,7 +25,7 @@ public sealed class TestExploreCommands
         var wood = session.AllAssets.Single(x => x.Name == "Wood");
         var stone = session.AllAssets.Single(x => x.Name == "Stone");
 
-        fixture.Assets.SelectAssets([stone, wood]);
+        fixture.OnUiThread(() => fixture.Assets.SelectAssets([stone, wood]));
 
         Assert.True(session.ExploreCommand.IsEnabled);
         session.ExploreCommand.Execute(fixture.Assets.SelectedContent);
@@ -52,8 +52,8 @@ public sealed class TestExploreCommands
         using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var explorer = Register(fixture);
 
-        fixture.Assets.SelectedLocations.Clear();
-        fixture.Assets.SelectedLocations.Add(fixture.Package);
+        fixture.OnUiThread(() => fixture.Assets.SelectedLocations.Clear());
+        fixture.OnUiThread(() => fixture.Assets.SelectedLocations.Add(fixture.Package));
 
         // Without a parameter, the selected location
         Assert.True(fixture.Session.ExploreCommand.IsEnabled);
@@ -97,14 +97,14 @@ public sealed class TestExploreCommands
         var session = fixture.Session;
         var assets = session.AllAssets.ToList();
 
-        fixture.Assets.SelectAssets(assets);
+        fixture.OnUiThread(() => fixture.Assets.SelectAssets(assets));
 
         Assert.False(session.OpenAssetFileCommand.IsEnabled);
         Assert.False(session.OpenSourceFileCommand.IsEnabled);
         Assert.False(session.OpenWithTextEditorCommand.IsEnabled);
         Assert.True(session.ExploreCommand.IsEnabled);
 
-        fixture.Assets.SelectAssets([assets[0]]);
+        fixture.OnUiThread(() => fixture.Assets.SelectAssets([assets[0]]));
 
         Assert.True(session.OpenAssetFileCommand.IsEnabled);
         Assert.True(session.OpenSourceFileCommand.IsEnabled);

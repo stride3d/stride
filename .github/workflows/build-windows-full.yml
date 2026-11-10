@@ -43,3 +43,6 @@ jobs:
             -p:StrideGraphicsApiDependentBuildAll=true `
             -p:StrideSkipUnitTests=true `
             -p:StrideSkipAutoPack=true
+      # A game compiled against one graphics API's Stride.Graphics runs on the others: the build above has the three
+      - name: Check that the graphics APIs have the same Stride.Graphics API
+        run: ./build/check-graphics-api-compat.ps1 -Configuration ${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}

@@ -4,6 +4,7 @@
 using System.Runtime.CompilerServices;
 using Stride.Assets.Editor.Avalonia.Templates;
 using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Reflection;
 using Stride.Editor.Avalonia.Preview.Views;
 using Stride.Editor.Preview;
 
@@ -14,11 +15,19 @@ internal static class Module
     [Core.ModuleInitializer]
     public static void Initialize()
     {
-        // Register the toolkit-neutral editor layer before its views, so its plugin comes first
+        // Register the toolkit-neutral editor layer before its views
         RuntimeHelpers.RunModuleConstructor(typeof(Stride.Assets.Editor.Module).Module.ModuleHandle);
+        // The default plugins of this editor, in their order: the shared ones (the discovery skips them, so that another
+        // editor loading the shared assemblies does not get them), then the views
+        AssetsPlugin.RegisterPlugin(typeof(StrideDefaultAssetsPlugin));
+        AssetsPlugin.RegisterPlugin(typeof(StrideEditorPlugin));
         AssetsPlugin.RegisterPlugin(typeof(StrideEditorViewPlugin));
         AssetPreview.DefaultViewType = typeof(StridePreviewView);
         // The project template generators, with this toolkit's prompts
         StrideAvaloniaTemplates.Register();
+        // The editor game services of this editor (the position of the pointer over the view of the game) are discovered
+        // through the assets assemblies, as those of the WPF assets editor. After the plugins: the discovery of the plugins
+        // skips the ones registered above.
+        AssemblyRegistry.Register(typeof(Module).Assembly, AssemblyCommonCategories.Assets);
     }
 }

@@ -114,6 +114,8 @@ static class Run
 sealed class Triage(GitHub github, Config config)
 {
     const string NudgeMarker = "<!-- stride-triage:nudge -->";
+    const string ConflictMarker = "<!-- stride-triage:conflicts -->";
+    const string ConflictLabel = "has-conflicts";
     const string IssueMarker = "<!-- stride-triage:issue -->";
     const string DigestMarker = "<!-- stride-triage:digest -->";
 
@@ -270,6 +272,10 @@ sealed class Triage(GitHub github, Config config)
             Run.Log($"#{pr.Number}: GitHub has not computed the merge state yet, the next run will look again.");
             return;
         }
+        // Contributors cannot add labels: a reply of the author that says no-nudge adds the label for them
+        if (RepliedNoNudge(pr) && !pr.Labels.Contains("no-nudge"))
+            await AddLabels(pr.Number, ["no-nudge"], $"#{pr.Number}: @{pr.Author} replied no-nudge");
+        await ApplyConflicts(pr);
         var (label, why) = await Status(pr);
         var current = pr.Labels.Where(config.StatusLabels.ContainsKey).ToList();
         if (current.Count == (label == null ? 0 : 1) && (label == null || current.Contains(label)))
@@ -281,6 +287,49 @@ sealed class Triage(GitHub github, Config config)
         if (label != null && !current.Contains(label))
             await Write($"#{pr.Number}: `{label}` ({why})", () => github.AddLabels(pr.Number, [label]));
     }
+
+    // GitHub notifies nobody when changes merged in the base give a PR conflicts: the label shows them, and once they are a
+    // day old a comment tells the author. One comment while the label stays on (new conflicts on top of old ones get
+    // none), and at most one a week.
+    async Task ApplyConflicts(Pr pr)
+    {
+        var conflicting = pr.Mergeable == "CONFLICTING";
+        var labeled = pr.Labels.Contains(ConflictLabel);
+        if (conflicting && !labeled)
+            await AddLabels(pr.Number, [ConflictLabel], $"#{pr.Number}");
+        else if (!conflicting && labeled)
+            await Write($"#{pr.Number}: remove `{ConflictLabel}`", () => github.RemoveLabel(pr.Number, ConflictLabel));
+
+        var now = DateTimeOffset.UtcNow;
+        if (!conflicting || !labeled || !pr.LabelAdded.TryGetValue(ConflictLabel, out var labeledAt) || pr.IsDraft || pr.AuthorIsBot || NoAuthorNudge(pr))
+            return;
+        // A draft with conflicts gets its day after it is marked ready
+        var since = labeledAt > pr.ReadyAt ? labeledAt : pr.ReadyAt;
+        var nudges = pr.BotComments.Where(x => x.Body.Contains(ConflictMarker, StringComparison.Ordinal)).ToList();
+        if ((now - since).TotalHours < config.ConflictNudgeHours
+            || nudges.Any(x => x.At >= labeledAt || (now - x.At).TotalDays < config.ConflictNudgeMinDays))
+            return;
+
+        var body = $"@{pr.Author}, this PR has merge conflicts with `{pr.Base}`: changes merged there since your last update touch the same lines. GitHub does not send a notification for this, so here is one. Could you rebase it on `{pr.Base}`, or merge `{pr.Base}` into it? If a conflict is not clear, just ask here and a maintainer can help."
+            + $"\n\n{ConflictMarker}\n<sub>Posted by the triage workflow after a PR has had conflicts for {config.ConflictNudgeHours} hours, once until they are solved. {StopAuthorNudges(pr)}</sub>";
+        var hours = (int)(now - since).TotalHours;
+        if (config.NudgeConflicts)
+            await Write($"#{pr.Number}: conflicts nudge ({hours} hours)", () => github.Comment(pr.Number, body));
+        else
+            Run.Log($"#{pr.Number}: would nudge on conflicts ({hours} hours), off in config.json:\n> {body.Split('\n')[0]}");
+    }
+
+    bool RepliedNoNudge(Pr pr) => pr.Comments.Any(x => x.Author == pr.Author
+        && x.Body.Split('\n').Any(line => line.Trim().Trim('`').Equals("no-nudge", StringComparison.OrdinalIgnoreCase)));
+
+    // The nudges to the author: off with the label, a no-nudge reply, or for the authors who follow their PRs another way
+    bool NoAuthorNudge(Pr pr) => pr.Labels.Contains("no-nudge") || RepliedNoNudge(pr) || config.NoNudgeAuthors.Contains(pr.Author);
+
+    // Only maintainers can edit the config
+    string StopAuthorNudges(Pr pr) => "To stop these on this PR, reply `no-nudge`."
+        + (config.ReviewerAssociations.Contains(pr.AuthorAssociation)
+            ? $" Maintainer, and you follow your PRs another way? Add yourself to `noNudgeAuthors` in [config.json](https://github.com/{github.Repo}/blob/master/.github/triage/config.json) to stop them on all your PRs."
+            : "");
 
     // Who has the ball: the author after a maintainer reviewed later than the author's last push or reply, otherwise the reviewers
     async Task<(string? Label, string Why)> Status(Pr pr)
@@ -377,14 +426,14 @@ sealed class Triage(GitHub github, Config config)
                 enabled = config.NudgeReviewers;
                 body = $"{string.Join(" ", reviewers.Select(x => "@" + x))}, this PR has been waiting on your review for {quiet} days. Are you still planning to look at it? If not, no problem: feel free to unassign yourself or remove the review request, so someone else can pick it up.";
             }
-            else if (label == "waiting-on-author")
+            else if (label == "waiting-on-author" && !NoAuthorNudge(pr))
             {
                 enabled = config.NudgeAuthors;
                 body = $"@{pr.Author}, any plans to continue this PR? It has been quiet for {quiet} days. If you are busy, no problem: just let us know, a maintainer can take it over, or we can close it for now and reopen it later.";
             }
             if (body == null)
                 continue;
-            body += $"\n\n{NudgeMarker}\n<sub>Posted by the triage workflow, once per quiet period. Add the `no-nudge` label to stop it on this PR.</sub>";
+            body += $"\n\n{NudgeMarker}\n<sub>Posted by the triage workflow, once per quiet period. {(label == "waiting-on-author" ? StopAuthorNudges(pr) : "To stop these on this PR, add the `no-nudge` label.")}</sub>";
             if (enabled)
                 await Write($"#{pr.Number}: nudge ({quiet} days quiet)", () => github.Comment(pr.Number, body));
             else
@@ -830,11 +879,11 @@ static class Ai
 sealed class Config
 {
     public required string Model, Effort;
-    public required int MaxDiffChars, StaleDays, NoReviewerDays;
+    public required int MaxDiffChars, StaleDays, NoReviewerDays, ConflictNudgeHours, ConflictNudgeMinDays;
     public required double AreaShare;
-    public required bool NudgeReviewers, NudgeAuthors, Digest;
+    public required bool NudgeReviewers, NudgeAuthors, NudgeConflicts, Digest;
     public required string DigestMentionTeam;
-    public required HashSet<string> ReviewerAssociations, ReviewerBots, PrTypes, IssueTypes, Platforms, CompanionAreas, ClaudeOnlyAreas;
+    public required HashSet<string> ReviewerAssociations, ReviewerBots, NoNudgeAuthors, PrTypes, IssueTypes, Platforms, CompanionAreas, ClaudeOnlyAreas;
     public required Dictionary<string, LabelSpec> StatusLabels, OtherLabels;
     public required List<(Regex Pattern, string? Area)> Areas;
     // Areas no path shows (the plugin system is spread over several folders) are Claude's choice only
@@ -855,10 +904,14 @@ sealed class Config
             AreaShare = (double)json["areaShare"]!,
             NudgeReviewers = (bool)json["nudgeReviewers"]!,
             NudgeAuthors = (bool)json["nudgeAuthors"]!,
+            NudgeConflicts = (bool)json["nudgeConflicts"]!,
+            ConflictNudgeHours = (int)json["conflictNudgeHours"]!,
+            ConflictNudgeMinDays = (int)json["conflictNudgeMinDays"]!,
             Digest = (bool)json["digest"]!,
             DigestMentionTeam = (string)json["digestMentionTeam"]!,
             ReviewerAssociations = Set(json["reviewerAssociations"]),
             ReviewerBots = Set(json["reviewerBots"]),
+            NoNudgeAuthors = Set(json["noNudgeAuthors"]),
             PrTypes = Set(json["prTypes"]),
             IssueTypes = Set(json["issueTypes"]),
             Platforms = Set(json["platforms"]),
@@ -872,6 +925,7 @@ sealed class Config
 }
 
 record LabelSpec(string Color, string Description);
+// Commit: the commit the review was made on (GitHub.ReviewedCommit), null when not known
 record Review(string Author, string Association, string State, DateTimeOffset At, bool Bot, string? Commit);
 record LabelEvent(string Label, string By, DateTimeOffset At);
 record Comment(string Author, DateTimeOffset At, string Body);
@@ -880,10 +934,10 @@ record IssueInfo(int Number, string Title, string Body, string Author, bool Auth
 record SearchResult(int Number, string State, string Title, string Body);
 
 sealed record Pr(
-    int Number, string Title, string Body, string Author, string Head, bool IsDraft, string Mergeable, string? ReviewDecision,
-    string? Ci, bool CiNeedsApproval, List<string> Labels, List<string> Assignees, List<string> ReviewRequests, List<string> TeamReviewRequests,
-    List<Review> Reviews, List<Comment> Comments, List<Comment> BotComments, List<LabelEvent> LabelEvents, DateTimeOffset CreatedAt, DateTimeOffset ReadyAt,
-    DateTimeOffset LastPush, DateTimeOffset? LastForcePush)
+    int Number, string Title, string Body, string Author, bool AuthorIsBot, string AuthorAssociation, string Base, string Head, bool IsDraft, string Mergeable,
+    string? ReviewDecision, string? Ci, bool CiNeedsApproval, List<string> Labels, List<string> Assignees, List<string> ReviewRequests, List<string> TeamReviewRequests,
+    List<Review> Reviews, List<Comment> Comments, List<Comment> BotComments, List<LabelEvent> LabelEvents, Dictionary<string, DateTimeOffset> LabelAdded,
+    DateTimeOffset CreatedAt, DateTimeOffset ReadyAt, DateTimeOffset LastPush, DateTimeOffset? LastForcePush)
 {
     // Pushes, comments and review thread replies of the author (a reply in a review thread is a review on GitHub)
     public DateTimeOffset LastAuthorActivity => Max(LastPush, CreatedAt,
@@ -898,7 +952,7 @@ sealed record Pr(
 sealed class GitHub
 {
     const string PrFields = """
-        number title body headRefOid isDraft createdAt mergeable reviewDecision
+        number title body baseRefName headRefOid isDraft createdAt mergeable reviewDecision authorAssociation
         author { login __typename }
         labels(first: 50) { nodes { name } }
         assignees(first: 10) { nodes { login } }
@@ -908,8 +962,8 @@ sealed class GitHub
           nodes {
             __typename
             ... on IssueComment { createdAt body author { login __typename } }
-            ... on PullRequestReview { submittedAt state authorAssociation author { login __typename } commit { oid } }
-            ... on HeadRefForcePushedEvent { createdAt }
+            ... on PullRequestReview { submittedAt state authorAssociation author { login __typename } commit { oid committedDate } }
+            ... on HeadRefForcePushedEvent { createdAt beforeCommit { oid committedDate } afterCommit { oid } }
             ... on PullRequestCommit { commit { committedDate } }
             ... on ReadyForReviewEvent { createdAt }
           }
@@ -921,6 +975,8 @@ sealed class GitHub
 
     readonly string owner, name;
     readonly HttpClient http;
+
+    public string Repo => $"{owner}/{name}";
 
     public GitHub(string repo)
     {
@@ -965,6 +1021,21 @@ sealed class GitHub
         return result;
     }
 
+    record ForcePush(DateTimeOffset At, string? Before, DateTimeOffset? BeforeAt, string? After);
+
+    // The commit a review was made on. GitHub can move a review to a commit that a later force push made (#3757: an
+    // approval at 01:55 shown on the commit pushed at 01:58). Such a review covers the head before the first force push
+    // after it, if that head was already committed at review time; null when that is not known.
+    static string? ReviewedCommit(JsonNode review, List<ForcePush> forcePushes)
+    {
+        var at = Date(review["submittedAt"]);
+        var oid = (string?)review["commit"]?["oid"];
+        var pushed = forcePushes.Where(x => x.At >= at).ToList();
+        if (oid is null || pushed.Count == 0 || !(review["commit"]!["committedDate"] is { } committed && Date(committed) > at || pushed.Any(x => x.After == oid)))
+            return oid;
+        return pushed[0] is { Before: { } before, BeforeAt: { } beforeAt } && beforeAt <= at ? before : null;
+    }
+
     static Pr ParsePr(JsonNode node)
     {
         var author = (string?)node["author"]?["login"] ?? "ghost";
@@ -977,6 +1048,9 @@ sealed class GitHub
         var readyAt = createdAt;
         DateTimeOffset? lastForcePush = null;
         var lastPush = commit?["committedDate"] is { } committed ? Date(committed) : createdAt;
+        var forcePushes = items.Where(x => (string?)x["__typename"] == "HeadRefForcePushedEvent")
+            .Select(x => new ForcePush(Date(x["createdAt"]), (string?)x["beforeCommit"]?["oid"], x["beforeCommit"]?["committedDate"] is { } at ? Date(at) : null, (string?)x["afterCommit"]?["oid"]))
+            .OrderBy(x => x.At).ToList();
         foreach (var item in items)
         {
             switch ((string?)item["__typename"])
@@ -986,7 +1060,7 @@ sealed class GitHub
                     (IsBot(item["author"]) ? botComments : comments).Add(comment);
                     break;
                 case "PullRequestReview" when item["submittedAt"] is { } submitted:
-                    reviews.Add(new Review((string?)item["author"]?["login"] ?? "ghost", (string?)item["authorAssociation"] ?? "NONE", (string)item["state"]!, Date(submitted), IsBot(item["author"]), (string?)item["commit"]?["oid"]));
+                    reviews.Add(new Review((string?)item["author"]?["login"] ?? "ghost", (string?)item["authorAssociation"] ?? "NONE", (string)item["state"]!, Date(submitted), IsBot(item["author"]), ReviewedCommit(item, forcePushes)));
                     break;
                 case "HeadRefForcePushedEvent":
                     lastPush = Max(lastPush, Date(item["createdAt"]));
@@ -1000,16 +1074,20 @@ sealed class GitHub
                     break;
             }
         }
+        var labeled = node["labelEvents"]!["nodes"]!.AsArray().OfType<JsonNode>().Where(x => x["label"] != null).ToList();
         // Labels people set (the workflow's own changes are by a bot)
-        var labelEvents = node["labelEvents"]!["nodes"]!.AsArray().OfType<JsonNode>()
-            .Where(x => x["label"] != null && !IsBot(x["actor"]))
+        var labelEvents = labeled.Where(x => !IsBot(x["actor"]))
             .Select(x => new LabelEvent((string)x["label"]!["name"]!, (string?)x["actor"]?["login"] ?? "ghost", Date(x["createdAt"]))).ToList();
+        var labelAdded = labeled.GroupBy(x => (string)x["label"]!["name"]!).ToDictionary(x => x.Key, x => x.Max(y => Date(y["createdAt"])));
         var requested = node["reviewRequests"]!["nodes"]!.AsArray().Select(x => x!["requestedReviewer"]).OfType<JsonNode>().ToList();
         return new Pr(
             Number: (int)node["number"]!,
             Title: (string)node["title"]!,
             Body: (string?)node["body"] ?? "",
             Author: author,
+            AuthorIsBot: IsBot(node["author"]),
+            AuthorAssociation: (string?)node["authorAssociation"] ?? "NONE",
+            Base: (string)node["baseRefName"]!,
             Head: (string)node["headRefOid"]!,
             IsDraft: (bool)node["isDraft"]!,
             Mergeable: (string)node["mergeable"]!,
@@ -1021,7 +1099,7 @@ sealed class GitHub
             Assignees: [.. node["assignees"]!["nodes"]!.AsArray().Select(x => (string)x!["login"]!)],
             ReviewRequests: [.. requested.Where(x => (string?)x["__typename"] == "User").Select(x => (string)x["login"]!)],
             TeamReviewRequests: [.. requested.Where(x => (string?)x["__typename"] == "Team").Select(x => (string)x["slug"]!)],
-            Reviews: reviews, Comments: comments, BotComments: botComments, LabelEvents: labelEvents,
+            Reviews: reviews, Comments: comments, BotComments: botComments, LabelEvents: labelEvents, LabelAdded: labelAdded,
             CreatedAt: createdAt, ReadyAt: readyAt, LastPush: lastPush, LastForcePush: lastForcePush);
     }
 
@@ -1081,6 +1159,13 @@ sealed class GitHub
         foreach (var tip in (await StackHeads((string)pr["baseRefName"]!)).Except(tips))
         {
             if (await Contains(tip, oldBase))
+                return true;
+        }
+        // The PR below can be rebased and merged in the same push (#3757 on 11-10): GitHub then moves this PR to the next
+        // base and records no event. What was below is then a PR merged into the base branch.
+        foreach (var below in (await Rest(HttpMethod.Get, $"repos/{owner}/{name}/commits/{oldBase}/pulls"))!.AsArray())
+        {
+            if ((string?)below?["merge_commit_sha"] is { } merge && below["merged_at"] != null && await Contains((string)pr["baseRefOid"]!, merge))
                 return true;
         }
         return false;

@@ -139,6 +139,9 @@ namespace Stride.Assets.Models
         [DataMember(60), Display(Browsable = false)]
         public List<string> MorphTargetNames { get; } = new();
 
+        // A model without morph targets saves no list of their names
+        private bool ShouldSerializeMorphTargetNames() => MorphTargetNames.Count > 0;
+
         /// <inheritdoc/>
         [DataMemberIgnore]
         public override UFile MainSource => Source;

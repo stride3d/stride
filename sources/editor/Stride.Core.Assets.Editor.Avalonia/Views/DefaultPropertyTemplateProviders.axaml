@@ -4,7 +4,7 @@
                     xmlns:caec="using:Stride.Core.Assets.Editor.Avalonia.Converters"
                     xmlns:caeqnpc="using:Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands"
                     xmlns:caev="using:Stride.Core.Assets.Editor.Avalonia.Views"
-                    xmlns:caevm="using:Stride.Core.Assets.Editor.ViewModel"
+                    xmlns:caevm="using:Stride.Core.Assets.Presentation.ViewModels"
                     xmlns:capvm="using:Stride.Core.Assets.Presentation.ViewModels"
                     xmlns:cpqvm="using:Stride.Core.Presentation.Quantum.ViewModels"
                     xmlns:dd="using:Stride.Core.Assets.Editor.Avalonia.DragDrop"

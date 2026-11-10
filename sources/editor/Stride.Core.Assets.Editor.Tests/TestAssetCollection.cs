@@ -2,8 +2,9 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Assets.Editor.Tests.Helpers;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Assets.Presentation.Services;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Tests;
 
@@ -16,7 +17,7 @@ public sealed class TestAssetCollection
         var assets = fixture.Assets;
         var wood = fixture.Session.AllAssets.Single(x => x.Name == "Wood");
 
-        assets.SelectAssets([wood]);
+        fixture.OnUiThread(() => assets.SelectAssets([wood]));
 
         Assert.Equal([wood], assets.SelectedAssets);
         Assert.Same(wood, assets.SingleSelectedAsset);
@@ -24,7 +25,7 @@ public sealed class TestAssetCollection
         Assert.Equal([wood.Directory], assets.SelectedLocations);
         Assert.Same(fixture.Package, assets.SelectedAssetsPackage);
 
-        assets.ClearSelection();
+        fixture.OnUiThread(() => assets.ClearSelection());
 
         Assert.Empty(assets.SelectedAssets);
         Assert.Null(assets.SingleSelectedAsset);
@@ -37,14 +38,14 @@ public sealed class TestAssetCollection
         var assets = fixture.Assets;
 
         // The main view remembers the display mode across sessions: start from the default one
-        assets.DisplayAssetMode = DisplayAssetMode.AssetAndFolderInSelectedFolder;
-        assets.SelectedLocations.Add(fixture.Package);
+        fixture.OnUiThread(() => assets.DisplayAssetMode = DisplayAssetMode.AssetAndFolderInSelectedFolder);
+        fixture.OnUiThread(() => assets.SelectedLocations.Add(fixture.Package));
 
         // This mode lists the sub-folders and the assets of the selected location only
         Assert.Empty(assets.FilteredAssets);
         Assert.Equal(["Models", "Textures"], assets.FilteredContent.OfType<DirectoryBaseViewModel>().Select(x => x.Name).Order());
 
-        assets.DisplayAssetMode = DisplayAssetMode.AssetInSelectedFolderAndSubFolder;
+        fixture.OnUiThread(() => assets.DisplayAssetMode = DisplayAssetMode.AssetInSelectedFolderAndSubFolder);
 
         Assert.Equal(["Tree", "Wood"], assets.FilteredAssets.Select(x => x.Name).Order());
         Assert.Empty(assets.FilteredContent.OfType<DirectoryBaseViewModel>());
@@ -116,13 +117,43 @@ public sealed class TestAssetCollection
     }
 
     [Fact]
+    public async Task RenamingTheSingleSelectedAssetRefreshesThePreview()
+    {
+        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Textures/Stone", "stone"));
+        var preview = new PreviewRecorder();
+        fixture.ServiceProvider.RegisterService(preview);
+        var wood = fixture.Session.AllAssets.Single(x => x.Name == "Wood");
+        var stone = fixture.Session.AllAssets.Single(x => x.Name == "Stone");
+
+        // The test plays the UI thread: it selects and renames on the dispatcher, one at a time with the refresh of the references
+        // that the session dispatches from the thread pool after each rename
+        var dispatcher = fixture.Session.Dispatcher;
+        dispatcher.Invoke(() =>
+        {
+            fixture.Assets.SelectAssets([wood]);
+            wood.Name = "Oak";
+        });
+
+        Assert.Equal([wood], preview.Assets);
+
+        // With several assets selected, the preview shows none of them: nothing to refresh
+        dispatcher.Invoke(() =>
+        {
+            fixture.Assets.SelectAssets([wood, stone]);
+            wood.Name = "Pine";
+        });
+
+        Assert.Equal([wood], preview.Assets);
+    }
+
+    [Fact]
     public async Task DeletingAnAssetIsUndoable()
     {
         using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Textures/Stone", "stone"));
         var session = fixture.Session;
         var wood = session.AllAssets.Single(x => x.Name == "Wood");
         var directory = wood.Directory;
-        fixture.Assets.SelectedLocations.Add(directory);
+        fixture.OnUiThread(() => fixture.Assets.SelectedLocations.Add(directory));
         Assert.Equal(2, fixture.Assets.AssetCount);
 
         Assert.True(await fixture.Assets.DeleteContent([wood], skipConfirmation: true));
@@ -149,7 +180,7 @@ public sealed class TestAssetCollection
         var assets = fixture.Assets;
         var wood = session.AllAssets.Single();
 
-        assets.SelectAssets([wood]);
+        fixture.OnUiThread(() => assets.SelectAssets([wood]));
         Assert.True(assets.CopyContentCommand.IsEnabled);
         assets.CopyContentCommand.Execute();
         await session.UndoRedoService!.TransactionCompletion;
@@ -158,9 +189,9 @@ public sealed class TestAssetCollection
         Assert.Contains("TestEditorAsset", fixture.Clipboard.Text);
 
         var target = fixture.Package.GetOrCreateAssetDirectory("Copies", false);
-        assets.ClearSelection();
-        assets.SelectedLocations.Clear();
-        assets.SelectedLocations.Add(target);
+        fixture.OnUiThread(() => assets.ClearSelection());
+        fixture.OnUiThread(() => assets.SelectedLocations.Clear());
+        fixture.OnUiThread(() => assets.SelectedLocations.Add(target));
         assets.PasteCommand.Execute();
         await session.UndoRedoService.TransactionCompletion;
 
@@ -184,5 +215,12 @@ public sealed class TestAssetCollection
 
         Assert.Single(fixture.Dialogs.Messages);
         Assert.Single(fixture.Session.AllAssets);
+    }
+
+    private sealed class PreviewRecorder : IAssetPreviewUpdater
+    {
+        public List<AssetViewModel?> Assets { get; } = [];
+
+        public void SetAssetToPreview(AssetViewModel? asset) => Assets.Add(asset);
     }
 }

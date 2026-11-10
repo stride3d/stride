@@ -3,7 +3,6 @@
 
 using System.Runtime.InteropServices;
 using Stride.Assets.Editor.EditorGame;
-using Stride.Assets.Presentation.AssetEditors.Gizmos;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Gizmos;
@@ -14,6 +13,7 @@ using Stride.Rendering.LightProbes;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
 using Stride.Shaders;
+using Stride.Assets.Editor.AssetEditors.Gizmos;
 
 namespace Stride.Assets.Editor.Gizmos;
 
@@ -21,7 +21,7 @@ namespace Stride.Assets.Editor.Gizmos;
 /// Shows a light probe as a small sphere lit by its coefficients.
 /// </summary>
 /// <remarks>
-/// The agnostic copy of the WPF <c>LightProbeGizmo</c>. <see cref="EditorGameLightProbeGizmoService"/> draws it.
+/// <see cref="EditorGameLightProbeGizmoService"/> draws it.
 /// </remarks>
 [GizmoComponent(typeof(LightProbeComponent), true)]
 public sealed class LightProbeGizmo : EntityGizmo<LightProbeComponent>

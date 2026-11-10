@@ -95,6 +95,35 @@ public sealed class SpriteEditorTests
     }
 
     [AvaloniaFact]
+    public async Task ThePropertyGridHeaderDescribesTheSelectedSpriteThenTheSelectedAsset()
+    {
+        var (fixture, window) = await OpenAsync();
+        using (fixture)
+        {
+            try
+            {
+                // Selecting a sprite clears the selection of the asset view: the header must not follow that clear
+                var (editor, _) = await OpenEditorAsync(fixture, window);
+                var properties = fixture.Session.ActiveProperties;
+                Assert.Equal("Sprite", properties.TypeDescription);
+                Assert.Equal(editor.Sprites[0].Name, properties.Name);
+
+                // Nor the clear of the sprites when an asset is selected
+                var sheet = fixture.Session.AllAssets.OfType<SpriteSheetViewModel>().Single();
+                fixture.Session.AssetCollection.SelectAssets([sheet]);
+                await WindowTestHelper.PumpAsync();
+                Assert.Empty(editor.SelectedSprites);
+                Assert.Equal(sheet.TypeDisplayName, properties.TypeDescription);
+                Assert.Equal(sheet.Url, properties.Name);
+            }
+            finally
+            {
+                await window.CloseAsync();
+            }
+        }
+    }
+
+    [AvaloniaFact]
     public async Task TheKeyboardCopiesPastesAndDeletesSpritesWithOneUndoEntryEach()
     {
         var (fixture, window) = await OpenAsync();
@@ -122,9 +151,11 @@ public sealed class SpriteEditorTests
                 Assert.Equal(["Frame 0", "Frame 1"], editor.Sprites.Select(x => x.Name));
                 Assert.Equal(["Paste 1 images", "Delete sprites"], names);
 
+                // The history records the delete (and enables its undo command) from the thread pool: Ctrl+Z before it does is ignored
+                await WindowTestHelper.WaitUntilAsync(() => fixture.Session.ActionHistory.Transactions.LastOrDefault()?.Name == "Delete sprites"
+                    && fixture.Session.ActionHistory.UndoCommand.IsEnabled, "the history to record the delete");
                 window.KeyPressQwerty(PhysicalKey.Z, RawInputModifiers.Control);
-                await WindowTestHelper.PumpAsync();
-                Assert.Equal(3, editor.Sprites.Count);
+                await WindowTestHelper.WaitUntilAsync(() => editor.Sprites.Count == 3, "the undo of the delete");
             }
             finally
             {

@@ -22,7 +22,6 @@ namespace Stride.Shaders
         {
             SamplerStates = [];
             ResourceBindings = [];
-            ShaderStreamOutputDeclarations = [];
             InputAttributes = [];
         }
 
@@ -60,24 +59,6 @@ namespace Stride.Shaders
                 }
             }
         }
-
-        /// <summary>
-        /// Gets or sets the stream output declarations.
-        /// </summary>
-        /// <value>The stream output declarations.</value>
-        public List<ShaderStreamOutputDeclarationEntry> ShaderStreamOutputDeclarations { get; set; }
-
-        /// <summary>
-        /// Gets or sets the stream output strides.
-        /// </summary>
-        /// <value>The stream output strides.</value>
-        public int[] StreamOutputStrides { get; set; }
-
-        /// <summary>
-        /// Gets or sets the stream output rasterized stream.
-        /// </summary>
-        /// <value>The stream output rasterized stream.</value>
-        public int StreamOutputRasterizedStream { get; set; }
 
         public List<ShaderInputAttributeDescription> InputAttributes { get; set; }
 

@@ -4,7 +4,6 @@
 using System.ComponentModel;
 using System.Collections.Specialized;
 using Stride.Core.Assets.Editor.Components.Status;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
@@ -13,6 +12,7 @@ using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModel;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Translation;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Components.Build;
 

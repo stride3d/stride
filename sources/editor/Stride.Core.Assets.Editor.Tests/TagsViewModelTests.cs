@@ -2,8 +2,8 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Assets.Editor.Tests.Helpers;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Tests;
 
@@ -21,19 +21,19 @@ public sealed class TagsViewModelTests
         wood.Tags.Add("brown");
         stone.Tags.Add("nature");
 
-        fixture.Assets.SelectAssets([wood]);
+        fixture.OnUiThread(() => fixture.Assets.SelectAssets([wood]));
         Assert.Equal(["brown", "nature"], Names(fixture));
         // A single asset shows no counter
         Assert.All(fixture.Session.AssetTags.Tags, x => Assert.Equal("", x.Counter));
 
-        fixture.Assets.SelectAssets([wood, stone]);
+        fixture.OnUiThread(() => fixture.Assets.SelectAssets([wood, stone]));
         Assert.Equal(["brown", "nature"], Names(fixture));
         Assert.Equal(" (1)", Tag(fixture, "brown").Counter);
         Assert.True(Tag(fixture, "brown").CanAddToAll);
         Assert.Equal(TagsViewModel.AllCounter, Tag(fixture, "nature").Counter);
         Assert.False(Tag(fixture, "nature").CanAddToAll);
 
-        fixture.Assets.ClearSelection();
+        fixture.OnUiThread(() => fixture.Assets.ClearSelection());
         Assert.Empty(fixture.Session.AssetTags.Tags);
     }
 
@@ -43,7 +43,7 @@ public sealed class TagsViewModelTests
         using var fixture = await EditorSessionFixture.OpenAsync(("Wood", "wood"), ("Stone", "stone"));
         var (wood, stone) = (Asset(fixture, "Wood"), Asset(fixture, "Stone"));
         var undoRedo = fixture.Session.UndoRedoService!;
-        fixture.Assets.SelectAssets([wood, stone]);
+        fixture.OnUiThread(() => fixture.Assets.SelectAssets([wood, stone]));
 
         fixture.Session.AssetTags.AddTagCommand.Execute("rock");
 
@@ -68,7 +68,7 @@ public sealed class TagsViewModelTests
     {
         using var fixture = await EditorSessionFixture.OpenAsync(("Wood", "wood"));
         var wood = Asset(fixture, "Wood");
-        fixture.Assets.SelectAssets([wood]);
+        fixture.OnUiThread(() => fixture.Assets.SelectAssets([wood]));
 
         fixture.Session.AssetTags.AddTagCommand.Execute("  ");
 
@@ -83,7 +83,7 @@ public sealed class TagsViewModelTests
         using var fixture = await EditorSessionFixture.OpenAsync(("Wood", "wood"), ("Stone", "stone"));
         var (wood, stone) = (Asset(fixture, "Wood"), Asset(fixture, "Stone"));
         wood.Tags.Add("nature");
-        fixture.Assets.SelectAssets([wood, stone]);
+        fixture.OnUiThread(() => fixture.Assets.SelectAssets([wood, stone]));
 
         Tag(fixture, "nature").AddTagToAllCommand.Execute();
 
@@ -102,7 +102,7 @@ public sealed class TagsViewModelTests
         wood.Tags.Add("nature");
         wood.Tags.Add("brown");
         stone.Tags.Add("nature");
-        fixture.Assets.SelectAssets([wood, stone]);
+        fixture.OnUiThread(() => fixture.Assets.SelectAssets([wood, stone]));
 
         Tag(fixture, "nature").RemoveTagCommand.Execute();
 
@@ -121,8 +121,8 @@ public sealed class TagsViewModelTests
     {
         using var fixture = await EditorSessionFixture.OpenAsync(("Wood", "wood"), ("Stone", "stone"));
         var (wood, stone) = (Asset(fixture, "Wood"), Asset(fixture, "Stone"));
-        fixture.Assets.SelectAssets([wood]);
-        fixture.Assets.SelectAssets([stone]);
+        fixture.OnUiThread(() => fixture.Assets.SelectAssets([wood]));
+        fixture.OnUiThread(() => fixture.Assets.SelectAssets([stone]));
 
         // The asset that left the selection no longer changes the tags shown
         wood.Tags.Add("nature");
