@@ -47,7 +47,15 @@ namespace Stride.Rendering.Materials
 
         public class MaterialInfoBase
         {
+            [Obsolete("MaterialRenderFeature no longer takes this lock: it guards nothing.")]
             public SpinLock UpdateLock;
+
+            // Guards the variants. Not a spin lock: all the render nodes of a material wait on it while the first one updates
+            // the material, and a spin lock that waits too long sleeps for a whole timer tick (up to 15.6 ms)
+            internal readonly Lock VariantLock = new();
+
+            // The last frame whose render nodes registered the material's textures with the streaming manager
+            internal int LastFrameStreamed;
 
             /// <summary>
             /// Incremented when the source MaterialParameters instance changes (e.g. editor hot reload).
@@ -333,8 +341,9 @@ namespace Stride.Rendering.Materials
                     var materialInfo = renderMesh.MaterialInfo;
                     var materialParameters = material.Parameters;
 
-                    // Register resources usage
-                    Context.StreamingManager?.StreamResources(materialParameters);
+                    // Register resources usage, once per material and frame: they are the same for all of its render nodes
+                    if (Context.StreamingManager is { } streamingManager && Interlocked.Exchange(ref materialInfo.LastFrameStreamed, RenderSystem.FrameCounter) != RenderSystem.FrameCounter)
+                        streamingManager.StreamResources(materialParameters);
 
                     var resources = UpdateMaterial(RenderSystem, threadContext, materialInfo, perMaterialDescriptorSetSlot.Index, renderNode.RenderEffect, materialParameters);
                     if (resources == null)
@@ -386,11 +395,8 @@ namespace Stride.Rendering.Materials
             if (single != null && materialInfo.SingleVariantHash == hash && single.LastFrameProcessed == renderSystem.FrameCounter)
                 return single.Resources;
 
-            bool lockTaken = false;
-            try
+            lock (materialInfo.VariantLock)
             {
-                materialInfo.UpdateLock.Enter(ref lockTaken);
-
                 var variant = materialInfo.GetOrAddVariant(hash);
                 if (variant.PerMaterialLayout == null)
                     SetupVariantLayout(renderSystem, variant, resourceGroupDescription);
@@ -400,11 +406,6 @@ namespace Stride.Rendering.Materials
                     variant.LastFrameProcessed = renderSystem.FrameCounter;
                 }
                 return variant.Resources;
-            }
-            finally
-            {
-                if (lockTaken)
-                    materialInfo.UpdateLock.Exit();
             }
         }
 
