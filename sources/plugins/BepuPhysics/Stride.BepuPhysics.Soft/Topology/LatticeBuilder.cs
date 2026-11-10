@@ -105,7 +105,7 @@ internal static class LatticeBuilder
                     var next = node;
                     next[axis] += side == 0 ? -1 : 1;
                     int other = next[axis] >= 0 && next[axis] < nodes[axis] ? particleOfNode[CellIndex(next.X, next.Y, next.Z, nodes)] : -1;
-                    bool linked = other >= 0;
+                    bool linked = other >= 0 && knownEdges.Contains((long)Math.Min(particle, other) << 32 | (uint)Math.Max(particle, other));
                     neighbors[particle * 6 + axis * 2 + side] = linked ? other : -1;
                 }
             }

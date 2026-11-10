@@ -216,6 +216,15 @@ public class DeformationModeTests : GameTestBase
             // Volumetric bodies follow the settings, a cloth has nothing to smooth
             var quality = Services.GetOrCreate<SoftBodyConfiguration>().DeformationQuality;
             Assert.All(bodies, body => Assert.Equal(body is VolumetricSoftBodyComponent ? quality : SoftBodyDeformationQuality.Fast, body.RenderModel?.Quality));
+            // And on the GPU, their meshes ask for the vertex shader of that quality
+            Assert.All(bodies, body =>
+            {
+                var shader = body.RenderModel!.Model.Meshes[0].Parameters.Get(StrideEffectBaseKeys.ExtensionPostVertexStageShader) as Stride.Shaders.ShaderClassSource;
+                var expected = mode != SoftBodyDeformationMode.Gpu ? null
+                    : body is not VolumetricSoftBodyComponent ? "SoftBodySurfaceDeformation"
+                    : quality == SoftBodyDeformationQuality.Smooth ? "SoftBodySmoothLatticeDeformation" : "SoftBodyLatticeDeformation";
+                Assert.Equal(expected, shader?.ClassName);
+            });
 
             _captureRequested = true;
             while (_capture is null)

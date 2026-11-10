@@ -108,6 +108,9 @@ internal sealed class GpuDeformation : IDisposable
 
             // A vertex inside its cell stays within the bounds of the particles; one beyond the lattice by a fraction of a cell, given cells stretched up to twice their size
             _latticeMargin = extrapolation * topology.Spacing * 2f;
+            // Blending the frames of the particles can put a vertex past the particles of its cell, by a fraction of a cell where the lattice bends
+            if (_frameBuffer is not null)
+                _latticeMargin += topology.Spacing;
             BindingLayout = LatticeBinding.Layout;
             BindingBuffer = Buffer.Vertex.New(device, MemoryMarshal.AsBytes(bindings.AsSpan()));
         }

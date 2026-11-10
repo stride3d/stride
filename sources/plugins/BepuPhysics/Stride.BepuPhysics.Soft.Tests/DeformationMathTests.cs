@@ -144,6 +144,137 @@ public class DeformationMathTests
         Assert.True(Vector3.Distance(Vector3.Normalize(fastNormalA), Vector3.Normalize(fastNormalB)) > 0.02f, "The fast deformation was expected to fold here");
     }
 
+    /// <summary>
+    /// Inside a cell of a bent lattice, the normal and the tangent of the smooth deformation are the ones of the surface it draws:
+    /// they follow how the position changes around the vertex, measured by moving it a little along each axis of the lattice.
+    /// </summary>
+    [Fact]
+    public static void SmoothDeformationFramesFollowItsPositions()
+    {
+        var lattice = LatticeBuilder.Build(Grid(4, closedBox: true, clockwise: false), 4, 0.5f);
+        var origin = lattice.RestPositions[0];
+        foreach (var rest in lattice.RestPositions)
+            origin = Vector3.Min(origin, rest);
+        var corners = new int[8];
+        for (int corner = 0; corner < 8; corner++)
+        {
+            var at = origin + new Vector3(1 + (corner & 1), 1 + ((corner >> 1) & 1), 1 + (corner >> 2)) * lattice.Spacing;
+            corners[corner] = Array.FindIndex(lattice.RestPositions, rest => Vector3.Distance(rest, at) < lattice.Spacing * 0.01f);
+            Assert.True(corners[corner] >= 0);
+        }
+
+        // The vertex, then the same one moved a little either way along x, y and z of the lattice
+        const float step = 1e-3f;
+        var center = new Vector3(0.3f, 0.65f, 0.4f);
+        var coordinates = new[] { center, center - Vector3.UnitX * step, center + Vector3.UnitX * step, center - Vector3.UnitY * step, center + Vector3.UnitY * step, center - Vector3.UnitZ * step, center + Vector3.UnitZ * step };
+        var normal = Vector3.Normalize(new Vector3(0.2f, 1f, 0.3f));
+        var tangent = new Vector4(Vector3.Normalize(Vector3.Cross(normal, Vector3.UnitX)), 1f);
+        var bindings = new int[coordinates.Length * 8];
+        for (int v = 0; v < coordinates.Length; v++)
+            corners.CopyTo(bindings, v * 8);
+        var topology = new SoftBodyTopology
+        {
+            RestPositions = lattice.RestPositions,
+            SelfCollisionCells = lattice.SelfCollisionCells,
+            Edges = lattice.Edges,
+            Tetrahedra = lattice.Tetrahedra,
+            Spacing = lattice.Spacing,
+            BindingStride = 8,
+            BindingParticles = bindings,
+            BindingWeights = new float[bindings.Length],
+            LatticeCoordinates = coordinates,
+            LatticeNeighbors = lattice.LatticeNeighbors,
+            Mesh = new SourceMesh
+            {
+                Positions = new Vector3[coordinates.Length],
+                Normals = Array.ConvertAll(coordinates, _ => normal),
+                Tangents = Array.ConvertAll(coordinates, _ => tangent),
+                TexCoords = new Vector2[coordinates.Length],
+                Indices = [],
+                Parts = [],
+            },
+        };
+
+        var particles = Array.ConvertAll(lattice.RestPositions, rest =>
+        {
+            var local = (rest - origin) / lattice.Spacing;
+            return rest + new Vector3(0.05f * local.Y * local.Y, 0.12f * local.X * local.X - 0.04f * local.Z * local.X, 0.03f * local.X * local.Y) * lattice.Spacing;
+        });
+        var frames = new Vector3[particles.Length * 3];
+        topology.ComputeParticleFrames(particles, frames);
+
+        var positions = new Vector3[coordinates.Length];
+        topology.DeformSmooth(0, particles, frames, out positions[0], out var actualNormal, out var actualTangent);
+        for (int v = 1; v < coordinates.Length; v++)
+            topology.DeformSmooth(v, particles, frames, out positions[v], out _, out _);
+        var dx = (positions[2] - positions[1]) / (2f * step);
+        var dy = (positions[4] - positions[3]) / (2f * step);
+        var dz = (positions[6] - positions[5]) / (2f * step);
+
+        var expectedNormal = Vector3.Cross(dy, dz) * normal.X + Vector3.Cross(dz, dx) * normal.Y + Vector3.Cross(dx, dy) * normal.Z;
+        var expectedTangent = dx * tangent.X + dy * tangent.Y + dz * tangent.Z;
+        Assert.True(Vector3.Distance(Vector3.Normalize(expectedNormal), Vector3.Normalize(actualNormal)) < 2e-3f, $"normal {Vector3.Normalize(actualNormal)}, the positions give {Vector3.Normalize(expectedNormal)}");
+        Assert.True(Vector3.Distance(Vector3.Normalize(expectedTangent), Vector3.Normalize((Vector3)actualTangent)) < 2e-3f, $"tangent {Vector3.Normalize((Vector3)actualTangent)}, the positions give {Vector3.Normalize(expectedTangent)}");
+        // And the lattice is bent enough for a wrong slope to show: the normal is not the one a flat cell would give
+        Assert.True(Vector3.Distance(normal, Vector3.Normalize(actualNormal)) > 0.02f);
+    }
+
+    /// <summary>
+    /// Two legs with a gap of one cell between them: the particles facing each other across the gap are a step apart, and not
+    /// neighbors, or the frames of one leg would follow the other.
+    /// </summary>
+    [Fact]
+    public static void LatticeNeighborsAreOnlyAcrossTheEdgesOfCells()
+    {
+        var positions = new List<Vector3>();
+        var indices = new List<int>();
+        foreach (float x in new[] { -1f, 1f })
+        {
+            var box = Grid(1, closedBox: true, clockwise: false);
+            int first = positions.Count;
+            // One meter wide and deep, two high, a meter apart
+            foreach (var position in box.Positions)
+                positions.Add(new Vector3(position.X + x, position.Y * 2f, position.Z));
+            foreach (int index in box.Indices)
+                indices.Add(index + first);
+        }
+        var mesh = new SourceMesh
+        {
+            Positions = positions.ToArray(),
+            Normals = new Vector3[positions.Count],
+            Tangents = new Vector4[positions.Count],
+            TexCoords = new Vector2[positions.Count],
+            Indices = indices.ToArray(),
+            Parts = [],
+        };
+        // Cells of one meter: each leg is one cell wide and two high, and so is the gap. Joining the two legs fills one cell
+        // of the gap, the other one stays empty
+        var topology = LatticeBuilder.Build(mesh, 3, 0f);
+
+        var edges = new HashSet<(int, int)>();
+        foreach (var edge in topology.Edges)
+            edges.Add((Math.Min(edge.A, edge.B), Math.Max(edge.A, edge.B)));
+        var neighbors = topology.LatticeNeighbors!;
+        for (int particle = 0; particle < topology.ParticleCount; particle++)
+        {
+            for (int side = 0; side < 6; side++)
+            {
+                int other = neighbors[particle * 6 + side];
+                if (other >= 0)
+                    Assert.Contains((Math.Min(particle, other), Math.Max(particle, other)), edges);
+            }
+        }
+
+        // The case this is about is there: two particles a step apart that no cell links
+        bool facing = false;
+        for (int a = 0; a < topology.ParticleCount; a++)
+        {
+            for (int b = a + 1; b < topology.ParticleCount; b++)
+                facing |= MathF.Abs(Vector3.Distance(topology.RestPositions[a], topology.RestPositions[b]) - topology.Spacing) < topology.Spacing * 0.01f && edges.Contains((a, b)) == false;
+        }
+        Assert.True(facing, "No two particles face each other across an empty cell, this mesh no longer covers what it is for");
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
