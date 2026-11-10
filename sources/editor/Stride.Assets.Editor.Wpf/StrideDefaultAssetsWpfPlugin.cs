@@ -226,6 +226,8 @@ namespace Stride.Assets.Presentation
             context.NodePresenterUpdaters.Register(new FXAAEffectNodeUpdater());
             context.NodePresenterUpdaters.Register(new MaterialAssetNodeUpdater());
             context.NodePresenterUpdaters.Register(new ModelAssetNodeUpdater());
+            // The material slots and morph weight sliders of the model components, shared with the Avalonia editor
+            context.NodePresenterUpdaters.Register(new ModelComponentNodeUpdater());
             context.NodePresenterUpdaters.Register(new ModelNodeLinkNodeUpdater());
             context.NodePresenterUpdaters.Register(new SkeletonAssetNodeUpdater());
             context.NodePresenterUpdaters.Register(new SpriteFontAssetNodeUpdater());

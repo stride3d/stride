@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using Stride.Assets.Editor.Quantum.NodePresenters.Keys;
 using Stride.Core;
 using Stride.Core.Assets.Editor.View;
 using Stride.Core.Presentation.Quantum.ViewModels;
@@ -15,19 +16,19 @@ namespace Stride.Assets.Presentation.TemplateProviders
         public override string Name => "MorphWeights";
 
         public override bool MatchNode(NodeViewModel node)
-            => node.Name == "WeightsCategory" && node.Parent?.Type == typeof(ModelMorphSettings);
+            => node.Name == ModelComponentData.MorphWeightsCategory && node.Parent?.Type == typeof(ModelMorphSettings);
     }
 
     /// <summary>Morph weight slider that shows its value in the scene while dragged and applies it on release, as one undo step.</summary>
     public sealed class MorphWeightTemplateProvider : NodeViewModelTemplateProvider
     {
         /// <summary>Suffix of the slider node names created by the model component view model.</summary>
-        public const string NodeNameSuffix = "___MorphWeight";
+        public const string NodeNameSuffix = ModelComponentData.MorphWeightNodeNameSuffix;
 
         /// <summary>Name of the slider data that shows a weight in the scene while dragging, without editing the asset.</summary>
-        public const string Preview = "MorphWeightPreview";
+        public const string Preview = ModelComponentData.MorphWeightPreview;
 
-        public static readonly PropertyKey<Action<double>> PreviewKey = new(Preview, typeof(MorphWeightTemplateProvider));
+        public static readonly PropertyKey<Action<double>> PreviewKey = ModelComponentData.MorphWeightPreviewKey;
 
         public override string Name => "MorphWeight";
 

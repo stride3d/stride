@@ -17,12 +17,7 @@ namespace Stride.Assets.Presentation.NodePresenters.Updaters
     {
         protected override void UpdateNode(IAssetNodePresenter node)
         {
-            if (node.Root.Value is not Entity entity || node.Asset is null || !TryGetEditor(node.Asset, out var editor))
-                return;
-
-            var partId = new AbsoluteId(node.Asset.Id, entity.Id);
-            if (editor.FindPartViewModel(partId) is EntityViewModel viewModel)
-                (editor.ViewOptions as WpfEditorViewOptions)?.UpdateNodePresenter(viewModel, node);
+            // The model components are shown by the shared ModelComponentNodeUpdater
         }
 
         protected override void FinalizeTree(IAssetNodePresenter root)
