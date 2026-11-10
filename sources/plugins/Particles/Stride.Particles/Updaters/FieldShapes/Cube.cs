@@ -43,7 +43,7 @@ namespace Stride.Particles.Updaters.FieldShapes
         /// The maximum distance from the origin along the X axis. The X side is twice as big.
         /// </userdoc>
         [DataMember(10)]
-        [DataMemberRange(0, 3)]
+        [DataMemberRange(minimum: 0, decimalPlaces: 3)]
         [Display("Half X")]
         public float HalfSideX
         {
@@ -59,7 +59,7 @@ namespace Stride.Particles.Updaters.FieldShapes
         /// The maximum distance from the origin along the Y axis. The Y side is twice as big.
         /// </userdoc>
         [DataMember(20)]
-        [DataMemberRange(0, 3)]
+        [DataMemberRange(minimum: 0, decimalPlaces: 3)]
         [Display("Half Y")]
         public float HalfSideY
         {
@@ -75,7 +75,7 @@ namespace Stride.Particles.Updaters.FieldShapes
         /// The maximum distance from the origin along the Z axis. The Z side is twice as big.
         /// </userdoc>
         [DataMember(30)]
-        [DataMemberRange(0, 3)]
+        [DataMemberRange(minimum: 0, decimalPlaces: 3)]
         [Display("Half Z")]
         public float HalfSideZ
         {

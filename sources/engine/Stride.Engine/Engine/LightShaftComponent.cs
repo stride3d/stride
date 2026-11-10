@@ -35,7 +35,7 @@ namespace Stride.Engine
         /// <userdoc>
         /// Higher sample counts produce better light shafts but use more GPU
         /// </userdoc>
-        [DataMemberRange(1, 0)]
+        [DataMemberRange(minimum: 1, decimalPlaces: 0)]
         public int SampleCount { get; set; } = 16;
 
         /// <summary>

@@ -24,7 +24,7 @@ namespace Stride.Navigation
         /// The height of the entities in this group. Entities can't enter areas with ceilings lower than this value.
         /// </userdoc>
         [DataMember(0)]
-        [DataMemberRange(0, 3)]
+        [DataMemberRange(minimum: 0, decimalPlaces: 3)]
         public float Height;
 
         /// <summary>
@@ -35,7 +35,7 @@ namespace Stride.Navigation
         /// </userdoc>
         [DataMember(1)]
         [Display("Maximum climb height")]
-        [DataMemberRange(0, 3)]
+        [DataMemberRange(minimum: 0, decimalPlaces: 3)]
         public float MaxClimb;
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace Stride.Navigation
         /// The larger this value, the larger the area of the navigation mesh entities use. Entities can't pass through gaps of less than twice the radius.
         /// </userdoc>
         [DataMember(3)]
-        [DataMemberRange(0, 3)]
+        [DataMemberRange(minimum: 0, decimalPlaces: 3)]
         public float Radius;
     }
 

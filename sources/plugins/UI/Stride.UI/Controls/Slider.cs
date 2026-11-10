@@ -119,7 +119,7 @@ namespace Stride.UI.Controls
         /// <remarks>The value is coerced in the range [0, <see cref="float.MaxValue"/>].</remarks>
         /// <userdoc>The step of a change of the value.</userdoc>
         [DataMember]
-        [DataMemberRange(0, 3)]
+        [DataMemberRange(minimum: 0, decimalPlaces: 3)]
         [DefaultValue(0.1f)]
         public float Step
         {
@@ -211,7 +211,7 @@ namespace Stride.UI.Controls
         /// <remarks>The value is coerced in the range [1, <see cref="float.MaxValue"/>].</remarks>
         /// <userdoc>The frequency of the ticks on the slider track.</userdoc>
         [DataMember]
-        [DataMemberRange(1, 3)]
+        [DataMemberRange(minimum: 1, decimalPlaces: 3)]
         [Display(category: AppearanceCategory)]
         [DefaultValue(10.0f)]
         public float TickFrequency
@@ -232,7 +232,7 @@ namespace Stride.UI.Controls
         /// <remarks>The value is coerced in the range [0, <see cref="float.MaxValue"/>].</remarks>
         /// <userdoc>The offset in virtual pixels between the center of the track and center of the ticks (for an not-stretched slider).</userdoc>
         [DataMember]
-        [DataMemberRange(0, 3)]
+        [DataMemberRange(minimum: 0, decimalPlaces: 3)]
         [Display(category: AppearanceCategory)]
         [DefaultValue(10.0f)]
         public float TickOffset

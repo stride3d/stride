@@ -79,7 +79,7 @@ namespace Stride.Assets.Skyboxes
         [DefaultValue(256)]
         [Display("Specular texture size")]
         [DataMember(30)]
-        [DataMemberRange(64, 0)]
+        [DataMemberRange(minimum: 64, decimalPlaces: 0)]
         public int SpecularCubeMapSize { get; set; }
 
         public IEnumerable<IReference> GetDependencies()

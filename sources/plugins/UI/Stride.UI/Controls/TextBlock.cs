@@ -85,7 +85,7 @@ namespace Stride.UI.Controls
         /// <seealso cref="SpriteFont.Size"/>
         /// <userdoc>The size of the text in virtual pixels unit.</userdoc>
         [DataMember]
-        [DataMemberRange(0.0f, 3)]
+        [DataMemberRange(minimum: 0.0f, decimalPlaces: 3)]
         [Display(category: AppearanceCategory)]
         [DefaultValue(float.NaN)]
         public float TextSize
