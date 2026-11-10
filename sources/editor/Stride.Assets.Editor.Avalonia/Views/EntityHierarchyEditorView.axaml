@@ -207,16 +207,16 @@
                             ItemsSource="{Binding Children}">
             <DockPanel>
               <!-- Focus button (the camera frames the entity) -->
-              <Button DockPanel.Dock="Right" Focusable="False" Background="Transparent" Padding="2" Margin="8,0,0,0"
+              <Button DockPanel.Dock="Right" Classes="row" Focusable="False" Background="Transparent" Padding="2" Margin="8,0,0,0"
                       Command="{Binding $parent[TreeView].((vm:EntityHierarchyEditorViewModel)DataContext).FocusOnEntityCommand}"
-                      CommandParameter="{Binding}"
+                      CommandParameter="{Binding}" IsEnabled="{Binding IsLoaded}"
                       ToolTip.Tip="{sd:LocalizeString Focus on this entity (F), Context=ToolTip}">
                 <!-- The focus icon -->
                 <Path Width="16" Height="16" Stretch="None" Fill="{DynamicResource SystemControlForegroundBaseHighBrush}"
                       Data="F1M10.167,9.667C8.053,9.667 6.334,7.947 6.334,5.834 6.334,3.72 8.053,2 10.167,2 12.28,2 14,3.72 14,5.834 14,7.947 12.28,9.667 10.167,9.667 M10.167,1C7.502,1 5.334,3.168 5.334,5.834 5.334,6.985 5.755,8.03 6.431,8.862L1.147,14.146C0.951000000000001,14.342 0.951000000000001,14.658 1.147,14.854 1.244,14.951 1.372,15 1.5,15 1.628,15 1.756,14.951 1.854,14.854L7.138,9.569C7.969,10.245 9.015,10.667 10.167,10.667 12.832,10.667 15,8.499 15,5.834 15,3.168 12.832,1 10.167,1" />
               </Button>
               <!-- Lock button: a locked entity cannot be selected in the view. Ctrl applies to the children. -->
-              <Button DockPanel.Dock="Right" Classes="row" Command="{Binding LockCommand}" Click="OnLockClick">
+              <Button DockPanel.Dock="Right" Classes="row" Command="{Binding LockCommand}" Click="OnLoadOrLockClick" IsEnabled="{Binding IsLoaded}">
                 <ToolTip.Tip>
                   <StackPanel>
                     <TextBlock Text="{sd:LocalizeString Lock/unlock this entity, Context=ToolTip}"/>
@@ -231,7 +231,8 @@
               <!-- Clipped: a long name goes under the buttons rather than over them -->
               <StackPanel Orientation="Horizontal" ClipToBounds="True">
                 <Image Source="{Binding Components, Converter={conv:EntityComponentToResource}}" Width="16" Height="16"/>
-                <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Margin="4,0" IsVisible="{Binding !IsEditing}"/>
+                <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Margin="4,0" IsVisible="{Binding !IsEditing}"
+                           Classes.unloaded="{Binding !Owner.IsLoaded}" Classes.selected="{Binding $parent[TreeViewItem].IsSelected}"/>
                 <!-- Renaming in place (F2): the box replaces the name while the item is editing -->
                 <TextBox Text="{Binding Name, Mode=OneWay}" IsVisible="{Binding IsEditing}" MinWidth="80">
                   <Interaction.Behaviors>
@@ -249,7 +250,8 @@
                             ItemsSource="{Binding Children}">
             <StackPanel Orientation="Horizontal">
               <Image Source="{StaticResource FolderIcon}" Width="16" Height="16" />
-              <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Margin="4,0" IsVisible="{Binding !IsEditing}"/>
+              <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Margin="4,0" IsVisible="{Binding !IsEditing}"
+                         Classes.unloaded="{Binding !Owner.IsLoaded}" Classes.selected="{Binding $parent[TreeViewItem].IsSelected}"/>
               <!-- Renaming in place (F2): the box replaces the name while the item is editing -->
               <TextBox Text="{Binding Name, Mode=OneWay}" IsVisible="{Binding IsEditing}" MinWidth="80">
                 <Interaction.Behaviors>
@@ -262,8 +264,10 @@
           <TreeDataTemplate DataType="{x:Type vm2:SceneRootViewModel}"
                             ItemsSource="{Binding Children}">
             <DockPanel>
+              <!-- Where the focus button of an entity is, so that the lock buttons line up, as in the WPF scene editor -->
+              <Panel DockPanel.Dock="Right" Width="20" Margin="8,0,0,0"/>
               <!-- Lock button: a locked entity cannot be selected in the view. Ctrl applies to the children. -->
-              <Button DockPanel.Dock="Right" Classes="row" Command="{Binding LockCommand}" Click="OnLockClick">
+              <Button DockPanel.Dock="Right" Classes="row" Command="{Binding LockCommand}" Click="OnLoadOrLockClick" IsEnabled="{Binding IsLoaded}">
                 <ToolTip.Tip>
                   <StackPanel>
                     <TextBlock Text="{sd:LocalizeString Lock/unlock all entities, Context=ToolTip}"/>
@@ -275,9 +279,58 @@
                   <Image Source="{StaticResource ImageUnlockEntity}" Width="16" Height="16" IsVisible="{Binding !IsLocked}"/>
                 </Panel>
               </Button>
-              <StackPanel Orientation="Horizontal">
+              <!-- Load button: loads or unloads the scene and its entities in the editor game. Ctrl applies to the
+                   child scenes. The parent scenes of a scene are loaded with it. -->
+              <Button DockPanel.Dock="Right" Classes="row" Command="{Binding LoadCommand}" Click="OnLoadOrLockClick">
+                <ToolTip.Tip>
+                  <StackPanel>
+                    <TextBlock Text="{sd:LocalizeString Load/unload all entities, Context=ToolTip}"/>
+                    <TextBlock Text="{sd:LocalizeString (Hold Ctrl to apply to child scenes recursively), Context=ToolTip}"
+                               IsVisible="{Binding !IsLoaded}"/>
+                  </StackPanel>
+                </ToolTip.Tip>
+                <Panel>
+                  <Image Source="{StaticResource ImageLoadEntity}" Width="16" Height="16" IsVisible="{Binding IsLoaded}"/>
+                  <Image Source="{StaticResource ImageUnloadEntity}" Width="16" Height="16" IsVisible="{Binding !IsLoaded}"/>
+                </Panel>
+              </Button>
+              <StackPanel Orientation="Horizontal" ClipToBounds="True">
                 <Image Source="{StaticResource SceneIcon}" Width="16" Height="16"/>
-                <TextBlock Text="{Binding Name}" Margin="4,0" VerticalAlignment="Center"/>
+                <!-- The active scene, where new entities go, is in bold -->
+                <TextBlock Text="{Binding Name}" Margin="4,0" VerticalAlignment="Center" Classes.unloaded="{Binding !IsLoaded}" Classes.selected="{Binding $parent[TreeViewItem].IsSelected}">
+                  <Classes.active>
+                    <MultiBinding Converter="{sd:AllEqualMulti}">
+                      <Binding/>
+                      <Binding Path="$parent[TreeView].((vm:EntityHierarchyEditorViewModel)DataContext).ActiveRoot"/>
+                    </MultiBinding>
+                  </Classes.active>
+                </TextBlock>
+                <!-- While the scene loads or unloads -->
+                <TextBlock Classes="loading" Margin="4,0" VerticalAlignment="Center" Text="{sd:LocalizeString Loading...}">
+                  <TextBlock.IsVisible>
+                    <MultiBinding Converter="{x:Static BoolConverters.And}">
+                      <Binding Path="IsLoading"/>
+                      <Binding Path="!IsLoaded"/>
+                    </MultiBinding>
+                  </TextBlock.IsVisible>
+                </TextBlock>
+                <TextBlock Classes="loading" Margin="4,0" VerticalAlignment="Center" Text="{sd:LocalizeString Unloading...}">
+                  <TextBlock.IsVisible>
+                    <MultiBinding Converter="{x:Static BoolConverters.And}">
+                      <Binding Path="IsLoading"/>
+                      <Binding Path="IsLoaded"/>
+                    </MultiBinding>
+                  </TextBlock.IsVisible>
+                </TextBlock>
+                <TextBlock Classes="unloaded" Margin="4,0" VerticalAlignment="Center" Text="{sd:LocalizeString (Unloaded)}"
+                           Classes.selected="{Binding $parent[TreeViewItem].IsSelected}">
+                  <TextBlock.IsVisible>
+                    <MultiBinding Converter="{x:Static BoolConverters.And}">
+                      <Binding Path="!IsLoaded"/>
+                      <Binding Path="!IsLoading"/>
+                    </MultiBinding>
+                  </TextBlock.IsVisible>
+                </TextBlock>
               </StackPanel>
             </DockPanel>
           </TreeDataTemplate>
@@ -295,11 +348,34 @@
             <!-- The filter of the toolbar -->
             <Setter Property="IsVisible" Value="{Binding IsVisible}"/>
           </Style>
+          <!-- The entities of an unloaded scene, and the scene itself, are grey, as in the WPF scene editor, unless the row
+               is selected -->
+          <Style Selector="TextBlock.unloaded:not(.selected)">
+            <Setter Property="Foreground" Value="Gray"/>
+          </Style>
+          <Style Selector="TextBlock.active">
+            <Setter Property="FontWeight" Value="Bold"/>
+          </Style>
+          <!-- "Loading..." blinks while the scene loads -->
+          <Style Selector="TextBlock.loading">
+            <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundAccentBrush}"/>
+            <Style.Animations>
+              <Animation Duration="0:0:1.2" IterationCount="INFINITE" PlaybackDirection="Alternate">
+                <KeyFrame Cue="0%"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                <KeyFrame Cue="100%"><Setter Property="Opacity" Value="0.3"/></KeyFrame>
+              </Animation>
+            </Style.Animations>
+          </Style>
           <Style Selector="Button.row">
             <Setter Property="Focusable" Value="False"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Padding" Value="2"/>
             <Setter Property="Margin" Value="4,0,0,0"/>
+          </Style>
+          <!-- The buttons of the entities of an unloaded scene are off: faded, without the grey box of a disabled button -->
+          <Style Selector="Button.row:disabled /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Opacity" Value="0.4"/>
           </Style>
         </StyledElement.Styles>
       </TreeView>
