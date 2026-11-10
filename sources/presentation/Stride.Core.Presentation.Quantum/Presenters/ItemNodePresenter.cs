@@ -9,6 +9,9 @@ namespace Stride.Core.Presentation.Quantum.Presenters;
 
 public class ItemNodePresenter : NodePresenterBase
 {
+    private IObjectNode? _parentingNode;
+    private bool isDisposed;
+
     protected readonly IObjectNode Container;
 
     public ItemNodePresenter(INodePresenterFactoryInternal factory, IPropertyProviderViewModel? propertyProvider, INodePresenter parent, IObjectNode container, NodeIndex index)
@@ -31,6 +34,15 @@ public class ItemNodePresenter : NodePresenterBase
 
         container.ItemChanging += OnItemChanging;
         container.ItemChanged += OnItemChanged;
+
+        _parentingNode = Container.ItemReferences != null ? Container.IndexedTarget(Index) : null;
+
+        if (_parentingNode != null)
+        {
+            _parentingNode.ItemChanging += OnNestedItemChanging;
+            _parentingNode.ItemChanged += OnNestedItemChanged;
+        }
+
         AttachCommands();
     }
 
@@ -39,8 +51,15 @@ public class ItemNodePresenter : NodePresenterBase
         base.Dispose(disposing);
         if (disposing)
         {
+            isDisposed = true;
             Container.ItemChanging -= OnItemChanging;
             Container.ItemChanged -= OnItemChanged;
+
+            if (_parentingNode != null)
+            {
+                _parentingNode.ItemChanging -= OnNestedItemChanging;
+                _parentingNode.ItemChanged -= OnNestedItemChanged;
+            }
         }
     }
 
@@ -54,9 +73,19 @@ public class ItemNodePresenter : NodePresenterBase
 
     public override ITypeDescriptor? Descriptor { get; }
 
-    public override object? Value => Container.Retrieve(Index);
+    public override object? Value
+    {
+        get
+        {
+            // The item can be removed from the container (e.g. a dictionary key) after the presenter was created:
+            // in that case the index no longer resolves to a value, so report it as null instead of throwing.
+            if (Container.ItemReferences is { } itemReferences && !itemReferences.HasIndex(Index))
+                return null;
+            return Container.Retrieve(Index);
+        }
+    }
 
-    protected override IObjectNode? ParentingNode => Container.ItemReferences != null ? Container.IndexedTarget(Index) : null;
+    protected override IObjectNode? ParentingNode => _parentingNode;
 
     public override void UpdateValue(object? newValue)
     {
@@ -122,17 +151,39 @@ public class ItemNodePresenter : NodePresenterBase
 
     private void OnItemChanging(object? sender, ItemChangeEventArgs e)
     {
-        if (IsValidChange(e))
-            RaiseValueChanging(e.NewValue);
+        // The presenter can be disposed while the event is still being dispatched (its parent disposes its
+        // children before the handlers of the other subscribers run): a disposed presenter must not react
+        // to the remaining handlers, nor re-subscribe to a new item.
+        if (isDisposed || !IsValidChange(e))
+            return;
+        RaiseValueChanging(e.NewValue);
     }
 
     private void OnItemChanged(object? sender, ItemChangeEventArgs e)
     {
-        if (IsValidChange(e))
+        if (isDisposed || !IsValidChange(e))
         {
-            Refresh();
-            RaiseValueChanged(e.OldValue);
+            return;
         }
+
+        if (_parentingNode != null)
+        {
+            _parentingNode.ItemChanging -= OnNestedItemChanging;
+            _parentingNode.ItemChanged -= OnNestedItemChanged;
+        }
+
+        _parentingNode = Container.ItemReferences != null
+            ? Container.IndexedTarget(Index)
+            : null;
+
+        if (_parentingNode != null)
+        {
+            _parentingNode.ItemChanging += OnNestedItemChanging;
+            _parentingNode.ItemChanged += OnNestedItemChanged;
+        }
+
+        Refresh();
+        RaiseValueChanged(e.OldValue);
     }
 
     private bool IsValidChange(ItemChangeEventArgs e)
@@ -150,5 +201,19 @@ public class ItemNodePresenter : NodePresenterBase
             ContentChangeType.CollectionAdd or ContentChangeType.CollectionRemove => false,
             _ => throw new ArgumentOutOfRangeException(nameof(changeType)),
         };
+    }
+
+    private void OnNestedItemChanging(object? sender, ItemChangeEventArgs e)
+    {
+        if (!isDisposed)
+            RaiseValueChanging(Value);
+    }
+
+    private void OnNestedItemChanged(object? sender, ItemChangeEventArgs e)
+    {
+        if (isDisposed)
+            return;
+        Refresh();
+        RaiseValueChanged(Value);
     }
 }
