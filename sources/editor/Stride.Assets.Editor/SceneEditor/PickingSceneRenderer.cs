@@ -16,6 +16,7 @@ using Stride.Graphics;
 using Stride.Input;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
+using Stride.Assets.Editor.EditorGame;
 
 namespace Stride.Assets.Editor.SceneEditor
 {
@@ -68,6 +69,10 @@ namespace Stride.Assets.Editor.SceneEditor
         {
             base.CollectCore(context);
 
+            // The pointer is over the active view only: the other views of the editor don't pick
+            if (context.Tags.Get(EditorGameMultiViewService.IsSecondaryViewKey))
+                return;
+
             // Fill RenderStage formats
             PickingRenderStage.Output = new RenderOutputDescription(PixelFormat.R32G32_Float, PixelFormat.D32_Float);
             PickingRenderStage.Output.ScissorTestEnable = true;
@@ -77,6 +82,9 @@ namespace Stride.Assets.Editor.SceneEditor
 
         protected override void DrawCore(RenderContext context, RenderDrawContext drawContext)
         {
+            if (context.Tags.Get(EditorGameMultiViewService.IsSecondaryViewKey))
+                return;
+
             if (pickingTexture == null)
             {
                 // TODO: Release resources!

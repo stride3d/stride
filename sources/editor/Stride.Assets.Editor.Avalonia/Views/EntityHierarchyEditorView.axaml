@@ -581,6 +581,24 @@
             </Flyout>
           </Button.Flyout>
         </Button>
+        <!-- Views (prototype): one, two or four views of the scene, each with its camera, and the active one maximized -->
+        <Button x:Name="ViewsButton" x:DataType="vm:EditorViewToolbarViewModel" Focusable="False" Background="Transparent" Padding="6"
+                IsVisible="{Binding Views, Converter={x:Static ObjectConverters.IsNotNull}}" ToolTip.Tip="Views of the scene...">
+          <Path Classes="icon" Data="M1,2 H7.5 V14 H1 Z M8.5,2 H15 V7.5 H8.5 Z M8.5,8.5 H15 V14 H8.5 Z" />
+          <Button.Flyout>
+            <Flyout Placement="BottomEdgeAlignedLeft">
+              <StackPanel x:DataType="vm:EditorViewLayoutViewModel" DataContext="{Binding Views}" Width="230" Spacing="4">
+                <TextBlock Text="Layout" FontWeight="Bold"/>
+                <Button x:Name="SingleViewButton" Content="One view" HorizontalAlignment="Stretch" Margin="2" Command="{Binding SetLayoutCommand}" CommandParameter="{x:Static vm:EditorViewLayout.Single}"/>
+                <Button x:Name="TwoColumnsButton" Content="Two views, side by side" HorizontalAlignment="Stretch" Margin="2" Command="{Binding SetLayoutCommand}" CommandParameter="{x:Static vm:EditorViewLayout.TwoColumns}"/>
+                <Button x:Name="TwoRowsButton" Content="Two views, stacked" HorizontalAlignment="Stretch" Margin="2" Command="{Binding SetLayoutCommand}" CommandParameter="{x:Static vm:EditorViewLayout.TwoRows}"/>
+                <Button x:Name="QuadButton" Content="Four views (quad)" HorizontalAlignment="Stretch" Margin="2" Command="{Binding SetLayoutCommand}" CommandParameter="{x:Static vm:EditorViewLayout.Quad}"/>
+                <Button x:Name="MaximizeButton" Content="Maximize or restore active view" HorizontalAlignment="Stretch" Margin="2" Command="{Binding ToggleMaximizeCommand}"/>
+                <TextBlock TextWrapping="Wrap" Opacity="0.7" Text="The view under the pointer is active: the camera, the gizmos and the selection work there."/>
+              </StackPanel>
+            </Flyout>
+          </Button.Flyout>
+        </Button>
         <!-- Render mode: the editor, the game preview, or one stream of the materials -->
         <Panel x:DataType="vm:EditorViewToolbarViewModel" DataContext="{Binding Rendering}" VerticalAlignment="Center"
                IsVisible="{Binding $self.DataContext, Converter={x:Static ObjectConverters.IsNotNull}}">
@@ -626,11 +644,15 @@
                    HorizontalAlignment="Center" VerticalAlignment="Center"
                    IsVisible="{Binding GameHost.GameView, Converter={x:Static ObjectConverters.IsNull}}" />
         <!-- Assets dropped on the view add their entities under the pointer -->
-        <ContentControl x:Name="GameViewHost" Content="{Binding GameHost.GameView}"
+        <ContentControl x:Name="GameViewHost"
                         IsVisible="{Binding GameHost.LastException, Converter={x:Static ObjectConverters.IsNull}}">
           <Interaction.Behaviors>
             <dd:AddChildDropBehavior/>
           </Interaction.Behaviors>
+          <!-- The views of the game: the primary view alone, or several views with a camera each (prototype) -->
+          <local:EditorViewLayoutPanel x:Name="GameViews" GameView="{Binding GameHost.GameView}"
+                                       Viewport="{Binding GameHost.Controller.Viewport, FallbackValue={x:Null}}"
+                                       Layout="{Binding ((vm:EditorViewToolbarViewModel)ViewOptions).Views, FallbackValue={x:Null}}"/>
         </ContentControl>
         <!-- The widgets of the plugins, on the edges of the view over the game; the panels have no background, so the pointer
              reaches the game everywhere but on a widget -->

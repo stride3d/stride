@@ -118,6 +118,16 @@ namespace Stride.Assets.Editor.AssetEditors.GameEditor.ViewModels
             sceneSettings.CamMoveSpeed = MoveSpeed;
         }
 
+        /// <summary>
+        /// Shows the projection of the camera of the view that became active, which the game already uses (prototype of
+        /// several views).
+        /// </summary>
+        internal void ShowProjection(bool isOrthographic, float size)
+        {
+            SetValue(ref orthographicProjection, isOrthographic, nameof(OrthographicProjection));
+            SetValue(ref orthographicSize, size, nameof(OrthographicSize));
+        }
+
         public void IncreaseMovementSpeed()
         {
             MoveSpeedIndex++;
