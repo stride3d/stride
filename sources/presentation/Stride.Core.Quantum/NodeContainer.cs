@@ -150,10 +150,10 @@ public class NodeContainer : INodeContainer
 
         lock (lockObject)
         {
-            if (processedNodes.Value.Contains(node))
+            if (processedNodes.Value!.Contains(node))
                 return;
 
-            processedNodes.Value.Add(node);
+            processedNodes.Value!.Add(node);
 
             // If the node was holding a reference, refresh the reference
             if (node.IsReference)

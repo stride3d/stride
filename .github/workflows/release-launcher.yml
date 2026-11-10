@@ -186,7 +186,10 @@ jobs:
     if: ${{ inputs.deploy && inputs.sign }}
     needs: Package
     runs-on: ubuntu-latest
-    environment: production  # STRIDE_NUGET_API_KEY lives here; requires manual approval in GitHub settings
+    environment: production  # requires manual approval in GitHub settings
+    permissions:
+      contents: read
+      id-token: write # nuget.org trusted publishing
     steps:
       - uses: actions/checkout@v7  # full history + tags for the launcher-scoped changelog
         with:
@@ -252,6 +255,13 @@ jobs:
             ${{ inputs.version-suffix != '' && '--prerelease' || '' }} \
             bin/launcher/*.exe
 
+      # A short-lived key from nuget.org's trusted publishing policy for this workflow file, instead of a stored one
+      - name: NuGet login
+        id: nuget-login
+        uses: NuGet/login@v1
+        with:
+          user: ${{ vars.STRIDE_NUGET_USER }}
+
       # After the GitHub release: the packages point to its setup (launchers that must reinstall download it)
       - name: Push to NuGet
         shell: pwsh
@@ -262,7 +272,7 @@ jobs:
             if ($LASTEXITCODE -ne 0) { exit 1 }
           }
         env:
-          STRIDE_NUGET_API_KEY: ${{ secrets.STRIDE_NUGET_API_KEY }}
+          STRIDE_NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
 
       # Points the stride3d.net download button to this setup: committed to stride-website
       # master, live with the next website release (deployed from its release branch)

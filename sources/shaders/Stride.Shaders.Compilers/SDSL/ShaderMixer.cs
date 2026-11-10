@@ -274,6 +274,14 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         }
         foreach (var i in temp)
         {
+            if (i.Op is Op.OpDPdxFine or Op.OpDPdyFine or Op.OpDPdxCoarse or Op.OpDPdyCoarse)
+            {
+                context.Add(new OpCapability(Capability.DerivativeControl));
+                break;
+            }
+        }
+        foreach (var i in temp)
+        {
             // ImageGatherExtended is required when Offset (0x10) or ConstOffsets (0x20) image operands are used
             // The ImageOperands word position varies by instruction layout
             var imageOperandsIndex = i.Op switch
@@ -1480,8 +1488,6 @@ public class CaptureLoadedShaders(IExternalShaderLoader inner) : IExternalShader
         return result;
     }
 
-    public bool LoadExternalBuffer(string name, string? filename, string code, ReadOnlySpan<ShaderMacro> defines, out ShaderBuffers bytecode, out ObjectId hash, out bool isFromCache)
-        => inner.LoadExternalBuffer(name, filename, code, defines, out bytecode, out hash, out isFromCache);
-
-    public ObjectId? SourceHashOverride { get => inner.SourceHashOverride; set => inner.SourceHashOverride = value; }
+    public bool LoadExternalBuffer(string name, string? filename, string code, ObjectId sourceHash, ReadOnlySpan<ShaderMacro> defines, out ShaderBuffers bytecode, out ObjectId hash, out bool isFromCache)
+        => inner.LoadExternalBuffer(name, filename, code, sourceHash, defines, out bytecode, out hash, out isFromCache);
 }

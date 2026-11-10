@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using GraphX;
-using GraphX.PCL.Logic.Models;
+using GraphX.Logic.Models;
 using QuickGraph;
 
 namespace Stride.Core.Presentation.Graph.ViewModel

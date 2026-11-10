@@ -54,11 +54,11 @@ public class ItemNodePresenter : NodePresenterBase
 
     public override ITypeDescriptor? Descriptor { get; }
 
-    public override object Value => Container.Retrieve(Index);
+    public override object? Value => Container.Retrieve(Index);
 
     protected override IObjectNode? ParentingNode => Container.ItemReferences != null ? Container.IndexedTarget(Index) : null;
 
-    public override void UpdateValue(object newValue)
+    public override void UpdateValue(object? newValue)
     {
         try
         {
@@ -77,7 +77,7 @@ public class ItemNodePresenter : NodePresenterBase
 
         try
         {
-            Container.IndexedTarget(Index).Add(value);
+            Container.IndexedTarget(Index)!.Add(value);
         }
         catch (Exception e)
         {
@@ -92,7 +92,7 @@ public class ItemNodePresenter : NodePresenterBase
 
         try
         {
-            Container.IndexedTarget(Index).Add(value, index);
+            Container.IndexedTarget(Index)!.Add(value, index);
         }
         catch (Exception e)
         {
@@ -107,7 +107,7 @@ public class ItemNodePresenter : NodePresenterBase
 
         try
         {
-            Container.IndexedTarget(Index).Remove(value, index);
+            Container.IndexedTarget(Index)!.Remove(value, index);
         }
         catch (Exception e)
         {

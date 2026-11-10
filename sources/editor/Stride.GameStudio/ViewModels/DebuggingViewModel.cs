@@ -15,6 +15,7 @@ using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Components.Status;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
@@ -34,6 +35,8 @@ using Stride.GameStudio.Services;
 using Stride.GameStudio.Remote;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Assets.Presentation.ViewModel;
+using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.CrashReport;
 
 namespace Stride.GameStudio.ViewModels
 {
@@ -765,7 +768,7 @@ namespace Stride.GameStudio.ViewModels
                 var buildTask = await currentBuild.BuildTask;
 
                 // The compiler runs (and any crash is written) by the time the build task completes; surface it.
-                CompilerCrashRouting.SurfacePendingCrashes(logger);
+                CompilerCrashRouting.SurfacePendingCrashes(message => logger.Warning(message));
 
                 // Execute
                 if (startProject && !currentBuild.IsCanceled && !logger.HasErrors && projectViewModel.Platform != PlatformType.Shared)
@@ -878,7 +881,7 @@ namespace Stride.GameStudio.ViewModels
                 return false;
             }
 
-            var saved = await Session.SaveSession();
+            var saved = await Session.SaveSessionAsync();
 
             if (!saved)
             {

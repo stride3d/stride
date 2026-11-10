@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.Core;
 using Stride.Core.Serialization;
@@ -32,13 +31,11 @@ namespace Stride.Animations
             }
         }
 
-        public unsafe override void Serialize(ref AnimationKeyValuePair<T>[] obj, ArchiveMode mode, SerializationStream stream)
+        public override void Serialize(ref AnimationKeyValuePair<T>[] obj, ArchiveMode mode, SerializationStream stream)
         {
             if (mode == ArchiveMode.Deserialize)
             {
-                var rawData = stream.ReadBytes(Unsafe.SizeOf<AnimationKeyValuePair<T>>() * obj.Length);
-                var destination = MemoryMarshal.AsBytes(obj.AsSpan());
-                rawData.AsSpan().CopyTo(destination);
+                stream.Serialize(MemoryMarshal.AsBytes(obj.AsSpan()));
             }
             else if (mode == ArchiveMode.Serialize)
             {

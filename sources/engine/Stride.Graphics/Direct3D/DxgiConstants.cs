@@ -31,6 +31,11 @@ internal static class DxgiConstants
     public const uint SharedAccessResourceWrite = 1;
 
     /// <summary>
+    ///   A resource access flag that identifies a shared resource with read access (<c>DXGI_SHARED_RESOURCE_READ</c>).
+    /// </summary>
+    public const uint SharedAccessResourceRead = 0x80000000;
+
+    /// <summary>
     ///   A factory creation flag that instructs the runtime to load the debug layer (<c>DXGIDebug.dll</c>)
     ///   alongside the factory object.
     /// </summary>

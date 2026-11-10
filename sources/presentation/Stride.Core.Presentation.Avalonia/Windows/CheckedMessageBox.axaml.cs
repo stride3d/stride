@@ -22,6 +22,12 @@ public partial class CheckedMessageBox : MessageBox
     public static readonly StyledProperty<bool> IsCheckedProperty =
         AvaloniaProperty.Register<CheckedMessageBox, bool>(nameof(IsChecked));
 
+    public CheckedMessageBox()
+    {
+        // The base constructor loads the template of a plain message box: this one adds the check box
+        InitializeComponent();
+    }
+
     public string CheckedMessage
     {
         get { return (string)GetValue(CheckedMessageProperty); }

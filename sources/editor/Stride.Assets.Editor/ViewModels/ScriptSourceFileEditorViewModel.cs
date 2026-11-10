@@ -1,0 +1,300 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using System.Text;
+using Stride.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Editor.Annotations;
+using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Diagnostics;
+using Stride.Core.Presentation.Commands;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.Windows;
+using Stride.Core.Translation;
+using Stride.Assets.Editor.AssetEditors.ScriptEditor;
+
+namespace Stride.Assets.Editor.ViewModels;
+
+/// <summary>
+/// The editor of a script: the text of its file, which the editor saves itself (with its own Save, or when the session saves),
+/// and reloads when another program changes the file while the editor has no unsaved edit. The script is dirty while the
+/// text has unsaved edits, as in the WPF editor.
+/// </summary>
+[AssetEditorViewModel<ScriptSourceFileViewModel>]
+public sealed class ScriptSourceFileEditorViewModel : AssetEditorViewModel<ScriptSourceFileViewModel>
+{
+    /// <summary>
+    /// The smallest font size of the editor.
+    /// </summary>
+    public const int MinimumFontSize = 8;
+
+    /// <summary>
+    /// The largest font size of the editor.
+    /// </summary>
+    public const int MaximumFontSize = 72;
+
+    private string savedText;
+    private string currentText;
+    private bool isModified;
+    // The size of the last editor, shared with the WPF script editor
+    private int fontSize = Math.Clamp(ScriptEditorSettings.FontSize.GetValue(), MinimumFontSize, MaximumFontSize);
+    private FileContentSignature signature;
+    // The file that the text was read from or saved to: until the session saves a rename, the script keeps its old file
+    private string? filePath;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ScriptSourceFileEditorViewModel"/> class.
+    /// </summary>
+    /// <param name="asset">The script to edit.</param>
+    public ScriptSourceFileEditorViewModel(ScriptSourceFileViewModel asset)
+        : base(asset)
+    {
+        savedText = currentText = asset.Asset.Text ?? string.Empty;
+        filePath = FilePath;
+        signature = FileContentSignature.Capture(filePath);
+        // Enabled while the text has unsaved edits
+        SaveCommand = new AnonymousTaskCommand(ServiceProvider, SaveAsync) { IsEnabled = false };
+    }
+
+    /// <summary>
+    /// Occurs when the editor reloaded the file after another program changed it, with the new text.
+    /// </summary>
+    public event EventHandler<string>? TextReloaded;
+
+    /// <summary>
+    /// Gets the current text of the script, with the unsaved edits.
+    /// </summary>
+    public string Text => currentText;
+
+    /// <summary>
+    /// Gets the command that saves the text to the file of the script.
+    /// </summary>
+    public ICommandBase SaveCommand { get; }
+
+    /// <summary>
+    /// Gets whether the text has edits that are not saved.
+    /// </summary>
+    public bool IsModified
+    {
+        get => isModified;
+        private set => SetValue(ref isModified, value, () =>
+        {
+            SaveCommand.IsEnabled = value;
+            Asset.SetHasUnsavedText(value);
+            Session.Internals().UpdateHasUnsavedChanges();
+        });
+    }
+
+    /// <summary>
+    /// Gets or sets the font size of the editor, between <see cref="MinimumFontSize"/> and <see cref="MaximumFontSize"/>. A change
+    /// is saved in the settings (<see cref="ScriptEditorSettings.FontSize"/>), as in WPF, for the next editors.
+    /// </summary>
+    public int FontSize
+    {
+        get => fontSize;
+        set
+        {
+            if (SetValue(ref fontSize, Math.Clamp(value, MinimumFontSize, MaximumFontSize)))
+            {
+                ScriptEditorSettings.FontSize.SetValue(fontSize);
+                ScriptEditorSettings.Save();
+            }
+        }
+    }
+
+    private string? FilePath => Asset.AssetItem.FullPath?.ToOSPath();
+
+    /// <summary>
+    /// Records an edit of the user.
+    /// </summary>
+    /// <param name="text">The text after the edit.</param>
+    public void OnTextEdited(string text)
+    {
+        currentText = text ?? string.Empty;
+        IsModified = !string.Equals(currentText, savedText, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Reloads the file if another program changed it and the text has no unsaved edit; the view calls it when the editor gets
+    /// the focus.
+    /// </summary>
+    public void CheckExternalChanges()
+    {
+        ReloadExternalChanges(beforeSessionSave: false);
+    }
+
+    private void ReloadExternalChanges(bool beforeSessionSave)
+    {
+        if (IsModified)
+            return;
+
+        FollowSavedMove();
+        var current = FileContentSignature.Capture(filePath);
+        if (current == signature)
+            return;
+
+        // The session does not write a script that has no change: it does not bring back a file that another program deleted
+        if (beforeSessionSave && !current.Exists)
+            return;
+
+        string text;
+        try
+        {
+            text = current.Exists ? File.ReadAllText(filePath!) : string.Empty;
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            // Another program still holds the file: the signature is kept, so the next check reads it again
+            return;
+        }
+
+        savedText = currentText = text;
+        signature = current;
+        Asset.Asset.Text = currentText;
+        TextReloaded?.Invoke(this, currentText);
+    }
+
+    /// <summary>
+    /// Follows a rename that the session saved: the file of the script moved, so the editor watches the new one.
+    /// </summary>
+    private void FollowSavedMove()
+    {
+        var path = FilePath;
+        if (path == filePath || string.IsNullOrEmpty(path) || !File.Exists(path) || (filePath != null && File.Exists(filePath)))
+            return;
+
+        filePath = path;
+        signature = FileContentSignature.Capture(path);
+    }
+
+    /// <summary>
+    /// Saves the text to the file of the script, after asking the user when another program changed the file since the editor
+    /// read it. Without unsaved edits, it does nothing.
+    /// </summary>
+    /// <returns>A task that completes when the file is saved, or when the user chose not to overwrite it.</returns>
+    public async Task SaveAsync()
+    {
+        FollowSavedMove();
+        var path = FilePath;
+        if (!IsModified || string.IsNullOrEmpty(path))
+            return;
+
+        // Another program changed the file since the editor read it: ask before overwriting its changes
+        var current = FileContentSignature.Capture(filePath);
+        if (current.Exists && current != signature)
+        {
+            var dialogService = ServiceProvider.Get<IDialogService>();
+            var message = string.Format(Tr._p("Message", "The file {0} changed on disk since it was opened.\r\n\r\nDo you want to overwrite it with your changes?"), Path.GetFileName(path));
+            var result = await dialogService.MessageBoxAsync(message, MessageBoxButton.OKCancel, MessageBoxImage.Warning);
+            if (result != MessageBoxResult.OK)
+                return;
+        }
+
+        // The user can keep typing while the file is written: what is saved is the text of now
+        var text = currentText;
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        await File.WriteAllTextAsync(path, text, EncodingOf(File.Exists(path) || string.IsNullOrEmpty(filePath) ? path : filePath));
+
+        Asset.Asset.Text = text;
+        savedText = text;
+        filePath = path;
+        signature = FileContentSignature.Capture(path);
+        IsModified = !string.Equals(currentText, savedText, StringComparison.Ordinal);
+    }
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// The session saves the unsaved edits of the text through <see cref="SaveAsync"/>, which asks before overwriting a change of
+    /// another program. Without edits, the script takes the change of another program first, so that the session (which writes
+    /// a renamed script) does not write an old text. A file that cannot be written is an error of the session save; the edits
+    /// stay unsaved.
+    /// </remarks>
+    public override async Task SaveChangesAsync(ILogger logger)
+    {
+        try
+        {
+            if (IsModified)
+                await SaveAsync();
+            else
+                ReloadExternalChanges(beforeSessionSave: true);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            logger.Error(string.Format(Tr._p("Log", "The script {0} could not be saved. {1}"), Asset.Url, e.Message), e);
+        }
+    }
+
+    /// <inheritdoc />
+    public override void Destroy()
+    {
+        // The edits that the user dropped (Don't save) go with the editor: the script has the text of its file again
+        Asset.SetHasUnsavedText(false);
+        Session.Internals().UpdateHasUnsavedChanges();
+        base.Destroy();
+    }
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// Unsaved edits are never dropped silently: with <paramref name="save"/> <c>null</c>, the user saves them, drops them, or
+    /// keeps the editor open. The editor stays open when the save did not happen (the user kept a change of another program).
+    /// </remarks>
+    public override async Task<bool> PreviewCloseAsync(bool? save)
+    {
+        if (!IsModified || save == false)
+            return true;
+
+        if (save is null)
+        {
+            var buttons = new[]
+            {
+                new DialogButtonInfo { Content = Tr._p("Button", "Save"), Result = (int)MessageBoxResult.Yes, IsDefault = true },
+                new DialogButtonInfo { Content = Tr._p("Button", "Don't save"), Result = (int)MessageBoxResult.No },
+                new DialogButtonInfo { Content = Tr._p("Button", "Cancel"), Result = (int)MessageBoxResult.Cancel, IsCancel = true },
+            };
+            var message = string.Format(Tr._p("Message", "The script {0} has unsaved changes.\r\n\r\nDo you want to save them?"), Asset.Name);
+            var result = await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, buttons, MessageBoxImage.Question);
+            if (result == (int)MessageBoxResult.No)
+                return true;
+            if (result != (int)MessageBoxResult.Yes)
+                return false;
+        }
+
+        try
+        {
+            await SaveAsync();
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            var message = string.Format(Tr._p("Message", "The script {0} could not be saved.\r\n\r\n{1}"), Asset.Name, e.Message);
+            await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
+            return false;
+        }
+        return !IsModified;
+    }
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// A synchronous close can neither save nor ask: the editor closes only when no edit would be lost, see
+    /// <see cref="PreviewCloseAsync"/>.
+    /// </remarks>
+    public override bool PreviewClose(bool? save)
+    {
+        return !IsModified || save == false;
+    }
+
+    /// <summary>
+    /// The encoding to save a file with: UTF-8, with a byte order mark unless the file has none, so that a save changes only
+    /// the text. A new file gets one, as the session writes source files.
+    /// </summary>
+    private static Encoding EncodingOf(string path)
+    {
+        if (!File.Exists(path))
+            return Encoding.UTF8;
+
+        Span<byte> start = stackalloc byte[3];
+        using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+        var length = stream.ReadAtLeast(start, start.Length, throwOnEndOfStream: false);
+        var hasByteOrderMark = start[..length].SequenceEqual(Encoding.UTF8.Preamble);
+        return hasByteOrderMark ? Encoding.UTF8 : new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+    }
+}

@@ -11,9 +11,9 @@ shader GeometryWithoutInputs
     stream float4 ColorTarget : SV_Target0;
     stream float4 Corner : CORNER;
 
+    // Doesn't write ShadingPosition: the geometry shader writes it in a loop, so it would have to carry it, as an input
     void VSMain()
     {
-        streams.ShadingPosition = streams.Position;
     }
 
     [maxvertexcount(3)]

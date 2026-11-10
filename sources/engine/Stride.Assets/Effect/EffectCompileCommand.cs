@@ -61,6 +61,9 @@ namespace Stride.Assets.Effect
             writer.Write(EffectBytecode.MagicHeader);
             writer.Write(ShaderCompilerVersion.Shader);
             writer.Write(ShaderCompilerVersion.Effect);
+
+            // Bump when what the command saves changes without a compiler change
+            writer.Write(1);
         }
 
         protected override Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)
@@ -147,7 +150,8 @@ namespace Stride.Assets.Effect
                     // Create compiler
                     var effectCompiler = new EffectCompiler(MicrothreadLocalDatabases.DatabaseFileProvider);
                     effectCompiler.SourceDirectories.Add(EffectCompilerBase.DefaultSourceShaderFolder);
-                    compiler = new EffectCompilerCache(effectCompiler, MicrothreadLocalDatabases.DatabaseFileProvider) { CurrentCache = EffectBytecodeCacheLoadSource.StartupCache };
+                    // Each command has its own database: its entry in the index is saved with its result
+                    compiler = new EffectCompilerCache(effectCompiler, MicrothreadLocalDatabases.ProviderService) { CurrentCache = EffectBytecodeCacheLoadSource.StartupCache };
                     context.Properties.Set(CompilerKey, compiler);
 
                     var shaderLocations = context.Properties.Get(EffectShaderAssetCompiler.ShaderLocationsKey);

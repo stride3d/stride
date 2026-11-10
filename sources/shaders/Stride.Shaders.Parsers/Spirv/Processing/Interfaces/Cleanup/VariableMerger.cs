@@ -66,6 +66,8 @@ internal static class VariableMerger
             stream.Value.InternalPatchConstantOutput = false;
             stream.Value.Read = false;
             stream.Value.Write = false;
+            stream.Value.DefiniteWrite = false;
+            stream.Value.MaybeRead = false;
         }
     }
 }

@@ -21,14 +21,14 @@ internal static class NewCommand
             Description = "Template short name (e.g. stride-game). Run 'stride new list' to see them.",
         };
         var nameOption = new Option<string?>("--name", "-n") { Description = "Name of the generated project." };
-        var outputOption = new Option<string?>("--output", "-o") { Description = "Output directory (defaults to ./<name>, or to the current directory for an asset pack)." };
+        var outputOption = new Option<string?>("--output", "-o") { Description = "Output directory (defaults to ./<name>). An asset pack goes into the package around the current directory; with this option its Assets and Resources are written here." };
         var packageOption = new Option<string[]>("--package", "-p")
         {
             Description = "Additional template package to include (a package id, or a path to a local .nupkg). Repeatable.",
             Arity = ArgumentArity.ZeroOrMore,
             AllowMultipleArgumentsPerToken = true,
         };
-        var versionOption = new Option<string?>("--version") { Description = "Use a specific Stride version instead of the newest installed one (for an asset pack, instead of the version of the project in the output directory)." };
+        var versionOption = new Option<string?>("--version") { Description = "Use a specific Stride version instead of the newest installed one (for an asset pack, instead of the version of the project it goes into)." };
         var forceOption = new Option<bool>("--force") { Description = "Create the project even if the output directory already exists and is not empty (overwrites)." };
 
         var command = new Command("new", "Create a project from an installed Stride version's templates.");
@@ -77,10 +77,32 @@ internal static class NewCommand
 
             var versionSpec = parseResult.GetValue(versionOption);
             var packages = parseResult.GetValue(packageOption);
-            var itemOutput = parseResult.GetValue(outputOption) ?? Environment.CurrentDirectory;
+            var explicitOutput = parseResult.GetValue(outputOption);
             var context = await LoadTemplates(manager, versionSpec, packages, cancellationToken);
-            if (context is not null)
-                context = await MoveToChosenVersion(manager, context, ResolveTemplate(context.Templates, templateName), versionSpec, packages, itemOutput, cancellationToken);
+            if (context is null)
+                return 1;
+
+            // An asset pack follows the package it goes into, for its version too.
+            AssetPackPlacement.PackageChoice? packPackage = null;
+            AssetPackPlacement.PackFolders? packFolders = null;
+            var firstTemplate = ResolveTemplate(context.Templates, templateName);
+            if (explicitOutput is null && firstTemplate is not null && NewTemplateRules.IsItemTemplate(firstTemplate.TagsCollection))
+            {
+                try
+                {
+                    packPackage = AssetPackPlacement.ChoosePackage(Environment.CurrentDirectory);
+                    packFolders = AssetPackPlacement.GetFolders(packPackage.Project);
+                }
+                catch (Exception exception) when (exception is InvalidOperationException or IOException or UnauthorizedAccessException)
+                {
+                    context.Registry.Dispose();
+                    Console.Error.WriteLine(exception.Message);
+                    return 1;
+                }
+            }
+
+            var itemOutput = explicitOutput ?? packPackage?.Project.Directory ?? Environment.CurrentDirectory;
+            context = await MoveToChosenVersion(manager, context, firstTemplate, versionSpec, packages, itemOutput, cancellationToken);
             if (context is null)
                 return 1;
 
@@ -120,6 +142,9 @@ internal static class NewCommand
 
                 var resolvedName = template.ShortNameList.FirstOrDefault() ?? templateName;
                 Console.WriteLine($"Creating '{name}' from {resolvedName} (Stride {version})...");
+                if (isItemTemplate)
+                    return await AddAssetPack(context.Registry, template, name, parameters, packPackage, packFolders ?? AssetPackPlacement.GetFolders(output), version, cancellationToken);
+
                 var result = await context.Registry.InstantiateAsync(template, name, output, parameters, cancellationToken);
                 if (result.Status != CreationResultStatus.Success)
                 {
@@ -143,7 +168,8 @@ internal static class NewCommand
                     else
                     {
                         Console.WriteLine($"Upgrading the project from Stride {templateVersion} to {version}...");
-                        var exitCode = Tools.Run(compiler, $"the Asset Compiler for Stride {version}", ["upgrade", solutionFile], wait: true, sessionPath: solutionFile, toolReadsHostArgs: false);
+                        // The files the upgrade overwrites only just came from the template: nothing to back up.
+                        var exitCode = Tools.Run(compiler, $"the Asset Compiler for Stride {version}", ["upgrade", solutionFile, "--no-backup"], wait: true, sessionPath: solutionFile, toolReadsHostArgs: false);
                         if (exitCode != 0)
                         {
                             Console.Error.WriteLine($"The upgrade to Stride {version} failed (exit code {exitCode}). The project was created, but it may still be on Stride {templateVersion}.");
@@ -157,6 +183,38 @@ internal static class NewCommand
         });
 
         return command;
+    }
+
+    // Adds a pack to the folders it goes to. Prints the reason and returns 1 when it is refused.
+    private static async Task<int> AddAssetPack(
+        DotNetNewTemplateRegistry registry, ITemplateInfo template, string name, IReadOnlyDictionary<string, string> parameters,
+        AssetPackPlacement.PackageChoice? package, AssetPackPlacement.PackFolders folders, PackageVersion engine, CancellationToken cancellationToken)
+    {
+        try
+        {
+            AssetPackPlacement.CheckVersionForRewrite(engine, folders);
+
+            var (hasAssets, hasResources) = await AssetPackPlacement.AddAsync(async staging =>
+            {
+                var result = await registry.InstantiateAsync(template, name, staging, parameters, cancellationToken);
+                if (result.Status != CreationResultStatus.Success)
+                    throw new InvalidOperationException($"Template creation failed: {result.ErrorMessage}");
+            }, name, folders);
+
+            if (package?.Note is { } note)
+                Console.WriteLine(note);
+            if (package is null && hasAssets && AssetPackPlacement.GetOutputWarning(folders.Assets) is { } warning)
+                Console.Error.WriteLine(warning);
+
+            var written = string.Join(", ", new[] { hasAssets ? $"assets in '{folders.Assets}'" : null, hasResources ? $"resources in '{folders.Resources}'" : null }.OfType<string>());
+            Console.WriteLine(package is null ? $"Created '{name}': {written}." : $"Added '{name}' to package '{package.Project.Name}': {written}.");
+            return 0;
+        }
+        catch (Exception exception) when (exception is InvalidOperationException or IOException or UnauthorizedAccessException)
+        {
+            Console.Error.WriteLine(exception.Message);
+            return 1;
+        }
     }
 
     // The version + open registry + templates shared by `new <template>` and `new list`. Resolves the version

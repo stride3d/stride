@@ -19,7 +19,7 @@ partial class PackageSession
     /// <param name="rootDirectory">The root directory used to resolve packages, if available.</param>
     /// <param name="log">The logger for package loading.</param>
     /// <param name="loadEditorPackages">Whether to load editor companion packages.</param>
-    /// <param name="editorToolkit">The editor's UI toolkit (Wpf); Editor companions for another toolkit are skipped.</param>
+    /// <param name="editorToolkit">The editor's UI toolkit (Wpf or Avalonia); Editor companions for another toolkit are skipped.</param>
     internal void LoadCompanionPackages(string? rootDirectory, ILogger log, bool loadEditorPackages, string? editorToolkit)
     {
         var loadedByName = new Dictionary<string, StandalonePackage>(StringComparer.OrdinalIgnoreCase);

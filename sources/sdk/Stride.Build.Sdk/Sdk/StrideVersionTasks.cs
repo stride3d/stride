@@ -221,7 +221,7 @@ public class ResolveStrideWorktreeVersion : Task
         string majorMinor, version;
         StrideVersionUtil.ReadInputs(SourceVersionFile, out majorMinor, out version, out _);
 
-        // The committed suffix (-beta1) is for release builds only: here the suffix is the worktree one alone, as on
+        // The committed suffix (-beta) is for release builds only: here the suffix is the worktree one alone, as on
         // the producer side (Stride.NuGetVersion.props), so the const matches the package. Always emit the overlay
         // (even when it equals the committed version): the base file's PublicVersion is a sentinel, so leaving the
         // base to compile would ship it.

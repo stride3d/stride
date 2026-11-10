@@ -96,8 +96,35 @@ public class KeysGeneratorTests
         Assert.Contains("ParameterKeys.NewValue<Vector2>()", generated);
     }
 
-    // Runs the generator on the shader and compiles its output with the C# source
-    private static (string Generated, List<string> Errors) Build(string shader, string csharp)
+    [Fact]
+    public void PreprocessorErrorNamesTheFileAndLine()
+    {
+        var (generated, errors) = Build("shader KeysGeneratorCheck { };\n#error bad thing\n", "");
+
+        Assert.Equal("// The errors of this file are in the build output\n", generated);
+        Assert.Contains("KeysGeneratorCheck.sdsl(2,2): #error bad thing", Assert.Single(errors));
+    }
+
+    // The compiler doesn't show an #error of generated code when the project's own code has errors: the error is a diagnostic of the file
+    [Theory]
+    [InlineData("Shader.sdsl", "shader S\n{\n    float F() { return 1 }\n};", "Shader.sdsl(3,")]
+    [InlineData("Effects.sdfx", "namespace Game\n{\n    effect E\n    {\n        using params P;\n        using params P;\n    }\n}", "Effects.sdfx(6,9): error SDSL: Unexpected declaration of using params. This variable is already declared in this scope")]
+    [InlineData("Effects.sdfx", "namespace Game\n{\n    shader S { float4 F() { return 0; } };\n}", "Effects.sdfx(3,5): error SDSL: 'Effects.sdfx' contains a 'shader' declaration.")]
+    [InlineData("Effects.sdfx", "namespace Game\n{\n    shader E\n    {\n        mixin A;\n        mixin child B;\n    };\n}", "Effects.sdfx(3,5): error SDSL0313: An .sdfx file declares an effect with 'effect', not 'shader': write 'effect E'")]
+    [InlineData("Effects.sdfx", "partial shader E { mixin A; }", "Effects.sdfx(1,9): error SDSL0313: An .sdfx file declares an effect with 'effect', not 'shader': write 'partial effect E'")]
+    public void AnErrorOfAShaderFileIsADiagnosticOfThatFile(string path, string text, string message)
+    {
+        var (generated, errors) = Build([(path, text)], "using Game.Missing; class UsesTheEffects { }");
+
+        Assert.Equal("// The errors of this file are in the build output\n", generated);
+        Assert.Contains(errors, x => x.Contains(message));
+        Assert.Contains(errors, x => x.Contains("error CS0246"));
+    }
+
+    private static (string Generated, List<string> Errors) Build(string shader, string csharp) => Build([("KeysGeneratorCheck.sdsl", shader)], csharp);
+
+    // Runs the generator on the shader files and compiles its output with the C# source
+    private static (string Generated, List<string> Errors) Build((string Path, string Text)[] files, string csharp)
     {
         // The assemblies the generated keys use
         var references = new[] { typeof(object), typeof(Stride.Rendering.ParameterKeys), typeof(Stride.Core.Mathematics.Vector4), typeof(Stride.Graphics.Texture), typeof(Stride.Core.DataContractAttribute), typeof(Stride.Shaders.ShaderMixinSource) }
@@ -107,11 +134,11 @@ public class KeysGeneratorTests
             .Select(x => MetadataReference.CreateFromFile(x))
             .ToList();
         var compilation = CSharpCompilation.Create("KeysGeneratorCheck", [CSharpSyntaxTree.ParseText(csharp)], references, new(OutputKind.DynamicallyLinkedLibrary));
-        GeneratorDriver driver = CSharpGeneratorDriver.Create([new EffectGenerator().AsSourceGenerator()], additionalTexts: [new ShaderText("KeysGeneratorCheck.sdsl", shader)]);
-        driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var output, out _);
+        GeneratorDriver driver = CSharpGeneratorDriver.Create([new EffectGenerator().AsSourceGenerator()], additionalTexts: [.. files.Select(x => new ShaderText(x.Path, x.Text))]);
+        driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var output, out var generatorDiagnostics);
 
         var generated = string.Join("\n", driver.GetRunResult().GeneratedTrees.Select(x => x.ToString()));
-        var errors = output.GetDiagnostics().Where(x => x.Severity == DiagnosticSeverity.Error).Select(x => x.ToString()).ToList();
+        var errors = generatorDiagnostics.Concat(output.GetDiagnostics()).Where(x => x.Severity == DiagnosticSeverity.Error).Select(x => x.ToString()).ToList();
         return (generated, errors);
     }
 

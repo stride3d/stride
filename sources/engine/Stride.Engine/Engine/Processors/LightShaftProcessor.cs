@@ -14,6 +14,8 @@ namespace Stride.Engine.Processors
     public class LightShaftProcessor : EntityProcessor<LightShaftComponent, LightShaftProcessor.AssociatedData>, IEntityComponentRenderProcessor
     {
         private readonly List<RenderLightShaft> activeLightShafts = new List<RenderLightShaft>();
+        // The light processor of this processor's visibility group
+        private LightProcessor groupLightProcessor;
 
         /// <inheritdoc/>
         public VisibilityGroup VisibilityGroup { get; set; }
@@ -28,8 +30,25 @@ namespace Stride.Engine.Processors
         protected internal override void OnSystemRemove()
         {
             VisibilityGroup.Tags.Set(LightShafts.CurrentLightShafts, null);
+            groupLightProcessor = null;
 
             base.OnSystemRemove();
+        }
+
+        private LightProcessor GetLightProcessor()
+        {
+            if (groupLightProcessor == null)
+            {
+                foreach (var processor in EntityManager.Processors)
+                {
+                    if (processor is LightProcessor candidate && candidate.VisibilityGroup == VisibilityGroup)
+                    {
+                        groupLightProcessor = candidate;
+                        break;
+                    }
+                }
+            }
+            return groupLightProcessor;
         }
 
         /// <inheritdoc />
@@ -55,7 +74,7 @@ namespace Stride.Engine.Processors
             activeLightShafts.Clear();
 
             // Get processors
-            var lightProcessor = EntityManager.GetProcessor<LightProcessor>();
+            var lightProcessor = GetLightProcessor();
             if (lightProcessor == null)
                 return;
 

@@ -26,24 +26,27 @@ namespace Stride.Physics
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
-        public override void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            foreach (var shape in colliderShapes)
+            if (disposing)
             {
-                InternalCompoundShape.RemoveChildShape(shape.InternalShape);
+                foreach (var shape in colliderShapes)
+                {
+                    InternalCompoundShape.RemoveChildShape(shape.InternalShape);
 
-                if (!shape.IsPartOfAsset)
-                {
-                    shape.Dispose();
+                    if (!shape.IsPartOfAsset)
+                    {
+                        shape.Dispose();
+                    }
+                    else
+                    {
+                        shape.Parent = null;
+                    }
                 }
-                else
-                {
-                    shape.Parent = null;
-                }
+                colliderShapes.Clear();
             }
-            colliderShapes.Clear();
 
-            base.Dispose();
+            base.Dispose(disposing);
         }
 
         private readonly List<ColliderShape> colliderShapes = new List<ColliderShape>();

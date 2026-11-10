@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Runtime.CompilerServices;
 using Stride.Core;
 using Stride.Core.Mathematics;
 
@@ -32,16 +33,15 @@ namespace Stride.Physics
         public bool IsValid() => HeightmapUtils.CheckHeightParameters(HeightStickSize, HeightType, HeightRange, HeightScale, false) &&
             MathUtil.IsInRange(InitialHeight, HeightRange.X, HeightRange.Y);
 
-        public void CopyTo<T>(UnmanagedArray<T> heightStickArray, int index) where T : struct
+        public void CopyTo<T>(Span<T> heightStickArray) where T : struct
         {
-            if (heightStickArray == null) throw new ArgumentNullException(nameof(heightStickArray));
-            if (heightStickArray is UnmanagedArray<float> unmanagedArray)
+            if (typeof(T) == typeof(float))
             {
-                unmanagedArray.Fill(InitialHeight, index, HeightStickSize.X * HeightStickSize.Y);
+                heightStickArray.Fill(Unsafe.BitCast<float, T>(InitialHeight));
             }
             else
             {
-                throw new NotSupportedException($"{ typeof(UnmanagedArray<T>) } type is not supported.");
+                throw new NotSupportedException($"{ typeof(Span<T>) } type is not supported.");
             }
         }
 

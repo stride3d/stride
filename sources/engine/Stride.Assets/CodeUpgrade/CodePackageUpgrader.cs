@@ -26,8 +26,8 @@ public abstract class CodePackageUpgrader : PackageUpgrader, ICodeUpgradeProvide
 
     /// <summary>
     /// True if the version upgraded <em>from</em> is numerically below <paramref name="version"/>, ignoring
-    /// the prerelease suffix (4.4.0-beta1/-dev2/-mystudio all count as already at 4.4.0). The suffix is
-    /// cosmetic, so a format change must be paired with a numeric Patch bump and gates key off that number.
+    /// the prerelease suffix (4.5.3-beta/-dev2/-mystudio all count as already at 4.5.3). So a new gate must be paired
+    /// with a Patch bump, see docs/build/versioning.md.
     /// </summary>
     protected static bool UpgradingFromBefore(PackageDependency dependency, PackageVersion version)
         => dependency.Version.MinVersion.Version < version.Version;

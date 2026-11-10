@@ -62,6 +62,7 @@ jobs:
     environment: production  # requires manual approval in GitHub settings
     permissions:
       contents: write
+      id-token: write # nuget.org trusted publishing
     steps:
       - name: Resolve tag
         id: resolve
@@ -89,12 +90,20 @@ jobs:
           echo "ids=$IDS" >> "$GITHUB_OUTPUT"
           echo "::notice::Discovered from release assets: ${IDS:-<none>}"
 
+      # A short-lived key from nuget.org's trusted publishing policy for this workflow file, instead of a stored one
+      - name: NuGet login
+        id: nuget-login
+        if: ${{ inputs.unlist-nuget }}
+        uses: NuGet/login@v1
+        with:
+          user: ${{ vars.STRIDE_NUGET_USER }}
+
       - name: Unlist NuGet packages
         if: ${{ inputs.unlist-nuget }}
         continue-on-error: true
         shell: pwsh
         env:
-          STRIDE_NUGET_API_KEY: ${{ secrets.STRIDE_NUGET_API_KEY }}
+          STRIDE_NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
           VERSION: ${{ inputs.version }}
           DRY_RUN: ${{ inputs.dry-run }}
           EXPLICIT_IDS: ${{ inputs.package-ids }}

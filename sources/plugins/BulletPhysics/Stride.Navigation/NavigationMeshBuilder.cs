@@ -310,6 +310,9 @@ namespace Stride.Navigation
                         }
                     }
 
+                    // Tiles finish in any order and are saved in the order of the dictionary: keep them sorted, so that the same input gives the same bytes
+                    layer.TilesInternal = layer.TilesInternal.OrderBy(x => x.Key.Y).ThenBy(x => x.Key.X).ToDictionary();
+
                     // Add information about which tiles were updated to the result
                     if (tilesToBuild.Count > 0)
                     {
@@ -616,6 +619,9 @@ namespace Stride.Navigation
                         {
                             var heightfield = (HeightfieldColliderShape)shape;
 
+                            if (!heightfield.HasHeightData)
+                                continue;
+
                             var halfRange = (heightfield.MaxHeight - heightfield.MinHeight) * 0.5f;
                             var offset = -(heightfield.MinHeight + halfRange);
                             Matrix transform = Matrix.Translation(new Vector3(0, offset, 0)) * heightfield.PositiveCenterMatrix * entityWorldMatrix;
@@ -624,31 +630,29 @@ namespace Stride.Navigation
                             var length = heightfield.HeightStickLength - 1;
                             var mesh = GeometricPrimitive.Plane.New(width, length, width, length, normalDirection: NormalDirection.UpY, toLeftHanded: true);
 
-                            var arrayLength = heightfield.HeightStickWidth * heightfield.HeightStickLength;
-
                             using (heightfield.LockToReadHeights())
                             {
                                 switch (heightfield.HeightType)
                                 {
                                     case HeightfieldTypes.Short:
-                                        if (heightfield.ShortArray == null) continue;
-                                        for (int i = 0; i < arrayLength; ++i)
+                                        var shortSpan = heightfield.ShortSpan;
+                                        for (int i = 0; i < shortSpan.Length; ++i)
                                         {
-                                            mesh.Vertices[i].Position.Y = heightfield.ShortArray[i] * heightfield.HeightScale;
+                                            mesh.Vertices[i].Position.Y = shortSpan[i] * heightfield.HeightScale;
                                         }
                                         break;
                                     case HeightfieldTypes.Byte:
-                                        if (heightfield.ByteArray == null) continue;
-                                        for (int i = 0; i < arrayLength; ++i)
+                                        var byteSpan = heightfield.ByteSpan;
+                                        for (int i = 0; i < byteSpan.Length; ++i)
                                         {
-                                            mesh.Vertices[i].Position.Y = heightfield.ByteArray[i] * heightfield.HeightScale;
+                                            mesh.Vertices[i].Position.Y = byteSpan[i] * heightfield.HeightScale;
                                         }
                                         break;
                                     case HeightfieldTypes.Float:
-                                        if (heightfield.FloatArray == null) continue;
-                                        for (int i = 0; i < arrayLength; ++i)
+                                        var floatSpan = heightfield.FloatSpan;
+                                        for (int i = 0; i < floatSpan.Length; ++i)
                                         {
-                                            mesh.Vertices[i].Position.Y = heightfield.FloatArray[i];
+                                            mesh.Vertices[i].Position.Y = floatSpan[i];
                                         }
                                         break;
                                 }

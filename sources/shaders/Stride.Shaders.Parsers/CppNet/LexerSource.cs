@@ -183,19 +183,24 @@ internal class LexerSource : Source {
 
 	private int read() {
         System.Diagnostics.Debug.Assert(ucount <= 2, "Illegal ucount: " + ucount);
+		int	c;
 		switch (ucount) {
 			case 2:
 				ucount = 1;
-				return u1;
+				c = u1;
+				break;
 			case 1:
 				ucount = 0;
-				return u0;
+				c = u0;
+				break;
+			default:
+				if (reader == null)
+					return -1;
+				c = reader.read();
+				break;
 		}
 
-		if (reader == null)
-			return -1;
-
-		int	c = reader.read();
+		/* unread() moved the position back, so characters read again count too. */
 		switch (c) {
 			case '\r':
 				cr = true;

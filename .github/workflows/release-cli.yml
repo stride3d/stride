@@ -135,6 +135,7 @@ jobs:
     environment: production  # requires manual approval in GitHub settings
     permissions:
       contents: write
+      id-token: write # nuget.org trusted publishing
     steps:
       - name: Check release permissions
         env:
@@ -164,6 +165,13 @@ jobs:
           name: stride-cli-${{ needs.Package.outputs.version }}
           path: bin/cli
 
+      # A short-lived key from nuget.org's trusted publishing policy for this workflow file, instead of a stored one
+      - name: NuGet login
+        id: nuget-login
+        uses: NuGet/login@v1
+        with:
+          user: ${{ vars.STRIDE_NUGET_USER }}
+
       - name: Push to NuGet.org
         shell: bash
         run: |
@@ -172,7 +180,7 @@ jobs:
             dotnet nuget push "$pkg" --api-key "$STRIDE_NUGET_API_KEY" --source "https://api.nuget.org/v3/index.json" --timeout 1800 --skip-duplicate
           done
         env:
-          STRIDE_NUGET_API_KEY: ${{ secrets.STRIDE_NUGET_API_KEY }}
+          STRIDE_NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
 
       - name: Tag release
         run: |

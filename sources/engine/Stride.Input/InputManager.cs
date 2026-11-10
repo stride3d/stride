@@ -72,6 +72,12 @@ namespace Stride.Input
 
         private GameContext gameContext;
 
+        /// <summary>
+        /// Whether <see cref="Initialize"/> and <see cref="ResetSources"/> add the gamepad sources of the platform (DirectInput
+        /// and XInput on Windows). Editor games turn it off: they read no gamepad, and DirectInput takes about 0.3 s to start.
+        /// </summary>
+        internal bool UseGamePadSources { get; set; } = true;
+
         private Dictionary<IInputSource, EventHandler<TrackingCollectionChangedEventArgs>> devicesCollectionChangedActions = new Dictionary<IInputSource, EventHandler<TrackingCollectionChangedEventArgs>>();
 
 #if STRIDE_INPUT_RAWINPUT
@@ -716,9 +722,12 @@ namespace Stride.Input
                     // stack (DirectInput/XInput/raw input + SharpDX) when the WinForms backend is off.
                     if (GameContextFactory.WinFormsBackendEnabled)
                     {
-                        Sources.Add(new InputSourceWindowsDirectInput((context as GameContextWinforms)?.Control));
-                        if (InputSourceWindowsXInput.IsSupported())
-                            Sources.Add(new InputSourceWindowsXInput((context as GameContextWinforms)?.Control));
+                        if (UseGamePadSources)
+                        {
+                            Sources.Add(new InputSourceWindowsDirectInput((context as GameContextWinforms)?.Control));
+                            if (InputSourceWindowsXInput.IsSupported())
+                                Sources.Add(new InputSourceWindowsXInput((context as GameContextWinforms)?.Control));
+                        }
 #if STRIDE_INPUT_RAWINPUT
                         if (rawInputEnabled && context is GameContextWinforms gameContextWinforms)
                             Sources.Add(new InputSourceWindowsRawInput(gameContextWinforms.Control));

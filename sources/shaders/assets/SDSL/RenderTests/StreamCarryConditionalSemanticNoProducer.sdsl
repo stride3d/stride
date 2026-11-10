@@ -1,0 +1,31 @@
+// PSMain(ExpectedResult=#FFFFFFFF, cbuffer.Test=(Test1=1), stream.EXTRA_COLOR=(0.2 0.4 0.6 1.0))
+// PSMain(ExpectedResult=#00000000, cbuffer.Test=(Test1=0), stream.EXTRA_COLOR=(0.2 0.4 0.6 1.0))
+
+namespace Stride.Shaders.Tests;
+
+// A semantic is only a producer in the vertex shader. No stage before the pixel shader accesses this stream, so its false
+// branch stays at zero and the vertex shader gains no attribute, as for PositionWS in LightShaftsEffect.
+shader StreamCarryConditionalSemanticNoProducer
+{
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+    stream float4 ColorTarget : SV_Target0;
+    stream float4 ExtraColor : EXTRA_COLOR;
+
+    cbuffer Test
+    {
+        int Test1;
+    }
+
+    void VSMain()
+    {
+        streams.ShadingPosition = streams.Position;
+    }
+
+    void PSMain()
+    {
+        if (Test1 != 0)
+            streams.ExtraColor = float4(1.0, 1.0, 1.0, 1.0);
+        streams.ColorTarget = streams.ExtraColor;
+    }
+}

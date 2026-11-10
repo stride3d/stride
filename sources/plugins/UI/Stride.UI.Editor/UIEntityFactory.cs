@@ -3,7 +3,7 @@
 
 using System.Threading.Tasks;
 using Stride.Core;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories;
+using Stride.Assets.Editor.EntityFactories;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Engine;
 
@@ -13,7 +13,7 @@ namespace Stride.UI.Editor
     [Display(20, "UI", "2D")]
     public class UIEntityFactory : EntityFactory
     {
-        public override Task<Entity> CreateEntity(EntityHierarchyItemViewModel parent)
+        public override Task<Entity> CreateEntity(IEntityHierarchyItemViewModel parent)
         {
             var name = ComputeNewName(parent, "UI");
             var component = new UIComponent();

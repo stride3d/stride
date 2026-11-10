@@ -8,7 +8,7 @@
         xmlns:view="clr-namespace:Stride.Core.Assets.Editor.View"
         xmlns:behaviors="clr-namespace:Stride.Core.Assets.Editor.View.Behaviors"
         xmlns:valueConverters="clr-namespace:Stride.Core.Assets.Editor.View.ValueConverters"
-        xmlns:viewModel="clr-namespace:Stride.Core.Assets.Editor.ViewModel"
+        xmlns:editorvm="clr-namespace:Stride.Core.Assets.Editor.ViewModels;assembly=Stride.Core.Assets.Editor"
         mc:Ignorable="d" d:DesignHeight="300" d:DesignWidth="300"
         ShowInTaskbar="False"
         Title="{sd:Localize Select an asset}"
@@ -21,7 +21,7 @@
         <ResourceDictionary Source="CommonResources.xaml"/>
       </ResourceDictionary.MergedDictionaries>
 
-      <ContextMenu x:Key="AssetContextMenu" d:DataContext="{d:DesignInstance viewModel:AssetCollectionViewModel}">
+      <ContextMenu x:Key="AssetContextMenu" d:DataContext="{d:DesignInstance editorvm:AssetCollectionViewModel}">
         <MenuItem Header="{sd:Localize Asset, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
         <MenuItem Header="{sd:Localize Delete, Context=Menu}" Icon="{sd:Image {StaticResource ImageDelete}}"
                   Command="ApplicationCommands.Delete" CommandTarget="{Binding PlacementTarget, RelativeSource={RelativeSource AncestorType={x:Type ContextMenu}}}"/>

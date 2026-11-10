@@ -12,6 +12,8 @@ public class DynamicBuildStep : BuildStep
     /// </summary>
     private readonly AutoResetEvent newWorkAvailable = new(false);
 
+    private volatile bool stopped;
+
     public DynamicBuildStep(IBuildStepProvider buildStepProvider, int maxParallelSteps)
     {
         this.buildStepProvider = buildStepProvider;
@@ -40,6 +42,16 @@ public class DynamicBuildStep : BuildStep
         newWorkAvailable.Set();
     }
 
+    /// <summary>
+    /// Makes the dynamic build step return, even if the build was not running yet and could not be cancelled.
+    /// </summary>
+    internal void Stop()
+    {
+        // Set before the signal: a wait that the signal ends always sees it
+        stopped = true;
+        newWorkAvailable.Set();
+    }
+
     public override async Task<ResultStatus> Execute(IExecuteContext executeContext, BuilderContext builderContext)
     {
         var buildStepsToWait = new List<BuildStep>();
@@ -47,7 +59,7 @@ public class DynamicBuildStep : BuildStep
         while (true)
         {
             // interrupt the build if cancellation is required.
-            if (executeContext.CancellationTokenSource.Token.IsCancellationRequested)
+            if (stopped || executeContext.CancellationTokenSource.Token.IsCancellationRequested)
                 return ResultStatus.Cancelled;
 
             // Clean completed build steps

@@ -15,6 +15,7 @@
     <ProjectReference Include="..\Stride.Assets\Stride.Assets.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="TextureCPUReadTests.cs" />
     <Compile Include="XunitAttributes.cs" />
     <Compile Include="AutoAlphaTests.cs" />
   </ItemGroup>

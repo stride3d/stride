@@ -54,15 +54,13 @@ namespace Stride.Importer.ThreeD
 
         private static Assimp CreateAssimpApi()
         {
-            // On Windows the default loader picks the single shipped Assimp64.dll (Assimp 6.0.2).
+            // On Windows the default loader picks Stride.Dependencies.Assimp's Assimp64.dll.
             if (Platform.Type == PlatformType.Windows)
                 return Assimp.GetApi();
 
             // Silk.NET's Assimp binding still requests the legacy Assimp 5 SONAME (libassimp.so.5 /
-            // libassimp.5.dylib) even though its managed types match Assimp 6. Ultz.Native.Assimp 6.x
-            // ships both the old (.so.5) and new (.so.6) binaries, so the default loader binds the
-            // stale Assimp 5 lib on Linux/macOS and corrupts animation keys. Resolve the highest-version
-            // native library ourselves and build the API from it.
+            // libassimp.5.dylib) even though its managed types match Assimp 6. Stride.Dependencies.Assimp
+            // ships only the new one, so locate it ourselves and build the API from it.
             var libraryPath = NativeLibraryHelper.LocateLibrary("libassimp", typeof(MeshConverter));
             return new Assimp(Assimp.CreateDefaultContext([libraryPath]));
         }
@@ -102,16 +100,10 @@ namespace Stride.Importer.ThreeD
                     postProcessFlags |= aiPostProcessSteps.aiProcess_RemoveRedundantMaterials;
                 }
 
-                var scene = Initialize(inputFilename, outputFilename, importFlags, postProcessFlags);
-                // If scene is null, something went wrong inside Assimp
+                var scene = Initialize(inputFilename, outputFilename, importFlags, postProcessFlags, out var error);
                 if (scene == null)
                 {
-                    var error = assimp.GetErrorStringS();
-                    if (error.Length > 0)
-                    {
-                        Logger.Error($"Assimp: {error}");
-                    }
-
+                    Logger.Error(error);
                     return null;
                 }
 
@@ -160,19 +152,85 @@ namespace Stride.Importer.ThreeD
             }
         }
 
-        public unsafe Model Convert(string inputFilename, string outputFilename, bool deduplicateMaterials)
+        /// <summary>
+        /// Imports the model of a file.
+        /// </summary>
+        /// <param name="inputFilename">The file to import.</param>
+        /// <param name="outputFilename">The location of the output.</param>
+        /// <param name="deduplicateMaterials">Whether materials with the same properties are merged.</param>
+        /// <param name="materialSlots">
+        /// The names of the material slots of the model asset, which <see cref="Mesh.MaterialIndex"/> then refers to.
+        /// When <c>null</c>, it refers to the materials of the file.
+        /// </param>
+        /// <returns>The imported model.</returns>
+        public unsafe Model Convert(string inputFilename, string outputFilename, bool deduplicateMaterials, IReadOnlyList<string> materialSlots = null)
         {
             uint importFlags = 0;
 
-            aiPostProcessSteps postProcessFlags = 0;
+            var scene = Initialize(inputFilename, outputFilename, importFlags, 0);
+
+            // Deduplication runs on its own, to read the material of each mesh before and after it
+            var meshMaterials = materialSlots != null ? GetMeshMaterialSlotNames(scene) : null;
             if (deduplicateMaterials)
             {
-                postProcessFlags |= aiPostProcessSteps.aiProcess_RemoveRedundantMaterials;
+                scene = assimp.ApplyPostProcessing(scene, (uint)aiPostProcessSteps.aiProcess_RemoveRedundantMaterials);
+                if (scene == null)
+                    throw new InvalidOperationException(PostProcessingError(inputFilename));
             }
 
-            var scene = Initialize(inputFilename, outputFilename, importFlags, postProcessFlags);
-            return ConvertAssimpScene(scene);
+            var meshSlots = materialSlots != null ? FindMeshSlots(scene, meshMaterials, materialSlots) : null;
+            return ConvertAssimpScene(scene, meshSlots);
         }
+
+        /// <summary>
+        /// Finds the material slot of each mesh, by the name of its material or else of the material deduplication merged it into, and last by position.
+        /// </summary>
+        private unsafe int[] FindMeshSlots(Scene* scene, string[] meshMaterials, IReadOnlyList<string> materialSlots)
+        {
+            var slotIndices = new Dictionary<string, int>();
+            for (var i = 0; i < materialSlots.Count; i++)
+            {
+                if (materialSlots[i] != null)
+                    slotIndices.TryAdd(materialSlots[i], i);
+            }
+
+            var deduplicatedMaterials = GetMeshMaterialSlotNames(scene);
+            var meshSlots = new int[scene->MNumMeshes];
+            var notFound = new HashSet<string>();
+            var anyFound = false;
+            for (var i = 0; i < meshSlots.Length; i++)
+            {
+                if (slotIndices.TryGetValue(meshMaterials[i], out var slot) || slotIndices.TryGetValue(deduplicatedMaterials[i], out slot))
+                {
+                    meshSlots[i] = slot;
+                    anyFound = true;
+                }
+                else
+                {
+                    meshSlots[i] = (int)scene->MMeshes[i]->MMaterialIndex;
+                    notFound.Add(meshMaterials[i]);
+                }
+            }
+
+            if (anyFound && notFound.Count > 0)
+                Logger.Warning($"The model asset has no material slot named {string.Join(", ", notFound)}, so these meshes use the slot at the position of their material. Update the asset from its source if the file changed.");
+
+            return meshSlots;
+        }
+
+        private unsafe string[] GetMeshMaterialSlotNames(Scene* scene)
+        {
+            var materialNames = new Dictionary<IntPtr, string>();
+            GenerateMaterialNames(scene, materialNames);
+
+            var names = new string[scene->MNumMeshes];
+            for (uint i = 0; i < scene->MNumMeshes; i++)
+                names[i] = ToMaterialSlotName(materialNames[(IntPtr)scene->MMaterials[scene->MMeshes[i]->MMaterialIndex]]);
+            return names;
+        }
+
+        // Replace slashes with an underscore to indicate it is not absolute to Strides asset system.
+        private static string ToMaterialSlotName(string materialName) => materialName.Replace('/', '_');
 
         public unsafe AnimationInfo ConvertAnimation(string inputFilename, string outputFilename, int animationIndex)
         {
@@ -192,7 +250,21 @@ namespace Stride.Importer.ThreeD
             return ProcessSkeleton(scene);
         }
 
+        /// <summary>
+        /// Imports and post-processes a file, and throws when Assimp can't read it.
+        /// </summary>
         private unsafe Scene* Initialize(string inputFilename, string outputFilename, uint importFlags, aiPostProcessSteps postProcessFlags)
+        {
+            var scene = Initialize(inputFilename, outputFilename, importFlags, postProcessFlags, out var error);
+            if (scene == null)
+                throw new InvalidOperationException(error);
+            return scene;
+        }
+
+        /// <summary>
+        /// Imports and post-processes a file, or returns <c>null</c> with the reason in <paramref name="error"/>.
+        /// </summary>
+        private unsafe Scene* Initialize(string inputFilename, string outputFilename, uint importFlags, aiPostProcessSteps postProcessFlags, out string error)
         {
             ResetConversionData();
 
@@ -204,10 +276,19 @@ namespace Stride.Importer.ThreeD
             assimp.SetImportPropertyInteger(propStore, "IMPORT_FBX_PRESERVE_PIVOTS", 0); // Trade some issues for others, see: https://github.com/assimp/assimp/issues/894, https://github.com/assimp/assimp/issues/1974
             assimp.SetImportPropertyFloat(propStore, "APP_SCALE_FACTOR", .01f);
             var scene = assimp.ImportFileExWithProperties(inputFilename, importFlags, null, propStore);
+            assimp.ReleasePropertyStore(propStore);
+
+            if (scene == null)
+            {
+                var reason = assimp.GetErrorStringS();
+                error = reason.Length > 0 ? $"Assimp can't read {inputFilename}: {reason}" : $"Assimp can't read {inputFilename}.";
+                return null;
+            }
 
             postProcessFlags |= aiPostProcessSteps.aiProcess_CalcTangentSpace
                                 | aiPostProcessSteps.aiProcess_Triangulate
                                 | aiPostProcessSteps.aiProcess_GenNormals
+                                | aiPostProcessSteps.aiProcess_JoinIdenticalVertices
                                 | aiPostProcessSteps.aiProcess_SortByPType
                                 | aiPostProcessSteps.aiProcess_FlipWindingOrder
                                 | aiPostProcessSteps.aiProcess_FlipUVs
@@ -215,11 +296,14 @@ namespace Stride.Importer.ThreeD
                                 | aiPostProcessSteps.aiProcess_LimitBoneWeights;
 
             scene = assimp.ApplyPostProcessing(scene, (uint)postProcessFlags);
-            assimp.ReleasePropertyStore(propStore);
+            error = scene == null ? PostProcessingError(inputFilename) : null;
             return scene;
         }
 
-        private unsafe Model ConvertAssimpScene(Scene* scene)
+        // GetErrorString gives the reason of a failed import only, not of a failed post-processing step
+        private static string PostProcessingError(string inputFilename) => $"Assimp can't post-process {inputFilename}.";
+
+        private unsafe Model ConvertAssimpScene(Scene* scene, int[] meshSlots)
         {
             modelData = new Model();
 
@@ -259,7 +343,7 @@ namespace Stride.Importer.ThreeD
                     {
                         Draw = meshInfo.Draw,
                         Name = meshInfo.Name,
-                        MaterialIndex = meshInfo.MaterialIndex,
+                        MaterialIndex = meshSlots?[i] ?? meshInfo.MaterialIndex,
                         NodeIndex = nodeIndex,
                         MorphTargets = meshInfo.MorphTargets,
                     };
@@ -964,6 +1048,13 @@ namespace Stride.Importer.ThreeD
 
         private unsafe MeshInfo ProcessMesh(Scene* scene, Silk.NET.Assimp.Mesh* mesh, Dictionary<IntPtr, string> meshNames, Dictionary<IntPtr, int> nodePointerToNodeIndex, Dictionary<IntPtr, IntPtr> bonePointerToNodePointerMap)
         {
+            // SortByPType gives lines and points meshes of their own (an FBX rig's control shapes, for example). They have no surface to draw, and their faces don't have 3 indices.
+            if ((mesh->MPrimitiveTypes & (uint)Silk.NET.Assimp.PrimitiveType.Triangle) == 0)
+            {
+                Logger.Info($"Mesh {meshNames[(IntPtr)mesh]} has no triangles and is skipped.");
+                return null;
+            }
+
             List<MeshBoneDefinition> bones = null;
             var hasSkinningPosition = false;
             var hasSkinningNormal = false;
@@ -1481,8 +1572,7 @@ namespace Stride.Importer.ThreeD
             for (uint i = 0; i < scene->MNumMaterials; i++)
             {
                 var lMaterial = scene->MMaterials[i];
-                // Replace slashes with an underscore to indicate it is not absolute to Strides asset system.
-                var materialName = materialNames[(IntPtr)lMaterial].Replace('/', '_');
+                var materialName = ToMaterialSlotName(materialNames[(IntPtr)lMaterial]);
 
                 materials.Add(materialName, ProcessMeshMaterial(scene, lMaterial));
             }

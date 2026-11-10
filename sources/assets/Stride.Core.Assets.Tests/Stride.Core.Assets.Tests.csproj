@@ -18,8 +18,13 @@
     <Compile Include="..\..\core\Stride.Core.Design.Tests\TestMemberPathBase.cs">
       <Link>TestMemberPathBase.cs</Link>
     </Compile>
+    <!-- The resolver isn't in a referenced assembly: compile it here, as Stride.Cli does -->
+    <Compile Include="..\..\shared\Stride.NuGetResolver\RestoreHelper.cs" Link="Shared\RestoreHelper.cs" />
+    <Compile Include="..\..\shared\Stride.NuGetResolver\GraphicsApiSelector.cs" Link="Shared\GraphicsApiSelector.cs" />
+    <Compile Include="..\..\shared\Stride.NuGetResolver\NuGetResolverCache.cs" Link="Shared\NuGetResolverCache.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\engine\Stride.Assets\Stride.Assets.csproj" />
     <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
     <ProjectReference Include="..\Stride.Core.Assets\Stride.Core.Assets.csproj" />
   </ItemGroup>

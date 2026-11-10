@@ -1,0 +1,44 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable enable
+
+using System;
+using Stride.Animations;
+using Stride.Assets.Entities;
+using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Quantum;
+using Stride.Core.Reflection;
+using Stride.Engine;
+
+namespace Stride.Assets.Presentation.ViewModels;
+
+public abstract class EntityHierarchyViewModel : AssetCompositeHierarchyViewModel<EntityDesign, Entity>
+{
+    protected EntityHierarchyViewModel(AssetViewModelConstructionParameters parameters)
+        : base(parameters)
+    {
+    }
+
+    /// <summary>
+    /// Gets the root of the hierarchy of the open editor of this asset, or <c>null</c> when no editor is open.
+    /// </summary>
+    /// <remarks>
+    /// The undo and redo of the folders, which exist only in the editor, go through it.
+    /// </remarks>
+    public EntityHierarchyRootViewModel? HierarchyRoot { get; internal set; }
+
+    /// <inheritdoc />
+    public EntityViewModel CreatePartViewModel(EntityDesign partDesign)
+    {
+        return new EntityViewModel(this, partDesign);
+    }
+
+    /// <inheritdoc />
+    protected override bool ShouldConstructPropertyMember(IMemberNode member)
+    {
+        // Hide child nodes of a compute curve.
+        if (member.Parent.Type.HasInterface(typeof(IComputeCurve<>)) && member.Name == nameof(ComputeAnimationCurve<int>.KeyFrames))
+            return false;
+        return base.ShouldConstructPropertyMember(member);
+    }
+}

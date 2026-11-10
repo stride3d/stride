@@ -9,6 +9,7 @@ using Stride.Core.Annotations;
 using TreeView = Stride.Core.Presentation.Controls.TreeView;
 using TreeViewItem = Stride.Core.Presentation.Controls.TreeViewItem;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.View
 {

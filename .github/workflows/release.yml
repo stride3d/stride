@@ -31,10 +31,6 @@ on:
         description: Deploy to NuGet.org and create GitHub Release
         default: false
         type: boolean
-      bump-version:
-        description: After a stable deploy, commit the next Patch to the branch (open next dev version)
-        default: true
-        type: boolean
       upload-binlog:
         description: Capture and upload an MSBuild binlog (parallel/race diagnostics). Ignored on signed builds — a binlog records env vars/task params and would leak signing secrets.
         default: false
@@ -51,6 +47,9 @@ jobs:
   Validate:
     name: Validate
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      samples-version: ${{ steps.samples.outputs.samples-version }}
     steps:
       - name: Check deploy requires signing
         if: ${{ inputs.deploy && !inputs.sign }}
@@ -72,6 +71,59 @@ jobs:
             echo "::error::Sign/deploy blocked: '$USER' is not a member of $ORG/$TEAM, or GH_PAT cannot read it (dead token / missing Organization Members: Read). Requires stride-release-managers membership."
             exit 1
           fi
+
+      # What can be refused from the committed files alone is refused here, before the build.
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0  # full history + tags for the re-publish guard
+          fetch-tags: true
+          lfs: false
+
+      - name: Read the version
+        id: version
+        shell: pwsh
+        run: |
+          $file = Get-Content sources/shared/SharedAssemblyInfo.cs -Raw
+          $field = { param($name) [regex]::Match($file, "$name = `"([^`"]*)`";").Groups[1].Value }
+          $version = "$(& $field 'MajorMinor').$(& $field 'Patch')$(& $field 'NuGetVersionSuffix')"
+          # Only allow stable X.Y.Z or a pre-release with an alpha/beta/rc/preview suffix, with no number: the number
+          # before it moves at every release. This blocks typos like '-brta' and any stray suffix.
+          if ($version -notmatch '^\d+\.\d+\.\d+(-(alpha|beta|rc|preview))?$') {
+            echo "::error::Version '$version' is not an allowed release version. Use X.Y.Z or X.Y.Z-(alpha|beta|rc|preview) (e.g. 4.5.1, 4.5.1-beta) - check SharedAssemblyInfo.cs"
+            exit 1
+          }
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+          echo "::notice::Version: $version"
+
+      # Forget-to-bump guard: the version is the committed value in SharedAssemblyInfo.cs, bumped after every release. If
+      # it wasn't bumped, its releases/<version> tag already exists on the previously-released commit, so fail the
+      # deploy. Re-running the release on the exact tagged commit (idempotent) is allowed (tag points at HEAD).
+      - name: Guard against re-publishing an existing version
+        if: ${{ inputs.deploy }}
+        shell: bash
+        run: |
+          TAG="releases/${{ steps.version.outputs.version }}"
+          if git rev-parse "$TAG" >/dev/null 2>&1 && [ -z "$(git tag --points-at HEAD --list "$TAG")" ]; then
+            echo "::error::Version ${{ steps.version.outputs.version }} is already released (tag $TAG on another commit). Bump Patch in SharedAssemblyInfo.cs."
+            exit 1
+          fi
+
+      - name: Check the version doesn't go backward
+        if: ${{ inputs.deploy }}
+        shell: pwsh
+        run: ./.github/scripts/check-version-order.ps1 -Version "${{ steps.version.outputs.version }}"
+
+      # Whether this release includes the samples. release-deploy.yml checks the content version again, for a deploy of
+      # a build made earlier.
+      - name: Plan the samples
+        id: samples
+        shell: pwsh
+        run: ./.github/scripts/plan-sample-release.ps1 -Version "${{ steps.version.outputs.version }}"
+
+      - name: Check the samples of a stable engine
+        if: ${{ (inputs.sign || inputs.deploy) && !contains(steps.version.outputs.version, '-') }}
+        shell: pwsh
+        run: ./.github/scripts/check-sample-references.ps1 -RequireStable
 
   #
   # Build and package
@@ -112,6 +164,19 @@ jobs:
             & "${env:ProgramFiles(x86)}\Caphyon\Advanced Installer 22.0\bin\x86\AdvancedInstaller.com" /register "${{ secrets.ADVINST_LICENSE_KEY }}"
           }
 
+      # In this checkout only, so the engine names the packs built here: release-deploy.yml commits it once published.
+      - name: Name the new samples
+        if: ${{ needs.Validate.outputs.samples-version != '' }}
+        shell: pwsh
+        run: |
+          $file = 'sources/templates/StrideSamplesVersion.props'
+          $version = '${{ needs.Validate.outputs.samples-version }}'
+          (Get-Content $file -Raw) -replace '<_StrideCommittedSamplesVersion>[^<]*</', "<_StrideCommittedSamplesVersion>$version</" | Set-Content $file -NoNewline
+          if (-not (Select-String -Path $file -SimpleMatch "<_StrideCommittedSamplesVersion>$version</" -Quiet)) {
+            echo "::error::Could not set the content version $version in $file"
+            exit 1
+          }
+
       - name: Build Package
         run: |
           $platforms = "Windows"
@@ -123,7 +188,7 @@ jobs:
           # --no-restore: package.proj's targets restore their own solutions (same as the
           # previous desktop msbuild invocation, which never passed /restore).
           dotnet build build\package.proj `
-            -t:Package `
+            -t:BuildPackages `
             --no-restore `
             ${{ inputs.upload-binlog && !inputs.sign && '-bl' || '' }} -m -nr:false `
             -p:StridePlatforms=$($platforms.Replace(';','%3B')) `
@@ -141,37 +206,75 @@ jobs:
           StrideSignKeyVaultCertificate: ${{ inputs.sign && secrets.STRIDE_SIGN_KEYVAULT_CERTIFICATE || '' }}
           StrideSignKeyVaultName: ${{ inputs.sign && secrets.STRIDE_SIGN_KEYVAULT_NAME || '' }}
 
+      # The engine packages go aside first: this builds the projects the packs reference with other global properties,
+      # and they auto-pack next to it, which would replace the packages of all platforms. Only the packs come back.
+      - name: Package the samples
+        if: ${{ needs.Validate.outputs.samples-version != '' }}
+        shell: pwsh
+        run: |
+          $version = '${{ needs.Validate.outputs.samples-version }}'
+          Move-Item bin/packages bin/engine-packages
+          New-Item -ItemType Directory bin/packages | Out-Null  # a source of the root nuget.config
+          dotnet build build\package.proj -t:PackageSamples --no-restore -m -nr:false -p:StrideSamplesVersion=$version
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          # Same properties as the packs above, so the test's own pack is identical to them.
+          dotnet test tests\enduser\Stride.Templates.Tests -c Release -p:StridePackageBuild=true -p:StrideSamplesVersion=$version --logger "trx;LogFileName=templates.trx" --results-directory TestResults
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          foreach ($id in 'Stride.Templates.Samples', 'Stride.Templates.Games.Starters', 'Stride.Templates.AssetPacks') {
+            Move-Item "bin/packages/$id.$version.nupkg" bin/engine-packages -ErrorAction Stop
+          }
+          Remove-Item bin/packages -Recurse -Force
+          Move-Item bin/engine-packages bin/packages
+        env:
+          StrideDisableAssetCompilerExecServerProxy: true
+
       - name: Detect version
         id: version
         shell: pwsh
         run: |
+          if (-not '${{ needs.Validate.outputs.samples-version }}' -and (Get-ChildItem bin/packages/Stride.Templates.Samples.*, bin/packages/Stride.Templates.Games.Starters.*, bin/packages/Stride.Templates.AssetPacks.* -ErrorAction SilentlyContinue)) {
+            echo "::error::This release doesn't include the samples, but the build produced content packs."
+            exit 1
+          }
           $pkg = Get-ChildItem -Path bin/packages -Filter "Stride.Core.*.nupkg" | Select-Object -First 1
           if (-not $pkg) {
             echo "::error::No Stride.Core package found"
             exit 1
           }
           $version = $pkg.Name -replace 'Stride\.Core\.(.*?)\.nupkg','$1'
-          # Only allow stable X.Y.Z or a pre-release with an alpha/beta/rc/preview + digits suffix. This
-          # blocks typos like '-brta4' and any stray suffix from a malformed SharedAssemblyInfo.cs.
-          if ($version -notmatch '^\d+\.\d+\.\d+(-(alpha|beta|rc|preview)\d+)?$') {
-            echo "::error::Version '$version' is not an allowed release version. Use X.Y.Z or X.Y.Z-(alpha|beta|rc|preview)<N> (e.g. 4.4.0, 4.4.0-beta1) - check SharedAssemblyInfo.cs"
+          # The checks ran on the committed version, in Validate: the packages must carry it.
+          if ($version -ne '${{ needs.Validate.outputs.version }}') {
+            echo "::error::Package version '$version' is not the committed version '${{ needs.Validate.outputs.version }}'"
             exit 1
           }
           echo "version=$version" >> $env:GITHUB_OUTPUT
           echo "::notice::Package version: $version"
 
-      # Forget-to-bump guard: the version is the committed value in SharedAssemblyInfo.cs, bumped per release. If it
-      # wasn't bumped, its releases/<version> tag already exists on the previously-released commit, so fail the
-      # deploy. Re-running the release on the exact tagged commit (idempotent) is allowed (tag points at HEAD).
-      - name: Guard against re-publishing an existing version
-        if: ${{ inputs.deploy }}
-        shell: bash
+      - name: Check the packages
+        shell: pwsh
+        run: ./.github/scripts/check-packages.ps1 -Version "${{ steps.version.outputs.version }}"
+
+      # PackageStore reads only the user and machine NuGet configs, so the asset compiler's upgrade needs this.
+      - name: Register bin/packages with user NuGet config
+        shell: pwsh
         run: |
-          TAG="releases/${{ steps.version.outputs.version }}"
-          if git rev-parse "$TAG" >/dev/null 2>&1 && [ -z "$(git tag --points-at HEAD --list "$TAG")" ]; then
-            echo "::error::Version ${{ steps.version.outputs.version }} is already released (tag $TAG on another commit). Bump Patch/NuGetVersionSuffix in SharedAssemblyInfo.cs."
-            exit 1
-          fi
+          New-Item -Path "$env:APPDATA\NuGet" -ItemType Directory -Force | Out-Null
+          dotnet nuget add source "${{ github.workspace }}\bin\packages" --name stride-local --configfile "$env:APPDATA\NuGet\NuGet.Config"
+
+      # What a user does with these packages, before they are published and while nothing is signed yet.
+      - name: Smoke test
+        shell: pwsh
+        run: ./.github/scripts/smoke-test-templates.ps1 -Version "${{ steps.version.outputs.version }}" -PackagesDir bin/packages -Configuration Release
+
+      - name: Sign
+        if: ${{ inputs.sign }}
+        run: dotnet build build\package.proj -t:SignPackage --no-restore -p:StrideSign=true
+        env:
+          StrideSignTenantId: ${{ secrets.STRIDE_SIGN_TENANT_ID }}
+          StrideSignClientId: ${{ secrets.STRIDE_SIGN_CLIENT_ID }}
+          StrideSignClientSecret: ${{ secrets.STRIDE_SIGN_CLIENT_SECRET }}
+          StrideSignKeyVaultCertificate: ${{ secrets.STRIDE_SIGN_KEYVAULT_CERTIFICATE }}
+          StrideSignKeyVaultName: ${{ secrets.STRIDE_SIGN_KEYVAULT_NAME }}
 
       - name: Upload NuGet packages
         uses: actions/upload-artifact@v7
@@ -236,8 +339,8 @@ jobs:
     permissions:
       contents: write
       pull-requests: read  # the nested ReleaseNotes job reads PRs
+      id-token: write  # release-deploy's nuget.org trusted publishing
     uses: ./.github/workflows/release-deploy.yml
     with:
       run-id: ${{ github.run_id }}
-      bump-version: ${{ inputs.bump-version }}
     secrets: inherit

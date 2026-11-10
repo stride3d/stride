@@ -9,6 +9,7 @@ using System.Windows.Data;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Behaviors;
 using Stride.Core.Presentation.Extensions;
@@ -19,6 +20,7 @@ using Microsoft.Xaml.Behaviors;
 using Stride.GameStudio.ViewModels;
 using Stride.GameStudio.Helpers;
 using Stride.GameStudio.View;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.GameStudio.Layout
 {
@@ -28,7 +30,7 @@ namespace Stride.GameStudio.Layout
     /// </summary>
     internal class DockingLayoutManager
     {
-        private readonly MRUAdditionalDataCollection mruDataCollection = new MRUAdditionalDataCollection(InternalSettings.LoadProfileCopy, GameStudioInternalSettings.MostRecentlyUsedSessionsData, InternalSettings.WriteFile);
+        private readonly MRUAdditionalDataCollection mruDataCollection = MRUAdditionalDataLayouts.CreateCollection();
         private readonly GameStudioWindow gameStudioWindow;
         private readonly SessionViewModel session;
         private bool isInEditorLayout;
@@ -73,9 +75,9 @@ namespace Stride.GameStudio.Layout
         {
             var layout = GetDockingLayout();
             if (isInEditorLayout)
-                mruDataCollection.UpdateEditorsLayout(session.SessionFilePath, layout);
+                mruDataCollection.UpdateEditorsLayout(session.SolutionPath, layout);
             else
-                mruDataCollection.UpdateLayout(session.SessionFilePath, layout);
+                mruDataCollection.UpdateLayout(session.SolutionPath, layout);
         }
 
         /// <summary>
@@ -87,7 +89,7 @@ namespace Stride.GameStudio.Layout
         {
             // Filter assets
             var assetIds = openAssets?.Where(a => !a.IsDeleted && a.IsEditable).Select(a => a.AssetItem.Id) ?? Enumerable.Empty<AssetId>();
-            mruDataCollection.UpdateOpenedAssets(session.SessionFilePath, assetIds);
+            mruDataCollection.UpdateOpenedAssets(session.SolutionPath, assetIds);
         }
 
         /// <summary>
@@ -96,7 +98,7 @@ namespace Stride.GameStudio.Layout
         /// <returns>A collection of <see cref="AssetId"/> representing asset that were saved as open.</returns>
         public IEnumerable<AssetId> LoadOpenAssets()
         {
-            var mruData = mruDataCollection.GetData(session.SessionFilePath);
+            var mruData = mruDataCollection.GetData(session.SolutionPath);
             return mruData != null ? mruData.OpenedAssets : Enumerable.Empty<AssetId>();
         }
 
@@ -118,7 +120,7 @@ namespace Stride.GameStudio.Layout
         /// <remarks>The current state of the active layout will be lost after calling this method.</remarks>
         public void ReloadCurrentLayout()
         {
-            LoadLayoutFromSettings(mruDataCollection.GetData(session.SessionFilePath));
+            LoadLayoutFromSettings(mruDataCollection.GetData(session.SolutionPath));
         }
 
         /// <summary>
@@ -127,7 +129,7 @@ namespace Stride.GameStudio.Layout
         /// <remarks>This does not affect currently open assets and does not change the currently active layout.</remarks>
         public void ResetAllLayouts()
         {
-            mruDataCollection.ResetAllLayouts(session.SessionFilePath);
+            mruDataCollection.ResetAllLayouts(session.SolutionPath);
             GameStudioViewModel.GameStudio.Panels.SetAllPanelVisible();
             ReloadCurrentLayout();
         }
@@ -169,18 +171,18 @@ namespace Stride.GameStudio.Layout
                 // Erase saved layout if we're unable to load it.
                 if (GameStudioInternalSettings.CurrentLayoutVersion != data.DockingLayoutVersion)
                 {
-                    mruDataCollection.ResetAllLayouts(session.SessionFilePath);
+                    mruDataCollection.ResetAllLayouts(session.SolutionPath);
                 }
                 else if (isInEditorLayout)
                 {
-                    mruDataCollection.ResetEditorsLayout(session.SessionFilePath);
+                    mruDataCollection.ResetEditorsLayout(session.SolutionPath);
                 }
                 else
                 {
-                    mruDataCollection.ResetLayout(session.SessionFilePath);
+                    mruDataCollection.ResetLayout(session.SolutionPath);
                 }
                 // And attempt to load the reset layout.
-                LoadLayoutFromSettings(mruDataCollection.GetData(session.SessionFilePath), false);
+                LoadLayoutFromSettings(mruDataCollection.GetData(session.SolutionPath), false);
             }
             finally
             {

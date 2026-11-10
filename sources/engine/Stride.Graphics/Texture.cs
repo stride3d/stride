@@ -206,23 +206,27 @@ namespace Stride.Graphics
 
         /// <summary>
         ///   Gets a handle that identifies the Texture as a shared resource when it has the
-        ///   option <see cref="TextureOptions.Shared"/> or the Direct3D-specific TextureOptions.SharedNtHandle option.
+        ///   option <see cref="TextureOptions.Shared"/> or the Direct3D-specific TextureOptions.SharedNtHandle option
+        ///   (on Direct3D 11, <see cref="TextureOptions.SharedKeyedMutex"/> alone gives a global handle too).
         /// </summary>
         /// <value>
         ///   A handle that identifies the shared Texture, or <see cref="IntPtr.Zero"/> if it is not a shared resource.
         /// </value>
+        /// <remarks>
+        ///   An NT handle (<see cref="TextureOptions.SharedNtHandle"/>) belongs to the Texture, which closes it when it is
+        ///   destroyed: a consumer opens its own reference to the resource with it before that.
+        /// </remarks>
         public IntPtr SharedHandle { get; private set; } = IntPtr.Zero;
 
-#if STRIDE_GRAPHICS_API_DIRECT3D11
         /// <summary>
         ///   Gets the name of the shared NT handle that identifies the Texture as a shared resource
         ///   when it has the option <see cref="TextureOptions.SharedNtHandle"/>.
         /// </summary>
         /// <value>
         ///   The name of the NT handle of the shared Texture, or <see cref="string.Empty"/> if it is not a shared resource.
+        ///   Only Direct3D 11 creates shared NT handles, so it is always empty on the other graphics APIs.
         /// </value>
         public string SharedNtHandleName { get; private set; } = string.Empty;
-#endif
 
         /// <summary>
         ///   Gets a value indicating if the Texture View is a Render Target View.

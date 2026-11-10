@@ -16,6 +16,7 @@ using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.View.DebugTools;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core;
 using Stride.Core.Extensions;
 using Stride.Core.Serialization;
@@ -30,6 +31,7 @@ using Stride.GameStudio.ViewModels;
 using Stride.GameStudio.Helpers;
 using Stride.GameStudio.AssetsEditors;
 using Stride.GameStudio.Layout;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 #if DEBUG
 using Stride.Assets.Presentation.Test;
@@ -63,6 +65,9 @@ namespace Stride.GameStudio.View
 
             dockingLayout = new DockingLayoutManager(this, editor.Session);
             assetEditorsManager = new AssetEditorsManager(dockingLayout, editor.Session);
+            // The WPF editor opens the asset editors in its docking windows: they replace the editor collection of the shared
+            // session (which the cross-platform editor shows) as the editors manager of the session
+            editor.ServiceProvider.UnregisterService(editor.Session.EditorCollection);
             editor.ServiceProvider.RegisterService(assetEditorsManager);
 
             OpenDebugWindowCommand = new AnonymousCommand(editor.ServiceProvider, OpenDebugWindow);
@@ -72,9 +77,15 @@ namespace Stride.GameStudio.View
             EditorSettings.ResetEditorLayout.Command = new AnonymousTaskCommand(editor.ServiceProvider, ResetAllLayouts);
 
             InitializeComponent();
-            Application.Current.Activated += (s, e) => editor.ServiceProvider.Get<IEditorDialogService>().ShowDelayedNotifications();
+            Application.Current.Activated += (s, e) => editor.ServiceProvider.Get<IWpfEditorDialogService>().ShowDelayedNotifications();
             // A question raised while a progress window was up waits for that window to close.
-            WindowManager.MainWindowUnblocked += (s, e) => editor.ServiceProvider.Get<IEditorDialogService>().ShowDelayedNotifications();
+            WindowManager.MainWindowUnblocked += (s, e) => editor.ServiceProvider.Get<IWpfEditorDialogService>().ShowDelayedNotifications();
+            // The title shows a * while the session has unsaved changes, as in the cross-platform editor
+            editor.Session.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(SessionViewModel.HasUnsavedChanges))
+                    Title = EditorTitle;
+            };
             Loaded += GameStudioLoaded;
         }
 
@@ -111,8 +122,8 @@ namespace Stride.GameStudio.View
 
         public EditorViewModel Editor => (EditorViewModel)DataContext;
 
-        public string EditorTitle => Editor.Session.SolutionPath != null
-            ? $"{Editor.Session.SolutionPath.GetFileName()} - {StrideGameStudio.EditorNameWithGraphicsApi}"
+        public string EditorTitle => !string.IsNullOrEmpty(Editor.Session.SolutionPath)
+            ? $"{Editor.Session.SolutionPath.GetFileName()}{(Editor.Session.HasUnsavedChanges ? "*" : string.Empty)} - {StrideGameStudio.EditorNameWithGraphicsApi}"
             : StrideGameStudio.EditorNameWithGraphicsApi;
 
         public ICommandBase OpenDebugWindowCommand { get; }
@@ -253,13 +264,14 @@ namespace Stride.GameStudio.View
         private async Task SaveAndClose()
         {
             isSavingAndClosing = true;
+            IDisposable pluginService = null;
             try
             {
                 // Save MRUs
                 if (Editor.Session != null)
                 {
                     var openedAssets = assetEditorsManager.OpenedAssets.ToList();
-                    if (!await Editor.Session.Close(allowCancel: Editor is not GameStudioViewModel { MustClose: true }))
+                    if (!await Editor.Session.CloseAsync(allowCancel: Editor is not GameStudioViewModel { MustClose: true }))
                     {
                         closingTask?.SetResult(false);
                         return;
@@ -270,11 +282,15 @@ namespace Stride.GameStudio.View
 
                     // Close all windows (except if the user interrupt the flow)
                     // Since all dirty assets must have been saved before, we don't need to ask for any user confirmation
+                    var closedEditors = assetEditorsManager.EditorViewModels.OfType<AssetEditorViewModel>().ToList();
                     assetEditorsManager.CloseAllEditorWindows(false);
 
-                    // Let the running thumbnail command finish, without blocking the UI thread it might need. A stuck command must not prevent closing.
-                    await Task.WhenAny(Editor.Session.Thumbnails.StopAsync(), Task.Delay(TimeSpan.FromSeconds(10)));
+                    // Let the running thumbnail command finish, and the games of the closed editors end (they read the settings keys
+                    // that the plugins take away below), without blocking the UI thread they might need. A stuck one must not prevent closing.
+                    var editorsStopped = Task.WhenAll(closedEditors.Select(x => x.Stopped.ContinueWith(_ => { }, TaskScheduler.Default)));
+                    await Task.WhenAny(Task.WhenAll(Editor.Session.Thumbnails.StopAsync(), editorsStopped), Task.Delay(TimeSpan.FromSeconds(10)));
 
+                    pluginService = Editor.Session.ServiceProvider.TryGet<IAssetsPluginService>() as IDisposable;
                     Editor.Session.Destroy();
 
                     // Save opened assets
@@ -298,6 +314,9 @@ namespace Stride.GameStudio.View
                 var studio = Editor as GameStudioViewModel;
                 studio?.Destroy();
 
+                // The plugins leave the destroyed session last: what they registered goes and their close actions run
+                pluginService?.Dispose();
+
                 closingTask?.SetResult(true);
                 // Shutdown after all other operations have completed
                 await Application.Current.Dispatcher.InvokeAsync(Application.Current.Shutdown, DispatcherPriority.ContextIdle);
@@ -315,15 +334,15 @@ namespace Stride.GameStudio.View
         /// <param name="assetIds">The list of asset ids for which to reopen the editor.</param>
         private async Task ReopenAssetEditors(IReadOnlyCollection<AssetId> assetIds)
         {
-            if (assetIds.Count == 0)
+            // Open assets
+            var assets = assetIds.Select(x => Editor.Session.GetAssetById(x)).NotNull().ToList();
+            if (assets.Count == 0)
             {
-                // If no data, try to open the default scene
+                // If no data, or none of the assets exists anymore, try to open the default scene
                 await OpenDefaultScene(Editor.Session);
                 return;
             }
-            // Open assets
-            var assets = assetIds.Select(x => Editor.Session.GetAssetById(x)).NotNull().ToList();
-            Editor.Session.ActiveAssetView.SelectAssets(assets.Last().Yield());
+            Editor.Session.AssetCollection.SelectAssets(assets.Last().Yield());
             foreach (var asset in assets)
             {
                 // HACK: temporary open and await asset editor sequentially
@@ -377,9 +396,9 @@ namespace Stride.GameStudio.View
             if (asset == null)
                 return;
 
-            Editor.Session.ActiveAssetView.SelectAssets(asset.Yield());
+            Editor.Session.AssetCollection.SelectAssets(asset.Yield());
 
-            await assetEditorsManager.OpenAssetEditorWindow(asset);
+            await assetEditorsManager.OpenAssetEditorAsync(asset);
         }
 
         private void OpenDebugWindow()
@@ -406,7 +425,7 @@ namespace Stride.GameStudio.View
                     var assetItem = new AssetItem(name, asset);
                     var assetViewModel = package.CreateAsset(dir, assetItem, true, null);
                     Editor.Session.NotifyAssetPropertiesChanged(new[] { assetViewModel });
-                    Editor.Session.ActiveAssetView.SelectAssets(new[] { assetViewModel });
+                    Editor.Session.AssetCollection.SelectAssets(new[] { assetViewModel });
                     Editor.Session.UndoRedoService.SetName(transaction, $"Create test asset '{name}'");
                 }
             }
@@ -427,7 +446,7 @@ namespace Stride.GameStudio.View
                     var assetItem = new AssetItem(name, asset);
                     var assetViewModel = package.CreateAsset(dir, assetItem, true, null);
                     Editor.Session.NotifyAssetPropertiesChanged(new[] { assetViewModel });
-                    Editor.Session.ActiveAssetView.SelectAssets(new[] { assetViewModel });
+                    Editor.Session.AssetCollection.SelectAssets(new[] { assetViewModel });
                     Editor.Session.UndoRedoService.SetName(transaction, $"Create test asset '{name}'");
                 }
             }

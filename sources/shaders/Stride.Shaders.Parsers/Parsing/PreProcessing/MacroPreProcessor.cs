@@ -9,9 +9,19 @@ public static class MonoGamePreProcessor
     {
         return Run(File.ReadAllText(filepath), Path.GetFileName(filepath), defines);
     }
+
     public static string Run(string content, string? filename, params ReadOnlySpan<(string Name, string Definition)> defines)
+        => Run(content, filename, null, defines);
+
+    /// <summary>
+    /// Runs the preprocessor on the code of a shader.
+    /// </summary>
+    /// <param name="onWarning">Receives each warning, in the form file(line,col): warning.</param>
+    /// <exception cref="ShaderPreprocessorException">The code has a preprocessor error.</exception>
+    public static string Run(string content, string? filename, Action<string>? onWarning, params ReadOnlySpan<(string Name, string Definition)> defines)
     {
         var cpp = new Preprocessor();
+        cpp.setListener(new DiagnosticListener(filename, onWarning));
         cpp.addFeature(Feature.DIGRAPHS);
         cpp.addWarning(Warning.IMPORT);
         cpp.addFeature(Feature.INCLUDENEXT);
@@ -72,5 +82,17 @@ public static class MonoGamePreProcessor
             }
         }
         return textBuilder.ToString();
+    }
+
+    private sealed class DiagnosticListener(string? filename, Action<string>? onWarning) : PreprocessorListener
+    {
+        public void handleWarning(Source source, int line, int column, string msg) => onWarning?.Invoke(Format(line, column, msg));
+
+        public void handleError(Source source, int line, int column, string msg) => throw new ShaderPreprocessorException(Format(line, column, msg));
+
+        public void handleSourceChange(Source source, string ev) { }
+
+        // CppNet counts columns from 0
+        private string Format(int line, int column, string msg) => $"{filename}({line},{column + 1}): {msg.TrimEnd()}";
     }
 }

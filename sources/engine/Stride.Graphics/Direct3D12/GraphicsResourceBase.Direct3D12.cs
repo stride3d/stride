@@ -112,12 +112,23 @@ namespace Stride.Graphics
             return default;
         }
 
+        /// <inheritdoc/>
+        protected override void OnNameChanged()
+        {
+            base.OnNameChanged();
+            SetDebugName();
+        }
+
         /// <summary>
         /// Associates the private data to the device child, useful to get the name in PIX debugger.
         /// </summary>
         internal void SetDebugName()
         {
-            if (GraphicsDevice.IsDebugMode && NativeDeviceChild.IsNotNull())
+            // A texture view shares its parent's resource: naming it would rename the parent
+            if (this is Texture { ParentTexture: not null })
+                return;
+
+            if (IsDebugMode && NativeDeviceChild.IsNotNull())
                 NativeDeviceChild.SetDebugName($"{Name} ({(nint) NativeDeviceChild.Handle:X16})");
         }
 

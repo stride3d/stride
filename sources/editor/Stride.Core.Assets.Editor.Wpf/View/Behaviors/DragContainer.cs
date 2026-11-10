@@ -7,6 +7,7 @@ using System.Runtime.Serialization;
 using Stride.Core.Annotations;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.View.Behaviors
 {

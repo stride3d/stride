@@ -121,6 +121,9 @@ jobs:
     needs: Package
     runs-on: ubuntu-latest
     environment: production
+    permissions:
+      contents: read
+      id-token: write # nuget.org trusted publishing
     steps:
       - uses: actions/checkout@v7  # full history + tags for the vspackage-scoped changelog and tagging
         with:
@@ -138,6 +141,13 @@ jobs:
           name: stride-vsix-${{ needs.Package.outputs.version }}
           path: bin/vsix
 
+      # A short-lived key from nuget.org's trusted publishing policy for this workflow file, instead of a stored one
+      - name: NuGet login
+        id: nuget-login
+        uses: NuGet/login@v1
+        with:
+          user: ${{ vars.STRIDE_NUGET_USER }}
+
       - name: Push to NuGet
         shell: pwsh
         run: |
@@ -146,7 +156,7 @@ jobs:
             dotnet nuget push $_.FullName --api-key $env:STRIDE_NUGET_API_KEY --source "https://api.nuget.org/v3/index.json" --skip-duplicate
           }
         env:
-          STRIDE_NUGET_API_KEY: ${{ secrets.STRIDE_NUGET_API_KEY }}
+          STRIDE_NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
 
       - name: Tag release
         run: |

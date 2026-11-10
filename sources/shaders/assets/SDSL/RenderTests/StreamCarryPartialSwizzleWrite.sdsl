@@ -1,0 +1,23 @@
+// PSMain(ExpectedResult=#FFFF99FF)
+
+namespace Stride.Shaders.Tests;
+
+shader StreamCarryPartialSwizzleWrite
+{
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+    stream float4 ColorTarget : SV_Target0;
+    stream float4 X;
+
+    void VSMain()
+    {
+        streams.ShadingPosition = streams.Position;
+        streams.X = float4(0.2, 0.4, 0.6, 1.0);
+    }
+
+    void PSMain()
+    {
+        streams.X.xy = float2(1.0, 1.0);
+        streams.ColorTarget = float4(streams.X.xyz, 1.0);
+    }
+}

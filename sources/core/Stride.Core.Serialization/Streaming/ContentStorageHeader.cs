@@ -38,7 +38,7 @@ public struct ContentStorageHeader
     public string DataUrl;
 
     /// <summary>
-    /// Time when package has been created (in UTC).
+    /// Time when package has been created (in UTC) for content built by older versions, otherwise the default value. Part of <see cref="HashCode"/>.
     /// </summary>
     public DateTime PackageTime;
 
