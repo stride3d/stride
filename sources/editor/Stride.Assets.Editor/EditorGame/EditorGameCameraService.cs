@@ -233,9 +233,53 @@ public abstract class EditorGameCameraService : EditorGameMouseServiceBase, IEdi
 
     protected void UpdateViewMatrix()
     {
-        var rotation = Quaternion.Invert(Quaternion.RotationYawPitchRoll(Yaw, Pitch, 0));
-        var viewMatrix = Matrix.Translation(-Position) * Matrix.RotationQuaternion(rotation);
-        Component.ViewMatrix = viewMatrix;
+        Component.ViewMatrix = ComputeViewMatrix(Position, Yaw, Pitch);
+    }
+
+    /// <summary>
+    /// Gets the view matrix of a camera at <paramref name="position"/> that looks along <paramref name="yaw"/> and
+    /// <paramref name="pitch"/>, as the editor camera does.
+    /// </summary>
+    internal static Matrix ComputeViewMatrix(Vector3 position, float yaw, float pitch)
+    {
+        var rotation = Quaternion.Invert(Quaternion.RotationYawPitchRoll(yaw, pitch, 0));
+        return Matrix.Translation(-position) * Matrix.RotationQuaternion(rotation);
+    }
+
+    /// <summary>
+    /// Gets the yaw and the pitch of a camera that looks along <paramref name="viewDirection"/>, as
+    /// <see cref="ResetCamera(Vector3)"/> computes them.
+    /// </summary>
+    internal static (float Yaw, float Pitch) ToYawPitch(Vector3 viewDirection)
+    {
+        var isViewVertical = MathUtil.NearEqual(viewDirection.X, 0) && MathUtil.NearEqual(viewDirection.Z, 0);
+        var yaw = isViewVertical ? 0 : MathF.Atan2(-viewDirection.X, -viewDirection.Z);
+        var horizontalViewDirection = new Vector2(viewDirection.X, viewDirection.Z);
+        var pitch = MathUtil.Clamp(MathF.Atan2(viewDirection.Y, horizontalViewDirection.Length()), -MathUtil.PiOverTwo, MathUtil.PiOverTwo);
+        return (yaw, pitch);
+    }
+
+    /// <summary>
+    /// Gets the state of the camera, to give it back later with <see cref="RestoreViewState"/>: the camera of one of the
+    /// views of the editor (game thread).
+    /// </summary>
+    internal virtual EditorCameraViewState CaptureViewState()
+    {
+        return new EditorCameraViewState(Position, Yaw, Pitch, IsOrthographic, Component.OrthographicSize);
+    }
+
+    /// <summary>
+    /// Moves the camera to a state <see cref="CaptureViewState"/> gave: another view of the editor became active (game
+    /// thread).
+    /// </summary>
+    internal virtual void RestoreViewState(EditorCameraViewState state)
+    {
+        SetCurrentPosition(state.Position);
+        SetCurrentPitch(state.Pitch);
+        SetCurrentYaw(state.Yaw);
+        IsOrthographic = state.IsOrthographic;
+        Component.OrthographicSize = state.OrthographicSize;
+        UpdateViewMatrix();
     }
 
     private async Task Update()
@@ -251,4 +295,20 @@ public abstract class EditorGameCameraService : EditorGameMouseServiceBase, IEdi
             await Game.Script.NextFrame();
         }
     }
+}
+
+/// <summary>
+/// The state of the editor camera in one of the views of the editor (prototype of several views).
+/// </summary>
+/// <param name="Position">The position of the camera.</param>
+/// <param name="Yaw">The yaw of the camera.</param>
+/// <param name="Pitch">The pitch of the camera.</param>
+/// <param name="IsOrthographic">Whether the projection is orthographic.</param>
+/// <param name="OrthographicSize">The orthographic size.</param>
+internal sealed record EditorCameraViewState(Vector3 Position, float Yaw, float Pitch, bool IsOrthographic, float OrthographicSize)
+{
+    /// <summary>
+    /// Gets the point the camera orbits around, or <c>null</c> to keep the one of the camera.
+    /// </summary>
+    public Vector3? Target { get; init; }
 }
