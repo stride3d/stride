@@ -3,6 +3,7 @@
 
 using Avalonia.Controls;
 using Stride.Core.Assets.Editor.Panels;
+using Stride.Core.Assets.Editor.ViewModels;
 using Avalonia.Headless.XUnit;
 using Avalonia.VisualTree;
 using Stride.Assets.Models;
