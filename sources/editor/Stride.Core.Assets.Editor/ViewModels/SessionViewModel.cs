@@ -67,6 +67,7 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
     private bool isUpdatePackageEnabled;
     private bool isInFixupAssetContext;
     private bool sessionStateUpdating;
+    private ExternalAssetChangeTracker? externalAssetChanges;
     // Non-zero while a raise is scheduled
     private int assetTypesChangedPending;
 
@@ -727,6 +728,7 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
     {
         EnsureNotDestroyed(nameof(SessionViewModel));
 
+        externalAssetChanges?.Dispose();
         SourceTracker?.Destroy();
         ActionHistory.Destroy();
         Thumbnails.Destroy();
@@ -827,10 +829,28 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
     }
 
     #region Save/close
+    /// <summary>
+    /// Gets whether <see cref="SaveSessionAsync"/> is saving the session.
+    /// </summary>
+    public bool IsSaving { get; private set; }
+
     public async Task<bool> SaveSessionAsync()
     {
         Dispatcher.EnsureAccess();
 
+        IsSaving = true;
+        try
+        {
+            return await SaveSessionInternalAsync();
+        }
+        finally
+        {
+            IsSaving = false;
+        }
+    }
+
+    private async Task<bool> SaveSessionInternalAsync()
+    {
         var success = false;
 
         CheckConsistency();
@@ -875,7 +895,10 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
                 var saveParameters = PackageSaveParameters.Default();
 
                 AllAssets.ForEach(x => x.PrepareSave(sessionResult));
+                // Saving clears their dirty flag, unless writing their file has failed
+                var savedAssets = AllAssets.Select(x => x.AssetItem).Where(x => x.IsDirty).ToList();
                 session.Save(sessionResult, saveParameters);
+                externalAssetChanges?.NotifySaved(savedAssets.Where(x => !x.IsDirty).ToList());
 
                 success = true;
             }
@@ -1521,6 +1544,7 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
         }
 
         SourceTracker = new AssetSourceTrackerViewModel(this, session);
+        externalAssetChanges = new ExternalAssetChangeTracker(this);
         UpdateSessionState();
 
         // This transaction is done to prevent action responding to undoRedoService.TransactionCompletion to occur during loading

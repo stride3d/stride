@@ -60,16 +60,55 @@ public sealed class EditorCollectionViewModel : DispatcherViewModel, IAssetEdito
              return;
         }
 
+        CreateAssetEditor(asset, editors.Count, true);
+    }
+
+    private void CreateAssetEditor(AssetViewModel asset, int index, bool activate)
+    {
         var editorType = ServiceProvider.TryGet<IAssetsPluginService>()?.GetEditorViewModelType(asset.GetType());
         if (editorType is not null)
         {
-            editor = (AssetEditorViewModel)Activator.CreateInstance(editorType, asset)!;
+            var editor = (AssetEditorViewModel)Activator.CreateInstance(editorType, asset)!;
             openedAssets.Add(asset, editor);
-            editors.Add(editor);
-            ActiveEditor = editor;
+            editors.Insert(index, editor);
+            if (activate)
+                ActiveEditor = editor;
             // The editor starts what it needs once it is open (e.g. the game of a scene editor)
             InitializeEditorAsync(editor);
         }
+    }
+
+    /// <inheritdoc/>
+    public Task ReopenAssetEditorAsync(AssetViewModel asset, Action replaceAsset)
+    {
+        ArgumentNullException.ThrowIfNull(asset);
+        ArgumentNullException.ThrowIfNull(replaceAsset);
+
+        if (!openedAssets.TryGetValue(asset, out var editor) || !editor.PreviewClose(false))
+        {
+            replaceAsset();
+            return Task.CompletedTask;
+        }
+
+        // The new editor takes the place of the previous one in the tabs
+        var index = editors.IndexOf(editor);
+        var wasActive = ActiveEditor == editor;
+        if (wasActive)
+            ActiveEditor = null;
+        openedAssets.Remove(asset);
+        editors.Remove(editor);
+        editor.Destroy();
+
+        try
+        {
+            replaceAsset();
+        }
+        finally
+        {
+            // Even if the replacement failed, the editor does not stay closed
+            CreateAssetEditor(asset, index, wasActive);
+        }
+        return Task.CompletedTask;
     }
 
     private static async void InitializeEditorAsync(AssetEditorViewModel editor)
