@@ -76,8 +76,8 @@ public class SoftSpawnerComponent : SyncScript
             bool free = true;
             foreach (var (copy, copyRadius) in _copies)
             {
-                // A soft body moves its entity along with its particles
-                if (Vector3.Distance(copy.Transform.WorldMatrix.TranslationVector, position) < (radius + copyRadius) * 1.05f)
+                // A soft body moves its entity along with its particles; its position is up to date at once, its world matrix only after a draw
+                if (copy.Scene is not null && Vector3.Distance(copy.Transform.Position, position) < (radius + copyRadius) * 1.05f)
                 {
                     free = false;
                     break;
