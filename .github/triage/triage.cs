@@ -925,6 +925,7 @@ sealed class Config
 }
 
 record LabelSpec(string Color, string Description);
+// Commit: the commit the review was made on (GitHub.ReviewedCommit), null when not known
 record Review(string Author, string Association, string State, DateTimeOffset At, bool Bot, string? Commit);
 record LabelEvent(string Label, string By, DateTimeOffset At);
 record Comment(string Author, DateTimeOffset At, string Body);
@@ -961,8 +962,8 @@ sealed class GitHub
           nodes {
             __typename
             ... on IssueComment { createdAt body author { login __typename } }
-            ... on PullRequestReview { submittedAt state authorAssociation author { login __typename } commit { oid } }
-            ... on HeadRefForcePushedEvent { createdAt }
+            ... on PullRequestReview { submittedAt state authorAssociation author { login __typename } commit { oid committedDate } }
+            ... on HeadRefForcePushedEvent { createdAt beforeCommit { oid committedDate } afterCommit { oid } }
             ... on PullRequestCommit { commit { committedDate } }
             ... on ReadyForReviewEvent { createdAt }
           }
@@ -1020,6 +1021,21 @@ sealed class GitHub
         return result;
     }
 
+    record ForcePush(DateTimeOffset At, string? Before, DateTimeOffset? BeforeAt, string? After);
+
+    // The commit a review was made on. GitHub can move a review to a commit that a later force push made (#3757: an
+    // approval at 01:55 shown on the commit pushed at 01:58). Such a review covers the head before the first force push
+    // after it, if that head was already committed at review time; null when that is not known.
+    static string? ReviewedCommit(JsonNode review, List<ForcePush> forcePushes)
+    {
+        var at = Date(review["submittedAt"]);
+        var oid = (string?)review["commit"]?["oid"];
+        var pushed = forcePushes.Where(x => x.At >= at).ToList();
+        if (oid is null || pushed.Count == 0 || !(review["commit"]!["committedDate"] is { } committed && Date(committed) > at || pushed.Any(x => x.After == oid)))
+            return oid;
+        return pushed[0] is { Before: { } before, BeforeAt: { } beforeAt } && beforeAt <= at ? before : null;
+    }
+
     static Pr ParsePr(JsonNode node)
     {
         var author = (string?)node["author"]?["login"] ?? "ghost";
@@ -1032,6 +1048,9 @@ sealed class GitHub
         var readyAt = createdAt;
         DateTimeOffset? lastForcePush = null;
         var lastPush = commit?["committedDate"] is { } committed ? Date(committed) : createdAt;
+        var forcePushes = items.Where(x => (string?)x["__typename"] == "HeadRefForcePushedEvent")
+            .Select(x => new ForcePush(Date(x["createdAt"]), (string?)x["beforeCommit"]?["oid"], x["beforeCommit"]?["committedDate"] is { } at ? Date(at) : null, (string?)x["afterCommit"]?["oid"]))
+            .OrderBy(x => x.At).ToList();
         foreach (var item in items)
         {
             switch ((string?)item["__typename"])
@@ -1041,7 +1060,7 @@ sealed class GitHub
                     (IsBot(item["author"]) ? botComments : comments).Add(comment);
                     break;
                 case "PullRequestReview" when item["submittedAt"] is { } submitted:
-                    reviews.Add(new Review((string?)item["author"]?["login"] ?? "ghost", (string?)item["authorAssociation"] ?? "NONE", (string)item["state"]!, Date(submitted), IsBot(item["author"]), (string?)item["commit"]?["oid"]));
+                    reviews.Add(new Review((string?)item["author"]?["login"] ?? "ghost", (string?)item["authorAssociation"] ?? "NONE", (string)item["state"]!, Date(submitted), IsBot(item["author"]), ReviewedCommit(item, forcePushes)));
                     break;
                 case "HeadRefForcePushedEvent":
                     lastPush = Max(lastPush, Date(item["createdAt"]));
@@ -1140,6 +1159,13 @@ sealed class GitHub
         foreach (var tip in (await StackHeads((string)pr["baseRefName"]!)).Except(tips))
         {
             if (await Contains(tip, oldBase))
+                return true;
+        }
+        // The PR below can be rebased and merged in the same push (#3757 on 11-10): GitHub then moves this PR to the next
+        // base and records no event. What was below is then a PR merged into the base branch.
+        foreach (var below in (await Rest(HttpMethod.Get, $"repos/{owner}/{name}/commits/{oldBase}/pulls"))!.AsArray())
+        {
+            if ((string?)below?["merge_commit_sha"] is { } merge && below["merged_at"] != null && await Contains((string)pr["baseRefOid"]!, merge))
                 return true;
         }
         return false;
