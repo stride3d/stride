@@ -15,6 +15,7 @@ using System.Windows;
 using System.Windows.Threading;
 using Stride.Assets;
 using Stride.Assets.Presentation;
+using Stride.Assets.Presentation.SceneEditor.Services;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
@@ -643,7 +644,11 @@ public static partial class Program
         };
         var services = new List<object>{ new DispatcherService(Dispatcher.CurrentDispatcher), dialogService, pluginService };
         if (renderDocManager != null)
+        {
             services.Add(renderDocManager);
+            // The cubemap capture and the light probe computation of the scene editor capture a RenderDoc frame
+            services.Add(new RenderDocFrameCaptureService(renderDocManager));
+        }
         var serviceProvider = new ViewModelServiceProvider(services);
         return serviceProvider;
     }

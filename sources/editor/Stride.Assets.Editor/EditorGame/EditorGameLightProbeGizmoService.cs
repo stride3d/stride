@@ -4,6 +4,8 @@
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Services;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 using Stride.Assets.Editor.Gizmos;
+using Stride.Assets.Editor.Services;
+using Stride.Assets.Editor.ViewModels;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Editor.EditorGame.Game;
@@ -33,6 +35,7 @@ public sealed class EditorGameLightProbeGizmoService : EditorGameServiceBase, IE
     public const RenderGroup LightProbeWireGroup = RenderGroup.Group29;
 
     private readonly IEditorGameController controller;
+    private readonly EntityHierarchyEditorViewModel? editor;
     private readonly List<IReferencable> wireframeResources = [];
     private EntityHierarchyEditorGame? game;
     // Root debug entity, which will have child entities attached to it for every debug element
@@ -46,10 +49,12 @@ public sealed class EditorGameLightProbeGizmoService : EditorGameServiceBase, IE
     /// Initializes a new instance of the <see cref="EditorGameLightProbeGizmoService"/> class.
     /// </summary>
     /// <param name="controller">The controller of the editor game, which runs the computation of the light probes on the game thread.</param>
-    public EditorGameLightProbeGizmoService(IEditorGameController controller)
+    /// <param name="editor">The editor, whose services may have a frame debugger capture (<see cref="IGraphicsFrameCaptureService"/>) for the computation.</param>
+    public EditorGameLightProbeGizmoService(IEditorGameController controller, EntityHierarchyEditorViewModel? editor = null)
     {
         ArgumentNullException.ThrowIfNull(controller);
         this.controller = controller;
+        this.editor = editor;
     }
 
     /// <inheritdoc/>
@@ -91,6 +96,10 @@ public sealed class EditorGameLightProbeGizmoService : EditorGameServiceBase, IE
             if (game is null || runtimeData is null)
                 return new Dictionary<Guid, List<Color3>>();
 
+            // A frame debugger capture of the computation, if the editor has one (RenderDoc in the WPF Game Studio)
+            var frameCapture = editor?.ServiceProvider.TryGet<IGraphicsFrameCaptureService>();
+            frameCapture?.StartFrameCapture(game.GraphicsDevice);
+
             var editorCompositor = game.EditorSceneSystem.GraphicsCompositor.Game;
             try
             {
@@ -106,6 +115,8 @@ public sealed class EditorGameLightProbeGizmoService : EditorGameServiceBase, IE
             finally
             {
                 game.EditorSceneSystem.GraphicsCompositor.Game = editorCompositor;
+
+                frameCapture?.EndFrameCapture(game.GraphicsDevice);
             }
         });
     }
