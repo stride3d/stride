@@ -289,7 +289,7 @@ public partial class EntityHierarchyEditorView : UserControl, IAssetEditorView
         setActiveRoot.IsChecked = clickedItem is not null && clickedItem == editor.ActiveRoot;
     }
 
-    private void OnLockClick(object? sender, RoutedEventArgs e)
+    private void OnLoadOrLockClick(object? sender, RoutedEventArgs e)
     {
         // The button runs its command after this handler
         if (sender is Button button)
