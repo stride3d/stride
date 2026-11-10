@@ -136,6 +136,19 @@ public class TopologyTests
         float Length(Edge edge) => Vector3.Distance(topology.RestPositions[edge.A], topology.RestPositions[edge.B]);
     }
 
+    /// <summary> Two equilateral triangles share an edge that is not the diagonal of a rectangle: what links their far corners folds, it does not shear </summary>
+    [Fact]
+    public static void ClothOnlyShearsAcrossRectangles()
+    {
+        float height = MathF.Sqrt(3f) * 0.5f;
+        var positions = new List<Vector3> { new(0f, 0f, 0f), new(1f, 0f, 0f), new(0.5f, 0f, height), new(0.5f, 0f, -height) };
+        var topology = ClothBuilder.Build(FromTriangles(positions, [0, 1, 2, 1, 0, 3]));
+
+        Assert.Equal(5, topology.Edges.Count(edge => edge.Kind == EdgeKind.Stretch));
+        Assert.Equal(1, topology.Edges.Count(edge => edge.Kind == EdgeKind.Bend));
+        Assert.DoesNotContain(topology.Edges, edge => edge.Kind == EdgeKind.Shear);
+    }
+
     [Fact]
     public static void ClothWeldsBothFaces()
     {

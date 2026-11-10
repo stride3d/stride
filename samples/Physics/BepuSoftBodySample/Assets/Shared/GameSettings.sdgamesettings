@@ -5,15 +5,13 @@ Tags: []
 DefaultScene: 42768715-911d-119e-181c-a015d67c3445:Scenes/MainScene
 GraphicsCompositor: d73e0972-7612-40f1-8a01-f671944b13b0:GraphicsCompositor
 Defaults:
-    - !Stride.Audio.AudioEngineSettings,Stride.Audio
-        HrtfSupport: false
     - !Stride.Assets.EditorSettings,Stride.Assets
         RenderingMode: HDR
     - !Stride.Graphics.RenderingSettings,Stride.Graphics
         DefaultBackBufferWidth: 1600
         DefaultBackBufferHeight: 900
         AdaptBackBufferToScreen: false
-        DefaultGraphicsProfile: Level_10_0
+        DefaultGraphicsProfile: Level_11_0
         ColorSpace: Linear
         DisplayOrientation: LandscapeRight
     - !Stride.Streaming.StreamingSettings,Stride.Rendering
@@ -36,7 +34,7 @@ Defaults:
                 PoseLinearDamping: 0.03
                 PoseAngularDamping: 0.03
                 SolverIteration: 1
-                SolverSubStep: 8
+                SolverSubStep: 16
                 SoftStartDuration: 0:00:00:01.0000000
                 SoftStartSubstepFactor: 4
 SplashScreenTexture: d26edb11-10bd-403c-b3c2-9c7fcccf25e5:/Stride.Engine/StrideDefaultSplashScreen

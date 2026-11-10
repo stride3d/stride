@@ -24,8 +24,8 @@ Hierarchy:
                 Components:
                     8fd6714afc5090d16e50534dad591c7d: !TransformComponent
                         Id: 95e373d0-b8d1-0de2-e466-af5aeefcf16e
-                        Position: {X: 0.0, Y: 2.6, Z: 5.5}
-                        Rotation: {X: -0.152738, Y: 0.0, Z: 0.0, W: 0.988267}
+                        Position: {X: 0.0, Y: 2.8, Z: 7.2}
+                        Rotation: {X: -0.1025, Y: 0.0, Z: 0.0, W: 0.994733}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     d20dd2a7e3c07ecd972017287a52dc81: !BepuSoftBodySample.Game.Components.Camera.BasicCameraControllerComponent,BepuSoftBodySample.Game
@@ -124,10 +124,6 @@ Hierarchy:
                         CameraEntity: ref!! 6e412671-5e02-b6c0-4ccd-ce0d6ba38119
                         MarkerPrefab: 3075790f-ed9d-6dac-f16a-f38a848b055c:Prefabs/Marker
                         BallPrefab: 93d5a3da-f3a6-2397-f88c-146ee67bac7a:Prefabs/Ball
-                    a9eb8d0d9f10f7e487408da5117127cf: !BepuSoftBodySample.Game.Components.ParticleViewComponent,BepuSoftBodySample.Game
-                        Id: c8b19175-3b2e-65c5-75ad-b7c3e64d65c9
-                        ParticleMaterial: 3e38fbde-13b9-e3b0-e472-cb12e55512a4:Materials/Particle
-                        PinnedMaterial: 12f5ec95-8de0-100e-ddc7-10bcd7660756:Materials/PinnedParticle
         -   Entity:
                 Id: f1040480-5b6a-ac69-6e8a-c03c3fce716c
                 Name: Unlimited cube

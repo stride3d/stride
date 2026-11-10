@@ -185,14 +185,27 @@ public class SoftBodyTests : GameTestBase
 
             var simulation = lower.Simulation!.Simulation;
             using var recorder = new Stride.BepuPhysics.Debug.ContactRecorder(simulation);
-            bool fallbackUsed = false;
+            bool emptySlot = false;
             for (int step = 0; step < 150; step++)
             {
                 await lower.Simulation!.AfterUpdate();
-                fallbackUsed |= simulation.Solver.Sets[0].Batches.Count > simulation.Solver.FallbackBatchThreshold;
+
+                // What the recorder must skip: a slot without a constraint among the contacts of the fallback batch
+                ref var active = ref simulation.Solver.Sets[0];
+                if (active.Batches.Count <= simulation.Solver.FallbackBatchThreshold)
+                    continue;
+                ref var fallback = ref active.Batches[simulation.Solver.FallbackBatchThreshold];
+                for (int t = 0; t < fallback.TypeBatches.Count && emptySlot == false; t++)
+                {
+                    ref var typeBatch = ref fallback.TypeBatches[t];
+                    if (global::BepuPhysics.CollisionDetection.NarrowPhase.IsContactConstraintType(typeBatch.TypeId) == false)
+                        continue;
+                    for (int i = 0; i < typeBatch.ConstraintCount; i++)
+                        emptySlot |= typeBatch.IndexToHandle[i].Value < 0;
+                }
             }
 
-            Assert.True(fallbackUsed, "The solver never used its fallback batch, this scene no longer covers what it is for");
+            Assert.True(emptySlot, "The fallback batch of the solver never had an empty contact slot, this scene no longer covers what it is for");
         });
     }
 

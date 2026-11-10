@@ -20,6 +20,8 @@ namespace BepuSoftBodySample.Game.Components;
 public class SoftGravityGunComponent : SyncScript
 {
     private readonly List<(int Particle, Vector3 Offset, float Grip)> _particles = new();
+    private const int TetherSegments = 14;
+
     private readonly List<Entity> _markers = new();
     private SoftBodyComponent? _soft;
     private BodyComponent? _body;
@@ -29,7 +31,7 @@ public class SoftGravityGunComponent : SyncScript
     /// <summary> The entity the camera follows, rays start from it </summary>
     public Entity? CameraEntity { get; set; }
 
-    /// <summary> Placed at the point held objects are pulled to, and along the way to it </summary>
+    /// <summary> A glowing sphere, stretched into the tether that goes from the camera to the point held </summary>
     public Prefab? MarkerPrefab { get; set; }
 
     /// <summary> Thrown with F or the middle mouse button, it should have a <see cref="BodyComponent"/> </summary>
@@ -77,7 +79,10 @@ public class SoftGravityGunComponent : SyncScript
 
         ShowMarkers(origin, forward);
         var aiming = simulation.RayCast(origin, forward, 100f, out var hit) && (hit.Collidable is SoftBodyComponent || hit.Collidable is BodyComponent { Kinematic: false });
-        var center = new Int2(Game.Window.ClientBounds.Width / 2, Game.Window.ClientBounds.Height / 2);
+        // Where the ray is on screen: the middle of the window, unless the projection of the camera is off center as the menu makes it
+        var projection = SceneSystem.GraphicsCompositor.Cameras.Count > 0 && SceneSystem.GraphicsCompositor.Cameras[0].Camera is { } camera ? camera.ProjectionMatrix : Matrix.Identity;
+        var bounds = Game.Window.ClientBounds;
+        var center = new Int2((int)((1f - projection.M31) * 0.5f * bounds.Width), (int)((1f + projection.M32) * 0.5f * bounds.Height));
         DebugText.Print(Holding ? "( )" : aiming ? "[+]" : "+", center - new Int2(Holding || aiming ? 12 : 4, 8), Holding ? Color.Cyan : aiming ? Color.Yellow : Color.White);
     }
 
@@ -182,7 +187,7 @@ public class SoftGravityGunComponent : SyncScript
         if (MarkerPrefab is null)
             return;
 
-        while (_markers.Count < 9)
+        while (_markers.Count < TetherSegments + 2)
         {
             foreach (var marker in MarkerPrefab.Instantiate())
             {
@@ -191,15 +196,60 @@ public class SoftGravityGunComponent : SyncScript
             }
         }
 
-        // One marker where held objects are pulled to, the others in a line from just below the crosshair
-        var target = origin + forward * _distance;
-        var muzzle = origin + Vector3.TransformNormal(new Vector3(0.25f, -0.2f, -0.6f), CameraEntity!.Transform.WorldMatrix);
-        for (int i = 0; i < _markers.Count; i++)
+        foreach (var marker in _markers)
         {
-            _markers[i].Transform.Position = i == 0 ? target : Vector3.Lerp(muzzle, target, (float)i / _markers.Count);
-            _markers[i].Transform.Scale = new Vector3(i == 0 ? 1f : 0.3f);
-            foreach (var model in _markers[i].GetAll<ModelComponent>())
+            foreach (var model in marker.GetAll<ModelComponent>())
                 model.Enabled = Holding;
         }
+        if (Holding == false)
+            return;
+
+        // A thin tether from just below the crosshair to the point held, bent towards where that point is pulled to:
+        // straight while the object follows, it bows when the object lags behind or hangs from it
+        var target = origin + forward * _distance;
+        var held = HeldPoint(target);
+        var muzzle = origin + Vector3.TransformNormal(new Vector3(0.22f, -0.18f, -0.7f), CameraEntity!.Transform.WorldMatrix);
+        var previous = muzzle;
+        for (int i = 0; i < TetherSegments; i++)
+        {
+            float t = (i + 1f) / TetherSegments;
+            var next = Vector3.Lerp(Vector3.Lerp(muzzle, target, t), Vector3.Lerp(target, held, t), t);
+            var along = next - previous;
+            float length = along.Length();
+            float thickness = MathUtil.Lerp(0.012f, 0.035f, t);
+
+            // The marker is a sphere one meter wide, stretched into a link of the tether
+            var transform = _markers[i].Transform;
+            transform.Position = (previous + next) * 0.5f;
+            transform.Rotation = length > 1e-5f ? Quaternion.BetweenDirections(Vector3.UnitZ, along / length) : Quaternion.Identity;
+            transform.Scale = new Vector3(thickness, thickness, length * 1.3f);
+            previous = next;
+        }
+
+        // A bead on the point held, a smaller one where it is pulled to
+        Place(_markers[TetherSegments], held, 0.09f);
+        Place(_markers[TetherSegments + 1], target, 0.04f);
+    }
+
+    private static void Place(Entity marker, Vector3 position, float size)
+    {
+        marker.Transform.Position = position;
+        marker.Transform.Rotation = Quaternion.Identity;
+        marker.Transform.Scale = new Vector3(size);
+    }
+
+    /// <summary> Where the point grabbed on the held object is now, <paramref name="fallback"/> when nothing is held </summary>
+    private Vector3 HeldPoint(Vector3 fallback)
+    {
+        if (_soft is { } soft && _particles.Count > 0 && soft.ParticleCount > 0)
+        {
+            var sum = Vector3.Zero;
+            foreach (var (particle, offset, _) in _particles)
+                sum += soft.GetParticlePosition(particle) - offset;
+            return sum / _particles.Count;
+        }
+        if (_body is { Simulation: not null } body)
+            return body.Position + Vector3.Transform(_bodyOffset, body.Orientation);
+        return fallback;
     }
 }

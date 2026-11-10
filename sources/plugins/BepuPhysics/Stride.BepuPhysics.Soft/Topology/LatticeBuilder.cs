@@ -66,23 +66,6 @@ internal static class LatticeBuilder
             }
         }
 
-        // The particles a step away from each particle along each axis, where the lattice goes on
-        var neighbors = new int[restPositions.Count * 6];
-        for (int particle = 0; particle < restPositions.Count; particle++)
-        {
-            var node = selfCollisionCells[particle];
-            for (int axis = 0; axis < 3; axis++)
-            {
-                for (int side = 0; side < 2; side++)
-                {
-                    var next = node;
-                    next[axis] += side == 0 ? -1 : 1;
-                    bool inside = next[axis] >= 0 && next[axis] < nodes[axis];
-                    neighbors[particle * 6 + axis * 2 + side] = inside ? particleOfNode[CellIndex(next.X, next.Y, next.Z, nodes)] : -1;
-                }
-            }
-        }
-
         var edges = new List<Edge>();
         var tetrahedra = new List<Tetrahedron>();
         var knownEdges = new HashSet<long>();
@@ -107,6 +90,25 @@ internal static class LatticeBuilder
             // Alternating the split keeps the faces shared by neighboring cells cut along the same diagonal
             foreach (var t in ((x + y + z) & 1) == 0 ? EvenCellTetrahedra : OddCellTetrahedra)
                 tetrahedra.Add(new Tetrahedron(corners[t.A], corners[t.B], corners[t.C], corners[t.D]));
+        }
+
+        // The particles a step away from each particle along each axis, where the lattice goes on: across the edge of an occupied
+        // cell, and not across a gap one cell wide, where two parts of the body face each other without anything between them
+        var neighbors = new int[restPositions.Count * 6];
+        for (int particle = 0; particle < restPositions.Count; particle++)
+        {
+            var node = selfCollisionCells[particle];
+            for (int axis = 0; axis < 3; axis++)
+            {
+                for (int side = 0; side < 2; side++)
+                {
+                    var next = node;
+                    next[axis] += side == 0 ? -1 : 1;
+                    int other = next[axis] >= 0 && next[axis] < nodes[axis] ? particleOfNode[CellIndex(next.X, next.Y, next.Z, nodes)] : -1;
+                    bool linked = other >= 0;
+                    neighbors[particle * 6 + axis * 2 + side] = linked ? other : -1;
+                }
+            }
         }
 
         // Each vertex is bound to the eight corners of the cell it is in, or of the closest occupied cell when it lies outside the lattice
@@ -150,11 +152,12 @@ internal static class LatticeBuilder
 
     /// <summary>
     /// Occupies the cells it takes for every occupied cell to be reached from any other through the faces of occupied cells,
-    /// so the body is a single piece: each island of cells is joined to the closest cell of the others by the cells on the way.
+    /// so the body is a single piece: each island of cells is joined to the closest cell of another one by the cells on the way.
     /// </summary>
     internal static void ConnectIslands(bool[] occupied, Int3 size)
     {
         var island = new int[occupied.Length];
+        var cameFrom = new int[occupied.Length];
         var islandSizes = new List<int>();
         var queue = new Queue<int>();
         while (true)
@@ -195,42 +198,48 @@ internal static class LatticeBuilder
             if (islandSizes.Count <= 1)
                 return;
 
-            // The smallest island first: it is the cheapest to look for a neighbor from
+            // From the smallest island, spread through the cells around it, empty ones included, until a cell of another
+            // island is reached: the way back to the island is the shortest one, face to face, and gets occupied
             int smallest = islandSizes.IndexOf(islandSizes.Min());
-            var from = default(Int3);
-            var to = default(Int3);
-            int closest = int.MaxValue;
-            for (int a = 0; a < occupied.Length; a++)
+            Array.Fill(cameFrom, -1);
+            for (int cell = 0; cell < occupied.Length; cell++)
             {
-                if (island[a] != smallest)
-                    continue;
-                var cellA = CellAt(a, size);
-                for (int b = 0; b < occupied.Length; b++)
+                if (island[cell] == smallest)
                 {
-                    if (island[b] < 0 || island[b] == smallest)
-                        continue;
-                    var delta = CellAt(b, size) - cellA;
-                    int distance = delta.X * delta.X + delta.Y * delta.Y + delta.Z * delta.Z;
-                    if (distance < closest)
-                    {
-                        closest = distance;
-                        from = cellA;
-                        to = CellAt(b, size);
-                    }
+                    cameFrom[cell] = cell;
+                    queue.Enqueue(cell);
                 }
             }
 
-            // One step at a time along the axis with the most left to go, so each cell shares a face with the one before
-            while (from != to)
+            int reached = -1;
+            while (reached < 0 && queue.TryDequeue(out int cell))
             {
-                var left = to - from;
-                int axis = Math.Abs(left.X) >= Math.Abs(left.Y) && Math.Abs(left.X) >= Math.Abs(left.Z) ? 0 : Math.Abs(left.Y) >= Math.Abs(left.Z) ? 1 : 2;
-                from[axis] += Math.Sign(left[axis]);
-                occupied[CellIndex(from.X, from.Y, from.Z, size)] = true;
+                var at = CellAt(cell, size);
+                for (int axis = 0; axis < 3 && reached < 0; axis++)
+                {
+                    for (int step = -1; step <= 1 && reached < 0; step += 2)
+                    {
+                        var next = at;
+                        next[axis] += step;
+                        if (next[axis] < 0 || next[axis] >= size[axis])
+                            continue;
+                        int neighbor = CellIndex(next.X, next.Y, next.Z, size);
+                        if (cameFrom[neighbor] >= 0)
+                            continue;
+                        cameFrom[neighbor] = cell;
+                        if (island[neighbor] >= 0)
+                            reached = neighbor;
+                        else
+                            queue.Enqueue(neighbor);
+                    }
+                }
             }
+            queue.Clear();
+
+            for (int cell = reached; cell >= 0 && island[cell] != smallest; cell = cameFrom[cell])
+                occupied[cell] = true;
         }
     }
-
     private static Int3 CellAt(int index, Int3 size) => new(index % size.X, index / size.X % size.Y, index / (size.X * size.Y));
 
     private static int CellIndex(int x, int y, int z, Int3 size) => (z * size.Y + y) * size.X + x;

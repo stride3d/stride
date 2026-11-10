@@ -126,10 +126,6 @@ Hierarchy:
                         CameraEntity: ref!! 2a05b5fe-c1d4-c45b-1287-cf06634eb507
                         MarkerPrefab: 3075790f-ed9d-6dac-f16a-f38a848b055c:Prefabs/Marker
                         BallPrefab: 93d5a3da-f3a6-2397-f88c-146ee67bac7a:Prefabs/Ball
-                    e0acb43754030658630c4db8b6a36711: !BepuSoftBodySample.Game.Components.ParticleViewComponent,BepuSoftBodySample.Game
-                        Id: 79b4aae4-5881-d296-7197-040a0b301fd1
-                        ParticleMaterial: 3e38fbde-13b9-e3b0-e472-cb12e55512a4:Materials/Particle
-                        PinnedMaterial: 12f5ec95-8de0-100e-ddc7-10bcd7660756:Materials/PinnedParticle
         -   Entity:
                 Id: d4f8e771-a161-e34e-a3e8-3f8677da4a59
                 Name: Post 0
@@ -251,7 +247,8 @@ Hierarchy:
                             57406dfaa7845cf5a8a28fb9c0ea2af8~0: f45d72b9-de30-aad1-56a6-55433d7cd194:Materials/Blueberry
                     578f0488262a151df37bf43de9f48b71: !Stride.BepuPhysics.Soft.ClothComponent,Stride.BepuPhysics.Soft
                         Id: 849c70a8-f9d2-bae7-afd3-3b10d9fab164
-                        Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft {}
+                        Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft
+                            Radius: 0.05
                         Mass: 3.0
                         StretchStiffness: 100.0
                         BendStiffness: 0.5
@@ -274,7 +271,7 @@ Hierarchy:
                 Components:
                     90c33b6f95ce197aa3c93fdf8bf1374d: !TransformComponent
                         Id: efda84d6-21e4-5459-ec79-4085a65d4b3d
-                        Position: {X: -0.5, Y: 3.5, Z: -0.2}
+                        Position: {X: -0.75, Y: 3.2, Z: -0.35}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 0.6, Y: 0.6, Z: 0.6}
                         Children: {}
@@ -305,7 +302,7 @@ Hierarchy:
                 Components:
                     3f8803a1c51d0b4dc3383dc95ba8a531: !TransformComponent
                         Id: 0399af98-aac0-9231-25b2-c3f778415cbb
-                        Position: {X: 0.0, Y: 3.5, Z: 0.0}
+                        Position: {X: 0.05, Y: 4.1, Z: 0.0}
                         Rotation: {X: 0.165339, Y: 0.180836, Z: 0.067204, W: 0.967184}
                         Scale: {X: 0.5, Y: 0.5, Z: 0.5}
                         Children: {}
@@ -336,7 +333,7 @@ Hierarchy:
                 Components:
                     81c729a52408cdc604f096e6c7df6e6e: !TransformComponent
                         Id: c938e951-fd75-c800-5a40-4ac67a04e041
-                        Position: {X: 0.5, Y: 3.5, Z: 0.2}
+                        Position: {X: 0.75, Y: 5.0, Z: 0.35}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 0.6, Y: 0.6, Z: 0.6}
                         Children: {}

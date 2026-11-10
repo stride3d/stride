@@ -24,8 +24,8 @@ Hierarchy:
                 Components:
                     d930081a34a5bfa9403630c51410f974: !TransformComponent
                         Id: 89e28902-cdeb-51b0-7454-31e0b67fb478
-                        Position: {X: 0.0, Y: 5.5, Z: 7.0}
-                        Rotation: {X: -0.291358, Y: 0.0, Z: 0.0, W: 0.956614}
+                        Position: {X: 0.0, Y: 5.0, Z: 10.5}
+                        Rotation: {X: -0.13, Y: 0.0, Z: 0.0, W: 0.991514}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     b60e4d81bac3c9d6d8e926d8da632666: !BepuSoftBodySample.Game.Components.Camera.BasicCameraControllerComponent,BepuSoftBodySample.Game
@@ -124,10 +124,6 @@ Hierarchy:
                         CameraEntity: ref!! 0da82027-d7a5-ec63-8c12-6ab4f3363557
                         MarkerPrefab: 3075790f-ed9d-6dac-f16a-f38a848b055c:Prefabs/Marker
                         BallPrefab: 93d5a3da-f3a6-2397-f88c-146ee67bac7a:Prefabs/Ball
-                    b0c28b45a9ecc5e9086d5df5ee6c07f5: !BepuSoftBodySample.Game.Components.ParticleViewComponent,BepuSoftBodySample.Game
-                        Id: 5eba9e7a-e630-1584-e964-9e3ade646c02
-                        ParticleMaterial: 3e38fbde-13b9-e3b0-e472-cb12e55512a4:Materials/Particle
-                        PinnedMaterial: 12f5ec95-8de0-100e-ddc7-10bcd7660756:Materials/PinnedParticle
         -   Entity:
                 Id: 9556338e-9c72-3500-fa38-9c72e42f1fe4
                 Name: Glass left
@@ -285,3 +281,4 @@ Hierarchy:
                         Interval: 0.12
                         Spread: {X: 2.0, Y: 1.0, Z: 2.0}
                         MaximumScale: 1.25
+                        Radius: 0.4

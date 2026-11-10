@@ -1,0 +1,7 @@
+!Texture
+Id: 6af549d8-80c4-4e1d-8bc1-e40afb127fa8
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: !file ../../../Resources/FloorGrid.png
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

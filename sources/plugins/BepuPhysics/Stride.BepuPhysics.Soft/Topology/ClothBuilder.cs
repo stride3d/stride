@@ -7,7 +7,7 @@ namespace Stride.BepuPhysics.Soft.Topology;
 
 /// <summary>
 /// Turns the vertices of a surface into particles, its edges into stretch constraints and each pair of adjacent triangles into a bend constraint,
-/// or a shear one when the two triangles are the halves of a quad.
+/// or a shear one when the two triangles are the halves of a rectangle.
 /// </summary>
 internal static class ClothBuilder
 {
@@ -36,7 +36,7 @@ internal static class ClothBuilder
         // For each edge, the vertex opposite to it in the first triangle that used it
         var oppositeOfEdge = new Dictionary<long, int>();
         var edges = new List<Edge>();
-        // The two vertices facing each other across an edge shared by two triangles, and whether that edge is the diagonal their quad was cut along
+        // The two vertices facing each other across an edge shared by two triangles, and whether that edge is the diagonal a rectangle was cut along
         var bendPairs = new Dictionary<long, bool>();
         var indices = mesh.Indices;
         Span<int> triangle = stackalloc int[3];
@@ -57,10 +57,12 @@ internal static class ClothBuilder
                     // Second triangle on this edge, or a back face sharing all three particles
                     if (otherOpposite != opposite)
                     {
-                        // The longest edge of both triangles: they are the two halves of a quad, cut along this edge
-                        float shared = Vector3.Distance(restPositions[a], restPositions[b]) * 1.001f;
-                        bool diagonal = shared >= Vector3.Distance(restPositions[a], restPositions[opposite]) && shared >= Vector3.Distance(restPositions[b], restPositions[opposite])
-                            && shared >= Vector3.Distance(restPositions[a], restPositions[otherOpposite]) && shared >= Vector3.Distance(restPositions[b], restPositions[otherOpposite]);
+                        // The two halves of a rectangle cut along this edge: its two diagonals are as long and cross in their middle.
+                        // Equilateral triangles or the ones of a fan share edges that are not the diagonal of anything.
+                        float shared = Vector3.Distance(restPositions[a], restPositions[b]);
+                        float across = Vector3.Distance(restPositions[opposite], restPositions[otherOpposite]);
+                        float apart = Vector3.Distance(restPositions[a] + restPositions[b], restPositions[opposite] + restPositions[otherOpposite]) * 0.5f;
+                        bool diagonal = MathF.Abs(shared - across) <= shared * 0.02f && apart <= shared * 0.02f;
                         bendPairs[Key(otherOpposite, opposite)] = diagonal;
                     }
                 }

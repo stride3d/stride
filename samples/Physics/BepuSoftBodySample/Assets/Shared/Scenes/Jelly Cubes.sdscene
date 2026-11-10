@@ -127,10 +127,6 @@ Hierarchy:
                         CameraEntity: ref!! 51a44fe9-a6ce-c466-b846-343846375fc7
                         MarkerPrefab: 3075790f-ed9d-6dac-f16a-f38a848b055c:Prefabs/Marker
                         BallPrefab: 93d5a3da-f3a6-2397-f88c-146ee67bac7a:Prefabs/Ball
-                    dc631d4754d36208fb1a97da8d00fdec: !BepuSoftBodySample.Game.Components.ParticleViewComponent,BepuSoftBodySample.Game
-                        Id: d6f8ad89-8850-679c-c1dd-29791e444318
-                        ParticleMaterial: 3e38fbde-13b9-e3b0-e472-cb12e55512a4:Materials/Particle
-                        PinnedMaterial: 12f5ec95-8de0-100e-ddc7-10bcd7660756:Materials/PinnedParticle
         -   Entity:
                 Id: 66859e47-d755-76bf-6941-900deba8a188
                 Name: Ramp -1
