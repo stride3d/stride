@@ -168,6 +168,12 @@ namespace Stride.Assets
                     FluentCallRemove("Stride.Graphics.CommandList", "SetStreamTargets")),
             ]);
 
+            registry.Code("4.5.2.0",
+            [
+                // 4.5.2: Bepu's MaxStepPerFrame was replaced by MaximumTimeSpanToProcess (no 1:1 mapping)
+                Rewrite(AssignmentRemove("Stride.BepuPhysics.BepuSimulation", "MaxStepPerFrame")),
+            ]);
+
             // Structural csproj migrations, gated by the version each change landed at. Run against the
             // NEW-version project (after the reference bump) by UpgradeBeforeAssembliesLoaded.
             registry.Project("4.1.0.0", UpgradeProjectTo41);
