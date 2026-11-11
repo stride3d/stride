@@ -44,6 +44,10 @@ namespace Stride.Editor.EditorGame.ContentLoader
         private ColorSpace currentColorSpace;
         private ObjectId currentNavigationGroupsHash;
         private int loadingAssetCount;
+        /// <summary>
+        /// Set by <see cref="Cleanup"/>: a handler raised just before keeps running, and stops at its next step.
+        /// </summary>
+        private volatile bool isDisposed;
 #if DEBUG
         private ContentManagerStats debugStats;
         private bool enableReferenceLogging = true;
@@ -192,6 +196,7 @@ namespace Stride.Editor.EditorGame.ContentLoader
 
         private void Cleanup()
         {
+            isDisposed = true;
             settingsProvider.GameSettingsChanged -= GameSettingsChanged;
             Session.AssetPropertiesChanged -= AssetPropertiesChanged;
         }
@@ -504,13 +509,41 @@ namespace Stride.Editor.EditorGame.ContentLoader
             }
         }
 
+        /// <summary>
+        /// Runs the work of an event handler, and ignores the <see cref="ObjectDisposedException"/> it throws once the loader is disposed:
+        /// the session raises its events from the thread pool, so a handler can still run after <see cref="Cleanup"/> removed it, while
+        /// the editor closes and disposes its database.
+        /// </summary>
+        /// <param name="work">The work of the handler.</param>
+        /// <param name="isDisposed">Tells whether the loader is disposed.</param>
+        internal static async Task RunUnlessDisposedAsync(Func<Task> work, Func<bool> isDisposed)
+        {
+            if (isDisposed())
+                return;
+            try
+            {
+                await work();
+            }
+            catch (ObjectDisposedException) when (isDisposed())
+            {
+                // The editor closed while the handler ran: there is nothing left to refresh.
+            }
+        }
+
         private async void AssetPropertiesChanged(object sender, AssetChangedEventArgs e)
+        {
+            await RunUnlessDisposedAsync(() => RefreshChangedAssetsAsync(e), () => isDisposed);
+        }
+
+        private async Task RefreshChangedAssetsAsync(AssetChangedEventArgs e)
         {
             // Get the list of assets directly referenced by entities, that reference one of the modified asset. (eg. get models when a material is changed)
             var allAssetsToRebuild = new HashSet<AssetViewModel>();
 
             // Don't propagate property changes until we're fully initialized.
             await Editor.EditorInitialized;
+            if (isDisposed)
+                return;
 
             // If GameSettingsAssets.ColorSpace was changed, rebuild the whole scene
             var assets = e.Assets.ToList();
@@ -546,6 +579,8 @@ namespace Stride.Editor.EditorGame.ContentLoader
             }
 
             var references = await ComputeReferences();
+            if (isDisposed)
+                return;
             var assetsToProcess = new Queue<AssetViewModel>(assets);
             var processedAssets = new HashSet<AssetViewModel>(assets);
 
@@ -567,6 +602,9 @@ namespace Stride.Editor.EditorGame.ContentLoader
                 // We wait for a lock of the database. The lock we retrieve is synchronous, do not await in this using block!
                 using ((await database.ReserveSyncLock()).Lock())
                 {
+                    if (isDisposed)
+                        return;
+
                     // There is two patterns:
                     // - Object is a fast-reloadable & already loaded object: we can replace its content internally without loading a new object and recreating any of its referencers
                     //   Note that we still need to process referencers in case it is used as a compile-time dependency (i.e. Material layer)
@@ -604,6 +642,11 @@ namespace Stride.Editor.EditorGame.ContentLoader
 
         private async void GameSettingsChanged(object sender, GameSettingsChangedEventArgs e)
         {
+            await RunUnlessDisposedAsync(() => RebuildForGameSettingsAsync(e), () => isDisposed);
+        }
+
+        private async Task RebuildForGameSettingsAsync(GameSettingsChangedEventArgs e)
+        {
             // Remark: we assume that GameStudioDatabase has already updated the compiler game settings,
             // which is the case because this service is registered before the creation of this EditorContentLoader
             if (e.GameSettings.GetOrCreate<RenderingSettings>().ColorSpace != currentColorSpace || e.GameSettings.GetOrCreate<EditorSettings>().RenderingMode != currentRenderingMode)
@@ -612,6 +655,8 @@ namespace Stride.Editor.EditorGame.ContentLoader
                 currentColorSpace = e.GameSettings.GetOrCreate<RenderingSettings>().ColorSpace;
 
                 await BuildAndReloadAssets(Asset.Dependencies.ReferencedAssets.Select(x => x.AssetItem));
+                if (isDisposed)
+                    return;
             }
 
             // Update navigation meshes that are previewed inside the current scene when the game settings's group settings for navigation meshes change
