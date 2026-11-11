@@ -95,7 +95,8 @@ Example: dotnet build build/Stride.build -t:Package
   -->
   <Target Name="PrerequisitesInstaller">
     <Delete Files="$(StrideRoot)Bin\Prerequisites\install-prerequisites.exe"/>
-    <!-- Signed inline when StrideSign, and again with GameStudio.nupkg (sign-file-list.txt): the release builds it unsigned -->
+    <!-- Signed inline when StrideSign, MSI included. The release builds it unsigned, then its Deploy job builds it again
+         signed and puts it in GameStudio.nupkg (.github/scripts/sign-prerequisites-installer.ps1) -->
     <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_BuildAdvancedInstaller" Properties="StrideInstallerAip=$(StrideRoot)sources\prerequisites\prerequisites.aip" />
   </Target>
 
