@@ -8,8 +8,10 @@ using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Markup.Xaml.Templates;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using Stride.Core.Assets.Editor.Avalonia.Tests.Helpers;
 using Stride.Core.Assets.Editor.Avalonia.Views;
+using Stride.Core.Yaml;
 using Stride.Core.Presentation.Avalonia.Views;
 using Stride.Core.Presentation.Views;
 
@@ -200,9 +202,40 @@ public sealed class TemplateProviderMatchingTests
     }
 
     [AvaloniaFact]
+    public void TheUnloadableObjectTemplateNamesTheTypeAndTheAssembly()
+    {
+        var provider = new DefaultPropertyTemplateProviders().Values.OfType<TemplateProviderBase>().Single(x => x.Name == "UnloadableObject");
+        var unloadable = UnloadableObjectInstantiator.CreateUnloadableObject(typeof(object), "Missing.Type", "Missing.Assembly", "Not found", []);
+        var node = new NodeViewModelContext().MemberOf(new UnloadableHolder { Value = unloadable }, nameof(UnloadableHolder.Value));
+        var presenter = new ContentPresenter { Content = node, ContentTemplate = provider.Template };
+        var window = new Window { Content = presenter };
+        window.Show();
+        try
+        {
+            for (var i = 0; i < 3; ++i)
+            {
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                Dispatcher.UIThread.RunJobs();
+            }
+
+            var texts = presenter.GetVisualDescendants().OfType<TextBlock>().Select(x => x.Text).ToList();
+            Assert.Contains("Unable to load the object of type Missing.Type from assembly Missing.Assembly", texts);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
     public void ProvidersOnlyMatchNodes()
     {
         Assert.False(new TypeMatchTemplateProvider { Type = typeof(string), Template = null! }.Match("a string"));
         Assert.False(new ListTemplateProvider { Template = null! }.Match(null));
+    }
+
+    public sealed class UnloadableHolder
+    {
+        public object? Value { get; set; }
     }
 }

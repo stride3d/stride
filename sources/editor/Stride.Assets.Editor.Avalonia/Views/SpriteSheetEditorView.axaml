@@ -301,29 +301,20 @@
           <Image x:Name="SpriteImage" HorizontalAlignment="Left" VerticalAlignment="Top" Stretch="Fill"
                  RenderOptions.BitmapInterpolationMode="None"
                  Width="{Binding Viewport.ActualContentWidth}" Height="{Binding Viewport.ActualContentHeight}"
-                 Cursor="{Binding ToolMode, Converter={x:Static conv:SpriteEditorConverters.ToolModeToCursor}}">
-            <Image.Source>
-              <MultiBinding Converter="{x:Static conv:SpriteEditorConverters.SourceToBitmap}">
-                <Binding Path="CurrentSprite.Source" FallbackValue="{x:Null}"/>
-                <Binding Path="Cache"/>
-              </MultiBinding>
-            </Image.Source>
-          </Image>
+                 Cursor="{Binding ToolMode, Converter={x:Static conv:SpriteEditorConverters.ToolModeToCursor}}"
+                 Source="{sd:MultiBinding {Binding CurrentSprite.Source, FallbackValue={x:Null}}, {Binding Cache},
+                                          Converter={x:Static conv:SpriteEditorConverters.SourceToBitmap}}"/>
           <!-- The tools: the region, borders and center of the sprite and their handles -->
           <Canvas x:Name="ToolsCanvas" IsHitTestVisible="{Binding !UsingPixelTool}">
             <!-- Dark background around the region (selection highlight) -->
             <Border Canvas.Left="0" Canvas.Top="0" Opacity="0.75" BorderBrush="#FF0F0F0F"
                     Width="{Binding Viewport.ActualContentWidth}" Height="{Binding Viewport.ActualContentHeight}"
-                    IsVisible="{Binding SelectionHighlightEnabled}">
-              <Border.BorderThickness>
-                <MultiBinding Converter="{x:Static conv:SpriteEditorConverters.ToThickness}">
-                  <Binding Path="CurrentSprite.TextureRegion.ActualLeft" FallbackValue="0"/>
-                  <Binding Path="CurrentSprite.TextureRegion.ActualTop" FallbackValue="0"/>
-                  <Binding Path="CurrentSprite.TextureRegion.ActualRightOffset" FallbackValue="0"/>
-                  <Binding Path="CurrentSprite.TextureRegion.ActualBottomOffset" FallbackValue="0"/>
-                </MultiBinding>
-              </Border.BorderThickness>
-            </Border>
+                    IsVisible="{Binding SelectionHighlightEnabled}"
+                    BorderThickness="{sd:MultiBinding {Binding CurrentSprite.TextureRegion.ActualLeft, FallbackValue=0},
+                                                      {Binding CurrentSprite.TextureRegion.ActualTop, FallbackValue=0},
+                                                      {Binding CurrentSprite.TextureRegion.ActualRightOffset, FallbackValue=0},
+                                                      {Binding CurrentSprite.TextureRegion.ActualBottomOffset, FallbackValue=0},
+                                                      Converter={x:Static conv:SpriteEditorConverters.ToThickness}}"/>
             <!-- The region with a margin of 6 for the handles: left/top offsets are equal, width/height offsets are the
                  double of them -->
             <Panel x:Name="RegionPanel"

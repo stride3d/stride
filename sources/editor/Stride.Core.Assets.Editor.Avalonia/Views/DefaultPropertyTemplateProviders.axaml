@@ -1461,23 +1461,14 @@
                 IsHitTestVisible="False" IsVisible="{Binding !#UrlTextBox.IsKeyboardFocusWithin}">
           <Grid x:Name="RefOverlay">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-              <StackPanel Orientation="Horizontal">
-                <StackPanel.IsVisible>
-                  <MultiBinding Converter="{caec:ReferenceLocationVisibility}" ConverterParameter="24">
-                    <Binding ElementName="RefOverlay" Path="Bounds.Width"/>
-                    <Binding ElementName="RefName" Path="Bounds.Width"/>
-                    <Binding Path="NodeValue" Converter="{caec:ContentReferenceToDisplayLocation}"/>
-                  </MultiBinding>
-                </StackPanel.IsVisible>
+              <StackPanel Orientation="Horizontal"
+                          IsVisible="{sd:MultiBinding {Binding #RefOverlay.Bounds.Width}, {Binding #RefName.Bounds.Width},
+                                                      {Binding NodeValue, Converter={caec:ContentReferenceToDisplayLocation}},
+                                                      Converter={caec:ReferenceLocationVisibility}, ConverterParameter=24}">
                 <TextBlock x:Name="RefLocation" Opacity="0.6" TextTrimming="CharacterEllipsis"
-                           Text="{Binding NodeValue, Converter={caec:ContentReferenceToDisplayLocation}}">
-                  <TextBlock.MaxWidth>
-                    <MultiBinding Converter="{caec:ReferenceLocationMaxWidth}" ConverterParameter="6">
-                      <Binding ElementName="RefOverlay" Path="Bounds.Width"/>
-                      <Binding ElementName="RefName" Path="Bounds.Width"/>
-                    </MultiBinding>
-                  </TextBlock.MaxWidth>
-                </TextBlock>
+                           Text="{Binding NodeValue, Converter={caec:ContentReferenceToDisplayLocation}}"
+                           MaxWidth="{sd:MultiBinding {Binding #RefOverlay.Bounds.Width}, {Binding #RefName.Bounds.Width},
+                                                      Converter={caec:ReferenceLocationMaxWidth}, ConverterParameter=6}"/>
                 <TextBlock Opacity="0.6" Text="/"/>
               </StackPanel>
               <TextBlock x:Name="RefName" TextTrimming="CharacterEllipsis"
@@ -1562,23 +1553,14 @@
                     IsHitTestVisible="False" IsVisible="{Binding !#UrlTextBoxThumb.IsKeyboardFocusWithin}">
               <Grid x:Name="RefOverlayThumb">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                  <StackPanel Orientation="Horizontal">
-                    <StackPanel.IsVisible>
-                      <MultiBinding Converter="{caec:ReferenceLocationVisibility}" ConverterParameter="24">
-                        <Binding ElementName="RefOverlayThumb" Path="Bounds.Width"/>
-                        <Binding ElementName="RefNameThumb" Path="Bounds.Width"/>
-                        <Binding Path="NodeValue" Converter="{caec:ContentReferenceToDisplayLocation}"/>
-                      </MultiBinding>
-                    </StackPanel.IsVisible>
+                  <StackPanel Orientation="Horizontal"
+                              IsVisible="{sd:MultiBinding {Binding #RefOverlayThumb.Bounds.Width}, {Binding #RefNameThumb.Bounds.Width},
+                                                          {Binding NodeValue, Converter={caec:ContentReferenceToDisplayLocation}},
+                                                          Converter={caec:ReferenceLocationVisibility}, ConverterParameter=24}">
                     <TextBlock x:Name="RefLocationThumb" Opacity="0.6" TextTrimming="CharacterEllipsis"
-                               Text="{Binding NodeValue, Converter={caec:ContentReferenceToDisplayLocation}}">
-                      <TextBlock.MaxWidth>
-                        <MultiBinding Converter="{caec:ReferenceLocationMaxWidth}" ConverterParameter="6">
-                          <Binding ElementName="RefOverlayThumb" Path="Bounds.Width"/>
-                          <Binding ElementName="RefNameThumb" Path="Bounds.Width"/>
-                        </MultiBinding>
-                      </TextBlock.MaxWidth>
-                    </TextBlock>
+                               Text="{Binding NodeValue, Converter={caec:ContentReferenceToDisplayLocation}}"
+                               MaxWidth="{sd:MultiBinding {Binding #RefOverlayThumb.Bounds.Width}, {Binding #RefNameThumb.Bounds.Width},
+                                                          Converter={caec:ReferenceLocationMaxWidth}, ConverterParameter=6}"/>
                     <TextBlock Opacity="0.6" Text="/"/>
                   </StackPanel>
                   <TextBlock x:Name="RefNameThumb" TextTrimming="CharacterEllipsis"
@@ -1669,14 +1651,10 @@
           <StackPanel>
             <TextBlock Margin="8"
                        Foreground="Orange"
-                       TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow">
-              <TextBlock.Text>
-                <MultiBinding StringFormat="{sd:LocalizeString Unable to load the object of type {0} from assembly {1}}">
-                  <Binding Path="((yaml:IUnloadable)NodeValue).TypeName" FallbackValue=""/>
-                  <Binding Path="((yaml:IUnloadable)NodeValue).AssemblyName" FallbackValue=""/>
-                </MultiBinding>
-              </TextBlock.Text>
-            </TextBlock>
+                       TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow"
+                       Text="{sd:MultiBinding {Binding ((yaml:IUnloadable)NodeValue).TypeName, FallbackValue=''},
+                                              {Binding ((yaml:IUnloadable)NodeValue).AssemblyName, FallbackValue=''},
+                                              StringFormat={sd:LocalizeString Unable to load the object of type {0} from assembly {1}}}"/>
             <TextBlock Margin="8"
                        TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow"
                        Text="{Binding ((yaml:IUnloadable)NodeValue).Error, FallbackValue={x:Null}}"/>
