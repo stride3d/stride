@@ -11,6 +11,8 @@ on:
       - 'sources/**'
       - 'tests/**'
       - 'Stride.slnx'
+      # The shader corpus test compiles the samples' shaders
+      - 'samples/**/*.sdsl'
       - '!**/.all-contributorsrc'
       - '!**/.editorconfig'
       - '!**/.gitignore'
@@ -226,6 +228,150 @@ jobs:
     with:
       build-type: Debug
 
+  # Compiles the shader corpus with the base commit and with this one; needs no runtime build
+  Shader-Corpus-D3D11:
+    needs: changes
+    if: (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft')) && (needs.changes.outputs.runtime == 'true' || needs.changes.outputs.shader-corpus == 'true')
+    uses: ./.github/workflows/test-shader-corpus.yml
+    with:
+      platform: Direct3D11
+
+  Shader-Corpus-Vulkan:
+    needs: changes
+    if: (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft')) && (needs.changes.outputs.runtime == 'true' || needs.changes.outputs.shader-corpus == 'true')
+    uses: ./.github/workflows/test-shader-corpus.yml
+    with:
+      platform: Vulkan
+
+  # A changed shader corpus output needs the `shader-output-change` label on the PR (on master: on the merged PR), and
+  # only the changes the PR had when the label was added pass: shader-corpus-label.yml records them, and reruns this job,
+  # and Gate after it, when the label is added or removed. The label never accepts a permutation that now fails. The job
+  # summary says what changed, how to review it and what to do next.
+  Shader-Output:
+    name: Shader output
+    needs: [Shader-Corpus-D3D11, Shader-Corpus-Vulkan]
+    if: always() && (needs.Shader-Corpus-D3D11.result == 'success' || needs.Shader-Corpus-Vulkan.result == 'success')
+    runs-on: ubuntu-latest
+    # The record of what the label accepted is an artifact of shader-corpus-label.yml
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: read
+    env:
+      CHANGED: ${{ needs.Shader-Corpus-D3D11.outputs.changed == 'true' || needs.Shader-Corpus-Vulkan.outputs.changed == 'true' }}
+    steps:
+      - name: Download the changes
+        if: env.CHANGED == 'true'
+        uses: actions/download-artifact@v8
+        with:
+          pattern: shader-corpus-*
+          path: corpus
+      - name: Check the label
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          D3D11_RESULT: ${{ needs.Shader-Corpus-D3D11.result }}
+          VULKAN_RESULT: ${{ needs.Shader-Corpus-Vulkan.result }}
+        run: |
+          # The job summary says what changed, how to review it and what to do next; annotations only say where to look
+          summary() { printf '%s\n' "$@" >> "$GITHUB_STEP_SUMMARY"; }
+          fail() {
+            summary "" "### What to do" "" "$2"
+            echo "::error title=Shader output changed::$1 See the summary of the Shader output job."
+            exit 1
+          }
+          # At most 50 lines of ids, as code: they come from the PR's corpus.json
+          list() {
+            summary "" '```' "$(head -n 50 "$1")" '```'
+            [ "$(wc -l < "$1")" -le 50 ] || summary "And $(($(wc -l < "$1") - 50)) more, in the log of this job."
+          }
+          # "1 permutation", "2 permutations"
+          plural() { if [ "$1" -eq 1 ]; then echo "$1 $2"; else echo "$1 ${2}s"; fi; }
+          summary "## Shader output" ""
+          for job in Direct3D11:$D3D11_RESULT Vulkan:$VULKAN_RESULT; do
+            [ "${job#*:}" = success ] || summary "> [!WARNING]" "> The Shader corpus (${job%:*}) job did not succeed: its output is not checked." ""
+          done
+          if [ "$CHANGED" != true ]; then
+            echo "Shader output unchanged."
+            summary "The shader corpus compiles as with the base commit."
+            exit 0
+          fi
+          export LC_ALL=C
+          run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          readme="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/$GITHUB_SHA/sources/shaders/Stride.Shaders.Tests/Corpus/README.md"
+          # One line per change (see ShaderCorpusTests.Report): id, kind, base and new hashes
+          cat corpus/*/changes.txt 2>/dev/null | sort -u > changes.txt
+          if [ ! -s changes.txt ]; then
+            summary "**The Shader corpus jobs report a change, but their artifacts have no \`changes.txt\`.**"
+            fail "The Shader corpus artifacts have no changes.txt." "Read the logs of the Shader corpus jobs: the comparison stopped before writing its files."
+          fi
+          permutations=$(cut -f1 changes.txt | sort -u | wc -l)
+          summary "**The shader corpus compiles differently from the base commit: $(plural "$permutations" permutation).**" ""
+          # Changes per kind and platform
+          awk -F'\t' '
+            FNR == 1 { platform = FILENAME; sub(/^corpus\/shader-corpus-/, "", platform); sub(/\/changes\.txt$/, "", platform); platforms[++np] = platform }
+            { if (!($2 in seen)) { seen[$2]; kinds[++nk] = $2 } count[$2, platform]++ }
+            END {
+              printf "| Change |"; for (i = 1; i <= np; i++) printf " %s |", platforms[i]; print ""
+              printf "|---|"; for (i = 1; i <= np; i++) printf "--:|"; print ""
+              for (k = 1; k <= nk; k++) { printf "| %s |", kinds[k]; for (i = 1; i <= np; i++) printf " %d |", count[kinds[k], platforms[i]]; print "" }
+            }' corpus/*/changes.txt >> "$GITHUB_STEP_SUMMARY"
+          summary "" "To review: the summaries of the Shader corpus jobs on [this run's page]($run_url) list each change, with the source lines it comes from, and \`diff.txt\` in their \`shader-corpus-<platform>\` artifacts (at the bottom of that page) has the whole diff. \`pwsh build/shader-corpus-diff.ps1\` shows the same on your machine ([README]($readme#workflow-for-a-change))."
+          # A bug, or a permutation that is gone on purpose: then the PR removes it from corpus.json, where its diff shows it
+          awk -F'\t' '$2 == "now fails" { print $1 }' changes.txt | sort -u > failing.txt
+          if [ -s failing.txt ]; then
+            sed 's/^/now fails: /' failing.txt
+            summary "" "**No longer compiling, after compiling with the base commit: $(plural "$(wc -l < failing.txt)" permutation).** The \`shader-output-change\` label does not accept them:"
+            list failing.txt
+            fail "No longer compiling: $(plural "$(wc -l < failing.txt)" permutation)." "Fix them. If a permutation is gone on purpose, remove it from \`corpus.json\` in this PR, where its diff shows it ([README]($readme#in-ci))."
+          fi
+          # Read now, not from the event: a rerun after a label change sees it
+          if [ -z "$PR" ]; then
+            PR=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls" --jq '.[0].number // empty')
+          fi
+          if [ -z "$PR" ]; then
+            summary "" "No PR brought this commit, so no \`shader-output-change\` label accepts the change."
+            fail "No PR accepts the change." "Check that the change is expected. The next master commit compares with this one, so it fails only here."
+          fi
+          if ! gh api "repos/$GITHUB_REPOSITORY/issues/$PR/labels" --jq '.[].name' | grep -qx shader-output-change; then
+            if [ "$GITHUB_EVENT_NAME" != pull_request ]; then
+              summary "" "#$PR was merged without the \`shader-output-change\` label."
+              fail "#$PR was merged without the shader-output-change label." "Check that the change is expected. The next master commit compares with this one, so it fails only here."
+            fi
+            fail "The PR has no shader-output-change label." "1. The author says in the PR which permutations changed and why. A change the PR does not mean to make is a bug to fix.
+          2. A maintainer reviews it, and if it is expected, adds the \`shader-output-change\` label: this job runs again and passes.
+
+          The label accepts the changes the PR has when it is added. If a later push changes the output again, this job fails again, and a maintainer removes the label and adds it back to accept the new changes ([README]($readme#in-ci))."
+          fi
+          # The newest record of the label workflow only: a PR's own run could upload an artifact of the same name
+          label_workflow=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/shader-corpus-label.yml" --jq .id)
+          recorded=
+          for run in $(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?name=shader-output-accepted-pr$PR&per_page=100" \
+              --jq '[.artifacts[] | select(.expired | not)] | sort_by(.created_at) | reverse | .[] | .workflow_run.id'); do
+            read -r workflow event actor <<< "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run" --jq '"\(.workflow_id) \(.event) \(.triggering_actor.login)"')"
+            if [ "$workflow $event" = "$label_workflow pull_request_target" ]; then
+              gh run download "$run" --repo "$GITHUB_REPOSITORY" --name "shader-output-accepted-pr$PR" --dir accepted
+              recorded=accepted/accepted.txt
+              break
+            fi
+          done
+          if [ -z "$recorded" ]; then
+            summary "" "#$PR has the \`shader-output-change\` label, but no record of what it accepted: the record expired, or the label was added before the Shader corpus jobs ran."
+            fail "The label of #$PR has no record of what it accepted." "Once this run is done, a maintainer removes the \`shader-output-change\` label and adds it back."
+          fi
+          record_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$run"
+          # A rebase over master changes a line too when master changed the base of the same permutation
+          comm -23 changes.txt "$recorded" | cut -f1,2 > new.txt
+          if [ -s new.txt ]; then
+            echo "Changed since the shader-output-change label was added:"
+            cat new.txt
+            summary "" "**$(plural "$(wc -l < new.txt)" change) since \`$actor\` added the \`shader-output-change\` label** ([record]($record_url)). A push changed these permutations again, or a rebase brought a master change to a permutation this PR also changes:"
+            list new.txt
+            fail "$(plural "$(wc -l < new.txt)" change) since the shader-output-change label was added." "The author says in the PR what the new changes are. A maintainer reviews them, and if they are expected, removes the \`shader-output-change\` label and adds it back."
+          fi
+          summary "" "Accepted: \`$actor\` added the \`shader-output-change\` label on these changes ([record]($record_url))."
+          echo "::notice title=Shader output changed::Accepted by the shader-output-change label of #$PR."
+
   Linux-Tests-Game:
     needs: [changes, Linux-Runtime]
     if: |
@@ -316,6 +462,9 @@ jobs:
       - Windows-Tests-Game-D3D12
       - Windows-Tests-Game-Vulkan
       - Linux-Tests-Simple
+      - Shader-Corpus-D3D11
+      - Shader-Corpus-Vulkan
+      - Shader-Output
       - Linux-Tests-Game
       - macOS-Tests-Game
       - iOS-Tests-Game

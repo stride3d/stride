@@ -41,6 +41,7 @@
     <Compile Include="InputTestBase.cs" />
     <Compile Include="SensorGameTest.cs" />
     <Compile Include="TestDirection.cs" />
+    <Compile Include="TestBackgroundInputFilter.cs" />
     <Compile Include="TestInput.cs" />
     <Compile Include="TestInputEvents.cs" />
   </ItemGroup>

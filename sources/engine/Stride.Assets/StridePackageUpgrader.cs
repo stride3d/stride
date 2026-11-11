@@ -171,11 +171,17 @@ namespace Stride.Assets
 
             registry.Code("4.5.2.0",
             [
-                // 4.5.2: input devices hold their capture state, so a device that implements the input interfaces itself
+                // 4.5.2: Bepu's MaxStepPerFrame was replaced by MaximumTimeSpanToProcess (no 1:1 mapping)
+                Rewrite(AssignmentRemove("Stride.BepuPhysics.BepuSimulation", "MaxStepPerFrame")),
+            ]);
+
+            registry.Code("4.5.3.0",
+            [
+                // 4.5.3: input devices hold their capture state, so a device that implements the input interfaces itself
                 // rather than through an engine base class needs one.
                 InterfaceMemberAdd("Stride.Input.IInputDevice", "public DeviceCaptureState CaptureState { get; } = new DeviceCaptureState();", "Stride.Input"),
 
-                // 4.5.2: GamePadDeviceBase.State is no longer virtual, so that it can hide a captured gamepad;
+                // 4.5.3: GamePadDeviceBase.State is no longer virtual, so that it can hide a captured gamepad;
                 // custom gamepads provide their state through RawState instead.
                 PropertyOverrideRename("Stride.Input.GamePadDeviceBase", "State", "RawState", SyntaxKind.ProtectedKeyword),
             ]);

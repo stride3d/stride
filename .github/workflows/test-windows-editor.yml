@@ -19,11 +19,18 @@ on:
           - Direct3D11
           - Direct3D12
           - Vulkan
+      capture-shader-corpus:
+        description: Record every compiled mixin tree for the shader corpus (runs only the Direct3D11 leg, artifact shader-corpus-editor)
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       build-type:
         default: Debug
         type: string
+      capture-shader-corpus:
+        default: false
+        type: boolean
     secrets:
       ANTHROPIC_API_KEY:
         required: false
@@ -55,10 +62,14 @@ jobs:
       fail-fast: false
       matrix:
         # Game Studio runs on each API; the games the fixtures build stay on Direct3D11.
-        graphics-api: ${{ fromJSON(inputs.graphics-api && format('["{0}"]', inputs.graphics-api) || '["Direct3D11", "Direct3D12", "Vulkan"]') }}
+        # A shader corpus capture only needs the Direct3D11 leg
+        graphics-api: ${{ fromJSON(inputs.graphics-api && format('["{0}"]', inputs.graphics-api) || inputs.capture-shader-corpus && '["Direct3D11"]' || '["Direct3D11", "Direct3D12", "Vulkan"]') }}
     env:
       # Read by GraphicsApiSelector at Game Studio startup.
       STRIDE_GRAPHICS_API: ${{ matrix.graphics-api }}
+      # Shader corpus refresh (sources/shaders/Stride.Shaders.Tests/Corpus/README.md): Game Studio and the asset builds
+      # record their mixin trees. One leg is enough, the corpus test compiles each tree for every graphics API.
+      STRIDE_SHADER_CORPUS_CAPTURE: ${{ inputs.capture-shader-corpus && matrix.graphics-api == 'Direct3D11' && format('{0}\shader-corpus', github.workspace) || '' }}
       # No STRIDE_VULKAN_SYNC_VALIDATION here: on Lavapipe it slows the thumbnails to about one per second, and the
       # fixtures time out. The game tests and the enduser samples run the same rendering code with it on.
       # MSBuild property (read from the environment): a fresh checkout only builds Direct3D11, so
@@ -179,6 +190,14 @@ jobs:
         with:
           name: screenshots-editor-${{ matrix.graphics-api }}
           path: ui-test-out-dpi*/
+          if-no-files-found: warn
+
+      - name: Upload shader corpus capture
+        if: always() && inputs.capture-shader-corpus && matrix.graphics-api == 'Direct3D11'
+        uses: actions/upload-artifact@v7
+        with:
+          name: shader-corpus-editor
+          path: shader-corpus/
           if-no-files-found: warn
 
       - name: Upload crash dumps

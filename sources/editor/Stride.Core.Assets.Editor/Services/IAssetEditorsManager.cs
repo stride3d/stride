@@ -38,6 +38,18 @@ public interface IAssetEditorsManager
     Task<bool> CloseAllEditorsAsync(bool? save);
 
     /// <summary>
+    /// Closes the editor of the given asset, invokes <paramref name="replaceAsset"/>, then opens an editor for the asset again
+    /// in the same place. The new editor is activated only if the previous one was active. If the asset is shown in the editor
+    /// of another asset (<see cref="IMultipleAssetEditorViewModel"/>), that editor is opened again. If no editor shows this asset,
+    /// or if its editor does not agree to close, this method only invokes <paramref name="replaceAsset"/>.
+    /// </summary>
+    /// <param name="asset">The asset whose editor opens again.</param>
+    /// <param name="replaceAsset">The action that replaces the asset by another instance, while no editor works on it. It is invoked
+    /// before this method returns.</param>
+    /// <returns>A task that completes when the editor is open again.</returns>
+    Task ReopenAssetEditorAsync(AssetViewModel asset, Action replaceAsset);
+
+    /// <summary>
     /// Try to find an opened editor for the given asset.
     /// </summary>
     /// <typeparam name="TEditor"></typeparam>

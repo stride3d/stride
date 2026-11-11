@@ -329,7 +329,8 @@ public static partial class CodeUpgrades
 
     /// <summary>
     /// Migrates a removed member that user code only assigned or subscribed to: the statements
-    /// <c>x.Reload = ...;</c>, <c>x.DeviceReset += ...;</c> and <c>x.DeviceReset -= ...;</c> are removed.
+    /// <c>x.Reload = ...;</c>, <c>x.DeviceReset += ...;</c> and <c>x.DeviceReset -= ...;</c> are removed,
+    /// and so is the entry <c>Reload = ...</c> of an object initializer or a <c>with</c> expression.
     /// Matches the member <paramref name="memberName"/> on <paramref name="declaringType"/> (its full
     /// metadata name). A read of the member is left untouched: the code around it needs manual porting,
     /// and the compile error shows where.
@@ -346,10 +347,18 @@ public static partial class CodeUpgrades
                 if (referenceNode.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Name == referenceNode)
                     target = memberAccess;
 
-                if (target.Parent is AssignmentExpressionSyntax assignment && assignment.Left == target
-                    && assignment.Parent is ExpressionStatementSyntax statement)
+                if (target.Parent is not AssignmentExpressionSyntax assignment || assignment.Left != target)
+                    return;
+
+                if (assignment.Parent is ExpressionStatementSyntax statement)
                 {
                     RemoveStatement(editor, statement);
+                }
+                else if (assignment.Parent is InitializerExpressionSyntax initializer
+                    && initializer.Kind() is SyntaxKind.ObjectInitializerExpression or SyntaxKind.WithInitializerExpression)
+                {
+                    // An entry of an object initializer or a with expression: the entry goes, the rest stays.
+                    editor.RemoveNode(assignment, SyntaxRemoveOptions.KeepNoTrivia);
                 }
             });
     }

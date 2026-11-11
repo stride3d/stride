@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using System.Windows.Forms;
 using SharpDX;
 using SharpDX.DirectInput;
 
@@ -18,6 +19,7 @@ namespace Stride.Input
     /// </summary>
     internal partial class InputSourceWindowsDirectInput : InputSourceBase
     {
+        private readonly Control? uiControl;
         private readonly HashSet<Guid> devicesToRemove = new HashSet<Guid>();
         private InputManager? inputManager;
         private DirectInput? directInput;
@@ -25,6 +27,18 @@ namespace Stride.Input
 
         [GeneratedRegex(@"VID_(\w+)?&PID_(\w+)?")]
         private static partial Regex XInputDeviceIdRegex { get; }
+
+        /// <summary>
+        /// Creates the DirectInput source.
+        /// </summary>
+        /// <param name="uiControl">
+        /// The game's control. While its top-level window has no focus, controllers only return towards rest (see <see cref="BackgroundInputFilter"/>).
+        /// With <c>null</c>, controllers are not filtered.
+        /// </param>
+        public InputSourceWindowsDirectInput(Control? uiControl)
+        {
+            this.uiControl = uiControl;
+        }
 
         public override void Initialize(InputManager inputManager)
         {
@@ -95,6 +109,11 @@ namespace Stride.Input
 
         [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "GetRawInputDeviceInfoW")]
         private static extern uint GetRawInputDeviceInfo(IntPtr device, uint command, IntPtr data, ref uint dataCharCount);
+
+        /// <summary>
+        /// Gets whether the game window has focus.
+        /// </summary>
+        internal bool HasFocus => WindowsInputFocus.HasFocus(uiControl);
 
         /// <summary>Enumerates the device name string of every raw-input device.</summary>
         private static List<string> GetRawInputDeviceNames()
@@ -173,9 +192,9 @@ namespace Stride.Input
             {
                 controller = new GameControllerDirectInput(this, directInput, deviceInstance);
             }
-            catch (SharpDXException)
+            catch (SharpDXException ex)
             {
-                // Some failure occured during device creation
+                InputManager.Logger.Warning($"DirectInput game controller {deviceInstance.InstanceName.TrimEnd('\0')} ({deviceInstance.InstanceGuid}) could not be opened and is ignored. [{ex.Message}]");
                 return;
             }
 
