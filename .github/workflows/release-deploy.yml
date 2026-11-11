@@ -214,8 +214,10 @@ jobs:
       - name: Install Advanced Installer
         shell: pwsh
         run: |
-          Invoke-WebRequest -Uri "https://www.advancedinstaller.com/downloads/22.0/advinst.msi" -OutFile "$env:RUNNER_TEMP/advinst.msi"
-          msiexec /i "$env:RUNNER_TEMP/advinst.msi" /qn ADDLOCAL=ALL | Out-Null
+          $msi = Join-Path $env:RUNNER_TEMP advinst.msi
+          Invoke-WebRequest -Uri "https://www.advancedinstaller.com/downloads/22.0/advinst.msi" -OutFile $msi
+          $install = Start-Process msiexec -ArgumentList '/i', "`"$msi`"", '/qn', 'ADDLOCAL=ALL' -Wait -PassThru
+          if ($install.ExitCode -ne 0) { echo "::error::Installing Advanced Installer failed (msiexec exit $($install.ExitCode))"; exit 1 }
           if ("${{ secrets.ADVINST_LICENSE_KEY }}" -ne "") {
             & "${env:ProgramFiles(x86)}\Caphyon\Advanced Installer 22.0\bin\x86\AdvancedInstaller.com" /register "${{ secrets.ADVINST_LICENSE_KEY }}"
           }
