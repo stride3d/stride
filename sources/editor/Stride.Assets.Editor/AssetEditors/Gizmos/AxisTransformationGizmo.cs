@@ -15,6 +15,24 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
         protected Vector3 DragTranslationWorld;
 
         /// <summary>
+        /// Gets the axes of a gizmo whose positive side points away from the camera of a view: the gizmo shows the opposite
+        /// side of these axes, and turns the planes next to them, so that its handles face that camera.
+        /// </summary>
+        /// <param name="gizmoWorldMatrix">The world matrix of the gizmo.</param>
+        /// <param name="viewMatrix">The view matrix of the camera.</param>
+        internal static GizmoTransformationAxes GetBackfacingAxes(Matrix gizmoWorldMatrix, Matrix viewMatrix)
+        {
+            var cameraInGizmoSpace = (Matrix.Invert(viewMatrix) * Matrix.Invert(gizmoWorldMatrix)).TranslationVector;
+            var axes = GizmoTransformationAxes.None;
+            for (var axis = 0; axis < 3; axis++)
+            {
+                if (cameraInGizmoSpace[axis] < 0)
+                    axes |= (GizmoTransformationAxes)(1 << axis);
+            }
+            return axes;
+        }
+
+        /// <summary>
         /// Calculate the translation of the mouse drag in the world space depending on the current axis transformation
         /// </summary>
         protected override InitialTransformation CalculateTransformation()
