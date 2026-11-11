@@ -3,7 +3,7 @@
 
 using Stride.UI.Editor.ViewModels;
 
-namespace Stride.UI.Editor.Views;
+namespace Stride.UI.Editor.Avalonia.Views;
 
 /// <summary>
 /// A group of the toolbox of the UI editor: a library kind ("Standard library" or "User libraries") with its categories, or a

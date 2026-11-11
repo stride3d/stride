@@ -4,10 +4,10 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
              xmlns:vm="using:Stride.UI.Editor.ViewModels"
-             xmlns:local="using:Stride.UI.Editor.Views"
+             xmlns:local="using:Stride.UI.Editor.Avalonia.Views"
              xmlns:dd="using:Stride.Core.Assets.Editor.Avalonia.DragDrop"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="Stride.UI.Editor.Views.UIEditorView"
+             x:Class="Stride.UI.Editor.Avalonia.Views.UIEditorView"
              x:DataType="vm:UIEditorBaseViewModel"
              Focusable="True">
   <UserControl.Resources>

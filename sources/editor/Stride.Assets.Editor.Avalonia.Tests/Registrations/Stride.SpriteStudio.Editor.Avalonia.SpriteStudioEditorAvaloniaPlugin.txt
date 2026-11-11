@@ -1,10 +1,10 @@
-Plugin: Stride.SpriteStudio.Editor.SpriteStudioEditorAvaloniaPlugin
+Plugin: Stride.SpriteStudio.Editor.Avalonia.SpriteStudioEditorAvaloniaPlugin
 AssetViewModelTypes:
 AssetEditorViewModelTypes:
 AssetEditorViewTypes:
 AssetPreviewViewModelTypes:
 AssetPreviewViewTypes:
-  Stride.SpriteStudio.Editor.SpriteStudioSheetPreview -> Stride.SpriteStudio.Editor.SpriteStudioSheetPreviewView
+  Stride.SpriteStudio.Editor.SpriteStudioSheetPreview -> Stride.SpriteStudio.Editor.Avalonia.SpriteStudioSheetPreviewView
 PrimitiveTypes:
 EnumImages:
 TypeImages:

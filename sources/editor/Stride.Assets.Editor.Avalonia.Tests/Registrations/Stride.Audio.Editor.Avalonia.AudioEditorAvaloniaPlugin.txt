@@ -1,10 +1,10 @@
-Plugin: Stride.Audio.Editor.AudioEditorAvaloniaPlugin
+Plugin: Stride.Audio.Editor.Avalonia.AudioEditorAvaloniaPlugin
 AssetViewModelTypes:
 AssetEditorViewModelTypes:
 AssetEditorViewTypes:
 AssetPreviewViewModelTypes:
 AssetPreviewViewTypes:
-  Stride.Audio.Editor.SoundPreview -> Stride.Audio.Editor.SoundPreviewView
+  Stride.Audio.Editor.SoundPreview -> Stride.Audio.Editor.Avalonia.SoundPreviewView
 PrimitiveTypes:
 EnumImages:
 TypeImages:

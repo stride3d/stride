@@ -4,7 +4,7 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace Stride.UI.Editor.Views;
+namespace Stride.UI.Editor.Avalonia.Views;
 
 /// <summary>
 /// The property templates of the UI elements: thickness, strip definition (the rows, columns and layers of a grid) and the

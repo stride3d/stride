@@ -5,7 +5,7 @@ using Avalonia.Markup.Xaml.Styling;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Editor.Avalonia;
 
-namespace Stride.UI.Editor.Views;
+namespace Stride.UI.Editor.Avalonia.Views;
 
 /// <summary>
 /// The Avalonia editor's entry point into this package: the UI property templates (thickness, strip definition, rotation)

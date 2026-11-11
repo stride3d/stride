@@ -4,7 +4,7 @@
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.UI.Editor.ViewModels;
 
-namespace Stride.UI.Editor.Views;
+namespace Stride.UI.Editor.Avalonia.Views;
 
 /// <summary>
 /// The view of the editor of a UI page.

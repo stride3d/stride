@@ -11,7 +11,7 @@ using Avalonia.VisualTree;
 using Stride.GameStudio.Avalonia.Tests.Helpers;
 using Stride.UI.Assets;
 using Stride.UI.Editor.ViewModels;
-using Stride.UI.Editor.Views;
+using Stride.UI.Editor.Avalonia.Views;
 
 namespace Stride.GameStudio.Avalonia.Tests;
 

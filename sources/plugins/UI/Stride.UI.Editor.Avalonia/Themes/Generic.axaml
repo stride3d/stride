@@ -1,7 +1,7 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
-                    xmlns:views="using:Stride.UI.Editor.Views">
+                    xmlns:views="using:Stride.UI.Editor.Avalonia.Views">
   <!-- The control themes of this assembly; UIEditorAvaloniaPlugin merges this dictionary into the application. -->
 
   <!-- Thickness sides (the arrows are mid gray: the WPF ones are white, for its dark theme) -->

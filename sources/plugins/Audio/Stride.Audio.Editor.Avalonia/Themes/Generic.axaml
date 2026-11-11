@@ -1,12 +1,13 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
-                    xmlns:audio="using:Stride.Audio.Editor">
+                    xmlns:audio="using:Stride.Audio.Editor.Avalonia"
+                    xmlns:audioVm="using:Stride.Audio.Editor">
   <!-- The control themes of this assembly; AudioEditorAvaloniaPlugin merges this dictionary into the application. -->
   <ControlTheme x:Key="{x:Type audio:SoundPreviewView}" TargetType="audio:SoundPreviewView">
     <Setter Property="Template">
       <ControlTemplate TargetType="audio:SoundPreviewView">
-        <DockPanel x:DataType="audio:SoundPreviewViewModel">
+        <DockPanel x:DataType="audioVm:SoundPreviewViewModel">
           <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" IsVisible="{Binding IsAudioValid}">
             <Button x:Name="PART_Play" Command="{Binding PlayCommand}" Background="Transparent" Width="24" Height="24" Padding="0"
                     ToolTip.Tip="{sd:LocalizeString Play the sound, Context=ToolTip}">

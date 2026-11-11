@@ -13,7 +13,7 @@ using Stride.Core.Assets.Editor.Avalonia.Views;
 using Stride.Core.Assets.Editor.Editors;
 using Stride.Core.Presentation.Avalonia.Controls;
 using Stride.UI;
-using Stride.UI.Editor.Views;
+using Stride.UI.Editor.Avalonia.Views;
 using Thickness = Stride.UI.Thickness;
 
 namespace Stride.Assets.Editor.Avalonia.Tests;

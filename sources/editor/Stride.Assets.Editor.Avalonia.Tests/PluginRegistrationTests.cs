@@ -4,14 +4,16 @@
 using Avalonia.Headless.XUnit;
 using Stride.Assets.Editor.Tests.Helpers;
 using Stride.Audio.Editor;
+using Stride.Audio.Editor.Avalonia;
 using Stride.Core.Assets.Editor.Avalonia;
 using Stride.Core.Assets.Editor.Editors;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Particles.Editor;
 using Stride.Physics.Editor;
 using Stride.SpriteStudio.Editor;
+using Stride.SpriteStudio.Editor.Avalonia;
 using Stride.UI.Editor;
-using Stride.UI.Editor.Views;
+using Stride.UI.Editor.Avalonia.Views;
 using Stride.Video.Editor;
 
 namespace Stride.Assets.Editor.Avalonia.Tests;

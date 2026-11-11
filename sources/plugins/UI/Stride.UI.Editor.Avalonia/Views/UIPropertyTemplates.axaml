@@ -6,8 +6,8 @@
                     xmlns:cpqvm="using:Stride.Core.Presentation.Quantum.ViewModels"
                     xmlns:s="using:System"
                     xmlns:ui="using:Stride.UI"
-                    xmlns:views="using:Stride.UI.Editor.Views"
-                    x:Class="Stride.UI.Editor.Views.UIPropertyTemplates">
+                    xmlns:views="using:Stride.UI.Editor.Avalonia.Views"
+                    x:Class="Stride.UI.Editor.Avalonia.Views.UIPropertyTemplates">
 
   <!-- The rotation of the UI elements (radians), edited in degrees -->
   <caev:TypeAndPropertyNameMatchTemplateProvider x:Key="RotationTemplateProvider" Type="{x:Type s:Single}" PropertyName="Rotation" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">

@@ -7,7 +7,7 @@ using Avalonia.Data;
 using Stride.Core.Presentation.Avalonia.Controls;
 using Thickness = Stride.UI.Thickness;
 
-namespace Stride.UI.Editor.Views;
+namespace Stride.UI.Editor.Avalonia.Views;
 
 /// <summary>
 /// Edits a <see cref="Thickness"/> of the UI (margin, padding) with one box per side: left, right, top, bottom, back and front.

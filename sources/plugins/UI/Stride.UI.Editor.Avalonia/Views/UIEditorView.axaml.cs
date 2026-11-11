@@ -13,7 +13,7 @@ using Stride.UI.Editor.ViewModels;
 using Stride.UI.Panels;
 using UICanvas = Stride.UI.Panels.Canvas;
 using UIStackPanel = Stride.UI.Panels.StackPanel;
-namespace Stride.UI.Editor.Views;
+namespace Stride.UI.Editor.Avalonia.Views;
 
 // KeyEventArgs alone would be Stride.UI's (a member of an enclosing namespace wins over the usings of the file)
 using KeyEventArgs = global::Avalonia.Input.KeyEventArgs;

@@ -13,7 +13,7 @@ using Stride.Core.Assets.Editor.Avalonia.DragDrop;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.GameStudio.Avalonia.Tests.Helpers;
 using Stride.UI.Editor.ViewModels;
-using Stride.UI.Editor.Views;
+using Stride.UI.Editor.Avalonia.Views;
 
 namespace Stride.GameStudio.Avalonia.Tests;
 
