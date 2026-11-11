@@ -17,8 +17,8 @@ on:
         default: ''
 
 permissions:
-  contents: write
-  pull-requests: write
+  actions: read  # list and download the capture runs
+  contents: read
 
 jobs:
   Update:
@@ -31,6 +31,7 @@ jobs:
           # Need full history for the auto-generated branch name to be stable.
           fetch-depth: 0
           fetch-tags: true  # tag-based versioning (engine version must dominate sample versions)
+          persist-credentials: false  # the push uses the Stride Bot token
 
       - name: Resolve target run id
         id: resolve
@@ -110,13 +111,24 @@ jobs:
           done
           echo "Replaced $changed baseline PNG(s)."
 
+      # A PR made with GITHUB_TOKEN starts no workflows, so its required checks would never run.
+      - name: Get the Stride Bot token
+        id: bot
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.STRIDE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.STRIDE_BOT_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
       # Plain git and gh, so no third-party action has to be on the repository's allowlist
       - name: Open PR with refreshed baselines
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.bot.outputs.token }}
           RUN_ID: ${{ steps.resolve.outputs.run_id }}
           BRANCH: ${{ inputs.branch_name || format('baselines/refresh-{0}', steps.resolve.outputs.run_id) }}
           BASE: ${{ github.ref_name }}
+          BOT: ${{ steps.bot.outputs.app-slug }}[bot]
         run: |
           set -e
           fixtures=tests/enduser/Stride.Samples.Tests/Fixtures
@@ -124,8 +136,10 @@ jobs:
             echo "No baseline changed: the captures equal the committed references."
             exit 0
           fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # The id prefix is what links the author to the bot's profile.
+          git config user.name "$BOT"
+          git config user.email "$(gh api "users/$BOT" --jq .id)+$BOT@users.noreply.github.com"
+          gh auth setup-git
           git switch -c "$BRANCH"
           git add -- "$fixtures"
           list=$(git diff --cached --name-only -- "$fixtures" | sed "s|^$fixtures/||; s|\.png$||; s|^|- |")
