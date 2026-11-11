@@ -67,7 +67,7 @@ public readonly record struct EditorGameViewCameraState(Vector3 Position, Vector
 public interface IEditorGameMultiViewViewModelService : IEditorGameViewModelService
 {
     /// <summary>
-    /// Gets whether the viewport of the game can show several views (the Avalonia editor), or only one (WPF).
+    /// Gets whether the viewport of the game can show several views, or only one.
     /// </summary>
     bool IsAvailable { get; }
 
