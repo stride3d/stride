@@ -1,6 +1,6 @@
 !Model
 Id: 7d010e9c-a555-4de7-8baa-1ecb30240cd5
-SerializedVersion: {Stride: 2.2.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../Resources/Models/StrideCrate.fbx
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -14,6 +14,5 @@ Materials:
         MaterialInstance:
             Material: bf5ac41a-d259-437b-b4df-c658e7d0d880:Materials/FrameB
 Skeleton: null
-ImportMorphTargets: false
 ~SourceHashes:
     d62e02bb1fd74960b61663e68b69ac5e~../../Resources/Models/StrideCrate.fbx: 6e3a5526c1cdb7001c9b7ea51ac583a0

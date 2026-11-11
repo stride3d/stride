@@ -1,6 +1,6 @@
 !Model
 Id: cfb9a357-ac8d-4b98-b49b-923308cf386d
-SerializedVersion: {Stride: 2.2.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../../Resources/Models/mannequinModel.fbx
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -30,6 +30,5 @@ Materials:
         MaterialInstance:
             Material: 74f04b9c-d2e8-4318-a45d-e74fe2b302c0:Materials/LambertMT
 Skeleton: 1ce3c383-bb85-42f5-8341-626ccb59dbf8:Models/mannequinModel Skeleton
-ImportMorphTargets: false
 ~SourceHashes:
     62249c33fdcd036801d96874c5aff04e~../../../Resources/Models/mannequinModel.fbx: 41531d1299044bd0f0b265374610fb1d

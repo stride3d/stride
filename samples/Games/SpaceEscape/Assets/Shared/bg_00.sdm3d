@@ -1,6 +1,6 @@
 !Model
 Id: f16bfc07-e816-475d-a400-304b8042d6c7
-SerializedVersion: {Stride: 2.2.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: !file ../../Resources/model/BG/scene/bg_00.FBX
 Skeleton: null
@@ -11,6 +11,5 @@ Materials:
         MaterialInstance:
             Material: e7bf2bb6-90d8-4c1e-a8bc-78c1c46c5359:BG00
 Modifiers: {}
-ImportMorphTargets: false
 ~SourceHashes:
     d4e37adf342e48a42fb308294482b1f2~../../Resources/model/BG/scene/bg_00.FBX: d9cb8d7d0fc8f1ea2a519e602bbe2770

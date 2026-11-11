@@ -1,6 +1,6 @@
 !Model
 Id: e19ec8c3-699e-4a5f-ad09-9f5e750b9b0d
-SerializedVersion: {Stride: 2.2.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: !file ../../Resources/model/BG/scene/obj00.FBX
 Skeleton: 9f53d2c9-5a21-4440-aa65-f849e0385304:obj00 Skeleton
@@ -11,6 +11,5 @@ Materials:
         MaterialInstance:
             Material: 5f60b016-d447-417d-8c92-7b6bbe5cbb31:obj00 Material
 Modifiers: {}
-ImportMorphTargets: false
 ~SourceHashes:
     c6db86fde86d085256beb83fd7458107~../../Resources/model/BG/scene/obj00.FBX: b67d92d3f1774d22af885fd1623c97c0

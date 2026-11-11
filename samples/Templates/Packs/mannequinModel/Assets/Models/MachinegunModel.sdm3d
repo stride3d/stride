@@ -1,6 +1,6 @@
 !Model
 Id: 32c1ef96-e4a0-49a2-b286-b932c6d43f49
-SerializedVersion: {Stride: 2.2.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../Resources/Models/MachinegunModel.fbx
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -22,6 +22,5 @@ Materials:
         MaterialInstance:
             Material: 9d50f321-04f3-48ab-b49c-c414ef358343:Materials/BodyGray
 Skeleton: null
-ImportMorphTargets: false
 ~SourceHashes:
     10b47b21e557752fe8ffbec31774bca1~../../Resources/Models/MachinegunModel.fbx: f681403f434781ff4a4b3139aa4f6471

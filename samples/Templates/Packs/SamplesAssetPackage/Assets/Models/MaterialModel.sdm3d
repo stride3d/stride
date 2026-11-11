@@ -1,6 +1,6 @@
 !Model
 Id: d6eb9b8a-c70a-4d55-8da5-9dc32528d6bd
-SerializedVersion: {Stride: 2.2.0.0}
+SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Source: ../../Resources/Models/MaterialModel.fbx
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -14,6 +14,5 @@ Materials:
         MaterialInstance:
             Material: bf37ab1b-21d6-4ebc-a644-70166ff957d9:Materials/MaterialB
 Skeleton: null
-ImportMorphTargets: false
 ~SourceHashes:
     91edd752015b1b0dbfe23c07fbd877c9~../../Resources/Models/MaterialModel.fbx: 2af68f6f63000a4c8b6f9af14e7d0962
