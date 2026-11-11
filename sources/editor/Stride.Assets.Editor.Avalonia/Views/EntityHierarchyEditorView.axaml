@@ -297,40 +297,16 @@
               <StackPanel Orientation="Horizontal" ClipToBounds="True">
                 <Image Source="{StaticResource SceneIcon}" Width="16" Height="16"/>
                 <!-- The active scene, where new entities go, is in bold -->
-                <TextBlock Text="{Binding Name}" Margin="4,0" VerticalAlignment="Center" Classes.unloaded="{Binding !IsLoaded}" Classes.selected="{Binding $parent[TreeViewItem].IsSelected}">
-                  <Classes.active>
-                    <MultiBinding Converter="{sd:AllEqualMulti}">
-                      <Binding/>
-                      <Binding Path="$parent[TreeView].((vm:EntityHierarchyEditorViewModel)DataContext).ActiveRoot"/>
-                    </MultiBinding>
-                  </Classes.active>
-                </TextBlock>
+                <TextBlock Text="{Binding Name}" Margin="4,0" VerticalAlignment="Center" Classes.unloaded="{Binding !IsLoaded}" Classes.selected="{Binding $parent[TreeViewItem].IsSelected}"
+                           Classes.active="{sd:MultiBinding {Binding}, {Binding $parent[TreeView].((vm:EntityHierarchyEditorViewModel)DataContext).ActiveRoot}, Converter={sd:AllEqualMulti}}"/>
                 <!-- While the scene loads or unloads -->
-                <TextBlock Classes="loading" Margin="4,0" VerticalAlignment="Center" Text="{sd:LocalizeString Loading...}">
-                  <TextBlock.IsVisible>
-                    <MultiBinding Converter="{x:Static BoolConverters.And}">
-                      <Binding Path="IsLoading"/>
-                      <Binding Path="!IsLoaded"/>
-                    </MultiBinding>
-                  </TextBlock.IsVisible>
-                </TextBlock>
-                <TextBlock Classes="loading" Margin="4,0" VerticalAlignment="Center" Text="{sd:LocalizeString Unloading...}">
-                  <TextBlock.IsVisible>
-                    <MultiBinding Converter="{x:Static BoolConverters.And}">
-                      <Binding Path="IsLoading"/>
-                      <Binding Path="IsLoaded"/>
-                    </MultiBinding>
-                  </TextBlock.IsVisible>
-                </TextBlock>
+                <TextBlock Classes="loading" Margin="4,0" VerticalAlignment="Center" Text="{sd:LocalizeString Loading...}"
+                           IsVisible="{sd:MultiBinding {Binding IsLoading}, {Binding !IsLoaded}, Converter={sd:AndMulti}}"/>
+                <TextBlock Classes="loading" Margin="4,0" VerticalAlignment="Center" Text="{sd:LocalizeString Unloading...}"
+                           IsVisible="{sd:MultiBinding {Binding IsLoading}, {Binding IsLoaded}, Converter={sd:AndMulti}}"/>
                 <TextBlock Classes="unloaded" Margin="4,0" VerticalAlignment="Center" Text="{sd:LocalizeString (Unloaded)}"
-                           Classes.selected="{Binding $parent[TreeViewItem].IsSelected}">
-                  <TextBlock.IsVisible>
-                    <MultiBinding Converter="{x:Static BoolConverters.And}">
-                      <Binding Path="!IsLoaded"/>
-                      <Binding Path="!IsLoading"/>
-                    </MultiBinding>
-                  </TextBlock.IsVisible>
-                </TextBlock>
+                           Classes.selected="{Binding $parent[TreeViewItem].IsSelected}"
+                           IsVisible="{sd:MultiBinding {Binding !IsLoaded}, {Binding !IsLoading}, Converter={sd:AndMulti}}"/>
               </StackPanel>
             </DockPanel>
           </TreeDataTemplate>
