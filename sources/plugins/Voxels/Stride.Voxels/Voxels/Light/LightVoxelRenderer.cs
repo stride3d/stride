@@ -60,6 +60,8 @@ namespace Stride.Rendering.Voxels.VoxelGI
 
                     lightShaderGroupsPerVoxel.Add(light, lightShaderGroup);
                 }
+
+                lightShaderGroup.IncludeView(parameters.ViewIndex);
             }
 
             // Consume all the lights

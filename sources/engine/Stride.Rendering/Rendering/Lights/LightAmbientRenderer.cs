@@ -85,13 +85,6 @@ namespace Stride.Rendering.Lights
                 }
             }
 
-            /// <inheritdoc/>
-            public override bool IsUsedIn(ulong viewMask)
-            {
-                // Always merged, see UpdateShaderPermutationEntry
-                return true;
-            }
-
             public override void UpdateLayout(string compositionName)
             {
                 ambientLightKey = LightSimpleAmbientKeys.AmbientLight.ComposeWith(compositionName);
