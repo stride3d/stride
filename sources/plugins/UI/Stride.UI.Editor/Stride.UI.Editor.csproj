@@ -5,6 +5,7 @@
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--serialization --parameter-key</StrideAssemblyProcessorOptions>
     <StridePackageKind>Editor</StridePackageKind>
+    <StrideLocalized>true</StrideLocalized>
   </PropertyGroup>
   <ItemGroup>
     <!-- The UI editor's WPF views: the WPF Game Studio loads them, another toolkit's editor does not -->

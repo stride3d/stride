@@ -12,6 +12,8 @@ using Stride.Core.Assets.Editor.Avalonia.Tests.Helpers;
 using Stride.Core.Assets.Editor.Avalonia.Views;
 using Stride.Core.Assets.Editor.Editors;
 using Stride.Core.Presentation.Avalonia.Controls;
+using Stride.Core.Translation;
+using Stride.Core.Translation.Providers;
 using Stride.UI;
 using Stride.UI.Editor.Avalonia.Views;
 using Thickness = Stride.UI.Thickness;
@@ -25,6 +27,18 @@ namespace Stride.Assets.Editor.Avalonia.Tests;
 public sealed class UICompanionTests
 {
     private readonly NodeViewModelContext context = new();
+
+    [Fact]
+    public void TheUIEditorRegistersItsTranslations()
+    {
+        // Tr._p looks the catalog up by the calling assembly: without its own provider, the UI editor's questions (its
+        // "Don't ask again" among them) stay in English in a translated editor
+        var assembly = typeof(Stride.UI.Editor.UIEditorPlugin).Assembly;
+        System.Runtime.CompilerServices.RuntimeHelpers.RunModuleConstructor(assembly.ManifestModule.ModuleHandle);
+
+        // The manager takes one provider per assembly, so a second one is refused
+        Assert.Throws<ArgumentException>(() => TranslationManager.Instance.RegisterProvider(new GettextTranslationProvider(assembly)));
+    }
 
     public sealed class Holder
     {
