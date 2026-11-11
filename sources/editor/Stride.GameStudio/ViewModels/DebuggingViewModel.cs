@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
-using Microsoft.Build.Execution;
 using Microsoft.CodeAnalysis;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Components.Build;
@@ -61,9 +60,6 @@ namespace Stride.GameStudio.ViewModels
         private bool trackAssemblyChanges;
         private string outputTitle;
         private readonly string outputTitleBase = Tr._p("Title", "Output");
-        // The builds of the reload of the game assemblies
-        private ICancellableAsyncBuild currentBuild;
-        private bool reloadBuildInProgress;
         private bool cleanedUp;
 
         public DebuggingViewModel(GameStudioViewModel editor, IDebugService debugService)
@@ -149,9 +145,10 @@ namespace Stride.GameStudio.ViewModels
         public string OutputTitle { get => outputTitle; private set => SetValue(ref outputTitle, value); }
 
         /// <summary>
-        /// Gets whether there is a build currently in progress: a build of the build and run, or of the reload of the game assemblies.
+        /// Gets whether there is a build currently in progress: Build project, Start project, live scripting and the reload of the game
+        /// assemblies all build through <see cref="Build"/>.
         /// </summary>
-        public bool BuildInProgress => Build.BuildInProgress || reloadBuildInProgress;
+        public bool BuildInProgress => Build.BuildInProgress;
 
         [NotNull]
         public ICommandBase LivePlayProjectCommand { get; }
@@ -635,53 +632,14 @@ namespace Stride.GameStudio.ViewModels
             public string AssemblyPath { get; }
         }
 
+        /// <summary>
+        /// Builds a project of the game code before its assembly reloads, through the shared build and run: Cancel build stops it.
+        /// </summary>
         private async Task<BuildProjectResult> BuildProject(UFile projectPath)
         {
-            Build.BuildLog.ClearMessages();
-            Build.BuildLog.ClearLoggers();
-            var logger = new LoggerResult();
-            Build.BuildLog.AddLogger(logger);
-
-            reloadBuildInProgress = true;
-            UpdateCommands();
-            var jobToken = editor.Status.NotifyBackgroundJobStarted("Build in progress…", JobPriority.Compile);
-
-            try
-            {
-                var platformName = "AnyCPU";
-                var configuration = "Debug";
-                var target = "Build";
-
-                var extraProperties = new Dictionary<string, string>
-                {
-                    ["SolutionPlatform"] = "Any CPU",
-                    ["StrideBuildEngineLogVerbose"] = "true",
-                };
-
-                currentBuild = VSProjectHelper.CompileProjectAssemblyAsync(projectPath, logger, target, configuration, platformName, extraProperties, BuildRequestDataFlags.ProvideProjectStateAfterBuild);
-                if (currentBuild == null)
-                {
-                    logger.Error(string.Format(Tr._p("Message", "Unable to load and compile project {0}"), projectPath));
-                }
-                else
-                {
-                    await currentBuild.BuildTask;
-                }
-            }
-            catch (Exception e)
-            {
-                await ServiceProvider.Get<IDialogService>().MessageBoxAsync(string.Format(Tr._p("Message", "An exception occurred while compiling the project: {0}"), e.FormatSummary(true)), MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-            finally
-            {
-                editor.Status.NotifyBackgroundJobFinished(jobToken);
-                editor.Status.PushDiscardableStatus(!logger.HasErrors ? "Build succeeded" : "Build failed");
-                reloadBuildInProgress = false;
-                UpdateCommands();
-            }
-
-            var result = new BuildProjectResult(!logger.HasErrors, currentBuild?.AssemblyPath);
-            return result;
+            var projectFile = projectPath.ToOSPath();
+            var result = await Build.BuildCodeAssembliesAsync([projectFile]);
+            return new BuildProjectResult(result.Outcome == GameBuildOutcome.Succeeded, result.AssemblyPaths.GetValueOrDefault(projectFile));
         }
 
         private void SessionPropertyChanged(object sender, PropertyChangedEventArgs e)
