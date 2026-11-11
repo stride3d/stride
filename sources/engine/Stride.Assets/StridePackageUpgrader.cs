@@ -155,14 +155,6 @@ namespace Stride.Assets
                 // 4.5: the assembly processor no longer pools the delegates passed to the Dispatcher; its callbacks take
                 // their captures as a state, in a static lambda (#3680).
                 DispatcherCallbacksToStaticLambdas(),
-
-                // 4.5: input devices hold their capture state, so a device that implements the input interfaces itself
-                // rather than through an engine base class needs one.
-                InterfaceMemberAdd("Stride.Input.IInputDevice", "public DeviceCaptureState CaptureState { get; } = new DeviceCaptureState();", "Stride.Input"),
-
-                // 4.5: GamePadDeviceBase.State is no longer virtual, so that it can hide a captured gamepad;
-                // custom gamepads provide their state through RawState instead.
-                PropertyOverrideRename("Stride.Input.GamePadDeviceBase", "State", "RawState", SyntaxKind.ProtectedKeyword),
             ]);
 
             registry.Code("4.5.1.0",
@@ -175,6 +167,17 @@ namespace Stride.Assets
                     MemberRename("Stride.Graphics.CommandList", "UnsetRenderTargets", "ResetTargets"),
                     FluentCallRemove("Stride.Graphics.CommandList", "ResetQueryPool"),
                     FluentCallRemove("Stride.Graphics.CommandList", "SetStreamTargets")),
+            ]);
+
+            registry.Code("4.5.2.0",
+            [
+                // 4.5.2: input devices hold their capture state, so a device that implements the input interfaces itself
+                // rather than through an engine base class needs one.
+                InterfaceMemberAdd("Stride.Input.IInputDevice", "public DeviceCaptureState CaptureState { get; } = new DeviceCaptureState();", "Stride.Input"),
+
+                // 4.5.2: GamePadDeviceBase.State is no longer virtual, so that it can hide a captured gamepad;
+                // custom gamepads provide their state through RawState instead.
+                PropertyOverrideRename("Stride.Input.GamePadDeviceBase", "State", "RawState", SyntaxKind.ProtectedKeyword),
             ]);
 
             // Structural csproj migrations, gated by the version each change landed at. Run against the

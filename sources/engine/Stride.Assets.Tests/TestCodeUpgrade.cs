@@ -1235,7 +1235,7 @@ public class TestCodeUpgrade
     [Fact]
     public async Task InterfaceMemberAddCompletesOnlyClassesThatImplementTheInterfaceThemselves()
     {
-        // The 4.5 shape: IInputDevice gained CaptureState, which the engine base classes already provide
+        // The 4.5.2 shape: IInputDevice gained CaptureState, which the engine base classes already provide
         var source = """
             namespace Input
             {
@@ -1285,7 +1285,7 @@ public class TestCodeUpgrade
     [Fact]
     public async Task PropertyOverrideRenameMovesOverridesToTheNewProperty()
     {
-        // The 4.5 shape: GamePadDeviceBase.State became non-virtual and subclasses override RawState instead
+        // The 4.5.2 shape: GamePadDeviceBase.State became non-virtual and subclasses override RawState instead
         const string OldBase = "public abstract class GamePadDeviceBase { public abstract int State { get; } }";
         const string NewBase = "public abstract class GamePadDeviceBase { public int State => RawState; protected abstract int RawState { get; } }";
         var source = $$"""
@@ -1325,7 +1325,7 @@ public class TestCodeUpgrade
     [Fact]
     public async Task PropertyOverrideRenameMovesAssignmentsToAGetOnlyOverride()
     {
-        // GamePadSimulated before 4.5: a get-only auto-property override that the class assigns in its constructor
+        // GamePadSimulated before 4.5.2: a get-only auto-property override that the class assigns in its constructor
         const string OldBase = "public abstract class GamePadDeviceBase { public abstract int State { get; } }";
         const string NewBase = "public abstract class GamePadDeviceBase { public int State => RawState; protected abstract int RawState { get; } }";
         var source = $$"""
