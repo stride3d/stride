@@ -115,7 +115,7 @@
     <AvaloniaBehaviorVersion>12.0.0</AvaloniaBehaviorVersion>
     <AvaloniaMarkViewVersion>12.2.1</AvaloniaMarkViewVersion>
     <AvaloniaEditVersion>12.0.0</AvaloniaEditVersion>
-    <!-- The docking of the Avalonia Game Studio, pinned to an exact version: its 4-part versions follow Avalonia's minimum version -->
+    <!-- The docking of the Avalonia Game Studio. A minimum version, as every version here, which restore resolves to: its 4-part versions follow Avalonia's minimum version -->
     <DockVersion>12.1.0.6</DockVersion>
   </PropertyGroup>
   <ItemGroup>
