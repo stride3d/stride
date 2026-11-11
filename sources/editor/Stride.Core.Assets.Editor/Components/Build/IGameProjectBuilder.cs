@@ -43,6 +43,12 @@ public interface IGameProjectBuild
     bool IsCanceled { get; }
 
     /// <summary>
+    /// The items that each target of the build returned (their item specs), by target name, once <see cref="Completion"/> completed: for
+    /// example the package of an Android game, from its <c>GetAndroidPackage</c> target. Empty before, and for a build that failed to run.
+    /// </summary>
+    IReadOnlyDictionary<string, IReadOnlyList<string>> TargetOutputs { get; }
+
+    /// <summary>
     /// Stops the build; <see cref="Completion"/> then completes.
     /// </summary>
     void Cancel();
