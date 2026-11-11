@@ -24,6 +24,11 @@ namespace Stride.Rendering.Lights
         protected LightRange[] lightRanges;
 
         /// <summary>
+        /// The number of lights the shader needs for each view, <see cref="ComputeLightCount"/> of the view's lights.
+        /// </summary>
+        private int[] viewLightCounts;
+
+        /// <summary>
         /// List of lights selected for this rendering.
         /// </summary>
         protected FastListStruct<LightDynamicEntry> currentLights = new FastListStruct<LightDynamicEntry>(8);
@@ -55,10 +60,14 @@ namespace Stride.Rendering.Lights
         public virtual void SetViews(List<RenderView> views)
         {
             Array.Resize(ref lightRanges, views.Count);
+            Array.Resize(ref viewLightCounts, views.Count);
 
             // Reset ranges
             for (var i = 0; i < views.Count; ++i)
+            {
                 lightRanges[i] = new LightRange(0, 0);
+                viewLightCounts[i] = 0;
+            }
         }
 
         /// <summary>
@@ -71,7 +80,8 @@ namespace Stride.Rendering.Lights
         public virtual int AddView(int viewIndex, RenderView renderView, int lightCount)
         {
             lightRanges[viewIndex] = new LightRange(lights.Count, lights.Count + lightCount);
-            LightCurrentCount = Math.Max(LightCurrentCount, ComputeLightCount(lightCount));
+            viewLightCounts[viewIndex] = ComputeLightCount(lightCount);
+            LightCurrentCount = Math.Max(LightCurrentCount, viewLightCounts[viewIndex]);
             if (lightCount > 0)
                 IncludeView(viewIndex);
 
@@ -79,21 +89,28 @@ namespace Stride.Rendering.Lights
         }
 
         /// <inheritdoc/>
+        public override int GetLightCount(ulong viewMask)
+        {
+            // As many lights as the largest of the selected views needs, not of every view of the frame; a group with
+            // no light in the selected views, one every effect takes, keeps the count of the frame
+            var selectedLightCount = 0;
+            var frameLightCount = 0;
+            for (var viewIndex = 0; viewIndex < viewLightCounts.Length; viewIndex++)
+            {
+                var lightCount = viewLightCounts[viewIndex];
+                frameLightCount = Math.Max(frameLightCount, lightCount);
+                if ((ViewBit(viewIndex) & viewMask) != 0)
+                    selectedLightCount = Math.Max(selectedLightCount, lightCount);
+            }
+
+            return selectedLightCount > 0 ? selectedLightCount : frameLightCount;
+        }
+
+        /// <inheritdoc/>
         public override void SelectViews(ulong viewMask)
         {
             base.SelectViews(viewMask);
-
-            // The shader holds as many lights as the largest of the selected views needs, not of every view of the frame
-            var lightCount = 0;
-            for (var viewIndex = 0; viewIndex < lightRanges.Length; viewIndex++)
-            {
-                var lightRange = lightRanges[viewIndex];
-                if (lightRange.End > lightRange.Start && (ViewBit(viewIndex) & viewMask) != 0)
-                    lightCount = Math.Max(lightCount, ComputeLightCount(lightRange.End - lightRange.Start));
-            }
-
-            if (lightCount > 0)
-                LightCurrentCount = lightCount;
+            LightCurrentCount = GetLightCount(viewMask);
         }
 
         /// <summary>

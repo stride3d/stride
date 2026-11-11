@@ -25,6 +25,14 @@ namespace Stride.Rendering.Lights
     /// lights of them all, so views with lights of their own in one frame do not compile every material for the
     /// union of their lights.
     /// </summary>
+    /// <remarks>
+    /// Views that take the same light groups with the same light counts share one lighting set, so views lit alike,
+    /// the eyes of a headset or two cameras on one scene, give the permutation a single view gives. Where views are
+    /// lit differently, the set of an object follows the views it is visible in: an object that comes into a second
+    /// such view changes effect, for one compiled for the lights of both views the first time it is needed. A
+    /// material is thus compiled once per different lighting among the sets of views that draw it, rather than once
+    /// for the lights of the whole frame.
+    /// </remarks>
     public class ForwardLightingRenderFeature : SubRenderFeature
     {
         /// <summary>
@@ -105,23 +113,34 @@ namespace Stride.Rendering.Lights
         private readonly LightShaderPermutationEntry frameGroups = new LightShaderPermutationEntry();
 
         /// <summary>
-        /// The lighting sets of the frame, one per distinct set of views the objects are drawn in: the groups with
-        /// lights in those views, laid out at their indices in the set, and the shaders the set's effects are validated
-        /// with. Pooled; <see cref="lightingSetCount"/> are in use.
+        /// The lighting sets of the frame, one per different lighting among the sets of views the objects are drawn in:
+        /// the groups with lights in those views, laid out at their indices in the set, and the shaders the set's
+        /// effects are validated with. Pooled; <see cref="lightingSetCount"/> are in use.
         /// </summary>
         private readonly List<LightShaderPermutationEntry> lightingSets = new List<LightShaderPermutationEntry>();
         private int lightingSetCount;
+
+        /// <summary>
+        /// The index in <see cref="lightingSets"/> of the set of each set of views the objects are drawn in.
+        /// </summary>
         private readonly Dictionary<ulong, int> lightingSetsByViews = new Dictionary<ulong, int>();
 
         /// <summary>
-        /// The set whose composition names the groups hold now; a group in several sets is laid out again before each use.
+        /// The set of an object drawn in no lit view this frame.
+        /// </summary>
+        private const int NoLightingSet = -1;
+
+        /// <summary>
+        /// The set the groups are laid out for now. A group holds one layout, its composition name and its light count,
+        /// so a frame of several sets lays the groups out again for each, once to validate the set's effects and once
+        /// to prepare its nodes; a frame of one set lays them out once.
         /// </summary>
         private LightShaderPermutationEntry laidOutSet;
 
         /// <summary>
-        /// The lighting set of each per-view layout of the view being prepared.
+        /// The index of the lighting set of each per-view layout, in each view by its index in <see cref="renderViews"/>.
         /// </summary>
-        private readonly Dictionary<ViewResourceGroupLayout, LightShaderPermutationEntry> layoutSets = new Dictionary<ViewResourceGroupLayout, LightShaderPermutationEntry>();
+        private readonly Dictionary<(ViewResourceGroupLayout Layout, int ViewIndex), int> viewLayoutSets = new Dictionary<(ViewResourceGroupLayout, int), int>();
 
         private StaticObjectPropertyKey<ulong> objectViewsKey;
         private StaticObjectPropertyKey<int> objectSetKey;
@@ -318,12 +337,13 @@ namespace Stride.Rendering.Lights
 
             CollectLightingSets();
 
-            // Validate the effects of each set with the set's shaders
+            // Generate the shader permutation of each set and validate the set's effects with it
             var objectSets = RootRenderFeature.RenderData.GetData(objectSetKey);
             for (var setIndex = 0; setIndex < lightingSetCount; setIndex++)
             {
                 var lightingSet = lightingSets[setIndex];
                 LayOut(lightingSet);
+                GenerateShaders(lightingSet);
                 Dispatcher.ForBatched(RootRenderFeature.RenderObjects.Count, new EffectPermutationJob
                 {
                     Feature = this,
@@ -337,8 +357,8 @@ namespace Stride.Rendering.Lights
         }
 
         /// <summary>
-        /// Finds the views each render object is drawn in this frame, and makes a lighting set for every distinct set
-        /// of views; an object drawn in no lit view gets the set of no view, the groups every effect takes.
+        /// Finds the views each render object is drawn in this frame, and gives the object the lighting set of those
+        /// views. An object drawn in no lit view gets none: no effect of it is lit this frame.
         /// </summary>
         private void CollectLightingSets()
         {
@@ -365,13 +385,16 @@ namespace Stride.Rendering.Lights
             foreach (var renderObject in RootRenderFeature.RenderObjects)
             {
                 var views = objectViews[renderObject.StaticObjectNode];
+                if (views == 0)
+                {
+                    objectSets[renderObject.StaticObjectNode] = NoLightingSet;
+                    continue;
+                }
+
                 if (!lightingSetsByViews.TryGetValue(views, out var setIndex))
                 {
-                    setIndex = lightingSetCount++;
+                    setIndex = FindOrAddLightingSet(views);
                     lightingSetsByViews.Add(views, setIndex);
-                    if (lightingSets.Count <= setIndex)
-                        lightingSets.Add(new LightShaderPermutationEntry());
-                    BuildLightingSet(lightingSets[setIndex], views);
                 }
 
                 objectSets[renderObject.StaticObjectNode] = setIndex;
@@ -379,42 +402,68 @@ namespace Stride.Rendering.Lights
         }
 
         /// <summary>
-        /// Fills <paramref name="lightingSet"/> with the groups that hold lights of <paramref name="views"/>, in the
-        /// light renderers' order, and with their shaders laid out for the set.
+        /// Gives the index of the lighting set of <paramref name="views"/>: a set of the frame those views are lit
+        /// like, which then covers them too, or a new one of the groups that hold lights of the views, in the light
+        /// renderers' order.
         /// </summary>
-        private void BuildLightingSet(LightShaderPermutationEntry lightingSet, ulong views)
+        private int FindOrAddLightingSet(ulong views)
         {
-            lightingSet.Reset();
-            lightingSet.ViewMask = views;
+            for (var setIndex = 0; setIndex < lightingSetCount; setIndex++)
+            {
+                var lightingSet = lightingSets[setIndex];
+                if (AreLitAlike(lightingSet.ViewMask, views))
+                {
+                    lightingSet.ViewMask |= views;
+                    return setIndex;
+                }
+            }
+
+            if (lightingSets.Count == lightingSetCount)
+                lightingSets.Add(new LightShaderPermutationEntry());
+
+            var newSet = lightingSets[lightingSetCount];
+            newSet.Reset();
+            newSet.ViewMask = views;
             foreach (var directLightGroup in frameGroups.DirectLightGroups)
             {
                 if (directLightGroup.IsUsedIn(views))
-                    lightingSet.DirectLightGroups.Add(directLightGroup);
+                    newSet.DirectLightGroups.Add(directLightGroup);
             }
             foreach (var environmentLight in frameGroups.EnvironmentLights)
             {
                 if (environmentLight.IsUsedIn(views))
-                    lightingSet.EnvironmentLights.Add(environmentLight);
+                    newSet.EnvironmentLights.Add(environmentLight);
             }
 
-            // Generate shader permutation
-            LayOut(lightingSet);
-            foreach (var directLightGroup in lightingSet.DirectLightGroups)
+            return lightingSetCount++;
+        }
+
+        /// <summary>
+        /// Whether two sets of views take the same groups with the same light counts, so the same shaders, laid out
+        /// alike. The views of both together are then lit like either: a group's count for them is the larger of two
+        /// equal counts.
+        /// </summary>
+        private bool AreLitAlike(ulong views, ulong otherViews)
+        {
+            foreach (var directLightGroup in frameGroups.DirectLightGroups)
             {
-                lightingSet.DirectLightShaders.Add(directLightGroup.ShaderSource);
-                if (directLightGroup.HasEffectPermutations)
-                    lightingSet.PermutationLightGroups.Add(directLightGroup);
+                if (!IsLaidOutAlike(directLightGroup, views, otherViews))
+                    return false;
             }
-            foreach (var environmentLight in lightingSet.EnvironmentLights)
+            foreach (var environmentLight in frameGroups.EnvironmentLights)
             {
-                lightingSet.EnvironmentLightShaders.Add(environmentLight.ShaderSource);
-                if (environmentLight.HasEffectPermutations)
-                    lightingSet.PermutationLightGroups.Add(environmentLight);
+                if (!IsLaidOutAlike(environmentLight, views, otherViews))
+                    return false;
             }
 
-            // Make copy so that we can continue to mutate the set's ShaderSourceCollection during next frame
-            lightingSet.DirectLightShadersReadOnly = GetReadonlyShaderSources(lightingSet.DirectLightShaders);
-            lightingSet.EnvironmentLightShadersReadOnly = GetReadonlyShaderSources(lightingSet.EnvironmentLightShaders);
+            return true;
+        }
+
+        private static bool IsLaidOutAlike(LightShaderGroup lightGroup, ulong views, ulong otherViews)
+        {
+            var isUsed = lightGroup.IsUsedIn(views);
+            return isUsed == lightGroup.IsUsedIn(otherViews)
+                && (!isUsed || lightGroup.GetLightCount(views) == lightGroup.GetLightCount(otherViews));
         }
 
         /// <summary>
@@ -440,6 +489,29 @@ namespace Stride.Rendering.Lights
             }
 
             laidOutSet = lightingSet;
+        }
+
+        /// <summary>
+        /// Generates the shader permutation of <paramref name="lightingSet"/> out of its groups as they are laid out.
+        /// </summary>
+        private void GenerateShaders(LightShaderPermutationEntry lightingSet)
+        {
+            foreach (var directLightGroup in lightingSet.DirectLightGroups)
+            {
+                lightingSet.DirectLightShaders.Add(directLightGroup.ShaderSource);
+                if (directLightGroup.HasEffectPermutations)
+                    lightingSet.PermutationLightGroups.Add(directLightGroup);
+            }
+            foreach (var environmentLight in lightingSet.EnvironmentLights)
+            {
+                lightingSet.EnvironmentLightShaders.Add(environmentLight.ShaderSource);
+                if (environmentLight.HasEffectPermutations)
+                    lightingSet.PermutationLightGroups.Add(environmentLight);
+            }
+
+            // Make copy so that we can continue to mutate the set's ShaderSourceCollection during next frame
+            lightingSet.DirectLightShadersReadOnly = GetReadonlyShaderSources(lightingSet.DirectLightShaders);
+            lightingSet.EnvironmentLightShadersReadOnly = GetReadonlyShaderSources(lightingSet.EnvironmentLightShaders);
         }
 
         private readonly struct EffectPermutationJob : Dispatcher.IBatchJob
@@ -510,40 +582,26 @@ namespace Stride.Rendering.Lights
         {
             using var _ = Profiler.Begin(PrepareKey);
             var objectSets = RootRenderFeature.RenderData.GetData(objectSetKey);
-            foreach (var view in RenderSystem.Views)
+            int frameCounter = RenderSystem.FrameCounter;
+
+            CollectViewLayoutSets(objectSets);
+
+            for (var setIndex = 0; setIndex < lightingSetCount; setIndex++)
             {
-                var viewFeature = view.Features[RootRenderFeature.Index];
+                var lightingSet = lightingSets[setIndex];
+                LayOut(lightingSet);
 
-                RenderViewLightData renderViewData;
-                if (!renderViewDatas.TryGetValue(view.LightingView ?? view, out renderViewData) || viewFeature.Layouts.Count == 0)
-                    continue;
-
-                var viewIndex = renderViews.IndexOf(view);
-                if (viewIndex < 0)
-                    continue;
-
-                var viewBit = LightShaderGroup.ViewBit(viewIndex);
-                int frameCounter = RenderSystem.FrameCounter;
-
-                // The lighting set of each layout of this view: that of any node drawn with it, since every node of a
-                // set is drawn with the set's shaders
-                layoutSets.Clear();
-                var renderNodes = viewFeature.RenderNodes;
-                for (var i = 0; i < renderNodes.Count && layoutSets.Count < viewFeature.Layouts.Count; i++)
+                for (var viewIndex = 0; viewIndex < renderViews.Count; viewIndex++)
                 {
-                    var renderNode = RootRenderFeature.GetRenderNode(renderNodes.Items[i]);
-                    var viewLayout = renderNode.RenderEffect.Reflection?.PerViewLayout;
-                    if (viewLayout != null && !layoutSets.ContainsKey(viewLayout))
-                        layoutSets.Add(viewLayout, lightingSets[objectSets[renderNode.RenderObject.StaticObjectNode]]);
-                }
-
-                for (var setIndex = 0; setIndex < lightingSetCount; setIndex++)
-                {
-                    var lightingSet = lightingSets[setIndex];
-                    if ((lightingSet.ViewMask & viewBit) == 0)
+                    if ((lightingSet.ViewMask & LightShaderGroup.ViewBit(viewIndex)) == 0)
                         continue;
 
-                    LayOut(lightingSet);
+                    var view = renderViews[viewIndex];
+                    var viewFeature = view.Features[RootRenderFeature.Index];
+                    if (viewFeature.Layouts.Count == 0)
+                        continue;
+
+                    var renderViewData = renderViewDatas[view.LightingView ?? view];
 
                     // Build/refresh one variant per distinct PerView Lighting layout hash, then bind each
                     // layout's resource group to its matching variant. Light groups' ApplyViewParameters
@@ -553,7 +611,8 @@ namespace Stride.Rendering.Lights
                         if (viewLayout.State != RenderEffectState.Normal)
                             continue;
 
-                        if (!layoutSets.TryGetValue(viewLayout, out var layoutSet) || layoutSet != lightingSet)
+                        // Layouts of the other sets are bound with their own
+                        if (!viewLayoutSets.TryGetValue((viewLayout, viewIndex), out var layoutSetIndex) || layoutSetIndex != setIndex)
                             continue;
 
                         var viewLighting = viewLayout.GetLogicalGroup(viewLightingKey);
@@ -592,6 +651,33 @@ namespace Stride.Rendering.Lights
                         SetIndex = setIndex,
                         LightingSet = lightingSet,
                     });
+                }
+            }
+        }
+
+        /// <summary>
+        /// Finds the lighting set of each per-view layout of each lit view: that of any node drawn with it, since the
+        /// effects that share a layout were compiled with the same light shaders, the shaders of one set.
+        /// </summary>
+        private void CollectViewLayoutSets(StaticObjectPropertyData<int> objectSets)
+        {
+            viewLayoutSets.Clear();
+            for (var viewIndex = 0; viewIndex < renderViews.Count; viewIndex++)
+            {
+                var viewFeature = renderViews[viewIndex].Features[RootRenderFeature.Index];
+                var renderNodes = viewFeature.RenderNodes;
+                var layoutCount = 0;
+                for (var i = 0; i < renderNodes.Count && layoutCount < viewFeature.Layouts.Count; i++)
+                {
+                    var renderNode = RootRenderFeature.GetRenderNode(renderNodes.Items[i]);
+
+                    // Ignore fallback effects
+                    if (renderNode.RenderEffect.State != RenderEffectState.Normal)
+                        continue;
+
+                    var viewLayout = renderNode.RenderEffect.Reflection?.PerViewLayout;
+                    if (viewLayout != null && viewLayoutSets.TryAdd((viewLayout, viewIndex), objectSets[renderNode.RenderObject.StaticObjectNode]))
+                        layoutCount++;
                 }
             }
         }
