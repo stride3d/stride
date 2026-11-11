@@ -74,6 +74,7 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ steps.bot.outputs.token }}
+          BOT: ${{ steps.bot.outputs.app-slug }}[bot]
         run: |
           dotnet msbuild build/samples.proj -t:SamplesToReleaseEngine -p:Configuration=Release
           FILE=sources/shared/SharedAssemblyInfo.cs
@@ -88,8 +89,9 @@ jobs:
             exit 0
           fi
           BRANCH="chore/upgrade-samples-$VERSION-${{ github.run_number }}"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # The id prefix is what links the author to the bot's profile.
+          git config user.name "$BOT"
+          git config user.email "$(gh api "users/$BOT" --jq .id)+$BOT@users.noreply.github.com"
           gh auth setup-git
           git checkout -b "$BRANCH"
           git commit -q -m "Samples: upgrade to $VERSION"

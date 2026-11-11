@@ -298,10 +298,11 @@ jobs:
           DETACHED: ${{ inputs.commit-sha }}
           DEFAULT: ${{ github.event.repository.default_branch }}
           ACTOR: ${{ github.actor }}
+          BOT: ${{ steps.bot.outputs.app-slug }}[bot]
         run: |
           # The id prefix is what links the author to the bot's profile.
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "$BOT"
+          git config user.email "$(gh api "users/$BOT" --jq .id)+$BOT@users.noreply.github.com"
           gh auth setup-git
 
           # Record who promoted, and from which run, so an odd reference image can be traced back.

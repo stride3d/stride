@@ -173,13 +173,15 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ steps.bot.outputs.token }}
+          BOT: ${{ steps.bot.outputs.app-slug }}[bot]
           BASE_BRANCH: ${{ github.event_name == 'workflow_dispatch' && inputs.base-branch || github.event.repository.default_branch }}
           PR_BRANCH: ${{ steps.metadata.outputs.branch }}
           PR_TITLE: ${{ steps.metadata.outputs.title }}
           TRIGGER_SOURCE: "${{ github.event_name == 'workflow_dispatch' && 'workflow_dispatch' || format('issue #{0}', github.event.issue.number) }}"
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # The id prefix is what links the author to the bot's profile.
+          git config user.name "$BOT"
+          git config user.email "$(gh api "users/$BOT" --jq .id)+$BOT@users.noreply.github.com"
           gh auth setup-git
           git checkout -b "$PR_BRANCH"
           git add README.md .all-contributorsrc
