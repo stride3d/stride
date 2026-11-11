@@ -43,7 +43,7 @@ namespace Stride.Assets.Editor.EditorGame.Tools;
 /// settings of the scene, through the toolbar.
 /// </remarks>
 [EditorGameService(typeof(EntityHierarchyEditorController), Order = 210)]
-public sealed class EditorGameToolService : EditorGameMouseServiceBase, IEditorGameToolService, IEditorGameToolViewModelService
+public sealed class EditorGameToolService : EditorGameMouseServiceBase, IEditorGameToolService, IEditorGameToolViewModelService, IEditorGameViewDependent
 {
     // The key bindings of the scene editor settings, read as they are used so that a change applies at once, as in WPF (the
     // switch key when the view opens)
@@ -147,6 +147,19 @@ public sealed class EditorGameToolService : EditorGameMouseServiceBase, IEditorG
     public Task SetSnapAsync(Transformation transformation, float value, bool isActive)
     {
         return controller.InvokeAsync(() => Context.Transformation.SetSnap(transformation, value, isActive));
+    }
+
+    /// <inheritdoc/>
+    /// <remarks>The tools that draw something fitted to the view (the transformation gizmos) fit it to that view.</remarks>
+    public void PrepareView(EditorGameViewCamera view)
+    {
+        if (toolSet is null)
+            return;
+        foreach (var tool in toolSet.Tools)
+        {
+            if (tool is IEditorGameViewDependent dependent && !toolSet.IsFailed(tool))
+                dependent.PrepareView(view);
+        }
     }
 
     /// <inheritdoc/>

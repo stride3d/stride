@@ -39,7 +39,9 @@ namespace Stride.Assets.Editor.EditorGame;
 /// <para>
 /// The other views are drawn after the scene and the gizmos of the frame, with the same graphics compositors and a camera of
 /// their own, so they show the same scene, gizmos and grid. The renderers that work for the pointer (the pickers) skip these
-/// draws (<see cref="IsSecondaryViewKey"/>). The gizmos are sized for the camera of the active view.
+/// draws (<see cref="IsSecondaryViewKey"/>). Before each of these views, the services that draw something fitted to the
+/// view (<see cref="IEditorGameViewDependent"/>: the gizmo sizes, the grid plane, the orientation cube) fit it to that
+/// view's camera, and to the active view's camera once they are drawn.
 /// </para>
 /// <para>
 /// The service does nothing with a viewport of one view (WPF).
@@ -68,6 +70,7 @@ public sealed class EditorGameMultiViewService : EditorGameServiceBase, IEditorG
     private readonly IEditorGameMultiViewport? viewport;
     private readonly Dictionary<int, ViewState> views = [];
     private readonly List<EditorGameViewInfo> viewInfos = [];
+    private readonly List<IEditorGameViewDependent> viewDependents = [];
     private EntityHierarchyEditorGame? game;
     private EditorGameCameraService? camera;
     private ViewRenderer? renderer;
@@ -203,23 +206,50 @@ public sealed class EditorGameMultiViewService : EditorGameServiceBase, IEditorG
             return;
 
         viewport.GetViews(viewInfos);
-        foreach (var info in viewInfos)
+        // The gizmos, the grid and the orientation cube fit each view's camera, then the active view's camera again
+        viewDependents.Clear();
+        viewDependents.AddRange(game.EditorServices.Services.OfType<IEditorGameViewDependent>());
+        var drewAny = false;
+        try
         {
-            if (info.Id == activeView || info.Width <= 0 || info.Height <= 0)
-                continue;
-            var view = GetOrCreateView(info.Id);
-            view.Camera ??= CreateState(EditorViewCamera.Perspective);
-            try
+            foreach (var info in viewInfos)
             {
+                if (info.Id == activeView || info.Width <= 0 || info.Height <= 0)
+                    continue;
+                var view = GetOrCreateView(info.Id);
+                view.Camera ??= CreateState(EditorViewCamera.Perspective);
+                drewAny = true;
                 DrawView(drawContext, view, info.Width, info.Height);
                 viewport.PresentView(info.Id, drawContext.CommandList, view.Target!);
             }
+        }
+        catch (Exception e)
+        {
+            // The other views stop, the active one keeps working
+            failed = true;
+            controller.Logger.Error("The other views of the scene could not be drawn; they stop until the editor is opened again.", e);
+        }
+        finally
+        {
+            if (drewAny)
+                PrepareViewDependents(new EditorGameViewCamera(camera.Component, game.GraphicsDevice.Presenter.BackBuffer.Height, true));
+        }
+    }
+
+    private void PrepareViewDependents(EditorGameViewCamera view)
+    {
+        for (var i = viewDependents.Count - 1; i >= 0; i--)
+        {
+            var dependent = viewDependents[i];
+            try
+            {
+                dependent.PrepareView(view);
+            }
             catch (Exception e)
             {
-                // A prototype: the other views stop, the active one keeps working
-                failed = true;
-                controller.Logger.Error("The other views of the scene could not be drawn; they stop until the editor is opened again.", e);
-                return;
+                // Not called again this frame
+                viewDependents.RemoveAt(i);
+                controller.Logger.Error($"{dependent.GetType().Name} could not fit what it draws to a view of the scene.", e);
             }
         }
     }
@@ -245,14 +275,16 @@ public sealed class EditorGameMultiViewService : EditorGameServiceBase, IEditorG
             var renderContext = drawContext.RenderContext;
             using (renderContext.PushTagAndRestore(IsSecondaryViewKey, true))
             {
-                // The scene, then the gizmos over it, as the two scene systems draw the active view
-                DrawSceneSystem(drawContext, game.SceneSystem, view.Component);
-                DrawSceneSystem(drawContext, game.EditorSceneSystem, view.Component);
+                // The scene, then the gizmos over it, as the two scene systems draw the active view. The gizmos, the grid and
+                // the orientation cube are fitted to this view's camera first, so the processors of the editor scene run again.
+                PrepareViewDependents(new EditorGameViewCamera(view.Component, height, false));
+                DrawSceneSystem(drawContext, game.SceneSystem, view.Component, false);
+                DrawSceneSystem(drawContext, game.EditorSceneSystem, view.Component, true);
             }
         }
     }
 
-    private static void DrawSceneSystem(RenderDrawContext drawContext, SceneSystem sceneSystem, CameraComponent viewCamera)
+    private static void DrawSceneSystem(RenderDrawContext drawContext, SceneSystem sceneSystem, CameraComponent viewCamera, bool runProcessors)
     {
         var compositor = sceneSystem.GraphicsCompositor;
         if (compositor is null || sceneSystem.SceneInstance is null)
@@ -264,8 +296,16 @@ public sealed class EditorGameMultiViewService : EditorGameServiceBase, IEditorG
             topLevel.ExternalCamera = viewCamera;
         try
         {
-            // As SceneSystem.Draw does, without running the processors again
+            // As SceneSystem.Draw does. The processors of the game's scene don't run again; those of the editor scene do, to
+            // take the gizmos fitted to this view
             drawContext.RenderContext.Reset();
+            if (runProcessors)
+            {
+                using (drawContext.RenderContext.PushTagAndRestore(GraphicsCompositor.Current, compositor))
+                {
+                    sceneSystem.SceneInstance.Draw(drawContext.RenderContext);
+                }
+            }
             drawContext.ResourceGroupAllocator.Flush();
             drawContext.QueryManager.Flush();
             using (drawContext.RenderContext.PushTagAndRestore(SceneInstance.Current, sceneSystem.SceneInstance))
@@ -292,6 +332,7 @@ public sealed class EditorGameMultiViewService : EditorGameServiceBase, IEditorG
         component.OrthographicSize = state.OrthographicSize;
         component.AspectRatio = width / (float)height;
         component.ViewMatrix = EditorGameCameraService.ComputeViewMatrix(state.Position, state.Yaw, state.Pitch);
+        component.Update();
     }
 
     /// <summary>

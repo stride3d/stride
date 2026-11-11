@@ -35,7 +35,7 @@ namespace Stride.Assets.Editor.EditorGame;
 /// The cross-platform counterpart of the WPF <c>EditorGameComponentGizmoService</c>.
 /// </remarks>
 [EditorGameService(typeof(EntityHierarchyEditorController), Order = 190)]
-public sealed class EditorGameComponentGizmoService : EditorGameServiceBase, IEditorGameComponentGizmoService, IEditorGameComponentGizmoViewModelService
+public sealed class EditorGameComponentGizmoService : EditorGameServiceBase, IEditorGameComponentGizmoService, IEditorGameComponentGizmoViewModelService, IEditorGameViewDependent
 {
     /// <summary>
     /// Set on the root entity of a gizmo while its component is selected (the light probe gizmos draw a wireframe then).
@@ -103,6 +103,17 @@ public sealed class EditorGameComponentGizmoService : EditorGameServiceBase, IEd
                 return selection;
         }
         return null;
+    }
+
+    /// <inheritdoc />
+    /// <remarks>The gizmos of fixed size keep their size on screen in every view.</remarks>
+    public void PrepareView(EditorGameViewCamera view)
+    {
+        foreach (var gizmo in sceneGizmos)
+        {
+            if (gizmo is EntityGizmo entityGizmo)
+                entityGizmo.PrepareView(view);
+        }
     }
 
     /// <inheritdoc />
