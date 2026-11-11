@@ -1,0 +1,31 @@
+!MaterialAsset
+Id: c56693b3-f183-4bf1-96da-a85745ac25a8
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Attributes:
+    Diffuse: !MaterialDiffuseMapFeature
+        DiffuseMap: !ComputeClampedLerpColor
+            Black: !ComputeColor
+                Value: {R: 0.18333334, G: 0.15583333, B: 0.1375, A: 1.0}
+            White: !ComputeColor
+                Value: {R: 0.33333337, G: 0.28940976, B: 0.25694448, A: 1.0}
+            Blend: !ComputeBinaryColor
+                Operator: Multiply
+                LeftChild: !ComputeTextureColor
+                    Texture: 2004ea99-5500-4c92-81a5-046bc01b9a38:Heightfield/Heightmap
+                    FallbackValue:
+                        Value: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                    Scale: {X: 1.0, Y: 1.0}
+                    Offset: {X: 0.0, Y: 0.0}
+                    Swizzle: y
+                RightChild: !ComputeTextureColor
+                    Texture: 2004ea99-5500-4c92-81a5-046bc01b9a38:Heightfield/Heightmap
+                    FallbackValue:
+                        Value: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+                    Scale: {X: 1.0, Y: 1.0}
+                    Offset: {X: 0.0, Y: 0.0}
+                    Swizzle: z
+    DiffuseModel: !MaterialDiffuseLambertModelFeature {}
+    Overrides:
+        UVScale: {X: 1.0, Y: 1.0}
+Layers: {}

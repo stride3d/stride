@@ -1,0 +1,43 @@
+!MaterialAsset
+Id: ae036fb4-5b3e-4fdf-9c3e-2ed2b8d5c59f
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Attributes:
+    Tessellation: !MaterialTessellationFlatFeature
+        TriangleSize: 12.0
+        AdjacentEdgeAverage: false
+    Displacement: !HeightfieldDisplacementFeature
+        HeightfieldSource: !Heightfield 89c6caba-0552-45a4-9de2-489a1090f467:Heightfield/Heightfield
+        Stage: Domain
+    Surface: !MaterialNormalMapFeature
+        NormalMap: !ComputeTextureColor
+            Texture: b1d399ce-7f9d-4ef9-8d18-c1cd45ca06c5:Heightfield/Heightfield Normal
+            FallbackValue:
+                Value: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+            AddressModeU: Clamp
+            AddressModeV: Clamp
+            Scale: {X: 1.0, Y: 1.0}
+            Offset: {X: 0.0, Y: 0.0}
+            Swizzle: null
+    Overrides:
+        UVScale: {X: 1.0, Y: 1.0}
+Layers:
+    f7e8e56d62304072ae357de233306c52:
+        Material: c56693b3-f183-4bf1-96da-a85745ac25a8:Heightfield/Rocks
+        BlendMap: !ComputeFloat
+            Value: 1.0
+        Overrides:
+            UVScale: {X: 1.0, Y: 1.0}
+    6b5ef1b2232ca2e028f8867f8718c404:
+        Material: 69028f04-7943-41f4-b490-0bc4379cd5e6:Heightfield/Vegetation
+        BlendMap: !ComputeTextureScalar
+            Texture: 2004ea99-5500-4c92-81a5-046bc01b9a38:Heightfield/Heightmap
+            FallbackValue:
+                Value: 1.0
+            Channel: A
+            AddressModeU: Clamp
+            AddressModeV: Clamp
+            Scale: {X: 1.0, Y: 1.0}
+            Offset: {X: 0.0, Y: 0.0}
+        Overrides:
+            UVScale: {X: 1.0, Y: 1.0}
