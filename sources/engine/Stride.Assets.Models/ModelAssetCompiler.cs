@@ -68,7 +68,6 @@ namespace Stride.Assets.Models
             importModelCommand.ImportMorphTargets = asset.ImportMorphTargets;
             importModelCommand.MorphNormals = asset.MorphNormals;
             importModelCommand.MorphTangents = asset.MorphTangents;
-            importModelCommand.LegacyTangentHandedness = asset.LegacyTangentHandedness;
             importModelCommand.ShaderReadableBuffers = asset.ShaderReadableBuffers;
             importModelCommand.DeduplicateMaterials = asset.DeduplicateMaterials;
             importModelCommand.ModelModifiers = asset.Modifiers;

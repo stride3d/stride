@@ -20,7 +20,7 @@ public class TestTangentImport
     [Fact]
     public void TangentsKeepTheirHandednessInW()
     {
-        var vertices = ImportTwoTriangles(legacyTangentHandedness: false);
+        var vertices = ImportTwoTriangles();
         var middle = (vertices.Min(v => v.Position.X) + vertices.Max(v => v.Position.X)) / 2;
 
         Assert.Equal(6, vertices.Count);
@@ -30,16 +30,7 @@ public class TestTangentImport
         Assert.All(vertices.Where(v => v.Position.X > middle), v => Assert.Equal(1.0f, v.Tangent.W));
     }
 
-    [Fact]
-    public void LegacyTangentHandednessWritesWAsOne()
-    {
-        var vertices = ImportTwoTriangles(legacyTangentHandedness: true);
-
-        Assert.Equal(6, vertices.Count);
-        Assert.All(vertices, v => Assert.Equal(1.0f, v.Tangent.W));
-    }
-
-    private static List<(Vector3 Position, Vector4 Tangent)> ImportTwoTriangles(bool legacyTangentHandedness)
+    private static List<(Vector3 Position, Vector4 Tangent)> ImportTwoTriangles()
     {
         // Two triangles facing +Z with the image's up along +Y (glTF V points down the image), the second mirrored in U,
         // laid out like the Normal and U Mirror columns of Khronos' NormalTangentMirrorTest.
@@ -72,7 +63,7 @@ public class TestTangentImport
         try
         {
             File.WriteAllText(path, JsonSerializer.Serialize(gltf));
-            var converter = new MeshConverter(null) { LegacyTangentHandedness = legacyTangentHandedness };
+            var converter = new MeshConverter(null);
             var binding = Assert.Single(converter.Convert(path, path, false).Meshes).Draw.VertexBuffers[0];
 
             var elements = binding.Declaration.EnumerateWithOffsets().ToList();

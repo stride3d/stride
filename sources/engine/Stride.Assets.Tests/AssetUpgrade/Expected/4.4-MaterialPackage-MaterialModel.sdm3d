@@ -1,6 +1,6 @@
 !Model
 Id: 9d36467c-19a7-47f1-b19a-0fdf407906dc
-SerializedVersion: {Stride: 2.2.0.0}
+SerializedVersion: {Stride: 2.1.0.0}
 Tags: []
 Source: !file ../Resources/Models/MaterialModel.fbx
 Skeleton: null
@@ -17,6 +17,5 @@ Materials:
 DeduplicateMaterials: false
 Modifiers: {}
 ImportMorphTargets: false
-LegacyTangentHandedness: true
 ~SourceHashes:
     737831bc5baaf1d6938c1fe31d62878d~../Resources/Models/MaterialModel.fbx: e53e98dbc881ff6151bc955aecda5d3d

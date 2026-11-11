@@ -52,7 +52,6 @@
     <Compile Include="TestGltfMaterialImport.cs" />
     <Compile Include="TestLegacyTextureRoles.cs" />
     <Compile Include="TestTangentImport.cs" />
-    <Compile Include="TestModelAssetUpgrade.cs" />
     <Compile Include="TestModelComponentMorphs.cs" />
     <Compile Include="TestModelAssetMorphTargetNames.cs" />
     <Compile Include="TestDependencyResolver.cs" />

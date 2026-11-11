@@ -30,7 +30,6 @@ namespace Stride.Assets.Models
         public bool ImportMorphTargets { get; set; } = true;
         public MorphDeltaSource MorphNormals { get; set; }
         public MorphDeltaSource MorphTangents { get; set; }
-        public bool LegacyTangentHandedness { get; set; }
 
         /// <summary>
         /// Gets or sets whether the model's vertex and index buffers get raw shader resource views (and a size padded to 4 bytes).

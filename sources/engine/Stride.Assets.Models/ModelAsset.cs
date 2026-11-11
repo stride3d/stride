@@ -20,10 +20,9 @@ namespace Stride.Assets.Models
     [Display((int)AssetDisplayPriority.Models + 80, "Model")]
     [AssetFormatVersion(StrideConfig.LogicalPackageName, CurrentVersion, "2.0.0.0")]
     [AssetUpgrader(StrideConfig.LogicalPackageName, "2.0.0.0", "2.1.0.0", typeof(DisableMorphTargetsUpgrader))]
-    [AssetUpgrader(StrideConfig.LogicalPackageName, "2.1.0.0", "2.2.0.0", typeof(LegacyTangentHandednessUpgrader))]
     public sealed class ModelAsset : Asset, IAssetWithSource, IModelAsset
     {
-        private const string CurrentVersion = "2.2.0.0";
+        private const string CurrentVersion = "2.1.0.0";
 
         /// <summary>
         /// The default file extension used by the <see cref="ModelAsset"/>.
@@ -126,15 +125,6 @@ namespace Stride.Assets.Models
         [DataMember(57), DefaultValue(MorphDeltaSource.ImportOrGenerate)]
         public MorphDeltaSource MorphTangents { get; set; } = MorphDeltaSource.ImportOrGenerate;
 
-        /// <userdoc>
-        /// When checked, tangents are imported the way Stride did before tangent handedness was imported: normal maps on mirrored
-        /// texture coordinates are lit from the wrong side, and plain surfaces need "OpenGL format (Y+)" unchecked on their normal map.
-        /// Models saved before this option existed have it checked, so they keep their look. Uncheck it to use the correct tangents,
-        /// and check "OpenGL format (Y+)" again on normal maps where it was unchecked to compensate.
-        /// </userdoc>
-        [DataMember(58), DefaultValue(false)]
-        public bool LegacyTangentHandedness { get; set; }
-
         // Editor metadata only; packed runtime targets are built from the source mesh.
         [DataMember(60), Display(Browsable = false)]
         public List<string> MorphTargetNames { get; } = new();
@@ -154,17 +144,6 @@ namespace Stride.Assets.Models
             protected override void UpgradeAsset(AssetMigrationContext context, PackageVersion currentVersion, PackageVersion targetVersion, dynamic asset, PackageLoadingAssetFile assetFile, OverrideUpgraderHint overrideHint)
             {
                 asset.ImportMorphTargets = false;
-            }
-        }
-
-        /// <summary>
-        /// Models saved before tangent handedness was imported keep their previous tangents, so their normal maps look the same.
-        /// </summary>
-        private class LegacyTangentHandednessUpgrader : AssetUpgraderBase
-        {
-            protected override void UpgradeAsset(AssetMigrationContext context, PackageVersion currentVersion, PackageVersion targetVersion, dynamic asset, PackageLoadingAssetFile assetFile, OverrideUpgraderHint overrideHint)
-            {
-                asset.LegacyTangentHandedness = true;
             }
         }
     }
