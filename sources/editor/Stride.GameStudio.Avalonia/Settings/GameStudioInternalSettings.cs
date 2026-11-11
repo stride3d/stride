@@ -15,9 +15,9 @@ using Stride.Core.Yaml;
 namespace Stride.GameStudio.Avalonia.Settings;
 
 /// <summary>
-/// The internal (not user-facing) settings of the Avalonia Game Studio, in the same file as the WPF Game Studio's: the main
-/// window placement and the panel layouts of the sessions, under keys of its own. The recent sessions are shared with WPF
-/// (<see cref="RecentSessionsSettings"/>).
+/// The internal (not user-facing) settings of the Avalonia Game Studio, in the settings file shared by the editors: the main
+/// window placement and the panel layouts of the sessions, under keys of its own. The recent sessions are under the shared
+/// keys (<see cref="RecentSessionsSettings"/>).
 /// </summary>
 internal static class GameStudioInternalSettings
 {
