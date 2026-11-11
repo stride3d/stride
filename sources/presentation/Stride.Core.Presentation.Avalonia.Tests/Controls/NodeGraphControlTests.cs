@@ -64,7 +64,7 @@ public sealed class NodeGraphControlTests
         graph.Link(a.Outputs[0], b.Inputs[0]);
         Dispatcher.UIThread.RunJobs();
 
-        // As in WPF, adding a node lays out the whole graph again
+        // Adding a node lays out the whole graph again
         Assert.Equal(new Point(NodeGraphControl.LayoutMargin, NodeGraphControl.LayoutMargin), control.GetNodePosition(a));
         Assert.True(NodeBounds(control, b).X > NodeBounds(control, a).Right);
         window.Close();
@@ -162,7 +162,7 @@ public sealed class NodeGraphControlTests
         Click(window, NodeTitle(window, control, b), RawInputModifiers.Control);
         Assert.Equal([a, b], selectedNodes);
 
-        // A click on a node of the selection selects only that node, as in WPF
+        // A click on a node of the selection selects only that node
         Click(window, NodeTitle(window, control, b));
         Assert.Equal([b], selectedNodes);
         Assert.False(control.ContainerFromNode(a)!.IsSelected);

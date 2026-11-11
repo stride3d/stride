@@ -16,11 +16,11 @@ using Avalonia.VisualTree;
 namespace Stride.Core.Presentation.Avalonia.Controls;
 
 /// <summary>
-/// A node graph: nodes with input and output slots, and links from an output slot to an input slot, the Avalonia counterpart of the
-/// WPF graph of <c>Stride.Core.Presentation.Wpf.Graph</c> (GraphX). The control knows nothing of the view models it shows: the
-/// nodes and the links are any objects, a node is shown by <see cref="NodeTemplate"/>, which places a <see cref="NodeGraphConnector"/>
-/// for each slot, and <see cref="LinkResolver"/> gives the slots of a link. The user's changes go through <see cref="LinkCommand"/>
-/// and <see cref="UnlinkCommand"/>, and the selection through <see cref="SelectedNodes"/> and <see cref="SelectedLinks"/>.
+/// A node graph: nodes with input and output slots, and links from an output slot to an input slot. The control knows nothing of
+/// the view models it shows: the nodes and the links are any objects, a node is shown by <see cref="NodeTemplate"/>, which places
+/// a <see cref="NodeGraphConnector"/> for each slot, and <see cref="LinkResolver"/> gives the slots of a link. The user's changes
+/// go through <see cref="LinkCommand"/> and <see cref="UnlinkCommand"/>, and the selection through <see cref="SelectedNodes"/>
+/// and <see cref="SelectedLinks"/>.
 /// </summary>
 /// <remarks>
 /// <list type="bullet">
@@ -28,15 +28,15 @@ namespace Stride.Core.Presentation.Avalonia.Controls;
 /// an input connector the command accepts; a press on an input connector picks up its last link, which is moved to another input
 /// connector (<see cref="LinkCommand"/>, with <see cref="NodeGraphLinkRequest.ReplacedLink"/>) or, released away from any input
 /// connector, removed (<see cref="UnlinkCommand"/>). A press on a node selects it (Shift: adds it, Ctrl: toggles it) and drags the
-/// selected nodes; a click on a node of a selection selects only that node, as in WPF. A press on a link selects it the same way.
+/// selected nodes; a click on a node of a selection selects only that node. A press on a link selects it the same way.
 /// A press elsewhere draws a selection rectangle (none: replaces the selection, Shift: adds to it, Ctrl: toggles), and a click
 /// there clears the selection.</item>
 /// <item>Middle button, or right button moved: pans the view. A right click without a move opens the context menu.</item>
 /// <item>Wheel: zooms around the pointer.</item>
 /// <item>Home: shows every node (<see cref="FitToView"/>). Escape: cancels the drag.</item>
 /// </list>
-/// With <see cref="AutoLayout"/>, the nodes are laid out as a tree from left to right whenever nodes are added, as the WPF graph
-/// did; the user can then move them. Positions aren't saved.
+/// With <see cref="AutoLayout"/>, the nodes are laid out as a tree from left to right whenever nodes are added; the user
+/// can then move them. Positions aren't saved.
 /// </remarks>
 public sealed class NodeGraphControl : Control
 {
@@ -51,12 +51,12 @@ public sealed class NodeGraphControl : Control
     public const double MaxZoom = 4.0;
 
     /// <summary>
-    /// The vertical space between two nodes of a column of the automatic layout, as the WPF graph.
+    /// The vertical space between two nodes of a column of the automatic layout.
     /// </summary>
     public const double LayoutVertexGap = 50.0;
 
     /// <summary>
-    /// The horizontal space between two columns of the automatic layout, as the WPF graph.
+    /// The horizontal space between two columns of the automatic layout.
     /// </summary>
     public const double LayoutLayerGap = 100.0;
 
@@ -441,7 +441,7 @@ public sealed class NodeGraphControl : Control
     }
 
     /// <summary>
-    /// Zooms and pans the view so that it shows every node, at a zoom of 1 at most, as the "zoom to fill" of the WPF graph.
+    /// Zooms and pans the view so that it shows every node, at a zoom of 1 at most.
     /// </summary>
     public void FitToView()
     {
@@ -911,7 +911,7 @@ public sealed class NodeGraphControl : Control
 
     private static (Point Control1, Point Control2) GetControlPoints(Point start, Point end)
     {
-        // As the WPF links: even a link going backward leaves its output to the right and enters its input from the left
+        // Even a link going backward leaves its output to the right and enters its input from the left
         var curvature = Math.Max(Math.Abs(end.X - start.X), 120.0) * 0.4;
         return (new Point(start.X + curvature, start.Y), new Point(end.X - curvature, end.Y));
     }
@@ -992,7 +992,7 @@ public sealed class NodeGraphControl : Control
 
     /// <summary>
     /// Where a link ends at an input connector: the tip of its arrow, at the height of the connector on the left side of its node
-    /// (the nodes are drawn over the links), as the arrow of the WPF links.
+    /// (the nodes are drawn over the links).
     /// </summary>
     private Point? GetInputEnd(NodeGraphConnector? connector)
     {
@@ -1073,7 +1073,7 @@ public sealed class NodeGraphControl : Control
         if (!wasSelected)
             ClickItem(container.Node, selectedNodes, pressModifiers);
 
-        // The selected nodes move together; a click on a node of a selection then selects only that node, as in WPF
+        // The selected nodes move together; a click on a node of a selection then selects only that node
         pressedNode = container;
         selectOnlyPressedNodeOnClick = wasSelected && pressModifiers == KeyModifiers.None;
         draggedNodes.Clear();
@@ -1178,7 +1178,7 @@ public sealed class NodeGraphControl : Control
 
     private void ClearSelection()
     {
-        // As the WPF graph: the links, then the nodes
+        // The links first, then the nodes
         if (EffectiveSelectedLinks.Count > 0)
             EffectiveSelectedLinks.Clear();
         if (EffectiveSelectedNodes.Count > 0)
@@ -1242,7 +1242,7 @@ public sealed class NodeGraphControl : Control
         var container = new NodeGraphNode(node) { ContentTemplate = NodeTemplate, IsSelected = EffectiveSelectedNodes.Contains(node) };
         containers.Add(node, container);
         nodesPanel.Children.Add(container);
-        // As the WPF graph: adding nodes lays out the whole graph again
+        // Adding nodes lays out the whole graph again
         if (AutoLayout)
             isLayoutPending = true;
     }

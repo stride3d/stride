@@ -6,7 +6,7 @@ using Avalonia;
 namespace Stride.Core.Presentation.Avalonia.Controls;
 
 /// <summary>
-/// A left to right tree layout of the nodes of a graph, in place of the GraphX simple tree layout of the WPF graph: the roots (the
+/// A left to right tree layout of the nodes of a graph: the roots (the
 /// nodes no link goes to) in the first column, each other node one column right of the node that first reaches it, and each node
 /// centered on the nodes it reaches.
 /// </summary>

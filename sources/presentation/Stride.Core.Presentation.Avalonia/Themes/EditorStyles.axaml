@@ -844,7 +844,7 @@
     </Setter>
   </Style>
 
-  <!-- The nodes and connectors of the node graph, with the colors of the WPF graph -->
+  <!-- The nodes and connectors of the node graph -->
   <Style Selector="sd|NodeGraphNode">
     <Setter Property="Background" Value="#FF595656"/>
     <Setter Property="BorderBrush" Value="#FF194756"/>
