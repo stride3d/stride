@@ -32,6 +32,12 @@ namespace Stride.Editor.Preview
         // Set when the game loop has ended (a lost device, the exit): nothing can be posted to the game anymore
         private volatile bool previewGameEnded;
 
+        // Set by Dispose: a game the thread has not created yet never starts
+        private bool previewStopped;
+
+        // The last visibility of the preview panel, applied to the game when the thread creates it
+        private bool isPreviewHidden;
+
         private readonly SessionViewModel session;
 
         private readonly AutoResetEvent initializationSignal = new AutoResetEvent(false);
@@ -45,7 +51,8 @@ namespace Stride.Editor.Preview
         private AssetViewModel previewBuildQueue;
         private readonly SemaphoreSlim previewChangeLock = new SemaphoreSlim(1, 1);
         /// <summary>
-        /// A lock used to access the <see cref="currentPreview"/> and <see cref="previewBuildQueue"/> fields safely.
+        /// A lock used to access the <see cref="currentPreview"/>, <see cref="previewBuildQueue"/>, <see cref="previewStopped"/>,
+        /// <see cref="isPreviewHidden"/> fields and the <see cref="PreviewGame"/> property safely.
         /// </summary>
         private readonly object previewLock = new object();
         private readonly Thread previewGameThread;
@@ -111,9 +118,16 @@ namespace Stride.Editor.Preview
                 session.AssetPropertiesChanged -= OnAssetPropertyChanged;
                 gameSettingsProvider.GameSettingsChanged -= OnGameSettingsChanged;
 
-                if (PreviewGame.IsRunning)
+                PreviewGame previewGame;
+                lock (previewLock)
                 {
-                    PreviewGame.Exit();
+                    previewStopped = true;
+                    previewGame = PreviewGame;
+                }
+                // The game may not exist yet: the thread then ends without starting it
+                if (previewGame?.IsRunning == true)
+                {
+                    previewGame.Exit();
                 }
 
                 // Wait for the game thread to terminate
@@ -143,7 +157,17 @@ namespace Stride.Editor.Preview
             var previewGame = new PreviewGame(AssetBuilderService.EffectCompiler);
             lock (previewLock)
             {
+                if (previewStopped)
+                {
+                    previewGameEnded = true;
+                    previewGame.Dispose();
+                    return;
+                }
+
                 PreviewGame = previewGame;
+                // The preview panel may have been hidden before the game existed
+                if (isPreviewHidden)
+                    PreviewGame.IsEditorHidden = true;
                 // An asset selected before the game existed (the asset of the editors that open with the session) shows first
                 if (previewBuildQueue != null)
                     PreviewGame.Script.AddTask(ChangePreviewAsset);
@@ -346,12 +370,23 @@ namespace Stride.Editor.Preview
 
         public void OnShowPreview()
         {
-            PreviewGame.IsEditorHidden = false;
+            SetPreviewHidden(false);
         }
 
         public void OnHidePreview()
         {
-            PreviewGame.IsEditorHidden = true;
+            SetPreviewHidden(true);
+        }
+
+        private void SetPreviewHidden(bool hidden)
+        {
+            lock (previewLock)
+            {
+                isPreviewHidden = hidden;
+                // The game thread has not created the game yet: it applies the visibility when it does
+                if (PreviewGame is not null)
+                    PreviewGame.IsEditorHidden = hidden;
+            }
         }
     }
 }
