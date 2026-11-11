@@ -34,14 +34,14 @@ public sealed class HeightfieldAsset : Asset
     } = 1024;
 
     /// <inheritdoc cref="Heightfield.Subdivision" />
-    /// <exception cref="ArgumentOutOfRangeException">When value is less than or equal to zero</exception>
-    [DataMemberRange(minimum: 1)]
+    /// <exception cref="ArgumentOutOfRangeException">When value is less than two</exception>
+    [DataMemberRange(minimum: 2)]
     public int Subdivision
     {
         get;
         set
         {
-            ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(value, 0);
+            ArgumentOutOfRangeException.ThrowIfLessThan(value, 2);
             field = value;
         }
     } = 2048;
