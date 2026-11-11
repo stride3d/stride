@@ -13,7 +13,7 @@ namespace Stride.Assets.Editor.Avalonia.Templates;
 
 /// <summary>
 /// The platforms dialog of the Update platforms template (<see cref="UpdatePlatformsViewModel"/>). It closes with <c>true</c> when the
-/// user accepts with at least one platform checked, and confirms the removal of the platforms they unchecked, as in WPF.
+/// user accepts with at least one platform checked, and confirms the removal of the platforms they unchecked.
 /// </summary>
 public sealed partial class UpdatePlatformsWindow : Window
 {

@@ -9,13 +9,13 @@ using Color = Stride.Core.Mathematics.Color;
 namespace Stride.Core.Presentation.Avalonia.Tests.Drawing;
 
 /// <summary>
-/// The toolkit-free geometry of the drawing contract (<c>Stride.Core.Presentation.Drawing</c>), which replaces the WPF point,
-/// vector, size, rectangle and thickness in the curve editor: the operations it uses behave as the WPF ones did.
+/// The toolkit-free geometry of the drawing contract (<c>Stride.Core.Presentation.Drawing</c>): the point,
+/// vector, size, rectangle and thickness of the curve editor, and the operations it uses.
 /// </summary>
 public sealed class DrawingGeometryTests
 {
     [Fact]
-    public void PointsAndVectorsCombineAsInWpf()
+    public void PointsAndVectorsCombine()
     {
         var p1 = new DrawingPoint(5, 7);
         var p2 = new DrawingPoint(2, 3);
@@ -73,7 +73,7 @@ public sealed class DrawingGeometryTests
         Assert.Equal(new DrawingRect(1, 2, 96, 44), deflated);
         Assert.Equal(rect, deflated.Inflate(margins));
         Assert.Equal(new DrawingThickness(5, 5, 5, 5), new DrawingThickness(5));
-        // Larger margins than the rectangle give a negative size, which the curve editor corrects (as with WPF)
+        // Larger margins than the rectangle give a negative size, which the curve editor corrects
         Assert.True(new DrawingRect(0, 0, 4, 4).Deflate(new DrawingThickness(3)).Width < 0);
     }
 

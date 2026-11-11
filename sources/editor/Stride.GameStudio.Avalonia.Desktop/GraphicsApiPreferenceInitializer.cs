@@ -8,8 +8,8 @@ namespace Stride.GameStudio.Avalonia.Desktop;
 
 /// <summary>
 /// Feeds the editor graphics API to the resolver before its init (-100000): the persisted preference, raw-read from the
-/// settings file (the settings stack isn't up yet; same file and key as the WPF Game Studio), as <see cref="ViewportGraphicsApi"/>
-/// resolves it.
+/// settings file (the settings stack isn't up yet; the file and key are shared with the other editors), as
+/// <see cref="ViewportGraphicsApi"/> resolves it.
 /// </summary>
 internal static class GraphicsApiPreferenceInitializer
 {

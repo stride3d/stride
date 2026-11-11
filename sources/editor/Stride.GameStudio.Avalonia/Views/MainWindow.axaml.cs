@@ -77,7 +77,7 @@ public partial class MainWindow : Window
     protected override void OnDataContextChanged(EventArgs e)
     {
         base.OnDataContextChanged(e);
-        // Settings > Interface > Reset Game Studio layout: the default layouts of the session, as WPF resets its docking layout
+        // Settings > Interface > Reset Game Studio layout: the default layouts of the session
         if (DataContext is MainViewModel mainViewModel)
             EditorSettings.ResetEditorLayout.Command = mainViewModel.ViewMenu.ResetLayoutCommand;
     }

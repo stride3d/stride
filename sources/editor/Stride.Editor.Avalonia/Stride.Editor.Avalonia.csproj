@@ -7,7 +7,7 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-    <!-- Like Stride.Editor.Wpf this assembly is part of the editor host, not an Editor package, so it declares
+    <!-- This assembly is part of the editor host, not an Editor package, so it declares
          no StridePackageKind and no StrideEditorToolkit (the toolkit check requires StridePackageKind Editor). -->
   </PropertyGroup>
 

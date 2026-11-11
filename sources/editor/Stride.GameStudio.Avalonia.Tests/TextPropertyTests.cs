@@ -17,7 +17,7 @@ namespace Stride.GameStudio.Avalonia.Tests;
 
 /// <summary>
 /// The string, char, file and directory text boxes of the property grid. They wrote their text back on every keystroke,
-/// which made one history entry per key; like the WPF editor, they now commit on Enter or when the focus leaves them.
+/// which made one history entry per key; they now commit on Enter or when the focus leaves them.
 /// </summary>
 public sealed class TextPropertyTests
 {

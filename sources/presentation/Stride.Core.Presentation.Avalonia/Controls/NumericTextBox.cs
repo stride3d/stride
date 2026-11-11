@@ -33,7 +33,7 @@ public sealed class NumericTextBox : TemplatedControl
 
     public NumericTextBox()
     {
-        // The inner text box moves its caret with the arrows: the steps take them first, as the WPF class bindings of the text box do
+        // The inner text box moves its caret with the arrows: the steps take them first
         AddHandler(KeyDownEvent, OnPreviewKeyDown, RoutingStrategies.Tunnel);
     }
 
@@ -188,7 +188,7 @@ public sealed class NumericTextBox : TemplatedControl
         if (delta is not { } change || e.KeyModifiers.HasFlag(KeyModifiers.Control) || e.KeyModifiers.HasFlag(KeyModifiers.Alt))
             return;
 
-        // Increasing an empty value starts from the minimum, decreasing it from the maximum, as in WPF
+        // Increasing an empty value starts from the minimum, decreasing it from the maximum
         var value = (Value ?? (change > 0 ? Minimum : Maximum)) + change;
         SetCurrentValue(ValueProperty, MathUtil.Clamp(value, Minimum, Maximum));
         BindingOperations.GetBindingExpressionBase(this, ValueProperty)?.UpdateSource();

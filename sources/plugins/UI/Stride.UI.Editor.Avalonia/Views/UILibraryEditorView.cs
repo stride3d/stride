@@ -7,7 +7,7 @@ using Stride.UI.Editor.ViewModels;
 namespace Stride.UI.Editor.Avalonia.Views;
 
 /// <summary>
-/// The view of the UI library editor, as the WPF one: the UI editor's view, on a library and its several roots.
+/// The view of the UI library editor: the UI editor's view, on a library and its several roots.
 /// </summary>
 [AssetEditorView<UILibraryEditorViewModel>]
 public sealed class UILibraryEditorView : UIEditorView;

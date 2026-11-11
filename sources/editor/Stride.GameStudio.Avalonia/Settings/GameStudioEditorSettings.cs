@@ -22,7 +22,7 @@ internal static class GameStudioEditorSettings
         {
             DisplayName = $"{EditorSettings.Interface}/{Tr._p("Settings", "Default session to load")}"
         };
-        // The theme of this editor: the WPF Game Studio has its own (Themes/ThemeName), so these keys are not in EditorSettings
+        // The theme of this editor, under keys of its own (the other editors keep theirs elsewhere), so not in EditorSettings
         ThemeAccent = new SettingsKey<Color>("Interface/Theme/Accent", EditorSettings.SettingsContainer, default(Color))
         {
             DisplayName = $"{EditorSettings.Interface}/{Tr._p("Settings", "Theme Accent")}",

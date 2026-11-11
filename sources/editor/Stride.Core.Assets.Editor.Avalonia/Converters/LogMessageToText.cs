@@ -8,7 +8,7 @@ using Stride.Core.Presentation.Avalonia.Converters;
 namespace Stride.Core.Assets.Editor.Avalonia.Converters;
 
 /// <summary>
-/// Converts a log message to the text the Message column of the asset errors shows: its module, its type and its text, as in WPF.
+/// Converts a log message to the text the Message column of the asset errors shows: its module, its type and its text.
 /// </summary>
 public sealed class LogMessageToText : OneWayValueConverter<LogMessageToText>
 {

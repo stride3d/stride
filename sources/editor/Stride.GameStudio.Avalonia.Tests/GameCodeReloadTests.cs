@@ -14,7 +14,7 @@ using Stride.GameStudio.Avalonia.Views;
 namespace Stride.GameStudio.Avalonia.Tests;
 
 /// <summary>
-/// The reload of the game code from the shell: a change of a source file of a project the editor loads asks WPF's question, and
+/// The reload of the game code from the shell: a change of a source file of a project the editor loads asks whether to reload, and
 /// Reload builds the project and opens the session in a new editor (Reload project). The builder and the new editor are fakes.
 /// </summary>
 public sealed class GameCodeReloadTests

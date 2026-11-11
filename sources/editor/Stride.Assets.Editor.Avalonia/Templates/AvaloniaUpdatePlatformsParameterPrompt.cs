@@ -11,7 +11,7 @@ namespace Stride.Assets.Editor.Avalonia.Templates;
 
 /// <summary>
 /// The Avalonia <see cref="IUpdatePlatformsParameterPrompt"/>: shows <see cref="UpdatePlatformsWindow"/> modally, with the supported
-/// platforms, as the WPF prompt does.
+/// platforms.
 /// </summary>
 internal sealed class AvaloniaUpdatePlatformsParameterPrompt : IUpdatePlatformsParameterPrompt
 {

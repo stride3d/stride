@@ -24,7 +24,7 @@ using Stride.GameStudio.Avalonia.Views;
 namespace Stride.GameStudio.Avalonia.Tests;
 
 /// <summary>
-/// The drag and drop in the tree of the scene editor, as in the WPF scene editor: a drop on a row adds as children, a drop
+/// The drag and drop in the tree of the scene editor: a drop on a row adds as children, a drop
 /// between two rows inserts there, a drop on the empty area adds assets to the scene, and a refused drop says why and
 /// changes nothing. Each drop is one entry of the undo history.
 /// </summary>
@@ -145,7 +145,7 @@ public sealed class SceneTreeDropTests
         var count = history.Transactions.Count;
         var empty = scene.EmptyArea();
 
-        // As in WPF, the empty area belongs to the editor, which takes only assets
+        // The empty area belongs to the editor, which takes only assets
         var entityTarget = scene.Behavior.GetDropTarget([scene.Entity("Box")], empty, AddChildModifiers.None);
         Assert.Equal(DropAcceptance.Rejected, entityTarget.Acceptance);
         Assert.Equal("Only assets can be dropped here", entityTarget.Message);
@@ -195,7 +195,7 @@ public sealed class SceneTreeDropTests
         // An item out of the selection goes alone
         Assert.Equal([parent], scene.Behavior.GetItemsToDrag(scene.Row("Parent")));
 
-        // As in WPF, an item and one of its parents can't be dragged together
+        // An item and one of its parents can't be dragged together
         scene.Editor.SelectedContent.Add(parent);
         await WindowTestHelper.PumpAsync();
         Assert.Empty(scene.Behavior.GetItemsToDrag(scene.Row("Child")));

@@ -9,7 +9,7 @@ namespace Stride.GameStudio.Avalonia.Services;
 
 /// <summary>
 /// Brings the asset compiler crashes of this editor's game builds back to it, through the crash reporter's
-/// <see cref="CompilerCrashRouting"/>, as the WPF Game Studio does for its builds.
+/// <see cref="CompilerCrashRouting"/>.
 /// </summary>
 internal sealed class BuildCrashRouting : IBuildCrashRouting
 {

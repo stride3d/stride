@@ -10,7 +10,7 @@ using Stride.Core.IO;
 namespace Stride.GameStudio.Avalonia.Services;
 
 /// <summary>
-/// Opens another session in a new editor process, as the WPF Game Studio does (<c>Program.Restart</c>). A process loads the
+/// Opens another session in a new editor process. A process loads the
 /// assemblies of one session's packages only: they register their serializers for the whole process, and a second
 /// <c>PackageSession</c> would load them again ("Two different classes have the same DataContract Alias").
 /// </summary>
@@ -56,7 +56,7 @@ internal sealed class EditorProcessService
         var arguments = options.GetRestartArguments(sessionPath, launcherNotified: App.LauncherNotifier is null, safeMode);
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            // The new editor starts once this one is gone, as WPF's starts when its main window has closed: the window saved
+            // The new editor starts once this one is gone, after its main window has closed: the window saved
             // its settings and the preview game has exited
             desktop.Exit += (_, _) => Start(arguments);
             if (desktop.ShutdownMode == ShutdownMode.OnMainWindowClose && desktop.MainWindow is { } mainWindow)

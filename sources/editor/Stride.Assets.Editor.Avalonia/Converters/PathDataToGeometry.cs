@@ -9,7 +9,7 @@ using Stride.Core.Presentation.Avalonia.Converters;
 namespace Stride.Assets.Editor.Avalonia.Converters;
 
 /// <summary>
-/// Converts path data (the path markup of WPF and Avalonia) to a geometry, for the icons of the tools a plugin declares.
+/// Converts path data (the XAML path markup) to a geometry, for the icons of the tools a plugin declares.
 /// </summary>
 /// <remarks>
 /// Path data that can't be parsed gives no geometry, and is logged once.

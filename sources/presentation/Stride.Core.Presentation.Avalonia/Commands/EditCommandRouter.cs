@@ -13,8 +13,8 @@ using Avalonia.VisualTree;
 namespace Stride.Core.Presentation.Avalonia.Commands;
 
 /// <summary>
-/// Routes the Edit commands (Cut, Copy, Paste, Delete, Rename, Undo and Redo) to the panel that has the focus, as the routed
-/// commands of WPF do: each command walks up from the focused control to the first control that handles it, a text box or a
+/// Routes the Edit commands (Cut, Copy, Paste, Delete, Rename, Undo and Redo) to the panel that has the focus:
+/// each command walks up from the focused control to the first control that handles it, a text box or a
 /// control with an <see cref="EditCommands.BindingsProperty"/> for that command.
 /// </summary>
 /// <remarks>

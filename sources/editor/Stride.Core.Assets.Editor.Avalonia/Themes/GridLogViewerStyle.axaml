@@ -4,7 +4,7 @@
         xmlns:caec="using:Stride.Core.Assets.Editor.Avalonia.Converters"
         xmlns:caectl="using:Stride.Core.Assets.Editor.Avalonia.Controls"
         xmlns:diag="using:Stride.Core.Diagnostics">
-  <!-- The grid of log messages of the Asset errors panel, as the GridLogViewer of the WPF editor -->
+  <!-- The grid of log messages of the Asset errors panel -->
   <Style Selector="caectl|GridLogViewer">
     <Style.Resources>
       <ResourceDictionary>

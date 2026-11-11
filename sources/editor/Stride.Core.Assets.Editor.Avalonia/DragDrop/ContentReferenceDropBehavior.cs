@@ -16,7 +16,7 @@ namespace Stride.Core.Assets.Editor.Avalonia.DragDrop;
 /// data context is the <see cref="NodeViewModel"/>.
 /// </summary>
 /// <remarks>
-/// As the WPF <c>ReferenceHostDragDropBehavior</c>, the drop goes through the reference handler that the node updaters attach
+/// The drop goes through the reference handler that the node updaters attach
 /// to the node (<see cref="ReferenceData"/>; <c>ContentReferenceViewModel</c> for an asset reference): it checks that the asset
 /// fits the property and sets it with the <c>SetContentReference</c> command, one transaction of the undo history. An entity or
 /// component property takes an entity of the same asset (<c>EntityReferenceViewModel</c>, <c>ComponentReferenceViewModel</c>).

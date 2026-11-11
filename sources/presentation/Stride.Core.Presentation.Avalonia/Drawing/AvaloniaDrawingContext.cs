@@ -184,7 +184,7 @@ public sealed class AvaloniaDrawingContext : IDrawingContext, IDisposable
     /// <inheritdoc/>
     public void SetClip(DrawingRect clippingRect)
     {
-        // One clip at a time, as in WPF: a new clip replaces the current one
+        // One clip at a time: a new clip replaces the current one
         ResetClip();
         clip = context.PushClip(clippingRect.ToAvalonia());
     }

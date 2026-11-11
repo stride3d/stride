@@ -1,7 +1,6 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-  <!-- The icons of the sprite sheet editor, copied from the WPF image dictionaries (Stride.Assets.Editor.Wpf and
-       Stride.Core.Assets.Editor.Wpf, View/ImageDictionary.xaml) -->
+  <!-- The icons of the sprite sheet editor -->
 
   <DrawingImage x:Key="ImageDuplicateSprite">
     <DrawingImage.Drawing>

@@ -25,7 +25,7 @@ public partial class PropertyGridView : UserControl
     }
 
     /// <summary>
-    /// The shortcut of Replace, which pastes the copied value in place of the property (WPF binds it on its property grid).
+    /// The shortcut of Replace, which pastes the copied value in place of the property, bound on the property grid.
     /// </summary>
     public static KeyGesture ReplaceGesture { get; } = new(Key.V, KeyModifiers.Control | KeyModifiers.Shift);
 
@@ -47,7 +47,7 @@ public partial class PropertyGridView : UserControl
     }
 
     /// <summary>
-    /// Enter in the "Add new tag" box adds the tag to the selected assets and clears the box, as the WPF box does on validation.
+    /// Enter in the "Add new tag" box adds the tag to the selected assets and clears the box.
     /// </summary>
     private void OnNewTagKeyDown(object? sender, KeyEventArgs e)
     {

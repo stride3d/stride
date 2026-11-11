@@ -4,7 +4,7 @@
 namespace Stride.Core.Presentation.Avalonia.Commands;
 
 /// <summary>
-/// The commands of the Edit menu that act on the panel with the focus, like the application commands of WPF.
+/// The commands of the Edit menu that act on the panel with the focus.
 /// </summary>
 public enum EditCommandKind
 {

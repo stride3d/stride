@@ -16,7 +16,7 @@ using Stride.Core.Assets.Presentation.ViewModels;
 namespace Stride.GameStudio.Avalonia.Tests;
 
 /// <summary>
-/// The tiles of the asset view, as in WPF: folders and assets, each with its thumbnail on a dark backdrop, its name and its type;
+/// The tiles of the asset view: folders and assets, each with its thumbnail on a dark backdrop, its name and its type;
 /// an asset also has the badge of its build status. The "*" of unsaved changes is checked by <see cref="SessionSaveTests"/>.
 /// </summary>
 public sealed class AssetViewTileTests
@@ -46,7 +46,7 @@ public sealed class AssetViewTileTests
                 Assert.Equal(fixture.Asset("Sheet").TypeDisplayName, TypeText(sheet));
                 Assert.Single(sheet.GetVisualDescendants().OfType<Button>(), x => x.Classes.Contains("buildStatus"));
 
-                // The thumbnails are on the dark backdrop of the WPF tiles, whatever the theme
+                // The thumbnails are on the dark backdrop of the tiles, whatever the theme
                 foreach (var tile in new[] { folder, sheet })
                 {
                     var backdrop = tile.GetVisualDescendants().OfType<Border>().Single(x => x.Classes.Contains("tileThumbnail"));
@@ -76,7 +76,7 @@ public sealed class AssetViewTileTests
                 var wasRoot = sheet.Dependencies.IsBuiltAsRoot;
                 Assert.Equal(wasRoot, VisibleStatus(badge) == "ImageAssetIsRoot");
 
-                // A click on the badge includes the selected asset as root, or removes it, as in WPF
+                // A click on the badge includes the selected asset as root, or removes it
                 badge.Command!.Execute(badge.CommandParameter);
                 await WindowTestHelper.WaitUntilAsync(() => sheet.Dependencies.IsBuiltAsRoot != wasRoot, "the root state");
                 await WindowTestHelper.PumpAsync();

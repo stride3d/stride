@@ -7,7 +7,7 @@ using Stride.Core.Presentation.Quantum.ViewModels;
 namespace Stride.Core.Assets.Editor.Avalonia.Views;
 
 /// <summary>
-/// The button of a <see cref="SettingsCommand"/> in the settings window (e.g. Reset Game Studio layout), as in WPF.
+/// The button of a <see cref="SettingsCommand"/> in the settings window (e.g. Reset Game Studio layout).
 /// </summary>
 public sealed class SettingsCommandTemplateProvider : NodeViewModelTemplateProvider
 {

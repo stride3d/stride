@@ -1,6 +1,6 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-  <!-- The images of the curve editor, as in the WPF ImageDictionary -->
+  <!-- The images of the curve editor -->
   <DrawingImage x:Key="ImageEditCurve">
     <DrawingImage.Drawing>
       <DrawingGroup>
@@ -16,7 +16,7 @@
   <DrawingImage x:Key="ImageFirstPoint"><ImageDrawing Rect="0,0,16,16" ImageSource="/Assets/Icons/skip_to_start-32.png"/></DrawingImage>
   <DrawingImage x:Key="ImageLastPoint"><ImageDrawing Rect="0,0,16,16" ImageSource="/Assets/Icons/end-32.png"/></DrawingImage>
   <DrawingImage x:Key="ImageNextPoint"><ImageDrawing Rect="0,0,16,16" ImageSource="/Assets/Icons/play-32.png"/></DrawingImage>
-  <!-- WPF turns the "next" image over -->
+  <!-- The "next" image turned over -->
   <DrawingImage x:Key="ImagePreviousPoint">
     <DrawingGroup>
       <DrawingGroup.Transform>

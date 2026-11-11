@@ -17,7 +17,7 @@ namespace Stride.GameStudio.Avalonia.Tests;
 public sealed class StatusBarTests
 {
     /// <summary>
-    /// As in WPF, the status bar counts the items the asset view shows and, separately, the selected ones.
+    /// The status bar counts the items the asset view shows and, separately, the selected ones.
     /// </summary>
     [AvaloniaFact]
     public async Task TheStatusBarCountsTheShownAndTheSelectedItems()

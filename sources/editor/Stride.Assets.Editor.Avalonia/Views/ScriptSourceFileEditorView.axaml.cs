@@ -28,7 +28,7 @@ public sealed partial class ScriptSourceFileEditorView : UserControl, IAssetEdit
         Editor.TextEdited += OnEditorTextEdited;
         // The text area of the editor handles the focus event it raises
         Editor.AddHandler(GotFocusEvent, OnEditorGotFocus, handledEventsToo: true);
-        // Ctrl+wheel changes the font size, as in WPF; before the editor scrolls with it
+        // Ctrl+wheel changes the font size; before the editor scrolls with it
         Editor.AddHandler(PointerWheelChangedEvent, OnEditorPointerWheelChanged, RoutingStrategies.Tunnel);
     }
 

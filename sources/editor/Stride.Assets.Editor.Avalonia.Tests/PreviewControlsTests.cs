@@ -27,7 +27,7 @@ using Stride.Editor.Avalonia.Preview.Views;
 namespace Stride.Assets.Editor.Avalonia.Tests;
 
 /// <summary>
-/// The preview views get the controls of their WPF templates from the themes of <see cref="StrideEditorViewPlugin"/>, around
+/// The preview views get their controls from the themes of <see cref="StrideEditorViewPlugin"/>, around
 /// the game view of the preview, and bind them to their view models.
 /// </summary>
 public sealed class PreviewControlsTests

@@ -15,11 +15,11 @@ namespace Stride.Core.Assets.Editor.Avalonia.DragDrop;
 /// to the root of the item's template, or to the element.
 /// </summary>
 /// <remarks>
-/// As the drop on the WPF solution explorer, the drop goes through <see cref="IAddChildViewModel.CanAddChildren"/> and
+/// The drop goes through <see cref="IAddChildViewModel.CanAddChildren"/> and
 /// <see cref="IAddChildViewModel.AddChildren"/>: a folder moves the assets to itself, one transaction of the undo history
 /// ("Move asset ...").
 /// While something is dragged over the element, it shows the message of its data context next to the pointer, which tells
-/// why a refused drop is refused (<see cref="DragFeedbackAdorner"/>), as the WPF drag window does.
+/// why a refused drop is refused (<see cref="DragFeedbackAdorner"/>).
 /// </remarks>
 public sealed class AddChildDropBehavior : StyledElementBehavior<Control>
 {

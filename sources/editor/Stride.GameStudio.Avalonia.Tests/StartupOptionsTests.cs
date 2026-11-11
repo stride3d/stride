@@ -6,7 +6,7 @@ using Stride.Core.IO;
 namespace Stride.GameStudio.Avalonia.Tests;
 
 /// <summary>
-/// The command line of the desktop host, as the WPF Game Studio reads it.
+/// The command line of the desktop host.
 /// </summary>
 public sealed class StartupOptionsTests
 {
@@ -162,7 +162,7 @@ public sealed class StartupOptionsTests
     [Fact]
     public void ARestartTellsTheLauncherOnlyIfThisEditorDidNot()
     {
-        // As WPF's restart: once the launcher heard from this editor, the next one does not tell it again
+        // Once the launcher heard from this editor, the next one does not tell it again
         var options = StartupOptions.Parse(["/LauncherPipe", "stride-launcher-42", "/LauncherWindowHandle", "1234", "/NewProject", "/Unknown"]);
 
         UFile session = "/home/user/MyGame/MyGame.sln";

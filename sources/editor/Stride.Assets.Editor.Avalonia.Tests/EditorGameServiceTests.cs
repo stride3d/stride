@@ -42,7 +42,7 @@ public sealed class EditorGameServiceTests
     {
         var type = typeof(AvaloniaEditorGameCursorService);
 
-        // The assets assembly of this editor is one, as the WPF assets editor: its cursor service serves the game of every editor
+        // The editor view assembly is an assets assembly: its cursor service serves the game of every editor
         Assert.Contains(type.Assembly, AssetRegistry.AssetAssemblies);
         Assert.Equal([type], EditorGameServices().Where(x => typeof(IEditorGameCursorViewModelService).IsAssignableFrom(x)));
         Assert.Equal(typeof(IEditorGameController), type.GetCustomAttribute<EditorGameServiceAttribute>()!.ControllerType);
@@ -53,7 +53,7 @@ public sealed class EditorGameServiceTests
     {
         var type = typeof(EditorGameRecoveryService);
 
-        // An exception of the game of any editor pauses it and shows in the view of the editor, as in the WPF editor
+        // An exception of the game of any editor pauses it and shows in the view of the editor
         Assert.Contains(type.Assembly, AssetRegistry.AssetAssemblies);
         Assert.Equal([type], EditorGameServices().Where(x => typeof(IEditorGameRecoveryViewModelService).IsAssignableFrom(x)));
         Assert.Equal(typeof(IEditorGameController), type.GetCustomAttribute<EditorGameServiceAttribute>()!.ControllerType);

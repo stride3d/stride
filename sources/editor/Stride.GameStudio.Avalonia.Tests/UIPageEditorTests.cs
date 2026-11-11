@@ -19,7 +19,7 @@ namespace Stride.GameStudio.Avalonia.Tests;
 
 /// <summary>
 /// The Avalonia editor of a UI page, on a session with a new page and the standard UI library: the toolbox, the tree and its drag and drop, the rename,
-/// the delete and the copy and paste, as in the WPF UI editor. Each change is one entry of the undo history.
+/// the delete and the copy and paste. Each change is one entry of the undo history.
 /// </summary>
 /// <remarks>
 /// The tests have no graphics device (the previews, which bring the viewport of the editor games, are disabled): the editor
@@ -83,7 +83,7 @@ public sealed class UIPageEditorTests
 
         Assert.Equal([typeof(Stride.UI.Controls.Button), typeof(Stride.UI.Controls.TextBlock)], grid.Children.Select(x => x.ElementType));
         await WindowTestHelper.WaitUntilAsync(() => history.Transactions.Count == count + 2, "the history entries");
-        // The tree shows the number of children of an item, as the WPF UI editor
+        // The tree shows the number of children of an item
         await page.WaitForRowAsync(grid.Children[1]);
         Assert.Contains(page.Row(grid).GetVisualDescendants().OfType<TextBlock>(), x => x.Text == "(2)" && x.IsEffectivelyVisible);
     }
@@ -124,7 +124,7 @@ public sealed class UIPageEditorTests
         Assert.Equal(DropAcceptance.Rejected, target.Acceptance);
         Assert.Equal("A UIPage asset can't have more than one root.", target.Message);
 
-        // Once the page has its root, the empty area adds into the root, as in the WPF UI editor
+        // Once the page has its root, the empty area adds into the root
         var grid = await page.AddRootAsync("Grid");
         page.Drop([page.Factory("Canvas")], page.EmptyArea());
         Assert.Same(grid, Assert.Single(page.Root.Children));
@@ -139,7 +139,7 @@ public sealed class UIPageEditorTests
         // Without its game, the editor says so in place of the view
         Assert.Contains(page.View.GetVisualDescendants().OfType<TextBlock>(), x => x.Text == "The UI view is not available." && x.IsEffectivelyVisible);
 
-        // The editor finds the element under the pointer in its game, as the WPF UI editor does
+        // The editor finds the element under the pointer in its game
         Assert.Single(global::Avalonia.Xaml.Interactivity.Interaction.GetBehaviors(host).OfType<AddChildDropBehavior>());
         Assert.Same(page.Editor, host.DataContext);
         Assert.IsAssignableFrom<IAddChildViewModel>(host.DataContext);
@@ -234,7 +234,7 @@ public sealed class UIPageEditorTests
         Assert.All(grid.Children, x => Assert.Equal(typeof(Stride.UI.Controls.Button), x.ElementType));
         await WindowTestHelper.WaitUntilAsync(() => history.Transactions.Count == count + 1, "the history entry of the paste");
 
-        // Ctrl+D duplicates the selection next to it, as in the WPF UI editor
+        // Ctrl+D duplicates the selection next to it
         await page.SelectAsync(grid.Children[1]);
         page.Window.KeyPressQwerty(PhysicalKey.D, RawInputModifiers.Control);
         page.Window.KeyReleaseQwerty(PhysicalKey.D, RawInputModifiers.Control);

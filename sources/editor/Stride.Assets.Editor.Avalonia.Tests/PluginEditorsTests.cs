@@ -25,7 +25,7 @@ namespace Stride.Assets.Editor.Avalonia.Tests;
 
 /// <summary>
 /// The Editor packages of the plugins are toolkit-neutral: once their assemblies are registered, the Avalonia scene editor
-/// finds their gizmos, their Add entity entries and their editor game services as the WPF one does.
+/// finds their gizmos, their Add entity entries and their editor game services.
 /// </summary>
 public sealed class PluginEditorsTests
 {

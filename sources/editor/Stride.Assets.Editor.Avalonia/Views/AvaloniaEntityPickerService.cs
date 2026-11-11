@@ -19,7 +19,7 @@ internal sealed class AvaloniaEntityPickerService : IEntityPickerService
         // The view model reads the hierarchy, which the UI thread owns
         var picker = await editor.Dispatcher.InvokeAsync(() => new EntityPickerViewModel(editor, componentType, filter));
         var window = new EntityPickerWindow { DataContext = picker };
-        // Wider with the list of the components, as in WPF
+        // Wider with the list of the components
         if (picker.ComponentType is not null)
             window.Width *= 1.6;
         await TemplateDialogs.ShowModalAsync(window);

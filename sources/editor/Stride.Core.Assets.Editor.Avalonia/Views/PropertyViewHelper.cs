@@ -47,7 +47,6 @@ public sealed class PropertyViewHelper
     /// Gets a command that expands the nested properties of a property, or collapses them when they are all expanded. Its
     /// parameter is the <see cref="PropertyViewItem"/> of the property, or a control inside it.
     /// </summary>
-    /// <remarks>The port of the WPF routed command, which no view of the WPF editor uses either.</remarks>
     public static ICommand ToggleNestedPropertiesCommand { get; } = new ToggleNestedPropertiesCommandImpl();
 
     /// <summary>
@@ -102,7 +101,7 @@ public sealed class PropertyViewHelper
     /// <summary>
     /// Expands the nested properties of the given property, or collapses them when they are all expanded.
     /// </summary>
-    /// <remarks>Only the nested properties shown change, as in WPF: those of a collapsed property aren't created yet.</remarks>
+    /// <remarks>Only the nested properties shown change: those of a collapsed property aren't created yet.</remarks>
     public static void ToggleNestedProperties(PropertyViewItem target)
     {
         var expand = target.Properties.Any(x => !x.IsExpanded);

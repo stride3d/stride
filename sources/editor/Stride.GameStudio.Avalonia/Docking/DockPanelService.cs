@@ -23,7 +23,7 @@ namespace Stride.GameStudio.Avalonia.Docking;
 
 /// <summary>
 /// The panels and editors of the main window over Dock: it builds Dock's model from the neutral layout of the session
-/// (<see cref="PanelLayout"/>), writes it back when it saves, and keeps WPF's two layouts per session: one without editors,
+/// (<see cref="PanelLayout"/>), writes it back when it saves, and keeps two layouts per session: one without editors,
 /// where the asset view takes the centre, and one with them, switched when the first editor opens and the last one closes.
 /// </summary>
 /// <remarks>
@@ -89,8 +89,8 @@ public sealed class DockPanelService : ViewModelBase, IPanelService, IDisposable
     /// </summary>
     /// <remarks>
     /// The views themselves are kept by their dockable while it lives (see <see cref="DockViewLocator"/>): a panel moved to
-    /// another group or a floating window, or a tab selected again, shows the same view (its tree expansion, its scrolling), as
-    /// with WPF's docking. A view out of the visual tree still detaches, so an editor's game stops rendering while its tab is
+    /// another group or a floating window, or a tab selected again, shows the same view (its tree expansion, its scrolling).
+    /// A view out of the visual tree still detaches, so an editor's game stops rendering while its tab is
     /// not selected.
     /// </remarks>
     public ControlRecycling Views { get; } = new() { TryToUseIdAsKey = true };
@@ -369,8 +369,8 @@ public sealed class DockPanelService : ViewModelBase, IPanelService, IDisposable
         }
         baselines.Clear();
         var reset = PanelLayoutResolver.CreateDefault(kind, Registry);
-        // Every single panel is visible again, as WPF's reset, except the panels hidden by default (the Plugins panel, and the
-        // curve editor, which WPF creates on demand, outside its layout)
+        // Every single panel is visible again, except the panels hidden by default (the Plugins panel, and the curve editor,
+        // which opens on demand)
         reset.Hidden.RemoveAll(id => Registry.Find(id)?.VisibleByDefault != false);
         Apply(reset);
         // The open instances are kept, at their default place

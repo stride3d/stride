@@ -23,7 +23,7 @@
       <ResourceDictionary.MergedDictionaries>
         <ResourceInclude Source="avares://Stride.GameStudio.Avalonia/Views/PackageMenuResources.axaml"/>
       </ResourceDictionary.MergedDictionaries>
-      <!-- An entry of File > Open recent: the version in bold, then the path, shortened in the middle, as in WPF -->
+      <!-- An entry of File > Open recent: the version in bold, then the path, shortened in the middle -->
       <DataTemplate x:Key="RecentSessionHeaderTemplate" DataType="gsvm:RecentSessionViewModel">
         <Grid ColumnDefinitions="30, Auto">
           <TextBlock Grid.Column="0" Text="{Binding Version}" FontWeight="Bold"/>
@@ -32,7 +32,7 @@
       </DataTemplate>
     </ResourceDictionary>
   </UserControl.Resources>
-  <!-- The Edit commands that no panel handles, as the command bindings of the WPF window: Undo and Redo act on the session
+  <!-- The Edit commands that no panel handles, bound on the window: Undo and Redo act on the session
        wherever the focus is, unless a text editor has it. -->
   <sd:EditCommands.Bindings>
     <sd:EditCommandBinding Kind="Undo" Command="{Binding UndoCommand}"/>
@@ -48,7 +48,7 @@
            in this one they go before Exit. -->
       <MenuItem Header="{sd:LocalizeString _File, Context=Menu}"
                 Name="FileMenu">
-        <!-- A new session from a template (the project selection window), as WPF's File > New; its shortcut is a key binding of the
+        <!-- A new session from a template (the project selection window); its shortcut is a key binding of the
              main window, like Save -->
         <MenuItem Header="{sd:LocalizeString _New..., Context=Menu}"
                   Name="NewMenuItem"
@@ -61,15 +61,15 @@
                   Command="{Binding CloseCommand}"
                   IsEnabled="{Binding Session, Mode=OneWay, Converter={sd:ObjectToBool}}"/>
         <Separator/>
-        <!-- Recent sessions (the most recently used sessions of this editor version or an earlier one), then "Clear list", as in
-             WPF: the items are made by the view (MainView.UpdateRecentSessionsMenu) since a menu shows either items or a source -->
+        <!-- Recent sessions (the most recently used sessions of this editor version or an earlier one), then "Clear list": the
+             items are made by the view (MainView.UpdateRecentSessionsMenu) since a menu shows either items or a source -->
         <MenuItem Header="{sd:LocalizeString Open _recent, Context=Menu}"
                   Name="RecentSessionsMenu"
                   IsEnabled="{Binding RecentFiles.Count, Mode=OneWay, Converter={sd:NumericToBool}}"/>
         <Separator/>
-        <!-- Save and reload, as in the WPF editor: Save is enabled whenever a session is open. Its shortcut is a key binding
+        <!-- Save and reload: Save is enabled whenever a session is open. Its shortcut is a key binding
              of the main window: the hot key of an item of a closed menu fires only if the item was enabled when the menu last
-             opened (Avalonia evaluates its command then), and WPF binds Ctrl+S to the window too. -->
+             opened (Avalonia evaluates its command then). -->
         <MenuItem Header="{sd:LocalizeString _Save, Context=Menu}"
                   Name="SaveMenuItem"
                   Command="{Binding SaveCommand}"
@@ -83,8 +83,8 @@
                   Command="{Binding ExitCommand}"
                   HotKey="Alt+F4" InputGesture="{Binding $self.HotKey, Mode=OneTime}"/>
       </MenuItem>
-      <!-- Edit menu: its items act on the panel that has the focus, through the router of the view (see EditCommandRouter), as
-           the application commands of WPF do. Their shortcuts are handled by the main window after the focused control, so
+      <!-- Edit menu: its items act on the panel that has the focus, through the router of the view (see EditCommandRouter).
+           Their shortcuts are handled by the main window after the focused control, so
            that a text box keeps its own; the items only show them. -->
       <MenuItem Header="{sd:LocalizeString Edit, Context=Menu}"
                 Name="EditMenu">
@@ -143,12 +143,12 @@
                   Command="{Binding OpenSettingsWindowCommand}"
                   IsEnabled="{Binding Session, Mode=OneWay, Converter={sd:ObjectToBool}}"/>
       </MenuItem>
-      <!-- View menu: a toggle per panel in the sections of WPF's View menu, then Reset layout; its items are made by the view
+      <!-- View menu: a toggle per panel, in sections, then Reset layout; its items are made by the view
            (MainView.UpdateViewMenu) from MainViewModel.ViewMenu, which follows the panels the plugins register -->
       <MenuItem Header="{sd:LocalizeString _View, Context=Menu}"
                 Name="ViewMenu"
                 IsEnabled="{Binding Session, Mode=OneWay, Converter={sd:ObjectToBool}}"/>
-      <!-- Project menu: build the current project and start its game, as WPF's Project menu does. The shortcuts are key bindings
+      <!-- Project menu: build the current project and start its game. The shortcuts are key bindings
            of the main window, like Save. -->
       <MenuItem Header="{sd:LocalizeString _Project, Context=Menu}"
                 Name="ProjectMenu"
@@ -178,7 +178,7 @@
           </MenuItem.Icon>
         </MenuItem>
         <Separator/>
-        <!-- The package commands of WPF's Project menu, on the package selected in the solution explorer: Update package (shown
+        <!-- The package commands, on the package selected in the solution explorer: Update package (shown
              when a project is selected) lists the package templates, Add dependency opens the package picker -->
         <MenuItem Header="{sd:LocalizeString Update package, Context=Menu}"
                   Name="UpdatePackageMenuItem"
@@ -250,17 +250,17 @@
       </MenuItem>
     </Menu>
 
-    <!-- Toolbar: the build buttons of the WPF toolbar, while a session is open, then the command buttons and the widgets that
+    <!-- Toolbar: the build buttons, while a session is open, then the command buttons and the widgets that
          the editor and the plugins place there (MainCommandSlots) -->
     <sd:ToolBar Grid.Row="1"
                 Name="MainToolBar"
                 IsVisible="{Binding Session, Converter={sd:ObjectToBool}}">
       <sd:ToolBar.Styles>
-        <!-- The icon of a disabled button is dimmed, as in WPF -->
+        <!-- The icon of a disabled button is dimmed -->
         <Style Selector="Button:disabled Image">
           <Setter Property="Opacity" Value="0.25"/>
         </Style>
-        <!-- The reload button blinks while the game code has changes to load, as in WPF -->
+        <!-- The reload button blinks while the game code has changes to load -->
         <Style Selector="Button#ReloadGameCodeButton:not(:disabled) Image">
           <Style.Animations>
             <Animation Duration="0:0:0.5" IterationCount="Infinite" PlaybackDirection="Alternate">
@@ -292,7 +292,7 @@
               ToolTip.ShowOnDisabled="True">
         <Image Source="{StaticResource ImageStopBuild}" Width="16" Height="16"/>
       </Button>
-      <!-- Open in IDE (the IDE of the settings), and the installed IDEs to open the solution with, as on the WPF toolbar -->
+      <!-- Open in IDE (the IDE of the settings), and the installed IDEs to open the solution with -->
       <Button Name="OpenInIDEButton"
               Command="{Binding Session.OpenInIDECommand, FallbackValue={x:Null}}"
               ToolTip.Tip="{sd:LocalizeString Open in IDE, Context=ToolTip}"

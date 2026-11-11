@@ -29,7 +29,7 @@ public static class SpriteEditorConverters
     public static readonly IMultiValueConverter SourceToBitmap = new SourceToBitmapConverter();
 
     /// <summary>
-    /// A number plus the number of the parameter, as the WPF <c>SumNum</c> converter.
+    /// A number plus the number of the parameter.
     /// </summary>
     public static readonly IValueConverter AddDouble = new FuncValueConverter<double, double, double>((value, parameter) => value + parameter);
 
@@ -44,7 +44,7 @@ public static class SpriteEditorConverters
     public static readonly IValueConverter Vector2ToThickness = new FuncValueConverter<Vector2, double, Thickness>((value, parameter) => new Thickness(value.X + parameter, value.Y + parameter, 0, 0));
 
     /// <summary>
-    /// Four numbers (left, top, right, bottom) as a thickness, as the WPF <c>ThicknessMultiConverter</c>.
+    /// Four numbers (left, top, right, bottom) as a thickness.
     /// </summary>
     public static readonly IMultiValueConverter ToThickness = new FuncMultiValueConverter<double, Thickness>(values =>
     {
@@ -53,7 +53,7 @@ public static class SpriteEditorConverters
     });
 
     /// <summary>
-    /// The cursor of a tool of the editor: the WPF cursors of the color key picker and the magic wand, the default one otherwise.
+    /// The cursor of a tool of the editor: the cursors of the color key picker and the magic wand, the default one otherwise.
     /// </summary>
     public static readonly IValueConverter ToolModeToCursor = new FuncValueConverter<SpriteSheetEditorToolMode, Cursor?>(mode => mode switch
     {
@@ -63,14 +63,14 @@ public static class SpriteEditorConverters
     });
 
     /// <summary>
-    /// A name in camel case as words ("Sprite2D" as "Sprite 2D"), as the WPF <c>CamelCaseTextConverter</c>.
+    /// A name in camel case as words ("Sprite2D" as "Sprite 2D").
     /// </summary>
     public static readonly IValueConverter CamelCaseToWords = new FuncValueConverter<object?, string?>(value =>
         value?.ToString() is { } text ? Regex.Replace(text, "(?<=[a-z])(?=[A-Z0-9])|(?<=[0-9])(?=[A-Z][a-z])", " ") : null);
 
     private static class Cursors
     {
-        // The WPF cursors (Stride.Assets.Editor.Wpf/Resources/*.cur) as images, with the same hot spots
+        // The cursors of the tools as images, with their hot spots
         public static readonly Cursor ColorPicker = Load("ColorPicker", new PixelPoint(3, 28));
 
         public static readonly Cursor MagicWand = Load("MagicWand", new PixelPoint(3, 3));

@@ -126,7 +126,7 @@ public sealed class EditorViewPopupsTests
 
         Assert.True(Find(gizmos, typeof(AudioEmitterComponent)).IsActive);
         Assert.True(Find(gizmos, typeof(CameraComponent)).IsActive);
-        // The collider shapes and constraints show once checked, as in WPF
+        // The collider shapes and constraints show once checked
         Assert.False(Find(gizmos, typeof(PhysicsComponent)).IsActive);
         Assert.False(Find(gizmos, typeof(PhysicsConstraintComponent)).IsActive);
         Assert.False(gizmos.FallbackGizmo.IsActive);
@@ -182,7 +182,7 @@ public sealed class EditorViewPopupsTests
         var gizmos = new EditorViewGizmosViewModel(serviceProvider, new EditorGameComponentGizmoService(controller), null);
 
         Assert.Equal(typeof(Gizmos.LightProbeGizmo), GizmoTypeRegistry.GizmoTypeDictionary[typeof(LightProbeComponent)]);
-        // As in WPF: the light probes are a main gizmo, not one hidden by default
+        // The light probes are a main gizmo, not one hidden by default
         Assert.True(Find(gizmos, typeof(LightProbeComponent)).IsActive);
         Assert.DoesNotContain(DisplayAttribute.GetDisplayName(typeof(LightProbeComponent)), SceneSettingsData.CreateDefault().HiddenGizmos);
     }
@@ -194,7 +194,7 @@ public sealed class EditorViewPopupsTests
         var lightProbes = new EditorGameLightProbeGizmoService(controller);
         var gizmos = new EditorViewGizmosViewModel(serviceProvider, new EditorGameComponentGizmoService(controller), null, lightProbes);
 
-        // As in WPF, a scene without settings hides the volumes
+        // A scene without settings hides the volumes
         gizmos.LoadSettings(SceneSettingsData.CreateDefault());
         Assert.True(gizmos.HasLightProbes);
         Assert.False(gizmos.LightProbeVolumesVisible);
@@ -286,7 +286,7 @@ public sealed class EditorViewPopupsTests
         using var controller = new FakeController();
         IEditorGameLightProbeService lightProbes = new EditorGameLightProbeGizmoService(controller);
 
-        // The WPF lighting toolbar computes the light probes through the shared interface, on the game thread; a service
+        // The lighting toolbar computes the light probes through the shared interface, on the game thread; a service
         // whose game isn't running has no light probe to compute
         Assert.Empty(await lightProbes.RequestLightProbesStep());
         Assert.Equal(1, controller.Calls);
@@ -332,13 +332,13 @@ public sealed class EditorViewPopupsTests
         Assert.False(loaded.FallbackGizmo.IsActive);
         Assert.Equal(Utils.ZoomFactorIdentityIndex, loaded.ComponentGizmoSizeIndex);
         Assert.Equal(Utils.ZoomFactorIdentityIndex, loaded.TransformationGizmoSizeIndex);
-        // The names WPF writes: the display names of the components, "Transform" for the other entities
+        // The names the scene settings hold: the display names of the components, "Transform" for the other entities
         Assert.Contains(DisplayAttribute.GetDisplayName(typeof(PhysicsComponent)), SceneSettingsData.CreateDefault().HiddenGizmos);
         Assert.Contains("Transform", SceneSettingsData.CreateDefault().HiddenGizmos);
     }
 
     [AvaloniaFact]
-    public void TheGizmoOptionsAreSavedAndLoadedAsWpfDoes()
+    public void TheGizmoOptionsAreSavedAndLoadedInTheSceneSettings()
     {
         using var controller = new FakeController();
         var service = new EditorGameComponentGizmoService(controller);

@@ -58,7 +58,7 @@ public sealed class PropertyViewFilteringTests
         // The nested properties are created when their property is expanded: the search hides them then
         inner.IsExpanded = true;
         Refresh(window);
-        // Inside the matching property, only the nested properties that match stay, as in WPF
+        // Inside the matching property, only the nested properties that match stay
         Assert.True(Item(inner, nameof(FilterInner.Radius)).IsVisible);
         Assert.False(Item(inner, nameof(FilterInner.Label)).IsVisible);
 

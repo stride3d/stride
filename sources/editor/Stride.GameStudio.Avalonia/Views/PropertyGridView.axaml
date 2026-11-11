@@ -30,7 +30,7 @@
     <Style Selector="sd|PropertyViewItem[IsFocused=True]">
       <Setter Property="Background" Value="{DynamicResource PropertyFocusedBackground}"/>
     </Style>
-    <!-- The context menu of a property, as in the WPF property grid: it works on the value of the property. The Edit menu
+    <!-- The context menu of a property: it works on the value of the property. The Edit menu
          and the shortcuts reach the same commands through the bindings the code-behind gives each property. -->
     <Style Selector="sd|PropertyViewItem" x:DataType="capqvm:AssetNodeViewModel">
       <Setter Property="ContextMenu">
@@ -69,7 +69,7 @@
       </Setter>
     </Style>
   </UserControl.Styles>
-  <!-- The property grid of the WPF Game Studio (GameStudioWindow.xaml): a header with the navigation in the selection history, the
+  <!-- The property grid: a header with the navigation in the selection history, the
        description of the selection, the tags of the selected assets, "Open this asset in editor" and the search; the properties; and
        a footer with the description of the property under the mouse. -->
   <Grid RowDefinitions="Auto, Auto, Auto, *, 5, 70">

@@ -16,10 +16,10 @@
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </UserControl.Resources>
-  <!-- The layout of the WPF add item control: the search box and the groups on the left, the templates of the selected group
+  <!-- The layout of the add item control: the search box and the groups on the left, the templates of the selected group
        (or the templates matching the search) on the right -->
   <Grid ColumnDefinitions="Auto,Auto,*" MinHeight="300">
-    <!-- Top-aligned: its own height sizes the template list, as in the WPF control -->
+    <!-- Top-aligned: its own height sizes the template list -->
     <DockPanel x:Name="LeftPanel" Grid.Column="0" Margin="4" VerticalAlignment="Top">
       <DockPanel DockPanel.Dock="Top" Margin="4">
         <Button x:Name="ImportButton" DockPanel.Dock="Right" Margin="8,0,0,0" Padding="2" Width="24" Height="24" Click="OnImportClick"
@@ -48,7 +48,7 @@
     </DockPanel>
     <Border Grid.Column="1" Width="1" Margin="0,4" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
             IsVisible="{Binding Templates.Count, Converter={sd:NumericToBool}}"/>
-    <!-- A click on a template (or Enter) validates it, as the WPF list does -->
+    <!-- A click on a template (or Enter) validates it -->
     <ListBox x:Name="Templates" Grid.Column="2" Width="500" Margin="4" Height="{Binding #LeftPanel.Bounds.Height}"
              ItemsSource="{Binding Templates}"
              SelectedItem="{Binding SelectedTemplate, Mode=TwoWay}"

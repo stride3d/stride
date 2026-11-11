@@ -10,7 +10,7 @@
              mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="300"
              x:Class="Stride.GameStudio.Avalonia.Views.Panels.AssetLogView"
              x:DataType="caep:AssetLogPanelViewModel">
-  <!-- The warnings and errors of the assets, as WPF's Asset errors pane -->
+  <!-- The warnings and errors of the assets -->
   <caectl:GridLogViewer LogMessages="{Binding AssetLog.FilteredMessages}"
                         SelectMessageCommand="{Binding AssetLog.SelectMessageAssetCommand}"
                         ShowDebugMessages="False" ShowVerboseMessages="False" ShowInfoMessages="False">

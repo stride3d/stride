@@ -9,7 +9,7 @@ namespace Stride.Core.Assets.Editor.Avalonia.Converters;
 
 /// <summary>
 /// Inserts zero-width spaces where a name is better wrapped: after a non-alphanumeric character and between the words of a
-/// camel-cased name (aA, a0, A0), as the asset tiles of WPF wrap the names.
+/// camel-cased name (aA, a0, A0), as the asset tiles wrap the names.
 /// </summary>
 public sealed partial class NameBreakingLine : OneWayValueConverter<NameBreakingLine>
 {

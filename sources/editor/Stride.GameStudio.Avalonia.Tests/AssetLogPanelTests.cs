@@ -20,7 +20,7 @@ using Stride.Core.Assets.Presentation.ViewModels.Logs;
 namespace Stride.GameStudio.Avalonia.Tests;
 
 /// <summary>
-/// The Asset errors panel, as WPF's: a grid of the warnings and errors with the asset of each, their count in the title, a double-click
+/// The Asset errors panel: a grid of the warnings and errors with the asset of each, their count in the title, a double-click
 /// that selects the asset, and the scope, sources and type filters.
 /// </summary>
 public sealed class AssetLogPanelTests
@@ -37,14 +37,14 @@ public sealed class AssetLogPanelTests
             try
             {
                 var tab = AssetLogPanel(fixture);
-                // The count, as WPF's title; the singular until the translations are found (plural texts are left for later)
+                // The count in the title; the singular until the translations are found (plural texts are left for later)
                 Assert.Matches(@"^Asset errors? \(0\)$", tab.Title);
 
                 var sheet = fixture.Asset("Sheet");
                 Build(fixture, sheet);
                 await WindowTestHelper.WaitUntilAsync(() => Rows(window).Count == 2, "the messages of the build");
 
-                // The verbose messages of the session load are hidden, as in WPF
+                // The verbose messages of the session load are hidden
                 Assert.Equal([$"Error: {BuildError}", $"Warning: {BuildWarning}"], Rows(window).Select(x => x.Text));
                 // A build message names no asset: the asset of its log
                 var url = sheet.AssetItem.Location.ToString();

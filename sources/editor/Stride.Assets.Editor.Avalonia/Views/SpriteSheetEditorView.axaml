@@ -20,7 +20,7 @@
         <ResourceInclude Source="avares://Stride.Assets.Editor.Avalonia/Views/SpriteEditorImages.axaml"/>
       </ResourceDictionary.MergedDictionaries>
 
-      <!-- The context menu of the sprites, as the WPF one. The view opens it with the editor as its data context. -->
+      <!-- The context menu of the sprites. The view opens it with the editor as its data context. -->
       <ContextMenu x:Key="SpriteContextMenu" x:DataType="vm:SpriteSheetEditorViewModel">
         <MenuItem Header="{sd:LocalizeString Add new sprite, Context=Menu}" Command="{Binding AddNewImageCommand}">
           <MenuItem.Icon><Image Source="{StaticResource ImageAdd}"/></MenuItem.Icon>
@@ -63,7 +63,7 @@
       <Setter Property="Width" Value="16"/>
       <Setter Property="Height" Value="16"/>
     </Style>
-    <!-- The handles of the region, borders and center: invisible areas that the mouse drags, as the WPF thumbs -->
+    <!-- The handles of the region, borders and center: invisible areas that the mouse drags -->
     <Style Selector="Thumb.handle">
       <Setter Property="Background" Value="Transparent"/>
       <Setter Property="Template">
@@ -101,7 +101,7 @@
         <CheckBox x:Name="ColorKeyCheckBox" DockPanel.Dock="Top" VerticalAlignment="Center"
                   Content="{sd:LocalizeString Use color key, Context=Button}" IsChecked="{Binding ColorKeyEnabled}"
                   ToolTip.Tip="{sd:LocalizeString If enabled\, the sprite uses the given color as transparency, Context=ToolTip}"/>
-        <!-- Hidden rather than collapsed, as in WPF: the list below doesn't move -->
+        <!-- Hidden rather than collapsed: the list below doesn't move -->
         <Grid ColumnDefinitions="*, Auto" Margin="21,4,0,0" Opacity="{Binding ColorKeyEnabled, Converter={sd:BoolToOpacity}}"
               IsHitTestVisible="{Binding ColorKeyEnabled}">
           <sd:ColorEditor Grid.Column="0" Value="{Binding ColorKey}"/>
@@ -142,14 +142,14 @@
                ItemsSource="{Binding Sprites}"
                SelectedItems="{Binding SelectedSprites}"
                SelectionMode="Multiple">
-        <!-- Copy, Paste, Delete and Rename while the list has the focus, as the command bindings of the WPF list -->
+        <!-- Copy, Paste, Delete and Rename while the list has the focus -->
         <sd:EditCommands.Bindings>
           <sd:EditCommandBinding Kind="Copy" Command="{Binding CopyImageCommand}"/>
           <sd:EditCommandBinding Kind="Paste" Command="{Binding PasteImageCommand}"/>
           <sd:EditCommandBinding Kind="Delete" Command="{Binding RemoveImageCommand}"/>
           <sd:EditCommandBinding Kind="Rename" Command="{Binding RenameCommand}"/>
         </sd:EditCommands.Bindings>
-        <!-- Drag the sprites to reorder them, drop image files to add sprites, as the WPF ListBoxDragDropBehavior -->
+        <!-- Drag the sprites to reorder them, drop image files to add sprites -->
         <Interaction.Behaviors>
           <beh:SpriteListDragDropBehavior/>
         </Interaction.Behaviors>
