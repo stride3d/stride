@@ -158,10 +158,10 @@ namespace Stride.TextureConverter.TexLibraries
                     break;
                 case PixelFormat.R8G8B8A8_UNorm_SRgb:
                 case PixelFormat.B8G8R8A8_UNorm_SRgb:
-                    Log.Error($"Inverting Y is intended for nomal map textures, not sRGB...");
+                    Log.Error($"Inverting Y is intended for normal map textures, not sRGB: '{image.Name}'.");
                     break;
                 default:
-                    Log.Error($"Inverting Y is not supported for the format {image.Format}, so the normal map is not inverted.");
+                    Log.Error($"Inverting Y is not supported for the format {image.Format}, so the normal map '{image.Name}' is not inverted.");
                     break;
             }
         }

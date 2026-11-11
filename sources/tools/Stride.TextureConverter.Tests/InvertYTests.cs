@@ -68,11 +68,20 @@ namespace Stride.TextureConverter.Tests
 
                 using var textureTool = new TextureTool();
                 using var image = textureTool.Load(path, false);
-                Assert.Equal(PixelFormat.R16G16B16A16_UNorm, image.Format);
 
-                textureTool.InvertY(image);
-
-                Assert.Equal((ushort)(ushort.MaxValue - 0x1234), (ushort)Marshal.ReadInt16(image.Data, sizeof(ushort)));
+                // Off Windows, ImageSharpTexLib loads every PNG at 8 bits per channel
+                if (OperatingSystem.IsWindows())
+                {
+                    Assert.Equal(PixelFormat.R16G16B16A16_UNorm, image.Format);
+                    textureTool.InvertY(image);
+                    Assert.Equal((ushort)(ushort.MaxValue - 0x1234), (ushort)Marshal.ReadInt16(image.Data, sizeof(ushort)));
+                }
+                else
+                {
+                    Assert.Equal(PixelFormat.B8G8R8A8_UNorm, image.Format);
+                    textureTool.InvertY(image);
+                    Assert.Equal((byte)(byte.MaxValue - 0x12), Marshal.ReadByte(image.Data, 1));
+                }
             }
             finally
             {
