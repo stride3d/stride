@@ -179,14 +179,22 @@ public sealed class EditorViewLayoutViewModel : DispatcherViewModel
         };
 
         var primary = panes.Single(x => x.Id == IEditorGameMultiViewport.PrimaryView);
-        var others = new Queue<EditorViewPaneViewModel>(panes.Where(x => x != primary));
+        var others = panes.Where(x => x != primary).ToList();
         var arranged = new List<EditorViewPaneViewModel>();
         foreach (var place in places)
         {
+            // A layout the user picks shows the cameras of its picture: a view that already has the camera of its place stays
+            // as the user left it, otherwise a new view starts from that camera. A layout the settings saved comes back as it
+            // was, each view in its place with its camera
             if (place is not { } camera)
+            {
                 arranged.Add(primary);
-            else if (others.TryDequeue(out var kept))
+            }
+            else if (saved.Count == 0 && others.FirstOrDefault(x => x.Camera == camera) is { } kept)
+            {
+                others.Remove(kept);
                 arranged.Add(kept);
+            }
             else if (saved.TryDequeue(out var view) && Enum.IsDefined(view.Camera))
             {
                 // A view the settings of the scene saved: its camera where it was

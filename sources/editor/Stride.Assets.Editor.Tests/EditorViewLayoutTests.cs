@@ -50,6 +50,26 @@ public sealed class EditorViewLayoutTests
     }
 
     [Fact]
+    public void EachLayoutShowsTheCamerasOfItsPicture()
+    {
+        var service = new FakeMultiViewService();
+        var layout = new EditorViewLayoutViewModel(new ViewModelServiceProvider([new NullDispatcherService()]), service, null);
+        layout.Layout = EditorViewLayout.TwoColumns;
+        var top = layout.Panes[1];
+
+        // Perspective over Front: the Top view closes, a Front view opens
+        layout.Layout = EditorViewLayout.TwoRows;
+        Assert.Equal([EditorViewCamera.Perspective, EditorViewCamera.Front], layout.Panes.Select(x => x.Camera));
+        Assert.Contains(top.Id, service.Removed);
+        var front = layout.Panes[1];
+
+        // The quad keeps the Front view in its place, and opens Top and Left
+        layout.Layout = EditorViewLayout.Quad;
+        Assert.Equal([EditorViewCamera.Top, EditorViewCamera.Front, EditorViewCamera.Left, EditorViewCamera.Perspective], layout.Panes.Select(x => x.Camera));
+        Assert.Same(front, layout.Panes[1]);
+    }
+
+    [Fact]
     public void TheActivePaneFollowsTheGameAndCanBeMaximized()
     {
         var service = new FakeMultiViewService();
