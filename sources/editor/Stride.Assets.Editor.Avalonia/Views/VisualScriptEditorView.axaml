@@ -7,10 +7,10 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Stride.Assets.Editor.Avalonia.Views.VisualScriptEditorView"
              x:DataType="vm:VisualScriptEditorViewModel">
-  <!-- This Game Studio has no visual script editor -->
+  <!-- Visual scripts are not supported: the view shows the asset and says so -->
   <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="560" Spacing="8">
     <TextBlock x:Name="AssetName" HorizontalAlignment="Center" FontWeight="Bold" Text="{Binding Asset.Url}"/>
     <TextBlock x:Name="Message" TextWrapping="Wrap" TextAlignment="Center"
-               Text="{sd:LocalizeString This Game Studio cannot edit visual scripts. Open this asset in the WPF Game Studio (Windows) to edit it.}"/>
+               Text="{sd:LocalizeString Visual scripts are not supported.}"/>
   </StackPanel>
 </UserControl>
