@@ -18,6 +18,7 @@ using Stride.Assets.Presentation;
 using Stride.Assets.Presentation.SceneEditor.Services;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor;
+using Stride.Core.Assets.Editor.Components.Build;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views;
 using Stride.Core.Assets.Editor.Services;
@@ -640,7 +641,15 @@ public static partial class Program
             LoadingMarker = offerSafeMode ? PluginLoadingMarker.CreateDefault() : null,
             Extensions = offerSafeMode ? EditorExtensionService.CreateDefault() : null,
         };
-        var services = new List<object>{ new DispatcherService(Dispatcher.CurrentDispatcher), dialogService, pluginService };
+        var services = new List<object>
+        {
+            new DispatcherService(Dispatcher.CurrentDispatcher),
+            dialogService,
+            pluginService,
+            // Build project and Start project, with the editor's crash reporter
+            new MSBuildGameProjectBuilder(new BuildCrashRouting()),
+            new GameProcessLauncher(),
+        };
         if (renderDocManager != null)
         {
             services.Add(renderDocManager);
