@@ -1,0 +1,36 @@
+!RunevisionTerrainAsset
+Id: 2004ea99-5500-4c92-81a5-046bc01b9a38
+SerializedVersion: {Stride: 1.0.0.0}
+Tags: []
+Tiling: 1.0
+Height: 1.0
+Normalization: Normalize
+HeightInput: !Stride.Heightfield.Assets.RunevisionTerrainAsset+FractalNoise,Stride.Heightfield.Assets
+    HeightFrequency: 3.0
+    HeightAmp: 0.125
+    HeightOctaves: 3
+    HeightLacunarity: 2.0
+    HeightGain: 0.1
+    HeightFunctionScale: 1.0
+Settings:
+    TerrainHeightOffset: {X: -0.65, Y: 0.0}
+    Water: false
+    WaterHeight: 0.36
+    Trees: true
+    GrassHeight: 0.465
+    Erosion:
+        Scale: 0.15
+        Strength: 0.22
+        GullyWeight: 0.5
+        Detail: 1.5
+        Rounding: {X: 0.1, Y: 0.0, Z: 0.1, W: 2.0}
+        Onset: {X: 1.25, Y: 1.25, Z: 2.8, W: 1.5}
+        AssumedSlope: {X: 0.7, Y: 1.0}
+        CellScale: 0.7
+        Normalization: 0.5
+        Octaves: 5
+        Lacunarity: 2.0
+        Gain: 0.5
+Resolution: 1024
+Format: R16G16B16A16_Float
+Data: Height, Erosion, Ridges, TreesWhenEnabled
