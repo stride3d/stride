@@ -86,6 +86,7 @@ namespace Stride.Graphics
                 DriverVersion = FormatDriverVersion(properties.vendorID, properties.driverVersion),
                 ApiName = GraphicsDevice.Platform.ToString(),
                 ApiVersion = FormatApiVersion(properties.apiVersion),
+                PipelineCacheUuid = new Guid(new ReadOnlySpan<byte>(properties.pipelineCacheUUID, 16), bigEndian: true),
             };
             pendingDisplays = attachedDisplays;
         }

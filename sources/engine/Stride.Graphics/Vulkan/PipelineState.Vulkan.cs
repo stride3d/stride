@@ -93,7 +93,7 @@ namespace Stride.Graphics
                     };
 
                     fixed (VkPipeline* nativePipelinePtr = &NativePipeline)
-                        GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateComputePipelines(GraphicsDevice.NativeDevice, VkPipelineCache.Null, 1, &createInfo, allocator: null, nativePipelinePtr));
+                        GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateComputePipelines(GraphicsDevice.NativeDevice, GraphicsDevice.NativePipelineCache, 1, &createInfo, allocator: null, nativePipelinePtr));
                 }
             }
             else
@@ -265,7 +265,7 @@ namespace Stride.Graphics
                         pTessellationState = &tessellationState,
                     };
                     fixed (VkPipeline* nativePipelinePtr = &NativePipeline)
-                        GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateGraphicsPipelines(GraphicsDevice.NativeDevice, VkPipelineCache.Null, createInfoCount: 1, &createInfo, allocator: null, nativePipelinePtr));
+                        GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateGraphicsPipelines(GraphicsDevice.NativeDevice, GraphicsDevice.NativePipelineCache, createInfoCount: 1, &createInfo, allocator: null, nativePipelinePtr));
                 }
             }
         }
