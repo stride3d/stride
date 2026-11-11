@@ -140,7 +140,14 @@ namespace Stride.Editor.Preview
 
             initializationSignal.Set();
 
-            PreviewGame = new PreviewGame(AssetBuilderService.EffectCompiler);
+            var previewGame = new PreviewGame(AssetBuilderService.EffectCompiler);
+            lock (previewLock)
+            {
+                PreviewGame = previewGame;
+                // An asset selected before the game existed (the asset of the editors that open with the session) shows first
+                if (previewBuildQueue != null)
+                    PreviewGame.Script.AddTask(ChangePreviewAsset);
+            }
             var context = new GameContextWinforms(gameForm) { InitializeDatabase = false };
 
             // Wait for shaders to be loaded
@@ -203,6 +210,9 @@ namespace Stride.Editor.Preview
             lock (previewLock)
             {
                 previewBuildQueue = asset;
+                // The game thread has not created the game yet: it takes the asset when it does
+                if (PreviewGame is null)
+                    return;
             }
             if (!previewGameEnded)
                 PreviewGame.Script.AddTask(ChangePreviewAsset);
