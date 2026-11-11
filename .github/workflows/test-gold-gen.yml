@@ -256,8 +256,7 @@ jobs:
     if: ${{ always() && inputs.update-gold != 'none' && needs.gather.result == 'success' }}
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read
     steps:
       - uses: actions/checkout@v7
         with:
@@ -267,6 +266,7 @@ jobs:
           # Compare against the tested commit's gold. A detached commit-sha can't be pushed to, so
           # those runs always land via PR (see can_branch below).
           ref: ${{ inputs.commit-sha || github.ref }}
+          persist-credentials: false  # the push uses the Stride Bot token
       - name: Download combined gold images
         uses: actions/download-artifact@v8
         with:
@@ -281,18 +281,29 @@ jobs:
           if [ "${{ inputs.dedup-gold }}" = "true" ]; then
             dotnet run --project tests/infra/Stride.CompareGold -- dedup --source "$SRC"
           fi
+      # Pushes and PRs made with GITHUB_TOKEN start no workflows, so the PR's required checks would never run.
+      - name: Get the Stride Bot token
+        id: bot
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.STRIDE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.STRIDE_BOT_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
       - name: Commit and land
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.bot.outputs.token }}
           MODE: ${{ inputs.update-gold }}
           BRANCH: ${{ github.ref_name }}
           DETACHED: ${{ inputs.commit-sha }}
           DEFAULT: ${{ github.event.repository.default_branch }}
           ACTOR: ${{ github.actor }}
+          BOT: ${{ steps.bot.outputs.app-slug }}[bot]
         run: |
           # The id prefix is what links the author to the bot's profile.
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "$BOT"
+          git config user.email "$(gh api "users/$BOT" --jq .id)+$BOT@users.noreply.github.com"
+          gh auth setup-git
 
           # Record who promoted, and from which run, so an odd reference image can be traced back.
           RUN_URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
