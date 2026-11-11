@@ -27,8 +27,8 @@ using Stride.Rendering.Compositing;
 namespace Stride.Assets.Editor.EditorGame;
 
 /// <summary>
-/// Several views of one scene editor (prototype): the game keeps one camera per view of its viewport, draws the active view
-/// as usual and the other views into textures of their own, which the viewport shows.
+/// Several views of one scene editor: the game keeps one camera per view of its viewport, draws the active view as usual
+/// and the other views into textures of their own, which the viewport shows.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -45,7 +45,11 @@ namespace Stride.Assets.Editor.EditorGame;
 /// view's camera, and to the active view's camera once they are drawn.
 /// </para>
 /// <para>
-/// The service does nothing with a viewport of one view (WPF).
+/// The other views are drawn at a lower rate than the active one (<see cref="InactiveViewSchedule.FramesPerSecond"/>), and
+/// at once when one has nothing to show yet, or when its size or its camera changed.
+/// </para>
+/// <para>
+/// The service does nothing with a viewport that shows one view only.
 /// </para>
 /// </remarks>
 [EditorGameService(typeof(IEntityHierarchyEditorController), Order = 400)]
@@ -72,6 +76,7 @@ public sealed class EditorGameMultiViewService : EditorGameServiceBase, IEditorG
     private readonly Dictionary<int, ViewState> views = [];
     private readonly List<EditorGameViewInfo> viewInfos = [];
     private readonly List<IEditorGameViewDependent> viewDependents = [];
+    private readonly InactiveViewSchedule schedule = new();
     private EntityHierarchyEditorGame? game;
     private EditorGameCameraService? camera;
     private ViewRenderer? renderer;
@@ -155,6 +160,8 @@ public sealed class EditorGameMultiViewService : EditorGameServiceBase, IEditorG
 
     private void SetInactiveState(int viewId, ViewState view, EditorCameraViewState state)
     {
+        // A camera the user changed shows at once, whatever the schedule
+        view.IsDirty = true;
         view.Camera = state;
         savedCameras[viewId] = ToSavedState(state);
     }
@@ -241,12 +248,14 @@ public sealed class EditorGameMultiViewService : EditorGameServiceBase, IEditorG
     /// <summary>
     /// Draws the views other than the active one, and hands them to the viewport (game thread, while the game draws).
     /// </summary>
-    private void DrawOtherViews(RenderDrawContext drawContext)
+    private void DrawOtherViews(RenderDrawContext drawContext, TimeSpan time)
     {
         if (viewport is null || camera is null || game is null || failed)
             return;
 
         viewport.GetViews(viewInfos);
+        // At a lower rate than the active view; a view that has nothing to show yet, or whose size or camera changed, at once
+        var isDue = schedule.IsDue(time);
         // The gizmos, the grid and the orientation cube fit each view's camera, then the active view's camera again
         viewDependents.Clear();
         viewDependents.AddRange(game.EditorServices.Services.OfType<IEditorGameViewDependent>());
@@ -260,6 +269,9 @@ public sealed class EditorGameMultiViewService : EditorGameServiceBase, IEditorG
                 var view = GetOrCreateView(info.Id);
                 if (view.Camera is null)
                     SetInactiveState(info.Id, view, CreateState(EditorViewCamera.Perspective));
+                if (!isDue && !view.NeedsDraw(info.Width, info.Height))
+                    continue;
+                view.IsDirty = false;
                 drewAny = true;
                 DrawView(drawContext, view, info.Width, info.Height);
                 viewport.PresentView(info.Id, drawContext.CommandList, view.Target!);
@@ -424,6 +436,17 @@ public sealed class EditorGameMultiViewService : EditorGameServiceBase, IEditorG
 
         public Texture? Depth { get; private set; }
 
+        /// <summary>
+        /// Gets or sets whether the camera of the view changed since it was last drawn.
+        /// </summary>
+        public bool IsDirty { get; set; }
+
+        /// <summary>
+        /// Gets whether the view must be drawn at this frame whatever the schedule: it was never drawn, or its size or
+        /// camera changed.
+        /// </summary>
+        public bool NeedsDraw(int width, int height) => IsDirty || Target is not { } target || target.Width != width || target.Height != height;
+
         public void EnsureTargets(GraphicsDevice device, int width, int height, PixelFormat format, PixelFormat depthFormat)
         {
             if (Target is { } target && target.Width == width && target.Height == height && target.Format == format)
@@ -468,7 +491,7 @@ public sealed class EditorGameMultiViewService : EditorGameServiceBase, IEditorG
         {
             var game = (Game)Game;
             drawContext ??= new RenderDrawContext(Services, RenderContext.GetShared(Services), game.GraphicsContext);
-            service.DrawOtherViews(drawContext);
+            service.DrawOtherViews(drawContext, gameTime.Total);
         }
     }
 }
