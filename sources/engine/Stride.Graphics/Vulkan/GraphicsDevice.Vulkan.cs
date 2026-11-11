@@ -962,14 +962,14 @@ namespace Stride.Graphics
             NativeDeviceApi.vkDestroyDevice(nativeDevice, null);
         }
 
-        partial void MergePipelineCachePlatform(byte[] driverData, ref bool merged)
+        partial void MergePipelineCachePlatform(ReadOnlySpan<byte> driverData, ref bool merged)
         {
             // Nothing to merge into once the device is released
             if (NativePipelineCache == VkPipelineCache.Null)
                 return;
 
-            // The blob's header names the device and driver version it is for; another's is undefined behaviour to give
-            // the driver (VUID-VkPipelineCacheCreateInfo-initialDataSize-00769), and the validation layers cannot check it
+            // The blob's header names the device and the driver it is for; another's is undefined behaviour to give the
+            // driver (VUID-VkPipelineCacheCreateInfo-initialDataSize-00769), and the validation layers cannot check it
             if (!IsPipelineCacheOfThisDevice(driverData))
                 return;
 

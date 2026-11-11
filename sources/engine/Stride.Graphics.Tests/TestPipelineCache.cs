@@ -33,12 +33,6 @@ public class TestPipelineCache : GraphicTestGameBase
     private bool fileWrittenOnRequest;
     private GraphicsAdapter adapter;
 
-    public TestPipelineCache()
-    {
-        // The data of an earlier run would hide what this run's draw adds; the file test turns it on
-        GraphicsDeviceManager.PersistPipelineCache = false;
-    }
-
     protected override void RegisterTests()
     {
         base.RegisterTests();
@@ -107,13 +101,19 @@ public class TestPipelineCache : GraphicTestGameBase
 
         // A whole envelope around the driver's blob of another device or driver (VkPipelineCacheHeaderVersionOne: deviceID at 12,
         // pipelineCacheUUID at 16). On Lavapipe the blob is dropped before these fields are read, so this part tells on a GPU only
-        Assert.True(PipelineCacheData.TryUnwrap(data, out var blob));
-        var otherDevice = (byte[])blob.Clone();
+        var driverVersion = device.Adapter.DriverInfo.DriverVersion;
+        Assert.True(PipelineCacheData.TryUnwrap(data, driverVersion, out var blob));
+        var otherDevice = blob.ToArray();
         otherDevice[12] ^= 0xFF;
-        Assert.False(device.MergePipelineCache(PipelineCacheData.Wrap(otherDevice)), "Another device's data is dropped");
-        var otherDriver = (byte[])blob.Clone();
+        Assert.False(device.MergePipelineCache(PipelineCacheData.Wrap(otherDevice, driverVersion)), "Another device's data is dropped");
+        var otherDriver = blob.ToArray();
         otherDriver[16] ^= 0xFF;
-        Assert.False(device.MergePipelineCache(PipelineCacheData.Wrap(otherDriver)), "Another driver's data is dropped");
+        Assert.False(device.MergePipelineCache(PipelineCacheData.Wrap(otherDriver, driverVersion)), "Another driver's data is dropped");
+
+        // The same driver in another version, which its header does not tell when the driver kept its pipelineCacheUUID
+        var otherVersion = PipelineCacheData.Wrap(blob, driverVersion + " (another)");
+        Assert.False(PipelineCacheData.TryUnwrap(otherVersion, driverVersion, out _), "Another driver version's envelope does not open");
+        Assert.False(device.MergePipelineCache(otherVersion), "Another driver version's data is dropped");
     }
 
     [SkippableFact]
@@ -145,7 +145,7 @@ public class TestPipelineCache : GraphicTestGameBase
             written = new byte[stream.Length];
             stream.ReadExactly(written);
         }
-        Assert.True(PipelineCacheData.TryUnwrap(written, out _), "The file is whole");
+        Assert.True(PipelineCacheData.TryUnwrap(written, keeping.adapter.DriverInfo.DriverVersion, out _), "The file is whole");
 
         using var device = GraphicsDevice.New();
         if (!IsSoftwareRendering)
@@ -219,7 +219,7 @@ public class TestPipelineCache : GraphicTestGameBase
 
         var startingOver = new TestPipelineCache();
         startingOver.GraphicsDeviceManager.PersistPipelineCache = true;
-        startingOver.GraphicsDeviceManager.PipelineCacheSizeLimit = 1;
+        startingOver.GraphicsDeviceManager.MaximumPipelineCacheSize = 1;
         RunGameTest(startingOver);
         Assert.True(startingOver.dataBeforeDraw.Length < merging.dataBeforeDraw.Length, "A file over the limit is not merged");
     }

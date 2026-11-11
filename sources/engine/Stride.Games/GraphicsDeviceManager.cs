@@ -44,6 +44,17 @@ namespace Stride.Games
         // just before running the Game.Window.RunCallback
         private const bool DelayWindowEvents = true;
 
+        // Every file the manager makes in the cache: pipelines-<uuid>.bin, and pipelines-<uuid>.bin.<guid>.tmp while one is written
+        private const string PipelineCacheFilePattern = "pipelines-*";
+        private const string PipelineCacheExtension = ".bin";
+        private const string PipelineCacheTemporaryExtension = ".tmp";
+
+        // A driver update has a new UUID and leaves the file of the old one behind; a second GPU in use keeps writing its own
+        private static readonly TimeSpan PipelineCacheUnusedAge = TimeSpan.FromDays(30);
+
+        // A temporary file is moved over its file at once, so an old one was left by a crash; one being written now is young
+        private static readonly TimeSpan PipelineCacheTemporaryAge = TimeSpan.FromDays(1);
+
         private static readonly Logger Log = GlobalLogger.GetLogger(nameof(GraphicsDeviceManager));
 
         /// <summary>
@@ -408,24 +419,28 @@ namespace Stride.Games
         ///   into the Graphics Device when it is created, and the device's cache is written when it is disposed, so the
         ///   driver does not build the pipelines of the earlier runs again. The file is <c>pipelines-&lt;uuid&gt;.bin</c> in
         ///   the application's cache (<see cref="VirtualFileSystem.ApplicationCache"/>), one per device and driver
-        ///   version (<see cref="AdapterDriverInfo.PipelineCacheUuid"/>). <see langword="true"/> by default; set it before
-        ///   the device is created to skip the merge. On an API without an exposed pipeline cache (Direct3D) nothing is
-        ///   written.
+        ///   (<see cref="AdapterDriverInfo.PipelineCacheUuid"/>); the file of another version of the driver is not
+        ///   merged. <see langword="true"/> by default; set it before the device is created to skip the merge. On an API
+        ///   without an exposed pipeline cache (Direct3D) nothing is written.
         /// </summary>
         /// <remarks>
         ///   The folder is kept small as the file is written: the file of another driver or device that nothing wrote for
         ///   30 days is removed, since every driver update has a new UUID, and so is a temporary file a crash left. A
-        ///   driver never drops a pipeline from its cache, so a file over 256 MB is not merged and the cache starts over
-        ///   from what the run builds.
+        ///   driver never drops a pipeline from its cache, so a file over <see cref="MaximumPipelineCacheSize"/> is not
+        ///   merged and the cache starts over from what the run builds.
         /// </remarks>
         public bool PersistPipelineCache { get; set; } = true;
 
         /// <summary>
-        ///   The size in bytes above which the file of an earlier run is not merged, so the cache starts over from what
-        ///   this run builds. The pipelines of every earlier run stay in the file otherwise, and in development every
-        ///   shader edit adds some.
+        ///   Gets or sets the size in bytes above which the file of an earlier run is not merged
+        ///   (<see cref="PersistPipelineCache"/>), so the cache starts over from what this run builds. The pipelines of
+        ///   every earlier run stay in the file otherwise, and in development every shader edit adds some. 256 MB by
+        ///   default; set it before the device is created.
         /// </summary>
-        internal long PipelineCacheSizeLimit { get; set; } = 256 * 1024 * 1024;
+        /// <remarks>
+        ///   A game whose own pipelines take more than the limit would never get its file merged: raise the limit for it.
+        /// </remarks>
+        public long MaximumPipelineCacheSize { get; set; } = 256 * 1024 * 1024;
 
         /// <summary>
         ///   Writes the device's pipeline cache to its file now, as the device's disposal does, so the pipelines built so
@@ -1109,17 +1124,6 @@ namespace Stride.Games
             return uuid == Guid.Empty ? null : $"pipelines-{uuid:N}{PipelineCacheExtension}";
         }
 
-        // Every file the manager makes in the cache: pipelines-<uuid>.bin, and pipelines-<uuid>.bin.<guid>.tmp while one is written
-        private const string PipelineCacheFilePattern = "pipelines-*";
-        private const string PipelineCacheExtension = ".bin";
-        private const string PipelineCacheTemporaryExtension = ".tmp";
-
-        // A driver update has a new UUID and leaves the file of the old one behind; a second GPU in use keeps writing its own
-        private static readonly TimeSpan PipelineCacheUnusedAge = TimeSpan.FromDays(30);
-
-        // A temporary file is moved over its file at once, so an old one was left by a crash; one being written now is young
-        private static readonly TimeSpan PipelineCacheTemporaryAge = TimeSpan.FromDays(1);
-
         private void MergePipelineCache(GraphicsDevice device)
         {
             if (!PersistPipelineCache || GetPipelineCacheFile(device.Adapter) is not { } file)
@@ -1131,9 +1135,9 @@ namespace Stride.Games
                     return;
 
                 var size = VirtualFileSystem.ApplicationCache.FileSize(file);
-                if (size > PipelineCacheSizeLimit)
+                if (size > MaximumPipelineCacheSize)
                 {
-                    Log.Info($"Pipeline cache {file} not merged: {size} bytes is over the limit of {PipelineCacheSizeLimit}, the cache starts over");
+                    Log.Info($"Pipeline cache {file} not merged: {size} bytes is over {nameof(MaximumPipelineCacheSize)} ({MaximumPipelineCacheSize}), the cache starts over");
                     return;
                 }
 
@@ -1147,11 +1151,11 @@ namespace Stride.Games
                 if (device.MergePipelineCache(data))
                     Log.Debug($"Pipeline cache {file} merged: {data.Length} bytes");
                 else
-                    Log.Info($"Pipeline cache {file} dropped: not of this device and driver, or damaged");
+                    Log.Info($"Pipeline cache {file} dropped: not of this device, driver and driver version, or damaged");
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
             {
-                Log.Warning($"Pipeline cache {file} not read: {e.Message}");
+                Log.Info($"Pipeline cache {file} not read: {e.Message}");
             }
         }
 
@@ -1168,7 +1172,7 @@ namespace Stride.Games
             // earlier file, and two devices disposed at once (the editor's previews) both end with a whole file. The move
             // goes through System.IO since the provider's FileMove does not overwrite; the cache is a FileSystemProvider.
             var cache = VirtualFileSystem.ApplicationCache;
-            var temporary = $"{file}.{Guid.NewGuid():N}.tmp";
+            var temporary = $"{file}.{Guid.NewGuid():N}{PipelineCacheTemporaryExtension}";
             try
             {
                 using (var stream = cache.OpenStream(temporary, VirtualFileMode.Create, VirtualFileAccess.Write))
@@ -1181,7 +1185,8 @@ namespace Stride.Games
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
             {
-                Log.Warning($"Pipeline cache {file} not written: {e.Message}");
+                // A cache folder that cannot be written (a game installed read-only) is not the game's fault at every exit
+                Log.Info($"Pipeline cache {file} not written: {e.Message}");
                 try
                 {
                     if (cache.FileExists(temporary))

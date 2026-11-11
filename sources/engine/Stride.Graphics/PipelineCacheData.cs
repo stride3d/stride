@@ -3,6 +3,7 @@
 
 using System;
 using System.Buffers.Binary;
+using System.Text;
 using Stride.Core.Storage;
 
 namespace Stride.Graphics;
@@ -10,24 +11,27 @@ namespace Stride.Graphics;
 /// <summary>
 ///   The form of the data <see cref="GraphicsDevice.GetPipelineCacheData"/> returns and <see cref="GraphicsDevice.MergePipelineCache"/>
 ///   takes: the driver's blob in an envelope that tells a blob damaged on its way back (truncated, padded, overwritten)
-///   from a whole one. A driver must not be given such a blob, and the validation layers cannot check it
-///   (<c>VUID-VkPipelineCacheCreateInfo-initialDataSize-00768</c> and <c>-00769</c> are unimplementable).
+///   from a whole one, and names the version of the driver that made it. A driver must not be given a damaged blob, and
+///   the validation layers cannot check it (<c>VUID-VkPipelineCacheCreateInfo-initialDataSize-00768</c> and <c>-00769</c>
+///   are unimplementable). A driver is to change its <c>pipelineCacheUUID</c> whenever it cannot read its earlier blobs,
+///   and some do not, so the blob of another version of the driver is not given to it either.
 /// </summary>
 internal static class PipelineCacheData
 {
     /// <summary>"SPLC", read as a little-endian integer.</summary>
     private const uint Magic = 0x434C5053;
-    private const uint Version = 1;
+    private const uint Version = 2;
 
-    // The magic, the version, the blob's length, then the blob's hash
+    // The magic, the version, the blob's length, the blob's hash, then the hash of the driver's version
     private const int MagicOffset = 0;
     private const int VersionOffset = 4;
     private const int LengthOffset = 8;
     private const int HashOffset = 12;
-    private const int HeaderSize = HashOffset + ObjectId.HashSize;
+    private const int DriverVersionOffset = HashOffset + ObjectId.HashSize;
+    private const int HeaderSize = DriverVersionOffset + ObjectId.HashSize;
 
-    /// <summary>Puts <paramref name="blob"/> in the envelope.</summary>
-    public static byte[] Wrap(byte[] blob)
+    /// <summary>Puts <paramref name="blob"/>, made by the driver of <paramref name="driverVersion"/>, in the envelope.</summary>
+    public static byte[] Wrap(ReadOnlySpan<byte> blob, string driverVersion)
     {
         var data = new byte[HeaderSize + blob.Length];
         var header = data.AsSpan(0, HeaderSize);
@@ -35,17 +39,21 @@ internal static class PipelineCacheData
         BinaryPrimitives.WriteUInt32LittleEndian(header[VersionOffset..], Version);
         BinaryPrimitives.WriteInt32LittleEndian(header[LengthOffset..], blob.Length);
         WriteHash(ObjectId.FromBytes(blob), header[HashOffset..]);
-        blob.CopyTo(data, HeaderSize);
+        WriteHash(HashOf(driverVersion), header[DriverVersionOffset..]);
+        blob.CopyTo(data.AsSpan(HeaderSize));
         return data;
     }
 
     /// <summary>
-    ///   Takes the blob out of the envelope.
+    ///   Finds the blob in the envelope, without copying it.
     /// </summary>
-    /// <returns><see langword="false"/> if <paramref name="data"/> is not an envelope or its blob is not whole.</returns>
-    public static bool TryUnwrap(byte[] data, out byte[] blob)
+    /// <returns>
+    ///   <see langword="false"/> if <paramref name="data"/> is not an envelope, its blob is not whole, or the blob was
+    ///   made by another version of the driver than <paramref name="driverVersion"/>.
+    /// </returns>
+    public static bool TryUnwrap(byte[] data, string driverVersion, out ReadOnlySpan<byte> blob)
     {
-        blob = null;
+        blob = default;
         if (data.Length < HeaderSize)
             return false;
 
@@ -58,13 +66,18 @@ internal static class PipelineCacheData
         if (length <= 0 || length != data.Length - HeaderSize)
             return false;
 
+        if (ReadHash(header[DriverVersionOffset..]) != HashOf(driverVersion))
+            return false;
+
         var content = data.AsSpan(HeaderSize, length);
         if (ObjectId.FromBytes(content) != ReadHash(header[HashOffset..]))
             return false;
 
-        blob = content.ToArray();
+        blob = content;
         return true;
     }
+
+    private static ObjectId HashOf(string driverVersion) => ObjectId.FromBytes(Encoding.UTF8.GetBytes(driverVersion ?? string.Empty));
 
     private static void WriteHash(ObjectId hash, Span<byte> destination)
     {
