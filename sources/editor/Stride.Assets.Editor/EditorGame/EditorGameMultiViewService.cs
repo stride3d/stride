@@ -4,6 +4,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -74,8 +75,9 @@ public sealed class EditorGameMultiViewService : EditorGameServiceBase, IEditorG
     private EntityHierarchyEditorGame? game;
     private EditorGameCameraService? camera;
     private ViewRenderer? renderer;
-    private int activeView = IEditorGameMultiViewport.PrimaryView;
-    private volatile EditorCameraViewState? primaryCamera;
+    // The cameras of the views other than the active one, for the settings of the scene (written on the game thread)
+    private readonly ConcurrentDictionary<int, EditorGameViewCameraState> savedCameras = new();
+    private volatile int activeView = IEditorGameMultiViewport.PrimaryView;
     private bool failed;
 
     /// <summary>
@@ -99,7 +101,30 @@ public sealed class EditorGameMultiViewService : EditorGameServiceBase, IEditorG
 
     /// <inheritdoc/>
     public EditorGameViewCameraState? PrimaryViewCamera
-        => primaryCamera is { } state ? new EditorGameViewCameraState(state.Position, new Vector2(state.Pitch, state.Yaw), state.IsOrthographic, state.OrthographicSize) : null;
+        => activeView != IEditorGameMultiViewport.PrimaryView && savedCameras.TryGetValue(IEditorGameMultiViewport.PrimaryView, out var state) ? state : null;
+
+    /// <inheritdoc/>
+    public IReadOnlyDictionary<int, EditorGameViewCameraState> GetViewCameras()
+    {
+        var cameras = new Dictionary<int, EditorGameViewCameraState>(savedCameras);
+        // The active view's camera is the editor camera, as it is now
+        var active = activeView;
+        cameras.Remove(active);
+        if (camera is { } editorCamera)
+            cameras[active] = ToSavedState(editorCamera.CaptureViewState());
+        return cameras;
+    }
+
+    /// <inheritdoc/>
+    public void SetViewCamera(int viewId, EditorGameViewCameraState state)
+    {
+        controller.InvokeAsync(() =>
+        {
+            if (camera is null || IsDisposed)
+                return;
+            SetViewState(viewId, FromSavedState(state));
+        });
+    }
 
     /// <inheritdoc/>
     public void SetViewCamera(int viewId, EditorViewCamera viewCamera)
@@ -108,24 +133,44 @@ public sealed class EditorGameMultiViewService : EditorGameServiceBase, IEditorG
         {
             if (camera is null || IsDisposed)
                 return;
-            var state = CreateState(viewCamera);
-            if (viewId == activeView)
-            {
-                camera.RestoreViewState(state);
-                ActiveViewChanged?.Invoke(this, new EditorGameViewCameraInfo(viewId, state.IsOrthographic, state.OrthographicSize));
-            }
-            else
-            {
-                GetOrCreateView(viewId).Camera = state;
-            }
+            SetViewState(viewId, CreateState(viewCamera));
         });
     }
+
+    /// <summary>
+    /// Moves the camera of a view (game thread).
+    /// </summary>
+    private void SetViewState(int viewId, EditorCameraViewState state)
+    {
+        if (viewId == activeView)
+        {
+            camera!.RestoreViewState(state);
+            ActiveViewChanged?.Invoke(this, new EditorGameViewCameraInfo(viewId, state.IsOrthographic, state.OrthographicSize));
+        }
+        else
+        {
+            SetInactiveState(viewId, GetOrCreateView(viewId), state);
+        }
+    }
+
+    private void SetInactiveState(int viewId, ViewState view, EditorCameraViewState state)
+    {
+        view.Camera = state;
+        savedCameras[viewId] = ToSavedState(state);
+    }
+
+    private static EditorGameViewCameraState ToSavedState(EditorCameraViewState state)
+        => new(state.Position, new Vector2(state.Pitch, state.Yaw), state.IsOrthographic, state.OrthographicSize) { Target = state.Target };
+
+    private static EditorCameraViewState FromSavedState(EditorGameViewCameraState state)
+        => new(state.Position, state.PitchYaw.Y, state.PitchYaw.X, state.IsOrthographic, state.OrthographicSize) { Target = state.Target };
 
     /// <inheritdoc/>
     public void RemoveView(int viewId)
     {
         controller.InvokeAsync(() =>
         {
+            savedCameras.TryRemove(viewId, out _);
             if (views.Remove(viewId, out var view))
                 view.Dispose();
         });
@@ -182,17 +227,13 @@ public sealed class EditorGameMultiViewService : EditorGameServiceBase, IEditorG
         if (!viewInfos.Any(x => x.Id == requested))
             return;
 
-        var captured = camera.CaptureViewState();
-        GetOrCreateView(activeView).Camera = captured;
-        // The settings of the scene save the camera of the primary view, even while another view is active
-        if (activeView == IEditorGameMultiViewport.PrimaryView)
-            primaryCamera = captured;
+        // The settings of the scene save the camera of every view, the primary one too while another view is active
+        SetInactiveState(activeView, GetOrCreateView(activeView), camera.CaptureViewState());
         var next = GetOrCreateView(requested);
         next.Camera ??= CreateState(EditorViewCamera.Perspective);
         camera.RestoreViewState(next.Camera);
-        if (requested == IEditorGameMultiViewport.PrimaryView)
-            primaryCamera = null;
         activeView = requested;
+        savedCameras.TryRemove(requested, out _);
         viewport.ActiveView = requested;
         ActiveViewChanged?.Invoke(this, new EditorGameViewCameraInfo(requested, next.Camera.IsOrthographic, next.Camera.OrthographicSize));
     }
@@ -217,7 +258,8 @@ public sealed class EditorGameMultiViewService : EditorGameServiceBase, IEditorG
                 if (info.Id == activeView || info.Width <= 0 || info.Height <= 0)
                     continue;
                 var view = GetOrCreateView(info.Id);
-                view.Camera ??= CreateState(EditorViewCamera.Perspective);
+                if (view.Camera is null)
+                    SetInactiveState(info.Id, view, CreateState(EditorViewCamera.Perspective));
                 drewAny = true;
                 DrawView(drawContext, view, info.Width, info.Height);
                 viewport.PresentView(info.Id, drawContext.CommandList, view.Target!);

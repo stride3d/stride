@@ -10,7 +10,7 @@ using Stride.Editor.Engine;
 namespace Stride.Assets.Editor.Tests;
 
 /// <summary>
-/// The layouts of the views of a scene editor (prototype): the panes each layout shows, the cameras of new panes, and the
+/// The layouts of the views of a scene editor: the panes each layout shows, the cameras of new panes, and the
 /// active pane that follows the game.
 /// </summary>
 public sealed class EditorViewLayoutTests
@@ -87,6 +87,12 @@ public sealed class EditorViewLayoutTests
         public event EventHandler<EditorGameViewCameraInfo>? ActiveViewChanged;
 
         public void SetViewCamera(int viewId, EditorViewCamera camera) => Cameras.Add((viewId, camera));
+
+        public IReadOnlyDictionary<int, EditorGameViewCameraState> GetViewCameras() => new Dictionary<int, EditorGameViewCameraState>();
+
+        public void SetViewCamera(int viewId, EditorGameViewCameraState state)
+        {
+        }
 
         public void RemoveView(int viewId) => Removed.Add(viewId);
 

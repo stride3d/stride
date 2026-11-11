@@ -200,7 +200,7 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel, IEditorVie
     public EditorLightingViewModel? Lighting { get; }
 
     /// <summary>
-    /// Gets the views of the scene (prototype), or <c>null</c> when the viewport shows one view only (WPF).
+    /// Gets the views of the scene, or <c>null</c> when the viewport shows one view only.
     /// </summary>
     public EditorViewLayoutViewModel? Views { get; }
 
