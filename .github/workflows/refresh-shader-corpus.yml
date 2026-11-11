@@ -57,8 +57,7 @@ jobs:
     if: ${{ !cancelled() }}
     runs-on: windows-2025-vs2026
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
@@ -99,12 +98,33 @@ jobs:
           path: |
             sources/shaders/Stride.Shaders.Tests/Corpus/corpus.json
             corpus-sources.txt
+      # A PR opened with the default token starts no workflows, so it would never get the corpus jobs or Gate
+      - name: Get the Stride Bot token
+        id: bot
+        if: inputs.open-pr || github.event_name == 'schedule'
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.STRIDE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.STRIDE_BOT_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+      - name: Get the Stride Bot identity
+        id: who
+        if: inputs.open-pr || github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ steps.bot.outputs.token }}
+          BOT: ${{ steps.bot.outputs.app-slug }}[bot]
+        run: |
+          # The id prefix is what links the author to the bot's profile.
+          $id = gh api "users/$env:BOT" --jq .id
+          "identity=$env:BOT <$id+$env:BOT@users.noreply.github.com>" >> $env:GITHUB_OUTPUT
       - name: Open PR with the refreshed corpus
         if: inputs.open-pr || github.event_name == 'schedule'
         uses: peter-evans/create-pull-request@v8
         with:
-          # A PR opened with the default token starts no workflows, so it would never get the corpus jobs or Gate
-          token: ${{ secrets.GH_PAT }}
+          token: ${{ steps.bot.outputs.token }}
+          author: ${{ steps.who.outputs.identity }}
+          committer: ${{ steps.who.outputs.identity }}
           commit-message: "Shaders: refresh the shader corpus from run ${{ github.run_id }}"
           title: "Refresh the shader corpus"
           body: |
