@@ -412,7 +412,20 @@ namespace Stride.Games
         ///   the device is created to skip the merge. On an API without an exposed pipeline cache (Direct3D) nothing is
         ///   written.
         /// </summary>
+        /// <remarks>
+        ///   The folder is kept small as the file is written: the file of another driver or device that nothing wrote for
+        ///   30 days is removed, since every driver update has a new UUID, and so is a temporary file a crash left. A
+        ///   driver never drops a pipeline from its cache, so a file over 256 MB is not merged and the cache starts over
+        ///   from what the run builds.
+        /// </remarks>
         public bool PersistPipelineCache { get; set; } = true;
+
+        /// <summary>
+        ///   The size in bytes above which the file of an earlier run is not merged, so the cache starts over from what
+        ///   this run builds. The pipelines of every earlier run stay in the file otherwise, and in development every
+        ///   shader edit adds some.
+        /// </summary>
+        internal long PipelineCacheSizeLimit { get; set; } = 256 * 1024 * 1024;
 
         /// <summary>
         ///   Writes the device's pipeline cache to its file now, as the device's disposal does, so the pipelines built so
@@ -1093,8 +1106,19 @@ namespace Stride.Games
         internal static string GetPipelineCacheFile(GraphicsAdapter adapter)
         {
             var uuid = adapter?.DriverInfo?.PipelineCacheUuid ?? Guid.Empty;
-            return uuid == Guid.Empty ? null : $"pipelines-{uuid:N}.bin";
+            return uuid == Guid.Empty ? null : $"pipelines-{uuid:N}{PipelineCacheExtension}";
         }
+
+        // Every file the manager makes in the cache: pipelines-<uuid>.bin, and pipelines-<uuid>.bin.<guid>.tmp while one is written
+        private const string PipelineCacheFilePattern = "pipelines-*";
+        private const string PipelineCacheExtension = ".bin";
+        private const string PipelineCacheTemporaryExtension = ".tmp";
+
+        // A driver update has a new UUID and leaves the file of the old one behind; a second GPU in use keeps writing its own
+        private static readonly TimeSpan PipelineCacheUnusedAge = TimeSpan.FromDays(30);
+
+        // A temporary file is moved over its file at once, so an old one was left by a crash; one being written now is young
+        private static readonly TimeSpan PipelineCacheTemporaryAge = TimeSpan.FromDays(1);
 
         private void MergePipelineCache(GraphicsDevice device)
         {
@@ -1105,6 +1129,13 @@ namespace Stride.Games
             {
                 if (!VirtualFileSystem.ApplicationCache.FileExists(file))
                     return;
+
+                var size = VirtualFileSystem.ApplicationCache.FileSize(file);
+                if (size > PipelineCacheSizeLimit)
+                {
+                    Log.Info($"Pipeline cache {file} not merged: {size} bytes is over the limit of {PipelineCacheSizeLimit}, the cache starts over");
+                    return;
+                }
 
                 byte[] data;
                 using (var stream = VirtualFileSystem.ApplicationCache.OpenStream(file, VirtualFileMode.Open, VirtualFileAccess.Read))
@@ -1145,6 +1176,8 @@ namespace Stride.Games
 
                 File.Move(cache.GetAbsolutePath(temporary), cache.GetAbsolutePath(file), overwrite: true);
                 Log.Debug($"Pipeline cache {file} written: {data.Length} bytes");
+
+                RemoveUnusedPipelineCacheFiles(file);
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
             {
@@ -1157,6 +1190,43 @@ namespace Stride.Games
                 catch (Exception cleanup) when (cleanup is IOException or UnauthorizedAccessException)
                 {
                 }
+            }
+        }
+
+        /// <summary>
+        ///   Removes what nothing uses any more from the cache: the files of other drivers or devices and the temporary
+        ///   files that were not written for their age. <paramref name="writtenFile"/>, just written, stays.
+        /// </summary>
+        private static void RemoveUnusedPipelineCacheFiles(string writtenFile)
+        {
+            var cache = VirtualFileSystem.ApplicationCache;
+            try
+            {
+                var now = DateTime.Now;
+                foreach (var url in cache.ListFiles(string.Empty, PipelineCacheFilePattern, VirtualSearchOption.TopDirectoryOnly))
+                {
+                    var name = url.TrimStart(VirtualFileSystem.DirectorySeparatorChar);
+                    if (name == writtenFile)
+                        continue;
+
+                    TimeSpan unusedAge;
+                    if (name.EndsWith(PipelineCacheTemporaryExtension, StringComparison.Ordinal))
+                        unusedAge = PipelineCacheTemporaryAge;
+                    else if (name.EndsWith(PipelineCacheExtension, StringComparison.Ordinal))
+                        unusedAge = PipelineCacheUnusedAge;
+                    else
+                        continue;
+
+                    if (now - cache.GetLastWriteTime(url) > unusedAge)
+                    {
+                        cache.FileDelete(url);
+                        Log.Debug($"Pipeline cache {name} removed: not written since {now - unusedAge:d}");
+                    }
+                }
+            }
+            // Another process may hold or remove a file meanwhile; the next save tries again
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
             }
         }
 

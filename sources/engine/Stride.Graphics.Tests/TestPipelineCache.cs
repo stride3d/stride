@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.IO;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
 using Stride.Games;
@@ -149,5 +150,77 @@ public class TestPipelineCache : GraphicTestGameBase
         using var device = GraphicsDevice.New();
         if (!IsSoftwareRendering)
             Assert.True(device.MergePipelineCache(written), "The file merges into a new device");
+    }
+
+    [SkippableFact]
+    public void FilesNothingUsesAreRemovedWhenTheFileIsWritten()
+    {
+        Skip.IfNot(GraphicsDevice.Platform == GraphicsPlatform.Vulkan, "No pipeline cache is exposed");
+
+        var cache = VirtualFileSystem.ApplicationCache;
+        var oldDriver = $"pipelines-{Guid.NewGuid():N}.bin";
+        var otherGpuInUse = $"pipelines-{Guid.NewGuid():N}.bin";
+        var leftByACrash = $"{oldDriver}.{Guid.NewGuid():N}.tmp";
+        var beingWritten = $"{otherGpuInUse}.{Guid.NewGuid():N}.tmp";
+        try
+        {
+            WriteFile(oldDriver, TimeSpan.FromDays(60));
+            WriteFile(otherGpuInUse, TimeSpan.FromDays(2));
+            WriteFile(leftByACrash, TimeSpan.FromDays(2));
+            WriteFile(beingWritten, TimeSpan.Zero);
+
+            var keeping = new TestPipelineCache();
+            keeping.GraphicsDeviceManager.PersistPipelineCache = true;
+            RunGameTest(keeping);
+
+            Assert.True(cache.FileExists(GraphicsDeviceManager.GetPipelineCacheFile(keeping.adapter)), "The device's own file stays");
+            Assert.False(cache.FileExists(oldDriver), "The file of a driver nothing wrote for long is removed");
+            Assert.True(cache.FileExists(otherGpuInUse), "The file of another device written lately stays");
+            Assert.False(cache.FileExists(leftByACrash), "A temporary file left behind is removed");
+            Assert.True(cache.FileExists(beingWritten), "A temporary file being written stays");
+        }
+        finally
+        {
+            foreach (var file in (string[])[oldDriver, otherGpuInUse, leftByACrash, beingWritten])
+            {
+                if (cache.FileExists(file))
+                    cache.FileDelete(file);
+            }
+        }
+
+        void WriteFile(string name, TimeSpan age)
+        {
+            using (var stream = cache.OpenStream(name, VirtualFileMode.Create, VirtualFileAccess.Write))
+                stream.WriteByte(0);
+            File.SetLastWriteTime(cache.GetAbsolutePath(name), DateTime.Now - age);
+        }
+    }
+
+    [SkippableFact]
+    public void AFileOverTheLimitIsNotMerged()
+    {
+        Skip.IfNot(GraphicsDevice.Platform == GraphicsPlatform.Vulkan, "No pipeline cache is exposed");
+        Skip.If(IsSoftwareRendering, "Lavapipe stores no pipeline in its cache");
+
+        var file = GraphicsDeviceManager.GetPipelineCacheFile(GraphicsAdapterFactory.DefaultAdapter);
+        var cache = VirtualFileSystem.ApplicationCache;
+        if (cache.FileExists(file))
+            cache.FileDelete(file);
+
+        // The first run leaves its drawn pipeline in the file, and the second starts with it
+        var first = new TestPipelineCache();
+        first.GraphicsDeviceManager.PersistPipelineCache = true;
+        RunGameTest(first);
+
+        var merging = new TestPipelineCache();
+        merging.GraphicsDeviceManager.PersistPipelineCache = true;
+        RunGameTest(merging);
+        Assert.True(merging.dataBeforeDraw.Length > first.dataBeforeDraw.Length, "The file of the earlier run is merged");
+
+        var startingOver = new TestPipelineCache();
+        startingOver.GraphicsDeviceManager.PersistPipelineCache = true;
+        startingOver.GraphicsDeviceManager.PipelineCacheSizeLimit = 1;
+        RunGameTest(startingOver);
+        Assert.True(startingOver.dataBeforeDraw.Length < merging.dataBeforeDraw.Length, "A file over the limit is not merged");
     }
 }
