@@ -87,7 +87,20 @@ public sealed class EditorViewLayoutViewModel : DispatcherViewModel
     /// <summary>
     /// Gets or sets the pane that fills the whole view, or <c>null</c> when the layout shows every pane.
     /// </summary>
-    public EditorViewPaneViewModel? MaximizedPane { get => maximizedPane; set => SetValue(ref maximizedPane, value is not null && panes.Contains(value) ? value : null); }
+    public EditorViewPaneViewModel? MaximizedPane
+    {
+        get => maximizedPane;
+        set
+        {
+            var previous = maximizedPane;
+            SetValue(ref maximizedPane, value is not null && panes.Contains(value) ? value : null);
+            if (previous != maximizedPane)
+            {
+                previous?.RaiseIsMaximizedChanged();
+                maximizedPane?.RaiseIsMaximizedChanged();
+            }
+        }
+    }
 
     /// <summary>
     /// Gets the command that changes the layout (an <see cref="EditorViewLayout"/>).
@@ -238,7 +251,8 @@ public sealed class EditorViewPaneViewModel : DispatcherViewModel
         this.owner = owner;
         this.camera = camera;
         Id = id;
-        SetCameraCommand = new AnonymousCommand<EditorViewCamera>(serviceProvider, value => Camera = value);
+        SetCameraCommand = new AnonymousCommand<EditorViewCamera>(serviceProvider, SetCamera);
+        ToggleMaximizeCommand = new AnonymousCommand(serviceProvider, () => owner.MaximizedPane = IsMaximized || owner.Panes.Count < 2 ? null : this);
     }
 
     /// <summary>
@@ -271,7 +285,34 @@ public sealed class EditorViewPaneViewModel : DispatcherViewModel
     public bool IsActive { get => isActive; internal set => SetValue(ref isActive, value); }
 
     /// <summary>
-    /// Gets the command that gives this pane another camera (an <see cref="EditorViewCamera"/>).
+    /// Gets whether this pane fills the whole view.
+    /// </summary>
+    public bool IsMaximized => owner.MaximizedPane == this;
+
+    /// <summary>
+    /// Gets the command that gives this pane a camera (an <see cref="EditorViewCamera"/>): another one, or the same one
+    /// again, which puts a Top, Bottom, Front, Back, Left or Right camera back where it starts.
     /// </summary>
     public ICommandBase SetCameraCommand { get; }
+
+    /// <summary>
+    /// Gets the command that makes this pane fill the view, or shows every pane again when it does.
+    /// </summary>
+    public ICommandBase ToggleMaximizeCommand { get; }
+
+    internal void RaiseIsMaximizedChanged() => OnPropertyChanged(nameof(IsMaximized));
+
+    private void SetCamera(EditorViewCamera value)
+    {
+        // The camera of the pane picked again resets it, as the user may have turned or moved it away from its axis;
+        // a perspective camera stays where the user left it
+        if (value == camera && value != EditorViewCamera.Perspective)
+        {
+            owner.Service.SetViewCamera(Id, value);
+        }
+        else
+        {
+            Camera = value;
+        }
+    }
 }

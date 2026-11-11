@@ -67,11 +67,39 @@ public sealed class EditorViewLayoutTests
         Assert.Same(front, layout.MaximizedPane);
         layout.ToggleMaximizeCommand.Execute();
         Assert.Null(layout.MaximizedPane);
+        // The button of a pane maximizes that pane, and restores it
+        var top = layout.Panes[0];
+        top.ToggleMaximizeCommand.Execute();
+        Assert.Same(top, layout.MaximizedPane);
+        Assert.True(top.IsMaximized);
+        Assert.False(front.IsMaximized);
+        top.ToggleMaximizeCommand.Execute();
+        Assert.Null(layout.MaximizedPane);
+        Assert.False(top.IsMaximized);
 
         // A camera picked in the header of a pane goes to the game
         front.SetCameraCommand.Execute(EditorViewCamera.Right);
         Assert.Equal((front.Id, EditorViewCamera.Right), service.Cameras[^1]);
         Assert.Equal("Right", front.Title);
+    }
+
+    [Fact]
+    public void ACameraPickedAgainResetsAnOrthographicViewButNotAPerspectiveOne()
+    {
+        var service = new FakeMultiViewService();
+        var layout = new EditorViewLayoutViewModel(new ViewModelServiceProvider([new NullDispatcherService()]), service, null);
+        layout.Layout = EditorViewLayout.Quad;
+        var (top, perspective) = (layout.Panes[0], layout.Panes[3]);
+        service.Cameras.Clear();
+
+        // The user turned the camera of the Top view, then picks Top again in its header: it looks down again
+        top.SetCameraCommand.Execute(EditorViewCamera.Top);
+        Assert.Equal([(top.Id, EditorViewCamera.Top)], service.Cameras);
+        Assert.Equal(EditorViewCamera.Top, top.Camera);
+
+        // Perspective picked again keeps the camera where the user left it
+        perspective.SetCameraCommand.Execute(EditorViewCamera.Perspective);
+        Assert.Single(service.Cameras);
     }
 
     private sealed class FakeMultiViewService : IEditorGameMultiViewViewModelService

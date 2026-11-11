@@ -49,7 +49,7 @@ public sealed class EditorViewLayoutPanelTests
             Assert.Same(viewport.View, views[3]);
             var headers = panel.GetVisualDescendants().OfType<Button>().Where(x => x.Name == "PaneHeader").ToList();
             Assert.Equal(4, headers.Count);
-            Assert.All(headers, x => Assert.True(x.IsVisible));
+            Assert.All(headers, x => Assert.True(x.IsEffectivelyVisible));
 
             // The view the pointer comes over is asked to become active
             var topLeft = views[0].TranslatePoint(new Point(20, 40), window)!.Value;
@@ -89,14 +89,25 @@ public sealed class EditorViewLayoutPanelTests
             var other = infos.Single(x => x.Id != IEditorGameMultiViewport.PrimaryView);
             Assert.True(other.Width > 0 && other.Height > 0);
 
-            layout.MaximizedPane = layout.Panes.Single(x => x.Id == IEditorGameMultiViewport.PrimaryView);
+            // The button next to the title of the primary pane
+            var primary = layout.Panes.Single(x => x.Id == IEditorGameMultiViewport.PrimaryView);
+            var maximize = panel.GetVisualDescendants().OfType<Button>().Single(x => x.Name == "PaneMaximizeButton" && x.DataContext == primary);
+            maximize.Command!.Execute(null);
             Dispatcher.UIThread.RunJobs();
+            Assert.Same(primary, layout.MaximizedPane);
 
             Assert.Equal([viewport.View], panel.GetVisualDescendants().OfType<OffscreenGameView>());
             // The game draws no frame for a view out of the visual tree
             viewport.GetViews(infos);
             other = infos.Single(x => x.Id != IEditorGameMultiViewport.PrimaryView);
             Assert.Equal((0, 0), (other.Width, other.Height));
+
+            // The same button shows every pane again
+            Assert.True(maximize.IsEffectivelyVisible);
+            maximize.Command!.Execute(null);
+            Dispatcher.UIThread.RunJobs();
+            Assert.Null(layout.MaximizedPane);
+            Assert.Equal(2, panel.GetVisualDescendants().OfType<OffscreenGameView>().Count());
         }
         finally
         {
