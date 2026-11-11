@@ -717,9 +717,9 @@ namespace Stride.Input
                     // stack (DirectInput/XInput/raw input + SharpDX) when the WinForms backend is off.
                     if (GameContextFactory.WinFormsBackendEnabled)
                     {
-                        Sources.Add(new InputSourceWindowsDirectInput());
+                        Sources.Add(new InputSourceWindowsDirectInput((context as GameContextWinforms)?.Control));
                         if (InputSourceWindowsXInput.IsSupported())
-                            Sources.Add(new InputSourceWindowsXInput());
+                            Sources.Add(new InputSourceWindowsXInput((context as GameContextWinforms)?.Control));
 #if STRIDE_INPUT_RAWINPUT
                         if (rawInputEnabled && context is GameContextWinforms gameContextWinforms)
                             Sources.Add(new InputSourceWindowsRawInput(gameContextWinforms.Control));
