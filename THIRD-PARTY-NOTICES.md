@@ -29,6 +29,10 @@ Stride uses the following open-source products.
 * [SocketsForPCL](https://github.com/rdavisau/sockets-for-pcl) (MIT License)
 * [V-HACD](https://github.com/kmammou/v-hacd) (zlib License)
 * [YamlDotNet](https://github.com/aaubry/YamlDotNet) (MIT License)
+* [Fast and Gorgeous Erosion Filter](https://blog.runevision.com/2026/03/fast-and-gorgeous-erosion-filter.html) (Mozilla Public License
+  2.0)
+* [Phacelle - Cheap Directional Noise](https://blog.runevision.com/2026/01/phacelle-cheap-directional-noise.html) (Mozilla Public License
+  2.0)
 
 ### Windows, Direct3D 12 (Microsoft redistributables)
 * [DirectX 12 Agility SDK](https://www.nuget.org/packages/Microsoft.Direct3D.D3D12) (Microsoft Software License Terms; its distributable `D3D12Core.dll` and `D3D12SDKLayers.dll` are copied next to Direct3D 12 games)
