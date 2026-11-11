@@ -264,7 +264,7 @@
           <TreeDataTemplate DataType="{x:Type vm2:SceneRootViewModel}"
                             ItemsSource="{Binding Children}">
             <DockPanel>
-              <!-- Where the focus button of an entity is, so that the lock buttons line up, as in the WPF scene editor -->
+              <!-- Where the focus button of an entity is, so that the lock buttons of scenes and entities line up -->
               <Panel DockPanel.Dock="Right" Width="20" Margin="8,0,0,0"/>
               <!-- Lock button: a locked entity cannot be selected in the view. Ctrl applies to the children. -->
               <Button DockPanel.Dock="Right" Classes="row" Command="{Binding LockCommand}" Click="OnLoadOrLockClick" IsEnabled="{Binding IsLoaded}">
@@ -324,8 +324,7 @@
             <!-- The filter of the toolbar -->
             <Setter Property="IsVisible" Value="{Binding IsVisible}"/>
           </Style>
-          <!-- The entities of an unloaded scene, and the scene itself, are grey, as in the WPF scene editor, unless the row
-               is selected -->
+          <!-- The entities of an unloaded scene, and the scene itself, are grey, unless the row is selected -->
           <Style Selector="TextBlock.unloaded:not(.selected)">
             <Setter Property="Foreground" Value="Gray"/>
           </Style>
