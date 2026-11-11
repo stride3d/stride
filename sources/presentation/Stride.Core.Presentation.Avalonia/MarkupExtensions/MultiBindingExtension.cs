@@ -116,7 +116,17 @@ public sealed class MultiBindingExtension
 
     public IMultiValueConverter? Converter { get; init; }
 
+    /// <summary>
+    /// Gets the parameter passed to the <see cref="Converter"/>.
+    /// </summary>
+    public object? ConverterParameter { get; init; }
+
     public object? FallbackValue { get; init; } = AvaloniaProperty.UnsetValue;
+
+    /// <summary>
+    /// Gets the format of the string the values give, when there is no <see cref="Converter"/>.
+    /// </summary>
+    public string? StringFormat { get; init; }
 
     public MultiBinding ProvideTypedValue()
     {
@@ -126,7 +136,9 @@ public sealed class MultiBindingExtension
         cachedBinding = new MultiBinding
         {
             Converter = Converter,
+            ConverterParameter = ConverterParameter,
             FallbackValue = FallbackValue,
+            StringFormat = StringFormat,
         };
 
         foreach (var binding in Bindings)
