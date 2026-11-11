@@ -3,8 +3,9 @@
     <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Stride.Core" Version="4.4.0" />
-    <PackageReference Include="Stride.Engine" Version="4.4.0" />
-    <PackageReference Include="Stride.Particles" Version="4.4.0" />
+    <PackageReference Include="Stride.Core" Version="4.5.1-beta" />
+    <PackageReference Include="Stride.Engine" Version="4.5.1-beta" />
+    <PackageReference Include="Stride.Audio" Version="4.5.1-beta" />
+    <PackageReference Include="Stride.Particles" Version="4.5.1-beta" />
   </ItemGroup>
 </Project>

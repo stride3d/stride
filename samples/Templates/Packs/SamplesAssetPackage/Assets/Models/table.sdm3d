@@ -1,8 +1,9 @@
 !Model
 Id: d5482be8-144a-4f3a-a6c6-238c4a8e7908
-SerializedVersion: {Stride: 2.0.0.0}
+SerializedVersion: {Stride: 2.1.0.0}
 Tags: []
-Source: ../../Resources/Models/table.fbx
+Source: !file ../../Resources/Models/table.fbx
+Skeleton: null
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
 Materials:
     0303d2fe323802f6323802f6323802f6:
@@ -17,6 +18,7 @@ Materials:
         Name: board1
         MaterialInstance:
             Material: ee1ef4b7-4fb4-4597-ad68-84b86ab128c7:Materials/board1
-Skeleton: null
+Modifiers: {}
+ImportMorphTargets: false
 ~SourceHashes:
     e6abe8847912f9fadb936b7043bacd0c~../../Resources/Models/table.fbx: 75f2628b4f3fedec9a2277b336c5f756

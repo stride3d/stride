@@ -4,10 +4,11 @@
     <RootNamespace>AnimatedModel</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Stride.Core" Version="4.4.0" />
-    <PackageReference Include="Stride.AssetCompiler" Version="4.4.0" IncludeAssets="build;buildTransitive" />
-    <PackageReference Include="Stride.Engine" Version="4.4.0" />
-    <PackageReference Include="Stride.Particles" Version="4.4.0" />
-    <PackageReference Include="Stride.UI" Version="4.4.0" />
+    <PackageReference Include="Stride.Core" Version="4.5.1-beta" />
+    <PackageReference Include="Stride.AssetCompiler" Version="4.5.1-beta" IncludeAssets="build;buildTransitive" />
+    <PackageReference Include="Stride.Engine" Version="4.5.1-beta" />
+    <PackageReference Include="Stride.Audio" Version="4.5.1-beta" />
+    <PackageReference Include="Stride.Particles" Version="4.5.1-beta" />
+    <PackageReference Include="Stride.UI" Version="4.5.1-beta" />
   </ItemGroup>
 </Project>
