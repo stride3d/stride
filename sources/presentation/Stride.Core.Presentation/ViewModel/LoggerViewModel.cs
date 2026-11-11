@@ -193,6 +193,26 @@ namespace Stride.Core.Presentation.ViewModel
         }
 
         /// <summary>
+        /// Monitors a <see cref="Logger"/> from now on, unless it is monitored already.
+        /// </summary>
+        /// <param name="logger">The <see cref="Logger"/> to monitor.</param>
+        public void EnsureLogger([NotNull] Logger logger)
+        {
+            if (!Loggers.ContainsKey(logger))
+                AddLogger(logger);
+        }
+
+        /// <summary>
+        /// Monitors a <see cref="LoggerResult"/> and adds its previous messages, unless it is monitored already.
+        /// </summary>
+        /// <param name="logger">The <see cref="LoggerResult"/> to monitor.</param>
+        public void EnsureLoggerWithPast([NotNull] LoggerResult logger)
+        {
+            if (!Loggers.ContainsKey(logger))
+                AddLoggerWithPast(logger);
+        }
+
+        /// <summary>
         /// Removes a <see cref="Logger"/> from monitoring.
         /// </summary>
         /// <param name="logger">The <see cref="Logger"/> to remove from monitoring.</param>
