@@ -223,6 +223,27 @@ jobs:
         shell: pwsh
         run: ./.github/scripts/check-packages.ps1 -Version "${{ steps.version.outputs.version }}"
 
+      # Advanced Installer signs the MSI inside the prerequisites installer too, which the sign tool can't reach: the
+      # installer is built again here, signed, from the built commit, and replaces the unsigned one in GameStudio.
+      - name: Install Advanced Installer
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://www.advancedinstaller.com/downloads/22.0/advinst.msi" -OutFile "$env:RUNNER_TEMP/advinst.msi"
+          msiexec /i "$env:RUNNER_TEMP/advinst.msi" /qn ADDLOCAL=ALL | Out-Null
+          if ("${{ secrets.ADVINST_LICENSE_KEY }}" -ne "") {
+            & "${env:ProgramFiles(x86)}\Caphyon\Advanced Installer 22.0\bin\x86\AdvancedInstaller.com" /register "${{ secrets.ADVINST_LICENSE_KEY }}"
+          }
+
+      - name: Sign the prerequisites installer
+        shell: pwsh
+        run: ./.github/scripts/sign-prerequisites-installer.ps1 -Package "bin/packages/Stride.GameStudio.${{ steps.version.outputs.version }}.nupkg" -Commit "${{ steps.src.outputs.sha }}"
+        env:
+          StrideSignTenantId: ${{ secrets.STRIDE_SIGN_TENANT_ID }}
+          StrideSignClientId: ${{ secrets.STRIDE_SIGN_CLIENT_ID }}
+          StrideSignClientSecret: ${{ secrets.STRIDE_SIGN_CLIENT_SECRET }}
+          StrideSignKeyVaultCertificate: ${{ secrets.STRIDE_SIGN_KEYVAULT_CERTIFICATE }}
+          StrideSignKeyVaultName: ${{ secrets.STRIDE_SIGN_KEYVAULT_NAME }}
+
       # The packages, and the executables in them (build/package/sign-file-list.txt), after every check
       - name: Sign
         run: dotnet build build/package.proj -t:SignPackage --no-restore -p:StrideSign=true
