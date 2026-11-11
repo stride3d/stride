@@ -33,14 +33,14 @@
       <Setter Property="Margin" Value="10,0,2,0"/>
     </Style>
   </UserControl.Styles>
-  <!-- Delete removes what is selected, in the lists or in the graph, as the command binding of the WPF view -->
+  <!-- Delete removes what is selected, in the lists or in the graph -->
   <sd:EditCommands.Bindings>
     <sd:EditCommandBinding Kind="Delete" Command="{Binding DeleteSelectionCommand}"/>
   </sd:EditCommands.Bindings>
 
   <Grid ColumnDefinitions="*, 5, 3*">
 
-    <!-- Left: the render stages, the render features and the camera slots, as in WPF -->
+    <!-- Left: the render stages, the render features and the camera slots -->
     <Grid Grid.Column="0" RowDefinitions="*, 5, *, 5, *">
       <DockPanel Grid.Row="0">
         <DockPanel DockPanel.Dock="Top" Margin="8">
@@ -66,7 +66,7 @@
                   <Run Text="{Binding Name, Mode=OneWay}" FontWeight="Bold"/>
                   <Run Text="{Binding EffectSlotName, Mode=OneWay, StringFormat=' (Slot {0})'}" Foreground="Gray"/>
                 </TextBlock>
-                <!-- Renaming in place (double click, F2), as the WPF editable list -->
+                <!-- Renaming in place (double click, F2) -->
                 <TextBox x:Name="RenameBox" Margin="5,0,0,0" IsVisible="False" Text="{Binding Name, Mode=OneWay}">
                   <Interaction.Behaviors>
                     <sd:InlineEditBehavior Name="{Binding Name, Mode=TwoWay}" IsEditing="{Binding #RenameBox.IsVisible, Mode=TwoWay}"/>
@@ -83,7 +83,7 @@
       <DockPanel Grid.Row="2">
         <DockPanel DockPanel.Dock="Top" Margin="8">
           <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-            <!-- The render feature types, as the add item combo box of the WPF view -->
+            <!-- The render feature types -->
             <DropDownButton x:Name="AddRenderFeatureButton" Classes="tool"
                             ToolTip.Tip="{sd:LocalizeString Add a render feature, Context=ToolTip}">
               <Image Classes="icon" Source="{StaticResource ImageAdd}"/>

@@ -43,16 +43,16 @@ public sealed class EditorViewTests
     }
 
     [AvaloniaFact]
-    public void TheVisualScriptViewSaysToUseTheWpfGameStudio()
+    public void TheVisualScriptViewSaysItCannotEditVisualScripts()
     {
         var view = new VisualScriptEditorView();
         var window = new Window { Content = view };
 
         window.Show();
 
-        // Visual scripting is not ported: the WPF Game Studio keeps its editor
+        // This Game Studio has no visual script editor
         var message = view.GetVisualDescendants().OfType<TextBlock>().Single(x => x.Name == "Message");
-        Assert.Contains("WPF Game Studio", message.Text);
+        Assert.Contains("cannot edit visual scripts", message.Text);
         window.Close();
     }
 
