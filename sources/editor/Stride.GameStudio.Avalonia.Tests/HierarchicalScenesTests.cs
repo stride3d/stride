@@ -14,7 +14,7 @@ using Stride.GameStudio.Avalonia.Tests.Helpers;
 namespace Stride.GameStudio.Avalonia.Tests;
 
 /// <summary>
-/// Child scenes in the tree of the scene editor, as in the WPF scene editor: the load button loads and unloads a child scene,
+/// Child scenes in the tree of the scene editor: the load button loads and unloads a child scene,
 /// its row says when it is unloaded, its entities are grey until it loads, and the active scene is in bold.
 /// </summary>
 public sealed class HierarchicalScenesTests
