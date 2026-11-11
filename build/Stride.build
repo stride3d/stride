@@ -80,7 +80,12 @@ Example: dotnet build build/Stride.build -t:Package
     </MSBuild>
     <Exec Command='"$(NuGetPath)" pack "$(StrideRoot)sources\tools\Stride.VisualStudio.Package\Stride.VisualStudio.Package.nuspec" -BasePath "$(StrideRoot)sources\tools\Stride.VisualStudio.Package" -Version "$(StrideVsPackageVersion)" -Properties "VsixPath=$(StrideVsixPath);ShadersVsixPath=$(StrideShadersVsixPath)" -OutputDirectory "$(StrideRoot)bin\vsix"' />
  
-    <!-- Invoke _SignFiles via MSBuild (not CallTarget) so StrideSignDir reaches it and its *.nupkg glob resolves -->
+    <CallTarget Targets="SignVSIXPlugin" />
+  </Target>
+
+  <!-- Signs the packages VSIXPlugin made, also on their own: the release signs them in its Deploy job.
+       Invoke _SignFiles via MSBuild (not CallTarget) so StrideSignDir reaches it and its *.nupkg glob resolves. -->
+  <Target Name="SignVSIXPlugin">
     <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_SignFiles"
              Properties="StrideSign=$(StrideSign);StrideSignDir=$(MSBuildThisFileDirectory)..\bin\vsix" />
   </Target>
@@ -90,7 +95,7 @@ Example: dotnet build build/Stride.build -t:Package
   -->
   <Target Name="PrerequisitesInstaller">
     <Delete Files="$(StrideRoot)Bin\Prerequisites\install-prerequisites.exe"/>
-    <!-- Note: this exe will be signed as part of GameStudio.nupkg -->
+    <!-- Signed inline when StrideSign, and again with GameStudio.nupkg (sign-file-list.txt): the release builds it unsigned -->
     <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_BuildAdvancedInstaller" Properties="StrideInstallerAip=$(StrideRoot)sources\prerequisites\prerequisites.aip" />
   </Target>
 
@@ -158,10 +163,8 @@ Example: dotnet build build/Stride.build -t:Package
   <PropertyGroup>
     <_StridePackageTargetPrerequisitesInstaller Condition="'$(StrideBuildPrerequisitesInstaller)' == 'true'">PrerequisitesInstaller</_StridePackageTargetPrerequisitesInstaller>
   </PropertyGroup>
-  <!-- Build phase: produce packages WITHOUT signing. Secret-free, so the workflow can run this
-       as its own step and confine signing secrets to the SignPackage step (TODO: wire that split
-       in release.yml — needs a signed-build test; note the prerequisites installer still signs
-       inline during build via AdvancedInstaller, so full scoping requires building it unsigned). -->
+  <!-- Build phase: produce packages WITHOUT signing. With StrideSign=false it needs no secret (the prerequisites
+       installer is then built unsigned too), so the release builds with no secret and signs in its Deploy job. -->
   <Target Name="BuildPackages" DependsOnTargets="PreparePackageBuild;$(_StridePackageTargetPrerequisitesInstaller);Build"/>
   <!-- Build + sign, in order. Same behavior as before; the BuildPackages/SignPackage seam lets
        callers run the two phases separately. -->

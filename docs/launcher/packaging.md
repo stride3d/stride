@@ -58,7 +58,7 @@ The `<description>` element is special: launchers read their update rules from i
 - A Start menu shortcut with `Launcher.ico`.
 - The Add/Remove Programs entry. Uninstalling runs `Stride.Launcher.exe /uninstall` first, which uninstalls the Stride versions.
 
-The build names the setup `StrideSetup-<version>.exe` (e.g. `StrideSetup-6.0.1.exe`), which goes to the GitHub release (`launcher/<version>`). A launcher that must reinstall downloads it from there (`setup=` of the update rules). The download button of the website is `links.stride-download-url` in `_data/site.json` of the [stride-website](https://github.com/stride3d/stride-website) repository: on a release (not a pre-release), `release-launcher.yml` points it to the new setup and pushes to stride-website master with `GH_PAT`. The site is deployed from its `release` branch, so the button changes with the next website release; to change it before, cherry-pick that commit to `release`.
+The build names the setup `StrideSetup-<version>.exe` (e.g. `StrideSetup-6.0.1.exe`), which goes to the GitHub release (`launcher/<version>`). A launcher that must reinstall downloads it from there (`setup=` of the update rules). The download button of the website is `links.stride-download-url` in `_data/site.json` of the [stride-website](https://github.com/stride3d/stride-website) repository: on a release (not a pre-release), `release-launcher.yml` points it to the new setup and pushes to stride-website master with the `stride-release` app's token (the app is installed on stride-website too). The site is deployed from its `release` branch, so the button changes with the next website release; to change it before, cherry-pick that commit to `release`.
 
 ## Building
 

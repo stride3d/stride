@@ -1,12 +1,13 @@
 name: Release Deploy
 
-# Deploys a previously-built release: downloads the `packages` artifact from a build run, pushes to NuGet.org,
-# tags the built commit, creates the GitHub Release, and (for a stable release) opens the next dev version.
+# Deploys a previously-built release: downloads the `packages` artifact from a build run, signs it, pushes to NuGet.org,
+# tags the built commit, creates the GitHub Release, and (for a stable release) opens the next dev version. The build has no secrets:
+# the signing key is only used here, in production, after a release manager's approval.
 #
 # Two entry points share one job:
 #   - workflow_call: release.yml's Deploy stage calls this with run-id = the current run (the integrated flow).
-#   - workflow_dispatch: deploy a *prior* signed (no-deploy) build by its run id - "sign once, test locally, then
-#     deploy the exact same artifacts" without a rebuild.
+#   - workflow_dispatch: deploy a *prior* (no-deploy) build by its run id - "build once, test locally, then
+#     sign and deploy the exact same artifacts" without a rebuild.
 #
 # The version is detected from the downloaded packages (not an input), so both entry points behave identically.
 # The tag points at the commit the artifacts were *built* from (resolved from the run), even if the branch has
@@ -26,7 +27,7 @@ on:
   workflow_dispatch:
     inputs:
       run-id:
-        description: Run ID of a prior signed (no-deploy) release build to deploy
+        description: Run ID of a prior (no-deploy) release build to deploy
         required: true
         type: string
       bump-version:
@@ -36,17 +37,33 @@ on:
 
 jobs:
   Deploy:
-    runs-on: ubuntu-latest  # NuGet push doesn't need Windows
+    runs-on: windows-2025  # the sign tool needs Windows
     environment: production  # Requires manual approval in GitHub settings
+    defaults:
+      run:
+        shell: bash
+    env:
+      MSYS_NO_PATHCONV: 1  # Git Bash: keep tag and path arguments as they are
     permissions:
+      actions: read  # read the build run and download its packages
       contents: write
       id-token: write # nuget.org trusted publishing
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
+      # The Stride Release app's key is only in the production environment, and the app may pass the master ruleset.
+      - name: Get the Stride Release token
+        id: release
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.STRIDE_RELEASE_CLIENT_ID }}
+          private-key: ${{ secrets.STRIDE_RELEASE_PRIVATE_KEY }}
+          permission-contents: write
+          permission-members: read
+
       - name: Check release permissions
         env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
+          GH_TOKEN: ${{ steps.release.outputs.token }}
         run: |
           ORG=$(echo "${{ github.repository }}" | cut -d/ -f1)
           TEAM="stride-release-managers"
@@ -59,11 +76,17 @@ jobs:
       - name: Resolve built commit
         id: src
         env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          SHA=$(gh run view "${{ inputs.run-id }}" --repo "${{ github.repository }}" --json headSha --jq .headSha)
+          # Only a Release build of this branch: this job signs what it deploys, so it must not take another workflow's
+          # artifacts, or a build of a branch anyone with write access could push to.
+          read -r SHA WORKFLOW BRANCH < <(gh api "repos/${{ github.repository }}/actions/runs/${{ inputs.run-id }}" --jq '"\(.head_sha) \(.path) \(.head_branch)"')
           if [ -z "$SHA" ]; then
             echo "::error::Could not resolve the commit for run ${{ inputs.run-id }}"
+            exit 1
+          fi
+          if [ "$WORKFLOW" != ".github/workflows/release.yml" ] || [ "$BRANCH" != "${{ github.ref_name }}" ]; then
+            echo "::error::Run ${{ inputs.run-id }} is $WORKFLOW on $BRANCH: only a run of .github/workflows/release.yml on ${{ github.ref_name }} can be deployed from here."
             exit 1
           fi
           echo "sha=$SHA" >> "$GITHUB_OUTPUT"
@@ -73,7 +96,17 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
-          token: ${{ secrets.GH_PAT }}  # push the tag and the post-release version-bump commit
+          lfs: true  # the sign tool (build/sign) and the prerequisites installer's files are in LFS
+          token: ${{ steps.release.outputs.token }}  # push the tag and the post-release version-bump commit
+
+      - name: Commit as the Stride Release bot
+        env:
+          GH_TOKEN: ${{ steps.release.outputs.token }}
+          BOT: ${{ steps.release.outputs.app-slug }}[bot]
+        run: |
+          # The id prefix is what links the author to the bot's profile.
+          git config --global user.name "$BOT"
+          git config --global user.email "$(gh api "users/$BOT" --jq .id)+$BOT@users.noreply.github.com"
 
       - uses: actions/setup-dotnet@v6
         with:
@@ -86,7 +119,7 @@ jobs:
           merge-multiple: true
           path: bin/packages
           run-id: ${{ inputs.run-id }}
-          github-token: ${{ secrets.GH_PAT }}
+          github-token: ${{ github.token }}
 
       - name: Detect version
         id: version
@@ -176,6 +209,16 @@ jobs:
             } >> "$GITHUB_STEP_SUMMARY"
           fi
 
+      # The packages, and the executables in them (build/sign/nupkgfilter.txt), after every check
+      - name: Sign
+        run: dotnet build build/Stride.build -t:SignPackage --no-restore -p:StrideSign=true
+        env:
+          StrideSignTenantId: ${{ secrets.STRIDE_SIGN_TENANT_ID }}
+          StrideSignClientId: ${{ secrets.STRIDE_SIGN_CLIENT_ID }}
+          StrideSignClientSecret: ${{ secrets.STRIDE_SIGN_CLIENT_SECRET }}
+          StrideSignKeyVaultCertificate: ${{ secrets.STRIDE_SIGN_KEYVAULT_CERTIFICATE }}
+          StrideSignKeyVaultName: ${{ secrets.STRIDE_SIGN_KEYVAULT_NAME }}
+
       # A short-lived key from nuget.org's trusted publishing policy for this workflow file, instead of a stored one
       - name: NuGet login
         id: nuget-login
@@ -234,7 +277,7 @@ jobs:
 
       - name: Create GitHub Release
         env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
+          GH_TOKEN: ${{ steps.release.outputs.token }}
         run: |
           SHA="${{ steps.src.outputs.sha }}"
           VERSION="${{ steps.version.outputs.version }}"
@@ -280,8 +323,6 @@ jobs:
             echo "::warning::Version bump did not apply to $FILE; skipping - bump it manually."
             exit 0
           fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           # Commit only the version file (never -a), so an unexpected working-tree change can't ride along.
           git commit -m "Open ${RELEASED%.*}.$NEXT for development (released $RELEASED)" -- "$FILE"
           git pull --rebase origin "${{ github.ref_name }}"
@@ -318,7 +359,7 @@ jobs:
     needs: Deploy
     if: ${{ needs.Deploy.outputs.version != '' }}
     permissions:
-      contents: read       # passed down only as the model's read-only token; apply uses the PAT
+      contents: read       # passed down only as the model's read-only token; apply uses the Stride Bot token
       pull-requests: read  # lets the model trace commits to their PRs
     uses: ./.github/workflows/release-notes-apply.yml
     with:
@@ -334,5 +375,5 @@ jobs:
       add-contributors: true    # engine release only: New Contributors is repo-wide
       docs-notes: true          # engine release only: stride-docs has the engine's release notes
     secrets:
-      gh-token: ${{ secrets.GH_PAT }}
+      bot-private-key: ${{ secrets.STRIDE_BOT_PRIVATE_KEY }}
       anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY_RELEASE_NOTES }}

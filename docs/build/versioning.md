@@ -42,16 +42,18 @@ Multiple checkouts of Stride on one machine (git worktrees *or* independent clon
 
 ## Release flow
 
-`.github/workflows/release.yml` (manual dispatch, `stride-release-managers` only for sign/deploy):
+`.github/workflows/release.yml` (manual dispatch, `stride-release-managers` only for deploy):
 
 1. **Version** = the committed value in `SharedAssemblyInfo.cs` (`StrideGitVersion` reads it and adds `+g<sha>`).
-2. **Package** builds all platforms unsigned → `bin/packages/*.nupkg`.
-3. **Deploy** (only when `sign && deploy`) checks the content version the engine names is published (see [Samples & template package versions](#samples--template-package-versions)), pushes to nuget.org, then **creates and pushes the `releases/<version>` tag** — so the tag is a *consequence* of a successful release; re-publishing a not-bumped version is refused because its tag already exists (the forget-to-bump guard). Idempotent: `--skip-duplicate`.
+2. **Package** builds all platforms unsigned → `bin/packages/*.nupkg`. It has no secrets.
+3. **Deploy** (only when `deploy`) checks the content version the engine names is published (see [Samples & template package versions](#samples--template-package-versions)), signs the packages, pushes to nuget.org, then **creates and pushes the `releases/<version>` tag** — so the tag is a *consequence* of a successful release; re-publishing a not-bumped version is refused because its tag already exists (the forget-to-bump guard). Idempotent: `--skip-duplicate`.
 4. **Bump** (stable deploys only, unless `bump-version: false`) — after publishing, the workflow commits `Patch+1` to the branch and pushes it, so the branch opens the next dev version. Skipped for prereleases (they keep the same number) and idempotent re-runs (tag already existed).
 
-So you just dispatch `release.yml` on the branch: it publishes the committed version, tags it, and (for a stable release) advances the source to the next patch — no manual version-bump commit. You only edit the version by hand to start a new major/minor cycle or a beta. (The bump-commit push needs the checkout token — `GH_PAT` — to have push rights to the branch, i.e. bypass branch protection.)
+So you just dispatch `release.yml` on the branch: it publishes the committed version, tags it, and (for a stable release) advances the source to the next patch — no manual version-bump commit. You only edit the version by hand to start a new major/minor cycle or a beta. (The bump commit is pushed with the `stride-release` app's token: the app is in the bypass list of the branch ruleset.)
 
-The Deploy stage is a reusable workflow ([`release-deploy.yml`](../../.github/workflows/release-deploy.yml)) that `release.yml` calls with the current run. It can also be **dispatched standalone with a `run-id`** to deploy a *prior* signed build — the "sign once (`deploy: false`), test the artifacts locally, then deploy the exact same `.nupkg`s without a rebuild" flow. It downloads that run's `packages` artifact, tags the commit the artifacts were *built* from (not the current branch tip), and otherwise behaves identically (push → tag → release → bump).
+Only Deploy runs in an environment: `production`, which holds the signing secrets and the `stride-release` app's key, accepts only `master` and `master-*`, and waits for a release manager's approval. So the signing key is used only after that approval, and a release needs one approval, once the build is done. The CLI and the VS package work the same way. The launcher signs during its build (its installer embeds the signed launcher), so its build and its deploy each wait for an approval.
+
+The Deploy stage is a reusable workflow ([`release-deploy.yml`](../../.github/workflows/release-deploy.yml)) that `release.yml` calls with the current run. It can also be **dispatched standalone with a `run-id`** to deploy a *prior* build — the "build once (`deploy: false`), test the artifacts locally, then sign and deploy the exact same `.nupkg`s without a rebuild" flow. It takes only a run of `release.yml` on its own branch. It downloads that run's `packages` artifact, signs it, tags the commit the artifacts were *built* from (not the current branch tip), and otherwise behaves identically (push → tag → release → bump).
 
 ## Nightly builds
 
@@ -81,7 +83,7 @@ Each nightly takes space in the NuGet cache (`~/.nuget/packages`); uninstall old
 
 The `stride` command-line tool ([`sources/launcher/Stride.Cli`](../../sources/launcher/Stride.Cli)) is versioned and released **independently of the engine** — it's a `dotnet tool` consumed by end users, not part of an engine `major.minor` line. Its version is plain SemVer in [`Stride.Cli.csproj`](../../sources/launcher/Stride.Cli/Stride.Cli.csproj) (`<Version>`), bumped by hand; the project uses `Microsoft.NET.Sdk` (not the Stride SDK), so none of the engine's `-devN`/overlay machinery applies to it.
 
-[`.github/workflows/release-cli.yml`](../../.github/workflows/release-cli.yml) (manual dispatch, `stride-release-managers` only) mirrors the engine flow at a smaller scale: the `PackageCli` target in [`build/Stride.build`](../../build/Stride.build) packs and signs `Stride.Cli.<version>.nupkg` (reusing the shared signing), then — when `sign && deploy` — pushes to nuget.org, tags `cli/<version>`, and creates a GitHub Release. A re-publish guard refuses a version whose `cli/<version>` tag already exists on another commit, so a forgotten bump fails the deploy. There is no auto-bump — bump `<Version>` yourself before the next release.
+[`.github/workflows/release-cli.yml`](../../.github/workflows/release-cli.yml) (manual dispatch, `stride-release-managers` only) mirrors the engine flow at a smaller scale: the `BuildPackageCli` target in [`build/Stride.build`](../../build/Stride.build) packs `Stride.Cli.<version>.nupkg`, then — when `deploy` — the Deploy job signs it (`SignPackageCli`, the shared signing), pushes it to nuget.org, tags `cli/<version>`, and creates a GitHub Release. A re-publish guard refuses a version whose `cli/<version>` tag already exists on another commit, so a forgotten bump fails the deploy. There is no auto-bump — bump `<Version>` yourself before the next release.
 
 Install: `dotnet tool install -g Stride.Cli`.
 
