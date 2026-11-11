@@ -7,7 +7,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Stride.Assets.Editor.Avalonia.Views.VisualScriptEditorView"
              x:DataType="vm:VisualScriptEditorViewModel">
-  <!-- Visual scripting is not ported: the WPF Game Studio keeps its editor -->
+  <!-- This Game Studio has no visual script editor -->
   <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="560" Spacing="8">
     <TextBlock x:Name="AssetName" HorizontalAlignment="Center" FontWeight="Bold" Text="{Binding Asset.Url}"/>
     <TextBlock x:Name="Message" TextWrapping="Wrap" TextAlignment="Center"

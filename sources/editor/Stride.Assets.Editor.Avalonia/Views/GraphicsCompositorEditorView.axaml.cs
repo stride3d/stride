@@ -14,9 +14,9 @@ using Stride.Core.Assets.Editor.Editors;
 namespace Stride.Assets.Editor.Avalonia.Views;
 
 /// <summary>
-/// The view of the graphics compositor editor, ported from the WPF <c>GraphicsCompositorEditorView</c>: the render stages, the
-/// render features and the camera slots on the left, the graph of the entry points and the shared renderers on the right. The
-/// property grid shows what is selected in the lists or the graph.
+/// The view of the graphics compositor editor: the render stages, the render features and the camera slots on the left, the
+/// graph of the entry points and the shared renderers on the right. The property grid shows what is selected in the lists or
+/// the graph.
 /// </summary>
 [AssetEditorView<GraphicsCompositorEditorViewModel>]
 public sealed partial class GraphicsCompositorEditorView : UserControl, IAssetEditorView
@@ -27,7 +27,7 @@ public sealed partial class GraphicsCompositorEditorView : UserControl, IAssetEd
     public GraphicsCompositorEditorView()
     {
         InitializeComponent();
-        // F2 renames the render stage or camera slot that has the keyboard, as the WPF editable lists
+        // F2 renames the render stage or camera slot that has the keyboard
         RenderStageList.AddHandler(KeyDownEvent, OnRenameListKeyDown, RoutingStrategies.Tunnel);
         CameraSlotList.AddHandler(KeyDownEvent, OnRenameListKeyDown, RoutingStrategies.Tunnel);
     }
@@ -83,7 +83,7 @@ public sealed partial class GraphicsCompositorEditorView : UserControl, IAssetEd
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
-        // The editor takes the focus so that Delete works, as in WPF
+        // The editor takes the focus so that Delete works
         if (!IsKeyboardFocusWithin)
             Focus();
     }
@@ -98,10 +98,10 @@ public sealed partial class GraphicsCompositorEditorView : UserControl, IAssetEd
         CreateRendererMenuItem.Items.Clear();
         if (editor is not null)
         {
-            // A render feature of each type, as the drop-down of the WPF list
+            // A render feature of each type
             foreach (var type in editor.RenderFeatureTypes)
                 flyout.Items.Add(new MenuItem { Header = type.DisplayValue, Command = editor.AddNewRenderFeatureCommand, CommandParameter = type });
-            // A renderer of each shared renderer type, as the Create group of the WPF context menu
+            // A renderer of each shared renderer type, in the Create group of the context menu
             foreach (var factory in editor.SharedRendererFactories)
                 CreateRendererMenuItem.Items.Add(new MenuItem { Header = factory.Name, Command = factory.CreateCommand });
         }

@@ -11,9 +11,9 @@ using Stride.Core.Presentation.Collections;
 namespace Stride.Assets.Editor.Avalonia.Views;
 
 /// <summary>
-/// The graph of the graphics compositor editor for the <see cref="NodeGraphControl"/>, the Avalonia counterpart of the WPF
-/// <c>GraphicsCompositorGraph</c>: the nodes are the blocks of the editor, the links those of their output slots, gathered in
-/// <see cref="Links"/>, and the commands link and unlink through the slots, which change the asset in one undo entry each.
+/// The graph of the graphics compositor editor for the <see cref="NodeGraphControl"/>: the nodes are the blocks of the editor,
+/// the links those of their output slots, gathered in <see cref="Links"/>, and the commands link and unlink through the slots,
+/// which change the asset in one undo entry each.
 /// </summary>
 public sealed class GraphicsCompositorGraph : INodeGraphLinkResolver, IDisposable
 {
