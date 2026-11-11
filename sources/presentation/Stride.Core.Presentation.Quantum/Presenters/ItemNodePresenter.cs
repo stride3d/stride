@@ -9,7 +9,7 @@ namespace Stride.Core.Presentation.Quantum.Presenters;
 
 public class ItemNodePresenter : NodePresenterBase
 {
-    private IObjectNode? _parentingNode;
+    private IObjectNode? parentingNode;
     private bool isDisposed;
 
     protected readonly IObjectNode Container;
@@ -35,14 +35,9 @@ public class ItemNodePresenter : NodePresenterBase
         container.ItemChanging += OnItemChanging;
         container.ItemChanged += OnItemChanged;
 
-        _parentingNode = Container.ItemReferences != null ? Container.IndexedTarget(Index) : null;
+        parentingNode = Container.ItemReferences != null ? Container.IndexedTarget(Index) : null;
 
-        if (_parentingNode != null)
-        {
-            _parentingNode.ItemChanging += OnNestedItemChanging;
-            _parentingNode.ItemChanged += OnNestedItemChanged;
-        }
-
+        NestedItemSubscribe();
         AttachCommands();
     }
 
@@ -55,11 +50,7 @@ public class ItemNodePresenter : NodePresenterBase
             Container.ItemChanging -= OnItemChanging;
             Container.ItemChanged -= OnItemChanged;
 
-            if (_parentingNode != null)
-            {
-                _parentingNode.ItemChanging -= OnNestedItemChanging;
-                _parentingNode.ItemChanged -= OnNestedItemChanged;
-            }
+            NestedItemUnsubscribe();
         }
     }
 
@@ -85,7 +76,7 @@ public class ItemNodePresenter : NodePresenterBase
         }
     }
 
-    protected override IObjectNode? ParentingNode => _parentingNode;
+    protected override IObjectNode? ParentingNode => parentingNode;
 
     public override void UpdateValue(object newValue)
     {
@@ -166,21 +157,13 @@ public class ItemNodePresenter : NodePresenterBase
             return;
         }
 
-        if (_parentingNode != null)
-        {
-            _parentingNode.ItemChanging -= OnNestedItemChanging;
-            _parentingNode.ItemChanged -= OnNestedItemChanged;
-        }
+        NestedItemUnsubscribe();
 
-        _parentingNode = Container.ItemReferences != null
+        parentingNode = Container.ItemReferences != null
             ? Container.IndexedTarget(Index)
             : null;
 
-        if (_parentingNode != null)
-        {
-            _parentingNode.ItemChanging += OnNestedItemChanging;
-            _parentingNode.ItemChanged += OnNestedItemChanged;
-        }
+        NestedItemSubscribe();
 
         Refresh();
         RaiseValueChanged(e.OldValue);
@@ -201,6 +184,24 @@ public class ItemNodePresenter : NodePresenterBase
             ContentChangeType.CollectionAdd or ContentChangeType.CollectionRemove => false,
             _ => throw new ArgumentOutOfRangeException(nameof(changeType)),
         };
+    }
+
+    private void NestedItemSubscribe()
+    {
+        if (parentingNode != null)
+        {
+            parentingNode.ItemChanging += OnNestedItemChanging;
+            parentingNode.ItemChanged += OnNestedItemChanged;
+        }
+    }
+
+    private void NestedItemUnsubscribe()
+    {
+        if (parentingNode != null)
+        {
+            parentingNode.ItemChanging -= OnNestedItemChanging;
+            parentingNode.ItemChanged -= OnNestedItemChanged;
+        }
     }
 
     private void OnNestedItemChanging(object? sender, ItemChangeEventArgs e)
