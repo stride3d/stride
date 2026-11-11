@@ -16,8 +16,8 @@ namespace Stride.Editor.Avalonia.Engine;
 /// <para>
 /// A window-less game has no input source of its own. The bridge adds an <see cref="InputSourceSimulated"/> to the game:
 /// the view queues its Avalonia events on the UI thread, and the game applies them on its own thread before its input
-/// updates (<see cref="Apply"/>). Avalonia's <see cref="Key"/> has the values of Stride's <see cref="Keys"/> (both follow
-/// WPF), so a key converts with a cast. The events are not marked handled: the editor's shortcuts keep working while the
+/// updates (<see cref="Apply"/>). Avalonia's <see cref="Key"/> has the values of Stride's <see cref="Keys"/>, so a key
+/// converts with a cast. The events are not marked handled: the editor's shortcuts keep working while the
 /// viewport has the focus.
 /// </para>
 /// <para>

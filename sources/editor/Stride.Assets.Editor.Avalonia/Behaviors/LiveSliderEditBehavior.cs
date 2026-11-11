@@ -17,9 +17,8 @@ namespace Stride.Assets.Editor.Avalonia.Behaviors;
 /// capture restores the start value without editing. Keys apply their value at once.
 /// </summary>
 /// <remarks>
-/// The cross-platform counterpart of the WPF <c>LiveSliderEditBehavior</c>. Only user input applies a value: a value
-/// set from code, such as the property grid refreshing the slider or the slider clamping a weight beyond its range, is
-/// not an edit and is not written back, so the slider is bound one way to the node value.
+/// Only user input applies a value: a value set from code, such as the property grid refreshing the slider or the slider
+/// clamping a weight beyond its range, is not an edit and is not written back, so the slider is bound one way to the node value.
 /// The editor sends each change to the scene game one after another, waiting for the game to apply it, which lags
 /// behind a drag: <see cref="Preview"/> writes the dragged values to the scene directly instead.
 /// </remarks>

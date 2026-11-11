@@ -29,7 +29,7 @@ namespace Stride.GameStudio.Avalonia.Tests;
 
 /// <summary>
 /// The entity picker of the Pick buttons of the entity and component properties (parity study G2), and the entities of the
-/// scene tree dropped on these properties, as in WPF.
+/// scene tree dropped on these properties.
 /// </summary>
 public sealed class EntityPickerTests
 {
@@ -97,7 +97,7 @@ public sealed class EntityPickerTests
         window.GetVisualDescendants().OfType<Button>().Single(x => x.Name == "OkButton").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         await WindowTestHelper.WaitUntilAsync(() => component.Target == scene.Entity("Parent").AssetSideEntity, "the picked entity");
 
-        // An entity of the tree dropped on the field is referenced too, as in WPF
+        // An entity of the tree dropped on the field is referenced too
         var drop = Interaction.GetBehaviors(field.GetVisualDescendants().OfType<DockPanel>().First(x => Interaction.GetBehaviors(x).OfType<ContentReferenceDropBehavior>().Any()))
             .OfType<ContentReferenceDropBehavior>().Single();
         var target = drop.GetDropTarget([scene.Entity("Child")], AddChildModifiers.None, out _);

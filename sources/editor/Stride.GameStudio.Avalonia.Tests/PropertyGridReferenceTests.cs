@@ -16,7 +16,7 @@ using Stride.Rendering;
 namespace Stride.GameStudio.Avalonia.Tests;
 
 /// <summary>
-/// The reference fields of the property grid show the name of the asset after its dimmed location, as in WPF, and the URL
+/// The reference fields of the property grid show the name of the asset after its dimmed location, and the URL
 /// while they are edited.
 /// </summary>
 public sealed class PropertyGridReferenceTests

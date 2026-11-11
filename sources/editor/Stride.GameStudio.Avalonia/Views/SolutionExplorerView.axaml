@@ -20,14 +20,14 @@
     </ResourceDictionary>
   </UserControl.Resources>
   <DockPanel>
-    <!-- A "*" follows the name of an item with unsaved changes, as in the WPF solution explorer -->
+    <!-- A "*" follows the name of an item with unsaved changes -->
     <TreeView x:Name="SolutionTree"
               Focusable="True"
               ItemsSource="{Binding PackageCategories.Values}"
               SelectedItems="{Binding AssetCollection.SelectedLocations}"
               SelectionMode="Multiple"
               Margin="4">
-      <!-- The Edit commands while the solution explorer has the focus, as the command bindings of the WPF tree -->
+      <!-- The Edit commands while the solution explorer has the focus -->
       <sd:EditCommands.Bindings>
         <sd:EditCommandBinding Kind="Cut" Command="{Binding AssetCollection.CutLocationsCommand}"/>
         <sd:EditCommandBinding Kind="Copy" Command="{Binding AssetCollection.CopyLocationsCommand}"/>
@@ -35,7 +35,7 @@
         <sd:EditCommandBinding Kind="Delete" Command="{Binding DeleteSelectedSolutionItemsCommand}"/>
         <sd:EditCommandBinding Kind="Rename" Command="{Binding RenameDirectoryOrPackageCommand}" CommandParameter="{Binding AssetCollection.SelectedLocations}"/>
       </sd:EditCommands.Bindings>
-      <!-- The context menu of the WPF solution explorer, with the items whose commands are ported, in groups shown when one of
+      <!-- The context menu of the solution explorer, in groups shown when one of
            their commands applies to the selection -->
       <TreeView.ContextMenu>
         <ContextMenu x:Name="SolutionContextMenu"
@@ -152,7 +152,7 @@
             </MenuItem.Icon>
           </MenuItem>
 
-          <!-- The asset group of the WPF solution explorer menu, shown where an asset can be created -->
+          <!-- The asset group of the menu, shown where an asset can be created -->
           <MenuItem Header="{sd:LocalizeString Asset, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"
                     IsVisible="{Binding NewDirectoryCommand.IsEnabled}"/>
           <MenuItem Header="{sd:LocalizeString Add asset..., Context=Menu}"
@@ -164,7 +164,7 @@
             </MenuItem.Icon>
           </MenuItem>
 
-          <!-- The explore group of the WPF solution explorer menu -->
+          <!-- The explore group of the menu -->
           <MenuItem Header="{sd:LocalizeString Explore, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"
                     IsVisible="{Binding ExploreCommand.IsEnabled}"/>
           <MenuItem Header="{sd:LocalizeString Show in Explorer, Context=Menu}"
@@ -200,7 +200,7 @@
         <TreeDataTemplate DataType="{x:Type vm:DirectoryViewModel}"
                           ItemsSource="{Binding SubDirectories}">
           <StackPanel Orientation="Horizontal" Background="Transparent">
-            <!-- An asset dragged from the asset view moves to this folder, as in the WPF solution explorer -->
+            <!-- An asset dragged from the asset view moves to this folder -->
             <Interaction.Behaviors>
               <dd:AddChildDropBehavior/>
             </Interaction.Behaviors>

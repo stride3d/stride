@@ -12,7 +12,7 @@ namespace Stride.Core.Presentation.Avalonia.Controls;
 
 /// <summary>
 /// Two lines, horizontal and vertical, that cross at <see cref="Position"/>, kept inside <see cref="LineExtents"/>: the tracker
-/// of the curve editor, the Avalonia counterpart of the WPF <c>TrackerControl</c>. With <see cref="TrackPointer"/>, the position
+/// of the curve editor. With <see cref="TrackPointer"/>, the position
 /// follows the pointer over the parent of the tracker. The tracker takes no input.
 /// </summary>
 public sealed class TrackerControl : Control

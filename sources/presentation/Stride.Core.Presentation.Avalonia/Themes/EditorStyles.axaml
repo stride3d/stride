@@ -37,7 +37,7 @@
     <Setter Property="Focusable" Value="False"/>
     <Setter Property="Template">
       <ControlTemplate TargetType="sd:DateTimeEditor">
-        <!-- As in WPF, the value is shown read-only and edited by its components in a drop-down -->
+        <!-- The value is shown read-only and edited by its components in a drop-down -->
         <Grid ColumnDefinitions="*, Auto">
           <TextBox Grid.Column="0"
                    IsReadOnly="True"

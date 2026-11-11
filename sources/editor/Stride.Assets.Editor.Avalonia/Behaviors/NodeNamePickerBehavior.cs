@@ -11,7 +11,7 @@ using Stride.Assets.Models;
 namespace Stride.Assets.Editor.Avalonia.Behaviors;
 
 /// <summary>
-/// Makes an <see cref="AutoCompleteBox"/> behave as the WPF <c>FilteringComboBox</c> of the node name of a node link: the
+/// Makes an <see cref="AutoCompleteBox"/> a filtering list of the node name of a node link: the
 /// list opens when the box gets the focus, and the text goes to the property (one undo entry) when a node is picked in the
 /// list, on Enter (the first node shown when the list is open) or when the focus leaves, not on every key. Escape shows
 /// the value of the property again.
@@ -84,7 +84,7 @@ public sealed class NodeNamePickerBehavior : Behavior<AutoCompleteBox>
         switch (e.Key)
         {
             case Key.Enter:
-                // As the WPF FilteringComboBox, Enter in the open list takes the node it highlights, the first one shown
+                // Enter in the open list takes the node it highlights, the first one shown
                 if (AssociatedObject is { IsDropDownOpen: true, SelectedItem: null } list && FindShownNode(list) is { } node)
                     list.Text = node.Name;
                 Commit();

@@ -11,12 +11,12 @@ using Stride.Core.Presentation.Drawing;
 namespace Stride.Core.Presentation.Avalonia.Controls;
 
 /// <summary>
-/// A control that draws an <see cref="IDrawingModel"/> (for example the curve editor), the Avalonia counterpart of the WPF
-/// <c>CanvasView</c>. The model asks for a new drawing through <see cref="IDrawingView.InvalidateDrawing"/>; the requests of a
-/// frame are merged into one update of the model's data and one drawing.
+/// A control that draws an <see cref="IDrawingModel"/> (for example the curve editor). The model asks for a new drawing
+/// through <see cref="IDrawingView.InvalidateDrawing"/>; the requests of a frame are merged into one update of the model's
+/// data and one drawing.
 /// </summary>
 /// <remarks>
-/// The model is drawn into a recorded drawing outside the render pass, as the WPF view built its shapes before its arrange: a model
+/// The model is drawn into a recorded drawing outside the render pass, before the arrange: a model
 /// updates its own properties while it draws (the curve editor's curve area, which the tracker is bound to), and Avalonia does not
 /// allow a change that invalidates a visual during the render pass. The render pass draws the recorded drawing.
 /// </remarks>
@@ -123,7 +123,7 @@ public sealed class DrawingCanvas : Control, IDrawingView
             return;
         }
 
-        // As the WPF CanvasView: the model updates its data (the axes, the curves' samples) before it is drawn
+        // The model updates its data (the axes, the curves' samples) before it is drawn
         model.Update(true);
         var group = new DrawingGroup { ClipGeometry = new RectangleGeometry(new Rect(size)) };
         using (var context = group.Open())

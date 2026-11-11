@@ -48,7 +48,7 @@ public sealed class CurveEditorEditingTests
         await WindowTestHelper.PumpAsync();
         Assert.Equal(4, keys.Count);
 
-        // With Alt, a rectangle selects nothing, but its press adds a key, as in WPF
+        // With Alt, a rectangle selects nothing, but its press adds a key
         editing.RectangleAround([0, 1, 2, 3], RawInputModifiers.Alt);
         await WindowTestHelper.PumpAsync();
         Assert.Equal(5, keys.Count);

@@ -16,7 +16,7 @@ using Stride.UI.Editor.Avalonia.Views;
 namespace Stride.GameStudio.Avalonia.Tests;
 
 /// <summary>
-/// The Avalonia UI library editor, as the WPF one: a library has several roots, each exported by its name, and the root of
+/// The Avalonia UI library editor: a library has several roots, each exported by its name, and the root of
 /// the last selected element is the active one (in bold).
 /// </summary>
 public sealed class UILibraryEditorTests

@@ -148,17 +148,17 @@ public partial class MainView : UserControl
     public static KeyGesture NewGesture => new(Key.N, Application.Current?.PlatformSettings?.HotkeyConfiguration.CommandModifiers ?? KeyModifiers.Control);
 
     /// <summary>
-    /// The shortcut of Project > Build project (F6, as in WPF), bound on the main window like <see cref="SaveGesture"/>.
+    /// The shortcut of Project > Build project (F6), bound on the main window like <see cref="SaveGesture"/>.
     /// </summary>
     public static KeyGesture BuildProjectGesture => new(Key.F6);
 
     /// <summary>
-    /// The shortcut of Project > Start project (F5, as in WPF), bound on the main window like <see cref="SaveGesture"/>.
+    /// The shortcut of Project > Start project (F5), bound on the main window like <see cref="SaveGesture"/>.
     /// </summary>
     public static KeyGesture StartProjectGesture => new(Key.F5);
 
     /// <summary>
-    /// The shortcut of Project > Cancel build (Ctrl+F6, as in WPF), bound on the main window like <see cref="SaveGesture"/>.
+    /// The shortcut of Project > Cancel build (Ctrl+F6), bound on the main window like <see cref="SaveGesture"/>.
     /// </summary>
     public static KeyGesture CancelBuildGesture => new(Key.F6, Application.Current?.PlatformSettings?.HotkeyConfiguration.CommandModifiers ?? KeyModifiers.Control);
 
@@ -211,7 +211,7 @@ public partial class MainView : UserControl
     }
 
     /// <summary>
-    /// Fills the toolbar's Open with drop-down as WPF does: one item per IDE (<see cref="MainViewModel.AvailableIDEs"/>), each
+    /// Fills the toolbar's Open with drop-down: one item per IDE (<see cref="MainViewModel.AvailableIDEs"/>), each
     /// opening the solution with it (<see cref="Core.Assets.Editor.ViewModels.SessionViewModel.OpenInIDECommand"/> of the session
     /// open then). The items are made with the view model, as those of Open recent, so that the flyout has them when it opens.
     /// </summary>
@@ -229,7 +229,7 @@ public partial class MainView : UserControl
     }
 
     /// <summary>
-    /// Fills File > Open recent as WPF does: one item per recent session (its version and its path, the full path in the tool
+    /// Fills File > Open recent: one item per recent session (its version and its path, the full path in the tool
     /// tip), then "Clear list".
     /// </summary>
     private void UpdateRecentSessionsMenu()

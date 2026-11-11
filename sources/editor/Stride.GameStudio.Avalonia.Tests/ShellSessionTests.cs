@@ -47,8 +47,8 @@ public sealed class ShellSessionTests
     [AvaloniaFact]
     public async Task TheSessionAsksForTheAvaloniaToolkit()
     {
-        // The host decides which companions the session loads: the neutral ones and the Avalonia ones, never the Wpf ones
-        // (the filter itself is tested in Stride.Core.Assets.Tests.TestCompanionToolkits)
+        // The host decides which companions the session loads: the neutral ones and the Avalonia ones, never those of
+        // another toolkit (the filter itself is tested in Stride.Core.Assets.Tests.TestCompanionToolkits)
         using var fixture = await ShellSessionFixture.OpenAsync(("Sheet", new SpriteSheetAsset()));
         Assert.Equal(EditorToolkits.Avalonia, fixture.Main.EditorToolkitName);
         Assert.Same(fixture.Main, fixture.Session.Main);

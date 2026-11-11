@@ -13,7 +13,7 @@
         CanResize="False"
         ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner">
-  <!-- The WPF UpdatePlatformsWindow: a box per platform, checked when the package has it; unchecking one removes its project -->
+  <!-- A box per platform, checked when the package has it; unchecking one removes its project -->
   <StackPanel Margin="20" Spacing="10">
     <Border Background="#30808080" Padding="20,10">
       <TextBlock Text="{sd:LocalizeString Platforms}" FontSize="16"/>

@@ -13,9 +13,6 @@ namespace Stride.Assets.Editor.Avalonia.Views;
 /// Matches the node name of a node link whose parent lists the nodes it can link to (<see cref="ModelNodeLinkData"/>): the
 /// model node link of the engine, and the node links of the plugins (physics components, SpriteStudio node links).
 /// </summary>
-/// <remarks>
-/// The counterpart of the WPF <c>ModelNodeNameTemplateProvider</c>.
-/// </remarks>
 public sealed class ModelNodeNameTemplateProvider : NodeViewModelTemplateProvider
 {
     public override string Name => "ModelNodeName";

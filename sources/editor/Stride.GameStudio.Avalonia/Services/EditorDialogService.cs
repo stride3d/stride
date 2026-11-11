@@ -89,7 +89,7 @@ internal class EditorDialogService : DialogService, IEditorDialogService, IProgr
 
     /// <inheritdoc/>
     /// <remarks>
-    /// As in WPF, the window opens when the delay is over while the work goes on, or as soon as the work finishes when it should stay
+    /// The window opens when the delay is over while the work goes on, or as soon as the work finishes when it should stay
     /// open (its errors); it does not open at all when the work finishes before the delay without a reason to stay open. It also
     /// waits for the message boxes that are up (the upgrade question asked while a session loads), which it would hide.
     /// </remarks>
@@ -167,8 +167,8 @@ internal class EditorDialogService : DialogService, IEditorDialogService, IProgr
 
     public void ClearKeyboardFocus()
     {
-        // A text box commits its edit when it loses the focus (the property grid's do): move the focus away from it, as WPF
-        // moves it to the main window. Other controls keep it, such as the code editor, where the user goes on typing.
+        // A text box commits its edit when it loses the focus (the property grid's do): move the focus away from it, to the main
+        // window. Other controls keep it, such as the code editor, where the user goes on typing.
         Dispatcher.Invoke(() =>
         {
             if (MainWindow is { FocusManager: { } focusManager } window && focusManager.GetFocusedElement() is TextBox)
@@ -181,7 +181,7 @@ internal class EditorDialogService : DialogService, IEditorDialogService, IProgr
 
     /// <inheritdoc/>
     /// <remarks>
-    /// As WPF's delayed notifications, the question waits for the editor to come to the front again (the user edits the code in an
+    /// The question waits for the editor to come to the front again (the user edits the code in an
     /// IDE), and for the dialog that is up to close: the main window is activated then.
     /// </remarks>
     public async Task WaitForMainWindowActiveAsync(CancellationToken token = default)
@@ -232,7 +232,7 @@ internal class EditorDialogService : DialogService, IEditorDialogService, IProgr
     }
 
     /// <inheritdoc/>
-    /// <remarks>As in WPF, one package is picked; the window adds a search box.</remarks>
+    /// <remarks>One package is picked; the window has a search box.</remarks>
     public async Task<IReadOnlyCollection<PickablePackageViewModel>?> ShowPackagePickerDialogAsync(SessionViewModel session, Func<PickablePackageViewModel, bool> filter)
     {
         ArgumentNullException.ThrowIfNull(session);

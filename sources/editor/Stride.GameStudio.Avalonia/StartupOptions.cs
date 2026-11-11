@@ -67,7 +67,7 @@ public sealed class StartupOptions
     public List<(string Option, string? Value)> ForwardedArguments { get; } = [];
 
     /// <summary>
-    /// Parses the command line of the WPF Game Studio: <c>/NewProject</c>, <c>/DisableThumbnails</c>, <c>/DisablePreview</c>,
+    /// Parses the command line of the Game Studio: <c>/NewProject</c>, <c>/DisableThumbnails</c>, <c>/DisablePreview</c>,
     /// <c>/DebugEditorGraphics</c>, a session path; the launcher handshake (<c>/LauncherWindowHandle</c>, <c>/LauncherPipe</c>)
     /// and the host selection (<c>--graphics-api</c>) take a value and are consumed by the host. <c>--project &lt;path&gt;</c>
     /// (or <c>/project</c>) names the session explicitly, as the earlier Avalonia prototype did. <c>--viewport-readback</c> is
@@ -149,7 +149,7 @@ public sealed class StartupOptions
     }
 
     /// <summary>
-    /// The command line of a new editor process that opens another session, as the WPF Game Studio builds it (<c>Program.RestartArgs</c>):
+    /// The command line of a new editor process that opens another session:
     /// the options of this command line, then the session to open, or <c>/NewProject</c> for the project selection.
     /// </summary>
     /// <param name="sessionPath">The session to open; <c>null</c> for the project selection.</param>

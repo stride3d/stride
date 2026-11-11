@@ -15,7 +15,7 @@ using Stride.GameStudio.Avalonia.Views;
 namespace Stride.GameStudio.Avalonia.Tests;
 
 /// <summary>
-/// File > Open recent lists the recent sessions as WPF does: the version and the path of each, then "Clear list".
+/// File > Open recent lists the recent sessions: the version and the path of each, then "Clear list".
 /// </summary>
 public sealed class RecentSessionsMenuTests
 {

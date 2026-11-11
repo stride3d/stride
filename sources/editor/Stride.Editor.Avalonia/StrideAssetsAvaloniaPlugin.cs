@@ -12,7 +12,7 @@ namespace Stride.Editor.Avalonia;
 
 /// <summary>
 /// A <see cref="StrideAssetsPlugin"/> whose enum images, template providers and control themes come from Avalonia resource
-/// dictionaries: the Avalonia counterpart of <c>StrideAssetsWpfPlugin</c>.
+/// dictionaries.
 /// </summary>
 public abstract class StrideAssetsAvaloniaPlugin : StrideAssetsPlugin
 {
@@ -67,7 +67,7 @@ public abstract class StrideAssetsAvaloniaPlugin : StrideAssetsPlugin
     }
 
     /// <summary>
-    /// Merges a dictionary of control themes (the equivalent of a WPF <c>Themes/Generic.xaml</c>) into the resources of the
+    /// Merges a dictionary of control themes (a <c>Themes/Generic.axaml</c>) into the resources of the
     /// running application, so the controls of this plugin's assembly find their templates. Nothing happens without an
     /// application, as in the tests of the plugin's view models.
     /// </summary>

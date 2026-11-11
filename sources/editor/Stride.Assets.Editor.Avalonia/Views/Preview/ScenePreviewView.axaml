@@ -3,7 +3,7 @@
                          xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
                          xmlns:views="using:Stride.Editor.Avalonia.Preview.Views"
                          x:Class="Stride.Assets.Editor.Avalonia.Views.Preview.ScenePreviewView">
-  <!-- Scenes are not previewed: as in WPF, the view shows a message in place of the game view of the preview -->
+  <!-- Scenes are not previewed: the view shows a message in place of the game view of the preview -->
   <views:StridePreviewView.Template>
     <ControlTemplate>
       <DockPanel>

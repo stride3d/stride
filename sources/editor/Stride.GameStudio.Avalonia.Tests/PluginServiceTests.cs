@@ -85,7 +85,7 @@ public sealed class PluginServiceTests
         var assemblies = AssemblyRegistry.Find(AssemblyCommonCategories.Assets);
 
         // The view models that both editors share come from Stride.Assets.Presentation, through the default assets plugin; the
-        // WPF assembly is not loaded
+        // assets editor assembly of the other toolkit is not loaded
         Assert.Contains(service.SessionPlugins, x => x is StrideDefaultAssetsPlugin);
         Assert.Equal([typeof(MaterialViewModel).Assembly], service.SessionPlugins.OfType<StrideDefaultAssetsPlugin>().Single().ScannedAssemblies);
         Assert.DoesNotContain(AppDomain.CurrentDomain.GetAssemblies(), x => x.GetName().Name == "Stride.Assets.Editor.Wpf");

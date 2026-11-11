@@ -142,7 +142,7 @@
         <sd:EditCommands.Bindings>
           <sd:EditCommandBinding Kind="Delete" Command="{Binding DeleteSelectedPointsCommand}"/>
         </sd:EditCommands.Bindings>
-        <!-- Dark, as the WPF editor's: the drawing's colors (light gray axes, white selection rings) are made for a dark background -->
+        <!-- Dark: the drawing's colors (light gray axes, white selection rings) are made for a dark background -->
         <sd:DrawingCanvas Name="Canvas" Model="{Binding}" Background="#FF2D2D30">
           <sd:DrawingCanvas.ContextMenu>
             <ContextMenu Name="CurveContextMenu">

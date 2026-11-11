@@ -13,7 +13,7 @@
         MinWidth="320" MinHeight="240"
         ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner">
-  <!-- The WPF package picker, with a search box: the packages that can be added as a dependency, and a note next to the ones
+  <!-- The package picker, with a search box: the packages that can be added as a dependency, and a note next to the ones
        already available through another dependency -->
   <DockPanel Margin="10">
     <StackPanel DockPanel.Dock="Bottom"

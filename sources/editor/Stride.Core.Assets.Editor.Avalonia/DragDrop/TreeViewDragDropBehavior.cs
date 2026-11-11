@@ -20,7 +20,7 @@ namespace Stride.Core.Assets.Editor.Avalonia.DragDrop;
 /// </summary>
 /// <remarks>
 /// <para>
-/// As the WPF <c>TreeViewDragDropBehavior</c>: a drag moves the selection when it starts on a selected item, otherwise the
+/// A drag moves the selection when it starts on a selected item, otherwise the
 /// item alone, and never starts while an item is being renamed or while both an item and one of its parents are selected.
 /// The top and bottom bands of a row insert before and after it (<see cref="DropZoneCalculator"/>), the rest of the row adds
 /// to it. An expanded item has no band to insert after it: the gap below the last item of a subtree goes after the item or
@@ -29,7 +29,7 @@ namespace Stride.Core.Assets.Editor.Avalonia.DragDrop;
 /// </para>
 /// <para>
 /// The tree shows where the drop goes and the message of the target (<see cref="DragFeedbackAdorner"/>), and scrolls while
-/// the pointer stays near its top or bottom edge, as the WPF <c>DragOverAutoScrollBehavior</c>.
+/// the pointer stays near its top or bottom edge.
 /// </para>
 /// </remarks>
 public sealed class TreeViewDragDropBehavior : StyledElementBehavior<TreeView>
@@ -55,7 +55,7 @@ public sealed class TreeViewDragDropBehavior : StyledElementBehavior<TreeView>
     public static readonly StyledProperty<object?> EmptyAreaTargetProperty = AvaloniaProperty.Register<TreeViewDragDropBehavior, object?>(nameof(EmptyAreaTarget));
 
     private const double DragThreshold = 4.0;
-    // The auto-scroll: the height of the bands along the edges, the delay before it starts, and its speed (WPF: 32 px, 0.5 s, 300 px/s)
+    // The auto-scroll: the height of the bands along the edges, the delay before it starts, and its speed
     private const double ScrollBandHeight = 24.0;
     private static readonly TimeSpan ScrollDelay = TimeSpan.FromSeconds(0.5);
     private static readonly TimeSpan ScrollInterval = TimeSpan.FromMilliseconds(40);
@@ -143,7 +143,7 @@ public sealed class TreeViewDragDropBehavior : StyledElementBehavior<TreeView>
         if (items.Any(x => x is IIsEditableViewModel { IsEditing: true }))
             return [];
 
-        // As WPF: a selection that holds an item and one of its parents can't be dragged
+        // A selection that holds an item and one of its parents can't be dragged
         var containers = items.Select(x => tree.TreeContainerFromItem(x)).OfType<TreeViewItem>().ToList();
         if (containers.Any(x => GetParentItems(x).Any(p => items.Contains(p.DataContext))))
             return [];
@@ -166,8 +166,8 @@ public sealed class TreeViewDragDropBehavior : StyledElementBehavior<TreeView>
         var item = hit?.GetSelfAndVisualAncestors().OfType<TreeViewItem>().FirstOrDefault(x => IsItemOf(tree, x));
         if (item is null)
         {
-            // The empty area below the items: the data context of the tree takes them, as the WPF tree panel has the data
-            // context of the tree, unless another target is given (the WPF UI editor gives its panel the root part)
+            // The empty area below the items: the data context of the tree takes them, unless another target is given (the
+            // UI editor gives the root part)
             if (hit is null || !AllowDropOnEmptyArea || (EmptyAreaTarget ?? tree.DataContext) is not IAddChildViewModel area)
                 return TreeViewDropTarget.None;
             var areaAcceptance = area.GetAddChildrenAcceptance(items, modifiers, out var areaMessage);

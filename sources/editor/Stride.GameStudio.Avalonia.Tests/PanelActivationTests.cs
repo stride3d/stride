@@ -12,7 +12,7 @@ using Stride.GameStudio.Avalonia.Views;
 namespace Stride.GameStudio.Avalonia.Tests;
 
 /// <summary>
-/// The panels that come forward by themselves, as in WPF.
+/// The panels that come forward by themselves.
 /// </summary>
 public sealed class PanelActivationTests
 {

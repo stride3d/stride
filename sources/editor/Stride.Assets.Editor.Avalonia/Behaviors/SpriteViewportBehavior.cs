@@ -14,8 +14,7 @@ namespace Stride.Assets.Editor.Avalonia.Behaviors;
 
 /// <summary>
 /// Binds a <see cref="ScrollViewer"/> to the <see cref="ViewportViewModel"/> of the sprite sheet editor: the size of the viewport
-/// and the scroll offsets both ways, and the wheel with Ctrl zooms around the mouse. The cross-platform counterpart of the WPF
-/// <c>BindActualSizeBehavior</c>, <c>BindScrollOffsetBehavior</c> and <c>ViewportZoomBehavior</c> of the sprite editor.
+/// and the scroll offsets both ways, and the wheel with Ctrl zooms around the mouse.
 /// </summary>
 public sealed class SpriteViewportBehavior : StyledElementBehavior<ScrollViewer>
 {
@@ -122,7 +121,7 @@ public sealed class SpriteViewportBehavior : StyledElementBehavior<ScrollViewer>
             return;
 
         // The view model sets its offsets before its zoom: the scroll viewer gets them once the layout has the new size of
-        // the image, as the WPF scroll viewer did
+        // the image
         if (!offsetPending)
         {
             offsetPending = true;

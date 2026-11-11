@@ -12,7 +12,7 @@ namespace Stride.Assets.Editor.Avalonia.Views.Preview;
 
 /// <summary>
 /// Pauses an animated preview while the user drags (or clicks) its time slider, and plays it again when the button is
-/// released if it was playing, as the WPF behavior of the same name does.
+/// released if it was playing.
 /// </summary>
 public sealed class SuspendAnimationDuringSliderDragBehavior : Behavior<Slider>
 {

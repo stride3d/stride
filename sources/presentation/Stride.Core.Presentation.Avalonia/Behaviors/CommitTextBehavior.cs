@@ -11,8 +11,8 @@ namespace Stride.Core.Presentation.Avalonia.Behaviors;
 
 /// <summary>
 /// Writes the text of a <see cref="TextBox"/> back to the source of its <see cref="TextBox.TextProperty"/> binding only when
-/// the user changed it and then pressed Enter or moved the focus away, the way the WPF editor's text boxes validate their
-/// value. Escape gives the text box the bound value back. The binding must use <see cref="UpdateSourceTrigger.Explicit"/>:
+/// the user changed it and then pressed Enter or moved the focus away.
+/// Escape gives the text box the bound value back. The binding must use <see cref="UpdateSourceTrigger.Explicit"/>:
 /// Avalonia's default trigger writes the text back whenever it changes, including when the binding itself displays a
 /// value, and a converter that cannot round-trip (a content reference becomes a new proxy object) then loops.
 /// </summary>

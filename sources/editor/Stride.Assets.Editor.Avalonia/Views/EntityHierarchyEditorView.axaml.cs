@@ -40,7 +40,7 @@ public partial class EntityHierarchyEditorView : UserControl, IAssetEditorView
     public EntityHierarchyEditorView()
     {
         InitializeComponent();
-        // The menu depends on what is under the mouse, as in the WPF scene editor: an item pastes into the selection, an
+        // The menu depends on what is under the mouse: an item pastes into the selection, an
         // empty area of the tree pastes into the root.
         HierarchyTree.AddHandler(ContextRequestedEvent, OnTreeContextRequested, RoutingStrategies.Tunnel);
         // The keys held when a button of a row is clicked (Ctrl locks the children too)
@@ -167,7 +167,7 @@ public partial class EntityHierarchyEditorView : UserControl, IAssetEditorView
 
     /// <summary>
     /// Opens the context menu of the scene view at the cursor, after a right click without camera drag: the entries of the
-    /// active tool, then the entries of the editor (as the menu of the WPF scene view: create an entity at the cursor, and the
+    /// active tool, then the entries of the editor (create an entity at the cursor, and the
     /// actions on the selection), then the commands of the plugins at <see cref="SceneLocations.SceneViewContext"/>, with
     /// the click and the entity under it as their selection. A tool's menu that replaces the others shows alone, and an
     /// empty one keeps the menu closed.
@@ -234,8 +234,8 @@ public partial class EntityHierarchyEditorView : UserControl, IAssetEditorView
     {
         base.OnKeyDown(e);
 
-        // F frames the last selected entity, from the hierarchy or the view, and Ctrl+D duplicates the selection, as in
-        // the WPF scene editor. The keys reach the view model after the focused control, so typing in a text box doesn't
+        // F frames the last selected entity, from the hierarchy or the view, and Ctrl+D duplicates the selection.
+        // The keys reach the view model after the focused control, so typing in a text box doesn't
         // move the camera.
         if (e.Handled || e.Source is TextBox || DataContext is not EntityHierarchyEditorViewModel editor)
             return;
@@ -278,7 +278,7 @@ public partial class EntityHierarchyEditorView : UserControl, IAssetEditorView
     }
 
     /// <summary>
-    /// Shows "Set as active scene" on a scene only, checked when it is the active one, as in the WPF scene editor.
+    /// Shows "Set as active scene" on a scene only, checked when it is the active one.
     /// </summary>
     internal static void UpdateSetActiveRootItem(ContextMenu menu, object? clickedItem, EntityHierarchyEditorViewModel editor)
     {
@@ -322,8 +322,8 @@ public partial class EntityHierarchyEditorView : UserControl, IAssetEditorView
     }
 
     /// <summary>
-    /// Puts the entity factories of the plugins, by category, after the item tagged "Factories" of a menu, as the
-    /// "Create" menus of the WPF scene editor. The menu is built when it opens: the plugins can register factories at
+    /// Puts the entity factories of the plugins, by category, after the item tagged "Factories" of a menu (the
+    /// "Create" menus). The menu is built when it opens: the plugins can register factories at
     /// any time.
     /// </summary>
     private static void AddFactoryItems(ItemCollection items, ICommandBase createCommand)

@@ -14,13 +14,13 @@ using Stride.Core.Assets.Presentation.ViewModels;
 namespace Stride.Assets.Editor.Avalonia.Behaviors;
 
 /// <summary>
-/// The drag and drop of the sprite list, as the WPF <c>ListBoxDragDropBehavior</c> of the sprite editor: the selected sprites
+/// The drag and drop of the sprite list of the sprite editor: the selected sprites
 /// are dragged to another place of the list, and image files dropped on the list add sprites (before or after the sprite under
 /// the pointer, or at the end of the sheet).
 /// </summary>
 /// <remarks>
-/// The drop goes through <see cref="IInsertChildViewModel"/> on a sprite and <see cref="IAddChildViewModel"/> on the editor, as in
-/// WPF: each drop is one entry of the undo history ("Move images", "Add images").
+/// The drop goes through <see cref="IInsertChildViewModel"/> on a sprite and <see cref="IAddChildViewModel"/> on the editor:
+/// each drop is one entry of the undo history ("Move images", "Add images").
 /// </remarks>
 public sealed class SpriteListDragDropBehavior : StyledElementBehavior<ListBox>
 {
@@ -96,7 +96,7 @@ public sealed class SpriteListDragDropBehavior : StyledElementBehavior<ListBox>
         if (children.Count == 0 || AssociatedObject is not { } list)
             return default;
 
-        // The sprite under the pointer takes the children before or after itself, as the insert adorner of WPF shows
+        // The sprite under the pointer takes the children before or after itself, as the insert adorner shows
         foreach (var item in list.GetRealizedContainers())
         {
             if (item.DataContext is not IInsertChildViewModel target || item.TranslatePoint(default, list) is not { } origin)

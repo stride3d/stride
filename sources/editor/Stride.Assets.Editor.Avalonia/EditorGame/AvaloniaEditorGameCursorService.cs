@@ -13,7 +13,7 @@ namespace Stride.Assets.Editor.Avalonia.EditorGame;
 
 /// <summary>
 /// Shows the cursors the editor games ask for over the Avalonia view of their game, and gives them the drag distance of
-/// the platform, as the WPF <c>WpfEditorGameHostService</c> does over the WPF view.
+/// the platform.
 /// </summary>
 /// <remarks>
 /// The games ask from their own thread: the cursor changes on the UI thread, and only the last one asked shows.

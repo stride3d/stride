@@ -49,7 +49,7 @@ public sealed class TemplateWindowTests
             Assert.True(window.IsVisible);
             Assert.Same(viewModel, window.Parameters);
             Assert.Equal("New project — Test game", window.Title);
-            // The name of the template in the header band, as in WPF
+            // The name of the template in the header band
             var band = window.FindControl<Border>("HeaderBand")!;
             Assert.True(band.IsVisible);
             Assert.Equal(viewModel.TemplateName, Assert.IsType<TextBlock>(band.Child).Text);
@@ -182,7 +182,7 @@ public sealed class TemplateWindowTests
         try
         {
             await PumpAsync();
-            // The installed platforms are checked; Windows can't be unchecked, as in WPF
+            // The installed platforms are checked; Windows can't be unchecked
             Assert.Equal([true, true, false], platforms.Platforms.Select(x => x.IsSelected));
             Assert.Equal([false, true, true], platforms.Platforms.Select(x => x.CanBeUnselected));
             var checkBoxes = window.PlatformList.GetVisualDescendants().OfType<CheckBox>().ToList();

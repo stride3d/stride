@@ -29,7 +29,7 @@
   <aev:EntityComponentReferenceTemplateProvider x:Key="EntityComponentReferenceTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="cpqvm:NodeViewModel">
       <DockPanel Background="Transparent">
-        <!-- Accepts an entity dragged from the scene tree, as in WPF -->
+        <!-- Accepts an entity dragged from the scene tree -->
         <Interaction.Behaviors>
           <dd:ContentReferenceDropBehavior/>
         </Interaction.Behaviors>
@@ -93,7 +93,7 @@
   <aev:EntityReferenceTemplateProvider x:Key="EntityReferenceTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="cpqvm:NodeViewModel">
       <DockPanel Background="Transparent">
-        <!-- Accepts an entity dragged from the scene tree, as in WPF -->
+        <!-- Accepts an entity dragged from the scene tree -->
         <Interaction.Behaviors>
           <dd:ContentReferenceDropBehavior/>
         </Interaction.Behaviors>
@@ -207,7 +207,7 @@
   </aev:MorphWeightTemplateProvider>
 
   <!-- The node name of a node link (model node link, physics components, SpriteStudio node links): an editable list of the
-       nodes of the skeleton, filtered by the text, as the FilteringComboBox of the WPF editor -->
+       nodes of the skeleton, filtered by the text -->
   <aev:ModelNodeNameTemplateProvider x:Key="ModelNodeNameTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor" OverrideRule="All">
     <DataTemplate DataType="cpqvm:NodeViewModel">
       <AutoCompleteBox Text="{Binding NodeValue, Converter={caec:DifferentValuesToString}, UpdateSourceTrigger=Explicit}"

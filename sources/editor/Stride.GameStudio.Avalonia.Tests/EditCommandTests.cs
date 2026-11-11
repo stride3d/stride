@@ -21,7 +21,7 @@ namespace Stride.GameStudio.Avalonia.Tests;
 
 /// <summary>
 /// Cut, copy, paste, delete and rename from the Edit menu, the keyboard and the context menus: they act on the panel that has
-/// the focus, as the routed commands of the WPF editor do.
+/// the focus.
 /// </summary>
 public sealed class EditCommandTests
 {
@@ -31,7 +31,7 @@ public sealed class EditCommandTests
     private const string OtherAssetLocation = OtherFolder + "/Wood";
 
     [AvaloniaFact]
-    public async Task TheEditMenuHasTheItemsAndShortcutsOfWpf()
+    public async Task TheEditMenuHasItsItemsAndShortcuts()
     {
         using var fixture = ShellSessionFixture.Create();
         var window = new MainWindow { DataContext = fixture.Main };
@@ -212,7 +212,7 @@ public sealed class EditCommandTests
     }
 
     [AvaloniaFact]
-    public async Task TheAssetContextMenuHasTheItemsOfWpf()
+    public async Task TheAssetContextMenuHasItsItems()
     {
         var (fixture, window) = await OpenAsync((AssetLocation, new TextPropertiesAsset { Label = "label" }));
         using (fixture)
@@ -222,7 +222,7 @@ public sealed class EditCommandTests
                 var asset = fixture.Asset(AssetLocation);
                 var list = AssetList(window);
                 var menu = list.ContextMenu!;
-                // One asset selected: the items of WPF, with the commands of the asset (an archetype can be derived from any
+                // One asset selected: the asset items, with the commands of the asset (an archetype can be derived from any
                 // asset) inlined after the asset items. The test asset has no editor and no archetype.
                 fixture.Session.AssetCollection.SelectAssets([asset]);
                 await WindowTestHelper.PumpAsync();
@@ -245,7 +245,7 @@ public sealed class EditCommandTests
                     // The test asset has no source file
                     "Open with text editor", "Open asset file", "Open source file", "Show in Explorer",
                 ], Enabled(items));
-                // The default target of the root-asset submenu is bold, as in WPF
+                // The default target of the root-asset submenu is bold
                 var targets = (MenuItem)items.Single(x => x is MenuItem { Header: "Include in build as root asset in" });
                 targets.Open();
                 await WindowTestHelper.PumpAsync();
@@ -291,11 +291,11 @@ public sealed class EditCommandTests
     }
 
     /// <summary>
-    /// As in WPF, Ctrl+R updates every asset whose source changed and Ctrl+Shift+R the selected assets, from the window and in
+    /// Ctrl+R updates every asset whose source changed and Ctrl+Shift+R the selected assets, from the window and in
     /// the gesture texts of the asset context menu.
     /// </summary>
     [AvaloniaFact]
-    public async Task TheUpdateFromSourceShortcutsAreTheOnesOfWpf()
+    public async Task TheUpdateFromSourceShortcutsAreCtrlRAndCtrlShiftR()
     {
         var (fixture, window) = await OpenAsync((AssetLocation, new TextPropertiesAsset { Label = "label" }));
         using (fixture)
@@ -321,7 +321,7 @@ public sealed class EditCommandTests
     }
 
     [AvaloniaFact]
-    public async Task TheSolutionContextMenuHasTheItemsOfWpf()
+    public async Task TheSolutionContextMenuHasItsItems()
     {
         var (fixture, window) = await OpenAsync((AssetLocation, new TextPropertiesAsset { Label = "label" }));
         using (fixture)
@@ -333,7 +333,7 @@ public sealed class EditCommandTests
                 var tree = SolutionTree(window);
                 var menu = tree.ContextMenu!;
 
-                // A folder: the folder, package (its properties apply to a folder, as in WPF) and solution groups, then the actions
+                // A folder: the folder, package (its properties apply to a folder) and solution groups, then the actions
                 locations.Clear();
                 locations.Add(folder);
                 await WindowTestHelper.PumpAsync();
@@ -361,7 +361,7 @@ public sealed class EditCommandTests
     }
 
     /// <summary>
-    /// A property of the grid has the copy, paste and replace of the WPF property grid: in its context menu, and from the Edit
+    /// A property of the grid has copy, paste and replace: in its context menu, and from the Edit
     /// menu while it has the focus.
     /// </summary>
     [AvaloniaFact]

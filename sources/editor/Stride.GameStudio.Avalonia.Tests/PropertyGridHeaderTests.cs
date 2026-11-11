@@ -20,7 +20,7 @@ using Stride.Core.Assets.Presentation.ViewModels;
 namespace Stride.GameStudio.Avalonia.Tests;
 
 /// <summary>
-/// The header and the footer of the property grid, as in the WPF Game Studio: the navigation in the selection history, the
+/// The header and the footer of the property grid: the navigation in the selection history, the
 /// description of the selection, the tags, the search, and the description of the property under the mouse.
 /// </summary>
 public sealed class PropertyGridHeaderTests
@@ -42,7 +42,7 @@ public sealed class PropertyGridHeaderTests
 
             var properties = fixture.Session.ActiveProperties;
             var description = grid.FindControl<TextBlock>("SelectionDescription")!;
-            // The type in bold, then the name, as in WPF
+            // The type in bold, then the name
             var runs = description.Inlines!.OfType<Run>().Where(x => !string.IsNullOrWhiteSpace(x.Text)).ToList();
             Assert.Equal([properties.TypeDescription, properties.Name], runs.Select(x => x.Text));
             Assert.Equal(global::Avalonia.Media.FontWeight.Bold, runs[0].FontWeight);

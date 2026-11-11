@@ -13,15 +13,15 @@ using Stride.Core.Presentation.Drawing;
 namespace Stride.Assets.Editor.Avalonia.Views.CurveEditor;
 
 /// <summary>
-/// The pointer input of the curve area of the curve editor. One handler decides once per press what the gesture does, where the
-/// WPF view has six behaviors that rely on the order of their events.
+/// The pointer input of the curve area of the curve editor. One handler decides once per press what the gesture does, so the
+/// gestures don't depend on the order of the events of several behaviors.
 /// </summary>
 /// <remarks>
 /// <list type="bullet">
 /// <item>Left button: the click selects the key under the pointer, or clears the selection (<see cref="CurveEditorViewModel.PreviewClickCommand"/>);
 /// with Alt it then adds a key (<see cref="CurveEditorViewModel.AddPointCommand"/>). A press on a key then drags the selected keys,
 /// one undo entry when released; a press elsewhere draws a selection rectangle (none: replace, Shift: add, Ctrl: remove, Alt:
-/// nothing, as in WPF).</item>
+/// nothing).</item>
 /// <item>Middle button: pans the view (Ctrl: the keys only, Shift: the values only).</item>
 /// <item>Wheel: zooms around the pointer (Ctrl: the keys only, Shift: the values only).</item>
 /// <item>Right button: remembers the position, where the context menu's "Add point" adds a key.</item>
@@ -118,7 +118,7 @@ internal sealed class CurveEditorPointerHandler
                 break;
 
             case PointerUpdateKind.LeftButtonPressed:
-                // The click first: it selects the key under the pointer and says whether there is one (WPF's preview click)
+                // The click first: it selects the key under the pointer and says whether there is one
                 editor.PreviewClickCommand.Execute(new CurveEditorClick(position.ToDrawing(), GetSelectionMode(e.KeyModifiers)));
                 if (e.KeyModifiers == KeyModifiers.Alt)
                     editor.AddPointCommand.Execute(position.ToDrawing());
@@ -200,7 +200,7 @@ internal sealed class CurveEditorPointerHandler
 
     private void OnPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
     {
-        // Another control took the pointer: a drag keeps where it went, as WPF's, and a rectangle selects nothing
+        // Another control took the pointer: a drag keeps where it went, and a rectangle selects nothing
         if (gesture != Gesture.None)
             Stop(null, complete: false, KeyModifiers.None);
     }

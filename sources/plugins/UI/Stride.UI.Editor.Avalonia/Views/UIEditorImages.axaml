@@ -1,7 +1,6 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-  <!-- The icons of the WPF UI editor that the shared image dictionaries of the Avalonia editor don't have
-       (Stride.Core.Assets.Editor.Wpf image dictionary) -->
+  <!-- The icons of the UI editor that the shared image dictionaries of the editor don't have -->
 
   <DrawingImage x:Key="ImageZoomDefault">
     <DrawingImage.Drawing>

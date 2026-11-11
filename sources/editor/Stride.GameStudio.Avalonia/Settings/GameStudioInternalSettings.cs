@@ -15,8 +15,8 @@ using Stride.Core.Yaml;
 namespace Stride.GameStudio.Avalonia.Settings;
 
 /// <summary>
-/// The internal (not user-facing) settings of the Avalonia Game Studio, in the same file as the WPF Game Studio's: the most
-/// recently used sessions and what each of them keeps, under the same keys as WPF; the main window placement and the panel
+/// The internal (not user-facing) settings of the Avalonia Game Studio, in the settings file shared by the editors: the most
+/// recently used sessions and what each of them keeps, under the shared keys; the main window placement and the panel
 /// layouts of the sessions, under keys of its own.
 /// </summary>
 internal static class GameStudioInternalSettings
@@ -28,8 +28,8 @@ internal static class GameStudioInternalSettings
     /// </summary>
     public const int NoPosition = int.MinValue;
 
-    // The window and the panels of this editor have their own keys: the WPF Game Studio keeps its window under Internal/Window*
-    // and its panels in the docking layouts of each session, so neither editor changes the other's
+    // The window and the panels of this editor have their own keys: the other editors keep their window under Internal/Window*
+    // and their panels in the docking layouts of each session, so no editor changes another's
     public static readonly SettingsKey<bool> WindowMaximized = new("Internal/Avalonia/WindowMaximized", SettingsContainer, false);
     public static readonly SettingsKey<int> WindowWidth = new("Internal/Avalonia/WindowWidth", SettingsContainer, (int)WorkArea.Value.Width);
     public static readonly SettingsKey<int> WindowHeight = new("Internal/Avalonia/WindowHeight", SettingsContainer, (int)WorkArea.Value.Height);
@@ -43,20 +43,20 @@ internal static class GameStudioInternalSettings
     public static readonly SettingsKey<int> WorkAreaHeight = new("Internal/Avalonia/WorkAreaHeight", SettingsContainer, (int)WorkArea.Value.Height);
 
     /// <summary>
-    /// The panel layouts of the recent sessions (with and without editors), in the editor's own format: the WPF Game Studio
-    /// keeps its docking layouts in <see cref="MostRecentlyUsedSessionsData"/>, and never reads this key.
+    /// The panel layouts of the recent sessions (with and without editors), in the editor's own format: the other editors
+    /// keep their docking layouts in <see cref="MostRecentlyUsedSessionsData"/>, and never read this key.
     /// </summary>
     /// <remarks>The key <c>Internal/Avalonia/PanelSizes</c> of earlier versions is no longer read.</remarks>
     public static readonly SettingsKey<List<SessionPanelLayouts>> SessionLayouts = new("Internal/Avalonia/SessionLayouts", SettingsContainer, () => new List<SessionPanelLayouts>());
 
     /// <summary>
-    /// The most recently used sessions, per editor version (the WPF Game Studio reads and writes the same key).
+    /// The most recently used sessions, per editor version (every editor reads and writes this key).
     /// </summary>
     public static readonly SettingsKey<MRUDictionary> MostRecentlyUsedSessions = new("Internal/MostRecentlyUsedSessions", SettingsContainer, () => new MRUDictionary());
 
     /// <summary>
-    /// What the editors keep for each recent session: the assets open in an editor, which both editors restore, and the docking
-    /// layouts of the WPF Game Studio, which this editor keeps as they are.
+    /// What the editors keep for each recent session: the assets open in an editor, which every editor restores, and the docking
+    /// layouts of the other editors, which this editor keeps as they are.
     /// </summary>
     public static readonly SettingsKey<List<MRUAdditionalData>> MostRecentlyUsedSessionsData = new("Internal/MostRecentlyUsedSessionsData2", SettingsContainer, () => new List<MRUAdditionalData>());
 

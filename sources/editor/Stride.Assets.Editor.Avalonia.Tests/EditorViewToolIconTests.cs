@@ -12,7 +12,7 @@ using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools;
 namespace Stride.Assets.Editor.Avalonia.Tests;
 
 /// <summary>
-/// The icons of the tools in the toolbar of the scene view: path data, as in the WPF scene editor.
+/// The icons of the tools in the toolbar of the scene view: path data.
 /// </summary>
 public sealed class EditorViewToolIconTests
 {

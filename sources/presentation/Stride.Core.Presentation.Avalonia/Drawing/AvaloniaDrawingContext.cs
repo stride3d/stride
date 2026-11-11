@@ -39,7 +39,7 @@ public sealed class AvaloniaDrawingContext : IDrawingContext, IDisposable
     public void DrawEllipse(DrawingPoint point, DrawingSize size, Color fillColor, Color strokeColor,
         double thickness = 1, DrawingLineJoin lineJoin = DrawingLineJoin.Miter, ICollection<double>? dashArray = null, double dashOffset = 0, bool isHitTestVisible = false)
     {
-        // As in WPF, the point is the top-left corner of the ellipse's bounds
+        // The point is the top-left corner of the ellipse's bounds
         context.DrawEllipse(GetBrush(fillColor), GetPen(strokeColor, thickness, lineJoin, dashArray, dashOffset), new Rect(point.X, point.Y, Math.Max(0, size.Width), Math.Max(0, size.Height)));
     }
 
@@ -182,7 +182,7 @@ public sealed class AvaloniaDrawingContext : IDrawingContext, IDisposable
     /// <inheritdoc/>
     public void SetClip(DrawingRect clippingRect)
     {
-        // One clip at a time, as in WPF: a new clip replaces the current one
+        // One clip at a time: a new clip replaces the current one
         ResetClip();
         clip = context.PushClip(clippingRect.ToAvalonia());
     }

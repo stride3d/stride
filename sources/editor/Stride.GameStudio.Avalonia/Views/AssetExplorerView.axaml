@@ -22,12 +22,12 @@
       <SolidColorBrush x:Key="FilterBrushAssetName">#84CE80</SolidColorBrush>
       <SolidColorBrush x:Key="FilterBrushAssetTag">#A0A0A0</SolidColorBrush>
       <SolidColorBrush x:Key="FilterBrushAssetType">#D7AA67</SolidColorBrush>
-      <!-- The tiles keep the dark colors of the WPF theme (ExpressionDark NormalBrush and NormalBorderBrush) whatever the theme: the
+      <!-- The tiles keep dark colors whatever the theme: the
            static thumbnails are white icons, nearly invisible on a light background -->
       <SolidColorBrush x:Key="TileThumbnailBrush">#FF3E3E40</SolidColorBrush>
       <SolidColorBrush x:Key="TileBadgeBrush">#FF3E3E40</SolidColorBrush>
       <SolidColorBrush x:Key="TileBorderBrush">#FF333333</SolidColorBrush>
-      <!-- The Fluent flyout is capped at 456x758: the template list needs the width of the WPF popup -->
+      <!-- The Fluent flyout is capped at 456x758: the template list needs more width -->
       <ControlTheme x:Key="AddAssetFlyoutPresenter" TargetType="FlyoutPresenter" BasedOn="{StaticResource {x:Type FlyoutPresenter}}">
         <Setter Property="MaxWidth" Value="900"/>
         <Setter Property="MaxHeight" Value="640"/>
@@ -38,7 +38,7 @@
   <DockPanel>
     <!-- Asset toolbar -->
     <DockPanel DockPanel.Dock="Top" Margin="4,4,4,0">
-      <!-- Add asset: the templates drop down from the button, as the popup of the WPF toggle button; the view is wired when the
+      <!-- Add asset: the templates drop down from the button; the view is wired when the
            flyout opens, see the code-behind -->
       <Button x:Name="AddAssetButton" DockPanel.Dock="Left" Margin="0,0,4,0" Padding="4,2"
               ToolTip.Tip="{sd:LocalizeString Add an asset to this location, Context=ToolTip}">
@@ -219,14 +219,14 @@
       </ItemsControl>
     </DockPanel>
     <!-- Asset list -->
-    <!-- Focusable like the WPF list, so that the Edit commands reach the view through an empty folder too -->
+    <!-- Focusable, so that the Edit commands reach the view through an empty folder too -->
     <ListBox x:Name="AssetList"
              Focusable="True"
              ItemsSource="{Binding FilteredContent}"
              SelectedItems="{Binding SelectedContent}"
              SelectionMode="Multiple"
              Margin="4">
-      <!-- The Edit commands while the asset view has the focus, as the command bindings of the WPF asset view -->
+      <!-- The Edit commands while the asset view has the focus -->
       <sd:EditCommands.Bindings>
         <sd:EditCommandBinding Kind="Cut" Command="{Binding CutContentCommand}"/>
         <sd:EditCommandBinding Kind="Copy" Command="{Binding CopyContentCommand}"/>
@@ -234,7 +234,7 @@
         <sd:EditCommandBinding Kind="Delete" Command="{Binding DeleteContentCommand}"/>
         <sd:EditCommandBinding Kind="Rename" Command="{x:Static sd:BeginEditCommand.Instance}" CommandParameter="{Binding SingleSelectedContent}"/>
       </sd:EditCommands.Bindings>
-      <!-- The context menu of the WPF asset view, with the items whose commands are ported. The commands of the selected asset
+      <!-- The context menu of the asset view. The commands of the selected asset
            (create a derived asset...) are inserted when the menu opens, see the code-behind. -->
       <ListBox.ContextMenu>
         <ContextMenu x:Name="AssetContextMenu" Opening="OnAssetContextMenuOpening"
@@ -263,7 +263,7 @@
                 <Setter Property="Command" Value="{Binding ToggleCommand}"/>
                 <Setter Property="ToggleType" Value="CheckBox"/>
                 <Setter Property="IsChecked" Value="{Binding IsChecked, Mode=OneWay}"/>
-                <!-- The default target (the plain toggle above acts on it) is bold, as in WPF -->
+                <!-- The default target (the plain toggle above acts on it) is bold -->
                 <Setter Property="FontWeight" Value="{Binding IsDefault, Converter={sd:BoolToParam}, ConverterParameter={x:Static FontWeight.Bold}}"/>
               </ControlTheme>
             </MenuItem.ItemContainerTheme>
@@ -390,7 +390,7 @@
           <Setter Property="Margin" Value="2"/>
           <Setter Property="VerticalContentAlignment" Value="Top"/>
         </Style>
-        <!-- The size of the WPF tiles (InternalSettings.AssetViewTileThumbnailZoom: 96) -->
+        <!-- The size of the tiles (96, the default thumbnail zoom of the asset view) -->
         <Style Selector="StackPanel.tile">
           <Setter Property="Width" Value="100"/>
           <Setter Property="Background" Value="Transparent"/>
@@ -433,7 +433,7 @@
           <Setter Property="Height" Value="12"/>
           <Setter Property="Margin" Value="5"/>
         </Style>
-        <!-- Buttons drawn as their image only, as the WPF badges -->
+        <!-- Buttons drawn as their image only, as badges -->
         <Style Selector="Button.buildStatus, Button.updateFromSource">
           <Setter Property="Padding" Value="0"/>
           <Setter Property="Cursor" Value="Hand"/>
@@ -457,7 +457,7 @@
           <Setter Property="Margin" Value="0,2,4,0"/>
         </Style>
       </ListBox.Styles>
-      <!-- The tiles of the WPF asset view: the folders and the assets of FilteredContent, each with its thumbnail on a dark
+      <!-- The tiles of the asset view: the folders and the assets of FilteredContent, each with its thumbnail on a dark
            backdrop (white icons stay visible on a light theme), its name and its type; an asset also has the badges of its
            build status, of its source update and of the asset it replaces -->
       <ListBox.DataTemplates>
@@ -570,7 +570,7 @@
               </Border>
             </Panel>
             <Panel Classes="tileName">
-              <!-- Unsaved changes, as the WPF asset view marks them -->
+              <!-- Unsaved changes -->
               <DockPanel HorizontalAlignment="Center" IsVisible="{Binding !IsEditing}">
                 <TextBlock DockPanel.Dock="Right" Text="*" IsVisible="{Binding IsDirty}"/>
                 <TextBlock Classes="tileLabel" Text="{Binding Name, Converter={caec:NameBreakingLine}}"/>

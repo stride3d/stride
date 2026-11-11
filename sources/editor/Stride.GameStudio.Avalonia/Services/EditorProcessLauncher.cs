@@ -61,7 +61,7 @@ public sealed class EditorProcessLauncher : IEditorProcessLauncher
             startInfo.ArgumentList.Add(argument);
         startInfo.UseShellExecute = false;
         startInfo.WorkingDirectory = workingDirectory;
-        // dotnet.exe is a console program; started from a GUI process it would get a console window of its own (as WPF's restart)
+        // dotnet.exe is a console program; started from a GUI process it would get a console window of its own
         startInfo.CreateNoWindow = true;
         return startInfo;
     }

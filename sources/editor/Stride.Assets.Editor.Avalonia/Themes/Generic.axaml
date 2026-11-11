@@ -6,9 +6,9 @@
                     xmlns:preview="using:Stride.Assets.Editor.Preview"
                     xmlns:caec="using:Stride.Core.Assets.Editor.Avalonia.Converters"
                     xmlns:graphics="using:Stride.Graphics">
-  <!-- The control themes of the preview views of this assembly, ported from the WPF ones (Stride.Assets.Editor.Wpf,
-       Themes/Generic.xaml); StrideEditorViewPlugin merges this dictionary into the application. Each view keeps the game
-       view of the preview in its PART_StrideView presenter and adds the controls of its view model around it. -->
+  <!-- The control themes of the preview views of this assembly; StrideEditorViewPlugin merges this dictionary into the
+       application. Each view keeps the game view of the preview in its PART_StrideView presenter and adds the controls of
+       its view model around it. -->
   <ResourceDictionary.MergedDictionaries>
     <ResourceInclude Source="avares://Stride.Assets.Editor.Avalonia/Themes/PreviewImages.axaml"/>
     <!-- ImageClear -->
@@ -37,7 +37,7 @@
   </ControlTheme>
 
   <!-- Model, prefab and procedural model previews: the camera can be reset. The view models of these previews differ (none
-       for a prefab, as in WPF), so the command is bound by name. -->
+       for a prefab), so the command is bound by name. -->
   <ControlTheme x:Key="{x:Type views:ModelPreviewView}" TargetType="views:ModelPreviewView">
     <Setter Property="Template">
       <ControlTemplate TargetType="views:ModelPreviewView">
@@ -332,7 +332,7 @@
         <DockPanel x:DataType="vm:SpriteFontPreviewViewModel">
           <Border DockPanel.Dock="Top" Theme="{StaticResource PreviewToolBarTheme}">
             <Grid ColumnDefinitions="*,Auto" Margin="4">
-              <!-- As the WPF text box with timed validation, the text reaches the preview half a second after the last key -->
+              <!-- A text box with timed validation: the text reaches the preview half a second after the last key -->
               <TextBox x:Name="PART_PreviewText" MaxHeight="64" AcceptsReturn="True"
                        PlaceholderText="{sd:LocalizeString Preview text}"
                        Text="{Binding PreviewString, Delay=500}"/>

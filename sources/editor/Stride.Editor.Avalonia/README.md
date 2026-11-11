@@ -6,13 +6,13 @@ composited through the GPU interop of Avalonia's compositor by `GpuFramePresente
 `OffscreenFrameExporter`; input replayed by `AvaloniaInputBridge`), the default preview view (`StridePreviewView`, its control theme in `Themes/Generic.axaml`, which the application includes in its
 resources) and the `ImageToBitmap` converter that shows the `Stride.Graphics.Image` thumbnails of `Stride.Editor`.
 
-`IAvaloniaPreviewBuilder` is the Avalonia counterpart of `IWpfPreviewBuilder`: the toolkit-neutral `IPreviewBuilder` of
-`Stride.Editor` does not expose the hosting control.
+`IAvaloniaPreviewBuilder` gives the Avalonia hosting control of a preview: the toolkit-neutral `IPreviewBuilder` of
+`Stride.Editor` does not expose it.
 
 ## Notes
 
 * It is Stride specific, but it can be used by other applications beside the GameStudio, as long as they use Avalonia.
-* Like `Stride.Editor.Wpf`, this assembly is part of the editor host and declares no `StridePackageKind` or
+* This assembly is part of the editor host and declares no `StridePackageKind` or
   `StrideEditorToolkit`.
 * `--viewport-readback` on the command line of the Game Studio turns the GPU interop off: the frames are read back
   through the CPU, for support when a driver misbehaves.

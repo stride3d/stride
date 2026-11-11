@@ -196,7 +196,7 @@
     </DrawingImage.Drawing>
   </DrawingImage>
 
-  <!--  Edit and context menu icons (from the WPF ImageDictionary)  -->
+  <!--  Edit and context menu icons  -->
   <DrawingImage x:Key="ImagePrevious">
     <DrawingImage.Drawing>
       <DrawingGroup>
@@ -395,7 +395,7 @@
       </DrawingGroup>
     </DrawingImage.Drawing>
   </DrawingImage>
-  <!-- Add asset (a plus, like the WPF plus2_math icon) -->
+  <!-- Add asset (a plus) -->
   <DrawingImage x:Key="ImageNewAsset">
     <DrawingImage.Drawing>
       <DrawingGroup>
@@ -407,7 +407,7 @@
       </DrawingGroup>
     </DrawingImage.Drawing>
   </DrawingImage>
-  <!-- Import from files (an arrow into a tray, like the WPF import icon) -->
+  <!-- Import from files (an arrow into a tray) -->
   <DrawingImage x:Key="ImageImportAsset">
     <DrawingImage.Drawing>
       <DrawingGroup>
@@ -503,7 +503,7 @@
     </DrawingImage.Drawing>
   </DrawingImage>
 
-  <!--  Build icons (Build project, Start project and Cancel build, from the WPF ImageDictionary)  -->
+  <!--  Build icons (Build project, Start project and Cancel build)  -->
   <DrawingImage x:Key="ImageBuildProject">
     <DrawingImage.Drawing>
       <DrawingGroup>

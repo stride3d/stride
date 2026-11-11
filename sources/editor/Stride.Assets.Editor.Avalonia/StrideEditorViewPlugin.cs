@@ -44,8 +44,7 @@ public sealed class StrideEditorViewPlugin : StrideAssetsAvaloniaPlugin
         RegisterResourceDictionary(context, new EntityPropertyTemplateProviders());
         RegisterResourceDictionary(context, new CurvePropertyTemplateProviders());
 
-        // The component images give the icons of the entities in the scene hierarchy, as the type images of the WPF
-        // StrideDefaultAssetsPlugin
+        // The component images, registered as type images, give the icons of the entities in the scene hierarchy
         var componentImages = new ComponentImages();
         foreach (var key in componentImages.Keys)
         {

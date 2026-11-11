@@ -11,8 +11,8 @@ namespace Stride.Assets.Editor.Avalonia.Views.Preview;
 
 /// <summary>
 /// The time scale above the slider of the animation preview: a tick per step of time from <see cref="Minimum"/> to
-/// <see cref="Maximum"/>, a label on every major tick. It takes the place of the WPF preview's <c>ScaleBar</c>, which the
-/// animation preview used without its zoom and drag.
+/// <see cref="Maximum"/>, a label on every major tick. It has no zoom or drag, which the animation preview
+/// doesn't need.
 /// </summary>
 /// <remarks>
 /// The scale spans the width of the control less <see cref="Inset"/> on each side, the way a slider's values span its track

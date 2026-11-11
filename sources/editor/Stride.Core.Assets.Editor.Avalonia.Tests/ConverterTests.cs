@@ -42,7 +42,7 @@ public sealed class ConverterTests
     [InlineData("my_asset", "my_\u200Basset")]
     public void NameBreakingLineLetsTheTilesWrapNamesBetweenWords(string name, string expected)
     {
-        // As the WPF asset tiles: a zero-width space after a symbol and between the words of a camel-cased name
+        // The asset tiles: a zero-width space after a symbol and between the words of a camel-cased name
         Assert.Equal(expected, new NameBreakingLine().Convert(name, typeof(string), null, Culture));
         Assert.Null(new NameBreakingLine().Convert(null, typeof(string), null, Culture));
     }

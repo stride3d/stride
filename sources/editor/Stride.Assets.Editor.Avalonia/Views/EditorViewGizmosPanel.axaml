@@ -4,7 +4,7 @@
              xmlns:vm="using:Stride.Assets.Editor.ViewModels"
              x:Class="Stride.Assets.Editor.Avalonia.Views.EditorViewGizmosPanel"
              x:DataType="vm:EditorViewGizmosViewModel">
-  <!-- The content of the gizmo options popup of the view toolbar, as the gizmo options popup of the WPF scene editor -->
+  <!-- The content of the gizmo options popup of the view toolbar -->
   <DockPanel MinWidth="200" MaxWidth="400" MaxHeight="400">
     <StackPanel DockPanel.Dock="Top">
       <TextBlock Text="Transformation gizmo size:" Margin="0,5"/>

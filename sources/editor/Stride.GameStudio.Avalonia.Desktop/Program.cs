@@ -40,7 +40,7 @@ internal sealed class Program
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
         // The persisted graphics API preference isn't staged in this build: fall back to the platform default and reset
-        // the setting, so the user isn't stuck in a fail-at-launch loop (the WPF Game Studio asks first; there is no window yet here).
+        // the setting, so the user isn't stuck in a fail-at-launch loop (there is no window yet to ask the user).
         if (GraphicsApiHostResolver.UnavailablePreference is { } unavailableApi)
         {
             var fallback = GraphicsApiHostResolver.UseFallback();

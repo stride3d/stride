@@ -26,7 +26,7 @@ using static Stride.GameStudio.Avalonia.Tests.SceneViewContextMenuTests;
 namespace Stride.GameStudio.Avalonia.Tests;
 
 /// <summary>
-/// The view toolbar of the scene editor has the camera, grid, lighting and render mode menus of the WPF scene editor, on the
+/// The view toolbar of the scene editor has the camera, grid, lighting and render mode menus, on the
 /// shared view models.
 /// </summary>
 public sealed class SceneViewOptionsMenuTests

@@ -21,12 +21,12 @@
     </ResourceDictionary>
   </Window.Resources>
   <Window.Styles>
-    <!-- Expanded, as in the WPF picker -->
+    <!-- Expanded -->
     <Style Selector="TreeViewItem">
       <Setter Property="IsExpanded" Value="True"/>
     </Style>
   </Window.Styles>
-  <!-- The WPF entity picker, with a search box: the hierarchy of the editor and, when a component is picked, the components of the
+  <!-- The entity picker, with a search box: the hierarchy of the editor and, when a component is picked, the components of the
        selected entity that have its type -->
   <DockPanel Margin="10">
     <StackPanel DockPanel.Dock="Bottom"

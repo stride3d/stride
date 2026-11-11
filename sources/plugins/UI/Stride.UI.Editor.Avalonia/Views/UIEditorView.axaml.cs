@@ -19,7 +19,7 @@ namespace Stride.UI.Editor.Avalonia.Views;
 using KeyEventArgs = global::Avalonia.Input.KeyEventArgs;
 
 /// <summary>
-/// The view of the UI editors (pages and libraries), as the WPF UIEditorView: the properties button, the toolbox and the
+/// The view of the UI editors (pages and libraries): the properties button, the toolbox and the
 /// visual tree on the left, the zoom and snap toolbar and the game on the right. The editors register their own derived
 /// view (<see cref="UIPageEditorView"/>).
 /// </summary>
@@ -30,7 +30,7 @@ public partial class UIEditorView : UserControl, IAssetEditorView
     public UIEditorView()
     {
         InitializeComponent();
-        // The editor takes the focus when clicked, so that its shortcuts work, as the WPF UI editor
+        // The editor takes the focus when clicked, so that its shortcuts work
         AddHandler(PointerPressedEvent, OnPreviewPointerPressed, RoutingStrategies.Tunnel, handledEventsToo: true);
         HierarchyTree.AddHandler(KeyDownEvent, OnTreeKeyDown, RoutingStrategies.Tunnel);
         HierarchyTree.AddHandler(ContextRequestedEvent, OnTreeContextRequested, RoutingStrategies.Tunnel);
@@ -81,7 +81,7 @@ public partial class UIEditorView : UserControl, IAssetEditorView
         if (e.Handled || e.Source is TextBox)
             return;
 
-        // Ctrl+D duplicates the selection, as in the WPF UI editor; the keys reach the view model after the focused control
+        // Ctrl+D duplicates the selection; the keys reach the view model after the focused control
         if (e is { Key: Key.D, KeyModifiers: KeyModifiers.Control } && Editor?.DuplicateSelectionCommand is { IsEnabled: true } duplicate)
         {
             duplicate.Execute();
@@ -89,7 +89,7 @@ public partial class UIEditorView : UserControl, IAssetEditorView
             return;
         }
 
-        // The arrow keys of the view don't move the focus to the other controls of the editor, as in the WPF UI editor: the
+        // The arrow keys of the view don't move the focus to the other controls of the editor: the
         // game has seen them already
         if (e.Key is Key.Up or Key.Down or Key.Left or Key.Right && e.Source is Visual source && (ReferenceEquals(source, this) || ViewArea.IsVisualAncestorOf(source)))
             e.Handled = true;
@@ -131,7 +131,7 @@ public partial class UIEditorView : UserControl, IAssetEditorView
     }
 
     /// <summary>
-    /// Opens the context menu of an element (or of the root of the asset), as the UIElementMenus of the WPF UI editor: the
+    /// Opens the context menu of an element (or of the root of the asset): the
     /// panel tools of the element, the tools of its parent's layout, the actions on the selection; from the view, also the
     /// elements under the pointer and the view options.
     /// </summary>

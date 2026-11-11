@@ -1,6 +1,6 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-  <!-- The icons of the WPF scene editor (Stride.Assets.Editor.Wpf and Stride.Core.Assets.Editor.Wpf image dictionaries) -->
+  <!-- The icons of the scene editor -->
 
   <DrawingImage x:Key="FolderIcon">
     <DrawingImage.Drawing>
@@ -287,7 +287,7 @@
     </DrawingImage.Drawing>
   </DrawingImage>
 
-  <!-- The overlays and gizmo options of the view toolbar (WPF ImageDictionary) -->
+  <!-- The overlays and gizmo options of the view toolbar -->
   <DrawingImage x:Key="ImageGizmos" >
     <DrawingImage.Drawing>
       <DrawingGroup>
@@ -334,7 +334,7 @@
     </DrawingImage.Drawing>
   </DrawingImage>
 
-  <!-- The icons of the view options of the WPF scene editor: grid, lighting and camera -->
+  <!-- The icons of the view options of the scene editor: grid, lighting and camera -->
   <DrawingImage x:Key="ImageGrid" >
     <DrawingImage.Drawing>
       <DrawingGroup>

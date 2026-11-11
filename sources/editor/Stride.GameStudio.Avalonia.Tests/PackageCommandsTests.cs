@@ -20,7 +20,7 @@ using Stride.GameStudio.Avalonia.Views;
 namespace Stride.GameStudio.Avalonia.Tests;
 
 /// <summary>
-/// The package commands of the WPF editor: the package picker of Add dependency, and the Update package, Add dependency and
+/// The package commands: the package picker of Add dependency, and the Update package, Add dependency and
 /// Open in IDE items of the Project menu, the toolbar and the solution explorer.
 /// </summary>
 public sealed class PackageCommandsTests

@@ -5,7 +5,7 @@ namespace Stride.GameStudio.Avalonia.Desktop;
 
 /// <summary>
 /// The graphics API the editor's games (the asset preview, later the scene editor) render with: the one place that
-/// decides it, so that an option like the WPF Game Studio's graphics API override is a small change later.
+/// decides it, so that a graphics API override option is a small change later.
 /// </summary>
 /// <remarks>
 /// The viewports share their frames with Avalonia's compositor (<c>GpuFramePresenter</c>), which imports Direct3D 11

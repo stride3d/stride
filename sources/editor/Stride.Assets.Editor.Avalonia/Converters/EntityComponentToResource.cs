@@ -11,7 +11,7 @@ namespace Stride.Assets.Editor.Avalonia.Converters;
 
 /// <summary>
 /// Converts the components of an entity to the icon of the entity in the hierarchy: the image of its component with the
-/// highest order, as in the WPF scene editor.
+/// highest order.
 /// </summary>
 public sealed class EntityComponentToResource : OneWayValueConverter<EntityComponentToResource>
 {

@@ -11,7 +11,7 @@ using Stride.Core.Presentation.Avalonia.Commands;
 namespace Stride.Core.Presentation.Avalonia.Tests.Commands;
 
 /// <summary>
-/// The routing of the Edit commands to the focused panel, as WPF routes its application commands.
+/// The routing of the Edit commands to the focused panel.
 /// </summary>
 public sealed class EditCommandRouterTests
 {

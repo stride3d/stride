@@ -4,7 +4,7 @@
                     xmlns:views="using:Stride.UI.Editor.Avalonia.Views">
   <!-- The control themes of this assembly; UIEditorAvaloniaPlugin merges this dictionary into the application. -->
 
-  <!-- Thickness sides (the arrows are mid gray: the WPF ones are white, for its dark theme) -->
+  <!-- Thickness sides (the arrows are mid gray, visible on light and dark themes) -->
   <DrawingImage x:Key="ImageThicknessLeft">
     <DrawingGroup>
       <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z"/>
