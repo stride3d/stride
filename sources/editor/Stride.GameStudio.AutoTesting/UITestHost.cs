@@ -806,10 +806,10 @@ internal sealed class UITestHost
                 var debugging = TryGetDebugging();
                 if (debugging is null) { host.Log("RunProject: GameStudioViewModel not found"); return -1; }
                 host.Log("RunProject: invoking RunProjectAsync");
-                var (ok, proc) = await debugging.RunProjectAsync().ConfigureAwait(true);
-                if (!ok || proc is null) { host.Log("RunProject: failed"); return -1; }
-                host.Log($"RunProject: launched pid={proc.Id}");
-                return proc.Id;
+                var (ok, pid) = await debugging.RunProjectAsync().ConfigureAwait(true);
+                if (!ok || pid is not { } processId) { host.Log("RunProject: failed"); return -1; }
+                host.Log($"RunProject: launched pid={processId}");
+                return processId;
             }).Task.Unwrap();
 
         public async Task<IntPtr> WaitForGameWindow(int pid, double timeoutSeconds = 60)
