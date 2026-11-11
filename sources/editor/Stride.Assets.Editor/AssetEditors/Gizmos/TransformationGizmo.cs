@@ -266,7 +266,8 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
         }
 
         /// <summary>
-        /// Sizes and orients the gizmo for the camera of a view, so that it has the same size on screen in every view.
+        /// Sizes, orients and shapes the gizmo for the camera of a view, so that it has the same size on screen in every view
+        /// and shows the axes that face that view's camera.
         /// </summary>
         /// <param name="view">The camera of the view the game draws next.</param>
         public void PrepareView(EditorGameViewCamera view)
@@ -275,6 +276,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
                 return;
 
             ApplyViewTransformation(view);
+            UpdateShape(view.ViewMatrix);
         }
 
         private void ApplyViewTransformation(EditorGameViewCamera view)
@@ -535,7 +537,9 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
             if (!IsEnabled)
                 return;
 
-            UpdateShape();
+            var cameraService = Game.EditorServices.Get<IEditorGameCameraService>();
+            if (cameraService != null)
+                UpdateShape(cameraService.ViewMatrix);
             UpdateTransformationAxisBase();
             UpdateColors();
             await TransformSceneEntityBase(cancellationToken);
@@ -545,7 +549,8 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
         /// <summary>
         /// Update the shape of the gizmo depending on the angle of view.
         /// </summary>
-        protected virtual void UpdateShape()
+        /// <param name="viewMatrix">The view matrix of the camera the gizmo is drawn for.</param>
+        protected virtual void UpdateShape(Matrix viewMatrix)
         {
         }
 

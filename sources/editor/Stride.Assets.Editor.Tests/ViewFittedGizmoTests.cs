@@ -44,6 +44,25 @@ public sealed class ViewFittedGizmoTests
     }
 
     [Fact]
+    public void TheTranslationAndScaleGizmosShowTheSideOfTheirAxesThatFacesTheCameraOfEachView()
+    {
+        var front = CreateView(Selection + new Vector3(1, 1, 50), CameraProjectionMode.Orthographic, 10, 360);
+        var back = CreateView(Selection + new Vector3(1, 1, -50), CameraProjectionMode.Orthographic, 10, 360, yaw: MathUtil.Pi);
+        var perspective = CreateView(Selection + new Vector3(-4, 2, -4), CameraProjectionMode.Perspective, 10, 720, yaw: -3 * MathUtil.PiOverFour, pitch: -0.3f);
+
+        // A gizmo in world space: the back view sees its Z axis from behind, while the front view sees none from behind
+        var worldSpace = Matrix.Translation(Selection);
+        Assert.Equal(GizmoTransformationAxes.None, AxisTransformationGizmo.GetBackfacingAxes(worldSpace, front.ViewMatrix));
+        Assert.Equal(GizmoTransformationAxes.Z, AxisTransformationGizmo.GetBackfacingAxes(worldSpace, back.ViewMatrix));
+        Assert.Equal(GizmoTransformationAxes.X | GizmoTransformationAxes.Z, AxisTransformationGizmo.GetBackfacingAxes(worldSpace, perspective.ViewMatrix));
+
+        // A gizmo in the space of an entity turned around the Y axis: its X and Z axes point the other way
+        var objectSpace = Matrix.RotationY(MathUtil.Pi) * Matrix.Translation(Selection);
+        Assert.Equal(GizmoTransformationAxes.X | GizmoTransformationAxes.Z, AxisTransformationGizmo.GetBackfacingAxes(objectSpace, front.ViewMatrix));
+        Assert.Equal(GizmoTransformationAxes.X, AxisTransformationGizmo.GetBackfacingAxes(objectSpace, back.ViewMatrix));
+    }
+
+    [Fact]
     public void TheEditorCameraOfAViewHasTheProjectionOfItsComponent()
     {
         var view = CreateView(Vector3.Zero, CameraProjectionMode.Orthographic, 25, 0);

@@ -155,17 +155,11 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
             UpdateDrawOrder();
         }
 
-        protected override void UpdateShape()
+        protected override void UpdateShape(Matrix viewMatrix)
         {
-            base.UpdateShape();
+            base.UpdateShape(viewMatrix);
 
-            var cameraService = Game.EditorServices.Get<IEditorGameCameraService>();
-            if (cameraService == null)
-                return;
-
-            var gizmoInverse = Matrix.Invert(WorldMatrix);
-            var viewInverse = Matrix.Invert(cameraService.ViewMatrix);
-            var cameraInGizmoSpace = (viewInverse * gizmoInverse).TranslationVector;
+            var backfacingAxes = GetBackfacingAxes(WorldMatrix, viewMatrix);
 
             // reset the plane rotations
             for (int axis = 0; axis < 3; axis++)
@@ -173,7 +167,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
 
             for (int axis = 0; axis < 3; axis++)
             {
-                var isCameraBackfacing = cameraInGizmoSpace[axis] < 0;
+                var isCameraBackfacing = (backfacingAxes & (GizmoTransformationAxes)(1 << axis)) != 0;
                 scaleOpositeAxes[axis].ForEach(x => x.Enabled = isCameraBackfacing);
 
                 if (isCameraBackfacing)
