@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform;
@@ -66,6 +67,10 @@ internal sealed class GpuFramePresenter : IDisposable
     // Shared with the compositor through an NT handle, and synchronized with a keyed mutex (Direct3D 11 only)
     private const TextureOptions SharedKeyedMutexNtHandle = TextureOptions.SharedKeyedMutex | TextureOptions.SharedNtHandle;
 
+    // How long a frame handed to the compositor may wait to be drawn: past it, the compositor is taken to have lost it (its
+    // surface left the visual tree meanwhile, for instance) and the shared texture is replaced, so the view keeps getting frames
+    private static readonly TimeSpan LostFrameTimeout = TimeSpan.FromSeconds(1);
+
     private readonly OffscreenGameView view;
     private readonly Logger logger;
     private volatile GpuFramePresenterState state;
@@ -82,6 +87,7 @@ internal sealed class GpuFramePresenter : IDisposable
     private int textureVersion;
     private bool firstFrame;
     private bool signalPending;
+    private long frameInFlightSince;
 
     // UI thread
     private ICompositionGpuInterop? interop;
@@ -183,7 +189,14 @@ internal sealed class GpuFramePresenter : IDisposable
             if (handleType == D3D11NtHandle)
                 return CopyFrameD3D11(commandList, backBuffer);
             if (frameInFlight)
-                return false;
+            {
+                if (Stopwatch.GetElapsedTime(frameInFlightSince) < LostFrameTimeout)
+                    return false;
+                // The compositor never drew this frame: a new texture, which it imports anew
+                frameInFlight = false;
+                exportableTexture?.Dispose();
+                exportableTexture = null;
+            }
             return CopyFrameVulkan(commandList, backBuffer);
         }
         catch (Exception e)
@@ -228,7 +241,14 @@ internal sealed class GpuFramePresenter : IDisposable
         // The textures are used in turn: the next one must be done with (the compositor drew it and released its mutex)
         var slot = d3dSlots[nextD3DSlot];
         if (slot.InFlight)
-            return false;
+        {
+            if (Stopwatch.GetElapsedTime(slot.InFlightSince) < LostFrameTimeout)
+                return false;
+            // The compositor never drew this frame: the slot starts again with a new texture, which it imports anew
+            slot.InFlight = false;
+            slot.Texture?.Dispose();
+            slot.Texture = null;
+        }
 
         if (slot.Texture == null || slot.Texture.Width != backBuffer.Width || slot.Texture.Height != backBuffer.Height)
         {
@@ -239,12 +259,14 @@ internal sealed class GpuFramePresenter : IDisposable
             slot.Version++;
         }
 
-        // A new keyed mutex is free for key 0; afterwards the compositor releases it with key 0
-        if (!slot.Texture.TryAcquireSync(0, TimeSpan.Zero))
+        // A new keyed mutex is free for key 0; afterwards the compositor releases it with key 0, or it is still at key 1 when
+        // the frame was not drawn (the view was out of the visual tree)
+        if (!slot.Texture.TryAcquireSync(0, TimeSpan.Zero) && !slot.Texture.TryAcquireSync(1, TimeSpan.Zero))
             return false;
         // The sRGB back buffer and the UNorm texture are in the same typeless group: a plain copy keeps the bytes
         commandList.Copy(backBuffer, slot.Texture);
         slot.Texture.ReleaseSync(1);
+        slot.InFlightSince = Stopwatch.GetTimestamp();
         slot.InFlight = true;
         pendingD3DSlot = slot;
         nextD3DSlot = (nextD3DSlot + 1) % d3dSlots.Length;
@@ -274,6 +296,7 @@ internal sealed class GpuFramePresenter : IDisposable
         commandList.Copy(backBuffer, exportableTexture.Texture);
         // The compositor reads the image in the transfer source layout
         commandList.ResourceBarrierTransition(exportableTexture.Texture, BarrierLayout.CopySource);
+        frameInFlightSince = Stopwatch.GetTimestamp();
         frameInFlight = true;
         signalPending = true;
         return true;
@@ -337,13 +360,23 @@ internal sealed class GpuFramePresenter : IDisposable
     {
         void Release()
         {
+            // A slot or a texture replaced meanwhile (its frame was taken as lost) carries another frame now
             if (d3dSlot != null)
-                d3dSlot.InFlight = false;
-            else
+            {
+                if (d3dSlot.Version == version)
+                    d3dSlot.InFlight = false;
+            }
+            else if (Volatile.Read(ref textureVersion) == version)
+            {
                 frameInFlight = false;
+            }
         }
 
-        if (state != GpuFramePresenterState.Active || surface == null || interop == null)
+        // A Direct3D 11 frame is not drawn while the view is out of the visual tree (a layout of the views changing), as the
+        // compositor might never draw it, nor once the game replaced its slot; the game takes the slot back from either key.
+        // The Vulkan frames go through a pair of semaphores, which every frame must go through
+        var skipped = d3dSlot != null && (TopLevel.GetTopLevel(view) == null || d3dSlot.Version != version);
+        if (state != GpuFramePresenterState.Active || surface == null || interop == null || skipped)
         {
             Release();
             return;
@@ -458,6 +491,9 @@ internal sealed class GpuFramePresenter : IDisposable
 
         // Set by the game thread when it hands the frame over, cleared once the compositor drew it
         public volatile bool InFlight;
+
+        // When the game handed the frame over (game thread)
+        public long InFlightSince;
 
         // UI thread
         public int ImportedVersion = -1;
