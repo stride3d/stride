@@ -9,7 +9,7 @@ using Stride.Core.Assets.Editor.Editors;
 namespace Stride.Assets.Editor.Avalonia.Views;
 
 /// <summary>
-/// The view of a visual script in this Game Studio, which has no visual script editor: it says where the asset can be edited.
+/// The view of a visual script: visual scripts are not supported, so it shows the asset's name and says so.
 /// </summary>
 [AssetEditorView<VisualScriptEditorViewModel>]
 public sealed partial class VisualScriptEditorView : UserControl, IAssetEditorView

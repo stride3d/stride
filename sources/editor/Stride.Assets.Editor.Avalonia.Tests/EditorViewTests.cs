@@ -43,16 +43,16 @@ public sealed class EditorViewTests
     }
 
     [AvaloniaFact]
-    public void TheVisualScriptViewSaysItCannotEditVisualScripts()
+    public void TheVisualScriptViewSaysVisualScriptsAreNotSupported()
     {
         var view = new VisualScriptEditorView();
         var window = new Window { Content = view };
 
         window.Show();
 
-        // This Game Studio has no visual script editor
+        // Visual scripts are not supported
         var message = view.GetVisualDescendants().OfType<TextBlock>().Single(x => x.Name == "Message");
-        Assert.Contains("cannot edit visual scripts", message.Text);
+        Assert.Contains("not supported", message.Text);
         window.Close();
     }
 
