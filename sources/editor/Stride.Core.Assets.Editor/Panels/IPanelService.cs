@@ -6,6 +6,9 @@ namespace Stride.Core.Assets.Editor.Panels;
 /// <summary>
 /// Shows, hides and opens the panels of the main window. Each editor's shell implements it over its docking library.
 /// </summary>
+/// <remarks>
+/// Use it on the UI thread only, as the controls of the shell. The panel types are not plugin API yet.
+/// </remarks>
 public interface IPanelService
 {
     /// <summary>

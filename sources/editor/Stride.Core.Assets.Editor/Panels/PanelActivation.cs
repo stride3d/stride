@@ -15,6 +15,7 @@ namespace Stride.Core.Assets.Editor.Panels;
 /// <remarks>
 /// As in WPF, the first matching addition after the collection was cleared starts it: from then on, every change of the
 /// collection brings the panel forward again, until the collection is cleared.
+/// The collection must raise its changes on the UI thread, since the panel service is used from there only.
 /// </remarks>
 public sealed class PanelActivation : IDisposable
 {

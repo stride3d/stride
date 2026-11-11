@@ -10,14 +10,14 @@ using Stride.Core.Translation;
 namespace Stride.Core.Assets.Editor.Panels;
 
 /// <summary>
-/// A panel whose view shows a part of the session.
+/// A built-in panel whose view shows a part of the session.
 /// </summary>
 public abstract class SessionPanelViewModel : PanelViewModel
 {
-    protected SessionPanelViewModel(PanelContext context)
+    private protected SessionPanelViewModel(PanelContext context)
         : base(context)
     {
-        Session = context.Session;
+        Session = context.EditorSession;
     }
 
     /// <summary>
@@ -65,7 +65,7 @@ public sealed class ActionHistoryPanelViewModel : PanelViewModel
     public ActionHistoryPanelViewModel(PanelContext context)
         : base(context)
     {
-        ActionHistory = context.Session.ActionHistory;
+        ActionHistory = context.EditorSession.ActionHistory;
     }
 
     /// <summary>
@@ -82,7 +82,7 @@ public sealed class AssetLogPanelViewModel : PanelViewModel
     public AssetLogPanelViewModel(PanelContext context)
         : base(context)
     {
-        AssetLog = context.Session.AssetLog;
+        AssetLog = context.EditorSession.AssetLog;
         AssetLog.PropertyChanged += AssetLogPropertyChanged;
         UpdateTitle();
     }

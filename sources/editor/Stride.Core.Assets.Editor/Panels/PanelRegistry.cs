@@ -9,6 +9,10 @@ namespace Stride.Core.Assets.Editor.Panels;
 /// The panels the editor can show, each with its owner: the editor itself, or the plugin that registered it and whose
 /// panels go when it leaves (<see cref="UnregisterOwner"/>). The View menu and the docking shell follow its changes.
 /// </summary>
+/// <remarks>
+/// Use it on the UI thread only: it is not thread-safe, and the View menu and the docking shell update their controls in
+/// <see cref="CollectionChanged"/>. The panel types are not plugin API yet.
+/// </remarks>
 public sealed class PanelRegistry : INotifyCollectionChanged
 {
     private sealed record Entry(PanelDescriptor Descriptor, object? Owner);

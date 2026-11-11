@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Panels;
@@ -22,9 +23,14 @@ public sealed class PanelContext
     public string InstanceId { get; init; } = string.Empty;
 
     /// <summary>
-    /// The open session.
+    /// The open session, as the plugin contexts give it.
     /// </summary>
-    public required SessionViewModel Session { get; init; }
+    public required ISessionViewModel Session { get; init; }
+
+    /// <summary>
+    /// The open session with its editor plumbing, for the built-in panels.
+    /// </summary>
+    internal SessionViewModel EditorSession => (SessionViewModel)Session;
 
     /// <summary>
     /// The services of the editor.

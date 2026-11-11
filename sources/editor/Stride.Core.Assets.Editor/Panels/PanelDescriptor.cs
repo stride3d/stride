@@ -23,11 +23,6 @@ public sealed class PanelDescriptor
     public required Func<string> Title { get; init; }
 
     /// <summary>
-    /// An image of the editor's toolkit, or null.
-    /// </summary>
-    public object? Icon { get; init; }
-
-    /// <summary>
     /// Where the panel goes when a layout has no place for it, and no group with the identifier <see cref="DefaultGroup"/>.
     /// </summary>
     public PanelPlacement DefaultPlacement { get; init; } = PanelPlacement.Right;
