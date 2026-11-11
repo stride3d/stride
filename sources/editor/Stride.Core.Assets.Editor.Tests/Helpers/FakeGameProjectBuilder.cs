@@ -41,6 +41,11 @@ public sealed class FakeGameProjectBuilder : IGameProjectBuilder
     public bool FailToLoad { get; set; }
 
     /// <summary>
+    /// The items the targets of the next builds return, by target name.
+    /// </summary>
+    public Dictionary<string, IReadOnlyList<string>> TargetOutputs { get; } = [];
+
+    /// <summary>
     /// The builds asked for so far.
     /// </summary>
     public IReadOnlyList<GameProjectBuildRequest> Requests
@@ -76,7 +81,7 @@ public sealed class FakeGameProjectBuilder : IGameProjectBuilder
             nextBuild = new TaskCompletionSource<FakeGameProjectBuild>(TaskCreationOptions.RunContinuationsAsynchronously);
         }
 
-        var build = new FakeGameProjectBuild(AssemblyPath, logger);
+        var build = new FakeGameProjectBuild(AssemblyPath, logger, new Dictionary<string, IReadOnlyList<string>>(TargetOutputs));
         foreach (var error in Errors)
             logger.Error(error);
         if (CompleteAtOnce)
@@ -93,13 +98,16 @@ public sealed class FakeGameProjectBuild : IGameProjectBuild
 {
     private readonly TaskCompletionSource<bool> completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-    public FakeGameProjectBuild(string assemblyPath, ILogger logger)
+    public FakeGameProjectBuild(string assemblyPath, ILogger logger, IReadOnlyDictionary<string, IReadOnlyList<string>> targetOutputs)
     {
         AssemblyPath = assemblyPath;
         Logger = logger;
+        TargetOutputs = targetOutputs;
     }
 
     public string AssemblyPath { get; }
+
+    public IReadOnlyDictionary<string, IReadOnlyList<string>> TargetOutputs { get; }
 
     /// <summary>
     /// The logger the build was given.

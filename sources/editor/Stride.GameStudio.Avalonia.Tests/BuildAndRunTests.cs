@@ -59,6 +59,14 @@ public sealed class BuildAndRunTests
     }
 
     [AvaloniaFact]
+    public async Task NoPlatformHasADeployStep()
+    {
+        // The games of the editor's platform start on this machine; the others are only built
+        using var fixture = await ShellSessionFixture.OpenExecutableAsync(Platform.Type);
+        Assert.Empty(fixture.Main.Build.Deployers);
+    }
+
+    [AvaloniaFact]
     public async Task TheToolbarShowsTheBuildButtonsWhileASessionIsOpen()
     {
         using var fixture = ShellSessionFixture.Create();
