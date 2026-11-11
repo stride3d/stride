@@ -4,6 +4,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using Stride.Core.Mathematics;
 using Stride.Editor.EditorGame.ViewModels;
 
@@ -51,10 +52,16 @@ public readonly record struct EditorGameViewCameraInfo(int ViewId, bool IsOrthog
 /// <param name="PitchYaw">The pitch and the yaw of the camera.</param>
 /// <param name="IsOrthographic">Whether the camera is orthographic.</param>
 /// <param name="OrthographicSize">The orthographic size of the camera.</param>
-public readonly record struct EditorGameViewCameraState(Vector3 Position, Vector2 PitchYaw, bool IsOrthographic, float OrthographicSize);
+public readonly record struct EditorGameViewCameraState(Vector3 Position, Vector2 PitchYaw, bool IsOrthographic, float OrthographicSize)
+{
+    /// <summary>
+    /// Gets the point the camera orbits around, or <c>null</c> to keep the one of the editor camera.
+    /// </summary>
+    public Vector3? Target { get; init; }
+}
 
 /// <summary>
-/// The several views of the game of a scene or prefab editor, for its view models (prototype). The game has one camera
+/// The several views of the game of a scene or prefab editor, for its view models. The game has one camera
 /// per view; the editor camera (<see cref="IEditorGameCameraViewModelService"/>) is the camera of the active view.
 /// </summary>
 public interface IEditorGameMultiViewViewModelService : IEditorGameViewModelService
@@ -81,6 +88,20 @@ public interface IEditorGameMultiViewViewModelService : IEditorGameViewModelServ
     /// <param name="viewId">The view, active or not.</param>
     /// <param name="camera">The camera to start from.</param>
     void SetViewCamera(int viewId, EditorViewCamera camera);
+
+    /// <summary>
+    /// Gets the camera of each view the game knows (any thread): the active view's as it is now, the others' as the user
+    /// left them. A view whose camera the game has not set yet is missing.
+    /// </summary>
+    IReadOnlyDictionary<int, EditorGameViewCameraState> GetViewCameras();
+
+    /// <summary>
+    /// Moves the camera of a view where it was when the settings of the scene saved it (UI thread; the game applies it at
+    /// its next frame).
+    /// </summary>
+    /// <param name="viewId">The view, active or not.</param>
+    /// <param name="state">The camera of the view.</param>
+    void SetViewCamera(int viewId, EditorGameViewCameraState state);
 
     /// <summary>
     /// Forgets the camera of a view that was closed (UI thread).

@@ -350,6 +350,12 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
             var sceneSettings = Asset.Directory.Package.UserSettings.GetValue(PackageSceneSettings.SceneSettings);
             var settings = sceneSettings.TryGetValue(Asset.Asset.Id, out var saved) ? saved : SceneSettingsData.CreateDefault();
             options.LoadSettings(settings);
+            // The views of an editor that shows several, once the primary view's camera is the scene's
+            if (options is EditorViewToolbarViewModel { Views: { } views }
+                && Asset.Directory.Package.UserSettings.GetValue(PackageSceneViews.Views).TryGetValue(Asset.Asset.Id, out var savedViews))
+            {
+                views.LoadSettings(savedViews);
+            }
         }
         catch (Exception e)
         {
@@ -379,6 +385,15 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
             }
             SaveSettings(settings);
             userSettings.SetValue(PackageSceneSettings.SceneSettings, sceneSettings);
+            // The views of an editor that shows several, under a key of their own
+            if (options is EditorViewToolbarViewModel { Views: { } views })
+            {
+                var viewSettings = new SceneViewsSettingsData();
+                views.SaveSettings(viewSettings);
+                // A copy, as above
+                var sceneViews = new Dictionary<AssetId, SceneViewsSettingsData>(userSettings.GetValue(PackageSceneViews.Views)) { [Asset.Asset.Id] = viewSettings };
+                userSettings.SetValue(PackageSceneViews.Views, sceneViews);
+            }
             userSettings.Save();
         }
         catch (Exception e)

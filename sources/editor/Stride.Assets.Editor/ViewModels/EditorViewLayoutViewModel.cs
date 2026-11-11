@@ -7,11 +7,12 @@ using Stride.Assets.Editor.AssetEditors.GameEditor.ViewModels;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Editor.Engine;
+using Stride.Engine.Processors;
 
 namespace Stride.Assets.Editor.ViewModels;
 
 /// <summary>
-/// How the views of a scene editor are laid out (prototype of several views).
+/// How the views of a scene editor are laid out.
 /// </summary>
 public enum EditorViewLayout
 {
@@ -29,7 +30,7 @@ public enum EditorViewLayout
 }
 
 /// <summary>
-/// The views of the scene of a scene or prefab editor (prototype): a layout, the panes it shows, and the active pane, whose
+/// The views of the scene of a scene or prefab editor: a layout, the panes it shows, and the active pane, whose
 /// camera is the editor camera. Each UI toolkit lays the panes out with its own views; the game keeps a camera per pane
 /// (<see cref="IEditorGameMultiViewViewModelService"/>).
 /// </summary>
@@ -71,7 +72,7 @@ public sealed class EditorViewLayoutViewModel : DispatcherViewModel
     /// Gets or sets the layout of the views. A change keeps the primary view and as many other views as the layout has room
     /// for, with their cameras; a new view starts with the camera of its place in the layout.
     /// </summary>
-    public EditorViewLayout Layout { get => layout; set => SetValue(ref layout, value, ApplyLayout); }
+    public EditorViewLayout Layout { get => layout; set => SetValue(ref layout, value, () => ApplyLayout([])); }
 
     /// <summary>
     /// Gets the panes of the layout, in reading order (left to right, then top to bottom).
@@ -108,7 +109,50 @@ public sealed class EditorViewLayoutViewModel : DispatcherViewModel
         base.Destroy();
     }
 
-    private void ApplyLayout()
+    /// <summary>
+    /// Lays the views out as the user settings of the package saved them: the layout, the camera of each view, the maximized
+    /// view.
+    /// </summary>
+    public void LoadSettings(SceneViewsSettingsData settings)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+        var saved = new Queue<SceneViewSettingsData>(settings.Views ?? []);
+        if (!Enum.IsDefined(settings.Layout))
+            return;
+        if (layout != settings.Layout)
+            SetValue(ref layout, settings.Layout, () => ApplyLayout(saved), nameof(Layout));
+        MaximizedPane = settings.MaximizedView >= 0 && settings.MaximizedView < panes.Count ? panes[settings.MaximizedView] : null;
+    }
+
+    /// <summary>
+    /// Writes the layout, the camera of each view other than the primary one and the maximized view. The primary view's
+    /// camera is the camera of the scene settings, which the camera options write.
+    /// </summary>
+    public void SaveSettings(SceneViewsSettingsData settings)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+        settings.Layout = layout;
+        settings.MaximizedView = maximizedPane is not null ? panes.IndexOf(maximizedPane) : -1;
+        var cameras = service.GetViewCameras();
+        settings.Views = [.. panes.Where(x => x.Id != IEditorGameMultiViewport.PrimaryView).Select(x => SaveView(x, cameras))];
+    }
+
+    private static SceneViewSettingsData SaveView(EditorViewPaneViewModel pane, IReadOnlyDictionary<int, EditorGameViewCameraState> cameras)
+    {
+        var view = new SceneViewSettingsData { Camera = pane.Camera };
+        if (cameras.TryGetValue(pane.Id, out var state))
+        {
+            view.HasCameraState = true;
+            view.CamPosition = state.Position;
+            view.CamPitchYaw = state.PitchYaw;
+            view.CamProjection = state.IsOrthographic ? CameraProjectionMode.Orthographic : CameraProjectionMode.Perspective;
+            view.CamOrthographicSize = state.OrthographicSize;
+            view.CamTarget = state.Target ?? state.Position;
+        }
+        return view;
+    }
+
+    private void ApplyLayout(Queue<SceneViewSettingsData> saved)
     {
         MaximizedPane = null;
         // The cameras of the places of each layout, in reading order; the primary view keeps its own camera
@@ -130,6 +174,20 @@ public sealed class EditorViewLayoutViewModel : DispatcherViewModel
                 arranged.Add(primary);
             else if (others.TryDequeue(out var kept))
                 arranged.Add(kept);
+            else if (saved.TryDequeue(out var view) && Enum.IsDefined(view.Camera))
+            {
+                // A view the settings of the scene saved: its camera where it was
+                var pane = new EditorViewPaneViewModel(ServiceProvider, this, nextId++, view.Camera);
+                if (view.HasCameraState)
+                {
+                    service.SetViewCamera(pane.Id, new EditorGameViewCameraState(view.CamPosition, view.CamPitchYaw, view.CamProjection == CameraProjectionMode.Orthographic, view.CamOrthographicSize) { Target = view.CamTarget });
+                }
+                else
+                {
+                    service.SetViewCamera(pane.Id, view.Camera);
+                }
+                arranged.Add(pane);
+            }
             else
             {
                 var pane = new EditorViewPaneViewModel(ServiceProvider, this, nextId++, camera);
@@ -166,7 +224,7 @@ public sealed class EditorViewLayoutViewModel : DispatcherViewModel
 }
 
 /// <summary>
-/// One pane of the views of a scene editor: a view of the scene with a camera of its own (prototype).
+/// One pane of the views of a scene editor: a view of the scene with a camera of its own.
 /// </summary>
 public sealed class EditorViewPaneViewModel : DispatcherViewModel
 {

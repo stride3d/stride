@@ -121,6 +121,12 @@ public sealed class EditorViewLayoutPanelTests
         {
         }
 
+        public IReadOnlyDictionary<int, EditorGameViewCameraState> GetViewCameras() => new Dictionary<int, EditorGameViewCameraState>();
+
+        public void SetViewCamera(int viewId, EditorGameViewCameraState state)
+        {
+        }
+
         public void RemoveView(int viewId)
         {
         }
