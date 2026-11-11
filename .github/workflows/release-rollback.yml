@@ -43,15 +43,24 @@ jobs:
     name: Validate
     runs-on: ubuntu-latest
     steps:
+      # GITHUB_TOKEN can't read team membership: the Stride Bot app can (Organization Members: Read).
+      - name: Get the Stride Bot token
+        id: bot
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.STRIDE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.STRIDE_BOT_PRIVATE_KEY }}
+          permission-members: read
+
       - name: Check release permissions
         env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
+          GH_TOKEN: ${{ steps.bot.outputs.token }}
         run: |
           ORG=$(echo "${{ github.repository }}" | cut -d/ -f1)
           TEAM="stride-release-managers"
           USER="${{ github.actor }}"
           if ! gh api "orgs/$ORG/teams/$TEAM/memberships/$USER" --silent 2>/dev/null; then
-            echo "::error::Rollback blocked: '$USER' is not a member of $ORG/$TEAM (or GH_PAT cannot read it). Requires stride-release-managers membership."
+            echo "::error::Rollback blocked: '$USER' is not a member of $ORG/$TEAM (or the Stride Bot token cannot read it). Requires stride-release-managers membership."
             exit 1
           fi
 
@@ -64,6 +73,15 @@ jobs:
       contents: write
       id-token: write # nuget.org trusted publishing
     steps:
+      # The Stride Release app's key is only in the production environment, and the app may pass the master ruleset.
+      - name: Get the Stride Release token
+        id: release
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.STRIDE_RELEASE_CLIENT_ID }}
+          private-key: ${{ secrets.STRIDE_RELEASE_PRIVATE_KEY }}
+          permission-contents: write
+
       - name: Resolve tag
         id: resolve
         run: |
@@ -80,7 +98,7 @@ jobs:
         if: ${{ inputs.unlist-nuget && inputs.package-ids == '' }}
         continue-on-error: true
         env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
+          GH_TOKEN: ${{ steps.release.outputs.token }}
         run: |
           TAG='${{ steps.resolve.outputs.tag }}'
           VERSION='${{ inputs.version }}'
@@ -162,7 +180,7 @@ jobs:
         if: ${{ inputs.remove-github-release }}
         continue-on-error: true
         env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
+          GH_TOKEN: ${{ steps.release.outputs.token }}
         run: |
           TAG='${{ steps.resolve.outputs.tag }}'
           if [ "${{ inputs.dry-run }}" = "true" ]; then
@@ -178,7 +196,7 @@ jobs:
         if: ${{ inputs.remove-git-tag }}
         continue-on-error: true
         env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
+          GH_TOKEN: ${{ steps.release.outputs.token }}
         run: |
           TAG='${{ steps.resolve.outputs.tag }}'
           if [ "${{ inputs.dry-run }}" = "true" ]; then
