@@ -108,7 +108,8 @@
       "GravitySensor.Windows",
       "ParticlesSample.Windows",
       "PhysicsSample.Windows",
-      "SpriteStudioDemo.Windows"
+      "SpriteStudioDemo.Windows",
+      "Stride.Engine.Tests"
     ],
     "mixin": {
       "mixins": [
@@ -5104,6 +5105,292 @@
         "NormalStream",
         "TransformationWAndVP",
         "NormalFromMesh",
+        "TransformationSkinning",
+        "NormalMeshSkinning",
+        "NormalVSSkinningFromMesh",
+        "MaterialSurfacePixelStageCompositor"
+      ],
+      "compositions": {
+        "directLightGroups": [
+          {
+            "mixins": [
+              {
+                "class": "LightDirectionalGroup",
+                "generics": [
+                  "1"
+                ]
+              },
+              {
+                "class": "ShadowMapReceiverDirectional",
+                "generics": [
+                  "4",
+                  "1",
+                  "true",
+                  "true",
+                  "false",
+                  "false"
+                ]
+              },
+              {
+                "class": "ShadowMapFilterPcf",
+                "generics": [
+                  "PerView.Lighting",
+                  "5"
+                ]
+              }
+            ]
+          },
+          {
+            "mixins": [
+              "LightClusteredPointGroup"
+            ]
+          },
+          {
+            "mixins": [
+              "LightClusteredSpotGroup"
+            ]
+          }
+        ],
+        "environmentLights": [
+          {
+            "mixins": [
+              "LightSimpleAmbient"
+            ]
+          },
+          {
+            "mixins": [
+              "LightSkyboxShader"
+            ],
+            "compositions": {
+              "lightDiffuseColor": {
+                "mixins": [
+                  "IComputeEnvironmentColor"
+                ]
+              },
+              "lightSpecularColor": {
+                "mixins": [
+                  "IComputeEnvironmentColor"
+                ]
+              }
+            }
+          },
+          {
+            "mixins": [
+              "EnvironmentLight"
+            ]
+          }
+        ],
+        "materialPixelStage": {
+          "mixins": [
+            "MaterialSurfaceArray"
+          ],
+          "compositions": {
+            "layers": [
+              {
+                "mixins": [
+                  "MaterialSurfaceDiffuse"
+                ],
+                "compositions": {
+                  "diffuseMap": {
+                    "class": "ComputeColorConstantColorLink",
+                    "generics": [
+                      "Material.DiffuseValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  {
+                    "class": "MaterialSurfaceGlossinessMap",
+                    "generics": [
+                      "false"
+                    ]
+                  }
+                ],
+                "compositions": {
+                  "glossinessMap": {
+                    "class": "ComputeColorConstantFloatLink",
+                    "generics": [
+                      "Material.GlossinessValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  "MaterialSurfaceMetalness"
+                ],
+                "compositions": {
+                  "metalnessMap": {
+                    "class": "ComputeColorConstantFloatLink",
+                    "generics": [
+                      "Material.MetalnessValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  {
+                    "class": "MaterialSurfaceSetStreamFromComputeColor",
+                    "generics": [
+                      "matAmbientOcclusion",
+                      "r"
+                    ]
+                  }
+                ],
+                "compositions": {
+                  "computeColorSource": {
+                    "class": "ComputeColorConstantFloatLink",
+                    "generics": [
+                      "Material.AmbientOcclusionValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  {
+                    "class": "MaterialSurfaceSetStreamFromComputeColor",
+                    "generics": [
+                      "matAmbientOcclusionDirectLightingFactor",
+                      "r"
+                    ]
+                  }
+                ],
+                "compositions": {
+                  "computeColorSource": {
+                    "class": "ComputeColorConstantFloatLink",
+                    "generics": [
+                      "Material.AmbientOcclusionDirectLightingFactorValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  {
+                    "class": "MaterialSurfaceSetStreamFromComputeColor",
+                    "generics": [
+                      "matCavity",
+                      "r"
+                    ]
+                  }
+                ],
+                "compositions": {
+                  "computeColorSource": {
+                    "class": "ComputeColorConstantFloatLink",
+                    "generics": [
+                      "Material.CavityValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  {
+                    "class": "MaterialSurfaceSetStreamFromComputeColor",
+                    "generics": [
+                      "matCavityDiffuse",
+                      "r"
+                    ]
+                  }
+                ],
+                "compositions": {
+                  "computeColorSource": {
+                    "class": "ComputeColorConstantFloatLink",
+                    "generics": [
+                      "Material.CavityDiffuseValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  {
+                    "class": "MaterialSurfaceSetStreamFromComputeColor",
+                    "generics": [
+                      "matCavitySpecular",
+                      "r"
+                    ]
+                  }
+                ],
+                "compositions": {
+                  "computeColorSource": {
+                    "class": "ComputeColorConstantFloatLink",
+                    "generics": [
+                      "Material.CavitySpecularValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  "MaterialSurfaceLightingAndShading"
+                ],
+                "compositions": {
+                  "surfaces": [
+                    {
+                      "class": "MaterialSurfaceShadingDiffuseLambert",
+                      "generics": [
+                        "false"
+                      ]
+                    },
+                    {
+                      "mixins": [
+                        "MaterialSurfaceShadingSpecularMicrofacet"
+                      ],
+                      "compositions": {
+                        "environmentFunction": "MaterialSpecularMicrofacetEnvironmentGGXLUT",
+                        "fresnelFunction": "MaterialSpecularMicrofacetFresnelSchlick",
+                        "geometricShadowingFunction": "MaterialSpecularMicrofacetVisibilitySmithSchlickGGX",
+                        "normalDistributionFunction": "MaterialSpecularMicrofacetNormalDistributionGGX"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "streamInitializerPixelStage": {
+          "mixins": [
+            "MaterialStream",
+            "MaterialPixelShadingStream"
+          ]
+        }
+      },
+      "macros": [
+        [
+          "SkinningMaxBones",
+          "56"
+        ],
+        [
+          "STRIDE_RENDER_TARGET_COUNT",
+          "1"
+        ],
+        [
+          "STRIDE_MULTISAMPLE_COUNT",
+          "1"
+        ]
+      ]
+    }
+  },
+  {
+    "effect": "StrideEditorForwardShadingEffect",
+    "profile": "Level_11_0",
+    "sources": [
+      "Stride.GameStudio.AutoTesting"
+    ],
+    "mixin": {
+      "mixins": [
+        "ShaderBase",
+        "ShadingBase",
+        "TransformationBase",
+        "NormalStream",
+        "TransformationWAndVP",
+        "NormalFromMesh",
         "MaterialSurfacePixelStageCompositor"
       ],
       "compositions": {
@@ -6460,6 +6747,241 @@
           ]
         }
       }
+    }
+  },
+  {
+    "effect": "StrideEditorForwardShadingEffect",
+    "profile": "Level_11_0",
+    "sources": [
+      "Stride.GameStudio.AutoTesting"
+    ],
+    "mixin": {
+      "mixins": [
+        "ShaderBase",
+        "ShadingBase",
+        "TransformationBase",
+        "NormalStream",
+        "TransformationWAndVP",
+        "NormalFromMesh",
+        "TransformationSkinning",
+        "NormalMeshSkinning",
+        "NormalVSSkinningFromMesh",
+        "MaterialSurfacePixelStageCompositor"
+      ],
+      "compositions": {
+        "directLightGroups": [
+          {
+            "mixins": [
+              {
+                "class": "LightDirectionalGroup",
+                "generics": [
+                  "1"
+                ]
+              },
+              {
+                "class": "ShadowMapReceiverDirectional",
+                "generics": [
+                  "4",
+                  "1",
+                  "true",
+                  "true",
+                  "false",
+                  "false"
+                ]
+              },
+              {
+                "class": "ShadowMapFilterPcf",
+                "generics": [
+                  "PerView.Lighting",
+                  "5"
+                ]
+              }
+            ]
+          },
+          {
+            "mixins": [
+              "LightClusteredPointGroup"
+            ]
+          },
+          {
+            "mixins": [
+              "LightClusteredSpotGroup"
+            ]
+          }
+        ],
+        "environmentLights": [
+          {
+            "mixins": [
+              "LightSimpleAmbient"
+            ]
+          },
+          {
+            "mixins": [
+              "LightSkyboxShader"
+            ],
+            "compositions": {
+              "lightDiffuseColor": {
+                "mixins": [
+                  "IComputeEnvironmentColor"
+                ]
+              },
+              "lightSpecularColor": {
+                "mixins": [
+                  "IComputeEnvironmentColor"
+                ]
+              }
+            }
+          },
+          {
+            "mixins": [
+              "EnvironmentLight"
+            ]
+          }
+        ],
+        "materialPixelStage": {
+          "mixins": [
+            "MaterialSurfaceArray"
+          ],
+          "compositions": {
+            "layers": [
+              {
+                "mixins": [
+                  "MaterialSurfaceDiffuse"
+                ],
+                "compositions": {
+                  "diffuseMap": {
+                    "class": "ComputeColorConstantColorLink",
+                    "generics": [
+                      "Material.DiffuseValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  {
+                    "class": "MaterialSurfaceGlossinessMap",
+                    "generics": [
+                      "false"
+                    ]
+                  }
+                ],
+                "compositions": {
+                  "glossinessMap": {
+                    "class": "ComputeColorConstantFloatLink",
+                    "generics": [
+                      "Material.GlossinessValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  "MaterialSurfaceMetalness"
+                ],
+                "compositions": {
+                  "metalnessMap": {
+                    "class": "ComputeColorConstantFloatLink",
+                    "generics": [
+                      "Material.MetalnessValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  {
+                    "class": "MaterialSurfaceSetStreamFromComputeColor",
+                    "generics": [
+                      "matEmissive",
+                      "rgba"
+                    ]
+                  }
+                ],
+                "compositions": {
+                  "computeColorSource": {
+                    "class": "ComputeColorConstantColorLink",
+                    "generics": [
+                      "Material.EmissiveValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  {
+                    "class": "MaterialSurfaceSetStreamFromComputeColor",
+                    "generics": [
+                      "matEmissiveIntensity",
+                      "r"
+                    ]
+                  }
+                ],
+                "compositions": {
+                  "computeColorSource": {
+                    "class": "ComputeColorConstantFloatLink",
+                    "generics": [
+                      "Material.EmissiveIntensity"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  "MaterialSurfaceLightingAndShading"
+                ],
+                "compositions": {
+                  "surfaces": [
+                    {
+                      "class": "MaterialSurfaceShadingDiffuseLambert",
+                      "generics": [
+                        "false"
+                      ]
+                    },
+                    {
+                      "mixins": [
+                        "MaterialSurfaceShadingSpecularMicrofacet"
+                      ],
+                      "compositions": {
+                        "environmentFunction": "MaterialSpecularMicrofacetEnvironmentGGXLUT",
+                        "fresnelFunction": "MaterialSpecularMicrofacetFresnelSchlick",
+                        "geometricShadowingFunction": "MaterialSpecularMicrofacetVisibilitySmithSchlickGGX",
+                        "normalDistributionFunction": "MaterialSpecularMicrofacetNormalDistributionGGX"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "class": "MaterialSurfaceEmissiveShading",
+                "generics": [
+                  "false"
+                ]
+              }
+            ]
+          }
+        },
+        "streamInitializerPixelStage": {
+          "mixins": [
+            "MaterialStream",
+            "MaterialPixelShadingStream"
+          ]
+        }
+      },
+      "macros": [
+        [
+          "SkinningMaxBones",
+          "56"
+        ],
+        [
+          "STRIDE_RENDER_TARGET_COUNT",
+          "1"
+        ],
+        [
+          "STRIDE_MULTISAMPLE_COUNT",
+          "1"
+        ]
+      ]
     }
   },
   {
@@ -10344,6 +10866,234 @@
             "compositions": {
               "lightDiffuseColor": {
                 "mixins": [
+                  "IComputeEnvironmentColor"
+                ]
+              },
+              "lightSpecularColor": {
+                "mixins": [
+                  "IComputeEnvironmentColor"
+                ]
+              }
+            }
+          },
+          {
+            "mixins": [
+              "EnvironmentLight"
+            ]
+          }
+        ],
+        "materialPixelStage": {
+          "mixins": [
+            "MaterialSurfaceArray"
+          ],
+          "compositions": {
+            "layers": [
+              {
+                "mixins": [
+                  "MaterialSurfaceDiffuse"
+                ],
+                "compositions": {
+                  "diffuseMap": {
+                    "class": "ComputeColorConstantColorLink",
+                    "generics": [
+                      "Material.DiffuseValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  {
+                    "class": "MaterialSurfaceGlossinessMap",
+                    "generics": [
+                      "false"
+                    ]
+                  }
+                ],
+                "compositions": {
+                  "glossinessMap": {
+                    "class": "ComputeColorConstantFloatLink",
+                    "generics": [
+                      "Material.GlossinessValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  "MaterialSurfaceMetalness"
+                ],
+                "compositions": {
+                  "metalnessMap": {
+                    "class": "ComputeColorConstantFloatLink",
+                    "generics": [
+                      "Material.MetalnessValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  {
+                    "class": "MaterialSurfaceSetStreamFromComputeColor",
+                    "generics": [
+                      "matEmissive",
+                      "rgba"
+                    ]
+                  }
+                ],
+                "compositions": {
+                  "computeColorSource": {
+                    "class": "ComputeColorConstantColorLink",
+                    "generics": [
+                      "Material.EmissiveValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  {
+                    "class": "MaterialSurfaceSetStreamFromComputeColor",
+                    "generics": [
+                      "matEmissiveIntensity",
+                      "r"
+                    ]
+                  }
+                ],
+                "compositions": {
+                  "computeColorSource": {
+                    "class": "ComputeColorConstantFloatLink",
+                    "generics": [
+                      "Material.EmissiveIntensity"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  "MaterialSurfaceLightingAndShading"
+                ],
+                "compositions": {
+                  "surfaces": [
+                    {
+                      "class": "MaterialSurfaceShadingDiffuseLambert",
+                      "generics": [
+                        "false"
+                      ]
+                    },
+                    {
+                      "mixins": [
+                        "MaterialSurfaceShadingSpecularMicrofacet"
+                      ],
+                      "compositions": {
+                        "environmentFunction": "MaterialSpecularMicrofacetEnvironmentGGXLUT",
+                        "fresnelFunction": "MaterialSpecularMicrofacetFresnelSchlick",
+                        "geometricShadowingFunction": "MaterialSpecularMicrofacetVisibilitySmithSchlickGGX",
+                        "normalDistributionFunction": "MaterialSpecularMicrofacetNormalDistributionGGX"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "class": "MaterialSurfaceEmissiveShading",
+                "generics": [
+                  "false"
+                ]
+              }
+            ]
+          }
+        },
+        "streamInitializerPixelStage": {
+          "mixins": [
+            "MaterialStream",
+            "MaterialPixelShadingStream"
+          ]
+        }
+      },
+      "macros": [
+        [
+          "SkinningMaxBones",
+          "56"
+        ]
+      ]
+    }
+  },
+  {
+    "effect": "StrideEditorForwardShadingEffect.Picking",
+    "profile": "Level_11_0",
+    "sources": [
+      "Stride.GameStudio.AutoTesting"
+    ],
+    "mixin": {
+      "mixins": [
+        "ShaderBase",
+        "ShadingBase",
+        "TransformationBase",
+        "NormalStream",
+        "TransformationWAndVP",
+        "NormalFromMesh",
+        "TransformationSkinning",
+        "NormalMeshSkinning",
+        "NormalVSSkinningFromMesh",
+        "MaterialSurfacePixelStageCompositor",
+        "PickingShader"
+      ],
+      "compositions": {
+        "directLightGroups": [
+          {
+            "mixins": [
+              {
+                "class": "LightDirectionalGroup",
+                "generics": [
+                  "1"
+                ]
+              },
+              {
+                "class": "ShadowMapReceiverDirectional",
+                "generics": [
+                  "4",
+                  "1",
+                  "true",
+                  "true",
+                  "false",
+                  "false"
+                ]
+              },
+              {
+                "class": "ShadowMapFilterPcf",
+                "generics": [
+                  "PerView.Lighting",
+                  "5"
+                ]
+              }
+            ]
+          },
+          {
+            "mixins": [
+              "LightClusteredPointGroup"
+            ]
+          },
+          {
+            "mixins": [
+              "LightClusteredSpotGroup"
+            ]
+          }
+        ],
+        "environmentLights": [
+          {
+            "mixins": [
+              "LightSimpleAmbient"
+            ]
+          },
+          {
+            "mixins": [
+              "LightSkyboxShader"
+            ],
+            "compositions": {
+              "lightDiffuseColor": {
+                "mixins": [
                   {
                     "class": "SphericalHarmonicsEnvironmentColor",
                     "generics": [
@@ -10708,6 +11458,427 @@
           ]
         }
       }
+    }
+  },
+  {
+    "effect": "StrideEditorForwardShadingEffect.Picking",
+    "profile": "Level_11_0",
+    "sources": [
+      "Stride.GameStudio.AutoTesting"
+    ],
+    "mixin": {
+      "mixins": [
+        "ShaderBase",
+        "ShadingBase",
+        "TransformationBase",
+        "NormalStream",
+        "TransformationWAndVP",
+        "NormalFromMesh",
+        "TransformationSkinning",
+        "NormalMeshSkinning",
+        "NormalVSSkinningFromMesh",
+        "MaterialSurfacePixelStageCompositor",
+        "PickingShader"
+      ],
+      "compositions": {
+        "directLightGroups": [
+          {
+            "mixins": [
+              {
+                "class": "LightDirectionalGroup",
+                "generics": [
+                  "1"
+                ]
+              },
+              {
+                "class": "ShadowMapReceiverDirectional",
+                "generics": [
+                  "4",
+                  "1",
+                  "true",
+                  "true",
+                  "false",
+                  "false"
+                ]
+              },
+              {
+                "class": "ShadowMapFilterPcf",
+                "generics": [
+                  "PerView.Lighting",
+                  "5"
+                ]
+              }
+            ]
+          },
+          {
+            "mixins": [
+              "LightClusteredPointGroup"
+            ]
+          },
+          {
+            "mixins": [
+              "LightClusteredSpotGroup"
+            ]
+          }
+        ],
+        "environmentLights": [
+          {
+            "mixins": [
+              "LightSimpleAmbient"
+            ]
+          },
+          {
+            "mixins": [
+              "LightSkyboxShader"
+            ],
+            "compositions": {
+              "lightDiffuseColor": {
+                "mixins": [
+                  "IComputeEnvironmentColor"
+                ]
+              },
+              "lightSpecularColor": {
+                "mixins": [
+                  "IComputeEnvironmentColor"
+                ]
+              }
+            }
+          },
+          {
+            "mixins": [
+              "EnvironmentLight"
+            ]
+          }
+        ],
+        "materialPixelStage": {
+          "mixins": [
+            "MaterialSurfaceArray"
+          ],
+          "compositions": {
+            "layers": [
+              {
+                "mixins": [
+                  "MaterialSurfaceDiffuse"
+                ],
+                "compositions": {
+                  "diffuseMap": {
+                    "class": "ComputeColorConstantColorLink",
+                    "generics": [
+                      "Material.DiffuseValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  {
+                    "class": "MaterialSurfaceGlossinessMap",
+                    "generics": [
+                      "false"
+                    ]
+                  }
+                ],
+                "compositions": {
+                  "glossinessMap": {
+                    "class": "ComputeColorConstantFloatLink",
+                    "generics": [
+                      "Material.GlossinessValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  "MaterialSurfaceMetalness"
+                ],
+                "compositions": {
+                  "metalnessMap": {
+                    "class": "ComputeColorConstantFloatLink",
+                    "generics": [
+                      "Material.MetalnessValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  {
+                    "class": "MaterialSurfaceSetStreamFromComputeColor",
+                    "generics": [
+                      "matAmbientOcclusion",
+                      "r"
+                    ]
+                  }
+                ],
+                "compositions": {
+                  "computeColorSource": {
+                    "class": "ComputeColorConstantFloatLink",
+                    "generics": [
+                      "Material.AmbientOcclusionValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  {
+                    "class": "MaterialSurfaceSetStreamFromComputeColor",
+                    "generics": [
+                      "matAmbientOcclusionDirectLightingFactor",
+                      "r"
+                    ]
+                  }
+                ],
+                "compositions": {
+                  "computeColorSource": {
+                    "class": "ComputeColorConstantFloatLink",
+                    "generics": [
+                      "Material.AmbientOcclusionDirectLightingFactorValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  {
+                    "class": "MaterialSurfaceSetStreamFromComputeColor",
+                    "generics": [
+                      "matCavity",
+                      "r"
+                    ]
+                  }
+                ],
+                "compositions": {
+                  "computeColorSource": {
+                    "class": "ComputeColorConstantFloatLink",
+                    "generics": [
+                      "Material.CavityValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  {
+                    "class": "MaterialSurfaceSetStreamFromComputeColor",
+                    "generics": [
+                      "matCavityDiffuse",
+                      "r"
+                    ]
+                  }
+                ],
+                "compositions": {
+                  "computeColorSource": {
+                    "class": "ComputeColorConstantFloatLink",
+                    "generics": [
+                      "Material.CavityDiffuseValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  {
+                    "class": "MaterialSurfaceSetStreamFromComputeColor",
+                    "generics": [
+                      "matCavitySpecular",
+                      "r"
+                    ]
+                  }
+                ],
+                "compositions": {
+                  "computeColorSource": {
+                    "class": "ComputeColorConstantFloatLink",
+                    "generics": [
+                      "Material.CavitySpecularValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  "MaterialSurfaceLightingAndShading"
+                ],
+                "compositions": {
+                  "surfaces": [
+                    {
+                      "class": "MaterialSurfaceShadingDiffuseLambert",
+                      "generics": [
+                        "false"
+                      ]
+                    },
+                    {
+                      "mixins": [
+                        "MaterialSurfaceShadingSpecularMicrofacet"
+                      ],
+                      "compositions": {
+                        "environmentFunction": "MaterialSpecularMicrofacetEnvironmentGGXLUT",
+                        "fresnelFunction": "MaterialSpecularMicrofacetFresnelSchlick",
+                        "geometricShadowingFunction": "MaterialSpecularMicrofacetVisibilitySmithSchlickGGX",
+                        "normalDistributionFunction": "MaterialSpecularMicrofacetNormalDistributionGGX"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "streamInitializerPixelStage": {
+          "mixins": [
+            "MaterialStream",
+            "MaterialPixelShadingStream"
+          ]
+        }
+      },
+      "macros": [
+        [
+          "SkinningMaxBones",
+          "56"
+        ]
+      ]
+    }
+  },
+  {
+    "effect": "StrideEditorForwardShadingEffect.Picking",
+    "profile": "Level_11_0",
+    "sources": [
+      "Stride.GameStudio.AutoTesting"
+    ],
+    "mixin": {
+      "mixins": [
+        "ShaderBase",
+        "ShadingBase",
+        "TransformationBase",
+        "NormalStream",
+        "TransformationWAndVP",
+        "NormalFromMesh",
+        "TransformationSkinning",
+        "NormalMeshSkinning",
+        "NormalVSSkinningFromMesh",
+        "MaterialSurfacePixelStageCompositor",
+        "PickingShader"
+      ],
+      "compositions": {
+        "directLightGroups": [
+          {
+            "mixins": [
+              {
+                "class": "LightDirectionalGroup",
+                "generics": [
+                  "1"
+                ]
+              },
+              {
+                "class": "ShadowMapReceiverDirectional",
+                "generics": [
+                  "4",
+                  "1",
+                  "true",
+                  "true",
+                  "false",
+                  "false"
+                ]
+              },
+              {
+                "class": "ShadowMapFilterPcf",
+                "generics": [
+                  "PerView.Lighting",
+                  "5"
+                ]
+              }
+            ]
+          },
+          {
+            "mixins": [
+              "LightClusteredPointGroup"
+            ]
+          },
+          {
+            "mixins": [
+              "LightClusteredSpotGroup"
+            ]
+          }
+        ],
+        "environmentLights": [
+          {
+            "mixins": [
+              "LightSimpleAmbient"
+            ]
+          },
+          {
+            "mixins": [
+              "LightSkyboxShader"
+            ],
+            "compositions": {
+              "lightDiffuseColor": {
+                "mixins": [
+                  "IComputeEnvironmentColor"
+                ]
+              },
+              "lightSpecularColor": {
+                "mixins": [
+                  "IComputeEnvironmentColor"
+                ]
+              }
+            }
+          },
+          {
+            "mixins": [
+              "EnvironmentLight"
+            ]
+          }
+        ],
+        "materialPixelStage": {
+          "mixins": [
+            "MaterialSurfaceArray"
+          ],
+          "compositions": {
+            "layers": [
+              {
+                "mixins": [
+                  "MaterialSurfaceDiffuse"
+                ],
+                "compositions": {
+                  "diffuseMap": {
+                    "class": "ComputeColorConstantColorLink",
+                    "generics": [
+                      "Material.DiffuseValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  "MaterialSurfaceLightingAndShading"
+                ],
+                "compositions": {
+                  "surfaces": [
+                    {
+                      "class": "MaterialSurfaceShadingDiffuseLambert",
+                      "generics": [
+                        "false"
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "streamInitializerPixelStage": {
+          "mixins": [
+            "MaterialStream",
+            "MaterialPixelShadingStream"
+          ]
+        }
+      },
+      "macros": [
+        [
+          "SkinningMaxBones",
+          "56"
+        ]
+      ]
     }
   },
   {
@@ -11618,6 +12789,214 @@
         "TransformationBase",
         "NormalStream",
         "TransformationWAndVP",
+        "NormalFromNormalMapping",
+        "TransformationSkinning",
+        "NormalMeshSkinning",
+        "NormalVSSkinningNormalMapping",
+        "MaterialSurfacePixelStageCompositor",
+        "PickingShader"
+      ],
+      "compositions": {
+        "directLightGroups": [
+          {
+            "mixins": [
+              {
+                "class": "LightDirectionalGroup",
+                "generics": [
+                  "1"
+                ]
+              },
+              {
+                "class": "ShadowMapReceiverDirectional",
+                "generics": [
+                  "4",
+                  "1",
+                  "true",
+                  "true",
+                  "false",
+                  "false"
+                ]
+              },
+              {
+                "class": "ShadowMapFilterPcf",
+                "generics": [
+                  "PerView.Lighting",
+                  "5"
+                ]
+              }
+            ]
+          },
+          {
+            "mixins": [
+              "LightClusteredPointGroup"
+            ]
+          },
+          {
+            "mixins": [
+              "LightClusteredSpotGroup"
+            ]
+          }
+        ],
+        "environmentLights": [
+          {
+            "mixins": [
+              "LightSimpleAmbient"
+            ]
+          },
+          {
+            "mixins": [
+              "LightSkyboxShader"
+            ],
+            "compositions": {
+              "lightDiffuseColor": {
+                "mixins": [
+                  "IComputeEnvironmentColor"
+                ]
+              },
+              "lightSpecularColor": {
+                "mixins": [
+                  "IComputeEnvironmentColor"
+                ]
+              }
+            }
+          },
+          {
+            "mixins": [
+              "EnvironmentLight"
+            ]
+          }
+        ],
+        "materialPixelStage": {
+          "mixins": [
+            "MaterialSurfaceArray"
+          ],
+          "compositions": {
+            "layers": [
+              {
+                "mixins": [
+                  "MaterialSurfaceDiffuse"
+                ],
+                "compositions": {
+                  "diffuseMap": {
+                    "class": "ComputeColorConstantColorLink",
+                    "generics": [
+                      "Material.DiffuseValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  {
+                    "class": "MaterialSurfaceNormalMap",
+                    "generics": [
+                      "true",
+                      "true"
+                    ]
+                  }
+                ],
+                "compositions": {
+                  "normalMap": {
+                    "class": "ComputeColorTextureScaledOffsetDynamicSampler",
+                    "generics": [
+                      "Material.NormalMap",
+                      "TEXCOORD0",
+                      "Material.Sampler.i0",
+                      "rgba",
+                      "Material.TextureScale",
+                      "Material.TextureOffset"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  {
+                    "class": "MaterialSurfaceGlossinessMap",
+                    "generics": [
+                      "false"
+                    ]
+                  }
+                ],
+                "compositions": {
+                  "glossinessMap": {
+                    "class": "ComputeColorConstantFloatLink",
+                    "generics": [
+                      "Material.GlossinessValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  "MaterialSurfaceMetalness"
+                ],
+                "compositions": {
+                  "metalnessMap": {
+                    "class": "ComputeColorConstantFloatLink",
+                    "generics": [
+                      "Material.MetalnessValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  "MaterialSurfaceLightingAndShading"
+                ],
+                "compositions": {
+                  "surfaces": [
+                    {
+                      "class": "MaterialSurfaceShadingDiffuseLambert",
+                      "generics": [
+                        "false"
+                      ]
+                    },
+                    {
+                      "mixins": [
+                        "MaterialSurfaceShadingSpecularMicrofacet"
+                      ],
+                      "compositions": {
+                        "environmentFunction": "MaterialSpecularMicrofacetEnvironmentGGXLUT",
+                        "fresnelFunction": "MaterialSpecularMicrofacetFresnelSchlick",
+                        "geometricShadowingFunction": "MaterialSpecularMicrofacetVisibilitySmithSchlickGGX",
+                        "normalDistributionFunction": "MaterialSpecularMicrofacetNormalDistributionGGX"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "streamInitializerPixelStage": {
+          "mixins": [
+            "MaterialStream",
+            "MaterialPixelShadingStream"
+          ]
+        }
+      },
+      "macros": [
+        [
+          "SkinningMaxBones",
+          "56"
+        ]
+      ]
+    }
+  },
+  {
+    "effect": "StrideEditorForwardShadingEffect.Picking",
+    "profile": "Level_11_0",
+    "sources": [
+      "Stride.GameStudio.AutoTesting"
+    ],
+    "mixin": {
+      "mixins": [
+        "ShaderBase",
+        "ShadingBase",
+        "TransformationBase",
+        "NormalStream",
+        "TransformationWAndVP",
         "NormalFromMesh",
         "TransformationSkinning",
         "NormalMeshSkinning",
@@ -11759,6 +13138,190 @@
           ]
         }
       }
+    }
+  },
+  {
+    "effect": "StrideEditorForwardShadingEffect.Picking",
+    "profile": "Level_11_0",
+    "sources": [
+      "Stride.GameStudio.AutoTesting"
+    ],
+    "mixin": {
+      "mixins": [
+        "ShaderBase",
+        "ShadingBase",
+        "TransformationBase",
+        "NormalStream",
+        "TransformationWAndVP",
+        "NormalFromMesh",
+        "TransformationSkinning",
+        "NormalMeshSkinning",
+        "NormalVSSkinningFromMesh",
+        "MaterialSurfacePixelStageCompositor",
+        "PickingShader"
+      ],
+      "compositions": {
+        "directLightGroups": [
+          {
+            "mixins": [
+              {
+                "class": "LightDirectionalGroup",
+                "generics": [
+                  "1"
+                ]
+              },
+              {
+                "class": "ShadowMapReceiverDirectional",
+                "generics": [
+                  "4",
+                  "1",
+                  "true",
+                  "true",
+                  "false",
+                  "false"
+                ]
+              },
+              {
+                "class": "ShadowMapFilterPcf",
+                "generics": [
+                  "PerView.Lighting",
+                  "5"
+                ]
+              }
+            ]
+          },
+          {
+            "mixins": [
+              "LightClusteredPointGroup"
+            ]
+          },
+          {
+            "mixins": [
+              "LightClusteredSpotGroup"
+            ]
+          }
+        ],
+        "environmentLights": [
+          {
+            "mixins": [
+              "LightSimpleAmbient"
+            ]
+          },
+          {
+            "mixins": [
+              "LightSkyboxShader"
+            ],
+            "compositions": {
+              "lightDiffuseColor": {
+                "mixins": [
+                  "IComputeEnvironmentColor"
+                ]
+              },
+              "lightSpecularColor": {
+                "mixins": [
+                  "IComputeEnvironmentColor"
+                ]
+              }
+            }
+          },
+          {
+            "mixins": [
+              "EnvironmentLight"
+            ]
+          }
+        ],
+        "materialPixelStage": {
+          "mixins": [
+            "MaterialSurfaceArray"
+          ],
+          "compositions": {
+            "layers": [
+              {
+                "mixins": [
+                  "MaterialSurfaceDiffuse"
+                ],
+                "compositions": {
+                  "diffuseMap": {
+                    "class": "ComputeColorConstantColorLink",
+                    "generics": [
+                      "Material.DiffuseValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  {
+                    "class": "MaterialSurfaceGlossinessMap",
+                    "generics": [
+                      "false"
+                    ]
+                  }
+                ],
+                "compositions": {
+                  "glossinessMap": {
+                    "class": "ComputeColorConstantFloatLink",
+                    "generics": [
+                      "Material.GlossinessValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  "MaterialSurfaceMetalness"
+                ],
+                "compositions": {
+                  "metalnessMap": {
+                    "class": "ComputeColorConstantFloatLink",
+                    "generics": [
+                      "Material.MetalnessValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  "MaterialSurfaceLightingAndShading"
+                ],
+                "compositions": {
+                  "surfaces": [
+                    {
+                      "class": "MaterialSurfaceShadingDiffuseLambert",
+                      "generics": [
+                        "false"
+                      ]
+                    },
+                    {
+                      "mixins": [
+                        "MaterialSurfaceShadingSpecularMicrofacet"
+                      ],
+                      "compositions": {
+                        "environmentFunction": "MaterialSpecularMicrofacetEnvironmentGGXLUT",
+                        "fresnelFunction": "MaterialSpecularMicrofacetFresnelSchlick",
+                        "geometricShadowingFunction": "MaterialSpecularMicrofacetVisibilitySmithSchlickGGX",
+                        "normalDistributionFunction": "MaterialSpecularMicrofacetNormalDistributionGGX"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "streamInitializerPixelStage": {
+          "mixins": [
+            "MaterialStream",
+            "MaterialPixelShadingStream"
+          ]
+        }
+      },
+      "macros": [
+        [
+          "SkinningMaxBones",
+          "56"
+        ]
+      ]
     }
   },
   {
@@ -18657,6 +20220,221 @@
         "TransformationBase",
         "NormalStream",
         "TransformationWAndVP",
+        "NormalFromNormalMapping",
+        "TransformationSkinning",
+        "NormalMeshSkinning",
+        "NormalVSSkinningNormalMapping",
+        "MaterialSurfacePixelStageCompositor"
+      ],
+      "compositions": {
+        "directLightGroups": [
+          {
+            "mixins": [
+              {
+                "class": "LightDirectionalGroup",
+                "generics": [
+                  "1"
+                ]
+              },
+              {
+                "class": "ShadowMapReceiverDirectional",
+                "generics": [
+                  "4",
+                  "1",
+                  "true",
+                  "true",
+                  "false",
+                  "false"
+                ]
+              },
+              {
+                "class": "ShadowMapFilterPcf",
+                "generics": [
+                  "PerView.Lighting",
+                  "5"
+                ]
+              }
+            ]
+          },
+          {
+            "mixins": [
+              "LightClusteredPointGroup"
+            ]
+          },
+          {
+            "mixins": [
+              "LightClusteredSpotGroup"
+            ]
+          }
+        ],
+        "environmentLights": [
+          {
+            "mixins": [
+              "LightSimpleAmbient"
+            ]
+          },
+          {
+            "mixins": [
+              "LightSkyboxShader"
+            ],
+            "compositions": {
+              "lightDiffuseColor": {
+                "mixins": [
+                  "IComputeEnvironmentColor"
+                ]
+              },
+              "lightSpecularColor": {
+                "mixins": [
+                  "IComputeEnvironmentColor"
+                ]
+              }
+            }
+          },
+          {
+            "mixins": [
+              "EnvironmentLight"
+            ]
+          }
+        ],
+        "materialPixelStage": {
+          "mixins": [
+            "MaterialSurfaceArray"
+          ],
+          "compositions": {
+            "layers": [
+              {
+                "mixins": [
+                  "MaterialSurfaceDiffuse"
+                ],
+                "compositions": {
+                  "diffuseMap": {
+                    "class": "ComputeColorConstantColorLink",
+                    "generics": [
+                      "Material.DiffuseValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  {
+                    "class": "MaterialSurfaceNormalMap",
+                    "generics": [
+                      "true",
+                      "true"
+                    ]
+                  }
+                ],
+                "compositions": {
+                  "normalMap": {
+                    "class": "ComputeColorTextureScaledOffsetDynamicSampler",
+                    "generics": [
+                      "Material.NormalMap",
+                      "TEXCOORD0",
+                      "Material.Sampler.i0",
+                      "rgba",
+                      "Material.TextureScale",
+                      "Material.TextureOffset"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  {
+                    "class": "MaterialSurfaceGlossinessMap",
+                    "generics": [
+                      "false"
+                    ]
+                  }
+                ],
+                "compositions": {
+                  "glossinessMap": {
+                    "class": "ComputeColorConstantFloatLink",
+                    "generics": [
+                      "Material.GlossinessValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  "MaterialSurfaceMetalness"
+                ],
+                "compositions": {
+                  "metalnessMap": {
+                    "class": "ComputeColorConstantFloatLink",
+                    "generics": [
+                      "Material.MetalnessValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  "MaterialSurfaceLightingAndShading"
+                ],
+                "compositions": {
+                  "surfaces": [
+                    {
+                      "class": "MaterialSurfaceShadingDiffuseLambert",
+                      "generics": [
+                        "false"
+                      ]
+                    },
+                    {
+                      "mixins": [
+                        "MaterialSurfaceShadingSpecularMicrofacet"
+                      ],
+                      "compositions": {
+                        "environmentFunction": "MaterialSpecularMicrofacetEnvironmentGGXLUT",
+                        "fresnelFunction": "MaterialSpecularMicrofacetFresnelSchlick",
+                        "geometricShadowingFunction": "MaterialSpecularMicrofacetVisibilitySmithSchlickGGX",
+                        "normalDistributionFunction": "MaterialSpecularMicrofacetNormalDistributionGGX"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "streamInitializerPixelStage": {
+          "mixins": [
+            "MaterialStream",
+            "MaterialPixelShadingStream"
+          ]
+        }
+      },
+      "macros": [
+        [
+          "SkinningMaxBones",
+          "56"
+        ],
+        [
+          "STRIDE_RENDER_TARGET_COUNT",
+          "1"
+        ],
+        [
+          "STRIDE_MULTISAMPLE_COUNT",
+          "1"
+        ]
+      ]
+    }
+  },
+  {
+    "effect": "StrideEditorForwardShadingEffect",
+    "profile": "Level_11_0",
+    "sources": [
+      "Stride.GameStudio.AutoTesting"
+    ],
+    "mixin": {
+      "mixins": [
+        "ShaderBase",
+        "ShadingBase",
+        "TransformationBase",
+        "NormalStream",
+        "TransformationWAndVP",
         "NormalFromMesh",
         "TransformationSkinning",
         "NormalMeshSkinning",
@@ -19100,6 +20878,346 @@
         }
       },
       "macros": [
+        [
+          "STRIDE_RENDER_TARGET_COUNT",
+          "1"
+        ],
+        [
+          "STRIDE_MULTISAMPLE_COUNT",
+          "1"
+        ]
+      ]
+    }
+  },
+  {
+    "effect": "StrideEditorForwardShadingEffect",
+    "profile": "Level_11_0",
+    "sources": [
+      "Stride.GameStudio.AutoTesting"
+    ],
+    "mixin": {
+      "mixins": [
+        "ShaderBase",
+        "ShadingBase",
+        "TransformationBase",
+        "NormalStream",
+        "TransformationWAndVP",
+        "NormalFromMesh",
+        "TransformationSkinning",
+        "NormalMeshSkinning",
+        "NormalVSSkinningFromMesh",
+        "MaterialSurfacePixelStageCompositor"
+      ],
+      "compositions": {
+        "directLightGroups": [
+          {
+            "mixins": [
+              {
+                "class": "LightDirectionalGroup",
+                "generics": [
+                  "1"
+                ]
+              },
+              {
+                "class": "ShadowMapReceiverDirectional",
+                "generics": [
+                  "4",
+                  "1",
+                  "true",
+                  "true",
+                  "false",
+                  "false"
+                ]
+              },
+              {
+                "class": "ShadowMapFilterPcf",
+                "generics": [
+                  "PerView.Lighting",
+                  "5"
+                ]
+              }
+            ]
+          },
+          {
+            "mixins": [
+              "LightClusteredPointGroup"
+            ]
+          },
+          {
+            "mixins": [
+              "LightClusteredSpotGroup"
+            ]
+          }
+        ],
+        "environmentLights": [
+          {
+            "mixins": [
+              "LightSimpleAmbient"
+            ]
+          },
+          {
+            "mixins": [
+              "LightSkyboxShader"
+            ],
+            "compositions": {
+              "lightDiffuseColor": {
+                "mixins": [
+                  "IComputeEnvironmentColor"
+                ]
+              },
+              "lightSpecularColor": {
+                "mixins": [
+                  "IComputeEnvironmentColor"
+                ]
+              }
+            }
+          },
+          {
+            "mixins": [
+              "EnvironmentLight"
+            ]
+          }
+        ],
+        "materialPixelStage": {
+          "mixins": [
+            "MaterialSurfaceArray"
+          ],
+          "compositions": {
+            "layers": [
+              {
+                "mixins": [
+                  "MaterialSurfaceDiffuse"
+                ],
+                "compositions": {
+                  "diffuseMap": {
+                    "class": "ComputeColorConstantColorLink",
+                    "generics": [
+                      "Material.DiffuseValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  {
+                    "class": "MaterialSurfaceGlossinessMap",
+                    "generics": [
+                      "false"
+                    ]
+                  }
+                ],
+                "compositions": {
+                  "glossinessMap": {
+                    "class": "ComputeColorConstantFloatLink",
+                    "generics": [
+                      "Material.GlossinessValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  "MaterialSurfaceMetalness"
+                ],
+                "compositions": {
+                  "metalnessMap": {
+                    "class": "ComputeColorConstantFloatLink",
+                    "generics": [
+                      "Material.MetalnessValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  "MaterialSurfaceLightingAndShading"
+                ],
+                "compositions": {
+                  "surfaces": [
+                    {
+                      "class": "MaterialSurfaceShadingDiffuseLambert",
+                      "generics": [
+                        "false"
+                      ]
+                    },
+                    {
+                      "mixins": [
+                        "MaterialSurfaceShadingSpecularMicrofacet"
+                      ],
+                      "compositions": {
+                        "environmentFunction": "MaterialSpecularMicrofacetEnvironmentGGXLUT",
+                        "fresnelFunction": "MaterialSpecularMicrofacetFresnelSchlick",
+                        "geometricShadowingFunction": "MaterialSpecularMicrofacetVisibilitySmithSchlickGGX",
+                        "normalDistributionFunction": "MaterialSpecularMicrofacetNormalDistributionGGX"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "streamInitializerPixelStage": {
+          "mixins": [
+            "MaterialStream",
+            "MaterialPixelShadingStream"
+          ]
+        }
+      },
+      "macros": [
+        [
+          "SkinningMaxBones",
+          "56"
+        ],
+        [
+          "STRIDE_RENDER_TARGET_COUNT",
+          "1"
+        ],
+        [
+          "STRIDE_MULTISAMPLE_COUNT",
+          "1"
+        ]
+      ]
+    }
+  },
+  {
+    "effect": "StrideEditorForwardShadingEffect",
+    "profile": "Level_11_0",
+    "sources": [
+      "Stride.GameStudio.AutoTesting"
+    ],
+    "mixin": {
+      "mixins": [
+        "ShaderBase",
+        "ShadingBase",
+        "TransformationBase",
+        "NormalStream",
+        "TransformationWAndVP",
+        "NormalFromMesh",
+        "TransformationSkinning",
+        "NormalMeshSkinning",
+        "NormalVSSkinningFromMesh",
+        "MaterialSurfacePixelStageCompositor"
+      ],
+      "compositions": {
+        "directLightGroups": [
+          {
+            "mixins": [
+              {
+                "class": "LightDirectionalGroup",
+                "generics": [
+                  "1"
+                ]
+              },
+              {
+                "class": "ShadowMapReceiverDirectional",
+                "generics": [
+                  "4",
+                  "1",
+                  "true",
+                  "true",
+                  "false",
+                  "false"
+                ]
+              },
+              {
+                "class": "ShadowMapFilterPcf",
+                "generics": [
+                  "PerView.Lighting",
+                  "5"
+                ]
+              }
+            ]
+          },
+          {
+            "mixins": [
+              "LightClusteredPointGroup"
+            ]
+          },
+          {
+            "mixins": [
+              "LightClusteredSpotGroup"
+            ]
+          }
+        ],
+        "environmentLights": [
+          {
+            "mixins": [
+              "LightSimpleAmbient"
+            ]
+          },
+          {
+            "mixins": [
+              "LightSkyboxShader"
+            ],
+            "compositions": {
+              "lightDiffuseColor": {
+                "mixins": [
+                  "IComputeEnvironmentColor"
+                ]
+              },
+              "lightSpecularColor": {
+                "mixins": [
+                  "IComputeEnvironmentColor"
+                ]
+              }
+            }
+          },
+          {
+            "mixins": [
+              "EnvironmentLight"
+            ]
+          }
+        ],
+        "materialPixelStage": {
+          "mixins": [
+            "MaterialSurfaceArray"
+          ],
+          "compositions": {
+            "layers": [
+              {
+                "mixins": [
+                  "MaterialSurfaceDiffuse"
+                ],
+                "compositions": {
+                  "diffuseMap": {
+                    "class": "ComputeColorConstantColorLink",
+                    "generics": [
+                      "Material.DiffuseValue"
+                    ]
+                  }
+                }
+              },
+              {
+                "mixins": [
+                  "MaterialSurfaceLightingAndShading"
+                ],
+                "compositions": {
+                  "surfaces": [
+                    {
+                      "class": "MaterialSurfaceShadingDiffuseLambert",
+                      "generics": [
+                        "false"
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "streamInitializerPixelStage": {
+          "mixins": [
+            "MaterialStream",
+            "MaterialPixelShadingStream"
+          ]
+        }
+      },
+      "macros": [
+        [
+          "SkinningMaxBones",
+          "56"
+        ],
         [
           "STRIDE_RENDER_TARGET_COUNT",
           "1"
