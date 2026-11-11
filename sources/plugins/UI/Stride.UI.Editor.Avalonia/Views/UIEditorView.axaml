@@ -221,13 +221,9 @@
               </Interaction.Behaviors>
               <Control.DataTemplates>
                 <TreeDataTemplate DataType="{x:Type vm:UIElementViewModel}" ItemsSource="{Binding Children}">
-                  <Grid ColumnDefinitions="*, Auto">
-                    <Classes.activeRoot>
-                      <MultiBinding Converter="{sd:AllEqualMulti}">
-                        <Binding Path="$parent[TreeView].((vm:UIEditorBaseViewModel)DataContext).ActiveRoot" FallbackValue="{x:Null}"/>
-                        <Binding/>
-                      </MultiBinding>
-                    </Classes.activeRoot>
+                  <Grid ColumnDefinitions="*, Auto"
+                        Classes.activeRoot="{sd:MultiBinding {Binding $parent[TreeView].((vm:UIEditorBaseViewModel)DataContext).ActiveRoot, FallbackValue={x:Null}},
+                                                             {Binding}, Converter={sd:AllEqualMulti}}">
                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" ClipToBounds="True">
                       <TextBlock Text="{Binding Name}" Margin="0,0,4,0" VerticalAlignment="Center" IsVisible="{Binding !IsEditing}"/>
                       <!-- Renaming in place (F2): the box replaces the name while the item is editing -->

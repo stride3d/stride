@@ -3,6 +3,7 @@
 
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
@@ -118,6 +119,17 @@ public sealed class CurveEditorPanelTests
         var (x1, y1) = (Range(curve.XAxis!), Range(curve.YAxis!));
         Assert.True(x1.Item2 - x1.Item1 < x0.Item2 - x0.Item1, $"{x0} {x1}");
         Assert.True(y1.Item2 - y1.Item1 < y0.Item2 - y0.Item1, $"{y0} {y1}");
+
+        // The tracker shows while the pointer is over the curve area, unless its toggle is unchecked
+        var tracker = view.FindControl<TrackerControl>("Tracker")!;
+        var trackerToggle = view.FindControl<ToggleButton>("TrackerToggleButton")!;
+        Assert.True(tracker.IsVisible);
+        trackerToggle.IsChecked = false;
+        await WindowTestHelper.PumpAsync();
+        Assert.False(tracker.IsVisible);
+        trackerToggle.IsChecked = true;
+        await WindowTestHelper.PumpAsync();
+        Assert.True(tracker.IsVisible);
 
         // With Control, the keys only
         window.MouseWheel(center, new Vector(0, -1), RawInputModifiers.Control);
