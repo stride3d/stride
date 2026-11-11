@@ -57,16 +57,42 @@ public sealed class EditorViewLayoutTests
         layout.Layout = EditorViewLayout.TwoColumns;
         var top = layout.Panes[1];
 
-        // Perspective over Front: the Top view closes, a Front view opens
+        // Perspective over Front: the second view becomes a Front view, where a Front camera starts
         layout.Layout = EditorViewLayout.TwoRows;
         Assert.Equal([EditorViewCamera.Perspective, EditorViewCamera.Front], layout.Panes.Select(x => x.Camera));
-        Assert.Contains(top.Id, service.Removed);
+        Assert.Same(top, layout.Panes[1]);
+        Assert.Equal((top.Id, EditorViewCamera.Front), service.Cameras[^1]);
         var front = layout.Panes[1];
 
         // The quad keeps the Front view in its place, and opens Top and Left
         layout.Layout = EditorViewLayout.Quad;
         Assert.Equal([EditorViewCamera.Top, EditorViewCamera.Front, EditorViewCamera.Left, EditorViewCamera.Perspective], layout.Panes.Select(x => x.Camera));
         Assert.Same(front, layout.Panes[1]);
+    }
+
+    [Fact]
+    public void APickedLayoutPutsItsViewsBackWhereTheyStartButNotThePrimaryView()
+    {
+        var service = new FakeMultiViewService();
+        var layout = new EditorViewLayoutViewModel(new ViewModelServiceProvider([new NullDispatcherService()]), service, null);
+        layout.SetLayoutCommand.Execute(EditorViewLayout.Quad);
+        var top = layout.Panes[0];
+
+        // The user moved the cameras, then goes to two views and back to the quad: every view other than the primary one
+        // starts again from the camera of its place
+        service.Cameras.Clear();
+        layout.SetLayoutCommand.Execute(EditorViewLayout.TwoColumns);
+        Assert.Equal([(top.Id, EditorViewCamera.Top)], service.Cameras);
+        service.Cameras.Clear();
+        layout.SetLayoutCommand.Execute(EditorViewLayout.Quad);
+        Assert.Equal(layout.Panes.Take(3).Select(x => (x.Id, x.Camera)), service.Cameras);
+        Assert.Same(top, layout.Panes[0]);
+
+        // The quad picked again does it too
+        service.Cameras.Clear();
+        layout.SetLayoutCommand.Execute(EditorViewLayout.Quad);
+        Assert.Equal(layout.Panes.Take(3).Select(x => (x.Id, x.Camera)), service.Cameras);
+        Assert.DoesNotContain(service.Cameras, x => x.Id == IEditorGameMultiViewport.PrimaryView);
     }
 
     [Fact]
