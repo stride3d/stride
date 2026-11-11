@@ -30,6 +30,7 @@
     </Compile>
     <Compile Include="TestAssetFileExtensionDeclarations.cs" />
     <Compile Include="TestHeightmapAssetCompatibility.cs" />
+    <Compile Include="TestConvexHullMesh.cs" />
     <Compile Include="TestPluginPackageUpgrade.cs" />
     <Compile Include="TestUpgraderGates.cs" />
     <Compile Include="TestAudioProjectUpgrade.cs" />
