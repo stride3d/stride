@@ -44,18 +44,28 @@ jobs:
           echo "::error::Cannot deploy unsigned packages. Enable 'sign' to deploy."
           exit 1
 
+      # GITHUB_TOKEN can't read team membership: the Stride Bot app can (Organization Members: Read).
+      - name: Get the Stride Bot token
+        id: bot
+        if: ${{ inputs.sign || inputs.deploy }}
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.STRIDE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.STRIDE_BOT_PRIVATE_KEY }}
+          permission-members: read
+
       - name: Check release permissions
         if: ${{ inputs.sign || inputs.deploy }}
         env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
+          GH_TOKEN: ${{ steps.bot.outputs.token }}
         run: |
           ORG=$(echo "${{ github.repository }}" | cut -d/ -f1)
           TEAM="stride-release-managers"
           USER="${{ github.actor }}"
-          # A 404 here means either the actor isn't a member OR GH_PAT can't read the team
-          # (dead/under-scoped token); the message covers both since the API can't distinguish them.
+          # A 404 here means either the actor isn't a member OR the token can't read the team
+          # (app without Organization Members: Read); the message covers both since the API can't distinguish them.
           if ! gh api "orgs/$ORG/teams/$TEAM/memberships/$USER" --silent 2>/dev/null; then
-            echo "::error::Sign/deploy blocked: '$USER' is not a member of $ORG/$TEAM, or GH_PAT cannot read it (dead token / missing Organization Members: Read). Requires stride-release-managers membership."
+            echo "::error::Sign/deploy blocked: '$USER' is not a member of $ORG/$TEAM, or the Stride Bot token cannot read it (missing Organization Members: Read). Requires stride-release-managers membership."
             exit 1
           fi
 
@@ -66,7 +76,8 @@ jobs:
     name: Package Launcher
     needs: Validate
     runs-on: windows-latest
-    environment: production
+    # The installer embeds the signed launcher, so a signed build signs here: it waits for an approval, like Deploy.
+    environment: ${{ inputs.sign && 'production' || '' }}
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
@@ -191,10 +202,22 @@ jobs:
       contents: read
       id-token: write # nuget.org trusted publishing
     steps:
+      # The Stride Release app's key is only in the production environment, and the app may pass the master ruleset.
+      - name: Get the Stride Release token
+        id: release
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.STRIDE_RELEASE_CLIENT_ID }}
+          private-key: ${{ secrets.STRIDE_RELEASE_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: stride,stride-website
+          permission-contents: write
+
       - uses: actions/checkout@v7  # full history + tags for the launcher-scoped changelog
         with:
           fetch-depth: 0
           fetch-tags: true
+          token: ${{ steps.release.outputs.token }}  # push the launcher/<version> tag
 
       - uses: actions/setup-dotnet@v6
         with:
@@ -237,7 +260,7 @@ jobs:
       - name: Create GitHub Release
         if: ${{ needs.Package.outputs.version != '' }}
         env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
+          GH_TOKEN: ${{ steps.release.outputs.token }}
         run: |
           TAG="launcher/${{ needs.Package.outputs.version }}"
           # Already there when this job runs again ("Re-run failed jobs", e.g. after a NuGet failure): upload the setup
@@ -247,8 +270,14 @@ jobs:
             exit 0
           fi
           # --latest=false: a separate product, never the repo's "Latest" release (that's the engine)
+          # No --target: with one, GitHub refuses a token without the workflow permission when the workflow files
+          # differ between that commit and the default branch. The tag is pushed first instead.
+          if ! git rev-parse "$TAG" >/dev/null 2>&1; then
+            git tag "$TAG" "$GITHUB_SHA"
+            git push origin "$TAG"
+          fi
           gh release create "$TAG" \
-            --target "$GITHUB_SHA" \
+            --verify-tag \
             --title "Stride Launcher ${{ needs.Package.outputs.version }}" \
             --notes-file launcher-notes.md \
             --latest=false \
@@ -279,7 +308,8 @@ jobs:
       - name: Update the website download
         if: ${{ needs.Package.outputs.version != '' && inputs.version-suffix == '' }}
         env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
+          GH_TOKEN: ${{ steps.release.outputs.token }}
+          BOT: ${{ steps.release.outputs.app-slug }}[bot]
         run: |
           VERSION="${{ needs.Package.outputs.version }}"
           gh auth setup-git
@@ -293,8 +323,8 @@ jobs:
           fi
           jq --arg url "$URL" '.links."stride-download-url" = $url' _data/site.json > site.json.tmp
           mv site.json.tmp _data/site.json
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "$BOT"
+          git config user.email "$(gh api "users/$BOT" --jq .id)+$BOT@users.noreply.github.com"
           git commit -am "feat: The download button points to the Stride Launcher $VERSION setup (GitHub release)" \
             -m "https://github.com/stride3d/stride/releases/tag/launcher/$VERSION" \
             -m "Updated by $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
@@ -310,7 +340,7 @@ jobs:
     needs: [Package, Deploy]
     if: ${{ needs.Package.outputs.version != '' }}
     permissions:
-      contents: read       # passed down only as the model's read-only token; apply uses the PAT
+      contents: read       # passed down only as the model's read-only token; apply uses the Stride Bot token
       pull-requests: read  # lets the model trace commits to their PRs
     uses: ./.github/workflows/release-notes-apply.yml
     with:
@@ -320,5 +350,5 @@ jobs:
       scope: sources/launcher/Stride.Launcher
       apply: true
     secrets:
-      gh-token: ${{ secrets.GH_PAT }}
+      bot-private-key: ${{ secrets.STRIDE_BOT_PRIVATE_KEY }}
       anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY_RELEASE_NOTES }}
