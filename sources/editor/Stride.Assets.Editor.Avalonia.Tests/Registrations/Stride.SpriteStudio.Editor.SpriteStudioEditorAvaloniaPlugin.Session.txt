@@ -1,4 +1,0 @@
-Plugin: Stride.SpriteStudio.Editor.SpriteStudioEditorAvaloniaPlugin
-Services:
-NodePresenterCommands:
-NodePresenterUpdaters:

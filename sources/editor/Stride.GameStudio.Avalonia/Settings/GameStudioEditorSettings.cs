@@ -32,6 +32,11 @@ internal static class GameStudioEditorSettings
             DisplayName = $"{EditorSettings.Interface}/{Tr._p("Settings", "Theme Variant")}",
             GetAcceptableValues = () => ["Default", "Dark", "Light"],
         };
+        // A way out on a system where the windows of the OS misbehave (the panels cannot leave the main window then)
+        FloatingWindowsInsideMainWindow = new SettingsKey<bool>("Interface/FloatingWindowsInsideMainWindow", EditorSettings.SettingsContainer, false)
+        {
+            DisplayName = $"{EditorSettings.Interface}/{Tr._p("Settings", "Floating panels inside the main window")}",
+        };
     }
 
     /// <summary>
@@ -42,4 +47,9 @@ internal static class GameStudioEditorSettings
     public static SettingsKey<Color> ThemeAccent { get; }
 
     public static SettingsKey<string> ThemeVariant { get; }
+
+    /// <summary>
+    /// Whether a floating panel or editor is drawn inside the main window rather than in a window of its own.
+    /// </summary>
+    public static SettingsKey<bool> FloatingWindowsInsideMainWindow { get; }
 }

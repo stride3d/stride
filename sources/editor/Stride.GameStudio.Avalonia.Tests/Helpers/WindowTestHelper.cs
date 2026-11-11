@@ -12,11 +12,23 @@ namespace Stride.GameStudio.Avalonia.Tests.Helpers;
 internal static class WindowTestHelper
 {
     /// <summary>
-    /// Runs the work the view models queued on the dispatcher (the session updates its state and commands asynchronously).
+    /// Runs the work the view models queued on the dispatcher (the session updates its state and commands asynchronously), and
+    /// a frame of the windows: the docking presents the content of its panels on the frames that follow a change.
     /// </summary>
     public static async Task PumpAsync()
     {
+        AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+        Dispatcher.UIThread.RunJobs();
         await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Background);
+    }
+
+    /// <summary>
+    /// Shows a window and lets it present its content: the docked panels of the main window appear on its first frame.
+    /// </summary>
+    public static async Task ShowAsync(this Window window)
+    {
+        window.Show();
+        await PumpAsync();
     }
 
     /// <summary>

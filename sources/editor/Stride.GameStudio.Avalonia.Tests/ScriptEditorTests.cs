@@ -30,7 +30,7 @@ public sealed class ScriptEditorTests
     {
         using var fixture = await OpenAsync();
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var (editor, view) = await OpenEditorAsync(fixture, window);
@@ -50,7 +50,7 @@ public sealed class ScriptEditorTests
     {
         using var fixture = await OpenAsync();
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var (editor, view) = await OpenEditorAsync(fixture, window);
@@ -81,7 +81,7 @@ public sealed class ScriptEditorTests
     {
         using var fixture = await OpenAsync();
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var (editor, view) = await OpenEditorAsync(fixture, window);
@@ -108,7 +108,7 @@ public sealed class ScriptEditorTests
     {
         using var fixture = await OpenAsync();
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var (editor, view) = await OpenEditorAsync(fixture, window);
@@ -139,7 +139,7 @@ public sealed class ScriptEditorTests
         var window = new MainWindow { DataContext = fixture.Main };
         var closed = false;
         window.Closed += (_, _) => closed = true;
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var (editor, view) = await TypeAsync(fixture, window, "// ");
@@ -169,7 +169,7 @@ public sealed class ScriptEditorTests
         var window = new MainWindow { DataContext = fixture.Main };
         var closed = false;
         window.Closed += (_, _) => closed = true;
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var (editor, view) = await TypeAsync(fixture, window, "// ");
@@ -203,7 +203,7 @@ public sealed class ScriptEditorTests
         using var fixture = await OpenAsync();
         var dialogs = fixture.ReplaceDialogService();
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var (editor, _) = await TypeAsync(fixture, window, "// ");

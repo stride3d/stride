@@ -32,11 +32,14 @@ rem Stride.Assets.Editor.pot
 rem Stride.Editor.pot
 %TOOL_DIR%\Stride.Core.Translation.Extractor.exe --directory=%SOURCES_DIR%\editor\Stride.Editor --domain-name=Stride.Editor --recursive --preserve-comments --exclude=*.Designer.cs --verbose *.xaml *.cs
 
+rem Stride.UI.Editor.pot
+%TOOL_DIR%\Stride.Core.Translation.Extractor.exe --directory=%SOURCES_DIR%\plugins\UI\Stride.UI.Editor --domain-name=Stride.UI.Editor --recursive --preserve-comments --exclude=*.Designer.cs --verbose *.xaml *.cs
+
 rem Stride.GameStudio.pot
 %TOOL_DIR%\Stride.Core.Translation.Extractor.exe --directory=%SOURCES_DIR%\editor\Stride.GameStudio --domain-name=Stride.GameStudio --recursive --preserve-comments --exclude=*.Designer.cs --verbose *.xaml *.cs
 
 rem Update po files
-FOR %%B IN (Stride.Core.Presentation Stride.Core.Presentation.Wpf Stride.Assets.Editor.Wpf Stride.Core.Assets.Editor.Wpf Stride.Core.Assets.Presentation Stride.Core.Assets.Editor Stride.Assets.Presentation Stride.Assets.Editor Stride.Editor Stride.GameStudio) DO (
+FOR %%B IN (Stride.Core.Presentation Stride.Core.Presentation.Wpf Stride.Assets.Editor.Wpf Stride.Core.Assets.Editor.Wpf Stride.Core.Assets.Presentation Stride.Core.Assets.Editor Stride.Assets.Presentation Stride.Assets.Editor Stride.Editor Stride.UI.Editor Stride.GameStudio) DO (
   FOR %%A IN (de es fr he_IL it ja ko mk nb_NO pl pt pt_BR ru zh_HANS-CN zh_Hant) DO (
     %MSGMERGE% -U %%A\%%B.%%A.po %%B.pot
   )

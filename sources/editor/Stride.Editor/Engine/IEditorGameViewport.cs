@@ -4,6 +4,7 @@
 #nullable enable
 
 using System;
+using Stride.Core.Mathematics;
 using Stride.Games;
 
 namespace Stride.Editor.Engine;
@@ -38,4 +39,20 @@ public interface IEditorGameViewport : IEmbeddedGameHost, IDisposable
     void ReleaseView()
     {
     }
+
+    /// <summary>
+    /// Gets where the pointer is over the view, as a fraction of the size of the view from its top left corner (UI
+    /// thread), or <c>null</c> when the view doesn't know it. A pointer outside the view gives a point outside 0 to 1.
+    /// </summary>
+    /// <remarks>
+    /// The editors place what is dropped or pasted on the view under it (see <c>IEditorGameMousePositionViewModelService</c>).
+    /// <c>null</c> by default.
+    /// </remarks>
+    Vector2? PointerPosition => null;
+
+    /// <summary>
+    /// Gets where the last right click on the view was, which opened the menu of the view, as a fraction of the size of
+    /// the view from its top left corner (UI thread), or <c>null</c> when there was none. <c>null</c> by default.
+    /// </summary>
+    Vector2? LastRightClickPosition => null;
 }

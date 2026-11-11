@@ -3,6 +3,8 @@
 
 using Avalonia;
 using Avalonia.Controls;
+using Stride.Core.Assets.Editor.Panels;
+using Stride.GameStudio.Avalonia.Views.Panels;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
@@ -28,7 +30,7 @@ public sealed class BuildAndRunTests
     {
         using var fixture = await ShellSessionFixture.OpenExecutableAsync(Platform.Type);
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var build = MenuItem(window, "BuildProjectMenuItem");
@@ -61,7 +63,7 @@ public sealed class BuildAndRunTests
     {
         using var fixture = ShellSessionFixture.Create();
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var toolBar = window.GetVisualDescendants().OfType<Control>().Single(x => x.Name == "MainToolBar");
@@ -88,11 +90,11 @@ public sealed class BuildAndRunTests
         var (builder, launcher) = fixture.ReplaceGameBuilder();
         var dialogs = fixture.ReplaceDialogService();
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
-            var output = window.GetLogicalDescendants().OfType<TabItem>().Single(x => x.Name == "OutputTab");
-            Assert.False(output.IsSelected);
+            var output = fixture.Main.Panels.FindDockable(BuiltInPanels.BuildLog)!;
+            Assert.False(output.ViewModel.IsShown);
 
             window.KeyPress(Key.F5, RawInputModifiers.None, PhysicalKey.F5, null);
             window.KeyRelease(Key.F5, RawInputModifiers.None, PhysicalKey.F5, null);
@@ -102,10 +104,10 @@ public sealed class BuildAndRunTests
             Assert.Single(dialogs.ProgressWindows);
             Assert.Single(builder.Requests);
             Assert.Equal(builder.AssemblyPath, launcher.Games[0].AssemblyPath);
-            // The Output tab shows the log of the build
-            Assert.True(output.IsSelected);
-            Assert.Equal("Output", output.Header);
-            var log = Assert.IsType<TextLogViewer>(output.Content);
+            // The Output comes forward and shows the log of the build
+            await WindowTestHelper.WaitUntilAsync(() => output.ViewModel.IsShown, "the Output in front");
+            Assert.Equal("Output", output.Title);
+            var log = window.GetVisualDescendants().OfType<OutputView>().Single().GetVisualDescendants().OfType<TextLogViewer>().Single();
             await WindowTestHelper.WaitUntilAsync(() => log.LogMessages?.Any(x => x.Text == $"{ShellSessionFixture.PackageName} started (process 1000).") == true, "the log of the start");
             Assert.Contains(log.LogMessages!, x => x.Text == $"Build of {ShellSessionFixture.PackageName} succeeded.");
             Assert.Equal("Build successful", fixture.Main.Status.CurrentStatus);
@@ -132,7 +134,7 @@ public sealed class BuildAndRunTests
         fixture.ReplaceDialogService();
         builder.CompleteAtOnce = false;
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var started = builder.NextBuild;
@@ -165,25 +167,22 @@ public sealed class BuildAndRunTests
         var (_, launcher) = fixture.ReplaceGameBuilder();
         fixture.ReplaceDialogService();
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             fixture.Main.Build.StartProjectCommand.Execute();
             await WindowTestHelper.WaitUntilAsync(() => launcher.Games.Count == 1 && !fixture.Main.Build.BuildInProgress, "the start of the game");
-            var tabs = window.GetLogicalDescendants().OfType<TabItem>().ToList();
-            var output = tabs.Single(x => x.Name == "OutputTab");
-            Assert.True(output.IsSelected);
+            var output = fixture.Main.Panels.FindDockable(BuiltInPanels.BuildLog)!;
+            await WindowTestHelper.WaitUntilAsync(() => output.ViewModel.IsShown, "the Output in front");
 
-            // The user goes back to the asset view; the game writes to its console
-            tabs.Single(x => Equals(x.Header, "Asset view")).IsSelected = true;
-            await WindowTestHelper.PumpAsync();
-            Assert.False(fixture.Main.Build.IsOutputVisible);
+            // The user selects another tab of the Output's group; the game writes to its console
+            fixture.Main.Panels.Show(BuiltInPanels.References);
+            await WindowTestHelper.WaitUntilAsync(() => !fixture.Main.Build.IsOutputVisible, "the Output behind");
             launcher.Games.Single().Output.Info("Hello from the game");
-            await WindowTestHelper.WaitUntilAsync(() => Equals(output.Header, "Output*"), "the mark of the Output tab", 10000);
+            await WindowTestHelper.WaitUntilAsync(() => output.Title == "Output*", "the mark of the Output tab", 10000);
 
-            output.IsSelected = true;
-            await WindowTestHelper.PumpAsync();
-            Assert.Equal("Output", output.Header);
+            fixture.Main.Panels.Show(BuiltInPanels.BuildLog);
+            await WindowTestHelper.WaitUntilAsync(() => output.Title == "Output", "the mark gone");
             launcher.Games.Single().Exit(0);
         }
         finally
@@ -200,7 +199,7 @@ public sealed class BuildAndRunTests
         fixture.ReplaceDialogService();
         builder.CompleteAtOnce = false;
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var started = builder.NextBuild;

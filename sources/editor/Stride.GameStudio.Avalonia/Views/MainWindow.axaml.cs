@@ -77,9 +77,9 @@ public partial class MainWindow : Window
     protected override void OnDataContextChanged(EventArgs e)
     {
         base.OnDataContextChanged(e);
-        // Settings > Interface > Reset Game Studio layout: the sizes of the panels, as WPF resets its docking layout
+        // Settings > Interface > Reset Game Studio layout: the default layouts of the session, as WPF resets its docking layout
         if (DataContext is MainViewModel mainViewModel)
-            EditorSettings.ResetEditorLayout.Command = new AnonymousCommand(mainViewModel.ServiceProvider, View.ResetPanelSizes);
+            EditorSettings.ResetEditorLayout.Command = mainViewModel.ViewMenu.ResetLayoutCommand;
     }
 
     protected override void OnKeyDown(KeyEventArgs e)
@@ -205,7 +205,6 @@ public partial class MainWindow : Window
             var position = WindowState == WindowState.Normal ? Position : restorePosition;
             GameStudioInternalSettings.WindowLeft.SetValue(position.X);
             GameStudioInternalSettings.WindowTop.SetValue(position.Y);
-            View.SavePanelSizes();
             // Write the settings file
             InternalSettings.Save();
         }

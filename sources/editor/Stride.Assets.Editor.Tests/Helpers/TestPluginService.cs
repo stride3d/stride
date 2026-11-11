@@ -26,8 +26,6 @@ public sealed class TestPluginService : StrideEditorPluginHost
 
     protected override Type AssetEditorViewType => typeof(IAssetEditorView);
 
-    public override bool HasEditorView(ISessionViewModel session, Type viewModelType) => GetEditorViewModelType(viewModelType) is { } editor && GetEditorViewType(editor) is not null;
-
     protected override bool AddTemplateProvider(ISessionViewModel session, ITemplateProvider provider) => false;
 
     protected override void RemoveTemplateProvider(ISessionViewModel session, ITemplateProvider provider)

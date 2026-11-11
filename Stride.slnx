@@ -260,6 +260,7 @@
   </Folder>
   <Folder Name="/80-Plugins/UI/">
     <Project Path="sources/plugins/UI/Stride.UI.Assets/Stride.UI.Assets.csproj" />
+    <Project Path="sources/plugins/UI/Stride.UI.Editor.Avalonia/Stride.UI.Editor.Avalonia.csproj" />
     <Project Path="sources/plugins/UI/Stride.UI.Editor.Wpf/Stride.UI.Editor.Wpf.csproj" />
     <Project Path="sources/plugins/UI/Stride.UI.Editor/Stride.UI.Editor.csproj" />
     <Project Path="sources/plugins/UI/Stride.UI.Tests/Stride.UI.Tests.csproj" />

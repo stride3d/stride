@@ -4,6 +4,7 @@
 using System.Reflection;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Components.Properties;
+using Stride.Core.Assets.Editor.Panels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.Presenters;
@@ -158,6 +159,12 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
     /// The settings keys registered by the plugins.
     /// </summary>
     public IReadOnlyCollection<SettingsKey> SettingsKeys => settingsKeys.Keys;
+
+    /// <summary>
+    /// The panels of the main window: the editor's shell registers its own, and a plugin registers its panels with itself as
+    /// their owner, so that they go when it leaves.
+    /// </summary>
+    public PanelRegistry Panels { get; } = new();
 
     /// <summary>
     /// The base type of the keys of the editor views: the editor view model type of the editor's toolkit.
@@ -482,6 +489,8 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
     private void Leave(AssetsPlugin plugin)
     {
         var joined = sessionPlugins.Remove(plugin);
+        // Its panels go, whoever registered them for it
+        Panels.UnregisterOwner(plugin);
         if (records.Remove(plugin, out var record))
         {
             record.UndoFrom(0, pluginLogger);
@@ -598,9 +607,13 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
     }
 
     /// <inheritdoc />
+    /// <remarks>
+    /// An editor counts only when this editor has its view: a plugin may declare an editor whose view exists in another
+    /// editor only (e.g. a toolkit-neutral plugin with the views of one toolkit).
+    /// </remarks>
     public virtual bool HasEditorView(ISessionViewModel session, Type viewModelType)
     {
-        return editorViewModelTypes.Entries.Any(x => x.Key.IsAssignableFrom(viewModelType));
+        return GetEditorViewModelType(viewModelType) is { } editorViewModelType && GetEditorViewType(editorViewModelType) is not null;
     }
 
     /// <inheritdoc />

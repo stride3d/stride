@@ -8,6 +8,7 @@ using Avalonia.VisualTree;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor;
 using Stride.Core.Assets.Editor.Annotations;
+using Stride.Core.Assets.Editor.Panels;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Presentation.Avalonia.Controls;
@@ -144,7 +145,8 @@ public sealed class SettingsCompatibilityTests : IDisposable
         // This editor saves its window, its panels and the editors it had open
         GameStudioInternalSettings.WindowWidth.SetValue(900, profile);
         GameStudioInternalSettings.WindowMaximized.SetValue(true, profile);
-        GameStudioInternalSettings.PanelSizes.SetValue(new Dictionary<string, string> { ["TopPanels"] = "3*,2,1*" }, profile);
+        var layouts = new SessionPanelLayouts { FilePath = data.FilePath, Timestamp = 1, Normal = DefaultPanelLayouts.Create(PanelLayoutKind.Normal) };
+        GameStudioInternalSettings.SessionLayouts.SetValue([layouts], profile);
         data.OpenedAssets.Clear();
         GameStudioInternalSettings.MostRecentlyUsedSessionsData.SetValue([data], profile);
         Assert.True(container.SaveSettingsProfile(profile, path));
@@ -152,7 +154,8 @@ public sealed class SettingsCompatibilityTests : IDisposable
         var saved = File.ReadAllText(path);
         Assert.Contains("Internal/Avalonia/WindowWidth: 900", saved);
         Assert.Contains("Internal/Avalonia/WindowMaximized: true", saved);
-        Assert.Contains("TopPanels: 3*,2,1*", saved);
+        Assert.Contains("Internal/Avalonia/SessionLayouts:", saved);
+        Assert.Contains("Stride.SolutionExplorer", saved);
         // The WPF editor finds its window, its panels and its docking layouts as it left them
         Assert.Contains("Internal/WindowWidth: 1234", saved);
         Assert.Contains("Internal/WindowHeight: 777", saved);
@@ -166,7 +169,10 @@ public sealed class SettingsCompatibilityTests : IDisposable
         var reloaded = container.LoadSettingsProfile(path, false, null, false);
         Assert.NotNull(reloaded);
         Assert.Equal(900, GameStudioInternalSettings.WindowWidth.GetValue(reloaded, true));
-        Assert.Equal("3*,2,1*", GameStudioInternalSettings.PanelSizes.GetValue(reloaded, true)["TopPanels"]);
+        var reloadedLayouts = Assert.Single(GameStudioInternalSettings.SessionLayouts.GetValue(reloaded, true));
+        Assert.Equal(data.FilePath, reloadedLayouts.FilePath);
+        Assert.Equal(DefaultPanelLayouts.Create(PanelLayoutKind.Normal).EnumeratePanels(), reloadedLayouts.Normal!.EnumeratePanels());
+        Assert.Null(reloadedLayouts.Editors);
         Assert.Empty(Assert.Single(GameStudioInternalSettings.MostRecentlyUsedSessionsData.GetValue(reloaded, true)).OpenedAssets);
     }
 
@@ -181,7 +187,7 @@ public sealed class SettingsCompatibilityTests : IDisposable
         var previousCommand = EditorSettings.ResetEditorLayout.Command;
         var resets = 0;
         EditorSettings.ResetEditorLayout.Command = new AnonymousCommand(serviceProvider, () => resets++);
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var viewModel = Assert.IsType<SettingsViewModel>(window.DataContext);
@@ -243,46 +249,6 @@ public sealed class SettingsCompatibilityTests : IDisposable
             GameStudioInternalSettings.MostRecentlyUsedSessions.SetValue(previousSessions);
             InternalSettings.FileDialogLastImportDirectory.SetValue(previousDirectory);
             InternalSettings.SaveProfile();
-        }
-    }
-
-    [AvaloniaFact]
-    public void ThePanelSizesSetWithTheSplittersAreKeptAndReset()
-    {
-        var previous = GameStudioInternalSettings.PanelSizes.GetValue();
-        try
-        {
-            var view = new MainView();
-            var columns = view.FindControl<Grid>("TopPanels")!.ColumnDefinitions;
-            Assert.Equal(new GridLength(2, GridUnitType.Star), columns[0].Width);
-            columns[0].Width = new GridLength(3.5, GridUnitType.Star);
-            view.FindControl<Grid>("SessionPanels")!.RowDefinitions[2].Height = new GridLength(1.5, GridUnitType.Star);
-            view.SavePanelSizes();
-
-            var sizes = GameStudioInternalSettings.PanelSizes.GetValue();
-            Assert.Equal("3.5*,2,1*", sizes["TopPanels"]);
-            Assert.Equal("2*,2,1.5*", sizes["SessionPanels"]);
-            Assert.Equal("1*,2,2*,2,1*", sizes["BottomPanels"]);
-
-            // The next main window has them
-            var next = new MainView();
-            Assert.Equal(new GridLength(3.5, GridUnitType.Star), next.FindControl<Grid>("TopPanels")!.ColumnDefinitions[0].Width);
-            Assert.Equal(new GridLength(1.5, GridUnitType.Star), next.FindControl<Grid>("SessionPanels")!.RowDefinitions[2].Height);
-
-            // Settings > Interface > Reset Game Studio layout
-            next.ResetPanelSizes();
-            Assert.Equal(new GridLength(2, GridUnitType.Star), next.FindControl<Grid>("TopPanels")!.ColumnDefinitions[0].Width);
-            Assert.Equal("2*,2,1*", GameStudioInternalSettings.PanelSizes.GetValue()["TopPanels"]);
-
-            // Sizes that no longer fit the panels (edited by hand, another version) are ignored
-            GameStudioInternalSettings.PanelSizes.SetValue(new Dictionary<string, string> { ["TopPanels"] = "1*,2", ["BottomPanels"] = "not sizes" });
-            var ignored = new MainView();
-            Assert.Equal(new GridLength(2, GridUnitType.Star), ignored.FindControl<Grid>("TopPanels")!.ColumnDefinitions[0].Width);
-            Assert.Equal(new GridLength(2, GridUnitType.Star), ignored.FindControl<Grid>("BottomPanels")!.ColumnDefinitions[2].Width);
-        }
-        finally
-        {
-            GameStudioInternalSettings.PanelSizes.SetValue(previous);
         }
     }
 

@@ -27,7 +27,7 @@ public sealed class ProjectTemplateWindowTests
         var recent = new UFile(Path.Combine(Path.GetTempPath(), "RecentGames", "Adventure", "Adventure.slnx"));
         var templates = new NewOrOpenSessionTemplateCollectionViewModel(CreateServices(dialogs), [recent], _ => { });
         var window = new ProjectSelectionWindow { DataContext = templates };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             await WindowTestHelper.PumpAsync();
@@ -76,7 +76,7 @@ public sealed class ProjectTemplateWindowTests
         var recent = new UFile(Path.Combine(Path.GetTempPath(), "RecentGames", "Adventure", "Adventure.slnx"));
         var templates = new NewOrOpenSessionTemplateCollectionViewModel(CreateServices(new RecordingDialogService()), [recent], _ => { });
         var window = new ProjectSelectionWindow { DataContext = templates };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             await WindowTestHelper.PumpAsync();
@@ -104,7 +104,7 @@ public sealed class ProjectTemplateWindowTests
     {
         var templates = new NewOrOpenSessionTemplateCollectionViewModel(CreateServices(new RecordingDialogService()), [], _ => { });
         var window = new ProjectSelectionWindow { DataContext = templates };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             await WindowTestHelper.PumpAsync();
@@ -126,7 +126,7 @@ public sealed class ProjectTemplateWindowTests
         _ = TestTemplatePackage.Package;
         var templates = new NewProjectTemplateCollectionViewModel(fixture.ServiceProvider, fixture.Session);
         var window = new NewProjectWindow { DataContext = templates };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             await WindowTestHelper.PumpAsync();

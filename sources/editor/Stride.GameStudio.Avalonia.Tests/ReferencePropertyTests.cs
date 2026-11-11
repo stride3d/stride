@@ -31,7 +31,7 @@ public sealed class ReferencePropertyTests
     {
         using var fixture = await OpenModelWithSkeletonAsync();
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var model = fixture.Asset(ModelLocation);
@@ -55,7 +55,7 @@ public sealed class ReferencePropertyTests
     {
         using var fixture = await OpenModelWithSkeletonAsync();
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var model = fixture.Asset(ModelLocation);
@@ -82,7 +82,7 @@ public sealed class ReferencePropertyTests
     {
         using var fixture = await OpenModelWithSkeletonAsync();
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var model = fixture.Asset(ModelLocation);
@@ -126,7 +126,7 @@ public sealed class ReferencePropertyTests
     {
         using var fixture = await OpenModelWithSkeletonAsync();
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var model = fixture.Asset(ModelLocation);

@@ -3,12 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
-             xmlns:caec="using:Stride.Core.Assets.Editor.Avalonia.Converters"
-             xmlns:caect="using:Stride.Core.Assets.Editor.Components.Transactions"
-             xmlns:caectl="using:Stride.Core.Assets.Editor.Avalonia.Controls"
-             xmlns:caevm="using:Stride.Core.Assets.Editor.ViewModels"
-             xmlns:capvm="using:Stride.Core.Assets.Presentation.ViewModels"
-             xmlns:caevml="using:Stride.Core.Assets.Presentation.ViewModels.Logs"
+             xmlns:dock="using:Dock.Avalonia.Controls"
              xmlns:caevmp="using:Stride.Core.Assets.Editor.ViewModels.Progress"
              xmlns:cpc="using:Stride.Core.Presentation.Commands"
              xmlns:gsc="using:Stride.GameStudio.Avalonia.Converters"
@@ -25,9 +20,6 @@
   </Design.DataContext>
   <UserControl.Resources>
     <ResourceDictionary>
-      <ResourceDictionary.MergedDictionaries>
-        <ResourceInclude Source="avares://Stride.Core.Assets.Editor.Avalonia/Views/ImageResources.axaml"/>
-      </ResourceDictionary.MergedDictionaries>
       <!-- An entry of File > Open recent: the version in bold, then the path, shortened in the middle, as in WPF -->
       <DataTemplate x:Key="RecentSessionHeaderTemplate" DataType="gsvm:RecentSessionViewModel">
         <Grid ColumnDefinitions="30, Auto">
@@ -145,6 +137,11 @@
                   Command="{Binding OpenSettingsWindowCommand}"
                   IsEnabled="{Binding Session, Mode=OneWay, Converter={sd:ObjectToBool}}"/>
       </MenuItem>
+      <!-- View menu: a toggle per panel in the sections of WPF's View menu, then Reset layout; its items are made by the view
+           (MainView.UpdateViewMenu) from MainViewModel.ViewMenu, which follows the panels the plugins register -->
+      <MenuItem Header="{sd:LocalizeString _View, Context=Menu}"
+                Name="ViewMenu"
+                IsEnabled="{Binding Session, Mode=OneWay, Converter={sd:ObjectToBool}}"/>
       <!-- Project menu: build the current project and start its game, as WPF's Project menu does. The shortcuts are key bindings
            of the main window, like Save. -->
       <MenuItem Header="{sd:LocalizeString _Project, Context=Menu}"
@@ -262,155 +259,14 @@
       </Button>
     </sd:ToolBar>
 
-    <!-- Session area: the sizes its splitters set are kept in the internal settings (MainView.SavePanelSizes) -->
-    <Grid x:Name="SessionPanels" Grid.Row="2"
-          RowDefinitions="2*, 2, *">
-      <Grid x:Name="TopPanels" Grid.Row="0"
-            ColumnDefinitions="2*, 2, *">
-        <!-- Editors -->
-        <gsvw:EditorCollectionView Grid.Column="0"
-                                 BorderThickness="2"
-                                 BorderBrush="Red"
-                                 Padding="2"
-                                 DataContext="{Binding Session?.EditorCollection}"/>
-        <GridSplitter Grid.Column="1" ResizeDirection="Auto"/>
-        <!-- Property Grid, with the navigation in the selection history in its header as in WPF -->
-        <gsvw:PropertyGridView Grid.Column="2"
-                               BorderThickness="2"
-                               BorderBrush="Orange"
-                               Padding="2"
-                               DataContext="{Binding Session?.ActiveProperties}"/>
-      </Grid>
-      <GridSplitter Grid.Row="1" ResizeDirection="Auto"/>
-      <Grid x:Name="BottomPanels" Grid.Row="2"
-            ColumnDefinitions="*, 2, 2*, 2, *">
-        <!-- Solution Explorer -->
-        <gsvw:SolutionExplorerView Grid.Column="0"
-                                 BorderThickness="2"
-                                 BorderBrush="Black"
-                                 Padding="2"
-                                 DataContext="{Binding Session}"/>
-        <GridSplitter Grid.Column="1" ResizeDirection="Auto"/>
-        <!-- Asset view and logs -->
-        <TabControl Grid.Column="2">
-          <TabItem Header="Asset view">
-            <gsvw:AssetExplorerView BorderThickness="2"
-                                  BorderBrush="Blue"
-                                  Padding="2"
-                                  DataContext="{Binding Session?.AssetCollection}"/>
-          </TabItem>
-          <!-- The warnings and errors of the assets, with their count in the title, as WPF's Asset errors pane -->
-          <TabItem Name="AssetLogTab"
-                   Header="{Binding Session?.AssetLog.ErrorCount, FallbackValue=0, Converter={sd:Localize Text=Asset error ({0}), Plural=Asset errors ({0}), IsStringFormat=True, Context=View}}">
-            <caectl:GridLogViewer LogMessages="{Binding Session?.AssetLog.FilteredMessages}"
-                                  SelectMessageCommand="{Binding Session?.AssetLog.SelectMessageAssetCommand}"
-                                  ShowDebugMessages="False" ShowVerboseMessages="False" ShowInfoMessages="False">
-              <caectl:GridLogViewer.ToolBarContent>
-                <StackPanel Orientation="Horizontal" DataContext="{Binding Session?.AssetLog}" x:DataType="caevm:AssetLogViewModel">
-                  <ComboBox Name="AssetLogScope" MinWidth="100" VerticalAlignment="Center"
-                            SelectedValue="{Binding Scope}" SelectedValueBinding="{Binding Tag, DataType=ComboBoxItem}"
-                            ToolTip.Tip="{sd:LocalizeString Show the messages of all assets or only of the selected ones (and the assets they use), Context=ToolTip}">
-                    <ComboBoxItem Content="{sd:LocalizeString All assets}" Tag="{x:Static caevml:AssetLogScope.AllAssets}"/>
-                    <ComboBoxItem Content="{sd:LocalizeString Selected assets}" Tag="{x:Static caevml:AssetLogScope.SelectedAssets}"/>
-                  </ComboBox>
-                  <Menu Name="AssetLogSources" VerticalAlignment="Center" Background="Transparent">
-                    <MenuItem Header="{Binding SourcesHeader}">
-                      <MenuItem Header="{sd:LocalizeString Show all sources, Context=Menu}" Command="{Binding ShowAllSourcesCommand}"/>
-                      <Separator/>
-                      <MenuItem Header="{Binding Sources[0].DisplayName}" ToggleType="CheckBox" IsChecked="{Binding Sources[0].IsShown, Mode=TwoWay}" StaysOpenOnClick="True"/>
-                      <MenuItem Header="{Binding Sources[1].DisplayName}" ToggleType="CheckBox" IsChecked="{Binding Sources[1].IsShown, Mode=TwoWay}" StaysOpenOnClick="True"/>
-                      <MenuItem Header="{Binding Sources[2].DisplayName}" ToggleType="CheckBox" IsChecked="{Binding Sources[2].IsShown, Mode=TwoWay}" StaysOpenOnClick="True"/>
-                      <MenuItem Header="{Binding Sources[3].DisplayName}" ToggleType="CheckBox" IsChecked="{Binding Sources[3].IsShown, Mode=TwoWay}" StaysOpenOnClick="True"/>
-                      <MenuItem Header="{Binding Sources[4].DisplayName}" ToggleType="CheckBox" IsChecked="{Binding Sources[4].IsShown, Mode=TwoWay}" StaysOpenOnClick="True"/>
-                    </MenuItem>
-                  </Menu>
-                </StackPanel>
-              </caectl:GridLogViewer.ToolBarContent>
-            </caectl:GridLogViewer>
-          </TabItem>
-          <!-- The log of the last build and the output of the games started from the editor; a build selects it, and its title
-               has a "*" while it has messages that were not seen, as WPF's Output pane -->
-          <TabItem Name="OutputTab"
-                   Header="{Binding Build.OutputTitle}"
-                   IsSelected="{Binding Build.IsOutputVisible, Mode=TwoWay}">
-            <sd:TextLogViewer LogMessages="{Binding Build.BuildLog.Messages}"
-                              ShowDebugMessages="False" ShowVerboseMessages="False"/>
-          </TabItem>
-        </TabControl>
-        <GridSplitter Grid.Column="3" ResizeDirection="Auto"/>
-        <!-- Asset preview, history and references -->
-        <TabControl Grid.Column="4">
-          <!-- The preview game renders only while this tab is selected -->
-          <TabItem Header="Asset preview"
-                   IsSelected="{Binding Preview.IsPreviewVisible, Mode=TwoWay, FallbackValue={sd:True}}">
-            <gsvw:AssetPreviewView BorderThickness="2"
-                                 BorderBrush="Cyan"
-                                 Padding="2"/>
-          </TabItem>
-          <TabItem Header="Edit history">
-            <ListBox ItemsSource="{Binding Session?.ActionHistory?.Transactions}"
-                     HorizontalAlignment="Stretch">
-              <ListBox.ItemTemplate>
-                <DataTemplate DataType="caect:TransactionViewModel">
-                  <DockPanel>
-                    <TextBlock DockPanel.Dock="Left" x:Name="Text"
-                               Text="{Binding Name}"/>
-                    <Image DockPanel.Dock="Right" x:Name="Image"
-                           HorizontalAlignment="Right"
-                           IsVisible="{Binding IsSavePoint, Mode=OneWay}"
-                           Source="{StaticResource ImageSave}"/>
-                  </DockPanel>
-                </DataTemplate>
-              </ListBox.ItemTemplate>
-            </ListBox>
-          </TabItem>
-          <TabItem Header="References">
-            <DockPanel>
-              <!-- Toolbar -->
-              <sd:ToolBar DockPanel.Dock="Top">
-                <ToggleButton IsChecked="{Binding !Session.References.ShowReferencers}" Content="{sd:LocalizeString References}" MinWidth="80"/>
-                <ToggleButton IsChecked="{Binding Session.References.ShowReferencers}" Content="{sd:LocalizeString Referenced by}" MinWidth="80"/>
-              </sd:ToolBar>
-              <!-- Asset references -->
-              <Border DockPanel.Dock="Bottom"
-                      Padding="8,4">
-                <TextBlock Text="{Binding Session.References.TypeCountersAsText}"
-                           TextTrimming="CharacterEllipsis" TextWrapping="NoWrap">
-                  <ToolTip.Tip>
-                    <TextBlock Text="{Binding Session.References.TypeCountersAsText}"
-                               TextTrimming="None" TextWrapping="Wrap"/>
-                  </ToolTip.Tip>
-                </TextBlock>
-              </Border>
-              <ListBox ItemsSource="{Binding Session.References.DisplayedReferences.Assets}"
-                       Margin="4">
-                <ItemsControl.ItemsPanel>
-                  <ItemsPanelTemplate>
-                    <WrapPanel />
-                  </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate DataType="{x:Type capvm:AssetViewModel}">
-                    <StackPanel Orientation="Horizontal">
-                      <Interaction.Behaviors>
-                        <EventTriggerBehavior EventName="DoubleTapped">
-                          <InvokeCommandAction Command="{Binding ((caevm:SessionViewModel)Session).AssetCollection.SelectAssetCommand}"
-                                               CommandParameter="{Binding}"/>
-                        </EventTriggerBehavior>
-                      </Interaction.Behaviors>
-                      <TextBlock Text="Asset: " />
-                      <TextBlock Text="{Binding Name}" />
-                      <Image Source="{Binding ThumbnailData.Presenter, Converter={caec:ThumbnailToImage}, FallbackValue={x:Static AvaloniaProperty.UnsetValue}}"
-                             Width="64" Height="64"/>
-                    </StackPanel>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ListBox>
-            </DockPanel>
-          </TabItem>
-        </TabControl>
-      </Grid>
-    </Grid>
+    <!-- Session area: the panels and the editors, docked as the layout of the session says (MainViewModel.Panels); the
+         floating ones are in windows of their own. The views of the panels come from DockViewLocator. -->
+    <dock:DockControl x:Name="DockArea" Grid.Row="2"
+                      Layout="{Binding Panels.Layout}"
+                      Factory="{Binding Panels.Factory}"
+                      InitializeLayout="False" InitializeFactory="False"
+                      EnableManagedWindowLayer="True"
+                      IsVisible="{Binding Session, Converter={sd:ObjectToBool}}"/>
 
     <!-- Notifications: the background operations in progress, each until it finishes -->
     <ItemsControl Grid.Row="3"

@@ -23,7 +23,7 @@ public sealed class NotificationBarTests
     {
         using var fixture = ShellSessionFixture.Create();
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var notifications = fixture.Main.Notifications!;

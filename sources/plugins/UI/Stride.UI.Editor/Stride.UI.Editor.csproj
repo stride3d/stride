@@ -1,14 +1,17 @@
 <Project>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.props" />
   <PropertyGroup>
-    <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--serialization --parameter-key</StrideAssemblyProcessorOptions>
     <StridePackageKind>Editor</StridePackageKind>
+    <StrideLocalized>true</StrideLocalized>
   </PropertyGroup>
   <ItemGroup>
     <!-- The UI editor's WPF views: the WPF Game Studio loads them, another toolkit's editor does not -->
     <StrideCompanionProject Include="..\Stride.UI.Editor.Wpf\Stride.UI.Editor.Wpf.csproj" />
+    <!-- Its Avalonia views: the Avalonia editor loads them, the WPF Game Studio does not -->
+    <StrideCompanionProject Include="..\Stride.UI.Editor.Avalonia\Stride.UI.Editor.Avalonia.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\shared\SharedAssemblyInfo.cs">
@@ -16,7 +19,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\editor\Stride.Assets.Editor.Wpf\Stride.Assets.Editor.Wpf.csproj" />
+    <ProjectReference Include="..\..\..\editor\Stride.Assets.Editor\Stride.Assets.Editor.csproj" />
     <ProjectReference Include="..\Stride.UI\Stride.UI.csproj" />
     <ProjectReference Include="..\Stride.UI.Assets\Stride.UI.Assets.csproj" />
   </ItemGroup>

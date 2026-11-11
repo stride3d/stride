@@ -5,14 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Stride.Core.Assets.Editor.View.Behaviors;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Annotations;
 using Stride.Core.Extensions;
 using Stride.Assets.Quantum;
-using Stride.Assets.Presentation.ViewModel;
 using Stride.UI.Assets;
 
 namespace Stride.UI.Editor.ViewModels
