@@ -143,9 +143,21 @@ namespace Stride.Editor.Preview
                     previewGame = PreviewGame;
                 }
                 // The game may not exist yet: the thread then ends without starting it
-                if (previewGame?.IsRunning == true)
+                if (previewGame is not null && !previewGameEnded)
                 {
-                    previewGame.Exit();
+                    if (previewGame.IsRunning)
+                    {
+                        previewGame.Exit();
+                    }
+                    else
+                    {
+                        // A game still starting (device, shaders) cannot exit yet: its first update does
+                        previewGame.Script.AddTask(() =>
+                        {
+                            previewGame.Exit();
+                            return Task.CompletedTask;
+                        });
+                    }
                 }
 
                 // Wait for the game thread to terminate
