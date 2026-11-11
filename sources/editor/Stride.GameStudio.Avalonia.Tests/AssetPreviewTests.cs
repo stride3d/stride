@@ -29,7 +29,9 @@ public sealed class AssetPreviewTests
 
         Assert.NotNull(fixture.Main.Preview);
         Assert.Null(fixture.Main.Preview.PreviewObject);
-        Assert.True(fixture.Main.Preview.IsPreviewVisible);
+        // The docking says which panels are shown on a later dispatcher pass than the opening of the session: wait for it
+        var preview = fixture.Main.Preview;
+        await WindowTestHelper.WaitUntilAsync(() => preview.IsPreviewVisible, "the preview panel shown");
     }
 
     [AvaloniaFact]
@@ -101,19 +103,23 @@ public sealed class AssetPreviewTests
         await window.ShowAsync();
         try
         {
-            fixture.Session.AssetCollection.SelectAssets([fixture.Asset(FirstLocation)]);
-            await WindowTestHelper.PumpAsync();
-            // The preview and the history share a group: selecting the history's tab hides the preview
+            var first = fixture.Asset(FirstLocation);
+            fixture.Session.AssetCollection.SelectAssets([first]);
+            // The docking presents the selected preview tab on a later frame: wait for it, so the switch below starts from a shown preview
+            var panel = window.GetVisualDescendants().OfType<AssetPreviewView>().Single();
+            await WindowTestHelper.WaitUntilAsync(() => ShownPreview(panel)?.Tag == first && fixture.Main.Preview!.IsPreviewVisible, "the preview on screen");
+            var (shown, hidden) = (preview.ShowCount, preview.HideCount);
+            // The preview and the history share a group: selecting the history's tab hides the preview, once
             Assert.Same(fixture.Main.Panels.FindDockable(BuiltInPanels.AssetPreview)!.Owner, fixture.Main.Panels.FindDockable(BuiltInPanels.ActionHistory)!.Owner);
             fixture.Main.Panels.Show(BuiltInPanels.ActionHistory);
             await WindowTestHelper.PumpAsync();
             Assert.False(fixture.Main.Preview!.IsPreviewVisible);
-            Assert.Equal((0, 1), (preview.ShowCount, preview.HideCount));
+            Assert.Equal((shown, hidden + 1), (preview.ShowCount, preview.HideCount));
 
             fixture.Main.Panels.Show(BuiltInPanels.AssetPreview);
             await WindowTestHelper.PumpAsync();
             Assert.True(fixture.Main.Preview.IsPreviewVisible);
-            Assert.Equal((1, 1), (preview.ShowCount, preview.HideCount));
+            Assert.Equal((shown + 1, hidden + 1), (preview.ShowCount, preview.HideCount));
         }
         finally
         {
