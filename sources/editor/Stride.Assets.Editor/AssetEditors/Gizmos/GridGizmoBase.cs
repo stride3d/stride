@@ -6,6 +6,7 @@ using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering;
+using Stride.Assets.Editor.EditorGame;
 
 namespace Stride.Assets.Editor.AssetEditors.Gizmos
 {
@@ -45,6 +46,24 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
             UpdateBase(gridColor, alpha, gridAxisIndex, sceneUnit);
         }
 
+        /// <summary>
+        /// Updates the grid for the camera of a view: the game draws that view next.
+        /// </summary>
+        /// <param name="gridColor">The color of the grid.</param>
+        /// <param name="alpha">The opacity of the grid.</param>
+        /// <param name="gridAxisIndex">The axes the grid is perpendicular to (X = 1, Y = 2, Z = 4).</param>
+        /// <param name="sceneUnit">The unit of the scene.</param>
+        /// <param name="view">The camera of the view.</param>
+        public void Update(Color3 gridColor, float alpha, int gridAxisIndex, float sceneUnit, EditorGameViewCamera view)
+        {
+            if (GraphicsDevice != null)
+            {
+                gridColor = gridColor.ToColorSpace(GraphicsDevice.ColorSpace);
+            }
+
+            UpdateBase(gridColor, alpha, gridAxisIndex, sceneUnit, view);
+        }
+
         protected override Entity Create()
         {
             // Add a plane model the grid entity
@@ -52,5 +71,13 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
         }
 
         protected abstract void UpdateBase(Color3 gridColor, float alpha, int gridAxisIndex, float sceneUnit);
+
+        /// <summary>
+        /// Updates the grid for the camera of a view. By default, as for the editor camera.
+        /// </summary>
+        protected virtual void UpdateBase(Color3 gridColor, float alpha, int gridAxisIndex, float sceneUnit, EditorGameViewCamera view)
+        {
+            UpdateBase(gridColor, alpha, gridAxisIndex, sceneUnit);
+        }
     }
 }

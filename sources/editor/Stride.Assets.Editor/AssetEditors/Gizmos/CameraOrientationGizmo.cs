@@ -17,6 +17,7 @@ using Stride.Rendering;
 using Stride.Rendering.Compositing;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
+using Stride.Assets.Editor.EditorGame;
 
 namespace Stride.Assets.Editor.AssetEditors.Gizmos
 {
@@ -119,11 +120,24 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
 
         public bool IsViewParallelToAxis { get; private set; }
 
-        private void UpdateCamera()
+        private void UpdateCamera(Matrix view)
         {
-            var view = camera.ViewMatrix;
             view.TranslationVector = new Vector3(0, 0, -OuterExtent * CameraDistanceFactor);
             cameraComponent.ViewMatrix = view;
+        }
+
+        /// <summary>
+        /// Turns the cube to the camera of a view: the game draws that view next. The element under the pointer is
+        /// highlighted in the active view only.
+        /// </summary>
+        /// <param name="view">The camera of the view.</param>
+        public void PrepareView(EditorGameViewCamera view)
+        {
+            if (!IsEnabled || cameraComponent == null)
+                return;
+
+            UpdateCamera(view.ViewMatrix);
+            UpdateElementMaterials(view.IsActive ? selectedElementIndex : -1);
         }
 
         public override bool HandlesComponentId(OpaqueComponentId pickedComponentId, out Entity selection)
@@ -147,7 +161,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
             if (!IsEnabled)
                 return;
 
-            UpdateCamera();
+            UpdateCamera(camera.ViewMatrix);
             UpdateSelection();
             UpdateColors();
         }
@@ -231,9 +245,14 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
         {
             base.UpdateColors();
 
+            UpdateElementMaterials(selectedElementIndex);
+        }
+
+        private void UpdateElementMaterials(int highlightedIndex)
+        {
             for (var i = 0; i < entities.Count; i++)
             {
-                entities[i].Get<ModelComponent>().Model.Materials[0] = selectedElementIndex == i ? ElementSelectedMaterial : DefaultMaterial;
+                entities[i].Get<ModelComponent>().Model.Materials[0] = highlightedIndex == i ? ElementSelectedMaterial : DefaultMaterial;
             }
         }
 
