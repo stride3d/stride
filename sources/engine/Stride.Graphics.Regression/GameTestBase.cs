@@ -24,6 +24,7 @@ using Stride.Graphics;
 using Stride.Input;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
+using Stride.Shaders.Compiler;
 
 namespace Stride.Graphics.Regression
 {
@@ -155,6 +156,9 @@ namespace Stride.Graphics.Regression
         protected GameTestBase()
         {
             AssetBundleName = FindBundleName(GetType());
+
+            // The test host is the entry assembly: name the shader corpus captures after the test suite
+            ShaderCorpusCapture.Source = GetType().Assembly.GetName().Name;
 
             ConsoleLogMode = ConsoleLogMode.StandardOutput;
 

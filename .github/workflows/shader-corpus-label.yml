@@ -1,0 +1,71 @@
+name: Shader Corpus Label
+
+# The `shader-output-change` label accepts a change of the shader corpus output (main.yml's Shader output job). Adding it
+# records what it accepts: the changes.txt files of the PR's last CI run, as the shader-output-accepted-pr<number>
+# artifact of this run; a later push that changes the output beyond them fails Shader output again. Adding or removing
+# the label reruns that job in the PR's last CI run, and Gate after it. No checkout: the PR's code does not run here, and
+# the files of its CI run are only copied.
+
+on:
+  pull_request_target:
+    types: [labeled, unlabeled]
+
+permissions:
+  actions: write
+
+jobs:
+  Rerun:
+    if: github.event.label.name == 'shader-output-change'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    concurrency:
+      group: shader-corpus-label-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Wait for the CI run
+        id: run
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          # A label added right after a push can come before its run. A commit can have several runs (a cancelled one, one
+          # per change of the base branch) created in the same second: the newest has the highest number
+          for attempt in $(seq 10); do
+            run=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow main.yml --event pull_request --commit "$HEAD_SHA" --limit 20 --json databaseId,number --jq 'max_by(.number).databaseId // empty')
+            [ -n "$run" ] && break
+            sleep 30
+          done
+          if [ -z "$run" ]; then
+            echo "::warning title=Shader output::No CI run for $HEAD_SHA: nothing to accept. Once its Shader output job has run, remove the label and add it back."
+            exit 0
+          fi
+          # A job can only be rerun once its run is done
+          gh run watch "$run" --repo "$GITHUB_REPOSITORY" --interval 30 > /dev/null || true
+          echo "run=$run" >> "$GITHUB_OUTPUT"
+      - name: Record what the label accepts
+        if: github.event.action == 'labeled' && steps.run.outputs.run != ''
+        env:
+          RUN: ${{ steps.run.outputs.run }}
+        run: |
+          mkdir accepted
+          gh run download "$RUN" --repo "$GITHUB_REPOSITORY" --pattern 'shader-corpus-*' --dir corpus || true
+          cat corpus/*/changes.txt 2>/dev/null | LC_ALL=C sort -u > accepted/accepted.txt
+          echo "Accepted $(wc -l < accepted/accepted.txt) changes of run $RUN."
+      - name: Upload the record
+        if: github.event.action == 'labeled' && steps.run.outputs.run != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: shader-output-accepted-pr${{ github.event.pull_request.number }}
+          path: accepted/accepted.txt
+      - name: Rerun the Shader output job
+        if: steps.run.outputs.run != ''
+        env:
+          RUN: ${{ steps.run.outputs.run }}
+        run: |
+          job=$(gh run view "$RUN" --repo "$GITHUB_REPOSITORY" --json jobs --jq '.jobs[] | select(.name == "Shader output") | .databaseId')
+          if [ -z "$job" ]; then
+            echo "Run $RUN has no Shader output job: the shader corpus did not run."
+            exit 0
+          fi
+          gh run rerun "$RUN" --repo "$GITHUB_REPOSITORY" --job "$job"

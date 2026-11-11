@@ -1,0 +1,161 @@
+name: Test Shader Corpus
+
+# Compiles the shader corpus (sources/shaders/Stride.Shaders.Tests/Corpus, see its README) for one platform with the
+# parent commit (for a PR, the base of its merge commit) and with this commit, and reports what changed. The `changed`
+# output tells main.yml's Shader output job, which checks the `shader-output-change` label. Results are cached per
+# commit, platform and corpus.json, so a PR usually reuses the result of the master run of its base.
+# With `determinism`, it compiles `commit` again and compares with that commit's cached result instead: a difference
+# means the same commit compiles differently (shader-corpus-determinism.yml).
+
+on:
+  workflow_call:
+    inputs:
+      platform:
+        description: Corpus platform, Direct3D11 (on Windows) or Vulkan (on Linux)
+        required: true
+        type: string
+      commit:
+        description: The commit to compile, instead of the event's
+        type: string
+        default: ''
+      determinism:
+        description: Compare with the cached result of the same commit, not of its parent, and fail on a difference
+        type: boolean
+        default: false
+    outputs:
+      changed:
+        description: "'true' when the output differs from the parent commit's"
+        value: ${{ jobs.Corpus.outputs.changed }}
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Corpus platform (Direct3D11 runs on Windows, Vulkan on Linux)
+        type: choice
+        options: [Direct3D11, Vulkan]
+        default: Direct3D11
+
+permissions:
+  contents: read
+
+jobs:
+  Corpus:
+    name: Shader corpus (${{ inputs.platform }})
+    runs-on: ${{ inputs.platform == 'Vulkan' && 'ubuntu-24.04' || 'windows-2025-vs2026' }}
+    timeout-minutes: 30
+    outputs:
+      changed: ${{ steps.compare.outputs.changed }}
+    defaults:
+      run:
+        shell: bash
+    env:
+      STRIDE_SHADER_CORPUS_PLATFORMS: ${{ inputs.platform }}
+      TEST_PROJECT: sources/shaders/Stride.Shaders.Tests/Stride.Shaders.Tests.csproj
+      BUILD_OPTIONS: >-
+        -nr:false -v:m -p:WarningLevel=0
+        ${{ inputs.platform == 'Vulkan'
+          && '-p:StrideTestRuntimeIdentifier=linux-x64 -p:StridePlatforms=Linux -p:StrideGraphicsApis=Vulkan'
+          || '-p:StrideTestRuntimeIdentifier=win-x64 -p:StridePlatforms=Windows -p:StrideGraphicsApis=Direct3D11' }}
+    steps:
+      # Depth 2: the parent commit is the baseline
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.commit }}
+          fetch-depth: 2
+          lfs: true
+      - name: Cache keys
+        id: keys
+        env:
+          DETERMINISM: ${{ inputs.determinism }}
+        run: |
+          if [ "$DETERMINISM" = true ]; then base=$(git rev-parse HEAD); else base=$(git rev-parse HEAD^1); fi
+          corpus=$(git hash-object sources/shaders/Stride.Shaders.Tests/Corpus/corpus.json)
+          echo "base=$base" >> "$GITHUB_OUTPUT"
+          echo "base-key=shader-corpus-$STRIDE_SHADER_CORPUS_PLATFORMS-$base-$corpus" >> "$GITHUB_OUTPUT"
+          echo "head-key=shader-corpus-$STRIDE_SHADER_CORPUS_PLATFORMS-$(git rev-parse HEAD)-$corpus" >> "$GITHUB_OUTPUT"
+          # A parent from before this check has nothing to compare with
+          if git show "$base:sources/shaders/Stride.Shaders.Tests/Corpus/ShaderCorpusTests.cs" 2>/dev/null | grep -q STRIDE_SHADER_CORPUS_BASELINE; then
+            echo "base-supported=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "base-supported=false" >> "$GITHUB_OUTPUT"
+          fi
+          # Next to the checkout, short for Windows paths
+          echo "WORK=$(dirname "$(pwd -W 2>/dev/null || pwd)")/corpus" >> "$GITHUB_ENV"
+      - name: Build
+        run: dotnet build "$TEST_PROJECT" $BUILD_OPTIONS
+      - name: Restore the baseline
+        id: base-cache
+        if: steps.keys.outputs.base-supported == 'true'
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ env.WORK }}/cache
+          key: ${{ steps.keys.outputs.base-key }}
+          # The cached result is what the check compares with
+          fail-on-cache-miss: ${{ inputs.determinism == true }}
+      - name: Compile the baseline
+        if: steps.keys.outputs.base-supported == 'true' && steps.base-cache.outputs.cache-hit != 'true'
+        env:
+          STRIDE_SHADER_CORPUS_BASELINE: ${{ env.WORK }}/cache
+        run: |
+          git worktree add --detach "$WORK/tree" "${{ steps.keys.outputs.base }}"
+          # The same permutations on both sides: only the compiler and the shaders differ
+          cp sources/shaders/Stride.Shaders.Tests/Corpus/corpus.json "$WORK/tree/sources/shaders/Stride.Shaders.Tests/Corpus/corpus.json"
+          cd "$WORK/tree"
+          dotnet build "$TEST_PROJECT" $BUILD_OPTIONS
+          dotnet test "$TEST_PROJECT" --no-build --filter "FullyQualifiedName~ShaderCorpusTests.SaveBaseline" -- xUnit.Explicit=on
+      - name: Save the baseline
+        if: steps.keys.outputs.base-supported == 'true' && steps.base-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: ${{ env.WORK }}/cache
+          key: ${{ steps.keys.outputs.base-key }}
+      - name: Compare
+        id: compare
+        env:
+          STRIDE_SHADER_CORPUS_BASELINE: ${{ env.WORK }}/cache
+          STRIDE_SHADER_CORPUS_OUTPUT: ${{ env.WORK }}/head
+        run: |
+          if [ "${{ steps.keys.outputs.base-supported }}" != true ]; then
+            STRIDE_SHADER_CORPUS_BASELINE="$STRIDE_SHADER_CORPUS_OUTPUT" \
+              dotnet test "$TEST_PROJECT" --no-build --filter "FullyQualifiedName~ShaderCorpusTests.SaveBaseline" -- xUnit.Explicit=on
+            echo "Shader corpus ($STRIDE_SHADER_CORPUS_PLATFORMS): the parent commit has no shader corpus check, nothing to compare with." >> "$GITHUB_STEP_SUMMARY"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          status=0
+          dotnet test "$TEST_PROJECT" --no-build --filter "FullyQualifiedName~ShaderCorpusTests.MatchesBaseline" -- xUnit.Explicit=on || status=$?
+          # Without a summary, the test failed before comparing
+          [ -f "$STRIDE_SHADER_CORPUS_OUTPUT/summary.md" ] || exit 1
+          cat "$STRIDE_SHADER_CORPUS_OUTPUT/summary.md" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$status" -ne 0 ] && [ "${{ inputs.determinism }}" = true ]; then
+            echo "::error title=Shader corpus not deterministic::$STRIDE_SHADER_CORPUS_PLATFORMS: compiled again, $(git rev-parse --short HEAD) gives another output than its cached result. PRs compare with cached results, so they would show these differences as their own: see the job summary, and diff.txt in the shader-corpus-$STRIDE_SHADER_CORPUS_PLATFORMS artifact"
+            exit 1
+          fi
+          if [ "$status" -ne 0 ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "::warning title=Shader output changed::$STRIDE_SHADER_CORPUS_PLATFORMS: see the job summary, and diff.txt in the shader-corpus-$STRIDE_SHADER_CORPUS_PLATFORMS artifact"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+      # The baseline of the PRs based on this commit (a PR's merge commit is no one's base). Every entry has the same
+      # path: it is part of the cache version.
+      - name: Keep this commit's result
+        if: github.event_name != 'pull_request' && !inputs.determinism
+        run: rm -rf "$WORK/cache" && cp -r "$WORK/head" "$WORK/cache"
+      - name: Save this commit's result
+        if: github.event_name != 'pull_request' && !inputs.determinism
+        uses: actions/cache/save@v6
+        with:
+          path: ${{ env.WORK }}/cache
+          key: ${{ steps.keys.outputs.head-key }}
+      - name: Upload the report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: shader-corpus-${{ inputs.platform }}
+          path: |
+            ${{ env.WORK }}/head/report.txt
+            ${{ env.WORK }}/head/summary.md
+            ${{ env.WORK }}/head/diff.txt
+            ${{ env.WORK }}/head/uncovered.txt
+            ${{ env.WORK }}/head/changes.txt
+          if-no-files-found: ignore

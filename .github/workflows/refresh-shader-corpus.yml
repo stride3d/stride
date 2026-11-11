@@ -1,0 +1,119 @@
+name: Refresh Shader Corpus
+
+# Rebuilds sources/shaders/Stride.Shaders.Tests/Corpus/corpus.json from empty (see Corpus/README.md), out of what the
+# current code compiles: the samples and the editor run with capture on, the game test suites too, and the
+# EmbeddedEffects.yaml lists of Stride.Graphics add the effects whose bytecode is embedded (runtime never compiles them).
+# The result is uploaded as an artifact, and opened as a PR by the weekly run or when asked: one PR, updated by each run
+# until it is merged.
+
+on:
+  # Weekly, so the corpus follows rendering and material changes without anyone having to remember
+  schedule:
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
+    inputs:
+      open-pr:
+        description: Open a PR with the refreshed corpus (otherwise only the shader-corpus-refresh artifact)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: refresh-shader-corpus
+
+jobs:
+  Samples:
+    uses: ./.github/workflows/test-enduser.yml
+    secrets:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    with:
+      build-type: Debug
+      capture-shader-corpus: true
+
+  Editor:
+    uses: ./.github/workflows/test-windows-editor.yml
+    secrets:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    with:
+      build-type: Debug
+      capture-shader-corpus: true
+
+  # The game test suites: features no sample uses (tessellation, post effects, MSAA, compute shaders...)
+  Game:
+    uses: ./.github/workflows/test-windows-game.yml
+    with:
+      build-type: Debug
+      graphics-api: Direct3D11
+      api-neutral-suites: true
+      # A failing test still leaves its captures: the corpus only needs what was compiled
+      tolerate-test-failures: true
+      capture-shader-corpus: true
+
+  Gather:
+    needs: [Samples, Editor, Game]
+    # Screenshot drift fails the sample and editor runs, but their captures are still complete
+    if: ${{ !cancelled() }}
+    runs-on: windows-2025-vs2026
+    permissions:
+      contents: write
+      pull-requests: write
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          lfs: true
+          submodules: true
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: shader-corpus-*
+          path: captures
+      - name: Check that every source was captured
+        # A missing source would silently shrink the corpus
+        run: |
+          foreach ($source in 'shader-corpus-samples', 'shader-corpus-editor', 'shader-corpus-game') {
+            $count = (Get-ChildItem "captures\$source" -Filter *.json -Recurse -ErrorAction SilentlyContinue | Measure-Object).Count
+            Write-Host "$source`: $count captured permutations"
+            if ($count -eq 0) { Write-Host "::error::No capture from $source"; exit 1 }
+          }
+      - name: Build the corpus from empty
+        run: |
+          dotnet run --project sources\tools\Stride.Shaders.CorpusCapture -p:StridePlatforms=Windows -p:StrideGraphicsApis=Direct3D11 -- `
+            --embedded sources\engine\Stride.Graphics --capture captures | Tee-Object corpus-sources.txt
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Report
+        run: |
+          $corpus = 'sources/shaders/Stride.Shaders.Tests/Corpus/corpus.json'
+          $before = @(git show "HEAD:$corpus" | Out-String | ConvertFrom-Json).Count
+          $after = @(Get-Content $corpus -Raw | ConvertFrom-Json).Count
+          "## Shader corpus refresh`n" >> $env:GITHUB_STEP_SUMMARY
+          "corpus.json: $after permutations (was $before)`n" >> $env:GITHUB_STEP_SUMMARY
+          '```' >> $env:GITHUB_STEP_SUMMARY
+          Get-Content corpus-sources.txt >> $env:GITHUB_STEP_SUMMARY
+          '```' >> $env:GITHUB_STEP_SUMMARY
+      - name: Upload the refreshed corpus
+        uses: actions/upload-artifact@v7
+        with:
+          name: shader-corpus-refresh
+          path: |
+            sources/shaders/Stride.Shaders.Tests/Corpus/corpus.json
+            corpus-sources.txt
+      - name: Open PR with the refreshed corpus
+        if: inputs.open-pr || github.event_name == 'schedule'
+        uses: peter-evans/create-pull-request@v8
+        with:
+          # A PR opened with the default token starts no workflows, so it would never get the corpus jobs or Gate
+          token: ${{ secrets.GH_PAT }}
+          commit-message: "Shaders: refresh the shader corpus from run ${{ github.run_id }}"
+          title: "Refresh the shader corpus"
+          body: |
+            Automated refresh of the shader corpus from [run #${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}):
+            samples, editor and game test suites captured, plus the embedded effects of Stride.Graphics.
+
+            The run summary lists the permutations per source. A corpus change is expected after rendering or material
+            changes; a compiler PR should not need one. Each later run updates this PR until it is merged.
+          branch: shader-corpus/refresh
+          delete-branch: true
+          add-paths: |
+            sources/shaders/Stride.Shaders.Tests/Corpus/corpus.json
