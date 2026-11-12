@@ -147,6 +147,12 @@
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
+    <!-- The UI editors' Avalonia views -->
+    <ProjectReference Include="..\..\..\sources\plugins\UI\Stride.UI.Editor.Avalonia\Stride.UI.Editor.Avalonia.csproj" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
     <!-- A runtime package and its Assets companion: the companion declaration is not a reference, so both are listed -->
     <ProjectReference Include="..\..\..\sources\plugins\BepuPhysics\Stride.BepuPhysics\Stride.BepuPhysics.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
