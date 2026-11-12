@@ -421,9 +421,9 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
     /// <param name="isNew">Whether the session was just created: what an older session at the same path kept is forgotten, as in WPF.</param>
     private void AttachSession(SessionViewModel loadedSession, UFile filePath, bool isNew = false)
     {
-        MRU.AddFile(filePath, StrideGameStudio.EditorVersionMajor);
+        // Written to the file with the list of recent sessions, which writes every setting this editor changed
         InternalSettings.FileDialogLastOpenSessionDirectory.SetValue(filePath.GetFullDirectory());
-        InternalSettings.Save();
+        MRU.AddFile(filePath, StrideGameStudio.EditorVersionMajor);
 
         sessionPath = filePath;
         Session = loadedSession;
