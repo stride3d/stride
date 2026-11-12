@@ -6,6 +6,7 @@ using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Quantum.Presenters;
+using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Presentation.Views;
 using Stride.Core.Settings;
 using Stride.Core.Assets.Presentation.Components.Properties;
@@ -266,6 +267,62 @@ public class TestEditorPluginHost
         Assert.Same(PluginHostSettings.Key, PluginHostSettings.Container.GetSettingsKey(PluginHostSettings.Key.Name));
         // The editor was initialized: the plugin initializes the session right away
         Assert.Contains(plugin.Command, host.GraphService.AvailableCommands);
+        host.Dispose();
+    }
+
+#pragma warning disable STREXP006
+    public sealed class FactoryServicePlugin : AssetsEditorPlugin
+    {
+        public List<FactoryService> Made { get; } = [];
+
+        public override void InitializeSession(ISessionPluginContext context)
+        {
+            context.Services.Register<IFactoryService>(services =>
+            {
+                var service = new FactoryService(services);
+                Made.Add(service);
+                return service;
+            });
+            context.Services.Register(_ => new FactoryService(null), ServiceLifetime.PerScope);
+        }
+    }
+#pragma warning restore STREXP006
+
+    public interface IFactoryService;
+
+    public sealed class FactoryService(IServiceProvider? madeWith) : IFactoryService, IDisposable
+    {
+        public IServiceProvider? MadeWith { get; } = madeWith;
+
+        public bool IsDisposed { get; private set; }
+
+        public void Dispose() => IsDisposed = true;
+    }
+
+    [Fact]
+    public void APluginRegistersServicesWithAFactoryThatGoWithIt()
+    {
+        var plugin = new FactoryServicePlugin();
+        var (host, session, _, _) = Open(plugin);
+        host.InitializeSession(session);
+
+        // Made once, when first asked for, with the session's services
+        Assert.Empty(plugin.Made);
+        var service = Assert.IsType<FactoryService>(session.ServiceProvider.Get<IFactoryService>());
+        Assert.Same(service, session.ServiceProvider.Get<IFactoryService>());
+        Assert.Same(session.ServiceProvider, service.MadeWith);
+        // One per scope: a child scope (an editor's) gets its own
+        var tab = new ViewModelServiceProvider(session.ServiceProvider);
+        Assert.NotSame(session.ServiceProvider.Get<FactoryService>(), tab.Get<FactoryService>());
+        var perScope = session.ServiceProvider.Get<FactoryService>();
+
+        host.PluginsRemoved([plugin]);
+
+        Assert.Null(session.ServiceProvider.TryGet<IFactoryService>());
+        Assert.Null(session.ServiceProvider.TryGet<FactoryService>());
+        Assert.True(service.IsDisposed);
+        Assert.True(perScope.IsDisposed);
+        tab.Dispose();
         host.Dispose();
     }
 

@@ -7,6 +7,7 @@ using Stride.Core.Assets.Editor.Commands;
 using Stride.Core.Assets.Editor.Panels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Quantum.Presenters;
+using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Presentation.Views;
 using Stride.Core.Settings;
 using Stride.Core.Assets.Presentation.Components.Properties;
@@ -203,6 +204,25 @@ public abstract partial class EditorPluginHost
         public void Register(T item) => record.Within(kind, () => register(item));
     }
 
+    // The services of a plugin, in the session's scope: instances, and factories with a lifetime
+#pragma warning disable STREXP006
+    private sealed class ServiceRegistry(PluginRecord record, IViewModelServiceProvider services) : IPluginServiceRegistry
+    {
+        public void Register(object item) => record.Within(nameof(ISessionPluginContext.Services), () =>
+        {
+            services.RegisterService(item);
+            record.Add(() => services.UnregisterService(item));
+        });
+
+        public void Register<TService>(Func<IServiceProvider, TService> factory, ServiceLifetime lifetime = ServiceLifetime.Singleton)
+            where TService : class
+        {
+            ArgumentNullException.ThrowIfNull(factory);
+            record.Within(nameof(ISessionPluginContext.Services), () => record.Add(services.Register(factory, lifetime).Dispose));
+        }
+    }
+#pragma warning restore STREXP006
+
     private sealed class Map<TKey, TValue>(PluginRecord record, string kind, Action<TKey, TValue> register) : IPluginMap<TKey, TValue>
         where TKey : notnull
         where TValue : notnull
@@ -334,11 +354,7 @@ public abstract partial class EditorPluginHost
             Plugin = plugin;
             Session = session;
             Logger = logger;
-            Services = new Registry<object>(record, nameof(Services), service =>
-            {
-                session.ServiceProvider.RegisterService(service);
-                record.Add(() => session.ServiceProvider.UnregisterService(service));
-            });
+            Services = new ServiceRegistry(record, session.ServiceProvider);
             NodePresenterCommands = new Registry<INodePresenterCommand>(record, nameof(NodePresenterCommands), command =>
             {
                 var commands = GetGraphService().AvailableCommands;
