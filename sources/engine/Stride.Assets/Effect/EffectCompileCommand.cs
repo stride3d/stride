@@ -87,7 +87,7 @@ namespace Stride.Assets.Effect
             var compilerResults = ShaderCorpusCapture.WithoutRecording(() => compiler.Compile(source, compilerParameters));
 
             // Copy logs and if there are errors, exit directly
-            compilerResults.CopyTo(commandContext.Logger);
+            ShaderBackendLog.CopyTo(compilerResults, commandContext.Logger);
             if (compilerResults.HasErrors)
             {
                 return Task.FromResult(ResultStatus.Failed);
@@ -95,7 +95,7 @@ namespace Stride.Assets.Effect
 
             // wait for result an check compilation status
             var completedTask = compilerResults.Bytecode.WaitForResult();
-            completedTask.CompilationLog.CopyTo(commandContext.Logger);
+            ShaderBackendLog.CopyTo(completedTask.CompilationLog, commandContext.Logger);
             if (completedTask.CompilationLog.HasErrors)
             {
                 return Task.FromResult(ResultStatus.Failed);

@@ -301,7 +301,8 @@ namespace Stride.Shaders.Compiler
                             _ => throw new NotSupportedException($"Unsupported shader stage: {shaderStage}"),
                         };
                         stageHlslSources.Add((stageSuffix, code));
-                        string? stageFilename = null;
+                        // The name FXC gives the HLSL in its messages: the effect and the stage, and that SPIRV-Cross wrote it
+                        string? stageFilename = $"{fullEffectName}_{stageSuffix}.spirv-cross.hlsl";
 #else
                         string? stageFilename = null;
 #endif
