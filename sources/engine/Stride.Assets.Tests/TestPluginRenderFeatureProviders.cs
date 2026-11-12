@@ -2,11 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using Stride.Assets.Rendering;
-using Stride.Core.Reflection;
 using Stride.Particles.Assets;
 using Stride.Particles.Rendering;
 using Stride.Rendering;
@@ -43,40 +39,7 @@ namespace Stride.Assets.Tests
             }
 
             // This project references no Editor package: nothing above came from one
-            Assert.DoesNotContain(AppDomain.CurrentDomain.GetAssemblies(), x => x.GetName().Name is { } name && name.StartsWith("Stride.", StringComparison.Ordinal) && name.EndsWith(".Editor", StringComparison.Ordinal));
-        }
-
-        /// <summary>
-        /// Registers an assembly as an asset assembly, as loading its package does, and unregisters it at the end unless it
-        /// was registered already.
-        /// </summary>
-        internal sealed class AssetAssemblyScope : IDisposable
-        {
-            private readonly Assembly assembly;
-            private readonly bool registered;
-
-            private AssetAssemblyScope(Assembly assembly, bool registered)
-            {
-                this.assembly = assembly;
-                this.registered = registered;
-            }
-
-            public static AssetAssemblyScope Register(Assembly assembly)
-            {
-                // Its module initializer registers its scan index
-                RuntimeHelpers.RunModuleConstructor(assembly.ManifestModule.ModuleHandle);
-                if (AssemblyRegistry.Find(AssemblyCommonCategories.Assets).Contains(assembly))
-                    return new AssetAssemblyScope(assembly, registered: false);
-
-                AssemblyRegistry.Register(assembly, AssemblyCommonCategories.Assets);
-                return new AssetAssemblyScope(assembly, registered: true);
-            }
-
-            public void Dispose()
-            {
-                if (registered)
-                    AssemblyRegistry.Unregister(assembly);
-            }
+            Assert.False(AssetAssemblyScope.AnyEditorPackageLoaded());
         }
     }
 }

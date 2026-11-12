@@ -2,13 +2,15 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using Stride.Core.Assets;
 using Stride.Core.Assets.Compiler;
-using Stride.Audio.Assets;
 using Stride.Editor.Preview;
 
-namespace Stride.Audio.Editor
+namespace Stride.Audio.Assets
 {
+    /// <summary>
+    /// Gives the editor's game an empty sound instead of encoding the file.
+    /// </summary>
     [AssetCompiler(typeof(SoundAsset), typeof(EditorGameCompilationContext))]
-    public class SoundAssetEditorGameCompiler : AssetCompilerBase
+    public sealed class SoundAssetEditorGameCompiler : AssetCompilerBase
     {
         protected override void Prepare(AssetCompilerContext context, AssetItem assetItem, string targetUrlInStorage, AssetCompilerResult result)
         {

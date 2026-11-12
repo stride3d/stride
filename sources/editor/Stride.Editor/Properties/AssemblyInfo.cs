@@ -9,3 +9,6 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Stride.GameStudio" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Editor.Avalonia" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Editor.Tests" + Stride.PublicKeys.Default)]
+
+// Moved to Stride.Core.Assets, so that the Assets packages can register editor game compilers
+[assembly: TypeForwardedTo(typeof(Stride.Editor.Preview.EditorGameCompilationContext))]

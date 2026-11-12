@@ -43,7 +43,9 @@
     <Compile Include="TestContentTemplateResolver.cs" />
     <Compile Include="TestDotNetNewTemplateGenerator.cs" />
     <Compile Include="TestRenderFeatureProviders.cs" />
+    <Compile Include="AssetAssemblyScope.cs" />
     <Compile Include="TestPluginRenderFeatureProviders.cs" />
+    <Compile Include="TestPluginEditorGameCompilers.cs" />
     <Compile Include="TestMemberRequiredComponentChecks.cs" />
     <Compile Include="XunitAttributes.cs" />
     <Compile Include="TestMaterialGenerator.cs" />

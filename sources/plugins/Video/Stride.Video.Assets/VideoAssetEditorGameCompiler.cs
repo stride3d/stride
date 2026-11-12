@@ -3,12 +3,14 @@
 using Stride.Core.Assets;
 using Stride.Core.Assets.Compiler;
 using Stride.Editor.Preview;
-using Stride.Video.Assets;
 
-namespace Stride.Video.Editor
+namespace Stride.Video.Assets
 {
+    /// <summary>
+    /// Gives the editor's game an empty video instead of encoding the file.
+    /// </summary>
     [AssetCompiler(typeof(VideoAsset), typeof(EditorGameCompilationContext))]
-    public class VideoAssetEditorGameCompiler : AssetCompilerBase
+    public sealed class VideoAssetEditorGameCompiler : AssetCompilerBase
     {
         protected override void Prepare(AssetCompilerContext context, AssetItem assetItem, string targetUrlInStorage, AssetCompilerResult result)
         {
