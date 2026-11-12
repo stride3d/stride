@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Diagnostics.CodeAnalysis;
+using Stride.Core.Translation;
 
 namespace Stride.Core.Assets.Editor.Commands;
 
@@ -51,4 +52,20 @@ public static class CommandCategories
     /// Documentation and support: the Help menu.
     /// </summary>
     public const string Help = "Help";
+
+    /// <summary>
+    /// The name of a category as the editor shows it: translated for the editor's categories, as it is for a plugin's own.
+    /// </summary>
+    public static string GetDisplayName(string? category) => category switch
+    {
+        File => Tr._p("Menu", "File"),
+        Edit => Tr._p("Menu", "Edit"),
+        View => Tr._p("Menu", "View"),
+        Project => Tr._p("Menu", "Project"),
+        Asset => Tr._p("Menu", "Asset"),
+        Scene => Tr._p("Menu", "Scene"),
+        Tools => Tr._p("Menu", "Tools"),
+        Help => Tr._p("Menu", "Help"),
+        _ => category ?? string.Empty,
+    };
 }

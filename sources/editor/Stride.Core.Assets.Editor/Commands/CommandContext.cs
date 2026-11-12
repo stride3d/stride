@@ -44,7 +44,9 @@ public sealed class CommandContext
     /// </summary>
     /// <param name="session">The open session.</param>
     /// <param name="selection">The selection, or null for the selected assets and folders of the asset view.</param>
-    public static CommandContext ForPalette(SessionViewModel session, IReadOnlyList<object>? selection = null)
+    /// <param name="source">The element of the editor's toolkit the palette was opened from (its window, or the control that last
+    /// had the focus there), or null.</param>
+    public static CommandContext ForPalette(SessionViewModel session, IReadOnlyList<object>? selection = null, object? source = null)
     {
         ArgumentNullException.ThrowIfNull(session);
         return new CommandContext
@@ -52,6 +54,7 @@ public sealed class CommandContext
             Session = session,
             Location = CommandLocations.Palette,
             Selection = selection ?? [.. session.AssetCollection.SelectedContent],
+            Source = source,
         };
     }
 
