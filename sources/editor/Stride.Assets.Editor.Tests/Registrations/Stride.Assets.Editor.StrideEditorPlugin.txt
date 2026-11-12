@@ -59,6 +59,16 @@ SettingsKeys:
 ProfileSettings:
   Package/Game/Effect/EffectCompilation (Executable)
   Package/Game/Effect/RecordUsedEffects (Executable)
+Commands:
+  Stride.Asset.EditSelected []
+  Stride.Asset.Add []
+  Stride.Asset.CopyRecursively []
+  Stride.Asset.UpdateSelectedFromSource []
+  Stride.Asset.UpdateAllFromSource []
+  Stride.Edit.PreviousSelection []
+  Stride.Edit.NextSelection []
+  Stride.Project.AddDependency []
+  Stride.Project.OpenInIDE []
 Registry<Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools.SceneViewToolDescriptor>:
   Stride.Assets.Editor.EditorGame.Tools.RotateTool (order 20)
   Stride.Assets.Editor.EditorGame.Tools.ScaleTool (order 30)

@@ -6,6 +6,7 @@ using System.Diagnostics;
 using Avalonia;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Components.Build;
+using Stride.Core.Presentation.Avalonia.Commands;
 using Stride.Core.Assets.Editor.Components.Status;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Components.Transactions;
@@ -144,6 +145,12 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
     /// Builds the current project of the session and starts its game (the Project menu, the toolbar and the Output pane).
     /// </summary>
     public BuildAndRunViewModel Build { get; }
+
+    /// <summary>
+    /// The router of the Edit commands of the main view (Undo, Copy, Paste...), which act on the control that last had the
+    /// focus; set by the view, null without one. The Edit commands of the registry run its commands.
+    /// </summary>
+    internal EditCommandRouter? EditRouter { get; set; }
 
     /// <summary>
     /// Watches the game code of the session and reloads it when it changes, by opening the session again in a new editor (the

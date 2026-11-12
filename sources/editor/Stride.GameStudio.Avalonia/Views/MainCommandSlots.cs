@@ -8,6 +8,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using Stride.Core.Assets.Editor.Avalonia.Commands;
 using Stride.Core.Assets.Editor.Commands;
 using Stride.Core.Assets.Editor.Services;
@@ -36,6 +37,8 @@ internal sealed class MainCommandSlots : IDisposable
     private readonly List<Control> toolbarItems = [];
     private readonly Dictionary<ToolbarWidgetDescriptor, (IDestroyable ViewModel, Control? View)> widgets = [];
     private IReadOnlyList<(KeyGesture Gesture, DescriptorCommand Command)> shortcuts = [];
+    // The control a key was pressed on, while its shortcut runs
+    private object? keySource;
     private bool updatePending;
     private bool disposed;
 
@@ -77,24 +80,46 @@ internal sealed class MainCommandSlots : IDisposable
 
     /// <summary>
     /// Runs the command whose shortcut the key is, if it can run. Called by the main window and the floating windows after
-    /// the focused control, so that a text box keeps the keys it uses.
+    /// the focused control, so that a text box keeps the keys it uses. A shortcut of the editor that has the focus
+    /// (<see cref="CommandDescriptor.GestureScope"/>) goes before the main window's.
     /// </summary>
     /// <returns>True if the key is the shortcut of a command, which then ran.</returns>
     public bool TryHandleKey(KeyEventArgs e)
     {
         if (e.Handled)
             return false;
-        foreach (var (gesture, command) in shortcuts)
+        var editor = FindEditor(e.Source as Visual);
+        var match = shortcuts.FirstOrDefault(x => x.Command.Descriptor.GestureScope is { } scope && editor is not null && scope.IsInstanceOfType(editor) && x.Gesture.Matches(e));
+        if (match.Command is null)
+            match = shortcuts.FirstOrDefault(x => x.Command.Descriptor.GestureScope is null && x.Gesture.Matches(e));
+        if (match.Command is not { } command)
+            return false;
+
+        // The command acts where the key was pressed (the Edit commands, on that window's focused control)
+        keySource = e.Source;
+        try
         {
-            if (!gesture.Matches(e))
-                continue;
             if (!command.CanExecute(null))
                 return false;
             command.Execute(null);
-            e.Handled = true;
-            return true;
         }
-        return false;
+        finally
+        {
+            keySource = null;
+        }
+        e.Handled = true;
+        return true;
+    }
+
+    // The view model of the asset editor that contains a control, if any
+    private static IAssetEditorViewModel? FindEditor(Visual? visual)
+    {
+        for (var current = visual; current is not null; current = current.GetVisualParent())
+        {
+            if (current is StyledElement { DataContext: IAssetEditorViewModel editor })
+                return editor;
+        }
+        return null;
     }
 
     /// <summary>
@@ -156,7 +181,7 @@ internal sealed class MainCommandSlots : IDisposable
 
     private CommandContext? CreateContext(string location)
     {
-        return viewModel.Session is { } session ? new CommandContext { Session = session, Location = location } : null;
+        return viewModel.Session is { } session ? new CommandContext { Session = session, Location = location, Source = location == CommandLocations.Shortcut ? keySource : null } : null;
     }
 
     private void FillMenu(MenuItem menu, string location)
@@ -270,7 +295,8 @@ internal sealed class MainCommandSlots : IDisposable
             shortcuts = [];
             return;
         }
-        var bindings = host.ResolveCommandGestures(reserved: view.GetReservedGestures());
+        // The editor's own commands (the main menu, the window's shortcuts) are in the registry: no shortcut is reserved
+        var bindings = host.ResolveCommandGestures();
         var list = new List<(KeyGesture, DescriptorCommand)>();
         foreach (var (gesture, descriptor) in bindings.Bindings)
         {

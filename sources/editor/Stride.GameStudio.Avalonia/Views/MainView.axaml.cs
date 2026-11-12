@@ -9,7 +9,6 @@ using Avalonia.Controls.Templates;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Media;
-using Stride.Core.Assets.Editor.Avalonia.Commands;
 using Stride.Core.Assets.Editor.Panels;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Presentation.Avalonia.Commands;
@@ -49,9 +48,12 @@ public partial class MainView : UserControl
         }
         commandSlots?.Dispose();
         commandSlots = null;
+        if (viewModel is not null && viewModel.EditRouter == EditRouter)
+            viewModel.EditRouter = null;
         viewModel = DataContext as MainViewModel;
         if (viewModel is not null)
         {
+            viewModel.EditRouter = EditRouter;
             viewModel.RecentFiles.CollectionChanged += RecentFilesChanged;
             viewModel.ViewMenu.Items.CollectionChanged += ViewMenuChanged;
             if (viewModel.ServiceProvider.TryGet<IAssetsPluginService>() is EditorPluginHost host)
@@ -90,52 +92,6 @@ public partial class MainView : UserControl
     /// shortcuts; null without a plugin host.
     /// </summary>
     internal MainCommandSlots? CommandSlots => commandSlots;
-
-    /// <summary>
-    /// The shortcuts that the editor itself uses, each with what uses it: those of the main window and of the main menus, and
-    /// the Edit commands. A command of a plugin cannot take them.
-    /// </summary>
-    internal IEnumerable<KeyValuePair<string, string>> GetReservedGestures()
-    {
-        if (TopLevel.GetTopLevel(this) is Window window)
-        {
-            foreach (var binding in window.KeyBindings)
-            {
-                if (binding.Gesture is { } gesture)
-                    yield return new(gesture.ToString(), "a shortcut of Game Studio");
-            }
-        }
-        foreach (var (gesture, name) in new[]
-        {
-            (EditCommands.UndoGesture, "Edit > Undo"), (EditCommands.RedoGesture, "Edit > Redo"), (EditCommands.CutGesture, "Edit > Cut"),
-            (EditCommands.CopyGesture, "Edit > Copy"), (EditCommands.PasteGesture, "Edit > Paste"), (EditCommands.DeleteGesture, "Edit > Delete"),
-            (EditCommands.RenameGesture, "Edit > Rename"),
-        })
-        {
-            yield return new(gesture.ToString(), name);
-        }
-        foreach (var menu in MainMenu.Items.OfType<MenuItem>())
-        {
-            foreach (var item in Flatten(menu))
-            {
-                if (item.InputGesture is { } gesture)
-                    yield return new(gesture.ToString(), $"{MenuText(menu)} > {MenuText(item)}");
-            }
-        }
-
-        // The items of a menu and of its submenus, without the commands that the slots add
-        static IEnumerable<MenuItem> Flatten(MenuItem menu)
-        {
-            yield return menu;
-            foreach (var item in menu.Items.OfType<MenuItem>().Where(x => !CommandSlot.IsSlotItem(x)))
-            {
-                foreach (var nested in Flatten(item))
-                    yield return nested;
-            }
-        }
-
-        static string? MenuText(MenuItem item) => (item.Header as string)?.Replace("_", string.Empty, StringComparison.Ordinal);
-    }
 
     /// <summary>
     /// Gets a platform-specific <see cref="KeyGesture"/> for the Save action: Ctrl+S, or Cmd+S on macOS.

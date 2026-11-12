@@ -11,6 +11,7 @@ using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Annotations;
+using Stride.Core.Assets.Editor.Commands;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
@@ -84,6 +85,11 @@ public sealed class StrideEditorPlugin : StrideAssetsPlugin
         // The settings of the scene and script editors, declared in the shared project for both editors
         foreach (var settingsKey in EditorSettingsAttribute.GetKeys(typeof(SceneEditorSettings)).Concat(EditorSettingsAttribute.GetKeys(typeof(ScriptEditorSettings))))
             context.SettingsKeys.Register(settingsKey);
+
+        // The editor's commands that act on the session (the asset view's shortcuts, the package commands), in the registry of
+        // the commands; the shells show them in their menus themselves
+        foreach (var command in SessionCommands.Create())
+            context.Commands.Register(command);
 
         context.CopyProcessors.Register(new EntityComponentCopyProcessor());
         context.PasteProcessors.Register(new EntityComponentPasteProcessor());
