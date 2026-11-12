@@ -36,16 +36,15 @@
         <sd:EditCommandBinding Kind="Rename" Command="{Binding RenameDirectoryOrPackageCommand}" CommandParameter="{Binding AssetCollection.SelectedLocations}"/>
       </sd:EditCommands.Bindings>
       <!-- The context menu of the solution explorer, in groups shown when one of
-           their commands applies to the selection -->
+           their commands applies to the selection; its items bind the commands of the registry by their identifier, which
+           act on the selection the menu opened on -->
       <TreeView.ContextMenu>
         <ContextMenu x:Name="SolutionContextMenu"
                      cmd:CommandSlot.Location="{x:Static cmdl:CommandLocations.SolutionExplorerContext}"
                      cmd:CommandSlot.Selection="{Binding AssetCollection.SelectedLocations}">
           <MenuItem Header="{sd:LocalizeString Folder, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"
                     IsVisible="{Binding NewDirectoryCommand.IsEnabled}"/>
-          <MenuItem Header="{sd:LocalizeString Create folder, Context=Menu}"
-                    Command="{Binding NewDirectoryCommand}"
-                    CommandParameter="{Binding AssetCollection.SelectedLocations}"
+          <MenuItem Command="{cmd:Command Stride.Asset.NewFolder}"
                     IsVisible="{Binding NewDirectoryCommand.IsEnabled}">
             <MenuItem.Icon>
               <Image Source="{StaticResource ImageNewFolder}"/>
@@ -64,24 +63,20 @@
               <Image Source="{StaticResource ImageAddNewProject}"/>
             </MenuItem.Icon>
           </MenuItem>
-          <MenuItem Header="{sd:LocalizeString Add dependency..., Context=Menu}"
-                    x:Name="SolutionAddDependencyMenuItem"
-                    Command="{Binding AddDependencyCommand}"
+          <MenuItem x:Name="SolutionAddDependencyMenuItem"
+                    Command="{cmd:Command Stride.Project.AddDependency}"
                     IsVisible="{Binding AddDependencyCommand.IsEnabled}">
             <MenuItem.Icon>
               <Image Source="{StaticResource ImageAddDependency}"/>
             </MenuItem.Icon>
           </MenuItem>
-          <MenuItem Header="{sd:LocalizeString Set as current project, Context=Menu}"
-                    Command="{Binding SetCurrentProjectCommand}"
-                    CommandParameter="{Binding AssetCollection.SelectedLocations}"
+          <MenuItem Command="{cmd:Command Stride.Project.SetCurrent}"
                     IsVisible="{Binding SetCurrentProjectCommand.IsEnabled}">
             <MenuItem.Icon>
               <Image Source="{StaticResource ImageStartupProject}"/>
             </MenuItem.Icon>
           </MenuItem>
-          <MenuItem Header="{sd:LocalizeString Package properties, Context=Menu}"
-                    Command="{Binding ActivatePackagePropertiesCommand}"
+          <MenuItem Command="{cmd:Command Stride.Project.PackageProperties}"
                     IsVisible="{Binding ActivatePackagePropertiesCommand.IsEnabled}">
             <MenuItem.Icon>
               <Image Source="{StaticResource ImagePackageProperties}"/>
@@ -90,23 +85,20 @@
 
           <MenuItem Header="{sd:LocalizeString Solution, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"
                     IsVisible="{sd:MultiBinding {Binding NewProjectCommand.IsEnabled}, {Binding AddExistingProjectCommand.IsEnabled}, {Binding OpenInIDECommand.IsEnabled}, Converter={sd:OrMulti}}"/>
-          <MenuItem Header="{sd:LocalizeString New project..., Context=Menu}"
-                    Command="{Binding NewProjectCommand}"
+          <MenuItem Command="{cmd:Command Stride.Project.NewProject}"
                     IsVisible="{Binding NewProjectCommand.IsEnabled}">
             <MenuItem.Icon>
               <Image Source="{StaticResource ImageAddNewPackage}"/>
             </MenuItem.Icon>
           </MenuItem>
-          <MenuItem Header="{sd:LocalizeString Add existing project..., Context=Menu}"
-                    Command="{Binding AddExistingProjectCommand}"
+          <MenuItem Command="{cmd:Command Stride.Project.AddExistingProject}"
                     IsVisible="{Binding AddExistingProjectCommand.IsEnabled}">
             <MenuItem.Icon>
               <Image Source="{StaticResource ImageAddExistingProject}"/>
             </MenuItem.Icon>
           </MenuItem>
-          <MenuItem Header="{sd:LocalizeString Open in IDE, Context=Menu}"
-                    x:Name="SolutionOpenInIDEMenuItem"
-                    Command="{Binding OpenInIDECommand}"
+          <MenuItem x:Name="SolutionOpenInIDEMenuItem"
+                    Command="{cmd:Command Stride.Project.OpenInIDE}"
                     IsVisible="{Binding OpenInIDECommand.IsEnabled}">
             <MenuItem.Icon>
               <Image Source="{StaticResource ImageCodeEditor}"/>
@@ -114,39 +106,28 @@
           </MenuItem>
 
           <MenuItem Header="{sd:LocalizeString Actions, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"/>
-          <MenuItem Header="{sd:LocalizeString Cut, Context=Menu}"
-                    Command="{Binding AssetCollection.CutLocationsCommand}"
-                    InputGesture="{x:Static sd:EditCommands.CutGesture}">
+          <MenuItem Command="{cmd:Command Stride.Edit.Cut}">
             <MenuItem.Icon>
               <Image Source="{StaticResource ImageCut}"/>
             </MenuItem.Icon>
           </MenuItem>
-          <MenuItem Header="{sd:LocalizeString Copy, Context=Menu}"
-                    Command="{Binding AssetCollection.CopyLocationsCommand}"
-                    InputGesture="{x:Static sd:EditCommands.CopyGesture}">
+          <MenuItem Command="{cmd:Command Stride.Edit.Copy}">
             <MenuItem.Icon>
               <Image Source="{StaticResource ImageCopy}"/>
             </MenuItem.Icon>
           </MenuItem>
-          <MenuItem Header="{sd:LocalizeString Paste, Context=Menu}"
-                    Command="{Binding AssetCollection.PasteCommand}"
-                    InputGesture="{x:Static sd:EditCommands.PasteGesture}">
+          <MenuItem Command="{cmd:Command Stride.Edit.Paste}">
             <MenuItem.Icon>
               <Image Source="{StaticResource ImagePaste}"/>
             </MenuItem.Icon>
           </MenuItem>
-          <MenuItem Header="{sd:LocalizeString Delete, Context=Menu}"
-                    Command="{Binding DeleteSelectedSolutionItemsCommand}"
-                    InputGesture="{x:Static sd:EditCommands.DeleteGesture}">
+          <MenuItem Command="{cmd:Command Stride.Edit.Delete}">
             <MenuItem.Icon>
               <Image Source="{StaticResource ImageDelete}"/>
             </MenuItem.Icon>
           </MenuItem>
-          <MenuItem Header="{sd:LocalizeString Rename, Context=Menu}"
-                    Command="{Binding RenameDirectoryOrPackageCommand}"
-                    CommandParameter="{Binding AssetCollection.SelectedLocations}"
-                    IsVisible="{Binding RenameDirectoryOrPackageCommand.IsEnabled}"
-                    InputGesture="{x:Static sd:EditCommands.RenameGesture}">
+          <MenuItem Command="{cmd:Command Stride.Edit.Rename}"
+                    IsVisible="{Binding RenameDirectoryOrPackageCommand.IsEnabled}">
             <MenuItem.Icon>
               <Image Source="{StaticResource ImageRename}"/>
             </MenuItem.Icon>
@@ -155,9 +136,7 @@
           <!-- The asset group of the menu, shown where an asset can be created -->
           <MenuItem Header="{sd:LocalizeString Asset, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"
                     IsVisible="{Binding NewDirectoryCommand.IsEnabled}"/>
-          <MenuItem Header="{sd:LocalizeString Add asset..., Context=Menu}"
-                    Command="{Binding AssetCollection.ShowAddAssetDialogCommand}"
-                    InputGesture="Ctrl+I"
+          <MenuItem Command="{cmd:Command Stride.Asset.Add}"
                     IsVisible="{Binding NewDirectoryCommand.IsEnabled}">
             <MenuItem.Icon>
               <Image Source="{StaticResource ImageNewAsset}"/>
@@ -167,9 +146,7 @@
           <!-- The explore group of the menu -->
           <MenuItem Header="{sd:LocalizeString Explore, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"
                     IsVisible="{Binding ExploreCommand.IsEnabled}"/>
-          <MenuItem Header="{sd:LocalizeString Show in Explorer, Context=Menu}"
-                    Command="{Binding ExploreCommand}"
-                    CommandParameter="{Binding AssetCollection.SelectedLocations}"
+          <MenuItem Command="{cmd:Command Stride.Asset.ShowInExplorer}"
                     IsVisible="{Binding ExploreCommand.IsEnabled}">
             <MenuItem.Icon>
               <Image Source="{StaticResource ImageExplore}"/>

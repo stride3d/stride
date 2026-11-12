@@ -311,9 +311,13 @@ public sealed class EditCommandTests
                 Assert.Equal(SessionCommands.UpdateAllFromSourceId, shortcuts.Single(x => x.Gesture == updateAll).Descriptor.Id);
                 Assert.Equal(SessionCommands.UpdateSelectedFromSourceId, shortcuts.Single(x => x.Gesture == updateSelected).Descriptor.Id);
 
-                var items = AssetList(window).ContextMenu!.Items.OfType<MenuItem>().ToList();
+                // The menu items show the shortcuts bound to their commands once the menu has opened
+                var list = AssetList(window);
+                var items = (await OpenAsync(list.ContextMenu!, list)).OfType<MenuItem>().ToList();
                 Assert.Equal(updateSelected, items.Single(x => x.Header is "Update selected assets from their source").InputGesture);
                 Assert.Equal(updateAll, items.Single(x => x.Header is "Update all assets with modified source").InputGesture);
+                list.ContextMenu!.Close();
+                await WindowTestHelper.PumpAsync();
             }
             finally
             {

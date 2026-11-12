@@ -14,6 +14,7 @@ using Stride.Assets.Models;
 using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Avalonia.Views;
+using Stride.Core.Assets.Editor.Commands;
 using Stride.Core.Assets.Editor.Components.AddAssets;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Templates;
@@ -89,10 +90,8 @@ public sealed class AddAssetTests
                 dialogs.PickAddAssetTemplate = templates => templates.RootGroup.GetTemplatesRecursively().Single(x => x.Id == MaterialId);
                 var folder = fixture.Asset(AssetLocation).Directory;
                 fixture.Session.AssetCollection.SelectedLocations.Add(folder);
-                // The context menu of the asset list carries the shortcut; its items only join the tree once the menu opens
-                var list = window.GetVisualDescendants().OfType<ListBox>().Single(x => x.Name == "AssetList");
-                var menuItem = list.ContextMenu!.Items.OfType<MenuItem>().First(x => x.Header is "Add asset...");
-                Assert.Equal(new KeyGesture(Key.I, KeyModifiers.Control), menuItem.InputGesture);
+                // Ctrl+I is the shortcut of the command Add asset..., which the context menu of the asset list shows when it opens
+                Assert.Equal(new KeyGesture(Key.I, KeyModifiers.Control), window.View.CommandSlots!.ShortcutOf(SessionCommands.AddAssetId));
 
                 window.KeyPressQwerty(PhysicalKey.I, RawInputModifiers.Control);
                 window.KeyReleaseQwerty(PhysicalKey.I, RawInputModifiers.Control);

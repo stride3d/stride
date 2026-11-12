@@ -69,6 +69,18 @@ Commands:
   Stride.Edit.NextSelection []
   Stride.Project.AddDependency []
   Stride.Project.OpenInIDE []
+  Stride.Asset.ToggleRoot []
+  Stride.Asset.CopyUrl []
+  Stride.Asset.NewFolder []
+  Stride.Asset.OpenWithTextEditor []
+  Stride.Asset.OpenFile []
+  Stride.Asset.OpenSourceFile []
+  Stride.Asset.ShowInExplorer []
+  Stride.Asset.ShowSourceInExplorer []
+  Stride.Project.SetCurrent []
+  Stride.Project.PackageProperties []
+  Stride.Project.NewProject []
+  Stride.Project.AddExistingProject []
 Registry<Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools.SceneViewToolDescriptor>:
   Stride.Assets.Editor.EditorGame.Tools.RotateTool (order 20)
   Stride.Assets.Editor.EditorGame.Tools.ScaleTool (order 30)
