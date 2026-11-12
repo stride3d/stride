@@ -16,6 +16,7 @@ using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Avalonia.Commands;
 using Stride.Core;
+using Stride.GameStudio.Avalonia.Settings;
 using Stride.GameStudio.Avalonia.ViewModels;
 
 namespace Stride.GameStudio.Avalonia.Views;
@@ -295,8 +296,9 @@ internal sealed class MainCommandSlots : IDisposable
             shortcuts = [];
             return;
         }
-        // The editor's own commands (the main menu, the window's shortcuts) are in the registry: no shortcut is reserved
-        var bindings = host.ResolveCommandGestures();
+        // The user's shortcuts first. The editor's own commands (the main menu, the window's shortcuts) are in the registry:
+        // no shortcut is reserved
+        var bindings = host.ResolveCommandGestures(GameStudioEditorSettings.ShortcutOverrides.GetValue());
         var list = new List<(KeyGesture, DescriptorCommand)>();
         foreach (var (gesture, descriptor) in bindings.Bindings)
         {

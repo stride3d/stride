@@ -14,6 +14,7 @@ using Stride.Core.Assets.Editor.Avalonia.Commands;
 using Stride.Core.Assets.Editor.Commands;
 using Stride.Core.Assets.Editor.Services;
 using Stride.GameStudio.Avalonia.Commands;
+using Stride.GameStudio.Avalonia.Settings;
 using Stride.GameStudio.Avalonia.Tests.Helpers;
 using Stride.GameStudio.Avalonia.Views;
 
@@ -166,6 +167,68 @@ public sealed class BuiltInCommandsTests
         }
         finally
         {
+            await window.CloseAsync();
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task TheUsersShortcutsRebindOrRemoveTheShortcutsOfCommands()
+    {
+        using var fixture = await ShellSessionFixture.OpenAsync((SheetLocation, new SpriteSheetAsset()));
+        var window = new MainWindow { DataContext = fixture.Main };
+        await window.ShowAsync();
+        var overrides = GameStudioEditorSettings.ShortcutOverrides;
+        var runs = new List<string>();
+        var plugin = new CommandsTestPlugin(context =>
+        {
+            foreach (var (id, gesture) in new[] { ("Tests.Moved", "Ctrl+Alt+K"), ("Tests.Removed", "Ctrl+Alt+J") })
+            {
+                context.Commands.Register(new CommandDescriptor
+                {
+                    Id = id,
+                    Title = () => id,
+                    DefaultGesture = gesture,
+                    ExecuteAsync = _ =>
+                    {
+                        runs.Add(id);
+                        return Task.CompletedTask;
+                    },
+                });
+            }
+        });
+        try
+        {
+            overrides.SetValue(new Dictionary<string, string>
+            {
+                ["Tests.Moved"] = "Ctrl+Alt+L",
+                ["Tests.Removed"] = "None",
+                [GameStudioCommands.SaveId] = "Ctrl+Alt+S",
+            });
+            fixture.Plugins.PluginsDiscovered([plugin]);
+            await WindowTestHelper.PumpAsync();
+
+            var shortcuts = window.View.CommandSlots!.Shortcuts;
+            string? GestureOf(string id) => shortcuts.SingleOrDefault(x => x.Command.Descriptor.Id == id).Gesture?.ToString();
+            Assert.Equal("Ctrl+Alt+L", GestureOf("Tests.Moved"));
+            Assert.Null(GestureOf("Tests.Removed"));
+            Assert.Equal("Ctrl+Alt+S", GestureOf(GameStudioCommands.SaveId));
+
+            window.KeyPressQwerty(PhysicalKey.K, RawInputModifiers.Control | RawInputModifiers.Alt);
+            window.KeyPressQwerty(PhysicalKey.J, RawInputModifiers.Control | RawInputModifiers.Alt);
+            Assert.Empty(runs);
+            window.KeyPressQwerty(PhysicalKey.L, RawInputModifiers.Control | RawInputModifiers.Alt);
+            Assert.Equal(["Tests.Moved"], runs);
+
+            // Back to the defaults
+            overrides.SetValue(new Dictionary<string, string>());
+            window.View.CommandSlots.Update();
+            Assert.Equal("Ctrl+Alt+K", window.View.CommandSlots.Shortcuts.Single(x => x.Command.Descriptor.Id == "Tests.Moved").Gesture.ToString());
+        }
+        finally
+        {
+            overrides.SetValue(new Dictionary<string, string>());
+            fixture.Plugins.PluginsRemoved([plugin]);
+            await WindowTestHelper.PumpAsync();
             await window.CloseAsync();
         }
     }

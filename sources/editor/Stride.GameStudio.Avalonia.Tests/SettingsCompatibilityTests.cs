@@ -338,6 +338,54 @@ public sealed class SettingsCompatibilityTests : IDisposable
     }
 
     [AvaloniaFact]
+    public void TheShortcutOverridesPassThroughAWpfEditorThatDoesNotKnowThemAsTheyAre()
+    {
+        var path = Path.Combine(directory, "GameStudioSettings.conf");
+        File.WriteAllText(path, WpfSettings);
+
+        // A file without them: no override
+        var container = new SettingsContainer();
+        var key = new SettingsKey<Dictionary<string, string>>(GameStudioEditorSettings.ShortcutOverrides.Name, container, () => new Dictionary<string, string>());
+        var profile = container.LoadSettingsProfile(path, false, null, false);
+        Assert.NotNull(profile);
+        Assert.Empty(key.GetValue(profile, true));
+
+        // This editor writes the user's shortcuts, under a key of its own
+        var overrides = new Dictionary<string, string>
+        {
+            ["Stride.File.Save"] = "Ctrl+Alt+S",
+            ["Stride.Edit.Delete"] = "None",
+            ["MyPlugin.Command"] = "",
+        };
+        key.SetValue(overrides, profile);
+        Assert.True(container.SaveSettingsProfile(profile, path));
+        Assert.Contains("Shortcuts/Overrides:", File.ReadAllText(path));
+
+        // The WPF editor knows its own settings only: it changes one and saves
+        var wpfContainer = new SettingsContainer();
+        var wpfKey = new SettingsKey<bool>("Interface/AskBeforeDeletingAssets", wpfContainer, true);
+        var wpfProfile = wpfContainer.LoadSettingsProfile(path, false, null, false);
+        Assert.NotNull(wpfProfile);
+        Assert.False(wpfKey.GetValue(wpfProfile, true));
+        wpfKey.SetValue(true, wpfProfile);
+        Assert.True(wpfContainer.SaveSettingsProfile(wpfProfile, path));
+
+        // This editor reads them back as they were
+        var reloadedContainer = new SettingsContainer();
+        var reloadedKey = new SettingsKey<Dictionary<string, string>>(GameStudioEditorSettings.ShortcutOverrides.Name, reloadedContainer, () => new Dictionary<string, string>());
+        var reloaded = reloadedContainer.LoadSettingsProfile(path, false, null, false);
+        Assert.NotNull(reloaded);
+        var value = reloadedKey.GetValue(reloaded, true);
+        Assert.Equal("Ctrl+Alt+S", value["Stride.File.Save"]);
+        Assert.Equal("None", value["Stride.Edit.Delete"]);
+        Assert.True(string.IsNullOrEmpty(value["MyPlugin.Command"]));
+        Assert.Equal(3, value.Count);
+        var saved = File.ReadAllText(path);
+        Assert.Contains("Interface/AskBeforeDeletingAssets: true", saved);
+        Assert.Contains("Themes/ThemeName: DarkSteel", saved);
+    }
+
+    [AvaloniaFact]
     public void TheExtensionsPassThroughAWpfEditorThatDoesNotKnowThemAsTheyAre()
     {
         var path = Path.Combine(directory, "GameStudioInternal.conf");
