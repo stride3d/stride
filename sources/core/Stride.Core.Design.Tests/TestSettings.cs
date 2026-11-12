@@ -146,6 +146,30 @@ public class TestSettings
         Assert.Equal(stringList, ["String 1", "String 1.5", "String 2.0", "String 3"]);
     }
 
+    [Fact]
+    public void TestSettingsSaveKeepsUnchangedFile()
+    {
+        // Builds track settings files (a package's .sdpkg.user is an input of the asset build): saving the same values
+        // must not touch the file
+        var container = new SettingsContainer();
+        var key = new SettingsKey<int>("Test/Simple/IntValue", container, 10);
+        var profile = container.CreateSettingsProfile(false);
+        key.SetValue(20, profile);
+        var path = TempPath("TestSettingsSaveKeepsUnchangedFile.txt");
+        Assert.True(container.SaveSettingsProfile(profile, path));
+        var pastTime = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        File.SetLastWriteTimeUtc(path, pastTime);
+
+        Assert.True(container.SaveSettingsProfile(profile, path));
+        Assert.Equal(pastTime, File.GetLastWriteTimeUtc(path));
+
+        // Same length, other content
+        key.SetValue(30, profile);
+        Assert.True(container.SaveSettingsProfile(profile, path));
+        Assert.NotEqual(pastTime, File.GetLastWriteTimeUtc(path));
+        Assert.Contains("IntValue: 30", File.ReadAllText(path));
+    }
+
     const string TestSettingsLoadFileText ="""
         !SettingsFile
         Settings:
