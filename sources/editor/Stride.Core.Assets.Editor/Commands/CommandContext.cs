@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Diagnostics.CodeAnalysis;
+using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Commands;
@@ -35,4 +36,15 @@ public sealed class CommandContext
     /// or null. Only a command that comes with a view of the same toolkit should use it.
     /// </summary>
     public object? Source { get; init; }
+
+    /// <summary>
+    /// Creates <typeparamref name="T"/>, such as a handler that runs the command, by constructor injection: the longest public
+    /// constructor that can be called gets the given arguments, this context if it asks for it, and the services of the
+    /// session (and of the editor) it asks for.
+    /// </summary>
+    /// <example><c>ExecuteAsync = context => context.CreateInstance&lt;MyCommandHandler&gt;().RunAsync()</c></example>
+    /// <param name="arguments">Arguments that are not services.</param>
+    /// <exception cref="InvalidOperationException">No constructor can be called with these arguments and services.</exception>
+    [Experimental("STREXP006")]
+    public T CreateInstance<T>(params object[] arguments) => ContextInjection.CreateInstance<T>(Session.ServiceProvider, this, arguments);
 }
