@@ -24,7 +24,7 @@ public sealed class ToolbarWidgetContext
     public required SessionViewModel Session { get; init; }
 
     /// <summary>
-    /// The services of the editor.
+    /// The services of the session, which also give those of the editor.
     /// </summary>
     public required IViewModelServiceProvider ServiceProvider { get; init; }
 }

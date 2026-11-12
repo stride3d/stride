@@ -56,7 +56,7 @@ public sealed class TestSessionSatellites
     public async Task TheDocumentationAndThePropertiesCheckTheirArguments()
     {
         await using var fixture = await EditorSessionFixture.OpenAsync();
-        var documentation = fixture.ServiceProvider.Get<UserDocumentationService>();
+        var documentation = fixture.Session.ServiceProvider.Get<UserDocumentationService>();
 
         Assert.Throws<ArgumentNullException>(() => documentation.GetMemberDocumentation(null!, typeof(object)));
         Assert.Throws<ArgumentNullException>(() => documentation.GetPropertyKeyDocumentation(null!));

@@ -124,7 +124,12 @@ public sealed class ActionHistoryViewModel : DispatcherViewModel
         {
             await session.NotifyAssetPropertiesChangedAsync(dirtiables);
         }
-        await Dispatcher.InvokeAsync(() => transactions.Add(new TransactionViewModel(ServiceProvider, e.Transaction)));
+        // The session may have closed meanwhile: its history, and the scope of its services, are gone
+        await Dispatcher.InvokeAsync(() =>
+        {
+            if (!IsDestroyed)
+                transactions.Add(new TransactionViewModel(ServiceProvider, e.Transaction));
+        });
     }
 
     private async void TransactionUndoneOrRedone(object? sender, TransactionEventArgs e)

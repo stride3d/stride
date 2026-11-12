@@ -27,8 +27,8 @@ public sealed class BuilderServiceTests
         Assert.NotNull(builder.EffectCompiler);
         Assert.False(builder.IsDisposed);
         Assert.Equal(0, builder.PendingShaderCompilationCount);
-        Assert.Same(builder, fixture.ServiceProvider.Get<GameStudioBuilderService>());
-        Assert.Same(builder.Database, fixture.ServiceProvider.Get<GameStudioDatabase>());
+        Assert.Same(builder, fixture.Session.ServiceProvider.Get<GameStudioBuilderService>());
+        Assert.Same(builder.Database, fixture.Session.ServiceProvider.Get<GameStudioDatabase>());
     }
 
     [Fact]

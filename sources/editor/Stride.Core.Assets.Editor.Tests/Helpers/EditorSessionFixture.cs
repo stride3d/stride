@@ -204,7 +204,7 @@ public sealed class EditorSessionFixture : IAsyncDisposable
         session.AssetCollection.ClearAssetFilters();
 
         // The paste processors of the core assets, registered by the view plugin in the editor
-        var copyPaste = ServiceProvider.Get<ICopyPasteService>();
+        var copyPaste = session.ServiceProvider.Get<ICopyPasteService>();
         copyPaste.RegisterProcessor(new AssetPropertyPasteProcessor());
         copyPaste.RegisterProcessor(new AssetItemPasteProcessor(session));
 

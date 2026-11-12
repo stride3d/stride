@@ -36,7 +36,7 @@ internal sealed class CurveEditorTestScene : IAsyncDisposable
         Fixture = fixture;
         SceneEditor = sceneEditor;
         Component = component;
-        Editor = new CurveEditorViewModel(fixture.ServiceProvider, fixture.Session);
+        Editor = new CurveEditorViewModel(fixture.Session.ServiceProvider, fixture.Session);
     }
 
     public AssetsSessionFixture Fixture { get; }

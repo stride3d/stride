@@ -162,14 +162,14 @@ public sealed class PluginTests
         gameSettings.SplashScreenTexture = null!;
         await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: true, ("GameSettings", gameSettings));
 
-        Assert.NotNull(fixture.ServiceProvider.TryGet<GameSettingsProviderService>());
-        var builder = fixture.ServiceProvider.TryGet<GameStudioBuilderService>();
+        Assert.NotNull(fixture.Session.ServiceProvider.TryGet<GameSettingsProviderService>());
+        var builder = fixture.Session.ServiceProvider.TryGet<GameStudioBuilderService>();
         Assert.NotNull(builder);
-        Assert.Same(builder.Database, fixture.ServiceProvider.TryGet<GameStudioDatabase>());
+        Assert.Same(builder.Database, fixture.Session.ServiceProvider.TryGet<GameStudioDatabase>());
         // The effects read the shader files of the session where they are: nothing to import first
         Assert.IsType<ShaderSourceFileProvider>(((EffectCompilerBase)builder.EffectCompiler).FileProvider);
         // The thumbnail service is off in this fixture (no graphics device)
-        Assert.Null(fixture.ServiceProvider.TryGet<GameStudioThumbnailService>());
+        Assert.Null(fixture.Session.ServiceProvider.TryGet<GameStudioThumbnailService>());
         // The build directory lives under the package that owns the game settings
         var expected = Path.Combine(fixture.PackageDirectory, "obj", "stride", "assetbuild", "data");
         Assert.Equal(Path.GetFullPath(expected), Path.GetFullPath(StrideEditorPlugin.GetBuildDirectory(fixture.Session)));
@@ -182,7 +182,7 @@ public sealed class PluginTests
         var gameSettings = GameSettingsFactory.Create();
         gameSettings.SplashScreenTexture = null!;
         await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: true, ("GameSettings", gameSettings));
-        var builder = fixture.ServiceProvider.Get<GameStudioBuilderService>();
+        var builder = fixture.Session.ServiceProvider.Get<GameStudioBuilderService>();
 
         var shader = fixture.Package.CreateAsset(fixture.Package.AssetMountPoint, new AssetItem("MyShader", new EffectShaderAsset { Text = "shader MyShader { };" }), false, null);
 

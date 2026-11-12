@@ -16,7 +16,7 @@ public sealed class TestBuiltInPanelViewModels
         await using var fixture = await EditorSessionFixture.OpenAsync();
         var build = new BuildAndRunViewModel(fixture.ServiceProvider);
         var panels = BuiltInPanels.CreateSessionPanels().Append(BuiltInPanels.CreateOutputPanel(build)).ToDictionary(x => x.Id);
-        IPanelViewModel Create(string id) => panels[id].CreateViewModel(new PanelContext { Descriptor = panels[id], Session = fixture.Session, ServiceProvider = fixture.ServiceProvider });
+        IPanelViewModel Create(string id) => panels[id].CreateViewModel(new PanelContext { Descriptor = panels[id], Session = fixture.Session, ServiceProvider = fixture.Session.ServiceProvider });
 
         var explorer = Assert.IsType<SolutionExplorerPanelViewModel>(Create(BuiltInPanels.SolutionExplorer));
         Assert.Same(fixture.Session, explorer.Session);

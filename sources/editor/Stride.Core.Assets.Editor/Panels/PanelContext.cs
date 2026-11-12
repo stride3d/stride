@@ -33,7 +33,7 @@ public sealed class PanelContext
     internal SessionViewModel EditorSession => (SessionViewModel)Session;
 
     /// <summary>
-    /// The services of the editor.
+    /// The services of the session, which also give those of the editor.
     /// </summary>
     public required IViewModelServiceProvider ServiceProvider { get; init; }
 }
