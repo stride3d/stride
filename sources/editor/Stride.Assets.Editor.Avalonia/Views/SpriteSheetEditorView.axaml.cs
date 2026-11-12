@@ -48,37 +48,9 @@ public sealed partial class SpriteSheetEditorView : UserControl, IAssetEditorVie
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
-        // The editor takes the focus so that its keys work
+        // The editor takes the focus so that its shortcuts work (commands of the registry scoped to this editor)
         if (!IsKeyboardFocusWithin)
             Focus();
-    }
-
-    /// <inheritdoc />
-    protected override void OnKeyDown(KeyEventArgs e)
-    {
-        base.OnKeyDown(e);
-
-        // The keys of the sprite editor. They reach the view model after the focused control, so typing in a text box
-        // (a name, the color key) doesn't trigger them.
-        if (e.Handled || e.Source is TextBox || Editor is not { } editor)
-            return;
-
-        var (command, parameter) = (e.Key, e.KeyModifiers) switch
-        {
-            (Key.J, KeyModifiers.Control) => (editor.SelectNextSpriteCommand, -1),
-            (Key.K, KeyModifiers.Control) => (editor.SelectNextSpriteCommand, 1),
-            (Key.U, KeyModifiers.Control) => (editor.AddNewImageCommand, (object?)null),
-            (Key.D, KeyModifiers.Control) => (editor.DuplicateSelectedImagesCommand, null),
-            (Key.W, KeyModifiers.Control) => (editor.UseWholeImageCommand, null),
-            (Key.M, KeyModifiers.None) => (editor.ToggleUseMagicWandCommand, null),
-            (Key.F, KeyModifiers.None) => (editor.FocusOnRegionCommand, null),
-            _ => ((ICommandBase?)null, null),
-        };
-        if (command is not null && command.CanExecute(parameter))
-        {
-            command.Execute(parameter);
-            e.Handled = true;
-        }
     }
 
     private void OnSpriteImagePropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)

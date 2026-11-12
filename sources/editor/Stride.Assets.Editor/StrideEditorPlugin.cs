@@ -91,8 +91,8 @@ public sealed class StrideEditorPlugin : StrideAssetsPlugin
         // the commands; the shells show them in their menus themselves
         foreach (var command in SessionCommands.Create())
             context.Commands.Register(command);
-        // The commands of the scene and prefab editors: their context menus and their shortcuts
-        foreach (var command in SceneEditorCommands.Create())
+        // The commands of the scene and prefab editors and of the sprite sheet editor: their context menus and their shortcuts
+        foreach (var command in SceneEditorCommands.Create().Concat(SpriteSheetEditorCommands.Create()))
             context.Commands.Register(command);
 
         context.CopyProcessors.Register(new EntityComponentCopyProcessor());

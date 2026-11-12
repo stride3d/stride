@@ -44,6 +44,11 @@ public static class CommandCategories
     public const string Scene = "Scene";
 
     /// <summary>
+    /// The commands of the sprite sheet editor.
+    /// </summary>
+    public const string SpriteSheet = "SpriteSheet";
+
+    /// <summary>
     /// The Tools menu.
     /// </summary>
     public const string Tools = "Tools";
@@ -64,6 +69,7 @@ public static class CommandCategories
         Project => Tr._p("Menu", "Project"),
         Asset => Tr._p("Menu", "Asset"),
         Scene => Tr._p("Menu", "Scene"),
+        SpriteSheet => Tr._p("Menu", "Sprite sheet"),
         Tools => Tr._p("Menu", "Tools"),
         Help => Tr._p("Menu", "Help"),
         _ => category ?? string.Empty,

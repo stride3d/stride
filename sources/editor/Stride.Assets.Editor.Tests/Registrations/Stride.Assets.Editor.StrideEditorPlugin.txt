@@ -97,6 +97,13 @@ Commands:
   Stride.Scene.Cut []
   Stride.Scene.Copy []
   Stride.Scene.Rename []
+  Stride.SpriteSheet.PreviousSprite []
+  Stride.SpriteSheet.NextSprite []
+  Stride.SpriteSheet.AddImage []
+  Stride.SpriteSheet.Duplicate []
+  Stride.SpriteSheet.UseWholeImage []
+  Stride.SpriteSheet.ToggleMagicWand []
+  Stride.SpriteSheet.FocusOnRegion []
 Registry<Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools.SceneViewToolDescriptor>:
   Stride.Assets.Editor.EditorGame.Tools.RotateTool (order 20)
   Stride.Assets.Editor.EditorGame.Tools.ScaleTool (order 30)
