@@ -264,7 +264,7 @@ namespace Stride.Shaders.Compiler
                 }
 
                 if (isNewFailure)
-                    log.CopyTo(effectLog);
+                    ShaderBackendLog.CopyTo(log, effectLog);
                 return new EffectBytecodeCompilerResult(null, log);
             }
 
@@ -352,7 +352,7 @@ namespace Stride.Shaders.Compiler
                 compiledShaders.Add(effectInputHash, compiledShader);
             }
 
-            log.CopyTo(effectLog);
+            ShaderBackendLog.CopyTo(log, effectLog);
             return compiledShader;
         }
 
