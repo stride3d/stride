@@ -270,7 +270,7 @@ internal sealed class MainCommandSlots : IDisposable
             shortcuts = [];
             return;
         }
-        var bindings = host.ResolveCommandGestures(view.GetReservedGestures());
+        var bindings = host.ResolveCommandGestures(reserved: view.GetReservedGestures());
         var list = new List<(KeyGesture, DescriptorCommand)>();
         foreach (var (gesture, descriptor) in bindings.Bindings)
         {

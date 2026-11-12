@@ -105,14 +105,27 @@ public abstract partial class EditorPluginHost
     }
 
     /// <summary>
-    /// Binds the default shortcuts of the available commands (see <see cref="CommandGestureBindings"/>), and logs a warning
-    /// for each one that is not bound.
+    /// Whether a command is one of the editor's own: registered by the editor itself, or by a plugin of the editor's own
+    /// assemblies. Its default shortcut comes before those of the plugins (see <see cref="CommandGestureBindings"/>).
     /// </summary>
-    /// <param name="reserved">The shortcuts that the shell already uses, each with what uses it.</param>
     [Experimental("STREXP003")]
-    public CommandGestureBindings ResolveCommandGestures(IEnumerable<KeyValuePair<string, string>> reserved)
+    public bool IsBuiltInCommand(CommandDescriptor command)
     {
-        var bindings = CommandGestureBindings.Resolve(reserved, Commands.Items.Where(IsCommandAvailable), DescribeCommand);
+        ArgumentNullException.ThrowIfNull(command);
+        return Commands.GetOwner(command) is not AssetsPlugin plugin || IsEditorAssembly(plugin.GetType().Assembly);
+    }
+
+    /// <summary>
+    /// Binds the shortcuts of the available commands (see <see cref="CommandGestureBindings"/>): the user's overrides, then the
+    /// defaults of the editor's own commands, then those of the plugins. Logs a warning for each one that is not bound.
+    /// </summary>
+    /// <param name="overrides">The user's shortcuts by command identifier (a shortcut, or <see cref="CommandGestureBindings.NoGesture"/>
+    /// for none), or null.</param>
+    /// <param name="reserved">The shortcuts that the shell uses for something that is not a command, each with what uses it, or null.</param>
+    [Experimental("STREXP003")]
+    public CommandGestureBindings ResolveCommandGestures(IReadOnlyDictionary<string, string>? overrides = null, IEnumerable<KeyValuePair<string, string>>? reserved = null)
+    {
+        var bindings = CommandGestureBindings.Resolve(Commands.Items.Where(IsCommandAvailable), IsBuiltInCommand, overrides, reserved, DescribeCommand);
         foreach (var warning in bindings.Warnings)
             pluginLogger.Warning(warning);
         return bindings;
