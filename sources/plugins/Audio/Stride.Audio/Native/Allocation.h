@@ -13,6 +13,9 @@
 	static void operator delete(void* ptr) { free(ptr); }
 
 // Has to be included before the TINYSTL headers.
+#ifdef TINYSTL_ALLOCATOR_H
+#error "Allocation.h has to be included before the TINYSTL headers"
+#endif
 struct xnAllocator
 {
 	static void* static_allocate(size_t bytes) { return malloc(bytes); }
