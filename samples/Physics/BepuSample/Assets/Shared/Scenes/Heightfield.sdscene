@@ -49,6 +49,21 @@ Hierarchy:
                         CollisionGroup: {}
                         ContactEventHandler: null
         -   Entity:
+                Id: 0d40efec-e499-4e78-9e2d-dd401abee050
+                Name: GeoSphere
+                Components:
+                    f7ff7d4f818150b870484aff0fd7e622: !TransformComponent
+                        Id: c8edfed7-5eb3-4544-98a6-ab00d3e14a6a
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.9, Y: 0.9, Z: 0.9}
+                        Children: {}
+                    029c88661cd910eac3c47ac04f6b7519: !ModelComponent
+                        Id: 8980a0f4-99b2-4686-bae6-80e32808af02
+                        Model: 162f79e0-18f6-4043-bb0d-65ab268481b5:Models/GeoSphere
+                        Materials:
+                            aa92c0017790def40940ba16b7658cdc~0: 24b58c2d-b6df-4f84-9110-7482fdb1de54:Heightfield/Gameplay/Glass
+        -   Entity:
                 Id: 135955f3-d702-4304-b049-c22d3925948f
                 Name: Border
                 Components:
@@ -99,14 +114,16 @@ Hierarchy:
                 Components:
                     f7ff7d4f818150b870484aff0fd7e622: !TransformComponent
                         Id: ea57cd00-3842-4306-989d-5b4ec4fbedeb
-                        Position: {X: 24.614876, Y: 12.715565, Z: 47.980675}
+                        Position: {X: 114.614876, Y: 42.715565, Z: 243.98068}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children: {}
+                        Scale: {X: 3.0, Y: 3.0, Z: 3.0}
+                        Children:
+                            6554342ef2daf5b2b51cc43735f8a264: ref!! c8edfed7-5eb3-4544-98a6-ab00d3e14a6a
                     029c88661cd910eac3c47ac04f6b7519: !ModelComponent
                         Id: bf9913df-a20c-4e00-aaa8-f9bab4964cd9
                         Model: 162f79e0-18f6-4043-bb0d-65ab268481b5:Models/GeoSphere
-                        Materials: {}
+                        Materials:
+                            aa92c0017790def40940ba16b7658cdc~0: 76c2933c-094f-4be5-a53a-7f9b59057199:Heightfield/Gameplay/Glass Inside Out
                     9534effac239d2d6dfbd8a9122099b3b: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
                         Id: c1956d59-c308-4fab-ac23-27610675b09a
                         Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
@@ -115,7 +132,7 @@ Hierarchy:
                                     Mass: 1.0
                                     PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
                                     RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                                    Radius: 0.5
+                                    Radius: 1.5
                         SpringFrequency: 30.0
                         SpringDampingRatio: 3.0
                         FrictionCoefficient: 1.0
@@ -125,7 +142,7 @@ Hierarchy:
                         Kinematic: false
                         Gravity: true
                         ContinuousDetectionMode: Discrete
-                        InterpolationMode: None
+                        InterpolationMode: Interpolated
                         SleepThreshold: 0.01
                         MinimumTimestepCountUnderThreshold: 32
         -   Entity:
@@ -294,26 +311,27 @@ Hierarchy:
                         ContactEventHandler: null
         -   Entity:
                 Id: 749fa8c1-5f74-4283-9358-045af3a1e2f0
-                Name: Camera
+                Name: Magus Orb
                 Components:
                     191a9580bfac05d33d042a46b9b519ac: !TransformComponent
                         Id: b8df41bc-fd8f-4037-ad0c-29e5a7996371
-                        Position: {X: 20.0, Y: 13.000002, Z: 47.800655}
+                        Position: {X: 56.0, Y: 13.000002, Z: 148.80066}
                         Rotation: {X: -0.0, Y: -0.70710677, Z: 0.0, W: 0.70710677}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    d986a5552032bee5aa22b98d43929462: !BepuSample.Game.Components.Camera.BasicCameraControllerComponent,BepuSample.Game
-                        Id: 7d841fab-37aa-44e4-b744-9fb0984588a7
-                        Gamepad: false
-                        KeyboardMovementSpeed: {X: 10.0, Y: 10.0, Z: 10.0}
-                        TouchMovementSpeed: {X: 0.7, Y: 0.7, Z: 0.3}
-                        SpeedFactor: 5.0
-                        KeyboardRotationSpeed: {X: 5.0, Y: 5.0}
-                        MouseRotationSpeed: {X: 1.0, Y: 1.0}
-                        TouchRotationSpeed: {X: 1.0, Y: 0.7}
                     d30ce5ada2da13a962bcc916699b2f23: !BepuSample.Game.Components.Camera.FindAndAttachCameraComponent,BepuSample.Game
                         Id: 8891551f-d4df-4220-968b-96581fe241fe
+                        Priority: 1
                         CameraComponent: null
+                    8269dee67392b161d5b928a9404fb39c: !BepuSample.Game.Components.MagusOrb,BepuSample.Game
+                        Id: 857c6c54-53b3-458f-af32-b842311e9c73
+                        Orb: ref!! c1956d59-c308-4fab-ac23-27610675b09a
+                        Camera: ref!! b8df41bc-fd8f-4037-ad0c-29e5a7996371
+                        CameraLocalOffset: {X: 0.0, Y: 3.0, Z: 12.0}
+                        CameraLocalOffsetRot: {X: -0.17364818, Y: 0.0, Z: 0.0, W: 0.9848077}
+                        TiltFactor: 0.35
+                        RotationFactor: 1.0
+                        CameraSmoothness: 0.25
         -   Entity:
                 Id: 82acb767-c706-4a54-b0ed-6b498231483d
                 Name: Cube
@@ -438,8 +456,8 @@ Hierarchy:
                 Components:
                     131681de1500234bafe62d4c74b912eb: !TransformComponent
                         Id: 3fd0a471-78e1-464d-be1b-af3cb21b146a
-                        Position: {X: 0.0, Y: 2.0, Z: 0.0}
-                        Rotation: {X: -0.51803374, Y: -0.24623357, Z: 0.351658, W: 0.7398289}
+                        Position: {X: 0.0, Y: 200.0, Z: 0.0}
+                        Rotation: {X: 0.5746129, Y: 0.75650424, Z: 0.24868102, W: -0.18888906}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     a36c5a79536d8f5babb4672d66978fc0: !LightComponent

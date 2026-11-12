@@ -1,0 +1,27 @@
+!MaterialAsset
+Id: 24b58c2d-b6df-4f84-9110-7482fdb1de54
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Attributes:
+    MicroSurface: !MaterialGlossinessMapFeature
+        GlossinessMap: !ComputeTextureScalar
+            Texture: 89a21373-dc71-4023-8f49-51da858896ce:Textures/GithubNicogo
+            FallbackValue:
+                Value: 1.0
+            Scale: {X: 10.0, Y: 0.2}
+            Offset: {X: 0.0, Y: 0.1}
+    Specular: !MaterialMetalnessMapFeature
+        MetalnessMap: !ComputeTextureScalar
+            Texture: 89a21373-dc71-4023-8f49-51da858896ce:Textures/GithubNicogo
+            FallbackValue:
+                Value: 1.0
+            Scale: {X: 0.1, Y: 15.0}
+            Offset: {X: 0.0, Y: 0.0}
+    SpecularModel: !MaterialSpecularMicrofacetModelFeature
+        Fresnel: !MaterialSpecularMicrofacetFresnelSchlick {}
+        Visibility: !MaterialSpecularMicrofacetVisibilitySmithSchlickGGX {}
+        NormalDistribution: !MaterialSpecularMicrofacetNormalDistributionGGX {}
+        Environment: !MaterialSpecularMicrofacetEnvironmentGGXLUT {}
+    Overrides:
+        UVScale: {X: 1.0, Y: 1.0}
+Layers: {}
