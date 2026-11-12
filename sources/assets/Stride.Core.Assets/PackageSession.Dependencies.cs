@@ -17,9 +17,9 @@ partial class PackageSession
     private readonly Dictionary<string, Microsoft.Build.Evaluation.Project> projectLoadCache = new(StringComparer.OrdinalIgnoreCase);
     // Track projects being processed to avoid infinite recursion
     private readonly HashSet<string> processingProjects = new(StringComparer.OrdinalIgnoreCase);
-    // Set when LoadMissingDependencies restored the whole solution once up front, so the per-project
-    // restore below can be skipped (kept only as a fallback when there's no solution or after an upgrade).
-    private bool solutionDependenciesRestored;
+    // Set when LoadMissingDependencies restored the solution, or the projects without a solution, once up front, so the
+    // per-project restore below can be skipped (kept only as a fallback after a failed restore or an upgrade).
+    private bool dependenciesRestoredUpFront;
     // During a session load, the files of the projects that the dependency phase evaluated as they are now (after the
     // restore): the asset listing that follows reads them instead of evaluating the projects again
     private Dictionary<string, Package.ProjectFiles>? loadProjectFiles;
@@ -398,10 +398,10 @@ partial class PackageSession
             }
 
             // Real nuget restore. Also runs when this project's restore output is missing — e.g. a library just
-            // added to the solution that the up-front solution restore didn't cover.
+            // added to the solution that the up-front restore didn't cover.
             var assetsFile = msProject?.GetPropertyValue("ProjectAssetsFile");
             var restoreOutputMissing = string.IsNullOrEmpty(assetsFile) || !File.Exists(assetsFile);
-            if (loadParameters.AutoCompileProjects && (!solutionDependenciesRestored || referencesUpgraded || restoreOutputMissing))
+            if (loadParameters.AutoCompileProjects && (!dependenciesRestoredUpFront || referencesUpgraded || restoreOutputMissing))
             {
                 log.Verbose($"Restore NuGet packages for {project.Name}...");
                 await VSProjectHelper.RestoreNugetPackages(log, project.FullPath, loadParameters.AllowUpgradeDowngradeRestore);

@@ -1141,28 +1141,49 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
         try
         {
             // Restore the whole solution once up front (one project-graph evaluation) instead of one
-            // restore per project. The per-project restore in PreLoadPackageDependencies then only runs
-            // as a fallback (no solution, or a project whose references an upgrade rewrote). Skip when no
-            // project needs loading (this is called again after everything is already DependenciesReady).
-            solutionDependenciesRestored = false;
-            var anyProjectNeedsLoading = Projects.OfType<SolutionProject>().Any(x => x.Package.State < PackageState.DependenciesReady);
-            if (anyProjectNeedsLoading && loadParameters.AutoCompileProjects && HasSolution && File.Exists(SolutionPath.ToOSPath()))
+            // restore per project; without a solution, restore its projects up front the same way. The code
+            // upgrade detection then evaluates each project after its restore, and the asset listing reuses that
+            // evaluation. The per-project restore in PreLoadPackageDependencies then only runs as a fallback (a
+            // failed restore, or a project whose references an upgrade rewrote). Skip when no project needs loading
+            // (this is called again after everything is already DependenciesReady).
+            dependenciesRestoredUpFront = false;
+            var projectsToLoad = Projects.OfType<SolutionProject>().Where(x => x.Package.State < PackageState.DependenciesReady).ToList();
+            if (projectsToLoad.Count > 0 && loadParameters.AutoCompileProjects && HasSolution && File.Exists(SolutionPath.ToOSPath()))
             {
                 try
                 {
                     log.Verbose($"Restore NuGet packages for {SolutionPath.GetFileName()}...");
                     VSProjectHelper.RestoreNugetPackages(log, SolutionPath.ToOSPath(), loadParameters.AllowUpgradeDowngradeRestore).Wait();
-                    solutionDependenciesRestored = true;
+                    dependenciesRestoredUpFront = true;
                 }
                 catch (Exception ex)
                 {
                     log.Warning($"Unable to restore NuGet packages for solution [{SolutionPath}]", ex);
                 }
             }
+            else if (projectsToLoad.Count > 0 && loadParameters.AutoCompileProjects && !HasSolution)
+            {
+                dependenciesRestoredUpFront = true;
+                foreach (var project in projectsToLoad)
+                {
+                    if (project.FullPath is null || !File.Exists(project.FullPath.ToOSPath()))
+                        continue;
+                    try
+                    {
+                        log.Verbose($"Restore NuGet packages for {project.Name}...");
+                        VSProjectHelper.RestoreNugetPackages(log, project.FullPath.ToOSPath(), loadParameters.AllowUpgradeDowngradeRestore).Wait();
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Warning($"Unable to restore NuGet packages for project [{project.FullPath}]", ex);
+                        dependenciesRestoredUpFront = false;
+                    }
+                }
+            }
 
             // Source-code migration pre-pass: rewrite user .cs against the old closure before refs are bumped.
             // Runs for a restored solution or a standalone project (no .sln); the runner skips if it can't resolve.
-            if ((solutionDependenciesRestored || !HasSolution) && CodeUpgradeRunner.Instance is { } codeUpgradeRunner)
+            if ((dependenciesRestoredUpFront || !HasSolution) && CodeUpgradeRunner.Instance is { } codeUpgradeRunner)
             {
                 try
                 {
@@ -1206,7 +1227,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
         }
         finally
         {
-            solutionDependenciesRestored = false;
+            dependenciesRestoredUpFront = false;
             // Clean up all cached MSBuild projects
             ClearAllCachedProjects();
         }
