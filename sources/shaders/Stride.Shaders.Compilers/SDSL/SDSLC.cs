@@ -69,10 +69,9 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                 {
                     shader.Compile(table, compiler);
                 }
-                catch (StatementCompileException e) when (filename != null)
+                catch (StatementCompileException e)
                 {
-                    // file(line,col): the form build tools and editors link to
-                    log.Error($"{filename}({e.Error.Location.Line},{e.Error.Location.Column}): {e.Error.Message} (in `{e.Error.Location.Text.Span.Trim()}`)", e);
+                    log.Error(e.Error.ToString(filename), e);
                     hasErrors = true;
                 }
                 catch (ShaderErrorsLoggedException e)
@@ -101,15 +100,15 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                 }
 
                 foreach (var info in table.Infos)
-                    log.Info(info.ToString());
+                    log.Info(info.ToString(filename));
 
                 foreach (var warning in table.Warnings)
-                    log.Warning(Format(filename, warning));
+                    log.Warning(warning.ToString(filename));
 
                 if (table.Errors.Count > 0)
                 {
                     foreach (var error in table.Errors)
-                        log.Error(Format(filename, error));
+                        log.Error(error.ToString(filename));
                     hasErrors = true;
                 }
 
@@ -143,19 +142,6 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
         }
 
         return lastBuffer != null;
-    }
-
-    /// <summary>
-    /// file(line,col): the form build tools and editors link to, as for statement errors.
-    /// </summary>
-    private static string Format(string? filename, SemanticError error)
-    {
-        if (filename == null)
-            return error.ToString();
-
-        var text = error.Location.Text.Span.Trim();
-        var context = text.Length > 0 && !text.ContainsAny('\r', '\n') ? $" (in `{text}`)" : "";
-        return $"{filename}({error.Location.Line},{error.Location.Column}): {error.Message}{context}";
     }
 
     /// <summary>
