@@ -27,6 +27,7 @@ using AvalonDock.Layout;
 using Stride.GameStudio.Helpers;
 using Stride.GameStudio.Layout;
 using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.GameStudio.AssetsEditors
 {
@@ -341,7 +342,8 @@ namespace Stride.GameStudio.AssetsEditors
                     var viewType = session.PluginService.GetEditorViewType(editorType);
                     if (viewType is not null)
                     {
-                        view = (IEditorView)Activator.CreateInstance(viewType);
+                        // The view's constructor can ask for services of the session
+                        view = (IEditorView)session.ServiceProvider.CreateInstance(viewType);
 
                         // Pane may already exists (e.g. created from layout saving, or kept while the editor is replaced)
                         editorPane = givenPane ?? AvalonDockHelper.GetAllAnchorables(dockingLayoutManager.DockingManager).FirstOrDefault(p => p.Title == asset.Url);
@@ -364,7 +366,7 @@ namespace Stride.GameStudio.AssetsEditors
                         var binding = new Binding(nameof(AssetViewModel.Url)) { Mode = BindingMode.OneWay, Source = asset };
                         BindingOperations.SetBinding(editorPane, LayoutContent.TitleProperty, binding);
 
-                        editor = (AssetEditorViewModel)Activator.CreateInstance(editorType, asset);
+                        editor = AssetEditorViewModel.Create(editorType, asset);
                         // Initialize the editor view
                         view.DataContext = editor;
                         if (!await view.InitializeEditor(editor))

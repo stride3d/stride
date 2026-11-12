@@ -12,6 +12,7 @@ using Stride.Core.Assets.Editor.ViewModels;
 using Stride.GameStudio.Avalonia.ViewModels;
 using Stride.GameStudio.Avalonia.Views;
 using Stride.GameStudio.Avalonia.Views.Panels;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.GameStudio.Avalonia.Docking;
 
@@ -64,7 +65,8 @@ public sealed class DockViewLocator : IDataTemplate
     private static Control BuildEditor(EditorDocument document)
     {
         var viewType = document.Session.ServiceProvider.TryGet<IAssetsPluginService>()?.GetEditorViewType(document.Editor.GetType());
-        if (viewType is not null && Activator.CreateInstance(viewType) is Control view)
+        // The view's constructor can ask for services of the editor's tab (or of the session)
+        if (viewType is not null && document.Editor.ServiceProvider.CreateInstance(viewType) is Control view)
         {
             view.DataContext = document.Editor;
             return view;
