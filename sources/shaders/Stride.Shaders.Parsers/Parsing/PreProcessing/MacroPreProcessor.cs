@@ -93,6 +93,6 @@ public static class MonoGamePreProcessor
         public void handleSourceChange(Source source, string ev) { }
 
         // CppNet counts columns from 0
-        private string Format(int line, int column, string msg) => $"{filename}({line},{column + 1}): {msg.TrimEnd()}";
+        private string Format(int line, int column, string msg) => $"{MessageFileName.Of(filename)}({line},{column + 1}): {msg.TrimEnd()}";
     }
 }
