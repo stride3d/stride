@@ -111,7 +111,9 @@ partial class PackageSession
         var result = new List<PendingCodeUpgrade>();
         foreach (var project in Projects.OfType<SolutionProject>())
         {
-            if (project.FullPath is null)
+            // PreLoadPackageDependencies skips a project whose dependencies are ready, so no upgrade of it runs: this
+            // also saves an evaluation of every project when the references are loaded again after the session load
+            if (project.FullPath is null || project.Package.State >= PackageState.DependenciesReady)
                 continue;
             var projectPath = project.FullPath.ToOSPath();
             if (!File.Exists(projectPath))
