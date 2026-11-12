@@ -89,8 +89,8 @@
                 <TextBlock Grid.Column="2" Classes="state" Margin="8,0" VerticalAlignment="Center"
                            Classes.attention="{Binding NeedsAttention}" Classes.off="{Binding !IsLoaded}"
                            Text="{Binding StateText}"/>
-                <!-- A third-party plugin's switch (this project), or an extension's (every project): switching off asks
-                     first; it applies at the next opening -->
+                <!-- The switch of a third-party plugin or of an engine plugin's Editor package (this project), or of an
+                     extension (every project): switching off asks first; it applies at the next opening -->
                 <ToggleSwitch Grid.Column="3" Name="PluginSwitch" VerticalAlignment="Center" Margin="0" MinWidth="0"
                               OnContent="" OffContent=""
                               IsVisible="{Binding CanSwitch}"
@@ -154,11 +154,12 @@
             <TextBlock TextWrapping="Wrap" Opacity="0.7" IsVisible="{Binding IsBuiltIn}"
                        Text="{Binding BuiltInDetail}"/>
 
-            <!-- A built-in plugin named in the project's list of switched-off plugins: the editor warned and loaded it -->
+            <!-- A built-in plugin that can't be switched off on its own, named in the project's list of switched-off plugins:
+                 the editor warned and loaded it -->
             <Border Name="ListedBuiltIn" Padding="6" Background="#30E0A040" IsVisible="{Binding IsListedBuiltIn}">
               <Grid ColumnDefinitions="*, Auto">
                 <TextBlock Grid.Column="0" TextWrapping="Wrap" VerticalAlignment="Center"
-                           Text="{sd:LocalizeString The list of plugins switched off for this project names this plugin. It is built into Game Studio and always loads (a warning when the project opens).}"/>
+                           Text="{sd:LocalizeString The list of plugins switched off for this project names this plugin. It is built into Game Studio and cannot be switched off on its own: it loads (a warning when the project opens).}"/>
                 <Button Name="ClearEntryButton" Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center"
                         Content="{sd:LocalizeString Clear the entry, Context=Button}" Command="{Binding ClearEntryCommand}"/>
               </Grid>

@@ -143,6 +143,103 @@ public sealed class PluginsPanelTests
     }
 
     [AvaloniaFact]
+    public async Task ABuiltInPluginRowHasAWorkingSwitchAndIsInTheOffGroupWhenSwitchedOff()
+    {
+        using var fixture = ShellSessionFixture.Create(("Sheet", new SpriteSheetAsset()));
+        var store = CreateStore();
+        fixture.Plugins.DisabledCompanions = store;
+        store.Set(fixture.PackagePath, "Stride.UI.Editor", switchedOff: true);
+        await fixture.OpenAsync();
+        var dialogs = fixture.ReplaceDialogService();
+        dialogs.PickButton = buttons => buttons.Single(x => x.IsDefault).Result;
+        var window = new MainWindow { DataContext = fixture.Main };
+        await window.ShowAsync();
+        PluginsPanelViewModel? panel = null;
+        try
+        {
+            fixture.Main.Panels.Show(BuiltInPanels.Plugins);
+            await WindowTestHelper.PumpAsync();
+            var view = Assert.Single(window.GetVisualDescendants().OfType<PluginsView>());
+
+            // The test session declares no engine plugin: the panel lists two as the catalog does, UI switched off for this
+            // project, Physics on
+            var engine = new PackageVersion($"{BuiltInPlugins.EditorVersion.Major}.{BuiltInPlugins.EditorVersion.Minor}.0");
+            PluginInfo[] infos =
+            [
+                new() { Id = "Stride.Physics.Editor", DisplayName = "Stride.Physics.Editor", Version = engine, Source = PluginSource.BuiltIn, State = PluginState.Joined },
+                new() { Id = "Stride.UI.Editor", DisplayName = "Stride.UI.Editor", Version = engine, Source = PluginSource.BuiltIn, State = PluginState.Off, OffReason = PluginOffReason.SwitchedOff },
+            ];
+            var context = new PanelContext { Descriptor = BuiltInPanels.CreatePluginsPanel(_ => throw new NotSupportedException()), Session = fixture.Session, ServiceProvider = fixture.ServiceProvider };
+            panel = new PluginsPanelViewModel(context, fixture.Plugins, () => infos, fixture.PackagePath, restart: null);
+            view.DataContext = panel;
+            await WindowTestHelper.PumpAsync();
+
+            // UI first, in the Off group, then Physics among the built-in plugins: both with a switch
+            Assert.Equal(["Stride.UI.Editor", "Stride.Physics.Editor"], panel.Plugins.Select(x => x.Id));
+            // Each row as the list shows it (the panel is short: the list realizes the rows it scrolls to)
+            var list = view.GetVisualDescendants().OfType<ListBox>().Single(x => x.Name == "PluginList");
+            var rows = new List<(string? Group, string? State, ToggleSwitch Switch)>();
+            for (var i = 0; i < panel.Plugins.Count; ++i)
+            {
+                list.ScrollIntoView(i);
+                await WindowTestHelper.PumpAsync();
+                var row = Assert.IsType<ListBoxItem>(list.ContainerFromIndex(i));
+                var group = row.GetVisualDescendants().OfType<TextBlock>().Single(x => x.Classes.Contains("group"));
+                var state = row.GetVisualDescendants().OfType<TextBlock>().Single(x => x.Classes.Contains("state"));
+                rows.Add((group.IsVisible ? group.Text : null, state.Text, row.GetVisualDescendants().OfType<ToggleSwitch>().Single(x => x.Name == "PluginSwitch")));
+            }
+            Assert.Equal(["Off", "Built-in plugins"], rows.Select(x => x.Group));
+            Assert.Equal(["Off: switched off", "On"], rows.Select(x => x.State));
+            Assert.All(rows, x => Assert.True(x.Switch.IsVisible));
+            Assert.Equal([false, true], rows.Select(x => x.Switch.IsChecked));
+
+            // The switch of a row, realized again (the list recycles its rows)
+            async Task<ToggleSwitch> SwitchOfAsync(int index)
+            {
+                list.ScrollIntoView(index);
+                await WindowTestHelper.PumpAsync();
+                var toggle = list.ContainerFromIndex(index)!.GetVisualDescendants().OfType<ToggleSwitch>().Single(x => x.Name == "PluginSwitch");
+                Assert.Same(panel.Plugins[index], toggle.DataContext);
+                return toggle;
+            }
+
+            // The details of the switched-off one: its switch, still built into Game Studio
+            panel.SelectedPlugin = panel.Plugins[0];
+            await WindowTestHelper.PumpAsync();
+            var details = view.GetVisualDescendants().OfType<ContentControl>().Single(x => x.Name == "Details");
+            Assert.True(details.GetVisualDescendants().OfType<ToggleSwitch>().Single(x => x.Name == "DetailSwitch").IsVisible);
+            var texts = details.GetVisualDescendants().OfType<TextBlock>().Where(x => x.IsVisible).Select(x => x.Text).ToList();
+            Assert.Contains("Built into Game Studio", texts);
+            Assert.Contains("It is switched off for this project: it was not loaded.", texts);
+            Assert.Contains(texts, x => x?.StartsWith("Built into Game Studio. Switched off, only its editing goes", StringComparison.Ordinal) == true);
+            Assert.False(details.GetVisualDescendants().OfType<Border>().Single(x => x.Name == "ListedBuiltIn").IsVisible);
+
+            // Physics's switch: the confirmation says what goes, then the project's list has it
+            (await SwitchOfAsync(1)).Command!.Execute(null);
+            await WindowTestHelper.WaitUntilAsync(() => store.Get(fixture.PackagePath).Count == 2, "the list with Physics");
+            var question = Assert.Single(dialogs.Messages);
+            Assert.StartsWith("Switching off Stride.Physics.Editor takes away, from the next opening of this project:", question);
+            Assert.Contains("- the collider shape and constraint gizmos in the scene editor", question);
+            Assert.Contains("Simulation.DisableSimulation", question);
+            Assert.Equal(["Stride.UI.Editor", "Stride.Physics.Editor"], store.Get(fixture.PackagePath));
+            await WindowTestHelper.PumpAsync();
+            Assert.True(panel.Plugins[1].IsPending);
+            Assert.False((await SwitchOfAsync(1)).IsChecked);
+
+            // UI's switch: on again without a question
+            (await SwitchOfAsync(0)).Command!.Execute(null);
+            await WindowTestHelper.WaitUntilAsync(() => store.Get(fixture.PackagePath).Count == 1, "the list without UI");
+            Assert.Single(dialogs.Messages);
+            Assert.Equal(["Stride.Physics.Editor"], store.Get(fixture.PackagePath));
+        }
+        finally
+        {
+            panel?.Destroy();
+            await window.CloseAsync();
+        }
+    }
+
+    [AvaloniaFact]
     public async Task InSafeModeTheBannerCountsThePluginsOffOpensThePanelAndRestartsNormally()
     {
         using var fixture = ShellSessionFixture.Create(("Sheet", new SpriteSheetAsset()));
