@@ -98,12 +98,56 @@ The template's content is small but complete: a component and a content type (ru
 - Icons and static thumbnails: `[assembly: TypeImage(typeof(MyComponent), "MyComponent.png")]` over an embedded resource of the declaring assembly, images of enum values `[assembly: EnumImage(MyEnum.Value, "Value.png")]` and static thumbnails `[assembly: StaticThumbnail(typeof(MyAsset), "MyThumbnail.png")]` the same way. They are plain data (`Stride.Core.Assets.Editor.Annotations`, in `Stride.Core.Assets`), so the `Assets` package can declare them: a plugin without an `Editor` package still gets its icons, and the `Editor` package may declare them too. Both editors show the images of every registered assembly, for as long as it is registered; an image a plugin registers in code wins over a declared one. An image the editor can't decode (a file that isn't an image, such as a Git LFS pointer that was not pulled) is left out with a warning in the load log and an error of the plugin (or of its assembly) in the Plugins panel; the project still opens.
 - Game Studio extensions: a `StrideAssetsPlugin` subclass in the `Editor` package is the entry point. An empty class is enough: what the assembly declares with attributes (asset view models, editors, previews, gizmos, scene view tools, settings, images) is found without it doing anything. To register more, override the two methods of the plugin context, calling the base method first:
   - `Initialize(IEditorPluginContext context)`, once per editor: images (`context.TypeImages`, `context.EnumImages`), primitive types, template providers, copy and paste processors, scene view tools (`context.SceneViewTools()`, see [Scene and prefab views](#scene-and-prefab-views)), settings keys, profile settings, panels and their views, commands and toolbar widgets (see below);
-  - `InitializeSession(ISessionPluginContext context)`, once the session is open: services (`context.Services`), property grid commands and updaters (`context.NodePresenterCommands`, `context.NodePresenterUpdaters`), and with `context.OnClose(...)` what to clean up.
+  - `InitializeSession(ISessionPluginContext context)`, once the session is open: services (`context.Services`, see [Services](#services)), property grid commands and updaters (`context.NodePresenterCommands`, `context.NodePresenterUpdaters`), and with `context.OnClose(...)` what to clean up.
 
   The editor records each registration under the plugin and removes it when the plugin leaves: its assembly is reloaded or unloaded, or the session closes, which also runs the `OnClose` actions, newest first. The older `Register*` methods, `InitializePlugin` and `InitializeSession(ISessionViewModel)` are obsolete (see [Migrating from the older plugin API](#migrating-from-the-older-plugin-api)) but still work, through the base methods: the editor removes what they register too, except the services that `InitializeSession(ISessionViewModel)` adds to the session directly and what a plugin keeps in static fields. The template's plugin class shows the two methods. Gizmos `[GizmoComponent(typeof(MyComponent), true)]` classes, tools of the scene and prefab views `[EditorViewTool]` classes (`Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools`; registered as if the plugin registered them with `context.SceneViewTools()`), previews and their view models by the `AssetPreview` attributes. Views are WPF today; keep them in the `.Wpf` companion package so the `Editor` package stays toolkit-neutral (it references `Stride.Assets.Editor`, not a `*.Wpf` assembly). The editor's session, the hierarchy item an entity factory creates for and the editor game controller reach the plugin as interfaces (`ISessionViewModel`, `IEntityHierarchyItemViewModel`, `IEditorGameController` and its `IEntityHierarchyEditorController` / `ISceneEditorController` refinements): an editor game service declares the controller interface in its `[EditorGameService]` attribute and takes it, or `IAssetEditorViewModel`, in its constructor.
 - Editor settings: a static class marked `[EditorSettings]`, in the assembly of the plugin class, holds the plugin's settings keys (static fields or properties created in `EditorSettings.SettingsContainer`). Game Studio registers them with the plugin's assembly and removes them when the assembly is unloaded, so a reloaded assembly (a plugin project of the solution rebuilt, a package removed and added again) creates them again. `Stride.UI.Editor`'s `UIEditorSettings` is declared this way.
 - Asset templates: a `Templates/Assets/*.sdtpl` in the `Assets` package (`!TemplateAssetFactory`), listed under `TemplateFolders` in the package's `.sdpkg` next to the project (the template's `MyPlugin.Assets.sdpkg` shows the shape), packed with it. Without that list the asset type never appears in *Add asset*.
 - Render features: a class implementing `IRenderFeatureProvider` (in `Stride.Assets`) in the `Assets` or `Editor` package returns the render features the plugin needs, for the opaque and transparent stages it is given. The editor's preview and thumbnail compositors take them at runtime; `Stride.SpriteStudio.Editor`, `Stride.Particles.Editor` and `Stride.UI.Editor` work this way. A game's own compositor asset is the game's: the engine default it derives from carries no plugin feature, so a compositor created in Game Studio gets the features of its project's packages (its dependencies, `PackageTypeScope`), and for an existing one, once the game references the plugin, *Add package features* in the compositor editor adds the missing ones (through the property graph, so undo and the dirty flag follow). The engine's compositors carry no particle or UI feature since `Stride.Particles` and `Stride.UI` became plugins; upgrading a game's compositor derived from them keeps each of those features it had, now owned by the game's compositor, or removes it when the game does not reference that plugin.
+
+## Services
+
+Game Studio's view models find their services through an `IViewModelServiceProvider` (`Stride.Core.Presentation.ViewModels`), which is also a `System.IServiceProvider`. There are three scopes, each a child of the one before:
+
+- **The editor**, for the whole process: dialogs, the dispatcher, the plugin service, the clipboard.
+- **The session**, while a project is open: undo and redo (`IUndoRedoService`), copy and paste, selection, the asset editors manager, and the services the plugins add with `context.Services` (the asset builder, the game settings, the previews...). It is `session.ServiceProvider`, and it goes when the session closes.
+- **An asset editor's tab**, while the editor is open: empty at first, for the services of that editor.
+
+A scope looks up a service it doesn't have in its parent when the service is asked for, so a service registered later in a parent is seen, and a service of a child hides one of its parent. The editor's scope doesn't see the session's: ask the session (or the asset, or the editor, whose services hold the session's) for a session service.
+
+**Registering.** In `InitializeSession(ISessionPluginContext context)`:
+
+- `context.Services.Register(instance)` adds an instance. A lookup of a type gets the one instance assignable to it, and throws when two are.
+- `context.Services.Register<TService>(factory, lifetime)` adds a service made by `factory` (which gets the services of the scope it is made for) under the type `TService`: a lookup of exactly that type gets it, even when several instances would also match. With `ServiceLifetime.Singleton` (the default) it is made once for the session, the first time it is asked for. With `ServiceLifetime.PerScope`, the session and each editor's tab that asks for it get their own instance, which goes with that scope.
+
+What a plugin registers goes when it leaves the session (its assembly is reloaded or unloaded, or the session closes), and the instances its factories made are disposed. Instances registered as such are not: they belong to the plugin.
+
+**Constructor injection.** The types Game Studio creates for a plugin can take services in their constructor, after the arguments they always get. The longest public constructor whose parameters are those arguments or services is used (`ActivatorUtilities`, from `Microsoft.Extensions.DependencyInjection.Abstractions`), so the usual signatures keep working:
+
+- asset editors: `(MyAssetViewModel asset)`, plus services. An editor that also takes an `IViewModelServiceProvider` gets the services of its tab; it passes them to the base constructor `AssetEditorViewModel(asset, serviceProvider)` and can register services of its own there, which go when the editor closes;
+- the views of the asset editors, the previews, their view models (`(SessionViewModel session)`, plus services) and their views;
+- panels, toolbar widgets and command handlers, which the plugin creates from its context with `context.CreateInstance<T>(arguments)`: the constructor gets the given arguments, the context if it asks for it, and the session's services.
+
+```csharp
+public override void InitializeSession(ISessionPluginContext context)
+{
+    // One for the session, made when first asked for, disposed when the plugin leaves
+    context.Services.Register<IMyLibraryIndex>(services => new MyLibraryIndex(context.Session));
+}
+
+public override void Initialize(IEditorPluginContext context)
+{
+    context.Panels.Register(new PanelDescriptor
+    {
+        Id = "MyPlugin.Library",
+        Title = () => "My library",
+        // MyLibraryPanelViewModel(PanelContext context, IMyLibraryIndex index, IUndoRedoService undoRedo)
+        CreateViewModel = panel => panel.CreateInstance<MyLibraryPanelViewModel>(),
+    });
+}
+```
+
+The factory registrations of `context.Services` and the contexts' `CreateInstance` are experimental (`STREXP006`, see [Editor versions and experimental API](#editor-versions-and-experimental-api)). The editor game of the scene editors keeps its own services (`IServiceRegistry`, `[EditorGameService]`), apart from these.
 
 ## Panels, views and plugin states
 
@@ -237,6 +281,7 @@ A game is normally edited with the Game Studio of its own Stride version, so its
 | `STREXP003` | Commands, menus and toolbars | `context.Commands`, `context.ToolbarWidgets`, the types of `Stride.Core.Assets.Editor.Commands` (`CommandDescriptor`, `CommandPlacement`, `CommandLocations`, `CommandContext`, `CommandGesture`, `ToolbarWidgetDescriptor`, ...), `SceneLocations`, and the Avalonia `CommandSlot`, `DescriptorCommand` and `PropertyGridCommands` |
 | `STREXP004` | Tools of the scene and prefab views | `context.SceneViewTools()`, `SceneViewToolDescriptor`, `IEditorViewTool.Update(CancellationToken)` and `GetContextMenu`, `EditorViewContextMenu`, `EditorViewMenuEntry`, and the view's context menu |
 | `STREXP005` | Widgets of the scene and prefab views | `context.SceneViewWidgets()`, `SceneViewWidgetDescriptor`, `SceneViewWidgetContext`, `SceneViewEdge`, and the view models of the widgets |
+| `STREXP006` | Services | `IPluginServiceRegistry` and `context.Services.Register<TService>(factory, lifetime)` (`PluginServiceRegistryExtensions`), and `CreateInstance<T>` of `PanelContext`, `ToolbarWidgetContext` and `CommandContext` |
 
 To use an area, opt in to its id in the `Editor` project, for the whole project:
 
