@@ -168,7 +168,7 @@ dotnet msbuild build/samples.proj -t:CleanContentTemplates                      
 
 To ship samples, start to finish:
 
-1. **Move the samples.** For all of them, dispatch [`upgrade-samples.yml`](../../.github/workflows/upgrade-samples.yml): it runs `UpgradeSamples` on the branch's engine, builds the samples and opens a PR labelled `ci-enduser` and `ci-editor`, which run the end-user and editor test suites. Review the diff, fix what the upgraders left and merge. For a fix in one sample, run `UpgradeSamples` with `-p:SampleUpgradeTarget=<path to .sdpkg>`, and move the `Packs` it references with it.
+1. **Move the samples.** For all of them, dispatch [`upgrade-samples.yml`](../../.github/workflows/upgrade-samples.yml): it runs `UpgradeSamples` on the branch's engine, builds the samples and opens a PR labelled `ci-enduser` and `ci-gamestudio-screenshots`, which run the end-user and Game Studio screenshot suites. Review the diff, fix what the upgraders left and merge. For a fix in one sample, run `UpgradeSamples` with `-p:SampleUpgradeTarget=<path to .sdpkg>`, and move the `Packs` it references with it.
 2. **Dispatch `release.yml`** before `Patch` moves again. It builds the engine naming the new packs, packs them and publishes both in one run. `StrideSamplesVersion` is written in the run's checkout and committed to the branch only once published, so the branch never names content that isn't on the feed: dev and nightly engines rely on that. Without `deploy`, nothing is published or committed.
 
 A samples-only release doesn't exist on purpose: released engines pin an exact version, so only the next engine could use it.

@@ -3,7 +3,7 @@ name: Test Editor (Avalonia)
 # Builds the cross-platform (Avalonia) editor and runs its test projects on Linux and Windows,
 # with a coverage report of the editor-side assemblies (no threshold: the summary is informative).
 # The WPF editor stays covered by build-windows-full.yml (its build), test-editor-wpf.yml (its tests)
-# and test-windows-editor.yml (its screenshots).
+# and test-gamestudio-screenshots.yml (its screenshots).
 
 on:
   workflow_dispatch:

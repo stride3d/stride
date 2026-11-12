@@ -14,7 +14,7 @@ Most CI runs automatically on PR commits, gated by path filters. A few things ru
 opt in by adding a label to the PR (collaborator access required):
 
 - `ci-enduser` — end-user sample screenshot + packaging suite (never auto-runs)
-- `ci-editor` — GameStudio editor screenshot suite (never auto-runs)
+- `ci-gamestudio-screenshots` — Game Studio screenshot suite (never auto-runs)
 - `ci-ios` — iOS game suite, when its narrow path filter didn't already trigger it
 - `ci-android` — Android game suite, when its narrow path filter didn't already trigger it
 - `ci-editor-avalonia` — cross-platform (Avalonia) editor build and tests on Linux and Windows, when its path filter didn't already trigger it
