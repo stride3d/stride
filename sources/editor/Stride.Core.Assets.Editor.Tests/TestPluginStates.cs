@@ -12,8 +12,9 @@ using Stride.Core.Settings;
 namespace Stride.Core.Assets.Editor.Tests;
 
 /// <summary>
-/// The Editor packages a session leaves out: those the user switched off for it (<see cref="DisabledEditorCompanionStore"/>), and
-/// in safe mode every one that is not built-in (<see cref="BuiltInPlugins"/>); their <see cref="PluginState.Off"/> state in the host.
+/// The Editor packages a session leaves out: those the user switched off for it (<see cref="DisabledEditorCompanionStore"/>), the
+/// built-in ones that can be switched off included, and in safe mode every one that is not built-in (<see cref="BuiltInPlugins"/>);
+/// their <see cref="PluginState.Off"/> state in the host.
 /// </summary>
 public sealed class TestPluginStates : IDisposable
 {
@@ -53,16 +54,70 @@ public sealed class TestPluginStates : IDisposable
     }
 
     [Fact]
-    public void ABuiltInPackageCantBeSwitchedOff()
+    public void ASwitchedOffBuiltInPackageIsLeftOutWithItsToolkitCompanions()
     {
-        var skipped = new List<string>();
-        var filter = new EditorCompanionFilter(["Stride.Physics.Editor"], safeMode: false, (name, _) => skipped.Add(name));
+        var skipped = new List<(string, PluginOffReason)>();
+        var filter = new EditorCompanionFilter(["Stride.UI.Editor"], safeMode: false, (name, reason) => skipped.Add((name, reason)));
         var log = new LoggerResult();
 
+        Assert.False(filter.ShouldLoad(Declaring("Stride.UI"), Companion("Stride.UI.Editor", EditorPackageVersion), log));
+        // Declared by the Editor package, so not asked while it is off; left out too if they are
+        Assert.False(filter.ShouldLoad(Declaring("Stride.UI.Editor"), Companion("Stride.UI.Editor.Avalonia", EditorPackageVersion), log));
+        Assert.False(filter.ShouldLoad(Declaring("Stride.UI.Editor"), Companion("Stride.UI.Editor.Wpf", EditorPackageVersion), log));
+        // The other built-in packages load
         Assert.True(filter.ShouldLoad(Declaring("Stride.Physics"), Companion("Stride.Physics.Editor", EditorPackageVersion), log));
+        Assert.True(filter.ShouldLoad(Declaring("Stride.Audio.Editor"), Companion("Stride.Audio.Editor.Avalonia", EditorPackageVersion), log));
+
+        Assert.Equal([("Stride.UI.Editor", PluginOffReason.SwitchedOff), ("Stride.UI.Editor.Avalonia", PluginOffReason.SwitchedOff), ("Stride.UI.Editor.Wpf", PluginOffReason.SwitchedOff)], skipped);
+        Assert.True(filter.IsBuiltInSwitchedOff("Stride.UI.Editor.Avalonia"));
+        Assert.False(filter.IsBuiltInSwitchedOff("Stride.Physics.Editor"));
+        // No warning: the user may switch it off
+        Assert.DoesNotContain(log.Messages, x => x.Type == LogMessageType.Warning);
+        Assert.Contains(log.Messages, x => x.Type == LogMessageType.Info && x.Text.Contains("[Stride.UI.Editor], declared by [Stride.UI], is not loaded: it is switched off for this session.", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EachSwitchableBuiltInPackageCanBeSwitchedOff()
+    {
+        var filter = new EditorCompanionFilter(BuiltInPlugins.SwitchablePackageNames, safeMode: false);
+        var log = new LoggerResult();
+
+        foreach (var name in BuiltInPlugins.PackageNames)
+            Assert.False(filter.ShouldLoad(Declaring("Stride.Engine.Plugin"), Companion(name, EditorPackageVersion), log), name);
+        // Of another Stride version, a package of the list is third-party: switched off as any other
+        var otherMinor = new PackageVersion($"{BuiltInPlugins.EditorVersion.Major}.{BuiltInPlugins.EditorVersion.Minor + 1}.0");
+        Assert.False(filter.ShouldLoad(Declaring("Stride.UI"), Companion("Stride.UI.Editor", otherMinor), log));
+        Assert.DoesNotContain(log.Messages, x => x.Type == LogMessageType.Warning);
+    }
+
+    [Fact]
+    public void AToolkitCompanionOfABuiltInPackageIsNotSwitchedOffOnItsOwn()
+    {
+        var skipped = new List<string>();
+        var filter = new EditorCompanionFilter(["Stride.UI.Editor.Avalonia"], safeMode: false, (name, _) => skipped.Add(name));
+        var log = new LoggerResult();
+
+        Assert.True(filter.ShouldLoad(Declaring("Stride.UI"), Companion("Stride.UI.Editor", EditorPackageVersion), log));
+        Assert.True(filter.ShouldLoad(Declaring("Stride.UI.Editor"), Companion("Stride.UI.Editor.Avalonia", EditorPackageVersion), log));
 
         Assert.Empty(skipped);
-        Assert.Contains(log.Messages, x => x.Type == LogMessageType.Warning && x.Text.Contains("it is a plugin of the engine and can't be", StringComparison.Ordinal));
+        Assert.Contains(log.Messages, x => x.Type == LogMessageType.Warning && x.Text.Contains("[Stride.UI.Editor.Avalonia] is switched off for this session, but it is switched with [Stride.UI.Editor], not on its own: it is loaded.", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void SafeModeLoadsEveryBuiltInPackageWhateverTheUserSwitchedOff()
+    {
+        var skipped = new List<(string, PluginOffReason)>();
+        var filter = new EditorCompanionFilter(BuiltInPlugins.SwitchablePackageNames.Append("Plugin.Editor"), safeMode: true, (name, reason) => skipped.Add((name, reason)));
+        var log = new LoggerResult();
+
+        foreach (var name in BuiltInPlugins.PackageNames)
+            Assert.True(filter.ShouldLoad(Declaring("Stride.Engine.Plugin"), Companion(name, EditorPackageVersion), log), name);
+        Assert.False(filter.ShouldLoad(Declaring("Plugin"), Companion("Plugin.Editor"), log));
+
+        // Only the third-party package is off, and for safe mode
+        Assert.Equal([("Plugin.Editor", PluginOffReason.SafeMode)], skipped);
+        Assert.Contains(log.Messages, x => x.Text.Contains("[Stride.Physics.Editor], declared by [Stride.Engine.Plugin], is switched off for this session, but it is loaded: Game Studio runs in safe mode.", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -111,9 +166,60 @@ public sealed class TestPluginStates : IDisposable
 
         Assert.NotEmpty(editorProjects);
         Assert.Equal(editorProjects, BuiltInPlugins.PackageNames.Order(StringComparer.OrdinalIgnoreCase));
+        Assert.False(BuiltInPlugins.IsSwitchable("Stride.UI.Editor", null));
         Assert.Equal(typeof(BuiltInPlugins).Assembly.GetName().Version!.Major, BuiltInPlugins.EditorVersion.Major);
         Assert.False(BuiltInPlugins.IsBuiltIn("Stride.UI.Editor", null));
         Assert.False(BuiltInPlugins.IsBuiltIn(null, EditorPackageVersion));
+    }
+
+    [Fact]
+    public void TheSwitchableListHasTheToolkitNeutralEditorPackagesOfTheEnginePlugins()
+    {
+        // The toolkit-neutral Editor projects of sources/plugins: the toolkit ones are their companions, switched with them
+        var root = FindRepositoryRoot();
+        var neutralProjects = Directory.EnumerateFiles(Path.Combine(root, "sources", "plugins"), "*.csproj", SearchOption.AllDirectories)
+            .Select(path => (Path: path, Document: XDocument.Load(path)))
+            .Where(x => x.Document.Descendants("StridePackageKind").Any(e => e.Value == "Editor") && !x.Document.Descendants("StrideEditorToolkit").Any())
+            .Select(x => Path.GetFileNameWithoutExtension(x.Path))
+            .Order(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        Assert.Equal(7, neutralProjects.Count);
+        Assert.Equal(neutralProjects, BuiltInPlugins.SwitchablePackageNames.Order(StringComparer.OrdinalIgnoreCase));
+        Assert.True(BuiltInPlugins.IsSwitchable("Stride.Voxels.Editor", EditorPackageVersion));
+        Assert.False(BuiltInPlugins.IsSwitchable("Stride.UI.Editor.Avalonia", EditorPackageVersion));
+        // Each built-in package is switched with one of the list
+        foreach (var name in BuiltInPlugins.PackageNames)
+            Assert.Contains(BuiltInPlugins.GetSwitchedWith(name), BuiltInPlugins.SwitchablePackageNames);
+        Assert.Equal("Stride.SpriteStudio.Editor", BuiltInPlugins.GetSwitchedWith("Stride.SpriteStudio.Editor.Wpf"));
+        Assert.Equal("Stride.Audio.Editor", BuiltInPlugins.GetSwitchedWith("stride.audio.editor.avalonia"));
+        Assert.Null(BuiltInPlugins.GetSwitchedWith("Stride.UI.Editor.Community"));
+        Assert.Null(BuiltInPlugins.GetSwitchedWith(null));
+    }
+
+    [Fact]
+    public void ABuiltInPackageIsSwitchedOffPerProject()
+    {
+        var host = new RecordingEditorPluginHost([]) { DisabledCompanions = CreateStore() };
+        var game = new UFile("/Projects/Game/Game.sln");
+        host.DisabledCompanions.Set(game, "Stride.Physics.Editor", switchedOff: true);
+        try
+        {
+            var log = new LoggerResult();
+            Assert.False(host.GetCompanionPackageFilter(game).ShouldLoad(Declaring("Stride.Physics"), Companion("Stride.Physics.Editor", EditorPackageVersion), log));
+            var status = Assert.Single(host.PluginStatuses);
+            Assert.Equal(("Stride.Physics.Editor", PluginState.Off, (PluginOffReason?)PluginOffReason.SwitchedOff), (status.Name, status.State, status.OffReason));
+
+            // Another project of the same user loads it
+            Assert.True(host.GetCompanionPackageFilter(new UFile("/Projects/Other/Other.sln")).ShouldLoad(Declaring("Stride.Physics"), Companion("Stride.Physics.Editor", EditorPackageVersion), log));
+            // And so does the same project in safe mode
+            host.SafeMode = true;
+            Assert.True(host.GetCompanionPackageFilter(game).ShouldLoad(Declaring("Stride.Physics"), Companion("Stride.Physics.Editor", EditorPackageVersion), log));
+        }
+        finally
+        {
+            host.Dispose();
+        }
     }
 
     [Fact]

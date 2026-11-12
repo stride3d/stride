@@ -16,7 +16,8 @@ public abstract partial class EditorPluginHost
 {
     /// <summary>
     /// Whether the editor runs in safe mode (<c>--safe-mode</c>): the sessions it opens load only the built-in Editor packages
-    /// (<see cref="BuiltInPlugins"/>), and the others are <see cref="PluginState.Off"/> with <see cref="PluginOffReason.SafeMode"/>.
+    /// (<see cref="BuiltInPlugins"/>), all of them, whatever the user switched off, and the others are <see cref="PluginState.Off"/>
+    /// with <see cref="PluginOffReason.SafeMode"/>.
     /// Set by the editor before it opens a session.
     /// </summary>
     [Experimental("STREXP002")]
@@ -44,8 +45,9 @@ public abstract partial class EditorPluginHost
     public EditorExtensionService? Extensions { get; set; }
 
     /// <summary>
-    /// Creates the filter of the Editor companions a session loads: none of those switched off for that session, nor the
-    /// extensions switched off, only the built-in ones in safe mode. Each one left out gets the <see cref="PluginState.Off"/> state.
+    /// Creates the filter of the Editor companions a session loads: none of those switched off for that session (the built-in
+    /// ones that can be switched off included), nor the extensions switched off, and in safe mode every built-in one and only
+    /// those. Each one left out gets the <see cref="PluginState.Off"/> state.
     /// </summary>
     /// <param name="sessionPath">The session's file, or null for a session that has none yet (a new project).</param>
     [Experimental("STREXP002")]
@@ -66,7 +68,8 @@ public abstract partial class EditorPluginHost
 
     // The filter only sees the Editor companions: a plugin class can also come in another assembly of the session (the game's
     // own, a package it references, a package switched off but still reached as a NuGet dependency). In safe mode only the
-    // editor's own plugins and those of the built-in packages join; otherwise the plugins of a package switched off don't.
+    // editor's own plugins and those of the built-in packages join, all of them; otherwise the plugins of a package switched
+    // off don't, a built-in one's included.
     private bool IsLeftOut(AssetsPlugin plugin)
     {
         var assembly = plugin.GetType().Assembly;
@@ -74,7 +77,13 @@ public abstract partial class EditorPluginHost
             return false;
         var version = assemblyName.Version is { } v ? new PackageVersion(new Version(v.Major, v.Minor, Math.Max(v.Build, 0))) : null;
         if (BuiltInPlugins.IsBuiltIn(name, version))
-            return false;
+        {
+            if (SafeMode || companionFilter is not { } builtInFilter || !builtInFilter.IsBuiltInSwitchedOff(name))
+                return false;
+            if (RecordOffOnce(name, PluginOffReason.SwitchedOff))
+                PluginsLogger.Info($"The plugin [{plugin.GetType().FullName}] of [{name}] does not join the session: its package is switched off.");
+            return true;
+        }
 
         PluginOffReason reason;
         if (SafeMode)
