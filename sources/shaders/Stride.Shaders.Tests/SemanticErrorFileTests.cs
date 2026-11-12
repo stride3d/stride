@@ -8,7 +8,7 @@ using Stride.Shaders.Compilers.SDSL;
 namespace Stride.Shaders.Parsers.Tests;
 
 /// <summary>
-/// Compile errors, warnings and infos of a shader file start with file(line,col), the form build tools and editors link to.
+/// Compile errors, warnings and notices of a shader file start with file(line,col), the form build tools and editors link to.
 /// </summary>
 public class SemanticErrorFileTests : IDisposable
 {
@@ -59,7 +59,7 @@ public class SemanticErrorFileTests : IDisposable
 
         loader.LoadExternalBuffer("InfoInFile", [], out _, out _, out _);
 
-        var info = Assert.Single(log.Messages, m => m.Type == LogMessageType.Info).Text;
+        var info = Assert.Single(log.Messages, m => m.Type == LogMessageType.Debug).Text;
         Assert.Equal($"{Path.Combine(sourceDir.FullName, "InfoInFile.sdsl")}(3,32): Stage method 'InfoInFile.Get' references non-stage method 'InfoInFile.Scale'. This will cause the shader to be fully imported at root level instead of stage-only when used in a composition. (in `Scale()`)", info);
     }
 
@@ -72,7 +72,7 @@ public class SemanticErrorFileTests : IDisposable
 
         Assert.True(new SDSLC(loader).Compile(null, StageCallsNonStage, ObjectId.Empty, [], log, out _, new() { RegisterInCache = false }));
 
-        var info = Assert.Single(log.Messages, m => m.Type == LogMessageType.Info).Text;
+        var info = Assert.Single(log.Messages, m => m.Type == LogMessageType.Debug).Text;
         Assert.StartsWith("(3,32): Stage method 'InfoInFile.Get' references non-stage method 'InfoInFile.Scale'.", info);
         Assert.DoesNotContain('\n', info);
     }
