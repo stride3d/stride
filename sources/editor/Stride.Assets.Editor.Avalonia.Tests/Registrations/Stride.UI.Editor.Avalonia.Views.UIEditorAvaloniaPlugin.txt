@@ -18,3 +18,5 @@ PasteProcessors:
 PostPasteProcessors:
 SettingsKeys:
 ProfileSettings:
+Commands:
+  Stride.UI.Duplicate []
