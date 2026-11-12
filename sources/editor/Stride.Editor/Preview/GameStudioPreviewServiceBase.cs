@@ -21,6 +21,7 @@ using Stride.Core.BuildEngine;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Reflection;
 using Stride.Editor.Annotations;
 using Stride.Editor.Build;
@@ -434,7 +435,8 @@ public abstract class GameStudioPreviewServiceBase : IAssetPreviewService, IPrev
             var localType = type;
             lock (assetPreviewFactories)
             {
-                assetPreviewFactories[previewAttribute.AssetType] = (builder, game, asset) => (IAssetPreview)Activator.CreateInstance(localType)!;
+                // A preview's constructor can ask for the services of the session
+                assetPreviewFactories[previewAttribute.AssetType] = (builder, game, asset) => (IAssetPreview)session.ServiceProvider.CreateInstance(localType);
                 assetPreviewTypes[previewAttribute.AssetType] = localType;
             }
         }
