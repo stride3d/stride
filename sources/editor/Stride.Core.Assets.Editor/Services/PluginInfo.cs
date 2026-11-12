@@ -117,9 +117,15 @@ public sealed class PluginInfo
 
     /// <summary>
     /// Whether it is built into the editor (an engine plugin package at the editor's version, or part of the editor itself):
-    /// it can't be switched off and stays on in safe mode.
+    /// it loads in safe mode, and only the engine's Editor packages can be switched off (<see cref="IsSwitchableBuiltIn"/>).
     /// </summary>
     public bool IsBuiltIn => Source is PluginSource.BuiltIn or PluginSource.Editor;
+
+    /// <summary>
+    /// Whether it is a built-in package the user can switch off for a project (<see cref="BuiltInPlugins.SwitchablePackageNames"/>):
+    /// the Editor package of an engine plugin, which takes its toolkit companions with it.
+    /// </summary>
+    public bool IsSwitchableBuiltIn => Source == PluginSource.BuiltIn && BuiltInPlugins.SwitchablePackageNames.Contains(Id);
 
     /// <summary>
     /// Whether it is an extension the user installed: it is switched off everywhere (<see cref="EditorExtensionService.SetOff"/>),
@@ -128,12 +134,13 @@ public sealed class PluginInfo
     public bool IsExtension => Source == PluginSource.Extension;
 
     /// <summary>
-    /// Whether the user can switch it off for the session (<see cref="PluginSwitchService"/>): never a built-in one, nor one
-    /// known only by the name of an assembly (not by its package), nor an extension (switched off everywhere instead).
+    /// Whether the user can switch it off for the session (<see cref="PluginSwitchService"/>): a built-in one only when it is
+    /// the Editor package of an engine plugin (<see cref="IsSwitchableBuiltIn"/>), never one known only by the name of an
+    /// assembly (not by its package), nor an extension (switched off everywhere instead).
     /// </summary>
     public bool CanSwitchOff
     {
-        get => !IsBuiltIn && !IsExtension && canSwitchOff;
+        get => (!IsBuiltIn || IsSwitchableBuiltIn) && !IsExtension && canSwitchOff;
         init => canSwitchOff = value;
     }
 

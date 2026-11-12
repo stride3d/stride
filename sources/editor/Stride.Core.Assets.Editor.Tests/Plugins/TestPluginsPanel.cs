@@ -72,7 +72,7 @@ public sealed class TestPluginsPanel : IDisposable
         Assert.Equal(("Part of Game Studio", "Editor, Avalonia", "Part of Game Studio: it cannot be switched off."), (own.SourceText, own.KindText, own.BuiltInDetail));
         Assert.True(own.IsBuiltIn);
         Assert.False(own.CanSwitch);
-        Assert.Equal("Built into Game Studio: it cannot be switched off.", panel.Plugins[3].BuiltInDetail);
+        Assert.Equal("Built into Game Studio. Switched off, only its editing goes: its assets and components still build, work in the game and show in the scene editor.", panel.Plugins[3].BuiltInDetail);
         Assert.Equal(string.Empty, panel.Plugins[0].BuiltInDetail);
     }
 
@@ -117,12 +117,12 @@ public sealed class TestPluginsPanel : IDisposable
         Assert.Empty(project.Errors);
         Assert.Equal(string.Empty, project.StateDetail);
 
-        // A built-in one has no switch
+        // The Editor package of an engine plugin has a switch too
         var builtIn = panel.Plugins[3];
         Assert.True(builtIn.IsBuiltIn);
-        Assert.False(builtIn.CanSwitch);
-        Assert.False(builtIn.ToggleCommand.CanExecute(null));
-        Assert.False(await builtIn.SetOnAsync(false));
+        Assert.True(builtIn.CanSwitch);
+        Assert.True(builtIn.IsOn);
+        Assert.Equal("Built into Game Studio", builtIn.SourceText);
         Assert.Empty(fixture.Dialogs.Messages);
 
         Assert.False(panel.NeedsRestart);
@@ -218,17 +218,20 @@ public sealed class TestPluginsPanel : IDisposable
     }
 
     [Fact]
-    public async Task AnEntryThatNamesABuiltInPluginCanBeCleared()
+    public async Task AnEntryThatNamesABuiltInPluginThatCantBeSwitchedOnItsOwnCanBeCleared()
     {
         await using var fixture = await EditorSessionFixture.OpenAsync();
         var (host, _, session) = CreateHost();
-        host.DisabledCompanions!.Set(game, "Stride.Physics.Editor", switchedOff: true);
-        var panel = CreatePanel(fixture, host, session);
-        var builtIn = panel.Plugins.Single(x => x.Id == "Stride.Physics.Editor");
+        // A toolkit companion goes with its Editor package: an entry that names it alone was written by hand
+        var companion = new PluginInfo { Id = "Stride.UI.Editor.Avalonia", DisplayName = "Stride.UI.Editor.Avalonia", Version = EditorPackageVersion, Source = PluginSource.BuiltIn, Toolkit = EditorToolkits.Avalonia, State = PluginState.Joined };
+        host.DisabledCompanions!.Set(game, "Stride.UI.Editor.Avalonia", switchedOff: true);
+        var panel = CreatePanel(fixture, host, session, collect: () => [.. PluginCatalog.Collect(host, session), companion]);
+        var builtIn = panel.Plugins.Single(x => x.Id == "Stride.UI.Editor.Avalonia");
 
         Assert.True(builtIn.IsListedBuiltIn);
         Assert.False(builtIn.CanSwitch);
-        Assert.Equal(["Off.Editor", "Stride.Physics.Editor"], host.DisabledCompanions.Get(game));
+        Assert.Equal("Built into Game Studio: it is switched on and off with Stride.UI.Editor.", builtIn.BuiltInDetail);
+        Assert.Equal(["Off.Editor", "Stride.UI.Editor.Avalonia"], host.DisabledCompanions.Get(game));
 
         builtIn.ClearEntryCommand.Execute();
 
@@ -237,6 +240,71 @@ public sealed class TestPluginsPanel : IDisposable
         Assert.False(builtIn.ClearEntry());
         // Not a switch of a plugin: nothing to restart for
         Assert.False(panel.NeedsRestart);
+    }
+
+    [Fact]
+    public async Task ABuiltInPluginIsSwitchedOffWithWhatItTakesAwayAndListedOffAtTheNextOpening()
+    {
+        await using var fixture = await EditorSessionFixture.OpenAsync();
+        var (host, _, session) = CreateHost();
+        var restart = new RecordingRestartService();
+        var physics = new PluginInfo { Id = "Stride.Physics.Editor", DisplayName = "Stride.Physics.Editor", Version = EditorPackageVersion, Source = PluginSource.BuiltIn, State = PluginState.Joined };
+        var panel = CreatePanel(fixture, host, session, restart, () => [.. PluginCatalog.Collect(host, session), physics]);
+        var item = panel.Plugins.Single(x => x.Id == "Stride.Physics.Editor");
+        var store = host.DisabledCompanions!;
+        Assert.Equal(PluginGroup.BuiltIn, item.Group);
+
+        // The confirmation says what goes, one line each, and what stays
+        fixture.Dialogs.PickButton = buttons => buttons.Single(x => x.IsDefault).Result;
+        Assert.True(await item.SetOnAsync(false));
+        var question = Assert.Single(fixture.Dialogs.Messages);
+        Assert.StartsWith("Switching off Stride.Physics.Editor takes away, from the next opening of this project:", question);
+        Assert.Contains("- the navigation mesh display of the scene editor, and Add entity > Navigation", question);
+        Assert.Contains("Simulation.DisableSimulation is no longer set in Game Studio", question);
+        Assert.Contains("Its assets and components stay: they build, work in the game and show in the scene editor as before.", question);
+        Assert.DoesNotContain("render features", question);
+        Assert.Equal(["Off.Editor", "Stride.Physics.Editor"], store.Get(game));
+        Assert.False(item.IsOn);
+        Assert.True(item.IsPending);
+        Assert.True(panel.NeedsRestart);
+        Assert.True(panel.ShowsRestart);
+
+        // At the next opening, the session left it out: it is in the Off group, still built in
+        physics = new PluginInfo { Id = "Stride.Physics.Editor", DisplayName = "Stride.Physics.Editor", Version = EditorPackageVersion, Source = PluginSource.BuiltIn, State = PluginState.Off, OffReason = PluginOffReason.SwitchedOff };
+        panel.Refresh();
+        Assert.Same(item, panel.Plugins.Single(x => x.Id == "Stride.Physics.Editor"));
+        Assert.Equal((PluginGroup.Off, "Off", "Off: switched off"), (item.Group, item.GroupTitle, item.StateText));
+        Assert.Equal("Built into Game Studio", item.SourceText);
+        Assert.True(item.IsBuiltIn);
+        Assert.True(item.CanSwitch);
+        Assert.False(item.IsOn);
+        Assert.False(item.IsPending);
+        Assert.Equal("It is switched off for this project: it was not loaded.", item.StateDetail);
+
+        // Switched on again: no question, it loads from the next opening
+        Assert.True(await item.SetOnAsync(true));
+        Assert.Single(fixture.Dialogs.Messages);
+        Assert.Equal(["Off.Editor"], store.Get(game));
+        Assert.True(item.IsPending);
+    }
+
+    [Fact]
+    public async Task InSafeModeABuiltInPluginSwitchedOffLoadsAndSaysSo()
+    {
+        await using var fixture = await EditorSessionFixture.OpenAsync();
+        var (host, _, session) = CreateHost();
+        host.DisabledCompanions!.Set(game, "Stride.Physics.Editor", switchedOff: true);
+        host.SafeMode = true;
+        var panel = CreatePanel(fixture, host, session, new RecordingRestartService());
+        var item = panel.Plugins.Single(x => x.Id == "Stride.Physics.Editor");
+
+        // Loaded, as every built-in plugin in safe mode
+        Assert.Equal((PluginGroup.BuiltIn, "On"), (item.Group, item.StateText));
+        Assert.False(item.IsOn);
+        Assert.False(item.IsPending);
+        Assert.Equal("It is switched off for this project, but Game Studio runs in safe mode: every plugin of Stride loads. It goes again when Game Studio restarts normally.", item.StateDetail);
+        Assert.True(panel.ShowsRestart);
+        Assert.Equal("Restart normally", panel.RestartText);
     }
 
     [Fact]

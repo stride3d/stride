@@ -22,7 +22,7 @@ public enum PluginGroup
     NeedsAttention,
 
     /// <summary>
-    /// Off: switched off for the project, or left out in safe mode.
+    /// Off: switched off for the project (a built-in plugin too), or left out in safe mode.
     /// </summary>
     Off,
 
@@ -42,7 +42,7 @@ public enum PluginGroup
     GameStudio,
 
     /// <summary>
-    /// The engine's plugin packages, built in, on.
+    /// The engine's plugin packages, built in, on (switched off, they are in <see cref="Off"/>).
     /// </summary>
     BuiltIn,
 }
@@ -179,6 +179,7 @@ public sealed class PluginItemViewModel : ViewModelBase
     {
         (PluginState.Off, _) when info.IsExtension && info.OffReason != PluginOffReason.AddedSinceStart && !IsInstalled => Tr._p("Plugins", "It was removed: it leaves this list when Game Studio opens a project again."),
         (PluginState.Joined, _) when Errors.Count > 0 => Tr._p("Plugins", "Some of its contributions failed and were turned off for this session; the others work."),
+        (PluginState.Joined, _) when owner.SafeMode && info.IsSwitchableBuiltIn && !IsOn => Tr._p("Plugins", "It is switched off for this project, but Game Studio runs in safe mode: every plugin of Stride loads. It goes again when Game Studio restarts normally."),
         (PluginState.Failed, _) => Tr._p("Plugins", "It could not join the project: what it registered before failing was removed."),
         (PluginState.Incompatible, _) => Errors.Select(x => x.Error.Exception).OfType<IncompatiblePluginException>().FirstOrDefault()?.Message
             ?? Tr._p("Plugins", "It was built for a newer Game Studio and was not loaded."),
@@ -239,7 +240,7 @@ public sealed class PluginItemViewModel : ViewModelBase
     public bool HasErrors => Errors.Count > 0;
 
     /// <summary>
-    /// Whether it is built in: it has no switch.
+    /// Whether it is built in: only the Editor package of an engine plugin has a switch (<see cref="CanSwitch"/>).
     /// </summary>
     public bool IsBuiltIn => info.IsBuiltIn;
 
@@ -250,11 +251,14 @@ public sealed class PluginItemViewModel : ViewModelBase
     public bool IsPartOfGameStudio => info.Source == PluginSource.Editor;
 
     /// <summary>
-    /// Why it has no switch, for a built-in one; an empty string otherwise.
+    /// For a built-in one, what its switch does, or why it has none; an empty string otherwise.
     /// </summary>
     public string BuiltInDetail => info.Source switch
     {
         PluginSource.Editor => Tr._p("Plugins", "Part of Game Studio: it cannot be switched off."),
+        PluginSource.BuiltIn when info.IsSwitchableBuiltIn => Tr._p("Plugins", "Built into Game Studio. Switched off, only its editing goes: its assets and components still build, work in the game and show in the scene editor."),
+        PluginSource.BuiltIn when BuiltInPlugins.GetSwitchedWith(info.Id) is { } switchedWith && !string.Equals(switchedWith, info.Id, StringComparison.OrdinalIgnoreCase)
+            => string.Format(Tr._p("Plugins", "Built into Game Studio: it is switched on and off with {0}."), switchedWith),
         PluginSource.BuiltIn => Tr._p("Plugins", "Built into Game Studio: it cannot be switched off."),
         _ => string.Empty,
     };
@@ -270,8 +274,8 @@ public sealed class PluginItemViewModel : ViewModelBase
     public bool IsInstalled => IsExtension && owner.GetExtension(info.Id) is not null;
 
     /// <summary>
-    /// Whether the user can switch it on or off here: a third-party package, in a session with a file; or an installed
-    /// extension.
+    /// Whether the user can switch it on or off here: a third-party package or the Editor package of an engine plugin, in a
+    /// session with a file; or an installed extension.
     /// </summary>
     public bool CanSwitch => IsExtension ? IsInstalled && owner.CanManageExtensions : info.CanSwitchOff && owner.CanSwitch;
 
@@ -315,8 +319,8 @@ public sealed class PluginItemViewModel : ViewModelBase
         : Tr._p("ToolTip", "Switch this plugin on or off for this project; it applies when Game Studio opens the project again");
 
     /// <summary>
-    /// Whether it is built in but the project's list of switched-off packages names it: the editor loaded it anyway and warned
-    /// in the load log. <see cref="ClearEntryCommand"/> removes the entry.
+    /// Whether it is built in, can't be switched off on its own, and the project's list of switched-off packages names it: the
+    /// editor loaded it anyway and warned in the load log. <see cref="ClearEntryCommand"/> removes the entry.
     /// </summary>
     public bool IsListedBuiltIn => !info.CanSwitchOff && owner.CanSwitch && owner.IsSwitchedOff(info.Id);
 

@@ -137,6 +137,52 @@ public sealed class TestPluginInfo : IDisposable
     }
 
     [Fact]
+    public void ASwitchedOffBuiltInPackageIsListedOffAndBuiltIn()
+    {
+        var container = new SettingsContainer();
+        var key = new SettingsKey<List<DisabledEditorCompanions>>(InternalSettings.DisabledEditorCompanions.Name, container, () => new List<DisabledEditorCompanions>());
+        var profile = container.CreateSettingsProfile(true);
+        var host = new RecordingEditorPluginHost([]) { DisabledCompanions = new DisabledEditorCompanionStore(() => profile, key, () => { }) };
+        var game = new UFile("/Projects/Game/Game.sln");
+        host.DisabledCompanions.Set(game, "Stride.UI.Editor", switchedOff: true);
+        try
+        {
+            using var session = new PackageSession { EditorToolkit = EditorToolkits.Avalonia };
+            var editorVersion = new PackageVersion($"{BuiltInPlugins.EditorVersion.Major}.{BuiltInPlugins.EditorVersion.Minor}.0");
+            var declaration = new CompanionPackage { Name = "Stride.UI.Editor", Version = editorVersion, Kind = PackageKind.Editor };
+            var declaring = AddDeclaringPackage(session, "Stride.UI", declaration);
+            Assert.False(host.GetCompanionPackageFilter(game).ShouldLoad(declaring, declaration, new LoggerResult()));
+
+            // Its toolkit companions are declared by it: not loaded, so not listed
+            var info = Assert.Single(PluginCatalog.Collect(host, session));
+
+            Assert.Equal(("Stride.UI.Editor", PluginSource.BuiltIn, PluginState.Off, (PluginOffReason?)PluginOffReason.SwitchedOff), (info.Id, info.Source, info.State, info.OffReason));
+            Assert.True(info.IsBuiltIn);
+            Assert.True(info.CanSwitchOff);
+        }
+        finally
+        {
+            host.Dispose();
+        }
+    }
+
+    [Fact]
+    public void OnlyTheEditorPackagesOfTheEnginePluginsCanBeSwitchedOffAmongTheBuiltInOnes()
+    {
+        var editorVersion = new PackageVersion($"{BuiltInPlugins.EditorVersion.Major}.{BuiltInPlugins.EditorVersion.Minor}.0");
+        foreach (var name in BuiltInPlugins.PackageNames)
+        {
+            var info = new PluginInfo { Id = name, DisplayName = name, Version = editorVersion, Source = PluginSource.BuiltIn };
+            Assert.Equal(BuiltInPlugins.SwitchablePackageNames.Contains(name), info.CanSwitchOff);
+            Assert.Equal(info.CanSwitchOff, info.IsSwitchableBuiltIn);
+        }
+        // Part of the editor itself: never
+        Assert.False(new PluginInfo { Id = "Stride.UI.Editor", DisplayName = "Stride.UI.Editor", Source = PluginSource.Editor }.CanSwitchOff);
+        // Known only by the name of an assembly: never
+        Assert.False(new PluginInfo { Id = "Stride.UI.Editor", DisplayName = "Stride.UI.Editor", Version = editorVersion, Source = PluginSource.BuiltIn, CanSwitchOff = false }.CanSwitchOff);
+    }
+
+    [Fact]
     public void TheSourceOfAPackageIsItsContainer()
     {
         var host = new RecordingEditorPluginHost([]);
@@ -165,7 +211,9 @@ public sealed class TestPluginInfo : IDisposable
             Assert.Equal((PluginSource.SolutionProject, "MyPlugin.Editor", Version), (project.Source, project.DisplayName, project.Version));
             Assert.Equal(PluginSource.DevRedirect, infos[1].Source);
             Assert.Equal(PluginSource.BuiltIn, infos[2].Source);
-            Assert.False(infos[2].CanSwitchOff);
+            // The Editor package of an engine plugin: built in, and the user can switch it off
+            Assert.True(infos[2].IsSwitchableBuiltIn);
+            Assert.True(infos[2].CanSwitchOff);
             Assert.Equal((PluginSource.Package, EditorToolkits.Avalonia), (infos[3].Source, infos[3].Toolkit));
         }
         finally
@@ -250,10 +298,45 @@ public sealed class TestPluginInfo : IDisposable
         Assert.False(service.IsSwitchedOff(game, "Plugin.Editor"));
         Assert.Empty(key.GetValue(profile, true));
 
-        // A built-in package can't be
-        var builtIn = new PluginInfo { Id = "Stride.Particles.Editor", DisplayName = "Stride.Particles.Editor", Version = new PackageVersion($"{BuiltInPlugins.EditorVersion.Major}.{BuiltInPlugins.EditorVersion.Minor}.0"), Source = PluginSource.BuiltIn };
-        Assert.Throws<InvalidOperationException>(() => service.SwitchOff(game, builtIn));
+        // The Editor package of an engine plugin can be, in this project only
+        var editorVersion = new PackageVersion($"{BuiltInPlugins.EditorVersion.Major}.{BuiltInPlugins.EditorVersion.Minor}.0");
+        var builtIn = new PluginInfo { Id = "Stride.Particles.Editor", DisplayName = "Stride.Particles.Editor", Version = editorVersion, Source = PluginSource.BuiltIn };
+        Assert.True(service.SwitchOff(game, builtIn));
+        Assert.Equal(["Stride.Particles.Editor"], service.GetSwitchedOff(game));
+        Assert.Empty(service.GetSwitchedOff(new UFile("/Projects/Other/Other.sln")));
+        Assert.True(service.SwitchOn(game, "Stride.Particles.Editor"));
+
+        // Its toolkit companion is switched with it, not on its own; a built-in package of the editor itself never is
+        var companion = new PluginInfo { Id = "Stride.UI.Editor.Avalonia", DisplayName = "Stride.UI.Editor.Avalonia", Version = editorVersion, Source = PluginSource.BuiltIn };
+        var exception = Assert.Throws<InvalidOperationException>(() => service.SwitchOff(game, companion));
+        Assert.Contains("is switched off with [Stride.UI.Editor], not on its own", exception.Message);
+        // Even described as a third-party package: at the editor's version, its name makes it built in
+        Assert.Throws<InvalidOperationException>(() => service.SwitchOff(game, new PluginInfo { Id = "Stride.UI.Editor.Wpf", DisplayName = "Stride.UI.Editor.Wpf", Version = editorVersion, Source = PluginSource.Package }));
+        Assert.Throws<InvalidOperationException>(() => service.SwitchOff(game, new PluginInfo { Id = "Stride.Editor", DisplayName = "Stride.Editor", Source = PluginSource.Editor }));
         Assert.Empty(key.GetValue(profile, true));
+    }
+
+    [Fact]
+    public void TheConfirmationOfABuiltInPackageSaysWhatGoesAndWhatStays()
+    {
+        var editorVersion = new PackageVersion($"{BuiltInPlugins.EditorVersion.Major}.{BuiltInPlugins.EditorVersion.Minor}.0");
+        foreach (var name in BuiltInPlugins.SwitchablePackageNames)
+        {
+            var info = new PluginInfo { Id = name, DisplayName = name, Version = editorVersion, Source = PluginSource.BuiltIn, Contributions = new Dictionary<string, int> { ["NodePresenterUpdaters"] = 2 } };
+            var summary = PluginSwitchService.DescribeSwitchOff(info);
+            Assert.NotEmpty(summary.WhatGoes);
+            Assert.Equal(PluginSwitchService.DescribeBuiltIn(name), summary.WhatGoes);
+            // Its render features moved to its Assets package: they stay
+            Assert.DoesNotContain(summary.WhatGoes, x => x.Contains("render features", StringComparison.Ordinal));
+            Assert.StartsWith($"Switching off {name} takes away, from the next opening of this project:", summary.Message);
+            Assert.EndsWith("Its assets open with the generic property grid and no editor of their own.", summary.Message);
+        }
+
+        Assert.Contains(PluginSwitchService.DescribeBuiltIn("Stride.Particles.Editor"), x => x.Contains("blending changes", StringComparison.Ordinal));
+        Assert.Contains(PluginSwitchService.DescribeBuiltIn("Stride.Physics.Editor"), x => x.Contains("Simulation.DisableSimulation", StringComparison.Ordinal));
+        Assert.Contains(PluginSwitchService.DescribeBuiltIn("stride.ui.editor"), x => x.Contains("UI page and UI library editors", StringComparison.Ordinal));
+        Assert.Empty(PluginSwitchService.DescribeBuiltIn("Plugin.Editor"));
+        Assert.Empty(PluginSwitchService.DescribeBuiltIn("Stride.UI.Editor.Avalonia"));
     }
 
     [Fact]
