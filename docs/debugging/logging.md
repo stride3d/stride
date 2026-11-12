@@ -97,7 +97,20 @@ A `Game` attaches a `ConsoleLogListener` to `GlobalLogger`. `Game.ConsoleLogLeve
 which opens one for Debug builds when no debugger is attached. An attached debugger receives every
 message that passes the level, whatever the mode.
 
-## Shader back ends
+## Shader compiles
+
+The messages of an effect compile carry a module, so that a listener can filter them:
+
+| Module | Messages |
+|---|---|
+| `EffectCompiler` | SDSL errors, warnings and notices, and the shader compilers that run after it |
+| `EffectCompilerCache` | The effect compiler cache: the effects it compiled or failed to compile |
+| `ShaderBackend.FXC` | FXC, on the HLSL that SPIRV-Cross generates for Direct3D 11 |
+
+Messages created without a module, by the shader loader for example, get the module of the compile
+log they end up in (`EffectCompileLog`).
+
+### Shader back ends
 
 On Direct3D 11, FXC compiles the HLSL that SPIRV-Cross generates from the SPIR-V of an effect. Its
 messages are about that generated code, so they have a module of their own, `ShaderBackend.FXC`, and
