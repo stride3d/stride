@@ -26,8 +26,9 @@ namespace Stride.Physics.Engine
             component.ConstraintProcessor = this;
             component.Detached = false;
 
-            // this is mostly required for the game studio gizmos
-            if (Simulation.DisableSimulation)
+            // No constraint where the simulation doesn't run: the editor's scenes, previews and thumbnails, or when it is
+            // switched off
+            if (Simulation.IsDisabledIn(EntityManager))
             {
                 return;
             }
@@ -42,8 +43,7 @@ namespace Stride.Physics.Engine
 
         public override void Update(GameTime time)
         {
-            // this is mostly required for the game studio gizmos
-            if (Simulation.DisableSimulation)
+            if (Simulation.IsDisabledIn(EntityManager))
                 return;
 
             detachedComponents.Clear();

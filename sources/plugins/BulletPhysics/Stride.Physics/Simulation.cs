@@ -79,6 +79,14 @@ namespace Stride.Physics
         /// </summary>
         public bool IsDisabled => DisableSimulation || disabledByExecutionMode;
 
+        /// <summary>
+        /// Whether the simulation of the scenes of <paramref name="entityManager"/> is disabled, as <see cref="IsDisabled"/>
+        /// says, for a processor that has no <see cref="Simulation"/> at hand.
+        /// </summary>
+        internal static bool IsDisabledIn(EntityManager entityManager) => DisableSimulation || IsDisabledByExecutionMode(entityManager);
+
+        private static bool IsDisabledByExecutionMode(EntityManager entityManager) => (entityManager.ExecutionMode & ExecutionMode.Runtime) == 0;
+
         public delegate PhysicsEngineFlags OnSimulationCreationDelegate();
 
         public delegate void SimulationTickEvent(Simulation sender, float tick);
@@ -97,7 +105,7 @@ namespace Stride.Physics
         internal Simulation(PhysicsProcessor processor, PhysicsSettings configuration)
         {
             this.processor = processor;
-            disabledByExecutionMode = (processor.EntityManager.ExecutionMode & ExecutionMode.Runtime) == 0;
+            disabledByExecutionMode = IsDisabledByExecutionMode(processor.EntityManager);
 
             if (configuration.Flags == PhysicsEngineFlags.None)
             {

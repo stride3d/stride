@@ -19,6 +19,7 @@
     <ProjectReference Include="..\..\..\engine\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConstraintExecutionModeTest.cs" />
     <Compile Include="SendCollisionEndedWhenEntityIsRemovedTest.cs" />
     <Compile Include="XunitAttributes.cs" />
     <Compile Include="CharacterTest.cs" />
