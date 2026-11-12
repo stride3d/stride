@@ -30,7 +30,7 @@ Settings:
         Normalization: 0.5
         Octaves: 5
         Lacunarity: 2.0
-        Gain: 0.5
+        Gain: 0.3
 Resolution: 1024
 Format: R16G16B16A16_Float
 Data: Height, Erosion, Ridges, TreesWhenEnabled
