@@ -6,7 +6,7 @@ using Stride.Assets.Rendering;
 using Stride.Rendering;
 using Stride.Rendering.UI;
 
-namespace Stride.UI.Editor;
+namespace Stride.UI.Assets;
 
 /// <summary>
 /// The UI render feature, as in the engine's default compositors, for previews, thumbnails and the UI and prefab editors.

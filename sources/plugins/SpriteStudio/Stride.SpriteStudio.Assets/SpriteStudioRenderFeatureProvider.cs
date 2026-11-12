@@ -6,7 +6,7 @@ using Stride.Assets.Rendering;
 using Stride.Rendering;
 using Stride.SpriteStudio.Runtime;
 
-namespace Stride.SpriteStudio.Editor;
+namespace Stride.SpriteStudio.Assets;
 
 /// <summary>
 /// Draws SpriteStudio sheets: in the entity previews and thumbnails, and in a game compositor on request.
