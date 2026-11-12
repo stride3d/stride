@@ -33,7 +33,7 @@ jobs:
       capture-shader-corpus: true
 
   Editor:
-    uses: ./.github/workflows/test-windows-editor.yml
+    uses: ./.github/workflows/test-gamestudio-screenshots.yml
     secrets:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     with:
