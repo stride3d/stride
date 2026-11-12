@@ -104,7 +104,7 @@ namespace Stride.Shaders.Compiler
 
         public override TaskOrResult<EffectBytecodeCompilerResult> Compile(ShaderMixinSource mixinTree, EffectCompilerParameters effectParameters, CompilerParameters compilerParameters, ObjectId mixinObjectId)
         {
-            var log = new LoggerResult();
+            var log = new EffectCompileLog(EffectCompileLog.EffectCompilerModule);
 
             // Load D3D compiler dll
             // Note: No lock, it's probably fine if it gets called from multiple threads at the same time.

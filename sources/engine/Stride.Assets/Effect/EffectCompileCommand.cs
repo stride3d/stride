@@ -81,7 +81,8 @@ namespace Stride.Assets.Effect
                 permutationCount++;
                 PermutationCount[effectName] = permutationCount;
             }
-            commandContext.Logger.Verbose($"Trying permutation #{permutationCount} for effect [{effectName}]: \n{compilerParameters.ToStringPermutationsDetailed()}");
+            // ToStringPermutationsDetailed ends with a line break, and the log listener adds its own
+            commandContext.Logger.Verbose($"Trying permutation #{permutationCount} for effect [{effectName}]: \n{compilerParameters.ToStringPermutationsDetailed()}".TrimEnd());
 
             var compilerResults = compiler.Compile(source, compilerParameters);
 

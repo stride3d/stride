@@ -83,6 +83,19 @@ public class ShaderBackendLogTests : IDisposable
         Assert.All(warnings, w => Assert.StartsWith($"{shaderName}_ps.spirv-cross.hlsl(", w.Text));
     }
 
+    // Messages created without a module, by the shader loader for example, get the one of the compile log
+    [Fact]
+    public void CompileMessagesCarryAModule()
+    {
+        if (!OperatingSystem.IsWindows())
+            Assert.Skip("FXC is only on Windows");
+
+        var messages = Compile().Messages;
+
+        Assert.Contains(messages, m => m.Module == EffectCompileLog.EffectCompilerModule && m.Text.Contains("references non-stage method"));
+        Assert.All(messages, m => Assert.NotNull(m.Module));
+    }
+
     // The result keeps the messages; the place that logs it filters them, so a game also filters what the effect compiler server sends
     [Fact]
     public void FxcWarningsAreLoggedOnlyWhenTheirModuleLetsThemThrough()
