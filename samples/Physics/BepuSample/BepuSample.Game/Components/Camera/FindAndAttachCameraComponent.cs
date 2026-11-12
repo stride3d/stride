@@ -1,33 +1,48 @@
-using System;
+using System.Threading.Tasks;
 using BepuSample.Game.Extensions;
 using Stride.Engine;
 using Stride.Core.Mathematics;
 
 namespace BepuSample.Game.Components.Camera;
-public class FindAndAttachCameraComponent : SyncScript
+public class FindAndAttachCameraComponent : AsyncScript
 {
-
     public CameraComponent CameraComponent { get; set; }
 
-    public override void Start()
+    public FindAndAttachCameraComponent()
     {
-        CameraComponent ??= SetMainSceneCamera(SceneSystem.SceneInstance);
+        // operate as a post process to other game logic to ensure
+        // we have the latest transform data to work off of
+        this.Priority = 1;
     }
 
-    public override void Update()
+    public override async Task Execute()
     {
-        var deltaTime = (float)Game.UpdateTime.Elapsed.TotalSeconds;
-        var currentPosition = CameraComponent.Entity.Transform.Position;
-        var currentRotation = CameraComponent.Entity.Transform.Rotation;
+        CameraComponent ??= SetMainSceneCamera(SceneSystem.SceneInstance);
+        if (CameraComponent is null)
+            return;
 
-        var lerpSpeed = 1f - MathF.Exp(-100 * deltaTime);
+        var initialPosition = CameraComponent.Entity.Transform.Position;
+        var initialRotation = CameraComponent.Entity.Transform.Rotation;
 
-        Entity.Transform.GetWorldTransformation(out var otherPosition, out var otherRotation, out var _);
+        // Interpolate between start and target
+        for (float t = 0; t < 1f; t += (float)Game.UpdateTime.Elapsed.TotalSeconds)
+        {
+            Entity.Transform.UpdateWorldMatrix();
+            Entity.Transform.GetWorldTransformation(out var targetPosition, out var targetRotation, out _);
 
-        var newPosition = Vector3.Lerp(currentPosition, otherPosition, lerpSpeed);
-        CameraComponent.Entity.Transform.Position = newPosition;
-        Quaternion.Slerp(ref currentRotation, ref otherRotation, lerpSpeed, out var newRotation);
-        CameraComponent.Entity.Transform.Rotation = newRotation;
+            var newPosition = Vector3.Lerp(initialPosition, targetPosition, t);
+            CameraComponent.Entity.Transform.Position = newPosition;
+            Quaternion.Slerp(ref initialRotation, ref targetRotation, t, out var newRotation);
+            CameraComponent.Entity.Transform.Rotation = newRotation;
+            await Script.NextFrame();
+        }
+
+        while (this.CancellationToken.IsCancellationRequested == false)
+        {
+            Entity.Transform.UpdateWorldMatrix();
+            Entity.Transform.GetWorldTransformation(out CameraComponent.Entity.Transform.Position, out CameraComponent.Entity.Transform.Rotation, out _);
+            await Script.NextFrame();
+        }
     }
 
     private CameraComponent? SetMainSceneCamera(SceneInstance sceneInstance)
