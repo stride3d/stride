@@ -111,10 +111,13 @@ internal sealed class MainCommandSlots : IDisposable
     {
         if (e.Handled)
             return false;
-        var editor = FindEditor(e.Source as Visual);
+        var editor = CommandSlot.FindEditor(e.Source);
         var match = shortcuts.FirstOrDefault(x => x.Descriptor.GestureScope is { } scope && editor is not null && scope.IsInstanceOfType(editor) && x.Gesture.Matches(e))
             ?? shortcuts.FirstOrDefault(x => x.Descriptor.GestureScope is null && x.Gesture.Matches(e));
         if (match?.Command is not { } command)
+            return false;
+        // A key that types text (an editor's F, for instance) stays with a text box
+        if (e.Source is TextBox && IsTextKey(match.Gesture))
             return false;
 
         // The command acts where the key was pressed (the Edit commands, on that window's focused control)
@@ -133,15 +136,13 @@ internal sealed class MainCommandSlots : IDisposable
         return true;
     }
 
-    // The view model of the asset editor that contains a control, if any
-    private static IAssetEditorViewModel? FindEditor(Visual? visual)
+    // A shortcut with no Ctrl, Alt or Meta on a key that types a character
+    private static bool IsTextKey(KeyGesture gesture)
     {
-        for (var current = visual; current is not null; current = current.GetVisualParent())
-        {
-            if (current is StyledElement { DataContext: IAssetEditorViewModel editor })
-                return editor;
-        }
-        return null;
+        if ((gesture.KeyModifiers & (KeyModifiers.Control | KeyModifiers.Alt | KeyModifiers.Meta)) != 0)
+            return false;
+        return gesture.Key is >= Key.A and <= Key.Z or >= Key.D0 and <= Key.D9 or >= Key.NumPad0 and <= Key.NumPad9 or Key.Space
+            || gesture.Key.ToString().StartsWith("Oem", StringComparison.Ordinal);
     }
 
     /// <summary>
@@ -212,7 +213,10 @@ internal sealed class MainCommandSlots : IDisposable
 
     private CommandContext? CreateContext(string location)
     {
-        return viewModel.Session is { } session ? new CommandContext { Session = session, Location = location, Source = location == CommandLocations.Shortcut ? keySource : null } : null;
+        if (viewModel.Session is not { } session)
+            return null;
+        var source = location == CommandLocations.Shortcut ? keySource : null;
+        return new CommandContext { Session = session, Location = location, Source = source, Editor = CommandSlot.FindEditor(source) };
     }
 
     private void FillMenu(MenuItem menu, string location)
@@ -382,7 +386,7 @@ internal sealed class MainCommandSlots : IDisposable
                     return Task.CompletedTask;
                 }))];
         }
-        var context = CommandContext.ForPalette(session, null, source);
+        var context = CommandContext.ForPalette(session, null, source, CommandSlot.FindEditor(source));
         var items = new List<CommandPaletteItem>();
         foreach (var descriptor in host.Commands.Items.Where(x => x.ShowInPalette && host.IsCommandAvailable(x)).ToList())
         {

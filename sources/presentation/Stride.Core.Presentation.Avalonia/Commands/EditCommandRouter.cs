@@ -74,9 +74,16 @@ public sealed class EditCommandRouter : IDisposable
     /// Finds the handler of an Edit command: the first control, from <see cref="Target"/> up, that handles it.
     /// </summary>
     /// <returns>The handler, or null when no control handles the command (it is disabled).</returns>
-    public IEditCommandHandler? Resolve(EditCommandKind kind)
+    public IEditCommandHandler? Resolve(EditCommandKind kind) => Resolve(kind, Target);
+
+    /// <summary>
+    /// Finds the handler of an Edit command for a given control: the first control, from <paramref name="from"/> up, that
+    /// handles it. A context menu uses it to run an Edit command on the control it opened on.
+    /// </summary>
+    /// <returns>The handler, or null when no control handles the command.</returns>
+    public static IEditCommandHandler? Resolve(EditCommandKind kind, Visual? from)
     {
-        for (var visual = Target; visual is not null; visual = visual.GetVisualParent())
+        for (var visual = from; visual is not null; visual = visual.GetVisualParent())
         {
             if (visual is TextBox textBox)
             {

@@ -38,6 +38,13 @@ public sealed class CommandContext
     public object? Source { get; init; }
 
     /// <summary>
+    /// The asset editor the command was invoked in, or null: the editor whose context menu opened, or that held the focus when
+    /// the shortcut was pressed or the command palette was opened. A command scoped to an editor
+    /// (<see cref="CommandDescriptor.GestureScope"/>) acts on it.
+    /// </summary>
+    public IAssetEditorViewModel? Editor { get; init; }
+
+    /// <summary>
     /// The context of a command that the command palette runs: the location <see cref="CommandLocations.Palette"/>, and the
     /// current selection of the session, which is the selection of the asset view unless the shell gives another one (the
     /// selection of the panel that had the focus).
@@ -46,7 +53,8 @@ public sealed class CommandContext
     /// <param name="selection">The selection, or null for the selected assets and folders of the asset view.</param>
     /// <param name="source">The element of the editor's toolkit the palette was opened from (its window, or the control that last
     /// had the focus there), or null.</param>
-    public static CommandContext ForPalette(SessionViewModel session, IReadOnlyList<object>? selection = null, object? source = null)
+    /// <param name="editor">The asset editor that had the focus when the palette was opened, or null.</param>
+    public static CommandContext ForPalette(SessionViewModel session, IReadOnlyList<object>? selection = null, object? source = null, IAssetEditorViewModel? editor = null)
     {
         ArgumentNullException.ThrowIfNull(session);
         return new CommandContext
@@ -55,6 +63,7 @@ public sealed class CommandContext
             Location = CommandLocations.Palette,
             Selection = selection ?? [.. session.AssetCollection.SelectedContent],
             Source = source,
+            Editor = editor,
         };
     }
 

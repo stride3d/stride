@@ -211,7 +211,7 @@ internal static class GameStudioCommands
     };
 
     // An Edit command acts on the control that last had the focus in the window it was invoked from (the floating windows
-    // have their own router), else in the main window
+    // have their own router), else in the main window; from a context menu, on the control the menu opened on
     private static CommandDescriptor Edit(string id, Func<string> title, EditCommandKind kind, params string[] keywords) => new()
     {
         Id = id,
@@ -219,14 +219,28 @@ internal static class GameStudioCommands
         Title = title,
         DefaultGesture = EditCommands.GestureOf(kind).ToString(),
         Keywords = keywords,
-        CanExecute = context => FindRouter(context)?[kind].CanExecute(null) ?? false,
+        CanExecute = context => FindEditCommand(context, kind)?.CanExecute(null) ?? false,
         ExecuteAsync = context =>
         {
-            if (FindRouter(context)?[kind] is { } command && command.CanExecute(null))
+            if (FindEditCommand(context, kind) is { } command && command.CanExecute(null))
                 command.Execute(null);
             return Task.CompletedTask;
         },
     };
+
+    private static ICommand? FindEditCommand(CommandContext context, EditCommandKind kind)
+    {
+        if (IsContextMenu(context.Location) && context.Source is Visual source)
+            return EditCommandRouter.Resolve(kind, source) is { } handler ? new HandlerCommand(handler, kind) : null;
+        return FindRouter(context)?[kind];
+    }
+
+    // A context menu of a view or an editor: not the main menus, the toolbar, a shortcut or the palette
+    private static bool IsContextMenu(string location)
+    {
+        return location is not (CommandLocations.Shortcut or CommandLocations.Palette or CommandLocations.MainToolbar)
+            && !location.StartsWith("MainMenu/", StringComparison.Ordinal);
+    }
 
     private static EditCommandRouter? FindRouter(CommandContext context)
     {
@@ -241,6 +255,20 @@ internal static class GameStudioCommands
             }
         }
         return MainOf(context)?.EditRouter;
+    }
+
+    // The handler of an Edit command found from a control
+    private sealed class HandlerCommand(IEditCommandHandler handler, EditCommandKind kind) : ICommand
+    {
+        public event EventHandler? CanExecuteChanged
+        {
+            add { }
+            remove { }
+        }
+
+        public bool CanExecute(object? parameter) => handler.CanExecute(kind);
+
+        public void Execute(object? parameter) => handler.Execute(kind);
     }
 
     // A command of the main view model with the parameter its menu item gives it

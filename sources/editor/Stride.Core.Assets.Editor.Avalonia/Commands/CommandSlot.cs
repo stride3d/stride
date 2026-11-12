@@ -9,6 +9,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.VisualTree;
 using Stride.Core.Assets.Editor.Commands;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModels;
@@ -18,7 +19,9 @@ namespace Stride.Core.Assets.Editor.Avalonia.Commands;
 /// <summary>
 /// The place of a menu where the commands of a location (<see cref="CommandLocations"/>) go, after the menu's own items: a
 /// context menu with <see cref="LocationProperty"/> fills it each time it opens, with the selection of its view
-/// (<see cref="SelectionProperty"/>); the main window fills the slots of its menus itself (<see cref="Fill"/>).
+/// (<see cref="SelectionProperty"/>); the main window fills the slots of its menus itself (<see cref="Fill"/>). Each time it
+/// opens, such a context menu also gives its own items that bind a command by its identifier (<see cref="CommandExtension"/>)
+/// their command in its context, their title and their shortcut (<see cref="BindItems"/>).
 /// </summary>
 [Experimental("STREXP003")]
 public static class CommandSlot
@@ -39,6 +42,10 @@ public static class CommandSlot
     // The items that a slot added to a menu, so that the next fill removes them
     private static readonly AttachedProperty<bool> IsSlotItemProperty =
         AvaloniaProperty.RegisterAttached<Control, bool>("IsSlotItem", typeof(CommandSlot));
+
+    // A menu item whose header is the title of its command, so that the next time it opens it gets the title again
+    private static readonly AttachedProperty<bool> HeaderFromCommandProperty =
+        AvaloniaProperty.RegisterAttached<MenuItem, bool>("HeaderFromCommand", typeof(CommandSlot));
 
     static CommandSlot()
     {
@@ -141,6 +148,72 @@ public static class CommandSlot
     }
 
     /// <summary>
+    /// Gives the items of a menu, at any depth, that bind a command by its identifier (<c>{cmd:Command Stride.Edit.Copy}</c>) the
+    /// command of the host with that identifier in the menu's context, its title (unless the item has a header of its own), the
+    /// shortcut bound to it (<see cref="ShortcutOf"/>) and, for a toggle, its check. An item whose command is not loaded, or
+    /// with no host or context, is disabled.
+    /// </summary>
+    /// <param name="items">The items of the menu.</param>
+    /// <param name="host">The plugin host, or null.</param>
+    /// <param name="getContext">The context of the commands when they run, or null when there is none.</param>
+    public static void BindItems(ItemCollection items, EditorPluginHost? host, Func<CommandContext?> getContext)
+    {
+        ArgumentNullException.ThrowIfNull(items);
+        ArgumentNullException.ThrowIfNull(getContext);
+
+        var context = getContext();
+        foreach (var item in FindCommandItems(items))
+        {
+            var reference = (CommandReference)item.Command!;
+            var descriptor = host is null || context is null ? null : host.Commands.Items.FirstOrDefault(x => x.Id == reference.Id && host.IsCommandAvailable(x));
+            reference.Target = descriptor is null ? null : new DescriptorCommand(host!, descriptor, getContext);
+            if (descriptor is null)
+            {
+                item.InputGesture = null;
+                continue;
+            }
+            // The command's title, unless the item has a header of its own
+            if (item.Header is null || item.GetValue(HeaderFromCommandProperty))
+            {
+                item.Header = host!.GetCommandTitle(descriptor, context!);
+                item.SetValue(HeaderFromCommandProperty, true);
+            }
+            item.InputGesture = ShortcutOf?.Invoke(descriptor);
+            if (host!.IsCommandChecked(descriptor, context!) is { } isChecked)
+            {
+                item.ToggleType = MenuItemToggleType.CheckBox;
+                item.IsChecked = isChecked;
+            }
+        }
+    }
+
+    /// <summary>
+    /// The view model of the asset editor that contains an element of the view, if any: the editor a context menu or a shortcut
+    /// acts in (<see cref="CommandContext.Editor"/>).
+    /// </summary>
+    public static IAssetEditorViewModel? FindEditor(object? element)
+    {
+        for (var current = element as Visual; current is not null; current = current.GetVisualParent())
+        {
+            if (current is StyledElement { DataContext: IAssetEditorViewModel editor })
+                return editor;
+        }
+        return null;
+    }
+
+    // The items of a menu bound to a command by its identifier, with those of their submenus
+    private static IEnumerable<MenuItem> FindCommandItems(ItemCollection items)
+    {
+        foreach (var item in items.OfType<MenuItem>())
+        {
+            if (item.Command is CommandReference)
+                yield return item;
+            foreach (var child in FindCommandItems(item.Items))
+                yield return child;
+        }
+    }
+
+    /// <summary>
     /// A control that shows the icon of a command: an image of the toolkit, or a control as it is.
     /// </summary>
     public static Control? CreateIcon(object? icon)
@@ -189,7 +262,10 @@ public static class CommandSlot
             Location = location,
             Selection = ToSelection(GetSelection(menu)),
             Source = source,
+            Editor = FindEditor(source),
         };
-        Fill(menu.Items, FindHost(session), location, () => context);
+        var host = FindHost(session);
+        BindItems(menu.Items, host, () => context);
+        Fill(menu.Items, host, location, () => context);
     }
 }
