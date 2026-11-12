@@ -27,6 +27,7 @@ using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Translation;
 using Stride.Editor;
+using Stride.GameStudio.Avalonia.Commands;
 using Stride.GameStudio.Avalonia.Docking;
 using Stride.GameStudio.Avalonia.Helpers;
 using Stride.GameStudio.Avalonia.Services;
@@ -49,6 +50,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
     private UFile? sessionPath;
     private SessionEditorsRestorer? editorsRestorer;
     private readonly List<PanelActivation> panelActivations = [];
+    private readonly PanelCommands? panelCommands;
     private string? sessionName;
     private string title = baseTitle;
     private IReadOnlyList<IDEInfo>? availableIDEs;
@@ -79,7 +81,9 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
         ClearRecentFilesCommand = new AnonymousCommand(serviceProvider, ClearRecentFiles);
         OpenDebugWindowCommand = new AnonymousTaskCommand(serviceProvider, OnOpenDebugWindow, () => DialogService.HasMainWindow);
         OpenSettingsWindowCommand = new AnonymousTaskCommand(serviceProvider, OnOpenSettingsWindow, () => DialogService.HasMainWindow);
+        OpenKeyboardShortcutsCommand = new AnonymousTaskCommand(serviceProvider, () => DialogService.ShowSettingsWindowAsync(showShortcuts: true), () => DialogService.HasMainWindow);
         OpenWebPageCommand = new AnonymousTaskCommand<string>(serviceProvider, OnOpenWebPage);
+        CommandPaletteCommand = new AnonymousCommand(serviceProvider, () => ShowCommandPalette?.Invoke(null));
         ReloadCommand = new AnonymousTaskCommand(serviceProvider, OnReload);
         // Enabled while a session is open, even without a change
         SaveCommand = new AnonymousTaskCommand(serviceProvider, OnSave) { IsEnabled = false };
@@ -102,6 +106,9 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
         serviceProvider.RegisterService(Panels);
         RegisterBuiltInPanels(registry, host);
         ViewMenu = new ViewMenuViewModel(serviceProvider, Panels);
+        // The View menu's panel toggles are commands of the registry
+        if (host is not null)
+            panelCommands = new PanelCommands(host, Panels);
         // In safe mode, a banner says how many plugins are off, with "Restart normally" and the Plugins panel
         if (host is not null)
             SafeModeBanner = new SafeModeBannerViewModel(serviceProvider, host, this, () => Panels.Show(BuiltInPanels.Plugins), () => session is not null);
@@ -151,6 +158,17 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
     /// focus; set by the view, null without one. The Edit commands of the registry run its commands.
     /// </summary>
     internal EditCommandRouter? EditRouter { get; set; }
+
+    /// <summary>
+    /// Opens the command palette over the main window, with the element it was opened from (the control a key was pressed on,
+    /// for the Edit commands, or null for the main window); set by the view, null without one.
+    /// </summary>
+    internal Action<object?>? ShowCommandPalette { get; set; }
+
+    /// <summary>
+    /// Opens the command palette over the main window (<see cref="ShowCommandPalette"/>).
+    /// </summary>
+    internal ICommandBase CommandPaletteCommand { get; }
 
     /// <summary>
     /// Watches the game code of the session and reloads it when it changes, by opening the session again in a new editor (the
@@ -240,6 +258,11 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
     public ICommandBase OpenDebugWindowCommand { get; }
 
     public ICommandBase OpenSettingsWindowCommand { get; }
+
+    /// <summary>
+    /// Opens the settings window on its Keyboard shortcuts page.
+    /// </summary>
+    public ICommandBase OpenKeyboardShortcutsCommand { get; }
 
     public ICommandBase OpenWebPageCommand { get; }
 
@@ -765,6 +788,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
     /// <inheritdoc/>
     public override void Destroy()
     {
+        panelCommands?.Dispose();
         SafeModeBanner?.Dispose();
         base.Destroy();
     }

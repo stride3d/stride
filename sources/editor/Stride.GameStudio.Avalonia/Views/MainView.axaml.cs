@@ -9,10 +9,17 @@ using Avalonia.Controls.Templates;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Media;
+using Avalonia.Controls.Primitives;
+using Avalonia.VisualTree;
+using Stride.Core.Assets.Editor.Avalonia.Commands;
+using Stride.Core.Assets.Editor.Commands;
 using Stride.Core.Assets.Editor.Panels;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Presentation.Avalonia.Commands;
+using Stride.Core.Extensions;
 using Stride.Core.Translation;
+using Stride.GameStudio.Avalonia.Commands;
+using Stride.GameStudio.Avalonia.Settings;
 using Stride.GameStudio.Avalonia.ViewModels;
 
 namespace Stride.GameStudio.Avalonia.Views;
@@ -21,20 +28,17 @@ public partial class MainView : UserControl
 {
     private MainViewModel? viewModel;
     private MainCommandSlots? commandSlots;
+    private CommandPaletteViewModel? palette;
+    // The control the palette was opened from, which gets the focus back when it closes
+    private IInputElement? paletteSource;
 
     public MainView()
     {
         InitializeComponent();
+        // The items of the Edit menu run the commands of the registry, which run the router's on the focused control
         EditRouter = new EditCommandRouter(this);
-        // The items of the Edit menu run the router's commands. They are set here rather than bound in XAML: a binding to an
-        // ancestor of the item resolves only while its menu is open, and the item is disabled until then.
-        UndoMenuItem.Command = EditRouter.Undo;
-        RedoMenuItem.Command = EditRouter.Redo;
-        CutMenuItem.Command = EditRouter.Cut;
-        CopyMenuItem.Command = EditRouter.Copy;
-        PasteMenuItem.Command = EditRouter.Paste;
-        DeleteMenuItem.Command = EditRouter.Delete;
-        RenameMenuItem.Command = EditRouter.Rename;
+        CommandPalette.CloseRequested += (_, _) => CommandPalettePopup.IsOpen = false;
+        CommandPalette.RunRequested += (_, item) => palette?.RunAsync(item).Forget();
     }
 
     /// <inheritdoc />
@@ -50,10 +54,14 @@ public partial class MainView : UserControl
         commandSlots = null;
         if (viewModel is not null && viewModel.EditRouter == EditRouter)
             viewModel.EditRouter = null;
+        if (viewModel is not null && viewModel.ShowCommandPalette == ShowCommandPalette)
+            viewModel.ShowCommandPalette = null;
+        CommandPalettePopup.IsOpen = false;
         viewModel = DataContext as MainViewModel;
         if (viewModel is not null)
         {
             viewModel.EditRouter = EditRouter;
+            viewModel.ShowCommandPalette = ShowCommandPalette;
             viewModel.RecentFiles.CollectionChanged += RecentFilesChanged;
             viewModel.ViewMenu.Items.CollectionChanged += ViewMenuChanged;
             if (viewModel.ServiceProvider.TryGet<IAssetsPluginService>() is EditorPluginHost host)
@@ -94,37 +102,43 @@ public partial class MainView : UserControl
     internal MainCommandSlots? CommandSlots => commandSlots;
 
     /// <summary>
-    /// Gets a platform-specific <see cref="KeyGesture"/> for the Save action: Ctrl+S, or Cmd+S on macOS.
+    /// The command palette, open or not.
     /// </summary>
-    public static KeyGesture SaveGesture => new(Key.S, Application.Current?.PlatformSettings?.HotkeyConfiguration.CommandModifiers ?? KeyModifiers.Control);
+    internal Popup CommandPaletteHost => CommandPalettePopup;
 
     /// <summary>
-    /// The shortcut of File > New (Ctrl+N), bound on the main window like <see cref="SaveGesture"/>.
+    /// Opens the command palette over the main window, with the commands that can be listed now.
     /// </summary>
-    public static KeyGesture NewGesture => new(Key.N, Application.Current?.PlatformSettings?.HotkeyConfiguration.CommandModifiers ?? KeyModifiers.Control);
+    /// <param name="source">The element it was opened from: the control a key was pressed on (in this window or a floating
+    /// one), or null for the control that last had the focus in this window. The commands it runs act there.</param>
+    internal void ShowCommandPalette(object? source)
+    {
+        if (commandSlots is null || viewModel is null)
+            return;
+        source ??= EditRouter.Target;
+        paletteSource = source as IInputElement;
+        palette = new CommandPaletteViewModel(viewModel.ServiceProvider, commandSlots.GetPaletteItems(source), GameStudioInternalSettings.RecentCommands.GetValue());
+        palette.RecentCommandsChanged += (_, ids) => GameStudioInternalSettings.RecentCommands.SetValue([.. ids]);
+        CommandPalette.DataContext = palette;
+        CommandPalettePopup.IsOpen = true;
+        CommandPalette.FocusSearch();
+    }
 
-    /// <summary>
-    /// The shortcut of Project > Build project (F6), bound on the main window like <see cref="SaveGesture"/>.
-    /// </summary>
-    public static KeyGesture BuildProjectGesture => new(Key.F6);
-
-    /// <summary>
-    /// The shortcut of Project > Start project (F5), bound on the main window like <see cref="SaveGesture"/>.
-    /// </summary>
-    public static KeyGesture StartProjectGesture => new(Key.F5);
-
-    /// <summary>
-    /// The shortcut of Project > Cancel build (Ctrl+F6), bound on the main window like <see cref="SaveGesture"/>.
-    /// </summary>
-    public static KeyGesture CancelBuildGesture => new(Key.F6, Application.Current?.PlatformSettings?.HotkeyConfiguration.CommandModifiers ?? KeyModifiers.Control);
+    private void OnCommandPaletteClosed(object? sender, EventArgs e)
+    {
+        // The focus goes back where it was, for the command that runs next and for the user
+        if (paletteSource is { } source && (source as Visual)?.IsAttachedToVisualTree() == true)
+            source.Focus();
+        paletteSource = null;
+    }
 
     private void RecentFilesChanged(object? sender, NotifyCollectionChangedEventArgs e) => UpdateRecentSessionsMenu();
 
     private void ViewMenuChanged(object? sender, NotifyCollectionChangedEventArgs e) => UpdateViewMenu();
 
     /// <summary>
-    /// Fills the View menu from the panels: a check box per panel, which shows or hides it, "New ..." and the open instances
-    /// of the panels that can be opened several times, separators between the sections, then "Reset layout".
+    /// Fills the View menu from the panels: a check box per panel, which shows or hides it (the panel's command of the registry), "New ..." and the open instances
+    /// of the panels that can be opened several times, separators between the sections, then "Reset layout" and the command palette.
     /// </summary>
     private void UpdateViewMenu()
     {
@@ -153,10 +167,12 @@ public partial class MainView : UserControl
                 continue;
             }
             var item = new MenuItem { Header = entry.Header, Tag = entry.PanelId };
-            if (entry.IsCheckable)
+            if (entry is { IsCheckable: true, PanelId: { } panelId })
             {
+                // The panel's command, checked while the panel is shown (the main window's slots give it its state)
                 item.ToggleType = MenuItemToggleType.CheckBox;
-                item[!MenuItem.IsCheckedProperty] = new Binding(nameof(ViewMenuItemViewModel.IsChecked)) { Source = entry, Mode = BindingMode.TwoWay };
+                item.IsChecked = entry.IsChecked;
+                item.Command = new CommandReference(PanelCommands.IdOf(panelId));
             }
             else
             {
@@ -164,6 +180,9 @@ public partial class MainView : UserControl
             }
             items.Add(item);
         }
+        // The command palette, after Reset layout
+        items.Add(new Separator());
+        items.Add(new MenuItem { Name = "CommandPaletteMenuItem", Command = new CommandReference(GameStudioCommands.CommandPaletteId) });
     }
 
     /// <summary>

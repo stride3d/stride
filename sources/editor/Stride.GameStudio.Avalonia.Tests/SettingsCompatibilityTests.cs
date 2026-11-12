@@ -386,6 +386,42 @@ public sealed class SettingsCompatibilityTests : IDisposable
     }
 
     [AvaloniaFact]
+    public void TheRecentCommandsOfThePalettePassThroughAWpfEditorThatDoesNotKnowThemAsTheyAre()
+    {
+        var path = Path.Combine(directory, "GameStudioInternal.conf");
+        File.WriteAllText(path, WpfInternalSettings);
+
+        // A file without them: none
+        var container = new SettingsContainer();
+        var key = new SettingsKey<List<string>>(GameStudioInternalSettings.RecentCommands.Name, container, () => new List<string>());
+        var profile = container.LoadSettingsProfile(path, false, null, false);
+        Assert.NotNull(profile);
+        Assert.Empty(key.GetValue(profile, true));
+
+        // This editor writes them, under a key of its own
+        key.SetValue(["Stride.File.Save", "MyPlugin.Command"], profile);
+        Assert.True(container.SaveSettingsProfile(profile, path));
+        Assert.Contains("Internal/Avalonia/RecentCommands:", File.ReadAllText(path));
+
+        // The WPF editor knows its own settings only: it changes one and saves
+        var wpfContainer = new SettingsContainer();
+        var wpfKey = new SettingsKey<bool>("Internal/AssetPreviewPanelVisible", wpfContainer, true);
+        var wpfProfile = wpfContainer.LoadSettingsProfile(path, false, null, false);
+        Assert.NotNull(wpfProfile);
+        Assert.False(wpfKey.GetValue(wpfProfile, true));
+        wpfKey.SetValue(true, wpfProfile);
+        Assert.True(wpfContainer.SaveSettingsProfile(wpfProfile, path));
+
+        // This editor reads them back as they were
+        var reloadedContainer = new SettingsContainer();
+        var reloadedKey = new SettingsKey<List<string>>(GameStudioInternalSettings.RecentCommands.Name, reloadedContainer, () => new List<string>());
+        var reloaded = reloadedContainer.LoadSettingsProfile(path, false, null, false);
+        Assert.NotNull(reloaded);
+        Assert.Equal(["Stride.File.Save", "MyPlugin.Command"], reloadedKey.GetValue(reloaded, true));
+        Assert.Contains("Internal/AssetPreviewPanelVisible: true", File.ReadAllText(path));
+    }
+
+    [AvaloniaFact]
     public void TheExtensionsPassThroughAWpfEditorThatDoesNotKnowThemAsTheyAre()
     {
         var path = Path.Combine(directory, "GameStudioInternal.conf");

@@ -342,11 +342,11 @@ public sealed class PluginCommandsTests
             fixture.Plugins.PluginsDiscovered([plugin]);
             await WindowTestHelper.PumpAsync();
             Assert.Contains(messages, x => x.Type == LogMessageType.Warning && x.Text.Contains("Tests.Save") && x.Text.Contains("Ctrl+S"));
-            var bound = window.View.CommandSlots!.Shortcuts.Select(x => x.Command.Descriptor.Id).ToList();
+            var bound = window.View.CommandSlots!.Shortcuts.Select(x => x.Descriptor.Id).ToList();
             Assert.Contains("Tests.Shortcut", bound);
             Assert.DoesNotContain("Tests.Save", bound);
             // Save keeps it: the editor's own command
-            Assert.Equal("Stride.File.Save", window.View.CommandSlots.Shortcuts.Single(x => x.Gesture.Equals(MainView.SaveGesture)).Command.Descriptor.Id);
+            Assert.Equal("Stride.File.Save", window.View.CommandSlots.Shortcuts.Single(x => x.Gesture.Equals(KeyGesture.Parse("Ctrl+S"))).Descriptor.Id);
 
             var panels = fixture.Main.Panels;
             panels.Factory.FloatDockable(panels.FindDockable(BuiltInPanels.SolutionExplorer)!);

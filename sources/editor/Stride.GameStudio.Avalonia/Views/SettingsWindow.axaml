@@ -5,6 +5,7 @@
         xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
         xmlns:caeb="using:Stride.Core.Assets.Editor.Avalonia.Behaviors"
         xmlns:caevm="using:Stride.Core.Assets.Editor.ViewModels"
+        xmlns:gsvw="using:Stride.GameStudio.Avalonia.Views"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Stride.GameStudio.Avalonia.Views.SettingsWindow"
         x:DataType="caevm:SettingsViewModel"
@@ -37,6 +38,10 @@
       </Button>
     </UniformGrid>
 
+    <!-- The settings by category, and the Keyboard shortcuts page (the main window's commands); both are saved or discarded
+         by the buttons below -->
+    <TabControl x:Name="Pages">
+      <TabItem x:Name="SettingsPage" Header="{sd:LocalizeString Settings, Context=Settings}">
     <Grid ColumnDefinitions="*,Auto,2*">
       <TreeView Grid.Column="0"
                 ItemsSource="{Binding Categories}"
@@ -60,5 +65,10 @@
         </Interaction.Behaviors>
       </sd:PropertyView>
     </Grid>
+      </TabItem>
+      <TabItem x:Name="ShortcutsPage" Header="{sd:LocalizeString Keyboard shortcuts, Context=Settings}" IsVisible="False">
+        <gsvw:KeyboardShortcutsView x:Name="ShortcutsView"/>
+      </TabItem>
+    </TabControl>
   </DockPanel>
 </Window>

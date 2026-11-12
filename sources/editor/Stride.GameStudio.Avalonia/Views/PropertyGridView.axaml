@@ -79,19 +79,17 @@
                PlaceholderText="{sd:LocalizeString Add new tag}"
                IsVisible="{Binding ((caevm:SessionViewModel)Session).AssetCollection.SelectedAssets.Count, Converter={sd:NumericToBool}, FallbackValue={sd:False}}"
                KeyDown="OnNewTagKeyDown"/>
-      <!-- Navigation -->
+      <!-- Navigation; Alt+Left and Alt+Right are the shortcuts of the commands Stride.Edit.PreviousSelection and NextSelection -->
       <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Margin="0,0,6,0" VerticalAlignment="Center">
         <Button x:Name="PreviousSelectionButton"
                 Padding="2" Background="Transparent"
                 Command="{Binding ((caevm:SessionViewModel)Session).PreviousSelectionCommand, TargetNullValue={x:Static cpc:DisabledCommand.Instance}, FallbackValue={x:Static cpc:DisabledCommand.Instance}}"
-                HotKey="Alt+Left"
                 ToolTip.Tip="{sd:LocalizeString Previous selection, Context=ToolTip}" ToolTip.ShowOnDisabled="True">
           <Image Source="{StaticResource ImagePrevious}" Width="16" Height="16"/>
         </Button>
         <Button x:Name="NextSelectionButton"
                 Padding="2" Background="Transparent"
                 Command="{Binding ((caevm:SessionViewModel)Session).NextSelectionCommand, TargetNullValue={x:Static cpc:DisabledCommand.Instance}, FallbackValue={x:Static cpc:DisabledCommand.Instance}}"
-                HotKey="Alt+Right"
                 ToolTip.Tip="{sd:LocalizeString Next selection, Context=ToolTip}" ToolTip.ShowOnDisabled="True">
           <Image Source="{StaticResource ImageNext}" Width="16" Height="16"/>
         </Button>

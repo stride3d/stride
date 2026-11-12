@@ -1,0 +1,77 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+             xmlns:cmds="using:Stride.Core.Assets.Editor.Commands"
+             mc:Ignorable="d" d:DesignWidth="760" d:DesignHeight="480"
+             x:Class="Stride.GameStudio.Avalonia.Views.KeyboardShortcutsView"
+             x:DataType="cmds:KeyboardShortcutsViewModel">
+  <!-- The Keyboard shortcuts page: the commands with their shortcuts and their conflicts, a search, and below, the shortcut of
+       the selected command: a recorder (click it, then press the keys), None and Reset. -->
+  <DockPanel Margin="8">
+    <Grid DockPanel.Dock="Top" ColumnDefinitions="*, Auto" Margin="0,0,0,6">
+      <TextBox x:Name="SearchBox" Grid.Column="0"
+               Text="{Binding SearchText}"
+               PlaceholderText="{sd:LocalizeString Search the commands and their shortcuts, Context=Shortcuts}"/>
+      <Button x:Name="ResetAllButton" Grid.Column="1" Margin="8,0,0,0"
+              Content="{sd:LocalizeString Reset all, Context=Shortcuts}"
+              IsEnabled="{Binding HasOverrides}"
+              Click="OnResetAllClick"/>
+    </Grid>
+
+    <!-- The selected command's shortcut -->
+    <Border DockPanel.Dock="Bottom" Margin="0,6,0,0" Padding="8" BorderThickness="1" CornerRadius="4"
+            BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+            IsEnabled="{Binding SelectedShortcut, Converter={sd:ObjectToBool}}">
+      <StackPanel Spacing="6">
+        <TextBlock FontWeight="Bold" Text="{Binding SelectedShortcut.Title, FallbackValue={sd:LocalizeString Select a command, Context=Shortcuts}}"/>
+        <Grid ColumnDefinitions="Auto, 220, Auto, Auto">
+          <TextBlock Grid.Column="0" VerticalAlignment="Center" Margin="0,0,8,0"
+                     Text="{sd:LocalizeString Shortcut:, Context=Shortcuts}"/>
+          <!-- Records the keys pressed while it has the focus -->
+          <TextBox x:Name="GestureRecorder" Grid.Column="1"
+                   IsReadOnly="True"
+                   PlaceholderText="{sd:LocalizeString Press a shortcut, Context=Shortcuts}"
+                   Text="{Binding SelectedShortcut.Gesture, Mode=OneWay, FallbackValue={x:Null}}"/>
+          <Button x:Name="NoneButton" Grid.Column="2" Margin="8,0,0,0"
+                  Content="{sd:LocalizeString None, Context=Shortcuts}"
+                  Click="OnNoneClick"/>
+          <Button x:Name="ResetButton" Grid.Column="3" Margin="8,0,0,0"
+                  Content="{sd:LocalizeString Reset, Context=Shortcuts}"
+                  IsEnabled="{Binding SelectedShortcut.IsUserDefined, FallbackValue=False}"
+                  Click="OnResetClick"/>
+        </Grid>
+        <TextBlock x:Name="RecorderMessage" TextWrapping="Wrap" Foreground="#E07020" IsVisible="False"/>
+        <TextBlock Opacity="0.7" TextWrapping="Wrap">
+          <Run Text="{sd:LocalizeString Default:, Context=Shortcuts}"/>
+          <Run Text="{Binding SelectedShortcut.DefaultGesture, FallbackValue={x:Null}, TargetNullValue={sd:LocalizeString none, Context=Shortcuts}}"/>
+        </TextBlock>
+      </StackPanel>
+    </Border>
+
+    <!-- The commands, by category and title -->
+    <ListBox x:Name="ShortcutList"
+             ItemsSource="{Binding Shortcuts}"
+             SelectedItem="{Binding SelectedShortcut}">
+      <ListBox.ItemTemplate>
+        <DataTemplate DataType="cmds:KeyboardShortcutViewModel">
+          <StackPanel>
+            <Grid ColumnDefinitions="90, *, 150, 16">
+              <TextBlock Grid.Column="0" VerticalAlignment="Center" Opacity="0.7" Text="{Binding CategoryName}" TextTrimming="CharacterEllipsis"/>
+              <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="{Binding Title}" TextTrimming="CharacterEllipsis"
+                         ToolTip.Tip="{Binding Id}"/>
+              <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="{Binding Gesture}"
+                         FontWeight="{Binding IsUserDefined, Converter={sd:BoolToParam}, ConverterParameter={x:Static FontWeight.Bold}}"/>
+              <!-- Changed by the user -->
+              <TextBlock Grid.Column="3" VerticalAlignment="Center" Text="&#x2022;" IsVisible="{Binding IsUserDefined}"
+                         ToolTip.Tip="{sd:LocalizeString Changed by you, Context=Shortcuts}"/>
+            </Grid>
+            <TextBlock Text="{Binding Conflict}" IsVisible="{Binding HasConflict}" Margin="90,2,0,0"
+                       FontSize="11" Foreground="#E07020" TextWrapping="Wrap"/>
+          </StackPanel>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+  </DockPanel>
+</UserControl>

@@ -9,6 +9,7 @@ using Avalonia.Input.Platform;
 using Avalonia.LogicalTree;
 using Avalonia.Media;
 using Avalonia.VisualTree;
+using Stride.Core.Assets.Editor.Commands;
 using Stride.Core.Assets;
 using Stride.Core.Presentation.Avalonia.Controls;
 using Stride.Core.Presentation.Quantum.ViewModels;
@@ -39,7 +40,7 @@ public sealed class EditCommandTests
         try
         {
             var edit = window.GetLogicalDescendants().OfType<MenuItem>().Single(x => Equals(x.Header, "Edit"));
-            Assert.Equal(["Undo", "Redo", "-", "Cut", "Copy", "Paste", "Delete", "Rename", "-", "_Settings..."], Describe(edit.Items));
+            Assert.Equal(["Undo", "Redo", "-", "Cut", "Copy", "Paste", "Delete", "Rename", "-", "_Settings...", "Keyboard shortcuts..."], Describe(edit.Items));
             Assert.Equal(new KeyGesture(Key.X, KeyModifiers.Control), MenuItem(window, "CutMenuItem").InputGesture);
             Assert.Equal(new KeyGesture(Key.C, KeyModifiers.Control), MenuItem(window, "CopyMenuItem").InputGesture);
             Assert.Equal(new KeyGesture(Key.V, KeyModifiers.Control), MenuItem(window, "PasteMenuItem").InputGesture);
@@ -306,8 +307,9 @@ public sealed class EditCommandTests
                 var updateAll = new KeyGesture(Key.R, KeyModifiers.Control);
                 var updateSelected = new KeyGesture(Key.R, KeyModifiers.Control | KeyModifiers.Shift);
 
-                Assert.Same(sourceTracker.UpdateAllAssetsWithModifiedSourceCommand, window.KeyBindings.Single(x => x.Gesture == updateAll).Command);
-                Assert.Same(sourceTracker.UpdateSelectedAssetsFromSourceCommand, window.KeyBindings.Single(x => x.Gesture == updateSelected).Command);
+                var shortcuts = window.View.CommandSlots!.Shortcuts;
+                Assert.Equal(SessionCommands.UpdateAllFromSourceId, shortcuts.Single(x => x.Gesture == updateAll).Descriptor.Id);
+                Assert.Equal(SessionCommands.UpdateSelectedFromSourceId, shortcuts.Single(x => x.Gesture == updateSelected).Descriptor.Id);
 
                 var items = AssetList(window).ContextMenu!.Items.OfType<MenuItem>().ToList();
                 Assert.Equal(updateSelected, items.Single(x => x.Header is "Update selected assets from their source").InputGesture);

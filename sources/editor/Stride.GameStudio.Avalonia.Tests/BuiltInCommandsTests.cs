@@ -42,14 +42,15 @@ public sealed class BuiltInCommandsTests
         {
             var host = fixture.Plugins;
             var builtIns = IdsOf(typeof(GameStudioCommands)).Concat(IdsOf(typeof(SessionCommands))).ToList();
-            Assert.Equal(26 + 9, builtIns.Count);
+            Assert.Equal(28 + 9, builtIns.Count);
             Assert.Equal(builtIns.Count, builtIns.Distinct().Count());
             foreach (var id in builtIns)
             {
                 var command = Assert.Single(host.Commands.Items, x => x.Id == id);
                 Assert.True(host.IsBuiltInCommand(command), id);
                 Assert.NotNull(command.Category);
-                Assert.True(command.ShowInPalette, id);
+                // Every one but the palette itself
+                Assert.Equal(id != GameStudioCommands.CommandPaletteId, command.ShowInPalette);
                 // The main menu shows them from its own items
                 Assert.Empty(command.Placements);
             }
@@ -60,11 +61,12 @@ public sealed class BuiltInCommandsTests
             // Each shortcut the window binds and each one the main menu shows is the shortcut of one of them, so that no
             // plugin can take it
             var shortcuts = window.View.CommandSlots!.Shortcuts;
-            var gestures = window.KeyBindings.Select(x => x.Gesture!)
-                .Concat(window.View.MainMenu.Items.OfType<MenuItem>().SelectMany(Flatten).Where(x => !CommandSlot.IsSlotItem(x)).Select(x => x.InputGesture).OfType<KeyGesture>())
+            // (the window has no key binding of its own: every shortcut is a command's)
+            Assert.Empty(window.KeyBindings);
+            var gestures = window.View.MainMenu.Items.OfType<MenuItem>().SelectMany(Flatten).Where(x => !CommandSlot.IsSlotItem(x)).Select(x => x.InputGesture).OfType<KeyGesture>()
                 .ToList();
-            Assert.True(gestures.Count >= 20, $"Only {gestures.Count} shortcuts");
-            var unbound = gestures.Where(gesture => !shortcuts.Any(x => x.Gesture.Equals(gesture) && builtIns.Contains(x.Command.Descriptor.Id))).Select(x => x.ToString()).ToList();
+            Assert.True(gestures.Count >= 15, $"Only {gestures.Count} shortcuts");
+            var unbound = gestures.Where(gesture => !shortcuts.Any(x => x.Gesture.Equals(gesture) && builtIns.Contains(x.Descriptor.Id))).Select(x => x.ToString()).ToList();
             Assert.Empty(unbound);
             Assert.All(gestures, gesture => Assert.Single(shortcuts, x => x.Gesture.Equals(gesture)));
         }
@@ -208,7 +210,7 @@ public sealed class BuiltInCommandsTests
             await WindowTestHelper.PumpAsync();
 
             var shortcuts = window.View.CommandSlots!.Shortcuts;
-            string? GestureOf(string id) => shortcuts.SingleOrDefault(x => x.Command.Descriptor.Id == id).Gesture?.ToString();
+            string? GestureOf(string id) => shortcuts.SingleOrDefault(x => x.Descriptor.Id == id)?.Gesture?.ToString();
             Assert.Equal("Ctrl+Alt+L", GestureOf("Tests.Moved"));
             Assert.Null(GestureOf("Tests.Removed"));
             Assert.Equal("Ctrl+Alt+S", GestureOf(GameStudioCommands.SaveId));
@@ -222,7 +224,7 @@ public sealed class BuiltInCommandsTests
             // Back to the defaults
             overrides.SetValue(new Dictionary<string, string>());
             window.View.CommandSlots.Update();
-            Assert.Equal("Ctrl+Alt+K", window.View.CommandSlots.Shortcuts.Single(x => x.Command.Descriptor.Id == "Tests.Moved").Gesture.ToString());
+            Assert.Equal("Ctrl+Alt+K", window.View.CommandSlots.Shortcuts.Single(x => x.Descriptor.Id == "Tests.Moved").Gesture.ToString());
         }
         finally
         {

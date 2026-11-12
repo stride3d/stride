@@ -6,7 +6,9 @@ using Avalonia.Headless.XUnit;
 using Avalonia.LogicalTree;
 using Avalonia.VisualTree;
 using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Avalonia.Commands;
 using Stride.Core.IO;
+using Stride.GameStudio.Avalonia.Commands;
 using Stride.GameStudio.Avalonia.Services;
 using Stride.GameStudio.Avalonia.Tests.Helpers;
 using Stride.GameStudio.Avalonia.Views;
@@ -31,8 +33,9 @@ public sealed class GameCodeReloadTests
         {
             var menuItem = window.GetLogicalDescendants().OfType<MenuItem>().Single(x => x.Name == "ReloadGameCodeMenuItem");
             var button = window.GetVisualDescendants().OfType<Button>().Single(x => x.Name == "ReloadGameCodeButton");
-            Assert.Same(fixture.Main.CodeReload.ReloadCommand, menuItem.Command);
-            Assert.Same(fixture.Main.CodeReload.ReloadCommand, button.Command);
+            // The command of the editor that runs the view model's
+            Assert.Equal(GameStudioCommands.ReloadGameAssembliesId, Assert.IsType<CommandReference>(menuItem.Command).Id);
+            Assert.Equal(GameStudioCommands.ReloadGameAssembliesId, Assert.IsType<CommandReference>(button.Command).Id);
             Assert.Same(fixture.Session, fixture.Main.CodeReload.Session);
             // Nothing changed
             Assert.False(button.IsEffectivelyEnabled);
