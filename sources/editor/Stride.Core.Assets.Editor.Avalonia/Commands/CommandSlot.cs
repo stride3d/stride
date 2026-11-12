@@ -79,7 +79,8 @@ public static class CommandSlot
     /// <summary>
     /// Replaces the slot items of <paramref name="items"/> with the commands of <paramref name="location"/> that the host
     /// shows, in their groups: a separator before each group (before the first one only when the menu shows items of its own
-    /// above it), then a menu item per command, with its title in context and its icon, enabled when it can run.
+    /// above it), then a menu item per command, with its title in context and its icon, enabled when it can run, and checked
+    /// when it is a toggle that is on.
     /// </summary>
     /// <param name="items">The items of the menu.</param>
     /// <param name="host">The plugin host, or null to only remove the slot items.</param>
@@ -106,17 +107,25 @@ public static class CommandSlot
             foreach (var descriptor in group)
             {
                 var header = host.GetCommandTitle(descriptor, context);
-                // A command turned off by its title in context is not shown
+                var isChecked = host.IsCommandChecked(descriptor, context);
+                // A command turned off by its title or its state in context is not shown
                 if (!host.IsCommandAvailable(descriptor))
                     continue;
-                groupItems.Add(Mark(new MenuItem
+                var item = new MenuItem
                 {
                     Header = header,
                     Command = new DescriptorCommand(host, descriptor, getContext),
                     Tag = descriptor.Id,
                     Icon = CreateIcon(descriptor.Icon),
                     InputGesture = ShortcutOf?.Invoke(descriptor),
-                }));
+                };
+                // A toggle shows whether it is on
+                if (isChecked is { } on)
+                {
+                    item.ToggleType = MenuItemToggleType.CheckBox;
+                    item.IsChecked = on;
+                }
+                groupItems.Add(Mark(item));
             }
             if (groupItems.Count == 0)
                 continue;

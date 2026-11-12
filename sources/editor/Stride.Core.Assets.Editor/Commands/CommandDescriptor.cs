@@ -11,7 +11,7 @@ namespace Stride.Core.Assets.Editor.Commands;
 /// <see cref="Services.IEditorPluginContext.Commands"/>; it goes when the plugin leaves.
 /// </summary>
 /// <remarks>
-/// The editor runs <see cref="ExecuteAsync"/>, <see cref="CanExecute"/> and <see cref="ContextTitle"/> through its
+/// The editor runs <see cref="ExecuteAsync"/>, <see cref="CanExecute"/>, <see cref="ContextTitle"/> and <see cref="IsChecked"/> through its
 /// contribution guard (<see cref="Services.IPluginContributionGuard"/>): when one of them throws, the error is logged with the
 /// plugin's name and the command is turned off for the session, while the rest of the plugin stays.
 /// </remarks>
@@ -42,10 +42,41 @@ public sealed class CommandDescriptor
     public object? Icon { get; init; }
 
     /// <summary>
-    /// The default shortcut of the command, such as "Ctrl+Shift+K" (see <see cref="CommandGesture"/>), or null. A shortcut
-    /// that the editor or an earlier command already uses is not bound, with a warning that names both.
+    /// The default shortcut of the command, such as "Ctrl+Shift+K" (see <see cref="CommandGesture"/>), or null. The user can
+    /// change it or remove it (see <see cref="CommandGestureBindings"/>). A shortcut that the user, the editor or an earlier
+    /// command already uses is not bound, with a warning that names both.
     /// </summary>
     public string? DefaultGesture { get; init; }
+
+    /// <summary>
+    /// Where the shortcut of the command works: null for the whole main window (and its floating windows), or the type of the
+    /// view model of an asset editor, such as the scene editor's, for a shortcut that works only while the focus is in an
+    /// editor of that type (or of a type derived from it). There it goes before a shortcut of the main window.
+    /// </summary>
+    public Type? GestureScope { get; init; }
+
+    /// <summary>
+    /// The category of the command, which the command palette and the list of shortcuts show and sort by: one of
+    /// <see cref="CommandCategories"/>, or a name of the plugin's own. Null for none.
+    /// </summary>
+    public string? Category { get; init; }
+
+    /// <summary>
+    /// Other words the command palette finds the command by, besides its title and its category.
+    /// </summary>
+    public IReadOnlyList<string> Keywords { get; init; } = [];
+
+    /// <summary>
+    /// Whether the command palette lists the command. True by default; false for a command that only makes sense where it is
+    /// placed, such as one that acts on the property a context menu opened on.
+    /// </summary>
+    public bool ShowInPalette { get; init; } = true;
+
+    /// <summary>
+    /// Whether the command is on in a context, for a command that toggles something (a menu item then shows a check), or null
+    /// for a command that is not a toggle. Read when it is shown, through the editor's contribution guard.
+    /// </summary>
+    public Func<CommandContext, bool>? IsChecked { get; init; }
 
     /// <summary>
     /// Runs the command.
@@ -59,7 +90,7 @@ public sealed class CommandDescriptor
 
     /// <summary>
     /// Where the command is shown: a location, a group in it and an order. A command with no placement is reached by its
-    /// shortcut only.
+    /// shortcut and the command palette only.
     /// </summary>
     public IReadOnlyList<CommandPlacement> Placements { get; init; } = [];
 

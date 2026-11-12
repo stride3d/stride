@@ -71,4 +71,10 @@ public static class CommandLocations
     /// Not a place: the location a command gets when its shortcut runs it.
     /// </summary>
     public const string Shortcut = "Shortcut";
+
+    /// <summary>
+    /// Not a place: the location a command gets when the command palette runs it (see <see cref="CommandContext.ForPalette"/>).
+    /// Every command with <see cref="CommandDescriptor.ShowInPalette"/> is listed there, whatever its placements.
+    /// </summary>
+    public const string Palette = "Palette";
 }

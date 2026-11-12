@@ -62,6 +62,21 @@ public abstract partial class EditorPluginHost
     }
 
     /// <summary>
+    /// Whether a command that toggles something is on in a context (<see cref="CommandDescriptor.IsChecked"/>).
+    /// </summary>
+    /// <returns>Null when the command is not a toggle; false when it is turned off, or when its <see cref="CommandDescriptor.IsChecked"/>
+    /// throws (which turns it off).</returns>
+    [Experimental("STREXP003")]
+    public bool? IsCommandChecked(CommandDescriptor command, CommandContext context)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        ArgumentNullException.ThrowIfNull(context);
+        if (command.IsChecked is not { } isChecked)
+            return null;
+        return TryRun(Commands.GetOwner(command), PluginContributions.Command(command.Id), () => isChecked(context), out var result) && result;
+    }
+
+    /// <summary>
     /// Whether a command can run in a context: false when it is turned off, or when its <see cref="CommandDescriptor.CanExecute"/>
     /// says so or throws (which turns it off).
     /// </summary>

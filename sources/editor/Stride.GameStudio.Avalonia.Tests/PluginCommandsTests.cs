@@ -165,6 +165,64 @@ public sealed class PluginCommandsTests
     }
 
     [AvaloniaFact]
+    public async Task AToggleShowsItsStateInItsMenuAndThePaletteGivesTheSelectedAssets()
+    {
+        using var fixture = await ShellSessionFixture.OpenAsync((SheetLocation, new SpriteSheetAsset()));
+        var window = new MainWindow { DataContext = fixture.Main };
+        await window.ShowAsync();
+        try
+        {
+            var view = window.View;
+            var on = true;
+            var plugin = new CommandsTestPlugin(context => context.Commands.Register(new CommandDescriptor
+            {
+                Id = "Tests.Toggle",
+                Title = () => "Toggle",
+                IsChecked = _ => on,
+                ExecuteAsync = _ =>
+                {
+                    on = !on;
+                    return Task.CompletedTask;
+                },
+                Placements = [new CommandPlacement(CommandLocations.MainMenuTools)],
+            }));
+            fixture.Plugins.PluginsDiscovered([plugin]);
+            await WindowTestHelper.PumpAsync();
+
+            view.ToolsMenu.Open();
+            await WindowTestHelper.PumpAsync();
+            var item = view.ToolsMenu.Items.OfType<MenuItem>().Single(x => Equals(x.Tag, "Tests.Toggle"));
+            Assert.Equal(MenuItemToggleType.CheckBox, item.ToggleType);
+            Assert.True(item.IsChecked);
+            view.ToolsMenu.Close();
+            await WindowTestHelper.PumpAsync();
+
+            Assert.True(await MenuItemOf(view.ToolsMenu, "Tests.Toggle").ExecuteAsync());
+            view.ToolsMenu.Open();
+            await WindowTestHelper.PumpAsync();
+            Assert.False(view.ToolsMenu.Items.OfType<MenuItem>().Single(x => Equals(x.Tag, "Tests.Toggle")).IsChecked);
+            view.ToolsMenu.Close();
+            await WindowTestHelper.PumpAsync();
+
+            // The palette's context: the selected assets of the asset view, unless the shell gives a selection
+            var sheet = fixture.Asset(SheetLocation);
+            fixture.Session.AssetCollection.SelectAssetCommand.Execute(sheet);
+            await WindowTestHelper.PumpAsync();
+            var palette = CommandContext.ForPalette(fixture.Session);
+            Assert.Equal(CommandLocations.Palette, palette.Location);
+            Assert.Same(sheet, Assert.Single(palette.Selection));
+            Assert.Equal(["Other"], CommandContext.ForPalette(fixture.Session, ["Other"]).Selection);
+
+            fixture.Plugins.PluginsRemoved([plugin]);
+            await WindowTestHelper.PumpAsync();
+        }
+        finally
+        {
+            await window.CloseAsync();
+        }
+    }
+
+    [AvaloniaFact]
     public async Task TheContextMenusGiveTheirSelectionToTheCommands()
     {
         using var fixture = await ShellSessionFixture.OpenAsync((SheetLocation, new TextPropertiesAsset { Label = "label" }));

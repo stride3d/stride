@@ -53,6 +53,8 @@ public static class PropertyGridCommands
                 return Task.CompletedTask;
             },
             Placements = [new CommandPlacement(CommandLocations.PropertyGridContext, "Stride.Expand")],
+            // It acts on the property the menu opened on
+            ShowInPalette = false,
         };
     }
 
