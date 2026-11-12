@@ -121,6 +121,9 @@
     <ProjectReference Include="..\..\plugins\Particles\Stride.Particles\Stride.Particles.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
+    <ProjectReference Include="..\..\plugins\Particles\Stride.Particles.Assets\Stride.Particles.Assets.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
     <ProjectReference Include="..\..\plugins\Particles\Stride.Particles.Editor\Stride.Particles.Editor.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>

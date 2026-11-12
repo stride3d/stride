@@ -247,6 +247,7 @@
     <Project Path="sources/plugins/BulletPhysics/Stride.Physics/Stride.Physics.csproj" />
   </Folder>
   <Folder Name="/80-Plugins/Particles/">
+    <Project Path="sources/plugins/Particles/Stride.Particles.Assets/Stride.Particles.Assets.csproj" />
     <Project Path="sources/plugins/Particles/Stride.Particles.Editor/Stride.Particles.Editor.csproj" />
     <Project Path="sources/plugins/Particles/Stride.Particles.Tests/Stride.Particles.Tests.csproj" />
     <Project Path="sources/plugins/Particles/Stride.Particles/Stride.Particles.csproj" />

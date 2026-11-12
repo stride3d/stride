@@ -57,6 +57,7 @@
       "sources\\plugins\\BulletPhysics\\Stride.Physics.Assets\\Stride.Physics.Assets.csproj",
       "sources\\plugins\\BulletPhysics\\Stride.Physics.Editor\\Stride.Physics.Editor.csproj",
       "sources\\plugins\\BulletPhysics\\Stride.Physics\\Stride.Physics.csproj",
+      "sources\\plugins\\Particles\\Stride.Particles.Assets\\Stride.Particles.Assets.csproj",
       "sources\\plugins\\Particles\\Stride.Particles.Editor\\Stride.Particles.Editor.csproj",
       "sources\\plugins\\Particles\\Stride.Particles\\Stride.Particles.csproj",
       "sources\\plugins\\SpriteStudio\\Stride.SpriteStudio.Assets\\Stride.SpriteStudio.Assets.csproj",

@@ -19,6 +19,7 @@
     <ProjectReference Include="..\..\plugins\UI\Stride.UI.Assets\Stride.UI.Assets.csproj" />
     <!-- The particle types of the asset upgrade fixtures -->
     <ProjectReference Include="..\..\plugins\Particles\Stride.Particles\Stride.Particles.csproj" />
+    <ProjectReference Include="..\..\plugins\Particles\Stride.Particles.Assets\Stride.Particles.Assets.csproj" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
     <!-- The project upgrade tests load project files: MSBuild itself comes from the locator -->
     <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" PrivateAssets="all" />

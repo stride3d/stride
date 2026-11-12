@@ -523,10 +523,11 @@ public class CompanionPackageTests
     }
 
     [Fact]
-    public void ParticlesHasAnEditorPackageOnly()
+    public void ParticlesDrawsThroughItsAssetsPackageAndOnlyTheEditorLoadsItsEditorPackage()
     {
-        // Stride.Particles ships no asset type, so it declares Stride.Particles.Editor alone (gizmo, entity factories,
-        // property grid updater, preview render feature); the asset compiler never loads it
+        // Stride.Particles ships no asset type, but declares Stride.Particles.Assets (the render feature provider, which
+        // always loads) and Stride.Particles.Editor (gizmo, entity factories, property grid updater); the asset compiler
+        // loads the first and never the second
         using var c = new Case(output, "editor-particles");
         c.PackPlugin();
         c.ReferencePackage("Stride.Particles");
@@ -535,9 +536,11 @@ public class CompanionPackageTests
         Assert.True(result.ExitCode == 0, $"Consumer build should succeed (exit {result.ExitCode}).");
 
         var compilerSession = c.LoadConsumerProjectSession();
+        Assert.Contains(compilerSession.Packages, p => p.Meta.Name == "Stride.Particles.Assets");
         Assert.DoesNotContain(compilerSession.Packages, p => p.Meta.Name == "Stride.Particles.Editor");
-        var declaration = Assert.Single(compilerSession.Packages.Single(p => p.Meta.Name == "Stride.Particles").CompanionPackages);
-        Assert.Equal(PackageKind.Editor, declaration.Kind);
+        var declarations = compilerSession.Packages.Single(p => p.Meta.Name == "Stride.Particles").CompanionPackages;
+        Assert.Equal(PackageKind.Assets, Assert.Single(declarations, x => x.Name == "Stride.Particles.Assets").Kind);
+        Assert.Equal(PackageKind.Editor, Assert.Single(declarations, x => x.Name == "Stride.Particles.Editor").Kind);
 
         // Stride.Particles.Editor targets Windows only, as Game Studio does
         if (!OperatingSystem.IsWindows())

@@ -7,6 +7,8 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using Stride.Assets.Rendering;
 using Stride.Core.Reflection;
+using Stride.Particles.Assets;
+using Stride.Particles.Rendering;
 using Stride.Rendering;
 using Stride.Rendering.UI;
 using Stride.SpriteStudio.Assets;
@@ -26,6 +28,7 @@ namespace Stride.Assets.Tests
         [Theory]
         [InlineData(typeof(UIRenderFeatureProvider), typeof(UIRenderFeature))]
         [InlineData(typeof(SpriteStudioRenderFeatureProvider), typeof(SpriteStudioRenderFeature))]
+        [InlineData(typeof(ParticleRenderFeatureProvider), typeof(ParticleEmitterRenderFeature))]
         public void TheAssetsPackageProvidesTheRenderFeature(Type providerType, Type renderFeatureType)
         {
             using (AssetAssemblyScope.Register(providerType.Assembly))

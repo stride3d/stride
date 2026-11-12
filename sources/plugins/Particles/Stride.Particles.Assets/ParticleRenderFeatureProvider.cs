@@ -6,7 +6,7 @@ using Stride.Assets.Rendering;
 using Stride.Particles.Rendering;
 using Stride.Rendering;
 
-namespace Stride.Particles.Editor;
+namespace Stride.Particles.Assets;
 
 /// <summary>
 /// Draws particle systems: in the entity previews and thumbnails, and in a game compositor on request.
