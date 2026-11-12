@@ -23,7 +23,10 @@ public class MagusOrb : SyncScript, ISimulationUpdate
 
     public float TiltFactor { get; set; } = 0.35f;
     public float RotationFactor { get; set; } = 1f;
-    public float CameraSmoothness { get; set; } = 0.25f;
+    public float CameraSmoothness { get; set; } = 0.1f;
+
+    public required TransformComponent Hands { get; set; }
+    public float HandsSmoothness { get; set; } = 0.3f;
 
     public override void Update()
     {
@@ -36,18 +39,19 @@ public class MagusOrb : SyncScript, ISimulationUpdate
 
         var gravityInducedRot = GravityTilt();
         gravityInducedRot.Invert();
-        
-        var expDecay = 1f - MathF.Exp(-100 * deltaTime * CameraSmoothness);
+
         var cameraTargetRotation = CameraLocalOffsetRot
                           * _localRotation
                           * gravityInducedRot
                           // +Z faces away from view
                           * Quaternion.RotationY(MathUtil.Pi);
-        Camera.Rotation = Quaternion.Slerp(Camera.Rotation, cameraTargetRotation, expDecay);
+        Camera.Rotation = Quaternion.Slerp(Camera.Rotation, cameraTargetRotation, 1f - MathF.Exp(-100 * deltaTime * CameraSmoothness));
+        Hands.Rotation = Quaternion.Slerp(Hands.Rotation, cameraTargetRotation, 1f - MathF.Exp(-100 * deltaTime * HandsSmoothness));
 
         // Picking the transform position instead of rigidbody, we want the interpolated position, not the physics engine one
         var orbPosition = Orb.Entity.Transform.Position;
         Camera.Position = orbPosition + Camera.Rotation * CameraLocalOffset;
+        Hands.Position = orbPosition + Hands.Rotation * CameraLocalOffset;
 
         // Prevents camera going through world geometry
         var sim = this.Entity.GetSimulation();

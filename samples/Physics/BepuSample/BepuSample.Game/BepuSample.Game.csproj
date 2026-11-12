@@ -13,5 +13,6 @@
     <PackageReference Include="Stride.Particles" Version="4.5.1" />
     <PackageReference Include="Stride.UI" Version="4.5.1" />
     <PackageReference Include="Stride.AssetCompiler" Version="4.5.1" IncludeAssets="build;buildTransitive" />
+    <ProjectReference Include="..\..\..\Templates\Packs\mannequinModel\mannequinModel.csproj" />
   </ItemGroup>
 </Project>

@@ -10,6 +10,7 @@ Hierarchy:
         - ref!! b40a295f-4f63-4e23-869d-10b862014a8b
         - ref!! 1f0c0e13-4419-4dbf-a891-c1d47b72b08f
         - ref!! 749fa8c1-5f74-4283-9358-045af3a1e2f0
+        - ref!! 3c2dc933-e6d4-43ae-8eb7-44e1cb7f332a
         - ref!! f2d3bf10-1a12-41e7-a066-186f375c903b
         - ref!! 3e489086-ea04-4fb2-ba75-13400dda8039
         - ref!! abb5ee5b-aa4f-436b-a439-3917cffb488d
@@ -110,11 +111,11 @@ Hierarchy:
                         ContactEventHandler: null
         -   Entity:
                 Id: 1f0c0e13-4419-4dbf-a891-c1d47b72b08f
-                Name: GeoSphere
+                Name: Magus Orb
                 Components:
                     f7ff7d4f818150b870484aff0fd7e622: !TransformComponent
                         Id: ea57cd00-3842-4306-989d-5b4ec4fbedeb
-                        Position: {X: 114.614876, Y: 42.715565, Z: 243.98068}
+                        Position: {X: 69.61488, Y: 42.715565, Z: 271.98068}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 3.0, Y: 3.0, Z: 3.0}
                         Children:
@@ -163,6 +164,18 @@ Hierarchy:
                         Id: 862564e3-9e5a-4011-ab5a-19469997cad7
                         Type: !LightSkybox
                             Skybox: d6101b68-ef34-4a51-8eef-420809c68cdd:Skybox
+        -   Entity:
+                Id: 3c2dc933-e6d4-43ae-8eb7-44e1cb7f332a
+                Name: Magus Hands
+                Components:
+                    191a9580bfac05d33d042a46b9b519ac: !TransformComponent
+                        Id: b0f3c81a-3a4c-42f8-9be7-844b13b11c87
+                        Position: {X: 56.0, Y: 13.000002, Z: 148.80066}
+                        Rotation: {X: -0.0, Y: -0.70710677, Z: 0.0, W: 0.70710677}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            6631fa6544dfe335fc2d8bbbc0b15548: ref!! 6ea1473b-e419-4348-9d17-807f0be9784b
+                            4b5acd42d869f4de0f7e1c7c15f6aede: ref!! 407a3ba7-de97-42d1-945a-f12ef9878213
         -   Entity:
                 Id: 3e489086-ea04-4fb2-ba75-13400dda8039
                 Name: Heightfield with Input
@@ -249,6 +262,36 @@ Hierarchy:
                             1252763c10c641efc639db6971cbceb8: ref!! cd0a54b8-0c8d-48a9-9a00-b1fc5ce1cbeb
         -   Folder: null
             Entity:
+                Id: 5814839e-7665-4499-8d58-33024a8a656b
+                Name: Hand L
+                Components:
+                    c2a7c8fa2eb6303854ed995ade09bd38: !TransformComponent
+                        Id: 6ea1473b-e419-4348-9d17-807f0be9784b
+                        Position: {X: -2.5, Y: -0.5, Z: -12.0}
+                        Rotation: {X: -0.24184471, Y: 0.664463, Z: -0.664463, W: 0.24184476}
+                        Scale: {X: 15.0, Y: 15.0, Z: 15.0}
+                        Children: {}
+                    7f26dbe0a6fab81b28cee55267a18efe: !ModelComponent
+                        Id: cb79de1a-0bc3-4f5e-b2f7-23deb1b5d856
+                        Model: c2f8cb33-c6dc-4c89-86bf-8369da9e0e0f:/mannequinModel/Models/HandModelLeft
+                        Materials: {}
+        -   Folder: null
+            Entity:
+                Id: 5a820eaf-7688-4862-a65e-986d977dce03
+                Name: Hand R
+                Components:
+                    c2a7c8fa2eb6303854ed995ade09bd38: !TransformComponent
+                        Id: 407a3ba7-de97-42d1-945a-f12ef9878213
+                        Position: {X: 2.5, Y: -0.5, Z: -12.0}
+                        Rotation: {X: -0.24184468, Y: -0.66446304, Z: 0.66446304, W: 0.24184482}
+                        Scale: {X: 15.0, Y: 15.0, Z: 15.0}
+                        Children: {}
+                    7f26dbe0a6fab81b28cee55267a18efe: !ModelComponent
+                        Id: 842ba41e-735f-4cce-8995-658762f7b09e
+                        Model: 15618002-dbfc-46ba-8be9-edacd2146a9d:/mannequinModel/Models/HandModelRight
+                        Materials: {}
+        -   Folder: null
+            Entity:
                 Id: 6fd04592-09f2-4398-aa19-3b524ab8621c
                 Name: Cube
                 Components:
@@ -311,7 +354,7 @@ Hierarchy:
                         ContactEventHandler: null
         -   Entity:
                 Id: 749fa8c1-5f74-4283-9358-045af3a1e2f0
-                Name: Magus Orb
+                Name: Magus Orb Logic
                 Components:
                     191a9580bfac05d33d042a46b9b519ac: !TransformComponent
                         Id: b8df41bc-fd8f-4037-ad0c-29e5a7996371
@@ -331,7 +374,9 @@ Hierarchy:
                         CameraLocalOffsetRot: {X: -0.17364818, Y: 0.0, Z: 0.0, W: 0.9848077}
                         TiltFactor: 0.35
                         RotationFactor: 1.0
-                        CameraSmoothness: 0.25
+                        CameraSmoothness: 0.1
+                        Hands: ref!! b0f3c81a-3a4c-42f8-9be7-844b13b11c87
+                        HandsSmoothness: 0.3
         -   Entity:
                 Id: 82acb767-c706-4a54-b0ed-6b498231483d
                 Name: Cube
