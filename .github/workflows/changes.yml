@@ -154,6 +154,7 @@ jobs:
               - 'deps/**'
               - 'tests/**'
               - 'sources/Stride.Runtime.slnf'
+              - 'sources/Stride.Tests.Simple*.slnf'
               # The workflows of the jobs it gates, their actions and the auditor the ApiNeutral job runs: an
               # edit runs them
               - '.github/workflows/test-windows-game-api-neutral.yml'
