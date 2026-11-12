@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Reflection;
+using Stride.Assets.Editor.Commands;
 using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Assets.Editor.Quantum.NodePresenters.Updaters;
@@ -89,6 +90,9 @@ public sealed class StrideEditorPlugin : StrideAssetsPlugin
         // The editor's commands that act on the session (the asset view's shortcuts, the package commands), in the registry of
         // the commands; the shells show them in their menus themselves
         foreach (var command in SessionCommands.Create())
+            context.Commands.Register(command);
+        // The commands of the scene and prefab editors: their context menus and their shortcuts
+        foreach (var command in SceneEditorCommands.Create())
             context.Commands.Register(command);
 
         context.CopyProcessors.Register(new EntityComponentCopyProcessor());

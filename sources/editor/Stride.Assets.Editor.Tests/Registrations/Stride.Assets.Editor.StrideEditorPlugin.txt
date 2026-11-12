@@ -81,6 +81,22 @@ Commands:
   Stride.Project.PackageProperties []
   Stride.Project.NewProject []
   Stride.Project.AddExistingProject []
+  Stride.Scene.FocusOnSelection []
+  Stride.Scene.Duplicate []
+  Stride.Scene.NewFolderInRoot []
+  Stride.Scene.NewFolder []
+  Stride.Scene.NewEntityInRoot []
+  Stride.Scene.NewEntity []
+  Stride.Scene.NewEntityAtCursor []
+  Stride.Scene.SetActiveScene []
+  Stride.Scene.OpenPrefab []
+  Stride.Scene.SelectPrefab []
+  Stride.Scene.BreakLinkToPrefab []
+  Stride.Scene.CreatePrefabFromSelection []
+  Stride.Scene.PasteInRoot []
+  Stride.Scene.Cut []
+  Stride.Scene.Copy []
+  Stride.Scene.Rename []
 Registry<Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools.SceneViewToolDescriptor>:
   Stride.Assets.Editor.EditorGame.Tools.RotateTool (order 20)
   Stride.Assets.Editor.EditorGame.Tools.ScaleTool (order 30)

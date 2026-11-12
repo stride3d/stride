@@ -229,30 +229,6 @@ public partial class EntityHierarchyEditorView : UserControl, IAssetEditorView
         (DataContext as EntityHierarchyEditorViewModel)?.ShowGame();
     }
 
-    /// <inheritdoc />
-    protected override void OnKeyDown(KeyEventArgs e)
-    {
-        base.OnKeyDown(e);
-
-        // F frames the last selected entity, from the hierarchy or the view, and Ctrl+D duplicates the selection.
-        // The keys reach the view model after the focused control, so typing in a text box doesn't
-        // move the camera.
-        if (e.Handled || e.Source is TextBox || DataContext is not EntityHierarchyEditorViewModel editor)
-            return;
-
-        var command = (e.Key, e.KeyModifiers) switch
-        {
-            (Key.F, KeyModifiers.None) => editor.FocusOnSelectionCommand,
-            (Key.D, KeyModifiers.Control) => editor.DuplicateSelectionCommand,
-            _ => null,
-        };
-        if (command is { IsEnabled: true })
-        {
-            command.Execute();
-            e.Handled = true;
-        }
-    }
-
     private void OnTreeKeyDown(object? sender, KeyEventArgs e)
     {
         // Enter and Escape end a rename: the keyboard goes back to the renamed item, as it would otherwise stay with the

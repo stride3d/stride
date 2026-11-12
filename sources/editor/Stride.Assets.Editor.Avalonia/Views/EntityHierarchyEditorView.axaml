@@ -24,44 +24,40 @@
         <ResourceInclude Source="avares://Stride.Assets.Editor.Avalonia/Views/SceneEditorImages.axaml"/>
       </ResourceDictionary.MergedDictionaries>
 
+      <!-- The context menus of the editor bind the commands of the registry by their identifier: the editor's commands act
+           on the editor they opened in, the Edit commands on the control they opened on. -->
       <!-- The context menu of an empty area of the tree: the creation and the paste go to
            the root -->
       <ContextMenu x:Key="RootContextMenu" x:DataType="vm:EntityHierarchyEditorViewModel"
                    cmd:CommandSlot.Location="{x:Static scmd:SceneLocations.EntityTreeContext}">
         <MenuItem Header="{sd:LocalizeString Create, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"/>
-        <MenuItem Header="{sd:LocalizeString Folder, Context=Menu}" Command="{Binding CreateFolderInRootCommand}">
+        <MenuItem Header="{sd:LocalizeString Folder, Context=Menu}" Command="{cmd:Command Stride.Scene.NewFolderInRoot}">
           <MenuItem.Icon><Image Source="{StaticResource ImageNewFolder}"/></MenuItem.Icon>
         </MenuItem>
-        <MenuItem Header="{sd:LocalizeString Empty entity, Context=Menu}" Command="{Binding CreateEntityInRootCommand}"/>
+        <MenuItem Header="{sd:LocalizeString Empty entity, Context=Menu}" Command="{cmd:Command Stride.Scene.NewEntityInRoot}"/>
         <!-- The categories of entity factories go here (see EntityHierarchyEditorView.AddFactoryItems) -->
         <Separator Tag="Factories" IsVisible="False"/>
         <MenuItem Header="{sd:LocalizeString Actions, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"/>
-        <MenuItem Header="{sd:LocalizeString Open prefab in editor, Context=Menu}" Command="{Binding OpenPrefabEditorCommand}"/>
-        <MenuItem Header="{sd:LocalizeString Select prefab in asset view, Context=Menu}" Command="{Binding SelectPrefabCommand}"/>
-        <MenuItem Header="{sd:LocalizeString Break link to prefab, Context=Menu}" Command="{Binding BreakLinkToPrefabCommand}"/>
-        <MenuItem Header="{sd:LocalizeString Create prefab from selection, Context=Menu}" Command="{Binding CreatePrefabFromSelectionCommand}"/>
+        <MenuItem Command="{cmd:Command Stride.Scene.OpenPrefab}"/>
+        <MenuItem Command="{cmd:Command Stride.Scene.SelectPrefab}"/>
+        <MenuItem Command="{cmd:Command Stride.Scene.BreakLinkToPrefab}"/>
+        <MenuItem Command="{cmd:Command Stride.Scene.CreatePrefabFromSelection}"/>
         <Separator/>
-        <MenuItem Header="{sd:LocalizeString Duplicate, Context=Menu}" InputGesture="Ctrl+D"
-                  Command="{Binding DuplicateSelectionCommand}"/>
-        <MenuItem Header="{sd:LocalizeString Cut, Context=Menu}" InputGesture="{x:Static sd:EditCommands.CutGesture}"
-                  Command="{Binding CutCommand}">
+        <MenuItem Command="{cmd:Command Stride.Scene.Duplicate}"/>
+        <MenuItem Command="{cmd:Command Stride.Edit.Cut}">
           <MenuItem.Icon><Image Source="{StaticResource ImageCut}"/></MenuItem.Icon>
         </MenuItem>
-        <MenuItem Header="{sd:LocalizeString Copy, Context=Menu}" InputGesture="{x:Static sd:EditCommands.CopyGesture}"
-                  Command="{Binding CopyCommand}">
+        <MenuItem Command="{cmd:Command Stride.Edit.Copy}">
           <MenuItem.Icon><Image Source="{StaticResource ImageCopy}"/></MenuItem.Icon>
         </MenuItem>
-        <MenuItem Header="{sd:LocalizeString Paste, Context=Menu}" InputGesture="{x:Static sd:EditCommands.PasteGesture}"
-                  Command="{Binding PasteCommand}" CommandParameter="{sd:True}">
+        <MenuItem Header="{sd:LocalizeString Paste, Context=Menu}" Command="{cmd:Command Stride.Scene.PasteInRoot}">
           <MenuItem.Icon><Image Source="{StaticResource ImagePaste}"/></MenuItem.Icon>
         </MenuItem>
-        <MenuItem Header="{sd:LocalizeString Delete, Context=Menu}" InputGesture="{x:Static sd:EditCommands.DeleteGesture}"
-                  Command="{Binding DeleteCommand}">
+        <MenuItem Command="{cmd:Command Stride.Edit.Delete}">
           <MenuItem.Icon><Image Source="{StaticResource ImageDelete}"/></MenuItem.Icon>
         </MenuItem>
         <Separator/>
-        <MenuItem Header="{sd:LocalizeString Rename, Context=Menu}" InputGesture="{x:Static sd:EditCommands.RenameGesture}"
-                  Command="{Binding RenameCommand}">
+        <MenuItem Command="{cmd:Command Stride.Edit.Rename}">
           <MenuItem.Icon><Image Source="{StaticResource ImageRename}"/></MenuItem.Icon>
         </MenuItem>
       </ContextMenu>
@@ -71,32 +67,27 @@
            entities are created at the cursor. -->
       <ContextMenu x:Key="SceneViewMenu" x:DataType="vm:EntityHierarchyEditorViewModel">
         <MenuItem Header="{sd:LocalizeString Create, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"/>
-        <MenuItem Header="{sd:LocalizeString Empty entity, Context=Menu}" Command="{Binding CreateEntityCommand}"/>
+        <MenuItem Header="{sd:LocalizeString Empty entity, Context=Menu}" Command="{cmd:Command Stride.Scene.NewEntityAtCursor}"/>
         <!-- The categories of entity factories go here (see EntityHierarchyEditorView.AddFactoryItems) -->
         <Separator Tag="Factories" IsVisible="False"/>
         <MenuItem Header="{sd:LocalizeString Actions, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"/>
-        <MenuItem Header="{sd:LocalizeString Open prefab in editor, Context=Menu}" Command="{Binding OpenPrefabEditorCommand}"/>
-        <MenuItem Header="{sd:LocalizeString Select prefab in asset view, Context=Menu}" Command="{Binding SelectPrefabCommand}"/>
-        <MenuItem Header="{sd:LocalizeString Break link to prefab, Context=Menu}" Command="{Binding BreakLinkToPrefabCommand}"/>
-        <MenuItem Header="{sd:LocalizeString Create prefab from selection, Context=Menu}" Command="{Binding CreatePrefabFromSelectionCommand}"/>
+        <MenuItem Command="{cmd:Command Stride.Scene.OpenPrefab}"/>
+        <MenuItem Command="{cmd:Command Stride.Scene.SelectPrefab}"/>
+        <MenuItem Command="{cmd:Command Stride.Scene.BreakLinkToPrefab}"/>
+        <MenuItem Command="{cmd:Command Stride.Scene.CreatePrefabFromSelection}"/>
         <Separator/>
-        <MenuItem Header="{sd:LocalizeString Duplicate, Context=Menu}" InputGesture="Ctrl+D"
-                  Command="{Binding DuplicateSelectionCommand}"/>
-        <MenuItem Header="{sd:LocalizeString Cut, Context=Menu}" InputGesture="{x:Static sd:EditCommands.CutGesture}"
-                  Command="{Binding CutCommand}">
+        <MenuItem Command="{cmd:Command Stride.Scene.Duplicate}"/>
+        <MenuItem Header="{sd:LocalizeString Cut, Context=Menu}" Command="{cmd:Command Stride.Scene.Cut}">
           <MenuItem.Icon><Image Source="{StaticResource ImageCut}"/></MenuItem.Icon>
         </MenuItem>
-        <MenuItem Header="{sd:LocalizeString Copy, Context=Menu}" InputGesture="{x:Static sd:EditCommands.CopyGesture}"
-                  Command="{Binding CopyCommand}">
+        <MenuItem Header="{sd:LocalizeString Copy, Context=Menu}" Command="{cmd:Command Stride.Scene.Copy}">
           <MenuItem.Icon><Image Source="{StaticResource ImageCopy}"/></MenuItem.Icon>
         </MenuItem>
-        <MenuItem Header="{sd:LocalizeString Delete, Context=Menu}" InputGesture="{x:Static sd:EditCommands.DeleteGesture}"
-                  Command="{Binding DeleteCommand}">
+        <MenuItem Command="{cmd:Command Stride.Edit.Delete}">
           <MenuItem.Icon><Image Source="{StaticResource ImageDelete}"/></MenuItem.Icon>
         </MenuItem>
         <Separator/>
-        <MenuItem Header="{sd:LocalizeString Rename, Context=Menu}" InputGesture="{x:Static sd:EditCommands.RenameGesture}"
-                  Command="{Binding RenameCommand}">
+        <MenuItem Header="{sd:LocalizeString Rename, Context=Menu}" Command="{cmd:Command Stride.Scene.Rename}">
           <MenuItem.Icon><Image Source="{StaticResource ImageRename}"/></MenuItem.Icon>
         </MenuItem>
       </ContextMenu>
@@ -107,42 +98,36 @@
                    cmd:CommandSlot.Location="{x:Static scmd:SceneLocations.EntityTreeContext}"
                    cmd:CommandSlot.Selection="{Binding SelectedContent}">
         <MenuItem Header="{sd:LocalizeString Create, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"/>
-        <MenuItem Header="{sd:LocalizeString Folder, Context=Menu}" Command="{Binding CreateFolderInSelectionCommand}">
+        <MenuItem Header="{sd:LocalizeString Folder, Context=Menu}" Command="{cmd:Command Stride.Scene.NewFolder}">
           <MenuItem.Icon><Image Source="{StaticResource ImageNewFolder}"/></MenuItem.Icon>
         </MenuItem>
-        <MenuItem Header="{sd:LocalizeString Empty entity, Context=Menu}" Command="{Binding CreateEntityInSelectionCommand}"/>
+        <MenuItem Header="{sd:LocalizeString Empty entity, Context=Menu}" Command="{cmd:Command Stride.Scene.NewEntity}"/>
         <!-- The categories of entity factories go here (see EntityHierarchyEditorView.AddFactoryItems) -->
         <Separator Tag="Factories" IsVisible="False"/>
         <MenuItem Header="{sd:LocalizeString Actions, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"/>
         <!-- On a child scene only, checked on the active one: new entities go to the active scene (see OnTreeContextRequested) -->
         <MenuItem Tag="SetActiveRoot" Header="{sd:LocalizeString Set as active scene, Context=Menu}" ToggleType="CheckBox"
-                  Command="{Binding SetActiveRootCommand}"/>
-        <MenuItem Header="{sd:LocalizeString Open prefab in editor, Context=Menu}" Command="{Binding OpenPrefabEditorCommand}"/>
-        <MenuItem Header="{sd:LocalizeString Select prefab in asset view, Context=Menu}" Command="{Binding SelectPrefabCommand}"/>
-        <MenuItem Header="{sd:LocalizeString Break link to prefab, Context=Menu}" Command="{Binding BreakLinkToPrefabCommand}"/>
-        <MenuItem Header="{sd:LocalizeString Create prefab from selection, Context=Menu}" Command="{Binding CreatePrefabFromSelectionCommand}"/>
+                  Command="{cmd:Command Stride.Scene.SetActiveScene}"/>
+        <MenuItem Command="{cmd:Command Stride.Scene.OpenPrefab}"/>
+        <MenuItem Command="{cmd:Command Stride.Scene.SelectPrefab}"/>
+        <MenuItem Command="{cmd:Command Stride.Scene.BreakLinkToPrefab}"/>
+        <MenuItem Command="{cmd:Command Stride.Scene.CreatePrefabFromSelection}"/>
         <Separator/>
-        <MenuItem Header="{sd:LocalizeString Duplicate, Context=Menu}" InputGesture="Ctrl+D"
-                  Command="{Binding DuplicateSelectionCommand}"/>
-        <MenuItem Header="{sd:LocalizeString Cut, Context=Menu}" InputGesture="{x:Static sd:EditCommands.CutGesture}"
-                  Command="{Binding CutCommand}">
+        <MenuItem Command="{cmd:Command Stride.Scene.Duplicate}"/>
+        <MenuItem Command="{cmd:Command Stride.Edit.Cut}">
           <MenuItem.Icon><Image Source="{StaticResource ImageCut}"/></MenuItem.Icon>
         </MenuItem>
-        <MenuItem Header="{sd:LocalizeString Copy, Context=Menu}" InputGesture="{x:Static sd:EditCommands.CopyGesture}"
-                  Command="{Binding CopyCommand}">
+        <MenuItem Command="{cmd:Command Stride.Edit.Copy}">
           <MenuItem.Icon><Image Source="{StaticResource ImageCopy}"/></MenuItem.Icon>
         </MenuItem>
-        <MenuItem Header="{sd:LocalizeString Paste, Context=Menu}" InputGesture="{x:Static sd:EditCommands.PasteGesture}"
-                  Command="{Binding PasteCommand}" CommandParameter="{sd:False}">
+        <MenuItem Command="{cmd:Command Stride.Edit.Paste}">
           <MenuItem.Icon><Image Source="{StaticResource ImagePaste}"/></MenuItem.Icon>
         </MenuItem>
-        <MenuItem Header="{sd:LocalizeString Delete, Context=Menu}" InputGesture="{x:Static sd:EditCommands.DeleteGesture}"
-                  Command="{Binding DeleteCommand}">
+        <MenuItem Command="{cmd:Command Stride.Edit.Delete}">
           <MenuItem.Icon><Image Source="{StaticResource ImageDelete}"/></MenuItem.Icon>
         </MenuItem>
         <Separator/>
-        <MenuItem Header="{sd:LocalizeString Rename, Context=Menu}" InputGesture="{x:Static sd:EditCommands.RenameGesture}"
-                  Command="{Binding RenameCommand}">
+        <MenuItem Command="{cmd:Command Stride.Edit.Rename}">
           <MenuItem.Icon><Image Source="{StaticResource ImageRename}"/></MenuItem.Icon>
         </MenuItem>
       </ContextMenu>

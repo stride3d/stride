@@ -169,7 +169,10 @@ public sealed class SceneViewContextMenuTests
             Assert.Equal(["Create", "Empty entity"], items.Take(2));
             Assert.Equal(["Actions", "Open prefab in editor", "Select prefab in asset view", "Break link to prefab", "Create prefab from selection", "-", "Duplicate", "Cut", "Copy", "Delete", "-", "Rename"],
                 items.SkipWhile(x => x != "Actions"));
-            Assert.Same(scene.Editor.CreateEntityCommand, menu.Items.OfType<MenuItem>().Single(x => Equals(x.Header, "Empty entity")).Command);
+            // The entity is created at the cursor, by the editor's command bound by its identifier
+            var createEntity = Assert.IsType<CommandReference>(menu.Items.OfType<MenuItem>().Single(x => Equals(x.Header, "Empty entity")).Command);
+            Assert.Equal(SceneEditorCommands.NewEntityAtCursorId, createEntity.Id);
+            Assert.True(createEntity.CanExecute(null));
             Assert.DoesNotContain(menu.Items.OfType<Control>(), CommandSlot.IsSlotItem);
             menu.Close();
         }
