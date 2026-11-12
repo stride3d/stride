@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Diagnostics;
+using Stride.Shaders.Parsing;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
@@ -35,7 +36,7 @@ public partial class ShaderMixer
             else if (i.Op == Op.OpSwitchIdSDSL && !TryLowerSwitchId(context, i, out var error))
             {
                 var location = currentLine is { } l && context.GetBuffer().TryGetInstructionById(l.File, out var file) && file.Op == Op.OpString
-                    ? $"{((OpString)file).Value}({l.Line},{l.Column}): "
+                    ? $"{MessageFileName.Of(((OpString)file).Value)}({l.Line},{l.Column}): "
                     : null;
                 log.Error($"{location}{error}");
                 success = false;
