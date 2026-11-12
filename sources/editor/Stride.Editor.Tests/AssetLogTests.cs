@@ -22,7 +22,7 @@ public sealed class AssetLogTests
     {
         var packageDirectory = ServicesSessionFixture.NewPackageDirectory();
         var source = ServicesSessionFixture.WriteResource(packageDirectory, "wood.txt", "wood");
-        using var fixture = await ServicesSessionFixture.OpenAsync(withBuilder: false, ("Textures/Wood", new RawAsset { Source = new UFile(source) }));
+        await using var fixture = await ServicesSessionFixture.OpenAsync(withBuilder: false, ("Textures/Wood", new RawAsset { Source = new UFile(source) }));
         var log = fixture.Session.AssetLog;
         var wood = fixture.Asset("Textures/Wood");
 

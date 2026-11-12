@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Input;
 using Avalonia.Threading;
+using Stride.Core.Assets.Editor.Avalonia.Tests.Helpers;
 
 namespace Stride.GameStudio.Avalonia.Tests.Helpers;
 
@@ -15,12 +16,7 @@ internal static class WindowTestHelper
     /// Runs the work the view models queued on the dispatcher (the session updates its state and commands asynchronously), and
     /// a frame of the windows: the docking presents the content of its panels on the frames that follow a change.
     /// </summary>
-    public static async Task PumpAsync()
-    {
-        AvaloniaHeadlessPlatform.ForceRenderTimerTick();
-        Dispatcher.UIThread.RunJobs();
-        await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Background);
-    }
+    public static Task PumpAsync() => DispatcherPump.PumpAsync();
 
     /// <summary>
     /// Shows a window and lets it present its content: the docked panels of the main window appear on its first frame.
@@ -35,17 +31,7 @@ internal static class WindowTestHelper
     /// Pumps the dispatcher until the condition holds, or fails after the timeout: the session's history and properties update
     /// asynchronously after a change.
     /// </summary>
-    public static async Task WaitUntilAsync(Func<bool> condition, string what, int timeoutMilliseconds = 5000)
-    {
-        var deadline = DateTime.UtcNow.AddMilliseconds(timeoutMilliseconds);
-        while (!condition())
-        {
-            if (DateTime.UtcNow > deadline)
-                throw new TimeoutException($"Timed out waiting for {what}.");
-            await Task.Delay(25);
-            await PumpAsync();
-        }
-    }
+    public static Task WaitUntilAsync(Func<bool> condition, string what, int timeoutMilliseconds = 5000) => DispatcherPump.WaitUntilAsync(condition, what, timeoutMilliseconds);
 
     /// <summary>
     /// Clicks the middle of a control with the left mouse button, as a user would: unlike raising its Click event, a click runs the

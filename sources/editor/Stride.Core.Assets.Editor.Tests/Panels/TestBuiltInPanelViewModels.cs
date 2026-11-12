@@ -13,7 +13,7 @@ public sealed class TestBuiltInPanelViewModels
     [Fact]
     public async Task ThePanelsOfTheSessionShowItsParts()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync();
+        await using var fixture = await EditorSessionFixture.OpenAsync();
         var build = new BuildAndRunViewModel(fixture.ServiceProvider);
         var panels = BuiltInPanels.CreateSessionPanels().Append(BuiltInPanels.CreateOutputPanel(build)).ToDictionary(x => x.Id);
         IPanelViewModel Create(string id) => panels[id].CreateViewModel(new PanelContext { Descriptor = panels[id], Session = fixture.Session, ServiceProvider = fixture.ServiceProvider });

@@ -24,7 +24,7 @@ public sealed class GraphicsCompositorEditorTests
     [Fact]
     public async Task TheEditorShowsTheEntryPointsTheSharedRenderersAndTheirLinks()
     {
-        using var test = await CompositorTest.OpenAsync();
+        await using var test = await CompositorTest.OpenAsync();
         var editor = test.Editor;
 
         Assert.Equal(3, editor.Blocks.Count);
@@ -51,7 +51,7 @@ public sealed class GraphicsCompositorEditorTests
     [Fact]
     public async Task TheFactoriesListTheInstantiableSharedRenderersByName()
     {
-        using var test = await CompositorTest.OpenAsync();
+        await using var test = await CompositorTest.OpenAsync();
         var factories = test.Editor.SharedRendererFactories;
 
         Assert.Contains(factories, x => x.Type == typeof(ForwardRenderer));
@@ -65,9 +65,9 @@ public sealed class GraphicsCompositorEditorTests
     [Fact]
     public async Task AFactoryAddsASharedRendererBlockAndUndoRemovesIt()
     {
-        using var test = await CompositorTest.OpenAsync();
+        await using var test = await CompositorTest.OpenAsync();
         var editor = test.Editor;
-        var names = test.RecordUndoNames();
+        var names = await test.RecordUndoNamesAsync();
 
         editor.SharedRendererFactories.Single(x => x.Type == typeof(ForwardRenderer)).CreateCommand.Execute(null);
 
@@ -78,7 +78,7 @@ public sealed class GraphicsCompositorEditorTests
         Assert.Equal(4, editor.Blocks.Count);
         Assert.Same(added, ((SharedRendererBlockViewModel)editor.Blocks[3]).GetSharedRenderer());
 
-        test.Undo();
+        await test.UndoAsync();
         Assert.Equal(2, test.Asset.Asset.SharedRenderers.Count);
         Assert.Equal(3, editor.Blocks.Count);
     }
@@ -86,9 +86,9 @@ public sealed class GraphicsCompositorEditorTests
     [Fact]
     public async Task LinkingAnEntryPointSetsItsRendererAndClearingTheLinkResetsIt()
     {
-        using var test = await CompositorTest.OpenAsync();
+        await using var test = await CompositorTest.OpenAsync();
         var editor = test.Editor;
-        var names = test.RecordUndoNames();
+        var names = await test.RecordUndoNamesAsync();
         var entryPoints = (EntryPointBlockViewModel)editor.Blocks[0];
         var singleView = Slot(entryPoints, "SingleView");
         var debugInput = test.Block(test.Debug).InputSlots.Single();
@@ -106,7 +106,7 @@ public sealed class GraphicsCompositorEditorTests
         Assert.Empty(debugInput.Links);
         Assert.Equal(["Connect SingleView to ", "Clear link"], names);
 
-        test.Undo();
+        await test.UndoAsync();
         Assert.Same(test.Debug, test.Asset.Asset.SingleView);
         Assert.Single(Slot((EntryPointBlockViewModel)editor.Blocks[0], "SingleView").Links);
     }
@@ -114,13 +114,13 @@ public sealed class GraphicsCompositorEditorTests
     [Fact]
     public async Task DeletingASelectedLinkClearsItsSlot()
     {
-        using var test = await CompositorTest.OpenAsync();
+        await using var test = await CompositorTest.OpenAsync();
         var editor = test.Editor;
-        var names = test.RecordUndoNames();
+        var names = await test.RecordUndoNamesAsync();
         var game = Slot((EntryPointBlockViewModel)editor.Blocks[0], "Game");
 
         editor.SelectedRendererLinks.Add(game.Links.Single());
-        test.WaitForProperties();
+        await test.WaitForPropertiesAsync();
         editor.DeleteSelectionCommand.Execute(null);
 
         Assert.Null(test.Asset.Asset.Game);
@@ -128,20 +128,20 @@ public sealed class GraphicsCompositorEditorTests
         Assert.Empty(editor.SelectedRendererLinks);
         Assert.Contains("Delete link(s)", names);
 
-        test.Undo();
+        await test.UndoAsync();
         Assert.Same(test.Forward, test.Asset.Asset.Game);
     }
 
     [Fact]
     public async Task DeletingASelectedSharedRendererRemovesItsBlockAndTheReferencesToIt()
     {
-        using var test = await CompositorTest.OpenAsync();
+        await using var test = await CompositorTest.OpenAsync();
         var editor = test.Editor;
-        var names = test.RecordUndoNames();
+        var names = await test.RecordUndoNamesAsync();
         var forward = test.Block(test.Forward);
 
         editor.SelectedSharedRenderers.Add(forward);
-        test.WaitForProperties();
+        await test.WaitForPropertiesAsync();
         editor.DeleteSelectionCommand.Execute(null);
 
         Assert.Equal(["Delete renderer(s)"], names);
@@ -151,7 +151,7 @@ public sealed class GraphicsCompositorEditorTests
         Assert.DoesNotContain(forward, editor.Blocks);
         Assert.Empty(Slot((EntryPointBlockViewModel)editor.Blocks[0], "Game").Links);
 
-        test.Undo();
+        await test.UndoAsync();
         Assert.Contains(test.Forward, test.Asset.Asset.SharedRenderers);
         Assert.Same(test.Forward, test.Asset.Asset.Game);
         Assert.Equal(3, editor.Blocks.Count);
@@ -161,31 +161,31 @@ public sealed class GraphicsCompositorEditorTests
     [Fact]
     public async Task AddingAndRemovingRenderStagesIsOneUndoEntryEach()
     {
-        using var test = await CompositorTest.OpenAsync();
+        await using var test = await CompositorTest.OpenAsync();
         var editor = test.Editor;
-        var names = test.RecordUndoNames();
+        var names = await test.RecordUndoNamesAsync();
 
         editor.AddNewRenderStageCommand.Execute(null);
         Assert.Equal(3, editor.RenderStages.Count);
         Assert.Same(test.Asset.Asset.RenderStages[2], editor.RenderStages[2].RenderStage);
 
         editor.SelectedRenderStages.Add(editor.RenderStages[0]);
-        test.WaitForProperties();
+        await test.WaitForPropertiesAsync();
         editor.RemoveSelectedRenderStagesCommand.Execute(null);
         Assert.Equal(["Transparent", "RenderStage"], editor.RenderStages.Select(x => x.Name));
         Assert.Empty(editor.SelectedRenderStages);
         Assert.Equal(["Create new render stage", "Delete render stage(s)"], names);
 
-        test.Undo();
+        await test.UndoAsync();
         Assert.Equal(["Opaque", "Transparent", "RenderStage"], editor.RenderStages.Select(x => x.Name));
-        test.Undo();
+        await test.UndoAsync();
         Assert.Equal(["Opaque", "Transparent"], editor.RenderStages.Select(x => x.Name));
     }
 
     [Fact]
     public async Task RenamingARenderStageEditsTheAsset()
     {
-        using var test = await CompositorTest.OpenAsync();
+        await using var test = await CompositorTest.OpenAsync();
         var editor = test.Editor;
 
         editor.RenderStages[1].Name = "Glass";
@@ -193,21 +193,21 @@ public sealed class GraphicsCompositorEditorTests
 
         Assert.Equal("Glass", test.Asset.Asset.RenderStages[1].Name);
         Assert.Equal("GlassSlot", test.Asset.Asset.RenderStages[1].EffectSlotName);
-        test.Undo();
+        await test.UndoAsync();
         Assert.Equal("Transparent", editor.RenderStages[1].EffectSlotName);
     }
 
     [Fact]
     public async Task AddingAndRemovingRenderFeaturesAndCameraSlotsIsOneUndoEntryEach()
     {
-        using var test = await CompositorTest.OpenAsync();
+        await using var test = await CompositorTest.OpenAsync();
         var editor = test.Editor;
-        var names = test.RecordUndoNames();
+        var names = await test.RecordUndoNamesAsync();
 
         editor.AddNewRenderFeatureCommand.Execute(editor.RenderFeatureTypes.Single(x => x.Type == typeof(MeshRenderFeature)));
         Assert.Equal(2, editor.RenderFeatures.Count);
         editor.SelectedRenderFeatures.Add(editor.RenderFeatures[0]);
-        test.WaitForProperties();
+        await test.WaitForPropertiesAsync();
         editor.RemoveSelectedRenderFeaturesCommand.Execute(null);
         Assert.Single(editor.RenderFeatures);
         Assert.Single(test.Asset.Asset.RenderFeatures);
@@ -215,31 +215,31 @@ public sealed class GraphicsCompositorEditorTests
         editor.AddNewCameraSlotCommand.Execute(null);
         Assert.Equal(2, editor.CameraSlots.Count);
         editor.SelectedCameraSlots.Add(editor.CameraSlots[0]);
-        test.WaitForProperties();
+        await test.WaitForPropertiesAsync();
         editor.RemoveSelectedCameraSlotsCommand.Execute(null);
         Assert.Equal(["CameraSlot"], editor.CameraSlots.Select(x => x.Name));
 
         Assert.Equal(["Create new render feature", "Delete render feature(s)", "Create new camera slot", "Delete camera slot(s)"], names);
-        test.Undo();
+        await test.UndoAsync();
         Assert.Equal(["Main", "CameraSlot"], editor.CameraSlots.Select(x => x.Name));
     }
 
     [Fact]
     public async Task SelectingAnItemShowsItsPropertiesUnderItsKind()
     {
-        using var test = await CompositorTest.OpenAsync();
+        await using var test = await CompositorTest.OpenAsync();
         var editor = test.Editor;
         var properties = editor.EditorProperties;
 
         editor.SelectedSharedRenderers.Add(test.Block(test.Forward));
-        test.WaitForProperties();
+        await test.WaitForPropertiesAsync();
         Assert.Equal("Shared renderer", properties.TypeDescription);
         Assert.True(properties.CanDisplayProperties);
 
         editor.SelectedSharedRenderers.Clear();
         editor.SelectedRenderStages.Add(editor.RenderStages[0]);
         editor.SelectedRenderStages.Add(editor.RenderStages[1]);
-        test.WaitForProperties();
+        await test.WaitForPropertiesAsync();
         Assert.Equal("Render stage", properties.TypeDescription);
         Assert.Equal("2 render stages selected", properties.Name);
     }
@@ -247,7 +247,7 @@ public sealed class GraphicsCompositorEditorTests
     [Fact]
     public async Task ThePackageFeaturesNeedAnOpaqueAndATransparentStage()
     {
-        using var test = await CompositorTest.OpenAsync();
+        await using var test = await CompositorTest.OpenAsync();
         var editor = test.Editor;
         editor.RenderStages[0].Name = "Solid";
         var dialogs = (FakeEditorDialogService)test.Fixture.ServiceProvider.Get<IDialogService>();
@@ -264,7 +264,7 @@ public sealed class GraphicsCompositorEditorTests
         return block.OutputSlots.Single(x => x.Name == name);
     }
 
-    private sealed class CompositorTest : IDisposable
+    private sealed class CompositorTest : IAsyncDisposable
     {
         private CompositorTest(AssetsSessionFixture fixture, GraphicsCompositorEditorViewModel editor, ISharedRenderer forward, ISharedRenderer debug)
         {
@@ -290,7 +290,7 @@ public sealed class GraphicsCompositorEditorTests
         /// </summary>
         public ISharedRenderer Debug { get; }
 
-        public static async Task<CompositorTest> OpenAsync()
+        public static async DispatcherTask<CompositorTest> OpenAsync()
         {
             var forward = new ForwardRenderer();
             var asset = new GraphicsCompositorAsset();
@@ -322,9 +322,9 @@ public sealed class GraphicsCompositorEditorTests
 
         public SharedRendererBlockViewModel Block(ISharedRenderer renderer) => (SharedRendererBlockViewModel)Editor.GetBlock(renderer);
 
-        public List<string?> RecordUndoNames()
+        public async Task<List<string?>> RecordUndoNamesAsync()
         {
-            WaitForProperties();
+            await WaitForPropertiesAsync();
             var undoRedo = Fixture.Session.UndoRedoService;
             var names = new List<string?>();
             // The stack drops the transactions that change nothing (the Delete command opens one per kind of item)
@@ -336,30 +336,30 @@ public sealed class GraphicsCompositorEditorTests
             return names;
         }
 
-        public void Undo()
+        public async Task UndoAsync()
         {
-            WaitForProperties();
+            await WaitForPropertiesAsync();
             Fixture.Session.UndoRedoService.Undo();
         }
 
         /// <summary>
         /// Waits for the property grid of the selection: it builds its nodes on another thread, which must not run while the
-        /// test changes the asset (the dispatcher of the test session has no thread of its own).
+        /// test changes the asset, and shows them through the dispatcher.
         /// </summary>
-        public void WaitForProperties()
+        public async Task WaitForPropertiesAsync()
         {
             var properties = Editor.EditorProperties;
             for (var i = 0; i < 250 && !properties.CanDisplayProperties && properties.FallbackMessage == "Loading properties..."; ++i)
             {
-                Thread.Sleep(20);
+                await Task.Delay(20);
             }
         }
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
-            WaitForProperties();
+            await WaitForPropertiesAsync();
             Editor.Destroy();
-            Fixture.Dispose();
+            await Fixture.DisposeAsync();
         }
     }
 }

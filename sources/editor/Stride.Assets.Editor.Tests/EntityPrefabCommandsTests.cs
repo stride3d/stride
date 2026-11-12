@@ -17,7 +17,7 @@ public sealed class EntityPrefabCommandsTests
     [Fact]
     public Task APrefabFromTheSelectionHasItsEntitiesWhichBecomeInstancesOfIt() => RunOnUIThread(async ui =>
     {
-        using var fixture = await OpenSceneAsync(ui);
+        await using var fixture = await OpenSceneAsync(ui);
         var editor = await OpenEditorAsync(fixture);
         var parent = FindEntity(editor, "Parent");
         Assert.False(editor.CreatePrefabFromSelectionCommand.IsEnabled);
@@ -49,7 +49,7 @@ public sealed class EntityPrefabCommandsTests
     [Fact]
     public Task BreakingTheLinkMakesTheEntitiesPlainEntities() => RunOnUIThread(async ui =>
     {
-        using var fixture = await OpenSceneAsync(ui);
+        await using var fixture = await OpenSceneAsync(ui);
         var editor = await OpenEditorAsync(fixture);
         var parent = FindEntity(editor, "Parent");
         editor.SelectedContent.Add(parent);

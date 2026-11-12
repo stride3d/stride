@@ -15,7 +15,7 @@ public sealed class TagsViewModelTests
     [Fact]
     public async Task TheTagsAreTheUnionOfTheSelectedAssetsTags()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Wood", "wood"), ("Stone", "stone"));
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Wood", "wood"), ("Stone", "stone"));
         var (wood, stone) = (Asset(fixture, "Wood"), Asset(fixture, "Stone"));
         wood.Tags.Add("nature");
         wood.Tags.Add("brown");
@@ -40,7 +40,7 @@ public sealed class TagsViewModelTests
     [Fact]
     public async Task AddingATagTagsEverySelectedAssetInOneUndoableStep()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Wood", "wood"), ("Stone", "stone"));
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Wood", "wood"), ("Stone", "stone"));
         var (wood, stone) = (Asset(fixture, "Wood"), Asset(fixture, "Stone"));
         var undoRedo = fixture.Session.UndoRedoService!;
         fixture.OnUiThread(() => fixture.Assets.SelectAssets([wood, stone]));
@@ -51,7 +51,7 @@ public sealed class TagsViewModelTests
         Assert.Equal(["rock"], stone.Tags);
         Assert.Equal(["rock"], Names(fixture));
         Assert.Equal(TagsViewModel.AllCounter, Tag(fixture, "rock").Counter);
-        AssertHistoryEntry(fixture, "Added tag 'rock' to 2 assets");
+        await AssertHistoryEntryAsync(fixture, "Added tag 'rock' to 2 assets");
 
         undoRedo.Undo();
         Assert.Empty(wood.Tags);
@@ -66,7 +66,7 @@ public sealed class TagsViewModelTests
     [Fact]
     public async Task ABlankTagAddsNothing()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Wood", "wood"));
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Wood", "wood"));
         var wood = Asset(fixture, "Wood");
         fixture.OnUiThread(() => fixture.Assets.SelectAssets([wood]));
 
@@ -80,7 +80,7 @@ public sealed class TagsViewModelTests
     [Fact]
     public async Task AddingATagToAllCompletesTheAssetsThatMissIt()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Wood", "wood"), ("Stone", "stone"));
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Wood", "wood"), ("Stone", "stone"));
         var (wood, stone) = (Asset(fixture, "Wood"), Asset(fixture, "Stone"));
         wood.Tags.Add("nature");
         fixture.OnUiThread(() => fixture.Assets.SelectAssets([wood, stone]));
@@ -90,13 +90,13 @@ public sealed class TagsViewModelTests
         Assert.Equal(["nature"], wood.Tags);
         Assert.Equal(["nature"], stone.Tags);
         Assert.Equal(TagsViewModel.AllCounter, Tag(fixture, "nature").Counter);
-        AssertHistoryEntry(fixture, "Added tag 'nature' to " + stone.Url);
+        await AssertHistoryEntryAsync(fixture, "Added tag 'nature' to " + stone.Url);
     }
 
     [Fact]
     public async Task RemovingATagUntagsEverySelectedAsset()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Wood", "wood"), ("Stone", "stone"));
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Wood", "wood"), ("Stone", "stone"));
         var (wood, stone) = (Asset(fixture, "Wood"), Asset(fixture, "Stone"));
         var undoRedo = fixture.Session.UndoRedoService!;
         wood.Tags.Add("nature");
@@ -108,7 +108,7 @@ public sealed class TagsViewModelTests
 
         Assert.Equal(["brown"], wood.Tags);
         Assert.Empty(stone.Tags);
-        AssertHistoryEntry(fixture, "Remove tag 'nature' from 2 assets");
+        await AssertHistoryEntryAsync(fixture, "Remove tag 'nature' from 2 assets");
 
         undoRedo.Undo();
         Assert.Contains("nature", wood.Tags);
@@ -119,7 +119,7 @@ public sealed class TagsViewModelTests
     [Fact]
     public async Task OnlyTheSelectedAssetsRefreshTheTags()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Wood", "wood"), ("Stone", "stone"));
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Wood", "wood"), ("Stone", "stone"));
         var (wood, stone) = (Asset(fixture, "Wood"), Asset(fixture, "Stone"));
         fixture.OnUiThread(() => fixture.Assets.SelectAssets([wood]));
         fixture.OnUiThread(() => fixture.Assets.SelectAssets([stone]));
@@ -137,13 +137,12 @@ public sealed class TagsViewModelTests
         return fixture.Session.GetAssetByUrl(EditorSessionFixture.Url(location)) ?? throw new InvalidOperationException($"No asset at {location}");
     }
 
-    private static void AssertHistoryEntry(EditorSessionFixture fixture, string name)
+    private static Task AssertHistoryEntryAsync(EditorSessionFixture fixture, string name)
     {
         // The action history records the transaction after the asset properties changed notification, asynchronously, through the
-        // dispatcher: read it there too, not while it is added to
+        // dispatcher
         var history = fixture.Session.ActionHistory;
-        var dispatcher = fixture.Session.Dispatcher;
-        Assert.True(SpinWait.SpinUntil(() => dispatcher.Invoke(() => history.Transactions.Any(x => x.Name == name)), TimeSpan.FromSeconds(10)), $"No history entry '{name}'");
+        return ExclusiveDispatcherService.WaitUntilAsync(() => history.Transactions.Any(x => x.Name == name), $"the history entry '{name}'");
     }
 
     private static TagViewModel Tag(EditorSessionFixture fixture, string name) => fixture.Session.AssetTags.Tags.Single(x => x.Name == name);

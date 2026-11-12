@@ -6,6 +6,7 @@ using Stride.Assets.Editor.Tests.Helpers;
 using Stride.Assets.Presentation.Services;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Assets.Scripts;
+using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Quantum;
 
 namespace Stride.Assets.Editor.Tests;
@@ -20,7 +21,7 @@ public sealed class VisualScriptMethodViewModelTests
     [Fact]
     public async Task WithoutACompilationProviderTheBlocksKeepTheirSlots()
     {
-        using var test = await VisualScriptTest.OpenAsync(withCompilation: false);
+        await using var test = await VisualScriptTest.OpenAsync(withCompilation: false);
         var names = test.RecordUndoNames();
 
         await test.Method.RegenerateSlots();
@@ -32,7 +33,7 @@ public sealed class VisualScriptMethodViewModelTests
     [Fact]
     public async Task RegeneratingTheSlotsOfABlockIsOneUndoEntry()
     {
-        using var test = await VisualScriptTest.OpenAsync(withCompilation: true);
+        await using var test = await VisualScriptTest.OpenAsync(withCompilation: true);
         var names = test.RecordUndoNames();
 
         await test.Method.RegenerateSlots();
@@ -51,7 +52,7 @@ public sealed class VisualScriptMethodViewModelTests
     [Fact]
     public async Task RegeneratingKeepsTheIdsValuesAndLinksOfTheSlotsThatStay()
     {
-        using var test = await VisualScriptTest.OpenAsync(withCompilation: true);
+        await using var test = await VisualScriptTest.OpenAsync(withCompilation: true);
         await test.Method.RegenerateSlots();
         var (first, second) = test.Blocks;
         var trueSlot = first.TrueSlot;
@@ -86,7 +87,7 @@ public sealed class VisualScriptMethodViewModelTests
     [Fact]
     public async Task BlocksAndLinksAreAddedAndRemovedByTheirId()
     {
-        using var test = await VisualScriptTest.OpenAsync(withCompilation: true);
+        await using var test = await VisualScriptTest.OpenAsync(withCompilation: true);
         await test.Method.RegenerateSlots();
         var (first, second) = test.Blocks;
         var names = test.RecordUndoNames();
@@ -132,7 +133,7 @@ public sealed class VisualScriptMethodViewModelTests
         public event EventHandler? LatestCompilationChanged { add { } remove { } }
     }
 
-    private sealed class VisualScriptTest : IDisposable
+    private sealed class VisualScriptTest : IAsyncDisposable
     {
         private readonly AssetsSessionFixture fixture;
 
@@ -155,7 +156,7 @@ public sealed class VisualScriptMethodViewModelTests
 
         public Stride.Core.Presentation.Services.IUndoRedoService UndoRedo => fixture.Session.UndoRedoService;
 
-        public static async Task<VisualScriptTest> OpenAsync(bool withCompilation)
+        public static async DispatcherTask<VisualScriptTest> OpenAsync(bool withCompilation)
         {
             // Two blocks saved without their slots
             var method = new Method("Update");
@@ -188,6 +189,6 @@ public sealed class VisualScriptMethodViewModelTests
 
         public void Undo() => UndoRedo.Undo();
 
-        public void Dispose() => fixture.Dispose();
+        public ValueTask DisposeAsync() => fixture.DisposeAsync();
     }
 }

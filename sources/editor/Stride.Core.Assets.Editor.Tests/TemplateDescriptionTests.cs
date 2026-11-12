@@ -194,7 +194,7 @@ public sealed class TemplateDescriptionTests
     [Fact]
     public async Task TheNewProjectWindowListsTheTemplatesThatAddAProjectToTheSession()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var templates = new NewProjectTemplateCollectionViewModel(fixture.ServiceProvider, fixture.Session);
         try
         {
