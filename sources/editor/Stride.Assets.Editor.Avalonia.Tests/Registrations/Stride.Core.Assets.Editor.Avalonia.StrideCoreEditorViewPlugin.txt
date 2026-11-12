@@ -79,3 +79,5 @@ SettingsKeys:
 ProfileSettings:
 Commands:
   Stride.PropertyGrid.ToggleNestedProperties [PropertyGrid/Context]
+  Stride.PropertyGrid.ResetToBase []
+  Stride.PropertyGrid.Replace []
