@@ -201,14 +201,61 @@ namespace Stride.BepuPhysics.Tests
         [Fact]
         public static void SetDataRebuildsWhenOnlyTheShapeOfTheGridChanges()
         {
-            using var collider = new VoxelCollider();
-            collider.SetData(3, 2, 4, new float[24]);
-            var field = new float[24];
-            field[(1 * 3 + 2) * 2 + 1] = 7f;
-            collider.SetData(4, 3, 2, field);
+            RunScript(game =>
+            {
+                // 24 solid samples as 2 x 1 x 3 cells, then as 3 x 2 x 1: the same memory, a grid one cell longer and one higher
+                var field = new float[24];
+                Array.Fill(field, 1f);
+                var collider = new VoxelCollider { CellShape = VoxelCellShape.Box, IsoLevel = IsoLevel, SealBorder = false };
+                collider.SetData(3, 2, 4, field);
+                var terrain = new Entity { new StaticComponent { Collider = collider } };
+                game.SceneSystem.SceneInstance.RootScene.Entities.Add(terrain);
+                var simulation = terrain.GetSimulation();
+                Assert.True(simulation.RayCast(new Vector3(0.5f, 10f, 0.5f), -Vector3.UnitY, 20f, out var hit));
+                Assert.Equal(1f, hit.Point.Y, Tolerance);
+                Assert.False(simulation.RayCast(new Vector3(2.5f, 10f, 0.5f), -Vector3.UnitY, 20f, out _));
 
-            Assert.Equal(new Int3(4, 3, 2), collider.SampleCount);
-            Assert.Equal(7f, collider.GetVoxel(1, 2, 1));
+                field[(1 * 3 + 2) * 2 + 1] = 7f;
+                collider.SetData(4, 3, 2, field);
+
+                Assert.Equal(new Int3(4, 3, 2), collider.SampleCount);
+                Assert.Equal(7f, collider.GetVoxel(1, 2, 1));
+                Assert.True(simulation.RayCast(new Vector3(0.5f, 10f, 0.5f), -Vector3.UnitY, 20f, out hit));
+                Assert.Equal(2f, hit.Point.Y, Tolerance);
+                Assert.True(simulation.RayCast(new Vector3(2.5f, 10f, 0.5f), -Vector3.UnitY, 20f, out hit));
+                Assert.Equal(2f, hit.Point.Y, Tolerance);
+                return Task.CompletedTask;
+            });
+        }
+
+        /// <summary>A ray going through the surface reports each child it crosses once, whichever cells around the ray test it.</summary>
+        [Theory]
+        [InlineData(VoxelCellShape.Box, 1f)]
+        [InlineData(VoxelCellShape.Sphere, 1.4f)]
+        [InlineData(VoxelCellShape.MarchingCubes, 1f)]
+        [InlineData(VoxelCellShape.SurfaceNets, 1f)]
+        public static void PenetratingRaysReportEachChildOnce(VoxelCellShape cellShape, float sphereRadiusScale)
+        {
+            RunScript(game =>
+            {
+                const int samples = 10;
+                var collider = new VoxelCollider { CellShape = cellShape, IsoLevel = IsoLevel, SphereRadiusScale = sphereRadiusScale };
+                collider.SetData(samples, samples, samples, Floor(samples, 4));
+                var terrain = new Entity { new StaticComponent { Collider = collider } };
+                game.SceneSystem.SceneInstance.RootScene.Entities.Add(terrain);
+
+                // Slanted, so it changes cell on every axis on its way through the floor
+                var hits = new List<HitInfo>();
+                terrain.GetSimulation().RayCastPenetrating(new Vector3(3.3f, 9f, 4.6f), Vector3.Normalize(new Vector3(0.3f, -1f, 0.2f)), 20f, hits);
+
+                Assert.NotEmpty(hits);
+                var children = new HashSet<int>();
+                Assert.All(hits, hit => Assert.True(children.Add(hit.ChildIndex), $"Child {hit.ChildIndex} is reported twice, at {hit.Point}"));
+                // The triangles only collide from above, the ray meets the surface once
+                if (cellShape is VoxelCellShape.MarchingCubes or VoxelCellShape.SurfaceNets)
+                    Assert.Single(hits);
+                return Task.CompletedTask;
+            });
         }
 
         [Fact]
