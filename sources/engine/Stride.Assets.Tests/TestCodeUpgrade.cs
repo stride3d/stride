@@ -1416,7 +1416,7 @@ public class TestCodeUpgrade
     [Fact]
     public async Task MethodOverrideRenameMovesOverridesToTheNewMethod()
     {
-        // The 4.5 shape: TouchController.IsPressed became non-virtual and backends override IsRawPressed instead
+        // The 4.5.4 shape: TouchController.IsPressed became non-virtual and backends override IsRawPressed instead
         const string OldBase = "public abstract class TouchController { public abstract bool IsPressed(int button); }";
         const string NewBase = "public abstract class TouchController { public bool IsPressed(int button) => IsRawPressed(button); protected abstract bool IsRawPressed(int button); }";
         var source = $$"""

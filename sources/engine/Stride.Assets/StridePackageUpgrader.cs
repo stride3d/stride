@@ -192,8 +192,11 @@ namespace Stride.Assets
                 // 4.5.3: GamePadDeviceBase.State is no longer virtual, so that it can hide a captured gamepad;
                 // custom gamepads provide their state through RawState instead.
                 PropertyOverrideRename("Stride.Input.GamePadDeviceBase", "State", "RawState", SyntaxKind.ProtectedKeyword),
+            ]);
 
-                // 4.5: the TouchController queries are no longer virtual, so that they can hide a captured controller;
+            registry.Code("4.5.4.0",
+            [
+                // 4.5.4: the TouchController queries are no longer virtual, so that they can hide a captured controller;
                 // custom backends provide their input through the raw members instead.
                 PropertyOverrideRename("Stride.VirtualReality.TouchController", "Trigger", "RawTrigger", SyntaxKind.ProtectedKeyword),
                 PropertyOverrideRename("Stride.VirtualReality.TouchController", "Grip", "RawGrip", SyntaxKind.ProtectedKeyword),
