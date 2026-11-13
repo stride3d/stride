@@ -166,6 +166,10 @@ public class SoftBodyTests : GameTestBase
             Assert.Equal(radius, Vector3.Distance(body.GetParticlePosition(hit.ChildIndex), hit.Point), 3);
             Assert.True(body.RayCast(new Vector3(5f, 0.3f, 0.1f), -Vector3.UnitX, 10f, out hit));
             Assert.Equal(radius, Vector3.Distance(body.GetParticlePosition(hit.ChildIndex), hit.Point), 3);
+            var hits = new System.Collections.Generic.List<HitInfo>();
+            CollectThroughABuffer(body, new Vector3(5f, 0.3f, 0.1f), hits);
+            Assert.NotEmpty(hits);
+            Assert.All(hits, each => Assert.Equal(radius, Vector3.Distance(body.GetParticlePosition(each.ChildIndex), each.Point), 3));
 
             // The floor is touched by the bottom layer of the lattice, by more than one of its particles
             events.Particles.Clear();
@@ -173,6 +177,13 @@ public class SoftBodyTests : GameTestBase
             Assert.True(events.Particles.Count > 1, $"{events.Particles.Count} particles in contact");
             Assert.All(events.Particles, particle => Assert.True(body.GetParticlePosition(particle).Y < radius * 1.5f, $"Particle {particle} at {body.GetParticlePosition(particle)}"));
         });
+
+        static void CollectThroughABuffer(SoftBodyComponent body, Vector3 origin, System.Collections.Generic.List<HitInfo> hits)
+        {
+            Span<HitInfoStack> buffer = stackalloc HitInfoStack[16];
+            foreach (var hit in body.RayCastPenetrating(origin, -Vector3.UnitX, 10f, buffer))
+                hits.Add(hit);
+        }
     }
 
     [Fact]

@@ -542,6 +542,41 @@ namespace Stride.BepuPhysics.Tests
             }
         }
 
+        /// <summary> A ray cast at a single collidable reports the child of its compound that was hit, whichever way the hits are collected </summary>
+        [Fact]
+        public static void ComponentRayCastsReportTheChildHitTest()
+        {
+            var game = new GameTest();
+            game.Script.AddTask(async () =>
+            {
+                game.ScreenShotAutomationEnabled = false;
+
+                var compound = new StaticComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider { PositionLocal = new Vector3(-2, 0, 0) }, new BoxCollider { PositionLocal = new Vector3(2, 0, 0) } } } };
+                game.SceneSystem.SceneInstance.RootScene.Entities.Add(new Entity { compound });
+
+                var aboveTheSecondBox = new Vector3(2, 5, 0);
+                Assert.True(compound.RayCast(aboveTheSecondBox, -Vector3.UnitY, 10, out var closest));
+                Assert.Equal(1, closest.ChildIndex);
+
+                var collection = new List<HitInfo>();
+                compound.RayCastPenetrating(aboveTheSecondBox, -Vector3.UnitY, 10, collection);
+                Assert.Equal(1, Assert.Single(collection).ChildIndex);
+
+                Assert.Equal(1, ChildHitThroughTheBuffer(compound, aboveTheSecondBox));
+
+                game.Exit();
+            });
+            RunGameTest(game);
+
+            static int ChildHitThroughTheBuffer(CollidableComponent collidable, Vector3 origin)
+            {
+                Span<HitInfoStack> buffer = stackalloc HitInfoStack[4];
+                var hits = collidable.RayCastPenetrating(origin, -Vector3.UnitY, 10, buffer);
+                Assert.Equal(1, hits.Span.Length);
+                return hits.Span[0].ChildIndex;
+            }
+        }
+
         [Fact]
         public static void OnSimulationUpdateRemovalTest()
         {
