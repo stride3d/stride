@@ -21,6 +21,7 @@ using Stride.Core.Presentation.Controls;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Reflection;
 using Stride.Assets;
+using Stride.Assets.Effect;
 using Stride.Editor.Annotations;
 using Stride.Editor.Build;
 using Stride.Editor.Engine;
@@ -93,6 +94,7 @@ namespace Stride.Editor.Preview
             AssemblyRegistry.AssemblyUnregistered += AssemblyUnregistered;
             previewCompileContext.SetGameSettingsAsset(previewGameSettings);
             previewCompileContext.CompilationContext = typeof(PreviewCompilationContext);
+            previewCompileContext.Properties.Set(ShaderSourceLocator.Key, AssetBuilderService.ShaderSources);
 
             previewGameThread = new Thread(SafeAction.Wrap(StrideUIThread)) { IsBackground = true, Name = "PreviewGame Thread" };
             previewGameThread.SetApartmentState(ApartmentState.STA);
