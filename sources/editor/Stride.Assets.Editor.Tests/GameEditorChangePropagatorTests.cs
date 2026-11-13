@@ -105,7 +105,7 @@ public sealed class GameEditorChangePropagatorTests
         using var ui = new ThreadDispatcherService("Fake UI thread");
         await ui.Run(async () =>
         {
-            using var fixture = await EntityHierarchyEditorTests.OpenSceneAsync(ui);
+            await using var fixture = await EntityHierarchyEditorTests.OpenSceneAsync(ui);
             var editor = await EntityHierarchyEditorTests.OpenEditorAsync(fixture);
             using var controller = new FakeEditorGameController(fixture.Session);
             var box = EntityHierarchyEditorTests.FindEntity(editor, "Box");

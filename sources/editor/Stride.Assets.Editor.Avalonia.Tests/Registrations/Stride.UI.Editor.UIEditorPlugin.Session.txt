@@ -1,0 +1,5 @@
+Plugin: Stride.UI.Editor.UIEditorPlugin
+Services:
+NodePresenterCommands:
+NodePresenterUpdaters:
+  Stride.UI.Editor.UIAssetNodeUpdater

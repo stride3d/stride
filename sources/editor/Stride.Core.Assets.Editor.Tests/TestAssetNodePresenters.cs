@@ -20,7 +20,7 @@ public sealed class TestAssetNodePresenters
     [Fact]
     public async Task ReorderableCollectionsGetTheReorderItemViewModel()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var asset = CreateAsset(fixture, "Lists", new TestListEditorAsset());
 
         var graph = await fixture.Session.AssetViewProperties.GenerateSelectionPropertiesAsync([asset]);
@@ -34,7 +34,7 @@ public sealed class TestAssetNodePresenters
     [Fact]
     public async Task ADerivedAssetAloneHasABase()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var wood = fixture.Session.AllAssets.Single();
         var derived = CreateDerivedAsset(fixture, wood);
 
@@ -48,7 +48,7 @@ public sealed class TestAssetNodePresenters
     [Fact]
     public async Task AMultiSelectionHasABaseOnlyWhenEveryAssetHasOne()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var wood = fixture.Session.AllAssets.Single();
         var derived = CreateDerivedAsset(fixture, wood);
 
@@ -63,7 +63,7 @@ public sealed class TestAssetNodePresenters
     [Fact]
     public async Task AMultiSelectionIsOverriddenOnlyWhenEveryAssetOverridesTheProperty()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var wood = fixture.Session.AllAssets.Single();
         var first = CreateDerivedAsset(fixture, wood);
         var second = CreateDerivedAsset(fixture, wood);

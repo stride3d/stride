@@ -45,7 +45,8 @@ public abstract class StrideAssetsAvaloniaPlugin : StrideAssetsPlugin
     /// <see cref="StrideAssetsPlugin.Initialize(ILogger)"/>.
     /// </summary>
     /// <param name="dictionary">The resource dictionary: its enum-keyed entries are enum images, its <see cref="ITemplateProvider"/> values template providers.</param>
-    /// <remarks>A plugin that uses the plugin context calls <see cref="RegisterResourceDictionary(IEditorPluginContext, IResourceDictionary)"/>.</remarks>
+    /// <remarks>Obsolete: a plugin calls <see cref="RegisterResourceDictionary(IEditorPluginContext, IResourceDictionary)"/> from <see cref="StrideAssetsPlugin.Initialize(IEditorPluginContext)"/>.</remarks>
+    [Obsolete("Call RegisterResourceDictionary(context, dictionary) from Initialize(IEditorPluginContext) instead. See docs/build/plugins.md.", DiagnosticId = "STRPLUGIN002")]
     protected virtual void RegisterResourceDictionary(IResourceDictionary dictionary)
     {
         foreach (var entry in dictionary.Keys)

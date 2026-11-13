@@ -12,7 +12,7 @@ public sealed class ShaderImporterTests
     [Fact]
     public async Task APackageWithoutShadersYieldsOnlyTheCacheUpdateStep()
     {
-        using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, ("Prefab", new PrefabAsset()));
+        await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, ("Prefab", new PrefabAsset()));
         var importer = new StrideShaderImporter();
 
         // Every package not imported yet is enumerated (the system packages are those of the session on the first pass): no shader to

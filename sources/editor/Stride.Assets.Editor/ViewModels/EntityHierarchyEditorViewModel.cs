@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,6 +17,7 @@ using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core;
 using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Internal;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Presentation.ViewModels;
@@ -54,6 +56,7 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     private readonly Dictionary<(AbsoluteId Entity, Guid Component, string Target), float> previewWeights = [];
     private bool previewPosted;
     private IEditorViewOptions? viewOptions;
+    private SceneViewWidgetsViewModel? sceneViewWidgets;
     private bool isGameLoaded;
     private bool compilingAssets;
     private string filterPattern = string.Empty;
@@ -187,7 +190,26 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     /// Gets the view options of the game, created by the <see cref="IEditorViewOptionsFactory"/> of the session, or
     /// <c>null</c> while the game has not loaded, or when the editor has no game.
     /// </summary>
-    public IEditorViewOptions? ViewOptions { get => viewOptions; private set => SetValue(ref viewOptions, value); }
+    public IEditorViewOptions? ViewOptions { get => viewOptions; internal set => SetValue(ref viewOptions, value); }
+
+    /// <summary>
+    /// The widgets of the view, once the view asked for them (<see cref="GetOrCreateSceneViewWidgets"/>), or null.
+    /// </summary>
+    [Experimental("STREXP005")]
+    public SceneViewWidgetsViewModel? SceneViewWidgets { get => sceneViewWidgets; private set => SetValue(ref sceneViewWidgets, value); }
+
+    /// <summary>
+    /// The widgets of the view that the plugins register (<see cref="AssetEditors.EntityHierarchyEditor.Widgets.SceneViewWidgetDescriptor"/>),
+    /// created the first time a view that shows them asks: an editor whose view shows no widget (WPF) runs none of them.
+    /// </summary>
+    /// <returns>The widgets, or null once the editor is destroyed.</returns>
+    [Experimental("STREXP005")]
+    public SceneViewWidgetsViewModel? GetOrCreateSceneViewWidgets()
+    {
+        if (IsDestroyed)
+            return null;
+        return SceneViewWidgets ??= new SceneViewWidgetsViewModel(this, ServiceProvider.TryGet<IAssetsPluginService>() as EditorPluginHost);
+    }
 
     /// <summary>
     /// Gets the command that moves the camera of the view to frame the entity given as parameter.
@@ -310,6 +332,8 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
         propagators.Clear();
         ViewOptions?.Destroy();
         ViewOptions = null;
+        SceneViewWidgets?.Destroy();
+        SceneViewWidgets = null;
         GameHost.Destroy();
 
         base.Destroy();

@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Avalonia.Controls;
+using Stride.Core.Assets.Editor.Panels;
 using Avalonia.Headless.XUnit;
 using Avalonia.VisualTree;
 using Stride.Assets.Models;
@@ -28,7 +29,9 @@ public sealed class AssetPreviewTests
 
         Assert.NotNull(fixture.Main.Preview);
         Assert.Null(fixture.Main.Preview.PreviewObject);
-        Assert.True(fixture.Main.Preview.IsPreviewVisible);
+        // The docking says which panels are shown on a later dispatcher pass than the opening of the session: wait for it
+        var preview = fixture.Main.Preview;
+        await WindowTestHelper.WaitUntilAsync(() => preview.IsPreviewVisible, "the preview panel shown");
     }
 
     [AvaloniaFact]
@@ -70,7 +73,7 @@ public sealed class AssetPreviewTests
         var first = fixture.Asset(FirstLocation);
         var second = fixture.Asset(SecondLocation);
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var panel = window.GetVisualDescendants().OfType<AssetPreviewView>().Single();
@@ -97,23 +100,26 @@ public sealed class AssetPreviewTests
         using var fixture = await OpenAsync();
         var preview = RegisterPreviewService(fixture);
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
-            fixture.Session.AssetCollection.SelectAssets([fixture.Asset(FirstLocation)]);
-            await WindowTestHelper.PumpAsync();
-            var previewTab = window.GetVisualDescendants().OfType<TabItem>().Single(x => Equals(x.Header, "Asset preview"));
-            var historyTab = window.GetVisualDescendants().OfType<TabItem>().Single(x => Equals(x.Header, "Edit history"));
-
-            historyTab.IsSelected = true;
+            var first = fixture.Asset(FirstLocation);
+            fixture.Session.AssetCollection.SelectAssets([first]);
+            // The docking presents the selected preview tab on a later frame: wait for it, so the switch below starts from a shown preview
+            var panel = window.GetVisualDescendants().OfType<AssetPreviewView>().Single();
+            await WindowTestHelper.WaitUntilAsync(() => ShownPreview(panel)?.Tag == first && fixture.Main.Preview!.IsPreviewVisible, "the preview on screen");
+            var (shown, hidden) = (preview.ShowCount, preview.HideCount);
+            // The preview and the history share a group: selecting the history's tab hides the preview, once
+            Assert.Same(fixture.Main.Panels.FindDockable(BuiltInPanels.AssetPreview)!.Owner, fixture.Main.Panels.FindDockable(BuiltInPanels.ActionHistory)!.Owner);
+            fixture.Main.Panels.Show(BuiltInPanels.ActionHistory);
             await WindowTestHelper.PumpAsync();
             Assert.False(fixture.Main.Preview!.IsPreviewVisible);
-            Assert.Equal((0, 1), (preview.ShowCount, preview.HideCount));
+            Assert.Equal((shown, hidden + 1), (preview.ShowCount, preview.HideCount));
 
-            previewTab.IsSelected = true;
+            fixture.Main.Panels.Show(BuiltInPanels.AssetPreview);
             await WindowTestHelper.PumpAsync();
             Assert.True(fixture.Main.Preview.IsPreviewVisible);
-            Assert.Equal((1, 1), (preview.ShowCount, preview.HideCount));
+            Assert.Equal((shown + 1, hidden + 1), (preview.ShowCount, preview.HideCount));
         }
         finally
         {
@@ -149,7 +155,7 @@ public sealed class AssetPreviewTests
         fixture.Session.AssetCollection.SelectAssets([fixture.Asset(FirstLocation)]);
         await WindowTestHelper.PumpAsync();
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
 
         await window.CloseAsync();
 

@@ -15,11 +15,27 @@ namespace Stride.Core.Assets.Editor.Services;
 
 public abstract class AssetsEditorPlugin : AssetsPlugin
 {
+    /// <summary>
+    /// Images of types, shared by every plugin and never removed.
+    /// </summary>
+    /// <remarks>Obsolete: a plugin registers its type images in <see cref="IEditorPluginContext.TypeImages"/>, or declares
+    /// them with <c>[TypeImage]</c>, and the editor removes them when the plugin leaves.</remarks>
+    [Obsolete("Register type images in Initialize(IEditorPluginContext) with context.TypeImages, or declare them with [TypeImage]. See docs/build/plugins.md.", DiagnosticId = "STRPLUGIN004")]
     protected static readonly Dictionary<Type, object> TypeImages = [];
 
-    // TODO: give access to this differently
+    /// <summary>
+    /// The package profile settings of this plugin, read by the editor as long as the plugin is registered.
+    /// </summary>
+    /// <remarks>Obsolete: a plugin registers them in <see cref="IEditorPluginContext.ProfileSettings"/>.</remarks>
+    [Obsolete("Register profile settings in Initialize(IEditorPluginContext) with context.ProfileSettings. See docs/build/plugins.md.", DiagnosticId = "STRPLUGIN005")]
     public readonly List<PackageSettingsEntry> ProfileSettings = [];
 
+    /// <summary>
+    /// The images of types that plugins set in <see cref="TypeImages"/>.
+    /// </summary>
+    /// <remarks>Obsolete: the editor asks <see cref="IAssetsPluginService.GetImageForType"/>, which knows every image of the
+    /// plugins of the session.</remarks>
+    [Obsolete("Ask the plugin service of the session (IAssetsPluginService.GetImageForType) instead. See docs/build/plugins.md.", DiagnosticId = "STRPLUGIN004")]
     public static IReadOnlyDictionary<Type, object> TypeImagesDictionary => TypeImages;
 
     /// <inheritdoc />
@@ -30,6 +46,8 @@ public abstract class AssetsEditorPlugin : AssetsPlugin
     {
         base.Initialize(context);
 
+        // The bridge of the older API: what its Register* methods give goes to the context
+#pragma warning disable STRPLUGIN001
         var editorViewModelTypes = new Dictionary<Type, Type>();
         RegisterAssetEditorViewModelTypes(editorViewModelTypes);
         foreach (var (viewModelType, editorViewModelType) in editorViewModelTypes)
@@ -72,6 +90,7 @@ public abstract class AssetsEditorPlugin : AssetsPlugin
 
         var postPasteProcessors = new List<IAssetPostPasteProcessor>();
         RegisterPostPasteProcessors(postPasteProcessors, context.Session);
+#pragma warning restore STRPLUGIN001
         foreach (var processor in postPasteProcessors)
             context.PostPasteProcessors.Register(processor);
     }
@@ -80,6 +99,8 @@ public abstract class AssetsEditorPlugin : AssetsPlugin
     /// Registers the editor view model types of asset view model types, besides the ones the assembly declares with
     /// <see cref="AssetEditorViewModelAttribute"/>, which the editor registers itself.
     /// </summary>
+    /// <remarks>Obsolete: a plugin registers them in <see cref="IEditorPluginContext.AssetEditorViewModelTypes"/>.</remarks>
+    [Obsolete("Register them in Initialize(IEditorPluginContext) with context.AssetEditorViewModelTypes. See docs/build/plugins.md.", DiagnosticId = "STRPLUGIN001")]
     public virtual void RegisterAssetEditorViewModelTypes(IDictionary<Type, Type> assetEditorViewModelTypes)
     {
     }
@@ -88,34 +109,71 @@ public abstract class AssetsEditorPlugin : AssetsPlugin
     /// Registers the editor view types of editor view model types, besides the ones the assembly declares with
     /// <see cref="AssetEditorViewAttribute"/>, which the editor registers itself.
     /// </summary>
+    /// <remarks>Obsolete: a plugin registers them in <see cref="IEditorPluginContext.AssetEditorViewTypes"/>.</remarks>
+    [Obsolete("Register them in Initialize(IEditorPluginContext) with context.AssetEditorViewTypes. See docs/build/plugins.md.", DiagnosticId = "STRPLUGIN001")]
     public virtual void RegisterAssetEditorViewTypes(IDictionary<Type, Type> assetEditorViewTypes)
     {
     }
 
+    /// <summary>
+    /// Registers the preview view model types of preview types, besides the ones the assembly declares with attributes.
+    /// </summary>
+    /// <remarks>Obsolete: a plugin registers them in <see cref="IEditorPluginContext.AssetPreviewViewModelTypes"/>.</remarks>
+    [Obsolete("Register them in Initialize(IEditorPluginContext) with context.AssetPreviewViewModelTypes. See docs/build/plugins.md.", DiagnosticId = "STRPLUGIN001")]
     public virtual void RegisterAssetPreviewViewModelTypes(IDictionary<Type, Type> assetPreviewViewModelTypes)
     {
     }
 
+    /// <summary>
+    /// Registers the preview view types of preview types, besides the ones the assembly declares with attributes.
+    /// </summary>
+    /// <remarks>Obsolete: a plugin registers them in <see cref="IEditorPluginContext.AssetPreviewViewTypes"/>.</remarks>
+    [Obsolete("Register them in Initialize(IEditorPluginContext) with context.AssetPreviewViewTypes. See docs/build/plugins.md.", DiagnosticId = "STRPLUGIN001")]
     public virtual void RegisterAssetPreviewViewTypes(IDictionary<Type, Type> assetPreviewViewTypes)
     {
     }
 
+    /// <summary>
+    /// Registers images for enum values, shown in place of the values in the editor.
+    /// </summary>
+    /// <remarks>Obsolete: a plugin registers them in <see cref="IEditorPluginContext.EnumImages"/>.</remarks>
+    [Obsolete("Register them in Initialize(IEditorPluginContext) with context.EnumImages. See docs/build/plugins.md.", DiagnosticId = "STRPLUGIN001")]
     public virtual void RegisterEnumImages(IDictionary<object, object> enumImages)
     {
     }
 
+    /// <summary>
+    /// Registers the processors that copy data to the clipboard.
+    /// </summary>
+    /// <remarks>Obsolete: a plugin registers them in <see cref="IEditorPluginContext.CopyProcessors"/>.</remarks>
+    [Obsolete("Register them in Initialize(IEditorPluginContext) with context.CopyProcessors. See docs/build/plugins.md.", DiagnosticId = "STRPLUGIN001")]
     public virtual void RegisterCopyProcessors(ICollection<ICopyProcessor> copyProcessors, ISessionViewModel session)
     {
     }
 
+    /// <summary>
+    /// Registers the processors that paste data from the clipboard.
+    /// </summary>
+    /// <remarks>Obsolete: a plugin registers them in <see cref="IEditorPluginContext.PasteProcessors"/>.</remarks>
+    [Obsolete("Register them in Initialize(IEditorPluginContext) with context.PasteProcessors. See docs/build/plugins.md.", DiagnosticId = "STRPLUGIN001")]
     public virtual void RegisterPasteProcessors(ICollection<IPasteProcessor> pasteProcessors, ISessionViewModel session)
     {
     }
 
+    /// <summary>
+    /// Registers the processors that fix assets after they are pasted.
+    /// </summary>
+    /// <remarks>Obsolete: a plugin registers them in <see cref="IEditorPluginContext.PostPasteProcessors"/>.</remarks>
+    [Obsolete("Register them in Initialize(IEditorPluginContext) with context.PostPasteProcessors. See docs/build/plugins.md.", DiagnosticId = "STRPLUGIN001")]
     public virtual void RegisterPostPasteProcessors(ICollection<IAssetPostPasteProcessor> postePasteProcessors, ISessionViewModel session)
     {
     }
 
+    /// <summary>
+    /// Registers the template providers of the property grid.
+    /// </summary>
+    /// <remarks>Obsolete: a plugin registers them in <see cref="IEditorPluginContext.TemplateProviders"/>.</remarks>
+    [Obsolete("Register them in Initialize(IEditorPluginContext) with context.TemplateProviders. See docs/build/plugins.md.", DiagnosticId = "STRPLUGIN001")]
     public virtual void RegisterTemplateProviders(ICollection<ITemplateProvider> templateProviders)
     {
     }

@@ -440,6 +440,17 @@ public class AssemblyContainer
     /// </summary>
     public static bool IsBoundByHost(Assembly assembly) => boundByHost.TryGetValue(assembly, out _);
 
+    /// <summary>
+    /// Gets the file a container loaded the assembly from, or <c>null</c> if no container loaded it. A container loads the
+    /// assembly from memory, so its <see cref="Assembly.Location"/> is empty: this is where its files (such as its
+    /// translations) are.
+    /// </summary>
+    public static string? GetLoadedPath(Assembly assembly)
+    {
+        ArgumentNullException.ThrowIfNull(assembly);
+        return assemblyToContainers.TryGetValue(assembly, out var loadedAssembly) ? loadedAssembly.Path : null;
+    }
+
     private static readonly ConditionalWeakTable<Assembly, object> boundByHost = [];
 
     /// <summary>

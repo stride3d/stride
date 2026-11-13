@@ -11,3 +11,4 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Stride.Assets.Editor.Avalonia" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Assets.Editor.Tests" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Assets.Editor.Avalonia.Tests" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.GameStudio.Avalonia.Tests" + Stride.PublicKeys.Default)]

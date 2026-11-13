@@ -32,10 +32,18 @@ namespace Stride.Editor.Avalonia.Engine;
 /// view loses the focus are released, as the view gets no release afterwards. So are the mouse buttons held when it loses
 /// the focus or the capture of the pointer.
 /// </para>
+/// <para>
+/// A click shorter than a frame of the game (a fast click on a slow renderer) would press and release the button in the
+/// same update: the game would never see the button down, and the UI editor's adorners, which pick on the pressed and
+/// released events of the frames that draw, would miss the click. The bridge keeps such a release, and the input queued
+/// after it, for the next update, so the game sees the button down for one frame first.
+/// </para>
 /// </remarks>
 internal sealed class AvaloniaInputBridge
 {
-    private readonly ConcurrentQueue<Action<MouseSimulated, KeyboardSimulated>> pending = new();
+    private readonly ConcurrentQueue<PendingInput> pending = new();
+    private readonly HashSet<MouseButton> pressedThisUpdate = [];
+    private PendingInput? held;
     private InputSourceSimulated? source;
     private MouseSimulated? mouse;
     private KeyboardSimulated? keyboard;
@@ -62,21 +70,21 @@ internal sealed class AvaloniaInputBridge
             QueuePosition(view, e);
             var button = ToMouseButton(e.GetCurrentPoint(view).Properties.PointerUpdateKind);
             downButtons.Add(button);
-            pending.Enqueue((m, _) => m.SimulateMouseDown(button));
+            pending.Enqueue(new PendingInput((m, _) => m.SimulateMouseDown(button)) { Pressed = button });
         };
         view.PointerReleased += (_, e) =>
         {
             QueuePosition(view, e);
             var button = ToMouseButton(e.GetCurrentPoint(view).Properties.PointerUpdateKind);
             if (downButtons.Remove(button))
-                pending.Enqueue((m, _) => m.SimulateMouseUp(button));
+                pending.Enqueue(Release(button));
         };
         // The view gets no button release once another element or window took the pointer
         view.PointerCaptureLost += (_, _) => ReleaseButtons();
         view.PointerWheelChanged += (_, e) =>
         {
             var delta = (float)e.Delta.Y;
-            pending.Enqueue((m, _) => m.SimulateMouseWheel(delta));
+            pending.Enqueue(new PendingInput((m, _) => m.SimulateMouseWheel(delta)));
         };
         view.KeyDown += (_, e) =>
         {
@@ -84,21 +92,21 @@ internal sealed class AvaloniaInputBridge
             downKeys.Add(key);
             // A modifier pressed from a pointer event is already down
             if (!modifiersFromPointer.Remove(key))
-                pending.Enqueue((_, k) => k.SimulateDown(key));
+                pending.Enqueue(new PendingInput((_, k) => k.SimulateDown(key)));
         };
         view.KeyUp += (_, e) =>
         {
             var key = (Keys)(int)e.Key;
             modifiersFromPointer.Remove(key);
             downKeys.Remove(key);
-            pending.Enqueue((_, k) => k.SimulateUp(key));
+            pending.Enqueue(new PendingInput((_, k) => k.SimulateUp(key)));
         };
         view.LostFocus += (_, _) =>
         {
             // The view gets no key release once it lost the focus: the keys held are released now
             foreach (var key in downKeys)
             {
-                pending.Enqueue((_, k) => k.SimulateUp(key));
+                pending.Enqueue(new PendingInput((_, k) => k.SimulateUp(key)));
             }
             downKeys.Clear();
             modifiersFromPointer.Clear();
@@ -110,7 +118,7 @@ internal sealed class AvaloniaInputBridge
     {
         foreach (var button in downButtons)
         {
-            pending.Enqueue((m, _) => m.SimulateMouseUp(button));
+            pending.Enqueue(Release(button));
         }
         downButtons.Clear();
     }
@@ -131,12 +139,12 @@ internal sealed class AvaloniaInputBridge
         {
             downKeys.Add(left);
             modifiersFromPointer.Add(left);
-            pending.Enqueue((_, k) => k.SimulateDown(left));
+            pending.Enqueue(new PendingInput((_, k) => k.SimulateDown(left)));
         }
         else if (!isHeld && modifiersFromPointer.Remove(left))
         {
             downKeys.Remove(left);
-            pending.Enqueue((_, k) => k.SimulateUp(left));
+            pending.Enqueue(new PendingInput((_, k) => k.SimulateUp(left)));
         }
     }
 
@@ -152,9 +160,32 @@ internal sealed class AvaloniaInputBridge
             mouse = source.AddMouse();
             keyboard = source.AddKeyboard();
         }
-        while (pending.TryDequeue(out var action))
-            action(mouse!, keyboard!);
+        pressedThisUpdate.Clear();
+        while (TakeNext() is { } next)
+        {
+            if (next.Released is { } released && pressedThisUpdate.Contains(released))
+            {
+                // A click shorter than a frame: the release and what follows wait for the next update
+                held = next;
+                break;
+            }
+            next.Apply(mouse!, keyboard!);
+            if (next.Pressed is { } pressed)
+                pressedThisUpdate.Add(pressed);
+        }
     }
+
+    private PendingInput? TakeNext()
+    {
+        if (held is { } next)
+        {
+            held = null;
+            return next;
+        }
+        return pending.TryDequeue(out var queued) ? queued : null;
+    }
+
+    private static PendingInput Release(MouseButton button) => new((m, _) => m.SimulateMouseUp(button)) { Released = button };
 
     private void QueuePosition(OffscreenGameView view, PointerEventArgs e)
     {
@@ -164,7 +195,7 @@ internal sealed class AvaloniaInputBridge
         if (size.Width <= 0 || size.Height <= 0)
             return;
         var position = new Vector2((float)(point.X / size.Width), (float)(point.Y / size.Height));
-        pending.Enqueue((m, _) => MoveTo(m, position));
+        pending.Enqueue(new PendingInput((m, _) => MoveTo(m, position)));
     }
 
     private void MoveTo(MouseSimulated mouse, Vector2 position)
@@ -186,5 +217,15 @@ internal sealed class AvaloniaInputBridge
             PointerUpdateKind.XButton2Pressed or PointerUpdateKind.XButton2Released => MouseButton.Extended2,
             _ => MouseButton.Left,
         };
+    }
+
+    /// <summary>
+    /// An input queued on the UI thread for the game, and the mouse button it presses or releases, if any.
+    /// </summary>
+    private sealed record PendingInput(Action<MouseSimulated, KeyboardSimulated> Apply)
+    {
+        public MouseButton? Pressed { get; init; }
+
+        public MouseButton? Released { get; init; }
     }
 }

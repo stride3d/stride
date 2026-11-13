@@ -63,16 +63,16 @@ namespace Stride.Assets.Textures
                 yield return new ObjectUrl(UrlType.File, Parameters.SourcePathFromDisk);
             }
 
-            private ResultStatus Import(ICommandContext commandContext, TextureTool textureTool, TexImage texImage, TextureHelper.ImportParameters convertParameters)
+            public static ResultStatus Import(ICommandContext commandContext, TextureTool textureTool, TexImage texImage, TextureHelper.ImportParameters convertParameters, bool isStreamable, CancellationToken cancellationToken)
             {
                 var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
-                var useSeparateDataContainer = TextureHelper.ShouldUseDataContainer(Parameters.IsStreamable, texImage.Dimension);
+                var useSeparateDataContainer = TextureHelper.ShouldUseDataContainer(isStreamable, texImage.Dimension);
 
                 // Note: for streamable textures we want to store mip maps in a separate storage container and read them on request instead of whole asset deserialization (at once)
 
                 return useSeparateDataContainer
-                    ? TextureHelper.ImportStreamableTextureImage(assetManager, textureTool, texImage, convertParameters, CancellationToken, commandContext)
-                    : TextureHelper.ImportTextureImage(assetManager, textureTool, texImage, convertParameters, CancellationToken, commandContext.Logger);
+                    ? TextureHelper.ImportStreamableTextureImage(assetManager, textureTool, texImage, convertParameters, cancellationToken, commandContext)
+                    : TextureHelper.ImportTextureImage(assetManager, textureTool, texImage, convertParameters, cancellationToken, commandContext.Logger);
             }
 
             protected override Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)
@@ -82,7 +82,7 @@ namespace Stride.Assets.Textures
                 using (var texTool = new TextureTool())
                 using (var texImage = texTool.Load(Parameters.SourcePathFromDisk, convertParameters.IsSRgb))
                 {
-                    var importResult = Import(commandContext, texTool, texImage, convertParameters);
+                    var importResult = Import(commandContext, texTool, texImage, convertParameters, Parameters.IsStreamable, CancellationToken);
 
                     return Task.FromResult(importResult);
                 }

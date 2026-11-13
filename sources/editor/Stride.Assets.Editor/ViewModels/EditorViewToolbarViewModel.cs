@@ -3,9 +3,13 @@
 
 using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Editor.EditorGame.Tools;
+using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using Stride.Assets.Presentation.ViewModels;
+using Stride.Core;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
+using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Input;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Services;
@@ -30,22 +34,25 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel, IEditorVie
     private readonly IEditorGameSelectionViewModelService? selection;
     private readonly EditorGameMaterialHighlightService? materialHighlight;
     private readonly IEditorGameCameraViewModelService? camera;
+    private readonly Func<AbsoluteId, EntityViewModel?> findEntity;
+    private readonly ObservableCollection<EditorViewToolViewModel> tools;
     private EditorViewToolViewModel? activeTool;
     private EditorViewSpaceViewModel space;
     private bool displaySelectionMask;
 
     internal EditorViewToolbarViewModel(IViewModelServiceProvider serviceProvider, IEditorGameToolViewModelService service, IEditorGameSelectionViewModelService? selection, EditorGameMaterialHighlightService? materialHighlight,
         EditorGameComponentGizmoService? componentGizmos = null, IEnumerable<IEditorGameOverlayService>? overlays = null, IEditorGameLightProbeService? lightProbes = null,
-        IEditorGameCameraViewModelService? camera = null)
+        IEditorGameCameraViewModelService? camera = null, Func<AbsoluteId, EntityViewModel?>? findEntity = null)
         : base(serviceProvider)
     {
         this.service = service;
         this.camera = camera;
+        this.findEntity = findEntity ?? (_ => null);
         this.selection = selection;
         this.materialHighlight = materialHighlight;
         Gizmos = componentGizmos is not null ? new EditorViewGizmosViewModel(serviceProvider, componentGizmos, service.SetGizmoSizeAsync, lightProbes) : null;
         Overlays = new EditorViewOverlaysViewModel(serviceProvider, overlays ?? []);
-        Tools = service.Tools.Select(x => new EditorViewToolViewModel(serviceProvider, x)).ToList();
+        tools = new ObservableCollection<EditorViewToolViewModel>(service.Tools.Select(x => new EditorViewToolViewModel(serviceProvider, x)));
         Spaces =
         [
             new EditorViewSpaceViewModel(serviceProvider, TransformationSpace.WorldSpace, "Use world coordinates for transformations", WorldSpaceIcon),
@@ -63,12 +70,20 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel, IEditorVie
         displaySelectionMask = selection?.DisplaySelectionMask ?? false;
         service.ActiveToolChanged += ServiceActiveToolChanged;
         service.ToolFailed += ServiceToolFailed;
+        service.ToolsChanged += ServiceToolsChanged;
+        service.ContextMenuRequested += ServiceContextMenuRequested;
     }
 
     /// <summary>
-    /// Gets the tools of the view, in toolbar order.
+    /// Raised when a right click without camera drag opens the context menu of the view (UI thread).
     /// </summary>
-    public IReadOnlyList<EditorViewToolViewModel> Tools { get; }
+    [Experimental("STREXP004")]
+    public event EventHandler<EditorViewContextMenuViewModel>? ContextMenuRequested;
+
+    /// <summary>
+    /// Gets the tools of the view, in toolbar order: tools come and go as the plugins that register them join and leave.
+    /// </summary>
+    public IReadOnlyList<EditorViewToolViewModel> Tools => tools;
 
     /// <summary>
     /// Gets or sets the active tool of the view.
@@ -155,6 +170,8 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel, IEditorVie
 
         service.ActiveToolChanged -= ServiceActiveToolChanged;
         service.ToolFailed -= ServiceToolFailed;
+        service.ToolsChanged -= ServiceToolsChanged;
+        service.ContextMenuRequested -= ServiceContextMenuRequested;
         Overlays.Destroy();
         base.Destroy();
     }
@@ -268,6 +285,79 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel, IEditorVie
             if (Tools.FirstOrDefault(x => x.Tool == tool) is { } failedTool)
                 failedTool.IsEnabled = false;
         });
+    }
+
+    private void ServiceToolsChanged(object? sender, EventArgs e)
+    {
+        Dispatcher.InvokeAsync(async () =>
+        {
+            if (IsDestroyed)
+                return;
+
+            UpdateTools();
+            var (active, failedTools) = await service.GetStateAsync();
+            if (IsDestroyed)
+                return;
+            foreach (var tool in Tools)
+            {
+                tool.IsEnabled = !failedTools.Contains(tool.Tool);
+            }
+            UpdateActiveTool(Tools.FirstOrDefault(x => x.Tool == active));
+        });
+    }
+
+    /// <summary>
+    /// Follows the tools of the game: the toolbar keeps the items of the tools that stay, in the order of the game.
+    /// </summary>
+    internal void UpdateTools()
+    {
+        var current = service.Tools;
+        for (var i = tools.Count - 1; i >= 0; i--)
+        {
+            if (!current.Contains(tools[i].Tool))
+                tools.RemoveAt(i);
+        }
+        for (var i = 0; i < current.Count; i++)
+        {
+            var index = IndexOf(current[i]);
+            if (index == i)
+                continue;
+            if (index >= 0)
+                tools.Move(index, i);
+            else
+                tools.Insert(i, new EditorViewToolViewModel(ServiceProvider, current[i]));
+        }
+
+        int IndexOf(IEditorViewTool tool)
+        {
+            for (var i = 0; i < tools.Count; i++)
+            {
+                if (tools[i].Tool == tool)
+                    return i;
+            }
+            return -1;
+        }
+    }
+
+    private void ServiceContextMenuRequested(object? sender, EditorViewContextMenuRequest request)
+    {
+        Dispatcher.InvokeAsync(() =>
+        {
+            if (!IsDestroyed)
+                RequestContextMenu(request);
+        });
+    }
+
+    /// <summary>
+    /// Raises <see cref="ContextMenuRequested"/> with the entity under the cursor and the entries of the tool (UI thread).
+    /// </summary>
+    internal EditorViewContextMenuViewModel RequestContextMenu(EditorViewContextMenuRequest request)
+    {
+        var entity = request.EntityId is { } id ? findEntity(id) : null;
+        var entries = (request.ToolMenu?.Entries ?? []).Select(x => new EditorViewMenuEntryViewModel(ServiceProvider, x, () => service.RunMenuEntryAsync(request.Tool, x))).ToList();
+        var menu = new EditorViewContextMenuViewModel(request.Click, entity, entries, !(request.ToolMenu?.ReplacesOthers ?? false));
+        ContextMenuRequested?.Invoke(this, menu);
+        return menu;
     }
 }
 
@@ -445,6 +535,80 @@ internal sealed class EditorViewToolbarFactory : IEditorViewOptionsFactory
 
         return new EditorViewToolbarViewModel(editor.ServiceProvider, toolService, controller.GetService<IEditorGameSelectionViewModelService>(),
             controller.GetService<EditorGameMaterialHighlightService>(), controller.GetService<EditorGameComponentGizmoService>(), controller.GetServices<IEditorGameOverlayService>(),
-            controller.GetService<IEditorGameLightProbeService>(), controller.GetService<IEditorGameCameraViewModelService>());
+            controller.GetService<IEditorGameLightProbeService>(), controller.GetService<IEditorGameCameraViewModelService>(), id => editor.FindPartViewModel(id) as EntityViewModel);
     }
+}
+
+/// <summary>
+/// The context menu of the view of a scene or prefab editor, which a right click without camera drag opens: the commands of
+/// the plugins at <c>SceneLocations.SceneViewContext</c>, with the click as their selection, and the entries of the active
+/// tool.
+/// </summary>
+[Experimental("STREXP004")]
+public sealed class EditorViewContextMenuViewModel
+{
+    internal EditorViewContextMenuViewModel(EditorViewClick click, EntityViewModel? entity, IReadOnlyList<EditorViewMenuEntryViewModel> toolEntries, bool showsCommands)
+    {
+        Click = click;
+        Entity = entity;
+        ToolEntries = toolEntries;
+        ShowsCommands = showsCommands;
+        Selection = entity is not null ? [click, entity] : [click];
+    }
+
+    /// <summary>
+    /// Gets the click: where it is, the ray through the cursor, and the game-side entity under it (read it on the game
+    /// thread only).
+    /// </summary>
+    public EditorViewClick Click { get; }
+
+    /// <summary>
+    /// Gets the entity under the cursor, or null.
+    /// </summary>
+    public EntityViewModel? Entity { get; }
+
+    /// <summary>
+    /// Gets the selection of the commands (<c>CommandContext.Selection</c>): the click, then the entity under the cursor if any.
+    /// </summary>
+    public IReadOnlyList<object> Selection { get; }
+
+    /// <summary>
+    /// Gets the entries of the active tool, shown first.
+    /// </summary>
+    public IReadOnlyList<EditorViewMenuEntryViewModel> ToolEntries { get; }
+
+    /// <summary>
+    /// Gets whether the menu shows the commands of the plugins: false when the entries of the tool replace them.
+    /// </summary>
+    public bool ShowsCommands { get; }
+}
+
+/// <summary>
+/// An entry that the active tool gives for the context menu of its view.
+/// </summary>
+[Experimental("STREXP004")]
+public sealed class EditorViewMenuEntryViewModel : DispatcherViewModel
+{
+    internal EditorViewMenuEntryViewModel(IViewModelServiceProvider serviceProvider, EditorViewMenuEntry entry, Func<Task<bool>> run)
+        : base(serviceProvider)
+    {
+        Title = entry.Title;
+        IconPath = entry.IconPath;
+        Command = new AnonymousTaskCommand(serviceProvider, run) { IsEnabled = entry.IsEnabled };
+    }
+
+    /// <summary>
+    /// Gets the title of the entry.
+    /// </summary>
+    public string Title { get; }
+
+    /// <summary>
+    /// Gets the icon of the entry as path data, or null.
+    /// </summary>
+    public string? IconPath { get; }
+
+    /// <summary>
+    /// Gets the command that runs the entry on the game thread.
+    /// </summary>
+    public ICommandBase Command { get; }
 }

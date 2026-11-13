@@ -3,7 +3,7 @@
 
 using Stride.Editor.Avalonia;
 
-namespace Stride.SpriteStudio.Editor;
+namespace Stride.SpriteStudio.Editor.Avalonia;
 
 /// <summary>
 /// Registers the Avalonia views of the SpriteStudio editor package (the sheet preview view).

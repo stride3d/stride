@@ -88,7 +88,7 @@ namespace Stride.Assets.Models
             // 1. Textures
             if (isImportingTexture)
             {
-                ImportTextures(entityInfo.TextureDependencies, rawAssetReferences, importParameters.Logger);
+                ImportTextures(entityInfo.TextureDependencies, entityInfo.TextureRoles, entityInfo.PremultipliedTextures, rawAssetReferences, importParameters.Logger);
             }
 
             // 2. Skeleton
@@ -306,10 +306,25 @@ namespace Stride.Assets.Models
         }
 
         /// <summary>
-        /// Creates a texture asset for each texture a model uses. A texture that can't be found is a warning, so the model and its
-        /// other assets are still imported.
+        /// Gets the texture type for a texture used by an imported material in the given role.
         /// </summary>
-        internal static void ImportTextures(IEnumerable<string> textureDependencies, List<AssetItem> assetReferences, Logger logger)
+        internal static ITextureType GetTextureType(TextureRole role)
+        {
+            return role switch
+            {
+                TextureRole.BlendedColor => new ColorTextureType { PremultiplyAlpha = true },
+                TextureRole.Normal => new NormapMapTextureType(),
+                TextureRole.Data => new ColorTextureType { UseSRgbSampling = false, PremultiplyAlpha = false },
+                _ => new ColorTextureType { PremultiplyAlpha = false },
+            };
+        }
+
+        /// <summary>
+        /// Creates a texture asset for each texture a model uses, typed by its role, and a premultiplied copy of each texture in
+        /// <paramref name="premultipliedTextures"/> for the blended materials that reference it. A texture that can't be found is a
+        /// warning, so the model and its other assets are still imported.
+        /// </summary>
+        internal static void ImportTextures(IEnumerable<string> textureDependencies, IReadOnlyDictionary<string, TextureRole> textureRoles, IReadOnlyDictionary<string, string> premultipliedTextures, List<AssetItem> assetReferences, Logger logger)
         {
             if (textureDependencies == null)
                 return;
@@ -324,10 +339,14 @@ namespace Stride.Assets.Models
                 var texturePath = new UFile(textureFullPath);
 
                 var source = texturePath;
-                var texture = new TextureAsset { Source = source, Type = new ColorTextureType { PremultiplyAlpha = false } };
+                var role = textureRoles != null && textureRoles.TryGetValue(textureFullPath, out var knownRole) ? knownRole : TextureRole.Color;
+                var texture = new TextureAsset { Source = source, Type = GetTextureType(role) };
 
                 // Create asset reference
                 assetReferences.Add(new AssetItem(texturePath.GetFileNameWithoutExtension(), texture));
+
+                if (premultipliedTextures != null && premultipliedTextures.TryGetValue(textureFullPath, out var premultipliedName))
+                    assetReferences.Add(new AssetItem(premultipliedName, new TextureAsset { Source = source, Type = GetTextureType(TextureRole.BlendedColor) }));
             }
         }
     }

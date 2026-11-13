@@ -10,6 +10,7 @@ using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Presentation.Views;
+using Stride.Assets.Editor;
 using Stride.Editor;
 using Stride.Core.Assets.Presentation.ViewModels;
 
@@ -20,7 +21,7 @@ namespace Stride.GameStudio.Services;
 /// side of the <see cref="EditorPluginHost"/> shared with the cross-platform editor: the template providers go to the
 /// <see cref="IEditorDialogService"/>, the editor views are <see cref="IEditorView"/>s and the declared images WPF images.
 /// </summary>
-public class PluginService : StrideEditorPluginHost
+public class PluginService : SceneEditorPluginHost
 {
     /// <inheritdoc />
     protected override Type AssetEditorViewModelType => typeof(AssetEditorViewModel);

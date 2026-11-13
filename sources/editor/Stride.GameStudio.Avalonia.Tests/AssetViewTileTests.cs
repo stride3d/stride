@@ -94,7 +94,7 @@ public sealed class AssetViewTileTests
     {
         var fixture = ShellSessionFixture.Create(assets);
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         Assert.True(await fixture.Main.OpenSession(fixture.PackagePath));
         await WindowTestHelper.PumpAsync();
         return (fixture, window);

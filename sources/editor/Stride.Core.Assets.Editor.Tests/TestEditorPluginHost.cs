@@ -64,6 +64,8 @@ public class TestEditorPluginHost
         }
     }
 
+    // The old plugin API, which the editor still supports, is obsolete
+#pragma warning disable CS0672
     /// <summary>
     /// A plugin written for the old API: it only overrides the <c>Register*</c> methods and the session initialization.
     /// </summary>
@@ -107,6 +109,7 @@ public class TestEditorPluginHost
             session.ServiceProvider.Get<RecordingEditorPluginHost>().GraphService.AvailableCommands.Add(Command);
         }
     }
+#pragma warning restore CS0672
 
     public sealed class FailingPlugin : AssetsEditorPlugin
     {
@@ -155,6 +158,20 @@ public class TestEditorPluginHost
     public sealed class NoScanPlugin : AssetsPlugin
     {
         public override IReadOnlyList<System.Reflection.Assembly> ScannedAssemblies => [];
+    }
+
+    /// <summary>
+    /// A plugin whose editor has its view in another editor only: it registers the editor of its asset, and no view for it.
+    /// </summary>
+    public sealed class EditorWithoutViewPlugin : AssetsPlugin
+    {
+        public override IReadOnlyList<System.Reflection.Assembly> ScannedAssemblies => [];
+
+        public override void Initialize(IEditorPluginContext context)
+        {
+            context.AssetViewModelTypes.Register(typeof(PluginHostAsset), typeof(PluginHostAssetViewModel));
+            context.AssetEditorViewModelTypes.Register(typeof(PluginHostAssetViewModel), typeof(PluginHostAssetEditorViewModel));
+        }
     }
 
     /// <summary>
@@ -285,6 +302,25 @@ public class TestEditorPluginHost
         Assert.True(host.HasImagesForEnum(session, typeof(PluginHostImageEnum)));
         Assert.False(host.HasImagesForEnum(null, typeof(PluginHostImageEnum)));
         Assert.Null(host.GetImageForEnum(null, PluginHostImageEnum.Declared));
+        host.Dispose();
+    }
+
+    [Fact]
+    public void AnEditorWithoutItsViewInThisEditorIsNotOffered()
+    {
+        var (host, session, _, _) = Open(new EditorWithoutViewPlugin());
+
+        // The editor is known, but this editor has no view for it: the asset has no editor to open here
+        Assert.Equal(typeof(PluginHostAssetEditorViewModel), host.GetEditorViewModelType(typeof(PluginHostAssetViewModel)));
+        Assert.Null(host.GetEditorViewType(typeof(PluginHostAssetEditorViewModel)));
+        Assert.False(host.HasEditorView(session, typeof(PluginHostAssetViewModel)));
+        host.Dispose();
+
+        // With its view, it is
+        (host, session, _, _) = Open(new ContextPlugin());
+        Assert.True(host.HasEditorView(session, typeof(PluginHostAssetViewModel)));
+        // An asset with no editor at all has none either
+        Assert.False(host.HasEditorView(session, typeof(PluginHostAssetViewModel2)));
         host.Dispose();
     }
 

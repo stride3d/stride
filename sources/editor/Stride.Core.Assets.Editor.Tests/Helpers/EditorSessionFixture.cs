@@ -16,7 +16,11 @@ namespace Stride.Core.Assets.Editor.Tests.Helpers;
 /// <summary>
 /// A package saved to a temporary folder and opened through the agnostic <see cref="SessionViewModel"/>, with fake services.
 /// </summary>
-public sealed class EditorSessionFixture : IDisposable
+/// <remarks>
+/// Its dispatcher gives the access of the UI thread to the dispatched work only: the session opens in it, and a test that awaits the open
+/// goes on there (<see cref="DispatcherTask{TResult}"/>), changes and disposes the session there, as the editor does on its UI thread.
+/// </remarks>
+public sealed class EditorSessionFixture : IAsyncDisposable
 {
     public const string PackageName = "TestGame";
 
@@ -106,42 +110,37 @@ public sealed class EditorSessionFixture : IDisposable
     /// <summary>
     /// Saves a package with the given assets (location relative to the package, value) and opens it.
     /// </summary>
-    public static Task<EditorSessionFixture> OpenAsync(params (string Location, string Value)[] assets) => OpenCoreAsync(null, assets);
+    public static DispatcherTask<EditorSessionFixture> OpenAsync(params (string Location, string Value)[] assets) => DispatcherTask.InDispatcher(() => OpenCoreAsync(null, assets));
 
     /// <summary>
     /// Saves a package whose project is the executable of a platform (the head of a game), with the given assets, and opens it.
     /// </summary>
-    public static Task<EditorSessionFixture> OpenExecutableAsync(PlatformType platform, params (string Location, string Value)[] assets) => OpenCoreAsync(platform, assets);
+    public static DispatcherTask<EditorSessionFixture> OpenExecutableAsync(PlatformType platform, params (string Location, string Value)[] assets) => DispatcherTask.InDispatcher(() => OpenCoreAsync(platform, assets));
 
     /// <summary>
     /// Saves a solution as the New game template makes it: the package, a library, and an executable project for each given
     /// platform (TestGame.Windows, TestGame.Linux...), then opens the solution.
     /// </summary>
-    public static Task<EditorSessionFixture> OpenGameAsync(params PlatformType[] executablePlatforms) => OpenCoreAsync(null, [], executablePlatforms);
+    public static DispatcherTask<EditorSessionFixture> OpenGameAsync(params PlatformType[] executablePlatforms) => DispatcherTask.InDispatcher(() => OpenCoreAsync(null, [], executablePlatforms));
 
     /// <summary>
     /// Saves a package with the given assets (location relative to the package, asset) and opens it. Without a project next to
     /// it, the package is read-only, as the packages of the dependencies (NuGet packages) are.
     /// </summary>
-    public static Task<EditorSessionFixture> OpenAsync(bool readOnly, params (string Location, Asset Asset)[] assets)
+    public static DispatcherTask<EditorSessionFixture> OpenAsync(bool readOnly, params (string Location, Asset Asset)[] assets)
     {
         var directory = NewDirectory();
         WritePackage(directory, readOnly ? null : ProjectFile(null), assets);
-        return OpenCoreAsync(directory);
+        return DispatcherTask.InDispatcher(() => OpenCoreAsync(directory));
     }
 
     /// <summary>
     /// Destroys the session, then opens the files it left in a new session with new services, as the editor does when it opens
     /// the project again. The new fixture deletes the folder when it is disposed; this one no longer does.
     /// </summary>
-    public async Task<EditorSessionFixture> ReopenAsync()
+    public async DispatcherTask<EditorSessionFixture> ReopenAsync()
     {
-        if (!destroyed)
-        {
-            destroyed = true;
-            Session.Destroy();
-            WaitForBackgroundWork(Session);
-        }
+        await DestroyAsync();
         ownsDirectory = false;
         return await OpenCoreAsync(Directory);
     }
@@ -174,6 +173,7 @@ public sealed class EditorSessionFixture : IDisposable
 
     private async Task OpenSessionAsync(UFile path)
     {
+        ServiceProvider.Get<IDispatcherService>().EnsureAccess();
         var session = await SessionViewModel.OpenSessionAsync(path, Result, new FakeMainViewModel(ServiceProvider), ServiceProvider);
         if (session is null)
             throw new InvalidOperationException("The session could not be opened:" + Environment.NewLine + Log);
@@ -210,14 +210,9 @@ public sealed class EditorSessionFixture : IDisposable
         return (TestEditorAsset)AssetFileSerializer.Load<TestEditorAsset>(path).Asset;
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
-        if (!destroyed)
-        {
-            destroyed = true;
-            Session.Destroy();
-            WaitForBackgroundWork(Session);
-        }
+        await DestroyAsync();
         if (!ownsDirectory)
             return;
         try
@@ -230,13 +225,12 @@ public sealed class EditorSessionFixture : IDisposable
         }
     }
 
-    /// <summary>
-    /// Waits for the background work of a destroyed session to end: nothing the test started may outlive it.
-    /// </summary>
-    internal static void WaitForBackgroundWork(SessionViewModel session)
+    private async Task DestroyAsync()
     {
-        if (!session.BackgroundWork.Wait(TimeSpan.FromSeconds(30)))
-            throw new TimeoutException("The background work of the session did not end within 30 seconds of its destruction.");
+        if (destroyed)
+            return;
+        destroyed = true;
+        await SessionTeardown.DestroyAsync(Session);
     }
 
     private UFile WriteSolution(PlatformType[] heads)

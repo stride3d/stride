@@ -4,7 +4,7 @@
 using Stride.Editor.Annotations;
 using Stride.Editor.Avalonia.Preview.Views;
 
-namespace Stride.Audio.Editor;
+namespace Stride.Audio.Editor.Avalonia;
 
 /// <summary>
 /// The view of a sound preview: the play and pause buttons, the volume and the position of the sound (Themes/Generic.axaml).

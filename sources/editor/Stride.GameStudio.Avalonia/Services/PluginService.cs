@@ -9,6 +9,7 @@ using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Presentation.Avalonia.Views;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.Views;
+using Stride.Assets.Editor;
 using Stride.Editor;
 using Stride.Core.Assets.Presentation.ViewModels;
 
@@ -24,7 +25,7 @@ namespace Stride.GameStudio.Avalonia.Services;
 /// Disposing it (the editor closes its session) takes back what the plugins registered, including the template providers
 /// of the property grid, which are process-wide: the plugins join the next editor's service afresh.
 /// </remarks>
-internal sealed class PluginService : StrideEditorPluginHost
+internal sealed class PluginService : SceneEditorPluginHost
 {
     private readonly IDispatcherService dispatcherService;
 
@@ -39,6 +40,10 @@ internal sealed class PluginService : StrideEditorPluginHost
 
     /// <inheritdoc />
     protected override Type AssetEditorViewType => typeof(IAssetEditorView);
+
+    /// <inheritdoc />
+    /// <remarks>The views of the plugins are Avalonia controls.</remarks>
+    protected override Type ViewBaseType => typeof(global::Avalonia.Controls.Control);
 
     /// <inheritdoc />
     /// <remarks>Only the Avalonia providers (<see cref="TemplateProviderBase"/>) are taken.</remarks>

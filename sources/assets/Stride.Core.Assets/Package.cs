@@ -1043,6 +1043,33 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
         }
     }
 
+    /// <summary>
+    /// Loads the asset stored in a file of this package the way the package loads its assets (running its upgraders
+    /// if needed, with absolute paths), without adding it to the package.
+    /// </summary>
+    /// <param name="filePath">The full path of the asset file, in one of the <see cref="AssetFolders"/>.</param>
+    /// <param name="log">The log receiving the errors of the load.</param>
+    /// <returns>The loaded asset, or <c>null</c> if it could not be loaded (the reason is logged).</returns>
+    public AssetItem? LoadAssetFromFile(UFile filePath, ILogger log)
+    {
+        ArgumentNullException.ThrowIfNull(filePath);
+        ArgumentNullException.ThrowIfNull(log);
+
+        var sourceFolder = GetDistinctAssetFolderPaths().FirstOrDefault(x => x.Contains(filePath));
+        if (sourceFolder is null)
+        {
+            log.Error($"[{filePath}] is not in an asset folder of package [{Meta.Name}].");
+            return null;
+        }
+
+        var assetFile = new PackageLoadingAssetFile(filePath, sourceFolder);
+        var assetItem = LoadAssetItem(new AssetMigrationContext(this, assetFile.ToReference(), filePath.ToOSPath(), log), assetFile);
+        // Its paths are absolute, as those of the assets of a loaded package (see LoadAssets)
+        if (assetItem is not null)
+            AssetAnalysis.ConvertUPaths(assetItem, UPathType.Absolute);
+        return assetItem;
+    }
+
     private AssetItem? LoadAssetItem(AssetMigrationContext context, PackageLoadingAssetFile assetFile)
     {
         var fileUPath = assetFile.FilePath;
@@ -1265,6 +1292,11 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
             // serializers twice once a dependent binds to the host's
             if (assembly is null)
             {
+                // The host can refuse it before it loads (the editor leaves out a plugin built for a newer editor): it
+                // stays listed without an assembly, so a later load does not check it again
+                if ((loadParameters.AssemblyLoadCheck ?? Session?.AssemblyLoadCheck) is { } loadCheck && !loadCheck.CanLoad(this, assemblyPath, log))
+                    return;
+
                 assembly = assemblyContainer.LoadAssemblyFromPath(assemblyPath, log);
 
                 if (assembly is null)
@@ -1380,7 +1412,10 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
         }
     }
 
-    private List<UDirectory> GetDistinctAssetFolderPaths()
+    /// <summary>
+    /// Gets the full paths of the <see cref="AssetFolders"/> of this package, without duplicates.
+    /// </summary>
+    public List<UDirectory> GetDistinctAssetFolderPaths()
     {
         var existingAssetFolders = new List<UDirectory>();
         foreach (var folder in AssetFolders)

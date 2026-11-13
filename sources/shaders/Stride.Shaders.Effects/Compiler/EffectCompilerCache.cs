@@ -246,8 +246,8 @@ namespace Stride.Shaders.Compiler
         private EffectBytecodeCompilerResult CompileBytecode(ShaderMixinSource mixinTree, EffectCompilerParameters effectParameters, CompilerParameters compilerParameters, ObjectId effectInputHash, DatabaseFileProvider database, string compiledUrl)
         {
             // Open the database for writing
-            var log = new LoggerResult();
-            var effectLog = GlobalLogger.GetLogger("EffectCompilerCache");
+            var log = new EffectCompileLog(EffectCompileLog.EffectCompilerCacheModule);
+            var effectLog = GlobalLogger.GetLogger(EffectCompileLog.EffectCompilerCacheModule);
 
             // Note: this compiler is expected to not be async and directly write stuff in localLogger
             var compiledShader = base.Compile(mixinTree, effectParameters, compilerParameters, effectInputHash).WaitForResult();
@@ -264,7 +264,7 @@ namespace Stride.Shaders.Compiler
                 }
 
                 if (isNewFailure)
-                    log.CopyTo(effectLog);
+                    ShaderBackendLog.CopyTo(log, effectLog);
                 return new EffectBytecodeCompilerResult(null, log);
             }
 
@@ -338,7 +338,8 @@ namespace Stride.Shaders.Compiler
                 }
                 else
                 {
-                    log.Verbose($"New effect compiled #{effectCompileCount} [{effectInputHash}] (db: {newBytecodeId})\r\n{compilerParameters?.ToStringPermutationsDetailed()}");
+                    // ToStringPermutationsDetailed ends with a line break, and the log listener adds its own
+                    log.Verbose($"New effect compiled #{effectCompileCount} [{effectInputHash}] (db: {newBytecodeId})\r\n{compilerParameters?.ToStringPermutationsDetailed()}".TrimEnd());
                     Interlocked.Increment(ref effectCompileCount);
 
                     // Replace or add new bytecode
@@ -352,7 +353,7 @@ namespace Stride.Shaders.Compiler
                 compiledShaders.Add(effectInputHash, compiledShader);
             }
 
-            log.CopyTo(effectLog);
+            ShaderBackendLog.CopyTo(log, effectLog);
             return compiledShader;
         }
 

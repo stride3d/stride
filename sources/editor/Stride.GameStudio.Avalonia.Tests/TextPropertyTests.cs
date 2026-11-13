@@ -33,7 +33,7 @@ public sealed class TextPropertyTests
     {
         using var fixture = await ShellSessionFixture.OpenAsync((AssetLocation, NewAsset()));
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var asset = fixture.Asset(AssetLocation);
@@ -59,7 +59,7 @@ public sealed class TextPropertyTests
     {
         using var fixture = await ShellSessionFixture.OpenAsync((AssetLocation, NewAsset()));
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var asset = fixture.Asset(AssetLocation);
@@ -106,7 +106,7 @@ public sealed class TextPropertyTests
     {
         using var fixture = await ShellSessionFixture.OpenAsync((AssetLocation, NewAsset()));
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var asset = fixture.Asset(AssetLocation);
@@ -144,7 +144,7 @@ public sealed class TextPropertyTests
         var other = new TextPropertiesAsset { Label = "other", Separator = ',', SourceFile = new UFile("other/file.png"), OutputDirectory = new UDirectory("other/directory") };
         using var fixture = await ShellSessionFixture.OpenAsync((AssetLocation, NewAsset()), (OtherAssetLocation, other));
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var asset = fixture.Asset(AssetLocation);

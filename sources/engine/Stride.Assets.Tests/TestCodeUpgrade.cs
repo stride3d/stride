@@ -802,6 +802,62 @@ public class TestCodeUpgrade
         AssertCompiles(result);
     }
 
+    [Fact]
+    public async Task AssignmentRemoveDropsInitializerEntries()
+    {
+        // The 4.5 shape: BepuSimulation.MaxStepPerFrame is gone; user code may set it in an object initializer.
+        var source = """
+            namespace TestNs
+            {
+                class Target
+                {
+                    public int MaxStepPerFrame;
+                    public int Other;
+                }
+                record Rec
+                {
+                    public int MaxStepPerFrame { get; init; }
+                    public int Other { get; init; }
+                }
+                class Holder
+                {
+                    public Target Inner = new Target();
+                }
+                class Unrelated
+                {
+                    public int MaxStepPerFrame;
+                }
+                class Usage
+                {
+                    object Only() => new Target { MaxStepPerFrame = 3 };
+                    object First() => new Target { MaxStepPerFrame = 3, Other = 1 };
+                    object Last() => new Target { Other = 2, MaxStepPerFrame = 3 };
+                    Target Implicit() => new() { Other = 3, MaxStepPerFrame = 3, };
+                    object MultiLine() => new Target
+                    {
+                        Other = 4,
+                        MaxStepPerFrame = 3,
+                    };
+                    object Nested() => new Holder { Inner = { MaxStepPerFrame = 3, Other = 5 } };
+                    Rec With(Rec r) => r with { MaxStepPerFrame = 3, Other = 6 };
+                    object Keep() => new Unrelated { MaxStepPerFrame = 7 };
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, Rewrite(
+            AssignmentRemove("TestNs.Target", "MaxStepPerFrame"),
+            AssignmentRemove("TestNs.Rec", "MaxStepPerFrame")));
+
+        Assert.DoesNotContain("MaxStepPerFrame = 3", result);
+        // The other entries stay, wherever the removed one sat.
+        for (var i = 1; i <= 6; i++)
+            Assert.Contains($"Other = {i}", result);
+        // The unrelated same-named member is untouched.
+        Assert.Contains("new Unrelated { MaxStepPerFrame = 7 }", result);
+        AssertCompiles(result);
+    }
+
     // The 4.5 shape: types with hand-written ParameterKey fields get [EffectKeys], which does not exist at the old version.
     private const string ParameterKeySource = """
         namespace Stride.Rendering

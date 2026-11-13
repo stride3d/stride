@@ -1,10 +1,16 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Avalonia;
+using Avalonia.Controls.Templates;
 using Avalonia.Markup.Xaml.Styling;
 using Stride.Assets.Editor.Avalonia.Views;
+using Stride.Assets.Editor.Avalonia.Views.CurveEditor;
 using Stride.Assets.Editor.Avalonia.Views.Preview;
+using Stride.Assets.Editor.ViewModels.CurveEditor;
+using Stride.Core.Assets.Editor.Panels;
 using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Editor.Avalonia;
 using Stride.Editor.Avalonia.Engine;
@@ -25,12 +31,18 @@ public sealed class StrideEditorViewPlugin : StrideAssetsAvaloniaPlugin
     /// </summary>
     public static readonly Uri ThemesUri = new("avares://Stride.Assets.Editor.Avalonia/Themes/Generic.axaml");
 
+    // The view of the curve editor panel, added once to the application's data templates (only for the panel: a typed template
+    // matches null content otherwise)
+    private static readonly FuncDataTemplate<CurveEditorPanelViewModel> CurveEditorPanelTemplate =
+        new(panel => panel is not null, (panel, _) => new CurveEditorView { DataContext = panel.Editor });
+
     /// <inheritdoc />
     public override void Initialize(IEditorPluginContext context)
     {
         base.Initialize(context);
 
         RegisterResourceDictionary(context, new EntityPropertyTemplateProviders());
+        RegisterResourceDictionary(context, new CurvePropertyTemplateProviders());
 
         // The component images give the icons of the entities in the scene hierarchy, as the type images of the WPF
         // StrideDefaultAssetsPlugin
@@ -43,12 +55,17 @@ public sealed class StrideEditorViewPlugin : StrideAssetsAvaloniaPlugin
 
         RegisterResourceDictionary(context, new PreviewEnumImages());
         RegisterControlThemes(context.Logger, new ResourceInclude(ThemesUri) { Source = ThemesUri });
+        RegisterCurveEditorPanel(context);
     }
 
     /// <inheritdoc />
     public override void InitializeSession(ISessionPluginContext context)
     {
         base.InitializeSession(context);
+
+        // "Edit curve" shows the curve editor panel
+        if (context.Session is SessionViewModel sessionViewModel)
+            context.Services.Register(new CurveEditorPanelService(sessionViewModel));
 
         if (GameStudioPreviewService.DisablePreview)
             return;
@@ -66,5 +83,16 @@ public sealed class StrideEditorViewPlugin : StrideAssetsAvaloniaPlugin
 
         // The editor games (the scene editor) render offscreen into Avalonia controls, like the preview
         context.Services.Register(new OffscreenGameViewportService(session.Dispatcher));
+    }
+
+    // The curve editor is a panel with the asset view (curve editor D5 A, D6 A). Until plugins get their own registration (Phase 4),
+    // the panels are the host's, as for the panel of NotebookTestPlugin
+    private void RegisterCurveEditorPanel(IEditorPluginContext context)
+    {
+        if (context.Session?.ServiceProvider.TryGet<IAssetsPluginService>() is EditorPluginHost host && !host.Panels.Contains(CurveEditorPanelViewModel.PanelId))
+            host.Panels.Register(CurveEditorPanelViewModel.CreateDescriptor(), this);
+
+        if (Application.Current is { } application && !application.DataTemplates.Contains(CurveEditorPanelTemplate))
+            application.DataTemplates.Add(CurveEditorPanelTemplate);
     }
 }

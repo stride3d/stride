@@ -12,6 +12,8 @@ on:
     outputs:
       runtime:
         value: ${{ jobs.detect.outputs.runtime }}
+      shader-corpus:
+        value: ${{ jobs.detect.outputs.shader-corpus }}
       ios:
         value: ${{ jobs.detect.outputs.ios }}
       ios-tests:
@@ -32,6 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       runtime: ${{ steps.comments.outputs.comment_only == 'true' && 'false' || steps.filter.outputs.runtime || 'true' }}
+      shader-corpus: ${{ steps.comments.outputs.comment_only == 'true' && 'false' || steps.filter.outputs.shader-corpus || 'true' }}
       ios: ${{ steps.comments.outputs.comment_only == 'true' && 'false' || steps.filter.outputs.ios || 'true' }}
       ios-tests: ${{ steps.comments.outputs.comment_only == 'true' && 'false' || steps.filter.outputs.ios-tests || 'true' }}
       android: ${{ steps.comments.outputs.comment_only == 'true' && 'false' || steps.filter.outputs.android || 'true' }}
@@ -151,6 +154,7 @@ jobs:
               - 'deps/**'
               - 'tests/**'
               - 'sources/Stride.Runtime.slnf'
+              - 'sources/Stride.Tests.Simple*.slnf'
               # The workflows of the jobs it gates, their actions and the auditor the ApiNeutral job runs: an
               # edit runs them
               - '.github/workflows/test-windows-game-api-neutral.yml'
@@ -163,6 +167,12 @@ jobs:
               - '.github/actions/stride-checkout/**'
               - '.github/actions/stride-workload/**'
               - 'build/tools/ParallelBuildAuditor/**'
+            # What only the shader corpus jobs need, on top of runtime: the corpus also compiles the shaders of the editor
+            # and the samples
+            shader-corpus:
+              - 'sources/editor/**/*.sdsl'
+              - 'samples/**/*.sdsl'
+              - '.github/workflows/test-shader-corpus.yml'
             ios:
               - 'sources/engine/**'
               - 'sources/plugins/**'
@@ -205,8 +215,9 @@ jobs:
               - 'tests/infra/Stride.*/**'
               - 'tests/enduser/Stride.Templates.Tests/**'
               - 'Stride.slnx'
-              # The full build's workflow and the check it runs: an edit runs them
+              # The workflows of the full build and of the WPF editor tests, and the check the build runs: an edit runs them
               - '.github/workflows/build-windows-full.yml'
+              - '.github/workflows/test-editor-wpf.yml'
               - 'build/check-graphics-api-compat.ps1'
             # The Avalonia editor job: the folders of the projects sources/Stride.Editor.Avalonia.slnf builds,
             # engine included (the filter compiles it, and the editor tests run on top of it), and its build inputs

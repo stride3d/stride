@@ -94,7 +94,7 @@ public partial class ShaderMixer
                     constants.Add(words[w + 2]);
                     break;
                 case Op.OpLine:
-                    location = sourceFiles.TryGetValue(words[w + 1], out var file) ? $"{file}({words[w + 2]},{words[w + 3]}): " : string.Empty;
+                    location = sourceFiles.TryGetValue(words[w + 1], out var file) ? $"{MessageFileName.Of(file)}({words[w + 2]},{words[w + 3]}): " : string.Empty;
                     break;
                 case Op.OpNoLine or Op.OpFunction:
                     location = string.Empty;

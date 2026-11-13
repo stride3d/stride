@@ -12,6 +12,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input.Platform;
 using Avalonia.Threading;
 using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Diagnostics;
 using Stride.Crash;
 using Stride.Crash.ViewModels;
@@ -72,6 +73,10 @@ internal sealed class Program
                 GlobalLogger.GetLogger("GameStudio").Warning($"Unknown command line option [{unknown}] ignored.");
             // Another session opens in a new process, started as this one was (from the working directory it has now)
             App.ProcessLauncher = new EditorProcessLauncher(typeof(Program).Assembly.Location);
+            // The marker of a start that dies while plugins load, beside the user's settings (both editors share them)
+            App.LoadingMarker = PluginLoadingMarker.CreateDefault();
+            // The extensions the user installed, listed in the internal settings both editors read, their packages beside them
+            App.Extensions = EditorExtensionService.CreateDefault();
 
             BuildAvaloniaApp()
                 .StartWithClassicDesktopLifetime(args, ShutdownMode.OnMainWindowClose);

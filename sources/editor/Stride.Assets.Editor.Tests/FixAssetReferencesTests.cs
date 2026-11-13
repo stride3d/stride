@@ -25,7 +25,7 @@ public sealed class FixAssetReferencesTests
     [Fact]
     public async Task CancellingTheDialogKeepsTheAsset()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         var (skeleton, model) = (fixture.Asset(SkeletonLocation), fixture.Asset(ModelLocation));
 
         Assert.False(await fixture.Session.DeleteItems([skeleton], skipConfirmation: true));
@@ -42,7 +42,7 @@ public sealed class FixAssetReferencesTests
     [Fact]
     public async Task TheReferencesCanBeReplacedWithAnotherAssetInOneUndoableStep()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         var (skeleton, other, model) = (fixture.Asset(SkeletonLocation), fixture.Asset(OtherSkeletonLocation), fixture.Asset(ModelLocation));
         Dialogs(fixture).FixAssetReferences = fixReferences =>
         {
@@ -68,7 +68,7 @@ public sealed class FixAssetReferencesTests
     [Fact]
     public async Task TheReferencesCanBeCleared()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         var (skeleton, model) = (fixture.Asset(SkeletonLocation), fixture.Asset(ModelLocation));
         Dialogs(fixture).FixAssetReferences = fixReferences =>
         {
@@ -85,7 +85,7 @@ public sealed class FixAssetReferencesTests
     [Fact]
     public async Task EachReferenceCanBeHandledOnItsOwn()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         var (skeleton, model) = (fixture.Asset(SkeletonLocation), fixture.Asset(ModelLocation));
         Dialogs(fixture).FixAssetReferences = fixReferences =>
         {
@@ -107,7 +107,7 @@ public sealed class FixAssetReferencesTests
     [Fact]
     public async Task TheReplacementIsPickedAmongTheOtherAssetsOfTheType()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         var (skeleton, other) = (fixture.Asset(SkeletonLocation), fixture.Asset(OtherSkeletonLocation));
         var dialogs = Dialogs(fixture);
         dialogs.PickAsset = picker => picker.FilteredAssets.Single();
@@ -128,7 +128,7 @@ public sealed class FixAssetReferencesTests
     [Fact]
     public async Task AnotherAssetOfTheSameDeleteIsNotOfferedAsAReplacement()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         var (skeleton, other) = (fixture.Asset(SkeletonLocation), fixture.Asset(OtherSkeletonLocation));
         var dialogs = Dialogs(fixture);
         dialogs.PickAsset = _ => null;
@@ -145,7 +145,7 @@ public sealed class FixAssetReferencesTests
         Assert.Empty(picker.FilteredAssets);
     }
 
-    private static async Task<AssetsSessionFixture> OpenAsync()
+    private static async DispatcherTask<AssetsSessionFixture> OpenAsync()
     {
         var skeleton = new SkeletonAsset();
         var model = new ModelAsset { Skeleton = AttachedReferenceManager.CreateProxyObject<Skeleton>(skeleton.Id, SkeletonLocation) };

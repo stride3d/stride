@@ -720,6 +720,19 @@
     </Setter>
   </Style>
 
+  <!-- Style for angle editor (a float in radians, edited in degrees) -->
+  <Style Selector="sd|AngleEditor">
+    <Setter Property="Focusable" Value="False"/>
+    <Setter Property="Template">
+      <ControlTemplate TargetType="sd:AngleEditor">
+        <sd:NumericTextBox Margin="2,0" TextAlignment="Left"
+                           Value="{Binding Degrees, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=Explicit}"
+                           DecimalPlaces="{TemplateBinding DecimalPlaces}"
+                           PlaceholderText="{TemplateBinding PlaceholderText}"/>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+
   <!-- Style for Quaternion editor -->
   <Style Selector="sd|QuaternionEditor">
     <Setter Property="Focusable" Value="False"/>

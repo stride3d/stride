@@ -49,10 +49,11 @@ internal sealed class EditorProcessService
     /// closed already: the main window then closes without asking.
     /// </summary>
     /// <param name="sessionPath">The session the new editor opens; <c>null</c> for the project selection (<c>/NewProject</c>).</param>
-    public void Restart(UFile? sessionPath)
+    /// <param name="safeMode">Whether the new editor runs in safe mode (<c>--safe-mode</c>); null to keep this one's mode.</param>
+    public void Restart(UFile? sessionPath, bool? safeMode = null)
     {
         // The new editor does not tell the launcher again that it started
-        var arguments = options.GetRestartArguments(sessionPath, launcherNotified: App.LauncherNotifier is null);
+        var arguments = options.GetRestartArguments(sessionPath, launcherNotified: App.LauncherNotifier is null, safeMode);
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             // The new editor starts once this one is gone, as WPF's starts when its main window has closed: the window saved

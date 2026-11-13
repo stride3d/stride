@@ -1,0 +1,4 @@
+Plugin: Stride.Audio.Editor.Avalonia.AudioEditorAvaloniaPlugin
+Services:
+NodePresenterCommands:
+NodePresenterUpdaters:

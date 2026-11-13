@@ -150,9 +150,9 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
             return entity;
         }
 
-        public override async Task Update()
+        public override async Task Update(CancellationToken cancellationToken = default)
         {
-            await base.Update();
+            await base.Update(cancellationToken);
 
             UpdateDrawOrder();
         }

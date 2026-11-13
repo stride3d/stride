@@ -169,6 +169,18 @@ public class PackageStore
     }
 
     /// <summary>
+    /// Restores a package and its dependencies from the NuGet sources configured for <paramref name="settingsRoot"/> and from
+    /// <paramref name="additionalSources"/> (local folders or feeds).
+    /// </summary>
+    [System.Diagnostics.CodeAnalysis.Experimental("STREXP002")]
+    public Task<LockFile> RestorePackage(string packageName, PackageVersion version, string targetFramework, string? settingsRoot, string outputPath, IReadOnlyList<string> additionalSources)
+    {
+        ArgumentNullException.ThrowIfNull(packageName);
+        ArgumentNullException.ThrowIfNull(additionalSources);
+        return store.RestorePackage(packageName, version, [targetFramework], settingsRoot, outputPath, additionalSources);
+    }
+
+    /// <summary>
     /// Gets the default package manager.
     /// </summary>
     /// <value>A default instance.</value>

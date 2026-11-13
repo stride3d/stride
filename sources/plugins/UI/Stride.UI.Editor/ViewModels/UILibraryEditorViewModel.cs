@@ -14,7 +14,6 @@ using Stride.Core.Quantum;
 using Stride.Editor.Engine;
 using Stride.UI.Editor.ViewModels;
 using Stride.UI.Editor.Services;
-using Stride.Assets.Presentation.ViewModel;
 using Stride.UI.Assets;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.ViewModels;

@@ -14,7 +14,7 @@ public sealed class EntityHierarchyFilterAndLockTests
     [Fact]
     public async Task TheFilterShowsTheMatchingItemsAndTheirParents()
     {
-        using var fixture = await OpenSceneAsync();
+        await using var fixture = await OpenSceneAsync();
         EntityHierarchyFolderTests.AddEntity(fixture, "Sun light", "Lights", parent: null, index: 2);
         var editor = await OpenEditorAsync(fixture);
         var lights = editor.HierarchyRoot.Children.Single(x => x.Name == "Lights");
@@ -43,7 +43,7 @@ public sealed class EntityHierarchyFilterAndLockTests
     [Fact]
     public async Task RenameEditsTheLastSelectedEntityOrFolder()
     {
-        using var fixture = await OpenSceneAsync();
+        await using var fixture = await OpenSceneAsync();
         EntityHierarchyFolderTests.AddEntity(fixture, "Sun", "Lights", parent: null, index: 2);
         var editor = await OpenEditorAsync(fixture);
         Assert.False(editor.RenameCommand.IsEnabled);
@@ -66,7 +66,7 @@ public sealed class EntityHierarchyFilterAndLockTests
     [Fact]
     public async Task LockingAnEntityLocksItsChildrenOnlyWithCtrlButTheRootLocksEverything()
     {
-        using var fixture = await OpenSceneAsync();
+        await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var parent = FindEntity(editor, "Parent");
         var child = FindEntity(editor, "Child");

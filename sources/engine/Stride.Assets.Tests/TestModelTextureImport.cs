@@ -103,7 +103,7 @@ public sealed class TestModelTextureImport : IDisposable
         var logger = new LoggerResult();
         var assets = new List<AssetItem>();
 
-        ModelAssetImporter.ImportTextures([Path.Combine(directory, "missing.png")], assets, logger);
+        ModelAssetImporter.ImportTextures([Path.Combine(directory, "missing.png")], null, null, assets, logger);
 
         Assert.Empty(assets);
         Assert.False(logger.HasErrors);

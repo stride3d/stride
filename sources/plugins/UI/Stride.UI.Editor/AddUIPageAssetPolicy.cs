@@ -4,7 +4,6 @@
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Annotations;
 using Stride.UI.Assets;
-using Stride.Assets.Presentation.ViewModel;
 using Stride.Engine;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.UI.Editor.ViewModels;

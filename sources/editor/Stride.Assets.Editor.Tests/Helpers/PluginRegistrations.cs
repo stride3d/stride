@@ -2,7 +2,9 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Text;
+using Stride.Core.Assets.Editor.Commands;
 using Stride.Core.Assets.Editor.Components.Properties;
+using Stride.Core.Assets.Editor.Panels;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Views;
@@ -23,6 +25,7 @@ namespace Stride.Assets.Editor.Tests.Helpers;
 public sealed class PluginRegistrations : IEditorPluginContext
 {
     private readonly Dictionary<Type, object> legacyTypeImages = [];
+    private readonly Dictionary<Type, object> declaredRegistries = [];
 
     private PluginRegistrations(AssetsPlugin plugin)
     {
@@ -65,6 +68,26 @@ public sealed class PluginRegistrations : IEditorPluginContext
 
     public ListRecorder<PackageSettingsEntry> ProfileSettings { get; } = new();
 
+    public ListRecorder<PanelDescriptor> Panels { get; } = new();
+
+    public Recorder<Type, Type> ViewTypes { get; } = new();
+
+    public ListRecorder<CommandDescriptor> Commands { get; } = new();
+
+    public ListRecorder<ToolbarWidgetDescriptor> ToolbarWidgets { get; } = new();
+
+    /// <summary>
+    /// The contributions registered with <see cref="IEditorPluginContext.GetRegistry{T}"/>, for each type of contribution.
+    /// </summary>
+    public IReadOnlyDictionary<Type, object> DeclaredRegistries => declaredRegistries;
+
+    public ListRecorder<T> GetRegistry<T>() where T : class
+    {
+        if (!declaredRegistries.TryGetValue(typeof(T), out var registry))
+            declaredRegistries[typeof(T)] = registry = new ListRecorder<T>();
+        return (ListRecorder<T>)registry;
+    }
+
     IPluginMap<Type, Type> IEditorPluginContext.AssetViewModelTypes => AssetViewModelTypes;
 
     IPluginMap<Type, Type> IEditorPluginContext.AssetEditorViewModelTypes => AssetEditorViewModelTypes;
@@ -95,12 +118,24 @@ public sealed class PluginRegistrations : IEditorPluginContext
 
     IPluginRegistry<PackageSettingsEntry> IEditorPluginContext.ProfileSettings => ProfileSettings;
 
+    IPluginRegistry<PanelDescriptor> IEditorPluginContext.Panels => Panels;
+
+    IPluginMap<Type, Type> IEditorPluginContext.ViewTypes => ViewTypes;
+
+    IPluginRegistry<CommandDescriptor> IEditorPluginContext.Commands => Commands;
+
+    IPluginRegistry<ToolbarWidgetDescriptor> IEditorPluginContext.ToolbarWidgets => ToolbarWidgets;
+
+    IPluginRegistry<T> IEditorPluginContext.GetRegistry<T>() => GetRegistry<T>();
+
     /// <summary>
     /// The registrations of <paramref name="plugin"/>, in an editor whose editor views implement <paramref name="editorViewType"/>.
     /// </summary>
     public static PluginRegistrations Of(AssetsPlugin plugin, Type editorViewType)
     {
         var registrations = new PluginRegistrations(plugin);
+        // The old plugin API, which the editor still supports and these recordings cover, is obsolete
+#pragma warning disable STRPLUGIN002, STRPLUGIN004
         var typeImages = AssetsEditorPlugin.TypeImagesDictionary.ToDictionary();
         plugin.InitializePlugin(registrations.Logger);
         new Scanner(editorViewType).Scan(plugin, registrations);
@@ -111,6 +146,7 @@ public sealed class PluginRegistrations : IEditorPluginContext
             if (!typeImages.TryGetValue(type, out var previous) || !ReferenceEquals(previous, image))
                 registrations.legacyTypeImages[type] = image;
         }
+#pragma warning restore STRPLUGIN002, STRPLUGIN004
         return registrations;
     }
 
@@ -143,8 +179,22 @@ public sealed class PluginRegistrations : IEditorPluginContext
         if (EditorViewToolTypes.Count > 0)
             Section(builder, nameof(EditorViewToolTypes), EditorViewToolTypes.Select(Name).Order(StringComparer.Ordinal));
         Section(builder, nameof(SettingsKeys), SettingsKeys.Select(x => x.Name.ToString()));
+        // The old plugin API, which the editor still supports, is obsolete
+#pragma warning disable STRPLUGIN005
         var profileSettings = (Plugin as AssetsEditorPlugin)?.ProfileSettings.Concat(ProfileSettings) ?? ProfileSettings;
+#pragma warning restore STRPLUGIN005
         Section(builder, nameof(ProfileSettings), profileSettings.Select(x => $"{x.SettingsKey.Name} ({x.TargetPackage})"));
+        // Only for a plugin that has them: the recordings of the others predate them
+        if (Panels.Count > 0)
+            Section(builder, nameof(Panels), Panels.Select(x => x.Id));
+        if (ViewTypes.Count > 0)
+            Section(builder, nameof(ViewTypes), Sorted(ViewTypes));
+        if (Commands.Count > 0)
+            Section(builder, nameof(Commands), Commands.Select(x => $"{x.Id} [{string.Join(", ", x.Placements.Select(p => p.Location))}]"));
+        if (ToolbarWidgets.Count > 0)
+            Section(builder, nameof(ToolbarWidgets), ToolbarWidgets.Select(x => x.Id));
+        foreach (var (type, registry) in declaredRegistries.OrderBy(x => Name(x.Key), StringComparer.Ordinal))
+            Section(builder, $"Registry<{Name(type)}>", ((System.Collections.IEnumerable)registry).Cast<object>().Select(x => x.ToString() ?? string.Empty));
         return builder.ToString();
     }
 
@@ -181,7 +231,7 @@ public sealed class PluginRegistrations : IEditorPluginContext
     }
 
     // The attribute scans of the editors' host
-    private sealed class Scanner(Type editorViewType) : StrideEditorPluginHost([])
+    private sealed class Scanner(Type editorViewType) : SceneEditorPluginHost([])
     {
         protected override Type AssetEditorViewModelType => typeof(object);
 

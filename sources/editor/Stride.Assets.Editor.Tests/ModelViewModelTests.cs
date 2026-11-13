@@ -6,6 +6,7 @@ using Stride.Assets.Editor.Tests.Helpers;
 using Stride.Assets.Models;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
@@ -32,7 +33,7 @@ public sealed class ModelViewModelTests
     [Fact]
     public async Task TheModelHasTheCreateSkeletonCommand()
     {
-        using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, ("Robot", new ModelAsset { Source = new UFile("Robot.fbx") }));
+        await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, ("Robot", new ModelAsset { Source = new UFile("Robot.fbx") }));
 
         var model = fixture.Asset<ModelViewModel>("Robot");
 
@@ -51,7 +52,7 @@ public sealed class ModelViewModelTests
         TemplateManager.Register(generator);
         try
         {
-            using var fixture = await OpenAsync(new ModelAsset());
+            await using var fixture = await OpenAsync(new ModelAsset());
             var model = fixture.Asset<ModelViewModel>("Robot");
             // The source is in the resource folder of the package, so the import does not offer to copy it there
             var resources = fixture.Package.Package.ResourceFolders.First();
@@ -63,7 +64,7 @@ public sealed class ModelViewModelTests
             var transactions = fixture.Session.ActionHistory.Transactions.Count;
 
             await fixture.Session.Dispatcher.InvokeTask(model.CreateSkeletonAsync);
-            WaitForHistory(fixture, transactions);
+            await WaitForHistoryAsync(fixture, transactions);
 
             var skeleton = Assert.Single(fixture.Session.AllAssets, x => x.Asset is SkeletonAsset);
             Assert.Equal(["Root", "Hip"], ((SkeletonAsset)skeleton.Asset).Nodes.Select(x => x.Name));
@@ -86,7 +87,7 @@ public sealed class ModelViewModelTests
     [Fact]
     public async Task CreateSkeletonDoesNothingWithoutASourceFile()
     {
-        using var fixture = await OpenAsync(new ModelAsset());
+        await using var fixture = await OpenAsync(new ModelAsset());
         var model = fixture.Asset<ModelViewModel>("Robot");
         var transactions = fixture.Session.ActionHistory.Transactions.Count;
 
@@ -101,7 +102,7 @@ public sealed class ModelViewModelTests
     /// Opens a session with the model, and the skeleton import template of the Stride package (<c>DefaultSkeleton.sdtpl</c>)
     /// in the session's package, so that it goes away with the session.
     /// </summary>
-    private static async Task<AssetsSessionFixture> OpenAsync(ModelAsset model)
+    private static async DispatcherTask<AssetsSessionFixture> OpenAsync(ModelAsset model)
     {
         var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, ("Robot", model));
         Assert.False(fixture.Result.HasErrors, fixture.Log);
@@ -125,9 +126,9 @@ public sealed class ModelViewModelTests
     /// The action history records a creation once the asset notifications are done, on another thread: wait for it, so that the
     /// test neither reads the history nor closes the session in the middle of them.
     /// </summary>
-    private static void WaitForHistory(AssetsSessionFixture fixture, int transactions)
+    private static Task WaitForHistoryAsync(AssetsSessionFixture fixture, int transactions)
     {
-        Assert.True(SpinWait.SpinUntil(() => fixture.Session.ActionHistory.Transactions.Count > transactions, TimeSpan.FromSeconds(10)), "the creation to be recorded");
+        return ExclusiveDispatcherService.WaitUntilAsync(() => fixture.Session.ActionHistory.Transactions.Count > transactions, "the creation to be recorded");
     }
 
     /// <summary>

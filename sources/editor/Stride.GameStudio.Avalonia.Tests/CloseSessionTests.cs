@@ -5,6 +5,7 @@ using Avalonia.Headless.XUnit;
 using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Annotations;
+using Stride.Core.Assets.Editor.Editors;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.GameStudio.Avalonia.Tests.Helpers;
@@ -81,7 +82,7 @@ public sealed class GameEditorTestAsset : Asset;
 public sealed class GameEditorTestAssetViewModel(AssetViewModelConstructionParameters parameters) : AssetViewModel<GameEditorTestAsset>(parameters);
 
 /// <summary>
-/// Opens <see cref="GameEditorTestAsset"/> in <see cref="GameEditorTestViewModel"/>.
+/// Opens <see cref="GameEditorTestAsset"/> in <see cref="GameEditorTestViewModel"/>, shown by <see cref="GameEditorTestView"/>.
 /// </summary>
 public sealed class GameEditorTestPlugin : AssetsPlugin
 {
@@ -90,8 +91,15 @@ public sealed class GameEditorTestPlugin : AssetsPlugin
         base.Initialize(context);
 
         context.AssetEditorViewModelTypes.Register(typeof(GameEditorTestAssetViewModel), typeof(GameEditorTestViewModel));
+        // The editor collection opens only the editors whose view the editor has
+        context.AssetEditorViewTypes.Register(typeof(GameEditorTestViewModel), typeof(GameEditorTestView));
     }
 }
+
+/// <summary>
+/// The view of <see cref="GameEditorTestViewModel"/>: it shows nothing.
+/// </summary>
+public sealed class GameEditorTestView : global::Avalonia.Controls.UserControl, IAssetEditorView;
 
 /// <summary>
 /// An editor with a game thread like that of the scene editor: every frame reads the key bindings of the scene editor

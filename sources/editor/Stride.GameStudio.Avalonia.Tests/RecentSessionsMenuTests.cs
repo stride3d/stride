@@ -26,7 +26,7 @@ public sealed class RecentSessionsMenuTests
         var older = new UFile(Path.Combine(fixture.Directory, "Older", "Older.sln"));
         fixture.Main.MRU.AddFile(older, "4.0");
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var menu = window.GetLogicalDescendants().OfType<MenuItem>().Single(x => x.Name == "RecentSessionsMenu");

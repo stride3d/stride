@@ -67,7 +67,7 @@ public class PreprocessorErrorTests : IDisposable
         Assert.False(mixer.MergeSDSL(new ShaderClassSource("Child"), new ShaderMixer.Options(false), log, out _, out _, out _, out _));
 
         var message = Assert.Single(log.Messages);
-        Assert.Equal($"{sourceDir.FullName}/Broken.sdsl(2,2): #error bad thing", message.Text);
+        Assert.Equal($"{Path.Combine(sourceDir.FullName, "Broken.sdsl")}(2,2): #error bad thing", message.Text);
         Assert.Null(((LogMessage)message).Exception);
     }
 
@@ -82,6 +82,6 @@ public class PreprocessorErrorTests : IDisposable
 
         var message = Assert.Single(log.Messages);
         Assert.Equal(LogMessageType.Warning, message.Type);
-        Assert.Equal($"{sourceDir.FullName}/Warned.sdsl(1,2): #warning look here", message.Text);
+        Assert.Equal($"{Path.Combine(sourceDir.FullName, "Warned.sdsl")}(1,2): #warning look here", message.Text);
     }
 }

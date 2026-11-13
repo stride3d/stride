@@ -25,7 +25,7 @@ public sealed class BuildAndRunViewModelTests
     [Fact]
     public async Task TheCommandsFollowTheSessionAndTheBuild()
     {
-        using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);
         var (builder, _) = RegisterFakes(fixture);
         builder.CompleteAtOnce = false;
         var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider);
@@ -69,7 +69,7 @@ public sealed class BuildAndRunViewModelTests
     [Fact]
     public async Task BuildSavesTheSessionThenBuildsTheCurrentProject()
     {
-        using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type, ("Textures/Wood", "wood"));
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type, ("Textures/Wood", "wood"));
         var (builder, launcher) = RegisterFakes(fixture);
         var status = new StatusViewModel(fixture.ServiceProvider);
         var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider, status) { Session = fixture.Session };
@@ -101,7 +101,7 @@ public sealed class BuildAndRunViewModelTests
     [InlineData(PlatformType.macOS, "macOS", "macOS")]
     public async Task TheBuildSetsThePlatformOfTheWpfEditor(PlatformType platform, string msbuildPlatform, string solutionPlatform)
     {
-        using var fixture = await EditorSessionFixture.OpenExecutableAsync(platform);
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(platform);
         var (builder, _) = RegisterFakes(fixture);
         var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider) { Session = fixture.Session };
         Assert.Equal(platform, fixture.Session.CurrentProject!.Platform);
@@ -118,7 +118,7 @@ public sealed class BuildAndRunViewModelTests
     [InlineData(PlatformType.iOS)]
     public async Task AMobileGameIsNotBuilt(PlatformType platform)
     {
-        using var fixture = await EditorSessionFixture.OpenExecutableAsync(platform);
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(platform);
         var (builder, _) = RegisterFakes(fixture);
         var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider) { Session = fixture.Session };
 
@@ -131,7 +131,7 @@ public sealed class BuildAndRunViewModelTests
     [Fact]
     public async Task StartBuildsThenStartsTheGameAndReportsItsExit()
     {
-        using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);
         var (builder, launcher) = RegisterFakes(fixture);
         var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider) { Session = fixture.Session };
 
@@ -155,7 +155,7 @@ public sealed class BuildAndRunViewModelTests
     [Fact]
     public async Task TheOutputPaneKeepsOnlyTheLastMessagesOfAGameThatLogsALot()
     {
-        using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);
         var (_, launcher) = RegisterFakes(fixture);
         var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider) { Session = fixture.Session };
         Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(true));
@@ -180,7 +180,7 @@ public sealed class BuildAndRunViewModelTests
     [Fact]
     public async Task TheOutputOfARunningGameStaysAcrossBuilds()
     {
-        using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);
         var (_, launcher) = RegisterFakes(fixture);
         var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider) { Session = fixture.Session };
         Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(true));
@@ -200,7 +200,7 @@ public sealed class BuildAndRunViewModelTests
     [Fact]
     public async Task AGameOfAnotherPlatformIsBuiltButNotStarted()
     {
-        using var fixture = await EditorSessionFixture.OpenExecutableAsync(OtherPlatform);
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(OtherPlatform);
         var (builder, launcher) = RegisterFakes(fixture);
         var status = new StatusViewModel(fixture.ServiceProvider);
         var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider, status) { Session = fixture.Session };
@@ -216,7 +216,7 @@ public sealed class BuildAndRunViewModelTests
     [Fact]
     public async Task AGameThatCannotStartIsReported()
     {
-        using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);
         var (builder, launcher) = RegisterFakes(fixture);
         launcher.FailToStart = true;
         var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider) { Session = fixture.Session };
@@ -229,7 +229,7 @@ public sealed class BuildAndRunViewModelTests
     [Fact]
     public async Task AFailedBuildSaysSoAndStartsNothing()
     {
-        using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);
         var (builder, launcher) = RegisterFakes(fixture);
         builder.Succeed = false;
         builder.Errors.Add("Program.cs(3,14): CS1002: ; expected");
@@ -248,7 +248,7 @@ public sealed class BuildAndRunViewModelTests
     [Fact]
     public async Task ABuildThatFailsWithoutAnErrorSaysSo()
     {
-        using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);
         var (builder, _) = RegisterFakes(fixture);
         builder.Succeed = false;
         var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider) { Session = fixture.Session };
@@ -261,7 +261,7 @@ public sealed class BuildAndRunViewModelTests
     [Fact]
     public async Task CancelStopsTheBuild()
     {
-        using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);
         var (builder, launcher) = RegisterFakes(fixture);
         builder.CompleteAtOnce = false;
         var status = new StatusViewModel(fixture.ServiceProvider);
@@ -272,8 +272,9 @@ public sealed class BuildAndRunViewModelTests
         var build = await started.WaitAsync(TimeSpan.FromSeconds(30));
         buildAndRun.CancelBuildCommand.Execute();
 
-        Assert.True(build.IsCanceled);
+        // The cancel can come before the view model takes the started build as the current one: it cancels it then
         Assert.Equal(GameBuildOutcome.Canceled, await building);
+        Assert.True(build.IsCanceled);
         Assert.Empty(launcher.Games);
         Assert.Contains($"Build of {ProjectName} cancelled.", Messages(buildAndRun));
         Assert.Equal("Build cancelled", status.CurrentStatus);
@@ -284,7 +285,7 @@ public sealed class BuildAndRunViewModelTests
     public async Task ALibraryIsNotBuilt()
     {
         // The project of the package is a library
-        using var fixture = await EditorSessionFixture.OpenAsync();
+        await using var fixture = await EditorSessionFixture.OpenAsync();
         var (builder, _) = RegisterFakes(fixture);
         var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider) { Session = fixture.Session };
         Assert.Equal(ProjectType.Library, fixture.Session.CurrentProject!.Type);
@@ -298,7 +299,7 @@ public sealed class BuildAndRunViewModelTests
     [Fact]
     public async Task AFailedSaveStopsTheBuild()
     {
-        using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type, ("Textures/Wood", "wood"));
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type, ("Textures/Wood", "wood"));
         var (builder, _) = RegisterFakes(fixture);
         var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider) { Session = fixture.Session };
         var wood = fixture.Session.AllAssets.Single();
@@ -318,7 +319,7 @@ public sealed class BuildAndRunViewModelTests
     [Fact]
     public async Task AProjectThatCannotBeLoadedIsReported()
     {
-        using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);
         var (builder, _) = RegisterFakes(fixture);
         builder.FailToLoad = true;
         var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider) { Session = fixture.Session };
@@ -332,7 +333,7 @@ public sealed class BuildAndRunViewModelTests
     [Fact]
     public async Task TheOutputTitleShowsMessagesThatWereNotSeen()
     {
-        using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);
         var (_, launcher) = RegisterFakes(fixture);
         var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider) { Session = fixture.Session };
         Assert.False(buildAndRun.IsOutputVisible);
