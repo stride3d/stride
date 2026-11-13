@@ -3,6 +3,7 @@
 
 using Avalonia.Headless.XUnit;
 using Stride.Assets.Editor.Avalonia.Views;
+using Stride.Assets.Editor.Avalonia.Views.CurveEditor;
 using Stride.Assets.Editor.Tests.Helpers;
 using Stride.Core.Assets.Editor.Avalonia;
 using Stride.Core.Assets.Editor.Editors;
@@ -33,14 +34,16 @@ public sealed class TemplateProviderTests
     }
 
     [AvaloniaFact]
-    public void TheViewPluginRegistersTheEntityProviders()
+    public void TheViewPluginRegistersTheEntityAndCurveProviders()
     {
-        var expected = new EntityPropertyTemplateProviders().Values.OfType<TemplateProviderBase>().Count();
+        // The entity providers and the curve one (the merged default providers belong to the core plugin)
+        var expected = new EntityPropertyTemplateProviders().Values.OfType<TemplateProviderBase>().Count() + 1;
 
         var registered = PluginRegistrations.Of(new StrideEditorViewPlugin(), typeof(IAssetEditorView)).TemplateProviders;
 
         Assert.Equal(expected, registered.Count);
         Assert.Contains(registered, x => x is EntityReferenceTemplateProvider);
+        Assert.Contains(registered, x => x is ComputeCurveTemplateProvider);
     }
 
     [AvaloniaFact]

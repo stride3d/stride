@@ -4,6 +4,7 @@
 using System.Windows;
 using System.Windows.Input;
 using Microsoft.Xaml.Behaviors;
+using Stride.Assets.Editor.ViewModels.CurveEditor.Axes;
 using Stride.Core.Presentation.Drawing;
 
 namespace Stride.Assets.Presentation.CurveEditor.Views.Behaviors

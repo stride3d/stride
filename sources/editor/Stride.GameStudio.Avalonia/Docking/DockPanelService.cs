@@ -38,6 +38,8 @@ public sealed class DockPanelService : ViewModelBase, IPanelService, IDisposable
     private readonly Dictionary<AssetEditorViewModel, EditorDocument> documents = [];
     private readonly HashSet<AssetEditorViewModel> closingEditors = [];
     private readonly Dictionary<PanelLayoutKind, PanelLayout> baselines = [];
+    // The kinds of layout shown since the session opened: the first time each one shows, some panels are hidden (HiddenWhenSessionOpens)
+    private readonly HashSet<PanelLayoutKind> shownSinceSessionOpened = [];
     // The tool docks built from a group of the layout, with the group's identifier
     private readonly Dictionary<IDock, string> groupIds = [];
     private SessionViewModel? session;
@@ -125,6 +127,7 @@ public sealed class DockPanelService : ViewModelBase, IPanelService, IDisposable
         session = openedSession;
         sessionPath = path;
         frozen = false;
+        shownSinceSessionOpened.Clear();
         foreach (var descriptor in Registry.Panels.Where(x => !x.AllowsMultipleInstances))
             GetOrCreateDockable(new PanelRef(descriptor.Id));
         ((INotifyCollectionChanged)session.EditorCollection.Editors).CollectionChanged += EditorsChanged;
@@ -295,6 +298,12 @@ public sealed class DockPanelService : ViewModelBase, IPanelService, IDisposable
     }
 
     /// <inheritdoc />
+    public IPanelViewModel? GetPanel(string panelId)
+    {
+        return dockables.TryGetValue(new PanelRef(panelId), out var dockable) && !dockable.AllowsMultipleInstances ? dockable.ViewModel : null;
+    }
+
+    /// <inheritdoc />
     public IReadOnlyList<IPanelViewModel> GetInstances(string panelId)
     {
         return dockables.Values.Where(x => x.Ref.PanelId == panelId && x.AllowsMultipleInstances).Select(x => x.ViewModel).ToList();
@@ -360,7 +369,8 @@ public sealed class DockPanelService : ViewModelBase, IPanelService, IDisposable
         }
         baselines.Clear();
         var reset = PanelLayoutResolver.CreateDefault(kind, Registry);
-        // Every single panel is visible again, as WPF's reset, except those hidden by default (the Plugins panel)
+        // Every single panel is visible again, as WPF's reset, except the panels hidden by default (the Plugins panel, and the
+        // curve editor, which WPF creates on demand, outside its layout)
         reset.Hidden.RemoveAll(id => Registry.Find(id)?.VisibleByDefault != false);
         Apply(reset);
         // The open instances are kept, at their default place
@@ -388,7 +398,7 @@ public sealed class DockPanelService : ViewModelBase, IPanelService, IDisposable
             Log.Warning("The layout of the panels could not be read.", e);
         }
 
-        var resolution = PanelLayoutResolver.Resolve(saved, kind, Registry);
+        var resolution = PanelLayoutResolver.Resolve(saved, kind, Registry, sessionOpening: shownSinceSessionOpened.Add(kind));
         if (resolution.Fallback is PanelLayoutFallback.OtherVersion or PanelLayoutFallback.Invalid)
             Log.Warning($"The saved layout of the panels ({kind}) cannot be used ({resolution.Fallback}): the default layout replaces it.");
         if (saved is not null && resolution.Fallback == PanelLayoutFallback.None)

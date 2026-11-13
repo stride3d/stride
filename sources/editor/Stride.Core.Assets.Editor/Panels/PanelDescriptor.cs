@@ -50,6 +50,12 @@ public sealed class PanelDescriptor
     public bool VisibleByDefault { get; init; } = true;
 
     /// <summary>
+    /// Whether the panel is hidden whenever a session opens, whatever its saved visibility: for a panel that starts empty with
+    /// each session, such as the curve editor. Its place is kept.
+    /// </summary>
+    public bool HiddenWhenSessionOpens { get; init; }
+
+    /// <summary>
     /// Whether the panel can be opened several times: the View menu then has a "New" entry for it, and closing one of its
     /// instances closes it, where closing a single panel only hides it.
     /// </summary>

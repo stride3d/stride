@@ -48,15 +48,18 @@ public sealed class DockingTests
             [
                 "Solution explorer", "Asset view", "References", "-",
                 "Asset preview", "-",
-                "Property grid", "Edit history", "-",
+                // The curve editor of the Stride plugin, hidden by default
+                "Property grid", "Edit history", "Curve editor", "-",
                 "Asset errors", "Output", "-",
                 "Plugins", "-",
                 // The panel of the test plugin (PanelPluginTests)
                 "New Notebook", "-",
                 "Reset layout",
             ], headers);
-            // Every panel is visible in the default layout, and its entry is checked, except the Plugins panel (hidden by default)
-            Assert.All(menu.Items.OfType<MenuItem>().Where(x => x.ToggleType == MenuItemToggleType.CheckBox), x => Assert.Equal((string)x.Header! != "Plugins", x.IsChecked));
+            // Every panel visible by default is visible in the default layout, and its entry is checked; the Plugins panel and the
+            // curve editor are hidden by default
+            Assert.All(menu.Items.OfType<MenuItem>().Where(x => x.ToggleType == MenuItemToggleType.CheckBox),
+                x => Assert.Equal(x.Header as string is not ("Plugins" or "Curve editor"), x.IsChecked));
         }
         finally
         {
@@ -284,12 +287,16 @@ public sealed class DockingTests
             await WindowTestHelper.PumpAsync();
 
             Assert.Empty(panels.Layout!.Windows!);
-            // Every panel is visible, except one hidden by default (the Plugins panel), which keeps its place
+            // Every panel is visible again, but those hidden by default (the Plugins panel and the curve editor), which stay hidden in
+            // their place
             Assert.All(panels.Registry.Panels.Where(x => !x.AllowsMultipleInstances), x => Assert.Equal(x.VisibleByDefault, panels.IsVisible(x.Id)));
-            Assert.False(panels.IsVisible(BuiltInPanels.Plugins));
-            Assert.Equal(DefaultPanelLayouts.Create(PanelLayoutKind.Normal).EnumeratePanels().Select(x => x.ToString()).Append(BuiltInPanels.Plugins).Order(), panels.Snapshot().EnumeratePanels().Select(x => x.ToString()).Order());
-            Assert.Equal([BuiltInPanels.Plugins], panels.Snapshot().Hidden);
-            Assert.All(fixture.Main.ViewMenu.Items.Where(x => x.IsCheckable), x => Assert.Equal(x.PanelId != BuiltInPanels.Plugins, x.IsChecked));
+            var hiddenByDefault = panels.Registry.Panels.Where(x => !x.VisibleByDefault).Select(x => x.Id).ToHashSet();
+            Assert.Contains(BuiltInPanels.Plugins, hiddenByDefault);
+            Assert.True(hiddenByDefault.Count > 1);
+            Assert.Equal(DefaultPanelLayouts.Create(PanelLayoutKind.Normal).EnumeratePanels().Select(x => x.ToString()).Concat(hiddenByDefault).Order(),
+                panels.Snapshot().EnumeratePanels().Select(x => x.ToString()).Order());
+            Assert.Equal(hiddenByDefault.Order(), panels.Snapshot().Hidden.Order());
+            Assert.All(fixture.Main.ViewMenu.Items.Where(x => x.IsCheckable), x => Assert.Equal(x.PanelId is not { } id || !hiddenByDefault.Contains(id), x.IsChecked));
 
             // Shown, then reset again: it hides again
             panels.Show(BuiltInPanels.Plugins);

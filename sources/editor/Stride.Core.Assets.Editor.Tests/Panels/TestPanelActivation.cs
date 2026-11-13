@@ -28,6 +28,8 @@ public sealed class TestPanelActivation
 
         public void Hide(string panelId) { }
 
+        public IPanelViewModel? GetPanel(string panelId) => null;
+
         public IReadOnlyList<IPanelViewModel> GetInstances(string panelId) => [];
 
         public Task<IPanelViewModel> OpenInstanceAsync(string panelId) => throw new NotSupportedException();

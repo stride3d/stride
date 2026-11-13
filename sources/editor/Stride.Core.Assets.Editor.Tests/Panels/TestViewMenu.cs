@@ -29,6 +29,8 @@ public sealed class TestViewMenu
 
         public void Hide(string panelId) => Change(panelId, () => hidden.Add(panelId));
 
+        public IPanelViewModel? GetPanel(string panelId) => null;
+
         public IReadOnlyList<IPanelViewModel> GetInstances(string panelId) => instances.TryGetValue(panelId, out var list) ? list : [];
 
         public Task<IPanelViewModel> OpenInstanceAsync(string panelId)
