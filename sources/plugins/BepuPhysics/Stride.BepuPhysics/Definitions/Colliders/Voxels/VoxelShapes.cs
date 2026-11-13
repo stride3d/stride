@@ -61,24 +61,19 @@ internal static unsafe class VoxelShapeHelpers
         where TShape : unmanaged, IVoxelShape
     {
         var grid = shape.Layout;
-        var extent = grid.Extent;
+        // The local box, grown by what the children stick out of their cells (an oversized sphere, say) before it is rotated: the overshoot is along the local axes.
+        var pad = shape.BoundsPadding;
+        var extent = grid.Extent + pad * 2f;
         Matrix3x3.CreateFromQuaternion(orientation, out var basis);
         // The eight corners are origin + {0 or extent.X} * basisX + {0 or extent.Y} * basisY + {0 or extent.Z} * basisZ.
         // Their axis-aligned bounds are the per-axis signed extent of each basis column added to the rotated origin: positive components grow max, negative ones grow min.
-        Matrix3x3.Transform(grid.Origin, basis, out var origin);
+        Matrix3x3.Transform(grid.Origin - pad, basis, out var origin);
         var gX = extent.X * basis.X;
         var gY = extent.Y * basis.Y;
         var gZ = extent.Z * basis.Z;
         var zero = Vector3.Zero;
         min = origin + Vector3.Min(gX, zero) + Vector3.Min(gY, zero) + Vector3.Min(gZ, zero);
         max = origin + Vector3.Max(gX, zero) + Vector3.Max(gY, zero) + Vector3.Max(gZ, zero);
-        // A child that sticks out of the grid box (an oversized sphere, say) widens the shape's bounds by its overshoot.
-        var pad = shape.BoundsPadding;
-        if (pad != Vector3.Zero)
-        {
-            min -= pad;
-            max += pad;
-        }
     }
 
     /// <summary>Clamps a local bounding box to the cells it touches; false when it misses the grid.</summary>

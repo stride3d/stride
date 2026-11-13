@@ -397,6 +397,32 @@ namespace Stride.BepuPhysics.Tests
         }
 
         [Fact]
+        public static void OversizedSpheresStayInTheBoundsOfARotatedStretchedGrid()
+        {
+            var game = new GameTest();
+            game.Script.AddTask(async () =>
+            {
+                game.ScreenShotAutomationEnabled = false;
+
+                // One cell stretched to 1 x 2 x 1: its sphere, of radius 0.7, sticks 0.2 out of it along the local X and Z axes only.
+                var collider = new VoxelCollider { CellShape = VoxelCellShape.Sphere, IsoLevel = IsoLevel, SealBorder = false, SphereRadiusScale = 1.4f };
+                collider.SetData(2, 2, 2, [1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f]);
+                var terrain = new Entity { new StaticComponent { Collider = collider } };
+                terrain.Transform.Scale = new Vector3(1f, 2f, 1f);
+                // A quarter turn around Z sends local X to world Y: the cell covers y in [0, 1] and the sphere, centred on (-1, 0.5, 0.5), reaches 1.2.
+                terrain.Transform.Rotation = Quaternion.RotationZ(MathF.PI / 2f);
+                game.SceneSystem.SceneInstance.RootScene.Entities.Add(terrain);
+
+                // A ray skimming 0.1 above the cell only meets the overshoot.
+                Assert.True(terrain.GetSimulation().RayCast(new Vector3(-1f, 1.1f, -5f), Vector3.UnitZ, 10f, out var hit));
+                Assert.Equal(0.5f - MathF.Sqrt(0.13f), hit.Point.Z, Tolerance);
+
+                game.Exit();
+            });
+            RunGameTest(game);
+        }
+
+        [Fact]
         public static void OversizedSpheresCoverTheirOvershoot()
         {
             var game = new GameTest();
