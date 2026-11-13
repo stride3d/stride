@@ -202,6 +202,12 @@ namespace Stride.Graphics
             get { return nativeDeviceApi; }
         }
 
+        /// <summary>
+        ///   Whether VK_EXT_full_screen_exclusive is enabled, which lets a swapchain allow or disallow
+        ///   exclusive full screen instead of leaving it to the driver (Windows only).
+        /// </summary>
+        internal bool HasFullScreenExclusiveSupport { get; private set; }
+
 #if STRIDE_PLATFORM_ANDROID
         // True when VK_ANDROID_external_memory_android_hardware_buffer + dependencies were enabled.
         internal bool HasAndroidHardwareBufferSupport { get; private set; }
@@ -521,6 +527,8 @@ namespace Stride.Graphics
                 // Textures shared with another device or API (ExportableTexture, opt-in)
                 VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME,
                 VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME,
+                // Exclusive full screen controlled by the swapchain (Windows)
+                VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME,
 #if STRIDE_PLATFORM_IOS || STRIDE_PLATFORM_MACOS
                 // IOSurface-backed VkImage import (zero-copy CVPixelBuffer upload on Apple platforms).
                 VK_EXT_METAL_OBJECTS_EXTENSION_NAME,
@@ -594,6 +602,11 @@ namespace Stride.Graphics
                 desiredExtensionProperties.Add(VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME);
                 desiredExtensionProperties.Add(VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME);
             }
+
+            HasFullScreenExclusiveSupport = GraphicsAdapterFactory.GetInstance(IsDebugMode).HasSurfaceCapabilities2Support
+                && availableExtensionProperties.Contains(VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME);
+            if (HasFullScreenExclusiveSupport)
+                desiredExtensionProperties.Add(VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME);
 
             // Profiling labels travel through VK_EXT_debug_utils (instance-level, enabled at factory init).
             // Replaces the deprecated VK_EXT_debug_marker which required a separate device extension and

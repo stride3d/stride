@@ -195,6 +195,8 @@ namespace Stride.Graphics
         internal bool HasXlibSurfaceSupport;
         internal bool HasSurfaceSupport;
         internal bool HasDebugUtilsSupport;
+        // VK_KHR_get_surface_capabilities2, which VK_EXT_full_screen_exclusive requires
+        internal bool HasSurfaceCapabilities2Support;
 
         /// <summary>
         ///   Whether synchronization validation also checks the memory accesses shaders make through descriptors.
@@ -273,7 +275,8 @@ namespace Stride.Graphics
                 VK_KHR_XCB_SURFACE_EXTENSION_NAME,
                 VK_EXT_METAL_SURFACE_EXTENSION_NAME,
                 VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,
-                VK_EXT_DEBUG_UTILS_EXTENSION_NAME
+                VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
+                VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME,
             };
             var availableExtensionNames = GetAvailableExtensionNames(supportedExtensionNames);
             // Surface extensions are optional at instance creation (not available with headless ICDs).
@@ -288,6 +291,12 @@ namespace Stride.Graphics
             }
 
             HasXlibSurfaceSupport = desiredExtensionNames.Contains(VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
+
+            // Lets a device control exclusive full screen on Windows (VK_EXT_full_screen_exclusive)
+            HasSurfaceCapabilities2Support = HasSurfaceSupport && Platform.Type == PlatformType.Windows
+                && availableExtensionNames.Contains(VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME);
+            if (HasSurfaceCapabilities2Support)
+                desiredExtensionNames.Add(VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME);
 
             // MoltenVK is a non-conformant Vulkan ICD; without VK_KHR_portability_enumeration
             // and the matching create-info flag, vkCreateInstance skips it on macOS/iOS.
