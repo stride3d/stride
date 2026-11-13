@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - 'master-*'
     paths:
       - '.github/workflows/**'
       - 'build/**'
@@ -47,7 +48,7 @@ concurrency:
 
 jobs:
   # Per-area path-filter outputs drive the per-job `if:` conditions below.
-  # Defaults to 'true' for non-pull_request triggers (workflow_dispatch, push to master)
+  # Defaults to 'true' for non-pull_request triggers (workflow_dispatch, push to master or master-*)
   # so those run everything regardless of which files changed.
   #
   # Fork-friendly: upstream stride3d/stride always runs (the repository-name clause covers
