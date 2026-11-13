@@ -8,6 +8,7 @@ namespace Stride.Input.RawInput
     [Flags]
     enum ModeFlags
     {
+        None                = 0,
         RIDEV_REMOVE        = 0x00000001,
         RIDEV_EXCLUDE       = 0x00000010,
         RIDEV_PAGEONLY      = 0x00000020,

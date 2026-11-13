@@ -27,7 +27,8 @@ namespace Stride.Input.RawInput
 
         public void Start()
         {
-            var result = RawInput.RegisterDevice(UsagePage.HID_USAGE_PAGE_GENERIC, UsageId.HID_USAGE_GENERIC_MOUSE, ModeFlags.RIDEV_INPUTSINK, targetWindow);
+            // No RIDEV_INPUTSINK: the locked mouse must not read moves while the game is in the background, where the cursor is free
+            var result = RawInput.RegisterDevice(UsagePage.HID_USAGE_PAGE_GENERIC, UsageId.HID_USAGE_GENERIC_MOUSE, ModeFlags.None, targetWindow);
             if (!result)
             {
                 throw new Exception("Failed to register a mouse device for raw input");
