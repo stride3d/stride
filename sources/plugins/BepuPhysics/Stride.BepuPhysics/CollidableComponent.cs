@@ -274,6 +274,10 @@ public abstract class CollidableComponent : EntityComponent
         return CollidableReference!.Value;
     }
 
+    /// <summary> The child index hits and contacts report for <paramref name="collidable"/>, one of the bepu collidables this component owns </summary>
+    /// <param name="shapeChildIndex"> The child of the shape that was hit, or -1 when the test does not say </param>
+    internal virtual int GetChildIndex(CollidableReference collidable, int shapeChildIndex) => shapeChildIndex;
+
     public CollidableComponent()
     {
         _collider = new CompoundCollider();

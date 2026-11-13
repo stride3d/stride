@@ -57,13 +57,19 @@ public ref struct Contact<TManifold> where TManifold : unmanaged, IContactManifo
     /// When <see cref="Contacts{TManifold}.EventSource"/> has a <see cref="Stride.BepuPhysics.Definitions.Colliders.CompoundCollider"/>,
     /// this is the index of the collider in that collection which <see cref="Contacts{TManifold}.Other"/> collided with.
     /// </summary>
-    public int SourceChildIndex => IsSourceA ? ContactGroup.ChildIndexA : ContactGroup.ChildIndexB;
+    /// <remarks> For a collidable made of several bodies, the index of the body, such as the particle of a soft body </remarks>
+    public int SourceChildIndex => IsSourceA
+        ? Contacts.EventSource.GetChildIndex(ContactGroup.Pair.A, ContactGroup.ChildIndexA)
+        : Contacts.EventSource.GetChildIndex(ContactGroup.Pair.B, ContactGroup.ChildIndexB);
 
     /// <summary>
     /// When <see cref="Contacts{TManifold}.Other"/> has a <see cref="Stride.BepuPhysics.Definitions.Colliders.CompoundCollider"/>,
     /// this is the index of the collider in that collection which <see cref="Contacts{TManifold}.EventSource"/> collided with.
     /// </summary>
-    public int OtherChildIndex => IsSourceA ? ContactGroup.ChildIndexB : ContactGroup.ChildIndexA;
+    /// <remarks> For a collidable made of several bodies, the index of the body, such as the particle of a soft body </remarks>
+    public int OtherChildIndex => IsSourceA
+        ? Contacts.Other.GetChildIndex(ContactGroup.Pair.B, ContactGroup.ChildIndexB)
+        : Contacts.Other.GetChildIndex(ContactGroup.Pair.A, ContactGroup.ChildIndexA);
 
     /// <summary> The position at which the contact occured </summary>
     /// <remarks> This may not be accurate if they separated within this tick, or when you removed either of them from the simulation within this scope </remarks>

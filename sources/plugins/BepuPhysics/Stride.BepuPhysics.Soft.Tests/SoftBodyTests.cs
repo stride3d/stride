@@ -7,6 +7,7 @@ using BepuPhysics.CollisionDetection;
 using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Definitions.Colliders;
 using Stride.BepuPhysics.Definitions.Contacts;
+using Stride.BepuPhysics.Soft.Colliders;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Graphics.GeometricPrimitives;
@@ -110,6 +111,32 @@ public class SoftBodyTests : GameTestBase
             // Touching the floor, its own particles touching each other do not count
             Assert.NotEmpty(events.Others);
             Assert.All(events.Others, other => Assert.IsType<StaticComponent>(other));
+        });
+    }
+
+    /// <summary> Ray hits and contacts say which particle of the soft body they are on, through their child index </summary>
+    [Fact]
+    public static void RaysAndContactsReportTheParticle()
+    {
+        RunScene(async scene =>
+        {
+            var events = new ParticleHandler();
+            var body = new VolumetricSoftBodyComponent { Resolution = 3, ContactEventHandler = events, SleepThreshold = 0f };
+            scene.Add(body, new CubeProceduralModel(), new Vector3(0f, 1f, 0f));
+            await Seconds(body, 1.5f);
+
+            // A ray stops on the sphere of the particle it reports, cast through the simulation or at the body alone
+            float radius = ((ParticleCollider)body.Collider).ActualRadius;
+            Assert.True(body.Simulation!.RayCast(new Vector3(0.1f, 5f, 0.2f), -Vector3.UnitY, 10f, out var hit));
+            Assert.Equal(radius, Vector3.Distance(body.GetParticlePosition(hit.ChildIndex), hit.Point), 3);
+            Assert.True(body.RayCast(new Vector3(5f, 0.3f, 0.1f), -Vector3.UnitX, 10f, out hit));
+            Assert.Equal(radius, Vector3.Distance(body.GetParticlePosition(hit.ChildIndex), hit.Point), 3);
+
+            // The floor is touched by the bottom layer of the lattice, by more than one of its particles
+            events.Particles.Clear();
+            await body.Simulation!.AfterUpdate();
+            Assert.True(events.Particles.Count > 1, $"{events.Particles.Count} particles in contact");
+            Assert.All(events.Particles, particle => Assert.True(body.GetParticlePosition(particle).Y < radius * 1.5f, $"Particle {particle} at {body.GetParticlePosition(particle)}"));
         });
     }
 
@@ -365,6 +392,18 @@ public class SoftBodyTests : GameTestBase
         public void OnStartedTouching<TManifold>(Contacts<TManifold> contacts) where TManifold : unmanaged, IContactManifold<TManifold>
         {
             Others.Add(contacts.Other);
+        }
+    }
+
+    private sealed class ParticleHandler : IContactHandler
+    {
+        public bool NoContactResponse => false;
+        public readonly System.Collections.Generic.HashSet<int> Particles = new();
+
+        public void OnTouching<TManifold>(Contacts<TManifold> contacts) where TManifold : unmanaged, IContactManifold<TManifold>
+        {
+            foreach (var contact in contacts)
+                Particles.Add(contact.SourceChildIndex);
         }
     }
 

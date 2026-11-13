@@ -29,12 +29,12 @@ internal unsafe struct RayHitsStackHandler(HitInfoStack* Ptr, int Length, BepuSi
 
     public void OnRayHit(in RayData ray, ref float maximumT, float t, Vector3 normal, CollidableReference collidable, int childIndex)
     {
-        InsertHit(ray.Origin + ray.Direction * t, ref maximumT, t, normal, collidable, childIndex);
+        InsertHit(ray.Origin + ray.Direction * t, ref maximumT, t, normal, collidable, sim.GetComponent(collidable).GetChildIndex(collidable, childIndex));
     }
 
     public void OnHit(ref float maximumT, float t, Vector3 hitLocation, Vector3 normal, CollidableReference collidable)
     {
-        InsertHit(hitLocation, ref maximumT, t, normal, collidable, -1);
+        InsertHit(hitLocation, ref maximumT, t, normal, collidable, sim.GetComponent(collidable).GetChildIndex(collidable, -1));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
