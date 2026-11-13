@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core;
+using Stride.Core.Diagnostics;
 using Stride.Core.Threading;
 using Stride.Engine;
 using Stride.Games;
@@ -21,7 +22,12 @@ internal sealed class SoftBodyProcessor : EntityProcessor<SoftBodyComponent, Sof
 
         /// <summary> The last model the body was created from or failed to be created from, so it is only retried when the model changes </summary>
         public Model? AttemptedModel;
+
+        /// <summary> Whether the lack of a model was already reported </summary>
+        public bool ReportedMissingModel;
     }
+
+    private static readonly Logger Logger = GlobalLogger.GetLogger(nameof(SoftBodyProcessor));
 
     private readonly List<DeformableModel> _retired = new();
     private readonly List<SoftBodyComponent> _drawn = new();
@@ -70,6 +76,11 @@ internal sealed class SoftBodyProcessor : EntityProcessor<SoftBodyComponent, Sof
                 {
                     data.AttemptedModel = model;
                     component.TryUpdateFeatures();
+                }
+                else if (modelComponent?.Model is null && data.ReportedMissingModel == false)
+                {
+                    data.ReportedMissingModel = true;
+                    Logger.Warning($"{component.GetType().Name} on '{component.Entity.Name}' has no shape to take: it needs a {nameof(ModelComponent)} with a model on the same entity");
                 }
                 continue;
             }

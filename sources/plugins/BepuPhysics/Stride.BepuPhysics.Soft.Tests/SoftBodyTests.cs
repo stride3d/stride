@@ -175,6 +175,36 @@ public class SoftBodyTests : GameTestBase
         });
     }
 
+    /// <summary> A soft body without a model cannot be built: it stays out of the simulation, and says so once </summary>
+    [Fact]
+    public static void ASoftBodyWithoutAModelIsReported()
+    {
+        RunScene(async scene =>
+        {
+            var warnings = new System.Collections.Generic.List<string>();
+            void Collect(Stride.Core.Diagnostics.ILogMessage message)
+            {
+                if (message.Type >= Stride.Core.Diagnostics.LogMessageType.Warning)
+                    warnings.Add(message.Text);
+            }
+            Stride.Core.Diagnostics.GlobalLogger.GlobalMessageLogged += Collect;
+            try
+            {
+                var body = new VolumetricSoftBodyComponent();
+                scene.Add(body, new Vector3(0f, 2f, 0f));
+                for (int frame = 0; frame < 3; frame++)
+                    await scene.Game.Script.NextFrame();
+
+                Assert.Null(body.Simulation);
+                Assert.Single(warnings, warning => warning.Contains(nameof(VolumetricSoftBodyComponent)) && warning.Contains(nameof(ModelComponent)));
+            }
+            finally
+            {
+                Stride.Core.Diagnostics.GlobalLogger.GlobalMessageLogged -= Collect;
+            }
+        });
+    }
+
     /// <summary>
     /// The collider and the collision group of a soft body are its own business: neither the editor nor a scene file sees them,
     /// while they see the ones of the other collidables.
