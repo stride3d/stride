@@ -146,14 +146,12 @@ public sealed class ClothComponent : SoftBodyComponent
         return topology;
     }
 
-    internal override void AddConstraints(global::BepuPhysics.Simulation simulation, ReadOnlySpan<BodyHandle> particles, ReadOnlySpan<bool> pinned, SoftBodyTopology topology)
+    internal override void AddConstraints(global::BepuPhysics.Simulation simulation, ReadOnlySpan<BodyHandle> particles, SoftBodyTopology topology)
     {
         var stretch = Spring(_stretchStiffness, _damping);
         var bend = Spring(_bendStiffness, _damping);
         foreach (var edge in topology.Edges)
         {
-            if (pinned[edge.A] && pinned[edge.B])
-                continue;
             var length = System.Numerics.Vector3.Distance(simulation.Bodies[particles[edge.A]].Pose.Position, simulation.Bodies[particles[edge.B]].Pose.Position);
             if (edge.Kind == EdgeKind.Bend)
                 simulation.Solver.Add(particles[edge.A], particles[edge.B], new CenterDistanceConstraint(length, bend));
