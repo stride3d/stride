@@ -17,7 +17,6 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Stride.BepuPhysics.Soft.Tests" />
-    <InternalsVisibleTo Include="Stride.BepuPhysics.Debug" />
   </ItemGroup>
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
 </Project>

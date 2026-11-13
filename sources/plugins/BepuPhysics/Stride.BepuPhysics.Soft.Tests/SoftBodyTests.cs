@@ -279,6 +279,42 @@ public class SoftBodyTests : GameTestBase
         });
     }
 
+    /// <summary> What a soft body shows in the debug view: three lines for the cross on each particle, then one for each spring </summary>
+    [Fact]
+    public static void DebugViewGetsTheParticlesAndTheSprings()
+    {
+        RunScene(async scene =>
+        {
+            var body = new VolumetricSoftBodyComponent { Resolution = 2 };
+            scene.Add(body, new CubeProceduralModel(), new Vector3(0f, 1f, 0f));
+            await body.Simulation!.AfterUpdate();
+
+            var lines = new LineCollector();
+            body.AddDebugLines(lines);
+
+            var topology = body.Topology!;
+            Assert.Equal(body.ParticleCount * 3 + topology.Edges.Length, lines.Segments.Count);
+            for (int i = 0; i < body.ParticleCount; i++)
+            {
+                var (start, end, _) = lines.Segments[i * 3];
+                Assert.True(Vector3.Distance((start + end) * 0.5f, body.GetParticlePosition(i)) < 1e-4f, $"Cross of particle {i}");
+            }
+            for (int i = 0; i < topology.Edges.Length; i++)
+            {
+                var (start, end, _) = lines.Segments[body.ParticleCount * 3 + i];
+                Assert.Equal(body.GetParticlePosition(topology.Edges[i].A), start);
+                Assert.Equal(body.GetParticlePosition(topology.Edges[i].B), end);
+            }
+        });
+    }
+
+    private sealed class LineCollector : IDebugLineCollector
+    {
+        public readonly System.Collections.Generic.List<(Vector3 Start, Vector3 End, Color Color)> Segments = new();
+
+        public void AddLine(Vector3 start, Vector3 end, Color color) => Segments.Add((start, end, color));
+    }
+
     private sealed class CountingHandler : IContactHandler
     {
         public bool NoContactResponse => false;

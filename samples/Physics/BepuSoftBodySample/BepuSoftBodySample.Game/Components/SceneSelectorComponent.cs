@@ -249,8 +249,7 @@ namespace BepuSoftBodySample.Game.Components
                 header.Children.Add(Text("DEBUG VIEW", 11f, MutedColor, margin: new Thickness(23f, 16f, 0f, 5f)));
                 header.Children.Add(BuildToggle("Physics debug view", () => debug.Visible, on => debug.Visible = on));
                 header.Children.Add(BuildToggle("Colliders", () => debug.Visible && debug.ShowShapes, on => Show(debug, on, d => d.ShowShapes = on)));
-                header.Children.Add(BuildToggle("Soft body particles", () => debug.Visible && debug.ShowSoftBodyParticles, on => Show(debug, on, d => d.ShowSoftBodyParticles = on)));
-                header.Children.Add(BuildToggle("Soft body springs", () => debug.Visible && debug.ShowSoftBodySprings, on => Show(debug, on, d => d.ShowSoftBodySprings = on)));
+                header.Children.Add(BuildToggle("Particles and springs", () => debug.Visible && debug.ShowCollidableLines, on => Show(debug, on, d => d.ShowCollidableLines = on)));
                 header.Children.Add(BuildToggle("Contacts", () => debug.Visible && debug.ShowContactPoints, on => Show(debug, on, d => d.ShowContactPoints = d.ShowContactNormals = on)));
                 header.Children.Add(BuildToggle("Hide the models", () => _hideModels, on => Show(debug, on, _ => _hideModels = on)));
             }
