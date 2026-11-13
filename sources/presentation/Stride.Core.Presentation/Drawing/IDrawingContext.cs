@@ -8,7 +8,10 @@ namespace Stride.Core.Presentation.Drawing
     /// <summary>
     /// Draws shapes and texts, independently from any UI toolkit. Each toolkit implements it over its own drawing.
     /// </summary>
-
+    /// <remarks>
+    /// The <c>isHitTestVisible</c>, <c>aliased</c> and <c>measurementMethod</c> parameters are hints: a toolkit that has no use
+    /// for them ignores them. A caller that needs hit testing does it in its own model.
+    /// </remarks>
     public interface IDrawingContext
     {
         /// <summary>
@@ -19,15 +22,15 @@ namespace Stride.Core.Presentation.Drawing
         /// <summary>
         /// Draws an ellipse.
         /// </summary>
-        /// <param name="point"></param>
-        /// <param name="size"></param>
+        /// <param name="point">The center of the ellipse.</param>
+        /// <param name="size">The width and height of the ellipse.</param>
         /// <param name="fillColor">The color of the shape's interior.</param>
         /// <param name="strokeColor">The color of the shape's outline.</param>
-        /// <param name="thickness">The wifdth of the shape's outline. The default is <c>1</c>.</param>
+        /// <param name="thickness">The width of the shape's outline. The default is <c>1</c>.</param>
         /// <param name="lineJoin">The type of join that is used at the vertices of the shape. The default is <see cref="DrawingLineJoin.Miter"/>.</param>
         /// <param name="dashArray">The pattern of dashes and gaps that is used to outline the shape. The default is <c>null</c>.</param>
         /// <param name="dashOffset">The distance within the dash pattern where a dash begins. The default is <c>0</c>.</param>
-        /// <param name="isHitTestVisible"><c>true</c> if hit testing should be enabled, <c>false</c> otherwise. The default is <c>false</c>.</param>
+        /// <param name="isHitTestVisible"><c>true</c> if the shape should take part in the hit testing of the toolkit, <c>false</c> otherwise. A hint that a toolkit may ignore. The default is <c>false</c>.</param>
         void DrawEllipse(DrawingPoint point, DrawingSize size, Color fillColor, Color strokeColor,
             double thickness = 1.0, DrawingLineJoin lineJoin = DrawingLineJoin.Miter, ICollection<double>? dashArray = null, double dashOffset = 0, bool isHitTestVisible = false);
 
@@ -37,31 +40,31 @@ namespace Stride.Core.Presentation.Drawing
         /// <remarks>
         /// This performs better than calling <see cref="DrawEllipse"/> multiple times.
         /// </remarks>
-        /// <param name="points"></param>
+        /// <param name="points">The centers of the ellipses.</param>
         /// <param name="radiusX">The horizontal radius of the ellipse.</param>
         /// <param name="radiusY">The vertical radius of the ellipse.</param>
         /// <param name="fillColor">The color of the shape's interior.</param>
         /// <param name="strokeColor">The color of the shape's outline.</param>
-        /// <param name="thickness">The wifdth of the shape's outline. The default is <c>1</c>.</param>
+        /// <param name="thickness">The width of the shape's outline. The default is <c>1</c>.</param>
         /// <param name="lineJoin">The type of join that is used at the vertices of the shape. The default is <see cref="DrawingLineJoin.Miter"/>.</param>
         /// <param name="dashArray">The pattern of dashes and gaps that is used to outline the shape. The default is <c>null</c>.</param>
         /// <param name="dashOffset">The distance within the dash pattern where a dash begins. The default is <c>0</c>.</param>
-        /// <param name="isHitTestVisible"><c>true</c> if hit testing should be enabled, <c>false</c> otherwise. The default is <c>false</c>.</param>
+        /// <param name="isHitTestVisible"><c>true</c> if the shape should take part in the hit testing of the toolkit, <c>false</c> otherwise. A hint that a toolkit may ignore. The default is <c>false</c>.</param>
         void DrawEllipses(IList<DrawingPoint> points, double radiusX, double radiusY, Color fillColor, Color strokeColor,
             double thickness = 1.0, DrawingLineJoin lineJoin = DrawingLineJoin.Miter, ICollection<double>? dashArray = null, double dashOffset = 0, bool isHitTestVisible = false);
 
         /// <summary>
         /// Draws a straight line between <paramref name="p1"/> and <paramref name="p2"/>.
         /// </summary>
-        /// <param name="p1"></param>
-        /// <param name="p2"></param>
+        /// <param name="p1">The start of the line.</param>
+        /// <param name="p2">The end of the line.</param>
         /// <param name="strokeColor">The color of the shape's outline.</param>
-        /// <param name="thickness">The wifdth of the shape's outline. The default is <c>1</c>.</param>
+        /// <param name="thickness">The width of the shape's outline. The default is <c>1</c>.</param>
         /// <param name="lineJoin">The type of join that is used at the vertices of the shape. The default is <see cref="DrawingLineJoin.Miter"/>.</param>
         /// <param name="dashArray">The pattern of dashes and gaps that is used to outline the shape. The default is <c>null</c>.</param>
         /// <param name="dashOffset">The distance within the dash pattern where a dash begins. The default is <c>0</c>.</param>
-        /// <param name="aliased"></param>
-        /// <param name="isHitTestVisible"><c>true</c> if hit testing should be enabled, <c>false</c> otherwise. The default is <c>false</c>.</param>
+        /// <param name="aliased"><c>true</c> to draw the shape without antialiasing, <c>false</c> otherwise. A hint that a toolkit may ignore. The default is <c>false</c>.</param>
+        /// <param name="isHitTestVisible"><c>true</c> if the shape should take part in the hit testing of the toolkit, <c>false</c> otherwise. A hint that a toolkit may ignore. The default is <c>false</c>.</param>
         void DrawLine(DrawingPoint p1, DrawingPoint p2, Color strokeColor,
             double thickness = 1.0, DrawingLineJoin lineJoin = DrawingLineJoin.Miter, ICollection<double>? dashArray = null, double dashOffset = 0, bool aliased = false, bool isHitTestVisible = false);
 
@@ -70,68 +73,68 @@ namespace Stride.Core.Presentation.Drawing
         /// </summary>
         /// <param name="points">The points.</param>
         /// <param name="strokeColor">The color of the shape's outline.</param>
-        /// <param name="thickness">The wifdth of the shape's outline. The default is <c>1</c>.</param>
+        /// <param name="thickness">The width of the shape's outline. The default is <c>1</c>.</param>
         /// <param name="lineJoin">The type of join that is used at the vertices of the shape. The default is <see cref="DrawingLineJoin.Miter"/>.</param>
         /// <param name="dashArray">The pattern of dashes and gaps that is used to outline the shape. The default is <c>null</c>.</param>
         /// <param name="dashOffset">The distance within the dash pattern where a dash begins. The default is <c>0</c>.</param>
-        /// <param name="aliased"></param>
-        /// <param name="isHitTestVisible"><c>true</c> if hit testing should be enabled, <c>false</c> otherwise. The default is <c>false</c>.</param>
+        /// <param name="aliased"><c>true</c> to draw the shape without antialiasing, <c>false</c> otherwise. A hint that a toolkit may ignore. The default is <c>false</c>.</param>
+        /// <param name="isHitTestVisible"><c>true</c> if the shape should take part in the hit testing of the toolkit, <c>false</c> otherwise. A hint that a toolkit may ignore. The default is <c>false</c>.</param>
         void DrawLineSegments(IList<DrawingPoint> points, Color strokeColor,
             double thickness = 1.0, DrawingLineJoin lineJoin = DrawingLineJoin.Miter, ICollection<double>? dashArray = null, double dashOffset = 0, bool aliased = false, bool isHitTestVisible = false);
 
         /// <summary>
         /// Draws a polygon.
         /// </summary>
-        /// <param name="points"></param>
-        /// <param name="fillColor"></param>
+        /// <param name="points">The vertices of the polygon.</param>
+        /// <param name="fillColor">The color of the shape's interior.</param>
         /// <param name="strokeColor">The color of the shape's outline.</param>
-        /// <param name="thickness">The wifdth of the shape's outline. The default is <c>1</c>.</param>
+        /// <param name="thickness">The width of the shape's outline. The default is <c>1</c>.</param>
         /// <param name="lineJoin">The type of join that is used at the vertices of the shape.</param>
         /// <param name="dashArray">The pattern of dashes and gaps that is used to outline the shape. The default is <c>null</c>.</param>
         /// <param name="dashOffset">The distance within the dash pattern where a dash begins. The default is <c>0</c>.</param>
-        /// <param name="aliased"></param>
-        /// <param name="isHitTestVisible"><c>true</c> if hit testing should be enabled, <c>false</c> otherwise. The default is <c>false</c>.</param>
+        /// <param name="aliased"><c>true</c> to draw the shape without antialiasing, <c>false</c> otherwise. A hint that a toolkit may ignore. The default is <c>false</c>.</param>
+        /// <param name="isHitTestVisible"><c>true</c> if the shape should take part in the hit testing of the toolkit, <c>false</c> otherwise. A hint that a toolkit may ignore. The default is <c>false</c>.</param>
         void DrawPolygon(IList<DrawingPoint> points, Color fillColor, Color strokeColor,
             double thickness = 1.0, DrawingLineJoin lineJoin = DrawingLineJoin.Miter, ICollection<double>? dashArray = null, double dashOffset = 0, bool aliased = false, bool isHitTestVisible = false);
 
         /// <summary>
         /// Draws a polyline.
         /// </summary>
-        /// <param name="points"></param>
+        /// <param name="points">The points of the polyline.</param>
         /// <param name="strokeColor">The color of the shape's outline.</param>
-        /// <param name="thickness">The wifdth of the shape's outline. The default is <c>1</c>.</param>
+        /// <param name="thickness">The width of the shape's outline. The default is <c>1</c>.</param>
         /// <param name="lineJoin">The type of join that is used at the vertices of the shape. The default is <see cref="DrawingLineJoin.Miter"/>.</param>
         /// <param name="dashArray">The pattern of dashes and gaps that is used to outline the shape. The default is <c>null</c>.</param>
         /// <param name="dashOffset">The distance within the dash pattern where a dash begins. The default is <c>0</c>.</param>
-        /// <param name="aliased"></param>
-        /// <param name="isHitTestVisible"><c>true</c> if hit testing should be enabled, <c>false</c> otherwise. The default is <c>false</c>.</param>
+        /// <param name="aliased"><c>true</c> to draw the shape without antialiasing, <c>false</c> otherwise. A hint that a toolkit may ignore. The default is <c>false</c>.</param>
+        /// <param name="isHitTestVisible"><c>true</c> if the shape should take part in the hit testing of the toolkit, <c>false</c> otherwise. A hint that a toolkit may ignore. The default is <c>false</c>.</param>
         void DrawPolyline(IList<DrawingPoint> points, Color strokeColor,
             double thickness = 1.0, DrawingLineJoin lineJoin = DrawingLineJoin.Miter, ICollection<double>? dashArray = null, double dashOffset = 0, bool aliased = false, bool isHitTestVisible = false);
 
         /// <summary>
         /// Draws a rectangle.
         /// </summary>
-        /// <param name="rect"></param>
+        /// <param name="rect">The bounds of the rectangle.</param>
         /// <param name="fillColor">The color of the shape's interior.</param>
         /// <param name="strokeColor">The color of the shape's outline.</param>
-        /// <param name="thickness">The wifdth of the shape's outline. The default is <c>1</c>.</param>
+        /// <param name="thickness">The width of the shape's outline. The default is <c>1</c>.</param>
         /// <param name="lineJoin">The type of join that is used at the vertices of the shape. The default is <see cref="DrawingLineJoin.Miter"/>.</param>
         /// <param name="dashArray">The pattern of dashes and gaps that is used to outline the shape. The default is <c>null</c>.</param>
         /// <param name="dashOffset">The distance within the dash pattern where a dash begins. The default is <c>0</c>.</param>
-        /// <param name="isHitTestVisible"><c>true</c> if hit testing should be enabled, <c>false</c> otherwise. The default is <c>false</c>.</param>
+        /// <param name="isHitTestVisible"><c>true</c> if the shape should take part in the hit testing of the toolkit, <c>false</c> otherwise. A hint that a toolkit may ignore. The default is <c>false</c>.</param>
         void DrawRectangle(DrawingRect rect, Color fillColor, Color strokeColor,
             double thickness = 1.0, DrawingLineJoin lineJoin = DrawingLineJoin.Miter, ICollection<double>? dashArray = null, double dashOffset = 0, bool isHitTestVisible = false);
 
         /// <summary>
         /// Draws text.
         /// </summary>
-        /// <param name="point"></param>
+        /// <param name="point">The position of the text, aligned as <paramref name="hAlign"/> and <paramref name="vAlign"/> say.</param>
         /// <param name="color">The color of the text.</param>
         /// <param name="text">The text.</param>
         /// <param name="font">The font.</param>
         /// <param name="hAlign">The horizontal alignment. The default is <see cref="DrawingHorizontalAlignment.Left"/>.</param>
         /// <param name="vAlign">The vertical alignment. The default is <see cref="DrawingVerticalAlignment.Top"/>.</param>
-        /// <param name="isHitTestVisible"><c>true</c> if hit testing should be enabled, <c>false</c> otherwise. The default is <c>false</c>.</param>
+        /// <param name="isHitTestVisible"><c>true</c> if the shape should take part in the hit testing of the toolkit, <c>false</c> otherwise. A hint that a toolkit may ignore. The default is <c>false</c>.</param>
         void DrawText(DrawingPoint point, Color color, string text, DrawingFont font,
             DrawingHorizontalAlignment hAlign = DrawingHorizontalAlignment.Left, DrawingVerticalAlignment vAlign = DrawingVerticalAlignment.Top, bool isHitTestVisible = false);
 
@@ -141,13 +144,13 @@ namespace Stride.Core.Presentation.Drawing
         /// <remarks>
         /// This performs better than calling <see cref="DrawText"/> multiple times.
         /// </remarks>
-        /// <param name="points"></param>
+        /// <param name="points">The position of each text, aligned as <paramref name="hAlign"/> and <paramref name="vAlign"/> say.</param>
         /// <param name="color">The color of the text.</param>
-        /// <param name="texts"></param>
+        /// <param name="texts">The texts, one for each point.</param>
         /// <param name="font">The font.</param>
         /// <param name="hAlign">The horizontal alignment. The default is <see cref="DrawingHorizontalAlignment.Left"/>.</param>
         /// <param name="vAlign">The vertical alignment. The default is <see cref="DrawingVerticalAlignment.Top"/>.</param>
-        /// <param name="isHitTestVisible"><c>true</c> if hit testing should be enabled, <c>false</c> otherwise. The default is <c>false</c>.</param>
+        /// <param name="isHitTestVisible"><c>true</c> if the shape should take part in the hit testing of the toolkit, <c>false</c> otherwise. A hint that a toolkit may ignore. The default is <c>false</c>.</param>
         void DrawTexts(IList<DrawingPoint> points, Color color, IList<string> texts, DrawingFont font,
             DrawingHorizontalAlignment hAlign = DrawingHorizontalAlignment.Left, DrawingVerticalAlignment vAlign = DrawingVerticalAlignment.Top, bool isHitTestVisible = false);
 
@@ -156,7 +159,7 @@ namespace Stride.Core.Presentation.Drawing
         /// </summary>
         /// <param name="text">The text.</param>
         /// <param name="font">The font.</param>
-        /// <param name="measurementMethod"></param>
+        /// <param name="measurementMethod">How to measure the text. A hint that a toolkit may ignore. The default is <see cref="TextMeasurementMethod.GlyphTypeface"/>.</param>
         /// <returns>
         /// The size of the text (in device independent units, 1/96 inch).
         /// </returns>
@@ -171,7 +174,7 @@ namespace Stride.Core.Presentation.Drawing
         /// </remarks>
         /// <param name="texts">The texts.</param>
         /// <param name="font">The font.</param>
-        /// <param name="measurementMethod"></param>
+        /// <param name="measurementMethod">How to measure the text. A hint that a toolkit may ignore. The default is <see cref="TextMeasurementMethod.GlyphTypeface"/>.</param>
         /// <returns>
         /// The maximum size of the texts (in device independent units, 1/96 inch).
         /// </returns>

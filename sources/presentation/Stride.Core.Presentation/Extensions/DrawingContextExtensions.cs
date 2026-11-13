@@ -36,15 +36,15 @@ namespace Stride.Core.Presentation.Extensions
         /// Draws a circle in the canvas.
         /// </summary>
         /// <param name="renderer">The renderer.</param>
-        /// <param name="point"></param>
+        /// <param name="point">The center of the circle.</param>
         /// <param name="radius">The radius of the circle.</param>
         /// <param name="fillColor">The color of the shape's interior.</param>
         /// <param name="strokeColor">The color of the shape's outline.</param>
-        /// <param name="thickness">The wifdth of the shape's outline. The default is <c>1</c>.</param>
+        /// <param name="thickness">The width of the shape's outline. The default is <c>1</c>.</param>
         /// <param name="lineJoin">The type of join that is used at the vertices of the shape. The default is <see cref="DrawingLineJoin.Miter"/>.</param>
         /// <param name="dashArray">The pattern of dashes and gaps that is used to outline the shape. The default is <c>null</c>.</param>
         /// <param name="dashOffset">The distance within the dash pattern where a dash begins. The default is <c>0</c>.</param>
-        /// <param name="isHitTestVisible"><c>true</c> if hit testing should be enabled, <c>false</c> otherwise. The default is <c>false</c>.</param>
+        /// <param name="isHitTestVisible"><c>true</c> if the shape should take part in the hit testing of the toolkit, <c>false</c> otherwise. A hint that a toolkit may ignore. The default is <c>false</c>.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void DrawCircle(this IDrawingContext renderer, DrawingPoint point, double radius, Color fillColor, Color strokeColor,
             double thickness = 1.0, DrawingLineJoin lineJoin = DrawingLineJoin.Miter, ICollection<double>? dashArray = null, double dashOffset = 0, bool isHitTestVisible = false)
@@ -58,15 +58,15 @@ namespace Stride.Core.Presentation.Extensions
         /// This performs better than calling DrawCircle multiple times.
         /// </summary>
         /// <param name="renderer">The renderer.</param>
-        /// <param name="points"></param>
+        /// <param name="points">The centers of the circles.</param>
         /// <param name="radius">The radius of the circle.</param>
         /// <param name="fillColor">The color of the shape's interior.</param>
         /// <param name="strokeColor">The color of the shape's outline.</param>
-        /// <param name="thickness">The wifdth of the shape's outline. The default is <c>1</c>.</param>
+        /// <param name="thickness">The width of the shape's outline. The default is <c>1</c>.</param>
         /// <param name="lineJoin">The type of join that is used at the vertices of the shape. The default is <see cref="DrawingLineJoin.Miter"/>.</param>
         /// <param name="dashArray">The pattern of dashes and gaps that is used to outline the shape. The default is <c>null</c>.</param>
         /// <param name="dashOffset">The distance within the dash pattern where a dash begins. The default is <c>0</c>.</param>
-        /// <param name="isHitTestVisible"><c>true</c> if hit testing should be enabled, <c>false</c> otherwise. The default is <c>false</c>.</param>
+        /// <param name="isHitTestVisible"><c>true</c> if the shape should take part in the hit testing of the toolkit, <c>false</c> otherwise. A hint that a toolkit may ignore. The default is <c>false</c>.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void DrawCircles(this IDrawingContext renderer, IList<DrawingPoint> points, double radius, Color fillColor, Color strokeColor,
             double thickness = 1.0, DrawingLineJoin lineJoin = DrawingLineJoin.Miter, ICollection<double>? dashArray = null, double dashOffset = 0, bool isHitTestVisible = false)
@@ -84,7 +84,7 @@ namespace Stride.Core.Presentation.Extensions
         /// <param name="font">The font.</param>
         /// <param name="hAlign">The horizontal alignment.</param>
         /// <param name="vAlign">The vertical alignment.</param>
-        /// <param name="isHitTestVisible"><c>true</c> if hit testing should be enabled, <c>false</c> otherwise. The default is <c>false</c>.</param>
+        /// <param name="isHitTestVisible"><c>true</c> if the shape should take part in the hit testing of the toolkit, <c>false</c> otherwise. A hint that a toolkit may ignore. The default is <c>false</c>.</param>
         /// <returns>The size of the text.</returns>
         /// <example>Subscript: H_{2}O
         /// Superscript: E=mc^{2}
@@ -116,7 +116,7 @@ namespace Stride.Core.Presentation.Extensions
         /// <param name="s">The s.</param>
         /// <param name="color">The text color.</param>
         /// <param name="font">The font.</param>
-        /// <param name="isHitTestVisible"><c>true</c> if hit testing should be enabled, <c>false</c> otherwise. The default is <c>false</c>.</param>
+        /// <param name="isHitTestVisible"><c>true</c> if the shape should take part in the hit testing of the toolkit, <c>false</c> otherwise. A hint that a toolkit may ignore. The default is <c>false</c>.</param>
         /// <returns>The size of the text.</returns>
         private static void InternalDrawMathText(IDrawingContext renderer, double x, double y, Color color, string s, DrawingFont font, bool isHitTestVisible)
         {

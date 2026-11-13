@@ -1,8 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Avalonia;
-using Avalonia.Controls.Templates;
 using Avalonia.Markup.Xaml.Styling;
 using Stride.Assets.Editor.Avalonia.Views;
 using Stride.Assets.Editor.Avalonia.Views.CurveEditor;
@@ -30,11 +28,6 @@ public sealed class StrideEditorViewPlugin : StrideAssetsAvaloniaPlugin
     /// The dictionary of the control themes of this assembly (the preview views).
     /// </summary>
     public static readonly Uri ThemesUri = new("avares://Stride.Assets.Editor.Avalonia/Themes/Generic.axaml");
-
-    // The view of the curve editor panel, added once to the application's data templates (only for the panel: a typed template
-    // matches null content otherwise)
-    private static readonly FuncDataTemplate<CurveEditorPanelViewModel> CurveEditorPanelTemplate =
-        new(panel => panel is not null, (panel, _) => new CurveEditorView { DataContext = panel.Editor });
 
     /// <inheritdoc />
     public override void Initialize(IEditorPluginContext context)
@@ -64,8 +57,7 @@ public sealed class StrideEditorViewPlugin : StrideAssetsAvaloniaPlugin
         base.InitializeSession(context);
 
         // "Edit curve" shows the curve editor panel
-        if (context.Session is SessionViewModel sessionViewModel)
-            context.Services.Register(new CurveEditorPanelService(sessionViewModel));
+        context.Services.Register(new CurveEditorPanelService(context.Session));
 
         if (GameStudioPreviewService.DisablePreview)
             return;
@@ -85,14 +77,10 @@ public sealed class StrideEditorViewPlugin : StrideAssetsAvaloniaPlugin
         context.Services.Register(new OffscreenGameViewportService(session.Dispatcher));
     }
 
-    // The curve editor is a panel with the asset view (curve editor D5 A, D6 A). Until plugins get their own registration (Phase 4),
-    // the panels are the host's, as for the panel of NotebookTestPlugin
-    private void RegisterCurveEditorPanel(IEditorPluginContext context)
+    // The curve editor is a panel with the asset view (curve editor D5 A, D6 A), with its view in this editor
+    private static void RegisterCurveEditorPanel(IEditorPluginContext context)
     {
-        if (context.Session?.ServiceProvider.TryGet<IAssetsPluginService>() is EditorPluginHost host && !host.Panels.Contains(CurveEditorPanelViewModel.PanelId))
-            host.Panels.Register(CurveEditorPanelViewModel.CreateDescriptor(), this);
-
-        if (Application.Current is { } application && !application.DataTemplates.Contains(CurveEditorPanelTemplate))
-            application.DataTemplates.Add(CurveEditorPanelTemplate);
+        context.Panels.Register(CurveEditorPanelViewModel.CreateDescriptor());
+        context.ViewTypes.Register(typeof(CurveEditorPanelViewModel), typeof(CurveEditorPanelView));
     }
 }

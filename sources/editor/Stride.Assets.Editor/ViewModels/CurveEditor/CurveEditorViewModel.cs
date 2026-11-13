@@ -232,6 +232,14 @@ namespace Stride.Assets.Editor.ViewModels.CurveEditor
                 return;
             }
 
+            if (click.Mode == CurveSelectionMode.Remove)
+            {
+                // Ctrl+click removes the clicked key from the selection, as a Ctrl+rectangle does, and starts no drag
+                Select(new DrawingRect(point.X - 2 * radius, point.Y - 2 * radius, 4 * radius, 4 * radius), click.Mode, true);
+                IsControlPointHovered = false;
+                return;
+            }
+
             if (!clickedPoint.IsSelected)
             {
                 // FIXME: do this atomically in the curve

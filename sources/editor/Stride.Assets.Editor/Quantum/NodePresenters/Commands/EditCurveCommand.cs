@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using Stride.Assets.Editor.Services;
 using Stride.Assets.Editor.ViewModels.CurveEditor;
 using Stride.Core;
-using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Reflection;
 
@@ -37,13 +37,13 @@ public sealed class EditCurveCommand : SyncNodePresenterCommandBase
     /// <summary>
     /// The current session.
     /// </summary>
-    private readonly SessionViewModel session;
+    private readonly ISessionViewModel session;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="EditCurveCommand"/> class.
     /// </summary>
     /// <param name="session">The current session.</param>
-    public EditCurveCommand(SessionViewModel session)
+    public EditCurveCommand(ISessionViewModel session)
     {
         this.session = session ?? throw new ArgumentNullException(nameof(session));
     }

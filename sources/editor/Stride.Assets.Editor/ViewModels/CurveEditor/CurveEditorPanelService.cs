@@ -5,7 +5,7 @@
 using System;
 using Stride.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Panels;
-using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Editor.ViewModels.CurveEditor;
 
@@ -15,13 +15,13 @@ namespace Stride.Assets.Editor.ViewModels.CurveEditor;
 /// </summary>
 public sealed class CurveEditorPanelService : ICurveEditorService
 {
-    private readonly SessionViewModel session;
+    private readonly ISessionViewModel session;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CurveEditorPanelService"/> class.
     /// </summary>
     /// <param name="session">The session; its services give the <see cref="IPanelService"/> of the main window.</param>
-    public CurveEditorPanelService(SessionViewModel session)
+    public CurveEditorPanelService(ISessionViewModel session)
     {
         this.session = session ?? throw new ArgumentNullException(nameof(session));
     }

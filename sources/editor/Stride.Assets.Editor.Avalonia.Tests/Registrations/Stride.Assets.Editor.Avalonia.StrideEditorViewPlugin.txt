@@ -63,3 +63,7 @@ PasteProcessors:
 PostPasteProcessors:
 SettingsKeys:
 ProfileSettings:
+Panels:
+  Stride.CurveEditor
+ViewTypes:
+  Stride.Assets.Editor.ViewModels.CurveEditor.CurveEditorPanelViewModel -> Stride.Assets.Editor.Avalonia.Views.CurveEditor.CurveEditorPanelView
