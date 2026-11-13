@@ -462,6 +462,11 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
     /// </summary>
     public event EventHandler<SessionStateChangedEventArgs>? SessionStateChanged;
 
+    /// <summary>
+    /// Raised on the UI thread after the session was saved, also when the save failed for some of its files.
+    /// </summary>
+    public event EventHandler? SessionSaved;
+
     #region ISessionViewModel
     IAssetCollectionViewModel ISessionViewModel.ActiveAssetView => AssetCollection;
 
@@ -944,6 +949,9 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
 
             AllPackages.ForEach(x => x.OnSessionSaved());
         }
+
+        // The files of the assets written before an error are on the disk too
+        SessionSaved?.Invoke(this, EventArgs.Empty);
 
         UpdateSessionState();
         UpdateHasUnsavedChanges();

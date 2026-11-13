@@ -177,6 +177,26 @@ public sealed class PluginTests
     }
 
     [Fact]
+    public async Task TheEffectsReadAShaderAddedInTheEditorOnceTheSessionIsSaved()
+    {
+        var gameSettings = GameSettingsFactory.Create();
+        gameSettings.SplashScreenTexture = null!;
+        await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: true, ("GameSettings", gameSettings));
+        var builder = fixture.ServiceProvider.Get<GameStudioBuilderService>();
+
+        var shader = fixture.Package.CreateAsset(fixture.Package.AssetMountPoint, new AssetItem("MyShader", new EffectShaderAsset { Text = "shader MyShader { };" }), false, null);
+
+        // Its file is written by the save
+        Assert.DoesNotContain("MyShader.sdsl", builder.ShaderSources.FileNames);
+
+        Assert.True(await fixture.Session.SaveSessionAsync());
+
+        Assert.True(builder.ShaderSources.TryGetFilePath("MyShader.sdsl", out var filePath));
+        Assert.Equal(shader.AssetItem.FullPath, filePath);
+        Assert.True(File.Exists(filePath.ToOSPath()));
+    }
+
+    [Fact]
     public void TheBuildCacheCollectionLeavesAFreshCacheAlone()
     {
         var directory = Path.Combine(Path.GetTempPath(), "Stride.Assets.Editor.Tests", Guid.NewGuid().ToString("N"));

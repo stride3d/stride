@@ -132,6 +132,22 @@ public sealed class StrideEditorPlugin : StrideAssetsPlugin
         context.Services.Register(builderService);
         context.Services.Register(builderService.Database); // TODO: this should be removed, the AssetBuilderService is reachable from anywhere now
 
+        // A save writes the shaders added, moved or deleted in the editor (shader files changed outside follow their project,
+        // which this editor does not watch): the effects then read the files where they are now
+        sessionViewModel.SessionSaved += (_, _) =>
+        {
+            if (builderService.IsDisposed)
+                return;
+            try
+            {
+                builderService.UpdateShaderSources();
+            }
+            catch (Exception e)
+            {
+                builderService.Logger.Error("Failed to update the shader files of the effects", e);
+            }
+        };
+
         if (EnableThumbnailService)
         {
             var thumbnailService = new GameStudioThumbnailService(sessionViewModel, settingsProvider, builderService);
