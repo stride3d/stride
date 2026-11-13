@@ -230,6 +230,36 @@ public class SoftBodyTests : GameTestBase
         });
     }
 
+    /// <summary>
+    /// The gizmo the scene editor shows and picks a collidable with: a soft body gets one from its model,
+    /// also when the editor only loads that model after the gizmo was made.
+    /// </summary>
+    [Fact]
+    public static void TheEditorGizmoOfASoftBodyWaitsForItsModel()
+    {
+        RunScene(async scene =>
+        {
+            await scene.Game.Script.NextFrame();
+
+            // Never added to the scene of the game: out of any simulation, as everything is in the editor
+            var editorScene = new Scene();
+            var cloth = new ClothComponent();
+            var modelComponent = new ModelComponent();
+            _ = new Entity("Cloth") { modelComponent, cloth };
+            var gizmo = new Stride.BepuPhysics.Systems.CollidableGizmo(cloth);
+            gizmo.Initialize(scene.Game.Services, editorScene);
+            gizmo.IsEnabled = true;
+            gizmo.Update();
+            Assert.Empty(editorScene.Entities);
+
+            modelComponent.Model = new ProceduralModelDescriptor(ClothModel).GenerateModel(scene.Game.Services);
+            gizmo.Update();
+            var shown = Assert.Single(editorScene.Entities);
+            Assert.True(shown.Get<ModelComponent>()!.Enabled);
+            gizmo.Dispose();
+        });
+    }
+
     /// <summary> A soft body without a model cannot be built: it stays out of the simulation, and says so once </summary>
     [Fact]
     public static void ASoftBodyWithoutAModelIsReported()
