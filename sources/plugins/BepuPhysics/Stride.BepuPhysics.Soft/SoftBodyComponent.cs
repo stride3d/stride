@@ -33,6 +33,7 @@ namespace Stride.BepuPhysics.Soft;
 /// The model is replaced at runtime by a copy whose vertices follow the particles, the entity's transform follows the overall motion of the body.
 /// Each particle is a body of the simulation, raycasts, overlaps and contact events report this component for any of them,
 /// ray hits and contacts with the index of the particle as their child index.
+/// Changing its mass, its sleep threshold or a setting of its springs builds the body again: it goes back to its rest shape, at rest, where the entity is.
 /// </remarks>
 [DataContract(Inherited = true)]
 [DefaultEntityComponentProcessor(typeof(SoftBodyProcessor), ExecutionMode = ExecutionMode.Runtime)]
