@@ -33,6 +33,7 @@ public sealed unsafe class VoxelCollider : VoxelColliderBase<FloatVoxelSource>, 
     public bool HasData => _samples != null;
 
     /// <summary>Copies a density field into the collider.</summary>
+    /// <remarks>Call it between simulation steps: a field of another size replaces the memory the physics threads read.</remarks>
     /// <param name="samplesX">Samples on the X axis.</param>
     /// <param name="samplesY">Samples on the Y axis.</param>
     /// <param name="samplesZ">Samples on the Z axis.</param>
@@ -79,7 +80,10 @@ public sealed unsafe class VoxelCollider : VoxelColliderBase<FloatVoxelSource>, 
     }
 
     /// <summary>Overwrites one sample; the simulation reads it on its next step without rebuilding anything.</summary>
-    /// <remarks>Call it between simulation steps. Debug views keep a copy of the surface until <see cref="VoxelColliderBase{TSource}.NotifyFieldChanged"/>.</remarks>
+    /// <remarks>
+    /// Call it between simulation steps. A sleeping body is not tested against what it rests on: wake up the ones the edit concerns.
+    /// Debug views keep a copy of the surface until <see cref="VoxelColliderBase{TSource}.NotifyFieldChanged"/>.
+    /// </remarks>
     /// <param name="x">Sample index on the X axis.</param>
     /// <param name="y">Sample index on the Y axis.</param>
     /// <param name="z">Sample index on the Z axis.</param>
@@ -98,6 +102,7 @@ public sealed unsafe class VoxelCollider : VoxelColliderBase<FloatVoxelSource>, 
     public float GetVoxel(int x, int y, int z) => _samples[SampleIndex(x, y, z)];
 
     /// <summary>Frees the field and detaches the collider from the simulation.</summary>
+    /// <remarks>Call it between simulation steps. The collider can be given a field again with <see cref="SetData"/>.</remarks>
     public void Dispose()
     {
         FreeSamples();

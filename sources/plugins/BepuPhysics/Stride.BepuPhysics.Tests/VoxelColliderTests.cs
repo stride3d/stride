@@ -563,6 +563,43 @@ namespace Stride.BepuPhysics.Tests
             });
         }
 
+        /// <summary>
+        /// Two chunks of a floor without sealed borders leave no hole where they meet: marching cubes chunks sharing a plane of samples,
+        /// surface nets chunks sharing two, as their quads stop half a cell short of the border.
+        /// </summary>
+        [Theory]
+        [InlineData(VoxelCellShape.MarchingCubes, 1)]
+        [InlineData(VoxelCellShape.SurfaceNets, 2)]
+        public static void UnsealedChunksLeaveNoHoleWhereTheyMeet(VoxelCellShape cellShape, int sharedSamplePlanes)
+        {
+            RunScript(game =>
+            {
+                const int samples = 6;
+                Entity Chunk(float x)
+                {
+                    var collider = new VoxelCollider { CellShape = cellShape, IsoLevel = IsoLevel, SealBorder = false };
+                    collider.SetData(samples, samples, samples, Floor(samples, 2));
+                    var chunk = new Entity { new StaticComponent { Collider = collider } };
+                    chunk.Transform.Position = new Vector3(x, 0f, 0f);
+                    return chunk;
+                }
+
+                float second = samples - sharedSamplePlanes;
+                var first = Chunk(0f);
+                game.SceneSystem.SceneInstance.RootScene.Entities.AddRange(new[] { first, Chunk(second) });
+                var simulation = first.GetSimulation();
+
+                // Straight down every tenth of a cell, from a cell and a half before the second chunk to as far into it
+                for (int i = -15; i <= 15; ++i)
+                {
+                    var x = second + i * 0.1f;
+                    Assert.True(simulation.RayCast(new Vector3(x, 10f, 2.5f), -Vector3.UnitY, 20f, out var hit), $"The ray at x = {x} falls between the chunks");
+                    Assert.Equal(2.5f, hit.Point.Y, Tolerance);
+                }
+                return Task.CompletedTask;
+            });
+        }
+
         /// <summary>A source may have fewer than two samples on an axis, which makes no cell: it is refused as the collider is attached.</summary>
         [Fact]
         public static void ASourceWithoutACellIsRefused()
@@ -572,6 +609,45 @@ namespace Stride.BepuPhysics.Tests
                 var terrain = new Entity { new StaticComponent { Collider = new PackedVoxelCollider(GC.AllocateArray<ushort>(1, pinned: true), 1) { CellShape = VoxelCellShape.Box } } };
                 Assert.Throws<InvalidOperationException>(() => game.SceneSystem.SceneInstance.RootScene.Entities.Add(terrain));
                 return Task.CompletedTask;
+            });
+        }
+
+        /// <summary>Bepu does not look at what a sleeping body rests on: carving the field under it leaves it there until it is woken up.</summary>
+        [Fact]
+        public static void EditsUnderASleepingBodyNeedItAwake()
+        {
+            RunScript(async game =>
+            {
+                const int samples = 10;
+                var collider = new VoxelCollider { CellShape = VoxelCellShape.Box, IsoLevel = IsoLevel };
+                collider.SetData(samples, samples, samples, Floor(samples, 4));
+                var terrain = new Entity { new StaticComponent { Collider = collider } };
+                var body = new BodyComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider { Size = new Vector3(1f) } } } };
+                var crate = new Entity { body };
+                crate.Transform.Position = new Vector3(4.5f, 5.6f, 4.5f);
+                game.SceneSystem.SceneInstance.RootScene.Entities.AddRange(new[] { terrain, crate });
+                var simulation = terrain.GetSimulation();
+                for (int step = 0; step < 60; ++step)
+                    await simulation.AfterUpdate();
+                float resting = crate.Transform.Position.Y;
+
+                body.Awake = false;
+                for (int x = 3; x <= 6; ++x)
+                {
+                    for (int z = 3; z <= 6; ++z)
+                    {
+                        collider.SetVoxel(x, 4, z, 0f);
+                        collider.SetVoxel(x, 3, z, 0f);
+                    }
+                }
+                for (int step = 0; step < 30; ++step)
+                    await simulation.AfterUpdate();
+                Assert.Equal(resting, crate.Transform.Position.Y, Tolerance);
+
+                body.Awake = true;
+                for (int step = 0; step < 90; ++step)
+                    await simulation.AfterUpdate();
+                Assert.Equal(resting - 2f, crate.Transform.Position.Y, 0.1f);
             });
         }
 

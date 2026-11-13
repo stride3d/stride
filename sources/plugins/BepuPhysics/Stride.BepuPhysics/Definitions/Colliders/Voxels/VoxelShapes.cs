@@ -426,7 +426,7 @@ internal unsafe struct VoxelBoxShape<TSource> : IHomogeneousCompoundShape<Box, B
         where TEnumerator : IBreakableForEach<int>
         => VoxelShapeHelpers.EnumerateOverlaps(ref this, min, max, ref enumerator);
 
-    /// <summary>The samples belong to the <see cref="VoxelCollider"/>.</summary>
+    /// <summary>Nothing to free: the samples belong to the collider, or to what its source reads.</summary>
     public readonly void Dispose(BufferPool pool)
     {
     }
@@ -548,7 +548,7 @@ internal unsafe struct VoxelSphereShape<TSource> : IHomogeneousCompoundShape<Sph
         where TEnumerator : IBreakableForEach<int>
         => VoxelShapeHelpers.EnumerateOverlaps(ref this, min, max, ref enumerator);
 
-    /// <summary>The samples belong to the <see cref="VoxelCollider"/>.</summary>
+    /// <summary>Nothing to free: the samples belong to the collider, or to what its source reads.</summary>
     public readonly void Dispose(BufferPool pool)
     {
     }
@@ -672,7 +672,7 @@ internal unsafe struct VoxelTriangleShape<TSource> : IHomogeneousCompoundShape<T
         where TEnumerator : IBreakableForEach<int>
         => VoxelShapeHelpers.EnumerateOverlaps(ref this, min, max, ref enumerator);
 
-    /// <summary>The samples belong to the <see cref="VoxelCollider"/>.</summary>
+    /// <summary>Nothing to free: the samples belong to the collider, or to what its source reads.</summary>
     public readonly void Dispose(BufferPool pool)
     {
     }

@@ -91,7 +91,10 @@ public abstract class VoxelColliderBase<TSource> : ICollider
     }
 
     /// <summary>Gets or sets whether the samples on the faces of the grid are read as air, closing the volume.</summary>
-    /// <remarks>Turn it off for a chunk whose field continues into a neighbouring chunk, or the chunks are walled off from each other.</remarks>
+    /// <remarks>
+    /// Turn it off for a chunk whose field continues into a neighbouring chunk, or the chunks are walled off from each other.
+    /// Neighbouring chunks then share a plane of samples, or two with <see cref="VoxelCellShape.SurfaceNets"/>, whose quads stop half a cell short of the border.
+    /// </remarks>
     public bool SealBorder
     {
         get => _sealBorder;
@@ -135,7 +138,7 @@ public abstract class VoxelColliderBase<TSource> : ICollider
     protected abstract bool TryGetSource(out TSource source);
 
     /// <inheritdoc/>
-    /// <remarks>Zero while there is no field, like <see cref="ICollider.AppendModel"/> then has nothing to draw.</remarks>
+    /// <remarks>Zero while there is no field: the collider then has no model to draw.</remarks>
     public int Transforms => TryGetSource(out _) ? 1 : 0;
 
     /// <inheritdoc/>
