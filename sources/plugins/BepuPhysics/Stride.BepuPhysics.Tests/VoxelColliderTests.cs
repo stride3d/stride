@@ -117,6 +117,87 @@ namespace Stride.BepuPhysics.Tests
             }
         }
 
+        /// <summary>Every marching cubes triangle collides from the air, in the cells the surface crosses in several sheets facing different ways too.</summary>
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public static unsafe void MarchingCubesTrianglesFaceTheAirInEveryCase(bool invertWinding)
+        {
+            const int caseCount = 1 << VoxelCell.CornerCount;
+            const int stride = VoxelGridData<FloatVoxelSource>.TableStride;
+            var field = new float[VoxelCell.CornerCount];
+            fixed (float* data = field)
+            {
+                var shape = new VoxelTriangleShape<FloatVoxelSource>
+                {
+                    GridData = new VoxelGridData<FloatVoxelSource>
+                    {
+                        Source = new FloatVoxelSource { Samples = new Buffer<float>(data, field.Length), SamplesX = 2, SamplesY = 2, SamplesZ = 2 },
+                        CellSize = NVector3.One,
+                        IsoLevel = IsoLevel,
+                        InvertWinding = invertWinding,
+                    },
+                };
+
+                for (int cubeIndex = 1; cubeIndex < caseCount - 1; ++cubeIndex)
+                {
+                    // One cell whose corners are solid or air as the case says
+                    for (int corner = 0; corner < VoxelCell.CornerCount; ++corner)
+                    {
+                        var at = Corner(corner);
+                        field[((int)at.X * 2 + (int)at.Y) * 2 + (int)at.Z] = ((cubeIndex >> corner) & 1) != 0 ? 0f : 1f;
+                    }
+                    Assert.Equal(cubeIndex, shape.GridData.CubeIndex(0, 0, 0));
+
+                    for (int slot = 0; shape.TryGetTriangle(0, 0, 0, slot, out var triangle); ++slot)
+                    {
+                        // Each vertex is on an edge going from a solid corner to an air one
+                        var towardsAir = NVector3.Zero;
+                        for (int k = 0; k < 3; ++k)
+                        {
+                            int edge = VoxelGridData<FloatVoxelSource>.TriangleTable[cubeIndex * stride + slot * 3 + k];
+                            int a = VoxelGridData<FloatVoxelSource>.EdgeCorners[edge * 2], b = VoxelGridData<FloatVoxelSource>.EdgeCorners[edge * 2 + 1];
+                            towardsAir += ((cubeIndex >> a) & 1) != 0 ? Corner(a) - Corner(b) : Corner(b) - Corner(a);
+                        }
+                        // Bepu triangles collide on the side cross(C - A, B - A) points to.
+                        var facing = NVector3.Cross(triangle.C - triangle.A, triangle.B - triangle.A);
+                        Assert.True(NVector3.Dot(facing, towardsAir) > 0 != invertWinding, $"Case {cubeIndex}: triangle {slot} faces {facing}, the air is towards {towardsAir}");
+                    }
+                }
+            }
+
+            static NVector3 Corner(int corner)
+            {
+                var corners = VoxelGridData<FloatVoxelSource>.CubeCorners;
+                return new NVector3(corners[corner * 3], corners[corner * 3 + 1], corners[corner * 3 + 2]);
+            }
+        }
+
+        /// <summary>A cell the marching cubes surface crosses in two sheets: a ray stops on the sheet closing the pocket of air it starts in.</summary>
+        [Fact]
+        public static void RaysStopOnEachSheetOfAMarchingCubesCell()
+        {
+            RunScript(game =>
+            {
+                // Solid at (0, 0, 0), (1, 1, 0), (1, 1, 1) and (0, 1, 1): the corner (0, 1, 0) is a pocket of air between three of them.
+                var field = new float[8];
+                field[(0 * 2 + 0) * 2 + 0] = 1f;
+                field[(1 * 2 + 1) * 2 + 0] = 1f;
+                field[(1 * 2 + 1) * 2 + 1] = 1f;
+                field[(0 * 2 + 1) * 2 + 1] = 1f;
+                var collider = new VoxelCollider { CellShape = VoxelCellShape.MarchingCubes, IsoLevel = IsoLevel, SealBorder = false };
+                collider.SetData(2, 2, 2, field);
+                var terrain = new Entity { new StaticComponent { Collider = collider } };
+                game.SceneSystem.SceneInstance.RootScene.Entities.Add(terrain);
+
+                // Out of the pocket, through the triangle on the three edges leaving its corner: the plane x - y + z = -0.5
+                var direction = Vector3.Normalize(new Vector3(1f, -1f, 1f));
+                Assert.True(terrain.GetSimulation().RayCast(new Vector3(0.05f, 0.95f, 0.05f), direction, 1.5f, out var hit));
+                Assert.Equal(0.35f / MathF.Sqrt(3f), hit.Distance, Tolerance);
+                return Task.CompletedTask;
+            });
+        }
+
         [Fact]
         public static void SetDataRebuildsWhenOnlyTheShapeOfTheGridChanges()
         {

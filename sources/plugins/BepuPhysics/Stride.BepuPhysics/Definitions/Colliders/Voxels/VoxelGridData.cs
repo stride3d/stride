@@ -151,14 +151,6 @@ internal struct VoxelGridData<TSource> where TSource : unmanaged, IVoxelDensityS
         return new Vector3(CubeCorners[offset], CubeCorners[offset + 1], CubeCorners[offset + 2]);
     }
 
-    /// <summary>Direction in which the density of a cell grows, towards the solid side.</summary>
-    private readonly Vector3 CellGradient(int cx, int cy, int cz)
-    {
-        var gradient = Vector3.Zero;
-        for (int corner = 0; corner < CornerCount; ++corner)
-            gradient += (CornerOffset(corner) * 2f - Vector3.One) * CornerDensity(cx, cy, cz, corner);
-        return gradient;
-    }
 
     /// <summary>Orients a triangle so it collides from <paramref name="outward"/>, or from the other side with <see cref="InvertWinding"/>.</summary>
     /// <remarks>Bepu triangles collide on the side where cross(C - A, B - A) points.</remarks>
@@ -229,7 +221,8 @@ internal struct VoxelGridData<TSource> where TSource : unmanaged, IVoxelDensityS
         var a = EdgePosition(cx, cy, cz, e0);
         var b = EdgePosition(cx, cy, cz, TriangleTable[offset + 1]);
         var c = EdgePosition(cx, cy, cz, TriangleTable[offset + 2]);
-        triangle = Orient(new Triangle(a, b, c), -CellGradient(cx, cy, cz));
+        // The table winds every triangle towards the air, sheet by sheet: a cell crossed by several sheets has no single outward direction.
+        triangle = InvertWinding ? new Triangle(a, c, b) : new Triangle(a, b, c);
         return true;
     }
 
