@@ -22,6 +22,7 @@ namespace Stride.BepuPhysics.Soft;
 public sealed class VolumetricSoftBodyComponent : SoftBodyComponent
 {
     private int _resolution = 6;
+    private bool _joinSeparateParts;
     private float _stiffness = 20f;
     private float _shearStiffness = 20f;
     private float _volumeStiffness = 20f;
@@ -47,6 +48,25 @@ public sealed class VolumetricSoftBodyComponent : SoftBodyComponent
         set
         {
             _resolution = Math.Clamp(value, 1, 64);
+            InvalidateTopology();
+        }
+    }
+
+    /// <summary>
+    /// Whether the parts of the model that nothing links are held together, by particles added in the empty space between them.
+    /// </summary>
+    /// <remarks>
+    /// Parts linked by one thinner than a cell are held together either way. Without this, separate parts move on their own.
+    /// The particles added between them follow no vertex, but collide like the others.
+    /// </remarks>
+    [Display(category: CategorySoftBody)]
+    [DefaultValue(false)]
+    public bool JoinSeparateParts
+    {
+        get => _joinSeparateParts;
+        set
+        {
+            _joinSeparateParts = value;
             InvalidateTopology();
         }
     }
@@ -149,7 +169,7 @@ public sealed class VolumetricSoftBodyComponent : SoftBodyComponent
     // Over half the diagonal of a cell face, so no ray or small object slips between four neighboring particles
     internal override float DefaultRadiusFraction => 0.72f;
 
-    internal override SoftBodyTopology BuildTopology(SourceMesh mesh) => LatticeBuilder.Build(mesh, _resolution, DefaultRadiusFraction);
+    internal override SoftBodyTopology BuildTopology(SourceMesh mesh) => LatticeBuilder.Build(mesh, _resolution, DefaultRadiusFraction, _joinSeparateParts);
 
     internal override void AddConstraints(global::BepuPhysics.Simulation simulation, ReadOnlySpan<BodyHandle> particles, ReadOnlySpan<bool> pinned, SoftBodyTopology topology)
     {

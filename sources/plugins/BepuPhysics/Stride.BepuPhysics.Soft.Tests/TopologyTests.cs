@@ -98,6 +98,11 @@ public class TopologyTests
 
         Assert.Equal(2, CountPieces(topology));
         Assert.DoesNotContain(topology.RestPositions, position => MathF.Abs(position.X) < 0.5f);
+
+        // Unless they are asked to be joined
+        topology = LatticeBuilder.Build(Boxes((Vector3.One, new Vector3(-1.5f, 0f, 0f)), (Vector3.One, new Vector3(1.5f, 0f, 0f))), 8, 0.5f, joinSeparateParts: true);
+        Assert.Equal(1, CountPieces(topology));
+        Assert.Contains(topology.RestPositions, position => MathF.Abs(position.X) < 0.5f);
     }
 
     /// <summary> The cells a triangle goes through, and none of those it only comes close to </summary>
