@@ -320,9 +320,9 @@ internal static unsafe class VoxelShapeHelpers
         tDelta = MathF.Abs(cellSize / direction);
         var boundary = (cell + (step > 0 ? 1 : 0)) * cellSize;
         tMax = (boundary - origin) / direction;
-        // Rounding at the entry face can put the first boundary just behind the entry point.
+        // A ray entering on a cell boundary can find it just behind the entry point: it is crossed right away, or the walk stays one cell behind the ray.
         if (tMax < tEnter)
-            tMax = tEnter + tDelta;
+            tMax = tEnter;
     }
 }
 

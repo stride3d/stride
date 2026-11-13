@@ -460,6 +460,39 @@ namespace Stride.BepuPhysics.Tests
         }
 
         [Fact]
+        public static void RaysEnteringOnACellBoundaryStopAtAOneCellBoxWall()
+        {
+            var game = new GameTest();
+            game.Script.AddTask(async () =>
+            {
+                game.ScreenShotAutomationEnabled = false;
+
+                const int samples = 12;
+                const int wallCell = 8;
+                var terrain = BoxWall(samples, wallCell, 1f);
+                game.SceneSystem.SceneInstance.RootScene.Entities.Add(terrain);
+                var simulation = terrain.GetSimulation();
+
+                // Each ray enters the x = 0 face on the line between two rows of cells, going up or down: rounding decides the row it starts in.
+                for (int row = 2; row <= 8; ++row)
+                {
+                    for (int i = -20; i <= 20; ++i)
+                    {
+                        if (i == 0)
+                            continue;
+                        var slope = i * 0.01f;
+                        var direction = Vector3.Normalize(new Vector3(1f, slope, 0f));
+                        Assert.True(simulation.RayCast(new Vector3(-1f, row - slope, 5.5f), direction, 20f, out var hit), $"The ray entering at row {row} with slope {slope} goes through the wall");
+                        Assert.Equal(wallCell, hit.Point.X, Tolerance);
+                    }
+                }
+
+                game.Exit();
+            });
+            RunGameTest(game);
+        }
+
+        [Fact]
         public static void BoxChildrenRotateWithTheBody()
         {
             var game = new GameTest();
