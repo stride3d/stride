@@ -13,7 +13,8 @@ shader SoftBodySmoothLatticeDeformation : SoftBodyLatticeDeformation
 {
     rgroup PerDraw.SoftBodyFrames
     {
-        // Three vectors per particle: where a step along x, y and z of the lattice leads around it, in world space
+        // Three vectors per particle: where a step along x, y and z of the lattice leads around it, in world space.
+        // Four floats each, the size the particles have, so both buffers are laid out the same on every graphics API
         stage StructuredBuffer<float4> Frames;
     }
 

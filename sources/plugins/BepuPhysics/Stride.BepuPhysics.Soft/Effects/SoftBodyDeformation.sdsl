@@ -27,6 +27,7 @@ shader SoftBodyDeformation : ShaderBase, Transformation, PositionStream4, Normal
     float3 SafeNormalize(float3 value, float3 fallback)
     {
         float lengthSquared = dot(value, value);
+        // A select rather than a blend: the reciprocal square root of zero is infinite, which a blend would carry into the result
         return lengthSquared > ZeroLengthSquared ? value * rsqrt(lengthSquared) : fallback;
     }
 

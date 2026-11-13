@@ -29,6 +29,9 @@ shader SoftBodySurfaceDeformation : SoftBodyDeformation
     // Below this squared length a tangent is replaced by any direction across the normal, as the CPU deformation does
     static const float ZeroTangentSquared = 1e-12;
 
+    // A normal closer to the x axis than this takes the y axis for that direction, as the CPU deformation does
+    static const float AlongX = 0.9;
+
     override void Deform()
     {
         float4 particle = Particles[streams.SurfaceParticle];
@@ -46,8 +49,8 @@ shader SoftBodySurfaceDeformation : SoftBodyDeformation
 
         normal = SafeNormalize(normal, 0);
         tangent -= normal * dot(normal, tangent);
-        float3 across = cross(normal, abs(normal.x) < 0.9 ? float3(1, 0, 0) : float3(0, 1, 0));
-        tangent = dot(tangent, tangent) < ZeroTangentSquared ? across : tangent;
+        float3 across = cross(normal, lerp(float3(1, 0, 0), float3(0, 1, 0), step(AlongX, abs(normal.x))));
+        tangent = lerp(across, tangent, step(ZeroTangentSquared, dot(tangent, tangent)));
 
         // Pushed along its normal, so the two faces of a double sided cloth do not fight over the same depth.
         // The handedness of the tangent is the mesh's to say, as with the CPU deformation which only rewrites its direction.
