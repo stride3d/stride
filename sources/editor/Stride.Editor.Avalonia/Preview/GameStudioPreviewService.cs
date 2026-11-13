@@ -20,6 +20,7 @@ using Stride.Core.Extensions;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Reflection;
 using Stride.Assets;
+using Stride.Assets.Effect;
 using Stride.Editor.Annotations;
 using Stride.Editor.Build;
 using Stride.Editor.Avalonia.Engine;
@@ -98,6 +99,7 @@ namespace Stride.Editor.Avalonia.Preview
             AssemblyRegistry.AssemblyUnregistered += AssemblyUnregistered;
             previewCompileContext.SetGameSettingsAsset(previewGameSettings);
             previewCompileContext.CompilationContext = typeof(PreviewCompilationContext);
+            previewCompileContext.Properties.Set(ShaderSourceLocator.Key, AssetBuilderService.ShaderSources);
 
             viewport = new OffscreenGameViewport(Dispatcher, Logger);
 

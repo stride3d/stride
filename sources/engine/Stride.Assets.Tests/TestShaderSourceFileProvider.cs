@@ -95,6 +95,10 @@ namespace Stride.Assets.Tests
             Assert.True(provider.TryGetFileLocation("shaders/Foo.sdsl", out var location, out var start, out _));
             Assert.Equal(filePath.ToOSPath(), location);
             Assert.Equal(0, start);
+
+            // The skybox build registers the files its effects read
+            ReadText(provider, "shaders/Imported.sdsl");
+            Assert.Equal(new[] { filePath }, provider.ReadSources);
         }
 
         [Fact]

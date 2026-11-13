@@ -16,6 +16,7 @@ using Stride.Core.Extensions;
 using Stride.Core.MicroThreading;
 using Stride.Core.Serialization.Contents;
 using Stride.Assets;
+using Stride.Assets.Effect;
 using Stride.Editor.Preview;
 using Stride.Graphics;
 
@@ -48,6 +49,8 @@ namespace Stride.Editor.Build
             //databaseGameSettings.GetOrCreate<RenderingSettings>().DefaultGraphicsProfile = GraphicsProfile.Level_11_0;
             CompilerContext.SetGameSettingsAsset(databaseGameSettings);
             CompilerContext.CompilationContext = typeof(EditorGameCompilationContext);
+            // The assets that compile effects (skyboxes) read the shader files the editor's effects read
+            CompilerContext.Properties.Set(ShaderSourceLocator.Key, assetBuilderService.ShaderSources);
 
             UpdateGameSettings(settingsProvider.CurrentGameSettings);
             settingsProvider.GameSettingsChanged += OnGameSettingsChanged;

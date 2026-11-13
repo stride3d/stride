@@ -3,6 +3,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Enumeration;
@@ -29,6 +30,7 @@ namespace Stride.Assets.Effect
         private static readonly string ShaderFolder = EffectCompilerBase.DefaultSourceShaderFolder + VirtualFileSystem.DirectorySeparatorChar;
 
         private readonly ShaderSourceLocator locator;
+        private readonly ConcurrentDictionary<UFile, bool> readSources = new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ShaderSourceFileProvider"/> class.
@@ -47,11 +49,17 @@ namespace Stride.Assets.Effect
         /// </summary>
         public IVirtualFileProvider Database { get; }
 
+        /// <summary>
+        /// Gets the shader files whose content or path was read, which the effects compiled or checked from this provider depend on.
+        /// </summary>
+        public IReadOnlyCollection<UFile> ReadSources => readSources.Keys.ToList();
+
         /// <inheritdoc/>
         public override Stream OpenStream(string url, VirtualFileMode mode, VirtualFileAccess access, VirtualFileShare share = VirtualFileShare.Read, StreamFlags streamFlags = StreamFlags.None)
         {
             if (mode == VirtualFileMode.Open && access == VirtualFileAccess.Read && TryFindSource(url, out var filePath, out var isPathObject))
             {
+                readSources.TryAdd(filePath, true);
                 if (isPathObject)
                     return new MemoryStream(Encoding.UTF8.GetBytes(filePath.FullPath), false);
 
