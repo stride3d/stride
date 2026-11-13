@@ -44,10 +44,16 @@ public abstract class VoxelColliderBase<TSource> : ICollider
     CollidableComponent? ICollider.Component { get => _component; set => _component = value; }
 
     /// <summary>Gets or sets the shape each cell presents to the narrow phase.</summary>
+    /// <exception cref="ArgumentException">The field has more cells than the index space of this shape's children holds.</exception>
     public VoxelCellShape CellShape
     {
         get => _cellShape;
-        set => Set(ref _cellShape, value);
+        set
+        {
+            if (TryGetSource(out var source) && !ChildIndexFits(value, source.SamplesX, source.SamplesY, source.SamplesZ))
+                throw new ArgumentException($"A {source.SamplesX}x{source.SamplesY}x{source.SamplesZ} field has more {value} children than the {int.MaxValue} the index space holds.", nameof(value));
+            Set(ref _cellShape, value);
+        }
     }
 
     /// <summary>Gets or sets the edge length of one cell, before the entity's scale.</summary>
@@ -144,11 +150,9 @@ public abstract class VoxelColliderBase<TSource> : ICollider
         if (_component is null || !TryBuildGrid(MeshCollider.ComputeMeshScale(_component).ToNumeric(), out var grid))
             return false;
 
-        // The child index packs the cell and, for the triangle shapes, the slot; keep its space inside an int.
-        var slotsPerCell = _cellShape is VoxelCellShape.MarchingCubes or VoxelCellShape.SurfaceNets ? VoxelTriangleShape<TSource>.SlotsPerCell : 1;
-        var childCount = (long)grid.CellsX * grid.CellsY * grid.CellsZ * slotsPerCell;
-        if (childCount > int.MaxValue)
-            throw new InvalidOperationException($"A {grid.CellsX}x{grid.CellsY}x{grid.CellsZ} grid of {_cellShape} cells has {childCount} children, over the {int.MaxValue} the index space holds.");
+        // The setters catch it for the fields they know of; a source can also grow by itself.
+        if (!ChildIndexFits(_cellShape, grid.SamplesX, grid.SamplesY, grid.SamplesZ))
+            throw new InvalidOperationException($"A {grid.SamplesX}x{grid.SamplesY}x{grid.SamplesZ} field has more {_cellShape} children than the {int.MaxValue} the index space holds.");
 
         // The grid is centred on its box, which is where the mass is spread.
         var extent = grid.Extent;
@@ -218,6 +222,18 @@ public abstract class VoxelColliderBase<TSource> : ICollider
 
     /// <summary>The smallest value the property grid accepts for the sizes and the mass.</summary>
     private const float MinimumPositive = 0.001f;
+
+    /// <summary>Whether the children of a field of this size fit the index space: the child index packs the cell and, for the triangle shapes, the slot into an int.</summary>
+    private protected static bool ChildIndexFits(VoxelCellShape cellShape, int samplesX, int samplesY, int samplesZ)
+    {
+        var slotsPerCell = cellShape is VoxelCellShape.MarchingCubes or VoxelCellShape.SurfaceNets ? VoxelTriangleShape<TSource>.SlotsPerCell : 1;
+        // One factor at a time: three axes at once can overflow a long.
+        var cells = (long)(samplesX - 1) * (samplesY - 1);
+        if (cells > int.MaxValue)
+            return false;
+        cells *= samplesZ - 1;
+        return cells <= int.MaxValue && cells * slotsPerCell <= int.MaxValue;
+    }
 
     private void Set<T>(ref T field, T value)
     {

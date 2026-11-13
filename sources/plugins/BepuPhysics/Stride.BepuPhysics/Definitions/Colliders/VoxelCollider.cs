@@ -40,7 +40,10 @@ public sealed unsafe class VoxelCollider : VoxelColliderBase<FloatVoxelSource>, 
     /// <param name="samplesZ">Samples on the Z axis.</param>
     /// <param name="samples">The densities, x-major with z varying fastest.</param>
     /// <exception cref="ArgumentOutOfRangeException">An axis has fewer than two samples.</exception>
-    /// <exception cref="ArgumentException"><paramref name="samples"/> is shorter than the grid.</exception>
+    /// <exception cref="ArgumentException">
+    /// <paramref name="samples"/> is shorter than the grid, or the grid has more samples, or more children of the current
+    /// <see cref="VoxelColliderBase{TSource}.CellShape"/>, than their index space holds.
+    /// </exception>
     public void SetData(int samplesX, int samplesY, int samplesZ, ReadOnlySpan<float> samples)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(samplesX, MinSamplesPerAxis);
@@ -49,6 +52,8 @@ public sealed unsafe class VoxelCollider : VoxelColliderBase<FloatVoxelSource>, 
         var countLong = (long)samplesX * samplesY * samplesZ;
         if (countLong > int.MaxValue)
             throw new ArgumentException($"A {samplesX}x{samplesY}x{samplesZ} grid has {countLong} samples, over the {int.MaxValue} the index space holds.", nameof(samplesX));
+        if (!ChildIndexFits(CellShape, samplesX, samplesY, samplesZ))
+            throw new ArgumentException($"A {samplesX}x{samplesY}x{samplesZ} grid has more {CellShape} children than the {int.MaxValue} the index space holds.", nameof(samplesX));
         var count = (int)countLong;
         if (samples.Length < count)
             throw new ArgumentException($"A {samplesX}x{samplesY}x{samplesZ} grid needs {count} samples, got {samples.Length}.", nameof(samples));

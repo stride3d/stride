@@ -147,6 +147,21 @@ namespace Stride.BepuPhysics.Tests
         }
 
         [Fact]
+        public static void GridsWithMoreChildrenThanTheIndexSpaceAreRejected()
+        {
+            // 1000 x 1000 x 400 samples fit an int, six triangle slots for each of their cells do not; rejected before allocating anything.
+            using var collider = new VoxelCollider { CellShape = VoxelCellShape.SurfaceNets };
+            var rejected = Assert.Throws<ArgumentException>(() => collider.SetData(1000, 1000, 400, ReadOnlySpan<float>.Empty));
+            Assert.Equal("samplesX", rejected.ParamName);
+            Assert.False(collider.HasData);
+
+            // One box per cell fits; such a grid cannot switch to triangles, and keeps its cell shape.
+            var boxes = new PackedVoxelCollider([], 1000) { CellShape = VoxelCellShape.Box };
+            Assert.Throws<ArgumentException>(() => boxes.CellShape = VoxelCellShape.MarchingCubes);
+            Assert.Equal(VoxelCellShape.Box, boxes.CellShape);
+        }
+
+        [Fact]
         public static void InvalidSettingsThrow()
         {
             using var collider = new VoxelCollider { CellSize = 0.5f, SphereRadiusScale = 1.4f, Mass = 3f };
