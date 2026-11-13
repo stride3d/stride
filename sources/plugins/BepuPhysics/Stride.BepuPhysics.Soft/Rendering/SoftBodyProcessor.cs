@@ -101,7 +101,17 @@ internal sealed class SoftBodyProcessor : EntityProcessor<SoftBodyComponent, Sof
             if (renderModel is null || renderModel.Topology != topology)
             {
                 Release(component, data);
-                renderModel = component.RenderModel = new DeformableModel(_device, Services, component.SourceModel!, topology);
+                try
+                {
+                    renderModel = component.RenderModel = new DeformableModel(_device, Services, component.SourceModel!, topology);
+                }
+                catch (Exception e) when (e is InvalidOperationException or NotSupportedException)
+                {
+                    // A body whose model cannot follow it would be simulated without being seen
+                    Logger.Error($"{component.GetType().Name} on '{component.Entity.Name}' cannot deform its model, it is left out of the simulation: {e.Message}");
+                    component.Detach();
+                    continue;
+                }
                 modelComponent.Model = renderModel.Model;
             }
         }

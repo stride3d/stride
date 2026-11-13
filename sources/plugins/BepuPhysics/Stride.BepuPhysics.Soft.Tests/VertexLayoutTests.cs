@@ -74,6 +74,23 @@ public class VertexLayoutTests : GameTestBase
         });
     }
 
+    /// <summary> In a scene, a model that cannot be written is reported and its body left out of the simulation: nothing is thrown at the game </summary>
+    [Fact]
+    public static void ABodyWhoseModelCannotBeDeformedIsLeftOut()
+    {
+        SoftBodyTests.RunScene(async scene =>
+        {
+            var model = WithLayout(scene.Game, new CubeProceduralModel(), Float3, PixelFormat.R16G16B16A16_Float, Float4, out _);
+            var body = new VolumetricSoftBodyComponent { Resolution = 3 };
+            scene.Add(body, model, new Vector3(0f, 1f, 0f));
+            for (int frame = 0; frame < 3; frame++)
+                await scene.Game.Script.NextFrame();
+
+            Assert.Null(body.Simulation);
+            Assert.Equal(0, body.ParticleCount);
+        });
+    }
+
     /// <summary> What the vertices of a model were before a soft body deformed them </summary>
     private sealed record Source(VertexDeclaration Declaration, Vector3[] Positions, Vector2[] TexCoords);
 
