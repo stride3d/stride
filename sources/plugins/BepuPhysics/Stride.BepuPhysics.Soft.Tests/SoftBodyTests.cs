@@ -38,6 +38,28 @@ public class SoftBodyTests : GameTestBase
         });
     }
 
+    /// <summary>
+    /// Each constraint of a particle needs a batch of the solver of its own, and the particles of a lattice are held by many:
+    /// with the contacts of a body at rest on top, they still fit in the batches the solver has before its fallback one.
+    /// </summary>
+    [Fact]
+    public static void LatticeKeepsTheSolverBatchesBelowTheFallbackThreshold()
+    {
+        RunScene(async scene =>
+        {
+            var body = new VolumetricSoftBodyComponent { Resolution = 6, SleepThreshold = 0f };
+            scene.Add(body, new CubeProceduralModel(), new Vector3(0f, 0.6f, 0f));
+            await Seconds(body, 0.3f);
+
+            var solver = body.Simulation!.Simulation.Solver;
+            int most = 0;
+            for (int i = 0; i < body.ParticleCount; i++)
+                most = Math.Max(most, body.Particle(i).Constraints.Count);
+            Assert.True(most <= 40, $"A particle is in {most} constraints");
+            Assert.True(solver.ActiveSet.Batches.Count <= solver.FallbackBatchThreshold, $"{solver.ActiveSet.Batches.Count} batches");
+        });
+    }
+
     [Fact]
     public static void ClothHangsFromItsPins()
     {
@@ -170,18 +192,18 @@ public class SoftBodyTests : GameTestBase
     }
 
     /// <summary>
-    /// The particles of a soft body have more constraints than the solver has batches for: the rest goes to its fallback batch,
-    /// whose slots are not all filled. The contact recorder of the debug view goes through every batch after each step.
+    /// A plate lying on a soft body touches many of its particles, more contacts than the solver has batches for: the rest goes
+    /// to its fallback batch, whose slots are not all filled. The contact recorder of the debug view goes through every batch after each step.
     /// </summary>
     [Fact]
     public static void DebugContactRecorderGoesThroughTheFallbackBatch()
     {
         RunScene(async scene =>
         {
-            var lower = new VolumetricSoftBodyComponent { Resolution = 4, SleepThreshold = 0f };
-            var upper = new VolumetricSoftBodyComponent { Resolution = 4, SleepThreshold = 0f };
-            scene.Add(lower, new CubeProceduralModel(), new Vector3(0f, 0.8f, 0f));
-            scene.Add(upper, new CubeProceduralModel(), new Vector3(0.3f, 2.2f, 0.2f));
+            var lower = new VolumetricSoftBodyComponent { Resolution = 9, SleepThreshold = 0f };
+            var plate = new BodyComponent { SleepThreshold = 0f, Collider = new CompoundCollider { Colliders = { new BoxCollider { Size = new Vector3(1.4f, 0.1f, 1.4f) } } } };
+            scene.Add(lower, new CubeProceduralModel(), new Vector3(0f, 0.6f, 0f));
+            scene.Add(plate, new Vector3(0f, 1.3f, 0f));
 
             var simulation = lower.Simulation!.Simulation;
             using var recorder = new Stride.BepuPhysics.Debug.ContactRecorder(simulation);

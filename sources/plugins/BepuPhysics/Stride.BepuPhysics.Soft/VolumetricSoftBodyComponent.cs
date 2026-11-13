@@ -88,7 +88,7 @@ public sealed class VolumetricSoftBodyComponent : SoftBodyComponent
     }
 
     /// <summary>
-    /// How fast the diagonals of the cells return to their rest length, in hertz, lower values let the body shear and twist more easily.
+    /// How fast the diagonals of the faces of the cells return to their rest length, in hertz, lower values let the body shear and twist more easily.
     /// </summary>
     [Display(category: CategorySoftBody)]
     [DefaultValue(20f)]
