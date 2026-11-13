@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -46,9 +47,11 @@ internal sealed unsafe class MediaEngineVideoBackend : VideoBackend
     // (OnVideoStreamTick keeps returning S_FALSE even though the engine reaches HAVE_ENOUGH_DATA).
     // FrameStep forces that ready frame to present at the exact seek position; these track when to
     // apply it: only while paused, after the present had time to arrive on its own.
+    // That time is real time, not game time: MediaFoundation presents on its own threads, and a game
+    // with a fixed time step can run its frames faster than real time.
     private IMFMediaEngineEx* mediaEngineEx;
     private bool awaitingSeekFrame;
-    private TimeSpan elapsedSinceSeek;
+    private long seekFrameWaitStart;
     private static readonly TimeSpan SeekFramePresentTimeout = TimeSpan.FromMilliseconds(500);
 
     public MediaEngineVideoBackend(VideoInstance instance, MediaEngineVideoBackendFactory factory) : base(instance)
@@ -145,7 +148,7 @@ internal sealed unsafe class MediaEngineVideoBackend : VideoBackend
         mediaEngine->SetCurrentTime(time.TotalSeconds);
         reachedEOF = false;
         awaitingSeekFrame = true;
-        elapsedSinceSeek = TimeSpan.Zero;
+        seekFrameWaitStart = 0;
     }
 
     public override void SetPlaybackSpeed(float speed) => mediaEngine->SetPlaybackRate(speed);
@@ -175,8 +178,11 @@ internal sealed unsafe class MediaEngineVideoBackend : VideoBackend
             // Gated to the paused state since FrameStep pauses the engine.
             if (awaitingSeekFrame && firstFrameDecoded && mediaEngine->IsPaused())
             {
-                elapsedSinceSeek += elapsed;
-                if (elapsedSinceSeek >= SeekFramePresentTimeout)
+                if (seekFrameWaitStart == 0)
+                {
+                    seekFrameWaitStart = Stopwatch.GetTimestamp();
+                }
+                else if (Stopwatch.GetElapsedTime(seekFrameWaitStart) >= SeekFramePresentTimeout)
                 {
                     awaitingSeekFrame = false;
                     mediaEngineEx->FrameStep(true);
