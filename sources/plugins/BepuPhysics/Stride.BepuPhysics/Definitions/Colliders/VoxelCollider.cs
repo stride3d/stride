@@ -22,6 +22,7 @@ public sealed unsafe class VoxelCollider : VoxelColliderBase<FloatVoxelSource>, 
 {
     private float* _samples;
     private int _samplesX, _samplesY, _samplesZ;
+    private bool _finalizerSuppressed;
 
     /// <summary>Gets the number of samples on each axis, one more than the number of cells.</summary>
     [DataMemberIgnore]
@@ -59,8 +60,15 @@ public sealed unsafe class VoxelCollider : VoxelColliderBase<FloatVoxelSource>, 
         // A grid of another shape with as many samples keeps its memory.
         if (count != _samplesX * _samplesY * _samplesZ)
         {
+            // Allocated before the previous field is freed: should it fail, the collider keeps the field it is attached with.
+            var allocated = (float*)NativeMemory.Alloc((nuint)count, sizeof(float));
             FreeSamples();
-            _samples = (float*)NativeMemory.Alloc((nuint)count, sizeof(float));
+            _samples = allocated;
+            if (_finalizerSuppressed)
+            {
+                GC.ReRegisterForFinalize(this);
+                _finalizerSuppressed = false;
+            }
         }
         _samplesX = samplesX;
         _samplesY = samplesY;
@@ -95,6 +103,7 @@ public sealed unsafe class VoxelCollider : VoxelColliderBase<FloatVoxelSource>, 
         FreeSamples();
         NotifyFieldChanged();
         GC.SuppressFinalize(this);
+        _finalizerSuppressed = true;
     }
 
     ~VoxelCollider() => FreeSamples();
