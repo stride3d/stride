@@ -29,15 +29,12 @@ namespace Stride.Rendering.Lights
         public bool HasEffectPermutations { get; protected set; } = false;
 
         /// <summary>
-        /// The views whose lights this group holds this frame, one bit per view index of the lighting feature
-        /// (<see cref="ViewBit"/>), as its renderer told them with <see cref="IncludeView"/>. An effect compiled for a
-        /// set of views takes the group when the set shares a view with it. A group whose renderer tells no view is
-        /// taken by every effect, and so is one that overrides <see cref="IsUsedIn"/> to say so.
+        /// Mask of the views this group has lights in (see <see cref="ViewBit"/>). A group which doesn't include any view is used in all of them.
         /// </summary>
         public ulong ViewMask { get; private set; }
 
         /// <summary>
-        /// The bit of the view at <paramref name="viewIndex"/> in a view mask; the views past the 64th share the last bit.
+        /// Gets the bit of a view in a view mask (views past the 64th share the last bit).
         /// </summary>
         public static ulong ViewBit(int viewIndex)
         {
@@ -45,7 +42,7 @@ namespace Stride.Rendering.Lights
         }
 
         /// <summary>
-        /// Marks the group as holding lights of the view at <paramref name="viewIndex"/>.
+        /// Marks this group as having lights in the specified view.
         /// </summary>
         public void IncludeView(int viewIndex)
         {
@@ -53,7 +50,7 @@ namespace Stride.Rendering.Lights
         }
 
         /// <summary>
-        /// Whether an effect compiled for the views of <paramref name="viewMask"/> takes this group.
+        /// Checks if effects compiled for the specified views use this group.
         /// </summary>
         public virtual bool IsUsedIn(ulong viewMask)
         {
@@ -61,9 +58,7 @@ namespace Stride.Rendering.Lights
         }
 
         /// <summary>
-        /// The number of lights the group's shader holds when laid out for the views of <paramref name="viewMask"/>;
-        /// zero for a group whose shader is not sized by its lights. Two sets of views that take the same groups with
-        /// the same light counts are compiled for the same shaders, and share one lighting set.
+        /// Gets the number of lights supported by the shader when laid out for the specified views (0 if it doesn't depend on lights).
         /// </summary>
         public virtual int GetLightCount(ulong viewMask)
         {
@@ -71,16 +66,14 @@ namespace Stride.Rendering.Lights
         }
 
         /// <summary>
-        /// Selects the views the next <see cref="UpdateLayout"/> lays the group out for, so a group whose shader is sized
-        /// by its lights holds <see cref="GetLightCount"/> of them.
+        /// Selects the views the next <see cref="UpdateLayout"/> is done for.
         /// </summary>
         public virtual void SelectViews(ulong viewMask)
         {
         }
 
         /// <summary>
-        /// Called when layout is updated, so that parameter keys can be recomputed. A group laid out in several sets of
-        /// views at different indices is laid out again before each use.
+        /// Called when layout is updated, so that parameter keys can be recomputed.
         /// </summary>
         /// <param name="compositionName"></param>
         public virtual void UpdateLayout(string compositionName)

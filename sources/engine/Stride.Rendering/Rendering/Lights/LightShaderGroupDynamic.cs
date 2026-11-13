@@ -23,9 +23,7 @@ namespace Stride.Rendering.Lights
 
         protected LightRange[] lightRanges;
 
-        /// <summary>
-        /// The number of lights the shader needs for each view, <see cref="ComputeLightCount"/> of the view's lights.
-        /// </summary>
+        // Light count required by each view
         private int[] viewLightCounts;
 
         /// <summary>
@@ -38,8 +36,7 @@ namespace Stride.Rendering.Lights
         public int LightCurrentCount { get; private set; }
 
         /// <summary>
-        /// The light count the shader was last laid out for; <see cref="UpdateLayout"/> builds the shader again when
-        /// <see cref="LightCurrentCount"/> differs. It stays across a frame that lays the group out for no set.
+        /// Light count of the last layout update.
         /// </summary>
         public int LightLastCount { get; private set; }
 
@@ -91,8 +88,7 @@ namespace Stride.Rendering.Lights
         /// <inheritdoc/>
         public override int GetLightCount(ulong viewMask)
         {
-            // As many lights as the largest of the selected views needs, not of every view of the frame; a group with
-            // no light in the selected views, one every effect takes, keeps the count of the frame
+            // Use the highest light count of the selected views (or of all views if they don't have any light)
             var selectedLightCount = 0;
             var frameLightCount = 0;
             for (var viewIndex = 0; viewIndex < viewLightCounts.Length; viewIndex++)
