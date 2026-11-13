@@ -45,6 +45,7 @@ public abstract class CollidableComponent : EntityComponent
     private CollisionGroup _collisionGroup;
 
     private ICollider _collider;
+    private bool _filtersContactsWithOthers;
     private IContactHandler? _trigger;
     private ISimulationSelector _simulationSelector = SceneBasedSimulationSelector.Shared;
 
@@ -280,6 +281,29 @@ public abstract class CollidableComponent : EntityComponent
 
     /// <summary> Whether this component can be created from <paramref name="collider"/>; when it cannot, it logs why and stays out of the simulation </summary>
     internal virtual bool CanAttach(ICollider collider) => true;
+
+    /// <summary> Whether the narrow phase asks <see cref="AllowContactWith"/> before a body of this component touches another collidable </summary>
+    /// <remarks> Set while part of a simulation and outside of its step, cleared before leaving it </remarks>
+    [DataMemberIgnore]
+    internal bool FiltersContactsWithOthers
+    {
+        get => _filtersContactsWithOthers;
+        set
+        {
+            if (_filtersContactsWithOthers == value)
+                return;
+
+            Debug.Assert(Simulation is not null);
+            _filtersContactsWithOthers = value;
+            Simulation.ContactFilters += value ? 1 : -1;
+        }
+    }
+
+    /// <summary> Whether <paramref name="body"/>, owned by this component, may collide with <paramref name="other"/>; called from the narrow phase on any thread when <see cref="FiltersContactsWithOthers"/> is set </summary>
+    internal virtual bool AllowContactWith(BodyHandle body, CollidableComponent other) => true;
+
+    /// <summary> The index of the node of the entity's model that the body at <paramref name="index"/> follows, -1 when it follows none </summary>
+    internal virtual int GetFollowedNode(int index) => -1;
 
     public CollidableComponent()
     {

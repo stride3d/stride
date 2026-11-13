@@ -49,6 +49,19 @@ internal struct StrideNarrowPhaseCallbacks(BepuSimulation Simulation, ContactEve
             }
         }
 
+        // A component may refuse some of its bodies to another collidable, as particles pinned to a body do
+        if (Simulation.ContactFilters > 0)
+        {
+            var ownerA = Simulation.GetComponent(a);
+            var ownerB = Simulation.GetComponent(b);
+            if (ReferenceEquals(ownerA, ownerB) == false
+                && (ownerA.FiltersContactsWithOthers && ownerA.AllowContactWith(a.BodyHandle, ownerB) == false
+                    || ownerB.FiltersContactsWithOthers && ownerB.AllowContactWith(b.BodyHandle, ownerA) == false))
+            {
+                return false;
+            }
+        }
+
         return true;
     }
 

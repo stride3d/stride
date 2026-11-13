@@ -61,6 +61,9 @@ public sealed class BepuSimulation : IDisposable
     internal List<CollidableComponent?> Bodies { get; } = new();
     internal List<StaticComponent?> Statics { get; } = new();
 
+    /// <summary> The amount of collidables with <see cref="CollidableComponent.FiltersContactsWithOthers"/> set, the narrow phase looks for the owners of a pair only when there are some </summary>
+    internal int ContactFilters;
+
     /// <inheritdoc cref="Stride.BepuPhysics.Definitions.CollisionMatrix"/>
     [DataMemberIgnore]
     public CollisionMatrix CollisionMatrix = CollisionMatrix.All; // Keep this as a field, user need ref access for writes
