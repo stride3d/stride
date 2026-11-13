@@ -175,6 +175,36 @@ public class SoftBodyTests : GameTestBase
         });
     }
 
+    /// <summary> A cloth pinned to a kinematic body follows it when it starts moving, also when the cloth was asleep by then </summary>
+    [Fact]
+    public static void PinsFollowAKinematicBodyAndWakeUp()
+    {
+        RunScene(async scene =>
+        {
+            var rail = new BodyComponent { Kinematic = true, Collider = new CompoundCollider { Colliders = { new BoxCollider { Size = new Vector3(0.1f, 0.1f, 1.2f) } } } };
+            var anchor = new Entity { rail };
+            anchor.Transform.Position = new Vector3(-0.5f, 2f, 0f);
+            scene.Add(anchor);
+            var cloth = new ClothComponent { Pins = { new SoftBodyPin { Region = PinnedEdge, Anchor = new BodyAnchor { Body = rail } } } };
+            scene.Add(cloth, ClothModel, new Vector3(0f, 2f, 0f));
+            await Seconds(cloth, 2f);
+
+            int pinned = 0;
+            while (cloth.IsParticlePinned(pinned) == false)
+                pinned++;
+            var before = cloth.GetParticlePosition(pinned);
+            cloth.Awake = false;
+            Assert.False(cloth.Awake);
+
+            rail.LinearVelocity = new Vector3(0f, 0f, 1f);
+            rail.Awake = true;
+            await Seconds(cloth, 1f);
+
+            Assert.True(cloth.Awake);
+            Assert.True(Vector3.Distance(cloth.GetParticlePosition(pinned), before + new Vector3(0f, 0f, 1f)) < 0.1f, $"Pinned particle went from {before} to {cloth.GetParticlePosition(pinned)}");
+        });
+    }
+
     /// <summary> A soft body without a model cannot be built: it stays out of the simulation, and says so once </summary>
     [Fact]
     public static void ASoftBodyWithoutAModelIsReported()
