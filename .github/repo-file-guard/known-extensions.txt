@@ -92,6 +92,7 @@ resources
 resx
 ruleset
 runsettings
+rvtrn
 sd*
 settings
 sh
