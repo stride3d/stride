@@ -162,11 +162,11 @@ public abstract class VoxelColliderBase<TSource> : ICollider
         {
             case VoxelCellShape.Box:
                 VoxelCollisionTasks.EnsureBoxRegistered<TSource>(shapes);
-                index = shapes.Add(new VoxelBoxShape<TSource> { GridData = grid });
+                index = shapes.Add(new VoxelBoxShape<TSource>(grid));
                 break;
             case VoxelCellShape.Sphere:
                 VoxelCollisionTasks.EnsureSphereRegistered<TSource>(shapes);
-                index = shapes.Add(new VoxelSphereShape<TSource> { GridData = grid });
+                index = shapes.Add(new VoxelSphereShape<TSource>(grid));
                 break;
             default:
                 VoxelCollisionTasks.EnsureTriangleRegistered<TSource>(shapes);

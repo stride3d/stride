@@ -43,10 +43,15 @@ internal unsafe interface IVoxelShape
 
     /// <summary>Tests one child against a ray in the shape's local space.</summary>
     bool RayTestChild(int childIndex, Vector3 origin, Vector3 direction, out float t, out Vector3 normal);
+}
 
-    /// <summary>Writes a child's convex shape data to <paramref name="destination"/>.</summary>
-    /// <returns>The number of bytes written.</returns>
-    int WriteChildShapeData(int childIndex, out Vector3 localPosition, void* destination);
+/// <summary>
+/// A voxel shape whose children all are the same convex shape, which it keeps.
+/// </summary>
+internal unsafe interface IConvexVoxelShape : IVoxelShape
+{
+    /// <summary>Gives the shape data of a child, which lives as long as this shape does, and where the child is.</summary>
+    void* GetChildShapeData(int childIndex, out Vector3 localPosition);
 }
 
 /// <summary>
@@ -329,10 +334,19 @@ internal static unsafe class VoxelShapeHelpers
 /// <summary>
 /// A voxel grid presented to the narrow phase as a box filling each solid cell.
 /// </summary>
-internal unsafe struct VoxelBoxShape<TSource> : IHomogeneousCompoundShape<Box, BoxWide>, IVoxelShape
+internal unsafe struct VoxelBoxShape<TSource> : IHomogeneousCompoundShape<Box, BoxWide>, IConvexVoxelShape
     where TSource : unmanaged, IVoxelDensitySource
 {
     public VoxelGridData<TSource> GridData;
+
+    /// <summary>The box of every cell.</summary>
+    public Box Child;
+
+    public VoxelBoxShape(in VoxelGridData<TSource> grid)
+    {
+        GridData = grid;
+        Child = new Box(grid.CellSize.X, grid.CellSize.Y, grid.CellSize.Z);
+    }
 
     public static int TypeId => ShapeId<VoxelBoxShape<TSource>>.Id;
     public static int ChildShapeTypeId => Box.Id;
@@ -358,7 +372,7 @@ internal unsafe struct VoxelBoxShape<TSource> : IHomogeneousCompoundShape<Box, B
     }
 
     public readonly void GetLocalChild(int childIndex, out Box childShape)
-        => childShape = new Box(GridData.CellSize.X, GridData.CellSize.Y, GridData.CellSize.Z);
+        => childShape = Child;
 
     public readonly void GetPosedLocalChild(int childIndex, out Box childShape, out NRigidPose childPose)
     {
@@ -381,12 +395,11 @@ internal unsafe struct VoxelBoxShape<TSource> : IHomogeneousCompoundShape<Box, B
         return box.RayTest(pose, origin, direction, out t, out normal);
     }
 
-    public readonly int WriteChildShapeData(int childIndex, out Vector3 localPosition, void* destination)
+    public void* GetChildShapeData(int childIndex, out Vector3 localPosition)
     {
-        GetPosedLocalChild(childIndex, out var box, out var pose);
-        localPosition = pose.Position;
-        Unsafe.Write(destination, box);
-        return sizeof(Box);
+        GridData.DecomposeCell(childIndex, out var cx, out var cy, out var cz);
+        localPosition = GridData.CellCentre(cx, cy, cz);
+        return Unsafe.AsPointer(ref Child);
     }
 
     public void ComputeBounds(Quaternion orientation, out Vector3 min, out Vector3 max)
@@ -422,10 +435,19 @@ internal unsafe struct VoxelBoxShape<TSource> : IHomogeneousCompoundShape<Box, B
 /// <summary>
 /// A voxel grid presented to the narrow phase as a sphere inscribed in each solid cell.
 /// </summary>
-internal unsafe struct VoxelSphereShape<TSource> : IHomogeneousCompoundShape<Sphere, SphereWide>, IVoxelShape
+internal unsafe struct VoxelSphereShape<TSource> : IHomogeneousCompoundShape<Sphere, SphereWide>, IConvexVoxelShape
     where TSource : unmanaged, IVoxelDensitySource
 {
     public VoxelGridData<TSource> GridData;
+
+    /// <summary>The sphere of every cell.</summary>
+    public Sphere Child;
+
+    public VoxelSphereShape(in VoxelGridData<TSource> grid)
+    {
+        GridData = grid;
+        Child = new Sphere(grid.SphereRadius);
+    }
 
     public static int TypeId => ShapeId<VoxelSphereShape<TSource>>.Id;
     public static int ChildShapeTypeId => Sphere.Id;
@@ -477,7 +499,7 @@ internal unsafe struct VoxelSphereShape<TSource> : IHomogeneousCompoundShape<Sph
     }
 
     public readonly void GetLocalChild(int childIndex, out Sphere childShape)
-        => childShape = new Sphere(GridData.SphereRadius);
+        => childShape = Child;
 
     public readonly void GetPosedLocalChild(int childIndex, out Sphere childShape, out NRigidPose childPose)
     {
@@ -495,12 +517,11 @@ internal unsafe struct VoxelSphereShape<TSource> : IHomogeneousCompoundShape<Sph
         return sphere.RayTest(pose, origin, direction, out t, out normal);
     }
 
-    public readonly int WriteChildShapeData(int childIndex, out Vector3 localPosition, void* destination)
+    public void* GetChildShapeData(int childIndex, out Vector3 localPosition)
     {
-        GetPosedLocalChild(childIndex, out var sphere, out var pose);
-        localPosition = pose.Position;
-        Unsafe.Write(destination, sphere);
-        return sizeof(Sphere);
+        GridData.DecomposeCell(childIndex, out var cx, out var cy, out var cz);
+        localPosition = GridData.CellCentre(cx, cy, cz);
+        return Unsafe.AsPointer(ref Child);
     }
 
     public void ComputeBounds(Quaternion orientation, out Vector3 min, out Vector3 max)
@@ -626,13 +647,6 @@ internal unsafe struct VoxelTriangleShape<TSource> : IHomogeneousCompoundShape<T
         return Triangle.RayTest(triangle.A, triangle.B, triangle.C, origin, direction, out t, out normal);
     }
 
-    public readonly int WriteChildShapeData(int childIndex, out Vector3 localPosition, void* destination)
-    {
-        GetPosedLocalChild(childIndex, out var triangle, out var pose);
-        localPosition = pose.Position;
-        Unsafe.Write(destination, triangle);
-        return sizeof(Triangle);
-    }
 
     public void ComputeBounds(Quaternion orientation, out Vector3 min, out Vector3 max)
         => VoxelShapeHelpers.ComputeBounds(ref this, orientation, out min, out max);

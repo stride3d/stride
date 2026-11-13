@@ -14,10 +14,10 @@ using NRigidPose = BepuPhysics.RigidPose;
 namespace Stride.BepuPhysics.Definitions.Colliders.Voxels;
 
 /// <summary>
-/// Hands the collision batcher the box or sphere children of a voxel shape, written into its shape cache as they are requested.
+/// Hands the collision batcher the box or sphere children of a voxel shape as they are requested.
 /// </summary>
 internal unsafe struct ConvexVoxelContinuations<TShape> : IConvexCompoundContinuationHandler<NonconvexReduction>
-    where TShape : unmanaged, IVoxelShape
+    where TShape : unmanaged, IConvexVoxelShape
 {
     public readonly CollisionContinuationType CollisionContinuationType => CollisionContinuationType.NonconvexReduction;
 
@@ -26,23 +26,15 @@ internal unsafe struct ConvexVoxelContinuations<TShape> : IConvexCompoundContinu
         where TCallbacks : struct, ICollisionCallbacks
         => ref collisionBatcher.NonconvexReductions.CreateContinuation(childCount, collisionBatcher.Pool, out continuationIndex);
 
-    /// <summary>Bytes of shape data the largest box or sphere child needs.</summary>
-    private const int MaxChildDataSize = 16;
-
-    /// <summary>Writes one child of the voxel shape into the batcher's shape cache.</summary>
-    public static void GetChildData<TCallbacks>(
-        ref CollisionBatcher<TCallbacks> collisionBatcher, in BoundsTestedPair pair, int shapeTypeA, int childIndexB,
-        out NRigidPose childPoseB, out int childTypeB, out void* childShapeDataB)
-        where TCallbacks : struct, ICollisionCallbacks
+    /// <summary>Points at the shape data one child of the voxel shape has in it: the shape outlives the pair, in the simulation step as in a query.</summary>
+    public static void GetChildData(in BoundsTestedPair pair, int childIndexB, out NRigidPose childPoseB, out int childTypeB, out void* childShapeDataB)
     {
         ref var shape = ref Unsafe.AsRef<TShape>(pair.B);
-        var childData = stackalloc byte[MaxChildDataSize];
-        var size = shape.WriteChildShapeData(childIndexB, out var localPosition, childData);
+        childShapeDataB = shape.GetChildShapeData(childIndexB, out var localPosition);
         QuaternionEx.TransformWithoutOverlap(localPosition, pair.OrientationB, out childPoseB.Position);
-        // The child inherits the voxel body's orientation, as Bepu's compound continuations do, so Box children rotate with it instead of staying world-aligned.
+        // The child takes the orientation of the voxel body, as the children of Bepu's compounds do.
         childPoseB.Orientation = pair.OrientationB;
         childTypeB = TShape.ChildShapeTypeId;
-        collisionBatcher.CacheShapeB(shapeTypeA, childTypeB, childData, size, out childShapeDataB);
     }
 
     public void ConfigureContinuationChild<TCallbacks>(
@@ -51,7 +43,7 @@ internal unsafe struct ConvexVoxelContinuations<TShape> : IConvexCompoundContinu
         where TCallbacks : struct, ICollisionCallbacks
     {
         ref var continuationChild = ref continuation.Children[continuationChildIndex];
-        GetChildData(ref collisionBatcher, pair, shapeTypeA, childIndexB, out childPoseB, out childTypeB, out childShapeDataB);
+        GetChildData(pair, childIndexB, out childPoseB, out childTypeB, out childShapeDataB);
         if (pair.FlipMask < 0)
         {
             continuationChild.ChildIndexA = childIndexB;
@@ -74,7 +66,7 @@ internal unsafe struct ConvexVoxelContinuations<TShape> : IConvexCompoundContinu
 /// </summary>
 internal unsafe struct CompoundVoxelContinuations<TCompoundA, TShape> : ICompoundPairContinuationHandler<NonconvexReduction>
     where TCompoundA : ICompoundShape
-    where TShape : unmanaged, IVoxelShape
+    where TShape : unmanaged, IConvexVoxelShape
 {
     public readonly CollisionContinuationType CollisionContinuationType => CollisionContinuationType.NonconvexReduction;
 
@@ -101,7 +93,7 @@ internal unsafe struct CompoundVoxelContinuations<TCompoundA, TShape> : ICompoun
         where TCallbacks : struct, ICollisionCallbacks
     {
         ref var continuationChild = ref continuation.Children[continuationChildIndex];
-        ConvexVoxelContinuations<TShape>.GetChildData(ref collisionBatcher, pair, childTypeA, childIndexB, out childPoseB, out childTypeB, out childShapeDataB);
+        ConvexVoxelContinuations<TShape>.GetChildData(pair, childIndexB, out childPoseB, out childTypeB, out childShapeDataB);
         if (pair.FlipMask < 0)
         {
             continuationChild.ChildIndexA = childIndexB;

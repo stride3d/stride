@@ -71,7 +71,7 @@ internal static class VoxelCollisionTasks
 
     /// <summary>Box and sphere children: contacts are combined with a <see cref="NonconvexReduction"/>.</summary>
     private static void RegisterConvexChildren<TShape, TChild, TChildWide>(Simulation simulation)
-        where TShape : unmanaged, IHomogeneousCompoundShape<TChild, TChildWide>, IVoxelShape
+        where TShape : unmanaged, IHomogeneousCompoundShape<TChild, TChildWide>, IConvexVoxelShape
         where TChild : unmanaged, IConvexShape
         where TChildWide : unmanaged, IShapeWide<TChild>
     {

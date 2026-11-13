@@ -4,7 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using BepuPhysics.Collidables;
 using BepuUtilities.Memory;
 using Stride.BepuPhysics.Definitions;
@@ -195,16 +197,13 @@ namespace Stride.BepuPhysics.Tests
             Array.Fill(field, 1f);
             fixed (float* data = field)
             {
-                var shape = new VoxelSphereShape<FloatVoxelSource>
+                var shape = new VoxelSphereShape<FloatVoxelSource>(new VoxelGridData<FloatVoxelSource>
                 {
-                    GridData = new VoxelGridData<FloatVoxelSource>
-                    {
-                        Source = new FloatVoxelSource { Samples = new Buffer<float>(data, field.Length), SamplesX = 2, SamplesY = 2, SamplesZ = 2 },
-                        CellSize = NVector3.One,
-                        IsoLevel = IsoLevel,
-                        SphereRadius = 0.7f,
-                    },
-                };
+                    Source = new FloatVoxelSource { Samples = new Buffer<float>(data, field.Length), SamplesX = 2, SamplesY = 2, SamplesZ = 2 },
+                    CellSize = NVector3.One,
+                    IsoLevel = IsoLevel,
+                    SphereRadius = 0.7f,
+                });
 
                 var inTheOvershoot = new ChildCounter();
                 VoxelShapeHelpers.EnumerateOverlaps(ref shape, new NVector3(0.4f, 1.15f, 0.4f), new NVector3(0.6f, 1.3f, 0.6f), ref inTheOvershoot);
@@ -406,6 +405,76 @@ namespace Stride.BepuPhysics.Tests
                 game.Exit();
             });
             RunGameTest(game);
+        }
+
+        /// <summary>Runs <paramref name="script"/> in a game, then throws what it threw: thrown past an await, an exception leaves the game running.</summary>
+        private static void RunScript(Func<GameTest, Task> script)
+        {
+            var game = new GameTest();
+            Exception? failure = null;
+            game.Script.AddTask(async () =>
+            {
+                game.ScreenShotAutomationEnabled = false;
+                try
+                {
+                    await script(game);
+                }
+                catch (Exception e)
+                {
+                    failure = e;
+                }
+                game.Exit();
+            });
+            RunGameTest(game);
+            if (failure is not null)
+                ExceptionDispatchInfo.Throw(failure);
+        }
+
+        /// <summary>Overlap and sweep queries see the cells, with query shapes of types no collider of the simulation has.</summary>
+        [Theory]
+        [InlineData(VoxelCellShape.Box, 5f)]
+        [InlineData(VoxelCellShape.Sphere, 5f)]
+        [InlineData(VoxelCellShape.MarchingCubes, 4.5f)]
+        [InlineData(VoxelCellShape.SurfaceNets, 4.5f)]
+        public static void OverlapAndSweepQueriesSeeTheCells(VoxelCellShape cellShape, float surface)
+        {
+            RunScript(game =>
+            {
+                const int samples = 10;
+                var collider = new VoxelCollider { CellShape = cellShape, IsoLevel = IsoLevel };
+                collider.SetData(samples, samples, samples, Floor(samples, 4));
+                var terrain = new Entity { new StaticComponent { Collider = collider } };
+                game.SceneSystem.SceneInstance.RootScene.Entities.Add(terrain);
+                var simulation = terrain.GetSimulation();
+                var floor = terrain.Get<StaticComponent>();
+
+                // Above the middle of a cell, where the sphere children are at their top: sunk a quarter into the surface, then clear of it.
+                var sunk = new RigidPose(new Vector3(4.5f, surface + 0.25f, 4.5f), Quaternion.Identity);
+                var clear = new RigidPose(new Vector3(4.5f, surface + 1f, 4.5f), Quaternion.Identity);
+                var overlaps = new List<OverlapInfo>();
+                simulation.Overlap(new Sphere(0.5f), sunk, overlaps);
+                Assert.NotEmpty(overlaps);
+                int afterTheSphere = overlaps.Count;
+                simulation.Overlap(new Box(1f, 1f, 1f), sunk, overlaps);
+                Assert.True(overlaps.Count > afterTheSphere, "The box overlaps nothing");
+                int afterTheBox = overlaps.Count;
+                simulation.Overlap(new Capsule(0.5f, 0.5f), sunk, overlaps);
+                Assert.True(overlaps.Count > afterTheBox, "The capsule overlaps nothing");
+                Assert.All(overlaps, overlap => Assert.Same(floor, overlap.Collidable));
+
+                overlaps.Clear();
+                simulation.Overlap(new Sphere(0.5f), clear, overlaps);
+                simulation.Overlap(new Box(1f, 1f, 1f), clear, overlaps);
+                Assert.Empty(overlaps);
+
+                // Thrown down from three above the surface, the sphere touches it after two and a half.
+                var above = new RigidPose(new Vector3(4.5f, surface + 3f, 4.5f), Quaternion.Identity);
+                Assert.True(simulation.SweepCast(new Sphere(0.5f), above, new BodyVelocity(-Vector3.UnitY, Vector3.Zero), 10f, out var hit));
+                Assert.Same(floor, hit.Collidable);
+                Assert.Equal(2.5f, hit.Distance, 0.1f);
+                Assert.False(simulation.SweepCast(new Sphere(0.5f), above, new BodyVelocity(Vector3.UnitY, Vector3.Zero), 10f, out _));
+                return Task.CompletedTask;
+            });
         }
 
         /// <summary>A wall one cell thick across the X axis of a grid of box cells, starting at <paramref name="wallCell"/>.</summary>
