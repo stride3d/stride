@@ -54,14 +54,15 @@ public sealed unsafe class VoxelCollider : VoxelColliderBase<FloatVoxelSource>, 
             throw new ArgumentException($"A {samplesX}x{samplesY}x{samplesZ} grid needs {count} samples, got {samples.Length}.", nameof(samples));
 
         var resized = samplesX != _samplesX || samplesY != _samplesY || samplesZ != _samplesZ;
-        if (resized)
+        // A grid of another shape with as many samples keeps its memory.
+        if (count != _samplesX * _samplesY * _samplesZ)
         {
             FreeSamples();
             _samples = (float*)NativeMemory.Alloc((nuint)count, sizeof(float));
-            _samplesX = samplesX;
-            _samplesY = samplesY;
-            _samplesZ = samplesZ;
         }
+        _samplesX = samplesX;
+        _samplesY = samplesY;
+        _samplesZ = samplesZ;
         samples[..count].CopyTo(new Span<float>(_samples, count));
         if (resized)
             NotifyFieldChanged();
