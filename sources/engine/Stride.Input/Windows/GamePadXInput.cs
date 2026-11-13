@@ -19,7 +19,7 @@ namespace Stride.Input
         private readonly float[] lastAxisState = new float[6];
         private readonly AxisRest[] axisRests = new AxisRest[6];
         private State xinputState;
-        private GamePadState state = new GamePadState();
+        private GamePadState rawState = new GamePadState();
 
         public GamePadXInput(InputSourceWindowsXInput source, Controller controller, Guid id, int index)
         {
@@ -56,7 +56,7 @@ namespace Stride.Input
         public override string Name => $"XInput GamePad {Index}";
         public override Guid Id { get; }
         public override Guid ProductId { get; }
-        public override GamePadState State => state;
+        protected override GamePadState RawState => rawState;
         public override IInputSource Source { get; }
 
         public event EventHandler Disconnected;
@@ -79,7 +79,7 @@ namespace Stride.Input
                 {
                     int mask = 1 << i;
                     var masked = (int)xinputState.Gamepad.Buttons & mask;
-                    if (masked != ((int)state.Buttons & mask))
+                    if (masked != ((int)rawState.Buttons & mask))
                     {
                         bool buttonState = (masked != 0);
                         if (!hasFocus && !BackgroundInputFilter.AcceptsButton(buttonState))
@@ -89,7 +89,7 @@ namespace Stride.Input
                         buttonEvent.IsDown = buttonState;
                         buttonEvent.Button = (GamePadButton)mask; // 1 to 1 mapping with XInput buttons
                         inputEvents.Add(buttonEvent);
-                        if (state.Update(buttonEvent))
+                        if (rawState.Update(buttonEvent))
                         {
                             UpdateButtonState(buttonEvent);
                         }
@@ -153,7 +153,7 @@ namespace Stride.Input
             GamePadAxisEvent axisEvent = InputEventPool<GamePadAxisEvent>.GetOrCreate(this);
             axisEvent.Value = newValue;
             axisEvent.Axis = axis;
-            state.Update(axisEvent);
+            rawState.Update(axisEvent);
             return axisEvent;
         }
 

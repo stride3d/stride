@@ -6,6 +6,7 @@ using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
 using Stride.Assets.Textures;
 using Stride.Graphics;
+using Stride.Input;
 using Stride.Streaming;
 
 namespace Stride.Assets
@@ -21,6 +22,7 @@ namespace Stride.Assets
             asset.SplashScreenColor = Color.Black;
 
             asset.GetOrCreate<EditorSettings>();
+            asset.GetOrCreate<InputSettings>();
             asset.GetOrCreate<RenderingSettings>();
             asset.GetOrCreate<StreamingSettings>();
             asset.GetOrCreate<TextureSettings>();

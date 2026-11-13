@@ -45,6 +45,12 @@ internal readonly record struct GCMeasurement(
 ///     the workload touches, grow on first use. Without a warm-up those first-touch allocations
 ///     are indistinguishable from a steady-state leak.
 ///   </para>
+///   <para>
+///     A one-off allocation can still land in the measured iterations, because the Mono interpreter
+///     allocates at points no warm-up length reliably passes. So a measurement that allocates is
+///     repeated and the lowest result is kept. A one-off does not come back, and an allocation the
+///     workload makes every time does.
+///   </para>
 /// </remarks>
 internal static class GCMeasure
 {
@@ -54,19 +60,34 @@ internal static class GCMeasure
     /// <param name="iteration">The workload. Invoked once per iteration.</param>
     /// <param name="warmupIterations">Iterations to run and discard before measuring.</param>
     /// <param name="measuredIterations">Iterations to measure.</param>
+    /// <param name="maxAttempts">How many times to measure, stopping early at a measurement with no allocation.</param>
     /// <remarks>
     ///   Reads <see cref="GC.GetAllocatedBytesForCurrentThread"/>, which ignores allocations made
     ///   on any other thread.
     /// </remarks>
-    public static GCMeasurement Run(Action iteration, int warmupIterations = 64, int measuredIterations = 256)
+    public static GCMeasurement Run(Action iteration, int warmupIterations = 64, int measuredIterations = 256, int maxAttempts = 3)
     {
         ArgumentNullException.ThrowIfNull(iteration);
         ArgumentOutOfRangeException.ThrowIfNegative(warmupIterations);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(measuredIterations);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maxAttempts);
 
         for (int i = 0; i < warmupIterations; i++)
             iteration();
 
+        var lowest = MeasureOnce(iteration, measuredIterations);
+        for (int attempt = 1; attempt < maxAttempts && lowest.AllocatedBytes > 0; attempt++)
+        {
+            var measurement = MeasureOnce(iteration, measuredIterations);
+            if (measurement.AllocatedBytes < lowest.AllocatedBytes)
+                lowest = measurement;
+        }
+
+        return lowest;
+    }
+
+    private static GCMeasurement MeasureOnce(Action iteration, int measuredIterations)
+    {
         // Settle anything the warm-up left behind, so collections counted below belong to the
         // measured iterations rather than to the warm-up.
         GC.Collect();

@@ -188,7 +188,7 @@ namespace Stride.Input
                         continue;
                     var value = ClampDeadZone(state.Axes[axisMemIndex] * 2.0f - 1.0f, InputManager.GameControllerAxisDeadZone);
                     axisRests[i].Observe(value);
-                    if (hasFocus || BackgroundInputFilter.AcceptsAxis(axisRests[i].Value, GetAxis(i), value))
+                    if (hasFocus || BackgroundInputFilter.AcceptsAxis(axisRests[i].Value, AxisStates[i], value))
                         HandleAxis(i, value);
                 }
                 
