@@ -54,6 +54,18 @@ namespace Stride.Assets.Effect
         /// </summary>
         public IReadOnlyCollection<UFile> ReadSources => readSources.Keys.ToList();
 
+        /// <summary>
+        /// Finds the source file of a shader, such as one of the <see cref="Shaders.EffectBytecode.HashSources"/> of an effect.
+        /// </summary>
+        /// <param name="shaderName">The name of the shader, such as <c>X</c> for <c>X.sdsl</c>.</param>
+        /// <param name="filePath">The full path of its source file, which exists.</param>
+        /// <returns><c>true</c> if the shader comes from a file of the locator; <c>false</c> if it comes from the database or is unknown.</returns>
+        public bool TryGetSourceFile(string shaderName, out UFile filePath)
+        {
+            ArgumentNullException.ThrowIfNull(shaderName);
+            return TryFindSource(ShaderFolder + shaderName + ".sdsl", out filePath, out _);
+        }
+
         /// <inheritdoc/>
         public override Stream OpenStream(string url, VirtualFileMode mode, VirtualFileAccess access, VirtualFileShare share = VirtualFileShare.Read, StreamFlags streamFlags = StreamFlags.None)
         {

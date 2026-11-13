@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #nullable disable
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Stride.Core.Assets;
 using Stride.Core.BuildEngine;
@@ -64,6 +65,9 @@ namespace Stride.Editor.Thumbnails
             parameters.RenderingMode = gameSettings.GetOrCreate<EditorSettings>().RenderingMode;
 
             Generator = context.Properties.Get(ThumbnailGenerator.Key) ?? throw new ArgumentException("The provided context does not contain required stride information needed to build the thumbnails.");
+
+            // 1: the results register the shader files they used; older ones would match whatever the shaders became
+            Version = 1;
         }
 
         /// <inheritdoc />
@@ -129,8 +133,16 @@ namespace Stride.Editor.Thumbnails
                 PreloadAsset();
                 var graphicsCompositor = GraphicsDevice.GetOrCreateSharedData(GraphicsCompositorKey, CreateSharedGraphicsCompositor);
                 var scene = CreateScene(graphicsCompositor);
-                var result = Generator.BuildThumbnail(Url, scene, graphicsCompositor, MicrothreadLocalDatabases.DatabaseFileProvider, Parameters.ThumbnailSize, Parameters.ColorSpace, Parameters.RenderingMode, commandContext.Logger, DependencyBuildStatus, CustomizeThumbnail);
+                var usedShaders = new HashSet<string>();
+                var result = Generator.BuildThumbnail(Url, scene, graphicsCompositor, MicrothreadLocalDatabases.DatabaseFileProvider, Parameters.ThumbnailSize, Parameters.ColorSpace, Parameters.RenderingMode, commandContext.Logger, DependencyBuildStatus, CustomizeThumbnail, usedShaders);
                 DestroyScene(scene);
+
+                // A change of a shader the effects of the thumbnail used builds it again
+                foreach (var shaderName in usedShaders)
+                {
+                    if (Generator.TryGetShaderSourceFile(shaderName, out var filePath))
+                        commandContext.RegisterInputDependency(new ObjectUrl(UrlType.File, filePath));
+                }
                 UnloadAsset();
                 return Task.FromResult(result);
             }
