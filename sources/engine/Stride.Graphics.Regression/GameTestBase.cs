@@ -189,6 +189,11 @@ namespace Stride.Graphics.Regression
             // Only make window visible in interactive mode,
             // otherwise it's quite disrupting for user: new window might display on top and steal focus
             MakeWindowVisibleOnRun = ForceInteractiveMode;
+
+            // A window that is not visible counts as minimized and caps the game at 15 frames per second:
+            // a headless test game has no reason to wait, so it runs as fast as it renders
+            if (!ForceInteractiveMode)
+                MinimizedMinimumUpdateRate.MinimumElapsedTime = TimeSpan.Zero;
         }
 
         /// <summary>
