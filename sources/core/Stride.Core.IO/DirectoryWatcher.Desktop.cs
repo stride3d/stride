@@ -79,6 +79,7 @@ public partial class DirectoryWatcher
         {
             while (!exitThread.Wait(SleepBetweenWatcherCheck))
             {
+                List<string>? restarted = null;
                 lock (watchers)
                 {
                     var list = ListTrackedDirectories().ToList();
@@ -91,10 +92,30 @@ public partial class DirectoryWatcher
                         }
                     }
 
+                    foreach (var (path, watcher) in ListTrackedDirectories().Where(pair => pair.Value.Failed).ToList())
+                    {
+                        if (TryRestart(watcher))
+                            (restarted ??= []).Add(path);
+                    }
+
                     // If no more directories are tracked, clear completely the watchers tree
                     if (!ListTrackedDirectories().Any())
                     {
                         watchers.Clear();
+                    }
+                }
+
+                // Outside of the lock: a listener can track other files
+                foreach (var path in restarted ?? [])
+                {
+                    try
+                    {
+                        OnChangesMissed(this, new ChangesMissedEventArgs(path));
+                    }
+                    catch (Exception ex)
+                    {
+                        // A listener must not end the checks
+                        Trace.WriteLine($"Unexpected exception in a listener of ChangesMissed: {ex}");
                     }
                 }
             }
@@ -250,6 +271,8 @@ public partial class DirectoryWatcher
                 NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName,
                 Filter = FileFilter,
                 IncludeSubdirectories = true,
+                // The default 8 KB overflows when a build writes to bin and obj; 64 KB is the most a network share allows
+                InternalBufferSize = 64 * 1024,
             };
 
         watcher.Changed += OnModified;
@@ -258,7 +281,16 @@ public partial class DirectoryWatcher
         watcher.Renamed += OnModified;
         watcher.Error += WatcherOnError;
 
-        watcher.EnableRaisingEvents = true;
+        try
+        {
+            watcher.EnableRaisingEvents = true;
+        }
+        catch
+        {
+            // On Linux, past the inotify limits
+            DisposeNativeWatcher(watcher);
+            throw;
+        }
 
         //Console.WriteLine("Watcher created {0}", directory);
         return watcher;
@@ -268,14 +300,15 @@ public partial class DirectoryWatcher
     {
         try
         {
-            //Console.WriteLine("DirectoryWatcher faile Watcher exception: {0}", errorEventArgs.GetException());
             lock (watchers)
             {
+                // The buffer of the events overflowed, or the watch stopped: the check thread starts it again, then tells the
+                // listeners that they may have missed changes
                 var watcher = watchers.Values.FirstOrDefault(item => item.Watcher == sender);
                 if (watcher != null)
                 {
-                    // Remove a specific watcher if there was any error with it
-                    UnTrack(watcher, true);
+                    watcher.Failed = true;
+                    Trace.WriteLine($"The watch of '{watcher.Path}' failed and starts again: {errorEventArgs.GetException()?.Message}");
                 }
             }
         }
@@ -283,6 +316,55 @@ public partial class DirectoryWatcher
         {
             Trace.WriteLine($"Unexpected exception in WatcherOnError: {ex}");
         }
+    }
+
+    /// <summary>
+    /// Replaces the native watcher of a watch that failed. The caller holds the lock of <see cref="watchers"/>.
+    /// </summary>
+    /// <returns><c>true</c> if the new watch runs; otherwise the next check tries again.</returns>
+    private bool TryRestart(DirectoryWatcherItem watcher)
+    {
+        // The new watch runs before the old one stops, so that no change falls between them; at a limit of the system, such as the
+        // number of inotify instances on Linux, the old one must stop first. A disposed watcher can be disposed again.
+        var restarted = TryCreateFileSystemWatcher(watcher.Path);
+        DisposeNativeWatcher(watcher.Watcher!);
+        restarted ??= TryCreateFileSystemWatcher(watcher.Path);
+        if (restarted == null)
+            return false;
+
+        watcher.Watcher = restarted;
+        watcher.Failed = false;
+        return true;
+    }
+
+    private FileSystemWatcher? TryCreateFileSystemWatcher(string directory)
+    {
+        try
+        {
+            return CreateFileSystemWatcher(directory);
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Stops the watch of a tracked directory and raises its error, as the file system does when a watch fails.
+    /// </summary>
+    internal void RaiseWatchError(string path, Exception exception)
+    {
+        FileSystemWatcher? watcher = null;
+        lock (watchers)
+        {
+            if (GetDirectoryInfoFromPath(path) is { } info && watchers.TryGetValue(info.FullName, out var item))
+                watcher = item.Watcher;
+        }
+        if (watcher == null)
+            throw new InvalidOperationException($"The directory '{path}' is not watched.");
+
+        watcher.EnableRaisingEvents = false;
+        WatcherOnError(watcher, new ErrorEventArgs(exception));
     }
 
     private void OnModified(object sender, FileSystemEventArgs e)
@@ -331,6 +413,11 @@ public partial class DirectoryWatcher
         public int TrackCount { get; set; }
 
         public FileSystemWatcher? Watcher { get; set; }
+
+        /// <summary>
+        /// Whether <see cref="Watcher"/> raised an error: it may have stopped, and changes were missed.
+        /// </summary>
+        public bool Failed { get; set; }
 
         public IEnumerable<DirectoryInfo> ListChildrenDirectories()
         {

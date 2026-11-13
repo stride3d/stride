@@ -163,6 +163,47 @@ public sealed class GameCodeWatcherTests : IDisposable
     }
 
     [Fact]
+    public async Task TheChangesTheFileSystemWatcherMissedAreFoundFromTheFiles()
+    {
+        var gameDirectory = Path.GetDirectoryName(game)!;
+        var player = Path.Combine(gameDirectory, "Player.cs");
+        var same = Path.Combine(gameDirectory, "Same.cs");
+        var old = Path.Combine(gameDirectory, "Old.cs");
+        File.WriteAllText(player, "public class Player { }");
+        File.WriteAllText(same, "public class Same { }");
+        File.WriteAllText(old, "public class Old { }");
+        // Nothing is tracked, as if the watcher missed every event
+        using var watcher = new GameCodeWatcher([game], [head, nestedHead], OneBurstDelay, watchFileSystem: true, (_, _) => { });
+        var bursts = Record(watcher);
+
+        // Nothing changed yet
+        watcher.OnChangesMissed(gameDirectory);
+
+        File.WriteAllText(player, "public class Player { public int Health; }");
+        File.Delete(old);
+        var enemy = Path.Combine(gameDirectory, "Scripts", "Enemy.cs");
+        Directory.CreateDirectory(Path.GetDirectoryName(enemy)!);
+        File.WriteAllText(enemy, "public class Enemy { }");
+        // Neither the build output nor the files of another project count
+        Directory.CreateDirectory(Path.Combine(gameDirectory, "obj"));
+        File.WriteAllText(Path.Combine(gameDirectory, "obj", "MyGame.AssemblyInfo.cs"), "// generated");
+        File.WriteAllText(Path.Combine(gameDirectory, "Tools", "Program.cs"), "// tools");
+        // The watch of a parent folder started again
+        watcher.OnChangesMissed(directory);
+
+        var burst = await bursts.Reader.ReadAsync().AsTask().WaitAsync(Timeout);
+        Assert.All(burst, x => Assert.Equal(game, x.ProjectPath));
+        Assert.Equal(
+            new[] { "Old.cs", "Player.cs", Path.Combine("Scripts", "Enemy.cs") }.Order(),
+            burst.Select(x => Path.GetRelativePath(gameDirectory, x.FilePath)).Order());
+
+        // Each change is reported once
+        watcher.OnChangesMissed(gameDirectory);
+        await Task.Delay(watcher.BurstDelay * 3);
+        Assert.False(bursts.Reader.TryRead(out _));
+    }
+
+    [Fact]
     public async Task TheWatchedProjectsOfASessionAreTheProjectsWhoseAssemblyTheEditorLoads()
     {
         await using var fixture = await EditorSessionFixture.OpenGameAsync(PlatformType.Windows, PlatformType.Linux);
