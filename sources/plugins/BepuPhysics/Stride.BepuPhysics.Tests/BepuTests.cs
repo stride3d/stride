@@ -405,6 +405,48 @@ namespace Stride.BepuPhysics.Tests
             RunGameTest(game);
         }
 
+        /// <summary> A handler may take its collidable out of the simulation, then read the contacts it was given: they keep their orientation </summary>
+        [Fact]
+        public void ContactsKeepTheirSideOnceTheirSourceIsRemovedTest()
+        {
+            var game = new GameTest();
+            var removal = new RemovesItselfThenReadsNormals();
+            game.Script.AddTask(async () =>
+            {
+                game.ScreenShotAutomationEnabled = false;
+
+                var e1 = new Entity { new BodyComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } }, ContactEventHandler = removal } };
+                var e2 = new Entity { new StaticComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider { Size = new Vector3(10, 1, 10) } } } } };
+                e1.Transform.Position.Y = 1.2f;
+
+                game.SceneSystem.SceneInstance.RootScene.Entities.AddRange(new[] { e1, e2 });
+                var simulation = e1.GetSimulation();
+                for (int i = 0; i < 60 && removal.Normals.Count == 0; i++)
+                    await simulation.AfterUpdate();
+
+                game.Exit();
+            });
+            RunGameTest(game);
+
+            // From the floor up to the box, as before the box was removed
+            Assert.NotEmpty(removal.Normals);
+            Assert.All(removal.Normals, normal => Assert.True(normal.Y > 0.9f, $"Normal {normal}"));
+        }
+
+        private class RemovesItselfThenReadsNormals : IContactHandler
+        {
+            public bool NoContactResponse => false;
+
+            public List<Vector3> Normals = new();
+
+            public void OnStartedTouching<TManifold>(Contacts<TManifold> contacts) where TManifold : unmanaged, IContactManifold<TManifold>
+            {
+                contacts.EventSource.Entity.Scene = null;
+                foreach (var contact in contacts)
+                    Normals.Add(contact.Normal);
+            }
+        }
+
         [Fact]
         public void OneGroupPerTouchingChildTest()
         {

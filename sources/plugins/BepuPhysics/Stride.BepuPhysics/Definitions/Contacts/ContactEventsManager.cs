@@ -219,7 +219,7 @@ internal class ContactEventsManager : IDisposable
         uint ownerA = componentA.CollidableReference!.Value.Packed;
         uint ownerB = componentB.CollidableReference!.Value.Packed;
         var ownerSortedPair = ownerA > ownerB ? (ownerA, ownerB) : (ownerB, ownerA);
-        IPerTypeManifoldStore.StoreManifold(_manifoldStoresPerWorker, workerIndex, ref manifold, pair, childIndexA, childIndexB, ownerSortedPair);
+        IPerTypeManifoldStore.StoreManifold(_manifoldStoresPerWorker, workerIndex, ref manifold, pair, childIndexA, childIndexB, ownerSortedPair, ownerA > ownerB);
     }
 
     private void RunManifoldEvent<TManifold>(Span<ContactGroup<TManifold>> unsafeInfos) where TManifold : unmanaged, IContactManifold<TManifold>
@@ -464,14 +464,14 @@ internal class ContactEventsManager : IDisposable
             manifoldLists[workerIndex] = manifoldsForWorker;
         }
 
-        public static unsafe void StoreManifold<TManifold>(IPerTypeManifoldStore[][] manifoldLists, int workerIndex, ref TManifold manifold, CollidablePair pair, int childIndexA, int childIndexB, (uint A, uint B) ownerSortedPair) where TManifold : unmanaged, IContactManifold<TManifold>
+        public static unsafe void StoreManifold<TManifold>(IPerTypeManifoldStore[][] manifoldLists, int workerIndex, ref TManifold manifold, CollidablePair pair, int childIndexA, int childIndexB, (uint A, uint B) ownerSortedPair, bool isPairAOwnerA) where TManifold : unmanaged, IContactManifold<TManifold>
         {
             int typeIndex = TypeIndex<TManifold>.Index;
             EnsureWorkerSlots(manifoldLists, workerIndex, typeIndex + 1);
             var handler = (ListOf<TManifold>)manifoldLists[workerIndex][typeIndex];
 
             // Appended in arrival order, RunEvents sorts by owner once every worker is merged
-            handler.Add(new ContactGroup<TManifold>(ref manifold, pair, childIndexA, childIndexB, ownerSortedPair));
+            handler.Add(new ContactGroup<TManifold>(ref manifold, pair, childIndexA, childIndexB, ownerSortedPair, isPairAOwnerA));
         }
 
         private static int indexMax = -1;
