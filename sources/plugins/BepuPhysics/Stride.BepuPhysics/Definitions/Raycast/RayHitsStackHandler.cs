@@ -85,6 +85,6 @@ internal unsafe struct RayHitsStackHandler(HitInfoStack* Ptr, int Length, BepuSi
     public void OnRayHit(in RayData ray, ref float maximumT, float t, Vector3 normal, int childIndex)
     {
         Debug.Assert(ShapeHandled.Packed != 0);
-        InsertHit(ray.Origin + ray.Direction * t, ref maximumT, t, normal, ShapeHandled, -1);
+        InsertHit(ray.Origin + ray.Direction * t, ref maximumT, t, normal, ShapeHandled, childIndex);
     }
 }
