@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Run settings for the code coverage of the Windows test lanes (Game D3D11 and ApiNeutral, Simple, both editors).
+  Collects Cobertura coverage with Microsoft Code Coverage (shipped with Microsoft.NET.Test.Sdk, so the test
+  projects need no extra package) over all the Stride assemblies: test assemblies and test helpers stay out.
+  The D3D12 and Vulkan lanes use coverage-graphics.runsettings. tests/COVERAGE.md explains the choices.
+  Local run: pass this file to dotnet test with its settings option.
+-->
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="Code Coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+          <CodeCoverage>
+            <!-- Instrument in memory as the assemblies load. Static instrumentation rewrites every assembly on
+                 disk before the tests start: on Linux the collector does it even when dynamic works (+167 s
+                 on the Game lane), so it is turned off explicitly. -->
+            <EnableStaticManagedInstrumentation>False</EnableStaticManagedInstrumentation>
+            <EnableDynamicManagedInstrumentation>True</EnableDynamicManagedInstrumentation>
+            <ModulePaths>
+              <Include>
+                <ModulePath>.*[\\/]Stride\.[\w.]*\.(dll|exe)$</ModulePath>
+              </Include>
+              <Exclude>
+                <!-- Stride.*.Tests, Stride.Graphics.Tests.10_0, Stride.Tests.Combined, Stride.TestRunner, Stride.CrashReport.TestProbe -->
+                <ModulePath>.*Test[\w.]*\.(dll|exe)$</ModulePath>
+                <ModulePath>.*[\\/]Stride\.Graphics\.Regression\.dll$</ModulePath>
+                <ModulePath>.*[\\/]Stride\.[\w.]*AutoTesting\.dll$</ModulePath>
+                <ModulePath>.*[\\/]Stride\.XunitRunner\.dll$</ModulePath>
+                <ModulePath>.*[\\/]Stride\.CompareGold\.dll$</ModulePath>
+                <ModulePath>.*[\\/]Stride\.ScreenshotComparator[\w.]*\.dll$</ModulePath>
+              </Exclude>
+            </ModulePaths>
+            <!-- Generated code and data, not code anyone writes or tests: build outputs (obj/, named per platform, so
+                 they never merge across lanes), the checked-in SPIR-V tables (*.gen.cs, 84k lines, a fifth of the
+                 total) and the shader bytecode arrays (Shaders.Bytecodes/*.Level_9_1.cs). -->
+            <Sources>
+              <Exclude>
+                <Source>.*[\\/]obj[\\/].*</Source>
+                <Source>.*\.gen\.cs$</Source>
+                <Source>.*Bytecodes[\\/][^\\/]*\.Level_\w+\.cs$</Source>
+              </Exclude>
+            </Sources>
+          </CodeCoverage>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Run settings for the code coverage of the Windows Game D3D12 and Vulkan lanes.
+  Same as coverage.runsettings, but only over Stride.Graphics and Stride.Games: the code these lanes run beyond
+  the D3D11 lane is nearly all there (Stride.Graphics is built once per graphics API). tests/COVERAGE.md explains it.
+-->
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="Code Coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+          <CodeCoverage>
+            <!-- See coverage.runsettings. -->
+            <EnableStaticManagedInstrumentation>False</EnableStaticManagedInstrumentation>
+            <EnableDynamicManagedInstrumentation>True</EnableDynamicManagedInstrumentation>
+            <ModulePaths>
+              <Include>
+                <ModulePath>.*[\\/]Stride\.Graphics\.dll$</ModulePath>
+                <ModulePath>.*[\\/]Stride\.Games\.dll$</ModulePath>
+              </Include>
+            </ModulePaths>
+            <!-- See coverage.runsettings (no *.gen.cs in these two assemblies). -->
+            <Sources>
+              <Exclude>
+                <Source>.*[\\/]obj[\\/].*</Source>
+                <Source>.*Bytecodes[\\/][^\\/]*\.Level_\w+\.cs$</Source>
+              </Exclude>
+            </Sources>
+          </CodeCoverage>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>
