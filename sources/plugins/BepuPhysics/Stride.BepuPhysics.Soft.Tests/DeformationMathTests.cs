@@ -11,8 +11,9 @@ using Xunit;
 namespace Stride.BepuPhysics.Soft.Tests;
 
 /// <summary>
-/// The frames the GPU deformation computes per vertex: the jacobian of a lattice cell applied to the rest normal and tangent,
-/// and the triangles around a cloth vertex standing for the normals and tangents the CPU recomputes over the whole mesh.
+/// The math both deformation modes share, through the functions the CPU runs and the shaders copy: the jacobian of a lattice cell
+/// applied to the rest normal and tangent, and the triangles around a cloth vertex standing for the normals and tangents
+/// recomputed over the whole mesh. The shaders themselves are only covered by the pictures of <see cref="DeformationModeTests"/>.
 /// </summary>
 public class DeformationMathTests
 {
@@ -270,7 +271,7 @@ public class DeformationMathTests
         for (int a = 0; a < topology.ParticleCount; a++)
         {
             for (int b = a + 1; b < topology.ParticleCount; b++)
-                facing |= MathF.Abs(Vector3.Distance(topology.RestPositions[a], topology.RestPositions[b]) - topology.Spacing) < topology.Spacing * 0.01f && edges.Contains((a, b)) == false;
+                facing |= MathUtil.WithinEpsilon(Vector3.Distance(topology.RestPositions[a], topology.RestPositions[b]), topology.Spacing, topology.Spacing * 0.01f) && edges.Contains((a, b)) == false;
         }
         Assert.True(facing, "No two particles face each other across an empty cell, this mesh no longer covers what it is for");
     }
@@ -283,6 +284,9 @@ public class DeformationMathTests
         var topology = ClothBuilder.Build(Grid(8, closedBox: false, clockwise));
         var (ring, starts) = GpuDeformation.BuildRings(topology);
         var mesh = topology.Mesh;
+        // Every corner of every triangle is in the ring of its vertex, once: one added twice would not show in a normalized sum
+        Assert.Equal(mesh.Indices.Length, ring.Length);
+        Assert.Equal(ring.Length, starts[^1]);
 
         // A rolled and rippled sheet: no two triangles in the same plane
         var particles = Array.ConvertAll(topology.RestPositions, p => new Vector3(MathF.Sin(p.X * 2f), p.Y + 0.2f * MathF.Sin(p.Z * 9f), MathF.Cos(p.X * 2f) + p.Z));
@@ -310,19 +314,6 @@ public class DeformationMathTests
             AssertNear(normals[v], normal, $"normal of vertex {v}");
             AssertNear((Vector3)tangents[v], tangent, $"tangent of vertex {v}");
         }
-    }
-
-    [Fact]
-    public static void RingsHoldEveryCornerOfEveryTriangle()
-    {
-        var topology = ClothBuilder.Build(Grid(3, closedBox: false, clockwise: true));
-        var (ring, starts) = GpuDeformation.BuildRings(topology);
-
-        Assert.Equal(topology.Mesh.Indices.Length, ring.Length);
-        Assert.Equal(ring.Length, starts[^1]);
-        // Of the two corners of the first row, the one on the diagonal of its cell is in both triangles of the cell
-        Assert.Equal(1, starts[1] - starts[0]);
-        Assert.Equal(2, starts[4] - starts[3]);
     }
 
     private static void AssertNear(Vector3 expected, Vector3 actual, string what)

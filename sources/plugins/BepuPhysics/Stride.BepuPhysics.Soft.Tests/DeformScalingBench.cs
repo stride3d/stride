@@ -82,8 +82,14 @@ public class DeformScalingBench
         var samples = new List<Measurement>();
         for (int r = 0; r < 3; r++)
             samples.Add(RunOnce(scn, mode));
-        samples.Sort((a, b) => a.CpuDeformUs.CompareTo(b.CpuDeformUs));
-        return samples[1];
+        // The median of each column: the run in the middle for one is not the one in the middle for the other
+        return samples[0] with { CpuDeformUs = Median(samples.Select(s => s.CpuDeformUs)), GpuFrameMs = Median(samples.Select(s => s.GpuFrameMs)) };
+    }
+
+    private static double Median(IEnumerable<double> values)
+    {
+        var sorted = values.Order().ToArray();
+        return sorted[sorted.Length / 2];
     }
 
     private static Measurement RunOnce((int Count, int R, int Tess) scn, SoftBodyDeformationMode mode)
@@ -93,15 +99,9 @@ public class DeformScalingBench
         int particles = 0, vertices = 0;
         using var game = new BenchGame(scn, mode, cpuTimes, gpuTimes, p => particles = p, v => vertices = v);
         GameTester.RunGameTest(game);
-        if (cpuTimes.Count == 0)
-            return new Measurement(0, 0, particles, vertices);
-        cpuTimes.Sort();
-        gpuTimes.Sort();
-        return new Measurement(
-            cpuTimes[cpuTimes.Count / 2] * 1000.0,
-            gpuTimes.Count == 0 ? 0 : gpuTimes[gpuTimes.Count / 2],
-            particles,
-            vertices);
+        // A run that timed out before measuring would put zeros in the report
+        Assert.True(cpuTimes.Count > 0 && gpuTimes.Count > 0, $"{scn} in {mode} mode measured {cpuTimes.Count} deformations and {gpuTimes.Count} frames");
+        return new Measurement(Median(cpuTimes) * 1000.0, Median(gpuTimes), particles, vertices);
     }
 
     private static void WriteReport(string path, string[] axisNames, List<List<Row>> axes)
@@ -109,29 +109,27 @@ public class DeformScalingBench
         var sb = new StringBuilder();
         sb.AppendLine("# Soft body deformation CPU vs GPU scaling");
         sb.AppendLine();
-        sb.AppendLine($"Hardware: see `wmic cpu get name` / `dxdiag`. Backend: Direct3D 11 Level_11_0.");
+        sb.AppendLine($"Hardware: see `wmic cpu get name` / `dxdiag`. Backend: {GraphicsDevice.Platform} Level_11_0.");
         sb.AppendLine("Method: 100 warmup frames + 300 measured frames per (scenario, mode), three runs, median reported.");
         sb.AppendLine("- CPU column = `SoftBodyProcessor.DrawKey` ElapsedTime, µs/frame.");
         sb.AppendLine("- GPU column = full frame GPU time (ms) measured via timestamp query; the deform cost on GPU is the delta");
         sb.AppendLine("  between GPU mode and CPU mode frame times (CPU mode has zero GPU deform cost).");
         sb.AppendLine();
-        sb.AppendLine("Winner is whichever mode has the lower total frame cost (CPU deform + GPU frame).");
+        sb.AppendLine("The two columns of a mode are not to be added: the CPU work of a frame may run while the GPU draws it.");
         sb.AppendLine();
         for (int i = 0; i < axes.Count; i++)
         {
             sb.AppendLine($"### {axisNames[i]}");
             sb.AppendLine();
-            sb.AppendLine("| Bodies | R (lattice) | Particles | Vertices | CPU deform µs | CPU frame ms | GPU deform µs (CPU-side) | GPU frame ms | Winner | Notes |");
-            sb.AppendLine("|--------|-------------|-----------|----------|---------------|--------------|--------------------------|--------------|--------|-------|");
+            sb.AppendLine("| Bodies | R (lattice) | Particles | Vertices | CPU mode: deform µs | CPU mode: GPU frame ms | GPU mode: CPU-side µs | GPU mode: GPU frame ms |");
+            sb.AppendLine("|--------|-------------|-----------|----------|---------------------|------------------------|-----------------------|------------------------|");
             foreach (var row in axes[i])
             {
-                var winner = (row.Cpu.CpuDeformUs / 1000.0 + row.Cpu.GpuFrameMs) <= (row.Gpu.CpuDeformUs / 1000.0 + row.Gpu.GpuFrameMs) ? "CPU" : "GPU";
                 sb.AppendLine(string.Format(CultureInfo.InvariantCulture,
-                    "| {0} | {1} | {2} | {3} | {4:0} | {5:0.00} | {6:0} | {7:0.00} | {8} | |",
+                    "| {0} | {1} | {2} | {3} | {4:0} | {5:0.00} | {6:0} | {7:0.00} |",
                     row.Scenario.Count, row.Scenario.R, row.Cpu.Particles, row.Cpu.Vertices,
                     row.Cpu.CpuDeformUs, row.Cpu.GpuFrameMs,
-                    row.Gpu.CpuDeformUs, row.Gpu.GpuFrameMs,
-                    winner));
+                    row.Gpu.CpuDeformUs, row.Gpu.GpuFrameMs));
             }
             sb.AppendLine();
         }
@@ -277,7 +275,12 @@ public class DeformScalingBench
         protected override void Destroy()
         {
             if (_profilingEvents is not null)
+            {
                 Profiler.Unsubscribe(_profilingEvents);
+                Profiler.Disable(SoftBodyProcessor.DrawKey);
+            }
+            foreach (var pool in _gpuTimers)
+                pool?.Dispose();
             base.Destroy();
         }
 

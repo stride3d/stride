@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Stride.BepuPhysics.Definitions.Colliders;
 using Stride.BepuPhysics.Soft.Rendering;
@@ -39,25 +40,33 @@ public class DeformStressBench
         Directory.CreateDirectory(folder);
         var report = Path.Combine(folder, "stress_report.md");
 
-        GameTestBase.ForceInteractiveMode = true;
-
         var cpuTimes = new List<double>();
         var cpuGpuTimes = new List<double>();
         var gpuTimes = new List<double>();
         var gpuGpuTimes = new List<double>();
 
-        Console.WriteLine("=== CPU run ===");
-        using (var g = new StressGame(SoftBodyDeformationMode.Cpu, cpuTimes, cpuGpuTimes))
-            g.Run();
+        // Shown in a window, for this bench only: the tests that run after it in the process go back to what they had
+        bool interactive = GameTestBase.ForceInteractiveMode;
+        GameTestBase.ForceInteractiveMode = true;
+        try
+        {
+            Console.WriteLine("=== CPU run ===");
+            using (var g = new StressGame(SoftBodyDeformationMode.Cpu, cpuTimes, cpuGpuTimes))
+                g.Run();
 
-        Console.WriteLine("=== GPU run ===");
-        using (var g = new StressGame(SoftBodyDeformationMode.Gpu, gpuTimes, gpuGpuTimes))
-            g.Run();
+            Console.WriteLine("=== GPU run ===");
+            using (var g = new StressGame(SoftBodyDeformationMode.Gpu, gpuTimes, gpuGpuTimes))
+                g.Run();
+        }
+        finally
+        {
+            GameTestBase.ForceInteractiveMode = interactive;
+        }
 
         double CpuMedian(List<double> l) => l.Count == 0 ? double.NaN : l.OrderBy(x => x).ElementAt(l.Count / 2);
 
-        var apiName = Environment.GetEnvironmentVariable("STRIDE_API_NAME") ?? "unknown";
-        var sb = new System.Text.StringBuilder();
+        var apiName = GraphicsDevice.Platform;
+        var sb = new StringBuilder();
         sb.AppendLine($"# Deform stress — {apiName}");
         sb.AppendLine();
         sb.AppendLine("Scenario: 1 body, lattice R=10, tessellation 288 (~166k verts).");
@@ -191,7 +200,12 @@ public class DeformStressBench
         protected override void Destroy()
         {
             if (_profilingEvents is not null)
+            {
                 Profiler.Unsubscribe(_profilingEvents);
+                Profiler.Disable(SoftBodyProcessor.DrawKey);
+            }
+            foreach (var pool in _gpuTimers)
+                pool?.Dispose();
             base.Destroy();
         }
 

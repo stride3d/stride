@@ -5,11 +5,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Stride.BepuPhysics.Definitions.Colliders;
 using Stride.BepuPhysics.Soft.Rendering;
 using Stride.Core.Collections;
+using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Games;
@@ -39,65 +42,52 @@ public class DeformationModeTests : GameTestBase
     [InlineData(SoftBodyDeformationQuality.Fast)]
     public static void GpuDeformationLooksLikeCpuDeformation(SoftBodyDeformationQuality quality)
     {
-        var folder = Path.Combine(Path.GetTempPath(), "Stride.BepuPhysics.Soft.Tests");
-        Directory.CreateDirectory(folder);
-        var cpuPath = Path.Combine(folder, $"deformation-{quality}-cpu.png");
-        var gpuPath = Path.Combine(folder, $"deformation-{quality}-gpu.png");
-
-        var game = new RenderGame();
-        Exception? failure = null;
-        ImageTester.ComparisonStats stats = default;
-        game.Script.AddTask(async () =>
+        var cpuPath = PicturePath($"deformation-{quality}-cpu");
+        var gpuPath = PicturePath($"deformation-{quality}-gpu");
+        RunRendered(async game =>
         {
-            try
-            {
-                game.Services.GetOrCreate<SoftBodyConfiguration>().DeformationQuality = quality;
-                var bodies = game.SetUpScene();
-                var simulation = bodies[0].Simulation!;
-                for (int step = 0; step < 50; step++)
-                    await simulation.AfterUpdate();
-                simulation.Enabled = false;
+            game.Services.GetOrCreate<SoftBodyConfiguration>().DeformationQuality = quality;
+            var bodies = game.SetUpScene();
+            var simulation = bodies[0].Simulation!;
+            for (int step = 0; step < 50; step++)
+                await simulation.AfterUpdate();
+            simulation.Enabled = false;
 
-                using (var cpu = await game.Capture(bodies, SoftBodyDeformationMode.Cpu))
-                using (var stream = File.Create(cpuPath))
-                    cpu.Save(stream, ImageFileType.Png);
-                // What the CPU deformation leaves in the vertices is not the rest pose, the switch must not start from it
-                Assert.All(bodies, body => Assert.True(DistanceToRestPose(body) > 1e-3f, $"{body.Entity.Name} is {DistanceToRestPose(body)} away from its rest pose"));
-                var models = bodies.Select(b => b.Entity.Get<ModelComponent>()!.Model).ToArray();
-                var cpuBounds = models.Select(model => model.BoundingBox).ToArray();
-                using var gpu = await game.Capture(bodies, SoftBodyDeformationMode.Gpu);
+            using (var cpu = await game.Capture(bodies, SoftBodyDeformationMode.Cpu))
+                Save(cpu, cpuPath);
+            // What the CPU deformation leaves in the vertices is not the rest pose, the switch must not start from it
+            Assert.All(bodies, body => Assert.True(DistanceToRestPose(body) > 1e-3f, $"{body.Entity.Name} is {DistanceToRestPose(body)} away from its rest pose"));
+            var models = bodies.Select(b => b.Entity.Get<ModelComponent>()!.Model).ToArray();
+            var cpuBounds = models.Select(model => model.BoundingBox).ToArray();
+            using var gpu = await game.Capture(bodies, SoftBodyDeformationMode.Gpu);
+            for (int i = 0; i < bodies.Length; i++)
+            {
                 // The mode switches in place: what follows the model (node links, skeleton bodies) is left alone
-                Assert.Equal(models, bodies.Select(b => b.Entity.Get<ModelComponent>()!.Model));
+                Assert.Same(models[i], bodies[i].Entity.Get<ModelComponent>()!.Model);
                 // The CPU knows where every vertex is, the GPU bounds are worked out from the particles: they hold the same vertices
-                for (int i = 0; i < bodies.Length; i++)
-                    Assert.True(Holds(models[i].BoundingBox, cpuBounds[i]), $"The bounds of {bodies[i].Entity.Name} on the GPU, {models[i].BoundingBox}, leave out some of {cpuBounds[i]}");
-                using (var stream = File.Create(gpuPath))
-                    gpu.Save(stream, ImageFileType.Png);
-                // The vertex shader deforms what is in the vertex buffer: the rest pose, in the space of the model
-                Assert.All(bodies, body => Assert.Equal(0f, DistanceToRestPose(body)));
+                Assert.True(Holds(models[i].BoundingBox, cpuBounds[i]), $"The bounds of {bodies[i].Entity.Name} on the GPU, {models[i].BoundingBox}, leave out some of {cpuBounds[i]}");
+            }
+            Save(gpu, gpuPath);
+            // The vertex shader deforms what is in the vertex buffer: the rest pose, in the space of the model
+            Assert.All(bodies, body => Assert.Equal(0f, DistanceToRestPose(body)));
 
-                ImageTester.CompareImage(gpu, cpuPath, out stats);
-            }
-            catch (Exception e)
-            {
-                failure = e;
-            }
-            game.Exit();
+            ImageTester.CompareImage(gpu, cpuPath, out var stats);
+            AssertSamePicture(stats, $"{stats}, see {cpuPath} and {gpuPath}");
+
+            // The bodies are what the two pictures have in common: without them the picture is another one
+            foreach (var body in bodies)
+                body.Entity.Get<ModelComponent>()!.Enabled = false;
+            using var empty = await game.Capture(bodies, SoftBodyDeformationMode.Gpu);
+            ImageTester.CompareImage(empty, cpuPath, out var without);
+            Assert.True(without.PixelsAtDiff3Plus > without.TotalPixels / 100, $"The bodies take too little of the picture for it to tell the modes apart: {without}");
         });
-        RunGameTest(game);
-        if (failure is not null)
-            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw(failure);
-
-        // Both modes run the same math, in another order: rounding can move an edge or a shadow texel by one pixel, nothing more
-        var message = $"{stats}, see {cpuPath} and {gpuPath}";
-        Assert.True(stats.TotalPixels > 0, message);
-        Assert.True(stats.PixelsAtDiff3Plus <= stats.TotalPixels / 1000, message);
-        Assert.True(stats.PSNR > 45.0, message);
+        File.Delete(cpuPath);
+        File.Delete(gpuPath);
     }
 
     /// <summary>
     /// The bounds of a body deformed on the GPU, which never sees its vertices, hold them whatever the particles do: a lattice
-    /// pulled to six times its length, then turned and sheared as well, and a cloth on a mirrored entity.
+    /// pulled to six times its length, then turned and sheared as well, then bent and twisted, and a cloth on a mirrored entity.
     /// </summary>
     [Theory]
     [InlineData(SoftBodyDeformationQuality.Smooth)]
@@ -122,7 +112,8 @@ public class DeformationModeTests : GameTestBase
 
             // A square of side one, and what keeps its two faces apart
             Assert.Equal(SoftBodyDeformationMode.Gpu, mirrored.RenderModel!.Mode);
-            var extent = mirrored.RenderModel.Model.BoundingBox.Extent;
+            var mirroredBounds = mirrored.RenderModel.Model.BoundingBox;
+            var extent = mirroredBounds.Extent;
             Assert.True(extent.X < 0.6f && extent.Y < 0.6f && extent.Z < 0.6f, $"The bounds of the mirrored cloth reach {extent} from their center");
 
             var topology = jelly.Topology!;
@@ -130,9 +121,17 @@ public class DeformationModeTests : GameTestBase
             using var deformation = new GpuDeformation(game.GraphicsDevice, topology, smooth);
             var positions = new Vector3[topology.Mesh.Positions.Length];
             var frames = new Vector3[topology.ParticleCount * 3];
-            foreach (var warp in new[] { Matrix.Scaling(6f, 1f, 1f), Matrix.Scaling(6f, 1f, 0.5f) * new Matrix { M11 = 1f, M22 = 1f, M33 = 1f, M44 = 1f, M21 = 0.8f } * Matrix.RotationYawPitchRoll(0.7f, 0.4f, 0.2f) })
+            var sheared = Matrix.Scaling(6f, 1f, 0.5f) * new Matrix { M11 = 1f, M22 = 1f, M33 = 1f, M44 = 1f, M21 = 0.8f } * Matrix.RotationYawPitchRoll(0.7f, 0.4f, 0.2f);
+            Converter<Vector3, Vector3>[] warps =
+            [
+                rest => rest * new Vector3(6f, 1f, 1f),
+                rest => Vector3.TransformCoordinate(rest, sheared),
+                // No cell is the image of its neighbor: the vertices outside of the lattice are not carried the way a single map would
+                rest => new Vector3(rest.X * 3f + 0.4f * MathF.Sin(rest.Y * 5f), rest.Y * (1f + rest.X) + rest.Z * rest.Z, rest.Z * MathF.Cos(rest.X * 4f) - 2f * rest.X * rest.Y),
+            ];
+            foreach (var warp in warps)
             {
-                var particles = Array.ConvertAll(topology.RestPositions, rest => Vector3.TransformCoordinate(rest, warp));
+                var particles = Array.ConvertAll(topology.RestPositions, warp);
                 var bounds = deformation.Update(particles, Matrix.Identity, 0f, 0f);
                 if (smooth)
                 {
@@ -148,6 +147,14 @@ public class DeformationModeTests : GameTestBase
                 var vertices = BoundingBox.FromPoints(positions);
                 Assert.True(Holds(bounds, vertices), $"The bounds worked out from the particles, {bounds}, leave out some of the vertices, within {vertices}");
             }
+
+            // The CPU knows where the vertices of the mirrored cloth are
+            game.Services.GetOrCreate<SoftBodyConfiguration>().DeformationMode = SoftBodyDeformationMode.Cpu;
+            for (int frame = 0; frame < 4; frame++)
+                await game.Script.NextFrame();
+            Assert.Equal(SoftBodyDeformationMode.Cpu, mirrored.RenderModel!.Mode);
+            var mirroredVertices = mirrored.RenderModel.Model.BoundingBox;
+            Assert.True(Holds(mirroredBounds, mirroredVertices), $"The bounds of the mirrored cloth on the GPU, {mirroredBounds}, leave out some of {mirroredVertices}");
         });
     }
 
@@ -158,9 +165,7 @@ public class DeformationModeTests : GameTestBase
     [Fact]
     public static void TessellatedBodiesSwitchDeformation()
     {
-        var folder = Path.Combine(Path.GetTempPath(), "Stride.BepuPhysics.Soft.Tests");
-        Directory.CreateDirectory(folder);
-        var cpuPath = Path.Combine(folder, "tessellated-cpu.png");
+        var cpuPath = PicturePath("tessellated-cpu");
         RunRendered(async game =>
         {
             var root = game.SetUpStage();
@@ -181,17 +186,13 @@ public class DeformationModeTests : GameTestBase
             simulation.Enabled = false;
 
             using (var cpu = await game.Capture(bodies, SoftBodyDeformationMode.Cpu))
-            using (var stream = File.Create(cpuPath))
-                cpu.Save(stream, ImageFileType.Png);
+                Save(cpu, cpuPath);
             var tessellatedModel = tessellatedEntity.Get<ModelComponent>()!.Model;
             var plainModel = plainEntity.Get<ModelComponent>()!.Model;
 
             using var gpu = await game.Capture(bodies, SoftBodyDeformationMode.Gpu);
             ImageTester.CompareImage(gpu, cpuPath, out var stats);
-            var message = $"{stats}, see {cpuPath}";
-            Assert.True(stats.TotalPixels > 0, message);
-            Assert.True(stats.PixelsAtDiff3Plus <= stats.TotalPixels / 1000, message);
-            Assert.True(stats.PSNR > 45.0, message);
+            AssertSamePicture(stats, $"{stats}, see {cpuPath}");
 
             // What the renderer draws the tessellated mesh from is what its model has now, not what it had on the CPU
             var renderModels = game.SceneSystem.SceneInstance.GetProcessor<ModelRenderProcessor>().RenderModels;
@@ -204,6 +205,7 @@ public class DeformationModeTests : GameTestBase
             Assert.NotSame(tessellatedModel, tessellatedEntity.Get<ModelComponent>()!.Model);
             Assert.Same(plainModel, plainEntity.Get<ModelComponent>()!.Model);
         });
+        File.Delete(cpuPath);
     }
 
     /// <summary>
@@ -216,12 +218,12 @@ public class DeformationModeTests : GameTestBase
         RunRendered(async game =>
         {
             var warnings = new List<string>();
-            void Collect(Stride.Core.Diagnostics.ILogMessage message)
+            void Collect(ILogMessage message)
             {
-                if (message.Type == Stride.Core.Diagnostics.LogMessageType.Warning)
+                if (message.Type == LogMessageType.Warning)
                     warnings.Add(message.Text);
             }
-            Stride.Core.Diagnostics.GlobalLogger.GlobalMessageLogged += Collect;
+            GlobalLogger.GlobalMessageLogged += Collect;
             try
             {
                 var root = game.SetUpStage();
@@ -252,9 +254,31 @@ public class DeformationModeTests : GameTestBase
             }
             finally
             {
-                Stride.Core.Diagnostics.GlobalLogger.GlobalMessageLogged -= Collect;
+                GlobalLogger.GlobalMessageLogged -= Collect;
             }
         });
+    }
+
+    /// <summary> A file for a picture of this run, of its own for each graphics API and process: left there when the test fails </summary>
+    private static string PicturePath(string name)
+    {
+        var folder = Path.Combine(Path.GetTempPath(), "Stride.BepuPhysics.Soft.Tests");
+        Directory.CreateDirectory(folder);
+        return Path.Combine(folder, $"{name}-{GraphicsDevice.Platform}-{Environment.ProcessId}.png");
+    }
+
+    private static void Save(Image image, string path)
+    {
+        using var stream = File.Create(path);
+        image.Save(stream, ImageFileType.Png);
+    }
+
+    /// <summary> Both modes run the same math, in another order: rounding can move an edge or a shadow texel by one pixel, nothing more </summary>
+    private static void AssertSamePicture(ImageTester.ComparisonStats stats, string message)
+    {
+        Assert.True(stats.TotalPixels > 0, message);
+        Assert.True(stats.PixelsAtDiff3Plus <= stats.TotalPixels / 1000, message);
+        Assert.True(stats.PSNR > 45.0, message);
     }
 
     /// <summary> Whether <paramref name="inner"/> is within <paramref name="outer"/>, give or take what rounding does </summary>
@@ -267,7 +291,7 @@ public class DeformationModeTests : GameTestBase
     }
 
     /// <summary> Runs <paramref name="test"/> in a game that draws at the profile deforming on the GPU needs, and rethrows what it threw </summary>
-    private static void RunRendered(Func<RenderGame, Task> test)
+    private static void RunRendered(Func<RenderGame, Task> test, [CallerMemberName] string? caller = null)
     {
         var game = new RenderGame();
         Exception? failure = null;
@@ -283,9 +307,10 @@ public class DeformationModeTests : GameTestBase
             }
             game.Exit();
         });
-        RunGameTest(game);
+        // What a test method allows of the GPU validation is read from the name of the caller
+        RunGameTest(game, caller);
         if (failure is not null)
-            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw(failure);
+            ExceptionDispatchInfo.Throw(failure);
     }
 
     /// <summary> How far the positions, normals and tangents in the vertices of a body are from the ones of its rest pose, at most </summary>
