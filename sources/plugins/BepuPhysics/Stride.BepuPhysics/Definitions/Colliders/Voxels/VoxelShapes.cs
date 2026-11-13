@@ -178,35 +178,35 @@ internal static unsafe class VoxelShapeHelpers
         if (!TryClipToBox(gridOrigin + pad, direction, grid.Extent + pad * 2f, maximumT, out var tEnter, out var tExit))
             return;
 
+        // The walk covers the grid and the cells within reach around it, where the ray can still meet a child sticking out of the grid.
+        var reach = shape.RayReach;
+        var maxX = grid.CellsX - 1;
+        var maxY = grid.CellsY - 1;
+        var maxZ = grid.CellsZ - 1;
         var entry = (gridOrigin + direction * tEnter) / cellSize;
-        var x = Math.Clamp((int)MathF.Floor(entry.X), 0, grid.CellsX - 1);
-        var y = Math.Clamp((int)MathF.Floor(entry.Y), 0, grid.CellsY - 1);
-        var z = Math.Clamp((int)MathF.Floor(entry.Z), 0, grid.CellsZ - 1);
+        var x = Math.Clamp((int)MathF.Floor(entry.X), -reach, maxX + reach);
+        var y = Math.Clamp((int)MathF.Floor(entry.Y), -reach, maxY + reach);
+        var z = Math.Clamp((int)MathF.Floor(entry.Z), -reach, maxZ + reach);
 
         ComputeAxisStep(gridOrigin.X, direction.X, x, cellSize.X, tEnter, out var stepX, out var tMaxX, out var tDeltaX);
         ComputeAxisStep(gridOrigin.Y, direction.Y, y, cellSize.Y, tEnter, out var stepY, out var tMaxY, out var tDeltaY);
         ComputeAxisStep(gridOrigin.Z, direction.Z, z, cellSize.Z, tEnter, out var stepZ, out var tMaxZ, out var tDeltaZ);
 
         Span<int> children = stackalloc int[TShape.MaxChildrenPerCell];
-        var reach = shape.RayReach;
-        var cellsX = grid.CellsX;
-        var cellsY = grid.CellsY;
-        var cellsZ = grid.CellsZ;
-        var maxX = cellsX - 1;
-        var maxY = cellsY - 1;
-        var maxZ = cellsZ - 1;
         var t = tEnter;
+        // A hit rounded to just before the entry point belongs to the first cell.
+        var spanStart = float.NegativeInfinity;
         while (t <= tExit && t <= maximumT)
         {
-            // Each DDA cell owns the ray span [t, tNextBoundary); a hit outside it is reported by the cell that owns its time, so RayCastPenetrating sees it once.
-            var tNextBoundary = MathF.Min(MathF.Min(tMaxX, tMaxY), tMaxZ);
             if (reach == 0)
             {
-                // Box and sphere shapes without overshoot: one cell per DDA step, no neighbour walk.
-                TestCell(ref shape, x, y, z, children, origin, direction, orientation, ray, t, tNextBoundary, ref maximumT, ref hitHandler);
+                // A child is only tested from its own cell: every hit is reported once as it is, and a hit on the face the ray enters by is not lost to rounding.
+                TestCell(ref shape, x, y, z, children, origin, direction, orientation, ray, float.NegativeInfinity, float.PositiveInfinity, ref maximumT, ref hitHandler);
             }
             else
             {
+                // A child is tested from every cell within reach of its own: each cell owns the ray span up to its next boundary and reports the hits in it, so RayCastPenetrating sees them once.
+                var spanEnd = MathF.Min(MathF.Min(tMaxX, tMaxY), tMaxZ);
                 var cxEnd = Math.Min(x + reach, maxX);
                 var cyEnd = Math.Min(y + reach, maxY);
                 var czEnd = Math.Min(z + reach, maxZ);
@@ -215,7 +215,7 @@ internal static unsafe class VoxelShapeHelpers
                     for (int cy = Math.Max(y - reach, 0); cy <= cyEnd; ++cy)
                     {
                         for (int cz = Math.Max(z - reach, 0); cz <= czEnd; ++cz)
-                            TestCell(ref shape, cx, cy, cz, children, origin, direction, orientation, ray, t, tNextBoundary, ref maximumT, ref hitHandler);
+                            TestCell(ref shape, cx, cy, cz, children, origin, direction, orientation, ray, spanStart, spanEnd, ref maximumT, ref hitHandler);
                     }
                 }
             }
@@ -225,7 +225,7 @@ internal static unsafe class VoxelShapeHelpers
                 x += stepX;
                 t = tMaxX;
                 tMaxX += tDeltaX;
-                if ((uint)x >= (uint)cellsX)
+                if (x < -reach || x > maxX + reach)
                     return;
             }
             else if (tMaxY < tMaxZ)
@@ -233,7 +233,7 @@ internal static unsafe class VoxelShapeHelpers
                 y += stepY;
                 t = tMaxY;
                 tMaxY += tDeltaY;
-                if ((uint)y >= (uint)cellsY)
+                if (y < -reach || y > maxY + reach)
                     return;
             }
             else
@@ -241,13 +241,15 @@ internal static unsafe class VoxelShapeHelpers
                 z += stepZ;
                 t = tMaxZ;
                 tMaxZ += tDeltaZ;
-                if ((uint)z >= (uint)cellsZ)
+                if (z < -reach || z > maxZ + reach)
                     return;
             }
+            spanStart = t;
         }
     }
 
-    private static void TestCell<TShape, TRayHitHandler>(ref TShape shape, int cx, int cy, int cz, Span<int> children, Vector3 origin, Vector3 direction, in Matrix3x3 orientation, in RayData ray, float tCurrent, float tNextBoundary, ref float maximumT, ref TRayHitHandler hitHandler)
+    /// <summary>Tests the children of one cell, reporting the hits from <paramref name="spanStart"/> up to <paramref name="spanEnd"/>, excluded.</summary>
+    private static void TestCell<TShape, TRayHitHandler>(ref TShape shape, int cx, int cy, int cz, Span<int> children, Vector3 origin, Vector3 direction, in Matrix3x3 orientation, in RayData ray, float spanStart, float spanEnd, ref float maximumT, ref TRayHitHandler hitHandler)
         where TShape : unmanaged, IVoxelShape
         where TRayHitHandler : struct, IShapeRayHitHandler
     {
@@ -257,7 +259,7 @@ internal static unsafe class VoxelShapeHelpers
             var childIndex = children[i];
             if (!hitHandler.AllowTest(childIndex))
                 continue;
-            if (shape.RayTestChild(childIndex, origin, direction, out var hitT, out var normal) && hitT <= maximumT && hitT >= tCurrent && hitT < tNextBoundary)
+            if (shape.RayTestChild(childIndex, origin, direction, out var hitT, out var normal) && hitT <= maximumT && hitT >= spanStart && hitT < spanEnd)
             {
                 Matrix3x3.Transform(normal, orientation, out normal);
                 hitHandler.OnRayHit(ray, ref maximumT, hitT, normal, childIndex);

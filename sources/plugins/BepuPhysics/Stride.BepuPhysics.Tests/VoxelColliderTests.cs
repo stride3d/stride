@@ -408,6 +408,57 @@ namespace Stride.BepuPhysics.Tests
             RunGameTest(game);
         }
 
+        /// <summary>A wall one cell thick across the X axis of a grid of box cells, starting at <paramref name="wallCell"/>.</summary>
+        private static Entity BoxWall(int samples, int wallCell, float cellSize)
+        {
+            // Two solid layers of samples: with an iso level above one half, only the cells between them are solid.
+            var field = new float[samples * samples * samples];
+            for (int x = wallCell; x <= wallCell + 1; ++x)
+            {
+                for (int y = 0; y < samples; ++y)
+                {
+                    for (int z = 0; z < samples; ++z)
+                        field[(x * samples + y) * samples + z] = 1f;
+                }
+            }
+            var collider = new VoxelCollider { CellShape = VoxelCellShape.Box, CellSize = cellSize, IsoLevel = 0.75f, SealBorder = false };
+            collider.SetData(samples, samples, samples, field);
+            return new Entity { new StaticComponent { Collider = collider } };
+        }
+
+        [Fact]
+        public static void SlantedRaysStopAtAOneCellBoxWall()
+        {
+            var game = new GameTest();
+            game.Script.AddTask(async () =>
+            {
+                game.ScreenShotAutomationEnabled = false;
+
+                const int samples = 12;
+                const int wallCell = 8;
+                const float cellSize = 0.3f;
+                var terrain = BoxWall(samples, wallCell, cellSize);
+                game.SceneSystem.SceneInstance.RootScene.Entities.Add(terrain);
+                var simulation = terrain.GetSimulation();
+
+                // Through the middle of the grid's x = 0 face and eight air cells: the ray meets the wall's face right where it enters the wall's cell.
+                var middle = (samples - 1) * cellSize * 0.5f;
+                var origin = new Vector3(-0.5f, middle, middle);
+                for (int i = -8; i <= 8; ++i)
+                {
+                    for (int j = -8; j <= 8; ++j)
+                    {
+                        var direction = Vector3.Normalize(new Vector3(1f, i * 0.045f, j * 0.045f));
+                        Assert.True(simulation.RayCast(origin, direction, 10f, out var hit), $"The ray towards {direction} goes through the wall");
+                        Assert.Equal(wallCell * cellSize, hit.Point.X, Tolerance);
+                    }
+                }
+
+                game.Exit();
+            });
+            RunGameTest(game);
+        }
+
         [Fact]
         public static void BoxChildrenRotateWithTheBody()
         {
@@ -483,6 +534,16 @@ namespace Stride.BepuPhysics.Tests
                 // Lateral distance 0.6 from the sphere's centre; the ray lands 0.5 + sqrt(0.13) above the ground.
                 Assert.Equal(0.5f + MathF.Sqrt(0.13f), hit.Point.Y, Tolerance);
                 Assert.True(hit.Normal.Y > 0f, $"Normal {hit.Normal}");
+
+                // Straight down on the top of the sphere, a point on the very face of the padded bounds the ray is clipped to.
+                Assert.True(simulation.RayCast(new Vector3(0.5f, 10f, 0.5f), -Vector3.UnitY, 20f, out hit));
+                Assert.Equal(1.2f, hit.Point.Y, Tolerance);
+
+                // Through a corner of the cell the sphere leaves empty, out of its top face, and only then into the overshoot.
+                var direction = Vector3.Normalize(new Vector3(0.45f, 0.16f, 0.45f));
+                Assert.True(simulation.RayCast(new Vector3(0.05f, 0.99f, 0.05f) - direction * 3f, direction, 20f, out hit));
+                Assert.True(hit.Point.Y > 1f, $"Hit {hit.Point}");
+                Assert.Equal(0.7f, Vector3.Distance(hit.Point, new Vector3(0.5f)), Tolerance);
 
                 // A small body dropped on the top of the sphere rests on the overshoot (world y = 1.2), 0.2 past the cell's own top.
                 var ball = new Entity { new BodyComponent { Collider = new CompoundCollider { Colliders = { new SphereCollider { Radius = 0.05f } } } } };
