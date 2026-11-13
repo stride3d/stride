@@ -9,9 +9,13 @@ namespace Stride.BepuPhysics.Soft;
 public enum SoftBodyDeformationMode
 {
     /// <summary>
-    /// Only the particles are sent to the GPU each frame, the vertex shader of every pass moves the vertices, normals and tangents.
+    /// The particles are sent to the GPU each frame, with how the lattice is deformed around each of them for the smooth quality;
+    /// the vertex shader of every pass moves the vertices, normals and tangents.
     /// </summary>
-    /// <remarks> Falls back to <see cref="Cpu"/> when the graphics profile is below <see cref="Graphics.GraphicsProfile.Level_11_0"/>. </remarks>
+    /// <remarks>
+    /// Falls back to <see cref="Cpu"/> on a device without compute shader support, which comes with the buffers the vertex shader reads,
+    /// when the shader profile is below <see cref="Graphics.GraphicsProfile.Level_11_0"/>, or without a graphics compositor to draw with.
+    /// </remarks>
     Gpu,
 
     /// <summary>

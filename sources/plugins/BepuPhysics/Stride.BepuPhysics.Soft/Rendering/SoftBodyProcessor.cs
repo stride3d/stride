@@ -10,6 +10,7 @@ using Stride.Games;
 using Stride.Graphics;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
+using Stride.Rendering.Materials;
 
 namespace Stride.BepuPhysics.Soft.Rendering;
 
@@ -41,9 +42,11 @@ internal sealed class SoftBodyProcessor : EntityProcessor<SoftBodyComponent, Sof
     private GraphicsContext? _context;
     private SceneSystem? _sceneSystem;
     private GraphicsCompositor? _compositor; // The last compositor the render feature was added to
+    private readonly List<SoftBodyDeformationRenderFeature> _renderFeatures = new(); // The ones of that compositor
     private SoftBodyConfiguration _configuration = new();
     private bool _gpuSupported;
     private bool _warnedGpuUnsupported;
+    private bool _warnedNoCompositor;
 
     public SoftBodyProcessor()
     {
@@ -57,9 +60,10 @@ internal sealed class SoftBodyProcessor : EntityProcessor<SoftBodyComponent, Sof
         _context = Services.GetService<GraphicsContext>();
         _sceneSystem = Services.GetService<SceneSystem>();
         _configuration = Services.GetOrCreate<SoftBodyConfiguration>();
-        // Vertex shaders read structured buffers from Direct3D 11 on; effects compile for the shader profile, when one is set
+        // The vertex shader reads structured buffers, which devices have along with compute shaders; effects compile for
+        // the shader profile, which may be lower than what the device supports
         var shaderProfile = (deviceService as GraphicsDeviceManager)?.ShaderProfile ?? _device?.Features.RequestedProfile;
-        _gpuSupported = _device?.Features.CurrentProfile >= GraphicsProfile.Level_11_0 && shaderProfile >= GraphicsProfile.Level_11_0;
+        _gpuSupported = _device is not null && _device.Features.HasComputeShaders && shaderProfile >= GraphicsProfile.Level_11_0;
     }
 
     protected override void OnSystemRemove()
@@ -117,7 +121,8 @@ internal sealed class SoftBodyProcessor : EntityProcessor<SoftBodyComponent, Sof
 
             var mode = DeformationMode();
             var quality = _configuration.DeformationQuality;
-            if (renderModel is null || renderModel.Topology != topology)
+            // A tessellated draw keeps the vertex buffers it was made from: its model has to be made again for it to see the new ones
+            if (renderModel is null || renderModel.Topology != topology || (renderModel.IsIn(mode, quality) == false && IsTessellated(modelComponent)))
             {
                 Release(component, data);
                 renderModel = component.RenderModel = new DeformableModel(_device, Services, component.SourceModel!, topology, mode, quality);
@@ -148,7 +153,10 @@ internal sealed class SoftBodyProcessor : EntityProcessor<SoftBodyComponent, Sof
             }
         }
         if (anyOnGpu)
-            AddRenderFeature();
+        {
+            foreach (var feature in _renderFeatures)
+                feature.Request();
+        }
 
         // Bodies deform independently, only the uploads go through the command list
         Dispatcher.For(0, _drawn.Count, _drawn, static (drawn, i) => drawn[i].RenderModel!.Deform(drawn[i], drawn[i].Entity.Transform.WorldMatrix));
@@ -156,34 +164,85 @@ internal sealed class SoftBodyProcessor : EntityProcessor<SoftBodyComponent, Sof
             component.RenderModel!.Upload(_context.CommandList);
     }
 
-    /// <summary> CPU or GPU, as the settings say and as far as the device can do it </summary>
+    /// <summary> CPU or GPU, as the settings say and as far as the device and the compositor can do it </summary>
     private SoftBodyDeformationMode DeformationMode()
     {
         if (_configuration.DeformationMode == SoftBodyDeformationMode.Cpu)
             return SoftBodyDeformationMode.Cpu;
-        if (_gpuSupported)
-            return SoftBodyDeformationMode.Gpu;
 
-        if (_warnedGpuUnsupported == false)
+        if (_gpuSupported == false)
         {
+            if (_warnedGpuUnsupported == false)
+                Logger.Warning($"Soft bodies are deformed on the CPU: deforming them on the GPU needs a device with compute shader support and shaders of the {GraphicsProfile.Level_11_0} profile or above");
             _warnedGpuUnsupported = true;
-            Logger.Warning($"Soft bodies are deformed on the CPU: deforming them on the GPU needs a device and shaders of the {GraphicsProfile.Level_11_0} profile or above");
+            return SoftBodyDeformationMode.Cpu;
         }
-        return SoftBodyDeformationMode.Cpu;
+
+        // Without the render feature, the meshes would be drawn as they are at rest
+        if (AddRenderFeature() == false)
+        {
+            if (_warnedNoCompositor == false)
+                Logger.Warning("Soft bodies are deformed on the CPU: deforming them on the GPU needs a graphics compositor with a mesh render feature");
+            _warnedNoCompositor = true;
+            return SoftBodyDeformationMode.Cpu;
+        }
+        return SoftBodyDeformationMode.Gpu;
     }
 
-    /// <summary> Makes the mesh render features of the current compositor draw the meshes deformed on the GPU </summary>
-    private void AddRenderFeature()
+    /// <summary> Makes the mesh render features of the current compositor draw the meshes deformed on the GPU, false when it has none </summary>
+    private bool AddRenderFeature()
     {
         var compositor = _sceneSystem?.GraphicsCompositor;
-        if (compositor is null || compositor == _compositor)
-            return;
-
-        _compositor = compositor;
-        foreach (var feature in compositor.RenderFeatures)
+        if (compositor != _compositor)
         {
-            if (feature is MeshRenderFeature meshFeature && meshFeature.RenderFeatures.Any(f => f is SoftBodyDeformationRenderFeature) == false)
-                meshFeature.RenderFeatures.Add(new SoftBodyDeformationRenderFeature());
+            _compositor = compositor;
+            _renderFeatures.Clear();
+            if (compositor is not null)
+            {
+                foreach (var feature in compositor.RenderFeatures)
+                {
+                    if (feature is not MeshRenderFeature meshFeature)
+                        continue;
+
+                    var deformation = meshFeature.RenderFeatures.OfType<SoftBodyDeformationRenderFeature>().FirstOrDefault();
+                    if (deformation is null)
+                        meshFeature.RenderFeatures.Add(deformation = new SoftBodyDeformationRenderFeature());
+                    _renderFeatures.Add(deformation);
+                }
+            }
+        }
+        return _renderFeatures.Count > 0;
+    }
+
+    /// <summary> Whether a material of the model, its own or one the component replaces it with, tessellates the meshes </summary>
+    private static bool IsTessellated(ModelComponent modelComponent)
+    {
+        foreach (var material in modelComponent.Materials.Values)
+        {
+            if (IsTessellated(material))
+                return true;
+        }
+        if (modelComponent.Model is { } model)
+        {
+            foreach (var instance in model.Materials)
+            {
+                if (IsTessellated(instance.Material))
+                    return true;
+            }
+        }
+        return false;
+
+        static bool IsTessellated(Material? material)
+        {
+            if (material is null)
+                return false;
+
+            foreach (var pass in material.Passes)
+            {
+                if (pass.TessellationMethod != StrideTessellationMethod.None)
+                    return true;
+            }
+            return false;
         }
     }
 

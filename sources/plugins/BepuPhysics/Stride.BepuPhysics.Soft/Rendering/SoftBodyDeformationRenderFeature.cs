@@ -29,6 +29,13 @@ internal sealed class SoftBodyDeformationRenderFeature : SubRenderFeature
     private LogicalGroupReference _particlesGroup;
     private LogicalGroupReference _ringGroup;
     private LogicalGroupReference _framesGroup;
+    private volatile bool _requested;
+
+    /// <summary> Whether the feature went through the meshes of the frame being drawn: only when a processor asked, so it costs nothing without a mesh deformed on the GPU </summary>
+    internal bool Active { get; private set; }
+
+    /// <summary> Asks the feature to go through the meshes of the next frame drawn, which some are deformed on the GPU for </summary>
+    internal void Request() => _requested = true;
 
     protected override void InitializeCore()
     {
@@ -42,6 +49,11 @@ internal sealed class SoftBodyDeformationRenderFeature : SubRenderFeature
 
     public override void PrepareEffectPermutations(RenderDrawContext context)
     {
+        Active = _requested;
+        _requested = false;
+        if (Active == false)
+            return;
+
         var deformationInfos = RootRenderFeature.RenderData.GetData(_deformationInfoKey);
         var renderEffects = RootRenderFeature.RenderData.GetData(_renderEffectKey);
         int effectSlotCount = ((RootEffectRenderFeature)RootRenderFeature).EffectPermutationSlotCount;
@@ -75,6 +87,9 @@ internal sealed class SoftBodyDeformationRenderFeature : SubRenderFeature
 
     public override void Prepare(RenderDrawContext context)
     {
+        if (Active == false)
+            return;
+
         var renderNodes = ((RootEffectRenderFeature)RootRenderFeature).RenderNodes;
         var state = (self: this, renderNodes);
 

@@ -16,12 +16,12 @@ namespace Stride.BepuPhysics.Soft;
 public class SoftBodyConfiguration : Configuration, IService
 {
     /// <summary>
-    /// Where the models of the soft bodies are deformed, both look the same.
+    /// Gets or sets where the models of the soft bodies are deformed; both look the same.
     /// </summary>
     public SoftBodyDeformationMode DeformationMode { get; set; } = SoftBodyDeformationMode.Gpu;
 
     /// <summary>
-    /// How the models of the volumetric soft bodies follow their particles: smooth, or cheaper and folded along the cells of their lattice.
+    /// Gets or sets how the models of the volumetric soft bodies follow their particles: smooth, or cheaper and folded along the cells of their lattice.
     /// </summary>
     public SoftBodyDeformationQuality DeformationQuality { get; set; } = SoftBodyDeformationQuality.Smooth;
 
