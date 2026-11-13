@@ -155,7 +155,7 @@ shader no permutation mixes gets in once a sample or a test compiles it. It can 
 branch that has the file: **Run workflow** on its page (needs write access), or
 `gh workflow run refresh-shader-corpus.yml --repo stride3d/stride --ref <branch> -f open-pr=true`. It:
 
-- runs with capture on the samples (`test-enduser.yml`, Windows Direct3D11 leg), the editor (`test-windows-editor.yml`,
+- runs with capture on the samples (`test-enduser.yml`, Windows Direct3D11 leg), the editor (`test-gamestudio-screenshots.yml`,
   Direct3D11 leg) and the game test suites (`test-windows-game.yml`, Direct3D11 leg, all of
   `sources/Stride.Tests.Game.Desktop.slnf`), each with its `capture-shader-corpus` input. `Stride.Engine.Tests` has
   `RenderFeatureTests` for the features no sample uses (MSAA, ambient occlusion, depth of field, local reflections,

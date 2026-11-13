@@ -1,0 +1,10 @@
+!TemplateAssetFactory
+Id: 5ab767f1-29d1-4d40-ac3d-33c8fc8c408e
+AssetTypeName: NormalFromHeightAsset
+Name: NormalFromHeightAsset
+Scope: Asset
+Description: A normalmap built from a source heightmap or grayscale texture
+Group: Texture
+Icon: ..\.sdtpl\TextureNormalFromHeight.png
+DefaultOutputName: NormalFromHeightAsset
+FactoryTypeName: NormalFromHeightAssetFactory

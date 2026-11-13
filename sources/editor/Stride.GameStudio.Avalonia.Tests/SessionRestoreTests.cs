@@ -67,14 +67,15 @@ public sealed class SessionRestoreTests
         SetOpenedAssets(fixture, sheet.Id);
         await fixture.OpenAsync();
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             await WindowTestHelper.PumpAsync();
             var folder = Assert.IsAssignableFrom<DirectoryViewModel>(Assert.Single(fixture.Session.AssetCollection.SelectedLocations));
             Assert.Equal("Sub", folder.Name);
 
-            var tree = window.GetLogicalDescendants().OfType<TreeView>().Single(x => x.Name == "SolutionTree");
+            // The panels are in the templates of Dock's controls, out of the logical tree of the window
+            var tree = window.GetVisualDescendants().OfType<TreeView>().Single(x => x.Name == "SolutionTree");
             var item = tree.GetVisualDescendants().OfType<TreeViewItem>().SingleOrDefault(x => x.DataContext == folder);
             Assert.NotNull(item);
             Assert.True(item.IsSelected);

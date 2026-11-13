@@ -27,6 +27,11 @@ namespace Stride.Assets.Editor.AssetEditors.GameEditor.Game
         /// <inheritdoc/>
         public bool IsMouseAvailable => mouseServices.All(x => x == this || !x.IsControllingMouse);
 
+        /// <summary>
+        /// Gets whether no service but this one and <paramref name="other"/> controls the mouse.
+        /// </summary>
+        protected bool IsMouseAvailableExcept(IEditorGameMouseService other) => mouseServices.All(x => x == this || x == other || !x.IsControllingMouse);
+
         internal void RegisterMouseServices([NotNull] EditorGameServiceRegistry serviceRegistry)
         {
             foreach (var service in serviceRegistry.Services.OfType<IEditorGameMouseService>())

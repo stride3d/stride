@@ -695,7 +695,7 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
         {
             try
             {
-                session.LoadAddedDependencies(loggerResult, CreatePackageLoadParameters(ServiceProvider, Main.EditorToolkitName, cancellationSource.Token));
+                session.LoadAddedDependencies(loggerResult, CreatePackageLoadParameters(ServiceProvider, null, Main.EditorToolkitName, cancellationSource.Token));
             }
             catch (Exception e)
             {
@@ -1070,7 +1070,7 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
         {
             try
             {
-                package = session.AddExistingProject(projectPath, loggerResult, CreatePackageLoadParameters(ServiceProvider, Main.EditorToolkitName, cancellationSource.Token)).Package;
+                package = session.AddExistingProject(projectPath, loggerResult, CreatePackageLoadParameters(ServiceProvider, null, Main.EditorToolkitName, cancellationSource.Token)).Package;
             }
             catch (Exception e)
             {

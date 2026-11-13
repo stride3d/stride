@@ -29,6 +29,7 @@
     <!-- The Avalonia companions of the plugins: their views are tested here with the editor's -->
     <ProjectReference Include="..\..\plugins\Audio\Stride.Audio.Editor.Avalonia\Stride.Audio.Editor.Avalonia.csproj" />
     <ProjectReference Include="..\..\plugins\SpriteStudio\Stride.SpriteStudio.Editor.Avalonia\Stride.SpriteStudio.Editor.Avalonia.csproj" />
+    <ProjectReference Include="..\..\plugins\UI\Stride.UI.Editor.Avalonia\Stride.UI.Editor.Avalonia.csproj" />
     <!-- The cross-platform plugins of the plugin packages, whose registrations are compared with the recorded ones -->
     <ProjectReference Include="..\..\plugins\BulletPhysics\Stride.Physics.Editor\Stride.Physics.Editor.csproj" />
     <ProjectReference Include="..\..\plugins\Particles\Stride.Particles.Editor\Stride.Particles.Editor.csproj" />

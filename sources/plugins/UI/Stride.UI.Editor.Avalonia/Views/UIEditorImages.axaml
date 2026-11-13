@@ -1,0 +1,17 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- The icons of the WPF UI editor that the shared image dictionaries of the Avalonia editor don't have
+       (Stride.Core.Assets.Editor.Wpf image dictionary) -->
+
+  <DrawingImage x:Key="ImageZoomDefault">
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+        <GeometryDrawing Brush="#FFF6F6F6"
+                         Geometry="F1M12.9766,15C12.9766,15,14.0066,15.98,14.0296,16L15.9736,16C15.9816,15.993,15.9926,15.991,15.9996,15.984L15.9996,13.755 14.9996,12.783 14.9996,3 12.9996,3 12.9996,0 1.9996,0 1.9996,3 -0.000400000000000844,3 -0.000400000000000844,13 1.9996,13 1.9996,15z" />
+        <GeometryDrawing Brush="#FF424242"
+                         Geometry="F1M14,12L13,12 13,4 14,4z M3,13L12,13 12,14 3,14z M12,2L3,2 3,1 12,1z M1,4L2,4 2,12 1,12z M8,7L10,7 10,8 8,8 8,10 7,10 7,8 5,8 5,7 7,7 7,5 8,5z M3.875,7.5C3.875,5.501 5.501,3.875 7.5,3.875 9.499,3.875 11.125,5.501 11.125,7.5 11.125,9.5 9.499,11.126 7.5,11.126 5.501,11.126 3.875,9.5 3.875,7.5 M15.349,14.517L11.092,10.378C11.728,9.586 12.125,8.593 12.125,7.5 12.125,4.95 10.05,2.875 7.5,2.875 4.95,2.875 2.875,4.95 2.875,7.5 2.875,10.051 4.95,12.126 7.5,12.126 8.596,12.126 9.592,11.726 10.385,11.086L14.651,15.233C14.749,15.328 14.874,15.375 15,15.375 15.13,15.375 15.261,15.324 15.358,15.224 15.551,15.025 15.547,14.709 15.349,14.517" />
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+</ResourceDictionary>

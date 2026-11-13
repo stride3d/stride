@@ -154,6 +154,7 @@ jobs:
               - 'deps/**'
               - 'tests/**'
               - 'sources/Stride.Runtime.slnf'
+              - 'sources/Stride.Tests.Simple*.slnf'
               # The workflows of the jobs it gates, their actions and the auditor the ApiNeutral job runs: an
               # edit runs them
               - '.github/workflows/test-windows-game-api-neutral.yml'
@@ -214,8 +215,9 @@ jobs:
               - 'tests/infra/Stride.*/**'
               - 'tests/enduser/Stride.Templates.Tests/**'
               - 'Stride.slnx'
-              # The full build's workflow and the check it runs: an edit runs them
+              # The workflows of the full build and of the WPF editor tests, and the check the build runs: an edit runs them
               - '.github/workflows/build-windows-full.yml'
+              - '.github/workflows/test-editor-wpf.yml'
               - 'build/check-graphics-api-compat.ps1'
             # The Avalonia editor job: the folders of the projects sources/Stride.Editor.Avalonia.slnf builds,
             # engine included (the filter compiles it, and the editor tests run on top of it), and its build inputs

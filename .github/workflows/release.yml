@@ -19,10 +19,6 @@ on:
         description: Include macOS
         default: true
         type: boolean
-      sign:
-        description: Code sign packages
-        default: true
-        type: boolean
       build-prerequisites-installer:
         description: Build prerequisites installer
         default: true
@@ -32,7 +28,7 @@ on:
         default: false
         type: boolean
       upload-binlog:
-        description: Capture and upload an MSBuild binlog (parallel/race diagnostics). Ignored on signed builds — a binlog records env vars/task params and would leak signing secrets.
+        description: Capture and upload an MSBuild binlog (parallel/race diagnostics). The build has no secrets, so it may hold the binlog.
         default: false
         type: boolean
 
@@ -51,24 +47,28 @@ jobs:
       version: ${{ steps.version.outputs.version }}
       samples-version: ${{ steps.samples.outputs.samples-version }}
     steps:
-      - name: Check deploy requires signing
-        if: ${{ inputs.deploy && !inputs.sign }}
-        run: |
-          echo "::error::Cannot deploy unsigned packages. Enable 'sign' to deploy."
-          exit 1
+      # GITHUB_TOKEN can't read team membership: the Stride Bot app can (Organization Members: Read).
+      - name: Get the Stride Bot token
+        id: bot
+        if: ${{ inputs.deploy }}
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.STRIDE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.STRIDE_BOT_PRIVATE_KEY }}
+          permission-members: read
 
       - name: Check release permissions
-        if: ${{ inputs.sign || inputs.deploy }}
+        if: ${{ inputs.deploy }}
         env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
+          GH_TOKEN: ${{ steps.bot.outputs.token }}
         run: |
           ORG=$(echo "${{ github.repository }}" | cut -d/ -f1)
           TEAM="stride-release-managers"
           USER="${{ github.actor }}"
-          # A 404 here means either the actor isn't a member OR GH_PAT can't read the team
-          # (dead/under-scoped token); the message covers both since the API can't distinguish them.
+          # A 404 here means either the actor isn't a member OR the token can't read the team
+          # (app without Organization Members: Read); the message covers both since the API can't distinguish them.
           if ! gh api "orgs/$ORG/teams/$TEAM/memberships/$USER" --silent 2>/dev/null; then
-            echo "::error::Sign/deploy blocked: '$USER' is not a member of $ORG/$TEAM, or GH_PAT cannot read it (dead token / missing Organization Members: Read). Requires stride-release-managers membership."
+            echo "::error::Deploy blocked: '$USER' is not a member of $ORG/$TEAM, or the Stride Bot token cannot read it (missing Organization Members: Read). Requires stride-release-managers membership."
             exit 1
           fi
 
@@ -121,7 +121,7 @@ jobs:
         run: ./.github/scripts/plan-sample-release.ps1 -Version "${{ steps.version.outputs.version }}"
 
       - name: Check the samples of a stable engine
-        if: ${{ (inputs.sign || inputs.deploy) && !contains(steps.version.outputs.version, '-') }}
+        if: ${{ inputs.deploy && !contains(steps.version.outputs.version, '-') }}
         shell: pwsh
         run: ./.github/scripts/check-sample-references.ps1 -RequireStable
 
@@ -132,7 +132,7 @@ jobs:
     name: Package
     needs: Validate
     runs-on: windows-2025-vs2026
-    environment: production
+    # No environment and no secrets: the packages are signed by the Deploy job, in production.
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
@@ -190,21 +190,16 @@ jobs:
           dotnet build build\package.proj `
             -t:BuildPackages `
             --no-restore `
-            ${{ inputs.upload-binlog && !inputs.sign && '-bl' || '' }} -m -nr:false `
+            ${{ inputs.upload-binlog && '-bl' || '' }} -m -nr:false `
             -p:StridePlatforms=$($platforms.Replace(';','%3B')) `
             -p:StrideGraphicsApiDependentBuildAll=true `
-            -p:StrideSign=${{ inputs.sign }} `
+            -p:StrideSign=false `
             -p:StrideBuildPrerequisitesInstaller=${{ inputs.build-prerequisites-installer }} `
             -p:StrideSentryDsn=${{ vars.STRIDE_SENTRY_DSN }} `
             -p:StrideSentryEnvironment=${{ vars.STRIDE_SENTRY_DSN != '' && 'release' || '' }} `
             -p:StrideNativeBuildMode=Clang
         env:
           StrideDisableAssetCompilerExecServerProxy: true
-          StrideSignTenantId: ${{ inputs.sign && secrets.STRIDE_SIGN_TENANT_ID || '' }}
-          StrideSignClientId: ${{ inputs.sign && secrets.STRIDE_SIGN_CLIENT_ID || '' }}
-          StrideSignClientSecret: ${{ inputs.sign && secrets.STRIDE_SIGN_CLIENT_SECRET || '' }}
-          StrideSignKeyVaultCertificate: ${{ inputs.sign && secrets.STRIDE_SIGN_KEYVAULT_CERTIFICATE || '' }}
-          StrideSignKeyVaultName: ${{ inputs.sign && secrets.STRIDE_SIGN_KEYVAULT_NAME || '' }}
 
       # The engine packages go aside first: this builds the projects the packs reference with other global properties,
       # and they auto-pack next to it, which would replace the packages of all platforms. Only the packs come back.
@@ -266,16 +261,6 @@ jobs:
         shell: pwsh
         run: ./.github/scripts/smoke-test-templates.ps1 -Version "${{ steps.version.outputs.version }}" -PackagesDir bin/packages -Configuration Release
 
-      - name: Sign
-        if: ${{ inputs.sign }}
-        run: dotnet build build\package.proj -t:SignPackage --no-restore -p:StrideSign=true
-        env:
-          StrideSignTenantId: ${{ secrets.STRIDE_SIGN_TENANT_ID }}
-          StrideSignClientId: ${{ secrets.STRIDE_SIGN_CLIENT_ID }}
-          StrideSignClientSecret: ${{ secrets.STRIDE_SIGN_CLIENT_SECRET }}
-          StrideSignKeyVaultCertificate: ${{ secrets.STRIDE_SIGN_KEYVAULT_CERTIFICATE }}
-          StrideSignKeyVaultName: ${{ secrets.STRIDE_SIGN_KEYVAULT_NAME }}
-
       - name: Upload NuGet packages
         uses: actions/upload-artifact@v7
         with:
@@ -286,7 +271,7 @@ jobs:
 
       - name: Upload build log
         uses: actions/upload-artifact@v7
-        if: ${{ always() && inputs.upload-binlog && !inputs.sign }}
+        if: ${{ always() && inputs.upload-binlog }}
         with:
           name: build-log
           path: msbuild.binlog
@@ -304,9 +289,9 @@ jobs:
     steps:
       - run: echo "::notice title=Packaged::${{ needs.Package.outputs.version }}"
 
-      # A signed build that wasn't deployed: say how to test it and deploy these exact packages later.
+      # A build that wasn't deployed: say how to test it and deploy these exact packages later.
       - name: How to deploy this build
-        if: ${{ inputs.sign && !inputs.deploy }}
+        if: ${{ !inputs.deploy }}
         shell: bash
         env:
           VERSION: ${{ needs.Package.outputs.version }}
@@ -314,13 +299,13 @@ jobs:
           {
             echo "### Deploy Stride $VERSION"
             echo
-            echo "This signed build was not deployed. To test its packages locally (for example in the launcher's local feed):"
+            echo "This build was not deployed. To test its packages locally (for example in the launcher's local feed), unsigned:"
             echo
             echo '```'
             echo "gh run download ${{ github.run_id }} -R ${{ github.repository }} -n stride-packages-$VERSION"
             echo '```'
             echo
-            echo "To deploy these exact packages (NuGet.org, the releases/$VERSION tag, the GitHub Release and its notes):"
+            echo "To sign and deploy these exact packages (NuGet.org, the releases/$VERSION tag, the GitHub Release and its notes):"
             echo
             echo '```'
             echo "gh workflow run release-deploy.yml -R ${{ github.repository }} --ref ${{ github.ref_name }} -f run-id=${{ github.run_id }}"
@@ -334,9 +319,10 @@ jobs:
   #
   Deploy:
     name: Deploy ${{ needs.Package.outputs.version }}
-    if: ${{ inputs.deploy && inputs.sign }}
+    if: ${{ inputs.deploy }}
     needs: Package
     permissions:
+      actions: read  # release-deploy reads this run and downloads its packages
       contents: write
       pull-requests: read  # the nested ReleaseNotes job reads PRs
       id-token: write  # release-deploy's nuget.org trusted publishing

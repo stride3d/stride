@@ -35,6 +35,7 @@ public sealed class EditorControlTests
         { typeof(RectangleFEditor), 4 },
         { typeof(QuaternionEditor), 3 },
         { typeof(MatrixEditor), 16 },
+        { typeof(AngleEditor), 1 },
     };
 
     [AvaloniaTheory]
@@ -82,6 +83,25 @@ public sealed class EditorControlTests
         editor.Y = 5;
 
         Assert.Equal(new Vector3(1, 5, 3), editor.Value);
+    }
+
+    [AvaloniaFact]
+    public void AngleEditorShowsRadiansInDegrees()
+    {
+        var editor = Show(new AngleEditor { Value = MathUtil.PiOverTwo });
+
+        Assert.Equal(90f, editor.Degrees);
+        Assert.Equal(90.0, editor.GetVisualDescendants().OfType<NumericTextBox>().Single().Value);
+    }
+
+    [AvaloniaFact]
+    public void AngleEditorWritesDegreesBackInRadians()
+    {
+        var editor = Show(new AngleEditor { Value = 0f });
+
+        editor.Degrees = 180;
+
+        Assert.Equal(MathUtil.Pi, editor.Value!.Value, 5);
     }
 
     [AvaloniaFact]

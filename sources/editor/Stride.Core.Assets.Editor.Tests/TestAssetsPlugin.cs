@@ -14,6 +14,8 @@ namespace Stride.Core.Assets.Editor.Tests;
 /// </summary>
 public class TestAssetsPlugin
 {
+    // The old plugin API, which the editor still supports, is obsolete
+#pragma warning disable CS0672
     public sealed class SessionRecordingPlugin : AssetsEditorPlugin
     {
         public ISessionViewModel? InitializedSession { get; private set; }
@@ -23,6 +25,7 @@ public class TestAssetsPlugin
             InitializedSession = session;
         }
     }
+#pragma warning restore CS0672
 
     public sealed class PluginWithArguments : AssetsPlugin
     {
@@ -62,6 +65,8 @@ public class TestAssetsPlugin
         var pasteProcessors = new List<IPasteProcessor>();
         var postPasteProcessors = new List<IAssetPostPasteProcessor>();
 
+        // The old plugin API, which the editor still supports, is obsolete
+#pragma warning disable STRPLUGIN001, STRPLUGIN002, STRPLUGIN005
         plugin.InitializePlugin(new LoggerResult());
         plugin.RegisterAssetPreviewViewModelTypes(previewViewModels);
         plugin.RegisterAssetPreviewViewTypes(previewViews);
@@ -77,6 +82,7 @@ public class TestAssetsPlugin
         Assert.Empty(pasteProcessors);
         Assert.Empty(postPasteProcessors);
         Assert.Empty(plugin.ProfileSettings);
+#pragma warning restore STRPLUGIN001, STRPLUGIN002, STRPLUGIN005
     }
 
     [Fact]

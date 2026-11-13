@@ -38,7 +38,7 @@ public sealed class AssetDropTests
     {
         using var fixture = await AssetPickerTests.OpenModelWithSkeletonsAsync();
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var model = fixture.Asset("Model");
@@ -73,7 +73,7 @@ public sealed class AssetDropTests
     {
         using var fixture = await AssetPickerTests.OpenModelWithSkeletonsAsync();
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var model = fixture.Asset("Model");
@@ -104,7 +104,7 @@ public sealed class AssetDropTests
     {
         using var fixture = await AssetPickerTests.OpenModelWithSkeletonsAsync();
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var skeleton = fixture.Asset("Skeleton");
@@ -134,7 +134,7 @@ public sealed class AssetDropTests
     {
         using var fixture = await AssetPickerTests.OpenModelWithSkeletonsAsync();
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var other = fixture.Asset("Characters/OtherSkeleton");
@@ -159,7 +159,8 @@ public sealed class AssetDropTests
 
     private static void Drop(Window window, Control target, AssetViewModel asset, DragDropEffects effects = DragDropEffects.Link)
     {
-        var point = target.TranslatePoint(new Point(target.Bounds.Width / 2, target.Bounds.Height / 2), window) ?? throw new InvalidOperationException("The target is not in the window.");
+        // Near the start of the target: a row of the solution explorer can be wider than its panel
+        var point = target.TranslatePoint(new Point(Math.Min(target.Bounds.Width / 2, 10), target.Bounds.Height / 2), window) ?? throw new InvalidOperationException("The target is not in the window.");
         var data = AssetDragDropHelper.CreateData([asset]);
         window.DragDrop(point, RawDragEventType.DragEnter, data, effects, RawInputModifiers.None);
         window.DragDrop(point, RawDragEventType.DragOver, data, effects, RawInputModifiers.None);

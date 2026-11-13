@@ -32,7 +32,7 @@ public sealed class PluginRegistrationTests
     {
         var gameSettings = GameSettingsFactory.Create();
         gameSettings.SplashScreenTexture = null!;
-        using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, ("GameSettings", gameSettings));
+        await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, ("GameSettings", gameSettings));
 
         var registrations = SessionRegistrations.Of(new StrideEditorPlugin { EnableThumbnailService = false }, fixture.Session);
 

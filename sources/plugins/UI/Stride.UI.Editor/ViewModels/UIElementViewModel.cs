@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Editor.Components.Properties;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Quantum;
 using Stride.Core;
@@ -20,9 +19,7 @@ using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Quantum;
 using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
 using Stride.Assets.Quantum;
-using Stride.Assets.Presentation.ViewModel;
 using Stride.UI.Assets;
 using Stride.UI;
 using Stride.Core.Assets.Presentation.Components.Properties;
@@ -119,7 +116,7 @@ namespace Stride.UI.Editor.ViewModels
         public override async Task NotifyGameSidePartAdded()
         {
             // Add adorner
-            await Editor.Controller.AdornerService.AddAdorner(Id.ObjectId, GetRootElementViewModel() == Editor.ActiveRoot);
+            await (Editor.Controller.AdornerService?.AddAdorner(Id.ObjectId, GetRootElementViewModel() == Editor.ActiveRoot) ?? Task.CompletedTask);
             propagator.NotifyGameSidePartAdded();
             await base.NotifyGameSidePartAdded();
         }
@@ -135,7 +132,7 @@ namespace Stride.UI.Editor.ViewModels
             nameNodeBinding.Dispose();
             propagator.Destroy();
             // Remove adorner
-            Editor.Controller.AdornerService.RemoveAdorner(Id.ObjectId).Forget();
+            Editor.Controller.AdornerService?.RemoveAdorner(Id.ObjectId).Forget();
             var basePrefabNode = Editor.Session.AssetNodeContainer.GetNode(UIElementDesign)[nameof(UIElementDesign.Base)];
             basePrefabNode.ValueChanged -= BaseElementChanged;
             base.Destroy();
@@ -204,7 +201,7 @@ namespace Stride.UI.Editor.ViewModels
         /// <seealso cref="Game.UIEditorGameAdornerService.DisableAdorner"/>
         internal Task DisableAdorner()
         {
-            return Editor.Controller.AdornerService.DisableAdorner(Id.ObjectId);
+            return Editor.Controller.AdornerService?.DisableAdorner(Id.ObjectId) ?? Task.CompletedTask;
         }
 
         /// <summary>
@@ -217,7 +214,7 @@ namespace Stride.UI.Editor.ViewModels
             Dispatcher.EnsureAccess();
             // Make sure the game side is ready
             await propagator.Initialized;
-            await Editor.Controller.AdornerService.EnableAdorner(Id.ObjectId);
+            await (Editor.Controller.AdornerService?.EnableAdorner(Id.ObjectId) ?? Task.CompletedTask);
         }
 
         /// <summary>
@@ -231,7 +228,7 @@ namespace Stride.UI.Editor.ViewModels
             Dispatcher.EnsureAccess();
             // Make sure the game side is ready
             await propagator.Initialized;
-            await Editor.Controller.AdornerService.SelectElement(Id.ObjectId);
+            await (Editor.Controller.AdornerService?.SelectElement(Id.ObjectId) ?? Task.CompletedTask);
         }
 
         /// <inheritdoc />

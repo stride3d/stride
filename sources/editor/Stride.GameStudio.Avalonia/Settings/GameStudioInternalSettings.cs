@@ -3,6 +3,7 @@
 
 using Avalonia;
 using Stride.Core.Assets.Editor;
+using Stride.Core.Assets.Editor.Panels;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.IO;
 using Stride.Core.MostRecentlyUsedFiles;
@@ -16,7 +17,7 @@ namespace Stride.GameStudio.Avalonia.Settings;
 /// <summary>
 /// The internal (not user-facing) settings of the Avalonia Game Studio, in the same file as the WPF Game Studio's: the most
 /// recently used sessions and what each of them keeps, under the same keys as WPF; the main window placement and the panel
-/// sizes, under keys of its own.
+/// layouts of the sessions, under keys of its own.
 /// </summary>
 internal static class GameStudioInternalSettings
 {
@@ -42,10 +43,11 @@ internal static class GameStudioInternalSettings
     public static readonly SettingsKey<int> WorkAreaHeight = new("Internal/Avalonia/WorkAreaHeight", SettingsContainer, (int)WorkArea.Value.Height);
 
     /// <summary>
-    /// The sizes of the panels of the main window, set with its splitters: for each grid of panels, the sizes of its rows or
-    /// columns (e.g. "2*,2,1*"). Docking will replace it.
+    /// The panel layouts of the recent sessions (with and without editors), in the editor's own format: the WPF Game Studio
+    /// keeps its docking layouts in <see cref="MostRecentlyUsedSessionsData"/>, and never reads this key.
     /// </summary>
-    public static readonly SettingsKey<Dictionary<string, string>> PanelSizes = new("Internal/Avalonia/PanelSizes", SettingsContainer, () => new Dictionary<string, string>());
+    /// <remarks>The key <c>Internal/Avalonia/PanelSizes</c> of earlier versions is no longer read.</remarks>
+    public static readonly SettingsKey<List<SessionPanelLayouts>> SessionLayouts = new("Internal/Avalonia/SessionLayouts", SettingsContainer, () => new List<SessionPanelLayouts>());
 
     /// <summary>
     /// The most recently used sessions, per editor version (the WPF Game Studio reads and writes the same key).
@@ -63,6 +65,8 @@ internal static class GameStudioInternalSettings
         MostRecentlyUsedSessions.FallbackDeserializers.Add(LegacyMRUDeserializer);
         // Another editor instance may have changed the list since this one started
         InternalSettings.KeepFileValueOnSave(MostRecentlyUsedSessions);
+        // Written at once by each change (SessionPanelLayoutStore); another editor instance may have changed it since
+        InternalSettings.KeepFileValueOnSave(SessionLayouts);
     }
 
     /// <summary>
@@ -81,6 +85,14 @@ internal static class GameStudioInternalSettings
     public static MRUAdditionalDataCollection CreateMostRecentlyUsedSessionsData()
     {
         return new MRUAdditionalDataCollection(InternalSettings.LoadProfileCopy, MostRecentlyUsedSessionsData, InternalSettings.SaveProfile);
+    }
+
+    /// <summary>
+    /// Creates the store of the panel layouts of the recent sessions, over the settings file.
+    /// </summary>
+    public static SessionPanelLayoutStore CreateSessionPanelLayouts()
+    {
+        return new SessionPanelLayoutStore(InternalSettings.LoadProfileCopy, SessionLayouts, InternalSettings.SaveProfile);
     }
 
     private static Lazy<Rect> WorkArea => new(() =>

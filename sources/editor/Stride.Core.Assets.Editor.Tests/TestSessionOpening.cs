@@ -14,7 +14,7 @@ public sealed class TestSessionOpening
     [Fact]
     public async Task OpeningAPackageLoadsItsAssets()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Textures/Stone", "stone"), ("Models/Tree", "tree"));
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Textures/Stone", "stone"), ("Models/Tree", "tree"));
         var session = fixture.Session;
 
         Assert.False(fixture.Result.HasErrors, fixture.Log);
@@ -34,7 +34,7 @@ public sealed class TestSessionOpening
     [Fact]
     public async Task TheAssetCollectionIsTheMainViewOfTheSession()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Models/Tree", "tree"));
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Models/Tree", "tree"));
         var session = fixture.Session;
 
         Assert.IsAssignableFrom<IAssetCollectionViewModel>(session.AssetCollection);
@@ -52,7 +52,7 @@ public sealed class TestSessionOpening
     [Fact]
     public async Task TheEditorCollectionIsSeparateFromTheAssetCollection()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var session = fixture.Session;
 
         Assert.IsAssignableFrom<IAssetEditorsManager>(session.EditorCollection);
@@ -69,7 +69,7 @@ public sealed class TestSessionOpening
     [Fact]
     public async Task TheSessionServicesAreRegisteredInTheProvider()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
 
         var undoRedo = fixture.ServiceProvider.Get<IUndoRedoService>();
         Assert.Same(undoRedo, fixture.Session.UndoRedoService);
@@ -84,7 +84,7 @@ public sealed class TestSessionOpening
     [Fact]
     public async Task SavingWritesTheModifiedAssets()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var asset = fixture.Session.AllAssets.Single();
 
         using (var transaction = fixture.Session.UndoRedoService!.CreateTransaction())
@@ -107,7 +107,7 @@ public sealed class TestSessionOpening
         // The session follows the changes of the source files of its assets, with a file watcher and a thread
         Assert.True(packageSession.SourceTracker.EnableTracking);
 
-        fixture.Dispose();
+        await fixture.DisposeAsync();
 
         Assert.True(fixture.Session.BackgroundWork.IsCompletedSuccessfully);
         Assert.False(packageSession.SourceTracker.EnableTracking);

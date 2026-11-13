@@ -36,7 +36,7 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task TheEditorListsTheSpritesInOrderWithTheirImageSize()
     {
-        using var test = await SpriteSheetTest.OpenAsync();
+        await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
 
         Assert.Equal(["Frame 0", "Frame 1", "Frame 2"], editor.Sprites.Select(x => x.Name));
@@ -50,7 +50,7 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task SelectingASingleSpriteMakesItTheCurrentSprite()
     {
-        using var test = await SpriteSheetTest.OpenAsync();
+        await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
 
         editor.SelectedSprites.Add(editor.Sprites[1]);
@@ -63,7 +63,7 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task TheCommandsOnTheSelectionNeedASelection()
     {
-        using var test = await SpriteSheetTest.OpenAsync();
+        await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
 
         Assert.False(editor.RemoveImageCommand.IsEnabled);
@@ -92,9 +92,9 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task AddNewSpriteAddsAndSelectsItAsOneUndoEntry()
     {
-        using var test = await SpriteSheetTest.OpenAsync();
+        await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
-        var names = test.RecordUndoNames();
+        var names = await test.RecordUndoNamesAsync();
 
         editor.AddNewImageCommand.Execute();
 
@@ -102,13 +102,13 @@ public sealed class SpriteSheetEditorTests
         Assert.Same(editor.Sprites[3], Assert.Single(editor.SelectedSprites));
         Assert.Equal(["Add new sprite"], names);
 
-        test.Undo();
+        await test.UndoAsync();
 
         Assert.Equal(3, editor.Sprites.Count);
         Assert.Equal(3, test.Asset.Asset.Sprites.Count);
         Assert.Empty(editor.SelectedSprites);
 
-        test.Redo();
+        await test.RedoAsync();
 
         Assert.Equal("New sprite", editor.Sprites[3].Name);
     }
@@ -116,11 +116,11 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task DeleteRemovesTheSelectedSpritesAndSelectsTheNextOneAsOneUndoEntry()
     {
-        using var test = await SpriteSheetTest.OpenAsync();
+        await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
         editor.SelectedSprites.Add(editor.Sprites[0]);
         editor.SelectedSprites.Add(editor.Sprites[1]);
-        var names = test.RecordUndoNames();
+        var names = await test.RecordUndoNamesAsync();
 
         editor.RemoveImageCommand.Execute();
 
@@ -129,7 +129,7 @@ public sealed class SpriteSheetEditorTests
         Assert.Same(editor.Sprites[0], Assert.Single(editor.SelectedSprites));
         Assert.Equal(["Delete sprites"], names);
 
-        test.Undo();
+        await test.UndoAsync();
 
         Assert.Equal(["Frame 0", "Frame 1", "Frame 2"], editor.Sprites.Select(x => x.Name));
         Assert.Equal((RectangleF)FirstSprite, editor.Sprites[0].TextureRegion.Region);
@@ -138,10 +138,10 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task DuplicateAddsCopiesAtTheEndAndSelectsThemAsOneUndoEntry()
     {
-        using var test = await SpriteSheetTest.OpenAsync();
+        await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
         editor.SelectedSprites.Add(editor.Sprites[1]);
-        var names = test.RecordUndoNames();
+        var names = await test.RecordUndoNamesAsync();
 
         editor.DuplicateSelectedImagesCommand.Execute();
 
@@ -152,7 +152,7 @@ public sealed class SpriteSheetEditorTests
         Assert.Equal(editor.Sprites[1].TextureRegion.Region, copy.TextureRegion.Region);
         Assert.Equal(["Duplicate 1 images"], names);
 
-        test.Undo();
+        await test.UndoAsync();
 
         Assert.Equal(3, editor.Sprites.Count);
     }
@@ -160,10 +160,10 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task MoveReordersTheSelectedSpritesAsOneUndoEntry()
     {
-        using var test = await SpriteSheetTest.OpenAsync();
+        await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
         editor.SelectedSprites.Add(editor.Sprites[0]);
-        var names = test.RecordUndoNames();
+        var names = await test.RecordUndoNamesAsync();
 
         editor.MoveImageCommand.Execute(1);
 
@@ -178,7 +178,7 @@ public sealed class SpriteSheetEditorTests
         Assert.Equal(["Frame 1", "Frame 0", "Frame 2"], editor.Sprites.Select(x => x.Name));
         Assert.Equal(["Reorder images"], names);
 
-        test.Undo();
+        await test.UndoAsync();
 
         Assert.Equal(["Frame 0", "Frame 1", "Frame 2"], editor.Sprites.Select(x => x.Name));
     }
@@ -186,9 +186,9 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task DroppingSpritesOnASpriteMovesThemAsOneUndoEntry()
     {
-        using var test = await SpriteSheetTest.OpenAsync();
+        await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
-        var names = test.RecordUndoNames();
+        var names = await test.RecordUndoNamesAsync();
         IInsertChildViewModel target = editor.Sprites[0];
 
         Assert.True(target.CanInsertChildren([editor.Sprites[2]], InsertPosition.After, AddChildModifiers.None, out _));
@@ -200,7 +200,7 @@ public sealed class SpriteSheetEditorTests
         Assert.Same(editor.Sprites[1], Assert.Single(editor.SelectedSprites));
         Assert.Equal(["Move images"], names);
 
-        test.Undo();
+        await test.UndoAsync();
 
         Assert.Equal(["Frame 0", "Frame 1", "Frame 2"], editor.Sprites.Select(x => x.Name));
     }
@@ -208,10 +208,10 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task DroppingImageFilesAddsSpritesAsOneUndoEntry()
     {
-        using var test = await SpriteSheetTest.OpenAsync();
+        await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
         var source = editor.Sprites[0].Source!;
-        var names = test.RecordUndoNames();
+        var names = await test.RecordUndoNamesAsync();
         IAddChildViewModel target = editor;
 
         Assert.True(target.CanAddChildren([source, source], AddChildModifiers.None, out _));
@@ -228,11 +228,11 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task CopyThenPasteAddsTheCopiedSpritesAsOneUndoEntry()
     {
-        using var test = await SpriteSheetTest.OpenAsync();
+        await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
         editor.SelectedSprites.Add(editor.Sprites[0]);
         editor.SelectedSprites.Add(editor.Sprites[2]);
-        var names = test.RecordUndoNames();
+        var names = await test.RecordUndoNamesAsync();
 
         editor.CopyImageCommand.Execute();
         Assert.False(string.IsNullOrEmpty(test.Clipboard.Text));
@@ -243,7 +243,7 @@ public sealed class SpriteSheetEditorTests
         Assert.Equal([editor.Sprites[3], editor.Sprites[4]], editor.SelectedSprites);
         Assert.Equal(["Paste 2 images"], names);
 
-        test.Undo();
+        await test.UndoAsync();
 
         Assert.Equal(3, editor.Sprites.Count);
     }
@@ -251,7 +251,7 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task ThePasteIsDisabledWhileTheClipboardHoldsNoSprite()
     {
-        using var test = await SpriteSheetTest.OpenAsync();
+        await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
         test.Clipboard.Text = "Some text";
 
@@ -266,7 +266,7 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task ThePasteStaysEnabledWithAClipboardThatAnswersLater()
     {
-        using var test = await SpriteSheetTest.OpenAsync();
+        await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
         var pendingRead = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
         test.Clipboard.PendingRead = pendingRead.Task;
@@ -285,10 +285,10 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task PasteIgnoresAClipboardWithoutSprites()
     {
-        using var test = await SpriteSheetTest.OpenAsync();
+        await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
         test.Clipboard.Text = "Some text";
-        var names = test.RecordUndoNames();
+        var names = await test.RecordUndoNamesAsync();
 
         editor.PasteImageCommand.Execute();
 
@@ -299,7 +299,7 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task RenameEditsTheNameOfTheSelectedSprite()
     {
-        using var test = await SpriteSheetTest.OpenAsync();
+        await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
         var sprite = editor.Sprites[1];
         editor.SelectedSprites.Add(sprite);
@@ -311,7 +311,7 @@ public sealed class SpriteSheetEditorTests
         Assert.False(editor.FocusOnRegionCommand.IsEnabled);
         Assert.False(editor.ToggleUseMagicWandCommand.IsEnabled);
 
-        var names = test.RecordUndoNames();
+        var names = await test.RecordUndoNamesAsync();
         sprite.Name = "Walk";
         sprite.IsEditing = false;
 
@@ -323,11 +323,11 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task UseWholeImageSetsTheRegionOfTheSelectedSpritesAsOneUndoEntry()
     {
-        using var test = await SpriteSheetTest.OpenAsync();
+        await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
         editor.SelectedSprites.Add(editor.Sprites[0]);
         editor.SelectedSprites.Add(editor.Sprites[1]);
-        var names = test.RecordUndoNames();
+        var names = await test.RecordUndoNamesAsync();
 
         editor.UseWholeImageCommand.Execute();
 
@@ -335,7 +335,7 @@ public sealed class SpriteSheetEditorTests
         Assert.Equal(new RectangleF(0, 0, ImageWidth, ImageHeight), editor.Sprites[1].TextureRegion.Region);
         Assert.Equal(["Use whole sprite"], names);
 
-        test.Undo();
+        await test.UndoAsync();
 
         Assert.Equal((RectangleF)FirstSprite, editor.Sprites[0].TextureRegion.Region);
     }
@@ -343,7 +343,7 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task TheRegionIsClampedToTheImage()
     {
-        using var test = await SpriteSheetTest.OpenAsync();
+        await using var test = await SpriteSheetTest.OpenAsync();
         var region = test.Editor.Sprites[0].TextureRegion;
 
         region.Region = new RectangleF(-5, 20, 100, 30);
@@ -354,12 +354,12 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task DraggingAHandleResizesTheRegionAsOneUndoEntry()
     {
-        using var test = await SpriteSheetTest.OpenAsync();
+        await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
         var region = editor.Sprites[0].TextureRegion;
         // The view is zoomed twice: a change of 2 in the view is one pixel of the image
         editor.Viewport.ScaleFactor = 2;
-        var names = test.RecordUndoNames();
+        var names = await test.RecordUndoNamesAsync();
         IResizingTarget target = region;
 
         target.OnResizingStarted(ResizingDirection.BottomRight);
@@ -372,7 +372,7 @@ public sealed class SpriteSheetEditorTests
         Assert.Equal(2 * FirstSprite.X, region.ActualLeft);
         Assert.Equal(2 * (FirstSprite.Width + 3), region.ActualWidth);
 
-        test.Undo();
+        await test.UndoAsync();
 
         Assert.Equal((RectangleF)FirstSprite, region.Region);
     }
@@ -380,9 +380,9 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task DraggingTheRegionMovesItInsideTheImage()
     {
-        using var test = await SpriteSheetTest.OpenAsync();
+        await using var test = await SpriteSheetTest.OpenAsync();
         var region = test.Editor.Sprites[0].TextureRegion;
-        var names = test.RecordUndoNames();
+        var names = await test.RecordUndoNamesAsync();
         IResizingTarget target = region;
 
         target.OnResizingStarted(ResizingDirection.Center);
@@ -397,9 +397,9 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task DraggingABorderHandleResizesTheBordersAsOneUndoEntry()
     {
-        using var test = await SpriteSheetTest.OpenAsync(SpriteSheetType.UI);
+        await using var test = await SpriteSheetTest.OpenAsync(SpriteSheetType.UI);
         var borders = test.Editor.Sprites[1].SpriteBorders;
-        var names = test.RecordUndoNames();
+        var names = await test.RecordUndoNamesAsync();
         IResizingTarget target = borders;
 
         target.OnResizingStarted(ResizingDirection.TopLeft);
@@ -412,7 +412,7 @@ public sealed class SpriteSheetEditorTests
         Assert.Equal(new Vector4(3, 2, 4, 0), borders.Borders);
         Assert.Equal(["Update sprite TopLeft borders.", "Update sprite Right border"], names);
 
-        test.Undo();
+        await test.UndoAsync();
 
         Assert.Equal(new Vector4(3, 2, 0, 0), borders.Borders);
     }
@@ -420,7 +420,7 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task TheBordersAreClampedToTheRegion()
     {
-        using var test = await SpriteSheetTest.OpenAsync(SpriteSheetType.UI);
+        await using var test = await SpriteSheetTest.OpenAsync(SpriteSheetType.UI);
         var borders = test.Editor.Sprites[1].SpriteBorders;
 
         borders.Borders = new Vector4(15.4f, -2, 0, 3);
@@ -434,7 +434,7 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task LockedBordersKeepTheirDistanceToTheSidesWhenTheRegionIsResized()
     {
-        using var test = await SpriteSheetTest.OpenAsync(SpriteSheetType.UI);
+        await using var test = await SpriteSheetTest.OpenAsync(SpriteSheetType.UI);
         var sprite = test.Editor.Sprites[1];
         sprite.SpriteBorders.Borders = new Vector4(2, 2, 2, 2);
         sprite.SpriteBorders.Locked = true;
@@ -453,9 +453,9 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task DraggingTheCenterMovesItAsOneUndoEntry()
     {
-        using var test = await SpriteSheetTest.OpenAsync();
+        await using var test = await SpriteSheetTest.OpenAsync();
         var center = test.Editor.Sprites[0].SpriteCenter;
-        var names = test.RecordUndoNames();
+        var names = await test.RecordUndoNamesAsync();
         IResizingTarget target = center;
 
         target.OnResizingStarted(ResizingDirection.Center);
@@ -468,7 +468,7 @@ public sealed class SpriteSheetEditorTests
         Assert.True(center.CenterFromMiddle);
         Assert.Equal(new Vector2(3 + 5, -2 + 4), center.ActualCenter);
 
-        test.Undo();
+        await test.UndoAsync();
 
         Assert.Equal(Vector2.Zero, center.Center);
     }
@@ -476,7 +476,7 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task TheMagicWandSetsTheRegionToTheSpriteUnderTheMouseAsOneUndoEntry()
     {
-        using var test = await SpriteSheetTest.OpenAsync(SpriteSheetType.UI);
+        await using var test = await SpriteSheetTest.OpenAsync(SpriteSheetType.UI);
         var editor = test.Editor;
         var sprite = editor.Sprites[0];
         sprite.SpriteBorders.Borders = new Vector4(1, 1, 1, 1);
@@ -485,7 +485,7 @@ public sealed class SpriteSheetEditorTests
         editor.ToggleUseMagicWandCommand.Execute();
         Assert.Equal(SpriteSheetEditorToolMode.MagicWand, editor.ToolMode);
         Assert.True(editor.UsingPixelTool);
-        var names = test.RecordUndoNames();
+        var names = await test.RecordUndoNamesAsync();
 
         editor.FindSpriteRegionCommand.Execute(new SpriteImagePick(new Vector2(35.5f, 15.2f), AddToRegion: false));
 
@@ -509,7 +509,7 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task TheMagicWandCanDelimitTheSpritesWithTheColorKey()
     {
-        using var test = await SpriteSheetTest.OpenAsync();
+        await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
         var sprite = editor.Sprites[0];
         editor.SelectedSprites.Add(sprite);
@@ -518,7 +518,7 @@ public sealed class SpriteSheetEditorTests
         editor.ColorKey = Color.Red;
         editor.ColorKeyEnabled = true;
         // Each change of the color key refreshes the property grid: the wand edits the sprite once the grid is built again
-        test.WaitForProperties();
+        await test.WaitForPropertiesAsync();
         Assert.Same(sprite, editor.CurrentSprite);
         Assert.False(editor.MagicWandUseTransparency);
         editor.ToolMode = SpriteSheetEditorToolMode.MagicWand;
@@ -531,12 +531,12 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task ThePickerSetsTheColorKeyAndEndsTheTool()
     {
-        using var test = await SpriteSheetTest.OpenAsync();
+        await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
         editor.SelectedSprites.Add(editor.Sprites[0]);
         await test.WaitForCurrentSprite(editor.Sprites[0]);
         editor.ToggleToolModeCommand.Execute(SpriteSheetEditorToolMode.ColorPick);
-        var names = test.RecordUndoNames();
+        var names = await test.RecordUndoNamesAsync();
 
         editor.FindSpriteRegionCommand.Execute(new SpriteImagePick(new Vector2(SecondSprite.X + 1, SecondSprite.Y + 1), AddToRegion: false));
 
@@ -554,7 +554,7 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task SelectNextSpriteCyclesThroughTheSprites()
     {
-        using var test = await SpriteSheetTest.OpenAsync();
+        await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
         editor.SelectedSprites.Add(editor.Sprites[2]);
 
@@ -570,16 +570,16 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task TheSpriteSheetPropertiesAreUndoable()
     {
-        using var test = await SpriteSheetTest.OpenAsync();
+        await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
-        var names = test.RecordUndoNames();
+        var names = await test.RecordUndoNamesAsync();
 
         editor.Type = SpriteSheetType.UI;
 
         Assert.Equal(SpriteSheetType.UI, test.Asset.Asset.Type);
         Assert.Single(names);
 
-        test.Undo();
+        await test.UndoAsync();
 
         Assert.Equal(SpriteSheetType.Sprite2D, editor.Type);
     }
@@ -615,7 +615,7 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task FocusOnRegionScrollsToTheMiddleOfTheRegion()
     {
-        using var test = await SpriteSheetTest.OpenAsync();
+        await using var test = await SpriteSheetTest.OpenAsync();
         var editor = test.Editor;
         editor.SelectedSprites.Add(editor.Sprites[1]);
         await test.WaitForCurrentSprite(editor.Sprites[1]);
@@ -631,7 +631,7 @@ public sealed class SpriteSheetEditorTests
     [Fact]
     public async Task TheImageCacheGivesAnRgbaImageAndReloadsAChangedFile()
     {
-        using var test = await SpriteSheetTest.OpenAsync();
+        await using var test = await SpriteSheetTest.OpenAsync();
         var cache = test.Editor.Cache!;
         var source = test.Editor.Sprites[0].Source;
 
@@ -653,7 +653,7 @@ public sealed class SpriteSheetEditorTests
     /// <summary>
     /// A sprite sheet of three sprites on the test image, opened in its editor.
     /// </summary>
-    private sealed class SpriteSheetTest : IDisposable
+    private sealed class SpriteSheetTest : IAsyncDisposable
     {
         private readonly AssetsSessionFixture fixture;
         private readonly string imageDirectory;
@@ -673,7 +673,7 @@ public sealed class SpriteSheetEditorTests
 
         public FakeClipboardService Clipboard => (FakeClipboardService)fixture.ServiceProvider.Get<IClipboardService>();
 
-        public static async Task<SpriteSheetTest> OpenAsync(SpriteSheetType type = SpriteSheetType.Sprite2D)
+        public static async DispatcherTask<SpriteSheetTest> OpenAsync(SpriteSheetType type = SpriteSheetType.Sprite2D)
         {
             var imageDirectory = Path.Combine(Path.GetTempPath(), "Stride.Assets.Editor.Tests", "Sprites", Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(imageDirectory);
@@ -697,41 +697,41 @@ public sealed class SpriteSheetEditorTests
             var editor = new SpriteSheetEditorViewModel(fixture.Asset<SpriteSheetViewModel>("Sheet"));
             Assert.True(await editor.Initialize());
             var test = new SpriteSheetTest(fixture, imageDirectory, editor);
-            test.WaitForProperties();
+            await test.WaitForPropertiesAsync();
             return test;
         }
 
-        public List<string?> RecordUndoNames()
+        public async Task<List<string?>> RecordUndoNamesAsync()
         {
-            WaitForProperties();
+            await WaitForPropertiesAsync();
             var undoRedo = UndoRedo;
             var names = new List<string?>();
             undoRedo.Done += (_, e) => names.Add(undoRedo.GetName(e.Transaction));
             return names;
         }
 
-        public void Undo()
+        public async Task UndoAsync()
         {
-            WaitForProperties();
+            await WaitForPropertiesAsync();
             UndoRedo.Undo();
         }
 
-        public void Redo()
+        public async Task RedoAsync()
         {
-            WaitForProperties();
+            await WaitForPropertiesAsync();
             UndoRedo.Redo();
         }
 
         /// <summary>
         /// Waits for the property grid of the selection: it builds its nodes on another thread, which must not run while the
-        /// test changes the asset (the dispatcher of the test session has no thread of its own).
+        /// test changes the asset, and shows them through the dispatcher.
         /// </summary>
-        public void WaitForProperties()
+        public async Task WaitForPropertiesAsync()
         {
             var properties = Editor.EditorProperties;
             for (var i = 0; i < 250 && !properties.CanDisplayProperties && properties.FallbackMessage == "Loading properties..."; ++i)
             {
-                Thread.Sleep(20);
+                await Task.Delay(20);
             }
         }
 
@@ -747,10 +747,10 @@ public sealed class SpriteSheetEditorTests
             Assert.Same(expected, Editor.CurrentSprite);
         }
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
             Editor.Destroy();
-            fixture.Dispose();
+            await fixture.DisposeAsync();
             try
             {
                 Directory.Delete(imageDirectory, true);

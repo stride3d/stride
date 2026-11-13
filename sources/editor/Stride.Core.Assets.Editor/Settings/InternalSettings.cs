@@ -22,6 +22,9 @@ public static class InternalSettings
         profile = LoadProfile(true);
         SettingsContainer.CurrentProfile = profile;
         writer = new ChangedSettingsWriter(SettingsContainer, profile, EditorPath.InternalConfigPath);
+        // Changed by the other editors running at the same time: each change reads the file first (DisabledEditorCompanionStore)
+        KeepFileValueOnSave(DisabledEditorCompanions);
+        KeepFileValueOnSave(ExtensionPackages);
     }
 
     public static SettingsContainer SettingsContainer { get; } = new();
@@ -47,6 +50,17 @@ public static class InternalSettings
     public static SettingsKey<AssetLogScope> AssetLogDisplayScope { get; } = new("Internal/AssetLogScope", SettingsContainer, AssetLogScope.AllAssets);
 
     public static SettingsKey<List<string>> AssetLogHiddenSources { get; } = new("Internal/AssetLogHiddenSources", SettingsContainer, () => new List<string>());
+
+    /// <summary>
+    /// The Editor packages switched off per session (<see cref="DisabledEditorCompanionStore"/>), read by both editors.
+    /// </summary>
+    public static SettingsKey<List<DisabledEditorCompanions>> DisabledEditorCompanions { get; } = new("Internal/DisabledEditorCompanions", SettingsContainer, () => new List<DisabledEditorCompanions>());
+
+    /// <summary>
+    /// The extensions the user installed, per editor major.minor version (<see cref="EditorExtensionStore"/>), read by both
+    /// editors.
+    /// </summary>
+    public static SettingsKey<List<EditorExtensionList>> ExtensionPackages { get; } = new("Internal/EditorExtensions", SettingsContainer, () => new List<EditorExtensionList>());
 
     /// <summary>
     /// Loads a copy of the internal settings from the file, without registering it as the current profile.

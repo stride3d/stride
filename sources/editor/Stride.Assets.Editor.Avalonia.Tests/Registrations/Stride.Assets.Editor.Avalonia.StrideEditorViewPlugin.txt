@@ -57,6 +57,7 @@ TemplateProviders:
   Stride.Assets.Editor.Avalonia.Views.MorphWeightsTemplateProvider MorphWeights
   Stride.Assets.Editor.Avalonia.Views.MorphWeightTemplateProvider MorphWeight
   Stride.Assets.Editor.Avalonia.Views.ModelNodeNameTemplateProvider ModelNodeName
+  Stride.Assets.Editor.Avalonia.Views.CurveEditor.ComputeCurveTemplateProvider IComputeCurve
 CopyProcessors:
 PasteProcessors:
 PostPasteProcessors:

@@ -5,6 +5,7 @@ using Microsoft.TemplateEngine.Abstractions;
 using Stride.Assets.Editor.Templates;
 using Stride.Assets.Editor.Tests.Helpers;
 using Stride.Core;
+using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 
@@ -154,7 +155,7 @@ public sealed class DotNetNewTemplateParametersViewModelTests
         Assert.Empty(viewModel.AssetPacks);
 
         packs.SetResult([new FakeTemplateInfo("Stride.AssetPack.Particles", "Particles pack") { Description = "Fire and smoke" }, new FakeTemplateInfo("Stride.AssetPack.Materials", "Materials pack")]);
-        await WaitUntilAsync(() => !viewModel.IsLoadingAssetPacks);
+        await ExclusiveDispatcherService.WaitUntilAsync(() => !viewModel.IsLoadingAssetPacks, "the asset packs to load");
 
         Assert.Null(viewModel.AssetPacksStatus);
         Assert.False(viewModel.NoAssetPacksAvailable);
@@ -188,7 +189,7 @@ public sealed class DotNetNewTemplateParametersViewModelTests
         var viewModel = new DotNetNewTemplateParametersViewModel(Services, NewGameTemplate(), packs.Task);
 
         packs.SetCanceled();
-        await WaitUntilAsync(() => !viewModel.IsLoadingAssetPacks);
+        await ExclusiveDispatcherService.WaitUntilAsync(() => !viewModel.IsLoadingAssetPacks, "the asset packs to load");
 
         Assert.True(viewModel.NoAssetPacksAvailable);
         Assert.Empty(viewModel.AssetPacks);
@@ -215,16 +216,5 @@ public sealed class DotNetNewTemplateParametersViewModelTests
             Description = "Create a game for the platforms you select",
             HostData = HostDataHidingUpdateOnly,
         };
-    }
-
-    private static async Task WaitUntilAsync(Func<bool> condition)
-    {
-        var deadline = DateTime.UtcNow.AddSeconds(5);
-        while (!condition())
-        {
-            if (DateTime.UtcNow > deadline)
-                throw new TimeoutException("The asset packs did not load.");
-            await Task.Delay(10);
-        }
     }
 }

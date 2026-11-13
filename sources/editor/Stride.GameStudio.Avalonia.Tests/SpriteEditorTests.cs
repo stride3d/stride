@@ -284,7 +284,7 @@ public sealed class SpriteEditorTests
         asset.Sprites.Add(new SpriteInfo { Name = "Frame 1", Source = new Core.IO.UFile(imagePath), TextureRegion = SecondSprite });
         var fixture = ShellSessionFixture.Create(("Sheet", asset));
         var window = new MainWindow { DataContext = fixture.Main, Width = 1600, Height = 1000 };
-        window.Show();
+        await window.ShowAsync();
         // The shell registers the clipboard of its main window before the session opens; the headless platform keeps one in memory
         fixture.ServiceProvider.RegisterService(new ClipboardService(window.Clipboard!));
         Assert.True(await fixture.Main.OpenSession(fixture.PackagePath));

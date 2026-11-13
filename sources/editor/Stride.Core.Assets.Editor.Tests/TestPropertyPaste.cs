@@ -19,7 +19,7 @@ public sealed class TestPropertyPaste
     [Fact]
     public async Task PasteIsEnabledOnlyForCopiedPropertiesWhenTheClipboardAnswersAtOnce()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Textures/Oak", "oak"));
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Textures/Oak", "oak"));
         var target = await CopyWoodAndSelectOakAsync(fixture);
 
         Assert.True(new PastePropertyCommand().CanExecute(target, null));
@@ -34,7 +34,7 @@ public sealed class TestPropertyPaste
     [Fact]
     public async Task PasteDoesNotWaitForTheClipboardAndPastesWhatItAnswers()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Textures/Oak", "oak"));
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Textures/Oak", "oak"));
         var target = await CopyWoodAndSelectOakAsync(fixture);
         var copied = fixture.Clipboard.Text;
         var answer = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -54,7 +54,7 @@ public sealed class TestPropertyPaste
     [Fact]
     public async Task APasteOfTextThatCannotBePastedChangesNothing()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Textures/Oak", "oak"));
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Textures/Oak", "oak"));
         var target = await CopyWoodAndSelectOakAsync(fixture);
         var list = await CopyListAsync(fixture);
         var answer = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);

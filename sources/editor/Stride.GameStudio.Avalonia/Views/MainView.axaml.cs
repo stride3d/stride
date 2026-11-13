@@ -2,23 +2,26 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections.Specialized;
-using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Recycling;
 using Avalonia.Controls.Templates;
+using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Media;
+using Stride.Core.Assets.Editor.Avalonia.Commands;
+using Stride.Core.Assets.Editor.Panels;
+using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Presentation.Avalonia.Commands;
 using Stride.Core.Translation;
-using Stride.GameStudio.Avalonia.Settings;
 using Stride.GameStudio.Avalonia.ViewModels;
 
 namespace Stride.GameStudio.Avalonia.Views;
 
 public partial class MainView : UserControl
 {
-    private readonly Dictionary<string, string> defaultPanelSizes;
     private MainViewModel? viewModel;
+    private MainCommandSlots? commandSlots;
 
     public MainView()
     {
@@ -33,9 +36,6 @@ public partial class MainView : UserControl
         PasteMenuItem.Command = EditRouter.Paste;
         DeleteMenuItem.Command = EditRouter.Delete;
         RenameMenuItem.Command = EditRouter.Rename;
-
-        defaultPanelSizes = GetPanelSizes();
-        SetPanelSizes(GameStudioInternalSettings.PanelSizes.GetValue());
     }
 
     /// <inheritdoc />
@@ -43,89 +43,97 @@ public partial class MainView : UserControl
     {
         base.OnDataContextChanged(e);
         if (viewModel is not null)
+        {
             viewModel.RecentFiles.CollectionChanged -= RecentFilesChanged;
+            viewModel.ViewMenu.Items.CollectionChanged -= ViewMenuChanged;
+        }
+        commandSlots?.Dispose();
+        commandSlots = null;
         viewModel = DataContext as MainViewModel;
         if (viewModel is not null)
+        {
             viewModel.RecentFiles.CollectionChanged += RecentFilesChanged;
-        UpdateRecentSessionsMenu();
-    }
-
-    /// <summary>
-    /// Keeps the sizes of the panels, which the splitters set, in the internal settings (the caller writes the file).
-    /// </summary>
-    public void SavePanelSizes()
-    {
-        GameStudioInternalSettings.PanelSizes.SetValue(GetPanelSizes());
-    }
-
-    /// <summary>
-    /// Gives the panels their sizes of a first start, as WPF's Reset Game Studio layout gives its default layout.
-    /// </summary>
-    public void ResetPanelSizes()
-    {
-        SetPanelSizes(defaultPanelSizes);
-        SavePanelSizes();
-    }
-
-    private IEnumerable<(string Name, IReadOnlyList<DefinitionBase> Definitions)> PanelDefinitions()
-    {
-        yield return (SessionPanels.Name!, SessionPanels.RowDefinitions);
-        yield return (TopPanels.Name!, TopPanels.ColumnDefinitions);
-        yield return (BottomPanels.Name!, BottomPanels.ColumnDefinitions);
-    }
-
-    private Dictionary<string, string> GetPanelSizes()
-    {
-        return PanelDefinitions().ToDictionary(x => x.Name, x => string.Join(",", x.Definitions.Select(d => FormatLength(GetLength(d)))));
-
-        static string FormatLength(GridLength length) => length.GridUnitType switch
-        {
-            GridUnitType.Auto => "Auto",
-            GridUnitType.Star => length.Value.ToString(CultureInfo.InvariantCulture) + "*",
-            _ => length.Value.ToString(CultureInfo.InvariantCulture),
-        };
-    }
-
-    private void SetPanelSizes(IReadOnlyDictionary<string, string> sizes)
-    {
-        foreach (var (name, definitions) in PanelDefinitions())
-        {
-            if (!sizes.TryGetValue(name, out var text))
-                continue;
-
-            try
-            {
-                // A grid that changed since (another number of panels) keeps its sizes
-                var lengths = GridLength.ParseLengths(text).ToList();
-                if (lengths.Count != definitions.Count || lengths.Zip(definitions).Any(x => x.First.GridUnitType != GetLength(x.Second).GridUnitType))
-                    continue;
-
-                for (var i = 0; i < lengths.Count; i++)
-                {
-                    if (definitions[i] is RowDefinition row)
-                        row.Height = lengths[i];
-                    else if (definitions[i] is ColumnDefinition column)
-                        column.Width = lengths[i];
-                }
-            }
-            catch (FormatException)
-            {
-                // Edited by hand: the grid keeps its sizes
-            }
+            viewModel.ViewMenu.Items.CollectionChanged += ViewMenuChanged;
+            if (viewModel.ServiceProvider.TryGet<IAssetsPluginService>() is EditorPluginHost host)
+                commandSlots = new MainCommandSlots(this, viewModel, host);
         }
+        UpdateRecentSessionsMenu();
+        UpdateViewMenu();
+        UpdateDockWindow();
     }
 
-    private static GridLength GetLength(DefinitionBase definition) => definition switch
+    /// <inheritdoc />
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
-        RowDefinition row => row.Height,
-        ColumnDefinition column => column.Width,
-        _ => GridLength.Auto,
-    };
+        base.OnAttachedToVisualTree(e);
+        UpdateDockWindow();
+    }
+
+    // The floating windows keep the shortcuts of the main window, and show the views of the panels it keeps
+    private void UpdateDockWindow()
+    {
+        if (viewModel is null)
+            return;
+        viewModel.Panels.Factory.MainWindow = TopLevel.GetTopLevel(this) as MainWindow;
+        ControlRecyclingDataTemplate.SetControlRecycling(DockArea, viewModel.Panels.Views);
+    }
 
     /// <summary>
     /// Routes the commands of the Edit menu and their shortcuts to the panel that has the focus.
     /// </summary>
     public EditCommandRouter EditRouter { get; }
+
+    /// <summary>
+    /// The commands and widgets that the editor and the plugins place in the main menus and on the toolbar, and their
+    /// shortcuts; null without a plugin host.
+    /// </summary>
+    internal MainCommandSlots? CommandSlots => commandSlots;
+
+    /// <summary>
+    /// The shortcuts that the editor itself uses, each with what uses it: those of the main window and of the main menus, and
+    /// the Edit commands. A command of a plugin cannot take them.
+    /// </summary>
+    internal IEnumerable<KeyValuePair<string, string>> GetReservedGestures()
+    {
+        if (TopLevel.GetTopLevel(this) is Window window)
+        {
+            foreach (var binding in window.KeyBindings)
+            {
+                if (binding.Gesture is { } gesture)
+                    yield return new(gesture.ToString(), "a shortcut of Game Studio");
+            }
+        }
+        foreach (var (gesture, name) in new[]
+        {
+            (EditCommands.UndoGesture, "Edit > Undo"), (EditCommands.RedoGesture, "Edit > Redo"), (EditCommands.CutGesture, "Edit > Cut"),
+            (EditCommands.CopyGesture, "Edit > Copy"), (EditCommands.PasteGesture, "Edit > Paste"), (EditCommands.DeleteGesture, "Edit > Delete"),
+            (EditCommands.RenameGesture, "Edit > Rename"),
+        })
+        {
+            yield return new(gesture.ToString(), name);
+        }
+        foreach (var menu in MainMenu.Items.OfType<MenuItem>())
+        {
+            foreach (var item in Flatten(menu))
+            {
+                if (item.InputGesture is { } gesture)
+                    yield return new(gesture.ToString(), $"{MenuText(menu)} > {MenuText(item)}");
+            }
+        }
+
+        // The items of a menu and of its submenus, without the commands that the slots add
+        static IEnumerable<MenuItem> Flatten(MenuItem menu)
+        {
+            yield return menu;
+            foreach (var item in menu.Items.OfType<MenuItem>().Where(x => !CommandSlot.IsSlotItem(x)))
+            {
+                foreach (var nested in Flatten(item))
+                    yield return nested;
+            }
+        }
+
+        static string? MenuText(MenuItem item) => (item.Header as string)?.Replace("_", string.Empty, StringComparison.Ordinal);
+    }
 
     /// <summary>
     /// Gets a platform-specific <see cref="KeyGesture"/> for the Save action: Ctrl+S, or Cmd+S on macOS.
@@ -153,6 +161,52 @@ public partial class MainView : UserControl
     public static KeyGesture CancelBuildGesture => new(Key.F6, Application.Current?.PlatformSettings?.HotkeyConfiguration.CommandModifiers ?? KeyModifiers.Control);
 
     private void RecentFilesChanged(object? sender, NotifyCollectionChangedEventArgs e) => UpdateRecentSessionsMenu();
+
+    private void ViewMenuChanged(object? sender, NotifyCollectionChangedEventArgs e) => UpdateViewMenu();
+
+    /// <summary>
+    /// Fills the View menu from the panels: a check box per panel, which shows or hides it, "New ..." and the open instances
+    /// of the panels that can be opened several times, separators between the sections, then "Reset layout".
+    /// </summary>
+    private void UpdateViewMenu()
+    {
+        var items = ViewMenu.Items;
+        items.Clear();
+        if (viewModel is null)
+            return;
+        // The commands placed in the View menu come back after the panels
+        try
+        {
+            FillViewMenu(items, viewModel);
+        }
+        finally
+        {
+            commandSlots?.UpdateViewMenu();
+        }
+    }
+
+    private void FillViewMenu(ItemCollection items, MainViewModel viewModel)
+    {
+        foreach (var entry in viewModel.ViewMenu.Items)
+        {
+            if (entry.IsSeparator)
+            {
+                items.Add(new Separator());
+                continue;
+            }
+            var item = new MenuItem { Header = entry.Header, Tag = entry.PanelId };
+            if (entry.IsCheckable)
+            {
+                item.ToggleType = MenuItemToggleType.CheckBox;
+                item[!MenuItem.IsCheckedProperty] = new Binding(nameof(ViewMenuItemViewModel.IsChecked)) { Source = entry, Mode = BindingMode.TwoWay };
+            }
+            else
+            {
+                item.Command = entry.Command;
+            }
+            items.Add(item);
+        }
+    }
 
     /// <summary>
     /// Fills File > Open recent as WPF does: one item per recent session (its version and its path, the full path in the tool

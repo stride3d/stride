@@ -30,6 +30,7 @@
     </Compile>
     <Compile Include="TestAssetFileExtensionDeclarations.cs" />
     <Compile Include="TestHeightmapAssetCompatibility.cs" />
+    <Compile Include="TestConvexHullMesh.cs" />
     <Compile Include="TestPluginPackageUpgrade.cs" />
     <Compile Include="TestUpgraderGates.cs" />
     <Compile Include="TestAudioProjectUpgrade.cs" />
@@ -49,6 +50,9 @@
     <Compile Include="TestModelMaterialSlots.cs" />
     <Compile Include="TestModelBones.cs" />
     <Compile Include="TestMorphImport.cs" />
+    <Compile Include="TestGltfMaterialImport.cs" />
+    <Compile Include="TestLegacyTextureRoles.cs" />
+    <Compile Include="TestTangentImport.cs" />
     <Compile Include="TestModelComponentMorphs.cs" />
     <Compile Include="TestModelAssetMorphTargetNames.cs" />
     <Compile Include="TestDependencyResolver.cs" />

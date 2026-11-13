@@ -16,7 +16,7 @@ public sealed class BuilderServiceTests
     [Fact]
     public async Task TheServiceOpensWithItsDatabaseAndEffectCompiler()
     {
-        using var fixture = await ServicesSessionFixture.OpenAsync(withBuilder: true, ("Textures/Wood", new TestEditorAsset { Value = "wood" }));
+        await using var fixture = await ServicesSessionFixture.OpenAsync(withBuilder: true, ("Textures/Wood", new TestEditorAsset { Value = "wood" }));
         var builder = fixture.Builder;
 
         Assert.Same(fixture.Session, builder.Session);
@@ -31,7 +31,7 @@ public sealed class BuilderServiceTests
     [Fact]
     public async Task WaitForShadersReturnsWithoutAShaderImporter()
     {
-        using var fixture = await ServicesSessionFixture.OpenAsync(withBuilder: true, ("Textures/Wood", new TestEditorAsset { Value = "wood" }));
+        await using var fixture = await ServicesSessionFixture.OpenAsync(withBuilder: true, ("Textures/Wood", new TestEditorAsset { Value = "wood" }));
 
         // Nothing to import: the WPF studio would wait for the shaders of the Stride package
         Assert.Null(fixture.Builder.ShaderImportProgress);
@@ -44,7 +44,7 @@ public sealed class BuilderServiceTests
     public async Task TheBuilderBuildsTheStepsOfItsShaderImporter()
     {
         var importer = new FakeShaderImporter();
-        using var fixture = await ServicesSessionFixture.OpenWithShaderImporterAsync(importer, ("Textures/Wood", new TestEditorAsset { Value = "wood" }));
+        await using var fixture = await ServicesSessionFixture.OpenWithShaderImporterAsync(importer, ("Textures/Wood", new TestEditorAsset { Value = "wood" }));
         var builder = fixture.Builder;
 
         // The builder asks the importer once, for the session, and builds the steps it returns
@@ -59,7 +59,7 @@ public sealed class BuilderServiceTests
     [Fact]
     public async Task BuildUnitsRunInPriorityOrder()
     {
-        using var fixture = await ServicesSessionFixture.OpenAsync(withBuilder: true, ("Textures/Wood", new TestEditorAsset { Value = "wood" }));
+        await using var fixture = await ServicesSessionFixture.OpenAsync(withBuilder: true, ("Textures/Wood", new TestEditorAsset { Value = "wood" }));
         var builder = fixture.Builder;
         var order = new List<string>();
         using var gate = new ManualResetEventSlim(false);
@@ -67,7 +67,7 @@ public sealed class BuilderServiceTests
         // The first unit holds the queue until the others are pushed
         var first = new GatedBuildUnit("gate", order, priorityMajor: 0, gate: gate);
         builder.PushBuildUnit(first);
-        Assert.True(first.Preparing.Wait(Timeout));
+        await ExclusiveDispatcherService.WaitUntilAsync(() => first.Preparing.IsSet, "the first unit to be prepared", Timeout);
 
         var units = new[]
         {
@@ -92,14 +92,14 @@ public sealed class BuilderServiceTests
     [Fact]
     public async Task ARemovedBuildUnitIsNeverPrepared()
     {
-        using var fixture = await ServicesSessionFixture.OpenAsync(withBuilder: true, ("Textures/Wood", new TestEditorAsset { Value = "wood" }));
+        await using var fixture = await ServicesSessionFixture.OpenAsync(withBuilder: true, ("Textures/Wood", new TestEditorAsset { Value = "wood" }));
         var builder = fixture.Builder;
         var order = new List<string>();
         using var gate = new ManualResetEventSlim(false);
 
         var first = new GatedBuildUnit("gate", order, priorityMajor: 0, gate: gate);
         builder.PushBuildUnit(first);
-        Assert.True(first.Preparing.Wait(Timeout));
+        await ExclusiveDispatcherService.WaitUntilAsync(() => first.Preparing.IsSet, "the first unit to be prepared", Timeout);
 
         var removed = builder.PushBuildUnit(new GatedBuildUnit("removed", order, priorityMajor: 1));
         var kept = new GatedBuildUnit("kept", order, priorityMajor: 2);
@@ -118,7 +118,7 @@ public sealed class BuilderServiceTests
         var fixture = await ServicesSessionFixture.OpenAsync(withBuilder: true, ("Textures/Wood", new TestEditorAsset { Value = "wood" }));
         var builder = fixture.Builder;
 
-        fixture.Dispose();
+        await fixture.DisposeAsync();
 
         Assert.True(builder.IsDisposed);
     }

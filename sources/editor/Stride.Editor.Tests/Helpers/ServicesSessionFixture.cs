@@ -17,7 +17,11 @@ namespace Stride.Editor.Tests.Helpers;
 /// A package with the given assets, saved to a temporary folder and opened through the agnostic <see cref="SessionViewModel"/>,
 /// with the editor's build services registered the way the GameStudio plugin registers them.
 /// </summary>
-public sealed class ServicesSessionFixture : IDisposable
+/// <remarks>
+/// Its dispatcher gives the access of the UI thread to the dispatched work only: the session opens in it, and a test that awaits the open
+/// goes on there (<see cref="DispatcherTask{TResult}"/>), changes and disposes the session there, as the editor does on its UI thread.
+/// </remarks>
+public sealed class ServicesSessionFixture : IAsyncDisposable
 {
     public const string PackageName = "TestGame";
 
@@ -69,27 +73,29 @@ public sealed class ServicesSessionFixture : IDisposable
     /// Saves a package with the given assets (location relative to the package, asset) and opens it with the build services.
     /// </summary>
     /// <param name="withBuilder">Whether to create the builder service (and its database); the thumbnail tests need it, a session-only test does not.</param>
-    public static Task<ServicesSessionFixture> OpenAsync(bool withBuilder, params (string Location, Asset Asset)[] assets)
+    public static DispatcherTask<ServicesSessionFixture> OpenAsync(bool withBuilder, params (string Location, Asset Asset)[] assets)
     {
         // The shader importer is a Stride assets one (Stride.Assets.Editor): this layer builds without it
-        return OpenAsync(withBuilder, null, assets);
+        return DispatcherTask.InDispatcher(() => OpenAsync(withBuilder, null, assets));
     }
 
     /// <summary>
     /// Saves a package with the given assets and opens it with the build services, the builder importing shaders with the given importer.
     /// </summary>
-    public static Task<ServicesSessionFixture> OpenWithShaderImporterAsync(IShaderImporter shaderImporter, params (string Location, Asset Asset)[] assets)
+    public static DispatcherTask<ServicesSessionFixture> OpenWithShaderImporterAsync(IShaderImporter shaderImporter, params (string Location, Asset Asset)[] assets)
     {
-        return OpenAsync(true, shaderImporter, assets);
+        return DispatcherTask.InDispatcher(() => OpenAsync(true, shaderImporter, assets));
     }
 
     private static async Task<ServicesSessionFixture> OpenAsync(bool withBuilder, IShaderImporter? shaderImporter, (string Location, Asset Asset)[] assets)
     {
         var directory = Path.Combine(Path.GetTempPath(), "Stride.Editor.Tests", Guid.NewGuid().ToString("N"));
         var dialogs = new FakeEditorDialogService();
+        var dispatcher = new ExclusiveDispatcherService();
+        dispatcher.EnsureAccess();
         var serviceProvider = new ViewModelServiceProvider(
         [
-            new ExclusiveDispatcherService(),
+            dispatcher,
             dialogs,
             new FakeClipboardService(),
             new FakePluginService(),
@@ -135,23 +141,12 @@ public sealed class ServicesSessionFixture : IDisposable
     /// </summary>
     public static string NewPackageDirectory() => Path.Combine(Path.GetTempPath(), "Stride.Editor.Tests", Guid.NewGuid().ToString("N"), PackageName);
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         if (!disposed)
         {
             disposed = true;
-            if (Builder != null)
-            {
-                Builder.Database.Dispose();
-                Builder.Dispose();
-                // The object database is process-wide (the editor opens one session per process); the next fixture opens its own
-                Stride.Core.BuildEngine.Builder.CloseObjectDatabase();
-            }
-            SettingsProvider?.Dispose();
-            Session.Destroy();
-            // Nothing the test started may outlive it
-            if (!Session.BackgroundWork.Wait(TimeSpan.FromSeconds(30)))
-                throw new TimeoutException("The background work of the session did not end within 30 seconds of its destruction.");
+            await SessionTeardown.DestroyAsync(Session, [Builder?.Database, Builder], [SettingsProvider]);
         }
         try
         {

@@ -15,7 +15,8 @@ namespace Stride.GameStudio.Avalonia.Tests.Helpers;
 
 /// <summary>
 /// A dialog service that records the message boxes instead of showing them (a modal message box waits for a click that never
-/// comes in a headless test), offers no file pickers and answers the asset pickers with <see cref="PickAsset"/>.
+/// comes in a headless test), answers the file and folder pickers with <see cref="PickFile"/> and <see cref="PickFolder"/> (none
+/// by default) and the asset pickers with <see cref="PickAsset"/>.
 /// </summary>
 internal sealed class RecordingDialogService : IEditorDialogService, IProgressWindowService
 {
@@ -122,11 +123,21 @@ internal sealed class RecordingDialogService : IEditorDialogService, IProgressWi
         return Task.FromResult(PickButton(buttons));
     }
 
-    public Task<UFile?> OpenFilePickerAsync(UDirectory? initialPath = null, IReadOnlyList<FilePickerFilter>? filters = null) => Task.FromResult<UFile?>(null);
+    /// <summary>
+    /// The file the next file pickers pick (the filters they were given as argument); <c>null</c> cancels them.
+    /// </summary>
+    public Func<IReadOnlyList<FilePickerFilter>?, UFile?> PickFile { get; set; } = _ => null;
+
+    /// <summary>
+    /// The folder the next folder pickers pick; <c>null</c> cancels them.
+    /// </summary>
+    public Func<UDirectory?> PickFolder { get; set; } = () => null;
+
+    public Task<UFile?> OpenFilePickerAsync(UDirectory? initialPath = null, IReadOnlyList<FilePickerFilter>? filters = null) => Task.FromResult(PickFile(filters));
 
     public Task<IReadOnlyList<UFile>> OpenMultipleFilesPickerAsync(UDirectory? initialPath = null, IReadOnlyList<FilePickerFilter>? filters = null) => Task.FromResult<IReadOnlyList<UFile>>([]);
 
-    public Task<UDirectory?> OpenFolderPickerAsync(UDirectory? initialPath = null) => Task.FromResult<UDirectory?>(null);
+    public Task<UDirectory?> OpenFolderPickerAsync(UDirectory? initialPath = null) => Task.FromResult(PickFolder());
 
     public Task<UFile?> SaveFilePickerAsync(UDirectory? initialPath = null, IReadOnlyList<FilePickerFilter>? filters = null, string? defaultExtension = null, string? defaultFileName = null) => Task.FromResult<UFile?>(null);
 }

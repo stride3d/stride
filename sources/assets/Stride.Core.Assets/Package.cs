@@ -1292,6 +1292,11 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
             // serializers twice once a dependent binds to the host's
             if (assembly is null)
             {
+                // The host can refuse it before it loads (the editor leaves out a plugin built for a newer editor): it
+                // stays listed without an assembly, so a later load does not check it again
+                if ((loadParameters.AssemblyLoadCheck ?? Session?.AssemblyLoadCheck) is { } loadCheck && !loadCheck.CanLoad(this, assemblyPath, log))
+                    return;
+
                 assembly = assemblyContainer.LoadAssemblyFromPath(assemblyPath, log);
 
                 if (assembly is null)

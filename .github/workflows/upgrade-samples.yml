@@ -101,4 +101,4 @@ jobs:
             echo ""
             echo "Look at the diff, and open the samples in Game Studio if the upgraders changed something that needs a human check. Once merged, the next release includes the samples, as long as \`Patch\` is still on this number. If it moved, run the workflow again."
           } > pr-body.md
-          gh pr create --base "${{ github.ref_name }}" --head "$BRANCH" --title "Samples: upgrade to $VERSION" --body-file pr-body.md --label ci-enduser --label ci-editor
+          gh pr create --base "${{ github.ref_name }}" --head "$BRANCH" --title "Samples: upgrade to $VERSION" --body-file pr-body.md --label ci-enduser --label ci-gamestudio-screenshots

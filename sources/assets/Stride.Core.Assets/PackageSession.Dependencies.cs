@@ -486,7 +486,7 @@ partial class PackageSession
                         if (devManifest is not null)
                             devPackage.SetCompanionDeclarations(devManifest, Path.GetDirectoryName(manifestFile)!);
 
-                        var devContainer = new StandalonePackage(devPackage);
+                        var devContainer = new StandalonePackage(devPackage) { IsDevRedirectPackage = true };
                         // Same namespace surface as a real nupkg (whose packed sdpkg stores the
                         // resolved name): the csproj-driven declarations come from the manifest,
                         // the identity from the authored sdpkg
@@ -541,6 +541,9 @@ partial class PackageSession
     {
         ArgumentNullException.ThrowIfNull(log);
         var loadParameters = loadParametersArg ?? PackageLoadParameters.Default();
+        AssemblyLoadCheck ??= loadParameters.AssemblyLoadCheck;
+        CompanionPackageFilter ??= loadParameters.CompanionPackageFilter;
+        CompanionPackageSource ??= loadParameters.CompanionPackageSource;
 
         var loaded = new HashSet<Package>(Packages);
         try

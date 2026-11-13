@@ -38,7 +38,7 @@ jobs:
   Windows-Tests:
     name: Windows (Simple, ${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: windows-2025-vs2026
-    timeout-minutes: 20
+    timeout-minutes: 35
     steps:
       # Full checkout: the Simple test solutions build Stride.Templates.*, which
       # preprocesses template content from samples/.

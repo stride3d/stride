@@ -60,7 +60,7 @@ public sealed class AssetTemplateGeneratorTests
     [Fact]
     public async Task TheMaterialTemplateCreatesAnEmptyMaterialWithAUniqueName()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
 
         var material = Assert.Single(await RunAsync(fixture, MaterialId));
 
@@ -79,7 +79,7 @@ public sealed class AssetTemplateGeneratorTests
     [Fact]
     public async Task TheCubeTemplateCreatesAProceduralModelWithTheCubeFactory()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
 
         var cube = Assert.Single(await RunAsync(fixture, CubeId));
 
@@ -91,7 +91,7 @@ public sealed class AssetTemplateGeneratorTests
     [Fact]
     public async Task TheSkyboxTemplateAsksForACubemapTexture()
     {
-        using var fixture = await OpenAsync(("Textures/Sky", new TextureAsset { Source = new UFile("sky.dds") }));
+        await using var fixture = await OpenAsync(("Textures/Sky", new TextureAsset { Source = new UFile("sky.dds") }));
         var sky = fixture.Asset("Textures/Sky");
         var dialogs = Dialogs(fixture);
         dialogs.PickAsset = picker => picker.FilteredAssets.Single(x => x.Id == sky.Id);
@@ -115,7 +115,7 @@ public sealed class AssetTemplateGeneratorTests
     [Fact]
     public async Task TheScriptTemplateAsksTheNamesAndWritesTheScriptFromTheTemplateFile()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         // Don't save the session for the new script
         Dialogs(fixture).PickButton = _ => 2;
         ScriptPrompt.Answer = prompt =>
@@ -147,7 +147,7 @@ public sealed class AssetTemplateGeneratorTests
     [Fact]
     public async Task TheCompositorTemplateDerivesFromTheBaseAsset()
     {
-        using var fixture = await OpenAsync(("Base", new GraphicsCompositorAsset()));
+        await using var fixture = await OpenAsync(("Base", new GraphicsCompositorAsset()));
         var baseAsset = fixture.Asset("Base");
 
         var compositor = Assert.Single(await RunAsync(fixture, CompositorId));
@@ -161,7 +161,7 @@ public sealed class AssetTemplateGeneratorTests
     [Fact]
     public async Task TheTextureTemplateImportsTheSourceFiles()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         using var files = new TemporaryFiles();
         var logo = files.Write("Logo.png", Png);
         var icon = files.Write("Icon.png", Png);
@@ -181,7 +181,7 @@ public sealed class AssetTemplateGeneratorTests
     [Fact]
     public async Task TheTextureTemplateCanCreateATextureWithoutASourceFile()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         var dialogs = Dialogs(fixture);
         // "Create" (the first button) when asked about the missing source
         dialogs.PickButton = _ => 1;
@@ -196,7 +196,7 @@ public sealed class AssetTemplateGeneratorTests
     [Fact]
     public async Task TheSpriteSheetTemplateMakesOneSpritePerImage()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         using var files = new TemporaryFiles();
         var walk = files.Write("Walk.png", Png);
         var run = files.Write("Run.png", Png);
@@ -214,7 +214,7 @@ public sealed class AssetTemplateGeneratorTests
     [Fact]
     public async Task TheModelTemplateAsksTheImportOptionsBeforeImporting()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         using var files = new TemporaryFiles();
         var model = files.Write("Robot.fbx", []);
         Dialogs(fixture).PickButton = _ => 2;
@@ -276,7 +276,7 @@ public sealed class AssetTemplateGeneratorTests
         return null;
     }
 
-    private static async Task<AssetsSessionFixture> OpenAsync(params (string Location, Asset Asset)[] assets)
+    private static async DispatcherTask<AssetsSessionFixture> OpenAsync(params (string Location, Asset Asset)[] assets)
     {
         _ = LazyTemplates.Value;
         var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, assets);
@@ -295,7 +295,7 @@ public sealed class AssetTemplateGeneratorTests
         // The action history records the creation once the asset notifications are done, on another thread: wait for it, so that
         // the test does not change the selection (nor close the session) in the middle of them
         if (assets.Count > 0)
-            Assert.True(SpinWait.SpinUntil(() => fixture.Session.ActionHistory.Transactions.Count > transactions, TimeSpan.FromSeconds(10)), "the creation to be recorded");
+            await ExclusiveDispatcherService.WaitUntilAsync(() => fixture.Session.ActionHistory.Transactions.Count > transactions, "the creation to be recorded");
         return assets;
     }
 

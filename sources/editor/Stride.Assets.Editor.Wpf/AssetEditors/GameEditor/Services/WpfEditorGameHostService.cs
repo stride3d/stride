@@ -12,17 +12,16 @@ using Stride.Core.Presentation.Controls;
 using Stride.Editor.EditorGame.Game;
 using Stride.Editor.Engine;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
-using Point = System.Windows.Point;
 
 namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 
 /// <summary>
 /// What the WPF hosting of an editor game gives, for the shared controllers: the game renders into a WinForms form
-/// (<see cref="WpfEditorGameViewport"/>), shown in the view by <see cref="EditorHost"/>, with its cursor, the mouse
-/// position over it and the drags out of it.
+/// (<see cref="WpfEditorGameViewport"/>), shown in the view by <see cref="EditorHost"/>, with its cursor and the drags out
+/// of it. The viewport gives the pointer position over it to the shared <c>EditorGameMousePositionService</c>.
 /// </summary>
 [EditorGameService(typeof(IEditorGameController), Order = 10)]
-public sealed class WpfEditorGameHostService : EditorGameServiceBase, IEditorGameMousePositionViewModelService
+public sealed class WpfEditorGameHostService : EditorGameServiceBase, IEditorGameCursorViewModelService
 {
     private readonly WpfEditorGameViewport viewport;
 
@@ -47,29 +46,13 @@ public sealed class WpfEditorGameHostService : EditorGameServiceBase, IEditorGam
     /// </summary>
     public GameEngineHost EditorHost => viewport.Host;
 
-    /// <summary>
-    /// The distance, in screen pixels, a pointer moves while pressed before it counts as a drag.
-    /// </summary>
+    /// <inheritdoc/>
+    /// <remarks>The minimum drag distance of the system.</remarks>
     public Vector2 MinimumDragDistance => new((float)System.Windows.SystemParameters.MinimumHorizontalDragDistance, (float)System.Windows.SystemParameters.MinimumVerticalDragDistance);
 
     private EmbeddedGameForm? GameForm => viewport.Form;
 
     /// <inheritdoc/>
-    public Vector3 GetMousePositionInScene(bool lastRightClick)
-    {
-        if (viewport.IsReleased || EditorGame is not { } game)
-            return Vector3.Zero;
-
-        var mousePosition = lastRightClick ? viewport.LastClickPosition : Control.MousePosition;
-        var host = EditorHost;
-        var localPosition = host.PointFromScreen(new Point(mousePosition.X, mousePosition.Y));
-        var relativePos = new Vector2((float)(localPosition.X / host.ActualWidth), (float)(localPosition.Y / host.ActualHeight));
-        return game.GetPositionInScene(relativePos);
-    }
-
-    /// <summary>
-    /// Changes the cursor shown over the game (any thread).
-    /// </summary>
     public void ChangeCursor(EditorGameCursor cursor)
     {
         if (viewport.IsReleased || GameForm is not { } form)
@@ -88,7 +71,8 @@ public sealed class WpfEditorGameHostService : EditorGameServiceBase, IEditorGam
     }
 
     /// <summary>
-    /// Drags <paramref name="items"/> out of the editor game.
+    /// Drags <paramref name="items"/> out of the editor game (game thread). The WPF editor only: the UI editor's view
+    /// starts the drag of an element held with Alt through it.
     /// </summary>
     /// <returns>Whether the items were dropped somewhere.</returns>
     public bool StartDragDrop(params object[] items)

@@ -94,7 +94,7 @@ public sealed class PluginTests
     [Fact]
     public async Task TheEditorDeclaresTheContentReferencesAsPrimitiveTypesOnce()
     {
-        using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false);
+        await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false);
 
         // The content types serialized as references are not expanded by the property grid; the host registers them once,
         // whatever the number of plugins
@@ -158,7 +158,7 @@ public sealed class PluginTests
     {
         var gameSettings = GameSettingsFactory.Create();
         gameSettings.SplashScreenTexture = null!;
-        using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: true, ("GameSettings", gameSettings));
+        await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: true, ("GameSettings", gameSettings));
 
         Assert.NotNull(fixture.ServiceProvider.TryGet<GameSettingsProviderService>());
         var builder = fixture.ServiceProvider.TryGet<GameStudioBuilderService>();

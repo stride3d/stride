@@ -145,6 +145,8 @@ public sealed class StrideEditorPlugin : StrideAssetsPlugin
         context.NodePresenterCommands.Register(new SetComponentReferenceCommand());
         context.NodePresenterCommands.Register(new SetSymbolReferenceCommand());
         context.NodePresenterCommands.Register(new SkeletonNodePreserveAllCommand());
+        // Opens the curve editor of the editor, if it has one (ICurveEditorService)
+        context.NodePresenterCommands.Register(new EditCurveCommand(sessionViewModel));
 
         // updaters
         context.NodePresenterUpdaters.Register(new AnimationAssetNodeUpdater());
@@ -170,6 +172,7 @@ public sealed class StrideEditorPlugin : StrideAssetsPlugin
         sessionViewModel.SuggestedPackages.Add(new PackageName("Stride.Navigation", new PackageVersion(StrideVersion.NuGetVersion)));
         sessionViewModel.SuggestedPackages.Add(new PackageName("Stride.Physics", new PackageVersion(StrideVersion.NuGetVersion)));
         sessionViewModel.SuggestedPackages.Add(new PackageName("Stride.BepuPhysics", new PackageVersion(StrideVersion.NuGetVersion)));
+        sessionViewModel.SuggestedPackages.Add(new PackageName("Stride.Heightfield", new PackageVersion(StrideVersion.NuGetVersion)));
         sessionViewModel.SuggestedPackages.Add(new PackageName("Stride.Video", new PackageVersion(StrideVersion.NuGetVersion)));
         sessionViewModel.SuggestedPackages.Add(new PackageName("Stride.Voxels", new PackageVersion(StrideVersion.NuGetVersion)));
         sessionViewModel.SuggestedPackages.Add(new PackageName("Stride.SpriteStudio.Runtime", new PackageVersion(StrideVersion.NuGetVersion)));

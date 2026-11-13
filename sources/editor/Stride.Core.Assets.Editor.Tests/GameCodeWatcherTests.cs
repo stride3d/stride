@@ -165,7 +165,7 @@ public sealed class GameCodeWatcherTests : IDisposable
     [Fact]
     public async Task TheWatchedProjectsOfASessionAreTheProjectsWhoseAssemblyTheEditorLoads()
     {
-        using var fixture = await EditorSessionFixture.OpenGameAsync(PlatformType.Windows, PlatformType.Linux);
+        await using var fixture = await EditorSessionFixture.OpenGameAsync(PlatformType.Windows, PlatformType.Linux);
         // The fixture's projects hold no asset types, so the session loaded no assembly
         Assert.Empty(GameCodeWatcher.GetCodeProjects(fixture.Session));
 

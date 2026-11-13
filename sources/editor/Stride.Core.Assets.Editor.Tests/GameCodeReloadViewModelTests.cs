@@ -300,7 +300,7 @@ public sealed class GameCodeReloadViewModelTests
 
         public int SettingsSaved { get; private set; }
 
-        public static async Task<ReloadTest> CreateAsync(bool restarts = true)
+        public static async DispatcherTask<ReloadTest> CreateAsync(bool restarts = true)
         {
             return new ReloadTest(await EditorSessionFixture.OpenAsync(), restarts);
         }
@@ -314,12 +314,11 @@ public sealed class GameCodeReloadViewModelTests
             Reload.OnCodeChanged(files.Select(x => new GameCodeChange(ProjectPath, Path.Combine(directory, x))).ToList());
         }
 
-        public ValueTask DisposeAsync()
+        public async ValueTask DisposeAsync()
         {
             Reload.Destroy();
             Build.Destroy();
-            Fixture.Dispose();
-            return ValueTask.CompletedTask;
+            await Fixture.DisposeAsync();
         }
     }
 }

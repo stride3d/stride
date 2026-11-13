@@ -6,6 +6,7 @@ using Stride.Assets.Editor.ViewModels;
 using Stride.Assets.Entities;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Mathematics;
 using Stride.Engine;
@@ -22,7 +23,7 @@ public sealed class EntityHierarchyLoadingTests
     [Fact]
     public async Task TheEditedSceneIsLoadedWithItsEntitiesAndUnloadingItUnloadsThem()
     {
-        using var fixture = await OpenSceneAsync();
+        await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var root = editor.HierarchyRoot;
         var entities = root.InnerSubEntities.BreadthFirstEntities().ToList();
@@ -45,7 +46,7 @@ public sealed class EntityHierarchyLoadingTests
     [Fact]
     public async Task AnEntityAddedToALoadedSceneIsLoadedAndNotOtherwise()
     {
-        using var fixture = await OpenSceneAsync();
+        await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var parent = FindEntity(editor, "Parent");
 
@@ -63,7 +64,7 @@ public sealed class EntityHierarchyLoadingTests
     [Fact]
     public async Task AChildSceneComesAfterTheEntitiesAndIsNotLoadedByDefault()
     {
-        using var fixture = await OpenScenesAsync();
+        await using var fixture = await OpenScenesAsync();
         var editor = await OpenEditorAsync(fixture);
         var root = (SceneRootViewModel)editor.HierarchyRoot;
 
@@ -87,7 +88,7 @@ public sealed class EntityHierarchyLoadingTests
     [Fact]
     public async Task AChildSceneLoadedWhenTheEditorClosedIsLoadedWhenItOpens()
     {
-        using var fixture = await OpenScenesAsync();
+        await using var fixture = await OpenScenesAsync();
         var editor = await OpenEditorAsync(fixture);
         var child = ((SceneRootViewModel)editor.HierarchyRoot).ChildScenes.Single();
         await child.RequestLoading(true);
@@ -99,7 +100,7 @@ public sealed class EntityHierarchyLoadingTests
 
         editor = await OpenEditorAsync(fixture);
         child = ((SceneRootViewModel)editor.HierarchyRoot).ChildScenes.Single();
-        await WaitUntilAsync(() => child.IsLoaded);
+        await ExclusiveDispatcherService.WaitUntilAsync(() => child.IsLoaded, "the child scene to load");
 
         Assert.True(child.InnerSubEntities.Single().IsLoaded);
         editor.Destroy();
@@ -108,7 +109,7 @@ public sealed class EntityHierarchyLoadingTests
     [Fact]
     public async Task RemovingAChildSceneRemovesItsRootAndTheActiveRootComesBack()
     {
-        using var fixture = await OpenScenesAsync();
+        await using var fixture = await OpenScenesAsync();
         var editor = await OpenEditorAsync(fixture);
         var root = (SceneRootViewModel)editor.HierarchyRoot;
         var child = root.ChildScenes.Single();
@@ -125,7 +126,7 @@ public sealed class EntityHierarchyLoadingTests
         Assert.Equal(["Box", "Parent"], root.Children.Select(x => x.Name));
         Assert.Same(root, editor.ActiveRoot);
         // The root of the child scene is destroyed once it is unloaded
-        await WaitUntilAsync(() => fixture.Asset<SceneViewModel>("ChildScene").HierarchyRoot is null);
+        await ExclusiveDispatcherService.WaitUntilAsync(() => fixture.Asset<SceneViewModel>("ChildScene").HierarchyRoot is null, "the child scene to unload");
 
         undoRedo.Undo();
 
@@ -137,7 +138,7 @@ public sealed class EntityHierarchyLoadingTests
     [Fact]
     public async Task LockingASceneLocksItsEntitiesAndItsChildScenesOnlyWithCtrl()
     {
-        using var fixture = await OpenScenesAsync();
+        await using var fixture = await OpenScenesAsync();
         var editor = await OpenEditorAsync(fixture);
         var root = (SceneRootViewModel)editor.HierarchyRoot;
         var child = root.ChildScenes.Single();
@@ -161,7 +162,7 @@ public sealed class EntityHierarchyLoadingTests
     /// The scene of <see cref="OpenSceneAsync"/>, with a child scene "ChildScene" at (5, 0, 0) that has a "Lamp" entity at
     /// (1, 0, 0).
     /// </summary>
-    internal static async Task<AssetsSessionFixture> OpenScenesAsync()
+    internal static async DispatcherTask<AssetsSessionFixture> OpenScenesAsync()
     {
         var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: true, ("MainScene", new SceneAsset()), ("ChildScene", new SceneAsset { Offset = new Vector3(5, 0, 0) }));
         Assert.False(fixture.Result.HasErrors, fixture.Log);
@@ -183,18 +184,5 @@ public sealed class EntityHierarchyLoadingTests
             main.Children.Add(childScene);
         }
         return fixture;
-    }
-
-    /// <summary>
-    /// Waits for a change the hierarchy makes once the editor is initialized, on another thread in the tests.
-    /// </summary>
-    internal static async Task WaitUntilAsync(Func<bool> condition)
-    {
-        var timeout = DateTime.UtcNow + TimeSpan.FromSeconds(10);
-        while (!condition())
-        {
-            Assert.True(DateTime.UtcNow < timeout, "The condition was not met in time.");
-            await Task.Delay(10);
-        }
     }
 }

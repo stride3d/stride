@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Reflection;
 using System.Xml.Linq;
 using Stride.Core.Assets;
 using Stride.Core.Yaml;
@@ -21,6 +22,7 @@ public class TestEditorPackageToolkit
         "BulletPhysics/Stride.Physics.Editor",
         "Particles/Stride.Particles.Editor",
         "SpriteStudio/Stride.SpriteStudio.Editor",
+        "UI/Stride.UI.Editor",
         "Video/Stride.Video.Editor",
         "Voxels/Stride.Voxels.Editor",
     ];
@@ -29,7 +31,6 @@ public class TestEditorPackageToolkit
     [
         "Audio/Stride.Audio.Editor.Wpf",
         "SpriteStudio/Stride.SpriteStudio.Editor.Wpf",
-        "UI/Stride.UI.Editor",
         "UI/Stride.UI.Editor.Wpf",
     ];
 
@@ -37,6 +38,7 @@ public class TestEditorPackageToolkit
     [
         "Audio/Stride.Audio.Editor.Avalonia",
         "SpriteStudio/Stride.SpriteStudio.Editor.Avalonia",
+        "UI/Stride.UI.Editor.Avalonia",
     ];
 
     // The neutral packages whose views come in one companion per toolkit
@@ -44,6 +46,7 @@ public class TestEditorPackageToolkit
     [
         "Audio/Stride.Audio.Editor",
         "SpriteStudio/Stride.SpriteStudio.Editor",
+        "UI/Stride.UI.Editor",
     ];
 
     public static TheoryData<string> Neutral => new(NeutralPackages);
@@ -194,7 +197,8 @@ public class TestEditorPackageToolkit
     }
 
     /// <summary>
-    /// The build manifests written by the last builds of the package (one per configuration), if any.
+    /// The build manifests written by the last builds of the package (one per configuration) for the target framework it has
+    /// now, if any. A checkout built before a package changed its target framework keeps the old manifests in another folder.
     /// </summary>
     private static IEnumerable<AssetBuildManifest> LoadManifests(string package)
     {
@@ -202,7 +206,33 @@ public class TestEditorPackageToolkit
         var intermediate = Path.Combine(PluginsDirectory, package, "obj");
         if (!Directory.Exists(intermediate))
             yield break;
-        foreach (var file in Directory.EnumerateFiles(intermediate, name + AssetBuildManifest.FileExtension, SearchOption.AllDirectories))
-            yield return YamlSerializer.Load<AssetBuildManifest>(file);
+        var targetFramework = CurrentTargetFramework(LoadProject(package));
+        foreach (var configuration in Directory.EnumerateDirectories(intermediate))
+        {
+            var folder = Path.Combine(configuration, targetFramework);
+            if (!Directory.Exists(folder))
+                continue;
+            foreach (var file in Directory.EnumerateFiles(folder, name + AssetBuildManifest.FileExtension, SearchOption.AllDirectories))
+                yield return YamlSerializer.Load<AssetBuildManifest>(file);
+        }
+    }
+
+    /// <summary>
+    /// The target framework folder of a package's build: the editor frameworks resolve to the framework of this test project
+    /// (which targets the cross-platform editor framework), with "-windows" for the WPF editor.
+    /// </summary>
+    private static string CurrentTargetFramework(XDocument project)
+    {
+        // ".NETCoreApp,Version=v10.0" -> "net10.0"
+        var frameworkName = typeof(TestEditorPackageToolkit).Assembly.GetCustomAttribute<System.Runtime.Versioning.TargetFrameworkAttribute>()!.FrameworkName;
+        var version = new System.Runtime.Versioning.FrameworkName(frameworkName).Version;
+        var xplat = $"net{version.Major}.{version.Minor}";
+        var declared = project.Descendants("TargetFramework").Single().Value.Trim();
+        return declared switch
+        {
+            "$(StrideXplatEditorTargetFramework)" => xplat,
+            "$(StrideEditorTargetFramework)" => xplat + "-windows",
+            _ => declared,
+        };
     }
 }

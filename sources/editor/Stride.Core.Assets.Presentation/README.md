@@ -16,6 +16,7 @@ The view models of the core assets: what a UI shows of a session and its content
 * The asset composite bases: `AssetCompositeViewModel<TAsset>`, `AssetCompositeHierarchyViewModel<,>`, `AssetCompositeItemViewModel` and `IAssetPartViewModel`.
 * The data that these view models expose: `ThumbnailData`, `MenuCommandInfo`, `FileContentSignature`, the package settings wrapper and entries, `AssetViewModelAttribute`.
 * The small contracts and helpers that the asset view models of `Stride.Assets.Presentation` use: `IAddChildrenPropertiesProviderViewModel`, `IAssetCollectionViewModel.RunAssetTemplateAsync`, `ContentReferenceHelper`.
+* The drop zones of a tree row (`DropZoneCalculator`, with `InsertPosition`), which the tree views of both editors use, so that a drag lands at the same place in each.
 
 The types are in the `Stride.Core.Assets.Presentation` namespaces (the session objects in `Stride.Core.Assets.Presentation.ViewModels`).
 

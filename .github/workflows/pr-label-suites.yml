@@ -59,11 +59,11 @@ jobs:
   editor:
     needs: changes
     if: >
-      contains(github.event.pull_request.labels.*.name, 'ci-editor')
-      && ((github.event.action == 'labeled' && github.event.label.name == 'ci-editor')
+      contains(github.event.pull_request.labels.*.name, 'ci-gamestudio-screenshots')
+      && ((github.event.action == 'labeled' && github.event.label.name == 'ci-gamestudio-screenshots')
           || (github.event.action != 'labeled'
               && (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))))
-    uses: ./.github/workflows/test-windows-editor.yml
+    uses: ./.github/workflows/test-gamestudio-screenshots.yml
     secrets:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY_SCREENSHOTS }}
     with:
@@ -96,19 +96,5 @@ jobs:
       && ((github.event.pull_request.draft == true && !contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))
           || needs.changes.outputs.android != 'true')
     uses: ./.github/workflows/test-android-game.yml
-    with:
-      build-type: Debug
-
-  # Avalonia editor: identical pattern to iOS, gated on the editor path filter.
-  editor-avalonia:
-    needs: changes
-    if: >
-      contains(github.event.pull_request.labels.*.name, 'ci-editor-avalonia')
-      && ((github.event.action == 'labeled' && github.event.label.name == 'ci-editor-avalonia')
-          || (github.event.action != 'labeled'
-              && (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))))
-      && ((github.event.pull_request.draft == true && !contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))
-          || needs.changes.outputs.editor != 'true')
-    uses: ./.github/workflows/test-editor-avalonia.yml
     with:
       build-type: Debug

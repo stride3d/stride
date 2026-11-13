@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Reflection;
@@ -68,6 +69,29 @@ public sealed class PackageLoadParameters
     /// stay out. Null loads the toolkit-neutral Editor companions only.
     /// </summary>
     public string? EditorToolkit { get; set; }
+
+    /// <summary>
+    /// A check that each assembly of a package passes before it loads (the editor's plugin version check), or null to load
+    /// them all. The session keeps the first one it is given (<see cref="PackageSession.AssemblyLoadCheck"/>) for later loads.
+    /// </summary>
+    [Experimental("STREXP002")]
+    public IAssemblyLoadCheck? AssemblyLoadCheck { get; set; }
+
+    /// <summary>
+    /// Decides which <see cref="PackageKind.Editor"/> companions the session loads (the editor's switched-off plugins and safe
+    /// mode), or null to load them all. The session keeps the first one it is given (<see cref="PackageSession.CompanionPackageFilter"/>)
+    /// for later loads.
+    /// </summary>
+    [Experimental("STREXP002")]
+    public ICompanionPackageFilter? CompanionPackageFilter { get; set; }
+
+    /// <summary>
+    /// Companion packages that the host adds to the session besides those its packages declare (the editor's extensions), or
+    /// null for none. The session keeps the first one it is given (<see cref="PackageSession.CompanionPackageSource"/>) for
+    /// later loads.
+    /// </summary>
+    [Experimental("STREXP002")]
+    public ICompanionPackageSource? CompanionPackageSource { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether to automatically compile projects that don't have their assembly generated.

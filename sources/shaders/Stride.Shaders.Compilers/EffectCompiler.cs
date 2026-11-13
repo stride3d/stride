@@ -155,7 +155,7 @@ namespace Stride.Shaders.Compiler
 
         public override TaskOrResult<EffectBytecodeCompilerResult> Compile(ShaderMixinSource mixinTree, EffectCompilerParameters effectParameters, CompilerParameters compilerParameters, ObjectId mixinObjectId)
         {
-            var log = new LoggerResult();
+            var log = new EffectCompileLog(EffectCompileLog.EffectCompilerModule);
 
             // Load D3D compiler dll
             // Note: No lock, it's probably fine if it gets called from multiple threads at the same time.
@@ -301,7 +301,8 @@ namespace Stride.Shaders.Compiler
                             _ => throw new NotSupportedException($"Unsupported shader stage: {shaderStage}"),
                         };
                         stageHlslSources.Add((stageSuffix, code));
-                        string? stageFilename = null;
+                        // The name FXC gives the HLSL in its messages: the effect and the stage, and that SPIRV-Cross wrote it
+                        string? stageFilename = $"{fullEffectName}_{stageSuffix}.spirv-cross.hlsl";
 #else
                         string? stageFilename = null;
 #endif

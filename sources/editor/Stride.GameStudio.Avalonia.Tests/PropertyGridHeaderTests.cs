@@ -33,7 +33,7 @@ public sealed class PropertyGridHeaderTests
     {
         using var fixture = await OpenModelWithSkeletonAsync();
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var grid = Grid(window);
@@ -60,7 +60,7 @@ public sealed class PropertyGridHeaderTests
     {
         using var fixture = await OpenModelWithSkeletonAsync();
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var grid = Grid(window);
@@ -90,7 +90,7 @@ public sealed class PropertyGridHeaderTests
     {
         using var fixture = await OpenModelWithSkeletonAsync();
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var grid = Grid(window);
@@ -121,7 +121,7 @@ public sealed class PropertyGridHeaderTests
     {
         using var fixture = await OpenModelWithSkeletonAsync();
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var grid = Grid(window);
@@ -159,7 +159,7 @@ public sealed class PropertyGridHeaderTests
     {
         using var fixture = await OpenModelWithSkeletonAsync();
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var grid = Grid(window);

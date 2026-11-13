@@ -34,7 +34,7 @@ public sealed class WindowTests
         {
             DataContext = new SettingsViewModel(App.InitializeServiceProvider(), EditorSettings.SettingsContainer.CurrentProfile),
         };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             Assert.True(window.IsVisible);
@@ -52,7 +52,7 @@ public sealed class WindowTests
     public async Task TheAboutWindowShowsTheEditorVersion()
     {
         var window = new AboutWindow();
-        window.Show();
+        await window.ShowAsync();
         try
         {
             Assert.True(window.IsVisible);
@@ -70,7 +70,7 @@ public sealed class WindowTests
     {
         using var fixture = await ShellSessionFixture.OpenAsync(("Sheet", new Stride.Assets.Sprite.SpriteSheetAsset()));
         var window = new DebugWindow { ViewModel = new DebugWindowViewModel(fixture.ServiceProvider) };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             Assert.True(window.IsVisible);
@@ -87,7 +87,7 @@ public sealed class WindowTests
     {
         using var fixture = ShellSessionFixture.Create(("Sheet", new Stride.Assets.Sprite.SpriteSheetAsset()));
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             Assert.True(window.IsVisible);

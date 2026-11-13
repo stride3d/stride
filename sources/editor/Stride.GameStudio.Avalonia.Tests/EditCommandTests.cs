@@ -35,7 +35,7 @@ public sealed class EditCommandTests
     {
         using var fixture = ShellSessionFixture.Create();
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var edit = window.GetLogicalDescendants().OfType<MenuItem>().Single(x => Equals(x.Header, "Edit"));
@@ -376,7 +376,8 @@ public sealed class EditCommandTests
                 var item = await ShowPropertyAsync(fixture, window, asset, nameof(TextPropertiesAsset.Label));
                 // Nothing on the clipboard yet, and the asset has no archetype to reset to
                 var items = await OpenAsync(item.ContextMenu!, item);
-                Assert.Equal(["Reset to base value", "-", "Copy", "Paste", "Replace"], Describe(items));
+                // and the nested properties toggle of the editor, which has nothing to expand here
+                Assert.Equal(["Reset to base value", "-", "Copy", "Paste", "Replace", "-", "Expand all nested properties"], Describe(items));
                 Assert.Equal(["Copy"], Enabled(items));
                 item.ContextMenu!.Close();
                 await WindowTestHelper.PumpAsync();
@@ -423,7 +424,7 @@ public sealed class EditCommandTests
     {
         var fixture = ShellSessionFixture.Create(assets);
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         // The shell registers the clipboard of its main window before the session opens; the headless platform keeps one in memory
         fixture.ServiceProvider.RegisterService(new ClipboardService(window.Clipboard!));
         Assert.True(await fixture.Main.OpenSession(fixture.PackagePath));

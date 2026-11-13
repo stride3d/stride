@@ -35,8 +35,11 @@ public sealed class TypeToResource : OneWayValueConverter<TypeToResource>
         object? result = null;
         while (type is not null)
         {
+            // The older API's images, still shown for the plugins that set them
+#pragma warning disable STRPLUGIN004
             if (AssetsEditorPlugin.TypeImagesDictionary.TryGetValue(type, out result))
                 break;
+#pragma warning restore STRPLUGIN004
 
             if ((result = pluginService?.GetImageForType(type)) is not null)
                 break;

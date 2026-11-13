@@ -124,6 +124,7 @@ xmlns:loc="using:Stride.Core.Presentation.Avalonia.MarkupExtensions"
 | `Stride.Assets.Presentation` | `sources/editor/Stride.Assets.Presentation` |
 | `Stride.Assets.Editor` | `sources/editor/Stride.Assets.Editor` |
 | `Stride.Editor` | `sources/editor/Stride.Editor` |
+| `Stride.UI.Editor` | `sources/plugins/UI/Stride.UI.Editor` |
 | `Stride.GameStudio` | `sources/editor/Stride.GameStudio` |
 
 ## Working with .po files

@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - 'master-*'
     paths:
       - '.github/workflows/**'
       - 'build/**'
@@ -50,7 +51,7 @@ concurrency:
 
 jobs:
   # Per-area path-filter outputs drive the per-job `if:` conditions below.
-  # Defaults to 'true' for non-pull_request triggers (workflow_dispatch, push to master)
+  # Defaults to 'true' for non-pull_request triggers (workflow_dispatch, push to master or master-*)
   # so those run everything regardless of which files changed.
   #
   # Fork-friendly: upstream stride3d/stride always runs (the repository-name clause covers
@@ -440,6 +441,20 @@ jobs:
     with:
       build-type: Debug
 
+  # WPF editor (Game Studio) tests on Windows. Builds on its own, but waits for Windows Full as its gate: when the full
+  # build fails, it doesn't start.
+  Editor-Tests-Wpf:
+    needs: [changes, Windows-Full]
+    if: |
+      !cancelled()
+      && (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))
+      && needs.changes.outputs.full == 'true'
+      && needs['Windows-Full'].result != 'failure'
+      && needs['Windows-Full'].result != 'cancelled'
+    uses: ./.github/workflows/test-editor-wpf.yml
+    with:
+      build-type: Debug
+
   # Aggregate result for branch protection: mark only "Gate" as required.
   # Skipped jobs (path filters, draft PRs) are fine; failure/cancellation is not.
   # always() on purpose (unlike the !cancelled() test jobs): a cancelled run must
@@ -470,6 +485,7 @@ jobs:
       - iOS-Tests-Game
       - Android-Tests-Game
       - Editor-Tests-Avalonia
+      - Editor-Tests-Wpf
     if: always()
     runs-on: ubuntu-latest
     steps:

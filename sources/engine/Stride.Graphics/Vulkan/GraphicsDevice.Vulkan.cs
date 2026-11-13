@@ -50,6 +50,12 @@ namespace Stride.Graphics
 
         private VkDevice nativeDevice;
         private VkDeviceApi nativeDeviceApi;
+
+        /// <summary>
+        ///   The pipeline cache every pipeline of the device is built through; <see cref="MergePipelineCache"/> adds
+        ///   the pipelines of an earlier run to it.
+        /// </summary>
+        internal VkPipelineCache NativePipelineCache;
         internal VkQueue NativeCommandQueue;
 
         /// <summary>
@@ -677,6 +683,9 @@ namespace Stride.Graphics
 
             nativeDeviceApi = new VkDeviceApi(NativeInstanceApi, in nativeDevice);
 
+            var pipelineCacheCreateInfo = new VkPipelineCacheCreateInfo { sType = VkStructureType.PipelineCacheCreateInfo };
+            CheckResult(NativeDeviceApi.vkCreatePipelineCache(nativeDevice, &pipelineCacheCreateInfo, null, out NativePipelineCache));
+
             NativeDeviceApi.vkGetDeviceQueue(nativeDevice, 0, 0, out NativeCommandQueue);
 
             NativeCopyCommandPools = new(() => new CommandBufferPool(this, false), true);
@@ -943,7 +952,85 @@ namespace Stride.Graphics
                 nativeCopyCommandPool.Dispose();
             NativeCopyCommandPools.Dispose();
             NativeCopyCommandPools = null;
+
+            if (NativePipelineCache != VkPipelineCache.Null)
+            {
+                NativeDeviceApi.vkDestroyPipelineCache(nativeDevice, NativePipelineCache, null);
+                NativePipelineCache = VkPipelineCache.Null;
+            }
+
             NativeDeviceApi.vkDestroyDevice(nativeDevice, null);
+        }
+
+        partial void MergePipelineCachePlatform(ReadOnlySpan<byte> driverData, ref bool merged)
+        {
+            // Nothing to merge into once the device is released
+            if (NativePipelineCache == VkPipelineCache.Null)
+                return;
+
+            // The blob's header names the device and the driver it is for; another's is undefined behaviour to give the
+            // driver (VUID-VkPipelineCacheCreateInfo-initialDataSize-00769), and the validation layers cannot check it
+            if (!IsPipelineCacheOfThisDevice(driverData))
+                return;
+
+            unsafe
+            {
+                fixed (byte* dataPointer = driverData)
+                {
+                    var createInfo = new VkPipelineCacheCreateInfo
+                    {
+                        sType = VkStructureType.PipelineCacheCreateInfo,
+                        initialDataSize = (nuint)driverData.Length,
+                        pInitialData = dataPointer,
+                    };
+                    if (NativeDeviceApi.vkCreatePipelineCache(NativeDevice, &createInfo, null, out var earlierRun) != VkResult.Success)
+                        return;
+
+                    // The caller holds the lock pipelines are built under, which vkMergePipelineCaches requires of dstCache
+                    merged = NativeDeviceApi.vkMergePipelineCaches(NativeDevice, NativePipelineCache, 1, &earlierRun) == VkResult.Success;
+                    NativeDeviceApi.vkDestroyPipelineCache(NativeDevice, earlierRun, null);
+                }
+            }
+        }
+
+        private unsafe bool IsPipelineCacheOfThisDevice(ReadOnlySpan<byte> driverData)
+        {
+            if (driverData.Length < sizeof(VkPipelineCacheHeaderVersionOne))
+                return false;
+
+            var header = MemoryMarshal.Read<VkPipelineCacheHeaderVersionOne>(driverData);
+            if (header.headerVersion != VkPipelineCacheHeaderVersion.One || header.headerSize != sizeof(VkPipelineCacheHeaderVersionOne))
+                return false;
+
+            var driverInfo = Adapter.DriverInfo;
+            return header.vendorID == driverInfo.VendorId
+                && header.deviceID == driverInfo.DeviceId
+                && new Guid(new ReadOnlySpan<byte>(header.pipelineCacheUUID, 16), bigEndian: true) == driverInfo.PipelineCacheUuid;
+        }
+
+        partial void GetPipelineCacheDataPlatform(ref byte[] driverData)
+        {
+            if (NativePipelineCache == VkPipelineCache.Null)
+                return;
+
+            unsafe
+            {
+                // The caller holds the lock pipelines are built under, so the size holds between the two calls
+                ulong size = 0;
+                if (NativeDeviceApi.vkGetPipelineCacheData(NativeDevice, NativePipelineCache, &size, null) != VkResult.Success || size == 0)
+                    return;
+
+                var data = new byte[size];
+                fixed (byte* dataPointer = data)
+                {
+                    if (NativeDeviceApi.vkGetPipelineCacheData(NativeDevice, NativePipelineCache, &size, dataPointer) != VkResult.Success)
+                        return;
+                }
+
+                if (size < (ulong)data.Length)
+                    Array.Resize(ref data, (int)size);
+                driverData = data;
+            }
         }
 
         internal unsafe ulong ExecuteCommandListInternal(CompiledCommandList commandList)

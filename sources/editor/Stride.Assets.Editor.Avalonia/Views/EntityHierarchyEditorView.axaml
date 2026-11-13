@@ -3,6 +3,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+             xmlns:cmd="using:Stride.Core.Assets.Editor.Avalonia.Commands"
+             xmlns:scmd="using:Stride.Assets.Editor.Commands"
              xmlns:vm="using:Stride.Assets.Editor.ViewModels"
              xmlns:vm2="using:Stride.Assets.Presentation.ViewModels"
              xmlns:conv="using:Stride.Assets.Editor.Avalonia.Converters"
@@ -20,7 +22,8 @@
 
       <!-- The context menu of an empty area of the tree, as the WPF TreeViewContextMenu: the creation and the paste go to
            the root -->
-      <ContextMenu x:Key="RootContextMenu" x:DataType="vm:EntityHierarchyEditorViewModel">
+      <ContextMenu x:Key="RootContextMenu" x:DataType="vm:EntityHierarchyEditorViewModel"
+                   cmd:CommandSlot.Location="{x:Static scmd:SceneLocations.EntityTreeContext}">
         <MenuItem Header="{sd:LocalizeString Create, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"/>
         <MenuItem Header="{sd:LocalizeString Folder, Context=Menu}" Command="{Binding CreateFolderInRootCommand}">
           <MenuItem.Icon><Image Source="{StaticResource ImageNewFolder}"/></MenuItem.Icon>
@@ -59,9 +62,46 @@
         </MenuItem>
       </ContextMenu>
 
+      <!-- The built-in entries of the context menu of the scene view, as the menu of the WPF scene view: they come after the
+           entries of the active tool and before the commands of the plugins (see OnSceneViewContextMenuRequested). The
+           entities are created at the cursor. -->
+      <ContextMenu x:Key="SceneViewMenu" x:DataType="vm:EntityHierarchyEditorViewModel">
+        <MenuItem Header="{sd:LocalizeString Create, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"/>
+        <MenuItem Header="{sd:LocalizeString Empty entity, Context=Menu}" Command="{Binding CreateEntityCommand}"/>
+        <!-- The categories of entity factories go here (see EntityHierarchyEditorView.AddFactoryItems) -->
+        <Separator Tag="Factories" IsVisible="False"/>
+        <MenuItem Header="{sd:LocalizeString Actions, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"/>
+        <MenuItem Header="{sd:LocalizeString Open prefab in editor, Context=Menu}" Command="{Binding OpenPrefabEditorCommand}"/>
+        <MenuItem Header="{sd:LocalizeString Select prefab in asset view, Context=Menu}" Command="{Binding SelectPrefabCommand}"/>
+        <MenuItem Header="{sd:LocalizeString Break link to prefab, Context=Menu}" Command="{Binding BreakLinkToPrefabCommand}"/>
+        <MenuItem Header="{sd:LocalizeString Create prefab from selection, Context=Menu}" Command="{Binding CreatePrefabFromSelectionCommand}"/>
+        <Separator/>
+        <MenuItem Header="{sd:LocalizeString Duplicate, Context=Menu}" InputGesture="Ctrl+D"
+                  Command="{Binding DuplicateSelectionCommand}"/>
+        <MenuItem Header="{sd:LocalizeString Cut, Context=Menu}" InputGesture="{x:Static sd:EditCommands.CutGesture}"
+                  Command="{Binding CutCommand}">
+          <MenuItem.Icon><Image Source="{StaticResource ImageCut}"/></MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Copy, Context=Menu}" InputGesture="{x:Static sd:EditCommands.CopyGesture}"
+                  Command="{Binding CopyCommand}">
+          <MenuItem.Icon><Image Source="{StaticResource ImageCopy}"/></MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Delete, Context=Menu}" InputGesture="{x:Static sd:EditCommands.DeleteGesture}"
+                  Command="{Binding DeleteCommand}">
+          <MenuItem.Icon><Image Source="{StaticResource ImageDelete}"/></MenuItem.Icon>
+        </MenuItem>
+        <Separator/>
+        <MenuItem Header="{sd:LocalizeString Rename, Context=Menu}" InputGesture="{x:Static sd:EditCommands.RenameGesture}"
+                  Command="{Binding RenameCommand}">
+          <MenuItem.Icon><Image Source="{StaticResource ImageRename}"/></MenuItem.Icon>
+        </MenuItem>
+      </ContextMenu>
+
       <!-- The context menu of an item of the tree, as the WPF TreeViewItemContextMenu: the creation and the paste go into
            the selection -->
-      <ContextMenu x:Key="ItemContextMenu" x:DataType="vm:EntityHierarchyEditorViewModel">
+      <ContextMenu x:Key="ItemContextMenu" x:DataType="vm:EntityHierarchyEditorViewModel"
+                   cmd:CommandSlot.Location="{x:Static scmd:SceneLocations.EntityTreeContext}"
+                   cmd:CommandSlot.Selection="{Binding SelectedContent}">
         <MenuItem Header="{sd:LocalizeString Create, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"/>
         <MenuItem Header="{sd:LocalizeString Folder, Context=Menu}" Command="{Binding CreateFolderInSelectionCommand}">
           <MenuItem.Icon><Image Source="{StaticResource ImageNewFolder}"/></MenuItem.Icon>
@@ -381,6 +421,23 @@
             </Flyout>
           </Button.Flyout>
         </Button>
+        <!-- Widgets: the widgets of the plugins on the edges of the view, each shown or hidden for this scene -->
+        <Button x:Name="WidgetsButton" x:DataType="vm:SceneViewWidgetsViewModel" Focusable="False" Background="Transparent" Padding="6"
+                DataContext="{Binding $parent[local:EntityHierarchyEditorView].((vm:EntityHierarchyEditorViewModel)DataContext).SceneViewWidgets}"
+                IsVisible="{Binding HasWidgets, FallbackValue=False}" ToolTip.Tip="Widgets...">
+          <Path Classes="icon" Data="M2,2 H7 V7 H2 Z M9,2 H14 V7 H9 Z M2,9 H7 V14 H2 Z M9,9 H14 V14 H9 Z" />
+          <Button.Flyout>
+            <Flyout Placement="BottomEdgeAlignedLeft">
+              <ItemsControl ItemsSource="{Binding Widgets}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:SceneViewWidgetViewModel">
+                    <CheckBox Content="{Binding Title}" IsChecked="{Binding IsVisible}" Focusable="False" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </Flyout>
+          </Button.Flyout>
+        </Button>
       </StackPanel>
 
       <!-- The game of the editor renders here; the text shows while it has no game (yet) -->
@@ -394,6 +451,15 @@
             <dd:AddChildDropBehavior/>
           </Interaction.Behaviors>
         </ContentControl>
+        <!-- The widgets of the plugins, on the edges of the view over the game; the panels have no background, so the pointer
+             reaches the game everywhere but on a widget -->
+        <DockPanel x:Name="WidgetLayer">
+          <StackPanel x:Name="TopWidgets" DockPanel.Dock="Top" Orientation="Horizontal" Spacing="4" Margin="4" HorizontalAlignment="Left" />
+          <StackPanel x:Name="BottomWidgets" DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="4" Margin="4" HorizontalAlignment="Left" />
+          <StackPanel x:Name="LeftWidgets" DockPanel.Dock="Left" Orientation="Vertical" Spacing="4" Margin="4" VerticalAlignment="Top" />
+          <StackPanel x:Name="RightWidgets" DockPanel.Dock="Right" Orientation="Vertical" Spacing="4" Margin="4" VerticalAlignment="Top" />
+          <Panel />
+        </DockPanel>
       </Panel>
     </DockPanel>
   </Grid>
