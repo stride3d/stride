@@ -11,6 +11,8 @@ using Stride.BepuPhysics.Definitions.Colliders;
 using Stride.BepuPhysics.Systems;
 using Stride.Core;
 using Stride.Core.Mathematics;
+using Stride.Engine;
+using Stride.Rendering;
 using NRigidPose = BepuPhysics.RigidPose;
 
 namespace Stride.BepuPhysics.Soft.Colliders;
@@ -55,11 +57,18 @@ internal sealed class ParticleCollider : ICollider
         set => Component = value;
     }
 
-    // The particles move independently of the entity, debug views fixed to it cannot show them
-    int ICollider.Transforms => 0;
+    // In a simulation the particles move on their own and the debug view draws them as lines. Out of one, as in the editor,
+    // the model of the entity stands for the body, or the gizmo of the collidable could not be seen nor picked
+    int ICollider.Transforms => ModelOutOfSimulation() is null ? 0 : 1;
 
     void ICollider.GetLocalTransforms(CollidableComponent collidable, Span<ShapeTransform> transforms)
     {
+        if (transforms.Length == 0)
+            return;
+
+        transforms[0].PositionLocal = Vector3.Zero;
+        transforms[0].RotationLocal = Quaternion.Identity;
+        transforms[0].Scale = MeshCollider.ComputeMeshScale(collidable);
     }
 
     bool ICollider.TryAttach(Shapes shapes, BufferPool pool, ShapeCacheSystem shapeCache, bool shouldCalculateInertia, out TypedIndex index, out Vector3 centerOfMass, out BodyInertia inertia)
@@ -85,6 +94,20 @@ internal sealed class ParticleCollider : ICollider
     void ICollider.AppendModel(List<BasicMeshBuffers> buffer, ShapeCacheSystem shapeCache, out object? cache)
     {
         cache = null;
+        if (ModelOutOfSimulation() is not { } model)
+            return;
+
+        shapeCache.GetModelCache(model, out var modelCache);
+        BasicMeshBuffers data;
+        modelCache.GetBuffers(out data.Vertices, out data.Indices);
+        buffer.Add(data);
+        cache = modelCache;
+    }
+
+    /// <summary> The model the soft body would be built from, null once it is in a simulation or when it has none </summary>
+    private Model? ModelOutOfSimulation()
+    {
+        return Component is { Simulation: null, Entity: { } entity } && entity.Get<ModelComponent>()?.Model is { Meshes.Count: > 0 } model ? model : null;
     }
 
     void ICollider.RayTest<TRayHitHandler>(Shapes shapes, TypedIndex shapeIndex, in NRigidPose pose, in RayData ray, ref float maximumT, ref TRayHitHandler hitHandler, BufferPool pool)
