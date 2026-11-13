@@ -97,6 +97,11 @@ jobs:
         with:
           ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || (inputs.commit-sha != '' && inputs.commit-sha) || github.ref }}
           exclude: samples
+      # Before the build: the key hashes the compiler sources, not build outputs
+      - uses: ./.github/actions/effect-cache
+        with:
+          mode: restore
+          lane: Vulkan-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
       - name: Install macOS Workload
         # Building a suite project on its own dispatched all TFMs of the referenced engine projects,
         # including net10.0-macos. The target is now always a solution filter, which never does, so
@@ -235,6 +240,12 @@ jobs:
             echo "::endgroup::"
           done
           exit $worst
+      # The .app-hosted suites keep their cache in the bundle: not kept
+      - uses: ./.github/actions/effect-cache
+        if: success() || failure()
+        with:
+          mode: save
+          lane: Vulkan-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
       - name: Publish Test Report
         if: always()
         uses: phoenix-actions/test-reporting@v16

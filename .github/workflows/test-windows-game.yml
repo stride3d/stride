@@ -129,6 +129,12 @@ jobs:
           # (works uniformly for same-repo and fork PRs).
           ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || (inputs.commit-sha != '' && inputs.commit-sha) || github.ref }}
           exclude: samples
+      # Before the build: the key hashes the compiler sources, not build outputs
+      - uses: ./.github/actions/effect-cache
+        with:
+          mode: restore
+          lane: ${{ matrix.graphics-api }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+          fxc: ${{ matrix.graphics-api == 'Direct3D11' }}
       - name: Configure crash dumps
         shell: pwsh
         run: |
@@ -205,6 +211,11 @@ jobs:
               exit $LASTEXITCODE
             }
           }
+      - uses: ./.github/actions/effect-cache
+        if: success() || failure()
+        with:
+          mode: save
+          lane: ${{ matrix.graphics-api }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
       - name: Publish Test Report
         if: always() && env.STRIDE_TEST_TARGET != ''
         uses: phoenix-actions/test-reporting@v16

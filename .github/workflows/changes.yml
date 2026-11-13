@@ -163,6 +163,7 @@ jobs:
               - '.github/workflows/test-linux-game.yml'
               - '.github/workflows/test-linux-simple.yml'
               - '.github/workflows/test-macos-game.yml'
+              - '.github/actions/effect-cache/**'
               - '.github/actions/setup-vulkan-windows/**'
               - '.github/actions/stride-checkout/**'
               - '.github/actions/stride-workload/**'
