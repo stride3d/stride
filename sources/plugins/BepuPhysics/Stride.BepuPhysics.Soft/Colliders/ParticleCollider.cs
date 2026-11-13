@@ -36,8 +36,10 @@ internal sealed class ParticleCollider : ICollider
         get => _radius;
         set
         {
+            var previous = _radius;
             _radius = MathF.Max(0f, value);
-            Component?.TryUpdateFeatures();
+            if (_radius != previous)
+                Component?.TryUpdateFeatures();
         }
     }
 

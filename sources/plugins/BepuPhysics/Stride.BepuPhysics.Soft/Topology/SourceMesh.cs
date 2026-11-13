@@ -162,7 +162,7 @@ internal sealed class SourceMesh
         {
             ref var normal = ref normals[indices[i]];
             var length = normal.Length();
-            if (length > 1e-12f && MathF.Abs(length - 1f) > 1e-6f)
+            if (length > 1e-12f && MathUtil.WithinEpsilon(length, 1f, 1e-6f) == false)
                 normal /= length;
         }
     }

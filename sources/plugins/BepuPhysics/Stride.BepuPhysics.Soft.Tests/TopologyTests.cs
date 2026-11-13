@@ -211,7 +211,7 @@ public class TopologyTests
         }
 
         var rotation = ShapeMatching.ExtractRotation(column0, column1, column2, Quaternion.Identity, iterations: 50);
-        Assert.True(MathF.Abs(Quaternion.Dot(rotation, expected)) > 0.9999f, $"{rotation} != {expected}");
+        Assert.True(MathUtil.WithinEpsilon(MathF.Abs(Quaternion.Dot(rotation, expected)), 1f, 1e-4f), $"{rotation} != {expected}");
     }
 
     private static void AssertRestShapeReproducesMesh(SoftBodyTopology topology)

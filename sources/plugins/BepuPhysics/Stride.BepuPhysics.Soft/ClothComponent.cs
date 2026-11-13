@@ -39,8 +39,10 @@ public sealed class ClothComponent : SoftBodyComponent
         get => _stretchStiffness;
         set
         {
+            var previous = _stretchStiffness;
             _stretchStiffness = value;
-            TryUpdateFeatures();
+            if (_stretchStiffness != previous)
+                TryUpdateFeatures();
         }
     }
 
@@ -55,8 +57,10 @@ public sealed class ClothComponent : SoftBodyComponent
         get => _bendStiffness;
         set
         {
+            var previous = _bendStiffness;
             _bendStiffness = value;
-            TryUpdateFeatures();
+            if (_bendStiffness != previous)
+                TryUpdateFeatures();
         }
     }
 
@@ -72,8 +76,10 @@ public sealed class ClothComponent : SoftBodyComponent
         get => _compression;
         set
         {
+            var previous = _compression;
             _compression = Math.Clamp(value, 0f, 0.9f);
-            TryUpdateFeatures();
+            if (_compression != previous)
+                TryUpdateFeatures();
         }
     }
 
@@ -88,8 +94,10 @@ public sealed class ClothComponent : SoftBodyComponent
         get => _damping;
         set
         {
+            var previous = _damping;
             _damping = value;
-            TryUpdateFeatures();
+            if (_damping != previous)
+                TryUpdateFeatures();
         }
     }
 
@@ -168,6 +176,8 @@ public sealed class ClothComponent : SoftBodyComponent
             return;
         if (Wind != Vector3.Zero && Awake == false)
             Awake = true;
+        else if (Awake == false)
+            return;
 
         _time += deltaTime;
         var gust = Wind.Length() * Turbulence;

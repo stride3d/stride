@@ -64,6 +64,7 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
     private Entity[] _nodeAnchors = []; // Anchors whose node matrices are refreshed before each step
     private SkeletonUpdater?[] _nodeSkeletons = []; // The skeleton of each of them, as of the last refresh
     private Entity?[] _anchorOfParticle = []; // The anchor entity whose collidables a pinned particle does not touch
+    private Entity[] _anchors = []; // Each of those entities, once
     private Vector3[] _restOffsets = [];
     private Vector3 _restCentroid;
     private Quaternion _rotation = Quaternion.Identity;
@@ -130,8 +131,10 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
         get => _mass;
         set
         {
+            var previous = _mass;
             _mass = MathF.Max(1e-6f, value);
-            TryUpdateFeatures();
+            if (_mass != previous)
+                TryUpdateFeatures();
         }
     }
 
@@ -177,8 +180,10 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
         get => _sleepThreshold;
         set
         {
+            var previous = _sleepThreshold;
             _sleepThreshold = value;
-            TryUpdateFeatures();
+            if (_sleepThreshold != previous)
+                TryUpdateFeatures();
         }
     }
 
@@ -242,11 +247,8 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
             var delta = (value - LinearVelocity).ToNumeric();
             for (int i = 0; i < _particles.Length; i++)
             {
-                if (_pinned[i] == false)
-                {
-                    var body = Particle(i);
-                    body.Velocity.Linear += delta;
-                }
+                var body = Particle(i);
+                body.Velocity.Linear += delta;
             }
             Awake = true;
         }
@@ -297,13 +299,11 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
     /// <param name="particle"> Index of the particle, below <see cref="ParticleCount"/> </param>
     public Vector3 GetParticleVelocity(int particle) => Particle(particle).Velocity.Linear.ToStride();
 
-    /// <summary> Replaces the velocity of a particle, pinned particles keep following their pin </summary>
+    /// <summary> Replaces the velocity of a particle </summary>
     /// <param name="particle"> Index of the particle, below <see cref="ParticleCount"/> </param>
     /// <param name="velocity"> The new velocity, in world space </param>
     public void SetParticleVelocity(int particle, Vector3 velocity)
     {
-        if (_pinned[particle])
-            return;
         var body = Particle(particle);
         body.Velocity.Linear = velocity.ToNumeric();
         body.Awake = true;
@@ -334,8 +334,11 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
     /// <remarks> Pinned particles move with it, then their anchors pull them back </remarks>
     /// <param name="position"> The new world position of the entity </param>
     /// <param name="orientation"> The new world orientation of the entity </param>
+    /// <exception cref="ArgumentException"><paramref name="orientation"/> must be normalized; <paramref name="position"/> must be finite</exception>
     public void Teleport(Vector3 position, Quaternion orientation)
     {
+        position.ValidateRange(nameof(Teleport), nameof(position));
+        orientation.ValidateRange(nameof(Teleport), nameof(orientation));
         if (Simulation is null)
             return;
 
@@ -345,6 +348,7 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
             var body = Particle(i);
             body.Pose = new NRigidPose((position + Vector3.Transform(Topology!.RestPositions[i] * scale, orientation)).ToNumeric());
             body.Velocity = default;
+            body.UpdateBounds();
         }
         _rotation = orientation;
         UpdateTransformationComponent(position, orientation);
@@ -505,6 +509,7 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
         _nodeAnchors = [];
         _nodeSkeletons = [];
         _anchorOfParticle = [];
+        _anchors = [];
         FiltersContactsWithOthers = false;
         ReleaseGroupId(ref _groupId);
     }
@@ -512,7 +517,11 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
     /// <summary> Pinned particles do not touch the collidables of the entity they are tied to </summary>
     internal override bool AllowContactWith(BodyHandle body, CollidableComponent other)
     {
-        return _particleOfBody.TryGetValue(body.Value, out int particle) == false || ReferenceEquals(_anchorOfParticle[particle], other.Entity) == false;
+        // Most pairs are with a collidable no particle is tied to, which the few anchors tell without looking the particle up
+        var entity = other.Entity;
+        if (Array.IndexOf(_anchors, entity) < 0)
+            return true;
+        return _particleOfBody.TryGetValue(body.Value, out int particle) == false || ReferenceEquals(_anchorOfParticle[particle], entity) == false;
     }
 
     internal override void OnMaterialPropertiesUpdated()
@@ -747,7 +756,7 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
                         _anchorOfParticle[particle] = anchor;
                     filtersContacts = true;
                     var all = particles.ToArray();
-                    var bodyPin = new BodyPin(pin, bodyAnchor.Body, all, SpreadOver(all), anchorNodes[p]);
+                    var bodyPin = new BodyPin(pin, bodyAnchor.Body, all, SpreadOver(all));
                     bodyPins.Add(bodyPin);
                     TryBind(bodyPin);
                     continue;
@@ -776,6 +785,13 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
 
         _worldPins = worldPins.ToArray();
         _bodyPins = bodyPins.ToArray();
+        var anchors = new List<Entity>();
+        foreach (var tiedTo in _anchorOfParticle)
+        {
+            if (tiedTo is not null && anchors.Contains(tiedTo) == false)
+                anchors.Add(tiedTo);
+        }
+        _anchors = anchors.ToArray();
         FiltersContactsWithOthers = filtersContacts;
     }
 
@@ -819,12 +835,11 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
         }
         else
         {
-            int node = FollowedAncestor(anchor, pin.Node);
             foreach (int particle in pin.Joined)
             {
                 var handle = _particles[particle];
                 var position = simulation.Bodies[handle].Pose.Position;
-                if (FindNearest(anchor, position, nearest[..1], node) == 0)
+                if (FindNearest(anchor, position, nearest[..1]) == 0)
                     continue;
 
                 var body = simulation.Bodies[anchor.GetCollidableReference(nearest[0].Index).BodyHandle];
@@ -839,14 +854,14 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
     }
 
     /// <summary> The bodies of <paramref name="anchor"/> closest to <paramref name="position"/>, nearest first, as many as <paramref name="nearest"/> holds or fewer </summary>
-    private static int FindNearest(CollidableComponent anchor, System.Numerics.Vector3 position, Span<(float Distance, int Index)> nearest, int node = -1)
+    private static int FindNearest(CollidableComponent anchor, System.Numerics.Vector3 position, Span<(float Distance, int Index)> nearest)
     {
         var bodies = anchor.Simulation!.Simulation.Bodies;
         int found = 0;
         for (int i = 0; i < anchor.CollidableCount; i++)
         {
             var reference = anchor.GetCollidableReference(i);
-            if (reference.Mobility == CollidableMobility.Static || (node >= 0 && anchor.GetFollowedNode(i) != node))
+            if (reference.Mobility == CollidableMobility.Static)
                 continue;
 
             // Insertion into the sorted list, the farthest one drops out when it is full
@@ -863,20 +878,6 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
         return found;
     }
 
-    /// <summary> <paramref name="node"/> or its closest ancestor with a body of <paramref name="anchor"/> following it, -1 for any body </summary>
-    private static int FollowedAncestor(CollidableComponent anchor, int node)
-    {
-        var nodes = anchor.Entity.Get<ModelComponent>()?.Skeleton?.Nodes;
-        for (; node >= 0 && nodes is not null; node = nodes[node].ParentIndex)
-        {
-            for (int i = 0; i < anchor.CollidableCount; i++)
-            {
-                if (anchor.GetFollowedNode(i) == node)
-                    return node;
-            }
-        }
-        return -1;
-    }
 
     /// <summary> The world matrix of <paramref name="anchor"/>, or of its node when <paramref name="node"/> is not -1 </summary>
     private static Matrix AnchorMatrix(Entity anchor, int node)
@@ -1018,10 +1019,9 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
     }
 
     /// <summary> The particles of a pin joined to the bodies of another collidable, once <see cref="Bound"/> </summary>
-    private sealed class BodyPin(SoftBodyPin settings, CollidableComponent anchor, int[] particles, int[] joined, int node)
+    private sealed class BodyPin(SoftBodyPin settings, CollidableComponent anchor, int[] particles, int[] joined)
     {
-        /// <summary> The node of the anchor's model the particles are joined to the bodies of, -1 for any body </summary>
-        public int Node { get; } = node;
+
         public SoftBodyPin Settings { get; } = settings;
         public CollidableComponent Anchor { get; } = anchor;
         public int[] Particles { get; } = particles;

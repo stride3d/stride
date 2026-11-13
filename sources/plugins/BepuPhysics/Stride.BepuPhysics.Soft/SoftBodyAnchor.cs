@@ -17,9 +17,12 @@ public abstract class SoftBodyAnchor
     }
 
     /// <summary>
-    /// The name of a node of the model on the anchor's entity, such as a bone, followed instead of the entity itself.
+    /// The name of a node of the model on the anchor's entity, such as a bone, used instead of the entity itself.
     /// </summary>
-    /// <remarks> Null or empty follows the entity; a name the model does not have is reported and the entity is followed instead. </remarks>
+    /// <remarks>
+    /// Null or empty uses the entity; a name the model does not have is reported and the entity is used instead.
+    /// A <see cref="WorldAnchor"/> follows the node. For a <see cref="BodyAnchor"/> it only says where a pin without a region takes its particles.
+    /// </remarks>
     [DataMember(100)]
     public string? NodeName { get; set; }
 

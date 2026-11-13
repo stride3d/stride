@@ -425,6 +425,23 @@ public class SoftBodyTests : GameTestBase
         });
     }
 
+    /// <summary> A teleported body is found where it now is by a ray cast before the next step, as a rigid body is </summary>
+    [Fact]
+    public static void ATeleportedBodyIsWhereRaysLookForIt()
+    {
+        RunScene(async scene =>
+        {
+            var body = new VolumetricSoftBodyComponent { Resolution = 3, Gravity = false };
+            scene.Add(body, new CubeProceduralModel(), new Vector3(0f, 2f, 0f));
+            await body.Simulation!.AfterUpdate();
+
+            // Above the floor of the scene, which the ray reaches if it misses the body
+            body.Teleport(new Vector3(8f, 2f, 0f), Quaternion.Identity);
+            Assert.True(body.Simulation!.RayCast(new Vector3(8f, 6f, 0f), -Vector3.UnitY, 10f, out var hit));
+            Assert.Same(body, hit.Collidable);
+        });
+    }
+
     /// <summary> Ray hits and contacts say which particle of the soft body they are on, through their child index </summary>
     [Fact]
     public static void RaysAndContactsReportTheParticle()
@@ -491,10 +508,10 @@ public class SoftBodyTests : GameTestBase
         RunScene(async scene =>
         {
             var events = new TouchingHandler();
-            // Resolution 10 gives 11^3 = 1331 particles, enough that the narrow phase hands pairs to several workers
-            // regardless of the machine's core count.
+            // Resolution 10 gives 11^3 = 1331 particles, whose pairs the narrow phase hands to the four workers asked for
             var body = new VolumetricSoftBodyComponent { Resolution = 10, ContactEventHandler = events, SleepThreshold = 0f };
             scene.Add(body, new CubeProceduralModel(), new Vector3(0f, 1f, 0f));
+            body.Simulation!.ThreadCount = 4;
 
             await Seconds(body, 1.5f);
             for (int step = 0; step < 10; step++)

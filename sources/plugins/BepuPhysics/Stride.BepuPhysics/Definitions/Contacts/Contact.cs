@@ -39,7 +39,8 @@ public ref struct Contact<TManifold> where TManifold : unmanaged, IContactManifo
         Index = index;
         Contacts = contacts;
         ContactGroup = contactGroup;
-        IsSourceA = ReferenceEquals(contacts.Simulation.GetComponent(contactGroup.Pair.A), contacts.EventSource);
+        // From what the groups stored: the source may be out of the simulation by now, removed by its own handler
+        IsSourceA = (contactGroup.IsPairAOwnerA == contacts.Groups[0].IsPairAOwnerA) == contacts.IsSourceOriginalA;
     }
 
     /// <summary> How far the two collidables intersect </summary>
