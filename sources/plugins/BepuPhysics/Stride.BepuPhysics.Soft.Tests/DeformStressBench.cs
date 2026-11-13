@@ -89,6 +89,7 @@ public class DeformStressBench
         private readonly List<double> _gpuTimes;
         private int _frame;
         private QueryPool?[] _gpuTimers = new QueryPool?[3];
+        private readonly bool[] _gpuTimerPending = new bool[3];
         private readonly long[] _gpuTicks = new long[2];
         private int _gpuFrame;
         private System.Threading.Channels.ChannelReader<ProfilingEvent>? _profilingEvents;
@@ -155,17 +156,25 @@ public class DeformStressBench
         protected override void Draw(GameTime gameTime)
         {
             var commandList = GraphicsContext.CommandList;
-            ref var pool = ref _gpuTimers[_gpuFrame % _gpuTimers.Length];
+            int timer = _gpuFrame % _gpuTimers.Length;
+            ref var pool = ref _gpuTimers[timer];
             pool ??= QueryPool.New(GraphicsDevice, QueryType.Timestamp, 2);
-            if (_gpuFrame >= _gpuTimers.Length && pool.TryGetData(_gpuTicks))
+            // A pool whose result is not there yet is left to finish: with the frames a focused window queues before a
+            // vertical sync, a result is always more frames away than there are pools, and writing them again starts them over
+            bool free = _gpuTimerPending[timer] == false;
+            if (free == false && pool.TryGetData(_gpuTicks))
             {
                 double ms = (_gpuTicks[1] - _gpuTicks[0]) * 1000.0 / GraphicsDevice.TimestampFrequency;
                 if (_frame >= WarmupFrames && _gpuTimes.Count < MeasuredFrames)
                     _gpuTimes.Add(ms);
+                free = true;
             }
-            commandList.WriteTimestamp(pool, 0);
+            if (free)
+                commandList.WriteTimestamp(pool, 0);
             base.Draw(gameTime);
-            commandList.WriteTimestamp(pool, 1);
+            if (free)
+                commandList.WriteTimestamp(pool, 1);
+            _gpuTimerPending[timer] = true;
             _gpuFrame++;
 
             if (_profilingEvents is null)
