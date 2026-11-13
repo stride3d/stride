@@ -33,7 +33,7 @@ public sealed class SoftBodyPin
     public BoundingBox Region { get; set; }
 
     /// <summary>
-    /// What the pinned particles are tied to, keeping the offset they had when the soft body was created; null holds them where they were created.
+    /// What the pinned particles are tied to, keeping the offset they had from it when they were tied; null holds them where they were created.
     /// </summary>
     [DataMember(20)]
     public SoftBodyAnchor? Anchor { get; set; }
@@ -66,7 +66,7 @@ public sealed class SoftBodyPin
     /// <summary>
     /// The largest force pulling each pinned particle toward its anchor; a stronger pull, a hit or a grab tears the particle away for as long as it lasts.
     /// </summary>
-    /// <remarks> Not used for particles tied to the particles of another soft body, which are held by springs without a limit. </remarks>
+    /// <remarks> Particles tied to the particles of another soft body are held by springs without a limit, unless they sit right on one of them. </remarks>
     [DataMember(50)]
     [DataMemberRange(minimum: 0, decimalPlaces: 3)]
     [DefaultValue(float.MaxValue)]

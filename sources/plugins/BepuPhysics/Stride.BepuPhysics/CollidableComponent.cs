@@ -299,8 +299,6 @@ public abstract class CollidableComponent : EntityComponent
     /// <summary> Whether <paramref name="body"/>, owned by this component, may collide with <paramref name="other"/>; called from the narrow phase on any thread when <see cref="FiltersContactsWithOthers"/> is set </summary>
     internal virtual bool AllowContactWith(BodyHandle body, CollidableComponent other) => true;
 
-    /// <summary> The index of the node of the entity's model that the body at <paramref name="index"/> follows, -1 when it follows none </summary>
-    internal virtual int GetFollowedNode(int index) => -1;
 
     public CollidableComponent()
     {

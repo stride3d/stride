@@ -62,7 +62,7 @@ internal static class ClothBuilder
                         float shared = Vector3.Distance(restPositions[a], restPositions[b]);
                         float across = Vector3.Distance(restPositions[opposite], restPositions[otherOpposite]);
                         float apart = Vector3.Distance(restPositions[a] + restPositions[b], restPositions[opposite] + restPositions[otherOpposite]) * 0.5f;
-                        bool diagonal = MathF.Abs(shared - across) <= shared * 0.02f && apart <= shared * 0.02f;
+                        bool diagonal = MathUtil.WithinEpsilon(shared, across, shared * 0.02f) && apart <= shared * 0.02f;
                         bendPairs[Key(otherOpposite, opposite)] = diagonal;
                     }
                 }

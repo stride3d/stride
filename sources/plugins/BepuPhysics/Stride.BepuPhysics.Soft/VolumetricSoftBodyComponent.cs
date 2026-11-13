@@ -47,8 +47,10 @@ public sealed class VolumetricSoftBodyComponent : SoftBodyComponent
         get => _resolution;
         set
         {
+            var previous = _resolution;
             _resolution = Math.Clamp(value, 1, 64);
-            InvalidateTopology();
+            if (_resolution != previous)
+                InvalidateTopology();
         }
     }
 
@@ -66,8 +68,10 @@ public sealed class VolumetricSoftBodyComponent : SoftBodyComponent
         get => _joinSeparateParts;
         set
         {
+            var previous = _joinSeparateParts;
             _joinSeparateParts = value;
-            InvalidateTopology();
+            if (_joinSeparateParts != previous)
+                InvalidateTopology();
         }
     }
 
@@ -83,8 +87,10 @@ public sealed class VolumetricSoftBodyComponent : SoftBodyComponent
         get => _stiffness;
         set
         {
+            var previous = _stiffness;
             _stiffness = value;
-            TryUpdateFeatures();
+            if (_stiffness != previous)
+                TryUpdateFeatures();
         }
     }
 
@@ -99,8 +105,10 @@ public sealed class VolumetricSoftBodyComponent : SoftBodyComponent
         get => _shearStiffness;
         set
         {
+            var previous = _shearStiffness;
             _shearStiffness = value;
-            TryUpdateFeatures();
+            if (_shearStiffness != previous)
+                TryUpdateFeatures();
         }
     }
 
@@ -115,8 +123,10 @@ public sealed class VolumetricSoftBodyComponent : SoftBodyComponent
         get => _volumeStiffness;
         set
         {
+            var previous = _volumeStiffness;
             _volumeStiffness = MathF.Max(0f, value);
-            TryUpdateFeatures();
+            if (_volumeStiffness != previous)
+                TryUpdateFeatures();
         }
     }
 
@@ -131,8 +141,10 @@ public sealed class VolumetricSoftBodyComponent : SoftBodyComponent
         get => _damping;
         set
         {
+            var previous = _damping;
             _damping = value;
-            TryUpdateFeatures();
+            if (_damping != previous)
+                TryUpdateFeatures();
         }
     }
 
@@ -150,8 +162,10 @@ public sealed class VolumetricSoftBodyComponent : SoftBodyComponent
         get => _maximumStretch;
         set
         {
+            var previous = _maximumStretch;
             _maximumStretch = value <= 0f ? 0f : MathF.Max(1f, value);
-            TryUpdateFeatures();
+            if (_maximumStretch != previous)
+                TryUpdateFeatures();
         }
     }
 
@@ -166,8 +180,10 @@ public sealed class VolumetricSoftBodyComponent : SoftBodyComponent
         get => _minimumCompression;
         set
         {
+            var previous = _minimumCompression;
             _minimumCompression = Math.Clamp(value, 0f, 1f);
-            TryUpdateFeatures();
+            if (_minimumCompression != previous)
+                TryUpdateFeatures();
         }
     }
 
