@@ -21,6 +21,8 @@ public sealed class AssetSourceTracker : IDisposable
     internal DirectoryWatcher? DirectoryWatcher;
     private readonly Dictionary<string, HashSet<AssetId>> mapSourceFilesToAssets = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, ObjectId> currentHashes = new(StringComparer.OrdinalIgnoreCase);
+    // The source files as their hash was last computed, to find the changes the watcher missed
+    private readonly FileWriteTimes sourceFileTimes = new();
     private readonly List<FileEvent> fileEvents = [];
     private readonly ManualResetEvent threadWatcherEvent;
     private readonly CancellationTokenSource tokenSourceForImportHash;
@@ -54,6 +56,11 @@ public sealed class AssetSourceTracker : IDisposable
     public BroadcastBlock<IReadOnlyList<SourceFileChangedData>> SourceFileChanged { get; } = new BroadcastBlock<IReadOnlyList<SourceFileChangedData>>(null);
 
     /// <summary>
+    /// Creates the watcher of the source files when the tracking starts; the tests give one that can miss changes.
+    /// </summary>
+    internal Func<DirectoryWatcher> CreateDirectoryWatcher { get; set; } = static () => new DirectoryWatcher();
+
+    /// <summary>
     /// Gets or sets a value indicating whether this instance should track file disk changed events. Default is <c>false</c>
     /// </summary>
     /// <value><c>true</c> if this instance should track file disk changed events; otherwise, <c>false</c>.</value>
@@ -78,8 +85,9 @@ public sealed class AssetSourceTracker : IDisposable
                     bool activateTracking = false;
                     if (DirectoryWatcher == null)
                     {
-                        DirectoryWatcher = new DirectoryWatcher();
+                        DirectoryWatcher = CreateDirectoryWatcher();
                         DirectoryWatcher.Modified += DirectoryWatcher_Modified;
+                        DirectoryWatcher.ChangesMissed += DirectoryWatcher_ChangesMissed;
                         activateTracking = true;
                     }
 
@@ -309,7 +317,7 @@ public sealed class AssetSourceTracker : IDisposable
         }
 
         // We will always issue a compute of the hash in order to verify SourceHash haven't changed
-        FileVersionManager.Instance.ComputeFileHashAsync(inputPath, SourceImportFileHashCallback, tokenSourceForImportHash.Token);
+        ComputeSourceFileHash(inputPath);
     }
 
     internal void UnTrackAssetImportInput(AssetId assetId, string inputPath)
@@ -338,8 +346,14 @@ public sealed class AssetSourceTracker : IDisposable
         foreach (var inputPath in files)
         {
             DirectoryWatcher?.Track(inputPath);
-            FileVersionManager.Instance.ComputeFileHashAsync(inputPath, SourceImportFileHashCallback, tokenSourceForImportHash.Token);
+            ComputeSourceFileHash(inputPath);
         }
+    }
+
+    private void ComputeSourceFileHash(string inputPath)
+    {
+        sourceFileTimes.Update(inputPath);
+        FileVersionManager.Instance.ComputeFileHashAsync(inputPath, SourceImportFileHashCallback, tokenSourceForImportHash.Token);
     }
 
     private void Session_AssetDirtyChanged(AssetItem asset, bool oldValue, bool newValue)
@@ -457,6 +471,14 @@ public sealed class AssetSourceTracker : IDisposable
         }
     }
 
+    private void DirectoryWatcher_ChangesMissed(object? sender, ChangesMissedEventArgs e)
+    {
+        // The watch of a folder failed (its events overflowed) and started again: the source files that changed meanwhile are
+        // found from their last write times
+        foreach (var change in sourceFileTimes.Reconcile(e.Directory))
+            DirectoryWatcher_Modified(sender, change);
+    }
+
     /// <summary>
     /// This method is running in a separate thread and process file events received from <see cref="Core.IO.DirectoryWatcher"/>
     /// in order to generate the appropriate list of <see cref="AssetFileChangedEvent"/>.
@@ -487,7 +509,7 @@ public sealed class AssetSourceTracker : IDisposable
                     if (mapSourceFilesToAssets.ContainsKey(file.FullPath))
                     {
                         // Prepare the hash of the import file in advance for later re-import
-                        FileVersionManager.Instance.ComputeFileHashAsync(file.FullPath, SourceImportFileHashCallback, tokenSourceForImportHash.Token);
+                        ComputeSourceFileHash(file.FullPath);
                     }
                 }
             }
