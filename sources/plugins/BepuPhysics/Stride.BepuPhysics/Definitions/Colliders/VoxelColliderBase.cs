@@ -177,7 +177,7 @@ public abstract class VoxelColliderBase<TSource> : ICollider
         if (_cellShape == VoxelCellShape.Box)
             AppendCellSolids(grid, shapeCache._boxShapeData, vertices, indices, grid.CellSize);
         else if (_cellShape == VoxelCellShape.Sphere)
-            AppendCellSolids(grid, s_cellSphere, vertices, indices, new NVector3(grid.SphereRadius * 2f));
+            AppendCellSolids(grid, _cellSphere, vertices, indices, new NVector3(grid.SphereRadius * 2f));
         else
             AppendSurface(new VoxelTriangleShape<TSource> { GridData = grid, SurfaceNets = _cellShape == VoxelCellShape.SurfaceNets }, vertices, indices);
         buffer.Add(new BasicMeshBuffers { Vertices = vertices.ToArray(), Indices = indices.ToArray() });
@@ -222,7 +222,7 @@ public abstract class VoxelColliderBase<TSource> : ICollider
     /// <summary>Tessellation of the cell spheres, coarser than a sphere collider's so hundreds of them stay readable.</summary>
     private const int CellSphereTessellation = 4;
 
-    private static readonly BasicMeshBuffers s_cellSphere = CreateCellSphere();
+    private static readonly BasicMeshBuffers _cellSphere = CreateCellSphere();
 
     private static BasicMeshBuffers CreateCellSphere()
     {

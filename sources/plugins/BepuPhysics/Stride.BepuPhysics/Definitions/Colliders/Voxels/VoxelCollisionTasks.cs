@@ -34,9 +34,9 @@ internal static class VoxelCollisionTasks
     /// <summary>Shape types per density source: box, sphere and triangle.</summary>
     private const int ShapeTypesPerSource = 3;
 
-    private static int s_nextShapeTypeId = FirstShapeTypeId;
+    private static int _nextShapeTypeId = FirstShapeTypeId;
 
-    private static readonly ConditionalWeakTable<Shapes, Registrations> s_simulations = new();
+    private static readonly ConditionalWeakTable<Shapes, Registrations> _simulations = new();
 
     private sealed class Registrations(Simulation simulation)
     {
@@ -44,15 +44,15 @@ internal static class VoxelCollisionTasks
         public readonly HashSet<Type> Sources = [];
     }
 
-    public static int ReserveShapeTypeIds() => Interlocked.Add(ref s_nextShapeTypeId, ShapeTypesPerSource) - ShapeTypesPerSource;
+    public static int ReserveShapeTypeIds() => Interlocked.Add(ref _nextShapeTypeId, ShapeTypesPerSource) - ShapeTypesPerSource;
 
     /// <summary>Lets <see cref="EnsureRegistered{TSource}"/> find the simulation owning a shape set.</summary>
-    public static void Track(Simulation simulation) => s_simulations.Add(simulation.Shapes, new Registrations(simulation));
+    public static void Track(Simulation simulation) => _simulations.Add(simulation.Shapes, new Registrations(simulation));
 
     /// <summary>Registers the tasks of the shapes over <typeparamref name="TSource"/> with the simulation owning <paramref name="shapes"/>, if not done yet.</summary>
     public static void EnsureRegistered<TSource>(Shapes shapes) where TSource : unmanaged, IVoxelDensitySource
     {
-        if (!s_simulations.TryGetValue(shapes, out var registrations))
+        if (!_simulations.TryGetValue(shapes, out var registrations))
             throw new InvalidOperationException("The voxel collider is attached to shapes of a simulation the voxel shapes do not know about.");
         lock (registrations)
         {
