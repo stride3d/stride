@@ -139,7 +139,6 @@ Hierarchy:
                             4e0094f7a30cd3b42f685fe5f66662de~0: a0d98ab3-bb3c-8e29-140a-471a886409b1:Materials/Strawberry
                     3a54a5d228b5ffbee9ab4fdcf9386fdc: !Stride.BepuPhysics.Soft.VolumetricSoftBodyComponent,Stride.BepuPhysics.Soft
                         Id: b0faa8e5-eb5c-bdbc-919b-e77c89a724d1
-                        Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft {}
                         Mass: 1.0
                         Resolution: 7
                         Stiffness: 15.0
@@ -161,7 +160,6 @@ Hierarchy:
                             155dffcc9543f97f98d6da93bfe85165~0: ef84157c-df9e-8802-e426-06e1ef9a01e3:Materials/Lime
                     f93012494cc496986ef9639e93a93e1c: !Stride.BepuPhysics.Soft.VolumetricSoftBodyComponent,Stride.BepuPhysics.Soft
                         Id: e8e4e699-6034-5e9a-1a6d-728ea04dcd3e
-                        Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft {}
                         Mass: 1.0
                         Resolution: 10
                         Stiffness: 15.0

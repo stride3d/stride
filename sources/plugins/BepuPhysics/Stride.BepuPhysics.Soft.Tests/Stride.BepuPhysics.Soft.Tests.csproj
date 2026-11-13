@@ -15,6 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\tests\Stride.XunitRunner\Stride.XunitRunner.csproj" />
     <ProjectReference Include="..\..\..\engine\Stride.Engine\Stride.Engine.csproj" />
+    <ProjectReference Include="..\..\..\core\Stride.Core.Reflection\Stride.Core.Reflection.csproj" />
     <ProjectReference Include="..\Stride.BepuPhysics\Stride.BepuPhysics.csproj" />
     <ProjectReference Include="..\Stride.BepuPhysics.Soft\Stride.BepuPhysics.Soft.csproj" />
     <ProjectReference Include="..\Stride.BepuPhysics.Debug\Stride.BepuPhysics.Debug.csproj" />

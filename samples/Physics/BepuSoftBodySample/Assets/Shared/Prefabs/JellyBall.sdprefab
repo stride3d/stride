@@ -23,7 +23,6 @@ Hierarchy:
                             068be8c49103dd47b2ee8c5f1c6ea94e~0: a0d98ab3-bb3c-8e29-140a-471a886409b1:Materials/Strawberry
                     fda2f621afc8a0133f6fd1d1cdcf5bc0: !Stride.BepuPhysics.Soft.VolumetricSoftBodyComponent,Stride.BepuPhysics.Soft
                         Id: f66fd1fa-2d01-e544-adf2-9047500b7c5c
-                        Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft {}
                         Mass: 0.5
                         FrictionCoefficient: 0.3
                         Resolution: 3

@@ -189,7 +189,6 @@ Hierarchy:
                             7c577e138eff0c4a0e948b9dbfa466b9~0: 73969684-c752-5df6-5d9c-d0f6da8bff24:Materials/Linen
                     78373d75edb46bfa46ca3bf5aaead16a: !Stride.BepuPhysics.Soft.ClothComponent,Stride.BepuPhysics.Soft
                         Id: a8005d7f-221f-bf44-dcfa-8dbee8c01c72
-                        Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft {}
                         Mass: 0.6
                         BendStiffness: 1.0
         -   Entity:
@@ -209,6 +208,5 @@ Hierarchy:
                             b7d2a1cf955d88892c8b62d2a6766a9b~0: b7086ee1-6d6a-58df-6e74-d7140c5dfa08:Materials/Cloth
                     262580b7f13f40ab24b34d46f42cac9d: !Stride.BepuPhysics.Soft.ClothComponent,Stride.BepuPhysics.Soft
                         Id: 6fe49403-fa89-37ce-c3f0-1042a44c8bf3
-                        Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft {}
                         Mass: 0.6
                         BendStiffness: 1.0

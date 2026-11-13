@@ -45,6 +45,7 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
 
     private static readonly ConditionalWeakTable<Model, SourceMesh> SourceMeshes = new();
     private static readonly Logger Logger = GlobalLogger.GetLogger(nameof(SoftBodyComponent));
+    private static readonly Stack<ushort> FreeGroupIds = new(); // Given back by the bodies that left their simulation, also the lock of the ids
     private static int _nextGroupId = ushort.MaxValue;
     private const int SoftAnchorParticles = 3; // Particles of a soft body anchor each pinned particle keeps its distance to
     private const int MaximumJoinedParticles = 32; // Particles of a pin joined to the bodies of its anchor, each one a constraint on them
@@ -76,12 +77,33 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
     }
 
     /// <summary>
+    /// The collider of the particles, which the soft body makes for itself. Their radius is <see cref="ParticleRadius"/>.
+    /// </summary>
+    /// <exception cref="NotSupportedException"> A soft body cannot be given another collider. </exception>
+    [DataMemberIgnore]
+    public override required ICollider Collider
+    {
+        get => base.Collider;
+        set
+        {
+            if (value is not ParticleCollider)
+                throw new NotSupportedException($"{GetType().Name} makes the collider of its particles itself, it cannot be given a {value?.GetType().Name}; the radius of the particles is {nameof(ParticleRadius)}");
+            base.Collider = value;
+        }
+    }
+
+    /// <summary>
+    /// Not used: a soft body tells its particles apart with collision groups of its own.
+    /// Use <see cref="CollidableComponent.CollisionLayer"/> to have it ignore other collidables.
+    /// </summary>
+    [DataMemberIgnore]
+    public new CollisionGroup CollisionGroup => default;
+
+    /// <summary>
     /// The radius of each particle, zero picks one from the spacing between particles.
     /// </summary>
     /// <remarks>
     /// Larger particles close the gaps other objects could slip through, but keep them further from the surface.
-    /// Wraps the <see cref="ParticleCollider.Radius"/> of the collider so the usual soft body settings cover the
-    /// only knob a <see cref="ParticleCollider"/> exposes.
     /// </remarks>
     [Display(category: CategorySoftBody)]
     [DataMemberRange(minimum: 0, decimalPlaces: 3)]
@@ -129,10 +151,9 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
     /// Whether parts of this body collide with each other when it folds onto itself, neighboring particles never do.
     /// </summary>
     /// <remarks>
-    /// Particles are told apart through <see cref="CollidableComponent.CollisionGroup"/>: its indices are replaced by the position of each particle,
-    /// and when its id is zero this body picks an id of its own, counting down from 65535.
-    /// Sharing that id with another collidable therefore only keeps it from the particles next to the first corner of the body:
-    /// use <see cref="CollidableComponent.CollisionLayer"/> to have this body ignore another collidable.
+    /// Particles are told apart through collision groups of their own: each soft body takes an id no other one has, counting down from 65534,
+    /// and the indices of a particle are its place in the body. Keep those ids free on other collidables,
+    /// and use <see cref="CollidableComponent.CollisionLayer"/> to have this body ignore another collidable.
     /// </remarks>
     [Display(category: CategorySoftBody)]
     [DefaultValue(true)]
@@ -484,15 +505,7 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
         _nodeSkeletons = [];
         _anchorOfParticle = [];
         FiltersContactsWithOthers = false;
-    }
-
-    internal override bool CanAttach(ICollider collider)
-    {
-        if (collider is ParticleCollider)
-            return true;
-
-        Logger.Error($"{GetType().Name} on '{Entity?.Name}' needs a {nameof(ParticleCollider)}, its particles cannot take the shape of a {collider.GetType().Name}; it is left out of the simulation");
-        return false;
+        ReleaseGroupId(ref _groupId);
     }
 
     /// <summary> Pinned particles do not touch the collidables of the entity they are tied to </summary>
@@ -508,12 +521,9 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
         material.Gravity = _gravity;
 
         // Particles closer than a step on every axis share an id and never collide, see StrideNarrowPhaseCallbacks
-        if (material.CollisionGroup.Id == 0)
-        {
-            if (_groupId == 0)
-                _groupId = (ushort)Math.Max(1, Interlocked.Decrement(ref _nextGroupId) & ushort.MaxValue);
-            material.CollisionGroup.Id = _groupId;
-        }
+        if (_groupId == 0)
+            _groupId = AcquireGroupId();
+        material.CollisionGroup = new CollisionGroup { Id = _groupId };
 
         var cells = Topology!.SelfCollisionCells;
         for (int i = 0; i < _particles.Length; i++)
@@ -552,6 +562,31 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
     }
 
     internal static SpringSettings Spring(float frequency, float dampingRatio) => new(MathF.Max(1e-3f, frequency), MathF.Max(0f, dampingRatio));
+
+    /// <summary> An id for the collision group of the particles of a body, which no other soft body holds </summary>
+    private static ushort AcquireGroupId()
+    {
+        lock (FreeGroupIds)
+        {
+            if (FreeGroupIds.TryPop(out ushort id))
+                return id;
+
+            // Past 65534 soft bodies at once the ids start over
+            if (--_nextGroupId < 1)
+                _nextGroupId = ushort.MaxValue - 1;
+            return (ushort)_nextGroupId;
+        }
+    }
+
+    private static void ReleaseGroupId(ref ushort id)
+    {
+        if (id == 0)
+            return;
+
+        lock (FreeGroupIds)
+            FreeGroupIds.Push(id);
+        id = 0;
+    }
 
     /// <summary> Picks a particle in each group of particles that the edges link </summary>
     private static int[] FindIslandProbes(ReadOnlySpan<Edge> edges, int particleCount)

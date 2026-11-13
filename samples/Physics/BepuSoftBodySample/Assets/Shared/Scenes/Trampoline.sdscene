@@ -247,8 +247,7 @@ Hierarchy:
                             57406dfaa7845cf5a8a28fb9c0ea2af8~0: f45d72b9-de30-aad1-56a6-55433d7cd194:Materials/Blueberry
                     578f0488262a151df37bf43de9f48b71: !Stride.BepuPhysics.Soft.ClothComponent,Stride.BepuPhysics.Soft
                         Id: 849c70a8-f9d2-bae7-afd3-3b10d9fab164
-                        Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft
-                            Radius: 0.05
+                        ParticleRadius: 0.05
                         Mass: 3.0
                         StretchStiffness: 100.0
                         BendStiffness: 0.5

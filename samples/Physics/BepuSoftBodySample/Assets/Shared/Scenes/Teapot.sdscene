@@ -352,7 +352,6 @@ Hierarchy:
                             c678a5455eec63155977c8a2c0413cbc~0: f45d72b9-de30-aad1-56a6-55433d7cd194:Materials/Blueberry
                     fb62296d9d362a6743b60d58edee7b11: !Stride.BepuPhysics.Soft.VolumetricSoftBodyComponent,Stride.BepuPhysics.Soft
                         Id: 4bf7588c-e1be-f03f-e3a9-678741f28f7f
-                        Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft {}
                         Mass: 2.0
                         FrictionCoefficient: 0.3
                         Resolution: 16

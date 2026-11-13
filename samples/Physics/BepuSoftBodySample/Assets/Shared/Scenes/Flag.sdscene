@@ -163,7 +163,6 @@ Hierarchy:
                             be24b64af0f4c512c5e5ac750d41eeb8~0: b7086ee1-6d6a-58df-6e74-d7140c5dfa08:Materials/Cloth
                     ab57d4f130dc9e44be2086b6a8060ce1: !Stride.BepuPhysics.Soft.ClothComponent,Stride.BepuPhysics.Soft
                         Id: 5557077f-9ce8-8fe7-835e-48c275132fe3
-                        Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft {}
                         Mass: 0.4
                         BendStiffness: 2.0
                         AirDrag: 0.6
