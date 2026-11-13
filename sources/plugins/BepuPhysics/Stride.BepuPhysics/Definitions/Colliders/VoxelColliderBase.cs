@@ -71,10 +71,16 @@ public abstract class VoxelColliderBase<TSource> : ICollider
 
     /// <summary>Gets or sets the density at or above which a sample is solid.</summary>
     /// <remarks>Use the value the renderer meshes the same field with, so the collision surface matches the visible one.</remarks>
+    /// <exception cref="ArgumentOutOfRangeException">The value is not finite.</exception>
     public float IsoLevel
     {
         get => _isoLevel;
-        set => Set(ref _isoLevel, value);
+        set
+        {
+            if (!float.IsFinite(value))
+                throw new ArgumentOutOfRangeException($"{this}'s {nameof(IsoLevel)} must be finite");
+            Set(ref _isoLevel, value);
+        }
     }
 
     /// <summary>Gets or sets whether triangles collide from the solid side instead of the air side.</summary>
@@ -150,7 +156,9 @@ public abstract class VoxelColliderBase<TSource> : ICollider
         if (_component is null || !TryBuildGrid(MeshCollider.ComputeMeshScale(_component).ToNumeric(), out var grid))
             return false;
 
-        // The setters catch it for the fields they know of; a source can also grow by itself.
+        // The setters catch both for the fields they know of; a source can also change size by itself.
+        if (grid.SamplesX < MinSamplesPerAxis || grid.SamplesY < MinSamplesPerAxis || grid.SamplesZ < MinSamplesPerAxis)
+            throw new InvalidOperationException($"A {grid.SamplesX}x{grid.SamplesY}x{grid.SamplesZ} field has no cell: a voxel collider needs {MinSamplesPerAxis} samples or more on each axis.");
         if (!ChildIndexFits(_cellShape, grid.SamplesX, grid.SamplesY, grid.SamplesZ))
             throw new InvalidOperationException($"A {grid.SamplesX}x{grid.SamplesY}x{grid.SamplesZ} field has more {_cellShape} children than the {int.MaxValue} the index space holds.");
 
@@ -222,6 +230,9 @@ public abstract class VoxelColliderBase<TSource> : ICollider
 
     /// <summary>The smallest value the property grid accepts for the sizes and the mass.</summary>
     private const float MinimumPositive = 0.001f;
+
+    /// <summary>Fewest samples per axis a grid has: two, which is one cell.</summary>
+    private protected const int MinSamplesPerAxis = 2;
 
     /// <summary>Whether the children of a field of this size fit the index space: the child index packs the cell and, for the triangle shapes, the slot into an int.</summary>
     private protected static bool ChildIndexFits(VoxelCellShape cellShape, int samplesX, int samplesY, int samplesZ)

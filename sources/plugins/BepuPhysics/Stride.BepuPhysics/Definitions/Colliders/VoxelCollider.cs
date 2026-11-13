@@ -20,9 +20,6 @@ namespace Stride.BepuPhysics.Definitions.Colliders;
 [DataContract]
 public sealed unsafe class VoxelCollider : VoxelColliderBase<FloatVoxelSource>, IDisposable
 {
-    /// <summary>Fewest samples per axis a grid has: two, which is one cell.</summary>
-    private const int MinSamplesPerAxis = 2;
-
     private float* _samples;
     private int _samplesX, _samplesY, _samplesZ;
 

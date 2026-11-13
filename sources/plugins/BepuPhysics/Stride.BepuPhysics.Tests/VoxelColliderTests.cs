@@ -254,6 +254,11 @@ namespace Stride.BepuPhysics.Tests
                 Assert.Throws<ArgumentOutOfRangeException>(() => collider.SphereRadiusScale = invalid);
                 Assert.Throws<ArgumentOutOfRangeException>(() => collider.Mass = invalid);
             }
+            // Any finite iso level is one
+            foreach (var invalid in new[] { float.NaN, float.PositiveInfinity, float.NegativeInfinity })
+                Assert.Throws<ArgumentOutOfRangeException>(() => collider.IsoLevel = invalid);
+            collider.IsoLevel = -2f;
+            Assert.Equal(-2f, collider.IsoLevel);
             Assert.Equal(0.5f, collider.CellSize);
             Assert.Equal(1.4f, collider.SphereRadiusScale);
             Assert.Equal(3f, collider.Mass);
@@ -554,6 +559,18 @@ namespace Stride.BepuPhysics.Tests
                 Assert.Same(floor, hit.Collidable);
                 Assert.Equal(2.5f, hit.Distance, 0.1f);
                 Assert.False(simulation.SweepCast(new Sphere(0.5f), above, new BodyVelocity(Vector3.UnitY, Vector3.Zero), 10f, out _));
+                return Task.CompletedTask;
+            });
+        }
+
+        /// <summary>A source may have fewer than two samples on an axis, which makes no cell: it is refused as the collider is attached.</summary>
+        [Fact]
+        public static void ASourceWithoutACellIsRefused()
+        {
+            RunScript(game =>
+            {
+                var terrain = new Entity { new StaticComponent { Collider = new PackedVoxelCollider(GC.AllocateArray<ushort>(1, pinned: true), 1) { CellShape = VoxelCellShape.Box } } };
+                Assert.Throws<InvalidOperationException>(() => game.SceneSystem.SceneInstance.RootScene.Entities.Add(terrain));
                 return Task.CompletedTask;
             });
         }
