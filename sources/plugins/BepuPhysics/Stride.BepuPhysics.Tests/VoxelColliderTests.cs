@@ -28,6 +28,7 @@ namespace Stride.BepuPhysics.Tests
         private const float DegenerateArea = 1e-10f;
 
         /// <summary>A floor filling the samples up to <paramref name="topSample"/>, with a surface half a cell above it.</summary>
+        /// <remarks>Box and sphere cells are solid when half their corners are: their floor tops out a whole cell above the sample.</remarks>
         private static float[] Floor(int samples, int topSample)
         {
             var field = new float[samples * samples * samples];
@@ -101,16 +102,24 @@ namespace Stride.BepuPhysics.Tests
         public static void TrianglesCollideFromTheAir(bool surfaceNets, bool invertWinding)
         {
             const int samples = 11;
+            const float radius = 3f;
             var centre = new NVector3((samples - 1) * 0.5f);
-            var triangles = Triangles(Ball(samples, 3f), samples, surfaceNets, invertWinding);
+            var triangles = Triangles(Ball(samples, radius), samples, surfaceNets, invertWinding);
 
             Assert.NotEmpty(triangles);
             foreach (var triangle in triangles)
             {
+                // A marching cubes vertex is where the density crosses the iso level along its edge, which the middle of the edge is up to half a cell from
+                if (!surfaceNets)
+                {
+                    foreach (var vertex in new[] { triangle.A, triangle.B, triangle.C })
+                        Assert.True(MathUtil.WithinEpsilon(NVector3.Distance(vertex, centre), radius, 0.1f), $"Vertex {vertex} is {NVector3.Distance(vertex, centre)} from the centre");
+                }
+
                 // Bepu triangles collide on the side cross(C - A, B - A) points to.
                 var facing = NVector3.Cross(triangle.C - triangle.A, triangle.B - triangle.A);
                 // Two crossings can land on the same point; such a triangle has no side and collides with nothing.
-                if (facing.LengthSquared() < DegenerateArea)
+                if (MathUtil.WithinEpsilon(facing.LengthSquared(), 0f, DegenerateArea))
                     continue;
                 var outward = (triangle.A + triangle.B + triangle.C) / 3f - centre;
                 Assert.Equal(!invertWinding, NVector3.Dot(facing, outward) > 0);
@@ -173,7 +182,7 @@ namespace Stride.BepuPhysics.Tests
             }
         }
 
-        /// <summary>A cell the marching cubes surface crosses in two sheets: a ray stops on the sheet closing the pocket of air it starts in.</summary>
+        /// <summary>A cell the marching cubes surface crosses in two sheets: each one stops the rays starting in the air it closes.</summary>
         [Fact]
         public static void RaysStopOnEachSheetOfAMarchingCubesCell()
         {
@@ -194,6 +203,10 @@ namespace Stride.BepuPhysics.Tests
                 var direction = Vector3.Normalize(new Vector3(1f, -1f, 1f));
                 Assert.True(terrain.GetSimulation().RayCast(new Vector3(0.05f, 0.95f, 0.05f), direction, 1.5f, out var hit));
                 Assert.Equal(0.35f / MathF.Sqrt(3f), hit.Distance, Tolerance);
+
+                // Up from the air under the three other solid corners, to the flat part of the sheet below them: the plane y = 0.5
+                Assert.True(terrain.GetSimulation().RayCast(new Vector3(0.8f, 0.05f, 0.6f), Vector3.UnitY, 1.5f, out hit));
+                Assert.Equal(0.45f, hit.Distance, Tolerance);
                 return Task.CompletedTask;
             });
         }
@@ -228,6 +241,26 @@ namespace Stride.BepuPhysics.Tests
             });
         }
 
+        /// <summary>A collider without a field stays out of the simulation: filling it once its entity is in the scene brings it in.</summary>
+        [Fact]
+        public static void SetDataBringsAColliderOfTheSceneIntoTheSimulation()
+        {
+            RunScript(game =>
+            {
+                const int samples = 10;
+                var collider = new VoxelCollider { CellShape = VoxelCellShape.Box, IsoLevel = IsoLevel };
+                var terrain = new Entity { new StaticComponent { Collider = collider } };
+                game.SceneSystem.SceneInstance.RootScene.Entities.Add(terrain);
+                var simulation = terrain.GetSimulation();
+                Assert.False(simulation.RayCast(new Vector3(4.5f, 20f, 4.5f), -Vector3.UnitY, 40f, out _));
+
+                collider.SetData(samples, samples, samples, Floor(samples, 4));
+                Assert.True(simulation.RayCast(new Vector3(4.5f, 20f, 4.5f), -Vector3.UnitY, 40f, out var hit));
+                Assert.Equal(5f, hit.Point.Y, Tolerance);
+                return Task.CompletedTask;
+            });
+        }
+
         /// <summary>A ray going through the surface reports each child it crosses once, whichever cells around the ray test it.</summary>
         [Theory]
         [InlineData(VoxelCellShape.Box, 1f)]
@@ -246,14 +279,16 @@ namespace Stride.BepuPhysics.Tests
 
                 // Slanted, so it changes cell on every axis on its way through the floor
                 var hits = new List<HitInfo>();
-                terrain.GetSimulation().RayCastPenetrating(new Vector3(3.3f, 9f, 4.6f), Vector3.Normalize(new Vector3(0.3f, -1f, 0.2f)), 20f, hits);
+                terrain.GetSimulation().RayCastPenetrating(new Vector3(3.3f, 9f, 4.5f), Vector3.Normalize(new Vector3(0.3f, -1f, 0.2f)), 20f, hits);
 
-                Assert.NotEmpty(hits);
                 var children = new HashSet<int>();
                 Assert.All(hits, hit => Assert.True(children.Add(hit.ChildIndex), $"Child {hit.ChildIndex} is reported twice, at {hit.Point}"));
-                // The triangles only collide from above, the ray meets the surface once
+                // The triangles only collide from above, the ray meets the surface once, away from the sides of its triangles
                 if (cellShape is VoxelCellShape.MarchingCubes or VoxelCellShape.SurfaceNets)
                     Assert.Single(hits);
+                // From (4.5, 5, 5.3) down to (6, 0, 6.3), it goes through seven solid cells, deep enough to cross the sphere of each
+                else
+                    Assert.True(hits.Count >= 7, $"{hits.Count} children reported");
                 return Task.CompletedTask;
             });
         }
@@ -270,9 +305,10 @@ namespace Stride.BepuPhysics.Tests
         [Fact]
         public static void SetDataRejectsGridsBeyondTheIndexSpace()
         {
-            // 2000 * 2000 * 600 = 2.4 billion samples, past the int index space; rejected before allocating anything.
-            using var collider = new VoxelCollider();
-            Assert.Throws<ArgumentException>(() => collider.SetData(2000, 2000, 600, ReadOnlySpan<float>.Empty));
+            // 2 * 2 * 1.2 billion = 4.8 billion samples, past the int index space, in 1.2 billion box cells, which fit it; rejected before allocating anything.
+            using var collider = new VoxelCollider { CellShape = VoxelCellShape.Box };
+            var rejected = Assert.Throws<ArgumentException>(() => collider.SetData(2, 2, 1_200_000_000, ReadOnlySpan<float>.Empty));
+            Assert.Equal("samplesX", rejected.ParamName);
             Assert.False(collider.HasData);
         }
 
@@ -301,7 +337,7 @@ namespace Stride.BepuPhysics.Tests
                 Assert.Throws<ArgumentOutOfRangeException>(() => collider.SphereRadiusScale = invalid);
                 Assert.Throws<ArgumentOutOfRangeException>(() => collider.Mass = invalid);
             }
-            // Any finite iso level is one
+            // The iso level only has to be finite: a negative one is kept
             foreach (var invalid in new[] { float.NaN, float.PositiveInfinity, float.NegativeInfinity })
                 Assert.Throws<ArgumentOutOfRangeException>(() => collider.IsoLevel = invalid);
             collider.IsoLevel = -2f;
@@ -352,7 +388,7 @@ namespace Stride.BepuPhysics.Tests
         [Theory]
         [InlineData(false, 2)]
         [InlineData(true, 2 * 3 * 3)]
-        public static unsafe void TriangleQueriesReachAsFarAsTheTrianglesDo(bool surfaceNets, int expected)
+        public static unsafe void TriangleQueriesVisitTheCellsWithinTheirReach(bool surfaceNets, int expected)
         {
             const int samples = 10;
             var field = Floor(samples, 4);
@@ -500,11 +536,8 @@ namespace Stride.BepuPhysics.Tests
         [InlineData(VoxelCellShape.SurfaceNets, 4.5f)]
         public static void RayHitsTheSurfaceAndSeesEdits(VoxelCellShape cellShape, float surface)
         {
-            var game = new GameTest();
-            game.Script.AddTask(async () =>
+            RunScript(game =>
             {
-                game.ScreenShotAutomationEnabled = false;
-
                 const int samples = 10;
                 var collider = new VoxelCollider { CellShape = cellShape, IsoLevel = IsoLevel };
                 collider.SetData(samples, samples, samples, Floor(samples, 4));
@@ -530,47 +563,45 @@ namespace Stride.BepuPhysics.Tests
                 Assert.True(simulation.RayCast(origin, -Vector3.UnitY, 40f, out var pit));
                 Assert.Equal(surface - 2f, pit.Point.Y, Tolerance);
 
-                game.Exit();
+                return Task.CompletedTask;
             });
-            RunGameTest(game);
         }
 
         [Theory]
-        [InlineData(VoxelCellShape.Box, 5f, 0.1f)]
-        [InlineData(VoxelCellShape.Sphere, 5f, 0.3f)] // Bodies can settle between the tangent spheres.
-        [InlineData(VoxelCellShape.MarchingCubes, 4.5f, 0.1f)]
-        [InlineData(VoxelCellShape.SurfaceNets, 4.5f, 0.1f)]
-        public static void BodiesRestOnTheSurface(VoxelCellShape cellShape, float surface, float tolerance)
+        [InlineData(VoxelCellShape.Box, 5f)]
+        [InlineData(VoxelCellShape.Sphere, 5f)]
+        [InlineData(VoxelCellShape.MarchingCubes, 4.5f)]
+        [InlineData(VoxelCellShape.SurfaceNets, 4.5f)]
+        public static void BodiesRestOnTheSurface(VoxelCellShape cellShape, float surface)
         {
-            var game = new GameTest();
-            game.Script.AddTask(async () =>
+            RunScript(async game =>
             {
-                game.ScreenShotAutomationEnabled = false;
-
                 const int samples = 10;
                 var collider = new VoxelCollider { CellShape = cellShape, IsoLevel = IsoLevel };
                 collider.SetData(samples, samples, samples, Floor(samples, 4));
                 var terrain = new Entity { new StaticComponent { Collider = collider } };
                 var sphere = new Entity { new BodyComponent { Collider = new CompoundCollider { Colliders = { new SphereCollider { Radius = 0.5f } } } } };
                 var box = new Entity { new BodyComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider { Size = new Vector3(1f) } } } } };
-                sphere.Transform.Position = new Vector3(4.5f, 8f, 4.5f);
-                box.Transform.Position = new Vector3(2.5f, 8f, 6.5f);
+                // Above the middle of a cell; on sphere cells, above the hollow between four of them and across four of their tops
+                var offset = cellShape == VoxelCellShape.Sphere ? 0.5f : 0f;
+                sphere.Transform.Position = new Vector3(4.5f + offset, 8f, 4.5f + offset);
+                box.Transform.Position = new Vector3(2.5f + offset, 8f, 6.5f + offset);
                 game.SceneSystem.SceneInstance.RootScene.Entities.AddRange(new[] { terrain, sphere, box });
 
                 var simulation = terrain.GetSimulation();
                 while (game.UpdateTime.Total.TotalSeconds < 3d)
                     await simulation.AfterUpdate();
 
-                Assert.Equal(surface + 0.5f, sphere.Transform.Position.Y, tolerance);
-                Assert.Equal(surface + 0.5f, box.Transform.Position.Y, tolerance);
-
-                game.Exit();
+                // In the hollow the ball touches four spheres of its own radius: their centres, half a cell under their tops, are sqrt(1/2) below its own
+                var ballHeight = cellShape == VoxelCellShape.Sphere ? surface - 0.5f + MathF.Sqrt(0.5f) : surface + 0.5f;
+                Assert.Equal(ballHeight, sphere.Transform.Position.Y, 0.1f);
+                Assert.Equal(surface + 0.5f, box.Transform.Position.Y, 0.1f);
             });
-            RunGameTest(game);
         }
 
         /// <summary>Runs <paramref name="script"/> in a game, then throws what it threw: thrown past an await, an exception leaves the game running.</summary>
-        private static void RunScript(Func<GameTest, Task> script)
+        /// <param name="caller">The test, whose attributes the game is run with.</param>
+        private static void RunScript(Func<GameTest, Task> script, [CallerMemberName] string? caller = null)
         {
             var game = new GameTest();
             Exception? failure = null;
@@ -587,7 +618,7 @@ namespace Stride.BepuPhysics.Tests
                 }
                 game.Exit();
             });
-            RunGameTest(game);
+            RunGameTest(game, caller);
             if (failure is not null)
                 ExceptionDispatchInfo.Throw(failure);
         }
@@ -669,9 +700,33 @@ namespace Stride.BepuPhysics.Tests
                 for (int i = -15; i <= 15; ++i)
                 {
                     var x = second + i * 0.1f;
-                    Assert.True(simulation.RayCast(new Vector3(x, 10f, 2.5f), -Vector3.UnitY, 20f, out var hit), $"The ray at x = {x} falls between the chunks");
+                    Assert.True(simulation.RayCast(new Vector3(x, 10f, 2.25f), -Vector3.UnitY, 20f, out var hit), $"The ray at x = {x} falls between the chunks");
                     Assert.Equal(2.5f, hit.Point.Y, Tolerance);
                 }
+                return Task.CompletedTask;
+            });
+        }
+
+        /// <summary>A sealed border closes the volume: the floor has a surface below it and on its sides too, facing out.</summary>
+        [Theory]
+        [InlineData(VoxelCellShape.MarchingCubes)]
+        [InlineData(VoxelCellShape.SurfaceNets)]
+        public static void ASealedBorderClosesTheVolume(VoxelCellShape cellShape)
+        {
+            RunScript(game =>
+            {
+                const int samples = 10;
+                var collider = new VoxelCollider { CellShape = cellShape, IsoLevel = IsoLevel };
+                collider.SetData(samples, samples, samples, Floor(samples, 4));
+                var terrain = new Entity { new StaticComponent { Collider = collider } };
+                game.SceneSystem.SceneInstance.RootScene.Entities.Add(terrain);
+                var simulation = terrain.GetSimulation();
+
+                // The samples on the faces read as air: the surface is half a cell inside the grid. The rays keep clear of the sides of its triangles.
+                Assert.True(simulation.RayCast(new Vector3(4.3f, -5f, 4.6f), Vector3.UnitY, 20f, out var hit), "Nothing closes the floor from below");
+                Assert.Equal(0.5f, hit.Point.Y, Tolerance);
+                Assert.True(simulation.RayCast(new Vector3(-5f, 2.3f, 4.6f), Vector3.UnitX, 20f, out hit), "Nothing closes the floor on its side");
+                Assert.Equal(0.5f, hit.Point.X, Tolerance);
                 return Task.CompletedTask;
             });
         }
@@ -748,11 +803,8 @@ namespace Stride.BepuPhysics.Tests
         [Fact]
         public static void SlantedRaysStopAtAOneCellBoxWall()
         {
-            var game = new GameTest();
-            game.Script.AddTask(async () =>
+            RunScript(game =>
             {
-                game.ScreenShotAutomationEnabled = false;
-
                 const int samples = 12;
                 const int wallCell = 8;
                 const float cellSize = 0.3f;
@@ -773,19 +825,15 @@ namespace Stride.BepuPhysics.Tests
                     }
                 }
 
-                game.Exit();
+                return Task.CompletedTask;
             });
-            RunGameTest(game);
         }
 
         [Fact]
         public static void RaysEnteringOnACellBoundaryStopAtAOneCellBoxWall()
         {
-            var game = new GameTest();
-            game.Script.AddTask(async () =>
+            RunScript(game =>
             {
-                game.ScreenShotAutomationEnabled = false;
-
                 const int samples = 12;
                 const int wallCell = 8;
                 var terrain = BoxWall(samples, wallCell, 1f);
@@ -806,20 +854,16 @@ namespace Stride.BepuPhysics.Tests
                     }
                 }
 
-                game.Exit();
+                return Task.CompletedTask;
             });
-            RunGameTest(game);
         }
 
         [Fact]
         public static void BoxChildrenRotateWithTheBody()
         {
-            var game = new GameTest();
-            game.Script.AddTask(async () =>
+            RunScript(async game =>
             {
-                game.ScreenShotAutomationEnabled = false;
-
-                // A 2x2x2 solid cube (one layer of cells); SealBorder would otherwise empty the border cells.
+                // A solid cube of two cells per axis; a sealed border would leave none of them solid.
                 var field = new float[27];
                 Array.Fill(field, 1f);
                 var collider = new VoxelCollider { CellShape = VoxelCellShape.Box, IsoLevel = IsoLevel, SealBorder = false };
@@ -850,20 +894,14 @@ namespace Stride.BepuPhysics.Tests
                 while (game.UpdateTime.Total.TotalSeconds < 3d)
                     await simulation.AfterUpdate();
                 Assert.Equal(3.25f, ball.Transform.Position.Y, Tolerance);
-
-                game.Exit();
             });
-            RunGameTest(game);
         }
 
         [Fact]
         public static void OversizedSpheresStayInTheBoundsOfARotatedStretchedGrid()
         {
-            var game = new GameTest();
-            game.Script.AddTask(async () =>
+            RunScript(game =>
             {
-                game.ScreenShotAutomationEnabled = false;
-
                 // One cell stretched to 1 x 2 x 1: its sphere, of radius 0.7, sticks 0.2 out of it along the local X and Z axes only.
                 var collider = new VoxelCollider { CellShape = VoxelCellShape.Sphere, IsoLevel = IsoLevel, SealBorder = false, SphereRadiusScale = 1.4f };
                 collider.SetData(2, 2, 2, [1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f]);
@@ -873,23 +911,19 @@ namespace Stride.BepuPhysics.Tests
                 terrain.Transform.Rotation = Quaternion.RotationZ(MathF.PI / 2f);
                 game.SceneSystem.SceneInstance.RootScene.Entities.Add(terrain);
 
-                // A ray skimming 0.1 above the cell only meets the overshoot.
+                // A ray skimming 0.1 above the cell only meets the overshoot, 0.6 above the centre of the sphere: it enters sqrt(0.49 - 0.36) before it.
                 Assert.True(terrain.GetSimulation().RayCast(new Vector3(-1f, 1.1f, -5f), Vector3.UnitZ, 10f, out var hit));
                 Assert.Equal(0.5f - MathF.Sqrt(0.13f), hit.Point.Z, Tolerance);
 
-                game.Exit();
+                return Task.CompletedTask;
             });
-            RunGameTest(game);
         }
 
         [Fact]
         public static void OversizedSpheresCoverTheirOvershoot()
         {
-            var game = new GameTest();
-            game.Script.AddTask(async () =>
+            RunScript(async game =>
             {
-                game.ScreenShotAutomationEnabled = false;
-
                 // One cell, so the compound is a single sphere; SphereRadiusScale 1.4 gives radius 0.7 around the body's world centre (0.5, 0.5, 0.5).
                 var collider = new VoxelCollider { CellShape = VoxelCellShape.Sphere, IsoLevel = IsoLevel, SealBorder = false, SphereRadiusScale = 1.4f };
                 collider.SetData(2, 2, 2, [1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f]);
@@ -914,27 +948,21 @@ namespace Stride.BepuPhysics.Tests
                 Assert.True(hit.Point.Y > 1f, $"Hit {hit.Point}");
                 Assert.Equal(0.7f, Vector3.Distance(hit.Point, new Vector3(0.5f)), Tolerance);
 
-                // A small body dropped on the top of the sphere rests on the overshoot (world y = 1.2), 0.2 past the cell's own top.
-                var ball = new Entity { new BodyComponent { Collider = new CompoundCollider { Colliders = { new SphereCollider { Radius = 0.05f } } } } };
-                ball.Transform.Position = new Vector3(0.5f, 3f, 0.5f);
-                game.SceneSystem.SceneInstance.RootScene.Entities.Add(ball);
+                // A small box dropped on the top of the sphere rests on the overshoot (world y = 1.2), 0.2 past the cell's own top; flat, it stays there.
+                var crate = new Entity { new BodyComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider { Size = new Vector3(0.1f) } } } } };
+                crate.Transform.Position = new Vector3(0.5f, 1.5f, 0.5f);
+                game.SceneSystem.SceneInstance.RootScene.Entities.Add(crate);
                 while (game.UpdateTime.Total.TotalSeconds < 3d)
                     await simulation.AfterUpdate();
-                Assert.Equal(1.2f + 0.05f, ball.Transform.Position.Y, 0.05f);
-
-                game.Exit();
+                Assert.Equal(1.2f + 0.05f, crate.Transform.Position.Y, Tolerance);
             });
-            RunGameTest(game);
         }
 
         [Fact]
         public static void EntityScaleStretchesTheGrid()
         {
-            var game = new GameTest();
-            game.Script.AddTask(async () =>
+            RunScript(game =>
             {
-                game.ScreenShotAutomationEnabled = false;
-
                 const int samples = 10;
                 var collider = new VoxelCollider { CellShape = VoxelCellShape.SurfaceNets, IsoLevel = IsoLevel };
                 collider.SetData(samples, samples, samples, Floor(samples, 4));
@@ -946,23 +974,20 @@ namespace Stride.BepuPhysics.Tests
                 Assert.True(terrain.GetSimulation().RayCast(new Vector3(14.5f, 30f, 4.5f), -Vector3.UnitY, 60f, out var hit));
                 Assert.Equal(9f, hit.Point.Y, Tolerance);
 
-                game.Exit();
+                return Task.CompletedTask;
             });
-            RunGameTest(game);
         }
 
         [Fact]
         public static void ADynamicVoxelBodyRestsFlat()
         {
-            var game = new GameTest();
-            game.Script.AddTask(async () =>
+            RunScript(async game =>
             {
-                game.ScreenShotAutomationEnabled = false;
-
+                // A solid cube of five cells per axis
                 const int samples = 6;
                 var field = new float[samples * samples * samples];
                 Array.Fill(field, 1f);
-                var collider = new VoxelCollider { CellShape = VoxelCellShape.Box, IsoLevel = IsoLevel };
+                var collider = new VoxelCollider { CellShape = VoxelCellShape.Box, IsoLevel = IsoLevel, SealBorder = false };
                 collider.SetData(samples, samples, samples, field);
                 var body = new BodyComponent { Collider = collider };
                 var crate = new Entity { body };
@@ -977,23 +1002,17 @@ namespace Stride.BepuPhysics.Tests
                 while (game.UpdateTime.Total.TotalSeconds < 3d)
                     await simulation.AfterUpdate();
 
-                // Sealing empties the grid's edges but leaves the middle of its bottom face solid, from the entity's position up.
+                // The grid goes from the entity's position up: its bottom face lies on the floor.
                 Assert.Equal(0f, crate.Transform.Position.Y, 0.1f);
                 Assert.True(MathUtil.WithinEpsilon(MathF.Abs(Quaternion.Dot(crate.Transform.Rotation, Quaternion.Identity)), 1f, 1e-3f), $"Rotation {crate.Transform.Rotation}");
-
-                game.Exit();
             });
-            RunGameTest(game);
         }
 
         [Fact]
         public static void DisposeDetaches()
         {
-            var game = new GameTest();
-            game.Script.AddTask(async () =>
+            RunScript(game =>
             {
-                game.ScreenShotAutomationEnabled = false;
-
                 const int samples = 10;
                 var collider = new VoxelCollider();
                 collider.SetData(samples, samples, samples, Floor(samples, 4));
@@ -1007,9 +1026,12 @@ namespace Stride.BepuPhysics.Tests
                 Assert.False(collider.HasData);
                 Assert.False(simulation.RayCast(new Vector3(4.5f, 20f, 4.5f), -Vector3.UnitY, 40f, out _));
 
-                game.Exit();
+                // A disposed collider takes a field again
+                collider.SetData(samples, samples, samples, Floor(samples, 4));
+                Assert.True(simulation.RayCast(new Vector3(4.5f, 20f, 4.5f), -Vector3.UnitY, 40f, out _));
+
+                return Task.CompletedTask;
             });
-            RunGameTest(game);
         }
 
         /// <summary>Density in the low byte of a ushort, the rest left to the caller.</summary>
@@ -1036,11 +1058,8 @@ namespace Stride.BepuPhysics.Tests
         [Fact]
         public static void ACustomLayoutIsReadInPlace()
         {
-            var game = new GameTest();
-            game.Script.AddTask(async () =>
+            RunScript(game =>
             {
-                game.ScreenShotAutomationEnabled = false;
-
                 const int samples = 10;
                 const ushort Material = 0x0700;
                 var floor = Floor(samples, 4);
@@ -1049,6 +1068,7 @@ namespace Stride.BepuPhysics.Tests
                 for (int i = 0; i < floor.Length; ++i)
                     packed[i] = (ushort)(Material | (floor[i] > 0f ? 0xFF : 0));
                 var custom = new PackedVoxelCollider(packed, samples) { IsoLevel = IsoLevel };
+                // Next to a collider of the built-in source: each source type has shapes of its own in the simulation
                 var copied = new VoxelCollider { IsoLevel = IsoLevel };
                 copied.SetData(samples, samples, samples, floor);
 
@@ -1076,9 +1096,8 @@ namespace Stride.BepuPhysics.Tests
                 Assert.True(simulation.RayCast(new Vector3(4.5f, 20f, 4.5f), -Vector3.UnitY, 40f, out hit));
                 Assert.Equal(2.5f, hit.Point.Y, Tolerance);
 
-                game.Exit();
+                return Task.CompletedTask;
             });
-            RunGameTest(game);
         }
     }
 }
