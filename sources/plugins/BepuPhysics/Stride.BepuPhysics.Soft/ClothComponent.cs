@@ -32,6 +32,7 @@ public sealed class ClothComponent : SoftBodyComponent
     /// </summary>
     /// <remarks> Values above half the rate of the solver's substeps cannot be honored </remarks>
     [Display(category: CategorySoftBody)]
+    [DataMemberRange(minimum: 0, decimalPlaces: 3)]
     [DefaultValue(60f)]
     public float StretchStiffness
     {
@@ -47,6 +48,7 @@ public sealed class ClothComponent : SoftBodyComponent
     /// How fast folds between adjacent triangles flatten back, in hertz, low values make a limp cloth.
     /// </summary>
     [Display(category: CategorySoftBody)]
+    [DataMemberRange(minimum: 0, decimalPlaces: 3)]
     [DefaultValue(4f)]
     public float BendStiffness
     {
@@ -79,6 +81,7 @@ public sealed class ClothComponent : SoftBodyComponent
     /// The damping ratio of every spring, one stops oscillations the fastest without overshooting.
     /// </summary>
     [Display(category: CategorySoftBody)]
+    [DataMemberRange(minimum: 0, decimalPlaces: 3)]
     [DefaultValue(1f)]
     public float Damping
     {
@@ -101,6 +104,7 @@ public sealed class ClothComponent : SoftBodyComponent
     /// </summary>
     /// <remarks> Around 0.6 is physical: half the air density times the drag coefficient of a sheet </remarks>
     [Display(category: CategorySoftBody)]
+    [DataMemberRange(minimum: 0, decimalPlaces: 3)]
     [DefaultValue(0.1f)]
     public float AirDrag { get; set; } = 0.1f;
 

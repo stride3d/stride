@@ -10,6 +10,8 @@ using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Definitions.Colliders;
 using Stride.BepuPhysics.Systems;
 using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using NRigidPose = BepuPhysics.RigidPose;
 
@@ -18,9 +20,13 @@ namespace Stride.BepuPhysics.Soft.Colliders;
 /// <summary>
 /// The sphere every particle of a <see cref="SoftBodyComponent"/> collides with.
 /// </summary>
+/// <remarks> Created by the soft body, it cannot be used by other collidables. </remarks>
 [DataContract]
+[NonInstantiable]
 public sealed class ParticleCollider : ICollider
 {
+    private static readonly Logger Logger = GlobalLogger.GetLogger(nameof(ParticleCollider));
+
     private float _radius;
 
     /// <summary>
@@ -63,11 +69,15 @@ public sealed class ParticleCollider : ICollider
     {
         centerOfMass = Vector3.Zero;
         inertia = default;
-        if (Component is not SoftBodyComponent softBody || softBody.TryPrepareTopology(out var spacing) == false)
+        index = default;
+        if (Component is not SoftBodyComponent softBody)
         {
-            index = default;
+            Logger.Error($"{nameof(ParticleCollider)} only works on a soft body, the {Component?.GetType().Name} on '{Component?.Entity?.Name}' is left out of the simulation");
             return false;
         }
+
+        if (softBody.TryPrepareTopology(out var spacing) == false)
+            return false;
 
         ActualRadius = Radius > 0f ? Radius : spacing * softBody.DefaultRadiusFraction;
         index = shapes.Add(new Sphere(ActualRadius));
