@@ -271,6 +271,10 @@ namespace Stride.Physics
 
         public void UpdateRemovals()
         {
+            // A script awaiting CollisionEnded() resumes after the physics update that ended the collision:
+            // the collisions ended by a removal are kept until the next update, for HasEndedFromComponentRemoval
+            Simulation.EndedFromComponentRemoval.Clear();
+
             foreach (var currentFrameRemoval in currentFrameRemovals)
             {
                 ComponentRemoval(currentFrameRemoval);
