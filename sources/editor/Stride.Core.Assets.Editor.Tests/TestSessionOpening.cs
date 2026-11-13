@@ -14,7 +14,7 @@ public sealed class TestSessionOpening
     [Fact]
     public async Task OpeningAPackageLoadsItsAssets()
     {
-        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Textures/Stone", "stone"), ("Models/Tree", "tree"));
+        await using var fixture = await EditorSessionFixture.OpenWithMSBuildAsync(("Textures/Wood", "wood"), ("Textures/Stone", "stone"), ("Models/Tree", "tree"));
         var session = fixture.Session;
 
         Assert.False(fixture.Result.HasErrors, fixture.Log);

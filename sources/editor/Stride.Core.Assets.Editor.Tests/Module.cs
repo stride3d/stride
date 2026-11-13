@@ -14,6 +14,9 @@ internal static class Module
     [Stride.Core.ModuleInitializer]
     internal static void Initialize()
     {
+        // The settings files the sessions save, away from the user's own and apart for each test process
+        EditorPath.UserDataPath = Path.Combine(Path.GetTempPath(), "Stride.Core.Assets.Editor.Tests", "config-" + Environment.ProcessId);
+
         // The test asset types must be known to load the saved packages
         AssemblyRegistry.Register(typeof(Module).Assembly, AssemblyCommonCategories.Assets);
         RuntimeHelpers.RunModuleConstructor(typeof(Asset).Module.ModuleHandle);

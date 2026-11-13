@@ -175,8 +175,21 @@ partial class SessionViewModel
     /// <returns>The session, or <c>null</c> when it could not be opened or the opening was cancelled.</returns>
     public static Task<SessionViewModel?> OpenSessionAsync(UFile path, PackageSessionResult sessionResult, IMainViewModel main, IViewModelServiceProvider serviceProvider, CancellationToken token = default)
     {
+        return OpenSessionAsync(path, loadParameters => PackageSession.Load(path, sessionResult, loadParameters), sessionResult, main, serviceProvider, token);
+    }
+
+    /// <summary>
+    /// Opens the session of the given file that the given action loads into <paramref name="sessionResult"/>, such as
+    /// <see cref="PackageSession.LoadWithoutMSBuild"/> for the projects that tests write.
+    /// </summary>
+    /// <param name="path">The solution or package file of the session.</param>
+    /// <param name="load">Loads the session into <paramref name="sessionResult"/>, with the load parameters of the editor.</param>
+    /// <returns>The session, or <c>null</c> when it could not be opened or the opening was cancelled.</returns>
+    public static Task<SessionViewModel?> OpenSessionAsync(UFile path, Action<PackageLoadParameters> load, PackageSessionResult sessionResult, IMainViewModel main, IViewModelServiceProvider serviceProvider, CancellationToken token = default)
+    {
         ArgumentNullException.ThrowIfNull(path);
-        return WithLoadingMarkerAsync(serviceProvider, path, () => OpenSessionCoreAsync(path, sessionResult, main, serviceProvider, token));
+        ArgumentNullException.ThrowIfNull(load);
+        return WithLoadingMarkerAsync(serviceProvider, path, () => OpenSessionCoreAsync(path, load, sessionResult, main, serviceProvider, token));
     }
 
     // The plugins join the session while it loads: the editor's marker says so until the session has opened (the plugin host
@@ -199,9 +212,8 @@ partial class SessionViewModel
         }
     }
 
-    private static async Task<SessionViewModel?> OpenSessionCoreAsync(UFile path, PackageSessionResult sessionResult, IMainViewModel main, IViewModelServiceProvider serviceProvider, CancellationToken token)
+    private static async Task<SessionViewModel?> OpenSessionCoreAsync(UFile path, Action<PackageLoadParameters> load, PackageSessionResult sessionResult, IMainViewModel main, IViewModelServiceProvider serviceProvider, CancellationToken token)
     {
-
         var undoRedoService = RegisterSessionServices(serviceProvider);
 
         var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(token);
@@ -230,7 +242,7 @@ partial class SessionViewModel
                 try
                 {
                     // Load the session file (package or solution)
-                    PackageSession.Load(path, sessionResult, CreatePackageLoadParameters(serviceProvider, path, main.EditorToolkitName, token));
+                    load(CreatePackageLoadParameters(serviceProvider, path, main.EditorToolkitName, token));
                     if (!token.IsCancellationRequested)
                     {
                         // Load references

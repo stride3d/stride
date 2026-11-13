@@ -53,6 +53,10 @@
     <Compile Include="..\..\assets\Stride.Core.Assets.Tests\Helpers\LocalPackageFeed.cs">
       <Link>Helpers\LocalPackageFeed.cs</Link>
     </Compile>
+    <!-- The load of the packages that the tests write, without NuGet and MSBuild -->
+    <Compile Include="..\Stride.Core.Assets.Editor.Tests\Helpers\TestPackageLoad.cs">
+      <Link>Helpers\TestPackageLoad.cs</Link>
+    </Compile>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>

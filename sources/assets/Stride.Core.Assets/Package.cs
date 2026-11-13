@@ -1437,6 +1437,11 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     /// <param name="listUnregisteredAssets">Every <c>.sd*</c> file is an asset file, whatever its type (packing).</param>
     /// <param name="listAssetsOfUnknownType">Also list <c>.sd*</c> files starting with a Yaml type tag whose type is not loaded.</param>
     public static List<PackageLoadingAssetFile> ListAssetFiles(Package package, bool listAssetsInMsbuild, bool listUnregisteredAssets, bool listAssetsOfUnknownType = false)
+        => ListAssetFiles(package, listAssetsInMsbuild, listUnregisteredAssets, listAssetsOfUnknownType, projectFilesCache: null);
+
+    /// <param name="projectFilesCache">The files of the projects already evaluated, by project path: a project found there
+    /// is not evaluated again, and one evaluated is added to it.</param>
+    internal static List<PackageLoadingAssetFile> ListAssetFiles(Package package, bool listAssetsInMsbuild, bool listUnregisteredAssets, bool listAssetsOfUnknownType, Dictionary<string, ProjectFiles>? projectFilesCache)
     {
         var listFiles = new List<PackageLoadingAssetFile>();
 
@@ -1503,7 +1508,7 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
         //find also assets in the csproj
         if (listAssetsInMsbuild)
         {
-            FindAssetsInProject(listFiles, package);
+            FindAssetsInProject(listFiles, package, projectFilesCache);
         }
 
         return listFiles;
@@ -1537,32 +1542,57 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
 
     public static List<(UFile FilePath, UFile? Link)> FindAssetsInProject(string projectFullPath, out string? nameSpace)
     {
-        var realFullPath = new UFile(projectFullPath);
-        var project = VSProjectHelper.LoadProject(realFullPath);
-        var dir = new UDirectory(realFullPath.GetFullDirectory());
+        var projectFiles = ReadProjectFiles(projectFullPath);
+        nameSpace = projectFiles.RootNamespace;
+        return projectFiles.GetAssets();
+    }
 
-        nameSpace = project.GetPropertyValue("RootNamespace");
+    /// <summary>
+    /// The files of a project that can be its assets, whatever their type: the asset types are known only once the
+    /// assemblies that declare them are loaded, so the same files can be filtered again after more assemblies are loaded.
+    /// </summary>
+    internal sealed record ProjectFiles(string? RootNamespace, List<(UFile FilePath, UFile? Link)> Files)
+    {
+        public List<(UFile FilePath, UFile? Link)> GetAssets() => Files.Where(x => AssetRegistry.IsProjectAssetFileExtension(x.FilePath.GetFileExtension())).ToList();
+    }
+
+    private static ProjectFiles ReadProjectFiles(string projectFullPath)
+    {
+        var project = VSProjectHelper.LoadProject(new UFile(projectFullPath));
+        try
+        {
+            return ReadProjectFiles(project);
+        }
+        finally
+        {
+            project.ProjectCollection.UnloadAllProjects();
+            project.ProjectCollection.Dispose();
+        }
+    }
+
+    /// <param name="project">The project, evaluated with the global properties of <see cref="VSProjectHelper.LoadProject"/>'s defaults.</param>
+    internal static ProjectFiles ReadProjectFiles(Microsoft.Build.Evaluation.Project project)
+    {
+        var dir = new UDirectory(new UFile(project.FullPath).GetFullDirectory());
+
+        var nameSpace = project.GetPropertyValue("RootNamespace");
         if (nameSpace?.Length == 0)
             nameSpace = null;
 
-        var result = project.Items.Where(x => (x.ItemType == "Compile" || x.ItemType == "None" || x.ItemType == "AdditionalFiles") && string.IsNullOrEmpty(x.GetMetadataValue("AutoGen")))
+        var files = project.Items.Where(x => (x.ItemType == "Compile" || x.ItemType == "None" || x.ItemType == "AdditionalFiles") && string.IsNullOrEmpty(x.GetMetadataValue("AutoGen")))
             // Build full path for Include and Link
             .Select(x => (FilePath: UPath.Combine(dir, new UFile(x.EvaluatedInclude)), Link: x.HasMetadata("Link") ? UPath.Combine(dir, new UFile(x.GetMetadataValue("Link"))) : null))
             // For items outside project, let's pretend they are link
             .Select(x => (x.FilePath, Link: x.Link ?? (!dir.Contains(x.FilePath) ? x.FilePath.GetFileName() : null)))
-            .Where(x => AssetRegistry.IsProjectAssetFileExtension(x.FilePath.GetFileExtension()))
             // avoid duplicates otherwise it might save a single file as separte file with renaming
             // had issues with case such as Effect.sdsl being registered twice (with glob pattern) and being saved as Effect.sdsl and Effect (2).sdsl
             .Distinct()
             .ToList();
 
-        project.ProjectCollection.UnloadAllProjects();
-        project.ProjectCollection.Dispose();
-
-        return result;
+        return new ProjectFiles(nameSpace, files);
     }
 
-    private static void FindAssetsInProject(ICollection<PackageLoadingAssetFile> list, Package package)
+    private static void FindAssetsInProject(ICollection<PackageLoadingAssetFile> list, Package package, Dictionary<string, ProjectFiles>? projectFilesCache)
     {
         // Manifest mode: project assets were resolved at build time, no MSBuild evaluation.
         if (package.PrecomputedProjectAssets is not null)
@@ -1576,8 +1606,14 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
         if (package.Container is not SolutionProject project || project.FullPath is null)
             return;
 
-        var projectAssets = FindAssetsInProject(project.FullPath, out var defaultNamespace);
-        package.RootNamespace = defaultNamespace;
+        var projectPath = project.FullPath.ToOSPath();
+        if (projectFilesCache is null || !projectFilesCache.TryGetValue(projectPath, out var projectFiles))
+        {
+            projectFiles = ReadProjectFiles(projectPath);
+            projectFilesCache?.Add(projectPath, projectFiles);
+        }
+        var projectAssets = projectFiles.GetAssets();
+        package.RootNamespace = projectFiles.RootNamespace;
         var projectDirectory = new UDirectory(project.FullPath.GetFullDirectory());
 
         foreach (var (FilePath, Link) in projectAssets)
