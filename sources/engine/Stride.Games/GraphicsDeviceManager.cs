@@ -234,6 +234,8 @@ namespace Stride.Games
                 if (isFullScreen != value)
                 {
                     isFullScreen = value;
+                    // A pending window size belongs to the previous mode (such as the full-screen window's own resize)
+                    isBackBufferToResize = false;
                     deviceSettingsChanged = true;
                 }
             }
@@ -611,6 +613,7 @@ namespace Stride.Games
                 {
                     game.Window.ClientSizeChanged -= Window_ClientSizeChanged;
                     game.Window.OrientationChanged -= Window_OrientationChanged;
+                    game.Window.FullscreenChanged -= Window_FullscreenChanged;
                 }
             }
 
@@ -964,7 +967,8 @@ namespace Stride.Games
             if (hasWindowFullscreenChanged)
             {
                 hasWindowFullscreenChanged = false;
-                needApplyChanges |= ProcessOrientationChanged();
+                ProcessFullscreenChanged(game.Window);
+                needApplyChanges = true;
             }
 
             if (needApplyChanges)
