@@ -29,7 +29,8 @@ namespace Stride.BepuPhysics.Soft;
 /// </summary>
 /// <remarks>
 /// The model is replaced at runtime by a copy whose vertices follow the particles, the entity's transform follows the overall motion of the body.
-/// Each particle is a body of the simulation, raycasts, overlaps and contact events report this component for any of them.
+/// Each particle is a body of the simulation, raycasts, overlaps and contact events report this component for any of them,
+/// ray hits and contacts with the index of the particle as their child index.
 /// </remarks>
 [DataContract(Inherited = true)]
 [DefaultEntityComponentProcessor(typeof(SoftBodyProcessor), ExecutionMode = ExecutionMode.Runtime)]
@@ -49,6 +50,7 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
     private float _sleepThreshold = 0.01f;
 
     private BodyHandle[] _particles = [];
+    private readonly Dictionary<int, int> _particleOfBody = new(); // By body handle
     private bool[] _pinned = [];
     private (int Particle, SoftBodyPin Pin, Vector3 Offset)[] _pinTargets = [];
     private Vector3[] _restOffsets = [];
@@ -223,6 +225,12 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
     internal override int CollidableCount => Simulation is null ? 0 : _particles.Length;
 
     internal override CollidableReference GetCollidableReference(int index) => Particle(index).CollidableReference;
+
+    /// <summary> Hits and contacts report the particle they are on </summary>
+    internal override int GetChildIndex(CollidableReference collidable, int shapeChildIndex)
+    {
+        return collidable.Mobility != CollidableMobility.Static && _particleOfBody.TryGetValue(collidable.BodyHandle.Value, out int particle) ? particle : shapeChildIndex;
+    }
 
     internal override bool ShouldCalculateInertia => false;
 
@@ -438,6 +446,7 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
             var description = BodyDescription.CreateDynamic(new NRigidPose(position), _pinned[i] ? default : inertia, collidable, activity);
             var handle = bodies.Add(description);
             _particles[i] = handle;
+            _particleOfBody[handle.Value] = i;
             Simulation.SetBodyOwner(handle, this);
             Simulation.CollidableMaterials.Allocate(handle) = new();
         }
@@ -465,6 +474,7 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
         }
 
         _particles = [];
+        _particleOfBody.Clear();
         _pinned = [];
         _pinTargets = [];
     }
@@ -504,7 +514,11 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
         var ray = new global::BepuPhysics.Trees.RayData { Origin = origin.ToNumeric(), Direction = dir.ToNumeric() };
         var shapes = Simulation.Simulation.Shapes;
         for (int i = 0; i < _particles.Length; i++)
-            Collider.RayTest(shapes, ShapeIndex, Particle(i).Pose, ray, ref maximumT, ref hitHandler, Simulation.BufferPool);
+        {
+            var handler = new ParticleRayHitHandler<TRayHitHandler>(hitHandler, i);
+            Collider.RayTest(shapes, ShapeIndex, Particle(i).Pose, ray, ref maximumT, ref handler, Simulation.BufferPool);
+            hitHandler = handler.Inner;
+        }
     }
 
     /// <summary> Reads the current position of every particle </summary>
@@ -595,6 +609,16 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
         _rotation = ShapeMatching.ExtractRotation(column0, column1, column2, _rotation);
         var scaledCentroid = _restCentroid * WorldScale();
         UpdateTransformationComponent(centroid - Vector3.Transform(scaledCentroid, _rotation), _rotation);
+    }
+
+    /// <summary> Reports the hits on the shape of a particle with the index of that particle as their child </summary>
+    private struct ParticleRayHitHandler<T>(T inner, int particle) : IShapeRayHitHandler where T : struct, IShapeRayHitHandler
+    {
+        public T Inner = inner;
+
+        public bool AllowTest(int childIndex) => Inner.AllowTest(particle);
+
+        public void OnRayHit(in global::BepuPhysics.Trees.RayData ray, ref float maximumT, float t, System.Numerics.Vector3 normal, int childIndex) => Inner.OnRayHit(ray, ref maximumT, t, normal, particle);
     }
 
     private sealed class StepListener(SoftBodyComponent owner) : ISimulationUpdate

@@ -65,10 +65,10 @@ public class TopologyTests
         var topology = LatticeBuilder.Build(Box(Vector3.One), 4, 0.5f);
 
         Assert.Equal(5 * 5 * 5, topology.ParticleCount);
-        Assert.Equal(5 * 4 * 4 * 4, topology.Tetrahedra.Length);
-        // Edges of the cells along each axis, then the two diagonals of every face and the four of every cell
+        Assert.Equal(4 * 4 * 4, topology.Tetrahedra.Length);
+        // Edges of the cells along each axis, then the two diagonals of every face
         int stretch = 3 * 4 * 5 * 5;
-        int shear = 3 * 2 * 4 * 4 * 5 + 4 * 4 * 4 * 4;
+        int shear = 3 * 2 * 4 * 4 * 5;
         Assert.Equal(stretch, topology.Edges.Count(e => e.Kind == EdgeKind.Stretch));
         Assert.Equal(shear, topology.Edges.Count(e => e.Kind == EdgeKind.Shear));
         AssertRestShapeReproducesMesh(topology);

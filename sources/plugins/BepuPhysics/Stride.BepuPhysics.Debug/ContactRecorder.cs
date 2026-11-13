@@ -81,7 +81,7 @@ internal sealed class ContactRecorder : IDisposable
                     for (int i = 0; i < typeBatch.ConstraintCount; i++)
                     {
                         // The fallback batch, where the solver puts the constraints of bodies that have too many of them
-                        // for the other batches, as the particles of a soft body do, leaves empty slots with a handle of -1
+                        // for the other batches, leaves empty slots with a handle of -1
                         var handle = typeBatch.IndexToHandle[i];
                         if (handle.Value >= 0)
                             narrowPhase.TryExtractSolverContactData(handle, ref extractor);
