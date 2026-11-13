@@ -226,6 +226,9 @@ namespace Stride.Editor.Thumbnails
                             GraphicsContext.ResourceGroupAllocator.Reset(GraphicsContext.CommandList);
                             gameSystems.Draw(nullGameTime);
 
+                            if (request.UsedShaders != null)
+                                CollectUsedShaders(request.GraphicsCompositor, request.UsedShaders);
+
                             // write the thumbnail to the file
                             using (var thumbnailImage = renderTarget.GetDataAsImage(GraphicsCommandList))
                             {
@@ -294,10 +297,50 @@ namespace Stride.Editor.Thumbnails
         /// <param name="logger">The logger</param>
         /// <param name="logLevel">The dependency build status log level</param>
         /// <param name="postProcessThumbnail">The post-process code to customize thumbnail.</param>
+        /// <param name="usedShaders">Receives the names of the shaders the effects of the scene were made of; <c>null</c> to skip it.</param>
         /// <returns>A task on which the user can wait for the thumbnail completion</returns>
-        public ResultStatus BuildThumbnail(string thumbnailUrl, Scene scene, GraphicsCompositor graphicsCompositor, DatabaseFileProvider provider, Int2 thumbnailSize, ColorSpace colorSpace, RenderingMode renderingMode, ILogger logger, LogMessageType logLevel, PostProcessThumbnailDelegate postProcessThumbnail = null)
+        public ResultStatus BuildThumbnail(string thumbnailUrl, Scene scene, GraphicsCompositor graphicsCompositor, DatabaseFileProvider provider, Int2 thumbnailSize, ColorSpace colorSpace, RenderingMode renderingMode, ILogger logger, LogMessageType logLevel, PostProcessThumbnailDelegate postProcessThumbnail = null, ISet<string> usedShaders = null)
         {
-            return ProcessThumbnailRequests(new ThumbnailBuildRequest(thumbnailUrl, scene, graphicsCompositor, provider, thumbnailSize, colorSpace, renderingMode, logger, logLevel) { PostProcessThumbnail = postProcessThumbnail });
+            return ProcessThumbnailRequests(new ThumbnailBuildRequest(thumbnailUrl, scene, graphicsCompositor, provider, thumbnailSize, colorSpace, renderingMode, logger, logLevel) { PostProcessThumbnail = postProcessThumbnail, UsedShaders = usedShaders });
+        }
+
+        /// <summary>
+        /// Finds the source file of a shader the thumbnails use, when the effects read it from a file instead of the database.
+        /// </summary>
+        /// <param name="shaderName">The name of the shader, as <see cref="BuildThumbnail"/> gives it.</param>
+        /// <param name="filePath">The full path of its source file.</param>
+        /// <returns><c>true</c> if the shader comes from a file; otherwise, <c>false</c>.</returns>
+        public bool TryGetShaderSourceFile(string shaderName, out UFile filePath)
+        {
+            filePath = null;
+            return EffectSystem.FileProvider is ShaderSourceFileProvider shaderSources && shaderSources.TryGetSourceFile(shaderName, out filePath);
+        }
+
+        /// <summary>
+        /// Adds the shaders of the effects that drew the objects of the scene, in every effect permutation of each object.
+        /// </summary>
+        private static void CollectUsedShaders(GraphicsCompositor graphicsCompositor, ISet<string> usedShaders)
+        {
+            foreach (var renderFeature in graphicsCompositor.RenderSystem.RenderFeatures)
+            {
+                if (renderFeature is not RootEffectRenderFeature effectFeature)
+                    continue;
+
+                var slotCount = effectFeature.EffectPermutationSlotCount;
+                var renderEffects = effectFeature.RenderData.GetData(effectFeature.RenderEffectKey);
+                foreach (var renderObject in effectFeature.RenderObjects)
+                {
+                    if (renderObject.StaticObjectNode == StaticObjectNodeReference.Invalid)
+                        continue;
+
+                    for (var slot = 0; slot < slotCount; slot++)
+                    {
+                        var bytecode = renderEffects[renderObject.StaticObjectNode * slotCount + slot]?.Effect?.Bytecode;
+                        if (bytecode?.HashSources != null)
+                            usedShaders.UnionWith(bytecode.HashSources.Keys);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -435,6 +478,11 @@ namespace Stride.Editor.Thumbnails
             /// Post process the thumbnail.
             /// </summary>
             public PostProcessThumbnailDelegate PostProcessThumbnail;
+
+            /// <summary>
+            /// Receives the names of the shaders the effects of the scene were made of, or <c>null</c>.
+            /// </summary>
+            public ISet<string> UsedShaders;
 
             /// <summary>
             /// Create a new thumbnail request from entity.
