@@ -58,7 +58,7 @@ public abstract class VoxelColliderBase<TSource> : ICollider
 
     /// <summary>Gets or sets the edge length of one cell, before the entity's scale.</summary>
     /// <exception cref="ArgumentOutOfRangeException">The value is not positive and finite.</exception>
-    [DataMemberRange(MinimumPositive, 3)]
+    [DataMemberRange(minimum: MinimumPositive, decimalPlaces: 3)]
     public float CellSize
     {
         get => _cellSize;
@@ -95,7 +95,7 @@ public abstract class VoxelColliderBase<TSource> : ICollider
     /// <summary>Gets or sets the radius of the <see cref="VoxelCellShape.Sphere"/> children, as a multiple of half a cell.</summary>
     /// <remarks>At 1 neighbouring spheres touch and small bodies can slip between them; around 1.4 covers the face diagonals, at the cost of smoothing cell-size detail. The query reach and the shape bounds grow with the overshoot, so a body resting on the overshoot still finds the sphere.</remarks>
     /// <exception cref="ArgumentOutOfRangeException">The value is not positive and finite.</exception>
-    [DataMemberRange(MinimumPositive, 3)]
+    [DataMemberRange(minimum: MinimumPositive, decimalPlaces: 3)]
     public float SphereRadiusScale
     {
         get => _sphereRadiusScale;
@@ -108,7 +108,7 @@ public abstract class VoxelColliderBase<TSource> : ICollider
 
     /// <summary>Gets or sets the mass of a body using this collider, spread over the grid's whole box.</summary>
     /// <exception cref="ArgumentOutOfRangeException">The value is not positive and finite.</exception>
-    [DataMemberRange(MinimumPositive, 3)]
+    [DataMemberRange(minimum: MinimumPositive, decimalPlaces: 3)]
     public float Mass
     {
         get => _mass;
