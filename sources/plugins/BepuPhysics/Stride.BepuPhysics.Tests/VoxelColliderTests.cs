@@ -176,6 +176,46 @@ namespace Stride.BepuPhysics.Tests
             Assert.Equal(3f, collider.Mass);
         }
 
+        private struct ChildCounter : BepuUtilities.IBreakableForEach<int>
+        {
+            public int Count;
+
+            public bool LoopBody(int childIndex)
+            {
+                ++Count;
+                return true;
+            }
+        }
+
+        [Fact]
+        public static unsafe void SphereOverlapQueriesReachTheOvershootAndNoFurther()
+        {
+            // One solid cell of size 1 whose sphere, of radius 0.7, sticks 0.2 out of it on every side.
+            var field = new float[8];
+            Array.Fill(field, 1f);
+            fixed (float* data = field)
+            {
+                var shape = new VoxelSphereShape<FloatVoxelSource>
+                {
+                    GridData = new VoxelGridData<FloatVoxelSource>
+                    {
+                        Source = new FloatVoxelSource { Samples = new Buffer<float>(data, field.Length), SamplesX = 2, SamplesY = 2, SamplesZ = 2 },
+                        CellSize = NVector3.One,
+                        IsoLevel = IsoLevel,
+                        SphereRadius = 0.7f,
+                    },
+                };
+
+                var inTheOvershoot = new ChildCounter();
+                VoxelShapeHelpers.EnumerateOverlaps(ref shape, new NVector3(0.4f, 1.15f, 0.4f), new NVector3(0.6f, 1.3f, 0.6f), ref inTheOvershoot);
+                Assert.Equal(1, inTheOvershoot.Count);
+
+                var aboveIt = new ChildCounter();
+                VoxelShapeHelpers.EnumerateOverlaps(ref shape, new NVector3(0.4f, 1.3f, 0.4f), new NVector3(0.6f, 1.4f, 0.6f), ref aboveIt);
+                Assert.Equal(0, aboveIt.Count);
+            }
+        }
+
         [Fact]
         public static void AColliderWithoutFieldHasNothingToDraw()
         {

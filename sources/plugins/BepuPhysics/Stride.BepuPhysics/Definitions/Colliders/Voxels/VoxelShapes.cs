@@ -26,10 +26,13 @@ internal unsafe interface IVoxelShape
     /// <summary>Most children one cell can report.</summary>
     static abstract int MaxChildrenPerCell { get; }
 
-    /// <summary>How many cells beyond its owner a child can reach, widening every query by as much.</summary>
-    int ChildReach { get; }
+    /// <summary>How many cells beyond its owner a child can reach: a ray also tests the children of the cells this far around the one it crosses.</summary>
+    int RayReach { get; }
 
-    /// <summary>Extra padding on each side of the shape's AABB, for children that stick out of the grid box.</summary>
+    /// <summary>How many cells around a box query can own a child overlapping it, once the query has grown by <see cref="BoundsPadding"/>.</summary>
+    int OverlapReach { get; }
+
+    /// <summary>How far a child sticks out of its cell on each local axis; the bounds of the shape and its queries grow by as much.</summary>
     Vector3 BoundsPadding { get; }
 
     VoxelGridLayout Layout { get; }
@@ -76,18 +79,20 @@ internal static unsafe class VoxelShapeHelpers
         max = origin + Vector3.Max(gX, zero) + Vector3.Max(gY, zero) + Vector3.Max(gZ, zero);
     }
 
-    /// <summary>Clamps a local bounding box to the cells it touches; false when it misses the grid.</summary>
+    /// <summary>The cells a local bounding box touches, and those within <paramref name="reach"/> of them; false when the box misses the grid.</summary>
     private static bool GetCellRange(in VoxelGridLayout grid, int reach, Vector3 min, Vector3 max, out int x0, out int y0, out int z0, out int x1, out int y1, out int z1)
     {
         var low = (min - grid.Origin) / grid.CellSize;
         var high = (max - grid.Origin) / grid.CellSize;
-        x0 = Math.Max((int)MathF.Floor(low.X) - reach, 0);
-        y0 = Math.Max((int)MathF.Floor(low.Y) - reach, 0);
-        z0 = Math.Max((int)MathF.Floor(low.Z) - reach, 0);
-        x1 = Math.Min((int)MathF.Floor(high.X) + reach, grid.CellsX - 1);
-        y1 = Math.Min((int)MathF.Floor(high.Y) + reach, grid.CellsY - 1);
-        z1 = Math.Min((int)MathF.Floor(high.Z) + reach, grid.CellsZ - 1);
-        return x0 <= x1 && y0 <= y1 && z0 <= z1;
+        int maxX = grid.CellsX - 1, maxY = grid.CellsY - 1, maxZ = grid.CellsZ - 1;
+        // Clamped as floats, which a box much larger than the grid would take out of the range of an int. A box touching a face of the grid gets the cells behind that face.
+        x0 = (int)Math.Clamp(MathF.Floor(low.X) - reach, 0f, maxX);
+        y0 = (int)Math.Clamp(MathF.Floor(low.Y) - reach, 0f, maxY);
+        z0 = (int)Math.Clamp(MathF.Floor(low.Z) - reach, 0f, maxZ);
+        x1 = (int)Math.Clamp(MathF.Floor(high.X) + reach, 0f, maxX);
+        y1 = (int)Math.Clamp(MathF.Floor(high.Y) + reach, 0f, maxY);
+        z1 = (int)Math.Clamp(MathF.Floor(high.Z) + reach, 0f, maxZ);
+        return high.X >= 0f && high.Y >= 0f && high.Z >= 0f && low.X <= grid.CellsX && low.Y <= grid.CellsY && low.Z <= grid.CellsZ;
     }
 
     /// <summary>Reports every child overlapping a local bounding box, until the enumerator breaks.</summary>
@@ -99,7 +104,7 @@ internal static unsafe class VoxelShapeHelpers
         var pad = shape.BoundsPadding;
         min -= pad;
         max += pad;
-        if (!GetCellRange(shape.Layout, shape.ChildReach, min, max, out var x0, out var y0, out var z0, out var x1, out var y1, out var z1))
+        if (!GetCellRange(shape.Layout, shape.OverlapReach, min, max, out var x0, out var y0, out var z0, out var x1, out var y1, out var z1))
             return;
         Span<int> children = stackalloc int[TShape.MaxChildrenPerCell];
         for (int x = x0; x <= x1; ++x)
@@ -183,7 +188,7 @@ internal static unsafe class VoxelShapeHelpers
         ComputeAxisStep(gridOrigin.Z, direction.Z, z, cellSize.Z, tEnter, out var stepZ, out var tMaxZ, out var tDeltaZ);
 
         Span<int> children = stackalloc int[TShape.MaxChildrenPerCell];
-        var reach = shape.ChildReach;
+        var reach = shape.RayReach;
         var cellsX = grid.CellsX;
         var cellsY = grid.CellsY;
         var cellsZ = grid.CellsZ;
@@ -330,7 +335,8 @@ internal unsafe struct VoxelBoxShape<TSource> : IHomogeneousCompoundShape<Box, B
     public static int TypeId => ShapeId<VoxelBoxShape<TSource>>.Id;
     public static int ChildShapeTypeId => Box.Id;
     public static int MaxChildrenPerCell => 1;
-    public readonly int ChildReach => 0;
+    public readonly int RayReach => 0;
+    public readonly int OverlapReach => 0;
     public readonly Vector3 BoundsPadding => Vector3.Zero;
 
     public readonly VoxelGridLayout Layout => GridData.Layout;
@@ -424,7 +430,7 @@ internal unsafe struct VoxelSphereShape<TSource> : IHomogeneousCompoundShape<Sph
     public static int MaxChildrenPerCell => 1;
 
     /// <summary>Cells to visit on each side of the DDA cell: enough to catch a sphere whose radius overshoots its own cell.</summary>
-    public readonly int ChildReach
+    public readonly int RayReach
     {
         get
         {
@@ -434,6 +440,9 @@ internal unsafe struct VoxelSphereShape<TSource> : IHomogeneousCompoundShape<Sph
             return (int)MathF.Ceiling(overshoot / minCell);
         }
     }
+
+    /// <summary>None: a box query grown by <see cref="BoundsPadding"/> already touches the cell of every sphere reaching into it.</summary>
+    public readonly int OverlapReach => 0;
 
     /// <summary>The sphere's radius minus half the cell, per axis: how far it sticks out of its own cell.</summary>
     public readonly Vector3 BoundsPadding
@@ -541,7 +550,9 @@ internal unsafe struct VoxelTriangleShape<TSource> : IHomogeneousCompoundShape<T
     public static int MaxChildrenPerCell => SlotsPerCell;
 
     /// <summary>A surface nets quad joins the vertices of the four cells around an edge, so it reaches into the neighbours.</summary>
-    public readonly int ChildReach => 1;
+    public readonly int RayReach => 1;
+
+    public readonly int OverlapReach => RayReach;
 
     public readonly Vector3 BoundsPadding => Vector3.Zero;
 
