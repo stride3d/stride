@@ -38,7 +38,7 @@ internal static class LatticeBuilder
             throw new InvalidOperationException("The mesh does not enclose any volume at this resolution, it must be closed, or the resolution higher");
 
         // A part of the mesh thinner than a cell may hold no cell center, what it links would come apart
-        ConnectIslands(occupied, Voxelizer.CellsOnSurface(mesh.Positions, mesh.Indices, origin, cellSize, size), size);
+        ConnectIslands(occupied, size, () => Voxelizer.CellsOnSurface(mesh.Positions, mesh.Indices, origin, cellSize, size));
 
         // Particles sit on the corners of occupied cells
         var nodes = new Int3(size.X + 1, size.Y + 1, size.Z + 1);
@@ -135,8 +135,10 @@ internal static class LatticeBuilder
     /// to the closest cell of another one by the cells on the way, all of them cells the surface goes through.
     /// </summary>
     /// <remarks> Islands that no part of the surface links are separate pieces of the mesh, they stay apart. </remarks>
-    internal static void ConnectIslands(bool[] occupied, bool[] onSurface, Int3 size)
+    /// <param name="findSurface"> Gives the cells the surface goes through, only asked for when there are islands to join </param>
+    internal static void ConnectIslands(bool[] occupied, Int3 size, Func<bool[]> findSurface)
     {
+        bool[]? onSurface = null;
         var island = new int[occupied.Length];
         var cameFrom = new int[occupied.Length];
         var apart = new bool[occupied.Length];
@@ -184,6 +186,7 @@ internal static class LatticeBuilder
             }
             if (islandSizes.Count <= 1 || smallest < 0)
                 return;
+            onSurface ??= findSurface();
 
             // From the smallest island, spread through the cells of the surface around it until a cell of another island
             // is reached: the way back to the island is the shortest one, face to face, and gets occupied
