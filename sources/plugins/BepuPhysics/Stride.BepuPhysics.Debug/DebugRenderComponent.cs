@@ -60,6 +60,7 @@ public class DebugRenderComponent : SyncScript
 
     /// <summary>
     /// Whether to draw the lines of the collidables that are an <see cref="Definitions.IDebugLineSource"/>, like the particles and springs of a soft body.
+    /// Which lines each of them draws is its own setting.
     /// </summary>
     [DataMember]
     public bool ShowCollidableLines { get; set; } = true;
