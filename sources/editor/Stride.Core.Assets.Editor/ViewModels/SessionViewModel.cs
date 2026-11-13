@@ -384,6 +384,11 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
     internal PackageSession PackageSession => session;
 
     /// <summary>
+    /// Brings into the session the changes made to its asset files outside of the editor; the tests replace it, and the session disposes it.
+    /// </summary>
+    internal ExternalAssetChangeTracker? ExternalAssetChanges { get => externalAssetChanges; set => externalAssetChanges = value; }
+
+    /// <summary>
     /// The processing of the packages the session opened with: the references of their assets, then the queueing of their
     /// thumbnails. The session can be used before it ends.
     /// </summary>

@@ -40,8 +40,10 @@ namespace Stride.Core.Assets.Editor.ViewModels
         private static readonly Logger Log = GlobalLogger.GetLogger("ExternalAssetChanges");
 
         private readonly SessionViewModel session;
-        private readonly DirectoryWatcher watcher = new();
+        private readonly DirectoryWatcher watcher;
         private readonly HashSet<string> trackedFolders = new(StringComparer.OrdinalIgnoreCase);
+        // The asset files of the watched folders, to find the changes the watcher missed
+        private readonly FileWriteTimes fileTimes = new();
         private readonly HashSet<string> pendingFiles = new(StringComparer.OrdinalIgnoreCase);
         // The content of the files whose changes the user chose not to reload, so that the same content is not proposed again
         private readonly Dictionary<string, ObjectId> declinedContents = new(StringComparer.OrdinalIgnoreCase);
@@ -52,9 +54,19 @@ namespace Stride.Core.Assets.Editor.ViewModels
         private bool disposed;
 
         public ExternalAssetChangeTracker([NotNull] SessionViewModel session)
+            : this(session, new DirectoryWatcher())
+        {
+        }
+
+        /// <summary>
+        /// Watches the asset files of a session with the given watcher; the tests give one that can miss changes.
+        /// </summary>
+        internal ExternalAssetChangeTracker([NotNull] SessionViewModel session, [NotNull] DirectoryWatcher watcher)
         {
             this.session = session ?? throw new ArgumentNullException(nameof(session));
+            this.watcher = watcher ?? throw new ArgumentNullException(nameof(watcher));
             watcher.Modified += FileModified;
+            watcher.ChangesMissed += FileChangesMissed;
             session.LocalPackages.CollectionChanged += LocalPackagesChanged;
             TrackPackages();
         }
@@ -65,6 +77,7 @@ namespace Stride.Core.Assets.Editor.ViewModels
             disposed = true;
             session.LocalPackages.CollectionChanged -= LocalPackagesChanged;
             watcher.Modified -= FileModified;
+            watcher.ChangesMissed -= FileChangesMissed;
             watcher.Dispose();
         }
 
@@ -120,9 +133,31 @@ namespace Stride.Core.Assets.Editor.ViewModels
                 foreach (var folder in package.Package.GetDistinctAssetFolderPaths())
                 {
                     var path = folder.ToOSPath();
-                    if (Directory.Exists(path) && trackedFolders.Add(path))
-                        watcher.Track(path);
+                    bool added;
+                    lock (trackedFolders)
+                        added = Directory.Exists(path) && trackedFolders.Add(path);
+                    if (!added)
+                        continue;
+
+                    watcher.Track(path);
+                    foreach (var file in EnumerateAssetFiles(path))
+                        fileTimes.Add(file);
                 }
+            }
+        }
+
+        // The asset files of a folder and of its subfolders, hidden ones included, as the watcher reports them
+        private static List<string> EnumerateAssetFiles(string folder)
+        {
+            var options = new EnumerationOptions { RecurseSubdirectories = true, IgnoreInaccessible = true, AttributesToSkip = 0 };
+            try
+            {
+                return Directory.EnumerateFiles(folder, "*", options).Where(IsAssetFile).ToList();
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                // The folder is being deleted, or cannot be read
+                return [];
             }
         }
 
@@ -143,6 +178,11 @@ namespace Stride.Core.Assets.Editor.ViewModels
             if (!isAssetFile && !wasAssetFile)
                 return;
 
+            if (isAssetFile)
+                fileTimes.Update(e.FullPath);
+            if (wasAssetFile)
+                fileTimes.Update(renamedFrom);
+
             lock (pendingFiles)
             {
                 // A file written to a temporary file then renamed over the asset file is a change of the asset file
@@ -156,6 +196,26 @@ namespace Stride.Core.Assets.Editor.ViewModels
                 processing = true;
             }
             ProcessPendingFiles().Forget();
+        }
+
+        private void FileChangesMissed(object sender, ChangesMissedEventArgs e)
+        {
+            // The watch of a folder failed (its events overflowed) and started again: the asset files created, changed or deleted
+            // meanwhile are found from their last write times, and the files of the folder listed again
+            List<string> folders;
+            lock (trackedFolders)
+                folders = trackedFolders.ToList();
+            var currentFiles = new List<string>();
+            foreach (var folder in folders)
+            {
+                if (FileWriteTimes.IsUnder(folder, e.Directory))
+                    currentFiles.AddRange(EnumerateAssetFiles(folder));
+                else if (FileWriteTimes.IsUnder(e.Directory, folder))
+                    currentFiles.AddRange(EnumerateAssetFiles(e.Directory));
+            }
+
+            foreach (var change in fileTimes.Reconcile(e.Directory, currentFiles))
+                FileModified(sender, change);
         }
 
         private async Task ProcessPendingFiles()
