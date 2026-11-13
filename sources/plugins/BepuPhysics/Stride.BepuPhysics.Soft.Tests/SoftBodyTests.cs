@@ -61,6 +61,41 @@ public class SoftBodyTests : GameTestBase
         });
     }
 
+    /// <summary> A particle collider on a rigid body, or another collider on a soft body, is reported and leaves the component out of the simulation </summary>
+    [Fact]
+    public static void ParticleColliderOnlyWorksOnSoftBodies()
+    {
+        RunScene(async scene =>
+        {
+            var errors = new System.Collections.Generic.List<string>();
+            void Collect(Stride.Core.Diagnostics.ILogMessage message)
+            {
+                if (message.Type >= Stride.Core.Diagnostics.LogMessageType.Error)
+                    errors.Add(message.Text);
+            }
+            Stride.Core.Diagnostics.GlobalLogger.GlobalMessageLogged += Collect;
+            try
+            {
+                var rigid = new BodyComponent { Collider = new ParticleCollider() };
+                scene.Add(rigid, new Vector3(3f, 2f, 0f));
+                var soft = new VolumetricSoftBodyComponent { Resolution = 2 };
+                soft.Collider = new CompoundCollider { Colliders = { new SphereCollider() } };
+                scene.Add(soft, new CubeProceduralModel(), new Vector3(0f, 2f, 0f));
+                await scene.Game.Script.NextFrame();
+
+                Assert.Null(rigid.Simulation);
+                Assert.Null(soft.Simulation);
+                Assert.Equal(0, soft.ParticleCount);
+                Assert.Contains(errors, error => error.Contains(nameof(ParticleCollider)) && error.Contains(nameof(BodyComponent)));
+                Assert.Contains(errors, error => error.Contains(nameof(VolumetricSoftBodyComponent)) && error.Contains(nameof(CompoundCollider)));
+            }
+            finally
+            {
+                Stride.Core.Diagnostics.GlobalLogger.GlobalMessageLogged -= Collect;
+            }
+        });
+    }
+
     [Fact]
     public static void ClothHangsFromItsPins()
     {

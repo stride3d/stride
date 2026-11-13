@@ -407,10 +407,8 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
     {
         Debug.Assert(Simulation is not null);
 
-        // Done by the ParticleCollider, a collider of another kind gives every particle its own shape instead
-        if (Topology is null && TryPrepareTopology(out _) == false)
-            throw new InvalidOperationException($"{GetType().Name} on '{Entity?.Name}' needs a {nameof(ModelComponent)} with a model on the same entity");
-        var topology = Topology!;
+        Debug.Assert(Topology is not null, "Built by ParticleCollider.TryAttach");
+        var topology = Topology;
         var bodies = Simulation.Simulation.Bodies;
 
         var world = Entity.Transform.WorldMatrix;
@@ -488,6 +486,15 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
         _particleOfBody.Clear();
         _pinned = [];
         _pinTargets = [];
+    }
+
+    internal override bool CanAttach(ICollider collider)
+    {
+        if (collider is ParticleCollider)
+            return true;
+
+        Logger.Error($"{GetType().Name} on '{Entity?.Name}' needs a {nameof(ParticleCollider)}, its particles cannot take the shape of a {collider.GetType().Name}; it is left out of the simulation");
+        return false;
     }
 
     internal override void OnMaterialPropertiesUpdated()
