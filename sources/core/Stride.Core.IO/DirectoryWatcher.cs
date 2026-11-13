@@ -18,6 +18,16 @@ public partial class DirectoryWatcher : IDisposable
     public event EventHandler<FileEvent>? Modified;
 
     /// <summary>
+    /// Occurs when the watch of a directory failed and started again, for example after the buffer of its events overflowed: the
+    /// changes in that directory in the meantime may never be reported by <see cref="Modified"/>.
+    /// </summary>
+    /// <remarks>
+    /// It is raised once the new watch runs, so a listener that reads the files of the directory again then misses nothing; it can
+    /// find what changed with a <see cref="FileWriteTimes"/>.
+    /// </remarks>
+    public event EventHandler<ChangesMissedEventArgs>? ChangesMissed;
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="DirectoryWatcher"/> class.
     /// </summary>
     /// <param name="fileFilter">The file filter By default null default to *.*</param>
@@ -96,6 +106,16 @@ public partial class DirectoryWatcher : IDisposable
     protected virtual void OnModified(object sender, FileEvent e)
     {
         Modified?.Invoke(sender, e);
+    }
+
+    /// <summary>
+    /// Called when the watch of a directory started again after an error.
+    /// </summary>
+    /// <param name="sender">The sender.</param>
+    /// <param name="e">The directory whose changes may have been missed.</param>
+    protected virtual void OnChangesMissed(object sender, ChangesMissedEventArgs e)
+    {
+        ChangesMissed?.Invoke(sender, e);
     }
 
 #if !STRIDE_PLATFORM_DESKTOP

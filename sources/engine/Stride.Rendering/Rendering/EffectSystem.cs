@@ -30,6 +30,8 @@ namespace Stride.Rendering
 #if STRIDE_PLATFORM_DESKTOP
         private DirectoryWatcher directoryWatcher;
 #endif
+        // The watched shader files, to find the changes the watcher missed
+        private readonly FileWriteTimes shaderFileTimes = new();
         private bool isInitialized;
 
         /// <summary>
@@ -69,6 +71,7 @@ namespace Stride.Rendering
             Enabled = true;
             directoryWatcher = new DirectoryWatcher("*.sdsl");
             directoryWatcher.Modified += FileModifiedEvent;
+            directoryWatcher.ChangesMissed += FileChangesMissed;
             // TODO: sdfx too
 #endif
 
@@ -100,6 +103,7 @@ namespace Stride.Rendering
             if (directoryWatcher is not null)
             {
                 directoryWatcher.Modified -= FileModifiedEvent;
+                directoryWatcher.ChangesMissed -= FileChangesMissed;
                 directoryWatcher.Dispose();
                 directoryWatcher = null;
             }
@@ -226,7 +230,10 @@ namespace Stride.Rendering
                             }
                         }
                         if (filePath is not null)
+                        {
                             directoryWatcher.Track(filePath);
+                            shaderFileTimes.Add(filePath);
+                        }
                     }
 #endif
                 }
@@ -346,11 +353,21 @@ namespace Stride.Rendering
         {
             if (e.ChangeType == FileEventChangeType.Changed || e.ChangeType == FileEventChangeType.Renamed)
             {
+                if (shaderFileTimes.Contains(e.FullPath))
+                    shaderFileTimes.Update(e.FullPath);
                 lock (recentlyModifiedShaders)
                 {
                     recentlyModifiedShaders.Add(Path.GetFileNameWithoutExtension(e.Name));
                 }
             }
+        }
+
+        private void FileChangesMissed(object sender, ChangesMissedEventArgs e)
+        {
+            // The watch of a folder failed (its events overflowed) and started again: the shader files that changed meanwhile are
+            // found from their last write times
+            foreach (var change in shaderFileTimes.Reconcile(e.Directory))
+                FileModifiedEvent(sender, change);
         }
 
         /// <summary>
