@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using Stride.Core;
+using Stride.Core.Diagnostics;
 using Vortice.Vulkan;
 
 namespace Stride.Graphics
@@ -14,6 +15,9 @@ namespace Stride.Graphics
     /// </summary>
     public class SwapChainGraphicsPresenter : GraphicsPresenter
     {
+        private static readonly Logger Log = GlobalLogger.GetLogger(nameof(SwapChainGraphicsPresenter));
+        private static bool hasWarnedFullScreenExclusiveUnavailable;
+
         private VkSwapchainKHR swapChain;
         private VkSurfaceKHR surface;
 
@@ -67,77 +71,28 @@ namespace Stride.Graphics
             }
         }
 
+        /// <inheritdoc/>
+        /// <remarks>
+        ///   Vulkan has no full-screen state of its own: the window covers the display (changing the display mode
+        ///   for exclusive full screen) and the swapchain follows the window's extent. With VK_EXT_full_screen_exclusive
+        ///   the swapchain also allows exclusive full screen when this is <see langword="true"/>, and disallows it
+        ///   otherwise, so a borderless full-screen window stays composited.
+        /// </remarks>
         public override bool IsFullScreen
         {
-            get
-            {
-                //return swapChain.IsFullScreen;
-                return false;
-            }
-
+            get => Description.IsFullScreen;
             set
             {
-//#if !STRIDE_PLATFORM_UWP
-//                if (swapChain == null)
-//                    return;
+                if (Description.IsFullScreen == value)
+                    return;
 
-//                var outputIndex = Description.PreferredFullScreenOutputIndex;
+                Description.IsFullScreen = value;
 
-//                // no outputs connected to the current graphics adapter
-//                var output = GraphicsDevice.Adapter != null && outputIndex < GraphicsDevice.Adapter.Outputs.Length ? GraphicsDevice.Adapter.Outputs[outputIndex] : null;
-
-//                Output currentOutput = null;
-
-//                try
-//                {
-//                    VkBool32 isCurrentlyFullscreen;
-//                    swapChain.GetFullscreenState(out isCurrentlyFullscreen, out currentOutput);
-
-//                    // check if the current fullscreen monitor is the same as new one
-//                    if (isCurrentlyFullscreen == value && output != null && currentOutput != null && currentOutput.NativePointer == output.NativeOutput.NativePointer)
-//                        return;
-//                }
-//                finally
-//                {
-//                    if (currentOutput != null)
-//                        currentOutput.Dispose();
-//                }
-
-//                bool switchToFullScreen = value;
-//                // If going to fullscreen mode: call 1) SwapChain.ResizeTarget 2) SwapChain.IsFullScreen
-//                var description = new ModeDescription(backBuffer.ViewWidth, backBuffer.ViewHeight, Description.RefreshRate.ToSharpDX(), (SharpDX.DXGI.Format)Description.BackBufferFormat);
-//                if (switchToFullScreen)
-//                {
-//                    // Force render target destruction
-//                    // TODO: We should track all user created render targets that points to back buffer as well (or deny their creation?)
-//                    backBuffer.OnDestroyed(true);
-
-//                    OnDestroyed(true);
-
-//                    Description.IsFullScreen = true;
-
-//                    OnRecreated();
-//                }
-//                else
-//                {
-//                    Description.IsFullScreen = false;
-//                    swapChain.IsFullScreen = false;
-
-//                    // call 1) SwapChain.IsFullScreen 2) SwapChain.Resize
-//                    Resize(backBuffer.ViewWidth, backBuffer.ViewHeight, backBuffer.ViewFormat);
-//                }
-
-//                // If going to window mode:
-//                if (!switchToFullScreen)
-//                {
-//                    // call 1) SwapChain.IsFullScreen 2) SwapChain.Resize
-//                    description.RefreshRate = new SharpDX.DXGI.Rational(0, 0);
-//                    swapChain.ResizeTarget(ref description);
-//                }
-//#endif
+                // Whether exclusive full screen is allowed is fixed when the swapchain is created
+                if (GraphicsDevice.HasFullScreenExclusiveSupport && swapChain != VkSwapchainKHR.Null)
+                    RecreateBackBuffer(Description.BackBufferWidth, Description.BackBufferHeight, Description.BackBufferFormat);
             }
         }
-
 
         public override unsafe void Present()
         {
@@ -175,9 +130,11 @@ namespace Stride.Graphics
 
                 // Present
                 var presentResult = GraphicsDevice.NativeDeviceApi.vkQueuePresentKHR(GraphicsDevice.NativeCommandQueue, &presentInfo);
-                if (presentResult == VkResult.ErrorOutOfDateKHR || presentResult == VkResult.SuboptimalKHR || presentResult == VkResult.ErrorSurfaceLostKHR)
+                if (presentResult == VkResult.ErrorOutOfDateKHR || presentResult == VkResult.SuboptimalKHR || presentResult == VkResult.ErrorSurfaceLostKHR
+                    || presentResult == VkResult.ErrorFullScreenExclusiveModeLostEXT)
                 {
-                    // Resize/rotation (OutOfDate/Suboptimal) or Android suspend (SurfaceLost) — recreate.
+                    // Resize/rotation (OutOfDate/Suboptimal), Android suspend (SurfaceLost) or a lost exclusive
+                    // full screen (another window took the display) — recreate.
                     OnRecreated();
                     return;
                 }
@@ -206,7 +163,7 @@ namespace Stride.Graphics
         {
             // Get next image
             var result = GraphicsDevice.NativeDeviceApi.vkAcquireNextImageKHR(GraphicsDevice.NativeDevice, swapChain, ulong.MaxValue, acquireSemaphores[currentFrameIndex], VkFence.Null, out currentBufferIndex);
-            if (result == VkResult.ErrorOutOfDateKHR || result == VkResult.ErrorSurfaceLostKHR)
+            if (result == VkResult.ErrorOutOfDateKHR || result == VkResult.ErrorSurfaceLostKHR || result == VkResult.ErrorFullScreenExclusiveModeLostEXT)
             {
                 // No image acquired: the surface changed while the swapchain was being (re)created
                 // (continuous interactive resize) or was lost. Recreate against the current surface
@@ -570,6 +527,21 @@ namespace Stride.Graphics
                 oldSwapchain = swapChain,
                 clipped = true
             };
+
+            // Exclusive full screen when the presenter is full screen; otherwise never, so a borderless
+            // full-screen window is not promoted to exclusive by the driver
+            var fullScreenExclusiveInfo = new VkSurfaceFullScreenExclusiveInfoEXT
+            {
+                sType = VkStructureType.SurfaceFullScreenExclusiveInfoEXT,
+                fullScreenExclusive = Description.IsFullScreen ? VkFullScreenExclusiveEXT.Allowed : VkFullScreenExclusiveEXT.Disallowed,
+            };
+            if (GraphicsDevice.HasFullScreenExclusiveSupport)
+                swapchainCreateInfo.pNext = &fullScreenExclusiveInfo;
+            else if (Description.IsFullScreen && Platform.Type == PlatformType.Windows && !hasWarnedFullScreenExclusiveUnavailable)
+            {
+                hasWarnedFullScreenExclusiveUnavailable = true;
+                Log.Warning("VK_EXT_full_screen_exclusive is not available: the driver decides whether the full-screen window gets exclusive mode");
+            }
             GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateSwapchainKHR(GraphicsDevice.NativeDevice, &swapchainCreateInfo, null, out var newSwapChain));
 
             DestroySwapchain();
