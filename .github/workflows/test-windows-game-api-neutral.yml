@@ -59,6 +59,13 @@ jobs:
         with:
           ref: ${{ github.ref }}
           exclude: samples
+      # Before the build: the key hashes the compiler sources, not build outputs
+      - uses: ./.github/actions/effect-cache
+        with:
+          mode: restore
+          lane: ApiNeutral-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+          # Built for Direct3D 11
+          fxc: true
       - name: Disable WER dialogs
         run: reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v DontShowUI /t REG_DWORD /d 1 /f
       - name: Build
@@ -92,6 +99,11 @@ jobs:
               exit $LASTEXITCODE
             }
           }
+      - uses: ./.github/actions/effect-cache
+        if: success() || failure()
+        with:
+          mode: save
+          lane: ApiNeutral-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
       - name: Publish Test Report
         if: always()
         uses: phoenix-actions/test-reporting@v16

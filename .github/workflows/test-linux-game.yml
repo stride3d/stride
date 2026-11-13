@@ -92,6 +92,11 @@ jobs:
         with:
           ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || (inputs.commit-sha != '' && inputs.commit-sha) || github.ref }}
           exclude: samples
+      # Before the build: the key hashes the compiler sources, not build outputs
+      - uses: ./.github/actions/effect-cache
+        with:
+          mode: restore
+          lane: Vulkan-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
       - name: Install runtime dependencies
         run: |
           sudo apt-get update
@@ -173,6 +178,11 @@ jobs:
               "${FILTER_ARG[@]}" \
               -- RunConfiguration.MaxCpuCount=1 || { ec=$?; echo "Run $i failed (exit $ec); stopping."; exit $ec; }
           done
+      - uses: ./.github/actions/effect-cache
+        if: success() || failure()
+        with:
+          mode: save
+          lane: Vulkan-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
       - name: Publish Test Report
         if: always()
         uses: phoenix-actions/test-reporting@v16

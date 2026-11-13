@@ -1,0 +1,66 @@
+name: Effect cache
+description: >-
+  Keeps the effect caches of the game tests (the cache folder next to each test assembly) between runs, so
+  that the tests load their effects instead of compiling them. Cache entries are keyed on the shader sources
+  and ShaderCompilerVersion, not on the compiler code: the key of this cache holds a hash of the compiler and
+  of its native tools (and of the FXC of the runner when the lane uses it), so a compiler change starts from
+  an empty cache. A run restores the newest cache of the same compiler; the effects of changed shaders miss
+  and compile. Use `restore` before the build (the hash must not see build outputs) and `save` after the
+  tests. Only runs outside pull requests save, and only
+  when their tests compiled something new.
+
+inputs:
+  mode:
+    description: '`restore` or `save`'
+    required: true
+  lane:
+    description: The graphics API and configuration of the lane, which decide what the tests compile
+    required: true
+  fxc:
+    description: Whether the lane compiles with FXC (Direct3D 11), whose d3dcompiler_47.dll comes from the Windows SDK of the runner
+    default: 'false'
+
+runs:
+  using: composite
+  steps:
+    - name: Effect cache key
+      if: inputs.mode == 'restore'
+      shell: bash
+      run: |
+        compiler="${{ hashFiles('sources/shaders/**', '!sources/shaders/Stride.Shaders.Tests/**', '!**/bin/**', '!**/obj/**', 'deps/spirv-cross/**', 'deps/spirv-tools/**', 'deps/spirv-to-dxil/**', 'sources/Directory.Packages.props') }}"
+        if [ "${{ inputs.fxc }}" = true ]; then
+          # The x64 copy, the one the tests load; hashFiles can't read outside the workspace
+          fxc_dll="/c/Program Files (x86)/Windows Kits/10/Redist/D3D/x64/d3dcompiler_47.dll"
+          [ -f "$fxc_dll" ] || { echo "::error::FXC not found: $fxc_dll"; exit 1; }
+          compiler="$compiler-fxc$(sha256sum < "$fxc_dll" | cut -c1-12)"
+        fi
+        echo "STRIDE_EFFECT_CACHE_PREFIX=effect-cache-${{ runner.os }}-${{ inputs.lane }}-$compiler-" >> "$GITHUB_ENV"
+    - name: Restore the effect cache
+      if: inputs.mode == 'restore'
+      uses: actions/cache/restore@v6
+      with:
+        path: bin/Tests/*/*/*/cache
+        key: ${{ env.STRIDE_EFFECT_CACHE_PREFIX }}${{ github.sha }}
+        restore-keys: ${{ env.STRIDE_EFFECT_CACHE_PREFIX }}
+    - name: Count the effect cache files
+      id: count
+      shell: bash
+      run: |
+        # No globstar: macOS runs bash 3.2
+        shopt -s nullglob
+        caches=(bin/Tests/*/*/*/cache)
+        count=0
+        if [ ${#caches[@]} -gt 0 ]; then count=$(find "${caches[@]}" -type f | wc -l | tr -d ' '); fi
+        if [ "${{ inputs.mode }}" = restore ]; then
+          echo "Effect cache: $count files restored"
+          echo "STRIDE_EFFECT_CACHE_FILES=$count" >> "$GITHUB_ENV"
+        else
+          echo "Effect cache: $count files, $STRIDE_EFFECT_CACHE_FILES restored"
+          echo "grew=$([ "$count" -gt "${STRIDE_EFFECT_CACHE_FILES:-0}" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+        fi
+    - name: Save the effect cache
+      if: inputs.mode == 'save' && env.STRIDE_EFFECT_CACHE_PREFIX != '' && github.event_name != 'pull_request' && steps.count.outputs.grew == 'true'
+      uses: actions/cache/save@v6
+      with:
+        path: bin/Tests/*/*/*/cache
+        key: ${{ env.STRIDE_EFFECT_CACHE_PREFIX }}${{ github.sha }}
