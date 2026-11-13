@@ -4,7 +4,7 @@
 using Xunit;
 using Xunit.Abstractions;
 
-namespace xunit.runner.stride.ViewModels;
+namespace Stride.XunitRunner.ViewModels;
 
 public sealed class XSink : IExecutionSink
 {

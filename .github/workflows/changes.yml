@@ -236,7 +236,7 @@ jobs:
               - 'sources/sdk/**'
               - 'sources/shaders/**'
               - 'sources/shared/**'
-              - 'sources/tests/xunit.runner.stride/**'
+              - 'sources/tests/Stride.XunitRunner/**'
               - 'sources/tools/Stride.Importer.*/**'
               - 'sources/tools/Stride.TextureConverter/**'
               - 'sources/Directory.*'

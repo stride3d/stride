@@ -9,7 +9,7 @@ using Android.OS;
 using Android.Window;
 using Avalonia.Android;
 
-namespace xunit.runner.stride;
+namespace Stride.XunitRunner;
 
 // Avalonia 12 moved bootstrap into AvaloniaApplication (see Launcher.Application.Android.cs);
 // this activity just handles Android-side lifecycle, back gestures, and reading the launch Intent.

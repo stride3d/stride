@@ -35,7 +35,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\sources\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
+    <ProjectReference Include="..\..\..\sources\tests\Stride.XunitRunner\Stride.XunitRunner.csproj" />
     <!-- Stride.Assets carries the templating types (DotNetNewTemplateBridge, TemplateManager) and
          PackageSessionPublicHelper used to generate the consumer sample headlessly. -->
     <ProjectReference Include="..\..\..\sources\engine\Stride.Assets\Stride.Assets.csproj" />

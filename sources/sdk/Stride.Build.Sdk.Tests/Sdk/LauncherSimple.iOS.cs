@@ -7,7 +7,7 @@ using Avalonia.iOS;
 using Foundation;
 using UIKit;
 
-namespace xunit.runner.stride;
+namespace Stride.XunitRunner;
 
 // Compiled into each test assembly by Stride.Build.Sdk.Tests so GetType().Assembly resolves to
 // the test assembly (iOS has no entry assembly for the runner to discover tests from).
@@ -27,7 +27,7 @@ public partial class AppDelegate : AvaloniaAppDelegate<App>
     protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)
     {
         // Per-test-assembly: GetType().Assembly is the test assembly, which is what the App
-        // uses to discover tests (the runner itself lives in xunit.runner.stride).
+        // uses to discover tests (the runner itself lives in Stride.XunitRunner).
         App.TestAssembly = GetType().Assembly;
 
         // Non-interactive entry point for the host orchestration script:

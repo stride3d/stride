@@ -17,9 +17,9 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
-using xunit.runner.stride.ViewModels;
+using Stride.XunitRunner.ViewModels;
 
-namespace xunit.runner.stride.Views;
+namespace Stride.XunitRunner.Views;
 
 public partial class MainView : UserControl
 {

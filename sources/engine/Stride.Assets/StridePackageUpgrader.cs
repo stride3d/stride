@@ -45,7 +45,8 @@ namespace Stride.Assets
 
         /// <summary>
         /// Rewrites every <c>Stride.*</c> <c>PackageReference</c> in the csproj at
-        /// <paramref name="csprojPath"/> to <see cref="CurrentVersion"/>. Standalone — no
+        /// <paramref name="csprojPath"/> to <see cref="CurrentVersion"/>, after renaming
+        /// <c>xunit.runner.stride</c> to <c>Stride.XunitRunner</c>. Standalone — no
         /// <see cref="PackageSession"/> or <see cref="Stride.Core.Reflection.AssemblyContainer"/>
         /// involved. Common building block for fresh-template instantiation and legacy
         /// session-load paths.
@@ -58,8 +59,15 @@ namespace Stride.Assets
                 var project = VSProjectHelper.LoadProject(csprojPath);
                 var isDirty = false;
 
-                foreach (var package in project.GetItems("PackageReference"))
+                foreach (var package in project.GetItems("PackageReference").ToList())
                 {
+                    // 4.5: the test runner package xunit.runner.stride was renamed Stride.XunitRunner; the version is set below
+                    if (string.Equals(package.EvaluatedInclude, "xunit.runner.stride", StringComparison.OrdinalIgnoreCase))
+                    {
+                        package.Rename("Stride.XunitRunner");
+                        isDirty = true;
+                    }
+
                     if (IsSkippedPackage(package.EvaluatedInclude))
                         continue;
 

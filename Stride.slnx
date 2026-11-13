@@ -277,7 +277,7 @@
   </Folder>
   <Folder Name="/90-Tools/">
     <Project Path="tests/infra/Stride.ScreenshotComparator/Stride.ScreenshotComparator.csproj" />
-    <Project Path="sources/tests/xunit.runner.stride/xunit.runner.stride.csproj" />
+    <Project Path="sources/tests/Stride.XunitRunner/Stride.XunitRunner.csproj" />
     <Project Path="sources/tools/Stride.ConnectionRouter/Stride.ConnectionRouter.csproj" />
     <Project Path="sources/tools/Stride.Core.Translation.Extractor/Stride.Core.Translation.Extractor.csproj" />
     <Project Path="sources/tools/Stride.EffectCompilerServer/Stride.EffectCompilerServer.csproj" />
