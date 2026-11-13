@@ -227,6 +227,58 @@ public class SoftBodyTests : GameTestBase
         });
     }
 
+    /// <summary>
+    /// A model made of two cubes apart from each other is a body in two pieces, which sleep and wake on their own in the solver:
+    /// the body is awake as long as one of them is, and is put to sleep or woken up as a whole.
+    /// </summary>
+    [Fact]
+    public static void ABodyInSeveralPiecesWakesAndSleepsAsOne()
+    {
+        RunScene(async scene =>
+        {
+            var model = new ProceduralModelDescriptor(new CubeProceduralModel()).GenerateModel(scene.Game.Services);
+            model.Skeleton = new Skeleton
+            {
+                Nodes =
+                [
+                    new ModelNodeDefinition { Name = "Root", ParentIndex = -1, Flags = ModelNodeFlags.Default, Transform = new TransformTRS { Rotation = Quaternion.Identity, Scale = Vector3.One } },
+                    new ModelNodeDefinition { Name = "Far", ParentIndex = 0, Flags = ModelNodeFlags.Default, Transform = new TransformTRS { Position = new Vector3(3f, 0f, 0f), Rotation = Quaternion.Identity, Scale = Vector3.One } },
+                ],
+            };
+            model.Meshes.Add(new Mesh(model.Meshes[0]) { NodeIndex = 1 });
+
+            var body = new VolumetricSoftBodyComponent { Resolution = 8 };
+            scene.Add(body, model, new Vector3(0f, 0.6f, 0f));
+            await body.Simulation!.AfterUpdate();
+
+            int near = 0, far = 0;
+            for (int i = 0; i < body.ParticleCount; i++)
+            {
+                if (body.GetParticlePosition(i).X < body.GetParticlePosition(near).X)
+                    near = i;
+                if (body.GetParticlePosition(i).X > body.GetParticlePosition(far).X)
+                    far = i;
+            }
+            Assert.True(body.GetParticlePosition(far).X - body.GetParticlePosition(near).X > 3f);
+
+            body.Awake = false;
+            Assert.False(body.Particle(near).Awake);
+            Assert.False(body.Particle(far).Awake);
+            Assert.False(body.Awake);
+
+            foreach (int piece in new[] { near, far })
+            {
+                body.ApplyParticleImpulse(piece, Vector3.UnitY * 0.01f);
+                Assert.True(body.Awake);
+                body.Awake = false;
+            }
+
+            body.Awake = true;
+            Assert.True(body.Particle(near).Awake);
+            Assert.True(body.Particle(far).Awake);
+        });
+    }
+
     private sealed class CountingHandler : IContactHandler
     {
         public bool NoContactResponse => false;
