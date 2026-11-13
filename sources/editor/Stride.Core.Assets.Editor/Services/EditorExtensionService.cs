@@ -313,14 +313,15 @@ public sealed class EditorExtensionService
         }
     }
 
-    // Whether the package NuGet restored for an extension is the file in the feed. NuGet takes a package from any of its sources,
-    // so another one (nuget.org, a company feed) can serve another package with the same id and version
+    // Whether the package NuGet restored for an extension, or for one of its companions, is the file in the feed. NuGet takes
+    // a package from any of its sources, so another one (nuget.org, a company feed) can serve another package with the same id
+    // and version
     private bool IsRestoredFromFeed(string id, PackageVersion version, ILogger log)
     {
         var installed = Path.Combine(FeedDirectory, $"{id}.{version}.nupkg");
         if (!File.Exists(installed))
         {
-            log.Error($"The extension [{id}] version [{version}] is not in [{FeedDirectory}] any more: the package NuGet restored for it is not loaded. Install the extension again.");
+            log.Error($"The package [{id}] version [{version}] is not in [{FeedDirectory}] any more: the package NuGet restored for it is not loaded. Install the extension again.");
             return false;
         }
         // Without the global packages folder (a service that leaves it alone), there is nothing to compare

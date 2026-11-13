@@ -140,6 +140,23 @@ public class TestCompanionPackageSource
     }
 
     [Fact]
+    public void ARestoredCompanionOfACompanionOfTheSourceIsCheckedToo()
+    {
+        using var feed = new LocalPackageFeed();
+        var view = new CompanionPackage { Name = "Tool.Editor.Avalonia", Version = Version, Kind = PackageKind.Editor, Toolkit = EditorToolkits.Avalonia };
+        feed.AddPackage("Tool.Editor", "1.0.0", PackageKind.Editor, companions: [view]);
+        feed.AddPackage("Tool.Editor.Avalonia", "1.0.0", PackageKind.Editor, EditorToolkits.Avalonia);
+        var source = new Source(feed.FeedDirectory, Declare("Tool.Editor")) { Refused = ["Tool.Editor.Avalonia"] };
+        var session = new PackageSession { CompanionPackageSource = source };
+
+        session.LoadCompanionPackages(feed.Root, new LoggerResult(), loadEditorPackages: true, EditorToolkits.Avalonia);
+
+        Assert.Equal(["Tool.Editor", "Tool.Editor.Avalonia"], source.Checked);
+        Assert.Contains(session.Projects, x => x.Package.Meta.Name == "Tool.Editor");
+        Assert.DoesNotContain(session.Projects, x => x.Package.Meta.Name == "Tool.Editor.Avalonia");
+    }
+
+    [Fact]
     public void AMissingPackageIsAnError()
     {
         using var feed = new LocalPackageFeed();
@@ -192,12 +209,14 @@ public class TestCompanionPackageSource
 
         public bool Expected { get; init; } = true;
 
+        public HashSet<string> Refused { get; init; } = [];
+
         public List<string> Checked { get; } = [];
 
         public bool IsRestoredPackageExpected(string name, PackageVersion version, ILogger log)
         {
             Checked.Add(name);
-            return Expected;
+            return Expected && !Refused.Contains(name);
         }
 
         public IReadOnlyList<string> PackageSources { get; } = feed is not null ? [feed] : [];

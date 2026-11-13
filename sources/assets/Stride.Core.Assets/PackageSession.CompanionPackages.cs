@@ -252,7 +252,16 @@ partial class PackageSession
             var fromSource = package.Meta.Name is { } declaringName && sourcePackageNames.Contains(declaringName);
             var loaded = LoadCompanionPackage(companionName, version, loadedByName, rootDirectory, log, fromSource ? CompanionPackageSource?.PackageSources : null);
             if (loaded is not null && fromSource)
+            {
+                // Restored from the same sources as the package that declares it: checked the same way
+                if (CompanionPackageSource is { } source && !source.IsRestoredPackageExpected(companionName, version, log))
+                {
+                    Projects.Remove(loaded);
+                    loadedByName.Remove(companionName);
+                    return;
+                }
                 sourcePackageNames.Add(companionName);
+            }
             if (loaded is null)
             {
                 log.Error($"{kind} package [{companionName}] version [{version}], declared by [{package.Meta.Name}], was not found; assets of that package cannot be compiled or edited.");
