@@ -9,6 +9,7 @@ using Stride.Assets.Editor.ViewModels.CurveEditor;
 using Stride.Assets.Entities;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Drawing;
@@ -60,9 +61,9 @@ internal sealed class CurveEditorTestScene : IAsyncDisposable
 
     public IUndoRedoService UndoRedo => Fixture.Session.UndoRedoService;
 
-    public static async Task<CurveEditorTestScene> OpenAsync()
+    public static async DispatcherTask<CurveEditorTestScene> OpenAsync()
     {
-        var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: true, new NullDispatcherService(), ("MainScene", new SceneAsset()));
+        var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: true, ("MainScene", new SceneAsset()));
         Assert.False(fixture.Result.HasErrors, fixture.Log);
         var sceneEditor = await EntityHierarchyEditorTests.OpenEditorAsync(fixture);
 
