@@ -11,10 +11,12 @@ using BepuPhysics.Collidables;
 using BepuPhysics.Constraints;
 using Stride.BepuPhysics.Components;
 using Stride.BepuPhysics.Definitions;
+using Stride.BepuPhysics.Definitions.Colliders;
 using Stride.BepuPhysics.Soft.Colliders;
 using Stride.BepuPhysics.Soft.Rendering;
 using Stride.BepuPhysics.Soft.Topology;
 using Stride.Core;
+using Stride.Core.Annotations;
 using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Engine;
@@ -35,6 +37,7 @@ namespace Stride.BepuPhysics.Soft;
 [DataContract(Inherited = true)]
 [DefaultEntityComponentProcessor(typeof(SoftBodyProcessor), ExecutionMode = ExecutionMode.Runtime)]
 [ComponentCategory("Physics - Bepu Soft")]
+[CategoryOrder(1, CategorySoftBody, Expand = ExpandRule.Always)]
 public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
 {
     /// <summary> The category of the soft body settings in the property grid </summary>
@@ -75,6 +78,7 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
     /// only knob a <see cref="ParticleCollider"/> exposes.
     /// </remarks>
     [Display(category: CategorySoftBody)]
+    [DataMemberRange(minimum: 0, decimalPlaces: 3)]
     [DefaultValue(0f)]
     public float ParticleRadius
     {
@@ -85,7 +89,12 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
     /// <summary>
     /// The mass of the whole body, spread evenly over its particles.
     /// </summary>
+    /// <remarks>
+    /// The solver converges poorly when light particles carry a much heavier body: the soft body gives way past its limits,
+    /// and more iterations do not help much. Give it a mass closer to what it carries, or fewer particles.
+    /// </remarks>
     [Display(category: CategorySoftBody)]
+    [DataMemberRange(minimum: 0.001, decimalPlaces: 3)]
     [DefaultValue(1f)]
     public float Mass
     {
@@ -131,6 +140,7 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
 
     /// <inheritdoc cref="BodyComponent.SleepThreshold"/>
     [Display(category: CategoryActivity)]
+    [DataMemberRange(minimum: 0, decimalPlaces: 3)]
     [DefaultValue(0.01f)]
     public float SleepThreshold
     {
@@ -146,6 +156,7 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
     /// Particles held in place or following other entities, changes are applied when the body is created.
     /// </summary>
     [Display(category: CategorySoftBody)]
+    [MemberCollection(NotNullItems = true)]
     public List<SoftBodyPin> Pins { get; } = new();
 
     /// <summary> The amount of particles, zero until the body is part of a simulation </summary>
