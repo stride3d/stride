@@ -38,7 +38,7 @@ internal static class LatticeBuilder
             throw new InvalidOperationException("The mesh does not enclose any volume at this resolution, it must be closed, or the resolution higher");
 
         // A part of the mesh thinner than a cell may hold no cell center, what it links would come apart
-        ConnectIslands(occupied, size);
+        ConnectIslands(occupied, Voxelizer.CellsOnSurface(mesh.Positions, mesh.Indices, origin, cellSize, size), size);
 
         // Particles sit on the corners of occupied cells
         var nodes = new Int3(size.X + 1, size.Y + 1, size.Z + 1);
@@ -131,30 +131,35 @@ internal static class LatticeBuilder
     }
 
     /// <summary>
-    /// Occupies the cells it takes for every occupied cell to be reached from any other through the faces of occupied cells,
-    /// so the body is a single piece: each island of cells is joined to the closest cell of another one by the cells on the way.
+    /// Occupies the cells it takes for the islands of occupied cells that the surface links to be a single piece: each island is joined
+    /// to the closest cell of another one by the cells on the way, all of them cells the surface goes through.
     /// </summary>
-    internal static void ConnectIslands(bool[] occupied, Int3 size)
+    /// <remarks> Islands that no part of the surface links are separate pieces of the mesh, they stay apart. </remarks>
+    internal static void ConnectIslands(bool[] occupied, bool[] onSurface, Int3 size)
     {
         var island = new int[occupied.Length];
         var cameFrom = new int[occupied.Length];
+        var apart = new bool[occupied.Length];
         var islandSizes = new List<int>();
         var queue = new Queue<int>();
         while (true)
         {
             Array.Fill(island, -1);
             islandSizes.Clear();
+            int smallest = -1;
             for (int start = 0; start < occupied.Length; start++)
             {
                 if (occupied[start] == false || island[start] >= 0)
                     continue;
 
                 int cells = 0;
+                bool isApart = false;
                 island[start] = islandSizes.Count;
                 queue.Enqueue(start);
                 while (queue.TryDequeue(out int cell))
                 {
                     cells++;
+                    isApart |= apart[cell];
                     var at = CellAt(cell, size);
                     for (int axis = 0; axis < 3; axis++)
                     {
@@ -173,14 +178,15 @@ internal static class LatticeBuilder
                         }
                     }
                 }
+                if (isApart == false && (smallest < 0 || cells < islandSizes[smallest]))
+                    smallest = islandSizes.Count;
                 islandSizes.Add(cells);
             }
-            if (islandSizes.Count <= 1)
+            if (islandSizes.Count <= 1 || smallest < 0)
                 return;
 
-            // From the smallest island, spread through the cells around it, empty ones included, until a cell of another
-            // island is reached: the way back to the island is the shortest one, face to face, and gets occupied
-            int smallest = islandSizes.IndexOf(islandSizes.Min());
+            // From the smallest island, spread through the cells of the surface around it until a cell of another island
+            // is reached: the way back to the island is the shortest one, face to face, and gets occupied
             Array.Fill(cameFrom, -1);
             for (int cell = 0; cell < occupied.Length; cell++)
             {
@@ -204,7 +210,7 @@ internal static class LatticeBuilder
                         if (next[axis] < 0 || next[axis] >= size[axis])
                             continue;
                         int neighbor = CellIndex(next.X, next.Y, next.Z, size);
-                        if (cameFrom[neighbor] >= 0)
+                        if (cameFrom[neighbor] >= 0 || (occupied[neighbor] || onSurface[neighbor]) == false)
                             continue;
                         cameFrom[neighbor] = cell;
                         if (island[neighbor] >= 0)
@@ -216,10 +222,19 @@ internal static class LatticeBuilder
             }
             queue.Clear();
 
+            if (reached < 0)
+            {
+                // Nothing of the mesh leads from this island to another one
+                for (int cell = 0; cell < occupied.Length; cell++)
+                    apart[cell] |= island[cell] == smallest;
+                continue;
+            }
+
             for (int cell = reached; cell >= 0 && island[cell] != smallest; cell = cameFrom[cell])
                 occupied[cell] = true;
         }
     }
+
     private static Int3 CellAt(int index, Int3 size) => new(index % size.X, index / size.X % size.Y, index / (size.X * size.Y));
 
     private static int CellIndex(int x, int y, int z, Int3 size) => (z * size.Y + y) * size.X + x;
