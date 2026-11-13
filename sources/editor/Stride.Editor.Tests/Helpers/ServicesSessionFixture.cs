@@ -103,7 +103,9 @@ public sealed class ServicesSessionFixture : IAsyncDisposable
         ]);
         var fixture = new ServicesSessionFixture(directory, serviceProvider, dialogs);
         fixture.WritePackage(assets);
-        var session = await SessionViewModel.OpenSessionAsync(fixture.PackagePath, fixture.Result, new FakeMainViewModel(serviceProvider), serviceProvider);
+        // The NuGet restore and the MSBuild evaluation of the project have nothing to give for it
+        var session = await SessionViewModel.OpenSessionAsync(fixture.PackagePath, loadParameters => TestPackageLoad.WithoutMSBuild(fixture.PackagePath, null, fixture.Result, loadParameters),
+            fixture.Result, new FakeMainViewModel(serviceProvider), serviceProvider);
         if (session is null)
             throw new InvalidOperationException("The session could not be opened:" + Environment.NewLine + fixture.Log);
         fixture.Session = session;

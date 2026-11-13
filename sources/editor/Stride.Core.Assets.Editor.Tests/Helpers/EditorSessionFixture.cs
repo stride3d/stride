@@ -29,12 +29,17 @@ public sealed class EditorSessionFixture : IAsyncDisposable
     /// </summary>
     public const string OtherSuffix = ".other";
 
+    // The real load: NuGet restore and MSBuild evaluation of the projects
+    private static readonly Action<UFile, PackageSessionResult, PackageLoadParameters> withMSBuild = (path, result, loadParameters) => PackageSession.Load(path, result, loadParameters);
+
+    private readonly Action<UFile, PackageSessionResult, PackageLoadParameters> load;
     private bool destroyed;
     private bool ownsDirectory = true;
 
-    private EditorSessionFixture(string directory, IViewModelServiceProvider serviceProvider, FakeEditorDialogService dialogs, FakeClipboardService clipboard, FakePluginService plugins)
+    private EditorSessionFixture(string directory, Action<UFile, PackageSessionResult, PackageLoadParameters> load, IViewModelServiceProvider serviceProvider, FakeEditorDialogService dialogs, FakeClipboardService clipboard, FakePluginService plugins)
     {
         Directory = directory;
+        this.load = load;
         ServiceProvider = serviceProvider;
         Dialogs = dialogs;
         Clipboard = clipboard;
@@ -110,18 +115,29 @@ public sealed class EditorSessionFixture : IAsyncDisposable
     /// <summary>
     /// Saves a package with the given assets (location relative to the package, value) and opens it.
     /// </summary>
-    public static DispatcherTask<EditorSessionFixture> OpenAsync(params (string Location, string Value)[] assets) => DispatcherTask.InDispatcher(() => OpenCoreAsync(null, assets));
+    /// <remarks>
+    /// The session loads without the NuGet restore and the MSBuild evaluation of the project, which have nothing to give for
+    /// it (<see cref="TestPackageLoad"/>), as with <see cref="OpenExecutableAsync"/> and the editable packages of <c>OpenAsync(readOnly: false)</c>.
+    /// </remarks>
+    public static DispatcherTask<EditorSessionFixture> OpenAsync(params (string Location, string Value)[] assets) => DispatcherTask.InDispatcher(() => OpenCoreAsync(null, assets, WithoutMSBuild(null)));
+
+    /// <summary>
+    /// Saves a package with the given assets (location relative to the package, value) and opens it as the editor does, with
+    /// the NuGet restore and the MSBuild evaluation of its project: for the tests of that load.
+    /// </summary>
+    public static DispatcherTask<EditorSessionFixture> OpenWithMSBuildAsync(params (string Location, string Value)[] assets) => DispatcherTask.InDispatcher(() => OpenCoreAsync(null, assets, withMSBuild));
 
     /// <summary>
     /// Saves a package whose project is the executable of a platform (the head of a game), with the given assets, and opens it.
     /// </summary>
-    public static DispatcherTask<EditorSessionFixture> OpenExecutableAsync(PlatformType platform, params (string Location, string Value)[] assets) => DispatcherTask.InDispatcher(() => OpenCoreAsync(platform, assets));
+    public static DispatcherTask<EditorSessionFixture> OpenExecutableAsync(PlatformType platform, params (string Location, string Value)[] assets) => DispatcherTask.InDispatcher(() => OpenCoreAsync(platform, assets, WithoutMSBuild(platform)));
 
     /// <summary>
     /// Saves a solution as the New game template makes it: the package, a library, and an executable project for each given
-    /// platform (TestGame.Windows, TestGame.Linux...), then opens the solution.
+    /// platform (TestGame.Windows, TestGame.Linux...), then opens the solution, with the NuGet restore and the MSBuild
+    /// evaluation of its projects.
     /// </summary>
-    public static DispatcherTask<EditorSessionFixture> OpenGameAsync(params PlatformType[] executablePlatforms) => DispatcherTask.InDispatcher(() => OpenCoreAsync(null, [], executablePlatforms));
+    public static DispatcherTask<EditorSessionFixture> OpenGameAsync(params PlatformType[] executablePlatforms) => DispatcherTask.InDispatcher(() => OpenCoreAsync(null, [], withMSBuild, executablePlatforms));
 
     /// <summary>
     /// Saves a package with the given assets (location relative to the package, asset) and opens it. Without a project next to
@@ -131,7 +147,8 @@ public sealed class EditorSessionFixture : IAsyncDisposable
     {
         var directory = NewDirectory();
         WritePackage(directory, readOnly ? null : ProjectFile(null), assets);
-        return DispatcherTask.InDispatcher(() => OpenCoreAsync(directory));
+        // A package without a project has nothing to restore or evaluate
+        return DispatcherTask.InDispatcher(() => OpenCoreAsync(directory, readOnly ? withMSBuild : WithoutMSBuild(null)));
     }
 
     /// <summary>
@@ -142,19 +159,23 @@ public sealed class EditorSessionFixture : IAsyncDisposable
     {
         await DestroyAsync();
         ownsDirectory = false;
-        return await OpenCoreAsync(Directory);
+        return await OpenCoreAsync(Directory, load);
     }
 
     private static string NewDirectory() => Path.Combine(Path.GetTempPath(), "Stride.Core.Assets.Editor.Tests", Guid.NewGuid().ToString("N"));
 
-    private static async Task<EditorSessionFixture> OpenCoreAsync(string directory)
+    // The NuGet restore and the MSBuild evaluation of the project have nothing to give for the projects that the fixture writes
+    private static Action<UFile, PackageSessionResult, PackageLoadParameters> WithoutMSBuild(PlatformType? executablePlatform)
+        => (path, result, loadParameters) => TestPackageLoad.WithoutMSBuild(path, executablePlatform, result, loadParameters);
+
+    private static async Task<EditorSessionFixture> OpenCoreAsync(string directory, Action<UFile, PackageSessionResult, PackageLoadParameters> load)
     {
-        var fixture = CreateFixture(directory);
+        var fixture = CreateFixture(directory, load);
         await fixture.OpenSessionAsync(fixture.PackagePath);
         return fixture;
     }
 
-    private static EditorSessionFixture CreateFixture(string directory)
+    private static EditorSessionFixture CreateFixture(string directory, Action<UFile, PackageSessionResult, PackageLoadParameters> load)
     {
         var dialogs = new FakeEditorDialogService();
         var clipboard = new FakeClipboardService();
@@ -168,13 +189,13 @@ public sealed class EditorSessionFixture : IAsyncDisposable
             plugins,
             new FakeThumbnailDataFactory(),
         ]);
-        return new EditorSessionFixture(directory, serviceProvider, dialogs, clipboard, plugins);
+        return new EditorSessionFixture(directory, load, serviceProvider, dialogs, clipboard, plugins);
     }
 
     private async Task OpenSessionAsync(UFile path)
     {
         ServiceProvider.Get<IDispatcherService>().EnsureAccess();
-        var session = await SessionViewModel.OpenSessionAsync(path, Result, new FakeMainViewModel(ServiceProvider), ServiceProvider);
+        var session = await SessionViewModel.OpenSessionAsync(path, loadParameters => load(path, Result, loadParameters), Result, new FakeMainViewModel(ServiceProvider), ServiceProvider);
         if (session is null)
             throw new InvalidOperationException("The session could not be opened:" + Environment.NewLine + Log);
         Session = session;
@@ -191,10 +212,10 @@ public sealed class EditorSessionFixture : IAsyncDisposable
         await session.Initialization;
     }
 
-    private static async Task<EditorSessionFixture> OpenCoreAsync(PlatformType? executablePlatform, (string Location, string Value)[] assets, PlatformType[]? heads = null)
+    private static async Task<EditorSessionFixture> OpenCoreAsync(PlatformType? executablePlatform, (string Location, string Value)[] assets, Action<UFile, PackageSessionResult, PackageLoadParameters> load, PlatformType[]? heads = null)
     {
         var directory = NewDirectory();
-        var fixture = CreateFixture(directory);
+        var fixture = CreateFixture(directory, load);
         fixture.WritePackage(assets, executablePlatform);
         var path = heads is null ? fixture.PackagePath : fixture.WriteSolution(heads);
         await fixture.OpenSessionAsync(path);

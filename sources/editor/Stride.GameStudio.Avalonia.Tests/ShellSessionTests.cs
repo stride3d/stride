@@ -28,7 +28,7 @@ public sealed class ShellSessionTests
     [AvaloniaFact]
     public async Task TheMainViewModelOpensASessionAndInitializesThePlugins()
     {
-        using var fixture = await ShellSessionFixture.OpenAsync(("Sheet", new SpriteSheetAsset()), ("Material", new MaterialAsset()));
+        using var fixture = await ShellSessionFixture.OpenWithMSBuildAsync(("Sheet", new SpriteSheetAsset()), ("Material", new MaterialAsset()));
 
         var session = fixture.Session;
         Assert.True(session.IsEditorInitialized);

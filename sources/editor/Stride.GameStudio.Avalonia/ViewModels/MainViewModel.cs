@@ -124,6 +124,12 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
     /// </summary>
     public SafeModeBannerViewModel? SafeModeBanner { get; }
 
+    /// <summary>
+    /// Loads the session file (a solution or a package) that <see cref="OpenSession"/> opens, with the load parameters of the
+    /// editor; the tests replace it to load the packages they write without the NuGet restore and MSBuild.
+    /// </summary>
+    internal Action<UFile, PackageSessionResult, PackageLoadParameters> LoadSessionFile { get; set; } = (path, result, loadParameters) => PackageSession.Load(path, result, loadParameters);
+
     /// <inheritdoc/>
     public string EditorToolkitName => EditorToolkits.Avalonia;
 
@@ -335,7 +341,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
 
         ProcessService?.NotifySessionLoading();
         var sessionResult = new PackageSessionResult();
-        var loadedSession = await SessionViewModel.OpenSessionAsync(filePath, sessionResult, this, ServiceProvider, token);
+        var loadedSession = await SessionViewModel.OpenSessionAsync(filePath, loadParameters => LoadSessionFile(filePath, sessionResult, loadParameters), sessionResult, this, ServiceProvider, token);
 
         // Loading has failed
         if (loadedSession == null)

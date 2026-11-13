@@ -76,6 +76,10 @@ public sealed class AssetsSessionFixture : IAsyncDisposable
     /// <summary>
     /// Saves a package with the given assets (location relative to the package, asset) and opens it.
     /// </summary>
+    /// <remarks>
+    /// The session loads without the NuGet restore and the MSBuild evaluation of the project, which have nothing to give for
+    /// it (<see cref="TestPackageLoad"/>): the scripts among the assets are the files of the project.
+    /// </remarks>
     /// <param name="initializeEditor">Whether to run the editor plugin's session initialization (build services, commands and updaters).</param>
     public static DispatcherTask<AssetsSessionFixture> OpenAsync(bool initializeEditor, params (string Location, Asset Asset)[] assets)
     {
@@ -113,7 +117,8 @@ public sealed class AssetsSessionFixture : IAsyncDisposable
         ]);
         var fixture = new AssetsSessionFixture(directory, serviceProvider, plugins);
         fixture.WritePackage(assets);
-        var session = await SessionViewModel.OpenSessionAsync(fixture.PackagePath, fixture.Result, new FakeMainViewModel(serviceProvider), serviceProvider);
+        var session = await SessionViewModel.OpenSessionAsync(fixture.PackagePath, loadParameters => TestPackageLoad.WithoutMSBuild(fixture.PackagePath, null, fixture.Result, loadParameters),
+            fixture.Result, new FakeMainViewModel(serviceProvider), serviceProvider);
         if (session is null)
             throw new InvalidOperationException("The session could not be opened:" + Environment.NewLine + fixture.Log);
         fixture.Session = session;
