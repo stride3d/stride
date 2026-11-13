@@ -3,6 +3,9 @@
 
 namespace Stride.Core.Presentation.Drawing
 {
+    /// <summary>
+    /// How an <see cref="IDrawingContext"/> measures text. A hint that a toolkit may ignore.
+    /// </summary>
     public enum TextMeasurementMethod
     {
         /// <summary>
