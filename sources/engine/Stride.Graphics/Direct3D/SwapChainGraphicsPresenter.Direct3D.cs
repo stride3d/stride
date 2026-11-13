@@ -310,7 +310,11 @@ namespace Stride.Graphics
             // If not fullscreen, currentOutput will be null but output won't be, so don't compare them
             if (isCurrentlyFullscreen == isFullScreen &&
                 (isCurrentlyFullscreen is false || (output is not null && currentOutput.IsNotNull() && currentOutput.Handle == output.NativeOutput.Handle)))
+            {
+                // DXGI can leave full screen on its own (the window losing the output): keep the description in step
+                Description.IsFullScreen = isFullScreen;
                 return;
+            }
 
             bool switchToFullScreen = isFullScreen;
 
@@ -338,8 +342,11 @@ namespace Stride.Graphics
                 if (result.IsFailure)
                     result.Throw();
 
-                // Call 1) SwapChain.IsFullScreen 2) SwapChain.Resize
-                Resize(backBuffer.ViewWidth, backBuffer.ViewHeight, backBuffer.ViewFormat);
+                // Call 1) SwapChain.IsFullScreen 2) SwapChain.ResizeBuffers. DXGI needs ResizeBuffers after leaving
+                // full screen even when the size is unchanged (the window size is usually applied before), else Present fails
+                GraphicsDevice.Begin();
+                ResizeBackBuffer(backBuffer.ViewWidth, backBuffer.ViewHeight, backBuffer.ViewFormat);
+                GraphicsDevice.End();
             }
 
             // If going to window mode:
