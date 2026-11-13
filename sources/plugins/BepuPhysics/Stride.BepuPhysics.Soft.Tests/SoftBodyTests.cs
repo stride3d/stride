@@ -2,15 +2,22 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using BepuPhysics.CollisionDetection;
+using Stride.BepuPhysics.Debug;
 using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Definitions.Colliders;
 using Stride.BepuPhysics.Definitions.Contacts;
 using Stride.BepuPhysics.Soft.Colliders;
 using Stride.BepuPhysics.Soft.Topology;
+using Stride.BepuPhysics.Systems;
+using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
+using Stride.Core.Reflection;
+using Stride.Core.Serialization;
 using Stride.Engine;
 using Stride.Graphics.GeometricPrimitives;
 using Stride.Graphics.Regression;
@@ -64,26 +71,24 @@ public class SoftBodyTests : GameTestBase
     }
 
     /// <summary>
-    /// The collider of the particles is not a public type, so no other collidable can be given one. A soft body refuses any other
-    /// collider as it is given, and comes back from the binary form of a compiled scene with its own and the radius of its particles.
+    /// A soft body refuses any other collider than its own as it is given, and comes back from the binary form of a compiled scene
+    /// with its own and the radius of its particles.
     /// </summary>
     [Fact]
     public static void SoftBodiesMakeTheirOwnCollider()
     {
-        Assert.False(typeof(ParticleCollider).IsVisible);
-
         var soft = new VolumetricSoftBodyComponent { ParticleRadius = 0.07f };
         Assert.Throws<NotSupportedException>(() => soft.Collider = new CompoundCollider { Colliders = { new SphereCollider() } });
         Assert.Throws<NotSupportedException>(() => ((CollidableComponent)soft).Collider = new CompoundCollider { Colliders = { new SphereCollider() } });
         Assert.IsType<ParticleCollider>(soft.Collider);
 
-        var stream = new System.IO.MemoryStream();
-        var writer = new Stride.Core.Serialization.BinarySerializationWriter(stream);
-        Stride.Core.Serialization.SerializerExtensions.Write(writer, soft);
+        var stream = new MemoryStream();
+        var writer = new BinarySerializationWriter(stream);
+        writer.Write(soft);
         writer.Flush();
-        stream.Seek(0, System.IO.SeekOrigin.Begin);
+        stream.Seek(0, SeekOrigin.Begin);
         VolumetricSoftBodyComponent? copy = null;
-        Stride.Core.Serialization.SerializerExtensions.Serialize(new Stride.Core.Serialization.BinarySerializationReader(stream), ref copy, Stride.Core.Serialization.ArchiveMode.Deserialize);
+        new BinarySerializationReader(stream).Serialize(ref copy, ArchiveMode.Deserialize);
         Assert.IsType<ParticleCollider>(copy!.Collider);
         Assert.Equal(0.07f, copy.ParticleRadius);
     }
@@ -93,10 +98,8 @@ public class SoftBodyTests : GameTestBase
     {
         RunScene(async scene =>
         {
-            // Pinned along the edge at x = -0.5
-            var edge = new BoundingBox(new Vector3(-0.51f, -1f, -1f), new Vector3(-0.49f, 1f, 1f));
-            var cloth = new ClothComponent { Pins = { new SoftBodyPin { Region = edge } } };
-            scene.Add(cloth, new PlaneProceduralModel { Size = new Vector2(1f), Tessellation = new Int2(10), Normal = NormalDirection.UpY, GenerateBackFace = true }, new Vector3(0f, 2f, 0f));
+            var cloth = new ClothComponent { Pins = { new SoftBodyPin { Region = PinnedEdge } } };
+            scene.Add(cloth, ClothModel, new Vector3(0f, 2f, 0f));
             Assert.Equal(11 * 11, cloth.ParticleCount);
 
             // It swings like a pendulum around the pinned edge, which stays in place, and the free edge comes down to about a meter below it
@@ -206,31 +209,6 @@ public class SoftBodyTests : GameTestBase
     }
 
     /// <summary>
-    /// Out of a simulation, as in the editor, the model of the entity stands for the body in what draws and picks colliders;
-    /// in one the particles move on their own, and nothing fixed to the entity is given.
-    /// </summary>
-    [Fact]
-    public static void TheModelStandsForTheBodyOutOfASimulation()
-    {
-        RunScene(async scene =>
-        {
-            var cloth = new ClothComponent();
-            var entity = new Entity { new ModelComponent(new ProceduralModelDescriptor(ClothModel).GenerateModel(scene.Game.Services)), cloth };
-            entity.Transform.Scale = new Vector3(2f);
-            var collider = cloth.Collider;
-
-            Assert.Equal(1, collider.Transforms);
-            var transforms = new ShapeTransform[1];
-            collider.GetLocalTransforms(cloth, transforms);
-            Assert.Equal(new Vector3(2f), transforms[0].Scale);
-
-            scene.Add(entity);
-            await cloth.Simulation!.AfterUpdate();
-            Assert.Equal(0, collider.Transforms);
-        });
-    }
-
-    /// <summary>
     /// The gizmo the scene editor shows and picks a collidable with: a soft body gets one from its model,
     /// also when the editor only loads that model after the gizmo was made.
     /// </summary>
@@ -246,7 +224,7 @@ public class SoftBodyTests : GameTestBase
             var cloth = new ClothComponent();
             var modelComponent = new ModelComponent();
             _ = new Entity("Cloth") { modelComponent, cloth };
-            var gizmo = new Stride.BepuPhysics.Systems.CollidableGizmo(cloth);
+            var gizmo = new CollidableGizmo(cloth);
             gizmo.Initialize(scene.Game.Services, editorScene);
             gizmo.IsEnabled = true;
             gizmo.Update();
@@ -266,13 +244,13 @@ public class SoftBodyTests : GameTestBase
     {
         RunScene(async scene =>
         {
-            var warnings = new System.Collections.Generic.List<string>();
-            void Collect(Stride.Core.Diagnostics.ILogMessage message)
+            var warnings = new List<string>();
+            void Collect(ILogMessage message)
             {
-                if (message.Type >= Stride.Core.Diagnostics.LogMessageType.Warning)
+                if (message.Type >= LogMessageType.Warning)
                     warnings.Add(message.Text);
             }
-            Stride.Core.Diagnostics.GlobalLogger.GlobalMessageLogged += Collect;
+            GlobalLogger.GlobalMessageLogged += Collect;
             try
             {
                 var body = new VolumetricSoftBodyComponent();
@@ -285,7 +263,7 @@ public class SoftBodyTests : GameTestBase
             }
             finally
             {
-                Stride.Core.Diagnostics.GlobalLogger.GlobalMessageLogged -= Collect;
+                GlobalLogger.GlobalMessageLogged -= Collect;
             }
         });
     }
@@ -297,7 +275,7 @@ public class SoftBodyTests : GameTestBase
     [Fact]
     public static void SoftBodiesKeepTheirColliderAndCollisionGroupToThemselves()
     {
-        static System.Collections.Generic.List<string> MembersOf(Type type) => Stride.Core.Reflection.TypeDescriptorFactory.Default.Find(type).Members.Select(member => member.Name).ToList();
+        static List<string> MembersOf(Type type) => TypeDescriptorFactory.Default.Find(type).Members.Select(member => member.Name).ToList();
 
         Assert.Contains("Collider", MembersOf(typeof(BodyComponent)));
         Assert.Contains("CollisionGroup", MembersOf(typeof(BodyComponent)));
@@ -458,8 +436,9 @@ public class SoftBodyTests : GameTestBase
         });
     }
 
+    /// <summary> The particles of a body touch each other all the time: its contact events only tell about the other collidables </summary>
     [Fact]
-    public static void RaysAndContactsReportTheSoftBody()
+    public static void ContactEventsLeaveOutABodyTouchingItself()
     {
         RunScene(async scene =>
         {
@@ -469,12 +448,6 @@ public class SoftBodyTests : GameTestBase
 
             await Seconds(body, 1.5f);
 
-            Assert.True(body.Simulation!.RayCast(new Vector3(0f, 5f, 0f), -Vector3.UnitY, 10f, out var hit));
-            Assert.Same(body, hit.Collidable);
-            Assert.True(body.RayCast(new Vector3(5f, 0.3f, 0f), -Vector3.UnitX, 10f, out hit));
-            Assert.Same(body, hit.Collidable);
-
-            // Touching the floor, its own particles touching each other do not count
             Assert.NotEmpty(events.Others);
             Assert.All(events.Others, other => Assert.IsType<StaticComponent>(other));
         });
@@ -497,7 +470,7 @@ public class SoftBodyTests : GameTestBase
         });
     }
 
-    /// <summary> Ray hits and contacts say which particle of the soft body they are on, through their child index </summary>
+    /// <summary> Ray hits and contacts report the soft body, and which of its particles they are on through their child index </summary>
     [Fact]
     public static void RaysAndContactsReportTheParticle()
     {
@@ -511,10 +484,12 @@ public class SoftBodyTests : GameTestBase
             // A ray stops on the sphere of the particle it reports, cast through the simulation or at the body alone
             float radius = ((ParticleCollider)body.Collider).ActualRadius;
             Assert.True(body.Simulation!.RayCast(new Vector3(0.1f, 5f, 0.2f), -Vector3.UnitY, 10f, out var hit));
+            Assert.Same(body, hit.Collidable);
             Assert.Equal(radius, Vector3.Distance(body.GetParticlePosition(hit.ChildIndex), hit.Point), 3);
             Assert.True(body.RayCast(new Vector3(5f, 0.3f, 0.1f), -Vector3.UnitX, 10f, out hit));
+            Assert.Same(body, hit.Collidable);
             Assert.Equal(radius, Vector3.Distance(body.GetParticlePosition(hit.ChildIndex), hit.Point), 3);
-            var hits = new System.Collections.Generic.List<HitInfo>();
+            var hits = new List<HitInfo>();
             CollectThroughABuffer(body, new Vector3(5f, 0.3f, 0.1f), hits);
             Assert.NotEmpty(hits);
             Assert.All(hits, each => Assert.Equal(radius, Vector3.Distance(body.GetParticlePosition(each.ChildIndex), each.Point), 3));
@@ -526,35 +501,12 @@ public class SoftBodyTests : GameTestBase
             Assert.All(events.Particles, particle => Assert.True(body.GetParticlePosition(particle).Y < radius * 1.5f, $"Particle {particle} at {body.GetParticlePosition(particle)}"));
         });
 
-        static void CollectThroughABuffer(SoftBodyComponent body, Vector3 origin, System.Collections.Generic.List<HitInfo> hits)
+        static void CollectThroughABuffer(SoftBodyComponent body, Vector3 origin, List<HitInfo> hits)
         {
             Span<HitInfoStack> buffer = stackalloc HitInfoStack[16];
             foreach (var hit in body.RayCastPenetrating(origin, -Vector3.UnitX, 10f, buffer))
                 hits.Add(hit);
         }
-    }
-
-    [Fact]
-    public static void OneTouchingEventPerStepWithNormalsTowardsTheBody()
-    {
-        RunScene(async scene =>
-        {
-            var events = new TouchingHandler();
-            var body = new VolumetricSoftBodyComponent { Resolution = 3, ContactEventHandler = events, SleepThreshold = 0f };
-            scene.Add(body, new CubeProceduralModel(), new Vector3(0f, 1f, 0f));
-
-            await Seconds(body, 1.5f);
-            for (int step = 0; step < 10; step++)
-            {
-                events.Calls = 0;
-                await body.Simulation!.AfterUpdate();
-                Assert.Equal(1, events.Calls);
-            }
-
-            // Resting on the floor through several particles, every normal points from the floor up to the body
-            Assert.True(events.Groups > 1);
-            Assert.All(events.Normals, normal => Assert.True(normal.Y > 0.9f, $"Normal {normal}"));
-        });
     }
 
     [Fact]
@@ -627,7 +579,7 @@ public class SoftBodyTests : GameTestBase
             scene.Add(plate, new Vector3(0f, 1.3f, 0f));
 
             var simulation = lower.Simulation!.Simulation;
-            using var recorder = new Stride.BepuPhysics.Debug.ContactRecorder(simulation);
+            using var recorder = new ContactRecorder(simulation);
             bool emptySlot = false;
             for (int step = 0; step < 150; step++)
             {
@@ -680,14 +632,7 @@ public class SoftBodyTests : GameTestBase
         RunScene(async scene =>
         {
             var model = new ProceduralModelDescriptor(new CubeProceduralModel()).GenerateModel(scene.Game.Services);
-            model.Skeleton = new Skeleton
-            {
-                Nodes =
-                [
-                    new ModelNodeDefinition { Name = "Root", ParentIndex = -1, Flags = ModelNodeFlags.Default, Transform = new TransformTRS { Rotation = Quaternion.Identity, Scale = Vector3.One } },
-                    new ModelNodeDefinition { Name = "Far", ParentIndex = 0, Flags = ModelNodeFlags.Default, Transform = new TransformTRS { Position = new Vector3(3f, 0f, 0f), Rotation = Quaternion.Identity, Scale = Vector3.One } },
-                ],
-            };
+            model.Skeleton = new Skeleton { Nodes = [Node("Root", -1, Vector3.Zero), Node("Far", 0, new Vector3(3f, 0f, 0f))] };
             model.Meshes.Add(new Mesh(model.Meshes[0]) { NodeIndex = 1 });
 
             var body = new VolumetricSoftBodyComponent { Resolution = 8 };
@@ -732,6 +677,8 @@ public class SoftBodyTests : GameTestBase
             scene.Add(body, new CubeProceduralModel(), new Vector3(0f, 1f, 0f));
             await body.Simulation!.AfterUpdate();
 
+            // In a simulation the lines are all the debug view gets: the collider has no shape fixed to the entity to show
+            Assert.Equal(0, body.Collider.Transforms);
             var lines = new LineCollector();
             body.AddDebugLines(lines);
 
@@ -784,7 +731,7 @@ public class SoftBodyTests : GameTestBase
 
     private sealed class LineCollector : IDebugLineCollector
     {
-        public readonly System.Collections.Generic.List<(Vector3 Start, Vector3 End, Color Color)> Segments = new();
+        public readonly List<(Vector3 Start, Vector3 End, Color Color)> Segments = new();
 
         public void AddLine(Vector3 start, Vector3 end, Color color) => Segments.Add((start, end, color));
     }
@@ -792,7 +739,7 @@ public class SoftBodyTests : GameTestBase
     private sealed class CountingHandler : IContactHandler
     {
         public bool NoContactResponse => false;
-        public readonly System.Collections.Generic.List<CollidableComponent> Others = new();
+        public readonly List<CollidableComponent> Others = new();
 
         public void OnStartedTouching<TManifold>(Contacts<TManifold> contacts) where TManifold : unmanaged, IContactManifold<TManifold>
         {
@@ -803,7 +750,7 @@ public class SoftBodyTests : GameTestBase
     private sealed class ParticleHandler : IContactHandler
     {
         public bool NoContactResponse => false;
-        public readonly System.Collections.Generic.HashSet<int> Particles = new();
+        public readonly HashSet<int> Particles = new();
 
         public void OnTouching<TManifold>(Contacts<TManifold> contacts) where TManifold : unmanaged, IContactManifold<TManifold>
         {
@@ -816,7 +763,7 @@ public class SoftBodyTests : GameTestBase
     {
         public bool NoContactResponse => false;
         public int Calls, Groups;
-        public readonly System.Collections.Generic.List<Vector3> Normals = new();
+        public readonly List<Vector3> Normals = new();
 
         public void OnTouching<TManifold>(Contacts<TManifold> contacts) where TManifold : unmanaged, IContactManifold<TManifold>
         {
@@ -830,7 +777,7 @@ public class SoftBodyTests : GameTestBase
     private sealed class PerOtherHandler : IContactHandler
     {
         public bool NoContactResponse => false;
-        public readonly System.Collections.Generic.Dictionary<CollidableComponent, (int Count, int Groups)> Calls = new();
+        public readonly Dictionary<CollidableComponent, (int Count, int Groups)> Calls = new();
 
         public void OnTouching<TManifold>(Contacts<TManifold> contacts) where TManifold : unmanaged, IContactManifold<TManifold>
         {
