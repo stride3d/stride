@@ -1,7 +1,13 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
+using Avalonia.Controls.Templates;
+using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
+using Avalonia.Markup.Xaml.Templates;
+using Avalonia.Threading;
 using Stride.Core.Assets.Editor.Avalonia.Tests.Helpers;
 using Stride.Core.Assets.Editor.Avalonia.Views;
 using Stride.Core.Presentation.Avalonia.Views;
@@ -42,6 +48,55 @@ public sealed class TemplateProviderTests
         Assert.NotNull(selector.Build(context.MemberOf(sample, nameof(SampleObject.Flag))));
         Assert.Null(selector.Build(context.MemberOf(sample, nameof(SampleObject.Text))));
         Assert.Null(selector.Build("not a node"));
+    }
+
+    /// <summary>
+    /// A property that moves to another place of the window, as the property grid does when its panel moves or the layout is
+    /// reset, builds its template again: it gets the same one, and the template that falls back on the next provider still
+    /// gets that provider.
+    /// </summary>
+    [AvaloniaFact]
+    public void APropertyThatMovesGetsTheSameTemplatesAgain()
+    {
+        var selector = new PropertyTemplateProviderSelector();
+        var node = new NodeViewModelContext().MemberOf(new SampleObject(), nameof(SampleObject.Flag));
+        // The first provider shows the next one inside it, as the providers of the property grid fall back on the next that matches
+        selector.RegisterTemplateProvider(new TypeMatchTemplateProvider { Type = typeof(bool), Template = Template(() => new Border { Child = new ContentPresenter { Content = node, ContentTemplate = selector } }) });
+        selector.RegisterTemplateProvider(new TypeMatchTemplateProvider { Template = Template(() => new TextBlock()) });
+        var first = new Decorator();
+        var second = new Decorator();
+        var window = new Window { Content = new StackPanel { Children = { first, second } } };
+        var presenter = new ContentPresenter { Content = node, ContentTemplate = selector };
+        first.Child = presenter;
+        window.Show();
+        try
+        {
+            Pump();
+            Assert.IsType<TextBlock>(Assert.IsType<ContentPresenter>(Assert.IsType<Border>(presenter.Child).Child).Child);
+
+            first.Child = null;
+            second.Child = presenter;
+            Pump();
+            Assert.IsType<TextBlock>(Assert.IsType<ContentPresenter>(Assert.IsType<Border>(presenter.Child).Child).Child);
+        }
+        finally
+        {
+            window.Close();
+        }
+
+        static DataTemplate Template(Func<Control> build)
+        {
+            return new DataTemplate { Content = (Func<IServiceProvider, object>)(_ => new TemplateResult<Control>(build(), new NameScope())) };
+        }
+
+        static void Pump()
+        {
+            for (var i = 0; i < 3; ++i)
+            {
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                Dispatcher.UIThread.RunJobs();
+            }
+        }
     }
 }
 

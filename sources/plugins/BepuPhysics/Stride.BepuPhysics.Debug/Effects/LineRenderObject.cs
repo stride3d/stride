@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Runtime.InteropServices;
+using Stride.BepuPhysics.Definitions;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Rendering;
@@ -12,7 +13,7 @@ namespace Stride.BepuPhysics.Debug.Effects;
 /// <summary>
 /// A batch of world-space line segments rebuilt every frame and drawn in a single call.
 /// </summary>
-public sealed class LineRenderObject : RenderObject, IDisposable
+public sealed class LineRenderObject : RenderObject, IDebugLineCollector, IDisposable
 {
     private LineVertex[] _vertices = new LineVertex[256];
     private Buffer? _vertexBuffer;
@@ -30,20 +31,6 @@ public sealed class LineRenderObject : RenderObject, IDisposable
     {
         VertexCount = 0;
         _uploaded = false;
-    }
-
-    /// <summary>
-    /// Grows the buffer so <paramref name="additionalSegments"/> can be added without resizing.
-    /// </summary>
-    public void Reserve(int additionalSegments)
-    {
-        var needed = VertexCount + additionalSegments * 2;
-        if (needed <= _vertices.Length)
-            return;
-        var cap = _vertices.Length;
-        while (cap < needed)
-            cap *= 2;
-        Array.Resize(ref _vertices, cap);
     }
 
     /// <summary>

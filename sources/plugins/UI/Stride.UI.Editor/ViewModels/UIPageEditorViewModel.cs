@@ -10,7 +10,6 @@ using Stride.Editor.Engine;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.UI.Editor.ViewModels;
 using Stride.UI.Editor.Services;
-using Stride.Assets.Presentation.ViewModel;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.ViewModels;
 

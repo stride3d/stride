@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Buffers;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -33,10 +34,13 @@ namespace Stride.BepuPhysics.Soft;
 [DataContract(Inherited = true)]
 [DefaultEntityComponentProcessor(typeof(SoftBodyProcessor), ExecutionMode = ExecutionMode.Runtime)]
 [ComponentCategory("Physics - Bepu Soft")]
-public abstract class SoftBodyComponent : CollidableComponent
+public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
 {
     /// <summary> The category of the soft body settings in the property grid </summary>
     public const string CategorySoftBody = "Soft Body";
+
+    /// <summary> The size of the cross drawn on a particle in the debug view, as a fraction of its radius </summary>
+    private const float DebugMarkerSize = 0.25f;
 
     private static readonly ConditionalWeakTable<Model, SourceMesh> SourceMeshes = new();
     private static readonly Logger Logger = GlobalLogger.GetLogger(nameof(SoftBodyComponent));
@@ -54,7 +58,7 @@ public abstract class SoftBodyComponent : CollidableComponent
     private Vector3 _restCentroid;
     private Quaternion _rotation = Quaternion.Identity;
     private ushort _groupId;
-    private int _islandProbe; // A particle which is not pinned, kinematic bodies are not part of the island
+    private int[] _islandProbes = [0]; // A particle of each piece of the body, never a pinned one: kinematic bodies are not part of an island
     private StepListener? _stepListener;
 
     [SetsRequiredMembers]
@@ -155,12 +159,27 @@ public abstract class SoftBodyComponent : CollidableComponent
     [DataMemberIgnore]
     public bool Awake
     {
-        get => _particles.Length > 0 && Simulation is not null && Particle(_islandProbe).Awake;
+        get
+        {
+            if (_particles.Length == 0 || Simulation is null)
+                return false;
+
+            // The particles of a piece are in the same island
+            foreach (int probe in _islandProbes)
+            {
+                if (Particle(probe).Awake)
+                    return true;
+            }
+            return false;
+        }
         set
         {
-            if (_particles.Length > 0 && Simulation is not null)
+            if (_particles.Length == 0 || Simulation is null)
+                return;
+
+            foreach (int probe in _islandProbes)
             {
-                var body = Particle(_islandProbe); // Every particle is in the same island
+                var body = Particle(probe);
                 body.Awake = value;
             }
         }
@@ -212,7 +231,7 @@ public abstract class SoftBodyComponent : CollidableComponent
 
     internal override bool ShouldCalculateInertia => false;
 
-    protected internal override CollidableReference? CollidableReference => _particles.Length > 0 && Simulation is not null ? Particle(_islandProbe).CollidableReference : null;
+    protected internal override CollidableReference? CollidableReference => _particles.Length > 0 && Simulation is not null ? Particle(_islandProbes[0]).CollidableReference : null;
 
     protected override ref MaterialProperties MaterialProperties => ref Simulation!.CollidableMaterials[_particles[0]];
 
@@ -297,24 +316,30 @@ public abstract class SoftBodyComponent : CollidableComponent
 
     internal BodyReference Particle(int index) => Simulation!.Simulation.Bodies[_particles[index]];
 
-    /// <summary>
-    /// Fills <paramref name="destination"/> with the current world position of every particle, in <see cref="ParticleCount"/> order.
-    /// Returns false when the body is not yet in a simulation.
-    /// </summary>
-    internal bool TryGetParticleWorldPositions(Span<Vector3> destination)
+    /// <summary> Adds a cross on every particle and a line along every spring: white ones stretch, cyan ones shear, yellow ones bend </summary>
+    /// <param name="lines"> Receives the lines, in world space </param>
+    public void AddDebugLines(IDebugLineCollector lines)
     {
-        if (_particles.Length == 0 || Simulation is null || destination.Length < _particles.Length)
-            return false;
-        var bodies = Simulation.Simulation.Bodies;
-        for (int i = 0; i < _particles.Length; i++)
-            destination[i] = bodies[_particles[i]].Pose.Position.ToStride();
-        return true;
-    }
+        if (_particles.Length == 0 || Simulation is null || Topology is not { } topology)
+            return;
 
-    /// <summary>
-    /// Read-only view over the edges built for this body's topology. Empty when the body has no topology yet.
-    /// </summary>
-    internal ReadOnlySpan<Edge> DebugEdges => Topology is null ? default : Topology.Edges;
+        var positions = ArrayPool<Vector3>.Shared.Rent(_particles.Length);
+        CopyParticlePositions(positions);
+
+        float size = (Collider is ParticleCollider collider ? collider.ActualRadius : topology.Spacing * 0.5f) * DebugMarkerSize;
+        Vector3 x = new(size, 0f, 0f), y = new(0f, size, 0f), z = new(0f, 0f, size);
+        foreach (var position in positions.AsSpan(0, _particles.Length))
+        {
+            lines.AddLine(position - x, position + x, Color.Red);
+            lines.AddLine(position - y, position + y, Color.Red);
+            lines.AddLine(position - z, position + z, Color.Red);
+        }
+
+        foreach (var edge in topology.Edges)
+            lines.AddLine(positions[edge.A], positions[edge.B], edge.Kind switch { EdgeKind.Shear => Color.Cyan, EdgeKind.Bend => Color.Yellow, _ => Color.White });
+
+        ArrayPool<Vector3>.Shared.Return(positions);
+    }
 
     /// <summary> Builds the topology for the current model if it changed, false when this body cannot be created yet </summary>
     internal bool TryPrepareTopology(out float spacing)
@@ -395,7 +420,7 @@ public abstract class SoftBodyComponent : CollidableComponent
             }
         }
         _pinTargets = pinTargets.ToArray();
-        _islandProbe = Math.Max(0, Array.IndexOf(_pinned, false));
+        _islandProbes = FindIslandProbes(topology.Edges, _pinned);
 
         // Particles do not rotate, they only carry mass
         var inertia = new BodyInertia { InverseMass = count / _mass };
@@ -487,6 +512,37 @@ public abstract class SoftBodyComponent : CollidableComponent
 
     internal static SpringSettings Spring(float frequency, float dampingRatio) => new(MathF.Max(1e-3f, frequency), MathF.Max(0f, dampingRatio));
 
+    /// <summary> Picks a particle in each group of particles that the edges link without going through a pinned one </summary>
+    private static int[] FindIslandProbes(ReadOnlySpan<Edge> edges, ReadOnlySpan<bool> pinned)
+    {
+        var group = new int[pinned.Length];
+        for (int i = 0; i < group.Length; i++)
+            group[i] = i;
+
+        foreach (var edge in edges)
+        {
+            if (pinned[edge.A] || pinned[edge.B])
+                continue;
+            int a = GroupOf(group, edge.A), b = GroupOf(group, edge.B);
+            group[Math.Max(a, b)] = Math.Min(a, b);
+        }
+
+        var probes = new List<int>();
+        for (int i = 0; i < group.Length; i++)
+        {
+            if (group[i] == i && pinned[i] == false)
+                probes.Add(i);
+        }
+        return probes.Count > 0 ? probes.ToArray() : [0];
+
+        static int GroupOf(int[] group, int particle)
+        {
+            while (group[particle] != particle)
+                particle = group[particle] = group[group[particle]];
+            return particle;
+        }
+    }
+
     private Vector3 ComputeCentroid()
     {
         var sum = System.Numerics.Vector3.Zero;
@@ -549,7 +605,7 @@ public abstract class SoftBodyComponent : CollidableComponent
 
         public void AfterSimulationUpdate(BepuSimulation simulation, float simTimeStep)
         {
-            if (owner._particles.Length > 0 && owner.Particle(owner._islandProbe).Awake)
+            if (owner.Awake)
                 owner.SyncTransform();
         }
     }

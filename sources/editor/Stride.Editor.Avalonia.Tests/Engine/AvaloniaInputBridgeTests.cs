@@ -57,6 +57,38 @@ public sealed class AvaloniaInputBridgeTests
     }
 
     [AvaloniaFact]
+    public void AClickShorterThanAFrameShowsTheButtonDownForOneUpdate()
+    {
+        var view = new OffscreenGameView { Width = 100, Height = 100 };
+        var window = new Window { Content = view, SizeToContent = SizeToContent.WidthAndHeight };
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+        var bridge = new AvaloniaInputBridge(view);
+        using var input = new InputManager();
+        input.Initialize(new GameContextHeadless());
+        var gameTime = new GameTime();
+
+        // The press and the release reach the bridge before the game updates once
+        window.MouseDown(new Point(25, 75), MouseButton.Left);
+        window.MouseUp(new Point(25, 75), MouseButton.Left);
+        window.MouseMove(new Point(50, 50));
+        bridge.Apply(input);
+        input.Update(gameTime);
+
+        Assert.True(input.IsMouseButtonPressed(Stride.Input.MouseButton.Left));
+        Assert.True(input.IsMouseButtonDown(Stride.Input.MouseButton.Left));
+        Assert.Equal(new Vector2(0.25f, 0.75f), input.MousePosition);
+
+        // The release, and the move queued after it, come with the next update
+        bridge.Apply(input);
+        input.Update(gameTime);
+
+        Assert.True(input.IsMouseButtonReleased(Stride.Input.MouseButton.Left));
+        Assert.False(input.IsMouseButtonDown(Stride.Input.MouseButton.Left));
+        Assert.Equal(new Vector2(0.5f, 0.5f), input.MousePosition);
+    }
+
+    [AvaloniaFact]
     public void ALockedMouseSeesTheMoveSinceThePreviousEvent()
     {
         var view = new OffscreenGameView { Width = 100, Height = 100 };

@@ -96,6 +96,15 @@ public interface IVirtualFileProvider : IDisposable
     void FileMove(string sourceUrl, string destinationUrl);
 
     /// <summary>
+    /// Moves the specified file from its sourceUrl to the location pointed by destinationUrl, replacing the destination file if <paramref name="overwrite"/> is <c>true</c>.
+    /// </summary>
+    /// <param name="sourceUrl">The source URL of the file.</param>
+    /// <param name="destinationUrl">The destination URL of the file.</param>
+    /// <param name="overwrite"><c>true</c> to replace an existing destination file; <c>false</c> to throw an <see cref="IOException"/> instead.</param>
+    /// <remarks><see cref="FileSystemProvider"/> replaces the destination in one step: a reader finds the old file or the new one.</remarks>
+    void FileMove(string sourceUrl, string destinationUrl, bool overwrite);
+
+    /// <summary>
     /// Move the specified file specified from its sourceUrl to the location pointed by destinationUrl in the destination provider. Do not overwrite, throw IOException if the file can't be moved.
     /// </summary>
     /// <param name="sourceUrl">The source URL.</param>

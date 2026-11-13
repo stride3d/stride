@@ -11,6 +11,7 @@ using Stride.Core.Storage;
 using Stride.Core.Threading;
 using Stride.Extensions;
 using Stride.Graphics;
+using Stride.Rendering.Shadows;
 using Stride.Shaders;
 using Buffer = Stride.Graphics.Buffer;
 
@@ -25,6 +26,9 @@ namespace Stride.Rendering.Materials
         private StaticObjectPropertyKey<TessellationState> tessellationStateKey;
 
         private EffectDescriptorSetReference perMaterialDescriptorSetSlot;
+        private LogicalGroupReference viewKindKey;
+        // The ViewKind parameters of each layout of the group, one collection per kind
+        private readonly Dictionary<ObjectId, ParameterCollection[]> viewKindParameters = new();
 
         private ConcurrentCollector<RenderMesh> renderMeshesToGenerateAEN = new ConcurrentCollector<RenderMesh>();
 
@@ -48,7 +52,15 @@ namespace Stride.Rendering.Materials
 
         public class MaterialInfoBase
         {
+            [Obsolete("MaterialRenderFeature no longer takes this lock: it guards nothing.")]
             public SpinLock UpdateLock;
+
+            // Guards the variants. Not a spin lock: all the render nodes of a material wait on it while the first one updates
+            // the material, and a spin lock that waits too long sleeps for a whole timer tick (up to 15.6 ms)
+            internal readonly Lock VariantLock = new();
+
+            // The last frame whose render nodes registered the material's textures with the streaming manager
+            internal int LastFrameStreamed;
 
             /// <summary>
             /// Incremented when the source MaterialParameters instance changes (e.g. editor hot reload).
@@ -133,6 +145,29 @@ namespace Stride.Rendering.Materials
             tessellationStateKey = RootRenderFeature.RenderData.CreateStaticObjectKey<TessellationState>();
 
             perMaterialDescriptorSetSlot = ((RootEffectRenderFeature)RootRenderFeature).GetOrCreateEffectDescriptorSetSlot("PerMaterial");
+            viewKindKey = ((RootEffectRenderFeature)RootRenderFeature).CreateViewLogicalGroup("ViewKind");
+        }
+
+        /// <summary>
+        /// Gets the parameters that write a view kind into a layout of the ViewKind group, built from the group's layout so
+        /// the copy matches its size.
+        /// </summary>
+        private ParameterCollection GetViewKindParameters(ViewResourceGroupLayout viewLayout, ref LogicalGroup viewKind, uint kind)
+        {
+            if (!viewKindParameters.TryGetValue(viewKind.Hash, out var kinds))
+            {
+                var layout = new ParameterCollectionLayout();
+                layout.ProcessLogicalGroup(viewLayout, ref viewKind);
+                kinds = new ParameterCollection[RenderViewKind.ShadowMap + 1];
+                for (uint index = 0; index < kinds.Length; index++)
+                {
+                    kinds[index] = new ParameterCollection();
+                    kinds[index].UpdateLayout(layout);
+                    kinds[index].Set(RenderViewKindKeys.ViewKind, index);
+                }
+                viewKindParameters.Add(viewKind.Hash, kinds);
+            }
+            return kinds[kind];
         }
 
         /// <inheritdoc/>
@@ -332,6 +367,21 @@ namespace Stride.Rendering.Materials
         /// <inheritdoc/>
         public override unsafe void Prepare(RenderDrawContext context)
         {
+            // Tell materials mixing RenderViewKind what kind of view they are drawn for
+            for (int index = 0; index < RenderSystem.Views.Count; index++)
+            {
+                var view = RenderSystem.Views[index];
+                var kind = view is ShadowMapRenderView ? RenderViewKind.ShadowMap : RenderViewKind.Default;
+                foreach (var viewLayout in view.Features[RootRenderFeature.Index].Layouts)
+                {
+                    var viewKind = viewLayout.GetLogicalGroup(viewKindKey);
+                    if (viewKind.Hash == ObjectId.Empty)
+                        continue;
+                    var parameters = GetViewKindParameters(viewLayout, ref viewKind, kind);
+                    viewLayout.Entries[view.Index].Resources.UpdateLogicalGroup(ref viewKind, parameters);
+                }
+            }
+
             // Assign descriptor sets to each render node
             var resourceGroupPool = ((RootEffectRenderFeature)RootRenderFeature).ResourceGroupPool;
             Dispatcher.ForBatched(RootRenderFeature.RenderNodes.Count, (this, context, resourceGroupPool), &ForBatchedAction);
@@ -355,8 +405,9 @@ namespace Stride.Rendering.Materials
                     var materialInfo = renderMesh.MaterialInfo;
                     var materialParameters = material.Parameters;
 
-                    // Register resources usage
-                    @this.Context.StreamingManager?.StreamResources(materialParameters);
+                    // Register resources usage, once per material and frame: they are the same for all of its render nodes
+                    if (@this.Context.StreamingManager is { } streamingManager && Interlocked.Exchange(ref materialInfo.LastFrameStreamed, @this.RenderSystem.FrameCounter) != @this.RenderSystem.FrameCounter)
+                        streamingManager.StreamResources(materialParameters);
 
                     var resources = UpdateMaterial(@this.RenderSystem, threadContext, materialInfo, @this.perMaterialDescriptorSetSlot.Index, renderNode.RenderEffect, materialParameters);
                     if (resources == null)
@@ -408,11 +459,8 @@ namespace Stride.Rendering.Materials
             if (single != null && materialInfo.SingleVariantHash == hash && single.LastFrameProcessed == renderSystem.FrameCounter)
                 return single.Resources;
 
-            bool lockTaken = false;
-            try
+            lock (materialInfo.VariantLock)
             {
-                materialInfo.UpdateLock.Enter(ref lockTaken);
-
                 var variant = materialInfo.GetOrAddVariant(hash);
                 if (variant.PerMaterialLayout == null)
                     SetupVariantLayout(renderSystem, variant, resourceGroupDescription);
@@ -422,11 +470,6 @@ namespace Stride.Rendering.Materials
                     variant.LastFrameProcessed = renderSystem.FrameCounter;
                 }
                 return variant.Resources;
-            }
-            finally
-            {
-                if (lockTaken)
-                    materialInfo.UpdateLock.Exit();
             }
         }
 

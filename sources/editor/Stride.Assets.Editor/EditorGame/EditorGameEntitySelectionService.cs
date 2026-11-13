@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Stride.Assets.Editor.ViewModels;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core;
+using Stride.Core.Diagnostics;
 using Stride.Core.BuildEngine;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
@@ -42,6 +43,8 @@ namespace Stride.Assets.Editor.EditorGame;
 [EditorGameService(typeof(EntityHierarchyEditorController), Order = 200)]
 public sealed class EditorGameEntitySelectionService : EditorGameMouseServiceBase, IEditorGameEntitySelectionService, IEditorGameSelectionViewModelService
 {
+    private static readonly Logger Log = GlobalLogger.GetLogger(nameof(EditorGameEntitySelectionService));
+
     private readonly EntityHierarchyEditorController controller;
     private readonly EntityHierarchyEditorViewModel editor;
     private readonly EntitySelection selection = new();
@@ -137,12 +140,18 @@ public sealed class EditorGameEntitySelectionService : EditorGameMouseServiceBas
         }
     }
 
+    /// <summary>
+    /// The time <see cref="DuplicateSelection"/> waits for the game to select the copies.
+    /// </summary>
+    internal TimeSpan DuplicateSelectionTimeout { get; set; } = TimeSpan.FromSeconds(10);
+
     /// <inheritdoc/>
     /// <remarks>
     /// Ctrl+drag with a gizmo: the copies are made in the hierarchy (UI thread), and the task completes once the game
-    /// selects them, so that the gizmo moves the copies.
+    /// selects them, so that the gizmo moves the copies. When they are not selected in time, the gizmo cancels the drag:
+    /// nothing moves, and the copies stay where the originals are.
     /// </remarks>
-    public async Task<bool> DuplicateSelection()
+    public async Task<bool> DuplicateSelection(CancellationToken cancellationToken = default)
     {
         var duplicatedIds = new HashSet<AbsoluteId>();
         var selectedIds = new HashSet<AbsoluteId>();
@@ -177,7 +186,15 @@ public sealed class EditorGameEntitySelectionService : EditorGameMouseServiceBas
             }
             if (copiesSelected)
                 tcs.TrySetResult(true);
-            await tcs.Task;
+            try
+            {
+                await tcs.Task.WaitAsync(DuplicateSelectionTimeout, cancellationToken);
+            }
+            catch (Exception e) when (e is TimeoutException or OperationCanceledException)
+            {
+                Log.Warning($"The copies of the selection were not selected {(e is TimeoutException ? $"within {DuplicateSelectionTimeout.TotalSeconds:0.###} seconds" : "before the drag was canceled")}: the drag is canceled, and nothing moves.");
+                return false;
+            }
             return true;
         }
         finally

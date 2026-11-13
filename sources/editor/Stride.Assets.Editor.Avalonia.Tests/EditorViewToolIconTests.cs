@@ -19,8 +19,8 @@ public sealed class EditorViewToolIconTests
     [AvaloniaFact]
     public void TheIconsOfTheEditorToolsAreValidPathData()
     {
-        var toolTypes = PluginRegistrations.Of(new StrideEditorPlugin(), typeof(IAssetEditorView)).EditorViewToolTypes;
-        var tools = toolTypes.Select(x => (IEditorViewTool)Activator.CreateInstance(x)!).ToList();
+        var toolTypes = PluginRegistrations.Of(new StrideEditorPlugin(), typeof(IAssetEditorView)).GetRegistry<SceneViewToolDescriptor>();
+        var tools = toolTypes.Select(x => (IEditorViewTool)Activator.CreateInstance(x.ToolType)!).ToList();
         Assert.Equal(4, tools.Count);
 
         Assert.All(tools, tool =>

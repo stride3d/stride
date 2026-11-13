@@ -4,7 +4,7 @@
 using Stride.Assets.Editor.Avalonia.Views.Preview;
 using Stride.Editor.Annotations;
 
-namespace Stride.SpriteStudio.Editor;
+namespace Stride.SpriteStudio.Editor.Avalonia;
 
 /// <summary>
 /// The view of a SpriteStudio sheet preview: the model preview's (its control theme applies through the base type).

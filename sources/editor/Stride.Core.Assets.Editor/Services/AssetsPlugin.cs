@@ -54,6 +54,9 @@ public abstract class AssetsPlugin
     /// <summary>
     /// Called when the plugin joins the session, before its Register* methods.
     /// </summary>
+    /// <remarks>Obsolete: a plugin registers what it adds in <see cref="Initialize(IEditorPluginContext)"/>, where
+    /// <see cref="IEditorPluginContext.Logger"/> is its logger.</remarks>
+    [Obsolete("Override Initialize(IEditorPluginContext) instead; context.Logger is the plugin's logger. See docs/build/plugins.md.", DiagnosticId = "STRPLUGIN002")]
     public virtual void InitializePlugin(ILogger logger)
     {
     }
@@ -69,6 +72,8 @@ public abstract class AssetsPlugin
     /// </remarks>
     public virtual void Initialize(IEditorPluginContext context)
     {
+        // The bridge of the older API: what its Register* methods give goes to the context
+#pragma warning disable STRPLUGIN001
         var assetViewModelTypes = new Dictionary<Type, Type>();
         RegisterAssetViewModelTypes(assetViewModelTypes);
         foreach (var (assetType, viewModelType) in assetViewModelTypes)
@@ -76,6 +81,7 @@ public abstract class AssetsPlugin
 
         var primitiveTypes = new List<Type>();
         RegisterPrimitiveTypes(primitiveTypes);
+#pragma warning restore STRPLUGIN001
         foreach (var type in primitiveTypes)
             context.PrimitiveTypes.Register(type);
     }
@@ -83,6 +89,9 @@ public abstract class AssetsPlugin
     /// <summary>
     /// Called when the session's editor initializes: the place for the property grid commands and updaters.
     /// </summary>
+    /// <remarks>Obsolete: a plugin registers them in <see cref="InitializeSession(ISessionPluginContext)"/>, which removes
+    /// them when the plugin leaves, and cleans up with <see cref="ISessionPluginContext.OnClose"/>.</remarks>
+    [Obsolete("Override InitializeSession(ISessionPluginContext) instead; context.Session is the session, and context.OnClose replaces the removed SessionDisposed. See docs/build/plugins.md.", DiagnosticId = "STRPLUGIN003")]
     public virtual void InitializeSession(ISessionViewModel session)
     {
     }
@@ -97,7 +106,10 @@ public abstract class AssetsPlugin
     /// </remarks>
     public virtual void InitializeSession(ISessionPluginContext context)
     {
+        // The bridge of the older API
+#pragma warning disable STRPLUGIN003
         InitializeSession(context.Session);
+#pragma warning restore STRPLUGIN003
     }
 
     public static AssetsPlugin RegisterPlugin(Type type)
@@ -216,10 +228,17 @@ public abstract class AssetsPlugin
     /// Registers the view model types of asset types, besides the ones the assembly declares with <see cref="AssetViewModelAttribute"/>,
     /// which the editor registers itself.
     /// </summary>
+    /// <remarks>Obsolete: a plugin registers them in <see cref="IEditorPluginContext.AssetViewModelTypes"/>.</remarks>
+    [Obsolete("Register them in Initialize(IEditorPluginContext) with context.AssetViewModelTypes. See docs/build/plugins.md.", DiagnosticId = "STRPLUGIN001")]
     public virtual void RegisterAssetViewModelTypes(IDictionary<Type, Type> assetViewModelTypes)
     {
     }
 
+    /// <summary>
+    /// Registers the types that the property grid shows as one value, without expanding their members.
+    /// </summary>
+    /// <remarks>Obsolete: a plugin registers them in <see cref="IEditorPluginContext.PrimitiveTypes"/>.</remarks>
+    [Obsolete("Register them in Initialize(IEditorPluginContext) with context.PrimitiveTypes. See docs/build/plugins.md.", DiagnosticId = "STRPLUGIN001")]
     public virtual void RegisterPrimitiveTypes(ICollection<Type> primitiveTypes)
     {
     }

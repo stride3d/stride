@@ -8,7 +8,7 @@ using Android.Runtime;
 using Avalonia;
 using Avalonia.Android;
 
-namespace xunit.runner.stride;
+namespace Stride.XunitRunner;
 
 // Avalonia 12 moved app bootstrap from `AvaloniaMainActivity<TApp>` to a custom Android Application
 // class. Compiled into each test assembly by Stride.Build.Sdk.Tests so GetType().Assembly resolves

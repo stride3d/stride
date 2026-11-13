@@ -52,17 +52,27 @@ namespace Stride.Graphics
         /// <param name="defaultPhysicalDevice">The Vulkan physical device.</param>
         /// <param name="properties">The physical device properties.</param>
         /// <param name="driverProperties">The physical device driver properties.</param>
+        /// <param name="memoryProperties">The memory heaps and types of the physical device.</param>
         /// <param name="adapterUid">The unique identifier of the adapter.</param>
         /// <param name="adapterOrdinal">The adapter ordinal.</param>
         /// <param name="enumerationIndex">The index of the physical device in the instance's enumeration order.</param>
         /// <param name="attachedDisplays">Native outputs or SDL presentation targets for this adapter.</param>
-        internal unsafe GraphicsAdapter(VkPhysicalDevice defaultPhysicalDevice, VkPhysicalDeviceProperties properties, VkPhysicalDeviceDriverProperties driverProperties, long adapterUid, int adapterOrdinal, int enumerationIndex, DisplayInfo[] attachedDisplays)
+        internal unsafe GraphicsAdapter(VkPhysicalDevice defaultPhysicalDevice, VkPhysicalDeviceProperties properties, VkPhysicalDeviceDriverProperties driverProperties, ref readonly VkPhysicalDeviceMemoryProperties memoryProperties, long adapterUid, int adapterOrdinal, int enumerationIndex, DisplayInfo[] attachedDisplays)
         {
             AdapterUid = adapterUid;
             this.adapterOrdinal = adapterOrdinal;
             this.enumerationIndex = enumerationIndex;
             this.defaultPhysicalDevice = defaultPhysicalDevice;
             this.properties = properties;
+
+            for (int i = 0; i < memoryProperties.memoryHeapCount; i++)
+            {
+                var heap = memoryProperties.memoryHeaps[i];
+                if ((heap.flags & VkMemoryHeapFlags.DeviceLocal) != 0)
+                    DedicatedVideoMemory += heap.size;
+                else
+                    SharedSystemMemory += heap.size;
+            }
 
             DriverInfo = new AdapterDriverInfo
             {
@@ -76,6 +86,7 @@ namespace Stride.Graphics
                 DriverVersion = FormatDriverVersion(properties.vendorID, properties.driverVersion),
                 ApiName = GraphicsDevice.Platform.ToString(),
                 ApiVersion = FormatApiVersion(properties.apiVersion),
+                PipelineCacheUuid = new Guid(new ReadOnlySpan<byte>(properties.pipelineCacheUUID, 16), bigEndian: true),
             };
             pendingDisplays = attachedDisplays;
         }
@@ -155,6 +166,24 @@ namespace Stride.Graphics
                 return (int)properties.vendorID;
             }
         }
+
+        /// <summary>
+        ///   Gets the amount of memory, in bytes, of the memory heaps local to the adapter.
+        /// </summary>
+        /// <remarks>
+        ///   On a discrete GPU, this is its video memory. On an integrated GPU, the heaps local to it can be system memory.
+        /// </remarks>
+        public ulong DedicatedVideoMemory { get; }
+
+        /// <summary>
+        ///   Gets the amount of system memory, in bytes, reserved for the adapter. Vulkan does not report it, so it is 0.
+        /// </summary>
+        public ulong DedicatedSystemMemory => 0;
+
+        /// <summary>
+        ///   Gets the amount of memory, in bytes, of the memory heaps not local to the adapter, the system memory it can use.
+        /// </summary>
+        public ulong SharedSystemMemory { get; }
 
         /// <summary>
         /// Determines if this instance of GraphicsAdapter is the default adapter.

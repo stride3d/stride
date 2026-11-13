@@ -1,0 +1,352 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+             xmlns:vm="using:Stride.UI.Editor.ViewModels"
+             xmlns:local="using:Stride.UI.Editor.Avalonia.Views"
+             xmlns:dd="using:Stride.Core.Assets.Editor.Avalonia.DragDrop"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Stride.UI.Editor.Avalonia.Views.UIEditorView"
+             x:DataType="vm:UIEditorBaseViewModel"
+             Focusable="True">
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://Stride.Core.Assets.Editor.Avalonia/Views/ImageResources.axaml"/>
+        <ResourceInclude Source="avares://Stride.Assets.Editor.Avalonia/Themes/PreviewImages.axaml"/>
+        <ResourceInclude Source="avares://Stride.Assets.Editor.Avalonia/Views/SceneEditorImages.axaml"/>
+        <ResourceInclude Source="avares://Stride.UI.Editor.Avalonia/Views/UIEditorImages.axaml"/>
+      </ResourceDictionary.MergedDictionaries>
+
+      <!-- The context menu of an element, of the tree's empty area (the root of the asset) and of the view, as the
+           UIElementMenus of the WPF UI editor. The view adds "Set current selection" and "View", and shows the element
+           part for the last selected element. The code-behind fills the panel lists and shows each part for the element
+           it opens on (tags: panel, canvas, grid, stack, element, view). -->
+      <ContextMenu x:Key="ElementContextMenu" x:DataType="vm:UIHierarchyItemViewModel">
+        <MenuItem Tag="selection" Header="{sd:LocalizeString Set current selection, Context=Menu}"/>
+        <MenuItem Tag="layoutHeader" Header="{sd:LocalizeString Layout, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"/>
+        <MenuItem Tag="groupInto" Header="{sd:LocalizeString Group into, Context=Menu}"/>
+        <Separator Tag="panel"/>
+        <MenuItem Tag="ungroup" Header="{sd:LocalizeString Ungroup, Context=Menu}" Command="{ReflectionBinding UngroupCommand}"/>
+        <MenuItem Tag="changeLayout" Header="{sd:LocalizeString Change layout type, Context=Menu}"/>
+
+        <!-- Canvas tools -->
+        <MenuItem Tag="canvasHeader" FontWeight="Bold" IsHitTestVisible="False"/>
+        <MenuItem Tag="canvas" Header="{sd:LocalizeString Pin origin, Context=Menu}">
+          <MenuItem Header="{sd:LocalizeString Top left, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.PinTopLeft}"/>
+          <MenuItem Header="{sd:LocalizeString Top, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.PinTop}"/>
+          <MenuItem Header="{sd:LocalizeString Top right, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.PinTopRight}"/>
+          <MenuItem Header="{sd:LocalizeString Left, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.PinLeft}"/>
+          <MenuItem Header="{sd:LocalizeString Center, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.PinCenter}"/>
+          <MenuItem Header="{sd:LocalizeString Right, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.PinRight}"/>
+          <MenuItem Header="{sd:LocalizeString Bottom left, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.PinBottomLeft}"/>
+          <MenuItem Header="{sd:LocalizeString Bottom, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.PinBottom}"/>
+          <MenuItem Header="{sd:LocalizeString Bottom right, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.PinBottomRight}"/>
+          <MenuItem Header="{sd:LocalizeString Front, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.PinFront}"/>
+          <MenuItem Header="{sd:LocalizeString Middle, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.PinMiddle}"/>
+          <MenuItem Header="{sd:LocalizeString Back, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.PinBack}"/>
+        </MenuItem>
+
+        <!-- Grid tools -->
+        <MenuItem Tag="gridHeader" FontWeight="Bold" IsHitTestVisible="False"/>
+        <MenuItem Tag="grid" Header="{sd:LocalizeString Row, Context=Menu}">
+          <MenuItem Header="{sd:LocalizeString Move up, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.MoveUp}"/>
+          <MenuItem Header="{sd:LocalizeString Move down, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.MoveDown}"/>
+        </MenuItem>
+        <MenuItem Tag="grid" Header="{sd:LocalizeString Column, Context=Menu}">
+          <MenuItem Header="{sd:LocalizeString Move left, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.MoveLeft}"/>
+          <MenuItem Header="{sd:LocalizeString Move right, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.MoveRight}"/>
+        </MenuItem>
+        <MenuItem Tag="grid" Header="{sd:LocalizeString Layer, Context=Menu}">
+          <MenuItem Header="{sd:LocalizeString Move back, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.MoveBack}"/>
+          <MenuItem Header="{sd:LocalizeString Move front, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.MoveFront}"/>
+        </MenuItem>
+
+        <!-- StackPanel tools -->
+        <MenuItem Tag="stackHeader" FontWeight="Bold" IsHitTestVisible="False"/>
+        <MenuItem Tag="stack" Header="{sd:LocalizeString Move up, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.MoveUp}"/>
+        <MenuItem Tag="stack" Header="{sd:LocalizeString Move down, Context=Menu}" Command="{ReflectionBinding PanelCommand}" CommandParameter="{x:Static vm:PanelCommandMode.MoveDown}"/>
+
+        <!-- Other actions, on the selection -->
+        <MenuItem Header="{sd:LocalizeString Action, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"/>
+        <MenuItem Header="{sd:LocalizeString Open library in editor, Context=Menu}" Command="{Binding Editor.OpenLibraryEditorCommand}"/>
+        <MenuItem Header="{sd:LocalizeString Select library in asset view, Context=Menu}" Command="{Binding Editor.SelectLibraryCommand}"/>
+        <MenuItem Header="{sd:LocalizeString Break link to library, Context=Menu}" Command="{Binding Editor.BreakLinkToLibraryCommand}"/>
+        <MenuItem Header="{sd:LocalizeString Create page from selection, Context=Menu}" Command="{Binding Editor.CreatePageCommand}"/>
+        <MenuItem Header="{sd:LocalizeString Create library from selection, Context=Menu}" Command="{Binding Editor.CreateLibraryCommand}"/>
+        <Separator/>
+        <MenuItem Header="{sd:LocalizeString Duplicate, Context=Menu}" InputGesture="Ctrl+D" Command="{Binding Editor.DuplicateSelectionCommand}"/>
+        <MenuItem Header="{sd:LocalizeString Cut, Context=Menu}" InputGesture="{x:Static sd:EditCommands.CutGesture}" Command="{Binding Editor.CutCommand}">
+          <MenuItem.Icon><Image Source="{StaticResource ImageCut}"/></MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Copy, Context=Menu}" InputGesture="{x:Static sd:EditCommands.CopyGesture}" Command="{Binding Editor.CopyCommand}">
+          <MenuItem.Icon><Image Source="{StaticResource ImageCopy}"/></MenuItem.Icon>
+        </MenuItem>
+        <!-- Pasted into the element, or as a root on the empty area -->
+        <MenuItem Tag="paste" Header="{sd:LocalizeString Paste, Context=Menu}" InputGesture="{x:Static sd:EditCommands.PasteGesture}" Command="{Binding Editor.PasteCommand}">
+          <MenuItem.Icon><Image Source="{StaticResource ImagePaste}"/></MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Delete, Context=Menu}" InputGesture="{x:Static sd:EditCommands.DeleteGesture}" Command="{Binding Editor.DeleteCommand}">
+          <MenuItem.Icon><Image Source="{StaticResource ImageDelete}"/></MenuItem.Icon>
+        </MenuItem>
+        <Separator Tag="element"/>
+        <MenuItem Tag="element" Header="{sd:LocalizeString Rename, Context=Menu}" InputGesture="{x:Static sd:EditCommands.RenameGesture}" Command="{ReflectionBinding RenameCommand}">
+          <MenuItem.Icon><Image Source="{StaticResource ImageRename}"/></MenuItem.Icon>
+        </MenuItem>
+
+        <!-- View options -->
+        <MenuItem Tag="view" Header="{sd:LocalizeString View, Context=Menu}">
+          <MenuItem Header="{sd:LocalizeString Zoom in, Context=Menu}" Command="{Binding Editor.ZoomInCommand}"/>
+          <MenuItem Header="{sd:LocalizeString Zoom out, Context=Menu}" Command="{Binding Editor.ZoomOutCommand}"/>
+          <MenuItem Header="{sd:LocalizeString Reset camera, Context=Menu}" Command="{Binding Editor.Camera.ResetCameraCommand}"/>
+        </MenuItem>
+      </ContextMenu>
+    </ResourceDictionary>
+  </UserControl.Resources>
+  <UserControl.Styles>
+    <Style Selector="Button.tool">
+      <Setter Property="Focusable" Value="False"/>
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Padding" Value="4"/>
+    </Style>
+    <Style Selector="Border.factory">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Padding" Value="20,2,4,2"/>
+    </Style>
+    <Style Selector="Border.factory:pointerover">
+      <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListLowBrush}"/>
+    </Style>
+    <!-- The active root of the tree is in bold, as in the WPF UI editor -->
+    <Style Selector="Grid.activeRoot TextBlock">
+      <Setter Property="FontWeight" Value="Bold"/>
+    </Style>
+  </UserControl.Styles>
+
+  <Panel>
+    <!-- Shown until the editor has its game and its hierarchy, as the loading message of the WPF UI editor -->
+    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                IsVisible="{Binding RootPart, Converter={x:Static ObjectConverters.IsNull}}">
+      <TextBlock Text="{sd:LocalizeString Loading...}" Margin="20" HorizontalAlignment="Center"/>
+      <TextBlock Text="{sd:LocalizeString This might take a few minutes the first time.}" Margin="20" HorizontalAlignment="Center"/>
+      <ProgressBar IsIndeterminate="True" Width="200" Height="20" Margin="20"/>
+    </StackPanel>
+
+    <Grid x:Name="EditorGrid" ColumnDefinitions="*, 4, 3*"
+          IsVisible="{Binding RootPart, Converter={x:Static ObjectConverters.IsNotNull}}">
+      <!-- Cut, Copy, Paste and Delete work wherever the focus is in the editor (the tree or the view), as the command
+           bindings of the WPF UI editor -->
+      <sd:EditCommands.Bindings>
+        <sd:EditCommandBinding Kind="Cut" Command="{Binding CutCommand}"/>
+        <sd:EditCommandBinding Kind="Copy" Command="{Binding CopyCommand}"/>
+        <sd:EditCommandBinding Kind="Paste" Command="{Binding PasteCommand}" CommandParameter="{sd:False}"/>
+        <sd:EditCommandBinding Kind="Delete" Command="{Binding DeleteCommand}"/>
+      </sd:EditCommands.Bindings>
+
+      <!-- Left panel: the properties of the UI, the toolbox and the tree -->
+      <DockPanel Grid.Column="0">
+        <Button DockPanel.Dock="Top" Margin="8" Padding="4" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                Content="{sd:LocalizeString UI properties, Context=Button}" Command="{Binding ShowPropertiesCommand}"/>
+        <Grid RowDefinitions="*, 4, *">
+          <!-- The toolbox: the elements of the standard library and of the UI libraries of the session, by library kind
+               then by category; an element is dragged to the tree or to the view -->
+          <DockPanel Grid.Row="0">
+            <TextBlock DockPanel.Dock="Top" Margin="4" FontWeight="Bold" Text="{sd:LocalizeString UI library}"/>
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+              <ItemsControl x:Name="Toolbox">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="local:UIElementFactoryGroup">
+                    <Expander IsExpanded="True" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="4,0">
+                      <Expander.Header>
+                        <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
+                      </Expander.Header>
+                      <ItemsControl ItemsSource="{Binding Groups}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="local:UIElementFactoryGroup">
+                            <Expander IsExpanded="True" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="0">
+                              <Expander.Header>
+                                <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
+                              </Expander.Header>
+                              <ItemsControl ItemsSource="{Binding Factories}">
+                                <ItemsControl.ItemTemplate>
+                                  <DataTemplate x:DataType="vm:IUIElementFactory">
+                                    <Border Classes="factory">
+                                      <Interaction.Behaviors>
+                                        <dd:ItemDragBehavior/>
+                                      </Interaction.Behaviors>
+                                      <TextBlock Text="{Binding Name}"/>
+                                    </Border>
+                                  </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                              </ItemsControl>
+                            </Expander>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </Expander>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+          </DockPanel>
+
+          <GridSplitter Grid.Row="1" ResizeDirection="Rows"/>
+
+          <!-- The visual tree -->
+          <DockPanel Grid.Row="2">
+            <!-- Rename only while the tree has the focus, as F2 in the WPF tree -->
+            <sd:EditCommands.Bindings>
+              <sd:EditCommandBinding Kind="Rename" Command="{Binding RenameCommand}"/>
+            </sd:EditCommands.Bindings>
+            <TextBlock DockPanel.Dock="Top" Margin="4" FontWeight="Bold" Text="{sd:LocalizeString Visual Tree}"/>
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="4" Margin="2">
+              <Button Classes="tool" Click="OnExpandAllClick"
+                      ToolTip.Tip="{sd:LocalizeString Expand all elements, Context=ToolTip}">
+                <Image Source="{StaticResource ImageExpandAllFolders}" Width="16" Height="16"/>
+              </Button>
+              <Button Classes="tool" Click="OnCollapseAllClick"
+                      ToolTip.Tip="{sd:LocalizeString Collapse all elements, Context=ToolTip}">
+                <Image Source="{StaticResource ImageCollapseAllFolders}" Width="16" Height="16"/>
+              </Button>
+            </StackPanel>
+            <TreeView x:Name="HierarchyTree"
+                      Focusable="True"
+                      ItemsSource="{Binding ((vm:UIRootViewModel)RootPart).Children, FallbackValue={x:Null}}"
+                      SelectedItems="{Binding SelectedContent}"
+                      SelectionMode="Multiple">
+              <!-- Drag and drop, as the WPF UI tree: the elements are dragged (the selection when the drag starts on it); a drop
+                   on a row adds as children, between two rows inserts there, on the empty area adds to the root of the asset;
+                   the elements of the toolbox drop too -->
+              <Interaction.Behaviors>
+                <dd:TreeViewDragDropBehavior CanInsert="True" AllowDropOnEmptyArea="True" EmptyAreaTarget="{Binding RootPart}"/>
+              </Interaction.Behaviors>
+              <Control.DataTemplates>
+                <TreeDataTemplate DataType="{x:Type vm:UIElementViewModel}" ItemsSource="{Binding Children}">
+                  <Grid ColumnDefinitions="*, Auto">
+                    <Classes.activeRoot>
+                      <MultiBinding Converter="{sd:AllEqualMulti}">
+                        <Binding Path="$parent[TreeView].((vm:UIEditorBaseViewModel)DataContext).ActiveRoot" FallbackValue="{x:Null}"/>
+                        <Binding/>
+                      </MultiBinding>
+                    </Classes.activeRoot>
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" ClipToBounds="True">
+                      <TextBlock Text="{Binding Name}" Margin="0,0,4,0" VerticalAlignment="Center" IsVisible="{Binding !IsEditing}"/>
+                      <!-- Renaming in place (F2): the box replaces the name while the item is editing -->
+                      <TextBox Text="{Binding Name, Mode=OneWay}" IsVisible="{Binding IsEditing}" MinWidth="80" Margin="0,0,4,0">
+                        <Interaction.Behaviors>
+                          <sd:InlineEditBehavior Name="{Binding Name, Mode=TwoWay}" IsEditing="{Binding IsEditing, Mode=TwoWay}"/>
+                        </Interaction.Behaviors>
+                      </TextBox>
+                      <TextBlock Text="{Binding ElementType.Name, StringFormat=[\{0\}]}" VerticalAlignment="Center"/>
+                      <TextBlock Text="{Binding SourceLibrary.Name, StringFormat=(Library: \{0\}), FallbackValue=''}" Margin="4,0,0,0"
+                                 VerticalAlignment="Center" Foreground="{DynamicResource SystemControlForegroundAccentBrush}"
+                                 IsVisible="{Binding SourceLibrary, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                    </StackPanel>
+                    <TextBlock Grid.Column="1" VerticalAlignment="Center" Margin="8,0,0,0"
+                               Text="{Binding Children.Count, StringFormat=(\{0\})}"
+                               IsVisible="{Binding !!Children.Count}"/>
+                  </Grid>
+                </TreeDataTemplate>
+              </Control.DataTemplates>
+            </TreeView>
+          </DockPanel>
+        </Grid>
+      </DockPanel>
+
+      <GridSplitter Grid.Column="1" ResizeDirection="Columns"/>
+
+      <!-- The view of the game -->
+      <DockPanel Grid.Column="2">
+        <!-- The zoom and the snap, as the toolbars of the WPF UI editor. Its items don't take the focus, so that the keys keep
+             going to the view. -->
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="4" Margin="2">
+          <Button Classes="tool" Command="{Binding ResetZoomCommand}"
+                  ToolTip.Tip="{sd:LocalizeString Reset zoom, Context=ToolTip}">
+            <Image Source="{StaticResource ImageZoomDefault}" Width="16" Height="16"/>
+          </Button>
+          <Button Classes="tool" Command="{Binding ZoomOutCommand}"
+                  ToolTip.Tip="{sd:LocalizeString Zoom out, Context=ToolTip}">
+            <Image Source="{StaticResource ImageZoomOut}" Width="16" Height="16"/>
+          </Button>
+          <Button Classes="tool" Command="{Binding ZoomInCommand}"
+                  ToolTip.Tip="{sd:LocalizeString Zoom in, Context=ToolTip}">
+            <Image Source="{StaticResource ImageZoomIn}" Width="16" Height="16"/>
+          </Button>
+          <Separator Width="1" Height="20" Margin="2,0"/>
+          <sd:NumericTextBox x:Name="SnapBox" Width="50" Value="{Binding SnapValue}" DecimalPlaces="3" Minimum="0"
+                             VerticalAlignment="Center"
+                             ToolTip.Tip="{sd:LocalizeString Snaps to this value (0 to disable), Context=ToolTip}"/>
+          <Separator Width="1" Height="20" Margin="2,0"/>
+          <!-- The colors and thicknesses of the adorners, as the view settings popup of the WPF UI editor (not saved, as in
+               WPF) -->
+          <Button x:Name="ViewSettingsButton" Classes="tool" ToolTip.Tip="{sd:LocalizeString View settings, Context=ToolTip}">
+            <Image Source="{StaticResource ImageView}" Width="16" Height="16"/>
+            <Button.Flyout>
+              <Flyout Placement="BottomEdgeAlignedLeft">
+                <StackPanel x:Name="ViewSettingsPanel" MinWidth="280">
+                  <TextBlock Text="{sd:LocalizeString Colors}" FontWeight="Bold" Margin="4,2,4,6"/>
+                  <Grid ColumnDefinitions="Auto, *, 80" RowDefinitions="Auto, Auto, Auto, Auto" Margin="4">
+                    <TextBlock Grid.Row="0" Grid.Column="0" Margin="4" VerticalAlignment="Center" Text="{sd:LocalizeString Guideline}"/>
+                    <sd:ColorEditor Grid.Row="0" Grid.Column="1" Margin="2" Value="{Binding GuidelineColor}"/>
+                    <sd:NumericTextBox Grid.Row="0" Grid.Column="2" Margin="2" VerticalAlignment="Center" Value="{Binding GuidelineThickness}" DecimalPlaces="0" Minimum="1"/>
+                    <TextBlock Grid.Row="1" Grid.Column="0" Margin="4" VerticalAlignment="Center" Text="{sd:LocalizeString Highlight}"/>
+                    <sd:ColorEditor Grid.Row="1" Grid.Column="1" Margin="2" Value="{Binding HighlightColor}"/>
+                    <sd:NumericTextBox Grid.Row="1" Grid.Column="2" Margin="2" VerticalAlignment="Center" Value="{Binding HighlightThickness}" DecimalPlaces="0" Minimum="1"/>
+                    <TextBlock Grid.Row="2" Grid.Column="0" Margin="4" VerticalAlignment="Center" Text="{sd:LocalizeString Selection}"/>
+                    <sd:ColorEditor Grid.Row="2" Grid.Column="1" Margin="2" Value="{Binding SelectionColor}"/>
+                    <sd:NumericTextBox Grid.Row="2" Grid.Column="2" Margin="2" VerticalAlignment="Center" Value="{Binding SelectionThickness}" DecimalPlaces="0" Minimum="1"/>
+                    <TextBlock Grid.Row="3" Grid.Column="0" Margin="4" VerticalAlignment="Center" Text="{sd:LocalizeString Sizing}"/>
+                    <sd:ColorEditor Grid.Row="3" Grid.Column="1" Margin="2" Value="{Binding SizingColor}"/>
+                    <sd:NumericTextBox Grid.Row="3" Grid.Column="2" Margin="2" VerticalAlignment="Center" Value="{Binding SizingThickness}" DecimalPlaces="0" Minimum="1"/>
+                  </Grid>
+                </StackPanel>
+              </Flyout>
+            </Button.Flyout>
+          </Button>
+        </StackPanel>
+
+        <Panel x:Name="ViewArea" Background="Transparent">
+          <!-- The editor has no game without a graphics device (or with the previews turned off), as the scene editor -->
+          <TextBlock Text="{sd:LocalizeString The UI view is not available.}"
+                     HorizontalAlignment="Center" VerticalAlignment="Center"
+                     IsVisible="{Binding !HasGame}"/>
+          <!-- The game of the editor renders here; the elements of the toolbox and the UI assets dropped on it go under the
+               pointer, as in the WPF UI editor -->
+          <ContentControl x:Name="GameViewHost" Content="{Binding GameHost.GameView}"
+                          IsVisible="{Binding GameHost.LastException, Converter={x:Static ObjectConverters.IsNull}}">
+            <Interaction.Behaviors>
+              <dd:AddChildDropBehavior/>
+            </Interaction.Behaviors>
+          </ContentControl>
+
+          <!-- The game stopped on an error: the message, and the way to resume once the asset is fixed, as in the WPF UI
+               editor -->
+          <Border x:Name="CrashPanel" Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
+                  IsVisible="{Binding GameHost.LastException, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <Grid RowDefinitions="Auto, Auto, Auto" HorizontalAlignment="Center" VerticalAlignment="Center"
+                  MinWidth="400" MaxWidth="1200" Margin="20"
+                  Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+              <TextBlock Grid.Row="0" Margin="20" FontSize="20" FontWeight="Bold" TextWrapping="Wrap" MaxLines="3" TextTrimming="CharacterEllipsis"
+                         Text="{Binding GameHost.LastException.Message, StringFormat=Error: \{0\}, FallbackValue=''}"/>
+              <!-- The stack trace keeps its lines: it scrolls rather than wraps -->
+              <ScrollViewer Grid.Row="1" Margin="20,0" MaxHeight="400"
+                            HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <SelectableTextBlock Text="{Binding GameHost.LastException, FallbackValue=''}"/>
+              </ScrollViewer>
+              <StackPanel Grid.Row="2" Margin="20" Spacing="4">
+                <TextBlock HorizontalAlignment="Center"
+                           Text="{sd:LocalizeString Before you resume\, fix the failing asset (likely a UI page or UI library).}"/>
+                <UniformGrid HorizontalAlignment="Center" Rows="1" Columns="2">
+                  <Button Content="{sd:LocalizeString Resume, Context=Button}" Command="{Binding GameHost.ResumeCommand}"
+                          Padding="24,8" Margin="10,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                  <Button Content="{sd:LocalizeString Copy error to clipboard, Context=Button}" Command="{Binding GameHost.CopyErrorToClipboardCommand}"
+                          Padding="24,8" Margin="10,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                </UniformGrid>
+              </StackPanel>
+            </Grid>
+          </Border>
+        </Panel>
+      </DockPanel>
+    </Grid>
+  </Panel>
+</UserControl>

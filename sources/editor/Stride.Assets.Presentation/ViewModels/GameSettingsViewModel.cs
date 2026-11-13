@@ -50,6 +50,7 @@ public sealed class GameSettingsViewModel : AssetViewModel<GameSettingsAsset>
         base.OnSessionSaved();
 
         // Display orientation needs changes in iOS / Android manifest files
+        // Asset rather than the instance seen at construction: it can be replaced, by a reload of its file for instance
         var currentOrientation = Asset.GetOrCreate<RenderingSettings>().DisplayOrientation;
         if (displayOrientation != currentOrientation && Session.CurrentProject != null)
         {

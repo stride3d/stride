@@ -24,7 +24,8 @@
     <Compile Include="..\..\shared\Stride.NuGetResolver\NuGetResolverCache.cs" Link="Shared\NuGetResolverCache.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
+    <ProjectReference Include="..\..\engine\Stride.Assets\Stride.Assets.csproj" />
+    <ProjectReference Include="..\..\tests\Stride.XunitRunner\Stride.XunitRunner.csproj" />
     <ProjectReference Include="..\Stride.Core.Assets\Stride.Core.Assets.csproj" />
   </ItemGroup>
   <ItemGroup>

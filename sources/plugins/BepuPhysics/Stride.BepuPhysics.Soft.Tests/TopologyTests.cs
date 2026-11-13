@@ -84,35 +84,40 @@ public class TopologyTests
     [Fact]
     public static void LatticeJoinsThePartsLinkedByAThinOne()
     {
-        var positions = new List<Vector3>();
-        var indices = new List<int>();
-        foreach (var (size, offset) in new[] { (Vector3.One, new Vector3(-1.5f, 0f, 0f)), (Vector3.One, new Vector3(1.5f, 0f, 0f)), (new Vector3(2f, 0.02f, 0.02f), new Vector3(0f, 0.3f, 0.3f)) })
-        {
-            var box = Box(size);
-            int first = positions.Count;
-            positions.AddRange(box.Positions.Select(position => position + offset));
-            indices.AddRange(box.Indices.Select(index => index + first));
-        }
-        var topology = LatticeBuilder.Build(FromTriangles(positions, indices), 8, 0.5f);
+        var topology = LatticeBuilder.Build(Boxes((Vector3.One, new Vector3(-1.5f, 0f, 0f)), (Vector3.One, new Vector3(1.5f, 0f, 0f)), (new Vector3(2f, 0.02f, 0.02f), new Vector3(0f, 0.3f, 0.3f))), 8, 0.5f);
 
-        // Every particle is reached from the first one through the edges
-        var reached = new bool[topology.ParticleCount];
-        var pending = new Stack<int>([0]);
-        reached[0] = true;
-        var neighbors = topology.Edges.SelectMany(edge => new[] { (edge.A, edge.B), (edge.B, edge.A) }).ToLookup(pair => pair.Item1, pair => pair.Item2);
-        while (pending.TryPop(out int particle))
+        Assert.Equal(1, CountPieces(topology));
+        Assert.True(topology.RestPositions.Any(position => MathF.Abs(position.X) < 0.5f), "No particle between the two boxes");
+    }
+
+    /// <summary> Two boxes that nothing links are two pieces: no particle is added in the empty space between them </summary>
+    [Fact]
+    public static void LatticeKeepsSeparatePartsApart()
+    {
+        var topology = LatticeBuilder.Build(Boxes((Vector3.One, new Vector3(-1.5f, 0f, 0f)), (Vector3.One, new Vector3(1.5f, 0f, 0f))), 8, 0.5f);
+
+        Assert.Equal(2, CountPieces(topology));
+        Assert.DoesNotContain(topology.RestPositions, position => MathF.Abs(position.X) < 0.5f);
+    }
+
+    /// <summary> The cells a triangle goes through, and none of those it only comes close to </summary>
+    [Fact]
+    public static void VoxelizerFindsTheCellsOfTheSurface()
+    {
+        // A triangle in the plane x + y = 2.5, across a 4 x 4 x 1 grid of unit cells
+        Vector3[] positions = [new(2.4f, 0.1f, 0.5f), new(0.1f, 2.4f, 0.5f), new(1.25f, 1.25f, 0.9f)];
+        // Then the same triangle below the grid, where the cells of its border reach
+        foreach (float gridHeight in new[] { 0f, 2f })
         {
-            foreach (int neighbor in neighbors[particle])
+            var onSurface = Voxelizer.CellsOnSurface(positions, [0, 1, 2], new Vector3(0f, 0f, gridHeight), 1f, new Int3(4, 4, 1));
+            for (int y = 0; y < 4; y++)
+            for (int x = 0; x < 4; x++)
             {
-                if (reached[neighbor] == false)
-                {
-                    reached[neighbor] = true;
-                    pending.Push(neighbor);
-                }
+                // The plane goes through the cells which have corners on both sides of it
+                bool expected = x + y is 1 or 2;
+                Assert.True(onSurface[y * 4 + x] == expected, $"Cell {x}, {y} with the grid at {gridHeight}");
             }
         }
-        Assert.All(reached, Assert.True);
-        Assert.True(topology.RestPositions.Any(position => MathF.Abs(position.X) < 0.5f), "No particle between the two boxes");
     }
 
     /// <summary>
@@ -221,6 +226,51 @@ public class TopologyTests
                 weightSum = 0f;
             }
         }
+    }
+
+    /// <summary> The amount of groups of particles that no edge links to another group </summary>
+    private static int CountPieces(SoftBodyTopology topology)
+    {
+        var neighbors = topology.Edges.SelectMany(edge => new[] { (edge.A, edge.B), (edge.B, edge.A) }).ToLookup(pair => pair.Item1, pair => pair.Item2);
+        var reached = new bool[topology.ParticleCount];
+        var pending = new Stack<int>();
+        int pieces = 0;
+        for (int start = 0; start < reached.Length; start++)
+        {
+            if (reached[start])
+                continue;
+
+            pieces++;
+            reached[start] = true;
+            pending.Push(start);
+            while (pending.TryPop(out int particle))
+            {
+                foreach (int neighbor in neighbors[particle])
+                {
+                    if (reached[neighbor] == false)
+                    {
+                        reached[neighbor] = true;
+                        pending.Push(neighbor);
+                    }
+                }
+            }
+        }
+        return pieces;
+    }
+
+    /// <summary> A single mesh made of boxes of the given sizes, each centered on its offset </summary>
+    private static SourceMesh Boxes(params (Vector3 Size, Vector3 Offset)[] boxes)
+    {
+        var positions = new List<Vector3>();
+        var indices = new List<int>();
+        foreach (var (size, offset) in boxes)
+        {
+            var box = Box(size);
+            int first = positions.Count;
+            positions.AddRange(box.Positions.Select(position => position + offset));
+            indices.AddRange(box.Indices.Select(index => index + first));
+        }
+        return FromTriangles(positions, indices);
     }
 
     private static SourceMesh FromTriangles(List<Vector3> positions, List<int> indices)

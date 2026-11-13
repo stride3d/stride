@@ -227,6 +227,94 @@ public class SoftBodyTests : GameTestBase
         });
     }
 
+    /// <summary>
+    /// A model made of two cubes apart from each other is a body in two pieces, which sleep and wake on their own in the solver:
+    /// the body is awake as long as one of them is, and is put to sleep or woken up as a whole.
+    /// </summary>
+    [Fact]
+    public static void ABodyInSeveralPiecesWakesAndSleepsAsOne()
+    {
+        RunScene(async scene =>
+        {
+            var model = new ProceduralModelDescriptor(new CubeProceduralModel()).GenerateModel(scene.Game.Services);
+            model.Skeleton = new Skeleton
+            {
+                Nodes =
+                [
+                    new ModelNodeDefinition { Name = "Root", ParentIndex = -1, Flags = ModelNodeFlags.Default, Transform = new TransformTRS { Rotation = Quaternion.Identity, Scale = Vector3.One } },
+                    new ModelNodeDefinition { Name = "Far", ParentIndex = 0, Flags = ModelNodeFlags.Default, Transform = new TransformTRS { Position = new Vector3(3f, 0f, 0f), Rotation = Quaternion.Identity, Scale = Vector3.One } },
+                ],
+            };
+            model.Meshes.Add(new Mesh(model.Meshes[0]) { NodeIndex = 1 });
+
+            var body = new VolumetricSoftBodyComponent { Resolution = 8 };
+            scene.Add(body, model, new Vector3(0f, 0.6f, 0f));
+            await body.Simulation!.AfterUpdate();
+
+            int near = 0, far = 0;
+            for (int i = 0; i < body.ParticleCount; i++)
+            {
+                if (body.GetParticlePosition(i).X < body.GetParticlePosition(near).X)
+                    near = i;
+                if (body.GetParticlePosition(i).X > body.GetParticlePosition(far).X)
+                    far = i;
+            }
+            Assert.True(body.GetParticlePosition(far).X - body.GetParticlePosition(near).X > 3f);
+
+            body.Awake = false;
+            Assert.False(body.Particle(near).Awake);
+            Assert.False(body.Particle(far).Awake);
+            Assert.False(body.Awake);
+
+            foreach (int piece in new[] { near, far })
+            {
+                body.ApplyParticleImpulse(piece, Vector3.UnitY * 0.01f);
+                Assert.True(body.Awake);
+                body.Awake = false;
+            }
+
+            body.Awake = true;
+            Assert.True(body.Particle(near).Awake);
+            Assert.True(body.Particle(far).Awake);
+        });
+    }
+
+    /// <summary> What a soft body shows in the debug view: three lines for the cross on each particle, then one for each spring </summary>
+    [Fact]
+    public static void DebugViewGetsTheParticlesAndTheSprings()
+    {
+        RunScene(async scene =>
+        {
+            var body = new VolumetricSoftBodyComponent { Resolution = 2 };
+            scene.Add(body, new CubeProceduralModel(), new Vector3(0f, 1f, 0f));
+            await body.Simulation!.AfterUpdate();
+
+            var lines = new LineCollector();
+            body.AddDebugLines(lines);
+
+            var topology = body.Topology!;
+            Assert.Equal(body.ParticleCount * 3 + topology.Edges.Length, lines.Segments.Count);
+            for (int i = 0; i < body.ParticleCount; i++)
+            {
+                var (start, end, _) = lines.Segments[i * 3];
+                Assert.True(Vector3.Distance((start + end) * 0.5f, body.GetParticlePosition(i)) < 1e-4f, $"Cross of particle {i}");
+            }
+            for (int i = 0; i < topology.Edges.Length; i++)
+            {
+                var (start, end, _) = lines.Segments[body.ParticleCount * 3 + i];
+                Assert.Equal(body.GetParticlePosition(topology.Edges[i].A), start);
+                Assert.Equal(body.GetParticlePosition(topology.Edges[i].B), end);
+            }
+        });
+    }
+
+    private sealed class LineCollector : IDebugLineCollector
+    {
+        public readonly System.Collections.Generic.List<(Vector3 Start, Vector3 End, Color Color)> Segments = new();
+
+        public void AddLine(Vector3 start, Vector3 end, Color color) => Segments.Add((start, end, color));
+    }
+
     private sealed class CountingHandler : IContactHandler
     {
         public bool NoContactResponse => false;

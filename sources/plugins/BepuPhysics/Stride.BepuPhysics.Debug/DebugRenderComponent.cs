@@ -59,22 +59,10 @@ public class DebugRenderComponent : SyncScript
     public float ContactSize { get; set; } = 0.25f;
 
     /// <summary>
-    /// Whether to draw a cross marker at the world position of every soft body particle.
+    /// Whether to draw the lines of the collidables that are an <see cref="Definitions.IDebugLineSource"/>, like the particles and springs of a soft body.
     /// </summary>
     [DataMember]
-    public bool ShowSoftBodyParticles { get; set; } = true;
-
-    /// <summary>
-    /// Whether to draw a colored line for every soft body spring (white stretch, cyan shear, yellow bend).
-    /// </summary>
-    [DataMember]
-    public bool ShowSoftBodySprings { get; set; } = true;
-
-    /// <summary>
-    /// Half-length of the cross marker for a soft body particle, in world units.
-    /// </summary>
-    [DataMember]
-    public float SoftBodyParticleSize { get; set; } = 0.015f;
+    public bool ShowCollidableLines { get; set; } = true;
 
     public override void Update()
     {

@@ -1,0 +1,47 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+                    xmlns:caec="using:Stride.Core.Assets.Editor.Avalonia.Converters"
+                    xmlns:caev="using:Stride.Core.Assets.Editor.Avalonia.Views"
+                    xmlns:cpqvm="using:Stride.Core.Presentation.Quantum.ViewModels"
+                    xmlns:s="using:System"
+                    xmlns:ui="using:Stride.UI"
+                    xmlns:views="using:Stride.UI.Editor.Avalonia.Views"
+                    x:Class="Stride.UI.Editor.Avalonia.Views.UIPropertyTemplates">
+
+  <!-- The rotation of the UI elements (radians), edited in degrees -->
+  <caev:TypeAndPropertyNameMatchTemplateProvider x:Key="RotationTemplateProvider" Type="{x:Type s:Single}" PropertyName="Rotation" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <sd:AngleEditor Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}">
+        <Interaction.Behaviors>
+          <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <ChangePropertyAction PropertyName="PlaceholderText" Value="≠"/>
+          </DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </sd:AngleEditor>
+    </DataTemplate>
+  </caev:TypeAndPropertyNameMatchTemplateProvider>
+
+  <!-- A row, column or layer of a grid: its size and its type side by side (the node updater hides both children) -->
+  <caev:TypeMatchTemplateProvider x:Key="StripDefinitionTemplateProvider" Type="{x:Type ui:StripDefinition}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <UniformGrid Rows="1">
+        <ContentControl Focusable="False" Content="{Binding [SizeValue]}" ContentTemplate="{x:Static caev:PropertyViewHelper.EditorProviders}"/>
+        <ContentControl Focusable="False" Content="{Binding [Type_]}" ContentTemplate="{x:Static caev:PropertyViewHelper.EditorProviders}"/>
+      </UniformGrid>
+    </DataTemplate>
+  </caev:TypeMatchTemplateProvider>
+
+  <!-- A thickness of the UI (margin, padding): one box per side -->
+  <caev:TypeMatchTemplateProvider x:Key="ThicknessTemplateProvider" Type="{x:Type ui:Thickness}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <views:ThicknessEditor Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}" DecimalPlaces="3">
+        <Interaction.Behaviors>
+          <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
+            <ChangePropertyAction PropertyName="PlaceholderText" Value="≠"/>
+          </DataTriggerBehavior>
+        </Interaction.Behaviors>
+      </views:ThicknessEditor>
+    </DataTemplate>
+  </caev:TypeMatchTemplateProvider>
+</ResourceDictionary>

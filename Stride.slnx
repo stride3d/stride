@@ -237,6 +237,8 @@
     <Project Path="sources/plugins/BepuPhysics/Stride.BepuPhysics.Soft.Tests/Stride.BepuPhysics.Soft.Tests.csproj" />
     <Project Path="sources/plugins/BepuPhysics/Stride.BepuPhysics.Tests/Stride.BepuPhysics.Tests.csproj" />
     <Project Path="sources/plugins/BepuPhysics/Stride.BepuPhysics/Stride.BepuPhysics.csproj" />
+    <Project Path="sources/plugins/BepuPhysics/Stride.Heightfield.Assets/Stride.Heightfield.Assets.csproj" />
+    <Project Path="sources/plugins/BepuPhysics/Stride.Heightfield/Stride.Heightfield.csproj" />
   </Folder>
   <Folder Name="/80-Plugins/BulletPhysics/">
     <Project Path="sources/plugins/BulletPhysics/Stride.Navigation.Tests/Stride.Navigation.Tests.csproj" />
@@ -260,6 +262,7 @@
   </Folder>
   <Folder Name="/80-Plugins/UI/">
     <Project Path="sources/plugins/UI/Stride.UI.Assets/Stride.UI.Assets.csproj" />
+    <Project Path="sources/plugins/UI/Stride.UI.Editor.Avalonia/Stride.UI.Editor.Avalonia.csproj" />
     <Project Path="sources/plugins/UI/Stride.UI.Editor.Wpf/Stride.UI.Editor.Wpf.csproj" />
     <Project Path="sources/plugins/UI/Stride.UI.Editor/Stride.UI.Editor.csproj" />
     <Project Path="sources/plugins/UI/Stride.UI.Tests/Stride.UI.Tests.csproj" />
@@ -276,11 +279,12 @@
   </Folder>
   <Folder Name="/90-Tools/">
     <Project Path="tests/infra/Stride.ScreenshotComparator/Stride.ScreenshotComparator.csproj" />
-    <Project Path="sources/tests/xunit.runner.stride/xunit.runner.stride.csproj" />
+    <Project Path="sources/tests/Stride.XunitRunner/Stride.XunitRunner.csproj" />
     <Project Path="sources/tools/Stride.ConnectionRouter/Stride.ConnectionRouter.csproj" />
     <Project Path="sources/tools/Stride.Core.Translation.Extractor/Stride.Core.Translation.Extractor.csproj" />
     <Project Path="sources/tools/Stride.EffectCompilerServer/Stride.EffectCompilerServer.csproj" />
     <Project Path="sources/tools/Stride.PackageInstall/Stride.PackageInstall.csproj" />
+    <Project Path="sources/tools/Stride.Shaders.CorpusCapture/Stride.Shaders.CorpusCapture.csproj" />
     <Project Path="sources/tools/Stride.TestRunner/Stride.TestRunner.csproj" />
   </Folder>
   <Folder Name="/90-Tools/3D-Importers/">

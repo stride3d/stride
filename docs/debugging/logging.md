@@ -96,3 +96,44 @@ A `Game` attaches a `ConsoleLogListener` to `GlobalLogger`. `Game.ConsoleLogLeve
 `ConsoleLogMode` decides whether a console window is opened for it: `Always`, `None`, or `Auto`,
 which opens one for Debug builds when no debugger is attached. An attached debugger receives every
 message that passes the level, whatever the mode.
+
+## Shader compiles
+
+The messages of an effect compile carry a module, so that a listener can filter them:
+
+| Module | Messages |
+|---|---|
+| `EffectCompiler` | SDSL errors, warnings and notices, and the shader compilers that run after it |
+| `EffectCompilerCache` | The effect compiler cache: the effects it compiled or failed to compile |
+| `ShaderBackend.FXC` | FXC, on the HLSL that SPIRV-Cross generates for Direct3D 11 |
+
+Messages created without a module, by the shader loader for example, get the module of the compile
+log they end up in (`EffectCompileLog`).
+
+### Shader back ends
+
+On Direct3D 11, FXC compiles the HLSL that SPIRV-Cross generates from the SPIR-V of an effect. Its
+messages are about that generated code, so they have a module of their own, `ShaderBackend.FXC`, and
+keep their severity. They name the HLSL `<Effect>_<stage>.spirv-cross.hlsl`, and their line and column
+are those of the HLSL, not of the `.sdsl`. The HLSL itself is written to the effect's folder in the
+application cache, `cache/effects/<Effect>/<hash>_<stage>.hlsl`.
+
+The compile result keeps every back-end message. Where a result is logged (the effect compiler cache
+of a game or of Game Studio, the effect build step of the asset compiler), a back-end message passes
+only when the global logger of its module lets it through, and that logger starts at Error. So a game
+shows FXC's errors, and its warnings only on request:
+
+```csharp
+GlobalLogger.SetModuleLevel("ShaderBackend.FXC", LogMessageType.Warning);
+```
+
+In Game Studio, the same comes from `Logging/SourceModuleLevels`:
+
+```yaml
+    Logging/SourceModuleLevels:
+        ShaderBackend.FXC: Warning
+```
+
+The level is the one of the process that logs the result: the game, also for the effects that the
+effect compiler server compiles for it, and Game Studio for those of its editors and previews. Effects
+of the effect log are compiled and logged by the asset compiler, which has no such setting.

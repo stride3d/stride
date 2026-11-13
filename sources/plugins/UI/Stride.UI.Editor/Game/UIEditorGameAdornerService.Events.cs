@@ -6,10 +6,9 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 using Stride.UI.Editor.Adorners;
 using Stride.UI.Editor.Services;
-using Stride.Assets.Presentation.ViewModel;
 using Stride.Engine;
 using Stride.Input;
 using Stride.Rendering.UI;
@@ -104,8 +103,8 @@ namespace Stride.UI.Editor.Game
 
             if (resizingAdorners.Count == 1 && selectedAdorners.Count == 1)
             {
-                // If ALT is pressed, we are starting a drag/drop to the outside of the UI editor
-                if (Game.Input.IsKeyDown(Keys.LeftAlt) || Game.Input.IsKeyDown(Keys.RightAlt))
+                // If ALT is pressed, we are starting a drag/drop to the outside of the UI editor (in the editors that have one)
+                if (Controller.CanDragOut && (Game.Input.IsKeyDown(Keys.LeftAlt) || Game.Input.IsKeyDown(Keys.RightAlt)))
                 {
                     e.Handled = true;
                     Controller.StartDragDrop(resizingAdorners[0].GameSideElement.Id);

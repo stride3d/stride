@@ -115,6 +115,8 @@
     <AvaloniaBehaviorVersion>12.0.0</AvaloniaBehaviorVersion>
     <AvaloniaMarkViewVersion>12.2.1</AvaloniaMarkViewVersion>
     <AvaloniaEditVersion>12.0.0</AvaloniaEditVersion>
+    <!-- The docking of the Avalonia Game Studio. A minimum version, as every version here, which restore resolves to: its 4-part versions follow Avalonia's minimum version -->
+    <DockVersion>12.1.0.6</DockVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
@@ -136,6 +138,10 @@
     <!-- The code editor (scripts): AvaloniaEdit, and TextMate grammars for the highlighting -->
     <PackageVersion Include="Avalonia.AvaloniaEdit" Version="$(AvaloniaEditVersion)" />
     <PackageVersion Include="AvaloniaEdit.TextMate" Version="$(AvaloniaEditVersion)" />
+    <!-- The panels and editors of the Avalonia Game Studio's main window (Dock.Avalonia, MIT): only its shell references them -->
+    <PackageVersion Include="Dock.Avalonia" Version="$(DockVersion)" />
+    <PackageVersion Include="Dock.Avalonia.Themes.Fluent" Version="$(DockVersion)" />
+    <PackageVersion Include="Dock.Model.Inpc" Version="$(DockVersion)" />
   </ItemGroup>
   <!-- Windows/WPF dependencies -->
   <ItemGroup>
@@ -143,7 +149,7 @@
     <PackageVersion Include="Dirkster.AvalonDock" Version="4.72.1" />
     <PackageVersion Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.77" />
     <PackageVersion Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
-    <PackageVersion Include="Stride.GraphX.WPF.Controls" Version="2.4.0" />
+    <PackageVersion Include="GraphX" Version="3.0.0" />
     <PackageVersion Include="RoslynPad.Editor.Windows" Version="5.0.0" />
     <PackageVersion Include="RoslynPad.Roslyn" Version="5.0.0" />
     <PackageVersion Include="RoslynPad.Roslyn.Windows" Version="5.0.0" />

@@ -39,6 +39,21 @@ namespace Stride.Graphics
         }
 
         /// <summary>
+        ///   Gets the amount of video memory, in bytes, of the adapter.
+        /// </summary>
+        public ulong DedicatedVideoMemory => 0;
+
+        /// <summary>
+        ///   Gets the amount of system memory, in bytes, reserved for the adapter.
+        /// </summary>
+        public ulong DedicatedSystemMemory => 0;
+
+        /// <summary>
+        ///   Gets the amount of system memory, in bytes, the adapter can share with the CPU.
+        /// </summary>
+        public ulong SharedSystemMemory => 0;
+
+        /// <summary>
         /// Determines if this instance of GraphicsAdapter is the default adapter.
         /// </summary>
         public bool IsDefaultAdapter

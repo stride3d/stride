@@ -9,7 +9,8 @@ public partial class DirectoryWatcher : IDisposable
 {
     private const int SleepBetweenWatcherCheck = 200;
     private Thread? watcherCheckThread;
-    private bool exitThread;
+    // Set by Dispose: the check thread waits on it between its checks, so that it ends at once
+    private readonly ManualResetEventSlim exitThread = new();
 
     /// <summary>
     /// Occurs when a file/directory change occurred.
@@ -45,7 +46,7 @@ public partial class DirectoryWatcher : IDisposable
     {
         if (disposing)
         {
-            exitThread = true;
+            exitThread.Set();
             if (watcherCheckThread != null)
             {
                 watcherCheckThread.Join();

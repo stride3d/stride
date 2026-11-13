@@ -26,7 +26,7 @@ public sealed class GameCodeReloadTests
     {
         using var fixture = await ShellSessionFixture.OpenAsync();
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var menuItem = window.GetLogicalDescendants().OfType<MenuItem>().Single(x => x.Name == "ReloadGameCodeMenuItem");

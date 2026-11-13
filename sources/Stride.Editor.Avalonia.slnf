@@ -63,6 +63,9 @@
       "sources\\plugins\\SpriteStudio\\Stride.SpriteStudio.Editor.Avalonia\\Stride.SpriteStudio.Editor.Avalonia.csproj",
       "sources\\plugins\\SpriteStudio\\Stride.SpriteStudio.Editor\\Stride.SpriteStudio.Editor.csproj",
       "sources\\plugins\\SpriteStudio\\Stride.SpriteStudio.Runtime\\Stride.SpriteStudio.Runtime.csproj",
+      "sources\\plugins\\UI\\Stride.UI.Assets\\Stride.UI.Assets.csproj",
+      "sources\\plugins\\UI\\Stride.UI.Editor.Avalonia\\Stride.UI.Editor.Avalonia.csproj",
+      "sources\\plugins\\UI\\Stride.UI.Editor\\Stride.UI.Editor.csproj",
       "sources\\plugins\\UI\\Stride.UI\\Stride.UI.csproj",
       "sources\\plugins\\Video\\Stride.Video.Assets\\Stride.Video.Assets.csproj",
       "sources\\plugins\\Video\\Stride.Video.Editor\\Stride.Video.Editor.csproj",
@@ -82,7 +85,7 @@
       "sources\\shaders\\Stride.Shaders.Spirv\\Stride.Shaders.Spirv.csproj",
       "sources\\shaders\\Stride.Shaders\\Stride.Shaders.csproj",
       "sources\\shared\\Stride.NuGetResolver\\Stride.NuGetResolver.csproj",
-      "sources\\tests\\xunit.runner.stride\\xunit.runner.stride.csproj",
+      "sources\\tests\\Stride.XunitRunner\\Stride.XunitRunner.csproj",
       "sources\\tools\\Stride.Importer.3D\\Stride.Importer.3D.csproj",
       "sources\\tools\\Stride.Importer.Common\\Stride.Importer.Common.csproj",
       "sources\\tools\\Stride.TextureConverter\\Stride.TextureConverter.csproj"

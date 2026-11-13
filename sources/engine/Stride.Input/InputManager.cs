@@ -51,6 +51,7 @@ namespace Stride.Input
         private readonly List<IInputDevice> devices = new List<IInputDevice>();
 
         private readonly List<InputEvent> events = new List<InputEvent>();
+        private readonly MaskedEventList<InputEvent> maskedEvents;
         private readonly List<GestureEvent> currentGestureEvents = new List<GestureEvent>();
 
         private readonly Dictionary<GestureConfig, GestureRecognizer> gestureConfigToRecognizer = new Dictionary<GestureConfig, GestureRecognizer>();
@@ -72,6 +73,12 @@ namespace Stride.Input
 
         private GameContext gameContext;
 
+        /// <summary>
+        /// Whether <see cref="Initialize"/> and <see cref="ResetSources"/> add the gamepad sources of the platform (DirectInput
+        /// and XInput on Windows). Editor games turn it off: they read no gamepad, and DirectInput takes about 0.3 s to start.
+        /// </summary>
+        internal bool UseGamePadSources { get; set; } = true;
+
         private Dictionary<IInputSource, EventHandler<TrackingCollectionChangedEventArgs>> devicesCollectionChangedActions = new Dictionary<IInputSource, EventHandler<TrackingCollectionChangedEventArgs>>();
 
 #if STRIDE_INPUT_RAWINPUT
@@ -83,6 +90,10 @@ namespace Stride.Input
         /// </summary>
         public InputManager()
         {
+            maskedEvents = new MaskedEventList<InputEvent>(this, events);
+            maskedKeyEvents = new MaskedEventList<KeyEvent>(this, keyEvents);
+            maskedPointerEvents = new MaskedEventList<PointerEvent>(this, pointerEvents);
+
             Gestures = new TrackingCollection<GestureConfig>();
             Gestures.CollectionChanged += GesturesOnCollectionChanged;
 
@@ -144,7 +155,8 @@ namespace Stride.Input
         /// <summary>
         /// All input events that happened since the last frame
         /// </summary>
-        public IReadOnlyList<InputEvent> Events => events;
+        /// <remarks>Events from captured devices and pointers are left out while <see cref="MaskCapturedInput"/> is enabled.</remarks>
+        public IReadOnlyList<InputEvent> Events => maskedEvents;
 
         /// <summary>
         /// Gets the collection of gesture events since the previous updates.
@@ -407,6 +419,7 @@ namespace Stride.Input
         /// </summary>
         /// <remarks>
         /// This method could take several milliseconds and should be used at specific time in a game where performance is not crucial (pause, configuration screen...etc.)
+        /// Some sources, such as DirectInput, scan on a worker thread: the devices they find are added by a later <see cref="Update"/>.
         /// </remarks>
         public void Scan()
         {
@@ -418,6 +431,7 @@ namespace Stride.Input
 
         public void Update(GameTime gameTime)
         {
+            FrameIndex++;
             ResetGlobalInputState();
 
             // Recycle input event to reduce garbage generation
@@ -438,12 +452,27 @@ namespace Stride.Input
             foreach (var inputDevice in devices)
             {
                 inputDevice.Update(events);
+                inputDevice.CaptureState.RaiseDeviceUpdated();
             }
 
             // Notify PreUpdateInput
             PreUpdateInput?.Invoke(this, new InputPreUpdateEventArgs { GameTime = gameTime });
             
             RouteEvents(events);
+
+            // The key and pointer event lists fill while events are routed, so a read before or during routing is rebuilt
+            CaptureVersion++;
+
+            // Let capture owners decide this frame's captures before the state scripts and systems read is built
+            resolvingCapture = true;
+            try
+            {
+                ResolvingCapture?.Invoke(this, EventArgs.Empty);
+            }
+            finally
+            {
+                resolvingCapture = false;
+            }
 
             // Update virtual buttons
             UpdateVirtualButtonStates();
@@ -716,9 +745,12 @@ namespace Stride.Input
                     // stack (DirectInput/XInput/raw input + SharpDX) when the WinForms backend is off.
                     if (GameContextFactory.WinFormsBackendEnabled)
                     {
-                        Sources.Add(new InputSourceWindowsDirectInput());
-                        if (InputSourceWindowsXInput.IsSupported())
-                            Sources.Add(new InputSourceWindowsXInput());
+                        if (UseGamePadSources)
+                        {
+                            Sources.Add(new InputSourceWindowsDirectInput((context as GameContextWinforms)?.Control));
+                            if (InputSourceWindowsXInput.IsSupported())
+                                Sources.Add(new InputSourceWindowsXInput((context as GameContextWinforms)?.Control));
+                        }
 #if STRIDE_INPUT_RAWINPUT
                         if (rawInputEnabled && context is GameContextWinforms gameContextWinforms)
                             Sources.Add(new InputSourceWindowsRawInput(gameContextWinforms.Control));
@@ -805,6 +837,7 @@ namespace Stride.Input
         private void OnInputDeviceAdded(IInputSource source, IInputDevice device)
         {
             devices.Add(device);
+            device.CaptureState.SetMaskingEnabled(maskCapturedInput);
             if (!devicesById.TryAdd(device.Id, device))
                 throw new InvalidOperationException($"Device with Id {device.Id}({device.Name}) already registered to {devicesById[device.Id].Name}");
 
@@ -843,6 +876,7 @@ namespace Stride.Input
                 throw new InvalidOperationException("Input device was not registered");
 
             var source = device.Source;
+            DropCapture(device);
             devices.Remove(device);
             devicesById.Remove(device.Id);
 
@@ -999,10 +1033,12 @@ namespace Stride.Input
         {
             currentGestureEvents.Clear();
 
+            CollectUnmaskedPointerEvents(gesturePointerEvents);
             foreach (var gestureRecognizer in gestureConfigToRecognizer.Values)
             {
-                gestureRecognizer.ProcessPointerEvents(elapsedGameTime, pointerEvents, currentGestureEvents);
+                gestureRecognizer.ProcessPointerEvents(elapsedGameTime, gesturePointerEvents, currentGestureEvents);
             }
+            gesturePointerEvents.Clear();
         }
 
         private void UpdateVirtualButtonStates()

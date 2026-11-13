@@ -30,7 +30,7 @@ namespace Stride.Editor.Thumbnails
             PriorityMinor = priorityOrder;
         }
 
-        protected override ListBuildStep Prepare()
+        protected override ListBuildStep? Prepare()
         {
             return thumbnailService.Compile(asset, gameSettings);
         }

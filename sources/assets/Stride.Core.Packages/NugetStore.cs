@@ -667,17 +667,34 @@ public partial class NugetStore : INugetDownloadProgress
     /// <param name="targetFrameworks">The target frameworks to restore.</param>
     /// <param name="settingsRoot">The directory whose NuGet settings to use; null for the default settings.</param>
     /// <param name="outputPath">The output path for the restore.</param>
-    public async Task<LockFile> RestorePackage(string packageId, PackageVersion version, IEnumerable<string> targetFrameworks, string? settingsRoot, string outputPath)
+    public Task<LockFile> RestorePackage(string packageId, PackageVersion version, IEnumerable<string> targetFrameworks, string? settingsRoot, string outputPath)
     {
+        return RestorePackage(packageId, version, targetFrameworks, settingsRoot, outputPath, []);
+    }
+
+    /// <summary>
+    /// Restores exactly <paramref name="version"/> of a package and its dependencies into the global packages folder, from the
+    /// configured sources and from <paramref name="additionalSources"/> (local folders or feeds).
+    /// </summary>
+    /// <param name="packageId">The package identifier.</param>
+    /// <param name="version">The package version to restore.</param>
+    /// <param name="targetFrameworks">The target frameworks to restore.</param>
+    /// <param name="settingsRoot">The directory whose NuGet settings to use; null for the default settings.</param>
+    /// <param name="outputPath">The output path for the restore.</param>
+    /// <param name="additionalSources">More sources to restore from, after the configured ones.</param>
+    [System.Diagnostics.CodeAnalysis.Experimental("STREXP002")]
+    public async Task<LockFile> RestorePackage(string packageId, PackageVersion version, IEnumerable<string> targetFrameworks, string? settingsRoot, string outputPath, IReadOnlyList<string> additionalSources)
+    {
+        ArgumentNullException.ThrowIfNull(additionalSources);
         var restoreSettings = settingsRoot != null ? NuGet.Configuration.Settings.LoadDefaultSettings(settingsRoot) : settings;
         using (GetLocalRepositoryLock())
         {
             var exactVersion = new VersionRange(version.ToNuGetVersion(), includeMinVersion: true, version.ToNuGetVersion(), includeMaxVersion: true);
-            return await RestorePackageCore(packageId, exactVersion, targetFrameworks, restoreSettings, SettingsUtility.GetGlobalPackagesFolder(restoreSettings), "StrideCompanionPackages", outputPath, null, CancellationToken.None);
+            return await RestorePackageCore(packageId, exactVersion, targetFrameworks, restoreSettings, SettingsUtility.GetGlobalPackagesFolder(restoreSettings), "StrideCompanionPackages", outputPath, null, CancellationToken.None, additionalSources);
         }
     }
 
-    private async Task<LockFile> RestorePackageCore(string packageId, VersionRange version, IEnumerable<string> targetFrameworks, ISettings restoreSettings, string installPath, string projectName, string outputPath, EventHandler<PackageOperationEventArgs>? packageInstalled, CancellationToken cancellationToken)
+    private async Task<LockFile> RestorePackageCore(string packageId, VersionRange version, IEnumerable<string> targetFrameworks, ISettings restoreSettings, string installPath, string projectName, string outputPath, EventHandler<PackageOperationEventArgs>? packageInstalled, CancellationToken cancellationToken, IReadOnlyList<string>? additionalSources = null)
     {
         ActivityCorrelationId.StartNew();
 
@@ -701,7 +718,7 @@ public partial class NugetStore : INugetDownloadProgress
                 OriginalTargetFrameworks = targetFrameworks.ToList(),
                 ConfigFilePaths = restoreSettings.GetConfigFilePaths(),
                 PackagesPath = installPath,
-                Sources = SettingsUtility.GetEnabledSources(restoreSettings).ToList(),
+                Sources = [.. SettingsUtility.GetEnabledSources(restoreSettings), .. (additionalSources ?? []).Select(x => new PackageSource(x))],
                 FallbackFolders = [.. SettingsUtility.GetFallbackPackageFolders(restoreSettings)]
             },
         };

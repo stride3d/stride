@@ -27,6 +27,77 @@ internal static class Voxelizer
         return inside;
     }
 
+    /// <summary> Finds the cells of the grid that a triangle of the mesh goes through, laid out as <see cref="CellCentersInside"/> does </summary>
+    /// <remarks> The cells on the border of the grid reach out to the bounds of the mesh, for the surface lying outside of the grid </remarks>
+    public static bool[] CellsOnSurface(ReadOnlySpan<Vector3> positions, ReadOnlySpan<int> indices, Vector3 origin, float cellSize, Int3 size)
+    {
+        var onSurface = new bool[size.X * size.Y * size.Z];
+        Vector3 meshMin = Vector3.Zero, meshMax = new Vector3(size.X, size.Y, size.Z) * cellSize;
+        foreach (var position in positions)
+        {
+            meshMin = Vector3.Min(meshMin, position - origin);
+            meshMax = Vector3.Max(meshMax, position - origin);
+        }
+
+        float invCell = 1f / cellSize;
+        for (int t = 0; t + 2 < indices.Length; t += 3)
+        {
+            var a = positions[indices[t]] - origin;
+            var b = positions[indices[t + 1]] - origin;
+            var c = positions[indices[t + 2]] - origin;
+            var first = CellOf(Vector3.Min(a, Vector3.Min(b, c)) * invCell, size);
+            var last = CellOf(Vector3.Max(a, Vector3.Max(b, c)) * invCell, size);
+
+            for (int z = first.Z; z <= last.Z; z++)
+            for (int y = first.Y; y <= last.Y; y++)
+            for (int x = first.X; x <= last.X; x++)
+            {
+                ref bool cell = ref onSurface[(z * size.Y + y) * size.X + x];
+                if (cell)
+                    continue;
+                var min = new Vector3(x == 0 ? meshMin.X : x * cellSize, y == 0 ? meshMin.Y : y * cellSize, z == 0 ? meshMin.Z : z * cellSize);
+                var max = new Vector3(
+                    x == size.X - 1 ? meshMax.X : (x + 1) * cellSize,
+                    y == size.Y - 1 ? meshMax.Y : (y + 1) * cellSize,
+                    z == size.Z - 1 ? meshMax.Z : (z + 1) * cellSize);
+                var center = (min + max) * 0.5f;
+                cell = TriangleTouchesBox(a - center, b - center, c - center, (max - min) * 0.5f);
+            }
+        }
+        return onSurface;
+
+        static Int3 CellOf(Vector3 cell, Int3 size) => new(
+            Math.Clamp((int)MathF.Floor(cell.X), 0, size.X - 1),
+            Math.Clamp((int)MathF.Floor(cell.Y), 0, size.Y - 1),
+            Math.Clamp((int)MathF.Floor(cell.Z), 0, size.Z - 1));
+    }
+
+    /// <summary> Whether a triangle touches the box of half size <paramref name="half"/> centered on the origin </summary>
+    private static bool TriangleTouchesBox(Vector3 a, Vector3 b, Vector3 c, Vector3 half)
+    {
+        // They are apart when an axis separates them: one of the box's, the triangle's normal, or the cross product of an edge of each
+        Vector3 ab = b - a, bc = c - b, ca = a - c;
+        if (Separates(Vector3.UnitX, a, b, c, half) || Separates(Vector3.UnitY, a, b, c, half) || Separates(Vector3.UnitZ, a, b, c, half)
+            || Separates(Vector3.Cross(ab, bc), a, b, c, half))
+            return false;
+
+        foreach (var edge in (ReadOnlySpan<Vector3>)[ab, bc, ca])
+        {
+            if (Separates(new Vector3(0f, -edge.Z, edge.Y), a, b, c, half)
+                || Separates(new Vector3(edge.Z, 0f, -edge.X), a, b, c, half)
+                || Separates(new Vector3(-edge.Y, edge.X, 0f), a, b, c, half))
+                return false;
+        }
+        return true;
+    }
+
+    private static bool Separates(Vector3 axis, Vector3 a, Vector3 b, Vector3 c, Vector3 half)
+    {
+        float pa = Vector3.Dot(axis, a), pb = Vector3.Dot(axis, b), pc = Vector3.Dot(axis, c);
+        float reach = half.X * MathF.Abs(axis.X) + half.Y * MathF.Abs(axis.Y) + half.Z * MathF.Abs(axis.Z);
+        return MathF.Min(pa, MathF.Min(pb, pc)) > reach || MathF.Max(pa, MathF.Max(pb, pc)) < -reach;
+    }
+
     private static void VoteAlong(int axis, ReadOnlySpan<Vector3> positions, ReadOnlySpan<int> indices, Vector3 origin, float cellSize, Int3 size, byte[] votes)
     {
         // The ray runs along 'axis', rows are laid out on the two other axes

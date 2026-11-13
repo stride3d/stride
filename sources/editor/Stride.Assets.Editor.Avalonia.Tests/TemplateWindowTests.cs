@@ -14,6 +14,7 @@ using Stride.Assets.Editor.Templates;
 using Stride.Assets.Editor.Tests.Helpers;
 using Stride.Core.Presentation.Avalonia.Services;
 using Stride.Core.Presentation.ViewModels;
+using static Stride.Core.Assets.Editor.Avalonia.Tests.Helpers.DispatcherPump;
 
 namespace Stride.Assets.Editor.Avalonia.Tests;
 
@@ -186,23 +187,6 @@ public sealed class TemplateWindowTests
         finally
         {
             await CloseAsync(window);
-        }
-    }
-
-    private static async Task PumpAsync()
-    {
-        await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Background);
-    }
-
-    private static async Task WaitUntilAsync(Func<bool> condition, string what)
-    {
-        var deadline = DateTime.UtcNow.AddSeconds(5);
-        while (!condition())
-        {
-            if (DateTime.UtcNow > deadline)
-                throw new TimeoutException($"Timed out waiting for {what}.");
-            await Task.Delay(25);
-            await PumpAsync();
         }
     }
 

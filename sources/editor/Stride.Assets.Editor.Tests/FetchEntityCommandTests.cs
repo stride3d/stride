@@ -16,7 +16,7 @@ public sealed class FetchEntityCommandTests
     [Fact]
     public async Task FetchingAComponentSelectsItsEntityInTheEditor()
     {
-        using var fixture = await OpenSceneAsync();
+        await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var box = FindEntity(editor, "Box");
         // The test plays the UI thread: the selection changes (of the editor, and of the asset view that follows it) run on the
@@ -34,7 +34,7 @@ public sealed class FetchEntityCommandTests
     [Fact]
     public async Task FetchingAnEntityOfAChildSceneSelectsItInTheEditorOfTheRootScene()
     {
-        using var fixture = await OpenScenesAsync();
+        await using var fixture = await OpenScenesAsync();
         var editor = await OpenEditorAsync(fixture);
         var child = ((SceneRootViewModel)editor.HierarchyRoot).ChildScenes.Single();
         var lamp = child.InnerSubEntities.Single();
@@ -48,7 +48,7 @@ public sealed class FetchEntityCommandTests
     [Fact]
     public async Task FetchingAnEntityOfASceneThatNoEditorShowsDoesNothing()
     {
-        using var fixture = await OpenSceneAsync();
+        await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var box = FindEntity(editor, "Box").AssetSideEntity;
         editor.Destroy();

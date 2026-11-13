@@ -15,15 +15,20 @@
     <PackageReference Include="Xunit.SkippableFact" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
+    <ProjectReference Include="..\..\tests\Stride.XunitRunner\Stride.XunitRunner.csproj" />
     <ProjectReference Include="..\Stride.Core.Assets.Editor\Stride.Core.Assets.Editor.csproj" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\TestPluginImage.txt" />
+    <EmbeddedResource Include="Resources\TestBrokenImage.txt" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+    <!-- A NuGet setup of its own (feed, global packages folder, nuget.config) in a temp folder, for the extension tests -->
+    <Compile Include="..\..\assets\Stride.Core.Assets.Tests\Helpers\LocalPackageFeed.cs">
+      <Link>Helpers\LocalPackageFeed.cs</Link>
     </Compile>
   </ItemGroup>
 

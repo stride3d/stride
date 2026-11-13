@@ -42,6 +42,10 @@ on:
         description: Capture and upload build binlog (off by default; adds some I/O overhead)
         default: false
         type: boolean
+      capture-shader-corpus:
+        description: Record every compiled mixin tree for the shader corpus (Direct3D11 leg only, artifact shader-corpus-game)
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       build-type:
@@ -73,6 +77,9 @@ on:
         default: false
         type: boolean
       upload-binlog:
+        default: false
+        type: boolean
+      capture-shader-corpus:
         default: false
         type: boolean
 
@@ -107,6 +114,9 @@ jobs:
       DOTNET_DbgEnableMiniDump: "1"                                                  # Type 2: .NET unhandled exceptions
       DOTNET_DbgMiniDumpType: "4"                                                    # MiniDumpWithFullMemory
       DOTNET_DbgMiniDumpName: "${{ github.workspace }}\\TestResults\\dotnet_%p.dmp"  # Type 2: dump path
+      # Shader corpus refresh (sources/shaders/Stride.Shaders.Tests/Corpus/README.md): the test suites record their
+      # mixin trees. One leg is enough, the corpus test compiles each tree for every graphics API.
+      STRIDE_SHADER_CORPUS_CAPTURE: ${{ inputs.capture-shader-corpus && matrix.graphics-api == 'Direct3D11' && format('{0}\shader-corpus', github.workspace) || '' }}
     steps:
       # Bootstrap .github so the local composite action below is resolvable pre-checkout.
       - uses: actions/checkout@v7
@@ -232,3 +242,10 @@ jobs:
           name: test-results-game-${{ matrix.graphics-api }}
           path: TestResults/
           if-no-files-found: ignore
+      - name: Upload shader corpus capture
+        if: always() && env.STRIDE_SHADER_CORPUS_CAPTURE != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: shader-corpus-game
+          path: shader-corpus/
+          if-no-files-found: warn

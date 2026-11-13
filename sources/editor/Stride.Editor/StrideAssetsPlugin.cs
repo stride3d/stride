@@ -25,8 +25,8 @@ namespace Stride.Editor
     /// <remarks>
     /// A plugin registers what it adds in <see cref="Initialize(IEditorPluginContext)"/> and
     /// <see cref="AssetsPlugin.InitializeSession(ISessionPluginContext)"/>, calling the base method first. The enum images
-    /// and template providers that a plugin written for the older API registers in <see cref="Initialize(ILogger)"/> with
-    /// <see cref="RegisterEnumImage"/> and <see cref="RegisterTemplateProvider"/> still reach the editor.
+    /// and template providers that a plugin written for the older, obsolete API registers in <see cref="Initialize(ILogger)"/>
+    /// with <see cref="RegisterEnumImage"/> and <see cref="RegisterTemplateProvider"/> still reach the editor.
     /// </remarks>
     public abstract class StrideAssetsPlugin : AssetsEditorPlugin
     {
@@ -38,7 +38,8 @@ namespace Stride.Editor
         /// </summary>
         /// <param name="value">The enum value.</param>
         /// <param name="image">The image, in the format of the editor's toolkit.</param>
-        /// <remarks>A plugin that uses the plugin context registers it in <see cref="IEditorPluginContext.EnumImages"/>.</remarks>
+        /// <remarks>Obsolete: a plugin registers it in <see cref="IEditorPluginContext.EnumImages"/>.</remarks>
+        [Obsolete("Register enum images in Initialize(IEditorPluginContext) with context.EnumImages. See docs/build/plugins.md.", DiagnosticId = "STRPLUGIN002")]
         protected void RegisterEnumImage(Enum value, object image)
         {
             enumImagesDictionary.Add(value, image);
@@ -48,7 +49,8 @@ namespace Stride.Editor
         /// Registers a template provider for the editor's property grid, from <see cref="Initialize(ILogger)"/>.
         /// </summary>
         /// <param name="provider">The template provider.</param>
-        /// <remarks>A plugin that uses the plugin context registers it in <see cref="IEditorPluginContext.TemplateProviders"/>.</remarks>
+        /// <remarks>Obsolete: a plugin registers it in <see cref="IEditorPluginContext.TemplateProviders"/>.</remarks>
+        [Obsolete("Register template providers in Initialize(IEditorPluginContext) with context.TemplateProviders. See docs/build/plugins.md.", DiagnosticId = "STRPLUGIN002")]
         protected void RegisterTemplateProvider(ITemplateProvider provider)
         {
             templateProviderList.Add(provider);
@@ -58,11 +60,15 @@ namespace Stride.Editor
         /// Called when the plugin joins the session, before <see cref="Initialize(IEditorPluginContext)"/>: the place where a
         /// plugin written for the older API registers its enum images and template providers.
         /// </summary>
+        /// <remarks>Obsolete: a plugin registers everything in <see cref="Initialize(IEditorPluginContext)"/>, where
+        /// <see cref="IEditorPluginContext.Logger"/> is its logger.</remarks>
+        [Obsolete("Override Initialize(IEditorPluginContext) instead; context.Logger is the plugin's logger. See docs/build/plugins.md.", DiagnosticId = "STRPLUGIN002")]
         protected virtual void Initialize(ILogger logger)
         {
         }
 
         /// <inheritdoc />
+        [Obsolete("Override Initialize(IEditorPluginContext) instead; context.Logger is the plugin's logger. See docs/build/plugins.md.", DiagnosticId = "STRPLUGIN002")]
         public sealed override void InitializePlugin(ILogger logger)
         {
             enumImagesDictionary.Clear();
@@ -72,6 +78,7 @@ namespace Stride.Editor
         }
 
         /// <inheritdoc />
+        [Obsolete("Register them in Initialize(IEditorPluginContext) with context.EnumImages. See docs/build/plugins.md.", DiagnosticId = "STRPLUGIN001")]
         public sealed override void RegisterEnumImages(IDictionary<object, object> enumImages)
         {
             foreach (var pair in enumImagesDictionary)
@@ -79,6 +86,7 @@ namespace Stride.Editor
         }
 
         /// <inheritdoc />
+        [Obsolete("Register them in Initialize(IEditorPluginContext) with context.TemplateProviders. See docs/build/plugins.md.", DiagnosticId = "STRPLUGIN001")]
         public override void RegisterTemplateProviders(ICollection<ITemplateProvider> templateProviders)
         {
             templateProviders.AddRange(templateProviderList);

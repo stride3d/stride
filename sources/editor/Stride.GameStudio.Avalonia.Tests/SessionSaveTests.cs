@@ -29,7 +29,7 @@ public sealed class SessionSaveTests
     {
         using var fixture = ShellSessionFixture.Create((AssetLocation, new TextPropertiesAsset { Label = "label" }));
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var save = SaveItem(window);
@@ -55,7 +55,7 @@ public sealed class SessionSaveTests
         using var fixture = await ShellSessionFixture.OpenAsync((AssetLocation, new TextPropertiesAsset { Label = "label" }));
         var dialogs = fixture.ReplaceDialogService();
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var asset = fixture.Asset(AssetLocation);
@@ -81,7 +81,7 @@ public sealed class SessionSaveTests
     {
         using var fixture = await ShellSessionFixture.OpenAsync((AssetLocation, new TextPropertiesAsset { Label = "label" }));
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var asset = fixture.Asset(AssetLocation);
@@ -111,7 +111,7 @@ public sealed class SessionSaveTests
     {
         using var fixture = await ShellSessionFixture.OpenAsync((AssetLocation, new TextPropertiesAsset { Label = "label" }));
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var undoRedo = fixture.Session.UndoRedoService!;
@@ -152,7 +152,7 @@ public sealed class SessionSaveTests
         var window = new MainWindow { DataContext = fixture.Main };
         var closed = false;
         window.Closed += (_, _) => closed = true;
-        window.Show();
+        await window.ShowAsync();
         try
         {
             Edit(fixture, fixture.Asset(AssetLocation), "edited");
@@ -195,7 +195,7 @@ public sealed class SessionSaveTests
         var window = new MainWindow { DataContext = fixture.Main };
         var closed = false;
         window.Closed += (_, _) => closed = true;
-        window.Show();
+        await window.ShowAsync();
         try
         {
             await window.CloseAsync();
@@ -216,7 +216,7 @@ public sealed class SessionSaveTests
         using var fixture = await ShellSessionFixture.OpenAsync((AssetLocation, new TextPropertiesAsset { Label = "label" }));
         var dialogs = fixture.ReplaceDialogService();
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             Edit(fixture, fixture.Asset(AssetLocation), "edited");

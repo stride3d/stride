@@ -26,7 +26,7 @@ public sealed class TestSessionCore
     [Fact]
     public async Task SavingPutsTheSessionAtTheTopOfTheRecentFiles()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var main = (FakeMainViewModel)fixture.Session.Main;
         Assert.Empty(main.RecentFiles);
 
@@ -39,7 +39,7 @@ public sealed class TestSessionCore
     [Fact]
     public async Task TheTextAssetsOpenWithTheShaderEditor()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var main = (FakeMainViewModel)fixture.Session.Main;
         main.TextAssetTypes.Add(nameof(TestEditorAsset));
         var explorer = new FakeFileExplorerService();
@@ -58,7 +58,7 @@ public sealed class TestSessionCore
             fixture.Session.EditSelectedContentCommand.Execute();
 
             var file = Path.Combine(fixture.Directory, EditorSessionFixture.PackageName, "Assets", "Textures", "Wood.sdtesteditor");
-            Assert.True(SpinWait.SpinUntil(() => explorer.Requests.Count > 0, TimeSpan.FromSeconds(10)));
+            await ExclusiveDispatcherService.WaitUntilAsync(() => explorer.Requests.Count > 0, "the request to the shader editor");
             Assert.Equal([$"with {editor} {file}"], explorer.Requests);
             Assert.Empty(fixture.Session.EditorCollection.Editors);
         }
@@ -71,13 +71,13 @@ public sealed class TestSessionCore
     [Fact]
     public async Task SelectingAProjectEnablesUpdatePackageAndAddDependency()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var session = fixture.Session;
         Assert.False(session.IsUpdatePackageEnabled);
 
         fixture.OnUiThread(() => fixture.Assets.SelectedLocations.Add(fixture.Package));
 
-        Assert.True(SpinWait.SpinUntil(() => session.IsUpdatePackageEnabled, TimeSpan.FromSeconds(10)));
+        await ExclusiveDispatcherService.WaitUntilAsync(() => session.IsUpdatePackageEnabled, "Update package to be enabled");
         Assert.True(session.AddDependencyCommand.IsEnabled);
         Assert.NotNull(session.UpdatePackageViewModel);
     }
@@ -85,7 +85,7 @@ public sealed class TestSessionCore
     [Fact]
     public async Task UpdatePackageNeedsASingleSelectedPackage()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var template = fixture.Session.FindTemplates(Templates.TemplateScope.Package).FirstOrDefault() ?? new Templates.TemplateDescription { Name = "Test" };
 
         await fixture.Session.UpdatePackageTemplateAsync(template);
@@ -96,12 +96,12 @@ public sealed class TestSessionCore
     [Fact]
     public async Task AddDependencyTellsWhenNoPackageCanBeAdded()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         fixture.OnUiThread(() => fixture.Assets.SelectedLocations.Add(fixture.Package));
 
         fixture.Session.AddDependencyCommand.Execute();
 
-        Assert.True(SpinWait.SpinUntil(() => fixture.Dialogs.Messages.Count > 0, TimeSpan.FromSeconds(10)));
+        await ExclusiveDispatcherService.WaitUntilAsync(() => fixture.Dialogs.Messages.Count > 0, "the message");
         Assert.Equal(["There are no packages that can be added as dependencies to this package."], fixture.Dialogs.Messages);
         Assert.Empty(fixture.Dialogs.PackagePickers);
     }
@@ -109,7 +109,7 @@ public sealed class TestSessionCore
     [Fact]
     public async Task AddDependencyOffersTheSuggestedPackagesButNotThePackageItself()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var session = fixture.Session;
         session.SuggestedPackages.Add(new PackageName("Some.Suggested.Package", new PackageVersion("1.0.0")));
         fixture.OnUiThread(() => fixture.Assets.SelectedLocations.Add(fixture.Package));
@@ -117,7 +117,7 @@ public sealed class TestSessionCore
         session.AddDependencyCommand.Execute();
 
         // The picker opens (the user cancels it): it lists the suggested package, not the selected package
-        Assert.True(SpinWait.SpinUntil(() => fixture.Dialogs.PackagePickers.Count > 0, TimeSpan.FromSeconds(10)));
+        await ExclusiveDispatcherService.WaitUntilAsync(() => fixture.Dialogs.PackagePickers.Count > 0, "the package picker");
         var filter = Assert.Single(fixture.Dialogs.PackagePickers);
         var candidates = (await session.SuggestPackagesToAddAsync()).ToList();
         Assert.Contains(candidates, x => x.Name == "Some.Suggested.Package" && filter(x));
@@ -128,7 +128,7 @@ public sealed class TestSessionCore
     [Fact]
     public async Task OpenInIDETellsWhenTheSessionHasNoSolution()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         Assert.True(string.IsNullOrEmpty(fixture.Session.SolutionPath));
 
         Assert.False(await CodeEditorOpenerService.StartOrToggle(fixture.Session, null));
@@ -139,7 +139,7 @@ public sealed class TestSessionCore
     [Fact]
     public async Task OpenInIDEBringsTheVisualStudioThatHasTheSolutionOpenToTheFront()
     {
-        using var fixture = await EditorSessionFixture.OpenGameAsync(PlatformType.Windows);
+        await using var fixture = await EditorSessionFixture.OpenGameAsync(PlatformType.Windows);
         var visualStudio = new FakeVisualStudioService();
         ((ViewModelServiceProvider)fixture.ServiceProvider).RegisterService(visualStudio);
 
@@ -152,7 +152,7 @@ public sealed class TestSessionCore
     [Fact]
     public async Task ADelayedNotificationWaitsForTheMainWindowAndIsAskedOnce()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync();
+        await using var fixture = await EditorSessionFixture.OpenAsync();
         var dialogs = fixture.Dialogs;
         var mainWindowActive = new TaskCompletionSource();
         dialogs.MainWindowActive = mainWindowActive.Task;
@@ -177,7 +177,7 @@ public sealed class TestSessionCore
     [Fact]
     public async Task ADelayedNotificationThatShouldNotBeAskedRunsTheRememberedAnswer()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync();
+        await using var fixture = await EditorSessionFixture.OpenAsync();
         var container = new SettingsContainer();
         var ask = new SettingsKey<bool>("Test/AskBeforeSomething", container, false);
         var answer = new SettingsKey<bool>("Test/DoSomething", container, false);
@@ -192,7 +192,7 @@ public sealed class TestSessionCore
     [Fact]
     public async Task OnlyTheMainAssetViewShowsItsSelectionInThePropertyGrid()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var session = fixture.Session;
         var wood = session.AllAssets.Single();
         var picker = new AssetCollectionViewModel(session);
@@ -206,14 +206,14 @@ public sealed class TestSessionCore
 
         fixture.OnUiThread(() => fixture.Assets.SelectAssets([wood]));
 
-        Assert.True(SpinWait.SpinUntil(() => session.AssetViewProperties.ViewModel is not null, TimeSpan.FromSeconds(10)));
+        await ExclusiveDispatcherService.WaitUntilAsync(() => session.AssetViewProperties.ViewModel is not null, "the properties of the selection");
         Assert.Same(session.AssetViewProperties, session.ActiveProperties);
     }
 
     [Fact]
     public async Task AnAssetEditorShowsItsPropertiesInThePropertiesOfTheMainAssetView()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var wood = fixture.Session.AllAssets.Single();
         var editor = new TestAssetEditorViewModel(wood);
 
@@ -223,7 +223,7 @@ public sealed class TestSessionCore
         editor.ShowProperties();
 
         Assert.Equal(wood.Name, editor.EditorProperties.Name);
-        Assert.True(SpinWait.SpinUntil(() => editor.EditorProperties.ViewModel is not null, TimeSpan.FromSeconds(10)));
+        await ExclusiveDispatcherService.WaitUntilAsync(() => editor.EditorProperties.ViewModel is not null, "the properties of the editor");
         editor.Destroy();
     }
 

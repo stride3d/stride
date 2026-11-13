@@ -217,6 +217,10 @@ public class SettingsContainer
     /// <param name="profile">The profile to save.</param>
     /// <param name="filePath">The path of the file.</param>
     /// <returns><c>true</c> if the file was correctly saved, <c>false</c> otherwise.</returns>
+    /// <remarks>
+    /// A file that already holds the same content is not written again, so its time stays: builds that track the file,
+    /// such as the asset build of a package's user settings, don't run again for nothing.
+    /// </remarks>
     public bool SaveSettingsProfile(SettingsProfile profile, UFile filePath)
     {
 #if NET6_0_OR_GREATER
@@ -230,9 +234,16 @@ public class SettingsContainer
             Directory.CreateDirectory(filePath.GetFullDirectory());
 
             var settingsFile = new SettingsFile(profile);
-            using (var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.Write))
+            byte[] content;
+            using (var memoryStream = new MemoryStream())
             {
-                SettingsYamlSerializer.Default.Serialize(stream, settingsFile);
+                SettingsYamlSerializer.Default.Serialize(memoryStream, settingsFile);
+                content = memoryStream.ToArray();
+            }
+            if (!HasContent(filePath, content))
+            {
+                using var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.Write);
+                stream.Write(content, 0, content.Length);
             }
 
             if (filePath != profile.FilePath)
@@ -255,6 +266,19 @@ public class SettingsContainer
             profile.Saving = false;
         }
         return true;
+    }
+
+    private static bool HasContent(string filePath, byte[] content)
+    {
+        try
+        {
+            var file = new FileInfo(filePath);
+            return file.Exists && file.Length == content.Length && File.ReadAllBytes(filePath).AsSpan().SequenceEqual(content);
+        }
+        catch (IOException)
+        {
+            return false;
+        }
     }
 
     internal void EncodeSettings(SettingsProfile profile, SettingsDictionary settingsDictionary)

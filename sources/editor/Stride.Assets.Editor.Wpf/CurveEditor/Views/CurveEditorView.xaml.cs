@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
+using Stride.Core.Presentation.Drawing;
 
 namespace Stride.Assets.Presentation.CurveEditor.Views
 {
@@ -13,7 +14,7 @@ namespace Stride.Assets.Presentation.CurveEditor.Views
     public partial class CurveEditorView : UserControl
     {
         private static readonly DependencyPropertyKey LastRightClickPositionPropertyKey =
-            DependencyProperty.RegisterReadOnly(nameof(LastRightClickPosition), typeof(Point), typeof(CurveEditorView), new PropertyMetadata());
+            DependencyProperty.RegisterReadOnly(nameof(LastRightClickPosition), typeof(DrawingPoint), typeof(CurveEditorView), new PropertyMetadata(default(DrawingPoint)));
 
         internal static readonly DependencyProperty LastRightClickPositionProperty = LastRightClickPositionPropertyKey.DependencyProperty;
 
@@ -24,7 +25,7 @@ namespace Stride.Assets.Presentation.CurveEditor.Views
             Focusable = true;
         }
 
-        internal Point LastRightClickPosition { get { return (Point)GetValue(LastRightClickPositionProperty); } set { SetValue(LastRightClickPositionPropertyKey, value); } }
+        internal DrawingPoint LastRightClickPosition { get { return (DrawingPoint)GetValue(LastRightClickPositionProperty); } set { SetValue(LastRightClickPositionPropertyKey, value); } }
 
         protected override void OnPreviewMouseDown(MouseButtonEventArgs e)
         {
@@ -40,7 +41,7 @@ namespace Stride.Assets.Presentation.CurveEditor.Views
         {
             base.OnMouseRightButtonDown(e);
 
-            LastRightClickPosition = Mouse.GetPosition(CanvasView);
+            LastRightClickPosition = Mouse.GetPosition(CanvasView).ToDrawing();
         }
     }
 }

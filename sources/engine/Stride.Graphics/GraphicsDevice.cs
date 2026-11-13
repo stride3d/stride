@@ -249,6 +249,58 @@ namespace Stride.Graphics
         /// </summary>
         protected partial void DestroyPlatformDevice();
 
+        /// <summary>
+        ///   Adds the pipelines of an earlier run to the device's pipeline cache, as <see cref="GetPipelineCacheData"/>
+        ///   returned them, so the driver does not build those pipelines again when a pipeline state is created for them
+        ///   from here on. Data that is not of this device and driver (<see cref="AdapterDriverInfo.PipelineCacheUuid"/>)
+        ///   in this version of it (<see cref="AdapterDriverInfo.DriverVersion"/>), or that was damaged since it was
+        ///   returned, is dropped and never given to the driver.
+        /// </summary>
+        /// <param name="data">The data of an earlier run; <see langword="null"/> or empty for none.</param>
+        /// <returns>
+        ///   <see langword="true"/> if the data was merged; <see langword="false"/> if it was dropped, or on an API without
+        ///   an exposed pipeline cache (Direct3D).
+        /// </returns>
+        /// <remarks>
+        ///   Can be called from any thread at any time in the device's life: it takes the lock pipeline states are
+        ///   created under. The pipelines built before the merge are in the cache already; the merge spares the ones
+        ///   created after it.
+        /// </remarks>
+        public bool MergePipelineCache(byte[] data)
+        {
+            if (data is null || !PipelineCacheData.TryUnwrap(data, PipelineCacheDriverVersion, out var driverData))
+                return false;
+
+            var merged = false;
+            lock (CachedPipelineStates)
+                MergePipelineCachePlatform(driverData, ref merged);
+            return merged;
+        }
+
+        /// <summary>
+        ///   Gets the device's pipeline cache, the pipelines built so far as the driver serializes them, to keep for
+        ///   <see cref="MergePipelineCache"/> in a later run. The data is opaque, and for a device with the same
+        ///   <see cref="AdapterDriverInfo.PipelineCacheUuid"/> and <see cref="AdapterDriverInfo.DriverVersion"/>.
+        /// </summary>
+        /// <returns>The serialized pipeline cache; empty on an API without an exposed pipeline cache (Direct3D).</returns>
+        /// <remarks>Can be called from any thread at any time in the device's life.</remarks>
+        public byte[] GetPipelineCacheData()
+        {
+            byte[] driverData = null;
+            lock (CachedPipelineStates)
+                GetPipelineCacheDataPlatform(ref driverData);
+            return driverData is { Length: > 0 } ? PipelineCacheData.Wrap(driverData, PipelineCacheDriverVersion) : [];
+        }
+
+        /// <summary>The version of the driver the device's pipeline cache data is made by, and the only one it is given back to.</summary>
+        private string PipelineCacheDriverVersion => Adapter?.DriverInfo?.DriverVersion ?? string.Empty;
+
+        /// <summary>Merges the driver's blob of an earlier run, after the envelope was checked; the platform checks the blob's own header.</summary>
+        partial void MergePipelineCachePlatform(ReadOnlySpan<byte> driverData, ref bool merged);
+
+        /// <summary>Gets the driver's blob of the device's pipeline cache; leaves <paramref name="driverData"/> <see langword="null"/> for none.</summary>
+        partial void GetPipelineCacheDataPlatform(ref byte[] driverData);
+
 
         /// <summary>
         ///   Occurs while this component is disposing but before it is disposed.

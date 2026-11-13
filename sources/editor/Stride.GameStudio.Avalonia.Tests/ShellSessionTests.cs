@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Avalonia.Controls;
+using Stride.Core.Assets.Editor.Panels;
 using Avalonia.Headless.XUnit;
 using Avalonia.VisualTree;
 using Stride.Assets.Editor.Avalonia.Views;
@@ -27,7 +28,7 @@ public sealed class ShellSessionTests
     [AvaloniaFact]
     public async Task TheMainViewModelOpensASessionAndInitializesThePlugins()
     {
-        using var fixture = await ShellSessionFixture.OpenAsync(("Sheet", new SpriteSheetAsset()), ("Material", new MaterialAsset()));
+        using var fixture = await ShellSessionFixture.OpenWithMSBuildAsync(("Sheet", new SpriteSheetAsset()), ("Material", new MaterialAsset()));
 
         var session = fixture.Session;
         Assert.True(session.IsEditorInitialized);
@@ -98,7 +99,7 @@ public sealed class ShellSessionTests
     {
         using var fixture = await ShellSessionFixture.OpenAsync(("Sheet", new SpriteSheetAsset()), ("Material", new MaterialAsset()));
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             // The solution explorer lists the package categories, the asset view the assets of the selected location
@@ -127,7 +128,7 @@ public sealed class ShellSessionTests
     {
         using var fixture = await ShellSessionFixture.OpenAsync(("Sheet", new SpriteSheetAsset()));
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var sheet = fixture.Asset("Sheet");
@@ -160,7 +161,7 @@ public sealed class ShellSessionTests
     {
         using var fixture = await ShellSessionFixture.OpenAsync(("Sheet", new SpriteSheetAsset()), ("Material", new MaterialAsset()));
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var sheet = fixture.Asset("Sheet");
@@ -178,10 +179,12 @@ public sealed class ShellSessionTests
 
             var editor = Assert.IsType<SpriteSheetEditorViewModel>(fixture.Session.EditorCollection.ActiveEditor);
             Assert.Same(sheet, editor.Asset);
-            var editors = window.GetVisualDescendants().OfType<EditorCollectionView>().Single();
-            var tabs = editors.GetVisualDescendants().OfType<TabControl>().Single();
-            Assert.Same(editor, tabs.SelectedItem);
-            Assert.Single(tabs.GetVisualDescendants().OfType<SpriteSheetEditorView>());
+            // The editor is the active document of the editors' area, which the layout with editors brings
+            var document = fixture.Main.Panels.FindDocument(editor);
+            Assert.NotNull(document);
+            Assert.Equal(PanelLayoutKind.Editors, fixture.Main.Panels.LayoutKind);
+            Assert.Same(document, document.Owner is Dock.Model.Core.IDock dock ? dock.ActiveDockable : null);
+            Assert.Single(window.GetVisualDescendants().OfType<SpriteSheetEditorView>());
 
             fixture.Session.AssetCollection.SelectAssets([material]);
             await WindowTestHelper.PumpAsync();

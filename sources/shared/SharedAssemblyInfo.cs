@@ -27,7 +27,7 @@ namespace Stride;
 internal class StrideVersion
 {
     // ── Editable inputs ──────────────────────────────────────────────────────────────────────────────────
-    // The version is MajorMinor.Patch + NuGetVersionSuffix. release-deploy.yml bumps Patch after every release, so the
+    // The version is MajorMinor.Patch + NuGetVersionSuffix. release.yml bumps Patch after every release, so the
     // committed number has never been released. By hand, bump Patch in each PR that adds a code or project upgrader,
     // and edit the rest to start a new major/minor cycle or to end its betas. (Patch is a string, not an int, only
     // because a const string can't concatenate an int.) Don't edit the derived consts below.
@@ -40,10 +40,10 @@ internal class StrideVersion
 
     /// <summary>
     /// The patch within <see cref="MajorMinor"/>, so the version is MajorMinor.Patch. Bumped after every release
-    /// (release-deploy.yml) and by each PR that adds a code or project upgrader: their gates compare only this number,
+    /// (release.yml) and by each PR that adds a code or project upgrader: their gates compare only this number,
     /// so a new gate needs a new number. YAML asset upgraders use their own per-asset versions and don't need a bump.
     /// </summary>
-    public const string Patch = "0";
+    public const string Patch = "3";
 
     /// <summary>
     /// The prerelease suffix, -beta with no number or empty for a stable release: the number already moves at every

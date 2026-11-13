@@ -5,7 +5,7 @@ using Avalonia.Markup.Xaml.Styling;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Editor.Avalonia;
 
-namespace Stride.Audio.Editor;
+namespace Stride.Audio.Editor.Avalonia;
 
 /// <summary>
 /// The Avalonia editor's entry point into this package: the preview views declared in this assembly register through it,

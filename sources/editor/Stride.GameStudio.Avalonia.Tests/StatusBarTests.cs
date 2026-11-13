@@ -27,7 +27,7 @@ public sealed class StatusBarTests
             ("Models/Cube", new TextPropertiesAsset()),
             ("Textures/Wood", new TextPropertiesAsset()));
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             Assert.True(await fixture.Main.OpenSession(fixture.PackagePath));

@@ -1,4 +1,5 @@
 using Stride.Shaders.Core;
+using Stride.Shaders.Parsing;
 using System.Runtime.InteropServices;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
@@ -134,7 +135,7 @@ internal static class ReadWriteAnalyzer
                             // with no producer and no semantic, we can point at the method that expects it.
                             streamInfo.ReadByMethod ??= context.Names.TryGetValue(functionId, out var readerName) ? readerName : null;
                             if (currentLine is { } readLine && context.GetBuffer().TryGetInstructionById(readLine.File, out var file) && file.Op == Op.OpString)
-                                streamInfo.ReadAt ??= $"{((OpString)file).Value}({readLine.Line},{readLine.Column}): ";
+                                streamInfo.ReadAt ??= $"{MessageFileName.Of(((OpString)file).Value)}({readLine.Line},{readLine.Column}): ";
                         }
                         // The write might not have run, or this is a copy, which can be older than the write
                         else if (!streamInfo.DefiniteWrite || !accessChain.OnStreams)

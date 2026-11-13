@@ -202,11 +202,13 @@ public static class VSProjectHelper
                 };
 
                 // Run a MSBuild /t:Restore on the project or solution.
-                // RestoreUseStaticGraphEvaluation evaluates the project graph once, which cuts cold restore time noticeably.
-                var globalProperties = new Dictionary<string, string>
-                {
-                    ["RestoreUseStaticGraphEvaluation"] = "true",
-                };
+                // RestoreUseStaticGraphEvaluation evaluates the project graph once in a separate NuGet process: about
+                // 0.45 s to start, then little per project, against about 20-40 ms per project without it. It only
+                // pays off for large solutions (51 projects: 1.3 s against 2.35 s without obj; 2 projects: 0.9 s
+                // against 0.37 s), so a game with a few projects restores without it.
+                var globalProperties = new Dictionary<string, string>();
+                if (UseStaticGraphRestore(projectPath))
+                    globalProperties["RestoreUseStaticGraphEvaluation"] = "true";
                 // NoWarn=NU1605 lets a transient upgrade-time downgrade resolve to the higher version instead of
                 // erroring (an empty WarningsAsErrors doesn't take effect via the MSBuild API, unlike the CLI).
                 if (tolerateDowngrade)
@@ -221,6 +223,27 @@ public static class VSProjectHelper
                 pc.Dispose();
             }
         });
+    }
+
+    // The number of C# projects above which a solution restore is faster with static graph evaluation (see above)
+    private const int StaticGraphRestoreMinProjects = 16;
+
+    private static bool UseStaticGraphRestore(string projectPath)
+    {
+        if (!Stride.Core.Solutions.Solution.IsSolutionFile(projectPath))
+            return false;
+
+        try
+        {
+            var projectCount = Stride.Core.Solutions.Solution.FromFile(projectPath).Projects
+                .Count(project => project.FullPath.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase));
+            return projectCount > StaticGraphRestoreMinProjects;
+        }
+        catch (Exception)
+        {
+            // A solution we can't read: keep static graph, as before, and let the restore report the problem
+            return true;
+        }
     }
 
     public static MicrosoftProject LoadProject(string fullProjectLocation, string configuration = "Debug", string platform = "AnyCPU", Dictionary<string, string>? extraProperties = null)

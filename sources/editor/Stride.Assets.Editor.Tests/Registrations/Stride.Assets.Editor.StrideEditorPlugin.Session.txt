@@ -10,6 +10,7 @@ NodePresenterCommands:
   Stride.Assets.Editor.Quantum.NodePresenters.Commands.SetComponentReferenceCommand
   Stride.Assets.Editor.Quantum.NodePresenters.Commands.SetSymbolReferenceCommand
   Stride.Assets.Editor.Quantum.NodePresenters.Commands.SkeletonNodePreserveAllCommand
+  Stride.Assets.Editor.Quantum.NodePresenters.Commands.EditCurveCommand
 NodePresenterUpdaters:
   Stride.Assets.Editor.Quantum.NodePresenters.Updaters.AnimationAssetNodeUpdater
   Stride.Assets.Editor.Quantum.NodePresenters.Updaters.CameraSlotNodeUpdater

@@ -31,7 +31,7 @@ public sealed class TestAssetLogMessages
     [Fact]
     public async Task AMessageOfTheBuildLogOfAnAssetIsAboutThisAsset()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var log = fixture.Session.AssetLog;
         var wood = fixture.Session.AllAssets.Single();
         var build = new LoggerResult();
@@ -39,8 +39,9 @@ public sealed class TestAssetLogMessages
         build.Error("The texture could not be compiled.");
 
         log.SetAssetLog(wood.Id, AssetLogViewModel.BuildLogName, build);
-        // The log also has the verbose messages of the session load, which the panel hides
-        await WaitForAsync(() => log.FilteredMessages.Any(x => x.Type == LogMessageType.Error));
+        // The log also has the verbose messages of the session load, which the panel hides. The dispatcher adds the message
+        // first and counts it right after, so wait for both
+        await WaitForAsync(() => log.FilteredMessages.Any(x => x.Type == LogMessageType.Error) && log.ErrorCount == 1);
 
         var message = log.FilteredMessages.Single(x => x.Type == LogMessageType.Error);
         Assert.Equal("The texture could not be compiled.", message.Text);
@@ -51,7 +52,7 @@ public sealed class TestAssetLogMessages
     [Fact]
     public async Task ADoubleClickOnAMessageSelectsItsAsset()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Materials/Stone", "stone"));
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"), ("Materials/Stone", "stone"));
         var log = fixture.Session.AssetLog;
         var wood = fixture.Session.AllAssets.Single(x => x.Name == "Wood");
         var stone = fixture.Session.AllAssets.Single(x => x.Name == "Stone");
@@ -71,7 +72,7 @@ public sealed class TestAssetLogMessages
     [Fact]
     public async Task ADoubleClickOnAMessageAboutNoAssetChangesNothing()
     {
-        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
+        await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var log = fixture.Session.AssetLog;
         var wood = fixture.Session.AllAssets.Single();
         fixture.OnUiThread(() => fixture.Assets.SelectAssets([wood]));

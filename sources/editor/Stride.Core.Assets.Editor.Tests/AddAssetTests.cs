@@ -24,7 +24,7 @@ public sealed class AddAssetTests
     [Fact]
     public async Task TheAddAssetListGroupsTheAssetTemplatesOfTheSession()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         var templates = fixture.Assets.AddAssetTemplateCollection;
 
         Assert.Equal("All templates", templates.RootGroup.Name);
@@ -56,7 +56,7 @@ public sealed class AddAssetTests
     [Fact]
     public async Task SearchingListsTheMatchingTemplatesOfEveryGroupByName()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         var templates = fixture.Assets.AddAssetTemplateCollection;
         templates.SelectedGroup = templates.RootGroup.SubGroups.Single(x => x.Name == TestTemplatePackage.AssetGroup);
 
@@ -89,7 +89,7 @@ public sealed class AddAssetTests
     [Fact]
     public async Task SelectingATemplateProposesANameUniqueInTheTargetFolder()
     {
-        using var fixture = await OpenAsync((TestTemplatePackage.AssetFactoryDefaultOutputName, "existing"));
+        await using var fixture = await OpenAsync((TestTemplatePackage.AssetFactoryDefaultOutputName, "existing"));
         var templates = fixture.Assets.AddAssetTemplateCollection;
         var factory = templates.RootGroup.GetTemplatesRecursively().Single(x => x.Id == TestTemplatePackage.AssetFactoryId);
 
@@ -110,7 +110,7 @@ public sealed class AddAssetTests
     [Fact]
     public async Task TheListFollowsTheAssetTypesOfTheSession()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         var templates = fixture.Assets.AddAssetTemplateCollection;
         var group = templates.RootGroup.SubGroups.Single(x => x.Name == TestTemplatePackage.AssetGroup);
         templates.SelectedGroup = group;
@@ -129,7 +129,7 @@ public sealed class AddAssetTests
     [Fact]
     public async Task RunningATemplateCreatesTheAssetInTheSelectedFolderAndSelectsIt()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         var folder = fixture.Package.GetOrCreateAssetDirectory("Generated", false);
         fixture.OnUiThread(() => fixture.Assets.SelectedLocations.Add(folder));
         var template = FindTemplate(fixture, TestTemplatePackage.AssetFactoryId);
@@ -169,7 +169,7 @@ public sealed class AddAssetTests
     [Fact]
     public async Task RunningATemplateNeedsASingleFolder()
     {
-        using var fixture = await OpenAsync(("Textures/Wood", "wood"));
+        await using var fixture = await OpenAsync(("Textures/Wood", "wood"));
         var template = FindTemplate(fixture, TestTemplatePackage.AssetFactoryId);
 
         // No folder selected
@@ -189,7 +189,7 @@ public sealed class AddAssetTests
     [Fact]
     public async Task ATemplateThatIsNotAnAssetTemplateIsRefused()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         fixture.OnUiThread(() => fixture.Assets.SelectedLocations.Add(fixture.Package));
 
         // A template of the asset scope that does not describe an asset (listed by nothing, but a plugin could run it)
@@ -204,7 +204,7 @@ public sealed class AddAssetTests
     [Fact]
     public async Task AFailedOrCancelledGenerationCreatesNothing()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         fixture.OnUiThread(() => fixture.Assets.SelectedLocations.Add(fixture.Package));
         var template = FindTemplate(fixture, TestTemplatePackage.AssetFactoryId);
 
@@ -230,7 +230,7 @@ public sealed class AddAssetTests
     [Fact]
     public async Task TheAddAssetDialogRunsThePickedTemplateInTheSelectedFolder()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         // The test plays the UI thread: it changes the selection and runs the command on the dispatcher, so that the command's
         // continuations and the work the session dispatches from the thread pool (the history, the selection of the new asset)
         // run one at a time with what the test does, instead of racing it on the collections of the asset view
@@ -240,8 +240,8 @@ public sealed class AddAssetTests
         fixture.Dialogs.PickAddAssetTemplate = templates => templates.RootGroup.GetTemplatesRecursively().Single(x => x.Id == TestTemplatePackage.AssetFactoryId);
 
         dispatcher.Invoke(() => fixture.Assets.ShowAddAssetDialogCommand.Execute());
-        Assert.True(SpinWait.SpinUntil(() => dispatcher.Invoke(() => fixture.Assets.SelectedAssets.Count > 0 && fixture.Session.ActionHistory.Transactions.Count > 0),
-            TimeSpan.FromSeconds(10)), "the asset to be created, recorded and selected");
+        await ExclusiveDispatcherService.WaitUntilAsync(() => fixture.Assets.SelectedAssets.Count > 0 && fixture.Session.ActionHistory.Transactions.Count > 0,
+            "the asset to be created, recorded and selected");
 
         // The dialog proposes the templates for the selected folder
         dispatcher.Invoke(() =>
@@ -257,7 +257,7 @@ public sealed class AddAssetTests
         // Cancelling the dialog creates nothing
         fixture.Dialogs.PickAddAssetTemplate = _ => null;
         dispatcher.Invoke(() => fixture.Assets.ShowAddAssetDialogCommand.Execute());
-        Assert.True(SpinWait.SpinUntil(() => dispatcher.Invoke(() => fixture.Dialogs.AddAssetDialogs.Count == 2), TimeSpan.FromSeconds(10)), "the dialog to open");
+        await ExclusiveDispatcherService.WaitUntilAsync(() => fixture.Dialogs.AddAssetDialogs.Count == 2, "the dialog to open");
         dispatcher.Invoke(() => Assert.Single(fixture.Session.AllAssets));
 
         // The dialog needs a folder
@@ -266,14 +266,14 @@ public sealed class AddAssetTests
             fixture.Assets.SelectedLocations.Clear();
             fixture.Assets.ShowAddAssetDialogCommand.Execute();
         });
-        Assert.True(SpinWait.SpinUntil(() => dispatcher.Invoke(() => fixture.Dialogs.Messages.Count == 1), TimeSpan.FromSeconds(10)), "the message");
+        await ExclusiveDispatcherService.WaitUntilAsync(() => fixture.Dialogs.Messages.Count == 1, "the message");
         dispatcher.Invoke(() => Assert.Equal(2, fixture.Dialogs.AddAssetDialogs.Count));
     }
 
     [Fact]
     public async Task AddingFilesImportsThemWithTheTemplateOfTheirExtension()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         using var files = new TemporaryFiles();
         var wood = files.Write("Wood" + TestTemplatePackage.OtherImportExtension);
         var stone = files.Write("Stone" + TestTemplatePackage.OtherImportExtension);
@@ -313,7 +313,7 @@ public sealed class AddAssetTests
     [Fact]
     public async Task AddingFilesCopiesThemIntoTheResourcesFolderWhenAsked()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         using var files = new TemporaryFiles();
         var wood = files.Write("Wood" + TestTemplatePackage.OtherImportExtension);
         fixture.OnUiThread(() => fixture.Assets.SelectedLocations.Add(fixture.Package));
@@ -336,7 +336,7 @@ public sealed class AddAssetTests
     [Fact]
     public async Task AddingFilesSeveralTemplatesImportAsksWhichOne()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         using var files = new TemporaryFiles();
         var wood = files.Write("Wood" + TestTemplatePackage.ImportExtension);
         fixture.OnUiThread(() => fixture.Assets.SelectedLocations.Add(fixture.Package));
@@ -362,7 +362,7 @@ public sealed class AddAssetTests
     [Fact]
     public async Task AddingFilesOfSeveralKindsImportsTheOnesThePickedTemplateAccepts()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         using var files = new TemporaryFiles();
         var wood = files.Write("Wood" + TestTemplatePackage.ImportExtension);
         var stone = files.Write("Stone" + TestTemplatePackage.OtherImportExtension);
@@ -409,7 +409,7 @@ public sealed class AddAssetTests
         }
     }
 
-    private static Task<EditorSessionFixture> OpenAsync(params (string Location, string Value)[] assets)
+    private static DispatcherTask<EditorSessionFixture> OpenAsync(params (string Location, string Value)[] assets)
     {
         // The generator and the importers are registered once the first test asks for them
         _ = Generator;
@@ -425,7 +425,7 @@ public sealed class AddAssetTests
         var transactions = fixture.Session.ActionHistory.Transactions.Count;
         var assets = await fixture.OnUiThreadAsync(() => fixture.Assets.RunAssetTemplateAsync(template, files));
         if (assets.Count > 0)
-            WaitForHistory(fixture, transactions);
+            await WaitForHistoryAsync(fixture, transactions);
         return assets;
     }
 
@@ -435,17 +435,17 @@ public sealed class AddAssetTests
         var transactions = fixture.Session.ActionHistory.Transactions.Count;
         await fixture.OnUiThreadAsync(() => fixture.Assets.AddFilesAsync(files));
         if (fixture.Session.AllAssets.Count() > assets)
-            WaitForHistory(fixture, transactions);
+            await WaitForHistoryAsync(fixture, transactions);
     }
 
     /// <summary>
     /// Waits for the background work of a creation: the history entry, which the action history adds once the asset notifications
     /// are done, and the selection of the new assets.
     /// </summary>
-    private static void WaitForHistory(EditorSessionFixture fixture, int transactions)
+    private static async Task WaitForHistoryAsync(EditorSessionFixture fixture, int transactions)
     {
-        Assert.True(SpinWait.SpinUntil(() => fixture.Session.ActionHistory.Transactions.Count > transactions, TimeSpan.FromSeconds(10)), "the creation to be recorded");
-        SpinWait.SpinUntil(() => fixture.Assets.SelectedAssets.Count > 0, TimeSpan.FromSeconds(10));
+        await ExclusiveDispatcherService.WaitUntilAsync(() => fixture.Session.ActionHistory.Transactions.Count > transactions, "the creation to be recorded");
+        await ExclusiveDispatcherService.WaitUntilAsync(() => fixture.Assets.SelectedAssets.Count > 0, "the selection of the new assets");
     }
 
     private static ITemplateDescriptionViewModel FindTemplate(EditorSessionFixture fixture, Guid id)

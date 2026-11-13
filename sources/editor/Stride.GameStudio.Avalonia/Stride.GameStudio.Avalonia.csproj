@@ -37,6 +37,10 @@
     <!--Condition below is needed to remove AvaloniaUI.DiagnosticsSupport package from build output in Release configuration.-->
     <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="AvaloniaUI.DiagnosticsSupport" />
     <PackageReference Include="Xaml.Behaviors.Interactions" />
+    <!-- The docking of the main window; its types stay in this project (Docking folder) -->
+    <PackageReference Include="Dock.Avalonia" />
+    <PackageReference Include="Dock.Avalonia.Themes.Fluent" />
+    <PackageReference Include="Dock.Model.Inpc" />
   </ItemGroup>
 
   <ItemGroup>

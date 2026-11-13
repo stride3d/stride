@@ -69,30 +69,42 @@ internal sealed class ShellSessionFixture : IDisposable
     /// <summary>
     /// Writes a package with the given assets (location relative to the package, asset); <see cref="OpenAsync"/> opens it.
     /// </summary>
-    public static ShellSessionFixture Create(params (string Location, Asset Asset)[] assets) => Create(null, assets);
+    /// <remarks>
+    /// The main view model loads it without the NuGet restore and the MSBuild evaluation of the project, which have nothing to
+    /// give for it (<see cref="TestPackageLoad"/>), as with the other fixtures but <see cref="OpenWithMSBuildAsync"/>.
+    /// </remarks>
+    public static ShellSessionFixture Create(params (string Location, Asset Asset)[] assets) => Create(null, false, assets);
 
     /// <summary>
     /// Writes a package with the given assets and opens it through the main view model, the way the shell opens the session
     /// of its command line.
     /// </summary>
-    public static Task<ShellSessionFixture> OpenAsync(params (string Location, Asset Asset)[] assets) => OpenAsync(null, assets);
+    public static Task<ShellSessionFixture> OpenAsync(params (string Location, Asset Asset)[] assets) => OpenAsync(null, false, assets);
+
+    /// <summary>
+    /// Writes a package with the given assets and opens it as <see cref="OpenAsync"/>, with the NuGet restore and the MSBuild
+    /// evaluation of its project as in the editor: for the tests of that load.
+    /// </summary>
+    public static Task<ShellSessionFixture> OpenWithMSBuildAsync(params (string Location, Asset Asset)[] assets) => OpenAsync(null, true, assets);
 
     /// <summary>
     /// Writes a package whose project is the executable of a platform (the head of a game) and opens it, as <see cref="OpenAsync"/>.
     /// </summary>
-    public static Task<ShellSessionFixture> OpenExecutableAsync(PlatformType platform, params (string Location, Asset Asset)[] assets) => OpenAsync(platform, assets);
+    public static Task<ShellSessionFixture> OpenExecutableAsync(PlatformType platform, params (string Location, Asset Asset)[] assets) => OpenAsync(platform, false, assets);
 
-    private static ShellSessionFixture Create(PlatformType? executablePlatform, (string Location, Asset Asset)[] assets)
+    private static ShellSessionFixture Create(PlatformType? executablePlatform, bool withMSBuild, (string Location, Asset Asset)[] assets)
     {
         var directory = Path.Combine(Path.GetTempPath(), "Stride.GameStudio.Avalonia.Tests", Guid.NewGuid().ToString("N"));
         var fixture = new ShellSessionFixture(directory, App.InitializeServiceProvider());
+        if (!withMSBuild)
+            fixture.Main.LoadSessionFile = (path, result, loadParameters) => TestPackageLoad.WithoutMSBuild(path, executablePlatform, result, loadParameters);
         fixture.WritePackage(assets, executablePlatform);
         return fixture;
     }
 
-    private static async Task<ShellSessionFixture> OpenAsync(PlatformType? executablePlatform, (string Location, Asset Asset)[] assets)
+    private static async Task<ShellSessionFixture> OpenAsync(PlatformType? executablePlatform, bool withMSBuild, (string Location, Asset Asset)[] assets)
     {
-        var fixture = Create(executablePlatform, assets);
+        var fixture = Create(executablePlatform, withMSBuild, assets);
         try
         {
             await fixture.OpenAsync();

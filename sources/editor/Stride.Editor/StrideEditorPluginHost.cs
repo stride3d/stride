@@ -12,7 +12,6 @@ using Stride.Core.Serialization.Contents;
 using Stride.Editor.Annotations;
 using Stride.Editor.Preview;
 using Stride.Editor.Preview.View;
-using Stride.Editor.EditorGame.Tools;
 using Stride.Editor.Preview.ViewModels;
 
 #nullable enable
@@ -20,8 +19,9 @@ using Stride.Editor.Preview.ViewModels;
 namespace Stride.Editor;
 
 /// <summary>
-/// The plugin host of the Stride editors: it adds the asset previews and the tools of the game editor views to what
-/// <see cref="EditorPluginHost"/> registers.
+/// The plugin host of the Stride editors: it adds the asset previews to what <see cref="EditorPluginHost"/> registers.
+/// The contribution points of the scene and prefab editors are declared by the layer that has them (<c>SceneEditorPluginHost</c>
+/// in <c>Stride.Assets.Editor</c>), so that this one names no scene type.
 /// </summary>
 public abstract class StrideEditorPluginHost : EditorPluginHost
 {
@@ -57,7 +57,6 @@ public abstract class StrideEditorPluginHost : EditorPluginHost
 
     /// <inheritdoc />
     /// <remarks>
-    /// The assemblies of a plugin also declare the tools of the views of the game editors (<see cref="EditorViewToolAttribute"/>).
     /// The assemblies of a <see cref="StrideAssetsPlugin"/> also declare its preview view models (<see cref="AssetPreviewViewModelAttribute"/>)
     /// and preview views (<see cref="AssetPreviewViewAttribute"/>).
     /// </remarks>
@@ -71,13 +70,6 @@ public abstract class StrideEditorPluginHost : EditorPluginHost
 
     private static void ScanStrideAssembly(AssetsPlugin plugin, Assembly assembly, IEditorPluginContext context)
     {
-        foreach (var type in AssemblyRegistry.GetScanTypes(assembly, typeof(EditorViewToolAttribute)))
-        {
-            // Each view creates its own instance of a tool
-            if (type.IsClass && !type.IsAbstract && !type.IsGenericTypeDefinition && type.GetConstructor(Type.EmptyTypes) is not null)
-                context.EditorViewToolTypes.Register(type);
-        }
-
         if (plugin is not StrideAssetsPlugin)
             return;
 
