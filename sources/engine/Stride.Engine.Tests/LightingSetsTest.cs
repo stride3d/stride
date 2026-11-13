@@ -18,15 +18,11 @@ using Stride.Shaders;
 namespace Stride.Engine.Tests
 {
     /// <summary>
-    /// An effect is compiled for the lights of the views that draw its object. Two views far apart each look at a
-    /// white sphere of their own, and both see a third one far away. The first sphere stands by a red shadowed point
-    /// light and a green shadowed spot light, the second by a blue and a green shadowed spot light, so the spot light
-    /// group is in the three lighting sets, the first view's, the second's and that of both, at two indices and with
-    /// two light counts. Each sphere's effect takes the groups of its views alone, and each view draws its sphere in
-    /// the colors of its lights. Then the lights go and the ambient one comes: the views are lit alike, and the three
-    /// spheres are compiled for the same shaders.
-    /// The spheres enter at the second frame: the first draws the lights alone, and a group laid out for no set in a
-    /// frame keeps its shader for the next.
+    /// An effect is compiled for the lights of the views that draw its object. Two views far apart each look at a sphere
+    /// of their own, lit by shadowed lights only that view sees, and both see a third one: the spot light group is in three
+    /// lighting sets, at two indices and with two light counts, and each view still draws its sphere in the colors of its
+    /// own lights. Once the views are lit alike, the three spheres are compiled for the same shaders.
+    /// The spheres enter at the second frame: a group laid out for no set in a frame keeps its shader for the next.
     /// </summary>
     public class LightingSetsTest : EngineTestBase
     {
