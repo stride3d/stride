@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.Specialized;
 using System.IO;
+using System.IO.Enumeration;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -81,6 +82,8 @@ namespace Stride.Assets.Presentation.AssetEditors
         private readonly IDisposable fileChangedLink2;
         private IDisposable assemblyChangedLink;
         private readonly DirectoryWatcher directoryWatcher;
+        // The watched files, to find the changes the watcher missed
+        private readonly FileWriteTimes fileTimes = new FileWriteTimes();
         private readonly SessionViewModel session;
         private readonly bool trackBinaries;
         private TaskCompletionSource<bool> initializedTaskSource;
@@ -125,6 +128,7 @@ namespace Stride.Assets.Presentation.AssetEditors
 
             directoryWatcher = new DirectoryWatcher();
             directoryWatcher.Modified += directoryWatcher_Modified;
+            directoryWatcher.ChangesMissed += directoryWatcher_ChangesMissed;
 
             var fileChangedTransform = new TransformBlock<FileEvent, AssemblyChangedEvent>(x => FileChangeTransformation(x));
             fileChangedLink1 = fileChanged.LinkTo(fileChangedTransform);
@@ -403,7 +407,7 @@ namespace Stride.Assets.Presentation.AssetEditors
                         continue;
                     trackedAssembly.LoadedAssembly = package.LoadedAssemblies.FirstOrDefault();
                     if (trackBinaries && trackedAssembly.LoadedAssembly != null)
-                        directoryWatcher.Track(trackedAssembly.LoadedAssembly.Path);
+                        TrackFile(trackedAssembly.LoadedAssembly.Path);
                 }
             }
         }
@@ -447,7 +451,7 @@ namespace Stride.Assets.Presentation.AssetEditors
             {
                 // Track the assembly binary
                 if (trackBinaries)
-                    directoryWatcher.Track(loadedAssembly.Path);
+                    TrackFile(loadedAssembly.Path);
 
                 // Track the project file
                 if (loadedAssembly.ProjectReference == null)
@@ -546,6 +550,53 @@ namespace Stride.Assets.Presentation.AssetEditors
 
                 directoryWatcher.Track(document.FilePath);
             }
+
+            fileTimes.Add(project.FilePath);
+            foreach (var file in EnumerateProjectFiles(projectDirectory.ToOSPath(), IsSourceFile))
+                fileTimes.Add(file);
+        }
+
+        private void TrackFile(string path)
+        {
+            directoryWatcher.Track(path);
+            fileTimes.Add(path);
+        }
+
+        /// <summary>Whether a file of a project is a file whose events the watcher handles: a script.</summary>
+        private static bool IsSourceFile(string path)
+        {
+            return path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Lists the files of a folder of a project and of its subfolders, without the build output (<c>bin</c>, <c>obj</c>) and the
+        /// hidden folders, as the default items of an SDK project.
+        /// </summary>
+        private static IEnumerable<string> EnumerateProjectFiles(string directory, Func<string, bool> include)
+        {
+            if (!Directory.Exists(directory))
+                return [];
+
+            // Hidden files count, as for the watcher
+            var options = new EnumerationOptions { RecurseSubdirectories = true, IgnoreInaccessible = true, AttributesToSkip = 0 };
+            try
+            {
+                return new FileSystemEnumerable<string>(directory, (ref FileSystemEntry entry) => entry.ToFullPath(), options)
+                {
+                    ShouldIncludePredicate = (ref FileSystemEntry entry) => !entry.IsDirectory && include(entry.ToFullPath()),
+                    ShouldRecursePredicate = (ref FileSystemEntry entry) => !IsExcludedFolder(entry.FileName),
+                }.ToList();
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                // The folder is being deleted, or cannot be read
+                return [];
+            }
+        }
+
+        private static bool IsExcludedFolder(ReadOnlySpan<char> folder)
+        {
+            return folder.StartsWith('.') || folder.Equals("bin", StringComparison.OrdinalIgnoreCase) || folder.Equals("obj", StringComparison.OrdinalIgnoreCase);
         }
 
         private async Task<Project> OpenProject(UFile projectPath, bool forceReload = false)
@@ -669,7 +720,38 @@ namespace Stride.Assets.Presentation.AssetEditors
 
         private void directoryWatcher_Modified(object sender, FileEvent e)
         {
+            RecordEvent(e.FullPath);
+            if (e is FileRenameEvent renameEvent)
+                RecordEvent(renameEvent.OldFullPath);
             fileChanged.Post(e);
+        }
+
+        private void RecordEvent(string path)
+        {
+            if (IsSourceFile(path) || fileTimes.Contains(path))
+                fileTimes.Update(path);
+        }
+
+        private void directoryWatcher_ChangesMissed(object sender, ChangesMissedEventArgs e)
+        {
+            // The watch of a folder failed (its events overflowed during a build) and started again: the files that changed
+            // meanwhile are found from their last write times, and go through the same steps as the events of the watcher
+            var currentFiles = new List<string>();
+            var projectDirectories = SnapshotTrackedAssemblies()
+                .Select(x => x.Project?.FilePath)
+                .Where(x => x != null)
+                .Select(x => Path.GetDirectoryName(x))
+                .Distinct(StringComparer.OrdinalIgnoreCase);
+            foreach (var projectDirectory in projectDirectories)
+            {
+                if (FileWriteTimes.IsUnder(projectDirectory, e.Directory))
+                    currentFiles.AddRange(EnumerateProjectFiles(projectDirectory, IsSourceFile));
+                else if (FileWriteTimes.IsUnder(e.Directory, projectDirectory))
+                    currentFiles.AddRange(EnumerateProjectFiles(e.Directory, IsSourceFile));
+            }
+
+            foreach (var change in fileTimes.Reconcile(e.Directory, currentFiles))
+                fileChanged.Post(change);
         }
 
         public class TrackedAssembly
