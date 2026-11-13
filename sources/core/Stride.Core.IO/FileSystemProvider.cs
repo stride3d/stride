@@ -123,7 +123,7 @@ public partial class FileSystemProvider : VirtualFileProviderBase
             {
                 sourceStream.CopyTo(destinationStream);
             }
-            File.Delete(sourceUrl);
+            File.Delete(ConvertUrlToFullPath(sourceUrl));
         }
     }
 
