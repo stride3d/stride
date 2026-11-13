@@ -176,15 +176,13 @@ public sealed class VolumetricSoftBodyComponent : SoftBodyComponent
 
     internal override SoftBodyTopology BuildTopology(SourceMesh mesh) => LatticeBuilder.Build(mesh, _resolution, DefaultRadiusFraction, _joinSeparateParts);
 
-    internal override void AddConstraints(global::BepuPhysics.Simulation simulation, ReadOnlySpan<BodyHandle> particles, ReadOnlySpan<bool> pinned, SoftBodyTopology topology)
+    internal override void AddConstraints(global::BepuPhysics.Simulation simulation, ReadOnlySpan<BodyHandle> particles, SoftBodyTopology topology)
     {
         var stretch = Spring(_stiffness, _damping);
         var shear = Spring(_shearStiffness, _damping);
         var limit = Spring(MathF.Max(60f, _stiffness * 3f), 1f);
         foreach (var edge in topology.Edges)
         {
-            if (pinned[edge.A] && pinned[edge.B])
-                continue;
             var length = System.Numerics.Vector3.Distance(Position(simulation, particles, edge.A), Position(simulation, particles, edge.B));
             simulation.Solver.Add(particles[edge.A], particles[edge.B], new CenterDistanceConstraint(length, edge.Kind == EdgeKind.Stretch ? stretch : shear));
 
@@ -202,8 +200,6 @@ public sealed class VolumetricSoftBodyComponent : SoftBodyComponent
         var volume = Spring(_volumeStiffness, _damping);
         foreach (var t in topology.Tetrahedra)
         {
-            if (pinned[t.A] && pinned[t.B] && pinned[t.C] && pinned[t.D])
-                continue;
             simulation.Solver.Add(particles[t.A], particles[t.B], particles[t.C], particles[t.D], new VolumeConstraint(Position(simulation, particles, t.A), Position(simulation, particles, t.B), Position(simulation, particles, t.C), Position(simulation, particles, t.D), volume));
         }
     }
