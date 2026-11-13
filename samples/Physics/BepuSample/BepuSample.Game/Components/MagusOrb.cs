@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using BepuPhysics.Collidables;
 using Stride.BepuPhysics;
@@ -10,6 +13,7 @@ using Stride.Input;
 
 namespace BepuSample.Game.Components;
 
+[ComponentCategory("BepuDemo")]
 public class MagusOrb : SyncScript, ISimulationUpdate
 {
     private readonly Dictionary<BepuSimulation, Vector3> _affectedSims = new();

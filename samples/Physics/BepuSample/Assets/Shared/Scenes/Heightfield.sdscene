@@ -8,6 +8,7 @@ Hierarchy:
     RootParts:
         - ref!! 22df2468-6fd0-4f51-9e0a-4901dd072fe6
         - ref!! b40a295f-4f63-4e23-869d-10b862014a8b
+        - ref!! 3662a6eb-dff1-438a-bc81-d839de465c1c
         - ref!! 1f0c0e13-4419-4dbf-a891-c1d47b72b08f
         - ref!! 749fa8c1-5f74-4283-9358-045af3a1e2f0
         - ref!! 3c2dc933-e6d4-43ae-8eb7-44e1cb7f332a
@@ -164,6 +165,19 @@ Hierarchy:
                         Id: 862564e3-9e5a-4011-ab5a-19469997cad7
                         Type: !LightSkybox
                             Skybox: d6101b68-ef34-4a51-8eef-420809c68cdd:Skybox
+        -   Entity:
+                Id: 3662a6eb-dff1-438a-bc81-d839de465c1c
+                Name: Scene Description
+                Components:
+                    8ed1013d4533399db4ef1b60202950fa: !TransformComponent
+                        Id: 10efcdc7-4ceb-4a36-aae3-55be93a42ee1
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    e505081524f0013e3e1a39bb9b3e7dd5: !BepuSample.Game.Components.SceneDescriptionComponent,BepuSample.Game
+                        Id: 954cba61-a2fc-43c6-95d4-57b1e9bdff56
+                        Description: 'Sample for heightfields: W/S tilt, A/D rotate'
         -   Entity:
                 Id: 3c2dc933-e6d4-43ae-8eb7-44e1cb7f332a
                 Name: Magus Hands
