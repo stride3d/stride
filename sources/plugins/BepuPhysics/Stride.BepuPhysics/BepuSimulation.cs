@@ -394,7 +394,7 @@ public sealed class BepuSimulation : IDisposable
 
     /// <summary> The <see cref="BodyComponent"/> which created this body </summary>
     /// <remarks>
-    /// Bodies owned by a collidable spanning multiple bodies have no <see cref="BodyComponent"/>, this returns null for them;
+    /// Bodies owned by a collidable spanning multiple bodies have no <see cref="BodyComponent"/> and must not be passed here;
     /// use <see cref="GetComponent(CollidableReference)"/> to find the owner of any body
     /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
