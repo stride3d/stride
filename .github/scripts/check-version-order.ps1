@@ -1,13 +1,12 @@
 # Refuses a release below one already made on its line, from the repo root. See docs/build/versioning.md.
 # A version on nuget.org can't be taken back, and each release bumps Patch afterwards, so this only happens when that bump
 # failed or after a wrong edit: 4.5.8-beta after 4.5.8. Lines are compared on their own, as 4.4.x still ships after 4.5.0.
-#   -Commit  the commit being released: a re-run on its own tag completes a partial deploy.
 param(
-    [Parameter(Mandatory)][string]$Version,
-    [string]$Commit = 'HEAD'
+    [Parameter(Mandatory)][string]$Version
 )
 
-if (git tag --points-at $Commit --list "releases/$Version") { exit 0 }
+# A re-run on its own tag completes a partial deploy.
+if (git tag --points-at HEAD --list "releases/$Version") { exit 0 }
 
 $number = [version](($Version -split '-')[0])
 $blocking = @(foreach ($tag in git tag --list "releases/$($number.Major).$($number.Minor).*") {
