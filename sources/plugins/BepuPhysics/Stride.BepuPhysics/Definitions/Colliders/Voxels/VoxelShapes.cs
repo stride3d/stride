@@ -572,8 +572,8 @@ internal unsafe struct VoxelTriangleShape<TSource> : IHomogeneousCompoundShape<T
     public static int ChildShapeTypeId => Triangle.Id;
     public static int MaxChildrenPerCell => SlotsPerCell;
 
-    /// <summary>A surface nets quad joins the vertices of the four cells around an edge, so it reaches into the neighbours.</summary>
-    public readonly int RayReach => 1;
+    /// <summary>A surface nets quad joins the vertices of the four cells around an edge, so it reaches into the neighbours; marching cubes triangles stay in their cell.</summary>
+    public readonly int RayReach => SurfaceNets ? 1 : 0;
 
     public readonly int OverlapReach => RayReach;
 

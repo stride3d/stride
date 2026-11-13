@@ -348,6 +348,35 @@ namespace Stride.BepuPhysics.Tests
             }
         }
 
+        /// <summary>Marching cubes triangles stay in their cell: a query only gets the ones of the cells it touches, surface nets ones those of the cells around too.</summary>
+        [Theory]
+        [InlineData(false, 2)]
+        [InlineData(true, 2 * 3 * 3)]
+        public static unsafe void TriangleQueriesReachAsFarAsTheTrianglesDo(bool surfaceNets, int expected)
+        {
+            const int samples = 10;
+            var field = Floor(samples, 4);
+            fixed (float* data = field)
+            {
+                var shape = new VoxelTriangleShape<FloatVoxelSource>
+                {
+                    SurfaceNets = surfaceNets,
+                    GridData = new VoxelGridData<FloatVoxelSource>
+                    {
+                        Source = new FloatVoxelSource { Samples = new Buffer<float>(data, field.Length), SamplesX = samples, SamplesY = samples, SamplesZ = samples },
+                        CellSize = NVector3.One,
+                        IsoLevel = IsoLevel,
+                        SealBorder = true,
+                    },
+                };
+
+                // Inside the cell (4, 4, 4), which the flat surface crosses at y = 4.5 in two triangles
+                var inOneCell = new ChildCounter();
+                VoxelShapeHelpers.EnumerateOverlaps(ref shape, new NVector3(4.2f, 4.3f, 4.2f), new NVector3(4.8f, 4.7f, 4.8f), ref inOneCell);
+                Assert.Equal(expected, inOneCell.Count);
+            }
+        }
+
         [Fact]
         public static void AColliderWithoutFieldHasNothingToDraw()
         {
