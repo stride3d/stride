@@ -506,14 +506,31 @@ namespace Stride.BepuPhysics.Tests
                 var collider = new VoxelCollider { CellShape = VoxelCellShape.Box, IsoLevel = IsoLevel, SealBorder = false };
                 collider.SetData(3, 3, 3, field);
                 var terrain = new Entity { new StaticComponent { Collider = collider } };
-                // The body pose is at the collider's centre of mass, (1, 1, 1) in local; a 45° Z rotation sends
-                // it to (0, sqrt(2), 1) in world. The box's top corner, local (1, 1, 0), reaches (0, 2 * sqrt(2), 1).
+                // An eighth of a turn around Z stands the cube on its edge: its ridge runs along (0, 2 * sqrt(2), z), with a slope at 45° on each side.
                 terrain.Transform.Rotation = Quaternion.RotationZ(MathF.PI / 4f);
-                game.SceneSystem.SceneInstance.RootScene.Entities.Add(terrain);
 
-                Assert.True(terrain.GetSimulation().RayCast(new Vector3(0f, 10f, 0f), -Vector3.UnitY, 20f, out var hit));
-                Assert.Equal(2f * MathF.Sqrt(2f), hit.Point.Y, Tolerance);
+                // A single cell stretched into a 3 x 1 x 1 beam, stood on its end by a quarter turn: its top is 3 above the ground.
+                var beamCollider = new VoxelCollider { CellShape = VoxelCellShape.Box, IsoLevel = IsoLevel, SealBorder = false };
+                beamCollider.SetData(2, 2, 2, [1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f]);
+                var beam = new Entity { new StaticComponent { Collider = beamCollider } };
+                beam.Transform.Position = new Vector3(10f, 0f, 0f);
+                beam.Transform.Scale = new Vector3(3f, 1f, 1f);
+                beam.Transform.Rotation = Quaternion.RotationZ(MathF.PI / 2f);
+
+                var ball = new Entity { new BodyComponent { Collider = new CompoundCollider { Colliders = { new SphereCollider { Radius = 0.25f } } } } };
+                ball.Transform.Position = new Vector3(9.5f, 5f, 0.5f);
+                game.SceneSystem.SceneInstance.RootScene.Entities.AddRange(new[] { terrain, beam, ball });
+                var simulation = terrain.GetSimulation();
+
+                // On the slope, a quarter of a cell off the ridge and in the middle of a cell along Z.
+                Assert.True(simulation.RayCast(new Vector3(0.25f, 10f, 0.5f), -Vector3.UnitY, 20f, out var hit));
+                Assert.Equal(2f * MathF.Sqrt(2f) - 0.25f, hit.Point.Y, Tolerance);
                 Assert.True(hit.Normal.Y > 0.5f, $"Normal {hit.Normal}");
+
+                // Contacts see the same boxes as rays: the ball rests on the end of the beam, not on a box left lying at mid-height.
+                while (game.UpdateTime.Total.TotalSeconds < 3d)
+                    await simulation.AfterUpdate();
+                Assert.Equal(3.25f, ball.Transform.Position.Y, Tolerance);
 
                 game.Exit();
             });
