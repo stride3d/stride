@@ -26,7 +26,7 @@ namespace Stride.BepuPhysics.Definitions.Colliders;
 /// <typeparam name="TSource">How the samples are stored; see <see cref="IVoxelDensitySource"/>.</typeparam>
 /// <remarks>
 /// Derive from it to collide against samples kept in your own layout without copying them; <see cref="VoxelCollider"/> owns a copy of float samples.
-/// A <see cref="MeshCollider"/> collides only with the triangle cell shapes, and two voxel colliders never collide with each other.
+/// A <see cref="MeshCollider"/> collides only with the triangle cell shapes; a voxel collider never collides with another one, nor with a <see cref="HeightfieldCollider"/>.
 /// </remarks>
 [DataContract(Inherited = true)]
 public abstract class VoxelColliderBase<TSource> : ICollider
