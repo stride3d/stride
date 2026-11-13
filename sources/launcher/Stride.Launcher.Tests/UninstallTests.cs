@@ -68,6 +68,29 @@ public sealed class UninstallTests
         Assert.Equal(["Core/shared", "Engine/4.3"], referenced.Order());
     }
 
+    [Fact]
+    public void FindUnused_KeepsThePackagesOfALocalBuildThatIsStillThere()
+    {
+        // GameStudio/dev's packages look unused while its checkout invalidated them in the NuGet cache
+        var previous = StridePackageReferences.Find(["GameStudio/4.4", "GameStudio/dev"], Dependencies, StringComparer.Ordinal);
+        var current = StridePackageReferences.Find(["GameStudio/4.3"], Dependencies, StringComparer.Ordinal);
+
+        var unused = StridePackageReferences.FindUnused(previous, current, package => package.EndsWith("/dev", StringComparison.Ordinal));
+
+        Assert.Equal(["Engine/4.4", "Tool/4.4"], unused.Order());
+    }
+
+    [Fact]
+    public void FindUnused_RemovesThePackagesOfADeletedLocalBuild()
+    {
+        var previous = StridePackageReferences.Find(["GameStudio/4.4", "GameStudio/dev"], Dependencies, StringComparer.Ordinal);
+        var current = StridePackageReferences.Find(["GameStudio/4.4"], Dependencies, StringComparer.Ordinal);
+
+        var unused = StridePackageReferences.FindUnused(previous, current, _ => false);
+
+        Assert.Equal(["Engine/dev"], unused);
+    }
+
     [Theory]
     [InlineData(0L, "1 MB")]
     [InlineData(300L << 20, "300 MB")]

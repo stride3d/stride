@@ -6,8 +6,9 @@ using System.Linq;
 namespace Stride.Rendering.Images
 {
     /// <summary>
-    /// Keys used by <see cref="AmbientOcclusionBlur"/> and AmbientOcclusionBlurEffect sdfx
+    /// Keys used by <see cref="AmbientOcclusion"/> and the AmbientOcclusionBlurEffect shader.
     /// </summary>
+    [EffectKeys]
     internal static class AmbientOcclusionBlurKeys
     {
         public static readonly PermutationParameterKey<int> Count = ParameterKeys.NewPermutation<int>(9);

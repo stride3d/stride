@@ -6,6 +6,7 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// Keys used by the SSLRResolvePass
     /// </summary>
+    [EffectKeys]
     public static class SSLRKeys
     {
         public static readonly PermutationParameterKey<int> ResolveSamples = ParameterKeys.NewPermutation(1);

@@ -21,6 +21,7 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
     private readonly NugetLocalPackage localPackage;
     private readonly bool isDevRedirect;
     private readonly string? checkoutDirectory;
+    private readonly string solutionPath;
 
     internal StrideDevVersionViewModel(MainViewModel launcher, NugetStore store, [CanBeNull] NugetLocalPackage localPackage, UDirectory path, bool isDevRedirect)
         : base(launcher, store, localPackage, localPackage.Id, int.MaxValue, devMinorCounter--)
@@ -30,8 +31,9 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
         this.isDevRedirect = isDevRedirect;
         DownloadCommand.IsEnabled = false;
         checkoutDirectory = FindCheckout();
+        solutionPath = FindSolution(checkoutDirectory);
         OpenCheckoutCommand = new AnonymousCommand(ServiceProvider, () => ShellOpen(checkoutDirectory ?? InstallPath)) { IsEnabled = Directory.Exists(checkoutDirectory ?? InstallPath) };
-        OpenSolutionCommand = new AnonymousCommand(ServiceProvider, () => ShellOpen(SolutionPath)) { IsEnabled = File.Exists(SolutionPath) };
+        OpenSolutionCommand = new AnonymousCommand(ServiceProvider, () => ShellOpen(solutionPath)) { IsEnabled = File.Exists(solutionPath) };
         // Find the editors so the version can be started.
         UpdateAvailableEditors();
         // Update initial status (IsVisible will be set to true)
@@ -61,7 +63,11 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
     /// </summary>
     public ICommandBase OpenSolutionCommand { get; }
 
-    private string SolutionPath => checkoutDirectory is not null ? Path.Combine(checkoutDirectory, "build", "Stride.slnx") : "";
+    // The Stride solution of the checkout: at its root, or in build/ for older checkouts.
+    private static string FindSolution(string? checkoutDirectory)
+        => checkoutDirectory is null ? ""
+            : File.Exists(Path.Combine(checkoutDirectory, "Stride.slnx")) ? Path.Combine(checkoutDirectory, "Stride.slnx")
+            : Path.Combine(checkoutDirectory, "build", "Stride.slnx");
 
     // The checkout this version is built from, or null:
     // - the ledger of the checkouts built on this machine (as the version tasks write it) maps its -devN suffix, for a
@@ -169,10 +175,32 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
     public override string Name => "Local " + path.MakeRelative(path.GetParent());
 
     /// <inheritdoc/>
-    public override string DisplayName => localPackage is not null ? $"{PackageSimpleName} {localPackage.Version} (local)" : base.DisplayName;
+    public override string DisplayName => localPackage is null ? base.DisplayName
+        : EditorName is null ? $"{PackageSimpleName} {localPackage.Version} (local)"
+        : $"{PackageSimpleName} {localPackage.Version} (local, {EditorName})";
 
     /// <inheritdoc/>
     public override string ListName => localPackage is not null ? $"{PackageSimpleName} {localPackage.Version}" : base.ListName;
+
+    /// <inheritdoc/>
+    public override string StartName => EditorName is not null ? $"{FullName} ({EditorName})" : FullName;
+
+    /// <summary>
+    /// Gets the Game Studio this local build is of, WPF or Avalonia, or null when its package is neither. A checkout builds both:
+    /// two packages of the same version, that the version list, the Start button and the versions a recent project can be
+    /// opened with tell apart by it.
+    /// </summary>
+    public string? EditorName => GetEditorName(localPackage?.Id);
+
+    /// <summary>
+    /// Gets the badge of <see cref="EditorName"/>, next to the LOCAL badge in the version list.
+    /// </summary>
+    public string? EditorBadge => EditorName?.ToUpperInvariant();
+
+    /// <summary>
+    /// Gets the Game Studio of the package <paramref name="packageId"/>, WPF or Avalonia, or null when it isn't one of them.
+    /// </summary>
+    internal static string? GetEditorName(string? packageId) => GameStudioEditors.FromPackageId(packageId)?.DisplayName();
 
     /// <inheritdoc/>
     public override string FullName => localPackage?.Version.ToString() ?? path.MakeRelative(path.GetParent());

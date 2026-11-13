@@ -1,0 +1,38 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+        xmlns:tpl="using:Stride.Assets.Editor.Templates"
+        mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="300"
+        x:Class="Stride.Assets.Editor.Avalonia.Templates.ProjectLibraryWindow"
+        x:DataType="tpl:ProjectLibraryViewModel"
+        Title="{Binding Title}"
+        Width="480" SizeToContent="Height"
+        CanResize="False"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner">
+  <StackPanel Margin="20" Spacing="6">
+    <TextBlock Text="{Binding NameLabel}"/>
+    <TextBox x:Name="NameBox" Text="{Binding LibraryName}"/>
+    <TextBlock Text="{sd:LocalizeString Namespace:}" Margin="0,10,0,0" IsVisible="{Binding ShowNamespace}"/>
+    <TextBox x:Name="NamespaceBox" Text="{Binding Namespace}" IsVisible="{Binding ShowNamespace}"/>
+    <TextBlock Text="{sd:LocalizeString Referenced from:}" Margin="0,10,0,0" IsVisible="{Binding HasReferencingProjects}"/>
+    <ComboBox x:Name="ReferencingProjectBox" HorizontalAlignment="Stretch"
+              ItemsSource="{Binding ReferencingProjects}" SelectedItem="{Binding SelectedReferencingProject}"
+              IsVisible="{Binding HasReferencingProjects}"/>
+    <TextBlock x:Name="WarningLabel" Text="{sd:LocalizeString Name already exists}" Foreground="Tomato" IsVisible="{Binding HasError}"/>
+    <TextBlock x:Name="ErrorLabel" Foreground="Tomato" TextWrapping="Wrap" IsVisible="False"/>
+    <Grid ColumnDefinitions="*,20,*" Margin="0,14,0,0">
+      <Button x:Name="OkButton" Grid.Column="0" Padding="8" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+              Content="{sd:LocalizeString OK, Context=Button}"
+              IsDefault="True"
+              IsEnabled="{Binding !HasError}"
+              Click="OnOkClick"/>
+      <Button x:Name="CancelButton" Grid.Column="2" Padding="8" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+              Content="{sd:LocalizeString Cancel, Context=Button}"
+              IsCancel="True"
+              Click="OnCancelClick"/>
+    </Grid>
+  </StackPanel>
+</Window>

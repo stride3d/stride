@@ -64,18 +64,13 @@ namespace Stride.Graphics
         StructuredCounterBuffer = UnorderedAccess | StructuredBuffer | 256,
 
         /// <summary>
-        ///   The buffer is a raw buffer.
+        ///   The buffer is a raw buffer. Its size must be a multiple of 4 bytes.
         /// </summary>
         RawBuffer = 512,
 
         /// <summary>
         ///   The buffer is an indirect arguments buffer.
         /// </summary>
-        ArgumentBuffer = 1024,
-
-        /// <summary>
-        ///   The buffer is a buffer for the geometry shader stream-output stage.
-        /// </summary>
-        StreamOutput = 2048
+        ArgumentBuffer = 1024
     }
 }

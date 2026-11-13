@@ -1,0 +1,56 @@
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.props" />
+
+  <PropertyGroup>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization --parameter-key</StrideAssemblyProcessorOptions>
+    <StrideLocalized>true</StrideLocalized>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="../../shared/SharedAssemblyInfo.cs">
+      <Link>Properties/SharedAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../engine/Stride.Assets.Models/Stride.Assets.Models.csproj" />
+    <ProjectReference Include="../Stride.Assets.Presentation/Stride.Assets.Presentation.csproj" />
+    <ProjectReference Include="../Stride.Core.Assets.Editor/Stride.Core.Assets.Editor.csproj" />
+    <ProjectReference Include="../Stride.Editor/Stride.Editor.csproj" />
+    <!-- The .sdtpl asset templates, whose generators are in this project (Templates/Assets), shared with Stride.Assets.Editor.Wpf -->
+    <ProjectReference Include="../Stride.Assets.Templates/Stride.Assets.Templates.csproj" />
+  </ItemGroup>
+
+  <!-- Resources -->
+  <ItemGroup>
+    <None Include="Resources\Gizmos\*.png" />
+    <EmbeddedResource Update="AssetEditors\Gizmos\GizmoResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <SubType>Designer</SubType>
+      <LastGenOutput>GizmoResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <Compile Update="AssetEditors\Gizmos\GizmoResources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>GizmoResources.resx</DependentUpon>
+    </Compile>
+    <None Include="Resources\Thumbnails\*.png" />
+    <Compile Update="Resources\Thumbnails\StaticThumbnails.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>StaticThumbnails.resx</DependentUpon>
+    </Compile>
+    <EmbeddedResource Update="Resources\Thumbnails\StaticThumbnails.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>StaticThumbnails.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
+</Project>

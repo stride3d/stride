@@ -57,7 +57,7 @@ namespace Stride.UI.Controls
         /// <remarks>The value is coerced in the range [0, <see cref="float.MaxValue"/>].</remarks>
         /// <userdoc>The scrolling speed of the text. The unit is in virtual pixels.</userdoc>
         [DataMember]
-        [DataMemberRange(0.0f, 3)]
+        [DataMemberRange(minimum: 0.0f, decimalPlaces: 3)]
         [Display(category: BehaviorCategory)]
         [DefaultValue(40.0f)]
         public float ScrollingSpeed

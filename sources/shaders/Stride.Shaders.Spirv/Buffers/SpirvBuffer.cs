@@ -91,7 +91,7 @@ public sealed class SpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
     /// <br/>Be careful when using this method, as it will invalidate any references to the removed instruction.
     /// </summary>
     /// <param name="index"></param>
-    /// <returns>true if the instruction was successfully removed</returns>
+    /// <param name="dispose">Whether to dispose the removed instruction.</param>
     public void RemoveAt(int index, bool dispose = true)
     {
         if (index < 0 || index >= Instructions.Count)

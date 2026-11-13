@@ -52,7 +52,8 @@ public static partial class NuGetAssemblyResolver
 
         while (folder != null)
         {
-            if (File.Exists(Path.Combine(folder, "build", "Stride.slnx")))
+            // Stride source checkout root
+            if (File.Exists(Path.Combine(folder, "Stride.slnx")) && Directory.Exists(Path.Combine(folder, "sources")))
             {
                 var settings = Settings.LoadDefaultSettings(null);
 

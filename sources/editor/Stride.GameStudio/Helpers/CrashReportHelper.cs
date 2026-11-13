@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using Stride.Core.Assets.Editor.Components.Transactions;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Extensions;
 using Stride.Core.Transactions;
 using Stride.Core.Windows;
@@ -42,7 +43,7 @@ namespace Stride.GameStudio.Helpers
             try
             {
                 // Add session-specific information in this try/catch block
-                var gameSettingsAsset = SessionViewModel.Instance?.CurrentProject?.Package.GetGameSettingsAsset();
+                var gameSettingsAsset = SessionViewModel.CurrentInstance?.CurrentProject?.Package.GetGameSettingsAsset();
                 if (gameSettingsAsset != null)
                 {
                     crashReport["DefaultGraphicProfile"] = gameSettingsAsset.GetOrCreate<RenderingSettings>().DefaultGraphicsProfile.ToString();
@@ -56,7 +57,7 @@ namespace Stride.GameStudio.Helpers
             // opened assets
             try
             {
-                if (SessionViewModel.Instance?.ServiceProvider.TryGet<IAssetEditorsManager>() is AssetEditorsManager manager)
+                if (SessionViewModel.CurrentInstance?.ServiceProvider.TryGet<IAssetEditorsManager>() is AssetEditorsManager manager)
                 {
                     var sb = new StringBuilder();
                     foreach (var asset in manager.GetCurrentlyOpenedAssets())
@@ -75,7 +76,7 @@ namespace Stride.GameStudio.Helpers
             try
             {
                 // Add session-specific information in this try/catch block
-                var actionsViewModel = SessionViewModel.Instance?.ActionHistory;
+                var actionsViewModel = SessionViewModel.CurrentInstance?.ActionHistory;
                 if (actionsViewModel != null)
                 {
                     var actions = actionsViewModel.Transactions.ToList();
@@ -96,7 +97,7 @@ namespace Stride.GameStudio.Helpers
             try
             {
                 // Add session-specific information in this try/catch block
-                var actionService = SessionViewModel.Instance?.UndoRedoService;
+                var actionService = SessionViewModel.CurrentInstance?.UndoRedoService;
                 if (actionService != null && actionService.TransactionInProgress)
                 {
                     // FIXME: expose some readonly properties/methods from ITransactionStack or ITransaction to reduce reflection

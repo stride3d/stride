@@ -214,7 +214,7 @@ public struct ExpressionParser : IParser<Expression>
         else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
     /// <summary>
-    /// <c>band ::= equality ( spaces '&' spaces band)*</c>
+    /// <c>band ::= equality ( spaces '&amp;' spaces band)*</c>
     /// </summary>
     public static bool BAnd<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Expression parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
@@ -316,7 +316,7 @@ public struct ExpressionParser : IParser<Expression>
         else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
     /// <summary>
-    /// <c>and ::= xor ( spaces '&&' spaces and)*</c>
+    /// <c>and ::= xor ( spaces '&amp;&amp;' spaces and)*</c>
     /// </summary>
 
     public static bool And<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Expression parsed, in ParseError? orError = null)
@@ -347,7 +347,7 @@ public struct ExpressionParser : IParser<Expression>
         else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
     /// <summary>
-    /// <c>or ::= and ( spaces '&&' spaces or)*</c>
+    /// <c>or ::= and ( spaces '||' spaces or)*</c>
     /// </summary>
     public static bool Or<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Expression parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner

@@ -23,9 +23,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 using Stride.Core;
 using Stride.Core.Diagnostics;
+using Stride.Core.IO;
 using Stride.Graphics;
 
 using static Stride.Graphics.GraphicsProfile;
@@ -41,6 +43,19 @@ namespace Stride.Games
         // Switch to indicate if window events should be delayed until the beginning of frames,
         // just before running the Game.Window.RunCallback
         private const bool DelayWindowEvents = true;
+
+        // Every file the manager makes in the cache: pipelines-<uuid>.bin, and pipelines-<uuid>.bin.<guid>.tmp while one is written
+        private const string PipelineCacheFilePattern = "pipelines-*";
+        private const string PipelineCacheExtension = ".bin";
+        private const string PipelineCacheTemporaryExtension = ".tmp";
+
+        // A driver update has a new UUID and leaves the file of the old one behind; a second GPU in use keeps writing its own
+        private static readonly TimeSpan PipelineCacheUnusedAge = TimeSpan.FromDays(30);
+
+        // A temporary file is moved over its file at once, so an old one was left by a crash; one being written now is young
+        private static readonly TimeSpan PipelineCacheTemporaryAge = TimeSpan.FromDays(1);
+
+        private static readonly Logger Log = GlobalLogger.GetLogger(nameof(GraphicsDeviceManager));
 
         /// <summary>
         ///   Default width for the Back-Buffer.
@@ -397,6 +412,45 @@ namespace Stride.Games
                     deviceSettingsChanged = true;
                 }
             }
+        }
+
+        /// <summary>
+        ///   Gets or sets whether the driver's pipeline cache is kept between runs: the file of an earlier run is merged
+        ///   into the Graphics Device when it is created, and the device's cache is written when it is disposed, so the
+        ///   driver does not build the pipelines of the earlier runs again. The file is <c>pipelines-&lt;uuid&gt;.bin</c> in
+        ///   the application's cache (<see cref="VirtualFileSystem.ApplicationCache"/>), one per device and driver
+        ///   (<see cref="AdapterDriverInfo.PipelineCacheUuid"/>); the file of another version of the driver is not
+        ///   merged. <see langword="true"/> by default; set it before the device is created to skip the merge. On an API
+        ///   without an exposed pipeline cache (Direct3D) nothing is written.
+        /// </summary>
+        /// <remarks>
+        ///   The folder is kept small as the file is written: the file of another driver or device that nothing wrote for
+        ///   30 days is removed, since every driver update has a new UUID, and so is a temporary file a crash left. A
+        ///   driver never drops a pipeline from its cache, so a file over <see cref="MaximumPipelineCacheSize"/> is not
+        ///   merged and the cache starts over from what the run builds.
+        /// </remarks>
+        public bool PersistPipelineCache { get; set; } = true;
+
+        /// <summary>
+        ///   Gets or sets the size in bytes above which the file of an earlier run is not merged
+        ///   (<see cref="PersistPipelineCache"/>), so the cache starts over from what this run builds. The pipelines of
+        ///   every earlier run stay in the file otherwise, and in development every shader edit adds some. 256 MB by
+        ///   default; set it before the device is created.
+        /// </summary>
+        /// <remarks>
+        ///   A game whose own pipelines take more than the limit would never get its file merged: raise the limit for it.
+        /// </remarks>
+        public long MaximumPipelineCacheSize { get; set; } = 256 * 1024 * 1024;
+
+        /// <summary>
+        ///   Writes the device's pipeline cache to its file now, as the device's disposal does, so the pipelines built so
+        ///   far survive a crash or a hard exit: a game calls it after its loading screen, where most of them are built.
+        ///   Does nothing while <see cref="PersistPipelineCache"/> is off, or before the device is created.
+        /// </summary>
+        public void SavePipelineCache()
+        {
+            if (GraphicsDevice is not null)
+                SavePipelineCache(GraphicsDevice);
         }
 
 
@@ -1056,7 +1110,129 @@ namespace Stride.Games
         /// </summary>
         private void GraphicsDevice_Disposing(object sender, EventArgs e)
         {
+            SavePipelineCache((GraphicsDevice)sender);
             OnDeviceDisposing(sender, e);
+        }
+
+        /// <summary>
+        ///   The file the pipeline cache of a device on <paramref name="adapter"/> is kept in, under
+        ///   <see cref="VirtualFileSystem.ApplicationCache"/>; <see langword="null"/> on an API without an exposed pipeline cache.
+        /// </summary>
+        internal static string GetPipelineCacheFile(GraphicsAdapter adapter)
+        {
+            var uuid = adapter?.DriverInfo?.PipelineCacheUuid ?? Guid.Empty;
+            return uuid == Guid.Empty ? null : $"pipelines-{uuid:N}{PipelineCacheExtension}";
+        }
+
+        private void MergePipelineCache(GraphicsDevice device)
+        {
+            if (!PersistPipelineCache || GetPipelineCacheFile(device.Adapter) is not { } file)
+                return;
+
+            try
+            {
+                if (!VirtualFileSystem.ApplicationCache.FileExists(file))
+                    return;
+
+                var size = VirtualFileSystem.ApplicationCache.FileSize(file);
+                if (size > MaximumPipelineCacheSize)
+                {
+                    Log.Info($"Pipeline cache {file} not merged: {size} bytes is over {nameof(MaximumPipelineCacheSize)} ({MaximumPipelineCacheSize}), the cache starts over");
+                    return;
+                }
+
+                byte[] data;
+                using (var stream = VirtualFileSystem.ApplicationCache.OpenStream(file, VirtualFileMode.Open, VirtualFileAccess.Read))
+                {
+                    data = new byte[stream.Length];
+                    stream.ReadExactly(data);
+                }
+
+                if (device.MergePipelineCache(data))
+                    Log.Debug($"Pipeline cache {file} merged: {data.Length} bytes");
+                else
+                    Log.Info($"Pipeline cache {file} dropped: not of this device, driver and driver version, or damaged");
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                Log.Info($"Pipeline cache {file} not read: {e.Message}");
+            }
+        }
+
+        private void SavePipelineCache(GraphicsDevice device)
+        {
+            if (!PersistPipelineCache || GetPipelineCacheFile(device.Adapter) is not { } file)
+                return;
+
+            var data = device.GetPipelineCacheData();
+            if (data.Length == 0)
+                return;
+
+            // Written whole under a name of its own, then moved over the file in one step, so a crash meanwhile leaves the
+            // earlier file, and two devices disposed at once (the editor's previews) both end with a whole file. The move
+            // goes through System.IO since the provider's FileMove does not overwrite; the cache is a FileSystemProvider.
+            var cache = VirtualFileSystem.ApplicationCache;
+            var temporary = $"{file}.{Guid.NewGuid():N}{PipelineCacheTemporaryExtension}";
+            try
+            {
+                using (var stream = cache.OpenStream(temporary, VirtualFileMode.Create, VirtualFileAccess.Write))
+                    stream.Write(data, 0, data.Length);
+
+                File.Move(cache.GetAbsolutePath(temporary), cache.GetAbsolutePath(file), overwrite: true);
+                Log.Debug($"Pipeline cache {file} written: {data.Length} bytes");
+
+                RemoveUnusedPipelineCacheFiles(file);
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                // A cache folder that cannot be written (a game installed read-only) is not the game's fault at every exit
+                Log.Info($"Pipeline cache {file} not written: {e.Message}");
+                try
+                {
+                    if (cache.FileExists(temporary))
+                        cache.FileDelete(temporary);
+                }
+                catch (Exception cleanup) when (cleanup is IOException or UnauthorizedAccessException)
+                {
+                }
+            }
+        }
+
+        /// <summary>
+        ///   Removes what nothing uses any more from the cache: the files of other drivers or devices and the temporary
+        ///   files that were not written for their age. <paramref name="writtenFile"/>, just written, stays.
+        /// </summary>
+        private static void RemoveUnusedPipelineCacheFiles(string writtenFile)
+        {
+            var cache = VirtualFileSystem.ApplicationCache;
+            try
+            {
+                var now = DateTime.Now;
+                foreach (var url in cache.ListFiles(string.Empty, PipelineCacheFilePattern, VirtualSearchOption.TopDirectoryOnly))
+                {
+                    var name = url.TrimStart(VirtualFileSystem.DirectorySeparatorChar);
+                    if (name == writtenFile)
+                        continue;
+
+                    TimeSpan unusedAge;
+                    if (name.EndsWith(PipelineCacheTemporaryExtension, StringComparison.Ordinal))
+                        unusedAge = PipelineCacheTemporaryAge;
+                    else if (name.EndsWith(PipelineCacheExtension, StringComparison.Ordinal))
+                        unusedAge = PipelineCacheUnusedAge;
+                    else
+                        continue;
+
+                    if (now - cache.GetLastWriteTime(url) > unusedAge)
+                    {
+                        cache.FileDelete(url);
+                        Log.Debug($"Pipeline cache {name} removed: not written since {now - unusedAge:d}");
+                    }
+                }
+            }
+            // Another process may hold or remove a file meanwhile; the next save tries again
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+            }
         }
 
 
@@ -1145,10 +1321,14 @@ namespace Stride.Games
 
                         try
                         {
-                            GraphicsDevice.Presenter.Resize(newWidth, newHeight, newFormat);
+                            // ApplyChanges can run while a frame records (BeginRun, an update), whose Command List uses the old buffers
+                            game.ChangePresenterBuffers(() =>
+                            {
+                                GraphicsDevice.Presenter.Resize(newWidth, newHeight, newFormat);
 
-                            // Change full screen if needed
-                            GraphicsDevice.Presenter.IsFullScreen = graphicsDeviceInformation.PresentationParameters.IsFullScreen;
+                                // Change full screen if needed
+                                GraphicsDevice.Presenter.IsFullScreen = graphicsDeviceInformation.PresentationParameters.IsFullScreen;
+                            });
                         }
                         // A resize can come from a window event, outside the game loop that reports a lost device
                         catch (Exception ex) when (ex is not GraphicsDeviceException && GraphicsDevice.GraphicsDeviceStatus is var status && status != GraphicsDeviceStatus.Normal)
@@ -1205,6 +1385,7 @@ namespace Stride.Games
                     GraphicsDevice.ShaderProfile = ShaderProfile;
 
                 GraphicsDevice.Disposing += GraphicsDevice_Disposing;
+                MergePipelineCache(GraphicsDevice);
 
                 OnDeviceCreated(this, EventArgs.Empty);
             }

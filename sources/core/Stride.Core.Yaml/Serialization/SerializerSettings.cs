@@ -224,7 +224,7 @@ namespace Stride.Core.Yaml.Serialization
         public ITagTypeRegistry TagTypeRegistry { get { return AssemblyRegistry; } }
 
         /// <summary>
-        /// Gets or sets the default <see cref="DataStyle"/>. Default is <see cref="DataStyle.Normal"/>. See <see cref="DynamicStyleFormat"/> to understand the resolution of styles.
+        /// Gets or sets the default <see cref="DataStyle"/>. Default is <see cref="DataStyle.Normal"/>.
         /// </summary>
         /// <value>The default style.</value>
         public DataStyle DefaultStyle { get; set; }

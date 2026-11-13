@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 namespace Stride.Rendering.Images
 {
+    [EffectKeys]
     internal static class ToneMapKeys
     {
         public static readonly PermutationParameterKey<bool> AutoExposure = ParameterKeys.NewPermutation(false);

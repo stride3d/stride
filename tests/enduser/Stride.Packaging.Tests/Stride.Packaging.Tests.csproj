@@ -35,7 +35,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\sources\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
+    <ProjectReference Include="..\..\..\sources\tests\Stride.XunitRunner\Stride.XunitRunner.csproj" />
     <!-- Stride.Assets carries the templating types (DotNetNewTemplateBridge, TemplateManager) and
          PackageSessionPublicHelper used to generate the consumer sample headlessly. -->
     <ProjectReference Include="..\..\..\sources\engine\Stride.Assets\Stride.Assets.csproj" />
@@ -43,6 +43,13 @@
          packed plugin PackageReference all land in bin/packages (resolved as a real external feed
          by the subprocess builds). Mirrors Stride.Samples.Tests' set. -->
     <ProjectReference Include="..\..\..\sources\assets\Stride.AssetCompiler\Stride.AssetCompiler.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+    <!-- The toolkit-neutral editor assemblies (net10.0) that the Editor project of the plugin template references: it builds
+         with the game on every platform, unlike the WPF editor packages below -->
+    <ProjectReference Include="..\..\..\sources\editor\Stride.Assets.Editor\Stride.Assets.Editor.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
@@ -77,6 +84,12 @@
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
+    <!-- The sound preview's Avalonia view -->
+    <ProjectReference Include="..\..\..\sources\plugins\Audio\Stride.Audio.Editor.Avalonia\Stride.Audio.Editor.Avalonia.csproj" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\sources\plugins\SpriteStudio\Stride.SpriteStudio.Runtime\Stride.SpriteStudio.Runtime.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
@@ -88,6 +101,18 @@
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
     <ProjectReference Include="..\..\..\sources\plugins\SpriteStudio\Stride.SpriteStudio.Editor\Stride.SpriteStudio.Editor.csproj" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+    <!-- The sheet preview's WPF view, a companion of Stride.SpriteStudio.Editor -->
+    <ProjectReference Include="..\..\..\sources\plugins\SpriteStudio\Stride.SpriteStudio.Editor.Wpf\Stride.SpriteStudio.Editor.Wpf.csproj" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+    <!-- The sheet preview's Avalonia view -->
+    <ProjectReference Include="..\..\..\sources\plugins\SpriteStudio\Stride.SpriteStudio.Editor.Avalonia\Stride.SpriteStudio.Editor.Avalonia.csproj" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
@@ -122,6 +147,12 @@
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
+    <!-- The UI editors' Avalonia views -->
+    <ProjectReference Include="..\..\..\sources\plugins\UI\Stride.UI.Editor.Avalonia\Stride.UI.Editor.Avalonia.csproj" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
     <!-- A runtime package and its Assets companion: the companion declaration is not a reference, so both are listed -->
     <ProjectReference Include="..\..\..\sources\plugins\BepuPhysics\Stride.BepuPhysics\Stride.BepuPhysics.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
@@ -129,6 +160,12 @@
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
     <ProjectReference Include="..\..\..\sources\plugins\BepuPhysics\Stride.BepuPhysics.Assets\Stride.BepuPhysics.Assets.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+    <!-- Stride.BepuPhysics references Stride.Heightfield, which declares this Assets companion -->
+    <ProjectReference Include="..\..\..\sources\plugins\BepuPhysics\Stride.Heightfield.Assets\Stride.Heightfield.Assets.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>

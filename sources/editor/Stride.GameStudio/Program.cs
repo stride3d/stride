@@ -17,11 +17,12 @@ using Stride.Assets;
 using Stride.Assets.Presentation;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor;
-using Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;
+using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.MostRecentlyUsedFiles;
@@ -32,10 +33,12 @@ using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Translation;
 using Stride.Core.Translation.Providers;
+using Stride.CrashReport;
 using Stride.Editor;
 using Stride.Editor.Build;
 using Stride.Editor.Preview;
 using Stride.GameStudio.Helpers;
+using Stride.GameStudio.Layout;
 using Stride.GameStudio.Logs;
 using Stride.GameStudio.Plugin;
 using Stride.GameStudio.Services;
@@ -61,6 +64,10 @@ public static partial class Program
     private static bool enableThumbnailServices = true;
     private static bool resetGraphicsApiPreference;
     private static bool launcherNotified;
+    // --safe-mode, or chosen after a start that died while plugins were loading: only the plugins of Stride load
+    private static bool safeMode;
+    // The AutoTesting host drives the editor itself: no marker, no question at startup
+    private static bool offerSafeMode = true;
     private static Mutex instanceMutex;
     private static readonly string AppDllPath = typeof(Program).Assembly.Location;
 
@@ -127,6 +134,7 @@ public static partial class Program
     public static void Run(IList<string> args, Action<Application, Dispatcher>? appHosted = null)
     {
         diagLogEnabled = appHosted != null;
+        offerSafeMode = appHosted == null;
         DiagLog($"Run entered. args=[{string.Join(", ", args)}]");
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
         AppDomain.CurrentDomain.UnhandledException -= StartupFailureDialog;
@@ -148,10 +156,15 @@ public static partial class Program
         }
 
         // We use MRU of the current version only when we're trying to reload last session.
-        var mru = new MostRecentlyUsedFileCollection(InternalSettings.LoadProfileCopy, InternalSettings.MostRecentlyUsedSessions, InternalSettings.WriteFile);
+        var mru = new MostRecentlyUsedFileCollection(InternalSettings.LoadProfileCopy, GameStudioInternalSettings.MostRecentlyUsedSessions, InternalSettings.SaveProfile);
         mru.LoadFromSettings();
 
+        // The settings translate their names when their class is first used: the language comes first, read from the file
+        InitializeLanguageSettings(EditorLanguageSettings.Read(EditorPath.EditorConfigPath));
         EditorSettings.Initialize();
+        // The theme of this editor (the Avalonia editor has its own)
+        Stride.Core.Presentation.Themes.ThemesSettings.Initialize();
+        Stride.Core.Presentation.Themes.ThemesSettings.ThemeName.ChangesValidated += (s, e) => EditorSettings.NeedRestart = true;
         if (resetGraphicsApiPreference)
         {
             EditorSettings.GraphicsApi.SetValue(EditorSettings.GraphicsApiDefault);
@@ -196,6 +209,11 @@ public static partial class Program
                 {
                     Forward(args[i]);
                     enableThumbnailServices = false;
+                }
+                else if (args[i] == "--safe-mode")
+                {
+                    Forward(args[i]);
+                    safeMode = true;
                 }
                 else if (args[i] == "/DisablePreview")
                 {
@@ -393,7 +411,6 @@ public static partial class Program
     {
         try
         {
-            InitializeLanguageSettings();
             var serviceProvider = InitializeServiceProvider();
 
             try
@@ -411,11 +428,25 @@ public static partial class Program
                 return;
             }
 
+            // The last start died while plugins were loading: offer safe mode once, before any session loads (the question
+            // replaces the one about the startup session that failed to load)
+            if (offerSafeMode && serviceProvider.Get<IAssetsPluginService>() is PluginService { LoadingMarker: { } marker } plugins && marker.FindLeftBehind().Count > 0)
+            {
+                if (await marker.OfferSafeModeAsync(serviceProvider.Get<IDialogService>()) && !safeMode)
+                {
+                    safeMode = true;
+                    plugins.SafeMode = true;
+                    Forward("--safe-mode");
+                }
+                InternalSettings.LoadingStartupSession.SetValue(false);
+                InternalSettings.Save();
+            }
+
             // We use a MRU that contains the older version projects to display in the editor
-            var mru = new MostRecentlyUsedFileCollection(InternalSettings.LoadProfileCopy, InternalSettings.MostRecentlyUsedSessions, InternalSettings.WriteFile);
+            var mru = new MostRecentlyUsedFileCollection(InternalSettings.LoadProfileCopy, GameStudioInternalSettings.MostRecentlyUsedSessions, InternalSettings.SaveProfile);
             mru.LoadFromSettings();
             var editor = new GameStudioViewModel(serviceProvider, mru);
-            AssetsPlugin.RegisterPlugin(typeof(StrideDefaultAssetsPlugin));
+            AssetsPlugin.RegisterPlugin(typeof(StrideDefaultAssetsWpfPlugin));
             var strideEditorPlugin = (StrideEditorPlugin)AssetsPlugin.RegisterPlugin(typeof(StrideEditorPlugin));
             strideEditorPlugin.EnableThumbnailService = enableThumbnailServices;
 
@@ -428,7 +459,7 @@ public static partial class Program
                     var mainWindow = new GameStudioWindow(editor);
                     Application.Current.MainWindow = mainWindow;
                     WindowManager.ShowMainWindow(mainWindow);
-                    CompilerCrashRouting.SetOwnerWindow(mainWindow);
+                    CompilerCrashRouting.SetOwnerWindow(GetWindowHandle(mainWindow));
                     return;
                 }
                 // The session asked for did not load (cancelled or failed): exit instead of offering another one,
@@ -448,7 +479,7 @@ public static partial class Program
                     WindowStartupLocation = WindowStartupLocation.CenterScreen,
                     ShowInTaskbar = true,
                 };
-                var viewModel = new NewOrOpenSessionTemplateCollectionViewModel(serviceProvider, startupWindow);
+                var viewModel = new NewOrOpenSessionTemplateCollectionViewModel(serviceProvider, editor.RecentFiles.Select(x => x.FilePath), editor.RemoveRecentFile);
                 startupWindow.Templates = viewModel;
                 startupWindow.ShowDialog();
                 viewModel.Destroy();
@@ -459,7 +490,7 @@ public static partial class Program
                     // Clean existing entry in the MRU data
                     var directory = startupWindow.NewSessionParameters.OutputDirectory;
                     var name = startupWindow.NewSessionParameters.OutputName;
-                    var mruData = new MRUAdditionalDataCollection(InternalSettings.LoadProfileCopy, GameStudioInternalSettings.MostRecentlyUsedSessionsData, InternalSettings.WriteFile);
+                    var mruData = MRUAdditionalDataLayouts.CreateCollection();
                     mruData.RemoveFile(UFile.Combine(UDirectory.Combine(directory, name), new UFile(name + SessionViewModel.SolutionExtension)));
 
                     completed = await editor.NewSession(startupWindow.NewSessionParameters);
@@ -507,7 +538,7 @@ public static partial class Program
                 var mainWindow = new GameStudioWindow(editor);
                 Application.Current.MainWindow = mainWindow;
                 WindowManager.ShowMainWindow(mainWindow);
-                CompilerCrashRouting.SetOwnerWindow(mainWindow);
+                CompilerCrashRouting.SetOwnerWindow(GetWindowHandle(mainWindow));
             }
             else
             {
@@ -600,7 +631,16 @@ public static partial class Program
         // TODO: this should be done elsewhere
         var dispatcherService = new DispatcherService(Dispatcher.CurrentDispatcher);
         var dialogService = new StrideDialogService(dispatcherService, StrideGameStudio.EditorName);
-        var pluginService = new PluginService();
+        // The plugins switched off per session are the user's, in the internal settings both editors read
+        // (and safe mode, and the marker of a start that dies while plugins load, beside the user's settings); so are the
+        // extensions the user installed, which every session loads (none in the AutoTesting host)
+        var pluginService = new PluginService
+        {
+            DisabledCompanions = DisabledEditorCompanionStore.CreateDefault(),
+            SafeMode = safeMode,
+            LoadingMarker = offerSafeMode ? PluginLoadingMarker.CreateDefault() : null,
+            Extensions = offerSafeMode ? EditorExtensionService.CreateDefault() : null,
+        };
         var services = new List<object>{ new DispatcherService(Dispatcher.CurrentDispatcher), dialogService, pluginService };
         if (renderDocManager != null)
             services.Add(renderDocManager);
@@ -608,23 +648,10 @@ public static partial class Program
         return serviceProvider;
     }
 
-    private static void InitializeLanguageSettings()
+    private static void InitializeLanguageSettings(SupportedLanguage language)
     {
-        TranslationManager.Instance.RegisterProvider(new GettextTranslationProvider());
-        TranslationManager.Instance.CurrentLanguage = EditorSettings.Language.GetValue() switch
-        {
-            SupportedLanguage.MachineDefault => CultureInfo.InstalledUICulture,
-            SupportedLanguage.English => new CultureInfo("en-US"),
-            SupportedLanguage.French => new CultureInfo("fr-FR"),
-            SupportedLanguage.Japanese => new CultureInfo("ja-JP"),
-            SupportedLanguage.Russian => new CultureInfo("ru-RU"),
-            SupportedLanguage.German => new CultureInfo("de-DE"),
-            SupportedLanguage.Spanish => new CultureInfo("es-ES"),
-            SupportedLanguage.ChineseSimplified => new CultureInfo("zh-Hans"),
-            SupportedLanguage.Italian => new CultureInfo("it-IT"),
-            SupportedLanguage.Korean => new CultureInfo("ko-KR"),
-            _ => throw new ArgumentException("Invalid language option"),
-        };
+        TranslationManager.Instance.RegisterProvider(new GettextTranslationProvider(typeof(Program).Assembly));
+        TranslationManager.Instance.CurrentLanguage = language.GetCulture();
     }
 
     internal static void NotifyGameStudioStarted()
@@ -634,5 +661,21 @@ public static partial class Program
             NativeHelper.SendMessage(windowHandle, NativeHelper.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
         }
         launcherNotified = true;
+    }
+
+    /// <summary>
+    /// Gets the native handle of a shown window, or zero when it has none.
+    /// </summary>
+    private static nint GetWindowHandle(Window window)
+    {
+        try
+        {
+            return new System.Windows.Interop.WindowInteropHelper(window).Handle;
+        }
+        catch
+        {
+            // No owner: the reporter opens as a plain top-level window
+            return 0;
+        }
     }
 }

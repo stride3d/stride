@@ -22,6 +22,8 @@ namespace Stride.Graphics
         /// <param name="dataPointer">The data pointer.</param>
         protected partial Buffer InitializeFromImpl(ref readonly BufferDescription description, BufferFlags viewFlags, PixelFormat viewFormat, IntPtr dataPointer)
         {
+            CheckRawBufferSize(description.SizeInBytes, viewFlags);
+
             bufferDescription = description;
             //nativeDescription = ConvertToNativeDescription(Description);
             ViewFlags = viewFlags;
@@ -143,6 +145,7 @@ namespace Stride.Graphics
 
             // Create buffer
             GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateBuffer(GraphicsDevice.NativeDevice, &createInfo, null, out NativeBuffer));
+            SetDebugName();
 
             // Allocate memory
             var memoryProperties = VkMemoryPropertyFlags.DeviceLocal;

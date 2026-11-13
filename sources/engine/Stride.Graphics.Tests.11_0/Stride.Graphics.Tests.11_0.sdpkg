@@ -6,3 +6,4 @@ AssetFolders:
 RootAssets:
     - 6e52ca68-ba84-4521-a20c-b780ea2831da:CubeMap
     - ab59d7a4-eac1-487c-921b-e7bacf9fcbfb:GraphicsCompositor
+    - 15713c9b-c67a-4bee-a776-a3516ab9af21:ShaderReadableCube

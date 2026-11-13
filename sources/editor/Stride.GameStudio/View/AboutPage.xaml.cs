@@ -57,7 +57,7 @@ namespace Stride.GameStudio.View
 
         private async void ThirdParty_OnClick(object sender, RoutedEventArgs e)
         {
-            var message = await LoadMarkdown("THIRD PARTY.md");
+            var message = await LoadMarkdown("THIRD-PARTY-NOTICES.md");
             Service.MessageBoxAsync(message).Forget();
         }
         

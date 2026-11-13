@@ -2,6 +2,11 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 namespace Stride.Rendering.Images
 {
+    params FlareArtifactKeys
+    {
+        int Count = 0;
+    };
+
     /// <summary>
     /// A flare artifact effect
     /// </summary>
@@ -9,7 +14,7 @@ namespace Stride.Rendering.Images
     {
         using params FlareArtifactKeys;
 
-        // Mixin 
+        // Mixin
         mixin FlareArtifactShader<FlareArtifactKeys.Count>;
     };
 }

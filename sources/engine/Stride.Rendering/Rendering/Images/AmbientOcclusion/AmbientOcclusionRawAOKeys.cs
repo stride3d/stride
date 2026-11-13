@@ -5,6 +5,7 @@ using System.Linq;
 
 namespace Stride.Rendering.Images
 {
+    [EffectKeys]
     public static partial class AmbientOcclusionRawAOKeys
     {
         public static readonly PermutationParameterKey<int> Count = ParameterKeys.NewPermutation<int>();

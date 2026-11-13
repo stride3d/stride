@@ -11,6 +11,7 @@ namespace Stride.Rendering.Materials
     /// <summary>
     /// The diffuse subsurface scattering for the diffuse material model attribute.
     /// </summary>
+    [EffectKeys]
     [DataContract("MaterialDiffuseHairModelFeature")]
     [Display("Hair")]
     public class MaterialDiffuseHairModelFeature : MaterialFeature, IMaterialDiffuseModelFeature

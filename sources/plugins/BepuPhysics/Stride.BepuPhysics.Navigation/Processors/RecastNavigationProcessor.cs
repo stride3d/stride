@@ -65,17 +65,15 @@ public sealed class RecastNavigationProcessor : EntityProcessor<RecastNavigation
             }
         }
 
-        Dispatcher.For(0, _components.Count, i =>
+        Dispatcher.ForEach(_components, (TryGetPathQueue: _tryGetPathQueue, DeltaTime: deltaTime), static (state, component) =>
         {
-            var component = _components[i];
-
             if(component.State == NavigationState.QueuePathPlanning)
             {
-                _tryGetPathQueue.Enqueue(component);
+                state.TryGetPathQueue.Enqueue(component);
                 component.State = NavigationState.PlanningPath;
             }
 
-            component.Update(deltaTime);
+            component.Update(state.DeltaTime);
         });
     }
 

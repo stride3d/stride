@@ -115,6 +115,8 @@ public readonly struct VertexBufferBinding : IEquatable<VertexBufferBinding>
         ///   Serializes or deserializes a <see cref="VertexBufferBinding"/> object.
         /// </summary>
         /// <param name="vertexBufferBinding">The object to serialize or deserialize.</param>
+        /// <param name="mode">The serialization mode.</param>
+        /// <param name="stream">The serialization stream.</param>
         /// <inheritdoc/>
         public override void Serialize(ref VertexBufferBinding vertexBufferBinding, ArchiveMode mode, SerializationStream stream)
         {

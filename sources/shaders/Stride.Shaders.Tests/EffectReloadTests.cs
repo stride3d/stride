@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Linq;
+using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Storage;
 using Stride.Graphics;
@@ -79,6 +80,63 @@ public class EffectReloadTests : IDisposable
         // The second reload is the one that used to be dropped: the effect's input hash doesn't change
         // when a shader file does, so the result compiled by the first reload was memoized forever.
         Assert.NotEqual(green, blue);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void FailureIsLoggedOncePerShaderEdit(bool compileAsynchronously)
+    {
+        cache.CompileEffectAsynchronously = compileAsynchronously;
+        var logged = new List<string>();
+        void OnMessage(ILogMessage message)
+        {
+            if (message.Text.Contains(shaderName))
+            {
+                lock (logged)
+                    logged.Add(message.Text);
+            }
+        }
+
+        GlobalLogger.GlobalMessageLogged += OnMessage;
+        try
+        {
+            var error = $"{ShaderPath}(5,";
+
+            // The runtime retries a failed effect every few seconds: each retry fails, one is logged
+            File.WriteAllText(ShaderPath, ShaderWithColor("1, 0, 0, 1) + (;"));
+            cache.ResetCache([shaderName]);
+            AssertRetryFails();
+            AssertRetryFails();
+            AssertRetryFails();
+            Assert.StartsWith(error, Assert.Single(logged));
+
+            // A new version with the same error is logged again
+            File.WriteAllText(ShaderPath, ShaderWithColor("1, 0, 0, 1) + (;") + "\n");
+            cache.ResetCache([shaderName]);
+            AssertRetryFails();
+            AssertRetryFails();
+            Assert.Equal(2, logged.Count);
+            Assert.Equal(logged[0], logged[1]);
+
+            // And it recovers once fixed
+            CompileAfterEdit(ShaderWithColor("0, 1, 0, 1"));
+            Assert.Equal(2, logged.Count);
+        }
+        finally
+        {
+            GlobalLogger.GlobalMessageLogged -= OnMessage;
+        }
+    }
+
+    private void AssertRetryFails()
+    {
+        var parameters = new CompilerParameters
+        {
+            EffectParameters = EffectCompilerParameters.Default with { Platform = GraphicsPlatform.Vulkan },
+        };
+        var results = cache.Compile(new ShaderClassSource(shaderName), parameters);
+        Assert.True(results.Bytecode.WaitForResult().CompilationLog.HasErrors);
     }
 
     /// <summary>Writes a new version of the shader, then reloads it the way the runtime does.</summary>

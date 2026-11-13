@@ -15,10 +15,10 @@ public interface IDialogService
     /// <summary>
     /// Indicates whether the current application has a main window.
     /// </summary>
-    /// <remarks>>
+    /// <remarks>
     /// Modal windows usually require to be owned by the main window.
     /// </remarks>
-    /// <returns><c>true if a main window exists (which can be hidden); otherwise, <c>false</c>.</returns>
+    /// <returns><c>true</c> if a main window exists (which can be hidden); otherwise, <c>false</c>.</returns>
     bool HasMainWindow { get; }
 
     /// <summary>

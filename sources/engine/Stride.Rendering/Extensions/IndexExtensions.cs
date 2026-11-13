@@ -354,6 +354,7 @@ namespace Stride.Extensions
         /// If no vertex elements are specified, use the whole vertex.
         /// </summary>
         /// <param name="vertexBufferBinding">The vertex buffer binding.</param>
+        /// <param name="commandList">The command list used to read the vertex buffer.</param>
         /// <param name="usages">The vertex element usages to consider.</param>
         /// <returns></returns>
         public static unsafe IndexMappingResult GenerateIndexMapping(this VertexBufferBinding vertexBufferBinding, CommandList commandList, params string[] usages)
@@ -485,6 +486,7 @@ namespace Stride.Extensions
         /// Reverses the winding order of an index buffer. Assumes it is stored in <see cref="PrimitiveType.TriangleList"/> format.
         /// Works on both 32 and 16 bit indices.
         /// </summary>
+        /// <param name="meshData">The mesh whose indices are reversed.</param>
         public static bool ReverseWindingOrder(this MeshDraw meshData)
         {
             byte[] newIndexBuffer;
@@ -499,6 +501,7 @@ namespace Stride.Extensions
         /// Reverses the winding order of an index buffer. Assumes it is stored in <see cref="PrimitiveType.TriangleList"/> format.
         /// Works on both 32 and 16 bit indices.
         /// </summary>
+        /// <param name="meshData">The mesh whose indices are reversed.</param>
         /// <param name="outBytes">Output of the operation, the indices matching the reversed winding order</param>
         public static unsafe bool GetReversedWindingOrder(this MeshDraw meshData, out byte[] outBytes)
         {

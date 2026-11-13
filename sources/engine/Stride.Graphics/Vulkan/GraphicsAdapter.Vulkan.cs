@@ -13,13 +13,15 @@ using static Vortice.Vulkan.Vulkan;
 namespace Stride.Graphics
 {
     /// <summary>
-    /// Provides methods to retrieve and manipulate graphics adapters. This is the equivalent to <see cref="Adapter1"/>.
+    /// Provides methods to retrieve and manipulate Vulkan graphics adapters. This is the equivalent to IDXGIAdapter1.
     /// </summary>
     /// <msdn-id>ff471329</msdn-id>
     /// <unmanaged>IDXGIAdapter1</unmanaged>
     /// <unmanaged-short>IDXGIAdapter1</unmanaged-short>
     public partial class GraphicsAdapter
     {
+        private readonly object outputLock = new();
+        private DisplayInfo[] pendingDisplays;
         private VkPhysicalDevice defaultPhysicalDevice;
         private VkPhysicalDevice debugPhysicalDevice;
 
@@ -47,17 +49,30 @@ namespace Stride.Graphics
         /// <summary>
         /// Initializes a new instance of the <see cref="GraphicsAdapter" /> class.
         /// </summary>
-        /// <param name="physicalDevice">The default factory.</param>
+        /// <param name="defaultPhysicalDevice">The Vulkan physical device.</param>
+        /// <param name="properties">The physical device properties.</param>
+        /// <param name="driverProperties">The physical device driver properties.</param>
+        /// <param name="memoryProperties">The memory heaps and types of the physical device.</param>
         /// <param name="adapterUid">The unique identifier of the adapter.</param>
         /// <param name="adapterOrdinal">The adapter ordinal.</param>
         /// <param name="enumerationIndex">The index of the physical device in the instance's enumeration order.</param>
-        internal unsafe GraphicsAdapter(VkPhysicalDevice defaultPhysicalDevice, VkPhysicalDeviceProperties properties, VkPhysicalDeviceDriverProperties driverProperties, long adapterUid, int adapterOrdinal, int enumerationIndex)
+        /// <param name="attachedDisplays">Native outputs or SDL presentation targets for this adapter.</param>
+        internal unsafe GraphicsAdapter(VkPhysicalDevice defaultPhysicalDevice, VkPhysicalDeviceProperties properties, VkPhysicalDeviceDriverProperties driverProperties, ref readonly VkPhysicalDeviceMemoryProperties memoryProperties, long adapterUid, int adapterOrdinal, int enumerationIndex, DisplayInfo[] attachedDisplays)
         {
             AdapterUid = adapterUid;
             this.adapterOrdinal = adapterOrdinal;
             this.enumerationIndex = enumerationIndex;
             this.defaultPhysicalDevice = defaultPhysicalDevice;
             this.properties = properties;
+
+            for (int i = 0; i < memoryProperties.memoryHeapCount; i++)
+            {
+                var heap = memoryProperties.memoryHeaps[i];
+                if ((heap.flags & VkMemoryHeapFlags.DeviceLocal) != 0)
+                    DedicatedVideoMemory += heap.size;
+                else
+                    SharedSystemMemory += heap.size;
+            }
 
             DriverInfo = new AdapterDriverInfo
             {
@@ -71,14 +86,41 @@ namespace Stride.Graphics
                 DriverVersion = FormatDriverVersion(properties.vendorID, properties.driverVersion),
                 ApiName = GraphicsDevice.Platform.ToString(),
                 ApiVersion = FormatApiVersion(properties.apiVersion),
+                PipelineCacheUuid = new Guid(new ReadOnlySpan<byte>(properties.pipelineCacheUUID, 16), bigEndian: true),
             };
+            pendingDisplays = attachedDisplays;
+        }
 
-            // TODO VULKAN
-            //var displayProperties = physicalDevice.DisplayProperties;
-            //outputs = new GraphicsOutput[displayProperties.Length];
-            //for (var i = 0; i < outputs.Length; i++)
-            //    outputs[i] = new GraphicsOutput(this, displayProperties[i], i).DisposeBy(this);
-            graphicsOutputs = [ new GraphicsOutput() ];
+        private void EnsureOutputs()
+        {
+            lock (outputLock)
+            {
+                if (graphicsOutputs != null)
+                    return;
+
+                // Windows data is captured at factory initialization; SDL may become
+                // available later. This path consumes managed data only.
+                var displays = pendingDisplays ?? DisplayEnumeration.SdlDisplays;
+                if (displays == null)
+                    return;
+
+                var outputs = new GraphicsOutput[displays.Length];
+                for (int index = 0; index < displays.Length; index++)
+                    outputs[index] = new GraphicsOutput(this, displays[index]);
+                graphicsOutputs = outputs;
+                pendingDisplays = null;
+            }
+        }
+
+        protected override void Destroy()
+        {
+            lock (outputLock)
+            {
+                if (graphicsOutputs != null)
+                    foreach (var output in graphicsOutputs)
+                        output.Dispose();
+            }
+            base.Destroy();
         }
 
         // NVIDIA packs 10/8/8/6 bits; Intel-on-Windows packs 18/14; everyone else uses the
@@ -124,6 +166,24 @@ namespace Stride.Graphics
                 return (int)properties.vendorID;
             }
         }
+
+        /// <summary>
+        ///   Gets the amount of memory, in bytes, of the memory heaps local to the adapter.
+        /// </summary>
+        /// <remarks>
+        ///   On a discrete GPU, this is its video memory. On an integrated GPU, the heaps local to it can be system memory.
+        /// </remarks>
+        public ulong DedicatedVideoMemory { get; }
+
+        /// <summary>
+        ///   Gets the amount of system memory, in bytes, reserved for the adapter. Vulkan does not report it, so it is 0.
+        /// </summary>
+        public ulong DedicatedSystemMemory => 0;
+
+        /// <summary>
+        ///   Gets the amount of memory, in bytes, of the memory heaps not local to the adapter, the system memory it can use.
+        /// </summary>
+        public ulong SharedSystemMemory { get; }
 
         /// <summary>
         /// Determines if this instance of GraphicsAdapter is the default adapter.
@@ -176,6 +236,31 @@ namespace Stride.Graphics
             // TODO VULKAN
             return true;
             //return SharpDX.Direct3D11.Device.IsSupportedFeatureLevel(this.NativeAdapter, (SharpDX.Direct3D.FeatureLevel)graphicsProfile);
+        }
+
+        private partial string GetUnsupportedReason()
+        {
+            // Stride uses Vulkan 1.3 core features and entry points
+            if (NativeApiVersion < VkVersion.Version_1_3)
+                return $"it supports only Vulkan {DriverInfo.ApiVersion}, but Stride requires Vulkan 1.3.";
+
+            var vulkan13Features = new VkPhysicalDeviceVulkan13Features { sType = VkStructureType.PhysicalDeviceVulkan13Features };
+            var vulkan12Features = new VkPhysicalDeviceVulkan12Features { sType = VkStructureType.PhysicalDeviceVulkan12Features };
+            unsafe
+            {
+                vulkan12Features.pNext = &vulkan13Features;
+                var features = new VkPhysicalDeviceFeatures2 { sType = VkStructureType.PhysicalDeviceFeatures2, pNext = &vulkan12Features };
+                GraphicsAdapterFactory.GetInstance(enableValidation: false).NativeInstanceApi.vkGetPhysicalDeviceFeatures2(GetPhysicalDevice(enableValidation: false), &features);
+            }
+
+            if (!vulkan12Features.timelineSemaphore)
+                return "it has no Vulkan timeline semaphores, which Stride requires.";
+
+            // The backend renders with vkCmdBeginRendering and no render pass objects, and submits with vkQueueSubmit2
+            if (!vulkan13Features.dynamicRendering || !vulkan13Features.synchronization2)
+                return "it has no Vulkan dynamic rendering and synchronization2, which Stride requires.";
+
+            return null;
         }
     }
 }

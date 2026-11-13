@@ -230,8 +230,8 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     public List<CompanionPackage> CompanionPackages { get; } = [];
 
     /// <summary>
-    /// The UI toolkit an <see cref="PackageKind.Editor"/> package's views are written for (StrideEditorToolkit, e.g.
-    /// <see cref="EditorToolkits.Wpf"/>); null for a toolkit-neutral package. Packed sdpkgs and build manifests carry
+    /// The UI toolkit an <see cref="PackageKind.Editor"/> package's views are written for (StrideEditorToolkit:
+    /// <see cref="EditorToolkits.Wpf"/> or <see cref="EditorToolkits.Avalonia"/>); null for a toolkit-neutral package. Packed sdpkgs and build manifests carry
     /// it; an authored sdpkg does not.
     /// </summary>
     [DataMember(108)]
@@ -950,6 +950,7 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     /// <param name="listAssetsInMsbuild">Specifies if we need to evaluate MSBuild files for assets.</param>
     /// <param name="filterFunc">A function that will filter assets loading</param>
     /// <param name="cancellationToken">The cancellation token.</param>
+    /// <param name="listAssetsOfUnknownType">Whether to include asset files whose tagged types are not loaded.</param>
     /// <returns>A logger that contains error messages while refreshing.</returns>
     /// <exception cref="InvalidOperationException">Package RootDirectory is null
     /// or
@@ -1017,9 +1018,6 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
 
     private void LoadAsset(AssetMigrationContext context, PackageLoadingAssetFile assetFile)
     {
-        var fileUPath = assetFile.FilePath;
-        var sourceFolder = assetFile.SourceFolder;
-
         // Check if asset has been deleted by an upgrader
         if (assetFile.Deleted)
         {
@@ -1034,22 +1032,61 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
             return;
         }
 
-        // An exception can occur here, so we make sure that loading a single asset is not going to break 
+        var assetItem = LoadAssetItem(context, assetFile);
+        if (assetItem is null)
+            return;
+
+        // Add to temporary assets
+        lock (TemporaryAssets)
+        {
+            TemporaryAssets.Add(assetItem);
+        }
+    }
+
+    /// <summary>
+    /// Loads the asset stored in a file of this package the way the package loads its assets (running its upgraders
+    /// if needed, with absolute paths), without adding it to the package.
+    /// </summary>
+    /// <param name="filePath">The full path of the asset file, in one of the <see cref="AssetFolders"/>.</param>
+    /// <param name="log">The log receiving the errors of the load.</param>
+    /// <returns>The loaded asset, or <c>null</c> if it could not be loaded (the reason is logged).</returns>
+    public AssetItem? LoadAssetFromFile(UFile filePath, ILogger log)
+    {
+        ArgumentNullException.ThrowIfNull(filePath);
+        ArgumentNullException.ThrowIfNull(log);
+
+        var sourceFolder = GetDistinctAssetFolderPaths().FirstOrDefault(x => x.Contains(filePath));
+        if (sourceFolder is null)
+        {
+            log.Error($"[{filePath}] is not in an asset folder of package [{Meta.Name}].");
+            return null;
+        }
+
+        var assetFile = new PackageLoadingAssetFile(filePath, sourceFolder);
+        var assetItem = LoadAssetItem(new AssetMigrationContext(this, assetFile.ToReference(), filePath.ToOSPath(), log), assetFile);
+        // Its paths are absolute, as those of the assets of a loaded package (see LoadAssets)
+        if (assetItem is not null)
+            AssetAnalysis.ConvertUPaths(assetItem, UPathType.Absolute);
+        return assetItem;
+    }
+
+    private AssetItem? LoadAssetItem(AssetMigrationContext context, PackageLoadingAssetFile assetFile)
+    {
+        var fileUPath = assetFile.FilePath;
+        var sourceFolder = assetFile.SourceFolder;
+
+        // An exception can occur here, so we make sure that loading a single asset is not going to break
         // the loop
         try
         {
             AssetMigration.MigrateAssetIfNeeded(context, assetFile);
 
             // Try to load only if asset is not already in the package or assetRef.Asset is null
-            var assetPath = assetFile.AssetLocation;
-            var assetNamespace = Container?.AssetNamespace;
-            if (assetNamespace is not null)
-                assetPath = UPath.Combine(new UDirectory("/" + assetNamespace), assetPath);
-
+            var assetPath = GetLoadedLocation(assetFile);
             var assetFullPath = fileUPath.ToOSPath();
             var assetContent = assetFile.AssetContent;
 
-            var asset = LoadAsset(context.Log, Meta.Name, assetFullPath, assetPath.ToOSPath(), assetContent, assetNamespace, out var aliasOccurred, out var yamlMetadata);
+            var asset = LoadAsset(context.Log, Meta.Name, assetFullPath, assetPath.ToOSPath(), assetContent, Container?.AssetNamespace, out var aliasOccurred, out var yamlMetadata);
 
             // Create asset item
             var assetItem = new AssetItem(assetPath, asset, this)
@@ -1070,11 +1107,7 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
             // since there was no importer id and base.
             //FixAssetImport(assetItem);
 
-            // Add to temporary assets
-            lock (TemporaryAssets)
-            {
-                TemporaryAssets.Add(assetItem);
-            }
+            return assetItem;
         }
         catch (Exception ex)
         {
@@ -1086,7 +1119,54 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
 
             var assetReference = new AssetReference(AssetId.Empty, fileUPath.FullPath);
             context.Log.Error(this, assetReference, AssetMessageCode.AssetLoadingFailed, ex, fileUPath, ex.Message);
+            return null;
         }
+    }
+
+    /// <summary>
+    /// Loads a project asset (a file of the .csproj) that appeared after this package was loaded, with the same
+    /// asset type, location and id as if it had been there when the package was loaded.
+    /// </summary>
+    /// <param name="log">The log.</param>
+    /// <param name="filePath">The full path of the file.</param>
+    /// <param name="link">The link of the project item, or null if it has none.</param>
+    /// <param name="projectDirectory">The folder of the project file.</param>
+    /// <returns>
+    /// The asset item, not added to <see cref="Assets"/> yet, or null if the file could not be loaded or if an asset
+    /// already has its location (this file, or another one with the same name and another extension).
+    /// </returns>
+    public AssetItem? LoadProjectAsset(ILogger log, UFile filePath, UFile? link, UDirectory projectDirectory)
+    {
+        ArgumentNullException.ThrowIfNull(log);
+        ArgumentNullException.ThrowIfNull(filePath);
+        ArgumentNullException.ThrowIfNull(projectDirectory);
+
+        var assetFile = new PackageLoadingAssetFile(filePath, projectDirectory) { Link = link };
+        if (Assets.Find(GetLoadedLocation(assetFile)) is { } existing)
+        {
+            if (existing.FullPath != filePath)
+                log.Warning($"[{filePath}] is ignored: the asset [{existing.FullPath}] already has the location [{existing.Location}]");
+            return null;
+        }
+
+        return LoadAssetItem(new AssetMigrationContext(this, assetFile.ToReference(), filePath.ToOSPath(), log), assetFile);
+    }
+
+    /// <summary>
+    /// Gets the location that <see cref="LoadProjectAsset"/> gives to a file.
+    /// </summary>
+    public UFile GetProjectAssetLocation(UFile filePath, UFile? link, UDirectory projectDirectory)
+    {
+        return GetLoadedLocation(new PackageLoadingAssetFile(filePath, projectDirectory) { Link = link });
+    }
+
+    private UFile GetLoadedLocation(PackageLoadingAssetFile assetFile)
+    {
+        var assetPath = assetFile.AssetLocation;
+        var assetNamespace = Container?.AssetNamespace;
+        if (assetNamespace is not null)
+            assetPath = UPath.Combine(new UDirectory("/" + assetNamespace), assetPath);
+        return assetPath;
     }
 
     /// <summary>
@@ -1212,6 +1292,11 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
             // serializers twice once a dependent binds to the host's
             if (assembly is null)
             {
+                // The host can refuse it before it loads (the editor leaves out a plugin built for a newer editor): it
+                // stays listed without an assembly, so a later load does not check it again
+                if ((loadParameters.AssemblyLoadCheck ?? Session?.AssemblyLoadCheck) is { } loadCheck && !loadCheck.CanLoad(this, assemblyPath, log))
+                    return;
+
                 assembly = assemblyContainer.LoadAssemblyFromPath(assemblyPath, log);
 
                 if (assembly is null)
@@ -1327,7 +1412,10 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
         }
     }
 
-    private List<UDirectory> GetDistinctAssetFolderPaths()
+    /// <summary>
+    /// Gets the full paths of the <see cref="AssetFolders"/> of this package, without duplicates.
+    /// </summary>
+    public List<UDirectory> GetDistinctAssetFolderPaths()
     {
         var existingAssetFolders = new List<UDirectory>();
         foreach (var folder in AssetFolders)
@@ -1341,9 +1429,19 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
         return existingAssetFolders;
     }
 
+    /// <summary>
+    /// List a package's asset files
+    /// </summary>
+    /// <param name="package">The package whose assets are listed.</param>
+    /// <param name="listAssetsInMsbuild">Whether to evaluate MSBuild projects for assets.</param>
     /// <param name="listUnregisteredAssets">Every <c>.sd*</c> file is an asset file, whatever its type (packing).</param>
     /// <param name="listAssetsOfUnknownType">Also list <c>.sd*</c> files starting with a Yaml type tag whose type is not loaded.</param>
     public static List<PackageLoadingAssetFile> ListAssetFiles(Package package, bool listAssetsInMsbuild, bool listUnregisteredAssets, bool listAssetsOfUnknownType = false)
+        => ListAssetFiles(package, listAssetsInMsbuild, listUnregisteredAssets, listAssetsOfUnknownType, projectFilesCache: null);
+
+    /// <param name="projectFilesCache">The files of the projects already evaluated, by project path: a project found there
+    /// is not evaluated again, and one evaluated is added to it.</param>
+    internal static List<PackageLoadingAssetFile> ListAssetFiles(Package package, bool listAssetsInMsbuild, bool listUnregisteredAssets, bool listAssetsOfUnknownType, Dictionary<string, ProjectFiles>? projectFilesCache)
     {
         var listFiles = new List<PackageLoadingAssetFile>();
 
@@ -1410,7 +1508,7 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
         //find also assets in the csproj
         if (listAssetsInMsbuild)
         {
-            FindAssetsInProject(listFiles, package);
+            FindAssetsInProject(listFiles, package, projectFilesCache);
         }
 
         return listFiles;
@@ -1444,32 +1542,57 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
 
     public static List<(UFile FilePath, UFile? Link)> FindAssetsInProject(string projectFullPath, out string? nameSpace)
     {
-        var realFullPath = new UFile(projectFullPath);
-        var project = VSProjectHelper.LoadProject(realFullPath);
-        var dir = new UDirectory(realFullPath.GetFullDirectory());
+        var projectFiles = ReadProjectFiles(projectFullPath);
+        nameSpace = projectFiles.RootNamespace;
+        return projectFiles.GetAssets();
+    }
 
-        nameSpace = project.GetPropertyValue("RootNamespace");
+    /// <summary>
+    /// The files of a project that can be its assets, whatever their type: the asset types are known only once the
+    /// assemblies that declare them are loaded, so the same files can be filtered again after more assemblies are loaded.
+    /// </summary>
+    internal sealed record ProjectFiles(string? RootNamespace, List<(UFile FilePath, UFile? Link)> Files)
+    {
+        public List<(UFile FilePath, UFile? Link)> GetAssets() => Files.Where(x => AssetRegistry.IsProjectAssetFileExtension(x.FilePath.GetFileExtension())).ToList();
+    }
+
+    private static ProjectFiles ReadProjectFiles(string projectFullPath)
+    {
+        var project = VSProjectHelper.LoadProject(new UFile(projectFullPath));
+        try
+        {
+            return ReadProjectFiles(project);
+        }
+        finally
+        {
+            project.ProjectCollection.UnloadAllProjects();
+            project.ProjectCollection.Dispose();
+        }
+    }
+
+    /// <param name="project">The project, evaluated with the global properties of <see cref="VSProjectHelper.LoadProject"/>'s defaults.</param>
+    internal static ProjectFiles ReadProjectFiles(Microsoft.Build.Evaluation.Project project)
+    {
+        var dir = new UDirectory(new UFile(project.FullPath).GetFullDirectory());
+
+        var nameSpace = project.GetPropertyValue("RootNamespace");
         if (nameSpace?.Length == 0)
             nameSpace = null;
 
-        var result = project.Items.Where(x => (x.ItemType == "Compile" || x.ItemType == "None" || x.ItemType == "AdditionalFiles") && string.IsNullOrEmpty(x.GetMetadataValue("AutoGen")))
+        var files = project.Items.Where(x => (x.ItemType == "Compile" || x.ItemType == "None" || x.ItemType == "AdditionalFiles") && string.IsNullOrEmpty(x.GetMetadataValue("AutoGen")))
             // Build full path for Include and Link
             .Select(x => (FilePath: UPath.Combine(dir, new UFile(x.EvaluatedInclude)), Link: x.HasMetadata("Link") ? UPath.Combine(dir, new UFile(x.GetMetadataValue("Link"))) : null))
             // For items outside project, let's pretend they are link
             .Select(x => (x.FilePath, Link: x.Link ?? (!dir.Contains(x.FilePath) ? x.FilePath.GetFileName() : null)))
-            .Where(x => AssetRegistry.IsProjectAssetFileExtension(x.FilePath.GetFileExtension()))
             // avoid duplicates otherwise it might save a single file as separte file with renaming
             // had issues with case such as Effect.sdsl being registered twice (with glob pattern) and being saved as Effect.sdsl and Effect (2).sdsl
             .Distinct()
             .ToList();
 
-        project.ProjectCollection.UnloadAllProjects();
-        project.ProjectCollection.Dispose();
-
-        return result;
+        return new ProjectFiles(nameSpace, files);
     }
 
-    private static void FindAssetsInProject(ICollection<PackageLoadingAssetFile> list, Package package)
+    private static void FindAssetsInProject(ICollection<PackageLoadingAssetFile> list, Package package, Dictionary<string, ProjectFiles>? projectFilesCache)
     {
         // Manifest mode: project assets were resolved at build time, no MSBuild evaluation.
         if (package.PrecomputedProjectAssets is not null)
@@ -1483,8 +1606,14 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
         if (package.Container is not SolutionProject project || project.FullPath is null)
             return;
 
-        var projectAssets = FindAssetsInProject(project.FullPath, out var defaultNamespace);
-        package.RootNamespace = defaultNamespace;
+        var projectPath = project.FullPath.ToOSPath();
+        if (projectFilesCache is null || !projectFilesCache.TryGetValue(projectPath, out var projectFiles))
+        {
+            projectFiles = ReadProjectFiles(projectPath);
+            projectFilesCache?.Add(projectPath, projectFiles);
+        }
+        var projectAssets = projectFiles.GetAssets();
+        package.RootNamespace = projectFiles.RootNamespace;
         var projectDirectory = new UDirectory(project.FullPath.GetFullDirectory());
 
         foreach (var (FilePath, Link) in projectAssets)
@@ -1530,9 +1659,13 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
                             }
                         }
 
-                        asset.AssetFolders = profile.AssetFolders;
-                        asset.ResourceFolders = profile.ResourceFolders;
-                        asset.OutputGroupDirectories = profile.OutputGroupDirectories;
+                        // A profile without one of these leaves the package's own: copied, the missing one would load as null
+                        if (profile.AssetFolders is not null)
+                            asset.AssetFolders = profile.AssetFolders;
+                        if (profile.ResourceFolders is not null)
+                            asset.ResourceFolders = profile.ResourceFolders;
+                        if (profile.OutputGroupDirectories is not null)
+                            asset.OutputGroupDirectories = profile.OutputGroupDirectories;
                     }
                 }
 

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Stride.Core;
 using Stride.Core.Annotations;
@@ -314,36 +315,57 @@ namespace Stride.Rendering.Lights
             var directLightShaders = GetReadonlyShaderSources(shaderPermutation.DirectLightShaders);
             var environmentLightShaders = GetReadonlyShaderSources(shaderPermutation.EnvironmentLightShaders);
 
-            Dispatcher.ForEach(RootRenderFeature.RenderObjects, renderObject =>
+            Dispatcher.ForBatched(RootRenderFeature.RenderObjects.Count, new EffectPermutationJob
             {
-                var renderMesh = (RenderMesh)renderObject;
+                Feature = this,
+                RenderEffects = renderEffects,
+                EffectSlotCount = effectSlotCount,
+                DirectLightShaders = directLightShaders,
+                EnvironmentLightShaders = environmentLightShaders,
+            });
+        }
 
-                if (!renderMesh.MaterialPass.IsLightDependent)
-                    return;
+        private readonly struct EffectPermutationJob : Dispatcher.IBatchJob
+        {
+            public required ForwardLightingRenderFeature Feature { get; init; }
+            public required StaticObjectPropertyData<RenderEffect> RenderEffects { get; init; }
+            public required int EffectSlotCount { get; init; }
+            public required ShaderSourceCollection DirectLightShaders { get; init; }
+            public required ShaderSourceCollection EnvironmentLightShaders { get; init; }
 
-                var staticObjectNode = renderMesh.StaticObjectNode;
-
-                for (int i = 0; i < effectSlotCount; ++i)
+            public void Process(int start, int endExclusive)
+            {
+                foreach (var renderObject in CollectionsMarshal.AsSpan(Feature.RootRenderFeature.RenderObjects)[start..endExclusive])
                 {
-                    // Don't apply lighting for shadow casters
-                    if (ignoredEffectSlots.Contains(i))
-                            continue;
+                    var renderMesh = (RenderMesh)renderObject;
 
-                    var staticEffectObjectNode = staticObjectNode * effectSlotCount + i;
-                    var renderEffect = renderEffects[staticEffectObjectNode];
-
-                    // Skip effects not used during this frame
-                    if (renderEffect == null || !renderEffect.IsUsedDuringThisFrame(RenderSystem))
+                    if (!renderMesh.MaterialPass.IsLightDependent)
                         continue;
 
-                    renderEffect.EffectValidator.ValidateParameter(LightingKeys.DirectLightGroups, directLightShaders);
-                    renderEffect.EffectValidator.ValidateParameter(LightingKeys.EnvironmentLights, environmentLightShaders);
+                    var staticObjectNode = renderMesh.StaticObjectNode;
 
-                    // Some light groups have additional effect permutation
-                    foreach (var lightGroup in shaderPermutation.PermutationLightGroups)
-                        lightGroup.ApplyEffectPermutations(renderEffect);
+                    for (int i = 0; i < EffectSlotCount; ++i)
+                    {
+                        // Don't apply lighting for shadow casters
+                        if (Feature.ignoredEffectSlots.Contains(i))
+                                continue;
+
+                        var staticEffectObjectNode = staticObjectNode * EffectSlotCount + i;
+                        var renderEffect = RenderEffects[staticEffectObjectNode];
+
+                        // Skip effects not used during this frame
+                        if (renderEffect == null || !renderEffect.IsUsedDuringThisFrame(Feature.RenderSystem))
+                            continue;
+
+                        renderEffect.EffectValidator.ValidateParameter(LightingKeys.DirectLightGroups, DirectLightShaders);
+                        renderEffect.EffectValidator.ValidateParameter(LightingKeys.EnvironmentLights, EnvironmentLightShaders);
+
+                        // Some light groups have additional effect permutation
+                        foreach (var lightGroup in Feature.shaderPermutation.PermutationLightGroups)
+                            lightGroup.ApplyEffectPermutations(renderEffect);
+                    }
                 }
-            });
+            }
         }
 
         /// <summary>
@@ -408,21 +430,41 @@ namespace Stride.Rendering.Lights
                 }
 
                 // PerDraw
-                Dispatcher.ForEach(viewFeature.RenderNodes, () => prepareThreadLocals.Value, (renderNodeReference, locals) =>
+                Dispatcher.ForBatched(viewFeature.RenderNodes.Count, new PrepareJob
                 {
-                    var renderNode = RootRenderFeature.GetRenderNode(renderNodeReference);
+                    Feature = this,
+                    Context = context,
+                    ViewIndex = viewIndex,
+                    RenderNodes = viewFeature.RenderNodes,
+                });
+            }
+        }
+
+        private readonly struct PrepareJob : Dispatcher.IBatchJob
+        {
+            public required ForwardLightingRenderFeature Feature { get; init; }
+            public required RenderDrawContext Context { get; init; }
+            public required int ViewIndex { get; init; }
+            public required ConcurrentCollector<RenderNodeReference> RenderNodes { get; init; }
+
+            public void Process(int start, int endExclusive)
+            {
+                var locals = Feature.prepareThreadLocals.Value;
+                foreach (var renderNodeReference in RenderNodes.Items.AsSpan(start..endExclusive))
+                {
+                    var renderNode = Feature.RootRenderFeature.GetRenderNode(renderNodeReference);
 
                     // Ignore fallback effects
                     if (renderNode.RenderEffect.State != RenderEffectState.Normal)
-                        return;
+                        continue;
 
                     var drawLayout = renderNode.RenderEffect.Reflection?.PerDrawLayout;
                     if (drawLayout == null)
-                        return;
+                        continue;
 
-                    var drawLighting = drawLayout.GetLogicalGroup(drawLightingKey);
+                    var drawLighting = drawLayout.GetLogicalGroup(Feature.drawLightingKey);
                     if (drawLighting.Hash == ObjectId.Empty)
-                        return;
+                        continue;
 
                     // Rebuild thread-local layout when this node's hash differs from the previous one
                     // processed on this thread (different effects in the same view can produce different
@@ -438,18 +480,18 @@ namespace Stride.Rendering.Lights
                     }
 
                     // Compute PerDraw lighting
-                    foreach (var directLightGroup in shaderPermutation.DirectLightGroups)
+                    foreach (var directLightGroup in Feature.shaderPermutation.DirectLightGroups)
                     {
-                        directLightGroup.ApplyDrawParameters(context, viewIndex, locals.DrawParameters, ref renderNode.RenderObject.BoundingBox);
+                        directLightGroup.ApplyDrawParameters(Context, ViewIndex, locals.DrawParameters, ref renderNode.RenderObject.BoundingBox);
                     }
-                    foreach (var environmentLight in shaderPermutation.EnvironmentLights)
+                    foreach (var environmentLight in Feature.shaderPermutation.EnvironmentLights)
                     {
-                        environmentLight.ApplyDrawParameters(context, viewIndex, locals.DrawParameters, ref renderNode.RenderObject.BoundingBox);
+                        environmentLight.ApplyDrawParameters(Context, ViewIndex, locals.DrawParameters, ref renderNode.RenderObject.BoundingBox);
                     }
 
                     // Update resources
                     renderNode.Resources.UpdateLogicalGroup(ref drawLighting, locals.DrawParameters);
-                });
+                }
             }
         }
 

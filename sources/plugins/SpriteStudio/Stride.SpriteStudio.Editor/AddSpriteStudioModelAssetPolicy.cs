@@ -7,6 +7,8 @@ using Stride.Core.Assets.Editor.Services;
 using Stride.Engine;
 using Stride.SpriteStudio.Assets;
 using Stride.SpriteStudio.Runtime;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.ViewModels;
+using Stride.Core.Assets.Presentation.Services;
 
 namespace Stride.SpriteStudio.Editor;
 
@@ -17,7 +19,7 @@ internal sealed class AddSpriteStudioModelAssetPolicy : CreateComponentPolicyBas
 {
     /// <inheritdoc />
     [NotNull]
-    protected override EntityComponent CreateComponentFromAsset(EntityHierarchyItemViewModel parent, SpriteStudioModelViewModel asset)
+    protected override EntityComponent CreateComponentFromAsset(IEntityHierarchyItemViewModel parent, SpriteStudioModelViewModel asset)
     {
         return new SpriteStudioComponent
         {

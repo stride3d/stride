@@ -100,12 +100,13 @@ namespace Stride.Rendering
         {
             using var _ = Profiler.Begin(PreparePermutationsImplKey);
             // Setup ActiveMeshDraw
-            Dispatcher.ForEach(RenderObjects, renderObject =>
+            Dispatcher.ForEach(RenderObjects, this, SetActiveMeshDraw);
+
+            static void SetActiveMeshDraw(MeshRenderFeature _, RenderObject renderObject)
             {
                 var renderMesh = (RenderMesh)renderObject;
-
                 renderMesh.ActiveMeshDraw = renderMesh.Mesh.Draw;
-            });
+            }
 
             base.PrepareEffectPermutationsImpl(context);
 

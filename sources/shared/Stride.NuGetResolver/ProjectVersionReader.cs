@@ -130,6 +130,12 @@ internal static class ProjectVersionReader
         }
     }
 
+    /// <summary>
+    /// Gets whether the project has a <c>PackageReference</c> to one of <paramref name="packageIds"/>, whatever its version.
+    /// </summary>
+    public static bool ReferencesPackage(string projectPath, params string[] packageIds)
+        => TryLoad(projectPath) is { } project && GetPackageReferences(project, packageIds).Any();
+
     private static XDocument? TryLoad(string projectPath)
     {
         try

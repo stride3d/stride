@@ -18,4 +18,10 @@
   <ItemGroup>
     <ProjectReference Include="..\Stride.Launcher\Stride.Launcher.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\shared\Stride.NuGetResolver\NuGetResolverCache.cs" Link="Shared\NuGetResolverCache.cs" />
+    <Compile Include="..\Stride.Cli\Core\NewTemplateRules.cs" Link="Cli\NewTemplateRules.cs" />
+    <Compile Include="..\..\engine\Stride.Assets\Templates\AssetPackPlacement.cs" Link="Cli\AssetPackPlacement.cs" />
+  </ItemGroup>
 </Project>

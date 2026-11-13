@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
 using Stride.Core.Annotations;
+using Stride.Core.Assets.Presentation.ViewModels;
 using TreeViewItem = Stride.Core.Presentation.Controls.TreeViewItem;
 
 namespace Stride.Core.Assets.Editor.View.Behaviors

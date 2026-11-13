@@ -12,6 +12,9 @@ name: Repo File Guard
 #
 # Runs on PRs, and on push to master / master-* (where it also re-audits the whole tree for
 # type drift). Mark "Repo File Guard / file-guard-gate" a required check in branch protection.
+#
+# A second step checks that a change to a code or project upgrader moves the engine version, as
+# their gates compare only the number. See docs/build/versioning.md.
 
 on:
   pull_request:
@@ -170,3 +173,97 @@ jobs:
             echo "::error::Repo File Guard violations found — see the job summary."
             exit 1
           fi
+
+      # Runs even when the step above failed, so the merger sees every rule that failed. Only checks what the change
+      # adds, so a bypassed PR never fails later ones. A PR into another branch is a level of a stack, which takes one
+      # bump at its last rebase. On a push nothing can be blocked anymore, so it only warns.
+      - name: Check that upgraders move the version
+        if: ${{ !cancelled() && (github.event_name == 'push' || github.base_ref == 'master' || startsWith(github.base_ref, 'master-')) }}
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          set +e
+          set -uo pipefail
+
+          if [ "$EVENT" = "push" ]; then
+            level=warning
+            base="$BEFORE_SHA"
+            if ! git cat-file -e "$base^{commit}" 2>/dev/null; then
+              echo "No previous commit to compare with."
+              exit 0
+            fi
+          else
+            level=error
+            base=$(git merge-base "$BASE_SHA" "$HEAD_SHA" 2>/dev/null || echo "$BASE_SHA")
+          fi
+
+          version_file=sources/shared/SharedAssemblyInfo.cs
+          upgrader_files=(
+            'sources/engine/Stride.Assets/StridePackageUpgrader*.cs'
+            'sources/engine/Stride.Assets/CodeUpgrade/CodeUpgrades*.cs'
+            'sources/engine/Stride.Assets/CodeUpgrade/ProjectUpgrades.cs'
+          )
+
+          if [ -z "$(git diff --name-only "$base" "$HEAD_SHA" -- "${upgrader_files[@]}")" ]; then
+            echo "No upgrader file changed."
+            exit 0
+          fi
+
+          number() {
+            git show "$1:$version_file" | sed -n -E 's/.*public const string (MajorMinor|Patch) = "([0-9.]+)";.*/\2/p' | paste -sd .
+          }
+          # A form that compares as text, with a missing part as 0: 4.5.1 and 4.5.1.0 are the same version.
+          key() {
+            echo "$1" | awk -F. '{ printf "%05d%05d%05d%05d\n", $1, $2, $3, $4 }'
+          }
+
+          old=$(number "$base")
+          new=$(number "$HEAD_SHA")
+          problems=$(mktemp)
+
+          # Each gate of the head: file, line, kind, version
+          gates=$(mktemp)
+          git grep -nE '^[[:space:]]*registry\.[A-Za-z]+\("[0-9.]+"' "$HEAD_SHA" -- "${upgrader_files[@]}" \
+            | sed -n -E 's/^[^:]*:([^:]*):([0-9]+):[[:space:]]*registry\.([A-Za-z]+)\("([0-9.]+)".*/\1\t\2\t\3\t\4/p' > "$gates"
+
+          if [[ ! "$(key "$new")" > "$(key "$old")" ]]; then
+            echo "An upgrader file changed, but the version stays at $old: bump Patch in $version_file and use that number for the gate." >> "$problems"
+          elif ! cut -f4 "$gates" | while read -r v; do key "$v"; done | grep -x "$(key "$new")" > /dev/null; then
+            # Only a warning: a needless bump is a valid fix for an upgrader edit that isn't a migration
+            echo "::warning::The version moved to $new, but no gate names it. That's fine if this edit isn't a migration; a new migration needs a gate at $new.0."
+          fi
+
+          # The gates this change adds: file, line, kind, version
+          git diff -U0 "$base" "$HEAD_SHA" -- "${upgrader_files[@]}" \
+            | awk '
+                /^\+\+\+ / { path = substr($2, 3); next }
+                /^@@/ { split($3, start, ","); line = substr(start[1], 2) + 0; next }
+                /^\+/ { print path "\t" line "\t" substr($0, 2); line++ }' \
+            | sed -n -E 's/^([^\t]*)\t([0-9]+)\t[[:space:]]*registry\.([A-Za-z]+)\("([0-9.]+)".*/\1\t\2\t\3\t\4/p' \
+            | while IFS=$'\t' read -r file line kind version; do
+                if [[ "$(key "$version")" > "$(key "$new")" ]]; then
+                  echo "$file:$line: gate $version is above the committed version $new: projects are stamped below it, so it runs again at each upgrade." >> "$problems"
+                fi
+                while IFS=$'\t' read -r other_file other_line other_kind other_version; do
+                  if [ "$other_file" = "$file" ] && [ "$other_kind" = "$kind" ] && [ "$other_line" -gt "$line" ] && [[ "$(key "$other_version")" < "$(key "$version")" ]]; then
+                    echo "$file:$line: gate $version is placed before gate $other_version of the same kind (line $other_line): gates run in order, oldest first." >> "$problems"
+                  fi
+                done < "$gates"
+              done
+
+          if [ ! -s "$problems" ]; then
+            echo "Upgraders and version agree: $old -> $new."
+            exit 0
+          fi
+
+          while IFS= read -r problem; do echo "::$level::$problem"; done < "$problems"
+          {
+            echo "## Upgraders and the engine version"; echo
+            echo "Code and project upgrader gates compare only the number of a version, so a project already on that number never gets a gate added later. Each PR that adds one bumps \`Patch\` and uses that number for its gate."; echo
+            sed 's/^/- /' "$problems"; echo
+            echo "An upgrader edit that isn't a migration stays red: an admin uses \"bypass rules\" at merge, or the PR takes a needless bump. See \`docs/build/versioning.md\`."
+          } >> "$GITHUB_STEP_SUMMARY"
+          [ "$level" = warning ]

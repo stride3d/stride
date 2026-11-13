@@ -1,24 +1,25 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <!-- Exposes the project's authored assets to Roslyn components as AdditionalFiles
-       (with their asset-folder root and the resolved asset URL namespace), feeding the
-       asset URL constants generator in Stride.Assets.Generators. -->
+  <!-- Exposes the project's authored assets to Roslyn components as StrideAssetPaths,
+       a pipe-separated list of relative paths to all potential asset files under the package's asset folders.
+       This feeds the asset URL constants generator in Stride.Assets.Generators.
+       Shaders are also exposed through AdditionalFiles for Stride.Shaders.Generators. -->
 
   <PropertyGroup>
     <StrideAssetConstantsImported>true</StrideAssetConstantsImported>
     <StrideGenerateAssetConstants Condition="'$(StrideGenerateAssetConstants)' == ''">true</StrideGenerateAssetConstants>
     <!-- Only an existing StrideCurrentPackagePath counts; a dangling path (e.g. a platform project
-         carrying one from an older layout) falls back to the conventional sdpkg next to the project. -->
+         carrying one from an older layout) falls back to the conventional sdpkg next to the project.
+         StrideCollectAssetConstants also falls back when the path is a referenced project's own sdpkg. -->
     <_StrideAssetConstantsPackagePath Condition="'$(StrideCurrentPackagePath)' != '' And Exists('$(StrideCurrentPackagePath)')">$(StrideCurrentPackagePath)</_StrideAssetConstantsPackagePath>
     <_StrideAssetConstantsPackagePath Condition="'$(_StrideAssetConstantsPackagePath)' == ''">$(MSBuildProjectDirectory)\$(MSBuildProjectName).sdpkg</_StrideAssetConstantsPackagePath>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(StrideGenerateAssetConstants)' == 'true'">
-    <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="StrideAssetFolder" />
-    <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="StrideAssetContentTypeMap" />
     <CompilerVisibleProperty Include="StrideAssetUrlNamespace" />
     <CompilerVisibleProperty Include="StrideAssetConstantsClassName" />
     <CompilerVisibleProperty Include="StrideAssetConstantsNamespace" />
+    <CompilerVisibleProperty Include="StrideAssetPaths" />
   </ItemGroup>
 
   <UsingTask TaskName="StrideCollectAssetConstantsInputs"
@@ -28,8 +29,8 @@
       <PackagePath Required="true" />
       <AssetNamespace />
       <PackageName />
-      <ContentTypeMaps ParameterType="Microsoft.Build.Framework.ITaskItem[]" />
-      <AssetFiles ParameterType="Microsoft.Build.Framework.ITaskItem[]" Output="true" />
+      <ShaderFiles ParameterType="Microsoft.Build.Framework.ITaskItem[]" Output="true" />
+      <AssetFiles ParameterType="System.String" Output="true" />
       <ResolvedNamespace ParameterType="System.String" Output="true" />
     </ParameterGroup>
     <Task>
@@ -45,24 +46,6 @@
                 s = s.Substring(1, s.Length - 2).Replace("\\\\", "\\").Replace("\\\"", "\"");
             return s;
         };
-
-        // Only .sd* files and map extensions become AdditionalFiles: raw resources would re-trigger the generator and hit CS2015
-        var assetExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var map in ContentTypeMaps ?? new Microsoft.Build.Framework.ITaskItem[0])
-        {
-            if (!File.Exists(map.ItemSpec))
-                continue;
-            foreach (var mapLine in File.ReadAllLines(map.ItemSpec))
-            {
-                var trimmed = mapLine.Trim();
-                if (trimmed.Length == 0 || trimmed[0] == '#')
-                    continue;
-                var bar = trimmed.IndexOf('|');
-                var ext = (bar > 0 ? trimmed.Substring(0, bar) : trimmed).Trim();
-                if (ext.Length > 0)
-                    assetExtensions.Add(ext);
-            }
-        }
 
         // Line-based scan of the authored sdpkg: Meta.Name + AssetFolders paths.
         var authoredName = (string)null;
@@ -101,7 +84,8 @@
 
         var baseDir = Path.GetDirectoryName(Path.GetFullPath(PackagePath));
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var items = new List<Microsoft.Build.Framework.ITaskItem>();
+        var assets = new List<string>();
+        var shaders = new List<Microsoft.Build.Framework.ITaskItem>();
         var excludedDirectories = new HashSet<string>(new[] { "bin", "obj", ".git", ".vs" }, StringComparer.OrdinalIgnoreCase);
         foreach (var folderPath in folderPaths)
         {
@@ -113,25 +97,35 @@
                 if (!seen.Add(file))
                     continue;
                 // Skip package files and build/VCS directories (an asset folder can be '.')
-                if (string.Equals(Path.GetExtension(file), ".sdpkg", StringComparison.OrdinalIgnoreCase))
-                    continue;
-                var relativeDir = Path.GetDirectoryName(file.Substring(folder.Length + 1)) ?? "";
-                if (relativeDir.Split(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries).Any(segment => excludedDirectories.Contains(segment)))
-                    continue;
                 var extension = Path.GetExtension(file);
-                if (!extension.StartsWith(".sd", StringComparison.OrdinalIgnoreCase) && !assetExtensions.Contains(extension))
+                if (string.Equals(extension, ".sdpkg", StringComparison.OrdinalIgnoreCase))
                     continue;
-                var item = new Microsoft.Build.Utilities.TaskItem(file);
-                item.SetMetadata("StrideAssetFolder", folder);
-                items.Add(item);
+                var folderPrefix = folder.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar.ToString();
+                if (!file.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar).StartsWith(folderPrefix, StringComparison.OrdinalIgnoreCase))
+                    continue;
+                var relativePath = file.Substring(folderPrefix.Length).Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+                var relativeDirectory = Path.GetDirectoryName(relativePath) ?? "";
+                if (relativeDirectory.Split(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries).Any(excludedDirectories.Contains))
+                    continue;
+                if (string.Equals(extension, ".sdsl", StringComparison.OrdinalIgnoreCase) || string.Equals(extension, ".sdfx", StringComparison.OrdinalIgnoreCase))
+                {
+                    shaders.Add(new Microsoft.Build.Utilities.TaskItem(file));
+                }
+                else if (extension.StartsWith(".sd", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Only .sd* files can be asset files
+                    assets.Add(Uri.EscapeDataString(relativePath));
+                }
             }
         }
-        AssetFiles = items.ToArray();
+        assets.Sort(StringComparer.OrdinalIgnoreCase);
+        AssetFiles = string.Join("|", assets);
+        ShaderFiles = shaders.ToArray();
       ]]></Code>
     </Task>
   </UsingTask>
 
-  <!-- Before GenerateMSBuildEditorConfigFileCore so both the items' metadata and the
+  <!-- Before GenerateMSBuildEditorConfigFileCore so both the asset paths property and the
        resolved namespace property land in the analyzer config; runs in design-time
        builds too, keeping IDE IntelliSense in sync with on-disk assets. -->
   <Target Name="StrideCollectAssetConstants"
@@ -143,20 +137,27 @@
       <_StrideAssetConstantsPackageName Condition="'$(_StrideAssetConstantsPackageName)' == ''">$(AssemblyName)</_StrideAssetConstantsPackageName>
       <_StrideAssetConstantsPackageName Condition="'$(_StrideAssetConstantsPackageName)' == ''">$(MSBuildProjectName)</_StrideAssetConstantsPackageName>
     </PropertyGroup>
-    <!-- The ext|type maps a package ships give the extensions the folder scan takes besides .sd* -->
+    <!-- A StrideCurrentPackagePath that sits next to a referenced project (a platform head pointing at
+         its game library's sdpkg) is that project's package, as in the asset build manifest: the game
+         library generates its constants (and its shaders), and the head only takes an sdpkg of its own -->
     <ItemGroup>
-      <_StrideAssetContentTypeMap Include="@(AdditionalFiles)" Condition="'%(AdditionalFiles.StrideAssetContentTypeMap)' == 'true'" />
+      <_StrideAssetConstantsReferencedPackage Include="@(ProjectReference->'%(RootDir)%(Directory)%(Filename).sdpkg')" />
+      <_StrideAssetConstantsReferencedPackage Remove="@(_StrideAssetConstantsReferencedPackage)" Condition="'%(FullPath)' != '$([MSBuild]::NormalizePath($(_StrideAssetConstantsPackagePath)))'" />
     </ItemGroup>
+    <PropertyGroup>
+      <_StrideAssetConstantsPackagePath Condition="'@(_StrideAssetConstantsReferencedPackage)' != ''">$(MSBuildProjectDirectory)\$(MSBuildProjectName).sdpkg</_StrideAssetConstantsPackagePath>
+    </PropertyGroup>
     <StrideCollectAssetConstantsInputs
+        Condition="Exists('$(_StrideAssetConstantsPackagePath)')"
         PackagePath="$(_StrideAssetConstantsPackagePath)"
         AssetNamespace="$(StrideAssetNamespace)"
-        PackageName="$(_StrideAssetConstantsPackageName)"
-        ContentTypeMaps="@(_StrideAssetContentTypeMap)">
-      <Output TaskParameter="AssetFiles" ItemName="_StrideAssetConstantsFile" />
+        PackageName="$(_StrideAssetConstantsPackageName)">
+      <Output TaskParameter="ShaderFiles" ItemName="_StrideShaderFile" />
+      <Output TaskParameter="AssetFiles" PropertyName="StrideAssetPaths" />
       <Output TaskParameter="ResolvedNamespace" PropertyName="StrideAssetUrlNamespace" />
     </StrideCollectAssetConstantsInputs>
     <ItemGroup>
-      <AdditionalFiles Include="@(_StrideAssetConstantsFile)" />
+      <AdditionalFiles Include="@(_StrideShaderFile)" />
     </ItemGroup>
   </Target>
 

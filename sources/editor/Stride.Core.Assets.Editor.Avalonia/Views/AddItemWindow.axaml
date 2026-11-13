@@ -1,0 +1,17 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+        xmlns:views="using:Stride.Core.Assets.Editor.Avalonia.Views"
+        xmlns:vm="using:Stride.Core.Assets.Editor.Components.TemplateDescriptions"
+        mc:Ignorable="d" d:DesignWidth="720" d:DesignHeight="340"
+        x:Class="Stride.Core.Assets.Editor.Avalonia.Views.AddItemWindow"
+        x:DataType="vm:AddItemTemplateCollectionViewModel"
+        Title="{sd:LocalizeString Add asset..., Context=Title}"
+        SizeToContent="WidthAndHeight"
+        CanResize="False"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner">
+  <views:AddItemView x:Name="Items" Margin="10" ItemValidated="OnItemValidated"/>
+</Window>

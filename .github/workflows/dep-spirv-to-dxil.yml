@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           path: stride-src
-          sparse-checkout: build/deps/spirv-to-dxil
+          sparse-checkout: deps/spirv-to-dxil
 
       - name: Clone Mesa
         shell: pwsh
@@ -41,7 +41,7 @@ jobs:
         shell: pwsh
         working-directory: mesa-src
         run: |
-          git apply --3way --verbose "${{ github.workspace }}/stride-src/build/deps/spirv-to-dxil/mesa-pipeline.patch"
+          git apply --3way --verbose "${{ github.workspace }}/stride-src/deps/spirv-to-dxil/mesa-pipeline.patch"
 
       - name: Install build dependencies
         shell: pwsh
@@ -101,7 +101,7 @@ jobs:
           $mesaUrl = git -C mesa-src config --get remote.origin.url
           @(
             "Mesa: $mesaUrl @ $mesaCommit"
-            "Stride: ${{ github.server_url }}/${{ github.repository }} @ ${{ github.sha }} (for workflow and build/deps/spirv-to-dxil/mesa-pipeline.patch)"
+            "Stride: ${{ github.server_url }}/${{ github.repository }} @ ${{ github.sha }} (for workflow and deps/spirv-to-dxil/mesa-pipeline.patch)"
           ) | Out-File out/VERSION.txt
           Get-ChildItem out
 

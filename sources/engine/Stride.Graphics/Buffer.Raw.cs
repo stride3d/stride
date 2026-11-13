@@ -32,7 +32,7 @@ namespace Stride.Graphics
         /// </summary>
         /// <remarks>
         ///   A <strong>Raw Buffer</strong> is a <see cref="Buffer"/> that can be read in shaders as raw bytes.
-        ///   They are unformatted Buffers that can be accessed at byte level.
+        ///   They are unformatted Buffers that can be accessed at byte level. Their size must be a multiple of 4 bytes.
         ///   <para>
         ///     An example of this kind of Buffer in SDSL would be:
         ///     <code>

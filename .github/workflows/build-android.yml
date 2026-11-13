@@ -53,7 +53,7 @@ jobs:
           packages: platform-tools
       - name: Build
         run: |
-          dotnet build build\Stride.Android.slnf `
+          dotnet build sources\Stride.Android.slnf `
             -nr:false `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StridePlatforms=Android `

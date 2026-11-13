@@ -6,10 +6,15 @@ namespace Stride.Core.Serialization;
 /// <summary>
 /// A null serializer that can be used to add dummy serialization attributes.
 /// </summary>
-public class NullSerializer<T> : DataSerializer<T>
+public sealed class NullSerializer<T> : DataSerializer<T>
 {
+    /// <summary>
+    /// Gets the shared instance of this serializer.
+    /// </summary>
+    public static NullSerializer<T> Instance { get; } = new();
+
     public override void Serialize(ref T obj, ArchiveMode mode, SerializationStream stream)
     {
-        throw new NotImplementedException();
+        throw new NotSupportedException($"No serializer available for type {typeof(T).FullName}.");
     }
 }

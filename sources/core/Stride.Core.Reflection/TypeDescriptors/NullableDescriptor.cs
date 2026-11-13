@@ -17,6 +17,8 @@ public class NullableDescriptor : ObjectDescriptor
     /// </summary>
     /// <param name="factory">The factory.</param>
     /// <param name="type">The type.</param>
+    /// <param name="emitDefaultValues">Whether to include members with default values.</param>
+    /// <param name="namingConvention">The naming convention for members.</param>
     /// <exception cref="ArgumentException">Type [{0}] is not a primitive</exception>
     public NullableDescriptor(ITypeDescriptorFactory factory, Type type, bool emitDefaultValues, IMemberNamingConvention namingConvention)
         : base(factory, type, emitDefaultValues, namingConvention)

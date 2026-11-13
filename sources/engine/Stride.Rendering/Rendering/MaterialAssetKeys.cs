@@ -5,6 +5,7 @@ namespace Stride.Rendering
     /// <summary>
     /// Defines keys associated with mesh used for compiling assets.
     /// </summary>
+    [EffectKeys]
     public sealed class MaterialAssetKeys
     {
         /// <summary>

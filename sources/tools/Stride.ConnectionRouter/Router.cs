@@ -20,7 +20,13 @@ namespace Stride.ConnectionRouter
     {
         private static readonly Logger Log = GlobalLogger.GetLogger("Router");
 
-        private Dictionary<string, TaskCompletionSource<Service>> registeredServices = new Dictionary<string, TaskCompletionSource<Service>>();
+        /// <summary>
+        /// How long a process the router started keeps running after its last connection closes, so that a game started again soon reuses it.
+        /// </summary>
+        private static readonly TimeSpan IdleStopDelay = TimeSpan.FromSeconds(10);
+
+        // The current service of each URL. A service removed from there (a task replaced by a newer one, a service that disconnected) keeps serving its open connections.
+        private Dictionary<string, ServiceEntry> registeredServices = new Dictionary<string, ServiceEntry>();
         private Dictionary<Guid, TaskCompletionSource<SimpleSocket>> pendingServers = new Dictionary<Guid, TaskCompletionSource<SimpleSocket>>();
 
         public async Task Listen(int port)
@@ -118,6 +124,7 @@ namespace Stride.ConnectionRouter
                 throw new InvalidOperationException("No URL Segments");
 
             SimpleSocket serverSocket = null;
+            ServiceEntry serviceEntry = null;
             ExceptionDispatchInfo serverSocketCapturedException = null;
 
             try
@@ -128,13 +135,13 @@ namespace Stride.ConnectionRouter
                     case "service":
                     {
                         // From the URL, start service (if not started yet) and ask it to provide a server
-                        serverSocket = await SpawnServerFromService(url, false);
+                        (serverSocket, serviceEntry) = await SpawnServerFromService(url, false);
                         break;
                     }
                     case "task":
                     {
                         // From the URL, start service (if not started yet) and ask it to provide a server
-                        serverSocket = await SpawnServerFromService(url, true);
+                        (serverSocket, serviceEntry) = await SpawnServerFromService(url, true);
                         break;
                     }
                     case "redirect":
@@ -194,9 +201,13 @@ namespace Stride.ConnectionRouter
                 serverSocket.Dispose();
                 throw;
             }
+            finally
+            {
+                ReleaseConnection(serviceEntry);
+            }
         }
 
-        private async Task<SimpleSocket> SpawnServerFromService(string url, bool task)
+        private async Task<(SimpleSocket Socket, ServiceEntry Service)> SpawnServerFromService(string url, bool task)
         {
             // Ideally we would like to reuse Uri (or some other similar code), but it doesn't work without a Host
             var parameterIndex = url.IndexOf('?');
@@ -207,86 +218,202 @@ namespace Stride.ConnectionRouter
             RouterHelper.ParseUrl(url, out urlSegments, out urlParameters);
 
             // Find a matching server
-            TaskCompletionSource<Service> serviceTcs;
+            ServiceEntry serviceEntry;
+            lock (registeredServices)
+            {
+                if (!registeredServices.TryGetValue(urlWithoutParameters, out serviceEntry))
+                {
+                    if (task)
+                        throw new Exception("ConnectionRouter task not found, a task won't spawn a new service on demand instead must be started explicitly.");
+
+                    string servicePath;
+                    try
+                    {
+                        servicePath = LocateService(url, urlSegments);
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error(e.Message);
+                        throw;
+                    }
+
+                    serviceEntry = new ServiceEntry(urlWithoutParameters);
+                    serviceEntry.Process = RunServiceProcessAndLog(servicePath, () => OnServiceProcessExited(serviceEntry));
+
+                    // A process that already exited fails this request, and the next one starts a new process
+                    if (!serviceEntry.Retired)
+                        registeredServices.Add(urlWithoutParameters, serviceEntry);
+                }
+
+                // Count the connection right away, so that the process isn't stopped while it is set up
+                serviceEntry.ActiveConnections++;
+            }
+
+            try
+            {
+                var service = await serviceEntry.Registered.Task;
+
+                // Generate connection Guid
+                var guid = Guid.NewGuid();
+                var serverSocketTcs = new TaskCompletionSource<SimpleSocket>();
+                lock (pendingServers)
+                {
+                    pendingServers.Add(guid, serverSocketTcs);
+                }
+
+                await service.SendLock.WaitAsync();
+                try
+                {
+                    // Notify service that we want it to establish back a new connection to us for this client
+                    await service.Socket.WriteStream.WriteInt16Async((short)RouterMessage.ServiceRequestServer);
+                    await service.Socket.WriteStream.WriteStringAsync(url);
+                    await service.Socket.WriteStream.WriteGuidAsync(guid);
+                    await service.Socket.WriteStream.FlushAsync();
+                }
+                catch
+                {
+                    // The service is gone: the next request starts a new one
+                    lock (pendingServers)
+                    {
+                        pendingServers.Remove(guid);
+                    }
+                    lock (registeredServices)
+                    {
+                        RetireService(serviceEntry);
+                    }
+                    throw;
+                }
+                finally
+                {
+                    service.SendLock.Release();
+                }
+
+                // Should answer within 4 sec
+                var ct = new CancellationTokenSource(4000);
+                ct.Token.Register(() =>
+                {
+                    if (!serverSocketTcs.Task.IsCompleted)
+                    {
+                        serverSocketTcs.TrySetException(new TimeoutException($"{RouterMessage.ServiceRequestServer} action URL [{url}] could not connect back in time"));
+                    }
+                });
+
+                // Wait for such a server to be available
+                return (await serverSocketTcs.Task, serviceEntry);
+            }
+            catch
+            {
+                ReleaseConnection(serviceEntry);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Finds the executable of a service from its URL, in the NuGet package the URL names.
+        /// </summary>
+        /// <param name="url">The URL.</param>
+        /// <param name="urlSegments">The segments of the URL: "service", package name, package version and executable name.</param>
+        /// <returns>The path of the executable.</returns>
+        private static string LocateService(string url, string[] urlSegments)
+        {
+            if (urlSegments.Length < 4)
+                throw new InvalidOperationException($"{RouterMessage.ClientRequestServer} action URL {url} is invalid");
+
+            var packageName = urlSegments[1];
+            var packageVersion = urlSegments[2];
+            var process = urlSegments[3];
+
+            // Find package
+            var package = PackageStore.Instance.FindLocalPackage(packageName, new PackageVersionRange(new PackageVersion(packageVersion)));
+            if (package == null)
+                throw new InvalidOperationException($"{RouterMessage.ClientRequestServer} action URL [{url}] could not locate NuGet package");
+
+            // Locate executable
+            var servicePath = package.GetFiles().FirstOrDefault(x => string.Compare(Path.GetFileName(x.Path), process, true) == 0)?.FullPath;
+            if (servicePath == null || !File.Exists(servicePath))
+                throw new InvalidOperationException($"{RouterMessage.ClientRequestServer} action URL [{url}] references a process that doesn't seem to exist");
+
+            return servicePath;
+        }
+
+        private void OnServiceProcessExited(ServiceEntry serviceEntry)
+        {
+            lock (registeredServices)
+            {
+                serviceEntry.Exited = true;
+                RetireService(serviceEntry);
+            }
+
+            // Requests waiting for that process to register fail now instead of waiting forever
+            serviceEntry.Registered.TrySetException(new InvalidOperationException($"Service [{serviceEntry.Url}] exited before registering"));
+        }
+
+        /// <summary>
+        /// Removes a service from <see cref="registeredServices"/>: the next request for its URL starts a new one.
+        /// Its process is stopped once its last connection closes.
+        /// </summary>
+        /// <remarks>Called with the lock on <see cref="registeredServices"/>.</remarks>
+        private void RetireService(ServiceEntry serviceEntry)
+        {
+            if (registeredServices.TryGetValue(serviceEntry.Url, out var currentEntry) && currentEntry == serviceEntry)
+                registeredServices.Remove(serviceEntry.Url);
+
+            serviceEntry.Retired = true;
+            if (serviceEntry.ActiveConnections == 0)
+                StopService(serviceEntry);
+        }
+
+        private void ReleaseConnection(ServiceEntry serviceEntry)
+        {
+            if (serviceEntry == null)
+                return;
 
             lock (registeredServices)
             {
-                if (!registeredServices.TryGetValue(urlWithoutParameters, out serviceTcs))
+                if (--serviceEntry.ActiveConnections != 0)
+                    return;
+
+                if (serviceEntry.Retired)
                 {
-                    if (task) throw new Exception("ConnectionRouter task not found, a task won't spawn a new service on demand instead must be started explicitly.");
-
-                    serviceTcs = new TaskCompletionSource<Service>();
-                    registeredServices.Add(urlWithoutParameters, serviceTcs);
-
-                    if (urlSegments.Length < 4)
-                    {
-                        Log.Error($"{RouterMessage.ClientRequestServer} action URL {url} is invalid");
-                        throw new InvalidOperationException();
-                    }
-
-                    var packageName = urlSegments[1];
-                    var packageVersion = urlSegments[2];
-                    var process = urlSegments[3];
-
-                    // Find package
-                    var package = PackageStore.Instance.FindLocalPackage(packageName, new PackageVersionRange(new PackageVersion(packageVersion)));
-                    if (package == null)
-                    {
-                        Log.Error($"{RouterMessage.ClientRequestServer} action URL [{url}] could not locate NuGet package");
-                        throw new InvalidOperationException();
-                    }
-
-                    // Locate executable
-                    var servicePath = package.GetFiles().FirstOrDefault(x => string.Compare(Path.GetFileName(x.Path), process, true) == 0)?.FullPath;
-                    if (servicePath == null || !File.Exists(servicePath))
-                    {
-                        Log.Error($"{RouterMessage.ClientRequestServer} action URL [{url}] references a process that doesn't seem to exist");
-                        throw new InvalidOperationException();
-                    }
-
-                    RunServiceProcessAndLog(servicePath);
+                    StopService(serviceEntry);
+                }
+                else if (serviceEntry.Process != null)
+                {
+                    // A process the router started lives only a short while after its last connection, so that it doesn't keep the package files locked
+                    _ = StopServiceWhenIdle(serviceEntry, ++serviceEntry.IdleVersion);
                 }
             }
-
-            var service = await serviceTcs.Task;
-
-            // Generate connection Guid
-            var guid = Guid.NewGuid();
-            var serverSocketTcs = new TaskCompletionSource<SimpleSocket>();
-            lock (pendingServers)
-            {
-                pendingServers.Add(guid, serverSocketTcs);
-            }
-
-            await service.SendLock.WaitAsync();
-            try
-            {
-                // Notify service that we want it to establish back a new connection to us for this client
-                await service.Socket.WriteStream.WriteInt16Async((short)RouterMessage.ServiceRequestServer);
-                await service.Socket.WriteStream.WriteStringAsync(url);
-                await service.Socket.WriteStream.WriteGuidAsync(guid);
-                await service.Socket.WriteStream.FlushAsync();
-            }
-            finally
-            {
-                service.SendLock.Release();
-            }
-
-            // Should answer within 4 sec
-            var ct = new CancellationTokenSource(4000);
-            ct.Token.Register(() =>
-            {
-                if (!serverSocketTcs.Task.IsCompleted)
-                {
-                    serverSocketTcs.TrySetException(new TimeoutException($"{RouterMessage.ServiceRequestServer} action URL [{url}] could not connect back in time"));
-                }
-            });
-
-            // Wait for such a server to be available
-            return await serverSocketTcs.Task;
         }
 
-        private static Process RunServiceProcessAndLog(string servicePath)
+        private async Task StopServiceWhenIdle(ServiceEntry serviceEntry, int idleVersion)
+        {
+            await Task.Delay(IdleStopDelay);
+
+            lock (registeredServices)
+            {
+                // Skip it when a connection came in the meantime, even one already closed again: its own release waits again
+                if (serviceEntry.ActiveConnections == 0 && serviceEntry.IdleVersion == idleVersion && !serviceEntry.Retired)
+                    RetireService(serviceEntry);
+            }
+        }
+
+        private static void StopService(ServiceEntry serviceEntry)
+        {
+            if (serviceEntry.Process == null || serviceEntry.Exited)
+                return;
+
+            Log.Info($"Stopping process {serviceEntry.Process.Id} of service [{serviceEntry.Url}]: it has no connection left");
+            try
+            {
+                serviceEntry.Process.Kill();
+            }
+            catch (Exception e) when (e is InvalidOperationException || e is System.ComponentModel.Win32Exception)
+            {
+                // Already exited
+            }
+        }
+
+        private static Process RunServiceProcessAndLog(string servicePath, Action exited)
         {
             var process = ShellHelper.RunProcess(servicePath, string.Empty);
 
@@ -297,7 +424,12 @@ namespace Stride.ConnectionRouter
 
             process.OutputDataReceived += (_, args) => logger.Info(args.Data);
             process.ErrorDataReceived += (_, args) => logger.Error(args.Data);
-            process.Exited += (_, args) => logger.Info("Process exited");
+            process.Exited += (_, args) =>
+            {
+                logger.Info("Process exited");
+                exited();
+            };
+            process.EnableRaisingEvents = true;
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
 
@@ -349,34 +481,56 @@ namespace Stride.ConnectionRouter
         {
             var url = await clientSocket.ReadStream.ReadStringAsync();
 
+            ServiceEntry serviceEntry;
             lock (registeredServices)
             {
-                TaskCompletionSource<Service> service;
+                registeredServices.TryGetValue(url, out serviceEntry);
                 if (task)
                 {
-                    if (registeredServices.TryGetValue(url, out service))
+                    // A task replaces the previous one
+                    if (serviceEntry != null)
                     {
-                        var result = service.Task.Result;
-                        result.Socket.Dispose();
+                        if (serviceEntry.Registered.Task.IsCompletedSuccessfully)
+                            serviceEntry.Registered.Task.Result.Socket.Dispose();
+                        RetireService(serviceEntry);
+                        serviceEntry = null;
                     }
-
-                    service = new TaskCompletionSource<Service>();
-                    registeredServices[url] = service;
                 }
-                else
+                else if (serviceEntry != null && serviceEntry.Registered.Task.IsCompleted)
                 {
-                    if (!registeredServices.TryGetValue(url, out service))
-                    {
-                        service = new TaskCompletionSource<Service>();
-                        registeredServices.Add(url, service);
-                    }
+                    // Another process already serves that URL: keep it
+                    Log.Info($"Service [{url}] is already registered, ignoring a second registration");
+                    return;
                 }
 
-                service.TrySetResult(new Service(clientSocket));
+                // A service the router didn't start, or a task
+                if (serviceEntry == null)
+                {
+                    serviceEntry = new ServiceEntry(url);
+                    registeredServices.Add(url, serviceEntry);
+                }
+
+                serviceEntry.Registered.TrySetResult(new Service(clientSocket));
             }
 
-            // TODO: Handle server disconnections
-            //clientSocketContext.Disconnected += 
+            // The service writes nothing more on this socket: a read only ends when the service disconnects
+            try
+            {
+                var buffer = new byte[16];
+                while (await clientSocket.ReadStream.ReadAsync(buffer, 0, buffer.Length) > 0)
+                {
+                }
+                clientSocket.Dispose();
+            }
+            finally
+            {
+                // The next request starts a new process
+                Log.Info($"Service [{url}] disconnected");
+                lock (registeredServices)
+                {
+                    RetireService(serviceEntry);
+                }
+            }
         }
 
         private async Task ForwardSocket(SimpleSocket source, SimpleSocket target)
@@ -400,6 +554,47 @@ namespace Stride.ConnectionRouter
             public Service(SimpleSocket socket)
             {
                 Socket = socket;
+            }
+        }
+
+        /// <summary>
+        /// A service serving a URL: a process the router started, or a process that registered by itself.
+        /// </summary>
+        /// <remarks>Its counter and flags change with the lock on <see cref="registeredServices"/>.</remarks>
+        private class ServiceEntry
+        {
+            public readonly string Url;
+
+            /// <summary>
+            /// Completes when the service registers its control socket.
+            /// </summary>
+            public readonly TaskCompletionSource<Service> Registered = new TaskCompletionSource<Service>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            /// <summary>
+            /// The process the router started, or <c>null</c>. It is stopped <see cref="IdleStopDelay"/> after its last connection closes.
+            /// </summary>
+            public Process Process;
+
+            /// <summary>
+            /// Counts the times <see cref="ActiveConnections"/> dropped to zero, so that a wait for an idle stop that started before ignores itself.
+            /// </summary>
+            public int IdleVersion;
+
+            /// <summary>
+            /// The number of client connections forwarded to this service, counting the ones being set up.
+            /// </summary>
+            public int ActiveConnections;
+
+            /// <summary>
+            /// Whether this service no longer gets new connections. Its process is stopped once <see cref="ActiveConnections"/> drops to zero.
+            /// </summary>
+            public bool Retired;
+
+            public bool Exited;
+
+            public ServiceEntry(string url)
+            {
+                Url = url;
             }
         }
     }

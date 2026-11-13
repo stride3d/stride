@@ -11,7 +11,7 @@ namespace Stride.Shaders.Spirv.Tools;
 /// Validator bindings are the stable C API from <c>spirv-tools/libspirv.h</c>. Optimizer
 /// bindings target the <c>stride_spv*</c> C shim that wraps <c>spvtools::Optimizer</c>
 /// — upstream's <c>optimizer.hpp</c> is C++ only. Both live in the single combined
-/// <c>stride_spirv_tools</c> library; see <c>build/deps/spirv-tools/</c>.
+/// <c>stride_spirv_tools</c> library; see <c>deps/spirv-tools/</c>.
 /// </para>
 /// </summary>
 public static unsafe class SpirvTools

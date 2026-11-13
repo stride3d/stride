@@ -17,7 +17,7 @@ namespace Stride.Assets.SpriteFont
     {
         /// <inheritdoc/>
         [DataMember(30)]
-        [DataMemberRange(MathUtil.ZeroTolerance, 2)]
+        [DataMemberRange(minimum: MathUtil.ZeroTolerance, decimalPlaces: 2)]
         [DefaultValue(20)]
         public override float Size { get; set; } = 20;
 

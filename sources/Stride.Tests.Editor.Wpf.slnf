@@ -1,0 +1,12 @@
+{
+  "solution": {
+    "path": "..\\Stride.slnx",
+    "projects": [
+      "sources\\editor\\Stride.Core.Assets.Editor.Wpf.Tests\\Stride.Core.Assets.Editor.Wpf.Tests.csproj",
+      "sources\\editor\\Stride.GameStudio.Tests\\Stride.GameStudio.Tests.csproj",
+      "sources\\presentation\\Stride.Core.Presentation.Quantum.Tests\\Stride.Core.Presentation.Quantum.Tests.csproj",
+      "sources\\presentation\\Stride.Core.Presentation.Wpf.Tests\\Stride.Core.Presentation.Wpf.Tests.csproj",
+      "sources\\presentation\\Stride.Core.Quantum.Tests\\Stride.Core.Quantum.Tests.csproj"
+    ]
+  }
+}

@@ -2,6 +2,11 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 namespace Stride.Rendering.Images
 {
+    params CombineLevelsFromCoCKeys
+    {
+        int LevelCount = 0;
+    };
+
     /// <summary>
     /// Combines the different blur levels depending on the pixel's CoC. (Back area only.)
     /// </summary>
@@ -9,7 +14,7 @@ namespace Stride.Rendering.Images
     {
         using params CombineLevelsFromCoCKeys;
 
-        // Mixin 
+        // Mixin
         mixin CombineLevelsFromCoCShader<CombineLevelsFromCoCKeys.LevelCount>;
     };
 }

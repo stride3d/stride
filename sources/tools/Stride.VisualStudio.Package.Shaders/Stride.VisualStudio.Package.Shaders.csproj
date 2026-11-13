@@ -77,7 +77,7 @@
     <None Include="generate-sdsl-grammar.cs" />
     <None Include="README.md" />
   </ItemGroup>
-  <!-- Returns the built .vsix path so the delivery nuspec (packed by nuget.exe) can pick it up. -->
+  <!-- Returns the built .vsix path so the delivery nuspec (packed by the _PackNuspec target of build/package.proj) can pick it up. -->
   <Target Name="GetVsixOutputPath" Returns="$(TargetVsixContainer)" />
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
 </Project>

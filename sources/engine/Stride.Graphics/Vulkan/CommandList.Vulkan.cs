@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Stride.Core;
-using Stride.Core.Collections;
 using Stride.Core.Mathematics;
 using Vortice.Vulkan;
 using static Vortice.Vulkan.Vulkan;
@@ -73,6 +72,7 @@ namespace Stride.Graphics
         private uint allocatedSetCount;
 
         private uint? activeStencilReference = 0;
+        private Color4 blendFactor = Color4.White;
 
         private CompiledCommandList currentCommandList;
 
@@ -201,24 +201,16 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Binds a depth-stencil buffer and a set of render targets to the output-merger stage. See <see cref="Textures+and+render+targets"/> to learn how to use it.
+        /// Binds a depth-stencil buffer and a set of render targets to the output-merger stage.
+        /// See <see href="https://doc.stride3d.net/latest/en/manual/graphics/low-level-api/textures-and-render-textures.html">Textures and render textures</see>.
         /// </summary>
         /// <param name="depthStencilBuffer">The depth stencil buffer.</param>
         /// <param name="renderTargets">The render targets.</param>
-        /// <exception cref="ArgumentNullException">renderTargetViews</exception>
         private partial void SetRenderTargetsImpl(Texture depthStencilBuffer, ReadOnlySpan<Texture> renderTargets)
         {
             // The base class updated the bound targets; the next draw restarts the render pass
             // instance with them if they changed
             renderingDirty = true;
-        }
-
-        /// <summary>
-        /// Sets the stream targets.
-        /// </summary>
-        /// <param name="buffers">The buffers.</param>
-        public void SetStreamTargets(params Buffer[] buffers)
-        {
         }
 
         private unsafe void BindPipeline()
@@ -233,9 +225,8 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///     Gets or sets the 1st viewport. See <see cref="Render+states"/> to learn how to use it.
+        /// Sets the <see cref="Viewport"/> and its scissor rectangle.
         /// </summary>
-        /// <value>The viewport.</value>
         private unsafe void SetViewportImpl()
         {
             if (!viewportDirty && !scissorsDirty)
@@ -274,13 +265,6 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Unsets the render targets.
-        /// </summary>
-        public void UnsetRenderTargets()
-        {
-        }
-
-        /// <summary>
         ///   Vulkan implementation that sets a scissor rectangle to the rasterizer stage.
         /// </summary>
         /// <param name="scissorRectangle">The scissor rectangle to set.</param>
@@ -292,7 +276,6 @@ namespace Stride.Graphics
         /// <summary>
         ///   Vulkan implementation that sets one or more scissor rectangles to the rasterizer stage.
         /// </summary>
-        /// <param name="scissorCount">The number of scissor rectangles to bind.</param>
         /// <param name="scissorRectangles">The set of scissor rectangles to bind.</param>
         private unsafe partial void SetScissorRectanglesImpl(ReadOnlySpan<Rectangle> scissorRectangles)
         {
@@ -316,6 +299,7 @@ namespace Stride.Graphics
             BindDescriptorSets();
             SetViewportImpl();
             GraphicsDevice.NativeDeviceApi.vkCmdSetStencilReference(currentCommandList.NativeCommandBuffer, VkStencilFaceFlags.FrontAndBack, activeStencilReference ?? 0);
+            GraphicsDevice.NativeDeviceApi.vkCmdSetBlendConstants(currentCommandList.NativeCommandBuffer, blendFactor.R, blendFactor.G, blendFactor.B, blendFactor.A);
 
             // A read-only depth view drops depth and stencil writes instead of being invalid
             // usage, matching D3D12's read-only depth-stencil view behavior
@@ -367,7 +351,7 @@ namespace Stride.Graphics
             descriptorSet = localDescriptorSet;
 
 #if !STRIDE_GRAPHICS_NO_DESCRIPTOR_COPIES
-            copies.Clear(true);
+            copies.Clear();
 
             foreach (var mapping in activePipeline.DescriptorBindingMapping)
             {
@@ -384,7 +368,7 @@ namespace Stride.Graphics
                 });
             }
 
-            fixed (VkCopyDescriptorSet* fCopiesItems = copies.Items)
+            fixed (VkCopyDescriptorSet* fCopiesItems = CollectionsMarshal.AsSpan(copies))
                 GraphicsDevice.NativeDeviceApi.vkUpdateDescriptorSets(GraphicsDevice.NativeDevice, 0, null, (uint) copies.Count, fCopiesItems);
 #else
             var bindingCount = activePipeline.DescriptorBindingMapping.Count;
@@ -486,7 +470,7 @@ namespace Stride.Graphics
             GraphicsDevice.NativeDeviceApi.vkCmdBindDescriptorSets(currentCommandList.NativeCommandBuffer, activePipeline.IsCompute ? VkPipelineBindPoint.Compute : VkPipelineBindPoint.Graphics, activePipeline.NativeLayout, firstSet: 0, descriptorSetCount: 1, &localDescriptorSet, dynamicOffsetCount: 0, dynamicOffsets: null);
         }
 
-        private readonly FastList<VkCopyDescriptorSet> copies = new();
+        private readonly List<VkCopyDescriptorSet> copies = new();
 
         public void SetStencilReference(int stencilReference)
         {
@@ -495,6 +479,18 @@ namespace Stride.Graphics
                 activeStencilReference = (uint) stencilReference;
                 GraphicsDevice.NativeDeviceApi.vkCmdSetStencilReference(currentCommandList.NativeCommandBuffer, VkStencilFaceFlags.FrontAndBack, activeStencilReference.Value);
             }
+        }
+
+        /// <summary>
+        ///   Sets the blend factors used by the blend states that use <see cref="Blend.BlendFactor"/> or
+        ///   <see cref="Blend.InverseBlendFactor"/>.
+        /// </summary>
+        /// <param name="blendFactor">The blend factor for each RGBA component. It is <see cref="Color4.White"/> until set.</param>
+        /// <seealso cref="SetPipelineState(PipelineState)"/>
+        public void SetBlendFactor(Color4 blendFactor)
+        {
+            // Each draw sets it on the command buffer (PrepareDraw)
+            this.blendFactor = blendFactor;
         }
 
         public void SetPipelineState(PipelineState pipelineState)
@@ -546,7 +542,7 @@ namespace Stride.Graphics
         /// </param>
         /// <remarks>
         ///   For a <see cref="Buffer"/>, <see cref="Buffer.NativeAccessMask"/> and
-        ///   <see cref="Buffer.NativePipelineStageMask"/> are read as the source but never written.
+        ///   <see cref="GraphicsResource.NativePipelineStageMask"/> are read as the source but never written.
         ///   The copy and upload paths rely on them staying the set of every legal usage.
         /// </remarks>
         public unsafe void ResourceBarrierTransition(GraphicsResource resource, BarrierLayout newLayout, uint subresource = uint.MaxValue)
@@ -799,8 +795,11 @@ namespace Stride.Graphics
         ///   and adds the barriers it needs to the pending ones. <paramref name="transitions"/> keeps them, so a copy can
         ///   put the subresources back with <see cref="RestoreAfterTransfer"/>.
         /// </summary>
+        /// <param name="texture">The texture to transition.</param>
         /// <param name="range">The subresources to move, or <see langword="null"/> for <paramref name="subresource"/>.</param>
         /// <param name="subresource">The subresource to move, or <see cref="uint.MaxValue"/> for the whole Texture.</param>
+        /// <param name="newLayout">The layout to transition to.</param>
+        /// <param name="transitions">Receives the transitions needed to restore the previous layouts.</param>
         private void TransitionTexture(Texture texture, TextureSubresourceRange? range, uint subresource, BarrierLayout newLayout, List<SubresourceTransition> transitions)
         {
             transitions.Clear();
@@ -930,27 +929,6 @@ namespace Stride.Graphics
                                                  BarrierMapping.ToVkPipelineStageFlags(layoutAfter), BarrierMapping.ToVkAccessFlags(layoutAfter), BarrierMapping.ToVkImageLayout(layoutAfter));
         }
 
-        [Obsolete("Use BarrierLayout overload instead.")]
-        public void ResourceBarrierTransition(GraphicsResource resource, GraphicsResourceState newState)
-        {
-            var layout = (int)newState switch
-            {
-                0x04 => BarrierLayout.RenderTarget,
-                0x08 => BarrierLayout.UnorderedAccess,
-                0x10 => BarrierLayout.DepthStencilWrite,
-                0x20 => BarrierLayout.DepthStencilRead,
-                0x80 => BarrierLayout.ShaderResource,
-                0xC0 => BarrierLayout.ShaderResource,
-                0x200 => BarrierLayout.IndirectArgument,
-                0x400 => BarrierLayout.CopyDest,
-                0x800 => BarrierLayout.CopySource,
-                0x1000 => BarrierLayout.ResolveDest,
-                0x2000 => BarrierLayout.ResolveSource,
-                _ => BarrierLayout.Common,
-            };
-            ResourceBarrierTransition(resource, layout);
-        }
-
         /// <summary>
         ///   Ensures the pipeline stage mask is compatible with the access flags in a buffer barrier.
         ///   HOST_READ/HOST_WRITE access requires VK_PIPELINE_STAGE_HOST_BIT, which is not included
@@ -964,9 +942,9 @@ namespace Stride.Graphics
         }
 
 #if !STRIDE_GRAPHICS_NO_DESCRIPTOR_COPIES
-        private readonly FastList<VkDescriptorSet> boundDescriptorSets = new FastList<VkDescriptorSet>();
+        private readonly List<VkDescriptorSet> boundDescriptorSets = new();
 #else
-        private readonly FastList<DescriptorSet> boundDescriptorSets = new();
+        private readonly List<DescriptorSet> boundDescriptorSets = new();
 #endif
 
         public void SetDescriptorSets(int index, DescriptorSet[] descriptorSets)
@@ -974,7 +952,7 @@ namespace Stride.Graphics
             if (index != 0)
                 throw new NotImplementedException();
 
-            boundDescriptorSets.Clear(fastClear: true);
+            boundDescriptorSets.Clear();
             for (int i = 0; i < descriptorSets.Length; i++)
             {
 #if !STRIDE_GRAPHICS_NO_DESCRIPTOR_COPIES
@@ -1192,7 +1170,7 @@ namespace Stride.Graphics
         ///   Resets all the queries of a pool, so they can be written again.
         /// </summary>
         /// <param name="queryPool">The QueryPool to reset.</param>
-        public void ResetQueryPool(QueryPool queryPool)
+        private void ResetQueryPool(QueryPool queryPool)
         {
             // Not allowed inside a render pass
             BeginCommandOutsideRenderPass();
@@ -1202,7 +1180,8 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Clears the specified depth stencil buffer. See <see cref="Textures+and+render+targets"/> to learn how to use it.
+        /// Clears the specified depth stencil buffer.
+        /// See <see href="https://doc.stride3d.net/latest/en/manual/graphics/low-level-api/textures-and-render-textures.html">Textures and render textures</see>.
         /// </summary>
         /// <param name="depthStencilBuffer">The depth stencil buffer.</param>
         /// <param name="options">The options.</param>
@@ -1237,7 +1216,8 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Clears the specified render target. See <see cref="Textures+and+render+targets"/> to learn how to use it.
+        /// Clears the specified render target.
+        /// See <see href="https://doc.stride3d.net/latest/en/manual/graphics/low-level-api/textures-and-render-textures.html">Textures and render textures</see>.
         /// </summary>
         /// <param name="renderTarget">The render target.</param>
         /// <param name="color">The color.</param>
@@ -1665,6 +1645,8 @@ namespace Stride.Graphics
         /// <summary>
         ///   Resolves a subresource index into the Vulkan subresource layers it addresses.
         /// </summary>
+        /// <param name="texture">The texture containing the subresource.</param>
+        /// <param name="imageAspect">The image aspects to address.</param>
         /// <param name="subresourceIndex">
         ///   The subresource index, encoded as <c>arraySlice * MipLevelCount + mipLevel</c>
         ///   (see <see cref="Texture.GetSubResourceIndex"/>).
@@ -1822,7 +1804,7 @@ namespace Stride.Graphics
         ///     </list>
         ///   </para>
         ///   <para>
-        ///     When <see cref="UpdateSubResource"/> returns, the application is free to change or even free the data pointed to by
+        ///     When <see cref="UpdateSubResource(GraphicsResource, int, ReadOnlySpan{byte})"/> returns, the application is free to change or even free the data pointed to by
         ///     <paramref name="sourceData"/> because the method has already copied/snapped away the original contents.
         ///   </para>
         /// </remarks>

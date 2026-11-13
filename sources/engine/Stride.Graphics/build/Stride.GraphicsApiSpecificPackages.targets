@@ -26,7 +26,7 @@
          ID3D11ShaderReflection from d3dcompiler.dll for DXBC reflection on both
          D3D11 and D3D12 targets. -->
     <StrideGraphicsApiSpecificPackage Include="Silk.NET.Direct3D12"         GraphicsApis="Direct3D12" />
-    <StrideGraphicsApiSpecificPackage Include="Silk.NET.DXGI"               GraphicsApis="Direct3D11;Direct3D12" />
+    <StrideGraphicsApiSpecificPackage Include="Silk.NET.DXGI"               GraphicsApis="Direct3D11;Direct3D12;Vulkan" />
     <!-- DXC is needed to natively compile HLSL on D3D.  Stride.Assets owns
          the cross-compile rule: it ships its own buildTransitive targets that
          add Vulkan to this list so DXC survives when the asset pipeline is in

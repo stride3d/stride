@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Stride.Core.Assets;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Assets.Quantum.Visitors;
 using Stride.Core;
@@ -14,14 +13,15 @@ using Stride.Core.Annotations;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Core.Quantum;
-using Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.Services;
-using Stride.Assets.Presentation.AssetEditors.PrefabEditor.Game;
+using Stride.Assets.Editor.EditorGame;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 using Stride.UI.Editor.Game;
 using Stride.UI.Editor.ViewModels;
 using Stride.Assets.SpriteFont;
 using Stride.Assets.SpriteFont.Compiler;
 using Stride.UI.Assets;
 using Stride.Editor.EditorGame.Game;
+using Stride.Editor.Engine;
 using Stride.Engine;
 using Stride.Graphics.Font;
 using Stride.Rendering;
@@ -29,6 +29,7 @@ using Stride.Shaders.Compiler;
 using Stride.UI;
 using Stride.UI.Controls;
 using Stride.UI.Panels;
+using Stride.Assets.Editor.AssetEditors.PrefabEditor.Game;
 
 namespace Stride.UI.Editor.Services
 {
@@ -36,7 +37,7 @@ namespace Stride.UI.Editor.Services
     /// Game controller for the UI editor.
     /// </summary>
     /// <seealso cref="UIEditorBaseViewModel"/>
-    public abstract class UIEditorController : AssetCompositeHierarchyEditorController<PrefabEditorGame, UIElementDesign, UIElement, UIHierarchyItemViewModel>
+    public abstract class UIEditorController : AssetCompositeHierarchyEditorController<PrefabEditorGame, UIElementDesign, UIElement>
     {
         internal const float DesignDensity = 100.0f;
 
@@ -52,10 +53,10 @@ namespace Stride.UI.Editor.Services
         /// <summary>
         /// Initializes a new instance of the <see cref="UIEditorController"/> class.
         /// </summary>
-        /// <param name="asset">The asset associated with this instance.</param>
         /// <param name="editor">The editor associated with this instance.</param>
-        protected UIEditorController([NotNull] AssetViewModel asset, [NotNull] UIEditorBaseViewModel editor)
-            : base(asset, editor, CreateEditorGame)
+        /// <param name="viewportService">The viewport service of the session, which creates the viewport of the game.</param>
+        protected UIEditorController([NotNull] UIEditorBaseViewModel editor, [NotNull] IEditorGameViewportService viewportService)
+            : base(editor, viewportService, CreateEditorGame)
         {
             // move this in a service shared by all editor controllers
             defaultFontLazy = new Lazy<Graphics.SpriteFont>(() =>
@@ -99,6 +100,9 @@ namespace Stride.UI.Editor.Services
         }
 
         internal UIEditorGameAdornerService AdornerService { get; private set; }
+
+        private IEditorGameCursorViewModelService cursorService;
+        private IEditorGameMousePositionViewModelService mousePositionService;
 
         internal Graphics.SpriteFont DefaultFont => defaultFontLazy.Value;
 
@@ -181,7 +185,6 @@ namespace Stride.UI.Editor.Services
                 Game.InitializeContentScene();
                 Game.LoadEntities(entities);
             });
-            RecoveryService.IsActive = true;
             return true;
         }
 
@@ -204,7 +207,7 @@ namespace Stride.UI.Editor.Services
         }
 
         /// <inheritdoc />
-        public override Task AddPart([NotNull] UIHierarchyItemViewModel parent, UIElement assetSidePart)
+        public Task AddPart([NotNull] UIHierarchyItemViewModel parent, UIElement assetSidePart)
         {
             EnsureAssetAccess();
 
@@ -243,7 +246,7 @@ namespace Stride.UI.Editor.Services
         }
 
         /// <inheritdoc />
-        public override Task RemovePart([NotNull] UIHierarchyItemViewModel parent, UIElement assetSidePart)
+        public Task RemovePart([NotNull] UIHierarchyItemViewModel parent, UIElement assetSidePart)
         {
             EnsureAssetAccess();
 
@@ -362,6 +365,9 @@ namespace Stride.UI.Editor.Services
         {
             base.InitializeServices(services);
             AdornerService = services.Get<UIEditorGameAdornerService>();
+            // Kept here because the adorners call them from the game thread, where GetService refuses access.
+            cursorService = services.Get<IEditorGameCursorViewModelService>();
+            mousePositionService = services.Get<IEditorGameMousePositionViewModelService>();
         }
 
         /// <inheritdoc/>
@@ -391,9 +397,36 @@ namespace Stride.UI.Editor.Services
             return Game.ContentScene?.Entities.FirstOrDefault(e => e.Name == name);
         }
 
+        /// <summary>
+        /// Gets the distance, in screen pixels, a pointer moves while pressed before it counts as a drag.
+        /// </summary>
+        internal Vector2 MinimumDragDistance => cursorService?.MinimumDragDistance ?? Vector2.Zero;
+
+        /// <summary>
+        /// Changes the cursor shown over the game (any thread).
+        /// </summary>
+        internal void ChangeCursor(EditorGameCursor cursor) => cursorService?.ChangeCursor(cursor);
+
+        /// <summary>
+        /// Gets or sets what drags elements out of the game, when a selected element is pressed with Alt (game thread). The
+        /// WPF view of the editor sets it to the drag of its game host; in an editor without it, the press starts a plain drag.
+        /// </summary>
+        internal Func<object[], bool> DragOut { get; set; }
+
+        /// <summary>
+        /// Gets whether the elements can be dragged out of the game (see <see cref="DragOut"/>).
+        /// </summary>
+        internal bool CanDragOut => DragOut != null;
+
+        /// <summary>
+        /// Drags <paramref name="items"/> out of the game.
+        /// </summary>
+        /// <returns>Whether the items were dropped somewhere.</returns>
+        internal bool StartDragDrop(params object[] items) => DragOut?.Invoke(items) ?? false;
+
         public Vector3 GetMousePositionInUI()
         {
-            var scenePosition = GetMousePositionInScene(false);
+            var scenePosition = mousePositionService?.GetMousePositionInScene(false) ?? Vector3.Zero;
 
             var uiEntity = GetEntityByName(AdornerEntityName);
             var uiComponent = uiEntity.Get<UIComponent>();

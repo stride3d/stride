@@ -58,6 +58,7 @@ public abstract class SourceCodeAsset : Asset
     /// <summary>
     /// Generates a unique identifier from location.
     /// </summary>
+    /// <param name="packageName">The name of the package containing the asset.</param>
     /// <param name="location">The location.</param>
     /// <returns>Guid.</returns>
     public static AssetId GenerateIdFromLocation(string packageName, string location)

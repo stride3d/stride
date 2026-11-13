@@ -1,0 +1,22 @@
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.props" />
+  <PropertyGroup>
+    <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
+    <IncludeXunitLauncher>false</IncludeXunitLauncher>
+    <StrideCompilerTargetsEnable Condition="'$(StridePackageBuild)' == 'true'">false</StrideCompilerTargetsEnable>
+  </PropertyGroup>
+    <ItemGroup>
+    <Content Include="..\..\data\tests\TextureConverter\**\*.*">
+      <Link>InputImages\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Stride.TextureConverter\Stride.TextureConverter.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
+  </ItemGroup>
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.targets" />
+</Project>

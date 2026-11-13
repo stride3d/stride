@@ -252,6 +252,8 @@ public static class AssetMigration
     /// <see cref="MigrateAssetIfNeeded(AssetMigrationContext, PackageLoadingAssetFile)"/> migrates a file, for every
     /// format key its type declares.
     /// </summary>
+    /// <param name="context">The migration context.</param>
+    /// <param name="parsingEvents">The YAML parsing events to migrate.</param>
     /// <param name="filePath">The asset's file, whose extension selects the serializer.</param>
     /// <param name="assetType">The type the events deserialize to: the asset's root carries no tag when serialized as that type.</param>
     /// <returns>The migrated events, in the same shape (a whole document or not); null when there was nothing to migrate.</returns>

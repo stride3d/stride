@@ -21,19 +21,24 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
 {
     internal class DifferentValuesObject { public readonly string Name = "DifferentValues"; };
 
+    // Avalonia bindings to the indexer (this[string]) only listen to the change of the indexer itself, not to the change of a named member
+    private const string IndexerPropertyName = "Item";
     protected static readonly HashSet<string> ReservedNames = [];
     private readonly AutoUpdatingSortedObservableCollection<NodeViewModel> children = new(new AnonymousComparer<NodeViewModel>(CompareChildren), nameof(Name), nameof(NodeIndex), nameof(Order));
     private readonly ObservableCollection<NodePresenterCommandWrapper> commands = [];
-    private readonly Dictionary<string, object> associatedData = [];
+    private readonly Dictionary<string, object?> associatedData = [];
     private readonly List<string> changingProperties = [];
     private readonly GraphViewModel owner;
     private readonly List<INodePresenter> nodePresenters;
     private List<NodeViewModel>? initializingChildren = [];
     private bool isVisible;
     private bool isReadOnly;
-    private string displayName;
+    private string displayName = null!;
     private bool isHighlighted;
     private bool valueChanging;
+    private bool isRefreshing;
+    private bool refreshPending;
+    private bool suppressAssociatedDataNotifications;
     private readonly (Type declarer, int token)? sortingHint;
 
 #if DEBUG
@@ -44,14 +49,18 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
 
     public static readonly object DifferentValues = new DifferentValuesObject();
 
-    public static object UnsetValue;
+    /// <summary>
+    /// The value <see cref="GetDynamicObject"/> returns for an unknown name. The UI layer sets it (WPF uses DependencyProperty.UnsetValue); it stays <c>null</c> otherwise.
+    /// </summary>
+    public static object? UnsetValue;
 
     static NodeViewModel()
     {
-        typeof(NodeViewModel).GetProperties().Select(x => x.Name).ForEach(x => ReservedNames.Add(x));
+        // The indexer (this[string], named Item) is left out: a binding cannot reach it by name, and a member named Item stays Item, as before
+        typeof(NodeViewModel).GetProperties().Where(x => x.GetIndexParameters().Length == 0).Select(x => x.Name).ForEach(x => ReservedNames.Add(x));
     }
 
-    protected internal NodeViewModel(GraphViewModel ownerViewModel, NodeViewModel parent, string baseName, Type nodeType, List<INodePresenter> nodePresenters)
+    protected internal NodeViewModel(GraphViewModel ownerViewModel, NodeViewModel? parent, string baseName, Type nodeType, List<INodePresenter> nodePresenters)
         : base(ownerViewModel.ServiceProvider)
     {
         owner = ownerViewModel;
@@ -72,7 +81,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
             if (nodePresenter is MemberNodePresenter memberNodePresenter)
             {
                 var descriptor = memberNodePresenter.MemberDescriptor;
-                sortingHint = (descriptor.MemberInfo.DeclaringType, descriptor.MemberInfo.MetadataToken);
+                sortingHint = (descriptor.MemberInfo.DeclaringType!, descriptor.MemberInfo.MetadataToken);
             }
         }
 
@@ -111,7 +120,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     /// <summary>
     /// Gets or sets the value of the nodes represented by this view model.
     /// </summary>
-    public object NodeValue { get => GetNodeValue(); set => SetNodeValue(ConvertValue(value)); }
+    public object? NodeValue { get => GetNodeValue(); set => SetNodeValue(ConvertValue(value)); }
 
     /// <summary>
     /// Gets the expected type of <see cref="NodeValue"/>.
@@ -126,7 +135,8 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     /// <summary>
     /// Gets the root of this node.
     /// </summary>
-    public NodeViewModel Root {
+    public NodeViewModel Root
+    {
         get
         {
             var root = this;
@@ -149,7 +159,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     /// <summary>
     /// Gets the list of children nodes.
     /// </summary>
-    public IReadOnlyCollection<NodeViewModel> Children => initializingChildren != null ? initializingChildren : children;
+    public IReadOnlyCollection<NodeViewModel> Children => (IReadOnlyCollection<NodeViewModel>?)initializingChildren ?? children;
 
     /// <summary>
     /// Gets the list of commands available in this node.
@@ -159,7 +169,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     /// <summary>
     /// Gets additional data associated to this content. This can be used when the content itself does not contain enough information to be used as a view model.
     /// </summary>
-    public IReadOnlyDictionary<string, object> AssociatedData => associatedData;
+    public IReadOnlyDictionary<string, object?> AssociatedData => associatedData;
 
     /// <summary>
     /// Gets the level of depth of this node, starting from 0 for the root node.
@@ -273,7 +283,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     /// <summary>
     /// Returns the child node with the matching name.
     /// </summary>
-    /// <param name="name">The name of the <see cref="Stride.Core.Presentation.Quantum.ViewModels.NodeViewModel"/> to look for.</param>
+    /// <param name="name">The name of the <see cref="NodeViewModel"/> to look for.</param>
     /// <returns>The corresponding child node, or <c>null</c> if no child with the given name exists.</returns>
     public NodeViewModel? GetChild(string name)
     {
@@ -297,7 +307,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     /// </summary>
     /// <param name="name">The name of the additionnal data to look for.</param>
     /// <returns>The corresponding additionnal data, or <c>null</c> if no data with the given name exists.</returns>
-    public object GetAssociatedData(string name)
+    public object? GetAssociatedData(string name)
     {
         name = EscapeName(name);
         return AssociatedData.FirstOrDefault(x => x.Key == name).Value;
@@ -308,10 +318,37 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     /// </summary>
     /// <param name="name">The name of the object to look for.</param>
     /// <returns>The corresponding object, or <c>null</c> if no object with the given name exists.</returns>
-    public object GetDynamicObject(string name)
+    public object? GetDynamicObject(string name)
     {
         name = EscapeName(name);
         return GetChild(name) ?? GetCommand(name) ?? GetAssociatedData(name) ?? UnsetValue;
+    }
+
+    // FIXME xplat-editor workaround to AvaloniaUI/Avalonia#1949
+    public object? this[string name]
+    {
+        get
+        {
+            if (name.StartsWith(GraphViewModel.HasChildPrefix, StringComparison.Ordinal))
+            {
+                name = name[GraphViewModel.HasChildPrefix.Length..];
+                return GetChild(name) is not null;
+            }
+
+            if (name.StartsWith(GraphViewModel.HasCommandPrefix, StringComparison.Ordinal))
+            {
+                name = name[GraphViewModel.HasCommandPrefix.Length..];
+                return GetCommand(name) is not null;
+            }
+
+            if (name.StartsWith(GraphViewModel.HasAssociatedDataPrefix, StringComparison.Ordinal))
+            {
+                name = name[GraphViewModel.HasAssociatedDataPrefix.Length..];
+                return GetAssociatedData(name) is not null;
+            }
+
+            return GetDynamicObject(name);
+        }
     }
 
     /// <inheritdoc/>
@@ -342,7 +379,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
         return new NodePresenterCommandWrapper(ServiceProvider, nodePresenters, command);
     }
 
-    protected virtual object GetNodeValue()
+    protected virtual object? GetNodeValue()
     {
         object? currentValue = null;
         var isFirst = true;
@@ -367,7 +404,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
         return currentValue;
     }
 
-    protected virtual void SetNodeValue(object newValue)
+    protected virtual void SetNodeValue(object? newValue)
     {
         foreach (var nodePresenter in NodePresenters)
         {
@@ -386,22 +423,99 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     /// </summary>
     public void Refresh()
     {
-        foreach (var child in Children.ToList())
+        if (isRefreshing)
         {
-            RemoveChild(child);
-            child.Destroy();
-        }
-        foreach (var command in Commands.ToList())
-        {
-            RemoveCommand(command);
-        }
-        foreach (var data in AssociatedData.ToList())
-        {
-            RemoveAssociatedData(data.Key);
+            // A refresh is already in progress on this node (e.g. a value change notification
+            // raised during the refresh was handled synchronously and re-entered this method).
+            // Defer the refresh: once the in-progress one completes, it runs again to account
+            // for the changes that occurred while it was running.
+            refreshPending = true;
+            return;
         }
 
-        owner.GraphViewModelService.NodeViewModelFactory.GenerateChildren(owner, this, nodePresenters);
-        FinishInitialization();
+        // The indexer changes once, when the new children are there: in between, a binding to a child would see no child
+        OnPropertyChanging(IndexerPropertyName);
+        isRefreshing = true;
+        try
+        {
+            do
+            {
+                refreshPending = false;
+
+                // Keep track of the current associated data so that, after the rebuild, only the
+                // entries that actually changed are notified. Removing and re-adding the unchanged
+                // entries would notify their bound views of a transient "missing" state (for instance,
+                // the minimum/maximum of a ranged numeric value would appear to disappear), and a bound
+                // editor (like the numeric text box of the property grid) can react to that transient
+                // state by clamping its displayed value and writing the stale value back to the source
+                // (see GitHub issue #3488).
+                var previousAssociatedData = associatedData.ToDictionary(x => x.Key, x => x.Value);
+
+                foreach (var child in Children.ToList())
+                {
+                    RemoveChild(child);
+                    child.Destroy();
+                }
+                foreach (var command in Commands.ToList())
+                {
+                    RemoveCommand(command);
+                }
+
+                suppressAssociatedDataNotifications = true;
+                try
+                {
+                    foreach (var data in AssociatedData.ToList())
+                    {
+                        RemoveAssociatedData(data.Key);
+                    }
+
+                    owner.GraphViewModelService.NodeViewModelFactory.GenerateChildren(owner, this, nodePresenters);
+                    FinishInitialization();
+                }
+                finally
+                {
+                    suppressAssociatedDataNotifications = false;
+                }
+
+                NotifyAssociatedDataChanges(previousAssociatedData);
+            }
+            while (refreshPending && !IsDestroyed);
+        }
+        finally
+        {
+            isRefreshing = false;
+            // Ends the indexer change even when the refresh throws, so the bindings that saw it start don't wait for it
+            OnPropertyChanged(IndexerPropertyName);
+        }
+    }
+
+    private void NotifyAssociatedDataChanges(IReadOnlyDictionary<string, object> previousData)
+    {
+        // Notify for the entries that were removed.
+        foreach (var key in previousData.Keys)
+        {
+            if (!associatedData.ContainsKey(key))
+            {
+                NotifyAssociatedDataKey(key);
+            }
+        }
+
+        // Notify for the entries that were added or changed.
+        foreach (var data in associatedData)
+        {
+            if (!previousData.TryGetValue(data.Key, out var previousValue) || !Equals(previousValue, data.Value))
+            {
+                NotifyAssociatedDataKey(data.Key);
+            }
+        }
+    }
+
+    private void NotifyAssociatedDataKey(string key)
+    {
+        NotifyPropertyChanging($"{GraphViewModel.HasAssociatedDataPrefix}{key}");
+        NotifyPropertyChanging(key);
+        NotifyPropertyChanged($"{GraphViewModel.HasAssociatedDataPrefix}{key}");
+        NotifyPropertyChanged(key);
     }
 
     protected void CheckDynamicMemberConsistency()
@@ -416,7 +530,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
             foreach (var iType in Type.GetTypeInfo().ImplementedInterfaces)
             {
                 var iTypeInfo = iType.GetTypeInfo();
-                if (iTypeInfo.IsGenericType == false) 
+                if (!iTypeInfo.IsGenericType)
                     continue;
                 if (iTypeInfo.GetGenericTypeDefinition() != typeof(IDictionary<,>))
                     continue;
@@ -515,7 +629,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     /// <param name="value1">The first value to compare.</param>
     /// <param name="value2">The second value to compare.</param>
     /// <returns>True if both values are considered equal, false otherwise.</returns>
-    protected virtual bool AreValueEqual(object value1, object value2)
+    protected virtual bool AreValueEqual(object? value1, object? value2)
     {
         return Equals(value1, value2);
     }
@@ -527,7 +641,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     /// <param name="value1">The first value to compare.</param>
     /// <param name="value2">The second value to compare.</param>
     /// <returns>True if both values are considered equivalent, false otherwise.</returns>
-    protected virtual bool AreValueEquivalent(object value1, object value2)
+    protected virtual bool AreValueEquivalent(object? value1, object? value2)
     {
         return value1?.GetType() == value2?.GetType();
     }
@@ -580,7 +694,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
         valueChanging = false;
     }
 
-    private object? ConvertValue(object value)
+    private object? ConvertValue(object? value)
     {
         if (value == null)
             return null;
@@ -597,23 +711,46 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
 
     private void RemoveCommand(NodePresenterCommandWrapper command) => ChangeAndNotify(() => commands.Remove(command), $"{GraphViewModel.HasCommandPrefix}{command.Name}", command.Name);
 
-    private void AddAssociatedData(string key, object value) => ChangeAndNotify(() => associatedData.Add(key, value), $"{GraphViewModel.HasAssociatedDataPrefix}{key}", key);
+    private void AddAssociatedData(string key, object? value)
+    {
+        if (suppressAssociatedDataNotifications)
+        {
+            associatedData[key] = value;
+            return;
+        }
+        ChangeAndNotify(() => associatedData.Add(key, value), $"{GraphViewModel.HasAssociatedDataPrefix}{key}", key);
+    }
 
-    private void RemoveAssociatedData(string key) => ChangeAndNotify(() => associatedData.Remove(key), $"{GraphViewModel.HasAssociatedDataPrefix}{key}", key);
+    private void RemoveAssociatedData(string key)
+    {
+        if (suppressAssociatedDataNotifications)
+        {
+            associatedData.Remove(key);
+            return;
+        }
+        ChangeAndNotify(() => associatedData.Remove(key), $"{GraphViewModel.HasAssociatedDataPrefix}{key}", key);
+    }
 
     private void ChangeAndNotify(Action changeAction, params string[] propertyNames)
     {
         ArgumentNullException.ThrowIfNull(changeAction);
+        // A member named Item has the name of the indexer: during a refresh, its change waits for the one of the indexer, at the end
+        if (isRefreshing)
+            propertyNames = Array.FindAll(propertyNames, x => x != IndexerPropertyName);
         if (initializingChildren == null)
         {
             foreach (var propertyName in propertyNames)
                 NotifyPropertyChanging(propertyName);
+            if (!isRefreshing)
+                OnPropertyChanging(IndexerPropertyName);
         }
         changeAction();
         if (initializingChildren == null)
         {
             foreach (var propertyName in propertyNames)
                 NotifyPropertyChanged(propertyName);
+            if (!isRefreshing)
+                OnPropertyChanged(IndexerPropertyName);
         }
     }
 

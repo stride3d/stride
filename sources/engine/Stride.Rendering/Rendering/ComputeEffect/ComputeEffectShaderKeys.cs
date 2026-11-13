@@ -5,6 +5,7 @@ using Stride.Core.Mathematics;
 
 namespace Stride.Rendering.ComputeEffect
 {
+    [EffectKeys]
     public class ComputeEffectShaderKeys
     {
         public static readonly PermutationParameterKey<string> ComputeShaderName = ParameterKeys.NewPermutation<string>();

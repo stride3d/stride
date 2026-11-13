@@ -7,7 +7,7 @@ using Xunit;
 namespace Stride.Core.Design.Tests.Extensions;
 
 /// <summary>
-/// Tests for <see cref="TaskExtensions"/> class.
+/// Tests for the <see cref="Stride.Core.Extensions.TaskExtensions"/> class.
 /// </summary>
 public class TestTaskExtensions
 {

@@ -155,8 +155,8 @@ jobs:
           TARGET=$(dotnet run --project build/tools/Stride.TestSuites -- \
                      --projects "${{ github.event.inputs.projects || inputs.projects }}" \
                      --filter "${{ github.event.inputs.test-filter || inputs.test-filter }}" \
-                     --slnf build/Stride.Tests.Game.Desktop.slnf)
-          if [ -z "$TARGET" ]; then echo "::error::None of the needed suites is in build/Stride.Tests.Game.Desktop.slnf"; exit 1; fi
+                     --slnf sources/Stride.Tests.Game.Desktop.slnf)
+          if [ -z "$TARGET" ]; then echo "::error::None of the needed suites is in sources/Stride.Tests.Game.Desktop.slnf"; exit 1; fi
           echo "Build/test target: $TARGET"
           echo "STRIDE_TEST_TARGET=$TARGET" >> "$GITHUB_ENV"
           echo "STRIDE_TEST_FILTER=${{ github.event.inputs.test-filter || inputs.test-filter }}" >> "$GITHUB_ENV"

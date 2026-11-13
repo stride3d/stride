@@ -46,6 +46,8 @@ namespace Stride.Graphics
         /// <exception cref="ArgumentException">Element size (<c>StructureByteStride</c>) must be greater than zero for Structured Buffers.</exception>
         protected partial Buffer InitializeFromImpl(ref readonly BufferDescription description, BufferFlags viewFlags, PixelFormat viewFormat, IntPtr dataPointer)
         {
+            CheckRawBufferSize(description.SizeInBytes, viewFlags);
+
             bufferDescription = description;
             nativeDescription = ConvertToNativeDescription(in description);
 
@@ -131,9 +133,6 @@ namespace Stride.Graphics
 
                 if (bufferDescription.BufferFlags.HasFlag(BufferFlags.ArgumentBuffer))
                     bufferDesc.MiscFlags |= (uint) ResourceMiscFlag.DrawindirectArgs;
-
-                if (bufferDescription.BufferFlags.HasFlag(BufferFlags.StreamOutput))
-                    bufferDesc.BindFlags |= (uint) BindFlag.StreamOutput;
 
                 if (bufferDesc.Usage == Silk.NET.Direct3D11.Usage.Dynamic)
                 {

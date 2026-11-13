@@ -9,7 +9,7 @@ using Microsoft.Xaml.Behaviors;
 namespace Stride.Core.Presentation.Behaviors
 {
     /// <summary>
-    /// Allows the bind the <see cref="Control.ToolTip"/> property of a control to a particular target property when the attached control is hovered by the mouse.
+    /// Allows binding the <see cref="System.Windows.FrameworkElement.ToolTip"/> property of a control to a particular target property when the attached control is hovered by the mouse.
     /// This behavior can be used to display the same message that the tool-tip in a status bar, for example.
     /// </summary>
     /// <remarks>This behavior can be used to display the tool tip of some controls in another place, such as a status bar.</remarks>

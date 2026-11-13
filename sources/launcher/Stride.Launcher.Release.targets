@@ -1,6 +1,6 @@
 <!--
 Launcher release: publishes the exe, packs the nupkg (the self-update) and builds StrideSetup, into bin\launcher.
-Imported by build\Stride.build, which runs these targets, e.g. msbuild build\Stride.build /t:FullBuildLauncher
+Imported by build\package.proj, which runs these targets, e.g. msbuild build\package.proj /t:FullBuildLauncher
 -->
 <Project>
   <Import Project="Stride.Launcher\Stride.Launcher.Version.props" />
@@ -44,11 +44,11 @@ Imported by build\Stride.build, which runs these targets, e.g. msbuild build\Str
       <FilesToDeleteLauncher Include="$(StrideRoot)bin\launcher\*.exe"/>
     </ItemGroup>
 
-    <!-- Note: we avoid building again if BuildWindows was already ran just before -->
+    <!-- Note: no build here, BuildLauncher runs before (see FullBuildLauncher) -->
     <Delete Files="@(FilesToDeleteLauncher)"/>
 
     <!-- Generate the nuget package for the launcher application -->
-    <Exec Command='"$(NuGetPath)" pack "$(MSBuildThisFileDirectory)Stride.Launcher\Stride.Launcher.nuspec" -Version $(StrideLauncherVersion) -Properties "SetupUrl=$(StrideLauncherSetupUrl);UpdateRules=$(StrideLauncherUpdateRules)" -BasePath "$(MSBuildThisFileDirectory)Stride.Launcher\bin\Release\publish" -OutputDirectory "$(StrideRoot)bin\launcher"' />
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="_PackNuspec" Properties="StrideNuspec=$(MSBuildThisFileDirectory)Stride.Launcher\Stride.Launcher.nuspec;StrideNuspecBasePath=$(MSBuildThisFileDirectory)Stride.Launcher\bin\Release\publish;StrideNuspecVersion=$(StrideLauncherVersion);StrideNuspecProperties=SetupUrl=$(StrideLauncherSetupUrl)%3BUpdateRules=$(StrideLauncherUpdateRules);StrideNuspecOutput=$(StrideRoot)bin\launcher" />
 
     <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="_SignFiles"
              Properties="StrideSign=$(StrideSign);StrideSignDir=$(StrideRoot)bin\launcher" />
@@ -81,18 +81,10 @@ Imported by build\Stride.build, which runs these targets, e.g. msbuild build\Str
     <CallTarget Targets="PackageInstaller"/>
   </Target>
 
-  <!--
-  Publish Launcher nupkg from this folder to the store
-  -->
-  <Target Name="PublishLauncher">
-    <Error Condition="'$(StrideStoreApiKey)' == ''" Text="Missing env variable StrideStoreApiKey"/>
-    <Exec Command='"$(NuGetPath)" push "$(StrideRoot)bin\launcher\*.nupkg" -ApiKey $(StrideStoreApiKey) -Source $(StrideStoreUrl) -NoSymbols'/>
-  </Target>
-
-  <Target Name="BuildLauncher" DependsOnTargets="SignCredentialsCheck">
+  <Target Name="BuildLauncher" DependsOnTargets="SignCredentialsCheck;_RestoreSignTool">
     <MSBuild Targets="Restore" Projects="$(MSBuildProjectFullPath)" Properties="StridePlatforms=Windows;StrideSolution=$(StrideSolutionLauncher);RuntimeIdentifiers=win-x64"/>
     <MSBuild Projects="$(MSBuildThisFileDirectory)Stride.Launcher\Stride.Launcher.csproj" Targets="Publish" Properties="$(BuildProperties);PublishProfile=FolderProfile;SolutionName=Stride.Launcher" />
     <!-- StrideSetup takes the exe from here: the nupkg signing only signs the nupkg's own copy -->
-    <Exec Condition="'$(StrideSign)' == 'true'" Command='$(StrideSignTool) "$(MSBuildThisFileDirectory)Stride.Launcher\bin\Release\publish\Stride.Launcher.exe" $(StrideSignArgs)' EchoOff="true" />
+    <Exec Condition="'$(StrideSign)' == 'true'" Command='$(StrideSignTool) "$(MSBuildThisFileDirectory)Stride.Launcher\bin\Release\publish\Stride.Launcher.exe" $(StrideSignArgs)' WorkingDirectory="$(StrideSignToolDirectory)" EchoOff="true" />
   </Target>
 </Project>

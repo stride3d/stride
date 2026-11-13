@@ -218,7 +218,7 @@ namespace Stride.UI
         /// <remarks>The value is coerced in the range [0, <see cref="float.MaxValue"/>].</remarks>
         /// <userdoc>Width of this element. If NaN, the default width will be used instead.</userdoc>
         [DataMember]
-        [DataMemberRange(0.0f, 3)]
+        [DataMemberRange(minimum: 0.0f, decimalPlaces: 3)]
         [Display(category: LayoutCategory)]
         [DefaultValue(float.NaN)]
         public float Width
@@ -237,7 +237,7 @@ namespace Stride.UI
         /// <remarks>The value is coerced in the range [0, <see cref="float.MaxValue"/>].</remarks>
         /// <userdoc>Height of this element. If NaN, the default height will be used instead.</userdoc>
         [DataMember]
-        [DataMemberRange(0.0f, 3)]
+        [DataMemberRange(minimum: 0.0f, decimalPlaces: 3)]
         [Display(category: LayoutCategory)]
         [DefaultValue(float.NaN)]
         public float Height
@@ -256,7 +256,7 @@ namespace Stride.UI
         /// <remarks>The value is coerced in the range [0, <see cref="float.MaxValue"/>].</remarks>
         /// <userdoc>Depth of this element. If NaN, the default depth will be used instead.</userdoc>
         [DataMember]
-        [DataMemberRange(0.0f, 3)]
+        [DataMemberRange(minimum: 0.0f, decimalPlaces: 3)]
         [Display(category: LayoutCategory)]
         [DefaultValue(float.NaN)]
         public float Depth
@@ -357,7 +357,7 @@ namespace Stride.UI
         /// <remarks>The value is coerced in the range [0, <see cref="float.MaxValue"/>].</remarks>
         /// <userdoc>Minimum width of this element.</userdoc>
         [DataMember]
-        [DataMemberRange(0.0f, 3)]
+        [DataMemberRange(minimum: 0.0f, decimalPlaces: 3)]
         [Display(category: LayoutCategory)]
         [DefaultValue(0.0f)]
         public float MinimumWidth
@@ -378,7 +378,7 @@ namespace Stride.UI
         /// <remarks>The value is coerced in the range [0, <see cref="float.MaxValue"/>].</remarks>
         /// <userdoc>Minimum height of this element.</userdoc>
         [DataMember]
-        [DataMemberRange(0.0f, 3)]
+        [DataMemberRange(minimum: 0.0f, decimalPlaces: 3)]
         [Display(category: LayoutCategory)]
         [DefaultValue(0.0f)]
         public float MinimumHeight
@@ -399,7 +399,7 @@ namespace Stride.UI
         /// <remarks>The value is coerced in the range [0, <see cref="float.MaxValue"/>].</remarks>
         /// <userdoc>Minimum depth of this element.</userdoc>
         [DataMember]
-        [DataMemberRange(0.0f, 3)]
+        [DataMemberRange(minimum: 0.0f, decimalPlaces: 3)]
         [Display(category: LayoutCategory)]
         [DefaultValue(0.0f)]
         public float MinimumDepth
@@ -420,7 +420,7 @@ namespace Stride.UI
         /// <remarks>The value is coerced in the range [0, <see cref="float.PositiveInfinity"/>].</remarks>
         /// <userdoc>Maximum width of this element.</userdoc>
         [DataMember]
-        [DataMemberRange(0.0f, 3)]
+        [DataMemberRange(minimum: 0.0f, decimalPlaces: 3)]
         [Display(category: LayoutCategory)]
         [DefaultValue(float.PositiveInfinity)]
         public float MaximumWidth
@@ -441,7 +441,7 @@ namespace Stride.UI
         /// <remarks>The value is coerced in the range [0, <see cref="float.PositiveInfinity"/>].</remarks>
         /// <userdoc>Maximum height of this element.</userdoc>
         [DataMember]
-        [DataMemberRange(0.0f, 3)]
+        [DataMemberRange(minimum: 0.0f, decimalPlaces: 3)]
         [Display(category: LayoutCategory)]
         [DefaultValue(float.PositiveInfinity)]
         public float MaximumHeight
@@ -462,7 +462,7 @@ namespace Stride.UI
         /// <remarks>The value is coerced in the range [0, <see cref="float.PositiveInfinity"/>].</remarks>
         /// <userdoc>Maximum depth of this element.</userdoc>
         [DataMember]
-        [DataMemberRange(0.0f, 3)]
+        [DataMemberRange(minimum: 0.0f, decimalPlaces: 3)]
         [Display(category: LayoutCategory)]
         [DefaultValue(float.PositiveInfinity)]
         public float MaximumDepth
@@ -483,7 +483,7 @@ namespace Stride.UI
         /// <remarks>The value is coerced in the range [0, <see cref="float.MaxValue"/>].</remarks>
         /// <userdoc>Default width of this element.</userdoc>
         [DataMember]
-        [DataMemberRange(0.0f, 3)]
+        [DataMemberRange(minimum: 0.0f, decimalPlaces: 3)]
         [Display(category: LayoutCategory)]
         [DefaultValue(0.0f)]
         public float DefaultWidth
@@ -504,7 +504,7 @@ namespace Stride.UI
         /// <remarks>The value is coerced in the range [0, <see cref="float.MaxValue"/>].</remarks>
         /// <userdoc>Default height of this element.</userdoc>
         [DataMember]
-        [DataMemberRange(0.0f, 3)]
+        [DataMemberRange(minimum: 0.0f, decimalPlaces: 3)]
         [Display(category: LayoutCategory)]
         [DefaultValue(0.0f)]
         public float DefaultHeight
@@ -525,7 +525,7 @@ namespace Stride.UI
         /// <remarks>The value is coerced in the range [0, <see cref="float.MaxValue"/>].</remarks>
         /// <userdoc>Default depth of this element.</userdoc>
         [DataMember]
-        [DataMemberRange(0.0f, 3)]
+        [DataMemberRange(minimum: 0.0f, decimalPlaces: 3)]
         [Display(category: LayoutCategory)]
         [DefaultValue(0.0f)]
         public float DefaultDepth

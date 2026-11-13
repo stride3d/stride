@@ -177,7 +177,6 @@ namespace Stride.Rendering.Shadows
             /// Initializes a new instance of the <see cref="LightSpotShadowMapGroupShaderData" /> class.
             /// </summary>
             /// <param name="shadowType">Type of the shadow.</param>
-            /// <param name="lightCountMax">The light count maximum.</param>
             public LightSpotShadowMapGroupShaderData(LightShadowType shadowType) : base(shadowType)
             {
             }

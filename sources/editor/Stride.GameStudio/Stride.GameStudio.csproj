@@ -106,6 +106,9 @@
     <ProjectReference Include="..\..\plugins\SpriteStudio\Stride.SpriteStudio.Editor\Stride.SpriteStudio.Editor.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
+    <ProjectReference Include="..\..\plugins\SpriteStudio\Stride.SpriteStudio.Editor.Wpf\Stride.SpriteStudio.Editor.Wpf.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
     <ProjectReference Include="..\..\plugins\Video\Stride.Video\Stride.Video.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
@@ -139,7 +142,7 @@
     <ProjectReference Include="..\..\plugins\UI\Stride.UI.Editor.Wpf\Stride.UI.Editor.Wpf.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\Stride.Assets.Presentation.Wpf\Stride.Assets.Presentation.Wpf.csproj" />
+    <ProjectReference Include="..\Stride.Assets.Editor.Wpf\Stride.Assets.Editor.Wpf.csproj" />
     <ProjectReference Include="..\..\tools\Stride.EffectCompilerServer\Stride.EffectCompilerServer.csproj" IncludeAssets="Build" />
     <ProjectReference Include="..\..\crashreport\Stride.CrashReport\Stride.CrashReport.csproj" />
     <!-- Sentry is used by the core's crash sender at send time, but it's PrivateAssets=all in the core (to keep
@@ -206,7 +209,7 @@
     <Content Include="..\..\..\LICENSE.md" Link="LICENSE.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\..\THIRD PARTY.md" Link="THIRD PARTY.md">
+    <Content Include="..\..\..\THIRD-PARTY-NOTICES.md" Link="THIRD-PARTY-NOTICES.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <None Include="app.config">

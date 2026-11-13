@@ -6,13 +6,11 @@ The assembly processor is a legacy job that runs after any project is built and 
 
 * Serialization system (migration to roslyn [in progress](https://github.com/stride3d/stride/pull/1609))
 * Adding references to the assembly (used only within Stride build - see `Stride.Core.targets - StrideAddReference`)
-* Modyfing static constructor for static instances of `Stride.Rendering.ParameterKey<T>` (**TODO**: why?)
 * Fix for mono for mobile platforms where an incorrect IL operation was performed on pointers (no longer necessary, see [issue](https://github.com/xamarin/xamarin-android/issues/1177))
 * Modifying assembly version using attribute to include build timestamp
 * Generating field/property docs in a simplified format for the editor
 * Module initializer generator (no longer necessary, built into .NET)
 * Removing locals initialization (no longer necessary, built into .NET)
-* Managing custom pooling of delegates for the dispatcher
 
 Most of the AssemblyProcessor is poorly documented and deals with a lot of IL weaving using Mono.Cecil.
 This makes it hard to debug and modify. AssemblyProcessor should be slowly deprecated in favor of native .NET/Roslyn solutions.

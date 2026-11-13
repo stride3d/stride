@@ -1,8 +1,0 @@
-{
-  "solution": {
-    "path": "Stride.slnx",
-    "projects": [
-      "..\\sources\\tools\\Stride.VisualStudio.Package.Tests\\Stride.VisualStudio.Package.Tests.csproj"
-    ]
-  }
-}

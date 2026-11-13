@@ -12,6 +12,8 @@ on:
     outputs:
       runtime:
         value: ${{ jobs.detect.outputs.runtime }}
+      shader-corpus:
+        value: ${{ jobs.detect.outputs.shader-corpus }}
       ios:
         value: ${{ jobs.detect.outputs.ios }}
       ios-tests:
@@ -20,6 +22,8 @@ on:
         value: ${{ jobs.detect.outputs.android }}
       full:
         value: ${{ jobs.detect.outputs.full }}
+      editor:
+        value: ${{ jobs.detect.outputs.editor }}
 
 permissions:
   contents: read
@@ -30,10 +34,12 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       runtime: ${{ steps.comments.outputs.comment_only == 'true' && 'false' || steps.filter.outputs.runtime || 'true' }}
+      shader-corpus: ${{ steps.comments.outputs.comment_only == 'true' && 'false' || steps.filter.outputs.shader-corpus || 'true' }}
       ios: ${{ steps.comments.outputs.comment_only == 'true' && 'false' || steps.filter.outputs.ios || 'true' }}
       ios-tests: ${{ steps.comments.outputs.comment_only == 'true' && 'false' || steps.filter.outputs.ios-tests || 'true' }}
       android: ${{ steps.comments.outputs.comment_only == 'true' && 'false' || steps.filter.outputs.android || 'true' }}
       full: ${{ steps.comments.outputs.comment_only == 'true' && 'false' || steps.filter.outputs.full || 'true' }}
+      editor: ${{ steps.comments.outputs.comment_only == 'true' && 'false' || steps.filter.outputs.editor || 'true' }}
     steps:
       - uses: actions/checkout@v7
         if: github.event_name == 'pull_request'
@@ -73,8 +79,8 @@ jobs:
           print('comment_only=' + str(comment_only()).lower())
           EOF
       # Users get the samples from the published content template packs (StrideSamplesVersion.props), not from
-      # the repository, so a sample change only reaches them through a samples release (release-samples.yml).
-      # Editing samples is normal work, so this only warns, as a reminder that one is pending. The engine-versioned
+      # the repository, so a sample change only reaches them when a sample moves to a released version (release.yml).
+      # Editing samples is normal work, so this only warns, as a reminder. The engine-versioned
       # template sources and prose don't count.
       - name: Warn on sample changes (samples release needed)
         if: github.event_name == 'pull_request'
@@ -100,8 +106,8 @@ jobs:
                       where = f"file={f['filename']},line={hunk.group(1)},"
                       break
               print('::warning ' + where + 'title=Samples changed::This PR changes the samples (' + shown + '). '
-                    'Users only get them with the next samples release: after merging, run release-samples.yml '
-                    '(before the next engine release if the engine needs them; see docs/build/versioning.md).')
+                    'Users only get them once a sample is on the version being released: move it in this PR, or run '
+                    'the Upgrade Samples workflow before a release (see docs/build/versioning.md).')
           EOF
       # The crash reporter carries its own package version, so an engine release republishes it only when that
       # version changes. A change shipped without a bump is pushed as a duplicate, skipped, and never reaches users.
@@ -147,7 +153,8 @@ jobs:
               - 'sources/plugins/**'
               - 'deps/**'
               - 'tests/**'
-              - 'build/Stride.Runtime.slnf'
+              - 'sources/Stride.Runtime.slnf'
+              - 'sources/Stride.Tests.Simple*.slnf'
               # The workflows of the jobs it gates, their actions and the auditor the ApiNeutral job runs: an
               # edit runs them
               - '.github/workflows/test-windows-game-api-neutral.yml'
@@ -160,6 +167,12 @@ jobs:
               - '.github/actions/stride-checkout/**'
               - '.github/actions/stride-workload/**'
               - 'build/tools/ParallelBuildAuditor/**'
+            # What only the shader corpus jobs need, on top of runtime: the corpus also compiles the shaders of the editor
+            # and the samples
+            shader-corpus:
+              - 'sources/editor/**/*.sdsl'
+              - 'samples/**/*.sdsl'
+              - '.github/workflows/test-shader-corpus.yml'
             ios:
               - 'sources/engine/**'
               - 'sources/plugins/**'
@@ -168,7 +181,7 @@ jobs:
               - 'sources/shared/**'
               - 'sources/sdk/**'
               - 'deps/**'
-              - 'build/Stride.iOS.slnf'
+              - 'sources/Stride.iOS.slnf'
             # Strictly iOS-specific paths: shared engine / MoltenVK / AVFoundation code is
             # already covered per-PR by macOS-Tests-Game on the cheaper macOS-vs-iOS surface.
             ios-tests:
@@ -177,9 +190,9 @@ jobs:
               - 'sources/**/Platforms/iOS/**'
               - 'sources/native/**'
               - 'sources/sdk/**'
-              - 'tests/ios/**'
+              - 'tests/infra/ios/**'
               - 'tests/**/iOS.Vulkan/**'
-              - 'build/Stride.iOS.slnf'
+              - 'sources/Stride.iOS.slnf'
               - '.github/workflows/test-ios-game.yml'
               - '.github/actions/stride-checkout/**'
               - '.github/actions/stride-workload/**'
@@ -189,13 +202,49 @@ jobs:
               - 'sources/**/Platforms/Android/**'
               - 'sources/native/**'
               - 'sources/sdk/**'
-              - 'tests/android/**'
+              - 'tests/infra/android/**'
               - 'tests/**/Android.Vulkan/**'
-              - 'build/Stride.Tests.Game.Android.slnf'
+              - 'sources/Stride.Tests.Game.Android.slnf'
               - '.github/workflows/test-android-game.yml'
               - '.github/actions/stride-checkout/**'
               - '.github/actions/stride-workload/**'
             full:
               - 'sources/**'
               - 'deps/**'
-              - 'build/Stride.slnx'
+              # Projects of the full build that live outside sources/
+              - 'tests/infra/Stride.*/**'
+              - 'tests/enduser/Stride.Templates.Tests/**'
+              - 'Stride.slnx'
+              # The workflows of the full build and of the WPF editor tests, and the check the build runs: an edit runs them
+              - '.github/workflows/build-windows-full.yml'
+              - '.github/workflows/test-editor-wpf.yml'
+              - 'build/check-graphics-api-compat.ps1'
+            # The Avalonia editor job: the folders of the projects sources/Stride.Editor.Avalonia.slnf builds,
+            # engine included (the filter compiles it, and the editor tests run on top of it), and its build inputs
+            editor:
+              - 'sources/assets/**'
+              - 'sources/buildengine/**'
+              - 'sources/core/**'
+              - 'sources/crashreport/**'
+              - 'sources/editor/**'
+              - 'sources/engine/**'
+              - 'sources/launcher/Stride.Launcher/Crash/**'
+              - 'sources/localization/**'
+              - 'sources/native/**'
+              - 'sources/plugins/**'
+              - 'sources/presentation/**'
+              - 'sources/sdk/**'
+              - 'sources/shaders/**'
+              - 'sources/shared/**'
+              - 'sources/tests/Stride.XunitRunner/**'
+              - 'sources/tools/Stride.Importer.*/**'
+              - 'sources/tools/Stride.TextureConverter/**'
+              - 'sources/Directory.*'
+              - 'sources/Stride.Editor.Avalonia.sln*'  # the filter (.slnf), or the solution (.slnx) below editor-cleanup
+              - 'Stride.slnx'
+              - 'build/Stride.Local.props'
+              - 'deps/**'
+              - 'global.json'
+              - 'nuget.config'
+              - 'tests/editor-coverage.runsettings'
+              - '.github/workflows/test-editor-avalonia.yml'

@@ -597,18 +597,88 @@ namespace Stride.BepuPhysics.Tests
         }
 
         [Theory]
-        [InlineData(3, 10, 3)]
-        [InlineData(3, 2, 2)]
-        [InlineData(-1, 10, 10)]
-        public static void MaxStepPerFrameTest(int maxStepPerFrame, int pendingSteps, int expectedSteps)
+        [InlineData(true, 2, 2, 3, 5, 5)]
+        [InlineData(false, 2, 4, 5, 7, 9)]
+        public static void PostponedTicksTest(
+            bool dropPostponedTicks, int expectedTicksA, int expectedTicksB, int expectedTicksC, int expectedTicksD, int expectedTicksE)
         {
-            using var simulation = new BepuSimulation { MaxStepPerFrame = maxStepPerFrame };
-            int steps = 0;
-            simulation.Register(new SimUpdateListener { SimUpdate = () => steps++ });
+            using var simulation = new BepuSimulation
+            {
+                MaximumTimeSpanToProcess = TimeSpan.FromSeconds(2f),
+                DropPostponedTicks = dropPostponedTicks,
+                FixedTimeStep = TimeSpan.FromSeconds(1f),
+            };
+            int ticks = 0;
+            simulation.Register(new SimUpdateListener { SimUpdate = () => ticks++ });
 
-            simulation.Update(simulation.FixedTimeStep * pendingSteps);
+            simulation.Update(simulation.FixedTimeStep * 4);
+            Assert.Equal(expectedTicksA, ticks);
+            simulation.Update(simulation.FixedTimeStep / 2);
+            Assert.Equal(expectedTicksB, ticks);
+            simulation.Update(simulation.FixedTimeStep / 2);
+            Assert.Equal(expectedTicksC, ticks);
+            simulation.Update(simulation.FixedTimeStep * 4);
+            Assert.Equal(expectedTicksD, ticks);
+            simulation.Update(simulation.FixedTimeStep * 0);
+            Assert.Equal(expectedTicksE, ticks);
+        }
 
-            Assert.Equal(expectedSteps, steps);
+        [Fact]
+        public static void FractionalTicksPastMaxTest()
+        {
+            using var simulation = new BepuSimulation
+            {
+                MaximumTimeSpanToProcess = TimeSpan.FromSeconds(1f),
+                DropPostponedTicks = true,
+                FixedTimeStep = TimeSpan.FromSeconds(1f),
+            };
+            int ticks = 0;
+            simulation.Register(new SimUpdateListener { SimUpdate = () => ticks++ });
+
+            simulation.Update(simulation.MaximumTimeSpanToProcess + simulation.MaximumTimeSpanToProcess * 0);
+            Assert.Equal(1, ticks);
+            simulation.Update(simulation.MaximumTimeSpanToProcess + simulation.MaximumTimeSpanToProcess / 2);
+            Assert.Equal(2, ticks);
+            simulation.Update(simulation.MaximumTimeSpanToProcess / 2);
+            Assert.Equal(3, ticks);
+        }
+
+        [Fact]
+        public static void NoTicksTest()
+        {
+            var maximumTimespanUnderFixedTimeStep = TimeSpan.FromSeconds(0.5f);
+            using var simulation = new BepuSimulation
+            {
+                MaximumTimeSpanToProcess = maximumTimespanUnderFixedTimeStep,
+                FixedTimeStep = TimeSpan.FromSeconds(1f),
+            };
+            int ticks = 0;
+            simulation.Register(new SimUpdateListener { SimUpdate = () => ticks++ });
+
+            simulation.DropPostponedTicks = true;
+            simulation.Update(simulation.FixedTimeStep);
+            Assert.Equal(0, ticks); ticks = 0;
+            simulation.Update(simulation.FixedTimeStep);
+            Assert.Equal(0, ticks); ticks = 0;
+            simulation.Update(simulation.FixedTimeStep);
+            Assert.Equal(0, ticks); ticks = 0;
+
+            simulation.MaximumTimeSpanToProcess = TimeSpan.FromSeconds(10f);
+            simulation.Update(simulation.FixedTimeStep);
+            Assert.Equal(1, ticks); ticks = 0;
+            simulation.MaximumTimeSpanToProcess = maximumTimespanUnderFixedTimeStep;
+
+            simulation.DropPostponedTicks = false;
+            simulation.Update(simulation.FixedTimeStep);
+            Assert.Equal(0, ticks); ticks = 0;
+            simulation.Update(simulation.FixedTimeStep);
+            Assert.Equal(0, ticks); ticks = 0;
+            simulation.Update(simulation.FixedTimeStep);
+            Assert.Equal(0, ticks); ticks = 0;
+
+            simulation.MaximumTimeSpanToProcess = TimeSpan.FromSeconds(10f);
+            simulation.Update(TimeSpan.Zero);
+            Assert.Equal(3, ticks); ticks = 0;
         }
 
         [Theory]

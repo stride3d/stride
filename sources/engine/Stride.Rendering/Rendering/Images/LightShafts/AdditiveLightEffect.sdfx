@@ -3,6 +3,11 @@
 
 namespace Stride.Rendering.Images
 {
+    params AdditiveLightEffectKeys
+    {
+        bool Color = false;
+    };
+
     effect AdditiveLightEffect
     {
         using params AdditiveLightEffectKeys;

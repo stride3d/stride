@@ -42,7 +42,7 @@ jobs:
           workloads: ios
       - name: Build
         run: |
-          dotnet build build\Stride.iOS.slnf `
+          dotnet build sources\Stride.iOS.slnf `
             -nr:false `
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `

@@ -954,7 +954,7 @@ namespace Stride.Core.Presentation.Controls
                 var dividedUnit = !TickTextUnitDivider.Equals(0.0) ? unit / TickTextUnitDivider : unit;
                 dividedUnit = Math.Round(dividedUnit, 6);
 
-                var ft = new FormattedText(dividedUnit + symbol, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, font, fontSize, foreground);
+                var ft = new FormattedText(dividedUnit + symbol, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, font, fontSize, foreground, VisualTreeHelper.GetDpi(this).PixelsPerDip);
                 drawingContext.DrawText(ft, new Point(position - ft.Width * textPositionOrigin.X, (textPosition * actualHeight) - (ft.Height * textPositionOrigin.Y)));
             }
 

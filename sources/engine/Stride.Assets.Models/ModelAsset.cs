@@ -79,6 +79,18 @@ namespace Stride.Assets.Models
         [DefaultValue(true)]
         public bool MergeMeshes { get; set; } = true;
 
+        /// <summary>
+        /// Gets or sets whether shaders can read the vertex and index buffers of the model.
+        /// </summary>
+        /// <userdoc>
+        /// When checked, shaders can read the vertex and index buffers of the model as raw buffers (ByteAddressBuffer),
+        /// for example to fetch vertices in a compute shader. Leave it unchecked unless a shader needs it.
+        /// On Direct3D 11, it needs graphics profile Level 11.0 or higher.
+        /// </userdoc>
+        [DataMember(37)]
+        [DefaultValue(false)]
+        public bool ShaderReadableBuffers { get; set; }
+
         /// <inheritdoc/>
         [DataMember(40)]
         [MemberCollection(ReadOnly = true)]
@@ -116,6 +128,9 @@ namespace Stride.Assets.Models
         // Editor metadata only; packed runtime targets are built from the source mesh.
         [DataMember(60), Display(Browsable = false)]
         public List<string> MorphTargetNames { get; } = new();
+
+        // A model without morph targets saves no list of their names
+        private bool ShouldSerializeMorphTargetNames() => MorphTargetNames.Count > 0;
 
         /// <inheritdoc/>
         [DataMemberIgnore]

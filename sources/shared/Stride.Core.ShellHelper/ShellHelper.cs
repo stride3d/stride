@@ -17,6 +17,8 @@ namespace Stride
         /// </summary>
         /// <param name="command">The name or path of the command.</param>
         /// <param name="parameters">The parameters of the command.</param>
+        /// <param name="logger">The logger for process output.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The outputs.</returns>
         public static async Task<int> RunProcessAndGetOutputAsync(string command, string parameters, ILogger logger, CancellationToken cancellationToken = default(CancellationToken))
         {

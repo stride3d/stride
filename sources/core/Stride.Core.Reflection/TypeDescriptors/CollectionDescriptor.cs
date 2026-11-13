@@ -85,7 +85,7 @@ public abstract class CollectionDescriptor : CollectionBaseDescriptor
 
     /// <summary>
     /// Gets a value indicating whether this collection type has valid indexer accessors.
-    /// If so, <see cref="SetValue(object, object, object)"/> and <see cref="GetValue(object, object)"/> can be invoked.
+    /// If so, <see cref="CollectionBaseDescriptor.SetValue(object, object, object)"/> and <see cref="GetValue(object, int)"/> can be invoked.
     /// </summary>
     /// <value><c>true</c> if this instance has a valid indexer setter; otherwise, <c>false</c>.</value>
     public virtual bool HasIndexerAccessors { get; protected set; }

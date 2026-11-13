@@ -213,7 +213,7 @@ namespace Stride.Core.UnsafeExtensions
             return MemoryMarshal.CreateSpan(ref As<TFrom, TTo>(ref refArray0), array.Length);
         }
 
-        /// <inheritdoc cref="DotNetUnsafe.AsPointer{T}(ref T)"/>
+        /// <inheritdoc cref="DotNetUnsafe.AsPointer{T}"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T* AsPointer<T>(this ref T value) where T : unmanaged
             => (T*) DotNetUnsafe.AsPointer(ref value);
@@ -223,7 +223,7 @@ namespace Stride.Core.UnsafeExtensions
         public static ref readonly TTo AsReadonly<TFrom, TTo>(ref readonly TFrom source)
             => ref DotNetUnsafe.As<TFrom, TTo>(ref AsRef(in source));
 
-        /// <inheritdoc cref="DotNetUnsafe.AsPointer{T}(ref T)"/>
+        /// <inheritdoc cref="DotNetUnsafe.AsPointer{T}"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T* AsReadonlyPointer<T>(ref readonly T value) where T : unmanaged
             => AsPointer(ref AsRef(in value));
@@ -365,6 +365,7 @@ namespace Stride.Core.UnsafeExtensions
         ///   If the array is empty, returns a reference to where that element would have been stored.
         ///   Such a reference may be used for pinning but must never be dereferenced.
         /// </summary>
+        /// <param name="array">The array from which to retrieve a reference.</param>
         /// <param name="index">The index of the element of <paramref name="array"/> for which to take a reference.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ref T GetReference<T>(this T[] array, int index)
@@ -376,6 +377,7 @@ namespace Stride.Core.UnsafeExtensions
         ///   If the array is empty, returns a reference to where that element would have been stored.
         ///   Such a reference may be used for pinning but must never be dereferenced.
         /// </summary>
+        /// <param name="array">The array from which to retrieve a reference.</param>
         /// <param name="index">The index of the element of <paramref name="array"/> for which to take a reference.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ref T GetReference<T>(this T[] array, nuint index) => ref DotNetUnsafe.Add(ref array.GetReference(), index);
@@ -391,6 +393,7 @@ namespace Stride.Core.UnsafeExtensions
         ///   If the span is empty, returns a reference to the location where that element would have been stored.
         ///   Such a reference may or may not be null. It can be used for pinning but must never be dereferenced.
         /// </summary>
+        /// <param name="span">The span from which to retrieve a reference.</param>
         /// <param name="index">The index of the element of <paramref name="span"/> for which to take a reference.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ref T GetReference<T>(this Span<T> span, int index)
@@ -402,6 +405,7 @@ namespace Stride.Core.UnsafeExtensions
         ///   If the span is empty, returns a reference to the location where that element would have been stored.
         ///   Such a reference may or may not be null. It can be used for pinning but must never be dereferenced.
         /// </summary>
+        /// <param name="span">The span from which to retrieve a reference.</param>
         /// <param name="index">The index of the element of <paramref name="span"/> for which to take a reference.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ref T GetReference<T>(this Span<T> span, nuint index)
@@ -418,6 +422,7 @@ namespace Stride.Core.UnsafeExtensions
         ///   If the span is empty, returns a reference to the location where that element would have been stored.
         ///   Such a reference may or may not be null. It can be used for pinning but must never be dereferenced.
         /// </summary>
+        /// <param name="span">The span from which to retrieve a reference.</param>
         /// <param name="index">The index of the element of <paramref name="span"/> for which to take a reference.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ref readonly T GetReference<T>(this ReadOnlySpan<T> span, int index)
@@ -429,6 +434,7 @@ namespace Stride.Core.UnsafeExtensions
         ///   If the span is empty, returns a reference to the location where that element would have been stored.
         ///   Such a reference may or may not be null. It can be used for pinning but must never be dereferenced.
         /// </summary>
+        /// <param name="span">The span from which to retrieve a reference.</param>
         /// <param name="index">The index of the element of <paramref name="span"/> for which to take a reference.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ref readonly T GetReference<T>(this ReadOnlySpan<T> span, nuint index)
@@ -462,6 +468,7 @@ namespace Stride.Core.UnsafeExtensions
             => DotNetUnsafe.ReadUnaligned<T>(source);
 
         /// <inheritdoc cref="DotNetUnsafe.ReadUnaligned{T}(void*)"/>
+        /// <param name="source">The address from which to read.</param>
         /// <param name="offset">The offset in bytes from the location pointed to by <paramref name="source"/>.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T ReadUnaligned<T>(void* source, nuint offset) where T : unmanaged
@@ -474,7 +481,9 @@ namespace Stride.Core.UnsafeExtensions
             => DotNetUnsafe.WriteUnaligned(destination, value);
 
         /// <inheritdoc cref="DotNetUnsafe.WriteUnaligned{T}(void*, T)"/>
+        /// <param name="destination">The address to which to write.</param>
         /// <param name="offset">The offset in bytes from the location pointed to by <paramref name="destination"/>.</param>
+        /// <param name="value">The value to write.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteUnaligned<T>(void* destination, nuint offset, T value) where T : unmanaged
             => DotNetUnsafe.WriteUnaligned((void*) ((nuint) destination + offset), value);

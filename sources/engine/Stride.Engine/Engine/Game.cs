@@ -360,6 +360,8 @@ namespace Stride.Engine
             // Add it first so that it can obtained by the UI system
             var inputSystem = new InputSystem(Services);
             Input = inputSystem.Manager;
+            // No editor game reads a gamepad, and their sources slow its start
+            Input.UseGamePadSources = !IsEditorGame;
             Services.AddService(Input);
             GameSystems.Add(inputSystem);
 

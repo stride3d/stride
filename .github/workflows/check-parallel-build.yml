@@ -5,7 +5,7 @@ on:
     paths:
       - '.github/workflows/check-parallel-build.yml'
       - 'build/tools/ParallelBuildAuditor/**'
-      - 'build/Stride.slnx'
+      - 'Stride.slnx'
       - 'sources/**/*.csproj'
       - 'sources/**/*.targets'
       - 'sources/**/*.props'
@@ -42,7 +42,7 @@ jobs:
         # (and Stride.slnx contains native vcxproj projects that may fail under dotnet build).
         continue-on-error: true
         run: |
-          dotnet build build\Stride.slnx `
+          dotnet build Stride.slnx `
             -bl:parallel-audit.binlog `
             -nr:false `
             -v:m -p:WarningLevel=0 `

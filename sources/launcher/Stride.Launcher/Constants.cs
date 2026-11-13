@@ -3,14 +3,9 @@
 
 namespace Stride.Launcher;
 
-internal struct Names
-{
-    public const string GameStudio = nameof(GameStudio);
-    public const string Stride = nameof(Stride);
-}
-
+// The package (and assembly) names of the Game Studios, also the names of the editors in the settings.
 internal struct GameStudioNames
 {
-    public const string Stride = $"{Names.Stride}.{Names.GameStudio}";
-    public const string StrideAvalonia = $"{Names.Stride}.{Names.GameStudio}.Avalonia.Desktop";
+    public const string Stride = GameStudioEditors.WpfPackageId;
+    public const string StrideAvalonia = GameStudioEditors.AvaloniaPackageId;
 }

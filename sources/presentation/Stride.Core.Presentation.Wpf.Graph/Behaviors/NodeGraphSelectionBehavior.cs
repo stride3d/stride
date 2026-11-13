@@ -258,6 +258,7 @@ namespace Stride.Core.Presentation.Graph.Behaviors
         /// 
         /// </summary>
         /// <param name="control"></param>
+        /// <param name="info">The link information.</param>
         /// <param name="toggle"></param>
         public virtual void SelectLink(NodeEdgeControl control, LinkInfo info, bool toggle)
         {
@@ -287,6 +288,7 @@ namespace Stride.Core.Presentation.Graph.Behaviors
         /// 
         /// </summary>
         /// <param name="control"></param>
+        /// <param name="info">The link information.</param>
         public virtual void UnselectLink(NodeEdgeControl control, LinkInfo info)
         {
             if (control == null) { return; }

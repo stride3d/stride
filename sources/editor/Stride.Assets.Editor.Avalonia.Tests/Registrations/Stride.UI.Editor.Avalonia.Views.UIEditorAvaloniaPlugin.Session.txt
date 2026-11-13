@@ -1,0 +1,4 @@
+Plugin: Stride.UI.Editor.Avalonia.Views.UIEditorAvaloniaPlugin
+Services:
+NodePresenterCommands:
+NodePresenterUpdaters:

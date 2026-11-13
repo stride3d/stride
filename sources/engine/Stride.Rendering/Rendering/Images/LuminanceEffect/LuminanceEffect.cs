@@ -13,6 +13,7 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// Luminance effect.
     /// </summary>
+    [EffectKeys]
     public class LuminanceEffect : ImageEffect
     {
         public static readonly ObjectParameterKey<LuminanceResult> LuminanceResult = ParameterKeys.NewObject<LuminanceResult>();

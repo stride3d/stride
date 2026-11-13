@@ -51,10 +51,12 @@ namespace Stride.Rendering.Images {
         }
 
         /// <summary>
-        /// Provides a color buffer and a depth buffer to apply the fog to.
+        /// Provides a color buffer and a depth buffer to apply the outline to.
         /// </summary>
         /// <param name="colorBuffer">A color buffer to process.</param>
         /// <param name="depthBuffer">The depth buffer corresponding to the color buffer provided.</param>
+        /// <param name="zMin">The near depth value.</param>
+        /// <param name="zMax">The far depth value.</param>
         public void SetColorDepthInput(Texture colorBuffer, Texture depthBuffer, float zMin, float zMax) 
         {
             SetInput(0, colorBuffer);

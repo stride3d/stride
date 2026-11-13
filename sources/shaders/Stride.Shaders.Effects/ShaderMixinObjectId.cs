@@ -42,7 +42,7 @@ namespace Stride.Shaders
         /// Computes a hash <see cref="ObjectId"/> for the specified mixin.
         /// </summary>
         /// <param name="mixin">The mixin.</param>
-        /// <param name="mixinParameters">The mixin parameters.</param>
+        /// <param name="effectCompilerParameters">The effect compiler parameters.</param>
         /// <returns>EffectObjectIds.</returns>
         public static ObjectId Compute(ShaderMixinSource mixin, EffectCompilerParameters effectCompilerParameters)
         {

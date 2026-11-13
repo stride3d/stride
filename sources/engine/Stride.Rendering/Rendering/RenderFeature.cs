@@ -127,7 +127,7 @@ namespace Stride.Rendering
         }
 
         /// <summary>
-        /// Releases temporary resources and cleans the state. Should be called once after all <see cref="Draw"/> calls have finished.
+        /// Releases temporary resources and cleans the state. Should be called once after all <c>Draw</c> calls have finished.
         /// </summary>
         /// <param name="context"></param>
         public virtual void Flush(RenderDrawContext context)

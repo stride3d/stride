@@ -10,7 +10,7 @@ public class TestNodeAccessor
     public class SimpleClass
     {
         public int Value { get; set; }
-        public string Name { get; set; }
+        public string? Name { get; set; }
     }
 
     public class ListContainer
@@ -59,7 +59,7 @@ public class TestNodeAccessor
         var rootNode = nodeContainer.GetOrCreateNode(obj);
         var listMemberNode = rootNode[nameof(ListContainer.Numbers)];
 
-        var accessor = new NodeAccessor(listMemberNode.Target, new NodeIndex(1));
+        var accessor = new NodeAccessor(listMemberNode.Target!, new NodeIndex(1));
 
         Assert.False(accessor.IsMember);
         Assert.True(accessor.IsItem);
@@ -76,7 +76,7 @@ public class TestNodeAccessor
         var rootNode = nodeContainer.GetOrCreateNode(obj);
         var listMemberNode = rootNode[nameof(ListContainer.Numbers)];
 
-        var accessor = new NodeAccessor(listMemberNode.Target, new NodeIndex(1));
+        var accessor = new NodeAccessor(listMemberNode.Target!, new NodeIndex(1));
         accessor.UpdateValue(42);
 
         Assert.Equal(42, obj.Numbers[1]);
@@ -139,11 +139,11 @@ public class TestNodeAccessor
         var accessor = new NodeAccessor(memberNode, NodeIndex.Empty);
 
         // String is a reference type, so null is accepted
-        Assert.True(accessor.AcceptValue(null));
+        Assert.True(accessor.AcceptValue(null!));
 
         // Int is a value type, so null is not accepted
         var intMemberNode = rootNode[nameof(SimpleClass.Value)];
         var intAccessor = new NodeAccessor(intMemberNode, NodeIndex.Empty);
-        Assert.False(intAccessor.AcceptValue(null));
+        Assert.False(intAccessor.AcceptValue(null!));
     }
 }

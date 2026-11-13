@@ -6,7 +6,7 @@ using Stride.Core.Storage;
 namespace Stride.Core.Serialization
 {
     /// <summary>
-    /// Used as a fallback when <see cref="SerializerSelector.GetSerializer"/> didn't find anything.
+    /// Used as a fallback when <see cref="SerializerSelector.GetSerializer(Type)"/> didn't find anything.
     /// </summary>
     public abstract class SerializerFactory
     {

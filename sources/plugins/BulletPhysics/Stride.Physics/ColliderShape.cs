@@ -13,14 +13,31 @@ namespace Stride.Physics
     {
         protected const float DebugScaling = 1.0f;
 
+        ~ColliderShape()
+        {
+            Dispose(false);
+        }
+
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
-        public virtual void Dispose()
+        public void Dispose()
         {
-            if (InternalShape == null) return;
-            InternalShape.Dispose();
-            InternalShape = null;
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Releases the resources used by this instance.
+        /// </summary>
+        /// <param name="disposing">true to release managed and unmanaged resources; false to release only unmanaged resources.</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing && InternalShape != null)
+            {
+                InternalShape.Dispose();
+                InternalShape = null;
+            }
         }
 
         /// <summary>

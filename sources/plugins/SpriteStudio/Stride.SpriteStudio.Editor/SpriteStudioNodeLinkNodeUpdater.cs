@@ -4,13 +4,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using Stride.Assets.Models;
-using Stride.Assets.Presentation.NodePresenters.Keys;
-using Stride.Core.Assets.Editor.Quantum.NodePresenters;
-using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Assets.Editor.Quantum.NodePresenters.Keys;
+using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
 using Stride.Engine;
 using Stride.Rendering;
 using Stride.SpriteStudio.Assets;
 using Stride.SpriteStudio.Runtime;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.SpriteStudio.Editor;
 

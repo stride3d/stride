@@ -130,64 +130,85 @@ namespace Stride.Rendering
             var cullingMask = view.CullingMask;
 
             // Process objects
-            //foreach (var renderObject in RenderObjects)
-            //Dispatcher.ForEach(RenderObjects, renderObject =>
-            Dispatcher.For(0, RenderObjects.Count, () => collectorCache.Value, (index, cache) =>
+            Dispatcher.ForBatched(RenderObjects.Count, new CollectJob(this, view, frustum, cullingMode, cullingMask, plane));
+
+            view.RenderObjects.Close();
+        }
+
+        private readonly struct CollectJob(VisibilityGroup group, RenderView view, BoundingFrustum frustum, CameraCullingMode cullingMode, RenderGroupMask cullingMask, Plane plane) : Dispatcher.IBatchJob
+        {
+            private readonly VisibilityGroup group = group;
+            private readonly RenderView view = view;
+            private readonly BoundingFrustum frustum = frustum;
+            private readonly CameraCullingMode cullingMode = cullingMode;
+            private readonly RenderGroupMask cullingMask = cullingMask;
+            private readonly Plane plane = plane;
+
+            public void Process(int start, int endExclusive)
             {
-                var renderObject = RenderObjects[index];
-
-                // Skip not enabled objects
-                if (!renderObject.Enabled || ((RenderGroupMask)(1U << (int)renderObject.RenderGroup) & cullingMask) == 0)
-                    return;
-
-                var renderStageMask = RenderData.GetData(RenderStageMaskKey);
-                var renderStageMaskNode = renderObject.VisibilityObjectNode * stageMaskMultiplier;
-
-                // Determine if this render object belongs to this view
-                bool renderStageMatch = false;
-                unsafe
+                var cache = group.collectorCache.Value;
+                try
                 {
-                    fixed (uint* viewRenderStageMaskStart = viewRenderStageMask)
-                    fixed (uint* objectRenderStageMaskStart = renderStageMask.Data)
+                    for (int index = start; index < endExclusive; index++)
                     {
-                        var viewRenderStageMaskPtr = viewRenderStageMaskStart;
-                        var objectRenderStageMaskPtr = objectRenderStageMaskStart + renderStageMaskNode.Index;
-                        for (int i = 0; i < viewRenderStageMask.Length; ++i)
+                        var renderObject = group.RenderObjects[index];
+
+                        // Skip not enabled objects
+                        if (!renderObject.Enabled || ((RenderGroupMask)(1U << (int)renderObject.RenderGroup) & cullingMask) == 0)
+                            continue;
+
+                        var renderStageMask = group.RenderData.GetData(group.RenderStageMaskKey);
+                        var renderStageMaskNode = renderObject.VisibilityObjectNode * group.stageMaskMultiplier;
+
+                        // Determine if this render object belongs to this view
+                        bool renderStageMatch = false;
+                        unsafe
                         {
-                            if ((*viewRenderStageMaskPtr++ & *objectRenderStageMaskPtr++) != 0)
+                            fixed (uint* viewRenderStageMaskStart = group.viewRenderStageMask)
+                            fixed (uint* objectRenderStageMaskStart = renderStageMask.Data)
                             {
-                                renderStageMatch = true;
-                                break;
+                                var viewRenderStageMaskPtr = viewRenderStageMaskStart;
+                                var objectRenderStageMaskPtr = objectRenderStageMaskStart + renderStageMaskNode.Index;
+                                for (int i = 0; i < group.viewRenderStageMask.Length; ++i)
+                                {
+                                    if ((*viewRenderStageMaskPtr++ & *objectRenderStageMaskPtr++) != 0)
+                                    {
+                                        renderStageMatch = true;
+                                        break;
+                                    }
+                                }
                             }
+                        }
+
+                        // Object not part of this view because no render stages in this objects are visible in this view
+                        if (!renderStageMatch)
+                            continue;
+
+                        // Fast AABB transform: http://zeuxcg.org/2010/10/17/aabb-from-obb-with-component-wise-abs/
+                        // Compute transformed AABB (by world)
+                        if (cullingMode == CameraCullingMode.Frustum
+                            && renderObject.BoundingBox.Extent != Vector3.Zero
+                            && !FrustumContainsBox(in frustum, in renderObject.BoundingBox, view.VisiblityIgnoreDepthPlanes))
+                        {
+                            continue;
+                        }
+
+                        // Add object to list of visible objects
+                        // TODO GRAPHICS REFACTOR we should be able to push multiple elements with future VisibilityObject
+                        view.RenderObjects.Add(renderObject, cache);
+
+                        // Calculate bounding box of all render objects in the view
+                        if (renderObject.BoundingBox.Extent != Vector3.Zero)
+                        {
+                            CalculateMinMaxDistance(in plane, in renderObject.BoundingBox, ref view.MinimumDistance, ref view.MaximumDistance);
                         }
                     }
                 }
-
-                // Object not part of this view because no render stages in this objects are visible in this view
-                if (!renderStageMatch)
-                    return;
-
-                // Fast AABB transform: http://zeuxcg.org/2010/10/17/aabb-from-obb-with-component-wise-abs/
-                // Compute transformed AABB (by world)
-                if (cullingMode == CameraCullingMode.Frustum
-                    && renderObject.BoundingBox.Extent != Vector3.Zero
-                    && !FrustumContainsBox(ref frustum, ref renderObject.BoundingBox, view.VisiblityIgnoreDepthPlanes))
+                finally
                 {
-                    return;
+                    cache.Flush();
                 }
-
-                // Add object to list of visible objects
-                // TODO GRAPHICS REFACTOR we should be able to push multiple elements with future VisibilityObject
-                view.RenderObjects.Add(renderObject, cache);
-
-                // Calculate bounding box of all render objects in the view
-                if (renderObject.BoundingBox.Extent != Vector3.Zero)
-                {
-                    CalculateMinMaxDistance(ref plane, ref renderObject.BoundingBox, ref view.MinimumDistance, ref view.MaximumDistance);
-                }
-            }, cache => cache.Flush());
-
-            view.RenderObjects.Close();
+            }
         }
 
         public void Copy(RenderView source, RenderView target)
@@ -205,7 +226,7 @@ namespace Stride.Rendering
             target.RenderObjects.Close();
         }
 
-        public static bool FrustumContainsBox(ref BoundingFrustum frustum, ref BoundingBoxExt boundingBoxExt, bool ignoreDepthPlanes)
+        public static bool FrustumContainsBox(ref readonly BoundingFrustum frustum, ref readonly BoundingBoxExt boundingBoxExt, bool ignoreDepthPlanes)
         {
             unsafe
             {
@@ -232,7 +253,7 @@ namespace Stride.Rendering
             }
         }
 
-        private static void CalculateMinMaxDistance(ref Plane plane, ref BoundingBoxExt boundingBox, ref float minDistance, ref float maxDistance)
+        private static void CalculateMinMaxDistance(ref readonly Plane plane, ref readonly BoundingBoxExt boundingBox, ref float minDistance, ref float maxDistance)
         {
             var nearCorner = boundingBox.Minimum;
             var farCorner = boundingBox.Maximum;
@@ -249,11 +270,11 @@ namespace Stride.Rendering
             float oldDistance;
 
             // Interlocked exchange if lower
-            var distance = CollisionHelper.DistancePlanePoint(ref plane, ref nearCorner);
+            var distance = CollisionHelper.DistancePlanePoint(in plane, in nearCorner);
             while ((oldDistance = minDistance) > distance && Interlocked.CompareExchange(ref minDistance, distance, oldDistance) != oldDistance) { }
 
             // Interlocked exchange if greater
-            distance = CollisionHelper.DistancePlanePoint(ref plane, ref farCorner);
+            distance = CollisionHelper.DistancePlanePoint(in plane, in farCorner);
             while ((oldDistance = maxDistance) < distance && Interlocked.CompareExchange(ref maxDistance, distance, oldDistance) != oldDistance) { }
         }
 

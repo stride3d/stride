@@ -70,6 +70,7 @@ public sealed class AssetSourceTracker : IDisposable
                 throw new InvalidOperationException("Cannot enable tracking when this instance is disposed");
             }
 
+            Thread? stoppedThread = null;
             lock (ThisLock)
             {
                 if (value)
@@ -109,7 +110,7 @@ public sealed class AssetSourceTracker : IDisposable
                     if (fileEventThreadHandler != null)
                     {
                         threadWatcherEvent.Set();
-                        fileEventThreadHandler.Join();
+                        stoppedThread = fileEventThreadHandler;
                         fileEventThreadHandler = null;
                     }
 
@@ -119,6 +120,11 @@ public sealed class AssetSourceTracker : IDisposable
                     }
                 }
             }
+
+            // The watcher thread takes this lock to process the file events it got, so it's
+            // joined once the lock is released: joining it while holding the lock deadlocks
+            // when it has events to process.
+            stoppedThread?.Join();
         }
     }
 

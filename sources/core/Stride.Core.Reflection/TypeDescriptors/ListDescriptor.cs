@@ -30,6 +30,8 @@ public class ListDescriptor : CollectionDescriptor
     /// </summary>
     /// <param name="factory">The factory.</param>
     /// <param name="type">The type.</param>
+    /// <param name="emitDefaultValues">Whether to include members with default values.</param>
+    /// <param name="namingConvention">The naming convention for members.</param>
     /// <exception cref="ArgumentException">Expecting a type inheriting from System.Collections.IList;type</exception>
 #pragma warning disable CS8618
     // This warning is disabled because the necessary initialization will occur 

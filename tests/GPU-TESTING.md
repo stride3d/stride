@@ -17,9 +17,9 @@ Tests default to **software rendering** — no configuration needed. Visual Stud
 
 To force tests onto your real GPU instead, use the runsettings file:
 
-**Visual Studio:** Test > Configure Run Settings > Select Solution Wide runsettings File > `build/GameTests-GPU.runsettings`
+**Visual Studio:** Test > Configure Run Settings > Select Solution Wide runsettings File > `tests/gpu.runsettings`
 
-**CLI:** `dotnet test --settings build/GameTests-GPU.runsettings`
+**CLI:** `dotnet test --settings tests/gpu.runsettings`
 
 This sets `STRIDE_TESTS_GPU=1`, which skips software rendering. Note that GPU results are hardware-dependent and gold images may not match.
 
@@ -29,7 +29,7 @@ This sets `STRIDE_TESTS_GPU=1`, which skips software rendering. Note that GPU re
 
 [Lavapipe](https://docs.mesa3d.org/drivers/llvmpipe.html) is Mesa's CPU-based Vulkan driver (the Vulkan front-end of `llvmpipe`). The `Stride.Dependencies.Lavapipe` NuGet package provides the software-Vulkan driver (`vulkan_lvp.dll` and its ICD JSON) for Windows, Linux, and macOS x64, built from Mesa source in `.github/workflows/dep-lavapipe.yml`.
 
-Gold images are stored under `tests/<TestProject>/Windows.Vulkan/Lavapipe/` (and `Linux.Vulkan/Lavapipe/`, plus `Android.Vulkan/Lavapipe-LinuxHost/` and `Lavapipe-WindowsHost/` for the emulator).
+Gold images are stored under `tests/baselines/<TestProject>/Windows.Vulkan/Lavapipe/` (and `Linux.Vulkan/Lavapipe/`, plus `Android.Vulkan/Lavapipe-LinuxHost/` and `Lavapipe-WindowsHost/` for the emulator).
 
 Lavapipe is included automatically when building with `StrideGraphicsApi=Vulkan`. When software rendering is active (the default), the test framework invokes the package's module initializer, which sets `VK_DRIVER_FILES` so the Vulkan loader picks Lavapipe — no registry or environment setup needed locally. This path is desktop-only (Windows/Linux/macOS); Android and iOS get Vulkan from the emulator/device.
 
@@ -41,7 +41,7 @@ macOS defaults to the **real GPU** via [MoltenVK](https://github.com/KhronosGrou
 
 [WARP](https://learn.microsoft.com/en-us/windows/win32/direct3darticles/directx-warp) (Windows Advanced Rasterization Platform) is Microsoft's software rasterizer for Direct3D. It is built into Windows and requires no additional packages.
 
-Gold images are stored under `tests/<TestProject>/Windows.Direct3D11/WARP/` and `tests/<TestProject>/Windows.Direct3D12/WARP/`.
+Gold images are stored under `tests/baselines/<TestProject>/Windows.Direct3D11/WARP/` and `tests/baselines/<TestProject>/Windows.Direct3D12/WARP/`.
 
 ## CompareGold Tool
 
@@ -52,7 +52,7 @@ A visual comparison tool for reviewing gold image differences:
 tests\compare-gold.cmd
 
 # Or directly:
-dotnet run --project build/tools/Stride.CompareGold
+dotnet run --project tests/infra/Stride.CompareGold
 ```
 
 ### Features
@@ -105,10 +105,10 @@ Generating brand-new gold makes the platform jobs go **red** ("reference image m
 
 ```powershell
 # Build on Windows, test on Linux via WSL2
-.\build\test-linux-gpu.ps1
+.\tests\infra\linux\run-linux-tests.ps1
 
 # Skip rebuild, just re-run tests
-.\build\test-linux-gpu.ps1 -SkipBuild
+.\tests\infra\linux\run-linux-tests.ps1 -SkipBuild
 
 # Review results visually
 tests\compare-gold.cmd

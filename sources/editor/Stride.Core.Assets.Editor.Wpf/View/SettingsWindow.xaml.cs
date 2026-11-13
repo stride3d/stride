@@ -4,9 +4,10 @@ using System;
 using System.Windows;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Settings;
-using Stride.Core.Assets.Editor.Settings.ViewModels;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Presentation.Quantum.ViewModels;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Assets.Presentation.Components.Properties;
 
 namespace Stride.Core.Assets.Editor.View
 {
@@ -49,6 +50,10 @@ namespace Stride.Core.Assets.Editor.View
         public SettingsWindow(IViewModelServiceProvider serviceProvider)
         {
             InitializeComponent();
+#if DEBUG
+            // Test values of every kind, shown in the window of a Debug build
+            DebugTestSettings.Initialize();
+#endif
             DataContext = new SettingsViewModel(serviceProvider, EditorSettings.SettingsContainer.CurrentProfile);
             Width = Math.Min(Width, SystemParameters.WorkArea.Width);
             Height = Math.Min(Height, SystemParameters.WorkArea.Height);

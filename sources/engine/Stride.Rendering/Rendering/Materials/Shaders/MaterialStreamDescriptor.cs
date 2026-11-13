@@ -19,6 +19,7 @@ namespace Stride.Rendering.Materials
         /// <param name="name">The name.</param>
         /// <param name="stream">The stream.</param>
         /// <param name="colorType">Type of the color.</param>
+        /// <param name="remapSigned">Whether to remap signed values.</param>
         public MaterialStreamDescriptor(string name, string stream, Type colorType, bool remapSigned = false)
             : this(name, stream, GetDefaultFilter(stream, remapSigned, colorType))
         {

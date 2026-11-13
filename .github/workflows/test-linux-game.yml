@@ -108,7 +108,7 @@ jobs:
           # and the runtime tests also resolve through this ICD. Restore first so the
           # Stride.Dependencies.Lavapipe package is in the user NuGet cache, then point
           # the Vulkan loader at the linux-x64 Lavapipe .so shipped inside that package.
-          dotnet restore build/Stride.Tests.Game.GPU.slnf \
+          dotnet restore sources/Stride.Tests.Game.GPU.slnf \
             -p:StridePlatforms=Linux \
             -p:StrideGraphicsApis=Vulkan
           LIB=$(find ~/.nuget/packages/stride.dependencies.lavapipe -path "*/runtimes/linux-x64/native/libvulkan_lvp.so" | head -1)
@@ -131,8 +131,8 @@ jobs:
           TARGET=$(dotnet run --project build/tools/Stride.TestSuites -- \
                      --projects "${{ github.event.inputs.projects || inputs.projects }}" \
                      --filter "${{ github.event.inputs.test-filter || inputs.test-filter }}" \
-                     --slnf build/Stride.Tests.Game.Desktop.slnf)
-          if [ -z "$TARGET" ]; then echo "::error::None of the needed suites is in build/Stride.Tests.Game.Desktop.slnf"; exit 1; fi
+                     --slnf sources/Stride.Tests.Game.Desktop.slnf)
+          if [ -z "$TARGET" ]; then echo "::error::None of the needed suites is in sources/Stride.Tests.Game.Desktop.slnf"; exit 1; fi
           echo "Build/test target: $TARGET"
           echo "STRIDE_TEST_TARGET=$TARGET" >> "$GITHUB_ENV"
           echo "STRIDE_TEST_FILTER=${{ github.event.inputs.test-filter || inputs.test-filter }}" >> "$GITHUB_ENV"

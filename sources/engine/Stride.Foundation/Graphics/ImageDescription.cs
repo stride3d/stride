@@ -40,7 +40,7 @@ namespace Stride.Graphics
         public TextureDimension Dimension;
 
         /// <summary>
-        /// <dd> <p>Texture width (in texels). The  range is from 1 to <see cref="SharpDX.Direct3D11.Resource.MaximumTexture1DSize"/> (16384). However, the range is actually constrained by the feature level at which you create the rendering device. For more information about restrictions, see Remarks.</p> </dd>
+        /// Width of the image in texels. The maximum supported texture width depends on the graphics device.
         /// </summary>
         /// <remarks>
         /// This field is valid for all textures: <see cref="TextureDimension.Texture1D"/>, <see cref="TextureDimension.Texture2D"/>, <see cref="TextureDimension.Texture3D"/> and <see cref="TextureDimension.TextureCube"/>.
@@ -48,7 +48,7 @@ namespace Stride.Graphics
         public int Width;
 
         /// <summary>
-        /// <dd> <p>Texture height (in texels). The  range is from 1 to <see cref="SharpDX.Direct3D11.Resource.MaximumTexture3DSize"/> (2048). However, the range is actually constrained by the feature level at which you create the rendering device. For more information about restrictions, see Remarks.</p> </dd>
+        /// Height of the image in texels. The maximum supported texture height depends on the graphics device.
         /// </summary>
         /// <remarks>
         /// This field is only valid for <see cref="TextureDimension.Texture2D"/>, <see cref="TextureDimension.Texture3D"/> and <see cref="TextureDimension.TextureCube"/>.
@@ -56,7 +56,7 @@ namespace Stride.Graphics
         public int Height;
 
         /// <summary>
-        /// <dd> <p>Texture depth (in texels). The  range is from 1 to <see cref="SharpDX.Direct3D11.Resource.MaximumTexture3DSize"/> (2048). However, the range is actually constrained by the feature level at which you create the rendering device. For more information about restrictions, see Remarks.</p> </dd>
+        /// Depth of the image in texels. The maximum supported texture depth depends on the graphics device.
         /// </summary>
         /// <remarks>
         /// This field is only valid for <see cref="TextureDimension.Texture3D"/>.
@@ -64,7 +64,7 @@ namespace Stride.Graphics
         public int Depth;
 
         /// <summary>
-        /// <dd> <p>Number of textures in the array. The  range is from 1 to <see cref="SharpDX.Direct3D11.Resource.MaximumTexture1DArraySize"/> (2048). However, the range is actually constrained by the feature level at which you create the rendering device. For more information about restrictions, see Remarks.</p> </dd>
+        /// Number of images in the array. The maximum supported texture array size depends on the graphics device.
         /// </summary>
         /// <remarks>
         /// This field is only valid for <see cref="TextureDimension.Texture1D"/>, <see cref="TextureDimension.Texture2D"/> and <see cref="TextureDimension.TextureCube"/>
@@ -75,12 +75,13 @@ namespace Stride.Graphics
         public int ArraySize;
 
         /// <summary>
-        /// <dd> <p>The maximum number of mipmap levels in the texture. See the remarks in <strong><see cref="SharpDX.Direct3D11.ShaderResourceViewDescription.Texture1DResource"/></strong>. Use 1 for a multisampled texture; or 0 to generate a full set of subtextures.</p> </dd>
+        /// Number of mipmap levels in the image. Use 1 for a multisampled texture; or 0 to generate a full set of subtextures.
+        /// See <see cref="Image.CalculateMipLevels(int, MipMapCount)"/> for mip level calculation.
         /// </summary>
         public int MipLevels;
 
         /// <summary>
-        /// <dd> <p>Texture format (see <strong><see cref="SharpDX.DXGI.Format"/></strong>).</p> </dd>
+        /// The image pixel format (see <see cref="PixelFormat"/>).
         /// </summary>
         public PixelFormat Format;
 

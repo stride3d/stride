@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Sean Boettger <sean@whypenguins.com>
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Sean Boettger <sean@whypenguins.com>
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using Stride.Core;
@@ -10,6 +10,7 @@ using Buffer = Stride.Graphics.Buffer;
 
 namespace Stride.Rendering.Voxels
 {
+    [EffectKeys]
     public static partial class Voxel2x2x2MipmapKeys
     {
         public static readonly PermutationParameterKey<ShaderSource> mipmapper = ParameterKeys.NewPermutation<ShaderSource>();

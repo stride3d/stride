@@ -10,6 +10,7 @@ namespace Stride.Rendering.Materials
     /// <summary>
     /// Applies light attenuation with configurable hardness.
     /// </summary>
+    [EffectKeys]
     [DataContract("MaterialHairLightAttenuationFunctionDirectional")]
     [Display("Directional")]
     public class MaterialHairLightAttenuationFunctionDirectional : IMaterialHairLightAttenuationFunction

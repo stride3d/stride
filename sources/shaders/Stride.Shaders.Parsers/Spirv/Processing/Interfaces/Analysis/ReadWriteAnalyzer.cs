@@ -1,4 +1,5 @@
 using Stride.Shaders.Core;
+using Stride.Shaders.Parsing;
 using System.Runtime.InteropServices;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
@@ -13,7 +14,8 @@ internal static class ReadWriteAnalyzer
     /// <summary>
     /// Figure out (recursively) which streams are being read from and written to.
     /// </summary>
-    public static bool AnalyzeStreamReadWrites(SpirvBuffer buffer, SpirvContext context, int functionId, AnalysisResult analysisResult, LiveAnalysis liveAnalysis)
+    /// <param name="mightNotRun">The function is called from inside an <c>if</c> or a loop, so its writes might not run.</param>
+    public static bool AnalyzeStreamReadWrites(SpirvBuffer buffer, SpirvContext context, int functionId, AnalysisResult analysisResult, LiveAnalysis liveAnalysis, bool mightNotRun = false)
     {
         // Check if already processed
         var methodInfo = liveAnalysis.GetOrCreateMethodInfo(functionId);
@@ -41,13 +43,28 @@ internal static class ReadWriteAnalyzer
         var patchInstructionIds = new Dictionary<int, StreamsKindSDSL>();
         var streams = analysisResult.Streams;
         var variables = analysisResult.Variables;
-        var accessChainBases = new Dictionary<int, (int Base, StreamsKindSDSL? StreamKind)>();
+        // Whole: the access chain is exactly one stream. OnStreams: its base is `streams` itself, not a copy or a parameter.
+        var accessChainBases = new Dictionary<int, (int Base, StreamsKindSDSL? StreamKind, bool Whole, bool OnStreams)>();
         (int File, int Line, int Column)? currentLine = null;
+
+        // `streams` itself, as opposed to the Streams variables and parameters also in streamsInstructionIds
+        var directStreamsIds = new HashSet<int>();
+        // Merge blocks of the `if`s and loops open at this instruction: the code before them might not run
+        var openMerges = new HashSet<int>();
+        var returnedEarly = false;
 
         foreach (ref var i in CollectionsMarshal.AsSpan(methodInstructions))
         {
             if (i.Op is Op.OpLine && new OpLine(ref i) is { } line)
                 currentLine = (line.File, line.Line, line.Column);
+            else if (i.Op is Op.OpSelectionMerge && new OpSelectionMerge(ref i) is { } selectionMerge)
+                openMerges.Add(selectionMerge.MergeBlock);
+            else if (i.Op is Op.OpLoopMerge && new OpLoopMerge(ref i) is { } loopMerge)
+                openMerges.Add(loopMerge.MergeBlock);
+            else if (i.Op is Op.OpLabel && new OpLabel(ref i) is { } label)
+                openMerges.Remove(label.ResultId);
+            else if (i.Op is Op.OpReturn or Op.OpReturnValue)
+                returnedEarly |= openMerges.Count > 0;
             // Check for any Streams variable
             else if (i.Op is Op.OpFunction && new OpFunction(ref i) is { } function)
             {
@@ -118,8 +135,11 @@ internal static class ReadWriteAnalyzer
                             // with no producer and no semantic, we can point at the method that expects it.
                             streamInfo.ReadByMethod ??= context.Names.TryGetValue(functionId, out var readerName) ? readerName : null;
                             if (currentLine is { } readLine && context.GetBuffer().TryGetInstructionById(readLine.File, out var file) && file.Op == Op.OpString)
-                                streamInfo.ReadAt ??= $"{((OpString)file).Value}({readLine.Line},{readLine.Column}): ";
+                                streamInfo.ReadAt ??= $"{MessageFileName.Of(((OpString)file).Value)}({readLine.Line},{readLine.Column}): ";
                         }
+                        // The write might not have run, or this is a copy, which can be older than the write
+                        else if (!streamInfo.DefiniteWrite || !accessChain.OnStreams)
+                            streamInfo.MaybeRead = true;
                     }
                 }
                 if (variables.TryGetValue(accessChain.Base, out var variableInfo))
@@ -143,6 +163,8 @@ internal static class ReadWriteAnalyzer
                         throw new InvalidOperationException("Can't write value on input or output struct");
 
                     streamInfo.Write = true;
+                    if (accessChain.Whole && accessChain.OnStreams && !MightNotRun())
+                        streamInfo.DefiniteWrite = true;
                 }
                 if (variables.TryGetValue(accessChain.Base, out var variableInfo))
                     MarkVariableUsed(variableInfo);
@@ -182,6 +204,7 @@ internal static class ReadWriteAnalyzer
             else if (i.Op == Op.OpStreamsSDSL && new OpStreamsSDSL(ref i) is { } streamsInstruction)
             {
                 streamsInstructionIds.Add(streamsInstruction.ResultId, StreamsKindSDSL.Streams);
+                directStreamsIds.Add(streamsInstruction.ResultId);
                 methodInfo.HasStreamAccess = true;
             }
             else if (i.Op == Op.OpAccessChain && new OpAccessChain(ref i) is { } accessChain)
@@ -200,11 +223,16 @@ internal static class ReadWriteAnalyzer
                 else
                 {
                     StreamsKindSDSL? currentStreamKind = null;
+                    var whole = false;
+                    var onStreams = false;
                     // In case it's a streams access, mark the stream as being the base
                     if (streamsInstructionIds.TryGetValue(currentBase, out var streamKind))
                     {
                         var streamVariableId = accessChain.Indexes.Elements.Span[0];
                         var streamInfo = streams[streamVariableId];
+
+                        whole = accessChain.Indexes.Elements.Length == 1;
+                        onStreams = directStreamsIds.Contains(currentBase);
 
                         // Set this base for OpStore/OpLoad stream R/W analysis
                         currentBase = streamVariableId;
@@ -212,15 +240,15 @@ internal static class ReadWriteAnalyzer
                     }
 
                     // Any read or write through an access chain will be treated as doing it on the main variable.
-                    // i.e., streams.A.B will share same streamInfo as streams.A
-                    // TODO: what happens in case of partial write?
+                    // i.e., streams.A.B will share same streamInfo as streams.A, but isn't whole
                     // Recurse in case we have multiple access chain chained after each other
                     while (accessChainBases.TryGetValue(currentBase, out var nextBase))
                     {
                         currentBase = nextBase.Base;
                         currentStreamKind ??= nextBase.StreamKind;
+                        onStreams |= nextBase.OnStreams;
                     }
-                    accessChainBases.Add(accessChain.ResultId, (currentBase, currentStreamKind));
+                    accessChainBases.Add(accessChain.ResultId, (currentBase, currentStreamKind, whole, onStreams));
                 }
             }
             else if (i.Op == Op.OpFunctionCall && new OpFunctionCall(ref i) is { } call)
@@ -240,11 +268,13 @@ internal static class ReadWriteAnalyzer
                 }
 
                 // Process call
-                methodInfo.HasStreamAccess |= AnalyzeStreamReadWrites(buffer, context, call.Function, analysisResult, liveAnalysis);
+                methodInfo.HasStreamAccess |= AnalyzeStreamReadWrites(buffer, context, call.Function, analysisResult, liveAnalysis, MightNotRun());
             }
         }
 
         return methodInfo.HasStreamAccess;
+
+        bool MightNotRun() => mightNotRun || openMerges.Count > 0 || returnedEarly;
 
         // The entry point wrapper calls a used variable's initializer method, so what the initializer reads is used too
         // (a uniform's initializer is a constant: its default value)
@@ -252,7 +282,27 @@ internal static class ReadWriteAnalyzer
         {
             variableInfo.UsedThisStage = true;
             if (variableInfo.VariableMethodInitializerId is int initializerId && variableInfo.Type.StorageClass != StorageClass.Uniform)
-                AnalyzeStreamReadWrites(buffer, context, initializerId, analysisResult, liveAnalysis);
+                AnalyzeStreamReadWrites(buffer, context, initializerId, analysisResult, liveAnalysis, true);
+        }
+    }
+
+    /// <summary>
+    /// Adds the streams that a function and the functions it calls access, whether they read or write them.
+    /// </summary>
+    public static void CollectAccessedStreams(SpirvBuffer buffer, int functionId, Dictionary<int, StreamVariableInfo> streams, HashSet<int> visited, HashSet<int> accessed)
+    {
+        if (!visited.Add(functionId))
+            return;
+
+        var (methodStart, methodEnd) = SpirvBuilder.FindMethodBounds(buffer, functionId);
+        for (var index = methodStart; index < methodEnd; index++)
+        {
+            var i = buffer[index];
+            // Ids are unique, so an access chain with a stream as its first index is an access to this stream
+            if (i.Op == Op.OpAccessChain && (OpAccessChain)i is { } accessChain && streams.ContainsKey(accessChain.Indexes.Elements.Span[0]))
+                accessed.Add(accessChain.Indexes.Elements.Span[0]);
+            else if (i.Op == Op.OpFunctionCall && (OpFunctionCall)i is { } call)
+                CollectAccessedStreams(buffer, call.Function, streams, visited, accessed);
         }
     }
 

@@ -1,0 +1,795 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using System.ComponentModel;
+using System.Diagnostics;
+using Avalonia;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Components.Build;
+using Stride.Core.Assets.Editor.Components.Status;
+using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
+using Stride.Core.Assets.Editor.Components.Transactions;
+using Stride.Core.Assets.Editor.Panels;
+using Stride.Core.Assets.Editor.Plugins;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.Settings;
+using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Diagnostics;
+using Stride.Core.Extensions;
+using Stride.Core.IO;
+using Stride.Core.MostRecentlyUsedFiles;
+using Stride.Core.Presentation.Collections;
+using Stride.Core.Presentation.Commands;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Presentation.Windows;
+using Stride.Core.Translation;
+using Stride.Editor;
+using Stride.GameStudio.Avalonia.Docking;
+using Stride.GameStudio.Avalonia.Helpers;
+using Stride.GameStudio.Avalonia.Services;
+using Stride.GameStudio.Avalonia.Settings;
+
+namespace Stride.GameStudio.Avalonia.ViewModels;
+
+internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRestartService
+{
+    private const int RecentFilesCount = 10;
+    // The owner of the editor's own panels in the panel registry
+    private const string BuiltInPanelsOwner = "Stride.GameStudio";
+    private static readonly string baseTitle = StrideGameStudio.EditorTitle;
+    private static bool msBuildFound;
+    private SessionViewModel? session;
+    // The session whose unsaved changes the title shows
+    private SessionViewModel? titleSession;
+    private ActionHistoryViewModel? history;
+    private PreviewViewModel? preview;
+    private UFile? sessionPath;
+    private SessionEditorsRestorer? editorsRestorer;
+    private readonly List<PanelActivation> panelActivations = [];
+    private string? sessionName;
+    private string title = baseTitle;
+
+#if DEBUG
+    // Note: only required for the Avalonia designer
+    public MainViewModel()
+        : this(ViewModelServiceProvider.NullServiceProvider)
+    { }
+#endif
+
+    public MainViewModel(IViewModelServiceProvider serviceProvider)
+        : base(serviceProvider)
+    {
+        AboutCommand = new AnonymousTaskCommand(serviceProvider, OnAbout, () => DialogService.HasMainWindow);
+        CloseCommand = new AnonymousTaskCommand(serviceProvider, OnClose);
+#if DEBUG
+        CrashCommand = new AnonymousCommand(serviceProvider, () => throw new Exception("Boom!"));
+#else
+        CrashCommand = DisabledCommand.Instance;
+#endif
+        ExitCommand = new AnonymousCommand(serviceProvider, OnExit, () => DialogService.HasMainWindow);
+        OpenCommand = new AnonymousTaskCommand<UFile?>(serviceProvider, OnOpen);
+        NewSessionCommand = new AnonymousTaskCommand(serviceProvider, OnNewSession, () => DialogService.HasMainWindow);
+        SelectProjectCommand = new AnonymousTaskCommand(serviceProvider, () => SelectProjectAsync(exitOnCancel: false), () => DialogService.HasMainWindow);
+        SelectInitialProjectCommand = new AnonymousTaskCommand(serviceProvider, () => SelectProjectAsync(exitOnCancel: true), () => DialogService.HasMainWindow);
+        OpenInitialSessionCommand = new AnonymousTaskCommand<UFile?>(serviceProvider, OnOpenInitialSession);
+        ClearRecentFilesCommand = new AnonymousCommand(serviceProvider, ClearRecentFiles);
+        OpenDebugWindowCommand = new AnonymousTaskCommand(serviceProvider, OnOpenDebugWindow, () => DialogService.HasMainWindow);
+        OpenSettingsWindowCommand = new AnonymousTaskCommand(serviceProvider, OnOpenSettingsWindow, () => DialogService.HasMainWindow);
+        OpenWebPageCommand = new AnonymousTaskCommand<string>(serviceProvider, OnOpenWebPage);
+        ReloadCommand = new AnonymousTaskCommand(serviceProvider, OnReload);
+        // Enabled while a session is open, even without a change, as in WPF
+        SaveCommand = new AnonymousTaskCommand(serviceProvider, OnSave) { IsEnabled = false };
+        UndoCommand = new AnonymousCommand(serviceProvider, () => history?.UndoCommand.Execute()) { IsEnabled = false };
+        RedoCommand = new AnonymousCommand(serviceProvider, () => history?.RedoCommand.Execute()) { IsEnabled = false };
+
+        Status = new StatusViewModel(ServiceProvider);
+        Status.PushStatus("Ready");
+        Build = new BuildAndRunViewModel(serviceProvider, Status);
+        CodeReload = new GameCodeReloadViewModel(serviceProvider, Build, ReloadSessionAsync);
+        Notifications = serviceProvider.TryGet<INotificationService>();
+        Build.PropertyChanged += BuildPropertyChanged;
+
+        // The panels of the main window: the editor's and the plugins' (the plugin host owns the registry, and removes the
+        // panels of a plugin that leaves); their layouts are kept per session
+        var host = serviceProvider.TryGet<IAssetsPluginService>() as EditorPluginHost;
+        var registry = host?.Panels ?? new PanelRegistry();
+        Panels = new DockPanelService(serviceProvider, registry, GameStudioInternalSettings.CreateSessionPanelLayouts());
+        // The plugins show their panels through it (the curve editor's "Edit curve")
+        serviceProvider.RegisterService(Panels);
+        RegisterBuiltInPanels(registry, host);
+        ViewMenu = new ViewMenuViewModel(serviceProvider, Panels);
+        // In safe mode, a banner says how many plugins are off, with "Restart normally" and the Plugins panel
+        if (host is not null)
+            SafeModeBanner = new SafeModeBannerViewModel(serviceProvider, host, this, () => Panels.Show(BuiltInPanels.Plugins), () => session is not null);
+
+        // The most recently used sessions of this and the earlier editor versions
+        MRU = GameStudioInternalSettings.CreateMostRecentlyUsedFiles();
+        MRU.MostRecentlyUsedFiles.CollectionChanged += (_, _) => UpdateRecentFiles();
+        UpdateRecentFiles();
+    }
+
+    public SessionViewModel? Session
+    {
+        get => session;
+        set => SetValue(ref session, value, OnSessionChanged);
+    }
+
+    public StatusViewModel Status { get; }
+
+    /// <summary>
+    /// The banner shown in safe mode; null when the editor has no plugin host.
+    /// </summary>
+    public SafeModeBannerViewModel? SafeModeBanner { get; }
+
+    /// <summary>
+    /// Loads the session file (a solution or a package) that <see cref="OpenSession"/> opens, with the load parameters of the
+    /// editor; the tests replace it to load the packages they write without the NuGet restore and MSBuild.
+    /// </summary>
+    internal Action<UFile, PackageSessionResult, PackageLoadParameters> LoadSessionFile { get; set; } = (path, result, loadParameters) => PackageSession.Load(path, result, loadParameters);
+
+    /// <inheritdoc/>
+    public string EditorToolkitName => EditorToolkits.Avalonia;
+
+    /// <inheritdoc/>
+    /// <remarks>As in WPF, the shaders open with the shader editor of the settings.</remarks>
+    public IEnumerable<string> TextAssetTypes { get; } = [nameof(Stride.Assets.Effect.EffectShaderAsset), nameof(Stride.Assets.Effect.EffectCompositorAsset)];
+
+    /// <inheritdoc/>
+    public void AddRecentFile(UFile filePath) => MRU.AddFile(filePath, StrideGameStudio.EditorVersionMajor);
+
+    /// <summary>
+    /// Builds the current project of the session and starts its game (the Project menu, the toolbar and the Output pane).
+    /// </summary>
+    public BuildAndRunViewModel Build { get; }
+
+    /// <summary>
+    /// Watches the game code of the session and reloads it when it changes, by opening the session again in a new editor (the
+    /// Project menu and the toolbar).
+    /// </summary>
+    public GameCodeReloadViewModel CodeReload { get; }
+
+    /// <summary>
+    /// The background operations shown in the notification bar; <c>null</c> when the host has no bar.
+    /// </summary>
+    public INotificationService? Notifications { get; }
+
+    /// <summary>
+    /// The panels and editors of the main window, and their layouts.
+    /// </summary>
+    public DockPanelService Panels { get; }
+
+    /// <summary>
+    /// The View menu: a toggle per panel, and Reset layout.
+    /// </summary>
+    public ViewMenuViewModel ViewMenu { get; }
+
+    /// <summary>
+    /// The asset preview panel of the session; <c>null</c> without a session.
+    /// </summary>
+    public PreviewViewModel? Preview
+    {
+        get => preview;
+        private set => SetValue(ref preview, value);
+    }
+
+    public string Title
+    {
+        get => title;
+        set => SetValue(ref title, value);
+    }
+
+    /// <summary>
+    /// The most recently used sessions, as stored in the internal settings.
+    /// </summary>
+    public MostRecentlyUsedFileCollection MRU { get; }
+
+    /// <summary>
+    /// The recent sessions of this editor version or an earlier one, most recent first, for the File menu.
+    /// </summary>
+    public ObservableList<RecentSessionViewModel> RecentFiles { get; } = [];
+
+    public ICommandBase AboutCommand { get; }
+
+    public ICommandBase ClearRecentFilesCommand { get; }
+
+    public ICommandBase CloseCommand { get; }
+
+    public ICommandBase CrashCommand { get; }
+
+    public ICommandBase ExitCommand { get; }
+
+    /// <summary>
+    /// File > New: closes the session, if any, and shows the project selection window (a new project from a template, or a recent
+    /// project), as WPF's New command restarts the editor on the project selection.
+    /// </summary>
+    public ICommandBase NewSessionCommand { get; }
+
+    /// <summary>
+    /// Shows the project selection window over the empty editor (after <see cref="NewSessionCommand"/>). Cancelling leaves the editor empty.
+    /// </summary>
+    public ICommandBase SelectProjectCommand { get; }
+
+    /// <summary>
+    /// Shows the project selection window when the editor starts without a session. Cancelling exits the editor, as the WPF editor does.
+    /// </summary>
+    public ICommandBase SelectInitialProjectCommand { get; }
+
+    public ICommandBase OpenCommand { get; }
+
+    /// <summary>
+    /// Opens the session the editor starts with; a crash while it loads is remembered, and the next start asks before trying again.
+    /// </summary>
+    public ICommandBase OpenInitialSessionCommand { get; }
+
+    public ICommandBase OpenDebugWindowCommand { get; }
+
+    public ICommandBase OpenSettingsWindowCommand { get; }
+
+    public ICommandBase OpenWebPageCommand { get; }
+
+    /// <summary>
+    /// Opens the session again, after asking whether to save its changes.
+    /// </summary>
+    public ICommandBase ReloadCommand { get; }
+
+    /// <summary>
+    /// Saves the session (<see cref="SessionViewModel.SaveSessionCommand"/>).
+    /// </summary>
+    /// <remarks>
+    /// The File menu binds this command rather than the session's: Avalonia evaluates the command of an item of a closed menu
+    /// only when the menu opens, so the item's Ctrl+S would keep the state of the command it had when the editor started.
+    /// </remarks>
+    public ICommandBase SaveCommand { get; }
+
+    /// <summary>
+    /// Undoes the last action of the session (<see cref="ActionHistoryViewModel.UndoCommand"/>).
+    /// </summary>
+    /// <remarks>
+    /// The Edit menu and the window's Ctrl+Z bind this command rather than the history's, for the same reason as <see cref="SaveCommand"/>:
+    /// the command of the history changes with the session, and its state after every action.
+    /// </remarks>
+    public ICommandBase UndoCommand { get; }
+
+    /// <summary>
+    /// Redoes the last undone action of the session (<see cref="ActionHistoryViewModel.RedoCommand"/>).
+    /// </summary>
+    /// <remarks>See <see cref="UndoCommand"/>.</remarks>
+    public ICommandBase RedoCommand { get; }
+
+    private EditorDialogService DialogService => ServiceProvider.Get<EditorDialogService>();
+
+    /// <summary>
+    /// Starts the editor in a new process; <c>null</c> when the host cannot (the editor then restarts in this process).
+    /// </summary>
+    private EditorProcessService? ProcessService => ServiceProvider.TryGet<EditorProcessService>();
+
+    /// <summary>
+    /// Whether this process loaded a session already, even if it is closed now: the next one needs a new process.
+    /// </summary>
+    private bool NeedsNewProcess => ProcessService?.HasLoadedSession == true;
+
+    /// <summary>
+    /// Opens the session the editor was started with.
+    /// </summary>
+    /// <returns><c>true</c> when the session is open, <c>false</c> when it failed or the user declined, <c>null</c> when the user cancelled the loading.</returns>
+    public async Task<bool?> OpenInitialSessionAsync(UFile? initialSessionPath, CancellationToken token = default)
+    {
+        if (UPath.IsNullOrEmpty(initialSessionPath))
+            return false;
+
+        // The LoadingStartupSession settings is true, which means that the editor crashed while loading the startup project last time.
+        // Lets give the user a chance to fix the startup session.
+        if (InternalSettings.LoadingStartupSession.GetValue())
+        {
+            var buttons = new[]
+            {
+                new DialogButtonInfo { Content = Tr._p("Button", "Try again"), Result = 1, IsDefault = true },
+                new DialogButtonInfo { Content = Tr._p("Button", "Cancel"), Result = 2, IsCancel = true },
+            };
+            var message = string.Format(Tr._p("Message", "The last attempt to load the project **{0}** failed. \r\n\r\nDo you want to try to load it again?"), Path.GetFileName(initialSessionPath.ToOSPath()));
+            var result = await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, buttons, MessageBoxImage.Warning);
+            if (result != 1)
+            {
+                InternalSettings.LoadingStartupSession.SetValue(false);
+                InternalSettings.Save();
+                return false;
+            }
+        }
+
+        // Safe-guard - this will warn that the startup session makes the editor crash while loading.
+        InternalSettings.LoadingStartupSession.SetValue(true);
+        InternalSettings.Save();
+
+        var sessionResult = await OpenSession(initialSessionPath, token);
+
+        InternalSettings.LoadingStartupSession.SetValue(false);
+        InternalSettings.Save();
+
+        return sessionResult;
+    }
+
+    /// <summary>
+    /// Opens the session of a solution or package file, asking for one when no path is given.
+    /// </summary>
+    /// <returns><c>true</c> when the session is open, <c>false</c> when it failed, no file was chosen or the user kept an editor of the current session open, <c>null</c> when the user cancelled the loading.</returns>
+    public async Task<bool?> OpenSession(UFile? filePath, CancellationToken token = default)
+    {
+        if (filePath is not null && !File.Exists(filePath.ToOSPath()))
+        {
+            RemoveRecentFile(filePath);
+            await ServiceProvider.Get<IDialogService>().MessageBoxAsync(string.Format(Tr._p("Message", @"The file '{0}' does not exist."), filePath), MessageBoxButton.OK, MessageBoxImage.Information);
+            return false;
+        }
+
+        if (filePath is null)
+        {
+            filePath = await DialogService.OpenFilePickerAsync(InternalSettings.FileDialogLastOpenSessionDirectory.GetValue(), SessionFileFilters);
+        }
+
+        if (filePath is null) return false;
+
+        // We have a session, or had one, let's restart cleanly
+        if (session is not null || NeedsNewProcess)
+            return await RestartAsync(filePath);
+
+        // The session needs MSBuild to load the projects of the solution
+        if (!await EnsureMSBuildAsync())
+            return false;
+
+        ProcessService?.NotifySessionLoading();
+        var sessionResult = new PackageSessionResult();
+        var loadedSession = await SessionViewModel.OpenSessionAsync(filePath, loadParameters => LoadSessionFile(filePath, sessionResult, loadParameters), sessionResult, this, ServiceProvider, token);
+
+        // Loading has failed
+        if (loadedSession == null)
+        {
+            if (sessionResult.OperationCancelled)
+            {
+                // The cancelled session might have registered plugins or services, let's restart cleanly
+                (Application.Current as App)?.Restart();
+
+                // Null means the user has cancelled the loading operation.
+                return null;
+            }
+            return false;
+        }
+
+        AttachSession(loadedSession, filePath);
+        return true;
+    }
+
+    /// <summary>
+    /// Creates a new session from a template (the project selection window), in an empty editor, and opens it.
+    /// </summary>
+    /// <returns><c>true</c> when the session is open, <c>false</c> when the generator failed or the user cancelled its parameters.</returns>
+    public async Task<bool> CreateNewSessionAsync(NewSessionParameters parameters)
+    {
+        ArgumentNullException.ThrowIfNull(parameters);
+        if (session is not null)
+            throw new InvalidOperationException("A session is open already.");
+
+        // The generator loads the projects it creates
+        if (!await EnsureMSBuildAsync())
+            return false;
+
+        ProcessService?.NotifySessionLoading();
+        var createdSession = await SessionViewModel.CreateNewSessionAsync(parameters, this, ServiceProvider);
+        if (createdSession is null)
+        {
+            // The generator might have registered plugins or services, let's restart cleanly
+            (Application.Current as App)?.Restart();
+            return false;
+        }
+
+        AttachSession(createdSession, createdSession.SolutionPath, isNew: true);
+        return true;
+    }
+
+    /// <summary>
+    /// Shows the project selection window: a new session from a template, or a recent project to open.
+    /// </summary>
+    /// <param name="exitOnCancel">
+    /// Whether cancelling exits the editor (at startup, when nothing else can be done) instead of leaving it empty (after
+    /// <see cref="NewSessionCommand"/>, when the user chose to close the previous session).
+    /// </param>
+    internal async Task SelectProjectAsync(bool exitOnCancel)
+    {
+        var templates = new NewOrOpenSessionTemplateCollectionViewModel(ServiceProvider, RecentFiles.Select(x => x.FilePath).ToList(), RemoveRecentFile);
+        try
+        {
+            if (!await DialogService.ShowProjectSelectionDialogAsync(templates))
+            {
+                if (exitOnCancel)
+                    DialogService.Exit();
+                return;
+            }
+
+            if (templates.GetExistingSessionPath() is { } existingSession)
+                await OpenSession(existingSession);
+            else if (templates.GetNewSessionParameters() is { } newSession)
+                await CreateNewSessionAsync(newSession);
+        }
+        finally
+        {
+            templates.Destroy();
+        }
+    }
+
+    /// <summary>
+    /// Makes an opened or created session the editor's: the recent files, the title, the plugins' session services, the preview,
+    /// then the editors of the last session or the default scene.
+    /// </summary>
+    /// <param name="loadedSession">The session.</param>
+    /// <param name="filePath">The file the session was opened from.</param>
+    /// <param name="isNew">Whether the session was just created: what an older session at the same path kept is forgotten, as in WPF.</param>
+    private void AttachSession(SessionViewModel loadedSession, UFile filePath, bool isNew = false)
+    {
+        // Written to the file with the list of recent sessions, which writes every setting this editor changed
+        InternalSettings.FileDialogLastOpenSessionDirectory.SetValue(filePath.GetFullDirectory());
+        MRU.AddFile(filePath, StrideGameStudio.EditorVersionMajor);
+
+        sessionPath = filePath;
+        Session = loadedSession;
+        // The solution's name, or the package's when a package file was opened directly
+        var sessionFile = UPath.IsNullOrEmpty(Session.SolutionPath) ? filePath : Session.SolutionPath;
+        sessionName = sessionFile.GetFileNameWithoutExtension();
+        UpdateTitle();
+
+        // The plugins initialize their session services (build, thumbnails, preview) and the property grid's commands and updaters
+        // now that the session has its views
+        ServiceProvider.Get<IAssetsPluginService>().InitializeSession(Session);
+        Session.PluginsInitialized();
+        // It owns the preview service that a plugin has just registered, and the preview game with it
+        Preview = new PreviewViewModel(Session);
+
+        // The editors of the last session, or the default scene, now that the plugins have registered the editors; keyed by the
+        // solution, as in WPF
+        var sessionData = GameStudioInternalSettings.CreateMostRecentlyUsedSessionsData();
+        var dataPath = UPath.IsNullOrEmpty(Session.SolutionPath) ? filePath : Session.SolutionPath;
+        if (isNew)
+            sessionData.RemoveFile(dataPath);
+        editorsRestorer = new SessionEditorsRestorer(Session, sessionData, dataPath);
+
+        // The panels, in the layout the session had in this editor (kept under the same path as its editors)
+        Panels.OpenSession(Session, dataPath);
+        // The panels that come forward by themselves, as in WPF: the asset view when the solution explorer selects a folder, the
+        // Output on an error of the build (the code reload builds there too)
+        panelActivations.Add(PanelActivation.OnLocationChanged(Panels, BuiltInPanels.AssetView, Session.AssetCollection.SelectedLocations));
+        panelActivations.Add(PanelActivation.OnLog(Panels, BuiltInPanels.BuildLog, Build.BuildLog.Messages));
+
+        editorsRestorer.Restore();
+        SafeModeBanner?.Update();
+    }
+
+    /// <summary>
+    /// Follows the new session: <see cref="UndoCommand"/> and <see cref="RedoCommand"/> mirror the commands of its history, and the
+    /// title shows its unsaved changes.
+    /// </summary>
+    private void OnSessionChanged()
+    {
+        SaveCommand.IsEnabled = session is not null;
+        Build.Session = session;
+        CodeReload.Session = session;
+        if (titleSession is not null)
+            titleSession.PropertyChanged -= SessionPropertyChanged;
+        titleSession = session;
+        if (titleSession is not null)
+            titleSession.PropertyChanged += SessionPropertyChanged;
+        if (history is not null)
+        {
+            history.UndoCommand.CanExecuteChanged -= UpdateUndoRedo;
+            history.RedoCommand.CanExecuteChanged -= UpdateUndoRedo;
+        }
+        history = session?.ActionHistory;
+        if (history is not null)
+        {
+            history.UndoCommand.CanExecuteChanged += UpdateUndoRedo;
+            history.RedoCommand.CanExecuteChanged += UpdateUndoRedo;
+        }
+        UpdateUndoRedo(null, EventArgs.Empty);
+    }
+
+    /// <summary>
+    /// Registers the panels of the editor: those of the session, the Output and the Asset preview.
+    /// </summary>
+    /// <remarks>
+    /// They replace those of an earlier main view model of the process, if any: the plugin host outlives it in the tests.
+    /// </remarks>
+    private void RegisterBuiltInPanels(PanelRegistry registry, EditorPluginHost? host)
+    {
+        registry.UnregisterOwner(BuiltInPanelsOwner);
+        foreach (var descriptor in BuiltInPanels.CreateSessionPanels())
+            registry.Register(descriptor, BuiltInPanelsOwner);
+        registry.Register(BuiltInPanels.CreateOutputPanel(Build), BuiltInPanelsOwner);
+        // The preview service exists once the plugins have initialized the session, before the panels are created
+        registry.Register(BuiltInPanels.CreatePreviewPanel(context => new AssetPreviewPanelViewModel(context, Preview ?? throw new InvalidOperationException("The session has no preview."))), BuiltInPanelsOwner);
+        // The plugins of the session, switched under the file it was opened from; "Restart to apply" opens it again
+        if (host is not null)
+            registry.Register(BuiltInPanels.CreatePluginsPanel(context => new PluginsPanelViewModel(context, host, sessionPath, this)), BuiltInPanelsOwner);
+    }
+
+    /// <summary>
+    /// A build brings the Output forward, as in WPF.
+    /// </summary>
+    private void BuildPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        // The Output shows its messages as seen while it is shown (OutputPanelViewModel); a build sets it, and the panel comes
+        // forward, even from a hidden or unselected tab
+        if (e.PropertyName == nameof(BuildAndRunViewModel.IsOutputVisible) && Build.IsOutputVisible)
+            Panels.Show(BuiltInPanels.BuildLog);
+    }
+
+    private void UpdateUndoRedo(object? sender, EventArgs e)
+    {
+        UndoCommand.IsEnabled = history?.UndoCommand.IsEnabled ?? false;
+        RedoCommand.IsEnabled = history?.RedoCommand.IsEnabled ?? false;
+    }
+
+    private void SessionPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(SessionViewModel.HasUnsavedChanges))
+            UpdateTitle();
+    }
+
+    /// <summary>
+    /// The name of the editor, then the name of the session with a <c>*</c> while it has unsaved changes.
+    /// </summary>
+    private void UpdateTitle()
+    {
+        Title = sessionName is null ? baseTitle : $"{baseTitle} - {sessionName}{(session?.HasUnsavedChanges == true ? "*" : string.Empty)}";
+    }
+
+    private static IReadOnlyList<FilePickerFilter> SessionFileFilters =>
+    [
+        new(Tr._p("FileFilter", "Solution or package files")) { Patterns = [.. Core.Solutions.Solution.SolutionExtensions.Select(x => "*" + x), "*" + Package.PackageFileExtension] },
+        new(Tr._p("FileFilter", "Solution file")) { Patterns = [.. Core.Solutions.Solution.SolutionExtensions.Select(x => "*" + x)] },
+        new(Tr._p("FileFilter", "Package file")) { Patterns = ["*" + Package.PackageFileExtension] },
+    ];
+
+    /// <summary>
+    /// Locates MSBuild once; a missing one is reported and stops the session from opening.
+    /// </summary>
+    private async Task<bool> EnsureMSBuildAsync()
+    {
+        if (msBuildFound)
+            return true;
+        try
+        {
+            PackageSessionPublicHelper.FindAndSetMSBuildVersion();
+            msBuildFound = true;
+            return true;
+        }
+        catch (Exception e)
+        {
+            var message = "Could not find a compatible version of MSBuild.\r\n\r\n" +
+                          $"Check that you have the latest [.NET {PackageSessionPublicHelper.NetMajorVersion} SDK](https://dotnet.microsoft.com/) installed.\r\n\r\n" +
+                          e.Message;
+            await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
+            return false;
+        }
+    }
+
+    private void UpdateRecentFiles()
+    {
+        RecentFiles.Clear();
+        var editorVersion = StrideGameStudio.EditorVersionMajor;
+        foreach (var item in MRU.MostRecentlyUsedFiles.Where(x => string.Compare(x.Version, editorVersion, StringComparison.Ordinal) <= 0).Take(RecentFilesCount))
+        {
+            RecentFiles.Add(new RecentSessionViewModel(ServiceProvider, item, path => OpenSession(path)));
+        }
+    }
+
+    private void RemoveRecentFile(UFile filePath)
+    {
+        foreach (var version in MRU.MostRecentlyUsedFiles.Where(x => x.FilePath == filePath).Select(x => x.Version).Distinct().ToList())
+            MRU.RemoveFile(filePath, version);
+    }
+
+    private void ClearRecentFiles()
+    {
+        foreach (var version in MRU.MostRecentlyUsedFiles.Select(x => x.Version).Distinct().ToList())
+            MRU.Clear(version);
+    }
+
+    private async Task OnAbout()
+    {
+        await DialogService.ShowAboutWindowAsync();
+    }
+
+    private async Task OnClose()
+    {
+        // We have a session, let's restart empty
+        if (session is not null && Application.Current is App app && await CloseSessionAsync())
+        {
+            CloseSessionServices();
+            app.Restart();
+        }
+    }
+
+    private async Task OnNewSession()
+    {
+        if (session is null && !NeedsNewProcess)
+        {
+            await SelectProjectAsync(exitOnCancel: false);
+            return;
+        }
+
+        // We have a session, or had one, let's restart empty with the project selection
+        await RestartAsync(null);
+    }
+
+    private async Task OnSave()
+    {
+        // A saved session goes to the top of the recent sessions (AddRecentFile), as in WPF
+        if (session is not null)
+            await session.SaveSessionAsync();
+    }
+
+    private async Task OnReload()
+    {
+        await ReloadSessionAsync();
+    }
+
+    /// <summary>
+    /// Opens the same session in a fresh editor, as WPF's Reload project does, after asking whether to save it.
+    /// </summary>
+    /// <returns><c>true</c> when the editor restarts, <c>false</c> when the user kept the session open or there is none.</returns>
+    private async Task<bool> ReloadSessionAsync()
+    {
+        return session is not null && sessionPath is { } path && await RestartAsync(path);
+    }
+
+    /// <inheritdoc/>
+    /// <remarks>
+    /// "Restart to apply" of the Plugins panel and "Restart normally" of the safe mode banner. Without a session, the next one
+    /// opens in that mode.
+    /// </remarks>
+    public async Task<bool> RestartAsync(bool safeMode)
+    {
+        if (session is null || sessionPath is null)
+        {
+            SetSafeMode(safeMode);
+            return true;
+        }
+        return await RestartAsync(sessionPath, safeMode);
+    }
+
+    /// <summary>
+    /// Closes the session, after asking whether to save it, and opens another one, or the project selection, in a fresh editor:
+    /// a new process once this one has loaded a session (<see cref="EditorProcessService"/>), as WPF's New, Open and Reload
+    /// restart the process; otherwise, or when the host cannot start one, in this process.
+    /// </summary>
+    /// <param name="filePath">The session to open; <c>null</c> for the project selection.</param>
+    /// <param name="safeMode">Whether the fresh editor runs in safe mode; null to keep this one's mode.</param>
+    /// <returns><c>true</c> when the editor restarts, <c>false</c> when the user kept the session open.</returns>
+    private async Task<bool> RestartAsync(UFile? filePath, bool? safeMode = null)
+    {
+        if (!await CloseSessionAsync())
+            return false;
+
+        var restartProcess = session is not null || NeedsNewProcess;
+        CloseSessionServices();
+        if (restartProcess && ProcessService is { } process)
+        {
+            process.Restart(filePath, safeMode);
+        }
+        else
+        {
+            if (safeMode is { } mode)
+                SetSafeMode(mode);
+            (Application.Current as App)?.Restart(filePath, selectProject: filePath is null);
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// Turns safe mode on or off for the sessions this editor opens next, and the editors it restarts into.
+    /// </summary>
+    private void SetSafeMode(bool safeMode)
+    {
+        if (safeMode)
+            App.Options.EnableSafeMode();
+        else
+            App.Options.DisableSafeMode();
+        if (ServiceProvider.TryGet<IAssetsPluginService>() is EditorPluginHost host)
+            host.SafeMode = safeMode;
+        SafeModeBanner?.Update();
+    }
+
+    /// <summary>
+    /// Asks whether to save the session before it closes, as WPF does: one question (Save, Don't save, Cancel) covers the
+    /// unsaved changes of the assets and those of the open editors (the text of a script), which make their asset dirty.
+    /// The editors then close without asking.
+    /// </summary>
+    /// <returns><c>true</c> when the session can close or there is none, <c>false</c> when the user cancelled or the save failed.</returns>
+    internal async Task<bool> CloseSessionAsync()
+    {
+        if (session is null)
+            return true;
+
+        if (!await session.CloseAsync())
+            return false;
+
+        // The editors open now are those to open next time; closing them below must not change it
+        editorsRestorer?.Stop();
+        editorsRestorer = null;
+        // The layout shown is saved, and stays the one with editors while they close
+        Panels.BeginClose();
+
+        // What the editors had unsaved is now saved, or dropped by the user
+        if (await session.EditorCollection.CloseAllEditorsAsync(false))
+            return true;
+        Panels.CancelClose();
+        return false;
+    }
+
+    /// <summary>
+    /// Forgets the session before the editor restarts or exits, and exits its preview game: the next editor starts its own.
+    /// A build of the session stops; the games it started keep running. The plugins leave the session: what they registered
+    /// goes and their close actions run.
+    /// </summary>
+    internal void CloseSessionServices()
+    {
+        // The panels go before the services they show
+        foreach (var activation in panelActivations)
+            activation.Dispose();
+        panelActivations.Clear();
+        Panels.CloseSession();
+        Preview?.Dispose();
+        Preview = null;
+        if (Build.CancelBuildCommand.IsEnabled)
+            Build.CancelBuildCommand.Execute();
+        Build.Session = null;
+        CodeReload.Session = null;
+        session = null;
+        (ServiceProvider.TryGet<IAssetsPluginService>() as IDisposable)?.Dispose();
+        SafeModeBanner?.Update();
+    }
+
+    /// <inheritdoc/>
+    public override void Destroy()
+    {
+        SafeModeBanner?.Dispose();
+        base.Destroy();
+    }
+
+    private void OnExit()
+    {
+        DialogService.Exit();
+    }
+
+    private async Task OnOpen(UFile? initialPath)
+    {
+        await OpenSession(initialPath);
+    }
+
+    private async Task OnOpenInitialSession(UFile? initialPath)
+    {
+        await OpenInitialSessionAsync(initialPath);
+    }
+
+    private async Task OnOpenDebugWindow()
+    {
+        await DialogService.ShowDebugWindowAsync();
+    }
+
+    private async Task OnOpenSettingsWindow()
+    {
+        await DialogService.ShowSettingsWindowAsync();
+    }
+
+    private async Task OnOpenWebPage(string url)
+    {
+        try
+        {
+            var process = new Process { StartInfo = new ProcessStartInfo(url) { UseShellExecute = true } };
+            process.Start();
+        }
+        catch (Exception ex)
+        {
+            var message = $"{Tr._p("Message", "An error occurred while opening the file.")}{ex.FormatSummary(true)}";
+            await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+}

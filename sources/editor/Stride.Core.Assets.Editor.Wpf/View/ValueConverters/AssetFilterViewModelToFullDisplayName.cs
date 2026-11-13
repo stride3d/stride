@@ -4,16 +4,17 @@ using System;
 using System.Globalization;
 using System.Windows.Data;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Presentation.ValueConverters;
 
 namespace Stride.Core.Assets.Editor.View.ValueConverters
 {
-    [ValueConversion(typeof(AssetCollectionViewModel.AssetFilterViewModel), typeof(string))]
+    [ValueConversion(typeof(AssetFilterViewModel), typeof(string))]
     public class AssetFilterViewModelToFullDisplayName : OneWayValueConverter<AssetFilterViewModelToFullDisplayName>
     {
         public override object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var filter = value as AssetCollectionViewModel.AssetFilterViewModel;
+            var filter = value as AssetFilterViewModel;
             if (filter == null)
                 return null;
 

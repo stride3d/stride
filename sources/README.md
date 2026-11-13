@@ -5,13 +5,14 @@ Stride Sources
 
 All Stride projects import the MSBuild SDK files directly from source. The props import uses `GetDirectoryNameOfFileAbove` to locate `Directory.Build.props` without relying on any pre-set property; the targets import uses `$(StrideRoot)` (set by `sources/Directory.Build.props`, available by that point in the evaluation). See [SDK-GUIDE.md](../docs/build/SDK-GUIDE.md) for details.
 
-Three SDK packages are defined in `sources/sdk/`:
+Four MSBuild SDKs (props and targets) are defined in `sources/sdk/`:
 
-| Package | Purpose |
+| SDK | Purpose |
 |---------|---------|
 | **Stride.Build.Sdk** | Core SDK for all projects — platform detection, graphics API multi-targeting, assembly processor, dependencies |
 | **Stride.Build.Sdk.Editor** | Additional properties for editor/presentation projects |
 | **Stride.Build.Sdk.Tests** | Test infrastructure — xunit integration, test launcher code generation |
+| **Stride.Build.Sdk.MultiPlatform.Tests** | Tests that run on several platforms (multi-TFM) |
 
 For detailed SDK documentation, see [SDK-GUIDE.md](../docs/build/SDK-GUIDE.md).
 
@@ -55,7 +56,7 @@ For detailed SDK documentation, see [SDK-GUIDE.md](../docs/build/SDK-GUIDE.md).
 
 ### sdk ###
 
-* MSBuild SDK packages that provide build logic for all Stride projects. See [Build System](#build-system) above.
+* MSBuild SDKs (props and targets) that provide build logic for all Stride projects. See [Build System](#build-system) above.
 
 ## Use in your project
 

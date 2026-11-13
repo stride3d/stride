@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.View
 {

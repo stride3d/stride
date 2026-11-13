@@ -129,6 +129,7 @@ public abstract class ItemListCompiler
     /// Sets recursively the <see cref="Module"/>.
     /// </summary>
     /// <param name="buildStep">The build step.</param>
+    /// <param name="package">The package containing the asset, if any.</param>
     /// <param name="assetReference"></param>
     /// <param name="assetFullPath"></param>
     private void SetAssetLogger(BuildStep buildStep, Package? package, IReference assetReference, string assetFullPath)

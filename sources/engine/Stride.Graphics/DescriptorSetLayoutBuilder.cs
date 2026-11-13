@@ -41,11 +41,11 @@ public class DescriptorSetLayoutBuilder
     /// <param name="class">The kind of the parameter in the Shader.</param>
     /// <param name="type">The data type of the parameter in the Shader.</param>
     /// <param name="elementType">
-    ///   The data type of the elements of the parameter in the Shader in case <paramref name="Type"/> represents an
+    ///   The data type of the elements of the parameter in the Shader in case <paramref name="type"/> represents an
     ///   <strong>Array</strong>, <strong>Buffer</strong>, or <strong>Texture</strong> type.
     /// </param>
     /// <param name="arraySize">
-    ///   The number of elements in the Array in case <paramref name="Type"/> represents an <strong>Array type</strong>.
+    ///   The number of elements in the Array in case <paramref name="type"/> represents an <strong>Array type</strong>.
     ///   Specify <c>1</c> if the parameter is not an Array. This is the default value.
     /// </param>
     /// <param name="immutableSampler">

@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using Stride.Core.Mathematics;
 using Stride.Core.Threading;
 using Stride.Engine;
@@ -97,6 +98,21 @@ namespace Stride.Particles.Components
             particleSystem.Update(deltaTime * speed);
         }
 
+        private readonly struct UpdateParticleSystemJob : Dispatcher.IBatchJob
+        {
+            public required ParticleSystemSimulationProcessor Processor { get; init; }
+            public required float DeltaTime { get; init; }
+            public required bool ApplyEditorControl { get; init; }
+
+            public void Process(int start, int endExclusive)
+            {
+                foreach (var state in CollectionsMarshal.AsSpan(Processor.ParticleSystems)[start..endExclusive])
+                {
+                    Processor.UpdateParticleSystem(state, DeltaTime, ApplyEditorControl);
+                }
+            }
+        }
+
         /// <inheritdoc />
         public override void Draw(RenderContext context)
         {
@@ -117,7 +133,12 @@ namespace Stride.Particles.Components
                 }
             }
 
-            Dispatcher.ForEach(ParticleSystems, state => UpdateParticleSystem(state, deltaTime, applyEditorControl));
+            Dispatcher.ForBatched(ParticleSystems.Count, new UpdateParticleSystemJob
+            {
+                Processor = this,
+                DeltaTime = deltaTime,
+                ApplyEditorControl = applyEditorControl,
+            });
         }
 
         /// <inheritdoc />

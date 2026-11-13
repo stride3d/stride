@@ -49,7 +49,7 @@ namespace Stride.Core.Yaml.Schemas
 {
     /// <summary>
     /// Implements the YAML failsafe schema.
-    /// <see cref="http://www.yaml.org/spec/1.2/spec.html#id2802346" />
+    /// <see href="http://www.yaml.org/spec/1.2/spec.html#id2802346" />
     /// </summary>
     /// <remarks>The failsafe schema is guaranteed to work with any YAML document.
     /// It is therefore the recommended schema for generic YAML tools.

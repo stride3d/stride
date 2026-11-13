@@ -24,7 +24,7 @@
 namespace Stride.Graphics
 {
     /// <summary>
-    /// Image file format used by <see cref="Image.Save"/>
+    /// Image file format used by <see cref="Image.Save(System.IO.Stream, ImageFileType)"/>
     /// </summary>
     public enum ImageFileType
     {

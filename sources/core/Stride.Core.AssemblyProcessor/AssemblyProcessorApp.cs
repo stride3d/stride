@@ -41,8 +41,6 @@ public class AssemblyProcessorApp
 
     public bool SerializationAssembly { get; set; }
 
-    public string? DocumentationFile { get; set; }
-
     internal PlatformType Platform { get; set; }
 
     public List<string> SearchDirectories { get; set; }
@@ -174,22 +172,10 @@ public class AssemblyProcessorApp
                 new AddReferenceProcessor(ReferencesToAdd)
             };
 
-            if (ParameterKey)
-            {
-                processors.Add(new ParameterKeyProcessor());
-            }
-
-            if (DocumentationFile != null)
-            {
-                processors.Add(new GenerateUserDocumentationProcessor(DocumentationFile));
-            }
-
             if (SerializationAssembly)
             {
                 processors.Add(new SerializationProcessor());
             }
-
-            processors.Add(new DispatcherProcessor());
 
             // Check if there is already a AssemblyProcessedAttribute (in which case we can skip processing, it has already been done).
             // Note that we should probably also match the command line as well so that we throw an error if processing is different (need to rebuild).

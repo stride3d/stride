@@ -51,7 +51,7 @@ namespace Stride.Core.Presentation.Diagnostics
         /// to identify the trigger in the debug output.
         /// </summary>
         /// <param name="trigger">The trigger.</param>
-        /// <returns></returns>
+        /// <param name="value">The name to assign to the trigger.</param>
         public static void SetTriggerName([NotNull] TriggerBase trigger, string value)
         {
             trigger.SetValue(TriggerNameProperty, value);

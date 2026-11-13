@@ -14,10 +14,15 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Stride.UI" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Graphics.Tests" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Engine.Tests" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.Engine.NoAssets.Tests" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Graphics.Regression" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Assets" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.VirtualReality" + Stride.PublicKeys.Default)]
+// ExportableTexture, which only the Avalonia editor uses for now
+[assembly: InternalsVisibleTo("Stride.Editor.Avalonia" + Stride.PublicKeys.Default)]
 
 #if !STRIDE_SIGNED
-[assembly: InternalsVisibleTo("Stride.Assets.Presentation.Wpf")]
+[assembly: InternalsVisibleTo("Stride.Assets.Editor.Wpf")]
+[assembly: InternalsVisibleTo("Stride.Assets.Editor")]
+// The previews that both editors share (the signed distance field font shader of the font previews)
 #endif

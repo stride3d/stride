@@ -8,8 +8,6 @@ namespace Stride.Core.Assets;
 /// </summary>
 public static class DirectoryHelper
 {
-    private static readonly string StrideSolution = Path.Combine("build", "Stride.slnx");
-
     /// <summary>
     /// Gets the path to the file corresponding to the given package name in the given directory.
     /// </summary>
@@ -23,21 +21,20 @@ public static class DirectoryHelper
     }
 
     /// <summary>
-    /// Indicates whether the given directory is the root directory of the repository, when executing from a development build. 
+    /// Indicates whether the given directory is the root directory of the repository, when executing from a development build.
     /// </summary>
     /// <param name="directory">The directory to check.</param>
     /// <returns><c>True</c> if the given directory is the root directory of the repository, <c>false</c> otherwise.</returns>
+    /// <remarks>The root holds <c>Stride.slnx</c> next to a <c>sources</c> folder, so a user project named Stride is not taken for it.</remarks>
     public static bool IsRootDevDirectory(string directory)
     {
         ArgumentNullException.ThrowIfNull(directory);
-        var strideSolution = Path.Combine(directory, StrideSolution);
-        return File.Exists(strideSolution);
+        return File.Exists(Path.Combine(directory, "Stride.slnx")) && Directory.Exists(Path.Combine(directory, "sources"));
     }
 
     /// <summary>
-    /// Walks up from <paramref name="directory"/> looking for the repository root (the directory
-    /// containing <c>build\Stride.slnx</c>). Returns it, or <c>null</c> if the path is not inside a
-    /// Stride source checkout.
+    /// Walks up from <paramref name="directory"/> looking for the repository root (see <see cref="IsRootDevDirectory"/>).
+    /// Returns it, or <c>null</c> if the path is not inside a Stride source checkout.
     /// </summary>
     /// <param name="directory">The directory to start the search from.</param>
     public static string? FindRootDevDirectory(string directory)

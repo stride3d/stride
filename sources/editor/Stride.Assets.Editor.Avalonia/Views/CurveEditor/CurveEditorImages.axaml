@@ -1,0 +1,28 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- The images of the curve editor, as in the WPF ImageDictionary -->
+  <DrawingImage x:Key="ImageEditCurve">
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+        <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M9,13L9,11.474C8.011,10.722 7.321,9.687 6.752,8.832 6.565,8.552 6.376,8.268 6.182,8L2,8 2,6.843C1.784,6.908,1.566,6.98,1.349,7.062L0,7.564 0,4.346 0.679,4.116C1.128,3.963,1.57,3.838,2,3.742L2,3 7,3 7,4.526C7.988,5.278 8.678,6.313 9.248,7.168 9.435,7.448 9.624,7.732 9.817,8L14,8 14,9.157C14.248,9.082,14.47,9.006,14.65,8.938L16,8.434 16,11.653 15.322,11.884C14.873,12.037,14.431,12.162,14,12.258L14,13z" />
+        <GeometryDrawing Brush="#FF414141" Geometry="F1M15,9.875C14.487,10.066,13.773,10.292,13,10.411L13,9 10,9 10,9.725C9.415,9.212 8.933,8.498 8.416,7.723 7.761,6.74 7.042,5.68 6,5.053L6,4 3,4 3,4.577C2.25,4.679,1.557,4.874,1,5.062L1,6.125C1.513,5.934,2.227,5.708,3,5.588L3,7 6,7 6,6.275C6.585,6.788 7.067,7.502 7.584,8.277 8.239,9.261 8.958,10.32 10,10.946L10,12 13,12 13,11.423C13.75,11.321,14.443,11.127,15,10.938z" />
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+  <DrawingImage x:Key="ImageFitCurve"><ImageDrawing Rect="0,0,16,16" ImageSource="/Assets/Icons/curve_fit-32.png"/></DrawingImage>
+  <DrawingImage x:Key="ImageFitCurveHeight"><ImageDrawing Rect="0,0,16,16" ImageSource="/Assets/Icons/curve_fit_height-32.png"/></DrawingImage>
+  <DrawingImage x:Key="ImageFitCurveWidth"><ImageDrawing Rect="0,0,16,16" ImageSource="/Assets/Icons/curve_fit_width-32.png"/></DrawingImage>
+  <DrawingImage x:Key="ImageFirstPoint"><ImageDrawing Rect="0,0,16,16" ImageSource="/Assets/Icons/skip_to_start-32.png"/></DrawingImage>
+  <DrawingImage x:Key="ImageLastPoint"><ImageDrawing Rect="0,0,16,16" ImageSource="/Assets/Icons/end-32.png"/></DrawingImage>
+  <DrawingImage x:Key="ImageNextPoint"><ImageDrawing Rect="0,0,16,16" ImageSource="/Assets/Icons/play-32.png"/></DrawingImage>
+  <!-- WPF turns the "next" image over -->
+  <DrawingImage x:Key="ImagePreviousPoint">
+    <DrawingGroup>
+      <DrawingGroup.Transform>
+        <MatrixTransform Matrix="-1,0,0,1,16,0"/>
+      </DrawingGroup.Transform>
+      <ImageDrawing Rect="0,0,16,16" ImageSource="/Assets/Icons/play-32.png"/>
+    </DrawingGroup>
+  </DrawingImage>
+</ResourceDictionary>

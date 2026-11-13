@@ -23,7 +23,6 @@ axml
 bat
 bin
 bmp
-build
 c
 cab
 cd

@@ -108,7 +108,7 @@ jobs:
       - name: Prepare package contents
         shell: pwsh
         run: |
-          $destDir = "build/deps/spirv-cross"
+          $destDir = "deps/spirv-cross"
           # Silk.NET expects the DLL named "spirv-cross"
           foreach ($rid in 'win-x64', 'win-arm64') {
             New-Item -Path "$destDir/$rid" -ItemType Directory -Force | Out-Null
@@ -135,8 +135,8 @@ jobs:
             "Built: $(Get-Date -AsUTC -Format yyyy-MM-dd)"
             "Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           )
-          New-Item -ItemType Directory -Force build/deps/spirv-cross/tools | Out-Null
-          $lines | Set-Content build/deps/spirv-cross/tools/VERSION.txt
+          New-Item -ItemType Directory -Force deps/spirv-cross/tools | Out-Null
+          $lines | Set-Content deps/spirv-cross/tools/VERSION.txt
           $block = @('```') + $lines + @('```')
           $block | Add-Content $env:GITHUB_STEP_SUMMARY
           @(
@@ -146,7 +146,7 @@ jobs:
             ""
             "## Build"
             ""
-          ) + $block | Set-Content build/deps/spirv-cross/README.md
+          ) + $block | Set-Content deps/spirv-cross/README.md
 
       - name: Pack NuGet
         shell: pwsh
@@ -154,7 +154,7 @@ jobs:
           $commitHash = '${{ needs.build-windows.outputs.commit }}'.Substring(0, 7)
           $version = "${{ github.event.inputs.version }}"
           if (-not $version) { $version = (Get-Date -Format "yyyy.M.d") }
-          nuget pack build/deps/spirv-cross/Stride.Dependencies.SpirvCross.nuspec `
+          nuget pack deps/spirv-cross/Stride.Dependencies.SpirvCross.nuspec `
             -Version $version `
             -Properties "commit=$commitHash;strideCommit=${{ github.sha }}" `
             -OutputDirectory nupkg
@@ -166,34 +166,12 @@ jobs:
           name: Stride.Dependencies.SpirvCross.nupkg
           path: nupkg/*.nupkg
 
+  # Signing and pushing are shared by all dependencies: nuget.org trusts dep-publish.yml
   publish:
-    name: Sign & Publish to NuGet.org
     needs: pack
-    runs-on: windows-2025-vs2026
-    environment: production
-    steps:
-      - name: Install signing tool
-        run: dotnet tool install sign --tool-path ./sign-tool --version 0.9.0-beta.23127.3
-
-      - name: Download artifact
-        uses: actions/download-artifact@v8
-        with:
-          name: Stride.Dependencies.SpirvCross.nupkg
-
-      - name: Sign NuGet package
-        shell: pwsh
-        run: |
-          ./sign-tool/sign code azure-key-vault *.nupkg `
-            --description "Stride" `
-            --description-url "https://stride3d.net" `
-            --publisher-name "Stride" `
-            --azure-key-vault-tenant-id "${{ secrets.STRIDE_SIGN_TENANT_ID }}" `
-            --azure-key-vault-client-id "${{ secrets.STRIDE_SIGN_CLIENT_ID }}" `
-            --azure-key-vault-client-secret "${{ secrets.STRIDE_SIGN_CLIENT_SECRET }}" `
-            --azure-key-vault-certificate "${{ secrets.STRIDE_SIGN_KEYVAULT_CERTIFICATE }}" `
-            --azure-key-vault-url "https://${{ secrets.STRIDE_SIGN_KEYVAULT_NAME }}.vault.azure.net/" `
-            -v Information
-
-      - name: Publish
-        run: |
-          dotnet nuget push *.nupkg --api-key "${{ secrets.STRIDE_NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/dep-publish.yml
+    with:
+      artifact: Stride.Dependencies.SpirvCross.nupkg

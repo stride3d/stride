@@ -142,7 +142,7 @@ jobs:
           # so the same ICD serves both; it then drives the emulator's Vulkan path via -gpu host
           # -feature ForceGpuHost (gfxstream forwards Vulkan to the host loader, honouring
           # VK_DRIVER_FILES).
-          dotnet restore build/Stride.Tests.Game.Runtime.slnf \
+          dotnet restore sources/Stride.Tests.Game.Runtime.slnf \
             -p:StridePlatforms=Linux \
             -p:StrideGraphicsApis=Vulkan
           LIB=$(find ~/.nuget/packages/stride.dependencies.lavapipe -path "*/runtimes/linux-x64-nodmabuf/native/libvulkan_lvp.so" | head -1)
@@ -159,7 +159,7 @@ jobs:
         # Stamps the host OS into the device name so gold images bucket by emulator host
         # (Lavapipe renders slightly differently per host RID, and the guest can't otherwise
         # tell which host it's on).
-        run: pwsh tests/android/stride_android_emu_helper_layer/build-and-install.ps1
+        run: pwsh tests/infra/android/stride_android_emu_helper_layer/build-and-install.ps1
 
       - name: Resolve build target / suite
         run: |
@@ -174,20 +174,20 @@ jobs:
           # process run. use-combined=false → slnf build + per-suite APKs + per-suite install/run.
           USE_COMBINED="${{ github.event.inputs.use-combined || inputs.use-combined || 'true' }}"
           if [ "$USE_COMBINED" = "true" ]; then
-            echo "ANDROID_BUILD_TARGET=sources/tests/Stride.Tests.Combined/Stride.Tests.Combined.csproj" >> "$GITHUB_ENV"
-            echo "ANDROID_RUN_SCRIPT=tests/android/run-combined.sh" >> "$GITHUB_ENV"
+            echo "ANDROID_BUILD_TARGET=tests/infra/Stride.Tests.Combined/Stride.Tests.Combined.csproj" >> "$GITHUB_ENV"
+            echo "ANDROID_RUN_SCRIPT=tests/infra/android/run-combined.sh" >> "$GITHUB_ENV"
           elif [ -n "$SUITES" ]; then
             # The Android solution filter narrowed to the needed suites; per-suite APKs land under
             # bin/Tests/<Suite>/Android-Vulkan/<Config>/. Run step iterates ANDROID_TEST_SUITES.
-            TARGET=$(dotnet run --project build/tools/Stride.TestSuites -- --projects "$SUITES" --slnf build/Stride.Tests.Game.Android.slnf)
+            TARGET=$(dotnet run --project build/tools/Stride.TestSuites -- --projects "$SUITES" --slnf sources/Stride.Tests.Game.Android.slnf)
             echo "ANDROID_BUILD_TARGET=$TARGET" >> "$GITHUB_ENV"
-            echo "ANDROID_RUN_SCRIPT=tests/android/run-suites.sh" >> "$GITHUB_ENV"
+            echo "ANDROID_RUN_SCRIPT=tests/infra/android/run-suites.sh" >> "$GITHUB_ENV"
             { echo "ANDROID_TEST_SUITES<<EOF"; echo $SUITES | tr ' ' '\n'; echo "EOF"; } >> "$GITHUB_ENV"
           else
             # slnf path: one build evaluates the graph once; per-suite APKs land under
             # bin/Tests/<Suite>/Android-Vulkan/<Config>/. Run step iterates ANDROID_TEST_SUITES.
-            echo "ANDROID_BUILD_TARGET=build/Stride.Tests.Game.Android.slnf" >> "$GITHUB_ENV"
-            echo "ANDROID_RUN_SCRIPT=tests/android/run-suites.sh" >> "$GITHUB_ENV"
+            echo "ANDROID_BUILD_TARGET=sources/Stride.Tests.Game.Android.slnf" >> "$GITHUB_ENV"
+            echo "ANDROID_RUN_SCRIPT=tests/infra/android/run-suites.sh" >> "$GITHUB_ENV"
             {
               echo "ANDROID_TEST_SUITES<<EOF"
               echo "Stride.Engine.NoAssets.Tests"
@@ -279,7 +279,7 @@ jobs:
           # combination is its equivalent.
           # -partition-size 8192 (MB): default userdata is too small for several ~90 MB test APKs (INSUFFICIENT_STORAGE).
           # -crash-report-mode disabled: no crashpad handler, so an emulator crash leaves a core dump
-          # (tests/android/emulator-crash-capture.sh turns it into backtraces).
+          # (tests/infra/android/emulator-crash-capture.sh turns it into backtraces).
           emulator-options: -no-snapshot-load -no-window -no-boot-anim -gpu host -feature ForceGpuHost -partition-size 8192 -crash-report-mode disabled
           disable-animations: true
           # android-emulator-runner runs each `script:` line as its own `sh -c`, so multi-line

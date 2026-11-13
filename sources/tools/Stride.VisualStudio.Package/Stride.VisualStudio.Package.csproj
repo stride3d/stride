@@ -68,11 +68,11 @@
   </Target>
 
   <!-- Returns the built .vsix path, derived from $(Configuration)/$(TargetFramework) via $(OutputPath), so the
-       delivery nuspec (packed by nuget.exe, which can't evaluate MSBuild properties) doesn't hardcode them. -->
+       delivery nuspec (packed by the _PackNuspec target of build/package.proj, from a .nuspec that can't evaluate MSBuild properties) doesn't hardcode them. -->
   <Target Name="GetVsixOutputPath" Returns="$(OutputPath)$(TargetName).vsix" />
 
   <!-- Returns the independent NuGet package version (VersionPrefix + optional VersionSuffix) so the nuspec,
-       packed by nuget.exe with -Version, tracks this project rather than the engine version. -->
+       packed by _PackNuspec with this version, tracks this project rather than the engine version. -->
   <Target Name="GetPackageVersion" Returns="$(_VsPackageVersion)">
     <PropertyGroup>
       <_VsPackageVersion>$(VersionPrefix)</_VsPackageVersion>

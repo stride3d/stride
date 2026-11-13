@@ -20,6 +20,7 @@ using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Resolver;
 using NuGet.Versioning;
+using Stride.Core.Assets;
 using Stride.Core.Extensions;
 using Stride.Core.Windows;
 using ISettings = NuGet.Configuration.ISettings;
@@ -323,7 +324,7 @@ public partial class NugetStore : INugetDownloadProgress
     public Func<IReadOnlyList<PackageOperationEventArgs>, Task<bool>>? UninstallGuard { get; set; }
 
     /// <summary>
-    /// Installation path of <paramref name="package"/>
+    /// Installation path of the package identified by <paramref name="id"/> and <paramref name="version"/>.
     /// </summary>
     /// <param name="id">Id of package to query.</param>
     /// <param name="version">Version of package to query.</param>
@@ -331,6 +332,15 @@ public partial class NugetStore : INugetDownloadProgress
     public string GetInstalledPath(string id, PackageVersion version)
     {
         return InstalledPathResolver.GetPackageDirectory(id, version.ToNuGetVersion());
+    }
+
+    /// <summary>
+    /// Whether the user package folder has a folder for <paramref name="id"/> <paramref name="version"/>, installed or
+    /// not: a local build's package that its checkout invalidated until the next restore has one, but is not installed.
+    /// </summary>
+    public bool HasPackageFolder(string id, PackageVersion version)
+    {
+        return Directory.Exists(new VersionFolderPathResolver(InstallPath).GetInstallPath(id, version.ToNuGetVersion()));
     }
 
     /// <summary>
@@ -451,6 +461,7 @@ public partial class NugetStore : INugetDownloadProgress
     /// is newer than the extracted form. Lets dev-built packages flow into <see cref="GetLocalPackages"/>
     /// without a separate restore step.
     /// </summary>
+    /// <param name="packageId">The package identifier to mirror.</param>
     /// <param name="versionRange">
     /// The versions to mirror, null for all: only what the caller's query could use. A lookup for one version does
     /// not mirror a local copy of another (same id, maybe different content) over the installed one.
@@ -563,6 +574,7 @@ public partial class NugetStore : INugetDownloadProgress
     /// Name of variable used to hold the version of <paramref name="packageId"/>.
     /// </summary>
     /// <param name="packageId">The package Id.</param>
+    /// <param name="packageVariablePrefix">The prefix for the version variable.</param>
     /// <returns>The name of the variable holding the version of <paramref name="packageId"/>.</returns>
     public static string GetPackageVersionVariable(string packageId, string packageVariablePrefix = "StridePackage")
     {
@@ -594,7 +606,10 @@ public partial class NugetStore : INugetDownloadProgress
     /// <remarks>It is safe to call it concurrently be cause we operations are done using the FileLock.</remarks>
     /// <param name="packageId">Name of package to install.</param>
     /// <param name="version">Version of package to install.</param>
-    public async Task<NugetLocalPackage?> InstallPackage(string packageId, PackageVersion version, IEnumerable<string> targetFrameworks, ProgressReport? progress)
+    /// <param name="targetFrameworks">The target frameworks to restore.</param>
+    /// <param name="progress">The progress reporter, if provided.</param>
+    /// <param name="cancellationToken">Stops the restore, downloads included.</param>
+    public async Task<NugetLocalPackage?> InstallPackage(string packageId, PackageVersion version, IEnumerable<string> targetFrameworks, ProgressReport? progress, CancellationToken cancellationToken = default)
     {
         using (GetLocalRepositoryLock())
         {
@@ -614,7 +629,7 @@ public partial class NugetStore : INugetDownloadProgress
 
                 // Exactly this version: a bare version is ">=" to NuGet, which would silently take a higher one.
                 var exactVersion = new VersionRange(version.ToNuGetVersion(), includeMinVersion: true, version.ToNuGetVersion(), includeMaxVersion: true);
-                await RestorePackageCore(packageId, exactVersion, targetFrameworks, settings, installPath, "StrideLauncher", Path.Combine(Path.GetTempPath(), $"StrideLauncher-{packageId}-{version}"), OnPackageInstalled);
+                await RestorePackageCore(packageId, exactVersion, targetFrameworks, settings, installPath, "StrideLauncher", Path.Combine(Path.GetTempPath(), $"StrideLauncher-{packageId}-{version}"), OnPackageInstalled, cancellationToken);
 
                 if (packageId == "Xenko" && version < new PackageVersion(3, 0, 0, 0))
                 {
@@ -647,18 +662,39 @@ public partial class NugetStore : INugetDownloadProgress
     /// <summary>
     /// Restores exactly <paramref name="version"/> of a package and its dependencies into the global packages folder.
     /// </summary>
+    /// <param name="packageId">The package identifier.</param>
+    /// <param name="version">The package version to restore.</param>
+    /// <param name="targetFrameworks">The target frameworks to restore.</param>
     /// <param name="settingsRoot">The directory whose NuGet settings to use; null for the default settings.</param>
-    public async Task<LockFile> RestorePackage(string packageId, PackageVersion version, IEnumerable<string> targetFrameworks, string? settingsRoot, string outputPath)
+    /// <param name="outputPath">The output path for the restore.</param>
+    public Task<LockFile> RestorePackage(string packageId, PackageVersion version, IEnumerable<string> targetFrameworks, string? settingsRoot, string outputPath)
     {
+        return RestorePackage(packageId, version, targetFrameworks, settingsRoot, outputPath, []);
+    }
+
+    /// <summary>
+    /// Restores exactly <paramref name="version"/> of a package and its dependencies into the global packages folder, from the
+    /// configured sources and from <paramref name="additionalSources"/> (local folders or feeds).
+    /// </summary>
+    /// <param name="packageId">The package identifier.</param>
+    /// <param name="version">The package version to restore.</param>
+    /// <param name="targetFrameworks">The target frameworks to restore.</param>
+    /// <param name="settingsRoot">The directory whose NuGet settings to use; null for the default settings.</param>
+    /// <param name="outputPath">The output path for the restore.</param>
+    /// <param name="additionalSources">More sources to restore from, after the configured ones.</param>
+    [System.Diagnostics.CodeAnalysis.Experimental("STREXP002")]
+    public async Task<LockFile> RestorePackage(string packageId, PackageVersion version, IEnumerable<string> targetFrameworks, string? settingsRoot, string outputPath, IReadOnlyList<string> additionalSources)
+    {
+        ArgumentNullException.ThrowIfNull(additionalSources);
         var restoreSettings = settingsRoot != null ? NuGet.Configuration.Settings.LoadDefaultSettings(settingsRoot) : settings;
         using (GetLocalRepositoryLock())
         {
             var exactVersion = new VersionRange(version.ToNuGetVersion(), includeMinVersion: true, version.ToNuGetVersion(), includeMaxVersion: true);
-            return await RestorePackageCore(packageId, exactVersion, targetFrameworks, restoreSettings, SettingsUtility.GetGlobalPackagesFolder(restoreSettings), "StrideCompanionPackages", outputPath, null);
+            return await RestorePackageCore(packageId, exactVersion, targetFrameworks, restoreSettings, SettingsUtility.GetGlobalPackagesFolder(restoreSettings), "StrideCompanionPackages", outputPath, null, CancellationToken.None, additionalSources);
         }
     }
 
-    private async Task<LockFile> RestorePackageCore(string packageId, VersionRange version, IEnumerable<string> targetFrameworks, ISettings restoreSettings, string installPath, string projectName, string outputPath, EventHandler<PackageOperationEventArgs>? packageInstalled)
+    private async Task<LockFile> RestorePackageCore(string packageId, VersionRange version, IEnumerable<string> targetFrameworks, ISettings restoreSettings, string installPath, string projectName, string outputPath, EventHandler<PackageOperationEventArgs>? packageInstalled, CancellationToken cancellationToken, IReadOnlyList<string>? additionalSources = null)
     {
         ActivityCorrelationId.StartNew();
 
@@ -682,7 +718,7 @@ public partial class NugetStore : INugetDownloadProgress
                 OriginalTargetFrameworks = targetFrameworks.ToList(),
                 ConfigFilePaths = restoreSettings.GetConfigFilePaths(),
                 PackagesPath = installPath,
-                Sources = SettingsUtility.GetEnabledSources(restoreSettings).ToList(),
+                Sources = [.. SettingsUtility.GetEnabledSources(restoreSettings), .. (additionalSources ?? []).Select(x => new PackageSource(x))],
                 FallbackFolders = [.. SettingsUtility.GetFallbackPackageFolders(restoreSettings)]
             },
         };
@@ -745,7 +781,7 @@ public partial class NugetStore : INugetDownloadProgress
                 var command = new RestoreCommand(request.Request);
 
                 // Act
-                var result = await command.ExecuteAsync();
+                var result = await command.ExecuteAsync(cancellationToken);
 
                 if (!result.Success)
                 {
@@ -781,6 +817,7 @@ public partial class NugetStore : INugetDownloadProgress
     /// </summary>
     /// <remarks>It is safe to call it concurrently be cause we operations are done using the FileLock.</remarks>
     /// <param name="package">Package to uninstall.</param>
+    /// <param name="progress">The progress reporter, if provided.</param>
     public async Task UninstallPackage(NugetPackage package, ProgressReport? progress)
     {
         await GuardUninstall([package]);
@@ -819,10 +856,6 @@ public partial class NugetStore : INugetDownloadProgress
 
     private async Task UninstallPackageUnguarded(NugetPackage package, ProgressReport? progress)
     {
-#if DEBUG
-        var installedPackages = GetPackagesInstalled([package.Id]);
-        Debug.Assert(installedPackages.FirstOrDefault(p => p.Equals(package)) is not null);
-#endif
         using (GetLocalRepositoryLock())
         {
             currentProgressReport = progress;
@@ -830,9 +863,17 @@ public partial class NugetStore : INugetDownloadProgress
             {
                 var identity = new PackageIdentity(package.Id, package.Version.ToNuGetVersion());
 
+                // First, as its folder may be gone already: a dev package its checkout's build invalidated in the NuGet
+                // cache still has a restore.
+                DeleteResolverRestore(package.Id, package.Version);
+
+                // Not installed (anymore): nothing to remove. A folder without NuGet's integrity files counts as not
+                // installed too, such as a local build's package its checkout invalidated until the next restore.
+                var installPath = GetInstalledPath(identity.Id, identity.Version.ToPackageVersion());
+                if (installPath is null)
+                    return;
+
                 // Notify that uninstallation started.
-                var installPath = GetInstalledPath(identity.Id, identity.Version.ToPackageVersion())
-                    ?? throw new InvalidOperationException($"Could not find installation path for package {identity}");
                 OnPackageUninstalling(this, new PackageOperationEventArgs(new PackageName(package.Id, package.Version), installPath));
 
                 var projectContext = new EmptyNuGetProjectContext()
@@ -894,7 +935,7 @@ public partial class NugetStore : INugetDownloadProgress
     }
 
     /// <summary>
-    /// Find the installed package <paramref name="packageId"/> using the version <paramref name="versionRange"/> if not null, otherwise the <paramref name="constraintProvider"/> if specified.
+    /// Find the installed package <paramref name="packageId"/> using <paramref name="version"/> if not null, otherwise the <paramref name="constraintProvider"/> if specified.
     /// If no constraints are specified, the first found entry, whatever it means for NuGet, is used.
     /// </summary>
     /// <param name="packageId">Name of the package.</param>
@@ -1194,6 +1235,23 @@ public partial class NugetStore : INugetDownloadProgress
         return Directory.Exists(dir) ? dir : null;
     }
 
+    /// <summary>
+    /// The build output (<c>bin/&lt;StrideDevConfiguration&gt;</c>) of the checkout project a dev-redirect stub installed at
+    /// <paramref name="packagePath"/> stands for, or null when the folder isn't such a stub or the project isn't built.
+    /// A stub drops the tools/ closure of a tool package, so a tool of a dev version runs from there.
+    /// </summary>
+    public static string? TryGetDevRedirectOutputDirectory(string packagePath, string packageId)
+    {
+        var projectDirectory = TryGetDevRedirectProjectDirectory(packagePath, packageId);
+        if (projectDirectory is null)
+            return null;
+
+        var text = File.ReadAllText(Path.Combine(packagePath, "build", $"{packageId}.props"));
+        var configuration = Regex.Match(text, "<StrideDevConfiguration[^>]*>(.*?)</StrideDevConfiguration>").Groups[1].Value;
+        var outputDirectory = Path.Combine(projectDirectory, "bin", string.IsNullOrEmpty(configuration) ? "Debug" : configuration);
+        return Directory.Exists(outputDirectory) ? outputDirectory : null;
+    }
+
     public string GetRedirectFile(NugetLocalPackage package)
     {
         return Path.Combine(package.Path, $"{package.Id}.redirect");
@@ -1204,6 +1262,33 @@ public partial class NugetStore : INugetDownloadProgress
         return package.Version < new PackageVersion(3, 1, 0, 0)
             ? File.Exists(GetRedirectFile(package))
             : (package.Version.SpecialVersion?.StartsWith("dev", StringComparison.Ordinal) == true && !package.Version.SpecialVersion.Contains('.'));
+    }
+
+    /// <summary>
+    /// Deletes the restore the NuGet resolver made of a dev version when it was started: built again under the same
+    /// version, it would otherwise start with the old dependency graph, as a no-op restore. A release keeps its
+    /// dependencies, so its restore stays valid and is left.
+    /// </summary>
+    /// <param name="packageId">The package id.</param>
+    /// <param name="version">The package version.</param>
+    /// <param name="resolverCacheRoot">The folder of the restores, or null for the one the resolver uses.</param>
+    /// <returns>The number of restore folders deleted.</returns>
+    public static int DeleteResolverRestore(string packageId, PackageVersion version, string? resolverCacheRoot = null)
+    {
+        if (!IsDevVersion(version))
+            return 0;
+
+        // As the resolver names it: 4.5.0-dev, where a PackageVersion converted to NuGet keeps four parts (4.5.0.0-dev)
+        return NuGetResolverCache.Delete(packageId, version.ToNuGetVersion().ToNormalizedString(), resolverCacheRoot);
+    }
+
+    /// <summary>
+    /// Gets whether <paramref name="version"/> is the version of a local build: its label has a dev part, as in
+    /// 4.5.0-dev, 4.5.0-dev3 or 4.5.0-beta8-dev3. A local build can be built again under the same version.
+    /// </summary>
+    public static bool IsDevVersion(PackageVersion version)
+    {
+        return version.SpecialVersion?.Split('-').Any(x => x.StartsWith("dev", StringComparison.Ordinal) && x.Skip(3).All(char.IsAsciiDigit)) == true;
     }
 
     public bool IsDevRedirectPackage(NugetServerPackage package)

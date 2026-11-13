@@ -248,7 +248,7 @@
                 <Grid Height="48">
                   <!-- Launch game studio -->
                   <Button Classes="accent" Command="{Binding StartStudioCommand}"
-                          Content="{Binding ActiveVersion?.FullName, StringFormat={x:Static l:Strings.StartVersion}}" FontSize="24"
+                          Content="{Binding ActiveVersion?.StartName, StringFormat={x:Static l:Strings.StartVersion}}" FontSize="24"
                           HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                           HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                           IsEnabled="{Binding !ActiveVersion?.IsProcessing}"
@@ -386,12 +386,19 @@
                                                                          DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
                                   </Interaction.Behaviors>
                                 </Button>
-                                <!-- Placed like the label of a store version, with the badge of a local build -->
+                                <!-- Placed like the label of a store version, with the badge of a local build, and before it the one
+                                     of its Game Studio: the WPF and the Avalonia builds of a checkout have the same version -->
                                 <DockPanel Margin="12,0,8,0" IsHitTestVisible="False">
                                   <Border DockPanel.Dock="Right" VerticalAlignment="Center" Margin="6,0,0,0" Padding="5,1" CornerRadius="3"
                                           Background="{DynamicResource LocalBadgeBackgroundBrush}">
                                     <TextBlock Text="{x:Static l:Strings.BadgeLocal}" FontSize="10" FontWeight="SemiBold"
                                                Foreground="{DynamicResource LocalBadgeForegroundBrush}"/>
+                                  </Border>
+                                  <Border DockPanel.Dock="Right" VerticalAlignment="Center" Margin="6,0,0,0" Padding="5,1" CornerRadius="3"
+                                          Background="{DynamicResource EditorBadgeBackgroundBrush}"
+                                          IsVisible="{Binding EditorBadge, Converter={sd:ObjectToBool}}">
+                                    <TextBlock Text="{Binding EditorBadge}" FontSize="10" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource EditorBadgeForegroundBrush}"/>
                                   </Border>
                                   <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center"
                                              TextTrimming="CharacterEllipsis"

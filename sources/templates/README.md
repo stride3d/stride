@@ -42,12 +42,37 @@ Asset packs are *item* templates: they drop ready-made assets into an existing g
 ```bash
 dotnet new install Stride.Templates.AssetPacks
 cd MyGame/MyGame.Game
-dotnet new stride-pack-buildingblocks   # merges the pack's Assets/ + Resources/ into the project
+dotnet new stride-pack-buildingblocks   # merges the pack's Assets/ + Resources/ into the current folder
 ```
 
-The `stride` CLI needs neither install: it resolves the template packages of the requested Stride
-version and downloads the asset packs the first time they are needed, so `stride new
-stride-pack-buildingblocks` run inside the game library does the same.
+`dotnet new` writes to the current folder whatever the project lists in its `AssetFolders`. A project
+with other folders (the samples list `../Assets/Shared`) does not see the pack then.
+
+The `stride` CLI needs neither install: it resolves the template packages and downloads the asset
+packs the first time they are needed. `stride new stride-pack-buildingblocks` also finds where the pack
+has to go, from the solution folder or from a package folder:
+
+- **The package:** the one around the current folder, else the game library. From a platform project,
+  the library next to it. If it can't choose, it gives an error and writes nothing.
+- **The folders:** the pack's `Assets/*` goes into the first folder of the package's `AssetFolders`, and
+  its `Resources/*` into the first folder of its `ResourceFolders`. The assets keep their URLs. The
+  `.sdpkg` is not edited, and no folder is added to it: a pack with resources gives an error and writes
+  nothing if the package lists no resource folder.
+- **The paths:** if the relative path between the two folders is not `../Resources`, the paths in the
+  pack's assets that lead to one of its resources are rewritten: the values tagged `!file` and the keys of
+  `~SourceHashes`. Nothing else in a file changes. A folder that no relative path reaches gives an error
+  and writes nothing.
+- **The version:** the packs before Stride 4.4.2 have paths with no `!file` tag, so rewriting them gives
+  an error that asks to upgrade the project and writes nothing. They still work when no rewrite is needed.
+
+A pack written by hand or saved by an old tool needs the tag too. To add it, run
+`Stride.AssetCompiler upgrade <path to .sdpkg> --resave-all` on the pack.
+
+`-o <folder>` skips this: `<folder>/Assets` and `<folder>/Resources` are written, with a warning if no
+package sees them.
+
+The pack comes from the version of that project (or from `--version`), and the project stays on its
+version.
 
 `dotnet new -l` after the installs lists every available stride-* short name.
 
@@ -71,11 +96,11 @@ Building `Stride.Templates.Games` produces its `.nupkg` in `bin/packages/` and a
 dotnet build sources/templates/Stride.Templates.Games/Stride.Templates.Games.csproj
 ```
 
-The three content packages (Starters, Samples, AssetPacks) are **not packed by a normal build**: GameStudio and the CLI use the published content version the engine names (see [Sample versioning](#sample-versioning)). While editing samples, opt the pack in; it is worktree-suffixed (`4.4.0-beta7-dev2`) and wins over the published content on this checkout. A build with the flag off removes it again:
+The three content packages (Starters, Samples, AssetPacks) are **not packed by a normal build**: GameStudio and the CLI use the published content version the engine names (see [Sample versioning](#sample-versioning)). While editing samples, opt the pack in; it is worktree-suffixed (`4.5.1-beta-dev2`) and wins over the published content on this checkout. A build with the flag off removes it again:
 
 ```bash
 dotnet build sources/templates/Stride.Templates.Samples -p:StridePackContentTemplates=true   # or set StridePackContentTemplates in build/Stride.Local.props
-dotnet msbuild build/Stride.Samples.build -t:CleanContentTemplates                            # remove the dev packs without a build
+dotnet msbuild build/samples.proj -t:CleanContentTemplates                            # remove the dev packs without a build
 ```
 
 Opt in to register the freshly-built `.nupkg` with your global `dotnet new` registry on every build — handy when iterating on template content and testing via CLI:
@@ -97,7 +122,7 @@ For persistent opt-in across builds, drop a `Directory.Build.user.props` in your
 End-to-end smoke test (pack → `dotnet new install` → instantiate → `dotnet restore`):
 
 ```bash
-dotnet test sources/tools/Stride.Templates.Tests
+dotnet test tests/enduser/Stride.Templates.Tests
 ```
 
 CI release pack — produces the version-stamped, fully-preprocessed `.nupkg` (asset prune + final schema migrations) that ships to nuget.org:
@@ -108,14 +133,14 @@ dotnet pack sources/templates/Stride.Templates.Games -p:StridePackageBuild=true
 
 ## Sample versioning
 
-In-repo samples are committed at a **clean release version**, but locally only the `-devN` dev packages exist — so switch them to the local dev version to build/edit (e.g. in GameStudio), and back before committing. `SamplesToDevEngine` rewrites every `Stride.*` reference in the sample csprojs to this checkout's dev build (real edits); `SamplesToReleaseEngine` rewrites them back to the clean version.
+In-repo samples are committed at the **version of their last upgrade**, which records the upgrader gates they had, but locally only the `-devN` dev packages exist — so switch them to the local dev version to build/edit (e.g. in GameStudio), and back before committing. `SamplesToDevEngine` rewrites the `Stride.*` references on the engine's number in the sample csprojs to this checkout's dev build (real edits); `SamplesToReleaseEngine` rewrites them back to the committed version. A sample on a lower number needs `UpgradeSamples`.
 
-`Stride.Templates.Games` is engine-versioned. `Stride.Templates.Samples` + `.Games.Starters` + `.AssetPacks` are content-versioned: `StrideSamplesVersion` ([`StrideSamplesVersion.props`](StrideSamplesVersion.props)) is the exact published content version the engine uses. Sample changes are merged like any other change; `release-samples.yml` then publishes them under the next content version and commits that version. Full details (engine version, `-devN`, the samples release, the release order, the resolver) — including why — are in **[docs/build/versioning.md](../../docs/build/versioning.md)**.
+`Stride.Templates.Games` is engine-versioned. `Stride.Templates.Samples` + `.Games.Starters` + `.AssetPacks` are content-versioned: `StrideSamplesVersion` ([`StrideSamplesVersion.props`](StrideSamplesVersion.props)) is the exact published content version the engine uses. Sample changes are merged like any other change; a release publishes new packs as soon as a sample is on its version (the `Upgrade Samples` workflow moves them), and commits that version. Full details (engine version, `-devN`, the samples release, the release order, the resolver) — including why — are in **[docs/build/versioning.md](../../docs/build/versioning.md)**.
 
 ```bash
-dotnet msbuild build/Stride.Samples.build -t:SamplesToDevEngine                          # before editing/building (e.g. GameStudio)
-dotnet msbuild build/Stride.Samples.build -t:SamplesToReleaseEngine                      # before committing
-dotnet msbuild build/Stride.Samples.build -t:PrepareSamplesForRelease                    # upgrade the samples to this engine and pack them
+dotnet msbuild build/samples.proj -t:SamplesToDevEngine                          # before editing/building (e.g. GameStudio)
+dotnet msbuild build/samples.proj -t:SamplesToReleaseEngine                      # before committing
+dotnet msbuild build/samples.proj -t:PrepareSamplesForRelease                    # upgrade the samples to this engine and pack them
 ```
 
 ## Adding a new template sample
@@ -175,14 +200,38 @@ New Game dialog lists every item template of the AssetPacks package as a checkbo
 `.sdtpl` `Parameters` list includes `assetPacks` opt into the section; today that's `stride-game`),
 and instantiates each selected pack into the generated game library.
 
+A pack has `Assets/` and `Resources/` at its top level and nothing else: the generator and `stride new`
+refuse anything other than these two folders. Its assets must find their resources through the
+folder they share, as in `Source: ../../Resources/...`, and `stride new` adapts these paths to the package.
+
+Authors outside this repository can't run the generator, so they write the template by hand: a template
+package with this file as `content/<name>/.template.config/template.json`, next to `Assets/` and
+`Resources/`. Try it with `stride new <short name> -p <path to the .nupkg>`.
+
+```json
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Me",
+  "classifications": ["AssetPacks"],
+  "identity": "MyPack.Rocks",
+  "name": "Rocks",
+  "shortName": "mypack-rocks",
+  "tags": { "type": "item" }
+}
+```
+
+The pack's own licence goes in the package metadata: `PackageLicenseExpression` or `PackageLicenseFile`, or
+`<license>` in a nuspec, with the file at the root of the `.nupkg` and outside `content/`. Nothing is then
+copied into the user's project, where a `LICENSE.md` would collide with theirs.
+
 ## Architecture pointers
 
 - **[`sources/tools/Stride.TemplateGenerator/TemplatePreprocessor.cs`](../tools/Stride.TemplateGenerator/TemplatePreprocessor.cs)** — the preprocess pipeline (sample → dotnet new template content). Pipeline steps inline-documented at the top of `Run`.
 - **[`sources/tools/Stride.TemplateGenerator/Program.cs`](../tools/Stride.TemplateGenerator/Program.cs)** — `preprocess-template` and `aggregate-sdtpls` subcommand dispatch.
 - **[`sources/templates/Stride.Templates.Common.targets`](Stride.Templates.Common.targets)** — shared MSBuild logic across the three packages (version derivation, content-versioning via `StrideSamplesVersion`, preprocess+aggregate Exec, auto-pack-deploy, CI safeguards, `StrideInstallTemplate` opt-in target).
-- **[`../../build/Stride.Samples.build`](../../build/Stride.Samples.build)** — standalone sample version management: `SamplesToDevEngine` / `SamplesToReleaseEngine` (flip in-repo samples between local-dev and clean) and `UpgradeSamples` (full release bump: dev → asset migration → clean). Uses [`StrideSamplesVersion.props`](StrideSamplesVersion.props) (the content-version authority) and [`../targets/Stride.GitVersion.targets`](../targets/Stride.GitVersion.targets) (the `StrideGitVersion` task, shared with `Stride.build`).
+- **[`../../build/samples.proj`](../../build/samples.proj)** — standalone sample version management: `SamplesToDevEngine` / `SamplesToReleaseEngine` (flip in-repo samples between local-dev and clean) and `UpgradeSamples` (full release bump: dev → asset migration → clean). Uses [`StrideSamplesVersion.props`](StrideSamplesVersion.props) (the content-version authority) and [`../targets/Stride.GitVersion.targets`](../sdk/Stride.Build.Sdk/Sdk/Stride.GitVersion.targets) (the `StrideGitVersion` task, shared with `package.proj`).
 - **[`sources/engine/Stride.Assets/Templates/DotNetNewTemplateBridge.cs`](../engine/Stride.Assets/Templates/DotNetNewTemplateBridge.cs)** — GameStudio side: resolves the four packages (Games at the engine version, the content packages through [`ContentTemplateResolver`](../engine/Stride.Assets/Templates/ContentTemplateResolver.cs), shared by source with the CLI), installs into the editor's isolated TemplateEngine profile, registers each template as a `TemplateDotNetNewDescription` with `TemplateManager`.
-- **[`sources/editor/Stride.Assets.Presentation.Wpf/Templates/DotNetNewTemplateGenerator.cs`](../editor/Stride.Assets.Presentation.Wpf/Templates/DotNetNewTemplateGenerator.cs)** — GameStudio session integration: dispatches instantiation through the registry, registers per-platform exec projects with the session post-load.
+- **[`sources/editor/Stride.Assets.Editor.Wpf/Templates/DotNetNewTemplateGenerator.cs`](../editor/Stride.Assets.Editor.Wpf/Templates/DotNetNewTemplateGenerator.cs)** — GameStudio session integration: dispatches instantiation through the registry, registers per-platform exec projects with the session post-load.
 
 ## Future work
 

@@ -51,18 +51,20 @@ jobs:
       STRIDE_TESTS_RENDERDOC: "error"
       STRIDE_MAX_PARALLELISM: "8"
     steps:
-      # Full checkout: TestSceneUpgrader validates asset migration of the scenes under samples/.
+      # Bootstrap .github so the local composite action below is resolvable pre-checkout.
       - uses: actions/checkout@v7
         with:
-          lfs: true
-          submodules: true
+          sparse-checkout: .github
+      - uses: ./.github/actions/stride-checkout
+        with:
           ref: ${{ github.ref }}
+          exclude: samples
       - name: Disable WER dialogs
         run: reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v DontShowUI /t REG_DWORD /d 1 /f
       - name: Build
         id: build
         run: |
-          dotnet build build\Stride.Tests.Game.slnf `
+          dotnet build sources\Stride.Tests.Game.slnf `
             -p:StrideTestRuntimeIdentifier=win-x64 `
             -p:StrideNativeBuildMode=Clang `
             -p:StrideSkipAutoPack=true `
@@ -79,7 +81,7 @@ jobs:
           $filterArgs = if ($filter) { @('--filter', $filter) } else { @() }
           for ($i = 1; $i -le $repeat; $i++) {
             Write-Host "=== Test run $i / $repeat ==="
-            dotnet test build\Stride.Tests.Game.slnf `
+            dotnet test sources\Stride.Tests.Game.slnf `
               --no-build `
               --logger:"trx;LogFilePrefix=run-$i" --results-directory TestResults `
               --blame-hang-timeout 5m --blame-hang-dump-type full `

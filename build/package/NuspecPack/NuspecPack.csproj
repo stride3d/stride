@@ -1,0 +1,11 @@
+<!-- Packs a .nuspec for the _PackNuspec target of package.proj, in place of NuGet.exe: dotnet pack takes no base path or
+     $properties$ for a .nuspec, MSBuild's Pack does (NuspecFile, NuspecBasePath, NuspecProperties). -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <NoBuild>true</NoBuild>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <!-- Comes escaped (%3B) through the MSBuild calls; NuGet splits the $tokens$ on a real ; -->
+    <NuspecProperties>$([MSBuild]::Unescape('$(StrideNuspecProperties)'))</NuspecProperties>
+  </PropertyGroup>
+</Project>

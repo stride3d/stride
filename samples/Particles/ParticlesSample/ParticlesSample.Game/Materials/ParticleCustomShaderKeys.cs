@@ -8,6 +8,7 @@ using Stride.Shaders;
 //namespace Stride.Rendering
 namespace Stride.Rendering
 {
+    [EffectKeys]
     public partial class ParticleCustomShaderKeys
     {
         public static readonly PermutationParameterKey<ShaderSource> BaseColor = ParameterKeys.NewPermutation<ShaderSource>();

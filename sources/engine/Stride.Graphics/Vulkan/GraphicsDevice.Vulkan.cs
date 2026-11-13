@@ -50,7 +50,18 @@ namespace Stride.Graphics
 
         private VkDevice nativeDevice;
         private VkDeviceApi nativeDeviceApi;
+
+        /// <summary>
+        ///   The pipeline cache every pipeline of the device is built through; <see cref="MergePipelineCache"/> adds
+        ///   the pipelines of an earlier run to it.
+        /// </summary>
+        internal VkPipelineCache NativePipelineCache;
         internal VkQueue NativeCommandQueue;
+
+        /// <summary>
+        ///   Whether the device can export memory and semaphores as POSIX file descriptors (<see cref="ExportableTexture"/>).
+        /// </summary>
+        internal bool HasExternalObjectsSupport;
         internal object QueueLock = new object();
 
         internal ThreadLocal<CommandBufferPool> NativeCopyCommandPools;
@@ -240,7 +251,7 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Builds a <see cref="VkSemaphoreSubmitInfo"/> for a <see cref="vkQueueSubmit2"/> wait or signal.
+        ///   Builds a <see cref="VkSemaphoreSubmitInfo"/> for a <see cref="VkDeviceApi.vkQueueSubmit2"/> wait or signal.
         /// </summary>
         internal static VkSemaphoreSubmitInfo SemaphoreSubmit(VkSemaphore semaphore, ulong value = 0) => new()
         {
@@ -251,7 +262,7 @@ namespace Stride.Graphics
         };
 
         /// <summary>
-        ///   Builds a <see cref="VkCommandBufferSubmitInfo"/> for a <see cref="vkQueueSubmit2"/>.
+        ///   Builds a <see cref="VkCommandBufferSubmitInfo"/> for a <see cref="VkDeviceApi.vkQueueSubmit2"/> call.
         /// </summary>
         internal static VkCommandBufferSubmitInfo CommandBufferSubmit(VkCommandBuffer commandBuffer) => new()
         {
@@ -507,6 +518,9 @@ namespace Stride.Graphics
             {
                 VK_KHR_SWAPCHAIN_EXTENSION_NAME,
                 VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME,
+                // Textures shared with another device or API (ExportableTexture, opt-in)
+                VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME,
+                VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME,
 #if STRIDE_PLATFORM_IOS || STRIDE_PLATFORM_MACOS
                 // IOSurface-backed VkImage import (zero-copy CVPixelBuffer upload on Apple platforms).
                 VK_EXT_METAL_OBJECTS_EXTENSION_NAME,
@@ -531,9 +545,8 @@ namespace Stride.Graphics
             if (availableExtensionProperties.Contains(VK_KHR_SWAPCHAIN_EXTENSION_NAME))
                 desiredExtensionProperties.Add(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
-            // Stride uses Vulkan 1.3 core features and entry points
-            if (Adapter.NativeApiVersion < VkVersion.Version_1_3)
-                throw new NotSupportedException($"Vulkan: Device supports only Vulkan {Adapter.DriverInfo.ApiVersion}, but Stride requires Vulkan 1.3.");
+            if (Adapter.UnsupportedReason is { } unsupportedReason)
+                throw new NotSupportedException($"Vulkan: {Adapter.Description} can't be used: {unsupportedReason}");
 
             // Vulkan portability spec: if VK_KHR_portability_subset is advertised, the app MUST enable it.
             // MoltenVK is the only ICD that advertises it; conformant drivers do not.
@@ -571,6 +584,17 @@ namespace Stride.Graphics
             }
 #endif
 
+            // Only a host that opts in gets the extensions: the runtime's devices stay as they were
+            HasExternalObjectsSupport = ExportableTexture.EnableExternalObjects
+                && availableExtensionProperties.Contains(VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME)
+                && availableExtensionProperties.Contains(VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME)
+                && CanExportOpaqueFileDescriptors();
+            if (HasExternalObjectsSupport)
+            {
+                desiredExtensionProperties.Add(VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME);
+                desiredExtensionProperties.Add(VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME);
+            }
+
             // Profiling labels travel through VK_EXT_debug_utils (instance-level, enabled at factory init).
             // Replaces the deprecated VK_EXT_debug_marker which required a separate device extension and
             // a VK_EXT_debug_report dependency to satisfy validation.
@@ -606,14 +630,6 @@ namespace Stride.Graphics
                 pNext = isPortabilitySubsetDevice ? (void*)&portabilitySubsetFeatures : &supportedVulkan11Features,
             };
             NativeInstanceApi.vkGetPhysicalDeviceFeatures2(NativePhysicalDevice, &physicalDeviceFeatures2);
-
-            if (!supportedVulkan12Features.timelineSemaphore)
-                throw new InvalidOperationException("Vulkan: Timeline semaphores are not supported by this device, but are required by Stride.");
-
-            // Dynamic rendering is required: the backend renders with vkCmdBeginRendering and
-            // creates no render pass objects. Synchronization2 is required for vkQueueSubmit2.
-            if (!supportedVulkan13Features.dynamicRendering || !supportedVulkan13Features.synchronization2)
-                throw new NotSupportedException("Vulkan: Dynamic rendering and synchronization2 are not supported by this device, but are required by Stride.");
 
             var enabledVulkan13Features = new VkPhysicalDeviceVulkan13Features
             {
@@ -666,6 +682,9 @@ namespace Stride.Graphics
             EnabledFeatures = enabledFeature;
 
             nativeDeviceApi = new VkDeviceApi(NativeInstanceApi, in nativeDevice);
+
+            var pipelineCacheCreateInfo = new VkPipelineCacheCreateInfo { sType = VkStructureType.PipelineCacheCreateInfo };
+            CheckResult(NativeDeviceApi.vkCreatePipelineCache(nativeDevice, &pipelineCacheCreateInfo, null, out NativePipelineCache));
 
             NativeDeviceApi.vkGetDeviceQueue(nativeDevice, 0, 0, out NativeCommandQueue);
 
@@ -835,6 +854,50 @@ namespace Stride.Graphics
         }
 
         /// <summary>
+        ///   Whether the physical device can export the memory of a color image and binary semaphores as opaque
+        ///   POSIX file descriptors, which <see cref="ExportableTexture"/> needs. Some drivers advertise the
+        ///   extensions without supporting that handle type (Lavapipe, for semaphores).
+        /// </summary>
+        private unsafe bool CanExportOpaqueFileDescriptors()
+        {
+            var semaphoreInfo = new VkPhysicalDeviceExternalSemaphoreInfo
+            {
+                sType = VkStructureType.PhysicalDeviceExternalSemaphoreInfo,
+                handleType = VkExternalSemaphoreHandleTypeFlags.OpaqueFD,
+            };
+            var semaphoreProperties = new VkExternalSemaphoreProperties { sType = VkStructureType.ExternalSemaphoreProperties };
+            NativeInstanceApi.vkGetPhysicalDeviceExternalSemaphoreProperties(NativePhysicalDevice, &semaphoreInfo, &semaphoreProperties);
+            if ((semaphoreProperties.externalSemaphoreFeatures & VkExternalSemaphoreFeatureFlags.Exportable) == 0)
+                return false;
+
+            // The same image as ExportableTexture.Create makes
+            var externalImageInfo = new VkPhysicalDeviceExternalImageFormatInfo
+            {
+                sType = VkStructureType.PhysicalDeviceExternalImageFormatInfo,
+                handleType = VkExternalMemoryHandleTypeFlags.OpaqueFD,
+            };
+            var imageInfo = new VkPhysicalDeviceImageFormatInfo2
+            {
+                sType = VkStructureType.PhysicalDeviceImageFormatInfo2,
+                pNext = &externalImageInfo,
+                format = VkFormat.R8G8B8A8Unorm,
+                type = VkImageType.Image2D,
+                tiling = VkImageTiling.Optimal,
+                usage = VkImageUsageFlags.ColorAttachment | VkImageUsageFlags.Sampled | VkImageUsageFlags.TransferSrc | VkImageUsageFlags.TransferDst,
+                flags = VkImageCreateFlags.MutableFormat,
+            };
+            var externalImageProperties = new VkExternalImageFormatProperties { sType = VkStructureType.ExternalImageFormatProperties };
+            var imageProperties = new VkImageFormatProperties2
+            {
+                sType = VkStructureType.ImageFormatProperties2,
+                pNext = &externalImageProperties,
+            };
+            if (NativeInstanceApi.vkGetPhysicalDeviceImageFormatProperties2(NativePhysicalDevice, &imageInfo, &imageProperties) != VkResult.Success)
+                return false;
+            return (externalImageProperties.externalMemoryProperties.externalMemoryFeatures & VkExternalMemoryFeatureFlags.Exportable) != 0;
+        }
+
+        /// <summary>
         ///   Waits for the device to be idle. A lost device is idle too: its resources can be torn down.
         /// </summary>
         internal void WaitIdle()
@@ -889,7 +952,85 @@ namespace Stride.Graphics
                 nativeCopyCommandPool.Dispose();
             NativeCopyCommandPools.Dispose();
             NativeCopyCommandPools = null;
+
+            if (NativePipelineCache != VkPipelineCache.Null)
+            {
+                NativeDeviceApi.vkDestroyPipelineCache(nativeDevice, NativePipelineCache, null);
+                NativePipelineCache = VkPipelineCache.Null;
+            }
+
             NativeDeviceApi.vkDestroyDevice(nativeDevice, null);
+        }
+
+        partial void MergePipelineCachePlatform(ReadOnlySpan<byte> driverData, ref bool merged)
+        {
+            // Nothing to merge into once the device is released
+            if (NativePipelineCache == VkPipelineCache.Null)
+                return;
+
+            // The blob's header names the device and the driver it is for; another's is undefined behaviour to give the
+            // driver (VUID-VkPipelineCacheCreateInfo-initialDataSize-00769), and the validation layers cannot check it
+            if (!IsPipelineCacheOfThisDevice(driverData))
+                return;
+
+            unsafe
+            {
+                fixed (byte* dataPointer = driverData)
+                {
+                    var createInfo = new VkPipelineCacheCreateInfo
+                    {
+                        sType = VkStructureType.PipelineCacheCreateInfo,
+                        initialDataSize = (nuint)driverData.Length,
+                        pInitialData = dataPointer,
+                    };
+                    if (NativeDeviceApi.vkCreatePipelineCache(NativeDevice, &createInfo, null, out var earlierRun) != VkResult.Success)
+                        return;
+
+                    // The caller holds the lock pipelines are built under, which vkMergePipelineCaches requires of dstCache
+                    merged = NativeDeviceApi.vkMergePipelineCaches(NativeDevice, NativePipelineCache, 1, &earlierRun) == VkResult.Success;
+                    NativeDeviceApi.vkDestroyPipelineCache(NativeDevice, earlierRun, null);
+                }
+            }
+        }
+
+        private unsafe bool IsPipelineCacheOfThisDevice(ReadOnlySpan<byte> driverData)
+        {
+            if (driverData.Length < sizeof(VkPipelineCacheHeaderVersionOne))
+                return false;
+
+            var header = MemoryMarshal.Read<VkPipelineCacheHeaderVersionOne>(driverData);
+            if (header.headerVersion != VkPipelineCacheHeaderVersion.One || header.headerSize != sizeof(VkPipelineCacheHeaderVersionOne))
+                return false;
+
+            var driverInfo = Adapter.DriverInfo;
+            return header.vendorID == driverInfo.VendorId
+                && header.deviceID == driverInfo.DeviceId
+                && new Guid(new ReadOnlySpan<byte>(header.pipelineCacheUUID, 16), bigEndian: true) == driverInfo.PipelineCacheUuid;
+        }
+
+        partial void GetPipelineCacheDataPlatform(ref byte[] driverData)
+        {
+            if (NativePipelineCache == VkPipelineCache.Null)
+                return;
+
+            unsafe
+            {
+                // The caller holds the lock pipelines are built under, so the size holds between the two calls
+                ulong size = 0;
+                if (NativeDeviceApi.vkGetPipelineCacheData(NativeDevice, NativePipelineCache, &size, null) != VkResult.Success || size == 0)
+                    return;
+
+                var data = new byte[size];
+                fixed (byte* dataPointer = data)
+                {
+                    if (NativeDeviceApi.vkGetPipelineCacheData(NativeDevice, NativePipelineCache, &size, dataPointer) != VkResult.Success)
+                        return;
+                }
+
+                if (size < (ulong)data.Length)
+                    Array.Resize(ref data, (int)size);
+                driverData = data;
+            }
         }
 
         internal unsafe ulong ExecuteCommandListInternal(CompiledCommandList commandList)

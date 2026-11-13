@@ -20,7 +20,7 @@ using System.Collections;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using GraphX.Controls.Models;
-using GraphX.PCL.Common.Models;
+using GraphX.Common.Models;
 using QuickGraph;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Graph.ViewModel;

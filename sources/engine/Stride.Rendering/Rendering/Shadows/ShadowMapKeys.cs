@@ -9,6 +9,7 @@ namespace Stride.Rendering.Shadows
     /// <summary>
     /// Keys used for shadow mapping.
     /// </summary>
+    [EffectKeys]
     public static partial class ShadowMapKeys
     {
         /// <summary>

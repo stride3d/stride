@@ -581,6 +581,120 @@ public class TestCodeUpgrade
     }
 
     [Fact]
+    public async Task MemberRenameRenamesOnlyTheMatchingMember()
+    {
+        // The 4.5.1 shape: CommandList.UnsetRenderTargets became ResetTargets.
+        var source = """
+            namespace TestNs
+            {
+                class Target
+                {
+                    public void UnsetRenderTargets() { }
+                    public void ResetTargets() { }
+                }
+                class Other
+                {
+                    public void UnsetRenderTargets() { }
+                }
+                class Usage
+                {
+                    void A(Target t)
+                    {
+                        t.UnsetRenderTargets();
+                        t?.UnsetRenderTargets();
+                        System.Action action = t.UnsetRenderTargets;
+                    }
+                    void B(Other o) => o.UnsetRenderTargets();
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, Rewrite(MemberRename("TestNs.Target", "UnsetRenderTargets", "ResetTargets")));
+
+        Assert.Contains("t.ResetTargets();", result);
+        Assert.Contains("t?.ResetTargets();", result);
+        Assert.Contains("System.Action action = t.ResetTargets;", result);
+        // The unrelated same-named method is untouched.
+        Assert.Contains("o.UnsetRenderTargets()", result);
+        AssertCompiles(result);
+    }
+
+    [Fact]
+    public async Task FluentCallRemoveDropsTheCallsOfAMethodReturningNothing()
+    {
+        // The 4.5.1 shape: CommandList.ResetQueryPool went, the pools reset themselves.
+        var source = """
+            namespace TestNs
+            {
+                class Pool { }
+                class Target
+                {
+                    public static Target Current() => new();
+                    public void ResetQueryPool(Pool pool) { }
+                }
+                class Other
+                {
+                    public void ResetQueryPool(Pool pool) { }
+                }
+                class Usage
+                {
+                    void A(Target t, Pool p)
+                    {
+                        t.ResetQueryPool(p);
+                        t?.ResetQueryPool(p);
+                        Target.Current().ResetQueryPool(p);
+                    }
+                    void B(Target t, Pool p) => t.ResetQueryPool(p);
+                    System.Action C(Target t, Pool p) => () => t.ResetQueryPool(p);
+                    void D(Other o, Pool p) => o.ResetQueryPool(p);
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, Rewrite(FluentCallRemove("TestNs.Target", "ResetQueryPool")));
+
+        Assert.DoesNotContain("t.ResetQueryPool", result);
+        Assert.DoesNotContain("t?.ResetQueryPool", result);
+        // A receiver that is a call keeps its side effects.
+        Assert.Contains("Target.Current();", result);
+        // The unrelated same-named method is untouched.
+        Assert.Contains("o.ResetQueryPool(p)", result);
+        AssertCompiles(result);
+    }
+
+    [Fact]
+    public async Task FluentCallRemoveDropsTheCallsOfEveryOverload()
+    {
+        // The 4.5.1 shape: CommandList.SetStreamTargets went, with a span overload on Direct3D 11 and an array one elsewhere.
+        var source = """
+            namespace TestNs
+            {
+                class Buffer { }
+                class Target
+                {
+                    public void SetStreamTargets(params System.ReadOnlySpan<Buffer> buffers) { }
+                    public void SetStreamTargets(params Buffer[] buffers) { }
+                }
+                class Usage
+                {
+                    void A(Target t, Buffer b, Buffer[] all)
+                    {
+                        t.SetStreamTargets(b);
+                        t.SetStreamTargets(all);
+                        t.SetStreamTargets();
+                        t.SetStreamTargets(new System.ReadOnlySpan<Buffer>(all));
+                    }
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, Rewrite(FluentCallRemove("TestNs.Target", "SetStreamTargets")));
+
+        Assert.DoesNotContain("t.SetStreamTargets", result);
+        AssertCompiles(result);
+    }
+
+    [Fact]
     public async Task FluentCallRemoveKeepsTheReceiver()
     {
         // The 4.4 shape: Buffer.RecreateWith returned its receiver and went away with the device reset recovery.
@@ -686,5 +800,616 @@ public class TestCodeUpgrade
         Assert.Contains("if (t != null)", result);
         Assert.Contains("else", result);
         AssertCompiles(result);
+    }
+
+    [Fact]
+    public async Task AssignmentRemoveDropsInitializerEntries()
+    {
+        // The 4.5 shape: BepuSimulation.MaxStepPerFrame is gone; user code may set it in an object initializer.
+        var source = """
+            namespace TestNs
+            {
+                class Target
+                {
+                    public int MaxStepPerFrame;
+                    public int Other;
+                }
+                record Rec
+                {
+                    public int MaxStepPerFrame { get; init; }
+                    public int Other { get; init; }
+                }
+                class Holder
+                {
+                    public Target Inner = new Target();
+                }
+                class Unrelated
+                {
+                    public int MaxStepPerFrame;
+                }
+                class Usage
+                {
+                    object Only() => new Target { MaxStepPerFrame = 3 };
+                    object First() => new Target { MaxStepPerFrame = 3, Other = 1 };
+                    object Last() => new Target { Other = 2, MaxStepPerFrame = 3 };
+                    Target Implicit() => new() { Other = 3, MaxStepPerFrame = 3, };
+                    object MultiLine() => new Target
+                    {
+                        Other = 4,
+                        MaxStepPerFrame = 3,
+                    };
+                    object Nested() => new Holder { Inner = { MaxStepPerFrame = 3, Other = 5 } };
+                    Rec With(Rec r) => r with { MaxStepPerFrame = 3, Other = 6 };
+                    object Keep() => new Unrelated { MaxStepPerFrame = 7 };
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, Rewrite(
+            AssignmentRemove("TestNs.Target", "MaxStepPerFrame"),
+            AssignmentRemove("TestNs.Rec", "MaxStepPerFrame")));
+
+        Assert.DoesNotContain("MaxStepPerFrame = 3", result);
+        // The other entries stay, wherever the removed one sat.
+        for (var i = 1; i <= 6; i++)
+            Assert.Contains($"Other = {i}", result);
+        // The unrelated same-named member is untouched.
+        Assert.Contains("new Unrelated { MaxStepPerFrame = 7 }", result);
+        AssertCompiles(result);
+    }
+
+    // The 4.5 shape: types with hand-written ParameterKey fields get [EffectKeys], which does not exist at the old version.
+    private const string ParameterKeySource = """
+        namespace Stride.Rendering
+        {
+            public abstract class ParameterKey { }
+            public sealed class ValueParameterKey<T> : ParameterKey { }
+            public static class ParameterKeys { public static ValueParameterKey<T> NewValue<T>() => null; }
+        }
+
+        """;
+
+    private const string EffectKeysAttributeSource = """
+
+        namespace Stride.Rendering
+        {
+            [System.AttributeUsage(System.AttributeTargets.Class | System.AttributeTargets.Struct)]
+            public sealed class EffectKeysAttribute : System.Attribute { }
+        }
+        """;
+
+    private static readonly CodeUpgrade EffectKeysUpgrade = AddAttributeToStaticFieldHolders("Stride.Rendering.ParameterKey", "Stride.Rendering.EffectKeysAttribute");
+
+    [Fact]
+    public async Task AddAttributeToStaticFieldHoldersMarksTypesWithStaticKeyFields()
+    {
+        var source = ParameterKeySource + """
+            namespace Game
+            {
+                using Stride.Rendering;
+
+                /// <summary>Keys.</summary>
+                public static class MyKeys
+                {
+                    public static readonly ValueParameterKey<float> Intensity = ParameterKeys.NewValue<float>();
+                }
+
+                [System.Serializable]
+                public struct MyStruct
+                {
+                    private static readonly ValueParameterKey<int> Count = ParameterKeys.NewValue<int>();
+                }
+
+                public class Outer
+                {
+                    public class Nested
+                    {
+                        public static ValueParameterKey<float> Key;
+                    }
+                }
+
+                public partial class Split
+                {
+                    public static ValueParameterKey<float> First;
+                }
+
+                public partial class Split
+                {
+                    public static ValueParameterKey<float> Second;
+                }
+
+                public class NotKeys
+                {
+                    public ValueParameterKey<float> Instance;
+                    public static string Text;
+                }
+
+                [EffectKeys]
+                public class AlreadyMarked
+                {
+                    public static ValueParameterKey<float> Key;
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, EffectKeysUpgrade);
+
+        var expected = ParameterKeySource + """
+            namespace Game
+            {
+                using Stride.Rendering;
+
+                /// <summary>Keys.</summary>
+                [EffectKeys]
+                public static class MyKeys
+                {
+                    public static readonly ValueParameterKey<float> Intensity = ParameterKeys.NewValue<float>();
+                }
+
+                [EffectKeys]
+                [System.Serializable]
+                public struct MyStruct
+                {
+                    private static readonly ValueParameterKey<int> Count = ParameterKeys.NewValue<int>();
+                }
+
+                public class Outer
+                {
+                    [EffectKeys]
+                    public class Nested
+                    {
+                        public static ValueParameterKey<float> Key;
+                    }
+                }
+
+                [EffectKeys]
+                public partial class Split
+                {
+                    public static ValueParameterKey<float> First;
+                }
+
+                public partial class Split
+                {
+                    public static ValueParameterKey<float> Second;
+                }
+
+                public class NotKeys
+                {
+                    public ValueParameterKey<float> Instance;
+                    public static string Text;
+                }
+
+                [EffectKeys]
+                public class AlreadyMarked
+                {
+                    public static ValueParameterKey<float> Key;
+                }
+            }
+            """;
+        Assert.Equal(expected.ReplaceLineEndings(), result.ReplaceLineEndings());
+        AssertCompiles(result + EffectKeysAttributeSource);
+    }
+
+    [Fact]
+    public async Task AddAttributeToStaticFieldHoldersQualifiesTheAttributeOutOfScopeAndIsIdempotent()
+    {
+        var source = ParameterKeySource + """
+            namespace Game
+            {
+                public class MyKeys
+                {
+                    public static readonly Stride.Rendering.ValueParameterKey<float> Intensity = Stride.Rendering.ParameterKeys.NewValue<float>();
+                }
+            }
+            """;
+
+        // The second run sees the attribute written by the first one
+        var result = await ApplyAsync(source, EffectKeysUpgrade, EffectKeysUpgrade);
+
+        Assert.Contains("""
+                [Stride.Rendering.EffectKeys]
+                public class MyKeys
+            """.ReplaceLineEndings(), result.ReplaceLineEndings());
+        Assert.Equal(1, result.Split("[Stride.Rendering.EffectKeys]").Length - 1);
+        AssertCompiles(result + EffectKeysAttributeSource);
+    }
+
+    // The Dispatcher before 4.5, with the overloads whose delegates the assembly processor pooled
+    private const string OldDispatcherSource = """
+        using System.Collections.Generic;
+        using Stride.Core.Threading;
+
+        namespace Stride.Core.Threading
+        {
+            public static class Dispatcher
+            {
+                public static void For(int fromInclusive, int toExclusive, System.Action<int> action) { }
+                public static void For<TLocal>(int fromInclusive, int toExclusive, System.Func<TLocal> initializeLocal, System.Action<int, TLocal> action, System.Action<TLocal> finalizeLocal = null) { }
+                public static void ForBatched(int items, System.Action<int, int> executeBatch) { }
+                public static void ForEach<T>(T[] collection, System.Action<T> action) { }
+                public static void ForEach<T>(System.Collections.Generic.List<T> collection, System.Action<T> action) { }
+                public static void ForEach<T, TList>(TList collection, System.Action<T> action) where TList : System.Collections.Generic.IReadOnlyList<T> { }
+                public static void ForEach<TKey, TValue>(System.Collections.Generic.Dictionary<TKey, TValue> collection, System.Action<System.Collections.Generic.KeyValuePair<TKey, TValue>> action) { }
+                public static void ForEach<TItem, TLocal, TList>(TList collection, System.Func<TLocal> initializeLocal, System.Action<TItem, TLocal> action, System.Action<TLocal> finalizeLocal = null) where TList : System.Collections.Generic.IReadOnlyList<TItem> { }
+                public static void ForEach<TKey, TValue, TLocal>(System.Collections.Generic.Dictionary<TKey, TValue> collection, System.Func<TLocal> initializeLocal, System.Action<System.Collections.Generic.KeyValuePair<TKey, TValue>, TLocal> action, System.Action<TLocal> finalizeLocal = null) { }
+            }
+        }
+
+        """;
+
+    // The Dispatcher after: the overloads taking a state
+    private const string NewDispatcherSource = """
+        using System.Collections.Generic;
+        using Stride.Core.Threading;
+
+        namespace Stride.Core.Threading
+        {
+            public static class Dispatcher
+            {
+                public static void For<TState>(int fromInclusive, int toExclusive, TState state, System.Action<TState, int> action) { }
+                public static void ForBatched<TState>(int items, TState state, System.Action<TState, int, int> executeBatch) { }
+                public static void ForEach<T, TState>(System.Collections.Generic.IReadOnlyList<T> collection, TState state, System.Action<TState, T> action) { }
+            }
+        }
+
+        """;
+
+    private static readonly CodeUpgrade DispatcherUpgrade = DispatcherCallbacksToStaticLambdas();
+
+    [Fact]
+    public async Task DispatcherCallbacksMoveCapturesToTheState()
+    {
+        var source = OldDispatcherSource + """
+            namespace Game
+            {
+                public class Processor
+                {
+                    private readonly List<int> items = new();
+                    private int total;
+
+                    private void Process(int value) { }
+
+                    public void Update(int[] hits)
+                    {
+                        Dispatcher.For(0, 10, i => Process(i));
+                        Dispatcher.For(0, 10, i => this.Process(i));
+                        Dispatcher.For(0, 10, i => total += i);
+                        Dispatcher.For(0, 10, i => System.Console.WriteLine(i));
+                        var scale = 2;
+                        Dispatcher.ForEach(items, item => Process(item * scale));
+                        Dispatcher.ForEach<int, List<int>>(items, delegate (int item) { Process(item); });
+                        Dispatcher.ForBatched(hits.Length, (from, toExclusive) =>
+                        {
+                            for (int i = from; i < toExclusive; i++)
+                                hits[i]++;
+                        });
+                        Dispatcher.ForEach(items, Process);
+                    }
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, DispatcherUpgrade);
+
+        var expected = OldDispatcherSource + """
+            namespace Game
+            {
+                public class Processor
+                {
+                    private readonly List<int> items = new();
+                    private int total;
+
+                    private void Process(int value) { }
+
+                    public void Update(int[] hits)
+                    {
+                        Dispatcher.For(0, 10, this, static (state, i) => state.Process(i));
+                        Dispatcher.For(0, 10, this, static (state, i) => state.Process(i));
+                        Dispatcher.For(0, 10, this, static (state, i) => state.total += i);
+                        Dispatcher.For(0, 10, default(object), static (_, i) => System.Console.WriteLine(i));
+                        var scale = 2;
+                        Dispatcher.ForEach(items, (self: this, scale), static (state, item) => state.self.Process(item * state.scale));
+                        Dispatcher.ForEach(items, this, static (state, item) => { state.Process(item); });
+                        Dispatcher.ForBatched(hits.Length, hits, static (state, from, toExclusive) =>
+                        {
+                            for (int i = from; i < toExclusive; i++)
+                                state[i]++;
+                        });
+                        Dispatcher.ForEach(items, this, static (state, value) => state.Process(value));
+                    }
+                }
+            }
+            """;
+        Assert.Equal(expected.ReplaceLineEndings(), result.ReplaceLineEndings());
+        AssertCompiles(result.Replace(OldDispatcherSource, NewDispatcherSource));
+    }
+
+    [Fact]
+    public async Task DispatcherCallbacksThatCannotMoveAreLeftAlone()
+    {
+        var user = """
+            namespace Game
+            {
+                public class Processor
+                {
+                    private readonly List<int> items = new();
+
+                    public void Update(Dictionary<int, int> map, System.Action<int> callback)
+                    {
+                        // Writes a captured local
+                        var count = 0;
+                        Dispatcher.For(0, 10, i => count++);
+                        // A dictionary with a per-batch local: a loop would index it by key
+                        Dispatcher.ForEach(map, () => new List<int>(), (pair, list) => list.Add(pair.Key));
+                        // A per-batch local with a range that doesn't start at a constant
+                        Dispatcher.For(count, 10, () => new List<int>(), (i, list) => list.Add(i));
+                        // Writes its per-item parameter, which the loop would share
+                        Dispatcher.For(0, 10, () => new List<int>(), (i, list) => list = null);
+                        // Not a lambda nor a method
+                        Dispatcher.For(0, 10, callback);
+                        // Calls a local function that captures
+                        void Log(int i) => System.Console.WriteLine(i + count);
+                        Dispatcher.For(0, 10, i => Log(i));
+                    }
+                }
+            }
+            """;
+        var source = OldDispatcherSource + user;
+
+        var result = await ApplyAsync(source, DispatcherUpgrade);
+
+        Assert.Equal(source.ReplaceLineEndings(), result.ReplaceLineEndings());
+    }
+
+    [Fact]
+    public async Task DispatcherNestedCallbacksMoveTheInnerOne()
+    {
+        var source = OldDispatcherSource + """
+            namespace Game
+            {
+                public class Processor
+                {
+                    private readonly List<List<int>> groups = new();
+
+                    private void Process(int value) { }
+
+                    public void Update()
+                    {
+                        Dispatcher.ForEach(groups, group => Dispatcher.ForEach(group, item => Process(item)));
+                    }
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, DispatcherUpgrade);
+
+        Assert.Contains("Dispatcher.ForEach(groups, group => Dispatcher.ForEach(group, this, static (state, item) => state.Process(item)));", result);
+    }
+
+    [Fact]
+    public async Task DispatcherLocalCallbacksBecomeForBatched()
+    {
+        var source = OldDispatcherSource + """
+            namespace Game
+            {
+                public class Processor
+                {
+                    private readonly List<int> items = new();
+                    private readonly Stack<List<int>> pool = new();
+
+                    private void Process(int value, List<int> scratch) { }
+
+                    public void Update(int count)
+                    {
+                        Dispatcher.For(0, count, () => pool.Pop(), (i, scratch) =>
+                        {
+                            if (i % 2 == 0)
+                                return;
+                            Process(i, scratch);
+                        }, scratch => pool.Push(scratch));
+                        Dispatcher.ForEach<int, List<int>, List<int>>(items, () => new List<int>(), (item, scratch) => Process(item, scratch));
+                    }
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, DispatcherUpgrade);
+
+        var expected = OldDispatcherSource + """
+            namespace Game
+            {
+                public class Processor
+                {
+                    private readonly List<int> items = new();
+                    private readonly Stack<List<int>> pool = new();
+
+                    private void Process(int value, List<int> scratch) { }
+
+                    public void Update(int count)
+                    {
+                        Dispatcher.ForBatched(count, this, static (state, start, endExclusive) =>
+                        {
+                            var scratch = state.pool.Pop();
+                            try
+                            {
+                                for (int i = start; i < endExclusive; i++)
+                                {
+                                    if (i % 2 == 0)
+                                        continue;
+                                    state.Process(i, scratch);
+                                }
+                            }
+                            finally
+                            {
+                                state.pool.Push(scratch);
+                            }
+                        });
+                        Dispatcher.ForBatched(items.Count, (self: this, collection: items), static (state, start, endExclusive) =>
+                        {
+                            var scratch = new List<int>();
+                            for (int index = start; index < endExclusive; index++)
+                            {
+                                var item = state.collection[index];
+                                state.self.Process(item, scratch);
+                            }
+                        });
+                    }
+                }
+            }
+            """;
+        Assert.Equal(expected.ReplaceLineEndings(), result.ReplaceLineEndings());
+        AssertCompiles(result.Replace(OldDispatcherSource, NewDispatcherSource));
+    }
+
+    [Fact]
+    public async Task DispatcherDictionaryCallbackMovesButNoLongerCompiles()
+    {
+        var source = OldDispatcherSource + """
+            namespace Game
+            {
+                public class Processor
+                {
+                    private void Process(int key) { }
+
+                    public void Update(Dictionary<int, string> map)
+                    {
+                        Dispatcher.ForEach(map, pair => Process(pair.Key));
+                    }
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, DispatcherUpgrade);
+
+        Assert.Contains("Dispatcher.ForEach(map, this, static (state, pair) => state.Process(pair.Key));", result);
+        // The author picks a collection with an index
+        var syntaxTree = CSharpSyntaxTree.ParseText(result.Replace(OldDispatcherSource, NewDispatcherSource), new CSharpParseOptions(LanguageVersion.Preview));
+        var compilation = CSharpCompilation.Create("Check", [syntaxTree], FrameworkReferences(), new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        Assert.Contains(compilation.GetDiagnostics(), x => x.Severity == DiagnosticSeverity.Error && x.Location.SourceTree.GetText().ToString(x.Location.SourceSpan).Contains("ForEach"));
+    }
+
+    [Fact]
+    public async Task InterfaceMemberAddCompletesOnlyClassesThatImplementTheInterfaceThemselves()
+    {
+        // The 4.5.3 shape: IInputDevice gained CaptureState, which the engine base classes already provide
+        var source = """
+            namespace Input
+            {
+                public sealed class DeviceCaptureState { }
+                public interface IInputDevice { string Name { get; } }
+                public interface IMouseDevice : IInputDevice { }
+                public abstract class DeviceBase : IInputDevice { public string Name => "Base"; }
+            }
+            namespace TestNs
+            {
+                class Mouse : Input.IMouseDevice
+                {
+                    public string Name => "Mouse";
+
+                    void Update() { }
+                }
+                class DerivedMouse : Mouse { }
+                class FromBase : Input.DeviceBase { }
+                class Already : Input.IInputDevice
+                {
+                    public string Name => "Already";
+                    public Input.DeviceCaptureState CaptureState => null;
+                }
+                partial class Split : Input.IInputDevice { }
+                partial class Split { public string Name => "Split"; }
+                class Other { public string Name => "Other"; }
+            }
+            """;
+
+        var result = await ApplyAsync(source, InterfaceMemberAdd("Input.IInputDevice", "public DeviceCaptureState CaptureState { get; } = new DeviceCaptureState();", "Input"));
+
+        Assert.StartsWith("using Input;", result);
+        // DeviceBase, Mouse and one declaration of Split get the member; a derived class, a class deriving from the base and one that already has it don't
+        Assert.Equal(3, result.Split("public DeviceCaptureState CaptureState { get; } = new DeviceCaptureState();").Length - 1);
+        Assert.Contains("""
+                    public string Name => "Mouse";
+                    public DeviceCaptureState CaptureState { get; } = new DeviceCaptureState();
+
+                    void Update() { }
+            """, result);
+        Assert.Contains("class DerivedMouse : Mouse { }", result);
+        Assert.Contains("class FromBase : Input.DeviceBase { }", result);
+        Assert.Contains("class Other { public string Name => \"Other\"; }", result);
+        AssertCompiles(result);
+    }
+
+    [Fact]
+    public async Task PropertyOverrideRenameMovesOverridesToTheNewProperty()
+    {
+        // The 4.5.3 shape: GamePadDeviceBase.State became non-virtual and subclasses override RawState instead
+        const string OldBase = "public abstract class GamePadDeviceBase { public abstract int State { get; } }";
+        const string NewBase = "public abstract class GamePadDeviceBase { public int State => RawState; protected abstract int RawState { get; } }";
+        var source = $$"""
+            namespace Input
+            {
+                {{OldBase}}
+            }
+            namespace TestNs
+            {
+                class Pad : Input.GamePadDeviceBase
+                {
+                    private int state;
+
+                    public override int State => state;
+                }
+                class DerivedPad : Pad
+                {
+                    public override int State => base.State + 1;
+                    public int Read() => State;
+                }
+                abstract class OtherBase { public abstract int State { get; } }
+                class Other : OtherBase { public override int State => 0; }
+            }
+            """;
+
+        var result = await ApplyAsync(source, PropertyOverrideRename("Input.GamePadDeviceBase", "State", "RawState", SyntaxKind.ProtectedKeyword));
+
+        Assert.Contains("protected override int RawState => state;", result);
+        // base.State would now call the public State, which calls RawState again
+        Assert.Contains("protected override int RawState => base.RawState + 1;", result);
+        // Reads of State and overrides of an unrelated State are left alone
+        Assert.Contains("public int Read() => State;", result);
+        Assert.Contains("class Other : OtherBase { public override int State => 0; }", result);
+        AssertCompiles(result.Replace(OldBase, NewBase));
+    }
+
+    [Fact]
+    public async Task PropertyOverrideRenameMovesAssignmentsToAGetOnlyOverride()
+    {
+        // GamePadSimulated before 4.5.3: a get-only auto-property override that the class assigns in its constructor
+        const string OldBase = "public abstract class GamePadDeviceBase { public abstract int State { get; } }";
+        const string NewBase = "public abstract class GamePadDeviceBase { public int State => RawState; protected abstract int RawState { get; } }";
+        var source = $$"""
+            namespace Input
+            {
+                {{OldBase}}
+            }
+            namespace TestNs
+            {
+                class Pad : Input.GamePadDeviceBase
+                {
+                    public Pad(bool reset)
+                    {
+                        State = 1;
+                        if (reset)
+                            this.State = 0;
+                    }
+
+                    public override int State { get; }
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, PropertyOverrideRename("Input.GamePadDeviceBase", "State", "RawState", SyntaxKind.ProtectedKeyword));
+
+        Assert.Contains("protected override int RawState { get; }", result);
+        Assert.Contains("RawState = 1;", result);
+        Assert.Contains("this.RawState = 0;", result);
+        AssertCompiles(result.Replace(OldBase, NewBase));
     }
 }
