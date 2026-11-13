@@ -205,6 +205,31 @@ public class SoftBodyTests : GameTestBase
         });
     }
 
+    /// <summary>
+    /// Out of a simulation, as in the editor, the model of the entity stands for the body in what draws and picks colliders;
+    /// in one the particles move on their own, and nothing fixed to the entity is given.
+    /// </summary>
+    [Fact]
+    public static void TheModelStandsForTheBodyOutOfASimulation()
+    {
+        RunScene(async scene =>
+        {
+            var cloth = new ClothComponent();
+            var entity = new Entity { new ModelComponent(new ProceduralModelDescriptor(ClothModel).GenerateModel(scene.Game.Services)), cloth };
+            entity.Transform.Scale = new Vector3(2f);
+            var collider = cloth.Collider;
+
+            Assert.Equal(1, collider.Transforms);
+            var transforms = new ShapeTransform[1];
+            collider.GetLocalTransforms(cloth, transforms);
+            Assert.Equal(new Vector3(2f), transforms[0].Scale);
+
+            scene.Add(entity);
+            await cloth.Simulation!.AfterUpdate();
+            Assert.Equal(0, collider.Transforms);
+        });
+    }
+
     /// <summary> A soft body without a model cannot be built: it stays out of the simulation, and says so once </summary>
     [Fact]
     public static void ASoftBodyWithoutAModelIsReported()
