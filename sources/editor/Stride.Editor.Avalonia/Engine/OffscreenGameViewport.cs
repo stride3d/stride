@@ -2,11 +2,13 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Diagnostics;
+using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Services;
 using Stride.Editor.EditorGame.Game;
 using Stride.Editor.Engine;
 using Stride.Games;
 using Stride.Graphics;
+using AvaloniaPoint = Avalonia.Point;
 
 namespace Stride.Editor.Avalonia.Engine;
 
@@ -50,6 +52,13 @@ public sealed class OffscreenGameViewport : IEditorGameViewport
 
     /// <inheritdoc />
     object IEditorGameViewport.View => View;
+
+    /// <inheritdoc />
+    /// <remarks>The last move, press or drag of the pointer over the view (<see cref="OffscreenGameView.LastPointerPosition"/>).</remarks>
+    public Vector2? PointerPosition => ToFraction(View.LastPointerPosition);
+
+    /// <inheritdoc />
+    public Vector2? LastRightClickPosition => ToFraction(View.LastRightClickPosition);
 
     /// <inheritdoc />
     public GameContext Attach(EmbeddedGame game)
@@ -112,6 +121,15 @@ public sealed class OffscreenGameViewport : IEditorGameViewport
     {
         exporter?.Dispose();
         exporter = null;
+    }
+
+    private Vector2? ToFraction(AvaloniaPoint? position)
+    {
+        var size = View.Bounds.Size;
+        if (position is not { } point || size.Width <= 0 || size.Height <= 0)
+            return null;
+
+        return new Vector2((float)(point.X / size.Width), (float)(point.Y / size.Height));
     }
 
     /// <summary>

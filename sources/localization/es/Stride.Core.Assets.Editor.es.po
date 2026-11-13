@@ -195,7 +195,7 @@ msgstr "No recargar"
 #: ../editor/Stride.Core.Assets.Editor/Services/DelayedNotifications.cs:45
 msgctxt "Settings"
 msgid "Don't ask again"
-msgstr ""
+msgstr "No volver a preguntar"
 
 #: ../editor/Stride.Core.Assets.Editor/Components/FixAssetReferences/FixAssetReferencesViewModel.cs:101
 msgctxt "Message"

@@ -19,7 +19,7 @@ public sealed class EntityHierarchyDropTests
     [Fact]
     public async Task AnEntityDroppedOnAnotherBecomesItsLastChildAsOneUndoEntry()
     {
-        using var fixture = await OpenSceneAsync();
+        await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var box = FindEntity(editor, "Box");
         var child = FindEntity(editor, "Child");
@@ -48,7 +48,7 @@ public sealed class EntityHierarchyDropTests
     [Fact]
     public async Task AnEntityCannotBeDroppedOnItselfOrOnItsChildren()
     {
-        using var fixture = await OpenSceneAsync();
+        await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var parent = FindEntity(editor, "Parent");
         var child = FindEntity(editor, "Child");
@@ -65,7 +65,7 @@ public sealed class EntityHierarchyDropTests
     [Fact]
     public async Task AnEntityDroppedBeforeAnotherIsInsertedNextToIt()
     {
-        using var fixture = await OpenSceneAsync();
+        await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var box = FindEntity(editor, "Box");
         var child = FindEntity(editor, "Child");
@@ -81,7 +81,7 @@ public sealed class EntityHierarchyDropTests
     [Fact]
     public async Task AFolderDroppedOnAnEntityMovesItsEntitiesWithTheirPaths()
     {
-        using var fixture = await OpenSceneAsync();
+        await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         AddEntity(fixture, editor, "Tree", null, 2);
         var root = editor.HierarchyRoot;
@@ -107,7 +107,7 @@ public sealed class EntityHierarchyDropTests
     [Fact]
     public async Task WithAltAnEntityKeepsItsWorldPositionAcrossTheOffsetOfAChildScene()
     {
-        using var fixture = await OpenScenesAsync();
+        await using var fixture = await OpenScenesAsync();
         var editor = await OpenEditorAsync(fixture);
         var root = (SceneRootViewModel)editor.HierarchyRoot;
         var child = root.ChildScenes.Single();

@@ -3,6 +3,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+             xmlns:cmd="using:Stride.Core.Assets.Editor.Avalonia.Commands"
+             xmlns:cmdl="using:Stride.Core.Assets.Editor.Commands"
              xmlns:caevm="using:Stride.Core.Assets.Editor.ViewModels"
              xmlns:caec="using:Stride.Core.Assets.Editor.Avalonia.Converters"
              xmlns:caev="using:Stride.Core.Assets.Editor.Avalonia.Views"
@@ -235,7 +237,9 @@
       <!-- The context menu of the WPF asset view, with the items whose commands are ported. The commands of the selected asset
            (create a derived asset...) are inserted when the menu opens, see the code-behind. -->
       <ListBox.ContextMenu>
-        <ContextMenu x:Name="AssetContextMenu" Opening="OnAssetContextMenuOpening">
+        <ContextMenu x:Name="AssetContextMenu" Opening="OnAssetContextMenuOpening"
+                     cmd:CommandSlot.Location="{x:Static cmdl:CommandLocations.AssetViewContext}"
+                     cmd:CommandSlot.Selection="{Binding SelectedContent}">
           <MenuItem Header="{sd:LocalizeString Asset, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"/>
           <MenuItem Header="{sd:LocalizeString Edit asset..., Context=Menu}"
                     Command="{Binding Session.EditSelectedContentCommand}"

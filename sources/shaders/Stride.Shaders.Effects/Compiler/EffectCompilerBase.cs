@@ -65,6 +65,8 @@ namespace Stride.Shaders.Compiler
                 }
             }
 
+            ShaderCorpusCapture.Record(mixinToCompile, compilerParameters.EffectParameters);
+
             // Compile the whole mixin tree
             var compilerResults = new CompilerResults { Module = $"EffectCompile [{mixinToCompile.Name}]" };
             var effectInputHash = ShaderMixinObjectId.Compute(mixinToCompile, compilerParameters.EffectParameters);

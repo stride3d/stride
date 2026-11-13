@@ -248,6 +248,8 @@ namespace Stride.Graphics
             depthStencilBuffer = null;
             DepthStencilAccess = DepthStencilAccess.Write;
             renderTargets.AsSpan().Clear();
+            // Else RenderTargets keeps null entries, which a flush (Direct3D 12) binds again
+            renderTargetCount = 0;
         }
 
         /// <summary>
@@ -648,5 +650,35 @@ namespace Stride.Graphics
         ///   A <see cref="MappedResource"/> structure identifying the sub-resource to unmap.
         /// </param>
         public unsafe partial void UnmapSubResource(MappedResource mappedResource);
+
+        /// <summary>
+        ///   Inserts a barrier that transitions a Graphics Resource to the layout matching a <see cref="GraphicsResourceState"/>.
+        /// </summary>
+        /// <param name="resource">The Graphics Resource to transition.</param>
+        /// <param name="newState">
+        ///   The new state of <paramref name="resource"/>. A state with no matching layout, such as a combination of
+        ///   read states, transitions to <see cref="BarrierLayout.Common"/>.
+        /// </param>
+        [Obsolete("Use the BarrierLayout overload instead.")]
+        public void ResourceBarrierTransition(GraphicsResource resource, GraphicsResourceState newState)
+        {
+            var newLayout = newState switch
+            {
+                GraphicsResourceState.RenderTarget => BarrierLayout.RenderTarget,
+                GraphicsResourceState.UnorderedAccess => BarrierLayout.UnorderedAccess,
+                GraphicsResourceState.DepthWrite => BarrierLayout.DepthStencilWrite,
+                GraphicsResourceState.DepthRead => BarrierLayout.DepthStencilRead,
+                GraphicsResourceState.NonPixelShaderResource or
+                GraphicsResourceState.PixelShaderResource or
+                GraphicsResourceState.AllShaderResource => BarrierLayout.ShaderResource,
+                GraphicsResourceState.IndirectArgument => BarrierLayout.IndirectArgument,
+                GraphicsResourceState.CopyDestination => BarrierLayout.CopyDest,
+                GraphicsResourceState.CopySource => BarrierLayout.CopySource,
+                GraphicsResourceState.ResolveDestination => BarrierLayout.ResolveDest,
+                GraphicsResourceState.ResolveSource => BarrierLayout.ResolveSource,
+                _ => BarrierLayout.Common
+            };
+            ResourceBarrierTransition(resource, newLayout);
+        }
     }
 }

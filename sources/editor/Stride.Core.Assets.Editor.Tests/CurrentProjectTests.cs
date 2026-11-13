@@ -14,7 +14,7 @@ public sealed class CurrentProjectTests
     [Fact]
     public async Task TheExecutableOfTheEditorPlatformIsTheCurrentProject()
     {
-        using var fixture = await EditorSessionFixture.OpenGameAsync(PlatformType.Windows, PlatformType.Linux, PlatformType.macOS);
+        await using var fixture = await EditorSessionFixture.OpenGameAsync(PlatformType.Windows, PlatformType.Linux, PlatformType.macOS);
 
         var current = Assert.IsType<ProjectViewModel>(fixture.Session.CurrentProject);
         Assert.Equal(ProjectType.Executable, current.Type);
@@ -26,7 +26,7 @@ public sealed class CurrentProjectTests
     public async Task WithoutAnExecutableOfTheEditorPlatformTheWindowsOneIsTheCurrentProject()
     {
         Skip.If(Platform.Type == PlatformType.Windows, "The Windows executable is the one of the editor's platform.");
-        using var fixture = await EditorSessionFixture.OpenGameAsync(PlatformType.Android, PlatformType.Windows);
+        await using var fixture = await EditorSessionFixture.OpenGameAsync(PlatformType.Android, PlatformType.Windows);
 
         var current = Assert.IsType<ProjectViewModel>(fixture.Session.CurrentProject);
         Assert.Equal(PlatformType.Windows, current.Platform);

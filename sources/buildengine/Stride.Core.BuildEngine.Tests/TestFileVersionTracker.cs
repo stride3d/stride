@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using Stride.Core.Storage;
 using Xunit;
@@ -96,4 +97,58 @@ public class TestFileVersionTracker : IDisposable
         // Same date and size as the failed read: the hash is computed again rather than taken from the failed read
         Assert.NotEqual(ObjectId.Empty, tracker.ComputeFileHash(path));
     }
+
+    [Fact]
+    public void CompactDropsMissingFoldersAndMissingReads()
+    {
+        var kept = Path.Combine(directory, "kept.txt");
+        File.WriteAllText(kept, "content");
+        var inMissingFolder = Path.Combine(directory, "deleted", "project", "asset.txt");
+        var missingInFolder = Path.Combine(directory, "missing.txt");
+        var cache = Path.Combine(directory, "cache");
+        File.WriteAllText(cache,
+            Entry(kept, 1, 7) + Entry(kept, 2, 7) + Entry(inMissingFolder, 1, 7) + Entry(missingInFolder, 1, 7) + Entry(Path.Combine(directory, "failed.txt"), 0, -1));
+
+        Assert.True(FileVersionStorage.Compact(cache));
+
+        // A file missing from a folder that exists stays: only folders are checked
+        Assert.Equal([Entry(kept, 2, 7), Entry(missingInFolder, 1, 7)], ReadEntries(cache));
+    }
+
+    [Fact]
+    public void CompactChecksFoldersOncePerDay()
+    {
+        var cache = Path.Combine(directory, "cache");
+        var inMissingFolder = Path.Combine(directory, "deleted", "asset.txt");
+        File.WriteAllText(cache, Entry(inMissingFolder, 1, 7));
+        Assert.True(FileVersionStorage.Compact(cache));
+        Assert.Empty(ReadEntries(cache));
+
+        File.WriteAllText(cache, Entry(inMissingFolder, 1, 7));
+        Assert.True(FileVersionStorage.Compact(cache));
+        Assert.Equal([Entry(inMissingFolder, 1, 7)], ReadEntries(cache));
+
+        File.SetLastWriteTimeUtc(cache + ".pruned", DateTime.UtcNow.AddDays(-2));
+        Assert.True(FileVersionStorage.Compact(cache));
+        Assert.Empty(ReadEntries(cache));
+    }
+
+    [Fact]
+    public void CompactWithNothingToDropDoesNotRewrite()
+    {
+        var kept = Path.Combine(directory, "kept.txt");
+        File.WriteAllText(kept, "content");
+        var cache = Path.Combine(directory, "cache");
+        File.WriteAllText(cache, Entry(kept, 1, 7));
+        var writeTime = DateTime.UtcNow.AddHours(-1);
+        File.SetLastWriteTimeUtc(cache, writeTime);
+
+        Assert.True(FileVersionStorage.Compact(cache));
+
+        Assert.Equal(writeTime, File.GetLastWriteTimeUtc(cache));
+    }
+
+    private static string Entry(string path, long ticks, long size) => $"{path}\t{ticks}\t{size}\t0123456789abcdef0123456789abcdef\n";
+
+    private static string[] ReadEntries(string cache) => [.. File.ReadAllLines(cache).Order(StringComparer.Ordinal).Select(x => x + "\n")];
 }

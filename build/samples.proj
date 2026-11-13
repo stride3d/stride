@@ -114,7 +114,7 @@
   <!-- Resolves SamplesEngineVersion (the committed release version, or -p:SamplesEngineVersion= for another one to write
        to the csprojs) + SamplesEngineNumber and SamplesDevEngineVersion (MajorMinor.Patch + worktree suffix = the
        locally-published dev version, which never carries the committed suffix) + the concrete sample csproj set (all
-       under samples/ minus the $EngineVersion$ template sources NewGame/Library, the set release-deploy.yml
+       under samples/ minus the $EngineVersion$ template sources NewGame/Library, the set plan-sample-release.ps1
        checks for changes since the content version was set). -->
   <Target Name="_ResolveSamplesEngineVersions" DependsOnTargets="StrideEnsureWorktreeVersion">
     <PropertyGroup>

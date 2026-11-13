@@ -49,6 +49,11 @@ public sealed class TreeViewDragDropBehavior : StyledElementBehavior<TreeView>
     /// </summary>
     public static readonly StyledProperty<bool> AllowDropOnEmptyAreaProperty = AvaloniaProperty.Register<TreeViewDragDropBehavior, bool>(nameof(AllowDropOnEmptyArea));
 
+    /// <summary>
+    /// Identifies the <see cref="EmptyAreaTarget"/> property.
+    /// </summary>
+    public static readonly StyledProperty<object?> EmptyAreaTargetProperty = AvaloniaProperty.Register<TreeViewDragDropBehavior, object?>(nameof(EmptyAreaTarget));
+
     private const double DragThreshold = 4.0;
     // The auto-scroll: the height of the bands along the edges, the delay before it starts, and its speed (WPF: 32 px, 0.5 s, 300 px/s)
     private const double ScrollBandHeight = 24.0;
@@ -76,10 +81,16 @@ public sealed class TreeViewDragDropBehavior : StyledElementBehavior<TreeView>
     public bool CanInsert { get => GetValue(CanInsertProperty); set => SetValue(CanInsertProperty, value); }
 
     /// <summary>
-    /// Gets or sets whether items can be dropped on the empty area below the items of the tree; the data context of the tree
+    /// Gets or sets whether items can be dropped on the empty area below the items of the tree; <see cref="EmptyAreaTarget"/>
     /// takes them.
     /// </summary>
     public bool AllowDropOnEmptyArea { get => GetValue(AllowDropOnEmptyAreaProperty); set => SetValue(AllowDropOnEmptyAreaProperty, value); }
+
+    /// <summary>
+    /// Gets or sets what takes the items dropped on the empty area of the tree (an <see cref="IAddChildViewModel"/>), when it
+    /// is not the data context of the tree: the root part of the UI editor, whose editor takes the drops on its game.
+    /// </summary>
+    public object? EmptyAreaTarget { get => GetValue(EmptyAreaTargetProperty); set => SetValue(EmptyAreaTargetProperty, value); }
 
     /// <summary>
     /// Gets whether the tree scrolls by itself because the pointer of a drag stays near one of its edges.
@@ -155,8 +166,9 @@ public sealed class TreeViewDragDropBehavior : StyledElementBehavior<TreeView>
         var item = hit?.GetSelfAndVisualAncestors().OfType<TreeViewItem>().FirstOrDefault(x => IsItemOf(tree, x));
         if (item is null)
         {
-            // The empty area below the items: the data context of the tree takes them (the WPF tree panel has the data context of the tree)
-            if (hit is null || !AllowDropOnEmptyArea || tree.DataContext is not IAddChildViewModel area)
+            // The empty area below the items: the data context of the tree takes them, as the WPF tree panel has the data
+            // context of the tree, unless another target is given (the WPF UI editor gives its panel the root part)
+            if (hit is null || !AllowDropOnEmptyArea || (EmptyAreaTarget ?? tree.DataContext) is not IAddChildViewModel area)
                 return TreeViewDropTarget.None;
             var areaAcceptance = area.GetAddChildrenAcceptance(items, modifiers, out var areaMessage);
             return new TreeViewDropTarget(TreeViewDropKind.Add, area, null, InsertPosition.Before, areaAcceptance, areaMessage, null, null);

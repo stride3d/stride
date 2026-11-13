@@ -6,6 +6,8 @@ using Stride.Assets.Editor.Tests.Helpers;
 using Stride.Assets.Editor.ViewModels;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Assets.Scripts;
+using Stride.Assets.Sprite;
+using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Presentation.Services;
 
@@ -24,7 +26,7 @@ public sealed class ScriptSourceFileEditorTests
     [Fact]
     public async Task TheEditorShowsTheTextOfTheScript()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         var editor = NewEditor(fixture);
 
         Assert.Equal(Script, editor.Text);
@@ -35,7 +37,7 @@ public sealed class ScriptSourceFileEditorTests
     [Fact]
     public async Task AnEditEnablesTheSaveUntilTheTextIsBackToTheFile()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         var editor = NewEditor(fixture);
 
         editor.OnTextEdited(Edited);
@@ -50,7 +52,7 @@ public sealed class ScriptSourceFileEditorTests
     [Fact]
     public async Task SavingWritesTheFileAndTheScript()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         var editor = NewEditor(fixture);
         editor.OnTextEdited(Edited);
 
@@ -66,7 +68,7 @@ public sealed class ScriptSourceFileEditorTests
     [Fact]
     public async Task AnExternalChangeIsReloadedWhenTheTextHasNoEdit()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         var editor = NewEditor(fixture);
         var reloads = new List<string>();
         editor.TextReloaded += (_, text) => reloads.Add(text);
@@ -83,7 +85,7 @@ public sealed class ScriptSourceFileEditorTests
     [Fact]
     public async Task AFileThatCannotBeReadIsReloadedAtTheNextCheck()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         var editor = NewEditor(fixture);
         var reloads = new List<string>();
         editor.TextReloaded += (_, text) => reloads.Add(text);
@@ -105,7 +107,7 @@ public sealed class ScriptSourceFileEditorTests
     [Fact]
     public async Task AnExternalChangeDoesNotReplaceTheEdits()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         var editor = NewEditor(fixture);
         var reloads = new List<string>();
         editor.TextReloaded += (_, text) => reloads.Add(text);
@@ -122,7 +124,7 @@ public sealed class ScriptSourceFileEditorTests
     [Fact]
     public async Task SavingOverAnExternalChangeAsksFirst()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         var editor = NewEditor(fixture);
         var dialogs = Dialogs(fixture);
         editor.OnTextEdited(Edited);
@@ -148,7 +150,7 @@ public sealed class ScriptSourceFileEditorTests
     [InlineData(true)]
     public async Task SavingKeepsTheByteOrderMarkOfTheFile(bool hasByteOrderMark)
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         var script = fixture.Session.AllAssets.OfType<ScriptSourceFileViewModel>().Single();
         File.WriteAllText(script.AssetItem.FullPath.ToOSPath(), Script, new UTF8Encoding(hasByteOrderMark));
         var editor = NewEditor(fixture);
@@ -164,7 +166,7 @@ public sealed class ScriptSourceFileEditorTests
     [Fact]
     public async Task SavingWithoutEditDoesNothing()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         var editor = NewEditor(fixture);
         File.WriteAllText(PathOf(editor), External);
 
@@ -177,7 +179,7 @@ public sealed class ScriptSourceFileEditorTests
     [Fact]
     public async Task ClosingWithoutEditDoesNotAsk()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         var editor = NewEditor(fixture);
 
         Assert.True(await editor.PreviewCloseAsync(null));
@@ -190,7 +192,7 @@ public sealed class ScriptSourceFileEditorTests
     [InlineData(MessageBoxResult.Cancel, false, Script)]
     public async Task ClosingWithEditsAsksTheUser(MessageBoxResult answer, bool closes, string file)
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         var editor = NewEditor(fixture);
         var dialogs = Dialogs(fixture);
         editor.OnTextEdited(Edited);
@@ -210,7 +212,7 @@ public sealed class ScriptSourceFileEditorTests
     [InlineData(false, Script)]
     public async Task ClosingWithAnAnswerSavesOrDropsWithoutAsking(bool save, string file)
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         var editor = NewEditor(fixture);
         editor.OnTextEdited(Edited);
 
@@ -223,7 +225,7 @@ public sealed class ScriptSourceFileEditorTests
     [Fact]
     public async Task ClosingKeepsTheEditorWhenTheSaveDidNotHappen()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         var editor = NewEditor(fixture);
         var dialogs = Dialogs(fixture);
         editor.OnTextEdited(Edited);
@@ -240,7 +242,7 @@ public sealed class ScriptSourceFileEditorTests
     [Fact]
     public async Task ASynchronousCloseNeverDropsEdits()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         var editor = NewEditor(fixture);
         Assert.True(editor.PreviewClose(null));
 
@@ -255,7 +257,7 @@ public sealed class ScriptSourceFileEditorTests
     [Fact]
     public async Task TheEditorCollectionClosesItsEditorsOnceTheyAgree()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         var collection = fixture.Session.EditorCollection;
         var script = fixture.Session.AllAssets.OfType<ScriptSourceFileViewModel>().Single();
         collection.OpenAssetEditor(script);
@@ -280,9 +282,32 @@ public sealed class ScriptSourceFileEditorTests
     }
 
     [Fact]
+    public async Task TheEditorCollectionOpensOnlyTheEditorsThisEditorHasAViewFor()
+    {
+        await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, ("Player", new ScriptSourceFileAsset { Text = Script }), ("Sheet", new SpriteSheetAsset()));
+        var collection = fixture.Session.EditorCollection;
+        var plugins = fixture.ServiceProvider.Get<IAssetsPluginService>();
+        var sheet = fixture.Session.AllAssets.OfType<SpriteSheetViewModel>().Single();
+        var script = fixture.Session.AllAssets.OfType<ScriptSourceFileViewModel>().Single();
+
+        // The sprite sheet has an editor, whose view this editor doesn't have: it is neither offered nor opened
+        Assert.Equal(typeof(SpriteSheetEditorViewModel), plugins.GetEditorViewModelType(sheet.GetType()));
+        Assert.False(plugins.HasEditorView(fixture.Session, sheet.GetType()));
+        collection.OpenAssetEditor(sheet);
+        Assert.Empty(collection.Editors);
+        Assert.Null(collection.ActiveEditor);
+
+        // The script's editor has its view
+        Assert.True(plugins.HasEditorView(fixture.Session, script.GetType()));
+        collection.OpenAssetEditor(script);
+        Assert.IsType<ScriptSourceFileEditorViewModel>(Assert.Single(collection.Editors));
+        Assert.True(await collection.CloseAllEditorsAsync(false));
+    }
+
+    [Fact]
     public async Task TheFontSizeStaysInItsRange()
     {
-        using var fixture = await OpenAsync();
+        await using var fixture = await OpenAsync();
         var editor = NewEditor(fixture);
 
         editor.FontSize = 2;
@@ -293,7 +318,7 @@ public sealed class ScriptSourceFileEditorTests
         Assert.Equal(16, editor.FontSize);
     }
 
-    private static async Task<AssetsSessionFixture> OpenAsync()
+    private static async DispatcherTask<AssetsSessionFixture> OpenAsync()
     {
         var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false, ("Player", new ScriptSourceFileAsset { Text = Script }));
         Assert.False(fixture.Result.HasErrors, fixture.Log);

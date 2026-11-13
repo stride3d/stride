@@ -9,24 +9,6 @@ namespace Stride.Assets.Presentation.Extensions
     public static class EnumerableExtensions
     {
         /// <summary>
-        /// Generates a sequence of values from a <paramref name="generator"/> that is called repeatedly <paramref name="count"/> times.
-        /// </summary>
-        /// <typeparam name="TResult">The type of the values to be generated in the result sequence.</typeparam>
-        /// <param name="generator">The generator of the values.</param>
-        /// <param name="count">The number of times to call the generator.</param>
-        /// <returns></returns>
-        public static IEnumerable<TResult> Repeat<TResult>([NotNull] this Func<TResult> generator, int count)
-        {
-            if (count < 0) throw new ArgumentOutOfRangeException(nameof(count));
-            return RepeatIterator(generator, count);
-        }
-
-        private static IEnumerable<TResult> RepeatIterator<TResult>([NotNull] Func<TResult> generator, int count)
-        {
-            for (var i = 0; i < count; i++) yield return generator();
-        }
-
-        /// <summary>
         /// Groups together elements in a sequence as long as they satisfy the given predicate.
         /// </summary>
         /// <remarks>

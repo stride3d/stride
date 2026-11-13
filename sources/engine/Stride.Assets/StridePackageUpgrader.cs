@@ -23,6 +23,7 @@ using Stride.Assets.Templates;
 using Stride.Graphics;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
+using Microsoft.CodeAnalysis.CSharp;
 using Stride.Core.Annotations;
 using static Stride.Assets.CodeUpgrades;
 
@@ -44,7 +45,8 @@ namespace Stride.Assets
 
         /// <summary>
         /// Rewrites every <c>Stride.*</c> <c>PackageReference</c> in the csproj at
-        /// <paramref name="csprojPath"/> to <see cref="CurrentVersion"/>. Standalone — no
+        /// <paramref name="csprojPath"/> to <see cref="CurrentVersion"/>, after renaming
+        /// <c>xunit.runner.stride</c> to <c>Stride.XunitRunner</c>. Standalone — no
         /// <see cref="PackageSession"/> or <see cref="Stride.Core.Reflection.AssemblyContainer"/>
         /// involved. Common building block for fresh-template instantiation and legacy
         /// session-load paths.
@@ -57,8 +59,15 @@ namespace Stride.Assets
                 var project = VSProjectHelper.LoadProject(csprojPath);
                 var isDirty = false;
 
-                foreach (var package in project.GetItems("PackageReference"))
+                foreach (var package in project.GetItems("PackageReference").ToList())
                 {
+                    // 4.5: the test runner package xunit.runner.stride was renamed Stride.XunitRunner; the version is set below
+                    if (string.Equals(package.EvaluatedInclude, "xunit.runner.stride", StringComparison.OrdinalIgnoreCase))
+                    {
+                        package.Rename("Stride.XunitRunner");
+                        isDirty = true;
+                    }
+
                     if (IsSkippedPackage(package.EvaluatedInclude))
                         continue;
 
@@ -154,6 +163,35 @@ namespace Stride.Assets
                 // 4.5: the assembly processor no longer pools the delegates passed to the Dispatcher; its callbacks take
                 // their captures as a state, in a static lambda (#3680).
                 DispatcherCallbacksToStaticLambdas(),
+            ]);
+
+            registry.Code("4.5.1.0",
+            [
+                // 4.5.1: CommandList members that only some graphics APIs had are gone (#3858):
+                // UnsetRenderTargets becomes ResetTargets, which unbinds the same targets and also forgets them;
+                // ResetQueryPool had nothing to do (Vulkan resets a pool itself, Direct3D 12's was empty);
+                // SetStreamTargets bound buffers no shader could write since 4.4 (SDSL0170).
+                Rewrite(
+                    MemberRename("Stride.Graphics.CommandList", "UnsetRenderTargets", "ResetTargets"),
+                    FluentCallRemove("Stride.Graphics.CommandList", "ResetQueryPool"),
+                    FluentCallRemove("Stride.Graphics.CommandList", "SetStreamTargets")),
+            ]);
+
+            registry.Code("4.5.2.0",
+            [
+                // 4.5.2: Bepu's MaxStepPerFrame was replaced by MaximumTimeSpanToProcess (no 1:1 mapping)
+                Rewrite(AssignmentRemove("Stride.BepuPhysics.BepuSimulation", "MaxStepPerFrame")),
+            ]);
+
+            registry.Code("4.5.3.0",
+            [
+                // 4.5.3: input devices hold their capture state, so a device that implements the input interfaces itself
+                // rather than through an engine base class needs one.
+                InterfaceMemberAdd("Stride.Input.IInputDevice", "public DeviceCaptureState CaptureState { get; } = new DeviceCaptureState();", "Stride.Input"),
+
+                // 4.5.3: GamePadDeviceBase.State is no longer virtual, so that it can hide a captured gamepad;
+                // custom gamepads provide their state through RawState instead.
+                PropertyOverrideRename("Stride.Input.GamePadDeviceBase", "State", "RawState", SyntaxKind.ProtectedKeyword),
             ]);
 
             // Structural csproj migrations, gated by the version each change landed at. Run against the

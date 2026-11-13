@@ -141,7 +141,20 @@ namespace Stride.Importer.ThreeD
                 }
 
                 if (extractTextureDependencies)
-                    entityInfo.TextureDependencies = ExtractTextureDependencies(scene);
+                {
+                    if (Material.GltfMaterialBuilder.IsGltfFile(inputFilename))
+                    {
+                        var gltfMaterials = new Material.GltfMaterialBuilder(assimp, scene, Logger);
+                        entityInfo.TextureRoles = gltfMaterials.CollectTextureRoles(fileName => Path.Combine(vfsInputPath, fileName));
+                        entityInfo.PremultipliedTextures = gltfMaterials.CollectPremultipliedTextures(fileName => Path.Combine(vfsInputPath, fileName));
+                        entityInfo.TextureDependencies = new List<string>(entityInfo.TextureRoles.Keys);
+                    }
+                    else
+                    {
+                        entityInfo.TextureRoles = new Dictionary<string, TextureRole>();
+                        entityInfo.TextureDependencies = ExtractTextureDependencies(scene, entityInfo.TextureRoles);
+                    }
+                }
 
                 return entityInfo;
             }
@@ -1145,19 +1158,16 @@ namespace Stride.Importer.ThreeD
                 vertexStride += sizeColor;
             }
 
+            // Tangents are stored as float4 with the bitangent sign in W, which is what the shaders read.
             var tangentOffset = vertexStride;
+            Vector3[] uvBitangents = null;
             if (mesh->MTangents != null)
             {
-                vertexElements.Add(VertexElement.Tangent<Vector3>(0, vertexStride));
-                vertexStride += sizeof(Vector3);
+                vertexElements.Add(VertexElement.Tangent<Vector4>(0, vertexStride));
+                vertexStride += sizeof(Vector4);
+                uvBitangents = ComputeUVBitangents(mesh);
             }
-
-            var bitangentOffset = vertexStride;
-            if (mesh->MTangents != null)
-            {
-                vertexElements.Add(VertexElement.BiTangent<Vector3>(0, vertexStride));
-                vertexStride += sizeof(Vector3);
-            }
+            var rootHandedness = rootTransform.Determinant() < 0 ? -1.0f : 1.0f;
 
             var blendIndicesOffset = vertexStride;
             var controlPointIndices16 = totalClusterCount > 256;
@@ -1221,25 +1231,24 @@ namespace Stride.Importer.ThreeD
 
                     if (mesh->MTangents != null)
                     {
-                        var tangentPointer = (Vector3*)(vbPointer + tangentOffset);
-                        var bitangentPointer = (Vector3*)(vbPointer + bitangentOffset);
-                        *tangentPointer = mesh->MTangents[i].ToStrideVector3();
-                        *bitangentPointer = mesh->MBitangents[i].ToStrideVector3();
-                        if (float.IsNaN(tangentPointer->X) || float.IsNaN(tangentPointer->Y) || float.IsNaN(tangentPointer->Z) ||
-                            float.IsNaN(bitangentPointer->X) || float.IsNaN(bitangentPointer->Y) || float.IsNaN(bitangentPointer->Z))
+                        var tangent = mesh->MTangents[i].ToStrideVector3();
+                        float handedness;
+                        if (float.IsNaN(tangent.X) || float.IsNaN(tangent.Y) || float.IsNaN(tangent.Z) || mesh->MNormals == null)
                         {
-                            var normalPointer = ((Vector3*)(vbPointer + normalOffset));
-                            Vector3 c1 = Vector3.Cross(*normalPointer, new Vector3(0.0f, 0.0f, 1.0f));
-                            Vector3 c2 = Vector3.Cross(*normalPointer, new Vector3(0.0f, 1.0f, 0.0f));
-
-                            if (c1.LengthSquared() > c2.LengthSquared())
-                                *tangentPointer = c1;
-                            else
-                                *tangentPointer = c2;
-                            *bitangentPointer = Vector3.Cross(*normalPointer, *tangentPointer);
+                            var normal = mesh->MNormals != null ? *(Vector3*)(vbPointer + normalOffset) : Vector3.UnitZ;
+                            Vector3 c1 = Vector3.Cross(normal, new Vector3(0.0f, 0.0f, 1.0f));
+                            Vector3 c2 = Vector3.Cross(normal, new Vector3(0.0f, 1.0f, 0.0f));
+                            tangent = c1.LengthSquared() > c2.LengthSquared() ? c1 : c2;
+                            handedness = 1.0f;
                         }
-                        tangentPointer->Normalize();
-                        bitangentPointer->Normalize();
+                        else
+                        {
+                            var uvBitangent = uvBitangents?[i] ?? Vector3.Zero;
+                            handedness = Vector3.Dot(Vector3.Cross(mesh->MNormals[i].ToStrideVector3(), tangent), uvBitangent) < 0 ? -rootHandedness : rootHandedness;
+                            Vector3.TransformNormal(ref tangent, ref rootTransform, out tangent);
+                        }
+                        tangent.Normalize();
+                        *(Vector4*)(vbPointer + tangentOffset) = new Vector4(tangent, handedness);
                     }
 
                     if (vertexIndexToBoneIdWeight.Count > 0)
@@ -1541,6 +1550,9 @@ namespace Stride.Importer.ThreeD
             for (uint i = 0; i < scene->MNumTextures; ++i)
             {
                 var texture = scene->MTextures[i];
+                if (string.IsNullOrEmpty(Path.GetFileNameWithoutExtension(texture->MFilename.AsString)))
+                    SetTextureName(texture, $"{Path.GetFileNameWithoutExtension(importFieName)}_texture{i}");
+
                 if (!Material.Materials.TryGetTextureFileName(texture, out var texFileName, out var errorMessage))
                 {
                     Logger.Error(errorMessage);
@@ -1549,6 +1561,55 @@ namespace Stride.Importer.ThreeD
                 string fullName = Path.Combine(dir, texFileName);
                 CreateTextureFile(texture, fullName);
             }
+        }
+
+        /// <summary>
+        /// Accumulates, per vertex, the direction in which the first texture coordinate's V increases.
+        /// Its side of the normal-tangent plane gives the tangent frame's handedness, as in <see cref="VertexHelper.GenerateTangentBinormal"/>,
+        /// independently of how the source format or Assimp stores bitangents.
+        /// </summary>
+        private static unsafe Vector3[] ComputeUVBitangents(Silk.NET.Assimp.Mesh* mesh)
+        {
+            if (mesh->MTextureCoords[0] == null)
+                return null;
+
+            var uvs = mesh->MTextureCoords[0];
+            var bitangents = new Vector3[mesh->MNumVertices];
+            for (uint f = 0; f < mesh->MNumFaces; f++)
+            {
+                var face = mesh->MFaces[f];
+                if (face.MNumIndices != 3)
+                    continue;
+
+                uint a = face.MIndices[0], b = face.MIndices[1], c = face.MIndices[2];
+                var edge1 = mesh->MVertices[b].ToStrideVector3() - mesh->MVertices[a].ToStrideVector3();
+                var edge2 = mesh->MVertices[c].ToStrideVector3() - mesh->MVertices[a].ToStrideVector3();
+                var uvEdge1 = new Vector2(uvs[b].X - uvs[a].X, uvs[b].Y - uvs[a].Y);
+                var uvEdge2 = new Vector2(uvs[c].X - uvs[a].X, uvs[c].Y - uvs[a].Y);
+
+                var determinant = uvEdge1.X * uvEdge2.Y - uvEdge2.X * uvEdge1.Y;
+                if (MathUtil.IsZero(determinant))
+                    continue;
+
+                var bitangent = (uvEdge1.X * edge2 - uvEdge2.X * edge1) / determinant;
+                bitangents[a] += bitangent;
+                bitangents[b] += bitangent;
+                bitangents[c] += bitangent;
+            }
+            return bitangents;
+        }
+
+        /// <summary>
+        /// Names an embedded texture that has no file name (common in GLB files), so its extracted file and asset don't collide with other textures.
+        /// </summary>
+        private static unsafe void SetTextureName(Silk.NET.Assimp.Texture* texture, string name)
+        {
+            var bytes = System.Text.Encoding.UTF8.GetBytes(name);
+            var length = Math.Min(bytes.Length, (int)Assimp.Maxlen - 1);
+            for (var i = 0; i < length; i++)
+                texture->MFilename.Data[i] = bytes[i];
+            texture->MFilename.Data[length] = 0;
+            texture->MFilename.Length = (uint)length;
         }
 
         private unsafe void CreateTextureFile(Silk.NET.Assimp.Texture* texture, string path)
@@ -1568,13 +1629,15 @@ namespace Stride.Importer.ThreeD
         {
             GenerateMaterialNames(scene, materialNames);
 
+            var gltfBuilder = Material.GltfMaterialBuilder.IsGltfFile(vfsInputFilename) ? new Material.GltfMaterialBuilder(assimp, scene, Logger) : null;
+
             var materials = new Dictionary<string, MaterialAsset>();
             for (uint i = 0; i < scene->MNumMaterials; i++)
             {
                 var lMaterial = scene->MMaterials[i];
                 var materialName = ToMaterialSlotName(materialNames[(IntPtr)lMaterial]);
 
-                materials.Add(materialName, ProcessMeshMaterial(scene, lMaterial));
+                materials.Add(materialName, gltfBuilder?.Build(lMaterial, materialName) ?? ProcessMeshMaterial(scene, lMaterial));
             }
             return materials;
         }
@@ -1977,9 +2040,16 @@ namespace Stride.Importer.ThreeD
             return animationList;
         }
 
-        private unsafe List<string> ExtractTextureDependencies(Scene* scene)
+        /// <summary>
+        /// Collects the textures referenced by the materials of a non-glTF file. Textures in the normals slot get the
+        /// <see cref="TextureRole.Normal"/> role, the only slot the legacy material builder maps to a normal map; the others
+        /// have no role and are imported as color textures.
+        /// </summary>
+        private unsafe List<string> ExtractTextureDependencies(Scene* scene, Dictionary<string, TextureRole> textureRoles)
         {
             var textureNames = new List<string>();
+            var normalMaps = new HashSet<string>();
+            var otherUses = new HashSet<string>();
 
             // texture search is done by type so we need to loop on them
             var allTextureTypes = new TextureType[]
@@ -2024,10 +2094,18 @@ namespace Stride.Importer.ThreeD
                             var relFileName = texFileName;
                             var fileNameToUse = Path.Combine(vfsInputPath, relFileName);
                             textureNames.Add(fileNameToUse);
+                            (textureType == TextureType.Normals ? normalMaps : otherUses).Add(fileNameToUse);
                             break;
                         }
                     }
                 }
+            }
+
+            foreach (var normalMap in normalMaps)
+            {
+                textureRoles[normalMap] = TextureRole.Normal;
+                if (otherUses.Contains(normalMap))
+                    Logger?.Info($"Texture '{Path.GetFileName(normalMap)}' is used both as a normal map and in another slot; it is imported as a normal map.");
             }
 
             return textureNames;

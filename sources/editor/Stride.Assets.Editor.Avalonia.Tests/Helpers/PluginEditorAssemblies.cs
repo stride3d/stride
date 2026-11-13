@@ -9,6 +9,7 @@ using Stride.Core.Reflection;
 using Stride.Particles.Editor;
 using Stride.Physics.Editor;
 using Stride.SpriteStudio.Editor;
+using Stride.UI.Editor;
 using Stride.Voxels.Editor;
 
 namespace Stride.Assets.Editor.Avalonia.Tests.Helpers;
@@ -27,6 +28,7 @@ internal static class PluginEditorAssemblies
         typeof(ParticlesEditorPlugin).Assembly,
         typeof(PhysicsEditorPlugin).Assembly,
         typeof(SpriteStudioEditorPlugin).Assembly,
+        typeof(UIEditorPlugin).Assembly,
         typeof(VoxelVolumeGizmo).Assembly,
     ];
 

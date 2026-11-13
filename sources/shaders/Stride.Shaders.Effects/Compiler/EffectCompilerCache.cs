@@ -172,9 +172,15 @@ namespace Stride.Shaders.Compiler
                                 outputHash = new ObjectId(outputHashBuffer);
                             }
 
+                            // Already loaded or compiled: give the same object, as the effect system makes one Effect per object
+                            if (bytecodes.TryGetValue(outputHash, out var loaded) && !IsBytecodeObsolete(loaded.Key))
+                            {
+                                bytecode = loaded;
+                            }
+
                             // Load bytecode from the shared output file
                             var bytecodePath = GetAppCachePath(mixin.Name, outputHash);
-                            if (VirtualFileSystem.ApplicationCache.FileExists(bytecodePath))
+                            if (bytecode.Key == null && VirtualFileSystem.ApplicationCache.FileExists(bytecodePath))
                             {
                                 using var stream = VirtualFileSystem.ApplicationCache.OpenStream(
                                     bytecodePath, VirtualFileMode.Open, VirtualFileAccess.Read, VirtualFileShare.Read);
@@ -240,8 +246,8 @@ namespace Stride.Shaders.Compiler
         private EffectBytecodeCompilerResult CompileBytecode(ShaderMixinSource mixinTree, EffectCompilerParameters effectParameters, CompilerParameters compilerParameters, ObjectId effectInputHash, DatabaseFileProvider database, string compiledUrl)
         {
             // Open the database for writing
-            var log = new LoggerResult();
-            var effectLog = GlobalLogger.GetLogger("EffectCompilerCache");
+            var log = new EffectCompileLog(EffectCompileLog.EffectCompilerCacheModule);
+            var effectLog = GlobalLogger.GetLogger(EffectCompileLog.EffectCompilerCacheModule);
 
             // Note: this compiler is expected to not be async and directly write stuff in localLogger
             var compiledShader = base.Compile(mixinTree, effectParameters, compilerParameters, effectInputHash).WaitForResult();
@@ -258,7 +264,7 @@ namespace Stride.Shaders.Compiler
                 }
 
                 if (isNewFailure)
-                    log.CopyTo(effectLog);
+                    ShaderBackendLog.CopyTo(log, effectLog);
                 return new EffectBytecodeCompilerResult(null, log);
             }
 
@@ -325,9 +331,15 @@ namespace Stride.Shaders.Compiler
                     database.ObjectDatabase.Write(memoryStream, effectInputHash, true);
                 }
 
-                if (!bytecodes.ContainsKey(newBytecodeId))
+                if (bytecodes.TryGetValue(newBytecodeId, out var known))
                 {
-                    log.Verbose($"New effect compiled #{effectCompileCount} [{effectInputHash}] (db: {newBytecodeId})\r\n{compilerParameters?.ToStringPermutationsDetailed()}");
+                    // Another permutation compiled to the same bytecode: give its object, so both get one Effect
+                    compiledShader = new EffectBytecodeCompilerResult(known.Key, compiledShader.CompilationLog);
+                }
+                else
+                {
+                    // ToStringPermutationsDetailed ends with a line break, and the log listener adds its own
+                    log.Verbose($"New effect compiled #{effectCompileCount} [{effectInputHash}] (db: {newBytecodeId})\r\n{compilerParameters?.ToStringPermutationsDetailed()}".TrimEnd());
                     Interlocked.Increment(ref effectCompileCount);
 
                     // Replace or add new bytecode
@@ -341,7 +353,7 @@ namespace Stride.Shaders.Compiler
                 compiledShaders.Add(effectInputHash, compiledShader);
             }
 
-            log.CopyTo(effectLog);
+            ShaderBackendLog.CopyTo(log, effectLog);
             return compiledShader;
         }
 

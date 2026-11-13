@@ -3,7 +3,7 @@
 Test projects that are not the unit tests of one assembly, and the reference images of the image-comparison tests.
 
 - Unit tests stay next to their code, in `sources/<area>/<Project>.Tests`.
-- Test infrastructure that the Stride build packs (`xunit.runner.stride`, published on nuget.org; `Stride.Graphics.Regression` and `Stride.TestRunner`) stays in `sources/`; the rest is in `infra/`.
+- Test infrastructure that the Stride build packs (`Stride.XunitRunner`, published on nuget.org, named `xunit.runner.stride` up to 4.4; `Stride.Graphics.Regression` and `Stride.TestRunner`) stays in `sources/`; the rest is in `infra/`.
 
 ## Layout
 
@@ -22,4 +22,5 @@ Test projects that are not the unit tests of one assembly, and the reference ima
 ## See also
 
 - [GPU-TESTING.md](GPU-TESTING.md): graphics APIs, software renderers, and the CompareGold workflow.
+- [../sources/shaders/Stride.Shaders.Tests/Corpus/README.md](../sources/shaders/Stride.Shaders.Tests/Corpus/README.md): the shader corpus check (the shader output of a PR compared with its base commit), what fails in CI and what to do.
 - [../docs/debugging/native-crashes.md](../docs/debugging/native-crashes.md): capturing and analyzing native access violations (GPU/audio/AOT) that crash a test silently.

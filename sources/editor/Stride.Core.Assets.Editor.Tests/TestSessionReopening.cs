@@ -17,12 +17,12 @@ public sealed class TestSessionReopening
     public async Task AReadOnlyAssetReconciledWithItsArchetypeLeavesTheSessionClean()
     {
         var (archetype, derived) = ArchetypeAndOutdatedDerivedAsset();
-        using var first = await EditorSessionFixture.OpenAsync(readOnly: true, ("Base", archetype), ("Derived", derived));
+        await using var first = await EditorSessionFixture.OpenAsync(readOnly: true, ("Base", archetype), ("Derived", derived));
         AssertReconciled(first);
 
         await AssertCleanAsync(first);
 
-        using var second = await first.ReopenAsync();
+        await using var second = await first.ReopenAsync();
         AssertReconciled(second);
         await AssertCleanAsync(second);
     }
@@ -31,7 +31,7 @@ public sealed class TestSessionReopening
     public async Task AnEditableAssetReconciledWithItsArchetypeStillHasToBeSaved()
     {
         var (archetype, derived) = ArchetypeAndOutdatedDerivedAsset();
-        using var fixture = await EditorSessionFixture.OpenAsync(readOnly: false, ("Base", archetype), ("Derived", derived));
+        await using var fixture = await EditorSessionFixture.OpenAsync(readOnly: false, ("Base", archetype), ("Derived", derived));
         var asset = AssertReconciled(fixture);
 
         // As in WPF: the change comes from the archetype, so it is not in the edit history, but it is not on disk yet
@@ -43,7 +43,7 @@ public sealed class TestSessionReopening
         Assert.True(await fixture.Session.SaveSessionAsync());
         Assert.Equal("new", fixture.ReadAsset("Derived").Value);
 
-        using var reopened = await fixture.ReopenAsync();
+        await using var reopened = await fixture.ReopenAsync();
         await AssertCleanAsync(reopened);
     }
 

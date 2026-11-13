@@ -120,7 +120,7 @@ public sealed class ThumbnailServiceTests
         }
     }
 
-    private static Task<ServicesSessionFixture> OpenAsync(params string[] names)
+    private static DispatcherTask<ServicesSessionFixture> OpenAsync(params string[] names)
     {
         return ServicesSessionFixture.OpenAsync(withBuilder: true, names.Select(x => ("Textures/" + x, (Asset)new TestEditorAsset { Value = x })).ToArray());
     }
@@ -128,12 +128,12 @@ public sealed class ThumbnailServiceTests
     [Fact]
     public async Task AssetsAddedFirstBuildBeforeTheOnesAddedLast()
     {
-        using var fixture = await OpenAsync("Gate", "A", "B", "C", "D");
+        await using var fixture = await OpenAsync("Gate", "A", "B", "C", "D");
         using var harness = await Harness.CreateAsync(fixture, holdNextCompilation: true);
         var service = harness.Service;
 
         service.AddThumbnailAssetItems([fixture.Asset("Textures/Gate").AssetItem], QueuePosition.Last);
-        Assert.True(harness.Holding.Wait(Timeout));
+        await ExclusiveDispatcherService.WaitUntilAsync(() => harness.Holding.IsSet, "the held compilation", Timeout);
 
         service.AddThumbnailAssetItems([fixture.Asset("Textures/A").AssetItem, fixture.Asset("Textures/B").AssetItem], QueuePosition.Last);
         service.AddThumbnailAssetItems([fixture.Asset("Textures/C").AssetItem, fixture.Asset("Textures/D").AssetItem], QueuePosition.First);
@@ -150,12 +150,12 @@ public sealed class ThumbnailServiceTests
     [Fact]
     public async Task IncreasingThePriorityMovesQueuedAssetsToTheFront()
     {
-        using var fixture = await OpenAsync("Gate", "A", "B", "C");
+        await using var fixture = await OpenAsync("Gate", "A", "B", "C");
         using var harness = await Harness.CreateAsync(fixture, holdNextCompilation: true);
         var service = harness.Service;
 
         service.AddThumbnailAssetItems([fixture.Asset("Textures/Gate").AssetItem], QueuePosition.Last);
-        Assert.True(harness.Holding.Wait(Timeout));
+        await ExclusiveDispatcherService.WaitUntilAsync(() => harness.Holding.IsSet, "the held compilation", Timeout);
         service.AddThumbnailAssetItems([fixture.Asset("Textures/A").AssetItem, fixture.Asset("Textures/B").AssetItem, fixture.Asset("Textures/C").AssetItem], QueuePosition.Last);
 
         // C becomes visible: it is built before A and B
@@ -171,7 +171,7 @@ public sealed class ThumbnailServiceTests
     [Fact]
     public async Task AnAssetRequestedAgainWhileBuildingIsBuiltOnceMoreAfterwards()
     {
-        using var fixture = await OpenAsync("A");
+        await using var fixture = await OpenAsync("A");
         using var harness = await Harness.CreateAsync(fixture, holdNextCompilation: false);
         var service = harness.Service;
         var asset = fixture.Asset("Textures/A");
@@ -193,12 +193,12 @@ public sealed class ThumbnailServiceTests
     [Fact]
     public async Task StopAsyncDropsTheQueuedThumbnailsAndIgnoresLaterRequests()
     {
-        using var fixture = await OpenAsync("Gate", "A", "B");
+        await using var fixture = await OpenAsync("Gate", "A", "B");
         using var harness = await Harness.CreateAsync(fixture, holdNextCompilation: true);
         var service = harness.Service;
 
         service.AddThumbnailAssetItems([fixture.Asset("Textures/Gate").AssetItem], QueuePosition.Last);
-        Assert.True(harness.Holding.Wait(Timeout));
+        await ExclusiveDispatcherService.WaitUntilAsync(() => harness.Holding.IsSet, "the held compilation", Timeout);
         service.AddThumbnailAssetItems([fixture.Asset("Textures/A").AssetItem], QueuePosition.Last);
         Assert.Equal(1, service.PendingThumbnailCount);
 
@@ -216,7 +216,7 @@ public sealed class ThumbnailServiceTests
     [Fact]
     public async Task ABuiltThumbnailIsReportedWithItsImageAndItsProblemsGoToTheAssetLog()
     {
-        using var fixture = await OpenAsync("A");
+        await using var fixture = await OpenAsync("A");
         using var harness = await Harness.CreateAsync(fixture, holdNextCompilation: false);
         var service = harness.Service;
         var asset = fixture.Asset("Textures/A");
@@ -245,7 +245,7 @@ public sealed class ThumbnailServiceTests
     [Fact]
     public async Task ACancelledBuildReportsNothing()
     {
-        using var fixture = await OpenAsync("A");
+        await using var fixture = await OpenAsync("A");
         using var harness = await Harness.CreateAsync(fixture, holdNextCompilation: false);
         var service = harness.Service;
         var asset = fixture.Asset("Textures/A");
@@ -260,7 +260,7 @@ public sealed class ThumbnailServiceTests
     [Fact]
     public async Task StaticThumbnailsComeFromTheAssemblyAttribute()
     {
-        using var fixture = await ServicesSessionFixture.OpenAsync(withBuilder: true, ("Statics/One", new StaticThumbnailAsset { Value = "one" }), ("Textures/A", new TestEditorAsset { Value = "a" }));
+        await using var fixture = await ServicesSessionFixture.OpenAsync(withBuilder: true, ("Statics/One", new StaticThumbnailAsset { Value = "one" }), ("Textures/A", new TestEditorAsset { Value = "a" }));
         using var harness = await Harness.CreateAsync(fixture, holdNextCompilation: false);
         var service = harness.Service;
 
@@ -272,7 +272,7 @@ public sealed class ThumbnailServiceTests
     [Fact]
     public async Task EveryThumbnailIsRefreshedOnceTheGameSettingsAreKnown()
     {
-        using var fixture = await OpenAsync("A", "B", "C");
+        await using var fixture = await OpenAsync("A", "B", "C");
         using var harness = await Harness.CreateAsync(fixture, holdNextCompilation: false);
 
         // Every asset of the session is refreshed (their order follows the session's asset collection)

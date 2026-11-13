@@ -670,7 +670,14 @@ public abstract partial class IdentifierBase(string name, TextLocation info) : L
         if (symbol.Id.IsStage || builder.CurrentFunction is not { IsStage: true })
             return;
 
+        // A constant holds no instance state, and a stage-only import keeps it
+        if (symbol.Id.Kind == SymbolKind.Constant)
+            return;
+
         var varOwner = symbol.OwnerType;
+        // A cbuffer member's symbol refers to its cbuffer, which has the flag
+        if (symbol.Id.Kind == SymbolKind.CBuffer && (varOwner ?? table.CurrentShader)?.Variables.Any(v => v.Symbol.IdRef == symbol.IdRef && (v.Flags & Spirv.Specification.VariableFlagsMask.Stage) != 0) == true)
+            return;
         if (varOwner != null && varOwner != table.CurrentShader)
         {
             foreach (var inst in context)

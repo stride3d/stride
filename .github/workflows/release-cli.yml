@@ -1,6 +1,6 @@
 name: Release CLI
 
-# Builds, signs, and (optionally) deploys the Stride CLI dotnet tool (Stride.Cli) to NuGet.org.
+# Builds and (optionally) signs and deploys the Stride CLI dotnet tool (Stride.Cli) to NuGet.org.
 #
 # Versioned independently of the engine: the SemVer in sources/launcher/Stride.Cli/Stride.Cli.csproj
 # is the source of truth - bump <Version> by hand before a stable release. A deploy pushes to
@@ -9,10 +9,6 @@ name: Release CLI
 on:
   workflow_dispatch:
     inputs:
-      sign:
-        description: Code sign the package
-        default: true
-        type: boolean
       deploy:
         description: Deploy to NuGet.org and create a GitHub Release
         default: false
@@ -30,22 +26,26 @@ jobs:
   Validate:
     runs-on: ubuntu-latest
     steps:
-      - name: Check deploy requires signing
-        if: ${{ inputs.deploy && !inputs.sign }}
-        run: |
-          echo "::error::Cannot deploy unsigned packages. Enable 'sign' to deploy."
-          exit 1
+      # GITHUB_TOKEN can't read team membership: the Stride Bot app can (Organization Members: Read).
+      - name: Get the Stride Bot token
+        id: bot
+        if: ${{ inputs.deploy }}
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.STRIDE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.STRIDE_BOT_PRIVATE_KEY }}
+          permission-members: read
 
       - name: Check release permissions
-        if: ${{ inputs.sign || inputs.deploy }}
+        if: ${{ inputs.deploy }}
         env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
+          GH_TOKEN: ${{ steps.bot.outputs.token }}
         run: |
           ORG=$(echo "${{ github.repository }}" | cut -d/ -f1)
           TEAM="stride-release-managers"
           USER="${{ github.actor }}"
           if ! gh api "orgs/$ORG/teams/$TEAM/memberships/$USER" --silent 2>/dev/null; then
-            echo "::error::User $USER is not a member of $ORG/$TEAM. Sign/deploy requires stride-release-managers team membership."
+            echo "::error::User $USER is not a member of $ORG/$TEAM. Deploy requires stride-release-managers team membership."
             exit 1
           fi
 
@@ -53,7 +53,7 @@ jobs:
     name: Package
     needs: Validate
     runs-on: windows-2025-vs2026
-    environment: production  # signing secrets live here
+    # No environment and no secrets: the package is signed by the Deploy job, in production.
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
@@ -67,20 +67,13 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      - name: Build and sign package
+      - name: Build package
         run: |
           # --no-restore: the target restores what it needs; the implicit restore would restore all of Stride.slnx
           dotnet build build\package.proj `
-            -t:PackageCli `
+            -t:BuildPackageCli `
             --no-restore `
-            -p:StrideSign=${{ inputs.sign }} `
             -p:VersionSuffix=${{ inputs.version-suffix }}
-        env:
-          StrideSignTenantId: ${{ inputs.sign && secrets.STRIDE_SIGN_TENANT_ID || '' }}
-          StrideSignClientId: ${{ inputs.sign && secrets.STRIDE_SIGN_CLIENT_ID || '' }}
-          StrideSignClientSecret: ${{ inputs.sign && secrets.STRIDE_SIGN_CLIENT_SECRET || '' }}
-          StrideSignKeyVaultCertificate: ${{ inputs.sign && secrets.STRIDE_SIGN_KEYVAULT_CERTIFICATE || '' }}
-          StrideSignKeyVaultName: ${{ inputs.sign && secrets.STRIDE_SIGN_KEYVAULT_NAME || '' }}
 
       - name: Detect version
         id: version
@@ -129,17 +122,32 @@ jobs:
 
   Deploy:
     name: Deploy ${{ needs.Package.outputs.version }}
-    if: ${{ inputs.deploy && inputs.sign }}
+    if: ${{ inputs.deploy }}
     needs: Package
-    runs-on: ubuntu-latest  # NuGet push doesn't need Windows
+    runs-on: windows-2025  # the sign tool needs Windows
     environment: production  # requires manual approval in GitHub settings
+    defaults:
+      run:
+        shell: bash
+    env:
+      MSYS_NO_PATHCONV: 1  # Git Bash: keep tag and path arguments as they are
     permissions:
       contents: write
       id-token: write # nuget.org trusted publishing
     steps:
+      # The Stride Release app's key is only in the production environment, and the app may pass the master ruleset.
+      - name: Get the Stride Release token
+        id: release
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.STRIDE_RELEASE_CLIENT_ID }}
+          private-key: ${{ secrets.STRIDE_RELEASE_PRIVATE_KEY }}
+          permission-contents: write
+          permission-members: read
+
       - name: Check release permissions
         env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
+          GH_TOKEN: ${{ steps.release.outputs.token }}
         run: |
           ORG=$(echo "${{ github.repository }}" | cut -d/ -f1)
           TEAM="stride-release-managers"
@@ -153,7 +161,7 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
-          token: ${{ secrets.GH_PAT }}  # push the cli/<version> tag
+          token: ${{ steps.release.outputs.token }}  # push the cli/<version> tag
 
       - uses: actions/setup-dotnet@v6
         with:
@@ -164,6 +172,15 @@ jobs:
         with:
           name: stride-cli-${{ needs.Package.outputs.version }}
           path: bin/cli
+
+      - name: Sign
+        run: dotnet build build/package.proj -t:SignPackageCli --no-restore -p:StrideSign=true
+        env:
+          StrideSignTenantId: ${{ secrets.STRIDE_SIGN_TENANT_ID }}
+          StrideSignClientId: ${{ secrets.STRIDE_SIGN_CLIENT_ID }}
+          StrideSignClientSecret: ${{ secrets.STRIDE_SIGN_CLIENT_SECRET }}
+          StrideSignKeyVaultCertificate: ${{ secrets.STRIDE_SIGN_KEYVAULT_CERTIFICATE }}
+          StrideSignKeyVaultName: ${{ secrets.STRIDE_SIGN_KEYVAULT_NAME }}
 
       # A short-lived key from nuget.org's trusted publishing policy for this workflow file, instead of a stored one
       - name: NuGet login
@@ -194,7 +211,7 @@ jobs:
 
       - name: Create GitHub Release
         env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
+          GH_TOKEN: ${{ steps.release.outputs.token }}
         run: |
           TAG="cli/${{ needs.Package.outputs.version }}"
           if gh release view "$TAG" >/dev/null 2>&1; then
@@ -247,7 +264,7 @@ jobs:
     needs: [Package, Deploy]
     if: ${{ needs.Package.outputs.version != '' }}
     permissions:
-      contents: read       # passed down only as the model's read-only token; apply uses the PAT
+      contents: read       # passed down only as the model's read-only token; apply uses the Stride Bot token
       pull-requests: read  # lets the model trace commits to their PRs
     uses: ./.github/workflows/release-notes-apply.yml
     with:
@@ -257,5 +274,5 @@ jobs:
       scope: sources/launcher/Stride.Cli
       apply: true
     secrets:
-      gh-token: ${{ secrets.GH_PAT }}
+      bot-private-key: ${{ secrets.STRIDE_BOT_PRIVATE_KEY }}
       anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY_RELEASE_NOTES }}

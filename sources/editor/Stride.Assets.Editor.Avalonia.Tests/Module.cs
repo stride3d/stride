@@ -14,8 +14,9 @@ internal static class Module
     {
         // The view assemblies register their plugins and scan indexes when they initialize; the tests look them up by type
         RuntimeHelpers.RunModuleConstructor(typeof(StrideEditorViewPlugin).Module.ModuleHandle);
-        RuntimeHelpers.RunModuleConstructor(typeof(Stride.Audio.Editor.AudioEditorAvaloniaPlugin).Module.ModuleHandle);
-        RuntimeHelpers.RunModuleConstructor(typeof(Stride.SpriteStudio.Editor.SpriteStudioEditorAvaloniaPlugin).Module.ModuleHandle);
+        RuntimeHelpers.RunModuleConstructor(typeof(Stride.Audio.Editor.Avalonia.AudioEditorAvaloniaPlugin).Module.ModuleHandle);
+        RuntimeHelpers.RunModuleConstructor(typeof(Stride.SpriteStudio.Editor.Avalonia.SpriteStudioEditorAvaloniaPlugin).Module.ModuleHandle);
+        RuntimeHelpers.RunModuleConstructor(typeof(Stride.UI.Editor.Avalonia.Views.UIEditorAvaloniaPlugin).Module.ModuleHandle);
 
         // The template providers scan the loaded assemblies for types: the assets assemblies need MSBuild resolvable, like in the editor
         PackageSessionPublicHelper.FindAndSetMSBuildVersion();

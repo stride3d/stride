@@ -69,7 +69,7 @@ namespace Stride.Physics
         /// Objects with higher mass push objects with lower mass more when they collide. For large differences, use point values; for example, write 0.1 or 10, not 1 or 100000.
         /// </userdoc>
         [DataMember(80)]
-        [DataMemberRange(0, 6)]
+        [DataMemberRange(minimum: 0, decimalPlaces: 6)]
         public float Mass
         {
             get

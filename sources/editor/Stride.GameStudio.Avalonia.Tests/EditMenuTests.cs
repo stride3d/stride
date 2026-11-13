@@ -25,7 +25,7 @@ public sealed class EditMenuTests
     {
         using var fixture = ShellSessionFixture.Create((AssetLocation, new TextPropertiesAsset { Label = "label" }));
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var undo = MenuItem(window, "UndoMenuItem");
@@ -64,7 +64,7 @@ public sealed class EditMenuTests
     {
         using var fixture = await ShellSessionFixture.OpenAsync((AssetLocation, new TextPropertiesAsset { Label = "label" }));
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var asset = fixture.Asset(AssetLocation);
@@ -97,7 +97,7 @@ public sealed class EditMenuTests
     {
         using var fixture = await ShellSessionFixture.OpenAsync((AssetLocation, new TextPropertiesAsset { Label = "label" }));
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             var asset = fixture.Asset(AssetLocation);

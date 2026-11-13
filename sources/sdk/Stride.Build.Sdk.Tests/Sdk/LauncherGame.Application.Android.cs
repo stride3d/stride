@@ -8,9 +8,9 @@ using Android.Runtime;
 using Avalonia;
 using Avalonia.Android;
 using Stride.Graphics.Regression;
-using xunit.runner.stride.ViewModels;
+using Stride.XunitRunner.ViewModels;
 
-namespace xunit.runner.stride;
+namespace Stride.XunitRunner;
 
 // Graphics-regression variant of AvaloniaApplication (selected by StrideGraphicsRegression=true).
 // All App.* delegates the runner reads on OnFrameworkInitializationCompleted must be assigned

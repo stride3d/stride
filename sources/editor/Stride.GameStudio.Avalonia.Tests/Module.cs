@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Assets;
+using Stride.Core.Assets.Editor;
 using Stride.Core.Reflection;
 
 namespace Stride.GameStudio.Avalonia.Tests;
@@ -17,11 +18,9 @@ internal static class Module
     [Stride.Core.ModuleInitializer]
     internal static void Initialize()
     {
-        // EditorPath builds the settings paths from the application data folder, which is XDG_CONFIG_HOME on Linux and
-        // %APPDATA% on Windows; both are read when the path is asked for
+        // Before the settings load their files (the application data folder ignores %APPDATA% on Windows)
         Directory.CreateDirectory(ConfigDirectory);
-        Environment.SetEnvironmentVariable("XDG_CONFIG_HOME", ConfigDirectory);
-        Environment.SetEnvironmentVariable("APPDATA", ConfigDirectory);
+        EditorPath.UserDataPath = ConfigDirectory;
 
         // The test asset types must be known to load the saved packages
         AssemblyRegistry.Register(typeof(Module).Assembly, AssemblyCommonCategories.Assets);

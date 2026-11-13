@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Stride.Core.Assets;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Assets.Quantum.Visitors;
 using Stride.Core;
@@ -15,7 +14,7 @@ using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Core.Quantum;
 using Stride.Assets.Editor.EditorGame;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 using Stride.UI.Editor.Game;
 using Stride.UI.Editor.ViewModels;
 using Stride.Assets.SpriteFont;
@@ -102,7 +101,8 @@ namespace Stride.UI.Editor.Services
 
         internal UIEditorGameAdornerService AdornerService { get; private set; }
 
-        private WpfEditorGameHostService host;
+        private IEditorGameCursorViewModelService cursorService;
+        private IEditorGameMousePositionViewModelService mousePositionService;
 
         internal Graphics.SpriteFont DefaultFont => defaultFontLazy.Value;
 
@@ -365,8 +365,9 @@ namespace Stride.UI.Editor.Services
         {
             base.InitializeServices(services);
             AdornerService = services.Get<UIEditorGameAdornerService>();
-            // Kept here because the adorners call the host from the game thread, where GetService refuses access.
-            host = services.Get<WpfEditorGameHostService>();
+            // Kept here because the adorners call them from the game thread, where GetService refuses access.
+            cursorService = services.Get<IEditorGameCursorViewModelService>();
+            mousePositionService = services.Get<IEditorGameMousePositionViewModelService>();
         }
 
         /// <inheritdoc/>
@@ -399,24 +400,33 @@ namespace Stride.UI.Editor.Services
         /// <summary>
         /// Gets the distance, in screen pixels, a pointer moves while pressed before it counts as a drag.
         /// </summary>
-        internal Vector2 MinimumDragDistance => Host?.MinimumDragDistance ?? Vector2.Zero;
-
-        private WpfEditorGameHostService Host => host;
+        internal Vector2 MinimumDragDistance => cursorService?.MinimumDragDistance ?? Vector2.Zero;
 
         /// <summary>
         /// Changes the cursor shown over the game (any thread).
         /// </summary>
-        internal void ChangeCursor(EditorGameCursor cursor) => Host?.ChangeCursor(cursor);
+        internal void ChangeCursor(EditorGameCursor cursor) => cursorService?.ChangeCursor(cursor);
+
+        /// <summary>
+        /// Gets or sets what drags elements out of the game, when a selected element is pressed with Alt (game thread). The
+        /// WPF view of the editor sets it to the drag of its game host; in an editor without it, the press starts a plain drag.
+        /// </summary>
+        internal Func<object[], bool> DragOut { get; set; }
+
+        /// <summary>
+        /// Gets whether the elements can be dragged out of the game (see <see cref="DragOut"/>).
+        /// </summary>
+        internal bool CanDragOut => DragOut != null;
 
         /// <summary>
         /// Drags <paramref name="items"/> out of the game.
         /// </summary>
         /// <returns>Whether the items were dropped somewhere.</returns>
-        internal bool StartDragDrop(params object[] items) => Host?.StartDragDrop(items) ?? false;
+        internal bool StartDragDrop(params object[] items) => DragOut?.Invoke(items) ?? false;
 
         public Vector3 GetMousePositionInUI()
         {
-            var scenePosition = Host?.GetMousePositionInScene(false) ?? Vector3.Zero;
+            var scenePosition = mousePositionService?.GetMousePositionInScene(false) ?? Vector3.Zero;
 
             var uiEntity = GetEntityByName(AdornerEntityName);
             var uiComponent = uiEntity.Get<UIComponent>();

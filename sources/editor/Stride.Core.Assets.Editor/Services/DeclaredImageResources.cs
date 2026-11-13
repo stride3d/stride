@@ -40,7 +40,7 @@ public static class DeclaredImageResources
         foreach (var attribute in typeAttributes)
         {
             if (ReadImage(assembly, attribute.ResourceName, attribute.Type.Name) is { } data)
-                images.Add(new DeclaredImage(attribute.Type, data));
+                images.Add(new DeclaredImage(attribute.Type, data) { ResourceName = attribute.ResourceName });
         }
 
         foreach (var attribute in enumAttributes)
@@ -52,7 +52,7 @@ public static class DeclaredImageResources
             }
 
             if (ReadImage(assembly, attribute.ResourceName, attribute.Value.ToString()!) is { } data)
-                images.Add(new DeclaredImage(attribute.Value, data));
+                images.Add(new DeclaredImage(attribute.Value, data) { ResourceName = attribute.ResourceName });
         }
         return images;
     }

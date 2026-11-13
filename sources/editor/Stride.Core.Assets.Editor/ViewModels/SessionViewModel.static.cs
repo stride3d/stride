@@ -71,10 +71,25 @@ partial class SessionViewModel
     /// Creates a new session from a template (a new project), and opens it.
     /// </summary>
     /// <returns>The session, or <c>null</c> when the template could not be run.</returns>
-    public static async Task<SessionViewModel?> CreateNewSessionAsync(NewSessionParameters newSessionParameters, IMainViewModel main, IViewModelServiceProvider serviceProvider)
+    public static Task<SessionViewModel?> CreateNewSessionAsync(NewSessionParameters newSessionParameters, IMainViewModel main, IViewModelServiceProvider serviceProvider)
+    {
+        return WithLoadingMarkerAsync(serviceProvider, null, () => CreateNewSessionCoreAsync(newSessionParameters, main, serviceProvider));
+    }
+
+    private static async Task<SessionViewModel?> CreateNewSessionCoreAsync(NewSessionParameters newSessionParameters, IMainViewModel main, IViewModelServiceProvider serviceProvider)
     {
         var loggerResult = new LoggerResult();
-        var session = new PackageSession { LoadEditorPackages = true, EditorToolkit = main.EditorToolkitName };
+        var session = new PackageSession
+        {
+            LoadEditorPackages = true,
+            EditorToolkit = main.EditorToolkitName,
+            // A plugin built for a newer editor is not loaded
+            AssemblyLoadCheck = serviceProvider.TryGet<IAssetsPluginService>()?.AssemblyLoadCheck,
+            // Nothing is switched off for a new project yet; in safe mode, only the built-in plugins load
+            CompanionPackageFilter = serviceProvider.TryGet<IAssetsPluginService>()?.GetCompanionPackageFilter(null),
+            // The user's extensions load with every session
+            CompanionPackageSource = serviceProvider.TryGet<IAssetsPluginService>()?.GetCompanionPackageSource(),
+        };
 
         var workProgress = new WorkProgressViewModel(serviceProvider, loggerResult)
         {
@@ -158,10 +173,47 @@ partial class SessionViewModel
     /// Opens the session of the given solution or package file.
     /// </summary>
     /// <returns>The session, or <c>null</c> when it could not be opened or the opening was cancelled.</returns>
-    public static async Task<SessionViewModel?> OpenSessionAsync(UFile path, PackageSessionResult sessionResult, IMainViewModel main, IViewModelServiceProvider serviceProvider, CancellationToken token = default)
+    public static Task<SessionViewModel?> OpenSessionAsync(UFile path, PackageSessionResult sessionResult, IMainViewModel main, IViewModelServiceProvider serviceProvider, CancellationToken token = default)
+    {
+        return OpenSessionAsync(path, loadParameters => PackageSession.Load(path, sessionResult, loadParameters), sessionResult, main, serviceProvider, token);
+    }
+
+    /// <summary>
+    /// Opens the session of the given file that the given action loads into <paramref name="sessionResult"/>, such as
+    /// <see cref="PackageSession.LoadWithoutMSBuild"/> for the projects that tests write.
+    /// </summary>
+    /// <param name="path">The solution or package file of the session.</param>
+    /// <param name="load">Loads the session into <paramref name="sessionResult"/>, with the load parameters of the editor.</param>
+    /// <returns>The session, or <c>null</c> when it could not be opened or the opening was cancelled.</returns>
+    public static Task<SessionViewModel?> OpenSessionAsync(UFile path, Action<PackageLoadParameters> load, PackageSessionResult sessionResult, IMainViewModel main, IViewModelServiceProvider serviceProvider, CancellationToken token = default)
     {
         ArgumentNullException.ThrowIfNull(path);
+        ArgumentNullException.ThrowIfNull(load);
+        return WithLoadingMarkerAsync(serviceProvider, path, () => OpenSessionCoreAsync(path, load, sessionResult, main, serviceProvider, token));
+    }
 
+    // The plugins join the session while it loads: the editor's marker says so until the session has opened (the plugin host
+    // removes it once they have initialized it), so that a crash meanwhile is known at the next start. A session that failed
+    // to open, or whose opening was cancelled, did not crash: its marker goes at once.
+    private static async Task<SessionViewModel?> WithLoadingMarkerAsync(IViewModelServiceProvider serviceProvider, UFile? path, Func<Task<SessionViewModel?>> open)
+    {
+        var marker = serviceProvider.TryGet<IAssetsPluginService>()?.LoadingMarker;
+        marker?.Write(path);
+        SessionViewModel? session = null;
+        try
+        {
+            session = await open();
+            return session;
+        }
+        finally
+        {
+            if (session is null)
+                marker?.Remove();
+        }
+    }
+
+    private static async Task<SessionViewModel?> OpenSessionCoreAsync(UFile path, Action<PackageLoadParameters> load, PackageSessionResult sessionResult, IMainViewModel main, IViewModelServiceProvider serviceProvider, CancellationToken token)
+    {
         var undoRedoService = RegisterSessionServices(serviceProvider);
 
         var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(token);
@@ -190,7 +242,7 @@ partial class SessionViewModel
                 try
                 {
                     // Load the session file (package or solution)
-                    PackageSession.Load(path, sessionResult, CreatePackageLoadParameters(serviceProvider, main.EditorToolkitName, token));
+                    load(CreatePackageLoadParameters(serviceProvider, path, main.EditorToolkitName, token));
                     if (!token.IsCancellationRequested)
                     {
                         // Load references
@@ -294,7 +346,8 @@ partial class SessionViewModel
         }
     }
 
-    private static PackageLoadParameters CreatePackageLoadParameters(IViewModelServiceProvider serviceProvider, string editorToolkit, CancellationToken token)
+    // The session keeps the companion filter of its first load: later loads (a dependency or a project added) give none
+    private static PackageLoadParameters CreatePackageLoadParameters(IViewModelServiceProvider serviceProvider, UFile? path, string editorToolkit, CancellationToken token)
     {
         // Snapshot every file the upgrade overwrites into a timestamped backup folder under the solution.
         // Copy-on-write, so it costs nothing unless an upgrade actually runs and modifies files. The dialog
@@ -306,6 +359,12 @@ partial class SessionViewModel
             BackupBeforeUpgrade = true,
             LoadEditorPackages = true,
             EditorToolkit = editorToolkit,
+            // A plugin built for a newer editor is not loaded
+            AssemblyLoadCheck = serviceProvider.TryGet<IAssetsPluginService>()?.AssemblyLoadCheck,
+            // Nor the plugins switched off for this session, nor in safe mode those that are not built-in
+            CompanionPackageFilter = path is not null ? serviceProvider.TryGet<IAssetsPluginService>()?.GetCompanionPackageFilter(path) : null,
+            // The user's extensions load with every session
+            CompanionPackageSource = serviceProvider.TryGet<IAssetsPluginService>()?.GetCompanionPackageSource(),
             // An asset of a missing plugin stays in the session as an unloadable asset
             LoadAssetsOfUnknownType = true,
         };

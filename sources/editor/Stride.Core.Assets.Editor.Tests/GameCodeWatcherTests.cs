@@ -14,6 +14,8 @@ namespace Stride.Core.Assets.Editor.Tests;
 public sealed class GameCodeWatcherTests : IDisposable
 {
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(30);
+    // Long enough for the changes a test reports in a row to make one burst on a slow machine
+    private static readonly TimeSpan OneBurstDelay = TimeSpan.FromSeconds(1);
 
     private readonly string directory = Path.Combine(Path.GetTempPath(), "Stride.Core.Assets.Editor.Tests", Guid.NewGuid().ToString("N"));
     private readonly string game;
@@ -62,15 +64,15 @@ public sealed class GameCodeWatcherTests : IDisposable
     [Fact]
     public async Task TheSourcesAndTheProjectFileOfAWatchedProjectCount()
     {
-        using var watcher = CreateWatcher();
+        using var watcher = CreateWatcher(OneBurstDelay);
         var bursts = Record(watcher);
         var gameDirectory = Path.GetDirectoryName(game)!;
+        File.WriteAllText(game, ProjectFile("MyGame") + "<!-- edited -->");
 
         Change(watcher, FileEventChangeType.Changed, Path.Combine(gameDirectory, "Player.cs"));
         Change(watcher, FileEventChangeType.Created, Path.Combine(gameDirectory, "Scripts", "Enemy.cs"));
         Change(watcher, FileEventChangeType.Deleted, Path.Combine(gameDirectory, "Old.CS"));
         watcher.OnFileChanged(new FileRenameEvent("New.cs", Path.Combine(gameDirectory, "New.cs"), Path.Combine(gameDirectory, "Before.txt")));
-        File.WriteAllText(game, ProjectFile("MyGame") + "<!-- edited -->");
         Change(watcher, FileEventChangeType.Changed, game);
 
         var burst = await bursts.Reader.ReadAsync().AsTask().WaitAsync(Timeout);
@@ -109,7 +111,7 @@ public sealed class GameCodeWatcherTests : IDisposable
     [Fact]
     public async Task ABurstReportsEachFileOnceAndTheNextOneStartsAgain()
     {
-        using var watcher = CreateWatcher();
+        using var watcher = CreateWatcher(OneBurstDelay);
         var bursts = Record(watcher);
         var player = Path.Combine(Path.GetDirectoryName(game)!, "Player.cs");
 
@@ -163,7 +165,7 @@ public sealed class GameCodeWatcherTests : IDisposable
     [Fact]
     public async Task TheWatchedProjectsOfASessionAreTheProjectsWhoseAssemblyTheEditorLoads()
     {
-        using var fixture = await EditorSessionFixture.OpenGameAsync(PlatformType.Windows, PlatformType.Linux);
+        await using var fixture = await EditorSessionFixture.OpenGameAsync(PlatformType.Windows, PlatformType.Linux);
         // The fixture's projects hold no asset types, so the session loaded no assembly
         Assert.Empty(GameCodeWatcher.GetCodeProjects(fixture.Session));
 
@@ -178,7 +180,7 @@ public sealed class GameCodeWatcherTests : IDisposable
         Assert.Equal(expected, Assert.Single(watcher.CodeProjects));
     }
 
-    private GameCodeWatcher CreateWatcher() => new([game], [head, nestedHead], TimeSpan.FromMilliseconds(100), watchFileSystem: false);
+    private GameCodeWatcher CreateWatcher(TimeSpan? burstDelay = null) => new([game], [head, nestedHead], burstDelay ?? TimeSpan.FromMilliseconds(100), watchFileSystem: false);
 
     private static void Change(GameCodeWatcher watcher, FileEventChangeType changeType, string path)
     {

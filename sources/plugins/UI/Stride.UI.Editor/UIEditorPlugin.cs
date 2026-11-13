@@ -19,6 +19,7 @@ using Stride.UI.Editor;
 #pragma warning disable 436 // Stride.PublicKeys is defined in multiple assemblies
 // The WPF views of these view models
 [assembly: InternalsVisibleTo("Stride.UI.Editor.Wpf" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.UI.Editor.Avalonia" + Stride.PublicKeys.Default)]
 
 namespace Stride.UI.Editor;
 

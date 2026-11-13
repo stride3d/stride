@@ -4,6 +4,7 @@
 using System;
 using System.Windows;
 using System.Windows.Input;
+using Stride.Core.Presentation.Drawing;
 
 namespace Stride.Assets.Presentation.CurveEditor.Views.Behaviors
 {
@@ -65,11 +66,11 @@ namespace Stride.Assets.Presentation.CurveEditor.Views.Behaviors
                 var position = e.GetPosition(AssociatedObject);
                 if (HasXModifiers())
                 {
-                    XAxis?.Pan(previousPosition, position);
+                    XAxis?.Pan(previousPosition.ToDrawing(), position.ToDrawing());
                 }
                 if (HasYModifiers())
                 {
-                    YAxis?.Pan(previousPosition, position);
+                    YAxis?.Pan(previousPosition.ToDrawing(), position.ToDrawing());
                 }
                 previousPosition = position;
                 DrawingView?.InvalidateDrawing();

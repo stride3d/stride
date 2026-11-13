@@ -20,7 +20,7 @@ public sealed class EntityCreationTests
     [Fact]
     public async Task AnEmptyEntityGoesLastAtTheRootSelectedAndBeingRenamed()
     {
-        using var fixture = await OpenSceneAsync();
+        await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         editor.SelectedContent.Add(FindEntity(editor, "Parent"));
         await editor.PropertiesRefreshCompletion;
@@ -43,7 +43,7 @@ public sealed class EntityCreationTests
     [Fact]
     public async Task AnEntityCreatedInTheSelectionGoesUnderTheSelectedEntityOrFolder()
     {
-        using var fixture = await OpenSceneAsync();
+        await using var fixture = await OpenSceneAsync();
         EntityHierarchyFolderTests.AddEntity(fixture, "Sun", "Lights", parent: null, index: 2);
         var editor = await OpenEditorAsync(fixture);
         var parent = FindEntity(editor, "Parent");
@@ -71,7 +71,7 @@ public sealed class EntityCreationTests
     [Fact]
     public async Task AFactoryThatAsksForAnAssetCreatesNothingWhenThePickerIsCancelled()
     {
-        using var fixture = await OpenSceneAsync();
+        await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var dialogs = (FakeEditorDialogService)fixture.ServiceProvider.Get<IEditorDialogService>();
         var names = RecordUndoNames(fixture);
@@ -88,7 +88,7 @@ public sealed class EntityCreationTests
     [Fact]
     public async Task ANewFolderHasAFreeNameAndTheUndoRemovesIt()
     {
-        using var fixture = await OpenSceneAsync();
+        await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var names = RecordUndoNames(fixture);
 
@@ -113,7 +113,7 @@ public sealed class EntityCreationTests
     [Fact]
     public async Task AFolderCreatedInTheSelectionGoesUnderTheSelectedEntity()
     {
-        using var fixture = await OpenSceneAsync();
+        await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
         var parent = FindEntity(editor, "Parent");
         editor.SelectedContent.Add(parent);

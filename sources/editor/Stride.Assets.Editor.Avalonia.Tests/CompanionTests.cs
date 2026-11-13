@@ -10,10 +10,12 @@ using Avalonia.VisualTree;
 using Stride.Assets.Editor.Avalonia.Views.Preview;
 using Stride.Assets.Editor.Tests.Helpers;
 using Stride.Audio.Editor;
+using Stride.Audio.Editor.Avalonia;
 using Stride.Core.Assets.Editor.Editors;
 using Stride.Core.Diagnostics;
 using Stride.Editor.Avalonia.Preview.Views;
 using Stride.SpriteStudio.Editor;
+using Stride.SpriteStudio.Editor.Avalonia;
 
 namespace Stride.Assets.Editor.Avalonia.Tests;
 

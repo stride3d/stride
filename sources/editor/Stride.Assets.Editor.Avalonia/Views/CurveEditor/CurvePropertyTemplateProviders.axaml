@@ -1,0 +1,29 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+                    xmlns:aevc="using:Stride.Assets.Editor.Avalonia.Views.CurveEditor"
+                    xmlns:caev="using:Stride.Core.Assets.Editor.Avalonia.Views"
+                    xmlns:cpqvm="using:Stride.Core.Presentation.Quantum.ViewModels"
+                    x:Class="Stride.Assets.Editor.Avalonia.Views.CurveEditor.CurvePropertyTemplateProviders">
+  <ResourceDictionary.MergedDictionaries>
+    <ResourceInclude Source="avares://Stride.Core.Assets.Editor.Avalonia/Views/DefaultPropertyTemplateProviders.axaml"/>
+    <ResourceInclude Source="avares://Stride.Assets.Editor.Avalonia/Views/CurveEditor/CurveEditorImages.axaml"/>
+  </ResourceDictionary.MergedDictionaries>
+
+  <!-- Provider for the IComputeCurve<T> properties (the samplers of the particles): the editor of the curve's type, with a
+       button that opens the curve in the curve editor -->
+  <aevc:ComputeCurveTemplateProvider x:Key="ComputeCurvePropertyTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor"
+                                     OverrideRule="Most">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <DockPanel>
+        <Button DockPanel.Dock="Right" Margin="2,0,0,0" Padding="0" Width="16" Height="16" Background="Transparent"
+                IsVisible="{Binding [HasCommand_EditCurve]}"
+                Command="{Binding [EditCurve]}"
+                ToolTip.Tip="{sd:LocalizeString Edit curve, Context=ToolTip}">
+          <Image Source="{StaticResource ImageEditCurve}" Width="16" Height="16"/>
+        </Button>
+        <ContentControl Content="{Binding}" ContentTemplate="{x:Static caev:PropertyViewHelper.EditorProviders}"/>
+      </DockPanel>
+    </DataTemplate>
+  </aevc:ComputeCurveTemplateProvider>
+</ResourceDictionary>

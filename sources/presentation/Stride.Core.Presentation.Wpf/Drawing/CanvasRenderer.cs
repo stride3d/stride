@@ -48,6 +48,7 @@ namespace Stride.Core.Presentation.Drawing
     public class CanvasRenderer : IDrawingContext
     {
         private readonly Dictionary<Color, Brush> cachedBrushes = new Dictionary<Color, Brush>();
+        private readonly Dictionary<string, FontFamily> cachedFontFamilies = new Dictionary<string, FontFamily>();
         private const int MaxPolylinesPerLine = 64;
         private const int MinPointsPerPolyline = 16;
 
@@ -85,11 +86,10 @@ namespace Stride.Core.Presentation.Drawing
         }
 
         /// <inheritdoc/>
-        public void DrawEllipse(Point point, Size size, Color fillColor, Color strokeColor,
-            double thickness, PenLineJoin lineJoin, ICollection<double> dashArray, double dashOffset, bool isHitTestVisible)
+        public void DrawEllipse(DrawingPoint point, DrawingSize size, Color fillColor, Color strokeColor,
+            double thickness, DrawingLineJoin lineJoin, ICollection<double> dashArray, double dashOffset, bool isHitTestVisible)
         {
-            point.Offset(-size.Width / 2, -size.Height / 2);
-            var rect = new Rect(point, size);
+            var rect = new Rect(point.Offset(-size.Width / 2, -size.Height / 2).ToWpf(), size.ToWpf());
 
             var ellipse = Create<Ellipse>(isHitTestVisible, rect.Left, rect.Top);
 
@@ -103,8 +103,8 @@ namespace Stride.Core.Presentation.Drawing
         }
 
         /// <inheritdoc/>
-        public void DrawEllipses(IList<Point> points, double radiusX, double radiusY, Color fillColor, Color strokeColor,
-            double thickness, PenLineJoin lineJoin, ICollection<double> dashArray, double dashOffset, bool isHitTestVisible)
+        public void DrawEllipses(IList<DrawingPoint> points, double radiusX, double radiusY, Color fillColor, Color strokeColor,
+            double thickness, DrawingLineJoin lineJoin, ICollection<double> dashArray, double dashOffset, bool isHitTestVisible)
         {
             if (points == null) throw new ArgumentNullException(nameof(points));
             if (points.Count == 0)
@@ -114,7 +114,7 @@ namespace Stride.Core.Presentation.Drawing
             var strokeBrush = GetBrush(strokeColor);
             var pen = new Pen(strokeBrush, thickness)
             {
-                LineJoin = lineJoin,
+                LineJoin = lineJoin.ToWpf(),
                 DashStyle = new DashStyle(dashArray, dashOffset),
             };
 
@@ -122,7 +122,7 @@ namespace Stride.Core.Presentation.Drawing
             var context = visual.RenderOpen();
             foreach (var point in points)
             {
-                context.DrawEllipse(fillBrush, pen, point, radiusX, radiusY);
+                context.DrawEllipse(fillBrush, pen, point.ToWpf(), radiusX, radiusY);
             }
             context.Close();
 
@@ -131,8 +131,8 @@ namespace Stride.Core.Presentation.Drawing
         }
 
         /// <inheritdoc/>
-        public void DrawLine(Point p1, Point p2, Color strokeColor,
-            double thickness, PenLineJoin lineJoin, ICollection<double> dashArray, double dashOffset, bool aliased, bool isHitTestVisible)
+        public void DrawLine(DrawingPoint p1, DrawingPoint p2, Color strokeColor,
+            double thickness, DrawingLineJoin lineJoin, ICollection<double> dashArray, double dashOffset, bool aliased, bool isHitTestVisible)
         {
             var line = Create<Line>(isHitTestVisible);
             SetStroke(line, strokeColor, thickness, lineJoin, dashArray, dashOffset, aliased);
@@ -143,8 +143,8 @@ namespace Stride.Core.Presentation.Drawing
         }
 
         /// <inheritdoc/>
-        public void DrawLineSegments(IList<Point> points, Color strokeColor,
-            double thickness, PenLineJoin lineJoin, ICollection<double> dashArray, double dashOffset, bool aliased, bool isHitTestVisible)
+        public void DrawLineSegments(IList<DrawingPoint> points, Color strokeColor,
+            double thickness, DrawingLineJoin lineJoin, ICollection<double> dashArray, double dashOffset, bool aliased, bool isHitTestVisible)
         {
             if (points == null) throw new ArgumentNullException(nameof(points));
             if (points.Count < 2)
@@ -162,13 +162,13 @@ namespace Stride.Core.Presentation.Drawing
                 var figure = new PathFigure
                 {
                     IsClosed = false,
-                    StartPoint = aliased ? ToPixelAlignedPoint(points[i]) : points[i],
+                    StartPoint = aliased ? ToPixelAlignedPoint(points[i]) : points[i].ToWpf(),
                 };
                 var segment = new LineSegment
                 {
                     IsSmoothJoin = false,
                     IsStroked = true,
-                    Point = aliased ? ToPixelAlignedPoint(points[i + 1]) : points[i + 1],
+                    Point = aliased ? ToPixelAlignedPoint(points[i + 1]) : points[i + 1].ToWpf(),
                 };
                 figure.Segments.Add(segment);
                 pathGeometry.Figures.Add(figure);
@@ -180,8 +180,8 @@ namespace Stride.Core.Presentation.Drawing
         }
 
         /// <inheritdoc/>
-        public void DrawPolygon(IList<Point> points, Color fillColor, Color strokeColor,
-            double thickness, PenLineJoin lineJoin, ICollection<double> dashArray, double dashOffset, bool aliased, bool isHitTestVisible)
+        public void DrawPolygon(IList<DrawingPoint> points, Color fillColor, Color strokeColor,
+            double thickness, DrawingLineJoin lineJoin, ICollection<double> dashArray, double dashOffset, bool aliased, bool isHitTestVisible)
         {
             var polygon = Create<Polygon>(isHitTestVisible);
 
@@ -192,8 +192,8 @@ namespace Stride.Core.Presentation.Drawing
         }
 
         /// <inheritdoc/>
-        public void DrawPolyline(IList<Point> points, Color strokeColor,
-            double thickness, PenLineJoin lineJoin, ICollection<double> dashArray, double dashOffset, bool aliased, bool isHitTestVisible)
+        public void DrawPolyline(IList<DrawingPoint> points, Color strokeColor,
+            double thickness, DrawingLineJoin lineJoin, ICollection<double> dashArray, double dashOffset, bool aliased, bool isHitTestVisible)
         {
             if (thickness < BalancedLineDrawingThicknessLimit)
             {
@@ -206,9 +206,10 @@ namespace Stride.Core.Presentation.Drawing
         }
 
         /// <inheritdoc/>
-        public void DrawRectangle(Rect rect, Color fillColor, Color strokeColor,
-            double thickness, PenLineJoin lineJoin, ICollection<double> dashArray, double dashOffset, bool isHitTestVisible)
+        public void DrawRectangle(DrawingRect drawingRect, Color fillColor, Color strokeColor,
+            double thickness, DrawingLineJoin lineJoin, ICollection<double> dashArray, double dashOffset, bool isHitTestVisible)
         {
+            var rect = drawingRect.ToWpf();
             var rectangle = Create<Rectangle>(isHitTestVisible, rect.Left, rect.Top);
 
             rectangle.Fill = GetBrush(fillColor);
@@ -221,33 +222,33 @@ namespace Stride.Core.Presentation.Drawing
         }
 
         /// <inheritdoc/>
-        public void DrawText(Point point, Color color, string text, FontFamily fontFamily, double fontSize, FontWeight fontWeight,
-            HorizontalAlignment hAlign, VerticalAlignment vAlign, bool isHitTestVisible)
+        public void DrawText(DrawingPoint point, Color color, string text, DrawingFont font,
+            DrawingHorizontalAlignment hAlign, DrawingVerticalAlignment vAlign, bool isHitTestVisible)
         {
             var textBlock = Create<TextBlock>(isHitTestVisible);
             textBlock.Foreground = GetBrush(color);
-            textBlock.FontFamily = fontFamily;
-            textBlock.FontSize = fontSize;
-            textBlock.FontWeight = fontWeight;
+            textBlock.FontFamily = GetFontFamily(font);
+            textBlock.FontSize = font.Size;
+            textBlock.FontWeight = font.Weight.ToWpf();
             textBlock.Text = text;
 
             var dx = 0.0;
             var dy = 0.0;
 
-            if (hAlign != HorizontalAlignment.Left || vAlign != VerticalAlignment.Top)
+            if (hAlign != DrawingHorizontalAlignment.Left || vAlign != DrawingVerticalAlignment.Top)
             {
                 textBlock.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
                 var size = textBlock.DesiredSize;
-                if (hAlign == HorizontalAlignment.Center)
+                if (hAlign == DrawingHorizontalAlignment.Center)
                     dx = -size.Width / 2;
 
-                if (hAlign == HorizontalAlignment.Right)
+                if (hAlign == DrawingHorizontalAlignment.Right)
                     dx = -size.Width;
 
-                if (vAlign == VerticalAlignment.Center)
+                if (vAlign == DrawingVerticalAlignment.Center)
                     dy = -size.Height / 2;
 
-                if (vAlign == VerticalAlignment.Bottom)
+                if (vAlign == DrawingVerticalAlignment.Bottom)
                     dy = -size.Height;
             }
 
@@ -256,8 +257,8 @@ namespace Stride.Core.Presentation.Drawing
         }
 
         /// <inheritdoc/>
-        public void DrawTexts(IList<Point> points, Color color, IList<string> texts, FontFamily fontFamily, double fontSize, FontWeight fontWeight,
-            HorizontalAlignment hAlign, VerticalAlignment vAlign, bool isHitTestVisible)
+        public void DrawTexts(IList<DrawingPoint> points, Color color, IList<string> texts, DrawingFont font,
+            DrawingHorizontalAlignment hAlign, DrawingVerticalAlignment vAlign, bool isHitTestVisible)
         {
             if (points == null) throw new ArgumentNullException(nameof(points));
             if (texts == null) throw new ArgumentNullException(nameof(texts));
@@ -265,7 +266,8 @@ namespace Stride.Core.Presentation.Drawing
             if (points.Count != texts.Count) throw new ArgumentException($"{nameof(points)} and {nameof(texts)} must have the same number of elements.");
 
             var brush = GetBrush(color);
-            var typeFace = new Typeface(fontFamily, FontStyles.Normal, fontWeight, FontStretches.Normal);
+            var fontSize = font.Size;
+            var typeFace = new Typeface(GetFontFamily(font), FontStyles.Normal, font.Weight.ToWpf(), FontStretches.Normal);
             var pixelsPerDip = VisualTreeHelper.GetDpi(Canvas).PixelsPerDip;
 
             var visual = new DrawingVisual();
@@ -273,23 +275,23 @@ namespace Stride.Core.Presentation.Drawing
             for (var i = 0; i < points.Count; ++i)
             {
                 var text = texts[i];
-                var point = points[i];
+                var point = points[i].ToWpf();
                 var formatted = new FormattedText(text, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, typeFace, fontSize, brush, pixelsPerDip);
                 var dx = 0.0;
                 var dy = 0.0;
-                if (hAlign != HorizontalAlignment.Left || vAlign != VerticalAlignment.Top)
+                if (hAlign != DrawingHorizontalAlignment.Left || vAlign != DrawingVerticalAlignment.Top)
                 {
                     var size = new Size(formatted.Width, formatted.Height);
-                    if (hAlign == HorizontalAlignment.Center)
+                    if (hAlign == DrawingHorizontalAlignment.Center)
                         dx = -size.Width / 2;
 
-                    if (hAlign == HorizontalAlignment.Right)
+                    if (hAlign == DrawingHorizontalAlignment.Right)
                         dx = -size.Width;
 
-                    if (vAlign == VerticalAlignment.Center)
+                    if (vAlign == DrawingVerticalAlignment.Center)
                         dy = -size.Height / 2;
 
-                    if (vAlign == VerticalAlignment.Bottom)
+                    if (vAlign == DrawingVerticalAlignment.Bottom)
                         dy = -size.Height;
                 }
                 point.Offset(dx, dy);
@@ -302,17 +304,21 @@ namespace Stride.Core.Presentation.Drawing
         }
 
         /// <inheritdoc/>
-        public Size MeasureText(string text, FontFamily fontFamily, double fontSize, FontWeight fontWeight, TextMeasurementMethod measurementMethod)
+        public DrawingSize MeasureText(string text, DrawingFont font, TextMeasurementMethod measurementMethod)
         {
             if (string.IsNullOrEmpty(text))
-                return Size.Empty;
+                return DrawingSize.Empty;
+
+            var fontFamily = GetFontFamily(font);
+            var fontSize = font.Size;
+            var fontWeight = font.Weight.ToWpf();
 
             switch (measurementMethod)
             {
                 case TextMeasurementMethod.GlyphTypeface:
                     GlyphTypeface glyphTypeface;
                     if (TryGetGlyphTypeface(fontFamily, FontStyles.Normal, fontWeight, FontStretches.Normal, out glyphTypeface))
-                        return MeasureTextSize(glyphTypeface, fontSize, text);
+                        return MeasureTextSize(glyphTypeface, fontSize, text).ToDrawing();
                     // Fallback to TextBlock measurement method
                     goto case TextMeasurementMethod.TextBlock;
 
@@ -325,7 +331,7 @@ namespace Stride.Core.Presentation.Drawing
                         Text = text,
                     };
                     textBlock.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-                    return new Size(textBlock.DesiredSize.Width, textBlock.DesiredSize.Height);
+                    return new DrawingSize(textBlock.DesiredSize.Width, textBlock.DesiredSize.Height);
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(measurementMethod));
@@ -333,9 +339,13 @@ namespace Stride.Core.Presentation.Drawing
         }
 
         /// <inheritdoc/>
-        public Size MeasureTexts(IList<string> texts, FontFamily fontFamily, double fontSize, FontWeight fontWeight, TextMeasurementMethod measurementMethod)
+        public DrawingSize MeasureTexts(IList<string> texts, DrawingFont font, TextMeasurementMethod measurementMethod)
         {
             if (texts == null) throw new ArgumentNullException(nameof(texts));
+
+            var fontFamily = GetFontFamily(font);
+            var fontSize = font.Size;
+            var fontWeight = font.Weight.ToWpf();
 
             var maxWidth = 0.0;
             var maxHeight = 0.0;
@@ -379,7 +389,7 @@ namespace Stride.Core.Presentation.Drawing
                 if (size.Height > maxHeight)
                     maxHeight = size.Height;
             }
-            return new Size(maxWidth, maxHeight);
+            return new DrawingSize(maxWidth, maxHeight);
         }
 
         /// <inheritdoc/>
@@ -389,9 +399,9 @@ namespace Stride.Core.Presentation.Drawing
         }
 
         /// <inheritdoc/>
-        public void SetClip(Rect clippingRect)
+        public void SetClip(DrawingRect clippingRect)
         {
-            clip = clippingRect;
+            clip = clippingRect.ToWpf();
         }
 
         /// <summary>
@@ -433,16 +443,16 @@ namespace Stride.Core.Presentation.Drawing
         /// <param name="aliased"></param>
         /// <param name="isHitTestVisible"><c>true</c> if hit testing should be enabled, <c>false</c> otherwise.</param>
         /// <remarks>Using stream geometry seems to be slightly faster than using path geometry.</remarks>
-        private void DrawLineSegmentsByStreamGeometry([NotNull] IList<Point> points, Color strokeColor,
-            double thickness, PenLineJoin lineJoin, ICollection<double> dashArray, double dashOffset, bool aliased, bool isHitTestVisible)
+        private void DrawLineSegmentsByStreamGeometry([NotNull] IList<DrawingPoint> points, Color strokeColor,
+            double thickness, DrawingLineJoin lineJoin, ICollection<double> dashArray, double dashOffset, bool aliased, bool isHitTestVisible)
         {
             var streamGeometry = new StreamGeometry();
 
             var streamGeometryContext = streamGeometry.Open();
             for (var i = 0; i < points.Count - 1; i += 2)
             {
-                streamGeometryContext.BeginFigure(aliased ? ToPixelAlignedPoint(points[i]) : points[i], false, false);
-                streamGeometryContext.LineTo(aliased ? ToPixelAlignedPoint(points[i + 1]) : points[i + 1], true, false);
+                streamGeometryContext.BeginFigure(aliased ? ToPixelAlignedPoint(points[i]) : points[i].ToWpf(), false, false);
+                streamGeometryContext.LineTo(aliased ? ToPixelAlignedPoint(points[i + 1]) : points[i + 1].ToWpf(), true, false);
             }
             streamGeometryContext.Close();
 
@@ -462,7 +472,7 @@ namespace Stride.Core.Presentation.Drawing
         /// <param name="aliased"></param>
         /// <param name="isHitTestVisible"><c>true</c> if hit testing should be enabled, <c>false</c> otherwise.</param>
         /// <remarks>See <a href="https://oxyplot.codeplex.com/discussions/456679">discussion</a>.</remarks>
-        private void DrawPolylineBalanced([NotNull] IList<Point> points, Color strokeColor, double thickness, PenLineJoin lineJoin, ICollection<double> dashArray, bool aliased, bool isHitTestVisible)
+        private void DrawPolylineBalanced([NotNull] IList<DrawingPoint> points, Color strokeColor, double thickness, DrawingLineJoin lineJoin, ICollection<double> dashArray, bool aliased, bool isHitTestVisible)
         {
             // balance the number of points per polyline and the number of polylines
             var numPointsPerPolyline = Math.Max(points.Count / MaxPolylinesPerLine, MinPointsPerPolyline);
@@ -477,7 +487,7 @@ namespace Stride.Core.Presentation.Drawing
             var last = new Point();
             for (var i = 0; i < pointCount; i++)
             {
-                var current = aliased ? ToPixelAlignedPoint(points[i]) : points[i];
+                var current = aliased ? ToPixelAlignedPoint(points[i]) : points[i].ToWpf();
                 pointCollection.Add(current);
 
                 // get line length
@@ -542,11 +552,11 @@ namespace Stride.Core.Presentation.Drawing
             return brush;
         }
 
-        private void SetStroke([NotNull] Shape shape, Color color, double thickness, PenLineJoin lineJoin, ICollection<double> dashArray, double dashOffset, bool aliased)
+        private void SetStroke([NotNull] Shape shape, Color color, double thickness, DrawingLineJoin lineJoin, ICollection<double> dashArray, double dashOffset, bool aliased)
         {
             shape.Stroke = GetBrush(color);
             shape.StrokeThickness = thickness;
-            shape.StrokeLineJoin = lineJoin;
+            shape.StrokeLineJoin = lineJoin.ToWpf();
             if (dashArray != null)
             {
                 shape.StrokeDashArray = new DoubleCollection(dashArray);
@@ -609,7 +619,7 @@ namespace Stride.Core.Presentation.Drawing
         /// </summary>
         /// <param name="point">The point.</param>
         /// <returns>A pixel aligned <see cref="Point" />.</returns>
-        private static Point ToPixelAlignedPoint(Point point)
+        private static Point ToPixelAlignedPoint(DrawingPoint point)
         {
             // adding 0.5 to get pixel boundary alignment, seems to work
             // http://weblogs.asp.net/mschwarz/archive/2008/01/04/silverlight-rectangles-paths-and-line-comparison.aspx
@@ -623,9 +633,25 @@ namespace Stride.Core.Presentation.Drawing
         /// <param name="aliased">Convert to pixel aligned points if set to <c>true</c>.</param>
         /// <returns>The point collection.</returns>
         [NotNull]
-        private static PointCollection ToPointCollection(IEnumerable<Point> points, bool aliased)
+        private static PointCollection ToPointCollection(IEnumerable<DrawingPoint> points, bool aliased)
         {
-            return new PointCollection(aliased ? points.Select(ToPixelAlignedPoint) : points);
+            return new PointCollection(aliased ? points.Select(ToPixelAlignedPoint) : points.Select(p => p.ToWpf()));
+        }
+
+        /// <summary>
+        /// Gets the WPF font family of the given font.
+        /// </summary>
+        /// <remarks>Font families are cached.</remarks>
+        [NotNull]
+        private FontFamily GetFontFamily(DrawingFont font)
+        {
+            var name = font.Family ?? string.Empty;
+            if (!cachedFontFamilies.TryGetValue(name, out var fontFamily))
+            {
+                fontFamily = string.IsNullOrEmpty(name) ? new FontFamily() : new FontFamily(name);
+                cachedFontFamilies.Add(name, fontFamily);
+            }
+            return fontFamily;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -31,10 +31,10 @@ using Stride.GameStudio.ViewModels;
 using Stride.GameStudio.Helpers;
 using Stride.GameStudio.AssetsEditors;
 using Stride.GameStudio.Layout;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 #if DEBUG
 using Stride.Assets.Presentation.Test;
-using Stride.Core.Assets.Presentation.ViewModels;
 #endif
 
 namespace Stride.GameStudio.View

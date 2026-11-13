@@ -15,7 +15,7 @@ namespace Stride.Assets.Editor.Tests.Helpers;
 /// editor shell's service does, the view model of an asset type (or of a base type) and the view model of a preview type
 /// (or of its generic definition). No template provider is taken: there is no view.
 /// </summary>
-public sealed class TestPluginService : StrideEditorPluginHost
+public sealed class TestPluginService : SceneEditorPluginHost
 {
     public TestPluginService(params AssetsPlugin[] plugins)
         : base(plugins)
@@ -25,8 +25,6 @@ public sealed class TestPluginService : StrideEditorPluginHost
     protected override Type AssetEditorViewModelType => typeof(AssetEditorViewModel);
 
     protected override Type AssetEditorViewType => typeof(IAssetEditorView);
-
-    public override bool HasEditorView(ISessionViewModel session, Type viewModelType) => GetEditorViewModelType(viewModelType) is { } editor && GetEditorViewType(editor) is not null;
 
     protected override bool AddTemplateProvider(ISessionViewModel session, ITemplateProvider provider) => false;
 

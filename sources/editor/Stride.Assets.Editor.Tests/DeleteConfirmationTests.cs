@@ -19,7 +19,7 @@ public sealed class DeleteConfirmationTests
         Core.Assets.Editor.Settings.EditorSettings.AskBeforeDeletingAssets.SetValue(true);
         try
         {
-            using var fixture = await AssetsSessionFixture.OpenAsync(false, ("A", new SkeletonAsset()), ("B", new SkeletonAsset()));
+            await using var fixture = await AssetsSessionFixture.OpenAsync(false, ("A", new SkeletonAsset()), ("B", new SkeletonAsset()));
             var dialogs = (FakeEditorDialogService)fixture.ServiceProvider.Get<Core.Assets.Editor.Services.IEditorDialogService>();
             // Cancel, the second button
             dialogs.PickButton = buttons => buttons.Last().Result;

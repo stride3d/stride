@@ -2,6 +2,8 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Avalonia.Controls;
+using Stride.Core.Assets.Editor.Panels;
+using Stride.GameStudio.Avalonia.Docking;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless.XUnit;
 using Avalonia.LogicalTree;
@@ -34,9 +36,9 @@ public sealed class AssetLogPanelTests
         {
             try
             {
-                var tab = AssetLogTab(window);
-                // The count, as WPF's title; the singular until the Localize converter finds the translations (plural texts are left for later)
-                Assert.Matches(@"^Asset errors? \(0\)$", Assert.IsType<string>(tab.Header));
+                var tab = AssetLogPanel(fixture);
+                // The count, as WPF's title; the singular until the translations are found (plural texts are left for later)
+                Assert.Matches(@"^Asset errors? \(0\)$", tab.Title);
 
                 var sheet = fixture.Asset("Sheet");
                 Build(fixture, sheet);
@@ -47,7 +49,7 @@ public sealed class AssetLogPanelTests
                 // A build message names no asset: the asset of its log
                 var url = sheet.AssetItem.Location.ToString();
                 Assert.Equal([url, url], Cells(window, "logAsset"));
-                Assert.Matches(@"^Asset errors? \(2\)$", Assert.IsType<string>(tab.Header));
+                Assert.Matches(@"^Asset errors? \(2\)$", tab.Title);
             }
             finally
             {
@@ -161,12 +163,12 @@ public sealed class AssetLogPanelTests
     {
         var fixture = ShellSessionFixture.Create(("Sheet", new SpriteSheetAsset()));
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         Assert.True(await fixture.Main.OpenSession(fixture.PackagePath));
         // Room for the tab headers on one line and for the rows of the grid
         window.Width = 1600;
         window.Height = 1000;
-        AssetLogTab(window).IsSelected = true;
+        fixture.Main.Panels.Show(BuiltInPanels.AssetLog);
         await WindowTestHelper.PumpAsync();
         return (fixture, window);
     }
@@ -182,7 +184,7 @@ public sealed class AssetLogPanelTests
         fixture.Session.AssetLog.SetAssetLog(asset.Id, AssetLogViewModel.BuildLogName, log);
     }
 
-    private static TabItem AssetLogTab(MainWindow window) => window.GetLogicalDescendants().OfType<TabItem>().Single(x => x.Name == "AssetLogTab");
+    private static PanelDockable AssetLogPanel(ShellSessionFixture fixture) => fixture.Main.Panels.FindDockable(BuiltInPanels.AssetLog)!;
 
     private static GridLogViewer Viewer(MainWindow window) => window.GetVisualDescendants().OfType<GridLogViewer>().Single();
 

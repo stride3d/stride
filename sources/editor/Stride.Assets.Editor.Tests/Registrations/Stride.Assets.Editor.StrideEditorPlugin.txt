@@ -32,11 +32,6 @@ PasteProcessors:
   Stride.Assets.Editor.ViewModels.CopyPasteProcessors.EntityHierarchyPasteProcessor
 PostPasteProcessors:
   Stride.Assets.Editor.ViewModels.CopyPasteProcessors.ScenePostPasteProcessor
-EditorViewToolTypes:
-  Stride.Assets.Editor.EditorGame.Tools.RotateTool
-  Stride.Assets.Editor.EditorGame.Tools.ScaleTool
-  Stride.Assets.Editor.EditorGame.Tools.SelectTool
-  Stride.Assets.Editor.EditorGame.Tools.TranslateTool
 SettingsKeys:
   SceneEditor/KeyBindings/MoveCamForward
   SceneEditor/KeyBindings/MoveCamBackward
@@ -64,3 +59,8 @@ SettingsKeys:
 ProfileSettings:
   Package/Game/Effect/EffectCompilation (Executable)
   Package/Game/Effect/RecordUsedEffects (Executable)
+Registry<Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools.SceneViewToolDescriptor>:
+  Stride.Assets.Editor.EditorGame.Tools.RotateTool (order 20)
+  Stride.Assets.Editor.EditorGame.Tools.ScaleTool (order 30)
+  Stride.Assets.Editor.EditorGame.Tools.SelectTool (order 0)
+  Stride.Assets.Editor.EditorGame.Tools.TranslateTool (order 10)

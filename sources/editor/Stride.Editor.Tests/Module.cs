@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using Stride.Assets;
 using Stride.Core;
 using Stride.Core.Assets;
+using Stride.Core.Assets.Editor;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Reflection;
 using Stride.Editor.Thumbnails;
@@ -18,6 +19,9 @@ internal static class Module
     [Stride.Core.ModuleInitializer]
     internal static void Initialize()
     {
+        // The settings files the sessions save, away from the user's own and apart for each test process
+        EditorPath.UserDataPath = Path.Combine(Path.GetTempPath(), "Stride.Editor.Tests", "config-" + Environment.ProcessId);
+
         // The test asset types (and their static thumbnail) must be known to load the saved packages
         AssemblyRegistry.Register(typeof(Module).Assembly, AssemblyCommonCategories.Assets);
         RuntimeHelpers.RunModuleConstructor(typeof(Asset).Module.ModuleHandle);

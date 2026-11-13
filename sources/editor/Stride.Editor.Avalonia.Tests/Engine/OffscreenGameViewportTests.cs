@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Threading;
@@ -90,6 +91,35 @@ public sealed class OffscreenGameViewportTests
         Assert.Equal(viewSize, game.BackBufferSize);
         Assert.Equal(0xFFFF0000u, pixel);
         Assert.True(game.Frames > 0);
+    }
+
+    [AvaloniaFact]
+    public void TheViewportGivesThePointerOverItsViewAsAFractionOfTheView()
+    {
+        var viewport = new OffscreenGameViewport(new DispatcherService(Dispatcher.UIThread), new LoggerResult());
+        viewport.View.Width = 200;
+        viewport.View.Height = 100;
+        var window = new Window { Content = viewport.View, SizeToContent = SizeToContent.WidthAndHeight };
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+        IEditorGameViewport contract = viewport;
+        Assert.Null(contract.PointerPosition);
+        Assert.Null(contract.LastRightClickPosition);
+
+        // The shared pointer position service reads these: the fraction of the view, whatever its size
+        window.MouseMove(new global::Avalonia.Point(50, 25));
+        Assert.Equal(new Vector2(0.25f, 0.25f), contract.PointerPosition);
+        window.MouseDown(new global::Avalonia.Point(150, 75), MouseButton.Right);
+        window.MouseUp(new global::Avalonia.Point(150, 75), MouseButton.Right);
+        Assert.Equal(new Vector2(0.75f, 0.75f), contract.LastRightClickPosition);
+        // A left click moves the pointer, not the right click of the menu
+        window.MouseDown(new global::Avalonia.Point(100, 50), MouseButton.Left);
+        window.MouseUp(new global::Avalonia.Point(100, 50), MouseButton.Left);
+        Assert.Equal(new Vector2(0.5f, 0.5f), contract.PointerPosition);
+        Assert.Equal(new Vector2(0.75f, 0.75f), contract.LastRightClickPosition);
+
+        window.Close();
+        viewport.Dispose();
     }
 
     private static GameContext AttachOnAnotherThread(OffscreenGameViewport viewport, EmbeddedGame game)

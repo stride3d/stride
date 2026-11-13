@@ -10,7 +10,7 @@
 
   "nudgeReviewers": false,
   "nudgeAuthors": false,
-  "nudgeConflicts": false,
+  "nudgeConflicts": true,
   "conflictNudgeHours": 24,
   "conflictNudgeMinDays": 7,
   "noNudgeAuthors": [ "xen2" ],

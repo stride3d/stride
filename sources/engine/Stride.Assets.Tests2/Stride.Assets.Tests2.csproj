@@ -10,11 +10,12 @@
     <AssemblyName>Stride.Assets.Tests2</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
+    <ProjectReference Include="..\..\tests\Stride.XunitRunner\Stride.XunitRunner.csproj" />
     <ProjectReference Include="..\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj" />
     <ProjectReference Include="..\Stride.Assets\Stride.Assets.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="TextureCPUReadTests.cs" />
     <Compile Include="XunitAttributes.cs" />
     <Compile Include="AutoAlphaTests.cs" />
   </ItemGroup>

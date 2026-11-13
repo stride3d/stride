@@ -10,8 +10,8 @@ using Stride.Core.Presentation.Avalonia.Views;
 namespace Stride.Core.Assets.Editor.Avalonia;
 
 /// <summary>
-/// The Avalonia views of the core editor: the default property templates and the paste processors of the properties and
-/// of the assets.
+/// The Avalonia views of the core editor: the default property templates, the paste processors of the properties and of
+/// the assets, and the built-in commands of the property grid's context menu.
 /// </summary>
 public sealed class StrideCoreEditorViewPlugin : AssetsEditorPlugin
 {
@@ -31,5 +31,8 @@ public sealed class StrideCoreEditorViewPlugin : AssetsEditorPlugin
         // Same processors as the WPF CoreAssetsEditorPlugin
         context.PasteProcessors.Register(new AssetPropertyPasteProcessor());
         context.PasteProcessors.Register(new AssetItemPasteProcessor((SessionViewModel)context.Session));
+
+        // The nested properties toggle, in the context menu of a property (the WPF editor has no UI for it)
+        context.Commands.Register(PropertyGridCommands.CreateToggleNestedProperties());
     }
 }

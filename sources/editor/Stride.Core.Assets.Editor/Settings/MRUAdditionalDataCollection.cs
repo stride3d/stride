@@ -191,8 +191,7 @@ namespace Stride.Core.Assets.Editor.Settings
                 // Update the current profile with the new values so we can properly save it.
                 settingsKey.SetValue(mruList.Take(MaxMRUCount).ToList());
                 save.Invoke();
-                // Ensure we are properly synchronized with the file.
-                LoadFromSettings();
+                // Not read again: each change reads the file first
             }
         }
     }

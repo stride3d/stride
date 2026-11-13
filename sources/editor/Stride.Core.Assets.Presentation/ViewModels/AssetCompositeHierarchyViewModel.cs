@@ -33,6 +33,25 @@ public abstract class AssetCompositeHierarchyViewModel<TAssetPartDesign, TAssetP
         base.Destroy();
     }
 
+    /// <inheritdoc />
+    protected override void OnAssetReplaced(Asset previousAsset)
+    {
+        var previousHierarchy = ((AssetCompositeHierarchy<TAssetPartDesign, TAssetPart>)previousAsset).Hierarchy;
+        previousHierarchy.Parts.Values.ForEach(UntrackBaseChanges);
+        NodeContainer.GetNode(previousHierarchy.Parts).ItemChanged -= PartsChanged;
+
+        Asset.Hierarchy.Parts.Values.ForEach(TrackBaseChanges);
+        NodeContainer.GetNode(Asset.Hierarchy.Parts).ItemChanged += PartsChanged;
+
+        base.OnAssetReplaced(previousAsset);
+    }
+
+    /// <inheritdoc />
+    internal override bool DerivesFrom(AssetId baseId)
+    {
+        return base.DerivesFrom(baseId) || Asset.Hierarchy.Parts.Values.Any(x => x.Base?.BasePartAsset.Id == baseId);
+    }
+
     public AssetCompositeHierarchyPropertyGraph<TAssetPartDesign, TAssetPart> AssetHierarchyPropertyGraph => (AssetCompositeHierarchyPropertyGraph<TAssetPartDesign, TAssetPart>)PropertyGraph;
 
     /// <summary>

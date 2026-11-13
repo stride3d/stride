@@ -84,6 +84,15 @@ public abstract class VirtualFileProviderBase : IVirtualFileProvider
     }
 
     /// <inheritdoc/>
+    /// <remarks>Deletes the destination, then moves: a reader can find no file in between.</remarks>
+    public virtual void FileMove(string sourceUrl, string destinationUrl, bool overwrite)
+    {
+        if (overwrite && FileExists(destinationUrl))
+            FileDelete(destinationUrl);
+        FileMove(sourceUrl, destinationUrl);
+    }
+
+    /// <inheritdoc/>
     public virtual void FileMove(string sourceUrl, IVirtualFileProvider destinationProvider, string destinationUrl)
     {
         throw new NotImplementedException();

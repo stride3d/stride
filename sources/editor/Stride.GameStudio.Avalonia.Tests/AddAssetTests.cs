@@ -121,7 +121,7 @@ public sealed class AddAssetTests
         dialogs.PickAsset = picker => picker.FilteredAssets.Single(x => x.Id == skeleton.Id);
         var options = new ImportModelFromFileViewModel(fixture.Session) { ShowDeduplicateMaterialsCheckBox = true };
         var window = new ModelAssetTemplateWindow { DataContext = options };
-        window.Show();
+        await window.ShowAsync();
         try
         {
             await WindowTestHelper.PumpAsync();
@@ -170,7 +170,7 @@ public sealed class AddAssetTests
         _ = LazyTemplates.Value;
         var fixture = ShellSessionFixture.Create((AssetLocation, new TextPropertiesAsset { Label = "label" }));
         var window = new MainWindow { DataContext = fixture.Main };
-        window.Show();
+        await window.ShowAsync();
         Assert.True(await fixture.Main.OpenSession(fixture.PackagePath));
         // The notification bar shows the import of the system shaders that the opening starts; when it goes away, the asset view
         // moves down by about 20 pixels, and a click aimed before would miss the Add asset button

@@ -12,9 +12,9 @@ namespace Stride.Core.Storage;
 /// </summary>
 public class FileOdbBackend : IOdbBackend
 {
-    private static readonly object LockOnMove = new();
     private const int WriteBufferSize = 1024;
     private const string TempDirectory = "/tmp/";
+    private const int ForcedMoveAttempts = 5;
     // Resolve provider once at initialization
     private readonly IVirtualFileProvider virtualFileProvider;
     private readonly string vfsRootUrl;
@@ -140,44 +140,44 @@ public class FileOdbBackend : IOdbBackend
     {
         string fileUrl = BuildUrl(vfsRootUrl, objId);
 
-        lock (LockOnMove)
+        // Concurrent writers of the same object, in this process or another, are settled by the move below
+        var fileExists = virtualFileProvider.FileExists(fileUrl);
+
+        // File may already exists, in this case we decide to not override it.
+        if (fileExists && !forceWrite)
         {
-            var fileExists = virtualFileProvider.FileExists(fileUrl);
+            // But we should still clean our temporary file
+            virtualFileProvider.FileDelete(temporaryFilePath);
+            return;
+        }
 
-            // File may already exists, in this case we decide to not override it.
-            if (!fileExists || forceWrite)
+        if (!fileExists)
+        {
+            // Remove the second part of ObjectId to get the path (cf BuildUrl)
+            virtualFileProvider.CreateDirectory(fileUrl[..^30]);
+        }
+
+        for (var attempt = 1; ; attempt++)
+        {
+            try
             {
-                try
-                {
-                    if (fileExists)
-                    {
-                        // In case we force write, delete old file so that move succeed
-                        virtualFileProvider.FileDelete(fileUrl);
-                    }
-                    else
-                    {
-                        // Remove the second part of ObjectId to get the path (cf BuildUrl)
-                        virtualFileProvider.CreateDirectory(fileUrl[..^30]);
-                    }
-
-                    virtualFileProvider.FileMove(temporaryFilePath, fileUrl);
-                }
-                catch (IOException e)
-                {
-                    // Ignore only IOException "The destination file already exists."
-                    // because other exceptions that we want to catch might inherit from IOException.
-                    // This happens if two FileMove were performed at the same time.
-                    if (e.GetType() != typeof(IOException))
-                        throw;
-
-                    // But we should still clean our temporary file
-                    virtualFileProvider.FileDelete(temporaryFilePath);
-                }
+                // A forced write replaces the file in one step: its content isn't always derived from its id, so readers must always find one
+                virtualFileProvider.FileMove(temporaryFilePath, fileUrl, overwrite: forceWrite);
+                return;
             }
-            else
+            catch (Exception e) when (e.GetType() == typeof(IOException) || (forceWrite && e is UnauthorizedAccessException))
             {
+                // Ignore only IOException "The destination file already exists." (another writer stored it first): subclasses are real errors.
+                // A forced write gets "access denied" on Windows while anyone has the destination open: retry, then keep their content.
+                if (forceWrite && attempt < ForcedMoveAttempts)
+                {
+                    Thread.Sleep(attempt - 1);
+                    continue;
+                }
+
                 // But we should still clean our temporary file
                 virtualFileProvider.FileDelete(temporaryFilePath);
+                return;
             }
         }
     }

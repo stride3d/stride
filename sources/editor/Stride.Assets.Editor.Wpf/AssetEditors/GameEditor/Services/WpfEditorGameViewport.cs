@@ -3,6 +3,7 @@
 using System;
 using System.Windows.Forms;
 using Stride.Core.Diagnostics;
+using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Controls;
 using Stride.Editor.Engine;
 using Stride.Games;
@@ -32,9 +33,9 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
         public EmbeddedGameForm Form { get; private set; }
 
         /// <summary>
-        /// Gets the screen position of the last mouse button press on the form.
+        /// Gets the screen position of the last mouse button press on the form, or <c>null</c> before the first one.
         /// </summary>
-        public System.Drawing.Point LastClickPosition { get; private set; }
+        public System.Drawing.Point? LastClickPosition { get; private set; }
 
         /// <summary>
         /// Gets the WPF element that shows the form (UI thread, once the game started), created on first access.
@@ -56,6 +57,14 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
 
         /// <inheritdoc/>
         public object View => Host;
+
+        /// <inheritdoc/>
+        /// <remarks>The cursor of the screen now, relative to the WPF element that shows the form.</remarks>
+        public Vector2? PointerPosition => ToFraction(Control.MousePosition);
+
+        /// <inheritdoc/>
+        /// <remarks>The last press of any mouse button on the form: the right press that opens the menu of the view is the last one while the menu shows.</remarks>
+        public Vector2? LastRightClickPosition => LastClickPosition is { } position ? ToFraction(position) : null;
 
         /// <inheritdoc/>
         public GameContext Attach(EmbeddedGame game)
@@ -93,6 +102,19 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
         void IEmbeddedGameHost.EndDraw(EmbeddedGame game, bool present) { }
 
         void IEmbeddedGameHost.AfterEndDraw(EmbeddedGame game, bool present) { }
+
+        private Vector2? ToFraction(System.Drawing.Point screenPosition)
+        {
+            if (IsReleased || Form == null)
+                return null;
+
+            var host = Host;
+            if (host.ActualWidth <= 0 || host.ActualHeight <= 0)
+                return null;
+
+            var localPosition = host.PointFromScreen(new System.Windows.Point(screenPosition.X, screenPosition.Y));
+            return new Vector2((float)(localPosition.X / host.ActualWidth), (float)(localPosition.Y / host.ActualHeight));
+        }
 
         private sealed class ViewportService : IEditorGameViewportService
         {
