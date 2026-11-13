@@ -9,6 +9,7 @@ using BepuPhysics.CollisionDetection;
 using Stride.BepuPhysics.Components;
 using Stride.BepuPhysics.Constraints;
 using Stride.BepuPhysics.Debug;
+using Stride.BepuPhysics.Debug.Effects;
 using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Definitions.Colliders;
 using Stride.BepuPhysics.Definitions.Contacts;
