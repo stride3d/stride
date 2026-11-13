@@ -62,10 +62,10 @@ internal sealed class GpuDeformation : IDisposable
     private readonly Buffer? _ringBuffer;
     private readonly Buffer? _frameBuffer; // Three vectors per particle, for the smooth deformation of a lattice
     private readonly SoftBodyTopology _topology;
-    private readonly Vector3[] _frames = [];
-    private readonly Vector4[] _wideFrames = [];
+    private readonly Vector4[] _frames = []; // As the shader reads them
     private readonly Vector4[] _particles;
-    private readonly float _latticeMargin;
+    private readonly Vector3[] _localParticles = []; // For the bounds of a lattice whose vertices reach past its particles
+    private readonly float _latticeReach; // How far past its particles, in times the longest step between two of them
 
     /// <summary> Stream 1 buffer: per-vertex binding to the particles. Alongside the authored vertex buffer (stream 0) in each mesh's VertexBuffers. </summary>
     public Buffer BindingBuffer { get; }
@@ -80,9 +80,8 @@ internal sealed class GpuDeformation : IDisposable
         _particles = new Vector4[topology.ParticleCount];
         if (smooth && topology.LatticeNeighbors is not null)
         {
-            _frames = new Vector3[topology.ParticleCount * 3];
-            _wideFrames = new Vector4[topology.ParticleCount * 3];
-            _frameBuffer = Buffer.New<Vector4>(device, _wideFrames.Length, BufferFlags.ShaderResource | BufferFlags.StructuredBuffer, GraphicsResourceUsage.Dynamic);
+            _frames = new Vector4[topology.ParticleCount * 3];
+            _frameBuffer = Buffer.New<Vector4>(device, _frames.Length, BufferFlags.ShaderResource | BufferFlags.StructuredBuffer, GraphicsResourceUsage.Dynamic);
         }
         _particleBuffer = Buffer.New<Vector4>(device, topology.ParticleCount, BufferFlags.ShaderResource | BufferFlags.StructuredBuffer, GraphicsResourceUsage.Dynamic);
 
@@ -91,7 +90,6 @@ internal sealed class GpuDeformation : IDisposable
         {
             var bindings = new LatticeBinding[mesh.Positions.Length];
             var raw = MemoryMarshal.Cast<int, uint>(topology.BindingParticles.AsSpan());
-            float extrapolation = 0f;
             for (int v = 0; v < bindings.Length; v++)
             {
                 var corners = raw.Slice(v * 8, 8);
@@ -102,15 +100,11 @@ internal sealed class GpuDeformation : IDisposable
                     Corners1 = new UInt4(corners[4], corners[5], corners[6], corners[7]),
                     Cell = cell,
                 };
-                var outside = Vector3.Max(-cell, cell - Vector3.One);
-                extrapolation = MathF.Max(extrapolation, MathF.Max(outside.X, MathF.Max(outside.Y, outside.Z)));
+                _latticeReach = MathF.Max(_latticeReach, _frameBuffer is not null ? SmoothReach(cell) : InterpolationReach(cell));
             }
 
-            // A vertex inside its cell stays within the bounds of the particles; one beyond the lattice by a fraction of a cell, given cells stretched up to twice their size
-            _latticeMargin = extrapolation * topology.Spacing * 2f;
-            // Blending the frames of the particles can put a vertex past the particles of its cell, by a fraction of a cell where the lattice bends
-            if (_frameBuffer is not null)
-                _latticeMargin += topology.Spacing;
+            if (_latticeReach > 0f)
+                _localParticles = new Vector3[topology.ParticleCount];
             BindingLayout = LatticeBinding.Layout;
             BindingBuffer = Buffer.Vertex.New(device, MemoryMarshal.AsBytes(bindings.AsSpan()));
         }
@@ -166,24 +160,70 @@ internal sealed class GpuDeformation : IDisposable
             _particles[i] = new Vector4(particles[i], surfaceOffset);
             var local = Vector3.TransformCoordinate(particles[i], worldToLocal);
             BoundingBox.Merge(ref bounds, ref local, out bounds);
+            if (_localParticles.Length > 0)
+                _localParticles[i] = local;
         }
 
         if (_frameBuffer is not null)
-        {
             _topology.ComputeParticleFrames(particles, _frames);
-            for (int i = 0; i < _frames.Length; i++)
-                _wideFrames[i] = new Vector4(_frames[i], 0f);
-        }
 
-        var margin = _latticeMargin + MathF.Abs(localSurfaceOffset);
+        var margin = _latticeReach * LongestStep() + MathF.Abs(localSurfaceOffset);
         return new BoundingBox(bounds.Minimum - new Vector3(margin), bounds.Maximum + new Vector3(margin));
+    }
+
+    /// <summary> The longest distance between two neighbors of the lattice as it is now, in the space of the bounds </summary>
+    private float LongestStep()
+    {
+        if (_localParticles.Length == 0)
+            return 0f;
+
+        var neighbors = _topology.LatticeNeighbors!;
+        float longest = 0f;
+        for (int particle = 0; particle < _localParticles.Length; particle++)
+        {
+            // The neighbor after it on each axis: every pair is seen once
+            for (int after = 1; after < 6; after += 2)
+            {
+                int neighbor = neighbors[particle * 6 + after];
+                if (neighbor >= 0)
+                    longest = MathF.Max(longest, Vector3.DistanceSquared(_localParticles[particle], _localParticles[neighbor]));
+            }
+        }
+        return MathF.Sqrt(longest);
+    }
+
+    /// <summary>
+    /// How far past the particles of its cell the interpolation puts a vertex at <paramref name="cell"/>, at most,
+    /// in times the longest edge of the cell: nothing inside the cell, where it stays between its corners.
+    /// </summary>
+    internal static float InterpolationReach(Vector3 cell)
+    {
+        // Beyond the cell on an axis, the vertex goes on along the edges of that axis, themselves extrapolated on the axes not walked yet
+        var outside = Vector3.Max(Vector3.Zero, Vector3.Max(-cell, cell - Vector3.One));
+        return outside.X * (1f + 2f * outside.Y) * (1f + 2f * outside.Z) + outside.Y * (1f + 2f * outside.Z) + outside.Z;
+    }
+
+    /// <summary>
+    /// How far past the particles of its cell the smooth deformation puts a vertex at <paramref name="cell"/>, at most,
+    /// in times the longest step between two particles: each corner moves it by its frame, weighted as the corner is.
+    /// </summary>
+    internal static float SmoothReach(Vector3 cell)
+    {
+        return AlongAxis(cell.X) + AlongAxis(cell.Y) + AlongAxis(cell.Z);
+
+        static float AlongAxis(float t)
+        {
+            float c = Math.Clamp(t, 0f, 1f);
+            float weight = c * c * (3f - 2f * c);
+            return (1f - weight) * MathF.Abs(t) + weight * MathF.Abs(t - 1f);
+        }
     }
 
     /// <summary> Sends the particles taken by <see cref="Update"/> to the GPU </summary>
     public void Upload(CommandList commandList)
     {
         _particleBuffer.SetData<Vector4>(commandList, _particles.AsSpan());
-        _frameBuffer?.SetData<Vector4>(commandList, _wideFrames.AsSpan());
+        _frameBuffer?.SetData<Vector4>(commandList, _frames.AsSpan());
     }
 
     /// <summary>

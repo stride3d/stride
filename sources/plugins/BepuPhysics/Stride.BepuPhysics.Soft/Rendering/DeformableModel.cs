@@ -15,11 +15,17 @@ namespace Stride.BepuPhysics.Soft.Rendering;
 
 /// <summary>
 /// A copy of a soft body's model whose vertices follow its particles: either rewritten every frame on the CPU, or deformed by
-/// the vertex shader from the particles uploaded as a buffer. Both modes share the same stream 0 (the authored vertex bytes,
-/// snapshotted at construction), so every authored attribute reaches the pixel shader whatever the mode.
+/// the vertex shader from the particles uploaded as a buffer. Both modes draw the authored vertex layout as stream 0,
+/// so every authored attribute reaches the pixel shader whatever the mode.
 /// </summary>
 internal sealed class DeformableModel : IDisposable
 {
+    // How far the vertices of a surface are pushed along their normal, as a fraction of the radius of its particles
+    private const float SurfaceOffsetFraction = 0.1f;
+
+    // Below this, the scale of an entity on an axis is taken as this to turn a world distance into one of its space
+    private const float MinimumScale = 1e-6f;
+
     private static readonly ConditionalWeakTable<Model, Model> SourceOfModel = new();
 
     // Per source mesh, built once, mutable buffers swapped by SetMode in place.
@@ -61,10 +67,8 @@ internal sealed class DeformableModel : IDisposable
         foreach (var material in source.Materials)
             Model.Materials.Add(material);
 
-        // The authored vertex bytes are snapshotted once per source mesh, into Working, and live there in both modes:
-        // CPU mode rewrites position/normal/tangent in Working every frame; GPU mode writes their rest pose there and
-        // uploads Working to a static buffer, once per SetMode. Keeping Working alive lets SetMode rebuild either mode
-        // without re-reading the source mesh.
+        // Working holds the vertices of each source mesh as authored. CPU mode rewrites its positions, normals and tangents
+        // every frame; GPU mode writes their rest pose there and uploads it to a static buffer, at each SetMode.
         _meshBuffers = new MeshBuffer[source.Meshes.Count];
         for (int m = 0; m < source.Meshes.Count; m++)
         {
@@ -125,14 +129,11 @@ internal sealed class DeformableModel : IDisposable
     /// </summary>
     public void SetMode(GraphicsDevice device, SoftBodyDeformationMode mode, SoftBodyDeformationQuality quality, ICollection<IDisposable> retired)
     {
-        // Only lattices have something to smooth
-        bool smooth = quality == SoftBodyDeformationQuality.Smooth && Topology.LatticeNeighbors is not null;
-        quality = smooth ? SoftBodyDeformationQuality.Smooth : SoftBodyDeformationQuality.Fast;
-
         bool built = _gpu is not null || (_meshBuffers.Length > 0 && _meshBuffers[0].VertexBuffer is not null);
-        if (built && mode == Mode && quality == Quality)
+        if (built && IsIn(mode, quality))
             return;
-        Quality = quality;
+        Quality = QualityFor(quality);
+        bool smooth = Quality == SoftBodyDeformationQuality.Smooth;
 
         if (_gpu is not null)
             retired.Add(_gpu);
@@ -166,9 +167,8 @@ internal sealed class DeformableModel : IDisposable
         {
             var buffer = _meshBuffers[m];
 
-            // CPU mode rewrites Working every frame, so the buffer is Dynamic and is uploaded each frame from the snapshot.
-            // GPU mode uploads the snapshot once at creation and never touches it again, so the buffer is Default (static);
-            // the vertex shader deforms the rest pose it finds there.
+            // CPU mode uploads Working every frame, to a dynamic buffer. GPU mode uploads it once, with the rest pose
+            // the vertex shader deforms, to a static one.
             if (gpu)
                 WriteRestPose(buffer);
             var vertexBuffer = gpu
@@ -176,7 +176,6 @@ internal sealed class DeformableModel : IDisposable
                 : Buffer.Vertex.New(device, bufferSize: buffer.Working.Length, usage: GraphicsResourceUsage.Dynamic);
             var vertexBinding = new VertexBufferBinding(vertexBuffer, buffer.Declaration, buffer.VertexCount);
             buffer.VertexBuffer = vertexBuffer;
-            buffer.Binding = vertexBinding;
 
             // GPU mode: stream 1 carries the per-vertex binding to the particles; the authored declaration (stream 0) keeps
             // its slice of the global vertex pool, so the input assembler finds the binding at the same vertex id as the authored data.
@@ -191,6 +190,15 @@ internal sealed class DeformableModel : IDisposable
             else
                 GpuDeformation.Unbind(mesh);
         }
+    }
+
+    /// <summary> Whether the model is already deformed this way, with the quality a body of its kind gets for <paramref name="quality"/> </summary>
+    public bool IsIn(SoftBodyDeformationMode mode, SoftBodyDeformationQuality quality) => mode == Mode && QualityFor(quality) == Quality;
+
+    // Only lattices have something to smooth
+    private SoftBodyDeformationQuality QualityFor(SoftBodyDeformationQuality quality)
+    {
+        return quality == SoftBodyDeformationQuality.Smooth && Topology.LatticeNeighbors is not null ? SoftBodyDeformationQuality.Smooth : SoftBodyDeformationQuality.Fast;
     }
 
     /// <summary>
@@ -247,9 +255,11 @@ internal sealed class DeformableModel : IDisposable
         {
             // The vertex shader does the per-vertex deformation; here we only hand over the particles and the bounds.
             var gpuWorldToLocal = Matrix.Invert(world);
-            float surfaceOffset = body.Collider is Colliders.ParticleCollider cloth ? cloth.ActualRadius * 0.1f : 0f;
+            float surfaceOffset = body.Collider is Colliders.ParticleCollider cloth ? cloth.ActualRadius * SurfaceOffsetFraction : 0f;
+            // A mirrored entity has a negative scale on an axis
             world.Decompose(out var gpuScale, out Quaternion _, out _);
-            float localSurfaceOffset = surfaceOffset * MathF.Max(MathF.Max(1f / MathF.Max(gpuScale.X, 1e-6f), 1f / MathF.Max(gpuScale.Y, 1e-6f)), 1f / MathF.Max(gpuScale.Z, 1e-6f));
+            float smallestScale = MathF.Min(MathF.Abs(gpuScale.X), MathF.Min(MathF.Abs(gpuScale.Y), MathF.Abs(gpuScale.Z)));
+            float localSurfaceOffset = surfaceOffset / MathF.Max(smallestScale, MinimumScale);
             var gpuBounds = _gpu.Update(_particles, gpuWorldToLocal, surfaceOffset, localSurfaceOffset);
             var gpuSphere = BoundingSphere.FromBox(gpuBounds);
             foreach (var mesh in Model.Meshes)
@@ -282,7 +292,7 @@ internal sealed class DeformableModel : IDisposable
             // Pushes the two faces of a double sided model apart, just enough for them not to fight over the same depth
             if (body.Collider is Colliders.ParticleCollider particle)
             {
-                var offset = particle.ActualRadius * 0.1f;
+                var offset = particle.ActualRadius * SurfaceOffsetFraction;
                 for (int i = 0; i < _positions.Length; i++)
                     _positions[i] += _normals[i] * offset;
             }
@@ -413,6 +423,5 @@ internal sealed class DeformableModel : IDisposable
         public required int FirstVertex;
         public required int VertexCount;
         public required Buffer VertexBuffer; // Mutable: swapped by SetMode
-        public VertexBufferBinding Binding;  // Mutable: swapped by SetMode
     }
 }

@@ -103,15 +103,29 @@ internal sealed class SoftBodyTopology
         for (int particle = 0; particle < particles.Length; particle++)
         {
             for (int axis = 0; axis < 3; axis++)
-            {
-                int before = neighbors[particle * 6 + axis * 2], after = neighbors[particle * 6 + axis * 2 + 1];
-                frames[particle * 3 + axis] =
-                    before >= 0 && after >= 0 ? (particles[after] - particles[before]) * 0.5f
-                    : after >= 0 ? particles[after] - particles[particle]
-                    : before >= 0 ? particles[particle] - particles[before]
-                    : default;
-            }
+                frames[particle * 3 + axis] = ParticleFrame(neighbors, particles, particle, axis);
         }
+    }
+
+    /// <summary> The same frames, as the four floats per vector a shader reads </summary>
+    public void ComputeParticleFrames(ReadOnlySpan<Vector3> particles, Span<Vector4> frames)
+    {
+        var neighbors = LatticeNeighbors!;
+        for (int particle = 0; particle < particles.Length; particle++)
+        {
+            for (int axis = 0; axis < 3; axis++)
+                frames[particle * 3 + axis] = new Vector4(ParticleFrame(neighbors, particles, particle, axis), 0f);
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static Vector3 ParticleFrame(int[] neighbors, ReadOnlySpan<Vector3> particles, int particle, int axis)
+    {
+        int before = neighbors[particle * 6 + axis * 2], after = neighbors[particle * 6 + axis * 2 + 1];
+        return before >= 0 && after >= 0 ? (particles[after] - particles[before]) * 0.5f
+            : after >= 0 ? particles[after] - particles[particle]
+            : before >= 0 ? particles[particle] - particles[before]
+            : default;
     }
 
     /// <summary>
