@@ -10,6 +10,7 @@ using Avalonia.Threading;
 using Stride.Core.Presentation.Avalonia.Controls;
 using Stride.Core.Presentation.Avalonia.Drawing;
 using Stride.Core.Presentation.Drawing;
+using Stride.Core.Presentation.Extensions;
 using Color = Stride.Core.Mathematics.Color;
 
 namespace Stride.Core.Presentation.Avalonia.Tests.Drawing;
@@ -132,6 +133,22 @@ public sealed class DrawingCanvasTests
         Assert.Equal(new Rect(197, 97, 6, 6), shapes[5].Geometry!.Bounds);
         // A transparent outline draws nothing
         Assert.Null(shapes[6].Pen);
+    }
+
+    [AvaloniaFact]
+    public void AnEllipseAndACircleAreCenteredOnTheirPoint()
+    {
+        var drawing = Record(context =>
+        {
+            using var drawingContext = new AvaloniaDrawingContext(context);
+            drawingContext.DrawEllipse(new DrawingPoint(50, 40), new DrawingSize(20, 10), Color.Red, Color.Blue);
+            drawingContext.DrawCircle(new DrawingPoint(100, 100), 5, Color.Red, Color.Blue);
+        });
+
+        var shapes = drawing.Children.OfType<GeometryDrawing>().ToList();
+        Assert.Equal(2, shapes.Count);
+        Assert.Equal(new Rect(40, 35, 20, 10), shapes[0].Geometry!.Bounds);
+        Assert.Equal(new Rect(95, 95, 10, 10), shapes[1].Geometry!.Bounds);
     }
 
     [AvaloniaFact]

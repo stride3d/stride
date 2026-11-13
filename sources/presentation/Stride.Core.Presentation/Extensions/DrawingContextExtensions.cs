@@ -36,7 +36,7 @@ namespace Stride.Core.Presentation.Extensions
         /// Draws a circle in the canvas.
         /// </summary>
         /// <param name="renderer">The renderer.</param>
-        /// <param name="point"></param>
+        /// <param name="point">The center of the circle.</param>
         /// <param name="radius">The radius of the circle.</param>
         /// <param name="fillColor">The color of the shape's interior.</param>
         /// <param name="strokeColor">The color of the shape's outline.</param>

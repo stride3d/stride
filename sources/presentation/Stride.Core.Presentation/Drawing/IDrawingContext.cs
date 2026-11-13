@@ -19,8 +19,8 @@ namespace Stride.Core.Presentation.Drawing
         /// <summary>
         /// Draws an ellipse.
         /// </summary>
-        /// <param name="point"></param>
-        /// <param name="size"></param>
+        /// <param name="point">The center of the ellipse.</param>
+        /// <param name="size">The width and height of the ellipse.</param>
         /// <param name="fillColor">The color of the shape's interior.</param>
         /// <param name="strokeColor">The color of the shape's outline.</param>
         /// <param name="thickness">The wifdth of the shape's outline. The default is <c>1</c>.</param>
