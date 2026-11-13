@@ -25,6 +25,7 @@
     <None Include="Stride.Native.Libs.targets">
       <SubType>Designer</SubType>
     </None>
+    <None Include="Native\Allocation.h" />
     <None Include="Native\Common.h" />
     <None Include="Native\OpenAL.cpp" />
     <None Include="Native\OpenSLES.cpp" />
