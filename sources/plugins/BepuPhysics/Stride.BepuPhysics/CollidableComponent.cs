@@ -74,7 +74,7 @@ public abstract class CollidableComponent : EntityComponent
     /// </remarks>
     [NotNull]
     [Display(category: CategoryCollider, Expand = ExpandRule.Always)]
-    public required ICollider Collider
+    public virtual required ICollider Collider
     {
         get
         {
@@ -279,9 +279,6 @@ public abstract class CollidableComponent : EntityComponent
     /// <param name="shapeChildIndex"> The child of the shape that was hit, or -1 when the test does not say </param>
     internal virtual int GetChildIndex(CollidableReference collidable, int shapeChildIndex) => shapeChildIndex;
 
-    /// <summary> Whether this component can be created from <paramref name="collider"/>; when it cannot, it logs why and stays out of the simulation </summary>
-    internal virtual bool CanAttach(ICollider collider) => true;
-
     /// <summary> Whether the narrow phase asks <see cref="AllowContactWith"/> before a body of this component touches another collidable </summary>
     /// <remarks> Set while part of a simulation and outside of its step, cleared before leaving it </remarks>
     [DataMemberIgnore]
@@ -328,9 +325,6 @@ public abstract class CollidableComponent : EntityComponent
         Detach();
 
         Debug.Assert(Processor is not null);
-
-        if (CanAttach(Collider) == false)
-            return;
 
         if (false == Collider.TryAttach(onSimulation.Simulation.Shapes, onSimulation.BufferPool, Processor.ShapeCache, ShouldCalculateInertia, out var index, out var centerOfMass, out var shapeInertia))
         {

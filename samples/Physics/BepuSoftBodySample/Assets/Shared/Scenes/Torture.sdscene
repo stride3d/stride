@@ -141,7 +141,6 @@ Hierarchy:
                             5ff79755fbab93e3f83ea833e2957bc6~0: a0d98ab3-bb3c-8e29-140a-471a886409b1:Materials/Strawberry
                     62fbf5df90588ef44514273e2b710d4f: !Stride.BepuPhysics.Soft.VolumetricSoftBodyComponent,Stride.BepuPhysics.Soft
                         Id: 8ea2177f-d1bc-bf3b-f5ad-329bcda3694a
-                        Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft {}
                         Resolution: 6
                         MaximumStretch: 0.0
                         MinimumCompression: 0.0
@@ -196,7 +195,6 @@ Hierarchy:
                             67c4f3e2bae79a2a42d569e82dd6ea2a~0: f45d72b9-de30-aad1-56a6-55433d7cd194:Materials/Blueberry
                     19a95117bcf79a8f00f2af36cf155458: !Stride.BepuPhysics.Soft.VolumetricSoftBodyComponent,Stride.BepuPhysics.Soft
                         Id: 54ef7b33-69af-afba-b254-5b14f63845b1
-                        Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft {}
                         Resolution: 6
         -   Entity:
                 Id: 58b5022d-5e73-8364-a6c5-ae5b9da98241
@@ -249,7 +247,6 @@ Hierarchy:
                             0c65eb1869fcc834e19e562d23e9f35e~0: ef84157c-df9e-8802-e426-06e1ef9a01e3:Materials/Lime
                     94e36166b64f33b8c17d86e7deadcbd7: !Stride.BepuPhysics.Soft.VolumetricSoftBodyComponent,Stride.BepuPhysics.Soft
                         Id: 08cde9b8-4357-2fdd-039f-32ed1e4cc70b
-                        Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft {}
                         Mass: 1.0
                         Resolution: 6
                     e3dd9dd068cfba01d0a6316ff605a256: !BepuSoftBodySample.Game.Components.LaunchComponent,BepuSoftBodySample.Game
@@ -274,7 +271,6 @@ Hierarchy:
                             10ad71800a3be4561ab3889fec67b860~0: d8fa4837-ac2b-0f0c-2351-343646594e50:Materials/Lemon
                     a57d2a1707cb7494f1f6123ddba40198: !Stride.BepuPhysics.Soft.VolumetricSoftBodyComponent,Stride.BepuPhysics.Soft
                         Id: 17b97dc3-dad1-29a8-281f-3bc7c8f05f99
-                        Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft {}
                         Mass: 1.0
                         Resolution: 6
                     ee9b876a459c781180db89a25b9cd6c9: !BepuSoftBodySample.Game.Components.LaunchComponent,BepuSoftBodySample.Game

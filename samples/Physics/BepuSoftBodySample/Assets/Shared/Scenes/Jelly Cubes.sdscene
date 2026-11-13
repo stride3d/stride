@@ -194,7 +194,6 @@ Hierarchy:
                             c1536a360fdbe15d6f2c00b2f9ea252c~0: a0d98ab3-bb3c-8e29-140a-471a886409b1:Materials/Strawberry
                     258ebd02772d76f0a297f890c06c2e39: !Stride.BepuPhysics.Soft.VolumetricSoftBodyComponent,Stride.BepuPhysics.Soft
                         Id: 4eaa1acb-30e3-8254-28c0-e004a0ffd83c
-                        Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft {}
                         Mass: 2.0
                         Resolution: 5
         -   Entity:
@@ -214,7 +213,6 @@ Hierarchy:
                             585c9bc9d3ca4566e7c13ec2d0b9957e~0: ef84157c-df9e-8802-e426-06e1ef9a01e3:Materials/Lime
                     e1436218b6ac1314a10f32e14139799b: !Stride.BepuPhysics.Soft.VolumetricSoftBodyComponent,Stride.BepuPhysics.Soft
                         Id: bfdcd7b5-4e42-da2b-9e1d-8fdc54a44c81
-                        Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft {}
                         Mass: 2.0
                         Resolution: 5
         -   Entity:
@@ -234,7 +232,6 @@ Hierarchy:
                             e8106cd93b49f24712a69107dc5a6dcb~0: a6ac4738-3401-9edf-d11e-4fad889b46bd:Materials/Orange
                     d85b5da42e6b7b671ee81bbc569a368c: !Stride.BepuPhysics.Soft.VolumetricSoftBodyComponent,Stride.BepuPhysics.Soft
                         Id: f3c337b3-ec97-f696-da9b-21ee5c6bec5d
-                        Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft {}
                         Mass: 2.0
                         Resolution: 5
         -   Entity:
@@ -254,7 +251,6 @@ Hierarchy:
                             501cc10aef3b9f3d27a5496df5ac5b57~0: f45d72b9-de30-aad1-56a6-55433d7cd194:Materials/Blueberry
                     55c265980efeaba440eaaaedd50e6e65: !Stride.BepuPhysics.Soft.VolumetricSoftBodyComponent,Stride.BepuPhysics.Soft
                         Id: f54e2120-b5ec-27c2-1f76-43cbc563dbf5
-                        Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft {}
                         Mass: 2.0
                         Resolution: 5
         -   Entity:
@@ -274,7 +270,6 @@ Hierarchy:
                             d0a9fb17e909380afab2b3d6cb5ae280~0: 1edb4d5d-f782-54da-8766-dda3e45abfee:Materials/Grape
                     fb66080813cfe91ec2718416525c2514: !Stride.BepuPhysics.Soft.VolumetricSoftBodyComponent,Stride.BepuPhysics.Soft
                         Id: 8780416f-b03c-4722-c5a3-52e74a5e55b0
-                        Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft {}
                         Mass: 2.0
                         Resolution: 5
                         Stiffness: 12.0
@@ -296,7 +291,6 @@ Hierarchy:
                             f27bfdcc6ac9118d2aec343a4bc7679c~0: d8fa4837-ac2b-0f0c-2351-343646594e50:Materials/Lemon
                     c22794649974fda0a326d00bcc406485: !Stride.BepuPhysics.Soft.VolumetricSoftBodyComponent,Stride.BepuPhysics.Soft
                         Id: 0e98d5b0-8e06-d001-b8c2-d310b2ca9e37
-                        Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft {}
                         Mass: 2.0
                         Resolution: 5
                         Stiffness: 12.0
@@ -318,7 +312,6 @@ Hierarchy:
                             a1d669f241d30868ee3572e2d95e7016~0: 1edb4d5d-f782-54da-8766-dda3e45abfee:Materials/Grape
                     389052de4b79213a86ab8b10016af180: !Stride.BepuPhysics.Soft.VolumetricSoftBodyComponent,Stride.BepuPhysics.Soft
                         Id: 7a80b80f-7d98-3076-98b2-4876163243d8
-                        Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft {}
                         Mass: 2.0
                         Resolution: 5
                         Stiffness: 12.0

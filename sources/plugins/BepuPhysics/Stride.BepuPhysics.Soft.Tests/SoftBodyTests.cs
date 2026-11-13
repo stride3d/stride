@@ -63,39 +63,29 @@ public class SoftBodyTests : GameTestBase
         });
     }
 
-    /// <summary> A particle collider on a rigid body, or another collider on a soft body, is reported and leaves the component out of the simulation </summary>
+    /// <summary>
+    /// The collider of the particles is not a public type, so no other collidable can be given one. A soft body refuses any other
+    /// collider as it is given, and comes back from the binary form of a compiled scene with its own and the radius of its particles.
+    /// </summary>
     [Fact]
-    public static void ParticleColliderOnlyWorksOnSoftBodies()
+    public static void SoftBodiesMakeTheirOwnCollider()
     {
-        RunScene(async scene =>
-        {
-            var errors = new System.Collections.Generic.List<string>();
-            void Collect(Stride.Core.Diagnostics.ILogMessage message)
-            {
-                if (message.Type >= Stride.Core.Diagnostics.LogMessageType.Error)
-                    errors.Add(message.Text);
-            }
-            Stride.Core.Diagnostics.GlobalLogger.GlobalMessageLogged += Collect;
-            try
-            {
-                var rigid = new BodyComponent { Collider = new ParticleCollider() };
-                scene.Add(rigid, new Vector3(3f, 2f, 0f));
-                var soft = new VolumetricSoftBodyComponent { Resolution = 2 };
-                soft.Collider = new CompoundCollider { Colliders = { new SphereCollider() } };
-                scene.Add(soft, new CubeProceduralModel(), new Vector3(0f, 2f, 0f));
-                await scene.Game.Script.NextFrame();
+        Assert.False(typeof(ParticleCollider).IsVisible);
 
-                Assert.Null(rigid.Simulation);
-                Assert.Null(soft.Simulation);
-                Assert.Equal(0, soft.ParticleCount);
-                Assert.Contains(errors, error => error.Contains(nameof(ParticleCollider)) && error.Contains(nameof(BodyComponent)));
-                Assert.Contains(errors, error => error.Contains(nameof(VolumetricSoftBodyComponent)) && error.Contains(nameof(CompoundCollider)));
-            }
-            finally
-            {
-                Stride.Core.Diagnostics.GlobalLogger.GlobalMessageLogged -= Collect;
-            }
-        });
+        var soft = new VolumetricSoftBodyComponent { ParticleRadius = 0.07f };
+        Assert.Throws<NotSupportedException>(() => soft.Collider = new CompoundCollider { Colliders = { new SphereCollider() } });
+        Assert.Throws<NotSupportedException>(() => ((CollidableComponent)soft).Collider = new CompoundCollider { Colliders = { new SphereCollider() } });
+        Assert.IsType<ParticleCollider>(soft.Collider);
+
+        var stream = new System.IO.MemoryStream();
+        var writer = new Stride.Core.Serialization.BinarySerializationWriter(stream);
+        Stride.Core.Serialization.SerializerExtensions.Write(writer, soft);
+        writer.Flush();
+        stream.Seek(0, System.IO.SeekOrigin.Begin);
+        VolumetricSoftBodyComponent? copy = null;
+        Stride.Core.Serialization.SerializerExtensions.Serialize(new Stride.Core.Serialization.BinarySerializationReader(stream), ref copy, Stride.Core.Serialization.ArchiveMode.Deserialize);
+        Assert.IsType<ParticleCollider>(copy!.Collider);
+        Assert.Equal(0.07f, copy.ParticleRadius);
     }
 
     [Fact]
@@ -183,6 +173,87 @@ public class SoftBodyTests : GameTestBase
             await Seconds(cloth, 1f);
             Assert.True(block.Position.Y < 2f, $"Block at {block.Position}");
         });
+    }
+
+    /// <summary> A cloth pinned to a kinematic body follows it when it starts moving, also when the cloth was asleep by then </summary>
+    [Fact]
+    public static void PinsFollowAKinematicBodyAndWakeUp()
+    {
+        RunScene(async scene =>
+        {
+            var rail = new BodyComponent { Kinematic = true, Collider = new CompoundCollider { Colliders = { new BoxCollider { Size = new Vector3(0.1f, 0.1f, 1.2f) } } } };
+            var anchor = new Entity { rail };
+            anchor.Transform.Position = new Vector3(-0.5f, 2f, 0f);
+            scene.Add(anchor);
+            var cloth = new ClothComponent { Pins = { new SoftBodyPin { Region = PinnedEdge, Anchor = new BodyAnchor { Body = rail } } } };
+            scene.Add(cloth, ClothModel, new Vector3(0f, 2f, 0f));
+            await Seconds(cloth, 2f);
+
+            int pinned = 0;
+            while (cloth.IsParticlePinned(pinned) == false)
+                pinned++;
+            var before = cloth.GetParticlePosition(pinned);
+            cloth.Awake = false;
+            Assert.False(cloth.Awake);
+
+            rail.LinearVelocity = new Vector3(0f, 0f, 1f);
+            rail.Awake = true;
+            await Seconds(cloth, 1f);
+
+            Assert.True(cloth.Awake);
+            Assert.True(Vector3.Distance(cloth.GetParticlePosition(pinned), before + new Vector3(0f, 0f, 1f)) < 0.1f, $"Pinned particle went from {before} to {cloth.GetParticlePosition(pinned)}");
+        });
+    }
+
+    /// <summary> A soft body without a model cannot be built: it stays out of the simulation, and says so once </summary>
+    [Fact]
+    public static void ASoftBodyWithoutAModelIsReported()
+    {
+        RunScene(async scene =>
+        {
+            var warnings = new System.Collections.Generic.List<string>();
+            void Collect(Stride.Core.Diagnostics.ILogMessage message)
+            {
+                if (message.Type >= Stride.Core.Diagnostics.LogMessageType.Warning)
+                    warnings.Add(message.Text);
+            }
+            Stride.Core.Diagnostics.GlobalLogger.GlobalMessageLogged += Collect;
+            try
+            {
+                var body = new VolumetricSoftBodyComponent();
+                scene.Add(body, new Vector3(0f, 2f, 0f));
+                for (int frame = 0; frame < 3; frame++)
+                    await scene.Game.Script.NextFrame();
+
+                Assert.Null(body.Simulation);
+                Assert.Single(warnings, warning => warning.Contains(nameof(VolumetricSoftBodyComponent)) && warning.Contains(nameof(ModelComponent)));
+            }
+            finally
+            {
+                Stride.Core.Diagnostics.GlobalLogger.GlobalMessageLogged -= Collect;
+            }
+        });
+    }
+
+    /// <summary>
+    /// The collider and the collision group of a soft body are its own business: neither the editor nor a scene file sees them,
+    /// while they see the ones of the other collidables.
+    /// </summary>
+    [Fact]
+    public static void SoftBodiesKeepTheirColliderAndCollisionGroupToThemselves()
+    {
+        static System.Collections.Generic.List<string> MembersOf(Type type) => Stride.Core.Reflection.TypeDescriptorFactory.Default.Find(type).Members.Select(member => member.Name).ToList();
+
+        Assert.Contains("Collider", MembersOf(typeof(BodyComponent)));
+        Assert.Contains("CollisionGroup", MembersOf(typeof(BodyComponent)));
+        foreach (var type in new[] { typeof(ClothComponent), typeof(VolumetricSoftBodyComponent) })
+        {
+            var members = MembersOf(type);
+            Assert.DoesNotContain("Collider", members);
+            Assert.DoesNotContain("CollisionGroup", members);
+            Assert.Contains("ParticleRadius", members);
+            Assert.Contains("CollisionLayer", members);
+        }
     }
 
     [Fact]

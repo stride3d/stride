@@ -167,7 +167,6 @@ Hierarchy:
                             f1ed0f870683815f30195b83c05f5c06~0: 1edb4d5d-f782-54da-8766-dda3e45abfee:Materials/Grape
                     04d6987564e91ac9b33f3e4eba02f7da: !Stride.BepuPhysics.Soft.ClothComponent,Stride.BepuPhysics.Soft
                         Id: f4a511b6-b566-f5dd-09e6-1d878431f508
-                        Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft {}
                         Mass: 1.0
                         BendStiffness: 1.0
                         Pins:
