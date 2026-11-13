@@ -225,6 +225,28 @@ public sealed class CurveEditorViewModelTests
     }
 
     [Fact]
+    public async Task ACtrlClickOnASelectedKeyRemovesItFromTheSelection()
+    {
+        await using var test = await CurveEditorTestScene.OpenAsync();
+        var curve = test.OpenSizeCurve();
+        var editor = test.Editor;
+        editor.PreviewClickCommand.Execute(new CurveEditorClick(test.ScreenPoint(0.5f, 3), CurveSelectionMode.Replace));
+        editor.PreviewClickCommand.Execute(new CurveEditorClick(test.ScreenPoint(1, 2), CurveSelectionMode.Add));
+        Assert.Equal(2, editor.SelectedControlPoints.Count);
+
+        editor.PreviewClickCommand.Execute(new CurveEditorClick(test.ScreenPoint(0.5f, 3), CurveSelectionMode.Remove));
+
+        Assert.Same(curve.ControlPoints.ElementAt(2), Assert.Single(editor.SelectedControlPoints));
+        Assert.False(curve.ControlPoints.ElementAt(1).IsSelected);
+        // No drag of the rest of the selection starts
+        Assert.False(editor.IsControlPointHovered);
+
+        // On a key that isn't selected, it changes nothing
+        editor.PreviewClickCommand.Execute(new CurveEditorClick(test.ScreenPoint(0, 1), CurveSelectionMode.Remove));
+        Assert.Same(curve.ControlPoints.ElementAt(2), Assert.Single(editor.SelectedControlPoints));
+    }
+
+    [Fact]
     public async Task AKeyDraggedPastItsNeighborStaysSelected()
     {
         await using var test = await CurveEditorTestScene.OpenAsync();
