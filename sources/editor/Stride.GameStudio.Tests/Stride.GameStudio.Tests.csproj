@@ -22,7 +22,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
+    <ProjectReference Include="..\..\tests\Stride.XunitRunner\Stride.XunitRunner.csproj" />
     <!-- The WPF registrations test skips on a machine without the asset templates package -->
     <PackageReference Include="Xunit.SkippableFact" />
     <ProjectReference Include="..\Stride.GameStudio\Stride.GameStudio.csproj" />

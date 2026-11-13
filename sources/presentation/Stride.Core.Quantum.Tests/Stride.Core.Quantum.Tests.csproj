@@ -15,7 +15,7 @@
     <Compile Remove="obsolete\**\*.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
+    <ProjectReference Include="..\..\tests\Stride.XunitRunner\Stride.XunitRunner.csproj" />
     <ProjectReference Include="..\Stride.Core.Quantum\Stride.Core.Quantum.csproj" />
   </ItemGroup>
 

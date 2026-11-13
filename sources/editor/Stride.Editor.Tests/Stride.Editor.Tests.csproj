@@ -13,7 +13,7 @@
     <Using Include="Xunit" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
+    <ProjectReference Include="..\..\tests\Stride.XunitRunner\Stride.XunitRunner.csproj" />
     <!-- The session fixture and fakes of the Core.Assets.Editor tests are reused -->
     <ProjectReference Include="..\Stride.Core.Assets.Editor.Tests\Stride.Core.Assets.Editor.Tests.csproj" />
     <ProjectReference Include="..\Stride.Editor\Stride.Editor.csproj" />

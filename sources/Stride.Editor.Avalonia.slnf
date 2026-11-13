@@ -85,7 +85,7 @@
       "sources\\shaders\\Stride.Shaders.Spirv\\Stride.Shaders.Spirv.csproj",
       "sources\\shaders\\Stride.Shaders\\Stride.Shaders.csproj",
       "sources\\shared\\Stride.NuGetResolver\\Stride.NuGetResolver.csproj",
-      "sources\\tests\\xunit.runner.stride\\xunit.runner.stride.csproj",
+      "sources\\tests\\Stride.XunitRunner\\Stride.XunitRunner.csproj",
       "sources\\tools\\Stride.Importer.3D\\Stride.Importer.3D.csproj",
       "sources\\tools\\Stride.Importer.Common\\Stride.Importer.Common.csproj",
       "sources\\tools\\Stride.TextureConverter\\Stride.TextureConverter.csproj"

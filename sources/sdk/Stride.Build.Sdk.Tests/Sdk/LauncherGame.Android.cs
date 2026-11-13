@@ -9,7 +9,7 @@ using Android.OS;
 using Android.Window;
 using Avalonia.Android;
 
-namespace xunit.runner.stride;
+namespace Stride.XunitRunner;
 
 // Graphics-regression Android variant — mirrors LauncherSimple.Android.cs. GameTestBase callback
 // wiring (Interactive Mode, Force Save Image, ImageComparisonCompleted) lives in

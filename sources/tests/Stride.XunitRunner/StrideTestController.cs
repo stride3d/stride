@@ -6,7 +6,7 @@ using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
-namespace xunit.runner.stride;
+namespace Stride.XunitRunner;
 
 /// <summary>
 /// In-process xunit v2 discovery and execution over an already-loaded assembly. Required on

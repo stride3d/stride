@@ -4,7 +4,7 @@
 using System.IO;
 using Avalonia.Media.Imaging;
 
-namespace xunit.runner.stride.ViewModels;
+namespace Stride.XunitRunner.ViewModels;
 
 /// <summary>
 ///   One screenshot-vs-gold comparison reported by GameTestBase. A single test may produce
