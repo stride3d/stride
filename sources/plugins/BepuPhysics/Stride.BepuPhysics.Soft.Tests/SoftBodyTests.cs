@@ -2,12 +2,14 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using BepuPhysics.CollisionDetection;
 using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Definitions.Colliders;
 using Stride.BepuPhysics.Definitions.Contacts;
 using Stride.BepuPhysics.Soft.Colliders;
+using Stride.BepuPhysics.Soft.Topology;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Graphics.GeometricPrimitives;
@@ -125,6 +127,208 @@ public class SoftBodyTests : GameTestBase
                 }
             }
             Assert.InRange(lowest, 0.9f, 1.1f);
+        });
+    }
+
+    /// <summary> A pin on a node of the anchor's model is carried by that node, not by the entity </summary>
+    [Fact]
+    public static void PinsFollowAnAnchorNode()
+    {
+        RunScene(async scene =>
+        {
+            // A skeleton whose second node sits at the cloth's pinned edge
+            var anchorModel = new ProceduralModelDescriptor(new CubeProceduralModel { Size = new Vector3(0.1f) }).GenerateModel(scene.Game.Services);
+            anchorModel.Skeleton = new Skeleton { Nodes = [Node("Root", -1, Vector3.Zero), Node("Hand", 0, new Vector3(-0.5f, 2f, 0f))] };
+            var anchor = new Entity { new ModelComponent(anchorModel) };
+            scene.Add(anchor);
+
+            var cloth = new ClothComponent { Pins = { new SoftBodyPin { Region = PinnedEdge, Anchor = new WorldAnchor { Entity = anchor, NodeName = "Hand" } } } };
+            scene.Add(cloth, ClothModel, new Vector3(0f, 2f, 0f));
+            await Seconds(cloth, 0.1f);
+
+            var pinned = Enumerable.Range(0, cloth.ParticleCount).Where(cloth.IsParticlePinned).ToArray();
+            Assert.NotEmpty(pinned);
+            var before = pinned.Select(cloth.GetParticlePosition).ToArray();
+
+            // Moving the node, not the entity, carries the pinned particles along
+            anchor.Get<ModelComponent>()!.Skeleton.NodeTransformations[1].Transform.Position += new Vector3(1f, 0.5f, 0f);
+            await Seconds(cloth, 0.5f);
+
+            for (int i = 0; i < pinned.Length; i++)
+                Assert.True(Vector3.Distance(cloth.GetParticlePosition(pinned[i]), before[i] + new Vector3(1f, 0.5f, 0f)) < 0.02f, $"Pinned particle {pinned[i]} at {cloth.GetParticlePosition(pinned[i])}");
+        });
+    }
+
+    /// <summary> The particles pinned to a body pull on it, whether the body was there before the cloth or came after </summary>
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public static void PinnedParticlesPullTheirBodyAnchor(bool anchorFirst)
+    {
+        RunScene(async scene =>
+        {
+            // A floating block above the pinned edge of a cloth
+            var block = new BodyComponent { Gravity = false, Collider = new CompoundCollider { Colliders = { new BoxCollider { Size = new Vector3(0.1f), Mass = 1f } } } };
+            var anchor = new Entity { block };
+            anchor.Transform.Position = new Vector3(-0.5f, 2.3f, 0f);
+            if (anchorFirst)
+                scene.Add(anchor);
+
+            var cloth = new ClothComponent { Pins = { new SoftBodyPin { Region = PinnedEdge, Anchor = new BodyAnchor { Body = block } } } };
+            scene.Add(cloth, ClothModel, new Vector3(0f, 2f, 0f));
+            if (anchorFirst == false)
+                scene.Add(anchor);
+
+            // The weight of the cloth drags the block down
+            await Seconds(cloth, 1f);
+            Assert.True(block.Position.Y < 2f, $"Block at {block.Position}");
+        });
+    }
+
+    [Fact]
+    public static void PinWithoutRegionHoldsTheParticlesClosestToItsAnchor()
+    {
+        RunScene(async scene =>
+        {
+            // Hooks at two corners of a cloth, and a point between two vertices of its far edge
+            var hooks = new[] { new Vector3(-0.5f, 2f, -0.5f), new Vector3(0.5f, 2f, -0.5f) };
+            var pins = hooks.Select(hook => new SoftBodyPin { Anchor = new WorldAnchor { Entity = new Entity { Transform = { Position = hook } } } }).ToList();
+            pins.Add(new SoftBodyPin { Region = new BoundingBox(new Vector3(0.05f, 0f, 0.5f), new Vector3(0.05f, 0f, 0.5f)) });
+            foreach (var pin in pins.Take(2))
+                scene.Add(((WorldAnchor)pin.Anchor!).Entity!);
+            var cloth = new ClothComponent();
+            cloth.Pins.AddRange(pins);
+            scene.Add(cloth, ClothModel, new Vector3(0f, 2f, 0f));
+            await Seconds(cloth, 0.1f);
+
+            var pinned = Enumerable.Range(0, cloth.ParticleCount).Where(cloth.IsParticlePinned).Select(i => cloth.Topology!.RestPositions[i]).ToList();
+            Assert.Equal(4, pinned.Count);
+            Assert.Contains(new Vector3(-0.5f, 0f, -0.5f), pinned);
+            Assert.Contains(new Vector3(0.5f, 0f, -0.5f), pinned);
+            Assert.Contains(pinned, p => MathUtil.NearEqual(p.Z, 0.5f) && MathUtil.NearEqual(p.X, 0f));
+            Assert.Contains(pinned, p => MathUtil.NearEqual(p.Z, 0.5f) && MathUtil.NearEqual(p.X, 0.1f));
+        });
+    }
+
+    [Fact]
+    public static void PinnedParticlesDoNotPushTheirBodyAnchor()
+    {
+        RunScene(async scene =>
+        {
+            // The pinned edge of a weightless cloth runs through a floating block
+            var block = new BodyComponent { Gravity = false, Collider = new CompoundCollider { Colliders = { new BoxCollider { Size = new Vector3(0.08f), Mass = 1f } } } };
+            scene.Add(block, new Vector3(-0.5f, 2f, 0f));
+
+            var cloth = new ClothComponent { Gravity = false, Pins = { new SoftBodyPin { Region = PinnedEdge, Anchor = new BodyAnchor { Body = block } } } };
+            scene.Add(cloth, ClothModel, new Vector3(0f, 2f, 0f));
+
+            // Contacts between the pinned particles and the block would push it, then the particles after it, forever
+            await Seconds(cloth, 2f);
+            Assert.True(Vector3.Distance(block.Position, new Vector3(-0.5f, 2f, 0f)) < 0.05f, $"Block at {block.Position}");
+            Assert.True(block.LinearVelocity.Length() < 0.05f, $"Block moving at {block.LinearVelocity}");
+        });
+    }
+
+    /// <summary> The pinned edge of a cloth runs through the static post it is tied to: its particles are held inside of it, not pushed out </summary>
+    [Fact]
+    public static void PinnedParticlesDoNotTouchTheirStaticAnchor()
+    {
+        RunScene(async scene =>
+        {
+            var post = new StaticComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider { Size = new Vector3(0.08f, 0.3f, 2f) } } } };
+            scene.Add(post, new Vector3(-0.5f, 2f, 0f));
+
+            var cloth = new ClothComponent { Gravity = false, Pins = { new SoftBodyPin { Region = PinnedEdge, Anchor = new BodyAnchor { Body = post } } } };
+            scene.Add(cloth, ClothModel, new Vector3(0f, 2f, 0f));
+            await Seconds(cloth, 1f);
+
+            for (int i = 0; i < cloth.ParticleCount; i++)
+            {
+                if (cloth.IsParticlePinned(i))
+                    Assert.True(Vector3.Distance(cloth.GetParticlePosition(i), cloth.Topology!.RestPositions[i] + new Vector3(0f, 2f, 0f)) < 0.01f, $"Pinned particle {i} at {cloth.GetParticlePosition(i)}");
+            }
+        });
+    }
+
+    /// <summary> A cloth tied to a soft body hangs from its particles </summary>
+    [Fact]
+    public static void PinnedParticlesHoldOnToASoftBody()
+    {
+        RunScene(async scene =>
+        {
+            // A soft cube held in the air by its upper half, the edge of the cloth lies against its side
+            var upperHalf = new BoundingBox(new Vector3(-1f, 0f, -1f), new Vector3(1f, 1f, 1f));
+            var cube = new VolumetricSoftBodyComponent { Resolution = 3, Pins = { new SoftBodyPin { Region = upperHalf } } };
+            scene.Add(cube, new CubeProceduralModel(), new Vector3(-1f, 3f, 0f));
+
+            var cloth = new ClothComponent { Pins = { new SoftBodyPin { Region = PinnedEdge, Anchor = new BodyAnchor { Body = cube } } } };
+            scene.Add(cloth, ClothModel, new Vector3(0f, 3f, 0f));
+            await Seconds(cloth, 2f);
+
+            float lowest = float.MaxValue;
+            for (int i = 0; i < cloth.ParticleCount; i++)
+            {
+                var position = cloth.GetParticlePosition(i);
+                if (cloth.IsParticlePinned(i))
+                    Assert.InRange(position.Y, 2.7f, 3.1f);
+                lowest = MathF.Min(lowest, position.Y);
+            }
+            Assert.InRange(lowest, 1.7f, 2.3f);
+        });
+    }
+
+    /// <summary>
+    /// Each particle joined to a body is one more constraint on it, and each constraint of a body needs a batch of the solver of its own:
+    /// a pin holding two layers of a body only joins some of their particles, the body hangs from those.
+    /// </summary>
+    [Fact]
+    public static void PinsJoinABoundedNumberOfParticlesToABody()
+    {
+        RunScene(async scene =>
+        {
+            var block = new BodyComponent { Kinematic = true, Collider = new CompoundCollider { Colliders = { new BoxCollider { Size = new Vector3(1f, 0.2f, 1f) } } } };
+            scene.Add(block, new Vector3(0f, 3.3f, 0f));
+
+            var upperLayers = new BoundingBox(new Vector3(-1f, 0.3f, -1f), new Vector3(1f, 1f, 1f));
+            var body = new VolumetricSoftBodyComponent { Resolution = 8, Pins = { new SoftBodyPin { Region = upperLayers, Anchor = new BodyAnchor { Body = block } } } };
+            var entity = scene.Add(body, new CubeProceduralModel(), new Vector3(0f, 2.5f, 0f));
+            await body.Simulation!.AfterUpdate();
+
+            // What is left of the constraints once those holding the lattice together are counted out
+            var topology = body.Topology!;
+            int ownConstraints = topology.Edges.Length + topology.Edges.Count(edge => edge.Kind == EdgeKind.Stretch) + topology.Tetrahedra.Length;
+            int joints = body.Simulation.Simulation.Solver.CountConstraints() - ownConstraints;
+            int pinned = Enumerable.Range(0, body.ParticleCount).Count(body.IsParticlePinned);
+            Assert.True(pinned > 64, $"{pinned} pinned particles");
+            Assert.InRange(joints, 1, 32);
+
+            await Seconds(body, 1f);
+            Assert.InRange(entity.Transform.Position.Y, 2.3f, 2.6f);
+        });
+    }
+
+    /// <summary> The joints of a pin go with the body of its anchor when the anchor is rebuilt: the pin makes them again </summary>
+    [Fact]
+    public static void PinsAreJoinedAgainWhenTheirAnchorIsRebuilt()
+    {
+        RunScene(async scene =>
+        {
+            var box = new BoxCollider { Size = new Vector3(0.1f) };
+            var block = new BodyComponent { Kinematic = true, Collider = new CompoundCollider { Colliders = { box } } };
+            scene.Add(block, new Vector3(-0.5f, 2.3f, 0f));
+
+            var cloth = new ClothComponent { Pins = { new SoftBodyPin { Region = PinnedEdge, Anchor = new BodyAnchor { Body = block } } } };
+            scene.Add(cloth, ClothModel, new Vector3(0f, 2f, 0f));
+            await Seconds(cloth, 0.5f);
+
+            box.Size = new Vector3(0.12f);
+            await Seconds(cloth, 1.5f);
+
+            for (int i = 0; i < cloth.ParticleCount; i++)
+            {
+                if (cloth.IsParticlePinned(i))
+                    Assert.InRange(cloth.GetParticlePosition(i).Y, 1.9f, 2.1f);
+            }
         });
     }
 
@@ -424,6 +628,17 @@ public class SoftBodyTests : GameTestBase
         });
     }
 
+    /// <summary> The edge at x = -0.5 of <see cref="ClothModel"/> </summary>
+    private static BoundingBox PinnedEdge => new(new Vector3(-0.51f, -1f, -1f), new Vector3(-0.49f, 1f, 1f));
+
+    /// <summary> A square of side 1 on XZ, eleven particles along each side </summary>
+    private static PlaneProceduralModel ClothModel => new() { Size = new Vector2(1f), Tessellation = new Int2(10), Normal = NormalDirection.UpY, GenerateBackFace = true };
+
+    private static ModelNodeDefinition Node(string name, int parent, Vector3 position)
+    {
+        return new ModelNodeDefinition { Name = name, ParentIndex = parent, Flags = ModelNodeFlags.Default, Transform = new TransformTRS { Position = position, Rotation = Quaternion.Identity, Scale = Vector3.One } };
+    }
+
     private sealed class LineCollector : IDebugLineCollector
     {
         public readonly System.Collections.Generic.List<(Vector3 Start, Vector3 End, Color Color)> Segments = new();
@@ -533,6 +748,8 @@ public class SoftBodyTests : GameTestBase
             game.SceneSystem.SceneInstance.RootScene.Entities.Add(entity);
             return entity;
         }
+
+        public void Add(Entity entity) => game.SceneSystem.SceneInstance.RootScene.Entities.Add(entity);
 
         /// <summary> Adds an entity with <paramref name="component"/> </summary>
         public Entity Add(EntityComponent component, Vector3 position)
