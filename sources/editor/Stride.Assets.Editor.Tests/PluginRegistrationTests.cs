@@ -36,8 +36,6 @@ public sealed class PluginRegistrationTests
 
         var registrations = SessionRegistrations.Of(new StrideEditorPlugin { EnableThumbnailService = false }, fixture.Session);
 
-        // The builder imports the shaders of the session: it must be done before the fixture disposes it
-        await fixture.ServiceProvider.Get<GameStudioBuilderService>().WaitForShadersAsync().WaitAsync(TimeSpan.FromSeconds(30));
         AssertSame(typeof(StrideEditorPlugin).FullName + ".Session", registrations.Describe());
     }
 

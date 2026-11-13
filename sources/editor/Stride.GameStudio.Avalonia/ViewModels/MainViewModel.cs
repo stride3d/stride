@@ -25,12 +25,10 @@ using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Translation;
 using Stride.Editor;
-using Stride.Editor.Build;
 using Stride.GameStudio.Avalonia.Docking;
 using Stride.GameStudio.Avalonia.Helpers;
 using Stride.GameStudio.Avalonia.Services;
 using Stride.GameStudio.Avalonia.Settings;
-using Stride.Core.Assets.Editor.ViewModels.Progress;
 
 namespace Stride.GameStudio.Avalonia.ViewModels;
 
@@ -460,9 +458,6 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
         panelActivations.Add(PanelActivation.OnLocationChanged(Panels, BuiltInPanels.AssetView, Session.AssetCollection.SelectedLocations));
         panelActivations.Add(PanelActivation.OnLog(Panels, BuiltInPanels.BuildLog, Build.BuildLog.Messages));
 
-        // The build the session runs when it opens: thumbnails and previews wait for it. Shown before the editors open, which
-        // takes long enough for a build that has nothing to do to finish
-        _ = ShowShaderImportAsync(Session);
         editorsRestorer.Restore();
         SafeModeBanner?.Update();
     }
@@ -543,61 +538,6 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
     private void UpdateTitle()
     {
         Title = sessionName is null ? baseTitle : $"{baseTitle} - {sessionName}{(session?.HasUnsavedChanges == true ? "*" : string.Empty)}";
-    }
-
-    /// <summary>
-    /// Shows the import of the system shaders in the notification bar until it is done; nothing when there is none to wait for.
-    /// </summary>
-    private async Task ShowShaderImportAsync(SessionViewModel openedSession)
-    {
-        // The import starts with the builder, so it may already be over here: its notification then shows and goes away at once
-        if (Notifications is null || openedSession.ServiceProvider.TryGet<GameStudioBuilderService>() is not { ShaderImportProgress: not null } builder)
-            return;
-
-        var logger = GlobalLogger.GetLogger("BuildOnOpen");
-        var progress = new WorkProgressViewModel(ServiceProvider, logger)
-        {
-            Title = Tr._p("Notification", "Importing the system shaders…"),
-            IsIndeterminate = true,
-            KeepOpen = KeepOpen.Never,
-        };
-        // The import reports its steps from a thread of the builder: never block it on the UI thread (WorkProgressViewModel's own
-        // RegisterProgressStatus dispatches synchronously), which may itself be waiting for the builder (when the session closes)
-        void ImportProgressChanged(object? sender, ProgressStatusEventArgs e)
-        {
-            progress.Dispatcher.InvokeAsync(() =>
-            {
-                if (progress.WorkDone)
-                    return;
-                progress.IsIndeterminate = !e.HasKnownSteps;
-                progress.Minimum = 0;
-                progress.Maximum = e.StepCount;
-                progress.ProgressValue = e.CurrentStep;
-                progress.ProgressMessage = e.Message;
-            });
-        }
-
-        var importProgress = builder.ShaderImportProgress;
-        if (importProgress is not null)
-            importProgress.ProgressChanged += ImportProgressChanged;
-        ServiceProvider.Get<IEditorDialogService>().ShowNotification(progress);
-
-        var error = false;
-        try
-        {
-            await builder.WaitForShadersAsync();
-        }
-        catch (Exception e)
-        {
-            logger.Error("The import of the system shaders failed.", e);
-            error = true;
-        }
-        finally
-        {
-            if (importProgress is not null)
-                importProgress.ProgressChanged -= ImportProgressChanged;
-            await progress.NotifyWorkFinished(false, error);
-        }
     }
 
     private static IReadOnlyList<FilePickerFilter> SessionFileFilters =>

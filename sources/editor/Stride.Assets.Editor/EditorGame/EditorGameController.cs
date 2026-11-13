@@ -442,10 +442,6 @@ public abstract class EditorGameController<TEditorGame> : IEditorGameController
             // The game renders offscreen into the viewport
             context = Viewport.Attach(Game);
 
-            // Only the effects need the system shaders: the game creates its device while they are imported, and waits for
-            // them before its systems load their content
-            Game.GraphicsDeviceManager.DeviceCreated += WaitForShaders;
-
             // Create and register services
             serviceRegistry = new EditorGameServiceRegistry();
             InitializeServices(serviceRegistry);
@@ -493,13 +489,6 @@ public abstract class EditorGameController<TEditorGame> : IEditorGameController
             {
                 gameEndedTaskSource.TrySetResult();
             }
-        }
-
-        // Game thread, inside Game.Run
-        void WaitForShaders(object? sender, EventArgs e)
-        {
-            Game.GraphicsDeviceManager.DeviceCreated -= WaitForShaders;
-            Asset.ServiceProvider.Get<GameStudioBuilderService>().WaitForShaders();
         }
     }
 

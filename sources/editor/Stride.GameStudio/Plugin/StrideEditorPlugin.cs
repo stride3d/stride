@@ -20,7 +20,6 @@ using Stride.Editor.Thumbnails;
 using Stride.GameStudio.Debugging;
 using Stride.GameStudio.Helpers;
 using Stride.GameStudio.ViewModels;
-using Stride.Assets.Editor.Build;
 
 namespace Stride.GameStudio.Plugin
 {
@@ -64,7 +63,7 @@ namespace Stride.GameStudio.Plugin
             var settingsProvider = new GameSettingsProviderService(session);
             context.Services.Register(settingsProvider);
 
-            var builderService = new GameStudioBuilderService(sessionViewModel, settingsProvider, new StrideShaderImporter(), buildDirectory);
+            var builderService = new GameStudioBuilderService(sessionViewModel, settingsProvider, buildDirectory);
             context.Services.Register(builderService);
             context.Services.Register(builderService.Database); // TODO: this should be removed, the AssetBuilderService is reachable from anywhere now
 

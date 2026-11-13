@@ -13,6 +13,7 @@ using Stride.Core.IO;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization.Contents;
 using Stride.Assets;
+using Stride.Assets.Effect;
 using Stride.Assets.SpriteFont;
 using Stride.Assets.SpriteFont.Compiler;
 using Stride.Editor.Preview;
@@ -136,8 +137,10 @@ namespace Stride.Editor.Thumbnails
             gameSystems.Add(sceneSystem);
             EffectSystem.Initialize();
 
-            // Mount the same database for the cache
-            EffectSystem.Compiler = EffectCompilerFactory.CreateEffectCompiler(effectCompiler.FileProvider, EffectSystem);
+            // Mount the same database for the cache: the editor's compiler reads the shader files through a provider in front of it
+            var fileProvider = effectCompiler.FileProvider;
+            var database = (fileProvider as ShaderSourceFileProvider)?.Database as DatabaseFileProvider ?? fileProvider as DatabaseFileProvider;
+            EffectSystem.Compiler = EffectCompilerFactory.CreateEffectCompiler(fileProvider, EffectSystem, database: database);
 
             // Deactivate the asynchronous effect compilation
             ((EffectCompilerCache)EffectSystem.Compiler).CompileEffectAsynchronously = false;

@@ -1,11 +1,14 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Assets.Effect;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.BuildEngine;
+using Stride.Core.IO;
 using Stride.Editor.Build;
 using Stride.Editor.Tests.Helpers;
+using Stride.Shaders.Compiler;
 
 namespace Stride.Editor.Tests;
 
@@ -29,31 +32,15 @@ public sealed class BuilderServiceTests
     }
 
     [Fact]
-    public async Task WaitForShadersReturnsWithoutAShaderImporter()
+    public async Task TheEffectCompilerReadsTheShaderFilesOfTheSession()
     {
         await using var fixture = await ServicesSessionFixture.OpenAsync(withBuilder: true, ("Textures/Wood", new TestEditorAsset { Value = "wood" }));
-
-        // Nothing to import: the WPF studio would wait for the shaders of the Stride package
-        Assert.Null(fixture.Builder.ShaderImportProgress);
-        Assert.True(fixture.Builder.AreShadersLoaded);
-        // The blocking wait returns too (a timeout means it blocked)
-        await Task.Run(fixture.Builder.WaitForShaders).WaitAsync(Timeout);
-    }
-
-    [Fact]
-    public async Task TheBuilderBuildsTheStepsOfItsShaderImporter()
-    {
-        var importer = new FakeShaderImporter();
-        await using var fixture = await ServicesSessionFixture.OpenWithShaderImporterAsync(importer, ("Textures/Wood", new TestEditorAsset { Value = "wood" }));
         var builder = fixture.Builder;
 
-        // The builder asks the importer once, for the session, and builds the steps it returns
-        Assert.Same(fixture.Session, Assert.Single(importer.Sessions));
-        Assert.NotNull(builder.ShaderImportProgress);
-        await builder.WaitForShadersAsync().WaitAsync(Timeout);
-        Assert.True(importer.Step.Executed);
-        Assert.True(builder.AreShadersLoaded);
-        await Task.Run(builder.WaitForShaders).WaitAsync(Timeout);
+        // Nothing is imported: the effects read the shader files where they are, through a provider in front of the shared database
+        var provider = Assert.IsType<ShaderSourceFileProvider>(((EffectCompilerBase)builder.EffectCompiler).FileProvider);
+        Assert.IsType<DatabaseFileProvider>(provider.Database);
+        Assert.Empty(builder.ShaderSources.FileNames);
     }
 
     [Fact]
