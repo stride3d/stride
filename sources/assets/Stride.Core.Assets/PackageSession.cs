@@ -949,6 +949,8 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
 
             // The assemblies of the projects load with them, so the session needs the check from the start
             var session = new PackageSession { AssemblyLoadCheck = loadParameters.AssemblyLoadCheck, CompanionPackageFilter = loadParameters.CompanionPackageFilter, CompanionPackageSource = loadParameters.CompanionPackageSource };
+            // Kept from the dependency phase to the asset listing of this load only: the projects may change after
+            session.loadProjectFiles = new(StringComparer.OrdinalIgnoreCase);
 
             var cancelToken = loadParameters.CancelToken;
             SolutionProject? firstProject = null;
@@ -1006,6 +1008,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
 
             // Load all missing references/dependencies
             session.LoadMissingReferences(sessionResult, loadParameters);
+            session.loadProjectFiles = null;
 
             // Fix relative references
             var analysis = new PackageSessionAnalysis(session, GetPackageAnalysisParametersForLoad());
@@ -1224,6 +1227,9 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
 
         var cancelToken = loadParameters.CancelToken;
         List<AssetLoadingInfo> assetLoadInfos = [];
+        // The two listings of a package's files below evaluate its project once: nothing changes the project between
+        // them, except an upgrade of the package. During a session load, the dependency phase may have read them already.
+        var projectFilesCache = loadProjectFiles ?? new Dictionary<string, Package.ProjectFiles>(StringComparer.OrdinalIgnoreCase);
         // Make a copy of Packages as it can be modified by PreLoadPackageDependencies
         foreach (var package in OrderDependenciesFirst([.. packages]))
         {
@@ -1232,7 +1238,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
             {
                 return;
             }
-            if (TryLoadAssemblies(this, log, package, loadParameters, out var assetInfo))
+            if (TryLoadAssemblies(this, log, package, loadParameters, projectFilesCache, out var assetInfo))
                 assetLoadInfos.Add(assetInfo);
         }
         foreach (AssetLoadingInfo assetInfo in assetLoadInfos)
@@ -1249,7 +1255,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
             // Asset types come from every package's assemblies (e.g. a companion package loaded after this one), so
             // list the files again now that all of them are loaded; files already listed keep their upgraded content
             var previousFiles = assetInfo.newLoadParameters.AssetFiles?.ToDictionary(f => f.FilePath.FullPath, StringComparer.OrdinalIgnoreCase);
-            var assetFiles = Package.ListAssetFiles(assetInfo.package, true, false, loadParameters.LoadAssetsOfUnknownType);
+            var assetFiles = Package.ListAssetFiles(assetInfo.package, true, false, loadParameters.LoadAssetsOfUnknownType, assetInfo.pendingPackageUpgrades.Count == 0 ? projectFilesCache : null);
             if (previousFiles is not null)
             {
                 for (var i = 0; i < assetFiles.Count; i++)
@@ -1750,7 +1756,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
         }
     }
 
-    private bool TryLoadAssemblies(PackageSession session, ILogger log, Package package, PackageLoadParameters loadParameters, [MaybeNullWhen(false)] out AssetLoadingInfo info)
+    private bool TryLoadAssemblies(PackageSession session, ILogger log, Package package, PackageLoadParameters loadParameters, Dictionary<string, Package.ProjectFiles> projectFilesCache, [MaybeNullWhen(false)] out AssetLoadingInfo info)
     {
         info = null;
         // Already loaded
@@ -1820,7 +1826,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
             package.LoadAssemblies(log, newLoadParameters);
 
             // Load list of assets
-            newLoadParameters.AssetFiles = Package.ListAssetFiles(package, true, false, loadParameters.LoadAssetsOfUnknownType);
+            newLoadParameters.AssetFiles = Package.ListAssetFiles(package, true, false, loadParameters.LoadAssetsOfUnknownType, projectFilesCache);
             // Sort them by size (to improve concurrency during load)
             newLoadParameters.AssetFiles.Sort(PackageLoadingAssetFile.FileSizeComparer.Default);
 
