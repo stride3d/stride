@@ -1,0 +1,51 @@
+name: Coverage report of a test lane
+description: >-
+  Merges the Cobertura files of a test lane's dotnet test run into one with ReportGenerator, writes the coverage
+  summary to the step summary, and uploads the Cobertura as the coverage-<lane> artifact, which coverage-report.yml
+  merges across the lanes. Does nothing when the run left no coverage file.
+
+inputs:
+  lane:
+    description: Name of the lane in the artifact name (coverage-<lane>), as in its test-results artifact
+    required: true
+  title:
+    description: Title of the step summary section
+    required: true
+  results-directory:
+    description: The --results-directory of the dotnet test run
+    default: TestResults
+
+runs:
+  using: composite
+  steps:
+    # ReportGenerator as a pinned dotnet tool rather than its action: the same command runs locally, and no further
+    # third-party action is needed. No HTML report: for a lane with the full filter it takes minutes to write and 1.6 GB
+    # to upload. The method coverage row of the summary only links to ReportGenerator Pro.
+    - name: Coverage report
+      id: report
+      shell: pwsh
+      env:
+        RESULTS_DIRECTORY: ${{ inputs.results-directory }}
+        REPORT_TITLE: ${{ inputs.title }}
+        REPORTGENERATOR_VERSION: 5.4.18
+      run: |
+        $reports = @(Get-ChildItem $env:RESULTS_DIRECTORY -Recurse -Filter *.cobertura.xml -ErrorAction SilentlyContinue)
+        if ($reports.Count -eq 0) { Write-Host "No coverage file found."; exit 0 }
+        $tools = Join-Path $env:RUNNER_TEMP reportgenerator
+        dotnet tool install dotnet-reportgenerator-globaltool --version $env:REPORTGENERATOR_VERSION --tool-path $tools
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        $output = Join-Path $env:RUNNER_TEMP coverage-report
+        & (Join-Path $tools reportgenerator) `
+          "-reports:$(($reports.FullName) -join ';')" `
+          "-targetdir:$output" `
+          "-reporttypes:Cobertura;MarkdownSummaryGithub"
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        $summary = Get-Content (Join-Path $output SummaryGithub.md) | Select-Object -Skip 1 | Where-Object { $_ -notmatch 'Method coverage:' }
+        @("## Coverage: $env:REPORT_TITLE") + $summary | Add-Content $env:GITHUB_STEP_SUMMARY
+        "directory=$output" >> $env:GITHUB_OUTPUT
+    - name: Upload coverage
+      if: steps.report.outputs.directory != ''
+      uses: actions/upload-artifact@v7
+      with:
+        name: coverage-${{ inputs.lane }}
+        path: ${{ steps.report.outputs.directory }}

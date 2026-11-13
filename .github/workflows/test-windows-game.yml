@@ -50,6 +50,10 @@ on:
         description: Record every compiled mixin tree for the shader corpus (Direct3D11 leg only, artifact shader-corpus-game)
         type: boolean
         default: false
+      coverage:
+        description: Collect code coverage (artifact coverage-game-<API>)
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       build-type:
@@ -84,6 +88,10 @@ on:
         default: false
         type: boolean
       capture-shader-corpus:
+        default: false
+        type: boolean
+      # Collect code coverage (main.yml), for coverage-report.yml
+      coverage:
         default: false
         type: boolean
 
@@ -121,6 +129,9 @@ jobs:
       # Shader corpus refresh (sources/shaders/Stride.Shaders.Tests/Corpus/README.md): the test suites record their
       # mixin trees. One leg is enough, the corpus test compiles each tree for every graphics API.
       STRIDE_SHADER_CORPUS_CAPTURE: ${{ inputs.capture-shader-corpus && matrix.graphics-api == 'Direct3D11' && format('{0}\shader-corpus', github.workspace) || '' }}
+      # Coverage over all the Stride assemblies on Direct3D11; on the other APIs only over Stride.Graphics and
+      # Stride.Games, where nearly all the code they run beyond Direct3D11 is (tests/COVERAGE.md)
+      COVERAGE_SETTINGS: ${{ inputs.coverage && (matrix.graphics-api == 'Direct3D11' && 'tests/coverage.runsettings' || 'tests/coverage-graphics.runsettings') || '' }}
     steps:
       # Bootstrap .github so the local composite action below is resolvable pre-checkout.
       - uses: actions/checkout@v7
@@ -187,7 +198,8 @@ jobs:
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StridePlatforms=Windows `
             -p:StrideGraphicsApis=${{ matrix.graphics-api }} `
-            -p:StrideGraphicsApi=${{ matrix.graphics-api }}
+            -p:StrideGraphicsApi=${{ matrix.graphics-api }} `
+            ${{ inputs.coverage && '-p:ContinuousIntegrationBuild=false' || '' }}
       - name: Upload build binlog
         # failure() so we still get the binlog when Build dies (most useful case)
         if: failure() || inputs.upload-binlog
@@ -207,6 +219,7 @@ jobs:
           $parallelism = [int]("${{ github.event.inputs.test-parallelism || '2' }}")
           # Quoted below: a splatted "-m:N" reaches dotnet as "-m:" and "N"
           if ($parallelism -le 0) { $parallelism = [Environment]::ProcessorCount }
+          $coverageArgs = if ($env:COVERAGE_SETTINGS) { @('--settings', $env:COVERAGE_SETTINGS) } else { @() }
           for ($i = 1; $i -le $repeat; $i++) {
             Write-Host "=== Test run $i / $repeat ==="
             dotnet test $env:STRIDE_TEST_TARGET `
@@ -217,6 +230,7 @@ jobs:
               -p:StrideGraphicsApis=${{ matrix.graphics-api }} `
               -p:StrideGraphicsApi=${{ matrix.graphics-api }} `
               @filterArgs "-m:$parallelism" `
+              @coverageArgs `
               -- RunConfiguration.MaxCpuCount=1
             if ($LASTEXITCODE -ne 0) {
               Write-Host "Run $i failed (exit $LASTEXITCODE); stopping."
@@ -244,6 +258,12 @@ jobs:
         if: failure() && steps.test.outcome == 'failure'
         shell: pwsh
         run: ./.github/scripts/show-failed-tests.ps1
+      - name: Coverage
+        if: ${{ !cancelled() && env.COVERAGE_SETTINGS != '' && env.STRIDE_TEST_TARGET != '' }}
+        uses: ./.github/actions/coverage-lane
+        with:
+          lane: game-${{ matrix.graphics-api }}
+          title: Windows Game ${{ matrix.graphics-api }}
       - name: Collect symbols for crash analysis
         if: always()
         shell: pwsh
@@ -267,7 +287,10 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: test-results-game-${{ matrix.graphics-api }}
-          path: TestResults/
+          # The coverage files are in the coverage artifact
+          path: |
+            TestResults/
+            !TestResults/**/*.cobertura.xml
           if-no-files-found: ignore
       - name: Upload shader corpus capture
         if: always() && env.STRIDE_SHADER_CORPUS_CAPTURE != ''

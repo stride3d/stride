@@ -22,6 +22,10 @@ on:
         description: 'Rerun the filtered test set up to N times, stop on first failure (flake hunting). 1 = single run (default).'
         type: number
         default: 1
+      coverage:
+        description: Collect code coverage (artifact coverage-game-api-neutral)
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       build-type:
@@ -36,6 +40,10 @@ on:
       repeat:
         default: 1
         type: number
+      # Collect code coverage (main.yml), for coverage-report.yml
+      coverage:
+        default: false
+        type: boolean
 
 concurrency:
   group: test-windows-game-api-neutral-${{ github.event.pull_request.number || github.sha }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
@@ -50,6 +58,7 @@ jobs:
       STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
       STRIDE_TESTS_RENDERDOC: "error"
       STRIDE_MAX_PARALLELISM: "8"
+      COVERAGE_SETTINGS: ${{ inputs.coverage && 'tests/coverage.runsettings' || '' }}
     steps:
       # Bootstrap .github so the local composite action below is resolvable pre-checkout.
       - uses: actions/checkout@v7
@@ -80,13 +89,15 @@ jobs:
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StridePlatforms=Windows `
-            -p:StrideGraphicsApis=Direct3D11
+            -p:StrideGraphicsApis=Direct3D11 `
+            ${{ inputs.coverage && '-p:ContinuousIntegrationBuild=false' || '' }}
       - name: Test
         id: test
         run: |
           $filter = "${{ github.event.inputs.test-filter || inputs.test-filter }}"
           $repeat = [int]("${{ github.event.inputs.repeat || inputs.repeat || '1' }}")
           $filterArgs = if ($filter) { @('--filter', $filter) } else { @() }
+          $coverageArgs = if ($env:COVERAGE_SETTINGS) { @('--settings', $env:COVERAGE_SETTINGS) } else { @() }
           for ($i = 1; $i -le $repeat; $i++) {
             Write-Host "=== Test run $i / $repeat ==="
             dotnet test sources\Stride.Tests.Game.slnf `
@@ -94,7 +105,8 @@ jobs:
               --logger:"trx;LogFilePrefix=run-$i" --results-directory TestResults `
               --blame-hang-timeout 5m --blame-hang-dump-type full `
               -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
-              @filterArgs
+              @filterArgs `
+              @coverageArgs
             if ($LASTEXITCODE -ne 0) {
               Write-Host "Run $i failed (exit $LASTEXITCODE); stopping."
               exit $LASTEXITCODE
@@ -118,12 +130,21 @@ jobs:
         if: failure() && steps.test.outcome == 'failure'
         shell: pwsh
         run: ./.github/scripts/show-failed-tests.ps1
+      - name: Coverage
+        if: ${{ !cancelled() && env.COVERAGE_SETTINGS != '' }}
+        uses: ./.github/actions/coverage-lane
+        with:
+          lane: game-api-neutral
+          title: Windows Game ApiNeutral
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: test-results-game-api-neutral
-          path: TestResults/
+          # The coverage files are in the coverage artifact
+          path: |
+            TestResults/
+            !TestResults/**/*.cobertura.xml
           if-no-files-found: ignore
       - name: Upload test artifacts
         if: always()

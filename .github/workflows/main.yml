@@ -163,6 +163,7 @@ jobs:
     uses: ./.github/workflows/test-windows-game-api-neutral.yml
     with:
       build-type: Debug
+      coverage: true
 
   # Tests-Simple smoke-tests non-graphics paths.
   Windows-Tests-Simple:
@@ -171,6 +172,7 @@ jobs:
     uses: ./.github/workflows/test-windows-simple.yml
     with:
       build-type: Debug
+      coverage: true
 
   Windows-Tests-Game-D3D11:
     needs: changes
@@ -179,6 +181,7 @@ jobs:
     with:
       build-type: Debug
       graphics-api: Direct3D11
+      coverage: true
 
   Windows-Tests-Game-D3D12:
     needs: changes
@@ -187,6 +190,7 @@ jobs:
     with:
       build-type: Debug
       graphics-api: Direct3D12
+      coverage: true
 
   Windows-Tests-Game-Vulkan:
     needs: changes
@@ -195,6 +199,7 @@ jobs:
     with:
       build-type: Debug
       graphics-api: Vulkan
+      coverage: true
 
   Linux-Tests-Simple:
     needs: changes
@@ -417,14 +422,15 @@ jobs:
       build-type: Debug
 
   # Cross-platform (Avalonia) editor: builds its solution filter and runs its tests on Linux and Windows
-  # (one matrix job), with a coverage summary of the editor assemblies. Builds on its own, so it only
-  # waits for the path filter.
+  # (one matrix job), with the coverage of the Windows run. Builds on its own, so it only waits for the
+  # path filter.
   Editor-Tests-Avalonia:
     needs: changes
     if: (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft')) && needs.changes.outputs.editor == 'true'
     uses: ./.github/workflows/test-editor-avalonia.yml
     with:
       build-type: Debug
+      coverage: true
 
   # WPF editor (Game Studio) tests on Windows. Builds on its own, but waits for Windows Full as its gate: when the full
   # build fails, it doesn't start.
@@ -439,6 +445,7 @@ jobs:
     uses: ./.github/workflows/test-editor-wpf.yml
     with:
       build-type: Debug
+      coverage: true
 
   # Aggregate result for branch protection: mark only "Gate" as required.
   # Skipped jobs (path filters, draft PRs) are fine; failure/cancellation is not.
