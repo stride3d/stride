@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Stride.BepuPhysics.Soft.Rendering;
+using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Graphics;
@@ -40,6 +41,8 @@ public class VertexLayoutTests : GameTestBase
     {
         SoftBodyTests.RunScene(async scene =>
         {
+            // What is checked is what the CPU writes in the vertices
+            scene.Game.Services.GetOrCreate<SoftBodyConfiguration>().DeformationMode = SoftBodyDeformationMode.Cpu;
             var cube = WithLayout(scene.Game, new CubeProceduralModel(), position, normal, tangent, out var cubeSource);
             var jelly = new VolumetricSoftBodyComponent { Resolution = 3 };
             scene.Add(jelly, cube, new Vector3(-2f, 1f, 0f));
@@ -64,6 +67,7 @@ public class VertexLayoutTests : GameTestBase
     {
         SoftBodyTests.RunScene(async scene =>
         {
+            scene.Game.Services.GetOrCreate<SoftBodyConfiguration>().DeformationMode = SoftBodyDeformationMode.Cpu;
             var body = new VolumetricSoftBodyComponent { Resolution = 3 };
             scene.Add(body, new CubeProceduralModel(), new Vector3(0f, 1f, 0f));
             await SoftBodyTests.Seconds(body, 0.1f);
@@ -173,7 +177,9 @@ public class VertexLayoutTests : GameTestBase
             }
         }
 
+        var authored = draw.VertexBuffers[0].Buffer;
         draw.VertexBuffers = [new VertexBufferBinding(Buffer.New(game.GraphicsDevice, bytes, BufferFlags.VertexBuffer, GraphicsResourceUsage.Default), declaration, count)];
+        authored.Dispose();
         source = new Source(declaration, positions, texCoords);
         return model;
     }

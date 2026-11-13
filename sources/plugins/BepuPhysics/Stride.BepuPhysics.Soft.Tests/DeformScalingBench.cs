@@ -91,7 +91,7 @@ public class DeformScalingBench
         var cpuTimes = new List<double>();
         var gpuTimes = new List<double>();
         int particles = 0, vertices = 0;
-        using var game = new BenchGame(scn, mode, cpuTimes, gpuTimes, out _, p => particles = p, v => vertices = v);
+        using var game = new BenchGame(scn, mode, cpuTimes, gpuTimes, p => particles = p, v => vertices = v);
         GameTester.RunGameTest(game);
         if (cpuTimes.Count == 0)
             return new Measurement(0, 0, particles, vertices);
@@ -157,9 +157,8 @@ public class DeformScalingBench
         private const int WarmupFrames = 100;
         private const int MeasuredFrames = 300;
 
-        public BenchGame((int Count, int R, int Tess) scn, SoftBodyDeformationMode mode, List<double> cpuTimes, List<double> gpuTimes, out object _, Action<int> reportParticles, Action<int> reportVertices)
+        public BenchGame((int Count, int R, int Tess) scn, SoftBodyDeformationMode mode, List<double> cpuTimes, List<double> gpuTimes, Action<int> reportParticles, Action<int> reportVertices)
         {
-            _ = null!;
             _scn = scn;
             _mode = mode;
             _cpuTimes = cpuTimes;
