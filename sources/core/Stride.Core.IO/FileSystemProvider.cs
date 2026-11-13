@@ -109,6 +109,13 @@ public partial class FileSystemProvider : VirtualFileProviderBase
     }
 
     /// <inheritdoc/>
+    public override void FileMove(string sourceUrl, string destinationUrl, bool overwrite)
+    {
+        // A rename over the destination: atomic on the same volume
+        File.Move(ConvertUrlToFullPath(sourceUrl), ConvertUrlToFullPath(destinationUrl), overwrite);
+    }
+
+    /// <inheritdoc/>
     public override void FileMove(string sourceUrl, IVirtualFileProvider destinationProvider, string destinationUrl)
     {
         if (destinationProvider is FileSystemProvider fsProvider)
