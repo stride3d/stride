@@ -248,7 +248,10 @@ namespace BepuSoftBodySample.Game.Components
                 header.Children.Add(Text("DEBUG VIEW (F11)", 11f, MutedColor, margin: new Thickness(23f, 14f, 0f, 4f)));
                 header.Children.Add(BuildToggle("Physics debug view", () => debug.Visible, on => debug.Visible = on));
                 header.Children.Add(BuildToggle("Colliders", () => debug.Visible && debug.ShowShapes, on => Show(debug, on, d => d.ShowShapes = on)));
-                header.Children.Add(BuildToggle("Particles and springs", () => debug.Visible && debug.ShowCollidableLines, on => Show(debug, on, d => d.ShowCollidableLines = on)));
+                // What the soft bodies draw in the debug view is theirs to say, in their section of the game settings
+                var softBodyDebug = Services.GetOrCreate<SoftBodyConfiguration>();
+                header.Children.Add(BuildToggle("Soft body particles", () => debug.Visible && debug.ShowCollidableLines && softBodyDebug.ShowDebugParticles, on => Show(debug, on, d => d.ShowCollidableLines |= softBodyDebug.ShowDebugParticles = on)));
+                header.Children.Add(BuildToggle("Soft body springs", () => debug.Visible && debug.ShowCollidableLines && softBodyDebug.ShowDebugSprings, on => Show(debug, on, d => d.ShowCollidableLines |= softBodyDebug.ShowDebugSprings = on)));
                 header.Children.Add(BuildToggle("Contacts", () => debug.Visible && debug.ShowContactPoints, on => Show(debug, on, d => d.ShowContactPoints = d.ShowContactNormals = on)));
                 header.Children.Add(BuildToggle("Hide the models", () => _hideModels, on => Show(debug, on, _ => _hideModels = on)));
             }

@@ -305,6 +305,26 @@ public class SoftBodyTests : GameTestBase
                 Assert.Equal(body.GetParticlePosition(topology.Edges[i].A), start);
                 Assert.Equal(body.GetParticlePosition(topology.Edges[i].B), end);
             }
+
+            // Each of the two is a setting of the soft bodies
+            var settings = scene.Game.Services.GetOrCreate<SoftBodyConfiguration>();
+            settings.ShowDebugParticles = false;
+            lines.Segments.Clear();
+            body.AddDebugLines(lines);
+            Assert.Equal(topology.Edges.Length, lines.Segments.Count);
+
+            settings.ShowDebugParticles = true;
+            settings.ShowDebugSprings = false;
+            settings.DebugParticleSize = 0.5f;
+            lines.Segments.Clear();
+            body.AddDebugLines(lines);
+            Assert.Equal(body.ParticleCount * 3, lines.Segments.Count);
+            Assert.All(lines.Segments, segment => Assert.Equal(1f, Vector3.Distance(segment.Start, segment.End), 4));
+
+            settings.ShowDebugParticles = false;
+            lines.Segments.Clear();
+            body.AddDebugLines(lines);
+            Assert.Empty(lines.Segments);
         });
     }
 

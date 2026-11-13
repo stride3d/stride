@@ -39,9 +39,6 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
     /// <summary> The category of the soft body settings in the property grid </summary>
     public const string CategorySoftBody = "Soft Body";
 
-    /// <summary> The size of the cross drawn on a particle in the debug view, as a fraction of its radius </summary>
-    private const float DebugMarkerSize = 0.25f;
-
     private static readonly ConditionalWeakTable<Model, SourceMesh> SourceMeshes = new();
     private static readonly Logger Logger = GlobalLogger.GetLogger(nameof(SoftBodyComponent));
     private static int _nextGroupId = ushort.MaxValue;
@@ -314,27 +311,37 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
 
     internal BodyReference Particle(int index) => Simulation!.Simulation.Bodies[_particles[index]];
 
-    /// <summary> Adds a cross on every particle and a line along every spring: white ones stretch, cyan ones shear, yellow ones bend </summary>
+    /// <summary> Adds a cross on every particle and a line along every spring, as the <see cref="SoftBodyConfiguration"/> asks for them </summary>
     /// <param name="lines"> Receives the lines, in world space </param>
     public void AddDebugLines(IDebugLineCollector lines)
     {
         if (_particles.Length == 0 || Simulation is null || Topology is not { } topology)
             return;
 
+        var settings = Entity.EntityManager.Services.GetOrCreate<SoftBodyConfiguration>();
+        if (settings.ShowDebugParticles == false && settings.ShowDebugSprings == false)
+            return;
+
         var positions = ArrayPool<Vector3>.Shared.Rent(_particles.Length);
         CopyParticlePositions(positions);
 
-        float size = (Collider is ParticleCollider collider ? collider.ActualRadius : topology.Spacing * 0.5f) * DebugMarkerSize;
-        Vector3 x = new(size, 0f, 0f), y = new(0f, size, 0f), z = new(0f, 0f, size);
-        foreach (var position in positions.AsSpan(0, _particles.Length))
+        if (settings.ShowDebugParticles)
         {
-            lines.AddLine(position - x, position + x, Color.Red);
-            lines.AddLine(position - y, position + y, Color.Red);
-            lines.AddLine(position - z, position + z, Color.Red);
+            float size = settings.DebugParticleSize;
+            Vector3 x = new(size, 0f, 0f), y = new(0f, size, 0f), z = new(0f, 0f, size);
+            foreach (var position in positions.AsSpan(0, _particles.Length))
+            {
+                lines.AddLine(position - x, position + x, Color.Red);
+                lines.AddLine(position - y, position + y, Color.Red);
+                lines.AddLine(position - z, position + z, Color.Red);
+            }
         }
 
-        foreach (var edge in topology.Edges)
-            lines.AddLine(positions[edge.A], positions[edge.B], edge.Kind switch { EdgeKind.Shear => Color.Cyan, EdgeKind.Bend => Color.Yellow, _ => Color.White });
+        if (settings.ShowDebugSprings)
+        {
+            foreach (var edge in topology.Edges)
+                lines.AddLine(positions[edge.A], positions[edge.B], edge.Kind switch { EdgeKind.Shear => Color.Cyan, EdgeKind.Bend => Color.Yellow, _ => Color.White });
+        }
 
         ArrayPool<Vector3>.Shared.Return(positions);
     }
