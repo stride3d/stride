@@ -131,6 +131,8 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
     /// <remarks>
     /// Particles are told apart through <see cref="CollidableComponent.CollisionGroup"/>: its indices are replaced by the position of each particle,
     /// and when its id is zero this body picks an id of its own, counting down from 65535.
+    /// Sharing that id with another collidable therefore only keeps it from the particles next to the first corner of the body:
+    /// use <see cref="CollidableComponent.CollisionLayer"/> to have this body ignore another collidable.
     /// </remarks>
     [Display(category: CategorySoftBody)]
     [DefaultValue(true)]
