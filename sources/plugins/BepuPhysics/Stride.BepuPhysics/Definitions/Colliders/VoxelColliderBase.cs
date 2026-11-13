@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using BepuPhysics;
 using BepuPhysics.Collidables;
@@ -135,16 +136,25 @@ public abstract class VoxelColliderBase<TSource> : ICollider
         if (childCount > int.MaxValue)
             throw new InvalidOperationException($"A {grid.CellsX}x{grid.CellsY}x{grid.CellsZ} grid of {_cellShape} cells has {childCount} children, over the {int.MaxValue} the index space holds.");
 
-        VoxelCollisionTasks.EnsureRegistered<TSource>(shapes);
         // The grid is centred on its box, which is where the mass is spread.
         var extent = grid.Extent;
         grid.Origin = -extent * 0.5f;
-        index = _cellShape switch
+        // Each cell shape takes its shape id and registers its collision tasks the first time it is attached: most games only use one.
+        switch (_cellShape)
         {
-            VoxelCellShape.Box => shapes.Add(new VoxelBoxShape<TSource> { GridData = grid }),
-            VoxelCellShape.Sphere => shapes.Add(new VoxelSphereShape<TSource> { GridData = grid }),
-            _ => shapes.Add(new VoxelTriangleShape<TSource> { GridData = grid, SurfaceNets = _cellShape == VoxelCellShape.SurfaceNets }),
-        };
+            case VoxelCellShape.Box:
+                VoxelCollisionTasks.EnsureBoxRegistered<TSource>(shapes);
+                index = shapes.Add(new VoxelBoxShape<TSource> { GridData = grid });
+                break;
+            case VoxelCellShape.Sphere:
+                VoxelCollisionTasks.EnsureSphereRegistered<TSource>(shapes);
+                index = shapes.Add(new VoxelSphereShape<TSource> { GridData = grid });
+                break;
+            default:
+                VoxelCollisionTasks.EnsureTriangleRegistered<TSource>(shapes);
+                index = shapes.Add(new VoxelTriangleShape<TSource> { GridData = grid, SurfaceNets = _cellShape == VoxelCellShape.SurfaceNets });
+                break;
+        }
         centerOfMass = (extent * 0.5f).ToStride();
         if (shouldCalculateInertia)
             inertia = new Box(extent.X, extent.Y, extent.Z).ComputeInertia(_mass);
@@ -155,13 +165,22 @@ public abstract class VoxelColliderBase<TSource> : ICollider
 
     void ICollider.RayTest<TRayHitHandler>(Shapes shapes, TypedIndex shapeIndex, in NRigidPose pose, in RayData ray, ref float maximumT, ref TRayHitHandler hitHandler, BufferPool pool)
     {
-        var type = shapeIndex.Type;
-        if (type == VoxelShapeTypeIds<TSource>.Box)
-            shapes.GetShape<VoxelBoxShape<TSource>>(shapeIndex.Index).RayTest(pose, ray, ref maximumT, pool, ref hitHandler);
-        else if (type == VoxelShapeTypeIds<TSource>.Sphere)
-            shapes.GetShape<VoxelSphereShape<TSource>>(shapeIndex.Index).RayTest(pose, ray, ref maximumT, pool, ref hitHandler);
-        else if (type == VoxelShapeTypeIds<TSource>.Triangle)
-            shapes.GetShape<VoxelTriangleShape<TSource>>(shapeIndex.Index).RayTest(pose, ray, ref maximumT, pool, ref hitHandler);
+        // The attached shape is the one of the current cell shape: changing it attaches again.
+        switch (_cellShape)
+        {
+            case VoxelCellShape.Box:
+                Debug.Assert(shapeIndex.Type == VoxelBoxShape<TSource>.TypeId);
+                shapes.GetShape<VoxelBoxShape<TSource>>(shapeIndex.Index).RayTest(pose, ray, ref maximumT, pool, ref hitHandler);
+                break;
+            case VoxelCellShape.Sphere:
+                Debug.Assert(shapeIndex.Type == VoxelSphereShape<TSource>.TypeId);
+                shapes.GetShape<VoxelSphereShape<TSource>>(shapeIndex.Index).RayTest(pose, ray, ref maximumT, pool, ref hitHandler);
+                break;
+            default:
+                Debug.Assert(shapeIndex.Type == VoxelTriangleShape<TSource>.TypeId);
+                shapes.GetShape<VoxelTriangleShape<TSource>>(shapeIndex.Index).RayTest(pose, ray, ref maximumT, pool, ref hitHandler);
+                break;
+        }
     }
 
     /// <remarks>Walks the whole field; the debug view, the navigation mesh builder and the editor gizmo call it.</remarks>

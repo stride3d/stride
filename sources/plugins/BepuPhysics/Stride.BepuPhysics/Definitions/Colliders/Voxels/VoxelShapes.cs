@@ -332,7 +332,7 @@ internal unsafe struct VoxelBoxShape<TSource> : IHomogeneousCompoundShape<Box, B
 {
     public VoxelGridData<TSource> GridData;
 
-    public static int TypeId => VoxelShapeTypeIds<TSource>.Box;
+    public static int TypeId => ShapeId<VoxelBoxShape<TSource>>.Id;
     public static int ChildShapeTypeId => Box.Id;
     public static int MaxChildrenPerCell => 1;
     public readonly int ChildReach => 0;
@@ -424,7 +424,7 @@ internal unsafe struct VoxelSphereShape<TSource> : IHomogeneousCompoundShape<Sph
 {
     public VoxelGridData<TSource> GridData;
 
-    public static int TypeId => VoxelShapeTypeIds<TSource>.Sphere;
+    public static int TypeId => ShapeId<VoxelSphereShape<TSource>>.Id;
     public static int ChildShapeTypeId => Sphere.Id;
     public static int MaxChildrenPerCell => 1;
 
@@ -541,7 +541,7 @@ internal unsafe struct VoxelTriangleShape<TSource> : IHomogeneousCompoundShape<T
     /// <summary>Surface nets when set, marching cubes otherwise.</summary>
     public bool SurfaceNets;
 
-    public static int TypeId => VoxelShapeTypeIds<TSource>.Triangle;
+    public static int TypeId => ShapeId<VoxelTriangleShape<TSource>>.Id;
     public static int ChildShapeTypeId => Triangle.Id;
     public static int MaxChildrenPerCell => SlotsPerCell;
 

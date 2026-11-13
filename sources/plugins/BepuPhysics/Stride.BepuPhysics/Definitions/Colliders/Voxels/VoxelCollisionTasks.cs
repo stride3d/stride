@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuPhysics.CollisionDetection;
@@ -14,55 +13,61 @@ using BepuPhysics.CollisionDetection.SweepTasks;
 namespace Stride.BepuPhysics.Definitions.Colliders.Voxels;
 
 /// <summary>
-/// The Bepu shape type ids of the three voxel shapes over one density source, handed out on first use.
+/// Registers the collision and sweep tasks of a voxel shape with a simulation, the first time a collider attaches that shape to it.
 /// </summary>
-internal static class VoxelShapeTypeIds<TSource> where TSource : unmanaged, IVoxelDensitySource
-{
-    public static readonly int Box = VoxelCollisionTasks.ReserveShapeTypeIds();
-    public static int Sphere => Box + 1;
-    public static int Triangle => Box + 2;
-}
-
-/// <summary>
-/// Registers the collision and sweep tasks of the voxel shapes with a simulation, once per density source.
-/// </summary>
+/// <remarks>
+/// The shapes are generic over the density source, so their tasks cannot all be registered when the simulation is created.
+/// </remarks>
 internal static class VoxelCollisionTasks
 {
-    /// <summary>First shape type id handed to voxel shapes, after Bepu's built-in ones.</summary>
-    private const int FirstShapeTypeId = 12;
-
-    /// <summary>Shape types per density source: box, sphere and triangle.</summary>
-    private const int ShapeTypesPerSource = 3;
-
-    private static int _nextShapeTypeId = FirstShapeTypeId;
-
     private static readonly ConditionalWeakTable<Shapes, Registrations> _simulations = new();
 
     private sealed class Registrations(Simulation simulation)
     {
         public readonly Simulation Simulation = simulation;
-        public readonly HashSet<Type> Sources = [];
+        public readonly HashSet<int> ShapeTypeIds = [];
     }
 
-    public static int ReserveShapeTypeIds() => Interlocked.Add(ref _nextShapeTypeId, ShapeTypesPerSource) - ShapeTypesPerSource;
-
-    /// <summary>Lets <see cref="EnsureRegistered{TSource}"/> find the simulation owning a shape set.</summary>
+    /// <summary>Lets the voxel shapes find the simulation owning a shape set.</summary>
     public static void Track(Simulation simulation) => _simulations.Add(simulation.Shapes, new Registrations(simulation));
 
-    /// <summary>Registers the tasks of the shapes over <typeparamref name="TSource"/> with the simulation owning <paramref name="shapes"/>, if not done yet.</summary>
-    public static void EnsureRegistered<TSource>(Shapes shapes) where TSource : unmanaged, IVoxelDensitySource
+    /// <summary>Registers the tasks of the box cells over <typeparamref name="TSource"/> with the simulation owning <paramref name="shapes"/>, if not done yet.</summary>
+    public static void EnsureBoxRegistered<TSource>(Shapes shapes) where TSource : unmanaged, IVoxelDensitySource
     {
-        if (!_simulations.TryGetValue(shapes, out var registrations))
-            throw new InvalidOperationException("The voxel collider is attached to shapes of a simulation the voxel shapes do not know about.");
+        var registrations = Find(shapes);
         lock (registrations)
         {
-            if (!registrations.Sources.Add(typeof(TSource)))
-                return;
-            RegisterConvexChildren<VoxelBoxShape<TSource>, Box, BoxWide>(registrations.Simulation);
-            RegisterConvexChildren<VoxelSphereShape<TSource>, Sphere, SphereWide>(registrations.Simulation);
-            RegisterTriangleChildren<TSource>(registrations.Simulation);
+            if (registrations.ShapeTypeIds.Add(VoxelBoxShape<TSource>.TypeId))
+                RegisterConvexChildren<VoxelBoxShape<TSource>, Box, BoxWide>(registrations.Simulation);
         }
     }
+
+    /// <summary>Registers the tasks of the sphere cells over <typeparamref name="TSource"/> with the simulation owning <paramref name="shapes"/>, if not done yet.</summary>
+    public static void EnsureSphereRegistered<TSource>(Shapes shapes) where TSource : unmanaged, IVoxelDensitySource
+    {
+        var registrations = Find(shapes);
+        lock (registrations)
+        {
+            if (registrations.ShapeTypeIds.Add(VoxelSphereShape<TSource>.TypeId))
+                RegisterConvexChildren<VoxelSphereShape<TSource>, Sphere, SphereWide>(registrations.Simulation);
+        }
+    }
+
+    /// <summary>Registers the tasks of the triangle cells over <typeparamref name="TSource"/> with the simulation owning <paramref name="shapes"/>, if not done yet.</summary>
+    public static void EnsureTriangleRegistered<TSource>(Shapes shapes) where TSource : unmanaged, IVoxelDensitySource
+    {
+        var registrations = Find(shapes);
+        lock (registrations)
+        {
+            if (registrations.ShapeTypeIds.Add(VoxelTriangleShape<TSource>.TypeId))
+                RegisterTriangleChildren<TSource>(registrations.Simulation);
+        }
+    }
+
+    private static Registrations Find(Shapes shapes)
+        => _simulations.TryGetValue(shapes, out var registrations)
+            ? registrations
+            : throw new InvalidOperationException("The voxel collider is attached to shapes of a simulation the voxel shapes do not know about.");
 
     /// <summary>Box and sphere children: contacts are combined with a <see cref="NonconvexReduction"/>.</summary>
     private static void RegisterConvexChildren<TShape, TChild, TChildWide>(Simulation simulation)
