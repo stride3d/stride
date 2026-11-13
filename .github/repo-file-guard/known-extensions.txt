@@ -112,6 +112,7 @@ targets
 template
 tga
 tif
+tiff
 tmtheme
 tt
 ttf
