@@ -64,8 +64,7 @@ public sealed class StrideEditorViewPlugin : StrideAssetsAvaloniaPlugin
         base.InitializeSession(context);
 
         // "Edit curve" shows the curve editor panel
-        if (context.Session is SessionViewModel sessionViewModel)
-            context.Services.Register(new CurveEditorPanelService(sessionViewModel));
+        context.Services.Register(new CurveEditorPanelService(context.Session));
 
         if (GameStudioPreviewService.DisablePreview)
             return;
