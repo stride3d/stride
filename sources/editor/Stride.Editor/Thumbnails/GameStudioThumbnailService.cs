@@ -94,6 +94,7 @@ namespace Stride.Editor.Thumbnails
             gameSettingsProviderService = settingsProvider ?? throw new ArgumentNullException(nameof(settingsProvider));
             gameSettingsProviderService.GameSettingsChanged += GameSettingsChanged;
             UpdateGameSettings(settingsProvider.CurrentGameSettings);
+            assetBuilderService.ShaderSourcesChanged += ShaderSourcesChanged;
             StartPushNotificationsTask();
         }
 
@@ -128,6 +129,22 @@ namespace Stride.Editor.Thumbnails
             }
             current?.Dispose();
             gameSettingsProviderService.GameSettingsChanged -= GameSettingsChanged;
+            assetBuilderService.ShaderSourcesChanged -= ShaderSourcesChanged;
+        }
+
+        private void ShaderSourcesChanged(object? sender, ShaderSourcesChangedEventArgs e)
+        {
+            // The thumbnails whose last build used a changed shader file: their build sees that the file changed and draws them again
+            var assetIds = e.GetDependentAssets(ThumbnailAssetBuildUnit.ContextIdentifier).ToList();
+            if (assetIds.Count == 0 || thumbnailThreadShouldTerminate)
+                return;
+
+            _ = session.Dispatcher.InvokeAsync(() =>
+            {
+                var assetItems = assetIds.Select(x => session.GetAssetById(x)?.AssetItem).OfType<AssetItem>().ToList();
+                if (assetItems.Count > 0)
+                    session.TrackBackgroundWork(Task.Run(() => AddThumbnailAssetItems(assetItems, QueuePosition.First)));
+            });
         }
 
         /// <summary>

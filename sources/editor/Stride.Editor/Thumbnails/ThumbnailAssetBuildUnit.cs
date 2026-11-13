@@ -19,6 +19,11 @@ namespace Stride.Editor.Thumbnails
         private readonly GameStudioThumbnailService thumbnailService;
         private readonly GameSettingsAsset gameSettings;
 
+        /// <summary>
+        /// Gets the context of the identifiers of the thumbnail build units.
+        /// </summary>
+        public static Guid ContextIdentifier => ThumbnailBuildUnitContextId;
+
         public ThumbnailAssetBuildUnit(AssetItem asset, GameSettingsAsset gameSettings, GameStudioThumbnailService thumbnailService, int priorityOrder)
             : base(new AssetBuildUnitIdentifier(ThumbnailBuildUnitContextId, asset.Id))
         {

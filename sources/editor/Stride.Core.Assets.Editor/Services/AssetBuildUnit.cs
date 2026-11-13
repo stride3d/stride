@@ -48,6 +48,11 @@ namespace Stride.Core.Assets.Editor.Services
 
         public IReadOnlyDictionary<ObjectUrl, OutputObject> OutputObjects => buildStep.OutputObjects;
 
+        /// <summary>
+        /// Called by <see cref="AssetBuilderService"/> once the build step was processed, before <see cref="Wait"/> completes.
+        /// </summary>
+        internal Action<AssetBuildUnit, ListBuildStep> ProcessedCallback;
+
         public ListBuildStep GetBuildStep()
         {
             try
@@ -82,8 +87,15 @@ namespace Stride.Core.Assets.Editor.Services
         private void StepProcessed(object sender, BuildStepEventArgs e)
         {
             e.Step.StepProcessed -= StepProcessed;
-            PostBuild();
-            taskCompletionSource.SetResult(e.Step.Status);
+            try
+            {
+                ProcessedCallback?.Invoke(this, buildStep);
+            }
+            finally
+            {
+                PostBuild();
+                taskCompletionSource.SetResult(e.Step.Status);
+            }
         }
 
         public int CompareTo(AssetBuildUnit other)

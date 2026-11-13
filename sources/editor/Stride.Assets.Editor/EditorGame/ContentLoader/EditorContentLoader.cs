@@ -42,6 +42,7 @@ namespace Stride.Assets.Editor.EditorGame.ContentLoader
         private readonly ILogger logger;
         private readonly GameStudioDatabase database;
         private readonly GameSettingsProviderService settingsProvider;
+        private readonly GameStudioBuilderService? builderService;
         private RenderingMode currentRenderingMode;
         private ColorSpace currentColorSpace;
         private readonly Dictionary<Type, ObjectId> gameSettingsSectionHashes = new Dictionary<Type, ObjectId>();
@@ -104,6 +105,9 @@ namespace Stride.Assets.Editor.EditorGame.ContentLoader
             currentRenderingMode = settingsProvider.CurrentGameSettings.GetOrCreate<EditorSettings>().RenderingMode;
             currentColorSpace = settingsProvider.CurrentGameSettings.GetOrCreate<RenderingSettings>().ColorSpace;
             UpdateGameSettingsSectionHashes(settingsProvider.CurrentGameSettings, out _);
+            builderService = Asset.ServiceProvider.TryGet<GameStudioBuilderService>();
+            if (builderService != null)
+                builderService.ShaderSourcesChanged += ShaderSourcesChanged;
         }
 
         public LoaderReferenceManager Manager { get; }
@@ -216,6 +220,8 @@ namespace Stride.Assets.Editor.EditorGame.ContentLoader
             isDisposed = true;
             settingsProvider.GameSettingsChanged -= GameSettingsChanged;
             Session.AssetPropertiesChanged -= AssetPropertiesChanged;
+            if (builderService != null)
+                builderService.ShaderSourcesChanged -= ShaderSourcesChanged;
         }
 
         private async Task<Dictionary<AssetItem, object>> BuildAndReloadAssets(IEnumerable<AssetItem> assetsToRebuild)
@@ -654,6 +660,34 @@ namespace Stride.Assets.Editor.EditorGame.ContentLoader
             }
 
             await BuildAndReloadAssets(allAssetsToRebuild.Select(x => x.AssetItem));
+        }
+
+        private async void ShaderSourcesChanged(object? sender, ShaderSourcesChangedEventArgs e)
+        {
+            await RunUnlessDisposedAsync(() => RebuildForShaderSourcesAsync(e), () => isDisposed);
+        }
+
+        private async Task RebuildForShaderSourcesAsync(ShaderSourcesChangedEventArgs e)
+        {
+            // The assets whose build read a changed shader file, such as the lighting a skybox computes with shaders: the effects
+            // that draw the game follow the files by themselves
+            var assetIds = e.GetDependentAssets(EditorGameBuildUnit.ContextIdentifier).ToList();
+            if (assetIds.Count == 0)
+                return;
+
+            await Editor.EditorInitialized;
+            if (isDisposed)
+                return;
+
+            List<AssetItem> assetsToRebuild;
+            using ((await database.ReserveSyncLock()).Lock())
+            {
+                if (isDisposed)
+                    return;
+                assetsToRebuild = assetIds.Where(x => IsCurrentlyLoaded(x)).Select(x => Session.GetAssetById(x)?.AssetItem).OfType<AssetItem>().ToList();
+            }
+
+            await BuildAndReloadAssets(assetsToRebuild);
         }
 
         private async void GameSettingsChanged(object? sender, GameSettingsChangedEventArgs e)
