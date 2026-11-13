@@ -147,15 +147,14 @@ namespace Stride.BepuPhysics.Tests
         }
 
         [Fact]
-        public static void InvalidSettingsKeepTheirPreviousValue()
+        public static void InvalidSettingsThrow()
         {
-            // The property grid sets them as they are typed: nothing may throw
             using var collider = new VoxelCollider { CellSize = 0.5f, SphereRadiusScale = 1.4f, Mass = 3f };
             foreach (var invalid in new[] { 0f, -1f, float.NaN, float.PositiveInfinity })
             {
-                collider.CellSize = invalid;
-                collider.SphereRadiusScale = invalid;
-                collider.Mass = invalid;
+                Assert.Throws<ArgumentOutOfRangeException>(() => collider.CellSize = invalid);
+                Assert.Throws<ArgumentOutOfRangeException>(() => collider.SphereRadiusScale = invalid);
+                Assert.Throws<ArgumentOutOfRangeException>(() => collider.Mass = invalid);
             }
             Assert.Equal(0.5f, collider.CellSize);
             Assert.Equal(1.4f, collider.SphereRadiusScale);

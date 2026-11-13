@@ -51,12 +51,16 @@ public abstract class VoxelColliderBase<TSource> : ICollider
     }
 
     /// <summary>Gets or sets the edge length of one cell, before the entity's scale.</summary>
-    /// <remarks>A value that is not positive and finite is ignored, as for <see cref="SphereRadiusScale"/> and <see cref="Mass"/>.</remarks>
+    /// <exception cref="ArgumentOutOfRangeException">The value is not positive and finite.</exception>
     [DataMemberRange(MinimumPositive, 3)]
     public float CellSize
     {
         get => _cellSize;
-        set => SetPositive(ref _cellSize, value);
+        set
+        {
+            value.ValidateGreaterThanZeroFinite(this);
+            Set(ref _cellSize, value);
+        }
     }
 
     /// <summary>Gets or sets the density at or above which a sample is solid.</summary>
@@ -84,19 +88,29 @@ public abstract class VoxelColliderBase<TSource> : ICollider
 
     /// <summary>Gets or sets the radius of the <see cref="VoxelCellShape.Sphere"/> children, as a multiple of half a cell.</summary>
     /// <remarks>At 1 neighbouring spheres touch and small bodies can slip between them; around 1.4 covers the face diagonals, at the cost of smoothing cell-size detail. The query reach and the shape bounds grow with the overshoot, so a body resting on the overshoot still finds the sphere.</remarks>
+    /// <exception cref="ArgumentOutOfRangeException">The value is not positive and finite.</exception>
     [DataMemberRange(MinimumPositive, 3)]
     public float SphereRadiusScale
     {
         get => _sphereRadiusScale;
-        set => SetPositive(ref _sphereRadiusScale, value);
+        set
+        {
+            value.ValidateGreaterThanZeroFinite(this);
+            Set(ref _sphereRadiusScale, value);
+        }
     }
 
     /// <summary>Gets or sets the mass of a body using this collider, spread over the grid's whole box.</summary>
+    /// <exception cref="ArgumentOutOfRangeException">The value is not positive and finite.</exception>
     [DataMemberRange(MinimumPositive, 3)]
     public float Mass
     {
         get => _mass;
-        set => SetPositive(ref _mass, value);
+        set
+        {
+            value.ValidateGreaterThanZeroFinite(this);
+            Set(ref _mass, value);
+        }
     }
 
     /// <summary>Rebuilds what is derived from the field outside of the simulation, such as the debug view's wireframe.</summary>
@@ -204,13 +218,6 @@ public abstract class VoxelColliderBase<TSource> : ICollider
 
     /// <summary>The smallest value the property grid accepts for the sizes and the mass.</summary>
     private const float MinimumPositive = 0.001f;
-
-    /// <summary>Keeps the previous value when <paramref name="value"/> is not positive and finite, rather than throwing from a property the editor sets.</summary>
-    private void SetPositive(ref float field, float value)
-    {
-        if (value > 0f && float.IsFinite(value))
-            Set(ref field, value);
-    }
 
     private void Set<T>(ref T field, T value)
     {
