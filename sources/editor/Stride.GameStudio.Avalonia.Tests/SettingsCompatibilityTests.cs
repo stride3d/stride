@@ -20,6 +20,8 @@ using Stride.GameStudio.Avalonia.Settings;
 using Stride.GameStudio.Avalonia.Tests.Helpers;
 using Stride.GameStudio.Avalonia.Views;
 using Stride.Assets.Editor.SceneEditor;
+using Stride.Assets.Editor.ViewModels;
+using Stride.Core.Settings;
 
 namespace Stride.GameStudio.Avalonia.Tests;
 
@@ -250,6 +252,129 @@ public sealed class SettingsCompatibilityTests : IDisposable
             InternalSettings.FileDialogLastImportDirectory.SetValue(previousDirectory);
             InternalSettings.SaveProfile();
         }
+    }
+
+    [AvaloniaFact]
+    public void TheWidgetsOfAScenePassThroughTheWpfEditorAsTheyAre()
+    {
+        var path = Path.Combine(directory, "MyGame.sdpkg.user");
+        var sceneId = AssetId.New();
+        var otherSceneId = AssetId.New();
+
+        // This editor writes the scene settings, which both editors share, and the scene view widgets, under a key of their own
+        var container = new SettingsContainer();
+        var sceneSettings = new SettingsKey<Dictionary<AssetId, SceneSettingsData>>(PackageSceneSettings.SceneSettings.Name, container, () => new Dictionary<AssetId, SceneSettingsData>());
+        var widgets = new SettingsKey<Dictionary<AssetId, Dictionary<string, bool>>>(PackageSceneViewWidgets.Visibility.Name, container, () => new Dictionary<AssetId, Dictionary<string, bool>>());
+        var profile = container.CreateSettingsProfile(true);
+        sceneSettings.SetValue(new Dictionary<AssetId, SceneSettingsData> { [sceneId] = new() { CamMoveSpeed = 3 } }, profile);
+        widgets.SetValue(new Dictionary<AssetId, Dictionary<string, bool>>
+        {
+            [sceneId] = new() { ["Tests.Stats"] = false, ["Tests.Ruler"] = true },
+            [otherSceneId] = new() { ["Tests.Stats"] = true },
+        }, profile);
+        Assert.True(container.SaveSettingsProfile(profile, path));
+        Assert.Contains("Package/SceneViewWidgets", File.ReadAllText(path));
+
+        // The WPF editor knows the scene settings only: it changes them and saves
+        var wpfContainer = new SettingsContainer();
+        var wpfSceneSettings = new SettingsKey<Dictionary<AssetId, SceneSettingsData>>(PackageSceneSettings.SceneSettings.Name, wpfContainer, () => new Dictionary<AssetId, SceneSettingsData>());
+        var wpfProfile = wpfContainer.LoadSettingsProfile(path, false, null, false);
+        Assert.NotNull(wpfProfile);
+        var wpfValue = new Dictionary<AssetId, SceneSettingsData>(wpfSceneSettings.GetValue(wpfProfile, true));
+        Assert.Equal(3, wpfValue[sceneId].CamMoveSpeed);
+        wpfValue[sceneId].CamMoveSpeed = 5;
+        wpfSceneSettings.SetValue(wpfValue, wpfProfile);
+        Assert.True(wpfContainer.SaveSettingsProfile(wpfProfile, path));
+
+        // This editor reads both back: the widgets as it left them
+        var reloadedContainer = new SettingsContainer();
+        var reloadedSceneSettings = new SettingsKey<Dictionary<AssetId, SceneSettingsData>>(PackageSceneSettings.SceneSettings.Name, reloadedContainer, () => new Dictionary<AssetId, SceneSettingsData>());
+        var reloadedWidgets = new SettingsKey<Dictionary<AssetId, Dictionary<string, bool>>>(PackageSceneViewWidgets.Visibility.Name, reloadedContainer, () => new Dictionary<AssetId, Dictionary<string, bool>>());
+        var reloaded = reloadedContainer.LoadSettingsProfile(path, false, null, false);
+        Assert.NotNull(reloaded);
+        Assert.Equal(5, reloadedSceneSettings.GetValue(reloaded, true)[sceneId].CamMoveSpeed);
+        var visibility = reloadedWidgets.GetValue(reloaded, true);
+        Assert.Equal(new Dictionary<string, bool> { ["Tests.Stats"] = false, ["Tests.Ruler"] = true }, visibility[sceneId]);
+        Assert.Equal(new Dictionary<string, bool> { ["Tests.Stats"] = true }, visibility[otherSceneId]);
+    }
+
+    [AvaloniaFact]
+    public void ThePluginsSwitchedOffPassThroughAWpfEditorThatDoesNotKnowThemAsTheyAre()
+    {
+        var path = Path.Combine(directory, "GameStudioInternal.conf");
+        File.WriteAllText(path, WpfInternalSettings);
+        var game = new UFile("C:/Projects/MyGame/MyGame.sln");
+
+        // This editor switches a plugin off for a session, under a key of its own, which both editors of this version read
+        var container = new SettingsContainer();
+        var key = new SettingsKey<List<DisabledEditorCompanions>>(InternalSettings.DisabledEditorCompanions.Name, container, () => new List<DisabledEditorCompanions>());
+        // The store writes the editor's current profile, as InternalSettings has
+        var profile = container.LoadSettingsProfile(path, false, null, false);
+        Assert.NotNull(profile);
+        container.CurrentProfile = profile;
+        var store = new DisabledEditorCompanionStore(() => profile, key, () => Assert.True(container.SaveSettingsProfile(profile, path)));
+        store.Set(game, "MyPlugin.Editor", switchedOff: true);
+        Assert.Contains("Internal/DisabledEditorCompanions:", File.ReadAllText(path));
+
+        // A WPF editor of an earlier version knows its window only: it changes it and saves
+        var wpfContainer = new SettingsContainer();
+        var wpfWidth = new SettingsKey<int>("Internal/WindowWidth", wpfContainer, 0);
+        var wpfProfile = wpfContainer.LoadSettingsProfile(path, false, null, false);
+        Assert.NotNull(wpfProfile);
+        wpfWidth.SetValue(1300, wpfProfile);
+        Assert.True(wpfContainer.SaveSettingsProfile(wpfProfile, path));
+
+        // Both read the entry back as it was written
+        var reloadedContainer = new SettingsContainer();
+        var reloadedKey = new SettingsKey<List<DisabledEditorCompanions>>(InternalSettings.DisabledEditorCompanions.Name, reloadedContainer, () => new List<DisabledEditorCompanions>());
+        var reloaded = reloadedContainer.LoadSettingsProfile(path, false, null, false);
+        Assert.NotNull(reloaded);
+        var entry = Assert.Single(reloadedKey.GetValue(reloaded, true));
+        Assert.Equal(game, entry.FilePath);
+        Assert.Equal(["MyPlugin.Editor"], entry.Packages);
+        var saved = File.ReadAllText(path);
+        Assert.Contains("Internal/WindowWidth: 1300", saved);
+        Assert.Contains("DockingLayoutVersion: 9", saved);
+    }
+
+    [AvaloniaFact]
+    public void TheExtensionsPassThroughAWpfEditorThatDoesNotKnowThemAsTheyAre()
+    {
+        var path = Path.Combine(directory, "GameStudioInternal.conf");
+        File.WriteAllText(path, WpfInternalSettings);
+        var editorVersion = new Version(4, 5);
+
+        // This editor installs an extension and switches another off, under a key of its own, which both editors read
+        var container = new SettingsContainer();
+        var key = new SettingsKey<List<EditorExtensionList>>(InternalSettings.ExtensionPackages.Name, container, () => new List<EditorExtensionList>());
+        var profile = container.LoadSettingsProfile(path, false, null, false);
+        Assert.NotNull(profile);
+        container.CurrentProfile = profile;
+        var store = new EditorExtensionStore(() => profile, key, () => Assert.True(container.SaveSettingsProfile(profile, path)));
+        store.Set(editorVersion, new EditorExtension { Id = "MyTool.Editor", Version = "1.2.0" });
+        store.Set(editorVersion, new EditorExtension { Id = "MyViews.Editor.Avalonia", Version = "0.3.0", Toolkit = "Avalonia", IsOff = true });
+        Assert.Contains("Internal/EditorExtensions:", File.ReadAllText(path));
+
+        // A WPF editor of an earlier version knows its window only: it changes it and saves
+        var wpfContainer = new SettingsContainer();
+        var wpfWidth = new SettingsKey<int>("Internal/WindowWidth", wpfContainer, 0);
+        var wpfProfile = wpfContainer.LoadSettingsProfile(path, false, null, false);
+        Assert.NotNull(wpfProfile);
+        wpfWidth.SetValue(1300, wpfProfile);
+        Assert.True(wpfContainer.SaveSettingsProfile(wpfProfile, path));
+
+        // Both read the list back as it was written
+        var reloadedContainer = new SettingsContainer();
+        var reloadedKey = new SettingsKey<List<EditorExtensionList>>(InternalSettings.ExtensionPackages.Name, reloadedContainer, () => new List<EditorExtensionList>());
+        var reloaded = reloadedContainer.LoadSettingsProfile(path, false, null, false);
+        Assert.NotNull(reloaded);
+        var list = Assert.Single(reloadedKey.GetValue(reloaded, true));
+        Assert.Equal("4.5", list.EditorVersion);
+        Assert.Equal([("MyTool.Editor", "1.2.0", (string?)null, false), ("MyViews.Editor.Avalonia", "0.3.0", "Avalonia", true)],
+            list.Packages.Select(x => (x.Id, x.Version, x.Toolkit, x.IsOff)));
+        var saved = File.ReadAllText(path);
+        Assert.Contains("Internal/WindowWidth: 1300", saved);
+        Assert.Contains("DockingLayoutVersion: 9", saved);
     }
 
     private static void RegisterKeys(params Type[] settingsTypes)

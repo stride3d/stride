@@ -49,6 +49,10 @@
     <Compile Include="..\Stride.Core.Assets.Editor.Tests\Helpers\FakeGameLauncher.cs">
       <Link>Helpers\FakeGameLauncher.cs</Link>
     </Compile>
+    <!-- A NuGet setup of its own (feed, global packages folder, nuget.config), for the extensions of the Plugins panel -->
+    <Compile Include="..\..\assets\Stride.Core.Assets.Tests\Helpers\LocalPackageFeed.cs">
+      <Link>Helpers\LocalPackageFeed.cs</Link>
+    </Compile>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>

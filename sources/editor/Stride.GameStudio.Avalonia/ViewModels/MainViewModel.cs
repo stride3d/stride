@@ -10,6 +10,7 @@ using Stride.Core.Assets.Editor.Components.Status;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Components.Transactions;
 using Stride.Core.Assets.Editor.Panels;
+using Stride.Core.Assets.Editor.Plugins;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModels;
@@ -33,7 +34,7 @@ using Stride.Core.Assets.Editor.ViewModels.Progress;
 
 namespace Stride.GameStudio.Avalonia.ViewModels;
 
-internal sealed class MainViewModel : ViewModelBase, IMainViewModel
+internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRestartService
 {
     private const int RecentFilesCount = 10;
     // The owner of the editor's own panels in the panel registry
@@ -93,10 +94,14 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
 
         // The panels of the main window: the editor's and the plugins' (the plugin host owns the registry, and removes the
         // panels of a plugin that leaves); their layouts are kept per session
-        var registry = (serviceProvider.TryGet<IAssetsPluginService>() as EditorPluginHost)?.Panels ?? new PanelRegistry();
+        var host = serviceProvider.TryGet<IAssetsPluginService>() as EditorPluginHost;
+        var registry = host?.Panels ?? new PanelRegistry();
         Panels = new DockPanelService(serviceProvider, registry, GameStudioInternalSettings.CreateSessionPanelLayouts());
-        RegisterBuiltInPanels(registry);
+        RegisterBuiltInPanels(registry, host);
         ViewMenu = new ViewMenuViewModel(serviceProvider, Panels);
+        // In safe mode, a banner says how many plugins are off, with "Restart normally" and the Plugins panel
+        if (host is not null)
+            SafeModeBanner = new SafeModeBannerViewModel(serviceProvider, host, this, () => Panels.Show(BuiltInPanels.Plugins), () => session is not null);
 
         // The most recently used sessions of this and the earlier editor versions
         MRU = GameStudioInternalSettings.CreateMostRecentlyUsedFiles();
@@ -111,6 +116,11 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     }
 
     public StatusViewModel Status { get; }
+
+    /// <summary>
+    /// The banner shown in safe mode; null when the editor has no plugin host.
+    /// </summary>
+    public SafeModeBannerViewModel? SafeModeBanner { get; }
 
     /// <inheritdoc/>
     public string EditorToolkitName => EditorToolkits.Avalonia;
@@ -446,6 +456,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         // takes long enough for a build that has nothing to do to finish
         _ = ShowShaderImportAsync(Session);
         editorsRestorer.Restore();
+        SafeModeBanner?.Update();
     }
 
     /// <summary>
@@ -482,7 +493,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     /// <remarks>
     /// They replace those of an earlier main view model of the process, if any: the plugin host outlives it in the tests.
     /// </remarks>
-    private void RegisterBuiltInPanels(PanelRegistry registry)
+    private void RegisterBuiltInPanels(PanelRegistry registry, EditorPluginHost? host)
     {
         registry.UnregisterOwner(BuiltInPanelsOwner);
         foreach (var descriptor in BuiltInPanels.CreateSessionPanels())
@@ -490,6 +501,9 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         registry.Register(BuiltInPanels.CreateOutputPanel(Build), BuiltInPanelsOwner);
         // The preview service exists once the plugins have initialized the session, before the panels are created
         registry.Register(BuiltInPanels.CreatePreviewPanel(context => new AssetPreviewPanelViewModel(context, Preview ?? throw new InvalidOperationException("The session has no preview."))), BuiltInPanelsOwner);
+        // The plugins of the session, switched under the file it was opened from; "Restart to apply" opens it again
+        if (host is not null)
+            registry.Register(BuiltInPanels.CreatePluginsPanel(context => new PluginsPanelViewModel(context, host, sessionPath, this)), BuiltInPanelsOwner);
     }
 
     /// <summary>
@@ -678,14 +692,30 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         return session is not null && sessionPath is { } path && await RestartAsync(path);
     }
 
+    /// <inheritdoc/>
+    /// <remarks>
+    /// "Restart to apply" of the Plugins panel and "Restart normally" of the safe mode banner. Without a session, the next one
+    /// opens in that mode.
+    /// </remarks>
+    public async Task<bool> RestartAsync(bool safeMode)
+    {
+        if (session is null || sessionPath is null)
+        {
+            SetSafeMode(safeMode);
+            return true;
+        }
+        return await RestartAsync(sessionPath, safeMode);
+    }
+
     /// <summary>
     /// Closes the session, after asking whether to save it, and opens another one, or the project selection, in a fresh editor:
     /// a new process once this one has loaded a session (<see cref="EditorProcessService"/>), as WPF's New, Open and Reload
     /// restart the process; otherwise, or when the host cannot start one, in this process.
     /// </summary>
     /// <param name="filePath">The session to open; <c>null</c> for the project selection.</param>
+    /// <param name="safeMode">Whether the fresh editor runs in safe mode; null to keep this one's mode.</param>
     /// <returns><c>true</c> when the editor restarts, <c>false</c> when the user kept the session open.</returns>
-    private async Task<bool> RestartAsync(UFile? filePath)
+    private async Task<bool> RestartAsync(UFile? filePath, bool? safeMode = null)
     {
         if (!await CloseSessionAsync())
             return false;
@@ -693,10 +723,30 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         var restartProcess = session is not null || NeedsNewProcess;
         CloseSessionServices();
         if (restartProcess && ProcessService is { } process)
-            process.Restart(filePath);
+        {
+            process.Restart(filePath, safeMode);
+        }
         else
+        {
+            if (safeMode is { } mode)
+                SetSafeMode(mode);
             (Application.Current as App)?.Restart(filePath, selectProject: filePath is null);
+        }
         return true;
+    }
+
+    /// <summary>
+    /// Turns safe mode on or off for the sessions this editor opens next, and the editors it restarts into.
+    /// </summary>
+    private void SetSafeMode(bool safeMode)
+    {
+        if (safeMode)
+            App.Options.EnableSafeMode();
+        else
+            App.Options.DisableSafeMode();
+        if (ServiceProvider.TryGet<IAssetsPluginService>() is EditorPluginHost host)
+            host.SafeMode = safeMode;
+        SafeModeBanner?.Update();
     }
 
     /// <summary>
@@ -746,6 +796,14 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         CodeReload.Session = null;
         session = null;
         (ServiceProvider.TryGet<IAssetsPluginService>() as IDisposable)?.Dispose();
+        SafeModeBanner?.Update();
+    }
+
+    /// <inheritdoc/>
+    public override void Destroy()
+    {
+        SafeModeBanner?.Dispose();
+        base.Destroy();
     }
 
     private void OnExit()

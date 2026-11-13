@@ -3,6 +3,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+             xmlns:cmd="using:Stride.Core.Assets.Editor.Avalonia.Commands"
+             xmlns:cmdl="using:Stride.Core.Assets.Editor.Commands"
              xmlns:vm="using:Stride.Core.Assets.Presentation.ViewModels"
              xmlns:vm2="using:Stride.Core.Assets.Editor.ViewModels"
              xmlns:dd="using:Stride.Core.Assets.Editor.Avalonia.DragDrop"
@@ -35,7 +37,9 @@
       <!-- The context menu of the WPF solution explorer, with the items whose commands are ported, in groups shown when one of
            their commands applies to the selection -->
       <TreeView.ContextMenu>
-        <ContextMenu x:Name="SolutionContextMenu">
+        <ContextMenu x:Name="SolutionContextMenu"
+                     cmd:CommandSlot.Location="{x:Static cmdl:CommandLocations.SolutionExplorerContext}"
+                     cmd:CommandSlot.Selection="{Binding AssetCollection.SelectedLocations}">
           <MenuItem Header="{sd:LocalizeString Folder, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"
                     IsVisible="{Binding NewDirectoryCommand.IsEnabled}"/>
           <MenuItem Header="{sd:LocalizeString Create folder, Context=Menu}"

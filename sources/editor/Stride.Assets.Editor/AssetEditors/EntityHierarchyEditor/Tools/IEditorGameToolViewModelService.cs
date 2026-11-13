@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using Stride.Assets.Editor.AssetEditors.GameEditor;
 using Stride.Editor.EditorGame.ViewModels;
 
@@ -16,9 +17,23 @@ namespace Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools;
 public interface IEditorGameToolViewModelService : IEditorGameViewModelService
 {
     /// <summary>
-    /// Gets the tools of the view, in toolbar order, once the game is initialized: the select tool comes first.
+    /// Gets the tools of the view, in toolbar order, once the game is initialized: the select tool comes first. Any thread:
+    /// the list is replaced when tools join or leave, never changed.
     /// </summary>
     IReadOnlyList<IEditorViewTool> Tools { get; }
+
+    /// <summary>
+    /// Raised when tools join or leave the view, as the plugins that register them join or leave (game thread).
+    /// </summary>
+    [Experimental("STREXP004")]
+    event EventHandler? ToolsChanged;
+
+    /// <summary>
+    /// Raised when a right click without camera drag asks for the context menu of the view (game thread). A user interface
+    /// without that menu ignores it.
+    /// </summary>
+    [Experimental("STREXP004")]
+    event EventHandler<EditorViewContextMenuRequest>? ContextMenuRequested;
 
     /// <summary>
     /// Raised with the new active tool (game thread), when a key or a call changes it.
@@ -34,6 +49,13 @@ public interface IEditorGameToolViewModelService : IEditorGameViewModelService
     /// Gets the active tool and the tools turned off after an error.
     /// </summary>
     Task<(IEditorViewTool ActiveTool, IReadOnlyList<IEditorViewTool> FailedTools)> GetStateAsync();
+
+    /// <summary>
+    /// Runs an entry that a tool gave for the context menu, on the game thread.
+    /// </summary>
+    /// <returns><c>false</c> when the tool left the view or was turned off, or when the entry failed (the tool is then turned off).</returns>
+    [Experimental("STREXP004")]
+    Task<bool> RunMenuEntryAsync(IEditorViewTool tool, EditorViewMenuEntry entry);
 
     /// <summary>
     /// Makes a tool the active one.

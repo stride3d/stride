@@ -50,6 +50,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
 
         private bool transformationInitialized;
         private bool duplicationDone;
+        private bool dragCanceled;
 
         /// <summary>
         /// Event triggered when a gizmo transformation finishes.
@@ -380,10 +381,18 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
         /// This ensures that when the user returns to start click position the transformation is as it was at the beginning of the transformation.
         /// The transformation direction is either horizontal (left->right) or vertical (bottom->top) and is determined at the beginning of the gesture depending on the user move direction.
         /// </summary>
-        private async Task TransformSceneEntityBase()
+        private async Task TransformSceneEntityBase(CancellationToken cancellationToken)
         {
             if (!Input.IsKeyDown(Keys.LeftCtrl) && !Input.IsKeyDown(Keys.RightCtrl))
                 duplicationDone = false;
+
+            // A Ctrl+drag whose copies were not ready moves nothing until the button is released
+            if (dragCanceled)
+            {
+                if (Input.IsMouseButtonDown(MouseButton.Left))
+                    return;
+                dragCanceled = false;
+            }
 
             // skip the update if no transformation is currently performed
             if (!IsEnabled || AnchorEntity == null || TransformationAxes == GizmoTransformationAxes.None || !Input.IsMouseButtonDown(MouseButton.Left))
@@ -426,7 +435,14 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
                 if (ModifiedEntities.Count > 0 && !duplicationDone && (Input.IsKeyDown(Keys.LeftCtrl) || Input.IsKeyDown(Keys.RightCtrl)))
                 {
                     duplicationDone = true;
-                    await Game.EditorServices.Get<IEditorGameEntitySelectionService>().DuplicateSelection();
+                    if (!await Game.EditorServices.Get<IEditorGameEntitySelectionService>().DuplicateSelection(cancellationToken))
+                    {
+                        // The game did not select the copies in time (or there was nothing to copy): the drag is canceled,
+                        // rather than moving the entities the user meant to copy
+                        InitialTransformations.Clear();
+                        dragCanceled = true;
+                        return;
+                    }
                 }
 
                 OnTransformationStarted(mouseDragPixel);
@@ -481,7 +497,11 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
             }
         }
 
-        public virtual async Task Update()
+        /// <summary>
+        /// Updates the gizmo for the frame, and moves the selected entities while it is dragged.
+        /// </summary>
+        /// <param name="cancellationToken">Stops the wait of a Ctrl+drag for the copies of the selection.</param>
+        public virtual async Task Update(CancellationToken cancellationToken = default)
         {
             if (!IsEnabled)
                 return;
@@ -489,7 +509,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
             UpdateShape();
             UpdateTransformationAxisBase();
             UpdateColors();
-            await TransformSceneEntityBase();
+            await TransformSceneEntityBase(cancellationToken);
             UpdateTransformation();
         }
 

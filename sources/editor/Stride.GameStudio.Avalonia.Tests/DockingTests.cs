@@ -50,12 +50,13 @@ public sealed class DockingTests
                 "Asset preview", "-",
                 "Property grid", "Edit history", "-",
                 "Asset errors", "Output", "-",
+                "Plugins", "-",
                 // The panel of the test plugin (PanelPluginTests)
                 "New Notebook", "-",
                 "Reset layout",
             ], headers);
-            // Every panel is visible in the default layout, and its entry is checked
-            Assert.All(menu.Items.OfType<MenuItem>().Where(x => x.ToggleType == MenuItemToggleType.CheckBox), x => Assert.True(x.IsChecked));
+            // Every panel is visible in the default layout, and its entry is checked, except the Plugins panel (hidden by default)
+            Assert.All(menu.Items.OfType<MenuItem>().Where(x => x.ToggleType == MenuItemToggleType.CheckBox), x => Assert.Equal((string)x.Header! != "Plugins", x.IsChecked));
         }
         finally
         {
@@ -283,9 +284,20 @@ public sealed class DockingTests
             await WindowTestHelper.PumpAsync();
 
             Assert.Empty(panels.Layout!.Windows!);
-            Assert.All(panels.Registry.Panels.Where(x => !x.AllowsMultipleInstances), x => Assert.True(panels.IsVisible(x.Id), x.Id));
-            Assert.Equal(DefaultPanelLayouts.Create(PanelLayoutKind.Normal).EnumeratePanels().Select(x => x.ToString()).Order(), panels.Snapshot().EnumeratePanels().Select(x => x.ToString()).Order());
-            Assert.All(fixture.Main.ViewMenu.Items.Where(x => x.IsCheckable), x => Assert.True(x.IsChecked));
+            // Every panel is visible, except one hidden by default (the Plugins panel), which keeps its place
+            Assert.All(panels.Registry.Panels.Where(x => !x.AllowsMultipleInstances), x => Assert.Equal(x.VisibleByDefault, panels.IsVisible(x.Id)));
+            Assert.False(panels.IsVisible(BuiltInPanels.Plugins));
+            Assert.Equal(DefaultPanelLayouts.Create(PanelLayoutKind.Normal).EnumeratePanels().Select(x => x.ToString()).Append(BuiltInPanels.Plugins).Order(), panels.Snapshot().EnumeratePanels().Select(x => x.ToString()).Order());
+            Assert.Equal([BuiltInPanels.Plugins], panels.Snapshot().Hidden);
+            Assert.All(fixture.Main.ViewMenu.Items.Where(x => x.IsCheckable), x => Assert.Equal(x.PanelId != BuiltInPanels.Plugins, x.IsChecked));
+
+            // Shown, then reset again: it hides again
+            panels.Show(BuiltInPanels.Plugins);
+            await WindowTestHelper.PumpAsync();
+            Assert.True(panels.IsVisible(BuiltInPanels.Plugins));
+            await panels.ResetLayoutAsync();
+            await WindowTestHelper.PumpAsync();
+            Assert.False(panels.IsVisible(BuiltInPanels.Plugins));
         }
         finally
         {

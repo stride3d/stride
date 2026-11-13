@@ -255,8 +255,11 @@ public sealed class FakePluginService : IAssetsPluginService
 
     public void InitializeSession(ISessionViewModel session)
     {
+        // The old plugin API, which the editor still supports, is obsolete
+#pragma warning disable STRPLUGIN003
         foreach (var plugin in Plugins)
             plugin.InitializeSession(session);
+#pragma warning restore STRPLUGIN003
     }
 }
 

@@ -15,7 +15,7 @@ namespace Stride.Assets.Editor.Tests.Helpers;
 /// editor shell's service does, the view model of an asset type (or of a base type) and the view model of a preview type
 /// (or of its generic definition). No template provider is taken: there is no view.
 /// </summary>
-public sealed class TestPluginService : StrideEditorPluginHost
+public sealed class TestPluginService : SceneEditorPluginHost
 {
     public TestPluginService(params AssetsPlugin[] plugins)
         : base(plugins)

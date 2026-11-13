@@ -14,9 +14,11 @@ namespace Stride.GameStudio.Avalonia.Docking;
 public sealed class PanelDockable : Tool, IDisposable, IDockableView
 {
     private readonly Func<PanelDockable, bool> close;
+    private readonly Func<IPanelViewModel, Control>? createPluginView;
 
-    internal PanelDockable(IPanelViewModel viewModel, bool allowsMultipleInstances, Func<PanelDockable, bool> close)
+    internal PanelDockable(IPanelViewModel viewModel, bool allowsMultipleInstances, Func<PanelDockable, bool> close, Func<IPanelViewModel, Control>? createPluginView = null)
     {
+        this.createPluginView = createPluginView;
         ViewModel = viewModel;
         Ref = new PanelRef(viewModel.PanelId, viewModel.InstanceId);
         AllowsMultipleInstances = allowsMultipleInstances;
@@ -55,6 +57,11 @@ public sealed class PanelDockable : Tool, IDisposable, IDockableView
 
     /// <inheritdoc />
     Control? IDockableView.View { get; set; }
+
+    /// <summary>
+    /// Creates the view of a panel that the shell does not know: the view its plugin registered, or a placeholder.
+    /// </summary>
+    internal Control? CreatePluginView() => createPluginView?.Invoke(ViewModel);
 
     public void Dispose()
     {

@@ -76,7 +76,10 @@ namespace Stride.Core.Assets.Editor.Wpf.Tests
         /// </summary>
         private sealed class TestImagesPlugin : AssetsEditorPlugin
         {
+            // The old plugin API, which the editor still supports, is obsolete
+#pragma warning disable STRPLUGIN004
             public static void Register(Type type, object image) => TypeImages[type] = image;
+#pragma warning restore STRPLUGIN004
         }
     }
 }

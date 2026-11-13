@@ -1,9 +1,11 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Components.Properties;
+using Stride.Core.Assets.Editor.Commands;
 using Stride.Core.Assets.Editor.Panels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Quantum;
@@ -31,7 +33,7 @@ namespace Stride.Core.Assets.Editor.Services;
 /// Every registration a plugin makes, through its <see cref="IEditorPluginContext"/> and <see cref="ISessionPluginContext"/>
 /// or through the attributes of its assembly, is recorded under the plugin; unloading the plugin undoes its records newest first.
 /// </remarks>
-public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposable
+public abstract partial class EditorPluginHost : IAssetsPluginService, IPluginContributionGuard, IDisposable
 {
     /// <summary>
     /// The module of the global logger the plugins log to once the session is open.
@@ -53,14 +55,25 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
     private readonly TypeMap editorViewTypes;
     private readonly TypeMap previewViewModelTypes;
     private readonly TypeMap previewViewTypes;
+    private readonly TypeMap viewTypes;
+    // The plugin that first registered each key of the view map, whose guard runs the view
+    private readonly Dictionary<Type, AssetsPlugin> viewTypeOwners = [];
+    // The registries that the layers of the editor declare, by type of contribution
+    private readonly Dictionary<Type, IDeclaredRegistry> declaredRegistries = [];
+    // The state and the errors of each plugin that joined or failed to join; read from any thread
+    private readonly object statusLock = new();
+    private readonly Dictionary<AssetsPlugin, StatusEntry> statuses = [];
+    // The plugins whose assembly was not loaded (incompatible), by assembly path, and whose package was not loaded (off), by
+    // package name
+    private readonly Dictionary<string, (string Name, StatusEntry Entry)> unloadedStatuses = new(StringComparer.OrdinalIgnoreCase);
+    // The registered assemblies without a plugin in the session whose declared images could not be read, by assembly
+    private readonly Dictionary<Assembly, (string Name, StatusEntry Entry)> assemblyStatuses = [];
     private readonly PluginMap<object, object> enumImages;
     private readonly PluginMap<Type, object> typeImages;
     private readonly PluginMap<object, object> declaredEnumImages;
     private readonly PluginMap<Type, object> declaredTypeImages;
     private readonly List<Type> primitiveTypes = [];
     private readonly List<PackageSettingsEntry> profileSettings = [];
-    // Replaced, never changed: the editor games read it on their threads. A type registered twice is listed twice
-    private volatile Type[] editorViewToolTypes = [];
     private readonly Dictionary<SettingsKey, int> settingsKeys = [];
 
     private ISessionViewModel? session;
@@ -88,10 +101,14 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
         editorViewTypes = new TypeMap(null, null);
         previewViewModelTypes = new TypeMap(null, null);
         previewViewTypes = new TypeMap(null, null);
+        viewTypes = new TypeMap(null, null);
         enumImages = new PluginMap<object, object>((key, _) => AssertType(typeof(Enum), key.GetType()));
         typeImages = new PluginMap<Type, object>(null);
         declaredEnumImages = new PluginMap<object, object>(null);
         declaredTypeImages = new PluginMap<Type, object>(null);
+        AssemblyLoadCheck = new EditorApiCheck(RecordIncompatible);
+        Commands = new ContributionRegistry<CommandDescriptor>(ValidateCommand);
+        ToolbarWidgets = new ContributionRegistry<ToolbarWidgetDescriptor>(ValidateToolbarWidget);
 
         if (plugins is null)
         {
@@ -145,15 +162,15 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
     public IReadOnlyDictionary<Type, object> TypeImages => typeImages.Entries;
 
     /// <summary>
+    /// The logger of the plugins (module <see cref="PluginsLoggerModule"/>), for the layers of the editor that refuse or
+    /// report a contribution.
+    /// </summary>
+    protected ILogger PluginsLogger => pluginLogger;
+
+    /// <summary>
     /// The primitive types registered by the plugins, in registration order (a type registered twice is listed twice).
     /// </summary>
     public IReadOnlyList<Type> PrimitiveTypes => primitiveTypes;
-
-    /// <summary>
-    /// The tools of the views of the game editors registered by the plugins, in registration order (a type registered
-    /// twice is listed twice).
-    /// </summary>
-    public IReadOnlyList<Type> EditorViewToolTypes => editorViewToolTypes;
 
     /// <summary>
     /// The settings keys registered by the plugins.
@@ -165,6 +182,51 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
     /// their owner, so that they go when it leaves.
     /// </summary>
     public PanelRegistry Panels { get; } = new();
+
+    /// <summary>
+    /// The view type of each view model type registered by the plugins (<see cref="IEditorPluginContext.ViewTypes"/>).
+    /// </summary>
+    [Experimental("STREXP001")]
+    public IReadOnlyDictionary<Type, Type> ViewTypes => viewTypes.Entries;
+
+    /// <summary>
+    /// The state and the errors of each plugin that joined the session or failed to join it, in the order they joined, then
+    /// of each plugin whose assembly or package was not loaded (<see cref="PluginState.Incompatible"/>, <see cref="PluginState.Off"/>),
+    /// in the order they were left out.
+    /// </summary>
+    [Experimental("STREXP002")]
+    public IReadOnlyList<PluginStatus> PluginStatuses
+    {
+        get
+        {
+            lock (statusLock)
+                return statuses.Select(x => x.Value.Snapshot(x.Key))
+                    .Concat(unloadedStatuses.Values.Select(x => x.Entry.Snapshot(x.Name)))
+                    .Concat(assemblyStatuses.Values.Select(x => x.Entry.Snapshot(x.Name)))
+                    .ToList();
+        }
+    }
+
+    /// <summary>
+    /// The check that each assembly of the session's packages passes before it loads (<see cref="EditorApiCheck"/>): a plugin
+    /// built for a newer editor is not loaded, and gets the <see cref="PluginState.Incompatible"/> state here. The editor gives
+    /// it to the session it opens.
+    /// </summary>
+    [Experimental("STREXP002")]
+    public IAssemblyLoadCheck AssemblyLoadCheck { get; }
+
+    /// <summary>
+    /// Raised when a plugin joins, fails to join or leaves the session, and when one of its contributions fails. Raised on
+    /// the thread where it happened, the editor's thread except for a contribution run on another one.
+    /// </summary>
+    [Experimental("STREXP002")]
+    public event EventHandler<PluginStatusChangedEventArgs>? PluginStatusChanged;
+
+    /// <summary>
+    /// The base type of the views of the editor's toolkit (<see cref="IEditorPluginContext.ViewTypes"/>), or null to accept any type.
+    /// </summary>
+    [Experimental("STREXP001")]
+    protected virtual Type? ViewBaseType => null;
 
     /// <summary>
     /// The base type of the keys of the editor views: the editor view model type of the editor's toolkit.
@@ -284,6 +346,7 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
         editorViewTypes.SetBaseTypes(AssetEditorViewModelType, AssetEditorViewType);
         previewViewModelTypes.SetBaseTypes(AssetPreviewType, AssetPreviewViewModelType);
         previewViewTypes.SetBaseTypes(AssetPreviewType, AssetPreviewViewType);
+        viewTypes.SetBaseTypes(null, ViewBaseType);
 
         // The plugins of the asset assemblies loaded so far, and of each one registered later
         if (followsRegistry)
@@ -309,6 +372,8 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
         foreach (var plugin in Plugins.ToList())
             TryInitializeSession(plugin, session);
         sessionOpened = true;
+        // The plugins have joined and initialized the session: a crash from now on is not one while they load
+        LoadingMarker?.Remove();
     }
 
     /// <summary>
@@ -334,6 +399,7 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
             TryLeave(plugin);
         foreach (var assembly in assemblyRecords.Keys.ToList())
             RemoveAssembly(assembly);
+        ClearUnloadedStatuses();
         GC.SuppressFinalize(this);
     }
 
@@ -413,19 +479,27 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
     // other plugins still join
     private bool TryJoin(AssetsPlugin plugin, ISessionViewModel session)
     {
-        if (!sessionPlugins.Add(plugin))
+        if (sessionPlugins.Contains(plugin) || IsLeftOut(plugin))
             return false;
+        sessionPlugins.Add(plugin);
 
         var record = GetRecord(plugin);
         var undoCount = record.Count;
+        // Its status exists while it joins, for the contributions that fail meanwhile
+        lock (statusLock)
+            statuses[plugin] = new StatusEntry();
         try
         {
             var context = new EditorContext(this, plugin, record, session, pluginLogger);
+            // The older API, still called for the plugins that use it
+#pragma warning disable STRPLUGIN002
             plugin.InitializePlugin(pluginLogger);
+#pragma warning restore STRPLUGIN002
             ScanPlugin(plugin, context);
             foreach (var assembly in plugin.ScannedAssemblies)
-                ScanDeclaredImages(assembly, record);
+                ScanDeclaredImages(assembly, record, plugin);
             plugin.Initialize(context);
+            UpdateStatus(plugin, _ => { });
             return true;
         }
         catch (Exception e)
@@ -433,6 +507,11 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
             sessionPlugins.Remove(plugin);
             record.UndoFrom(undoCount, pluginLogger);
             pluginLogger.Error($"The plugin [{plugin.GetType().FullName}] could not join the session.", e);
+            UpdateStatus(plugin, x =>
+            {
+                x.State = PluginState.Failed;
+                x.Errors.Add(new PluginError(PluginContributions.Join, e));
+            });
             return false;
         }
     }
@@ -467,6 +546,8 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
         catch (Exception e)
         {
             pluginLogger.Error($"The plugin [{plugin.GetType().FullName}] could not initialize the session.", e);
+            // It stays: what it registered while joining still works
+            UpdateStatus(plugin, x => x.Errors.Add(new PluginError(PluginContributions.InitializeSession, e)));
         }
     }
 
@@ -489,8 +570,13 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
     private void Leave(AssetsPlugin plugin)
     {
         var joined = sessionPlugins.Remove(plugin);
-        // Its panels go, whoever registered them for it
+        // Its panels and its contributions to the declared registries go, whoever registered them for it
         Panels.UnregisterOwner(plugin);
+        Commands.UnregisterOwner(plugin);
+        ToolbarWidgets.UnregisterOwner(plugin);
+        foreach (var registry in declaredRegistries.Values)
+            registry.UnregisterOwner(plugin);
+        RemoveStatus(plugin);
         if (records.Remove(plugin, out var record))
         {
             record.UndoFrom(0, pluginLogger);
@@ -509,6 +595,9 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
         editorViewTypes.RemoveTypesOf(unloaded);
         previewViewModelTypes.RemoveTypesOf(unloaded);
         previewViewTypes.RemoveTypesOf(unloaded);
+        viewTypes.RemoveTypesOf(unloaded);
+        foreach (var key in viewTypeOwners.Where(x => !viewTypes.Entries.ContainsKey(x.Key)).Select(x => x.Key).ToList())
+            viewTypeOwners.Remove(key);
     }
 
     private PluginRecord GetRecord(AssetsPlugin plugin)
@@ -547,8 +636,10 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
             record.UndoFrom(0, pluginLogger);
     }
 
-    // The images the assembly declares, once per assembly; they come after the ones the plugins register
-    private void ScanDeclaredImages(Assembly assembly, PluginRecord record)
+    // The images the assembly declares, once per assembly; they come after the ones the plugins register. An image that
+    // can't be decoded is left out and reported on the plugin (or on the assembly when no plugin of the session has it); the
+    // other images still show, and the session still opens
+    private void ScanDeclaredImages(Assembly assembly, PluginRecord record, AssetsPlugin? plugin = null)
     {
         if (declaredImageAssemblies.ContainsKey(assembly))
             return;
@@ -557,7 +648,17 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
         record.Add(() => declaredImageAssemblies.Remove(assembly));
         foreach (var declared in DeclaredImageResources.Read(assembly))
         {
-            if (DecodeImage(declared.Data) is not { } image)
+            object? image;
+            try
+            {
+                image = DecodeImage(declared.Data);
+            }
+            catch (Exception e)
+            {
+                ReportImageFailure(assembly, record, plugin, declared, e);
+                continue;
+            }
+            if (image is null)
                 continue;
 
             switch (declared.Target)
@@ -570,6 +671,82 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
                     break;
             }
         }
+    }
+
+    // A declared image that could not be decoded: turned off alone, on the plugin of the assembly when the session has one,
+    // otherwise on the assembly's own status (by its name, as long as it is registered)
+    private void ReportImageFailure(Assembly assembly, PluginRecord record, AssetsPlugin? plugin, DeclaredImage declared, Exception exception)
+    {
+        var resource = declared.ResourceName ?? declared.Target.ToString() ?? "?";
+        var contribution = PluginContributions.Image(resource);
+        var assemblyName = assembly.GetName().Name ?? assembly.FullName ?? "?";
+        plugin ??= FindSessionPlugin(assembly);
+        bool known;
+        lock (statusLock)
+            known = plugin is not null && statuses.ContainsKey(plugin);
+        if (known)
+        {
+            pluginLogger.Warning($"The image [{resource}] declared by [{assemblyName}] for the plugin [{plugin!.GetType().FullName}] could not be read: it is left out.", exception);
+            UpdateStatus(plugin, x =>
+            {
+                x.TurnedOff.Add(contribution);
+                x.Errors.Add(new PluginError(contribution, exception));
+            });
+            return;
+        }
+
+        pluginLogger.Warning($"The image [{resource}] declared by [{assemblyName}] could not be read: it is left out.", exception);
+        PluginStatus status;
+        bool added = false;
+        lock (statusLock)
+        {
+            if (!assemblyStatuses.TryGetValue(assembly, out var item))
+            {
+                assemblyStatuses[assembly] = item = (assemblyName, new StatusEntry());
+                added = true;
+            }
+            item.Entry.TurnedOff.Add(contribution);
+            item.Entry.Errors.Add(new PluginError(contribution, exception));
+            status = item.Entry.Snapshot(item.Name);
+        }
+        if (added)
+            record.Add(() => RemoveAssemblyStatus(assembly));
+        PluginStatusChanged?.Invoke(this, new PluginStatusChangedEventArgs(null, status.Name, status));
+    }
+
+    // The plugin of the session that the assembly belongs to, or whose declarations it scans
+    private AssetsPlugin? FindSessionPlugin(Assembly assembly)
+    {
+        foreach (var plugin in sessionPlugins)
+        {
+            if (plugin.GetType().Assembly == assembly)
+                return plugin;
+        }
+        foreach (var plugin in sessionPlugins)
+        {
+            try
+            {
+                if (plugin.ScannedAssemblies.Contains(assembly))
+                    return plugin;
+            }
+            catch (Exception e)
+            {
+                pluginLogger.Warning($"Could not read the assemblies of the plugin [{plugin.GetType().FullName}].", e);
+            }
+        }
+        return null;
+    }
+
+    private void RemoveAssemblyStatus(Assembly assembly)
+    {
+        string? name = null;
+        lock (statusLock)
+        {
+            if (assemblyStatuses.Remove(assembly, out var item))
+                name = item.Name;
+        }
+        if (name is not null)
+            PluginStatusChanged?.Invoke(this, new PluginStatusChangedEventArgs(null, name, null));
     }
 
     /// <inheritdoc />
@@ -598,12 +775,12 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
     public IEnumerable<Type> GetPrimitiveTypes(ISessionViewModel session) => primitiveTypes;
 
     /// <inheritdoc />
-    public IReadOnlyList<Type> GetEditorViewToolTypes() => editorViewToolTypes.Distinct().ToList();
-
-    /// <inheritdoc />
     public IEnumerable<PackageSettingsEntry> GetProfileSettings()
     {
+        // The older API's list, still read for the plugins that use it
+#pragma warning disable STRPLUGIN005
         return Plugins.OfType<AssetsEditorPlugin>().SelectMany(x => x.ProfileSettings).Concat(profileSettings);
+#pragma warning restore STRPLUGIN005
     }
 
     /// <inheritdoc />
@@ -630,6 +807,212 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
 
     /// <inheritdoc />
     public Type? GetPreviewViewType(Type previewType) => TryGetTypeOrBase(previewType, previewViewTypes.Entries);
+
+    /// <inheritdoc />
+    [Experimental("STREXP001")]
+    public Type? GetViewType(Type viewModelType) => GetViewType(viewModelType, out _);
+
+    /// <summary>
+    /// Gets the view type that the plugins register for <paramref name="viewModelType"/> or one of its base types, and the
+    /// plugin that registered it: the owner to give the guard when the view is created.
+    /// </summary>
+    [Experimental("STREXP001")]
+    public Type? GetViewType(Type viewModelType, out AssetsPlugin? owner)
+    {
+        owner = null;
+        for (var currentType = viewModelType; currentType != null; currentType = currentType.BaseType)
+        {
+            // A registration on an open generic base covers every closed one, as for the other maps
+            var key = viewTypes.Entries.ContainsKey(currentType) ? currentType
+                : currentType.IsConstructedGenericType ? currentType.GetGenericTypeDefinition() : null;
+            if (key is not null && viewTypes.Entries.TryGetValue(key, out var viewType))
+            {
+                owner = viewTypeOwners.GetValueOrDefault(key);
+                return viewType;
+            }
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Declares a registry that the plugins can register into with <see cref="IEditorPluginContext.GetRegistry{T}"/>: a layer
+    /// of the editor declares the registries of its own contribution points, which the context, in a Core assembly, does not
+    /// name. Declare it before the session opens, so that every plugin finds it when it joins.
+    /// </summary>
+    /// <typeparam name="T">The type of the contributions.</typeparam>
+    /// <param name="validate">Checks a contribution before it is registered, and throws to refuse it; or null.</param>
+    /// <returns>The registry, which the declaring layer reads and follows.</returns>
+    /// <exception cref="InvalidOperationException">A registry of <typeparamref name="T"/> is already declared.</exception>
+    [Experimental("STREXP001")]
+    public ContributionRegistry<T> DeclareRegistry<T>(Action<T>? validate = null)
+        where T : class
+    {
+        if (declaredRegistries.ContainsKey(typeof(T)))
+            throw new InvalidOperationException($"A registry of [{typeof(T).FullName}] is already declared.");
+
+        var registry = new ContributionRegistry<T>(validate);
+        declaredRegistries[typeof(T)] = new DeclaredRegistry<T>(registry);
+        return registry;
+    }
+
+    /// <summary>
+    /// The registry of <typeparamref name="T"/> that a layer of the editor declared (<see cref="DeclareRegistry{T}"/>), or null.
+    /// </summary>
+    [Experimental("STREXP001")]
+    public ContributionRegistry<T>? GetDeclaredRegistry<T>()
+        where T : class
+    {
+        return (declaredRegistries.GetValueOrDefault(typeof(T)) as DeclaredRegistry<T>)?.Registry;
+    }
+
+    /// <summary>
+    /// The state and the errors of a plugin, or null when it has not joined the session (or has left it).
+    /// </summary>
+    [Experimental("STREXP002")]
+    public PluginStatus? GetPluginStatus(AssetsPlugin plugin)
+    {
+        lock (statusLock)
+            return statuses.TryGetValue(plugin, out var entry) ? entry.Snapshot(plugin) : null;
+    }
+
+    /// <inheritdoc />
+    [Experimental("STREXP002")]
+    public bool IsTurnedOff(object? owner, string contribution)
+    {
+        if (owner is not AssetsPlugin plugin)
+            return false;
+        lock (statusLock)
+            return statuses.TryGetValue(plugin, out var entry) && entry.TurnedOff.Contains(contribution);
+    }
+
+    /// <inheritdoc />
+    [Experimental("STREXP002")]
+    public bool TryRun(object? owner, string contribution, Action action)
+    {
+        ArgumentNullException.ThrowIfNull(action);
+        return TryRun(owner, contribution, () =>
+        {
+            action();
+            return true;
+        }, out _);
+    }
+
+    /// <inheritdoc />
+    [Experimental("STREXP002")]
+    public bool TryRun<T>(object? owner, string contribution, Func<T> function, [MaybeNullWhen(false)] out T result)
+    {
+        ArgumentNullException.ThrowIfNull(contribution);
+        ArgumentNullException.ThrowIfNull(function);
+        result = default;
+        if (IsTurnedOff(owner, contribution))
+            return false;
+
+        try
+        {
+            result = function();
+            return true;
+        }
+        catch (Exception e)
+        {
+            result = default;
+            ReportFailure(owner, contribution, e);
+            return false;
+        }
+    }
+
+    // A contribution of a plugin that has a status is turned off and recorded; the code of the editor is only logged
+    private void ReportFailure(object? owner, string contribution, Exception exception)
+    {
+        if (owner is AssetsPlugin plugin)
+        {
+            bool known;
+            lock (statusLock)
+                known = statuses.ContainsKey(plugin);
+            if (known)
+            {
+                pluginLogger.Error($"[{contribution}] of the plugin [{plugin.GetType().FullName}] failed: it is turned off for this session.", exception);
+                UpdateStatus(plugin, x =>
+                {
+                    x.TurnedOff.Add(contribution);
+                    x.Errors.Add(new PluginError(contribution, exception));
+                });
+                return;
+            }
+            pluginLogger.Error($"[{contribution}] of the plugin [{plugin.GetType().FullName}], which is not in the session, failed.", exception);
+            return;
+        }
+        pluginLogger.Error($"[{contribution}] of the editor failed.", exception);
+    }
+
+    private void UpdateStatus(AssetsPlugin plugin, Action<StatusEntry> update)
+    {
+        PluginStatus status;
+        lock (statusLock)
+        {
+            if (!statuses.TryGetValue(plugin, out var entry))
+                statuses[plugin] = entry = new StatusEntry();
+            update(entry);
+            status = entry.Snapshot(plugin);
+        }
+        PluginStatusChanged?.Invoke(this, new PluginStatusChangedEventArgs(plugin, status.Name, status));
+    }
+
+    private void RemoveStatus(AssetsPlugin plugin)
+    {
+        bool removed;
+        lock (statusLock)
+            removed = statuses.Remove(plugin);
+        if (removed)
+            PluginStatusChanged?.Invoke(this, new PluginStatusChangedEventArgs(plugin, plugin.GetType().FullName ?? plugin.GetType().Name, null));
+    }
+
+    // A plugin built for a newer editor: its assembly is not loaded, so it is known by its assembly only. Called on the
+    // thread that loads the session, before the plugins join it.
+    private void RecordIncompatible(IncompatiblePluginException error)
+    {
+        PluginStatus status;
+        lock (statusLock)
+        {
+            var entry = new StatusEntry { State = PluginState.Incompatible };
+            entry.Errors.Add(new PluginError(PluginContributions.Load, error));
+            unloadedStatuses[error.AssemblyPath] = (error.AssemblyName, entry);
+            status = entry.Snapshot(error.AssemblyName);
+        }
+        PluginStatusChanged?.Invoke(this, new PluginStatusChangedEventArgs(null, status.Name, status));
+    }
+
+    private void ClearUnloadedStatuses()
+    {
+        List<string> names;
+        lock (statusLock)
+        {
+            names = unloadedStatuses.Values.Select(x => x.Name).ToList();
+            unloadedStatuses.Clear();
+        }
+        foreach (var name in names)
+            PluginStatusChanged?.Invoke(this, new PluginStatusChangedEventArgs(null, name, null));
+    }
+
+    private void RegisterViewType(PluginRecord record, AssetsPlugin plugin, Type viewModelType, Type viewType)
+    {
+        record.Add(viewTypes.Register(viewModelType, viewType));
+        if (viewTypeOwners.TryAdd(viewModelType, plugin))
+        {
+            record.Add(() =>
+            {
+                if (viewTypeOwners.TryGetValue(viewModelType, out var owner) && owner == plugin)
+                    viewTypeOwners.Remove(viewModelType);
+            }, counted: false);
+        }
+    }
+
+    private IPluginRegistry<T> GetRegistry<T>(PluginRecord record, AssetsPlugin plugin)
+        where T : class
+    {
+        var registry = GetDeclaredRegistry<T>()
+            ?? throw new InvalidOperationException($"No registry of [{typeof(T).FullName}] is declared in this editor.");
+        return new Registry<T>(record, typeof(T).Name, item => record.Add(registry.Register(item, plugin).Dispose));
+    }
 
     /// <summary>
     /// The type registered for <paramref name="keyType"/>, for one of its base types, or for the generic definition of either.
@@ -675,18 +1058,19 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
         });
     }
 
-    private void RegisterEditorViewTool(PluginRecord record, Type type)
+    /// <summary>
+    /// Registers a tool of the scene and prefab views that a plugin gives through the obsolete
+    /// <see cref="IEditorPluginContext.EditorViewToolTypes"/>. The layer of the editor that has these views overrides it to
+    /// put the tool in its typed registry; this host has no such view, so the tool is logged and left out.
+    /// </summary>
+    /// <param name="plugin">The plugin that registers the tool.</param>
+    /// <param name="type">The type of the tool.</param>
+    /// <returns>What unregisters the tool when the plugin leaves, or null when the tool is left out.</returns>
+    [Experimental("STREXP004")]
+    protected virtual IDisposable? RegisterEditorViewToolType(AssetsPlugin plugin, Type type)
     {
-        if (!type.IsClass || type.IsAbstract || type.IsGenericTypeDefinition || type.GetConstructor(Type.EmptyTypes) is null)
-            throw new ArgumentException($"Type [{type.FullName}] must be a class with a public parameterless constructor: each view creates its own tool.", nameof(type));
-
-        editorViewToolTypes = [.. editorViewToolTypes, type];
-        record.Add(() =>
-        {
-            var index = Array.LastIndexOf(editorViewToolTypes, type);
-            if (index >= 0)
-                editorViewToolTypes = [.. editorViewToolTypes[..index], .. editorViewToolTypes[(index + 1)..]];
-        });
+        pluginLogger.Warning($"The tool [{type.FullName}] of the plugin [{plugin.GetType().FullName}] is left out: this editor has no scene view.");
+        return null;
     }
 
     private static void RegisterInList<T>(PluginRecord record, List<T> list, T item)

@@ -376,7 +376,8 @@ public sealed class EditCommandTests
                 var item = await ShowPropertyAsync(fixture, window, asset, nameof(TextPropertiesAsset.Label));
                 // Nothing on the clipboard yet, and the asset has no archetype to reset to
                 var items = await OpenAsync(item.ContextMenu!, item);
-                Assert.Equal(["Reset to base value", "-", "Copy", "Paste", "Replace"], Describe(items));
+                // and the nested properties toggle of the editor, which has nothing to expand here
+                Assert.Equal(["Reset to base value", "-", "Copy", "Paste", "Replace", "-", "Expand all nested properties"], Describe(items));
                 Assert.Equal(["Copy"], Enabled(items));
                 item.ContextMenu!.Close();
                 await WindowTestHelper.PumpAsync();

@@ -280,7 +280,7 @@ public sealed class SceneTreeDropTests
     /// Opens a session with a scene, a second scene and a prefab, then the editor of the scene with three entities: Box,
     /// and Parent with its child Child.
     /// </summary>
-    private static async Task<SceneFixture> OpenSceneAsync()
+    internal static async Task<SceneFixture> OpenSceneAsync()
     {
         var fixture = ShellSessionFixture.Create(("MainScene", new SceneAsset()), ("ChildScene", new SceneAsset()), ("Prefab", new PrefabAsset()));
         // The root parts of a prefab are references to its parts, which only the asset serialization of the session writes:
@@ -343,7 +343,7 @@ public sealed class SceneTreeDropTests
         }
     }
 
-    private sealed class SceneFixture(ShellSessionFixture fixture, MainWindow window, SceneEditorViewModel editor, EntityHierarchyEditorView view, TreeView tree, TreeViewDragDropBehavior behavior) : IAsyncDisposable
+    internal sealed class SceneFixture(ShellSessionFixture fixture, MainWindow window, SceneEditorViewModel editor, EntityHierarchyEditorView view, TreeView tree, TreeViewDragDropBehavior behavior) : IAsyncDisposable
     {
         public ShellSessionFixture Fixture { get; } = fixture;
 

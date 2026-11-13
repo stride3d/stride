@@ -92,7 +92,7 @@ public sealed class TestEntityTransformationViewModel
         public FakeToolService()
         {
             // The tools of a view, created as the shared service creates them
-            Tools = EditorGameToolService.CreateTools(EditorGameToolService.GetToolTypes([]), new LoggerResult());
+            Tools = EditorGameToolService.CreateTools(EditorGameToolService.GetToolDescriptors([]), new LoggerResult());
         }
 
         public IReadOnlyList<IEditorViewTool> Tools { get; }
@@ -110,6 +110,16 @@ public sealed class TestEntityTransformationViewModel
         public event EventHandler<IEditorViewTool> ActiveToolChanged;
 
         public event EventHandler<IEditorViewTool> ToolFailed { add { } remove { } }
+
+        public event EventHandler ToolsChanged { add { } remove { } }
+
+        public event EventHandler<EditorViewContextMenuRequest> ContextMenuRequested { add { } remove { } }
+
+        public Task<bool> RunMenuEntryAsync(IEditorViewTool tool, EditorViewMenuEntry entry)
+        {
+            entry.Execute();
+            return Task.FromResult(true);
+        }
 
         public void RaiseActiveToolChanged(IEditorViewTool tool)
         {

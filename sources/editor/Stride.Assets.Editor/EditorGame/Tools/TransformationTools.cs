@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core;
-using Stride.Editor.EditorGame.Tools;
 using Stride.Engine;
 using Stride.Input;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
@@ -168,7 +167,7 @@ public abstract class TransformationTool : IEditorViewTool
     }
 
     /// <inheritdoc />
-    public Task Update()
+    public Task Update(CancellationToken cancellationToken)
     {
         var settings = Context.Transformation;
         // The scale gizmo works in the object space
@@ -180,7 +179,8 @@ public abstract class TransformationTool : IEditorViewTool
         // A change of the setting applies at once, as in WPF
         if (Gizmo is RotationGizmo rotation)
             rotation.UseLinearMovement = SceneEditorSettings.UseLinearMovementForRotation.GetValue();
-        return Gizmo.Update();
+        // A Ctrl+drag waits for the copies of the selection: the view cancels the wait when it stops waiting for the tool
+        return Gizmo.Update(cancellationToken);
     }
 
     /// <inheritdoc />

@@ -3,6 +3,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+             xmlns:cmd="using:Stride.Core.Assets.Editor.Avalonia.Commands"
+             xmlns:cmdl="using:Stride.Core.Assets.Editor.Commands"
              xmlns:caeb="using:Stride.Core.Assets.Editor.Avalonia.Behaviors"
              xmlns:caecp="using:Stride.Core.Assets.Editor.Components.Properties"
              xmlns:capqvm="using:Stride.Core.Assets.Presentation.Quantum.ViewModels"
@@ -33,7 +35,9 @@
     <Style Selector="sd|PropertyViewItem" x:DataType="capqvm:AssetNodeViewModel">
       <Setter Property="ContextMenu">
         <Template>
-          <ContextMenu x:DataType="capqvm:AssetNodeViewModel">
+          <ContextMenu x:DataType="capqvm:AssetNodeViewModel"
+                       cmd:CommandSlot.Location="{x:Static cmdl:CommandLocations.PropertyGridContext}"
+                       cmd:CommandSlot.Selection="{Binding}">
             <MenuItem Header="{sd:LocalizeString Reset to base value, Context=Menu}"
                       Command="{Binding [ResetOverride]}"
                       IsEnabled="{Binding HasBase}"/>

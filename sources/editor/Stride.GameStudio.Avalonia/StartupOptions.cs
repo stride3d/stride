@@ -45,6 +45,12 @@ public sealed class StartupOptions
     public bool ViewportReadback { get; set; }
 
     /// <summary>
+    /// <c>--safe-mode</c>: the sessions load only the plugins of Stride (the editor's own and the engine's), not those of the
+    /// project. Forwarded on a restart, so the editor stays in safe mode until it restarts without it.
+    /// </summary>
+    public bool SafeMode { get; set; }
+
+    /// <summary>
     /// Called once after the main window is first loaded, to tell the launcher that the Game Studio has started.
     /// </summary>
     public Action? LauncherNotifier { get; set; }
@@ -65,7 +71,7 @@ public sealed class StartupOptions
     /// <c>/DebugEditorGraphics</c>, a session path; the launcher handshake (<c>/LauncherWindowHandle</c>, <c>/LauncherPipe</c>)
     /// and the host selection (<c>--graphics-api</c>) take a value and are consumed by the host. <c>--project &lt;path&gt;</c>
     /// (or <c>/project</c>) names the session explicitly, as the earlier Avalonia prototype did. <c>--viewport-readback</c> is
-    /// specific to the Avalonia Game Studio.
+    /// specific to the Avalonia Game Studio. <c>--safe-mode</c> is common to both.
     /// </summary>
     public static StartupOptions Parse(IReadOnlyList<string> args)
     {
@@ -106,6 +112,9 @@ public sealed class StartupOptions
                     options.ViewportReadback = true;
                     options.ForwardedArguments.Add((args[i], null));
                     break;
+                case "--safe-mode":
+                    options.EnableSafeMode();
+                    break;
                 // An absolute path starts with a slash on Linux and macOS: a session file is never an option
                 case var arg when (arg.StartsWith('/') || arg.StartsWith("--", StringComparison.Ordinal)) && !IsSessionFile(arg):
                     options.UnknownArguments.Add(arg);
@@ -120,22 +129,47 @@ public sealed class StartupOptions
     }
 
     /// <summary>
+    /// Turns safe mode on (<c>--safe-mode</c>), for this editor and the ones it restarts into.
+    /// </summary>
+    public void EnableSafeMode()
+    {
+        if (SafeMode)
+            return;
+        SafeMode = true;
+        ForwardedArguments.Add(("--safe-mode", null));
+    }
+
+    /// <summary>
+    /// Turns safe mode off, for the editors this one restarts into (and the next session it opens, when it has opened none).
+    /// </summary>
+    public void DisableSafeMode()
+    {
+        SafeMode = false;
+        ForwardedArguments.RemoveAll(x => x.Option == "--safe-mode");
+    }
+
+    /// <summary>
     /// The command line of a new editor process that opens another session, as the WPF Game Studio builds it (<c>Program.RestartArgs</c>):
     /// the options of this command line, then the session to open, or <c>/NewProject</c> for the project selection.
     /// </summary>
     /// <param name="sessionPath">The session to open; <c>null</c> for the project selection.</param>
     /// <param name="launcherNotified">Whether this editor told the launcher that it started: the new one does not again.</param>
-    public List<string> GetRestartArguments(UFile? sessionPath, bool launcherNotified)
+    /// <param name="safeMode">Whether the new editor runs in safe mode; null to keep this one's mode.</param>
+    public List<string> GetRestartArguments(UFile? sessionPath, bool launcherNotified, bool? safeMode = null)
     {
         var result = new List<string>();
         foreach (var (option, value) in ForwardedArguments)
         {
             if (launcherNotified && option.StartsWith("/Launcher", StringComparison.Ordinal))
                 continue;
+            if (safeMode == false && option == "--safe-mode")
+                continue;
             result.Add(option);
             if (value is not null)
                 result.Add(value);
         }
+        if (safeMode == true && !result.Contains("--safe-mode"))
+            result.Add("--safe-mode");
         result.Add(sessionPath is not null ? sessionPath.ToOSPath() : "/NewProject");
         return result;
     }

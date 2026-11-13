@@ -23,6 +23,7 @@ using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Avalonia.Extensions;
 using Stride.Core.Presentation.Avalonia.Services;
+using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Settings;
 using Stride.Core.Translation;
@@ -60,6 +61,18 @@ public partial class App : Application
     /// Set by the desktop host; without one, the editor restarts in its own process.
     /// </summary>
     public static IEditorProcessLauncher? ProcessLauncher { get; set; }
+
+    /// <summary>
+    /// The marker written while the plugins of a session load (<see cref="PluginLoadingMarker"/>), set by the desktop host; none
+    /// in tests and headless hosts.
+    /// </summary>
+    public static PluginLoadingMarker? LoadingMarker { get; set; }
+
+    /// <summary>
+    /// The extensions of the user (<see cref="EditorExtensionService"/>), which every session loads, set by the desktop host; none
+    /// in tests and headless hosts.
+    /// </summary>
+    public static EditorExtensionService? Extensions { get; set; }
 
     private static EditorProcessService? processService;
     private IViewModelServiceProvider? serviceProvider;
@@ -172,15 +185,42 @@ public partial class App : Application
     /// <summary>
     /// Opens the session the editor starts with, if any (see <see cref="GetInitialSessionPath"/>), guarded against a crash loop.
     /// </summary>
-    private void OpenInitialSession()
+    private async void OpenInitialSession()
     {
         if (mainViewModel is not { } viewModel)
             return;
+        try
+        {
+            await OfferSafeModeAfterCrashAsync(viewModel);
+        }
+        catch (Exception e)
+        {
+            Log.Error("The plugin loading markers could not be checked.", e);
+        }
         if (GetInitialSessionPath() is { } initialPath)
             viewModel.OpenInitialSessionCommand.Execute(initialPath);
         else
             // No session to open: the project selection window, as the WPF editor shows at startup (its Cancel exits the editor)
             viewModel.SelectInitialProjectCommand.Execute();
+    }
+
+    /// <summary>
+    /// When the last start died while plugins were loading (a marker left behind), offers once to start in safe mode, before
+    /// any session opens. The question replaces the one about the startup session that failed to load.
+    /// </summary>
+    private static async Task OfferSafeModeAfterCrashAsync(MainViewModel viewModel)
+    {
+        if (LoadingMarker is not { } marker || marker.FindLeftBehind().Count == 0)
+            return;
+        if (await marker.OfferSafeModeAsync(viewModel.ServiceProvider.Get<IDialogService>()))
+        {
+            Options.EnableSafeMode();
+            if (viewModel.ServiceProvider.TryGet<PluginService>() is { } pluginService)
+                pluginService.SafeMode = true;
+            viewModel.SafeModeBanner?.Update();
+        }
+        InternalSettings.LoadingStartupSession.SetValue(false);
+        InternalSettings.Save();
     }
 
     /// <summary>
@@ -371,7 +411,9 @@ public partial class App : Application
         var services = new List<object>
         {
             dispatcherService,
-            new PluginService(dispatcherService),
+            // The plugins switched off per session are the user's, in the internal settings both editors read
+            // (and safe mode, the marker of a start that dies while plugins load and the user's extensions, set by the desktop host)
+            new PluginService(dispatcherService) { DisabledCompanions = DisabledEditorCompanionStore.CreateDefault(), SafeMode = Options.SafeMode, LoadingMarker = LoadingMarker, Extensions = Extensions },
             // The thumbnails are Avalonia bitmaps; the folder icon is a PNG embedded in this assembly (Resources/*.png)
             new Core.Assets.Editor.Avalonia.Services.ThumbnailDataFactory(typeof(App).Assembly),
             // Build project and Start project

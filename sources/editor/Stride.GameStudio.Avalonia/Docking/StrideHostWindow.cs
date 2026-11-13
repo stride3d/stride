@@ -11,9 +11,9 @@ using Stride.GameStudio.Avalonia.Views;
 namespace Stride.GameStudio.Avalonia.Docking;
 
 /// <summary>
-/// A floating window of panels or editors. The shortcuts of the main window work in it: its key bindings (Save, Build, Start...)
-/// and the Edit commands, which go to the focused panel of this window, and to the session's Undo and Redo when the panel does
-/// not handle them.
+/// A floating window of panels or editors. The shortcuts of the main window work in it: its key bindings (Save, Build, Start...),
+/// the shortcuts of the commands that the editor and the plugins register, and the Edit commands, which go to the focused panel
+/// of this window, and to the session's Undo and Redo when the panel does not handle them.
 /// </summary>
 public sealed class StrideHostWindow : HostWindow
 {
@@ -62,6 +62,9 @@ public sealed class StrideHostWindow : HostWindow
             }
             return;
         }
+
+        // The shortcuts of the commands that the editor and the plugins register
+        mainWindow.View.CommandSlots?.TryHandleKey(e);
     }
 
     /// <inheritdoc />

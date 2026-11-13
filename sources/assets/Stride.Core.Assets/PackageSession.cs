@@ -275,6 +275,11 @@ public class StandalonePackage : PackageContainer
     /// </summary>
     public bool IsCompanionPackage { get; set; }
 
+    /// <summary>
+    /// True for a dev-redirect package: a stub in the package store that loads the package from its source tree.
+    /// </summary>
+    public bool IsDevRedirectPackage { get; set; }
+
     public override string ToString() => $"Package: {Package.Meta.Name}";
 }
 
@@ -686,6 +691,42 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     public string? EditorToolkit { get; set; }
 
     /// <summary>
+    /// The check that each assembly of a package passes before it loads into this session (the editor's plugin version
+    /// check), or null to load them all. A load whose parameters give one sets it, so later loads with default parameters
+    /// use it too.
+    /// </summary>
+    [Experimental("STREXP002")]
+    public IAssemblyLoadCheck? AssemblyLoadCheck { get; set; }
+
+    /// <summary>
+    /// Decides which <see cref="PackageKind.Editor"/> companions this session loads (the editor's switched-off plugins and safe
+    /// mode), or null to load them all. A load whose parameters give one sets it, so later loads with default parameters use it too.
+    /// </summary>
+    [Experimental("STREXP002")]
+    public ICompanionPackageFilter? CompanionPackageFilter { get; set; }
+
+    /// <summary>
+    /// Companion packages that the host adds to this session besides those its packages declare (the editor's extensions), or
+    /// null for none. A load whose parameters give one sets it, so later loads with default parameters use it too.
+    /// </summary>
+    [Experimental("STREXP002")]
+    public ICompanionPackageSource? CompanionPackageSource { get; set; }
+
+    /// <summary>
+    /// The companions <see cref="CompanionPackageSource"/> gave this session, read at its first load with editor packages; null
+    /// before that, or without a source.
+    /// </summary>
+    [Experimental("STREXP002")]
+    public IReadOnlyList<CompanionPackage>? SourceCompanionPackages { get; private set; }
+
+    /// <summary>
+    /// The names of the companions of <see cref="SourceCompanionPackages"/> that this session loaded (restored or found),
+    /// whatever their state after that.
+    /// </summary>
+    [Experimental("STREXP002")]
+    public IReadOnlyCollection<string> LoadedSourceCompanionPackages => loadedSourceCompanions;
+
+    /// <summary>
     /// Gets the packages referenced by the current package.
     /// </summary>
     /// <returns>IEnumerable&lt;Package&gt;.</returns>
@@ -750,6 +791,9 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
         if (!File.Exists(projectPath)) throw new FileNotFoundException("Unable to find project", projectPath);
 
         var loadParameters = loadParametersArg ?? PackageLoadParameters.Default();
+        AssemblyLoadCheck ??= loadParameters.AssemblyLoadCheck;
+        CompanionPackageFilter ??= loadParameters.CompanionPackageFilter;
+        CompanionPackageSource ??= loadParameters.CompanionPackageSource;
 
         Package package;
         PackageContainer project;
@@ -903,7 +947,8 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
             sessionResult.Clear();
             sessionResult.Progress("Loading..", 0, 1);
 
-            var session = new PackageSession();
+            // The assemblies of the projects load with them, so the session needs the check from the start
+            var session = new PackageSession { AssemblyLoadCheck = loadParameters.AssemblyLoadCheck, CompanionPackageFilter = loadParameters.CompanionPackageFilter, CompanionPackageSource = loadParameters.CompanionPackageSource };
 
             var cancelToken = loadParameters.CancelToken;
             SolutionProject? firstProject = null;
@@ -1080,6 +1125,9 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     public void LoadMissingDependencies(ILogger log, PackageLoadParameters? loadParametersArg = null)
     {
         var loadParameters = loadParametersArg ?? PackageLoadParameters.Default();
+        AssemblyLoadCheck ??= loadParameters.AssemblyLoadCheck;
+        CompanionPackageFilter ??= loadParameters.CompanionPackageFilter;
+        CompanionPackageSource ??= loadParameters.CompanionPackageSource;
 
         var cancelToken = loadParameters.CancelToken;
 
@@ -1170,6 +1218,9 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     public void LoadMissingAssets(ILogger log, IEnumerable<Package> packages, PackageLoadParameters? loadParametersArg = null)
     {
         var loadParameters = loadParametersArg ?? PackageLoadParameters.Default();
+        AssemblyLoadCheck ??= loadParameters.AssemblyLoadCheck;
+        CompanionPackageFilter ??= loadParameters.CompanionPackageFilter;
+        CompanionPackageSource ??= loadParameters.CompanionPackageSource;
 
         var cancelToken = loadParameters.CancelToken;
         List<AssetLoadingInfo> assetLoadInfos = [];

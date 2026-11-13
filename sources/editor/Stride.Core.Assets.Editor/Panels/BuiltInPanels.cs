@@ -20,6 +20,7 @@ public static class BuiltInPanels
     public const string ActionHistory = "Stride.ActionHistory";
     public const string AssetLog = "Stride.AssetLog";
     public const string BuildLog = "Stride.BuildLog";
+    public const string Plugins = "Stride.Plugins";
 
     /// <summary>
     /// The sections of the View menu, as in WPF: the explorers, the preview, the editing panels and the logs.
@@ -28,6 +29,11 @@ public static class BuiltInPanels
     public const string PreviewMenuGroup = "Stride.Preview";
     public const string EditMenuGroup = "Stride.Edit";
     public const string LogsMenuGroup = "Stride.Logs";
+
+    /// <summary>
+    /// The section of the View menu of the Plugins panel, after the logs (the cross-platform Game Studio only).
+    /// </summary>
+    public const string PluginsMenuGroup = "Stride.Plugins";
 
     /// <summary>
     /// The panels that show the session: the solution explorer, the asset view, the references, the property grid, the edit
@@ -125,6 +131,25 @@ public static class BuiltInPanels
             MenuGroup = PreviewMenuGroup,
             Order = 200,
             DefaultPlacement = PanelPlacement.Right,
+            CreateViewModel = createViewModel,
+        };
+    }
+
+    /// <summary>
+    /// The Plugins panel, whose view model the shell makes (it knows the session's file and how to restart): hidden by
+    /// default, listed in the View menu.
+    /// </summary>
+    public static PanelDescriptor CreatePluginsPanel(Func<PanelContext, IPanelViewModel> createViewModel)
+    {
+        ArgumentNullException.ThrowIfNull(createViewModel);
+        return new PanelDescriptor
+        {
+            Id = Plugins,
+            Title = () => Tr._p("Panel", "Plugins"),
+            MenuGroup = PluginsMenuGroup,
+            Order = 500,
+            DefaultPlacement = PanelPlacement.Bottom,
+            VisibleByDefault = false,
             CreateViewModel = createViewModel,
         };
     }

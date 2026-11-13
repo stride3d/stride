@@ -3,6 +3,7 @@
 
 using Stride.Assets.Editor.EditorGame.Tools;
 using Stride.Core.Diagnostics;
+using Stride.Core.Mathematics;
 using Stride.Input;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools;
 
@@ -76,7 +77,7 @@ public sealed class EditorViewToolSetTests
         using var tools = CreateToolSet();
 
         var rightClick = Assert.Single(await Click(tools, MouseButton.Right));
-        Assert.Equal(new EditorViewToolClick(MouseButton.Right, ToSelection: false), rightClick);
+        Assert.Equal(new EditorViewToolClick(MouseButton.Right, ToSelection: false) { OpensContextMenu = true }, rightClick);
 
         // A left click while the right button is down (the camera rotates) doesn't select either
         await tools.Update(Frame(pressed: [MouseButton.Left], down: [MouseButton.Left, MouseButton.Right]));
@@ -93,9 +94,187 @@ public sealed class EditorViewToolSetTests
         await tools.Update(Frame(pressed: [MouseButton.Left], down: [MouseButton.Left]));
         Assert.Empty(await tools.Update(Frame(released: [MouseButton.Left], mouseAvailable: false)));
 
-        // The camera takes the mouse on the press of the right button, and gives it back on its release
-        await tools.Update(Frame(pressed: [MouseButton.Right], down: [MouseButton.Right], mouseAvailable: false));
+        // The camera takes the mouse on the press of the right button, and gives it back on its release: the click only
+        // opens the context menu
+        await tools.Update(Frame(pressed: [MouseButton.Right], down: [MouseButton.Right], mouseAvailable: false, mouseToContextMenu: true));
+        var click = Assert.Single(await tools.Update(Frame(released: [MouseButton.Right])));
+        Assert.Equal(new EditorViewToolClick(MouseButton.Right, ToSelection: false) { ToTool = false, OpensContextMenu = true }, click);
+    }
+
+    [Fact]
+    public async Task ARightClickWithoutDragOpensTheContextMenu()
+    {
+        using var tools = CreateToolSet();
+
+        Assert.Empty(await tools.Update(Frame(pressed: [MouseButton.Right], down: [MouseButton.Right], move: 50)));
+        Assert.Empty(await tools.Update(Frame(down: [MouseButton.Right], move: 3)));
+        var click = Assert.Single(await tools.Update(Frame(released: [MouseButton.Right])));
+
+        Assert.True(click.OpensContextMenu);
+        Assert.True(click.ToTool);
+        // A left click opens nothing
+        Assert.False(Assert.Single(await Click(tools, MouseButton.Left)).OpensContextMenu);
+    }
+
+    [Fact]
+    public async Task ACameraDragOpensNoContextMenu()
+    {
+        using var tools = CreateToolSet();
+
+        // The camera rotates with the right button: the cursor is locked, so it doesn't move, but the camera does
+        await tools.Update(Frame(pressed: [MouseButton.Right], down: [MouseButton.Right], mouseAvailable: false, mouseToContextMenu: true));
+        await tools.Update(Frame(down: [MouseButton.Right], mouseAvailable: false, mouseToContextMenu: true, cameraMoved: true));
         Assert.Empty(await tools.Update(Frame(released: [MouseButton.Right])));
+
+        // A drag of the cursor
+        await tools.Update(Frame(pressed: [MouseButton.Right], down: [MouseButton.Right]));
+        await tools.Update(Frame(down: [MouseButton.Right], move: 10));
+        Assert.Empty(await tools.Update(Frame(released: [MouseButton.Right])));
+    }
+
+    [Fact]
+    public async Task NoContextMenuOpensWhenAnotherButtonIsPressedOrAnotherServiceHasTheMouse()
+    {
+        using var tools = CreateToolSet();
+
+        // The left button is pressed while the right one is down
+        await tools.Update(Frame(pressed: [MouseButton.Right], down: [MouseButton.Right]));
+        await tools.Update(Frame(pressed: [MouseButton.Left], down: [MouseButton.Left, MouseButton.Right]));
+        await tools.Update(Frame(released: [MouseButton.Left], down: [MouseButton.Right]));
+        var click = Assert.Single(await tools.Update(Frame(released: [MouseButton.Right])));
+        Assert.False(click.OpensContextMenu);
+
+        // The view cube has the mouse: neither the tool nor the menu gets the click
+        await tools.Update(Frame(pressed: [MouseButton.Right], down: [MouseButton.Right], mouseAvailable: false));
+        Assert.Empty(await tools.Update(Frame(released: [MouseButton.Right], mouseAvailable: false)));
+    }
+
+    [Fact]
+    public void TheContextMenuOfARightClickComesFromTheActiveTool()
+    {
+        var menu = new EditorViewContextMenu { Entries = [new EditorViewMenuEntry { Title = "Paint here", Execute = () => { } }] };
+        var paint = new FakeTool("Paint", Keys.P) { ContextMenu = menu };
+        using var tools = CreateToolSet(paint);
+
+        Assert.Null(tools.GetContextMenu(RightClick).Menu);
+        tools.Activate(paint);
+        var (tool, toolMenu) = tools.GetContextMenu(RightClick);
+
+        Assert.Same(paint, tool);
+        Assert.Same(menu, toolMenu);
+    }
+
+    [Fact]
+    public void AMenuEntryThatThrowsTurnsItsToolOff()
+    {
+        var runs = 0;
+        var entry = new EditorViewMenuEntry { Title = "Paint here", Execute = () => runs++ };
+        var broken = new EditorViewMenuEntry { Title = "Fill", Execute = () => throw new InvalidOperationException("No paint.") };
+        var paint = new FakeTool("Paint", Keys.P);
+        using var tools = CreateToolSet(paint);
+        tools.Activate(paint);
+
+        Assert.True(tools.RunMenuEntry(paint, entry));
+        Assert.Equal(1, runs);
+        Assert.False(tools.RunMenuEntry(paint, broken));
+
+        Assert.True(tools.IsFailed(paint));
+        Assert.Same(select, tools.ActiveTool);
+        Assert.Contains(logger.Messages, x => x.Type == LogMessageType.Error && x.Text.Contains("'Paint'"));
+        // The entries of a tool that is off don't run
+        Assert.False(tools.RunMenuEntry(paint, entry));
+        Assert.Equal(1, runs);
+    }
+
+    [Fact]
+    public async Task AToolWhoseUpdateNeverCompletesIsCancelledAndTurnedOff()
+    {
+        var paint = new FakeTool("Paint", Keys.P) { UpdateNeverCompletes = true };
+        using var tools = CreateToolSet(paint);
+        tools.UpdateTimeout = TimeSpan.FromMilliseconds(100);
+        tools.Activate(paint);
+
+        var update = tools.Update(Frame());
+
+        Assert.Same(update, await Task.WhenAny(update, Task.Delay(TimeSpan.FromSeconds(10))));
+        await update;
+        Assert.True(paint.UpdateToken.IsCancellationRequested);
+        Assert.True(tools.IsFailed(paint));
+        Assert.Same(select, tools.ActiveTool);
+        var error = Assert.Single(logger.Messages, x => x.Type == LogMessageType.Error);
+        Assert.Contains("'Paint'", error.Text);
+        Assert.Contains(nameof(TimeoutException), error.ExceptionInfo?.TypeFullName);
+    }
+
+    [Fact]
+    public async Task ASlowUpdateOfAToolOfTheEditorIsWaitedFor()
+    {
+        // A large Ctrl+drag duplication can keep the translation busy for minutes
+        var duplication = new TaskCompletionSource();
+        translate.UpdateTask = duplication.Task;
+        using var tools = CreateToolSet();
+        tools.UpdateTimeout = TimeSpan.FromMilliseconds(100);
+        tools.Activate(translate);
+
+        var update = tools.Update(Frame());
+        await Task.Delay(TimeSpan.FromMilliseconds(500));
+        Assert.False(update.IsCompleted);
+        duplication.SetResult();
+        await update;
+
+        Assert.False(translate.UpdateToken.IsCancellationRequested);
+        Assert.False(tools.IsFailed(translate));
+        Assert.Same(translate, tools.ActiveTool);
+        Assert.DoesNotContain(logger.Messages, x => x.Type == LogMessageType.Error);
+    }
+
+    [Fact]
+    public async Task ClosingTheViewStopsWaitingForAnUpdateWithoutAnError()
+    {
+        var paint = new FakeTool("Paint", Keys.P) { UpdateNeverCompletes = true };
+        var tools = CreateToolSet(paint);
+        tools.Activate(paint);
+
+        var update = tools.Update(Frame());
+        Assert.False(update.IsCompleted);
+        tools.Dispose();
+
+        Assert.Same(update, await Task.WhenAny(update, Task.Delay(TimeSpan.FromSeconds(10))));
+        await update;
+        Assert.True(paint.UpdateToken.IsCancellationRequested);
+        Assert.DoesNotContain(logger.Messages, x => x.Type == LogMessageType.Error);
+    }
+
+    [Fact]
+    public void TheToolsOfAViewChangeAsPluginsJoinAndLeave()
+    {
+        var paint = new FakeTool("Paint", Keys.P);
+        var measure = new FakeTool("Measure", Keys.M);
+        using var tools = CreateToolSet(paint);
+        var toolsChanges = 0;
+        var activeChanges = 0;
+        tools.ToolsChanged += (_, _) => toolsChanges++;
+        tools.ActiveToolChanged += (_, _) => activeChanges++;
+        tools.Activate(paint);
+        activeChanges = 0;
+
+        // A plugin joins: its tool is initialized
+        tools.SetTools([select, translate, rotate, scale, paint, measure]);
+        Assert.Equal(["Initialize"], measure.Calls);
+        Assert.Same(paint, tools.ActiveTool);
+        Assert.Equal(1, toolsChanges);
+
+        // The plugin of the active tool leaves: the view goes back to the default tool, and the tool is disposed
+        tools.SetTools([select, translate, rotate, scale, measure]);
+        Assert.Equal(["Initialize", "Activate", "Deactivate", "Dispose"], paint.Calls);
+        Assert.Same(select, tools.ActiveTool);
+        Assert.Equal(1, activeChanges);
+        Assert.Equal(2, toolsChanges);
+        Assert.False(tools.Activate(paint));
+
+        // The same tools: nothing changes
+        tools.SetTools([select, translate, rotate, scale, measure]);
+        Assert.Equal(2, toolsChanges);
     }
 
     [Fact]
@@ -202,9 +381,12 @@ public sealed class EditorViewToolSetTests
         Assert.Equal(["Initialize", "Dispose"], select.Calls);
     }
 
+    private static EditorViewClick RightClick => new() { Button = MouseButton.Right, Position = new(0.5f), Ray = new(Vector3.Zero, -Vector3.UnitZ) };
+
     private EditorViewToolSet CreateToolSet(params FakeTool[] pluginTools)
     {
-        var tools = new EditorViewToolSet([select, translate, rotate, scale, .. pluginTools], [translate, rotate, scale], Keys.Space, logger);
+        var tools = new EditorViewToolSet([select, translate, rotate, scale, .. pluginTools], [translate, rotate, scale], Keys.Space, logger,
+            ownerOf: tool => pluginTools.Contains(tool) ? "Plugin" : null);
         // The fake tools don't use the context
         tools.Initialize(null!);
         return tools;
@@ -216,7 +398,8 @@ public sealed class EditorViewToolSetTests
         return await tools.Update(Frame(released: [button]));
     }
 
-    private static EditorViewInputFrame Frame(MouseButton[]? pressed = null, MouseButton[]? released = null, MouseButton[]? down = null, Keys[]? keys = null, float move = 0, bool mouseAvailable = true)
+    private static EditorViewInputFrame Frame(MouseButton[]? pressed = null, MouseButton[]? released = null, MouseButton[]? down = null, Keys[]? keys = null, float move = 0, bool mouseAvailable = true,
+        bool? mouseToContextMenu = null, bool cameraMoved = false)
     {
         return new EditorViewInputFrame
         {
@@ -226,6 +409,9 @@ public sealed class EditorViewToolSetTests
             PressedKeys = (keys ?? []).ToHashSet(),
             MouseDelta = new(move, 0),
             IsMouseAvailable = mouseAvailable,
+            // Only the camera may have the mouse without keeping the context menu closed
+            IsMouseAvailableToContextMenu = mouseToContextMenu ?? mouseAvailable,
+            HasCameraMoved = cameraMoved,
         };
     }
 
@@ -245,6 +431,14 @@ public sealed class EditorViewToolSetTests
 
         public Exception? UpdateException { get; set; }
 
+        public bool UpdateNeverCompletes { get; set; }
+
+        public Task? UpdateTask { get; set; }
+
+        public CancellationToken UpdateToken { get; private set; }
+
+        public EditorViewContextMenu? ContextMenu { get; set; }
+
         public List<string> Calls { get; } = [];
 
         public void Initialize(IEditorViewToolContext context)
@@ -259,6 +453,15 @@ public sealed class EditorViewToolSetTests
         public void Deactivate() => Calls.Add(nameof(Deactivate));
 
         public Task Update() => UpdateException is null ? Task.CompletedTask : throw UpdateException;
+
+        public Task Update(CancellationToken cancellationToken)
+        {
+            UpdateToken = cancellationToken;
+            // A tool that ignores the cancellation: the view stops waiting anyway
+            return UpdateNeverCompletes ? new TaskCompletionSource().Task : UpdateTask ?? Update();
+        }
+
+        public EditorViewContextMenu? GetContextMenu(EditorViewClick click) => ContextMenu;
 
         public void Dispose() => Calls.Add(nameof(Dispose));
     }

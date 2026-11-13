@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Editor.Tests.Helpers;
 using Stride.Assets.Editor.ViewModels;
 using Stride.Assets.Presentation.ViewModels;
@@ -253,6 +254,42 @@ public sealed class EntityHierarchyEditCommandsTests
 
         var lights = (EntityFolderViewModel)editor.HierarchyRoot.Children.Single(x => x.Name == "Lights");
         Assert.Equal(["Sun", "Sun"], lights.Children.Select(x => x.Name));
+        editor.Destroy();
+    }
+
+    [Fact]
+    public async Task ACtrlDragDuplicationStopsWaitingForTheGameAfterItsTimeout()
+    {
+        await using var fixture = await OpenSceneAsync();
+        var editor = await OpenEditorAsync(fixture);
+        var box = FindEntity(editor, "Box");
+        editor.SelectedContent.Add(box);
+        // No game selects the copies: the gizmo would wait for them forever
+        var selection = new EditorGameEntitySelectionService(null!, editor) { DuplicateSelectionTimeout = TimeSpan.FromMilliseconds(100) };
+
+        var duplicate = selection.DuplicateSelection();
+
+        Assert.Same(duplicate, await Task.WhenAny(duplicate, Task.Delay(TimeSpan.FromSeconds(10))));
+        Assert.False(await duplicate);
+        // The copy stays in the scene (undo removes it): the gizmo cancels the drag, and nothing moves
+        Assert.Equal(["Box", "Box", "Parent"], editor.HierarchyRoot.Children.Select(x => x.Name));
+        editor.Destroy();
+    }
+
+    [Fact]
+    public async Task ACanceledCtrlDragDuplicationStopsWaitingForTheGame()
+    {
+        await using var fixture = await OpenSceneAsync();
+        var editor = await OpenEditorAsync(fixture);
+        editor.SelectedContent.Add(FindEntity(editor, "Box"));
+        var selection = new EditorGameEntitySelectionService(null!, editor);
+        using var cancellation = new CancellationTokenSource();
+
+        var duplicate = selection.DuplicateSelection(cancellation.Token);
+        cancellation.Cancel();
+
+        Assert.Same(duplicate, await Task.WhenAny(duplicate, Task.Delay(TimeSpan.FromSeconds(10))));
+        Assert.False(await duplicate);
         editor.Destroy();
     }
 

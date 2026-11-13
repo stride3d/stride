@@ -6,3 +6,4 @@ using System.Runtime.CompilerServices;
 #pragma warning disable 436 // Stride.PublicKeys is defined in multiple assemblies
 
 [assembly: InternalsVisibleTo("Stride.Assets.Editor.Avalonia.Tests" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.GameStudio.Avalonia.Tests" + Stride.PublicKeys.Default)]
