@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Reflection;
-using Stride.Assets.Editor.Build;
 using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Assets.Editor.Quantum.NodePresenters.Updaters;
@@ -129,7 +128,7 @@ public sealed class StrideEditorPlugin : StrideAssetsPlugin
         // The scene and prefab editors show the toolbar of the Avalonia view as their view options
         context.Services.Register(new EditorViewToolbarFactory());
 
-        var builderService = new GameStudioBuilderService(sessionViewModel, settingsProvider, new StrideShaderImporter(), buildDirectory);
+        var builderService = new GameStudioBuilderService(sessionViewModel, settingsProvider, buildDirectory);
         context.Services.Register(builderService);
         context.Services.Register(builderService.Database); // TODO: this should be removed, the AssetBuilderService is reachable from anywhere now
 

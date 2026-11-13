@@ -19,7 +19,7 @@ node presenter updaters of the Stride asset types. **Level: Editor.** `Stride.As
   (`ViewModels`), their editor games and services (`EditorGame`, `SceneEditor`, `AssetEditors`), gizmos (`Gizmos`,
   `AssetEditors/Gizmos`) and debug shapes.
 * The previews and preview view models (`Preview`, `ViewModels/Preview`), the thumbnail compilers (`Thumbnails`), the
-  build services that know Stride asset types (`Build/StrideShaderImporter`, `EditorGame/ContentLoader`).
+  build services that know Stride asset types (`EditorGame/ContentLoader`).
 * The asset template generators and the view models of their dialogs (`Templates`), the entity factories and add-asset
   policies (`EntityFactories`), the copy and paste processors, the node presenter commands, keys and updaters (`Quantum`).
 * `StrideDefaultAssetsPlugin` and `StrideEditorPlugin`: the default plugins of the cross-platform editor. The discovery

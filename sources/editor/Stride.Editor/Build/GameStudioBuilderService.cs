@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Stride.Assets.Effect;
 using Stride.Core.Assets.Editor.Components.Status;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModels;
@@ -20,8 +21,6 @@ namespace Stride.Editor.Build
     public sealed class GameStudioBuilderService : AssetBuilderService
     {
         public static string? GlobalEffectLogPath;
-        private readonly ManualResetEvent shaderLoadedEvent = new ManualResetEvent(false);
-        private readonly TaskCompletionSource shadersLoaded = new(TaskCreationOptions.RunContinuationsAsynchronously);
         private readonly EffectPriorityScheduler taskScheduler;
         private readonly EffectCompilerBase effectCompiler;
         private readonly IEditorDebugService? debugService;
@@ -35,10 +34,9 @@ namespace Stride.Editor.Build
         /// </summary>
         /// <param name="session">The session whose assets to build.</param>
         /// <param name="settingsProvider">The provider of the game settings of the session.</param>
-        /// <param name="shaderImporter">The importer of the shaders of the session, built first; <c>null</c> when there are none to import.</param>
         /// <param name="buildDirectory">The directory of the build database.</param>
         /// <param name="createDebugTools">Whether to create the debug pages, when the host registers an <see cref="IEditorDebugService"/>.</param>
-        public GameStudioBuilderService(SessionViewModel session, GameSettingsProviderService settingsProvider, IShaderImporter? shaderImporter, string buildDirectory, bool createDebugTools = true)
+        public GameStudioBuilderService(SessionViewModel session, GameSettingsProviderService settingsProvider, string buildDirectory, bool createDebugTools = true)
             : base(buildDirectory)
         {
             Session = session ?? throw new ArgumentNullException(nameof(session));
@@ -51,19 +49,8 @@ namespace Stride.Editor.Build
                 effectCompilerServiceDebugPage = debugService?.CreateLogDebugPage(GlobalLogger.GetLogger("EffectCompilerCache"), "EffectCompilerCache");
             }
 
-            var shaderBuildSteps = shaderImporter?.CreateSystemShaderBuildSteps(session);
-            if (shaderBuildSteps != null)
-            {
-                shaderBuildSteps.StepProcessed += ShaderBuildStepsStepProcessed;
-                ShaderImportProgress = new ShaderImportProgressStatus(shaderBuildSteps);
-                PushBuildUnit(new PrecompiledAssetBuildUnit(AssetBuildUnitIdentifier.Default, shaderBuildSteps, true));
-            }
-            else
-            {
-                // No importer, or nothing left to import: nothing to wait for
-                shaderLoadedEvent.Set();
-                shadersLoaded.TrySetResult();
-            }
+            // The effects compile from the shader files of the session where they are, not from an import into the database
+            ShaderSources = ShaderSourceLocator.Create(session.AllPackages.Select(x => x.Package));
 
             Database = new GameStudioDatabase(this, settingsProvider);
 
@@ -80,7 +67,8 @@ namespace Stride.Editor.Build
             // so that database created with MountDatabase also have all the newest shaders.
             taskScheduler = new EffectPriorityScheduler(ThreadPriority.BelowNormal, Math.Max(1, Environment.ProcessorCount / 2));
             TaskSchedulerSelector taskSchedulerSelector = (mixinTree, compilerParameters) => taskScheduler.GetOrCreatePriorityGroup(compilerParameters?.TaskPriority ?? 0);
-            effectCompiler = (EffectCompilerBase)EffectCompilerFactory.CreateEffectCompiler(MicrothreadLocalDatabases.GetSharedDatabase(), taskSchedulerSelector: taskSchedulerSelector);
+            var sharedDatabase = MicrothreadLocalDatabases.GetSharedDatabase();
+            effectCompiler = (EffectCompilerBase)EffectCompilerFactory.CreateEffectCompiler(new ShaderSourceFileProvider(ShaderSources, sharedDatabase), taskSchedulerSelector: taskSchedulerSelector, database: sharedDatabase);
 
             StartPushNotificationsTask();
         }
@@ -100,15 +88,9 @@ namespace Stride.Editor.Build
         public string? EffectLogPath => GlobalEffectLogPath;
 
         /// <summary>
-        /// Gets the progress of the import of the system shaders, the build the session runs when it opens (thumbnails and previews
-        /// wait for it); <c>null</c> when there was nothing to import.
+        /// Gets the locator of the shader files of the session, which <see cref="EffectCompiler"/> reads.
         /// </summary>
-        public IProgressStatus? ShaderImportProgress { get; }
-
-        /// <summary>
-        /// Gets whether the system shaders are imported (or there were none to import).
-        /// </summary>
-        public bool AreShadersLoaded => shadersLoaded.Task.IsCompleted;
+        public ShaderSourceLocator ShaderSources { get; }
 
         /// <summary>
         /// Gets whether this instance of <see cref="GameStudioBuilderService"/> has been disposed.
@@ -139,21 +121,19 @@ namespace Stride.Editor.Build
             notificationsCancellation.Cancel();
         }
 
-        private void ShaderBuildStepsStepProcessed(object? sender, BuildStepEventArgs e)
-        {
-            shaderLoadedEvent.Set();
-            shadersLoaded.TrySetResult();
-        }
-
-        public void WaitForShaders()
-        {
-            shaderLoadedEvent.WaitOne();
-        }
-
         /// <summary>
-        /// Waits for the system shaders to be imported, without blocking the caller as <see cref="WaitForShaders"/> does.
+        /// Reads the shader files of the session again, after shader assets were added, removed or moved.
         /// </summary>
-        public Task WaitForShadersAsync() => shadersLoaded.Task;
+        /// <remarks>
+        /// Call it from the thread that changes the session. A shader whose file changed is compiled again from its new file;
+        /// a change of the content of a file is found by the hot reload of the effects instead.
+        /// </remarks>
+        public void UpdateShaderSources()
+        {
+            var changed = ShaderSources.Update(Session.AllPackages.Select(x => x.Package));
+            if (changed.Count > 0)
+                effectCompiler.ResetCache(changed.Select(x => System.IO.Path.GetFileNameWithoutExtension(x)).ToHashSet());
+        }
 
         private void StartPushNotificationsTask()
         {
@@ -189,38 +169,6 @@ namespace Stride.Editor.Build
                     }
                 }
             }));
-        }
-
-        /// <summary>
-        /// Reports the progress of the system shader import: one step per build step of the import (a shader asset, then the
-        /// update of the import cache).
-        /// </summary>
-        private sealed class ShaderImportProgressStatus : IProgressStatus
-        {
-            private readonly int stepCount;
-            private int processedSteps;
-
-            public ShaderImportProgressStatus(ListBuildStep buildSteps)
-            {
-                var steps = buildSteps.Steps.ToList();
-                stepCount = steps.Count;
-                foreach (var step in steps)
-                    step.StepProcessed += StepProcessed;
-            }
-
-            public event EventHandler<ProgressStatusEventArgs>? ProgressChanged;
-
-            public void OnProgressChanged(ProgressStatusEventArgs e)
-            {
-                ProgressChanged?.Invoke(this, e);
-            }
-
-            private void StepProcessed(object? sender, BuildStepEventArgs e)
-            {
-                e.Step.StepProcessed -= StepProcessed;
-                var current = Interlocked.Increment(ref processedSteps);
-                OnProgressChanged(new ProgressStatusEventArgs($"Importing the system shaders ({current}/{stepCount})", current, stepCount));
-            }
         }
     }
 }

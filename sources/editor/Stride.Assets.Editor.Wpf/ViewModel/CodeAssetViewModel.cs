@@ -37,7 +37,7 @@ namespace Stride.Assets.Presentation.ViewModel
         protected override void OnSessionSaved()
         {
             if (Asset is EffectShaderAsset)
-                StrideAssetsViewModel.Instance?.Code.RequestUserShaderBuild((SessionViewModel)Session);
+                StrideAssetsViewModel.Instance?.Code.RequestShaderSourcesUpdate((SessionViewModel)Session);
         }
         
         /// <summary>

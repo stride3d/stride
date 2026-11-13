@@ -30,7 +30,6 @@ using Stride.Core.Storage;
 using Stride.Core.Translation;
 using Stride.Editor.Build;
 using RoslynWorkspace = Stride.Assets.Presentation.AssetEditors.ScriptEditor.RoslynWorkspace;
-using Stride.Assets.Editor.Build;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Assets.Editor.AssetEditors.ScriptEditor;
 
@@ -58,10 +57,9 @@ namespace Stride.Assets.Presentation.ViewModel
         private ProjectWatcher projectWatcher;
         private RoslynWorkspace roslynWorkspace;
         private int editorFontSize = ScriptEditorSettings.FontSize.GetValue(); // default size
-        private bool userShaderBuildRequested;
+        private bool shaderSourcesUpdateRequested;
         // The source and shader reconciles change the same assets, and each awaits in the middle
         private readonly SemaphoreSlim reconcileLock = new(1, 1);
-        private readonly Dictionary<string, ObjectId> builtShaderHashes = new(StringComparer.OrdinalIgnoreCase);
 
         private readonly Brush keywordBrush;
         private readonly Brush typeBrush;
@@ -228,7 +226,7 @@ namespace Stride.Assets.Presentation.ViewModel
         /// </summary>
         private async Task ReconcileShaderFiles(SessionViewModel session, ProjectWatcher projectWatcher, List<string> touchedPaths)
         {
-            var needsBuild = false;
+            var needsUpdate = false;
             var trackedProjects = projectWatcher.SnapshotTrackedAssemblies()
                 .Where(x => x.Package is ProjectViewModel)
                 .DistinctBy(x => x.Project.FilePath, StringComparer.OrdinalIgnoreCase);
@@ -237,14 +235,14 @@ namespace Stride.Assets.Presentation.ViewModel
                 var projectDirectory = new UFile(tracked.Project.FilePath).GetFullDirectory();
                 var projectPaths = touchedPaths.Where(x => ProjectShaderChanges.IsUnder(x, projectDirectory)).ToList();
                 if (projectPaths.Count > 0)
-                    needsBuild |= await ReconcileProjectShaderFiles((ProjectViewModel)tracked.Package, tracked.Project, projectDirectory, projectPaths);
+                    needsUpdate |= await ReconcileProjectShaderFiles((ProjectViewModel)tracked.Package, tracked.Project, projectDirectory, projectPaths);
             }
 
-            if (needsBuild)
-                RequestUserShaderBuild(session);
+            if (needsUpdate)
+                RequestShaderSourcesUpdate(session);
         }
 
-        /// <returns>True if the user shaders need a build.</returns>
+        /// <returns>True if shader files of the effects were added or removed.</returns>
         private async Task<bool> ReconcileProjectShaderFiles(ProjectViewModel projectViewModel, Project project, UDirectory projectDirectory, List<string> touchedPaths)
         {
             var projectFiles = new List<(UFile FilePath, UFile Link)>();
@@ -267,7 +265,7 @@ namespace Stride.Assets.Presentation.ViewModel
 
             var changes = Plan();
             var assets = GetShaderAssets(projectViewModel);
-            var needsBuild = false;
+            var needsUpdate = false;
 
             var filesToAdd = new List<(UFile FilePath, UFile Link)>();
             foreach (var change in changes.Where(x => x.Action == ProjectShaderAction.Add))
@@ -276,26 +274,27 @@ namespace Stride.Assets.Presentation.ViewModel
                 if (FindDeletedAsset(projectViewModel, file, projectDirectory) is { } deletedAsset)
                 {
                     RestoreDeletedOutside(projectViewModel, deletedAsset);
-                    needsBuild |= ReloadText(deletedAsset, change.FilePath);
+                    ReloadText(deletedAsset, change.FilePath);
+                    needsUpdate |= ProjectShaderChanges.IsBuiltFile(change.FilePath);
                 }
                 else
                 {
                     filesToAdd.Add(file);
-                    needsBuild |= ProjectShaderChanges.IsBuiltFile(change.FilePath);
+                    needsUpdate |= ProjectShaderChanges.IsBuiltFile(change.FilePath);
                 }
             }
             AddNewProjectAssets(projectViewModel, assets, project, filesToAdd);
 
             foreach (var change in changes.Where(x => x.Action == ProjectShaderAction.ContentChanged))
-                needsBuild |= ReloadText(assets.First(x => x.AssetItem.FullPath.FullPath == change.FilePath), change.FilePath);
+                ReloadText(assets.First(x => x.AssetItem.FullPath.FullPath == change.FilePath), change.FilePath);
 
             var assetsToDelete = changes.Where(x => x.Action == ProjectShaderAction.Delete)
                 .Select(x => assets.First(y => y.AssetItem.FullPath.FullPath == x.FilePath))
                 .ToList();
             if (await DeleteProjectAssets(projectViewModel, assetsToDelete, project))
-                needsBuild |= assetsToDelete.Any(x => ProjectShaderChanges.IsBuiltFile(x.AssetItem.FullPath.FullPath));
+                needsUpdate |= assetsToDelete.Any(x => ProjectShaderChanges.IsBuiltFile(x.AssetItem.FullPath.FullPath));
 
-            return needsBuild;
+            return needsUpdate;
         }
 
         private static List<AssetViewModel> GetShaderAssets(ProjectViewModel projectViewModel)
@@ -324,14 +323,14 @@ namespace Stride.Assets.Presentation.ViewModel
         /// <summary>
         /// Reads the text of a source code asset from its file again.
         /// </summary>
-        /// <returns>True if the file is built with the user shaders and differs from what the last build took, or can't be read.</returns>
-        private bool ReloadText(AssetViewModel asset, string filePath)
+        /// <remarks>The effects read the file itself: the hot reload of the effects follows its changes.</remarks>
+        private void ReloadText(AssetViewModel asset, string filePath)
         {
             var content = TryReadFile(filePath);
             if (content == null)
             {
                 Logger.Warning($"Could not read the file '{filePath}'");
-                return ProjectShaderChanges.IsBuiltFile(filePath);
+                return;
             }
 
             string text;
@@ -340,9 +339,6 @@ namespace Stride.Assets.Presentation.ViewModel
             var sourceCode = (SourceCodeAsset)asset.Asset;
             if (sourceCode.Text != text)
                 sourceCode.Text = text;
-
-            return ProjectShaderChanges.IsBuiltFile(filePath)
-                && !(builtShaderHashes.TryGetValue(filePath, out var builtHash) && builtHash == ObjectId.FromBytes(content));
         }
 
         private static byte[] TryReadFile(string filePath)
@@ -440,48 +436,28 @@ namespace Stride.Assets.Presentation.ViewModel
         }
 
         /// <summary>
-        /// Requests a build of the user shaders. All the requests of one dispatcher step share one build.
+        /// Requests the effect compiler to read the shader files of the session again. All the requests of one dispatcher step share one update.
         /// </summary>
-        public void RequestUserShaderBuild(SessionViewModel session)
+        public void RequestShaderSourcesUpdate(SessionViewModel session)
         {
-            if (userShaderBuildRequested)
+            if (shaderSourcesUpdateRequested)
                 return;
 
-            userShaderBuildRequested = true;
+            shaderSourcesUpdateRequested = true;
             Dispatcher.InvokeAsync(() =>
             {
-                userShaderBuildRequested = false;
+                shaderSourcesUpdateRequested = false;
                 try
                 {
-                    BuildUserShaders(session);
+                    // The build service is registered during plugin initialization, so it is not available yet when a save
+                    // runs while opening the session (e.g. persisting an upgrade); it reads the shader files when it starts.
+                    session.ServiceProvider.TryGet<GameStudioBuilderService>()?.UpdateShaderSources();
                 }
                 catch (Exception e)
                 {
-                    Logger.Error("Failed to start the build of the user shaders", e);
+                    Logger.Error("Failed to update the shader files of the effects", e);
                 }
             }).Forget();
-        }
-
-        private void BuildUserShaders(SessionViewModel session)
-        {
-            // The build service is registered during plugin initialization, so it is not available yet when a save
-            // runs while opening the session (e.g. persisting an upgrade); it compiles the shaders of all packages when it starts.
-            var builder = session.ServiceProvider.TryGet<AssetBuilderService>();
-            if (builder == null)
-                return;
-
-            // What this build takes: a file event with the same content has nothing new to build
-            builtShaderHashes.Clear();
-            foreach (var shader in session.AllPackages.Where(x => !x.Package.IsReadOnly).SelectMany(x => x.Assets).Where(x => x.Asset is EffectShaderAsset))
-            {
-                var filePath = shader.AssetItem.FullPath.FullPath;
-                if (TryReadFile(filePath) is { } content)
-                    builtShaderHashes[filePath] = ObjectId.FromBytes(content);
-            }
-
-            var shaderBuildSteps = new StrideShaderImporter().CreateUserShaderBuildSteps(session);
-            if (shaderBuildSteps != null)
-                builder.PushBuildUnit(new PrecompiledAssetBuildUnit(AssetBuildUnitIdentifier.Default, shaderBuildSteps, true));
         }
 
         /// <summary>

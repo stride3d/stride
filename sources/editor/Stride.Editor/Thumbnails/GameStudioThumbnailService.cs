@@ -292,8 +292,6 @@ namespace Stride.Editor.Thumbnails
         {
             if (!thumbnailThreadShouldTerminate)
             {
-                assetBuilderService.WaitForShaders();
-
                 lock (hashLock)
                 {
                     foreach (var asset in assetItems)

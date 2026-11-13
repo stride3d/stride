@@ -25,8 +25,8 @@ service, and the session-bound services that build assets for the editor games a
 * `StrideAssetsPlugin`: the toolkit-neutral base of the Stride plugins (`StrideAssetsWpfPlugin` in `Stride.Editor.Wpf` adds the resource dictionaries).
 * `SessionEditorsRestorer`: reopens the editors of the last session.
 * `Build` has `GameStudioBuilderService` (the asset builder of a session, with the effect
-  compiler), `GameStudioDatabase` (the compiled content of the editor games, with the asset replacement redirects) and
-  `IShaderImporter` (the import of the shaders of the session the builder runs first; `StrideShaderImporter` implements it);
+  compiler, which reads the shader files of the session where they are through a `ShaderSourceFileProvider`) and
+  `GameStudioDatabase` (the compiled content of the editor games, with the asset replacement redirects);
   `Thumbnails` has `GameStudioThumbnailService` and its build unit. The service hands the PNG of each built thumbnail to the
   `IThumbnailDataFactory` the host registers, so each toolkit shows its own image type (`Stride.Core.Assets.Editor.Avalonia`
   makes Avalonia bitmaps, `Stride.Core.Assets.Editor.Wpf` WPF images).

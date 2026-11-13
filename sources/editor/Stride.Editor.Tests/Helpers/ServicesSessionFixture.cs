@@ -75,19 +75,10 @@ public sealed class ServicesSessionFixture : IAsyncDisposable
     /// <param name="withBuilder">Whether to create the builder service (and its database); the thumbnail tests need it, a session-only test does not.</param>
     public static DispatcherTask<ServicesSessionFixture> OpenAsync(bool withBuilder, params (string Location, Asset Asset)[] assets)
     {
-        // The shader importer is a Stride assets one (Stride.Assets.Editor): this layer builds without it
-        return DispatcherTask.InDispatcher(() => OpenAsync(withBuilder, null, assets));
+        return DispatcherTask.InDispatcher(() => OpenSessionAsync(withBuilder, assets));
     }
 
-    /// <summary>
-    /// Saves a package with the given assets and opens it with the build services, the builder importing shaders with the given importer.
-    /// </summary>
-    public static DispatcherTask<ServicesSessionFixture> OpenWithShaderImporterAsync(IShaderImporter shaderImporter, params (string Location, Asset Asset)[] assets)
-    {
-        return DispatcherTask.InDispatcher(() => OpenAsync(true, shaderImporter, assets));
-    }
-
-    private static async Task<ServicesSessionFixture> OpenAsync(bool withBuilder, IShaderImporter? shaderImporter, (string Location, Asset Asset)[] assets)
+    private static async Task<ServicesSessionFixture> OpenSessionAsync(bool withBuilder, (string Location, Asset Asset)[] assets)
     {
         var directory = Path.Combine(Path.GetTempPath(), "Stride.Editor.Tests", Guid.NewGuid().ToString("N"));
         var dialogs = new FakeEditorDialogService();
@@ -117,7 +108,7 @@ public sealed class ServicesSessionFixture : IAsyncDisposable
         {
             var buildDirectory = Path.Combine(directory, "build");
             System.IO.Directory.CreateDirectory(buildDirectory);
-            fixture.Builder = new GameStudioBuilderService(session, fixture.SettingsProvider, shaderImporter, buildDirectory);
+            fixture.Builder = new GameStudioBuilderService(session, fixture.SettingsProvider, buildDirectory);
             serviceProvider.RegisterService(fixture.Builder);
             serviceProvider.RegisterService(fixture.Builder.Database);
         }
