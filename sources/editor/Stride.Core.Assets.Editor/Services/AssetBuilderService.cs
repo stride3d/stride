@@ -139,6 +139,7 @@ namespace Stride.Core.Assets.Editor.Services
 
                 // Forward priority to build engine (still very coarse, but should help)
                 buildStep.Priority = unit.PriorityMajor;
+                unit.ProcessedCallback = OnBuildUnitProcessed;
 
                 foreach (var step in buildStep.EnumerateRecursively())
                 {
@@ -174,6 +175,16 @@ namespace Stride.Core.Assets.Editor.Services
             {
                 queue.Remove(node);
             }
+        }
+
+        /// <summary>
+        /// Called on a thread of the builder once the build step of a build unit was processed, whether its commands ran or
+        /// their results came from the cache, before the unit's <see cref="AssetBuildUnit.Wait"/> completes.
+        /// </summary>
+        /// <param name="unit">The build unit.</param>
+        /// <param name="buildStep">Its build step; the <see cref="CommandBuildStep.Result"/> of each command tells what it read.</param>
+        protected virtual void OnBuildUnitProcessed(AssetBuildUnit unit, ListBuildStep buildStep)
+        {
         }
 
         private void NotifyAssetBuilt(AssetItem assetItem, LoggerResult buildLog)

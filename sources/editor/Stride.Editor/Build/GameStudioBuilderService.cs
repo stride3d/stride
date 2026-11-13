@@ -3,16 +3,20 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Stride.Assets.Effect;
+using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Components.Status;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.BuildEngine;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
+using Stride.Core.Serialization.Contents;
 using Stride.Rendering;
 using Stride.Shaders.Compiler;
 
@@ -28,6 +32,14 @@ namespace Stride.Editor.Build
         private readonly IDebugPage? effectCompilerServiceDebugPage;
         private readonly bool createDebugTools;
         private int currentJobToken = -1;
+
+        // The shader files the last build of each build unit read, watched so that what they built can be built again
+        private readonly object shaderDependentsLock = new();
+        private readonly Dictionary<(Guid Context, AssetId Asset), HashSet<string>> shaderFilesByUnit = new();
+        private readonly HashSet<string> watchedShaderFiles = new(StringComparer.OrdinalIgnoreCase);
+        private readonly HashSet<string> changedShaderFiles = new(StringComparer.OrdinalIgnoreCase);
+        private readonly DirectoryWatcher shaderFileWatcher = new("*.sdsl");
+        private bool shaderChangePending;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GameStudioBuilderService"/> class.
@@ -69,9 +81,26 @@ namespace Stride.Editor.Build
             TaskSchedulerSelector taskSchedulerSelector = (mixinTree, compilerParameters) => taskScheduler.GetOrCreatePriorityGroup(compilerParameters?.TaskPriority ?? 0);
             var sharedDatabase = MicrothreadLocalDatabases.GetSharedDatabase();
             effectCompiler = (EffectCompilerBase)EffectCompilerFactory.CreateEffectCompiler(new ShaderSourceFileProvider(ShaderSources, sharedDatabase), taskSchedulerSelector: taskSchedulerSelector, database: sharedDatabase);
+            shaderFileWatcher.Modified += ShaderFileModified;
 
             StartPushNotificationsTask();
         }
+
+        /// <summary>
+        /// Raised on a thread of the thread pool when shader files that builds read changed, a short time after the last change,
+        /// so that what they built can be built again: the effects of the editor games follow the files by themselves, but not what
+        /// a build made with shaders, such as the lighting of a skybox or a thumbnail.
+        /// </summary>
+        public event EventHandler<ShaderSourcesChangedEventArgs>? ShaderSourcesChanged;
+
+        /// <summary>
+        /// Gets or sets how long <see cref="ShaderSourcesChanged"/> waits after a change of a shader file.
+        /// </summary>
+        /// <remarks>
+        /// An editor that saves a file raises several events, and the effect systems of the editor games, which watch the same files,
+        /// must forget the effects compiled from the old content before anything builds again.
+        /// </remarks>
+        internal TimeSpan ShaderChangeDelay { get; set; } = TimeSpan.FromMilliseconds(500);
 
         /// <summary>
         /// Gets the session attached to this building service.
@@ -119,6 +148,98 @@ namespace Stride.Editor.Build
                 IsDisposed = true;
             }
             notificationsCancellation.Cancel();
+            shaderFileWatcher.Modified -= ShaderFileModified;
+            shaderFileWatcher.Dispose();
+        }
+
+        /// <inheritdoc/>
+        protected override void OnBuildUnitProcessed(AssetBuildUnit unit, ListBuildStep buildStep)
+        {
+            // The commands that ran shaders (skyboxes, thumbnails) registered the shader files they read as inputs
+            var files = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var step in buildStep.EnumerateRecursively())
+            {
+                if (step is not CommandBuildStep { Result: { } result })
+                    continue;
+
+                foreach (var input in result.InputDependencyVersions.Keys)
+                {
+                    if (input.Type == UrlType.File && input.Path.EndsWith(".sdsl", StringComparison.OrdinalIgnoreCase))
+                        files.Add(Path.GetFullPath(input.Path));
+                }
+            }
+
+            var unitKey = (unit.Identifier.ContextIdentifier, unit.Identifier.AssetIdentifier);
+            lock (shaderDependentsLock)
+            {
+                if (IsDisposed)
+                    return;
+
+                // A failed build may stop before it reads them all: the files of the last build still count, so that a fix builds it again
+                if (buildStep.Failed && shaderFilesByUnit.TryGetValue(unitKey, out var previousFiles))
+                    files.UnionWith(previousFiles);
+
+                if (files.Count == 0)
+                {
+                    shaderFilesByUnit.Remove(unitKey);
+                    return;
+                }
+
+                shaderFilesByUnit[unitKey] = files;
+                foreach (var file in files)
+                {
+                    if (watchedShaderFiles.Add(file))
+                        shaderFileWatcher.Track(file);
+                }
+            }
+        }
+
+        private void ShaderFileModified(object? sender, FileEvent e)
+        {
+            // A text editor can save by writing another file and renaming it
+            if (e.ChangeType is not (FileEventChangeType.Changed or FileEventChangeType.Created or FileEventChangeType.Renamed))
+                return;
+
+            var file = Path.GetFullPath(e.FullPath);
+            lock (shaderDependentsLock)
+            {
+                if (!watchedShaderFiles.Contains(file))
+                    return;
+
+                changedShaderFiles.Add(file);
+                if (shaderChangePending)
+                    return;
+                shaderChangePending = true;
+            }
+
+            _ = NotifyShaderSourcesChangedAsync();
+        }
+
+        private async Task NotifyShaderSourcesChangedAsync()
+        {
+            await Task.Delay(ShaderChangeDelay);
+
+            string[] files;
+            List<AssetBuildUnitIdentifier> dependents;
+            lock (shaderDependentsLock)
+            {
+                files = changedShaderFiles.ToArray();
+                changedShaderFiles.Clear();
+                shaderChangePending = false;
+                dependents = shaderFilesByUnit.Where(x => x.Value.Overlaps(files)).Select(x => new AssetBuildUnitIdentifier(x.Key.Context, x.Key.Asset)).ToList();
+            }
+
+            if (dependents.Count == 0 || IsDisposed)
+                return;
+
+            try
+            {
+                ShaderSourcesChanged?.Invoke(this, new ShaderSourcesChangedEventArgs(files, dependents));
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("An error occurred while building again what used the changed shader files.", ex);
+            }
         }
 
         /// <summary>

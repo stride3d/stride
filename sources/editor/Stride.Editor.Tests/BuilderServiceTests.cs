@@ -100,6 +100,56 @@ public sealed class BuilderServiceTests
     }
 
     [Fact]
+    public async Task AChangeOfAShaderFileABuildReadNamesItsBuildUnits()
+    {
+        var fixture = await ServicesSessionFixture.OpenAsync(withBuilder: true, ("Textures/Wood", new TestEditorAsset { Value = "wood" }));
+        var builder = fixture.Builder;
+        builder.ShaderChangeDelay = TimeSpan.FromMilliseconds(50);
+        var directory = Directory.CreateTempSubdirectory("stride-shader-sources-");
+        try
+        {
+            var shaderFile = Path.Combine(directory.FullName, "Foo.sdsl");
+            var unreadFile = Path.Combine(directory.FullName, "Bar.sdsl");
+            File.WriteAllText(shaderFile, "shader Foo {};");
+            File.WriteAllText(unreadFile, "shader Bar {};");
+
+            // The second unit takes its result from the cache, as every build does after a reopen: it read the file all the same
+            var built = new FileReadingBuildUnit(shaderFile);
+            builder.PushBuildUnit(built);
+            Assert.Equal(ResultStatus.Successful, await built.Wait().WaitAsync(Timeout));
+            var cached = new FileReadingBuildUnit(shaderFile);
+            builder.PushBuildUnit(cached);
+            await cached.Wait().WaitAsync(Timeout);
+            Assert.Equal(ResultStatus.NotTriggeredWasSuccessful, cached.CommandStatus);
+
+            var changed = new TaskCompletionSource<ShaderSourcesChangedEventArgs>(TaskCreationOptions.RunContinuationsAsynchronously);
+            builder.ShaderSourcesChanged += (_, e) => changed.TrySetResult(e);
+
+            // The watcher can take a moment to start: write until it sees a change. The file no build read changes too
+            var deadline = DateTime.UtcNow + Timeout;
+            for (var i = 0; !changed.Task.IsCompleted; i++)
+            {
+                Assert.True(DateTime.UtcNow < deadline, "The change of the shader file was never reported.");
+                File.AppendAllText(unreadFile, $"// {i}\n");
+                File.AppendAllText(shaderFile, $"// {i}\n");
+                await Task.WhenAny(changed.Task, Task.Delay(500));
+            }
+
+            var args = await changed.Task;
+            Assert.Equal([Path.GetFullPath(shaderFile)], args.Files, StringComparer.OrdinalIgnoreCase);
+            var dependents = args.GetDependentAssets(built.Identifier.ContextIdentifier).ToList();
+            Assert.Equal(2, dependents.Count);
+            Assert.Contains(built.Identifier.AssetIdentifier, dependents);
+            Assert.Contains(cached.Identifier.AssetIdentifier, dependents);
+        }
+        finally
+        {
+            await fixture.DisposeAsync();
+            directory.Delete(true);
+        }
+    }
+
+    [Fact]
     public async Task DisposingTheServiceStopsIt()
     {
         var fixture = await ServicesSessionFixture.OpenAsync(withBuilder: true, ("Textures/Wood", new TestEditorAsset { Value = "wood" }));

@@ -18,6 +18,11 @@ namespace Stride.Editor.Build
 
         private static readonly Guid SceneBuildUnitContextId = Guid.NewGuid();
 
+        /// <summary>
+        /// Gets the context of the identifiers of the build units of the editor games.
+        /// </summary>
+        public static Guid ContextIdentifier => SceneBuildUnitContextId;
+
         public EditorGameBuildUnit(AssetItem asset, AssetCompilerContext compilerContext, AssetDependenciesCompiler assetDependenciesCompiler)
             : base(new AssetBuildUnitIdentifier(SceneBuildUnitContextId, asset.Id))
         {
