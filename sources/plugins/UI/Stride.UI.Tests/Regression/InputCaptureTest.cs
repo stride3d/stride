@@ -7,6 +7,7 @@ using Stride.Core.Mathematics;
 using Stride.Games;
 using Stride.Graphics;
 using Stride.Input;
+using Stride.Rendering.Compositing;
 using Stride.UI.Controls;
 using Stride.UI.Panels;
 using Xunit;
@@ -35,6 +36,7 @@ namespace Stride.UI.Tests.Regression
             KeysReachScriptsAfterTheFocusedUIStopsDrawing,
             HoverEndsWhenTheCameraMovesAWorldSpacePanelAwayFromTheCursor,
             HoverBeginsWhenAButtonMovesUnderTheCursor,
+            HoverBeginsInTheSecondViewOfAUIDrawnTwice,
         }
 
         private static readonly Vector2 OnButton = new Vector2(0.1f, 0.08f);
@@ -47,6 +49,7 @@ namespace Stride.UI.Tests.Regression
         private Button button;
         private PointerSimulated touch;
         private Button worldButton;
+        private Engine.Entity secondCamera;
 
         public InputCaptureTest() : this(Scenario.ClickOnButton)
         {
@@ -74,6 +77,7 @@ namespace Stride.UI.Tests.Regression
             {
                 case Scenario.ClickOnWorldSpacePanel:
                 case Scenario.HoverEndsWhenTheCameraMovesAWorldSpacePanelAwayFromTheCursor:
+                case Scenario.HoverBeginsInTheSecondViewOfAUIDrawnTwice:
                     worldButton = new Button { HorizontalAlignment = HorizontalAlignment.Stretch, VerticalAlignment = VerticalAlignment.Stretch };
                     ApplyButtonDefaultStyle(worldButton);
                     var worldPanel = new Engine.Entity("World panel")
@@ -88,6 +92,8 @@ namespace Stride.UI.Tests.Regression
                         },
                     };
                     Scene.Entities.Add(worldPanel);
+                    if (scenario == Scenario.HoverBeginsInTheSecondViewOfAUIDrawnTwice)
+                        AddASecondView();
                     break;
                 case Scenario.HitTestablePanelBackgroundCapturesClicks:
                     var panel = new Grid { CanBeHitByUser = true, Width = 200, Height = 100 };
@@ -172,6 +178,9 @@ namespace Stride.UI.Tests.Regression
                     FrameGameSystem.Draw(2, HoverWhereTheButtonWillBe);
                     FrameGameSystem.Draw(3, MoveButton);
                     FrameGameSystem.Draw(4, UpdateWithoutMovingTheMouseOverTheMovedButton);
+                    break;
+                case Scenario.HoverBeginsInTheSecondViewOfAUIDrawnTwice:
+                    FrameGameSystem.Draw(2, HoverWorldPanelInTheSecondView);
                     break;
             }
         }
@@ -315,6 +324,35 @@ namespace Stride.UI.Tests.Regression
             Assert.False(Input.Mouse.CaptureState.IsCaptured);
         }
 
+        // The first view draws the panel away from the cursor, the second draws it under the cursor
+        private void AddASecondView()
+        {
+            var compositor = SceneSystem.GraphicsCompositor;
+            var firstView = (SceneCameraRenderer)compositor.Game;
+            var secondSlot = new SceneCameraSlot();
+            compositor.Cameras.Add(secondSlot);
+            compositor.Game = new SceneRendererCollection
+            {
+                firstView,
+                new SceneCameraRenderer { Camera = secondSlot, Child = firstView.Child },
+            };
+
+            Camera.Transform.Position = new Vector3(300, 0, 1000);
+            secondCamera = new Engine.Entity("Second camera") { new Engine.CameraComponent { Slot = secondSlot.ToSlotId() } };
+            secondCamera.Transform.Position = new Vector3(0, 0, 1000);
+            Scene.Entities.Add(secondCamera);
+        }
+
+        private void HoverWorldPanelInTheSecondView()
+        {
+            var panelCenter = Vector3.TransformCoordinate(Vector3.Zero, secondCamera.Get<Engine.CameraComponent>().ViewProjectionMatrix);
+            MouseSimulated.SetPosition(new Vector2((panelCenter.X + 1) / 2, (1 - panelCenter.Y) / 2));
+            Input.Update(new GameTime());
+
+            Assert.Equal(MouseOverState.MouseOverElement, worldButton.MouseOverState);
+            Assert.True(Input.Mouse.CaptureState.IsCaptured);
+        }
+
         private void HoverWhereTheButtonWillBe()
         {
             MouseSimulated.SetPosition(OnMovedButton);
@@ -399,6 +437,7 @@ namespace Stride.UI.Tests.Regression
         [InlineData(Scenario.KeysReachScriptsAfterTheFocusedUIStopsDrawing)]
         [InlineData(Scenario.HoverEndsWhenTheCameraMovesAWorldSpacePanelAwayFromTheCursor)]
         [InlineData(Scenario.HoverBeginsWhenAButtonMovesUnderTheCursor)]
+        [InlineData(Scenario.HoverBeginsInTheSecondViewOfAUIDrawnTwice)]
         public void RunInputCaptureTest(Scenario testScenario)
         {
             RunGameTest(new InputCaptureTest(testScenario));

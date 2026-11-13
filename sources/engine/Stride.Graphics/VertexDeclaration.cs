@@ -188,6 +188,8 @@ public sealed class VertexDeclaration : IEquatable<VertexDeclaration>
         ///   Serializes or deserializes a <see cref="VertexDeclaration"/> object.
         /// </summary>
         /// <param name="vertexDeclaration">The object to serialize or deserialize.</param>
+        /// <param name="mode">The serialization mode.</param>
+        /// <param name="stream">The serialization stream.</param>
         /// <inheritdoc/>
         public override void Serialize(ref VertexDeclaration vertexDeclaration, ArchiveMode mode, SerializationStream stream)
         {

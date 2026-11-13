@@ -1,0 +1,365 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+             xmlns:dock="using:Dock.Avalonia.Controls"
+             xmlns:caevmp="using:Stride.Core.Assets.Editor.ViewModels.Progress"
+             xmlns:cpc="using:Stride.Core.Presentation.Commands"
+             xmlns:gsc="using:Stride.GameStudio.Avalonia.Converters"
+             xmlns:gsh="using:Stride.GameStudio.Avalonia.Helpers"
+             xmlns:gsvm="using:Stride.GameStudio.Avalonia.ViewModels"
+             xmlns:gsvw="using:Stride.GameStudio.Avalonia.Views"
+             mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="768"
+             x:Class="Stride.GameStudio.Avalonia.Views.MainView"
+             x:DataType="gsvm:MainViewModel">
+  <Design.DataContext>
+    <!-- This only sets the DataContext for the previewer in an IDE,
+         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+    <gsvm:MainViewModel/>
+  </Design.DataContext>
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <!-- An entry of File > Open recent: the version in bold, then the path, shortened in the middle, as in WPF -->
+      <DataTemplate x:Key="RecentSessionHeaderTemplate" DataType="gsvm:RecentSessionViewModel">
+        <Grid ColumnDefinitions="30, Auto">
+          <TextBlock Grid.Column="0" Text="{Binding Version}" FontWeight="Bold"/>
+          <TextBlock Grid.Column="1" Text="{Binding DisplayPath}" MaxWidth="320" TextTrimming="PathSegmentEllipsis"/>
+        </Grid>
+      </DataTemplate>
+    </ResourceDictionary>
+  </UserControl.Resources>
+  <!-- The Edit commands that no panel handles, as the command bindings of the WPF window: Undo and Redo act on the session
+       wherever the focus is, unless a text editor has it. -->
+  <sd:EditCommands.Bindings>
+    <sd:EditCommandBinding Kind="Undo" Command="{Binding UndoCommand}"/>
+    <sd:EditCommandBinding Kind="Redo" Command="{Binding RedoCommand}"/>
+  </sd:EditCommands.Bindings>
+
+  <Grid RowDefinitions="Auto, Auto, Auto, *, Auto, 25"
+        Background="Transparent">
+    <!-- Menus -->
+    <Menu Name="MainMenu" Grid.Row="0" Grid.Column="0"
+          VerticalAlignment="Top">
+      <!-- File menu. Each main menu ends with the commands that the editor and the plugins place there (MainCommandSlots);
+           in this one they go before Exit. -->
+      <MenuItem Header="{sd:LocalizeString _File, Context=Menu}"
+                Name="FileMenu">
+        <!-- A new session from a template (the project selection window), as WPF's File > New; its shortcut is a key binding of the
+             main window, like Save -->
+        <MenuItem Header="{sd:LocalizeString _New..., Context=Menu}"
+                  Name="NewMenuItem"
+                  Command="{Binding NewSessionCommand}"
+                  InputGesture="{x:Static gsvw:MainView.NewGesture}"/>
+        <MenuItem Header="{sd:LocalizeString _Open..., Context=Menu}"
+                  Command="{Binding OpenCommand}"
+                  HotKey="Ctrl+O" InputGesture="{Binding $self.HotKey, Mode=OneTime}"/>
+        <MenuItem Header="{sd:LocalizeString _Close, Context=Menu}"
+                  Command="{Binding CloseCommand}"
+                  IsEnabled="{Binding Session, Mode=OneWay, Converter={sd:ObjectToBool}}"/>
+        <Separator/>
+        <!-- Recent sessions (the most recently used sessions of this editor version or an earlier one), then "Clear list", as in
+             WPF: the items are made by the view (MainView.UpdateRecentSessionsMenu) since a menu shows either items or a source -->
+        <MenuItem Header="{sd:LocalizeString Open _recent, Context=Menu}"
+                  Name="RecentSessionsMenu"
+                  IsEnabled="{Binding RecentFiles.Count, Mode=OneWay, Converter={sd:NumericToBool}}"/>
+        <Separator/>
+        <!-- Save and reload, as in the WPF editor: Save is enabled whenever a session is open. Its shortcut is a key binding
+             of the main window: the hot key of an item of a closed menu fires only if the item was enabled when the menu last
+             opened (Avalonia evaluates its command then), and WPF binds Ctrl+S to the window too. -->
+        <MenuItem Header="{sd:LocalizeString _Save, Context=Menu}"
+                  Name="SaveMenuItem"
+                  Command="{Binding SaveCommand}"
+                  InputGesture="{x:Static gsvw:MainView.SaveGesture}"/>
+        <Separator/>
+        <MenuItem Header="{sd:LocalizeString _Reload project, Context=Menu}"
+                  Command="{Binding ReloadCommand}"
+                  IsEnabled="{Binding Session, Mode=OneWay, Converter={sd:ObjectToBool}}"/>
+        <Separator Name="ExitSeparator"/>
+        <MenuItem Header="{sd:LocalizeString E_xit, Context=Menu}"
+                  Command="{Binding ExitCommand}"
+                  HotKey="Alt+F4" InputGesture="{Binding $self.HotKey, Mode=OneTime}"/>
+      </MenuItem>
+      <!-- Edit menu: its items act on the panel that has the focus, through the router of the view (see EditCommandRouter), as
+           the application commands of WPF do. Their shortcuts are handled by the main window after the focused control, so
+           that a text box keeps its own; the items only show them. -->
+      <MenuItem Header="{sd:LocalizeString Edit, Context=Menu}"
+                Name="EditMenu">
+        <MenuItem Header="{sd:LocalizeString Undo, Context=Menu}"
+                  Name="UndoMenuItem"
+                  InputGesture="{x:Static sd:EditCommands.UndoGesture}">
+          <MenuItem.Icon>
+            <Image Source="{StaticResource ImageUndo}"/>
+          </MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Redo, Context=Menu}"
+                  Name="RedoMenuItem"
+                  InputGesture="{x:Static sd:EditCommands.RedoGesture}">
+          <MenuItem.Icon>
+            <Image Source="{StaticResource ImageRedo}"/>
+          </MenuItem.Icon>
+        </MenuItem>
+        <Separator/>
+        <MenuItem Header="{sd:LocalizeString Cut, Context=Menu}"
+                  Name="CutMenuItem"
+                  InputGesture="{x:Static sd:EditCommands.CutGesture}">
+          <MenuItem.Icon>
+            <Image Source="{StaticResource ImageCut}"/>
+          </MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Copy, Context=Menu}"
+                  Name="CopyMenuItem"
+                  InputGesture="{x:Static sd:EditCommands.CopyGesture}">
+          <MenuItem.Icon>
+            <Image Source="{StaticResource ImageCopy}"/>
+          </MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Paste, Context=Menu}"
+                  Name="PasteMenuItem"
+                  InputGesture="{x:Static sd:EditCommands.PasteGesture}">
+          <MenuItem.Icon>
+            <Image Source="{StaticResource ImagePaste}"/>
+          </MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Delete, Context=Menu}"
+                  Name="DeleteMenuItem"
+                  InputGesture="{x:Static sd:EditCommands.DeleteGesture}">
+          <MenuItem.Icon>
+            <Image Source="{StaticResource ImageDelete}"/>
+          </MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Rename, Context=Menu}"
+                  Name="RenameMenuItem"
+                  InputGesture="{x:Static sd:EditCommands.RenameGesture}">
+          <MenuItem.Icon>
+            <Image Source="{StaticResource ImageRename}"/>
+          </MenuItem.Icon>
+        </MenuItem>
+        <Separator/>
+        <MenuItem Header="{sd:LocalizeString _Settings..., Context=Menu}"
+                  Command="{Binding OpenSettingsWindowCommand}"
+                  IsEnabled="{Binding Session, Mode=OneWay, Converter={sd:ObjectToBool}}"/>
+      </MenuItem>
+      <!-- View menu: a toggle per panel in the sections of WPF's View menu, then Reset layout; its items are made by the view
+           (MainView.UpdateViewMenu) from MainViewModel.ViewMenu, which follows the panels the plugins register -->
+      <MenuItem Header="{sd:LocalizeString _View, Context=Menu}"
+                Name="ViewMenu"
+                IsEnabled="{Binding Session, Mode=OneWay, Converter={sd:ObjectToBool}}"/>
+      <!-- Project menu: build the current project and start its game, as WPF's Project menu does. The shortcuts are key bindings
+           of the main window, like Save. -->
+      <MenuItem Header="{sd:LocalizeString _Project, Context=Menu}"
+                Name="ProjectMenu"
+                IsEnabled="{Binding Session, Mode=OneWay, Converter={sd:ObjectToBool}}">
+        <MenuItem Header="{sd:LocalizeString Build project, Context=Menu}"
+                  Name="BuildProjectMenuItem"
+                  Command="{Binding Build.BuildProjectCommand}"
+                  InputGesture="{x:Static gsvw:MainView.BuildProjectGesture}">
+          <MenuItem.Icon>
+            <Image Source="{StaticResource ImageBuildProject}"/>
+          </MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Start project, Context=Menu}"
+                  Name="StartProjectMenuItem"
+                  Command="{Binding Build.StartProjectCommand}"
+                  InputGesture="{x:Static gsvw:MainView.StartProjectGesture}">
+          <MenuItem.Icon>
+            <Image Source="{StaticResource ImageStartProject}"/>
+          </MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Cancel build, Context=Menu}"
+                  Name="CancelBuildMenuItem"
+                  Command="{Binding Build.CancelBuildCommand}"
+                  InputGesture="{x:Static gsvw:MainView.CancelBuildGesture}">
+          <MenuItem.Icon>
+            <Image Source="{StaticResource ImageStopBuild}"/>
+          </MenuItem.Icon>
+        </MenuItem>
+        <Separator/>
+        <!-- Enabled while the game code has changes the editor did not load: they load in a new editor on the project -->
+        <MenuItem Header="{sd:LocalizeString Reload game assemblies, Context=Menu}"
+                  Name="ReloadGameCodeMenuItem"
+                  Command="{Binding CodeReload.ReloadCommand}">
+          <MenuItem.Icon>
+            <Image Source="{StaticResource ImageReloadAssemblies}"/>
+          </MenuItem.Icon>
+        </MenuItem>
+      </MenuItem>
+      <!-- Tools menu: only the commands that the editor and the plugins place there, shown when it has some -->
+      <MenuItem Header="{sd:LocalizeString _Tools, Context=Menu}"
+                Name="ToolsMenu"
+                IsVisible="False"/>
+      <!-- Help menu -->
+      <MenuItem Header="{sd:LocalizeString _Help, Context=Menu}"
+                Name="HelpMenu">
+        <MenuItem Header="{sd:LocalizeString Online documentation, Context=Menu}"
+            Command="{Binding OpenWebPageCommand}"
+            CommandParameter="{x:Static gsh:StrideGameStudio.DocumentationUrl}"/>
+        <Separator/>
+        <MenuItem Header="{sd:LocalizeString Questions and answers, Context=Menu}"
+                  Command="{Binding OpenWebPageCommand}"
+                  CommandParameter="{x:Static gsh:StrideGameStudio.AnswersUrl}"/>
+        <MenuItem Header="{sd:LocalizeString Report an issue..., Context=Menu}"
+                  Command="{Binding OpenWebPageCommand}"
+                  CommandParameter="{x:Static gsh:StrideGameStudio.ReportIssueUrl}"/>
+        <MenuItem Header="{sd:LocalizeString Discord forum, Context=Menu}"
+                  Command="{Binding OpenWebPageCommand}"
+                  CommandParameter="{x:Static gsh:StrideGameStudio.ForumsUrl}"/>
+        <Separator/>
+        <MenuItem Header="{sd:LocalizeString Show debug window, Context=Menu}"
+                  Command="{Binding OpenDebugWindowCommand}"
+                  HotKey="Ctrl+Shift+D" InputGesture="{Binding $self.HotKey, Mode=OneTime}"/>
+        <Separator/>
+        <MenuItem Header="{sd:LocalizeString _About..., Context=Menu}"
+                  Command="{Binding AboutCommand}"/>
+      </MenuItem>
+      <MenuItem Header="Debug"
+                IsVisible="{sd:IsDebug}">
+        <MenuItem Header="Simulate a crash"
+                  Command="{Binding CrashCommand}"/>
+      </MenuItem>
+    </Menu>
+
+    <!-- Toolbar: the build buttons of the WPF toolbar, while a session is open, then the command buttons and the widgets that
+         the editor and the plugins place there (MainCommandSlots) -->
+    <sd:ToolBar Grid.Row="1"
+                Name="MainToolBar"
+                IsVisible="{Binding Session, Converter={sd:ObjectToBool}}">
+      <sd:ToolBar.Styles>
+        <!-- The icon of a disabled button is dimmed, as in WPF -->
+        <Style Selector="Button:disabled Image">
+          <Setter Property="Opacity" Value="0.25"/>
+        </Style>
+        <!-- The reload button blinks while the game code has changes to load, as in WPF -->
+        <Style Selector="Button#ReloadGameCodeButton:not(:disabled) Image">
+          <Style.Animations>
+            <Animation Duration="0:0:0.5" IterationCount="Infinite" PlaybackDirection="Alternate">
+              <KeyFrame Cue="0%">
+                <Setter Property="Opacity" Value="1"/>
+              </KeyFrame>
+              <KeyFrame Cue="100%">
+                <Setter Property="Opacity" Value="0.3"/>
+              </KeyFrame>
+            </Animation>
+          </Style.Animations>
+        </Style>
+      </sd:ToolBar.Styles>
+      <Button Name="BuildProjectButton"
+              Command="{Binding Build.BuildProjectCommand}"
+              ToolTip.Tip="{sd:LocalizeString Build the project (F6), Context=ToolTip}"
+              ToolTip.ShowOnDisabled="True">
+        <Image Source="{StaticResource ImageBuildProject}" Width="16" Height="16"/>
+      </Button>
+      <Button Name="StartProjectButton"
+              Command="{Binding Build.StartProjectCommand}"
+              ToolTip.Tip="{sd:LocalizeString Build the project and start the game (F5), Context=ToolTip}"
+              ToolTip.ShowOnDisabled="True">
+        <Image Source="{StaticResource ImageStartProject}" Width="16" Height="16"/>
+      </Button>
+      <Button Name="CancelBuildButton"
+              Command="{Binding Build.CancelBuildCommand}"
+              ToolTip.Tip="{sd:LocalizeString Cancel the current build (Ctrl+F6), Context=ToolTip}"
+              ToolTip.ShowOnDisabled="True">
+        <Image Source="{StaticResource ImageStopBuild}" Width="16" Height="16"/>
+      </Button>
+      <Button Name="ReloadGameCodeButton"
+              Command="{Binding CodeReload.ReloadCommand}"
+              ToolTip.Tip="{sd:LocalizeString Reload the game assemblies: build the changed code and open the project in a new editor, Context=ToolTip}"
+              ToolTip.ShowOnDisabled="True">
+        <Image Source="{StaticResource ImageReloadAssemblies}" Width="16" Height="16"/>
+      </Button>
+    </sd:ToolBar>
+
+    <!-- Safe mode (D12 A): how many plugins are off, "Restart normally" (the same project without safe mode), and the Plugins panel -->
+    <Border Name="SafeModeBanner" Grid.Row="2" Padding="8,4" BorderThickness="0,1" BorderBrush="Gray" Background="#30E0A040"
+            IsVisible="{Binding SafeModeBanner?.IsVisible, FallbackValue=False}">
+      <Grid ColumnDefinitions="*, Auto, Auto">
+        <TextBlock Name="SafeModeMessage" Grid.Column="0" VerticalAlignment="Center" TextWrapping="Wrap" Text="{Binding SafeModeBanner?.Message}"/>
+        <Button Name="OpenPluginsPanelButton" Grid.Column="1" Margin="8,0,0,0"
+                Content="{sd:LocalizeString Show the plugins, Context=Button}"
+                Command="{Binding SafeModeBanner?.OpenPluginsPanelCommand}"/>
+        <Button Name="RestartNormallyButton" Grid.Column="2" Margin="8,0,0,0"
+                Content="{sd:LocalizeString Restart normally, Context=Button}"
+                Command="{Binding SafeModeBanner?.RestartNormallyCommand}"
+                ToolTip.Tip="{sd:LocalizeString Open the project again with all its plugins, Context=ToolTip}"/>
+      </Grid>
+    </Border>
+
+    <!-- Session area: the panels and the editors, docked as the layout of the session says (MainViewModel.Panels); the
+         floating ones are in windows of their own. The views of the panels come from DockViewLocator. -->
+    <dock:DockControl x:Name="DockArea" Grid.Row="3"
+                      Layout="{Binding Panels.Layout}"
+                      Factory="{Binding Panels.Factory}"
+                      InitializeLayout="False" InitializeFactory="False"
+                      EnableManagedWindowLayer="True"
+                      IsVisible="{Binding Session, Converter={sd:ObjectToBool}}"/>
+
+    <!-- Notifications: the background operations in progress, each until it finishes -->
+    <ItemsControl Grid.Row="4"
+                  ItemsSource="{Binding Notifications?.ActiveNotifications}"
+                  IsVisible="{Binding $self.ItemCount, Converter={sd:NumericToBool}}">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate DataType="caevmp:WorkProgressViewModel">
+          <Border Padding="8,4" BorderThickness="0,1,0,0" BorderBrush="Gray">
+            <Grid ColumnDefinitions="Auto, *, Auto">
+              <TextBlock Grid.Column="0"
+                         VerticalAlignment="Center"
+                         Margin="0,0,8,0"
+                         Text="{Binding Title}"
+                         ToolTip.Tip="{Binding ProgressMessage}"/>
+              <ProgressBar Grid.Column="1"
+                           VerticalAlignment="Center"
+                           Height="16"
+                           Margin="4,0"
+                           IsIndeterminate="{Binding IsIndeterminate}"
+                           Minimum="{Binding Minimum}"
+                           Maximum="{Binding Maximum}"
+                           Value="{Binding ProgressValue}"/>
+              <Button Grid.Column="2"
+                      Content="{sd:LocalizeString Cancel, Context=Button}"
+                      Margin="8,0,0,0"
+                      Command="{Binding CancelCommand}"
+                      IsVisible="{Binding IsCancellable}"/>
+            </Grid>
+          </Border>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+
+    <!-- Status bar -->
+    <Grid Grid.Row="5"
+          IsVisible="{Binding Session, Converter={sd:ObjectToBool}}"
+          ColumnDefinitions="2*, Auto, *, Auto, *, 100">
+      <TextBlock Grid.Column="0"
+                 Margin="8,0"
+                 VerticalAlignment="Center"
+                 Text="{Binding Status.CurrentStatus}"/>
+      <Border Grid.Column="1"
+              Margin="2"
+              BorderThickness="1"
+              BorderBrush="Gray"/>
+      <TextBlock Grid.Column="2"
+                 Margin="8,0"
+                 VerticalAlignment="Center">
+        <Run Text="{Binding Session?.AssetCollection.FilteredContent.Count, Mode=OneWay, Converter={sd:Localize Text={}{0} item, Plural={}{0} items, IsStringFormat=True, Context=StatusBar}}"/>
+        <Run Text="{Binding Session?.AssetCollection.SelectedContent.Count, Mode=OneWay, Converter={sd:Localize Text=({0} selected), Plural=({0} selected), IsStringFormat=True, Context=StatusBar}}"/>
+      </TextBlock>
+      <Border Grid.Column="3"
+              Margin="2"
+              BorderThickness="1"
+              BorderBrush="Gray"/>
+      <TextBlock Grid.Column="4"
+                 Margin="8,0"
+                 HorizontalAlignment="Right"
+                 VerticalAlignment="Center"
+                 Text="{Binding Status.CurrentJob?.Message}"/>
+      <ProgressBar Grid.Column="5"
+                   IsVisible="{Binding Status.CurrentJob, Converter={sd:ObjectToBool}}"
+                   Margin="0,2"
+                   VerticalAlignment="Stretch"
+                   HorizontalAlignment="Left"
+                   IsIndeterminate="{Binding Status.CurrentJob?.IsIndeterminate, TargetNullValue={sd:True}}"
+                   Maximum="{Binding Status.CurrentJob?.Total, TargetNullValue={sd:Double 0}}"
+                   Value="{Binding Status.CurrentJob?.Current, TargetNullValue={sd:Double 0}}"/>
+    </Grid>
+  </Grid>
+</UserControl>

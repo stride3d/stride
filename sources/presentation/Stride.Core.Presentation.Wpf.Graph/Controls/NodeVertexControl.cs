@@ -190,7 +190,7 @@ namespace Stride.Core.Presentation.Graph.Controls
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="propertyName"></param>
+        /// <param name="name">The name of the property.</param>
         public void NotifyPropertyChanged(string name)
         {
             if (PropertyChanged != null)

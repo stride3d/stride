@@ -17,9 +17,12 @@ partial class PackageSession
     private readonly Dictionary<string, Microsoft.Build.Evaluation.Project> projectLoadCache = new(StringComparer.OrdinalIgnoreCase);
     // Track projects being processed to avoid infinite recursion
     private readonly HashSet<string> processingProjects = new(StringComparer.OrdinalIgnoreCase);
-    // Set when LoadMissingDependencies restored the whole solution once up front, so the per-project
-    // restore below can be skipped (kept only as a fallback when there's no solution or after an upgrade).
-    private bool solutionDependenciesRestored;
+    // Set when LoadMissingDependencies restored the solution, or the projects without a solution, once up front, so the
+    // per-project restore below can be skipped (kept only as a fallback after a failed restore or an upgrade).
+    private bool dependenciesRestoredUpFront;
+    // During a session load, the files of the projects that the dependency phase evaluated as they are now (after the
+    // restore): the asset listing that follows reads them instead of evaluating the projects again
+    private Dictionary<string, Package.ProjectFiles>? loadProjectFiles;
 
     /// <summary>
     /// Locates a dev-redirect package's build manifest: the newest <c>&lt;project&gt;.sdbuild</c> under the
@@ -111,7 +114,9 @@ partial class PackageSession
         var result = new List<PendingCodeUpgrade>();
         foreach (var project in Projects.OfType<SolutionProject>())
         {
-            if (project.FullPath is null)
+            // PreLoadPackageDependencies skips a project whose dependencies are ready, so no upgrade of it runs: this
+            // also saves an evaluation of every project when the references are loaded again after the session load
+            if (project.FullPath is null || project.Package.State >= PackageState.DependenciesReady)
                 continue;
             var projectPath = project.FullPath.ToOSPath();
             if (!File.Exists(projectPath))
@@ -180,6 +185,9 @@ partial class PackageSession
         var projectPath = project.FullPath.ToOSPath();
         if (!processingProjects.Add(projectPath))
             return;
+
+        // Whether msProject is out of date: a restore since its evaluation changes the files it imports
+        var restoredSinceEvaluation = false;
 
         try
         {
@@ -313,13 +321,14 @@ partial class PackageSession
                     }
                     if (dependencyVersion.MinVersion > editorVersion)
                     {
-                        // A project on a newer version: never downgraded, unless a local build is on either side, which
-                        // can be swapped for another build of the same major.minor or newer (4.4.0-dev3 <-> 4.4.0-beta8)
-                        if (!IsLocalBuildSwitch(dependencyVersion.MinVersion, editorVersion))
+                        // A project on a newer version: never downgraded, unless it's a switch between two versions
+                        // with the same gates, or between builds where one is a local or nightly build
+                        if (!IsVersionSwitch(dependencyVersion.MinVersion, editorVersion))
                         {
                             log.Error($"Project [{project.Name}] uses [{dependencyName}] version [{dependencyVersion.MinVersion}], newer than this editor's [{editorVersion}]: open it with version [{dependencyVersion.MinVersion}] or newer");
                             return;
                         }
+                        log.Warning($"Project [{project.Name}] moves [{dependencyName}] to an older version, from [{dependencyVersion.MinVersion}] to [{editorVersion}]: it may not load correctly, and upgrades can run again when it goes back to a newer version");
                     }
 
                     // Check if upgrade is allowed
@@ -389,13 +398,14 @@ partial class PackageSession
             }
 
             // Real nuget restore. Also runs when this project's restore output is missing — e.g. a library just
-            // added to the solution that the up-front solution restore didn't cover.
+            // added to the solution that the up-front restore didn't cover.
             var assetsFile = msProject?.GetPropertyValue("ProjectAssetsFile");
             var restoreOutputMissing = string.IsNullOrEmpty(assetsFile) || !File.Exists(assetsFile);
-            if (loadParameters.AutoCompileProjects && (!solutionDependenciesRestored || referencesUpgraded || restoreOutputMissing))
+            if (loadParameters.AutoCompileProjects && (!dependenciesRestoredUpFront || referencesUpgraded || restoreOutputMissing))
             {
                 log.Verbose($"Restore NuGet packages for {project.Name}...");
                 await VSProjectHelper.RestoreNugetPackages(log, project.FullPath, loadParameters.AllowUpgradeDowngradeRestore);
+                restoredSinceEvaluation = true;
             }
 
             // If platform was unknown, check it again using cached project
@@ -406,11 +416,29 @@ partial class PackageSession
                     // Reload project after NuGet restore to get updated platform info
                     ClearCachedProject(projectPath);
                     msProject = LoadOrGetCachedProject(projectPath, loadParameters);
+                    restoredSinceEvaluation = false;
                     project.Platform = VSProjectHelper.GetPlatformTypeFromProject(msProject) ?? PlatformType.Shared;
                 }
                 catch (Exception ex)
                 {
                     log.Error($"Unexpected exception while loading project [{projectPath}]", ex);
+                }
+            }
+
+            // The asset listing evaluates the project with the default configuration and no extra property: the same evaluation
+            // when the load uses them too (SkipInvalidConfigurations only sets the severity of a message). An upgrade may change
+            // the project before the listing.
+            if (loadProjectFiles is not null && msProject is not null && !restoredSinceEvaluation && pendingPackageUpgrades.Count == 0
+                && loadParameters.BuildConfiguration == "Debug" && (loadParameters.ExtraCompileProperties is null || loadParameters.ExtraCompileProperties.Count == 0))
+            {
+                try
+                {
+                    loadProjectFiles[projectPath] = Package.ReadProjectFiles(msProject);
+                }
+                catch (Exception ex)
+                {
+                    // The listing evaluates the project again, and reports what fails there
+                    log.Verbose($"Could not read the files of project [{projectPath}]: {ex.Message}");
                 }
             }
 
@@ -485,7 +513,7 @@ partial class PackageSession
                         if (devManifest is not null)
                             devPackage.SetCompanionDeclarations(devManifest, Path.GetDirectoryName(manifestFile)!);
 
-                        var devContainer = new StandalonePackage(devPackage);
+                        var devContainer = new StandalonePackage(devPackage) { IsDevRedirectPackage = true };
                         // Same namespace surface as a real nupkg (whose packed sdpkg stores the
                         // resolved name): the csproj-driven declarations come from the manifest,
                         // the identity from the authored sdpkg
@@ -540,6 +568,9 @@ partial class PackageSession
     {
         ArgumentNullException.ThrowIfNull(log);
         var loadParameters = loadParametersArg ?? PackageLoadParameters.Default();
+        AssemblyLoadCheck ??= loadParameters.AssemblyLoadCheck;
+        CompanionPackageFilter ??= loadParameters.CompanionPackageFilter;
+        CompanionPackageSource ??= loadParameters.CompanionPackageSource;
 
         var loaded = new HashSet<Package>(Packages);
         try
@@ -561,11 +592,13 @@ partial class PackageSession
         LoadMissingAssets(log, Packages.Where(p => !loaded.Contains(p)).ToList(), dependencyLoadParameters);
     }
 
-    // Switching a project from a newer version to the editor's: only when one of them is a local (dev) build, and the
-    // editor isn't below the project's major.minor.
-    internal static bool IsLocalBuildSwitch(PackageVersion projectVersion, PackageVersion editorVersion)
+    // Switching a project from a newer version to the editor's: with the same number, which means the same upgrader
+    // gates, or when one of them is a local or nightly build and the editor isn't below the project's major.minor.
+    internal static bool IsVersionSwitch(PackageVersion projectVersion, PackageVersion editorVersion)
     {
-        if (!projectVersion.IsLocalBuild && !editorVersion.IsLocalBuild)
+        if (projectVersion.Version == editorVersion.Version)
+            return true;
+        if (!projectVersion.IsLocalBuild && !projectVersion.IsNightly && !editorVersion.IsLocalBuild && !editorVersion.IsNightly)
             return false;
         return (editorVersion.Version.Major, editorVersion.Version.Minor).CompareTo((projectVersion.Version.Major, projectVersion.Version.Minor)) >= 0;
     }

@@ -34,7 +34,7 @@ namespace Stride.Graphics
         /// </summary>
         /// <remarks>
         ///   To set the viewport, use one of the <see cref="SetViewport"/> or <see cref="SetViewports"/> methods,
-        ///   or the <see cref="SetRenderTargetAndViewport"/>, or <see cref="SetRenderTargetsAndViewport"/> methods.
+        ///   or the <see cref="SetRenderTargetAndViewport"/>, or <see cref="SetRenderTargetsAndViewport(Texture, ReadOnlySpan{Texture})">SetRenderTargetsAndViewport</see> methods.
         /// </remarks>
         public Viewport Viewport => viewports[0];
 
@@ -43,7 +43,7 @@ namespace Stride.Graphics
         /// </summary>
         /// <remarks>
         ///   To set the viewport, use one of the <see cref="SetViewport"/> or <see cref="SetViewports"/> methods,
-        ///   or the <see cref="SetRenderTargetAndViewport"/>, or <see cref="SetRenderTargetsAndViewport"/> methods.
+        ///   or the <see cref="SetRenderTargetAndViewport"/>, or <see cref="SetRenderTargetsAndViewport(Texture, ReadOnlySpan{Texture})">SetRenderTargetsAndViewport</see> methods.
         /// </remarks>
         public ReadOnlySpan<Viewport> Viewports => viewports.AsSpan(0, boundViewportCount);
 
@@ -55,7 +55,7 @@ namespace Stride.Graphics
         /// <summary>
         ///   Gets how draws access the currently bound Depth-Stencil Buffer.
         ///   Part of the binding: reset to <see cref="DepthStencilAccess.Write"/> by any
-        ///   <c>SetRenderTargets</c> call.
+        ///   <see cref="SetRenderTargets(Texture, ReadOnlySpan{Texture})">SetRenderTargets</see> call.
         ///   Stopgap until render pass objects declare this per pass.
         /// </summary>
         internal DepthStencilAccess DepthStencilAccess { get; set; }
@@ -210,7 +210,7 @@ namespace Stride.Graphics
         /// </summary>
         /// <remarks>
         ///   To set the Depth-Stencil Buffer, use one of the <see cref="SetRenderTargetAndViewport"/>,
-        ///   or <see cref="SetRenderTargetsAndViewport"/>, or <see cref="SetRenderTargets"/> methods.
+        ///   or <see cref="SetRenderTargetsAndViewport(Texture, ReadOnlySpan{Texture})">SetRenderTargetsAndViewport</see>, or <see cref="SetRenderTargets(Texture, ReadOnlySpan{Texture})">SetRenderTargets</see> methods.
         /// </remarks>
         public Texture DepthStencilBuffer => depthStencilBuffer;
 
@@ -219,7 +219,7 @@ namespace Stride.Graphics
         /// </summary>
         /// <remarks>
         ///   To set Render Targets, use one of the <see cref="SetRenderTargetAndViewport"/>,
-        ///   or <see cref="SetRenderTargetsAndViewport"/>, or <see cref="SetRenderTargets"/> methods.
+        ///   or <see cref="SetRenderTargetsAndViewport(Texture, ReadOnlySpan{Texture})">SetRenderTargetsAndViewport</see>, or <see cref="SetRenderTargets(Texture, ReadOnlySpan{Texture})">SetRenderTargets</see> methods.
         /// </remarks>
         public Texture RenderTarget => renderTargets[0];
 
@@ -228,7 +228,7 @@ namespace Stride.Graphics
         /// </summary>
         /// <remarks>
         ///   To set Render Targets, use one of the <see cref="SetRenderTargetAndViewport"/>,
-        ///   or <see cref="SetRenderTargetsAndViewport"/>, or <see cref="SetRenderTargets"/> methods.
+        ///   or <see cref="SetRenderTargetsAndViewport(Texture, ReadOnlySpan{Texture})">SetRenderTargetsAndViewport</see>, or <see cref="SetRenderTargets(Texture, ReadOnlySpan{Texture})">SetRenderTargets</see> methods.
         /// </remarks>
         public ReadOnlySpan<Texture> RenderTargets => renderTargets.AsSpan(0, renderTargetCount);
 
@@ -248,6 +248,8 @@ namespace Stride.Graphics
             depthStencilBuffer = null;
             DepthStencilAccess = DepthStencilAccess.Write;
             renderTargets.AsSpan().Clear();
+            // Else RenderTargets keeps null entries, which a flush (Direct3D 12) binds again
+            renderTargetCount = 0;
         }
 
         /// <summary>
@@ -537,10 +539,10 @@ namespace Stride.Graphics
         ///     or the left value is greater than or equal to the right value, or the front value is greater than or equal to the back value.
         ///   </para>
         /// </param>
-        /// <exception cref="ArgumentNullException"><paramref name="resource"/> is <see langword="null"/>.</exception
+        /// <exception cref="ArgumentNullException"><paramref name="resource"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentOutOfRangeException">
         ///   <paramref name="resource"/> is a <see cref="Texture"/>, but its <see cref="Texture.Dimension"/> is not one of the supported types.
-        /// </exception
+        /// </exception>
         /// <exception cref="InvalidOperationException"><paramref name="resource"/> is of an unknown type and cannot be updated.</exception>
         /// <inheritdoc cref="UpdateSubResource(GraphicsResource, int, ReadOnlySpan{byte}, ResourceRegion)" path="/remarks" />
         internal unsafe partial void UpdateSubResource(GraphicsResource resource, int subResourceIndex, DataBox sourceData, ResourceRegion region);
@@ -648,5 +650,35 @@ namespace Stride.Graphics
         ///   A <see cref="MappedResource"/> structure identifying the sub-resource to unmap.
         /// </param>
         public unsafe partial void UnmapSubResource(MappedResource mappedResource);
+
+        /// <summary>
+        ///   Inserts a barrier that transitions a Graphics Resource to the layout matching a <see cref="GraphicsResourceState"/>.
+        /// </summary>
+        /// <param name="resource">The Graphics Resource to transition.</param>
+        /// <param name="newState">
+        ///   The new state of <paramref name="resource"/>. A state with no matching layout, such as a combination of
+        ///   read states, transitions to <see cref="BarrierLayout.Common"/>.
+        /// </param>
+        [Obsolete("Use the BarrierLayout overload instead.")]
+        public void ResourceBarrierTransition(GraphicsResource resource, GraphicsResourceState newState)
+        {
+            var newLayout = newState switch
+            {
+                GraphicsResourceState.RenderTarget => BarrierLayout.RenderTarget,
+                GraphicsResourceState.UnorderedAccess => BarrierLayout.UnorderedAccess,
+                GraphicsResourceState.DepthWrite => BarrierLayout.DepthStencilWrite,
+                GraphicsResourceState.DepthRead => BarrierLayout.DepthStencilRead,
+                GraphicsResourceState.NonPixelShaderResource or
+                GraphicsResourceState.PixelShaderResource or
+                GraphicsResourceState.AllShaderResource => BarrierLayout.ShaderResource,
+                GraphicsResourceState.IndirectArgument => BarrierLayout.IndirectArgument,
+                GraphicsResourceState.CopyDestination => BarrierLayout.CopyDest,
+                GraphicsResourceState.CopySource => BarrierLayout.CopySource,
+                GraphicsResourceState.ResolveDestination => BarrierLayout.ResolveDest,
+                GraphicsResourceState.ResolveSource => BarrierLayout.ResolveSource,
+                _ => BarrierLayout.Common
+            };
+            ResourceBarrierTransition(resource, newLayout);
+        }
     }
 }

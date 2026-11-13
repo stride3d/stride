@@ -226,11 +226,34 @@ public static partial class CodeUpgrades
     }
 
     /// <summary>
+    /// Migrates an instance member renamed on its type: <c>x.Foo(a)</c> → <c>x.Bar(a)</c>. Matches the member
+    /// <paramref name="memberName"/> on <paramref name="declaringType"/> (its full metadata name) and renames each
+    /// reference, keeping its receiver, arguments and trivia; conditional access and method groups too.
+    /// </summary>
+    public static SymbolRewrite MemberRename(string declaringType, string memberName, string newMemberName)
+    {
+        ArgumentNullException.ThrowIfNull(declaringType);
+        ArgumentNullException.ThrowIfNull(memberName);
+        ArgumentNullException.ThrowIfNull(newMemberName);
+        return new SymbolRewrite(
+            compilation => ResolveMembers(compilation, declaringType, memberName),
+            (editor, referenceNode, symbol) =>
+            {
+                if (referenceNode is not SimpleNameSyntax name || name.Identifier.ValueText != memberName)
+                    return;
+
+                // WithIdentifier keeps the type argument list of a generic name
+                editor.ReplaceNode(name, name.WithIdentifier(SyntaxFactory.Identifier(name.Identifier.LeadingTrivia, newMemberName, name.Identifier.TrailingTrivia)));
+            });
+    }
+
+    /// <summary>
     /// Migrates a removed method that returned its receiver, so that the call can simply go:
     /// <c>Buffer.New(...).RecreateWith(data)</c> → <c>Buffer.New(...)</c>. Matches the method
     /// <paramref name="methodName"/> on <paramref name="declaringType"/> (its full metadata name) and
     /// replaces each invocation by its receiver, preserving trivia. Also handles conditional access
     /// (<c>x?.Foo(a)</c> → <c>x</c>). Other reference forms (method groups, cref) are left untouched.
+    /// A removed method that returned nothing fits too: its calls are statements, which go.
     /// </summary>
     public static SymbolRewrite FluentCallRemove(string declaringType, string methodName)
     {
@@ -307,7 +330,8 @@ public static partial class CodeUpgrades
 
     /// <summary>
     /// Migrates a removed member that user code only assigned or subscribed to: the statements
-    /// <c>x.Reload = ...;</c>, <c>x.DeviceReset += ...;</c> and <c>x.DeviceReset -= ...;</c> are removed.
+    /// <c>x.Reload = ...;</c>, <c>x.DeviceReset += ...;</c> and <c>x.DeviceReset -= ...;</c> are removed,
+    /// and so is the entry <c>Reload = ...</c> of an object initializer or a <c>with</c> expression.
     /// Matches the member <paramref name="memberName"/> on <paramref name="declaringType"/> (its full
     /// metadata name). A read of the member is left untouched: the code around it needs manual porting,
     /// and the compile error shows where.
@@ -324,10 +348,18 @@ public static partial class CodeUpgrades
                 if (referenceNode.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Name == referenceNode)
                     target = memberAccess;
 
-                if (target.Parent is AssignmentExpressionSyntax assignment && assignment.Left == target
-                    && assignment.Parent is ExpressionStatementSyntax statement)
+                if (target.Parent is not AssignmentExpressionSyntax assignment || assignment.Left != target)
+                    return;
+
+                if (assignment.Parent is ExpressionStatementSyntax statement)
                 {
                     RemoveStatement(editor, statement);
+                }
+                else if (assignment.Parent is InitializerExpressionSyntax initializer
+                    && initializer.Kind() is SyntaxKind.ObjectInitializerExpression or SyntaxKind.WithInitializerExpression)
+                {
+                    // An entry of an object initializer or a with expression: the entry goes, the rest stays.
+                    editor.RemoveNode(assignment, SyntaxRemoveOptions.KeepNoTrivia);
                 }
             });
     }

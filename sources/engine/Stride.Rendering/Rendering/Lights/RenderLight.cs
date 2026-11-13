@@ -47,7 +47,6 @@ namespace Stride.Rendering.Lights
         /// <summary>
         /// Updates this instance( <see cref="Position"/>, <see cref="Direction"/>, <see cref="HasBoundingBox"/>, <see cref="BoundingBox"/>, <see cref="BoundingBoxExt"/>
         /// </summary>
-        /// <param name="colorSpace"></param>
         internal void UpdateBoundingBox()
         {
             // Compute bounding boxes

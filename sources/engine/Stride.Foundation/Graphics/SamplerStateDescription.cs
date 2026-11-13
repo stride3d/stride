@@ -12,7 +12,6 @@ namespace Stride.Graphics;
 /// <summary>
 ///   Describes a <strong>Sampler State</strong> object, which determines how to sample Texture data.
 /// </summary>
-/// <seealso cref="SamplerState"/>
 [DataContract]
 [StructLayout(LayoutKind.Sequential)]
 public struct SamplerStateDescription : IEquatable<SamplerStateDescription>

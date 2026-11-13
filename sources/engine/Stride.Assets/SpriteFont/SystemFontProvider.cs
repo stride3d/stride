@@ -7,6 +7,7 @@ using Stride.Core.Diagnostics;
 using Stride.Graphics.Font;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
 
@@ -18,9 +19,21 @@ namespace Stride.Assets.SpriteFont
     {
         private static readonly Logger Log = GlobalLogger.GetLogger("SystemFontProvider");
 
+        /// <summary>
+        /// The font name of a new sprite font. Arial is on Windows and macOS, and builds as its metric-compatible Liberation
+        /// Sans on Linux.
+        /// </summary>
+        public const string NewFontName = "Arial";
+
+        // The font found by GetFontPath, which can be a metric-compatible fallback of the requested one
+        private string resolvedFontName;
+
+        /// <summary>
+        /// Creates a provider with no font name: the default font of the system is used, which is not saved, so the asset
+        /// is the same on every system.
+        /// </summary>
         public SystemFontProvider()
         {
-            FontName = GetDefaultFontName();
         }
 
         public SystemFontProvider(string fontName)
@@ -29,14 +42,20 @@ namespace Stride.Assets.SpriteFont
         }
 
         /// <summary>
-        /// Gets or sets the name of the font family to use when the <see cref="Source"/> is not specified.
+        /// Gets or sets the name of the font family to use. When it is <c>null</c> or empty, the default font of the system
+        /// is used: Liberation Sans on Linux, Arial elsewhere.
         /// </summary>
         /// <userdoc>
-        /// The name of the font family to use. Only the fonts installed on the system can be used here.
+        /// The name of the font family to use. Only the fonts installed on the system can be used here. When empty, the
+        /// default font of the system is used.
         /// </userdoc>
         [DataMember(20)]
+        [DefaultValue(null)]
         [Display("Font Name")]
         public string FontName { get; set; }
+
+        // The font asked for: the one named, else the default of the system
+        private string RequestedFontName => string.IsNullOrWhiteSpace(FontName) ? GetDefaultFontName() : FontName;
 
         /// <summary>
         /// Gets or sets the style of the font. A combination of 'regular', 'bold', 'italic'. Default is 'regular'.
@@ -67,20 +86,20 @@ namespace Stride.Assets.SpriteFont
             // ships metric-identical to the Microsoft core fonts (Arial/Times New Roman/Courier New),
             // so substituting whichever member a platform actually has keeps text layout — and the
             // screenshot goldens that depend on it — consistent across Windows/Linux/macOS.
-            foreach (var candidate in GetFontNameCandidates(FontName))
+            var requested = RequestedFontName;
+            foreach (var candidate in GetFontNameCandidates(requested))
             {
                 var fontPath = ResolveFont(candidate, searchDirs);
                 if (fontPath == null)
                     continue;
-                if (!string.Equals(candidate, FontName, StringComparison.OrdinalIgnoreCase))
-                {
-                    result?.Warning($"Cannot find font family '{FontName}'. Using metric-compatible fallback '{candidate}' instead.");
-                    FontName = candidate;
-                }
+                if (!string.Equals(candidate, requested, StringComparison.OrdinalIgnoreCase))
+                    result?.Warning($"Cannot find font family '{requested}'. Using metric-compatible fallback '{candidate}' instead.");
+                // Kept apart from FontName, which the asset saves: what this system has is not what the user chose
+                resolvedFontName = candidate;
                 return fontPath;
             }
 
-            result?.Error($"Cannot find system font '{FontName}' or a metric-compatible fallback. Make sure it is installed on this machine.");
+            result?.Error($"Cannot find system font '{requested}' or a metric-compatible fallback. Make sure it is installed on this machine.");
             return null;
         }
 
@@ -185,7 +204,7 @@ namespace Stride.Assets.SpriteFont
         /// <inheritdoc/>
         public override string GetFontName()
         {
-            return FontName;
+            return resolvedFontName ?? RequestedFontName;
         }
 
         private static string GetDefaultFontName()

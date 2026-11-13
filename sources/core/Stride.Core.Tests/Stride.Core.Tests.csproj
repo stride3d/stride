@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
+    <ProjectReference Include="..\..\tests\Stride.XunitRunner\Stride.XunitRunner.csproj" />
     <ProjectReference Include="..\Stride.Core.MicroThreading\Stride.Core.MicroThreading.csproj" />
     <ProjectReference Include="..\Stride.Core.Serialization\Stride.Core.Serialization.csproj" />
   </ItemGroup>

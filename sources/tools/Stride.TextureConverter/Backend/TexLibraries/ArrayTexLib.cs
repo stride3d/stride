@@ -247,7 +247,7 @@ namespace Stride.TextureConverter.TexLibraries
         /// </summary>
         /// <param name="array">The array.</param>
         /// <param name="request">The request.</param>
-        /// <exception cref="TexLibraryException">The given texture must match the dimension of the texture array.</exception>
+        /// <exception cref="TextureToolsException">The given texture must match the dimension of the texture array.</exception>
         private unsafe void Update(TexImage array, ArrayUpdateRequest request)
         {
             Log.Info("Updating texture "+request.Indice+" in the texture array ...");
@@ -273,7 +273,7 @@ namespace Stride.TextureConverter.TexLibraries
         /// </summary>
         /// <param name="array">The array.</param>
         /// <param name="request">The request.</param>
-        /// <exception cref="TexLibraryException">You can't add a texture to a texture cube.</exception>
+        /// <exception cref="TextureToolsException">You can't add a texture to a texture cube.</exception>
         private unsafe void Insert(TexImage array, ArrayInsertionRequest request)
         {
             Log.Info("Inserting texture at rank " + request.Indice + " in the texture array ...");
@@ -343,7 +343,7 @@ namespace Stride.TextureConverter.TexLibraries
         /// </summary>
         /// <param name="array">The array.</param>
         /// <param name="request">The request.</param>
-        /// <exception cref="TexLibraryException">You can't remove a texture from a texture cube.</exception>
+        /// <exception cref="TextureToolsException">You can't remove a texture from a texture cube.</exception>
         private unsafe void Remove(TexImage array, ArrayElementRemovalRequest request)
         {
             Log.Info("Removing texture at rank " + request.Indice + " from the texture array ...");
@@ -399,7 +399,7 @@ namespace Stride.TextureConverter.TexLibraries
         /// </summary>
         /// <param name="array">The array.</param>
         /// <param name="candidate">The candidate.</param>
-        /// <exception cref="TexLibraryException">The given texture must match the dimensions of the texture array.</exception>
+        /// <exception cref="TextureToolsException">The given texture must match the dimensions of the texture array.</exception>
         private void CheckConformity(TexImage array, TexImage candidate)
         {
             int subImageCount = array.SubImageArray.Length / array.ArraySize;

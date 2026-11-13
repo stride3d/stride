@@ -365,7 +365,7 @@ namespace Stride.Core.Yaml
             {
                 if (isFirst)
                 {
-                    if (buffer.Check(@"#,[]{}&*!|>\""%@`"))
+                    if (buffer.Check(@"#,[]{}&*!|>\'""%@`"))
                     {
                         flow_indicators = true;
                         block_indicators = true;

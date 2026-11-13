@@ -125,6 +125,7 @@ namespace Stride.Rendering
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="parameterKey"></param>
+        /// <param name="createIfNew">Whether to add the parameter if it is not present.</param>
         /// <returns></returns>
         public ObjectParameterAccessor<T> GetAccessor<T>(ObjectParameterKey<T> parameterKey, bool createIfNew = true)
         {
@@ -137,6 +138,7 @@ namespace Stride.Rendering
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="parameterKey"></param>
+        /// <param name="createIfNew">Whether to add the parameter if it is not present.</param>
         /// <returns></returns>
         public PermutationParameter<T> GetAccessor<T>(PermutationParameterKey<T> parameterKey, bool createIfNew = true)
         {
@@ -150,6 +152,7 @@ namespace Stride.Rendering
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="parameterKey"></param>
+        /// <param name="elementCount">The number of elements to allocate for the parameter.</param>
         /// <returns></returns>
         public ValueParameter<T> GetAccessor<T>(ValueParameterKey<T> parameterKey, int elementCount = 1) where T : struct
         {
@@ -221,6 +224,7 @@ namespace Stride.Rendering
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="parameter"></param>
+        /// <param name="createIfNew">Whether to add the parameter if it is not present.</param>
         /// <returns></returns>
         public T Get<T>(ObjectParameterKey<T> parameter, bool createIfNew = false)
         {
@@ -247,6 +251,7 @@ namespace Stride.Rendering
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="parameter"></param>
+        /// <param name="createIfNew">Whether to add the parameter if it is not present.</param>
         /// <returns></returns>
         public T Get<T>(PermutationParameterKey<T> parameter, bool createIfNew = false)
         {
@@ -295,7 +300,8 @@ namespace Stride.Rendering
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="parameter"></param>
-        /// <param name="values"></param>
+        /// <param name="count">The number of values to set.</param>
+        /// <param name="firstValue">A reference to the first value.</param>
         public void Set<T>(ValueParameterKey<T> parameter, int count, ref T firstValue) where T : struct
         {
             Set(GetAccessor(parameter, count), count, ref firstValue);

@@ -88,11 +88,9 @@
     </ItemGroup>
     <PropertyGroup>
       <StrideAssemblyProcessorOptions Condition="'$(StrideAssemblyProcessorOptions)' == ''">--parameter-key --auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
-      <StrideAssemblyProcessorOptions Condition="'$(DocumentationFile)' != ''">$(StrideAssemblyProcessorOptions) --docfile="$(DocumentationFile)"</StrideAssemblyProcessorOptions>
       <!-- Physics, Particles and SpriteStudio assembly is actually hard coded/referenced here, remove once a better system is in place! -->
       <!-- Please keep in sync with AssemblyRecompiler.cs -->
       <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) @(StrideAddReference->'--add-reference=%22%(Identity)%22',' ')</StrideAssemblyProcessorOptions>
-      <StrideAssemblyProcessorOptions Condition="'$(DocumentationFile)' != ''">$(StrideAssemblyProcessorOptions) --docfile="$(DocumentationFile)"</StrideAssemblyProcessorOptions>
       <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) --references-file="$(IntermediateOutputPath)StrideReferences.cache"</StrideAssemblyProcessorOptions>
       <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) --platform=$(StridePlatform) "$(IntermediateOutputPath)$(TargetName)$(TargetExt)"</StrideAssemblyProcessorOptions>
       <StrideAssemblyProcessorOptions Condition="'$(AssemblyOriginatorKeyFile)' != ''">$(StrideAssemblyProcessorOptions) --delete-output-on-error</StrideAssemblyProcessorOptions>
@@ -159,6 +157,7 @@
   </Target>
 
   <Import Project="$(MSBuildThisFileDirectory)Stride.Core.NativeLibraries.targets" />
+  <Import Project="$(MSBuildThisFileDirectory)Stride.Core.UserDocumentation.targets" />
   <Import Project="$(MSBuildThisFileDirectory)Stride.AssetBuildManifest.targets" Condition="'$(StrideAssetBuildManifestImported)' == ''" />
   <PropertyGroup>
     <StrideAssetBuildManifestImported>true</StrideAssetBuildManifestImported>

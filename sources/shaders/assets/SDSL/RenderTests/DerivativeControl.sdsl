@@ -1,0 +1,20 @@
+// PSMain(ExpectedResult=#00000000)
+
+namespace Stride.Shaders.Tests;
+
+// The derivatives with an explicit precision need a capability of their own. The value is the same for every pixel, so they are 0.
+
+shader DerivativeControl
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    cbuffer Test
+    {
+        float Value;
+    }
+
+    void PSMain()
+    {
+        streams.ColorTarget = float4(ddx_fine(Value), ddy_fine(Value), ddx_coarse(Value), ddy_coarse(Value));
+    }
+}

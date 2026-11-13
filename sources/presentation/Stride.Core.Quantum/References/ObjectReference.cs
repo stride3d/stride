@@ -14,7 +14,7 @@ public sealed class ObjectReference : IReferenceInternal
     /// <summary>
     /// Initialize a new instance of the <see cref="ObjectReference"/> class using a data object.
     /// </summary>
-    /// <remarks>This constructor should be used when the given <see cref="objectValue"/> has no mode node yet existing.</remarks>
+    /// <remarks>This constructor should be used when the given <paramref name="objectValue"/> has no model node yet.</remarks>
     /// <param name="objectValue">A data object to reference. Can be null.</param>
     /// <param name="objectType">The type of data object to reference.</param>
     /// <param name="index">The index of this reference in its parent reference, if it is a <see cref="ReferenceEnumerable"/>.</param>

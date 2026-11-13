@@ -1,11 +1,12 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using Stride.Core.Mathematics;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 using Stride.UI.Editor.Game;
-using Stride.Assets.Presentation.ViewModel;
 using Stride.UI;
 using Stride.UI.Controls;
+using Stride.Assets.Editor.ViewModels.SpriteEditor;
+using Stride.Assets.Editor.ViewModels;
 
 namespace Stride.UI.Editor.Adorners
 {

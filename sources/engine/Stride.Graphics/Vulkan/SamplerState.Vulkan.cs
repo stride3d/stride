@@ -19,7 +19,6 @@ namespace Stride.Graphics
         /// Initializes a new instance of the <see cref="SamplerState"/> class.
         /// </summary>
         /// <param name="device">The device.</param>
-        /// <param name="name">The name.</param>
         /// <param name="samplerStateDescription">The sampler state description.</param>
         /// <param name="name">An optional name that can be used to identify the Sampler State.</param>
         private SamplerState(GraphicsDevice device, ref readonly SamplerStateDescription samplerStateDescription, string? name = null)

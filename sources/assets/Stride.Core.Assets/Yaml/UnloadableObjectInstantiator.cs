@@ -25,6 +25,8 @@ public static class UnloadableObjectInstantiator
     /// </summary>
     /// <param name="baseType"></param>
     /// <param name="typeName"></param>
+    /// <param name="assemblyName"></param>
+    /// <param name="error"></param>
     /// <param name="parsingEvents"></param>
     /// <returns></returns>
     public static IUnloadable CreateUnloadableObject(Type baseType, string typeName, string assemblyName, string error, List<ParsingEvent> parsingEvents)

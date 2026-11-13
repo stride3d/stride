@@ -52,6 +52,9 @@ public sealed partial class ModelComponent
     [DataMember(60), Display("Morphs", Expand = ExpandRule.Once)]
     public ModelMorphSettings Morphs { get; } = new();
 
+    // A model without authored morph settings saves no Morphs block
+    private bool ShouldSerializeMorphs() => !Morphs.IsDefault;
+
     /// <summary>Whether any mesh of the <see cref="Model"/> has morph targets.</summary>
     [DataMemberIgnore]
     public bool HasMorphTargets => Model?.Meshes.Exists(mesh => mesh.MorphTargets?.TargetNames.Length > 0) == true;

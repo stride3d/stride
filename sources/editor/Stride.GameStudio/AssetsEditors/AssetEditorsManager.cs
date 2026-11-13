@@ -13,21 +13,24 @@ using System.Windows.Data;
 using System.Windows.Input;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Core.Threading;
 using Stride.Animations;
-using Stride.Assets.Presentation.CurveEditor.ViewModels;
+using Stride.Assets.Editor.Services;
+using Stride.Assets.Editor.ViewModels.CurveEditor;
 using Stride.Assets.Presentation.CurveEditor.Views;
 using AvalonDock.Layout;
 using Stride.GameStudio.Helpers;
 using Stride.GameStudio.Layout;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.GameStudio.AssetsEditors
 {
-    internal sealed class AssetEditorsManager : IAssetEditorsManager, IDestroyable
+    internal sealed class AssetEditorsManager : IWpfAssetEditorsManager, ICurveEditorService, IDestroyable
     {
         private readonly ConditionalWeakTable<IMultipleAssetEditorViewModel, NotifyCollectionChangedEventHandler> registeredHandlers = [];
         private readonly Dictionary<IAssetEditorViewModel, LayoutAnchorable> assetEditors = [];
@@ -82,30 +85,7 @@ namespace Stride.GameStudio.AssetsEditors
             editorViewModel ??= new CurveEditorViewModel(session.ServiceProvider, session);
 
             // Populate the editor view model
-            if (curve is IComputeCurve<Color4> color4curve)
-            {
-                editorViewModel.AddCurve(color4curve, name);
-            }
-            else if (curve is IComputeCurve<float> floatCurve)
-            {
-                editorViewModel.AddCurve(floatCurve, name);
-            }
-            else if (curve is IComputeCurve<Quaternion> quaternionCurve)
-            {
-                editorViewModel.AddCurve(quaternionCurve, name);
-            }
-            else if (curve is IComputeCurve<Vector2> vec2curve)
-            {
-                editorViewModel.AddCurve(vec2curve, name);
-            }
-            else if (curve is IComputeCurve<Vector3> vec3curve)
-            {
-                editorViewModel.AddCurve(vec3curve, name);
-            }
-            else if (curve is IComputeCurve<Vector4> vec4curve)
-            {
-                editorViewModel.AddCurve(vec4curve, name);
-            }
+            editorViewModel.AddCurve(curve, name);
 
             editorViewModel.Focus();
 
@@ -135,6 +115,12 @@ namespace Stride.GameStudio.AssetsEditors
             RemoveCurveEditor(true);
         }
 
+        /// <inheritdoc/>
+        void ICurveEditorService.Open(object curve, string name) => OpenCurveEditorWindow(curve, name);
+
+        /// <inheritdoc/>
+        void ICurveEditorService.Close() => CloseCurveEditorWindow();
+
         private void RemoveCurveEditor(bool removePane)
         {
             if (curveEditor == null)
@@ -160,9 +146,60 @@ namespace Stride.GameStudio.AssetsEditors
 
         /// <inheritdoc/>
         [NotNull]
-        public Task OpenAssetEditorWindow([NotNull] AssetViewModel asset)
+        public Task OpenAssetEditorAsync([NotNull] AssetViewModel asset)
         {
             return OpenAssetEditorWindow(asset, true);
+        }
+
+        /// <inheritdoc/>
+        public Task<bool> CloseAssetEditorAsync([NotNull] AssetViewModel asset, bool? save)
+        {
+            return Task.FromResult(CloseAssetEditorWindow(asset, save));
+        }
+
+        /// <inheritdoc/>
+        public Task<bool> CloseAllEditorsAsync(bool? save)
+        {
+            return Task.FromResult(CloseAllEditorWindows(save));
+        }
+
+        /// <inheritdoc/>
+        public Task ReopenAssetEditorAsync([NotNull] AssetViewModel asset, [NotNull] Action replaceAsset)
+        {
+            if (asset == null) throw new ArgumentNullException(nameof(asset));
+            if (replaceAsset == null) throw new ArgumentNullException(nameof(replaceAsset));
+
+            // The asset can also be shown in the editor opened for another asset (a child scene in the editor of its root scene)
+            if (!openedAssets.TryGetValue(asset, out var editor))
+                editor = assetEditors.Keys.OfType<IMultipleAssetEditorViewModel>().FirstOrDefault(x => x.OpenedAssets.Contains(asset));
+            var editorAsset = editor != null ? openedAssets.FirstOrDefault(x => x.Value == editor).Key : null;
+            if (editorAsset == null || !assetEditors.TryGetValue(editor, out var editorPane) || !editor.PreviewClose(false))
+            {
+                replaceAsset();
+                return Task.CompletedTask;
+            }
+
+            var wasActive = editorPane.IsActive;
+            if (wasActive)
+            {
+                // make asset view active, as when closing the editor
+                session.ActiveProperties = session.AssetViewProperties;
+            }
+            // The pane stays at its place, and the layout stays the editor layout, while the editor is replaced
+            openedAssets.Remove(editorAsset);
+            RemoveEditor(editor, false);
+
+            Task reopening;
+            try
+            {
+                replaceAsset();
+            }
+            finally
+            {
+                // Even if the replacement failed, the pane does not stay empty
+                reopening = OpenAssetEditorWindow(editorAsset, false, editorPane, wasActive);
+            }
+            return reopening;
         }
 
         /// <inheritdoc/>
@@ -180,7 +217,7 @@ namespace Stride.GameStudio.AssetsEditors
                 if (System.Diagnostics.Debugger.IsAttached)
                     System.Diagnostics.Debugger.Break();
 
-                assetEditors.Keys.ToList().ForEach(RemoveEditor);
+                assetEditors.Keys.ToList().ForEach(x => RemoveEditor(x));
             }
 
             CloseCurveEditorWindow();
@@ -252,9 +289,11 @@ namespace Stride.GameStudio.AssetsEditors
         /// Opens (and activates) an editor window for the given asset. If an editor window for this asset already exists, simply activates it.
         /// </summary>
         /// <param name="asset">The asset for which to show an editor window.</param>
-        /// <param name="saveSettings">True if <see cref="MRUAdditionalData.OpenedAssets"/> should be updated, false otherwise. Note that if the editor fail to load it will not be updated.</param>
+        /// <param name="saveSettings">True if <see cref="Stride.Core.Assets.Editor.Settings.MRUAdditionalData.OpenedAssets"/> should be updated, false otherwise. Note that if the editor fail to load it will not be updated.</param>
+        /// <param name="editorPane">The pane in which to show the editor window if the asset has no editor yet, or null to look for it or create it.</param>
+        /// <param name="activate">True if the editor window should be activated, false otherwise.</param>
         /// <returns></returns>
-        internal async Task OpenAssetEditorWindow([NotNull] AssetViewModel asset, bool saveSettings)
+        internal async Task OpenAssetEditorWindow([NotNull] AssetViewModel asset, bool saveSettings, LayoutAnchorable editorPane = null, bool activate = true)
         {
             if (asset == null) throw new ArgumentNullException(nameof(asset));
             if (dockingLayoutManager == null) throw new InvalidOperationException("This method can only be invoked on the IEditorDialogService that has the editor main window as parent.");
@@ -267,7 +306,8 @@ namespace Stride.GameStudio.AssetsEditors
 
             using (await mutex.LockAsync())
             {
-                LayoutAnchorable editorPane = null;
+                var givenPane = editorPane;
+                editorPane = null;
                 IEditorView view;
                 // Asset already has an editor? Then, Look for the corresponding panel
                 if (openedAssets.TryGetValue(asset, out var editor) && !assetEditors.TryGetValue(editor, out editorPane))
@@ -303,8 +343,8 @@ namespace Stride.GameStudio.AssetsEditors
                     {
                         view = (IEditorView)Activator.CreateInstance(viewType);
 
-                        // Pane may already exists (e.g. created from layout saving)
-                        editorPane = AvalonDockHelper.GetAllAnchorables(dockingLayoutManager.DockingManager).FirstOrDefault(p => p.Title == asset.Url);
+                        // Pane may already exists (e.g. created from layout saving, or kept while the editor is replaced)
+                        editorPane = givenPane ?? AvalonDockHelper.GetAllAnchorables(dockingLayoutManager.DockingManager).FirstOrDefault(p => p.Title == asset.Url);
                         if (editorPane == null)
                         {
                             editorPane = new LayoutAnchorable { CanClose = true };
@@ -317,7 +357,8 @@ namespace Stride.GameStudio.AssetsEditors
                         editorPane.Closed += EditorPaneClosed;
                         editorPane.Content = view;
                         // Make the pane visible immediately
-                        MakeActiveVisible(editorPane);
+                        if (activate)
+                            MakeActiveVisible(editorPane);
 
                         // Create a binding for the title
                         var binding = new Binding(nameof(AssetViewModel.Url)) { Mode = BindingMode.OneWay, Source = asset };
@@ -372,7 +413,7 @@ namespace Stride.GameStudio.AssetsEditors
         private void CloseEditorWindow([NotNull] AssetViewModel asset)
         {
             // make asset view active
-            asset.Session.ActiveProperties = asset.Session.AssetViewProperties;
+            session.ActiveProperties = session.AssetViewProperties;
             // remove editor
             RemoveAssetEditor(asset);
             // if no more editor open, change layout
@@ -430,7 +471,7 @@ namespace Stride.GameStudio.AssetsEditors
             }
         }
 
-        private void RemoveEditor([NotNull] IAssetEditorViewModel editor)
+        private void RemoveEditor([NotNull] IAssetEditorViewModel editor, bool removePane = true)
         {
             assetEditors.TryGetValue(editor, out var editorPane);
 
@@ -460,7 +501,10 @@ namespace Stride.GameStudio.AssetsEditors
             if (editorPane != null)
             {
                 CleanEditorPane(editorPane);
-                RemoveEditorPane(editorPane);
+                if (removePane)
+                    RemoveEditorPane(editorPane);
+                else
+                    UnregisterEditorPane(editorPane);
             }
         }
 
@@ -489,14 +533,23 @@ namespace Stride.GameStudio.AssetsEditors
         /// <seealso cref="CleanEditorPane"/>
         private void RemoveEditorPane([NotNull] LayoutAnchorable editorPane)
         {
-            editorPane.IsActiveChanged -= EditorPaneIsActiveChanged;
-            editorPane.IsSelectedChanged -= EditorPaneIsSelectedChanged;
-            editorPane.Closing -= EditorPaneClosing;
-            editorPane.Closed -= EditorPaneClosed;
+            UnregisterEditorPane(editorPane);
 
             // If this editor pane was closed by user, no need to do that; it is necessary for closing programmatically
             if (editorPane.Root != null)
                 editorPane.Close();
+        }
+
+        /// <summary>
+        /// Stops handling the events of the editor pane, which stays in the layout.
+        /// </summary>
+        /// <param name="editorPane">The editor pane.</param>
+        private void UnregisterEditorPane([NotNull] LayoutAnchorable editorPane)
+        {
+            editorPane.IsActiveChanged -= EditorPaneIsActiveChanged;
+            editorPane.IsSelectedChanged -= EditorPaneIsSelectedChanged;
+            editorPane.Closing -= EditorPaneClosing;
+            editorPane.Closed -= EditorPaneClosed;
         }
 
         private void EditorPaneClosing(object sender, CancelEventArgs e)
@@ -564,16 +617,16 @@ namespace Stride.GameStudio.AssetsEditors
 
             if (editorPane.Content is FrameworkElement element && element?.DataContext is AssetViewModel asset)
             {
-                if (openedAssets.TryGetValue(asset, out var editor) && editor is Assets.Presentation.AssetEditors.GameEditor.ViewModels.GameEditorViewModel gameEditor)
+                if (openedAssets.TryGetValue(asset, out var editor) && editor is Assets.Editor.ViewModels.IGameEditorViewModel gameEditor)
                 {
                     // A tab/sub-window is visible via IsSelected, not IsVisible
                     if (editorPane.IsSelected)
                     {
-                        gameEditor.ShowGame();
+                        gameEditor.GameHost.ShowGame();
                     }
                     else
                     {
-                        gameEditor.HideGame();
+                        gameEditor.GameHost.HideGame();
                     }
                 }
             }

@@ -262,10 +262,6 @@ namespace Stride.Graphics
         ///   The cache used to store and retrieve Pipeline State objects, including Shader instances.
         ///   If the Effect bytecode is <see langword="null"/>, the method exits without performing any operations.
         /// </param>
-        /// <exception cref="ArgumentException">
-        ///   One of the semantic names in the stream output declarations of the Geometry Shader
-        ///   exceeds the maximum allowed length.
-        /// </exception>
         private void CreateShaders(PipelineStateCache pipelineStateCache)
         {
             if (effectBytecode is null)
@@ -273,8 +269,6 @@ namespace Stride.Graphics
 
             foreach (var shaderBytecode in effectBytecode.Stages)
             {
-                var reflection = effectBytecode.Reflection;
-
                 // TODO: CACHE Shaders with a bytecode hash
                 // TODO: Stale comment? Is it not what GraphicsCache does?
                 switch (shaderBytecode.Stage)
@@ -296,9 +290,7 @@ namespace Stride.Graphics
                         break;
 
                     case ShaderStage.Geometry:
-                        geometryShader = reflection.ShaderStreamOutputDeclarations?.Count > 0
-                            ? CreateGeometryShaderWithStreamOutput(reflection, shaderBytecode)
-                            : pipelineStateCache.GeometryShaderCache.Instantiate(shaderBytecode);
+                        geometryShader = pipelineStateCache.GeometryShaderCache.Instantiate(shaderBytecode);
                         break;
 
                     case ShaderStage.Pixel:
@@ -309,54 +301,6 @@ namespace Stride.Graphics
                         computeShader = pipelineStateCache.ComputeShaderCache.Instantiate(shaderBytecode);
                         break;
                 }
-            }
-
-            //
-            // Creates a Direct3D 11 Geometry Shader with Stream Output when shader reflection determines
-            // the Shader is using stream output declarations.
-            //
-            ComPtr<ID3D11GeometryShader> CreateGeometryShaderWithStreamOutput(EffectReflection reflection, ShaderBytecode shaderBytecode)
-            {
-                // Stream-out elements
-                var streamOutElementCount = reflection.ShaderStreamOutputDeclarations.Count;
-                Span<SODeclarationEntry> streamOutElements = stackalloc SODeclarationEntry[streamOutElementCount];
-                int index = 0;
-
-                scoped Span<byte> semanticNamesBytes = stackalloc byte[MAX_SEMANTIC_NAME_LENGTH * streamOutElementCount];
-
-                foreach (var streamOutputElement in reflection.ShaderStreamOutputDeclarations)
-                {
-                    byte* semanticNamePtr = EncodeSemanticName(streamOutputElement.SemanticName, ref semanticNamesBytes);
-
-                    streamOutElements[index++] = new SODeclarationEntry
-                    {
-                        Stream = (uint) streamOutputElement.Stream,
-                        SemanticIndex = (uint) streamOutputElement.SemanticIndex,
-                        SemanticName = semanticNamePtr,
-                        StartComponent = streamOutputElement.StartComponent,
-                        ComponentCount = streamOutputElement.ComponentCount,
-                        OutputSlot = streamOutputElement.OutputSlot
-                    };
-                }
-                // TODO: GRAPHICS REFACTOR: better cache
-                ComPtr<ID3D11GeometryShader> tempGeometryShader = default;
-                var bufferStrides = reflection.StreamOutputStrides.AsSpan<int, uint>();
-
-                scoped ref readonly byte inputSignatureRef = ref shaderBytecode.Data.GetReference();
-                scoped ref readonly SODeclarationEntry streamOutElemsRef = ref streamOutElements.GetReference();
-                scoped ref readonly uint bufferStridesRef = ref bufferStrides.GetReference();
-
-                HResult result = NativeDevice.CreateGeometryShaderWithStreamOutput(
-                    in inputSignatureRef, (nuint) shaderBytecode.Data.Length,
-                    in streamOutElemsRef, (uint) streamOutElementCount,
-                    in bufferStridesRef, (uint) bufferStrides.Length,
-                    (uint) reflection.StreamOutputRasterizedStream, ref NullRef<ID3D11ClassLinkage>(),
-                    ref tempGeometryShader);
-
-                if (result.IsFailure)
-                    result.Throw();
-
-                return tempGeometryShader;
             }
         }
 

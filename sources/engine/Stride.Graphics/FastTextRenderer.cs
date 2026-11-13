@@ -88,6 +88,7 @@ namespace Stride.Graphics
         /// Initializes a FastTextRendering instance (create and build required ressources, ...).
         /// </summary>
         /// <param name="graphicsContext">The current GraphicsContext.</param>
+        /// <param name="maxCharacters">The maximum number of characters to render.</param>
         private void Initialize(GraphicsContext graphicsContext, int maxCharacters)
         {
             maxCharacterCount = maxCharacters;

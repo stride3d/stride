@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using Stride.Assets.Presentation.Templates;
+using Stride.Assets.Editor.Templates;
 using Xunit;
 
 namespace Stride.GameStudio.Tests

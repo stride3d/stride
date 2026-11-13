@@ -212,7 +212,7 @@
   <!-- xUnit Startup Configuration -->
   <!-- ================================================================ -->
   <PropertyGroup Condition="('$(StridePlatform)' == 'Linux' Or '$(StridePlatform)' == 'Windows' Or '$(StridePlatform)' == 'macOS') And '$(IncludeXunitLauncher)' != 'false'">
-    <StartupObject Condition="'$(StartupObject)' == ''">xunit.runner.stride.Program</StartupObject>
+    <StartupObject Condition="'$(StartupObject)' == ''">Stride.XunitRunner.Program</StartupObject>
   </PropertyGroup>
 
   <!-- ================================================================ -->
@@ -262,7 +262,7 @@
        [Activity(MainLauncher=true)]), iOS needs an explicit Main, so the launcher .cs contains
        a Program class and StartupObject points to it. -->
   <PropertyGroup Condition="'$(StridePlatform)' == 'iOS' And '$(IncludeXunitLauncher)' != 'false'">
-    <StartupObject Condition="'$(StartupObject)' == ''">xunit.runner.stride.Program</StartupObject>
+    <StartupObject Condition="'$(StartupObject)' == ''">Stride.XunitRunner.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup Condition="'$(StridePlatform)' == 'iOS' And '$(IncludeXunitLauncher)' != 'false'">
     <Compile Include="$(MSBuildThisFileDirectory)LauncherSimple.iOS.cs"

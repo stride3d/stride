@@ -111,7 +111,8 @@ namespace Stride.Graphics.GeometricPrimitives
         /// <summary>
         /// Draws this <see cref="GeometricPrimitive" />.
         /// </summary>
-        /// <param name="commandList">The command list.</param>
+        /// <param name="graphicsContext">The graphics context used for drawing.</param>
+        /// <param name="effectInstance">The effect used to draw the primitive.</param>
         public void Draw(GraphicsContext graphicsContext, EffectInstance effectInstance)
         {
             var commandList = graphicsContext.CommandList;

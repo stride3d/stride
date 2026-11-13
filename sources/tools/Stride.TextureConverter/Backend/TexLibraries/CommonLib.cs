@@ -38,11 +38,10 @@ namespace TextureTools.TexLibraries
         }
 
         /// <summary>
-        /// Calculates the mip level from a specified width,height,depth.
+        /// Calculates the mip level from a specified width and height.
         /// </summary>
         /// <param name="width">The width.</param>
         /// <param name="height">The height.</param>
-        /// <param name="depth">The depth.</param>
         /// <param name="minimumSizeLastMip">The minimum size of the last mip.</param>
         /// <returns>The mip level.</returns>
         /// <exception cref="System.ArgumentOutOfRangeException">Value must be &gt; 0;size</exception>

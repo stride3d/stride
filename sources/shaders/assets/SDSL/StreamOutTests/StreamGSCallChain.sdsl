@@ -1,0 +1,55 @@
+// GSMain(ExpectedPrimitiveCount=1)
+
+// Same chain as RenderTests/StageMethodCallChain, in three stages: Outer and Inner get a second copy, and each stage's Outer
+// must call that stage's Inner. A call to another stage's copy uses its streams variable, which the SPIR-V validator rejects.
+
+namespace Stride.Shaders.Tests;
+
+shader StreamGSCallChain
+{
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+    stream float4 ColorTarget : SV_Target0;
+    stream float4 Seed;
+    stream float4 Temp;
+    stream float4 Result;
+
+    void Inner()
+    {
+        streams.Temp = streams.Seed;
+    }
+
+    void Outer()
+    {
+        Inner();
+    }
+
+    void VSMain()
+    {
+        streams.ShadingPosition = streams.Position;
+        streams.Seed = float4(0.2, 0, 0, 1);
+        Outer();
+        streams.Result = streams.Temp;
+    }
+
+    [maxvertexcount(3)]
+    void GSMain(triangle Input input[3], inout TriangleStream<Output> outStream)
+    {
+        for (int i = 0; i < 3; ++i)
+        {
+            streams = input[i];
+            streams.Seed = float4(0, 0.4, 0, 0);
+            Outer();
+            streams.Result += streams.Temp;
+            outStream.Append(streams);
+        }
+        outStream.RestartStrip();
+    }
+
+    void PSMain()
+    {
+        streams.Seed = float4(0, 0, 0.6, 0);
+        Outer();
+        streams.ColorTarget = streams.Result + streams.Temp;
+    }
+}

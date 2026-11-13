@@ -188,6 +188,15 @@ public class EmitterTests : YamlTest
         return buffer.ToString();
     }
 
+    [Fact]
+    public void APlainScalarStartingWithAQuoteGetsQuoted()
+    {
+        var yaml = EmitScalar(new Scalar(null, null, "'a' b", ScalarStyle.Plain, true, true));
+        var stream = new YamlStream();
+        stream.Load(new StringReader(yaml));
+        Assert.Equal("'a' b", ((YamlScalarNode)((YamlSequenceNode)stream.Documents[0].RootNode).Children[0]).Value);
+    }
+
     [Theory]
     [InlineData("LF hello\nworld")]
     [InlineData("CRLF hello\r\nworld")]

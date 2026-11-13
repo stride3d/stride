@@ -1,16 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net10.0-windows</TargetFramework>
-    <!-- The game's solution still builds on Linux and macOS: Game Studio, which loads this package, runs on Windows only -->
-    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <!-- Toolkit-neutral (no WPF reference), so no Windows-only target framework: any Game Studio toolkit loads it -->
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <RootNamespace>MyTemplate.Editor</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
     <Version>1.0.0</Version>
     <!-- What this companion carries: Game Studio extensions (gizmos, previews); only the Game Studio loads it -->
     <StridePackageKind>Editor</StridePackageKind>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Stride.Assets.Presentation.Wpf" Version="$EngineVersion$" />
+    <PackageReference Include="Stride.Assets.Editor" Version="$EngineVersion$" />
     <PackageReference Include="Stride.AssetCompiler" Version="$EngineVersion$" IncludeAssets="build;buildTransitive" />
     <ProjectReference Include="..\MyTemplate\MyTemplate.csproj" />
     <ProjectReference Include="..\MyTemplate.Assets\MyTemplate.Assets.csproj" />

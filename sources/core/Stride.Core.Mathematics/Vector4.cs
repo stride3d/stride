@@ -488,6 +488,33 @@ public struct Vector4 : IEquatable<Vector4>, ISpanFormattable
     }
 
     /// <summary>
+    /// Rounds each component of this vector down to its preceding whole value
+    /// </summary>
+    /// <example> <code>Floor({1.9, -1.60, 0.0, 0.0}) -> {1.0, -2.0, 0.0, 0.0}</code> </example>
+    public static Vector4 Floor(Vector4 value)
+    {
+        return new Vector4(MathF.Floor(value.X), MathF.Floor(value.Y), MathF.Floor(value.Z), MathF.Floor(value.W));
+    }
+
+    /// <summary>
+    /// Rounds each component of this vector up to its following whole value
+    /// </summary>
+    /// <example> <code>Ceiling({1.9, -1.60, 0.0, 0.0}) -> {2.0, -1.0, 0.0, 0.0}</code> </example>
+    public static Vector4 Ceiling(Vector4 value)
+    {
+        return new Vector4(MathF.Ceiling(value.X), MathF.Ceiling(value.Y), MathF.Ceiling(value.Z), MathF.Ceiling(value.W));
+    }
+
+    /// <summary>
+    /// Rounds each component of this vector to its nearest whole value
+    /// </summary>
+    /// <example> <code>Round({1.9, -1.60, 0.0, 0.0}) -> {2.0, -2.0, 0.0, 0.0}</code> </example>
+    public static Vector4 Round(Vector4 value)
+    {
+        return new Vector4(MathF.Round(value.X), MathF.Round(value.Y), MathF.Round(value.Z), MathF.Round(value.W));
+    }
+
+    /// <summary>
     /// Returns a <see cref="Vector4"/> containing the 4D Cartesian coordinates of a point specified in Barycentric coordinates relative to a 4D triangle.
     /// </summary>
     /// <param name="value1">A <see cref="Vector4"/> containing the 4D Cartesian coordinates of vertex 1 of the triangle.</param>

@@ -6,7 +6,7 @@ using Stride.Core.Serialization;
 namespace Stride.Core.Presentation.Behaviors
 {
     /// <summary>
-    /// Information about a drag & drop command.
+    /// Information about a drag &amp; drop command.
     /// </summary>
     // TODO: Move this in a ViewModel-dedicated assembly
     [DataContract]

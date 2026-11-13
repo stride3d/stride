@@ -57,7 +57,7 @@ public sealed class PackageCollection : ICollection<Package>, INotifyCollectionC
     /// <summary>
     /// Finds the a package already in this collection from the specified dependency.
     /// </summary>
-    /// <param name="packageDependency">The package dependency.</param>
+    /// <param name="dependency">The package dependency.</param>
     /// <returns>Package.</returns>
     public Package? Find(Dependency dependency)
     {

@@ -73,6 +73,12 @@ namespace Stride.Input
 
         private GameContext gameContext;
 
+        /// <summary>
+        /// Whether <see cref="Initialize"/> and <see cref="ResetSources"/> add the gamepad sources of the platform (DirectInput
+        /// and XInput on Windows). Editor games turn it off: they read no gamepad, and DirectInput takes about 0.3 s to start.
+        /// </summary>
+        internal bool UseGamePadSources { get; set; } = true;
+
         private Dictionary<IInputSource, EventHandler<TrackingCollectionChangedEventArgs>> devicesCollectionChangedActions = new Dictionary<IInputSource, EventHandler<TrackingCollectionChangedEventArgs>>();
 
 #if STRIDE_INPUT_RAWINPUT
@@ -82,7 +88,6 @@ namespace Stride.Input
         /// <summary>
         /// Initializes a new instance of the <see cref="InputManager"/> class.
         /// </summary>
-        /// <param name="gameContext">The game context.</param>
         public InputManager()
         {
             maskedEvents = new MaskedEventList<InputEvent>(this, events);
@@ -414,6 +419,7 @@ namespace Stride.Input
         /// </summary>
         /// <remarks>
         /// This method could take several milliseconds and should be used at specific time in a game where performance is not crucial (pause, configuration screen...etc.)
+        /// Some sources, such as DirectInput, scan on a worker thread: the devices they find are added by a later <see cref="Update"/>.
         /// </remarks>
         public void Scan()
         {
@@ -492,7 +498,7 @@ namespace Stride.Input
         }
 
         /// <summary>
-        /// Registers an object that listens for certain types of events using the specialized versions of <see cref="IInputEventListener&lt;"/>
+        /// Registers an object that listens for certain types of events using specialized versions of <see cref="IInputEventListener{TEventType}"/>.
         /// </summary>
         /// <param name="listener">The listener to register</param>
         /// <remarks>
@@ -659,7 +665,7 @@ namespace Stride.Input
         }
 
         /// <summary>
-        /// Inserts any registered event back into it's <see cref="InputEventPool&lt;"/>.
+        /// Inserts any registered event back into its <see cref="InputEventPool{TEventType}"/>.
         /// </summary>
         /// <param name="inputEvent">The event to insert into it's event pool</param>
         public void PoolInputEvent(InputEvent inputEvent)
@@ -739,9 +745,12 @@ namespace Stride.Input
                     // stack (DirectInput/XInput/raw input + SharpDX) when the WinForms backend is off.
                     if (GameContextFactory.WinFormsBackendEnabled)
                     {
-                        Sources.Add(new InputSourceWindowsDirectInput());
-                        if (InputSourceWindowsXInput.IsSupported())
-                            Sources.Add(new InputSourceWindowsXInput());
+                        if (UseGamePadSources)
+                        {
+                            Sources.Add(new InputSourceWindowsDirectInput((context as GameContextWinforms)?.Control));
+                            if (InputSourceWindowsXInput.IsSupported())
+                                Sources.Add(new InputSourceWindowsXInput((context as GameContextWinforms)?.Control));
+                        }
 #if STRIDE_INPUT_RAWINPUT
                         if (rawInputEnabled && context is GameContextWinforms gameContextWinforms)
                             Sources.Add(new InputSourceWindowsRawInput(gameContextWinforms.Control));

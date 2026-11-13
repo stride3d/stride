@@ -26,6 +26,7 @@ public interface IDispatcherService
     /// Executes the given asynchronous function in the dispatcher thread. This method will run asynchronously and return immediately.
     /// </summary>
     /// <param name="callback">The asynchronous function to execute in the dispatcher thread.</param>
+    /// <param name="token">A cancellation token for the operation.</param>
     /// <returns>A task corresponding to the asynchronous execution of the given function.</returns>
     Task InvokeAsync(Action callback, CancellationToken token = default);
 
@@ -33,6 +34,7 @@ public interface IDispatcherService
     /// Executes the given asynchronous function in the dispatcher thread. This method will run asynchronously and return immediately.
     /// </summary>
     /// <param name="callback">The asynchronous function to execute in the dispatcher thread.</param>
+    /// <param name="token">A cancellation token for the operation.</param>
     /// <returns>A task corresponding to the asynchronous execution of the given function.</returns>
     /// <remarks>This method uses a low priority to schedule the action on the dispatcher thread.</remarks>
     Task LowPriorityInvokeAsync(Action callback, CancellationToken token = default);
@@ -42,6 +44,7 @@ public interface IDispatcherService
     /// </summary>
     /// <typeparam name="TResult">The type of result returned by the task.</typeparam>
     /// <param name="callback">The asynchronous function to execute in the dispatcher thread.</param>
+    /// <param name="token">A cancellation token for the operation.</param>
     /// <returns>A task corresponding to the asynchronous execution of the given task.</returns>
     Task<TResult> InvokeAsync<TResult>(Func<TResult> callback, CancellationToken token = default);
 
@@ -49,6 +52,7 @@ public interface IDispatcherService
     /// Executes the given asynchronous task in the dispatcher thread. This method will run asynchronously and return immediately.
     /// </summary>
     /// <param name="task">The asynchronous task to execute in the dispatcher thread.</param>
+    /// <param name="token">A cancellation token for the operation.</param>
     /// <returns>A task corresponding to the asynchronous execution of the given function.</returns>
     Task InvokeTask(Func<Task> task, CancellationToken token = default);
 
@@ -57,6 +61,7 @@ public interface IDispatcherService
     /// </summary>
     /// <typeparam name="TResult">The type of result returned by the task.</typeparam>
     /// <param name="task">The asynchronous task to execute in the dispatcher thread.</param>
+    /// <param name="token">A cancellation token for the operation.</param>
     /// <returns>A task corresponding to the asynchronous execution of the given task.</returns>
     Task<TResult> InvokeTask<TResult>(Func<Task<TResult>> task, CancellationToken token = default);
 

@@ -8,7 +8,7 @@ using NuGet.Frameworks;
 namespace Stride.Core.Assets
 {
     /// <summary>
-    ///   The folders where <see cref="RestoreHelper"/> keeps the restore of a package (its project.assets.json and the
+    ///   The folders where RestoreHelper keeps the restore of a package (its project.assets.json and the
     ///   no-op cache), one per package, version, framework and runtime.
     /// </summary>
     /// <remarks>

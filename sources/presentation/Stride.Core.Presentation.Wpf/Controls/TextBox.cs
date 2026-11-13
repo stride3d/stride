@@ -65,7 +65,7 @@ namespace Stride.Core.Presentation.Controls
 
         /// <summary>
         /// Gets or sets the amount of time before a validation of input text happens, in milliseconds.
-        /// Every change to the <see cref="TextBox.Text"/> property reset the timer to this value.
+        /// Every change to the <see cref="System.Windows.Controls.TextBox.Text"/> property resets the timer to this value.
         /// </summary>
         /// <remarks>The default value is <c>500</c> milliseconds.</remarks>
         public int ValidationDelay { get { return (int)GetValue(ValidationDelayProperty); } set { SetValue(ValidationDelayProperty, value); } }
@@ -88,8 +88,8 @@ namespace Stride.Core.Presentation.Controls
         /// <summary>
         /// Raised when the text of the TextBox changes.
         /// </summary>
-        /// <param name="oldValue">The old value of the <see cref="TextBox.Text"/> property.</param>
-        /// <param name="newValue">The new value of the <see cref="TextBox.Text"/> property.</param>
+        /// <param name="oldValue">The old value of the <see cref="System.Windows.Controls.TextBox.Text"/> property.</param>
+        /// <param name="newValue">The new value of the <see cref="System.Windows.Controls.TextBox.Text"/> property.</param>
         protected override void OnTextChanged(string oldValue, string newValue)
         {
             if (UseTimedValidation)

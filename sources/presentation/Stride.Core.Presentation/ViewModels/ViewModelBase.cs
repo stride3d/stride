@@ -167,35 +167,35 @@ public abstract class ViewModelBase : INotifyPropertyChanging, INotifyPropertyCh
     /// <param name="hasChangedFunction">A function that check if the new value is different and therefore if the update must be actually done.</param>
     /// <param name="updateAction">The update action that will actually manage the update of the property.</param>
     /// <param name="propertyName">The name of the property that must be notified as changing/changed. Can use <see cref="CallerMemberNameAttribute"/>.</param>
-    /// <returns><c>True</c> if the update was done and events were raised, <c>False</c> if <see cref="hasChangedFunction"/> is not <c>null</c> and returned false.</returns>
+    /// <returns><c>True</c> if the update was done and events were raised, <c>False</c> if <paramref name="hasChangedFunction"/> is not <c>null</c> and returned false.</returns>
     protected bool SetValue(Func<bool>? hasChangedFunction, Action? updateAction, [CallerMemberName] string propertyName = null!)
     {
         return SetValue(hasChangedFunction, updateAction, [propertyName]);
     }
 
     /// <summary>
-    /// Manages a property modification and its notifications. The first parameter <see cref="hasChanged"/> should indicate whether the property
+    /// Manages a property modification and its notifications. The first parameter <paramref name="hasChanged"/> should indicate whether the property
     /// should actually be updated. If this parameter is <c>True</c>, it will invoke the provided update action. The <see cref="PropertyChanging"/>
     /// event will be raised prior to the update action, and the <see cref="PropertyChanged"/> event will be raised after.
     /// </summary>
     /// <param name="hasChanged">A boolean that indicates whether the update must be actually done. If <c>null</c>, the update is always done.</param>
     /// <param name="updateAction">The update action that will actually manage the update of the property.</param>
     /// <param name="propertyName">The name of the property that must be notified as changing/changed. Can use <see cref="CallerMemberNameAttribute"/>.</param>
-    /// <returns>The value provided in the <see cref="hasChanged"/> argument.</returns>
+    /// <returns>The value provided in the <paramref name="hasChanged"/> argument.</returns>
     protected bool SetValue(bool hasChanged, Action? updateAction, [CallerMemberName] string propertyName = null!)
     {
         return SetValue(() => hasChanged, updateAction, [propertyName]);
     }
 
     /// <summary>
-    /// Manages a property modification and its notifications. The first parameter <see cref="hasChanged"/> should indicate whether the property
+    /// Manages a property modification and its notifications. The first parameter <paramref name="hasChanged"/> should indicate whether the property
     /// should actuallybe updated. If this parameter is <c>True</c>, it will invoke the provided update action. The <see cref="PropertyChanging"/>
     /// event will be raised prior to the update action, and the <see cref="PropertyChanged"/> event will be raised after.
     /// </summary>
     /// <param name="hasChanged">A boolean that indicates whether the update must be actually done. If <c>null</c>, the update is always done.</param>
     /// <param name="updateAction">The update action that will actually manage the update of the property.</param>
     /// <param name="propertyNames">The names of the properties that must be notified as changing/changed. At least one property name must be provided.</param>
-    /// <returns>The value provided in the <see cref="hasChanged"/> argument.</returns>
+    /// <returns>The value provided in the <paramref name="hasChanged"/> argument.</returns>
     protected bool SetValue(bool hasChanged, Action? updateAction, params string[] propertyNames)
     {
         return SetValue(() => hasChanged, updateAction, propertyNames);
@@ -209,7 +209,7 @@ public abstract class ViewModelBase : INotifyPropertyChanging, INotifyPropertyCh
     /// <param name="hasChangedFunction">A function that check if the new value is different and therefore if the update must be actually done.</param>
     /// <param name="updateAction">The update action that will actually manage the update of the property.</param>
     /// <param name="propertyNames">The names of the properties that must be notified as changing/changed. At least one property name must be provided.</param>
-    /// <returns><c>True</c> if the update was done and events were raised, <c>False</c> if <see cref="hasChangedFunction"/> is not <c>null</c> and returned false.</returns>
+    /// <returns><c>True</c> if the update was done and events were raised, <c>False</c> if <paramref name="hasChangedFunction"/> is not <c>null</c> and returned false.</returns>
     protected virtual bool SetValue(Func<bool>? hasChangedFunction, Action? updateAction, params string[] propertyNames)
     {
         if (propertyNames.Length == 0)

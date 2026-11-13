@@ -449,6 +449,15 @@ namespace Stride.Rendering
             }
         }
 
+        /// <summary>
+        ///   The fewest render nodes one command list draws when a render stage is drawn in parallel.
+        /// </summary>
+        /// <remarks>
+        ///   Each command list has a fixed GPU cost (on Direct3D 12 also a descriptor heap change), so a stage of a hundred
+        ///   draws split into one list per processor was slower on the GPU and the CPU than a few lists of 64.
+        /// </remarks>
+        private const int MinRenderNodesPerBatch = 64;
+
         public void Draw(RenderDrawContext renderDrawContext, RenderView renderView, RenderStage renderStage)
         {
             using var _ = Profiler.Begin(DrawKey);
@@ -514,8 +523,8 @@ namespace Stride.Rendering
             }
             else
             {
-                // Create at most one batch per processor
-                int batchCount = Math.Min(Dispatcher.MaxDegreeOfParallelism, renderNodeCount);
+                // Create at most one batch per processor, of at least MinRenderNodesPerBatch render nodes
+                int batchCount = Math.Min(Dispatcher.MaxDegreeOfParallelism, (renderNodeCount + (MinRenderNodesPerBatch - 1)) / MinRenderNodesPerBatch);
                 int batchSize = (renderNodeCount + (batchCount - 1)) / batchCount;
                 batchCount = (renderNodeCount + (batchSize - 1)) / batchSize;
 
@@ -594,8 +603,7 @@ namespace Stride.Rendering
         /// <summary>
         /// Initializes the render system.
         /// </summary>
-        /// <param name="effectSystem">The effect system.</param>
-        /// <param name="graphicsDevice">The graphics device.</param>
+        /// <param name="context">The render context.</param>
         public void Initialize(RenderContext context)
         {
             registry = context.Services;

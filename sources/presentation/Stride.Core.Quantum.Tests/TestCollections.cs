@@ -14,7 +14,7 @@ public class TestCollections
 {
     public class SimpleObject
     {
-        public string Name;
+        public string? Name;
         public override string ToString() => $"{{SimpleObject: {Name}}}";
     }
 
@@ -23,7 +23,7 @@ public class TestCollections
         public List<SimpleObject> List { get; set; } = [];
         public List<object> ObjectList { get; set; } = [];
 
-        public object ObjectMember { get; set; }
+        public object? ObjectMember { get; set; }
     }
 
     [Fact]
@@ -33,14 +33,14 @@ public class TestCollections
         var container = new ListContainer { List = { new SimpleObject(), new SimpleObject() } };
         var containerNode = nodeContainer.GetOrCreateNode(container);
         var oldList = container.List;
-        var oldItem1Node = containerNode[nameof(ListContainer.List)].Target.IndexedTarget(new NodeIndex(0));
-        var oldItem2Node = containerNode[nameof(ListContainer.List)].Target.IndexedTarget(new NodeIndex(1));
+        var oldItem1Node = containerNode[nameof(ListContainer.List)].Target!.IndexedTarget(new NodeIndex(0));
+        var oldItem2Node = containerNode[nameof(ListContainer.List)].Target!.IndexedTarget(new NodeIndex(1));
         containerNode[nameof(ListContainer.List)].Update(new List<SimpleObject> { new(), new() });
         Assert.NotEqual(oldList, containerNode[nameof(ListContainer.List)].Retrieve());
-        Assert.NotEqual(oldItem1Node, containerNode[nameof(ListContainer.List)].Target.IndexedTarget(new NodeIndex(0)));
-        Assert.NotEqual(oldItem1Node.Retrieve(), containerNode[nameof(ListContainer.List)].Target.IndexedTarget(new NodeIndex(0)).Retrieve());
-        Assert.NotEqual(oldItem2Node, containerNode[nameof(ListContainer.List)].Target.IndexedTarget(new NodeIndex(1)));
-        Assert.NotEqual(oldItem2Node.Retrieve(), containerNode[nameof(ListContainer.List)].Target.IndexedTarget(new NodeIndex(1)).Retrieve());
+        Assert.NotEqual(oldItem1Node, containerNode[nameof(ListContainer.List)].Target!.IndexedTarget(new NodeIndex(0)));
+        Assert.NotEqual(oldItem1Node!.Retrieve(), containerNode[nameof(ListContainer.List)].Target!.IndexedTarget(new NodeIndex(0))!.Retrieve());
+        Assert.NotEqual(oldItem2Node, containerNode[nameof(ListContainer.List)].Target!.IndexedTarget(new NodeIndex(1)));
+        Assert.NotEqual(oldItem2Node!.Retrieve(), containerNode[nameof(ListContainer.List)].Target!.IndexedTarget(new NodeIndex(1))!.Retrieve());
     }
 
     [Fact]
@@ -56,14 +56,14 @@ public class TestCollections
         VerifyItem(memberNode, 2, items[0], false);
         VerifyItem(memberNode, 3, items[1], false);
 
-        memberNode.Target.Add(items[0]);
+        memberNode.Target!.Add(items[0]);
         VerifyItem(memberNode, 0, items[0], false);
         VerifyItem(memberNode, 1, items[1], false);
         VerifyItem(memberNode, 2, items[0], false);
         VerifyItem(memberNode, 3, items[1], false);
         VerifyItem(memberNode, 4, items[0], false);
 
-        memberNode.Target.Update(items[1], new NodeIndex(2));
+        memberNode.Target!.Update(items[1], new NodeIndex(2));
         VerifyItem(memberNode, 0, items[0], false);
         VerifyItem(memberNode, 1, items[1], false);
         VerifyItem(memberNode, 2, items[1], false);
@@ -84,13 +84,13 @@ public class TestCollections
         VerifyItem(memberNode, 1, items[1], false);
 
         // Add a new item
-        memberNode.Target.Add(items[2]);
+        memberNode.Target!.Add(items[2]);
         VerifyItem(memberNode, 0, items[0], false);
         VerifyItem(memberNode, 1, items[1], false);
         VerifyItem(memberNode, 2, items[2], false);
 
         // Update existing item (with a different type here)
-        memberNode.Target.Update(items[3], new NodeIndex(2));
+        memberNode.Target!.Update(items[3], new NodeIndex(2));
         VerifyItem(memberNode, 0, items[0], false);
         VerifyItem(memberNode, 1, items[1], false);
         VerifyItem(memberNode, 2, items[3], false);
@@ -110,13 +110,13 @@ public class TestCollections
         VerifyItem(memberNode, 1, 2.0f, true);
 
         // Add a new item
-        memberNode.Target.Add(3.0f);
+        memberNode.Target!.Add(3.0f);
         VerifyItem(memberNode, 0, 1.0f, true);
         VerifyItem(memberNode, 1, 2.0f, true);
         VerifyItem(memberNode, 2, 3.0f, true);
 
         // Update existing item (with a different type here)
-        memberNode.Target.Update(4.0, new NodeIndex(2));
+        memberNode.Target!.Update(4.0, new NodeIndex(2));
         VerifyItem(memberNode, 0, 1.0f, true);
         VerifyItem(memberNode, 1, 2.0f, true);
         VerifyItem(memberNode, 2, 4.0, true);
@@ -134,13 +134,13 @@ public class TestCollections
         Assert.Equal(values[1], container.ObjectMember);
         Assert.Equal(container.ObjectMember, containerNode[nameof(ListContainer.ObjectMember)].Retrieve());
         Assert.True(containerNode[nameof(ListContainer.ObjectMember)].IsReference);
-        Assert.NotNull(containerNode[nameof(ListContainer.ObjectMember)].Target.Indices);
-        Assert.Equal(2, containerNode[nameof(ListContainer.ObjectMember)].Target.Indices.Count());
-        Assert.Equal(new NodeIndex(0), containerNode[nameof(ListContainer.ObjectMember)].Target.Indices.ToList()[0]);
-        Assert.Equal(new NodeIndex(1), containerNode[nameof(ListContainer.ObjectMember)].Target.Indices.ToList()[1]);
+        Assert.NotNull(containerNode[nameof(ListContainer.ObjectMember)].Target!.Indices);
+        Assert.Equal(2, containerNode[nameof(ListContainer.ObjectMember)].Target!.Indices!.Count());
+        Assert.Equal(new NodeIndex(0), containerNode[nameof(ListContainer.ObjectMember)].Target!.Indices!.ToList()[0]);
+        Assert.Equal(new NodeIndex(1), containerNode[nameof(ListContainer.ObjectMember)].Target!.Indices!.ToList()[1]);
         Assert.Equal(TypeDescriptorFactory.Default.Find(typeof(object)), containerNode[nameof(ListContainer.ObjectMember)].Descriptor);
-        Assert.Equal(((IList)values[1])[0], containerNode[nameof(ListContainer.ObjectMember)].Target.IndexedTarget(new NodeIndex(0)));
-        Assert.Equal(((IList)values[1])[1], containerNode[nameof(ListContainer.ObjectMember)].Target.IndexedTarget(new NodeIndex(1)));
+        Assert.Equal(((IList)values[1])[0], containerNode[nameof(ListContainer.ObjectMember)].Target!.IndexedTarget(new NodeIndex(0)));
+        Assert.Equal(((IList)values[1])[1], containerNode[nameof(ListContainer.ObjectMember)].Target!.IndexedTarget(new NodeIndex(1)));
         Assert.Equal(typeof(object), containerNode[nameof(ListContainer.ObjectMember)].Type);
         // TODO: more things could be checked!
         containerNode[nameof(ListContainer.ObjectMember)].Update(values[2]);
@@ -150,21 +150,21 @@ public class TestCollections
 
     private static void VerifyItem(IMemberNode listMemberNode, int index, object expectedValue, bool isPrimitive)
     {
-        var targetNode = listMemberNode.Target;
-        var enumRef = targetNode.ItemReferences;
+        var targetNode = listMemberNode.Target!;
+        var enumRef = targetNode.ItemReferences!;
         var indexValue = new NodeIndex(index);
 
         Assert.NotNull(enumRef);
         Assert.NotNull(targetNode.Indices);
-        Assert.Equal(indexValue, targetNode.Indices.ToList()[index]);
+        Assert.Equal(indexValue, targetNode.Indices!.ToList()[index]);
         Assert.Equal(indexValue, enumRef.Indices.ToList()[index]);
         Assert.Equal(indexValue, enumRef.ToList()[index].Index);
         Assert.Equal(expectedValue, enumRef.ToList()[index].ObjectValue);
         Assert.NotNull(enumRef.ToList()[index].TargetNode);
-        Assert.Equal(expectedValue, enumRef.ToList()[index].TargetNode.Retrieve());
-        Assert.Equal(TypeDescriptorFactory.Default.Find(expectedValue.GetType()), enumRef.ToList()[index].TargetNode.Descriptor);
-        Assert.False(enumRef.ToList()[index].TargetNode.IsReference);
-        Assert.Equal(expectedValue.GetType(), enumRef.ToList()[index].TargetNode.Type);
-        Assert.Equal(expectedValue, enumRef.ToList()[index].TargetNode.Retrieve());
+        Assert.Equal(expectedValue, enumRef.ToList()[index].TargetNode!.Retrieve());
+        Assert.Equal(TypeDescriptorFactory.Default.Find(expectedValue.GetType()), enumRef.ToList()[index].TargetNode!.Descriptor);
+        Assert.False(enumRef.ToList()[index].TargetNode!.IsReference);
+        Assert.Equal(expectedValue.GetType(), enumRef.ToList()[index].TargetNode!.Type);
+        Assert.Equal(expectedValue, enumRef.ToList()[index].TargetNode!.Retrieve());
     }
 }

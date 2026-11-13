@@ -53,6 +53,7 @@ public class SerializerSelector
     /// Initializes a new instance of the <see cref="SerializerSelector"/> class.
     /// </summary>
     /// <param name="reuseReferences">if set to <c>true</c> reuse references (allow cycles in the object graph).</param>
+    /// <param name="externalIdentifiableAsGuid">Whether to serialize externally identifiable objects as GUIDs.</param>
     /// <param name="profiles">The profiles.</param>
     public SerializerSelector(bool reuseReferences, bool externalIdentifiableAsGuid, params string[] profiles)
     {

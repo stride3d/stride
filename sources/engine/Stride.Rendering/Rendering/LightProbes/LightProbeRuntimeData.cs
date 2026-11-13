@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Stride.Core;
-using Stride.Core.Collections;
 using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization.Contents;
@@ -31,8 +30,14 @@ namespace Stride.Rendering.LightProbes
         // Computed data
         public Vector3[] Vertices;
         public int UserVertexCount;
-        public FastList<BowyerWatsonTetrahedralization.Tetrahedron> Tetrahedra;
-        public FastList<BowyerWatsonTetrahedralization.Face> Faces;
+        /// <summary>
+        /// The tetrahedra used to interpolate light probes.
+        /// </summary>
+        public List<BowyerWatsonTetrahedralization.Tetrahedron> Tetrahedra;
+        /// <summary>
+        /// The faces shared by pairs of tetrahedra.
+        /// </summary>
+        public List<BowyerWatsonTetrahedralization.Face> Faces;
 
         // Data to upload to GPU
         public Color3[] Coefficients;

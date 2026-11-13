@@ -84,12 +84,13 @@ public class TestCapturePhase
     [Fact]
     public void CapturePhaseAddsNoAllocationPerFrame()
     {
-        // Compare against the same frame without a capture owner, so only what capture adds is measured.
+        // Compare against the same frame without a capture owner, so only what capture adds is measured. It may cost
+        // less, because the frames without capture run first and can pay for what the runtime only allocates once.
         var withoutCapture = MeasureFrames(captureMouse: false);
         var withCapture = MeasureFrames(captureMouse: true);
 
         Assert.True(
-            withCapture.AllocatedBytes == withoutCapture.AllocatedBytes,
+            withCapture.AllocatedBytes <= withoutCapture.AllocatedBytes,
             $"Capturing added allocations. Without capture: {withoutCapture}. With capture: {withCapture}.");
     }
 

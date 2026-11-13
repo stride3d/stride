@@ -1,13 +1,13 @@
 <Project>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.props" />
   <PropertyGroup>
-    <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <EnableDefaultItems>false</EnableDefaultItems>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
+    <ProjectReference Include="..\..\tests\Stride.XunitRunner\Stride.XunitRunner.csproj" />
     <ProjectReference Include="..\Stride.Assets\Stride.Assets.csproj" />
     <ProjectReference Include="..\Stride.Assets.Models\Stride.Assets.Models.csproj" />
     <ProjectReference Include="..\Stride.Assets.Generators\Stride.Assets.Generators.csproj" />
@@ -17,6 +17,8 @@
     <ProjectReference Include="..\..\plugins\SpriteStudio\Stride.SpriteStudio.Assets\Stride.SpriteStudio.Assets.csproj" />
     <ProjectReference Include="..\..\plugins\Audio\Stride.Audio.Assets\Stride.Audio.Assets.csproj" />
     <ProjectReference Include="..\..\plugins\UI\Stride.UI.Assets\Stride.UI.Assets.csproj" />
+    <!-- The particle types of the asset upgrade fixtures -->
+    <ProjectReference Include="..\..\plugins\Particles\Stride.Particles\Stride.Particles.csproj" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
     <!-- The project upgrade tests load project files: MSBuild itself comes from the locator -->
     <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" PrivateAssets="all" />
@@ -28,7 +30,9 @@
     </Compile>
     <Compile Include="TestAssetFileExtensionDeclarations.cs" />
     <Compile Include="TestHeightmapAssetCompatibility.cs" />
+    <Compile Include="TestConvexHullMesh.cs" />
     <Compile Include="TestPluginPackageUpgrade.cs" />
+    <Compile Include="TestUpgraderGates.cs" />
     <Compile Include="TestAudioProjectUpgrade.cs" />
     <Compile Include="TestAssetConstantsTargets.cs" />
     <Compile Include="TestFFmpegTool.cs" />
@@ -36,17 +40,26 @@
     <Compile Include="TestAssetUrlConstantsGenerator.cs" />
     <Compile Include="TestCodeUpgrade.cs" />
     <Compile Include="TestContentTemplateResolver.cs" />
+    <Compile Include="TestDotNetNewTemplateGenerator.cs" />
     <Compile Include="TestRenderFeatureProviders.cs" />
     <Compile Include="TestMemberRequiredComponentChecks.cs" />
     <Compile Include="XunitAttributes.cs" />
     <Compile Include="TestMaterialGenerator.cs" />
     <Compile Include="AssetImportTests.cs" />
+    <Compile Include="TestModelImport.cs" />
+    <Compile Include="TestModelMaterialSlots.cs" />
+    <Compile Include="TestModelBones.cs" />
     <Compile Include="TestMorphImport.cs" />
+    <Compile Include="TestGltfMaterialImport.cs" />
+    <Compile Include="TestLegacyTextureRoles.cs" />
+    <Compile Include="TestTangentImport.cs" />
     <Compile Include="TestModelComponentMorphs.cs" />
+    <Compile Include="TestModelAssetMorphTargetNames.cs" />
     <Compile Include="TestDependencyResolver.cs" />
+    <Compile Include="TestEffectLogStore.cs" />
     <Compile Include="TestPrefabAsset.cs" />
     <Compile Include="TestGraphicsCompositorUpgrader.cs" />
-    <Compile Include="TestSceneUpgrader.cs" />
+    <Compile Include="TestAssetUpgrade.cs" />
     <Compile Include="TestSystemFontProvider.cs" />
     <Compile Include="TestSignedDistanceFieldFont.cs" />
     <Compile Include="TestVisualScriptCompiler.cs" />
@@ -59,6 +72,10 @@
     </Content>
     <Content Include="..\..\data\tests\video\clip.mp4">
       <Link>video\clip.mp4</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\data\tests\knight\scenes\knight.fbx;..\..\data\tests\knight\scenes\mannequinModel.fbx;scenes\goblin.fbx">
+      <Link>app_data\Stride.Assets.Tests\bones\%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\data\tests\knight\scenes\knight.fbx">
@@ -103,6 +120,10 @@
       <Link>TexturePacking\GoldImages\%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="AssetUpgrade\Fixtures\*.*;AssetUpgrade\Expected\*.*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <None Include="AssetUpgrade\README.md" />
     <Content Include="app_data\Stride.Assets.Tests\Logo.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

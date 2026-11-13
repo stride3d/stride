@@ -339,7 +339,7 @@ float4 main(vs_out input) : SV_TARGET {
         deviceContext.CopyResource(stagingBuffer, buffer);
 
         MappedSubresource mappedResource = default;
-        SilkMarshal.ThrowHResult(deviceContext.Map(stagingBuffer, 0, Map.MapRead, 0, ref mappedResource));
+        SilkMarshal.ThrowHResult(deviceContext.Map(stagingBuffer, 0, Map.Read, 0, ref mappedResource));
         var data = new Span<byte>(mappedResource.PData, (int)bufferDesc.ByteWidth).ToArray();
         deviceContext.Unmap(stagingBuffer, 0);
         stagingBuffer.Dispose();
@@ -625,7 +625,7 @@ float4 main(vs_out input) : SV_TARGET {
         deviceContext.CopyResource(renderTextureStaging, renderTexture);
 
         MappedSubresource mappedResource = default;
-        deviceContext.Map(renderTextureStaging, 0, Map.MapRead, 0, ref mappedResource);
+        deviceContext.Map(renderTextureStaging, 0, Map.Read, 0, ref mappedResource);
         var span = new Span<byte>(mappedResource.PData, (int)(width * height * 4));
         span.CopyTo(result);
         deviceContext.Unmap(renderTextureStaging, 0);
@@ -779,7 +779,7 @@ float4 main(vs_out input) : SV_TARGET {
         // Read back SO buffer
         deviceContext.CopyResource(soStagingBuffer, soBuffer);
         MappedSubresource mappedResource = default;
-        deviceContext.Map(soStagingBuffer, 0, Map.MapRead, 0, ref mappedResource);
+        deviceContext.Map(soStagingBuffer, 0, Map.Read, 0, ref mappedResource);
 
         // NumPrimitivesWritten is based on the output topology:
         // - PointStream: each Append = 1 point = 1 primitive

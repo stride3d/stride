@@ -168,6 +168,7 @@ namespace Stride.Graphics
         /// <param name="texture">A texture.</param>
         /// <param name="destinationRectangle">A rectangle that specifies (in screen coordinates) the destination for drawing the sprite.</param>
         /// <param name="color">The color to tint a sprite. Use Color.White for full color with no tinting.</param>
+        /// <param name="colorAdd">The color added to the sprite.</param>
         /// <remarks>
         /// Before making any calls to Draw, you must call Begin. Once all calls to Draw are complete, call End. 
         /// </remarks>
@@ -192,6 +193,7 @@ namespace Stride.Graphics
         /// <param name="texture">A texture.</param>
         /// <param name="position">The location (in screen coordinates) to draw the sprite.</param>
         /// <param name="color">The color to tint a sprite. Use Color.White for full color with no tinting.</param>
+        /// <param name="colorAdd">The color added to the sprite.</param>
         public void Draw(Texture texture, Vector2 position, Color color, Color4 colorAdd = default(Color4))
         {
             var destination = new RectangleF(position.X, position.Y, 1f, 1f);
@@ -210,6 +212,8 @@ namespace Stride.Graphics
         /// <param name="effects">Effects to apply.</param>
         /// <param name="orientation">The source image orientation</param>
         /// <param name="layerDepth">The depth of a layer. By default, 0 represents the front layer and 1 represents a back layer. Use SpriteSortMode if you want sprites to be sorted during drawing.</param>
+        /// <param name="colorAdd">The color added to the sprite.</param>
+        /// <param name="swizzle">The texture channel swizzle mode.</param>
         public void Draw(Texture texture, RectangleF destinationRectangle, RectangleF? sourceRectangle, Color4 color, float rotation, Vector2 origin, 
             SpriteEffects effects = SpriteEffects.None, ImageOrientation orientation = ImageOrientation.AsIs, float layerDepth = 0f, Color4 colorAdd = default(Color4), SwizzleMode swizzle = SwizzleMode.None) 
         {
@@ -259,6 +263,7 @@ namespace Stride.Graphics
         /// <param name="position">The location (in screen coordinates) to draw the sprite.</param>
         /// <param name="sourceRectangle">A rectangle that specifies (in texels) the source texels from a texture. Use null to draw the entire texture. </param>
         /// <param name="color">The color to tint a sprite. Use Color.White for full color with no tinting.</param>
+        /// <param name="colorAdd">The color added to the sprite.</param>
         public void Draw(Texture texture, Vector2 position, RectangleF? sourceRectangle, Color4 color, Color4 colorAdd = default(Color4))
         {
             var destination = new RectangleF(position.X, position.Y, 1f, 1f);
@@ -278,6 +283,8 @@ namespace Stride.Graphics
         /// <param name="effects">Effects to apply.</param>
         /// <param name="orientation">The source image orientation</param>
         /// <param name="layerDepth">The depth of a layer. By default, 0 represents the front layer and 1 represents a back layer. Use SpriteSortMode if you want sprites to be sorted during drawing.</param>
+        /// <param name="colorAdd">The color added to the sprite.</param>
+        /// <param name="swizzle">The texture channel swizzle mode.</param>
         public void Draw(Texture texture, Vector2 position, RectangleF? sourceRectangle, Color4 color, float rotation, 
             Vector2 origin, float scale = 1f, SpriteEffects effects = SpriteEffects.None, ImageOrientation orientation = ImageOrientation.AsIs, float layerDepth = 0, Color4 colorAdd = default(Color4), SwizzleMode swizzle = SwizzleMode.None)
         {
@@ -298,6 +305,7 @@ namespace Stride.Graphics
         /// <param name="effects">Effects to apply.</param>
         /// <param name="orientation">The source image orientation</param>
         /// <param name="layerDepth">The depth of a layer. By default, 0 represents the front layer and 1 represents a back layer. Use SpriteSortMode if you want sprites to be sorted during drawing.</param>
+        /// <param name="colorAdd">The color added to the sprite.</param>
         public void Draw(Texture texture, Vector2 position, RectangleF? sourceRectangle, Color4 color, float rotation, 
             Vector2 origin, Vector2 scale, SpriteEffects effects = SpriteEffects.None, ImageOrientation orientation = ImageOrientation.AsIs, float layerDepth = 0, Color4 colorAdd = default(Color4))
         {

@@ -77,11 +77,8 @@ public partial class DirectoryWatcher
     {
         try
         {
-            while (!exitThread)
+            while (!exitThread.Wait(SleepBetweenWatcherCheck))
             {
-                // TODO should use a wait on an event in order to cancel it more quickly instead of a blocking Thread.Sleep
-                Thread.Sleep(SleepBetweenWatcherCheck);
-
                 lock (watchers)
                 {
                     var list = ListTrackedDirectories().ToList();

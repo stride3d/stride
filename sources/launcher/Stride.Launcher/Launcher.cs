@@ -315,7 +315,7 @@ internal static class Launcher
         {
             var cts = new CancellationTokenSource();
             var window = new CrashReportWindow { Topmost = true };
-            window.DataContext = new CrashReportViewModel(ApplicationName, args, window.Clipboard!.SetTextAsync, cts);
+            window.DataContext = new CrashReportViewModel(ApplicationName, "Launcher", args, window.Clipboard!.SetTextAsync, cts);
             window.Closed += (_, _) => cts.Cancel();
             if (!window.IsVisible)
             {

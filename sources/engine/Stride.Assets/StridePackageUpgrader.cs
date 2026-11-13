@@ -45,7 +45,8 @@ namespace Stride.Assets
 
         /// <summary>
         /// Rewrites every <c>Stride.*</c> <c>PackageReference</c> in the csproj at
-        /// <paramref name="csprojPath"/> to <see cref="CurrentVersion"/>. Standalone — no
+        /// <paramref name="csprojPath"/> to <see cref="CurrentVersion"/>, after renaming
+        /// <c>xunit.runner.stride</c> to <c>Stride.XunitRunner</c>. Standalone — no
         /// <see cref="PackageSession"/> or <see cref="Stride.Core.Reflection.AssemblyContainer"/>
         /// involved. Common building block for fresh-template instantiation and legacy
         /// session-load paths.
@@ -58,8 +59,15 @@ namespace Stride.Assets
                 var project = VSProjectHelper.LoadProject(csprojPath);
                 var isDirty = false;
 
-                foreach (var package in project.GetItems("PackageReference"))
+                foreach (var package in project.GetItems("PackageReference").ToList())
                 {
+                    // 4.5: the test runner package xunit.runner.stride was renamed Stride.XunitRunner; the version is set below
+                    if (string.Equals(package.EvaluatedInclude, "xunit.runner.stride", StringComparison.OrdinalIgnoreCase))
+                    {
+                        package.Rename("Stride.XunitRunner");
+                        isDirty = true;
+                    }
+
                     if (IsSkippedPackage(package.EvaluatedInclude))
                         continue;
 
@@ -155,12 +163,33 @@ namespace Stride.Assets
                 // 4.5: the assembly processor no longer pools the delegates passed to the Dispatcher; its callbacks take
                 // their captures as a state, in a static lambda (#3680).
                 DispatcherCallbacksToStaticLambdas(),
+            ]);
 
-                // 4.5: input devices hold their capture state, so a device that implements the input interfaces itself
+            registry.Code("4.5.1.0",
+            [
+                // 4.5.1: CommandList members that only some graphics APIs had are gone (#3858):
+                // UnsetRenderTargets becomes ResetTargets, which unbinds the same targets and also forgets them;
+                // ResetQueryPool had nothing to do (Vulkan resets a pool itself, Direct3D 12's was empty);
+                // SetStreamTargets bound buffers no shader could write since 4.4 (SDSL0170).
+                Rewrite(
+                    MemberRename("Stride.Graphics.CommandList", "UnsetRenderTargets", "ResetTargets"),
+                    FluentCallRemove("Stride.Graphics.CommandList", "ResetQueryPool"),
+                    FluentCallRemove("Stride.Graphics.CommandList", "SetStreamTargets")),
+            ]);
+
+            registry.Code("4.5.2.0",
+            [
+                // 4.5.2: Bepu's MaxStepPerFrame was replaced by MaximumTimeSpanToProcess (no 1:1 mapping)
+                Rewrite(AssignmentRemove("Stride.BepuPhysics.BepuSimulation", "MaxStepPerFrame")),
+            ]);
+
+            registry.Code("4.5.3.0",
+            [
+                // 4.5.3: input devices hold their capture state, so a device that implements the input interfaces itself
                 // rather than through an engine base class needs one.
                 InterfaceMemberAdd("Stride.Input.IInputDevice", "public DeviceCaptureState CaptureState { get; } = new DeviceCaptureState();", "Stride.Input"),
 
-                // 4.5: GamePadDeviceBase.State is no longer virtual, so that it can hide a captured gamepad;
+                // 4.5.3: GamePadDeviceBase.State is no longer virtual, so that it can hide a captured gamepad;
                 // custom gamepads provide their state through RawState instead.
                 PropertyOverrideRename("Stride.Input.GamePadDeviceBase", "State", "RawState", SyntaxKind.ProtectedKeyword),
 
@@ -188,6 +217,7 @@ namespace Stride.Assets
             registry.Project("4.2.0.0", UpgradeProjectTo42);
             registry.Project("4.3.0.0", UpgradeProjectTo43);
             registry.Project("4.4.0.0", UpgradeProjectTo44);
+            registry.Project("4.4.2.0", UpgradeEffectShaderKeywords);
             registry.Project("4.5.0.0", UpgradeProjectTo45);
             registry.Project("4.5.0.0", AddPluginPackageReferences);
         }
@@ -355,10 +385,7 @@ namespace Stride.Assets
 
                 // Skip build output (Roslyn-generated copies live in obj/, copies may be staged in bin/)
                 var rel = Path.GetRelativePath(projectDir, file).Replace('\\', '/');
-                if (rel.StartsWith("obj/", StringComparison.OrdinalIgnoreCase)
-                    || rel.StartsWith("bin/", StringComparison.OrdinalIgnoreCase)
-                    || rel.Contains("/obj/", StringComparison.OrdinalIgnoreCase)
-                    || rel.Contains("/bin/", StringComparison.OrdinalIgnoreCase))
+                if (IsBuildOutput(rel))
                     continue;
 
                 try
@@ -501,12 +528,7 @@ namespace Stride.Assets
         internal static IEnumerable<string> FindMissingPluginPackages(string projectDir, IEnumerable<string> referencedPackages)
         {
             var assetExtensions = Directory.EnumerateFiles(projectDir, "*.sd*", SearchOption.AllDirectories)
-                .Where(file =>
-                {
-                    var relative = Path.GetRelativePath(projectDir, file).Replace('\\', '/');
-                    return !relative.StartsWith("obj/", StringComparison.OrdinalIgnoreCase) && !relative.StartsWith("bin/", StringComparison.OrdinalIgnoreCase)
-                        && !relative.Contains("/obj/", StringComparison.OrdinalIgnoreCase) && !relative.Contains("/bin/", StringComparison.OrdinalIgnoreCase);
-                })
+                .Where(file => !IsBuildOutput(Path.GetRelativePath(projectDir, file).Replace('\\', '/')))
                 .Select(Path.GetExtension)
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
             var referenced = referencedPackages.ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -517,5 +539,9 @@ namespace Stride.Assets
                 .Distinct()
                 .ToList();
         }
+
+        private static bool IsBuildOutput(string relativePath)
+            => relativePath.StartsWith("obj/", StringComparison.OrdinalIgnoreCase) || relativePath.StartsWith("bin/", StringComparison.OrdinalIgnoreCase)
+                || relativePath.Contains("/obj/", StringComparison.OrdinalIgnoreCase) || relativePath.Contains("/bin/", StringComparison.OrdinalIgnoreCase);
     }
 }

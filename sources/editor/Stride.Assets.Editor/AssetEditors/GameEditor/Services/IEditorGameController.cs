@@ -1,0 +1,105 @@
+﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
+
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Diagnostics;
+using Stride.Core.Presentation.Services;
+using Stride.Editor.EditorGame.ContentLoader;
+using Stride.Editor.EditorGame.ViewModels;
+
+using Stride.Editor.Engine;
+using Stride.Core.Assets.Presentation.ViewModels;
+
+namespace Stride.Assets.Editor.AssetEditors.GameEditor.Services
+{
+    public interface IEditorGameController : IDestroyable, IDispatcherService
+    {
+        [NotNull]
+        IEditorContentLoader Loader { get; }
+
+        [NotNull]
+        Logger Logger { get; }
+
+        [NotNull]
+        Task GameContentLoaded { get; }
+
+        /// <summary>
+        /// A task that completes once the game thread runs no more frame: its loop has ended, after <see cref="IDestroyable.Destroy"/>
+        /// or a failure, or it never started. Code that the game reads on every frame, such as the settings keys of the plugins,
+        /// can go once it completes.
+        /// </summary>
+        [NotNull]
+        Task GameEnded { get; }
+
+        /// <summary>
+        /// The <see cref="SessionNodeContainer"/> to use to create Quantum graphs for game side elements.
+        /// </summary>
+        /// <remarks>
+        /// We use another node container so that nodes created for the game editor can be discarded once we close it.
+        /// </remarks>
+        [NotNull]
+        SessionNodeContainer GameSideNodeContainer { get; }
+
+        /// <summary>
+        /// Gets the control that shows the game: the view of its viewport.
+        /// </summary>
+        [NotNull]
+        object View { get; }
+
+        /// <summary>
+        /// Gets the viewport the game renders into.
+        /// </summary>
+        [NotNull]
+        IEditorGameViewport Viewport { get; }
+
+        /// <summary>
+        /// Starts and initialize the game thread.
+        /// </summary>
+        /// <returns>True if the game was successfully initialized, false otherwise.</returns>
+        Task<bool> StartGame();
+
+        /// <summary>
+        /// Creates the scene for the related editor game.
+        /// </summary>
+        /// <returns>True if the scene was successfully created, false otherwise.</returns>
+        Task<bool> CreateScene();
+
+        /// <summary>
+        /// Stops the game from rendering and throttle game updates.
+        /// </summary>
+        void OnHideGame();
+
+        /// <summary>
+        /// Resumes the game rendering and updating and .
+        /// </summary>
+        void OnShowGame();
+
+        /// <summary>
+        /// Finds the game-side instance corresponding to the part with the given id, if it exists.
+        /// </summary>
+        /// <param name="partId">The id of the part to look for.</param>
+        /// <returns>The game-side instance corresponding to the given id if it exists, or null.</returns>
+        /// <remarks>This method must be called from the game thread.</remarks>
+        [CanBeNull]
+        object FindGameSidePart(AbsoluteId partId);
+
+        [CanBeNull]
+        T GetService<T>() where T : IEditorGameViewModelService;
+
+        /// <summary>
+        /// Every service implementing <typeparamref name="T"/>, in registration order; empty before the game started.
+        /// </summary>
+        [NotNull]
+        IReadOnlyList<T> GetServices<T>() where T : IEditorGameViewModelService;
+
+        /// <summary>
+        /// Triggers a re-evaluation of the active render stages.
+        /// </summary>
+        void TriggerActiveRenderStageReevaluation();
+    }
+}

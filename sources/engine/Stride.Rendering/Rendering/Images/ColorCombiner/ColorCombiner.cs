@@ -22,7 +22,6 @@ namespace Stride.Rendering.Images
         /// <summary>
         /// Initializes a new instance of the <see cref="ColorCombiner"/> class.
         /// </summary>
-        /// <param name="context">The context.</param>
         /// <param name="colorCombinerShaderName">Name of the color combiner shader.</param>
         public ColorCombiner(string colorCombinerShaderName = "ColorCombinerEffect")
         {

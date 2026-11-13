@@ -8,7 +8,7 @@ using Stride.Core.Storage;
 
 namespace Stride.Core.Serialization;
 
-public static unsafe class MemberNullableSerializer
+public static class MemberNullableSerializer
 {
     public static void SerializeExtended(SerializationStream stream, Type objType, ref object obj, ArchiveMode mode, DataSerializer dataSerializer = null)
     {
@@ -98,7 +98,7 @@ public static unsafe class MemberNullableSerializer
     }
 }
 
-public unsafe class MemberNullableSerializer<T> : MemberSerializer<T>
+public class MemberNullableSerializer<T> : MemberSerializer<T>
 {
     public MemberNullableSerializer(DataSerializer<T> dataSerializer) : base(dataSerializer)
     {
@@ -159,7 +159,7 @@ public unsafe class MemberNullableSerializer<T> : MemberSerializer<T>
     {
         var context = stream.Context;
 
-        if (isValueType)
+        if (typeof(T).IsValueType)
         {
             if (dataSerializer is null)
             {
@@ -243,7 +243,7 @@ public unsafe class MemberNullableSerializer<T> : MemberSerializer<T>
     }
 }
 
-public unsafe class MemberNullableSerializerObject<T> : MemberSerializer<T>
+public class MemberNullableSerializerObject<T> : MemberSerializer<T>
 {
     public MemberNullableSerializerObject(DataSerializer<T> dataSerializer) : base(dataSerializer)
     {
@@ -252,7 +252,7 @@ public unsafe class MemberNullableSerializerObject<T> : MemberSerializer<T>
     public override void Serialize(ref T obj, ArchiveMode mode, SerializationStream stream)
     {
 
-        if (isValueType)
+        if (typeof(T).IsValueType)
         {
 
             // Structure, no need to check for inheritance or null values.
@@ -310,7 +310,7 @@ public unsafe class MemberNullableSerializerObject<T> : MemberSerializer<T>
     }
 }
 
-public static unsafe class MemberNonSealedSerializer
+public static class MemberNonSealedSerializer
 {
     public static void SerializeExtended(SerializationStream stream, Type objType, ref object obj, ArchiveMode mode, DataSerializer dataSerializer = null)
     {
@@ -463,7 +463,7 @@ public static unsafe class MemberNonSealedSerializer
     }
 }
 
-public unsafe class MemberNonSealedSerializer<T> : MemberSerializer<T>
+public class MemberNonSealedSerializer<T> : MemberSerializer<T>
 {
     public MemberNonSealedSerializer(DataSerializer<T> dataSerializer) : base(dataSerializer)
     {
@@ -496,7 +496,7 @@ public unsafe class MemberNonSealedSerializer<T> : MemberSerializer<T>
 
                 // If real type is not expected type, we need to store type info as well.
                 var expectedType = typeof(T);
-                type = isSealed ? expectedType : obj.GetType();
+                type = IsSealed ? expectedType : obj.GetType();
                 hasTypeInfo = type != expectedType;
                 objectDataSerializer = null;
                 if (hasTypeInfo)
@@ -593,7 +593,7 @@ public unsafe class MemberNonSealedSerializer<T> : MemberSerializer<T>
     {
         var context = stream.Context;
 
-        if (isValueType)
+        if (typeof(T).IsValueType)
         {
             if (dataSerializer is null)
             {
@@ -633,7 +633,7 @@ public unsafe class MemberNonSealedSerializer<T> : MemberSerializer<T>
 
                 // If real type is not expected type, we need to store type info as well.
                 var expectedType = typeof(T);
-                type = isSealed ? expectedType : obj.GetType();
+                type = IsSealed ? expectedType : obj.GetType();
                 hasTypeInfo = type != expectedType;
                 objectDataSerializer = null;
                 if (hasTypeInfo)
@@ -745,7 +745,7 @@ public unsafe class MemberNonSealedSerializer<T> : MemberSerializer<T>
     }
 }
 
-public unsafe class MemberNonSealedSerializerObject<T> : MemberSerializer<T>
+public class MemberNonSealedSerializerObject<T> : MemberSerializer<T>
 {
     public MemberNonSealedSerializerObject(DataSerializer<T> dataSerializer) : base(dataSerializer)
     {
@@ -755,7 +755,7 @@ public unsafe class MemberNonSealedSerializerObject<T> : MemberSerializer<T>
     {
         var context = stream.Context;
 
-        if (isValueType)
+        if (typeof(T).IsValueType)
         {
 
             // Structure, no need to check for inheritance or null values.
@@ -787,7 +787,7 @@ public unsafe class MemberNonSealedSerializerObject<T> : MemberSerializer<T>
 
                 // If real type is not expected type, we need to store type info as well.
                 var expectedType = typeof(T);
-                type = isSealed ? expectedType : obj.GetType();
+                type = IsSealed ? expectedType : obj.GetType();
                 hasTypeInfo = type != expectedType;
                 objectDataSerializer = null;
                 if (hasTypeInfo)
@@ -881,7 +881,7 @@ public unsafe class MemberNonSealedSerializerObject<T> : MemberSerializer<T>
     }
 }
 
-public static unsafe class MemberReuseSerializer
+public static class MemberReuseSerializer
 {
     public static void SerializeExtended(SerializationStream stream, Type objType, ref object obj, ArchiveMode mode, DataSerializer dataSerializer = null)
     {
@@ -1108,7 +1108,7 @@ public static unsafe class MemberReuseSerializer
     }
 }
 
-public unsafe class MemberReuseSerializer<T> : MemberSerializer<T>
+public class MemberReuseSerializer<T> : MemberSerializer<T>
 {
     public MemberReuseSerializer(DataSerializer<T> dataSerializer) : base(dataSerializer)
     {
@@ -1171,7 +1171,7 @@ public unsafe class MemberReuseSerializer<T> : MemberSerializer<T>
 
                 // If real type is not expected type, we need to store type info as well.
                 var expectedType = typeof(T);
-                type = isSealed ? expectedType : obj.GetType();
+                type = IsSealed ? expectedType : obj.GetType();
                 hasTypeInfo = type != expectedType;
                 objectDataSerializer = null;
                 if (hasTypeInfo)
@@ -1312,7 +1312,7 @@ public unsafe class MemberReuseSerializer<T> : MemberSerializer<T>
     {
         var context = stream.Context;
 
-        if (isValueType)
+        if (typeof(T).IsValueType)
         {
             if (dataSerializer is null)
             {
@@ -1382,7 +1382,7 @@ public unsafe class MemberReuseSerializer<T> : MemberSerializer<T>
 
                 // If real type is not expected type, we need to store type info as well.
                 var expectedType = typeof(T);
-                type = isSealed ? expectedType : obj.GetType();
+                type = IsSealed ? expectedType : obj.GetType();
                 hasTypeInfo = type != expectedType;
                 objectDataSerializer = null;
                 if (hasTypeInfo)
@@ -1538,7 +1538,7 @@ public unsafe class MemberReuseSerializer<T> : MemberSerializer<T>
     }
 }
 
-public unsafe class MemberReuseSerializerObject<T> : MemberSerializer<T>
+public class MemberReuseSerializerObject<T> : MemberSerializer<T>
 {
     public MemberReuseSerializerObject(DataSerializer<T> dataSerializer) : base(dataSerializer)
     {
@@ -1548,7 +1548,7 @@ public unsafe class MemberReuseSerializerObject<T> : MemberSerializer<T>
     {
         var context = stream.Context;
 
-        if (isValueType)
+        if (typeof(T).IsValueType)
         {
 
             // Structure, no need to check for inheritance or null values.
@@ -1610,7 +1610,7 @@ public unsafe class MemberReuseSerializerObject<T> : MemberSerializer<T>
 
                 // If real type is not expected type, we need to store type info as well.
                 var expectedType = typeof(T);
-                type = isSealed ? expectedType : obj.GetType();
+                type = IsSealed ? expectedType : obj.GetType();
                 hasTypeInfo = type != expectedType;
                 objectDataSerializer = null;
                 if (hasTypeInfo)

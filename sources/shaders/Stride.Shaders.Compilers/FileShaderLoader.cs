@@ -21,6 +21,13 @@ public class FileShaderLoader : ShaderLoaderBase
 
     public override bool LoadExternalFileContent(string name, out string filename, out string code, out ObjectId hash)
     {
+        if (!SourceManager.IsClassExists(name))
+        {
+            filename = code = "";
+            hash = default;
+            return false;
+        }
+
         var result = SourceManager.LoadShaderSource(name);
         filename = result.Path;
         code = result.Source;

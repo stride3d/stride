@@ -40,6 +40,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         effectReflection = default;
         usedHashSources = default;
         entryPoints = default;
+        Explanation = null;
 
         // Create new buffer for the merged result
         using var temp = new SpirvBuffer();
@@ -49,8 +50,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         context.Add(new OpCapability(Capability.Shader));
         context.Add(new OpExtension("SPV_GOOGLE_user_type"));
         context.Add(new OpMemoryModel(AddressingModel.Logical, MemoryModel.GLSL450));
-        if (ShaderLoader is ShaderLoaderBase shaderLoaderBase)
-            shaderLoaderBase.Log = log;
+        using var compilationLog = (ShaderLoader as ShaderLoaderBase)?.UseLog(log);
         var shaderLoader = new CaptureLoadedShaders(ShaderLoader);
         var table = new SymbolTable(context, shaderLoader);
 
@@ -77,6 +77,14 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             ShaderClass.ProcessNameAndTypes(context);
 
             rootMixin = MergeMixinNode(globalContext, context, temp, shaderSource2);
+
+            if (CollectExplanation)
+                Explanation = Explain(rootMixin);
+        }
+        catch (ShaderErrorsLoggedException e)
+        {
+            e.CopyTo(log);
+            return false;
         }
         catch (Exception e)
         {
@@ -265,6 +273,14 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             if (i.Op is Op.OpImageQuerySizeLod or Op.OpImageQuerySize or Op.OpImageQueryLevels or Op.OpImageQuerySamples)
             {
                 context.Add(new OpCapability(Capability.ImageQuery));
+                break;
+            }
+        }
+        foreach (var i in temp)
+        {
+            if (i.Op is Op.OpDPdxFine or Op.OpDPdyFine or Op.OpDPdxCoarse or Op.OpDPdyCoarse)
+            {
+                context.Add(new OpCapability(Capability.DerivativeControl));
                 break;
             }
         }
@@ -784,6 +800,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         foreach (var structType in structTypes)
             shaderInfo.StructTypes.Add(structType.Key, structType.Value);
         shaderInfo.CompositionPath = mixinNode.CompositionPath;
+        shaderInfo.ImportStageOnly = shaderClass.ImportStageOnly;
         if (mixinNode.Stage != null && mixinNode.Stage.ShadersByName.TryGetValue(shaderClass.ClassName, out var stageShaderInfo))
             shaderInfo.Stage = stageShaderInfo;
 
@@ -1476,8 +1493,6 @@ public class CaptureLoadedShaders(IExternalShaderLoader inner) : IExternalShader
         return result;
     }
 
-    public bool LoadExternalBuffer(string name, string? filename, string code, ReadOnlySpan<ShaderMacro> defines, out ShaderBuffers bytecode, out ObjectId hash, out bool isFromCache)
-        => inner.LoadExternalBuffer(name, filename, code, defines, out bytecode, out hash, out isFromCache);
-
-    public ObjectId? SourceHashOverride { get => inner.SourceHashOverride; set => inner.SourceHashOverride = value; }
+    public bool LoadExternalBuffer(string name, string? filename, string code, ObjectId sourceHash, ReadOnlySpan<ShaderMacro> defines, out ShaderBuffers bytecode, out ObjectId hash, out bool isFromCache)
+        => inner.LoadExternalBuffer(name, filename, code, sourceHash, defines, out bytecode, out hash, out isFromCache);
 }

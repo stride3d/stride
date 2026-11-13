@@ -1,6 +1,6 @@
 {
   "os": "Microsoft Windows 10.0.26100",
-  "cpu": "AMD EPYC 9V74 80-Core Processor",
+  "cpu": "AMD EPYC 7763 64-Core Processor",
   "cpuFeatures": "AVX2 FMA",
   "gpu": "Microsoft Basic Render Driver",
   "gpuVendorId": "0x1414",

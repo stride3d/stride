@@ -88,6 +88,7 @@ namespace Stride.Input
         /// Updates a pointer event with position / type / id set and updates the stored pointer data
         /// </summary>
         /// <param name="evt"></param>
+        /// <param name="updateDelta">Whether to update the pointer's movement delta.</param>
         public void UpdatePointerState(PointerEvent evt, bool updateDelta = true)
         {
             var data = GetPointerData(evt.PointerId);

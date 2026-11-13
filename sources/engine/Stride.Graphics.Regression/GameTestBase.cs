@@ -24,6 +24,7 @@ using Stride.Graphics;
 using Stride.Input;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
+using Stride.Shaders.Compiler;
 
 namespace Stride.Graphics.Regression
 {
@@ -76,6 +77,13 @@ namespace Stride.Graphics.Regression
         ///   is reached in the <see cref="Update"/> method, the Game will exit.
         /// </summary>
         public int StopOnFrameCount { get; set; }
+
+        /// <summary>
+        ///   Gets or sets the kind of context the Game runs in, such as a window for a test of the swap-chain.
+        ///   <see langword="null"/> (the default) runs headless when <see cref="ScreenShotAutomationEnabled"/>
+        ///   is set, and in a window otherwise.
+        /// </summary>
+        public AppContextType? ContextType { get; set; }
 
         /// <summary>
         ///   Maximum per-channel color difference (0-255) allowed when comparing images.
@@ -149,7 +157,10 @@ namespace Stride.Graphics.Regression
         {
             AssetBundleName = FindBundleName(GetType());
 
-            ConsoleLogMode = ConsoleLogMode.Always;
+            // The test host is the entry assembly: name the shader corpus captures after the test suite
+            ShaderCorpusCapture.Source = GetType().Assembly.GetName().Name;
+
+            ConsoleLogMode = ConsoleLogMode.StandardOutput;
 
             // Override the default Graphic Device manager and settings
             GraphicsDeviceManager.Dispose();

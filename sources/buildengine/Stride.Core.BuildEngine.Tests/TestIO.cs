@@ -7,11 +7,25 @@ using Stride.Core.IO;
 using System.Linq;
 using Stride.Core.Diagnostics;
 using Stride.Core.Serialization.Contents;
+using System.IO;
 
 namespace Stride.Core.BuildEngine.Tests
 {
     public class TestIO
     {
+        [Fact]
+        public void TestDataContainerLoadReadsFromCurrentPosition()
+        {
+            using var stream = new MemoryStream(new byte[] { 1, 2, 3 });
+            stream.Position = 1;
+
+            var container = DataContainer.Load(stream);
+
+            Assert.Equal(new byte[] { 2, 3 }, container.Data);
+            Assert.Equal(stream.Length, stream.Position);
+            Assert.Empty(DataContainer.Load(stream).Data);
+        }
+
         private static void CommonSingleOutput(bool executeRemotely)
         {
             var builder = Utils.CreateBuilder(true);

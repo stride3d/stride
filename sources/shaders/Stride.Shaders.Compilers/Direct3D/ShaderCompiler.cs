@@ -7,6 +7,7 @@ using System;
 using System.Linq;
 using System.Text;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
@@ -121,7 +122,7 @@ namespace Stride.Shaders.Compiler.Direct3D
 
                 if (compileErrors.Handle is not null)
                 {
-                    ProcessCompilerErrors(compileErrors, bytecodeResult);
+                    ProcessCompilerErrors(compileErrors, bytecodeResult, sourceFilename);
                 }
             }
 
@@ -176,7 +177,9 @@ namespace Stride.Shaders.Compiler.Direct3D
                 var shaderSourceSpan = shaderSource.GetAsciiSpan();
                 var shaderSourceLength = (nuint) shaderSourceSpan.Length;
 
-                ref var noSourceName = ref NullRef<byte>();
+                // Without a name (a null reference), FXC calls the source Shader@0x<address> in its messages
+                var sourceNameSpan = sourceFilename is not null ? sourceFilename.GetUtf8Span() : default;
+                ref readonly var sourceName = ref MemoryMarshal.GetReference(sourceNameSpan);
 
                 ref var noDefines = ref NullRef<D3DShaderMacro>();
                 var noIncludes = default(ComPtr<ID3DInclude>);
@@ -185,7 +188,7 @@ namespace Stride.Shaders.Compiler.Direct3D
 
                 var shaderModelSpan = shaderModel.GetUtf8Span();
 
-                HResult result = d3dCompiler.Compile(in shaderSourceSpan[0], shaderSourceLength, in noSourceName,
+                HResult result = d3dCompiler.Compile(in shaderSourceSpan[0], shaderSourceLength, in sourceName,
                                                      in noDefines, noIncludes, in entryPointSpan[0], in shaderModelSpan[0],
                                                      shaderFlags, effectFlags,
                                                      ref bytecode, ref compileErrors);
@@ -195,7 +198,7 @@ namespace Stride.Shaders.Compiler.Direct3D
                     // Log compilation errors
                     if (compileErrors.Handle is not null)
                     {
-                        ProcessCompilerErrors(compileErrors, bytecodeResult);
+                        ProcessCompilerErrors(compileErrors, bytecodeResult, sourceFilename);
                     }
 
                     // Guarantee at least one error is recorded on failure — FXC occasionally returns
@@ -209,7 +212,7 @@ namespace Stride.Shaders.Compiler.Direct3D
                 return result;
             }
 
-            static void ProcessCompilerErrors(ComPtr<ID3D10Blob> compileErrors, ShaderBytecodeResult bytecodeResult)
+            static void ProcessCompilerErrors(ComPtr<ID3D10Blob> compileErrors, ShaderBytecodeResult bytecodeResult, string? sourceFilename)
             {
                 var compileErrorsStr = GetTextFromBlob(compileErrors);
                 if (compileErrorsStr is null)
@@ -219,13 +222,15 @@ namespace Stride.Shaders.Compiler.Direct3D
                     string? line;
                     while ((line = reader.ReadLine()) != null)
                     {
+                        // FXC puts the current folder before the source name; the name alone says which effect and stage
+                        if (sourceFilename is not null && line.IndexOf(sourceFilename + "(", StringComparison.Ordinal) is > 0 and var nameStart)
+                            line = line[nameStart..];
+
                         // FXC emits "internal error: ..." without a ": error" prefix, so match it explicitly.
-                        if (line.Contains(": error") || line.Contains("internal error"))
-                            bytecodeResult.Error(line);
-                        else if (line.Contains(": warning"))
-                            bytecodeResult.Warning(line);
-                        else
-                            bytecodeResult.Info(line);
+                        var type = line.Contains(": error") || line.Contains("internal error") ? LogMessageType.Error
+                            : line.Contains(": warning") ? LogMessageType.Warning
+                            : LogMessageType.Info;
+                        bytecodeResult.Log(new LogMessage(ShaderBackendLog.Fxc, type, line));
                     }
                 }
             }

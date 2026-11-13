@@ -4,9 +4,11 @@
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Interop;
+using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.UI.Editor.ViewModels;
+using Stride.Core.Assets.Editor.ViewModels;
 
 namespace Stride.UI.Editor.Views
 {
@@ -40,8 +42,12 @@ namespace Stride.UI.Editor.Views
                 return false;
             }
 
-            SceneView.Content = uiEditor.Controller.EditorHost;
+            SceneView.Content = uiEditor.GameHost.GameView;
             SceneView.InvalidateVisual();
+
+            // Alt+drag of a selected element out of the view: the WPF editor only, through its game host
+            if (uiEditor.Controller.GetService<WpfEditorGameHostService>() is { } host)
+                uiEditor.Controller.DragOut = items => host.StartDragDrop(items);
 
             editorInitializationNotifier.SetResult();
             return true;

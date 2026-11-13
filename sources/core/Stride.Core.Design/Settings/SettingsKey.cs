@@ -130,7 +130,7 @@ public abstract class SettingsKey
 }
 
 /// <summary>
-/// This class represents a <see cref="SettingsKey"/> containing a value of the specified type <see cref="T"/>.
+/// This class represents a <see cref="SettingsKey"/> containing a value of the specified type <typeparamref name="T"/>.
 /// </summary>
 /// <typeparam name="T">The type of value contained in this settings key.</typeparam>
 public class SettingsKey<T> : SettingsKey

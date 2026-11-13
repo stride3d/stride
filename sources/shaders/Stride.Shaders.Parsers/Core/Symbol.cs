@@ -49,7 +49,15 @@ public record struct ExternalConstant(ConstantExpression Expression);
 /// <summary>
 /// Defines a symbol.
 /// </summary>
+/// <param name="Id">The symbol identifier.</param>
+/// <param name="Type">The symbol type.</param>
+/// <param name="IdRef">The SPIR-V identifier associated with the symbol.</param>
+/// <param name="AccessChain">The optional index used to access the symbol.</param>
+/// <param name="MemberAccessWithImplicitThis">The type used for implicit member access, if any.</param>
 /// <param name="GroupMembers">Only used for specific <see cref="Type"/> such as <see cref="FunctionGroupType"/></param>
+/// <param name="MethodDefaultParameters">The method's default parameter values, if any.</param>
+/// <param name="ExternalConstant">The external constant expression, if any.</param>
+/// <param name="OwnerType">The shader that owns the symbol, if any.</param>
 public record Symbol(SymbolID Id, SymbolType Type, int IdRef, int? AccessChain = null, SymbolType? MemberAccessWithImplicitThis = null, ImmutableArray<Symbol> GroupMembers = default, MethodSymbolDefaultParameters? MethodDefaultParameters = null, ExternalConstant? ExternalConstant = null, ShaderDefinition? OwnerType = null)
 {
     public int IdRef { get; set; } = IdRef;

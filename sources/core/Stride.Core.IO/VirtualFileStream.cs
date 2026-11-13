@@ -234,7 +234,7 @@ public class VirtualFileStream : Stream
 
     /// <inheritdoc/>
     /// <exception cref="IOException">The remaining capacity in the stream
-    /// is not large enough to write the specified <paramref name="buffer"/>.</exception>
+    /// is not large enough to write the specified <paramref name="value"/>.</exception>
     public override void WriteByte(byte value)
     {
         if (endPosition != -1 && InternalStream.Position >= endPosition)

@@ -1,0 +1,21 @@
+!Package
+SerializedVersion: {Assets: 3.1.0.0}
+Meta:
+    Name: EditorPackage
+    Version: 1.0.0.0
+    Authors: []
+    Owners: []
+    RootNamespace: EditorPackage
+    Dependencies:
+        -   Name: Stride
+            Version: 1.11.1.2
+            RootAssets: []
+AssetFolders:
+    -   Path: !dir Assets/Shared
+Bundles:
+    -   Name: EditorShadersD3D11
+        Selectors:
+            - !PathSelector
+                Paths:
+                    - __shaders_bytecode__/*
+        Dependencies: []

@@ -1,8 +1,5 @@
-
-
-
-
-
+// Like some of the other files in this project, this is lifted almost wholesale from bepu's Demos, comments are left as-is
+// to improve diffing and added context. No license header provided, refer to Bepu's Apache License https://github.com/bepu/bepuphysics2
 
 using BepuUtilities;
 using BepuPhysics;
@@ -307,11 +304,7 @@ internal struct StaticCharacterMotionFunctions : IOneBodyConstraintFunctions<Sta
 //the per-constraint logic as needed. The CharacterMotionFunctions type provides the actual implementation.
 internal class StaticCharacterMotionTypeProcessor : OneBodyTypeProcessor<StaticCharacterMotionPrestep, CharacterMotionAccumulatedImpulse, StaticCharacterMotionFunctions, AccessAll, AccessAll>
 {
-    /// <summary>
-    /// Simulation-wide unique id for the character motion constraint. Every type has needs a unique compile time id; this is a little bit annoying to guarantee given that there is no central
-    /// registry of all types that can exist (custom ones, like this one, can always be created), but having it be constant helps simplify and optimize its internal usage.
-    /// </summary>
-    public const int BatchTypeId = 50;
+    public static readonly int BatchTypeId = BatchId<StaticCharacterMotionTypeProcessor>.Id;
 }
 
 //Constraint descriptions provide an explicit mapping from the array-of-structures format to the internal array-of-structures-of-arrays format used by the solver.
@@ -640,10 +633,6 @@ internal struct DynamicCharacterMotionFunctions : ITwoBodyConstraintFunctions<Dy
 //the per-constraint logic as needed. The CharacterMotionFunctions type provides the actual implementation.
 internal class DynamicCharacterMotionTypeProcessor : TwoBodyTypeProcessor<DynamicCharacterMotionPrestep, CharacterMotionAccumulatedImpulse, DynamicCharacterMotionFunctions, AccessAll, AccessAll, AccessAll, AccessAll>
 {
-    /// <summary>
-    /// Simulation-wide unique id for the character motion constraint. Every type has needs a unique compile time id; this is a little bit annoying to guarantee given that there is no central
-    /// registry of all types that can exist (custom ones, like this one, can always be created), but having it be constant helps simplify and optimize its internal usage.
-    /// </summary>
-    public const int BatchTypeId = 51;
+    public static readonly int BatchTypeId = BatchId<DynamicCharacterMotionTypeProcessor>.Id;
 }
 

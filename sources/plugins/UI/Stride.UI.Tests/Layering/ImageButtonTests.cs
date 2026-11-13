@@ -15,7 +15,9 @@ namespace Stride.UI.Tests.Layering
         [Fact(Skip = "ImageButton is deprecated")]
         public void TestProperties()
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             var control = new ImageButton();
+#pragma warning restore CS0618 // Type or member is obsolete
 
             // test properties default values
             Assert.Equal(new Thickness(0, 0, 0, 0), control.Padding);

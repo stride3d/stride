@@ -1,0 +1,85 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.Interactivity;
+using Stride.Assets.Editor.ViewModels;
+using Stride.Core.Assets.Editor.Annotations;
+using Stride.Core.Assets.Editor.Editors;
+
+namespace Stride.Assets.Editor.Avalonia.Views;
+
+/// <summary>
+/// The view of the script editor: a code editor that shows the text of the view model and reports the edits of the user to it,
+/// and reloads the file when another program changed it (checked when the view shows, when the editor gets the focus, and when
+/// the window is activated again: coming back from another program leaves the focus where it was).
+/// </summary>
+[AssetEditorView<ScriptSourceFileEditorViewModel>]
+public sealed partial class ScriptSourceFileEditorView : UserControl, IAssetEditorView
+{
+    private ScriptSourceFileEditorViewModel? viewModel;
+    private WindowBase? window;
+
+    public ScriptSourceFileEditorView()
+    {
+        InitializeComponent();
+        Editor.TextEdited += OnEditorTextEdited;
+        // The text area of the editor handles the focus event it raises
+        Editor.AddHandler(GotFocusEvent, OnEditorGotFocus, handledEventsToo: true);
+        // Ctrl+wheel changes the font size, as in WPF; before the editor scrolls with it
+        Editor.AddHandler(PointerWheelChangedEvent, OnEditorPointerWheelChanged, RoutingStrategies.Tunnel);
+    }
+
+    /// <inheritdoc />
+    protected override void OnDataContextChanged(EventArgs e)
+    {
+        base.OnDataContextChanged(e);
+
+        if (viewModel is not null)
+            viewModel.TextReloaded -= OnTextReloaded;
+
+        viewModel = DataContext as ScriptSourceFileEditorViewModel;
+        Editor.LoadText(viewModel?.Text);
+
+        if (viewModel is not null)
+            viewModel.TextReloaded += OnTextReloaded;
+    }
+
+    /// <inheritdoc />
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        window = TopLevel.GetTopLevel(this) as WindowBase;
+        if (window is not null)
+            window.Activated += OnWindowActivated;
+        viewModel?.CheckExternalChanges();
+    }
+
+    /// <inheritdoc />
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnDetachedFromVisualTree(e);
+        if (window is not null)
+            window.Activated -= OnWindowActivated;
+        window = null;
+    }
+
+    private void OnEditorTextEdited(object? sender, string text) => viewModel?.OnTextEdited(text);
+
+    private void OnEditorGotFocus(object? sender, FocusChangedEventArgs e) => viewModel?.CheckExternalChanges();
+
+    private void OnWindowActivated(object? sender, EventArgs e) => viewModel?.CheckExternalChanges();
+
+    private void OnTextReloaded(object? sender, string text) => Editor.LoadText(text);
+
+    private void OnEditorPointerWheelChanged(object? sender, PointerWheelEventArgs e)
+    {
+        if (viewModel is null || !e.KeyModifiers.HasFlag(KeyModifiers.Control) || e.Delta.Y == 0)
+            return;
+
+        viewModel.FontSize += e.Delta.Y > 0 ? 1 : -1;
+        e.Handled = true;
+    }
+}

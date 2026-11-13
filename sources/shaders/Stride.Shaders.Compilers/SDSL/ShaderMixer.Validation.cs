@@ -1,4 +1,5 @@
 using Stride.Core.Diagnostics;
+using Stride.Shaders.Parsing;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
@@ -46,7 +47,7 @@ public partial class ShaderMixer
                 case Op.OpLine:
                     OpLine line = i;
                     currentLocation = sourceFiles.TryGetValue(line.File, out var fileName)
-                        ? $"{fileName}({line.Line},{line.Column})"
+                        ? $"{MessageFileName.Of(fileName)}({line.Line},{line.Column})"
                         : null;
                     break;
 

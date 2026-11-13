@@ -10,9 +10,9 @@ namespace Stride.Graphics;
 ///   source (new) data against destination (existing) data before storing the new data.
 /// </summary>
 /// <remarks>
-///   The comparison functions can be used for a Depth-Stencil Buffer (see <see cref="DepthStencilState"/>)
+///   The comparison functions can be used for a Depth-Stencil Buffer
 ///   for depth comparisons or rejections, or for stencil operations, or for Texture sampling
-///   (see <see cref="SamplerState"/>).
+///   using a sampler state.
 /// </remarks>
 [DataContract]
 public enum CompareFunction

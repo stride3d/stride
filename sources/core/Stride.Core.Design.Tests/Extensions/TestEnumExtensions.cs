@@ -40,6 +40,221 @@ public class TestEnumExtensions
         Assert.DoesNotContain(TestFlags.All, result);
     }
 
+    [Flags]
+    private enum SignedFlags : int
+    {
+        None = 0,
+        Flag1 = 1,
+        Flag2 = 2,
+        All = -1
+    }
+
+    [Fact]
+    public void GetIndividualFlags_Type_WithNegativeMember_ShouldReturnOnlyIndividualFlags()
+    {
+        var result = EnumExtensions.GetIndividualFlags(typeof(SignedFlags))
+            .Cast<SignedFlags>()
+            .ToList();
+
+        Assert.Equal(new[] { SignedFlags.Flag1, SignedFlags.Flag2 }, result);
+    }
+
+    [Fact]
+    public void GetIndividualFlags_Value_WithNegativeValue_ShouldReturnOnlyIndividualFlags()
+    {
+        var result = SignedFlags.All.GetIndividualFlags()
+            .Cast<SignedFlags>()
+            .ToList();
+
+        Assert.Equal(new[] { SignedFlags.Flag1, SignedFlags.Flag2 }, result);
+    }
+
+    [Fact]
+    public void GetAllFlags_WithNegativeValue_ShouldReturnAllMatchingNamedFlags()
+    {
+        var result = SignedFlags.All.GetAllFlags()
+            .Cast<SignedFlags>()
+            .ToList();
+
+        Assert.Equal(
+            new[] { SignedFlags.Flag1, SignedFlags.Flag2, SignedFlags.All },
+            result);
+    }
+
+    [Fact]
+    public void GetEnum_WithNegativeFlag_ShouldPreserveValue()
+    {
+        var flags = new Enum[] { SignedFlags.Flag1, SignedFlags.All };
+
+        var result = (SignedFlags)EnumExtensions.GetEnum(
+            typeof(SignedFlags), flags);
+
+        Assert.Equal(SignedFlags.All, result);
+    }
+
+    [Flags]
+    private enum SByteBoundaryFlags : sbyte
+    {
+        None = 0,
+        Low = 1,
+        High = sbyte.MinValue,
+        Combined = Low | High,
+        All = -1
+    }
+
+    [Flags]
+    private enum ShortBoundaryFlags : short
+    {
+        None = 0,
+        Low = 1,
+        High = short.MinValue,
+        Combined = Low | High,
+        All = -1
+    }
+
+    [Flags]
+    private enum IntBoundaryFlags : int
+    {
+        None = 0,
+        Low = 1,
+        High = int.MinValue,
+        Combined = Low | High,
+        All = -1
+    }
+
+    [Flags]
+    private enum LongBoundaryFlags : long
+    {
+        None = 0,
+        Low = 1,
+        High = long.MinValue,
+        Combined = Low | High,
+        All = -1
+    }
+
+    [Theory]
+    [InlineData(typeof(SByteBoundaryFlags))]
+    [InlineData(typeof(ShortBoundaryFlags))]
+    [InlineData(typeof(IntBoundaryFlags))]
+    [InlineData(typeof(LongBoundaryFlags))]
+    public void GetIndividualFlags_Type_WithSignedHighBit_ShouldReturnOnlyIndividualFlags(Type enumType)
+    {
+        var low = (Enum)Enum.Parse(enumType, "Low");
+        var high = (Enum)Enum.Parse(enumType, "High");
+
+        var result = EnumExtensions.GetIndividualFlags(enumType).ToList();
+
+        Assert.Equal(new[] { low, high }, result);
+    }
+
+    [Theory]
+    [InlineData(typeof(SByteBoundaryFlags))]
+    [InlineData(typeof(ShortBoundaryFlags))]
+    [InlineData(typeof(IntBoundaryFlags))]
+    [InlineData(typeof(LongBoundaryFlags))]
+    public void GetIndividualFlags_Value_WithSignedHighBit_ShouldPreserveSelection(Type enumType)
+    {
+        var none = (Enum)Enum.Parse(enumType, "None");
+        var low = (Enum)Enum.Parse(enumType, "Low");
+        var high = (Enum)Enum.Parse(enumType, "High");
+        var combined = (Enum)Enum.Parse(enumType, "Combined");
+        var all = (Enum)Enum.Parse(enumType, "All");
+
+        Assert.Empty(none.GetIndividualFlags());
+        Assert.Equal(new[] { low }, low.GetIndividualFlags().ToList());
+        Assert.Equal(new[] { high }, high.GetIndividualFlags().ToList());
+        Assert.Equal(new[] { low, high }, combined.GetIndividualFlags().ToList());
+        Assert.Equal(new[] { low, high }, all.GetIndividualFlags().ToList());
+    }
+
+    [Theory]
+    [InlineData(typeof(SByteBoundaryFlags))]
+    [InlineData(typeof(ShortBoundaryFlags))]
+    [InlineData(typeof(IntBoundaryFlags))]
+    [InlineData(typeof(LongBoundaryFlags))]
+    public void GetAllFlags_WithSignedHighBit_ShouldReturnMatchingNamedFlags(Type enumType)
+    {
+        var none = (Enum)Enum.Parse(enumType, "None");
+        var low = (Enum)Enum.Parse(enumType, "Low");
+        var high = (Enum)Enum.Parse(enumType, "High");
+        var combined = (Enum)Enum.Parse(enumType, "Combined");
+        var all = (Enum)Enum.Parse(enumType, "All");
+
+        Assert.Empty(none.GetAllFlags());
+        Assert.Equal(new[] { low }, low.GetAllFlags().ToList());
+        Assert.Equal(new[] { high }, high.GetAllFlags().ToList());
+        Assert.Equal(new[] { low, high, combined }, combined.GetAllFlags().ToList());
+        Assert.Equal(new[] { low, high, combined, all }, all.GetAllFlags().ToList());
+    }
+
+    [Theory]
+    [InlineData(typeof(SByteBoundaryFlags))]
+    [InlineData(typeof(ShortBoundaryFlags))]
+    [InlineData(typeof(IntBoundaryFlags))]
+    [InlineData(typeof(LongBoundaryFlags))]
+    public void GetEnum_WithSignedHighBit_ShouldPreserveCombinedValueAndRoundTrip(Type enumType)
+    {
+        var low = (Enum)Enum.Parse(enumType, "Low");
+        var high = (Enum)Enum.Parse(enumType, "High");
+        var combined = (Enum)Enum.Parse(enumType, "Combined");
+        var all = (Enum)Enum.Parse(enumType, "All");
+
+        var result = EnumExtensions.GetEnum(enumType, new[] { low, high });
+
+        Assert.Equal(combined, result);
+        Assert.Equal(new[] { low, high }, result.GetIndividualFlags().ToList());
+        Assert.Equal(combined, EnumExtensions.GetEnum(enumType, result.GetIndividualFlags()));
+        Assert.Equal(all, EnumExtensions.GetEnum(enumType, new[] { low, all }));
+    }
+
+    [Flags]
+    private enum ULongFlags : ulong
+    {
+        None = 0,
+        Flag1 = 1UL << 0,
+        Flag63 = 1UL << 63,
+        Combined = Flag1 | Flag63,
+        All = ulong.MaxValue
+    }
+
+    [Fact]
+    public void GetIndividualFlags_Type_WithULongFlags_ShouldReturnOnlyPowerOfTwoValues()
+    {
+        var result = EnumExtensions.GetIndividualFlags(typeof(ULongFlags)).Cast<ULongFlags>().ToList();
+
+        Assert.Equal(new[] { ULongFlags.Flag1, ULongFlags.Flag63 }, result);
+    }
+
+    [Flags]
+    private enum ULongAllFlags : ulong
+    {
+        None = 0,
+        Flag1 = 1UL << 0,
+        Flag63 = 1UL << 63,
+        All = ulong.MaxValue
+    }
+
+    [Fact]
+    public void GetIndividualFlags_Type_WithULongMaxValue_ShouldReturnOnlyPowerOfTwoValues()
+    {
+        var result = EnumExtensions.GetIndividualFlags(typeof(ULongAllFlags)).Cast<ULongAllFlags>().ToList();
+
+        Assert.Equal(new[] { ULongAllFlags.Flag1, ULongAllFlags.Flag63 }, result);
+    }
+
+    [Theory]
+    [InlineData(0UL, new ulong[0])]
+    [InlineData(1UL, new[] { 1UL })]
+    [InlineData(1UL << 63, new[] { 1UL << 63 })]
+    [InlineData((1UL << 63) | 1UL, new[] { 1UL, 1UL << 63 })]
+    [InlineData(ulong.MaxValue, new[] { 1UL, 1UL << 63 })]
+    public void GetIndividualFlags_Value_WithULongFlags_ShouldReturnOnlyIndividualFlagsSet(ulong bits, ulong[] expected)
+    {
+        var result = ((ULongFlags)bits).GetIndividualFlags().Select(Convert.ToUInt64).ToList();
+
+        Assert.Equal(expected, result);
+    }
+
     [Fact]
     public void GetAllFlags_WithSingleFlag_ShouldReturnThatFlag()
     {

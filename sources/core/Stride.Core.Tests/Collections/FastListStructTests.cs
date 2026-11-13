@@ -43,9 +43,8 @@ public class FastListStructTests
     {
 #pragma warning disable CS0618 // Type or member is obsolete
         var fastList = new FastList<int> { 10, 20, 30 };
-#pragma warning restore CS0618
-
         var list = new FastListStruct<int>(fastList);
+#pragma warning restore CS0618
 
         Assert.Equal(3, list.Count);
         Assert.Equal(10, list[0]);
@@ -299,9 +298,8 @@ public class FastListStructTests
     {
 #pragma warning disable CS0618 // Type or member is obsolete
         var fastList = new FastList<int> { 1, 2, 3 };
-#pragma warning restore CS0618
-
         FastListStruct<int> list = fastList;
+#pragma warning restore CS0618
 
         Assert.Equal(3, list.Count);
         Assert.Equal(2, list[1]);

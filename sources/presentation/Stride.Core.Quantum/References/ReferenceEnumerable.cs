@@ -12,7 +12,7 @@ namespace Stride.Core.Quantum.References;
 /// </summary>
 public sealed class ReferenceEnumerable : IReferenceInternal, IEnumerable<ObjectReference>
 {
-    private HybridDictionary<NodeIndex, ObjectReference> items;
+    private HybridDictionary<NodeIndex, ObjectReference> items = null!;
 
     internal ReferenceEnumerable(IEnumerable enumerable, Type enumerableType)
     {
@@ -43,7 +43,7 @@ public sealed class ReferenceEnumerable : IReferenceInternal, IEnumerable<Object
     /// <summary>
     /// Gets the indices of each reference in this instance.
     /// </summary>
-    internal IReadOnlyCollection<NodeIndex> Indices { get; private set; }
+    internal IReadOnlyCollection<NodeIndex> Indices { get; private set; } = null!;
 
     /// <inheritdoc/>
     public ObjectReference this[NodeIndex index] => items[index];
@@ -72,7 +72,7 @@ public sealed class ReferenceEnumerable : IReferenceInternal, IEnumerable<Object
             foreach (var item in (IEnumerable)ObjectValue)
             {
                 var key = GetKey(item);
-                var value = (ObjectReference)Reference.CreateReference(GetValue(item), ElementType, key, true);
+                var value = (ObjectReference)Reference.CreateReference(GetValue(item), ElementType, key, true)!;
                 newReferences.Add(key, value);
             }
         }
@@ -82,7 +82,7 @@ public sealed class ReferenceEnumerable : IReferenceInternal, IEnumerable<Object
             foreach (var item in (IEnumerable)ObjectValue)
             {
                 var key = new NodeIndex(i);
-                var value = (ObjectReference)Reference.CreateReference(item, ElementType, key, true);
+                var value = (ObjectReference)Reference.CreateReference(item, ElementType, key, true)!;
                 newReferences.Add(key, value);
                 ++i;
             }
@@ -96,7 +96,7 @@ public sealed class ReferenceEnumerable : IReferenceInternal, IEnumerable<Object
             var oldReferenceMapping = new List<KeyValuePair<object, ObjectReference>>();
             if (items != null)
             {
-                var existingIndices = GraphNodeBase.GetIndices(ownerNode).ToList();
+                var existingIndices = GraphNodeBase.GetIndices(ownerNode)?.ToList() ?? [];
                 foreach (var item in items)
                 {
                     // For collection of struct, we need to update the target nodes first so equity comparer will work. Careful tho, we need to skip removed items!
@@ -106,7 +106,7 @@ public sealed class ReferenceEnumerable : IReferenceInternal, IEnumerable<Object
                         var value = ownerNode.Retrieve(item.Key);
                         if (value?.GetType() == item.Value.TargetNode?.Type)
                         {
-                            boxedTarget.UpdateFromOwner(ownerNode.Retrieve(item.Key));
+                            boxedTarget.UpdateFromOwner(ownerNode.Retrieve(item.Key)!);
                         }
                     }
                     if (item.Value.ObjectValue != null)

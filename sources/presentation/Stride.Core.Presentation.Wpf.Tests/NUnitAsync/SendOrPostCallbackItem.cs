@@ -67,9 +67,9 @@ namespace NUnitAsync
             }
         }
 
-        /// <summary />
+        /// <summary>
         /// Unhandled exceptions will terminate the STA thread
-        /// </summary />
+        /// </summary>
         internal void Post()
         {
             mMethod(mState);

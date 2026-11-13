@@ -1,6 +1,10 @@
 blank_issues_enabled: false
 
 contact_links:
+  - name: Questions and help
+    url: https://github.com/stride3d/stride/discussions
+    about: Ask how to do something, or get help with your own project. The Discord server (https://discord.gg/f6aerfE) is good for quick questions.
+
   - name: Stride Docs
     url: https://github.com/stride3d/stride-docs/issues
     about: Please report documentation issues in the Stride Docs repository.

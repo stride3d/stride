@@ -13,9 +13,17 @@ public static class Parsers
         where TScanner : struct, IScanner
         where TNode : class
     {
+        // The result is null for parsers that can't report errors. After an error, the scanner is at the end of the code.
+        if (result is not null && result.Errors.Count == 0 && scanner.Position > result.FurthestFailure)
+            result.FurthestFailure = scanner.Position;
+
         if (orError is not null)
         {
-            result.Errors.Add(orError.Value);
+            var error = orError.Value;
+            // Enclosing parsers rewind, so the first error can be raised at the start of the bad statement
+            if (result.Errors.Count == 0 && !error.IsAboutToken && result.FurthestFailure > error.Location.Position)
+                error.Location = scanner[result.FurthestFailure];
+            result.Errors.Add(error);
             scanner.Position = scanner.End;
             parsed = null;
             return false;

@@ -24,7 +24,12 @@ public enum ConsoleLogMode
     None,
 
     /// <summary>
-    /// The console should be always visible
+    /// Messages are written in all builds. When the process has neither a console nor a redirected output, they go to the console of the parent process, or to a new one.
     /// </summary>
     Always,
+
+    /// <summary>
+    /// Messages are written in all builds to the standard output, and no console is ever opened for them.
+    /// </summary>
+    StandardOutput,
 }

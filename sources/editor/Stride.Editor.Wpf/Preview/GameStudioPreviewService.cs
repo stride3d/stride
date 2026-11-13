@@ -12,6 +12,7 @@ using Stride.Core.Assets.Compiler;
 using Stride.Core.Assets.Editor.Extensions;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.BuildEngine;
 using Stride.Core;
 using Stride.Core.Diagnostics;
@@ -25,15 +26,22 @@ using Stride.Editor.Build;
 using Stride.Editor.Engine;
 using Stride.Games;
 using Stride.Graphics;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Editor.Preview
 {
-    public class GameStudioPreviewService : IAssetPreviewService, IPreviewBuilder
+    public class GameStudioPreviewService : IAssetPreviewService, IWpfPreviewBuilder
     {
         public static bool DisablePreview = false;
 
         // Set when the game loop has ended (a lost device, the exit): nothing can be posted to the game anymore
         private volatile bool previewGameEnded;
+
+        // Set by Dispose: a game the thread has not created yet never starts
+        private bool previewStopped;
+
+        // The last visibility of the preview panel, applied to the game when the thread creates it
+        private bool isPreviewHidden;
 
         private readonly SessionViewModel session;
 
@@ -48,7 +56,8 @@ namespace Stride.Editor.Preview
         private AssetViewModel previewBuildQueue;
         private readonly SemaphoreSlim previewChangeLock = new SemaphoreSlim(1, 1);
         /// <summary>
-        /// A lock used to access the <see cref="currentPreview"/> and <see cref="previewBuildQueue"/> fields safely.
+        /// A lock used to access the <see cref="currentPreview"/>, <see cref="previewBuildQueue"/>, <see cref="previewStopped"/>,
+        /// <see cref="isPreviewHidden"/> fields and the <see cref="PreviewGame"/> property safely.
         /// </summary>
         private readonly object previewLock = new object();
         private readonly Thread previewGameThread;
@@ -72,7 +81,7 @@ namespace Stride.Editor.Preview
             gameSettingsProvider = session.ServiceProvider.Get<GameSettingsProviderService>();
 
             Logger = GlobalLogger.GetLogger("Preview");
-            loggerDebugPage = EditorDebugTools.CreateLogDebugPage(Logger, "Preview");
+            loggerDebugPage = EditorDebugTools.CreateLogDebugPage(session.ServiceProvider, Logger, "Preview", true);
 
             previewGameSettings = GameSettingsFactory.Create();
             previewGameSettings.GetOrCreate<RenderingSettings>().DefaultGraphicsProfile = GraphicsProfile.Level_11_0;
@@ -104,6 +113,9 @@ namespace Stride.Editor.Preview
 
         public GameStudioBuilderService AssetBuilderService { get; }
 
+        /// <inheritdoc />
+        AssetBuilderService IPreviewBuilder.AssetBuilderService => AssetBuilderService;
+
         public IDispatcherService Dispatcher { get; }
 
         public Logger Logger { get; }
@@ -124,9 +136,28 @@ namespace Stride.Editor.Preview
                 AssemblyRegistry.AssemblyRegistered -= AssemblyRegistered;
                 AssemblyRegistry.AssemblyUnregistered -= AssemblyUnregistered;
 
-                if (PreviewGame.IsRunning)
+                PreviewGame previewGame;
+                lock (previewLock)
                 {
-                    PreviewGame.Exit();
+                    previewStopped = true;
+                    previewGame = PreviewGame;
+                }
+                // The game may not exist yet: the thread then ends without starting it
+                if (previewGame is not null && !previewGameEnded)
+                {
+                    if (previewGame.IsRunning)
+                    {
+                        previewGame.Exit();
+                    }
+                    else
+                    {
+                        // A game still starting (device, shaders) cannot exit yet: its first update does
+                        previewGame.Script.AddTask(() =>
+                        {
+                            previewGame.Exit();
+                            return Task.CompletedTask;
+                        });
+                    }
                 }
 
                 // Wait for the game thread to terminate
@@ -153,11 +184,25 @@ namespace Stride.Editor.Preview
 
             initializationSignal.Set();
 
-            PreviewGame = new PreviewGame(AssetBuilderService.EffectCompiler);
-            var context = new GameContextWinforms(gameForm) { InitializeDatabase = false };
+            var previewGame = new PreviewGame(AssetBuilderService.EffectCompiler);
+            lock (previewLock)
+            {
+                if (previewStopped)
+                {
+                    previewGameEnded = true;
+                    previewGame.Dispose();
+                    return;
+                }
 
-            // Wait for shaders to be loaded
-            AssetBuilderService.WaitForShaders();
+                PreviewGame = previewGame;
+                // The preview panel may have been hidden before the game existed
+                if (isPreviewHidden)
+                    PreviewGame.IsEditorHidden = true;
+                // An asset selected before the game existed (the asset of the editors that open with the session) shows first
+                if (previewBuildQueue != null)
+                    PreviewGame.Script.AddTask(ChangePreviewAsset);
+            }
+            var context = new GameContextWinforms(gameForm) { InitializeDatabase = false };
 
             if (!DisablePreview)
             {
@@ -209,6 +254,9 @@ namespace Stride.Editor.Preview
             var graphicsProfile = PreviewGame.GraphicsDeviceManager.GraphicsDevice.Features.CurrentProfile;
             //ThumbnailService.ThumbnailBuilderContext.GetGameSettingsAsset().Get<RenderingSettings>().DefaultGraphicsProfile = graphicsProfile;
             previewCompileContext.GetGameSettingsAsset().GetOrCreate<RenderingSettings>().DefaultGraphicsProfile = graphicsProfile;
+
+            // Only the effects need the system shaders: the device is created while they are imported, the content after
+            AssetBuilderService.WaitForShaders();
         }
 
         public void SetAssetToPreview(AssetViewModel asset)
@@ -216,6 +264,9 @@ namespace Stride.Editor.Preview
             lock (previewLock)
             {
                 previewBuildQueue = asset;
+                // The game thread has not created the game yet: it takes the asset when it does
+                if (PreviewGame is null)
+                    return;
             }
             if (!previewGameEnded)
                 PreviewGame.Script.AddTask(ChangePreviewAsset);
@@ -403,12 +454,23 @@ namespace Stride.Editor.Preview
 
         public void OnShowPreview()
         {
-            PreviewGame.IsEditorHidden = false;
+            SetPreviewHidden(false);
         }
 
         public void OnHidePreview()
         {
-            PreviewGame.IsEditorHidden = true;
+            SetPreviewHidden(true);
+        }
+
+        private void SetPreviewHidden(bool hidden)
+        {
+            lock (previewLock)
+            {
+                isPreviewHidden = hidden;
+                // The game thread has not created the game yet: it applies the visibility when it does
+                if (PreviewGame is not null)
+                    PreviewGame.IsEditorHidden = hidden;
+            }
         }
     }
 }

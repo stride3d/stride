@@ -3,6 +3,7 @@
 
 using Stride.Core.Diagnostics;
 using Stride.Shaders.Core;
+using Stride.Shaders.Parsing;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
@@ -104,7 +105,7 @@ public partial class ShaderMixer
                         if (error != null)
                         {
                             var location = currentLine is { } l && context.GetBuffer().TryGetInstructionById(l.File, out var file) && file.Op == Op.OpString
-                                ? $"{((OpString)file).Value}({l.Line},{l.Column}): "
+                                ? $"{MessageFileName.Of(((OpString)file).Value)}({l.Line},{l.Column}): "
                                 : null;
                             var name = context.Names.TryGetValue(call.Function, out var functionName) ? functionName : $"%{call.Function}";
                             log.Error($"{location}Argument {indices[k] + 1} of {name} {error}.");

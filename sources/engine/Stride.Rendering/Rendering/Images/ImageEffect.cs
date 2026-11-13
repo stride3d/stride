@@ -33,6 +33,7 @@ namespace Stride.Rendering.Images
         /// Initializes a new instance of the <see cref="ImageEffect" /> class.
         /// </summary>
         /// <param name="name">The name.</param>
+        /// <param name="supersample">Whether supersampling is enabled.</param>
         /// <exception cref="System.ArgumentNullException">context</exception>
         protected ImageEffect(string name, bool supersample = false)
             : base(name)

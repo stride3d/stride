@@ -83,6 +83,7 @@
        Stride.Core.targets (NuGet PackageReference path) and this (engine self-build path)
        use one implementation. -->
   <Import Project="$(StrideRoot)sources/core/Stride.Core/build/Stride.Core.NativeLibraries.targets" />
+  <Import Project="$(StrideRoot)sources/core/Stride.Core/build/Stride.Core.UserDocumentation.targets" />
 
   <!-- ================================================================ -->
   <!-- Native libraries setup (from .ssdeps)                            -->

@@ -3,6 +3,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <RootNamespace>MyTemplate.Assets</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
     <Version>1.0.0</Version>
     <!-- What this companion carries: asset types, compilers, templates and icons, loaded by the asset compiler and the Game Studio -->
     <StridePackageKind>Assets</StridePackageKind>

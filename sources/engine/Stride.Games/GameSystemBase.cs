@@ -218,7 +218,6 @@ namespace Stride.Games
         ///   Method that is called when the <see cref="Visible"/> property changes.
         ///   Raises the <see cref="VisibleChanged"/> event.
         /// </summary>
-        /// <param name="source">The source of the event.</param>
         /// <param name="e">An <see cref="EventArgs"/> that contains the event data.</param>
         private void OnVisibleChanged(EventArgs e)
         {

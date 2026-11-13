@@ -14,7 +14,7 @@
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
   </PropertyGroup>
     <ItemGroup>
-    <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
+    <ProjectReference Include="..\..\tests\Stride.XunitRunner\Stride.XunitRunner.csproj" />
     <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
     <ProjectReference Include="..\..\plugins\UI\Stride.UI\Stride.UI.csproj" />
     <ProjectReference Include="..\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj" />
@@ -23,6 +23,7 @@
     <Compile Include="AdvancedInputTest.cs" />
     <Compile Include="GCMeasurement.cs" />
     <Compile Include="HeadlessInput.cs" />
+    <Compile Include="TestGCMeasurement.cs" />
     <Compile Include="TestGamePadCapture.cs" />
     <Compile Include="TestTouchControllerCapture.cs" />
     <Compile Include="TestDeviceCaptureState.cs" />
@@ -41,6 +42,7 @@
     <Compile Include="InputTestBase.cs" />
     <Compile Include="SensorGameTest.cs" />
     <Compile Include="TestDirection.cs" />
+    <Compile Include="TestBackgroundInputFilter.cs" />
     <Compile Include="TestInput.cs" />
     <Compile Include="TestInputEvents.cs" />
   </ItemGroup>

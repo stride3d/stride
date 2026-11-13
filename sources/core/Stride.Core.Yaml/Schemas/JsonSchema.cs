@@ -50,7 +50,7 @@ using System.Text.RegularExpressions;
 namespace Stride.Core.Yaml.Schemas
 {
     /// <summary>
-    /// Implements a JSON schema. <see cref="http://www.yaml.org/spec/1.2/spec.html#id2803231" />
+    /// Implements a JSON schema. <see href="http://www.yaml.org/spec/1.2/spec.html#id2803231" />
     /// </summary>
     /// <remarks>
     /// The JSON schema is the lowest common denominator of most modern computer languages, and allows parsing JSON files. 

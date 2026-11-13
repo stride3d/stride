@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
     <DefineConstants>STRIDE_NUGET_RESOLVER_UI;$(DefineConstants)</DefineConstants>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

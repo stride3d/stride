@@ -11,8 +11,7 @@ using SixLabors.ImageSharp.Processing;
 namespace Stride.Tests.ScreenshotComparator;
 
 /// <summary>
-/// Pixel-perceptual screenshot comparator. Reads new captures from <paramref name="newDir"/> and
-/// matching baselines from <paramref name="baselineDir"/>, scores each pair with LPIPS-AlexNet
+/// Pixel-perceptual screenshot comparator. Reads new captures and matching baselines, scores each pair with LPIPS-AlexNet
 /// (via ONNX Runtime), and returns one <see cref="ComparisonResult"/> per <c>(sample, frame)</c>
 /// pair with the distance and a coarse status (<c>ok</c> / <c>drift</c> / <c>new</c> / <c>missing</c>).
 ///

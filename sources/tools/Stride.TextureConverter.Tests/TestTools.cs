@@ -15,10 +15,8 @@ namespace Stride.TextureConverter.Tests
     {
         public static string ComputeSHA1(string filePath)
         {
-            var file = new FileStream(filePath, FileMode.Open);
-            SHA1 sha1 = new SHA1CryptoServiceProvider();
-            byte[] retVal = sha1.ComputeHash(file);
-            file.Close();
+            using var file = new FileStream(filePath, FileMode.Open);
+            byte[] retVal = SHA1.HashData(file);
 
             var sb = new StringBuilder();
             for (int i = 0; i < retVal.Length; i++)
@@ -33,8 +31,7 @@ namespace Stride.TextureConverter.Tests
             byte[] array = new byte[size];
             Marshal.Copy(input, array, 0, size);
 
-            SHA1 sha1 = new SHA1CryptoServiceProvider();
-            byte[] retVal = sha1.ComputeHash(array);
+            byte[] retVal = SHA1.HashData(array);
 
             var sb = new StringBuilder();
             for (int i = 0; i < retVal.Length; i++)

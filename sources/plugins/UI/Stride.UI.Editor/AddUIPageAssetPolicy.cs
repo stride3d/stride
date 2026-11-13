@@ -4,10 +4,11 @@
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Annotations;
 using Stride.UI.Assets;
-using Stride.Assets.Presentation.ViewModel;
 using Stride.Engine;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.UI.Editor.ViewModels;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.ViewModels;
+using Stride.Core.Assets.Presentation.Services;
 
 namespace Stride.UI.Editor
 {
@@ -15,7 +16,7 @@ namespace Stride.UI.Editor
     {
         /// <inheritdoc />
         [NotNull]
-        protected override EntityComponent CreateComponentFromAsset(EntityHierarchyItemViewModel parent, UIPageViewModel asset)
+        protected override EntityComponent CreateComponentFromAsset(IEntityHierarchyItemViewModel parent, UIPageViewModel asset)
         {
             return new UIComponent
             {

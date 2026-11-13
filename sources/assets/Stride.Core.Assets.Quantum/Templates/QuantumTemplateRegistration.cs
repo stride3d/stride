@@ -8,8 +8,8 @@ namespace Stride.Core.Assets.Quantum.Templates;
 /// <summary>
 /// Convenience entry point for editor-side template registration that wraps a
 /// <see cref="SessionTemplateGenerator"/> with <see cref="QuantumGraphTemplateGenerator"/> before
-/// handing it to <see cref="TemplateManager.Register{T}"/>. CLI / headless flows call
-/// <see cref="TemplateManager.Register{T}"/> directly to keep generators unwrapped.
+/// handing it to <see cref="TemplateManager.Register"/>. CLI / headless flows call
+/// <see cref="TemplateManager.Register"/> directly to keep generators unwrapped.
 /// </summary>
 public static class QuantumTemplateRegistration
 {

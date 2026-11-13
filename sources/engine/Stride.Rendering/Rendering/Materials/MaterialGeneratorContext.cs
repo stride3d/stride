@@ -48,6 +48,7 @@ namespace Stride.Rendering.Materials
         /// Initializes a new instance of <see cref="MaterialGeneratorContext"/>.
         /// </summary>
         /// <param name="material"></param>
+        /// <param name="graphicsDevice">The graphics device used by the generator.</param>
         public MaterialGeneratorContext(Material material = null, GraphicsDevice graphicsDevice = null)
             : base(graphicsDevice)
         {

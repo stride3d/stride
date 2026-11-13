@@ -18,6 +18,7 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="position">The position of this vertex.</param>
         /// <param name="color">The color of this vertex.</param>
+        /// <param name="colorAdd">The additive color of this vertex.</param>
         /// <param name="textureCoordinate">UV texture coordinates.</param>
         /// <param name="swizzle">The swizzle mode</param>
         public VertexPositionColorTextureSwizzle(Vector4 position, Color color, Color colorAdd, Vector2 textureCoordinate, SwizzleMode swizzle)

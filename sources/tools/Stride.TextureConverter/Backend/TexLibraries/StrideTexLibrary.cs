@@ -125,36 +125,79 @@ namespace Stride.TextureConverter.TexLibraries
         {
             Log.Verbose($"Inverting Y in a NormalMap texture...");
 
-            var rowPtr = image.Data;
+            switch (image.Format)
+            {
+                case PixelFormat.R8G8B8A8_UNorm:
+                case PixelFormat.B8G8R8A8_UNorm:
+                case PixelFormat.B8G8R8X8_UNorm:
+                    InvertGreenOfEachPixel(image, 4, &InvertGreenUNorm8);
+                    break;
+                case PixelFormat.R8G8_UNorm:
+                    InvertGreenOfEachPixel(image, 2, &InvertGreenUNorm8);
+                    break;
+                case PixelFormat.R8G8B8A8_SNorm:
+                    InvertGreenOfEachPixel(image, 4, &InvertGreenSNorm8);
+                    break;
+                case PixelFormat.R8G8_SNorm:
+                    InvertGreenOfEachPixel(image, 2, &InvertGreenSNorm8);
+                    break;
+                case PixelFormat.R16G16B16A16_UNorm:
+                    InvertGreenOfEachPixel(image, 8, &InvertGreenUNorm16);
+                    break;
+                case PixelFormat.R16G16_UNorm:
+                    InvertGreenOfEachPixel(image, 4, &InvertGreenUNorm16);
+                    break;
+                case PixelFormat.R16G16B16A16_SNorm:
+                    InvertGreenOfEachPixel(image, 8, &InvertGreenSNorm16);
+                    break;
+                case PixelFormat.R16G16_SNorm:
+                    InvertGreenOfEachPixel(image, 4, &InvertGreenSNorm16);
+                    break;
+                case PixelFormat.R10G10B10A2_UNorm:
+                    InvertGreenOfEachPixel(image, 4, &InvertGreenR10G10B10A2);
+                    break;
+                case PixelFormat.R8G8B8A8_UNorm_SRgb:
+                case PixelFormat.B8G8R8A8_UNorm_SRgb:
+                    Log.Error($"Inverting Y is intended for normal map textures, not sRGB: '{image.Name}'.");
+                    break;
+                default:
+                    Log.Error($"Inverting Y is not supported for the format {image.Format}, so the normal map '{image.Name}' is not inverted.");
+                    break;
+            }
+        }
 
-            if (image.Format == PixelFormat.R8G8B8A8_UNorm)
+        private static unsafe void InvertGreenOfEachPixel(TexImage image, int pixelSize, delegate*<byte*, void> invertGreen)
+        {
+            var row = (byte*)image.Data;
+            for (var y = 0; y < image.Height; y++)
             {
-                for (var i = 0; i < image.Height; i++)
-                {
-                    var colors = (Core.Mathematics.Color*)rowPtr;
-                    for (var x = 0; x < image.Width; x++)
-                    {
-                        colors[x].G = (byte)(255 - colors[x].G);
-                    }
-                    rowPtr = IntPtr.Add(rowPtr, image.RowPitch);
-                }
+                for (var x = 0; x < image.Width; x++)
+                    invertGreen(row + x * pixelSize);
+                row += image.RowPitch;
             }
-            else if (image.Format == PixelFormat.B8G8R8A8_UNorm)
-            {
-                for (var i = 0; i < image.Height; i++)
-                {
-                    var colors = (Core.Mathematics.ColorBGRA*)rowPtr;
-                    for (var x = 0; x < image.Width; x++)
-                    {
-                        colors[x].G = (byte)(255 - colors[x].G);
-                    }
-                    rowPtr = IntPtr.Add(rowPtr, image.RowPitch);
-                }
-            }
-            else if (image.Format == PixelFormat.R8G8B8A8_UNorm_SRgb || image.Format == PixelFormat.B8G8R8A8_UNorm_SRgb)
-            {
-                Log.Error($"Inverting Y is intended for nomal map textures, not sRGB...");
-            }
+        }
+
+        private static unsafe void InvertGreenUNorm8(byte* pixel) => pixel[1] = (byte)(byte.MaxValue - pixel[1]);
+
+        // The lowest signed value also means -1, and its opposite doesn't fit.
+        private static unsafe void InvertGreenSNorm8(byte* pixel) => pixel[1] = (byte)(sbyte)-Math.Max((sbyte)pixel[1], (sbyte)-sbyte.MaxValue);
+
+        private static unsafe void InvertGreenUNorm16(byte* pixel)
+        {
+            var green = (ushort*)pixel + 1;
+            *green = (ushort)(ushort.MaxValue - *green);
+        }
+
+        private static unsafe void InvertGreenSNorm16(byte* pixel)
+        {
+            var green = (short*)pixel + 1;
+            *green = (short)-Math.Max(*green, (short)-short.MaxValue);
+        }
+
+        private static unsafe void InvertGreenR10G10B10A2(byte* pixel)
+        {
+            const uint greenMask = 0x3FFu << 10;
+            *(uint*)pixel ^= greenMask;
         }
 
         /// <summary>
@@ -169,8 +212,8 @@ namespace Stride.TextureConverter.TexLibraries
         /// Image could not be created.
         /// </exception>
         /// <exception cref="System.NotImplementedException"></exception>
-        /// <exception cref="TexLibraryException">Unsupported file extension.</exception>
-        private unsafe void Export(TexImage image, StrideTextureLibraryData libraryDataf, ExportRequest request)
+        /// <exception cref="TextureToolsException">Unsupported file extension.</exception>
+        private unsafe void Export(TexImage image, StrideTextureLibraryData libraryData, ExportRequest request)
         {
             Log.Verbose("Exporting to " + request.FilePath + " ...");
 

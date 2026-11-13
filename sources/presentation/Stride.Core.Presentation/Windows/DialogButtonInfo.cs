@@ -55,7 +55,6 @@ public sealed class DialogButtonInfo : ViewModelBase
     /// <summary>
     /// The result associated with this button.
     /// </summary>
-    /// <seealso cref="MessageDialogBase.ButtonResult"/>
     public int Result
     {
         get => result;

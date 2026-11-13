@@ -8,16 +8,15 @@ using System.Linq;
 using System.Threading.Tasks;
 using Stride.Core.Assets;
 using Stride.Core.Annotations;
+using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Extensions;
 using Stride.Core.Quantum;
-using Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
+using Stride.Editor.Engine;
 using Stride.UI.Editor.ViewModels;
 using Stride.UI.Editor.Services;
-using Stride.Assets.Presentation.ViewModel;
 using Stride.UI.Assets;
 using Stride.Core.Assets.Editor.Annotations;
+using Stride.Core.Assets.Editor.ViewModels;
 
 namespace Stride.UI.Editor.ViewModels
 {
@@ -32,7 +31,7 @@ namespace Stride.UI.Editor.ViewModels
         /// </summary>
         /// <param name="asset">The asset related to this editor.</param>
         public UILibraryEditorViewModel([NotNull] UILibraryViewModel asset)
-            : this(asset, x => new UILibraryEditorController(asset, (UILibraryEditorViewModel)x))
+            : this(asset, (x, viewport) => new UILibraryEditorController((UILibraryEditorViewModel)x, viewport))
         {
         }
 
@@ -40,8 +39,8 @@ namespace Stride.UI.Editor.ViewModels
         /// Initializes a new instance of the <see cref="UILibraryEditorViewModel"/> class.
         /// </summary>
         /// <param name="asset">The asset related to this editor.</param>
-        /// <param name="controllerFactory">A factory to create the associated <see cref="IEditorGameController"/>.</param>
-        private UILibraryEditorViewModel([NotNull] UILibraryViewModel asset, [NotNull] Func<GameEditorViewModel, IEditorGameController> controllerFactory)
+        /// <param name="controllerFactory">A factory to create the controller of the game, from the editor and the viewport service of the session.</param>
+        private UILibraryEditorViewModel([NotNull] UILibraryViewModel asset, [NotNull] Func<UIEditorBaseViewModel, IEditorGameViewportService, UIEditorController> controllerFactory)
             : base(asset, controllerFactory)
         {
         }

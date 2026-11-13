@@ -75,7 +75,9 @@ public enum GraphicsResourceState
     ///   The Graphics Resource is used <strong>for Unordered Access</strong>.
     ///   <para>
     ///     A Graphics Sub-Resource must be in this state when it is accessed by the GPU via an Unordered Access View.
-    ///     A Graphics Sub-Resource must also be in this state when it is cleared with <see cref="CommandList.ClearReadWrite"/>.
+    ///     A Graphics Sub-Resource must also be in this state when it is cleared with
+    ///     <see cref="CommandList.ClearReadWrite(Texture, Stride.Core.Mathematics.UInt4)"/> or
+    ///     <see cref="CommandList.ClearReadWrite(Buffer, Stride.Core.Mathematics.UInt4)"/>.
     ///   </para>
     ///   <para>
     ///     This is a read / write state.

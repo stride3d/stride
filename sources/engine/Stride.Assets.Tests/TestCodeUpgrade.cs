@@ -581,6 +581,120 @@ public class TestCodeUpgrade
     }
 
     [Fact]
+    public async Task MemberRenameRenamesOnlyTheMatchingMember()
+    {
+        // The 4.5.1 shape: CommandList.UnsetRenderTargets became ResetTargets.
+        var source = """
+            namespace TestNs
+            {
+                class Target
+                {
+                    public void UnsetRenderTargets() { }
+                    public void ResetTargets() { }
+                }
+                class Other
+                {
+                    public void UnsetRenderTargets() { }
+                }
+                class Usage
+                {
+                    void A(Target t)
+                    {
+                        t.UnsetRenderTargets();
+                        t?.UnsetRenderTargets();
+                        System.Action action = t.UnsetRenderTargets;
+                    }
+                    void B(Other o) => o.UnsetRenderTargets();
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, Rewrite(MemberRename("TestNs.Target", "UnsetRenderTargets", "ResetTargets")));
+
+        Assert.Contains("t.ResetTargets();", result);
+        Assert.Contains("t?.ResetTargets();", result);
+        Assert.Contains("System.Action action = t.ResetTargets;", result);
+        // The unrelated same-named method is untouched.
+        Assert.Contains("o.UnsetRenderTargets()", result);
+        AssertCompiles(result);
+    }
+
+    [Fact]
+    public async Task FluentCallRemoveDropsTheCallsOfAMethodReturningNothing()
+    {
+        // The 4.5.1 shape: CommandList.ResetQueryPool went, the pools reset themselves.
+        var source = """
+            namespace TestNs
+            {
+                class Pool { }
+                class Target
+                {
+                    public static Target Current() => new();
+                    public void ResetQueryPool(Pool pool) { }
+                }
+                class Other
+                {
+                    public void ResetQueryPool(Pool pool) { }
+                }
+                class Usage
+                {
+                    void A(Target t, Pool p)
+                    {
+                        t.ResetQueryPool(p);
+                        t?.ResetQueryPool(p);
+                        Target.Current().ResetQueryPool(p);
+                    }
+                    void B(Target t, Pool p) => t.ResetQueryPool(p);
+                    System.Action C(Target t, Pool p) => () => t.ResetQueryPool(p);
+                    void D(Other o, Pool p) => o.ResetQueryPool(p);
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, Rewrite(FluentCallRemove("TestNs.Target", "ResetQueryPool")));
+
+        Assert.DoesNotContain("t.ResetQueryPool", result);
+        Assert.DoesNotContain("t?.ResetQueryPool", result);
+        // A receiver that is a call keeps its side effects.
+        Assert.Contains("Target.Current();", result);
+        // The unrelated same-named method is untouched.
+        Assert.Contains("o.ResetQueryPool(p)", result);
+        AssertCompiles(result);
+    }
+
+    [Fact]
+    public async Task FluentCallRemoveDropsTheCallsOfEveryOverload()
+    {
+        // The 4.5.1 shape: CommandList.SetStreamTargets went, with a span overload on Direct3D 11 and an array one elsewhere.
+        var source = """
+            namespace TestNs
+            {
+                class Buffer { }
+                class Target
+                {
+                    public void SetStreamTargets(params System.ReadOnlySpan<Buffer> buffers) { }
+                    public void SetStreamTargets(params Buffer[] buffers) { }
+                }
+                class Usage
+                {
+                    void A(Target t, Buffer b, Buffer[] all)
+                    {
+                        t.SetStreamTargets(b);
+                        t.SetStreamTargets(all);
+                        t.SetStreamTargets();
+                        t.SetStreamTargets(new System.ReadOnlySpan<Buffer>(all));
+                    }
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, Rewrite(FluentCallRemove("TestNs.Target", "SetStreamTargets")));
+
+        Assert.DoesNotContain("t.SetStreamTargets", result);
+        AssertCompiles(result);
+    }
+
+    [Fact]
     public async Task FluentCallRemoveKeepsTheReceiver()
     {
         // The 4.4 shape: Buffer.RecreateWith returned its receiver and went away with the device reset recovery.
@@ -685,6 +799,62 @@ public class TestCodeUpgrade
         // The body of an if or else without braces cannot be removed: it becomes an empty block.
         Assert.Contains("if (t != null)", result);
         Assert.Contains("else", result);
+        AssertCompiles(result);
+    }
+
+    [Fact]
+    public async Task AssignmentRemoveDropsInitializerEntries()
+    {
+        // The 4.5 shape: BepuSimulation.MaxStepPerFrame is gone; user code may set it in an object initializer.
+        var source = """
+            namespace TestNs
+            {
+                class Target
+                {
+                    public int MaxStepPerFrame;
+                    public int Other;
+                }
+                record Rec
+                {
+                    public int MaxStepPerFrame { get; init; }
+                    public int Other { get; init; }
+                }
+                class Holder
+                {
+                    public Target Inner = new Target();
+                }
+                class Unrelated
+                {
+                    public int MaxStepPerFrame;
+                }
+                class Usage
+                {
+                    object Only() => new Target { MaxStepPerFrame = 3 };
+                    object First() => new Target { MaxStepPerFrame = 3, Other = 1 };
+                    object Last() => new Target { Other = 2, MaxStepPerFrame = 3 };
+                    Target Implicit() => new() { Other = 3, MaxStepPerFrame = 3, };
+                    object MultiLine() => new Target
+                    {
+                        Other = 4,
+                        MaxStepPerFrame = 3,
+                    };
+                    object Nested() => new Holder { Inner = { MaxStepPerFrame = 3, Other = 5 } };
+                    Rec With(Rec r) => r with { MaxStepPerFrame = 3, Other = 6 };
+                    object Keep() => new Unrelated { MaxStepPerFrame = 7 };
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, Rewrite(
+            AssignmentRemove("TestNs.Target", "MaxStepPerFrame"),
+            AssignmentRemove("TestNs.Rec", "MaxStepPerFrame")));
+
+        Assert.DoesNotContain("MaxStepPerFrame = 3", result);
+        // The other entries stay, wherever the removed one sat.
+        for (var i = 1; i <= 6; i++)
+            Assert.Contains($"Other = {i}", result);
+        // The unrelated same-named member is untouched.
+        Assert.Contains("new Unrelated { MaxStepPerFrame = 7 }", result);
         AssertCompiles(result);
     }
 
@@ -1121,7 +1291,7 @@ public class TestCodeUpgrade
     [Fact]
     public async Task InterfaceMemberAddCompletesOnlyClassesThatImplementTheInterfaceThemselves()
     {
-        // The 4.5 shape: IInputDevice gained CaptureState, which the engine base classes already provide
+        // The 4.5.3 shape: IInputDevice gained CaptureState, which the engine base classes already provide
         var source = """
             namespace Input
             {
@@ -1171,7 +1341,7 @@ public class TestCodeUpgrade
     [Fact]
     public async Task PropertyOverrideRenameMovesOverridesToTheNewProperty()
     {
-        // The 4.5 shape: GamePadDeviceBase.State became non-virtual and subclasses override RawState instead
+        // The 4.5.3 shape: GamePadDeviceBase.State became non-virtual and subclasses override RawState instead
         const string OldBase = "public abstract class GamePadDeviceBase { public abstract int State { get; } }";
         const string NewBase = "public abstract class GamePadDeviceBase { public int State => RawState; protected abstract int RawState { get; } }";
         var source = $$"""
@@ -1211,7 +1381,7 @@ public class TestCodeUpgrade
     [Fact]
     public async Task PropertyOverrideRenameMovesAssignmentsToAGetOnlyOverride()
     {
-        // GamePadSimulated before 4.5: a get-only auto-property override that the class assigns in its constructor
+        // GamePadSimulated before 4.5.3: a get-only auto-property override that the class assigns in its constructor
         const string OldBase = "public abstract class GamePadDeviceBase { public abstract int State { get; } }";
         const string NewBase = "public abstract class GamePadDeviceBase { public int State => RawState; protected abstract int RawState { get; } }";
         var source = $$"""
