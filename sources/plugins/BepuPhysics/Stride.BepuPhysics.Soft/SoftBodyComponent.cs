@@ -149,8 +149,6 @@ public abstract class SoftBodyComponent : CollidableComponent, IDebugLineSource
     [Display(category: CategorySoftBody)]
     public List<SoftBodyPin> Pins { get; } = new();
 
-
-
     /// <summary> The amount of particles, zero until the body is part of a simulation </summary>
     [DataMemberIgnore]
     public int ParticleCount => _particles.Length;

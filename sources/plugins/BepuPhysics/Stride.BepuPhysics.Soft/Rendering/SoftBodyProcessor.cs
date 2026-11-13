@@ -148,7 +148,6 @@ internal sealed class SoftBodyProcessor : EntityProcessor<SoftBodyComponent, Sof
             component.RenderModel!.Upload(_context.CommandList);
     }
 
-
     /// <summary> CPU or GPU, as the settings say and as far as the device can do it </summary>
     private SoftBodyDeformationMode DeformationMode()
     {
