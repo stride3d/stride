@@ -5,6 +5,7 @@ using Stride.Assets.Templates;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Templates;
 using Stride.Core.IO;
+using Stride.Core.Translation;
 
 namespace Stride.Assets.Editor.Templates;
 
@@ -26,8 +27,8 @@ public static class UpdatePlatformsTemplate
         var description = new TemplateDescription
         {
             Id = UpdatePlatformsGenerator.TemplateId,
-            Name = "Update platforms",
-            Description = "Add or update per-platform executable projects for the current game",
+            Name = Tr._p("Template", "Update platforms"),
+            Description = Tr._p("Template", "Add or update per-platform executable projects for the current game"),
             Group = "General",
             Scope = TemplateScope.Package,
             DefaultOutputName = "MyGame",

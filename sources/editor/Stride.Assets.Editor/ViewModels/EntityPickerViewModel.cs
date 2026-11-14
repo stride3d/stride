@@ -5,6 +5,7 @@ using Stride.Assets.Editor.Services;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Reflection;
+using Stride.Core.Translation;
 using Stride.Engine;
 
 namespace Stride.Assets.Editor.ViewModels;
@@ -33,8 +34,8 @@ public sealed class EntityPickerViewModel : DispatcherViewModel
         // As in WPF: a component type, or an interface or abstract type that components implement
         ComponentType = componentType is not null && (typeof(EntityComponent).IsAssignableFrom(componentType) || componentType.IsAbstract) ? componentType : null;
         Message = ComponentType is null
-            ? "Select an entity:"
-            : $"Select an entity that has a {TypeDescriptorFactory.Default.AttributeRegistry.GetDisplayName(ComponentType)} component.";
+            ? Tr._p("Message", "Select an entity:")
+            : string.Format(Tr._p("Message", "Select an entity that has a {0} component."), TypeDescriptorFactory.Default.AttributeRegistry.GetDisplayName(ComponentType));
         roots = BuildRoots();
     }
 

@@ -10,6 +10,7 @@ using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Translation;
 using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering.LightProbes;
@@ -105,7 +106,7 @@ public sealed class EditorLightingViewModel : DispatcherViewModel
             return;
 
         using var transaction = editor.UndoRedoService.CreateTransaction();
-        editor.UndoRedoService.SetName(transaction, bounces > 0 ? "Capture LightProbes" : "Reset LightProbes");
+        editor.UndoRedoService.SetName(transaction, bounces > 0 ? Tr._p("Action", "Capture LightProbes") : Tr._p("Action", "Reset LightProbes"));
 
         // Reset the coefficients
         var zeroCoefficients = Enumerable.Repeat(default(Color3), LightProbeGenerator.LambertHamonicOrder * LightProbeGenerator.LambertHamonicOrder).ToList();
