@@ -1111,6 +1111,8 @@ namespace Stride.Games
         {
             // The new state is the Window's full-screen state
             IsFullScreen = window.IsFullscreen;
+            // Also applies a switch between borderless and exclusive full screen, which changes neither the state nor the size
+            deviceSettingsChanged = true;
 
             if (IsFullScreen)
             {
@@ -1380,6 +1382,18 @@ namespace Stride.Games
                                 // Change full screen if needed
                                 GraphicsDevice.Presenter.IsFullScreen = presentationParameters.IsFullScreen;
                             });
+
+                            // From exclusive to borderless full screen: once the swapchain has given the window back,
+                            // the window covers the display and the back buffer takes its size
+                            if (isSwapChainControllingWindow && willBeBorderlessFullScreen)
+                            {
+                                game.Window.EndScreenDeviceChange(newWidth, newHeight);
+                                isEndScreenDeviceChange = true;
+
+                                var borderlessClientBounds = game.Window.ClientBounds;
+                                if (borderlessClientBounds.Width > 0 && borderlessClientBounds.Height > 0)
+                                    game.ChangePresenterBuffers(() => GraphicsDevice.Presenter.Resize(borderlessClientBounds.Width, borderlessClientBounds.Height, newFormat));
+                            }
                         }
                         // A resize can come from a window event, outside the game loop that reports a lost device
                         catch (Exception ex) when (ex is not GraphicsDeviceException && GraphicsDevice.GraphicsDeviceStatus is var status && status != GraphicsDeviceStatus.Normal)

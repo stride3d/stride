@@ -213,8 +213,21 @@ namespace Stride.Games
         /// and the back buffer gets that size whatever size was requested. When <see langword="false"/>, fullscreen takes
         /// the display exclusively at the requested size, changing the display mode. A window that cannot take the display
         /// exclusively (such as on UWP) falls back to a borderless window and logs a warning.
+        /// Changing it while in fullscreen switches to the other kind of fullscreen right away.
         /// </remarks>
-        public bool FullscreenIsBorderlessWindow { get; set; } = false;
+        public bool FullscreenIsBorderlessWindow
+        {
+            get => fullscreenIsBorderlessWindow;
+            set
+            {
+                if (value == fullscreenIsBorderlessWindow)
+                    return;
+
+                fullscreenIsBorderlessWindow = value;
+                if (isFullscreen)
+                    FullscreenChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
 
         /// <summary>
         /// Whether fullscreen takes the display exclusively, at a display mode of the requested size.
@@ -288,6 +301,8 @@ namespace Stride.Games
         internal Action ExitCallback;
         
         private bool isFullscreen;
+
+        private bool fullscreenIsBorderlessWindow;
 
         // The full-screen state the GraphicsDeviceManager last applied: it stays set while a requested leave is pending
         private bool isFullscreenApplied;
