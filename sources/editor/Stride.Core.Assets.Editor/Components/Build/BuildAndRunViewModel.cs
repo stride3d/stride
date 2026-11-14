@@ -270,7 +270,9 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
                     status!.NotifyBackgroundJobFinished(token);
                 status?.PushDiscardableStatus(outcome switch
                 {
-                    GameBuildOutcome.Succeeded or GameBuildOutcome.StartFailed => Tr._p("Status", "Build successful"),
+                    GameBuildOutcome.Succeeded => Tr._p("Status", "Build successful"),
+                    // The build succeeded: the Output pane says why the deployment or the start failed
+                    GameBuildOutcome.StartFailed => Tr._p("Status", "Build successful, but the game did not start"),
                     GameBuildOutcome.Canceled => Tr._p("Status", "Build cancelled"),
                     _ => Tr._p("Status", "Build failed"),
                 });
