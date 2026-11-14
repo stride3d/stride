@@ -167,8 +167,11 @@ jobs:
           $filter = "${{ github.event.inputs.test-filter || inputs.test-filter }}"
           $neutral = '${{ matrix.graphics-api }}' -eq 'Direct3D11' -and ($projects -or $filter -or '${{ inputs.api-neutral-suites }}' -eq 'true')
           $slnf = if ($neutral) { 'sources/Stride.Tests.Game.Desktop.slnf' } else { 'sources/Stride.Tests.Game.GPU.slnf' }
-          $target = dotnet run --project build/tools/Stride.TestSuites -- `
-            --projects "$projects" --filter "$filter" --slnf $slnf
+          # Nothing to narrow (every PR and push run): the whole solution, without building the tool.
+          $target = if (-not $projects -and -not $filter) { $slnf } else {
+            dotnet run --project build/tools/Stride.TestSuites -- `
+              --projects "$projects" --filter "$filter" --slnf $slnf
+          }
           Write-Host "Build/test target: $(if ($target) { $target } else { '(nothing)' })"
           Add-Content $env:GITHUB_ENV "STRIDE_TEST_TARGET=$target"
           Add-Content $env:GITHUB_ENV "STRIDE_TEST_FILTER=${{ github.event.inputs.test-filter || inputs.test-filter }}"
