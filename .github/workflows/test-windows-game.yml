@@ -30,6 +30,10 @@ on:
         description: 'Rerun the filtered test set up to N times, stop on first failure (flake hunting). 1 = single run (default).'
         type: number
         default: 1
+      test-parallelism:
+        description: 'Test assemblies run at a time (dotnet test -m). 0 = one per core.'
+        type: number
+        default: 2
       projects:
         description: 'Test .csproj paths to build/test, separated by ; (blank = detected automatically using test-filter, or all)'
         type: string
@@ -195,6 +199,10 @@ jobs:
         run: |
           $repeat = [int]("${{ github.event.inputs.repeat || inputs.repeat || '1' }}")
           $filterArgs = if ($env:STRIDE_TEST_FILTER) { @('--filter', $env:STRIDE_TEST_FILTER) } else { @() }
+          # Two at a time: software rendering already takes every core, more assemblies only slow each other down
+          $parallelism = [int]("${{ github.event.inputs.test-parallelism || '2' }}")
+          # Quoted below: a splatted "-m:N" reaches dotnet as "-m:" and "N"
+          if ($parallelism -le 0) { $parallelism = [Environment]::ProcessorCount }
           for ($i = 1; $i -le $repeat; $i++) {
             Write-Host "=== Test run $i / $repeat ==="
             dotnet test $env:STRIDE_TEST_TARGET `
@@ -204,7 +212,7 @@ jobs:
               -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
               -p:StrideGraphicsApis=${{ matrix.graphics-api }} `
               -p:StrideGraphicsApi=${{ matrix.graphics-api }} `
-              @filterArgs `
+              @filterArgs "-m:$parallelism" `
               -- RunConfiguration.MaxCpuCount=1
             if ($LASTEXITCODE -ne 0) {
               Write-Host "Run $i failed (exit $LASTEXITCODE); stopping."
