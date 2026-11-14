@@ -1,6 +1,7 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:l="using:Stride.Launcher.Assets.Localization"
+             xmlns:vm="using:Stride.Launcher.ViewModels"
              x:Class="Stride.Launcher.App"
              RequestedThemeVariant="Dark">
   <!-- Dark by default: the light variant isn't tuned yet. The user can choose another one (LauncherSettings.ThemeVariant, App.Initialize) -->
@@ -20,13 +21,13 @@
           <BoxShadows x:Key="CardShadow">0 1 2 #17000000</BoxShadows>
           <SolidColorBrush x:Key="ChromeWhiteBrush" Color="{StaticResource SystemChromeWhiteColor}" />
           <SolidColorBrush x:Key="NeutralBackgroundBrush" Color="#80FFFFFF" />
-          <!-- Badges of the version rows: nightly builds (amber), local builds (blue), the Game Studio of a local build (violet) -->
+          <!-- Badges of the version rows: nightly builds (amber), local builds (blue), betas (violet) -->
           <SolidColorBrush x:Key="NightlyBadgeBackgroundBrush" Color="#2EE08A00" />
           <SolidColorBrush x:Key="NightlyBadgeForegroundBrush" Color="#9A5B00" />
           <SolidColorBrush x:Key="LocalBadgeBackgroundBrush" Color="#263A8EE6" />
           <SolidColorBrush x:Key="LocalBadgeForegroundBrush" Color="#1F5FA8" />
-          <SolidColorBrush x:Key="EditorBadgeBackgroundBrush" Color="#268A5CD6" />
-          <SolidColorBrush x:Key="EditorBadgeForegroundBrush" Color="#5E35A8" />
+          <SolidColorBrush x:Key="BetaBadgeBackgroundBrush" Color="#268A5CD6" />
+          <SolidColorBrush x:Key="BetaBadgeForegroundBrush" Color="#5E35A8" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
           <SolidColorBrush x:Key="AccentBrush" Color="{DynamicResource SystemAccentColor}" />
@@ -38,10 +39,27 @@
           <SolidColorBrush x:Key="NightlyBadgeForegroundBrush" Color="#FFC46A" />
           <SolidColorBrush x:Key="LocalBadgeBackgroundBrush" Color="#403A8EE6" />
           <SolidColorBrush x:Key="LocalBadgeForegroundBrush" Color="#8AB8F0" />
-          <SolidColorBrush x:Key="EditorBadgeBackgroundBrush" Color="#409B6BE6" />
-          <SolidColorBrush x:Key="EditorBadgeForegroundBrush" Color="#C3A6F2" />
+          <SolidColorBrush x:Key="BetaBadgeBackgroundBrush" Color="#409B6BE6" />
+          <SolidColorBrush x:Key="BetaBadgeForegroundBrush" Color="#C3A6F2" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
+      <!-- The badge of the version on the Start and Install buttons, as on its row in the list -->
+      <DataTemplate x:Key="VersionCaptionBadge" DataType="vm:VersionCaption">
+        <Panel VerticalAlignment="Center" Margin="8,0,0,0">
+          <Border Padding="5,1" CornerRadius="3" Background="{DynamicResource NightlyBadgeBackgroundBrush}" IsVisible="{Binding IsNightly}">
+            <TextBlock Text="{x:Static l:Strings.BadgeNightly}" FontSize="10" FontWeight="SemiBold"
+                       Foreground="{DynamicResource NightlyBadgeForegroundBrush}" />
+          </Border>
+          <Border Padding="5,1" CornerRadius="3" Background="{DynamicResource LocalBadgeBackgroundBrush}" IsVisible="{Binding IsLocal}">
+            <TextBlock Text="{x:Static l:Strings.BadgeLocal}" FontSize="10" FontWeight="SemiBold"
+                       Foreground="{DynamicResource LocalBadgeForegroundBrush}" />
+          </Border>
+          <Border Padding="5,1" CornerRadius="3" Background="{DynamicResource BetaBadgeBackgroundBrush}" IsVisible="{Binding IsBeta}">
+            <TextBlock Text="{x:Static l:Strings.BadgeBeta}" FontSize="10" FontWeight="SemiBold"
+                       Foreground="{DynamicResource BetaBadgeForegroundBrush}" />
+          </Border>
+        </Panel>
+      </DataTemplate>
       <Thickness x:Key="TileBorderThickness">12</Thickness>
       <CornerRadius x:Key="ControlCornerRadius">4</CornerRadius>
     </ResourceDictionary>
@@ -85,4 +103,30 @@
       <Setter Property="Background" Value="Transparent" />
     </Style>
   </Application.Styles>
+
+  <Application.DataTemplates>
+    <!-- The text of the Start and Install buttons: the version in the middle, a nightly's date on a second line, and on the
+         right the badge of its row in the list. An invisible copy of the badge on the left keeps the version centered; the
+         text shrinks only when it doesn't fit -->
+    <DataTemplate DataType="vm:VersionCaption">
+      <Grid ColumnDefinitions="Auto,*,Auto">
+        <ContentControl Content="{Binding}" ContentTemplate="{StaticResource VersionCaptionBadge}" Opacity="0" />
+        <Viewbox Grid.Column="1" HorizontalAlignment="Center" StretchDirection="DownOnly">
+          <StackPanel>
+            <TextBlock HorizontalAlignment="Center" Text="{Binding Text}" Classes.nightly="{Binding IsNightly}">
+              <TextBlock.Styles>
+                <Style Selector="TextBlock.nightly">
+                  <Setter Property="FontSize" Value="20" />
+                  <Setter Property="LineHeight" Value="21" />
+                </Style>
+              </TextBlock.Styles>
+            </TextBlock>
+            <TextBlock HorizontalAlignment="Center" FontSize="12" LineHeight="14" Opacity="0.85"
+                       Text="{Binding NightlyDateText}" IsVisible="{Binding IsNightly}" />
+          </StackPanel>
+        </Viewbox>
+        <ContentControl Grid.Column="2" Content="{Binding}" ContentTemplate="{StaticResource VersionCaptionBadge}" />
+      </Grid>
+    </DataTemplate>
+  </Application.DataTemplates>
 </Application>

@@ -19,7 +19,12 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
 {
     public const string PrerequisitesInstaller = @"Bin\Prerequisites\install-prerequisites.exe";
 
+    /// <summary>
+    /// The build this row offers by default: to install, or to update its newest installed build to (<see cref="OfferedBuild"/>).
+    /// </summary>
     internal NugetServerPackage LatestServerPackage;
+    // The builds of this row on the feed, newest first
+    private IReadOnlyList<NugetServerPackage> serverBuilds = [];
     private ReleaseNotesViewModel releaseNotes;
 
     /// <summary>
@@ -151,7 +156,8 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
 
     /// <summary>
     /// Gets the text of this version in the list: its name, and whether it isn't installed or has an update. A build
-    /// chosen in the alternate versions is named in full (4.4.0-beta7), as the row is then about that build.
+    /// chosen in the alternate versions is named in full (4.4.0-beta7), as the row is then about that build; a nightly
+    /// by its X.Y.Z and its date (4.5.3 · Nov 14).
     /// </summary>
     public string Label
     {
@@ -160,14 +166,17 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
             // The default build: the newest installed, else the newest on the server
             var defaultBuild = AlternateVersions.Where(x => x.LocalPackage is not null).MaxBy(x => x.Version)?.Version ?? LatestServerPackage?.Version;
             var chosenBuild = Version is not null && defaultBuild is not null && !Version.Equals(defaultBuild);
-            var name = string.Format(Strings.VersionButton, chosenBuild ? $"{PackageSimpleName} {Version}" : ListName);
+            // A chosen nightly by its X.Y.Z and its date: its whole version would be cut before the date in the row
+            var buildName = VersionCaption.ShortNightlyName(PackageSimpleName, Version) ?? $"{PackageSimpleName} {Version}";
+            var name = string.Format(Strings.VersionButton, chosenBuild ? buildName : ListName);
             if (!CanDelete)
                 return $"{name} {Strings.VersionButtonUninstalled}";
             // Chosen on purpose: an update of it isn't news
             if (chosenBuild)
                 return name;
+            // From a beta, an update to a release is told apart: the badge says the row is on a beta
             if (CanBeDownloaded && IsLatestPackageRemote)
-                return $"{name} {Strings.VersionButtonUpdateAvailable}";
+                return $"{name} {(IsBetaVersion(LocalPackage?.Version) && IsReleaseVersion(ServerPackage?.Version) ? Strings.VersionButtonReleaseAvailable : Strings.VersionButtonUpdateAvailable)}";
             if (CanBeDownloaded && IsLatestPackageLocal)
                 return $"{name} {Strings.VersionButtonLocalUpdateAvailable}";
             return name;
@@ -212,9 +221,9 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
     /// <param name="package">The local package corresponding to this version.</param>
     internal void UpdateLocalPackage(NugetLocalPackage? package, IEnumerable<NugetLocalPackage>? alternateVersions)
     {
-        OnPropertyChanging(nameof(FullName), nameof(Version));
+        OnPropertyChanging(nameof(FullName), nameof(Version), nameof(IsBeta));
         LocalPackage = package;
-        OnPropertyChanged(nameof(FullName), nameof(Version));
+        OnPropertyChanged(nameof(FullName), nameof(Version), nameof(IsBeta));
         Dispatcher.Invoke(UpdateStatus);
 
         // Always refresh companion paths for the current version by querying the store
@@ -256,22 +265,51 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
     }
 
     /// <summary>
+    /// Updates the builds of this version on the feed, and offers the one <see cref="OfferedBuild"/> chooses for its newest installed build.
+    /// </summary>
+    /// <param name="builds">The builds of this version on the feed, newest first.</param>
+    internal void UpdateServerPackages(IReadOnlyList<NugetServerPackage> builds)
+    {
+        serverBuilds = builds;
+        OnPropertyChanging(nameof(IsLatestPackageRemote), nameof(IsLatestPackageLocal));
+        LatestServerPackage = OfferedBuild(LocalPackage?.Version);
+        OnPropertyChanged(nameof(IsLatestPackageRemote), nameof(IsLatestPackageLocal));
+        UpdateServerPackage(LatestServerPackage, builds);
+    }
+
+    /// <summary>
+    /// Gets the build of the feed this version offers to install, or to update <paramref name="installed"/> to (<see cref="ChooseOfferedVersion"/>).
+    /// </summary>
+    internal NugetServerPackage? OfferedBuild(PackageVersion? installed)
+        => ChooseOfferedVersion(installed, serverBuilds.Select(x => x.Version)) is { } version ? serverBuilds.First(x => x.Version == version) : null;
+
+    /// <summary>
+    /// Chooses the build a row offers to install, or to update <paramref name="installed"/> to: the newest release, as betas
+    /// come out between releases and are chosen on purpose in the alternate versions, and a local build on the dev feed
+    /// isn't one. The newest build when <paramref name="installed"/> isn't a release (a beta, which follows the betas, or a
+    /// local build), or when there's no release yet. A nightly row offers its newest nightly.
+    /// </summary>
+    internal static PackageVersion? ChooseOfferedVersion(PackageVersion? installed, IEnumerable<PackageVersion> builds)
+    {
+        var all = builds.ToList();
+        var newest = all.Max();
+        return installed is not null && !IsReleaseVersion(installed) ? newest : all.Where(IsReleaseVersion).Max() ?? newest;
+    }
+
+    /// <summary>
+    /// Gets whether the build of this row (<see cref="Version"/>) is a beta, which has a badge in the list.
+    /// </summary>
+    public bool IsBeta => IsBetaVersion(Version);
+
+    /// <summary>
     /// Updates the server package of this version.
     /// </summary>
     /// <param name="package">The server package corresponding to this version.</param>
     internal void UpdateServerPackage(NugetServerPackage package, IEnumerable<NugetServerPackage> alternateVersions)
     {
-        OnPropertyChanging(nameof(FullName), nameof(Version));
+        OnPropertyChanging(nameof(FullName), nameof(Version), nameof(IsBeta));
         ServerPackage = package;
-        OnPropertyChanged(nameof(FullName), nameof(Version));
-
-        // Always keep track of highest version
-        if (ServerPackage is not null && (LatestServerPackage is null || LatestServerPackage.Version < ServerPackage.Version))
-        {
-            OnPropertyChanging(nameof(IsLatestPackageRemote), nameof(IsLatestPackageLocal));
-            LatestServerPackage = ServerPackage;
-            OnPropertyChanged(nameof(IsLatestPackageRemote), nameof(IsLatestPackageLocal));
-        }
+        OnPropertyChanged(nameof(FullName), nameof(Version), nameof(IsBeta));
 
         Dispatcher.Invoke(UpdateStatus);
         if (alternateVersions is not null)

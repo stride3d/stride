@@ -420,6 +420,42 @@ namespace Stride.Launcher.Assets.Localization {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to {0} (not built).
+        /// </summary>
+        public static string EditorNotBuilt {
+            get {
+                return ResourceManager.GetString("EditorNotBuilt", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} (not in this version).
+        /// </summary>
+        public static string EditorNotInVersion {
+            get {
+                return ResourceManager.GetString("EditorNotInVersion", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to BETA.
+        /// </summary>
+        public static string BadgeBeta {
+            get {
+                return ResourceManager.GetString("BadgeBeta", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to (release available).
+        /// </summary>
+        public static string VersionButtonReleaseAvailable {
+            get {
+                return ResourceManager.GetString("VersionButtonReleaseAvailable", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to LOCAL.
         /// </summary>
         public static string BadgeLocal {
