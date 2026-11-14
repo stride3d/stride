@@ -16,16 +16,6 @@ public partial class MainView : UserControl
         InitializeComponent();
     }
 
-    private void EditorChanged(object? sender, SelectionChangedEventArgs e)
-    {
-        if (DataContext is MainViewModel vm
-            && EditorSelector.SelectedItem is string editor
-            && vm.PreferredEditor != editor)
-        {
-            vm.PreferredEditor = editor;
-        }
-    }
-
     private void OnOutlineSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         if (e.AddedItems is [OutlineRow row])

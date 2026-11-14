@@ -304,6 +304,12 @@ public abstract class PackageVersionViewModel : DispatcherViewModel
         // Intentionally does nothing.
     }
 
+    /// <summary>
+    /// Uninstalls the package of this version, for <see cref="DeleteCommand"/>.
+    /// </summary>
+    /// <param name="progressReport">The progress of the uninstallation.</param>
+    protected virtual Task UninstallLocalPackage(ProgressReport progressReport) => Store.UninstallPackage(LocalPackage!, progressReport);
+
     protected async Task Delete(bool displayErrorMessage, bool askConfirmation)
     {
         bool proceed = !askConfirmation;
@@ -329,7 +335,7 @@ public abstract class PackageVersionViewModel : DispatcherViewModel
             progressReport.ProgressChanged += (action, progress) => { Dispatcher.InvokeAsync(() => { UpdateProgress(action, progress); }).Forget(); };
             progressReport.UpdateProgress(ProgressAction.Delete, -1);
             CurrentProcessStatus = string.Format(Strings.ReportDeletingVersion, FullName);
-            await Store.UninstallPackage(LocalPackage, progressReport);
+            await UninstallLocalPackage(progressReport);
             AfterUninstall();
         }
         catch (OperationCanceledException)

@@ -2,12 +2,13 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Diagnostics;
-using Stride.Core.Annotations;
+using Stride.Core;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.Packages;
 using Stride.Core.Presentation.Commands;
 using Stride.Launcher.Assets.Localization;
+using Stride.Launcher.Services;
 
 namespace Stride.Launcher.ViewModels;
 
@@ -18,16 +19,22 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
 {
     private readonly UDirectory path;
     private static int devMinorCounter = int.MaxValue;
-    private readonly NugetLocalPackage localPackage;
+    private readonly NugetLocalPackage? localPackage;
+    // The Game Studios of this version, each a package of its own: a checkout builds the WPF and the Avalonia one
+    private readonly IReadOnlyList<(NugetLocalPackage? Package, UDirectory Path)> builds;
     private readonly bool isDevRedirect;
     private readonly string? checkoutDirectory;
     private readonly string solutionPath;
 
-    internal StrideDevVersionViewModel(MainViewModel launcher, NugetStore store, [CanBeNull] NugetLocalPackage localPackage, UDirectory path, bool isDevRedirect)
-        : base(launcher, store, localPackage, localPackage.Id, int.MaxValue, devMinorCounter--)
+    /// <summary>
+    /// Creates the row of a local version, with the packages of its Game Studios: the first one names it.
+    /// </summary>
+    internal StrideDevVersionViewModel(MainViewModel launcher, NugetStore store, IReadOnlyList<(NugetLocalPackage? Package, UDirectory Path)> builds, bool isDevRedirect)
+        : base(launcher, store, builds[0].Package, builds[0].Package?.Id ?? GameStudioNames.Stride, int.MaxValue, devMinorCounter--)
     {
-        this.path = path;
-        this.localPackage = localPackage;
+        this.builds = builds;
+        path = builds[0].Path;
+        localPackage = builds[0].Package;
         this.isDevRedirect = isDevRedirect;
         DownloadCommand.IsEnabled = false;
         checkoutDirectory = FindCheckout();
@@ -140,6 +147,9 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
     }
 
     /// <inheritdoc/>
+    protected override string MissingEditorFormat => Strings.EditorNotBuilt;
+
+    /// <inheritdoc/>
     protected override string DeleteConfirmationMessage => string.Format(Strings.ConfirmRemoveDevVersion, FullName);
 
     // Also from the dev feed the checkout's build fills (as NuGetAssemblyResolver.DevSource): the store mirrors it back
@@ -166,41 +176,23 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
     }
 
     /// <summary>
-    /// Gets whether this version is the one of <paramref name="package"/>, built at <paramref name="realPath"/>.
+    /// Gets whether this version is the one of <paramref name="otherBuilds"/>: the same packages, built at the same places.
     /// </summary>
-    internal bool Matches(NugetLocalPackage package, UDirectory realPath)
-        => localPackage?.Id == package.Id && localPackage.Version == package.Version && path == realPath;
+    internal bool Matches(IReadOnlyList<(NugetLocalPackage? Package, UDirectory Path)> otherBuilds)
+    {
+        return builds.Select(Key).SequenceEqual(otherBuilds.Select(Key));
+
+        static (string?, PackageVersion?, UDirectory) Key((NugetLocalPackage? Package, UDirectory Path) build) => (build.Package?.Id, build.Package?.Version, build.Path);
+    }
 
     /// <inheritdoc/>
     public override string Name => "Local " + path.MakeRelative(path.GetParent());
 
     /// <inheritdoc/>
-    public override string DisplayName => localPackage is null ? base.DisplayName
-        : EditorName is null ? $"{PackageSimpleName} {localPackage.Version} (local)"
-        : $"{PackageSimpleName} {localPackage.Version} (local, {EditorName})";
+    public override string DisplayName => localPackage is null ? base.DisplayName : $"{PackageSimpleName} {localPackage.Version} (local)";
 
     /// <inheritdoc/>
     public override string ListName => localPackage is not null ? $"{PackageSimpleName} {localPackage.Version}" : base.ListName;
-
-    /// <inheritdoc/>
-    public override string StartName => EditorName is not null ? $"{FullName} ({EditorName})" : FullName;
-
-    /// <summary>
-    /// Gets the Game Studio this local build is of, WPF or Avalonia, or null when its package is neither. A checkout builds both:
-    /// two packages of the same version, that the version list, the Start button and the versions a recent project can be
-    /// opened with tell apart by it.
-    /// </summary>
-    public string? EditorName => GetEditorName(localPackage?.Id);
-
-    /// <summary>
-    /// Gets the badge of <see cref="EditorName"/>, next to the LOCAL badge in the version list.
-    /// </summary>
-    public string? EditorBadge => EditorName?.ToUpperInvariant();
-
-    /// <summary>
-    /// Gets the Game Studio of the package <paramref name="packageId"/>, WPF or Avalonia, or null when it isn't one of them.
-    /// </summary>
-    internal static string? GetEditorName(string? packageId) => GameStudioEditors.FromPackageId(packageId)?.DisplayName();
 
     /// <inheritdoc/>
     public override string FullName => localPackage?.Version.ToString() ?? path.MakeRelative(path.GetParent());
@@ -215,18 +207,26 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
     /// <inheritdoc/>
     public override string InstallPath => path.ToOSPath();
 
+    // The Game Studios of every package of this version, which its Start button picks from
+    protected override IEnumerable<string> FrameworkDirectories() => builds.SelectMany(build => FrameworkDirectories(build.Path.ToOSPath()));
+
     // A dev-redirect stub stands for the in-tree project, whose editor is in bin/<Configuration>/<tfm>; the
     // first configuration built is the one used. A dev-versioned package that is a real package keeps its layout.
-    protected override IEnumerable<string> FrameworkDirectories()
+    private IEnumerable<string> FrameworkDirectories(string installPath)
     {
-        var packageDirectories = base.FrameworkDirectories().ToList();
+        var packageDirectories = PackageLayout.FrameworkDirectories(installPath).ToList();
         if (!isDevRedirect || packageDirectories.Count > 0)
             return packageDirectories;
         var configuration = new[] { "Debug", "Release" }
-            .Select(name => Path.Combine(InstallPath, "bin", name))
+            .Select(name => Path.Combine(installPath, "bin", name))
             .FirstOrDefault(Directory.Exists);
         return configuration is null ? [] : Directory.EnumerateDirectories(configuration);
     }
+
+    // Every package of this version: removing the row removes the WPF and the Avalonia Game Studio together
+    /// <inheritdoc/>
+    protected override Task UninstallLocalPackage(ProgressReport progressReport)
+        => Store.UninstallPackages([.. builds.Select(x => x.Package).OfType<NugetLocalPackage>()], null);
 
 
     // This property is not used because a dev version cannot be downloaded.

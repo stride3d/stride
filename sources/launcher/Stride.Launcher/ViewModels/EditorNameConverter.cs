@@ -12,15 +12,20 @@ namespace Stride.Launcher.ViewModels;
 /// </summary>
 public sealed class EditorNameConverter : OneWayValueConverter<EditorNameConverter>
 {
-    public override object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    public override object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) => GetDisplayName((string?)value);
+
+    /// <summary>
+    /// Gets the user-friendly name of the editor <paramref name="name"/>.
+    /// </summary>
+    public static string GetDisplayName(string? name)
     {
-        return (string?)value switch
+        return name switch
         {
             // On non-Windows only Avalonia is available; omit the qualifier since there is nothing to distinguish it from.
             GameStudioNames.StrideAvalonia when !OperatingSystem.IsWindows() => "Game Studio",
             GameStudioNames.StrideAvalonia => "Game Studio (Avalonia)",
             GameStudioNames.Stride => "Game Studio (WPF)",
-            var name => name ?? string.Empty,
+            _ => name ?? string.Empty,
         };
     }
 }
