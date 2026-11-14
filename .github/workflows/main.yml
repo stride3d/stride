@@ -151,80 +151,53 @@ jobs:
       build-type: Debug
 
   ### Tests ###
+  # The Windows and Linux test lanes build what they test themselves, so they start with the runtime builds instead of
+  # waiting for them: a broken build fails in each of them at once. macOS, iOS and Android keep their gate (below).
+
   # Game tests where the picked graphics API doesn't materially affect outcomes
   # (physics, audio, asset, engine logic). One run with D3D11 is sufficient.
   Windows-Tests-Game-ApiNeutral:
-    needs: [changes, Windows-Runtime-D3D11]
-    if: |
-      !cancelled()
-      && (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))
-      && needs.changes.outputs.runtime == 'true'
-      && needs['Windows-Runtime-D3D11'].result != 'failure'
-      && needs['Windows-Runtime-D3D11'].result != 'cancelled'
+    needs: changes
+    if: (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft')) && needs.changes.outputs.runtime == 'true'
     uses: ./.github/workflows/test-windows-game-api-neutral.yml
     with:
       build-type: Debug
 
-  # Tests-Simple smoke-tests non-graphics paths; pinned to D3D11 build as the gate.
+  # Tests-Simple smoke-tests non-graphics paths.
   Windows-Tests-Simple:
-    needs: [changes, Windows-Runtime-D3D11]
-    if: |
-      !cancelled()
-      && (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))
-      && needs.changes.outputs.runtime == 'true'
-      && needs['Windows-Runtime-D3D11'].result != 'failure'
-      && needs['Windows-Runtime-D3D11'].result != 'cancelled'
+    needs: changes
+    if: (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft')) && needs.changes.outputs.runtime == 'true'
     uses: ./.github/workflows/test-windows-simple.yml
     with:
       build-type: Debug
 
   Windows-Tests-Game-D3D11:
-    needs: [changes, Windows-Runtime-D3D11]
-    if: |
-      !cancelled()
-      && (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))
-      && needs.changes.outputs.runtime == 'true'
-      && needs['Windows-Runtime-D3D11'].result != 'failure'
-      && needs['Windows-Runtime-D3D11'].result != 'cancelled'
+    needs: changes
+    if: (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft')) && needs.changes.outputs.runtime == 'true'
     uses: ./.github/workflows/test-windows-game.yml
     with:
       build-type: Debug
       graphics-api: Direct3D11
 
   Windows-Tests-Game-D3D12:
-    needs: [changes, Windows-Runtime-D3D12]
-    if: |
-      !cancelled()
-      && (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))
-      && needs.changes.outputs.runtime == 'true'
-      && needs['Windows-Runtime-D3D12'].result != 'failure'
-      && needs['Windows-Runtime-D3D12'].result != 'cancelled'
+    needs: changes
+    if: (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft')) && needs.changes.outputs.runtime == 'true'
     uses: ./.github/workflows/test-windows-game.yml
     with:
       build-type: Debug
       graphics-api: Direct3D12
 
   Windows-Tests-Game-Vulkan:
-    needs: [changes, Windows-Runtime-Vulkan]
-    if: |
-      !cancelled()
-      && (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))
-      && needs.changes.outputs.runtime == 'true'
-      && needs['Windows-Runtime-Vulkan'].result != 'failure'
-      && needs['Windows-Runtime-Vulkan'].result != 'cancelled'
+    needs: changes
+    if: (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft')) && needs.changes.outputs.runtime == 'true'
     uses: ./.github/workflows/test-windows-game.yml
     with:
       build-type: Debug
       graphics-api: Vulkan
 
   Linux-Tests-Simple:
-    needs: [changes, Linux-Runtime]
-    if: |
-      !cancelled()
-      && (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))
-      && needs.changes.outputs.runtime == 'true'
-      && needs['Linux-Runtime'].result != 'failure'
-      && needs['Linux-Runtime'].result != 'cancelled'
+    needs: changes
+    if: (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft')) && needs.changes.outputs.runtime == 'true'
     uses: ./.github/workflows/test-linux-simple.yml
     with:
       build-type: Debug
@@ -374,13 +347,8 @@ jobs:
           echo "::notice title=Shader output changed::Accepted by the shader-output-change label of #$PR."
 
   Linux-Tests-Game:
-    needs: [changes, Linux-Runtime]
-    if: |
-      !cancelled()
-      && (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))
-      && needs.changes.outputs.runtime == 'true'
-      && needs['Linux-Runtime'].result != 'failure'
-      && needs['Linux-Runtime'].result != 'cancelled'
+    needs: changes
+    if: (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft')) && needs.changes.outputs.runtime == 'true'
     uses: ./.github/workflows/test-linux-game.yml
     with:
       build-type: Debug
