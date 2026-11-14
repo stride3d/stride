@@ -249,7 +249,7 @@
                   <!-- Launch game studio; its text is a VersionCaption (App.axaml), stretched for its badge on the right -->
                   <Button Classes="accent" Command="{Binding StartStudioCommand}"
                           Content="{Binding ActiveVersion?.StartCaption}" FontSize="24"
-                          ToolTip.Tip="{Binding ActiveVersion?.NightlyFullName}"
+                          ToolTip.Tip="{Binding ActiveVersion?.DatedFullName}"
                           HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                           HorizontalContentAlignment="Stretch" VerticalContentAlignment="Center"
                           IsEnabled="{Binding !ActiveVersion?.IsProcessing}"
@@ -257,7 +257,7 @@
                   <!-- Install specific version -->
                   <Button Classes="accent" Command="{Binding ActiveVersion?.DownloadCommand}"
                           Content="{Binding ActiveVersion?.InstallCaption}" FontSize="24"
-                          ToolTip.Tip="{Binding ActiveVersion?.NightlyFullName}"
+                          ToolTip.Tip="{Binding ActiveVersion?.DatedFullName}"
                           HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                           HorizontalContentAlignment="Stretch" VerticalContentAlignment="Center"
                           IsEnabled="{Binding !ActiveVersion?.IsProcessing}"
@@ -560,13 +560,20 @@
                                   </Interaction.Behaviors>
                                 </Button>
                                 <!-- One text rather than bound runs: those could stay empty once the row was busy (Avalonia 12.1).
-                                     The badge of the nightly row on its right, or of a beta when the row's build is one -->
+                                     The badge of the nightly row on its right, of a row of custom builds, or of a beta when the row's
+                                     build is one -->
                                 <DockPanel Margin="12,0,8,0" IsHitTestVisible="False">
                                   <Border DockPanel.Dock="Right" VerticalAlignment="Center" Margin="6,0,0,0" Padding="5,1" CornerRadius="3"
                                           Background="{DynamicResource NightlyBadgeBackgroundBrush}"
                                           IsVisible="{Binding IsNightly}">
                                     <TextBlock Text="{x:Static l:Strings.BadgeNightly}" FontSize="10" FontWeight="SemiBold"
                                                Foreground="{DynamicResource NightlyBadgeForegroundBrush}"/>
+                                  </Border>
+                                  <Border DockPanel.Dock="Right" VerticalAlignment="Center" Margin="6,0,0,0" Padding="5,1" CornerRadius="3"
+                                          Background="{DynamicResource TagBadgeBackgroundBrush}"
+                                          IsVisible="{Binding TagBadge, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                    <TextBlock Text="{Binding TagBadge}" FontSize="10" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TagBadgeForegroundBrush}"/>
                                   </Border>
                                   <Border DockPanel.Dock="Right" VerticalAlignment="Center" Margin="6,0,0,0" Padding="5,1" CornerRadius="3"
                                           Background="{DynamicResource BetaBadgeBackgroundBrush}"

@@ -367,9 +367,11 @@ public sealed class RecentProjectViewModel : DispatcherViewModel
         if (exact is not null)
             return new(exact, null, projectVersion);
 
-        // The row of the project's kind of build (nightly or not), else the other one of its major.minor
+        // The row of the project's kind of build (release, nightly or custom), else its release row rather than the first
+        // row of its major.minor, which can hold the custom builds of another tag
         var sameMinorRows = versions.OfType<StrideStoreVersionViewModel>().Where(x => new Version(x.Major, x.Minor) == StrideVersion).ToList();
-        var sameMinor = sameMinorRows.FirstOrDefault(x => x.IsNightly == (projectVersion?.IsNightly ?? false)) ?? sameMinorRows.FirstOrDefault();
+        var sameMinor = sameMinorRows.FirstOrDefault(x => x.Channel == StrideVersionViewModel.ChannelOf(projectVersion))
+            ?? sameMinorRows.FirstOrDefault(x => x.IsReleaseChannel) ?? sameMinorRows.FirstOrDefault();
         if (sameMinor is null)
             return null;
 

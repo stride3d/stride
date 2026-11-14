@@ -16,8 +16,20 @@ public sealed class VersionCaptionTests
         var caption = VersionCaption.Create("Install {0}", "Stride ", "Stride 4.4.3-nightly.20261114.60", PackageVersion.Parse("4.4.3-nightly.20261114.60"));
 
         Assert.Equal("Install Stride 4.4.3", caption.Text);
-        Assert.Equal(new DateTime(2026, 11, 14), caption.NightlyDate);
+        Assert.Equal(new DateTime(2026, 11, 14), caption.BuildDate);
         Assert.True(caption.IsNightly);
+    }
+
+    [Theory]
+    [InlineData("4.5.3-mystudio.20261114.3", "4.5.3")]
+    [InlineData("4.4.3-nightly-x.20261114.60", "4.4.3")]
+    public void ACustomBuildNumberedLikeANightlyHasItsDateApartButNoNightlyBadge(string version, string number)
+    {
+        var caption = VersionCaption.Create("Start {0}", "", version, PackageVersion.Parse(version));
+
+        Assert.Equal($"Start {number}", caption.Text);
+        Assert.Equal(new DateTime(2026, 11, 14), caption.BuildDate);
+        Assert.False(caption.IsNightly);
     }
 
     [Theory]
@@ -25,14 +37,16 @@ public sealed class VersionCaptionTests
     [InlineData("4.5.0-dev4")]
     [InlineData("4.5.0-beta1")]
     // Another format, or a date that doesn't exist: the version is shown whole
-    [InlineData("4.4.3-nightly-x.20261114.60")]
+    [InlineData("4.4.3-nightly.2026111.60")]
+    [InlineData("4.5.3-mystudio.20261114")]
     [InlineData("4.4.3-nightly.20261314.60")]
     public void AnyOtherVersionIsShownWhole(string version)
     {
         var caption = VersionCaption.Create("Start {0}", "", version, PackageVersion.Parse(version));
 
         Assert.Equal($"Start {version}", caption.Text);
-        Assert.Null(caption.NightlyDate);
+        Assert.Null(caption.BuildDate);
+        Assert.False(caption.IsDated);
         Assert.False(caption.IsNightly);
     }
 
@@ -48,9 +62,10 @@ public sealed class VersionCaptionTests
             var today = DateTime.Today;
             var lastYear = today.AddYears(-1);
 
-            Assert.Equal(string.Format(CultureInfo.CurrentCulture, thisYear, today), VersionCaption.ShortNightlyName("Stride", PackageVersion.Parse($"4.5.3-nightly.{today:yyyyMMdd}.59")));
-            Assert.Equal(string.Format(CultureInfo.CurrentCulture, anotherYear, lastYear), VersionCaption.ShortNightlyName("Stride", PackageVersion.Parse($"4.5.3-nightly.{lastYear:yyyyMMdd}.59")));
-            Assert.Null(VersionCaption.ShortNightlyName("Stride", PackageVersion.Parse("4.4.0-beta7")));
+            Assert.Equal(string.Format(CultureInfo.CurrentCulture, thisYear, today), VersionCaption.ShortDatedName("Stride", PackageVersion.Parse($"4.5.3-nightly.{today:yyyyMMdd}.59")));
+            Assert.Equal(string.Format(CultureInfo.CurrentCulture, anotherYear, lastYear), VersionCaption.ShortDatedName("Stride", PackageVersion.Parse($"4.5.3-nightly.{lastYear:yyyyMMdd}.59")));
+            Assert.Equal(string.Format(CultureInfo.CurrentCulture, thisYear, today), VersionCaption.ShortDatedName("Stride", PackageVersion.Parse($"4.5.3-mystudio.{today:yyyyMMdd}.2")));
+            Assert.Null(VersionCaption.ShortDatedName("Stride", PackageVersion.Parse("4.4.0-beta7")));
         }
         finally
         {
@@ -71,7 +86,7 @@ public sealed class VersionCaptionTests
         {
             var caption = VersionCaption.Create("Start {0}", "", "", PackageVersion.Parse("4.5.3-nightly.20261114.59"));
 
-            Assert.Equal(expected, caption.NightlyDateText);
+            Assert.Equal(expected, caption.BuildDateText);
         }
         finally
         {

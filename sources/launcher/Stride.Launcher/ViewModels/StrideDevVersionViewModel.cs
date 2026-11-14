@@ -18,21 +18,30 @@ namespace Stride.Launcher.ViewModels;
 public sealed class StrideDevVersionViewModel : StrideVersionViewModel
 {
     private readonly UDirectory path;
-    private static int devMinorCounter = int.MaxValue;
     private readonly NugetLocalPackage? localPackage;
     // The Game Studios of this version, each a package of its own: a checkout builds the WPF and the Avalonia one
     private readonly IReadOnlyList<(NugetLocalPackage? Package, UDirectory Path)> builds;
+    // The packages of the versions the checkout had before, hidden: removed with the row
+    private readonly IReadOnlyList<NugetLocalPackage> olderPackages;
+    // The version the checkout builds now, when it isn't the one of its packages
+    private readonly PackageVersion? builtVersion;
     private readonly bool isDevRedirect;
     private readonly string? checkoutDirectory;
     private readonly string solutionPath;
 
     /// <summary>
-    /// Creates the row of a local version, with the packages of its Game Studios: the first one names it.
+    /// Creates the row of a checkout, with the packages of its Game Studios: the first one names it.
     /// </summary>
-    internal StrideDevVersionViewModel(MainViewModel launcher, NugetStore store, IReadOnlyList<(NugetLocalPackage? Package, UDirectory Path)> builds, bool isDevRedirect)
-        : base(launcher, store, builds[0].Package, builds[0].Package?.Id ?? GameStudioNames.Stride, int.MaxValue, devMinorCounter--)
+    /// <param name="builds">The packages of the Game Studios of the version of the row, and where each is built.</param>
+    /// <param name="olderPackages">The packages of the other versions of the checkout, removed with the row.</param>
+    /// <param name="builtVersion">The version the checkout builds now (<see cref="CheckoutBuildVersion"/>), or null.</param>
+    internal StrideDevVersionViewModel(MainViewModel launcher, NugetStore store, IReadOnlyList<(NugetLocalPackage? Package, UDirectory Path)> builds, bool isDevRedirect,
+        IReadOnlyList<NugetLocalPackage>? olderPackages = null, PackageVersion? builtVersion = null)
+        : base(launcher, store, builds[0].Package, builds[0].Package?.Id ?? GameStudioNames.Stride, int.MaxValue, CheckoutOrder(builds[0].Package?.Version))
     {
         this.builds = builds;
+        this.olderPackages = olderPackages ?? [];
+        this.builtVersion = builtVersion;
         path = builds[0].Path;
         localPackage = builds[0].Package;
         this.isDevRedirect = isDevRedirect;
@@ -110,7 +119,7 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
     /// </summary>
     internal static string? FindCheckoutInLedger(IEnumerable<string> lines, string versionLabel)
     {
-        if (versionLabel.Split('-').LastOrDefault(x => x.StartsWith("dev", StringComparison.OrdinalIgnoreCase)) is not { } suffix)
+        if (DevSuffix(versionLabel) is not { } suffix)
             return null;
 
         // Lines of "dev3 = C:\dev\stride3"
@@ -128,6 +137,61 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
                 return directory;
         }
         return null;
+    }
+
+    /// <summary>
+    /// Gets the -devN suffix of a version label, which names its checkout (dev3 for beta8-dev3), lowercase; null without one.
+    /// </summary>
+    internal static string? DevSuffix(string? versionLabel)
+        => versionLabel?.Split('-').LastOrDefault(x => x.StartsWith("dev", StringComparison.OrdinalIgnoreCase))?.ToLowerInvariant();
+
+    /// <summary>
+    /// Gets the number of the checkout of a version label: 1 for -dev (the first checkout), N for -devN; null without one.
+    /// </summary>
+    internal static int? CheckoutNumber(string? versionLabel)
+        => DevSuffix(versionLabel) is not { } suffix ? null
+            : suffix.Length == 3 ? 1
+            : int.TryParse(suffix.AsSpan(3), out var number) ? number : null;
+
+    // The rows of the local builds in the order of their checkouts (dev, dev2, dev3...), which a rebuild doesn't change;
+    // one added by hand after them
+    private static int CheckoutOrder(PackageVersion? version) => int.MaxValue - (CheckoutNumber(version?.SpecialVersion) ?? int.MaxValue / 2);
+
+    /// <summary>
+    /// Chooses the version of the row of a checkout among the versions of its packages: the one it builds now, else the newest
+    /// stub (which starts its current build), else the newest package.
+    /// </summary>
+    /// <param name="packages">The versions of the packages of the checkout, and whether each is a dev-redirect stub.</param>
+    /// <param name="built">The version the checkout builds now, or null when unknown.</param>
+    internal static PackageVersion ChooseCheckoutVersion(IEnumerable<(PackageVersion Version, bool IsStub)> packages, PackageVersion? built)
+    {
+        var all = packages.ToList();
+        if (built is not null && all.Any(x => x.Version == built))
+            return built;
+        return all.Where(x => x.IsStub).Select(x => x.Version).Max() ?? all.Select(x => x.Version).Max()!;
+    }
+
+    /// <summary>
+    /// Gets the version the checkout project of the dev-redirect stub at <paramref name="packagePath"/> builds now: the
+    /// product version of its built Game Studio; null when it isn't a stub or isn't built.
+    /// </summary>
+    internal static PackageVersion? CheckoutBuildVersion(string packagePath, string packageId)
+    {
+        try
+        {
+            if (NugetStore.TryGetDevRedirectOutputDirectory(packagePath, packageId) is not { } output)
+                return null;
+            // bin/<Configuration>/<tfm>/<id>.dll, the newest when several frameworks are built
+            var assembly = Directory.EnumerateDirectories(output).Select(x => new FileInfo(Path.Combine(x, $"{packageId}.dll")))
+                .Where(x => x.Exists).MaxBy(x => x.LastWriteTimeUtc);
+            var productVersion = assembly is null ? null : FileVersionInfo.GetVersionInfo(assembly.FullName).ProductVersion;
+            // 4.5.4-dev4+<commit>
+            return productVersion is not null && PackageVersion.TryParse(productVersion.Split('+')[0], out var version) ? version : null;
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            return null;
+        }
     }
 
     // Checked again when clicked: the checkout can move or change after the list was made
@@ -161,7 +225,7 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
         if (localPackage is null || !Directory.Exists(devFeed))
             return;
 
-        foreach (var nupkg in Directory.EnumerateFiles(devFeed, $"*.{localPackage.Version}.nupkg"))
+        foreach (var nupkg in RemovedPackages().Select(x => x.Version).Distinct().SelectMany(version => Directory.EnumerateFiles(devFeed, $"*.{version}.nupkg")))
         {
             try
             {
@@ -176,26 +240,34 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
     }
 
     /// <summary>
-    /// Gets whether this version is the one of <paramref name="otherBuilds"/>: the same packages, built at the same places.
+    /// Gets whether this version is the one of <paramref name="otherBuilds"/>, <paramref name="otherOlderPackages"/> and
+    /// <paramref name="otherBuiltVersion"/>: the same packages, built at the same places, and the same version built.
     /// </summary>
-    internal bool Matches(IReadOnlyList<(NugetLocalPackage? Package, UDirectory Path)> otherBuilds)
+    internal bool Matches(IReadOnlyList<(NugetLocalPackage? Package, UDirectory Path)> otherBuilds, IReadOnlyList<NugetLocalPackage> otherOlderPackages, PackageVersion? otherBuiltVersion)
     {
-        return builds.Select(Key).SequenceEqual(otherBuilds.Select(Key));
+        return builds.Select(Key).SequenceEqual(otherBuilds.Select(Key))
+               && olderPackages.Select(x => (x.Id, x.Version)).SequenceEqual(otherOlderPackages.Select(x => (x.Id, x.Version)))
+               && builtVersion == otherBuiltVersion;
 
         static (string?, PackageVersion?, UDirectory) Key((NugetLocalPackage? Package, UDirectory Path) build) => (build.Package?.Id, build.Package?.Version, build.Path);
     }
 
-    /// <inheritdoc/>
-    public override string Name => "Local " + path.MakeRelative(path.GetParent());
+    // The version the row names: the one the checkout builds now, which its stubs start whatever their version
+    private PackageVersion? ShownVersion => builtVersion ?? localPackage?.Version;
 
     /// <inheritdoc/>
-    public override string DisplayName => localPackage is null ? base.DisplayName : $"{PackageSimpleName} {localPackage.Version} (local)";
+    // By its checkout: the folder of the project, Stride.GameStudio, is the same in every checkout (the active version is
+    // restored by name)
+    public override string Name => DevSuffix(localPackage?.Version.SpecialVersion) is { } suffix ? $"Local {suffix}" : "Local " + path.MakeRelative(path.GetParent());
 
     /// <inheritdoc/>
-    public override string ListName => localPackage is not null ? $"{PackageSimpleName} {localPackage.Version}" : base.ListName;
+    public override string DisplayName => ShownVersion is { } version ? $"{PackageSimpleName} {version} (local)" : base.DisplayName;
 
     /// <inheritdoc/>
-    public override string FullName => localPackage?.Version.ToString() ?? path.MakeRelative(path.GetParent());
+    public override string ListName => ShownVersion is { } version ? $"{PackageSimpleName} {version}" : base.ListName;
+
+    /// <inheritdoc/>
+    public override string FullName => ShownVersion?.ToString() ?? path.MakeRelative(path.GetParent());
 
     /// <inheritdoc/>
     public override bool CanBeDownloaded => false;
@@ -223,10 +295,12 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
         return configuration is null ? [] : Directory.EnumerateDirectories(configuration);
     }
 
-    // Every package of this version: removing the row removes the WPF and the Avalonia Game Studio together
+    // Every package of the checkout: removing the row removes the WPF and the Avalonia Game Studio together, and the
+    // packages of the versions it had before
     /// <inheritdoc/>
-    protected override Task UninstallLocalPackage(ProgressReport progressReport)
-        => Store.UninstallPackages([.. builds.Select(x => x.Package).OfType<NugetLocalPackage>()], null);
+    protected override Task UninstallLocalPackage(ProgressReport progressReport) => Store.UninstallPackages([.. RemovedPackages()], null);
+
+    private IEnumerable<NugetLocalPackage> RemovedPackages() => builds.Select(x => x.Package).OfType<NugetLocalPackage>().Concat(olderPackages);
 
 
     // This property is not used because a dev version cannot be downloaded.

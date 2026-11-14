@@ -13,7 +13,7 @@ namespace Stride.Launcher.ViewModels;
 /// <summary>
 /// An implementation of the <see cref="PackageVersionViewModel"/> that represents a major version of Stride.
 /// </summary>
-public abstract class StrideVersionViewModel : PackageVersionViewModel, IComparable<StrideVersionViewModel>, IComparable<(int Major, int Minor, bool IsNightly)>
+public abstract class StrideVersionViewModel : PackageVersionViewModel, IComparable<StrideVersionViewModel>, IComparable<(int Major, int Minor, string Channel)>
 {
     private bool isVisible;
     private bool canStart;
@@ -25,7 +25,7 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
     // Populated by UpdateAvailableEditors; consumed by LocateMainExecutable.
     private readonly Dictionary<string, string> _editorToDir = [];
 
-    internal StrideVersionViewModel(MainViewModel launcher, NugetStore store, NugetLocalPackage? localPackage, string packageId, int major, int minor, bool isNightly = false)
+    internal StrideVersionViewModel(MainViewModel launcher, NugetStore store, NugetLocalPackage? localPackage, string packageId, int major, int minor, string channel = "")
         : base(launcher, store, localPackage)
     {
         PackageSimpleName = packageId
@@ -33,8 +33,8 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
             .Replace(".Avalonia.Desktop", string.Empty);
         Major = major;
         Minor = minor;
-        IsNightly = isNightly;
-        DependentProperties.Add(nameof(FullName), [nameof(StartName), nameof(InstallName), nameof(StartCaption), nameof(InstallCaption), nameof(NightlyFullName)]);
+        Channel = channel;
+        DependentProperties.Add(nameof(FullName), [nameof(StartName), nameof(InstallName), nameof(StartCaption), nameof(InstallCaption), nameof(DatedFullName)]);
         SetAsActiveCommand = new AnonymousCommand(ServiceProvider, () => launcher.ActiveVersion = this);
     }
 
@@ -160,22 +160,60 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
     public int Minor { get; }
 
     /// <summary>
+    /// The <see cref="Channel"/> of the nightly builds.
+    /// </summary>
+    public const string NightlyChannel = "nightly";
+
+    /// <summary>
+    /// Gets the builds of its major.minor this version holds (<see cref="ChannelOf"/>): an empty string for the releases and
+    /// prereleases, <see cref="NightlyChannel"/> for the nightlies, or the tag of custom builds (mystudio), each a row of its own.
+    /// </summary>
+    public string Channel { get; }
+
+    /// <summary>
     /// Gets whether this version holds the nightly builds of its major.minor (4.5.0-nightly.20261014.3), a row of their own
     /// next to the releases and prereleases of the same major.minor.
     /// </summary>
-    public bool IsNightly { get; }
+    public bool IsNightly => Channel == NightlyChannel;
+
+    /// <summary>
+    /// Gets whether this version holds the releases and prereleases of its major.minor, rather than its nightlies or custom builds.
+    /// </summary>
+    public bool IsReleaseChannel => Channel.Length == 0;
+
+    /// <summary>
+    /// Gets the badge of the custom builds this version holds (MYSTUDIO), or null for the other versions.
+    /// </summary>
+    public string? TagBadge => IsReleaseChannel || IsNightly ? null : TagBadgeOf(Channel);
+
+    /// <summary>
+    /// The most characters of a tag in its badge: a longer one is cut, its whole name stays in the version shown on hover.
+    /// </summary>
+    internal const int MaxTagBadgeLength = 12;
+
+    /// <summary>
+    /// Gets the badge of the custom builds of <paramref name="tag"/>: the tag in capitals, cut with an ellipsis past
+    /// <see cref="MaxTagBadgeLength"/> characters (MYCOMPANYIN…).
+    /// </summary>
+    internal static string TagBadgeOf(string tag)
+    {
+        var badge = tag.ToUpperInvariant();
+        return badge.Length <= MaxTagBadgeLength ? badge : $"{badge[..(MaxTagBadgeLength - 1)]}…";
+    }
 
     /// <summary>
     /// Gets the name of this version.
     /// </summary>
-    public override string Name => IsNightly ? $"{GetName(PackageSimpleName, Major, Minor)} Nightly" : GetName(PackageSimpleName, Major, Minor);
+    public override string Name => IsNightly ? $"{GetName(PackageSimpleName, Major, Minor)} Nightly"
+        : IsReleaseChannel ? GetName(PackageSimpleName, Major, Minor)
+        : $"{GetName(PackageSimpleName, Major, Minor)} {Channel}";
 
     /// <summary>
     /// Gets the display name of this version.
     /// </summary>
-    public virtual string DisplayName => IsNightly
-        ? string.Format(Strings.VersionNightly, ListName)
-        : ListName;
+    public virtual string DisplayName => IsNightly ? string.Format(Strings.VersionNightly, ListName)
+        : IsReleaseChannel ? ListName
+        : $"{ListName} ({Channel})";
 
     /// <summary>
     /// Gets the name of this version in the version list, where a badge next to it tells a nightly or a local build.
@@ -196,19 +234,20 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
     /// Gets the text of the Start button, with the date of a nightly apart and the badge of a local build or a beta.
     /// </summary>
     public VersionCaption StartCaption => VersionCaption.Create(Strings.StartVersion, "", StartName, LocalPackage?.Version ?? ServerPackage?.Version)
-        with { IsLocal = this is StrideDevVersionViewModel, IsBeta = IsBetaVersion(LocalPackage?.Version ?? ServerPackage?.Version) };
+        with { IsLocal = this is StrideDevVersionViewModel, IsBeta = IsBetaVersion(LocalPackage?.Version ?? ServerPackage?.Version), Tag = TagBadge };
 
     /// <summary>
     /// Gets the text of the Install button, with the date of a nightly apart and the badge of a beta.
     /// </summary>
     public VersionCaption InstallCaption => VersionCaption.Create(Strings.InstallVersion, $"{PackageSimpleName} ", InstallName, LocalPackage?.Version ?? ServerPackage?.Version)
-        with { IsBeta = IsBetaVersion(LocalPackage?.Version ?? ServerPackage?.Version) };
+        with { IsBeta = IsBetaVersion(LocalPackage?.Version ?? ServerPackage?.Version), Tag = TagBadge };
 
     /// <summary>
-    /// Gets whether <paramref name="version"/> is a beta: a prerelease that is neither a nightly nor a local build.
+    /// Gets whether <paramref name="version"/> is a beta, shown with the BETA badge: a prerelease with the releases
+    /// (<see cref="PackageVersion.IsPrerelease"/>: 4.5.0-beta06, 4.5.3-beta, an alpha, a preview or an rc too), neither a
+    /// nightly, a custom build nor a local build.
     /// </summary>
-    internal static bool IsBetaVersion(PackageVersion? version)
-        => !string.IsNullOrEmpty(version?.SpecialVersion) && !version.IsNightly && !version.IsLocalBuild;
+    internal static bool IsBetaVersion(PackageVersion? version) => version?.IsPrerelease == true;
 
     /// <summary>
     /// Gets whether <paramref name="version"/> is a release: a version without a label (4.5.3), as in the CLI. A local build
@@ -217,10 +256,18 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
     internal static bool IsReleaseVersion(PackageVersion? version) => version is not null && version.SpecialVersion.Length == 0;
 
     /// <summary>
-    /// Gets the full name of a nightly (Stride 4.5.3-nightly.20261114.60), shown when hovering Start or Install, whose
+    /// Gets the <see cref="Channel"/> of <paramref name="version"/>: <see cref="NightlyChannel"/> for a nightly; for a custom
+    /// build its tag (<see cref="PackageVersion.CustomTag"/>: mystudio for 4.5.3-mystudio.32 and 4.5.3-mystudio.beta); else
+    /// an empty string, with the releases: a prerelease (beta06, beta, rc1), or a local build, which has rows of its own.
+    /// </summary>
+    internal static string ChannelOf(PackageVersion? version)
+        => version is null ? "" : version.IsNightly ? NightlyChannel : version.CustomTag ?? "";
+
+    /// <summary>
+    /// Gets the full name of a dated build (Stride 4.5.3-nightly.20261114.60), shown when hovering Start or Install, whose
     /// text has only its version and its date; null for any other version, which they show whole.
     /// </summary>
-    public string? NightlyFullName => StartCaption.IsNightly ? InstallName : null;
+    public string? DatedFullName => StartCaption.IsDated ? InstallName : null;
 
     /// <summary>
     /// Gets the command that will set the associated package as active.
@@ -365,20 +412,26 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
     }
 
     public int CompareTo(StrideVersionViewModel? other)
-        => other is null ? -1 : Compare((Major, Minor, IsNightly), (other.Major, other.Minor, other.IsNightly));
+        => other is null ? -1 : Compare((Major, Minor, Channel), (other.Major, other.Minor, other.Channel));
 
-    public int CompareTo((int Major, int Minor, bool IsNightly) other) => Compare((Major, Minor, IsNightly), other);
+    public int CompareTo((int Major, int Minor, string Channel) other) => Compare((Major, Minor, Channel), other);
 
     /// <summary>
-    /// Orders the rows, newest first: newest major.minor first, the nightly row of a major.minor right before its release
-    /// row (its nightlies are newer than its releases and prereleases).
+    /// Orders the rows, newest first: newest major.minor first, then within a major.minor its rows of custom builds by tag
+    /// (a studio's own builds, the ones it starts most), its nightly row (its nightlies are newer than its releases and
+    /// prereleases), and its release row.
     /// </summary>
-    internal static int Compare((int Major, int Minor, bool IsNightly) x, (int Major, int Minor, bool IsNightly) y)
+    internal static int Compare((int Major, int Minor, string Channel) x, (int Major, int Minor, string Channel) y)
     {
         var r = x.Major.CompareTo(y.Major);
         if (r != 0)
             return -r;
         r = x.Minor.CompareTo(y.Minor);
-        return r != 0 ? -r : y.IsNightly.CompareTo(x.IsNightly);
+        if (r != 0)
+            return -r;
+        r = Rank(x.Channel).CompareTo(Rank(y.Channel));
+        return r != 0 ? r : string.CompareOrdinal(x.Channel, y.Channel);
+
+        static int Rank(string channel) => channel.Length == 0 ? 2 : channel == NightlyChannel ? 1 : 0;
     }
 }
