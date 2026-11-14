@@ -4,7 +4,8 @@
     Dev Packages Mode: when StrideDevPackages=true, skip NuGet auto-packing and use
     redirect packages that point to dev-built DLLs. Generated automatically on first build.
 
-    Set StrideDevPackages=true in build/Stride.Local.props.
+    On by default in a checkout, off on CI and in the release's package build (Stride.Platform.props).
+    Set StrideDevPackages=false in build/Stride.Local.props to auto-pack real packages instead.
   -->
 
   <PropertyGroup Condition="'$(StrideDevPackages)' == 'true'">

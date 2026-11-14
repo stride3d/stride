@@ -18,6 +18,13 @@ namespace Stride.Packaging.Tests;
 /// </summary>
 internal static class TestEnvironment
 {
+    // Dev-redirect packages skip the engine's pack: bin/packages then holds stubs and stale packages
+#if STRIDE_DEV_PACKAGES
+    private static readonly bool BuiltWithDevPackages = true;
+#else
+    private static readonly bool BuiltWithDevPackages = false;
+#endif
+
     /// <summary>Repo root: walk up from the test bin output to the directory holding nuget.config.</summary>
     public static string WorktreeRoot()
     {
@@ -34,6 +41,9 @@ internal static class TestEnvironment
     /// <summary>The locally-built package feed; the engine build/pack must have populated it.</summary>
     public static string BinPackages()
     {
+        if (BuiltWithDevPackages)
+            throw new InvalidOperationException("These tests need the real packages in bin/packages, which dev-redirect packages don't pack: "
+                + "run them with -p:StrideDevPackages=false (dotnet test tests/enduser/Stride.Packaging.Tests -p:StrideDevPackages=false).");
         var binPackages = Path.Combine(WorktreeRoot(), "bin", "packages");
         if (!Directory.Exists(binPackages))
             throw new DirectoryNotFoundException($"bin/packages not found at {binPackages}; build the engine first.");

@@ -16,6 +16,7 @@
     <SkipSourceLink>true</SkipSourceLink>
     <!-- Override SDK test output path since this project is outside sources/ -->
     <OutputPath>$(MSBuildThisFileDirectory)..\..\..\bin\Tests\$(MSBuildProjectName)\$(StridePlatform)\</OutputPath>
+    <DefineConstants Condition="'$(StrideDevPackages)' == 'true'">$(DefineConstants);STRIDE_DEV_PACKAGES</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <!-- Committed plugin/consumer fixtures are packed/built as subprocesses, never compiled here. -->

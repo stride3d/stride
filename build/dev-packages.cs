@@ -446,9 +446,8 @@ if (suffixIdx >= 0)
 if (adopt.Length == 0)
     try { Directory.Delete(tempPackDir, true); } catch { }
 
-// --- Step 5: Auto-enable StrideDevPackages in build/Stride.Local.props.
-// Bootstraps the file from its template if missing (mirrors _StrideBootstrapLocalProps in
-// the Stride SDK). Subsequent builds will read the flag and skip auto-pack. ---
+// --- Step 5: Turn StrideDevPackages back on if build/Stride.Local.props turned it off (on is the default in a
+// checkout). Subsequent builds will read the flag and skip auto-pack. ---
 var flagChanged = adopt.Length == 0 && SetDevPackagesFlag(strideRoot, enable: true);
 
 if (failures > 0)
@@ -473,10 +472,10 @@ static bool SetDevPackagesFlag(string strideRoot, bool enable)
     var localPropsPath = Path.Combine(strideRoot, "build", "Stride.Local.props");
     var templatePath = Path.Combine(strideRoot, "sources", "sdk", "Stride.Build.Sdk", "Sdk", "Stride.Local.props.template");
 
-    // Bootstrap from template if the local props file doesn't exist yet. Mirrors what
-    // _StrideBootstrapLocalProps does on the next build anyway, just earlier so we have
-    // a file to edit right now.
-    if (!File.Exists(localPropsPath) && File.Exists(templatePath))
+    // Without the property the default applies, on in a checkout (Stride.Platform.props): only turning it off
+    // writes it. Bootstrap from template if the local props file doesn't exist yet. Mirrors what
+    // _StrideBootstrapLocalProps does on the next build anyway, just earlier so we have a file to edit right now.
+    if (!File.Exists(localPropsPath) && File.Exists(templatePath) && !enable)
         File.Copy(templatePath, localPropsPath);
 
     if (!File.Exists(localPropsPath))
@@ -492,6 +491,10 @@ static bool SetDevPackagesFlag(string strideRoot, bool enable)
         if (element.Value == desired)
             return false;
         element.Value = desired;
+    }
+    else if (enable)
+    {
+        return false;
     }
     else
     {
