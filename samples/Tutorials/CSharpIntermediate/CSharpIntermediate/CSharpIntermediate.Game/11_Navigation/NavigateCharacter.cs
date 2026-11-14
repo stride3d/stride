@@ -8,7 +8,6 @@ using Stride.Engine;
 using Stride.Graphics;
 using Stride.Input;
 using Stride.Navigation;
-using Stride.Physics;
 
 namespace CSharpIntermediate.Code
 {
@@ -87,9 +86,11 @@ namespace CSharpIntermediate.Code
             var nearPosition = viewport.Unproject(new Vector3(Input.AbsoluteMousePosition, 0.0f), camera.ProjectionMatrix, camera.ViewMatrix, Matrix.Identity);
             var farPosition = viewport.Unproject(new Vector3(Input.AbsoluteMousePosition, 1.0f), camera.ProjectionMatrix, camera.ViewMatrix, Matrix.Identity);
 
-            var hitResult = this.GetSimulation().Raycast(nearPosition, farPosition);
+            var rayDirection = farPosition - nearPosition;
+            var rayDistance = rayDirection.Length();
+            rayDirection.Normalize();
 
-            if (hitResult.Succeeded)
+            if (Entity.GetSimulation().RayCast(nearPosition, rayDirection, rayDistance, out var hitResult))
             {
                 // Try to find the path to the hit point and store the path in the Waypoints variable
                 if (navigationComponent.TryFindPath(hitResult.Point, waypoints))

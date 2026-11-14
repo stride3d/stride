@@ -21,19 +21,19 @@ Hierarchy:
                         Model: 15707c44-e178-4460-b5ac-3012ce507687:Models/Pillar0x5x0
                         Materials:
                             375be21b17b931489b7075f15158cba7~0: ad74e5da-cb10-46b7-9c34-3d65a478df12:Materials/GridMTHazard
-                    23c28da116b69348aa23606dcc7b416f: !StaticColliderComponent
+                    23c28da116b69348aa23606dcc7b416f: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
                         Id: a18dc223-b616-4893-aa23-606dcc7b416f
-                        CollisionGroup: StaticFilter
-                        CanSleep: true
-                        Restitution: 0.0
-                        Friction: 0.5
-                        RollingFriction: 0.0
-                        CcdMotionThreshold: 0.0
-                        CcdSweptSphereRadius: 0.0
-                        IsTrigger: false
-                        ColliderShapes:
-                            0c11aab71bdaff448b0974b597a6f84f: !BoxColliderShapeDesc
-                                Is2D: false
-                                Size: {X: 0.1, Y: 5.0, Z: 0.1}
-                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                0c11aab71bdaff448b0974b597a6f84f: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 0.1, Y: 5.0, Z: 0.1}
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionLayer: Layer4
+                        CollisionGroup: {}
+                        ContactEventHandler: null

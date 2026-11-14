@@ -16,7 +16,7 @@ namespace ThirdPersonPlatformer.Player
         /// Raised every frame with the intended direction of movement from the player.
         /// </summary>
         // TODO Should not be static, but allow binding between player and controller
-        public static readonly EventKey<Vector3> MoveDirectionEventKey = new EventKey<Vector3>();
+        public static readonly EventKey<Vector2> MoveDirectionEventKey = new EventKey<Vector2>();
 
         public static readonly EventKey<Vector2> CameraDirectionEventKey = new EventKey<Vector2>();
 
@@ -60,16 +60,23 @@ namespace ThirdPersonPlatformer.Player
                     moveDirection += -Vector2.UnitY;
 
                 // Broadcast the movement vector as a world-space Vector3 to allow characters to be controlled
-                var worldSpeed = (Camera != null)
-                    ? Utils.LogicDirectionToWorldDirection(moveDirection, Camera, Vector3.UnitY)
-                    : new Vector3(moveDirection.X, 0, moveDirection.Y);
+                Vector2 worldSpeed;
+                if (Camera != null)
+                {
+                    var worldDirection = Utils.LogicDirectionToWorldDirection(moveDirection, Camera, Vector3.UnitY);
+                    worldSpeed = new Vector2(worldDirection.X, worldDirection.Z);
+                }
+                else
+                {
+                    worldSpeed = moveDirection;
+                }
 
                 // Adjust vector's magnitute - worldSpeed has been normalized
                 var moveLength = moveDirection.Length();
                 var isDeadZoneLeft = moveLength < DeadZone;
                 if (isDeadZoneLeft)
                 {
-                    worldSpeed = Vector3.Zero;
+                    worldSpeed = Vector2.Zero;
                 }
                 else
                 {

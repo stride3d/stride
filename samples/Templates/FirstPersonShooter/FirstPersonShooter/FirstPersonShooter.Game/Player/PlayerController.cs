@@ -1,11 +1,11 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using Stride.BepuPhysics;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Events;
-using Stride.Physics;
 
 namespace FirstPersonShooter.Player
 {
@@ -19,7 +19,7 @@ namespace FirstPersonShooter.Player
         // This component is the physics representation of a controllable character
         private CharacterComponent character;
 
-        private readonly EventReceiver<Vector3> moveDirectionEvent = new EventReceiver<Vector3>(PlayerInput.MoveDirectionEventKey);
+        private readonly EventReceiver<Vector2> moveDirectionEvent = new EventReceiver<Vector2>(PlayerInput.MoveDirectionEventKey);
 
         /// <summary>
         /// Called when the script is first initialized
@@ -44,10 +44,9 @@ namespace FirstPersonShooter.Player
         private void Move()
         {
             // Character speed
-            Vector3 moveDirection = Vector3.Zero;
-            moveDirectionEvent.TryReceive(out moveDirection);
+            moveDirectionEvent.TryReceive(out var moveDirection);
 
-            character.SetVelocity(moveDirection * MaxRunSpeed);
+            character.MoveVector = moveDirection;
 
             // Broadcast normalized speed
             RunSpeedEventKey.Broadcast(moveDirection.Length());

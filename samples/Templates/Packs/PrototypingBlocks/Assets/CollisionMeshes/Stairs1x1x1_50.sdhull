@@ -1,0 +1,11 @@
+!HullAsset
+Id: f18036ce-3909-4f6e-a708-e0c5cddffd9e
+SerializedVersion: {Stride: 3.0.0.0}
+Tags: []
+ConvexHulls: null
+Model: 026c2dd9-6f56-47d4-a4cc-c80a1a69d8a8:Models/Stairs1x1x1_50
+LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+Scaling: {X: 1.0, Y: 1.0, Z: 1.0}
+Decomposition:
+    Enabled: false

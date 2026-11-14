@@ -1,26 +1,25 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using CSharpIntermediate.Code.Extensions;
+using Stride.BepuPhysics;
 using Stride.Core.Mathematics;
 using Stride.Engine;
-using Stride.Physics;
 
 namespace CSharpIntermediate.Code
 {
     public class RaycastDemo : SyncScript
     {
-        public CollisionFilterGroupFlags CollideWithGroup;
-        public bool CollideWithTriggers = false;
+        public CollisionMask CollideWithGroup = CollisionMask.Everything;
         public Entity HitPoint;
 
         private const float maxDistance = 4.0f;
         private Entity laser;
-        private Simulation simulation;
+        private BepuSimulation simulation;
       
         public override void Start()
         {
             //Store the physics simulation object
-            simulation = this.GetSimulation();
+            simulation = Entity.GetSimulation();
             laser = Entity.FindChild("Laser");
         }
 
@@ -36,7 +35,7 @@ namespace CSharpIntermediate.Code
             drawY += 40;
 
             // Send a raycast from the start to the endposition
-            if (simulation.Raycast(raycastStart, raycastEnd, out HitResult hitResult, CollisionFilterGroups.DefaultFilter, CollideWithGroup, CollideWithTriggers))
+            if (simulation.RayCast(raycastStart, Vector3.UnitZ, maxDistance, out HitInfo hitResult, CollideWithGroup))
             {
                 // If we hit something, calculate the distance to the hitpoint and scale the laser to that distance
                 HitPoint.Transform.Position = hitResult.Point;
@@ -46,7 +45,7 @@ namespace CSharpIntermediate.Code
                 DebugText.Print("Hit a collider", new Int2(drawX, drawY));
                 DebugText.Print($"Raycast hit distance: {distance}", new Int2(drawX, drawY + 20));
                 DebugText.Print($"Raycast hit point: {hitResult.Point.Print()}", new Int2(drawX, drawY + 40));
-                DebugText.Print($"Raycast hit entity: {hitResult.Collider.Entity.Name}", new Int2(drawX, drawY + 60));
+                DebugText.Print($"Raycast hit entity: {hitResult.Collidable.Entity.Name}", new Int2(drawX, drawY + 60));
             }
             else
             {

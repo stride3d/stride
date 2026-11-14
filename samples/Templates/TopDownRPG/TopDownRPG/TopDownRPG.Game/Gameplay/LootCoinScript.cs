@@ -81,7 +81,7 @@ namespace TopDownRPG.Gameplay
             {
                 await Game.WaitTime(TimeSpan.FromMilliseconds(3000));
 
-                Game.RemoveEntity(Entity.GetParent());
+                Game.RemoveEntity(Entity);
             };
 
             Script.AddTask(cleanupTask);

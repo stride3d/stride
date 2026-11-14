@@ -2,11 +2,10 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Threading.Tasks;
+using Stride.Audio;
 using Stride.Core;
 using Stride.Core.Mathematics;
-using Stride.Audio;
 using Stride.Engine;
-using Stride.Engine.Events;
 using TopDownRPG.Core;
 
 namespace TopDownRPG.Gameplay
@@ -21,27 +20,16 @@ namespace TopDownRPG.Gameplay
         public Sound SoundEffect { get; set; }
         private SoundInstance sfxInstance;
 
-        public Trigger Trigger { get; set; }
-
-        private EventReceiver<bool> triggeredEvent;
-
         private bool activated = false;
 
         private float animationTime = 0;
 
         public override void Update()
         {
-            // Check if the coin has been collected
-            bool triggered;
-            if (!activated && (triggeredEvent?.TryReceive(out triggered) ?? false))
-            {
-                CollisionStarted();
-            }
-
             UpdateAnimation();
         }
 
-        public void UpdateAnimation()
+        private void UpdateAnimation()
         {
             if (!activated)
                 return;
@@ -60,14 +48,17 @@ namespace TopDownRPG.Gameplay
         {
             base.Start();
 
-            triggeredEvent = (Trigger != null) ? new EventReceiver<bool>(Trigger.TriggerEvent) : null;
-
             sfxInstance = SoundEffect?.CreateInstance();
             sfxInstance?.Stop();
         }
 
-        protected void CollisionStarted()
+        public void TriggerCollision()
         {
+            if (activated)
+            {
+                return;
+            }
+
             activated = true;
 
             // Add visual effect
