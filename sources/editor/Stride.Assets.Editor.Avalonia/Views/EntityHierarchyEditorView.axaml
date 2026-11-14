@@ -77,17 +77,17 @@
         <MenuItem Command="{cmd:Command Stride.Scene.CreatePrefabFromSelection}"/>
         <Separator/>
         <MenuItem Command="{cmd:Command Stride.Scene.Duplicate}"/>
-        <MenuItem Header="{sd:LocalizeString Cut, Context=Menu}" Command="{cmd:Command Stride.Scene.Cut}">
+        <MenuItem Command="{cmd:Command Stride.Edit.Cut}">
           <MenuItem.Icon><Image Source="{StaticResource ImageCut}"/></MenuItem.Icon>
         </MenuItem>
-        <MenuItem Header="{sd:LocalizeString Copy, Context=Menu}" Command="{cmd:Command Stride.Scene.Copy}">
+        <MenuItem Command="{cmd:Command Stride.Edit.Copy}">
           <MenuItem.Icon><Image Source="{StaticResource ImageCopy}"/></MenuItem.Icon>
         </MenuItem>
         <MenuItem Command="{cmd:Command Stride.Edit.Delete}">
           <MenuItem.Icon><Image Source="{StaticResource ImageDelete}"/></MenuItem.Icon>
         </MenuItem>
         <Separator/>
-        <MenuItem Header="{sd:LocalizeString Rename, Context=Menu}" Command="{cmd:Command Stride.Scene.Rename}">
+        <MenuItem Command="{cmd:Command Stride.Edit.Rename}">
           <MenuItem.Icon><Image Source="{StaticResource ImageRename}"/></MenuItem.Icon>
         </MenuItem>
       </ContextMenu>
@@ -679,6 +679,13 @@
         <!-- Assets dropped on the view add their entities under the pointer -->
         <ContentControl x:Name="GameViewHost"
                         IsVisible="{Binding GameHost.LastException, Converter={x:Static ObjectConverters.IsNull}}">
+          <!-- Cut, Copy and Rename act on the selected entities from the view too (its context menu, and the
+               shortcuts while it has the focus); Delete and Paste come from the editor's bindings -->
+          <sd:EditCommands.Bindings>
+            <sd:EditCommandBinding Kind="Cut" Command="{Binding CutCommand}"/>
+            <sd:EditCommandBinding Kind="Copy" Command="{Binding CopyCommand}"/>
+            <sd:EditCommandBinding Kind="Rename" Command="{Binding RenameCommand}"/>
+          </sd:EditCommands.Bindings>
           <Interaction.Behaviors>
             <dd:AddChildDropBehavior/>
           </Interaction.Behaviors>
