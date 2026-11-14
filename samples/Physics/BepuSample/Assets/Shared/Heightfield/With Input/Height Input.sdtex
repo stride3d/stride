@@ -1,0 +1,7 @@
+!Texture
+Id: 69c63ea3-3d29-4c67-90b5-02a28584d70c
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: !file ../../../../Resources/Height Input.tiff
+IsCompressed: false
+Type: !GrayscaleTextureType {}

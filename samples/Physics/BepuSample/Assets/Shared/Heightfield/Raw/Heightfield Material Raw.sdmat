@@ -1,0 +1,28 @@
+!MaterialAsset
+Id: c2ede5c7-cc51-4202-ac41-032bc54ac618
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Attributes:
+    Tessellation: !MaterialTessellationFlatFeature
+        TriangleSize: 12.0
+        AdjacentEdgeAverage: false
+    Displacement: !HeightfieldDisplacementFeature
+        HeightfieldSource: !Heightfield 2d9e9ca8-6931-4bfe-8680-ba92f39be620:Heightfield/Raw/Heightfield Raw
+        Stage: Domain
+    Surface: !MaterialNormalMapFeature
+        NormalMap: !ComputeTextureColor
+            Texture: 2096f62d-aad2-4bca-917e-eb9026350aa0:Heightfield/Raw/Raw Input Normal
+            FallbackValue:
+                Value: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
+            AddressModeU: Clamp
+            AddressModeV: Clamp
+            Scale: {X: 1.0, Y: 1.0}
+            Offset: {X: 0.0, Y: 0.0}
+            Swizzle: null
+    Diffuse: !MaterialDiffuseMapFeature
+        DiffuseMap: !ComputeColor
+            Value: {R: 0.47916663, G: 0.47916663, B: 0.47916663, A: 1.0}
+    DiffuseModel: !MaterialDiffuseLambertModelFeature {}
+    Overrides:
+        UVScale: {X: 1.0, Y: 1.0}
+Layers: {}

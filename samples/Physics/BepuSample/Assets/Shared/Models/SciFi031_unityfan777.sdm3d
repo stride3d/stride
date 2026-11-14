@@ -1,6 +1,6 @@
 !Model
 Id: edb51e97-9eed-406f-a82c-e8157436456b
-SerializedVersion: {Stride: 2.0.0.0}
+SerializedVersion: {Stride: 2.1.0.0}
 Tags: []
 Source: !file ../../../Resources/Models/SciFi031_unityfan777.fbx
 Skeleton: 0c2362f2-3d92-4883-8d3d-420e05e26896:Models/SciFi031_unityfan777 Skeleton
@@ -39,5 +39,6 @@ Materials:
         MaterialInstance:
             Material: 497d88aa-bcd7-4034-8f98-058ea0ad8963:Materials/taillight
 Modifiers: {}
+ImportMorphTargets: false
 ~SourceHashes:
     a42087e454447d506e24e35901129f2a~../../../Resources/Models/SciFi031_unityfan777.fbx: 1ca26e2224dd402aa3733767a2755025
