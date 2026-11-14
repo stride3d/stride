@@ -104,6 +104,11 @@
       <_StrideAdoptPackDir>$(MSBuildProjectDirectory)/$(BaseIntermediateOutputPath)devstub/</_StrideAdoptPackDir>
     </PropertyGroup>
     <Message Importance="High" Text="Dev packages: refreshing the stub of $(PackageId)" Condition="'$(_StrideStubStale)' == 'true'" />
+    <!-- The pack below runs pack-assets with NoBuild when _StridePrepareAssetsForPack's condition holds (StridePackAssets
+         is false there): the tool is built here, with this build's global properties, so that it is the one build of it
+         the other callers share. -->
+    <CallTarget Targets="_StrideBuildPackAssetsTool"
+                Condition="'$(_StrideStubStale)' == 'true' And ('$(StrideContainsAssetTypes)' == 'true' Or '$(StridePackageKind)' != '' Or '@(StrideCompanionProject)' != '' Or '@(StrideCompanionPackage)' != '')" />
     <!-- Pack in this MSBuild (the project and its references are already evaluated here; a child dotnet pack
          would evaluate them all again). NuGet's own two lines are the price at minimal verbosity.
          BuildProjectReferences=false: NoBuild spares this project, not its references; building those again in
