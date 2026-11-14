@@ -1,11 +1,14 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 #nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Core.Assets.Editor.Services;
@@ -39,7 +42,7 @@ namespace Stride.Assets.Editor.ViewModels
         private readonly IObjectNode renderFeaturesNode;
         private readonly IObjectNode cameraSlotsNode;
         private readonly IObjectNode sharedRenderersNode;
-        
+
         public GraphicsCompositorEditorViewModel([NotNull] GraphicsCompositorViewModel graphicsCompositor) : base(graphicsCompositor)
         {
             // Create the service needed to manage observable view models
@@ -412,12 +415,14 @@ namespace Stride.Assets.Editor.ViewModels
 
             // Through the property graph, so the view models, the undo stack and the dirty flag follow
             var scope = PackageTypeScope.For(Asset.AssetItem.Package);
-            var renderFeatures = RenderFeatureProviders.CreateMissingRenderFeatures(asset, opaqueStage, transparentStage, scope).ToList();
+            var context = new RenderFeatureProviderContext(asset);
+            var renderFeatures = RenderFeatureProviders.CreateMissingRenderFeatures(asset, context, scope).ToList();
             if (renderFeatures.Count == 0)
             {
                 await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Tr._p("Message", "The compositor already has every render feature the packages of its project provide."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
+
             using (var transaction = UndoRedoService.CreateTransaction())
             {
                 foreach (var renderFeature in renderFeatures)

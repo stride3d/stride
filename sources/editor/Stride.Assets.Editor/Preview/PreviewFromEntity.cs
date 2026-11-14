@@ -1,8 +1,9 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 #nullable disable
+
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 using Stride.Core.Assets;
@@ -16,9 +17,9 @@ using Stride.Editor.Preview;
 using Stride.Input;
 using Stride.Rendering.Lights;
 using Stride.Engine;
-using Stride.Rendering.Compositing;
 using Stride.Rendering;
 using Stride.Rendering.Sprites;
+using Stride.Rendering.Compositing;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
 
 namespace Stride.Assets.Editor.Preview
@@ -92,13 +93,12 @@ namespace Stride.Assets.Editor.Preview
 
         protected override GraphicsCompositor GetGraphicsCompositor()
         {
-            var graphicsCompositor = GraphicsCompositorHelper.CreateDefault(RenderingMode == RenderingMode.HDR, modelEffectName, 
+            var graphicsCompositor = GraphicsCompositorHelper.CreateDefault(RenderingMode == RenderingMode.HDR, modelEffectName,
                 camera.Get<CameraComponent>(), RenderingMode == RenderingMode.HDR ? EditorServiceGame.EditorBackgroundColorHdr : EditorServiceGame.EditorBackgroundColorLdr);
 
-            var opaqueStage = graphicsCompositor.RenderStages.First(x => x.Name.Equals("Opaque"));
-            var transparentStage = graphicsCompositor.RenderStages.First(x => x.Name.Equals("Transparent"));
+            var context = new RenderFeatureProviderContext(graphicsCompositor);
 
-            RenderFeatureProviders.AddPackageRenderFeatures(graphicsCompositor, opaqueStage, transparentStage);
+            RenderFeatureProviders.AddPackageRenderFeatures(graphicsCompositor, context);
 
             return graphicsCompositor;
         }
@@ -157,7 +157,7 @@ namespace Stride.Assets.Editor.Preview
 
             private CameraComponent cameraComponent;
             private BoundingSphere previousBoundingSphere = InvalidBoundingSphere;
-            
+
             public override void Start()
             {
                 cameraComponent = Entity.Get<CameraComponent>();
@@ -237,7 +237,7 @@ namespace Stride.Assets.Editor.Preview
                     var viewMatrixInv = Entity.Transform.WorldMatrix;
                     target -= distance * (translation.X * viewMatrixInv.Row1.XYZ() - translation.Y * viewMatrixInv.Row2.XYZ());
                 }
-                else if (Input.IsMouseButtonDown(MouseButton.Left)) // orbital rotation 
+                else if (Input.IsMouseButtonDown(MouseButton.Left)) // orbital rotation
                 {
                     yaw -= 4 * translation.X;
                     pitch -= 3 * translation.Y;
