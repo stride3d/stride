@@ -312,7 +312,16 @@ namespace Stride.Graphics
                 (isCurrentlyFullscreen is false || (output is not null && currentOutput.IsNotNull() && currentOutput.Handle == output.NativeOutput.Handle)))
             {
                 // DXGI can leave full screen on its own (the window losing the output): keep the description in step
+                bool hasDxgiLeftFullScreen = Description.IsFullScreen && !isFullScreen;
                 Description.IsFullScreen = isFullScreen;
+
+                // As when leaving it below, Present fails until ResizeBuffers is called
+                if (hasDxgiLeftFullScreen)
+                {
+                    GraphicsDevice.Begin();
+                    ResizeBackBuffer(backBuffer.ViewWidth, backBuffer.ViewHeight, backBuffer.ViewFormat);
+                    GraphicsDevice.End();
+                }
                 return;
             }
 
