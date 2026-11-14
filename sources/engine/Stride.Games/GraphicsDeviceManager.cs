@@ -56,6 +56,7 @@ namespace Stride.Games
         private static readonly TimeSpan PipelineCacheTemporaryAge = TimeSpan.FromDays(1);
 
         private static readonly Logger Log = GlobalLogger.GetLogger(nameof(GraphicsDeviceManager));
+        private static bool hasWarnedExclusiveFullScreenUnsupported;
 
         /// <summary>
         ///   Default width for the Back-Buffer.
@@ -234,10 +235,26 @@ namespace Stride.Games
                 if (isFullScreen != value)
                 {
                     isFullScreen = value;
+                    // A pending window size belongs to the previous mode (such as the full-screen window's own resize)
+                    isBackBufferToResize = false;
                     deviceSettingsChanged = true;
                 }
             }
         }
+
+        /// <summary>
+        ///   Gets a value indicating whether full screen takes the display exclusively, at a display mode of the
+        ///   requested size. Otherwise full screen is a borderless window covering the display at the desktop
+        ///   resolution, presented with a windowed swapchain (see <see cref="GameWindow.FullscreenIsBorderlessWindow"/>).
+        /// </summary>
+        private bool IsExclusiveFullScreen => IsFullScreen && (game.Window?.UsesExclusiveFullscreen ?? true);
+
+        /// <summary>
+        ///   Gets a value indicating whether the swapchain takes and leaves exclusive full screen itself, resizing the
+        ///   window (DXGI). Otherwise the window covers the display and the swapchain follows its size.
+        /// </summary>
+        private static bool SwapChainTakesExclusiveFullScreen
+            => Graphics.GraphicsDevice.Platform is GraphicsPlatform.Direct3D11 or GraphicsPlatform.Direct3D12;
 
         /// <summary>
         ///   Gets or sets the level of multisampling for the Back-Buffers.
@@ -611,6 +628,7 @@ namespace Stride.Games
                 {
                     game.Window.ClientSizeChanged -= Window_ClientSizeChanged;
                     game.Window.OrientationChanged -= Window_OrientationChanged;
+                    game.Window.FullscreenChanged -= Window_FullscreenChanged;
                 }
             }
 
@@ -677,7 +695,7 @@ namespace Stride.Games
                 SynchronizeWithVerticalRetrace = SynchronizeWithVerticalRetrace,
                 PreferredFullScreenOutputIndex = PreferredFullScreenOutputIndex,
                 RequiredAdapterUid = RequiredAdapterUid,
-                IsFullScreen = IsFullScreen,
+                IsFullScreen = IsExclusiveFullScreen,
                 PreferredGraphicsProfile = (GraphicsProfile[]) PreferredGraphicsProfile.Clone()
             };
 
@@ -744,7 +762,7 @@ namespace Stride.Games
                 // Sort by full-screen mode
                 if (leftParams.IsFullScreen != rightParams.IsFullScreen)
                 {
-                    return IsFullScreen != leftParams.IsFullScreen ? 1 : -1;
+                    return IsExclusiveFullScreen != leftParams.IsFullScreen ? 1 : -1;
                 }
 
                 // Sort by Back-Buffer format
@@ -839,7 +857,7 @@ namespace Stride.Games
             {
                 int leftPixelCount, rightPixelCount;
 
-                if (IsFullScreen)
+                if (IsExclusiveFullScreen)
                 {
                     if (((PreferredBackBufferWidth == 0) || (PreferredBackBufferHeight == 0)) &&
                         PreferredFullScreenOutputIndex < leftAdapter.Outputs.Length &&
@@ -964,7 +982,8 @@ namespace Stride.Games
             if (hasWindowFullscreenChanged)
             {
                 hasWindowFullscreenChanged = false;
-                needApplyChanges |= ProcessOrientationChanged();
+                ProcessFullscreenChanged(game.Window);
+                needApplyChanges = true;
             }
 
             if (needApplyChanges)
@@ -1092,6 +1111,8 @@ namespace Stride.Games
         {
             // The new state is the Window's full-screen state
             IsFullScreen = window.IsFullscreen;
+            // Also applies a switch between borderless and exclusive full screen, which changes neither the state nor the size
+            deviceSettingsChanged = true;
 
             if (IsFullScreen)
             {
@@ -1288,21 +1309,53 @@ namespace Stride.Games
                 }
 
                 var isBeginScreenDeviceChange = false;
+                var isEndScreenDeviceChange = false;
                 try
                 {
                     // Notifies the game Window the new orientation
                     var orientation = SelectOrientation(supportedOrientations, PreferredBackBufferWidth, PreferredBackBufferHeight, allowLandscapeLeftAndRight: true);
                     game.Window.SetSupportedOrientations(orientation);
 
+                    var isBorderlessFullScreenRequested = IsFullScreen && !IsExclusiveFullScreen;
+                    if (isBorderlessFullScreenRequested && !game.Window.FullscreenIsBorderlessWindow && !hasWarnedExclusiveFullScreenUnsupported)
+                    {
+                        hasWarnedExclusiveFullScreenUnsupported = true;
+                        Log.Warning($"Exclusive full screen is not supported by {game.Window.GetType().Name}: full screen is a borderless window at the desktop resolution");
+                    }
+
                     // Find the best device configuration based on the current settings
                     var graphicsDeviceInformation = FindBestDevice(forceCreate);
-                    graphicsDeviceInformation.PresentationParameters.SkipBackBufferClampToWindow = SkipBackBufferClampToWindow;
+                    var presentationParameters = graphicsDeviceInformation.PresentationParameters;
+                    presentationParameters.SkipBackBufferClampToWindow = SkipBackBufferClampToWindow;
                     // Give a chance to the game to modify the device settings before the device is created or reset
                     OnPreparingDeviceSettings(this, new PreparingDeviceSettingsEventArgs(graphicsDeviceInformation));
 
-                    isFullScreen = graphicsDeviceInformation.PresentationParameters.IsFullScreen;
-                    game.Window.BeginScreenDeviceChange(graphicsDeviceInformation.PresentationParameters.IsFullScreen);
+                    // The presenter's full screen is the exclusive one: a borderless full-screen window presents windowed
+                    var wasFullScreen = isReallyFullScreen;
+                    isFullScreen = presentationParameters.IsFullScreen || isBorderlessFullScreenRequested;
+                    var willBeBorderlessFullScreen = isFullScreen && !presentationParameters.IsFullScreen;
+                    game.Window.FullscreenRefreshRate = presentationParameters.RefreshRate;
+                    game.Window.BeginScreenDeviceChange(isFullScreen);
                     isBeginScreenDeviceChange = true;
+
+                    // Unless the swapchain takes or leaves exclusive full screen itself, the window covers the display
+                    // (or leaves it) first and the swapchain follows its new size, as a Vulkan swapchain is clamped to the window
+                    var isSwapChainControllingWindow = SwapChainTakesExclusiveFullScreen
+                        && (presentationParameters.IsFullScreen || GraphicsDevice?.Presenter?.IsFullScreen == true);
+                    if (!isSwapChainControllingWindow && (isFullScreen || wasFullScreen))
+                    {
+                        game.Window.EndScreenDeviceChange(presentationParameters.BackBufferWidth, presentationParameters.BackBufferHeight);
+                        isEndScreenDeviceChange = true;
+
+                        // The full-screen window decides the size: the desktop resolution when borderless,
+                        // the display mode when exclusive (the desktop resolution again if the mode could not be set)
+                        var fullScreenClientBounds = game.Window.ClientBounds;
+                        if (isFullScreen && fullScreenClientBounds.Width > 0 && fullScreenClientBounds.Height > 0)
+                        {
+                            presentationParameters.BackBufferWidth = fullScreenClientBounds.Width;
+                            presentationParameters.BackBufferHeight = fullScreenClientBounds.Height;
+                        }
+                    }
 
                     // An existing device is kept and only its presenter changes: its resources would not survive a re-creation
                     if (GraphicsDevice is not null)
@@ -1310,14 +1363,14 @@ namespace Stride.Games
                         if (forceCreate || !CanResetDevice(graphicsDeviceInformation))
                             throw new NotSupportedException("The graphics device cannot be re-created with different settings: restart the game.");
 
-                        GraphicsDevice.ColorSpace = graphicsDeviceInformation.PresentationParameters.ColorSpace;
-                        var newWidth = graphicsDeviceInformation.PresentationParameters.BackBufferWidth;
-                        var newHeight = graphicsDeviceInformation.PresentationParameters.BackBufferHeight;
-                        var newFormat = graphicsDeviceInformation.PresentationParameters.BackBufferFormat;
-                        var newOutputIndex = graphicsDeviceInformation.PresentationParameters.PreferredFullScreenOutputIndex;
+                        GraphicsDevice.ColorSpace = presentationParameters.ColorSpace;
+                        var newWidth = presentationParameters.BackBufferWidth;
+                        var newHeight = presentationParameters.BackBufferHeight;
+                        var newFormat = presentationParameters.BackBufferFormat;
+                        var newOutputIndex = presentationParameters.PreferredFullScreenOutputIndex;
 
                         GraphicsDevice.Presenter.Description.PreferredFullScreenOutputIndex = newOutputIndex;
-                        GraphicsDevice.Presenter.Description.RefreshRate = graphicsDeviceInformation.PresentationParameters.RefreshRate;
+                        GraphicsDevice.Presenter.Description.RefreshRate = presentationParameters.RefreshRate;
 
                         try
                         {
@@ -1327,8 +1380,20 @@ namespace Stride.Games
                                 GraphicsDevice.Presenter.Resize(newWidth, newHeight, newFormat);
 
                                 // Change full screen if needed
-                                GraphicsDevice.Presenter.IsFullScreen = graphicsDeviceInformation.PresentationParameters.IsFullScreen;
+                                GraphicsDevice.Presenter.IsFullScreen = presentationParameters.IsFullScreen;
                             });
+
+                            // From exclusive to borderless full screen: once the swapchain has given the window back,
+                            // the window covers the display and the back buffer takes its size
+                            if (isSwapChainControllingWindow && willBeBorderlessFullScreen)
+                            {
+                                game.Window.EndScreenDeviceChange(newWidth, newHeight);
+                                isEndScreenDeviceChange = true;
+
+                                var borderlessClientBounds = game.Window.ClientBounds;
+                                if (borderlessClientBounds.Width > 0 && borderlessClientBounds.Height > 0)
+                                    game.ChangePresenterBuffers(() => GraphicsDevice.Presenter.Resize(borderlessClientBounds.Width, borderlessClientBounds.Height, newFormat));
+                            }
                         }
                         // A resize can come from a window event, outside the game loop that reports a lost device
                         catch (Exception ex) when (ex is not GraphicsDeviceException && GraphicsDevice.GraphicsDeviceStatus is var status && status != GraphicsDeviceStatus.Normal)
@@ -1344,13 +1409,13 @@ namespace Stride.Games
                     if (GraphicsDevice is null)
                         throw new InvalidOperationException("Unexpected null GraphicsDevice");
 
-                    var presentationParameters = GraphicsDevice.Presenter.Description;
-                    isReallyFullScreen = presentationParameters.IsFullScreen;
+                    var presenterDescription = GraphicsDevice.Presenter.Description;
+                    isReallyFullScreen = willBeBorderlessFullScreen || presenterDescription.IsFullScreen;
 
-                    if (presentationParameters.BackBufferWidth != 0)
-                        width = presentationParameters.BackBufferWidth;
-                    if (presentationParameters.BackBufferHeight != 0)
-                        height = presentationParameters.BackBufferHeight;
+                    if (presenterDescription.BackBufferWidth != 0)
+                        width = presenterDescription.BackBufferWidth;
+                    if (presenterDescription.BackBufferHeight != 0)
+                        height = presenterDescription.BackBufferHeight;
                     deviceSettingsChanged = false;
                 }
                 finally
@@ -1358,7 +1423,8 @@ namespace Stride.Games
                     // Notify the game Window that the screen device change is over
                     if (isBeginScreenDeviceChange)
                     {
-                        game.Window.EndScreenDeviceChange(width, height);
+                        if (!isEndScreenDeviceChange)
+                            game.Window.EndScreenDeviceChange(width, height);
                         game.Window.SetIsReallyFullscreen(isReallyFullScreen);
                     }
 
@@ -1372,7 +1438,6 @@ namespace Stride.Games
             //
             void CreateDevice(GraphicsDeviceInformation newInfo)
             {
-                newInfo.PresentationParameters.IsFullScreen = isFullScreen;
                 newInfo.PresentationParameters.PresentationInterval = SynchronizeWithVerticalRetrace ? PresentInterval.One : PresentInterval.Immediate;
                 newInfo.DeviceCreationFlags = DeviceCreationFlags;
 

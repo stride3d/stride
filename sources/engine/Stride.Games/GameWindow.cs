@@ -208,8 +208,31 @@ namespace Stride.Games
         /// <summary>
         /// Whether the fullscreen mode should be a borderless window matching the desktop size.
         /// </summary>
-        /// <remarks>This flag is currently ignored on all game platforms other than SDL.</remarks>
-        public bool FullscreenIsBorderlessWindow { get; set; } = false;
+        /// <remarks>
+        /// When <see langword="true"/>, fullscreen is a borderless window covering the display at the desktop resolution,
+        /// and the back buffer gets that size whatever size was requested. When <see langword="false"/>, fullscreen takes
+        /// the display exclusively at the requested size, changing the display mode. A window that cannot take the display
+        /// exclusively (such as on UWP) falls back to a borderless window and logs a warning.
+        /// Changing it while in fullscreen switches to the other kind of fullscreen right away.
+        /// </remarks>
+        public bool FullscreenIsBorderlessWindow
+        {
+            get => fullscreenIsBorderlessWindow;
+            set
+            {
+                if (value == fullscreenIsBorderlessWindow)
+                    return;
+
+                fullscreenIsBorderlessWindow = value;
+                if (isFullscreen)
+                    FullscreenChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        /// <summary>
+        /// Whether fullscreen takes the display exclusively, at a display mode of the requested size.
+        /// </summary>
+        internal virtual bool UsesExclusiveFullscreen => !FullscreenIsBorderlessWindow;
 
         /// <summary>
         /// Switches between fullscreen and windowed mode.
@@ -234,7 +257,13 @@ namespace Stride.Games
         internal void SetIsReallyFullscreen(bool isReallyFullscreen)
         {
             isFullscreen = isReallyFullscreen;
+            isFullscreenApplied = isReallyFullscreen;
         }
+
+        /// <summary>
+        /// The refresh rate the GraphicsDeviceManager requests for exclusive full screen, for windows that change the display mode themselves.
+        /// </summary>
+        internal Rational FullscreenRefreshRate { get; set; }
 
         #endregion
 
@@ -272,6 +301,11 @@ namespace Stride.Games
         internal Action ExitCallback;
         
         private bool isFullscreen;
+
+        private bool fullscreenIsBorderlessWindow;
+
+        // The full-screen state the GraphicsDeviceManager last applied: it stays set while a requested leave is pending
+        private bool isFullscreenApplied;
 
         internal abstract void Run();
 
@@ -317,7 +351,8 @@ namespace Stride.Games
             if (resizeSize.Width <= 0 || resizeSize.Height <= 0)
                 return;
 
-            if (!isFullscreen)
+            // A size event still coming from the full-screen window before a requested leave is applied is not a windowed size
+            if (!isFullscreen && !isFullscreenApplied)
             {
                 // Update preferred windowed size in windowed mode
                 PreferredWindowedSize = new Int2(resizeSize.Width, resizeSize.Height);

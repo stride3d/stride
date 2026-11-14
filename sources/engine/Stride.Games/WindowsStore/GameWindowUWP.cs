@@ -60,6 +60,7 @@ namespace Stride.Games
 
         private double requiredRatio;
         private ApplicationView applicationView;
+        private bool? deviceChangeWillBeFullScreen;
         private bool canResize;
 
         private bool visible;
@@ -185,12 +186,28 @@ namespace Stride.Games
 
 #region Public Methods and Operators
 
+        /// <inheritdoc/>
+        /// <remarks>A UWP app view cannot take the display exclusively: its full screen is always borderless.</remarks>
+        internal override bool UsesExclusiveFullscreen => false;
+
         public override void BeginScreenDeviceChange(bool willBeFullScreen)
         {
+            deviceChangeWillBeFullScreen = willBeFullScreen;
         }
 
         public override void EndScreenDeviceChange(int clientWidth, int clientHeight)
         {
+            // The view resizes later and reports it through the size changed events
+            if (deviceChangeWillBeFullScreen is bool willBeFullScreen && applicationView != null
+                && willBeFullScreen != applicationView.IsFullScreenMode)
+            {
+                if (willBeFullScreen)
+                    applicationView.TryEnterFullScreenMode();
+                else
+                    applicationView.ExitFullScreenMode();
+            }
+
+            deviceChangeWillBeFullScreen = null;
         }
 
 #endregion
