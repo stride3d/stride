@@ -129,6 +129,26 @@ public sealed class AssetPreviewTests
     }
 
     [AvaloniaFact]
+    public async Task APanelHiddenBeforeThePreviewServiceExistsHidesItsPreview()
+    {
+        using var fixture = await OpenAsync();
+        var panel = fixture.Main.Preview!;
+        await WindowTestHelper.WaitUntilAsync(() => panel.IsPreviewVisible, "the preview panel shown");
+
+        // Hidden while the session has no preview service yet
+        panel.IsPreviewVisible = false;
+        var preview = RegisterPreviewService(fixture);
+        fixture.Session.AssetCollection.SelectAssets([fixture.Asset(FirstLocation)]);
+        await WindowTestHelper.PumpAsync();
+
+        // The service is told once it is found
+        Assert.NotEmpty(preview.Requests);
+        Assert.Equal((0, 1), (preview.ShowCount, preview.HideCount));
+        panel.IsPreviewVisible = true;
+        Assert.Equal((1, 1), (preview.ShowCount, preview.HideCount));
+    }
+
+    [AvaloniaFact]
     public async Task DisposingThePanelDisposesThePreviewServiceAndStopsFollowingTheSelection()
     {
         using var fixture = await OpenAsync();
