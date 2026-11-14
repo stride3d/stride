@@ -122,12 +122,7 @@ jobs:
         if: matrix.graphics-api == 'Vulkan'
         uses: ./.github/actions/setup-vulkan-windows
 
-      - name: Build Stride.GameStudio.AutoTesting
-        run: |
-          dotnet build sources\editor\Stride.GameStudio.AutoTesting\Stride.GameStudio.AutoTesting.csproj `
-            -nr:false -v:m -p:WarningLevel=0 `
-            -p:Configuration=${{ inputs.build-type || 'Debug' }}
-
+      # Also builds Stride.GameStudio.AutoTesting, the runner the tests start, through its ProjectReference
       - name: Build Stride.Editor.Wpf.Tests
         run: |
           dotnet build tests\editor\Stride.Editor.Wpf.Tests\Stride.Editor.Wpf.Tests.csproj `
