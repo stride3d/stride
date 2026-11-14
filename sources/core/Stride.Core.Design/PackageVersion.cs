@@ -137,6 +137,39 @@ public sealed partial class PackageVersion : IComparable, IComparable<PackageVer
         => SpecialVersion is { } label
            && (label.StartsWith("nightly.", StringComparison.OrdinalIgnoreCase) || label.Contains(".nightly.", StringComparison.OrdinalIgnoreCase));
 
+    /// <summary>
+    /// Gets whether this version is a prerelease of the releases: its label starts with alpha, beta, preview or rc, numbered
+    /// or not (4.5.0-beta06, 4.5.3-beta, 4.5.0-rc.1, 4.0.0.1-beta02-0926), and it is neither a nightly nor a local build.
+    /// </summary>
+    public bool IsPrerelease => LabelWord() is { } word && Array.IndexOf(PrereleaseWords, word) >= 0;
+
+    /// <summary>
+    /// Gets the tag of a custom build, whose label is neither a prerelease, a nightly nor a local build: the word its label
+    /// starts with, lowercase, without the number after it (mystudio for 4.5.3-mystudio.32, 4.5.3-MyStudio32 and
+    /// 4.5.3-mystudio.beta); null for any other version.
+    /// </summary>
+    public string? CustomTag => LabelWord() is { } word && Array.IndexOf(PrereleaseWords, word) < 0 ? word : null;
+
+    private static readonly string[] PrereleaseWords = ["alpha", "beta", "preview", "rc"];
+
+    // The word a label starts with, lowercase: its letters, hyphens between letters included, up to a number or a dot
+    // (beta for beta02-0926, my-studio for my-studio2.5); a label starting with a number is its own word. Null for a
+    // release, a nightly or a local build.
+    private string? LabelWord()
+    {
+        if (SpecialVersion.Length == 0 || IsNightly || IsLocalBuild)
+            return null;
+        var label = SpecialVersion;
+        var end = 0;
+        while (end < label.Length && (IsLetter(label[end]) || (label[end] == '-' && end > 0 && end + 1 < label.Length && IsLetter(label[end + 1]))))
+            end++;
+        if (end == 0)
+            end = label.IndexOf('.') is var dot and >= 0 ? dot : label.Length;
+        return label.Substring(0, end).ToLowerInvariant();
+
+        static bool IsLetter(char c) => (c | 0x20) is >= 'a' and <= 'z';
+    }
+
     public string[] GetOriginalVersionComponents()
     {
         if (!string.IsNullOrEmpty(originalString))

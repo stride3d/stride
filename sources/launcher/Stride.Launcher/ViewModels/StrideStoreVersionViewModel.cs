@@ -35,8 +35,9 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
     /// <param name="localPackage"></param>
     /// <param name="major"></param>
     /// <param name="minor"></param>
-    internal StrideStoreVersionViewModel(MainViewModel launcher, NugetStore store, NugetLocalPackage? localPackage, string packageId, int major, int minor, bool isNightly = false)
-        : base(launcher, store, localPackage, packageId, major, minor, isNightly)
+    /// <param name="channel">The builds of the major.minor the version holds (<see cref="StrideVersionViewModel.Channel"/>).</param>
+    internal StrideStoreVersionViewModel(MainViewModel launcher, NugetStore store, NugetLocalPackage? localPackage, string packageId, int major, int minor, string channel = "")
+        : base(launcher, store, localPackage, packageId, major, minor, channel)
     {
         WhatsNewCommand = new AnonymousTaskCommand(ServiceProvider, ShowWhatsNew);
         FetchReleaseNotes();
@@ -66,7 +67,7 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
     {
         builds = AlternateVersions.ToList();
         // The releases and prereleases of every line, installed or on the feed (local builds have rows of their own)
-        releases = Launcher.StrideVersions.OfType<StrideStoreVersionViewModel>().Where(x => !x.IsNightly)
+        releases = Launcher.StrideVersions.OfType<StrideStoreVersionViewModel>().Where(x => x.IsReleaseChannel)
             .SelectMany(x => x.AlternateVersions).ToList();
         return ChooseWhatsNewRange(builds.Select(x => (x.Version, Installed: x.LocalPackage is not null, OnFeed: x.ServerPackage is not null)),
             releases.Select(x => x.Version));
@@ -166,8 +167,8 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
             // The default build: the newest installed, else the newest on the server
             var defaultBuild = AlternateVersions.Where(x => x.LocalPackage is not null).MaxBy(x => x.Version)?.Version ?? LatestServerPackage?.Version;
             var chosenBuild = Version is not null && defaultBuild is not null && !Version.Equals(defaultBuild);
-            // A chosen nightly by its X.Y.Z and its date: its whole version would be cut before the date in the row
-            var buildName = VersionCaption.ShortNightlyName(PackageSimpleName, Version) ?? $"{PackageSimpleName} {Version}";
+            // A chosen dated build by its X.Y.Z and its date: its whole version would be cut before the date in the row
+            var buildName = VersionCaption.ShortDatedName(PackageSimpleName, Version) ?? $"{PackageSimpleName} {Version}";
             var name = string.Format(Strings.VersionButton, chosenBuild ? buildName : ListName);
             if (!CanDelete)
                 return $"{name} {Strings.VersionButtonUninstalled}";

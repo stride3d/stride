@@ -21,13 +21,15 @@
           <BoxShadows x:Key="CardShadow">0 1 2 #17000000</BoxShadows>
           <SolidColorBrush x:Key="ChromeWhiteBrush" Color="{StaticResource SystemChromeWhiteColor}" />
           <SolidColorBrush x:Key="NeutralBackgroundBrush" Color="#80FFFFFF" />
-          <!-- Badges of the version rows: nightly builds (amber), local builds (blue), betas (violet) -->
+          <!-- Badges of the version rows: nightly builds (amber), local builds (blue), betas (violet), custom builds (teal) -->
           <SolidColorBrush x:Key="NightlyBadgeBackgroundBrush" Color="#2EE08A00" />
           <SolidColorBrush x:Key="NightlyBadgeForegroundBrush" Color="#9A5B00" />
           <SolidColorBrush x:Key="LocalBadgeBackgroundBrush" Color="#263A8EE6" />
           <SolidColorBrush x:Key="LocalBadgeForegroundBrush" Color="#1F5FA8" />
           <SolidColorBrush x:Key="BetaBadgeBackgroundBrush" Color="#268A5CD6" />
           <SolidColorBrush x:Key="BetaBadgeForegroundBrush" Color="#5E35A8" />
+          <SolidColorBrush x:Key="TagBadgeBackgroundBrush" Color="#2614A3A3" />
+          <SolidColorBrush x:Key="TagBadgeForegroundBrush" Color="#0E6B6B" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
           <SolidColorBrush x:Key="AccentBrush" Color="{DynamicResource SystemAccentColor}" />
@@ -41,6 +43,8 @@
           <SolidColorBrush x:Key="LocalBadgeForegroundBrush" Color="#8AB8F0" />
           <SolidColorBrush x:Key="BetaBadgeBackgroundBrush" Color="#409B6BE6" />
           <SolidColorBrush x:Key="BetaBadgeForegroundBrush" Color="#C3A6F2" />
+          <SolidColorBrush x:Key="TagBadgeBackgroundBrush" Color="#4022B8B8" />
+          <SolidColorBrush x:Key="TagBadgeForegroundBrush" Color="#7FDCDC" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
       <!-- The badge of the version on the Start and Install buttons, as on its row in the list -->
@@ -57,6 +61,11 @@
           <Border Padding="5,1" CornerRadius="3" Background="{DynamicResource BetaBadgeBackgroundBrush}" IsVisible="{Binding IsBeta}">
             <TextBlock Text="{x:Static l:Strings.BadgeBeta}" FontSize="10" FontWeight="SemiBold"
                        Foreground="{DynamicResource BetaBadgeForegroundBrush}" />
+          </Border>
+          <Border Padding="5,1" CornerRadius="3" Background="{DynamicResource TagBadgeBackgroundBrush}"
+                  IsVisible="{Binding Tag, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <TextBlock Text="{Binding Tag}" FontSize="10" FontWeight="SemiBold"
+                       Foreground="{DynamicResource TagBadgeForegroundBrush}" />
           </Border>
         </Panel>
       </DataTemplate>
@@ -105,7 +114,7 @@
   </Application.Styles>
 
   <Application.DataTemplates>
-    <!-- The text of the Start and Install buttons: the version in the middle, a nightly's date on a second line, and on the
+    <!-- The text of the Start and Install buttons: the version in the middle, the date of a dated build on a second line, and on the
          right the badge of its row in the list. An invisible copy of the badge on the left keeps the version centered; the
          text shrinks only when it doesn't fit -->
     <DataTemplate DataType="vm:VersionCaption">
@@ -113,16 +122,16 @@
         <ContentControl Content="{Binding}" ContentTemplate="{StaticResource VersionCaptionBadge}" Opacity="0" />
         <Viewbox Grid.Column="1" HorizontalAlignment="Center" StretchDirection="DownOnly">
           <StackPanel>
-            <TextBlock HorizontalAlignment="Center" Text="{Binding Text}" Classes.nightly="{Binding IsNightly}">
+            <TextBlock HorizontalAlignment="Center" Text="{Binding Text}" Classes.dated="{Binding IsDated}">
               <TextBlock.Styles>
-                <Style Selector="TextBlock.nightly">
+                <Style Selector="TextBlock.dated">
                   <Setter Property="FontSize" Value="20" />
                   <Setter Property="LineHeight" Value="21" />
                 </Style>
               </TextBlock.Styles>
             </TextBlock>
             <TextBlock HorizontalAlignment="Center" FontSize="12" LineHeight="14" Opacity="0.85"
-                       Text="{Binding NightlyDateText}" IsVisible="{Binding IsNightly}" />
+                       Text="{Binding BuildDateText}" IsVisible="{Binding IsDated}" />
           </StackPanel>
         </Viewbox>
         <ContentControl Grid.Column="2" Content="{Binding}" ContentTemplate="{StaticResource VersionCaptionBadge}" />
