@@ -155,7 +155,10 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
     {
         EnsureNotDestroyed(nameof(BuildAndRunViewModel));
         CancelBuild();
-        cancellation.Dispose();
+        // A build still running reads the token of its cancellation (while the session saves, it has not started yet): it
+        // disposes it when it ends
+        if (!BuildInProgress)
+            cancellation.Dispose();
         Session = null;
         BuildLog.Messages.CollectionChanged -= BuildLogChanged;
         BuildLog.Destroy();
@@ -282,6 +285,8 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
         {
             currentBuild = null;
             BuildInProgress = false;
+            if (IsDestroyed)
+                cancellation.Dispose();
         }
     }
 
@@ -343,6 +348,9 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
             await Dialogs.MessageBoxAsync(Tr._p("Message", "To build, save the project first."), MessageBoxButton.OK, MessageBoxImage.Information);
             return false;
         }
+        // Closed while the session saved: the build does not start
+        if (IsDestroyed)
+            return false;
 
         ShowNewBuildLog();
         return true;

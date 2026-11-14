@@ -95,6 +95,25 @@ public sealed class BuildAndRunViewModelTests
         Assert.Empty(fixture.Dialogs.Messages);
     }
 
+    [Fact]
+    public async Task ABuildWhoseViewModelIsDestroyedWhileTheSessionSavesDoesNotStart()
+    {
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type, ("Textures/Wood", "wood"));
+        var (builder, launcher) = RegisterFakes(fixture);
+        var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider) { Session = fixture.Session };
+        Edit(fixture, fixture.Session.AllAssets.Single(), "oak");
+
+        // The session closes while the build saves it
+        var building = buildAndRun.BuildAsync(true);
+        Assert.False(building.IsCompleted);
+        buildAndRun.Destroy();
+
+        Assert.Equal(GameBuildOutcome.NotBuilt, await building);
+        Assert.Empty(builder.Requests);
+        Assert.Empty(launcher.Games);
+        Assert.False(buildAndRun.BuildInProgress);
+    }
+
     [Theory]
     [InlineData(PlatformType.Windows, "AnyCPU", "Any CPU")]
     [InlineData(PlatformType.Linux, "Linux", "Linux")]
