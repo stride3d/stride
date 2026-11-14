@@ -61,7 +61,11 @@ namespace Stride.Video
         private static MediaCodecList ListSupportedMediaCodecs = new MediaCodecList(MediaCodecListKind.RegularCodecs);
 
         private readonly ConcurrentQueue<SchedulerAsyncCommand> commands = new ConcurrentQueue<SchedulerAsyncCommand>();
-        
+
+        // Orders a seek request against the output step of the worker: no frame is rendered for
+        // the previous seek's target once a new seek is requested.
+        private readonly object seekLock = new object();
+
         private Surface decoderOutputSurface = null;  //The surface on which the codec will extract the video
 
         private SchedulerAsyncCommandEnum currentState;
@@ -163,8 +167,11 @@ namespace Stride.Video
 
         public void Seek(TimeSpan seekTime)
         {
-            isSeekRequestCompleted = false;
-            commands.Enqueue(new SchedulerAsyncCommand(SchedulerAsyncCommandEnum.SeekAndSyncUp, seekTime));
+            lock (seekLock)
+            {
+                isSeekRequestCompleted = false;
+                commands.Enqueue(new SchedulerAsyncCommand(SchedulerAsyncCommandEnum.SeekAndSyncUp, seekTime));
+            }
         }
         public bool SeekRequestCompleted()
         {
@@ -342,54 +349,77 @@ namespace Stride.Video
 
                 //=================================================================================================
                 // Process the output buffers
-                if (ShouldProcessDequeueOutput(ref waitTime))
+                bool decoderBusy;
+                lock (seekLock)
                 {
-                    int indexOutput = MediaDecoder.DequeueOutputBuffer(bufferInfo, 0);
-                    switch (indexOutput)
+                    // A seek requested since the commands were processed is handled first: the
+                    // output still queued belongs to the previous seek and would be rendered
+                    // against its target.
+                    if (!commands.IsEmpty)
                     {
-                        case (int)MediaCodecInfoState.TryAgainLater: // decoder not ready yet (haven't processed input yet)
-                        case (int)MediaCodecInfoState.OutputBuffersChanged: //deprecated: we just ignore it
-                            // Yield to the decoder thread. Without this, the worker busy-spins
-                            // on dequeueOutputBuffer(0) and starves the decoder of CPU when both
-                            // run at the same priority (single-core CI emulators).
-                            Thread.Sleep(0);
-                            break;
-
-                        case (int)MediaCodecInfoState.OutputFormatChanged:
-                            Logger.Verbose("decoder output format changed: " + MediaDecoder.OutputFormat.ToString());
-                            break;
-
-                        default: // the index of the output buffer
-
-                            if (indexOutput < 0)
-                            {
-                                Logger.Warning("unexpected index from decoder.dequeueOutputBuffer: " + indexOutput);
-                                isEOF = true;
-                                break;
-                            }
-
-                            if ((bufferInfo.Flags & MediaCodecBufferFlags.EndOfStream) != 0)
-                            {
-                                isEOF = true;
-                                MediaDecoder.ReleaseOutputBuffer(indexOutput, false);
-                                break;
-                            }
-
-                            MediaCurrentTime = TimeSpanExtensions.FromMicroSeconds(bufferInfo.PresentationTimeUs);
-
-                            ProcessOutputBuffer(bufferInfo, indexOutput);
-
-                            break;
+                        waitTime = TimeSpan.Zero;
+                        decoderBusy = false;
+                    }
+                    else
+                    {
+                        decoderBusy = ProcessDequeueOutput(bufferInfo, ref waitTime);
                     }
                 }
-                
+
+                if (decoderBusy)
+                {
+                    // Yield to the decoder thread. Without this, the worker busy-spins
+                    // on dequeueOutputBuffer(0) and starves the decoder of CPU when both
+                    // run at the same priority (single-core CI emulators).
+                    Thread.Sleep(0);
+                }
+
                 if (waitTime > TimeSpan.Zero)
                 {
                     // sleep required time to avoid active looping
                     // Note: do not sleep more than 'waitDefaultTime' to continue processing play commands
-                    Thread.Sleep(TimeSpanExtensions.Min(waitDefaultTime, waitTime)); 
+                    Thread.Sleep(TimeSpanExtensions.Min(waitDefaultTime, waitTime));
                 }
             }
+        }
+
+        // Dequeues one output buffer of the decoder, if any is due; returns true when the decoder had none ready.
+        private bool ProcessDequeueOutput(MediaCodec.BufferInfo bufferInfo, ref TimeSpan waitTime)
+        {
+            if (!ShouldProcessDequeueOutput(ref waitTime))
+                return false;
+
+            int indexOutput = MediaDecoder.DequeueOutputBuffer(bufferInfo, 0);
+            switch (indexOutput)
+            {
+                case (int)MediaCodecInfoState.TryAgainLater: // decoder not ready yet (haven't processed input yet)
+                case (int)MediaCodecInfoState.OutputBuffersChanged: //deprecated: we just ignore it
+                    return true;
+
+                case (int)MediaCodecInfoState.OutputFormatChanged:
+                    Logger.Verbose("decoder output format changed: " + MediaDecoder.OutputFormat.ToString());
+                    return false;
+            }
+
+            // the index of the output buffer
+            if (indexOutput < 0)
+            {
+                Logger.Warning("unexpected index from decoder.dequeueOutputBuffer: " + indexOutput);
+                isEOF = true;
+                return false;
+            }
+
+            if ((bufferInfo.Flags & MediaCodecBufferFlags.EndOfStream) != 0)
+            {
+                isEOF = true;
+                MediaDecoder.ReleaseOutputBuffer(indexOutput, false);
+                return false;
+            }
+
+            MediaCurrentTime = TimeSpanExtensions.FromMicroSeconds(bufferInfo.PresentationTimeUs);
+
+            ProcessOutputBuffer(bufferInfo, indexOutput);
+            return false;
         }
 
         protected abstract bool ShouldProcessDequeueOutput(ref TimeSpan waitTime);
