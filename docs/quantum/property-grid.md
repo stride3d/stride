@@ -52,7 +52,7 @@ When a property grid opens for an asset, `AssetNodePresenterFactory` runs the fo
 
 The tree is rebuilt whenever a node's value changes (so `UpdateNode` is called again for affected nodes, and `FinalizeTree` is called again for the whole tree).
 
-**Updater registration:** Updaters are NOT auto-discovered. You must register your updater explicitly in the plugin class for your assembly. For engine assets, register in `StrideEditorPlugin` (`sources/editor/Stride.Assets.Editor/StrideEditorPlugin.cs`) and, while the WPF editor lives, in `StrideDefaultAssetsWpfPlugin` (`sources/editor/Stride.Assets.Editor.Wpf/StrideDefaultAssetsWpfPlugin.cs`), in their `InitializeSession`:
+**Updater registration:** Updaters are NOT auto-discovered. You must register your updater explicitly in the plugin class for your assembly. For engine assets, register in `StrideNodePresenters.Register` (`sources/editor/Stride.Assets.Editor/Quantum/NodePresenters/StrideNodePresenters.cs`): both editors' default plugins call it, so the updater runs in both. An updater for one editor only goes in its plugin's `InitializeSession`, after that call (for the WPF editor, `StrideDefaultAssetsWpfPlugin`). A plugin of your own registers its updaters in its `InitializeSession`:
 
 ```csharp
 // In the plugin's InitializeSession(ISessionPluginContext context):
