@@ -42,9 +42,9 @@
 
   <!-- Is this project's stub fresh? It is stale, and _StrideAdoptDevStub below refreshes it right after Build,
        when:
-         - its own csproj or packed build/ assets changed since the stubs were generated (content hashes in the
-           .inputs manifest; the mtime is only a prefilter, so a touch, checkout or rebase that leaves the content
-           unchanged changes nothing), or
+         - its own csproj or packed build/ assets changed since its stub was generated (content hashes in the
+           .inputs manifest; the mtime, compared with the stub's, is only a prefilter, so a touch, checkout or
+           rebase that leaves the content unchanged changes nothing), or
          - its stub is missing, or was generated with other fixed inputs: the .stubs file records, per stub, the
            fingerprint of the script, the central package versions and the solution it was made with. Every stub
            depends on those, so each project judges its own instead of a shared verdict the first refresh would
@@ -71,16 +71,12 @@
 
     <StrideCheckDevPackageInputs ManifestPath="$(_StrideDevPackagesStamp).inputs" StampPath="$(_StrideDevPackagesStamp)"
                                  StubsPath="$(_StrideDevPackagesStamp).stubs" OwnStub="$(_StrideOwnStub)"
+                                 ProjectDirectory="$(_StrideProjectDirSlash)"
                                  FixedInputs="$(StrideRoot)build/redirect-packages.cs;$(StrideRoot)sources/Directory.Packages.props;$(StrideRoot)Stride.slnx"
                                  Condition="Exists('$(_StrideDevPackagesStamp)')">
-      <Output TaskParameter="Changed" ItemName="_StrideStaleStubInputs" />
+      <Output TaskParameter="Changed" ItemName="_StrideStaleOwnInputs" />
       <Output TaskParameter="OwnStubFresh" PropertyName="_StrideOwnStubFresh" />
     </StrideCheckDevPackageInputs>
-    <ItemGroup>
-      <!-- Case-insensitive: the manifest may carry a lowercase drive letter (paths pass through MSBuild properties). -->
-      <_StrideStaleOwnInputs Include="@(_StrideStaleStubInputs)"
-                             Condition="$([System.String]::Copy('%(_StrideStaleStubInputs.FullPath)').ToUpperInvariant().StartsWith($([System.String]::Copy('$(_StrideProjectDirSlash)').ToUpperInvariant())))" />
-    </ItemGroup>
     <PropertyGroup>
       <_StrideStubStale Condition="'@(_StrideStaleOwnInputs)' != '' Or '$(_StrideOwnStubFresh)' != 'true'">true</_StrideStubStale>
     </PropertyGroup>

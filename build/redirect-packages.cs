@@ -336,8 +336,9 @@ foreach (var tplPath in freshPackages.Where(p => Path.GetFileName(p).StartsWith(
 // versions, the solution) it was generated with; a project's build compares its own stub's with the current one.
 // Inputs: the scanned csprojs and each project's build/ & buildTransitive/ *.targets|props (packed into the
 // nupkg). One line per file, "<sha256>\t<path>": the build check uses the file mtime only as a fast prefilter
-// and confirms a newer file by content hash, so a touch, a checkout or a rebase that leaves the content
-// unchanged changes nothing. Line endings are normalized before hashing (autocrlf must not count as a change).
+// (against the project's own stub) and confirms a newer file by content hash, so a touch, a checkout or a
+// rebase that leaves the content unchanged changes nothing. Line endings are normalized before hashing (autocrlf
+// must not count as a change).
 // A full run rewrites all three from scratch. An adopt adds or replaces its own lines, under a process-wide
 // mutex: several projects of one build may adopt at the same time. ---
 var binPackagesDir = Path.Combine(strideRoot, "bin", "packages");
