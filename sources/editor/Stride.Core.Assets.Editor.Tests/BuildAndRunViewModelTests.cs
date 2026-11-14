@@ -389,6 +389,36 @@ public sealed class BuildAndRunViewModelTests
     }
 
     [Fact]
+    public async Task WhileBuildsAreHeldOnlyTheBuildsOfTheGameCodeRun()
+    {
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);
+        var (builder, _) = RegisterFakes(fixture);
+        var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider) { Session = fixture.Session };
+        var project = Path.Combine(Path.GetTempPath(), "Game", "Game.csproj");
+
+        var hold = buildAndRun.HoldBuilds();
+        Assert.True(buildAndRun.BuildsHeld);
+        Assert.False(buildAndRun.BuildProjectCommand.IsEnabled);
+        Assert.False(buildAndRun.StartProjectCommand.IsEnabled);
+        Assert.Equal(GameBuildOutcome.NotBuilt, await buildAndRun.BuildAsync(true));
+        Assert.Empty(builder.Requests);
+
+        // A reload builds its projects one after the other
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildCodeAsync([project]));
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildCodeAsync([project]));
+        Assert.Equal(2, builder.Requests.Count);
+        Assert.False(buildAndRun.BuildProjectCommand.IsEnabled);
+
+        hold.Dispose();
+        hold.Dispose();
+        Assert.False(buildAndRun.BuildsHeld);
+        Assert.True(buildAndRun.BuildProjectCommand.IsEnabled);
+        Assert.True(buildAndRun.StartProjectCommand.IsEnabled);
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(false));
+        Assert.Equal(3, builder.Requests.Count);
+    }
+
+    [Fact]
     public async Task StartBuildsThenStartsTheGameAndReportsItsExit()
     {
         await using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);

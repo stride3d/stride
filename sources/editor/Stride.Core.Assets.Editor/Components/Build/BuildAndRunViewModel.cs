@@ -4,6 +4,7 @@
 using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
+using Stride.Core;
 using Stride.Core.Assets.Editor.Components.Status;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Diagnostics;
@@ -44,6 +45,7 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
     // Canceled by Cancel build: before the build starts (while the session saves), it does not start at all
     private CancellationTokenSource cancellation = new();
     private bool buildInProgress;
+    private int buildHolds;
     private bool isOutputVisible;
     private string outputTitle;
 
@@ -91,6 +93,37 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
     {
         get => buildInProgress;
         private set => SetValue(ref buildInProgress, value, UpdateCommands);
+    }
+
+    /// <summary>
+    /// Whether Build project and Start project are held off (<see cref="HoldBuilds"/>).
+    /// </summary>
+    internal bool BuildsHeld => buildHolds > 0;
+
+    /// <summary>
+    /// Keeps Build project and Start project from starting until the returned object is disposed, while the editor reloads its
+    /// game code one project after the other: the builds of <see cref="BuildCodeAssembliesAsync"/> still run, and no other build
+    /// starts between two of them.
+    /// </summary>
+    internal IDisposable HoldBuilds()
+    {
+        ++buildHolds;
+        OnHoldChanged();
+        var released = false;
+        return new AnonymousDisposable(() =>
+        {
+            if (released)
+                return;
+            released = true;
+            --buildHolds;
+            OnHoldChanged();
+        });
+
+        void OnHoldChanged()
+        {
+            UpdateCommands();
+            OnPropertyChanged(nameof(BuildsHeld));
+        }
     }
 
     /// <summary>
@@ -181,7 +214,7 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
     /// <returns>How the build went, and the game started on this machine if any.</returns>
     internal async Task<GameRunResult> RunAsync(bool startProject, Func<ProjectViewModel, ILogger, CancellationToken, Task<bool>>? start = null)
     {
-        if (BuildInProgress || session is not { } buildSession)
+        if (BuildInProgress || BuildsHeld || session is not { } buildSession)
             return new GameRunResult(GameBuildOutcome.NotBuilt, null);
 
         IGameProcess? game = null;
@@ -599,8 +632,8 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
 
     private void UpdateCommands()
     {
-        BuildProjectCommand.IsEnabled = session is not null && !BuildInProgress;
-        StartProjectCommand.IsEnabled = session?.CurrentProject is not null && !BuildInProgress;
+        BuildProjectCommand.IsEnabled = session is not null && !BuildInProgress && !BuildsHeld;
+        StartProjectCommand.IsEnabled = session?.CurrentProject is not null && !BuildInProgress && !BuildsHeld;
         CancelBuildCommand.IsEnabled = BuildInProgress;
     }
 }
