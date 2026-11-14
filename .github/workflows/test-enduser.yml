@@ -161,20 +161,6 @@ jobs:
           EOF
           dotnet nuget add source "${{ github.workspace }}/bin/packages" --name stride-local --configfile "$HOME/.nuget/NuGet/NuGet.Config"
 
-      # Stride.Games.AutoTesting must be built explicitly so its auto-pack-deploy lands the .nupkg
-      # in bin/packages — the sample projects consume it via <PackageReference>, not via the
-      # ProjectReference graph the test project would otherwise transitively pull. The engine
-      # is built with StrideGraphicsApis pinned to the matrix entry so the resulting nupkg only
-      # contains binaries for that API; the regenerated samples then link against those.
-      - name: Build harness assembly (packs Stride.Games.AutoTesting into bin/packages)
-        run: |
-          dotnet build sources/engine/Stride.Games.AutoTesting/Stride.Games.AutoTesting.csproj \
-            -nr:false -v:m -p:WarningLevel=0 \
-            -p:Configuration=${{ inputs.build-type || 'Debug' }} \
-            -p:StridePlatforms=${{ matrix.platform }} \
-            -p:StrideGraphicsApi=${{ matrix.graphics-api }} \
-            -p:StrideGraphicsApis=${{ matrix.graphics-api }}
-
       # No GPU on the runner: the samples' Vulkan path gets Lavapipe, and the debug-mode samples the validation layers
       - name: Set up Vulkan (Windows / Vulkan)
         if: runner.os == 'Windows' && matrix.graphics-api == 'Vulkan'
@@ -184,9 +170,11 @@ jobs:
         if: runner.os == 'Linux' && matrix.graphics-api == 'Vulkan'
         uses: ./.github/actions/setup-lavapipe-linux
 
-      # Builds the test project plus its transitive ProjectReferences. StrideGraphicsApi (singular)
-      # selects the test SDK output path; StrideGraphicsApis (plural) keeps the engine deps aligned
-      # with the harness build above.
+      # Builds the test project plus its transitive ProjectReferences, which pack into bin/packages what the
+      # regenerated samples PackageReference: the engine, the asset compiler, the plugins, the templates and
+      # the Stride.Games.AutoTesting harness. StrideGraphicsApis (plural) pins the engine to the matrix entry,
+      # so the nupkgs only contain binaries for that API; StrideGraphicsApi (singular) selects the test SDK
+      # output path.
       - name: Build test project
         run: |
           dotnet build tests/enduser/Stride.Samples.Tests/Stride.Samples.Tests.csproj \
