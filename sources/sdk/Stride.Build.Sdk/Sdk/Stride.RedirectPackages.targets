@@ -93,7 +93,9 @@
        generator's adopt mode takes the nupkg: strip, inject the redirect, deploy, update the stamp and manifest.
        The repo's own build never consumes the stubs (in-tree projects use ProjectReferences), so this only keeps
        the feed fresh for out-of-tree consumers. Outer build only for multi-targeting projects (Pack's own gate),
-       which is why the check is a dependency here too (CoreCompile only runs in the inner builds). -->
+       which is why the check is a dependency here too (CoreCompile only runs in the inner builds). A project built
+       only as a reference never gets its outer build: _StrideRefreshReferenceStubs below gives it one when its stub
+       is stale. -->
   <Target Name="_StrideAdoptDevStub"
           AfterTargets="Build"
           DependsOnTargets="_StrideCheckDevPackages"
@@ -115,6 +117,48 @@
     <Exec Command="dotnet run --file &quot;$(StrideRoot)build/redirect-packages.cs&quot; -- --stride-root &quot;$(StrideRoot.TrimEnd('\').TrimEnd('/'))&quot; --configuration $(Configuration) --adopt &quot;$(_StrideAdoptPackDir)$(_StrideOwnStub)&quot;"
           WorkingDirectory="$(StrideRoot)" StandardOutputImportance="normal" StandardErrorImportance="high"
           Condition="'$(_StrideStubStale)' == 'true'" />
+  </Target>
+
+  <!-- A multi-targeting project built as another's reference (dotnet build of one project) gets only the inner builds
+       its referencer needs, never the outer build that refreshes its stub. So after its own build, a project asks
+       each multi-targeting reference whether its stub is stale and, if it is, gives it its outer build: that builds the
+       frameworks and graphics APIs the referencer didn't need (Pack needs them all) and refreshes the stub.
+       The question goes to the reference build's own inner instance (the properties of the reference call in
+       ResolveProjectReferences), which checked its stub already, so it costs nothing to answer. The outer build is
+       reached as _StrideTriggerPackOnInnerBuild (Sdk.targets) reaches it, which is the instance a solution build
+       builds: there it has its outer build anyway, and nothing is built twice. Visual Studio builds each project
+       itself, outer build included. -->
+  <Target Name="_StrideRefreshReferenceStubs"
+          AfterTargets="Build"
+          Condition="'$(StrideRedirectPackages)' == 'true' And '$(StrideDevPackagesGenerating)' != 'true' And '$(DesignTimeBuild)' != 'true' And '$(BuildingInsideVisualStudio)' != 'true' And '$(BuildProjectReferences)' != 'false'">
+    <ItemGroup>
+      <_StrideMultiTargetReference Include="@(_MSBuildProjectReferenceExistent->'%(FullPath)')"
+                                   Condition="'%(_MSBuildProjectReferenceExistent.BuildReference)' == 'true' And '%(_MSBuildProjectReferenceExistent.SetTargetFramework)' != ''" />
+    </ItemGroup>
+    <MSBuild Projects="@(_StrideMultiTargetReference)" Targets="_StrideStaleStubOfReference" BuildInParallel="$(BuildInParallel)"
+             Properties="%(_StrideMultiTargetReference.SetConfiguration); %(_StrideMultiTargetReference.SetPlatform);  %(_StrideMultiTargetReference.SetTargetFramework)"
+             RemoveProperties="%(_StrideMultiTargetReference.GlobalPropertiesToRemove)$(_GlobalPropertiesToRemoveFromProjectReferences)"
+             SkipNonexistentTargets="true"
+             Condition="'@(_StrideMultiTargetReference)' != ''">
+      <Output TaskParameter="TargetOutputs" ItemName="_StrideStaleStubReferencePath" />
+    </MSBuild>
+    <ItemGroup>
+      <_StrideFreshStubReference Include="@(_StrideMultiTargetReference)" Exclude="@(_StrideStaleStubReferencePath)" />
+      <_StrideStaleStubReference Include="@(_StrideMultiTargetReference)" Exclude="@(_StrideFreshStubReference)" />
+    </ItemGroup>
+    <MSBuild Projects="@(_StrideStaleStubReference)" BuildInParallel="$(BuildInParallel)"
+             RemoveProperties="%(_StrideStaleStubReference.GlobalPropertiesToRemove);TargetFramework;StrideGraphicsApi$(_GlobalPropertiesToRemoveFromProjectReferences)"
+             Condition="'@(_StrideStaleStubReference)' != ''" />
+  </Target>
+
+  <!-- Asked of a reference's inner build by _StrideRefreshReferenceStubs: the project, if its stub is stale. -->
+  <Target Name="_StrideStaleStubOfReference"
+          DependsOnTargets="_StrideCheckDevPackages"
+          Returns="@(_StrideStaleStubProject)"
+          Condition="'$(_StrideDevStubProject)' == 'true' And '$(TargetFramework)' != ''">
+    <ItemGroup Condition="'$(_StrideStubStale)' == 'true'">
+      <_StrideStaleStubProject Include="$(MSBuildProjectFullPath)" />
+    </ItemGroup>
   </Target>
 
   <!-- Cleanup: if flag is off but stamp exists, wipe dev packages so real packing resumes.
