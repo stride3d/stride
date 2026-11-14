@@ -243,8 +243,8 @@ public sealed class BuildAndRunViewModelTests
         var messages = Messages(buildAndRun);
         Assert.Contains("The device refused the game.", messages);
         Assert.DoesNotContain($"Deployment of {ProjectName} successful.", messages);
-        // The build itself succeeded
-        Assert.Equal("Build successful", status.CurrentStatus);
+        // The build itself succeeded, the game did not start
+        Assert.Equal("Build successful, but the game did not start", status.CurrentStatus);
 
         // A deploy step that throws
         deployer.Deploy = true;
@@ -451,7 +451,7 @@ public sealed class BuildAndRunViewModelTests
         Assert.Single(builder.Requests);
         Assert.Empty(launcher.Games);
         Assert.Contains($"{ProjectName} is a {OtherPlatform} game: this editor can only start the games of its own platform ({Platform.Type}).", Messages(buildAndRun));
-        Assert.Equal("Build successful", status.CurrentStatus);
+        Assert.Equal("Build successful, but the game did not start", status.CurrentStatus);
     }
 
     [Fact]
