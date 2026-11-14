@@ -21,6 +21,10 @@ on:
         description: 'Rerun the filtered GPU test set up to N times, stop on first failure (flake hunting). 1 = single run (default).'
         type: number
         default: 1
+      test-parallelism:
+        description: 'Test assemblies run at a time (dotnet test -m). 0 = one per core.'
+        type: number
+        default: 2
       projects:
         description: 'Test .csproj paths to build/test, separated by ; (blank = detected automatically using test-filter, or all)'
         type: string
@@ -202,6 +206,10 @@ jobs:
           else FILTER="$EXCLUDE"; fi
           FILTER_ARG=()
           if [ -n "$FILTER" ]; then FILTER_ARG=(--filter "$FILTER"); fi
+          PARALLEL_ARG=()
+          # Two at a time: the GPU tests and the effect compiler already keep the 3 cores busy, more assemblies only slow each other down
+          PARALLELISM="${{ github.event.inputs.test-parallelism || '2' }}"
+          if [ "$PARALLELISM" -gt 0 ]; then PARALLEL_ARG=("-m:$PARALLELISM"); fi
           REPEAT="${{ github.event.inputs.repeat || inputs.repeat || '1' }}"
           for i in $(seq 1 "$REPEAT"); do
             echo "=== Test run $i / $REPEAT ==="
@@ -211,7 +219,7 @@ jobs:
               --blame-hang-timeout 5m --blame-hang-dump-type full \
               -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} \
               -p:StrideGraphicsApis=Vulkan \
-              "${FILTER_ARG[@]}" \
+              "${FILTER_ARG[@]}" "${PARALLEL_ARG[@]}" \
               -- RunConfiguration.MaxCpuCount=1 || { ec=$?; echo "Run $i failed (exit $ec); stopping."; exit $ec; }
           done
       - name: Test .app-hosted suites
