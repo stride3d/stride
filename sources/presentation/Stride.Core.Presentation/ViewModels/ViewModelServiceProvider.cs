@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using IServiceProviderIsService = Microsoft.Extensions.DependencyInjection.IServiceProviderIsService;
 
 namespace Stride.Core.Presentation.ViewModels;
@@ -118,6 +119,7 @@ public sealed class ViewModelServiceProvider : IViewModelServiceProvider, IServi
     }
 
     /// <inheritdoc/>
+    [Experimental("STREXP006")]
     public IDisposable Register<TService>(Func<IServiceProvider, TService> factory, ViewModelServiceLifetime lifetime = ViewModelServiceLifetime.Singleton)
         where TService : class
     {

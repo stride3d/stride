@@ -3,6 +3,7 @@
 
 using System.ComponentModel;
 using System.Collections.Specialized;
+using System.Diagnostics.CodeAnalysis;
 using Stride.Core.Assets.Editor.Components.Status;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Diagnostics;
@@ -142,6 +143,7 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
     /// </summary>
     /// <param name="platform">The platform of the games.</param>
     /// <param name="deployer">The deploy step; it replaces the one registered before for this platform.</param>
+    [Experimental("STREXP008")]
     public void RegisterDeployer(PlatformType platform, IGameDeployer deployer)
     {
         ArgumentNullException.ThrowIfNull(deployer);

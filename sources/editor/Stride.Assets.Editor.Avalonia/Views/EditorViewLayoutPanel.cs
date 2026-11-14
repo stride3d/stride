@@ -3,6 +3,7 @@
 
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
@@ -21,6 +22,7 @@ namespace Stride.Assets.Editor.Avalonia.Views;
 /// <see cref="Layout"/>, with a header to change its camera, and splitters between them. Without a layout, it shows the
 /// primary view alone.
 /// </summary>
+[Experimental("STREXP009")]
 public sealed class EditorViewLayoutPanel : Grid
 {
     /// <summary>

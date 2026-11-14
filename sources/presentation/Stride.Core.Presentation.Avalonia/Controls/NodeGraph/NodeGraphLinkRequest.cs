@@ -1,11 +1,14 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace Stride.Core.Presentation.Avalonia.Controls;
 
 /// <summary>
 /// The parameter of the <see cref="NodeGraphControl.LinkCommand"/>: the user dragged a link from an output slot to an input slot.
 /// </summary>
+[Experimental("STREXP010")]
 public sealed class NodeGraphLinkRequest
 {
     /// <summary>

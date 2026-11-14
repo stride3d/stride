@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using Avalonia;
 using Avalonia.Controls;
 
@@ -13,6 +14,7 @@ namespace Stride.Core.Presentation.Avalonia.Controls;
 /// <remarks>
 /// Pseudo-class: <c>:selected</c> while the node is in the graph's <see cref="NodeGraphControl.SelectedNodes"/>.
 /// </remarks>
+[Experimental("STREXP010")]
 public sealed class NodeGraphNode : ContentControl
 {
     /// <summary>

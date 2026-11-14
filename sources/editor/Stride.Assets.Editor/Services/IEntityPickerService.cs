@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using Stride.Assets.Editor.ViewModels;
 using Stride.Assets.Presentation.ViewModels;
 
@@ -15,6 +16,7 @@ namespace Stride.Assets.Editor.Services;
 /// and <see cref="Quantum.NodePresenters.Commands.PickupEntityComponentCommand"/>) look it up in the session's services, and
 /// pick nothing in an editor that has none.
 /// </remarks>
+[Experimental("STREXP007")]
 public interface IEntityPickerService
 {
     /// <summary>

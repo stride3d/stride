@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using Stride.Graphics;
 
 namespace Stride.Assets.Editor.Services;
@@ -13,6 +14,7 @@ namespace Stride.Assets.Editor.Services;
 /// The WPF Game Studio registers one when it is started with <c>/RenderDoc</c> (a RenderDoc capture). The Avalonia editor
 /// registers none, and these steps then capture nothing.
 /// </remarks>
+[Experimental("STREXP007")]
 public interface IGraphicsFrameCaptureService
 {
     /// <summary>
