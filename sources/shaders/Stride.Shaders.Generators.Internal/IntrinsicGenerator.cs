@@ -152,7 +152,7 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
 
     static string GenerateArguments(List<IntrinsicParameter> parameters, bool optional = false, int startIndex = 0)
     {
-        return string.Concat(parameters.Where(p => p.Name.Name != "...").Select((p, i) => $", {(optional ? $"{p.Name.Name}:" : "")}new SpirvValue(compiledParams[{startIndex + i}], context.GetOrRegister(functionType.ParameterTypes[{startIndex + i}].Type))"));
+        return string.Concat(parameters.Where(p => p.Name.Name != "...").Select((p, i) => $", {(optional ? $"{p.Name.Name}: " : "")}Arg(context, functionType, compiledParams, {startIndex + i})"));
     }
 
     static string CapitalizeFirstLetter(string s) => char.ToUpper(s[0]) + s[1..];
@@ -272,17 +272,22 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
                 builder.AppendLine($"public virtual SpirvValue Compile{CapitalizeFirstLetter(intrinsicGroup.Key)}(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType{thisParam}{GenerateParameters(mandatoryParameters)}{GenerateParameters(optionalParameters, true)}, TextLocation location = default) => throw new NotImplementedException();");
             }
 
+            builder.AppendLine("static SpirvValue Arg(SpirvContext context, FunctionType functionType, Span<int> compiledParams, int index) => new(compiledParams[index], context.GetOrRegister(functionType.ParameterTypes[index].Type));");
+            builder.AppendLine("static SpirvValue IntrinsicNotFound(string name) => throw new InvalidOperationException($\"Intrinsic {name} not found\");");
+
             builder.AppendLine("public SpirvValue CompileIntrinsic(SymbolTable table, CompilerUnit compiler, string? @namespace, string name, FunctionType functionType, SpirvValue? thisValue, Span<int> compiledParams, TextLocation location) {");
             builder.AppendLine("var (builder, context) = compiler;");
-            builder.AppendLine("return (@namespace, name, compiledParams.Length) switch {");
+            // The name is the only pattern, the rest goes in when clauses: Roslyn takes seconds to check a switch over (namespace, name, parameter count)
+            // tuple patterns for redundant arms.
+            // Overloads that need the namespace (same name and parameter count, other parameter names) get a switch (name) per namespace,
+            // the others (key: empty string) the switch expression that ends the method.
+            var casesByNamespace = new Dictionary<string, StringBuilder>();
             foreach (var intrinsicGroup in intrinsicGroups)
             {
                 var mandatoryParameters = intrinsicGroup.Value.MandatoryParameters;
-                builder.AppendLine($"// group {intrinsicGroup.Key}");
 
-                // We split by parameter count then parameters to know if we really need to include switch case in namepsace
-                foreach (var intrinsicOverloadsByParamCount in intrinsicGroup.Value.Overloads
-                             .GroupBy(x => x.Declaration.Parameters.Items.Count))
+                // We split by parameter count then parameters to know if we really need to check the namespace
+                foreach (var intrinsicOverloadsByParamCount in intrinsicGroup.Value.Overloads.GroupBy(x => x.Declaration.Parameters.Items.Count))
                 {
                     var intrinsics = intrinsicOverloadsByParamCount.Select(x =>
                     (
@@ -297,31 +302,46 @@ internal class IntrinsicsGenerator : IIncrementalGenerator
 
                     foreach (var intrinsicsByNamespace in intrinsics.GroupBy(x => x.Namespace))
                     {
-                        var @namespace = intrinsicsByNamespace.Key == string.Empty ? "_" : $"\"{intrinsicsByNamespace.Key}\"";
+                        if (!casesByNamespace.TryGetValue(intrinsicsByNamespace.Key, out var cases))
+                            casesByNamespace.Add(intrinsicsByNamespace.Key, cases = new StringBuilder());
+                        var common = intrinsicsByNamespace.Key == string.Empty;
 
                         var intrinsicsBySignatures = intrinsicsByNamespace.GroupBy(y => y.Signature);
                         foreach (var y in intrinsicsBySignatures)
                         {
                             var optionalParameters = y.First().Declaration.Parameters.Items.GetRange(mandatoryParameters.Count, y.First().Declaration.Parameters.Items.Count - mandatoryParameters.Count);
-                            builder.Append($"({@namespace}, \"{intrinsicGroup.Key}\", {y.First().Declaration.Parameters.Items.Count})");
+                            cases.Append(common ? $"\"{intrinsicGroup.Key}\" when " : $"case \"{intrinsicGroup.Key}\" when ");
+                            cases.Append($"compiledParams.Length == {y.First().Declaration.Parameters.Items.Count}");
 
                             // special switch/case (same number of parameters of different type)
                             if (intrinsicGroup.Key == "Barrier")
                             {
-                                builder.Append(" when functionType.ParameterTypes[0].Type is");
+                                cases.Append(" && functionType.ParameterTypes[0].Type is");
                                 if (y.First().Declaration.Parameters.Items[0].Name.Name == "o")
-                                    builder.Append(" not");
-                                builder.Append(" ScalarType");
+                                    cases.Append(" not");
+                                cases.Append(" ScalarType");
                             }
 
-                            builder.AppendLine($" => Compile{CapitalizeFirstLetter(intrinsicGroup.Key)}(table, context, builder, functionType{thisArg}{GenerateArguments(mandatoryParameters)}{GenerateArguments(optionalParameters, true, mandatoryParameters.Count)}, location: location),");
+                            var call = $"Compile{CapitalizeFirstLetter(intrinsicGroup.Key)}(table, context, builder, functionType{thisArg}{GenerateArguments(mandatoryParameters)}{GenerateArguments(optionalParameters, true, mandatoryParameters.Count)}, location: location)";
+                            cases.AppendLine(common ? $" => {call}," : $": return {call};");
                         }
                     }
                 }
             }
 
-            builder.AppendLine("_ => throw new InvalidOperationException($\"Intrinsic {name} not found\"),");
+            foreach (var namespaceCases in casesByNamespace.Where(x => x.Key != string.Empty))
+            {
+                builder.AppendLine($"if (@namespace == \"{namespaceCases.Key}\") {{");
+                builder.AppendLine("switch (name) {");
+                builder.Append(namespaceCases.Value);
+                builder.AppendLine("}");
+                builder.AppendLine("}");
+            }
 
+            builder.AppendLine("return name switch {");
+            if (casesByNamespace.TryGetValue(string.Empty, out var commonCases))
+                builder.Append(commonCases);
+            builder.AppendLine("_ => IntrinsicNotFound(name),");
             builder.AppendLine("};");
             builder.AppendLine("}");
             builder.AppendLine("}");
