@@ -1,0 +1,341 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using BepuPhysics;
+using BepuPhysics.Collidables;
+using BepuPhysics.Trees;
+using BepuUtilities.Memory;
+using Stride.BepuPhysics.Definitions.Colliders.Voxels;
+using Stride.BepuPhysics.Systems;
+using Stride.Core;
+using Stride.Core.Annotations;
+using Stride.Core.Mathematics;
+using Stride.Graphics.GeometricPrimitives;
+using NRigidPose = BepuPhysics.RigidPose;
+using NVector3 = System.Numerics.Vector3;
+
+namespace Stride.BepuPhysics.Definitions.Colliders;
+
+/// <summary>
+/// Collides against a voxel density field, building the shape of each cell from the samples when the narrow phase asks for it.
+/// </summary>
+/// <typeparam name="TSource">How the samples are stored; see <see cref="IVoxelDensitySource"/>.</typeparam>
+/// <remarks>
+/// Derive from it to collide against samples kept in your own layout without copying them; <see cref="VoxelCollider"/> owns a copy of float samples.
+/// A <see cref="MeshCollider"/> collides only with the triangle cell shapes; a voxel collider never collides with another one, nor with a <see cref="HeightfieldCollider"/>.
+/// </remarks>
+[DataContract(Inherited = true)]
+public abstract class VoxelColliderBase<TSource> : ICollider
+    where TSource : unmanaged, IVoxelDensitySource
+{
+    private VoxelCellShape _cellShape = VoxelCellShape.SurfaceNets;
+    private float _cellSize = 1f;
+    private float _isoLevel = 0.5f;
+    private bool _invertWinding;
+    private bool _sealBorder = true;
+    private float _sphereRadiusScale = 1f;
+    private float _mass = 1f;
+
+    private CollidableComponent? _component;
+    CollidableComponent? ICollider.Component { get => _component; set => _component = value; }
+
+    /// <summary>Gets or sets the shape each cell presents to the narrow phase.</summary>
+    /// <exception cref="ArgumentException">The field has more cells than the index space of this shape's children holds.</exception>
+    public VoxelCellShape CellShape
+    {
+        get => _cellShape;
+        set
+        {
+            if (TryGetSource(out var source) && !ChildIndexFits(value, source.SamplesX, source.SamplesY, source.SamplesZ))
+                throw new ArgumentException($"A {source.SamplesX}x{source.SamplesY}x{source.SamplesZ} field has more {value} children than the {int.MaxValue} the index space holds.", nameof(value));
+            Set(ref _cellShape, value);
+        }
+    }
+
+    /// <summary>Gets or sets the edge length of one cell, before the entity's scale.</summary>
+    /// <exception cref="ArgumentOutOfRangeException">The value is not positive and finite.</exception>
+    [DataMemberRange(minimum: MinimumPositive, decimalPlaces: 3)]
+    public float CellSize
+    {
+        get => _cellSize;
+        set
+        {
+            value.ValidateGreaterThanZeroFinite(this);
+            Set(ref _cellSize, value);
+        }
+    }
+
+    /// <summary>Gets or sets the density at or above which a sample is solid.</summary>
+    /// <remarks>Use the value the renderer meshes the same field with, so the collision surface matches the visible one.</remarks>
+    /// <exception cref="ArgumentOutOfRangeException">The value is not finite.</exception>
+    public float IsoLevel
+    {
+        get => _isoLevel;
+        set
+        {
+            if (!float.IsFinite(value))
+                throw new ArgumentOutOfRangeException($"{this}'s {nameof(IsoLevel)} must be finite");
+            Set(ref _isoLevel, value);
+        }
+    }
+
+    /// <summary>Gets or sets whether triangles collide from the solid side instead of the air side.</summary>
+    public bool InvertWinding
+    {
+        get => _invertWinding;
+        set => Set(ref _invertWinding, value);
+    }
+
+    /// <summary>Gets or sets whether the samples on the faces of the grid are read as air, closing the volume.</summary>
+    /// <remarks>
+    /// Turn it off for a chunk whose field continues into a neighbouring chunk, or the chunks are walled off from each other.
+    /// Neighbouring chunks then share a plane of samples, or two with <see cref="VoxelCellShape.SurfaceNets"/>, whose quads stop half a cell short of the border.
+    /// </remarks>
+    public bool SealBorder
+    {
+        get => _sealBorder;
+        set => Set(ref _sealBorder, value);
+    }
+
+    /// <summary>Gets or sets the radius of the <see cref="VoxelCellShape.Sphere"/> children, as a multiple of half a cell.</summary>
+    /// <remarks>At 1 neighbouring spheres touch and small bodies can slip between them; around 1.4 covers the face diagonals, at the cost of smoothing cell-size detail. The query reach and the shape bounds grow with the overshoot, so a body resting on the overshoot still finds the sphere.</remarks>
+    /// <exception cref="ArgumentOutOfRangeException">The value is not positive and finite.</exception>
+    [DataMemberRange(minimum: MinimumPositive, decimalPlaces: 3)]
+    public float SphereRadiusScale
+    {
+        get => _sphereRadiusScale;
+        set
+        {
+            value.ValidateGreaterThanZeroFinite(this);
+            Set(ref _sphereRadiusScale, value);
+        }
+    }
+
+    /// <summary>Gets or sets the mass of a body using this collider, spread over the grid's whole box.</summary>
+    /// <exception cref="ArgumentOutOfRangeException">The value is not positive and finite.</exception>
+    [DataMemberRange(minimum: MinimumPositive, decimalPlaces: 3)]
+    public float Mass
+    {
+        get => _mass;
+        set
+        {
+            value.ValidateGreaterThanZeroFinite(this);
+            Set(ref _mass, value);
+        }
+    }
+
+    /// <summary>Rebuilds what is derived from the field outside of the simulation, such as the debug view's wireframe.</summary>
+    /// <remarks>The simulation reads the samples as it goes and does not need it; call it too when the grid is resized or replaced.</remarks>
+    public void NotifyFieldChanged() => _component?.TryUpdateFeatures();
+
+    /// <summary>Gets the samples as they stand.</summary>
+    /// <param name="source">The source, read on the physics threads until the next attach.</param>
+    /// <returns>False when there is no field, which leaves the collider detached.</returns>
+    protected abstract bool TryGetSource(out TSource source);
+
+    /// <inheritdoc/>
+    /// <remarks>Zero while there is no field: the collider then has no model to draw.</remarks>
+    public int Transforms => TryGetSource(out _) ? 1 : 0;
+
+    /// <inheritdoc/>
+    public void GetLocalTransforms(CollidableComponent collidable, Span<ShapeTransform> transforms)
+    {
+        if (transforms.IsEmpty)
+            return;
+        transforms[0].PositionLocal = Vector3.Zero;
+        transforms[0].RotationLocal = Quaternion.Identity;
+        transforms[0].Scale = MeshCollider.ComputeMeshScale(collidable);
+    }
+
+    bool ICollider.TryAttach(Shapes shapes, BufferPool pool, ShapeCacheSystem shapeCache, bool shouldCalculateInertia, out TypedIndex index, out Vector3 centerOfMass, out BodyInertia inertia)
+    {
+        index = default;
+        centerOfMass = default;
+        inertia = default;
+        if (_component is null || !TryBuildGrid(MeshCollider.ComputeMeshScale(_component).ToNumeric(), out var grid))
+            return false;
+
+        // The setters catch both for the fields they know of; a source can also change size by itself.
+        if (grid.SamplesX < MinSamplesPerAxis || grid.SamplesY < MinSamplesPerAxis || grid.SamplesZ < MinSamplesPerAxis)
+            throw new InvalidOperationException($"A {grid.SamplesX}x{grid.SamplesY}x{grid.SamplesZ} field has no cell: a voxel collider needs {MinSamplesPerAxis} samples or more on each axis.");
+        if (!ChildIndexFits(_cellShape, grid.SamplesX, grid.SamplesY, grid.SamplesZ))
+            throw new InvalidOperationException($"A {grid.SamplesX}x{grid.SamplesY}x{grid.SamplesZ} field has more {_cellShape} children than the {int.MaxValue} the index space holds.");
+
+        // The grid is centred on its box, which is where the mass is spread.
+        var extent = grid.Extent;
+        grid.Origin = -extent * 0.5f;
+        // Each cell shape takes its shape id and registers its collision tasks the first time it is attached: most games only use one.
+        switch (_cellShape)
+        {
+            case VoxelCellShape.Box:
+                VoxelCollisionTasks.EnsureBoxRegistered<TSource>(shapes);
+                index = shapes.Add(new VoxelBoxShape<TSource>(grid));
+                break;
+            case VoxelCellShape.Sphere:
+                VoxelCollisionTasks.EnsureSphereRegistered<TSource>(shapes);
+                index = shapes.Add(new VoxelSphereShape<TSource>(grid));
+                break;
+            default:
+                VoxelCollisionTasks.EnsureTriangleRegistered<TSource>(shapes);
+                index = shapes.Add(new VoxelTriangleShape<TSource> { GridData = grid, SurfaceNets = _cellShape == VoxelCellShape.SurfaceNets });
+                break;
+        }
+        centerOfMass = (extent * 0.5f).ToStride();
+        if (shouldCalculateInertia)
+            inertia = new Box(extent.X, extent.Y, extent.Z).ComputeInertia(_mass);
+        return true;
+    }
+
+    void ICollider.Detach(Shapes shapes, BufferPool pool, TypedIndex index) => shapes.Remove(index);
+
+    void ICollider.RayTest<TRayHitHandler>(Shapes shapes, TypedIndex shapeIndex, in NRigidPose pose, in RayData ray, ref float maximumT, ref TRayHitHandler hitHandler, BufferPool pool)
+    {
+        // The attached shape is the one of the current cell shape: changing it attaches again.
+        switch (_cellShape)
+        {
+            case VoxelCellShape.Box:
+                Debug.Assert(shapeIndex.Type == VoxelBoxShape<TSource>.TypeId);
+                shapes.GetShape<VoxelBoxShape<TSource>>(shapeIndex.Index).RayTest(pose, ray, ref maximumT, pool, ref hitHandler);
+                break;
+            case VoxelCellShape.Sphere:
+                Debug.Assert(shapeIndex.Type == VoxelSphereShape<TSource>.TypeId);
+                shapes.GetShape<VoxelSphereShape<TSource>>(shapeIndex.Index).RayTest(pose, ray, ref maximumT, pool, ref hitHandler);
+                break;
+            default:
+                Debug.Assert(shapeIndex.Type == VoxelTriangleShape<TSource>.TypeId);
+                shapes.GetShape<VoxelTriangleShape<TSource>>(shapeIndex.Index).RayTest(pose, ray, ref maximumT, pool, ref hitHandler);
+                break;
+        }
+    }
+
+    /// <remarks>Walks the whole field; the debug view, the navigation mesh builder and the editor gizmo call it.</remarks>
+    void ICollider.AppendModel(List<BasicMeshBuffers> buffer, ShapeCacheSystem shapeCache, out object? cacheOut)
+    {
+        cacheOut = null;
+        // Unscaled, from the grid's corner: GetLocalTransforms carries the scale.
+        if (!TryBuildGrid(NVector3.One, out var grid))
+            return;
+
+        var vertices = new List<VertexPosition3>();
+        var indices = new List<int>();
+        if (_cellShape == VoxelCellShape.Box)
+            AppendCellSolids(grid, shapeCache._boxShapeData, vertices, indices, grid.CellSize);
+        else if (_cellShape == VoxelCellShape.Sphere)
+            AppendCellSolids(grid, _cellSphere, vertices, indices, new NVector3(grid.SphereRadius * 2f));
+        else
+            AppendSurface(new VoxelTriangleShape<TSource> { GridData = grid, SurfaceNets = _cellShape == VoxelCellShape.SurfaceNets }, vertices, indices);
+        buffer.Add(new BasicMeshBuffers { Vertices = vertices.ToArray(), Indices = indices.ToArray() });
+    }
+
+    /// <summary>The smallest value the property grid accepts for the sizes and the mass.</summary>
+    private const float MinimumPositive = 0.001f;
+
+    /// <summary>Fewest samples per axis a grid has: two, which is one cell.</summary>
+    private protected const int MinSamplesPerAxis = 2;
+
+    /// <summary>Whether the children of a field of this size fit the index space: the child index packs the cell and, for the triangle shapes, the slot into an int.</summary>
+    private protected static bool ChildIndexFits(VoxelCellShape cellShape, int samplesX, int samplesY, int samplesZ)
+    {
+        var slotsPerCell = cellShape is VoxelCellShape.MarchingCubes or VoxelCellShape.SurfaceNets ? VoxelTriangleShape<TSource>.SlotsPerCell : 1;
+        // One factor at a time: three axes at once can overflow a long.
+        var cells = (long)(samplesX - 1) * (samplesY - 1);
+        if (cells > int.MaxValue)
+            return false;
+        cells *= samplesZ - 1;
+        return cells <= int.MaxValue && cells * slotsPerCell <= int.MaxValue;
+    }
+
+    private void Set<T>(ref T field, T value)
+    {
+        if (EqualityComparer<T>.Default.Equals(field, value))
+            return;
+        field = value;
+        _component?.TryUpdateFeatures();
+    }
+
+    private bool TryBuildGrid(NVector3 scale, out VoxelGridData<TSource> grid)
+    {
+        grid = default;
+        if (!TryGetSource(out var source))
+            return false;
+        var cellSize = _cellSize * scale;
+        grid = new VoxelGridData<TSource>
+        {
+            Source = source,
+            CellSize = cellSize,
+            IsoLevel = _isoLevel,
+            InvertWinding = _invertWinding,
+            SealBorder = _sealBorder,
+            SphereRadius = MathF.Min(cellSize.X, MathF.Min(cellSize.Y, cellSize.Z)) * 0.5f * _sphereRadiusScale,
+        };
+        return true;
+    }
+
+    /// <summary>Tessellation of the cell spheres, coarser than a sphere collider's so hundreds of them stay readable.</summary>
+    private const int CellSphereTessellation = 4;
+
+    private static readonly BasicMeshBuffers _cellSphere = CreateCellSphere();
+
+    private static BasicMeshBuffers CreateCellSphere()
+    {
+        var sphere = GeometricPrimitive.Sphere.New(1f, CellSphereTessellation);
+        return new BasicMeshBuffers { Vertices = sphere.Vertices.Select(v => new VertexPosition3(v.Position)).ToArray(), Indices = sphere.Indices };
+    }
+
+    /// <summary>A unit box or sphere per solid cell with an air neighbour.</summary>
+    private static void AppendCellSolids(in VoxelGridData<TSource> grid, BasicMeshBuffers unitShape, List<VertexPosition3> vertices, List<int> indices, NVector3 scale)
+    {
+        for (int x = 0; x < grid.CellsX; ++x)
+        {
+            for (int y = 0; y < grid.CellsY; ++y)
+            {
+                for (int z = 0; z < grid.CellsZ; ++z)
+                {
+                    if (!grid.CellIsSolid(x, y, z) || !HasAirNeighbour(grid, x, y, z))
+                        continue;
+                    var centre = grid.CellCentre(x, y, z);
+                    var first = vertices.Count;
+                    foreach (var vertex in unitShape.Vertices)
+                        vertices.Add(new VertexPosition3((centre + vertex.Position.ToNumeric() * scale).ToStride()));
+                    foreach (var i in unitShape.Indices)
+                        indices.Add(first + i);
+                }
+            }
+        }
+    }
+
+    private static bool HasAirNeighbour(in VoxelGridData<TSource> grid, int x, int y, int z)
+        => !grid.CellIsSolid(x - 1, y, z) || !grid.CellIsSolid(x + 1, y, z)
+        || !grid.CellIsSolid(x, y - 1, z) || !grid.CellIsSolid(x, y + 1, z)
+        || !grid.CellIsSolid(x, y, z - 1) || !grid.CellIsSolid(x, y, z + 1);
+
+    /// <summary>The triangles the narrow phase would build, one vertex per corner.</summary>
+    private static void AppendSurface(in VoxelTriangleShape<TSource> shape, List<VertexPosition3> vertices, List<int> indices)
+    {
+        var grid = shape.GridData;
+        for (int x = 0; x < grid.CellsX; ++x)
+        {
+            for (int y = 0; y < grid.CellsY; ++y)
+            {
+                for (int z = 0; z < grid.CellsZ; ++z)
+                {
+                    for (int slot = 0; slot < VoxelTriangleShape<TSource>.SlotsPerCell; ++slot)
+                    {
+                        if (!shape.TryGetTriangle(x, y, z, slot, out var triangle))
+                            continue;
+                        indices.Add(vertices.Count);
+                        indices.Add(vertices.Count + 1);
+                        indices.Add(vertices.Count + 2);
+                        vertices.Add(new VertexPosition3(triangle.A.ToStride()));
+                        vertices.Add(new VertexPosition3(triangle.B.ToStride()));
+                        vertices.Add(new VertexPosition3(triangle.C.ToStride()));
+                    }
+                }
+            }
+        }
+    }
+}
