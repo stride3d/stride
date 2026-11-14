@@ -696,7 +696,7 @@ public sealed class StrideVersionManager
             return null;
 
         List<string> directories = [Path.Combine(installPath, "tools"), Path.Combine(installPath, "lib")];
-        // A dev-redirect stub of a tool (build/GenerateDevPackages.cs) has no tools/ closure, only its own DLL in lib/,
+        // A dev-redirect stub of a tool (build/redirect-packages.cs) has no tools/ closure, only its own DLL in lib/,
         // which can't start alone: run the checkout's build instead, as the stub's build redirect does.
         if (!Directory.Exists(directories[0]) && NugetStore.TryGetDevRedirectOutputDirectory(installPath, packageId) is { } devOutputDirectory)
             directories.Insert(0, devOutputDirectory);

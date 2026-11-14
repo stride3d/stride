@@ -335,7 +335,7 @@
   <!-- ================================================================ -->
   <!-- Dev packages mode: skip packing and use redirect packages (must set StrideSkipAutoPack
        before Stride.AutoPackDeploy.targets evaluates its GeneratePackageOnBuild gate) -->
-  <Import Project="Stride.DevPackages.targets" />
+  <Import Project="Stride.RedirectPackages.targets" />
   <Import Project="Stride.AutoPackDeploy.targets" />
 
   <!-- ================================================================ -->

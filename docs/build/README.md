@@ -64,11 +64,11 @@ Stride auto-selects the native toolchain: MSVC when running under `MSBuild.exe` 
 Instantiates a sample from the locally built template packages, bound to this checkout's engine build (`-devN` dev version — see [versioning.md](versioning.md)). Works in both package modes:
 
 1. **Produce the packages.**
-   - Dev-redirect mode (`StrideDevPackages`, the default in a checkout — fastest engine iteration): each engine build deploys redirect packages for the projects it built to `%LocalAppData%\stride\nugetdev` (`~/.local/share/stride/nugetdev` on Linux), mirrored into `bin\packages` so the repo's own feed stays current too. The template packages this section needs come only from a full run, which deploys the whole set:
+   - Dev-redirect mode (`StrideRedirectPackages`, the default in a checkout — fastest engine iteration): each engine build deploys redirect packages for the projects it built to `%LocalAppData%\stride\nugetdev` (`~/.local/share/stride/nugetdev` on Linux), mirrored into `bin\packages` so the repo's own feed stays current too. The template packages this section needs come only from a full run, which deploys the whole set:
      ```bash
-     dotnet run --file build/dev-packages.cs
+     dotnet run --file build/redirect-packages.cs
      ```
-   - Normal mode (`StrideDevPackages=false` in `build/Stride.Local.props`, as on CI and in release builds): any engine build (Visual Studio or `dotnet build Stride.slnx`) auto-packs real packages into `bin\packages`.
+   - Normal mode (`StrideRedirectPackages=false` in `build/Stride.Local.props`, as on CI and in release builds): any engine build (Visual Studio or `dotnet build Stride.slnx`) auto-packs real packages into `bin\packages`.
 2. **Deploy the package closure into the NuGet cache** — this is what makes a version "installed" for the `stride` CLI, and it purges stale same-version extractions so a rebuilt package actually takes effect:
    ```bash
    dotnet msbuild build/install-gamestudio.proj -t:Deploy
@@ -87,7 +87,7 @@ Instantiates a sample from the locally built template packages, bound to this ch
 After engine changes: in dev-redirect mode rebuild the engine project, then rebuild the game (the redirect re-copies the tree's DLLs into its `Bin`); in normal mode rebuild (auto-repack) and run the Deploy step again.
 
 > [!NOTE]
-> Any build run with `-p:StrideDevPackages=false` while dev-redirect packages are deployed deletes them (the intended cleanup when switching modes off). The next build without it deploys them again, project by project, or rerun `dev-packages.cs`.
+> Any build run with `-p:StrideRedirectPackages=false` while dev-redirect packages are deployed deletes them (the intended cleanup when switching modes off). The next build without it deploys them again, project by project, or rerun `redirect-packages.cs`.
 
 See also [sources/templates/README.md](../../sources/templates/README.md) for iterating on the template packages themselves.
 

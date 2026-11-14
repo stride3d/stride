@@ -1,5 +1,5 @@
 // Dev-redirect NuGet stub generator for Stride.
-// Usage: dotnet run --file build/dev-packages.cs -- [options]
+// Usage: dotnet run --file build/redirect-packages.cs -- [options]
 //
 // Generates stub .nupkg files that redirect to dev-built DLLs (and natives, and analyzers),
 // eliminating the ~50s NuGet packing overhead on every incremental build.
@@ -11,7 +11,7 @@
 //     deployed), the stubs file (per stub, the fingerprint of the fixed inputs it was made with) and the inputs
 //     manifest (content hashes of the csprojs and build/ assets). Never required: the build refreshes stubs
 //     one by one (below); a full run is just faster for the whole set, e.g. on a fresh checkout.
-//   - --adopt <nupkg> (from Stride.DevPackages.targets, right after a project's Build packed it in-process):
+//   - --adopt <nupkg> (from Stride.RedirectPackages.targets, right after a project's Build packed it in-process):
 //     the same processing for that one package, plus its lines in the stamp and manifest. Its output is only
 //     shown by the build from normal verbosity on (the build prints its own one-liner at minimal).
 
@@ -98,13 +98,13 @@ if (disable)
         foreach (var side in new[] { "", ".inputs", ".stubs" })
             if (File.Exists(stamp + side)) File.Delete(stamp + side);
     }
-    Console.WriteLine(changed ? "Disabled StrideDevPackages in build/Stride.Local.props." : "StrideDevPackages was already off.");
+    Console.WriteLine(changed ? "Disabled StrideRedirectPackages in build/Stride.Local.props." : "StrideRedirectPackages was already off.");
     Console.WriteLine($"Removed {removed} stub package file(s); the next build packs real packages again.");
     return 0;
 }
 
 // --- Step 0: The project map, the previous stamp, the inputs ---
-// A build that changed a project adopts it by itself (--adopt, run by Stride.DevPackages.targets after that
+// A build that changed a project adopts it by itself (--adopt, run by Stride.RedirectPackages.targets after that
 // project's Build), so a manual run is always a full run: needed on a fresh checkout and when the script, the
 // central package versions or the solution changed (every stub depends on those).
 var projectMap = BuildProjectMap(solution, strideRoot);
@@ -113,7 +113,7 @@ var projects = projectMap.Values.Distinct().ToList(); // the map lists a project
 var stampPath = Path.Combine(nugetDevDir, $".devpackages-{version}");
 var fixedInputs = new[]
 {
-    Path.Combine(strideRoot, "build", "dev-packages.cs"),
+    Path.Combine(strideRoot, "build", "redirect-packages.cs"),
     Path.Combine(strideRoot, "sources", "Directory.Packages.props"),
     solution,
 };
@@ -160,12 +160,12 @@ if (adopt.Length == 0)
 // StrideSkipAutoPack=true: disables Sdk.targets' GeneratePackageOnBuild=true. We're explicitly
 // invoking Pack via dotnet pack, so the on-build auto-pack would create a Pack->_PackAsBuildAfterTarget
 // ->GenerateNuspec->Pack circular dependency and fail every engine project.
-// StrideDevPackages=false: forces engine projects through normal build (not the dev-redirect path)
+// StrideRedirectPackages=false: forces engine projects through normal build (not the dev-redirect path)
 // regardless of the caller's Stride.Local.props.
 // StridePackAssets=false: skip the asset/.sdpkg packing step. The dev-redirect consumes assets +
 // shader source straight from the checkout (NugetStore.GetRealPath -> StrideDevProjectDirectory),
 // so packed asset content would be dead weight; skipping it also drops the slow per-package copy.
-// StrideDevPackagesGenerating=true: StrideDevPackages=false would otherwise trip the flag-off cleanup target
+// StrideDevPackagesGenerating=true: StrideRedirectPackages=false would otherwise trip the flag-off cleanup target
 // (_StrideCleanDevPackages) inside this very build and wipe the current stubs before we know the pack is
 // complete. With it, the previous stubs stay until step 3 overwrites them, so a failed run leaves a working feed.
 // Output -> tempPackDir (not NugetDev); we deploy stubs there explicitly in step 3.
@@ -174,9 +174,9 @@ if (adopt.Length == 0)
 // missing output (fresh clone, new project) fails that pack, so the pack is retried with a build.
 int PackSolution()
 {
-    var packProperties = $"-c {configuration} -p:StrideSkipAutoPack=true -p:StrideDevPackages=false -p:StrideDevPackagesGenerating=true -p:StridePackAssets=false -o \"{tempPackDir}\" --verbosity normal";
+    var packProperties = $"-c {configuration} -p:StrideSkipAutoPack=true -p:StrideRedirectPackages=false -p:StrideDevPackagesGenerating=true -p:StridePackAssets=false -o \"{tempPackDir}\" --verbosity normal";
     // --no-build implies no restore, so restore explicitly first.
-    var exitCode = RunProcess("dotnet", $"restore \"{solution}\" -p:StrideSkipAutoPack=true -p:StrideDevPackages=false --verbosity quiet", silent: true);
+    var exitCode = RunProcess("dotnet", $"restore \"{solution}\" -p:StrideSkipAutoPack=true -p:StrideRedirectPackages=false --verbosity quiet", silent: true);
     if (exitCode == 0)
         exitCode = RunProcess("dotnet", $"pack \"{solution}\" --no-build {packProperties}", silent: true, onLine: OnPackLine);
     if (exitCode == 0)
@@ -316,7 +316,7 @@ foreach (var pkgPath in freshPackages)
 // ran with StrideSkipAutoPack=true, which also suppressed their own auto-pack-deploy, so deploy
 // the fresh nupkgs here. Content-versioned ones (Samples, Starters) can carry a different version
 // than the engine. Listed in the manifest so cleanup/pruning covers them; after a flag-off their
-// auto-pack (independent of StrideDevPackages) repopulates the feeds.
+// auto-pack (independent of StrideRedirectPackages) repopulates the feeds.
 foreach (var tplPath in freshPackages.Where(p => Path.GetFileName(p).StartsWith("Stride.Templates.", StringComparison.OrdinalIgnoreCase)))
 {
     var tplName = Path.GetFileName(tplPath);
@@ -446,7 +446,7 @@ if (suffixIdx >= 0)
 if (adopt.Length == 0)
     try { Directory.Delete(tempPackDir, true); } catch { }
 
-// --- Step 5: Turn StrideDevPackages back on if build/Stride.Local.props turned it off (on is the default in a
+// --- Step 5: Turn StrideRedirectPackages back on if build/Stride.Local.props turned it off (on is the default in a
 // checkout). Subsequent builds will read the flag and skip auto-pack. ---
 var flagChanged = adopt.Length == 0 && SetDevPackagesFlag(strideRoot, enable: true);
 
@@ -460,7 +460,7 @@ if (failures > 0)
 
 Console.WriteLine($"\nDone! Generated {stubCount} stubs, skipped {skipCount}.");
 if (flagChanged)
-    Console.WriteLine("Enabled StrideDevPackages in build/Stride.Local.props.");
+    Console.WriteLine("Enabled StrideRedirectPackages in build/Stride.Local.props.");
 return 0;
 
 // ============================================================
@@ -485,7 +485,8 @@ static bool SetDevPackagesFlag(string strideRoot, bool enable)
     var ns = doc.Root?.Name.Namespace ?? XNamespace.None;
     var desired = enable ? "true" : "false";
 
-    var element = doc.Descendants(ns + "StrideDevPackages").FirstOrDefault();
+    // A file written before the rename holds the former name, which Stride.Platform.props still reads.
+    var element = doc.Descendants(ns + "StrideRedirectPackages").Concat(doc.Descendants(ns + "StrideDevPackages")).FirstOrDefault();
     if (element != null)
     {
         if (element.Value == desired)
@@ -499,13 +500,13 @@ static bool SetDevPackagesFlag(string strideRoot, bool enable)
     else
     {
         // Insert into the first non-conditional PropertyGroup with the existence-check Condition
-        // pattern that matches the rest of the template — keeps -p:StrideDevPackages=... wins.
+        // pattern that matches the rest of the template — keeps -p:StrideRedirectPackages=... wins.
         var propertyGroup = doc.Descendants(ns + "PropertyGroup")
             .FirstOrDefault(pg => pg.Attribute("Condition") == null);
         if (propertyGroup == null)
             return false;
-        propertyGroup.Add(new XElement(ns + "StrideDevPackages",
-            new XAttribute("Condition", "'$(StrideDevPackages)' == ''"),
+        propertyGroup.Add(new XElement(ns + "StrideRedirectPackages",
+            new XAttribute("Condition", "'$(StrideRedirectPackages)' == ''"),
             desired));
     }
 
@@ -548,7 +549,7 @@ static IEnumerable<string> BuildAssets(ProjectInfo project)
             .Concat(Directory.EnumerateFiles(dir, "*.props", SearchOption.AllDirectories)));
 
 // SHA-256 of a file's content with CRLF folded to LF, lowercase hex. Mirrored by StrideCheckDevPackageInputs
-// (sources/sdk/Stride.Build.Sdk/Sdk/StrideDevPackagesTasks.cs); keep the two in step.
+// (sources/sdk/Stride.Build.Sdk/Sdk/StrideRedirectPackagesTasks.cs); keep the two in step.
 static string ContentHash(string path)
 {
     var bytes = File.ReadAllBytes(path);

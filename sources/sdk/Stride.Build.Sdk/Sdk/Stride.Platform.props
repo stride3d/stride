@@ -63,10 +63,12 @@
 
   <Import Project="$(_StrideLocalProps)" Condition="'$(_StrideLocalProps)' != '' And Exists('$(_StrideLocalProps)')" />
 
-  <!-- Dev-redirect packages (Stride.DevPackages.targets) are the default of a developer's build in a checkout. CI and
-       the release's package build (package.proj) keep real packages: their tests and outputs are the packages. -->
+  <!-- Dev-redirect packages (Stride.RedirectPackages.targets) are the default of a developer's build in a checkout. CI and
+       the release's package build (package.proj) keep real packages: their tests and outputs are the packages.
+       StrideDevPackages is the former name, still read from older Stride.Local.props files and command lines. -->
   <PropertyGroup>
-    <StrideDevPackages Condition="'$(StrideDevPackages)' == '' And '$(_StrideRepoRoot)' != '' And '$(_StrideCIBuild)' != 'true' And '$(StridePackageBuild)' != 'true'">true</StrideDevPackages>
+    <StrideRedirectPackages Condition="'$(StrideRedirectPackages)' == ''">$(StrideDevPackages)</StrideRedirectPackages>
+    <StrideRedirectPackages Condition="'$(StrideRedirectPackages)' == '' And '$(_StrideRepoRoot)' != '' And '$(_StrideCIBuild)' != 'true' And '$(StridePackageBuild)' != 'true'">true</StrideRedirectPackages>
   </PropertyGroup>
 
   <!-- ================================================================ -->

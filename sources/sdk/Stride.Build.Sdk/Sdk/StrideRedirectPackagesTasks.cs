@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Dev-packages staleness check, compiled at runtime by RoslynCodeTaskFactory (no prebuilt task assembly).
-// Referenced from Stride.DevPackages.targets via <Code Source>.
+// Referenced from Stride.RedirectPackages.targets via <Code Source>.
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,7 +11,7 @@ using System.Threading;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
-// Two questions about one project's stub, answered from the generator's files (see build/dev-packages.cs):
+// Two questions about one project's stub, answered from the generator's files (see build/redirect-packages.cs):
 //  - Changed: the inputs of the manifest ("<sha256>\t<path>" per line: csprojs and packed build/ assets) whose
 //    content changed since the stubs were generated. A file older than the stamp is trusted without being read; a
 //    newer one is confirmed by content hash, so mtime churn alone (touch, checkout, rebase) is not a change. A

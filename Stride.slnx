@@ -1,6 +1,6 @@
 <Solution>
   <Folder Name="/00-Build/">
-    <File Path="build/dev-packages.cs" />
+    <File Path="build/redirect-packages.cs" />
     <File Path="build/install-gamestudio.proj" />
     <File Path="build/package.proj" />
     <File Path="build/samples.proj" />

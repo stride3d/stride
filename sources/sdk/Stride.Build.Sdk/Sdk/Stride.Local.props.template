@@ -18,8 +18,8 @@
     <!-- Dev-redirect packages, on by default in a checkout: builds skip the NuGet auto-pack and consumers (games,
          samples) resolve Stride.* through redirect packages that point at this checkout's binaries (a build with no change: about 45 s faster).
          Set false to auto-pack real packages into bin/packages, as CI does, e.g. for Stride.Packaging.Tests;
-         the disable option of build/dev-packages.cs writes it here and removes the redirect packages. -->
-    <!--<StrideDevPackages Condition="'$(StrideDevPackages)' == ''">false</StrideDevPackages>-->
+         the disable option of build/redirect-packages.cs writes it here and removes the redirect packages. -->
+    <!--<StrideRedirectPackages Condition="'$(StrideRedirectPackages)' == ''">false</StrideRedirectPackages>-->
     <!-- Content template packs (Stride.Templates.Samples / .Games.Starters / .AssetPacks, ~730 MB of samples)
          are never packed by a normal build: Game Studio and the stride CLI use the published version named by
          sources/templates/StrideSamplesVersion.props. Set this to true while editing samples so builds pack this
