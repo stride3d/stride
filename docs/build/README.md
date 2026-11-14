@@ -68,6 +68,7 @@ Instantiates a sample from the locally built template packages, bound to this ch
      ```bash
      dotnet run --file build/redirect-packages.cs
      ```
+     On Linux and macOS, it leaves out the projects that need Windows (WPF or Windows Forms, and those referencing them).
    - Normal mode (`StrideRedirectPackages=false` in `build/Stride.Local.props`, as on CI and in release builds): any engine build (Visual Studio or `dotnet build Stride.slnx`) auto-packs real packages into `bin\packages`.
 2. **Deploy the package closure into the NuGet cache** — this is what makes a version "installed" for the `stride` CLI, and it purges stale same-version extractions so a rebuilt package actually takes effect:
    ```bash

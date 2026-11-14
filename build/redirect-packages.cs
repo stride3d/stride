@@ -19,6 +19,7 @@ using System.Diagnostics;
 using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
@@ -144,6 +145,24 @@ var removedStubs = adopt.Length > 0 ? new List<string>() : previousStamp
 
 // --- Step 1: Pack fresh nupkgs (a full run; an --adopt was handed its nupkg by the build) ---
 var tempPackDir = Path.Combine(Path.GetTempPath(), "stride-devpackages-pack");
+// Off Windows, the projects that need it (WPF or Windows Forms, and those referencing one) don't build: the pack
+// runs on a solution filter without them.
+var packTarget = solution;
+if (adopt.Length == 0 && !OperatingSystem.IsWindows() && !solution.EndsWith(".slnf", StringComparison.OrdinalIgnoreCase))
+{
+    var windowsOnly = WindowsOnlyProjects(projects.Select(p => p.CsprojPath));
+    if (windowsOnly.Count > 0)
+    {
+        var solutionDir = Path.GetDirectoryName(Path.GetFullPath(solution))!;
+        var kept = projects.Select(p => p.CsprojPath).Where(p => !windowsOnly.Contains(p))
+            .Select(p => (JsonNode?)Path.GetRelativePath(solutionDir, p)).ToArray();
+        var filter = new JsonObject { ["solution"] = new JsonObject { ["path"] = Path.GetFullPath(solution), ["projects"] = new JsonArray(kept) } };
+        packTarget = tempPackDir + ".slnf";
+        File.WriteAllText(packTarget, filter.ToJsonString());
+        Console.WriteLine($"Skipping {windowsOnly.Count} project(s) that need Windows (WPF or Windows Forms, or a reference to one): "
+                          + string.Join(", ", windowsOnly.Select(Path.GetFileNameWithoutExtension).Order()));
+    }
+}
 if (adopt.Length == 0)
 {
     if (Directory.Exists(tempPackDir)) Directory.Delete(tempPackDir, true);
@@ -176,15 +195,15 @@ int PackSolution()
 {
     var packProperties = $"-c {configuration} -p:StrideSkipAutoPack=true -p:StrideRedirectPackages=false -p:StrideDevPackagesGenerating=true -p:StridePackAssets=false -o \"{tempPackDir}\" --verbosity normal";
     // --no-build implies no restore, so restore explicitly first.
-    var exitCode = RunProcess("dotnet", $"restore \"{solution}\" -p:StrideSkipAutoPack=true -p:StrideRedirectPackages=false --verbosity quiet", silent: true);
+    var exitCode = RunProcess("dotnet", $"restore \"{packTarget}\" -p:StrideSkipAutoPack=true -p:StrideRedirectPackages=false --verbosity quiet", silent: true);
     if (exitCode == 0)
-        exitCode = RunProcess("dotnet", $"pack \"{solution}\" --no-build {packProperties}", silent: true, onLine: OnPackLine);
+        exitCode = RunProcess("dotnet", $"pack \"{packTarget}\" --no-build {packProperties}", silent: true, onLine: OnPackLine);
     if (exitCode == 0)
         return 0;
     Console.WriteLine("  Some output is missing or the restore failed; building + packing instead...");
     Directory.Delete(tempPackDir, true);
     Directory.CreateDirectory(tempPackDir);
-    return RunProcess("dotnet", $"pack \"{solution}\" {packProperties}", silent: true, onLine: OnPackLine);
+    return RunProcess("dotnet", $"pack \"{packTarget}\" {packProperties}", silent: true, onLine: OnPackLine);
 }
 void OnPackLine(string line)
 {
@@ -481,7 +500,11 @@ if (suffixIdx >= 0)
 
 // Cleanup temp (an adopt used none)
 if (adopt.Length == 0)
+{
     try { Directory.Delete(tempPackDir, true); } catch { }
+    if (packTarget != solution)
+        File.Delete(packTarget);
+}
 
 // --- Step 5: Turn StrideRedirectPackages back on if build/Stride.Local.props turned it off (on is the default in a
 // checkout). Subsequent builds will read the flag and skip auto-pack. ---
@@ -682,6 +705,37 @@ static Dictionary<string, ProjectInfo> BuildProjectMap(string solution, string s
     }
 
     return map;
+}
+
+// The projects that need Windows to build: those using WPF or Windows Forms, and those referencing one of them.
+// Only what applies everywhere counts: a project using Windows Forms in its -windows framework only (Stride.Games)
+// builds its other frameworks anywhere.
+static HashSet<string> WindowsOnlyProjects(IEnumerable<string> csprojPaths)
+{
+    static bool Unconditional(XElement e) => e.AncestorsAndSelf().All(a => a.Attribute("Condition") == null);
+    var windowsOnly = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    var references = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+    foreach (var csproj in csprojPaths)
+    {
+        var project = XDocument.Load(csproj);
+        if (project.Descendants().Any(e => (e.Name.LocalName is "UseWPF" or "UseWindowsForms") && Unconditional(e)
+                                           && string.Equals(e.Value.Trim(), "true", StringComparison.OrdinalIgnoreCase)))
+            windowsOnly.Add(csproj);
+        references[csproj] = project.Descendants().Where(e => e.Name.LocalName == "ProjectReference" && Unconditional(e))
+            .Select(e => (string?)e.Attribute("Include")).OfType<string>()
+            .Select(include => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(csproj)!, include.Replace('\\', '/'))))
+            .ToList();
+    }
+    for (var added = true; added;)
+    {
+        added = false;
+        foreach (var (csproj, referenced) in references)
+        {
+            if (!windowsOnly.Contains(csproj) && referenced.Any(windowsOnly.Contains))
+                added |= windowsOnly.Add(csproj);
+        }
+    }
+    return windowsOnly;
 }
 
 static void ProcessPackage(string pkgPath, string pkgId, ProjectInfo projInfo, Dictionary<string, ProjectInfo> projectMap,
