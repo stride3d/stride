@@ -4,8 +4,7 @@
 using System.Reflection;
 using Stride.Assets.Editor.Commands;
 using Stride.Assets.Editor.EditorGame;
-using Stride.Assets.Editor.Quantum.NodePresenters.Commands;
-using Stride.Assets.Editor.Quantum.NodePresenters.Updaters;
+using Stride.Assets.Editor.Quantum.NodePresenters;
 using Stride.Assets.Editor.EntityFactories;
 using Stride.Assets.Editor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
@@ -164,33 +163,8 @@ public sealed class StrideEditorPlugin : StrideAssetsPlugin
             context.Services.Register(thumbnailService);
         }
 
-        // commands
-        context.NodePresenterCommands.Register(new FetchEntityCommand());
-        context.NodePresenterCommands.Register(new SetEntityReferenceCommand());
-        context.NodePresenterCommands.Register(new SetComponentReferenceCommand());
-        context.NodePresenterCommands.Register(new SetSymbolReferenceCommand());
-        context.NodePresenterCommands.Register(new SkeletonNodePreserveAllCommand());
-        // Show the entity picker of the editor, if it has one (IEntityPickerService)
-        context.NodePresenterCommands.Register(new PickupEntityCommand());
-        context.NodePresenterCommands.Register(new PickupEntityComponentCommand());
-        // Opens the curve editor of the editor, if it has one (ICurveEditorService)
-        context.NodePresenterCommands.Register(new EditCurveCommand(sessionViewModel));
-
-        // updaters
-        context.NodePresenterUpdaters.Register(new AnimationAssetNodeUpdater());
-        context.NodePresenterUpdaters.Register(new CameraSlotNodeUpdater());
-        context.NodePresenterUpdaters.Register(new EntityHierarchyAssetNodeUpdater());
-        context.NodePresenterUpdaters.Register(new GameSettingsAssetNodeUpdater());
-        context.NodePresenterUpdaters.Register(new GraphicsCompositorAssetNodeUpdater());
-        context.NodePresenterUpdaters.Register(new FXAAEffectNodeUpdater());
-        context.NodePresenterUpdaters.Register(new MaterialAssetNodeUpdater());
-        context.NodePresenterUpdaters.Register(new ModelAssetNodeUpdater());
-        context.NodePresenterUpdaters.Register(new ModelComponentNodeUpdater());
-        context.NodePresenterUpdaters.Register(new ModelNodeLinkNodeUpdater());
-        context.NodePresenterUpdaters.Register(new SkeletonAssetNodeUpdater());
-        context.NodePresenterUpdaters.Register(new SpriteSheetAssetNodeUpdater());
-        context.NodePresenterUpdaters.Register(new TextureAssetNodeUpdater());
-        context.NodePresenterUpdaters.Register(new UnloadableObjectPropertyNodeUpdater());
+        // The property grid's commands and updaters, shared with the other editor
+        StrideNodePresenters.Register(context);
 
         // Extra packages to display in "add reference" dialog
         sessionViewModel.SuggestedPackages.Add(new PackageName(typeof(Stride.Engine.EntityComponent).Assembly.GetName().Name!, new PackageVersion(StrideVersion.NuGetVersion)));
