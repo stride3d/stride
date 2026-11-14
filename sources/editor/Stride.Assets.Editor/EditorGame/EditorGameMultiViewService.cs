@@ -3,6 +3,7 @@
 
 #nullable enable
 
+using System.Diagnostics.CodeAnalysis;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -53,6 +54,7 @@ namespace Stride.Assets.Editor.EditorGame;
 /// </para>
 /// </remarks>
 [EditorGameService(typeof(IEntityHierarchyEditorController), Order = 400)]
+[Experimental("STREXP009")]
 public sealed class EditorGameMultiViewService : EditorGameServiceBase, IEditorGameMultiViewViewModelService
 {
     /// <summary>

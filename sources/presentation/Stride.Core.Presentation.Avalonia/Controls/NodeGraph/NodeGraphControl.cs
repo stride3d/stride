@@ -4,6 +4,7 @@
 using System.Collections;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Diagnostics.CodeAnalysis;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
@@ -38,6 +39,7 @@ namespace Stride.Core.Presentation.Avalonia.Controls;
 /// With <see cref="AutoLayout"/>, the nodes are laid out as a tree from left to right whenever nodes are added; the user
 /// can then move them. Positions aren't saved.
 /// </remarks>
+[Experimental("STREXP010")]
 public sealed class NodeGraphControl : Control
 {
     /// <summary>

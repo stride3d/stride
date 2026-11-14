@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #nullable disable
 
+using System.Diagnostics.CodeAnalysis;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
@@ -39,6 +40,7 @@ public class AssetEditorViewModel<TAsset> : AssetEditorViewModel, IAssetEditorVi
     /// <summary>
     /// Initializes an editor that uses the services of its tab (see <see cref="AssetEditorViewModel(AssetViewModel, IViewModelServiceProvider)"/>).
     /// </summary>
+    [Experimental("STREXP006")]
     public AssetEditorViewModel(TAsset asset, IViewModelServiceProvider serviceProvider)
         : base(asset, serviceProvider)
     {
@@ -71,6 +73,7 @@ public abstract class AssetEditorViewModel : DispatcherViewModel, IAssetEditorVi
     /// <see cref="Create"/>, where the editor can register services of its own. A constructor that asks for an
     /// <see cref="IViewModelServiceProvider"/> gets them.
     /// </summary>
+    [Experimental("STREXP006")]
     protected AssetEditorViewModel(AssetViewModel asset, IViewModelServiceProvider serviceProvider)
         : base(serviceProvider)
     {
@@ -86,6 +89,7 @@ public abstract class AssetEditorViewModel : DispatcherViewModel, IAssetEditorVi
     /// <param name="editorType">The type of the editor.</param>
     /// <param name="asset">The asset to edit.</param>
     /// <returns>The new editor.</returns>
+    [Experimental("STREXP006")]
     public static AssetEditorViewModel Create(Type editorType, AssetViewModel asset)
     {
         ArgumentNullException.ThrowIfNull(editorType);

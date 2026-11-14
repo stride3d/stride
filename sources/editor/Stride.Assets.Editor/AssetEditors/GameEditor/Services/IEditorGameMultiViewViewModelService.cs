@@ -3,6 +3,7 @@
 
 #nullable enable
 
+using System.Diagnostics.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using Stride.Core.Mathematics;
@@ -13,6 +14,7 @@ namespace Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 /// <summary>
 /// The camera a view of the scene starts with: a perspective view, or an orthographic view along an axis.
 /// </summary>
+[Experimental("STREXP009")]
 public enum EditorViewCamera
 {
     /// <summary>A perspective view, where the primary view is.</summary>
@@ -43,6 +45,7 @@ public enum EditorViewCamera
 /// <param name="ViewId">The view.</param>
 /// <param name="IsOrthographic">Whether the camera of the view is orthographic.</param>
 /// <param name="OrthographicSize">The orthographic size of the camera of the view.</param>
+[Experimental("STREXP009")]
 public readonly record struct EditorGameViewCameraInfo(int ViewId, bool IsOrthographic, float OrthographicSize);
 
 /// <summary>
@@ -52,6 +55,7 @@ public readonly record struct EditorGameViewCameraInfo(int ViewId, bool IsOrthog
 /// <param name="PitchYaw">The pitch and the yaw of the camera.</param>
 /// <param name="IsOrthographic">Whether the camera is orthographic.</param>
 /// <param name="OrthographicSize">The orthographic size of the camera.</param>
+[Experimental("STREXP009")]
 public readonly record struct EditorGameViewCameraState(Vector3 Position, Vector2 PitchYaw, bool IsOrthographic, float OrthographicSize)
 {
     /// <summary>
@@ -64,6 +68,7 @@ public readonly record struct EditorGameViewCameraState(Vector3 Position, Vector
 /// The several views of the game of a scene or prefab editor, for its view models. The game has one camera
 /// per view; the editor camera (<see cref="IEditorGameCameraViewModelService"/>) is the camera of the active view.
 /// </summary>
+[Experimental("STREXP009")]
 public interface IEditorGameMultiViewViewModelService : IEditorGameViewModelService
 {
     /// <summary>

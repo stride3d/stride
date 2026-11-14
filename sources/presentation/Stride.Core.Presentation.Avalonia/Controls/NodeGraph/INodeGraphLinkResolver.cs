@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace Stride.Core.Presentation.Avalonia.Controls;
 
 /// <summary>
@@ -8,6 +10,7 @@ namespace Stride.Core.Presentation.Avalonia.Controls;
 /// are any objects, and this resolver says which slots, the objects that the <see cref="NodeGraphConnector.Slot"/> of the
 /// connectors are, each one goes between.
 /// </summary>
+[Experimental("STREXP010")]
 public interface INodeGraphLinkResolver
 {
     /// <summary>

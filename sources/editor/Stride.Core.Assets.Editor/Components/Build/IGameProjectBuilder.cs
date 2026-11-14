@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using Stride.Core.Diagnostics;
 
 namespace Stride.Core.Assets.Editor.Components.Build;
@@ -46,6 +47,7 @@ public interface IGameProjectBuild
     /// The items that each target of the build returned (their item specs), by target name, once <see cref="Completion"/> completed: for
     /// example the package of an Android game, from its <c>GetAndroidPackage</c> target. Empty before, and for a build that failed to run.
     /// </summary>
+    [Experimental("STREXP008")]
     IReadOnlyDictionary<string, IReadOnlyList<string>> TargetOutputs { get; }
 
     /// <summary>
