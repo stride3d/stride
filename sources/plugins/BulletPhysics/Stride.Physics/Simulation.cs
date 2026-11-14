@@ -200,7 +200,6 @@ namespace Stride.Physics
 
         internal void UpdateContacts()
         {
-            EndedFromComponentRemoval.Clear();
             // Mark previous collisions as outdated,
             // we'll iterate through bullet's actives and remove them from here
             // to be left with only the outdated ones.
