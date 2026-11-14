@@ -74,7 +74,7 @@ Instantiates a sample from the locally built template packages, bound to this ch
    ```bash
    dotnet msbuild build/install-gamestudio.proj -t:Deploy
    ```
-3. **Instantiate** (browse with `stride new list --version 4.4.0-devN`):
+3. **Instantiate** (browse with `stride new list --version 4.4.0-devN`). After a build, `PublicVersion` and `NuGetVersionSuffix` in `sources/shared/SharedAssemblyInfo.Generated.cs` give this checkout's version:
    ```bash
    stride new stride-animatedmodel --version 4.4.0-devN -n MySample -o C:\path\MySample
    ```
@@ -91,6 +91,37 @@ After engine changes: in dev-redirect mode rebuild the engine project, then rebu
 > Any build run with `-p:StrideRedirectPackages=false` while dev-redirect packages are deployed deletes them (the intended cleanup when switching modes off). The next build without it deploys them again, project by project, or rerun `redirect-packages.cs`.
 
 See also [sources/templates/README.md](../../sources/templates/README.md) for iterating on the template packages themselves.
+
+## Building and Testing on Linux (WSL)
+
+A Linux machine, or WSL2 on Windows, can build the Linux runtime, its native code and the unit tests, and run the Vulkan tests on the CPU. This is a good way to repeat a failure of a Linux CI lane.
+
+1. Install the [.NET 10.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0) and the native tools:
+   ```bash
+   sudo apt install clang lld git-lfs libvulkan1
+   git lfs install
+   ```
+2. Clone inside the Linux file system, for example in `~/stride`. Don't build in a Windows checkout through `/mnt/c`: it is slow and causes many build problems.
+   - To test a branch of a Windows checkout, fetch it into the Linux clone: `git fetch /mnt/c/<path to the checkout> <branch>`. This copies git objects only, so the line endings stay right.
+   - Never copy the files of a Windows checkout into Linux. With `core.autocrlf=true` they have CRLF line endings, git then shows every file as changed, and a script without the `.sh` extension fails with `bash\r: No such file or directory`.
+   - A script written from Windows (for example through `\\wsl.localhost\`) also gets CRLF line endings: run `sed -i 's/\r$//' <file>` before you run it.
+3. Build and test as the [Linux CI lane](../../.github/workflows/test-linux-simple.yml) does:
+   ```bash
+   dotnet build sources/Stride.Tests.Simple.Linux.slnf -p:StridePlatforms=Linux -p:StrideGraphicsApis=Vulkan -p:StrideTestRuntimeIdentifier=linux-x64
+   dotnet test sources/Stride.Tests.Simple.Linux.slnf --no-build
+   ```
+   A test that compares text with a `\r\n` string fails on Linux: that is a real bug, CI sees it too.
+
+**Vulkan on the CPU.** CI runs the Vulkan tests on Lavapipe, a software driver, from the `Stride.Dependencies.Lavapipe` package ([setup-lavapipe-linux](../../.github/actions/setup-lavapipe-linux/action.yml)). Locally, the Lavapipe of Mesa also works:
+```bash
+sudo apt install mesa-vulkan-drivers
+export VK_DRIVER_FILES=/usr/share/vulkan/icd.d/lvp_icd.x86_64.json
+```
+Another version of Lavapipe can render slightly different images, so compare with the gold images only on CI.
+
+**Vulkan on the GPU.** WSL has no Linux GPU driver, only Mesa's Dozen, which runs Vulkan on top of Direct3D 12. Results there don't tell how a real Linux driver behaves.
+
+**Game windows.** Under WSLg, a game window opens on the Windows desktop. The graphics tests run without a window unless interactive mode is forced.
 
 ## Troubleshooting
 
