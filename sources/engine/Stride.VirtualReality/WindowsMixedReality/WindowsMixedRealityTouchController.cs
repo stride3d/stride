@@ -41,33 +41,33 @@ namespace Stride.VirtualReality
 
         public override DeviceState State => internalState;
 
-        public override float Trigger => (float)currentState.SelectPressedValue;
+        protected override float RawTrigger => (float)currentState.SelectPressedValue;
 
-        public override float Grip => currentState.IsGrasped ? 1.0f : 0.0f;
+        protected override float RawGrip => currentState.IsGrasped ? 1.0f : 0.0f;
 
-        public override bool IndexPointing => false;
+        protected override bool RawIndexPointing => false;
 
-        public override bool IndexResting => true;
+        protected override bool RawIndexResting => true;
 
-        public override bool ThumbUp => !currentState.ControllerProperties.IsTouchpadTouched;
+        protected override bool RawThumbUp => !currentState.ControllerProperties.IsTouchpadTouched;
 
-        public override bool ThumbResting => currentState.ControllerProperties.IsTouchpadTouched;
+        protected override bool RawThumbResting => currentState.ControllerProperties.IsTouchpadTouched;
 
-        public override Vector2 ThumbAxis => new Vector2((float)currentState.ControllerProperties.TouchpadX, (float)currentState.ControllerProperties.TouchpadY);
+        protected override Vector2 RawThumbAxis => new Vector2((float)currentState.ControllerProperties.TouchpadX, (float)currentState.ControllerProperties.TouchpadY);
 
-        public override Vector2 ThumbstickAxis => new Vector2((float)currentState.ControllerProperties.ThumbstickX, (float)currentState.ControllerProperties.ThumbstickY);
+        protected override Vector2 RawThumbstickAxis => new Vector2((float)currentState.ControllerProperties.ThumbstickX, (float)currentState.ControllerProperties.ThumbstickY);
 
-        public override bool IsPressed(TouchControllerButton button) => IsButtonPressed(button, currentState);
+        protected override bool IsRawPressed(TouchControllerButton button) => IsButtonPressed(button, currentState);
 
-        public override bool IsPressedDown(TouchControllerButton button) => !IsButtonPressed(button, previousState) ? IsButtonPressed(button, currentState) : false;
+        protected override bool IsRawPressedDown(TouchControllerButton button) => !IsButtonPressed(button, previousState) ? IsButtonPressed(button, currentState) : false;
 
-        public override bool IsPressReleased(TouchControllerButton button) => IsButtonPressed(button, previousState) ? !IsButtonPressed(button, currentState) : false;
+        protected override bool IsRawPressReleased(TouchControllerButton button) => IsButtonPressed(button, previousState) ? !IsButtonPressed(button, currentState) : false;
 
-        public override bool IsTouched(TouchControllerButton button) => !IsButtonTouched(button, currentState);
+        protected override bool IsRawTouched(TouchControllerButton button) => !IsButtonTouched(button, currentState);
 
-        public override bool IsTouchedDown(TouchControllerButton button) => !IsButtonTouched(button, previousState) ? IsButtonTouched(button, currentState) : false;
+        protected override bool IsRawTouchedDown(TouchControllerButton button) => !IsButtonTouched(button, previousState) ? IsButtonTouched(button, currentState) : false;
 
-        public override bool IsTouchReleased(TouchControllerButton button) => IsButtonTouched(button, previousState) ? !IsButtonTouched(button, currentState) : false;
+        protected override bool IsRawTouchReleased(TouchControllerButton button) => IsButtonTouched(button, previousState) ? !IsButtonTouched(button, currentState) : false;
         
         public override ControllerHaptics HapticsSupport => ControllerHaptics.None;
 
