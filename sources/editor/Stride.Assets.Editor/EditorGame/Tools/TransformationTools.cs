@@ -105,7 +105,7 @@ internal sealed class ScaleTool() : TransformationTool(Transformation.Scale)
 /// The toolbars of both user interfaces find the tool of a transformation by its type. A Ctrl+drag duplicates the selection
 /// first, and moves the copies.
 /// </remarks>
-public abstract class TransformationTool : IEditorViewTool
+public abstract class TransformationTool : IEditorViewTool, IEditorGameViewDependent
 {
     private EditorViewToolContext? context;
     private TransformationGizmo? gizmo;
@@ -181,6 +181,13 @@ public abstract class TransformationTool : IEditorViewTool
             rotation.UseLinearMovement = SceneEditorSettings.UseLinearMovementForRotation.GetValue();
         // A Ctrl+drag waits for the copies of the selection: the view cancels the wait when it stops waiting for the tool
         return Gizmo.Update(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public void PrepareView(EditorGameViewCamera view)
+    {
+        if (gizmo is { IsEnabled: true })
+            gizmo.PrepareView(view);
     }
 
     /// <inheritdoc />

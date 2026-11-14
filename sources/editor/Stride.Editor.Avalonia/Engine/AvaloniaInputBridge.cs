@@ -43,10 +43,9 @@ internal sealed class AvaloniaInputBridge
 {
     private readonly ConcurrentQueue<PendingInput> pending = new();
     private readonly HashSet<MouseButton> pressedThisUpdate = [];
+    private readonly HashSet<MouseButton> droppedPresses = [];
     private PendingInput? held;
-    private InputSourceSimulated? source;
-    private MouseSimulated? mouse;
-    private KeyboardSimulated? keyboard;
+    private SimulatedInputDevices? ownDevices;
     private readonly HashSet<Keys> downKeys = [];
     private readonly HashSet<Keys> modifiersFromPointer = [];
     private readonly HashSet<MouseButton> downButtons = [];
@@ -70,7 +69,7 @@ internal sealed class AvaloniaInputBridge
             QueuePosition(view, e);
             var button = ToMouseButton(e.GetCurrentPoint(view).Properties.PointerUpdateKind);
             downButtons.Add(button);
-            pending.Enqueue(new PendingInput((m, _) => m.SimulateMouseDown(button)) { Pressed = button });
+            pending.Enqueue(new PendingInput((m, _) => m.SimulateMouseDown(button)) { Pressed = button, IsPointer = true });
         };
         view.PointerReleased += (_, e) =>
         {
@@ -84,7 +83,7 @@ internal sealed class AvaloniaInputBridge
         view.PointerWheelChanged += (_, e) =>
         {
             var delta = (float)e.Delta.Y;
-            pending.Enqueue(new PendingInput((m, _) => m.SimulateMouseWheel(delta)));
+            pending.Enqueue(new PendingInput((m, _) => m.SimulateMouseWheel(delta)) { IsPointer = true });
         };
         view.KeyDown += (_, e) =>
         {
@@ -153,23 +152,37 @@ internal sealed class AvaloniaInputBridge
     /// </summary>
     public void Apply(InputManager input)
     {
-        if (source == null)
-        {
-            source = new InputSourceSimulated();
-            input.Sources.Add(source);
-            mouse = source.AddMouse();
-            keyboard = source.AddKeyboard();
-        }
+        Apply(ownDevices ??= SimulatedInputDevices.Create(input), acceptPointer: true);
+    }
+
+    /// <summary>
+    /// Applies the queued input to the game through devices shared by the bridges of several views of one game (game thread,
+    /// before the update of its input manager).
+    /// </summary>
+    /// <param name="devices">The simulated mouse and keyboard of the game.</param>
+    /// <param name="acceptPointer"><c>false</c> for a view that is not the active view of the game: its pointer moves, presses
+    /// and wheel are dropped, as the game works in the active view; its keys and releases still reach the game.</param>
+    public void Apply(SimulatedInputDevices devices, bool acceptPointer)
+    {
         pressedThisUpdate.Clear();
         while (TakeNext() is { } next)
         {
+            if (next.IsPointer && !acceptPointer)
+            {
+                if (next.Pressed is { } dropped)
+                    droppedPresses.Add(dropped);
+                continue;
+            }
+            // The release of a press that was dropped: the game never saw the button down
+            if (next.Released is { } unseen && droppedPresses.Remove(unseen))
+                continue;
             if (next.Released is { } released && pressedThisUpdate.Contains(released))
             {
                 // A click shorter than a frame: the release and what follows wait for the next update
                 held = next;
                 break;
             }
-            next.Apply(mouse!, keyboard!);
+            next.Apply(devices.Mouse, devices.Keyboard);
             if (next.Pressed is { } pressed)
                 pressedThisUpdate.Add(pressed);
         }
@@ -195,7 +208,7 @@ internal sealed class AvaloniaInputBridge
         if (size.Width <= 0 || size.Height <= 0)
             return;
         var position = new Vector2((float)(point.X / size.Width), (float)(point.Y / size.Height));
-        pending.Enqueue(new PendingInput((m, _) => MoveTo(m, position)));
+        pending.Enqueue(new PendingInput((m, _) => MoveTo(m, position)) { IsPointer = true });
     }
 
     private void MoveTo(MouseSimulated mouse, Vector2 position)
@@ -227,5 +240,42 @@ internal sealed class AvaloniaInputBridge
         public MouseButton? Pressed { get; init; }
 
         public MouseButton? Released { get; init; }
+
+        /// <summary>
+        /// Gets whether this is a move, press or wheel of the pointer, which only the active view of a game applies.
+        /// </summary>
+        public bool IsPointer { get; init; }
+    }
+}
+
+/// <summary>
+/// The simulated mouse and keyboard through which the bridges of the views of one game give it their input.
+/// </summary>
+internal sealed class SimulatedInputDevices
+{
+    private SimulatedInputDevices(MouseSimulated mouse, KeyboardSimulated keyboard)
+    {
+        Mouse = mouse;
+        Keyboard = keyboard;
+    }
+
+    /// <summary>
+    /// Gets the simulated mouse.
+    /// </summary>
+    public MouseSimulated Mouse { get; }
+
+    /// <summary>
+    /// Gets the simulated keyboard.
+    /// </summary>
+    public KeyboardSimulated Keyboard { get; }
+
+    /// <summary>
+    /// Adds a simulated input source to the game, with a mouse and a keyboard (game thread).
+    /// </summary>
+    public static SimulatedInputDevices Create(InputManager input)
+    {
+        var source = new InputSourceSimulated();
+        input.Sources.Add(source);
+        return new SimulatedInputDevices(source.AddMouse(), source.AddKeyboard());
     }
 }

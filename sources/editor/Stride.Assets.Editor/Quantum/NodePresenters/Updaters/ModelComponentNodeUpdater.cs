@@ -31,7 +31,7 @@ namespace Stride.Assets.Editor.Quantum.NodePresenters.Updaters;
 /// per slot, and one weight slider per morph target of the model, the morph settings being hidden when it has none.
 /// </summary>
 /// <remarks>
-/// The cross-platform counterpart of the node presenter part of the WPF <c>ModelComponentViewModel</c>.
+/// Both editors register it, for every model component of an entity.
 /// </remarks>
 internal sealed class ModelComponentNodeUpdater : AssetNodePresenterUpdaterBase
 {

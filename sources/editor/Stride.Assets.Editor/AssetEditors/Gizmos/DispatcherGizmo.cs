@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using Stride.Core;
 using Stride.Engine;
 using Stride.Engine.Gizmos;
+using Stride.Assets.Editor.EditorGame;
 
 namespace Stride.Assets.Editor.AssetEditors.Gizmos
 {
@@ -108,6 +109,12 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
 
             // update the current gizmo
             currentGizmo?.Update();
+        }
+
+        /// <inheritdoc/>
+        public override void PrepareView(EditorGameViewCamera view)
+        {
+            currentGizmo?.PrepareView(view);
         }
 
         protected override void Destroy()

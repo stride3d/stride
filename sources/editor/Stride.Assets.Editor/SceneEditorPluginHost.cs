@@ -5,6 +5,8 @@ using System.Diagnostics.CodeAnalysis;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Widgets;
 using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Reflection;
@@ -40,6 +42,14 @@ public abstract class SceneEditorPluginHost : StrideEditorPluginHost
     /// </summary>
     [Experimental("STREXP005")]
     public ContributionRegistry<SceneViewWidgetDescriptor> SceneViewWidgets { get; }
+
+    /// <inheritdoc />
+    /// <remarks>The editor view models of both Game Studios derive from the shared <see cref="AssetEditorViewModel"/>.</remarks>
+    protected override Type AssetEditorViewModelType => typeof(AssetEditorViewModel);
+
+    /// <inheritdoc />
+    /// <remarks>The session tells when the editor has initialized its views (<see cref="SessionViewModel.PluginsInitialized"/>).</remarks>
+    protected override bool IsEditorInitialized(ISessionViewModel session) => session is SessionViewModel { IsEditorInitialized: true };
 
     /// <inheritdoc />
     /// <remarks>

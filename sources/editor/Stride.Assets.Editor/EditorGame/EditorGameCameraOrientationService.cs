@@ -26,7 +26,7 @@ namespace Stride.Assets.Editor.EditorGame;
 /// The direction names follow the <see cref="SceneEditorSettings.DisplayDirectionNames"/> setting.
 /// </remarks>
 [EditorGameService(typeof(IEntityHierarchyEditorController), Order = 180)]
-public sealed class EditorGameCameraOrientationService : EditorGameMouseServiceBase
+public sealed class EditorGameCameraOrientationService : EditorGameMouseServiceBase, IEditorGameViewDependent
 {
     private EntityHierarchyEditorGame? game;
     private CameraOrientationGizmo? gizmo;
@@ -51,6 +51,14 @@ public sealed class EditorGameCameraOrientationService : EditorGameMouseServiceB
 
         gizmo?.Dispose();
         return base.DisposeAsync();
+    }
+
+    /// <inheritdoc/>
+    /// <remarks>Each view shows the orientation of its own camera.</remarks>
+    public void PrepareView(EditorGameViewCamera view)
+    {
+        if (IsActive)
+            gizmo?.PrepareView(view);
     }
 
     /// <inheritdoc/>

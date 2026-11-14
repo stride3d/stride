@@ -18,8 +18,7 @@ namespace Stride.Assets.Editor.ViewModels;
 /// weights of the targets the new model also has.
 /// </summary>
 /// <remarks>
-/// The cross-platform counterpart of the model change handling of the WPF <c>ModelComponentViewModel</c>, for every
-/// model component of the hierarchy instead of the first one of each entity.
+/// The scene and prefab editors of both Game Studios use it, for every model component of the hierarchy.
 /// </remarks>
 internal sealed class ModelComponentChangeHandler : IDisposable
 {

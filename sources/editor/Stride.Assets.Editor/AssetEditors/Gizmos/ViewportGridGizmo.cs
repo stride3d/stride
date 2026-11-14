@@ -12,6 +12,7 @@ using Stride.Rendering;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
+using Stride.Assets.Editor.EditorGame;
 
 namespace Stride.Assets.Editor.AssetEditors.Gizmos
 {
@@ -169,14 +170,10 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
             });
         }
 
-        private AxisToHide UpdateGrids(Color3 gridColor, float alpha, int gridAxisIndex, float sceneUnit)
+        private AxisToHide UpdateGrids(Color3 gridColor, float alpha, int gridAxisIndex, float sceneUnit, EditorGameViewCamera view)
         {
             var gridAxisIndexForDeterminingHiddenAxes = gridAxisIndex;
-            var cameraService = Game.EditorServices.Get<IEditorGameCameraService>();
-            if (cameraService == null)
-                return AxisToHide.All;
-
-            var viewInvert = Matrix.Invert(cameraService.ViewMatrix);
+            var viewInvert = Matrix.Invert(view.ViewMatrix);
             // Check if the inverted View Matrix is valid (since it will be use for mouse picking, check the translation vector only)
             if (float.IsNaN(viewInvert.TranslationVector.X)
                 || float.IsNaN(viewInvert.TranslationVector.Y)
@@ -197,7 +194,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
                 // -> Place the grid perpendicular to its default axis otherwise.
                 var viewAxisIndex = axisIndex;
                 var upVector = new Vector3(0) { [axisIndex] = 1 };
-                if (cameraService.IsOrthographic)
+                if (view.IsOrthographic)
                 {
                     for (var i = 0; i < 3; i++)
                     {
@@ -223,14 +220,14 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
                 originPosition[viewAxisIndex] = snappedPosition[viewAxisIndex] + MathF.Sign(viewInvert[3, viewAxisIndex]) * 0.001f * sceneUnit;
 
                 // Determine the intersection point of the center of the vieport with the grid plane
-                var ray = EditorGameHelper.CalculateRayFromMousePosition(cameraService.Component, new Vector2(0.5f), viewInvert);
+                var ray = EditorGameHelper.CalculateRayFromMousePosition(view.Component, new Vector2(0.5f), viewInvert);
                 var plane = new Plane(Vector3.Zero, upVector);
                 var intersection = EditorGameHelper.ProjectOnPlaneWithLimitAngle(ray, plane, MaximumViewAngle);
 
                 // Detemine the scale of the grid depending of the distance of the camera to the grid plane
                 // For orthographic projections, use a distance close to the one, at which the perspective projection would map to the viewport area.
                 var gridScale = sceneUnit;
-                var distanceToGrid = cameraService.IsOrthographic ? cameraService.Component.OrthographicSize * 1.5f : (viewInvert.TranslationVector - intersection).Length();
+                var distanceToGrid = view.IsOrthographic ? view.OrthographicSize * 1.5f : (viewInvert.TranslationVector - intersection).Length();
                 if (distanceToGrid < 1.5f * sceneUnit)
                     gridScale = 0.1f * sceneUnit;
                 if (distanceToGrid > 40f * sceneUnit)
@@ -307,15 +304,36 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
 
         protected override void UpdateBase(Color3 gridColor, float alpha, int gridAxisIndex, float sceneUnit)
         {
+            var cameraService = Game.EditorServices.Get<IEditorGameCameraService>();
+            if (cameraService == null)
+            {
+                // Hide the grids and origin axes
+                HideAll();
+                return;
+            }
+
+            UpdateBase(gridColor, alpha, gridAxisIndex, sceneUnit, new EditorGameViewCamera(cameraService.Component, GraphicsDevice?.Presenter?.BackBuffer?.Height ?? 1, true));
+        }
+
+        /// <summary>
+        /// Places the grid on the plane of the camera of a view, around the point the view looks at.
+        /// </summary>
+        protected override void UpdateBase(Color3 gridColor, float alpha, int gridAxisIndex, float sceneUnit, EditorGameViewCamera view)
+        {
             // Hide the grids and origin axes temporarily before updating them
+            HideAll();
+            var invisibleAxes = UpdateGrids(gridColor, alpha, gridAxisIndex, sceneUnit, view);
+            // Make the grid axes invisible
+            UpdateOriginAxes(invisibleAxes);
+        }
+
+        private void HideAll()
+        {
             for (int i = 0; i < NumberOfGrids; i++)
             {
                 grids[i].Get<ModelComponent>().Enabled = false;
                 originAxes[i].GetChild(0).Get<ModelComponent>().Enabled = false;
             }
-            var invisibleAxes = UpdateGrids(gridColor, alpha, gridAxisIndex, sceneUnit);
-            // Make the grid axes invisible
-            UpdateOriginAxes(invisibleAxes);
         }
 
         private static void SetPlaneEntityRotation(int modelUpAxis, Vector3 upVector, Entity entity)

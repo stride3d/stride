@@ -13,10 +13,11 @@ using Stride.Rendering.Compositing;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 using Stride.Assets.Editor.AssetEditors.Gizmos;
+using Stride.Assets.Editor.EditorGame;
 
 namespace Stride.Assets.Editor.AssetEditors.GameEditor.Game
 {
-    public class EditorGameGridService<TGridGizmo> : EditorGameServiceBase, IEditorGameGridViewModelService
+    public class EditorGameGridService<TGridGizmo> : EditorGameServiceBase, IEditorGameGridViewModelService, IEditorGameViewDependent
         where TGridGizmo : GridGizmoBase, new()
     {
         private TGridGizmo grid;
@@ -57,6 +58,16 @@ namespace Stride.Assets.Editor.AssetEditors.GameEditor.Game
             grid.Initialize(editorGame.Services, game.EditorScene);
             game.Script.AddTask(UpdateGrid);
             return Task.FromResult(true);
+        }
+
+        /// <inheritdoc/>
+        /// <remarks>Each view shows the grid on the plane of its own camera.</remarks>
+        public void PrepareView(EditorGameViewCamera view)
+        {
+            if (grid == null || game == null || !IsActive)
+                return;
+
+            grid.Update(Color, Alpha, AxisIndex, game.EditorServices.Get<IEditorGameCameraService>().SceneUnit, view);
         }
 
         private async Task UpdateGrid()

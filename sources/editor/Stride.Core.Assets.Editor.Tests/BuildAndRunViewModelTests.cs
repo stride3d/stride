@@ -114,18 +114,259 @@ public sealed class BuildAndRunViewModelTests
     }
 
     [Theory]
-    [InlineData(PlatformType.Android)]
-    [InlineData(PlatformType.iOS)]
-    public async Task AMobileGameIsNotBuilt(PlatformType platform)
+    [InlineData(PlatformType.Android, "Android", "Android")]
+    [InlineData(PlatformType.iOS, "iPhone", "iPhone")]
+    public async Task AMobileGameIsBuiltForItsPlatform(PlatformType platform, string msbuildPlatform, string solutionPlatform)
     {
         await using var fixture = await EditorSessionFixture.OpenExecutableAsync(platform);
         var (builder, _) = RegisterFakes(fixture);
         var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider) { Session = fixture.Session };
 
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(false));
+
+        var request = Assert.Single(builder.Requests);
+        Assert.Equal(msbuildPlatform, request.Platform);
+        Assert.Equal(solutionPlatform, request.Properties["SolutionPlatform"]);
+        Assert.Equal("Build", request.Target);
+    }
+
+    [Fact]
+    public async Task AnAndroidGameWithoutADeployStepIsBuiltButNotStarted()
+    {
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(PlatformType.Android);
+        var (builder, launcher) = RegisterFakes(fixture);
+        var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider) { Session = fixture.Session };
+        Assert.Empty(buildAndRun.Deployers);
+
+        Assert.Equal(GameBuildOutcome.StartFailed, await buildAndRun.BuildAsync(true));
+
+        Assert.Single(builder.Requests);
+        Assert.Empty(launcher.Games);
+        Assert.Contains($"{ProjectName} is a {PlatformType.Android} game: this editor can only start the games of its own platform ({Platform.Type}).", Messages(buildAndRun));
+    }
+
+    [Fact]
+    public async Task AnIosGameIsBuiltButNotStarted()
+    {
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(PlatformType.iOS);
+        var (builder, launcher) = RegisterFakes(fixture);
+        var status = new StatusViewModel(fixture.ServiceProvider);
+        var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider, status) { Session = fixture.Session };
+
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(true));
+
+        Assert.Single(builder.Requests);
+        Assert.Empty(launcher.Games);
+        Messages(buildAndRun);
+        var message = Assert.Single(buildAndRun.BuildLog.Messages, x => x.Text.Contains("doesn't deploy iOS games"));
+        Assert.Equal(LogMessageType.Warning, message.Type);
+        Assert.Equal($"{ProjectName} was built: the editor doesn't deploy iOS games, start it from your IDE.", message.Text);
+        Assert.Equal("Build successful", status.CurrentStatus);
+    }
+
+    [Fact]
+    public async Task TheDeployStepOfThePlatformPreparesTheBuildThenDeploysTheGame()
+    {
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(PlatformType.Android);
+        var (builder, launcher) = RegisterFakes(fixture);
+        builder.TargetOutputs["GetAndroidPackage"] = ["com.stride.testgame"];
+        var deployer = new FakeGameDeployer();
+        var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider) { Session = fixture.Session };
+        buildAndRun.RegisterDeployer(PlatformType.Android, deployer);
+        Assert.Same(deployer, buildAndRun.Deployers[PlatformType.Android]);
+
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(true));
+
+        // Prepared from the build of the platform, for a start
+        var (preparedRequest, startProject) = Assert.Single(deployer.Preparations);
+        Assert.True(startProject);
+        Assert.Equal("Build", preparedRequest.Target);
+        Assert.Equal("Android", preparedRequest.Platform);
+        // The build is the one the deploy step asked for
+        var request = Assert.Single(builder.Requests);
+        Assert.Equal("GetAndroidPackage;Install", request.Target);
+        Assert.Equal(FakeGameDeployer.Device, request.Properties["AdbTarget"]);
+        Assert.Equal("Android", request.Properties["SolutionPlatform"]);
+        // The deploy step gets the outputs of the targets
+        var build = Assert.Single(deployer.Deployments);
+        Assert.Equal(["com.stride.testgame"], build.TargetOutputs["GetAndroidPackage"]);
+        // Nothing starts on this machine
+        Assert.Empty(launcher.Games);
+        Assert.Contains($"Deployment of {ProjectName} successful.", Messages(buildAndRun));
+    }
+
+    [Fact]
+    public async Task BuildPreparesWithTheDeployStepButDoesNotDeploy()
+    {
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(PlatformType.Android);
+        var (builder, _) = RegisterFakes(fixture);
+        var deployer = new FakeGameDeployer();
+        var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider) { Session = fixture.Session };
+        buildAndRun.RegisterDeployer(PlatformType.Android, deployer);
+
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(false));
+
+        var (_, startProject) = Assert.Single(deployer.Preparations);
+        Assert.False(startProject);
+        Assert.Equal("GetAndroidPackage;Install", Assert.Single(builder.Requests).Target);
+        Assert.Empty(deployer.Deployments);
+    }
+
+    [Fact]
+    public async Task ADeployStepThatCannotPrepareStopsTheBuild()
+    {
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(PlatformType.Android);
+        var (builder, _) = RegisterFakes(fixture);
+        var deployer = new FakeGameDeployer { FailToPrepare = true };
+        var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider) { Session = fixture.Session };
+        buildAndRun.RegisterDeployer(PlatformType.Android, deployer);
+
         Assert.Equal(GameBuildOutcome.Failed, await buildAndRun.BuildAsync(true));
 
         Assert.Empty(builder.Requests);
-        Assert.Contains($"Platform {platform} isn't supported for execution.", Messages(buildAndRun));
+        Assert.Empty(deployer.Deployments);
+        Assert.Contains("No device found.", Messages(buildAndRun));
+    }
+
+    [Fact]
+    public async Task AFailedDeploymentIsReported()
+    {
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(PlatformType.Android);
+        RegisterFakes(fixture);
+        var deployer = new FakeGameDeployer { Deploy = false };
+        var status = new StatusViewModel(fixture.ServiceProvider);
+        var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider, status) { Session = fixture.Session };
+        buildAndRun.RegisterDeployer(PlatformType.Android, deployer);
+
+        Assert.Equal(GameBuildOutcome.StartFailed, await buildAndRun.BuildAsync(true));
+
+        var messages = Messages(buildAndRun);
+        Assert.Contains("The device refused the game.", messages);
+        Assert.DoesNotContain($"Deployment of {ProjectName} successful.", messages);
+        // The build itself succeeded
+        Assert.Equal("Build successful", status.CurrentStatus);
+
+        // A deploy step that throws
+        deployer.Deploy = true;
+        deployer.DeployException = new IOException("The connection was lost.");
+        Assert.Equal(GameBuildOutcome.StartFailed, await buildAndRun.BuildAsync(true));
+        Messages(buildAndRun);
+        var error = Assert.Single(buildAndRun.BuildLog.Messages, x => x.Text == "An exception occurred during the deployment.");
+        Assert.Equal(LogMessageType.Error, error.Type);
+        Assert.False(buildAndRun.BuildInProgress);
+    }
+
+    [Fact]
+    public async Task ADeployStepOfTheEditorsPlatformReplacesTheLocalStart()
+    {
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);
+        var (_, launcher) = RegisterFakes(fixture);
+        var deployer = new FakeGameDeployer();
+        var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider) { Session = fixture.Session };
+        buildAndRun.RegisterDeployer(Platform.Type, deployer);
+
+        var result = await buildAndRun.RunAsync(true);
+
+        Assert.Equal(GameBuildOutcome.Succeeded, result.Outcome);
+        Assert.Null(result.Game);
+        Assert.Single(deployer.Deployments);
+        Assert.Empty(launcher.Games);
+    }
+
+    [Fact]
+    public async Task CancelStopsADeployment()
+    {
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(PlatformType.Android);
+        RegisterFakes(fixture);
+        var deployer = new FakeGameDeployer { WaitForCancel = true };
+        var status = new StatusViewModel(fixture.ServiceProvider);
+        var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider, status) { Session = fixture.Session };
+        buildAndRun.RegisterDeployer(PlatformType.Android, deployer);
+
+        var building = buildAndRun.BuildAsync(true);
+        await deployer.DeploymentStarted.Task.WaitAsync(TimeSpan.FromSeconds(30));
+        Assert.True(buildAndRun.BuildInProgress);
+        Assert.True(buildAndRun.CancelBuildCommand.IsEnabled);
+        buildAndRun.CancelBuildCommand.Execute();
+
+        Assert.Equal(GameBuildOutcome.Canceled, await building.WaitAsync(TimeSpan.FromSeconds(30)));
+        var messages = Messages(buildAndRun);
+        Assert.Contains($"Build of {ProjectName} cancelled.", messages);
+        Assert.DoesNotContain($"Deployment of {ProjectName} successful.", messages);
+        Assert.DoesNotContain("An exception occurred during the deployment.", messages);
+        Assert.Equal("Build cancelled", status.CurrentStatus);
+        Assert.False(buildAndRun.BuildInProgress);
+    }
+
+    [Fact]
+    public async Task AStartOfItsOwnReplacesTheDeployStep()
+    {
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(PlatformType.Android);
+        var (builder, launcher) = RegisterFakes(fixture);
+        var deployer = new FakeGameDeployer();
+        var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider) { Session = fixture.Session };
+        buildAndRun.RegisterDeployer(PlatformType.Android, deployer);
+        ProjectViewModel? startedProject = null;
+
+        var result = await buildAndRun.RunAsync(true, (project, logger, _) =>
+        {
+            startedProject = project;
+            logger.Info("Started in debug mode.");
+            return Task.FromResult(true);
+        });
+
+        Assert.Equal(GameBuildOutcome.Succeeded, result.Outcome);
+        Assert.Same(fixture.Session.CurrentProject, startedProject);
+        // Built as the platform builds without its deploy step
+        Assert.Equal("Build", Assert.Single(builder.Requests).Target);
+        Assert.Empty(deployer.Preparations);
+        Assert.Empty(deployer.Deployments);
+        Assert.Empty(launcher.Games);
+        Assert.Contains("Started in debug mode.", Messages(buildAndRun));
+
+        // A start that fails
+        Assert.Equal(GameBuildOutcome.StartFailed, (await buildAndRun.RunAsync(true, (_, _, _) => Task.FromResult(false))).Outcome);
+    }
+
+    [Fact]
+    public async Task RunGivesTheGameItStarted()
+    {
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);
+        var (_, launcher) = RegisterFakes(fixture);
+        var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider) { Session = fixture.Session };
+
+        var result = await buildAndRun.RunAsync(true);
+
+        Assert.Equal(GameBuildOutcome.Succeeded, result.Outcome);
+        var game = Assert.Single(launcher.Games);
+        Assert.Same(game, result.Game);
+        game.Exit(0);
+        await WaitForMessageAsync(buildAndRun, $"{ProjectName} exited with code 0.");
+
+        // Built only
+        Assert.Null((await buildAndRun.RunAsync(false)).Game);
+    }
+
+    [Fact]
+    public async Task TheBuildOfTheGameCodeGivesItsAssemblies()
+    {
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);
+        var (builder, _) = RegisterFakes(fixture);
+        var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider) { Session = fixture.Session };
+        var projects = new[] { Path.Combine(Path.GetTempPath(), "Game", "Game.csproj"), Path.Combine(Path.GetTempPath(), "Scripts", "Scripts.csproj") };
+
+        var result = await buildAndRun.BuildCodeAssembliesAsync(projects);
+
+        Assert.Equal(GameBuildOutcome.Succeeded, result.Outcome);
+        Assert.Equal(projects, builder.Requests.Select(x => x.ProjectPath));
+        Assert.Equal(projects, result.AssemblyPaths.Keys.Order());
+        Assert.All(result.AssemblyPaths.Values, x => Assert.Equal(builder.AssemblyPath, x));
+
+        // A failure gives what was built before it
+        builder.Succeed = false;
+        result = await buildAndRun.BuildCodeAssembliesAsync(projects);
+        Assert.Equal(GameBuildOutcome.Failed, result.Outcome);
+        Assert.Empty(result.AssemblyPaths);
     }
 
     [Fact]

@@ -12,6 +12,7 @@ using Stride.Assets.Presentation.ViewModels;
 using Stride.Assets.Sprite;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Presentation.Avalonia.Controls;
 using Stride.GameStudio.Avalonia.Tests.Helpers;
@@ -69,7 +70,7 @@ public sealed class ShellSessionTests
         Assert.Contains(fixture.Main.MRU.MostRecentlyUsedFiles, x => x.FilePath == fixture.PackagePath);
 
         // A fresh editor reads it back from the settings, as the startup path when the settings ask to reload the last session
-        var mru = Settings.GameStudioInternalSettings.CreateMostRecentlyUsedFiles();
+        var mru = RecentSessionsSettings.CreateMostRecentlyUsedFiles();
         Assert.Equal(fixture.PackagePath, mru.MostRecentlyUsedFiles.First().FilePath);
 
         fixture.Main.ClearRecentFilesCommand.Execute();

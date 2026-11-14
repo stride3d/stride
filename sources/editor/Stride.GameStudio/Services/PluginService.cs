@@ -24,9 +24,6 @@ namespace Stride.GameStudio.Services;
 public class PluginService : SceneEditorPluginHost
 {
     /// <inheritdoc />
-    protected override Type AssetEditorViewModelType => typeof(AssetEditorViewModel);
-
-    /// <inheritdoc />
     protected override Type AssetEditorViewType => typeof(IEditorView);
 
     /// <inheritdoc />
@@ -54,7 +51,4 @@ public class PluginService : SceneEditorPluginHost
         image.Freeze();
         return image;
     }
-
-    /// <inheritdoc />
-    protected override bool IsEditorInitialized(ISessionViewModel session) => ((SessionViewModel)session).IsEditorInitialized;
 }

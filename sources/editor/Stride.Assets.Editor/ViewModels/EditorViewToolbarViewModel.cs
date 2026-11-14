@@ -11,6 +11,7 @@ using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Engine.Processors;
 using Stride.Input;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Services;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools;
@@ -49,9 +50,10 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel, IEditorVie
         EditorGameComponentGizmoService? componentGizmos = null, IEnumerable<IEditorGameOverlayService>? overlays = null, IEditorGameLightProbeService? lightProbes = null,
         IEditorGameCameraViewModelService? camera = null, Func<AbsoluteId, EntityViewModel?>? findEntity = null, EditorCameraViewModel? cameraOptions = null,
         EditorGridViewModel? grid = null, EditorRenderingViewModel? rendering = null, EditorLightingViewModel? lighting = null,
-        IEditorGameCameraPreviewViewModelService? cameraPreview = null)
+        IEditorGameCameraPreviewViewModelService? cameraPreview = null, EditorViewLayoutViewModel? views = null)
         : base(serviceProvider)
     {
+        Views = views;
         this.service = service;
         this.camera = camera;
         this.cameraPreview = cameraPreview;
@@ -198,6 +200,11 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel, IEditorVie
     public EditorLightingViewModel? Lighting { get; }
 
     /// <summary>
+    /// Gets the views of the scene, or <c>null</c> when the viewport shows one view only.
+    /// </summary>
+    public EditorViewLayoutViewModel? Views { get; }
+
+    /// <summary>
     /// Gets whether the game can show the preview of the selected camera (scene editor only).
     /// </summary>
     public bool HasCameraPreview => cameraPreview is not null;
@@ -225,6 +232,7 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel, IEditorVie
         if (camera is EditorGameEntityCameraService entityCamera && Camera is not null && entityCamera.Options == Camera)
             entityCamera.Options = null;
         Overlays.Destroy();
+        Views?.Destroy();
         base.Destroy();
     }
 
@@ -271,6 +279,13 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel, IEditorVie
             Camera.SaveSettings(settings);
         else if (camera is not null)
             (settings.CamPosition, settings.CamPitchYaw) = camera.SaveSettings();
+        // While another view is active, the editor camera is its camera: the scene keeps the camera of the primary view
+        if (Views?.Service.PrimaryViewCamera is { } primary)
+        {
+            (settings.CamPosition, settings.CamPitchYaw) = (primary.Position, primary.PitchYaw);
+            settings.CamProjection = primary.IsOrthographic ? CameraProjectionMode.Orthographic : CameraProjectionMode.Perspective;
+            settings.CamOrthographicSize = primary.OrthographicSize;
+        }
         Grid?.SaveSettings(settings);
         Lighting?.SaveSettings(settings);
         Rendering?.SaveSettings(settings);
@@ -605,14 +620,16 @@ internal sealed class EditorViewToolbarFactory : IEditorViewOptionsFactory
         var serviceProvider = editor.ServiceProvider;
         var camera = controller.GetService<IEditorGameCameraViewModelService>();
         var lightProbes = controller.GetService<IEditorGameLightProbeService>();
+        var cameraOptions = camera is not null ? new EditorCameraViewModel(serviceProvider, controller) : null;
         return new EditorViewToolbarViewModel(serviceProvider, toolService, controller.GetService<IEditorGameSelectionViewModelService>(),
             controller.GetService<EditorGameMaterialHighlightService>(), controller.GetService<EditorGameComponentGizmoService>(), controller.GetServices<IEditorGameOverlayService>(),
             lightProbes, camera, id => editor.FindPartViewModel(id) as EntityViewModel,
-            camera is not null ? new EditorCameraViewModel(serviceProvider, controller) : null,
+            cameraOptions,
             controller.GetService<IEditorGameGridViewModelService>() is not null ? new EditorGridViewModel(serviceProvider, controller) : null,
             controller.GetService<IEditorGameRenderModeViewModelService>() is not null ? new EditorRenderingViewModel(serviceProvider, controller) : null,
             lightProbes is not null ? new EditorLightingViewModel(serviceProvider, controller, editor) : null,
-            controller.GetService<IEditorGameCameraPreviewViewModelService>());
+            controller.GetService<IEditorGameCameraPreviewViewModelService>(),
+            controller.GetService<IEditorGameMultiViewViewModelService>() is { IsAvailable: true } multiView ? new EditorViewLayoutViewModel(serviceProvider, multiView, cameraOptions) : null);
     }
 }
 

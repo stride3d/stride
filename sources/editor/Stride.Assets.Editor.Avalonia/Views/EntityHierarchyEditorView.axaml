@@ -581,6 +581,72 @@
             </Flyout>
           </Button.Flyout>
         </Button>
+        <!-- Views: one, two or four views of the scene, each with its camera, and the active one maximized -->
+        <Button x:Name="ViewsButton" x:DataType="vm:EditorViewToolbarViewModel" Focusable="False" Background="Transparent" Padding="6"
+                IsVisible="{Binding Views, Converter={x:Static ObjectConverters.IsNotNull}}" ToolTip.Tip="Views of the scene...">
+          <Path Classes="icon" Data="M1,2 H7.5 V14 H1 Z M8.5,2 H15 V7.5 H8.5 Z M8.5,8.5 H15 V14 H8.5 Z" />
+          <Button.Flyout>
+            <Flyout Placement="BottomEdgeAlignedLeft">
+              <StackPanel x:DataType="vm:EditorViewLayoutViewModel" DataContext="{Binding Views}" Width="230" Spacing="4">
+                <TextBlock Text="Layout" FontWeight="Bold"/>
+                <!-- Each layout as a small picture of its panes, with the letter of the camera each pane starts with -->
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                  <StackPanel.Styles>
+                    <Style Selector="Button.layout">
+                      <Setter Property="Padding" Value="4"/>
+                      <Setter Property="Margin" Value="2"/>
+                    </Style>
+                    <Style Selector="Button.layout Grid">
+                      <Setter Property="Width" Value="44"/>
+                      <Setter Property="Height" Value="32"/>
+                    </Style>
+                    <Style Selector="Button.layout Border">
+                      <Setter Property="BorderBrush" Value="Gray"/>
+                      <Setter Property="BorderThickness" Value="1"/>
+                      <Setter Property="Margin" Value="1"/>
+                    </Style>
+                    <Style Selector="Button.layout TextBlock">
+                      <Setter Property="FontSize" Value="11"/>
+                      <Setter Property="HorizontalAlignment" Value="Center"/>
+                      <Setter Property="VerticalAlignment" Value="Center"/>
+                    </Style>
+                  </StackPanel.Styles>
+                  <Button x:Name="SingleViewButton" Classes="layout" ToolTip.Tip="One view: Perspective"
+                          Command="{Binding SetLayoutCommand}" CommandParameter="{x:Static vm:EditorViewLayout.Single}">
+                    <Grid>
+                      <Border><TextBlock Text="P"/></Border>
+                    </Grid>
+                  </Button>
+                  <Button x:Name="TwoColumnsButton" Classes="layout" ToolTip.Tip="Two views, side by side: Perspective and Top"
+                          Command="{Binding SetLayoutCommand}" CommandParameter="{x:Static vm:EditorViewLayout.TwoColumns}">
+                    <Grid ColumnDefinitions="*,*">
+                      <Border><TextBlock Text="P"/></Border>
+                      <Border Grid.Column="1"><TextBlock Text="T"/></Border>
+                    </Grid>
+                  </Button>
+                  <Button x:Name="TwoRowsButton" Classes="layout" ToolTip.Tip="Two views, stacked: Perspective and Front"
+                          Command="{Binding SetLayoutCommand}" CommandParameter="{x:Static vm:EditorViewLayout.TwoRows}">
+                    <Grid RowDefinitions="*,*">
+                      <Border><TextBlock Text="P"/></Border>
+                      <Border Grid.Row="1"><TextBlock Text="F"/></Border>
+                    </Grid>
+                  </Button>
+                  <Button x:Name="QuadButton" Classes="layout" ToolTip.Tip="Four views: Top, Front, Left and Perspective"
+                          Command="{Binding SetLayoutCommand}" CommandParameter="{x:Static vm:EditorViewLayout.Quad}">
+                    <Grid ColumnDefinitions="*,*" RowDefinitions="*,*">
+                      <Border><TextBlock Text="T"/></Border>
+                      <Border Grid.Column="1"><TextBlock Text="F"/></Border>
+                      <Border Grid.Row="1"><TextBlock Text="L"/></Border>
+                      <Border Grid.Row="1" Grid.Column="1"><TextBlock Text="P"/></Border>
+                    </Grid>
+                  </Button>
+                </StackPanel>
+                <Button x:Name="MaximizeButton" Content="Maximize or restore active view" HorizontalAlignment="Stretch" Margin="2" Command="{Binding ToggleMaximizeCommand}"/>
+                <TextBlock TextWrapping="Wrap" Opacity="0.7" Text="The view under the pointer is active: the camera, the gizmos and the selection work there."/>
+              </StackPanel>
+            </Flyout>
+          </Button.Flyout>
+        </Button>
         <!-- Render mode: the editor, the game preview, or one stream of the materials -->
         <Panel x:DataType="vm:EditorViewToolbarViewModel" DataContext="{Binding Rendering}" VerticalAlignment="Center"
                IsVisible="{Binding $self.DataContext, Converter={x:Static ObjectConverters.IsNotNull}}">
@@ -626,11 +692,15 @@
                    HorizontalAlignment="Center" VerticalAlignment="Center"
                    IsVisible="{Binding GameHost.GameView, Converter={x:Static ObjectConverters.IsNull}}" />
         <!-- Assets dropped on the view add their entities under the pointer -->
-        <ContentControl x:Name="GameViewHost" Content="{Binding GameHost.GameView}"
+        <ContentControl x:Name="GameViewHost"
                         IsVisible="{Binding GameHost.LastException, Converter={x:Static ObjectConverters.IsNull}}">
           <Interaction.Behaviors>
             <dd:AddChildDropBehavior/>
           </Interaction.Behaviors>
+          <!-- The views of the game: the primary view alone, or several views with a camera each -->
+          <local:EditorViewLayoutPanel x:Name="GameViews" GameView="{Binding GameHost.GameView}"
+                                       Viewport="{Binding GameHost.Controller.Viewport, FallbackValue={x:Null}}"
+                                       Layout="{Binding ((vm:EditorViewToolbarViewModel)ViewOptions).Views, FallbackValue={x:Null}}"/>
         </ContentControl>
         <!-- The widgets of the plugins, on the edges of the view over the game; the panels have no background, so the pointer
              reaches the game everywhere but on a widget -->

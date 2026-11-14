@@ -21,9 +21,10 @@ namespace Stride.Core.Assets.Editor.Components.Build;
 /// project, Start project and Cancel build commands, the log of the build in the Output pane and the build job in the status bar.
 /// </summary>
 /// <remarks>
-/// The build goes through the <see cref="IGameProjectBuilder"/> service and the game starts through the <see cref="IGameLauncher"/>
-/// service. Live scripting is not part of it; the reload of the game assemblies is <see cref="GameCodeReloadViewModel"/>, which builds
-/// the changed code with <see cref="BuildCodeAsync"/>.
+/// The build goes through the <see cref="IGameProjectBuilder"/> service. A game of the editor's own platform starts through the
+/// <see cref="IGameLauncher"/> service; the games of the platforms with a deploy step (<see cref="RegisterDeployer"/>) are deployed by
+/// it. Live scripting is not part of it; the reload of the game assemblies is <see cref="GameCodeReloadViewModel"/>, which builds the
+/// changed code with <see cref="BuildCodeAsync"/>.
 /// </remarks>
 public sealed class BuildAndRunViewModel : DispatcherViewModel
 {
@@ -36,9 +37,11 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
     private readonly StatusViewModel? status;
     // The console output of the games started from the editor: it stays in the Output pane until they exit, across builds
     private readonly List<Logger> gameOutputs = [];
+    private readonly Dictionary<PlatformType, IGameDeployer> deployers = [];
     private SessionViewModel? session;
     private IGameProjectBuild? currentBuild;
-    private bool cancelRequested;
+    // Canceled by Cancel build: before the build starts (while the session saves), it does not start at all
+    private CancellationTokenSource cancellation = new();
     private bool buildInProgress;
     private bool isOutputVisible;
     private string outputTitle;
@@ -126,13 +129,31 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
     /// </summary>
     public ICommandBase CancelBuildCommand { get; }
 
+    /// <summary>
+    /// The deploy steps of the platforms whose games are deployed to a device or another machine, by platform.
+    /// </summary>
+    public IReadOnlyDictionary<PlatformType, IGameDeployer> Deployers => deployers;
+
     private IDialogService Dialogs => ServiceProvider.Get<IDialogService>();
+
+    /// <summary>
+    /// Registers the deploy step of the games of a platform: it prepares their builds, and deploys and starts them instead of the
+    /// <see cref="IGameLauncher"/>.
+    /// </summary>
+    /// <param name="platform">The platform of the games.</param>
+    /// <param name="deployer">The deploy step; it replaces the one registered before for this platform.</param>
+    public void RegisterDeployer(PlatformType platform, IGameDeployer deployer)
+    {
+        ArgumentNullException.ThrowIfNull(deployer);
+        deployers[platform] = deployer;
+    }
 
     /// <inheritdoc/>
     public override void Destroy()
     {
         EnsureNotDestroyed(nameof(BuildAndRunViewModel));
         CancelBuild();
+        cancellation.Dispose();
         Session = null;
         BuildLog.Messages.CollectionChanged -= BuildLogChanged;
         BuildLog.Destroy();
@@ -144,12 +165,28 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
     /// </summary>
     /// <param name="startProject">Whether to start the game once it is built.</param>
     /// <returns>How the build went; <see cref="GameBuildOutcome.NotBuilt"/> when it did not start.</returns>
-    internal Task<GameBuildOutcome> BuildAsync(bool startProject)
+    internal async Task<GameBuildOutcome> BuildAsync(bool startProject) => (await RunAsync(startProject)).Outcome;
+
+    /// <summary>
+    /// Saves the session, then builds its current project and, when asked, starts its game.
+    /// </summary>
+    /// <param name="startProject">Whether to start the game once it is built.</param>
+    /// <param name="start">Starts the game instead of the deploy step of its platform (for example in a debugging mode): it gets the
+    /// project, the log of the build and the token of Cancel build, and tells whether the game started; <c>null</c> for the deploy step.</param>
+    /// <returns>How the build went, and the game started on this machine if any.</returns>
+    internal async Task<GameRunResult> RunAsync(bool startProject, Func<ProjectViewModel, ILogger, CancellationToken, Task<bool>>? start = null)
     {
         if (BuildInProgress || session is not { } buildSession)
-            return Task.FromResult(GameBuildOutcome.NotBuilt);
+            return new GameRunResult(GameBuildOutcome.NotBuilt, null);
 
-        return RunBuildAsync(() => PrepareBuildAsync(buildSession), () => BuildCoreAsync(buildSession, startProject));
+        IGameProcess? game = null;
+        var outcome = await RunBuildAsync(() => PrepareBuildAsync(buildSession), async () =>
+        {
+            var (buildOutcome, startedGame) = await BuildCoreAsync(buildSession, startProject, start);
+            game = startedGame;
+            return buildOutcome;
+        });
+        return new GameRunResult(outcome, game);
     }
 
     /// <summary>
@@ -168,13 +205,21 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
     /// <param name="projectPaths">The project files to build, dependencies first.</param>
     /// <returns>How the builds went: the outcome of the first one that did not succeed; <see cref="GameBuildOutcome.NotBuilt"/> when
     /// a build is in progress already, or without a session or a project.</returns>
-    internal Task<GameBuildOutcome> BuildCodeAsync(IReadOnlyList<string> projectPaths)
+    internal async Task<GameBuildOutcome> BuildCodeAsync(IReadOnlyList<string> projectPaths) => (await BuildCodeAssembliesAsync(projectPaths)).Outcome;
+
+    /// <summary>
+    /// Builds projects of the game code, as <see cref="BuildCodeAsync"/> does, and gives the assemblies they produced.
+    /// </summary>
+    /// <param name="projectPaths">The project files to build, dependencies first.</param>
+    /// <returns>How the builds went, and the assembly of each project that was built, by project file.</returns>
+    internal async Task<GameCodeBuildResult> BuildCodeAssembliesAsync(IReadOnlyList<string> projectPaths)
     {
         ArgumentNullException.ThrowIfNull(projectPaths);
+        var assemblies = new Dictionary<string, string>();
         if (BuildInProgress || session is null || projectPaths.Count == 0)
-            return Task.FromResult(GameBuildOutcome.NotBuilt);
+            return new GameCodeBuildResult(GameBuildOutcome.NotBuilt, assemblies);
 
-        return RunBuildAsync(() =>
+        var outcome = await RunBuildAsync(() =>
         {
             ShowNewBuildLog();
             return Task.FromResult(true);
@@ -184,14 +229,16 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
             BuildLog.AddLogger(logger);
             foreach (var projectPath in projectPaths)
             {
-                // As the WPF editor builds the game code it reloads (DebuggingViewModel.BuildProject)
+                // As the WPF editor builds the game code it reloads in place
                 var request = new GameProjectBuildRequest(projectPath, "AnyCPU", ReloadBuildProperties);
-                var (outcome, _) = await BuildProjectAsync(Path.GetFileNameWithoutExtension(projectPath), request, logger);
+                var (outcome, build) = await BuildProjectAsync(Path.GetFileNameWithoutExtension(projectPath), request, logger);
                 if (outcome != GameBuildOutcome.Succeeded)
                     return outcome;
+                assemblies[projectPath] = build!.AssemblyPath;
             }
             return GameBuildOutcome.Succeeded;
         });
+        return new GameCodeBuildResult(outcome, assemblies);
     }
 
     /// <summary>
@@ -201,7 +248,8 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
     /// <param name="build">The build itself.</param>
     private async Task<GameBuildOutcome> RunBuildAsync(Func<Task<bool>> prepare, Func<Task<GameBuildOutcome>> build)
     {
-        cancelRequested = false;
+        cancellation.Dispose();
+        cancellation = new CancellationTokenSource();
         BuildInProgress = true;
         try
         {
@@ -235,7 +283,7 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
 
     /// <summary>
     /// The MSBuild platform and global properties of the build of a project, as the WPF editor sets them; <c>null</c> for a
-    /// platform this editor does not build.
+    /// platform the editor does not build. The deploy step of the platform, if any, completes it (<see cref="IGameDeployer.PrepareBuildAsync"/>).
     /// </summary>
     /// <param name="project">The project to build.</param>
     /// <param name="solutionPath">The solution of the session, if any.</param>
@@ -262,11 +310,15 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
                     break;
                 case PlatformType.Linux:
                 case PlatformType.macOS:
+                case PlatformType.Android:
                     platform = project.Platform.ToString();
                     properties["SolutionPlatform"] = platform;
                     break;
+                case PlatformType.iOS:
+                    platform = "iPhone";
+                    properties["SolutionPlatform"] = platform;
+                    break;
                 default:
-                    // Android and iOS: the WPF editor installs the game on a device, which this editor does not do yet
                     return null;
             }
         }
@@ -306,30 +358,85 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
         IsOutputVisible = true;
     }
 
-    private async Task<GameBuildOutcome> BuildCoreAsync(SessionViewModel buildSession, bool startProject)
+    private async Task<(GameBuildOutcome Outcome, IGameProcess? Game)> BuildCoreAsync(SessionViewModel buildSession, bool startProject, Func<ProjectViewModel, ILogger, CancellationToken, Task<bool>>? start)
     {
         var logger = new LoggerResult();
         BuildLog.AddLogger(logger);
+        var cancellationToken = cancellation.Token;
 
         var project = buildSession.CurrentProject!;
         if (project.Type != ProjectType.Executable)
         {
             logger.Error(string.Format(Tr._p("Message", "The current project {0} is a library: set the executable project of a platform as the current project in the solution explorer."), project.Name));
-            return GameBuildOutcome.Failed;
+            return (GameBuildOutcome.Failed, null);
         }
 
         var request = CreateBuildRequest(project, buildSession.SolutionPath?.ToOSPath());
         if (request is null)
         {
             logger.Error(string.Format(Tr._p("Message", "Platform {0} isn't supported for execution."), project.Platform));
-            return GameBuildOutcome.Failed;
+            return (GameBuildOutcome.Failed, null);
         }
 
-        var (outcome, assemblyPath) = await BuildProjectAsync(project.Name, request, logger);
-        if (outcome != GameBuildOutcome.Succeeded || !startProject)
-            return outcome;
+        // A game started another way (start) is not deployed
+        var deployer = start is null ? deployers.GetValueOrDefault(project.Platform) : null;
+        if (deployer is not null)
+        {
+            var prepared = await RunDeployStepAsync(() => deployer.PrepareBuildAsync(project, request, startProject, logger, cancellationToken), logger);
+            if (cancellationToken.IsCancellationRequested)
+                return (Canceled(project.Name, logger), null);
+            if (prepared is null)
+                return (GameBuildOutcome.Failed, null);
+            request = prepared;
+        }
 
-        return StartGame(project, assemblyPath!, logger) ? GameBuildOutcome.Succeeded : GameBuildOutcome.StartFailed;
+        var (outcome, build) = await BuildProjectAsync(project.Name, request, logger);
+        if (outcome != GameBuildOutcome.Succeeded || !startProject)
+            return (outcome, null);
+        if (cancellationToken.IsCancellationRequested)
+            return (Canceled(project.Name, logger), null);
+
+        if (start is not null || deployer is not null)
+        {
+            var started = await RunDeployStepAsync(() => start is not null ? start(project, logger, cancellationToken) : deployer!.DeployAsync(project, build!, logger, cancellationToken), logger);
+            if (cancellationToken.IsCancellationRequested)
+                return (Canceled(project.Name, logger), null);
+            if (!started)
+                return (GameBuildOutcome.StartFailed, null);
+            if (deployer is not null)
+                logger.Info(string.Format(Tr._p("Message", "Deployment of {0} successful."), project.Name));
+            return (GameBuildOutcome.Succeeded, null);
+        }
+
+        // An iOS game is signed and installed by Xcode
+        if (project.Platform == PlatformType.iOS)
+        {
+            logger.Warning(string.Format(Tr._p("Message", "{0} was built: the editor doesn't deploy iOS games, start it from your IDE."), project.Name));
+            return (GameBuildOutcome.Succeeded, null);
+        }
+
+        var game = StartGame(project, build!.AssemblyPath, logger);
+        return (game is not null ? GameBuildOutcome.Succeeded : GameBuildOutcome.StartFailed, game);
+    }
+
+    /// <summary>
+    /// Runs a step of a deployment or of a start, and logs the exception it throws, unless the step was canceled.
+    /// </summary>
+    private static async Task<T?> RunDeployStepAsync<T>(Func<Task<T>> step, ILogger logger)
+    {
+        try
+        {
+            return await step();
+        }
+        catch (OperationCanceledException)
+        {
+            return default;
+        }
+        catch (Exception e)
+        {
+            logger.Error(Tr._p("Message", "An exception occurred during the deployment."), e);
+            return default;
+        }
     }
 
     /// <summary>
@@ -338,13 +445,13 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
     /// <param name="name">The name of the project in the log.</param>
     /// <param name="request">The build.</param>
     /// <param name="logger">The log of the build, in the Output pane.</param>
-    /// <returns>How the build went, and the assembly it produced when it succeeded.</returns>
-    private async Task<(GameBuildOutcome Outcome, string? AssemblyPath)> BuildProjectAsync(string name, GameProjectBuildRequest request, LoggerResult logger)
+    /// <returns>How the build went, and the build itself when it succeeded.</returns>
+    private async Task<(GameBuildOutcome Outcome, IGameProjectBuild? Build)> BuildProjectAsync(string name, GameProjectBuildRequest request, LoggerResult logger)
     {
         try
         {
-            if (cancelRequested)
-                return (Canceled(), null);
+            if (cancellation.IsCancellationRequested)
+                return (Canceled(name, logger), null);
 
             logger.Info(string.Format(Tr._p("Message", "Building {0}..."), name));
             var builder = ServiceProvider.Get<IGameProjectBuilder>();
@@ -357,12 +464,12 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
             }
 
             currentBuild = build;
-            if (cancelRequested)
+            if (cancellation.IsCancellationRequested)
                 build.Cancel();
             var succeeded = await build.Completion;
             currentBuild = null;
             if (build.IsCanceled)
-                return (Canceled(), null);
+                return (Canceled(name, logger), null);
             if (!succeeded || logger.HasErrors)
             {
                 var errorCount = logger.Messages.Count(x => x.IsAtLeast(LogMessageType.Error));
@@ -373,7 +480,7 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
             }
 
             logger.Info(string.Format(Tr._p("Message", "Build of {0} succeeded."), name));
-            return (GameBuildOutcome.Succeeded, build.AssemblyPath);
+            return (GameBuildOutcome.Succeeded, build);
         }
         catch (Exception e)
         {
@@ -381,25 +488,25 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
             await Dialogs.MessageBoxAsync(string.Format(Tr._p("Message", "An exception occurred while compiling the project: {0}"), e.FormatSummary(true)), MessageBoxButton.OK, MessageBoxImage.Information);
             return (GameBuildOutcome.Failed, null);
         }
+    }
 
-        GameBuildOutcome Canceled()
-        {
-            logger.Warning(string.Format(Tr._p("Message", "Build of {0} cancelled."), name));
-            return GameBuildOutcome.Canceled;
-        }
+    private static GameBuildOutcome Canceled(string name, ILogger logger)
+    {
+        logger.Warning(string.Format(Tr._p("Message", "Build of {0} cancelled."), name));
+        return GameBuildOutcome.Canceled;
     }
 
     /// <summary>
     /// Starts the game that was just built, when it runs on this machine, and reports its exit in the Output pane.
     /// </summary>
-    private bool StartGame(ProjectViewModel project, string assemblyPath, LoggerResult logger)
+    /// <returns>The game, or <c>null</c> when it did not start.</returns>
+    private IGameProcess? StartGame(ProjectViewModel project, string assemblyPath, LoggerResult logger)
     {
-        // The WPF editor deploys a Linux or macOS game to a remote machine, and an Android game to a device: this editor starts
-        // the games of its own platform only
+        // The games of the other platforms go to a device or another machine, through their deploy step (none registered for this one)
         if (project.Platform != Platform.Type)
         {
             logger.Error(string.Format(Tr._p("Message", "{0} is a {1} game: this editor can only start the games of its own platform ({2})."), project.Name, project.Platform, Platform.Type));
-            return false;
+            return null;
         }
 
         // The game's own output is logged under its name, and only kept in the Output pane
@@ -412,14 +519,14 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
         catch (Exception e)
         {
             logger.Error(string.Format(Tr._p("Message", "Unable to start {0}."), assemblyPath), e);
-            return false;
+            return null;
         }
 
         gameOutputs.Add(output);
         BuildLog.AddLogger(output);
         logger.Info(string.Format(Tr._p("Message", "{0} started (process {1})."), project.Name, game.Id));
         ReportExitAsync(project.Name, game, output).Forget();
-        return true;
+        return game;
     }
 
     private async Task ReportExitAsync(string name, IGameProcess game, Logger output)
@@ -452,8 +559,8 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
         if (!BuildInProgress)
             return;
 
-        // Before the build starts (while the session saves), it does not start at all
-        cancelRequested = true;
+        // Before the build starts (while the session saves), it does not start at all; a deploy step stops
+        cancellation.Cancel();
         currentBuild?.Cancel();
     }
 
@@ -512,10 +619,24 @@ internal enum GameBuildOutcome
     Canceled,
 
     /// <summary>
-    /// The project was built but its game could not start.
+    /// The project was built but its game could not be deployed or start.
     /// </summary>
     StartFailed,
 }
+
+/// <summary>
+/// How a build of <see cref="BuildAndRunViewModel.RunAsync"/> went, and the game it started on this machine.
+/// </summary>
+/// <param name="Outcome">How the build went.</param>
+/// <param name="Game">The game started on this machine; <c>null</c> when none was, or when it was deployed elsewhere or started another way.</param>
+internal readonly record struct GameRunResult(GameBuildOutcome Outcome, IGameProcess? Game);
+
+/// <summary>
+/// How a build of <see cref="BuildAndRunViewModel.BuildCodeAssembliesAsync"/> went.
+/// </summary>
+/// <param name="Outcome">How the builds went: the outcome of the first one that did not succeed.</param>
+/// <param name="AssemblyPaths">The assembly of each project that was built, by project file.</param>
+internal sealed record GameCodeBuildResult(GameBuildOutcome Outcome, IReadOnlyDictionary<string, string> AssemblyPaths);
 
 /// <summary>
 /// The output of a game started from the editor: it keeps no message of its own, the Output pane (<see cref="LoggerViewModel"/>)

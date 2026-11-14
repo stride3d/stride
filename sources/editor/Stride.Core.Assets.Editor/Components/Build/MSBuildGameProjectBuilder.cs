@@ -54,11 +54,14 @@ public sealed class MSBuildGameProjectBuilder : IGameProjectBuilder
 
         public bool IsCanceled => build.IsCanceled;
 
+        public IReadOnlyDictionary<string, IReadOnlyList<string>> TargetOutputs { get; private set; } = new Dictionary<string, IReadOnlyList<string>>();
+
         public void Cancel() => build.Cancel();
 
-        private static async Task<bool> WaitAsync(ICancellableAsyncBuild build, IBuildCrashRouting? crashRouting, ILogger logger)
+        private async Task<bool> WaitAsync(ICancellableAsyncBuild build, IBuildCrashRouting? crashRouting, ILogger logger)
         {
             var result = await build.BuildTask;
+            TargetOutputs = GetTargetOutputs(result);
             // The asset compiler ran, and wrote any crash, by the time the build ends
             crashRouting?.SurfacePendingCrashes(logger);
             // MSBuild logs the errors of the projects but not an exception of its own: log it, unless it only says that the build
@@ -66,6 +69,17 @@ public sealed class MSBuildGameProjectBuilder : IGameProjectBuilder
             if (result.Exception is { } exception && !build.IsCanceled)
                 logger.Error("MSBuild failed to build the project.", exception);
             return result.OverallResult == BuildResultCode.Success;
+        }
+
+        private static Dictionary<string, IReadOnlyList<string>> GetTargetOutputs(BuildResult result)
+        {
+            var outputs = new Dictionary<string, IReadOnlyList<string>>(StringComparer.OrdinalIgnoreCase);
+            // A build canceled before it ran has no result at all
+            if (result.ResultsByTarget is null)
+                return outputs;
+            foreach (var (target, targetResult) in result.ResultsByTarget)
+                outputs[target] = targetResult.Items.Select(x => x.ItemSpec).ToList();
+            return outputs;
         }
     }
 }

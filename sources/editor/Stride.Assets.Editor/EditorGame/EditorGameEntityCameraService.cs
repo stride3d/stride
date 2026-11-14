@@ -119,6 +119,21 @@ public sealed class EditorGameEntityCameraService : EditorGameCameraService, IEd
     }
 
     /// <inheritdoc />
+    internal override EditorCameraViewState CaptureViewState()
+    {
+        return base.CaptureViewState() with { Target = targetPos };
+    }
+
+    /// <inheritdoc />
+    internal override void RestoreViewState(EditorCameraViewState state)
+    {
+        base.RestoreViewState(state);
+        if (state.Target is { } target)
+            targetPos = target;
+        revolutionRadius = (targetPos - Position).Length();
+    }
+
+    /// <inheritdoc />
     protected override void Reset()
     {
         base.Reset();

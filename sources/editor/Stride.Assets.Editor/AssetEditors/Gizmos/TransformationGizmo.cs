@@ -14,6 +14,7 @@ using Stride.Rendering;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Assets.Editor.AssetEditors.GameEditor;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
+using Stride.Assets.Editor.EditorGame;
 
 namespace Stride.Assets.Editor.AssetEditors.Gizmos
 {
@@ -189,7 +190,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
             }
         }
 
-        private Matrix GetWorldMatrix(IEditorGameCameraService cameraService)
+        private Matrix GetWorldMatrix(Matrix viewMatrix)
         {
             Matrix worldMatrix = Matrix.Identity;
 
@@ -219,7 +220,7 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
                                   parentMatrix;
                     break;
                 case TransformationSpace.ViewSpace:
-                    worldMatrix = Matrix.Invert(cameraService.ViewMatrix);
+                    worldMatrix = Matrix.Invert(viewMatrix);
                     worldMatrix.TranslationVector = AnchorEntity.Transform.WorldMatrix.TranslationVector;
                     break;
                 default:
@@ -229,15 +230,27 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
             return worldMatrix;
         }
 
-        private float GetTargetedScale(IEditorGameCameraService cameraService)
+        private float GetTargetedScale(EditorGameViewCamera view)
         {
-            if (cameraService.Component.Projection == CameraProjectionMode.Perspective)
+            return GetScreenFittedScale(SizeFactor, AnchorEntity.Transform.WorldMatrix.TranslationVector, view);
+        }
+
+        /// <summary>
+        /// Gets the scale that gives a gizmo at <paramref name="position"/> the same size on the screen of
+        /// <paramref name="view"/>, whatever its projection, distance and height: <see cref="AxialGizmo.GizmoDefaultSize"/>
+        /// pixels times <paramref name="sizeFactor"/>.
+        /// </summary>
+        internal static float GetScreenFittedScale(float sizeFactor, Vector3 position, EditorGameViewCamera view)
+        {
+            // The size of the gizmo on screen is a ratio of the height of the view
+            var defaultScale = GizmoDefaultSize / view.Height;
+            if (!view.IsOrthographic)
             {
-                var distanceToSelectedEntity = MathF.Abs(Vector3.TransformCoordinate(AnchorEntity.Transform.WorldMatrix.TranslationVector, cameraService.ViewMatrix).Z);
-                return SizeFactor * DefaultScale * 2f * MathF.Tan(MathUtil.DegreesToRadians(cameraService.VerticalFieldOfView / 2)) * distanceToSelectedEntity;
+                var distanceToSelectedEntity = MathF.Abs(Vector3.TransformCoordinate(position, view.ViewMatrix).Z);
+                return sizeFactor * defaultScale * 2f * MathF.Tan(MathUtil.DegreesToRadians(view.VerticalFieldOfView / 2)) * distanceToSelectedEntity;
             }
 
-            return SizeFactor * DefaultScale * cameraService.Component.OrthographicSize;
+            return sizeFactor * defaultScale * view.OrthographicSize;
         }
 
         protected virtual void UpdateTransformation()
@@ -249,9 +262,27 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
             AnchorEntity.Transform.UpdateWorldMatrix(); // TODO perform this computation only when necessary?
 
             var cameraService = Game.EditorServices.Get<IEditorGameCameraService>();
+            ApplyViewTransformation(new EditorGameViewCamera(cameraService.Component, GraphicsDevice.Presenter.BackBuffer.Height, true));
+        }
 
-            Matrix worldMatrix = GetWorldMatrix(cameraService);
-            float targetedScale = GetTargetedScale(cameraService);
+        /// <summary>
+        /// Sizes, orients and shapes the gizmo for the camera of a view, so that it has the same size on screen in every view
+        /// and shows the axes that face that view's camera.
+        /// </summary>
+        /// <param name="view">The camera of the view the game draws next.</param>
+        public void PrepareView(EditorGameViewCamera view)
+        {
+            if (AnchorEntity == null || GizmoRootEntity == null)
+                return;
+
+            ApplyViewTransformation(view);
+            UpdateShape(view.ViewMatrix);
+        }
+
+        private void ApplyViewTransformation(EditorGameViewCamera view)
+        {
+            Matrix worldMatrix = GetWorldMatrix(view.ViewMatrix);
+            float targetedScale = GetTargetedScale(view);
 
             // Now scale the matrix so the gizmo always has the same on-screen size:
             var worldMatrixRow1 = worldMatrix.Row1;
@@ -506,7 +537,9 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
             if (!IsEnabled)
                 return;
 
-            UpdateShape();
+            var cameraService = Game.EditorServices.Get<IEditorGameCameraService>();
+            if (cameraService != null)
+                UpdateShape(cameraService.ViewMatrix);
             UpdateTransformationAxisBase();
             UpdateColors();
             await TransformSceneEntityBase(cancellationToken);
@@ -516,7 +549,8 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
         /// <summary>
         /// Update the shape of the gizmo depending on the angle of view.
         /// </summary>
-        protected virtual void UpdateShape()
+        /// <param name="viewMatrix">The view matrix of the camera the gizmo is drawn for.</param>
+        protected virtual void UpdateShape(Matrix viewMatrix)
         {
         }
 

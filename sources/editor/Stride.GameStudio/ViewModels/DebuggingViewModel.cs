@@ -9,9 +9,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
-using Microsoft.Build.Execution;
 using Microsoft.CodeAnalysis;
 using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Components.Build;
 using Stride.Core.Assets.Editor.Components.Status;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModel;
@@ -22,6 +22,7 @@ using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.GameStudio.Logs;
 using Stride.GameStudio.Debugging;
+using Stride.GameStudio.Deployment;
 using Stride.GameStudio.Helpers;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
@@ -31,15 +32,17 @@ using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Annotations;
 using Stride.Core.Translation;
 using Stride.Assets.Presentation.AssetEditors;
-using Stride.GameStudio.Services;
-using Stride.GameStudio.Remote;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.Core.Assets.Presentation.ViewModels;
-using Stride.CrashReport;
 
 namespace Stride.GameStudio.ViewModels
 {
+    /// <summary>
+    /// The build and run of Game Studio: the shared <see cref="BuildAndRunViewModel"/> (Build project, Start project, Cancel build, the
+    /// build log), with the deploy steps of Game Studio, plus live scripting, the reload of the game assemblies in place, and the
+    /// logs of the Output pane.
+    /// </summary>
     public class DebuggingViewModel : DispatcherViewModel, IDisposable
     {
         private readonly IDebugService debugService;
@@ -57,7 +60,7 @@ namespace Stride.GameStudio.ViewModels
         private bool trackAssemblyChanges;
         private string outputTitle;
         private readonly string outputTitleBase = Tr._p("Title", "Output");
-        private ICancellableAsyncBuild currentBuild;
+        private bool cleanedUp;
 
         public DebuggingViewModel(GameStudioViewModel editor, IDebugService debugService)
             : base(editor.SafeArgument(nameof(editor)).ServiceProvider)
@@ -67,7 +70,11 @@ namespace Stride.GameStudio.ViewModels
 
             outputTitle = outputTitleBase;
 
-            BuildLog = new BuildLogViewModel(ServiceProvider);
+            Build = new BuildAndRunViewModel(ServiceProvider, editor.Status) { Session = editor.Session };
+            GameDeployers.Register(Build, ServiceProvider);
+            Build.PropertyChanged += BuildPropertyChanged;
+            // Any new message of the build log marks the title of the Output pane, until it is activated
+            Build.BuildLog.Messages.CollectionChanged += BuildLogMessagesChanged;
             ProjectLog = new LoggerViewModel(ServiceProvider);
             var logger = StrideAssetsViewModel.Instance.Code.Logger;
             ProjectLog.AddLoggerWithPast(logger);
@@ -77,9 +84,6 @@ namespace Stride.GameStudio.ViewModels
             var editorLogger = new LoggerResult("Editor");
             EditorLog.AddLogger(editorLogger);
             GlobalLogBuffer.Instance.ForwardTo(editorLogger);
-            BuildProjectCommand = new AnonymousTaskCommand(ServiceProvider, () => BuildProject(false));
-            StartProjectCommand = new AnonymousTaskCommand(ServiceProvider, () => BuildProject(true));
-            CancelBuildCommand = new AnonymousCommand(ServiceProvider, () => { currentBuild?.Cancel(); });
             LivePlayProjectCommand = new AnonymousTaskCommand(ServiceProvider, LivePlayProject);
             ReloadAssembliesCommand = new AnonymousTaskCommand(ServiceProvider, ReloadAssemblies) { IsEnabled = false };
             ResetOutputTitleCommand = new AnonymousCommand(ServiceProvider, () => OutputTitle = outputTitleBase);
@@ -110,10 +114,10 @@ namespace Stride.GameStudio.ViewModels
         public SessionViewModel Session => editor.Session;
 
         /// <summary>
-        /// Gets the build log.
+        /// Gets the build and run of the current project: its commands and the build log.
         /// </summary>
         [NotNull]
-        public BuildLogViewModel BuildLog { get; }
+        public BuildAndRunViewModel Build { get; }
 
         /// <summary>
         /// Gets the project log.
@@ -141,18 +145,10 @@ namespace Stride.GameStudio.ViewModels
         public string OutputTitle { get => outputTitle; private set => SetValue(ref outputTitle, value); }
 
         /// <summary>
-        /// Gets whether there is a build currently in progress.
+        /// Gets whether there is a build currently in progress: Build project, Start project, live scripting and the reload of the game
+        /// assemblies all build through <see cref="Build"/>.
         /// </summary>
-        public bool BuildInProgress { get; private set => SetValue(ref field, value, UpdateCommands); }
-
-        [NotNull]
-        public ICommandBase BuildProjectCommand { get; }
-
-        [NotNull]
-        public ICommandBase StartProjectCommand { get; }
-
-        [NotNull]
-        public ICommandBase CancelBuildCommand { get; }
+        public bool BuildInProgress => Build.BuildInProgress;
 
         [NotNull]
         public ICommandBase LivePlayProjectCommand { get; }
@@ -163,7 +159,15 @@ namespace Stride.GameStudio.ViewModels
         [NotNull]
         public ICommandBase ResetOutputTitleCommand { get; }
 
-        internal Task<(bool Success, Process Process)> RunProjectAsync() => BuildProject(true);
+        /// <summary>
+        /// Builds the current project and starts its game, as Start project does.
+        /// </summary>
+        /// <returns>Whether the game was built and started, and the identifier of its process when it started on this machine.</returns>
+        internal async Task<(bool Success, int? ProcessId)> RunProjectAsync()
+        {
+            var result = await Build.RunAsync(true);
+            return (result.Outcome == GameBuildOutcome.Succeeded, result.Game?.Id);
+        }
 
         /// <inheritdoc/>
         public override void Destroy()
@@ -181,7 +185,14 @@ namespace Stride.GameStudio.ViewModels
 
         private void Cleanup()
         {
-            BuildLog.Destroy();
+            if (cleanedUp)
+                return;
+            cleanedUp = true;
+
+            editor.Session.PropertyChanged -= SessionPropertyChanged;
+            Build.PropertyChanged -= BuildPropertyChanged;
+            Build.BuildLog.Messages.CollectionChanged -= BuildLogMessagesChanged;
+            Build.Destroy();
             EditorLog.Destroy();
             debugService?.Dispose();
 
@@ -262,9 +273,6 @@ namespace Stride.GameStudio.ViewModels
             assemblyChangesPending = modifiedAssemblies.Count > 0 || modifiedLoadabilities.Count > 0;
             var hasCurrentProject = editor.Session.CurrentProject != null;
 
-            BuildProjectCommand.IsEnabled = !BuildInProgress;
-            StartProjectCommand.IsEnabled = hasCurrentProject && !BuildInProgress;
-            CancelBuildCommand.IsEnabled = BuildInProgress;
             LivePlayProjectCommand.IsEnabled = hasCurrentProject && !BuildInProgress;
             ReloadAssembliesCommand.IsEnabled = assemblyChangesPending && !BuildInProgress;
         }
@@ -293,7 +301,7 @@ namespace Stride.GameStudio.ViewModels
         {
             get
             {
-                BuildLog.EnsureLogger(assemblyReloadLogger);
+                Build.BuildLog.EnsureLogger(assemblyReloadLogger);
                 return assemblyReloadLogger;
             }
         }
@@ -393,7 +401,7 @@ namespace Stride.GameStudio.ViewModels
             var loadabilityChanged = false;
             // A build clears the build log: what the flips logged is shown again after each one
             var loadabilityLog = new LoggerResult();
-            BuildLog.AddLogger(loadabilityLog);
+            Build.BuildLog.AddLogger(loadabilityLog);
             foreach (var modifiedLoadability in modifiedLoadabilitiesCopy)
             {
                 var package = modifiedLoadability.Key;
@@ -405,7 +413,7 @@ namespace Stride.GameStudio.ViewModels
                     if (package.Package.Container is not SolutionProject solutionProject)
                         continue;
                     var result = await BuildProject(solutionProject.FullPath);
-                    BuildLog.EnsureLoggerWithPast(loadabilityLog);
+                    Build.BuildLog.EnsureLoggerWithPast(loadabilityLog);
                     if (!result.IsSuccessful)
                     {
                         modifiedLoadabilities[package] = change;
@@ -513,7 +521,7 @@ namespace Stride.GameStudio.ViewModels
                     assembliesToReload.Add(assemblyToReload);
                 }
             }
-            BuildLog.EnsureLoggerWithPast(loadabilityLog);
+            Build.BuildLog.EnsureLoggerWithPast(loadabilityLog);
 
             // The host's own copy, or a copy the host's code is bound to, stays in use: a new copy next to it would mix
             // the types of both. Only a new session uses the new build.
@@ -558,7 +566,7 @@ namespace Stride.GameStudio.ViewModels
 
                     var assemblyToAnalyze = assembliesToReload.Where(x => x.LoadedAssembly?.Assembly != null && x.Project != null).ToDictionary(x => x.Project, x => x.LoadedAssembly.Assembly.FullName);
                     var logResult = new LoggerResult();
-                    BuildLog.AddLogger(logResult);
+                    Build.BuildLog.AddLogger(logResult);
                     GameStudioAssemblyReloader.Reload(Session, logResult, async () =>
                     {
                         foreach (var assemblyToReload in assemblyToAnalyze)
@@ -597,301 +605,19 @@ namespace Stride.GameStudio.ViewModels
         {
             LiveScriptingLog.ClearMessages();
 
-            if (!await PrepareBuild())
-                return false;
-
             // Make sure it is Windows platform (only supported for now)
-            if (Session.CurrentProject.Platform != PlatformType.Windows)
+            if (Session.CurrentProject is { } currentProject && currentProject.Platform != PlatformType.Windows)
             {
                 await ServiceProvider.Get<IDialogService>()
                     .MessageBoxAsync(
-                        string.Format(Tr._p("Message", "Platform {0} isn't supported for execution."), Session.CurrentProject.Platform),
+                        string.Format(Tr._p("Message", "Platform {0} isn't supported for execution."), currentProject.Platform),
                         MessageBoxButton.OK, MessageBoxImage.Information);
                 return false;
             }
 
-            BuildInProgress = true;
-            var jobToken = editor.Status.NotifyBackgroundJobStarted("Build in progress…", JobPriority.Compile);
-
-            var result = false;
-            try
-            {
-                // Build projects+assets (note: assets only would be enough)
-                if (!(await BuildProjectCore(false)).Success)
-                {
-                    return false;
-                }
-
-                // Start live debugging
-                return result = await debugService.StartDebug(editor, Session.CurrentProject, assemblyReloadLogger);
-            }
-            finally
-            {
-                editor.Status.NotifyBackgroundJobFinished(jobToken);
-                editor.Status.PushDiscardableStatus(result ? "Build successful" : "Build failed");
-                BuildInProgress = false;
-            }
-        }
-
-        private async Task<(bool Success, Process Process)> BuildProject(bool startProject)
-        {
-            if (BuildInProgress)
-                return (false, null);
-
-            try
-            {
-                BuildInProgress = true;
-                if (!await PrepareBuild())
-                    return (false, null);
-
-                var jobToken = editor.Status.NotifyBackgroundJobStarted("Building...", JobPriority.Compile);
-                var result = (Success: false, Process: (Process)null);
-                try
-                {
-                    return result = await BuildProjectCore(startProject);
-                }
-                finally
-                {
-                    editor.Status.NotifyBackgroundJobFinished(jobToken);
-                    editor.Status.PushDiscardableStatus(result.Success ? "Build successful" : "Build failed");
-                }
-            }
-            finally
-            {
-                BuildInProgress = false;
-            }
-        }
-
-        private void RegisterBuildLogger(LoggerResult logger)
-        {
-            BuildLog.AddLogger(logger);
-            logger.MessageLogged += (sender, e) => Dispatcher.InvokeAsync(() => OutputTitle = outputTitleBase + '*');
-        }
-
-        private async Task<(bool Success, Process Process)> BuildProjectCore(bool startProject)
-        {
-            Process startedProcess = null;
-            var logger = new LoggerResult();
-            RegisterBuildLogger(logger);
-
-            try
-            {
-                // Build configuration and parameters depending on platform
-                var platformName = "AnyCPU";
-                var configuration = "Debug";
-                var target = "Build";
-
-                var extraProperties = new Dictionary<string, string>
-                {
-                    ["StrideBuildEngineLogVerbose"] = "true",
-                };
-
-                var projectViewModel = Session.CurrentProject.Type == ProjectType.Executable ? Session.CurrentProject : null;
-
-                if (Session.CurrentProject.Platform != PlatformType.Shared)
-                {
-                    if (!string.IsNullOrEmpty(Session.SolutionPath))
-                    {
-                        var solutionPath = UPath.Combine(Environment.CurrentDirectory, Session.SolutionPath);
-                        extraProperties.Add("SolutionPath", solutionPath.ToOSPath());
-                        extraProperties.Add("SolutionDir", solutionPath.GetParent().ToOSPath() + Path.DirectorySeparatorChar);
-                    }
-                    else
-                    {
-                        logger.Verbose("Building from a .csproj file. The 'SolutionDir' and 'SolutionPath' variables will not be set for the build session.");
-                    }
-
-                    switch (Session.CurrentProject.Platform)
-                    {
-                        case PlatformType.Windows:
-                            extraProperties.Add("SolutionPlatform", "Any CPU");
-                            break;
-                        case PlatformType.Android:
-                            var androidDevices = AndroidDeviceEnumerator.ListAndroidDevices();
-                            if (androidDevices.Length == 0)
-                            {
-                                logger.Error(Tr._p("Message", "No Android device found for execution."));
-                                return (false, null);
-                            }
-
-                            // On Android, directly install on device
-                            platformName = "Android";
-                            target = "GetAndroidPackage;Install";
-
-                            // For now, use first android device
-                            // TODO: Android device selector (together with platform selector)
-                            extraProperties.Add("AdbTarget", "-s " + androidDevices[0].Serial);
-
-                            extraProperties.Add("SolutionPlatform", "Android");
-                            break;
-                        case PlatformType.iOS:
-                            platformName = "iPhone";
-                            extraProperties.Add("SolutionPlatform", "iPhone");
-                            break;
-
-                        case PlatformType.Linux:
-                            platformName = "Linux";
-                            extraProperties.Add("SolutionPlatform", "Linux");
-                            break;
-
-                        case PlatformType.macOS:
-                            platformName = "macOS";
-                            extraProperties.Add("SolutionPlatform", "macOS");
-                            break;
-
-                        default:
-                            logger.Error(string.Format(Tr._p("Message", "Platform {0} isn't supported for execution."), Session.CurrentProject.Platform));
-                            return (false, null);
-                    }
-                }
-
-                if (projectViewModel == null)
-                {
-                    logger.Error(string.Format(Tr._p("Message", "Platform {0} isn't supported for execution."), Session.CurrentProject.Platform != PlatformType.Shared ? Session.CurrentProject.Platform : PlatformType.Windows));
-                    return (false, null);
-                }
-
-                // Route any asset-compiler crash from this build back to this GameStudio instance so it can
-                // surface the report (the headless compiler no longer pops its own reporter).
-                if (CompilerCrashRouting.CrashDirectory is { } crashDirectory)
-                    extraProperties["StrideCrashDir"] = crashDirectory;
-
-                // Build project
-                currentBuild = VSProjectHelper.CompileProjectAssemblyAsync(projectViewModel.ProjectPath, logger, target, configuration, platformName, extraProperties, BuildRequestDataFlags.ProvideProjectStateAfterBuild);
-                if (currentBuild == null)
-                {
-                    logger.Error(string.Format(Tr._p("Message", "Unable to load and compile project {0}"), projectViewModel.ProjectPath));
-                    return (false, null);
-                }
-
-                var assemblyPath = currentBuild.AssemblyPath;
-                var buildTask = await currentBuild.BuildTask;
-
-                // The compiler runs (and any crash is written) by the time the build task completes; surface it.
-                CompilerCrashRouting.SurfacePendingCrashes(message => logger.Warning(message));
-
-                // Execute
-                if (startProject && !currentBuild.IsCanceled && !logger.HasErrors && projectViewModel.Platform != PlatformType.Shared)
-                {
-                    switch (projectViewModel.Platform)
-                    {
-                        case PlatformType.Windows:
-                            // .NET Core: use the .exe launcher
-                            if (Path.GetExtension(assemblyPath).ToLowerInvariant() == ".dll")
-                                assemblyPath = Path.ChangeExtension(assemblyPath, ".exe");
-
-                            if (string.Equals(Path.GetExtension(assemblyPath), ".exe", StringComparison.InvariantCultureIgnoreCase))
-                            {
-                                if (!File.Exists(assemblyPath))
-                                {
-                                    logger.Error(string.Format(Tr._p("Message", "Unable to reach to output executable: {0}"), assemblyPath));
-                                    return (false, null);
-                                }
-                                var process = new Process
-                                {
-                                    StartInfo = new ProcessStartInfo(assemblyPath)
-                                    {
-                                        WorkingDirectory = Path.GetDirectoryName(assemblyPath) ?? ""
-                                    }
-                                };
-                                process.Start();
-                                startedProcess = process;
-                            }
-                            break;
-                        case PlatformType.Android:
-                            // Extract GetAndroidPackage result
-                            if (!buildTask.ResultsByTarget.TryGetValue("GetAndroidPackage", out var targetResult))
-                            {
-                                logger.Error(string.Format(Tr._p("Message", "Couldn't find Android package name for {0}."), Session.CurrentProject.Name));
-                                return (false, null);
-                            }
-
-                            var packageName = targetResult.Items[0].ItemSpec;
-
-                            // Locate ADB
-                            var adbPath = await Task.Run(() => AndroidDeviceEnumerator.GetAdbPath());
-                            if (adbPath == null)
-                            {
-                                logger.Error(Tr._p("Message", @"Android tool ""adb"" couldn't found (no running process, in registry or on the PATH). Please add it to your PATH."));
-                                return (false, null);
-                            }
-                            // Run
-                            var adbResult = await Task.Run(() => ShellHelper.RunProcessAndGetOutput(adbPath, $@"shell monkey -p {packageName} -c android.intent.category.LAUNCHER 1"));
-                            if (adbResult.ExitCode != 0)
-                            {
-                                logger.Error(string.Format(Tr._p("Message", "Can't run Android app with adb: {0}"), string.Join(Environment.NewLine, adbResult.OutputErrors)));
-                                return (false, null);
-                            }
-
-                            break;
-                        case PlatformType.Linux:
-                        case PlatformType.macOS:
-                            {
-                                // Sanity check to verify executable was compiled properly
-                                if (string.Equals(Path.GetExtension(assemblyPath), ".exe", StringComparison.InvariantCultureIgnoreCase))
-                                {
-                                    if (!File.Exists(assemblyPath))
-                                    {
-                                        logger.Error(Tr._p("Message", "Unable to reach to output executable: {0}"));
-                                        return (false, null);
-                                    }
-                                }
-
-                                // Ask for credentials if requested, otherwise we use what we have stored.
-                                if (StrideEditorSettings.AskForCredentials.GetValue())
-                                {
-                                    var prompt = ServiceProvider.Get<IStrideDialogService>().CreateCredentialsDialog();
-                                    await prompt.ShowModal();
-                                    if (!prompt.AreCredentialsValid)
-                                    {
-                                        logger.Error(string.Format(Tr._p("Message", "No credentials provided. To allow deployment, add your credentials.")));
-                                        return (false, null);
-                                    }
-                                }
-
-                                // Launch game on remote host
-                                var launchApp = await Task.Run(() => RemoteFacilities.Launch(logger, new UFile(assemblyPath)));
-                                if (!launchApp)
-                                {
-                                    logger.Error(string.Format(Tr._p("Message", "Unable to launch project {0}"), new UFile(assemblyPath).GetFileName()));
-                                    return (false, null);
-                                }
-
-                                break;
-                            }
-                    }
-
-                    logger.Info(string.Format(Tr._p("Message", "Deployment of {0} successful."), projectViewModel.Name));
-                }
-            }
-            catch (Exception e)
-            {
-                logger.Error("An exception occurred during compilation.", e);
-                await ServiceProvider.Get<IDialogService>().MessageBoxAsync(string.Format(Tr._p("Message", "An exception occurred while compiling the project: {0}"), e.FormatSummary(true)), MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-
-            return (!currentBuild.IsCanceled && !logger.HasErrors, startedProcess);
-        }
-
-        private async Task<bool> PrepareBuild()
-        {
-            if (Session.CurrentProject == null)
-            {
-                await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Tr._p("Message", "To process the build, set an executable project as the current project in the session explorer."), MessageBoxButton.OK, MessageBoxImage.Information);
-                return false;
-            }
-
-            var saved = await Session.SaveSessionAsync();
-
-            if (!saved)
-            {
-                await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Tr._p("Message", "To build, save the project first."), MessageBoxButton.OK, MessageBoxImage.Information);
-                return false;
-            }
-
-            BuildLog.ClearMessages();
-            BuildLog.ClearLoggers();
-            return true;
+            // Build projects+assets (note: assets only would be enough), then start live debugging instead of the game
+            var result = await Build.RunAsync(true, (project, _, _) => debugService.StartDebug(editor, project, assemblyReloadLogger));
+            return result.Outcome == GameBuildOutcome.Succeeded;
         }
 
         private struct BuildProjectResult
@@ -906,51 +632,14 @@ namespace Stride.GameStudio.ViewModels
             public string AssemblyPath { get; }
         }
 
+        /// <summary>
+        /// Builds a project of the game code before its assembly reloads, through the shared build and run: Cancel build stops it.
+        /// </summary>
         private async Task<BuildProjectResult> BuildProject(UFile projectPath)
         {
-            BuildLog.ClearMessages();
-            BuildLog.ClearLoggers();
-            var logger = new LoggerResult();
-            RegisterBuildLogger(logger);
-
-            BuildInProgress = true;
-            var jobToken = editor.Status.NotifyBackgroundJobStarted("Build in progress…", JobPriority.Compile);
-
-            try
-            {
-                var platformName = "AnyCPU";
-                var configuration = "Debug";
-                var target = "Build";
-
-                var extraProperties = new Dictionary<string, string>
-                {
-                    ["SolutionPlatform"] = "Any CPU",
-                    ["StrideBuildEngineLogVerbose"] = "true",
-                };
-
-                currentBuild = VSProjectHelper.CompileProjectAssemblyAsync(projectPath, logger, target, configuration, platformName, extraProperties, BuildRequestDataFlags.ProvideProjectStateAfterBuild);
-                if (currentBuild == null)
-                {
-                    logger.Error(string.Format(Tr._p("Message", "Unable to load and compile project {0}"), projectPath));
-                }
-                else
-                {
-                    await currentBuild.BuildTask;
-                }
-            }
-            catch (Exception e)
-            {
-                await ServiceProvider.Get<IDialogService>().MessageBoxAsync(string.Format(Tr._p("Message", "An exception occurred while compiling the project: {0}"), e.FormatSummary(true)), MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-            finally
-            {
-                editor.Status.NotifyBackgroundJobFinished(jobToken);
-                editor.Status.PushDiscardableStatus(!logger.HasErrors ? "Build succeeded" : "Build failed");
-                BuildInProgress = false;
-            }
-
-            var result = new BuildProjectResult(!logger.HasErrors, currentBuild?.AssemblyPath);
-            return result;
+            var projectFile = projectPath.ToOSPath();
+            var result = await Build.BuildCodeAssembliesAsync([projectFile]);
+            return new BuildProjectResult(result.Outcome == GameBuildOutcome.Succeeded, result.AssemblyPaths.GetValueOrDefault(projectFile));
         }
 
         private void SessionPropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -959,6 +648,20 @@ namespace Stride.GameStudio.ViewModels
             {
                 UpdateCommands();
             }
+        }
+
+        private void BuildPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(BuildAndRunViewModel.BuildInProgress))
+            {
+                UpdateCommands();
+            }
+        }
+
+        private void BuildLogMessagesChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
+                OutputTitle = outputTitleBase + '*';
         }
     }
 }

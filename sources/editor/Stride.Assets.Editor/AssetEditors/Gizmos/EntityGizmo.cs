@@ -14,6 +14,7 @@ using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Game;
+using Stride.Assets.Editor.EditorGame;
 
 namespace Stride.Assets.Editor.AssetEditors.Gizmos
 {
@@ -74,27 +75,44 @@ namespace Stride.Assets.Editor.AssetEditors.Gizmos
             if (ContentEntity == null || GizmoRootEntity == null || gizmos == null || camera == null)
                 return;
 
-            var gizmoScale = SizeFactor;
-            if (gizmos.FixedSize && !camera.IsOrthographic)
-            {
-                // Increase the size of the gizmo as it is moving away from the camera to keep a constant gizmo size
-                var distanceToCamera = Vector3.TransformCoordinate(ContentEntity.Transform.Position, camera.ViewMatrix).Z;
-                gizmoScale = distanceToCamera * SizeFactor / (gizmos.SceneUnit * 10.0f);
-            }
-
             // calculate the world matrix of the gizmo so that it is positioned exactly as the corresponding scene entity
             // except the scale that is re-adjusted to the gizmo desired size (gizmo are insert at scene root so LocalMatrix = WorldMatrix)
             Vector3 scale;
             Quaternion rotation;
             Vector3 translation;
             ContentEntity.Transform.WorldMatrix.Decompose(out scale, out rotation, out translation);
-            scale = new Vector3(gizmoScale * SizeAdjustmentFactor * gizmos.SceneUnit); // re-adjust the size of the gizmo
+            scale = GetGizmoScale(camera.ViewMatrix, camera.IsOrthographic); // re-adjust the size of the gizmo
 
             // force the update of the world matrix
             GizmoRootEntity.Transform.Position = translation;
             GizmoRootEntity.Transform.Rotation = rotation;
             (GizmoScalingEntity ?? GizmoRootEntity).Transform.Scale = scale; // Apply scaling on GizmoScalingEntity if it exists
             GizmoRootEntity.Transform.UpdateWorldMatrix();
+        }
+
+        /// <summary>
+        /// Sizes the gizmo for the camera of a view: a gizmo of fixed size keeps the same size on screen in every view.
+        /// </summary>
+        /// <param name="view">The camera of the view the game draws next.</param>
+        public virtual void PrepareView(EditorGameViewCamera view)
+        {
+            if (ContentEntity == null || GizmoRootEntity == null || gizmos == null)
+                return;
+
+            (GizmoScalingEntity ?? GizmoRootEntity).Transform.Scale = GetGizmoScale(view.ViewMatrix, view.IsOrthographic);
+        }
+
+        private Vector3 GetGizmoScale(Matrix viewMatrix, bool isOrthographic)
+        {
+            var gizmoScale = SizeFactor;
+            if (gizmos.FixedSize && !isOrthographic)
+            {
+                // Increase the size of the gizmo as it is moving away from the camera to keep a constant gizmo size
+                var distanceToCamera = Vector3.TransformCoordinate(ContentEntity.Transform.Position, viewMatrix).Z;
+                gizmoScale = distanceToCamera * SizeFactor / (gizmos.SceneUnit * 10.0f);
+            }
+
+            return new Vector3(gizmoScale * SizeAdjustmentFactor * gizmos.SceneUnit);
         }
 
         private void CollectComponentIds(Entity entity)

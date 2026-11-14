@@ -19,6 +19,7 @@ using Stride.Editor.Settings;
 using Stride.GameStudio.Avalonia.Settings;
 using Stride.GameStudio.Avalonia.Tests.Helpers;
 using Stride.GameStudio.Avalonia.Views;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 using Stride.Assets.Editor.SceneEditor;
 using Stride.Assets.Editor.ViewModels;
 using Stride.Core.Settings;
@@ -137,7 +138,7 @@ public sealed class SettingsCompatibilityTests : IDisposable
         var profile = container.LoadSettingsProfile(path, false, null, false);
         Assert.NotNull(profile);
         // What a session kept: its editors open again here
-        var data = Assert.Single(GameStudioInternalSettings.MostRecentlyUsedSessionsData.GetValue(profile, true));
+        var data = Assert.Single(RecentSessionsSettings.MostRecentlyUsedSessionsData.GetValue(profile, true));
         Assert.Equal(new UFile("C:/Projects/MyGame/MyGame.sln"), data.FilePath);
         Assert.Equal([AssetId.Parse(OpenedAsset)], data.OpenedAssets);
         // The window of the WPF editor is not this editor's
@@ -150,7 +151,7 @@ public sealed class SettingsCompatibilityTests : IDisposable
         var layouts = new SessionPanelLayouts { FilePath = data.FilePath, Timestamp = 1, Normal = DefaultPanelLayouts.Create(PanelLayoutKind.Normal) };
         GameStudioInternalSettings.SessionLayouts.SetValue([layouts], profile);
         data.OpenedAssets.Clear();
-        GameStudioInternalSettings.MostRecentlyUsedSessionsData.SetValue([data], profile);
+        RecentSessionsSettings.MostRecentlyUsedSessionsData.SetValue([data], profile);
         Assert.True(container.SaveSettingsProfile(profile, path));
 
         var saved = File.ReadAllText(path);
@@ -175,7 +176,7 @@ public sealed class SettingsCompatibilityTests : IDisposable
         Assert.Equal(data.FilePath, reloadedLayouts.FilePath);
         Assert.Equal(DefaultPanelLayouts.Create(PanelLayoutKind.Normal).EnumeratePanels(), reloadedLayouts.Normal!.EnumeratePanels());
         Assert.Null(reloadedLayouts.Editors);
-        Assert.Empty(Assert.Single(GameStudioInternalSettings.MostRecentlyUsedSessionsData.GetValue(reloaded, true)).OpenedAssets);
+        Assert.Empty(Assert.Single(RecentSessionsSettings.MostRecentlyUsedSessionsData.GetValue(reloaded, true)).OpenedAssets);
     }
 
     [AvaloniaFact]
@@ -224,30 +225,30 @@ public sealed class SettingsCompatibilityTests : IDisposable
     [AvaloniaFact]
     public void SavingTheInternalSettingsKeepsTheRecentSessionsAnotherEditorWrote()
     {
-        var previousSessions = GameStudioInternalSettings.MostRecentlyUsedSessions.GetValue();
+        var previousSessions = RecentSessionsSettings.MostRecentlyUsedSessions.GetValue();
         var previousDirectory = InternalSettings.FileDialogLastImportDirectory.GetValue();
         try
         {
             // Another editor instance adds a session to the file
             var other = InternalSettings.LoadProfileCopy();
             var sessions = new MRUDictionary { ["4.5"] = [new MostRecentlyUsedFile(new UFile("C:/Projects/Other/Other.sln"))] };
-            GameStudioInternalSettings.MostRecentlyUsedSessions.SetValue(sessions, other);
+            RecentSessionsSettings.MostRecentlyUsedSessions.SetValue(sessions, other);
             Assert.True(InternalSettings.SettingsContainer.SaveSettingsProfile(other, EditorPath.InternalConfigPath));
 
             // This one, which read the file before, saves another internal setting
-            GameStudioInternalSettings.MostRecentlyUsedSessions.SetValue(new MRUDictionary());
+            RecentSessionsSettings.MostRecentlyUsedSessions.SetValue(new MRUDictionary());
             InternalSettings.FileDialogLastImportDirectory.SetValue("C:/Imports");
             InternalSettings.Save();
 
             var saved = InternalSettings.LoadProfileCopy();
             Assert.Equal("C:/Imports", InternalSettings.FileDialogLastImportDirectory.GetValue(saved, true));
-            var file = Assert.Single(Assert.Single(GameStudioInternalSettings.MostRecentlyUsedSessions.GetValue(saved, true)).Value);
+            var file = Assert.Single(Assert.Single(RecentSessionsSettings.MostRecentlyUsedSessions.GetValue(saved, true)).Value);
             Assert.Equal(new UFile("C:/Projects/Other/Other.sln"), file.FilePath);
-            Assert.Single(Assert.Single(GameStudioInternalSettings.MostRecentlyUsedSessions.GetValue()).Value);
+            Assert.Single(Assert.Single(RecentSessionsSettings.MostRecentlyUsedSessions.GetValue()).Value);
         }
         finally
         {
-            GameStudioInternalSettings.MostRecentlyUsedSessions.SetValue(previousSessions);
+            RecentSessionsSettings.MostRecentlyUsedSessions.SetValue(previousSessions);
             InternalSettings.FileDialogLastImportDirectory.SetValue(previousDirectory);
             InternalSettings.SaveProfile();
         }
@@ -374,6 +375,82 @@ public sealed class SettingsCompatibilityTests : IDisposable
         var saved = File.ReadAllText(path);
         Assert.Contains("Internal/WindowWidth: 1300", saved);
         Assert.Contains("DockingLayoutVersion: 9", saved);
+    }
+
+    [AvaloniaFact]
+    public void TheViewsOfAScenePassThroughTheWpfEditorAsTheyAre()
+    {
+        var path = Path.Combine(directory, "MyGame.sdpkg.user");
+        var sceneId = AssetId.New();
+
+        // This editor saves a scene shown in four views: the scene settings, which both editors share, and the views, under a
+        // key of their own
+        var container = new SettingsContainer();
+        var sceneSettings = new SettingsKey<Dictionary<AssetId, SceneSettingsData>>(PackageSceneSettings.SceneSettings.Name, container, () => new Dictionary<AssetId, SceneSettingsData>());
+        var sceneViews = new SettingsKey<Dictionary<AssetId, SceneViewsSettingsData>>(PackageSceneViews.Views.Name, container, () => new Dictionary<AssetId, SceneViewsSettingsData>());
+        var profile = container.CreateSettingsProfile(true);
+        sceneSettings.SetValue(new Dictionary<AssetId, SceneSettingsData> { [sceneId] = new() { CamMoveSpeed = 3 } }, profile);
+        sceneViews.SetValue(new Dictionary<AssetId, SceneViewsSettingsData>
+        {
+            [sceneId] = new()
+            {
+                Layout = EditorViewLayout.Quad,
+                MaximizedView = 2,
+                Views =
+                [
+                    new() { Camera = EditorViewCamera.Top, HasCameraState = true, CamPosition = new(0, 50, 0), CamProjection = Stride.Engine.Processors.CameraProjectionMode.Orthographic, CamOrthographicSize = 25 },
+                    new() { Camera = EditorViewCamera.Front },
+                    new() { Camera = EditorViewCamera.Left },
+                ],
+            },
+        }, profile);
+        Assert.True(container.SaveSettingsProfile(profile, path));
+        Assert.Contains("Package/SceneViews", File.ReadAllText(path));
+
+        // The WPF editor knows the scene settings only, which have no member for the views: it changes them and saves
+        var wpfContainer = new SettingsContainer();
+        var wpfSceneSettings = new SettingsKey<Dictionary<AssetId, SceneSettingsData>>(PackageSceneSettings.SceneSettings.Name, wpfContainer, () => new Dictionary<AssetId, SceneSettingsData>());
+        var wpfProfile = wpfContainer.LoadSettingsProfile(path, false, null, false);
+        Assert.NotNull(wpfProfile);
+        var wpfValue = new Dictionary<AssetId, SceneSettingsData>(wpfSceneSettings.GetValue(wpfProfile, true));
+        Assert.Equal(3, wpfValue[sceneId].CamMoveSpeed);
+        wpfValue[sceneId].CamMoveSpeed = 5;
+        wpfSceneSettings.SetValue(wpfValue, wpfProfile);
+        Assert.True(wpfContainer.SaveSettingsProfile(wpfProfile, path));
+
+        // This editor reads both back: the views as it left them
+        var reloadedContainer = new SettingsContainer();
+        var reloadedSceneSettings = new SettingsKey<Dictionary<AssetId, SceneSettingsData>>(PackageSceneSettings.SceneSettings.Name, reloadedContainer, () => new Dictionary<AssetId, SceneSettingsData>());
+        var reloadedViews = new SettingsKey<Dictionary<AssetId, SceneViewsSettingsData>>(PackageSceneViews.Views.Name, reloadedContainer, () => new Dictionary<AssetId, SceneViewsSettingsData>());
+        var reloaded = reloadedContainer.LoadSettingsProfile(path, false, null, false);
+        Assert.NotNull(reloaded);
+        Assert.Equal(5, reloadedSceneSettings.GetValue(reloaded, true)[sceneId].CamMoveSpeed);
+        var views = reloadedViews.GetValue(reloaded, true)[sceneId];
+        Assert.Equal((EditorViewLayout.Quad, 2), (views.Layout, views.MaximizedView));
+        Assert.Equal([EditorViewCamera.Top, EditorViewCamera.Front, EditorViewCamera.Left], views.Views.Select(x => x.Camera));
+        Assert.Equal((true, 25f), (views.Views[0].HasCameraState, views.Views[0].CamOrthographicSize));
+    }
+
+    [AvaloniaFact]
+    public void ASceneTheWpfEditorSavedOpensWithOneView()
+    {
+        var path = Path.Combine(directory, "MyGame.sdpkg.user");
+        var sceneId = AssetId.New();
+
+        // The WPF editor writes the scene settings only
+        var wpfContainer = new SettingsContainer();
+        var wpfSceneSettings = new SettingsKey<Dictionary<AssetId, SceneSettingsData>>(PackageSceneSettings.SceneSettings.Name, wpfContainer, () => new Dictionary<AssetId, SceneSettingsData>());
+        var wpfProfile = wpfContainer.CreateSettingsProfile(true);
+        wpfSceneSettings.SetValue(new Dictionary<AssetId, SceneSettingsData> { [sceneId] = new() { CamMoveSpeed = 7 } }, wpfProfile);
+        Assert.True(wpfContainer.SaveSettingsProfile(wpfProfile, path));
+
+        // This editor finds no views for the scene: it opens with one view
+        var container = new SettingsContainer();
+        var sceneViews = new SettingsKey<Dictionary<AssetId, SceneViewsSettingsData>>(PackageSceneViews.Views.Name, container, () => new Dictionary<AssetId, SceneViewsSettingsData>());
+        var profile = container.LoadSettingsProfile(path, false, null, false);
+        Assert.NotNull(profile);
+        Assert.False(sceneViews.GetValue(profile, true).ContainsKey(sceneId));
+        Assert.Equal(EditorViewLayout.Single, new SceneViewsSettingsData().Layout);
     }
 
     private static void RegisterKeys(params Type[] settingsTypes)

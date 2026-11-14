@@ -157,6 +157,7 @@ public sealed class OffscreenGameView : Control, IOffscreenFrameSink
         surfaceVisual.Surface = surface;
         surfaceVisual.Size = new Vector(Bounds.Width, Bounds.Height);
         ElementComposition.SetElementChildVisual(this, surfaceVisual);
+        InvalidateVisual();
         return surface;
     }
 
@@ -169,6 +170,7 @@ public sealed class OffscreenGameView : Control, IOffscreenFrameSink
             return;
         ElementComposition.SetElementChildVisual(this, null);
         surfaceVisual = null;
+        InvalidateVisual();
     }
 
     /// <inheritdoc />
@@ -190,9 +192,11 @@ public sealed class OffscreenGameView : Control, IOffscreenFrameSink
             bitmap = front;
         }
 
-        // The background shows while the game has no frame yet, and behind the surface of the GPU interop
+        // The background shows while the game has no frame yet, and behind the surface of the GPU interop. A frame read back
+        // before the surface took over is not drawn under it: where the frames of the surface are not opaque, it would show
+        // through as a frame of the past
         context.FillRectangle(Brushes.Black, new Rect(Bounds.Size));
-        if (bitmap != null)
+        if (bitmap != null && surfaceVisual == null)
             context.DrawImage(bitmap, new Rect(bitmap.Size), new Rect(Bounds.Size));
     }
 

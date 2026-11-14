@@ -36,9 +36,6 @@ internal sealed class PluginService : SceneEditorPluginHost
     }
 
     /// <inheritdoc />
-    protected override Type AssetEditorViewModelType => typeof(AssetEditorViewModel);
-
-    /// <inheritdoc />
     protected override Type AssetEditorViewType => typeof(IAssetEditorView);
 
     /// <inheritdoc />
@@ -69,9 +66,6 @@ internal sealed class PluginService : SceneEditorPluginHost
         using var stream = new MemoryStream(data);
         return new Bitmap(stream);
     }
-
-    /// <inheritdoc />
-    protected override bool IsEditorInitialized(ISessionViewModel session) => session is SessionViewModel { IsEditorInitialized: true };
 
     // The property grid selector a provider belongs to, by its template category
     private static TemplateProviderSelector GetSelector(TemplateProviderBase provider)
