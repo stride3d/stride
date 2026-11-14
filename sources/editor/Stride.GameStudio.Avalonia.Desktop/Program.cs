@@ -35,6 +35,8 @@ internal sealed class Program
     // Initialization code. Don't use any Avalonia, third-party APIs or any
     // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
     // yet and stuff might break.
+    // The UI thread is a single-threaded apartment: on Windows, the clipboard and drag and drop are OLE, which needs one.
+    [STAThread]
     public static void Main(string[] args)
     {
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;

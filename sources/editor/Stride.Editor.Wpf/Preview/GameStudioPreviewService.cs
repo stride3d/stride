@@ -37,13 +37,18 @@ namespace Stride.Editor.Preview
         }
 
         /// <inheritdoc />
-        protected override GameContext CreateGameContext(PreviewGame game)
+        protected override void PrepareView()
         {
+            // The form comes before the game, so that the constructor gets its handle even if the game can't be created
             gameForm = new EmbeddedGameForm { TopLevel = false, Visible = false };
             windowHandle = gameForm.Handle;
 
             initializationSignal.Set();
+        }
 
+        /// <inheritdoc />
+        protected override GameContext CreateGameContext(PreviewGame game)
+        {
             return new GameContextWinforms(gameForm) { InitializeDatabase = false };
         }
 

@@ -6,7 +6,7 @@ namespace Stride.Core.Presentation.ViewModels;
 /// <summary>
 /// How long a service registered with a factory lives (<see cref="IViewModelServiceProvider.Register{TService}"/>).
 /// </summary>
-public enum ServiceLifetime
+public enum ViewModelServiceLifetime
 {
     /// <summary>
     /// One instance, made the first time it is asked for, with the provider it is registered in. It goes when that provider is

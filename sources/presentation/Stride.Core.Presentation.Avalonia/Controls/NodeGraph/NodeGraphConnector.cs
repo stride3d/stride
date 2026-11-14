@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
@@ -18,6 +19,7 @@ namespace Stride.Core.Presentation.Avalonia.Controls;
 /// Pseudo-classes: <c>:input</c> or <c>:output</c> after <see cref="Direction"/>, <c>:connected</c> while a link goes to or from
 /// the slot, <c>:droptarget</c> while the link the user drags would be accepted here.
 /// </remarks>
+[Experimental("STREXP010")]
 public sealed class NodeGraphConnector : Control
 {
     /// <summary>

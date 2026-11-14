@@ -3,6 +3,8 @@
 
 using System.ComponentModel;
 using System.Collections.Specialized;
+using System.Diagnostics.CodeAnalysis;
+using Stride.Core;
 using Stride.Core.Assets.Editor.Components.Status;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Diagnostics;
@@ -43,6 +45,7 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
     // Canceled by Cancel build: before the build starts (while the session saves), it does not start at all
     private CancellationTokenSource cancellation = new();
     private bool buildInProgress;
+    private int buildHolds;
     private bool isOutputVisible;
     private string outputTitle;
 
@@ -90,6 +93,37 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
     {
         get => buildInProgress;
         private set => SetValue(ref buildInProgress, value, UpdateCommands);
+    }
+
+    /// <summary>
+    /// Whether Build project and Start project are held off (<see cref="HoldBuilds"/>).
+    /// </summary>
+    internal bool BuildsHeld => buildHolds > 0;
+
+    /// <summary>
+    /// Keeps Build project and Start project from starting until the returned object is disposed, while the editor reloads its
+    /// game code one project after the other: the builds of <see cref="BuildCodeAssembliesAsync"/> still run, and no other build
+    /// starts between two of them.
+    /// </summary>
+    internal IDisposable HoldBuilds()
+    {
+        ++buildHolds;
+        OnHoldChanged();
+        var released = false;
+        return new AnonymousDisposable(() =>
+        {
+            if (released)
+                return;
+            released = true;
+            --buildHolds;
+            OnHoldChanged();
+        });
+
+        void OnHoldChanged()
+        {
+            UpdateCommands();
+            OnPropertyChanged(nameof(BuildsHeld));
+        }
     }
 
     /// <summary>
@@ -142,6 +176,7 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
     /// </summary>
     /// <param name="platform">The platform of the games.</param>
     /// <param name="deployer">The deploy step; it replaces the one registered before for this platform.</param>
+    [Experimental("STREXP008")]
     public void RegisterDeployer(PlatformType platform, IGameDeployer deployer)
     {
         ArgumentNullException.ThrowIfNull(deployer);
@@ -153,7 +188,10 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
     {
         EnsureNotDestroyed(nameof(BuildAndRunViewModel));
         CancelBuild();
-        cancellation.Dispose();
+        // A build still running reads the token of its cancellation (while the session saves, it has not started yet): it
+        // disposes it when it ends
+        if (!BuildInProgress)
+            cancellation.Dispose();
         Session = null;
         BuildLog.Messages.CollectionChanged -= BuildLogChanged;
         BuildLog.Destroy();
@@ -176,7 +214,7 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
     /// <returns>How the build went, and the game started on this machine if any.</returns>
     internal async Task<GameRunResult> RunAsync(bool startProject, Func<ProjectViewModel, ILogger, CancellationToken, Task<bool>>? start = null)
     {
-        if (BuildInProgress || session is not { } buildSession)
+        if (BuildInProgress || BuildsHeld || session is not { } buildSession)
             return new GameRunResult(GameBuildOutcome.NotBuilt, null);
 
         IGameProcess? game = null;
@@ -268,7 +306,9 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
                     status!.NotifyBackgroundJobFinished(token);
                 status?.PushDiscardableStatus(outcome switch
                 {
-                    GameBuildOutcome.Succeeded or GameBuildOutcome.StartFailed => Tr._p("Status", "Build successful"),
+                    GameBuildOutcome.Succeeded => Tr._p("Status", "Build successful"),
+                    // The build succeeded: the Output pane says why the deployment or the start failed
+                    GameBuildOutcome.StartFailed => Tr._p("Status", "Build successful, but the game did not start"),
                     GameBuildOutcome.Canceled => Tr._p("Status", "Build cancelled"),
                     _ => Tr._p("Status", "Build failed"),
                 });
@@ -278,6 +318,8 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
         {
             currentBuild = null;
             BuildInProgress = false;
+            if (IsDestroyed)
+                cancellation.Dispose();
         }
     }
 
@@ -339,6 +381,9 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
             await Dialogs.MessageBoxAsync(Tr._p("Message", "To build, save the project first."), MessageBoxButton.OK, MessageBoxImage.Information);
             return false;
         }
+        // Closed while the session saved: the build does not start
+        if (IsDestroyed)
+            return false;
 
         ShowNewBuildLog();
         return true;
@@ -587,8 +632,8 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
 
     private void UpdateCommands()
     {
-        BuildProjectCommand.IsEnabled = session is not null && !BuildInProgress;
-        StartProjectCommand.IsEnabled = session?.CurrentProject is not null && !BuildInProgress;
+        BuildProjectCommand.IsEnabled = session is not null && !BuildInProgress && !BuildsHeld;
+        StartProjectCommand.IsEnabled = session?.CurrentProject is not null && !BuildInProgress && !BuildsHeld;
         CancelBuildCommand.IsEnabled = BuildInProgress;
     }
 }

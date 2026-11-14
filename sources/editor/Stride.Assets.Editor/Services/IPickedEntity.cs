@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using Stride.Assets.Presentation.ViewModels;
 
 namespace Stride.Assets.Editor.Services;
@@ -8,6 +9,7 @@ namespace Stride.Assets.Editor.Services;
 /// <summary>
 /// An entity, and optionally one of its components, picked with an <see cref="IEntityPickerService"/>.
 /// </summary>
+[Experimental("STREXP007")]
 public interface IPickedEntity
 {
     /// <summary>

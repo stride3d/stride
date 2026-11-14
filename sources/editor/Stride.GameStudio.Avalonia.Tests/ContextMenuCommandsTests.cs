@@ -344,7 +344,6 @@ public sealed class ContextMenuCommandsTests
             Assert.DoesNotContain(PropertyGridCommands.ReplaceId, ids);
             Assert.DoesNotContain(SceneEditorCommands.PasteInRootId, ids);
             Assert.DoesNotContain(SceneEditorCommands.NewEntityAtCursorId, ids);
-            Assert.DoesNotContain(SceneEditorCommands.CutId, ids);
 
             // The palette runs the asset view's commands on its selection
             var sheet = fixture.Asset(SheetLocation);

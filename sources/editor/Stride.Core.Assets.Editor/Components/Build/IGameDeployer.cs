@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Diagnostics;
 
@@ -14,6 +15,7 @@ namespace Stride.Core.Assets.Editor.Components.Build;
 /// The host of the editor registers one per platform with <see cref="BuildAndRunViewModel.RegisterDeployer"/>. A platform with no
 /// deployer is built as it is; its game starts on this machine when it is the platform of the editor.
 /// </remarks>
+[Experimental("STREXP008")]
 public interface IGameDeployer
 {
     /// <summary>

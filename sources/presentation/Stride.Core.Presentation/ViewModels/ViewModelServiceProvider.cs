@@ -118,7 +118,7 @@ public sealed class ViewModelServiceProvider : IViewModelServiceProvider, IServi
     }
 
     /// <inheritdoc/>
-    public IDisposable Register<TService>(Func<IServiceProvider, TService> factory, ServiceLifetime lifetime = ServiceLifetime.Singleton)
+    public IDisposable Register<TService>(Func<IServiceProvider, TService> factory, ViewModelServiceLifetime lifetime = ViewModelServiceLifetime.Singleton)
         where TService : class
     {
         ArgumentNullException.ThrowIfNull(factory);
@@ -250,7 +250,7 @@ public sealed class ViewModelServiceProvider : IViewModelServiceProvider, IServi
         }
 
         if (registration is not null)
-            return registration.Lifetime == ServiceLifetime.Singleton ? GetSingleton(registration) : requester.GetScoped(registration);
+            return registration.Lifetime == ViewModelServiceLifetime.Singleton ? GetSingleton(registration) : requester.GetScoped(registration);
         if (serviceFound is not null)
             return serviceFound;
 
@@ -383,14 +383,14 @@ public sealed class ViewModelServiceProvider : IViewModelServiceProvider, IServi
         serviceUnregistered?.Invoke(sender, e);
     }
 
-    private sealed class FactoryRegistration(Type serviceType, Func<IServiceProvider, object> factory, ServiceLifetime lifetime)
+    private sealed class FactoryRegistration(Type serviceType, Func<IServiceProvider, object> factory, ViewModelServiceLifetime lifetime)
     {
         [ThreadStatic]
         private static HashSet<FactoryRegistration>? creating;
 
         public Type ServiceType { get; } = serviceType;
 
-        public ServiceLifetime Lifetime { get; } = lifetime;
+        public ViewModelServiceLifetime Lifetime { get; } = lifetime;
 
         public object? SingletonInstance { get; set; }
 

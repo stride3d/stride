@@ -4,6 +4,7 @@
 #nullable enable
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Stride.Graphics;
 
 namespace Stride.Editor.Engine;
@@ -14,10 +15,11 @@ namespace Stride.Editor.Engine;
 /// <param name="Id">The identifier of the view, which the user interface gives it.</param>
 /// <param name="Width">The width of the view, in device pixels (0 while the view is not laid out).</param>
 /// <param name="Height">The height of the view, in device pixels (0 while the view is not laid out).</param>
+[Experimental("STREXP009")]
 public readonly record struct EditorGameViewInfo(int Id, int Width, int Height);
 
 /// <summary>
-/// A viewport that shows several views of its game, each with its own camera (prototype).
+/// A viewport that shows several views of its game, each with its own camera.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -31,6 +33,7 @@ public readonly record struct EditorGameViewInfo(int Id, int Width, int Height);
 /// a drag stays in the view it started in.
 /// </para>
 /// </remarks>
+[Experimental("STREXP009")]
 public interface IEditorGameMultiViewport
 {
     /// <summary>

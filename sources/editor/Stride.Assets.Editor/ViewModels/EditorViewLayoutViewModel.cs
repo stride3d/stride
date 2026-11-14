@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 using Stride.Assets.Editor.AssetEditors.GameEditor.ViewModels;
 using Stride.Core.Presentation.Commands;
@@ -14,6 +15,7 @@ namespace Stride.Assets.Editor.ViewModels;
 /// <summary>
 /// How the views of a scene editor are laid out.
 /// </summary>
+[Experimental("STREXP009")]
 public enum EditorViewLayout
 {
     /// <summary>One view.</summary>
@@ -34,6 +36,7 @@ public enum EditorViewLayout
 /// camera is the editor camera. Each UI toolkit lays the panes out with its own views; the game keeps a camera per pane
 /// (<see cref="IEditorGameMultiViewViewModelService"/>).
 /// </summary>
+[Experimental("STREXP009")]
 public sealed class EditorViewLayoutViewModel : DispatcherViewModel
 {
     private readonly IEditorGameMultiViewViewModelService service;
@@ -260,6 +263,7 @@ public sealed class EditorViewLayoutViewModel : DispatcherViewModel
 /// <summary>
 /// One pane of the views of a scene editor: a view of the scene with a camera of its own.
 /// </summary>
+[Experimental("STREXP009")]
 public sealed class EditorViewPaneViewModel : DispatcherViewModel
 {
     private readonly EditorViewLayoutViewModel owner;

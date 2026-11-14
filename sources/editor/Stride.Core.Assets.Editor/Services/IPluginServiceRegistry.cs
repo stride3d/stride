@@ -19,7 +19,7 @@ public interface IPluginServiceRegistry : IPluginRegistry<object>
     /// <typeparam name="TService">The type the service is registered as, and looked up by.</typeparam>
     /// <param name="factory">Makes the service, with the services of the scope it is made for.</param>
     /// <param name="lifetime">One instance for the session, or one per scope that asks for it (the session, each editor).</param>
-    void Register<TService>(Func<IServiceProvider, TService> factory, ServiceLifetime lifetime = ServiceLifetime.Singleton)
+    void Register<TService>(Func<IServiceProvider, TService> factory, ViewModelServiceLifetime lifetime = ViewModelServiceLifetime.Singleton)
         where TService : class;
 }
 
@@ -39,7 +39,7 @@ public static class PluginServiceRegistryExtensions
     /// <param name="factory">Makes the service, with the services of the scope it is made for.</param>
     /// <param name="lifetime">One instance for the session, or one per scope that asks for it (the session, each editor).</param>
     /// <exception cref="NotSupportedException">The registry takes instances only.</exception>
-    public static void Register<TService>(this IPluginRegistry<object> services, Func<IServiceProvider, TService> factory, ServiceLifetime lifetime = ServiceLifetime.Singleton)
+    public static void Register<TService>(this IPluginRegistry<object> services, Func<IServiceProvider, TService> factory, ViewModelServiceLifetime lifetime = ViewModelServiceLifetime.Singleton)
         where TService : class
     {
         ArgumentNullException.ThrowIfNull(services);

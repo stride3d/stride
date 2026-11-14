@@ -52,10 +52,14 @@ public sealed class PreviewViewModel : DispatcherViewModel, IDisposable
             if (!SetValue(ref isPreviewVisible, value) || isDisposed)
                 return;
 
+            // A service found now is told the state when it is found
+            var known = previewService is not null;
+            if (PreviewService is not { } service || !known)
+                return;
             if (value)
-                PreviewService?.OnShowPreview();
+                service.OnShowPreview();
             else
-                PreviewService?.OnHidePreview();
+                service.OnHidePreview();
         }
     }
 
@@ -72,7 +76,12 @@ public sealed class PreviewViewModel : DispatcherViewModel, IDisposable
 
             previewService = ServiceProvider.TryGet<IAssetPreviewService>();
             if (previewService is not null)
+            {
                 previewService.PreviewAssetUpdated += PreviewAssetUpdated;
+                // The panel may have been hidden before the service existed: its game starts shown
+                if (!isPreviewVisible)
+                    previewService.OnHidePreview();
+            }
             return previewService;
         }
     }

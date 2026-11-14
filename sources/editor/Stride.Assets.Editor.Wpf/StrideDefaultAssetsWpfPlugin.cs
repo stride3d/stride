@@ -26,7 +26,7 @@ using Stride.Core.Presentation.Collections;
 using Stride.Assets.Presentation.AssetEditors.AssetHighlighters;
 using Stride.Assets.Editor.EntityFactories;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
-using Stride.Assets.Editor.Quantum.NodePresenters.Commands;
+using Stride.Assets.Editor.Quantum.NodePresenters;
 using Stride.Assets.Editor.Services;
 using Stride.Assets.Presentation.NodePresenters.Updaters;
 using Stride.Assets.Presentation.SceneEditor.Services;
@@ -40,7 +40,6 @@ using Stride.Core.Serialization;
 using Stride.Engine.Gizmos;
 using Stride.Editor.Annotations;
 using Stride.Editor.Preview.View;
-using Stride.Assets.Editor.Quantum.NodePresenters.Updaters;
 using Stride.Core.Assets.Presentation.Components.Properties;
 using Stride.Assets.Editor.ViewModels.CopyPasteProcessors;
 
@@ -206,34 +205,14 @@ namespace Stride.Assets.Presentation
             context.Services.Register(new WpfEditorViewOptionsFactory());
             var assetsViewModel = new StrideAssetsViewModel(sessionViewModel);
 
-            context.NodePresenterCommands.Register(new FetchEntityCommand());
-            context.NodePresenterCommands.Register(new SetEntityReferenceCommand());
-            context.NodePresenterCommands.Register(new SetComponentReferenceCommand());
-            context.NodePresenterCommands.Register(new SetSymbolReferenceCommand());
-            context.NodePresenterCommands.Register(new PickupEntityCommand());
-            context.NodePresenterCommands.Register(new PickupEntityComponentCommand());
-            context.NodePresenterCommands.Register(new EditCurveCommand(sessionViewModel));
-            context.NodePresenterCommands.Register(new SkeletonNodePreserveAllCommand());
+            // The property grid's commands and updaters, shared with the Avalonia editor
+            StrideNodePresenters.Register(context);
             //TODO: Add back once properly implemented.
             //context.NodePresenterCommands.Register(new AddNewScriptComponentCommand());
 
-            context.NodePresenterUpdaters.Register(new AnimationAssetNodeUpdater());
-            context.NodePresenterUpdaters.Register(new CameraSlotNodeUpdater());
-            context.NodePresenterUpdaters.Register(new EntityHierarchyAssetNodeUpdater());
+            // The updaters of this editor only
             context.NodePresenterUpdaters.Register(new EntityHierarchyEditorNodeUpdater());
-            context.NodePresenterUpdaters.Register(new GameSettingsAssetNodeUpdater());
-            context.NodePresenterUpdaters.Register(new GraphicsCompositorAssetNodeUpdater());
-            context.NodePresenterUpdaters.Register(new FXAAEffectNodeUpdater());
-            context.NodePresenterUpdaters.Register(new MaterialAssetNodeUpdater());
-            context.NodePresenterUpdaters.Register(new ModelAssetNodeUpdater());
-            // The material slots and morph weight sliders of the model components, shared with the Avalonia editor
-            context.NodePresenterUpdaters.Register(new ModelComponentNodeUpdater());
-            context.NodePresenterUpdaters.Register(new ModelNodeLinkNodeUpdater());
-            context.NodePresenterUpdaters.Register(new SkeletonAssetNodeUpdater());
             context.NodePresenterUpdaters.Register(new SpriteFontAssetNodeUpdater());
-            context.NodePresenterUpdaters.Register(new SpriteSheetAssetNodeUpdater());
-            context.NodePresenterUpdaters.Register(new TextureAssetNodeUpdater());
-            context.NodePresenterUpdaters.Register(new UnloadableObjectPropertyNodeUpdater());
             context.NodePresenterUpdaters.Register(new VisualScriptNodeUpdater());
 
             // Connects to effect compiler (to import new effect permutations discovered by running the game), until the

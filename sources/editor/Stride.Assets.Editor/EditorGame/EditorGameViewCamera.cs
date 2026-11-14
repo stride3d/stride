@@ -3,6 +3,7 @@
 
 #nullable enable
 
+using System.Diagnostics.CodeAnalysis;
 using System;
 using Stride.Core.Mathematics;
 using Stride.Engine;
@@ -17,6 +18,7 @@ namespace Stride.Assets.Editor.EditorGame;
 /// A game with one view has one: the editor camera, with the height of the back buffer. A game with several views has one
 /// per view; the active view's is the editor camera.
 /// </remarks>
+[Experimental("STREXP009")]
 public readonly struct EditorGameViewCamera
 {
     /// <summary>
@@ -77,6 +79,7 @@ public readonly struct EditorGameViewCamera
 /// <see cref="PrepareView"/> with that view's camera, and once they are drawn, with the active view's camera again, so
 /// that what the pointer works with matches the active view. A game with one view never calls it.
 /// </remarks>
+[Experimental("STREXP009")]
 public interface IEditorGameViewDependent
 {
     /// <summary>

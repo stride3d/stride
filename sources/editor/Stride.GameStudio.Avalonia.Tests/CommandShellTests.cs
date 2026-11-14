@@ -320,6 +320,8 @@ public sealed class CommandShellTests
             // Every panel opened once has its command; the View menu ends with the palette
             foreach (var panel in panels.Registry.Panels.Where(x => !x.AllowsMultipleInstances))
                 Assert.Contains(fixture.Plugins.Commands.Items, x => x.Id == PanelCommands.IdOf(panel.Id) && x.IsChecked is not null);
+            // Every command has a category: the palette and the shortcuts page group and sort by it
+            Assert.All(fixture.Plugins.Commands.Items, x => Assert.False(string.IsNullOrEmpty(x.Category), x.Id));
             Assert.Equal(GameStudioCommands.CommandPaletteId, Assert.IsType<CommandReference>(view.ViewMenu.Items.OfType<MenuItem>().Last().Command).Id);
         }
         finally

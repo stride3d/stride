@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace Stride.Core.Presentation.ViewModels;
 
 /// <summary>
@@ -48,7 +50,8 @@ public interface IViewModelServiceProvider : IServiceProvider
     /// <exception cref="ArgumentNullException"><c>factory</c> is null.</exception>
     /// <exception cref="InvalidOperationException">A factory is already registered for <typeparamref name="TService"/> in this provider.</exception>
     /// <exception cref="NotSupportedException">This provider has no factory registrations.</exception>
-    IDisposable Register<TService>(Func<IServiceProvider, TService> factory, ServiceLifetime lifetime = ServiceLifetime.Singleton)
+    [Experimental("STREXP006")]
+    IDisposable Register<TService>(Func<IServiceProvider, TService> factory, ViewModelServiceLifetime lifetime = ViewModelServiceLifetime.Singleton)
         where TService : class
     {
         throw new NotSupportedException("This service provider does not support factory registrations.");
