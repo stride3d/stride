@@ -370,7 +370,7 @@ partial class PackageSession
             var hostAssetAssemblies = SelectHostAssetAssemblies(package.HostAssemblies)
                 .Select(a => Path.GetFullPath(Path.Combine(sdpkgDirectory, a.Path!.ToOSPath()))).ToList();
 
-            // A dev-redirect stub (source checkout, StrideDevPackages) ships the packed sdpkg but none of its
+            // A dev-redirect stub (source checkout, StrideRedirectPackages) ships the packed sdpkg but none of its
             // assets: those, and the shader sources, are read live from the checkout project, through the
             // project's own sdpkg, so an edited engine asset or shader reaches a game's build with no
             // regeneration. The packed sdpkg still names the asset assemblies (resolved above), loaded from the

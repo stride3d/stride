@@ -52,15 +52,24 @@
        from NuGet, so the import no-ops there. The file is gitignored at build/Stride.Local.props
        and gets auto-created from Stride.Local.props.template by the _StrideBootstrapLocalProps
        target in Sdk.targets — so the first build runs with SDK defaults and the local file
-       is picked up from the second build onward. Imports here so its values can override
-       the $(StridePlatform)-keyed StrideGraphicsApis defaults below. -->
+       is picked up from the second build onward. CI builds don't create it. Imports here so its
+       values can override the $(StridePlatform)-keyed StrideGraphicsApis defaults below. -->
   <PropertyGroup>
     <_StrideRepoRoot>$([MSBuild]::GetDirectoryNameOfFileAbove('$(MSBuildThisFileDirectory)', 'crowdin.yml'))</_StrideRepoRoot>
     <_StrideLocalProps Condition="'$(_StrideRepoRoot)' != ''">$(_StrideRepoRoot)\build\Stride.Local.props</_StrideLocalProps>
     <_StrideLocalPropsTemplate>$(MSBuildThisFileDirectory)Stride.Local.props.template</_StrideLocalPropsTemplate>
+    <_StrideCIBuild Condition="'$(CI)' == 'true' Or '$(GITHUB_ACTIONS)' == 'true' Or '$(TF_BUILD)' == 'true'">true</_StrideCIBuild>
   </PropertyGroup>
 
   <Import Project="$(_StrideLocalProps)" Condition="'$(_StrideLocalProps)' != '' And Exists('$(_StrideLocalProps)')" />
+
+  <!-- Dev-redirect packages (Stride.RedirectPackages.targets) are the default of a developer's build in a checkout. CI and
+       the release's package build (package.proj) keep real packages: their tests and outputs are the packages.
+       StrideDevPackages is the former name, still read from older Stride.Local.props files and command lines. -->
+  <PropertyGroup>
+    <StrideRedirectPackages Condition="'$(StrideRedirectPackages)' == ''">$(StrideDevPackages)</StrideRedirectPackages>
+    <StrideRedirectPackages Condition="'$(StrideRedirectPackages)' == '' And '$(_StrideRepoRoot)' != '' And '$(_StrideCIBuild)' != 'true' And '$(StridePackageBuild)' != 'true'">true</StrideRedirectPackages>
+  </PropertyGroup>
 
   <!-- ================================================================ -->
   <!-- StridePlatforms Default Detection -->

@@ -28,8 +28,8 @@
     </Compile>
     <!-- Native fault handler for capturing access violations in native importers/shader compilers. -->
     <Compile Include="..\..\shared\NativeCrashHandler.cs" Link="NativeCrashHandler.cs" />
-    <None Include="build\**\*.targets" PackagePath="build\" Pack="true" />
-    <None Include="build\**\*.targets" PackagePath="buildTransitive\" Pack="true" />
+    <None Include="build\**\*.targets" PackagePath="build/" Pack="true" />
+    <None Include="build\**\*.targets" PackagePath="buildTransitive/" Pack="true" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.StringTools" ExcludeAssets="runtime" PrivateAssets="all" />
