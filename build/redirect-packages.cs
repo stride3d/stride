@@ -435,6 +435,42 @@ if (suffixIdx >= 0)
                 if (File.Exists(oldStamp + side)) File.Delete(oldStamp + side);
             Console.WriteLine($"Pruned superseded {oldVersion}: {removed} package file(s)" + (inUse.Count > 0 ? $", {inUse.Count} package(s) in use, left for the next run" : ""));
         }
+
+        // No stamp lists real packages (a normal-mode build of another version, another branch's included) nor stubs
+        // whose stamp is gone: by name, each package made here drops its other versions with this suffix, as the
+        // auto-pack does (StridePruneOldDevSlots in Stride.AutoPackDeploy.targets; keep the two in step). One in use
+        // stays until this package is made again.
+        var slotVersion = @"\d+\.\d+\.\d+([.+-].*)?" + Regex.Escape(suffix);
+        var folderSlot = new Regex("^" + slotVersion + "$", RegexOptions.IgnoreCase);
+        foreach (var stubName in generatedStubs)
+        {
+            // The number comes right after the id, which leaves out a longer id: Stride.Core.Assets, or Stride.Importer.3D.
+            if (SplitPackageFile(stubName) is not { } made)
+                continue;
+            var fileSlot = new Regex("^" + Regex.Escape(made.Id) + @"\." + slotVersion + @"\.nupkg$", RegexOptions.IgnoreCase);
+            if (!fileSlot.IsMatch(stubName))
+                continue;
+            var removed = 0;
+            foreach (var dir in new[] { nugetDevDir, binPackagesDir }.Where(Directory.Exists))
+                foreach (var file in Directory.GetFiles(dir, made.Id + ".*.nupkg"))
+                {
+                    var name = Path.GetFileName(file);
+                    if (!fileSlot.IsMatch(name) || name.Equals(stubName, StringComparison.OrdinalIgnoreCase))
+                        continue;
+                    try { File.Delete(file); removed++; }
+                    catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
+                }
+            var cacheFolder = Path.Combine(nugetPackagesDir, made.Id.ToLowerInvariant());
+            if (Directory.Exists(cacheFolder))
+                foreach (var slot in Directory.GetDirectories(cacheFolder))
+                {
+                    var name = Path.GetFileName(slot);
+                    if (folderSlot.IsMatch(name) && !name.Equals(made.Version, StringComparison.OrdinalIgnoreCase) && TryDeleteWholeFolder(slot))
+                        removed++;
+                }
+            if (removed > 0)
+                Console.WriteLine($"Pruned {removed} other {suffix} version(s) of {made.Id} (package files and NuGet cache folders)");
+        }
     }
     finally
     {
