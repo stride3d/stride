@@ -27,7 +27,8 @@ runs:
       if: inputs.mode == 'restore'
       shell: bash
       run: |
-        compiler="${{ hashFiles('sources/shaders/**', '!sources/shaders/Stride.Shaders.Tests/**', '!**/bin/**', '!**/obj/**', 'deps/spirv-cross/**', 'deps/spirv-tools/**', 'deps/spirv-to-dxil/**', 'sources/Directory.Packages.props') }}"
+        # Only what changes the compiler's output: its code, the intrinsics table its generator reads, its native tools
+        compiler="${{ hashFiles('sources/shaders/**/*.cs', 'sources/shaders/Stride.Shaders.Parsers/gen_intrin_main.txt', 'sources/shaders/Stride.Shaders.Compilers/native/**', '!sources/shaders/Stride.Shaders.Tests/**', '!**/bin/**', '!**/obj/**', 'deps/spirv-cross/**', 'deps/spirv-tools/**', 'deps/spirv-to-dxil/**', 'sources/Directory.Packages.props') }}"
         if [ "${{ inputs.fxc }}" = true ]; then
           # The x64 copy, the one the tests load; hashFiles can't read outside the workspace
           fxc_dll="/c/Program Files (x86)/Windows Kits/10/Redist/D3D/x64/d3dcompiler_47.dll"
