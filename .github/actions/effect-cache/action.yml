@@ -7,7 +7,9 @@ description: >-
   of the versions of its packages (and of the FXC of the runner when the lane uses it), so a compiler change starts from
   an empty cache. A run restores the newest cache of the same compiler; the effects of changed shaders miss
   and compile. Use `restore` after the checkout and `save` after the tests. Only runs outside pull requests
-  save, and only when their tests compiled something new.
+  save, and only when their tests compiled something new. A shader corpus capture (STRIDE_SHADER_CORPUS_CAPTURE
+  set on the job) starts from an empty cache and saves nothing: the capture records an effect when it
+  compiles, not when it loads from the cache.
 
 inputs:
   mode:
@@ -24,7 +26,7 @@ runs:
   using: composite
   steps:
     - name: Effect cache key packages
-      if: inputs.mode == 'restore'
+      if: inputs.mode == 'restore' && env.STRIDE_SHADER_CORPUS_CAPTURE == ''
       shell: pwsh
       run: |
         # The versions of the packages the compiler's projects reference, not the whole of Directory.Packages.props.
@@ -59,7 +61,7 @@ runs:
         $packages | Out-Host
         $packages | Set-Content -Encoding ascii "$env:RUNNER_TEMP/effect-cache-packages.txt"
     - name: Effect cache key
-      if: inputs.mode == 'restore'
+      if: inputs.mode == 'restore' && env.STRIDE_SHADER_CORPUS_CAPTURE == ''
       shell: bash
       run: |
         # Every tracked file of the compiler (git's blob hashes: no build outputs, no ignored files), not its
@@ -77,7 +79,7 @@ runs:
         fi
         echo "STRIDE_EFFECT_CACHE_PREFIX=effect-cache-${{ runner.os }}-${{ inputs.lane }}-$compiler-" >> "$GITHUB_ENV"
     - name: Restore the effect cache
-      if: inputs.mode == 'restore'
+      if: inputs.mode == 'restore' && env.STRIDE_EFFECT_CACHE_PREFIX != ''
       uses: actions/cache/restore@v6
       with:
         path: bin/Tests/*/*/*/cache
