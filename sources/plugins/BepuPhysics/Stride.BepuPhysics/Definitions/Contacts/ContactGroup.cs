@@ -48,6 +48,13 @@ public struct ContactGroup<TManifold> where TManifold : unmanaged, IContactManif
     /// </summary>
     public readonly int ChildIndexB;
 
+    // The owning CollidableComponents' packed references, sorted; cached at construction so sorts and group boundary
+    // checks avoid a per-compare BepuSimulation.GetComponent lookup.
+    internal readonly (uint A, uint B) OwnerSortedPair;
+
+    // Whether Pair.A belongs to the first owner of OwnerSortedPair, so a contact knows its side without looking its collidable up
+    internal readonly bool IsPairAOwnerA;
+
     // This is not readonly specifically because we're calling instance method on this
     // object which may cause the JIT to do a copy before each call
     /// <summary>
@@ -62,5 +69,18 @@ public struct ContactGroup<TManifold> where TManifold : unmanaged, IContactManif
         Manifold = manifold;
         ChildIndexA = childIndexA;
         ChildIndexB = childIndexB;
+        OwnerSortedPair = SortedPair;
+        IsPairAOwnerA = pair.A.Packed == SortedPair.A;
+    }
+
+    internal ContactGroup(ref TManifold manifold, CollidablePair pair, int childIndexA, int childIndexB, (uint A, uint B) ownerSortedPair, bool isPairAOwnerA)
+    {
+        IsPairAOwnerA = isPairAOwnerA;
+        Pair = pair;
+        SortedPair = OrderedPair.Sort(pair);
+        Manifold = manifold;
+        ChildIndexA = childIndexA;
+        ChildIndexB = childIndexB;
+        OwnerSortedPair = ownerSortedPair;
     }
 }

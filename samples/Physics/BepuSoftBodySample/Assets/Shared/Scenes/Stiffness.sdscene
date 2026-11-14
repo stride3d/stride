@@ -1,0 +1,134 @@
+!SceneAsset
+Id: c206ad10-37b6-3935-9106-5e8ed0824ac7
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! 7b3b8d87-a1c2-84f7-ff19-cd7f49aaa25f
+        - ref!! 3c5deda0-3bbf-4b17-51bc-ca79ef458bc0
+        - ref!! 5be0aca3-b742-b0e1-1fb3-f8efa34e9419
+        - ref!! a7f519cb-19a1-58cb-031b-2aa3fe227430
+        - ref!! f0fa2b86-7a86-864b-a53b-f6e30cc8c2f6
+    Parts:
+        -   Entity:
+                Id: 7b3b8d87-a1c2-84f7-ff19-cd7f49aaa25f
+                Name: Camera
+                Components:
+                    7d2d725955e70559bcac9be7fe23c594: !TransformComponent
+                        Id: 43769082-bc4d-dcda-9ea2-34f04732c8ed
+                        Position: {X: -0.6, Y: 5.6, Z: 9.8}
+                        Rotation: {X: -0.2164, Y: 0.0, Z: 0.0, W: 0.9763}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    8199dd0785e1d2d24ac4d91cbf2853b2: !BepuSoftBodySample.Game.Components.Camera.BasicCameraControllerComponent,BepuSoftBodySample.Game
+                        Id: e3078fe1-d7de-705e-16f7-d05be68746e0
+                        Gamepad: false
+                        KeyboardMovementSpeed: {X: 5.0, Y: 5.0, Z: 5.0}
+                        SpeedFactor: 4.0
+                    d4edf5e29dae928d48388e17b061d320: !BepuSoftBodySample.Game.Components.Camera.FindAndAttachCameraComponent,BepuSoftBodySample.Game
+                        Id: b485a07b-9add-ee5e-93c4-fcd2c9a4b4f5
+                        CameraComponent: null
+        -   Entity:
+                Id: 3c5deda0-3bbf-4b17-51bc-ca79ef458bc0
+                Name: Skybox
+                Components:
+                    9f683d95a536f5e09ae30f2645f2bfb4: !TransformComponent
+                        Id: ef6a8a3b-5194-ee69-990c-fdfd632f66fb
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    f647ba6ad25a871cc3d71613e09c5b87: !BackgroundComponent
+                        Id: efeaa749-b858-dc9d-481e-0dd709dbae21
+                        Texture: 329a39e7-4963-475c-a2c0-bdfc73b5f0d4:Skybox texture
+                        Intensity: 1.0
+                    ed5981190c0ec3c75977881b49d99533: !LightComponent
+                        Id: b3e2aeb0-4031-39b3-6fc4-57353fe00e1f
+                        Type: !LightSkybox
+                            Skybox: c7a3f3cb-e399-4779-bbbb-a4a2a1e50aa1:Skybox
+                        Intensity: 0.5
+        -   Entity:
+                Id: 5be0aca3-b742-b0e1-1fb3-f8efa34e9419
+                Name: Sun
+                Components:
+                    7115f9f72ed6833a0fe4a0c1b95ee45d: !TransformComponent
+                        Id: 76301ae3-c98a-f985-0ad8-06f0c1cc8285
+                        Position: {X: 0.0, Y: 5.0, Z: 0.0}
+                        Rotation: {X: -0.397327, Y: 0.209735, Z: 0.093796, W: 0.888451}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    8306c3c36949e8125d973cea9659f1e2: !LightComponent
+                        Id: 0723aacd-d0c5-eb28-6546-71ef186944e8
+                        Type: !LightDirectional
+                            Color: !ColorRgbProvider
+                                Value: {R: 1.0, G: 0.956, B: 0.886}
+                            Shadow:
+                                Enabled: true
+                                Filter: !LightShadowMapFilterTypePcf
+                                    FilterSize: Filter7x7
+                                Size: XLarge
+                                DepthRange: {}
+                                PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
+                                ComputeTransmittance: false
+                                BiasParameters:
+                                    NormalOffsetScale: 20.0
+                        Intensity: 3.0
+        -   Entity:
+                Id: a7f519cb-19a1-58cb-031b-2aa3fe227430
+                Name: Floor
+                Components:
+                    f54850e113bac1f3772c3455f0040444: !TransformComponent
+                        Id: bb11ae3f-f15d-a56a-a1ce-ef2b97bf6e44
+                        Position: {X: 0.0, Y: -0.5, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 200.0, Y: 1.0, Z: 200.0}
+                        Children: {}
+                    f6664da233e4c845e92cf1276c7808c1: !ModelComponent
+                        Id: ab0e693f-2492-e22a-fc64-e85678005943
+                        Model: b4d30d41-5492-cf4e-0dae-6c5e5f9387fa:Models/Cube
+                        Materials:
+                            fd6843891b68c34ee37a9b1cadee42b4~0: 6c520bad-a549-71d1-4f29-ec019f3a1fdf:Materials/Floor
+                    d52f320f46e7122f7ae80f214bc33d73: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
+                        Id: 5c981b65-74e5-a502-f009-c8f2d35e1ea5
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                e6c850940f8e1eb269bab3cb348186ba: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 200.0, Y: 1.0, Z: 200.0}
+                        FrictionCoefficient: 1.0
+        -   Entity:
+                Id: f0fa2b86-7a86-864b-a53b-f6e30cc8c2f6
+                Name: Scripts
+                Components:
+                    6000ab8e241463a9c24292bfda8de57e: !TransformComponent
+                        Id: 148677bb-8e46-1d16-37e7-37f64d5798c9
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    8ccda459a2f40c78bd3ef9eccb1c652d: !BepuSoftBodySample.Game.Components.SceneDescriptionComponent,BepuSoftBodySample.Game
+                        Id: 9fffd611-0e90-be06-2e0b-d9b015fbbdeb
+                        Description: 'The same crate lands on every cube. Their stiffness grows from left to right, another setting changes from front to back: C picks which one.'
+                    0807766ed66d401eb39afeb950179a0b: !BepuSoftBodySample.Game.Components.StiffnessChartComponent,BepuSoftBodySample.Game
+                        Id: 863ae37c-dde2-4a7d-839f-7d9921a6037d
+                        BodyModel: b54720aa-7056-3232-c868-e8e3add8cde4:Models/RoundedCube
+                        CrateModel: b4d30d41-5492-cf4e-0dae-6c5e5f9387fa:Models/Cube
+                        CrateMaterial: 307f36ed-8afc-7888-7a56-a43ac56affe7:Materials/Steel
+                        Materials:
+                            cf7247763e8645929e8d29f807c5e956: a0d98ab3-bb3c-8e29-140a-471a886409b1:Materials/Strawberry
+                            5748093325f24ecbb4f513c7ca3990f1: ef84157c-df9e-8802-e426-06e1ef9a01e3:Materials/Lime
+                            a605900ba6dc4f2d80fee365b2d03006: a6ac4738-3401-9edf-d11e-4fad889b46bd:Materials/Orange
+                            7c7b14ed9b88473ba8ead66c77598f37: f45d72b9-de30-aad1-56a6-55433d7cd194:Materials/Blueberry
+                            3099f4763fd04b97bad023af5051c790: 1edb4d5d-f782-54da-8766-dda3e45abfee:Materials/Grape
+                        Resolution: 7
+                        Spacing: 1.9
+                        CrateMass: 6.0
+                    06dcce20c6370629f05ef6408b5788d7: !BepuSoftBodySample.Game.Components.SoftGravityGunComponent,BepuSoftBodySample.Game
+                        Id: 60db1a9e-deb2-ae2b-6050-2f3628434a0a
+                        CameraEntity: ref!! 7b3b8d87-a1c2-84f7-ff19-cd7f49aaa25f
+                        MarkerPrefab: 3075790f-ed9d-6dac-f16a-f38a848b055c:Prefabs/Marker
+                        BallPrefab: 93d5a3da-f3a6-2397-f88c-146ee67bac7a:Prefabs/Ball

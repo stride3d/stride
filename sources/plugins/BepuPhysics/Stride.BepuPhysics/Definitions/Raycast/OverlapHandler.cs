@@ -19,7 +19,10 @@ internal struct OverlapCollectionHandler(BepuSimulation sim, ICollection<Collida
 
     public void OnHitAtZeroT(ref float maximumT, CollidableReference collidable)
     {
-        collection.Add(sim.GetComponent(collidable));
+        var component = sim.GetComponent(collidable);
+        // A collidable spanning multiple bodies is reported once, whichever of its bodies overlap
+        if (component.CollidableCount <= 1 || collection.Contains(component) == false)
+            collection.Add(component);
     }
 }
 
@@ -40,7 +43,11 @@ internal struct OverlapArrayHandler(BepuSimulation sim, CollidableComponent[] co
         if (Count >= collection.Length)
             return;
 
-        collection[Count++] = sim.GetComponent(collidable);
+        var component = sim.GetComponent(collidable);
+        if (component.CollidableCount > 1 && Array.IndexOf(collection, component, 0, Count) >= 0)
+            return;
+
+        collection[Count++] = component;
 
         if (Count == collection.Length)
             maximumT = -1f; // We want to notify bepu that we don't care about any subsequent collision, not sure that works in the process breaking out early but whatever

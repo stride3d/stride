@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Stride.Assets" Version="4.4.0" />
+    <PackageReference Include="Stride.BepuPhysics" Version="4.4.0" />
+    <PackageReference Include="Stride.BepuPhysics.Debug" Version="4.4.0" />
+    <PackageReference Include="Stride.BepuPhysics.Soft" Version="4.4.0" />
+    <PackageReference Include="Stride.Core.Assets" Version="4.4.0" />
+    <PackageReference Include="Stride.Engine" Version="4.4.0" />
+    <PackageReference Include="Stride.Particles" Version="4.4.0" />
+    <PackageReference Include="Stride.UI" Version="4.4.0" />
+    <PackageReference Include="Stride.AssetCompiler" Version="4.4.0" IncludeAssets="build;buildTransitive" />
+  </ItemGroup>
+</Project>
