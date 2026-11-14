@@ -222,7 +222,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         }
     }
 
-    public bool AutoCloseLauncher { get { return autoCloseLauncher; } set { SetValue(ref autoCloseLauncher, value, () => _settings.CloseLauncherAutomatically = value); } }
+    public bool AutoCloseLauncher { get { return autoCloseLauncher; } set { SetValue(ref autoCloseLauncher, value, () => { _settings.CloseLauncherAutomatically = value; _settings.Save(); }); } }
 
     // Applies from the next start: an update check now could run alongside the one from startup
     public bool IncludePrereleaseUpdates
