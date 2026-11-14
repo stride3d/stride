@@ -58,6 +58,8 @@ public partial class MainView : UserControl
                 commandSlots = new MainCommandSlots(this, viewModel, host);
         }
         UpdateRecentSessionsMenu();
+        if (OpenWithIDEButton.Flyout is MenuFlyout openWith)
+            FillOpenWithIDEMenu(openWith.Items);
         UpdateViewMenu();
         UpdateDockWindow();
     }
@@ -146,17 +148,17 @@ public partial class MainView : UserControl
     public static KeyGesture NewGesture => new(Key.N, Application.Current?.PlatformSettings?.HotkeyConfiguration.CommandModifiers ?? KeyModifiers.Control);
 
     /// <summary>
-    /// The shortcut of Project > Build project (F6, as in WPF), bound on the main window like <see cref="SaveGesture"/>.
+    /// The shortcut of Project > Build project (F6), bound on the main window like <see cref="SaveGesture"/>.
     /// </summary>
     public static KeyGesture BuildProjectGesture => new(Key.F6);
 
     /// <summary>
-    /// The shortcut of Project > Start project (F5, as in WPF), bound on the main window like <see cref="SaveGesture"/>.
+    /// The shortcut of Project > Start project (F5), bound on the main window like <see cref="SaveGesture"/>.
     /// </summary>
     public static KeyGesture StartProjectGesture => new(Key.F5);
 
     /// <summary>
-    /// The shortcut of Project > Cancel build (Ctrl+F6, as in WPF), bound on the main window like <see cref="SaveGesture"/>.
+    /// The shortcut of Project > Cancel build (Ctrl+F6), bound on the main window like <see cref="SaveGesture"/>.
     /// </summary>
     public static KeyGesture CancelBuildGesture => new(Key.F6, Application.Current?.PlatformSettings?.HotkeyConfiguration.CommandModifiers ?? KeyModifiers.Control);
 
@@ -209,7 +211,25 @@ public partial class MainView : UserControl
     }
 
     /// <summary>
-    /// Fills File > Open recent as WPF does: one item per recent session (its version and its path, the full path in the tool
+    /// Fills the toolbar's Open with drop-down: one item per IDE (<see cref="MainViewModel.AvailableIDEs"/>), each
+    /// opening the solution with it (<see cref="Core.Assets.Editor.ViewModels.SessionViewModel.OpenInIDECommand"/> of the session
+    /// open then). The items are made with the view model, as those of Open recent, so that the flyout has them when it opens.
+    /// </summary>
+    internal void FillOpenWithIDEMenu(ItemCollection items)
+    {
+        items.Clear();
+        if (viewModel is null)
+            return;
+        foreach (var ide in viewModel.AvailableIDEs)
+        {
+            var item = new MenuItem { Header = ide.DisplayName, CommandParameter = ide };
+            item.Bind(MenuItem.CommandProperty, new Binding($"{nameof(MainViewModel.Session)}.{nameof(Core.Assets.Editor.ViewModels.SessionViewModel.OpenInIDECommand)}") { Source = viewModel });
+            items.Add(item);
+        }
+    }
+
+    /// <summary>
+    /// Fills File > Open recent: one item per recent session (its version and its path, the full path in the tool
     /// tip), then "Clear list".
     /// </summary>
     private void UpdateRecentSessionsMenu()

@@ -8,8 +8,11 @@ using Stride.Core.Assets.Editor.Editors;
 
 namespace Stride.Assets.Editor.Avalonia.Views;
 
+/// <summary>
+/// The view of a visual script: visual scripts are not supported, so it shows the asset's name and says so.
+/// </summary>
 [AssetEditorView<VisualScriptEditorViewModel>]
-public partial class VisualScriptEditorView : UserControl, IAssetEditorView
+public sealed partial class VisualScriptEditorView : UserControl, IAssetEditorView
 {
     public VisualScriptEditorView()
     {

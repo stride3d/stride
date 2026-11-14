@@ -70,7 +70,7 @@ public sealed partial class AddItemView : UserControl
     public AddItemTemplateCollectionViewModel? Collection => DataContext as AddItemTemplateCollectionViewModel;
 
     /// <summary>
-    /// Clears the search and the selection, as the WPF control does when it loads: every template is listed again.
+    /// Clears the search and the selection, as when the control loads: every template is listed again.
     /// </summary>
     public void Reset()
     {

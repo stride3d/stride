@@ -860,7 +860,7 @@
   </caev:TypeMatchTemplateProvider>
 
   <!-- Providers for floating-point number -->
-  <!-- 6 decimal places unless the member says otherwise, as in WPF: a float shown as a double has noise (0.64999997 for 0.65) -->
+  <!-- 6 decimal places unless the member says otherwise: a float shown as a double has noise (0.64999997 for 0.65) -->
   <!-- TargetType2=Object: ToDouble gives null for a missing key (a collection item has no minimum), not 0, so that TargetNullValue applies -->
   <DataTemplate x:Key="FloatEditorTemplate" DataType="cpqvm:NodeViewModel">
     <sd:NumericTextBox x:Name="NumericTextBox"
@@ -953,7 +953,7 @@
   <!-- Provider for string -->
   <caev:TypeMatchTemplateProvider x:Key="StringPropertyTemplateProvider" Type="{x:Type s:String}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="cpqvm:NodeViewModel">
-      <!-- Commit on Enter or focus loss after a user edit, as in WPF: the default trigger made one history entry per key -->
+      <!-- Commit on Enter or focus loss after a user edit: the default trigger made one history entry per key -->
       <TextBox Text="{Binding NodeValue, Converter={caec:DifferentValuesToString}, UpdateSourceTrigger=Explicit}">
         <Interaction.Behaviors>
           <sd:CommitTextBehavior/>
@@ -1455,29 +1455,20 @@
             <sd:CommitTextBehavior/>
           </Interaction.Behaviors>
         </TextBox>
-        <!-- Unfocused display, as in WPF: left-aligned, the name has priority (trimmed last), the dimmed location and its
+        <!-- Unfocused display: left-aligned, the name has priority (trimmed last), the dimmed location and its
              slash go together when space runs low. The box's own text is hidden meanwhile -->
         <Border Margin="5" Padding="{Binding #UrlTextBox.Padding}" BorderThickness="{Binding #UrlTextBox.BorderThickness}"
                 IsHitTestVisible="False" IsVisible="{Binding !#UrlTextBox.IsKeyboardFocusWithin}">
           <Grid x:Name="RefOverlay">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-              <StackPanel Orientation="Horizontal">
-                <StackPanel.IsVisible>
-                  <MultiBinding Converter="{caec:ReferenceLocationVisibility}" ConverterParameter="24">
-                    <Binding ElementName="RefOverlay" Path="Bounds.Width"/>
-                    <Binding ElementName="RefName" Path="Bounds.Width"/>
-                    <Binding Path="NodeValue" Converter="{caec:ContentReferenceToDisplayLocation}"/>
-                  </MultiBinding>
-                </StackPanel.IsVisible>
+              <StackPanel Orientation="Horizontal"
+                          IsVisible="{sd:MultiBinding {Binding #RefOverlay.Bounds.Width}, {Binding #RefName.Bounds.Width},
+                                                      {Binding NodeValue, Converter={caec:ContentReferenceToDisplayLocation}},
+                                                      Converter={caec:ReferenceLocationVisibility}, ConverterParameter=24}">
                 <TextBlock x:Name="RefLocation" Opacity="0.6" TextTrimming="CharacterEllipsis"
-                           Text="{Binding NodeValue, Converter={caec:ContentReferenceToDisplayLocation}}">
-                  <TextBlock.MaxWidth>
-                    <MultiBinding Converter="{caec:ReferenceLocationMaxWidth}" ConverterParameter="6">
-                      <Binding ElementName="RefOverlay" Path="Bounds.Width"/>
-                      <Binding ElementName="RefName" Path="Bounds.Width"/>
-                    </MultiBinding>
-                  </TextBlock.MaxWidth>
-                </TextBlock>
+                           Text="{Binding NodeValue, Converter={caec:ContentReferenceToDisplayLocation}}"
+                           MaxWidth="{sd:MultiBinding {Binding #RefOverlay.Bounds.Width}, {Binding #RefName.Bounds.Width},
+                                                      Converter={caec:ReferenceLocationMaxWidth}, ConverterParameter=6}"/>
                 <TextBlock Opacity="0.6" Text="/"/>
               </StackPanel>
               <TextBlock x:Name="RefName" TextTrimming="CharacterEllipsis"
@@ -1556,29 +1547,20 @@
                 <sd:CommitTextBehavior/>
               </Interaction.Behaviors>
             </TextBox>
-            <!-- Unfocused display, as in WPF: left-aligned, the name has priority (trimmed last), the dimmed location and its
+            <!-- Unfocused display: left-aligned, the name has priority (trimmed last), the dimmed location and its
                  slash go together when space runs low. The box's own text is hidden meanwhile -->
             <Border Margin="2,0,5,5" Padding="{Binding #UrlTextBoxThumb.Padding}" BorderThickness="{Binding #UrlTextBoxThumb.BorderThickness}"
                     IsHitTestVisible="False" IsVisible="{Binding !#UrlTextBoxThumb.IsKeyboardFocusWithin}">
               <Grid x:Name="RefOverlayThumb">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                  <StackPanel Orientation="Horizontal">
-                    <StackPanel.IsVisible>
-                      <MultiBinding Converter="{caec:ReferenceLocationVisibility}" ConverterParameter="24">
-                        <Binding ElementName="RefOverlayThumb" Path="Bounds.Width"/>
-                        <Binding ElementName="RefNameThumb" Path="Bounds.Width"/>
-                        <Binding Path="NodeValue" Converter="{caec:ContentReferenceToDisplayLocation}"/>
-                      </MultiBinding>
-                    </StackPanel.IsVisible>
+                  <StackPanel Orientation="Horizontal"
+                              IsVisible="{sd:MultiBinding {Binding #RefOverlayThumb.Bounds.Width}, {Binding #RefNameThumb.Bounds.Width},
+                                                          {Binding NodeValue, Converter={caec:ContentReferenceToDisplayLocation}},
+                                                          Converter={caec:ReferenceLocationVisibility}, ConverterParameter=24}">
                     <TextBlock x:Name="RefLocationThumb" Opacity="0.6" TextTrimming="CharacterEllipsis"
-                               Text="{Binding NodeValue, Converter={caec:ContentReferenceToDisplayLocation}}">
-                      <TextBlock.MaxWidth>
-                        <MultiBinding Converter="{caec:ReferenceLocationMaxWidth}" ConverterParameter="6">
-                          <Binding ElementName="RefOverlayThumb" Path="Bounds.Width"/>
-                          <Binding ElementName="RefNameThumb" Path="Bounds.Width"/>
-                        </MultiBinding>
-                      </TextBlock.MaxWidth>
-                    </TextBlock>
+                               Text="{Binding NodeValue, Converter={caec:ContentReferenceToDisplayLocation}}"
+                               MaxWidth="{sd:MultiBinding {Binding #RefOverlayThumb.Bounds.Width}, {Binding #RefNameThumb.Bounds.Width},
+                                                          Converter={caec:ReferenceLocationMaxWidth}, ConverterParameter=6}"/>
                     <TextBlock Opacity="0.6" Text="/"/>
                   </StackPanel>
                   <TextBlock x:Name="RefNameThumb" TextTrimming="CharacterEllipsis"
@@ -1669,14 +1651,10 @@
           <StackPanel>
             <TextBlock Margin="8"
                        Foreground="Orange"
-                       TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow">
-              <TextBlock.Text>
-                <MultiBinding StringFormat="{sd:LocalizeString Unable to load the object of type {0} from assembly {1}}">
-                  <Binding Path="((yaml:IUnloadable)NodeValue).TypeName" FallbackValue=""/>
-                  <Binding Path="((yaml:IUnloadable)NodeValue).AssemblyName" FallbackValue=""/>
-                </MultiBinding>
-              </TextBlock.Text>
-            </TextBlock>
+                       TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow"
+                       Text="{sd:MultiBinding {Binding ((yaml:IUnloadable)NodeValue).TypeName, FallbackValue=''},
+                                              {Binding ((yaml:IUnloadable)NodeValue).AssemblyName, FallbackValue=''},
+                                              StringFormat={sd:LocalizeString Unable to load the object of type {0} from assembly {1}}}"/>
             <TextBlock Margin="8"
                        TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow"
                        Text="{Binding ((yaml:IUnloadable)NodeValue).Error, FallbackValue={x:Null}}"/>

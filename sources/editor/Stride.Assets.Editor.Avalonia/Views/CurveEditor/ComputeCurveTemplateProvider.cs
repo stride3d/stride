@@ -9,7 +9,7 @@ namespace Stride.Assets.Editor.Avalonia.Views.CurveEditor;
 
 /// <summary>
 /// Matches a property that the curve editor can edit (an <c>IComputeCurve&lt;T&gt;</c> of a float, a vector, a quaternion or a
-/// color): the six <c>ComputeCurve*TemplateProvider</c> of WPF in one.
+/// color), one provider for the six types.
 /// </summary>
 public sealed class ComputeCurveTemplateProvider : NodeViewModelTemplateProvider
 {

@@ -17,8 +17,7 @@ namespace Stride.Core.Assets.Editor.Avalonia.DragDrop;
 /// items, for instance). It draws in the adorner layer of the target and never takes the pointer.
 /// </summary>
 /// <remarks>
-/// It plays the part of the WPF drag window, which shows the message of the target next to the cursor, and of the insert
-/// and drop target adorners of the WPF trees.
+/// It shows the message of the target next to the cursor, and the insert and drop target marks of the trees.
 /// </remarks>
 public sealed class DragFeedbackAdorner : Control
 {
@@ -122,7 +121,7 @@ public sealed class DragFeedbackAdorner : Control
         {
             var pen = new Pen(brush, 2);
             context.DrawLine(pen, line.Start, line.End);
-            // Small ticks at the start, as the insert adorner of WPF
+            // Small ticks at the start of the insert line
             context.DrawLine(pen, line.Start + new Point(0, -3), line.Start + new Point(0, 3));
         }
         else if (targetBounds is { } bounds)

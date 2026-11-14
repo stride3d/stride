@@ -59,7 +59,7 @@ internal sealed class MainCommandSlots : IDisposable
         host.ToolbarWidgets.CollectionChanged += OnContributionsChanged;
         host.PluginStatusChanged += OnPluginStatusChanged;
         viewModel.PropertyChanged += OnViewModelPropertyChanged;
-        // The buttons of the toolbar ask again whether their command can run after each click and key, as the WPF commands do
+        // The buttons of the toolbar ask again whether their command can run after each click and key
         view.AddHandler(InputElement.PointerReleasedEvent, OnInput, RoutingStrategies.Bubble, handledEventsToo: true);
         view.AddHandler(InputElement.KeyUpEvent, OnInput, RoutingStrategies.Bubble, handledEventsToo: true);
         Update();

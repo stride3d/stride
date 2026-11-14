@@ -6,10 +6,10 @@
         xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:views="clr-namespace:Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Views"
+        xmlns:vm="clr-namespace:Stride.Assets.Editor.ViewModels;assembly=Stride.Assets.Editor"
         mc:Ignorable="d" ShowInTaskbar="False"
         Style="{DynamicResource WindowChromeStyle}"
-        Title="{sd:Localize Select an entity}" Height="800" Width="400" d:DataContext="{d:DesignInstance views:EntityPickerWindow}">
+        Title="{sd:Localize Select an entity}" Height="800" Width="400" d:DataContext="{d:DesignInstance vm:EntityPickerViewModel}">
   <sd:ModalWindow.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
@@ -37,11 +37,11 @@
                Visibility="{Binding ComponentType, Converter={sd:Chained {sd:ObjectToBool}, {sd:InvertBool}, {sd:VisibleOrCollapsed}}}"/>
 
     <UniformGrid Rows="1">
-      <sd:TreeView Margin="15" ItemsSource="{Binding SceneContent, Mode=OneWay}" SelectionMode="Single"
+      <sd:TreeView Margin="15" ItemsSource="{Binding Roots, Mode=OneWay}" SelectionMode="Single"
                      SelectedItem="{Binding SelectedEntity, Mode=TwoWay}" AllowDrop="False">
         <sd:TreeView.ItemTemplate>
-          <HierarchicalDataTemplate ItemsSource="{Binding Content, Mode=OneWay}" DataType="views:EntityPickerWindow+EntityHierarchyItemViewModelWrapper">
-            <StackPanel Orientation="Horizontal" d:DataContext="{d:DesignInstance views:EntityPickerWindow+EntityHierarchyItemViewModelWrapper}">
+          <HierarchicalDataTemplate ItemsSource="{Binding Children, Mode=OneWay}" DataType="vm:PickableEntityViewModel">
+            <StackPanel Orientation="Horizontal" d:DataContext="{d:DesignInstance vm:PickableEntityViewModel}">
               <Image Source="{Binding Entity.Components, Converter={valueConverters:EntityComponentToResource}, FallbackValue={StaticResource FolderIcon}}"
                      MaxWidth="16" MaxHeight="16" RenderOptions.BitmapScalingMode="NearestNeighbor" Margin="0,0,4,0"/>
               <TextBlock Text="{Binding Name}"/>
@@ -61,8 +61,8 @@
         <ListBox.ItemTemplate>
           <DataTemplate>
             <TextBlock>
-               <Run Text="{Binding Item2, Mode=OneWay, Converter={sd:ObjectToTypeName}}"/>
-               <Run Text="{Binding Item1, Mode=OneWay, StringFormat={sd:Localize (Index: {0})}}"/>
+               <Run Text="{Binding Component, Mode=OneWay, Converter={sd:ObjectToTypeName}}"/>
+               <Run Text="{Binding Index, Mode=OneWay, StringFormat={sd:Localize (Index: {0})}}"/>
             </TextBlock>
           </DataTemplate>
         </ListBox.ItemTemplate>

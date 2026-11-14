@@ -3,6 +3,7 @@
 
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
+using Avalonia.VisualTree;
 using Stride.Assets.Editor.Avalonia.Views;
 using Stride.Assets.Editor.Tests.Helpers;
 using Stride.Assets.Editor.ViewModels;
@@ -39,6 +40,20 @@ public sealed class EditorViewTests
         window.Show();
 
         Assert.NotNull(view.Content);
+    }
+
+    [AvaloniaFact]
+    public void TheVisualScriptViewSaysVisualScriptsAreNotSupported()
+    {
+        var view = new VisualScriptEditorView();
+        var window = new Window { Content = view };
+
+        window.Show();
+
+        // Visual scripts are not supported
+        var message = view.GetVisualDescendants().OfType<TextBlock>().Single(x => x.Name == "Message");
+        Assert.Contains("not supported", message.Text);
+        window.Close();
     }
 
     [AvaloniaFact]

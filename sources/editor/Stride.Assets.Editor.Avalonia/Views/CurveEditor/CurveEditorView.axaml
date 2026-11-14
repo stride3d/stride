@@ -142,7 +142,7 @@
         <sd:EditCommands.Bindings>
           <sd:EditCommandBinding Kind="Delete" Command="{Binding DeleteSelectedPointsCommand}"/>
         </sd:EditCommands.Bindings>
-        <!-- Dark, as the WPF editor's: the drawing's colors (light gray axes, white selection rings) are made for a dark background -->
+        <!-- Dark: the drawing's colors (light gray axes, white selection rings) are made for a dark background -->
         <sd:DrawingCanvas Name="Canvas" Model="{Binding}" Background="#FF2D2D30">
           <sd:DrawingCanvas.ContextMenu>
             <ContextMenu Name="CurveContextMenu">
@@ -180,15 +180,10 @@
           <Rectangle Name="SelectionRectangle" Stroke="#FF3399FF" StrokeThickness="1" Fill="#333399FF"/>
         </Canvas>
         <sd:TrackerControl Name="Tracker" TrackPointer="True" Opacity="0.6"
-                           LineExtents="{Binding CurveArea, Converter={x:Static aevc:CurveEditorView.DrawingRectToRect}}">
-          <sd:TrackerControl.IsVisible>
-            <MultiBinding Converter="{x:Static BoolConverters.And}">
-              <Binding Path="IsChecked" ElementName="TrackerToggleButton" x:DataType="ToggleButton"/>
-              <Binding Path="IsPointerOver" ElementName="CurveArea" x:DataType="Grid"/>
-              <Binding Path="SelectedCurve" Converter="{x:Static ObjectConverters.IsNotNull}"/>
-            </MultiBinding>
-          </sd:TrackerControl.IsVisible>
-        </sd:TrackerControl>
+                           LineExtents="{Binding CurveArea, Converter={x:Static aevc:CurveEditorView.DrawingRectToRect}}"
+                           IsVisible="{sd:MultiBinding {Binding #TrackerToggleButton.IsChecked}, {Binding #CurveArea.IsPointerOver},
+                                                       {Binding SelectedCurve, Converter={x:Static ObjectConverters.IsNotNull}},
+                                                       Converter={sd:AndMulti}}"/>
         <!-- An empty editor says how to open a curve -->
         <TextBlock Name="Hint" HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" Opacity="0.8" Foreground="LightGray"
                    IsVisible="{Binding SelectedCurve, Converter={x:Static ObjectConverters.IsNull}}"

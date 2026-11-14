@@ -11,7 +11,7 @@ using Stride.GameStudio.Avalonia.Tests.Helpers;
 namespace Stride.GameStudio.Avalonia.Tests;
 
 /// <summary>
-/// With a session open, File > New, Open, Open recent and Reload start a new editor process, as WPF's restart does: a second
+/// With a session open, File > New, Open, Open recent and Reload start a new editor process: a second
 /// session would load the package assemblies again in this process. The save question comes first, and Cancel keeps the session.
 /// </summary>
 public sealed class ProcessRestartTests

@@ -15,18 +15,19 @@
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
         <ResourceInclude Source="avares://Stride.Core.Assets.Editor.Avalonia/Views/ImageResources.axaml"/>
+        <ResourceInclude Source="avares://Stride.GameStudio.Avalonia/Views/PackageMenuResources.axaml"/>
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </UserControl.Resources>
   <DockPanel>
-    <!-- A "*" follows the name of an item with unsaved changes, as in the WPF solution explorer -->
+    <!-- A "*" follows the name of an item with unsaved changes -->
     <TreeView x:Name="SolutionTree"
               Focusable="True"
               ItemsSource="{Binding PackageCategories.Values}"
               SelectedItems="{Binding AssetCollection.SelectedLocations}"
               SelectionMode="Multiple"
               Margin="4">
-      <!-- The Edit commands while the solution explorer has the focus, as the command bindings of the WPF tree -->
+      <!-- The Edit commands while the solution explorer has the focus -->
       <sd:EditCommands.Bindings>
         <sd:EditCommandBinding Kind="Cut" Command="{Binding AssetCollection.CutLocationsCommand}"/>
         <sd:EditCommandBinding Kind="Copy" Command="{Binding AssetCollection.CopyLocationsCommand}"/>
@@ -34,7 +35,7 @@
         <sd:EditCommandBinding Kind="Delete" Command="{Binding DeleteSelectedSolutionItemsCommand}"/>
         <sd:EditCommandBinding Kind="Rename" Command="{Binding RenameDirectoryOrPackageCommand}" CommandParameter="{Binding AssetCollection.SelectedLocations}"/>
       </sd:EditCommands.Bindings>
-      <!-- The context menu of the WPF solution explorer, with the items whose commands are ported, in groups shown when one of
+      <!-- The context menu of the solution explorer, in groups shown when one of
            their commands applies to the selection -->
       <TreeView.ContextMenu>
         <ContextMenu x:Name="SolutionContextMenu"
@@ -52,7 +53,25 @@
           </MenuItem>
 
           <MenuItem Header="{sd:LocalizeString Package, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"
-                    IsVisible="{sd:MultiBinding {Binding SetCurrentProjectCommand.IsEnabled}, {Binding ActivatePackagePropertiesCommand.IsEnabled}, Converter={sd:OrMulti}}"/>
+                    IsVisible="{sd:MultiBinding {Binding IsUpdatePackageEnabled}, {Binding AddDependencyCommand.IsEnabled}, {Binding SetCurrentProjectCommand.IsEnabled}, {Binding ActivatePackagePropertiesCommand.IsEnabled}, Converter={sd:OrMulti}}"/>
+          <MenuItem Header="{sd:LocalizeString Update package, Context=Menu}"
+                    x:Name="SolutionUpdatePackageMenuItem"
+                    ItemsSource="{Binding UpdatePackageViewModel.Templates}"
+                    ItemTemplate="{StaticResource PackageTemplateHeaderTemplate}"
+                    ItemContainerTheme="{StaticResource PackageTemplateMenuItemTheme}"
+                    IsVisible="{Binding IsUpdatePackageEnabled}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImageAddNewProject}"/>
+            </MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="{sd:LocalizeString Add dependency..., Context=Menu}"
+                    x:Name="SolutionAddDependencyMenuItem"
+                    Command="{Binding AddDependencyCommand}"
+                    IsVisible="{Binding AddDependencyCommand.IsEnabled}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImageAddDependency}"/>
+            </MenuItem.Icon>
+          </MenuItem>
           <MenuItem Header="{sd:LocalizeString Set as current project, Context=Menu}"
                     Command="{Binding SetCurrentProjectCommand}"
                     CommandParameter="{Binding AssetCollection.SelectedLocations}"
@@ -70,7 +89,7 @@
           </MenuItem>
 
           <MenuItem Header="{sd:LocalizeString Solution, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"
-                    IsVisible="{sd:MultiBinding {Binding NewProjectCommand.IsEnabled}, {Binding AddExistingProjectCommand.IsEnabled}, Converter={sd:OrMulti}}"/>
+                    IsVisible="{sd:MultiBinding {Binding NewProjectCommand.IsEnabled}, {Binding AddExistingProjectCommand.IsEnabled}, {Binding OpenInIDECommand.IsEnabled}, Converter={sd:OrMulti}}"/>
           <MenuItem Header="{sd:LocalizeString New project..., Context=Menu}"
                     Command="{Binding NewProjectCommand}"
                     IsVisible="{Binding NewProjectCommand.IsEnabled}">
@@ -83,6 +102,14 @@
                     IsVisible="{Binding AddExistingProjectCommand.IsEnabled}">
             <MenuItem.Icon>
               <Image Source="{StaticResource ImageAddExistingProject}"/>
+            </MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="{sd:LocalizeString Open in IDE, Context=Menu}"
+                    x:Name="SolutionOpenInIDEMenuItem"
+                    Command="{Binding OpenInIDECommand}"
+                    IsVisible="{Binding OpenInIDECommand.IsEnabled}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImageCodeEditor}"/>
             </MenuItem.Icon>
           </MenuItem>
 
@@ -125,7 +152,7 @@
             </MenuItem.Icon>
           </MenuItem>
 
-          <!-- The asset group of the WPF solution explorer menu, shown where an asset can be created -->
+          <!-- The asset group of the menu, shown where an asset can be created -->
           <MenuItem Header="{sd:LocalizeString Asset, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"
                     IsVisible="{Binding NewDirectoryCommand.IsEnabled}"/>
           <MenuItem Header="{sd:LocalizeString Add asset..., Context=Menu}"
@@ -137,7 +164,7 @@
             </MenuItem.Icon>
           </MenuItem>
 
-          <!-- The explore group of the WPF solution explorer menu -->
+          <!-- The explore group of the menu -->
           <MenuItem Header="{sd:LocalizeString Explore, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"
                     IsVisible="{Binding ExploreCommand.IsEnabled}"/>
           <MenuItem Header="{sd:LocalizeString Show in Explorer, Context=Menu}"
@@ -173,7 +200,7 @@
         <TreeDataTemplate DataType="{x:Type vm:DirectoryViewModel}"
                           ItemsSource="{Binding SubDirectories}">
           <StackPanel Orientation="Horizontal" Background="Transparent">
-            <!-- An asset dragged from the asset view moves to this folder, as in the WPF solution explorer -->
+            <!-- An asset dragged from the asset view moves to this folder -->
             <Interaction.Behaviors>
               <dd:AddChildDropBehavior/>
             </Interaction.Behaviors>

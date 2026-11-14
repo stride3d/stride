@@ -60,7 +60,7 @@ public sealed class SceneViewContextMenuTests
             var menu = scene.View.SceneViewContextMenu;
             Assert.NotNull(menu);
             Assert.True(menu.IsOpen);
-            // The tool's entries first, then the entries of the editor (as in the WPF scene view), then the commands of the
+            // The tool's entries first, then the entries of the editor, then the commands of the
             // plugins in their group
             var items = Describe(menu);
             Assert.Equal(["Paint here", "-", "Create", "Empty entity"], items.Take(4));
@@ -157,7 +157,7 @@ public sealed class SceneViewContextMenuTests
         var toolbar = AttachToolbar(scene, tools);
         try
         {
-            // No plugin command at the place, no tool entry: the menu of the WPF scene view, the creation at the cursor and
+            // No plugin command at the place, no tool entry: the entries of the editor, the creation at the cursor and
             // the actions on the selection
             tools.RaiseContextMenu(new EditorViewContextMenuRequest { Click = Click(), Tool = tools.Tools[0] });
             await WindowTestHelper.PumpAsync();

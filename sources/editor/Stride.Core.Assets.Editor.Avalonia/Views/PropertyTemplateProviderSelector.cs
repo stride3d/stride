@@ -21,7 +21,7 @@ public sealed class PropertyTemplateProviderSelector : TemplateProviderSelector
             var usedProvidersForItem = usedProviders.GetOrCreateValue(node);
 
             // The last control built for this node is still in the window: the request comes from a template of a provider that
-            // falls back on the next one inside it (WPF checks that the last container is a parent of the new one), so the providers
+            // falls back on the next one inside it, so the providers
             // already used are kept. In any other case, we clear the list of used providers.
             if (!lastControls.TryGetValue(node, out var lastControl) || !lastControl.IsAlive)
             {

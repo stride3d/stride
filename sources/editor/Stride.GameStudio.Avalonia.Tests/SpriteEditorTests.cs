@@ -68,6 +68,9 @@ public sealed class SpriteEditorTests
                 Assert.False(Part<Control>(view, "BorderHandles").IsVisible);
                 Assert.True(Part<Control>(view, "SpriteCenterMarker").IsVisible);
                 Assert.False(Part<Control>(view, "SpriteBordersRectangle").IsVisible);
+                // The dark background around the region: a border as thick as the space around the region on each side
+                var highlight = Part<Canvas>(view, "ToolsCanvas").Children.OfType<Border>().First();
+                Assert.Equal(new Thickness(region.ActualLeft, region.ActualTop, region.ActualRightOffset, region.ActualBottomOffset), highlight.BorderThickness);
 
                 editor.Viewport.ZoomInCommand.Execute();
                 await WindowTestHelper.PumpAsync();

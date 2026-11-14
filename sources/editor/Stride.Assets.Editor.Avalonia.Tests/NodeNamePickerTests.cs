@@ -19,7 +19,7 @@ namespace Stride.Assets.Editor.Avalonia.Tests;
 
 /// <summary>
 /// The node name of a node link (physics components, SpriteStudio node link) is picked in the list of the nodes of the
-/// model, as with the WPF FilteringComboBox: the property changes once, when a node is picked, on Enter or when the focus
+/// model, filtered by the text: the property changes once, when a node is picked, on Enter or when the focus
 /// leaves.
 /// </summary>
 public sealed class NodeNamePickerTests
@@ -59,7 +59,7 @@ public sealed class NodeNamePickerTests
         Assert.Equal(0, link.Sets);
         Assert.Equal(["Head"], ShownNodes(box));
 
-        // As in WPF, Enter takes the first node the list shows
+        // Enter takes the first node the list shows
         window.KeyPressQwerty(PhysicalKey.Enter, RawInputModifiers.None);
         Dispatcher.UIThread.RunJobs();
 
@@ -81,7 +81,7 @@ public sealed class NodeNamePickerTests
         window.KeyPressQwerty(PhysicalKey.Enter, RawInputModifiers.None);
         Dispatcher.UIThread.RunJobs();
 
-        // A name the model does not have yet, as WPF allows
+        // A name the model does not have yet is allowed
         Assert.Equal("Tail", link.NodeName);
         Assert.Equal(1, link.Sets);
         window.Close();

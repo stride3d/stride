@@ -10,7 +10,7 @@ namespace Stride.GameStudio.Avalonia.Docking;
 
 /// <summary>
 /// An asset editor in Dock's model, in the editors' area: its title is the asset's name, with a "*" while the asset has
-/// unsaved changes, as WPF's editor tabs.
+/// unsaved changes.
 /// </summary>
 public sealed class EditorDocument : Document, IDisposable, IDockableView
 {

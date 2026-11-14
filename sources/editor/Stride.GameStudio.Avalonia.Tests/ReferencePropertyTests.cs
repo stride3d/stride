@@ -92,7 +92,7 @@ public sealed class ReferencePropertyTests
 
             Assert.True(textBox.Focus());
             textBox.Text = other.Url;
-            // Typing alone commits nothing, as in the WPF editor
+            // Typing alone commits nothing
             Assert.Equal(skeleton.Id, ReferencedId(model));
 
             window.KeyPressQwerty(PhysicalKey.Enter, RawInputModifiers.None);

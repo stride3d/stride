@@ -2,7 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:engine="clr-namespace:Stride.Engine;assembly=Stride.Engine"
                     x:Class="Stride.Assets.Editor.Avalonia.Views.ComponentImages">
-  <!-- The images of the entity components, copied from the WPF ImageDictionary (Stride.Assets.Editor.Wpf): the
+  <!-- The images of the entity components: the
        plugin registers them as type images, which give the icons of the entities in the scene hierarchy -->
 
   <DrawingImage x:Key="{x:Type engine:EntityComponent}" >

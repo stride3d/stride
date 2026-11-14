@@ -79,9 +79,14 @@ internal sealed class FakeEditorGameController : IEditorGameController, IDisposa
 
     public void OnShowGame() { }
 
-    public T GetService<T>() where T : IEditorGameViewModelService => default!;
+    /// <summary>
+    /// Gets the services of the game that the view models can reach (none unless the test adds some).
+    /// </summary>
+    public List<IEditorGameViewModelService> Services { get; } = [];
 
-    public IReadOnlyList<T> GetServices<T>() where T : IEditorGameViewModelService => [];
+    public T GetService<T>() where T : IEditorGameViewModelService => Services.OfType<T>().FirstOrDefault()!;
+
+    public IReadOnlyList<T> GetServices<T>() where T : IEditorGameViewModelService => Services.OfType<T>().ToList();
 
     public void Destroy() => Dispose();
 

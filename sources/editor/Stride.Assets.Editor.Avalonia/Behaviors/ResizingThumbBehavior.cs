@@ -12,7 +12,7 @@ namespace Stride.Assets.Editor.Avalonia.Behaviors;
 
 /// <summary>
 /// Forwards the drag of a <see cref="Thumb"/> to a view model that it resizes or moves (<see cref="IResizingTarget"/>): a handle of
-/// the region, borders or center of a sprite. The cross-platform counterpart of the WPF <c>ThumbBehavior</c>.
+/// the region, borders or center of a sprite.
 /// </summary>
 public sealed class ResizingThumbBehavior : StyledElementBehavior<Thumb>
 {

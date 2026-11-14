@@ -19,8 +19,7 @@ public partial class AssetExplorerView : UserControl
     }
 
     /// <summary>
-    /// Wires the Add asset flyout to the templates of the asset view (built on the first opening) and its commands, as the WPF popup
-    /// binds its add item control.
+    /// Wires the Add asset flyout to the templates of the asset view (built on the first opening) and its commands.
     /// </summary>
     private void OnAddAssetFlyoutOpening(object? sender, EventArgs e)
     {
@@ -41,7 +40,7 @@ public partial class AssetExplorerView : UserControl
     }
 
     /// <summary>
-    /// Closes the flyout when a template is validated (its command then runs), as the WPF popup closes.
+    /// Closes the flyout when a template is validated (its command then runs).
     /// </summary>
     private void OnAddAssetItemValidated(object? sender, TemplateValidatedEventArgs e)
     {
@@ -56,7 +55,7 @@ public partial class AssetExplorerView : UserControl
 
     /// <summary>
     /// Inserts the commands of the selected asset (<see cref="AssetViewModel.AssetCommands"/>: create a derived asset...) after the
-    /// asset items, as the WPF asset view inlines them.
+    /// asset items.
     /// </summary>
     private void OnAssetContextMenuOpening(object? sender, System.ComponentModel.CancelEventArgs e)
     {

@@ -16,8 +16,8 @@ using Canvas = Stride.UI.Panels.Canvas;
 namespace Stride.GameStudio.Avalonia.Tests;
 
 /// <summary>
-/// The context menus of the Avalonia UI editor (of an element, of the tree's empty area, of the view) and its view settings,
-/// as the WPF UI editor: each part of the menu shows for the element it opens on, and each change is one entry of the history.
+/// The context menus of the Avalonia UI editor (of an element, of the tree's empty area, of the view) and its view settings:
+/// each part of the menu shows for the element it opens on, and each change is one entry of the history.
 /// </summary>
 public sealed class UIEditorMenuTests
 {

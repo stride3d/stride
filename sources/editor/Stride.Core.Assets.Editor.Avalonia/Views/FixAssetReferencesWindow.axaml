@@ -12,7 +12,7 @@
         MinWidth="600" MinHeight="400"
         ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner">
-  <!-- Port of the WPF FixAssetReferencesWindow: the references to an asset being deleted, replaced with another asset or cleared -->
+  <!-- The references to an asset being deleted, replaced with another asset or cleared -->
   <Window.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>

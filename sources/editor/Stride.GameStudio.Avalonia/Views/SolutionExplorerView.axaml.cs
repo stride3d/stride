@@ -38,7 +38,7 @@ public partial class SolutionExplorerView : UserControl
     }
 
     /// <summary>
-    /// Expands the folders, packages and categories that contain the selected locations, as the WPF solution explorer does when
+    /// Expands the folders, packages and categories that contain the selected locations, when
     /// the asset view selects an asset (e.g. the editors that open with the session).
     /// </summary>
     private void ExpandToSelection()

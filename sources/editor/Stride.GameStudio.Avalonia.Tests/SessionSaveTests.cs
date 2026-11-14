@@ -17,8 +17,8 @@ using Stride.Core.Assets.Presentation.ViewModels;
 namespace Stride.GameStudio.Avalonia.Tests;
 
 /// <summary>
-/// Saving the session in the shell, as in the WPF editor: File > Save and Ctrl+S, the "*" of the assets with unsaved changes
-/// (and of the window title, which WPF does not have), and the question (Save, Don't save, Cancel) before the session closes.
+/// Saving the session in the shell: File > Save and Ctrl+S, the "*" of the assets with unsaved changes
+/// (and of the window title), and the question (Save, Don't save, Cancel) before the session closes.
 /// </summary>
 public sealed class SessionSaveTests
 {
@@ -39,7 +39,7 @@ public sealed class SessionSaveTests
             Assert.True(await fixture.Main.OpenSession(fixture.PackagePath));
             await WindowTestHelper.PumpAsync();
 
-            // Enabled even without a change, as in WPF
+            // Enabled even without a change
             Assert.False(fixture.Session.HasUnsavedAssets());
             Assert.True(await IsEnabledInOpenMenuAsync(save));
         }

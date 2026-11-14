@@ -17,7 +17,7 @@ using MessageBox = Stride.Core.Presentation.Avalonia.Windows.MessageBox;
 namespace Stride.GameStudio.Avalonia.Tests;
 
 /// <summary>
-/// The progress window of a work, as WPF shows it: it waits for the message boxes that are up, which it would hide.
+/// The progress window of a work: it waits for the message boxes that are up, which it would hide.
 /// </summary>
 public sealed class ProgressWindowTests
 {

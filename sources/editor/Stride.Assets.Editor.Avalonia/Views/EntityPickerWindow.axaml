@@ -1,0 +1,84 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+        xmlns:vm="using:Stride.Assets.Editor.ViewModels"
+        xmlns:conv="using:Stride.Assets.Editor.Avalonia.Converters"
+        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="640"
+        x:Class="Stride.Assets.Editor.Avalonia.Views.EntityPickerWindow"
+        x:DataType="vm:EntityPickerViewModel"
+        Title="{sd:LocalizeString Select an entity, Context=Title}"
+        Width="400" Height="640"
+        MinWidth="320" MinHeight="240"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner">
+  <Window.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://Stride.Assets.Editor.Avalonia/Views/SceneEditorImages.axaml"/>
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </Window.Resources>
+  <Window.Styles>
+    <!-- Expanded -->
+    <Style Selector="TreeViewItem">
+      <Setter Property="IsExpanded" Value="True"/>
+    </Style>
+  </Window.Styles>
+  <!-- The entity picker, with a search box: the hierarchy of the editor and, when a component is picked, the components of the
+       selected entity that have its type -->
+  <DockPanel Margin="10">
+    <StackPanel DockPanel.Dock="Bottom"
+                Orientation="Horizontal" HorizontalAlignment="Right"
+                Spacing="8" Margin="0,10,0,0">
+      <Button x:Name="OkButton"
+              Content="{sd:LocalizeString OK, Context=Button}"
+              ToolTip.Tip="{sd:LocalizeString Select this entity, Context=ToolTip}"
+              IsDefault="True"
+              IsEnabled="{Binding SelectionValid}"
+              Click="OnOkClick" MinWidth="80"/>
+      <Button x:Name="CancelButton"
+              Content="{sd:LocalizeString Cancel, Context=Button}"
+              ToolTip.Tip="{sd:LocalizeString Cancel (Esc), Context=ToolTip}"
+              IsCancel="True"
+              Click="OnCancelClick" MinWidth="80"/>
+    </StackPanel>
+    <TextBlock DockPanel.Dock="Top" Margin="0,0,0,8" TextWrapping="Wrap" Text="{Binding Message}"/>
+    <TextBox x:Name="SearchBox"
+             DockPanel.Dock="Top"
+             Margin="0,0,0,6"
+             PlaceholderText="{sd:LocalizeString Search entities..., Context=Watermark}"
+             Text="{Binding SearchText, Mode=TwoWay}"/>
+    <ListBox x:Name="ComponentList"
+             DockPanel.Dock="Right" Width="180" Margin="6,0,0,0"
+             IsVisible="{Binding ComponentType, Converter={x:Static ObjectConverters.IsNotNull}}"
+             ItemsSource="{Binding SelectedEntity.Components, FallbackValue={x:Null}}"
+             SelectedItem="{Binding SelectedEntity.SelectedComponent, FallbackValue={x:Null}}">
+      <ListBox.ItemTemplate>
+        <DataTemplate DataType="vm:PickableComponentViewModel">
+          <TextBlock Text="{Binding DisplayName}"/>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+    <TreeView x:Name="EntityTree"
+              ItemsSource="{Binding Roots}"
+              SelectionMode="Single"
+              SelectedItem="{Binding SelectedEntity, Mode=TwoWay}"
+              DoubleTapped="OnTreeDoubleTapped">
+      <TreeView.DataTemplates>
+        <TreeDataTemplate DataType="vm:PickableEntityViewModel" ItemsSource="{Binding Children}">
+          <StackPanel Orientation="Horizontal" Spacing="4">
+            <Panel Width="16" Height="16">
+              <Image Source="{Binding Entity.Components, Converter={conv:EntityComponentToResource}, FallbackValue={x:Null}}"
+                     IsVisible="{Binding Entity, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+              <Image Source="{StaticResource FolderIcon}"
+                     IsVisible="{Binding Entity, Converter={x:Static ObjectConverters.IsNull}}"/>
+            </Panel>
+            <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+          </StackPanel>
+        </TreeDataTemplate>
+      </TreeView.DataTemplates>
+    </TreeView>
+  </DockPanel>
+</Window>

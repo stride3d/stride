@@ -26,8 +26,8 @@ using Stride.Core.Presentation.Collections;
 using Stride.Assets.Presentation.AssetEditors.AssetHighlighters;
 using Stride.Assets.Editor.EntityFactories;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
-using Stride.Assets.Presentation.NodePresenters.Commands;
 using Stride.Assets.Editor.Quantum.NodePresenters.Commands;
+using Stride.Assets.Editor.Services;
 using Stride.Assets.Presentation.NodePresenters.Updaters;
 using Stride.Assets.Presentation.SceneEditor.Services;
 using Stride.Assets.Presentation.ViewModel;
@@ -200,7 +200,7 @@ namespace Stride.Assets.Presentation
 
             var session = context.Session;
             var sessionViewModel = (SessionViewModel)session;
-            context.Services.Register(new StrideDialogService());
+            context.Services.Register(new WpfEntityPickerService());
             // The scene and prefab editors run their game in a WinForms form, and show the toolbar of the WPF editor
             context.Services.Register(WpfEditorGameViewport.Service);
             context.Services.Register(new WpfEditorViewOptionsFactory());

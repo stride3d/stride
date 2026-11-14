@@ -8,7 +8,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Stride.Assets.Editor.Avalonia.Views.ScriptSourceFileEditorView"
              x:DataType="vm:ScriptSourceFileEditorViewModel">
-  <!-- Ctrl+S is the shell's File > Save, which saves the script with the rest of the session, as in the WPF editor -->
+  <!-- Ctrl+S is the shell's File > Save, which saves the script with the rest of the session -->
   <DockPanel>
     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="4" Margin="4">
       <!-- The command is enabled while the text has unsaved edits; it saves this script only -->

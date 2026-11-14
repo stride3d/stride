@@ -35,4 +35,12 @@ public sealed class MultiBindingExtensionTests
         var binding = new MultiBindingExtension(new Binding("A"), new Binding("B")) { FallbackValue = false }.ProvideTypedValue();
         Assert.Equal(false, binding.FallbackValue);
     }
+
+    [Fact]
+    public void ConverterParameterAndStringFormatArePassedToTheMultiBinding()
+    {
+        var binding = new MultiBindingExtension(new Binding("A"), new Binding("B")) { ConverterParameter = "24", StringFormat = "{0} {1}" }.ProvideTypedValue();
+        Assert.Equal("24", binding.ConverterParameter);
+        Assert.Equal("{0} {1}", binding.StringFormat);
+    }
 }

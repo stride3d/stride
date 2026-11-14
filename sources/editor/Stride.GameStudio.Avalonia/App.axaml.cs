@@ -87,7 +87,7 @@ public partial class App : Application
         InitializePlugins();
 
         EditorSettings.Initialize();
-        // The Remote settings of the WPF editor, declared in the shared project: shown, though this editor deploys to no remote host yet
+        // The Remote settings, declared in the shared project: shown, though this editor deploys to no remote host yet
         RuntimeHelpers.RunClassConstructor(typeof(RemoteSettings).TypeHandle);
         InitializeLogging();
         InitializeLanguage();
@@ -200,7 +200,7 @@ public partial class App : Application
         if (GetInitialSessionPath() is { } initialPath)
             viewModel.OpenInitialSessionCommand.Execute(initialPath);
         else
-            // No session to open: the project selection window, as the WPF editor shows at startup (its Cancel exits the editor)
+            // No session to open: the project selection window (its Cancel exits the editor)
             viewModel.SelectInitialProjectCommand.Execute();
     }
 
@@ -360,9 +360,9 @@ public partial class App : Application
 
     /// <summary>
     /// Registers the project templates (new game, code library, plugin, and the starters and samples once downloaded) shown by the
-    /// new project windows, and the asset templates (the Add asset list) of the Stride package, as the WPF plugin does when it
-    /// loads. Only the templates installed on this machine are scanned here; the missing content packages download in the
-    /// background. An editor without templates still starts.
+    /// new project windows, and the asset templates (the Add asset list) of the Stride package. Only the templates installed on
+    /// this machine are scanned here; the missing content packages download in the background. An editor without templates
+    /// still starts.
     /// </summary>
     private static void RegisterProjectTemplates()
     {
@@ -395,7 +395,7 @@ public partial class App : Application
     }
 
     /// <summary>
-    /// The language of the editor, from the settings (the same values as the WPF Game Studio).
+    /// The language of the editor, from the settings (the values of the shared settings file).
     /// </summary>
     private static void InitializeLanguage()
     {

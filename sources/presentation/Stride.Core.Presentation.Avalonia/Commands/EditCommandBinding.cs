@@ -9,7 +9,7 @@ namespace Stride.Core.Presentation.Avalonia.Commands;
 
 /// <summary>
 /// The command a panel executes for one of the Edit commands while it has the focus, declared in <see cref="EditCommands.BindingsProperty"/>
-/// of the panel, as a command binding of WPF.
+/// of the panel.
 /// </summary>
 /// <remarks>
 /// A binding whose <see cref="Command"/> is null is ignored, so that a panel can bind a command of a view model that is not there yet.

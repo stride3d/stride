@@ -16,7 +16,7 @@
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </UserControl.Resources>
-  <!-- The columns of the WPF object browser: groups, templates, description of the selected template -->
+  <!-- The columns of the object browser: groups, templates, description of the selected template -->
   <Grid ColumnDefinitions="*,4,3*,4,220">
     <!-- The groups, all expanded -->
     <TreeView x:Name="Groups"

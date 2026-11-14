@@ -14,6 +14,7 @@ using Stride.Core.Assets.Editor.Plugins;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.CodeEditorSupport;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
@@ -49,6 +50,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
     private readonly List<PanelActivation> panelActivations = [];
     private string? sessionName;
     private string title = baseTitle;
+    private IReadOnlyList<IDEInfo>? availableIDEs;
 
 #if DEBUG
     // Note: only required for the Avalonia designer
@@ -78,7 +80,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
         OpenSettingsWindowCommand = new AnonymousTaskCommand(serviceProvider, OnOpenSettingsWindow, () => DialogService.HasMainWindow);
         OpenWebPageCommand = new AnonymousTaskCommand<string>(serviceProvider, OnOpenWebPage);
         ReloadCommand = new AnonymousTaskCommand(serviceProvider, OnReload);
-        // Enabled while a session is open, even without a change, as in WPF
+        // Enabled while a session is open, even without a change
         SaveCommand = new AnonymousTaskCommand(serviceProvider, OnSave) { IsEnabled = false };
         UndoCommand = new AnonymousCommand(serviceProvider, () => history?.UndoCommand.Execute()) { IsEnabled = false };
         RedoCommand = new AnonymousCommand(serviceProvider, () => history?.RedoCommand.Execute()) { IsEnabled = false };
@@ -132,7 +134,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
     public string EditorToolkitName => EditorToolkits.Avalonia;
 
     /// <inheritdoc/>
-    /// <remarks>As in WPF, the shaders open with the shader editor of the settings.</remarks>
+    /// <remarks>The shaders open with the shader editor of the settings.</remarks>
     public IEnumerable<string> TextAssetTypes { get; } = [nameof(Stride.Assets.Effect.EffectShaderAsset), nameof(Stride.Assets.Effect.EffectCompositorAsset)];
 
     /// <inheritdoc/>
@@ -158,6 +160,12 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
     /// The panels and editors of the main window, and their layouts.
     /// </summary>
     public DockPanelService Panels { get; }
+
+    /// <summary>
+    /// The IDEs Open in IDE can start, as the toolbar lists them: the default one (of the settings), then the installed ones.
+    /// Looked up the first time they are shown.
+    /// </summary>
+    public IReadOnlyList<IDEInfo> AvailableIDEs => availableIDEs ??= [IDEInfo.DefaultIDE, .. IDEInfoVersions.AvailableIDEs()];
 
     /// <summary>
     /// The View menu: a toggle per panel, and Reset layout.
@@ -201,7 +209,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
 
     /// <summary>
     /// File > New: closes the session, if any, and shows the project selection window (a new project from a template, or a recent
-    /// project), as WPF's New command restarts the editor on the project selection.
+    /// project).
     /// </summary>
     public ICommandBase NewSessionCommand { get; }
 
@@ -211,7 +219,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
     public ICommandBase SelectProjectCommand { get; }
 
     /// <summary>
-    /// Shows the project selection window when the editor starts without a session. Cancelling exits the editor, as the WPF editor does.
+    /// Shows the project selection window when the editor starts without a session. Cancelling exits the editor.
     /// </summary>
     public ICommandBase SelectInitialProjectCommand { get; }
 
@@ -422,7 +430,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
     /// </summary>
     /// <param name="loadedSession">The session.</param>
     /// <param name="filePath">The file the session was opened from.</param>
-    /// <param name="isNew">Whether the session was just created: what an older session at the same path kept is forgotten, as in WPF.</param>
+    /// <param name="isNew">Whether the session was just created: what an older session at the same path kept is forgotten.</param>
     private void AttachSession(SessionViewModel loadedSession, UFile filePath, bool isNew = false)
     {
         // Written to the file with the list of recent sessions, which writes every setting this editor changed
@@ -444,7 +452,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
         Preview = new PreviewViewModel(Session);
 
         // The editors of the last session, or the default scene, now that the plugins have registered the editors; keyed by the
-        // solution, as in WPF
+        // solution
         var sessionData = GameStudioInternalSettings.CreateMostRecentlyUsedSessionsData();
         var dataPath = UPath.IsNullOrEmpty(Session.SolutionPath) ? filePath : Session.SolutionPath;
         if (isNew)
@@ -453,7 +461,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
 
         // The panels, in the layout the session had in this editor (kept under the same path as its editors)
         Panels.OpenSession(Session, dataPath);
-        // The panels that come forward by themselves, as in WPF: the asset view when the solution explorer selects a folder, the
+        // The panels that come forward by themselves: the asset view when the solution explorer selects a folder, the
         // Output on an error of the build (the code reload builds there too)
         panelActivations.Add(PanelActivation.OnLocationChanged(Panels, BuiltInPanels.AssetView, Session.AssetCollection.SelectedLocations));
         panelActivations.Add(PanelActivation.OnLog(Panels, BuiltInPanels.BuildLog, Build.BuildLog.Messages));
@@ -510,7 +518,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
     }
 
     /// <summary>
-    /// A build brings the Output forward, as in WPF.
+    /// A build brings the Output forward.
     /// </summary>
     private void BuildPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
@@ -621,7 +629,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
 
     private async Task OnSave()
     {
-        // A saved session goes to the top of the recent sessions (AddRecentFile), as in WPF
+        // A saved session goes to the top of the recent sessions (AddRecentFile)
         if (session is not null)
             await session.SaveSessionAsync();
     }
@@ -632,7 +640,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
     }
 
     /// <summary>
-    /// Opens the same session in a fresh editor, as WPF's Reload project does, after asking whether to save it.
+    /// Opens the same session in a fresh editor (Reload project), after asking whether to save it.
     /// </summary>
     /// <returns><c>true</c> when the editor restarts, <c>false</c> when the user kept the session open or there is none.</returns>
     private async Task<bool> ReloadSessionAsync()
@@ -657,8 +665,8 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
 
     /// <summary>
     /// Closes the session, after asking whether to save it, and opens another one, or the project selection, in a fresh editor:
-    /// a new process once this one has loaded a session (<see cref="EditorProcessService"/>), as WPF's New, Open and Reload
-    /// restart the process; otherwise, or when the host cannot start one, in this process.
+    /// a new process once this one has loaded a session (<see cref="EditorProcessService"/>);
+    /// otherwise, or when the host cannot start one, in this process.
     /// </summary>
     /// <param name="filePath">The session to open; <c>null</c> for the project selection.</param>
     /// <param name="safeMode">Whether the fresh editor runs in safe mode; null to keep this one's mode.</param>
@@ -698,7 +706,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
     }
 
     /// <summary>
-    /// Asks whether to save the session before it closes, as WPF does: one question (Save, Don't save, Cancel) covers the
+    /// Asks whether to save the session before it closes: one question (Save, Don't save, Cancel) covers the
     /// unsaved changes of the assets and those of the open editors (the text of a script), which make their asset dirty.
     /// The editors then close without asking.
     /// </summary>

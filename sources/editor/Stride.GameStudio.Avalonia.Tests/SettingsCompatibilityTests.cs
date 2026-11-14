@@ -179,10 +179,9 @@ public sealed class SettingsCompatibilityTests : IDisposable
     }
 
     [AvaloniaFact]
-    public async Task TheSettingsWindowShowsTheCategoriesOfTheWpfEditorAndItsResetLayoutButton()
+    public async Task TheSettingsWindowShowsTheSharedCategoriesAndTheResetLayoutButton()
     {
-        // The settings of the scene and script editors come with their plugin, which joins the session (WPF has one whenever its
-        // settings window can open)
+        // The settings of the scene and script editors come with their plugin, which joins the session
         using var fixture = await ShellSessionFixture.OpenAsync(("Sheet", new Stride.Assets.Sprite.SpriteSheetAsset()));
         var serviceProvider = fixture.ServiceProvider;
         var window = new SettingsWindow { DataContext = new SettingsViewModel(serviceProvider, EditorSettings.SettingsContainer.CurrentProfile) };
@@ -194,14 +193,14 @@ public sealed class SettingsCompatibilityTests : IDisposable
         {
             var viewModel = Assert.IsType<SettingsViewModel>(window.DataContext);
             var names = viewModel.Categories.Select(x => x.Name).ToList();
-            // The categories of WPF but Themes (roadmap row 16), UI editor (no Avalonia UI editor yet) and Test (DEBUG builds)
+            // The shared categories but Themes (roadmap row 16), UI editor (no Avalonia UI editor yet) and Test (DEBUG builds)
             Assert.Contains(ExternalToolsSettings.ExternalTools, names);
             Assert.Contains(RemoteSettings.Remote, names);
             Assert.Contains(SceneEditorSettings.SceneEditor, names);
             Assert.Contains("Script editor", names);
             Assert.Contains("Interface", names);
 
-            // Interface > Reset Game Studio layout is a button, as in WPF
+            // Interface > Reset Game Studio layout is a button
             viewModel.SelectedCategory = viewModel.Categories.Single(x => x.Name == "Interface");
             Button? reset = null;
             await WindowTestHelper.WaitUntilAsync(() => (reset = window.GetVisualDescendants().OfType<Button>().FirstOrDefault(x => Equals(x.Content, "Reset"))) is not null, "the Reset button");

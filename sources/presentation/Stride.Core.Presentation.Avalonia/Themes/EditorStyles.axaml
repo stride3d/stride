@@ -37,7 +37,7 @@
     <Setter Property="Focusable" Value="False"/>
     <Setter Property="Template">
       <ControlTemplate TargetType="sd:DateTimeEditor">
-        <!-- As in WPF, the value is shown read-only and edited by its components in a drop-down -->
+        <!-- The value is shown read-only and edited by its components in a drop-down -->
         <Grid ColumnDefinitions="*, Auto">
           <TextBox Grid.Column="0"
                    IsReadOnly="True"
@@ -842,5 +842,43 @@
         </UniformGrid>
       </ControlTemplate>
     </Setter>
+  </Style>
+
+  <!-- The nodes and connectors of the node graph -->
+  <Style Selector="sd|NodeGraphNode">
+    <Setter Property="Background" Value="#FF595656"/>
+    <Setter Property="BorderBrush" Value="#FF194756"/>
+    <Setter Property="BorderThickness" Value="2"/>
+    <Setter Property="CornerRadius" Value="4"/>
+    <Setter Property="Foreground" Value="#FFDCDCDC"/>
+    <Setter Property="Template">
+      <ControlTemplate TargetType="sd:NodeGraphNode">
+        <Border Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                BoxShadow="0 2 10 0 #80000000">
+          <ContentPresenter Name="PART_ContentPresenter"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            Padding="{TemplateBinding Padding}"/>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+  <Style Selector="sd|NodeGraphNode:selected">
+    <Setter Property="BorderBrush" Value="#FF3699B8"/>
+  </Style>
+  <Style Selector="sd|NodeGraphConnector">
+    <Setter Property="Stroke" Value="#FF727171"/>
+    <Setter Property="Fill" Value="Transparent"/>
+  </Style>
+  <Style Selector="sd|NodeGraphConnector:connected">
+    <Setter Property="Stroke" Value="#FFC5C5C5"/>
+    <Setter Property="Fill" Value="#FFC5C5C5"/>
+  </Style>
+  <Style Selector="sd|NodeGraphConnector:pointerover, sd|NodeGraphConnector:droptarget">
+    <Setter Property="Stroke" Value="#FFEBEBEB"/>
+    <Setter Property="Fill" Value="#FFEBEBEB"/>
   </Style>
 </Styles>

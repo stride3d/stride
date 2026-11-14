@@ -19,8 +19,8 @@
         <ResourceInclude Source="avares://Stride.UI.Editor.Avalonia/Views/UIEditorImages.axaml"/>
       </ResourceDictionary.MergedDictionaries>
 
-      <!-- The context menu of an element, of the tree's empty area (the root of the asset) and of the view, as the
-           UIElementMenus of the WPF UI editor. The view adds "Set current selection" and "View", and shows the element
+      <!-- The context menu of an element, of the tree's empty area (the root of the asset) and of the view.
+           The view adds "Set current selection" and "View", and shows the element
            part for the last selected element. The code-behind fills the panel lists and shows each part for the element
            it opens on (tags: panel, canvas, grid, stack, element, view). -->
       <ContextMenu x:Key="ElementContextMenu" x:DataType="vm:UIHierarchyItemViewModel">
@@ -117,14 +117,14 @@
     <Style Selector="Border.factory:pointerover">
       <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListLowBrush}"/>
     </Style>
-    <!-- The active root of the tree is in bold, as in the WPF UI editor -->
+    <!-- The active root of the tree is in bold -->
     <Style Selector="Grid.activeRoot TextBlock">
       <Setter Property="FontWeight" Value="Bold"/>
     </Style>
   </UserControl.Styles>
 
   <Panel>
-    <!-- Shown until the editor has its game and its hierarchy, as the loading message of the WPF UI editor -->
+    <!-- Shown until the editor has its game and its hierarchy -->
     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
                 IsVisible="{Binding RootPart, Converter={x:Static ObjectConverters.IsNull}}">
       <TextBlock Text="{sd:LocalizeString Loading...}" Margin="20" HorizontalAlignment="Center"/>
@@ -134,8 +134,7 @@
 
     <Grid x:Name="EditorGrid" ColumnDefinitions="*, 4, 3*"
           IsVisible="{Binding RootPart, Converter={x:Static ObjectConverters.IsNotNull}}">
-      <!-- Cut, Copy, Paste and Delete work wherever the focus is in the editor (the tree or the view), as the command
-           bindings of the WPF UI editor -->
+      <!-- Cut, Copy, Paste and Delete work wherever the focus is in the editor (the tree or the view) -->
       <sd:EditCommands.Bindings>
         <sd:EditCommandBinding Kind="Cut" Command="{Binding CutCommand}"/>
         <sd:EditCommandBinding Kind="Copy" Command="{Binding CopyCommand}"/>
@@ -194,7 +193,7 @@
 
           <!-- The visual tree -->
           <DockPanel Grid.Row="2">
-            <!-- Rename only while the tree has the focus, as F2 in the WPF tree -->
+            <!-- Rename (F2) only while the tree has the focus -->
             <sd:EditCommands.Bindings>
               <sd:EditCommandBinding Kind="Rename" Command="{Binding RenameCommand}"/>
             </sd:EditCommands.Bindings>
@@ -214,7 +213,7 @@
                       ItemsSource="{Binding ((vm:UIRootViewModel)RootPart).Children, FallbackValue={x:Null}}"
                       SelectedItems="{Binding SelectedContent}"
                       SelectionMode="Multiple">
-              <!-- Drag and drop, as the WPF UI tree: the elements are dragged (the selection when the drag starts on it); a drop
+              <!-- Drag and drop: the elements are dragged (the selection when the drag starts on it); a drop
                    on a row adds as children, between two rows inserts there, on the empty area adds to the root of the asset;
                    the elements of the toolbox drop too -->
               <Interaction.Behaviors>
@@ -222,13 +221,9 @@
               </Interaction.Behaviors>
               <Control.DataTemplates>
                 <TreeDataTemplate DataType="{x:Type vm:UIElementViewModel}" ItemsSource="{Binding Children}">
-                  <Grid ColumnDefinitions="*, Auto">
-                    <Classes.activeRoot>
-                      <MultiBinding Converter="{sd:AllEqualMulti}">
-                        <Binding Path="$parent[TreeView].((vm:UIEditorBaseViewModel)DataContext).ActiveRoot" FallbackValue="{x:Null}"/>
-                        <Binding/>
-                      </MultiBinding>
-                    </Classes.activeRoot>
+                  <Grid ColumnDefinitions="*, Auto"
+                        Classes.activeRoot="{sd:MultiBinding {Binding $parent[TreeView].((vm:UIEditorBaseViewModel)DataContext).ActiveRoot, FallbackValue={x:Null}},
+                                                             {Binding}, Converter={sd:AllEqualMulti}}">
                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" ClipToBounds="True">
                       <TextBlock Text="{Binding Name}" Margin="0,0,4,0" VerticalAlignment="Center" IsVisible="{Binding !IsEditing}"/>
                       <!-- Renaming in place (F2): the box replaces the name while the item is editing -->
@@ -257,7 +252,7 @@
 
       <!-- The view of the game -->
       <DockPanel Grid.Column="2">
-        <!-- The zoom and the snap, as the toolbars of the WPF UI editor. Its items don't take the focus, so that the keys keep
+        <!-- The zoom and the snap. Its items don't take the focus, so that the keys keep
              going to the view. -->
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="4" Margin="2">
           <Button Classes="tool" Command="{Binding ResetZoomCommand}"
@@ -277,8 +272,7 @@
                              VerticalAlignment="Center"
                              ToolTip.Tip="{sd:LocalizeString Snaps to this value (0 to disable), Context=ToolTip}"/>
           <Separator Width="1" Height="20" Margin="2,0"/>
-          <!-- The colors and thicknesses of the adorners, as the view settings popup of the WPF UI editor (not saved, as in
-               WPF) -->
+          <!-- The colors and thicknesses of the adorners (not saved) -->
           <Button x:Name="ViewSettingsButton" Classes="tool" ToolTip.Tip="{sd:LocalizeString View settings, Context=ToolTip}">
             <Image Source="{StaticResource ImageView}" Width="16" Height="16"/>
             <Button.Flyout>
@@ -311,7 +305,7 @@
                      HorizontalAlignment="Center" VerticalAlignment="Center"
                      IsVisible="{Binding !HasGame}"/>
           <!-- The game of the editor renders here; the elements of the toolbox and the UI assets dropped on it go under the
-               pointer, as in the WPF UI editor -->
+               pointer -->
           <ContentControl x:Name="GameViewHost" Content="{Binding GameHost.GameView}"
                           IsVisible="{Binding GameHost.LastException, Converter={x:Static ObjectConverters.IsNull}}">
             <Interaction.Behaviors>
@@ -319,8 +313,7 @@
             </Interaction.Behaviors>
           </ContentControl>
 
-          <!-- The game stopped on an error: the message, and the way to resume once the asset is fixed, as in the WPF UI
-               editor -->
+          <!-- The game stopped on an error: the message, and the way to resume once the asset is fixed -->
           <Border x:Name="CrashPanel" Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
                   IsVisible="{Binding GameHost.LastException, Converter={x:Static ObjectConverters.IsNotNull}}">
             <Grid RowDefinitions="Auto, Auto, Auto" HorizontalAlignment="Center" VerticalAlignment="Center"

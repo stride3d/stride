@@ -25,8 +25,8 @@ internal static class Module
         AssetPreview.DefaultViewType = typeof(StridePreviewView);
         // The project template generators, with this toolkit's prompts
         StrideAvaloniaTemplates.Register();
-        // The editor game services of this editor are discovered through the assets assemblies, as those of the WPF assets
-        // editor. After the plugins: the discovery of the plugins skips the ones registered above.
+        // The editor game services of this editor are discovered through the assets assemblies. After the plugins: the
+        // discovery of the plugins skips the ones registered above.
         AssemblyRegistry.Register(typeof(Module).Assembly, AssemblyCommonCategories.Assets);
     }
 }

@@ -15,7 +15,7 @@ namespace Stride.Core.Assets.Editor.Avalonia.Controls;
 
 /// <summary>
 /// Displays a collection of <see cref="ILogMessage"/> in a grid: the type of each message, its exception, its text and the asset it is
-/// about, as the grid log viewer of the WPF editor.
+/// about.
 /// </summary>
 [TemplatePart(Name = "PART_LogGridView", Type = typeof(DataGrid))]
 public sealed class GridLogViewer : TemplatedControl

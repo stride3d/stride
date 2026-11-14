@@ -18,7 +18,7 @@ using AvaloniaBitmap = Avalonia.Media.Imaging.Bitmap;
 namespace Stride.GameStudio.Avalonia.Tests;
 
 /// <summary>
-/// What the plugins declare with attributes reaches the cross-platform editor as it reaches the WPF one: the settings keys
+/// What the plugins declare with attributes reaches the cross-platform editor: the settings keys
 /// of <see cref="EditorSettingsAttribute"/> classes and the images of <see cref="TypeImageAttribute"/> and <see cref="EnumImageAttribute"/>.
 /// </summary>
 public sealed class PluginContextTests

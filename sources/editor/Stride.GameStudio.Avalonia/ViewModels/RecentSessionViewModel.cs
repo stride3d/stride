@@ -27,12 +27,12 @@ internal sealed class RecentSessionViewModel : DispatcherViewModel
     public string Name => FilePath.GetFileNameWithoutExtension() ?? FilePath.ToString();
 
     /// <summary>
-    /// The path of the file as the system writes it, shown in the menu as in WPF.
+    /// The path of the file as the system writes it, shown in the menu.
     /// </summary>
     public string DisplayPath => FilePath.ToOSPath();
 
     /// <summary>
-    /// The version of the editor that opened the session last (its major and minor numbers), shown before the path as in WPF.
+    /// The version of the editor that opened the session last (its major and minor numbers), shown before the path.
     /// </summary>
     public string Version { get; }
 

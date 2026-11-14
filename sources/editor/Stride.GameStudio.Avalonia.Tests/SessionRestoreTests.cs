@@ -21,7 +21,7 @@ using Stride.Core.Assets.Presentation.ViewModels;
 namespace Stride.GameStudio.Avalonia.Tests;
 
 /// <summary>
-/// What opens with a session, as in WPF: the editors of the last session, or the default scene; the list of open editors is
+/// What opens with a session: the editors of the last session, or the default scene; the list of open editors is
 /// kept in the internal settings that both editors share.
 /// </summary>
 public sealed class SessionRestoreTests
@@ -124,7 +124,7 @@ public sealed class SessionRestoreTests
     }
 
     [AvaloniaFact]
-    public async Task TheDataOfOtherSessionsAndTheLayoutsOfWpfAreKept()
+    public async Task TheDataOfOtherSessionsAndTheirDockingLayoutsAreKept()
     {
         using var fixture = ShellSessionFixture.Create(("Sheet", new SpriteSheetAsset()));
         var other = new MRUAdditionalData(Path.Combine(fixture.Directory, "Other", "Other.sln")) { DockingLayout = "<Layout />", DockingLayoutEditors = "<EditorLayout />", DockingLayoutVersion = 3 };

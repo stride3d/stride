@@ -7,7 +7,7 @@ namespace Stride.UI.Editor.Avalonia.Views;
 
 /// <summary>
 /// A group of the toolbox of the UI editor: a library kind ("Standard library" or "User libraries") with its categories, or a
-/// category with its element factories, as the groups of the WPF UI editor's library list.
+/// category with its element factories.
 /// </summary>
 /// <param name="Name">The name shown in the header of the group.</param>
 /// <param name="Groups">The categories of a library kind; empty for a category.</param>
@@ -26,7 +26,7 @@ public sealed record UIElementFactoryGroup(string Name, IReadOnlyList<UIElementF
 
     /// <summary>
     /// Groups the factories by library kind, then by category, sorted by category then by name; the groups come in the order
-    /// of their first factory, as the groups of a sorted WPF collection view.
+    /// of their first factory.
     /// </summary>
     public static IReadOnlyList<UIElementFactoryGroup> Create(IEnumerable<IUIElementFactory> factories)
     {

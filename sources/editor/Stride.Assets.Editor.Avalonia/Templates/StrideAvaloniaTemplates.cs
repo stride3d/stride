@@ -8,8 +8,7 @@ using Stride.Core.Assets.Quantum.Templates;
 namespace Stride.Assets.Editor.Avalonia.Templates;
 
 /// <summary>
-/// Registers the project and asset template generators of the Avalonia editor with their prompts, as <c>StrideTemplates</c> does
-/// for WPF.
+/// Registers the project and asset template generators of the Avalonia editor with their prompts.
 /// </summary>
 internal static class StrideAvaloniaTemplates
 {
@@ -27,8 +26,10 @@ internal static class StrideAvaloniaTemplates
         // After DotNetNew so that they take precedence for the library and plugin templates (the most recent generator wins)
         QuantumTemplateRegistration.Register(new AddLibraryGenerator(new AvaloniaAddLibraryParameterPrompt()));
         QuantumTemplateRegistration.Register(new AddPluginGenerator(new AvaloniaAddPluginParameterPrompt()));
+        // The Update platforms template of the Update package menu
+        UpdatePlatformsTemplate.Register(new AvaloniaUpdatePlatformsParameterPrompt());
 
-        // The asset generators, shared with the WPF editor, with the Avalonia dialogs of the script and model templates
+        // The shared asset generators, with the Avalonia dialogs of the script and model templates
         StrideAssetTemplates.Register(new AvaloniaScriptNamePrompt(), new AvaloniaModelImportPrompt());
     }
 }

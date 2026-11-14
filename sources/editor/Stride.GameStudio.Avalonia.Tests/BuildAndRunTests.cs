@@ -20,13 +20,13 @@ using Stride.GameStudio.Avalonia.Views;
 namespace Stride.GameStudio.Avalonia.Tests;
 
 /// <summary>
-/// Building the current project and starting its game from the shell, as in the WPF editor: the Project menu, the toolbar, F6, F5
+/// Building the current project and starting its game from the shell: the Project menu, the toolbar, F6, F5
 /// and Ctrl+F6, and the build log in the Output tab. The builder and the game launcher are fakes.
 /// </summary>
 public sealed class BuildAndRunTests
 {
     [AvaloniaFact]
-    public async Task TheProjectMenuHasTheBuildCommandsOfWpf()
+    public async Task TheProjectMenuHasTheBuildCommands()
     {
         using var fixture = await ShellSessionFixture.OpenExecutableAsync(Platform.Type);
         var window = new MainWindow { DataContext = fixture.Main };

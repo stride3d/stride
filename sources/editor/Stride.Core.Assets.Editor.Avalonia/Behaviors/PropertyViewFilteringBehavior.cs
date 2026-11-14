@@ -11,7 +11,7 @@ namespace Stride.Core.Assets.Editor.Avalonia.Behaviors;
 
 /// <summary>
 /// The search of the property grid: hides the properties that don't match the search text (see <see cref="PropertyFilter"/>), at every
-/// level, as the WPF behavior of the same name filters the items of the property view and of each property.
+/// level: the items of the property view and those of each property.
 /// </summary>
 public sealed class PropertyViewFilteringBehavior : StyledElementBehavior<PropertyView>
 {

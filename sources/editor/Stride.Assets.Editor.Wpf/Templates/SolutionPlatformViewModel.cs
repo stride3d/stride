@@ -46,9 +46,9 @@ namespace Stride.Assets.Presentation.Templates
         public PlatformType Platform => SolutionPlatform.Type;
 
         /// <summary>
-        /// Gets whether this platform can be unselected.
+        /// Gets whether this platform can be unselected: Windows can't, but a package without a Windows project can get one back.
         /// </summary>
-        public bool CanBeUnselected => Platform != PlatformType.Windows;
+        public bool CanBeUnselected => Platform != PlatformType.Windows || !IsAlreadyInstalled;
 
         /// <summary>
         /// Gets whether this platform is currently selected.

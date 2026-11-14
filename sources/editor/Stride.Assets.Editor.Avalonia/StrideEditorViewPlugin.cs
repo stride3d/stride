@@ -37,8 +37,7 @@ public sealed class StrideEditorViewPlugin : StrideAssetsAvaloniaPlugin
         RegisterResourceDictionary(context, new EntityPropertyTemplateProviders());
         RegisterResourceDictionary(context, new CurvePropertyTemplateProviders());
 
-        // The component images give the icons of the entities in the scene hierarchy, as the type images of the WPF
-        // StrideDefaultAssetsPlugin
+        // The component images, registered as type images, give the icons of the entities in the scene hierarchy
         var componentImages = new ComponentImages();
         foreach (var key in componentImages.Keys)
         {
@@ -58,6 +57,9 @@ public sealed class StrideEditorViewPlugin : StrideAssetsAvaloniaPlugin
 
         // "Edit curve" shows the curve editor panel
         context.Services.Register(new CurveEditorPanelService(context.Session));
+
+        // The Pick buttons of the entity and component properties show the entity picker
+        context.Services.Register(new AvaloniaEntityPickerService());
 
         if (GameStudioPreviewService.DisablePreview)
             return;

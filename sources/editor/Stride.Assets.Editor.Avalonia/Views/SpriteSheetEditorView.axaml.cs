@@ -18,7 +18,7 @@ using Stride.Core.Presentation.Commands;
 namespace Stride.Assets.Editor.Avalonia.Views;
 
 /// <summary>
-/// The view of the sprite sheet editor, ported from the WPF <c>SpriteEditorView</c>: the sprites on the left, the image of the
+/// The view of the sprite sheet editor: the sprites on the left, the image of the
 /// selected sprite on the right with its region, borders and center and their handles, and the toolbar of the tools.
 /// </summary>
 [AssetEditorView<SpriteSheetEditorViewModel>]
@@ -27,9 +27,9 @@ public sealed partial class SpriteSheetEditorView : UserControl, IAssetEditorVie
     public SpriteSheetEditorView()
     {
         InitializeComponent();
-        // The size of the image gives the size of the content of the viewport, as the actual size of the WPF image
+        // The size of the image gives the size of the content of the viewport
         SpriteImage.PropertyChanged += OnSpriteImagePropertyChanged;
-        // The pixel tools pick before the handles: the WPF image used the preview event
+        // The pixel tools pick before the handles: they handle the tunnelling event
         SpriteImage.AddHandler(PointerPressedEvent, OnSpriteImagePointerPressed, RoutingStrategies.Tunnel);
         SpriteList.AddHandler(ContextRequestedEvent, OnSpriteListContextRequested, RoutingStrategies.Tunnel);
         SpriteList.AddHandler(KeyDownEvent, OnSpriteListKeyDown, RoutingStrategies.Tunnel);
@@ -48,7 +48,7 @@ public sealed partial class SpriteSheetEditorView : UserControl, IAssetEditorVie
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
-        // The editor takes the focus so that its keys work, as in WPF
+        // The editor takes the focus so that its keys work
         if (!IsKeyboardFocusWithin)
             Focus();
     }
@@ -58,7 +58,7 @@ public sealed partial class SpriteSheetEditorView : UserControl, IAssetEditorVie
     {
         base.OnKeyDown(e);
 
-        // The keys of the WPF sprite editor. They reach the view model after the focused control, so typing in a text box
+        // The keys of the sprite editor. They reach the view model after the focused control, so typing in a text box
         // (a name, the color key) doesn't trigger them.
         if (e.Handled || e.Source is TextBox || Editor is not { } editor)
             return;
@@ -139,7 +139,7 @@ public sealed partial class SpriteSheetEditorView : UserControl, IAssetEditorVie
 
     private void OnSpriteDoubleTapped(object? sender, TappedEventArgs e)
     {
-        // A double click renames the sprite, as in the WPF list
+        // A double click renames the sprite
         if ((sender as Control)?.DataContext is SpriteInfoViewModel { IsEditable: true } sprite)
         {
             sprite.IsEditing = true;

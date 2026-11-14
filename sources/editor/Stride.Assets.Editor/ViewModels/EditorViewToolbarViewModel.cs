@@ -16,12 +16,16 @@ using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Services;
 using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Tools;
 using Stride.Assets.Editor.AssetEditors.GameEditor;
 using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
+using Stride.Assets.Editor.AssetEditors.GameEditor.ViewModels;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.ViewModels;
 
 namespace Stride.Assets.Editor.ViewModels;
 
 /// <summary>
 /// The toolbar of the view of a scene or prefab editor: the tools of the view, the space of the transformation gizmos, the
-/// material selection mode and the selection mask, as the transformation toolbar of the WPF scene editor.
+/// material selection mode and the selection mask, as the transformation toolbar of the WPF scene editor; and its view options:
+/// the camera, the grid, the lighting, the render mode and the gizmos, on the view models the WPF toolbar uses too.
 /// </summary>
 public sealed class EditorViewToolbarViewModel : DispatcherViewModel, IEditorViewOptions
 {
@@ -34,6 +38,7 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel, IEditorVie
     private readonly IEditorGameSelectionViewModelService? selection;
     private readonly EditorGameMaterialHighlightService? materialHighlight;
     private readonly IEditorGameCameraViewModelService? camera;
+    private readonly IEditorGameCameraPreviewViewModelService? cameraPreview;
     private readonly Func<AbsoluteId, EntityViewModel?> findEntity;
     private readonly ObservableCollection<EditorViewToolViewModel> tools;
     private EditorViewToolViewModel? activeTool;
@@ -42,11 +47,21 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel, IEditorVie
 
     internal EditorViewToolbarViewModel(IViewModelServiceProvider serviceProvider, IEditorGameToolViewModelService service, IEditorGameSelectionViewModelService? selection, EditorGameMaterialHighlightService? materialHighlight,
         EditorGameComponentGizmoService? componentGizmos = null, IEnumerable<IEditorGameOverlayService>? overlays = null, IEditorGameLightProbeService? lightProbes = null,
-        IEditorGameCameraViewModelService? camera = null, Func<AbsoluteId, EntityViewModel?>? findEntity = null)
+        IEditorGameCameraViewModelService? camera = null, Func<AbsoluteId, EntityViewModel?>? findEntity = null, EditorCameraViewModel? cameraOptions = null,
+        EditorGridViewModel? grid = null, EditorRenderingViewModel? rendering = null, EditorLightingViewModel? lighting = null,
+        IEditorGameCameraPreviewViewModelService? cameraPreview = null)
         : base(serviceProvider)
     {
         this.service = service;
         this.camera = camera;
+        this.cameraPreview = cameraPreview;
+        Camera = cameraOptions;
+        Grid = grid;
+        Rendering = rendering;
+        Lighting = lighting;
+        // The speed and projection keys of the game go through the camera options, which show and save them
+        if (camera is EditorGameEntityCameraService entityCamera && cameraOptions is not null)
+            entityCamera.Options = cameraOptions;
         this.findEntity = findEntity ?? (_ => null);
         this.selection = selection;
         this.materialHighlight = materialHighlight;
@@ -161,6 +176,41 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel, IEditorVie
     /// </summary>
     public EditorViewOverlaysViewModel Overlays { get; }
 
+    /// <summary>
+    /// Gets the camera options (projection, planes, field of view, speed, orientation), or <c>null</c> when the game has no
+    /// camera service.
+    /// </summary>
+    public EditorCameraViewModel? Camera { get; }
+
+    /// <summary>
+    /// Gets the grid options, or <c>null</c> when the game has no grid.
+    /// </summary>
+    public EditorGridViewModel? Grid { get; }
+
+    /// <summary>
+    /// Gets the render mode options, or <c>null</c> when the game has no render mode service.
+    /// </summary>
+    public EditorRenderingViewModel? Rendering { get; }
+
+    /// <summary>
+    /// Gets the lighting options (light probes and cubemap), or <c>null</c> when the game has no light probe service.
+    /// </summary>
+    public EditorLightingViewModel? Lighting { get; }
+
+    /// <summary>
+    /// Gets whether the game can show the preview of the selected camera (scene editor only).
+    /// </summary>
+    public bool HasCameraPreview => cameraPreview is not null;
+
+    /// <summary>
+    /// Gets or sets whether the game shows the preview of the selected camera, in a corner of the view.
+    /// </summary>
+    public bool DisplayCameraPreview
+    {
+        get => cameraPreview?.IsActive ?? false;
+        set => SetValue(DisplayCameraPreview != value && cameraPreview is not null, () => cameraPreview!.IsActive = value);
+    }
+
     private bool IsScaleActive => activeTool?.Tool is TransformationTool { Transformation: Transformation.Scale };
 
     /// <inheritdoc/>
@@ -172,17 +222,16 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel, IEditorVie
         service.ToolFailed -= ServiceToolFailed;
         service.ToolsChanged -= ServiceToolsChanged;
         service.ContextMenuRequested -= ServiceContextMenuRequested;
+        if (camera is EditorGameEntityCameraService entityCamera && Camera is not null && entityCamera.Options == Camera)
+            entityCamera.Options = null;
         Overlays.Destroy();
         base.Destroy();
     }
 
     /// <summary>
-    /// Shows the snaps, gizmo and overlay options saved with the scene, and moves the camera where it was when the editor
-    /// closed, as in the WPF scene editor.
+    /// Shows the options saved with the scene (snaps, gizmos, overlays, camera, grid, lighting, camera preview), and moves the
+    /// camera where it was when the editor closed, as in the WPF scene editor.
     /// </summary>
-    /// <remarks>
-    /// The other members of the settings (grid, rendering, ...) are not used by the Avalonia editor yet and stay as read.
-    /// </remarks>
     public void LoadSettings(SceneSettingsData settings)
     {
         foreach (var snap in Snaps)
@@ -191,7 +240,20 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel, IEditorVie
         }
         Gizmos?.LoadSettings(settings);
         Overlays.LoadSettings(settings);
-        camera?.LoadSettings(settings.CamPosition, settings.CamPitchYaw);
+        if (Camera is not null)
+            Camera.LoadSettings(settings);
+        else
+            camera?.LoadSettings(settings.CamPosition, settings.CamPitchYaw);
+        Grid?.LoadSettings(settings);
+        Lighting?.LoadSettings(settings);
+        if (Rendering is not null)
+        {
+            Rendering.LoadSettings(settings);
+            // The editor always opens in the editor render mode, as in the WPF scene editor
+            Rendering.RenderMode = EditorRenderMode.DefaultEditor;
+        }
+        if (cameraPreview is not null)
+            DisplayCameraPreview = settings.CameraPreviewVisible;
     }
 
     /// <summary>
@@ -205,8 +267,15 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel, IEditorVie
         }
         Gizmos?.SaveSettings(settings);
         Overlays.SaveSettings(settings);
-        if (camera is not null)
+        if (Camera is not null)
+            Camera.SaveSettings(settings);
+        else if (camera is not null)
             (settings.CamPosition, settings.CamPitchYaw) = camera.SaveSettings();
+        Grid?.SaveSettings(settings);
+        Lighting?.SaveSettings(settings);
+        Rendering?.SaveSettings(settings);
+        if (cameraPreview is not null)
+            settings.CameraPreviewVisible = DisplayCameraPreview;
     }
 
     /// <inheritdoc/>
@@ -533,9 +602,17 @@ internal sealed class EditorViewToolbarFactory : IEditorViewOptionsFactory
         if (controller.GetService<IEditorGameToolViewModelService>() is not { } toolService)
             return null;
 
-        return new EditorViewToolbarViewModel(editor.ServiceProvider, toolService, controller.GetService<IEditorGameSelectionViewModelService>(),
+        var serviceProvider = editor.ServiceProvider;
+        var camera = controller.GetService<IEditorGameCameraViewModelService>();
+        var lightProbes = controller.GetService<IEditorGameLightProbeService>();
+        return new EditorViewToolbarViewModel(serviceProvider, toolService, controller.GetService<IEditorGameSelectionViewModelService>(),
             controller.GetService<EditorGameMaterialHighlightService>(), controller.GetService<EditorGameComponentGizmoService>(), controller.GetServices<IEditorGameOverlayService>(),
-            controller.GetService<IEditorGameLightProbeService>(), controller.GetService<IEditorGameCameraViewModelService>(), id => editor.FindPartViewModel(id) as EntityViewModel);
+            lightProbes, camera, id => editor.FindPartViewModel(id) as EntityViewModel,
+            camera is not null ? new EditorCameraViewModel(serviceProvider, controller) : null,
+            controller.GetService<IEditorGameGridViewModelService>() is not null ? new EditorGridViewModel(serviceProvider, controller) : null,
+            controller.GetService<IEditorGameRenderModeViewModelService>() is not null ? new EditorRenderingViewModel(serviceProvider, controller) : null,
+            lightProbes is not null ? new EditorLightingViewModel(serviceProvider, controller, editor) : null,
+            controller.GetService<IEditorGameCameraPreviewViewModelService>());
     }
 }
 
