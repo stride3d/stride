@@ -407,6 +407,8 @@ public partial class App : Application
     /// </summary>
     internal static ViewModelServiceProvider InitializeServiceProvider()
     {
+        // The commands of the main menu and of the main window's shortcuts join each session through the shell's own plugin
+        Commands.GameStudioCommandsPlugin.EnsureRegistered();
         var dispatcherService = DispatcherService.Create();
         var services = new List<object>
         {

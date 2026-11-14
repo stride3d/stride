@@ -70,7 +70,7 @@ public sealed class EditorCollectionViewModel : DispatcherViewModel, IAssetEdito
         var editorType = plugins?.GetEditorViewModelType(asset.GetType());
         if (editorType is not null && plugins!.GetEditorViewType(editorType) is not null)
         {
-            var editor = (AssetEditorViewModel)Activator.CreateInstance(editorType, asset)!;
+            var editor = AssetEditorViewModel.Create(editorType, asset);
             openedAssets.Add(asset, editor);
             editors.Insert(index, editor);
             if (activate)

@@ -141,8 +141,8 @@ public sealed class AssetsSessionFixture : IAsyncDisposable
         if (!disposed)
         {
             disposed = true;
-            var builder = ServiceProvider.TryGet<GameStudioBuilderService>();
-            await SessionTeardown.DestroyAsync(Session, [builder?.Database, builder], [ServiceProvider.TryGet<GameSettingsProviderService>()]);
+            var builder = Session.ServiceProvider.TryGet<GameStudioBuilderService>();
+            await SessionTeardown.DestroyAsync(Session, [builder?.Database, builder], [Session.ServiceProvider.TryGet<GameSettingsProviderService>()]);
         }
         try
         {

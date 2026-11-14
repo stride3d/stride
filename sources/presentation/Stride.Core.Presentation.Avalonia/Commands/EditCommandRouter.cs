@@ -22,7 +22,8 @@ namespace Stride.Core.Presentation.Avalonia.Commands;
 /// popup, so that an item of the Edit menu, which takes the focus when its menu opens, still acts on the panel the user was in.</para>
 /// <para>The shortcuts are handled by <see cref="TryHandleKey"/>, which the window calls from its key handler, after the focused
 /// control: a key binding of the window would run before a text box sees its own Ctrl+C.</para>
-/// <para>This is a small, local mechanism; a command registry shared by the editors may replace it later.</para>
+/// <para>In a window whose shortcuts come from a command registry, the registry's Edit commands run the router's commands, and
+/// <see cref="TryHandleOtherKey"/> keeps the platform's other shortcuts.</para>
 /// </remarks>
 public sealed class EditCommandRouter : IDisposable
 {
@@ -73,9 +74,16 @@ public sealed class EditCommandRouter : IDisposable
     /// Finds the handler of an Edit command: the first control, from <see cref="Target"/> up, that handles it.
     /// </summary>
     /// <returns>The handler, or null when no control handles the command (it is disabled).</returns>
-    public IEditCommandHandler? Resolve(EditCommandKind kind)
+    public IEditCommandHandler? Resolve(EditCommandKind kind) => Resolve(kind, Target);
+
+    /// <summary>
+    /// Finds the handler of an Edit command for a given control: the first control, from <paramref name="from"/> up, that
+    /// handles it. A context menu uses it to run an Edit command on the control it opened on.
+    /// </summary>
+    /// <returns>The handler, or null when no control handles the command.</returns>
+    public static IEditCommandHandler? Resolve(EditCommandKind kind, Visual? from)
     {
-        for (var visual = Target; visual is not null; visual = visual.GetVisualParent())
+        for (var visual = from; visual is not null; visual = visual.GetVisualParent())
         {
             if (visual is TextBox textBox)
             {
@@ -102,14 +110,24 @@ public sealed class EditCommandRouter : IDisposable
     /// Executes the Edit command whose shortcut the key is, if its handler can.
     /// </summary>
     /// <returns><c>true</c> when the key was handled.</returns>
-    public bool TryHandleKey(KeyEventArgs e)
+    public bool TryHandleKey(KeyEventArgs e) => TryHandleKey(e, 0);
+
+    /// <summary>
+    /// Executes the Edit command whose other shortcut the key is (the platform's second and later shortcuts of the command,
+    /// such as Ctrl+Shift+Z for Redo or Ctrl+Insert for Copy), if its handler can. For a window whose shortcuts come from
+    /// elsewhere, where the first shortcut of each command can be changed.
+    /// </summary>
+    /// <returns><c>true</c> when the key was handled.</returns>
+    public bool TryHandleOtherKey(KeyEventArgs e) => TryHandleKey(e, 1);
+
+    private bool TryHandleKey(KeyEventArgs e, int firstGesture)
     {
         if (e.Handled)
             return false;
 
         foreach (var kind in Enum.GetValues<EditCommandKind>())
         {
-            if (!EditCommands.GesturesOf(kind).Any(gesture => gesture.Matches(e)))
+            if (!EditCommands.GesturesOf(kind).Skip(firstGesture).Any(gesture => gesture.Matches(e)))
                 continue;
 
             var handler = Resolve(kind);

@@ -406,7 +406,7 @@ public sealed class TestPluginsPanel : IDisposable
     private PluginsPanelViewModel CreatePanel(EditorSessionFixture fixture, EditorPluginHost host, PackageSession session, UFile? sessionFile, IEditorRestartService? restart = null, Func<IReadOnlyList<PluginInfo>>? collect = null)
     {
         var descriptor = BuiltInPanels.CreatePluginsPanel(_ => throw new NotSupportedException());
-        var context = new PanelContext { Descriptor = descriptor, Session = fixture.Session, ServiceProvider = fixture.ServiceProvider };
+        var context = new PanelContext { Descriptor = descriptor, Session = fixture.Session, ServiceProvider = fixture.Session.ServiceProvider };
         // The engine's Physics plugin, as the catalog lists a built-in package of the session
         var builtIn = new PluginInfo { Id = "Stride.Physics.Editor", DisplayName = "Stride.Physics.Editor", Version = EditorPackageVersion, Source = PluginSource.BuiltIn, State = PluginState.Joined };
         var panel = new PluginsPanelViewModel(context, host, collect ?? (() => [.. PluginCatalog.Collect(host, session), builtIn]), sessionFile, restart);

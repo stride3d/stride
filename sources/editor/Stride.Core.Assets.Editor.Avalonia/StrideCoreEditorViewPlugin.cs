@@ -32,7 +32,10 @@ public sealed class StrideCoreEditorViewPlugin : AssetsEditorPlugin
         context.PasteProcessors.Register(new AssetPropertyPasteProcessor());
         context.PasteProcessors.Register(new AssetItemPasteProcessor((SessionViewModel)context.Session));
 
-        // The nested properties toggle, in the context menu of a property
+        // The nested properties toggle, in the context menu of a property, and the commands of the property that the menu binds
+        // by their identifier
         context.Commands.Register(PropertyGridCommands.CreateToggleNestedProperties());
+        foreach (var command in PropertyGridCommands.CreateNodeCommands())
+            context.Commands.Register(command);
     }
 }

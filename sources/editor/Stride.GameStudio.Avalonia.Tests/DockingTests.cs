@@ -54,7 +54,8 @@ public sealed class DockingTests
                 "Plugins", "-",
                 // The panel of the test plugin (PanelPluginTests)
                 "New Notebook", "-",
-                "Reset layout",
+                "Reset layout", "-",
+                "Command palette...",
             ], headers);
             // Every panel visible by default is visible in the default layout, and its entry is checked; the Plugins panel and the
             // curve editor are hidden by default

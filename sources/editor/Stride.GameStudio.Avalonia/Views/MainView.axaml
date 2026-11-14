@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+             xmlns:cmd="using:Stride.Core.Assets.Editor.Avalonia.Commands"
              xmlns:dock="using:Dock.Avalonia.Controls"
              xmlns:caevmp="using:Stride.Core.Assets.Editor.ViewModels.Progress"
              xmlns:cpc="using:Stride.Core.Presentation.Commands"
@@ -44,22 +45,20 @@
     <!-- Menus -->
     <Menu Name="MainMenu" Grid.Row="0" Grid.Column="0"
           VerticalAlignment="Top">
-      <!-- File menu. Each main menu ends with the commands that the editor and the plugins place there (MainCommandSlots);
-           in this one they go before Exit. -->
+      <!-- File menu. The editor's items bind its commands by id ({cmd:Command}): the main window gives them their command,
+           their title (unless the item has a header of its own, for its access key) and the user's shortcut. Each main menu
+           ends with the commands that the editor and the plugins place there (MainCommandSlots); in this one they go before Exit. -->
       <MenuItem Header="{sd:LocalizeString _File, Context=Menu}"
                 Name="FileMenu">
-        <!-- A new session from a template (the project selection window); its shortcut is a key binding of the
-             main window, like Save -->
+        <!-- A new session from a template (the project selection window). New, Open and Exit work without a session too. -->
         <MenuItem Header="{sd:LocalizeString _New..., Context=Menu}"
                   Name="NewMenuItem"
-                  Command="{Binding NewSessionCommand}"
-                  InputGesture="{x:Static gsvw:MainView.NewGesture}"/>
+                  Command="{cmd:Command Stride.File.New}"/>
         <MenuItem Header="{sd:LocalizeString _Open..., Context=Menu}"
-                  Command="{Binding OpenCommand}"
-                  HotKey="Ctrl+O" InputGesture="{Binding $self.HotKey, Mode=OneTime}"/>
+                  Name="OpenMenuItem"
+                  Command="{cmd:Command Stride.File.Open}"/>
         <MenuItem Header="{sd:LocalizeString _Close, Context=Menu}"
-                  Command="{Binding CloseCommand}"
-                  IsEnabled="{Binding Session, Mode=OneWay, Converter={sd:ObjectToBool}}"/>
+                  Command="{cmd:Command Stride.File.Close}"/>
         <Separator/>
         <!-- Recent sessions (the most recently used sessions of this editor version or an earlier one), then "Clear list": the
              items are made by the view (MainView.UpdateRecentSessionsMenu) since a menu shows either items or a source -->
@@ -67,112 +66,96 @@
                   Name="RecentSessionsMenu"
                   IsEnabled="{Binding RecentFiles.Count, Mode=OneWay, Converter={sd:NumericToBool}}"/>
         <Separator/>
-        <!-- Save and reload: Save is enabled whenever a session is open. Its shortcut is a key binding
-             of the main window: the hot key of an item of a closed menu fires only if the item was enabled when the menu last
-             opened (Avalonia evaluates its command then). -->
+        <!-- Save and reload: Save is enabled whenever a session is open -->
         <MenuItem Header="{sd:LocalizeString _Save, Context=Menu}"
                   Name="SaveMenuItem"
-                  Command="{Binding SaveCommand}"
-                  InputGesture="{x:Static gsvw:MainView.SaveGesture}"/>
+                  Command="{cmd:Command Stride.File.Save}"/>
         <Separator/>
         <MenuItem Header="{sd:LocalizeString _Reload project, Context=Menu}"
-                  Command="{Binding ReloadCommand}"
-                  IsEnabled="{Binding Session, Mode=OneWay, Converter={sd:ObjectToBool}}"/>
+                  Command="{cmd:Command Stride.File.ReloadProject}"/>
         <Separator Name="ExitSeparator"/>
         <MenuItem Header="{sd:LocalizeString E_xit, Context=Menu}"
-                  Command="{Binding ExitCommand}"
-                  HotKey="Alt+F4" InputGesture="{Binding $self.HotKey, Mode=OneTime}"/>
+                  Name="ExitMenuItem"
+                  Command="{cmd:Command Stride.File.Exit}"/>
       </MenuItem>
       <!-- Edit menu: its items act on the panel that has the focus, through the router of the view (see EditCommandRouter).
-           Their shortcuts are handled by the main window after the focused control, so
-           that a text box keeps its own; the items only show them. -->
+           Their shortcuts are handled by the main window after the focused control, so that a text box keeps its own. -->
       <MenuItem Header="{sd:LocalizeString Edit, Context=Menu}"
                 Name="EditMenu">
-        <MenuItem Header="{sd:LocalizeString Undo, Context=Menu}"
-                  Name="UndoMenuItem"
-                  InputGesture="{x:Static sd:EditCommands.UndoGesture}">
+        <MenuItem Name="UndoMenuItem"
+                  Command="{cmd:Command Stride.Edit.Undo}">
           <MenuItem.Icon>
             <Image Source="{StaticResource ImageUndo}"/>
           </MenuItem.Icon>
         </MenuItem>
-        <MenuItem Header="{sd:LocalizeString Redo, Context=Menu}"
-                  Name="RedoMenuItem"
-                  InputGesture="{x:Static sd:EditCommands.RedoGesture}">
+        <MenuItem Name="RedoMenuItem"
+                  Command="{cmd:Command Stride.Edit.Redo}">
           <MenuItem.Icon>
             <Image Source="{StaticResource ImageRedo}"/>
           </MenuItem.Icon>
         </MenuItem>
         <Separator/>
-        <MenuItem Header="{sd:LocalizeString Cut, Context=Menu}"
-                  Name="CutMenuItem"
-                  InputGesture="{x:Static sd:EditCommands.CutGesture}">
+        <MenuItem Name="CutMenuItem"
+                  Command="{cmd:Command Stride.Edit.Cut}">
           <MenuItem.Icon>
             <Image Source="{StaticResource ImageCut}"/>
           </MenuItem.Icon>
         </MenuItem>
-        <MenuItem Header="{sd:LocalizeString Copy, Context=Menu}"
-                  Name="CopyMenuItem"
-                  InputGesture="{x:Static sd:EditCommands.CopyGesture}">
+        <MenuItem Name="CopyMenuItem"
+                  Command="{cmd:Command Stride.Edit.Copy}">
           <MenuItem.Icon>
             <Image Source="{StaticResource ImageCopy}"/>
           </MenuItem.Icon>
         </MenuItem>
-        <MenuItem Header="{sd:LocalizeString Paste, Context=Menu}"
-                  Name="PasteMenuItem"
-                  InputGesture="{x:Static sd:EditCommands.PasteGesture}">
+        <MenuItem Name="PasteMenuItem"
+                  Command="{cmd:Command Stride.Edit.Paste}">
           <MenuItem.Icon>
             <Image Source="{StaticResource ImagePaste}"/>
           </MenuItem.Icon>
         </MenuItem>
-        <MenuItem Header="{sd:LocalizeString Delete, Context=Menu}"
-                  Name="DeleteMenuItem"
-                  InputGesture="{x:Static sd:EditCommands.DeleteGesture}">
+        <MenuItem Name="DeleteMenuItem"
+                  Command="{cmd:Command Stride.Edit.Delete}">
           <MenuItem.Icon>
             <Image Source="{StaticResource ImageDelete}"/>
           </MenuItem.Icon>
         </MenuItem>
-        <MenuItem Header="{sd:LocalizeString Rename, Context=Menu}"
-                  Name="RenameMenuItem"
-                  InputGesture="{x:Static sd:EditCommands.RenameGesture}">
+        <MenuItem Name="RenameMenuItem"
+                  Command="{cmd:Command Stride.Edit.Rename}">
           <MenuItem.Icon>
             <Image Source="{StaticResource ImageRename}"/>
           </MenuItem.Icon>
         </MenuItem>
         <Separator/>
         <MenuItem Header="{sd:LocalizeString _Settings..., Context=Menu}"
-                  Command="{Binding OpenSettingsWindowCommand}"
-                  IsEnabled="{Binding Session, Mode=OneWay, Converter={sd:ObjectToBool}}"/>
+                  Name="SettingsMenuItem"
+                  Command="{cmd:Command Stride.Edit.Settings}"/>
+        <MenuItem Name="KeyboardShortcutsMenuItem"
+                  Command="{cmd:Command Stride.Edit.KeyboardShortcuts}"/>
       </MenuItem>
-      <!-- View menu: a toggle per panel, in sections, then Reset layout; its items are made by the view
-           (MainView.UpdateViewMenu) from MainViewModel.ViewMenu, which follows the panels the plugins register -->
+      <!-- View menu: a toggle per panel (a command of the registry, checked while the panel is shown), in sections, then
+           Reset layout; its items are made by the view (MainView.UpdateViewMenu) from MainViewModel.ViewMenu, which follows
+           the panels the plugins register -->
       <MenuItem Header="{sd:LocalizeString _View, Context=Menu}"
                 Name="ViewMenu"
                 IsEnabled="{Binding Session, Mode=OneWay, Converter={sd:ObjectToBool}}"/>
-      <!-- Project menu: build the current project and start its game. The shortcuts are key bindings
-           of the main window, like Save. -->
+      <!-- Project menu: build the current project and start its game -->
       <MenuItem Header="{sd:LocalizeString _Project, Context=Menu}"
                 Name="ProjectMenu"
                 IsEnabled="{Binding Session, Mode=OneWay, Converter={sd:ObjectToBool}}">
-        <MenuItem Header="{sd:LocalizeString Build project, Context=Menu}"
-                  Name="BuildProjectMenuItem"
-                  Command="{Binding Build.BuildProjectCommand}"
-                  InputGesture="{x:Static gsvw:MainView.BuildProjectGesture}">
+        <MenuItem Name="BuildProjectMenuItem"
+                  Command="{cmd:Command Stride.Project.Build}">
           <MenuItem.Icon>
             <Image Source="{StaticResource ImageBuildProject}"/>
           </MenuItem.Icon>
         </MenuItem>
-        <MenuItem Header="{sd:LocalizeString Start project, Context=Menu}"
-                  Name="StartProjectMenuItem"
-                  Command="{Binding Build.StartProjectCommand}"
-                  InputGesture="{x:Static gsvw:MainView.StartProjectGesture}">
+        <MenuItem Name="StartProjectMenuItem"
+                  Command="{cmd:Command Stride.Project.Start}">
           <MenuItem.Icon>
             <Image Source="{StaticResource ImageStartProject}"/>
           </MenuItem.Icon>
         </MenuItem>
-        <MenuItem Header="{sd:LocalizeString Cancel build, Context=Menu}"
-                  Name="CancelBuildMenuItem"
-                  Command="{Binding Build.CancelBuildCommand}"
-                  InputGesture="{x:Static gsvw:MainView.CancelBuildGesture}">
+        <MenuItem Name="CancelBuildMenuItem"
+                  Command="{cmd:Command Stride.Project.CancelBuild}">
           <MenuItem.Icon>
             <Image Source="{StaticResource ImageStopBuild}"/>
           </MenuItem.Icon>
@@ -190,26 +173,23 @@
             <Image Source="{StaticResource ImageAddNewProject}"/>
           </MenuItem.Icon>
         </MenuItem>
-        <MenuItem Header="{sd:LocalizeString Add dependency..., Context=Menu}"
-                  Name="AddDependencyMenuItem"
-                  Command="{Binding Session.AddDependencyCommand, FallbackValue={x:Null}}">
+        <MenuItem Name="AddDependencyMenuItem"
+                  Command="{cmd:Command Stride.Project.AddDependency}">
           <MenuItem.Icon>
             <Image Source="{StaticResource ImageAddDependency}"/>
           </MenuItem.Icon>
         </MenuItem>
         <Separator/>
         <!-- Opens the solution in the IDE of the settings; the toolbar's drop-down picks another installed IDE -->
-        <MenuItem Header="{sd:LocalizeString Open in IDE, Context=Menu}"
-                  Name="OpenInIDEMenuItem"
-                  Command="{Binding Session.OpenInIDECommand, FallbackValue={x:Null}}">
+        <MenuItem Name="OpenInIDEMenuItem"
+                  Command="{cmd:Command Stride.Project.OpenInIDE}">
           <MenuItem.Icon>
             <Image Source="{StaticResource ImageCodeEditor}"/>
           </MenuItem.Icon>
         </MenuItem>
         <!-- Enabled while the game code has changes the editor did not load: they load in a new editor on the project -->
-        <MenuItem Header="{sd:LocalizeString Reload game assemblies, Context=Menu}"
-                  Name="ReloadGameCodeMenuItem"
-                  Command="{Binding CodeReload.ReloadCommand}">
+        <MenuItem Name="ReloadGameCodeMenuItem"
+                  Command="{cmd:Command Stride.Project.ReloadGameAssemblies}">
           <MenuItem.Icon>
             <Image Source="{StaticResource ImageReloadAssemblies}"/>
           </MenuItem.Icon>
@@ -222,26 +202,17 @@
       <!-- Help menu -->
       <MenuItem Header="{sd:LocalizeString _Help, Context=Menu}"
                 Name="HelpMenu">
-        <MenuItem Header="{sd:LocalizeString Online documentation, Context=Menu}"
-            Command="{Binding OpenWebPageCommand}"
-            CommandParameter="{x:Static gsh:StrideGameStudio.DocumentationUrl}"/>
+        <MenuItem Command="{cmd:Command Stride.Help.Documentation}"/>
         <Separator/>
-        <MenuItem Header="{sd:LocalizeString Questions and answers, Context=Menu}"
-                  Command="{Binding OpenWebPageCommand}"
-                  CommandParameter="{x:Static gsh:StrideGameStudio.AnswersUrl}"/>
-        <MenuItem Header="{sd:LocalizeString Report an issue..., Context=Menu}"
-                  Command="{Binding OpenWebPageCommand}"
-                  CommandParameter="{x:Static gsh:StrideGameStudio.ReportIssueUrl}"/>
-        <MenuItem Header="{sd:LocalizeString Discord forum, Context=Menu}"
-                  Command="{Binding OpenWebPageCommand}"
-                  CommandParameter="{x:Static gsh:StrideGameStudio.ForumsUrl}"/>
+        <MenuItem Command="{cmd:Command Stride.Help.Questions}"/>
+        <MenuItem Command="{cmd:Command Stride.Help.ReportIssue}"/>
+        <MenuItem Command="{cmd:Command Stride.Help.Forum}"/>
         <Separator/>
-        <MenuItem Header="{sd:LocalizeString Show debug window, Context=Menu}"
-                  Command="{Binding OpenDebugWindowCommand}"
-                  HotKey="Ctrl+Shift+D" InputGesture="{Binding $self.HotKey, Mode=OneTime}"/>
+        <MenuItem Name="DebugWindowMenuItem"
+                  Command="{cmd:Command Stride.Help.DebugWindow}"/>
         <Separator/>
         <MenuItem Header="{sd:LocalizeString _About..., Context=Menu}"
-                  Command="{Binding AboutCommand}"/>
+                  Command="{cmd:Command Stride.Help.About}"/>
       </MenuItem>
       <MenuItem Header="Debug"
                 IsVisible="{sd:IsDebug}">
@@ -274,28 +245,25 @@
           </Style.Animations>
         </Style>
       </sd:ToolBar.Styles>
+      <!-- The editor's buttons bind its commands by id: their tool tips end with the user's shortcut -->
       <Button Name="BuildProjectButton"
-              Command="{Binding Build.BuildProjectCommand}"
-              ToolTip.Tip="{sd:LocalizeString Build the project (F6), Context=ToolTip}"
+              Command="{cmd:Command Stride.Project.Build, ToolTip={sd:LocalizeString Build the project, Context=ToolTip}}"
               ToolTip.ShowOnDisabled="True">
         <Image Source="{StaticResource ImageBuildProject}" Width="16" Height="16"/>
       </Button>
       <Button Name="StartProjectButton"
-              Command="{Binding Build.StartProjectCommand}"
-              ToolTip.Tip="{sd:LocalizeString Build the project and start the game (F5), Context=ToolTip}"
+              Command="{cmd:Command Stride.Project.Start, ToolTip={sd:LocalizeString Build the project and start the game, Context=ToolTip}}"
               ToolTip.ShowOnDisabled="True">
         <Image Source="{StaticResource ImageStartProject}" Width="16" Height="16"/>
       </Button>
       <Button Name="CancelBuildButton"
-              Command="{Binding Build.CancelBuildCommand}"
-              ToolTip.Tip="{sd:LocalizeString Cancel the current build (Ctrl+F6), Context=ToolTip}"
+              Command="{cmd:Command Stride.Project.CancelBuild, ToolTip={sd:LocalizeString Cancel the current build, Context=ToolTip}}"
               ToolTip.ShowOnDisabled="True">
         <Image Source="{StaticResource ImageStopBuild}" Width="16" Height="16"/>
       </Button>
       <!-- Open in IDE (the IDE of the settings), and the installed IDEs to open the solution with -->
       <Button Name="OpenInIDEButton"
-              Command="{Binding Session.OpenInIDECommand, FallbackValue={x:Null}}"
-              ToolTip.Tip="{sd:LocalizeString Open in IDE, Context=ToolTip}"
+              Command="{cmd:Command Stride.Project.OpenInIDE, ToolTip={sd:LocalizeString Open in IDE, Context=ToolTip}}"
               ToolTip.ShowOnDisabled="True">
         <Image Source="{StaticResource ImageCodeEditor}" Width="16" Height="16"/>
       </Button>
@@ -307,8 +275,7 @@
         </DropDownButton.Flyout>
       </DropDownButton>
       <Button Name="ReloadGameCodeButton"
-              Command="{Binding CodeReload.ReloadCommand}"
-              ToolTip.Tip="{sd:LocalizeString Reload the game assemblies: build the changed code and open the project in a new editor, Context=ToolTip}"
+              Command="{cmd:Command Stride.Project.ReloadGameAssemblies, ToolTip={sd:LocalizeString Reload the game assemblies: build the changed code and open the project in a new editor, Context=ToolTip}}"
               ToolTip.ShowOnDisabled="True">
         <Image Source="{StaticResource ImageReloadAssemblies}" Width="16" Height="16"/>
       </Button>
@@ -369,6 +336,14 @@
         </DataTemplate>
       </ItemsControl.ItemTemplate>
     </ItemsControl>
+
+    <!-- The command palette (Ctrl+Shift+P): over the top of the main window, until a command runs or the user clicks elsewhere -->
+    <Popup Name="CommandPalettePopup" Grid.Row="0" Grid.RowSpan="6"
+           Placement="AnchorAndGravity" PlacementAnchor="Top" PlacementGravity="Bottom" VerticalOffset="48"
+           IsLightDismissEnabled="True"
+           Closed="OnCommandPaletteClosed">
+      <gsvw:CommandPaletteView Name="CommandPalette"/>
+    </Popup>
 
     <!-- Status bar -->
     <Grid Grid.Row="5"

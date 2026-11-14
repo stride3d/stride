@@ -234,18 +234,16 @@
         <sd:EditCommandBinding Kind="Delete" Command="{Binding DeleteContentCommand}"/>
         <sd:EditCommandBinding Kind="Rename" Command="{x:Static sd:BeginEditCommand.Instance}" CommandParameter="{Binding SingleSelectedContent}"/>
       </sd:EditCommands.Bindings>
-      <!-- The context menu of the asset view. The commands of the selected asset
-           (create a derived asset...) are inserted when the menu opens, see the code-behind. -->
+      <!-- The context menu of the asset view: its items bind the commands of the registry by their identifier, which act
+           on the selection the menu opened on. The commands of the selected asset (create a derived asset...) are inserted
+           when the menu opens, see the code-behind. -->
       <ListBox.ContextMenu>
         <ContextMenu x:Name="AssetContextMenu" Opening="OnAssetContextMenuOpening"
                      cmd:CommandSlot.Location="{x:Static cmdl:CommandLocations.AssetViewContext}"
                      cmd:CommandSlot.Selection="{Binding SelectedContent}">
           <MenuItem Header="{sd:LocalizeString Asset, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"/>
-          <MenuItem Header="{sd:LocalizeString Edit asset..., Context=Menu}"
-                    Command="{Binding Session.EditSelectedContentCommand}"
-                    InputGesture="Ctrl+Enter"/>
-          <MenuItem Header="{Binding Session.RootAssetToggleHeader}"
-                    Command="{Binding Session.ToggleIsRootOnSelectedAssetCommand}">
+          <MenuItem Command="{cmd:Command Stride.Asset.EditSelected}"/>
+          <MenuItem Command="{cmd:Command Stride.Asset.ToggleRoot}">
             <MenuItem.Icon>
               <Image Source="{StaticResource ImageAssetIsRoot}"/>
             </MenuItem.Icon>
@@ -271,108 +269,77 @@
           <Separator x:Name="AssetCommandsSeparator"
                      IsVisible="{Binding SingleSelectedAsset?.AssetCommands.Count, Converter={sd:NumericToBool}, FallbackValue={sd:False}}"/>
           <Separator/>
-          <MenuItem Header="{sd:LocalizeString Cut, Context=Menu}"
-                    Command="{Binding CutContentCommand}"
-                    InputGesture="{x:Static sd:EditCommands.CutGesture}">
+          <!-- The Edit commands act on the asset view -->
+          <MenuItem Command="{cmd:Command Stride.Edit.Cut}">
             <MenuItem.Icon>
               <Image Source="{StaticResource ImageCut}"/>
             </MenuItem.Icon>
           </MenuItem>
-          <MenuItem Header="{sd:LocalizeString Copy, Context=Menu}"
-                    Command="{Binding CopyContentCommand}"
-                    InputGesture="{x:Static sd:EditCommands.CopyGesture}">
+          <MenuItem Command="{cmd:Command Stride.Edit.Copy}">
             <MenuItem.Icon>
               <Image Source="{StaticResource ImageCopy}"/>
             </MenuItem.Icon>
           </MenuItem>
-          <MenuItem Header="{sd:LocalizeString Copy with dependencies, Context=Menu}"
-                    Command="{Binding CopyAssetsRecursivelyCommand}"
-                    InputGesture="Ctrl+Shift+C">
+          <MenuItem Command="{cmd:Command Stride.Asset.CopyRecursively}">
             <MenuItem.Icon>
               <Image Source="{StaticResource ImageCopyRecursively}"/>
             </MenuItem.Icon>
           </MenuItem>
-          <MenuItem Header="{sd:LocalizeString Paste, Context=Menu}"
-                    Command="{Binding PasteCommand}"
-                    InputGesture="{x:Static sd:EditCommands.PasteGesture}">
+          <MenuItem Command="{cmd:Command Stride.Edit.Paste}">
             <MenuItem.Icon>
               <Image Source="{StaticResource ImagePaste}"/>
             </MenuItem.Icon>
           </MenuItem>
-          <MenuItem Header="{sd:LocalizeString Delete, Context=Menu}"
-                    Command="{Binding DeleteContentCommand}"
-                    InputGesture="{x:Static sd:EditCommands.DeleteGesture}">
+          <MenuItem Command="{cmd:Command Stride.Edit.Delete}">
             <MenuItem.Icon>
               <Image Source="{StaticResource ImageDelete}"/>
             </MenuItem.Icon>
           </MenuItem>
           <Separator/>
-          <MenuItem Header="{sd:LocalizeString Copy asset URL, Context=Menu}"
-                    Command="{Binding CopyAssetUrlCommand}"/>
-          <MenuItem Header="{sd:LocalizeString Rename, Context=Menu}"
-                    Command="{x:Static sd:BeginEditCommand.Instance}"
-                    CommandParameter="{Binding SingleSelectedContent}"
-                    InputGesture="{x:Static sd:EditCommands.RenameGesture}">
+          <MenuItem Command="{cmd:Command Stride.Asset.CopyUrl}"/>
+          <MenuItem Command="{cmd:Command Stride.Edit.Rename}">
             <MenuItem.Icon>
               <Image Source="{StaticResource ImageRename}"/>
             </MenuItem.Icon>
           </MenuItem>
           <Separator/>
-          <MenuItem Header="{sd:LocalizeString Create folder, Context=Menu}"
-                    Command="{Binding Session.NewDirectoryCommand}"
-                    CommandParameter="{Binding SelectedLocations}"
+          <MenuItem Command="{cmd:Command Stride.Asset.NewFolder}"
                     IsVisible="{Binding Session.NewDirectoryCommand.IsEnabled}">
             <MenuItem.Icon>
               <Image Source="{StaticResource ImageNewFolder}"/>
             </MenuItem.Icon>
           </MenuItem>
-          <MenuItem Header="{sd:LocalizeString Add asset..., Context=Menu}"
-                    Command="{Binding ShowAddAssetDialogCommand}"
-                    InputGesture="Ctrl+I"
+          <MenuItem Command="{cmd:Command Stride.Asset.Add}"
                     IsVisible="{Binding ShowAddAssetDialogCommand.IsEnabled}">
             <MenuItem.Icon>
               <Image Source="{StaticResource ImageNewAsset}"/>
             </MenuItem.Icon>
           </MenuItem>
-          <MenuItem Header="{sd:LocalizeString Update selected assets from their source, Context=Menu}"
-                    Command="{Binding Session.SourceTracker?.UpdateSelectedAssetsFromSourceCommand}"
-                    InputGesture="Ctrl+Shift+R"/>
-          <MenuItem Header="{sd:LocalizeString Update all assets with modified source, Context=Menu}"
-                    Command="{Binding Session.SourceTracker?.UpdateAllAssetsWithModifiedSourceCommand}"
-                    InputGesture="Ctrl+R"/>
+          <MenuItem Command="{cmd:Command Stride.Asset.UpdateSelectedFromSource}"/>
+          <MenuItem Command="{cmd:Command Stride.Asset.UpdateAllFromSource}"/>
           <!-- Explore -->
           <MenuItem Header="{sd:LocalizeString Explore, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"/>
-          <MenuItem Header="{sd:LocalizeString Open with text editor, Context=Menu}"
-                    Command="{Binding Session.OpenWithTextEditorCommand}"
-                    CommandParameter="{Binding SingleSelectedAsset}">
+          <MenuItem Command="{cmd:Command Stride.Asset.OpenWithTextEditor}">
             <MenuItem.Icon>
               <Image Source="{StaticResource ImageOpenWithTextEditor}"/>
             </MenuItem.Icon>
           </MenuItem>
-          <MenuItem Header="{sd:LocalizeString Open asset file, Context=Menu}"
-                    Command="{Binding Session.OpenAssetFileCommand}"
-                    CommandParameter="{Binding SingleSelectedAsset}">
+          <MenuItem Command="{cmd:Command Stride.Asset.OpenFile}">
             <MenuItem.Icon>
               <Image Source="{StaticResource ImageOpenAssetFile}"/>
             </MenuItem.Icon>
           </MenuItem>
-          <MenuItem Header="{sd:LocalizeString Open source file, Context=Menu}"
-                    Command="{Binding Session.OpenSourceFileCommand}"
-                    CommandParameter="{Binding SingleSelectedAsset}">
+          <MenuItem Command="{cmd:Command Stride.Asset.OpenSourceFile}">
             <MenuItem.Icon>
               <Image Source="{StaticResource ImageOpenSourceFile}"/>
             </MenuItem.Icon>
           </MenuItem>
-          <MenuItem Header="{sd:LocalizeString Show in Explorer, Context=Menu}"
-                    Command="{Binding Session.ExploreCommand}"
-                    CommandParameter="{Binding SelectedContent}">
+          <MenuItem Command="{cmd:Command Stride.Asset.ShowInExplorer}">
             <MenuItem.Icon>
               <Image Source="{StaticResource ImageExplore}"/>
             </MenuItem.Icon>
           </MenuItem>
-          <MenuItem Header="{sd:LocalizeString Show source file in Explorer, Context=Menu}"
-                    Command="{Binding Session.ExploreSourceFileCommand}"
-                    CommandParameter="{Binding SingleSelectedAsset}">
+          <MenuItem Command="{cmd:Command Stride.Asset.ShowSourceInExplorer}">
             <MenuItem.Icon>
               <Image Source="{StaticResource ImageExplore}"/>
             </MenuItem.Icon>

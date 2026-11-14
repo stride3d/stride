@@ -103,14 +103,14 @@ public sealed class ServicesSessionFixture : IAsyncDisposable
 
         // The services the GameStudio plugin registers when a session opens
         fixture.SettingsProvider = new GameSettingsProviderService(session);
-        serviceProvider.RegisterService(fixture.SettingsProvider);
+        session.ServiceProvider.RegisterService(fixture.SettingsProvider);
         if (withBuilder)
         {
             var buildDirectory = Path.Combine(directory, "build");
             System.IO.Directory.CreateDirectory(buildDirectory);
             fixture.Builder = new GameStudioBuilderService(session, fixture.SettingsProvider, buildDirectory);
-            serviceProvider.RegisterService(fixture.Builder);
-            serviceProvider.RegisterService(fixture.Builder.Database);
+            session.ServiceProvider.RegisterService(fixture.Builder);
+            session.ServiceProvider.RegisterService(fixture.Builder.Database);
         }
 
         // What the session does in the background once open, so that the tests start from a session at rest

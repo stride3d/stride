@@ -639,7 +639,8 @@ public sealed class DockPanelService : ViewModelBase, IPanelService, IDisposable
         if (session is null || Registry.Find(panel.PanelId) is not { } descriptor || descriptor.AllowsMultipleInstances != (panel.InstanceId.Length > 0))
             return null;
 
-        var context = new PanelContext { Descriptor = descriptor, InstanceId = panel.InstanceId, Session = session, ServiceProvider = ServiceProvider };
+        // A panel lives with the session: it gets the session's services, which hold the editor's
+        var context = new PanelContext { Descriptor = descriptor, InstanceId = panel.InstanceId, Session = session, ServiceProvider = session.ServiceProvider };
         if (!TryRunPanelCode(panel, () => descriptor.CreateViewModel(context), "created", out var viewModel))
             return null;
         var dockable = new PanelDockable(viewModel, descriptor.AllowsMultipleInstances, OnPanelClose, CreatePluginView);

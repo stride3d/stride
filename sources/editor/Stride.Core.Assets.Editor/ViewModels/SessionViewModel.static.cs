@@ -138,10 +138,18 @@ partial class SessionViewModel
         SessionViewModel sessionViewModel;
         try
         {
-            var undoRedoService = RegisterSessionServices(serviceProvider);
+            var sessionServices = CreateSessionServices(serviceProvider, out var undoRedoService);
 
-            // Create the actual session view model.
-            sessionViewModel = new SessionViewModel(serviceProvider, session, main, loggerResult);
+            // Create the actual session view model, which owns its services from now on
+            try
+            {
+                sessionViewModel = new SessionViewModel(sessionServices, session, main, loggerResult);
+            }
+            catch
+            {
+                sessionServices.Dispose();
+                throw;
+            }
 
             // Load assets from packages
             sessionViewModel.LoadAssetsFromPackages(loggerResult, workProgress);
@@ -214,8 +222,24 @@ partial class SessionViewModel
 
     private static async Task<SessionViewModel?> OpenSessionCoreAsync(UFile path, Action<PackageLoadParameters> load, PackageSessionResult sessionResult, IMainViewModel main, IViewModelServiceProvider serviceProvider, CancellationToken token)
     {
-        var undoRedoService = RegisterSessionServices(serviceProvider);
+        // The services of the session: the session view model owns them once it is made, and they go if it is not
+        var sessionServices = CreateSessionServices(serviceProvider, out var undoRedoService);
+        try
+        {
+            var sessionViewModel = await OpenSessionCoreAsync(path, load, sessionResult, main, serviceProvider, sessionServices, undoRedoService, token);
+            if (sessionViewModel is null)
+                sessionServices.Dispose();
+            return sessionViewModel;
+        }
+        catch
+        {
+            sessionServices.Dispose();
+            throw;
+        }
+    }
 
+    private static async Task<SessionViewModel?> OpenSessionCoreAsync(UFile path, Action<PackageLoadParameters> load, PackageSessionResult sessionResult, IMainViewModel main, IViewModelServiceProvider serviceProvider, ViewModelServiceProvider sessionServices, UndoRedoService undoRedoService, CancellationToken token)
+    {
         var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(token);
         token = cancellationSource.Token;
         var workProgress = new WorkProgressViewModel(serviceProvider, sessionResult)
@@ -250,7 +274,7 @@ partial class SessionViewModel
 
                         // Create the session view model (in the UI thread)
                         var dispatcher = serviceProvider.Get<IDispatcherService>();
-                        result = dispatcher.Invoke(() => new SessionViewModel(serviceProvider, sessionResult.Session, main, sessionResult));
+                        result = dispatcher.Invoke(() => new SessionViewModel(sessionServices, sessionResult.Session, main, sessionResult));
 
                         // Build asset view models
                         result.LoadAssetsFromPackages(sessionResult, workProgress, token);
@@ -312,11 +336,15 @@ partial class SessionViewModel
     }
 
     /// <summary>
-    /// Registers the services that live as long as the session: selection, copy/paste and undo/redo.
+    /// Creates the scope of the session, a child of the editor's services, with the services that live as long as the session:
+    /// selection, copy/paste and undo/redo. The plugins add theirs when they join the session.
     /// </summary>
-    /// <returns>The undo/redo service, sized to 0 so that the loading (asset upgrades) cannot be undone.</returns>
-    private static UndoRedoService RegisterSessionServices(IViewModelServiceProvider serviceProvider)
+    /// <param name="serviceProvider">The services of the editor.</param>
+    /// <param name="undoRedoService">The undo/redo service, sized to 0 so that the loading (asset upgrades) cannot be undone.</param>
+    private static ViewModelServiceProvider CreateSessionServices(IViewModelServiceProvider serviceProvider, out UndoRedoService undoRedoService)
     {
+        var sessionServices = new ViewModelServiceProvider(serviceProvider);
+
         // Create the service that handles selection
         var selectionService = new SelectionService(serviceProvider.Get<IDispatcherService>());
 
@@ -324,13 +352,13 @@ partial class SessionViewModel
         var copyPasteService = new CopyPasteService();
 
         // Create the undo/redo service for this session. We use an initial size of 0 to prevent asset upgrade to be cancellable.
-        var undoRedoService = new UndoRedoService(0);
+        undoRedoService = new UndoRedoService(0);
 
         // Register the session-specific services
-        serviceProvider.RegisterService(undoRedoService);
-        serviceProvider.RegisterService(copyPasteService);
-        serviceProvider.RegisterService(selectionService);
-        return undoRedoService;
+        sessionServices.RegisterService(undoRedoService);
+        sessionServices.RegisterService(copyPasteService);
+        sessionServices.RegisterService(selectionService);
+        return sessionServices;
     }
 
     private static async Task SetInstanceAsync(SessionViewModel sessionViewModel)

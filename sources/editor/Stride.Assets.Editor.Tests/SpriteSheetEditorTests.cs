@@ -693,7 +693,7 @@ public sealed class SpriteSheetEditorTests
             var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: true, ("Sheet", asset));
             Assert.False(fixture.Result.HasErrors, fixture.Log);
             // The editor plugin of the view registers this processor in the application
-            fixture.ServiceProvider.Get<ICopyPasteService>().RegisterProcessor(new AssetPropertyPasteProcessor());
+            fixture.Session.ServiceProvider.Get<ICopyPasteService>().RegisterProcessor(new AssetPropertyPasteProcessor());
             var editor = new SpriteSheetEditorViewModel(fixture.Asset<SpriteSheetViewModel>("Sheet"));
             Assert.True(await editor.Initialize());
             var test = new SpriteSheetTest(fixture, imageDirectory, editor);

@@ -49,6 +49,11 @@ internal static class GameStudioInternalSettings
     /// <remarks>The key <c>Internal/Avalonia/PanelSizes</c> of earlier versions is no longer read.</remarks>
     public static readonly SettingsKey<List<SessionPanelLayouts>> SessionLayouts = new("Internal/Avalonia/SessionLayouts", SettingsContainer, () => new List<SessionPanelLayouts>());
 
+    /// <summary>
+    /// The identifiers of the commands last run from the command palette, the most recent first: the palette lists them first.
+    /// </summary>
+    public static readonly SettingsKey<List<string>> RecentCommands = new("Internal/Avalonia/RecentCommands", SettingsContainer, () => new List<string>());
+
     static GameStudioInternalSettings()
     {
         // Written at once by each change (SessionPanelLayoutStore); another editor instance may have changed it since

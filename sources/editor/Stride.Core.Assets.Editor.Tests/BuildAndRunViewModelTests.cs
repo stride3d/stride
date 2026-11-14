@@ -45,7 +45,7 @@ public sealed class BuildAndRunViewModelTests
         // While a build runs, only Cancel
         var started = builder.NextBuild;
         var building = buildAndRun.BuildAsync(false);
-        var build = await started.WaitAsync(TimeSpan.FromSeconds(30));
+        var build = await WaitForBuildStartAsync(fixture, builder, buildAndRun, started, building);
         Assert.True(buildAndRun.BuildInProgress);
         Assert.False(buildAndRun.BuildProjectCommand.IsEnabled);
         Assert.False(buildAndRun.StartProjectCommand.IsEnabled);
@@ -612,6 +612,27 @@ public sealed class BuildAndRunViewModelTests
     {
         buildAndRun.BuildLog.Flush();
         return buildAndRun.BuildLog.Messages.Select(x => x.Text).ToList();
+    }
+
+    /// <summary>
+    /// Waits for the build to reach the builder; when it doesn't, fails with where it stopped: a build that ended first gives its
+    /// outcome, one still saving or preparing says so, with the state of the thread pool that its steps need.
+    /// </summary>
+    private static async Task<FakeGameProjectBuild> WaitForBuildStartAsync(EditorSessionFixture fixture, FakeGameProjectBuilder builder, BuildAndRunViewModel buildAndRun, Task<FakeGameProjectBuild> started, Task<GameBuildOutcome> building)
+    {
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+        var first = await Task.WhenAny(started, building, Task.Delay(TimeSpan.FromSeconds(30)));
+        if (first == started)
+            return await started;
+
+        var where = building.IsCompleted
+            ? $"the build ended with {(building.IsCompletedSuccessfully ? building.Result.ToString() : building.Status.ToString())} before it reached the builder"
+            : fixture.Session.IsSaving ? "the session is still saving" : "the build is still preparing (saved, not started)";
+        ThreadPool.GetAvailableThreads(out var availableWorkers, out _);
+        Assert.Fail($"After {watch.ElapsedMilliseconds} ms, {where}. Builds asked for: {builder.Requests.Count}. Dialogs: [{string.Join(" | ", fixture.Dialogs.Messages)}]."
+            + $" Output: [{string.Join(" | ", Messages(buildAndRun))}]. Session log: [{fixture.Log}]."
+            + $" Thread pool: {ThreadPool.ThreadCount} threads, {availableWorkers} available, {ThreadPool.PendingWorkItemCount} pending items.");
+        return null!;
     }
 
     private static async Task<ILogMessage> WaitForMessageAsync(BuildAndRunViewModel buildAndRun, string text)

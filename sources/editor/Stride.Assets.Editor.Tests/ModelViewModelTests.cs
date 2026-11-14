@@ -60,7 +60,7 @@ public sealed class ModelViewModelTests
             var source = new UFile(Path.Combine(resources, "Robot" + TestModelImporter.Extension));
             File.WriteAllText(source, "");
             model.Asset.Source = source;
-            var undoRedo = fixture.ServiceProvider.Get<IUndoRedoService>();
+            var undoRedo = fixture.Session.ServiceProvider.Get<IUndoRedoService>();
             var transactions = fixture.Session.ActionHistory.Transactions.Count;
 
             await fixture.Session.Dispatcher.InvokeTask(model.CreateSkeletonAsync);

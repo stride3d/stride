@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Assets.Editor.Avalonia;
 
@@ -31,7 +32,8 @@ public sealed class EditorViewSelector : AvaloniaObject, IDataTemplate
         if (param == null) return null;
 
         var viewType = Session?.ServiceProvider.TryGet<IAssetsPluginService>()?.GetEditorViewType(param.GetType());
-        return viewType != null ? Activator.CreateInstance(viewType) as Control : null;
+        // The view's constructor can ask for services of the editor's tab (or of the session)
+        return viewType != null ? (param as ViewModelBase)?.ServiceProvider.CreateInstance(viewType) as Control ?? Activator.CreateInstance(viewType) as Control : null;
     }
 
     public bool Match(object? data) => data is AssetEditorViewModel;

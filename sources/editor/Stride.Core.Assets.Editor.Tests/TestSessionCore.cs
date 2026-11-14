@@ -218,7 +218,7 @@ public sealed class TestSessionCore
         var editor = new TestAssetEditorViewModel(wood);
 
         Assert.Same(fixture.Session.AssetViewProperties, editor.EditorProperties);
-        Assert.Same(fixture.ServiceProvider.Get<IUndoRedoService>(), editor.UndoRedoService);
+        Assert.Same(fixture.Session.ServiceProvider.Get<IUndoRedoService>(), editor.UndoRedoService);
 
         editor.ShowProperties();
 

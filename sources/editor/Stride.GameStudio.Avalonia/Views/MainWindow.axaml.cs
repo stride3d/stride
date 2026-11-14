@@ -68,12 +68,6 @@ public partial class MainWindow : Window
         }
     }
 
-    /// <summary>
-    /// The shortcuts of the Edit menu (Undo, Redo, Cut, Copy, Paste, Delete and Rename) go to the panel that has the focus. They
-    /// run here, after the focused control has seen the key, so that a text box keeps its own Ctrl+Z and Ctrl+C: Avalonia
-    /// evaluates the key bindings of the window before it raises the key event, so a <see cref="KeyBinding"/> would act on
-    /// the session instead of the text.
-    /// </summary>
     protected override void OnDataContextChanged(EventArgs e)
     {
         base.OnDataContextChanged(e);
@@ -82,12 +76,26 @@ public partial class MainWindow : Window
             EditorSettings.ResetEditorLayout.Command = mainViewModel.ViewMenu.ResetLayoutCommand;
     }
 
+    /// <summary>
+    /// The shortcuts of the commands (the editor's and the plugins', with the user's changes) run here, after the focused
+    /// control has seen the key, so that a text box keeps its own Ctrl+Z and Ctrl+C: Avalonia evaluates the key bindings of
+    /// the window before it raises the key event, so a <see cref="KeyBinding"/> would act on the session instead of the text.
+    /// The Edit commands go to the panel that has the focus; the platform's other shortcuts of the Edit commands (Ctrl+Shift+Z,
+    /// Ctrl+Insert...) come after the commands' shortcuts.
+    /// </summary>
     protected override void OnKeyDown(KeyEventArgs e)
     {
         base.OnKeyDown(e);
-        // Then the shortcuts of the commands that the editor and the plugins register, after the focused control too
-        if (!View.EditRouter.TryHandleKey(e))
-            View.CommandSlots?.TryHandleKey(e);
+        if (View.CommandSlots is { } slots)
+        {
+            if (!slots.TryHandleKey(e))
+                View.EditRouter.TryHandleOtherKey(e);
+        }
+        else
+        {
+            // Without a plugin host, no command: the Edit menu's shortcuts only
+            View.EditRouter.TryHandleKey(e);
+        }
     }
 
     protected override void OnLoaded(RoutedEventArgs _)

@@ -14,6 +14,8 @@ using Stride.Core;
 using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Avalonia.Controls;
+using Stride.Core.Assets.Editor.Avalonia.Commands;
+using Stride.GameStudio.Avalonia.Commands;
 using Stride.GameStudio.Avalonia.Tests.Helpers;
 using Stride.GameStudio.Avalonia.Views;
 
@@ -39,18 +41,19 @@ public sealed class BuildAndRunTests
             Assert.Equal(new KeyGesture(Key.F6), build.InputGesture);
             Assert.Equal(new KeyGesture(Key.F5), start.InputGesture);
             Assert.Equal(new KeyGesture(Key.F6, KeyModifiers.Control), cancel.InputGesture);
-            Assert.Same(fixture.Main.Build.BuildProjectCommand, build.Command);
-            Assert.Same(fixture.Main.Build.StartProjectCommand, start.Command);
-            Assert.Same(fixture.Main.Build.CancelBuildCommand, cancel.Command);
+            Assert.Equal(GameStudioCommands.BuildProjectId, Assert.IsType<CommandReference>(build.Command).Id);
+            Assert.Equal(GameStudioCommands.StartProjectId, Assert.IsType<CommandReference>(start.Command).Id);
+            Assert.Equal(GameStudioCommands.CancelBuildId, Assert.IsType<CommandReference>(cancel.Command).Id);
 
             Assert.True(await IsEnabledInOpenMenuAsync(build));
             Assert.True(await IsEnabledInOpenMenuAsync(start));
             Assert.False(await IsEnabledInOpenMenuAsync(cancel));
 
-            // The shortcuts are key bindings of the window, which a menu item of a closed menu would not handle
-            Assert.Contains(window.KeyBindings, x => x.Gesture == new KeyGesture(Key.F6) && x.Command == fixture.Main.Build.BuildProjectCommand);
-            Assert.Contains(window.KeyBindings, x => x.Gesture == new KeyGesture(Key.F5) && x.Command == fixture.Main.Build.StartProjectCommand);
-            Assert.Contains(window.KeyBindings, x => x.Gesture == new KeyGesture(Key.F6, KeyModifiers.Control) && x.Command == fixture.Main.Build.CancelBuildCommand);
+            // The shortcuts are the commands' shortcuts, which the window runs (a menu item of a closed menu would not)
+            var shortcuts = window.View.CommandSlots!.Shortcuts;
+            Assert.Contains(shortcuts, x => x.Gesture == new KeyGesture(Key.F6) && x.Descriptor.Id == GameStudioCommands.BuildProjectId);
+            Assert.Contains(shortcuts, x => x.Gesture == new KeyGesture(Key.F5) && x.Descriptor.Id == GameStudioCommands.StartProjectId);
+            Assert.Contains(shortcuts, x => x.Gesture == new KeyGesture(Key.F6, KeyModifiers.Control) && x.Descriptor.Id == GameStudioCommands.CancelBuildId);
         }
         finally
         {
@@ -81,9 +84,11 @@ public sealed class BuildAndRunTests
             await WindowTestHelper.PumpAsync();
 
             Assert.True(toolBar.IsVisible);
-            Assert.Same(fixture.Main.Build.BuildProjectCommand, Button(window, "BuildProjectButton").Command);
-            Assert.Same(fixture.Main.Build.StartProjectCommand, Button(window, "StartProjectButton").Command);
-            Assert.Same(fixture.Main.Build.CancelBuildCommand, Button(window, "CancelBuildButton").Command);
+            Assert.Equal(GameStudioCommands.BuildProjectId, Assert.IsType<CommandReference>(Button(window, "BuildProjectButton").Command).Id);
+            Assert.Equal(GameStudioCommands.StartProjectId, Assert.IsType<CommandReference>(Button(window, "StartProjectButton").Command).Id);
+            Assert.Equal(GameStudioCommands.CancelBuildId, Assert.IsType<CommandReference>(Button(window, "CancelBuildButton").Command).Id);
+            // With their shortcuts
+            Assert.Equal("Build the project (F6)", ToolTip.GetTip(Button(window, "BuildProjectButton")));
         }
         finally
         {

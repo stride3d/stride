@@ -81,14 +81,6 @@ public partial class UIEditorView : UserControl, IAssetEditorView
         if (e.Handled || e.Source is TextBox)
             return;
 
-        // Ctrl+D duplicates the selection; the keys reach the view model after the focused control
-        if (e is { Key: Key.D, KeyModifiers: KeyModifiers.Control } && Editor?.DuplicateSelectionCommand is { IsEnabled: true } duplicate)
-        {
-            duplicate.Execute();
-            e.Handled = true;
-            return;
-        }
-
         // The arrow keys of the view don't move the focus to the other controls of the editor: the
         // game has seen them already
         if (e.Key is Key.Up or Key.Down or Key.Left or Key.Right && e.Source is Visual source && (ReferenceEquals(source, this) || ViewArea.IsVisualAncestorOf(source)))

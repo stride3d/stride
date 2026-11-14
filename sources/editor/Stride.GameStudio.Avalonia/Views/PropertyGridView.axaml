@@ -11,7 +11,6 @@
              xmlns:caevm="using:Stride.Core.Assets.Editor.ViewModels"
              xmlns:cpc="using:Stride.Core.Presentation.Commands"
              xmlns:cpqvm="using:Stride.Core.Presentation.Quantum.ViewModels"
-             xmlns:gsvw="using:Stride.GameStudio.Avalonia.Views"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Stride.GameStudio.Avalonia.Views.PropertyGridView"
              x:DataType="caecp:SessionObjectPropertiesViewModel">
@@ -30,36 +29,30 @@
     <Style Selector="sd|PropertyViewItem[IsFocused=True]">
       <Setter Property="Background" Value="{DynamicResource PropertyFocusedBackground}"/>
     </Style>
-    <!-- The context menu of a property: it works on the value of the property. The Edit menu
-         and the shortcuts reach the same commands through the bindings the code-behind gives each property. -->
+    <!-- The context menu of a property: it works on the value of the property. Its items bind the commands of the registry
+         by their identifier; the Edit menu and the shortcuts reach the same Copy and Paste through the bindings the
+         code-behind gives each property. -->
     <Style Selector="sd|PropertyViewItem" x:DataType="capqvm:AssetNodeViewModel">
       <Setter Property="ContextMenu">
         <Template>
           <ContextMenu x:DataType="capqvm:AssetNodeViewModel"
                        cmd:CommandSlot.Location="{x:Static cmdl:CommandLocations.PropertyGridContext}"
                        cmd:CommandSlot.Selection="{Binding}">
-            <MenuItem Header="{sd:LocalizeString Reset to base value, Context=Menu}"
-                      Command="{Binding [ResetOverride]}"
-                      IsEnabled="{Binding HasBase}"/>
+            <MenuItem Command="{cmd:Command Stride.PropertyGrid.ResetToBase}"/>
             <Separator/>
-            <MenuItem Header="{sd:LocalizeString Copy, Context=Menu}"
-                      Command="{Binding [CopyProperty]}"
-                      InputGesture="{x:Static sd:EditCommands.CopyGesture}">
+            <!-- The Edit commands act on the property the menu opened on -->
+            <MenuItem Command="{cmd:Command Stride.Edit.Copy}">
               <MenuItem.Icon>
                 <Image Source="{StaticResource ImageCopy}"/>
               </MenuItem.Icon>
             </MenuItem>
-            <MenuItem Header="{sd:LocalizeString Paste, Context=Menu}"
-                      Command="{Binding [PasteProperty]}"
-                      InputGesture="{x:Static sd:EditCommands.PasteGesture}">
+            <MenuItem Command="{cmd:Command Stride.Edit.Paste}">
               <MenuItem.Icon>
                 <Image Source="{StaticResource ImagePaste}"/>
               </MenuItem.Icon>
             </MenuItem>
-            <MenuItem Header="{sd:LocalizeString Replace, Context=Menu}"
-                      Command="{Binding [ReplaceProperty]}"
-                      IsVisible="{Binding [HasCommand_ReplaceProperty]}"
-                      InputGesture="{x:Static gsvw:PropertyGridView.ReplaceGesture}">
+            <MenuItem Command="{cmd:Command Stride.PropertyGrid.Replace}"
+                      IsVisible="{Binding [HasCommand_ReplaceProperty]}">
               <MenuItem.Icon>
                 <Image Source="{StaticResource ImagePaste}"/>
               </MenuItem.Icon>
@@ -79,19 +72,17 @@
                PlaceholderText="{sd:LocalizeString Add new tag}"
                IsVisible="{Binding ((caevm:SessionViewModel)Session).AssetCollection.SelectedAssets.Count, Converter={sd:NumericToBool}, FallbackValue={sd:False}}"
                KeyDown="OnNewTagKeyDown"/>
-      <!-- Navigation -->
+      <!-- Navigation; Alt+Left and Alt+Right are the shortcuts of the commands Stride.Edit.PreviousSelection and NextSelection -->
       <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Margin="0,0,6,0" VerticalAlignment="Center">
         <Button x:Name="PreviousSelectionButton"
                 Padding="2" Background="Transparent"
                 Command="{Binding ((caevm:SessionViewModel)Session).PreviousSelectionCommand, TargetNullValue={x:Static cpc:DisabledCommand.Instance}, FallbackValue={x:Static cpc:DisabledCommand.Instance}}"
-                HotKey="Alt+Left"
                 ToolTip.Tip="{sd:LocalizeString Previous selection, Context=ToolTip}" ToolTip.ShowOnDisabled="True">
           <Image Source="{StaticResource ImagePrevious}" Width="16" Height="16"/>
         </Button>
         <Button x:Name="NextSelectionButton"
                 Padding="2" Background="Transparent"
                 Command="{Binding ((caevm:SessionViewModel)Session).NextSelectionCommand, TargetNullValue={x:Static cpc:DisabledCommand.Instance}, FallbackValue={x:Static cpc:DisabledCommand.Instance}}"
-                HotKey="Alt+Right"
                 ToolTip.Tip="{sd:LocalizeString Next selection, Context=ToolTip}" ToolTip.ShowOnDisabled="True">
           <Image Source="{StaticResource ImageNext}" Width="16" Height="16"/>
         </Button>

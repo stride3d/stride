@@ -36,6 +36,14 @@ public class AssetEditorViewModel<TAsset> : AssetEditorViewModel, IAssetEditorVi
     {
     }
 
+    /// <summary>
+    /// Initializes an editor that uses the services of its tab (see <see cref="AssetEditorViewModel(AssetViewModel, IViewModelServiceProvider)"/>).
+    /// </summary>
+    public AssetEditorViewModel(TAsset asset, IViewModelServiceProvider serviceProvider)
+        : base(asset, serviceProvider)
+    {
+    }
+
     /// <inheritdoc cref="IAssetEditorViewModel{T}.Asset" />
     public override TAsset Asset => (TAsset)base.Asset;
 }
@@ -46,10 +54,63 @@ public class AssetEditorViewModel<TAsset> : AssetEditorViewModel, IAssetEditorVi
 /// </summary>
 public abstract class AssetEditorViewModel : DispatcherViewModel, IAssetEditorViewModel
 {
+    // The services of the tab of this editor, which it disposes when it is destroyed
+    private ViewModelServiceProvider? tabServices;
+
+    /// <summary>
+    /// Initializes an editor that uses the services of the session of its asset.
+    /// </summary>
     protected AssetEditorViewModel(AssetViewModel asset)
         : base(asset.ServiceProvider)
     {
         Asset = asset;
+    }
+
+    /// <summary>
+    /// Initializes an editor that uses the services of its tab: a child of the session's services, made for this editor by
+    /// <see cref="Create"/>, where the editor can register services of its own. A constructor that asks for an
+    /// <see cref="IViewModelServiceProvider"/> gets them.
+    /// </summary>
+    protected AssetEditorViewModel(AssetViewModel asset, IViewModelServiceProvider serviceProvider)
+        : base(serviceProvider)
+    {
+        Asset = asset;
+    }
+
+    /// <summary>
+    /// Creates the editor of <paramref name="asset"/>, with a scope of services for its tab (a child of the session's services)
+    /// that goes when the editor is destroyed. The constructor gets the asset, and any service it asks for: the longest
+    /// constructor that can be called is used, and the tab's services are what a parameter of type
+    /// <see cref="IViewModelServiceProvider"/> or <see cref="IServiceProvider"/> gets.
+    /// </summary>
+    /// <param name="editorType">The type of the editor.</param>
+    /// <param name="asset">The asset to edit.</param>
+    /// <returns>The new editor.</returns>
+    public static AssetEditorViewModel Create(Type editorType, AssetViewModel asset)
+    {
+        ArgumentNullException.ThrowIfNull(editorType);
+        ArgumentNullException.ThrowIfNull(asset);
+
+        var services = new ViewModelServiceProvider(asset.ServiceProvider);
+        try
+        {
+            var editor = (AssetEditorViewModel)services.CreateInstance(editorType, asset);
+            editor.tabServices = services;
+            return editor;
+        }
+        catch
+        {
+            services.Dispose();
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
+    public override void Destroy()
+    {
+        base.Destroy();
+        tabServices?.Dispose();
+        tabServices = null;
     }
 
     /// <summary>

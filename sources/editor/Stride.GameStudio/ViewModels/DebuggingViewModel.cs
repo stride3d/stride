@@ -255,7 +255,7 @@ namespace Stride.GameStudio.ViewModels
                         Tr._p("Button", "Reload"), Tr._p("Button", "Don't reload"),
                         yesAction: async () =>
                         {
-                            var undoRedoService = ServiceProvider.Get<IUndoRedoService>();
+                            var undoRedoService = Session.ServiceProvider.Get<IUndoRedoService>();
                             // Wait for current transactions, undo/redo or save to complete before continuing.
                             await Task.WhenAll(undoRedoService.TransactionCompletion, undoRedoService.UndoRedoCompletion, Session.SaveCompletion);
                             // Reload assembly, if possible

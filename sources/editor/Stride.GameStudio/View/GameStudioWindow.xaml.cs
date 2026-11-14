@@ -66,9 +66,9 @@ namespace Stride.GameStudio.View
             dockingLayout = new DockingLayoutManager(this, editor.Session);
             assetEditorsManager = new AssetEditorsManager(dockingLayout, editor.Session);
             // The WPF editor opens the asset editors in its docking windows: they replace the editor collection of the shared
-            // session (which the cross-platform editor shows) as the editors manager of the session
-            editor.ServiceProvider.UnregisterService(editor.Session.EditorCollection);
-            editor.ServiceProvider.RegisterService(assetEditorsManager);
+            // session (which the cross-platform editor shows) as the editors manager of the session, in the session's services
+            editor.Session.ServiceProvider.UnregisterService(editor.Session.EditorCollection);
+            editor.Session.ServiceProvider.RegisterService(assetEditorsManager);
 
             OpenDebugWindowCommand = new AnonymousCommand(editor.ServiceProvider, OpenDebugWindow);
             CreateTestAssetCommand = new AnonymousCommand(editor.ServiceProvider, CreateTestAsset);

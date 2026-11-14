@@ -3,6 +3,7 @@
 
 using Avalonia.Controls;
 using Stride.Core.Assets.Editor.Avalonia.Views;
+using Stride.Core.Assets.Editor.Commands;
 using Stride.Core.Assets.Editor.Components.AddAssets;
 using Stride.Core.Assets.Editor.Components.FixAssetReferences;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
@@ -13,6 +14,7 @@ using Stride.Core.Extensions;
 using Stride.Core.Presentation.Avalonia.Services;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
+using Stride.GameStudio.Avalonia.Settings;
 using Stride.GameStudio.Avalonia.Views;
 using Stride.Core.Assets.Editor.ViewModels.Progress;
 using Stride.Core.Assets.Presentation.ViewModels;
@@ -305,16 +307,44 @@ internal class EditorDialogService : DialogService, IEditorDialogService, IProgr
         });
     }
 
-    public async Task ShowSettingsWindowAsync()
+    /// <summary>
+    /// Shows the settings window: the settings by category, and the Keyboard shortcuts page while commands are registered.
+    /// </summary>
+    /// <param name="showShortcuts">Whether it opens on the Keyboard shortcuts page.</param>
+    public async Task ShowSettingsWindowAsync(bool showShortcuts = false)
     {
         if (MainWindow is null) return;
 
         await Dispatcher.InvokeTask(async () =>
         {
-            await new SettingsWindow
+            var window = new SettingsWindow
             {
-                DataContext = new SettingsViewModel(serviceProvider, EditorSettings.SettingsContainer.CurrentProfile)
-            }.ShowDialog(MainWindow);
+                DataContext = new SettingsViewModel(serviceProvider, EditorSettings.SettingsContainer.CurrentProfile),
+                Shortcuts = CreateShortcutsPage(serviceProvider),
+            };
+            if (showShortcuts)
+                window.ShowShortcutsPage();
+            await window.ShowDialog(MainWindow);
+        });
+    }
+
+    /// <summary>
+    /// The Keyboard shortcuts page of the commands of the plugin host, over the user's shortcuts of the current settings profile;
+    /// null when the host has no command (no session is open).
+    /// </summary>
+    internal static KeyboardShortcutsViewModel? CreateShortcutsPage(IViewModelServiceProvider serviceProvider)
+    {
+        if (serviceProvider.TryGet<IAssetsPluginService>() is not EditorPluginHost host || host.Commands.Items.Count == 0)
+            return null;
+        var key = GameStudioEditorSettings.ShortcutOverrides;
+        var profile = EditorSettings.SettingsContainer.CurrentProfile;
+        return new KeyboardShortcutsViewModel(serviceProvider, host, key.GetValue(profile, true), overrides =>
+        {
+            // A key not in the user's settings yet goes there first, so that the change is one the dialog saves (the main
+            // window then binds the shortcuts again) or discards
+            if (!profile.ContainsKey(key))
+                key.SetValue(new Dictionary<string, string>(key.GetValue(profile, true)), profile);
+            key.SetValue(new Dictionary<string, string>(overrides), profile);
         });
     }
 }

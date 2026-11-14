@@ -10,22 +10,5 @@
         Icon="/Assets/GameStudio.ico"
         Title="{Binding Title}"
         Width="1280" Height="900">
-  <Window.KeyBindings>
-    <!-- File > Save, wherever the focus is (see the File menu of MainView) -->
-    <KeyBinding Gesture="{x:Static gsvw:MainView.SaveGesture}" Command="{Binding SaveCommand}"/>
-    <!-- File > New -->
-    <KeyBinding Gesture="{x:Static gsvw:MainView.NewGesture}" Command="{Binding NewSessionCommand}"/>
-    <!-- Project > Build project, Start project and Cancel build -->
-    <KeyBinding Gesture="{x:Static gsvw:MainView.BuildProjectGesture}" Command="{Binding Build.BuildProjectCommand}"/>
-    <KeyBinding Gesture="{x:Static gsvw:MainView.StartProjectGesture}" Command="{Binding Build.StartProjectCommand}"/>
-    <KeyBinding Gesture="{x:Static gsvw:MainView.CancelBuildGesture}" Command="{Binding Build.CancelBuildCommand}"/>
-    <!-- The shortcuts of the asset view, bound on the window; the Edit commands are handled in OnKeyDown, after
-         the focused control (a key binding would run before the focused text box) -->
-    <KeyBinding Gesture="Ctrl+Enter" Command="{Binding Session?.EditSelectedContentCommand}"/>
-    <KeyBinding Gesture="Ctrl+I" Command="{Binding Session?.AssetCollection.ShowAddAssetDialogCommand}"/>
-    <KeyBinding Gesture="Ctrl+Shift+C" Command="{Binding Session?.AssetCollection.CopyAssetsRecursivelyCommand}"/>
-    <KeyBinding Gesture="Ctrl+Shift+R" Command="{Binding Session?.SourceTracker?.UpdateSelectedAssetsFromSourceCommand}"/>
-    <KeyBinding Gesture="Ctrl+R" Command="{Binding Session?.SourceTracker?.UpdateAllAssetsWithModifiedSourceCommand}"/>
-  </Window.KeyBindings>
   <gsvw:MainView x:Name="View"/>
 </Window>

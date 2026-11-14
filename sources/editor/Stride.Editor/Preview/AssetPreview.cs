@@ -244,7 +244,8 @@ namespace Stride.Editor.Preview
             return viewType is not null
                 ? await Builder.Dispatcher.InvokeAsync(() =>
                 {
-                    var view = (IPreviewView)Activator.CreateInstance(viewType);
+                    // A view's constructor can ask for services of the session
+                    var view = (IPreviewView)serviceProvider.CreateInstance(viewType);
                     view?.InitializeView(Builder, this);
                     return view;
                 })
@@ -260,7 +261,8 @@ namespace Stride.Editor.Preview
             return previewViewModelType is not null
                 ? await AssetViewModel.Dispatcher.InvokeAsync(() =>
                 {
-                    return (IAssetPreviewViewModel)Activator.CreateInstance(previewViewModelType, AssetViewModel.Session);
+                    // The fixed signature (the session) keeps working; the constructor can also ask for services of the session
+                    return (IAssetPreviewViewModel)serviceProvider.CreateInstance(previewViewModelType, AssetViewModel.Session);
                 })
                 : null;
         }

@@ -68,7 +68,7 @@ public sealed class AssetViewModelTests
         var grandChild = fixture.Asset<SceneViewModel>("GrandChild");
 
         // The relationship is written to the assets, so it is an undoable action
-        using (fixture.ServiceProvider.Get<IUndoRedoService>().CreateTransaction())
+        using (fixture.Session.ServiceProvider.Get<IUndoRedoService>().CreateTransaction())
         {
             root.Children.Add(child);
             child.Children.Add(grandChild);

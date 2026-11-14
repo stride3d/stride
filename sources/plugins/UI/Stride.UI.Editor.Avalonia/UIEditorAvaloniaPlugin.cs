@@ -9,7 +9,8 @@ namespace Stride.UI.Editor.Avalonia.Views;
 
 /// <summary>
 /// The Avalonia editor's entry point into this package: the UI property templates (thickness, strip definition, rotation)
-/// join the property grid, and the control themes of this assembly join the application's resources.
+/// join the property grid, the control themes of this assembly join the application's resources, and the shortcuts of the UI
+/// editors join the command registry.
 /// </summary>
 public sealed class UIEditorAvaloniaPlugin : StrideAssetsAvaloniaPlugin
 {
@@ -25,5 +26,9 @@ public sealed class UIEditorAvaloniaPlugin : StrideAssetsAvaloniaPlugin
 
         RegisterResourceDictionary(context, new UIPropertyTemplates());
         RegisterControlThemes(context.Logger, new ResourceInclude(ThemesUri) { Source = ThemesUri });
+
+        // The shortcuts of the UI editors
+        foreach (var command in UIEditorCommands.Create())
+            context.Commands.Register(command);
     }
 }

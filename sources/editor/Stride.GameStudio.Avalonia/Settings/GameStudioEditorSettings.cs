@@ -37,6 +37,12 @@ internal static class GameStudioEditorSettings
         {
             DisplayName = $"{EditorSettings.Interface}/{Tr._p("Settings", "Floating panels inside the main window")}",
         };
+        // The user's shortcuts, by command identifier. Edited in the settings file for now: a display name without a category
+        // keeps it out of the dialog
+        ShortcutOverrides = new SettingsKey<Dictionary<string, string>>("Shortcuts/Overrides", EditorSettings.SettingsContainer, () => new Dictionary<string, string>())
+        {
+            DisplayName = "ShortcutOverrides",
+        };
     }
 
     /// <summary>
@@ -52,4 +58,11 @@ internal static class GameStudioEditorSettings
     /// Whether a floating panel or editor is drawn inside the main window rather than in a window of its own.
     /// </summary>
     public static SettingsKey<bool> FloatingWindowsInsideMainWindow { get; }
+
+    /// <summary>
+    /// The shortcuts the user gave to commands, or took from them: a command identifier ("Stride.File.Save") to a shortcut
+    /// ("Ctrl+Alt+S"), or to "None" (or nothing) for none. They come before the default shortcuts of the editor and of the
+    /// plugins (<see cref="Core.Assets.Editor.Commands.CommandGestureBindings"/>); a command that is not loaded is skipped.
+    /// </summary>
+    public static SettingsKey<Dictionary<string, string>> ShortcutOverrides { get; }
 }

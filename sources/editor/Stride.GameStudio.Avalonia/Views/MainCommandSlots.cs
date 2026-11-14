@@ -3,11 +3,13 @@
 
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using Stride.Core.Assets.Editor.Avalonia.Commands;
 using Stride.Core.Assets.Editor.Commands;
 using Stride.Core.Assets.Editor.Services;
@@ -15,6 +17,9 @@ using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Avalonia.Commands;
 using Stride.Core;
+using Stride.Core.Settings;
+using Stride.GameStudio.Avalonia.Commands;
+using Stride.GameStudio.Avalonia.Settings;
 using Stride.GameStudio.Avalonia.ViewModels;
 
 namespace Stride.GameStudio.Avalonia.Views;
@@ -29,21 +34,36 @@ internal sealed class MainCommandSlots : IDisposable
 {
     private static readonly Logger Log = GlobalLogger.GetLogger("Commands");
 
+    // A menu item whose header is the title of its command, so that the next update gives it the title again
+    private static readonly AttachedProperty<bool> HeaderFromCommandProperty =
+        AvaloniaProperty.RegisterAttached<MenuItem, bool>("HeaderFromCommand", typeof(MainCommandSlots));
+
     private readonly MainView view;
     private readonly MainViewModel viewModel;
     private readonly EditorPluginHost host;
     private readonly (MenuItem Menu, string Location)[] menus;
     private readonly List<Control> toolbarItems = [];
     private readonly Dictionary<ToolbarWidgetDescriptor, (IDestroyable ViewModel, Control? View)> widgets = [];
-    private IReadOnlyList<(KeyGesture Gesture, DescriptorCommand Command)> shortcuts = [];
+    // The commands that work without a session, which the window binds itself while none is open
+    private readonly IReadOnlyList<(CommandDescriptor Descriptor, ICommand Command)> withoutSession;
+    private readonly IReadOnlyList<CommandDescriptor> sessionCommands;
+    private IReadOnlyList<BoundShortcut> shortcuts = [];
+    // The shortcuts the menu items show: without a session, also those of the commands that wait for one
+    private IReadOnlyDictionary<string, KeyGesture> shownGestures = new Dictionary<string, KeyGesture>();
+    // The control a key was pressed on, while its shortcut runs
+    private object? keySource;
     private bool updatePending;
     private bool disposed;
+    private bool followsShortcutOverrides;
 
     public MainCommandSlots(MainView view, MainViewModel viewModel, EditorPluginHost host)
     {
         this.view = view;
         this.viewModel = viewModel;
         this.host = host;
+        withoutSession = GameStudioCommands.CreateWithoutSession(viewModel);
+        // The plugin host registers the editor's commands with the session: until then, the menus show them from these
+        sessionCommands = GameStudioCommands.Create();
         menus =
         [
             (view.FileMenu, CommandLocations.MainMenuFile),
@@ -59,6 +79,11 @@ internal sealed class MainCommandSlots : IDisposable
         host.ToolbarWidgets.CollectionChanged += OnContributionsChanged;
         host.PluginStatusChanged += OnPluginStatusChanged;
         viewModel.PropertyChanged += OnViewModelPropertyChanged;
+        // The settings outlive the window: they are followed while the view is shown only, so that a closed window is collected
+        view.AttachedToVisualTree += OnViewAttached;
+        view.DetachedFromVisualTree += OnViewDetached;
+        if (TopLevel.GetTopLevel(view) is not null)
+            FollowShortcutOverrides(true);
         // The buttons of the toolbar ask again whether their command can run after each click and key
         view.AddHandler(InputElement.PointerReleasedEvent, OnInput, RoutingStrategies.Bubble, handledEventsToo: true);
         view.AddHandler(InputElement.KeyUpEvent, OnInput, RoutingStrategies.Bubble, handledEventsToo: true);
@@ -66,9 +91,10 @@ internal sealed class MainCommandSlots : IDisposable
     }
 
     /// <summary>
-    /// The shortcuts bound to commands now.
+    /// The shortcuts bound to commands now: those of the registry while a session is open, else those of the commands that
+    /// work without a session (<see cref="GameStudioCommands.CreateWithoutSession"/>).
     /// </summary>
-    public IReadOnlyList<(KeyGesture Gesture, DescriptorCommand Command)> Shortcuts => shortcuts;
+    public IReadOnlyList<BoundShortcut> Shortcuts => shortcuts;
 
     /// <summary>
     /// The widgets shown on the toolbar now, with their view models.
@@ -77,30 +103,56 @@ internal sealed class MainCommandSlots : IDisposable
 
     /// <summary>
     /// Runs the command whose shortcut the key is, if it can run. Called by the main window and the floating windows after
-    /// the focused control, so that a text box keeps the keys it uses.
+    /// the focused control, so that a text box keeps the keys it uses. A shortcut of the editor that has the focus
+    /// (<see cref="CommandDescriptor.GestureScope"/>) goes before the main window's.
     /// </summary>
     /// <returns>True if the key is the shortcut of a command, which then ran.</returns>
     public bool TryHandleKey(KeyEventArgs e)
     {
         if (e.Handled)
             return false;
-        foreach (var (gesture, command) in shortcuts)
+        var editor = CommandSlot.FindEditor(e.Source);
+        var match = shortcuts.FirstOrDefault(x => x.Descriptor.GestureScope is { } scope && editor is not null && scope.IsInstanceOfType(editor) && x.Gesture.Matches(e))
+            ?? shortcuts.FirstOrDefault(x => x.Descriptor.GestureScope is null && x.Gesture.Matches(e));
+        if (match?.Command is not { } command)
+            return false;
+        // A key that types text (an editor's F, for instance) stays with a text box
+        if (e.Source is TextBox && IsTextKey(match.Gesture))
+            return false;
+
+        // The command acts where the key was pressed (the Edit commands, on that window's focused control)
+        keySource = e.Source;
+        try
         {
-            if (!gesture.Matches(e))
-                continue;
             if (!command.CanExecute(null))
                 return false;
             command.Execute(null);
-            e.Handled = true;
-            return true;
         }
-        return false;
+        finally
+        {
+            keySource = null;
+        }
+        e.Handled = true;
+        return true;
+    }
+
+    // A shortcut with no Ctrl, Alt or Meta on a key that types a character
+    private static bool IsTextKey(KeyGesture gesture)
+    {
+        if ((gesture.KeyModifiers & (KeyModifiers.Control | KeyModifiers.Alt | KeyModifiers.Meta)) != 0)
+            return false;
+        return gesture.Key is >= Key.A and <= Key.Z or >= Key.D0 and <= Key.D9 or >= Key.NumPad0 and <= Key.NumPad9 or Key.Space
+            || gesture.Key.ToString().StartsWith("Oem", StringComparison.Ordinal);
     }
 
     /// <summary>
     /// Fills the slot of the View menu again, after the view rebuilt the menu's own items.
     /// </summary>
-    public void UpdateViewMenu() => FillMenu(view.ViewMenu, CommandLocations.MainMenuView);
+    public void UpdateViewMenu()
+    {
+        FillMenu(view.ViewMenu, CommandLocations.MainMenuView);
+        UpdateCommandItems(view.ViewMenu, CommandLocations.MainMenuView);
+    }
 
     /// <summary>
     /// Fills every slot again from the host now.
@@ -115,6 +167,8 @@ internal sealed class MainCommandSlots : IDisposable
         UpdateShortcuts();
         foreach (var (menu, location) in menus)
             FillMenu(menu, location);
+        // The items of every menu and the buttons of the toolbar
+        UpdateCommandItems();
         UpdateToolbar();
     }
 
@@ -133,30 +187,36 @@ internal sealed class MainCommandSlots : IDisposable
         host.ToolbarWidgets.CollectionChanged -= OnContributionsChanged;
         host.PluginStatusChanged -= OnPluginStatusChanged;
         viewModel.PropertyChanged -= OnViewModelPropertyChanged;
+        view.AttachedToVisualTree -= OnViewAttached;
+        view.DetachedFromVisualTree -= OnViewDetached;
+        FollowShortcutOverrides(false);
+        foreach (var reference in FindCommandItems().Select(x => x.Reference))
+            reference.Target = null;
         view.RemoveHandler(InputElement.PointerReleasedEvent, OnInput);
         view.RemoveHandler(InputElement.KeyUpEvent, OnInput);
         ClearToolbar();
         shortcuts = [];
+        shownGestures = new Dictionary<string, KeyGesture>();
         if (CommandSlot.ShortcutOf == ShortcutOf)
             CommandSlot.ShortcutOf = null;
     }
 
-    private KeyGesture? ShortcutOf(CommandDescriptor descriptor)
-    {
-        foreach (var (gesture, command) in shortcuts)
-        {
-            if (command.Descriptor == descriptor)
-                return gesture;
-        }
-        return null;
-    }
+    private KeyGesture? ShortcutOf(CommandDescriptor descriptor) => shortcuts.FirstOrDefault(x => x.Descriptor == descriptor)?.Gesture;
+
+    /// <summary>
+    /// The shortcut bound now to the command with this identifier, or null.
+    /// </summary>
+    public KeyGesture? ShortcutOf(string id) => shortcuts.FirstOrDefault(x => x.Descriptor.Id == id)?.Gesture;
 
     // Vertical, as the other separators of the toolbars
     private static Separator CreateToolbarSeparator() => new() { Width = 1, Height = 20, Margin = new Thickness(2, 0) };
 
     private CommandContext? CreateContext(string location)
     {
-        return viewModel.Session is { } session ? new CommandContext { Session = session, Location = location } : null;
+        if (viewModel.Session is not { } session)
+            return null;
+        var source = location == CommandLocations.Shortcut ? keySource : null;
+        return new CommandContext { Session = session, Location = location, Source = source, Editor = CommandSlot.FindEditor(source) };
     }
 
     private void FillMenu(MenuItem menu, string location)
@@ -265,29 +325,178 @@ internal sealed class MainCommandSlots : IDisposable
 
     private void UpdateShortcuts()
     {
+        var overrides = GameStudioEditorSettings.ShortcutOverrides.GetValue();
+        var list = new List<BoundShortcut>();
         if (viewModel.Session is null)
         {
-            shortcuts = [];
-            return;
+            // The commands that work without a session, with the user's shortcuts
+            var bindings = CommandGestureBindings.Resolve(withoutSession.Select(x => x.Descriptor), _ => true, overrides);
+            foreach (var (gesture, descriptor) in bindings.Bindings)
+            {
+                if (ToKeyGesture(gesture, descriptor) is { } keyGesture)
+                    list.Add(new BoundShortcut(keyGesture, descriptor, withoutSession.First(x => x.Descriptor == descriptor).Command));
+            }
         }
-        var bindings = host.ResolveCommandGestures(view.GetReservedGestures());
-        var list = new List<(KeyGesture, DescriptorCommand)>();
-        foreach (var (gesture, descriptor) in bindings.Bindings)
+        else
         {
-            KeyGesture keyGesture;
-            try
+            // The user's shortcuts first. The editor's own commands (the main menu, the window's shortcuts) are in the registry:
+            // no shortcut is reserved
+            var bindings = host.ResolveCommandGestures(overrides);
+            foreach (var (gesture, descriptor) in bindings.Bindings)
             {
-                keyGesture = KeyGesture.Parse(gesture.ToString());
+                if (ToKeyGesture(gesture, descriptor) is { } keyGesture)
+                    list.Add(new BoundShortcut(keyGesture, descriptor, new DescriptorCommand(host, descriptor, () => CreateContext(CommandLocations.Shortcut))));
             }
-            catch (Exception e) when (e is ArgumentException or FormatException)
-            {
-                Log.Warning($"The shortcut [{gesture}] of the command [{descriptor.Id}] is not bound: this editor does not know its key.");
-                continue;
-            }
-            list.Add((keyGesture, new DescriptorCommand(host, descriptor, () => CreateContext(CommandLocations.Shortcut))));
         }
+        var shown = new Dictionary<string, KeyGesture>();
+        if (viewModel.Session is null)
+        {
+            // The menu items of the commands that wait for a session show the shortcut they will have
+            foreach (var (gesture, descriptor) in CommandGestureBindings.Resolve(sessionCommands, _ => true, overrides).Bindings)
+            {
+                if (ToKeyGesture(gesture, descriptor) is { } keyGesture)
+                    shown.TryAdd(descriptor.Id, keyGesture);
+            }
+        }
+        foreach (var shortcut in list)
+            shown[shortcut.Descriptor.Id] = shortcut.Gesture;
         shortcuts = list;
+        shownGestures = shown;
         CommandSlot.ShortcutOf = ShortcutOf;
+    }
+
+    /// <summary>
+    /// The commands the command palette lists now, each with its title, its shortcut and its state, and a way to run it through
+    /// the guard in the palette's context (<see cref="CommandContext.ForPalette"/>, with <paramref name="source"/>); without a
+    /// session, the commands that work without one.
+    /// </summary>
+    /// <param name="source">The element the palette was opened from: the control that had the focus, in the main window or a
+    /// floating window, so that the Edit commands act there.</param>
+    public IReadOnlyList<CommandPaletteItem> GetPaletteItems(object? source)
+    {
+        if (disposed)
+            return [];
+        if (viewModel.Session is not { } session)
+        {
+            return [.. withoutSession.Where(x => x.Descriptor.ShowInPalette).Select(x =>
+                new CommandPaletteItem(x.Descriptor, x.Descriptor.Title(), ShortcutOf(x.Descriptor.Id)?.ToString("p", null), x.Command.CanExecute(null), null, () =>
+                {
+                    if (x.Command.CanExecute(null))
+                        x.Command.Execute(null);
+                    return Task.CompletedTask;
+                }))];
+        }
+        var context = CommandContext.ForPalette(session, null, source, CommandSlot.FindEditor(source));
+        var items = new List<CommandPaletteItem>();
+        foreach (var descriptor in host.Commands.Items.Where(x => x.ShowInPalette && host.IsCommandAvailable(x)).ToList())
+        {
+            var title = host.GetCommandTitle(descriptor, context);
+            var isEnabled = host.CanExecuteCommand(descriptor, context);
+            var isChecked = host.IsCommandChecked(descriptor, context);
+            // A command turned off by its title or its state in this context is not listed
+            if (!host.IsCommandAvailable(descriptor))
+                continue;
+            items.Add(new CommandPaletteItem(descriptor, title, ShortcutOf(descriptor.Id)?.ToString("p", null), isEnabled, isChecked, () => host.ExecuteCommandAsync(descriptor, context)));
+        }
+        return items;
+    }
+
+    private static KeyGesture? ToKeyGesture(CommandGesture gesture, CommandDescriptor descriptor)
+    {
+        try
+        {
+            return KeyGesture.Parse(gesture.ToString());
+        }
+        catch (Exception e) when (e is ArgumentException or FormatException)
+        {
+            Log.Warning($"The shortcut [{gesture}] of the command [{descriptor.Id}] is not bound: this editor does not know its key.");
+            return null;
+        }
+    }
+
+    // The items of the menus and the buttons of the toolbar that bind a command by its identifier ({cmd:Command Stride.File.Save})
+    private IEnumerable<(Control Item, CommandReference Reference, string Location)> FindCommandItems()
+    {
+        foreach (var (menu, location) in menus)
+        {
+            foreach (var item in FindCommandItems(menu, location))
+                yield return item;
+        }
+        foreach (var button in view.MainToolBar.Items.OfType<Button>())
+        {
+            if (button.Command is CommandReference reference)
+                yield return (button, reference, CommandLocations.MainToolbar);
+        }
+    }
+
+    private static IEnumerable<(Control Item, CommandReference Reference, string Location)> FindCommandItems(MenuItem menu, string location)
+    {
+        foreach (var item in menu.Items.OfType<MenuItem>())
+        {
+            if (item.Command is CommandReference reference)
+                yield return (item, reference, location);
+            foreach (var child in FindCommandItems(item, location))
+                yield return child;
+        }
+    }
+
+    /// <summary>
+    /// Gives the items of a menu (or, with no menu, of every menu and the toolbar) that bind a command by its identifier their
+    /// command, their title, their shortcut and their check.
+    /// </summary>
+    private void UpdateCommandItems(MenuItem? menu = null, string? location = null)
+    {
+        if (disposed)
+            return;
+        var items = menu is not null && location is not null ? FindCommandItems(menu, location) : FindCommandItems();
+        foreach (var (item, reference, itemLocation) in items.ToList())
+        {
+            var context = CreateContext(itemLocation);
+            CommandDescriptor? descriptor;
+            ICommand? target;
+            if (context is not null)
+            {
+                descriptor = host.Commands.Items.FirstOrDefault(x => x.Id == reference.Id && host.IsCommandAvailable(x));
+                target = descriptor is null ? null
+                    : reference.Target is FollowingCommand { Command: DescriptorCommand current } existing && current.Descriptor == descriptor ? existing
+                    : new FollowingCommand(new DescriptorCommand(host, descriptor, () => CreateContext(itemLocation)), GameStudioCommands.StateSource(viewModel, reference.Id));
+            }
+            else
+            {
+                // Without a session: the commands that work without one, the others disabled with their title and shortcut
+                var entry = withoutSession.FirstOrDefault(x => x.Descriptor.Id == reference.Id);
+                descriptor = entry.Descriptor ?? sessionCommands.FirstOrDefault(x => x.Id == reference.Id);
+                target = entry.Command;
+            }
+            reference.Target = target;
+            reference.RaiseCanExecuteChanged();
+
+            var title = descriptor is null ? null : context is not null ? host.GetCommandTitle(descriptor, context) : descriptor.Title();
+            var gesture = descriptor is null ? null : shownGestures.GetValueOrDefault(descriptor.Id);
+            switch (item)
+            {
+                case MenuItem menuItem:
+                    // The command's title, unless the item has a header of its own (for its access key)
+                    if (title is not null && (menuItem.Header is null || menuItem.GetValue(HeaderFromCommandProperty)))
+                    {
+                        menuItem.Header = title;
+                        menuItem.SetValue(HeaderFromCommandProperty, true);
+                    }
+                    menuItem.InputGesture = gesture;
+                    if (descriptor is not null && context is not null && host.IsCommandChecked(descriptor, context) is { } isChecked)
+                    {
+                        menuItem.ToggleType = MenuItemToggleType.CheckBox;
+                        menuItem.IsChecked = isChecked;
+                    }
+                    break;
+                case Button button:
+                    var tip = reference.ToolTip ?? title;
+                    if (tip is not null)
+                        // The shortcut as the menus show it
+                        ToolTip.SetTip(button, gesture is null ? tip : $"{tip} ({gesture.ToString("p", null)})");
+                    break;
+            }
+        }
     }
 
     // A menu that opens shows the titles and states of its commands now
@@ -298,7 +507,10 @@ internal sealed class MainCommandSlots : IDisposable
             foreach (var (slotMenu, location) in menus)
             {
                 if (slotMenu == menu)
+                {
                     FillMenu(menu, location);
+                    UpdateCommandItems(menu, location);
+                }
             }
         }
     }
@@ -310,6 +522,8 @@ internal sealed class MainCommandSlots : IDisposable
     {
         foreach (var button in toolbarItems.OfType<Button>())
             (button.Command as DescriptorCommand)?.RaiseCanExecuteChanged();
+        foreach (var button in view.MainToolBar.Items.OfType<Button>())
+            (button.Command as CommandReference)?.RaiseCanExecuteChanged();
     }
 
     private void OnInput(object? sender, RoutedEventArgs e) => RefreshToolbar();
@@ -317,6 +531,29 @@ internal sealed class MainCommandSlots : IDisposable
     private void OnContributionsChanged(object? sender, NotifyCollectionChangedEventArgs e) => ScheduleUpdate();
 
     private void OnPluginStatusChanged(object? sender, PluginStatusChangedEventArgs e) => ScheduleUpdate();
+
+    // The user's shortcuts changed (the Keyboard shortcuts page): the shortcuts and the menu items follow
+    private void OnShortcutOverridesValidated(object? sender, ChangesValidatedEventArgs e) => ScheduleUpdate();
+
+    private void OnViewAttached(object? sender, VisualTreeAttachmentEventArgs e)
+    {
+        FollowShortcutOverrides(true);
+        // A change made while the view was not shown
+        ScheduleUpdate();
+    }
+
+    private void OnViewDetached(object? sender, VisualTreeAttachmentEventArgs e) => FollowShortcutOverrides(false);
+
+    private void FollowShortcutOverrides(bool follow)
+    {
+        if (follow == followsShortcutOverrides)
+            return;
+        followsShortcutOverrides = follow;
+        if (follow)
+            GameStudioEditorSettings.ShortcutOverrides.ChangesValidated += OnShortcutOverridesValidated;
+        else
+            GameStudioEditorSettings.ShortcutOverrides.ChangesValidated -= OnShortcutOverridesValidated;
+    }
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
@@ -332,4 +569,44 @@ internal sealed class MainCommandSlots : IDisposable
         updatePending = true;
         Dispatcher.UIThread.Post(Update);
     }
+
+    // The command of an item bound by identifier, which also tells its item when the command it runs changes state (the
+    // build buttons enable while a build runs, with no input)
+    private sealed class FollowingCommand : ICommand
+    {
+        public FollowingCommand(DescriptorCommand command, ICommand? stateSource)
+        {
+            Command = command;
+            StateSource = stateSource;
+        }
+
+        public DescriptorCommand Command { get; }
+
+        public ICommand? StateSource { get; }
+
+        public event EventHandler? CanExecuteChanged
+        {
+            add
+            {
+                Command.CanExecuteChanged += value;
+                if (StateSource is not null)
+                    StateSource.CanExecuteChanged += value;
+            }
+            remove
+            {
+                Command.CanExecuteChanged -= value;
+                if (StateSource is not null)
+                    StateSource.CanExecuteChanged -= value;
+            }
+        }
+
+        public bool CanExecute(object? parameter) => Command.CanExecute(parameter);
+
+        public void Execute(object? parameter) => Command.Execute(parameter);
+    }
 }
+
+/// <summary>
+/// A shortcut bound to a command in the main window: its keys, the command, and what runs it.
+/// </summary>
+internal sealed record BoundShortcut(KeyGesture Gesture, CommandDescriptor Descriptor, ICommand Command);

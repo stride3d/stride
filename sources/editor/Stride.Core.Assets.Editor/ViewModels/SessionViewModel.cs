@@ -75,9 +75,13 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
     private readonly IDebugPage? quantumDebugPage;
     private readonly IDebugPage? undoRedoStackPage;
 
-    private SessionViewModel(IViewModelServiceProvider serviceProvider, PackageSession session, IMainViewModel main, ILogger logger)
+    // The scope of the session, a child of the editor's services, which the session disposes when it is destroyed
+    private readonly ViewModelServiceProvider sessionServices;
+
+    private SessionViewModel(ViewModelServiceProvider serviceProvider, PackageSession session, IMainViewModel main, ILogger logger)
         : base(serviceProvider)
     {
+        sessionServices = serviceProvider;
         this.session = session;
         Main = main;
         undoRedoService = ServiceProvider.Get<IUndoRedoService>();
@@ -756,6 +760,9 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
 
         // Last, once nothing of the session follows its packages: this stops the source tracking and its thread
         session.Dispose();
+
+        // The services of the session go with it; those of the editor stay
+        sessionServices.Dispose();
     }
 
     /// <summary>

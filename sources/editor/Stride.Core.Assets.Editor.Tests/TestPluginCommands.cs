@@ -59,7 +59,8 @@ public sealed class TestPluginCommands
 
     private static (RecordingEditorPluginHost Host, LoggerResult Log) Open(params AssetsPlugin[] plugins)
     {
-        var host = new RecordingEditorPluginHost(plugins) { PluginViewBaseType = typeof(object) };
+        // The plugins of the tests are not the editor's own
+        var host = new RecordingEditorPluginHost(plugins) { PluginViewBaseType = typeof(object), IsEditorAssembly = _ => false };
         var session = new FakeSession();
         session.ServiceProvider.RegisterService(host);
         var log = new LoggerResult();
@@ -299,7 +300,7 @@ public sealed class TestPluginCommands
         try
         {
             host.Commands.Register(builtIn);
-            var bindings = host.ResolveCommandGestures([new("Ctrl+S", "File > Save")]);
+            var bindings = host.ResolveCommandGestures(reserved: [new("Ctrl+S", "File > Save")]);
 
             Assert.Equal(
                 [("Ctrl+Shift+K", "First.Command"), ("Alt+K", "Second.Other"), ("Shift+F9", "Second.Function"), ("Ctrl+Shift+B", "Stride.Builtin")],
@@ -327,9 +328,9 @@ public sealed class TestPluginCommands
         var (host, _) = Open(plugin);
         try
         {
-            Assert.Single(host.ResolveCommandGestures([]).Bindings);
+            Assert.Single(host.ResolveCommandGestures().Bindings);
             Assert.False(host.CanExecuteCommand(command, Context()));
-            Assert.Empty(host.ResolveCommandGestures([]).Bindings);
+            Assert.Empty(host.ResolveCommandGestures().Bindings);
         }
         finally
         {
