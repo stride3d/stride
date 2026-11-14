@@ -566,7 +566,7 @@ namespace Stride.VirtualReality
                 ID3D11Resource* swapChainRenderTargetResource;
                 render_targets[swapchainPointer]->GetResource(&swapChainRenderTargetResource);
 
-                baseDevice.NativeDeviceContext.CopyResource(renderFrameResource, swapChainRenderTargetResource);
+                baseDevice.NativeDeviceContext.CopyResource(swapChainRenderTargetResource, renderFrameResource);
 #endif
 
                 // Release the swapchain image
