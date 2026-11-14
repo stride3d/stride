@@ -575,7 +575,7 @@ public class CompanionPackageTests
 
     /// <summary>
     /// One temp tree per case: the plugin packed into a feed and a consumer built against it.
-    /// Old copies of the fixed-version packages are deleted from the global packages folder first.
+    /// Old copies of the fixed-version packages are deleted from the global and the run's packages folders first.
     /// </summary>
     private sealed class Case : IDisposable
     {
@@ -599,7 +599,7 @@ public class CompanionPackageTests
             assetsDir = Path.Combine(caseDir, "PluginAssets");
             consumerDir = Path.Combine(caseDir, "consumer");
             feedDir = Path.Combine(caseDir, "feed");
-            nugetCache = Path.Combine(caseDir, "nuget");
+            nugetCache = TestEnvironment.RunPackagesFolder;
             TestEnvironment.CopyDirectory(Path.Combine(fixtures, "Plugin"), pluginDir);
             TestEnvironment.CopyDirectory(Path.Combine(fixtures, "PluginAssets"), assetsDir);
             TestEnvironment.CopyDirectory(Path.Combine(fixtures, "Consumer"), consumerDir);
@@ -609,16 +609,8 @@ public class CompanionPackageTests
 
             var globalPackages = Environment.GetEnvironmentVariable("NUGET_PACKAGES")
                 ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages");
-            foreach (var id in new[] { "strideassetplugin", "strideassetplugin.assets", "acmespinplugin", "acmespinplugin.assets" })
-            {
-                var dir = Path.Combine(globalPackages, id);
-                if (Directory.Exists(dir))
-                    Directory.Delete(dir, recursive: true);
-            }
-            // An engine companion restores there at the engine version: only that version is dropped
-            var engineCompanionDir = Path.Combine(globalPackages, "stride.bepuphysics.assets", version.ToLowerInvariant());
-            if (Directory.Exists(engineCompanionDir))
-                Directory.Delete(engineCompanionDir, recursive: true);
+            TestEnvironment.DeleteFixedVersionPackages(globalPackages, version);
+            TestEnvironment.DeleteFixedVersionPackages(nugetCache, version);
         }
 
         private const string PluginReference = """<PackageReference Include="StrideAssetPlugin" Version="1.0.0" />""";

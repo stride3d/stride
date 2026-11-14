@@ -108,7 +108,7 @@ public class AssetPluginPackagingTests : IDisposable
 
     /// <summary>
     /// Pack the plugin into an isolated feed, then build the consumer against it. Each case runs in
-    /// its own temp tree with its own NuGet cache so the fixed 1.0.0 plugin package never collides.
+    /// its own temp tree and deletes the fixed 1.0.0 plugin package from the run's packages folder first.
     /// </summary>
     private (ExecResult Result, string ConsumerDir) RunCase(bool declareAssetAssembly, bool viaProjectReference = false)
     {
@@ -121,7 +121,8 @@ public class AssetPluginPackagingTests : IDisposable
         var pluginDir = Path.Combine(caseDir, "plugin");
         var consumerDir = Path.Combine(caseDir, "consumer");
         var feedDir = Path.Combine(caseDir, "feed");
-        var nugetCache = Path.Combine(caseDir, "nuget");
+        var nugetCache = TestEnvironment.RunPackagesFolder;
+        TestEnvironment.DeleteFixedVersionPackages(nugetCache, version);
         TestEnvironment.CopyDirectory(Path.Combine(fixtures, "Plugin"), pluginDir);
         TestEnvironment.CopyDirectory(Path.Combine(fixtures, "Consumer"), consumerDir);
         Directory.CreateDirectory(feedDir);
