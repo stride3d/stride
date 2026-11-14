@@ -12,7 +12,7 @@ internal static class NewTemplateRules
         => tags.TryGetValue("type", out var type) && string.Equals(type, "item", StringComparison.OrdinalIgnoreCase);
 
     // The version to take a template from, given the one resolved before the template was known (--version, else the
-    // newest installed). Without --version, an item template follows the project it goes into.
+    // newest installed release). Without --version, an item template follows the project it goes into.
     public static PackageVersion ChooseVersion(string? versionSpec, bool isItemTemplate, PackageVersion resolved, Func<PackageVersion?> projectVersion)
         => isItemTemplate && versionSpec is null ? projectVersion() ?? resolved : resolved;
 

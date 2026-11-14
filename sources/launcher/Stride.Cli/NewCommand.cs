@@ -28,7 +28,7 @@ internal static class NewCommand
             Arity = ArgumentArity.ZeroOrMore,
             AllowMultipleArgumentsPerToken = true,
         };
-        var versionOption = new Option<string?>("--version") { Description = "Use a specific Stride version instead of the newest installed one (for an asset pack, instead of the version of the project it goes into)." };
+        var versionOption = new Option<string?>("--version") { Description = "Use a specific Stride version instead of the newest installed release (for an asset pack, instead of the version of the project it goes into)." };
         var forceOption = new Option<bool>("--force") { Description = "Create the project even if the output directory already exists and is not empty (overwrites)." };
 
         var command = new Command("new", "Create a project from an installed Stride version's templates.");
@@ -218,7 +218,7 @@ internal static class NewCommand
     }
 
     // The version + open registry + templates shared by `new <template>` and `new list`. Resolves the version
-    // (explicit --version, else the newest installed), opens the template registry behind a transient status,
+    // (explicit --version, else the newest installed release), opens the template registry behind a transient status,
     // and returns its templates. Prints the reason and returns null on failure; the caller disposes the registry.
     private static async Task<TemplateContext?> LoadTemplates(
         StrideVersionManager manager, string? versionSpec, string[]? packages, CancellationToken cancellationToken)

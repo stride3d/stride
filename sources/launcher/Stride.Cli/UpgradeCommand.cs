@@ -90,7 +90,7 @@ internal static class UpgradeCommand
                 var progress = new InstallProgressConsole();
                 try
                 {
-                    await manager.Install(target.ToString(), parseResult.GetValue(prerelease), parseResult.GetValue(nightly), progress, cancellationToken);
+                    await manager.Install(target.ToString(), parseResult.GetValue(prerelease), parseResult.GetValue(nightly), tag: null, progress, cancellationToken);
                 }
                 catch (Exception exception)
                 {
