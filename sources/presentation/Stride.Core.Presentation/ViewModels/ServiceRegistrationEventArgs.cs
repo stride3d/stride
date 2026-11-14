@@ -3,6 +3,9 @@
 
 namespace Stride.Core.Presentation.ViewModels;
 
+/// <summary>
+/// Arguments of the events raised by <see cref="IViewModelServiceProvider"/> implementations.
+/// </summary>
 public sealed class ServiceRegistrationEventArgs : EventArgs
 {
     private readonly Func<object?>? resolve;
