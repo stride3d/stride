@@ -48,7 +48,7 @@ public interface IViewModelServiceProvider : IServiceProvider
     /// <exception cref="ArgumentNullException"><c>factory</c> is null.</exception>
     /// <exception cref="InvalidOperationException">A factory is already registered for <typeparamref name="TService"/> in this provider.</exception>
     /// <exception cref="NotSupportedException">This provider has no factory registrations.</exception>
-    IDisposable Register<TService>(Func<IServiceProvider, TService> factory, ServiceLifetime lifetime = ServiceLifetime.Singleton)
+    IDisposable Register<TService>(Func<IServiceProvider, TService> factory, ViewModelServiceLifetime lifetime = ViewModelServiceLifetime.Singleton)
         where TService : class
     {
         throw new NotSupportedException("This service provider does not support factory registrations.");

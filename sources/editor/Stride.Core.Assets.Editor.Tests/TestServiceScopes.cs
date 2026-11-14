@@ -143,7 +143,7 @@ public sealed class TestServiceScopes
         using var session = new ViewModelServiceProvider(new ViewModelServiceProvider());
         var tab1 = new ViewModelServiceProvider(session);
         var tab2 = new ViewModelServiceProvider(session);
-        session.Register(sp => new Tracked { MadeWith = sp }, ServiceLifetime.PerScope);
+        session.Register(sp => new Tracked { MadeWith = sp }, ViewModelServiceLifetime.PerScope);
 
         var inTab1 = tab1.Get<Tracked>();
         var inTab2 = tab2.Get<Tracked>();
@@ -164,7 +164,7 @@ public sealed class TestServiceScopes
         Assert.True(inTab2.IsDisposed);
         // A late lookup from a disposed tab makes nothing that would never be disposed
         var made = 0;
-        session.Register(_ => { ++made; return new Asset("scoped"); }, ServiceLifetime.PerScope);
+        session.Register(_ => { ++made; return new Asset("scoped"); }, ViewModelServiceLifetime.PerScope);
         Assert.Null(tab1.TryGet<Asset>());
         Assert.Equal(0, made);
         Assert.NotNull(session.TryGet<Asset>());
@@ -240,7 +240,7 @@ public sealed class TestServiceScopes
         var owned = new Tracked();
         session.RegisterService(owned);
         session.Register(_ => new Asset("made"));
-        var made = session.Register<IDisposable>(_ => new Tracked(), ServiceLifetime.PerScope);
+        var made = session.Register<IDisposable>(_ => new Tracked(), ViewModelServiceLifetime.PerScope);
         var madeInstance = (Tracked)session.Get<IDisposable>();
         var unregistered = new List<Type>();
         session.ServiceUnregistered += (_, e) => unregistered.Add(e.ServiceType);

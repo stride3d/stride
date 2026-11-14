@@ -118,7 +118,7 @@ A scope looks up a service it doesn't have in its parent when the service is ask
 **Registering.** In `InitializeSession(ISessionPluginContext context)`:
 
 - `context.Services.Register(instance)` adds an instance. A lookup of a type gets the one instance assignable to it, and throws when two are.
-- `context.Services.Register<TService>(factory, lifetime)` adds a service made by `factory` (which gets the services of the scope it is made for) under the type `TService`: a lookup of exactly that type gets it, even when several instances would also match. With `ServiceLifetime.Singleton` (the default) it is made once for the session, the first time it is asked for. With `ServiceLifetime.PerScope`, the session and each editor's tab that asks for it get their own instance, which goes with that scope.
+- `context.Services.Register<TService>(factory, lifetime)` adds a service made by `factory` (which gets the services of the scope it is made for) under the type `TService`: a lookup of exactly that type gets it, even when several instances would also match. With `ViewModelServiceLifetime.Singleton` (the default) it is made once for the session, the first time it is asked for. With `ViewModelServiceLifetime.PerScope`, the session and each editor's tab that asks for it get their own instance, which goes with that scope.
 
 What a plugin registers goes when it leaves the session (its assembly is reloaded or unloaded, or the session closes), and the instances its factories made are disposed. Instances registered as such are not: they belong to the plugin.
 
