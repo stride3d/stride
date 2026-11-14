@@ -1,0 +1,15 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Materials
+{
+    /// <summary>
+    /// A see-through volume whose density is the same everywhere.
+    /// </summary>
+    shader MaterialSurfaceVolumeUniformDensity : IMaterialSurfacePixel, MaterialVolumeOpticalDepth
+    {
+        override void Compute()
+        {
+            streams.matVolumeDensity = 1;
+        }
+    };
+}

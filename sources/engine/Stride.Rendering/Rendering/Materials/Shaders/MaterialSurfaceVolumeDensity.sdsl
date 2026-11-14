@@ -1,0 +1,35 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Materials
+{
+    /// <summary>
+    /// Averages a see-through volume's density over its segment of the pixel's ray, from the density compute node evaluated with
+    /// streams.PositionWS at each sample; the optical depth is scaled by it.
+    /// </summary>
+    shader MaterialSurfaceVolumeDensity : IMaterialSurfacePixel, MaterialVolumeOpticalDepth
+    {
+        compose ComputeColor densityMap;
+
+        // Samples along the segment
+        static const int DensitySamples = 8;
+
+        override void Compute()
+        {
+            float4 position = streams.PositionWS;
+            float3 direction = normalize(position.xyz - Eye.xyz);
+            // The segment starts at a front face and ends at a back face (camera inside)
+            float length = ComputeVolumeOpticalDepth() / max(VolumeAbsorption, MinDepth);
+            float3 start = position.xyz - direction * (streams.IsFrontFace ? 0 : length);
+
+            float density = 0;
+            [unroll]
+            for (int i = 0; i < DensitySamples; i++)
+            {
+                streams.PositionWS = float4(start + direction * (length * (i + 0.5) / DensitySamples), 1);
+                density += densityMap.Compute().r;
+            }
+            streams.PositionWS = position;
+            streams.matVolumeDensity = density / DensitySamples;
+        }
+    };
+}
