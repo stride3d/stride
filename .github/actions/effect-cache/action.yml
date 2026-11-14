@@ -1,15 +1,15 @@
 name: Effect cache
 description: >-
-  Keeps the effect caches of the game tests (the cache folder next to each test assembly; the Android and
-  iOS drivers copy the app's cache there and back) between runs, so that the tests load their effects
-  instead of compiling them. Cache entries are keyed on the shader sources
-  and ShaderCompilerVersion, not on the compiler code: the key of this cache holds a hash of the compiler and
-  of the versions of its packages (and of the FXC of the runner when the lane uses it), so a compiler change starts from
-  an empty cache. A run restores the newest cache of the same compiler; the effects of changed shaders miss
-  and compile. Use `restore` after the checkout and `save` after the tests. Only runs outside pull requests
-  save, and only when their tests compiled something new. A shader corpus capture (STRIDE_SHADER_CORPUS_CAPTURE
-  set on the job) starts from an empty cache and saves nothing: the capture records an effect when it
-  compiles, not when it loads from the cache.
+  Keeps the effect caches of the game tests (the cache folder next to each test assembly, or the folders that
+  `path` names; the Android and iOS drivers copy the app's cache there and back) between runs, so that the
+  tests load their effects instead of compiling them. Cache entries are keyed on the shader sources and
+  ShaderCompilerVersion, not on the compiler code: the key of this cache holds a hash of the compiler and of
+  the versions of its packages (and of the FXC of the runner when the lane uses it), so a compiler change
+  starts from an empty cache. A run restores the newest cache of the same compiler; the effects of changed
+  shaders miss and compile. Use `restore` after the checkout and `save` after the tests. Only runs outside
+  pull requests save, and only when their tests compiled something new. A shader corpus capture
+  (STRIDE_SHADER_CORPUS_CAPTURE set on the job) starts from an empty cache and saves nothing: the capture
+  records an effect when it compiles, not when it loads from the cache.
 
 inputs:
   mode:
@@ -21,6 +21,9 @@ inputs:
   fxc:
     description: Whether the lane compiles with FXC (Direct3D 11), whose d3dcompiler_47.dll comes from the Windows SDK of the runner
     default: 'false'
+  path:
+    description: The cache folders, a glob without `**` (the count step runs on macOS's bash 3.2)
+    default: bin/Tests/*/*/*/cache
 
 runs:
   using: composite
@@ -82,7 +85,7 @@ runs:
       if: inputs.mode == 'restore' && env.STRIDE_EFFECT_CACHE_PREFIX != ''
       uses: actions/cache/restore@v6
       with:
-        path: bin/Tests/*/*/*/cache
+        path: ${{ inputs.path }}
         key: ${{ env.STRIDE_EFFECT_CACHE_PREFIX }}${{ github.sha }}
         restore-keys: ${{ env.STRIDE_EFFECT_CACHE_PREFIX }}
     - name: Count the effect cache files
@@ -91,7 +94,7 @@ runs:
       run: |
         # No globstar: macOS runs bash 3.2
         shopt -s nullglob
-        caches=(bin/Tests/*/*/*/cache)
+        caches=(${{ inputs.path }})
         count=0
         if [ ${#caches[@]} -gt 0 ]; then count=$(find "${caches[@]}" -type f | wc -l | tr -d ' '); fi
         if [ "${{ inputs.mode }}" = restore ]; then
@@ -105,5 +108,5 @@ runs:
       if: inputs.mode == 'save' && env.STRIDE_EFFECT_CACHE_PREFIX != '' && github.event_name != 'pull_request' && steps.count.outputs.grew == 'true'
       uses: actions/cache/save@v6
       with:
-        path: bin/Tests/*/*/*/cache
+        path: ${{ inputs.path }}
         key: ${{ env.STRIDE_EFFECT_CACHE_PREFIX }}${{ github.sha }}
