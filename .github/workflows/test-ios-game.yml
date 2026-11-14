@@ -158,9 +158,14 @@ jobs:
         run: |
           # The suites this run needs: the `projects` list if given, else the ones `test-filter` can hit,
           # else all (blank). See build/tools/Stride.TestSuites.
-          SUITES=$(dotnet run --project build/tools/Stride.TestSuites -- \
-                     --projects "${{ github.event.inputs.projects || inputs.projects }}" \
-                     --filter "${{ github.event.inputs.test-filter || inputs.test-filter }}" | tr '\n' ' ')
+          PROJECTS="${{ github.event.inputs.projects || inputs.projects }}"
+          FILTER="${{ github.event.inputs.test-filter || inputs.test-filter }}"
+          # Nothing to narrow (every PR and push run): all suites, without building the tool.
+          SUITES=
+          if [ -n "$PROJECTS$FILTER" ]; then
+            SUITES=$(dotnet run --project build/tools/Stride.TestSuites -- \
+                       --projects "$PROJECTS" --filter "$FILTER" | tr '\n' ' ')
+          fi
           echo "Suites needed: ${SUITES:-all}"
           echo "STRIDE_TEST_SUITES=$SUITES" >> "$GITHUB_ENV"
           # use-combined=true (default): Combined.csproj — the needed suites in one .app, one install, one

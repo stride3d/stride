@@ -161,10 +161,15 @@ jobs:
           mkdir -p "$GITHUB_WORKSPACE/TestResults"
           # The game test solution narrowed to the suites this run needs: the `projects` list if given,
           # else the ones `test-filter` can hit, else the whole solution. See build/tools/Stride.TestSuites.
-          TARGET=$(dotnet run --project build/tools/Stride.TestSuites -- \
-                     --projects "${{ github.event.inputs.projects || inputs.projects }}" \
-                     --filter "${{ github.event.inputs.test-filter || inputs.test-filter }}" \
-                     --slnf sources/Stride.Tests.Game.Desktop.slnf)
+          PROJECTS="${{ github.event.inputs.projects || inputs.projects }}"
+          FILTER="${{ github.event.inputs.test-filter || inputs.test-filter }}"
+          # Nothing to narrow (every PR and push run): the whole solution, without building the tool.
+          if [ -z "$PROJECTS$FILTER" ]; then
+            TARGET=sources/Stride.Tests.Game.Desktop.slnf
+          else
+            TARGET=$(dotnet run --project build/tools/Stride.TestSuites -- \
+                       --projects "$PROJECTS" --filter "$FILTER" --slnf sources/Stride.Tests.Game.Desktop.slnf)
+          fi
           if [ -z "$TARGET" ]; then echo "::error::None of the needed suites is in sources/Stride.Tests.Game.Desktop.slnf"; exit 1; fi
           echo "Build/test target: $TARGET"
           echo "STRIDE_TEST_TARGET=$TARGET" >> "$GITHUB_ENV"
