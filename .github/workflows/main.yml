@@ -151,8 +151,8 @@ jobs:
       build-type: Debug
 
   ### Tests ###
-  # The Windows and Linux test lanes build what they test themselves, so they start with the runtime builds instead of
-  # waiting for them: a broken build fails in each of them at once. macOS, iOS and Android keep their gate (below).
+  # The test lanes build what they test themselves, so they start with the runtime builds instead of waiting for them:
+  # a broken build fails in each of them at once. Only macOS keeps its gate (below).
 
   # Game tests where the picked graphics API doesn't materially affect outcomes
   # (physics, audio, asset, engine logic). One run with D3D11 is sufficient.
@@ -371,14 +371,12 @@ jobs:
 
   # iOS Simulator tests run on macOS runners and take ~24 min, so PRs only trigger them on
   # strictly iOS-specific paths (ios-tests filter); master pushes still run them per-commit.
+  # The longest lane of a master run, so it does not wait for Linux-Runtime.
   iOS-Tests-Game:
-    needs: [changes, Linux-Runtime]
+    needs: changes
     if: |
-      !cancelled()
-      && (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))
+      (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))
       && needs.changes.outputs.ios-tests == 'true'
-      && needs['Linux-Runtime'].result != 'failure'
-      && needs['Linux-Runtime'].result != 'cancelled'
       && (github.event_name != 'workflow_dispatch' || inputs.ios)
     uses: ./.github/workflows/test-ios-game.yml
     with:
@@ -386,14 +384,12 @@ jobs:
 
   # Android tests run on Linux + KVM-accelerated x86_64 emulator. Build APKs on the host,
   # boot the emulator inside reactivecircus/android-emulator-runner, run each suite serially.
+  # The longest lane of a PR run that includes it, so it does not wait for Linux-Runtime.
   Android-Tests-Game:
-    needs: [changes, Linux-Runtime]
+    needs: changes
     if: |
-      !cancelled()
-      && (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))
+      (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))
       && needs.changes.outputs.android == 'true'
-      && needs['Linux-Runtime'].result != 'failure'
-      && needs['Linux-Runtime'].result != 'cancelled'
       && (github.event_name != 'workflow_dispatch' || inputs.android)
     uses: ./.github/workflows/test-android-game.yml
     with:
