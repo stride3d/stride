@@ -144,6 +144,16 @@ namespace Stride.Games
             deviceChangeWillBeFullScreen = null;
         }
 
+        /// <summary>
+        /// Leaves an exclusive full screen when the app loses focus, as it holds the display mode.
+        /// A borderless full screen stays, so switching apps is cheap, as with SDL.
+        /// </summary>
+        private void OnAppDeactivatedInFullScreen(object source, EventArgs e)
+        {
+            if (UsesExclusiveFullscreen)
+                OnDisableFullScreen(source, e);
+        }
+
         private bool SwapChainTakesExclusiveFullScreen
             => UsesExclusiveFullscreen && GraphicsDevice.Platform is GraphicsPlatform.Direct3D11 or GraphicsPlatform.Direct3D12;
 
@@ -153,6 +163,10 @@ namespace Stride.Games
         /// </summary>
         private void CoverDisplay(int clientWidth, int clientHeight)
         {
+            // A borderless full screen keeps the desktop resolution, even if an exclusive one changed it before
+            if (!UsesExclusiveFullscreen)
+                RestoreDisplayMode();
+
             var screen = Screen.FromControl(form);
             var displayBounds = screen.Bounds;
 
@@ -228,7 +242,7 @@ namespace Stride.Games
                 //gameForm.AppDeactivated += OnDeactivated;
                 gameForm.UserResized += OnClientSizeChanged;
                 gameForm.FullscreenToggle += OnFullscreenToggle;
-                gameForm.DisableFullScreen += OnDisableFullScreen;
+                gameForm.DisableFullScreen += OnAppDeactivatedInFullScreen;
                 gameForm.FormClosing += OnClosing;
             }
             else
