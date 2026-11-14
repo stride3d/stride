@@ -23,6 +23,9 @@ namespace Stride.Rendering.Lights
 
         protected LightRange[] lightRanges;
 
+        // Light count required by each view
+        private int[] viewLightCounts;
+
         /// <summary>
         /// List of lights selected for this rendering.
         /// </summary>
@@ -32,6 +35,9 @@ namespace Stride.Rendering.Lights
 
         public int LightCurrentCount { get; private set; }
 
+        /// <summary>
+        /// Light count of the last layout update.
+        /// </summary>
         public int LightLastCount { get; private set; }
 
         protected LightShaderGroupDynamic(RenderContext renderContext, ILightShadowMapShaderGroupData shadowGroup)
@@ -45,17 +51,20 @@ namespace Stride.Rendering.Lights
         {
             base.Reset();
             lights.Clear();
-            LightLastCount = LightCurrentCount;
             LightCurrentCount = 0;
         }
 
         public virtual void SetViews(List<RenderView> views)
         {
             Array.Resize(ref lightRanges, views.Count);
+            Array.Resize(ref viewLightCounts, views.Count);
 
             // Reset ranges
             for (var i = 0; i < views.Count; ++i)
+            {
                 lightRanges[i] = new LightRange(0, 0);
+                viewLightCounts[i] = 0;
+            }
         }
 
         /// <summary>
@@ -68,9 +77,36 @@ namespace Stride.Rendering.Lights
         public virtual int AddView(int viewIndex, RenderView renderView, int lightCount)
         {
             lightRanges[viewIndex] = new LightRange(lights.Count, lights.Count + lightCount);
-            LightCurrentCount = Math.Max(LightCurrentCount, ComputeLightCount(lightCount));
+            viewLightCounts[viewIndex] = ComputeLightCount(lightCount);
+            LightCurrentCount = Math.Max(LightCurrentCount, viewLightCounts[viewIndex]);
+            if (lightCount > 0)
+                IncludeView(viewIndex);
 
             return Math.Min(LightCurrentCount, lightCount);
+        }
+
+        /// <inheritdoc/>
+        public override int GetLightCount(ulong viewMask)
+        {
+            // Use the highest light count of the selected views (or of all views if they don't have any light)
+            var selectedLightCount = 0;
+            var frameLightCount = 0;
+            for (var viewIndex = 0; viewIndex < viewLightCounts.Length; viewIndex++)
+            {
+                var lightCount = viewLightCounts[viewIndex];
+                frameLightCount = Math.Max(frameLightCount, lightCount);
+                if ((ViewBit(viewIndex) & viewMask) != 0)
+                    selectedLightCount = Math.Max(selectedLightCount, lightCount);
+            }
+
+            return selectedLightCount > 0 ? selectedLightCount : frameLightCount;
+        }
+
+        /// <inheritdoc/>
+        public override void SelectViews(ulong viewMask)
+        {
+            base.SelectViews(viewMask);
+            LightCurrentCount = GetLightCount(viewMask);
         }
 
         /// <summary>
@@ -114,10 +150,11 @@ namespace Stride.Rendering.Lights
             base.UpdateLayout(compositionName);
             ShadowGroup?.UpdateLayout(compositionName);
 
-            if (LightLastCount != LightCurrentCount) // TODO: PERFORMANCE: Why do these two values differ all the time even if no lights have been added/removed?
+            if (LightLastCount != LightCurrentCount)
             {
                 ShadowGroup?.UpdateLightCount(LightLastCount, LightCurrentCount);
                 UpdateLightCount();
+                LightLastCount = LightCurrentCount;
             }
         }
 
