@@ -67,20 +67,16 @@ public sealed class StrideVersionManager
         return true;
     }
 
-    // Whether the newest version or the newest of a line may be this one: a nightly only when opted in, even with
-    // prereleases, and a prerelease only when opted in.
-    private static bool IsEligible(PackageVersion version, bool includePrerelease, bool includeNightly)
-        => version.IsNightly ? includeNightly : includePrerelease || string.IsNullOrEmpty(version.SpecialVersion);
-
     /// <summary>
     ///   Lists the Stride versions available from the package sources, newest first. Prereleases and nightly builds
-    ///   are excluded unless <paramref name="includePrerelease"/> and <paramref name="includeNightly"/> are set.
+    ///   are excluded unless <paramref name="includePrerelease"/> and <paramref name="includeNightly"/> are set, and
+    ///   custom builds unless <paramref name="tag"/> names theirs, which then lists only them.
     /// </summary>
-    public async Task<IReadOnlyList<PackageVersion>> GetAvailable(bool includePrerelease, bool includeNightly, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<PackageVersion>> GetAvailable(bool includePrerelease, bool includeNightly, string? tag, CancellationToken cancellationToken)
     {
         return (await store.FindSourcePackagesById(MainPackageId, cancellationToken))
             .Select(package => package.Version)
-            .Where(version => IsEligible(version, includePrerelease, includeNightly))
+            .Where(version => VersionRules.IsEligible(version, includePrerelease, includeNightly, tag))
             .OrderByDescending(version => version)
             .ToList();
     }
@@ -89,19 +85,23 @@ public sealed class StrideVersionManager
     ///   Installs a Stride version and returns it. <paramref name="versionSpec"/> may be a full version,
     ///   a major.minor line (newest patch in that line), or null for the newest version. The newest/line
     ///   resolution prefers stable releases unless <paramref name="includePrerelease"/> or
-    ///   <paramref name="includeNightly"/> is set; an explicit version is always honored. Existing versions are left
-    ///   untouched.
+    ///   <paramref name="includeNightly"/> is set or the line has none, and never takes a custom build unless <paramref name="tag"/> names
+    ///   theirs, which then takes only them; an explicit version is always honored. Existing versions are left untouched.
     /// </summary>
-    public async Task<StrideVersion> Install(string? versionSpec, bool includePrerelease, bool includeNightly, IProgress<InstallProgress>? progress, CancellationToken cancellationToken)
+    public async Task<StrideVersion> Install(string? versionSpec, bool includePrerelease, bool includeNightly, string? tag, IProgress<InstallProgress>? progress, CancellationToken cancellationToken)
     {
         var available = (await store.FindSourcePackagesById(MainPackageId, cancellationToken))
             .OrderByDescending(package => package.Version)
             .ToList();
 
-        var target = Resolve(available, versionSpec, includePrerelease, includeNightly)
-            ?? throw new InvalidOperationException(string.IsNullOrEmpty(versionSpec)
-                ? "No Stride version is available from the package source."
-                : $"No Stride version matching '{versionSpec}' is available.");
+        var target = Resolve(available, versionSpec, includePrerelease, includeNightly, tag)
+            ?? throw new InvalidOperationException((versionSpec, tag) switch
+            {
+                (null or "", null) => "No Stride version is available from the package source.",
+                (null or "", _) => $"No Stride build tagged '{tag}' is available.",
+                (_, null) => $"No Stride version matching '{versionSpec}' is available.",
+                _ => $"No Stride build tagged '{tag}' matching '{versionSpec}' is available.",
+            });
 
         var installed = await InstallWithProgress(target, progress)
             ?? throw new InvalidOperationException($"Failed to install Stride {target.Version}.");
@@ -217,28 +217,31 @@ public sealed class StrideVersionManager
     /// <summary>
     ///   Updates installed lines to their newest patch: installs the newest patch, records it as the line's
     ///   managed version, and uninstalls the previously managed one (manual installs are kept). With no line,
-    ///   every installed line is updated. Returns the versions that were updated.
+    ///   every installed line is updated. A line follows its releases (its prereleases while it has none, or while the newest
+    ///   release or prerelease installed in it is a prerelease), or with <paramref name="tag"/> the custom builds
+    ///   of that tag, and the lines of the installed custom builds follow their tag, each managed apart
+    ///   (<see cref="VersionRules.UpdateTargets"/>). Returns the versions that were updated.
     /// </summary>
-    public async Task<IReadOnlyList<StrideVersion>> Update(string? line, bool includePrerelease, bool includeNightly, IProgress<InstallProgress>? progress, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<StrideVersion>> Update(string? line, bool includePrerelease, bool includeNightly, string? tag, IProgress<InstallProgress>? progress, CancellationToken cancellationToken)
     {
         var managed = managedVersions.Load();
-        var lines = line is not null
-            ? new[] { line }
-            : GetInstalled().Select(version => version.Line).Distinct().ToArray();
+        var installed = GetInstalled().Select(version => version.Version).ToList();
+        var targets = VersionRules.UpdateTargets(installed, line, tag?.ToLowerInvariant());
 
         var available = (await store.FindSourcePackagesById(MainPackageId, cancellationToken))
             .OrderByDescending(package => package.Version)
             .ToList();
 
         var updated = new List<StrideVersion>();
-        foreach (var targetLine in lines)
+        foreach (var (targetLine, targetTag) in targets)
         {
-            var newest = available.FirstOrDefault(package => LineOf(package.Version) == targetLine
-                && IsEligible(package.Version, includePrerelease, includeNightly));
-            if (newest is null)
+            var followsPrereleases = includePrerelease || VersionRules.FollowsPrereleases(installed, targetLine);
+            if (VersionRules.ChooseNewest(available.Select(package => package.Version), targetLine, followsPrereleases, includeNightly, targetTag) is not { } newestVersion)
                 continue;
+            var newest = available.First(package => package.Version == newestVersion);
+            var key = VersionRules.ManagedKey(targetLine, targetTag);
             // A line never goes back: one on a nightly or a prerelease stays there when only an older version qualifies
-            if (managed.TryGetValue(targetLine, out var current) && PackageVersion.TryParse(current, out var currentVersion) && currentVersion > newest.Version)
+            if (managed.TryGetValue(key, out var current) && PackageVersion.TryParse(current, out var currentVersion) && currentVersion > newest.Version)
                 continue;
 
             var installedPackage = await InstallWithProgress(newest, progress);
@@ -246,14 +249,14 @@ public sealed class StrideVersionManager
                 continue;
 
             // Retire the version this line previously managed, unless it is the one just installed.
-            if (managed.TryGetValue(targetLine, out var previous) && previous != newest.Version.ToString())
+            if (managed.TryGetValue(key, out var previous) && previous != newest.Version.ToString())
             {
                 var previousPackage = store.FindLocalPackage(MainPackageId, new PackageVersion(previous));
                 if (previousPackage is not null)
                     await store.UninstallPackage(previousPackage, progress: null);
             }
 
-            managed[targetLine] = newest.Version.ToString();
+            managed[key] = newest.Version.ToString();
             updated.Add(ToStrideVersion(installedPackage.Version));
         }
 
@@ -261,10 +264,16 @@ public sealed class StrideVersionManager
         return updated;
     }
 
-    private static string LineOf(PackageVersion version) => $"{version.Version.Major}.{version.Version.Minor}";
-
-    /// <summary>The newest installed version, or null if none is installed.</summary>
-    public StrideVersion? GetDefault() => GetInstalled().FirstOrDefault();
+    /// <summary>
+    ///   The version used when nothing names one: the newest installed release, as install, update and upgrade never
+    ///   move to a prerelease, a nightly or a custom build by themselves; else the newest installed version (a
+    ///   developer with only their local builds). Null if none is installed.
+    /// </summary>
+    public StrideVersion? GetDefault()
+    {
+        var installed = GetInstalled();
+        return installed.FirstOrDefault(version => string.IsNullOrEmpty(version.Version.SpecialVersion)) ?? installed.FirstOrDefault();
+    }
 
     // In-place asset upgrade is driven by the asset compiler's 'upgrade' verb, which only exists from 4.4.0.
     private static readonly Version UpgradeFloor = new(4, 4, 0);
@@ -274,16 +283,17 @@ public sealed class StrideVersionManager
 
     /// <summary>
     ///   The newest installed version that supports in-place upgrade (4.4.0+), preferring stable releases
-    ///   unless <paramref name="includePrerelease"/> or <paramref name="includeNightly"/> is set; null if none qualifies.
+    ///   unless <paramref name="includePrerelease"/> or <paramref name="includeNightly"/> is set, never a custom build;
+    ///   null if none qualifies.
     /// </summary>
     public StrideVersion? GetNewestUpgradeTarget(bool includePrerelease, bool includeNightly)
         => GetInstalled().FirstOrDefault(version =>
             SupportsUpgrade(version.Version)
-            && IsEligible(version.Version, includePrerelease, includeNightly));
+            && VersionRules.IsEligible(version.Version, includePrerelease, includeNightly));
 
     /// <summary>
     ///   Resolves the Stride version to use: <paramref name="explicitVersion"/> if given, otherwise the
-    ///   version pinned by a project under <paramref name="workingDirectory"/>, otherwise the newest installed.
+    ///   version pinned by a project under <paramref name="workingDirectory"/>, otherwise <see cref="GetDefault"/>.
     /// </summary>
     public PackageVersion? ResolveVersion(string? explicitVersion, string workingDirectory)
     {
@@ -292,7 +302,7 @@ public sealed class StrideVersionManager
 
         var projectFiles = GetProjectFiles(workingDirectory);
         if (projectFiles.Count == 0)
-            return GetDefault()?.Version;  // not inside a project: use the newest installed version
+            return GetDefault()?.Version;  // not inside a project: use the newest installed release
 
         return ReadProjectVersion(projectFiles)
             ?? throw new InvalidOperationException(
@@ -729,17 +739,21 @@ public sealed class StrideVersionManager
         => new(version, GetInstalledEditors(version));
 
     // available is newest-first. A "major.minor" spec resolves to the newest patch in that line.
-    private static NugetServerPackage? Resolve(IReadOnlyList<NugetServerPackage> available, string? versionSpec, bool includePrerelease, bool includeNightly)
+    private static NugetServerPackage? Resolve(IReadOnlyList<NugetServerPackage> available, string? versionSpec, bool includePrerelease, bool includeNightly, string? tag)
     {
-        // Newest/line resolution skips prereleases and nightlies unless opted in; an explicit version is always honored.
-        bool Eligible(NugetServerPackage package) => IsEligible(package.Version, includePrerelease, includeNightly);
+        // Newest/line resolution skips prereleases and nightlies unless opted in, or the line has nothing else, and custom
+        // builds unless their tag is given (VersionRules.ChooseNewest); an explicit version is always honored.
+        NugetServerPackage? Newest(string? line)
+            => VersionRules.ChooseNewest(available.Select(package => package.Version), line, includePrerelease, includeNightly, tag) is { } version
+                ? available.First(package => package.Version == version)
+                : null;
 
         if (string.IsNullOrEmpty(versionSpec))
-            return available.FirstOrDefault(Eligible);
+            return Newest(null);
 
         var parts = versionSpec.Split('.');
         if (parts.Length == 2 && int.TryParse(parts[0], out var major) && int.TryParse(parts[1], out var minor))
-            return available.FirstOrDefault(package => package.Version.Version.Major == major && package.Version.Version.Minor == minor && Eligible(package));
+            return Newest($"{major}.{minor}");
 
         var target = new PackageVersion(versionSpec);
         return available.FirstOrDefault(package => package.Version.Equals(target));
