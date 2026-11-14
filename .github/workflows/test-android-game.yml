@@ -106,11 +106,6 @@ jobs:
           ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || (inputs.commit-sha != '' && inputs.commit-sha) || github.ref }}
           exclude: samples
 
-      - name: Install Android Workload
-        uses: ./.github/actions/stride-workload
-        with:
-          workloads: android
-
       - name: Setup Android SDK
         # NDK: not installed/pinned — the runner image preinstalls NDKs and each project's
         # Android workload targets resolve _AndroidNdkDirectory locally (Stride.Build.Sdk
@@ -120,46 +115,40 @@ jobs:
         with:
           cmdline-tools-version: 12266719
           accept-android-sdk-licenses: true
-          packages: platform-tools build-tools;36.0.0 platforms;android-34 system-images;android-34;google_apis;x86_64
+          # The emulator's system image comes in the setup step below, side by side with the rest.
+          packages: platform-tools build-tools;36.0.0 platforms;android-34
 
-      - name: Install Linux host runtime deps (for asset compilation)
+      # Independent setup, side by side: each part logs to its own file, shown in a group once all have ended.
+      - name: Setup (apt, disk, emulator image, workload + Lavapipe)
         run: |
+          log=$RUNNER_TEMP/setup; mkdir -p $log
           # Asset compilation runs on the Linux host with Vulkan via Lavapipe. Mirrors the
           # set used by test-linux-game.yml.
-          sudo apt-get update
-          sudo apt-get install -y libvulkan1 libvulkan-dev xvfb lld vulkan-validationlayers libva2 libva-drm2 libva-x11-2
+          { sudo apt-get update &&
+            sudo apt-get install -y libvulkan1 libvulkan-dev xvfb lld vulkan-validationlayers libva2 libva-drm2 libva-x11-2
+          } > $log/apt.log 2>&1 & apt=$!
+          # The combined APK build embeds compiled assets for all suites and dies on the
+          # runner's stock ~20 GB free. Drop preinstalled trees this job never touches (Swift, CodeQL,
+          # Haskell, Docker images; swap as free-disk-space did). Keep dotnet, the Android SDK/NDK and pwsh.
+          # Best effort, as in free-disk-space: a removal that fails does not fail the job.
+          { df -h /
+            sudo rm -rf /usr/share/swift /opt/hostedtoolcache/CodeQL /opt/ghc /usr/local/.ghcup || true
+            sudo docker image prune --all --force || true
+            sudo swapoff -a || true; sudo rm -f /mnt/swapfile || true
+            df -h /
+          } > $log/disk.log 2>&1 & disk=$!
+          sdkmanager "system-images;android-34;google_apis;x86_64" > $log/emulator-image.log 2>&1 & image=$!
+          # The restore waits for the workload install: it must not evaluate projects while the workloads change.
+          { dotnet workload install android &&
+            bash tests/infra/android/register-lavapipe-icd.sh
+          } > $log/workload-lavapipe.log 2>&1 & lavapipe=$!
 
-      - name: Start virtual display (asset compiler Vulkan)
-        run: |
-          Xvfb :99 -screen 0 1920x1080x24 &
-          echo "DISPLAY=:99" >> $GITHUB_ENV
-
-      - name: Register Lavapipe ICD
-        run: |
-          # Use the no-dma_buf Lavapipe variant (runtimes/linux-x64-nodmabuf/native/): gfxstream
-          # aborts headless on an ICD advertising VK_EXT_external_memory_dma_buf. AssetCompiler
-          # needs a Vulkan device at build time (Skybox/IBL etc.) and is indifferent to dma_buf,
-          # so the same ICD serves both; it then drives the emulator's Vulkan path via -gpu host
-          # -feature ForceGpuHost (gfxstream forwards Vulkan to the host loader, honouring
-          # VK_DRIVER_FILES).
-          dotnet restore sources/Stride.Tests.Game.Runtime.slnf \
-            -p:StridePlatforms=Linux \
-            -p:StrideGraphicsApis=Vulkan
-          LIB=$(find ~/.nuget/packages/stride.dependencies.lavapipe -path "*/runtimes/linux-x64-nodmabuf/native/libvulkan_lvp.so" | head -1)
-          if [ -z "$LIB" ]; then
-            echo "::error::Lavapipe libvulkan_lvp.so (no-dma_buf variant) not found in NuGet cache"
-            exit 1
-          fi
-          LIB_ABS=$(readlink -f "$LIB")
-          ICD_JSON="$PWD/lvp_icd.json"
-          echo "{\"file_format_version\":\"1.0.0\",\"ICD\":{\"library_path\":\"$LIB_ABS\",\"api_version\":\"1.3.0\"}}" > "$ICD_JSON"
-          echo "VK_DRIVER_FILES=$ICD_JSON" >> $GITHUB_ENV
-
-      - name: Build Android emulator helper Vulkan layer
-        # Stamps the host OS into the device name so gold images bucket by emulator host
-        # (Lavapipe renders slightly differently per host RID, and the guest can't otherwise
-        # tell which host it's on).
-        run: pwsh tests/infra/android/stride_android_emu_helper_layer/build-and-install.ps1
+          status=0
+          for part in apt disk image lavapipe; do
+            wait ${!part} || { echo "::error::Setup part '$part' failed"; status=1; }
+          done
+          for f in $log/*.log; do echo "::group::$(basename $f .log)"; cat $f; echo "::endgroup::"; done
+          exit $status
 
       - name: Resolve build target / suite
         run: |
@@ -205,23 +194,16 @@ jobs:
             } >> "$GITHUB_ENV"
           fi
 
-      - name: Reclaim disk before build
-        # The combined APK build embeds compiled assets for all suites and dies on the
-        # runner's stock ~20 GB free. Drop preinstalled trees this job never touches.
-        # Keep dotnet (drives the workload), the Android SDK/NDK, and pwsh (helper layer).
-        # large-packages stays off (slow apt removals); swift/CodeQL have no action toggle.
+      - name: Start virtual display (asset compiler Vulkan)
         run: |
-          df -h /
-          sudo rm -rf /usr/share/swift /opt/hostedtoolcache/CodeQL
-      - name: Free disk space
-        uses: jlumbroso/free-disk-space@v1.3.1
-        with:
-          android: false
-          dotnet: false
-          tool-cache: false
-          large-packages: false
-          haskell: true
-          docker-images: true
+          Xvfb :99 -screen 0 1920x1080x24 &
+          echo "DISPLAY=:99" >> $GITHUB_ENV
+
+      - name: Build Android emulator helper Vulkan layer
+        # Stamps the host OS into the device name so gold images bucket by emulator host
+        # (Lavapipe renders slightly differently per host RID, and the guest can't otherwise
+        # tell which host it's on).
+        run: pwsh tests/infra/android/stride_android_emu_helper_layer/build-and-install.ps1
 
       - name: Build Android test APK(s)
         run: |
