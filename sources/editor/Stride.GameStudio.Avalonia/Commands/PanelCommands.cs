@@ -19,9 +19,10 @@ namespace Stride.GameStudio.Avalonia.Commands;
 internal sealed class PanelCommands : IDisposable
 {
     /// <summary>
-    /// The start of the identifier of a panel's command; the panel's identifier follows.
+    /// The end of the identifier of a panel's command, after the panel's identifier: the command is in the panel's namespace
+    /// (<c>Stride.AssetView.Toggle</c>, <c>MyPlugin.Library.Toggle</c>).
     /// </summary>
-    public const string IdPrefix = "Stride.View.Panel.";
+    public const string IdSuffix = ".Toggle";
 
     private readonly EditorPluginHost host;
     private readonly IPanelService panels;
@@ -39,7 +40,7 @@ internal sealed class PanelCommands : IDisposable
     /// <summary>
     /// The identifier of the command that shows or hides a panel.
     /// </summary>
-    public static string IdOf(string panelId) => IdPrefix + panelId;
+    public static string IdOf(string panelId) => panelId + IdSuffix;
 
     public void Dispose()
     {
