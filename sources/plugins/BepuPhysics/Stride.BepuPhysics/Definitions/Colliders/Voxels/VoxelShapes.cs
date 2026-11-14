@@ -647,7 +647,6 @@ internal unsafe struct VoxelTriangleShape<TSource> : IHomogeneousCompoundShape<T
         return Triangle.RayTest(triangle.A, triangle.B, triangle.C, origin, direction, out t, out normal);
     }
 
-
     public void ComputeBounds(Quaternion orientation, out Vector3 min, out Vector3 max)
         => VoxelShapeHelpers.ComputeBounds(ref this, orientation, out min, out max);
 
