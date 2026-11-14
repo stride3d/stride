@@ -55,8 +55,8 @@
     </StrideNativeLib>
   </ItemGroup>
   <ItemGroup>
-    <None Include="build\**\*.targets" PackagePath="build\" Pack="true" />
-    <None Include="build\**\*.targets" PackagePath="buildTransitive\" Pack="true" />
+    <None Include="build\**\*.targets" PackagePath="build/" Pack="true" />
+    <None Include="build\**\*.targets" PackagePath="buildTransitive/" Pack="true" />
   </ItemGroup>
   <PropertyGroup>
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_PackGeneratorAnalyzerFiles</TargetsForTfmSpecificContentInPackage>
