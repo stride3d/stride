@@ -23,14 +23,14 @@
        package versions are an import and the packed build/ assets are items, so they count already. Declared at
        evaluation, when PackageVersion still lacks the worktree suffix (a target adds it later): the suffix is read
        from the generated version file instead. -->
-  <PropertyGroup Condition="'$(StrideDevPackages)' == 'true' And Exists('$(StrideRoot)sources\shared\SharedAssemblyInfo.Generated.cs')">
-    <_StrideDevStubSuffix>$([System.Text.RegularExpressions.Regex]::Replace($([System.IO.File]::ReadAllText('$(StrideRoot)sources\shared\SharedAssemblyInfo.Generated.cs')), '(?s).*NuGetVersionSuffix = &quot;([^&quot;]*)&quot;.*', '$1'))</_StrideDevStubSuffix>
+  <PropertyGroup Condition="'$(StrideDevPackages)' == 'true' And Exists('$(StrideRoot)sources/shared/SharedAssemblyInfo.Generated.cs')">
+    <_StrideDevStubSuffix>$([System.Text.RegularExpressions.Regex]::Replace($([System.IO.File]::ReadAllText('$(StrideRoot)sources/shared/SharedAssemblyInfo.Generated.cs')), '(?s).*NuGetVersionSuffix = &quot;([^&quot;]*)&quot;.*', '$1'))</_StrideDevStubSuffix>
   </PropertyGroup>
   <!-- Only once the generated version file exists (i.e. after a first build): before that the suffix, hence the
        output name, is unknown, and a declared output that never appears would keep VS rebuilding the project. -->
-  <ItemGroup Condition="'$(_StrideDevStubProject)' == 'true' And '$(PackageId)' != '' And Exists('$(StrideRoot)sources\shared\SharedAssemblyInfo.Generated.cs')">
+  <ItemGroup Condition="'$(_StrideDevStubProject)' == 'true' And '$(PackageId)' != '' And Exists('$(StrideRoot)sources/shared/SharedAssemblyInfo.Generated.cs')">
     <UpToDateCheckOutput Include="$(LocalAppData)/stride/nugetdev/$(PackageId).$(PackageVersion)$(_StrideDevStubSuffix).nupkg" />
-    <UpToDateCheckInput Include="$(StrideRoot)build\dev-packages.cs" />
+    <UpToDateCheckInput Include="$(StrideRoot)build/dev-packages.cs" />
   </ItemGroup>
 
   <UsingTask TaskName="StrideCheckDevPackageInputs" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
@@ -64,11 +64,13 @@
            its stub stale on every build. The stub file itself does carry the package's own version. -->
       <_StrideDevPackagesStamp>$(LocalAppData)/stride/nugetdev/.devpackages-$(StrideNuGetVersion)$(StrideWorktreeSuffix)</_StrideDevPackagesStamp>
       <_StrideOwnStub>$(PackageId).$(PackageVersion).nupkg</_StrideOwnStub>
+      <!-- The separator of this system, which the manifest's full paths use -->
+      <_StrideProjectDirSlash>$([MSBuild]::EnsureTrailingSlash('$(MSBuildProjectDirectory)'))</_StrideProjectDirSlash>
     </PropertyGroup>
 
     <StrideCheckDevPackageInputs ManifestPath="$(_StrideDevPackagesStamp).inputs" StampPath="$(_StrideDevPackagesStamp)"
                                  StubsPath="$(_StrideDevPackagesStamp).stubs" OwnStub="$(_StrideOwnStub)"
-                                 FixedInputs="$(StrideRoot)build\dev-packages.cs;$(StrideRoot)sources\Directory.Packages.props;$(StrideRoot)Stride.slnx"
+                                 FixedInputs="$(StrideRoot)build/dev-packages.cs;$(StrideRoot)sources/Directory.Packages.props;$(StrideRoot)Stride.slnx"
                                  Condition="Exists('$(_StrideDevPackagesStamp)')">
       <Output TaskParameter="Changed" ItemName="_StrideStaleStubInputs" />
       <Output TaskParameter="OwnStubFresh" PropertyName="_StrideOwnStubFresh" />
@@ -76,7 +78,7 @@
     <ItemGroup>
       <!-- Case-insensitive: the manifest may carry a lowercase drive letter (paths pass through MSBuild properties). -->
       <_StrideStaleOwnInputs Include="@(_StrideStaleStubInputs)"
-                             Condition="$([System.String]::Copy('%(_StrideStaleStubInputs.FullPath)').ToUpperInvariant().StartsWith($([System.String]::Copy('$(MSBuildProjectDirectory)\').ToUpperInvariant())))" />
+                             Condition="$([System.String]::Copy('%(_StrideStaleStubInputs.FullPath)').ToUpperInvariant().StartsWith($([System.String]::Copy('$(_StrideProjectDirSlash)').ToUpperInvariant())))" />
     </ItemGroup>
     <PropertyGroup>
       <_StrideStubStale Condition="'@(_StrideStaleOwnInputs)' != '' Or '$(_StrideOwnStubFresh)' != 'true'">true</_StrideStubStale>
@@ -100,7 +102,7 @@
           DependsOnTargets="_StrideCheckDevPackages"
           Condition="'$(_StrideDevStubProject)' == 'true' And '$(StrideDevPackagesGenerating)' != 'true' And '$(DesignTimeBuild)' != 'true' And ('$(TargetFrameworks)' == '' Or '$(TargetFramework)' == '')">
     <PropertyGroup Condition="'$(_StrideStubStale)' == 'true'">
-      <_StrideAdoptPackDir>$(MSBuildProjectDirectory)\$(BaseIntermediateOutputPath)devstub\</_StrideAdoptPackDir>
+      <_StrideAdoptPackDir>$(MSBuildProjectDirectory)/$(BaseIntermediateOutputPath)devstub/</_StrideAdoptPackDir>
     </PropertyGroup>
     <Message Importance="High" Text="Dev packages: refreshing the stub of $(PackageId)" Condition="'$(_StrideStubStale)' == 'true'" />
     <!-- Pack in this MSBuild (the project and its references are already evaluated here; a child dotnet pack
@@ -113,7 +115,7 @@
              Condition="'$(_StrideStubStale)' == 'true'" />
     <!-- The script's output is normal importance: nothing more at minimal verbosity, the details from normal on.
          The root is passed explicitly (the script's fallback is the current directory). -->
-    <Exec Command="dotnet run --file &quot;$(StrideRoot)build\dev-packages.cs&quot; -- --stride-root &quot;$(StrideRoot.TrimEnd('\'))&quot; --configuration $(Configuration) --adopt &quot;$(_StrideAdoptPackDir)$(_StrideOwnStub)&quot;"
+    <Exec Command="dotnet run --file &quot;$(StrideRoot)build/dev-packages.cs&quot; -- --stride-root &quot;$(StrideRoot.TrimEnd('\').TrimEnd('/'))&quot; --configuration $(Configuration) --adopt &quot;$(_StrideAdoptPackDir)$(_StrideOwnStub)&quot;"
           WorkingDirectory="$(StrideRoot)" StandardOutputImportance="normal" StandardErrorImportance="high"
           Condition="'$(_StrideStubStale)' == 'true'" />
   </Target>
@@ -144,7 +146,7 @@
                                   Condition="'%(_StrideDevPackagesStubManifest.Identity)' != ''" />
       <!-- The bin/packages mirrors (dev-packages.cs copies stubs there so the repo
            nuget.config's stride-local mapping stays valid in dev mode). -->
-      <_StrideDevPackagesToDelete Include="$(StrideRoot)bin\packages\%(_StrideDevPackagesStubManifest.Identity)"
+      <_StrideDevPackagesToDelete Include="$(StrideRoot)bin/packages/%(_StrideDevPackagesStubManifest.Identity)"
                                   Condition="'%(_StrideDevPackagesStubManifest.Identity)' != ''" />
     </ItemGroup>
 
