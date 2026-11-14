@@ -1,0 +1,70 @@
+!GameSettingsAsset
+Id: d9ea1a7c-0b27-4911-b413-ca87187fee9a
+SerializedVersion: {Stride: 2.1.0.3}
+Tags: []
+DefaultScene: 0699583e-933b-4f01-a00c-839688a2a279:Scene
+GraphicsCompositor: b15e32e9-1be0-4898-9ab0-984738e9ef5f:GraphicsCompositor
+SplashScreenTexture: null
+SplashScreenColor: {R: 0, G: 0, B: 0, A: 255}
+Defaults:
+    - !Stride.Graphics.RenderingSettings,Stride.Graphics
+        DefaultBackBufferWidth: 1280
+        DefaultBackBufferHeight: 720
+        AdaptBackBufferToScreen: false
+        DefaultGraphicsProfile: Level_9_3
+        ColorSpace: Linear
+        DisplayOrientation: Default
+    - !Stride.Assets.EditorSettings,Stride.Assets
+        RenderingMode: HDR
+    - !Stride.Assets.Textures.TextureSettings,Stride.Assets
+        TextureQuality: Fast
+    - !Stride.Audio.AudioEngineSettings,Stride.Audio
+        HrtfSupport: false
+    - !Stride.Streaming.StreamingSettings,Stride.Engine
+        Enabled: false
+        ManagerUpdatesInterval: 0:00:00:00.0330000
+        ResourceLiveTimeout: 0:00:00:08.0000000
+    - !Stride.BepuPhysics.BepuConfiguration,Stride.BepuPhysics
+        BepuSimulations:
+            -   Enabled: true
+                ParallelUpdate: true
+                Deterministic: false
+                FixedTimeStepSeconds: 0.0166666
+                TimeScale: 1.0
+                MaxStepPerFrame: 5
+                UsePerBodyAttributes: true
+                PoseGravity: {X: 0.0, Y: -9.8, Z: 0.0}
+                PoseLinearDamping: 0.05
+                PoseAngularDamping: 0.05
+                SolverIteration: 1
+                SolverSubStep: 17
+                SoftStartDuration: 0:00:00:01.0000000
+                SoftStartSubstepFactor: 4
+            -   Enabled: true
+                ParallelUpdate: true
+                Deterministic: false
+                FixedTimeStepSeconds: 0.0166666
+                TimeScale: 1.0
+                MaxStepPerFrame: 3
+                UsePerBodyAttributes: true
+                PoseGravity: {X: 0.0, Y: -30.0, Z: 0.0}
+                PoseLinearDamping: 0.05
+                PoseAngularDamping: 0.05
+                SolverIteration: 1
+                SolverSubStep: 1
+                SoftStartDuration: 0:00:00:01.0000000
+                SoftStartSubstepFactor: 4
+            -   Enabled: true
+                ParallelUpdate: true
+                Deterministic: false
+                FixedTimeStepSeconds: 0.0166666
+                TimeScale: 1.0
+                MaxStepPerFrame: 3
+                UsePerBodyAttributes: false
+                PoseGravity: {X: 0.0, Y: -9.8, Z: 0.0}
+                PoseLinearDamping: 0.05
+                PoseAngularDamping: 0.05
+                SolverIteration: 1
+                SolverSubStep: 6
+                SoftStartDuration: 0:00:00:01.0000000
+                SoftStartSubstepFactor: 4

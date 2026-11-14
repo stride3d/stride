@@ -17,6 +17,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Stride.BepuPhysics.Soft.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\..\engine\Stride.Engine\Stride.Engine.csproj" />
     <ProjectReference Include="..\Stride.BepuPhysics\Stride.BepuPhysics.csproj" />
   </ItemGroup>

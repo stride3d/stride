@@ -24,6 +24,7 @@ public readonly record struct HitInfo(SVector3 Point, SVector3 Normal, float Dis
     public CollidableComponent Collidable { get; init; } = Collidable;
 
     /// <summary> The specific child hit if the <see cref="Collidable"/>'s <see cref="CollidableComponent.Collider"/> is a <see cref="Definitions.Colliders.CompoundCollider"/> </summary>
+    /// <remarks> For a collidable made of several bodies, the index of the body, such as the particle of a soft body </remarks>
     public int ChildIndex { get; init; } = ChildIndex;
 
     public HitInfo(NVector3 point, NVector3 normal, float distance, CollidableComponent collidable, int childIndex) : this(point.ToStride(), normal.ToStride(), distance, collidable, childIndex) { }

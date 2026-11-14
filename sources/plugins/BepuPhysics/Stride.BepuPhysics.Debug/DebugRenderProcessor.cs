@@ -28,6 +28,7 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
     private VisibilityGroup _visibilityGroup = null!;
     private BepuConfiguration? _bepuConfiguration;
     private readonly LineRenderObject _contactLines = new();
+    private readonly LineRenderObject _collidableLines = new();
     private readonly Dictionary<BepuSimulation, ContactRecorder> _contactRecorders = new();
     private readonly Dictionary<CollidableComponent, (WireFrameRenderObject[] Wireframes, object? cache)> _wireFrameRenderObject = new();
 
@@ -48,7 +49,10 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
 
                 _visible = value;
                 if (_visible)
+                {
                     _visibilityGroup.RenderObjects.Add(_contactLines);
+                    _visibilityGroup.RenderObjects.Add(_collidableLines);
+                }
                 else
                     Clear();
                 UpdateShapeTracking(proc);
@@ -134,6 +138,7 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
     {
         Clear();
         _contactLines.Dispose();
+        _collidableLines.Dispose();
     }
 
     public override void Draw(RenderContext context)
@@ -224,6 +229,16 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
         {
             StopRecordingContacts();
         }
+
+        _collidableLines.Clear();
+        if (_visible && _component is { ShowCollidableLines: true } && _sceneSystem.SceneInstance.GetProcessor<CollidableProcessor>() is { } processor)
+        {
+            for (var collidable = processor.ComponentDataEnumerator; collidable.MoveNext();)
+            {
+                if (collidable.Current.Key is IDebugLineSource source)
+                    source.AddDebugLines(_collidableLines);
+            }
+        }
     }
 
     /// <summary> Draws the feature in the main view's transparent stage, or its opaque one; never in a shadow map or G-buffer stage </summary>
@@ -309,6 +324,8 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
         StopRecordingContacts();
         _contactLines.Clear();
         _visibilityGroup?.RenderObjects.Remove(_contactLines);
+        _collidableLines.Clear();
+        _visibilityGroup?.RenderObjects.Remove(_collidableLines);
     }
 
     private void ClearShapes()

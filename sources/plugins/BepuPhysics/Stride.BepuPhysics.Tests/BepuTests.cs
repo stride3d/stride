@@ -405,6 +405,87 @@ namespace Stride.BepuPhysics.Tests
             RunGameTest(game);
         }
 
+        /// <summary> A handler may take its collidable out of the simulation, then read the contacts it was given: they keep their orientation </summary>
+        [Fact]
+        public void ContactsKeepTheirSideOnceTheirSourceIsRemovedTest()
+        {
+            var game = new GameTest();
+            var removal = new RemovesItselfThenReadsNormals();
+            game.Script.AddTask(async () =>
+            {
+                game.ScreenShotAutomationEnabled = false;
+
+                var e1 = new Entity { new BodyComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } }, ContactEventHandler = removal } };
+                var e2 = new Entity { new StaticComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider { Size = new Vector3(10, 1, 10) } } } } };
+                e1.Transform.Position.Y = 1.2f;
+
+                game.SceneSystem.SceneInstance.RootScene.Entities.AddRange(new[] { e1, e2 });
+                var simulation = e1.GetSimulation();
+                for (int i = 0; i < 60 && removal.Normals.Count == 0; i++)
+                    await simulation.AfterUpdate();
+
+                game.Exit();
+            });
+            RunGameTest(game);
+
+            // From the floor up to the box, as before the box was removed
+            Assert.NotEmpty(removal.Normals);
+            Assert.All(removal.Normals, normal => Assert.True(normal.Y > 0.9f, $"Normal {normal}"));
+        }
+
+        private class RemovesItselfThenReadsNormals : IContactHandler
+        {
+            public bool NoContactResponse => false;
+
+            public List<Vector3> Normals = new();
+
+            public void OnStartedTouching<TManifold>(Contacts<TManifold> contacts) where TManifold : unmanaged, IContactManifold<TManifold>
+            {
+                contacts.EventSource.Entity.Scene = null;
+                foreach (var contact in contacts)
+                    Normals.Add(contact.Normal);
+            }
+        }
+
+        [Fact]
+        public void OneGroupPerTouchingChildTest()
+        {
+            var game = new GameTest();
+            game.Script.AddTask(async () =>
+            {
+                game.ScreenShotAutomationEnabled = false;
+
+                var groups = new GroupCounter();
+                var e1 = new Entity { new BodyComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } }, ContactEventHandler = groups } };
+                var e2 = new Entity { new StaticComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider { Size = new Vector3(10, 1, 10) } } } } };
+                e1.Transform.Position.Y = 1.2f;
+
+                game.SceneSystem.SceneInstance.RootScene.Entities.AddRange(new[] { e1, e2 });
+                var simulation = e1.GetSimulation();
+                for (int i = 0; i < 60; i++)
+                    await simulation.AfterUpdate();
+
+                // A single box resting on another touches through one pair of children, each step reports it once
+                Assert.NotEmpty(groups.GroupsPerCall);
+                Assert.All(groups.GroupsPerCall, count => Assert.Equal(1, count));
+
+                game.Exit();
+            });
+            RunGameTest(game);
+        }
+
+        private class GroupCounter : IContactHandler
+        {
+            public bool NoContactResponse => false;
+
+            public List<int> GroupsPerCall = new();
+
+            public void OnTouching<TManifold>(Contacts<TManifold> contacts) where TManifold : unmanaged, IContactManifold<TManifold>
+            {
+                GroupsPerCall.Add(contacts.Groups.Length);
+            }
+        }
+
         private class ContactSampleForces : IContactHandler
         {
             public bool NoContactResponse => false;
@@ -500,6 +581,41 @@ namespace Stride.BepuPhysics.Tests
                 }
 
                 return hits.Span.Length;
+            }
+        }
+
+        /// <summary> A ray cast at a single collidable reports the child of its compound that was hit, whichever way the hits are collected </summary>
+        [Fact]
+        public static void ComponentRayCastsReportTheChildHitTest()
+        {
+            var game = new GameTest();
+            game.Script.AddTask(async () =>
+            {
+                game.ScreenShotAutomationEnabled = false;
+
+                var compound = new StaticComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider { PositionLocal = new Vector3(-2, 0, 0) }, new BoxCollider { PositionLocal = new Vector3(2, 0, 0) } } } };
+                game.SceneSystem.SceneInstance.RootScene.Entities.Add(new Entity { compound });
+
+                var aboveTheSecondBox = new Vector3(2, 5, 0);
+                Assert.True(compound.RayCast(aboveTheSecondBox, -Vector3.UnitY, 10, out var closest));
+                Assert.Equal(1, closest.ChildIndex);
+
+                var collection = new List<HitInfo>();
+                compound.RayCastPenetrating(aboveTheSecondBox, -Vector3.UnitY, 10, collection);
+                Assert.Equal(1, Assert.Single(collection).ChildIndex);
+
+                Assert.Equal(1, ChildHitThroughTheBuffer(compound, aboveTheSecondBox));
+
+                game.Exit();
+            });
+            RunGameTest(game);
+
+            static int ChildHitThroughTheBuffer(CollidableComponent collidable, Vector3 origin)
+            {
+                Span<HitInfoStack> buffer = stackalloc HitInfoStack[4];
+                var hits = collidable.RayCastPenetrating(origin, -Vector3.UnitY, 10, buffer);
+                Assert.Equal(1, hits.Span.Length);
+                return hits.Span[0].ChildIndex;
             }
         }
 
