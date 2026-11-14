@@ -108,8 +108,36 @@ internal static class TestEnvironment
     }
 
     /// <summary>
-    /// Deletes a case's temp tree once the case is done: each holds its own NuGet restore (well over 1 GB), so
-    /// a full run would fill a CI runner's disk. Set STRIDE_KEEP_TEST_DIRS to keep them for a look after the run.
+    /// The NuGet packages folder the plugin cases restore into, one per test run: the engine packages are extracted
+    /// once, and each case deletes the fixed-version packages first (<see cref="DeleteFixedVersionPackages"/>).
+    /// </summary>
+    public static string RunPackagesFolder { get; } = Path.Combine(CasesRoot, $"nuget-{Guid.NewGuid():N}");
+
+    /// <summary>
+    /// Deletes the packages whose content changes under the same version (the plugin fixtures at 1.0.0, the engine's Bepu
+    /// companion at <paramref name="engineVersion"/>) from <paramref name="packagesFolder"/>, so a restore extracts them again.
+    /// </summary>
+    public static void DeleteFixedVersionPackages(string packagesFolder, string engineVersion)
+    {
+        if (!Directory.Exists(packagesFolder))
+            return;
+        var dirs = Directory.EnumerateDirectories(packagesFolder, "strideassetplugin*")
+            .Concat(Directory.EnumerateDirectories(packagesFolder, "acmespinplugin*"))
+            .Append(Path.Combine(packagesFolder, "stride.bepuphysics.assets", engineVersion.ToLowerInvariant()))
+            .Where(Directory.Exists)
+            .ToList();
+        foreach (var dir in dirs)
+        {
+            // Extracted packages can hold read-only files
+            foreach (var file in Directory.EnumerateFiles(dir, "*", SearchOption.AllDirectories))
+                File.SetAttributes(file, FileAttributes.Normal);
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    /// <summary>
+    /// Deletes a temp tree (a case's, or <see cref="RunPackagesFolder"/>) once done with it: the packages folder holds well
+    /// over 1 GB. Set STRIDE_KEEP_TEST_DIRS to keep them for a look after the run.
     /// </summary>
     public static void DeleteCaseDirectory(string caseDir, ITestOutputHelper? output = null)
     {
