@@ -29,6 +29,7 @@
       <Link>GuidGenerator.cs</Link>
     </Compile>
     <Compile Include="TestAssetFileExtensionDeclarations.cs" />
+    <Compile Include="TestModelTextureImport.cs" />
     <Compile Include="TestHeightmapAssetCompatibility.cs" />
     <Compile Include="TestConvexHullMesh.cs" />
     <Compile Include="TestPluginPackageUpgrade.cs" />
