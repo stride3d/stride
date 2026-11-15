@@ -5,10 +5,11 @@
 # Drives a Stride test .app bundle on the iOS Simulator:
 #   1. (optional) boot a simulator device
 #   2. (optional) xcrun simctl install the .app
-#   3. push gold images into the app's Documents dir (simulator data is a host-visible path)
+#   3. push gold images into the app's Documents dir (simulator data is a host-visible path),
+#      and the -CacheDir effect cache into its Library/Caches
 #   4. launch the app with --xunit-command run (App.HeadlessMode path)
 #   5. wait for process exit
-#   6. copy tests/local/ (TRX + generated images) back to host
+#   6. copy tests/local/ (TRX + generated images) and the effect cache back to host
 #   7. exit non-zero if any test failed (parsed from the TRX)
 #
 # macOS-only (iOS Simulator). Requires Xcode + pwsh.
@@ -22,6 +23,7 @@ param(
     [string]$RepoRoot,                                     # Stride repo root; auto-discovered from script dir
     [string]$GoldDir,                                      # Override gold push source; defaults to <RepoRoot>/tests/baselines/<Suite>
     [string]$ResultsDir,                                   # Override result pull dest; defaults to <RepoRoot>/tests/local/<Suite>
+    [string]$CacheDir,                                     # Host copy of the app's cache (its compiled effects): copied in after the install, back after the run
     [string]$Simulator = 'booted',                         # 'booted' (use whatever is booted), a UDID, or a device-type+OS pair (e.g. 'iPhone 15')
     [int]$TimeoutSeconds = 1800,                           # max wait for tests to finish
     [string]$Filter,                                       # optional vstest --filter expr passed on to the on-device runner
@@ -167,6 +169,22 @@ foreach ($s in $innerSuites) {
     Copy-Item -Path (Join-Path $src '*') -Destination $target -Recurse -Force
 }
 
+# The app compiles the effects it doesn't find into its cache (Library/Caches). Starting it from the copy
+# of an earlier run leaves only the effects of changed shaders to compile. iOS writes in that folder too,
+# so only what Stride writes there goes back and forth: the effects (EffectCompilerCache), the shaders
+# (FileShaderCache) and the pipeline caches (GraphicsDeviceManager). ditto merges a folder that exists.
+$cacheOnDevice = Join-Path $dataContainer 'Library/Caches'
+function Copy-EffectCache([string]$From, [string]$To) {
+    New-Item -ItemType Directory -Force -Path $To | Out-Null
+    Get-ChildItem $From -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -in 'effects', 'shaders' -or $_.Name -like 'pipelines-*' } |
+        ForEach-Object { & ditto $_.FullName (Join-Path $To $_.Name) }
+}
+if ($CacheDir -and (Test-Path $CacheDir)) {
+    Write-Host "Pushing effect cache $CacheDir -> $cacheOnDevice"
+    Copy-EffectCache $CacheDir $cacheOnDevice
+}
+
 # Clear previous results so a stale TRX doesn't fool detection.
 $resultsOnDevice = Join-Path $dataContainer "Documents/tests/local"
 if (Test-Path $resultsOnDevice) { Remove-Item -Recurse -Force $resultsOnDevice }
@@ -289,6 +307,12 @@ if (Test-Path $resultsOnDevice) {
     Copy-Item -Path (Join-Path $resultsOnDevice '*') -Destination $ResultsDir -Recurse -Force
 } else {
     Write-Warning "No results dir on device — tests may not have written any TRX."
+}
+
+# The app's cache holds the pushed one, so copying it over the host copy adds what this run compiled.
+if ($CacheDir) {
+    Write-Host "Pulling effect cache $cacheOnDevice -> $CacheDir"
+    Copy-EffectCache $cacheOnDevice $CacheDir
 }
 
 # 7. Parse TRX for pass/fail
