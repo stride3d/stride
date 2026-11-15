@@ -33,7 +33,9 @@ For new features, new systems and changes to how a core system works, check:
 - Ownership and lifetime: who creates, owns and frees the data, and whether GPU and native resources follow the lifetime of the component or system that holds them.
 - Scaling: how the cost grows with the number of objects and the size of the data.
 
-Report a design problem once, at its main place or in the overview, and name the existing system or pattern the code should use. Don't propose an architecture of your own in line comments: when the whole approach looks wrong, say so in the overview and ask about it.
+Report a design problem once, at its main place or in the overview, and name the existing system or pattern the code should use.
+
+When you see a better way to design the change, or several good ones, give them in the overview as ideas, not as requests. For each one, say in a sentence or two what it is, which existing system or pattern it builds on, and what it gains or costs compared with the current design. Keep them out of line comments, and don't make the merge wait on them unless the current design has a real problem from the list above.
 
 ## Does the change fit Stride?
 
