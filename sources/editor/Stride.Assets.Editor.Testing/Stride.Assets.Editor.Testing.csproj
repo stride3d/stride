@@ -1,0 +1,26 @@
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.props" />
+
+  <!-- The test kit of Stride.Core.Assets.Editor.Testing with Stride's assets and editors: the plugin host of both Game Studios and
+       a session with Stride's default assets plugin. It doesn't depend on a test framework. -->
+  <PropertyGroup>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <Description>Test kit for the view models of Stride editor plugins, with Stride's assets and editors.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="../../shared/SharedAssemblyInfo.cs">
+      <Link>Properties/SharedAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Stride.Assets.Editor/Stride.Assets.Editor.csproj" />
+    <ProjectReference Include="../Stride.Core.Assets.Editor.Testing/Stride.Core.Assets.Editor.Testing.csproj" />
+  </ItemGroup>
+
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
+</Project>

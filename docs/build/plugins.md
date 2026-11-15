@@ -332,6 +332,7 @@ A game is normally edited with the Game Studio of its own Stride version, so its
 | `STREXP008` | Deploying games | `IGameDeployer`, `BuildAndRunViewModel.RegisterDeployer`, `IGameProjectBuild.TargetOutputs` |
 | `STREXP009` | Several views of a scene | `IEditorGameMultiViewport`, `EditorGameViewInfo`, `IEditorGameMultiViewViewModelService`, `EditorGameMultiViewService`, `EditorViewCamera`, `EditorGameViewCamera`, `EditorGameViewCameraInfo`, `EditorGameViewCameraState`, `IEditorGameViewDependent`, `EditorViewLayout`, `EditorViewLayoutViewModel`, `EditorViewPaneViewModel` and the Avalonia `EditorViewLayoutPanel` |
 | `STREXP010` | Node graph controls | The Avalonia `NodeGraphControl`, `NodeGraphNode`, `NodeGraphConnector`, `NodeGraphLinkRequest`, `NodeGraphSlotDirection` and `INodeGraphLinkResolver`, and the arguments of its events (`NodeGraphNodeMove`, `NodeGraphNodesMovedEventArgs`, `NodeGraphNodeEventArgs`) |
+| `STREXP011` | Test kit of editor plugins | The `Stride.Core.Assets.Editor.Testing` and `Stride.Assets.Editor.Testing` packages (see [Testing a plugin's view models](#testing-a-plugins-view-models)) |
 
 To use an area, opt in to its id in the `Editor` project, for the whole project:
 
@@ -361,6 +362,28 @@ Some changes need a new session (*Reload session*). The Output panel says which 
 A package from the NuGet cache never changes for its version, so it is only reloaded when another version replaces it.
 
 The open editors follow a reload, its undo and its redo: the objects of the reloaded types are replaced in their assets, and each editor game (and the asset preview) replaces the components, drops the processors and `[GameSystem(Editor = true)]` systems of the old types and creates the new ones.
+
+## Testing a plugin's view models
+
+Two packages open a session in a test, the way Game Studio opens one, without its windows: `Stride.Core.Assets.Editor.Testing` (the session and its stand-ins, for any editor layer) and `Stride.Assets.Editor.Testing` (the same with Stride's assets and editors, which most plugins want). They don't depend on a test framework, and Stride's own editor tests use them. They are experimental (`STREXP011`).
+
+```csharp
+await using var session = await StrideEditorTestSession.OpenAsync(new StrideEditorTestSessionOptions
+{
+    Plugins = [new MyEditorPlugin()],
+    StandInEditors = [typeof(MyAssetEditorViewModel)],
+}, ("Stories/Intro", new MyAsset()));
+
+var asset = session.Asset<MyAssetViewModel>("Stories/Intro");
+session.Session.EditorCollection.OpenAssetEditor(asset);
+```
+
+- The session writes a package with the given assets in a temporary folder and opens it with the plugins of the test and Stride's default assets plugin. Disposing it closes the session, waits for its background work and deletes the folder.
+- An `ExclusiveDispatcherService` is the UI thread. `OpenAsync` returns a `DispatcherTask`: a test that awaits it goes on in the dispatcher, where it changes the session and disposes it, as the editor does on its UI thread.
+- The session opens the editor of an asset only when a view is registered for it: `StandInEditors` gives the editors of the test a stand-in view. A test of the views themselves registers the plugin's toolkit companion instead.
+- The dialog and clipboard services throw `NotSupportedException` unless the test gives its own fakes in `Services`. `InitializeSession` initializes the plugins for the session, as Game Studio does once its views are ready, for a test of the session services and commands they register.
+- The package loads without a NuGet restore or an MSBuild evaluation of its project. The assemblies of the plugin's assets must be registered first (`AssemblyRegistry.Register(typeof(MyAsset).Assembly, AssemblyCommonCategories.Assets)`, in the module initializer or a static constructor of the tests).
+- The session evaluates projects with the MSBuild of the .NET SDK, and the Roslyn packages that the editor packages bring would put an older `Microsoft.Build.Framework` in the test output. The package keeps the MSBuild assemblies out of the output of the projects that reference it (`StrideEditorTestingKeepMSBuildRuntime` set to `true` turns that off).
 
 ## Known limitations
 

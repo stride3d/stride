@@ -4,7 +4,7 @@
 using System.Runtime.CompilerServices;
 using Stride.Core.Presentation.Services;
 
-namespace Stride.Core.Assets.Editor.Tests.Helpers;
+namespace Stride.Core.Assets.Editor.Testing;
 
 /// <summary>
 /// Runs the dispatcher calls inline, like <see cref="NullDispatcherService"/>, but one at a time, in a synchronization context that also

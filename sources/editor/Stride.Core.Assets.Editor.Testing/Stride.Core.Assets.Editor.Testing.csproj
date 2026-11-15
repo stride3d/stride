@@ -1,0 +1,31 @@
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.props" />
+
+  <!-- The kit to test editor view models outside of Game Studio: a session over a package written for the test, opened as the
+       editor opens one, with an exclusive dispatcher for the UI thread and stand-ins for the services and the views. It doesn't
+       depend on a test framework. -->
+  <PropertyGroup>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <Description>Test kit for the view models of Stride editor plugins: session fixture, exclusive dispatcher and stand-in services.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="../../shared/SharedAssemblyInfo.cs">
+      <Link>Properties/SharedAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Stride.Core.Assets.Editor/Stride.Core.Assets.Editor.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Keeps the MSBuild assemblies that the Roslyn workspace packages bring out of the test output (see the targets) -->
+    <None Include="buildTransitive\Stride.Core.Assets.Editor.Testing.targets" PackagePath="build/;buildTransitive/" Pack="true" />
+  </ItemGroup>
+
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
+</Project>

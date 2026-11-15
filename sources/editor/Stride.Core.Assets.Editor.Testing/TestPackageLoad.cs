@@ -3,7 +3,7 @@
 
 using Stride.Core.IO;
 
-namespace Stride.Core.Assets.Editor.Tests.Helpers;
+namespace Stride.Core.Assets.Editor.Testing;
 
 /// <summary>
 /// Loads the package that a test wrote next to its project without the NuGet restore and the MSBuild evaluation of the project,

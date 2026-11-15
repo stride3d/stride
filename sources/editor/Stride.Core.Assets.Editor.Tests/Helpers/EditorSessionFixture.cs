@@ -195,7 +195,7 @@ public sealed class EditorSessionFixture : IAsyncDisposable
     private async Task OpenSessionAsync(UFile path)
     {
         ServiceProvider.Get<IDispatcherService>().EnsureAccess();
-        var session = await SessionViewModel.OpenSessionAsync(path, loadParameters => load(path, Result, loadParameters), Result, new FakeMainViewModel(ServiceProvider), ServiceProvider);
+        var session = await SessionViewModel.OpenSessionAsync(path, loadParameters => load(path, Result, loadParameters), Result, new TestMainViewModel(ServiceProvider), ServiceProvider);
         if (session is null)
             throw new InvalidOperationException("The session could not be opened:" + Environment.NewLine + Log);
         Session = session;

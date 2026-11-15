@@ -37,7 +37,7 @@ public sealed class EditorViewToolTests
         await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false);
         var plugin = new MeasurePlugin();
         var logger = new LoggerResult();
-        var host = new TestPluginService(plugin);
+        var host = new TestPluginHost(plugin);
         host.RegisterSession(fixture.Session, logger);
         try
         {
@@ -70,7 +70,7 @@ public sealed class EditorViewToolTests
     public async Task APluginCanRegisterAToolItself()
     {
         await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false);
-        var host = new TestPluginService(new ToolRegisteringPlugin(SceneViewToolDescriptor.For<UndeclaredTool>(order: 5)), new ToolRegisteringPlugin(SceneViewToolDescriptor.For<UndeclaredTool>()));
+        var host = new TestPluginHost(new ToolRegisteringPlugin(SceneViewToolDescriptor.For<UndeclaredTool>(order: 5)), new ToolRegisteringPlugin(SceneViewToolDescriptor.For<UndeclaredTool>()));
         host.RegisterSession(fixture.Session, new LoggerResult());
         try
         {
@@ -93,7 +93,7 @@ public sealed class EditorViewToolTests
         await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false);
         var plugin = new ToolRegisteringPlugin(SceneViewToolDescriptor.FromType(typeof(AbstractTool)), SceneViewToolDescriptor.For<UndeclaredTool>(), SceneViewToolDescriptor.FromType(typeof(MeasurePlugin)));
         var logger = new LoggerResult();
-        var host = new TestPluginService(plugin);
+        var host = new TestPluginHost(plugin);
         host.RegisterSession(fixture.Session, logger);
         try
         {
@@ -116,7 +116,7 @@ public sealed class EditorViewToolTests
         await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false);
         var plugin = new ObsoleteToolRegisteringPlugin(typeof(UndeclaredTool), typeof(AbstractTool));
         var logger = new LoggerResult();
-        var host = new TestPluginService(plugin);
+        var host = new TestPluginHost(plugin);
         host.RegisterSession(fixture.Session, logger);
         try
         {
@@ -139,7 +139,7 @@ public sealed class EditorViewToolTests
     {
         await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false);
         var plugin = new RawToolRegisteringPlugin(SceneViewToolDescriptor.FromType(typeof(AbstractTool)));
-        var host = new TestPluginService(plugin);
+        var host = new TestPluginHost(plugin);
         host.RegisterSession(fixture.Session, new LoggerResult());
         try
         {
@@ -159,7 +159,7 @@ public sealed class EditorViewToolTests
         await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false);
         var plugin = new ToolRegisteringPlugin(SceneViewToolDescriptor.For<UndeclaredTool>(order: 40));
         var logger = new LoggerResult();
-        var host = new TestPluginService();
+        var host = new TestPluginHost();
         host.RegisterSession(fixture.Session, logger);
         IReadOnlyDictionary<Type, object?> owners = new Dictionary<Type, object?>();
         var failedTypes = new HashSet<Type>();
@@ -207,7 +207,7 @@ public sealed class EditorViewToolTests
         await using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false);
         var plugin = new ToolRegisteringPlugin(SceneViewToolDescriptor.For<FailingTool>());
         var logger = new LoggerResult();
-        var host = new TestPluginService(plugin);
+        var host = new TestPluginHost(plugin);
         host.RegisterSession(fixture.Session, logger);
         try
         {
@@ -240,7 +240,7 @@ public sealed class EditorViewToolTests
             host.Dispose();
         }
 
-        static EditorViewToolSet CreateView(TestPluginService host, ILogger logger)
+        static EditorViewToolSet CreateView(TestPluginHost host, ILogger logger)
         {
             var tools = EditorGameToolService.CreateTools(EditorGameToolService.GetToolDescriptors(EditorGameToolService.ReadRegistry(host.SceneViewTools, out var owners)), logger);
             var view = new EditorViewToolSet(tools, [], Keys.Space, logger, host, tool => owners.GetValueOrDefault(tool.GetType()));

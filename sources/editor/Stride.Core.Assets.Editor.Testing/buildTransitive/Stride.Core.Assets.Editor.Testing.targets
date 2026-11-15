@@ -1,0 +1,16 @@
+<Project>
+  <!--
+    The session locates the MSBuild of the .NET SDK and evaluates projects with it (Microsoft.Build.Locator). The Roslyn workspace
+    packages that the editor packages bring depend on Microsoft.Build.Framework, whose assembly in the output would load first: a
+    session then fails to open with a TypeLoadException on DisposableWriteLock. The MSBuild assemblies stay out of the output and of
+    the dependencies file, as in a project that references them with ExcludeAssets="runtime".
+    Set StrideEditorTestingKeepMSBuildRuntime to true to keep them.
+  -->
+  <Target Name="_StrideEditorTestingRemoveMSBuildRuntime" AfterTargets="ResolvePackageAssets" Condition="'$(StrideEditorTestingKeepMSBuildRuntime)' != 'true'">
+    <ItemGroup>
+      <_StrideEditorTestingMSBuildRuntime Include="@(RuntimeCopyLocalItems)"
+        Condition="'%(RuntimeCopyLocalItems.NuGetPackageId)' == 'Microsoft.Build' Or '%(RuntimeCopyLocalItems.NuGetPackageId)' == 'Microsoft.Build.Framework' Or '%(RuntimeCopyLocalItems.NuGetPackageId)' == 'Microsoft.Build.Utilities.Core' Or '%(RuntimeCopyLocalItems.NuGetPackageId)' == 'Microsoft.Build.Tasks.Core' Or '%(RuntimeCopyLocalItems.NuGetPackageId)' == 'Microsoft.NET.StringTools'" />
+      <RuntimeCopyLocalItems Remove="@(_StrideEditorTestingMSBuildRuntime)" />
+    </ItemGroup>
+  </Target>
+</Project>
