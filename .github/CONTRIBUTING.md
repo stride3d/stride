@@ -8,6 +8,39 @@ We welcome code contributions via pull requests. Issues tagged with **[`good fir
 
 You can help us translate Stride; check out our [Localization Guide](https://doc.stride3d.net/latest/en/contributors/engine/localization.html).
 
+## Large changes: agree on the design first
+
+Review time is limited, so a large change needs a design that the owner of the area agreed to, before the code. This applies to maintainers too, in areas that others own. Large means a new plugin or feature system, new public API in the core engine, a change to how a core system works, or more than about 1,000 to 2,000 hand-written lines. Bug fixes and small features don't need a design.
+
+Write the design in an issue or a discussion. Keep it short, a page or two:
+
+- The problem, and the other options you considered.
+- The architecture, at a high level: the main parts and the data flow between them, where the work runs (CPU or GPU, which thread, every frame or at load) and how it scales, who owns which data, and which existing systems and extension points it plugs into. A diagram helps.
+- What it changes in existing code, public API, serialization and asset formats.
+- How it follows the patterns the engine already uses.
+- Who maintains it afterwards.
+- How it lands as pull requests small enough to review.
+
+The owner of the area answers. If nobody answers within two weeks, or the area has no owner, the core team decides.
+
+A prototype branch or a draft pull request is welcome in the discussion, to show the idea, but it is not reviewed as code until the design is agreed. Once it is, link the design in each pull request. A pull request too large to review properly will be asked to split, even with an agreed design.
+
+## Plugins
+
+Optional features go in plugins, not in the core engine assemblies. Stride has three levels:
+
+- **Core**: the engine itself.
+- **First-party plugins**: in this repository, under `sources/plugins`. They are released with the engine, and the team keeps them working in every release. Each one has an owner.
+- **Community plugins**: in their author's own repository, released by them.
+
+A new first-party plugin, or a large feature in one, needs a maintainer of that area who agrees to own it. Without an owner, it starts as a community plugin, and it can move into this repository later.
+
+A first-party plugin is unmaintained when its owner steps down, or when a bug that breaks it or blocks a release stays unfixed by that release:
+
+- It still ships, marked as unmaintained, while we look for a new owner. New features for it wait until it has one: you can offer to be that owner.
+- Until then, the team only keeps it building. Whoever breaks its build fixes it.
+- If it still has no owner at the next major or minor release (for example 4.6), it moves out of this repository as a community plugin, or it is dropped.
+
 ## Triggering CI tests on a PR
 
 Most CI runs automatically on PR commits, gated by path filters. A few things run only on demand;
