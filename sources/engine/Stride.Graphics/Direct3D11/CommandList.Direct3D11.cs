@@ -1379,11 +1379,8 @@ namespace Stride.Graphics
             if (sourceData.IsEmpty)
                 return;
 
-            fixed (byte* sourceDataPtr = sourceData)
-            {
-                nativeDeviceContext->UpdateSubresource(resource.NativeResource, (uint)subResourceIndex, pDstBox: null,
-                                                       sourceDataPtr, SrcRowPitch: 0, SrcDepthPitch: 0);
-            }
+            nativeDeviceContext->UpdateSubresource(resource.NativeResource, (uint)subResourceIndex, pDstBox: null,
+                                                   in sourceData[0], SrcRowPitch: 0, SrcDepthPitch: 0);
         }
 
         /// <summary>
@@ -1431,11 +1428,8 @@ namespace Stride.Graphics
 
             ref Box destBox = ref region.As<ResourceRegion, Box>();
 
-            fixed (byte* sourceDataPtr = sourceData)
-            {
-                nativeDeviceContext->UpdateSubresource(resource.NativeResource, (uint) subResourceIndex, in destBox,
-                                                       sourceDataPtr, SrcRowPitch: 0, SrcDepthPitch: 0);
-            }
+            nativeDeviceContext->UpdateSubresource(resource.NativeResource, (uint) subResourceIndex, in destBox,
+                                                   in sourceData[0], SrcRowPitch: 0, SrcDepthPitch: 0);
         }
 
         /// <summary>
