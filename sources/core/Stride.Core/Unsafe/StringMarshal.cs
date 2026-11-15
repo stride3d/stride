@@ -40,7 +40,7 @@ public static unsafe class StringMarshal
     /// <returns>A string created from <paramref name="span"/>.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string? GetString(this ReadOnlySpan<byte> span)
-        => span.GetPointer() is not null
+        => !IsNullRef(in span.GetReference())
             ? Encoding.UTF8.GetString(span)
             : null;
 
@@ -51,7 +51,7 @@ public static unsafe class StringMarshal
     /// <returns>A string created from <paramref name="span"/>.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string? GetString(this ReadOnlySpan<ushort> span)
-        => span.GetPointer() is not null
+        => !IsNullRef(in span.GetReference())
             ? new string(span.As<ushort, char>())
             : null;
 
@@ -74,7 +74,7 @@ public static unsafe class StringMarshal
     /// <returns>A string created from <paramref name="span"/>.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string? GetString(this ReadOnlySpan<char> span)
-        => span.GetPointer() is not null
+        => !IsNullRef(in span.GetReference())
             ? new string(span)
             : null;
 
