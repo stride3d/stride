@@ -15,6 +15,7 @@ namespace Stride.Rendering.Materials
     /// You can control the scattering falloff with the "Extinction strength" parameter.
     /// Keep in mind that any shadow will create partial occlusion, even shadows cast from opaque objects onto the hair.
     /// </userdoc>
+    [EffectKeys]
     [DataContract("MaterialHairShadowingFunctionScattering")]
     [Display("Scattering")]
     public class MaterialHairShadowingFunctionScattering : IMaterialHairShadowingFunction

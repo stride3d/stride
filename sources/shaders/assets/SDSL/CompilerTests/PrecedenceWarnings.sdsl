@@ -1,0 +1,29 @@
+// The operator mixes DXC warns about (-Wparentheses): SDSL0242 (& within |), SDSL0243 (&& within ||), SDSL0244 (+ or - within << or >>)
+namespace Stride.Shaders.Tests;
+
+shader PrecedenceWarnings
+{
+    RWStructuredBuffer<int> Output;
+
+    [numthreads(1, 1, 1)]
+    void CSMain(uint3 id : SV_DispatchThreadID)
+    {
+        int a = id.x;
+        int b = 3;
+        int c = 4;
+        bool x = a > 0;
+        bool y = b > 1;
+        bool z = c > 2;
+
+        int masked = c | a & b;
+        bool either = x && y || z;
+        int shifted = a << b + 1;
+        int unshifted = a >> c - b;
+
+        // No warning: parentheses, ^, or operators of one kind
+        int same = (a & b) | c + (a ^ b | c) + (a & b & c) + (a << (b + 1));
+        bool also = (x && y) || z || (x && z);
+
+        Output[id.x] = masked + shifted + unshifted + same + (either && also ? 1 : 0);
+    }
+};

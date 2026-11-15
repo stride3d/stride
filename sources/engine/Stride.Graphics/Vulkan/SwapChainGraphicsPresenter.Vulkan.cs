@@ -27,6 +27,8 @@ namespace Stride.Graphics
         private const int kNumberOfFramesInFlight = 2;
         private int currentFrameIndex = 0;
         private int acquireRecreateDepth;
+        // Out of date while the surface is 0x0 (minimized window)
+        private bool recreationPending;
         private VkSemaphore[] acquireSemaphores;
         private VkFence[] frameFences;
 
@@ -235,6 +237,9 @@ namespace Stride.Graphics
 
             lock (GraphicsDevice.QueueLock)
             {
+                // The layouts the submissions left belong to the previous image
+                backBuffer.SubmittedLayouts = null;
+
                 // Signal vkAcquireNextImageKHR Fence => GraphicsDevice.CommandList (so that next command list will wait for this to complete)
                 var commandListFenceValue = GraphicsDevice.CommandListFence.NextFenceValue++;
                 var nextCommandListFenceValue = commandListFenceValue + 1;
@@ -259,6 +264,10 @@ namespace Stride.Graphics
 
         public override void BeginDraw(CommandList commandList)
         {
+            // The back buffer has no acquired swapchain image until the deferred recreation runs
+            if (recreationPending)
+                return;
+
             base.BeginDraw(commandList);
             backBuffer.IsInitialized = false;
         }
@@ -297,11 +306,29 @@ namespace Stride.Graphics
             base.OnRecreated();
 
             RecreateBackBuffer(backBuffer.Width, backBuffer.Height, backBuffer.Format);
+        }
 
-            // Check if backbuffer size changed; if yes, apply to depth buffer
-            if (Description.BackBufferWidth != DepthStencilBuffer.Description.Width
-                || Description.BackBufferHeight != DepthStencilBuffer.Description.Height)
-                ResizeDepthStencilBuffer(Description.BackBufferWidth, Description.BackBufferHeight, DepthStencilBuffer.ViewFormat);
+        /// <inheritdoc/>
+        internal override bool CanPresentFrame()
+        {
+            if (recreationPending)
+            {
+                OnRecreated();
+            }
+
+            return !recreationPending;
+        }
+
+        private unsafe bool IsSurfaceEmpty()
+        {
+            // No surface (after OnDestroyed) or a failed query: left to CreateSwapChain
+            if (surface == VkSurfaceKHR.Null)
+            {
+                return false;
+            }
+            var result = GraphicsDevice.NativeInstanceApi.vkGetPhysicalDeviceSurfaceCapabilitiesKHR(GraphicsDevice.NativePhysicalDevice, surface, out var surfaceCapabilities);
+            return result == VkResult.Success
+                && (surfaceCapabilities.currentExtent.width == 0 || surfaceCapabilities.currentExtent.height == 0);
         }
 
         protected override void ResizeBackBuffer(int width, int height, PixelFormat format)
@@ -311,6 +338,15 @@ namespace Stride.Graphics
 
         private void RecreateBackBuffer(int width, int height, PixelFormat format)
         {
+            // A swapchain cannot be 0x0: keep the current one until the window is restored;
+            // Description keeps the requested size and format, which CreateSwapChain reads then
+            if (IsSurfaceEmpty())
+            {
+                recreationPending = true;
+                return;
+            }
+            recreationPending = false;
+
             // Manually update all children textures
             var fastList = DestroyChildrenTextures(backBuffer);
 

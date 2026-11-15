@@ -1,0 +1,42 @@
+// PSMain(ExpectedResult=#336699FF, structuredbuffer.Values="16: 0.2 0.4 0.6 1 1 0 0 0")
+
+namespace Stride.Shaders.Tests;
+
+// A buffer method that reads streams: the mixer copies it for the buffer, then the copy is copied for each stage that calls it; its copy has branches to blocks further down
+// (a loop, an if / else and an early return), which must go to the copy's own blocks
+shader BufferParameterTwoStages
+{
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+    stream float4 ColorTarget : SV_Target0;
+    stream float Weight;
+
+    StructuredBuffer<float4> Values;
+
+    float4 Scan(StructuredBuffer<float4> source, uint count)
+    {
+        float4 result = 0;
+        for (uint i = 0; i < count; i++)
+        {
+            if (i == 0)
+                result += source[i];
+            else
+                result += source[i] * streams.Weight;
+        }
+        if (streams.Weight > 1)
+            return float4(1, 0, 0, 1);
+        return result;
+    }
+
+    void VSMain()
+    {
+        streams.ShadingPosition = streams.Position;
+        streams.Weight = 0;
+        streams.Weight = Scan(Values, 1).w - 1;
+    }
+
+    void PSMain()
+    {
+        streams.ColorTarget = Scan(Values, 2);
+    }
+};

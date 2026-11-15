@@ -41,7 +41,10 @@ namespace Stride.Graphics
         ///   The fence value signaled for a pending read-back of Queries data.
         /// </summary>
         internal ulong PendingValue;
-
+        /// <summary>
+        ///   The fence value of the last queued read-back of Queries data.
+        /// </summary>
+        private ulong queuedValue;
 
         /// <summary>
         ///   Attempts to retrieve data from the in-flight GPU queries.
@@ -82,6 +85,11 @@ namespace Stride.Graphics
                 return true;
             }
 
+            // Queue the readback once: more readbacks would still use the Query Heap after the first one completes,
+            // when the pool is written again or released
+            if (queuedValue == PendingValue)
+                return false;
+
             // Otherwise, queue readback
             var commandList = GraphicsDevice.NativeCopyCommandList;
 
@@ -109,6 +117,8 @@ namespace Stride.Graphics
 
                 if (result.IsFailure)
                     result.Throw();
+
+                queuedValue = PendingValue;
             }
 
             return false;
@@ -173,6 +183,7 @@ namespace Stride.Graphics
 
             CompletedValue = 0;
             PendingValue = 0;
+            queuedValue = 0;
         }
 
         /// <inheritdoc/>

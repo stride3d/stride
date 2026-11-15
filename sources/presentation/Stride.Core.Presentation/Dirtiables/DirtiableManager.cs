@@ -13,6 +13,7 @@ public sealed class DirtiableManager : IDisposable
     private readonly Dictionary<IDirtiable, List<IDirtyingOperation>> dirtyingOperationsMap = [];
     private readonly Dictionary<IDirtiable, List<IDirtyingOperation>> frozenOperationsMap = [];
     private readonly HashSet<IDirtyingOperation> allOperations = [];
+    private readonly Dictionary<IDirtiable, DirtiableSnapshot> dirtiableSnapshots = [];
     private ITransactionStack transactionStack;
     private DirtiableSnapshot? snapshot;
 
@@ -60,8 +61,25 @@ public sealed class DirtiableManager : IDisposable
         }
 
         snapshot = new DirtiableSnapshot(allOperations);
+        dirtiableSnapshots.Clear();
         UpdateDirtiables(dirtiables);
         return snapshot;
+    }
+
+    /// <summary>
+    /// Creates a snapshot of the current transaction stack for the given <seealso cref="IDirtiable"/> object only, for instance
+    /// after it has been reloaded from its file: subsequent changes on the transaction stack affect its dirty flag relative to
+    /// this snapshot, until the next call to <see cref="CreateSnapshot(bool)"/>.
+    /// </summary>
+    /// <param name="dirtiable">The dirtiable object whose current state is the clean state.</param>
+    /// <remarks>This method also updates the dirty flag of the dirtiable object immediately.</remarks>
+    public void CreateSnapshot(IDirtiable dirtiable)
+    {
+        ArgumentNullException.ThrowIfNull(dirtiable);
+
+        frozenOperationsMap.Remove(dirtiable);
+        dirtiableSnapshots[dirtiable] = new DirtiableSnapshot(allOperations);
+        UpdateDirtiables([dirtiable]);
     }
 
     /// <summary>
@@ -98,12 +116,13 @@ public sealed class DirtiableManager : IDisposable
         {
             var dirtyingOperations = TryGetOperationsMap(dirtyingOperationsMap, dirtiable);
             var discardedOperations = TryGetOperationsMap(frozenOperationsMap, dirtiable);
+            var dirtiableSnapshot = dirtiableSnapshots.GetValueOrDefault(dirtiable) ?? snapshot;
 
             var isDirty = false;
             // Check if it is dirty regarding to operations currently in the transaction stack
             if (dirtyingOperations != null)
             {
-                isDirty = dirtyingOperations.Any(x => x.IsDone != (snapshot?.Contains(x) ?? false));
+                isDirty = dirtyingOperations.Any(x => x.IsDone != (dirtiableSnapshot?.Contains(x) ?? false));
             }
             // Check if it is dirty regarding to operations frozen but still unsaved.
             if (discardedOperations != null)
@@ -171,6 +190,7 @@ public sealed class DirtiableManager : IDisposable
     private void StackCleared(object? sender, EventArgs e)
     {
         dirtyingOperationsMap.Clear();
+        dirtiableSnapshots.Clear();
     }
 
     private static List<IDirtyingOperation> GetOrCreateOperationsMap(Dictionary<IDirtiable, List<IDirtyingOperation>> operationsMap, IDirtiable dirtiable)

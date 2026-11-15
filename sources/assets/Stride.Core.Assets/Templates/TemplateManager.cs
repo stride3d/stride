@@ -13,7 +13,7 @@ public class TemplateManager
     private static readonly PackageCollection ExtraPackages = [];
 
     /// <summary>
-    /// Adds a package whose templates <see cref="FindTemplates"/> lists. May be called from any thread (template
+    /// Adds a package whose templates <see cref="FindTemplates(PackageSession)"/> lists. May be called from any thread (template
     /// packages downloaded in the background register when ready). Registering a package already registered, which
     /// gained templates since, only signals the change.
     /// </summary>

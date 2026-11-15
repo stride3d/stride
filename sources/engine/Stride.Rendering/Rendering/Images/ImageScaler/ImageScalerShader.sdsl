@@ -10,7 +10,7 @@ namespace Stride.Rendering.Images
     {
         // TODO: Color and IsOnlyChannelRed could be part of a color filter that we can pre-prend automatically
         [Color]
-        stage float4 Color;
+        stage float4 Color = float4(1, 1, 1, 1);
         stage float IsOnlyChannelRed;
 
         // Shading of the sprite

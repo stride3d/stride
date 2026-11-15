@@ -20,7 +20,7 @@ public interface ISymbolTypeItem
 public abstract record SymbolType()
 {
     /// <summary>
-    /// Converts to an identifier compatible with <see cref="Spirv.Core.Op.OpName"/>.
+    /// Converts to an identifier compatible with <see cref="Specification.Op.OpName"/>.
     /// </summary>
     /// <returns></returns>
     public virtual string ToId() => ToString();
@@ -42,11 +42,37 @@ public abstract record SymbolType()
             result = m;
             return true;
         }
+        // float1 and float1x1 are the scalar, as in DXC's SPIR-V
+        else if ((name.EndsWith("1x1") && ScalarType.Types.TryGetValue(name[..^3], out s))
+                 || (name.EndsWith('1') && ScalarType.Types.TryGetValue(name[..^1], out s)))
+        {
+            result = s;
+            return true;
+        }
         else
         {
             result = null;
             return false;
         }
+    }
+
+    /// <summary>
+    /// Whether <paramref name="name"/> is a matrix with one row or one column (<c>float1x3</c>, <c>float3x1</c>), which is not supported yet.
+    /// </summary>
+    /// <param name="name">The matrix type name to check.</param>
+    /// <param name="vectorName">The vector type to use instead (<c>float3</c>).</param>
+    public static bool IsOneRowOrColumnMatrix(string name, [MaybeNullWhen(false)] out string vectorName)
+    {
+        vectorName = null;
+        if (name.Length < 4 || name[^2] != 'x' || !ScalarType.Types.ContainsKey(name[..^3]))
+            return false;
+
+        var (rows, columns) = (name[^3], name[^1]);
+        if (rows == '1' && columns is >= '2' and <= '4')
+            vectorName = $"{name[..^3]}{columns}";
+        else if (columns == '1' && rows is >= '2' and <= '4')
+            vectorName = $"{name[..^3]}{rows}";
+        return vectorName != null;
     }
     public static bool TryGetBufferType(string name, TypeName? templateTypeName, [MaybeNullWhen(false)] out SymbolType result)
     {
@@ -237,6 +263,7 @@ public sealed partial record MatrixType(ScalarType BaseType, int Rows, int Colum
 /// </summary>
 /// <param name="BaseType">The base type for the array.</param>
 /// <param name="Size">The size of the array. If -1, it means size is not defined, such as using [].</param>
+/// <param name="SizeExpression">The expression specifying the array size, if any.</param>
 public sealed partial record ArrayType(SymbolType BaseType, int Size, ConstantExpression? SizeExpression = null) : SymbolType()
 {
     public override string ToId() => $"{BaseType.ToId()}[{(Size != -1 ? Size : string.Empty)}]";
@@ -633,10 +660,8 @@ public sealed partial record ShaderDefinition(string Name, ConstantExpression[] 
     }
 
     /// <summary>
-    /// Try to resolve a symbol in shader or inherited shader. If <see cref="importContext"/> is null, you can use this method without importing type or symbol in a context (useful for type evaluation).
+    /// Try to resolve a symbol in the shader or an inherited shader by identifier.
     /// </summary>
-    /// <param name="symbolTable"></param>
-    /// <param name="importContext">If not null, the method or symbol will be imported in this context.</param>
     /// <param name="id"></param>
     /// <param name="symbol"></param>
     /// <returns></returns>
@@ -655,10 +680,8 @@ public sealed partial record ShaderDefinition(string Name, ConstantExpression[] 
     }
 
     /// <summary>
-    /// Try to resolve a symbol in shader or inherited shader. If <see cref="importContext"/> is null, you can use this method without importing type or symbol in a context (useful for type evaluation).
+    /// Try to resolve a symbol in the shader or an inherited shader by name.
     /// </summary>
-    /// <param name="symbolTable"></param>
-    /// <param name="importContext">If not null, the method or symbol will be imported in this context.</param>
     /// <param name="name"></param>
     /// <param name="symbol"></param>
     /// <returns></returns>

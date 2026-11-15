@@ -10,8 +10,8 @@ public class TestMemberNode
     public class SimpleClass
     {
         public int IntValue { get; set; }
-        public string StringValue { get; set; }
-        public NestedClass Reference { get; set; }
+        public string? StringValue { get; set; }
+        public NestedClass? Reference { get; set; }
     }
 
     public class NestedClass
@@ -100,8 +100,8 @@ public class TestMemberNode
         var memberNode = parentNode[nameof(SimpleClass.IntValue)];
 
         var eventRaised = false;
-        object oldValue = null;
-        object newValue = null;
+        object? oldValue = null;
+        object? newValue = null;
 
         memberNode.ValueChanged += (sender, args) =>
         {
@@ -126,9 +126,9 @@ public class TestMemberNode
         var memberNode = parentNode[nameof(SimpleClass.IntValue)];
 
         var eventRaised = false;
-        object oldValue = null;
-        object newValue = null;
-        object valueDuringChanging = null;
+        object? oldValue = null;
+        object? newValue = null;
+        object? valueDuringChanging = null;
 
         memberNode.ValueChanging += (sender, args) =>
         {

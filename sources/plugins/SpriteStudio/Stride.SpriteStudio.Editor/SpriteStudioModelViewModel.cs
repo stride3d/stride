@@ -1,0 +1,30 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using System.Linq;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Annotations;
+using Stride.SpriteStudio.Assets;
+using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Presentation.Annotations;
+
+namespace Stride.SpriteStudio.Editor;
+
+[AssetViewModel<SpriteStudioModelAsset>]
+public class SpriteStudioModelViewModel : ImportedAssetViewModel<SpriteStudioModelAsset>
+{
+    public SpriteStudioModelViewModel(AssetViewModelConstructionParameters parameters)
+        : base(parameters)
+    {
+    }
+
+    protected override IAssetImporter GetImporter()
+    {
+        return AssetRegistry.FindImporterForFile(Asset.Source).FirstOrDefault(x => x.RootAssetTypes.Contains(typeof(SpriteStudioModelAsset)));
+    }
+
+    protected override void UpdateAssetFromSource(SpriteStudioModelAsset assetToMerge)
+    {
+        AssetRootNode[nameof(SpriteStudioModelAsset.NodeNames)].Update(assetToMerge.NodeNames);
+    }
+}

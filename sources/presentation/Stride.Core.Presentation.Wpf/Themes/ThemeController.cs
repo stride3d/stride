@@ -12,7 +12,7 @@ namespace Stride.Core.Presentation.Themes
     {
         /// <summary>
         /// The main purpose of this property is for Luminosity Check feature of
-        /// <see cref="ImageThemingUtilities.TransformDrawing(Media.Drawing, IconTheme, bool)"/>.
+        /// <see cref="ImageThemingUtilities.TransformDrawing(System.Windows.Media.Drawing, IconTheme, bool)"/>.
         /// </summary>
         public static readonly DependencyProperty IsDarkProperty =
             DependencyProperty.RegisterAttached("IsDark", typeof(bool), typeof(ThemeController), new PropertyMetadata(false));

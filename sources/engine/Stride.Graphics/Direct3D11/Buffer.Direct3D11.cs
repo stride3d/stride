@@ -46,12 +46,19 @@ namespace Stride.Graphics
         /// <exception cref="ArgumentException">Element size (<c>StructureByteStride</c>) must be greater than zero for Structured Buffers.</exception>
         protected partial Buffer InitializeFromImpl(ref readonly BufferDescription description, BufferFlags viewFlags, PixelFormat viewFormat, IntPtr dataPointer)
         {
+            CheckRawBufferSize(description.SizeInBytes, viewFlags);
+
             bufferDescription = description;
             nativeDescription = ConvertToNativeDescription(in description);
 
             ViewFlags = viewFlags;
             InitCountAndViewFormat(out elementCount, ref viewFormat);
             ViewFormat = viewFormat;
+
+            // Direct3D 11 has typed UAVs only from feature level 11_0, and only for some formats; otherwise creating the view fails with E_INVALIDARG.
+            bool isTypedUnorderedAccess = viewFlags.HasFlag(BufferFlags.UnorderedAccess) && viewFormat != PixelFormat.None && !viewFlags.HasFlag(BufferFlags.RawBuffer);
+            if (isTypedUnorderedAccess && !GraphicsDevice.Features[viewFormat].FormatSupport.HasFlag(FormatSupport.TypedUnorderedAccessView))
+                throw new NotSupportedException($"This device has no typed unordered access for {viewFormat} (RWBuffer<T> in a shader). Typed UAVs need {GraphicsProfile.Level_11_0} or later; the device runs {GraphicsDevice.Features.CurrentProfile}.");
 
             var subresourceData = dataPointer != 0 ? new SubresourceData(dataPointer.ToPointer()) : default;
 
@@ -126,9 +133,6 @@ namespace Stride.Graphics
 
                 if (bufferDescription.BufferFlags.HasFlag(BufferFlags.ArgumentBuffer))
                     bufferDesc.MiscFlags |= (uint) ResourceMiscFlag.DrawindirectArgs;
-
-                if (bufferDescription.BufferFlags.HasFlag(BufferFlags.StreamOutput))
-                    bufferDesc.BindFlags |= (uint) BindFlag.StreamOutput;
 
                 if (bufferDesc.Usage == Silk.NET.Direct3D11.Usage.Dynamic)
                 {

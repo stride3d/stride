@@ -18,6 +18,7 @@ using Stride.Core.Presentation.Services;
 using Stride.Core.Translation;
 using Stride.Assets.Presentation.AssetEditors;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.GameStudio.Debugging
 {
@@ -44,7 +45,7 @@ namespace Stride.GameStudio.Debugging
 
             try
             {
-                var projectWatcher = new ProjectWatcher(currentProject.Session, logger, false);
+                var projectWatcher = new ProjectWatcher(editor.Session, logger, false);
                 await projectWatcher.Initialize();
 
                 var executableOutputPath = Path.GetDirectoryName(projectWatcher.CurrentGameExecutable.OutputFilePath);

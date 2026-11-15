@@ -1,0 +1,21 @@
+!Model
+Id: 39721c34-2996-4256-98e5-d90220ed8790
+SerializedVersion: {Stride: 2.1.0.0}
+Tags: []
+Source: !file ../../../Resources/Icosphere/icosphere.gltf
+Skeleton: null
+PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
+Materials:
+    01d3608e0b85407fa80adeab0f29239b:
+        Name: Material
+        MaterialInstance:
+            Material: null
+DeduplicateMaterials: false
+Modifiers: {}
+MorphTargetNames:
+    eb10774fead04ec6a60e7679be25f010: Squashed
+    80993b0fcefa4787963e2693f53ca78a: Stretched
+    b97e67656c5b4ca4814bf48f24b88acb: Bumpy
+    587929e3c175469aaf987a3a0a65fd44: Pear
+~SourceHashes:
+    3cc4c1dec19bfc2cbbf6eebe8309a05e~../../../Resources/Icosphere/icosphere.gltf: 2affbdf0f91199297267155c9f1054d4

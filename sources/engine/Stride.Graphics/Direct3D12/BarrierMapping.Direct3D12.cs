@@ -29,6 +29,7 @@ internal static class BarrierMapping
         BarrierLayout.CopyDest => ResourceStates.CopyDest,
         BarrierLayout.ResolveSource => ResourceStates.ResolveSource,
         BarrierLayout.ResolveDest => ResourceStates.ResolveDest,
+        BarrierLayout.IndirectArgument => ResourceStates.IndirectArgument,
         _ => ResourceStates.Common,
     };
 
@@ -46,7 +47,8 @@ internal static class BarrierMapping
         ResourceStates.CopyDest => BarrierLayout.CopyDest,
         ResourceStates.ResolveSource => BarrierLayout.ResolveSource,
         ResourceStates.ResolveDest => BarrierLayout.ResolveDest,
-        ResourceStates.PixelShaderResource | ResourceStates.NonPixelShaderResource => BarrierLayout.ShaderResource,
+        ResourceStates.IndirectArgument => BarrierLayout.IndirectArgument,
+        ResourceStates.PixelShaderResource |ResourceStates.NonPixelShaderResource => BarrierLayout.ShaderResource,
         ResourceStates.PixelShaderResource => BarrierLayout.ShaderResource,
         ResourceStates.NonPixelShaderResource => BarrierLayout.ShaderResource,
         _ => BarrierLayout.Common,
@@ -89,6 +91,7 @@ internal static class BarrierMapping
         BarrierLayout.CopyDest => D3D12BarrierAccess.CopyDest,
         BarrierLayout.ResolveSource => D3D12BarrierAccess.ResolveSource,
         BarrierLayout.ResolveDest => D3D12BarrierAccess.ResolveDest,
+        BarrierLayout.IndirectArgument => D3D12BarrierAccess.IndirectArgument,
         _ => D3D12BarrierAccess.Common,
     };
 
@@ -107,6 +110,7 @@ internal static class BarrierMapping
         BarrierLayout.CopyDest => D3D12BarrierSync.Copy,
         BarrierLayout.ResolveSource => D3D12BarrierSync.Resolve,
         BarrierLayout.ResolveDest => D3D12BarrierSync.Resolve,
+        BarrierLayout.IndirectArgument => D3D12BarrierSync.ExecuteIndirect,
         _ => D3D12BarrierSync.All,
     };
 }

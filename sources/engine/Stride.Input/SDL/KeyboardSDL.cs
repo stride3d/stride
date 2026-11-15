@@ -4,7 +4,6 @@
 #if STRIDE_UI_SDL
 using System;
 using System.Collections.Generic;
-using System.Text;
 using Silk.NET.SDL;
 using Stride.Graphics.SDL;
 using Window = Stride.Graphics.SDL.Window;
@@ -14,6 +13,9 @@ namespace Stride.Input
     internal class KeyboardSDL : KeyboardDeviceBase, ITextInputDevice, IDisposable
     {
         private static Sdl SDL = Window.SDL;
+
+        // SDL_TEXTINPUTEVENT_TEXT_SIZE and SDL_TEXTEDITINGEVENT_TEXT_SIZE
+        private const int SDLTextBufferSize = 32;
 
         private readonly Window window;
         private readonly List<TextInputEvent> textEvents = new List<TextInputEvent>();
@@ -76,7 +78,7 @@ namespace Stride.Input
         private unsafe void OnTextEditingActions(TextEditingEvent e)
         {
             var textInputEvent = InputEventPool<TextInputEvent>.GetOrCreate(this);
-            textInputEvent.Text = SDLBufferToString(e.Text);
+            textInputEvent.Text = TextInputStrings.FromNullTerminatedUtf8(e.Text, SDLTextBufferSize);
             textInputEvent.Type = TextInputEventType.Composition;
             textInputEvent.CompositionStart = e.Start;
             textInputEvent.CompositionLength = e.Length;
@@ -86,26 +88,9 @@ namespace Stride.Input
         private unsafe void OnTextInputActions(Silk.NET.SDL.TextInputEvent e)
         {
             var textInputEvent = InputEventPool<TextInputEvent>.GetOrCreate(this);
-            textInputEvent.Text = SDLBufferToString(e.Text);
+            textInputEvent.Text = TextInputStrings.FromNullTerminatedUtf8(e.Text, SDLTextBufferSize);
             textInputEvent.Type = TextInputEventType.Input;
             textEvents.Add(textInputEvent);
-        }
-
-        private unsafe string SDLBufferToString(byte* text, int size = 32)
-        {
-            byte[] sourceBytes = new byte[size];
-            int length = 0;
-
-            for (int i = 0; i < size; i++)
-            {
-                if (text[i] == 0)
-                    break;
-
-                sourceBytes[i] = text[i];
-                length++;
-            }
-
-            return Encoding.UTF8.GetString(sourceBytes, 0, length);
         }
 
         /// <summary>

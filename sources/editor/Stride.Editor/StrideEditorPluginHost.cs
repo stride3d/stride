@@ -1,0 +1,91 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using System;
+using System.Collections.Generic;
+using System.Reflection;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Reflection;
+using Stride.Core.Serialization;
+using Stride.Core.Serialization.Contents;
+using Stride.Editor.Annotations;
+using Stride.Editor.Preview;
+using Stride.Editor.Preview.View;
+using Stride.Editor.Preview.ViewModels;
+
+#nullable enable
+
+namespace Stride.Editor;
+
+/// <summary>
+/// The plugin host of the Stride editors: it adds the asset previews to what <see cref="EditorPluginHost"/> registers.
+/// The contribution points of the scene and prefab editors are declared by the layer that has them (<c>SceneEditorPluginHost</c>
+/// in <c>Stride.Assets.Editor</c>), so that this one names no scene type.
+/// </summary>
+public abstract class StrideEditorPluginHost : EditorPluginHost
+{
+    /// <inheritdoc />
+    protected StrideEditorPluginHost(IReadOnlyList<AssetsPlugin>? plugins = null, IDispatcherService? dispatcher = null)
+        : base(plugins, dispatcher)
+    {
+    }
+
+    /// <inheritdoc />
+    protected override Type AssetPreviewType => typeof(IAssetPreview);
+
+    /// <inheritdoc />
+    protected override Type AssetPreviewViewModelType => typeof(IAssetPreviewViewModel);
+
+    /// <inheritdoc />
+    protected override Type AssetPreviewViewType => typeof(IPreviewView);
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// The types that the assets serialize as references (the content types: textures, models, ...): the property grid shows
+    /// them as references, not as the objects they point to.
+    /// </remarks>
+    protected override IEnumerable<Type> FindPrimitiveTypes(Assembly assembly)
+    {
+        foreach (var type in assembly.GetTypes())
+        {
+            var serializerType = SerializerSelector.AssetWithReuse.GetSerializer(type)?.GetType();
+            if (serializerType is { IsGenericType: true } && serializerType.GetGenericTypeDefinition() == typeof(ReferenceSerializer<>))
+                yield return type;
+        }
+    }
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// The assemblies of a <see cref="StrideAssetsPlugin"/> also declare its preview view models (<see cref="AssetPreviewViewModelAttribute"/>)
+    /// and preview views (<see cref="AssetPreviewViewAttribute"/>).
+    /// </remarks>
+    protected override void ScanPlugin(AssetsPlugin plugin, IEditorPluginContext context)
+    {
+        base.ScanPlugin(plugin, context);
+
+        foreach (var assembly in plugin.ScannedAssemblies)
+            ScanStrideAssembly(plugin, assembly, context);
+    }
+
+    private static void ScanStrideAssembly(AssetsPlugin plugin, Assembly assembly, IEditorPluginContext context)
+    {
+        if (plugin is not StrideAssetsPlugin)
+            return;
+
+        foreach (var type in AssemblyRegistry.GetScanTypes(assembly, typeof(IAssetPreviewViewModel)))
+        {
+            if (typeof(IAssetPreviewViewModel).IsAssignableFrom(type) && type.GetCustomAttribute<AssetPreviewViewModelAttribute>() is { } attribute)
+                context.AssetPreviewViewModelTypes.Register(attribute.AssetPreviewType, type);
+        }
+
+        foreach (var type in AssemblyRegistry.GetScanTypes(assembly, typeof(IPreviewView)))
+        {
+            if (!typeof(IPreviewView).IsAssignableFrom(type))
+                continue;
+
+            foreach (var attribute in type.GetCustomAttributes<AssetPreviewViewAttribute>())
+                context.AssetPreviewViewTypes.Register(attribute.AssetPreviewType, type);
+        }
+    }
+}

@@ -86,6 +86,8 @@ src.AnyEventRaised += (_, e) =>
         "_GetFrameworksWithSuppressedDependencies",
         // SourceLink source-root mapping; metadata only, no compilation.
         "InitializeSourceRootMappedPaths",
+        // Stride metadata queries (asset build manifest path, asset extensions, companion packages): no compilation.
+        "GetStrideAssetBuildManifestPath", "GetStrideProjectAssetExtensions", "GetStridePackageIdentity", "GetStrideCompanionProjects",
     ];
     if (!string.IsNullOrEmpty(ps.TargetNames))
     {
@@ -181,7 +183,42 @@ src.AnyEventRaised += (_, e) =>
     }
 };
 
+// Hook races: a target run as an AfterTargets hook in one request on a project instance, still running when another
+// request on the same instance finished Build. That request found the hooked target completed and returned without
+// waiting for the hook, so a caller reading what the hook writes can run before it is written. A hook without a parent
+// target hooks a target the request asked for (Build itself): it runs once that target is complete.
+var requests = new Dictionary<int, (string Project, int Instance, string Targets, DateTime End)>();
+var openHooks = new Dictionary<(int Context, int Target), (string Name, string Parent, DateTime Start)>();
+var hooks = new List<(int Context, string Name, string Parent, DateTime Start, DateTime End)>();
+src.AnyEventRaised += (_, e) =>
+{
+    switch (e)
+    {
+        case ProjectStartedEventArgs ps when ps.BuildEventContext != null:
+            requests[ps.BuildEventContext.ProjectContextId] = (ps.ProjectFile ?? "", ps.BuildEventContext.ProjectInstanceId, ps.TargetNames ?? "", DateTime.MaxValue);
+            break;
+        case ProjectFinishedEventArgs pf when pf.BuildEventContext != null && requests.TryGetValue(pf.BuildEventContext.ProjectContextId, out var request):
+            requests[pf.BuildEventContext.ProjectContextId] = request with { End = pf.Timestamp };
+            break;
+        case TargetStartedEventArgs ts when ts.BuildEventContext != null && ts.BuildReason == TargetBuiltReason.AfterTargets && !string.IsNullOrEmpty(ts.ParentTarget):
+            openHooks[(ts.BuildEventContext.ProjectContextId, ts.BuildEventContext.TargetId)] = (ts.TargetName, ts.ParentTarget, ts.Timestamp);
+            break;
+        case TargetFinishedEventArgs tf when tf.BuildEventContext != null && openHooks.Remove((tf.BuildEventContext.ProjectContextId, tf.BuildEventContext.TargetId), out var hook):
+            hooks.Add((tf.BuildEventContext.ProjectContextId, hook.Name, hook.Parent, hook.Start, tf.Timestamp));
+            break;
+    }
+};
+
 src.Replay(binlogPath);
+
+var hookRaces = (
+    from hook in hooks
+    let owner = requests[hook.Context]
+    from other in requests
+    where other.Key != hook.Context && other.Value.Instance == owner.Instance
+          && other.Value.End > hook.Start && other.Value.End < hook.End
+          && (other.Value.Targets.Length == 0 || other.Value.Targets.Split(';', StringSplitOptions.TrimEntries).Contains("Build", StringComparer.OrdinalIgnoreCase))
+    select (hook, owner, Other: other.Key, OtherEnd: other.Value.End)).ToList();
 
 var dupes = groups
     .Where(kv => kv.Value.Count > 1)
@@ -247,4 +284,12 @@ foreach (var (key, list) in dupes)
     Console.WriteLine();
 }
 
-return dupes.Count > 0 ? 1 : 0;
+Console.WriteLine($"AfterTargets hooks still running when another request's Build finished: {hookRaces.Count}");
+foreach (var (hook, owner, other, otherEnd) in hookRaces)
+{
+    Console.WriteLine($"=== {owner.Project}");
+    Console.WriteLine($"    request {other} finished Build at {otherEnd:HH:mm:ss.fff} while request {hook.Context} ran {hook.Name} (an AfterTargets hook, in {hook.Parent}) from {hook.Start:HH:mm:ss.fff} to {hook.End:HH:mm:ss.fff}");
+    Console.WriteLine($"    a caller of that Build that needs {hook.Name}'s output must request {hook.Name} itself");
+}
+
+return dupes.Count > 0 || hookRaces.Count > 0 ? 1 : 0;

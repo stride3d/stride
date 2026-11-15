@@ -1,0 +1,13 @@
+// A static call to a shader that declares byte address buffers.
+namespace Stride.Shaders.Tests;
+
+shader ByteAddressBufferStaticCall
+{
+    RWByteAddressBuffer Result;
+
+    [numthreads(1, 1, 1)]
+    stage void CSMain()
+    {
+        Result.Store(0, ByteAddressBufferUtils.Twice(3));
+    }
+}

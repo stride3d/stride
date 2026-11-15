@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
+    <ProjectReference Include="..\..\tests\Stride.XunitRunner\Stride.XunitRunner.csproj" />
     <ProjectReference Include="..\Stride.Core.Mathematics\Stride.Core.Mathematics.csproj" />
   </ItemGroup>
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.targets" />

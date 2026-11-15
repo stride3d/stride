@@ -11,12 +11,44 @@ namespace Stride.Shaders.Spirv.Tools;
 /// Validator bindings are the stable C API from <c>spirv-tools/libspirv.h</c>. Optimizer
 /// bindings target the <c>stride_spv*</c> C shim that wraps <c>spvtools::Optimizer</c>
 /// — upstream's <c>optimizer.hpp</c> is C++ only. Both live in the single combined
-/// <c>stride_spirv_tools</c> library; see <c>build/deps/spirv-tools/</c>.
+/// <c>stride_spirv_tools</c> library; see <c>deps/spirv-tools/</c>.
 /// </para>
 /// </summary>
 public static unsafe class SpirvTools
 {
     const string Lib = "stride_spirv_tools";
+
+    /// <summary>
+    /// The text of the <c>OpSourceExtension</c> that marks a module whose structured buffers use Direct3D's tight layout
+    /// (followed by their names): validators then allow scalar block layout, and Vulkan needs the <c>scalarBlockLayout</c>
+    /// feature to run it. The Vulkan backend has the same text (<c>GraphicsDevice.TightStructuredBufferMarker</c>).
+    /// </summary>
+    public const string TightStructuredBufferMarker = "Stride.TightStructuredBuffers:";
+
+    /// <summary>
+    /// The structured buffers of a module that use Direct3D's tight layout (<see cref="TightStructuredBufferMarker"/>), or null.
+    /// </summary>
+    public static string? TightStructuredBuffers(ReadOnlySpan<uint> words)
+    {
+        const int opSourceExtension = 4, opFunction = 54;
+        for (var i = 5; i < words.Length;)
+        {
+            var op = words[i] & 0xFFFF;
+            var wordCount = (int)(words[i] >> 16);
+            if (wordCount == 0 || op == opFunction)
+                break;
+            if (op == opSourceExtension)
+            {
+                var text = MemoryMarshal.AsBytes(words.Slice(i + 1, wordCount - 1));
+                var length = text.IndexOf((byte)0);
+                var extension = Encoding.UTF8.GetString(length >= 0 ? text[..length] : text);
+                if (extension.StartsWith(TightStructuredBufferMarker, StringComparison.Ordinal))
+                    return extension[TightStructuredBufferMarker.Length..].Trim();
+            }
+            i += wordCount;
+        }
+        return null;
+    }
 
     static SpirvTools()
     {

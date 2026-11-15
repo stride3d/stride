@@ -15,22 +15,18 @@ namespace Stride.Extensions
             var finalList = new List<Mesh>();
             foreach (var mesh in meshes)
             {
-                var drawDatas = SplitMesh(mesh.Draw, can32bitIndex);
-                if (drawDatas.Count <= 1)
+                var sourceVertices = mesh.MorphTargets != null ? new List<uint[]>() : null;
+                var drawDatas = SplitMesh(mesh.Draw, can32bitIndex, sourceVertices);
+                if (drawDatas.Count == 0 || (drawDatas.Count == 1 && ReferenceEquals(drawDatas[0], mesh.Draw)))
                 {
                     finalList.Add(mesh);
                 }
                 else
                 {
-                    foreach (var draw in drawDatas)
+                    for (int split = 0; split < drawDatas.Count; split++)
                     {
-                        var newMeshData = new Mesh(draw, mesh.Parameters)
-                            {
-                                MaterialIndex = mesh.MaterialIndex,
-                                Name = mesh.Name,
-                                NodeIndex = mesh.NodeIndex,
-                                Skinning = mesh.Skinning,
-                            };
+                        var newMeshData = new Mesh(mesh) { Draw = drawDatas[split] };
+                        if (mesh.MorphTargets != null) newMeshData.MorphTargets = mesh.MorphTargets.Remap(sourceVertices[split]);
                         finalList.Add(newMeshData);
                     }
                 }
@@ -46,6 +42,9 @@ namespace Stride.Extensions
         /// <param name="can32bitIndex">A flag stating if 32 bit indices are allowed.</param>
         /// <returns>A list of meshes.</returns>
         public static unsafe List<MeshDraw> SplitMesh(MeshDraw meshDrawData, bool can32bitIndex)
+            => SplitMesh(meshDrawData, can32bitIndex, null);
+
+        private static unsafe List<MeshDraw> SplitMesh(MeshDraw meshDrawData, bool can32bitIndex, List<uint[]> sourceVertices)
         {
             if (meshDrawData.IndexBuffer == null)
                 return new List<MeshDraw> { meshDrawData };
@@ -163,6 +162,12 @@ namespace Stride.Extensions
                         false,
                         triangleCount * 3);
 
+                    if (sourceVertices != null)
+                    {
+                        var mapping = new uint[splitInfo.UsedIndices.Count];
+                        foreach (var item in splitInfo.IndexRemapping) mapping[item.Value] = item.Key;
+                        sourceVertices.Add(mapping);
+                    }
                     finalList.Add(newMeshDrawData);
                 }
             }

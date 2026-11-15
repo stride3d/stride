@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Windows;
 
@@ -9,11 +10,14 @@ using Stride.Core.Settings;
 
 namespace Stride.GameStudio
 {
+    /// <summary>
+    /// The internal (not user-facing) settings of the WPF Game Studio: its window and panels, and its docking layouts. The recent
+    /// sessions are shared with the Avalonia editor (<see cref="RecentSessionsSettings"/>).
+    /// </summary>
     public static class GameStudioInternalSettings
     {
         public static SettingsContainer SettingsContainer => InternalSettings.SettingsContainer;
-        
-        public static SettingsKey<List<MRUAdditionalData>> MostRecentlyUsedSessionsData = new SettingsKey<List<MRUAdditionalData>>("Internal/MostRecentlyUsedSessionsData2", SettingsContainer, () => new List<MRUAdditionalData>());
+
         public static SettingsKey<bool> WindowMaximized = new SettingsKey<bool>("Internal/WindowMaximized", SettingsContainer, false);
         public static SettingsKey<int> WindowWidth = new SettingsKey<int>("Internal/WindowWidth", SettingsContainer, (int)SystemParameters.WorkArea.Width);
         public static SettingsKey<int> WindowHeight = new SettingsKey<int>("Internal/WindowHeight", SettingsContainer, (int)SystemParameters.WorkArea.Height);

@@ -56,6 +56,7 @@ namespace Stride.Graphics.SDL
 
             // Publish after full initialization (double-checked lock pattern)
             SDL = sdl;
+            SdlDisplayProvider.CaptureDisplays();
         }
 
         /// <summary>

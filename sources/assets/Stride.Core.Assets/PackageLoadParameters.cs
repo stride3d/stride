@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Reflection;
@@ -57,6 +58,40 @@ public sealed class PackageLoadParameters
     /// </summary>
     /// <value><c>true</c> if [load assembly references]; otherwise, <c>false</c>.</value>
     public bool LoadAssemblyReferences { get; set; }
+
+    /// <summary>
+    /// Load the editor companion packages declared by session packages (<see cref="Package.CompanionPackages"/>). Only the editor sets this.
+    /// </summary>
+    public bool LoadEditorPackages { get; set; }
+
+    /// <summary>
+    /// The UI toolkit of the editor loading the session (Wpf or Avalonia), so the Editor companions written for another toolkit
+    /// stay out. Null loads the toolkit-neutral Editor companions only.
+    /// </summary>
+    public string? EditorToolkit { get; set; }
+
+    /// <summary>
+    /// A check that each assembly of a package passes before it loads (the editor's plugin version check), or null to load
+    /// them all. The session keeps the first one it is given (<see cref="PackageSession.AssemblyLoadCheck"/>) for later loads.
+    /// </summary>
+    [Experimental("STREXP002")]
+    public IAssemblyLoadCheck? AssemblyLoadCheck { get; set; }
+
+    /// <summary>
+    /// Decides which <see cref="PackageKind.Editor"/> companions the session loads (the editor's switched-off plugins and safe
+    /// mode), or null to load them all. The session keeps the first one it is given (<see cref="PackageSession.CompanionPackageFilter"/>)
+    /// for later loads.
+    /// </summary>
+    [Experimental("STREXP002")]
+    public ICompanionPackageFilter? CompanionPackageFilter { get; set; }
+
+    /// <summary>
+    /// Companion packages that the host adds to the session besides those its packages declare (the editor's extensions), or
+    /// null for none. The session keeps the first one it is given (<see cref="PackageSession.CompanionPackageSource"/>) for
+    /// later loads.
+    /// </summary>
+    [Experimental("STREXP002")]
+    public ICompanionPackageSource? CompanionPackageSource { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether to automatically compile projects that don't have their assembly generated.
@@ -151,6 +186,12 @@ public sealed class PackageLoadParameters
     /// Gets a boolean telling if MSBuild files should be evaluated when listing assets.
     /// </summary>
     public bool TemporaryAssetsInMsbuild { get; set; } = true;
+
+    /// <summary>
+    /// Load asset files whose asset type is not loaded as unloadable assets that keep their content.
+    /// Only the editor sets this, so a build does not fail on a stray file.
+    /// </summary>
+    public bool LoadAssetsOfUnknownType { get; set; }
 
     /// <summary>
     /// Clones this instance.

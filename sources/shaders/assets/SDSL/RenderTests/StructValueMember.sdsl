@@ -1,0 +1,61 @@
+// PSMain(ExpectedResult=#336699FF, structuredbuffer.Entries="32: 0 0 0 0 0 0 0 0 0.2 0.4 0.6 1 0.5 0.25 2 4")
+
+namespace Stride.Shaders.Tests;
+
+// A member of a struct value (a method result, not a variable): the member is extracted from the value, as in DXC
+shader StructValueMember
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    struct Entry
+    {
+        float4 Color;
+        float2 Offset;
+        float2 Scale;
+    };
+
+    struct Inner
+    {
+        float2 Pair;
+        float Values[3];
+    };
+
+    struct Outer
+    {
+        Inner In;
+        float3x3 M;
+        float W;
+    };
+
+    StructuredBuffer<Entry> Entries;
+
+    Outer Make(float w)
+    {
+        Outer o;
+        o.In.Pair = float2(w, w * 2);
+        o.In.Values[0] = 1;
+        o.In.Values[1] = w + 1;
+        o.In.Values[2] = w + 2;
+        o.M = float3x3(1, 2, 3, 4, 5, 6, 7, 8, 9);
+        o.W = w;
+        return o;
+    }
+
+    Entry Get(uint index)
+    {
+        return Entries[index];
+    }
+
+    void PSMain()
+    {
+        // A member of a buffer element read with Load or returned by a method, then a swizzle of it
+        float4 color = Entries.Load(1).Color;
+        bool loaded = Entries.Load(1).Offset.y == 0.25 && all(Get(1).Color == color) && Get(1).Scale.x * Make(0.5).W == 1;
+
+        // Nested members, a swizzle, an array element (constant and dynamic index) and a matrix element of a returned struct
+        int i = 2;
+        bool nested = all(Make(3).In.Pair.yx == float2(6, 3)) && Make(3).In.Values[1] == 4 && Make(3).In.Values[i] == 5 && Make(3).M._m12 == 6;
+
+        streams.ColorTarget = loaded && nested ? color : float4(1, 0, 0, 1);
+    }
+};

@@ -1,0 +1,29 @@
+// PSMain(ExpectedResult=#336699FF, structuredbuffer.Bytes="4: 0 0.2 0.4 0.6", structuredbuffer.Scratch="4: 0 0 0")
+
+namespace Stride.Shaders.Tests;
+
+// Methods read and write the byte address buffers they are given
+shader BufferParameterByteAddress
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    ByteAddressBuffer Bytes;
+    RWByteAddressBuffer Scratch;
+
+    uint Read(ByteAddressBuffer source, uint index)
+    {
+        return source.Load(index * 4);
+    }
+
+    void Write(RWByteAddressBuffer target, uint index, uint value)
+    {
+        target.Store(index * 4, value);
+    }
+
+    void PSMain()
+    {
+        for (uint i = 0; i < 3; i++)
+            Write(Scratch, i, Read(Bytes, i + 1));
+        streams.ColorTarget = float4(asfloat(Scratch.Load(0)), asfloat(Scratch.Load(4)), asfloat(Scratch.Load(8)), 1);
+    }
+};

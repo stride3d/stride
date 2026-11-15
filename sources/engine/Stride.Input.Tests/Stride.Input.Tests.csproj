@@ -6,6 +6,7 @@
   <PropertyGroup>
     <AssemblyName>Stride.Input.Tests</AssemblyName>
     <RootNamespace>Stride.Input.Tests</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <EnableDefaultItems>false</EnableDefaultItems>
     <StrideCompileAssets>true</StrideCompileAssets>
     <StrideGraphicsRegression>true</StrideGraphicsRegression>
@@ -13,17 +14,34 @@
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
   </PropertyGroup>
     <ItemGroup>
-    <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
+    <ProjectReference Include="..\..\tests\Stride.XunitRunner\Stride.XunitRunner.csproj" />
     <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
-    <ProjectReference Include="..\Stride.UI\Stride.UI.csproj" />
+    <ProjectReference Include="..\..\plugins\UI\Stride.UI\Stride.UI.csproj" />
     <ProjectReference Include="..\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AdvancedInputTest.cs" />
+    <Compile Include="GCMeasurement.cs" />
+    <Compile Include="HeadlessInput.cs" />
+    <Compile Include="TestGCMeasurement.cs" />
+    <Compile Include="TestGamePadCapture.cs" />
+    <Compile Include="TestDeviceCaptureState.cs" />
+    <Compile Include="TestCapturePhase.cs" />
+    <Compile Include="TestButtonCaptureTracker.cs" />
+    <Compile Include="TestInputCapture.cs" />
+    <Compile Include="TestInputSettings.cs" />
+    <Compile Include="TestKeyboardCapture.cs" />
+    <Compile Include="TestPointerCapture.cs" />
+    <Compile Include="TestQueryMasking.cs" />
+    <Compile Include="ThirdPartyDevices.cs" />
+    <Compile Include="TestInputListeners.cs" />
+    <Compile Include="TestInputRoutingAllocation.cs" />
+    <Compile Include="TestTextInputStrings.cs" />
     <Compile Include="XunitAttributes.cs" />
     <Compile Include="InputTestBase.cs" />
     <Compile Include="SensorGameTest.cs" />
     <Compile Include="TestDirection.cs" />
+    <Compile Include="TestBackgroundInputFilter.cs" />
     <Compile Include="TestInput.cs" />
     <Compile Include="TestInputEvents.cs" />
   </ItemGroup>

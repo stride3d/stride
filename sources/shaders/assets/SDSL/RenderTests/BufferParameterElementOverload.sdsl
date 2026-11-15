@@ -1,0 +1,28 @@
+// PSMain(ExpectedResult=#336699FF, structuredbuffer.Pairs="8: 0.1 0.1 0.2 0.2", structuredbuffer.Colors="16: 0.1 0.1 0.1 0.1", structuredbuffer.Small="12: 0 0 0", structuredbuffer.Large="16: 0 0 0 0")
+
+namespace Stride.Shaders.Tests;
+
+// Overloads that differ only by the element type of a buffer parameter: each call takes the overload of its buffer
+shader BufferParameterElementOverload
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    StructuredBuffer<float2> Pairs;
+    StructuredBuffer<float4> Colors;
+    RWStructuredBuffer<float3> Small;
+    RWStructuredBuffer<float4> Large;
+
+    float Sum(StructuredBuffer<float2> source, uint index) { return source[index].x + source[index].y; }
+    float Sum(StructuredBuffer<float4> source, uint index) { return dot(source[index], 1); }
+
+    void Fill(RWStructuredBuffer<float3> target, float value) { target[0] = value; }
+    void Fill(RWStructuredBuffer<float4> target, float value) { target[0] = float4(value, value, value, 1); }
+
+    void PSMain()
+    {
+        // 0.2 from the float2 pair, 0.4 from the float4 color
+        Fill(Small, Sum(Pairs, 0));
+        Fill(Large, Sum(Colors, 0));
+        streams.ColorTarget = float4(Small[0].x, Large[0].y, Small[0].z + Large[0].z, Large[0].w);
+    }
+};

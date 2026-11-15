@@ -4,6 +4,7 @@ using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
 using Stride.Shaders.Spirv.Tools;
 using System.IO;
+using Stride.Shaders.Parsing;
 using Stride.Shaders.Parsing.Analysis;
 using static Stride.Shaders.Spirv.Specification;
 using System.Runtime.InteropServices;
@@ -133,6 +134,14 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
             return chain;
         }
 
+        /// <summary>
+        /// Whether a vertex shader can get this stream from outside: a vertex attribute or a vertex or instance index.
+        /// </summary>
+        static bool IsVertexInputSemantic(string? semantic) =>
+            semantic != null && (!semantic.StartsWith("SV_", StringComparison.OrdinalIgnoreCase)
+                || semantic.Equals("SV_VERTEXID", StringComparison.OrdinalIgnoreCase)
+                || semantic.Equals("SV_INSTANCEID", StringComparison.OrdinalIgnoreCase));
+
         public Result Process(SymbolTable table, SpirvBuffer buffer, SpirvContext context)
         {
             // OpEntryPoint emission is deferred to allow fixups (e.g. adding dummy DS inputs for HS-internal outputs)
@@ -155,7 +164,28 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
             VariableMerger.MergeSameSemanticVariables(table, context, buffer, analysisResult);
             var streams = analysisResult.Streams;
 
+            // Stages are processed from the last one back, so find now what the stages before each one access
+            var accessedBefore = new Dictionary<ExecutionModel, HashSet<int>>();
+            var accessed = new HashSet<int>();
+            var visited = new HashSet<int>();
+            foreach (var (model, stage) in new[] { (ExecutionModel.Vertex, entryPointVS), (ExecutionModel.TessellationControl, entryPointHS), (ExecutionModel.TessellationEvaluation, entryPointDS), (ExecutionModel.Geometry, entryPointGS), (ExecutionModel.Fragment, entryPointPS) })
+            {
+                accessedBefore[model] = [.. accessed];
+                if (stage != null)
+                    ReadWriteAnalyzer.CollectAccessedStreams(buffer, stage.IdRef, streams, visited, accessed);
+                if (model == ExecutionModel.TessellationControl && stage != null && ResolveHullPatchConstantEntryPoint(table, context, stage) is { } patchConstant)
+                    ReadWriteAnalyzer.CollectAccessedStreams(buffer, patchConstant.IdRef, streams, visited, accessed);
+            }
+
+            void SetProducers(ExecutionModel model)
+            {
+                foreach (var stream in streams)
+                    stream.Value.HasProducer = accessedBefore[model].Contains(stream.Key) || (model == ExecutionModel.Vertex && IsVertexInputSemantic(stream.Value.Semantic));
+            }
+
             var liveAnalysis = new LiveAnalysis();
+            if (entryPointCS == null)
+                SetProducers(ExecutionModel.Fragment);
             ReadWriteAnalyzer.AnalyzeStreamReadWrites(buffer, context, entryPointPSOrCS.IdRef, analysisResult, liveAnalysis);
 
             if (entryPointCS != null)
@@ -163,9 +193,11 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                 entryPoints.Add(GenerateStreamWrapper(table, buffer, context, ExecutionModel.GLCompute, entryPointCS, analysisResult, liveAnalysis, false));
             }
 
+            // The PrimitiveId builtin needs Tessellation or Geometry, also when only the pixel shader reads it
+            var psReadsPrimitiveId = entryPointCS == null && streams.Any(s => s.Value.Read && s.Value.Semantic?.ToUpperInvariant() == "SV_PRIMITIVEID");
             if (entryPointHS != null || entryPointDS != null)
                 context.Add(new OpCapability(Capability.Tessellation));
-            else if (entryPointGS != null)
+            else if (entryPointGS != null || psReadsPrimitiveId)
                 context.Add(new OpCapability(Capability.Geometry));
 
             var inputAttributes = new List<ShaderInputAttributeDescription>();
@@ -230,10 +262,15 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                 }
 
                 // Those semantic variables are implicit in pixel shader, no need to forward them from previous stages
+                // (SV_PrimitiveID too when there is no geometry shader, the only stage that can write it)
                 foreach (var stream in streams)
                 {
-                    if (stream.Value.Semantic is { } semantic && (semantic.ToUpperInvariant() == "SV_COVERAGE" || semantic.ToUpperInvariant() == "SV_ISFRONTFACE" || semantic.ToUpperInvariant() == "VFACE"))
+                    if (stream.Value.Semantic is { } semantic && (semantic.ToUpperInvariant() == "SV_COVERAGE" || semantic.ToUpperInvariant() == "SV_ISFRONTFACE" || semantic.ToUpperInvariant() == "VFACE"
+                        || (semantic.ToUpperInvariant() == "SV_PRIMITIVEID" && entryPointGS == null)))
+                    {
                         stream.Value.Read = false;
+                        stream.Value.MaybeRead = false;
+                    }
                 }
 
                 // Reset cbuffer/resource/methods used for next stage
@@ -249,7 +286,12 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                 {
                     if (entryPoint.Item2 != null)
                     {
+                        SetProducers(entryPoint.Item1);
                         ReadWriteAnalyzer.AnalyzeStreamReadWrites(buffer, context, entryPoint.Item2.IdRef, analysisResult, liveAnalysis);
+
+                        if (entryPoint.Item1 == ExecutionModel.Geometry
+                            && streams.Any(s => s.Value.Output && !s.Value.Write && s.Value.Semantic?.ToUpperInvariant() == "SV_PRIMITIVEID"))
+                            throw new InvalidOperationException($"{nameof(InterfaceProcessor)}: The pixel shader reads SV_PrimitiveID, so the geometry shader must write it");
 
                         // Find patch constant entry point and process
                         var patchConstantEntryPoint = entryPoint.Item1 == ExecutionModel.TessellationControl ? ResolveHullPatchConstantEntryPoint(table, context, entryPoint.Item2) : null;
@@ -314,6 +356,7 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
 
                 if (entryPointVS != null)
                 {
+                    SetProducers(ExecutionModel.Vertex);
                     ReadWriteAnalyzer.AnalyzeStreamReadWrites(buffer, context, entryPointVS.IdRef, analysisResult, liveAnalysis);
 
                     // If specific semantic are written to (i.e. SV_Position), they are expected at the end of vertex shader
@@ -339,11 +382,8 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                         {
                             if (stream.Value.Semantic == null)
                             {
-                                var readBy = stream.Value.ReadByMethod is { } m ? $" (read by '{m}')" : "";
-                                throw new InvalidOperationException(
-                                    $"Stream '{stream.Value.Name}'{readBy} is expected as a vertex shader input and is never written by any shader stage before being read. " +
-                                    $"Without a semantic it cannot be sourced from a vertex buffer, so it has to be produced by a shader: " +
-                                    $"write to streams.{stream.Value.Name} before reading it, or give it a semantic if it really is a vertex buffer input.");
+                                var readBy = stream.Value.ReadByMethod is { } m ? $" by {m}" : "";
+                                throw new InvalidOperationException(stream.Value.ReadAt + string.Format(SDSLErrorMessages.SDSL0194, stream.Value.Name, readBy));
                             }
                             var semantic = SemanticAnalyzer.ParseSemantic(stream.Value.Semantic);
                             inputAttributes.Add(new ShaderInputAttributeDescription { Location = inputLayoutLocation, SemanticName = semantic.Name, SemanticIndex = semantic.Index });
@@ -516,14 +556,18 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                 buffer, entryPoint, executionModel, analysisResult,
                 liveAnalysis, streamLayout, patchConstantEntryPoint);
 
+            // Copy every method of this stage before patching any: a patched call goes to the copy of its callee
+            foreach (var method in liveAnalysis.ReferencedMethods)
+            {
+                if (method.Value.UsedThisStage && method.Value.HasStreamAccess)
+                    MethodDuplicator.DuplicateMethodIfNecessary(buffer, context, method.Key, analysisResult, liveAnalysis, CodeInserted);
+            }
+
             // Patch any OpStreams/OpAccessChain to use the new struct
             foreach (var method in liveAnalysis.ReferencedMethods)
             {
                 if (method.Value.UsedThisStage && method.Value.HasStreamAccess)
-                {
-                    MethodDuplicator.DuplicateMethodIfNecessary(buffer, context, method.Key, analysisResult, liveAnalysis, CodeInserted);
                     StreamAccessPatcher.PatchStreamsAccesses(table, buffer, context, method.Key, streamsType, inputType, outputType, constantsType, streamsVariable.ResultId, analysisResult, liveAnalysis, CodeInserted);
-                }
             }
 
             // Move OpExecutionMode on new wrapper. The most derived declaration of each mode wins.

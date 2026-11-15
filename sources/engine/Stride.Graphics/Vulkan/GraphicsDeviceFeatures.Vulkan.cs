@@ -28,7 +28,7 @@ namespace Stride.Graphics
 
             // Set back the real GraphicsProfile that is used
             RequestedProfile = deviceRoot.RequestedProfile;
-            CurrentProfile = deviceRoot.RequestedProfile; // GraphicsProfileHelper.FromFeatureLevel(deviceRoot.CurrentFeatureLevel);
+            CurrentProfile = deviceRoot.RequestedProfile;
 
             HasComputeShaders = true;
             HasDoublePrecision = false;
@@ -51,6 +51,9 @@ namespace Stride.Graphics
 
             var physicalDevice = deviceRoot.NativePhysicalDevice;
             var instanceApi = deviceRoot.NativeInstanceApi;
+
+            // The GPU level, for the log; BindlessTier is what the backend uses
+            GpuBindless = GetVulkanBindlessSupport(QueryDescriptorIndexingSupport(instanceApi, physicalDevice));
 
             for (int i = 0; i < mapFeaturesPerFormat.Length; i++)
             {
@@ -79,6 +82,29 @@ namespace Stride.Graphics
             //    //mapFeaturesPerFormat[(int)dxgiFormat] = new FeaturesPerFormat((PixelFormat)dxgiFormat, maximumMultisampleCount, computeShaderFormatSupport, formatSupport);
             //    mapFeaturesPerFormat[(int)dxgiFormat] = new FeaturesPerFormat((PixelFormat)dxgiFormat, maximumMultisampleCount, formatSupport);
             //}
+        }
+
+        private static unsafe VulkanDescriptorIndexingSupport QueryDescriptorIndexingSupport(VkInstanceApi instanceApi, VkPhysicalDevice physicalDevice)
+        {
+            var vulkan12Features = new VkPhysicalDeviceVulkan12Features { sType = VkStructureType.PhysicalDeviceVulkan12Features };
+            var features2 = new VkPhysicalDeviceFeatures2 { sType = VkStructureType.PhysicalDeviceFeatures2, pNext = &vulkan12Features };
+            instanceApi.vkGetPhysicalDeviceFeatures2(physicalDevice, &features2);
+
+            var vulkan12Properties = new VkPhysicalDeviceVulkan12Properties { sType = VkStructureType.PhysicalDeviceVulkan12Properties };
+            var properties2 = new VkPhysicalDeviceProperties2 { sType = VkStructureType.PhysicalDeviceProperties2, pNext = &vulkan12Properties };
+            instanceApi.vkGetPhysicalDeviceProperties2(physicalDevice, &properties2);
+
+            return new VulkanDescriptorIndexingSupport(
+                features2.features.shaderSampledImageArrayDynamicIndexing,
+                vulkan12Features.runtimeDescriptorArray,
+                vulkan12Features.descriptorBindingPartiallyBound,
+                vulkan12Features.descriptorBindingVariableDescriptorCount,
+                vulkan12Features.descriptorBindingSampledImageUpdateAfterBind,
+                vulkan12Features.descriptorBindingUpdateUnusedWhilePending,
+                vulkan12Features.shaderSampledImageArrayNonUniformIndexing,
+                vulkan12Properties.maxPerStageDescriptorUpdateAfterBindSampledImages,
+                vulkan12Properties.maxDescriptorSetUpdateAfterBindSampledImages,
+                vulkan12Properties.maxPerStageUpdateAfterBindResources);
         }
 
         private static FormatSupport GetFormatSupport(VkInstanceApi instanceApi, VkPhysicalDevice physicalDevice, PixelFormat pixelFormat)

@@ -89,7 +89,7 @@ public class NodeContainer : INodeContainer
     }
 
     /// <summary>
-    /// Gets the <see cref="IGraphNode"/> associated to a data object, if it exists. If the NodeContainer has been constructed without <see cref="IGuidContainer"/>, this method will throw an exception.
+    /// Gets the <see cref="IGraphNode"/> associated with a data object, if it exists.
     /// </summary>
     /// <param name="rootObject">The data object.</param>
     /// <returns>The <see cref="IGraphNode"/> associated to the given object if available, or <c>null</c> otherwise.</returns>
@@ -150,10 +150,10 @@ public class NodeContainer : INodeContainer
 
         lock (lockObject)
         {
-            if (processedNodes.Value.Contains(node))
+            if (processedNodes.Value!.Contains(node))
                 return;
 
-            processedNodes.Value.Add(node);
+            processedNodes.Value!.Add(node);
 
             // If the node was holding a reference, refresh the reference
             if (node.IsReference)

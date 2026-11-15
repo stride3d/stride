@@ -3,7 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using Stride.Core.Collections;
+using Stride.Core.Extensions;
 using Stride.Core.Threading;
 using Stride.Engine;
 using Stride.Games;
@@ -14,6 +16,8 @@ namespace Stride.Animations
     public class AnimationProcessor : EntityProcessor<AnimationComponent, AnimationProcessor.AssociatedData>
     {
         private readonly ConcurrentPool<List<AnimationOperation>> animationOperationPool = new ConcurrentPool<List<AnimationOperation>>(() => []);
+        // ComponentDatas in a list, so that Draw can split it into batches
+        private readonly List<AssociatedData> associatedDataList = new();
 
         public AnimationProcessor()
         {
@@ -36,10 +40,13 @@ namespace Stride.Animations
         protected override void OnEntityComponentAdding(Entity entity, AnimationComponent component, AssociatedData data)
         {
             data.AnimationUpdater = new AnimationUpdater();
+            associatedDataList.Add(data);
         }
 
         protected override void OnEntityComponentRemoved(Entity entity, AnimationComponent component, AssociatedData data)
         {
+            associatedDataList.SwapRemove(data);
+
             // Return AnimationClipEvaluators to pool
             foreach (var playingAnimation in data.AnimationComponent.PlayingAnimations)
             {
@@ -60,11 +67,32 @@ namespace Stride.Animations
         {
             var time = context.Time;
 
-            //foreach (var entity in ComponentDatas.Values)
-            Dispatcher.ForEach(ComponentDatas, () => animationOperationPool.Acquire(), (entity, animationOperations) =>
-            {
-                var associatedData = entity.Value;
+            Dispatcher.ForBatched(associatedDataList.Count, new UpdateAnimationJob { Processor = this, Elapsed = time.WarpElapsed });
+        }
 
+        private readonly struct UpdateAnimationJob : Dispatcher.IBatchJob
+        {
+            public required AnimationProcessor Processor { get; init; }
+            public required TimeSpan Elapsed { get; init; }
+
+            public void Process(int start, int endExclusive)
+            {
+                var animationOperations = Processor.animationOperationPool.Acquire();
+                try
+                {
+                    foreach (var associatedData in CollectionsMarshal.AsSpan(Processor.associatedDataList)[start..endExclusive])
+                    {
+                        ProcessEntity(associatedData, animationOperations);
+                    }
+                }
+                finally
+                {
+                    Processor.animationOperationPool.Release(animationOperations);
+                }
+            }
+
+            private void ProcessEntity(AssociatedData associatedData, List<AnimationOperation> animationOperations)
+            {
                 var animationUpdater = associatedData.AnimationUpdater;
                 var animationComponent = associatedData.AnimationComponent;
 
@@ -84,7 +112,7 @@ namespace Stride.Animations
                         {
                             case AnimationRepeatMode.PlayOnceHold:
                             case AnimationRepeatMode.PlayOnce:
-                                playingAnimation.CurrentTime = TimeSpan.FromTicks(playingAnimation.CurrentTime.Ticks + (long)(time.WarpElapsed.Ticks * (double)playingAnimation.TimeFactor));
+                                playingAnimation.CurrentTime = TimeSpan.FromTicks(playingAnimation.CurrentTime.Ticks + (long)(Elapsed.Ticks * (double)playingAnimation.TimeFactor));
                                 if (playingAnimation.CurrentTime > playingAnimation.Clip.Duration)
                                     playingAnimation.CurrentTime = playingAnimation.Clip.Duration;
                                 else if (playingAnimation.CurrentTime < TimeSpan.Zero)
@@ -94,7 +122,7 @@ namespace Stride.Animations
                                 playingAnimation.CurrentTime = playingAnimation.Clip.Duration == TimeSpan.Zero
                                     ? TimeSpan.Zero
                                     : TimeSpan.FromTicks((playingAnimation.CurrentTime.Ticks + playingAnimation.Clip.Duration.Ticks
-                                        + (long)(time.WarpElapsed.Ticks * (double)playingAnimation.TimeFactor)) % playingAnimation.Clip.Duration.Ticks);
+                                        + (long)(Elapsed.Ticks * (double)playingAnimation.TimeFactor)) % playingAnimation.Clip.Duration.Ticks);
                                 break;
                             default:
                                 throw new ArgumentOutOfRangeException();
@@ -158,8 +186,8 @@ namespace Stride.Animations
                         if (playingAnimation.CrossfadeRemainingTime > TimeSpan.Zero)
                         {
                             playingAnimation.Weight += (playingAnimation.WeightTarget - playingAnimation.Weight)
-                                                       * ((float)time.WarpElapsed.Ticks / playingAnimation.CrossfadeRemainingTime.Ticks);
-                            playingAnimation.CrossfadeRemainingTime -= time.WarpElapsed;
+                                                       * ((float)Elapsed.Ticks / playingAnimation.CrossfadeRemainingTime.Ticks);
+                            playingAnimation.CrossfadeRemainingTime -= Elapsed;
                             if (playingAnimation.CrossfadeRemainingTime <= TimeSpan.Zero)
                             {
                                 playingAnimation.Weight = playingAnimation.WeightTarget;
@@ -185,10 +213,10 @@ namespace Stride.Animations
                 }
 
                 animationOperations.Clear();
-            }, animationOperations => animationOperationPool.Release(animationOperations));
+            }
         }
 
-        private AnimationOperation CreatePushOperation(PlayingAnimation playingAnimation)
+        private static AnimationOperation CreatePushOperation(PlayingAnimation playingAnimation)
         {
             return AnimationOperation.NewPush(playingAnimation.Evaluator, playingAnimation.CurrentTime);
         }

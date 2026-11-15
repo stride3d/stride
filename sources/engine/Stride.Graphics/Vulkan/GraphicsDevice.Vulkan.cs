@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Stride.Core;
@@ -26,6 +27,8 @@ namespace Stride.Graphics
 
         internal readonly ConcurrentPool<List<VkDescriptorPool>> DescriptorPoolLists = new ConcurrentPool<List<VkDescriptorPool>>(() => new List<VkDescriptorPool>());
         internal readonly ConcurrentPool<List<GraphicsResource>> StagingResourceLists = new ConcurrentPool<List<GraphicsResource>>(() => new List<GraphicsResource>());
+        internal readonly ConcurrentPool<List<QueryPool>> QueryPoolLists = new ConcurrentPool<List<QueryPool>>(() => new List<QueryPool>());
+        internal readonly ConcurrentPool<List<RecordedTransition>> RecordedTransitionLists = new ConcurrentPool<List<RecordedTransition>>(() => new List<RecordedTransition>());
 
         private const GraphicsPlatform GraphicPlatform = GraphicsPlatform.Vulkan;
         internal GraphicsProfile RequestedProfile;
@@ -47,10 +50,26 @@ namespace Stride.Graphics
 
         private VkDevice nativeDevice;
         private VkDeviceApi nativeDeviceApi;
+
+        /// <summary>
+        ///   The pipeline cache every pipeline of the device is built through; <see cref="MergePipelineCache"/> adds
+        ///   the pipelines of an earlier run to it.
+        /// </summary>
+        internal VkPipelineCache NativePipelineCache;
         internal VkQueue NativeCommandQueue;
+
+        /// <summary>
+        ///   Whether the device can export memory and semaphores as POSIX file descriptors (<see cref="ExportableTexture"/>).
+        /// </summary>
+        internal bool HasExternalObjectsSupport;
         internal object QueueLock = new object();
 
         internal ThreadLocal<CommandBufferPool> NativeCopyCommandPools;
+
+        // Command buffers that move subresources into the layouts the next command buffer assumed (see SubmittedLayoutReplay)
+        private CommandBufferPool layoutCorrectionCommandBuffers;
+        private readonly List<RecordedTransition> layoutCorrections = new();
+        private readonly List<VkImageMemoryBarrier2> layoutCorrectionBarriers = new();
         private NativeResourceCollector nativeResourceCollector;
         private GraphicsResourceLinkCollector graphicsResourceLinkCollector;
 
@@ -194,7 +213,45 @@ namespace Stride.Graphics
 #endif
 
         /// <summary>
-        ///   Builds a <see cref="VkSemaphoreSubmitInfo"/> for a <see cref="vkQueueSubmit2"/> wait or signal.
+        /// Whether <c>scalarBlockLayout</c> is enabled: needed by shaders whose structured buffers use Direct3D's tight layout
+        /// (the shader compiler marks them, see <see cref="TightStructuredBuffers"/>).
+        /// </summary>
+        internal bool SupportsScalarBlockLayout { get; private set; }
+
+        /// <summary>
+        /// The text of the <c>OpSourceExtension</c> the shader compiler writes in a module whose structured buffers use Direct3D's tight
+        /// layout, followed by their names (same text as <c>SpirvTools.TightStructuredBufferMarker</c>).
+        /// </summary>
+        internal const string TightStructuredBufferMarker = "Stride.TightStructuredBuffers:";
+
+        /// <summary>
+        /// The structured buffers of a SPIR-V module that use Direct3D's tight layout, or null.
+        /// </summary>
+        internal static string TightStructuredBuffers(ReadOnlySpan<byte> spirv)
+        {
+            const int opSourceExtension = 4, opFunction = 54;
+            var words = MemoryMarshal.Cast<byte, uint>(spirv);
+            for (var i = 5; i < words.Length;)
+            {
+                var op = words[i] & 0xFFFF;
+                var wordCount = (int)(words[i] >> 16);
+                if (wordCount == 0 || op == opFunction || i + wordCount > words.Length)
+                    break;
+                if (op == opSourceExtension)
+                {
+                    var text = MemoryMarshal.AsBytes(words.Slice(i + 1, wordCount - 1));
+                    var length = text.IndexOf((byte)0);
+                    var extension = System.Text.Encoding.UTF8.GetString(length >= 0 ? text[..length] : text);
+                    if (extension.StartsWith(TightStructuredBufferMarker, StringComparison.Ordinal))
+                        return extension[TightStructuredBufferMarker.Length..].Trim();
+                }
+                i += wordCount;
+            }
+            return null;
+        }
+
+        /// <summary>
+        ///   Builds a <see cref="VkSemaphoreSubmitInfo"/> for a <see cref="VkDeviceApi.vkQueueSubmit2"/> wait or signal.
         /// </summary>
         internal static VkSemaphoreSubmitInfo SemaphoreSubmit(VkSemaphore semaphore, ulong value = 0) => new()
         {
@@ -205,7 +262,7 @@ namespace Stride.Graphics
         };
 
         /// <summary>
-        ///   Builds a <see cref="VkCommandBufferSubmitInfo"/> for a <see cref="vkQueueSubmit2"/>.
+        ///   Builds a <see cref="VkCommandBufferSubmitInfo"/> for a <see cref="VkDeviceApi.vkQueueSubmit2"/> call.
         /// </summary>
         internal static VkCommandBufferSubmitInfo CommandBufferSubmit(VkCommandBuffer commandBuffer) => new()
         {
@@ -279,15 +336,23 @@ namespace Stride.Graphics
             if (commandLists == null) throw new ArgumentNullException(nameof(commandLists));
             if (count > commandLists.Length) throw new ArgumentOutOfRangeException(nameof(count));
 
-            var commandBufferInfos = stackalloc VkCommandBufferSubmitInfo[count];
-            for (int i = 0; i < count; i++)
-                commandBufferInfos[i] = CommandBufferSubmit(commandLists[i].NativeCommandBuffer);
+            // Each command list may be preceded by the barriers that bring what it assumed into place
+            var commandBufferInfos = stackalloc VkCommandBufferSubmitInfo[count * 2];
+            var commandBufferCount = 0;
 
             ulong nextCommandListFenceValue;
             lock (QueueLock)
             {
                 var commandListFenceValue = CommandListFence.NextFenceValue++;
                 nextCommandListFenceValue = commandListFenceValue + 1;
+
+                for (int i = 0; i < count; i++)
+                {
+                    if (CorrectAssumedLayouts(commandLists[i].RecordedTransitions, nextCommandListFenceValue) is { } correction)
+                        commandBufferInfos[commandBufferCount++] = CommandBufferSubmit(correction);
+                    commandBufferInfos[commandBufferCount++] = CommandBufferSubmit(commandLists[i].NativeCommandBuffer);
+                }
+
                 // Make sure all copies are done as well
                 var copyFenceValue = CopyFence.NextFenceValue;
 
@@ -307,7 +372,7 @@ namespace Stride.Graphics
                 var submitInfo = new VkSubmitInfo2
                 {
                     sType = VkStructureType.SubmitInfo2,
-                    commandBufferInfoCount = (uint)count,
+                    commandBufferInfoCount = (uint)commandBufferCount,
                     pCommandBufferInfos = commandBufferInfos,
                     waitSemaphoreInfoCount = (uint)waitSemaphoreCount,
                     pWaitSemaphoreInfos = &waitInfos[0],
@@ -386,6 +451,9 @@ namespace Stride.Graphics
         {
             rendererName = Adapter.Description;
 
+            if (PipelineBarriers.UseLegacyBarriers)
+                Log.Info("Vulkan: Android emulator driver (gfxstream), barriers are recorded with vkCmdPipelineBarrier (its vkCmdPipelineBarrier2 leaves emulated ETC2 / ASTC textures compressed)");
+
             NativeInstanceApi.vkGetPhysicalDeviceProperties(NativePhysicalDevice, out var physicalDeviceProperties);
             ConstantBufferDataPlacementAlignment = (int)physicalDeviceProperties.limits.minUniformBufferOffsetAlignment;
             TimestampFrequency = (long)(1.0e9 / physicalDeviceProperties.limits.timestampPeriod); // Resolution in nanoseconds
@@ -437,17 +505,22 @@ namespace Stride.Graphics
                 shaderCullDistance = deviceFeatures.shaderCullDistance,
                 samplerAnisotropy = deviceFeatures.samplerAnisotropy,
                 depthClamp = deviceFeatures.depthClamp,
-                tessellationShader = RequestedProfile >= GraphicsProfile.Level_11_0 && deviceFeatures.tessellationShader,
+                tessellationShader = deviceFeatures.tessellationShader,
                 shaderStorageImageReadWithoutFormat = deviceFeatures.shaderStorageImageReadWithoutFormat,
                 shaderStorageImageWriteWithoutFormat = deviceFeatures.shaderStorageImageWriteWithoutFormat,
                 geometryShader = deviceFeatures.geometryShader,
                 fragmentStoresAndAtomics = deviceFeatures.fragmentStoresAndAtomics,
+                // Indirect draw arguments with a non-zero start instance
+                drawIndirectFirstInstance = deviceFeatures.drawIndirectFirstInstance,
             };
 
             Span<VkUtf8String> supportedExtensionProperties = stackalloc VkUtf8String[]
             {
                 VK_KHR_SWAPCHAIN_EXTENSION_NAME,
                 VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME,
+                // Textures shared with another device or API (ExportableTexture, opt-in)
+                VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME,
+                VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME,
 #if STRIDE_PLATFORM_IOS || STRIDE_PLATFORM_MACOS
                 // IOSurface-backed VkImage import (zero-copy CVPixelBuffer upload on Apple platforms).
                 VK_EXT_METAL_OBJECTS_EXTENSION_NAME,
@@ -472,9 +545,8 @@ namespace Stride.Graphics
             if (availableExtensionProperties.Contains(VK_KHR_SWAPCHAIN_EXTENSION_NAME))
                 desiredExtensionProperties.Add(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
-            // Stride uses Vulkan 1.3 core features and entry points
-            if (Adapter.NativeApiVersion < VkVersion.Version_1_3)
-                throw new NotSupportedException($"Vulkan: Device supports only Vulkan {Adapter.DriverInfo.ApiVersion}, but Stride requires Vulkan 1.3.");
+            if (Adapter.UnsupportedReason is { } unsupportedReason)
+                throw new NotSupportedException($"Vulkan: {Adapter.Description} can't be used: {unsupportedReason}");
 
             // Vulkan portability spec: if VK_KHR_portability_subset is advertised, the app MUST enable it.
             // MoltenVK is the only ICD that advertises it; conformant drivers do not.
@@ -512,6 +584,17 @@ namespace Stride.Graphics
             }
 #endif
 
+            // Only a host that opts in gets the extensions: the runtime's devices stay as they were
+            HasExternalObjectsSupport = ExportableTexture.EnableExternalObjects
+                && availableExtensionProperties.Contains(VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME)
+                && availableExtensionProperties.Contains(VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME)
+                && CanExportOpaqueFileDescriptors();
+            if (HasExternalObjectsSupport)
+            {
+                desiredExtensionProperties.Add(VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME);
+                desiredExtensionProperties.Add(VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME);
+            }
+
             // Profiling labels travel through VK_EXT_debug_utils (instance-level, enabled at factory init).
             // Replaces the deprecated VK_EXT_debug_marker which required a separate device extension and
             // a VK_EXT_debug_report dependency to satisfy validation.
@@ -548,14 +631,6 @@ namespace Stride.Graphics
             };
             NativeInstanceApi.vkGetPhysicalDeviceFeatures2(NativePhysicalDevice, &physicalDeviceFeatures2);
 
-            if (!supportedVulkan12Features.timelineSemaphore)
-                throw new InvalidOperationException("Vulkan: Timeline semaphores are not supported by this device, but are required by Stride.");
-
-            // Dynamic rendering is required: the backend renders with vkCmdBeginRendering and
-            // creates no render pass objects. Synchronization2 is required for vkQueueSubmit2.
-            if (!supportedVulkan13Features.dynamicRendering || !supportedVulkan13Features.synchronization2)
-                throw new NotSupportedException("Vulkan: Dynamic rendering and synchronization2 are not supported by this device, but are required by Stride.");
-
             var enabledVulkan13Features = new VkPhysicalDeviceVulkan13Features
             {
                 sType = VkStructureType.PhysicalDeviceVulkan13Features,
@@ -570,7 +645,10 @@ namespace Stride.Graphics
                 uniformBufferStandardLayout = VkBool32.True,
                 // FP16 in shaders (SPIR-V Float16 capability) — required by some HLSL→SPIR-V output.
                 shaderFloat16 = supportedVulkan12Features.shaderFloat16,
+                // Structured buffers in Direct3D's tight layout (float3 elements...): see SupportsScalarBlockLayout
+                scalarBlockLayout = supportedVulkan12Features.scalarBlockLayout,
             };
+            SupportsScalarBlockLayout = supportedVulkan12Features.scalarBlockLayout;
             var enabledVulkan11Features = new VkPhysicalDeviceVulkan11Features
             {
                 sType = VkStructureType.PhysicalDeviceVulkan11Features,
@@ -605,9 +683,13 @@ namespace Stride.Graphics
 
             nativeDeviceApi = new VkDeviceApi(NativeInstanceApi, in nativeDevice);
 
+            var pipelineCacheCreateInfo = new VkPipelineCacheCreateInfo { sType = VkStructureType.PipelineCacheCreateInfo };
+            CheckResult(NativeDeviceApi.vkCreatePipelineCache(nativeDevice, &pipelineCacheCreateInfo, null, out NativePipelineCache));
+
             NativeDeviceApi.vkGetDeviceQueue(nativeDevice, 0, 0, out NativeCommandQueue);
 
             NativeCopyCommandPools = new(() => new CommandBufferPool(this, false), true);
+            layoutCorrectionCommandBuffers = new CommandBufferPool(this, false);
 
             DescriptorPools = new HeapPool(this, true);
 
@@ -772,6 +854,50 @@ namespace Stride.Graphics
         }
 
         /// <summary>
+        ///   Whether the physical device can export the memory of a color image and binary semaphores as opaque
+        ///   POSIX file descriptors, which <see cref="ExportableTexture"/> needs. Some drivers advertise the
+        ///   extensions without supporting that handle type (Lavapipe, for semaphores).
+        /// </summary>
+        private unsafe bool CanExportOpaqueFileDescriptors()
+        {
+            var semaphoreInfo = new VkPhysicalDeviceExternalSemaphoreInfo
+            {
+                sType = VkStructureType.PhysicalDeviceExternalSemaphoreInfo,
+                handleType = VkExternalSemaphoreHandleTypeFlags.OpaqueFD,
+            };
+            var semaphoreProperties = new VkExternalSemaphoreProperties { sType = VkStructureType.ExternalSemaphoreProperties };
+            NativeInstanceApi.vkGetPhysicalDeviceExternalSemaphoreProperties(NativePhysicalDevice, &semaphoreInfo, &semaphoreProperties);
+            if ((semaphoreProperties.externalSemaphoreFeatures & VkExternalSemaphoreFeatureFlags.Exportable) == 0)
+                return false;
+
+            // The same image as ExportableTexture.Create makes
+            var externalImageInfo = new VkPhysicalDeviceExternalImageFormatInfo
+            {
+                sType = VkStructureType.PhysicalDeviceExternalImageFormatInfo,
+                handleType = VkExternalMemoryHandleTypeFlags.OpaqueFD,
+            };
+            var imageInfo = new VkPhysicalDeviceImageFormatInfo2
+            {
+                sType = VkStructureType.PhysicalDeviceImageFormatInfo2,
+                pNext = &externalImageInfo,
+                format = VkFormat.R8G8B8A8Unorm,
+                type = VkImageType.Image2D,
+                tiling = VkImageTiling.Optimal,
+                usage = VkImageUsageFlags.ColorAttachment | VkImageUsageFlags.Sampled | VkImageUsageFlags.TransferSrc | VkImageUsageFlags.TransferDst,
+                flags = VkImageCreateFlags.MutableFormat,
+            };
+            var externalImageProperties = new VkExternalImageFormatProperties { sType = VkStructureType.ExternalImageFormatProperties };
+            var imageProperties = new VkImageFormatProperties2
+            {
+                sType = VkStructureType.ImageFormatProperties2,
+                pNext = &externalImageProperties,
+            };
+            if (NativeInstanceApi.vkGetPhysicalDeviceImageFormatProperties2(NativePhysicalDevice, &imageInfo, &imageProperties) != VkResult.Success)
+                return false;
+            return (externalImageProperties.externalMemoryProperties.externalMemoryFeatures & VkExternalMemoryFeatureFlags.Exportable) != 0;
+        }
+
+        /// <summary>
         ///   Waits for the device to be idle. A lost device is idle too: its resources can be torn down.
         /// </summary>
         internal void WaitIdle()
@@ -820,11 +946,91 @@ namespace Stride.Graphics
             CopyFence.Dispose();
             CommandListFence.Dispose();
 
+            layoutCorrectionCommandBuffers.Dispose();
+            layoutCorrectionCommandBuffers = null;
             foreach (var nativeCopyCommandPool in NativeCopyCommandPools.Values)
                 nativeCopyCommandPool.Dispose();
             NativeCopyCommandPools.Dispose();
             NativeCopyCommandPools = null;
+
+            if (NativePipelineCache != VkPipelineCache.Null)
+            {
+                NativeDeviceApi.vkDestroyPipelineCache(nativeDevice, NativePipelineCache, null);
+                NativePipelineCache = VkPipelineCache.Null;
+            }
+
             NativeDeviceApi.vkDestroyDevice(nativeDevice, null);
+        }
+
+        partial void MergePipelineCachePlatform(ReadOnlySpan<byte> driverData, ref bool merged)
+        {
+            // Nothing to merge into once the device is released
+            if (NativePipelineCache == VkPipelineCache.Null)
+                return;
+
+            // The blob's header names the device and the driver it is for; another's is undefined behaviour to give the
+            // driver (VUID-VkPipelineCacheCreateInfo-initialDataSize-00769), and the validation layers cannot check it
+            if (!IsPipelineCacheOfThisDevice(driverData))
+                return;
+
+            unsafe
+            {
+                fixed (byte* dataPointer = driverData)
+                {
+                    var createInfo = new VkPipelineCacheCreateInfo
+                    {
+                        sType = VkStructureType.PipelineCacheCreateInfo,
+                        initialDataSize = (nuint)driverData.Length,
+                        pInitialData = dataPointer,
+                    };
+                    if (NativeDeviceApi.vkCreatePipelineCache(NativeDevice, &createInfo, null, out var earlierRun) != VkResult.Success)
+                        return;
+
+                    // The caller holds the lock pipelines are built under, which vkMergePipelineCaches requires of dstCache
+                    merged = NativeDeviceApi.vkMergePipelineCaches(NativeDevice, NativePipelineCache, 1, &earlierRun) == VkResult.Success;
+                    NativeDeviceApi.vkDestroyPipelineCache(NativeDevice, earlierRun, null);
+                }
+            }
+        }
+
+        private unsafe bool IsPipelineCacheOfThisDevice(ReadOnlySpan<byte> driverData)
+        {
+            if (driverData.Length < sizeof(VkPipelineCacheHeaderVersionOne))
+                return false;
+
+            var header = MemoryMarshal.Read<VkPipelineCacheHeaderVersionOne>(driverData);
+            if (header.headerVersion != VkPipelineCacheHeaderVersion.One || header.headerSize != sizeof(VkPipelineCacheHeaderVersionOne))
+                return false;
+
+            var driverInfo = Adapter.DriverInfo;
+            return header.vendorID == driverInfo.VendorId
+                && header.deviceID == driverInfo.DeviceId
+                && new Guid(new ReadOnlySpan<byte>(header.pipelineCacheUUID, 16), bigEndian: true) == driverInfo.PipelineCacheUuid;
+        }
+
+        partial void GetPipelineCacheDataPlatform(ref byte[] driverData)
+        {
+            if (NativePipelineCache == VkPipelineCache.Null)
+                return;
+
+            unsafe
+            {
+                // The caller holds the lock pipelines are built under, so the size holds between the two calls
+                ulong size = 0;
+                if (NativeDeviceApi.vkGetPipelineCacheData(NativeDevice, NativePipelineCache, &size, null) != VkResult.Success || size == 0)
+                    return;
+
+                var data = new byte[size];
+                fixed (byte* dataPointer = data)
+                {
+                    if (NativeDeviceApi.vkGetPipelineCacheData(NativeDevice, NativePipelineCache, &size, dataPointer) != VkResult.Success)
+                        return;
+                }
+
+                if (size < (ulong)data.Length)
+                    Array.Resize(ref data, (int)size);
+                driverData = data;
+            }
         }
 
         internal unsafe ulong ExecuteCommandListInternal(CompiledCommandList commandList)
@@ -857,14 +1063,18 @@ namespace Stride.Graphics
                 // Remember that we waited
                 LastGPUSyncCopyFenceToCommandFence = copyFenceValue;
 
-                // Submit commands
-                var commandBufferInfo = CommandBufferSubmit(commandList.NativeCommandBuffer);
+                // Submit commands, after the barriers that bring what it assumed into place
+                var commandBufferInfos = stackalloc VkCommandBufferSubmitInfo[2];
+                var commandBufferCount = 0;
+                if (CorrectAssumedLayouts(commandList.RecordedTransitions, nextCommandListFenceValue) is { } correction)
+                    commandBufferInfos[commandBufferCount++] = CommandBufferSubmit(correction);
+                commandBufferInfos[commandBufferCount++] = CommandBufferSubmit(commandList.NativeCommandBuffer);
                 var signalInfo = SemaphoreSubmit(CommandListFence.Semaphore, nextCommandListFenceValue);
                 var submitInfo = new VkSubmitInfo2
                 {
                     sType = VkStructureType.SubmitInfo2,
-                    commandBufferInfoCount = 1,
-                    pCommandBufferInfos = &commandBufferInfo,
+                    commandBufferInfoCount = (uint)commandBufferCount,
+                    pCommandBufferInfos = commandBufferInfos,
                     waitSemaphoreInfoCount = (uint)waitSemaphoreCount,
                     pWaitSemaphoreInfos = &waitInfos[0],
                     signalSemaphoreInfoCount = 1,
@@ -883,6 +1093,35 @@ namespace Stride.Graphics
             return nextCommandListFenceValue;
         }
 
+        /// <summary>
+        ///   Replays the layout changes a command list recorded on the layouts the earlier submissions left (see
+        ///   <see cref="SubmittedLayoutReplay"/>), and records the barriers it needs before it. Called under <see cref="QueueLock"/>.
+        /// </summary>
+        /// <returns>A command buffer to submit just before the command list, or <see langword="null"/> if it needs none.</returns>
+        private unsafe VkCommandBuffer? CorrectAssumedLayouts(List<RecordedTransition> recordedTransitions, ulong fenceValue)
+        {
+            layoutCorrections.Clear();
+            SubmittedLayoutReplay.Replay(recordedTransitions, layoutCorrections);
+
+            layoutCorrectionBarriers.Clear();
+            foreach (var correction in layoutCorrections)
+            {
+                var texture = (Texture) correction.Resource;
+                if (texture.NativeImage != VkImage.Null)
+                    layoutCorrectionBarriers.Add(CommandList.ImageBarrier(texture, correction.Subresource, correction.LayoutBefore, correction.LayoutAfter));
+            }
+            if (layoutCorrectionBarriers.Count == 0)
+                return null;
+
+            var commandBuffer = layoutCorrectionCommandBuffers.GetObject(CommandListFence.GetCompletedValue());
+            var beginInfo = new VkCommandBufferBeginInfo { sType = VkStructureType.CommandBufferBeginInfo, flags = VkCommandBufferUsageFlags.OneTimeSubmit };
+            CheckResult(NativeDeviceApi.vkBeginCommandBuffer(commandBuffer, &beginInfo));
+            PipelineBarriers.Record(NativeDeviceApi, commandBuffer, imageBarriers: CollectionsMarshal.AsSpan(layoutCorrectionBarriers));
+            CheckResult(NativeDeviceApi.vkEndCommandBuffer(commandBuffer));
+            layoutCorrectionCommandBuffers.RecycleObject(fenceValue, commandBuffer);
+            return commandBuffer;
+        }
+
         private void RecycleCommandListResources(CompiledCommandList commandList, ulong commandListFenceValue)
         {
             // Set fence on staging textures
@@ -894,6 +1133,15 @@ namespace Stride.Graphics
             StagingResourceLists.Release(commandList.StagingResources);
             commandList.StagingResources.Clear();
 
+            // Query pools can be read back once this submission has run
+            foreach (var queryPool in commandList.QueryPools)
+            {
+                queryPool.CommandListFenceValue = commandListFenceValue;
+                queryPool.UpdatingCommandList = null;
+            }
+            commandList.QueryPools.Clear();
+            QueryPoolLists.Release(commandList.QueryPools);
+
             // Recycle all resources
             foreach (var descriptorPool in commandList.DescriptorPools)
             {
@@ -901,6 +1149,10 @@ namespace Stride.Graphics
             }
             DescriptorPoolLists.Release(commandList.DescriptorPools);
             commandList.DescriptorPools.Clear();
+
+            // CPU-side only, and already replayed at submission: unlike the GPU resources above, they need no fence
+            commandList.RecordedTransitions.Clear();
+            RecordedTransitionLists.Release(commandList.RecordedTransitions);
 
             commandList.Builder.CommandBufferPool.RecycleObject(commandListFenceValue, commandList.NativeCommandBuffer);
         }

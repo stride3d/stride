@@ -10,8 +10,39 @@ namespace Stride.Graphics
     {
         internal VkQueryPool NativeQueryPool;
 
+        /// <summary>
+        ///   Whether the queries must be reset before the next write: Vulkan queries are reset after the pool is created
+        ///   and between uses. The Command List records the reset at the first write (see <see cref="CommandList.WriteTimestamp"/>).
+        /// </summary>
+        internal bool NeedsReset;
+
+        /// <summary>
+        ///   The Command List that writes queries of this pool, until it is submitted.
+        /// </summary>
+        internal CommandList UpdatingCommandList;
+
+        /// <summary>
+        ///   The fence value of the last submitted Command List that writes queries of this pool.
+        /// </summary>
+        internal ulong? CommandListFenceValue;
+
+        /// <summary>
+        ///   Attempts to retrieve the data of all the queries in the pool. Every query must have been written.
+        /// </summary>
+        /// <param name="dataArray">
+        ///   An array of <see langword="long"/> values to be populated with the retrieved data. The array must have a length
+        ///   equal to the number of queries in the pool (<see cref="QueryCount"/>).
+        /// </param>
+        /// <returns><see langword="true"/> if all the queries are complete; otherwise, <see langword="false"/>.</returns>
         public unsafe bool TryGetData(long[] dataArray)
         {
+            // Until the Command List that resets and writes the queries has run, they still hold the results of their
+            // previous use
+            if (UpdatingCommandList is not null)
+                return false;
+            if (CommandListFenceValue is ulong fenceValue && !GraphicsDevice.CommandListFence.IsFenceCompleteInternal(fenceValue))
+                return false;
+
             fixed (long* dataPointer = &dataArray[0])
             {
                 // Read back all results
@@ -22,6 +53,8 @@ namespace Stride.Graphics
                     return false;
             }
 
+            // Read: the next write starts a new use of the queries
+            NeedsReset = true;
             return true;
         }
 
@@ -50,6 +83,10 @@ namespace Stride.Graphics
             }
 
             GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateQueryPool(GraphicsDevice.NativeDevice, &createInfo, null, out NativeQueryPool));
+
+            NeedsReset = true;
+            UpdatingCommandList = null;
+            CommandListFenceValue = null;
         }
 
         /// <inheritdoc/>

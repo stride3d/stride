@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using NuGet.ProjectModel;
 using Stride.Core.IO;
 using Stride.Core.Packages;
 
@@ -138,10 +139,11 @@ public class PackageStore
     /// into the local package store, from the configured NuGet sources. Returns the installed
     /// package, or null when it could not be resolved (e.g. offline and not cached).
     /// </summary>
-    public Task<NugetLocalPackage?> InstallPackage(string packageName, PackageVersion version, ProgressReport? progress = null)
+    /// <param name="cancellationToken">Stops the install, downloads included.</param>
+    public Task<NugetLocalPackage?> InstallPackage(string packageName, PackageVersion version, ProgressReport? progress = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(packageName);
-        return store.InstallPackage(packageName, version, [], progress);
+        return store.InstallPackage(packageName, version, [], progress, cancellationToken);
     }
 
     /// <summary>Raised as <see cref="InstallPackage"/> downloads, with the bytes downloaded so far (throttled to ~250ms, and once more when a download ends).</summary>
@@ -156,6 +158,27 @@ public class PackageStore
     /// the downloads have started, so only meaningful for an install of one package (and its small dependencies).
     /// </summary>
     public long StartedDownloadBytes => store.NugetStartedDownloadBytes;
+
+    /// <summary>
+    /// Restores a package and its dependencies from the NuGet sources configured for <paramref name="settingsRoot"/>.
+    /// </summary>
+    public Task<LockFile> RestorePackage(string packageName, PackageVersion version, string targetFramework, string? settingsRoot, string outputPath)
+    {
+        ArgumentNullException.ThrowIfNull(packageName);
+        return store.RestorePackage(packageName, version, [targetFramework], settingsRoot, outputPath);
+    }
+
+    /// <summary>
+    /// Restores a package and its dependencies from the NuGet sources configured for <paramref name="settingsRoot"/> and from
+    /// <paramref name="additionalSources"/> (local folders or feeds).
+    /// </summary>
+    [System.Diagnostics.CodeAnalysis.Experimental("STREXP002")]
+    public Task<LockFile> RestorePackage(string packageName, PackageVersion version, string targetFramework, string? settingsRoot, string outputPath, IReadOnlyList<string> additionalSources)
+    {
+        ArgumentNullException.ThrowIfNull(packageName);
+        ArgumentNullException.ThrowIfNull(additionalSources);
+        return store.RestorePackage(packageName, version, [targetFramework], settingsRoot, outputPath, additionalSources);
+    }
 
     /// <summary>
     /// Gets the default package manager.

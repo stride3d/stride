@@ -1,0 +1,39 @@
+// PSMain(ExpectedResult=#336699FF, structuredbuffer.Input="16: 0.2 0.4 0.6 1 0.6 0.4 0.2 1", structuredbuffer.First="16: 0 0 0 0 0 0 0 0", structuredbuffer.Second="16: 0 0 0 0 0 0 0 0")
+
+namespace Stride.Shaders.Tests;
+
+// Buffer parameters passed on to other methods, one method used with two target buffers, and an early return
+shader BufferParameterNested
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    StructuredBuffer<float4> Input;
+    RWStructuredBuffer<float4> First;
+    RWStructuredBuffer<float4> Second;
+
+    float4 Get(StructuredBuffer<float4> source, uint index)
+    {
+        if (index > 1)
+            return float4(1, 0, 0, 1);
+        return source[index];
+    }
+
+    void Set(RWStructuredBuffer<float4> target, uint index, float4 value)
+    {
+        target[index] = value;
+    }
+
+    void Copy(RWStructuredBuffer<float4> target, StructuredBuffer<float4> source, uint index)
+    {
+        Set(target, index, Get(source, index));
+    }
+
+    void PSMain()
+    {
+        Copy(First, Input, 0);
+        Copy(Second, Input, 1);
+        bool copied = all(First[0] == Input[0]) && all(Second[1] == Input[1]);
+        bool onlyThere = all(First[1] == 0) && all(Second[0] == 0);
+        streams.ColorTarget = copied && onlyThere ? First[0] : float4(1, 0, 0, 1);
+    }
+};

@@ -1,0 +1,51 @@
+// CSMain(structuredbuffer.Values="4: 0 0 0 0 0 0 0 0", expected.Values="-64 -63 60 61 62 63 63")
+
+namespace Stride.Shaders.Tests;
+
+// Interlocked* on groupshared variables (Workgroup scope), from the 64 threads of a group; group (0, 0) writes the results
+shader CSInterlockedGroupshared
+{
+    stage stream uint3 GroupId : SV_GroupID;
+    stage stream uint GroupIndex : SV_GroupIndex;
+
+    groupshared int Count;
+    groupshared int Lowest;
+    groupshared uint Highest[4];
+
+    RWStructuredBuffer<int> Values;
+
+    [numthreads(64, 1, 1)]
+    void CSMain()
+    {
+        uint index = streams.GroupIndex;
+        // FXC rejects reading a groupshared variable that only atomics write (X4000)
+        if (index == 0)
+        {
+            Count = 0;
+            Lowest = 0;
+            Highest[0] = 0;
+            Highest[1] = 0;
+            Highest[2] = 0;
+            Highest[3] = 0;
+        }
+        GroupMemoryBarrierWithGroupSync();
+
+        InterlockedAdd(Count, -1);
+        InterlockedMin(Lowest, -(int)index);
+        uint original;
+        InterlockedMax(Highest[index % 4], index, original);
+        GroupMemoryBarrierWithGroupSync();
+
+        if (streams.GroupId.x == 0 && streams.GroupId.y == 0 && index == 0)
+        {
+            Values[0] = Count;
+            Values[1] = Lowest;
+            Values[2] = Highest[0];
+            Values[3] = Highest[1];
+            Values[4] = Highest[2];
+            Values[5] = Highest[3];
+        }
+        if (streams.GroupId.x == 0 && streams.GroupId.y == 0 && index == 63)
+            Values[6] = original < 64 ? 63 : -1;
+    }
+}

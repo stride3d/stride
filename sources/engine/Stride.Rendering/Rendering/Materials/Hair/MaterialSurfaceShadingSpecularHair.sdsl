@@ -62,7 +62,7 @@ namespace Stride.Rendering.Materials
         };
 
         //stream SurfaceData surfaceData;
-        static SurfaceData surfaceData;    // TODO: How to make the variable not get exposed in the CodeBehind? Sadly making this a streams variable causes a shader compilation error.
+        static SurfaceData surfaceData;
 
         SurfaceData GenerateSurfaceData(void)
         {
@@ -363,7 +363,7 @@ namespace Stride.Rendering.Materials
             }
 
             // TODO: Multiply by alpha or not?
-            return ComputeHairImageBasedLightingSpecular(surfaceData).rgb * streams.matDiffuse.a;   // TODO: Technically we should use "streams.shadingColorAlpha" but its value is assigned AFTER the shading, which makes it useless.
+            return ComputeHairImageBasedLightingSpecular(surfaceData).rgb * streams.matDiffuseSpecularAlphaBlend.y * streams.matDiffuse.a;   // TODO: Technically we should use "streams.shadingColorAlpha" but its value is assigned AFTER the shading, which makes it useless.
         }
 
         override void AfterLightingAndShading()

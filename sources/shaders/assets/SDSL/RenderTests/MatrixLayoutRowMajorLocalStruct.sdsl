@@ -1,0 +1,21 @@
+// PSMain(ExpectedResult=#01020304)
+
+namespace Stride.Shaders.Tests;
+
+// A struct with a row_major member, used only as a local variable: its layout decoration must be valid SPIR-V too.
+shader MatrixLayoutRowMajorLocalStruct
+{
+    struct MatrixLocalHolder
+    {
+        row_major float4x4 Matrix;
+    };
+
+    stream float4 ColorTarget : SV_Target0;
+
+    void PSMain()
+    {
+        MatrixLocalHolder holder;
+        holder.Matrix = float4x4(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+        streams.ColorTarget = holder.Matrix[0] / 255.0;
+    }
+};

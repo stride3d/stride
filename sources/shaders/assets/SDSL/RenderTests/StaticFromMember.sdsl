@@ -1,0 +1,18 @@
+// PSMain(ExpectedResult=#10204020, cbuffer.Globals=(ViewSize=(16,32)))
+
+namespace Stride.Shaders.Tests;
+
+// A static variable initialized from a member gets the member's value: the fix SDSL0173 gives for a member initialized that way
+
+shader StaticFromMember
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    stage float2 ViewSize;
+    static float2 R = ViewSize;
+
+    void PSMain()
+    {
+        streams.ColorTarget = float4(R.x, R.y, R.x * 4, R.y) / 255.0;
+    }
+};

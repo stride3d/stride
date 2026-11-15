@@ -89,7 +89,8 @@ internal sealed class RoslynCodeUpgradeRunner : ICodeUpgradeRunner
     {
         var cancellationToken = CancellationToken.None;
 
-        using var workspace = MSBuildWorkspace.Create();
+        // The restore's own messages (NuGet audit, ...) are logged by the restore; replayed here they read as failures
+        using var workspace = MSBuildWorkspace.Create(new Dictionary<string, string> { ["EmitAssetsLogMessages"] = "false" });
         if (solutionPath is not null)
         {
             // Solution-coordinated upgrade: open the whole solution (one consistent old closure).
@@ -127,7 +128,17 @@ internal sealed class RoslynCodeUpgradeRunner : ICodeUpgradeRunner
 
             IReadOnlyList<ProjectId> targets = [project.Id];
             foreach (var upgrade in upgrades)
-                solution = await upgrade(solution, targets, cancellationToken);
+            {
+                // A failing migration is skipped alone: the others of the project still apply
+                try
+                {
+                    solution = await upgrade(solution, targets, cancellationToken);
+                }
+                catch (Exception e) when (e is not NotImplementedException)
+                {
+                    log.Warning($"Code upgrade: a source migration of [{pendingItem.ProjectFullPath.GetFileName()}] failed and was skipped; its code is left unchanged.", e);
+                }
+            }
         }
 
         // Write back only the documents that actually changed, preserving each file's original encoding.

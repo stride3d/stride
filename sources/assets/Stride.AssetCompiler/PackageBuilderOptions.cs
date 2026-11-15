@@ -17,6 +17,8 @@ namespace Stride.AssetCompiler
         public bool Debug = false;
         // Upgrade verb only: skip the copy-on-write backup of files the in-place upgrade overwrites (on by default).
         public bool NoBackup { get; set; }
+        // Upgrade verb only: write every asset in the current format, also the ones the upgrade did not change.
+        public bool ResaveAll { get; set; }
         // This should not be a list
         public bool DisableAutoCompileProjects { get; set; }
         public string ProjectConfiguration { get; set; }
@@ -27,8 +29,11 @@ namespace Stride.AssetCompiler
         public PlatformType Platform { get; set; }
         public string PackageFile { get; set; }
         public string PackageManifestFile { get; set; }
-        public List<string> PackAssetAssemblies = new List<string>();
+        public List<string> PackHostAssemblies = new List<string>();
         public string PackAssetNamespace { get; set; }
+        public List<string> PackCompanionPackages = new List<string>();
+        public string PackPackageKind { get; set; }
+        public string PackPackageToolkit { get; set; }
         public string MSBuildUpToDateCheckFileBase { get; set; }
         public List<string> MonitorPipeNames = new List<string>();
         public bool EnableFileLogging;

@@ -242,6 +242,14 @@ public static class AssetRegistry
     }
 
     /// <summary>
+    /// Changes every time an asset assembly is registered or unregistered, so a cache built from
+    /// <see cref="GetPublicTypes"/> knows it is out of date.
+    /// </summary>
+    public static int TypesVersion => typesVersion;
+
+    private static int typesVersion;
+
+    /// <summary>
     /// Returns an array of asset types that are non-abstract and public.
     /// </summary>
     /// <returns>An array of <see cref="Type"/> elements.</returns>
@@ -420,8 +428,8 @@ public static class AssetRegistry
                 RegisteredImportersInternal.Remove(existingImporter);
             }
 
-            RegisteredImportersInternal.Add(importer);
-            RegisteredImportersInternal.Sort( (left, right) => left.Order.CompareTo(right.Order));
+            // By order; importers of the same order keep their registration order
+            RegisteredImportersInternal.Insert(RegisteredImportersInternal.FindLastIndex(x => x.Order <= importer.Order) + 1, importer);
         }
     }
 
@@ -749,6 +757,8 @@ public static class AssetRegistry
                             AssetToContentTypes.Add(assetType, assetContentType.ContentType);
                         }
 
+                        typesVersion++;
+
                         // Asset format version (process name by name)
                         var assetFormatVersions = assetType.GetCustomAttributes<AssetFormatVersionAttribute>();
                         foreach (var assetFormatVersion in assetFormatVersions)
@@ -796,7 +806,8 @@ public static class AssetRegistry
                 RegisteredDefaultAssetExtension.Remove(typeToRemove);
             }
 
-            AssetTypes.RemoveWhere(type => type.Assembly == assembly);
+            if (AssetTypes.RemoveWhere(type => type.Assembly == assembly) > 0)
+                typesVersion++;
 
             RegisteredPackageSessionAnalysisTypes.RemoveWhere(type => type.Assembly == assembly);
 

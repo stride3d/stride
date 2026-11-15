@@ -1,0 +1,26 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:caect="using:Stride.Core.Assets.Editor.Components.Transactions"
+             xmlns:caep="using:Stride.Core.Assets.Editor.Panels"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="300"
+             x:Class="Stride.GameStudio.Avalonia.Views.Panels.ActionHistoryView"
+             x:DataType="caep:ActionHistoryPanelViewModel">
+  <!-- The transactions of the session, with an icon on the save point -->
+  <ListBox ItemsSource="{Binding ActionHistory.Transactions}"
+           HorizontalAlignment="Stretch">
+    <ListBox.ItemTemplate>
+      <DataTemplate DataType="caect:TransactionViewModel">
+        <DockPanel>
+          <TextBlock DockPanel.Dock="Left" x:Name="Text"
+                     Text="{Binding Name}"/>
+          <Image DockPanel.Dock="Right" x:Name="Image"
+                 HorizontalAlignment="Right"
+                 IsVisible="{Binding IsSavePoint, Mode=OneWay}"
+                 Source="{StaticResource ImageSave}"/>
+        </DockPanel>
+      </DataTemplate>
+    </ListBox.ItemTemplate>
+  </ListBox>
+</UserControl>

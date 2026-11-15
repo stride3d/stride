@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>Stride.Dependencies.Assimp</id>
+    <version>$version$</version>
+    <authors>Stride Contributors</authors>
+    <description>Assimp shared library for the Stride 3D importer. Built from assimp/assimp $ref$ ($commit$) with the patches in deps/assimp.</description>
+    <license type="expression">BSD-3-Clause</license>
+    <repository type="git" url="https://github.com/stride3d/stride" commit="$strideCommit$" />
+    <readme>README.md</readme>
+  </metadata>
+  <files>
+    <file src="win-x64/Assimp64.dll" target="runtimes/win-x64/native/" />
+    <file src="win-arm64/Assimp64.dll" target="runtimes/win-arm64/native/" />
+    <file src="linux-x64/libassimp.so.6" target="runtimes/linux-x64/native/" />
+    <file src="osx-arm64/libassimp.6.dylib" target="runtimes/osx-arm64/native/" />
+    <file src="buildTransitive/Stride.Dependencies.Assimp.targets" target="buildTransitive/" />
+    <file src="tools/VERSION.txt" target="tools/" />
+    <file src="tools/LICENSE.txt" target="tools/" />
+    <file src="README.md" target="" />
+  </files>
+</package>

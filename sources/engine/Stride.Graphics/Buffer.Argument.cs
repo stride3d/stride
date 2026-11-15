@@ -80,6 +80,55 @@ namespace Stride.Graphics
             {
                 return Buffer.New(device, in value, BufferFlags.ArgumentBuffer, usage);
             }
+
+            /// <summary>
+            ///   Creates a new <strong>Argument Buffer</strong> of a given size that compute shaders can write.
+            /// </summary>
+            /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
+            /// <param name="bufferSize">Size of the Buffer in bytes.</param>
+            /// <param name="unorderedAccess">
+            ///   <see langword="true"/> to let shaders write the arguments, through a <c>RWBuffer&lt;uint&gt;</c> view
+            ///   (<see cref="PixelFormat.R32_UInt"/>).
+            /// </param>
+            /// <param name="usage">
+            ///   The usage for the Buffer, which determines who can read/write data. By default, it is <see cref="GraphicsResourceUsage.Default"/>.
+            /// </param>
+            /// <returns>A new instance of <see cref="Buffer"/>.</returns>
+            /// <remarks>
+            ///   Transition the Buffer to <see cref="BarrierLayout.IndirectArgument"/> between the shader that writes it and the
+            ///   indirect call that reads it.
+            /// </remarks>
+            public static Buffer New(GraphicsDevice device, int bufferSize, bool unorderedAccess, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
+            {
+                return Buffer.New(device, bufferSize, elementSize: sizeof(uint), GetFlags(unorderedAccess), GetViewFormat(unorderedAccess), usage);
+            }
+
+            /// <summary>
+            ///   Creates a new <strong>Argument Buffer</strong> with initial data, optionally writable by compute shaders.
+            /// </summary>
+            /// <typeparam name="T">Type of the data stored in the Buffer.</typeparam>
+            /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
+            /// <param name="initialValue">The initial arguments.</param>
+            /// <param name="unorderedAccess">
+            ///   <see langword="true"/> to let shaders write the arguments, through a <c>RWBuffer&lt;uint&gt;</c> view
+            ///   (<see cref="PixelFormat.R32_UInt"/>).
+            /// </param>
+            /// <param name="usage">
+            ///   The usage for the Buffer, which determines who can read/write data. By default, it is <see cref="GraphicsResourceUsage.Default"/>.
+            /// </param>
+            /// <returns>A new instance of <see cref="Buffer"/>.</returns>
+            public static Buffer<T> New<T>(GraphicsDevice device, T[] initialValue, bool unorderedAccess = false, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : unmanaged
+            {
+                return Buffer.New(device, initialValue, GetFlags(unorderedAccess), GetViewFormat(unorderedAccess), usage);
+            }
+
+            // Vulkan only gives a typed view the storage texel usage when it is also a shader resource
+            private static BufferFlags GetFlags(bool unorderedAccess)
+                => unorderedAccess
+                    ? BufferFlags.ArgumentBuffer | BufferFlags.ShaderResource | BufferFlags.UnorderedAccess
+                    : BufferFlags.ArgumentBuffer;
+
+            private static PixelFormat GetViewFormat(bool unorderedAccess) => unorderedAccess ? PixelFormat.R32_UInt : PixelFormat.None;
         }
     }
 }

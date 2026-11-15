@@ -123,15 +123,12 @@ namespace Stride.Rendering
 
         private unsafe void UpdateName()
         {
-            fixed (char* bufferStart = Name)
-            {
-                var objectIdBuilder = new ObjectIdBuilder();
-                objectIdBuilder.Write((byte*)bufferStart, sizeof(char) * Name.Length);
+            var objectIdBuilder = new ObjectIdBuilder();
+            objectIdBuilder.Write<char>(Name.AsSpan());
 
-                var objId = objectIdBuilder.ComputeHash();
-                var objIdData = (ulong*)&objId;
-                HashCode = objIdData[0] ^ objIdData[1];
-            }
+            var objId = objectIdBuilder.ComputeHash();
+            var objIdData = (ulong*)&objId;
+            HashCode = objIdData[0] ^ objIdData[1];
         }
 
         /// <summary>

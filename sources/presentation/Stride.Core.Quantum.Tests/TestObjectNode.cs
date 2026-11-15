@@ -10,8 +10,8 @@ public class TestObjectNode
     public class SimpleClass
     {
         public int IntValue { get; set; }
-        public string StringValue { get; set; }
-        public NestedClass Nested { get; set; }
+        public string? StringValue { get; set; }
+        public NestedClass? Nested { get; set; }
     }
 
     public class NestedClass
@@ -83,7 +83,7 @@ public class TestObjectNode
         var node = nodeContainer.GetOrCreateNode(obj);
         var listMember = node[nameof(ListContainer.Numbers)];
 
-        listMember.Target.Update(42, new NodeIndex(1));
+        listMember.Target!.Update(42, new NodeIndex(1));
 
         Assert.Equal(42, obj.Numbers[1]);
         Assert.Equal(42, listMember.Target.Retrieve(new NodeIndex(1)));
@@ -97,11 +97,11 @@ public class TestObjectNode
         var node = nodeContainer.GetOrCreateNode(obj);
         var listMember = node[nameof(ListContainer.Numbers)];
 
-        listMember.Target.Add(42);
+        listMember.Target!.Add(42);
 
         Assert.Equal(4, obj.Numbers.Count);
         Assert.Equal(42, obj.Numbers[3]);
-        Assert.Equal(4, listMember.Target.Indices.Count());
+        Assert.Equal(4, listMember.Target!.Indices!.Count());
     }
 
     [Fact]
@@ -112,12 +112,12 @@ public class TestObjectNode
         var node = nodeContainer.GetOrCreateNode(obj);
         var listMember = node[nameof(ListContainer.Numbers)];
 
-        listMember.Target.Remove(2, new NodeIndex(1));
+        listMember.Target!.Remove(2, new NodeIndex(1));
 
         Assert.Equal(2, obj.Numbers.Count);
         Assert.Equal(1, obj.Numbers[0]);
         Assert.Equal(3, obj.Numbers[1]);
-        Assert.Equal(2, listMember.Target.Indices.Count());
+        Assert.Equal(2, listMember.Target!.Indices!.Count());
     }
 
     [Fact]

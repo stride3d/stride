@@ -1,0 +1,110 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:sd="http://schemas.stride3d.net/xaml/presentation">
+  <Style Selector="sd|TextLogViewer">
+    <Style.Resources>
+      <ResourceDictionary>
+        <ResourceDictionary.MergedDictionaries>
+          <!-- The colors and icons of the message types, shared with the grid log viewer of the editor -->
+          <ResourceInclude Source="avares://Stride.Core.Presentation.Avalonia/Themes/LogResources.axaml"/>
+        </ResourceDictionary.MergedDictionaries>
+      </ResourceDictionary>
+
+      <SolidColorBrush x:Key="TextBrush" Color="#E6E6E6"/>
+
+      <Geometry x:Key="GeometryDelete">F1 M 25.3333,23.75L 50.6667,23.75C 51.5411,23.75 51.8541,27.3125 51.8541,27.3125L 24.1458,27.3125C 24.1458,27.3125 24.4589,23.75 25.3333,23.75 Z M 35.625,19.7917L 40.375,19.7917C 40.8122,19.7917 41.9583,20.9378 41.9583,21.375C 41.9583,21.8122 40.8122,22.9584 40.375,22.9584L 35.625,22.9584C 35.1878,22.9584 34.0416,21.8122 34.0416,21.375C 34.0416,20.9378 35.1878,19.7917 35.625,19.7917 Z M 27.7083,28.5L 48.2916,28.5C 49.1661,28.5 49.875,29.2089 49.875,30.0834L 48.2916,53.8334C 48.2916,54.7078 47.5828,55.4167 46.7083,55.4167L 29.2917,55.4167C 28.4172,55.4167 27.7083,54.7078 27.7083,53.8334L 26.125,30.0834C 26.125,29.2089 26.8339,28.5 27.7083,28.5 Z M 30.0833,31.6667L 30.4792,52.25L 33.25,52.25L 32.8542,31.6667L 30.0833,31.6667 Z M 36.4167,31.6667L 36.4167,52.25L 39.5833,52.25L 39.5833,31.6667L 36.4167,31.6667 Z M 43.1458,31.6667L 42.75,52.25L 45.5208,52.25L 45.9167,31.6667L 43.1458,31.6667 Z</Geometry>
+
+      <Geometry x:Key="GeometryPrevious">F1 M 33.6458,38L 49.4792,53.8333L 38.7917,53.8333L 22.1667,38L 38.7917,22.1667L 49.4792,22.1667L 33.6458,38 Z</Geometry>
+      <Geometry x:Key="GeometryNext">F1 M 42.3542,38L 26.5208,53.8333L 37.2083,53.8333L 53.8333,38L 37.2083,22.1667L 26.5208,22.1667L 42.3542,38 Z</Geometry>
+
+      <Geometry x:Key="GeometryMatchCase">F1 M 52.1,44.745L 52.1,40.93C 51.1767,41.0267 50.4292,41.1108 49.8575,41.1825C 49.2858,41.2542 48.7233,41.3933 48.17,41.6C 47.6933,41.7733 47.3225,42.0367 47.0575,42.39C 46.7925,42.7433 46.66,43.2133 46.66,43.8C 46.66,44.66 46.8808,45.25 47.3225,45.57C 47.7642,45.89 48.4167,46.05 49.28,46.05C 49.7567,46.05 50.2442,45.9358 50.7425,45.7075C 51.2408,45.4792 51.6933,45.1583 52.1,44.745 Z M 52.1,47.39C 51.73,47.7033 51.3975,47.985 51.1025,48.235C 50.8075,48.485 50.4133,48.735 49.92,48.985C 49.4333,49.2483 48.9608,49.465 48.5025,49.635C 48.0442,49.805 47.4017,49.89 46.575,49.89C 45.0383,49.89 43.7617,49.3625 42.745,48.3075C 41.7283,47.2525 41.22,45.9217 41.22,44.315C 41.22,42.995 41.4783,41.9292 41.995,41.1175C 42.5117,40.3058 43.2533,39.6617 44.22,39.185C 45.2,38.7017 46.3717,38.365 47.735,38.175C 49.0983,37.985 50.5633,37.8367 52.13,37.73L 52.13,37.63C 52.13,36.58 51.7817,35.8542 51.085,35.4525C 50.3883,35.0508 49.345,34.85 47.955,34.85C 47.325,34.85 46.5883,34.97 45.745,35.21C 44.9017,35.45 44.0783,35.7567 43.275,36.13L 42.82,36.13L 42.82,31.885C 43.3533,31.7283 44.215,31.5433 45.405,31.33C 46.595,31.1167 47.795,31.01 49.005,31.01C 51.9783,31.01 54.1442,31.5183 55.5025,32.535C 56.8608,33.5517 57.54,35.1017 57.54,37.185L 57.54,49.25L 52.1,49.25L 52.1,47.39 Z M 18.5,49.25L 26.24,25.89L 32.52,25.89L 40.26,49.25L 34.195,49.25L 32.75,44.45L 25.68,44.45L 24.235,49.25L 18.5,49.25 Z M 31.52,40.29L 29.215,32.68L 26.91,40.29L 31.52,40.29 Z</Geometry>
+      <Geometry x:Key="GeometryMatchWord">F1 M 0,24.5033L 3.16667,24.5033L 3.16667,29.2533L 34.8333,29.2533L 34.8333,24.5033L 38,24.5033L 38,32.42L 0,32.42L 0,24.5033 Z M 36.9867,19.2533L 32.68,19.2533L 32.68,17.8046C 32.3976,18.0368 32.075,18.2849 31.7122,18.5487C 31.3493,18.8126 31.0307,19.0105 30.7563,19.1425C 30.4079,19.3351 30.0629,19.4862 29.7211,19.5957C 29.3794,19.7052 28.9724,19.76 28.5,19.76C 26.9008,19.76 25.6355,19.0917 24.704,17.7551C 23.7724,16.4185 23.3067,14.6313 23.3067,12.3935C 23.3067,11.1585 23.465,10.0865 23.7817,9.17739C 24.0983,8.2683 24.5351,7.47729 25.0919,6.80437C 25.5985,6.19215 26.2141,5.70725 26.9384,5.34968C 27.6628,4.99211 28.4288,4.81333 29.2363,4.81333C 29.9672,4.81333 30.5682,4.8892 31.0393,5.04094C 31.5103,5.19267 32.0572,5.42951 32.68,5.75146L 32.68,-1.90735e-006L 36.9867,-1.90735e-006L 36.9867,19.2533 Z M 32.68,15.6037L 32.68,8.49458C 32.4689,8.38111 32.1918,8.28809 31.8488,8.21552C 31.5057,8.14295 31.2115,8.10666 30.966,8.10666C 29.9369,8.10666 29.163,8.48534 28.6445,9.2427C 28.1259,10.0001 27.8667,11.0583 27.8667,12.4173C 27.8667,13.8449 28.0732,14.8767 28.4861,15.5127C 28.8991,16.1487 29.5661,16.4667 30.4871,16.4667C 30.8618,16.4667 31.2411,16.3895 31.6251,16.2351C 32.0091,16.0807 32.3607,15.8703 32.68,15.6037 Z M 22.2933,5.32001L 18.2598,19.2533L 13.684,19.2533L 11.2615,10.2442L 8.82708,19.2533L 4.25125,19.2533L 0.253328,5.32001L 4.73416,5.32001L 6.89541,14.539L 9.51583,5.32001L 13.3158,5.32001L 15.7858,14.539L 17.8085,5.32001L 22.2933,5.32001 Z</Geometry>
+
+    </Style.Resources>
+    <Setter Property="DebugBrush" Value="{DynamicResource TextLogDebugBrush}"/>
+    <Setter Property="VerboseBrush" Value="{DynamicResource TextLogVerboseBrush}"/>
+    <Setter Property="InfoBrush" Value="{DynamicResource TextLogInfoBrush}"/>
+    <Setter Property="WarningBrush" Value="{DynamicResource TextLogWarningBrush}"/>
+    <Setter Property="ErrorBrush" Value="{DynamicResource TextLogErrorBrush}"/>
+    <Setter Property="FatalBrush" Value="{DynamicResource TextLogFatalBrush}"/>
+    <Setter Property="Template">
+      <ControlTemplate>
+        <DockPanel>
+          <sd:ToolBarTray DockPanel.Dock="Top" x:Name="ToolBarTray"
+                          IsVisible="{TemplateBinding IsToolBarVisible}">
+            <sd:ToolBar x:Name="ToolBarClear"
+                        IsVisible="{TemplateBinding CanClearLog}"
+                        Margin="0">
+              <Button x:Name="PART_ClearLog"
+                      ToolTip.Tip="{sd:LocalizeString Clear Log, Context=ToolTip}">
+                <Path Width="12" Height="12" Stretch="Uniform" Fill="{StaticResource TextBrush}" Data="{StaticResource GeometryDelete}"/>
+              </Button>
+            </sd:ToolBar>
+            <sd:ToolBar x:Name="ToolBarFilter"
+                        IsVisible="{TemplateBinding CanFilterLog}"
+                        Margin="8 0 0 0">
+              <ToggleButton IsChecked="{TemplateBinding ShowDebugMessages, Mode=TwoWay}"
+                            ToolTip.Tip="{sd:LocalizeString Toggle Debug, Context=ToolTip}">
+                <Path Width="12" Height="12" Stretch="Uniform" Fill="{DynamicResource TextLogDebugBrush}" Data="{StaticResource GeometryDebugMessage}"/>
+              </ToggleButton>
+              <ToggleButton IsChecked="{TemplateBinding ShowVerboseMessages, Mode=TwoWay}"
+                            ToolTip.Tip="{sd:LocalizeString Toggle Verbose, Context=ToolTip}">
+                <Path Width="12" Height="12" Stretch="Uniform" Fill="{DynamicResource TextLogVerboseBrush}" Data="{StaticResource GeometryVerboseMessage}"/>
+              </ToggleButton>
+              <ToggleButton IsChecked="{TemplateBinding ShowInfoMessages, Mode=TwoWay}"
+                            ToolTip.Tip="{sd:LocalizeString Toggle Info, Context=ToolTip}">
+                <Path Width="12" Height="12" Stretch="Uniform" Fill="{DynamicResource TextLogInfoBrush}" Data="{StaticResource GeometryInfoMessage}"/>
+              </ToggleButton>
+              <ToggleButton IsChecked="{TemplateBinding ShowWarningMessages, Mode=TwoWay}"
+                            ToolTip.Tip="{sd:LocalizeString Toggle Warning, Context=ToolTip}">
+                <Path Width="12" Height="12" Stretch="Uniform" Fill="{DynamicResource TextLogWarningBrush}" Data="{StaticResource GeometryWarningMessage}"/>
+              </ToggleButton>
+              <ToggleButton IsChecked="{TemplateBinding ShowErrorMessages, Mode=TwoWay}"
+                            ToolTip.Tip="{sd:LocalizeString Toggle Error, Context=ToolTip}">
+                <Path Width="12" Height="12" Stretch="Uniform" Fill="{DynamicResource TextLogErrorBrush}" Data="{StaticResource GeometryErrorMessage}"/>
+              </ToggleButton>
+              <ToggleButton IsChecked="{TemplateBinding ShowFatalMessages, Mode=TwoWay}"
+                            ToolTip.Tip="{sd:LocalizeString Toggle Fatal, Context=ToolTip}">
+                <Path Width="12" Height="12" Stretch="Uniform" Fill="{DynamicResource TextLogFatalBrush}" Data="{StaticResource GeometryFatalMessage}"/>
+              </ToggleButton>
+              <ToggleButton IsChecked="{TemplateBinding ShowStacktrace, Mode=TwoWay}"
+                            ToolTip.Tip="{sd:LocalizeString Toggle Exception Stack Trace, Context=ToolTip}">
+                <TextBlock Width="16" Height="12" Text="(...)" FontSize="10" />
+              </ToggleButton>
+            </sd:ToolBar>
+            <sd:ToolBar x:Name="ToolBarSearch"
+                        IsVisible="{TemplateBinding CanSearchLog}"
+                        Margin="8 0 0 0">
+              <TextBox x:Name="TextBoxSearch"
+                       Text="{Binding SearchToken, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay, Delay=300}"
+                       Width="256"
+                       PlaceholderText="Search"></TextBox>
+              <Button x:Name="PART_PreviousResult"
+                      ToolTip.Tip="{sd:LocalizeString Go to previous search result, Context=ToolTip}">
+                <Path Width="8" Height="8" Stretch="Uniform" Fill="{StaticResource TextBrush}" Data="{StaticResource GeometryPrevious}"/>
+              </Button>
+              <Button x:Name="PART_NextResult"
+                      ToolTip.Tip="{sd:LocalizeString Go to next search result, Context=ToolTip}">
+                <Path Width="8" Height="8" Stretch="Uniform" Fill="{StaticResource TextBrush}" Data="{StaticResource GeometryNext}"/>
+              </Button>
+              <ToggleButton IsChecked="{TemplateBinding SearchMatchCase, Mode=TwoWay}"
+                            ToolTip.Tip="{sd:LocalizeString Match case, Context=ToolTip}">
+                <Path Width="16" Height="16" Stretch="Uniform" Fill="{StaticResource TextBrush}" Data="{StaticResource GeometryMatchCase}"/>
+              </ToggleButton>
+              <ToggleButton IsChecked="{TemplateBinding SearchMatchWord, Mode=TwoWay}"
+                            ToolTip.Tip="{sd:LocalizeString Match whole word, Context=ToolTip}">
+                <Path Width="16" Height="16" Stretch="Uniform" Fill="{StaticResource TextBrush}" Data="{StaticResource GeometryMatchWord}"/>
+              </ToggleButton>
+            </sd:ToolBar>
+          </sd:ToolBarTray>
+          <ScrollViewer x:Name="PART_LogScrollViewer"
+                        HorizontalScrollBarVisibility="Disabled">
+            <SelectableTextBlock x:Name="PART_LogText"
+                                 Background="Transparent"
+                                 TextWrapping="WrapWithOverflow" />
+          </ScrollViewer>
+        </DockPanel>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+</Styles>

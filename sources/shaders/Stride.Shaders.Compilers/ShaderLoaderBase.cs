@@ -1,3 +1,4 @@
+using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.Storage;
 using Stride.Shaders.Compilers.SDSL;
@@ -10,7 +11,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
 
 namespace Stride.Shaders.Compilers;
 
@@ -18,17 +18,33 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
 {
     public IShaderCache Cache => fileCache;
     public GenericShaderCache GenericCache { get; } = new();
-    public ObjectId? SourceHashOverride { get; set; }
 
     /// <summary>
     /// Ensures only one thread compiles a given shader at a time. Other threads wait for the result.
     /// </summary>
     private readonly ConcurrentDictionary<(string Name, int MacrosHash), Lazy<(ShaderBuffers Buffer, ObjectId Hash)>> compilingShaders = new();
 
+    private readonly AsyncLocal<ILogger?> compilationLog = new();
+    private ILogger? defaultLog;
+
     /// <summary>
     /// Optional logger for compilation errors. If not set, errors are thrown as exceptions.
     /// </summary>
-    public ILogger? Log { get; set; }
+    public ILogger? Log
+    {
+        get => compilationLog.Value ?? defaultLog;
+        set => defaultLog = value;
+    }
+
+    /// <summary>
+    /// Sets the logger of the current compilation, until the result is disposed. Compilations that run at the same time on this loader each keep their own.
+    /// </summary>
+    public IDisposable UseLog(ILogger log)
+    {
+        var previousLog = compilationLog.Value;
+        compilationLog.Value = log;
+        return new AnonymousDisposable(() => compilationLog.Value = previousLog);
+    }
 
     public bool Exists(string name)
     {
@@ -89,18 +105,13 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
         }
     }
 
-    public bool LoadExternalBuffer(string name, string? filename, string code, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers buffer, out ObjectId hash, out bool isFromCache)
+    public bool LoadExternalBuffer(string name, string? filename, string code, ObjectId sourceHash, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers buffer, out ObjectId hash, out bool isFromCache)
     {
-        // Consume the one-shot override now, before any early return, so it can't leak into a later
-        // compilation when this load is served from the cache.
-        var overrideHash = SourceHashOverride;
-        SourceHashOverride = null;
-
         isFromCache = Cache.TryLoadFromCache(name, null, defines, out buffer, out hash) && ValidateCachedHashes(buffer);
         if (isFromCache)
             return true;
 
-        hash = overrideHash ?? ObjectId.FromBytes(Encoding.UTF8.GetBytes(code));
+        hash = sourceHash;
         // Don't auto-register in SDSLC — the caller (InstantiateMemberNames) registers under the cache key
         if (!LoadFromCode(filename, code, hash, defines, out buffer, registerInCache: false))
         {
@@ -117,7 +128,7 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
 
     /// <summary>
     /// Validates all OpSourceHashSDSL entries in a cached buffer against current file content.
-    /// Returns false if any dependency has changed.
+    /// Returns false if any dependency has changed or can't be found anymore.
     /// </summary>
     private bool ValidateCachedHashes(ShaderBuffers buffer)
     {
@@ -142,12 +153,8 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
 
                 // Extract shader name from filename (strip path and extension)
                 var shaderName = Path.GetFileNameWithoutExtension(filename);
-                if (LoadExternalFileContent(shaderName, out _, out _, out var currentHash))
-                {
-                    if (cachedHash != currentHash)
-                        return false;
-                }
-                // If file not found, it might be an internal shader — skip validation
+                if (!LoadExternalFileContent(shaderName, out _, out _, out var currentHash) || cachedHash != currentHash)
+                    return false;
             }
         }
         return true;
@@ -170,7 +177,6 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
         for (int i = 0; i < macros.Length; ++i)
             defines[i] = (macros[i].Name, macros[i].Definition);
 
-        var text = MonoGamePreProcessor.Run(code, filename, defines);
         var sdslc = new SDSLC
         {
             ShaderLoader = this,
@@ -178,12 +184,30 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
 
         // Use provided logger, or a temporary one that throws on errors
         var log = Log ?? new LoggerResult();
-        if (!sdslc.Compile(filename, text, hash, macros, log, out buffer, new() { RegisterInCache = registerInCache, OriginalCode = code }))
+        buffer = default!;
+        var text = Preprocess(code, filename, defines, log);
+        if (text == null || !sdslc.Compile(filename, text, hash, macros, log, out buffer, new() { RegisterInCache = registerInCache, OriginalCode = code }))
         {
             if (log is LoggerResult loggerResult && loggerResult.HasErrors)
-                throw new InvalidOperationException(string.Join(Environment.NewLine, loggerResult.Messages.Where(m => m.Type >= LogMessageType.Error).Select(m => m.ToString())));
+            {
+                var errors = loggerResult.Messages.Where(m => m.Type >= LogMessageType.Error).ToList();
+                throw log == Log ? new ShaderErrorsLoggedException(log, errors) : new InvalidOperationException(ShaderErrorsLoggedException.Format(errors));
+            }
             return false;
         }
         return true;
+    }
+
+    private static string? Preprocess(string code, string? filename, ReadOnlySpan<(string Name, string Definition)> defines, ILogger log)
+    {
+        try
+        {
+            return MonoGamePreProcessor.Run(code, filename, warning => log.Warning(warning), defines);
+        }
+        catch (ShaderPreprocessorException e)
+        {
+            log.Error(e.Message);
+            return null;
+        }
     }
 }

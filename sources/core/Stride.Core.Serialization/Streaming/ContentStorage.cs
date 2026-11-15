@@ -29,7 +29,7 @@ public class ContentStorage : DisposeBase
     public string Url { get; private set; }
 
     /// <summary>
-    /// Gets the time when container has been created (in UTC).
+    /// Gets the time stored in the container header: the creation time (in UTC) for content built by older versions, otherwise the default value.
     /// </summary>
     public DateTime PackageTime { get; private set; }
 
@@ -148,7 +148,8 @@ public class ContentStorage : DisposeBase
         if (chunksData == null || chunksData.Count == 0 || chunksData.Any(x => x == null || x.Length == 0))
             throw new ArgumentException(null, nameof(chunksData));
 
-        var packageTime = DateTime.UtcNow;
+        // A fixed value, so that two builds of the same asset give the same bytes
+        var packageTime = default(DateTime);
 
         // Sort chunks (smaller ones go first)
         int chunksCount = chunksData.Count;

@@ -72,6 +72,7 @@ public abstract class PackageContainer
     /// Saves this package and all dirty assets. See remarks.
     /// </summary>
     /// <param name="log">The log.</param>
+    /// <param name="saveParameters">The package save options, if specified.</param>
     /// <exception cref="System.ArgumentNullException">log</exception>
     /// <remarks>When calling this method directly, it does not handle moving assets between packages.
     /// Call <see cref="PackageSession.Save" /> instead.</remarks>
@@ -138,6 +139,7 @@ public abstract class PackageContainer
                     {
                         try
                         {
+                            Session?.UpgradeBackup?.Snapshot(file.ToOSPath());
                             File.Delete(file.FullPath);
                         }
                         catch (Exception ex)
@@ -210,6 +212,8 @@ public abstract class PackageContainer
 
             foreach (var project in vsProjs.Values)
             {
+                if (project.IsDirty)
+                    Session?.UpgradeBackup?.Snapshot(project.FullPath);
                 project.Save();
                 project.ProjectCollection.UnloadAllProjects();
                 project.ProjectCollection.Dispose();
@@ -264,6 +268,17 @@ public class StandalonePackage : PackageContainer
     /// True for packages pulled in as NuGet dependencies, false for the built project chain.
     /// </summary>
     public bool IsDependencyPackage { get; set; }
+
+    /// <summary>
+    /// True for a package loaded because another package declared it as a companion, or a companion that another
+    /// companion depends on.
+    /// </summary>
+    public bool IsCompanionPackage { get; set; }
+
+    /// <summary>
+    /// True for a dev-redirect package: a stub in the package store that loads the package from its source tree.
+    /// </summary>
+    public bool IsDevRedirectPackage { get; set; }
 
     public override string ToString() => $"Package: {Package.Meta.Name}";
 }
@@ -364,11 +379,19 @@ public class SolutionProject : PackageContainer
     // Editor/asset-compiler loadability, from the msbuild StrideContainsAssetTypes property (null = use default below).
     public bool? ContainsAssetTypes { get; set; }
 
+    // A companion project of a kind or toolkit this host does not take (an Editor project outside the editor, a view
+    // project of another toolkit): its assembly is not loaded.
+    public bool IsSkippedByThisHost { get; set; }
+
     // Load the built assembly for type resolution (scripts, serialization, inheritable asset types) when
     // explicitly flagged, otherwise only for libraries.
-    public bool ShouldLoadAssemblyInEditor => ContainsAssetTypes ?? (Type == ProjectType.Library);
+    public bool ShouldLoadAssemblyInEditor => !IsSkippedByThisHost && (ContainsAssetTypes ?? (Type == ProjectType.Library));
 
     public bool IsImplicitProject { get; set; }
+
+    // The project's last restore reported errors (its project.assets.json): a package it references may be missing
+    // from its flattened dependencies
+    public bool HasRestoreErrors { get; set; }
 
     public bool TrackDirectDependencies { get; set; }
 
@@ -479,6 +502,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     private readonly ConstraintProvider constraintProvider = new();
     private readonly PackageCollection packages;
     private readonly Dictionary<Package, Package> packagesCopy;
+    private readonly HashSet<UFile> filesDeletedOutside = [];
     private readonly object dependenciesLock = new();
     private SolutionProject currentProject;
     private AssetDependencyManager dependencies;
@@ -550,6 +574,19 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     public Task SaveCompletion => saveCompletion?.Task ?? Task.CompletedTask;
 
     /// <summary>
+    /// Sets whether the file of a removed asset was deleted outside this session. A save does not delete such a file, as it may have come back.
+    /// </summary>
+    public void SetFileDeletedOutside(UFile filePath, bool deletedOutside)
+    {
+        ArgumentNullException.ThrowIfNull(filePath);
+
+        if (deletedOutside)
+            filesDeletedOutside.Add(filePath);
+        else
+            filesDeletedOutside.Remove(filePath);
+    }
+
+    /// <summary>
     /// Gets or sets the solution path (sln) in case the session was loaded from a solution.
     /// </summary>
     /// <value>The solution path.</value>
@@ -558,6 +595,9 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
         get => VSSolution.FullPath;
         set => VSSolution.FullPath = value;
     }
+
+    // A session opened from a .csproj or a .sdpkg has an empty SolutionPath, not a null one.
+    private bool HasSolution => !string.IsNullOrEmpty(VSSolution.FullPath);
 
     public AssemblyContainer AssemblyContainer { get; }
 
@@ -581,21 +621,21 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
         dependencies?.Dispose();
         sourceTracker?.Dispose();
 
-        var loadedAssemblies = Packages.SelectMany(x => x.LoadedAssemblies).ToList();
+        // Everything this session's container loaded: the packages' assemblies and the dependencies they pulled in
+        // (the host's own are shared, never in the container)
+        var loadedAssemblies = AssemblyContainer.LoadedAssemblies.Select(x => x.Assembly).ToList();
         for (int index = loadedAssemblies.Count - 1; index >= 0; index--)
         {
-            var loadedAssembly = loadedAssemblies[index];
-            if (loadedAssembly is null)
-                continue;
+            var assembly = loadedAssemblies[index];
 
             // Unregisters assemblies that have been registered in Package.Load => Package.LoadAssemblyReferencesForPackage
-            AssemblyRegistry.Unregister(loadedAssembly.Assembly);
+            AssemblyRegistry.Unregister(assembly);
 
             // Unload binary serialization
-            DataSerializerFactory.UnregisterSerializationAssembly(loadedAssembly.Assembly);
+            DataSerializerFactory.UnregisterSerializationAssembly(assembly);
 
             // Unload assembly
-            AssemblyContainer.UnloadAssembly(loadedAssembly.Assembly);
+            AssemblyContainer.UnloadAssembly(assembly);
         }
     }
 
@@ -637,6 +677,54 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
             currentProject = value;
         }
     }
+
+    /// <summary>
+    /// Whether loads into this session bring the editor companion packages (<see cref="Package.CompanionPackages"/>).
+    /// A load whose parameters ask for them sets it, so later loads with default parameters get them too.
+    /// </summary>
+    public bool LoadEditorPackages { get; set; }
+
+    /// <summary>
+    /// The UI toolkit of the editor this session serves (Wpf or Avalonia): the Editor companions written for another toolkit are
+    /// not loaded. Null for a host with no views (the asset compiler) and for a load that names none.
+    /// </summary>
+    public string? EditorToolkit { get; set; }
+
+    /// <summary>
+    /// The check that each assembly of a package passes before it loads into this session (the editor's plugin version
+    /// check), or null to load them all. A load whose parameters give one sets it, so later loads with default parameters
+    /// use it too.
+    /// </summary>
+    [Experimental("STREXP002")]
+    public IAssemblyLoadCheck? AssemblyLoadCheck { get; set; }
+
+    /// <summary>
+    /// Decides which <see cref="PackageKind.Editor"/> companions this session loads (the editor's switched-off plugins and safe
+    /// mode), or null to load them all. A load whose parameters give one sets it, so later loads with default parameters use it too.
+    /// </summary>
+    [Experimental("STREXP002")]
+    public ICompanionPackageFilter? CompanionPackageFilter { get; set; }
+
+    /// <summary>
+    /// Companion packages that the host adds to this session besides those its packages declare (the editor's extensions), or
+    /// null for none. A load whose parameters give one sets it, so later loads with default parameters use it too.
+    /// </summary>
+    [Experimental("STREXP002")]
+    public ICompanionPackageSource? CompanionPackageSource { get; set; }
+
+    /// <summary>
+    /// The companions <see cref="CompanionPackageSource"/> gave this session, read at its first load with editor packages; null
+    /// before that, or without a source.
+    /// </summary>
+    [Experimental("STREXP002")]
+    public IReadOnlyList<CompanionPackage>? SourceCompanionPackages { get; private set; }
+
+    /// <summary>
+    /// The names of the companions of <see cref="SourceCompanionPackages"/> that this session loaded (restored or found),
+    /// whatever their state after that.
+    /// </summary>
+    [Experimental("STREXP002")]
+    public IReadOnlyCollection<string> LoadedSourceCompanionPackages => loadedSourceCompanions;
 
     /// <summary>
     /// Gets the packages referenced by the current package.
@@ -703,6 +791,9 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
         if (!File.Exists(projectPath)) throw new FileNotFoundException("Unable to find project", projectPath);
 
         var loadParameters = loadParametersArg ?? PackageLoadParameters.Default();
+        AssemblyLoadCheck ??= loadParameters.AssemblyLoadCheck;
+        CompanionPackageFilter ??= loadParameters.CompanionPackageFilter;
+        CompanionPackageSource ??= loadParameters.CompanionPackageSource;
 
         Package package;
         PackageContainer project;
@@ -856,7 +947,10 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
             sessionResult.Clear();
             sessionResult.Progress("Loading..", 0, 1);
 
-            var session = new PackageSession();
+            // The assemblies of the projects load with them, so the session needs the check from the start
+            var session = new PackageSession { AssemblyLoadCheck = loadParameters.AssemblyLoadCheck, CompanionPackageFilter = loadParameters.CompanionPackageFilter, CompanionPackageSource = loadParameters.CompanionPackageSource };
+            // Kept from the dependency phase to the asset listing of this load only: the projects may change after
+            session.loadProjectFiles = new(StringComparer.OrdinalIgnoreCase);
 
             var cancelToken = loadParameters.CancelToken;
             SolutionProject? firstProject = null;
@@ -912,44 +1006,127 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                 return;
             }
 
-            // Load all missing references/dependencies
-            session.LoadMissingReferences(sessionResult, loadParameters);
-
-            // Fix relative references
-            var analysis = new PackageSessionAnalysis(session, GetPackageAnalysisParametersForLoad());
-            var analysisResults = analysis.Run();
-            analysisResults.CopyTo(sessionResult);
-
-            // Run custom package session analysis
-            foreach (var type in AssetRegistry.GetPackageSessionAnalysisTypes())
-            {
-                var pkgAnalysis = (PackageSessionAnalysisBase)Activator.CreateInstance(type)!;
-                pkgAnalysis.Session = session;
-                var results = pkgAnalysis.Run();
-                results.CopyTo(sessionResult);
-            }
-
-            // Output the session only if there is no cancellation
-            if (!cancelToken.HasValue || !cancelToken.Value.IsCancellationRequested)
-            {
-                sessionResult.Session = session;
-
-                // Defer the initialization of the dependency manager
-                //session.DependencyManager.InitializeDeferred();
-            }
-
-            // Setup the current package when loading it
-            if (firstProject is not null)
-                session.CurrentProject = firstProject;
-
-            // The session is not dirty when loading it
-            session.IsDirty = false;
+            session.CompleteLoad(sessionResult, loadParameters, firstProject);
         }
         finally
         {
             // Disable reference analysis caching after loading
             AssetReferenceAnalysis.EnableCaching = false;
         }
+    }
+
+    /// <summary>
+    /// Loads the package of a project that references no package and no other project, without the NuGet restore and the
+    /// MSBuild evaluation of the project: what they give for such a project is stated instead.
+    /// </summary>
+    /// <remarks>
+    /// The session is the one <see cref="Load(string, PackageSessionResult, PackageLoadParameters?)"/> gives for a project
+    /// that has no reference and declares that it holds no asset types, as the projects that tests write: the rest of the
+    /// load (the package, its assets and their analysis) is the same.
+    /// </remarks>
+    /// <param name="packagePath">The path of the package, next to its project.</param>
+    /// <param name="projectType">The type of the project.</param>
+    /// <param name="sessionResult">The session result.</param>
+    /// <param name="loadParameters">The load parameters.</param>
+    /// <param name="platform">
+    /// The platform of an executable, as its <c>StridePlatform</c> property declares it; the load reads it for an executable only.
+    /// </param>
+    /// <param name="projectFiles">
+    /// The files the project lists (its <c>Compile</c>, <c>None</c> and <c>AdditionalFiles</c> items), relative to the project
+    /// or absolute: its project assets (.cs scripts, .sdsl, .sdfx) are the ones of a registered type, as when the load lists them.
+    /// </param>
+    /// <exception cref="ArgumentException">The package does not exist, or has no project next to it.</exception>
+    public static void LoadWithoutMSBuild(string packagePath, ProjectType projectType, PackageSessionResult sessionResult, PackageLoadParameters? loadParameters = null,
+        PlatformType platform = PlatformType.Shared, IEnumerable<UFile>? projectFiles = null)
+    {
+        ArgumentNullException.ThrowIfNull(packagePath);
+        ArgumentNullException.ThrowIfNull(sessionResult);
+
+        loadParameters ??= PackageLoadParameters.Default();
+        packagePath = FileUtility.GetAbsolutePath(packagePath)!;
+        if (!File.Exists(packagePath)) throw new ArgumentException($"File [{packagePath}] must exist", nameof(packagePath));
+
+        try
+        {
+            AssetReferenceAnalysis.EnableCaching = true;
+            sessionResult.Clear();
+            sessionResult.Progress("Loading..", 0, 1);
+
+            var session = new PackageSession();
+            if (session.LoadProject(sessionResult, packagePath, loadParameters) is not SolutionProject project)
+                throw new ArgumentException($"Package [{packagePath}] has no project next to it", nameof(packagePath));
+            session.Projects.Add(project);
+
+            // What the evaluation of the project and the restore give: no dependency, no asset type
+            project.Type = projectType;
+            if (projectType == ProjectType.Executable)
+                project.Platform = platform;
+            project.ContainsAssetTypes = false;
+            project.Package.RootNamespace = project.FullPath.GetFileNameWithoutExtension();
+            project.Package.PrecomputedProjectAssets = ListProjectAssets(project, projectFiles ?? []);
+            project.Package.State = PackageState.DependenciesReady;
+
+            session.CompleteLoad(sessionResult, loadParameters, project);
+        }
+        finally
+        {
+            AssetReferenceAnalysis.EnableCaching = false;
+        }
+    }
+
+    // The project assets among the files of a project, as Package.ReadProjectFiles and FindAssetsInProject list them from its items
+    private static List<PackageLoadingAssetFile> ListProjectAssets(SolutionProject project, IEnumerable<UFile> projectFiles)
+    {
+        var projectDirectory = new UDirectory(project.FullPath.GetFullDirectory());
+        var files = projectFiles
+            .Select(x => UPath.Combine(projectDirectory, x))
+            // A file outside the project is linked under its name
+            .Select(x => (FilePath: x, Link: !projectDirectory.Contains(x) ? new UFile(x.GetFileName()) : null))
+            .Distinct()
+            .ToList();
+        return new Package.ProjectFiles(project.Package.RootNamespace, files).GetAssets()
+            .Select(x => new PackageLoadingAssetFile(x.FilePath, projectDirectory) { Link = x.Link })
+            .ToList();
+    }
+
+    // The end of a load once the session has its projects: their references and assets, then the analysis of the session
+    private void CompleteLoad(PackageSessionResult sessionResult, PackageLoadParameters loadParameters, SolutionProject? firstProject)
+    {
+        var cancelToken = loadParameters.CancelToken;
+
+        // Load all missing references/dependencies
+        LoadMissingReferences(sessionResult, loadParameters);
+        loadProjectFiles = null;
+
+        // Fix relative references
+        var analysis = new PackageSessionAnalysis(this, GetPackageAnalysisParametersForLoad());
+        var analysisResults = analysis.Run();
+        analysisResults.CopyTo(sessionResult);
+
+        // Run custom package session analysis
+        foreach (var type in AssetRegistry.GetPackageSessionAnalysisTypes())
+        {
+            var pkgAnalysis = (PackageSessionAnalysisBase)Activator.CreateInstance(type)!;
+            pkgAnalysis.Session = this;
+            var results = pkgAnalysis.Run();
+            results.CopyTo(sessionResult);
+        }
+
+        // Output the session only if there is no cancellation
+        if (!cancelToken.HasValue || !cancelToken.Value.IsCancellationRequested)
+        {
+            sessionResult.Session = this;
+
+            // Defer the initialization of the dependency manager
+            //session.DependencyManager.InitializeDeferred();
+        }
+
+        // Setup the current package when loading it
+        if (firstProject is not null)
+            CurrentProject = firstProject;
+
+        // The session is not dirty when loading it
+        IsDirty = false;
     }
 
     /// <summary>
@@ -978,15 +1155,18 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     }
 
     // Constructs the copy-on-write upgrade backup the first time an upgrade-enabled load runs, mirroring the
-    // solution directory (or, for a standalone project upgrade with no solution, the project's directory).
+    // solution directory (with no solution, the project's directory, or the package's for a bare .sdpkg).
     private void ArmUpgradeBackup(PackageLoadParameters loadParameters, ILogger log)
     {
         if (!loadParameters.BackupBeforeUpgrade || UpgradeBackup is not null)
             return;
 
-        var root = SolutionPath is not null
+        var root = HasSolution
             ? Path.GetDirectoryName(SolutionPath.ToOSPath())
-            : Projects.OfType<SolutionProject>().Select(x => Path.GetDirectoryName(x.FullPath.ToOSPath())).FirstOrDefault();
+            : Projects.Select(x => x is SolutionProject project ? project.FullPath : x.Package.FullPath)
+                .Where(x => x is not null)
+                .Select(x => Path.GetDirectoryName(x.ToOSPath()))
+                .FirstOrDefault();
         if (!string.IsNullOrEmpty(root))
             UpgradeBackup = new UpgradeBackup(root, DateTime.Now, log);
     }
@@ -1030,6 +1210,9 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     public void LoadMissingDependencies(ILogger log, PackageLoadParameters? loadParametersArg = null)
     {
         var loadParameters = loadParametersArg ?? PackageLoadParameters.Default();
+        AssemblyLoadCheck ??= loadParameters.AssemblyLoadCheck;
+        CompanionPackageFilter ??= loadParameters.CompanionPackageFilter;
+        CompanionPackageSource ??= loadParameters.CompanionPackageSource;
 
         var cancelToken = loadParameters.CancelToken;
 
@@ -1040,34 +1223,55 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
         try
         {
             // Restore the whole solution once up front (one project-graph evaluation) instead of one
-            // restore per project. The per-project restore in PreLoadPackageDependencies then only runs
-            // as a fallback (no solution, or a project whose references an upgrade rewrote). Skip when no
-            // project needs loading (this is called again after everything is already DependenciesReady).
-            solutionDependenciesRestored = false;
-            var anyProjectNeedsLoading = Projects.OfType<SolutionProject>().Any(x => x.Package.State < PackageState.DependenciesReady);
-            if (anyProjectNeedsLoading && loadParameters.AutoCompileProjects && SolutionPath != null && File.Exists(SolutionPath.ToOSPath()))
+            // restore per project; without a solution, restore its projects up front the same way. The code
+            // upgrade detection then evaluates each project after its restore, and the asset listing reuses that
+            // evaluation. The per-project restore in PreLoadPackageDependencies then only runs as a fallback (a
+            // failed restore, or a project whose references an upgrade rewrote). Skip when no project needs loading
+            // (this is called again after everything is already DependenciesReady).
+            dependenciesRestoredUpFront = false;
+            var projectsToLoad = Projects.OfType<SolutionProject>().Where(x => x.Package.State < PackageState.DependenciesReady).ToList();
+            if (projectsToLoad.Count > 0 && loadParameters.AutoCompileProjects && HasSolution && File.Exists(SolutionPath.ToOSPath()))
             {
                 try
                 {
                     log.Verbose($"Restore NuGet packages for {SolutionPath.GetFileName()}...");
                     VSProjectHelper.RestoreNugetPackages(log, SolutionPath.ToOSPath(), loadParameters.AllowUpgradeDowngradeRestore).Wait();
-                    solutionDependenciesRestored = true;
+                    dependenciesRestoredUpFront = true;
                 }
                 catch (Exception ex)
                 {
                     log.Warning($"Unable to restore NuGet packages for solution [{SolutionPath}]", ex);
                 }
             }
+            else if (projectsToLoad.Count > 0 && loadParameters.AutoCompileProjects && !HasSolution)
+            {
+                dependenciesRestoredUpFront = true;
+                foreach (var project in projectsToLoad)
+                {
+                    if (project.FullPath is null || !File.Exists(project.FullPath.ToOSPath()))
+                        continue;
+                    try
+                    {
+                        log.Verbose($"Restore NuGet packages for {project.Name}...");
+                        VSProjectHelper.RestoreNugetPackages(log, project.FullPath.ToOSPath(), loadParameters.AllowUpgradeDowngradeRestore).Wait();
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Warning($"Unable to restore NuGet packages for project [{project.FullPath}]", ex);
+                        dependenciesRestoredUpFront = false;
+                    }
+                }
+            }
 
             // Source-code migration pre-pass: rewrite user .cs against the old closure before refs are bumped.
             // Runs for a restored solution or a standalone project (no .sln); the runner skips if it can't resolve.
-            if ((solutionDependenciesRestored || SolutionPath is null) && CodeUpgradeRunner.Instance is { } codeUpgradeRunner)
+            if ((dependenciesRestoredUpFront || !HasSolution) && CodeUpgradeRunner.Instance is { } codeUpgradeRunner)
             {
                 try
                 {
                     var pendingCodeUpgrades = DetectPendingCodeUpgrades(log, loadParameters);
                     if (pendingCodeUpgrades.Count > 0)
-                        codeUpgradeRunner.Run(SolutionPath, pendingCodeUpgrades, UpgradeBackup, log);
+                        codeUpgradeRunner.Run(HasSolution ? SolutionPath : null, pendingCodeUpgrades, UpgradeBackup, log);
                 }
                 catch (NotImplementedException)
                 {
@@ -1097,10 +1301,15 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                 else if (project.Package.State < PackageState.DependenciesReady) // not handling standalone packages yet
                     project.Package.State = PackageState.DependenciesReady;
             }
+
+            // Companion packages declared by the packages loaded above
+            LoadEditorPackages |= loadParameters.LoadEditorPackages;
+            EditorToolkit ??= loadParameters.EditorToolkit;
+            LoadCompanionPackages(GetRootDirectory(), log, LoadEditorPackages, EditorToolkit);
         }
         finally
         {
-            solutionDependenciesRestored = false;
+            dependenciesRestoredUpFront = false;
             // Clean up all cached MSBuild projects
             ClearAllCachedProjects();
         }
@@ -1115,18 +1324,24 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     public void LoadMissingAssets(ILogger log, IEnumerable<Package> packages, PackageLoadParameters? loadParametersArg = null)
     {
         var loadParameters = loadParametersArg ?? PackageLoadParameters.Default();
+        AssemblyLoadCheck ??= loadParameters.AssemblyLoadCheck;
+        CompanionPackageFilter ??= loadParameters.CompanionPackageFilter;
+        CompanionPackageSource ??= loadParameters.CompanionPackageSource;
 
         var cancelToken = loadParameters.CancelToken;
         List<AssetLoadingInfo> assetLoadInfos = [];
+        // The two listings of a package's files below evaluate its project once: nothing changes the project between
+        // them, except an upgrade of the package. During a session load, the dependency phase may have read them already.
+        var projectFilesCache = loadProjectFiles ?? new Dictionary<string, Package.ProjectFiles>(StringComparer.OrdinalIgnoreCase);
         // Make a copy of Packages as it can be modified by PreLoadPackageDependencies
-        foreach (var package in packages)
+        foreach (var package in OrderDependenciesFirst([.. packages]))
         {
             // Output the session only if there is no cancellation
             if (cancelToken.HasValue && cancelToken.Value.IsCancellationRequested)
             {
                 return;
             }
-            if (TryLoadAssemblies(this, log, package, loadParameters, out var assetInfo))
+            if (TryLoadAssemblies(this, log, package, loadParameters, projectFilesCache, out var assetInfo))
                 assetLoadInfos.Add(assetInfo);
         }
         foreach (AssetLoadingInfo assetInfo in assetLoadInfos)
@@ -1139,6 +1354,22 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                 log.Warning($"Newer version of {assetInfo.package.Meta.Name} is already referenced in another package. Using version {newerPackage.Meta.Version} instead of {assetInfo.package.Meta.Version}");
                 continue;
             }
+
+            // Asset types come from every package's assemblies (e.g. a companion package loaded after this one), so
+            // list the files again now that all of them are loaded; files already listed keep their upgraded content
+            var previousFiles = assetInfo.newLoadParameters.AssetFiles?.ToDictionary(f => f.FilePath.FullPath, StringComparer.OrdinalIgnoreCase);
+            var assetFiles = Package.ListAssetFiles(assetInfo.package, true, false, loadParameters.LoadAssetsOfUnknownType, assetInfo.pendingPackageUpgrades.Count == 0 ? projectFilesCache : null);
+            if (previousFiles is not null)
+            {
+                for (var i = 0; i < assetFiles.Count; i++)
+                {
+                    if (previousFiles.Remove(assetFiles[i].FilePath.FullPath, out var previousFile))
+                        assetFiles[i] = previousFile;
+                }
+                assetFiles.AddRange(previousFiles.Values);
+            }
+            assetFiles.Sort(PackageLoadingAssetFile.FileSizeComparer.Default);
+            assetInfo.newLoadParameters.AssetFiles = assetFiles;
 
             LoadAssets(assetInfo.session, assetInfo.log, assetInfo.package, assetInfo.loadParameters, assetInfo.pendingPackageUpgrades, assetInfo.newLoadParameters);
         }
@@ -1236,6 +1467,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                         {
                             var generatedAbsolutePath = assetItem.GetGeneratedAbsolutePath().ToOSPath();
 
+                            UpgradeBackup?.Snapshot(generatedAbsolutePath);
                             File.Delete(generatedAbsolutePath);
 
                             var generatedInclude = assetItem.GetGeneratedInclude();
@@ -1247,7 +1479,11 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                         }
                     }
 
-                    File.Delete(assetPath);
+                    if (!filesDeletedOutside.Contains(assetPath))
+                    {
+                        UpgradeBackup?.Snapshot(assetPath);
+                        File.Delete(assetPath);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -1257,10 +1493,14 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
 
             foreach (var project in vsProjs.Values)
             {
+                if (project.IsDirty)
+                    UpgradeBackup?.Snapshot(project.FullPath);
                 project.Save();
                 project.ProjectCollection.UnloadAllProjects();
                 project.ProjectCollection.Dispose();
             }
+
+            filesDeletedOutside.Clear();
 
             // Save all dirty assets
             packagesCopy.Clear();
@@ -1326,13 +1566,14 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
             newAssets[assetItem.Id] = assetItem;
         }
 
-        // Compute all assets that were removed
+        // Compute all assets that were removed, keeping a file that another asset now stands for
+        var filesInUse = newAssets.Values.Select(x => x.FullPath).ToHashSet();
         var assetsOrPackagesToRemove = new Dictionary<UFile, AssetItem>();
         foreach (var assetIt in previousAssets)
         {
             var asset = assetIt.Value;
 
-            if (!newAssets.TryGetValue(assetIt.Key, out var newAsset) || newAsset.Location != asset.Location)
+            if ((!newAssets.TryGetValue(assetIt.Key, out var newAsset) || newAsset.Location != asset.Location) && !filesInUse.Contains(asset.FullPath))
             {
                 assetsOrPackagesToRemove[asset.FullPath] = asset;
             }
@@ -1344,11 +1585,12 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     /// Loads the assembly references that were not loaded before.
     /// </summary>
     /// <param name="log">The log.</param>
-    public void UpdateAssemblyReferences(LoggerResult log)
+    /// <param name="loadParameters">The package loading options, if specified.</param>
+    public void UpdateAssemblyReferences(LoggerResult log, PackageLoadParameters? loadParameters = null)
     {
         foreach (var package in LocalPackages)
         {
-            package.UpdateAssemblyReferences(log);
+            package.UpdateAssemblyReferences(log, loadParameters);
         }
     }
 
@@ -1581,7 +1823,43 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
         return null;
     }
 
-    private bool TryLoadAssemblies(PackageSession session, ILogger log, Package package, PackageLoadParameters loadParameters, [MaybeNullWhen(false)] out AssetLoadingInfo info)
+    /// <summary>
+    /// The packages with the ones they depend on first (the session's order otherwise): an assembly's initializer
+    /// binds to its dependencies, and those must be the copies their own packages load, not the ones found next to it.
+    /// </summary>
+    public static List<Package> OrderDependenciesFirst(IReadOnlyList<Package> packages)
+    {
+        var byName = new Dictionary<string, List<Package>>(StringComparer.OrdinalIgnoreCase);
+        foreach (var package in packages)
+        {
+            if (!byName.TryGetValue(package.Meta.Name, out var sameName))
+                byName.Add(package.Meta.Name, sameName = []);
+            sameName.Add(package);
+        }
+
+        var ordered = new List<Package>(packages.Count);
+        var visited = new HashSet<Package>();
+        foreach (var package in packages)
+            Visit(package);
+        return ordered;
+
+        void Visit(Package package)
+        {
+            if (!visited.Add(package))
+                return;
+            foreach (var name in package.LoadDependencyNames)
+            {
+                if (byName.TryGetValue(name, out var dependencies))
+                {
+                    foreach (var dependency in dependencies)
+                        Visit(dependency);
+                }
+            }
+            ordered.Add(package);
+        }
+    }
+
+    private bool TryLoadAssemblies(PackageSession session, ILogger log, Package package, PackageLoadParameters loadParameters, Dictionary<string, Package.ProjectFiles> projectFilesCache, [MaybeNullWhen(false)] out AssetLoadingInfo info)
     {
         info = null;
         // Already loaded
@@ -1651,7 +1929,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
             package.LoadAssemblies(log, newLoadParameters);
 
             // Load list of assets
-            newLoadParameters.AssetFiles = Package.ListAssetFiles(package, true, false);
+            newLoadParameters.AssetFiles = Package.ListAssetFiles(package, true, false, loadParameters.LoadAssetsOfUnknownType, projectFilesCache);
             // Sort them by size (to improve concurrency during load)
             newLoadParameters.AssetFiles.Sort(PackageLoadingAssetFile.FileSizeComparer.Default);
 

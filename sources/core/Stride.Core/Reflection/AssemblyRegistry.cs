@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Stride.Core.Diagnostics;
@@ -18,7 +19,7 @@ public static class AssemblyRegistry
     private static readonly object Lock = new();
     private static readonly Dictionary<string, HashSet<Assembly>> MapCategoryToAssemblies = [];
     private static readonly Dictionary<Assembly, HashSet<string>> MapAssemblyToCategories = [];
-    private static readonly Dictionary<Assembly, ScanTypes> AssemblyToScanTypes = [];
+    private static readonly ConcurrentDictionary<Assembly, Lazy<ScanTypes>> AssemblyToScanTypes = new();
     private static readonly Dictionary<string, Assembly> AssemblyNameToAssembly = new(StringComparer.OrdinalIgnoreCase);
 
     static AssemblyRegistry()
@@ -153,16 +154,56 @@ public static class AssemblyRegistry
         return categories;
     }
 
-    public static void RegisterScanTypes(Assembly assembly, ScanTypes types)
+    /// <summary>
+    /// Registers the scan index of <paramref name="assembly"/>, built by <paramref name="factory"/> on its first use.
+    /// </summary>
+    /// <remarks>
+    /// Called from the assembly's module initializer: building the index loads the scanned types (and their assemblies),
+    /// which mustn't happen that early. Building it can run module initializers that ask for this same index (e.g.
+    /// AssetQuantumRegistry scans the registered asset assemblies), so a nested call builds it again instead of failing:
+    /// the first index built is kept.
+    /// </remarks>
+    public static void RegisterScanTypes(Assembly assembly, Func<ScanTypes> factory)
     {
-        AssemblyToScanTypes.TryAdd(assembly, types);
+        AssemblyToScanTypes.TryAdd(assembly, new Lazy<ScanTypes>(factory, LazyThreadSafetyMode.PublicationOnly));
     }
 
+    /// <summary>
+    /// Registers the scan index of <paramref name="assembly"/>.
+    /// </summary>
+    /// <remarks>
+    /// Kept for assemblies built by the AssemblyProcessor, which register their index this way.
+    /// </remarks>
+    public static void RegisterScanTypes(Assembly assembly, ScanTypes types)
+    {
+        AssemblyToScanTypes.TryAdd(assembly, new Lazy<ScanTypes>(types));
+    }
+
+    /// <summary>
+    /// The scan index of <paramref name="assembly"/>, or <c>null</c> if it has none.
+    /// </summary>
     public static ScanTypes? GetScanTypes(Assembly assembly)
     {
-        AssemblyToScanTypes.TryGetValue(assembly, out var assemblyScanTypes);
+        return AssemblyToScanTypes.TryGetValue(assembly, out var assemblyScanTypes) ? assemblyScanTypes.Value : null;
+    }
 
-        return assemblyScanTypes;
+    /// <summary>
+    /// The types of <paramref name="assembly"/> recorded in the source-generated scan index under any of <paramref name="keys"/>
+    /// (<see cref="AssemblyScanAttribute"/> types; a generic attribute's generic definition).
+    /// </summary>
+    public static IEnumerable<Type> GetScanTypes(Assembly assembly, params Type[] keys)
+    {
+        if (GetScanTypes(assembly) is not { } scanTypes)
+            yield break;
+
+        foreach (var key in keys)
+        {
+            if (scanTypes.Types.TryGetValue(key, out var types))
+            {
+                foreach (var type in types)
+                    yield return type;
+            }
+        }
     }
 
     /// <summary>
@@ -288,12 +329,32 @@ public static class AssemblyRegistry
 
     private static void OnAssemblyRegistered(Assembly assembly, HashSet<string> categories)
     {
-        AssemblyRegistered?.Invoke(null, new AssemblyRegisteredEventArgs(assembly, categories));
+        Raise(AssemblyRegistered, new AssemblyRegisteredEventArgs(assembly, categories));
     }
 
     private static void OnAssemblyUnregistered(Assembly assembly, HashSet<string> categories)
     {
-        AssemblyUnregistered?.Invoke(null, new AssemblyRegisteredEventArgs(assembly, categories));
+        Raise(AssemblyUnregistered, new AssemblyRegisteredEventArgs(assembly, categories));
+    }
+
+    // Each handler on its own: a failing one (a plugin's, say) is logged and the others still run. Registration runs in
+    // the assembly's module initializer, where an exception would also leave the assembly unusable.
+    private static void Raise(EventHandler<AssemblyRegisteredEventArgs>? handlers, AssemblyRegisteredEventArgs e)
+    {
+        if (handlers is null)
+            return;
+
+        foreach (var handler in handlers.GetInvocationList().Cast<EventHandler<AssemblyRegisteredEventArgs>>())
+        {
+            try
+            {
+                handler(null, e);
+            }
+            catch (Exception ex)
+            {
+                Log.Value.Error($"A handler of assembly [{e.Assembly.GetName().Name}] (un)registration failed: {handler.Method.DeclaringType}.{handler.Method.Name}", ex);
+            }
+        }
     }
 
     /// <summary>

@@ -33,7 +33,7 @@ public interface IUITestContext
     /// presented real content. No-op if no games are active. Times out after
     /// <paramref name="timeoutSeconds"/> with a log message — never throws.
     /// </summary>
-    Task WaitForRendering(int frames = 60, double timeoutSeconds = 30);
+    Task WaitForRendering(int frames = 20, double timeoutSeconds = 30);
 
     /// <summary>Captures the active main window to a PNG named <paramref name="name"/>.</summary>
     Task Screenshot(string name);
@@ -71,9 +71,10 @@ public interface IUITestContext
 
     /// <summary>
     /// Selects a template in the ProjectSelectionWindow by template id and returns true if found.
+    /// Retries until <paramref name="timeoutSeconds"/> while the template list is still loading.
     /// The dialog stays open; close it via <see cref="CloseModalWithOk"/>.
     /// </summary>
-    Task<bool> SelectTemplate(Guid templateId);
+    Task<bool> SelectTemplate(Guid templateId, double timeoutSeconds = 30);
 
     /// <summary>
     /// Closes a modal dialog with <c>DialogResult.Ok</c> (equivalent to clicking OK / Create).
@@ -99,7 +100,7 @@ public interface IUITestContext
     /// <paramref name="postFirstFrameDelaySeconds"/> have elapsed since the first one (lets TAA-style
     /// post-effects converge). Default timeout absorbs cold shader-cache builds.
     /// </summary>
-    Task WaitForGameFrames(IntPtr hwnd, int minFrames = 100, double postFirstFrameDelaySeconds = 2.0, double timeoutSeconds = 90);
+    Task WaitForGameFrames(IntPtr hwnd, int minFrames = 30, double postFirstFrameDelaySeconds = 2.0, double timeoutSeconds = 90);
 
     /// <summary>Captures a specific HWND (e.g. a game window from a child process) to a PNG.</summary>
     Task ScreenshotHwnd(IntPtr hwnd, string name);
@@ -156,6 +157,6 @@ public interface IUITestContext
     /// </summary>
     Task<int> CountUnloadable();
 
-    /// <summary>Sets the process exit code and shuts the editor down.</summary>
+    /// <summary>Sets the process exit code; the editor shuts down when the test returns.</summary>
     void Exit(int exitCode = 0);
 }

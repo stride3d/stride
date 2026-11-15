@@ -294,8 +294,9 @@ namespace Stride.Engine.Processors
         {
             Log.Error("Unexpected exception while executing a script.", e);
 
-            // Only crash if live scripting debugger is not listening
-            if (Scheduler.PropagateExceptions)
+            // During shutdown the scheduler is already destroyed, but scene removal still calls Cancel().
+            // Log cancellation failures and finish cleanup; otherwise preserve the live debugger's policy.
+            if (Scheduler?.PropagateExceptions == true)
                 ExceptionDispatchInfo.Capture(e).Throw();
 
             // Remove script from all lists

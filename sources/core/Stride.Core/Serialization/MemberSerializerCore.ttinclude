@@ -15,7 +15,7 @@
 
 <# if (supportsValueType) { #>
 <# if (supportsGenerics) { #>
-        if (isValueType)
+        if (typeof(T).IsValueType)
 <# } else { #>
         if (objType.IsValueType)
 <# } #>
@@ -108,7 +108,7 @@
 <# if (supportsNonSealed) { #>
                 // If real type is not expected type, we need to store type info as well.
                 var expectedType = <#= typeExpr #>;
-                type = <# if (supportsGenerics) { #>isSealed<# } else { #>objType.IsSealed<# } #> ? expectedType : obj.GetType();
+                type = <# if (supportsGenerics) { #>IsSealed<# } else { #>objType.IsSealed<# } #> ? expectedType : obj.GetType();
                 hasTypeInfo = type != expectedType;
                 objectDataSerializer = null;
                 if (hasTypeInfo)

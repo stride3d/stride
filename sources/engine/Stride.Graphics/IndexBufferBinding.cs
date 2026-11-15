@@ -21,7 +21,7 @@ namespace Stride.Graphics
         ///   A value indicating if the indices are 16-bit (<see langword="false"/>), or 32-bit (<see langword="true"/>).
         /// </param>
         /// <param name="indexCount">The number of indices in the Buffer to use.</param>
-        /// <param name="vertexOffset">
+        /// <param name="indexOffset">
         ///   The offset (in number of indices) from the beginning of the Buffer to the first index to use.
         ///   Default is <c>0</c>, meaning the first index in the Buffer will be used.
         /// </param>
@@ -115,6 +115,8 @@ namespace Stride.Graphics
             ///   Serializes or deserializes a <see cref="IndexBufferBinding"/> object.
             /// </summary>
             /// <param name="indexBufferBinding">The object to serialize or deserialize.</param>
+            /// <param name="mode">The serialization mode.</param>
+            /// <param name="stream">The serialization stream.</param>
             /// <inheritdoc/>
             public override void Serialize(ref IndexBufferBinding indexBufferBinding, ArchiveMode mode, SerializationStream stream)
             {

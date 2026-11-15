@@ -1,0 +1,42 @@
+// GSMain(ExpectedPrimitiveCount=3)
+
+namespace Stride.Shaders.Tests;
+
+// The geometry shader only passes X on, and writes it in a branch: the other path keeps the vertex shader's value, so X is
+// one of its inputs. Checked by RenderingTests.ConditionalWriteInGeometryShaderKeepsItsInput.
+shader StreamGSConditionalWrite
+{
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+    stream float4 ColorTarget : SV_Target0;
+    stream float4 X;
+
+    cbuffer Test
+    {
+        int Test1;
+    }
+
+    void VSMain()
+    {
+        streams.ShadingPosition = streams.Position;
+        streams.X = float4(0.2, 0.4, 0.6, 1.0);
+    }
+
+    [maxvertexcount(3)]
+    void GSMain(triangle Input input[3], inout PointStream<Output> outStream)
+    {
+        streams = input[0];
+        if (Test1 != 0)
+            streams.X = float4(1.0, 1.0, 1.0, 1.0);
+
+        for (int i = 0; i < 3; ++i)
+            outStream.Append(streams);
+
+        outStream.RestartStrip();
+    }
+
+    void PSMain()
+    {
+        streams.ColorTarget = streams.X;
+    }
+}

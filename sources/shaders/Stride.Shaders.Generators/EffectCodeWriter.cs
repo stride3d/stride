@@ -1,11 +1,11 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using Microsoft.CodeAnalysis.CSharp;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Parsing.SDFX.AST;
 using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv;
-using Stride.Shaders.Spirv.Building;
 
 namespace Stride.Shaders.Parsing.SDFX;
 
@@ -18,6 +18,26 @@ public class EffectCodeWriter : ShaderWriter
     private SymbolTable table = new(new(), null!) { ResolveArraySizes = false, ResolveExternalTypes = false };
 
     private bool isProcessingColor = false;
+    private ShaderClass? currentShaderClass;
+    private readonly List<string> moduleInitializerLines = [];
+
+    // The namespaces the generated code sees, to find the C# type of a struct key (see CSharpTypeExists)
+    private static readonly string[] GeneratedUsings = ["Stride.Core", "Stride.Rendering", "Stride.Graphics", "Stride.Shaders", "Stride.Core.Mathematics"];
+    private readonly List<string> usings = [.. GeneratedUsings];
+    private string? currentNamespace;
+
+    /// <summary>
+    /// Whether a C# type exists, by full name. A key of a struct type needs a C# struct with the same name (e.g.
+    /// <c>DirectionalLightData</c>, written by hand); when there is none, the key is not written, so the generated code
+    /// builds. Null: every struct key is written.
+    /// </summary>
+    public Func<string, bool>? CSharpTypeExists { get; init; }
+
+    /// <summary>The full names the C# type of each struct key can have, collected while writing.</summary>
+    public HashSet<string> CSharpTypeCandidates { get; } = [];
+
+    /// <summary>The errors found while writing, also written as <c>#error</c> lines in the text.</summary>
+    public IReadOnlyList<(string Message, TextLocation Location)> Errors => logging;
 
     public bool Run(Node node)
     {
@@ -85,7 +105,7 @@ public class EffectCodeWriter : ShaderWriter
         shaderStruct.ProcessSymbol(table, table.Context);
     }
 
-    protected void WriteVariableAsParameterKey(bool isSdfx, TypeName typeName, Identifier name, Expression? initialValue, List<ShaderAttribute> attributes)
+    protected void WriteVariableAsParameterKey(bool isSdfx, TypeName typeName, Identifier name, Expression? initialValue, List<ShaderAttribute> attributes, string declaringTypeName)
     {
         isProcessingColor = attributes.OfType<AnyShaderAttribute>().Any(x => x.Name == "Color");
         var variableType = attributes.OfType<AnyShaderAttribute>().Where(x => x.Name == "Type").Select(x => ((StringLiteral)x.Parameters[0]).Value).FirstOrDefault();
@@ -120,13 +140,28 @@ public class EffectCodeWriter : ShaderWriter
             }
         }
 
-        var csharpType = variableType ?? ToCSharpType(parameterType);
+        // A struct key needs a C# struct of the same name
+        if (variableType == null && parameterType is StructType or ExternalType)
+        {
+            var candidates = CSharpTypeNames(parameterType.ToString());
+            CSharpTypeCandidates.UnionWith(candidates);
+            if (CSharpTypeExists != null && !candidates.Any(CSharpTypeExists))
+            {
+                WriteLine($"// No key for {name}: no C# type {parameterType} for its struct type");
+                isProcessingColor = false;
+                return;
+            }
+        }
 
-        Write($"public static readonly {parameterKeyType}ParameterKey<");
-        Write(csharpType);
-        Write("> ");
+        var csharpType = variableType ?? ToCSharpType(parameterType);
+        var parameterKeyTypeName = $"{parameterKeyType}ParameterKey<{csharpType}>";
+
+        WriteLine($"[global::System.CodeDom.Compiler.GeneratedCode(\"{typeof(EffectCodeWriter).Assembly.GetName().Name}\", null)]");
+        Write($"public static readonly {parameterKeyTypeName} ");
         Write(name);
         Write(" = ");
+        Write("(").Write(parameterKeyTypeName).Write(")ParameterKeys.Merge(");
+
         if (variableMap == null)
         {
             Write($"ParameterKeys.New{parameterKeyType}<");
@@ -142,9 +177,24 @@ public class EffectCodeWriter : ShaderWriter
         {
             Write(variableMap);
         }
+
+        var declaringKeyNamePrefix = declaringTypeName.EndsWith("Keys", StringComparison.Ordinal) ? declaringTypeName[..^4] : declaringTypeName;
+        Write(", typeof(").Write(declaringTypeName).Write("), ").Write(SymbolDisplay.FormatLiteral($"{declaringKeyNamePrefix}.{name}", true)).Write(")");
+
         WriteLine(";");
 
         isProcessingColor = false;
+    }
+
+    // The full names C# can resolve a type name to in the generated code: the namespace and its parents, then the usings
+    private List<string> CSharpTypeNames(string typeName)
+    {
+        var names = new List<string>();
+        for (var ns = currentNamespace; !string.IsNullOrEmpty(ns); ns = ns.LastIndexOf('.') is var dot and >= 0 ? ns[..dot] : null)
+            names.Add($"{ns}.{typeName}");
+        names.AddRange(usings.Select(x => $"{x}.{typeName}"));
+        names.Add(typeName);
+        return names;
     }
 
     // Maps a resolved shader type to the C# type used for its parameter key and default value.
@@ -186,6 +236,9 @@ public class EffectCodeWriter : ShaderWriter
             case NumberLiteral number when type is ScalarType scalar:
                 Write(FormatScalarLiteral(number, scalar.Type));
                 break;
+            case PrefixExpression { Operator: Operator.Minus, Expression: NumberLiteral number } when type is ScalarType { Type: not (Scalar.UInt or Scalar.UInt64) } scalar:
+                Write("-").Write(FormatScalarLiteral(number, scalar.Type));
+                break;
             case VectorLiteral vector when type is VectorType { BaseType: var element }:
                 Write("new ").Write(ToCSharpType(type)).Write("(");
                 WriteInitialValueList(vector.Values, element);
@@ -196,11 +249,42 @@ public class EffectCodeWriter : ShaderWriter
                 WriteInitialValueList(matrix.Values, element);
                 Write(")");
                 break;
+            // { 1, 2, 3 }: the C# constructor takes the values in the same order (a matrix by rows)
+            case ArrayLiteral list when type is VectorType or MatrixType { Rows: 4, Columns: 4 }:
+                var values = new List<Expression>();
+                if (FlattenLiterals(list, values) && values.Count == (type is VectorType v ? v.Size : 16))
+                {
+                    Write("new ").Write(ToCSharpType(type)).Write("(");
+                    WriteInitialValueList(values, type is VectorType vector ? vector.BaseType : ((MatrixType)type).BaseType);
+                    Write(")");
+                }
+                break;
+            case ArrayLiteral:
+                // A default the key can't hold (struct, other matrix sizes, non-literal values): the key has none
+                break;
             default:
                 // Best-effort fallback for shapes we don't model (e.g. a named constant reference).
                 Write(value.ToString()!);
                 break;
         }
+    }
+
+    // The values of an initializer list without their inner braces, if all are literals
+    private static bool FlattenLiterals(ArrayLiteral list, List<Expression> result)
+    {
+        foreach (var value in list.Values)
+        {
+            if (value is ArrayLiteral inner)
+            {
+                if (!FlattenLiterals(inner, result))
+                    return false;
+            }
+            else if (value is NumberLiteral or BoolLiteral or PrefixExpression { Operator: Operator.Minus, Expression: NumberLiteral })
+                result.Add(value);
+            else
+                return false;
+        }
+        return true;
     }
 
     private void WriteInitialValueList(List<Expression> values, SymbolType elementType)
@@ -254,14 +338,7 @@ public class EffectCodeWriter : ShaderWriter
                     VisitNode(shaderEffect.Block!);
                 }
 
-                WriteLine();
-                WriteLine("[System.Runtime.CompilerServices.ModuleInitializer]");
-                WriteLine("internal static void __Initialize__()");
-                {
-                    OpenBrace();
-                    Write("ShaderMixinManager.Register(\"").Write(shaderEffect.Name).Write("\", new ").Write(shaderEffect.Name).WriteLine("());");
-                    CloseBrace();
-                }
+                moduleInitializerLines.Add($"global::Stride.Shaders.ShaderMixinManager.Register(\"{shaderEffect.Name}\", new global::{currentNamespace}.ShaderMixins.{shaderEffect.Name}());");
                 CloseBrace();
             }
             CloseBrace();
@@ -272,21 +349,35 @@ public class EffectCodeWriter : ShaderWriter
     {
         // Do nothing
         if (IsParameterKey(shaderMember))
-            WriteVariableAsParameterKey(false, shaderMember.TypeName, shaderMember.Name, shaderMember.Value, shaderMember.Attributes ?? []);
+        {
+            WriteVariableAsParameterKey(false, shaderMember.TypeName, shaderMember.Name, shaderMember.Value, shaderMember.Attributes ?? [], GetCurrentShaderClassKeyOwner());
+        }
     }
 
     public override void VisitShaderSamplerState(ShaderSamplerState shaderSamplerState)
     {
         // Do nothing
         if (IsParameterKey(shaderSamplerState))
-            WriteVariableAsParameterKey(false, new TypeName("SamplerState", default), shaderSamplerState.Name, null, shaderSamplerState.Attributes ?? []);
+        {
+            WriteVariableAsParameterKey(false, new TypeName("SamplerState", default), shaderSamplerState.Name, null, shaderSamplerState.Attributes ?? [], GetCurrentShaderClassKeyOwner());
+        }
     }
 
     public override void VisitShaderSamplerComparisonState(ShaderSamplerComparisonState shaderSamplerState)
     {
         // Do nothing
         if (IsParameterKey(shaderSamplerState))
-            WriteVariableAsParameterKey(false, new TypeName("SamplerState", default), shaderSamplerState.Name, null, shaderSamplerState.Attributes ?? []);
+        {
+            WriteVariableAsParameterKey(false, new TypeName("SamplerState", default), shaderSamplerState.Name, null, shaderSamplerState.Attributes ?? [], GetCurrentShaderClassKeyOwner());
+        }
+    }
+
+    private string GetCurrentShaderClassKeyOwner()
+    {
+        if (currentShaderClass is null)
+            throw new InvalidOperationException("Shader parameter keys must be generated inside a shader class.");
+
+        return $"{currentShaderClass.Name}Keys";
     }
 
     public override void VisitBlockStatement(BlockStatement blockStatement)
@@ -299,31 +390,47 @@ public class EffectCodeWriter : ShaderWriter
     public override void VisitUsingShaderNamespace(UsingShaderNamespace usingShaderNamespace)
     {
         Write("using ").Write(string.Join('.', usingShaderNamespace.NamespacePath)).WriteLine(";");
+        usings.Add(string.Join('.', usingShaderNamespace.NamespacePath));
     }
 
     public override void VisitShaderFile(ShaderFile shaderFile)
     {
-        var rootClasses = shaderFile.RootDeclarations.OfType<ShaderClass>().ToList();
-        if (rootClasses.Count > 0)
+        var rootTypes = shaderFile.RootDeclarations.Where(x => x is not UsingShaderNamespace).ToList();
+        if (rootTypes.Count > 0)
         {
-            shaderFile.RootDeclarations.RemoveAll(x => x is ShaderClass);
+            shaderFile.RootDeclarations.RemoveAll(x => x is not UsingShaderNamespace);
 
             // Make sure all top-level objects without namespace are wrapped inside a namespace
             shaderFile.Namespaces.Add(new ShaderNamespace(default)
             {
                 Namespace = new(DefaultNameSpace, default),
                 NamespacePath = DefaultNameSpace.Split('.').Select(x => new Identifier(x, default)).ToList(),
-                Declarations = rootClasses.ToList<ShaderDeclaration>(),
+                Declarations = rootTypes,
             });
         }
 
         base.VisitShaderFile(shaderFile);
+
+        if (moduleInitializerLines.Count > 0)
+        {
+            WriteLine();
+            WriteLine("file static class ShaderGenerator__ModuleInitializer");
+            OpenBrace();
+            WriteLine("[global::System.Runtime.CompilerServices.ModuleInitializer]");
+            WriteLine("internal static void __Initialize__()");
+            OpenBrace();
+            foreach (var line in moduleInitializerLines)
+                WriteLine(line);
+            CloseBrace();
+            CloseBrace();
+        }
     }
 
     public override void VisitShaderNamespace(ShaderNamespace shaderNamespace)
     {
         Write("namespace ").Write(string.Join(".", shaderNamespace.NamespacePath)).WriteLine();
         OpenBrace();
+        currentNamespace = string.Join(".", shaderNamespace.NamespacePath);
 
         var declarations = shaderNamespace.Declarations;
 
@@ -651,6 +758,12 @@ public class EffectCodeWriter : ShaderWriter
         }
     }
 
+    public override void VisitEffectDiscardStatement(EffectDiscardStatement discardStatement)
+    {
+        // Stops the effect here: ShaderMixinManager catches the exception and returns the mixin built so far
+        WriteLine("context.Discard();");
+    }
+
     public override void VisitShaderClass(ShaderClass shaderClass)
     {
         table.Push();
@@ -668,6 +781,8 @@ public class EffectCodeWriter : ShaderWriter
         WriteLine("Keys");
         {
             OpenBrace();
+            var previousShaderClass = currentShaderClass;
+            currentShaderClass = shaderClass;
             foreach (var decl in shaderClass.Elements)
             {
                 if (decl is ShaderMember or ShaderStruct or ShaderSamplerState)
@@ -682,6 +797,10 @@ public class EffectCodeWriter : ShaderWriter
                     }
                 }
             }
+            currentShaderClass = previousShaderClass;
+
+            moduleInitializerLines.Add($"global::System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(global::{currentNamespace}.{shaderClass.Name}Keys).TypeHandle);");
+
             CloseBrace();
         }
 
@@ -703,10 +822,12 @@ public class EffectCodeWriter : ShaderWriter
             foreach (var parameter in effectParameters.Parameters)
             {
                 WriteLinkLine(parameter);
-                WriteVariableAsParameterKey(true, parameter.Type, parameter.Identifier, parameter.DefaultValue, []);
+                WriteVariableAsParameterKey(true, parameter.Type, parameter.Identifier, parameter.DefaultValue, [], effectParameters.Name);
             }
 
-            CloseBrace(false).WriteLine();
+            moduleInitializerLines.Add($"global::System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(global::{currentNamespace}.{effectParameters.Name}).TypeHandle);");
+
+            CloseBrace();
         }
     }
 
@@ -714,9 +835,11 @@ public class EffectCodeWriter : ShaderWriter
     {
         if (element is ShaderMember member)
         {
+            // static and groupshared members are not parameters (not in a cbuffer)
             if (member.IsCompose
                 || member.TypeModifier == TypeModifier.Const
-                || member.StreamKind != StreamKind.None)
+                || member.StreamKind != StreamKind.None
+                || member.StorageClass is StorageClass.Static or StorageClass.GroupShared)
                 return false;
         }
         // TODO:

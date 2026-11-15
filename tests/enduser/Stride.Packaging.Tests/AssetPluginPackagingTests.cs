@@ -25,10 +25,18 @@ namespace Stride.Packaging.Tests;
 /// references through the plugin package's own dependency closure.
 /// </summary>
 [Collection("Packaging")]
-public class AssetPluginPackagingTests
+public class AssetPluginPackagingTests : IDisposable
 {
     private readonly ITestOutputHelper output;
+    private readonly List<string> caseDirs = [];
     public AssetPluginPackagingTests(ITestOutputHelper output) => this.output = output;
+
+    // xUnit creates an instance per test: its case trees go once the test is done with them
+    public void Dispose()
+    {
+        foreach (var caseDir in caseDirs)
+            TestEnvironment.DeleteCaseDirectory(caseDir, output);
+    }
 
     // Warning emitted when a scene references a type whose assembly was not loaded for asset compilation.
     private const string UnresolvedSpinScript = "Unable to resolve tag [!StrideAssetPlugin.SpinScript,StrideAssetPlugin]";
@@ -63,11 +71,6 @@ public class AssetPluginPackagingTests
     /// <summary>Run the built consumer: it loads content by rooted and bare (aliased) URLs.</summary>
     private void AssertRuntimeContentResolves(string consumerDir)
     {
-        // On Linux the consumer's engine module initializer fails to resolve Vortice.Vulkan
-        // (consumer-packaging gap, tracked separately), so the runtime check is Windows-only.
-        if (!OperatingSystem.IsWindows())
-            return;
-
         var binDir = Path.Combine(consumerDir, "bin", "Debug", "net10.0");
         var run = Dotnet.Exec(["exec", Path.Combine(binDir, "Consumer.dll")], binDir, output, timeoutMin: 2);
         Assert.True(run.ExitCode == 0, $"Consumer runtime content check failed (exit {run.ExitCode}).");
@@ -105,19 +108,21 @@ public class AssetPluginPackagingTests
 
     /// <summary>
     /// Pack the plugin into an isolated feed, then build the consumer against it. Each case runs in
-    /// its own temp tree with its own NuGet cache so the fixed 1.0.0 plugin package never collides.
+    /// its own temp tree and deletes the fixed 1.0.0 plugin package from the run's packages folder first.
     /// </summary>
     private (ExecResult Result, string ConsumerDir) RunCase(bool declareAssetAssembly, bool viaProjectReference = false)
     {
         var version = TestEnvironment.ResolveStrideVersion();
         var fixtures = TestEnvironment.FixturesDir();
 
-        var caseDir = Path.Combine(Path.GetTempPath(), "stride-packaging-tests",
+        var caseDir = Path.Combine(TestEnvironment.CasesRoot,
             $"plugin-{(viaProjectReference ? "proj" : declareAssetAssembly ? "pos" : "neg")}-{Guid.NewGuid():N}");
+        caseDirs.Add(caseDir);
         var pluginDir = Path.Combine(caseDir, "plugin");
         var consumerDir = Path.Combine(caseDir, "consumer");
         var feedDir = Path.Combine(caseDir, "feed");
-        var nugetCache = Path.Combine(caseDir, "nuget");
+        var nugetCache = TestEnvironment.RunPackagesFolder;
+        TestEnvironment.DeleteFixedVersionPackages(nugetCache, version);
         TestEnvironment.CopyDirectory(Path.Combine(fixtures, "Plugin"), pluginDir);
         TestEnvironment.CopyDirectory(Path.Combine(fixtures, "Consumer"), consumerDir);
         Directory.CreateDirectory(feedDir);

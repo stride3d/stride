@@ -61,6 +61,9 @@ namespace Stride.Assets.Effect
             writer.Write(EffectBytecode.MagicHeader);
             writer.Write(ShaderCompilerVersion.Shader);
             writer.Write(ShaderCompilerVersion.Effect);
+
+            // Bump when what the command saves changes without a compiler change
+            writer.Write(1);
         }
 
         protected override Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)
@@ -78,12 +81,14 @@ namespace Stride.Assets.Effect
                 permutationCount++;
                 PermutationCount[effectName] = permutationCount;
             }
-            commandContext.Logger.Verbose($"Trying permutation #{permutationCount} for effect [{effectName}]: \n{compilerParameters.ToStringPermutationsDetailed()}");
+            // ToStringPermutationsDetailed ends with a line break, and the log listener adds its own
+            commandContext.Logger.Verbose($"Trying permutation #{permutationCount} for effect [{effectName}]: \n{compilerParameters.ToStringPermutationsDetailed()}".TrimEnd());
 
-            var compilerResults = compiler.Compile(source, compilerParameters);
+            // The permutations of an effect log are old data, not shader corpus captures
+            var compilerResults = ShaderCorpusCapture.WithoutRecording(() => compiler.Compile(source, compilerParameters));
 
             // Copy logs and if there are errors, exit directly
-            compilerResults.CopyTo(commandContext.Logger);
+            ShaderBackendLog.CopyTo(compilerResults, commandContext.Logger);
             if (compilerResults.HasErrors)
             {
                 return Task.FromResult(ResultStatus.Failed);
@@ -91,7 +96,7 @@ namespace Stride.Assets.Effect
 
             // wait for result an check compilation status
             var completedTask = compilerResults.Bytecode.WaitForResult();
-            completedTask.CompilationLog.CopyTo(commandContext.Logger);
+            ShaderBackendLog.CopyTo(completedTask.CompilationLog, commandContext.Logger);
             if (completedTask.CompilationLog.HasErrors)
             {
                 return Task.FromResult(ResultStatus.Failed);
@@ -107,24 +112,16 @@ namespace Stride.Assets.Effect
             // Generate sourcecode if configured
             if (compilerParameters.ContainsKey(EffectSourceCodeKeys.Enable))
             {
-                var outputDirectory = UPath.Combine(package.RootDirectory, baseUrl);
-
-                var fieldName = compilerParameters.Get(EffectSourceCodeKeys.FieldName);
-                if (fieldName.StartsWith("binary", StringComparison.Ordinal))
-                {
-                    fieldName = fieldName.Substring("binary".Length);
-                    if (char.IsUpper(fieldName[0]))
-                    {
-                        fieldName = char.ToLower(fieldName[0]) + fieldName[1..];
-                    }
-                }
-
-                var outputClassFile = effectName + "." + fieldName + "." + compilerParameters.EffectParameters.Platform + "." + compilerParameters.EffectParameters.Profile + ".cs";
-                var fullOutputClassFile = Path.Combine(outputDirectory.ToOSPath(), outputClassFile);
+                var outputDirectory = UPath.Combine(package.RootDirectory, baseUrl).ToOSPath();
+                var fullOutputClassFile = Path.Combine(outputDirectory, EffectBytecodeSourceWriter.GetFileName(effectName, compilerParameters));
 
                 commandContext.Logger.Verbose($"Writing shader bytecode to .cs source [{fullOutputClassFile}]");
                 using (var stream = new FileStream(fullOutputClassFile, FileMode.Create, FileAccess.Write, FileShare.Write))
-                    EffectBytecodeToSourceCodeWriter.Write(effectName, compilerParameters, compilerResults.Bytecode.WaitForResult().Bytecode, new StreamWriter(stream, System.Text.Encoding.UTF8));
+                {
+                    // The command line, with paths relative to the generated file, so it is the same on every machine
+                    var commandLine = string.Join(' ', Environment.GetCommandLineArgs().Select(argument => RelativeArgument(argument, outputDirectory)));
+                    EffectBytecodeSourceWriter.Write(effectName, compilerParameters, compilerResults.Bytecode.WaitForResult().Bytecode, new StreamWriter(stream, System.Text.Encoding.UTF8), commandLine);
+                }
             }
 
             return Task.FromResult(ResultStatus.Successful);
@@ -133,6 +130,16 @@ namespace Stride.Assets.Effect
         public override string ToString()
         {
             return Title;
+        }
+
+        // A path, or the path of an --option=path, relative to the output folder
+        private static string RelativeArgument(string argument, string outputDirectory)
+        {
+            var separator = argument.StartsWith('-') ? argument.IndexOf('=') : -1;
+            var value = argument[(separator + 1)..];
+            return Path.IsPathFullyQualified(value)
+                ? argument[..(separator + 1)] + Path.GetRelativePath(outputDirectory, value)
+                : argument;
         }
 
         private static EffectCompilerBase GetOrCreateEffectCompiler(AssetCompilerContext context)
@@ -145,7 +152,8 @@ namespace Stride.Assets.Effect
                     // Create compiler
                     var effectCompiler = new EffectCompiler(MicrothreadLocalDatabases.DatabaseFileProvider);
                     effectCompiler.SourceDirectories.Add(EffectCompilerBase.DefaultSourceShaderFolder);
-                    compiler = new EffectCompilerCache(effectCompiler, MicrothreadLocalDatabases.DatabaseFileProvider) { CurrentCache = EffectBytecodeCacheLoadSource.StartupCache };
+                    // Each command has its own database: its entry in the index is saved with its result
+                    compiler = new EffectCompilerCache(effectCompiler, MicrothreadLocalDatabases.ProviderService) { CurrentCache = EffectBytecodeCacheLoadSource.StartupCache };
                     context.Properties.Set(CompilerKey, compiler);
 
                     var shaderLocations = context.Properties.Get(EffectShaderAssetCompiler.ShaderLocationsKey);
@@ -171,6 +179,14 @@ namespace Stride.Assets.Effect
             compilerParameters.EffectParameters.Platform = context.GetGraphicsPlatform(package);
             compilerParameters.EffectParameters.Profile = context.GetGameSettingsAsset().GetOrCreate<RenderingSettings>().DefaultGraphicsProfile;
             compilerParameters.EffectParameters.ApplyCompilationMode(context.GetCompilationMode());
+            // Bytecode written as C# source is committed: no debug info, so the same sources always give the same bytes
+            // (FXC's debug info gets a new signature at each compile, and SPIR-V's has the source paths and text)
+            if (compilerParameters.ContainsKey(EffectSourceCodeKeys.Enable))
+            {
+                compilerParameters.EffectParameters.Debug = false;
+                // The level FXC uses when it compiles with debug info, so the code stays the same
+                compilerParameters.EffectParameters.OptimizationLevel = Math.Max(compilerParameters.EffectParameters.OptimizationLevel, 1);
+            }
             return new CommandBuildStep(new EffectCompileCommand(context, urlRoot, effectCompileRequest.EffectName, compilerParameters, package));
         }
     }

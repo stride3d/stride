@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Stride.Core;
 using Stride.Core.Diagnostics;
@@ -10,6 +11,7 @@ using Stride.Core.Storage;
 using Stride.Core.Threading;
 using Stride.Extensions;
 using Stride.Graphics;
+using Stride.Rendering.Shadows;
 using Stride.Shaders;
 using Buffer = Stride.Graphics.Buffer;
 
@@ -24,6 +26,9 @@ namespace Stride.Rendering.Materials
         private StaticObjectPropertyKey<TessellationState> tessellationStateKey;
 
         private EffectDescriptorSetReference perMaterialDescriptorSetSlot;
+        private LogicalGroupReference viewKindKey;
+        // The ViewKind parameters of each layout of the group, one collection per kind
+        private readonly Dictionary<ObjectId, ParameterCollection[]> viewKindParameters = new();
 
         private ConcurrentCollector<RenderMesh> renderMeshesToGenerateAEN = new ConcurrentCollector<RenderMesh>();
 
@@ -47,7 +52,15 @@ namespace Stride.Rendering.Materials
 
         public class MaterialInfoBase
         {
+            [Obsolete("MaterialRenderFeature no longer takes this lock: it guards nothing.")]
             public SpinLock UpdateLock;
+
+            // Guards the variants. Not a spin lock: all the render nodes of a material wait on it while the first one updates
+            // the material, and a spin lock that waits too long sleeps for a whole timer tick (up to 15.6 ms)
+            internal readonly Lock VariantLock = new();
+
+            // The last frame whose render nodes registered the material's textures with the streaming manager
+            internal int LastFrameStreamed;
 
             /// <summary>
             /// Incremented when the source MaterialParameters instance changes (e.g. editor hot reload).
@@ -132,6 +145,29 @@ namespace Stride.Rendering.Materials
             tessellationStateKey = RootRenderFeature.RenderData.CreateStaticObjectKey<TessellationState>();
 
             perMaterialDescriptorSetSlot = ((RootEffectRenderFeature)RootRenderFeature).GetOrCreateEffectDescriptorSetSlot("PerMaterial");
+            viewKindKey = ((RootEffectRenderFeature)RootRenderFeature).CreateViewLogicalGroup("ViewKind");
+        }
+
+        /// <summary>
+        /// Gets the parameters that write a view kind into a layout of the ViewKind group, built from the group's layout so
+        /// the copy matches its size.
+        /// </summary>
+        private ParameterCollection GetViewKindParameters(ViewResourceGroupLayout viewLayout, ref LogicalGroup viewKind, uint kind)
+        {
+            if (!viewKindParameters.TryGetValue(viewKind.Hash, out var kinds))
+            {
+                var layout = new ParameterCollectionLayout();
+                layout.ProcessLogicalGroup(viewLayout, ref viewKind);
+                kinds = new ParameterCollection[RenderViewKind.ShadowMap + 1];
+                for (uint index = 0; index < kinds.Length; index++)
+                {
+                    kinds[index] = new ParameterCollection();
+                    kinds[index].UpdateLayout(layout);
+                    kinds[index].Set(RenderViewKindKeys.ViewKind, index);
+                }
+                viewKindParameters.Add(viewKind.Hash, kinds);
+            }
+            return kinds[kind];
         }
 
         /// <inheritdoc/>
@@ -142,186 +178,222 @@ namespace Stride.Rendering.Materials
             var tessellationStates = RootRenderFeature.RenderData.GetData(tessellationStateKey);
             int effectSlotCount = ((RootEffectRenderFeature)RootRenderFeature).EffectPermutationSlotCount;
 
-            Dispatcher.ForEach(RootRenderFeature.RenderObjects, renderObject =>
+            Dispatcher.ForBatched(RootRenderFeature.RenderObjects.Count, new PrepareEffectPermutationJob
             {
-                var staticObjectNode = renderObject.StaticObjectNode;
-
-                var renderMesh = (RenderMesh)renderObject;
-                bool resetPipelineState = false;
-
-                var material = renderMesh.MaterialPass;
-                var materialInfo = renderMesh.MaterialInfo;
-
-                // Material use first 16 bits
-                var materialSortKey = material != null ? (material.SortKey & 0x0FFF) | ((uint)material.PassIndex << 12) : 0;
-                renderObject.StateSortKey = (renderObject.StateSortKey & 0x0000FFFF) | (materialSortKey << 16);
-
-                ref var tessellationState = ref tessellationStates[staticObjectNode];
-
-                // Update draw data if tessellation is active
-                if (material.TessellationMethod != StrideTessellationMethod.None)
-                {
-                    var tessellationMeshDraw = tessellationState.MeshDraw;
-
-                    if (tessellationState.Method != material.TessellationMethod)
-                    {
-                        tessellationState.Method = material.TessellationMethod;
-
-                        var oldMeshDraw = renderMesh.ActiveMeshDraw;
-                        tessellationMeshDraw = new MeshDraw
-                        {
-                            VertexBuffers = oldMeshDraw.VertexBuffers,
-                            IndexBuffer = oldMeshDraw.IndexBuffer,
-                            DrawCount = oldMeshDraw.DrawCount,
-                            StartLocation = oldMeshDraw.StartLocation,
-                            PrimitiveType = tessellationState.Method.GetPrimitiveType(),
-                        };
-
-                        // adapt the primitive type and index buffer to the tessellation used
-                        if (tessellationState.Method.PerformsAdjacentEdgeAverage())
-                        {
-                            renderMeshesToGenerateAEN.Add(renderMesh);
-                        }
-                        else
-                        {
-                            // Not using AEN tessellation anymore, dispose AEN indices if they were generated
-                            Utilities.Dispose(ref tessellationState.GeneratedIndicesAEN);
-                        }
-                        tessellationState.MeshDraw = tessellationMeshDraw;
-
-                        // Reset pipeline states
-                        resetPipelineState = true;
-                    }
-
-                    renderMesh.ActiveMeshDraw = tessellationState.MeshDraw;
-                }
-                else if (tessellationState.GeneratedIndicesAEN != null)
-                {
-                    // Not using tessellation anymore, dispose AEN indices if they were generated
-                    Utilities.Dispose(ref tessellationState.GeneratedIndicesAEN);
-                }
-
-                // Rebuild rasterizer state if culling mode changed
-                // TODO GRAPHICS REFACTOR: Negative scaling belongs into TransformationRenderFeature
-                if (materialInfo != null && (materialInfo.CullMode != material.CullMode || renderMesh.IsScalingNegative != renderMesh.IsPreviousScalingNegative))
-                {
-                    materialInfo.CullMode = material.CullMode;
-                    renderMesh.IsPreviousScalingNegative = renderMesh.IsScalingNegative;
-                    resetPipelineState = true;
-                }
-
-                if (materialInfo != null && materialInfo.DepthFunction != material.DepthFunction)
-                {
-                    materialInfo.DepthFunction = material.DepthFunction;
-                    resetPipelineState = true;
-                }
-
-                for (int i = 0; i < effectSlotCount; ++i)
-                {
-                    var staticEffectObjectNode = staticObjectNode * effectSlotCount + i;
-                    var renderEffect = renderEffects[staticEffectObjectNode];
-
-                    if (renderEffect == null)
-                        continue;
-
-                    // If any pipeline state changed, rebuild it for all effect slots
-                    if (resetPipelineState)
-                        renderEffect.InvalidatePipelineState();
-
-                    // Skip effects not used during this frame
-                    if (!renderEffect.IsUsedDuringThisFrame(RenderSystem))
-                        continue;
-
-                    if (materialInfo == null || materialInfo.MaterialPass != material)
-                    {
-                        // First time this material is initialized, let's create associated info
-                        lock (allMaterialInfos)
-                        {
-                            if (!allMaterialInfos.TryGetValue(material, out materialInfo))
-                            {
-                                materialInfo = new MaterialInfo(material);
-                                allMaterialInfos.Add(material, materialInfo);
-                            }
-                        }
-                        renderMesh.MaterialInfo = materialInfo;
-                    }
-
-                    if (materialInfo.MaterialParameters != material.Parameters || materialInfo.PermutationCounter != material.Parameters.PermutationCounter)
-                    {
-                        lock (materialInfo)
-                        {
-                            var isMaterialParametersChanged = materialInfo.MaterialParameters != material.Parameters;
-                            if (isMaterialParametersChanged // parameter fast reload?
-                                || materialInfo.PermutationCounter != material.Parameters.PermutationCounter)
-                            {
-                                materialInfo.VertexStageSurfaceShaders = material.Parameters.Get(MaterialKeys.VertexStageSurfaceShaders);
-                                materialInfo.VertexStageStreamInitializer = material.Parameters.Get(MaterialKeys.VertexStageStreamInitializer);
-
-                                materialInfo.DomainStageSurfaceShaders = material.Parameters.Get(MaterialKeys.DomainStageSurfaceShaders);
-                                materialInfo.DomainStageStreamInitializer = material.Parameters.Get(MaterialKeys.DomainStageStreamInitializer);
-
-                                materialInfo.TessellationShader = material.Parameters.Get(MaterialKeys.TessellationShader);
-
-                                materialInfo.PixelStageSurfaceShaders = material.Parameters.Get(MaterialKeys.PixelStageSurfaceShaders);
-                                materialInfo.PixelStageStreamInitializer = material.Parameters.Get(MaterialKeys.PixelStageStreamInitializer);
-                                materialInfo.HasNormalMap = material.Parameters.Get(MaterialKeys.HasNormalMap);
-                                materialInfo.UsePixelShaderWithDepthPass = material.Parameters.Get(MaterialKeys.UsePixelShaderWithDepthPass);
-                                materialInfo.UseDitheredShadows = material.Parameters.Get(MaterialKeys.UseDitheredShadows);
-
-                                materialInfo.MaterialParameters = material.Parameters;
-                                if (isMaterialParametersChanged)
-                                    materialInfo.ParametersVersion++;
-                                materialInfo.PermutationCounter = material.Parameters.PermutationCounter;
-                            }
-                        }
-                    }
-
-                    // VS
-                    if (materialInfo.VertexStageSurfaceShaders != null)
-                        renderEffect.EffectValidator.ValidateParameter(MaterialKeys.VertexStageSurfaceShaders, materialInfo.VertexStageSurfaceShaders);
-                    if (materialInfo.VertexStageStreamInitializer != null)
-                        renderEffect.EffectValidator.ValidateParameter(MaterialKeys.VertexStageStreamInitializer, materialInfo.VertexStageStreamInitializer);
-
-                    // DS
-                    if (materialInfo.DomainStageSurfaceShaders != null)
-                        renderEffect.EffectValidator.ValidateParameter(MaterialKeys.DomainStageSurfaceShaders, materialInfo.DomainStageSurfaceShaders);
-                    if (materialInfo.DomainStageStreamInitializer != null)
-                        renderEffect.EffectValidator.ValidateParameter(MaterialKeys.DomainStageStreamInitializer, materialInfo.DomainStageStreamInitializer);
-
-                    // Tessellation
-                    if (materialInfo.TessellationShader != null)
-                        renderEffect.EffectValidator.ValidateParameter(MaterialKeys.TessellationShader, materialInfo.TessellationShader);
-
-                    // PS
-                    if (materialInfo.PixelStageSurfaceShaders != null)
-                        renderEffect.EffectValidator.ValidateParameter(MaterialKeys.PixelStageSurfaceShaders, materialInfo.PixelStageSurfaceShaders);
-                    if (materialInfo.PixelStageStreamInitializer != null)
-                        renderEffect.EffectValidator.ValidateParameter(MaterialKeys.PixelStageStreamInitializer, materialInfo.PixelStageStreamInitializer);
-                    if (materialInfo.HasNormalMap)
-                        renderEffect.EffectValidator.ValidateParameter(MaterialKeys.HasNormalMap, materialInfo.HasNormalMap);
-                    if (materialInfo.UsePixelShaderWithDepthPass)
-                        renderEffect.EffectValidator.ValidateParameter(MaterialKeys.UsePixelShaderWithDepthPass, materialInfo.UsePixelShaderWithDepthPass);
-                    if (materialInfo.UseDitheredShadows)
-                        renderEffect.EffectValidator.ValidateParameter(MaterialKeys.UseDitheredShadows, materialInfo.UseDitheredShadows);
-                }
+                Feature = this,
+                RenderEffects = renderEffects,
+                TessellationStates = tessellationStates,
+                EffectSlotCount = effectSlotCount,
             });
 
             renderMeshesToGenerateAEN.Close();
         }
 
-        /// <inheritdoc/>
-        public override void Prepare(RenderDrawContext context)
+        private readonly struct PrepareEffectPermutationJob : Dispatcher.IBatchJob
         {
+            public required MaterialRenderFeature Feature { get; init; }
+            public required StaticObjectPropertyData<RenderEffect> RenderEffects { get; init; }
+            public required StaticObjectPropertyData<TessellationState> TessellationStates { get; init; }
+            public required int EffectSlotCount { get; init; }
+
+            public void Process(int start, int endExclusive)
+            {
+                foreach (var renderObject in CollectionsMarshal.AsSpan(Feature.RootRenderFeature.RenderObjects)[start..endExclusive])
+                {
+                    var staticObjectNode = renderObject.StaticObjectNode;
+
+                    var renderMesh = (RenderMesh)renderObject;
+                    bool resetPipelineState = false;
+
+                    var material = renderMesh.MaterialPass;
+                    var materialInfo = renderMesh.MaterialInfo;
+
+                    // Material use first 16 bits
+                    var materialSortKey = material != null ? (material.SortKey & 0x0FFF) | ((uint)material.PassIndex << 12) : 0;
+                    renderObject.StateSortKey = (renderObject.StateSortKey & 0x0000FFFF) | (materialSortKey << 16);
+
+                    ref var tessellationState = ref TessellationStates[staticObjectNode];
+
+                    // Update draw data if tessellation is active
+                    if (material.TessellationMethod != StrideTessellationMethod.None)
+                    {
+                        var tessellationMeshDraw = tessellationState.MeshDraw;
+
+                        if (tessellationState.Method != material.TessellationMethod)
+                        {
+                            tessellationState.Method = material.TessellationMethod;
+
+                            var oldMeshDraw = renderMesh.ActiveMeshDraw;
+                            tessellationMeshDraw = new MeshDraw
+                            {
+                                VertexBuffers = oldMeshDraw.VertexBuffers,
+                                IndexBuffer = oldMeshDraw.IndexBuffer,
+                                DrawCount = oldMeshDraw.DrawCount,
+                                StartLocation = oldMeshDraw.StartLocation,
+                                PrimitiveType = tessellationState.Method.GetPrimitiveType(),
+                            };
+
+                            // Dispose AEN indices if they were generated for the previous method
+                            Utilities.Dispose(ref tessellationState.GeneratedIndicesAEN);
+
+                            // adapt the primitive type and index buffer to the tessellation used
+                            if (tessellationState.Method.PerformsAdjacentEdgeAverage())
+                            {
+                                Feature.renderMeshesToGenerateAEN.Add(renderMesh);
+                            }
+                            tessellationState.MeshDraw = tessellationMeshDraw;
+
+                            // Reset pipeline states
+                            resetPipelineState = true;
+                        }
+
+                        renderMesh.ActiveMeshDraw = tessellationState.MeshDraw;
+                    }
+                    else if (tessellationState.GeneratedIndicesAEN != null)
+                    {
+                        // Not using tessellation anymore, dispose AEN indices if they were generated
+                        // and forget the method, so that a switch back to it rebuilds the draw and generates them again
+                        Utilities.Dispose(ref tessellationState.GeneratedIndicesAEN);
+                        tessellationState.Method = StrideTessellationMethod.None;
+                    }
+
+                    // Rebuild rasterizer state if culling mode changed
+                    // TODO GRAPHICS REFACTOR: Negative scaling belongs into TransformationRenderFeature
+                    if (materialInfo != null && (materialInfo.CullMode != material.CullMode || renderMesh.IsScalingNegative != renderMesh.IsPreviousScalingNegative))
+                    {
+                        materialInfo.CullMode = material.CullMode;
+                        renderMesh.IsPreviousScalingNegative = renderMesh.IsScalingNegative;
+                        resetPipelineState = true;
+                    }
+
+                    if (materialInfo != null && materialInfo.DepthFunction != material.DepthFunction)
+                    {
+                        materialInfo.DepthFunction = material.DepthFunction;
+                        resetPipelineState = true;
+                    }
+
+                    for (int i = 0; i < EffectSlotCount; ++i)
+                    {
+                        var staticEffectObjectNode = staticObjectNode * EffectSlotCount + i;
+                        var renderEffect = RenderEffects[staticEffectObjectNode];
+
+                        if (renderEffect == null)
+                            continue;
+
+                        // If any pipeline state changed, rebuild it for all effect slots
+                        if (resetPipelineState)
+                            renderEffect.InvalidatePipelineState();
+
+                        // Skip effects not used during this frame
+                        if (!renderEffect.IsUsedDuringThisFrame(Feature.RenderSystem))
+                            continue;
+
+                        if (materialInfo == null || materialInfo.MaterialPass != material)
+                        {
+                            // First time this material is initialized, let's create associated info
+                            lock (Feature.allMaterialInfos)
+                            {
+                                if (!Feature.allMaterialInfos.TryGetValue(material, out materialInfo))
+                                {
+                                    materialInfo = new MaterialInfo(material);
+                                    Feature.allMaterialInfos.Add(material, materialInfo);
+                                }
+                            }
+                            renderMesh.MaterialInfo = materialInfo;
+                        }
+
+                        if (materialInfo.MaterialParameters != material.Parameters || materialInfo.PermutationCounter != material.Parameters.PermutationCounter)
+                        {
+                            lock (materialInfo)
+                            {
+                                var isMaterialParametersChanged = materialInfo.MaterialParameters != material.Parameters;
+                                if (isMaterialParametersChanged // parameter fast reload?
+                                    || materialInfo.PermutationCounter != material.Parameters.PermutationCounter)
+                                {
+                                    materialInfo.VertexStageSurfaceShaders = material.Parameters.Get(MaterialKeys.VertexStageSurfaceShaders);
+                                    materialInfo.VertexStageStreamInitializer = material.Parameters.Get(MaterialKeys.VertexStageStreamInitializer);
+
+                                    materialInfo.DomainStageSurfaceShaders = material.Parameters.Get(MaterialKeys.DomainStageSurfaceShaders);
+                                    materialInfo.DomainStageStreamInitializer = material.Parameters.Get(MaterialKeys.DomainStageStreamInitializer);
+
+                                    materialInfo.TessellationShader = material.Parameters.Get(MaterialKeys.TessellationShader);
+
+                                    materialInfo.PixelStageSurfaceShaders = material.Parameters.Get(MaterialKeys.PixelStageSurfaceShaders);
+                                    materialInfo.PixelStageStreamInitializer = material.Parameters.Get(MaterialKeys.PixelStageStreamInitializer);
+                                    materialInfo.HasNormalMap = material.Parameters.Get(MaterialKeys.HasNormalMap);
+                                    materialInfo.UsePixelShaderWithDepthPass = material.Parameters.Get(MaterialKeys.UsePixelShaderWithDepthPass);
+                                    materialInfo.UseDitheredShadows = material.Parameters.Get(MaterialKeys.UseDitheredShadows);
+
+                                    materialInfo.MaterialParameters = material.Parameters;
+                                    if (isMaterialParametersChanged)
+                                        materialInfo.ParametersVersion++;
+                                    materialInfo.PermutationCounter = material.Parameters.PermutationCounter;
+                                }
+                            }
+                        }
+
+                        // VS
+                        if (materialInfo.VertexStageSurfaceShaders != null)
+                            renderEffect.EffectValidator.ValidateParameter(MaterialKeys.VertexStageSurfaceShaders, materialInfo.VertexStageSurfaceShaders);
+                        if (materialInfo.VertexStageStreamInitializer != null)
+                            renderEffect.EffectValidator.ValidateParameter(MaterialKeys.VertexStageStreamInitializer, materialInfo.VertexStageStreamInitializer);
+
+                        // DS
+                        if (materialInfo.DomainStageSurfaceShaders != null)
+                            renderEffect.EffectValidator.ValidateParameter(MaterialKeys.DomainStageSurfaceShaders, materialInfo.DomainStageSurfaceShaders);
+                        if (materialInfo.DomainStageStreamInitializer != null)
+                            renderEffect.EffectValidator.ValidateParameter(MaterialKeys.DomainStageStreamInitializer, materialInfo.DomainStageStreamInitializer);
+
+                        // Tessellation
+                        if (materialInfo.TessellationShader != null)
+                            renderEffect.EffectValidator.ValidateParameter(MaterialKeys.TessellationShader, materialInfo.TessellationShader);
+
+                        // PS
+                        if (materialInfo.PixelStageSurfaceShaders != null)
+                            renderEffect.EffectValidator.ValidateParameter(MaterialKeys.PixelStageSurfaceShaders, materialInfo.PixelStageSurfaceShaders);
+                        if (materialInfo.PixelStageStreamInitializer != null)
+                            renderEffect.EffectValidator.ValidateParameter(MaterialKeys.PixelStageStreamInitializer, materialInfo.PixelStageStreamInitializer);
+                        if (materialInfo.HasNormalMap)
+                            renderEffect.EffectValidator.ValidateParameter(MaterialKeys.HasNormalMap, materialInfo.HasNormalMap);
+                        if (materialInfo.UsePixelShaderWithDepthPass)
+                            renderEffect.EffectValidator.ValidateParameter(MaterialKeys.UsePixelShaderWithDepthPass, materialInfo.UsePixelShaderWithDepthPass);
+                        if (materialInfo.UseDitheredShadows)
+                            renderEffect.EffectValidator.ValidateParameter(MaterialKeys.UseDitheredShadows, materialInfo.UseDitheredShadows);
+                    }
+                }
+            }
+        }
+
+        /// <inheritdoc/>
+        public override unsafe void Prepare(RenderDrawContext context)
+        {
+            // Tell materials mixing RenderViewKind what kind of view they are drawn for
+            for (int index = 0; index < RenderSystem.Views.Count; index++)
+            {
+                var view = RenderSystem.Views[index];
+                var kind = view is ShadowMapRenderView ? RenderViewKind.ShadowMap : RenderViewKind.Default;
+                foreach (var viewLayout in view.Features[RootRenderFeature.Index].Layouts)
+                {
+                    var viewKind = viewLayout.GetLogicalGroup(viewKindKey);
+                    if (viewKind.Hash == ObjectId.Empty)
+                        continue;
+                    var parameters = GetViewKindParameters(viewLayout, ref viewKind, kind);
+                    viewLayout.Entries[view.Index].Resources.UpdateLogicalGroup(ref viewKind, parameters);
+                }
+            }
+
             // Assign descriptor sets to each render node
             var resourceGroupPool = ((RootEffectRenderFeature)RootRenderFeature).ResourceGroupPool;
+            Dispatcher.ForBatched(RootRenderFeature.RenderNodes.Count, (this, context, resourceGroupPool), &ForBatchedAction);
 
-            Dispatcher.ForBatched(RootRenderFeature.RenderNodes.Count, (from, toExclusive) =>
+            static void ForBatchedAction((MaterialRenderFeature, RenderDrawContext, ResourceGroup[]) state, int from, int toExclusive)
             {
+                var (@this, context, resourceGroupPool) = state;
                 var threadContext = context.RenderContext.GetThreadContext();
                 for (int i = from; i < toExclusive; i++)
                 {
                     var renderNodeReference = new RenderNodeReference(i);
-                    var renderNode = RootRenderFeature.RenderNodes[i];
+                    var renderNode = @this.RootRenderFeature.RenderNodes[i];
                     var renderMesh = (RenderMesh)renderNode.RenderObject;
 
                     // Ignore fallback effects
@@ -333,28 +405,32 @@ namespace Stride.Rendering.Materials
                     var materialInfo = renderMesh.MaterialInfo;
                     var materialParameters = material.Parameters;
 
-                    // Register resources usage
-                    Context.StreamingManager?.StreamResources(materialParameters);
+                    // Register resources usage, once per material and frame: they are the same for all of its render nodes
+                    if (@this.Context.StreamingManager is { } streamingManager && Interlocked.Exchange(ref materialInfo.LastFrameStreamed, @this.RenderSystem.FrameCounter) != @this.RenderSystem.FrameCounter)
+                        streamingManager.StreamResources(materialParameters);
 
-                    var resources = UpdateMaterial(RenderSystem, threadContext, materialInfo, perMaterialDescriptorSetSlot.Index, renderNode.RenderEffect, materialParameters);
+                    var resources = UpdateMaterial(@this.RenderSystem, threadContext, materialInfo, @this.perMaterialDescriptorSetSlot.Index, renderNode.RenderEffect, materialParameters);
                     if (resources == null)
                         continue;
 
-                    var descriptorSetPoolOffset = ((RootEffectRenderFeature)RootRenderFeature).ComputeResourceGroupOffset(renderNodeReference);
-                    resourceGroupPool[descriptorSetPoolOffset + perMaterialDescriptorSetSlot.Index] = resources;
+                    var descriptorSetPoolOffset = ((RootEffectRenderFeature)@this.RootRenderFeature).ComputeResourceGroupOffset(renderNodeReference);
+                    resourceGroupPool[descriptorSetPoolOffset + @this.perMaterialDescriptorSetSlot.Index] = resources;
                 }
-            });
+            }
         }
 
-        public override void Draw(RenderDrawContext context, RenderView renderView, RenderViewStage renderViewStage, int startIndex, int endIndex)
+        /// <inheritdoc/>
+        public override void Draw(RenderDrawContext context, RenderView renderView, RenderViewStage renderViewStage)
         {
+            // Generate AEN indices once per view, before the render nodes are drawn: a deferred device draws
+            // the ranges of nodes in parallel, and each range would generate them again on its own command list
             if (renderMeshesToGenerateAEN.Count > 0)
             {
                 var tessellationStates = RootRenderFeature.RenderData.GetData(tessellationStateKey);
 
                 foreach (var renderMesh in renderMeshesToGenerateAEN)
                 {
-                    var tessellationState = tessellationStates[renderMesh.StaticObjectNode];
+                    ref var tessellationState = ref tessellationStates[renderMesh.StaticObjectNode];
                     if (tessellationState.GeneratedIndicesAEN != null)
                         continue;
 
@@ -383,11 +459,8 @@ namespace Stride.Rendering.Materials
             if (single != null && materialInfo.SingleVariantHash == hash && single.LastFrameProcessed == renderSystem.FrameCounter)
                 return single.Resources;
 
-            bool lockTaken = false;
-            try
+            lock (materialInfo.VariantLock)
             {
-                materialInfo.UpdateLock.Enter(ref lockTaken);
-
                 var variant = materialInfo.GetOrAddVariant(hash);
                 if (variant.PerMaterialLayout == null)
                     SetupVariantLayout(renderSystem, variant, resourceGroupDescription);
@@ -397,11 +470,6 @@ namespace Stride.Rendering.Materials
                     variant.LastFrameProcessed = renderSystem.FrameCounter;
                 }
                 return variant.Resources;
-            }
-            finally
-            {
-                if (lockTaken)
-                    materialInfo.UpdateLock.Exit();
             }
         }
 

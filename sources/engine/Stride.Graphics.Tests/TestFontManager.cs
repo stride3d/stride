@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using System;
 using System.Threading;
 using Stride.Core;
 using Stride.Core.IO;
@@ -86,20 +87,19 @@ namespace Stride.Graphics.Tests
             Init();
 
             var fontManager = new FontManager(CreateDatabaseProvider());
-            const int waitTime = 250;
             const int defaultSize = 4;
 
             // test that a simple bitmap generation success
             var characterA = new CharacterSpecification('a', "Risaltyp_024", new Vector2(1.73f, 3.57f), FontStyle.Regular, FontAntiAliasMode.Default);
             fontManager.GenerateBitmap(characterA, false);
-            WaitAndCheck(characterA, waitTime);
+            WaitAndCheck(characterA);
             Assert.Equal(3, characterA.Bitmap.Width);
             Assert.Equal(3, characterA.Bitmap.Rows);
             
             // test that rendering an already existing character to a new size works
             var characterA2 = new CharacterSpecification('a', "Risaltyp_024", 10f * Vector2.One, FontStyle.Regular, FontAntiAliasMode.Default);
             fontManager.GenerateBitmap(characterA2, false);
-            WaitAndCheck(characterA2, waitTime);
+            WaitAndCheck(characterA2);
             Assert.NotEqual(2, characterA2.Bitmap.Width);
             Assert.NotEqual(4, characterA2.Bitmap.Rows);
 
@@ -108,7 +108,7 @@ namespace Stride.Graphics.Tests
             var characterB = new CharacterSpecification('b', "Risaltyp_024", defaultSize * Vector2.One, FontStyle.Regular, FontAntiAliasMode.Default);
             fontManager.GenerateBitmap(characterTo, false);
             fontManager.GenerateBitmap(characterB, false);
-            WaitAndCheck(characterB, 2 * waitTime);
+            WaitAndCheck(characterB);
             Assert.Null(characterTo.Bitmap);
 
             // test that trying to render a character that does not exist does not crash the system
@@ -116,7 +116,7 @@ namespace Stride.Graphics.Tests
             var characterD = new CharacterSpecification('d', "Risaltyp_024", defaultSize * Vector2.One, FontStyle.Regular, FontAntiAliasMode.Default);
             fontManager.GenerateBitmap(characterC, false);
             fontManager.GenerateBitmap(characterD, false);
-            WaitAndCheck(characterD, 2 * waitTime);
+            WaitAndCheck(characterD);
             Assert.Null(characterC.Bitmap);
             
             fontManager.Dispose();
@@ -161,9 +161,10 @@ namespace Stride.Graphics.Tests
             fontManager.Dispose();
         }
 
-        private void WaitAndCheck(CharacterSpecification character, int sleepTime)
+        private void WaitAndCheck(CharacterSpecification character)
         {
-            Thread.Sleep(sleepTime);
+            // The builder thread generates the bitmap
+            SpinWait.SpinUntil(() => character.Bitmap != null, TimeSpan.FromSeconds(10));
             Assert.NotNull(character.Bitmap);
         }
     }

@@ -43,18 +43,23 @@ internal static class MethodDuplicator
         }
         else
         {
-            // Need to reinsert method with new IDs
+            // Need to reinsert method with new IDs, all known first: branches and phis refer to blocks further down
             var remapIds = new Dictionary<int, int>();
+            foreach (var i in methodInfo.OriginalMethodCode)
+            {
+                if (i.IdResult is int originalId)
+                {
+                    // Save copied function ID
+                    if (i.Op == Op.OpFunction)
+                        methodInfo.ThisStageMethodId = context.Bound;
+                    remapIds.Add(originalId, context.Bound++);
+                }
+            }
+
             var copiedInstructions = new List<OpData>();
             foreach (var i in methodInfo.OriginalMethodCode)
             {
-                // Save copied function ID
-                if (i.Op == Op.OpFunction)
-                    methodInfo.ThisStageMethodId = context.Bound;
-
                 var i2 = new OpData(i.Memory.Span);
-                if (i2.IdResult.HasValue)
-                    remapIds.Add(i2.IdResult.Value, context.Bound++);
                 SpirvBuilder.RemapIds(remapIds, ref i2);
                 copiedInstructions.Add(i2);
 

@@ -137,6 +137,7 @@ namespace Stride.Core.Yaml.Serialization
         /// </summary>
         /// <param name="stream">The stream.</param>
         /// <param name="graph">The object to serialize.</param>
+        /// <param name="expectedType">The expected type.</param>
         /// <param name="contextSettings">The context settings.</param>
         public void Serialize(Stream stream, object graph, Type expectedType, SerializerContextSettings contextSettings = null)
         {

@@ -32,8 +32,8 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
         var parsed = SDSLParser.Parse(code);
         if (parsed.Errors.Count > 0)
         {
-            foreach (var error in parsed.Errors)
-                log.Error(error.ToString());
+            // The first error stops the parser: the others are the enclosing parsers giving up after it
+            log.Error(parsed.Errors[0].ToString(filename));
             return false;
         }
         if (parsed.AST is not ShaderFile sf)
@@ -69,6 +69,16 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                 {
                     shader.Compile(table, compiler);
                 }
+                catch (StatementCompileException e)
+                {
+                    log.Error(e.Error.ToString(filename), e);
+                    hasErrors = true;
+                }
+                catch (ShaderErrorsLoggedException e)
+                {
+                    e.CopyTo(log);
+                    hasErrors = true;
+                }
                 catch (Exception e)
                 {
                     log.Error(e.Message, e);
@@ -89,16 +99,17 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                     }
                 }
 
+                // Hints for composition authors, such as a stage method that forces a full import: nothing a game user acts on
                 foreach (var info in table.Infos)
-                    log.Info(info.ToString());
+                    log.Debug(info.ToString(filename));
 
                 foreach (var warning in table.Warnings)
-                    log.Warning(warning.ToString());
+                    log.Warning(warning.ToString(filename));
 
                 if (table.Errors.Count > 0)
                 {
                     foreach (var error in table.Errors)
-                        log.Error(error.ToString());
+                        log.Error(error.ToString(filename));
                     hasErrors = true;
                 }
 

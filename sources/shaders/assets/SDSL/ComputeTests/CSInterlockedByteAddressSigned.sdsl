@@ -1,0 +1,23 @@
+// CSMain(structuredbuffer.Raw="4: 0 0 0 0", expected.Raw="-1023 511 0 4294967295")
+
+namespace Stride.Shaders.Tests;
+
+// RWByteAddressBuffer.InterlockedMin / Max from 1024 threads (32 x 32 groups of one): signed for an int value, unsigned for a
+// uint one, as in DXC. Direct3D 11 needs SPIRV-Cross to give the value the opcode's signedness (HLSL picks it from the value)
+shader CSInterlockedByteAddressSigned
+{
+    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+
+    RWByteAddressBuffer Raw;
+
+    [numthreads(1, 1, 1)]
+    void CSMain()
+    {
+        uint thread = streams.DispatchThreadId.x + streams.DispatchThreadId.y * 32;
+
+        Raw.InterlockedMin(0, -(int)thread);
+        Raw.InterlockedMax(4, (int)thread - 512);
+        Raw.InterlockedMin(8, (uint)((int)thread - 512));
+        Raw.InterlockedMax(12, (uint)((int)thread - 512));
+    }
+}

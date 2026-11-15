@@ -246,18 +246,20 @@
                     BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="{StaticResource TileBorderThickness}">
               <StackPanel>
                 <Grid Height="48">
-                  <!-- Launch game studio -->
+                  <!-- Launch game studio; its text is a VersionCaption (App.axaml), stretched for its badge on the right -->
                   <Button Classes="accent" Command="{Binding StartStudioCommand}"
-                          Content="{Binding ActiveVersion?.FullName, StringFormat={x:Static l:Strings.StartVersion}}" FontSize="24"
+                          Content="{Binding ActiveVersion?.StartCaption}" FontSize="24"
+                          ToolTip.Tip="{Binding ActiveVersion?.DatedFullName}"
                           HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                          HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                          HorizontalContentAlignment="Stretch" VerticalContentAlignment="Center"
                           IsEnabled="{Binding !ActiveVersion?.IsProcessing}"
                           IsVisible="{Binding ActiveVersion?.CanStart, TargetNullValue={x:False}}" />
                   <!-- Install specific version -->
                   <Button Classes="accent" Command="{Binding ActiveVersion?.DownloadCommand}"
-                          Content="{Binding ActiveVersion?.FullName, StringFormat={x:Static l:Strings.InstallVersion}}" FontSize="24"
+                          Content="{Binding ActiveVersion?.InstallCaption}" FontSize="24"
+                          ToolTip.Tip="{Binding ActiveVersion?.DatedFullName}"
                           HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                          HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                          HorizontalContentAlignment="Stretch" VerticalContentAlignment="Center"
                           IsEnabled="{Binding !ActiveVersion?.IsProcessing}"
                           IsVisible="{sd:MultiBinding {Binding ActiveVersion?.DownloadCommand.IsEnabled},
                                                       {Binding !ActiveVersion?.CanStart},
@@ -272,14 +274,20 @@
                 </Grid>
                 <ComboBox x:Name="EditorSelector" Margin="0,4"
                           HorizontalAlignment="Stretch"
-                          ItemsSource="{Binding ActiveVersion?.AvailableEditors}"
-                          SelectedItem="{Binding ActiveVersion?.SelectedEditor}"
-                          SelectionChanged="EditorChanged"
+                          ItemsSource="{Binding ActiveVersion?.EditorChoices}"
+                          SelectedValueBinding="{ReflectionBinding Name}"
+                          SelectedValue="{Binding ActiveVersion?.SelectedEditor}"
                           IsEnabled="{Binding !ActiveVersion?.IsProcessing, FallbackValue={x:False}}"
-                          IsVisible="{Binding ActiveVersion?.AvailableEditors.Count, Converter={sd:Chained {sd:IsGreater}, Parameter1={sd:Double 1}}, FallbackValue={x:False}, TargetNullValue={x:False}}">
+                          IsVisible="{Binding ActiveVersion?.EditorChoices.Count, Converter={sd:Chained {sd:IsGreater}, Parameter1={sd:Double 1}}, FallbackValue={x:False}, TargetNullValue={x:False}}">
+                  <ComboBox.Styles>
+                    <!-- A Game Studio the version doesn't have: listed, greyed, so that it's clear which one starts -->
+                    <Style Selector="ComboBoxItem" x:DataType="vm:EditorChoice">
+                      <Setter Property="IsEnabled" Value="{Binding IsAvailable}" />
+                    </Style>
+                  </ComboBox.Styles>
                   <ComboBox.ItemTemplate>
-                    <DataTemplate>
-                      <TextBlock Text="{Binding Converter={vm:EditorNameConverter}}" />
+                    <DataTemplate DataType="vm:EditorChoice">
+                      <TextBlock Text="{Binding Label}" />
                     </DataTemplate>
                   </ComboBox.ItemTemplate>
                 </ComboBox>
@@ -291,16 +299,22 @@
                           SelectedItem="{Binding SelectedRuntime}"
                           IsEnabled="{Binding !ActiveVersion?.IsProcessing, FallbackValue={x:False}}"
                           IsVisible="{Binding AvailableRuntimes.Count, Converter={sd:Chained {sd:IsGreater}, Parameter1={sd:Double 1}}}" />
-                <CheckBox DockPanel.Dock="Bottom" Margin="0,2"
-                          IsChecked="{Binding AutoCloseLauncher}"
-                          Content="{x:Static l:Strings.AutoCloseLauncher}"/>
               </StackPanel>
             </Border>
             <Border DockPanel.Dock="Top"
                     BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="8,4">
               <DockPanel Height="32">
-                <PathIcon Width="26" Height="26"
-                          Data="{StaticResource GeometrySwitch}"/>
+                <!-- The icon of the title refreshes the list: greyed while the versions are being listed -->
+                <Button Command="{Binding RefreshCommand}" IsEnabled="{Binding !IsSynchronizing}"
+                        Padding="2" Background="Transparent" BorderThickness="0" VerticalAlignment="Center"
+                        ToolTip.Tip="{x:Static l:Strings.ToolTipRefreshVersions}">
+                  <Interaction.Behaviors>
+                    <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
+                                                         DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                  </Interaction.Behaviors>
+                  <PathIcon Width="26" Height="26"
+                            Data="{StaticResource GeometrySwitch}"/>
+                </Button>
                 <TextBlock Text="{x:Static l:Strings.SwitchOrUpdateVersion}"
                            Margin="10,0"
                            FontSize="24" TextAlignment="Left" VerticalAlignment="Center" />
@@ -368,19 +382,26 @@
                                          HorizontalAlignment="Center" VerticalAlignment="Center"
                                          IsVisible="{Binding IsProcessing}" />
                               <Grid IsVisible="{Binding !IsProcessing}">
+                                <!-- The checkout path only goes to the status bar, through the behavior: no popup over the list -->
                                 <Button Command="{Binding SetAsActiveCommand}"
-                                        ToolTip.Tip="{Binding FullName, StringFormat={x:Static l:Strings.ToolTipSetActiveVersion}}"
+                                        ToolTip.Tip="{Binding SetActiveToolTip}" ToolTip.ServiceEnabled="False"
                                         HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                                   <Interaction.Behaviors>
                                     <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
                                                                          DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
                                   </Interaction.Behaviors>
                                 </Button>
-                                <!-- Placed like the label of a store version -->
-                                <TextBlock Margin="12,0,4,0" IsHitTestVisible="False"
-                                           HorizontalAlignment="Left" VerticalAlignment="Center"
-                                           TextTrimming="CharacterEllipsis"
-                                           Text="{Binding DisplayName, StringFormat={x:Static l:Strings.VersionButton}}"/>
+                                <!-- Placed like the label of a store version, with the badge of a local build -->
+                                <DockPanel Margin="12,0,8,0" IsHitTestVisible="False">
+                                  <Border DockPanel.Dock="Right" VerticalAlignment="Center" Margin="6,0,0,0" Padding="5,1" CornerRadius="3"
+                                          Background="{DynamicResource LocalBadgeBackgroundBrush}">
+                                    <TextBlock Text="{x:Static l:Strings.BadgeLocal}" FontSize="10" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource LocalBadgeForegroundBrush}"/>
+                                  </Border>
+                                  <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center"
+                                             TextTrimming="CharacterEllipsis"
+                                             Text="{Binding ListName, StringFormat={x:Static l:Strings.VersionButton}}"/>
+                                </DockPanel>
                                 <!-- The active version, the one Start starts -->
                                 <Border Width="3" HorizontalAlignment="Left" IsHitTestVisible="False"
                                         Background="{DynamicResource AccentBrush}" IsVisible="{Binding IsActive}"/>
@@ -459,10 +480,26 @@
                                           <ChangePropertyAction TargetObject="{Binding #AlternateVersionListBox}" PropertyName="SelectedItem" Value="{x:Null}" />
                                         </EventTriggerBehavior>
                                       </Interaction.Behaviors>
+                                      <!-- Every item is measured, not only the visible ones: the popup is as wide as the longest
+                                           and doesn't change width as it scrolls -->
+                                      <ListBox.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                          <StackPanel />
+                                        </ItemsPanelTemplate>
+                                      </ListBox.ItemsPanel>
                                       <ListBox.ItemTemplate>
                                         <DataTemplate DataType="vm:StrideStoreAlternateVersionViewModel">
-                                          <TextBlock Text="{Binding FullName, StringFormat={x:Static l:Strings.ToolTipSetActiveVersion}}"
-                                                     TextTrimming="CharacterEllipsis" />
+                                          <!-- A beta with its badge: the update of a release skips betas, they're chosen here -->
+                                          <DockPanel>
+                                            <Border DockPanel.Dock="Right" VerticalAlignment="Center" Margin="8,0,0,0" Padding="5,1" CornerRadius="3"
+                                                    Background="{DynamicResource BetaBadgeBackgroundBrush}"
+                                                    IsVisible="{Binding IsBeta}">
+                                              <TextBlock Text="{x:Static l:Strings.BadgeBeta}" FontSize="10" FontWeight="SemiBold"
+                                                         Foreground="{DynamicResource BetaBadgeForegroundBrush}"/>
+                                            </Border>
+                                            <TextBlock Text="{Binding FullName, StringFormat={x:Static l:Strings.ToolTipSetActiveVersion}}"
+                                                       TextTrimming="CharacterEllipsis" />
+                                          </DockPanel>
                                         </DataTemplate>
                                       </ListBox.ItemTemplate>
                                     </ListBox>
@@ -474,7 +511,21 @@
                             <Button DockPanel.Dock="Left"
                                     Margin="0,0,4,0" Width="32" Height="32"
                                     Command="{Binding ReleaseNotes.ToggleCommand}"
+                                    IsVisible="{Binding !IsNightly}"
                                     ToolTip.Tip="{x:Static l:Strings.ToolTipReleaseNotes}">
+                              <Interaction.Behaviors>
+                                <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
+                                                                     DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                              </Interaction.Behaviors>
+                              <PathIcon Width="20" Height="20"
+                                        Data="{StaticResource GeometryNotes}"/>
+                            </Button>
+                            <!-- What's new, in place of the release notes of a nightly: its changes on GitHub -->
+                            <Button DockPanel.Dock="Left"
+                                    Margin="0,0,4,0" Width="32" Height="32"
+                                    Command="{Binding WhatsNewCommand}"
+                                    IsVisible="{Binding IsNightly}"
+                                    ToolTip.Tip="{Binding WhatsNewToolTip}">
                               <Interaction.Behaviors>
                                 <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
                                                                      DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
@@ -508,11 +559,32 @@
                                                                          DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
                                   </Interaction.Behaviors>
                                 </Button>
-                                <!-- One text rather than bound runs: those could stay empty once the row was busy (Avalonia 12.1) -->
-                                <TextBlock Margin="12,0,4,0" IsHitTestVisible="False"
-                                           HorizontalAlignment="Left" VerticalAlignment="Center"
-                                           TextTrimming="CharacterEllipsis"
-                                           Text="{Binding Label}"/>
+                                <!-- One text rather than bound runs: those could stay empty once the row was busy (Avalonia 12.1).
+                                     The badge of the nightly row on its right, of a row of custom builds, or of a beta when the row's
+                                     build is one -->
+                                <DockPanel Margin="12,0,8,0" IsHitTestVisible="False">
+                                  <Border DockPanel.Dock="Right" VerticalAlignment="Center" Margin="6,0,0,0" Padding="5,1" CornerRadius="3"
+                                          Background="{DynamicResource NightlyBadgeBackgroundBrush}"
+                                          IsVisible="{Binding IsNightly}">
+                                    <TextBlock Text="{x:Static l:Strings.BadgeNightly}" FontSize="10" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource NightlyBadgeForegroundBrush}"/>
+                                  </Border>
+                                  <Border DockPanel.Dock="Right" VerticalAlignment="Center" Margin="6,0,0,0" Padding="5,1" CornerRadius="3"
+                                          Background="{DynamicResource TagBadgeBackgroundBrush}"
+                                          IsVisible="{Binding TagBadge, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                    <TextBlock Text="{Binding TagBadge}" FontSize="10" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TagBadgeForegroundBrush}"/>
+                                  </Border>
+                                  <Border DockPanel.Dock="Right" VerticalAlignment="Center" Margin="6,0,0,0" Padding="5,1" CornerRadius="3"
+                                          Background="{DynamicResource BetaBadgeBackgroundBrush}"
+                                          IsVisible="{Binding IsBeta}">
+                                    <TextBlock Text="{x:Static l:Strings.BadgeBeta}" FontSize="10" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource BetaBadgeForegroundBrush}"/>
+                                  </Border>
+                                  <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center"
+                                             TextTrimming="CharacterEllipsis"
+                                             Text="{Binding Label}"/>
+                                </DockPanel>
                                 <!-- The active version, the one Start starts -->
                                 <Border Width="3" HorizontalAlignment="Left" IsHitTestVisible="False"
                                         Background="{DynamicResource AccentBrush}" IsVisible="{Binding IsActive}"/>

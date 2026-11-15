@@ -58,7 +58,6 @@ Commands exposed to the UI:
 | `StartStudioCommand` | Launch Game Studio for `ActiveVersion` (see [lifecycle.md](lifecycle.md#game-studio-launch)) |
 | `OpenUrlCommand` | `ShellExecute` a URL (used for social links, docs, news) |
 | `ReconnectCommand` | Clear `IsOffline` and re-run `FetchOnlineData` |
-| `CheckDeprecatedSourcesCommand` | Add the legacy `packages.stride3d.net` feed to NuGet.config if missing, then restart |
 
 `RunLockTask` serializes every NuGet operation under `objectLock` so two async tasks never hit `NugetStore` concurrently.
 

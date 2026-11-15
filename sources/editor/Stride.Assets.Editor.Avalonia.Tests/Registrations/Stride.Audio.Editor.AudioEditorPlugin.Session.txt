@@ -1,0 +1,4 @@
+Plugin: Stride.Audio.Editor.AudioEditorPlugin
+Services:
+NodePresenterCommands:
+NodePresenterUpdaters:

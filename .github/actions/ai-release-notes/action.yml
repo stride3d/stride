@@ -104,6 +104,10 @@ runs:
         set -euo pipefail
         PROMPT_FILE="${PROMPT_FILE:-$GITHUB_ACTION_PATH/release-notes-prompt.md}"
 
+        # gh api with its output only when it succeeds, else nothing: on a failure (such as a 422 for a
+        # commit GitHub doesn't have) it still writes the error's JSON body to stdout, even with --jq.
+        gh_value() { local out; out=$(gh api "$@" 2>/dev/null) && printf '%s' "$out" || true; }
+
         # Ending without notes is an error, not a silent no-op. Safe to fail: notes run in their
         # own job after the deploy, so the release just keeps its existing body.
         if [ -z "${ANTHROPIC_API_KEY:-}" ]; then
@@ -159,8 +163,8 @@ runs:
           fi
           while IFS=$'\t' read -r n sha updated title; do
             [ -n "$n" ] || continue
-            files=$(gh api "repos/$DOCS_REPO/pulls/$n/files" --paginate \
-              --jq '.[] | select(.status != "removed") | .filename | select(startswith("en/release-notes/") and endswith(".md") and (split("/") | length == 3))' 2>/dev/null || true)
+            files=$(gh_value "repos/$DOCS_REPO/pulls/$n/files" --paginate \
+              --jq '.[] | select(.status != "removed") | .filename | select(startswith("en/release-notes/") and endswith(".md") and (split("/") | length == 3))')
             [ -n "$files" ] || continue
             mkdir -p "$DOCS_DIR/pr-$n/en/release-notes"
             for f in $files; do
@@ -232,6 +236,40 @@ runs:
             c && /^\*\*Full Changelog/ { exit }
             c && /^## / { exit }
             c { print }' <<< "$GN_BODY")
+
+        # A release branch takes master's fixes as cherry-picks (`git cherry-pick -x`), merged through
+        # a backport PR, so GitHub's list (and each commit's PR lookup) only knows that backport PR.
+        # A picked commit names its master commit: its original PR, title and author come from there.
+        # PICKS: picked sha, original sha, original PR, its author, its title.
+        PICKS="$PWD/picks.tsv"
+        : > "$PICKS"
+        BACKPORT_PRS=""
+        while IFS=$'\t' read -r sha orig; do
+          [ -n "$orig" ] || continue
+          carrier=$(gh_value "repos/$REPO/commits/$sha/pulls" \
+            --jq '[.[] | select(.merged_at != null)] | first | select(.) | .number')
+          [ -n "$carrier" ] && BACKPORT_PRS="$BACKPORT_PRS $carrier"
+          # A pick of a commit GitHub doesn't have (picked locally before a rebase, never pushed) has
+          # nothing to be credited as: it stays itself, so its own author and PR are looked up later.
+          if ! info=$(gh api "repos/$REPO/commits/$orig/pulls" \
+            --jq '[.[] | select(.merged_at != null)] | first | select(.) | "\(.number)\t\(.user.login)\t\(.title)"' 2>/dev/null); then
+            echo "::warning::$sha is a cherry-pick of $orig, which GitHub doesn't have: it is credited as itself."
+            continue
+          fi
+          printf '%s\t%s\t%s\n' "$sha" "$orig" "$info" >> "$PICKS"
+        done < <(git log --pretty=format:'%H%x09%b%x00' "$FROM..$TO" -- $SCOPE \
+          | perl -0 -ne 'my ($h, $b) = /^\n?([0-9a-f]{40})\t(.*)/s or next; my @o = $b =~ /\(cherry picked from commit ([0-9a-f]{7,40})\)/g; print "$h\t$o[-1]\n" if @o')
+        if [ -s "$PICKS" ]; then
+          BACKPORT_PRS=$(printf '%s\n' $BACKPORT_PRS | sort -un | paste -sd' ' -)
+          # The backport PRs leave the list, the original PRs join it (once each), so the model
+          # cites them and the credits and the coverage note below follow.
+          for n in $BACKPORT_PRS; do
+            WHATS_CHANGED=$(grep -vE "/pull/$n([^0-9]|\$)" <<< "$WHATS_CHANGED" || true)
+          done
+          ORIGINALS=$(awk -F'\t' -v repo="$REPO" 'NF >= 5 && $3 != "" && !seen[$3]++ { printf "* %s by @%s in https://github.com/%s/pull/%s\n", $5, $4, repo, $3 }' "$PICKS")
+          WHATS_CHANGED=$(printf '%s\n%s' "$WHATS_CHANGED" "$ORIGINALS" | grep -v '^$' || true)
+          echo "::notice::Backport: $(wc -l < "$PICKS") cherry-picked commits from $(grep -c . <<< "$ORIGINALS" || true) original PRs; backport PR(s) left out of the list: ${BACKPORT_PRS:-none}."
+        fi
         if grep -q '^\* ' <<< "$WHATS_CHANGED"; then
           # generate-notes is repo-wide. For a scoped product it is only an attribution
           # lookup (the scoped git log stays the inclusion list); unscoped, it is the
@@ -244,6 +282,9 @@ runs:
           GH_CHANGELOG=$(printf '%s\n\n%s' "$INTRO" "$WHATS_CHANGED")
         else
           GH_CHANGELOG="(No pre-built pull-request list is available for this range. Derive the changes from the git log below and cite commit URLs; the workflow resolves each one's author and pull request.)"
+        fi
+        if [ -s "$PICKS" ]; then
+          GH_CHANGELOG=$(printf '%s\n\n%s' "$GH_CHANGELOG" "This range is a backport: most of its commits are cherry-picks of master commits (their body ends with \`(cherry picked from commit <sha>)\`), merged through backport pull request(s) ${BACKPORT_PRS:-?}, left out of the list above. Credit each change to its original pull request from that list, never to a backport pull request. A commit of the range that is not a cherry-pick has no pull request of its own: cite its commit URL.")
         fi
 
         # Scope note + starting git-log command the prompt tells Claude to run.
@@ -276,21 +317,28 @@ runs:
         build_credits() {
           local file="$1" sha n login prinfo map="$PWD/refs.tsv"
           : > "$map"
+          # A cherry-picked commit is credited as its original master commit (author and PR).
+          if [ -s "$PICKS" ]; then
+            PICKS="$PICKS" REPO="$REPO" perl -i -pe '
+              BEGIN { our %O; open my $f, "<", $ENV{PICKS} or die; while (<$f>) { my @F = split /\t/; $O{$F[0]} = $F[1]; } }
+              our %O; my $R = quotemeta $ENV{REPO};
+              s{(https://github\.com/$R/commit/)([0-9a-f]{7,40})}{ my ($p, $s) = ($1, $2); my ($full) = grep { index($_, $s) == 0 } keys %O; $p . (defined $full ? $O{$full} : $s) }ge' "$file"
+          fi
           # PR -> author, straight from GitHub's own changelog ("* Title by @user in .../pull/N").
           printf '%s\n' "$WHATS_CHANGED" \
             | perl -ne 'print "P\t$2\t$1\n" if m{\@([\w-]+)\s+in\s+\S*?/pull/(\d+)}' >> "$map"
           # Any PR cited but absent from that list (out-of-range, or a scoped product's release).
           for n in $(grep -oE '/pull/[0-9]+' "$file" | grep -oE '[0-9]+$' | sort -un); do
             awk -F'\t' -v n="$n" '$1=="P" && $2==n {f=1} END{exit !f}' "$map" && continue
-            login=$(gh api "repos/$REPO/pulls/$n" --jq '.user.login // empty' 2>/dev/null || true)
+            login=$(gh_value "repos/$REPO/pulls/$n" --jq '.user.login // empty')
             [ -n "$login" ] && printf 'P\t%s\t%s\n' "$n" "$login" >> "$map"
           done
           # commit -> author, plus the merged PR it belongs to (works for squash, merge and rebase
           # merges). Open PRs that merely reference the commit are ignored.
           for sha in $(grep -oE '/commit/[0-9a-f]{7,40}' "$file" | grep -oE '[0-9a-f]{7,40}$' | sort -u); do
-            login=$(gh api "repos/$REPO/commits/$sha" --jq '.author.login // empty' 2>/dev/null || true)
-            prinfo=$(gh api "repos/$REPO/commits/$sha/pulls" \
-              --jq '[.[] | select(.merged_at != null)] | first | select(.) | "\(.number)\t\(.user.login)"' 2>/dev/null || true)
+            login=$(gh_value "repos/$REPO/commits/$sha" --jq '.author.login // empty')
+            prinfo=$(gh_value "repos/$REPO/commits/$sha/pulls" \
+              --jq '[.[] | select(.merged_at != null)] | first | select(.) | "\(.number)\t\(.user.login)"')
             printf 'C\t%s\t%s\t%s\n' "$sha" "$login" "$prinfo" >> "$map"
           done
           REFMAP="$map" REPO="$REPO" perl -i -pe '

@@ -1,4 +1,4 @@
-Local debug build (debugoptimized, no UPX, with PDB)
-Mesa: stride/spirv-to-dxil-tcs-fixes @ 50ab52f135e42f6f52ccbfadf78b00eab0a2b3b6
-Stride patch: build/deps/spirv-to-dxil/mesa-pipeline.patch (applied + spirv_to_nir arity fix)
-Built: 2026-04-29
+dep-spirv-to-dxil workflow, run https://github.com/xen2/stride/actions/runs/38681047021 (release, mimalloc, no UPX)
+Mesa: https://gitlab.freedesktop.org/mesa/mesa.git @ 50ab52f135e42f6f52ccbfadf78b00eab0a2b3b6
+Stride: https://github.com/xen2/stride @ a8dfc1ebf4edc053e5ea09ceb6e34dd7a4702566 (workflow and build/deps/spirv-to-dxil/mesa-pipeline.patch)
+Built: 2026-10-15

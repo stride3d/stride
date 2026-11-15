@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
@@ -37,12 +38,21 @@ namespace Stride.Core.Presentation.Tests
         public void TestInvokeAsyncFireAndForget()
         {
             var dispatcher = CreateDispatcher();
-            int count = 1;
-            dispatcher.InvokeAsync(async () => { await Task.Delay(100); count = count + 1; }).Forget();
-            Assert.Equal(1, count);
-            Thread.Sleep(200);
-            Assert.Equal(2, count);
-            ShutdownDispatcher(dispatcher);
+            try
+            {
+                int count = 1;
+                var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+                using var done = new ManualResetEventSlim();
+                dispatcher.InvokeAsync(async () => { await release.Task; count = count + 1; done.Set(); }).Forget();
+                Assert.Equal(1, count);
+                release.SetResult();
+                Assert.True(done.Wait(TimeSpan.FromSeconds(10)));
+                Assert.Equal(2, count);
+            }
+            finally
+            {
+                ShutdownDispatcher(dispatcher);
+            }
         }
 
         [Fact]
@@ -50,8 +60,10 @@ namespace Stride.Core.Presentation.Tests
         {
             var dispatcher = CreateDispatcher();
             int count = 1;
-            var task = dispatcher.InvokeAsync(async () => { await Task.Delay(100); count = count + 1; });
+            var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            var task = dispatcher.InvokeAsync(async () => { await release.Task; count = count + 1; });
             Assert.Equal(1, count);
+            release.SetResult();
             task.Result.Wait();
             Assert.Equal(2, count);
             ShutdownDispatcher(dispatcher);
@@ -75,8 +87,10 @@ namespace Stride.Core.Presentation.Tests
         {
             var dispatcher = CreateDispatcher();
             int count = 1;
-            var task = dispatcher.InvokeAsync(async () => { await Task.Delay(100); count = count + 1; });
+            var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            var task = dispatcher.InvokeAsync(async () => { await release.Task; count = count + 1; });
             Assert.Equal(1, count);
+            release.SetResult();
             await task.Result;
             Assert.Equal(2, count);
             ShutdownDispatcher(dispatcher);

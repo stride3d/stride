@@ -1,0 +1,24 @@
+// PSMain(ExpectedResult=#02040608, cbuffer.PerView=(BottomRadius=2, Slices=(1,2,3,4)))
+
+namespace Stride.Shaders.Tests;
+
+// A cbuffer's stage and non-stage members in two blocks with the same name: the fix SDSL0174 gives; both blocks are one cbuffer
+shader CBufferSplitStage
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    cbuffer PerView.Atmosphere
+    {
+        float BottomRadius;
+    }
+
+    cbuffer PerView.Atmosphere
+    {
+        stage float4 Slices;
+    }
+
+    void PSMain()
+    {
+        streams.ColorTarget = Slices * BottomRadius / 255.0;
+    }
+};

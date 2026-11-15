@@ -193,7 +193,7 @@ namespace Stride.CrashReport
 
         // Source-checkout layout: the reporter isn't in the NuGet store (a source-built host doesn't restore its
         // own package), it's built under the checkout. Detect the root the same way the NuGet resolver does — walk
-        // up for build/Stride.slnx — then resolve the reporter from its build output, preferring the configuration
+        // up for Stride.slnx next to sources/ — then resolve the reporter from its build output, preferring the configuration
         // the caller is running under. Its TFM (the xplat-editor net10.0) differs from the host's, so probe each.
         private static string FindReporterInDevTree()
         {
@@ -229,13 +229,13 @@ namespace Stride.CrashReport
             return null;
         }
 
-        // Walks up looking for build/Stride.slnx, the source-checkout marker the NuGet resolver keys on.
+        // Walks up looking for Stride.slnx next to sources/, the source-checkout marker the NuGet resolver keys on.
         private static string FindSourceRoot(string startDirectory)
         {
             var directory = startDirectory;
             while (!string.IsNullOrEmpty(directory))
             {
-                if (File.Exists(Path.Combine(directory, "build", "Stride.slnx")))
+                if (File.Exists(Path.Combine(directory, "Stride.slnx")) && Directory.Exists(Path.Combine(directory, "sources")))
                     return directory;
                 directory = Path.GetDirectoryName(directory);
             }

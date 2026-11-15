@@ -1,0 +1,104 @@
+name: Upgrade Samples
+
+# Runs the samples through the package upgraders on the branch's engine, builds them and opens a PR with the result. The
+# PR's labels run the end-user and editor test suites; once it is reviewed and merged, the next release (release.yml)
+# includes the samples, as they are then on the version it releases. Run it again if that number moves before the release.
+# See docs/build/versioning.md.
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: upgrade-samples-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  Upgrade:
+    runs-on: windows-2025-vs2026
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          lfs: true
+          persist-credentials: false  # the push uses the Stride Bot token
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      # PackageStore reads only the user and machine NuGet configs, so the asset compiler's upgrade needs this.
+      - name: Register bin/packages with user NuGet config
+        shell: pwsh
+        run: |
+          New-Item -Path "$env:APPDATA\NuGet" -ItemType Directory -Force | Out-Null
+          dotnet nuget add source "${{ github.workspace }}\bin\packages" --name stride-local --configfile "$env:APPDATA\NuGet\NuGet.Config"
+
+      # Not a package build: the csprojs go through this build's plain number, then SamplesToReleaseEngine adds the suffix.
+      - name: Build the engine packages
+        run: dotnet build build\package.proj -t:Build --no-restore -m -nr:false -p:StrideSign=false -p:StridePackContentTemplates=false
+        env:
+          StrideDisableAssetCompilerExecServerProxy: true
+
+      # MorphTargets isn't in StrideSamples.slnx, so it needs a run of its own.
+      - name: Upgrade the samples
+        shell: pwsh
+        run: |
+          dotnet msbuild build\samples.proj -t:SamplesToDevEngine -p:Configuration=Release
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          dotnet msbuild build\samples.proj -t:UpgradeSamples -p:Configuration=Release
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          dotnet msbuild build\samples.proj -t:UpgradeSamples -p:Configuration=Release -p:SampleUpgradeTarget=$PWD\samples\Graphics\MorphTargets\MorphTargets.Game\MorphTargets.Game.sdpkg
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
+      - name: Build the samples
+        shell: pwsh
+        run: |
+          dotnet build samples\StrideSamples.slnx -nr:false -v:m -p:WarningLevel=0
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          dotnet build samples\Graphics\MorphTargets\MorphTargets.Game\MorphTargets.Game.csproj -nr:false -v:m -p:WarningLevel=0
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+        env:
+          StrideDisableAssetCompilerExecServerProxy: true
+
+      # A PR made with GITHUB_TOKEN starts no workflows, so its labels' suites would never run. The token lasts an hour:
+      # it's made after the build.
+      - name: Get the Stride Bot token
+        id: bot
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.STRIDE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.STRIDE_BOT_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Open the PR
+        shell: bash
+        env:
+          GH_TOKEN: ${{ steps.bot.outputs.token }}
+          BOT: ${{ steps.bot.outputs.app-slug }}[bot]
+        run: |
+          dotnet msbuild build/samples.proj -t:SamplesToReleaseEngine -p:Configuration=Release
+          FILE=sources/shared/SharedAssemblyInfo.cs
+          LINE=$(sed -n 's/.*public const string MajorMinor = "\([0-9.]*\)".*/\1/p' "$FILE")
+          PATCH=$(sed -n 's/.*public const string Patch = "\([0-9][0-9]*\)".*/\1/p' "$FILE")
+          SUFFIX=$(sed -n 's/.*public const string NuGetVersionSuffix = "\([^"]*\)".*/\1/p' "$FILE")
+          VERSION="$LINE.$PATCH$SUFFIX"
+          # Only the samples: the build leaves other files around, and the upgrade's backup folders are ignored.
+          git add samples
+          if git diff --cached --quiet; then
+            echo "::notice::The samples are already up to date with $VERSION, nothing to do."
+            exit 0
+          fi
+          BRANCH="chore/upgrade-samples-$VERSION-${{ github.run_number }}"
+          # The id prefix is what links the author to the bot's profile.
+          git config user.name "$BOT"
+          git config user.email "$(gh api "users/$BOT" --jq .id)+$BOT@users.noreply.github.com"
+          gh auth setup-git
+          git checkout -b "$BRANCH"
+          git commit -q -m "Samples: upgrade to $VERSION"
+          git push origin "$BRANCH"
+          {
+            echo "Automated upgrade of the samples to \`$VERSION\` by the [Upgrade Samples]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) workflow. They built after the upgrade."
+            echo ""
+            echo "Look at the diff, and open the samples in Game Studio if the upgraders changed something that needs a human check. Once merged, the next release includes the samples, as long as \`Patch\` is still on this number. If it moved, run the workflow again."
+          } > pr-body.md
+          gh pr create --base "${{ github.ref_name }}" --head "$BRANCH" --title "Samples: upgrade to $VERSION" --body-file pr-body.md --label ci-enduser --label ci-gamestudio-screenshots

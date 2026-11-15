@@ -134,7 +134,8 @@ public class GameWindowPositionTest : GameTestBase
 
             var target = new Int2(160, 120);
             window.Position = target;
-            for (int i = 0; i < 20 && window.Position != target; i++)
+            var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(5);
+            while (window.Position != target && DateTime.UtcNow < deadline)
             {
                 messageLoop.NextFrame();
                 Thread.Sleep(5);

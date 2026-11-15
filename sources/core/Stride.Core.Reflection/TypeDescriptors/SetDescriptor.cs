@@ -165,7 +165,7 @@ public class SetDescriptor : CollectionDescriptor
     /// </summary>
     /// <param name="set">The set.</param>
     /// <param name="index">Index of value.</param>
-    /// <returns></returns>
+    /// <param name="value">The value to add in place of the indexed value.</param>
     public override void SetValue(object set, object index, object? value)
     {
         ArgumentNullException.ThrowIfNull(set);

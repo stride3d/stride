@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Core.Yaml;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Diagnostics;
 using Stride.Core.BuildEngine;
@@ -19,6 +20,13 @@ public class AssetDependenciesCompiler
     /// Raised when a single asset has been compiled.
     /// </summary>
     public event EventHandler<AssetCompiledArgs>? AssetCompiled;
+
+    /// <summary>
+    /// Whether an asset whose type is not loaded (<see cref="IUnloadable"/>) fails the preparation, as in a game build.
+    /// Otherwise (the editor's previews, thumbnails and editor game) it is skipped with a warning, and the other assets
+    /// still prepare.
+    /// </summary>
+    public bool UnloadableAssetIsError { get; init; }
 
     public AssetDependenciesCompiler(Type compilationContext)
     {
@@ -78,7 +86,17 @@ public class AssetDependenciesCompiler
             {
                 var mainCompiler = BuildDependencyManager.AssetCompilerRegistry.GetCompiler(assetItem.Asset.GetType(), assetNode.CompilationContext);
                 if (mainCompiler is null)
+                {
+                    if (assetItem.Asset is IUnloadable unloadable)
+                    {
+                        var message = $"Cannot compile asset [{assetItem.Location}]: its type [{unloadable.TypeName}] from [{unloadable.AssemblyName}] is not loaded ({unloadable.Error}). The package providing it is missing.";
+                        if (UnloadableAssetIsError)
+                            finalResult.Error(message);
+                        else
+                            finalResult.Warning(message);
+                    }
                     return;
+                }
 
                 var compilerResult = mainCompiler.Prepare(context, assetItem);
 

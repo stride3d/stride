@@ -162,6 +162,9 @@ namespace Stride.Rendering.Compositing
             var svPosUnpack = new Vector4(0.5f * inputSize.Width, -0.5f * inputSize.Height, 0.5f * inputSize.Width, 0.5f * inputSize.Height);
             var textureSizeLess1 = new Vector2(inputSize.Width - 1.0f, inputSize.Height - 1.0f);
 
+            // The input is a shader parameter, not an image effect input: transition it here
+            drawContext.CommandList.ResourceBarrierTransition(input, BarrierLayout.ShaderResource);
+
             if (input.IsDepthStencil)
             {
                 System.Diagnostics.Debug.Assert(output.IsDepthStencil, "input and output IsDepthStencil don't match");

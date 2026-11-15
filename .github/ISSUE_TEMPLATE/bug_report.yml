@@ -1,0 +1,72 @@
+name: Bug report
+description: Something in Stride does not work as it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this! For questions about your own project, the [Discord server](https://discord.gg/f6aerfE) is usually faster.
+  - type: input
+    id: version
+    attributes:
+      label: Stride version
+      description: The version from the launcher (for example 4.4.1), or the branch and commit if you build Stride from source.
+    validations:
+      required: true
+  - type: dropdown
+    id: platforms
+    attributes:
+      label: Platforms
+      description: Where does it happen? Pick all that apply.
+      multiple: true
+      options:
+        - Windows
+        - Linux
+        - macOS
+        - Android
+        - iOS
+        - Game Studio (editor)
+        - Not sure
+    validations:
+      required: true
+  - type: dropdown
+    id: graphics-api
+    attributes:
+      label: Graphics API
+      description: For rendering problems. Leave it empty otherwise.
+      multiple: true
+      options:
+        - Direct3D 11
+        - Direct3D 12
+        - Vulkan
+        - OpenGL
+        - Not sure
+  - type: textarea
+    id: description
+    attributes:
+      label: What happens
+      description: What goes wrong, and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: The steps that show the problem, or a link to a small project.
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Log and callstack
+      description: For a crash or an exception. You can also drag and drop a `.txt` file here.
+      render: text
+  - type: textarea
+    id: context
+    attributes:
+      label: Screenshots and other details
+      description: Anything else that helps, for example screenshots (drag and drop) or your GPU and driver for rendering problems.

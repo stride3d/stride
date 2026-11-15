@@ -139,7 +139,7 @@ namespace Stride.Assets.Models
         {
             base.ComputeParameterHash(writer);
 
-            writer.Write(1); // increase this integer everytime you modify the ImportModelCommand to regenerate the assets.
+            writer.Write(6); // increase this integer everytime you modify the ImportModelCommand to regenerate the assets.
 
             //this serialized the parameters of the command
             writer.SerializeExtended(this, ArchiveMode.Serialize);
@@ -152,6 +152,10 @@ namespace Stride.Assets.Models
                     writer.Write(modifier.Version);
                 }
             }
+
+            // Hashed only when on, so build caches of models that leave it off stay valid
+            if (ShaderReadableBuffers)
+                writer.Write(nameof(ShaderReadableBuffers));
         }
 
         /// <summary>

@@ -6,6 +6,7 @@ using Stride.Shaders;
 
 namespace Stride.Rendering
 {
+    [EffectKeys]
     public static class StrideEffectBaseKeys
     {
         public static readonly PermutationParameterKey<ShaderSource> ExtensionPostVertexStageShader = ParameterKeys.NewPermutation<ShaderSource>();
@@ -17,5 +18,7 @@ namespace Stride.Rendering
         public static readonly PermutationParameterKey<bool> HasInstancing = ParameterKeys.NewPermutation<bool>();
 
         public static readonly PermutationParameterKey<int> ModelTransformUsage = ParameterKeys.NewPermutation<int>();
+
+        public static readonly PermutationParameterKey<int> MorphTargets = ParameterKeys.NewPermutation<int>();
     }
 }

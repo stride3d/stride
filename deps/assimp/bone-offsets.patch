@@ -1,0 +1,169 @@
+diff --git a/code/AssetLib/FBX/FBXConverter.cpp b/code/AssetLib/FBX/FBXConverter.cpp
+index f190d600..cb4e83be 100644
+--- a/code/AssetLib/FBX/FBXConverter.cpp
++++ b/code/AssetLib/FBX/FBXConverter.cpp
+@@ -1239,10 +1239,10 @@ unsigned int FBXConverter::ConvertMeshSingleMaterial(const MeshGeometry &mesh, c
+     }
+ 
+     if (doc.Settings().readWeights && mesh.DeformerSkin() != nullptr && !doc.Settings().useSkeleton) {
+-        ConvertWeights(out_mesh, mesh, absolute_transform, parent, NO_MATERIAL_SEPARATION, nullptr);
++        ConvertWeights(out_mesh, mesh, GeometricTransform(model), parent, NO_MATERIAL_SEPARATION, nullptr);
+     } else if (doc.Settings().readWeights && mesh.DeformerSkin() != nullptr && doc.Settings().useSkeleton) {
+         SkeletonBoneContainer sbc;
+-        ConvertWeightsToSkeleton(out_mesh, mesh, absolute_transform, parent, NO_MATERIAL_SEPARATION, nullptr, sbc);
++        ConvertWeightsToSkeleton(out_mesh, mesh, GeometricTransform(model), parent, NO_MATERIAL_SEPARATION, nullptr, sbc);
+         aiSkeleton *skeleton = createAiSkeleton(sbc);
+         if (skeleton != nullptr) {
+             mSkeletons.emplace_back(skeleton);
+@@ -1484,7 +1484,7 @@ unsigned int FBXConverter::ConvertMeshMultiMaterial(const MeshGeometry &mesh, co
+     ConvertMaterialForMesh(out_mesh, model, mesh, index);
+ 
+     if (process_weights) {
+-        ConvertWeights(out_mesh, mesh, absolute_transform, parent, index, &reverseMapping);
++        ConvertWeights(out_mesh, mesh, GeometricTransform(model), parent, index, &reverseMapping);
+     }
+ 
+     std::vector<aiAnimMesh *> animMeshes;
+@@ -1544,14 +1544,34 @@ static void copyBoneToSkeletonBone(aiMesh *mesh, aiBone *bone, aiSkeletonBone *s
+     skeletonBone->mParent = -1;
+ }
+ 
+-void FBXConverter::ConvertWeightsToSkeleton(aiMesh *out, const MeshGeometry &geo, const aiMatrix4x4 &absolute_transform, aiNode *parent, unsigned int materialIndex,
++aiMatrix4x4 FBXConverter::GeometricTransform(const Model &model) {
++    const PropertyTable &props = model.Props();
++    aiMatrix4x4 translation, rotation, scaling;
++    bool ok;
++
++    const aiVector3D &GeometricTranslation = PropertyGet<aiVector3D>(props, "GeometricTranslation", ok);
++    if (ok) {
++        aiMatrix4x4::Translation(GeometricTranslation, translation);
++    }
++    const aiVector3D &GeometricRotation = PropertyGet<aiVector3D>(props, "GeometricRotation", ok);
++    if (ok) {
++        GetRotationMatrix(model.RotationOrder(), GeometricRotation, rotation);
++    }
++    const aiVector3D &GeometricScaling = PropertyGet<aiVector3D>(props, "GeometricScaling", ok);
++    if (ok) {
++        aiMatrix4x4::Scaling(GeometricScaling, scaling);
++    }
++    return translation * rotation * scaling;
++}
++
++void FBXConverter::ConvertWeightsToSkeleton(aiMesh *out, const MeshGeometry &geo, const aiMatrix4x4 &geometric_transform, aiNode *parent, unsigned int materialIndex,
+         std::vector<unsigned int> *outputVertStartIndices, SkeletonBoneContainer &skeletonContainer) {
+ 
+     if (skeletonContainer.SkeletonBoneToMeshLookup.find(out) != skeletonContainer.SkeletonBoneToMeshLookup.end()) {
+         return;
+     }
+ 
+-    ConvertWeights(out, geo, absolute_transform, parent, materialIndex, outputVertStartIndices);
++    ConvertWeights(out, geo, geometric_transform, parent, materialIndex, outputVertStartIndices);
+     skeletonContainer.MeshArray.emplace_back(out);
+     SkeletonBoneArray *ba = new SkeletonBoneArray;
+     for (size_t i = 0; i < out->mNumBones; ++i) {
+@@ -1566,7 +1586,7 @@ void FBXConverter::ConvertWeightsToSkeleton(aiMesh *out, const MeshGeometry &geo
+     skeletonContainer.SkeletonBoneToMeshLookup[out] = ba;
+ }
+ 
+-void FBXConverter::ConvertWeights(aiMesh *out, const MeshGeometry &geo, const aiMatrix4x4 &absolute_transform,
++void FBXConverter::ConvertWeights(aiMesh *out, const MeshGeometry &geo, const aiMatrix4x4 &geometric_transform,
+         aiNode *parent, unsigned int materialIndex,
+         std::vector<unsigned int> *outputVertStartIndices) {
+     ai_assert(geo.DeformerSkin());
+@@ -1635,7 +1655,7 @@ void FBXConverter::ConvertWeights(aiMesh *out, const MeshGeometry &geo, const ai
+             // XXX this could be heavily simplified by collecting the bone
+             // data in a single step.
+             ConvertCluster(bones, cluster, out_indices, index_out_indices,
+-                    count_out_indices, absolute_transform, parent);
++                    count_out_indices, geometric_transform, parent);
+         }
+ 
+         bone_map.clear();
+@@ -1657,7 +1677,7 @@ void FBXConverter::ConvertWeights(aiMesh *out, const MeshGeometry &geo, const ai
+ 
+ void FBXConverter::ConvertCluster(std::vector<aiBone*> &local_mesh_bones, const Cluster *cluster,
+         std::vector<size_t> &out_indices, std::vector<size_t> &index_out_indices,
+-        std::vector<size_t> &count_out_indices, const aiMatrix4x4 &absolute_transform,
++        std::vector<size_t> &count_out_indices, const aiMatrix4x4 &geometric_transform,
+         aiNode *) {
+     ai_assert(cluster != nullptr); // make sure cluster valid
+ 
+@@ -1674,15 +1694,8 @@ void FBXConverter::ConvertCluster(std::vector<aiBone*> &local_mesh_bones, const
+         bone = new aiBone();
+         bone->mName = bone_name;
+ 
+-        //bone->mOffsetMatrix = cluster->Transform();
+-        // store local transform link for post processing
+-
+-        bone->mOffsetMatrix = cluster->TransformLink();
+-        bone->mOffsetMatrix.Inverse();
+-
+-        const aiMatrix4x4 matrix = (aiMatrix4x4)absolute_transform;
+-
+-        bone->mOffsetMatrix = bone->mOffsetMatrix * matrix; // * mesh_offset
++        // The cluster's Transform is mesh to bone at bind, for the mesh's node; the geometric transform applies first, as in the FBX SDK
++        bone->mOffsetMatrix = cluster->Transform() * geometric_transform;
+ 
+         //
+         // Now calculate the aiVertexWeights
+diff --git a/code/AssetLib/FBX/FBXConverter.h b/code/AssetLib/FBX/FBXConverter.h
+index f33b26ee..aad5752a 100644
+--- a/code/AssetLib/FBX/FBXConverter.h
++++ b/code/AssetLib/FBX/FBXConverter.h
+@@ -226,19 +226,24 @@ private:
+     *  - outputVertStartIndices is only used when a material index is specified, it gives for
+     *    each output vertex the DOM index it maps to.
+     */
+-    void ConvertWeights(aiMesh *out, const MeshGeometry &geo, const aiMatrix4x4 &absolute_transform, aiNode *parent = nullptr,
++    void ConvertWeights(aiMesh *out, const MeshGeometry &geo, const aiMatrix4x4 &geometric_transform, aiNode *parent = nullptr,
+             unsigned int materialIndex = NO_MATERIAL_SEPARATION,
+             std::vector<unsigned int> *outputVertStartIndices = nullptr);
+ 
+     // ------------------------------------------------------------------------------------------------
+-    void ConvertWeightsToSkeleton(aiMesh *out, const MeshGeometry &geo, const aiMatrix4x4 &absolute_transform,
++    // ------------------------------------------------------------------------------------------------
++    // The geometric translation, rotation and scaling of a model, which apply to its geometry only
++    aiMatrix4x4 GeometricTransform(const Model &model);
++
++    // ------------------------------------------------------------------------------------------------
++    void ConvertWeightsToSkeleton(aiMesh *out, const MeshGeometry &geo, const aiMatrix4x4 &geometric_transform,
+             aiNode *parent, unsigned int materialIndex, std::vector<unsigned int> *outputVertStartIndices,
+             SkeletonBoneContainer &skeletonContainer);
+ 
+     // ------------------------------------------------------------------------------------------------
+     void ConvertCluster(std::vector<aiBone *> &local_mesh_bones, const Cluster *cl,
+                         std::vector<size_t> &out_indices, std::vector<size_t> &index_out_indices,
+-            std::vector<size_t> &count_out_indices, const aiMatrix4x4 &absolute_transform, aiNode *parent);
++            std::vector<size_t> &count_out_indices, const aiMatrix4x4 &geometric_transform, aiNode *parent);
+ 
+     // ------------------------------------------------------------------------------------------------
+     void ConvertMaterialForMesh(aiMesh* out, const Model& model, const MeshGeometry& geo,
+diff --git a/code/PostProcessing/ScaleProcess.cpp b/code/PostProcessing/ScaleProcess.cpp
+index d3066e32..4c1aded8 100644
+--- a/code/PostProcessing/ScaleProcess.cpp
++++ b/code/PostProcessing/ScaleProcess.cpp
+@@ -128,20 +128,10 @@ void ScaleProcess::Execute( aiScene* pScene ) {
+             // like when you want the modeller to see 1:1 compatibility.
+             aiBone* bone = mesh->mBones[boneID];
+ 
+-            aiVector3D pos, scale;
+-            aiQuaternion rotation;
+-
+-            bone->mOffsetMatrix.Decompose( scale, rotation, pos);
+-
+-            aiMatrix4x4 translation;
+-            aiMatrix4x4::Translation( pos * mScale, translation );
+-
+-            aiMatrix4x4 scaling;
+-            aiMatrix4x4::Scaling( aiVector3D(scale), scaling );
+-
+-            const aiMatrix4x4 RotMatrix = aiMatrix4x4(rotation.GetMatrix());
+-
+-            bone->mOffsetMatrix = translation * RotMatrix * scaling;
++            // Only the translation: rebuilding the matrix from scale, rotation and translation would lose any shear
++            bone->mOffsetMatrix.a4 *= mScale;
++            bone->mOffsetMatrix.b4 *= mScale;
++            bone->mOffsetMatrix.c4 *= mScale;
+         }
+ 
+ 

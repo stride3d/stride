@@ -75,11 +75,74 @@
       <GlobalPropertiesToRemove>TargetFramework</GlobalPropertiesToRemove>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
-    <!-- Soft reference to BepuPhysics to make sure it is up to date on every editor build -->
-    <ProjectReference Include="..\..\engine\Stride.BepuPhysics\Stride.BepuPhysics\Stride.BepuPhysics.csproj">
+    <!-- Soft references to the plugins so their dev packages are up to date on every editor build -->
+    <ProjectReference Include="..\..\plugins\BepuPhysics\Stride.BepuPhysics\Stride.BepuPhysics.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\Stride.Assets.Presentation.Wpf\Stride.Assets.Presentation.Wpf.csproj" />
+    <ProjectReference Include="..\..\plugins\BepuPhysics\Stride.BepuPhysics.Assets\Stride.BepuPhysics.Assets.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\Audio\Stride.Audio\Stride.Audio.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\Audio\Stride.Audio.Assets\Stride.Audio.Assets.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\Audio\Stride.Audio.Editor\Stride.Audio.Editor.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\Audio\Stride.Audio.Editor.Wpf\Stride.Audio.Editor.Wpf.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\BulletPhysics\Stride.Physics.Assets\Stride.Physics.Assets.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\BulletPhysics\Stride.Physics.Editor\Stride.Physics.Editor.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\SpriteStudio\Stride.SpriteStudio.Assets\Stride.SpriteStudio.Assets.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\SpriteStudio\Stride.SpriteStudio.Editor\Stride.SpriteStudio.Editor.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\SpriteStudio\Stride.SpriteStudio.Editor.Wpf\Stride.SpriteStudio.Editor.Wpf.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\Video\Stride.Video\Stride.Video.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\Voxels\Stride.Voxels\Stride.Voxels.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\Voxels\Stride.Voxels.Editor\Stride.Voxels.Editor.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\Particles\Stride.Particles\Stride.Particles.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\Particles\Stride.Particles.Editor\Stride.Particles.Editor.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\Video\Stride.Video.Assets\Stride.Video.Assets.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\Video\Stride.Video.Editor\Stride.Video.Editor.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\UI\Stride.UI\Stride.UI.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\UI\Stride.UI.Assets\Stride.UI.Assets.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\UI\Stride.UI.Editor\Stride.UI.Editor.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\plugins\UI\Stride.UI.Editor.Wpf\Stride.UI.Editor.Wpf.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Stride.Assets.Editor.Wpf\Stride.Assets.Editor.Wpf.csproj" />
     <ProjectReference Include="..\..\tools\Stride.EffectCompilerServer\Stride.EffectCompilerServer.csproj" IncludeAssets="Build" />
     <ProjectReference Include="..\..\crashreport\Stride.CrashReport\Stride.CrashReport.csproj" />
     <!-- Sentry is used by the core's crash sender at send time, but it's PrivateAssets=all in the core (to keep
@@ -146,7 +209,7 @@
     <Content Include="..\..\..\LICENSE.md" Link="LICENSE.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\..\THIRD PARTY.md" Link="THIRD PARTY.md">
+    <Content Include="..\..\..\THIRD-PARTY-NOTICES.md" Link="THIRD-PARTY-NOTICES.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <None Include="app.config">
@@ -196,7 +259,7 @@
   </Target>
   <Target Name="_StrideGameStudioCopyPackageInstall" BeforeTargets="_GetPackageFiles">
     <ItemGroup>
-      <None Include="..\..\tools\Stride.PackageInstall\bin\$(Configuration)\*.*" PackagePath="tools\" Pack="true" />
+      <None Include="..\..\tools\Stride.PackageInstall\bin\$(Configuration)\*.*" PackagePath="tools/" Pack="true" />
     </ItemGroup>
   </Target>
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />

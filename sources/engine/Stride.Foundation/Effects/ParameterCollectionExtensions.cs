@@ -70,7 +70,7 @@ namespace Stride.Rendering
         /// <param name="log">The logger that reports references left unresolved, or <c>null</c> for the default one.</param>
         /// <remarks>
         /// Code that builds objects outside of a content load can attach a reference with
-        /// <see cref="AttachedReferenceManager.CreateProxyObject{T}(AssetId, string)"/>, which makes an
+        /// <see cref="AttachedReferenceManager.CreateProxyObject{T}(Stride.Core.Assets.AssetId, string)"/>, which makes an
         /// empty object and marks it as a proxy. A proxy becomes the real content in one place only,
         /// <c>ReferenceSerializer</c>, and only during a content load, so such collections keep empty
         /// objects until they are loaded here.

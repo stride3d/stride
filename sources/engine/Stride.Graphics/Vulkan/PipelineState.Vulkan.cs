@@ -93,7 +93,7 @@ namespace Stride.Graphics
                     };
 
                     fixed (VkPipeline* nativePipelinePtr = &NativePipeline)
-                        GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateComputePipelines(GraphicsDevice.NativeDevice, VkPipelineCache.Null, 1, &createInfo, allocator: null, nativePipelinePtr));
+                        GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateComputePipelines(GraphicsDevice.NativeDevice, GraphicsDevice.NativePipelineCache, 1, &createInfo, allocator: null, nativePipelinePtr));
                 }
             }
             else
@@ -145,11 +145,14 @@ namespace Stride.Graphics
                     primitiveRestartEnable = VulkanConvertExtensions.ConvertPrimitiveRestart(Description.PrimitiveType)
                 };
 
-                // TODO VULKAN: Multisampling
+                // The sample count of the render targets: MultisampleCount values are the VkSampleCountFlags bits (None = 1)
+                var sampleMask = Description.SampleMask;
                 var multisampleState = new VkPipelineMultisampleStateCreateInfo
                 {
                     sType = VkStructureType.PipelineMultisampleStateCreateInfo,
-                    rasterizationSamples = VkSampleCountFlags.Count1
+                    rasterizationSamples = (VkSampleCountFlags) Math.Max((int) Description.Output.MultisampleCount, 1),
+                    pSampleMask = &sampleMask,
+                    alphaToCoverageEnable = Description.BlendState.AlphaToCoverageEnable,
                 };
 
                 var tessellationState = new VkPipelineTessellationStateCreateInfo
@@ -262,7 +265,7 @@ namespace Stride.Graphics
                         pTessellationState = &tessellationState,
                     };
                     fixed (VkPipeline* nativePipelinePtr = &NativePipeline)
-                        GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateGraphicsPipelines(GraphicsDevice.NativeDevice, VkPipelineCache.Null, createInfoCount: 1, &createInfo, allocator: null, nativePipelinePtr));
+                        GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateGraphicsPipelines(GraphicsDevice.NativeDevice, GraphicsDevice.NativePipelineCache, createInfoCount: 1, &createInfo, allocator: null, nativePipelinePtr));
                 }
             }
         }
@@ -383,6 +386,9 @@ namespace Stride.Graphics
 
             // Create shader module (shared by all stages)
             var shaderBytecode = stages[0].Data;
+            // Structured buffers in Direct3D's tight layout would read wrong values without scalarBlockLayout: refuse instead
+            if (!GraphicsDevice.SupportsScalarBlockLayout && GraphicsDevice.TightStructuredBuffers(shaderBytecode) is { } tightBuffers)
+                throw new NotSupportedException($"Vulkan: structured buffer(s) {tightBuffers} use Direct3D's tight layout (float3 elements, or a size that is not a multiple of 16), which needs the Vulkan scalarBlockLayout feature; this device doesn't support it.");
             GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateShaderModule(GraphicsDevice.NativeDevice, shaderBytecode, allocator: null, out var shaderModule));
 
             for (int i = 0; i < stages.Length; i++)

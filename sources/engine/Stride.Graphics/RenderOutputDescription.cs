@@ -214,6 +214,10 @@ namespace Stride.Graphics
                 RenderTargetFormats[i] = commandList.RenderTargets[i].ViewFormat;
                 MultisampleCount = commandList.RenderTargets[i].MultisampleCount; // Multi-sampling should all be equal
             }
+
+            // A format left from an earlier capture with more Render Targets makes this description differ from an equal
+            // one, and Direct3D 12 rejects a format above the Render Target count
+            RenderTargetFormats[RenderTargetCount..].Fill(PixelFormat.None);
         }
 
 
@@ -223,6 +227,7 @@ namespace Stride.Graphics
             return RenderTargetCount == other.RenderTargetCount
                 && RenderTargetFormats.SequenceEqual(other.RenderTargetFormats)
                 && DepthStencilFormat == other.DepthStencilFormat
+                && MultisampleCount == other.MultisampleCount
                 && ScissorTestEnable == other.ScissorTestEnable;
         }
 
@@ -240,6 +245,7 @@ namespace Stride.Graphics
             for (int i = 0; i < MaximumRenderTargetCount; i++)
                 hashCode.Add(RenderTargetFormats[i]);
             hashCode.Add(DepthStencilFormat);
+            hashCode.Add(MultisampleCount);
             hashCode.Add(ScissorTestEnable);
             return hashCode.ToHashCode();
         }

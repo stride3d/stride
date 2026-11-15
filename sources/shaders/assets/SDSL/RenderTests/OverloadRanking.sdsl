@@ -1,0 +1,45 @@
+// PSMain(ExpectedResult=#336699CC)
+
+namespace Stride.Shaders.Tests;
+
+// Overloads are ranked like DXC: each argument counts its worst conversion, and one conversion of a worse kind
+// weighs more than any number of milder ones (splat < promotion < sign change < element conversion < truncation)
+shader OverloadRanking
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    // Four splats (float2 overload) win over one truncation (float overload)
+    float Remap(float value, float fromMin, float fromMax, float toMin, float toMax)
+    {
+        return 0;
+    }
+
+    float2 Remap(float2 value, float2 fromMin, float2 fromMax, float2 toMin, float2 toMax)
+    {
+        return toMin + (value - fromMin) * (toMax - toMin) / (fromMax - fromMin);
+    }
+
+    // float to int costs less than int to float
+    float Convert2(float a, float b) { return 0; }
+    float Convert2(int a, int b) { return 0.4; }
+
+    // uint to int costs less than int to uint
+    float Sign2(uint a, uint b) { return 0; }
+    float Sign2(int a, int b) { return 0.6; }
+
+    // Same worst kind (element conversion): the overload with fewer of them wins
+    float Count2(int a, int b) { return 0; }
+    float Count2(int a, float b) { return 0.8; }
+
+    void PSMain()
+    {
+        int i = 1;
+        uint u = 2;
+        float f = 3;
+
+        float2 remapped = Remap(float2(0.25, 0.75), 0.0, 1.0, -1.0, 1.0);
+        float r = (remapped.x == -0.5 && remapped.y == 0.5) ? 0.2 : 0;
+
+        streams.ColorTarget = float4(r, Convert2(i, f), Sign2(i, u), Count2(f, f));
+    }
+};

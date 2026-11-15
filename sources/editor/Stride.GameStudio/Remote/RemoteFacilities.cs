@@ -33,7 +33,7 @@ namespace Stride.GameStudio.Remote
         /// <param name="logger">Logger to show progress and any issues that may occur.</param>
         /// <param name="exePath">Path on the local machine where the executable was compiled.</param>
         /// <returns>True when launch was successful, false otherwise.</returns>
-        internal static bool Launch([NotNull] LoggerResult logger, [NotNull] UFile exePath)
+        internal static bool Launch([NotNull] ILogger logger, [NotNull] UFile exePath)
         {
             if (logger == null) throw new ArgumentNullException(nameof(logger));
             if (exePath == null) throw new ArgumentNullException(nameof(exePath));
@@ -160,7 +160,7 @@ namespace Stride.GameStudio.Remote
         /// <param name="destDir">Destination directory on the remote host</param>
         /// <param name="logger">Logging facility</param>
         /// <returns><c>true</c> if successful; otherwise, <c>false</c>.</returns>
-        private static bool SyncTo(ConnectionInfo connectInfo, UDirectory sourceDir, UDirectory destDir, LoggerResult logger)
+        private static bool SyncTo(ConnectionInfo connectInfo, UDirectory sourceDir, UDirectory destDir, ILogger logger)
         {
             // Copy files over
             using var sftp = new SftpClient(connectInfo);

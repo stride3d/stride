@@ -1,0 +1,21 @@
+!Model
+Id: d4d26537-8d4f-4d81-9ae0-9bc18b37ea21
+SerializedVersion: {Stride: 2.1.0.0}
+Tags: []
+Source: !file ../../../Resources/Donut/donut.gltf
+Skeleton: 16d5596f-af9d-4716-b9f1-dcb5c371d580:gltf/donut Skeleton
+PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
+Materials:
+    6555cfe68e0cf47557a856fc90d98ca1:
+        Name: Material
+        MaterialInstance:
+            Material: null
+DeduplicateMaterials: false
+Modifiers: {}
+MorphTargetNames:
+    b76da7589ebde225e8255f07bb0e7c30: Bigger
+    fb340f630faa54875081aeaff5e9e71f: Thicker
+    b7888ad13832aa47616a2456d979d434: Wider
+    b992ff02d48997abef3d0a7202e7917c: Flatter
+~SourceHashes:
+    6a2d3f27065fa28e117f80c27e63a808~../../../Resources/Donut/donut.gltf: 5f9268ac801cd65ffe97431813052634

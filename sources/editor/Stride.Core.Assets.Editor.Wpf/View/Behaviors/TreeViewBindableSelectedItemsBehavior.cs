@@ -3,6 +3,7 @@
 using System.Collections.Specialized;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Presentation.Behaviors;
+using Stride.Core.Assets.Presentation.ViewModels;
 using TreeView = Stride.Core.Presentation.Controls.TreeView;
 
 namespace Stride.Core.Assets.Editor.View.Behaviors

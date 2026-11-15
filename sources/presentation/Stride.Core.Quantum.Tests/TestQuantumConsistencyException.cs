@@ -56,7 +56,7 @@ public class TestQuantumConsistencyException
         var nodeContainer = new NodeContainer();
         var node = nodeContainer.GetOrCreateNode(obj);
 
-        var exception = new QuantumConsistencyException(null, null, node);
+        var exception = new QuantumConsistencyException(null!, null!, node);
 
         Assert.Contains("NullMessage", exception.Expected);
         Assert.Contains("NullMessage", exception.Observed);
@@ -70,7 +70,7 @@ public class TestQuantumConsistencyException
         var nodeContainer = new NodeContainer();
         var node = nodeContainer.GetOrCreateNode(obj);
 
-        var exception = new QuantumConsistencyException(null, null, null, null, node);
+        var exception = new QuantumConsistencyException(null!, null!, null!, null!, node);
 
         Assert.Contains("NullMessage", exception.Expected);
         Assert.Contains("NullMessage", exception.Observed);

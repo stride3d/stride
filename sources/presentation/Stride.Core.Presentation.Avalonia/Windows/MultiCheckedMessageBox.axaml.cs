@@ -21,6 +21,12 @@ public partial class MultiCheckedMessageBox : MessageBox
     public static readonly StyledProperty<IReadOnlyCollection<DialogCheckBoxInfo>?> CheckBoxesProperty =
         AvaloniaProperty.Register<MultiCheckedMessageBox, IReadOnlyCollection<DialogCheckBoxInfo>?>(nameof(CheckBoxes));
 
+    public MultiCheckedMessageBox()
+    {
+        // The base constructor loads the template of a plain message box: this one adds the check boxes
+        InitializeComponent();
+    }
+
     public IReadOnlyCollection<DialogCheckBoxInfo>? CheckBoxes
     {
         get { return GetValue(CheckBoxesProperty); }

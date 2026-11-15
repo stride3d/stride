@@ -1,2 +1,4 @@
-# Release workflows require approval from release managers
-.github/workflows/release*.yml @stride3d/stride-release-managers
+# Workflows, actions and build scripts run with the release secrets (signing, publishing):
+# a change to them needs a release manager's review.
+/.github/ @stride3d/stride-release-managers
+/build/ @stride3d/stride-release-managers

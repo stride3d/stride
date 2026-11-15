@@ -1,0 +1,21 @@
+// PSMain(ExpectedResult=#336699FF)
+
+namespace Stride.Shaders.Tests;
+
+shader FloatIndex
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    void PSMain()
+    {
+        float4 colors[3];
+        colors[0] = float4(1, 0, 0, 1);
+        colors[1] = float4(0.2, 0.4, 0.6, 1);
+        colors[2] = float4(0, 0, 1, 1);
+
+        // A floating-point index is truncated towards zero, as in HLSL
+        float index = 1.7;
+        float4 values = float4(0.1, 0.1, 0.1, 0.6);
+        streams.ColorTarget = float4(colors[index].rg, values[index * 2.3], colors[index].a);
+    }
+};

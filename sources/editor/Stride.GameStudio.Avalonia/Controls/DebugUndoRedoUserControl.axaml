@@ -1,0 +1,27 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Stride.Core.Assets.Editor.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Stride.GameStudio.Avalonia.Controls.DebugUndoRedoUserControl"
+             x:DataType="vm:UndoRedoViewModel">
+  <DockPanel>
+    <TextBlock DockPanel.Dock="Top" Text="ToolBar placeholder (undo/redo)" />
+    <TreeView ItemsSource="{Binding Transactions}">
+      <Control.DataTemplates>
+        <TreeDataTemplate DataType="{x:Type vm:OperationViewModel}"
+                          ItemsSource="{Binding Children}">
+          <TextBlock Margin="0,0,10,0">
+            <Run Text="{Binding Name, Mode=OneWay}"/> (<Run Text="{Binding Type, Mode=OneWay}"/>)
+          </TextBlock>
+        </TreeDataTemplate>
+      </Control.DataTemplates>
+      <StyledElement.Styles>
+        <Style Selector="TreeViewItem">
+          <Setter Property="IsExpanded" Value="True"/>
+        </Style>
+      </StyledElement.Styles>
+    </TreeView>
+  </DockPanel>
+</UserControl>

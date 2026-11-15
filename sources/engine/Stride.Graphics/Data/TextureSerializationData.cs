@@ -126,5 +126,52 @@ namespace Stride.Graphics.Data
                 Image.Save(stream.UnderlyingStream, ImageFileType.Stride);
             }
         }
+
+        /// <summary>
+        /// Opposite of <see cref="Write"/>, loads an instance from the stream provided.
+        /// </summary>
+        /// <remarks>
+        /// Similar to <see cref="Write"/>, a streamed image is serialized separately from this range in the stream.
+        /// In that specific case, the image returned may correspond to a lower mip of the whole texture or
+        /// an empty full-size image if the mip's format was incompatible (<see cref="ContentStorageHeader.InitialImage"/>). <br/>
+        /// You will have to go through <see cref="ContentStreamingService"/> and its <see cref="ContentStorage"/> to retrieve the full resolution data,
+        /// see <see cref="TextureContentSerializer"/>'s implementation.
+        /// </remarks>
+        /// <param name="stream">The source stream.</param>
+        /// <param name="fullResDescription">
+        /// The image returned, when marked as streamed, may correspond to a lower mip of the whole texture.
+        /// This variable returns the description of the fully loaded texture.
+        /// </param>
+        public static TextureSerializationData Read(SerializationStream stream, out ImageDescription fullResDescription)
+        {
+            bool enableStreaming = stream.Read<bool>();
+            Image image;
+            ContentStorageHeader storageHeader;
+            if (enableStreaming)
+            {
+                // Read image header
+                fullResDescription = default;
+                ImageHelper.ImageDescriptionSerializer.Serialize(ref fullResDescription, ArchiveMode.Deserialize, stream);
+
+                // Read storage header
+                ContentStorageHeader.Read(stream, out storageHeader);
+                if (storageHeader.InitialImage)
+                {
+                    image = Image.Load(stream.UnderlyingStream);
+                }
+                else
+                {
+                    image = Image.New(fullResDescription);
+                }
+            }
+            else
+            {
+                image = Image.Load(stream.UnderlyingStream);
+                fullResDescription = image.Description;
+                storageHeader = default;
+            }
+
+            return new TextureSerializationData(image, enableStreaming, storageHeader);
+        }
     }
 }

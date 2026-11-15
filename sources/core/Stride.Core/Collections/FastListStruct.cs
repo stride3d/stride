@@ -26,6 +26,11 @@ public struct FastListStruct<T> : IEnumerable<T>
         }
     }
 
+    /// <summary>
+    /// Initializes a list that shares the backing array of the specified list.
+    /// </summary>
+    /// <param name="fastList">The list whose backing array is shared.</param>
+    [Obsolete("FastList<T> is obsolete.")]
     public FastListStruct(FastList<T> fastList)
     {
         Count = fastList.Count;
@@ -139,10 +144,17 @@ public struct FastListStruct<T> : IEnumerable<T>
         return new Enumerator(Items, Count);
     }
 
+    /// <summary>
+    /// Creates a list that shares the backing array of the specified list.
+    /// </summary>
+    /// <param name="fastList">The list whose backing array is shared.</param>
+#pragma warning disable CS0618 // The obsolete conversion accepts FastList.
+    [Obsolete("FastList<T> is obsolete.")]
     public static implicit operator FastListStruct<T>(FastList<T> fastList)
     {
         return new FastListStruct<T>(fastList);
     }
+#pragma warning restore CS0618
 
     public static implicit operator FastListStruct<T>(T[] array)
     {

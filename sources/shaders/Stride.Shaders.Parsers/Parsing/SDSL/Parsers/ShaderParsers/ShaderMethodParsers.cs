@@ -107,6 +107,7 @@ public record struct SimpleMethodParser : IParser<ShaderMethod>
             && Parsers.FollowedBy(ref scanner, Tokens.Char('('), withSpaces: true, advance: true)
             && Parsers.FollowedByDel(ref scanner, result, ShaderMethodParsers.MethodParameters, out List<MethodParameter>? parameters, withSpaces: true, advance: true)
             && Parsers.FollowedBy(ref scanner, Tokens.Char(')'), withSpaces: true, advance: true)
+            && ReturnSemantic(ref scanner, result, out var returnSemantic)
             && Parsers.Spaces0(ref scanner, result, out _)
             && StatementParsers.Block(ref scanner, result, out var body, new(SDSLErrorMessages.SDSL0040, scanner[scanner.Position], scanner.Memory))
         )
@@ -114,11 +115,22 @@ public record struct SimpleMethodParser : IParser<ShaderMethod>
             parsed = new ShaderMethod(typename, methodName, scanner[position..scanner.Position])
             {
                 Parameters = parameters!,
+                ReturnSemantic = returnSemantic,
                 Body = (BlockStatement)body
             };
             return true;
         }
         else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
+    }
+
+    // Optional `: SEMANTIC` after the parameters; false only when a `:` is not followed by a name
+    private static bool ReturnSemantic<TScanner>(ref TScanner scanner, ParseResult result, out Identifier? semantic)
+        where TScanner : struct, IScanner
+    {
+        semantic = null;
+        if (!Parsers.FollowedBy(ref scanner, Tokens.Char(':'), withSpaces: true, advance: true))
+            return true;
+        return Parsers.FollowedByDel(ref scanner, result, LiteralsParser.Identifier, out semantic, withSpaces: true, advance: true);
     }
 }
 

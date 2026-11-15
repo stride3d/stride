@@ -19,42 +19,47 @@ public delegate void ProfilerDisposeEventDelegate(ref ProfilingState profilingSt
 /// High level CPU Profiler. For usage see remarks.
 /// </summary>
 /// <remarks>
-/// This class is a lightweight profiler that can log detailed KPI (Key Performance Indicators) of an application.
-/// To use it, simply enclose in a <c>using</c> code the section of code you want to profile:
+/// This class is a lightweight profiler that can log detailed KPI (Key Performance Indicators) of a game.
+/// To use it, simply enclose your code in a <c>using (var profile = Profiler.Begin(...))</c> block:
 /// <code>
-/// public static readonly ProfilingKey GameInitialization = new ProfilingKey("Game", "Initialization");
+/// // Keys can also be created without a parent
+/// public static readonly ProfilingKey GameInitialization = new ProfilingKey(ParentKey, "Initialization");
 /// 
 /// // This will log a 'Begin' profiling event.
 /// using (var profile = Profiler.Begin(GameInitialization))
 /// {
 ///     // Long running code here...
 /// 
-/// 
-///     // You can log 'Mark' profiling event
+///     // You can log 'Mark' profiling event to indicate a specific part of code was executed
 ///     profile.Mark("CriticalPart");
-/// 
-///     // Adds an attribute that will be logged in End event
-///     profile.Attributes.Add("ModelCount", modelCount);
-/// } // here a 'End' profiling event will be issued.
+/// } // here's where the code stops being profiled and information is collected
 /// </code>
-/// By default, the profiler is not enabled, so there is a minimum performance impact leaving it in the code. 
-/// It doesn't measure anything and doesn't produce any KPI.
 /// 
-/// To enable a particular profiler (before using <see cref="Begin"/> method):
+/// Here are the most important things to keep in mind:
+/// <list type="bullet">
+/// <item><description>Profiler - collects information from all profiles</description></item>
+/// <item><description>Profile - collects information for a specific chunk of code</description></item>
+/// <item><description>Key - represents a profile using a unique identifier</description></item>
+/// </list>
+/// 
+/// By default, the profiler is not enabled, so there is a minimum performance impact leaving it in the code. 
+/// It doesn't measure anything and doesn't collect any data.
+/// 
+/// To enable a particular profile (before using <see cref="Begin(ProfilingKey)"/> method), use:
 /// <code>
 /// Profiler.Enable(GameInitialization);
 /// </code>
-/// To enable all profilers, use <c>Profiler.EnableAll()</c> method.
+/// To enable all profiles, use:
+/// <code>
+/// Profiler.EnableAll();
+/// </code>
 /// 
-/// When the profiler is enabled, it is logged using the logging system through the standard <see cref="Diagnostics.Logger"/> infrastructure, 
-/// if ProfilingKeyFlags.Log is set for the ProfilingKey. The logger module name used is "Profile." concatenates with the name of the profile.
+/// When a profile has <c>ProfilingKeyFlags.Log</c> set in its key, its events will get logged using the standard
+/// <see cref="Diagnostics.Logger"/> infrastructure while it's enabled. Note also that it is possible to pass up to
+/// 4 additional values along with a message when beginning, ending or marking a profile.
 /// 
-/// Note also that when profiling, it is possible to attach some property values (counters, indicators...etc.) to a profiler state. This 
-/// property values will be displayed along the standard profiler state. You can use <see cref="ProfilingState.Attributes"/> to attach
-/// a property value to a <see cref="ProfilingState"/>.
-/// 
-/// To register your own system to receive <see cref="ProfilingEvent">ProfilingEvents</see> use the <see cref="Subscribe"/> and 
-/// <see cref="Unsubscribe"/> methods.
+/// To register your own system to receive <see cref="ProfilingEvent">ProfilingEvents</see> use the <see cref="Subscribe"/>
+/// and <see cref="Unsubscribe"/> methods.
 /// </remarks>
 public static class Profiler
 {
@@ -142,7 +147,7 @@ public static class Profiler
     }
 
     /// <summary>
-    /// Subscribes to the generated ProfilingEvents.
+    /// Creates a reader and subscribes it to profiling events.
     /// </summary>
     /// <returns>The <see cref="System.Threading.Channels.ChannelReader{ProfilingEvent}"/> which will receive the events.</returns>
     public static ChannelReader<ProfilingEvent> Subscribe()
@@ -158,9 +163,9 @@ public static class Profiler
     }
 
     /// <summary>
-    /// Unsubscribes from receiving ProfilingEvents.
+    /// Unsubscribes a reader from receiving profiling events.
     /// </summary>
-    /// <param name="eventReader">The reader previously returned by <see cref="Subscribe"/></param>
+    /// <param name="eventReader">The reader previously returned by <see cref="Subscribe"/>.</param>
     public static void Unsubscribe(ChannelReader<ProfilingEvent> eventReader)
     {
         subscriberChannelLock.Wait();
@@ -177,7 +182,7 @@ public static class Profiler
     }
 
     /// <summary>
-    /// Enables all profilers.
+    /// Enables all profiles.
     /// </summary>
     public static void EnableAll()
     {
@@ -188,7 +193,7 @@ public static class Profiler
     }
 
     /// <summary>
-    /// Disable all profilers.
+    /// Disables all profiles.
     /// </summary>
     public static void DisableAll()
     {
@@ -207,18 +212,21 @@ public static class Profiler
     }
 
     /// <summary>
-    /// Enables the specified profiler.
+    /// Checks if the profile is enabled.
     /// </summary>
     /// <param name="profilingKey">The profile key.</param>
+    /// <returns>Returns true if the profile is enabled, otherwise false.</returns>
+    /// <remarks>This method not only checks if <see cref="ProfilingKey.Enabled"/> is set to true, but also if all
+    /// profiles are globally enabled in the profiler.</remarks>
     public static bool IsEnabled(ProfilingKey profilingKey)
     {
         return enableAll || profilingKey.Enabled;
     }
 
     /// <summary>
-    /// Enables the specified profiler.
+    /// Enables the specified profile.
     /// </summary>
-    /// <param name="profilingKey">The profile key.</param>
+    /// <param name="profilingKey">Key of the profile to enable.</param>
     public static void Enable(ProfilingKey profilingKey)
     {
         lock (Locker)
@@ -232,9 +240,9 @@ public static class Profiler
     }
 
     /// <summary>
-    /// Disables the specified profiler.
+    /// Disables the specified profile.
     /// </summary>
-    /// <param name="profilingKey">The profile key.</param>
+    /// <param name="profilingKey">Key of the profile to disable.</param>
     public static void Disable(ProfilingKey profilingKey)
     {
         lock (Locker)
@@ -248,13 +256,29 @@ public static class Profiler
     }
 
     /// <summary>
-    /// Creates a profiler with the specified name. The returned object must be disposed at the end of the section
-    /// being profiled. See remarks.
+    /// Creates a new profile state for the provided key, that can be used for code profiling. The created instance
+    /// needs to be started and disposed manually. See remarks.
     /// </summary>
-    /// <param name="profilingKey">The profile key.</param>
-    /// <returns>A profiler state.</returns>
-    /// <remarks>It is recommended to call this method with <c>using (Profiler.Begin(...)) {...}</c> or <c>using var _ = Profiler.Begin(...);</c> 
-    /// in order to make sure that the Dispose() method will be called on the <see cref="ProfilingState" /> returned object.</remarks>
+    /// <param name="profilingKey">Key of the profile.</param>
+    /// <returns>A profile state that hasn't been started yet.</returns>
+    /// <remarks>The created instance needs to be started using <see cref="ProfilingState.Begin()"/> and stopped
+    /// using <see cref="ProfilingState.End()"/> or <see cref="ProfilingState.Dispose"/>.
+    /// 
+    /// It's recommended to instead use <c>using (var profile = Profiler.Begin(...)) {...}</c> or <c>using var
+    /// profile = Profiler.Begin(...);</c> to ensure that the profile state gets properly disposed.</remarks>
+    /// <example>
+    /// <code>
+    /// public static readonly ProfilingKey MyProfilingKey = new ProfilingKey("MyProfilingKey");
+    /// 
+    /// var state = Profiler.New(MyProfilingKey);
+    /// state.Begin();
+    /// 
+    /// // Execute performance heavy code here
+    /// 
+    /// // Make sure to stop profiling
+    /// state.End();
+    /// </code>
+    /// </example>
     public static ProfilingState New(ProfilingKey profilingKey)
     {
         ArgumentNullException.ThrowIfNull(profilingKey);
@@ -266,13 +290,14 @@ public static class Profiler
     }
 
     /// <summary>
-    /// Creates a profiler with the specified key. The returned object must be disposed at the end of the section
-    /// being profiled. See remarks.
+    /// Starts profiling with the provided key. The returned object must be disposed at the end of the section being
+    /// profiled. See remarks.
     /// </summary>
     /// <param name="profilingKey">The profile key.</param>
     /// <returns>A profiler state.</returns>
-    /// <remarks>It is recommended to call this method with <c>using (Profiler.Begin(...)) {...}</c> or <c>using var _ = Profiler.Begin(...);</c> 
-    /// in order to make sure that the Dispose() method will be called on the <see cref="ProfilingState" /> returned object.</remarks>
+    /// <remarks>It is recommended to call this method with <c>using (var profile = Profiler.Begin(...)) {...}</c> or
+    /// <c>using var profile = Profiler.Begin(...);</c> in order to make sure that the Dispose() method will be called
+    /// on the returned <see cref="ProfilingState" />.</remarks>
     public static ProfilingState Begin(ProfilingKey profilingKey)
     {
         var profiler = New(profilingKey);
@@ -281,18 +306,19 @@ public static class Profiler
     }
 
     /// <summary>
-    /// Creates a profiler with the specified key. The returned object must be disposed at the end of the section
-    /// being profiled. See remarks.
+    /// Starts profiling with the provided key. The returned object must be disposed at the end of the section being
+    /// profiled. See remarks.
     /// </summary>
     /// <param name="profilingKey">The profile key.</param>
     /// <param name="textFormat">The text to format.</param>
-    /// <param name="value0">First value (can be int, float, long or double).</param>
-    /// <param name="value1">Second value (can be int, float, long or double).</param>
-    /// <param name="value2">Third value (can be int, float, long or double).</param>
-    /// <param name="value3">Fourth value (can be int, float, long or double).</param>
+    /// <param name="value0">First optional value to pass with the Begin event (can be int, float, long or double).</param>
+    /// <param name="value1">Second optional value to pass with the Begin event (can be int, float, long or double).</param>
+    /// <param name="value2">Third optional value to pass with the Begin event (can be int, float, long or double).</param>
+    /// <param name="value3">Fourth optional value to pass with the Begin event (can be int, float, long or double).</param>
     /// <returns>A profiler state.</returns>
-    /// <remarks>It is recommended to call this method with <c>using (Profiler.Begin(...)) {...}</c> or <c>using var _ = Profiler.Begin(...);</c> 
-    /// in order to make sure that the Dispose() method will be called on the <see cref="ProfilingState" /> returned object.</remarks>
+    /// <remarks>It is recommended to call this method with <c>using (var profile = Profiler.Begin(...)) {...}</c> or
+    /// <c>using var profile = Profiler.Begin(...);</c> in order to make sure that the Dispose() method will be called
+    /// on the returned <see cref="ProfilingState" />.</remarks>
     public static ProfilingState Begin(ProfilingKey profilingKey, string textFormat, ProfilingCustomValue? value0 = null, ProfilingCustomValue? value1 = null, ProfilingCustomValue? value2 = null, ProfilingCustomValue? value3 = null)
     {
         var profiler = New(profilingKey);
@@ -301,7 +327,7 @@ public static class Profiler
     }
 
     /// <summary>
-    /// Resets the id counter to zero and disable all registered profiles.
+    /// Resets the id counter to zero and disables all registered profiles.
     /// </summary>
     public static void Reset()
     {
@@ -309,6 +335,12 @@ public static class Profiler
         profileId = 0;
     }
 
+    /// <summary>
+    /// Processes a profiling event. This method is called by <see cref="ProfilingState"/> to relay data back to the
+    /// profiler.
+    /// </summary>
+    /// <param name="profilingEvent">Information of the event.</param>
+    /// <param name="eventType">The type of event.</param>
     public static void ProcessEvent(ref ProfilingEvent profilingEvent, ProfilingEventType eventType)
     {
         if (eventType == ProfilingEventType.GpuProfilingEvent && GpuStartTime == TimeSpan.Zero)
@@ -366,16 +398,31 @@ public static class Profiler
     }
 
     /// <summary>
-    /// Append the provided time properly formated at the end of the string. 
-    /// <paramref name="tickFrequency"/> is used to convert the ticks into time.
-    /// If <paramref name="tickFrequency"/> is 0 then <see cref="Stopwatch.Frequency"/> is used to perform the calculation.
+    /// Appends the provided time to the end of the string using a standardized format. See remarks for more details.
     /// </summary>
+    /// <param name="builder">The string builder to append time.</param>
+    /// <param name="accumulatedTicks">Tick amount that represents time.</param>
+    /// <param name="tickFrequency">The tick frequency that was used when measuring time. If it's set to 0,
+    /// <see cref="Stopwatch.Frequency"/> will be used instead.</param>
+    /// <remarks>
+    /// Depending on the length of measured time, the text will use minutes, seconds or milliseconds. For example:
+    /// <c>001.331ms</c> for under 1 second time span, <c>002.566s</c> for under 1 minute and <c>013.457m</c> for above 1 minute.
+    /// </remarks>
     public static void AppendTime(StringBuilder builder, long accumulatedTicks, long tickFrequency = 0)
     {
         var accumulatedTimeSpan = new TimeSpan((accumulatedTicks * 10000000) / (tickFrequency != 0 ? tickFrequency : Stopwatch.Frequency));
         AppendTime(builder, accumulatedTimeSpan);
     }
 
+    /// <summary>
+    /// Appends the provided time to the end of the string using a standardized format. See remarks for more details.
+    /// </summary>
+    /// <param name="builder">The string builder to append time.</param>
+    /// <param name="accumulatedTimeSpan">The amount of time to append.</param>
+    /// <remarks>
+    /// Depending on the length of measured time, the text will use minutes, seconds or milliseconds. For example:
+    /// <c>001.331ms</c> for under 1 second time span, <c>002.566s</c> for under 1 minute and <c>013.457m</c> for above 1 minute.
+    /// </remarks>
     public static void AppendTime(StringBuilder builder, TimeSpan accumulatedTimeSpan)
     {
         if (accumulatedTimeSpan > new TimeSpan(0, 0, 1, 0))

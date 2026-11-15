@@ -217,6 +217,10 @@ public class SettingsContainer
     /// <param name="profile">The profile to save.</param>
     /// <param name="filePath">The path of the file.</param>
     /// <returns><c>true</c> if the file was correctly saved, <c>false</c> otherwise.</returns>
+    /// <remarks>
+    /// A file that already holds the same content is not written again, so its time stays: builds that track the file,
+    /// such as the asset build of a package's user settings, don't run again for nothing.
+    /// </remarks>
     public bool SaveSettingsProfile(SettingsProfile profile, UFile filePath)
     {
 #if NET6_0_OR_GREATER
@@ -230,9 +234,16 @@ public class SettingsContainer
             Directory.CreateDirectory(filePath.GetFullDirectory());
 
             var settingsFile = new SettingsFile(profile);
-            using (var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.Write))
+            byte[] content;
+            using (var memoryStream = new MemoryStream())
             {
-                SettingsYamlSerializer.Default.Serialize(stream, settingsFile);
+                SettingsYamlSerializer.Default.Serialize(memoryStream, settingsFile);
+                content = memoryStream.ToArray();
+            }
+            if (!HasContent(filePath, content))
+            {
+                using var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.Write);
+                stream.Write(content, 0, content.Length);
             }
 
             if (filePath != profile.FilePath)
@@ -255,6 +266,19 @@ public class SettingsContainer
             profile.Saving = false;
         }
         return true;
+    }
+
+    private static bool HasContent(string filePath, byte[] content)
+    {
+        try
+        {
+            var file = new FileInfo(filePath);
+            return file.Exists && file.Length == content.Length && File.ReadAllBytes(filePath).AsSpan().SequenceEqual(content);
+        }
+        catch (IOException)
+        {
+            return false;
+        }
     }
 
     internal void EncodeSettings(SettingsProfile profile, SettingsDictionary settingsDictionary)
@@ -323,6 +347,43 @@ public class SettingsContainer
         }
     }
 
+    /// <summary>
+    /// Removes a registered key so a key of the same name can be registered again (e.g. a reloaded plugin).
+    /// </summary>
+    /// <remarks>Profile values go back to their serialized form, so the next key of that name can convert them.</remarks>
+    /// <returns><c>True</c> if the key was registered in this container and is removed.</returns>
+    public bool UnregisterSettingsKey(SettingsKey settingsKey)
+    {
+        lock (SettingsLock)
+        {
+            if (!settingsKeys.TryGetValue(settingsKey.Name, out var registeredKey) || registeredKey != settingsKey)
+                return false;
+
+            settingsKeys.Remove(settingsKey.Name);
+            RootProfile.Settings.Remove(settingsKey.Name);
+            foreach (var profile in Profiles.Where(x => x != RootProfile))
+            {
+                if (profile.Settings.TryGetValue(settingsKey.Name, out var entry))
+                    profile.Settings[settingsKey.Name] = SettingsEntry.CreateFromValue(profile, settingsKey.Name, entry.GetSerializableValue(settingsKey));
+            }
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// Registers again a key of this container that <see cref="UnregisterSettingsKey"/> removed; does nothing when it is registered.
+    /// </summary>
+    public void RegisterSettingsKey(SettingsKey settingsKey)
+    {
+        lock (SettingsLock)
+        {
+            if (settingsKeys.TryGetValue(settingsKey.Name, out var registeredKey) && registeredKey == settingsKey)
+                return;
+
+            RegisterSettingsKey(settingsKey.Name, settingsKey.GetDefaultObjectValue(), settingsKey);
+        }
+    }
+
     internal void RegisterSettingsKey(UFile name, object defaultValue, SettingsKey settingsKey)
     {
         lock (SettingsLock)
@@ -336,7 +397,9 @@ public class SettingsContainer
             {
                 if (profile.Settings.TryGetValue(name, out entry))
                 {
-                    var convertedValue = entry.Value is List<ParsingEvent> parsingEvents ? settingsKey.ConvertValue(parsingEvents) : entry.Value;
+                    // A value of another type (set through an unregistered key) goes through its serialized form
+                    var value = entry.Value is not null and not List<ParsingEvent> && !settingsKey.Type.IsInstanceOfType(entry.Value) ? entry.GetSerializableValue(null) : entry.Value;
+                    var convertedValue = value is List<ParsingEvent> parsingEvents ? settingsKey.ConvertValue(parsingEvents) : value;
                     entry = SettingsEntry.CreateFromValue(profile, name, convertedValue);
                     profile.Settings[name] = entry;
                 }

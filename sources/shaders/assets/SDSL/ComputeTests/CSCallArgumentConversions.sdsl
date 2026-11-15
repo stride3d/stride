@@ -1,0 +1,40 @@
+// PSMain(ExpectedResult=#00000000)
+
+namespace Stride.Shaders.Tests;
+
+// Calls to a method with a single signature are checked against its parameters: the arguments it takes keep compiling
+// (element conversions, a structure, a texture and a sampler, an array, a default value).
+// The buffer is never bound; this covers compilation, SPIR-V validation and the SPIRV-Cross round trip
+shader CSCallArgumentConversions
+{
+    struct Sample
+    {
+        float Weight;
+        int Index;
+    };
+
+    RWStructuredBuffer<float4> Output;
+    Texture2D Source;
+    SamplerState Linear;
+
+    int Twice(int value) { return value * 2; }
+    float Weight(Sample sample) { return sample.Weight; }
+    float4 Fetch(Texture2D image, SamplerState filter, float2 uv) { return image.SampleLevel(filter, uv, 0); }
+    float Middle(float values[3]) { return values[1]; }
+    float Scale(float value, float factor = 2) { return value * factor; }
+    void Store(out float4 value, inout float total) { value = total; total += 1; }
+
+    [numthreads(1, 1, 1)]
+    void CSMain(uint3 id : SV_DispatchThreadID)
+    {
+        bool flag = id.x > 0;
+        Sample sample;
+        sample.Weight = 0.5;
+        sample.Index = 1;
+        float values[3] = { 1, 2, 3 };
+        float total = Twice(flag) + Twice(id.x) + Weight(sample) + Middle(values) + Scale(id.y);
+        float4 stored;
+        Store(stored, total);
+        Output[id.x] = stored + total + Fetch(Source, Linear, float2(0.5, 0.5));
+    }
+};

@@ -17,6 +17,12 @@ public partial class ShaderEffect(TypeName name, bool isPartial, TextLocation in
     public BlockStatement? Block { get; set; }
     public bool IsPartial { get; set; } = isPartial;
 
+    /// <summary>
+    /// The <c>shader</c> keyword that declares this effect in place of <c>effect</c>, as the .sdfx files of Stride 4.3 and older could,
+    /// or <c>null</c>.
+    /// </summary>
+    public TextLocation? ShaderKeyword { get; set; }
+
     public override string ToString() => Block?.ToString() ?? "(empty)";
 
     public void Compile(SymbolTable table, CompilerUnit compiler)

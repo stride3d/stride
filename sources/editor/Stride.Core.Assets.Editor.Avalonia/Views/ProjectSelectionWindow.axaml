@@ -1,0 +1,86 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+        xmlns:views="using:Stride.Core.Assets.Editor.Avalonia.Views"
+        xmlns:vm="using:Stride.Core.Assets.Editor.Components.TemplateDescriptions"
+        mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="768"
+        x:Class="Stride.Core.Assets.Editor.Avalonia.Views.ProjectSelectionWindow"
+        x:DataType="vm:NewOrOpenSessionTemplateCollectionViewModel"
+        Title="{sd:LocalizeString Project selection, Context=Title}"
+        Width="1024" Height="768"
+        MinWidth="720" MinHeight="520"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner">
+  <Window.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://Stride.Core.Assets.Editor.Avalonia/Views/ImageResources.axaml"/>
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </Window.Resources>
+  <DockPanel Margin="10">
+    <!-- Buttons -->
+    <DockPanel DockPanel.Dock="Bottom" Margin="10">
+      <Button x:Name="BrowseButton" DockPanel.Dock="Left" Padding="20,6"
+              Content="{sd:LocalizeString Browse for existing project, Context=Button}"
+              Command="{Binding BrowseForExistingProjectCommand}"/>
+      <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="10">
+        <Button x:Name="SelectButton" Padding="20,6" MinWidth="90"
+                Content="{sd:LocalizeString Select, Context=Button}"
+                ToolTip.Tip="{sd:LocalizeString Use the selected template, Context=ToolTip}"
+                IsDefault="True"
+                IsEnabled="{Binding HasSelectedTemplate}"
+                Click="OnSelectClick"/>
+        <Button x:Name="CancelButton" Padding="20,6" MinWidth="90"
+                Content="{sd:LocalizeString Cancel, Context=Button}"
+                ToolTip.Tip="{sd:LocalizeString Cancel (Esc), Context=ToolTip}"
+                IsCancel="True"
+                Click="OnCancelClick"/>
+      </StackPanel>
+      <CheckBox x:Name="AutoReloadCheckBox" Margin="8,0" VerticalAlignment="Center"
+                IsChecked="{Binding AutoReloadSession}"
+                Content="{sd:LocalizeString Reload last session automatically at startup, Context=Button}"/>
+    </DockPanel>
+    <!-- Template packages downloading in the background (their templates are added to the list once ready) -->
+    <StackPanel DockPanel.Dock="Bottom" Margin="10,10,10,0" IsVisible="{Binding ShowDownloadStatus}">
+      <TextBlock Text="{Binding DownloadStatus}" TextWrapping="Wrap"/>
+      <!-- Indeterminate until the download's size is known -->
+      <ProgressBar Height="6" Margin="0,4,0,0" Minimum="0" Maximum="1"
+                   Value="{Binding DownloadProgress, Mode=OneWay}"
+                   IsIndeterminate="{Binding IsDownloadSizeUnknown}"
+                   IsVisible="{Binding IsDownloading}"/>
+    </StackPanel>
+    <!-- The name and the location of the new project; disabled while a recent project is selected -->
+    <Grid x:Name="Properties" DockPanel.Dock="Bottom" Margin="0,10,0,0"
+          ColumnDefinitions="Auto,2*,*" RowDefinitions="Auto,Auto,Auto,Auto"
+          IsEnabled="{Binding IsNewProjectSelected}">
+      <TextBlock Grid.Row="0" Grid.Column="0" Text="{sd:LocalizeString Name:}" Margin="10,0" VerticalAlignment="Center"/>
+      <TextBox x:Name="NameBox" Grid.Row="0" Grid.Column="1" Margin="2" Text="{Binding Name}"/>
+      <TextBlock Grid.Row="1" Grid.Column="0" Text="{sd:LocalizeString Location:}" Margin="10,0" VerticalAlignment="Center"/>
+      <DockPanel Grid.Row="1" Grid.Column="1">
+        <Button x:Name="BrowseLocationButton" DockPanel.Dock="Right" Padding="4" Margin="2"
+                Command="{Binding BrowseDirectoryCommand}" CommandParameter="Location"
+                ToolTip.Tip="{sd:LocalizeString Browse directory, Context=ToolTip}">
+          <Image Source="{StaticResource VectorOpenFolder}" Width="16" Height="16"/>
+        </Button>
+        <TextBox x:Name="LocationBox" Margin="2" Text="{Binding Location, Converter={sd:UDirectoryToString}}"/>
+      </DockPanel>
+      <TextBlock Grid.Row="2" Grid.Column="0" Text="{sd:LocalizeString Solution name:}" Margin="10,0" VerticalAlignment="Center"/>
+      <TextBox x:Name="SolutionNameBox" Grid.Row="2" Grid.Column="1" Margin="2" Text="{Binding SolutionName}"
+               Watermark="{sd:LocalizeString (Auto-generate solution name)}"/>
+      <TextBlock Grid.Row="3" Grid.Column="0" Text="{sd:LocalizeString Solution location:}" Margin="10,0" VerticalAlignment="Center"/>
+      <DockPanel Grid.Row="3" Grid.Column="1">
+        <Button x:Name="BrowseSolutionLocationButton" DockPanel.Dock="Right" Padding="4" Margin="2"
+                Command="{Binding BrowseDirectoryCommand}" CommandParameter="SolutionLocation"
+                ToolTip.Tip="{sd:LocalizeString Browse directory, Context=ToolTip}">
+          <Image Source="{StaticResource VectorOpenFolder}" Width="16" Height="16"/>
+        </Button>
+        <TextBox x:Name="SolutionLocationBox" Margin="2" Text="{Binding SolutionLocation, Converter={sd:UDirectoryToString}}"
+                 Watermark="{sd:LocalizeString (Same location)}"/>
+      </DockPanel>
+    </Grid>
+    <views:TemplateBrowserView x:Name="Browser" TemplateActivated="OnTemplateActivated"/>
+  </DockPanel>
+</Window>

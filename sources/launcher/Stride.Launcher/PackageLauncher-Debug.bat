@@ -1,7 +1,4 @@
 setlocal
 set STRIDE_PATH=%~dp0..\..\..
-set NUGET=%STRIDE_PATH%\build\.nuget\Nuget.exe
 set LAUNCHER_PATH=%~dp0bin\Debug\publish
-pushd %LAUNCHER_PATH%
-%NUGET% pack %~dp0Stride.Launcher.nuspec -BasePath %LAUNCHER_PATH% -Properties "SetupUrl=https://github.com/stride3d/stride/releases;UpdateRules=setup=https://github.com/stride3d/stride/releases"
-popd
+dotnet msbuild "%STRIDE_PATH%\build\package.proj" -t:_PackNuspec -nologo "-p:StrideNuspec=%~dp0Stride.Launcher.nuspec" "-p:StrideNuspecBasePath=%LAUNCHER_PATH%" "-p:StrideNuspecProperties=SetupUrl=https://github.com/stride3d/stride/releases%%3BUpdateRules=setup=https://github.com/stride3d/stride/releases" "-p:StrideNuspecOutput=%LAUNCHER_PATH%"

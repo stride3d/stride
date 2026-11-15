@@ -1,0 +1,71 @@
+// PSMain(ExpectedResult=#03010203)
+
+namespace Stride.Shaders.Tests;
+
+// A continue inside a switch goes to the next iteration of the loop around it: the rest of the loop body is skipped
+shader ContinueInSwitch
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    void PSMain()
+    {
+        // i = 1 skips the increment: 3 of 4 iterations count
+        int forCount = 0;
+        for (int i = 0; i < 4; i++)
+        {
+            switch (i)
+            {
+                case 1:
+                    continue;
+                default:
+                    break;
+            }
+            forCount++;
+        }
+
+        // Odd j skip the increment: 1 of 3 iterations counts
+        int whileCount = 0;
+        int j = 0;
+        while (j < 3)
+        {
+            j++;
+            switch (j % 2)
+            {
+                case 1:
+                    continue;
+            }
+            whileCount++;
+        }
+
+        // A break inside the switch still leaves only the switch
+        int breakCount = 0;
+        for (int k = 0; k < 2; k++)
+        {
+            switch (k)
+            {
+                case 0:
+                    break;
+            }
+            breakCount++;
+        }
+
+        // A continue in a switch inside a switch: n = 2 skips the increment
+        int nestedCount = 0;
+        for (int n = 0; n < 4; n++)
+        {
+            switch (n % 2)
+            {
+                case 0:
+                    switch (n)
+                    {
+                        case 2:
+                            continue;
+                    }
+                    break;
+            }
+            nestedCount++;
+        }
+
+        streams.ColorTarget = float4(forCount, whileCount, breakCount, nestedCount) / 255.0;
+    }
+};

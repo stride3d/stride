@@ -71,4 +71,9 @@ public enum BarrierLayout
     ///   The resource is used as the destination of a multisample resolve operation.
     /// </summary>
     ResolveDest,
+
+    /// <summary>
+    ///   The buffer is read as the arguments of an indirect draw or dispatch. Buffers only.
+    /// </summary>
+    IndirectArgument,
 }

@@ -1,3 +1,4 @@
+using Stride.Shaders.Core;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
 using static Stride.Shaders.Spirv.Specification;
@@ -7,7 +8,38 @@ namespace Stride.Shaders.Spirv.Building;
 
 public partial class SpirvBuilder
 {
-    public record struct EscapeBlocks(int ContinueBlock, int MergeBlock);
+    public record struct EscapeBlocks(int ContinueBlock, int MergeBlock, SwitchContinue? Switch = null)
+    {
+        /// <summary>
+        /// The <see cref="ContinueBlock"/> of a switch that is not in a loop (0 is never a SPIR-V id).
+        /// </summary>
+        public const int NoLoop = 0;
+    }
+
+    /// <summary>
+    /// A continue inside a switch (FXC rejects one there, X3708) sets this flag and leaves the switch; after the switch, the flag continues the loop.
+    /// </summary>
+    public sealed class SwitchContinue
+    {
+        public int? Flag { get; set; }
+    }
+
+    /// <summary>
+    /// Goes to the next iteration of the innermost loop.
+    /// </summary>
+    public void Continue(SpirvContext context, EscapeBlocks escapeBlocks)
+    {
+        if (escapeBlocks.Switch is { } switchContinue)
+        {
+            switchContinue.Flag ??= AddFunctionVariable(context.GetOrRegister(new PointerType(ScalarType.Boolean, StorageClass.Function)), context.Bound++, context.CompileConstant(false).Id);
+            Insert(new OpStore(switchContinue.Flag.Value, context.CompileConstant(true).Id, null, []));
+            Insert(new OpBranch(escapeBlocks.MergeBlock));
+        }
+        else
+        {
+            Insert(new OpBranch(escapeBlocks.ContinueBlock));
+        }
+    }
 
     public int IfBlockCount { get; internal set; } = 0;
 

@@ -1,0 +1,25 @@
+// PSMain(ExpectedResult=#336699FF, structuredbuffer.Source="16: 0 0 0 0 0.2 0.4 0.6 1", structuredbuffer.Reversed="16: 0.6 0.4 0.2 1")
+
+namespace Stride.Shaders.Tests;
+
+// A method reads the structured buffer it is given; the mixer makes one copy of it per buffer
+shader BufferParameterRead
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    StructuredBuffer<float4> Source;
+    StructuredBuffer<float4> Reversed;
+
+    float4 Get(StructuredBuffer<float4> values, uint index)
+    {
+        return values[index];
+    }
+
+    void PSMain()
+    {
+        float4 color = Get(Source, 1);
+        bool sameAgain = all(Get(Source, 1) == color);
+        bool otherBuffer = all(Get(Reversed, 0).zyx == color.xyz);
+        streams.ColorTarget = sameAgain && otherBuffer ? color : float4(1, 0, 0, 1);
+    }
+};

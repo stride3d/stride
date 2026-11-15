@@ -1,6 +1,8 @@
 
 using Stride.Shaders.Parsing;
 using Stride.Shaders.Parsing.Analysis;
+using Stride.Shaders.Parsing.SDSL;
+using Stride.Shaders.Parsing.SDSL.AST;
 namespace Stride.Shaders.Parsers.Tests;
 
 public class ParsingTests1
@@ -31,6 +33,18 @@ public class ParsingTests1
         var text = MonoGamePreProcessor.OpenAndRun(path, []);
         var result = SDSLParser.Parse(text);
         Assert.True(result.Errors.Count == 0, path + string.Join("\n", result.Errors.Select(x => x.ToString())));
+    }
+
+    // A struct member can be an array, like a shader member
+    [Fact]
+    public void StructMemberCanBeAnArray()
+    {
+        var result = SDSLParser.Parse("shader S { struct T { float2 uv[4]; float x; }; };");
+        Assert.True(result.Errors.Count == 0, string.Join("\n", result.Errors.Select(x => x.ToString())));
+        var members = ((ShaderFile)result.AST!).RootDeclarations.OfType<ShaderClass>().Single().Elements.OfType<ShaderStruct>().Single().Members;
+        Assert.Equal(["uv", "x"], members.Select(x => x.Name.Name));
+        Assert.Single(members[0].TypeName.ArraySize!);
+        Assert.Null(members[1].TypeName.ArraySize);
     }
 
     // Regression test: a trailing-dot float literal (e.g. "1.") is valid per the HLSL grammar
@@ -88,4 +102,31 @@ public class ParsingTests1
     //     var result = SDSLParser.Parse(text);
     //     Assert.True(result.Errors.Count == 0, path + string.Join("\n", result.Errors.Select(x => x.ToString())));
     // }
+
+    // A cast to a reserved type name takes any unary operand, as in HLSL. A cast to another name, which could be a variable,
+    // takes a cast or a postfix operand, so (a) - b stays a subtraction
+    [Theory]
+    [InlineData("(float)(uint)x", "(float)(uint)x", typeof(CastExpression))]
+    [InlineData("(float)(uint)-x", "(float)(uint)-x", typeof(CastExpression))]
+    [InlineData("(float)(uint)(x)", "(float)(uint)(x)", typeof(CastExpression))]
+    [InlineData("(float2)(uint2)v", "(float2)(uint2)v", typeof(CastExpression))]
+    [InlineData("(float)(int)(uint)x", "(float)(int)(uint)x", typeof(CastExpression))]
+    [InlineData("(float)-x * y", "( (float)-x * y )", typeof(BinaryExpression))]
+    [InlineData("(float)(a) - b", "( (float)(a) - b )", typeof(BinaryExpression))]
+    [InlineData("(a)(uint)x", "(a)(uint)x", typeof(CastExpression))]
+    [InlineData("(a)(b)", "(a)(b)", typeof(CastExpression))]
+    [InlineData("(a) - b", "( (a) - b )", typeof(BinaryExpression))]
+    [InlineData("(a) + -b", "( (a) + -b )", typeof(BinaryExpression))]
+    [InlineData("-(float)(uint)x", "-(float)(uint)x", typeof(PrefixExpression))]
+    [InlineData("~(uint)x", "~(uint)x", typeof(PrefixExpression))]
+    [InlineData("!(bool)(uint)x", "!(bool)(uint)x", typeof(PrefixExpression))]
+    public void CastOperandParses(string text, string expected, Type expectedType)
+    {
+        var scanner = new Scanner(text);
+        var result = new ParseResult();
+        Assert.True(ExpressionParser.Expression(ref scanner, result, out var parsed), text + "\n" + string.Join("\n", result.Errors.Select(x => x.ToString())));
+        Assert.True(scanner.IsEof, text);
+        Assert.Equal(expected, parsed.ToString());
+        Assert.IsType(expectedType, parsed);
+    }
 }

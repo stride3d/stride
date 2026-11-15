@@ -6,13 +6,14 @@ using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.Reflection;
 using Stride.Core.Storage;
+using Stride.Core.Yaml;
 using Stride.Core.Yaml.Serialization;
 
 namespace Stride.Core.Assets.Tracking;
 
 public static class SourceHashesHelper
 {
-    public const string MemberName = "~SourceHashes";
+    public const string MemberName = YamlFilePaths.SourceHashesKey;
 
     private static readonly ShadowObjectPropertyKey AbsoluteSourceHashesKey = new(new object(), true);
     private static readonly ShadowObjectPropertyKey RelativeSourceHashesKey = new(new object(), true);

@@ -1,0 +1,33 @@
+// PSMain(ExpectedResult=#336699FF, structuredbuffer.Low="16: 0.1 0.2 0.3 0.5 0.1 0.2 0.3 0.5 0 0 0 0", structuredbuffer.High="16: 0.9 0.9 0.9 1")
+
+namespace Stride.Shaders.Tests;
+
+// A method with a loop, an if / else and an early return, called with two buffers: each copy branches to its own blocks
+shader BufferParameterControlFlow
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    StructuredBuffer<float4> Low;
+    StructuredBuffer<float4> High;
+
+    float4 Sum(StructuredBuffer<float4> values, uint count)
+    {
+        float4 result = 0;
+        for (uint i = 0; i < count; i++)
+        {
+            if (values[i].x > 0.5)
+                return float4(1, 1, 1, 1);
+            else
+                result += values[i];
+        }
+        return result;
+    }
+
+    void PSMain()
+    {
+        // Low: 0.2 0.4 0.6 1 from its first two elements; High: the early return
+        float4 low = Sum(Low, 3);
+        float4 high = Sum(High, 1);
+        streams.ColorTarget = all(high == 1) ? low : float4(1, 0, 0, 1);
+    }
+};

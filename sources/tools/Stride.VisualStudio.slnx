@@ -1,0 +1,11 @@
+<Solution>
+  <Project Path="Stride.VisualStudio.Commands.Interfaces/Stride.VisualStudio.Commands.Interfaces.csproj" />
+  <Project Path="Stride.VisualStudio.Commands/Stride.VisualStudio.Commands.csproj" />
+  <Project Path="Stride.VisualStudio.Package/Stride.VisualStudio.Package.csproj" DefaultStartup="true">
+    <Deploy />
+  </Project>
+  <Project Path="Stride.VisualStudio.Package.Shaders/Stride.VisualStudio.Package.Shaders.csproj">
+    <Deploy />
+  </Project>
+  <Project Path="Stride.VisualStudio.PackageInstall/Stride.VisualStudio.PackageInstall.csproj" />
+</Solution>

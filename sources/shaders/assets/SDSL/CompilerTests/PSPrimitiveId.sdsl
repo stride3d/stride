@@ -1,0 +1,20 @@
+// A pixel shader reads SV_PrimitiveID, with no geometry shader.
+namespace Stride.Shaders.Tests;
+
+shader PSPrimitiveId
+{
+    stream float4 ColorTarget : SV_Target0;
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+    stream uint PrimitiveId : SV_PrimitiveID;
+
+    void VSMain()
+    {
+        streams.ShadingPosition = streams.Position;
+    }
+
+    stage void PSMain()
+    {
+        streams.ColorTarget = float4(streams.PrimitiveId & 1, 0, 0, 1);
+    }
+}

@@ -13,9 +13,17 @@ public static class Parsers
         where TScanner : struct, IScanner
         where TNode : class
     {
+        // The result is null for parsers that can't report errors. After an error, the scanner is at the end of the code.
+        if (result is not null && result.Errors.Count == 0 && scanner.Position > result.FurthestFailure)
+            result.FurthestFailure = scanner.Position;
+
         if (orError is not null)
         {
-            result.Errors.Add(orError.Value);
+            var error = orError.Value;
+            // Enclosing parsers rewind, so the first error can be raised at the start of the bad statement
+            if (result.Errors.Count == 0 && !error.IsAboutToken && result.FurthestFailure > error.Location.Position)
+                error.Location = scanner[result.FurthestFailure];
+            result.Errors.Add(error);
             scanner.Position = scanner.End;
             parsed = null;
             return false;
@@ -152,8 +160,8 @@ public static class Parsers
                     "uniform",
                     "volatile",
                     "const",
-                    "rowmajor",
-                    "columnmajor"
+                    "row_major",
+                    "column_major"
                 ],
                 ref scanner,
                 out string? match,
@@ -197,9 +205,9 @@ public static class Parsers
                 storageClass = StorageClass.Volatile;
             else if (match == "const")
                 typeModifier = TypeModifier.Const;
-            else if (match == "rowmajor")
+            else if (match == "row_major")
                 typeModifier = TypeModifier.RowMajor;
-            else if (match == "columnmajor")
+            else if (match == "column_major")
                 typeModifier = TypeModifier.ColumnMajor;
             else break;
         }
@@ -249,6 +257,26 @@ public static class Parsers
             return false;
         }
     }
+
+    /// <summary>
+    /// After a declaration's type: true when the name is a reserved word (<c>int triangle = ...;</c>), so the error can say why
+    /// instead of "expected statement". Only a declaration shape counts (the word followed by <c>=</c>, <c>;</c>, <c>,</c> or <c>[</c>).
+    /// The scanner doesn't move.
+    /// </summary>
+    public static bool ReservedWordAsName<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out string word)
+        where TScanner : struct, IScanner
+    {
+        var position = scanner.Position;
+        while (Tokens.LetterOrDigit(ref scanner) || Tokens.Char('_', ref scanner))
+            scanner.Advance(1);
+        word = scanner.Memory[position..scanner.Position].ToString();
+        var isReserved = Reserved.Keywords.Contains(word)
+            && Spaces0(ref scanner, result, out _)
+            && (Tokens.Char('=', ref scanner) || Tokens.Char(';', ref scanner) || Tokens.Char(',', ref scanner) || Tokens.Char('[', ref scanner));
+        scanner.Position = position;
+        return isReserved;
+    }
+
     public static bool TypeNameIdentifierArraySizeValue<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out TypeName typeName, [MaybeNullWhen(false)] out Identifier identifier, [MaybeNullWhen(false)] out Expression? value, bool advance = true)
         where TScanner : struct, IScanner
     {

@@ -1,0 +1,47 @@
+// CSMain(structuredbuffer.Values="4: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0", expected.Values="2048 -3072 -1023 511 2147483647 7 523776 523776 42 -5 7 6 -9 2147483647 1023")
+
+namespace Stride.Shaders.Tests;
+
+// Every Interlocked* operation on an int buffer, from 1024 threads (32 x 32 groups of one). Min and Max are signed: unsigned
+// ones would give 0 and -1 in elements 2 and 3. Thread 0 alone checks the original values; the uint values (the
+// thread index) and the int value given to a uint parameter are converted like DXC does
+shader CSInterlockedInt
+{
+    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+
+    RWStructuredBuffer<int> Values;
+
+    [numthreads(1, 1, 1)]
+    void CSMain()
+    {
+        uint thread = streams.DispatchThreadId.x + streams.DispatchThreadId.y * 32;
+
+        InterlockedAdd(Values[0], 2);
+        InterlockedAdd(Values[1], -3);
+        InterlockedMin(Values[2], -(int)thread);
+        InterlockedMax(Values[3], (int)thread - 512);
+        InterlockedOr(Values[4], 1 << (thread % 31));
+        InterlockedXor(Values[5], thread < 3 ? 1 << thread : 0);
+        InterlockedAdd(Values[6], thread);
+        int original;
+        InterlockedAdd(Values[7], (int)thread, original);
+
+        if (thread == 0)
+        {
+            InterlockedExchange(Values[8], -5, original);
+            InterlockedExchange(Values[8], 7, original);
+            Values[9] = original;
+            InterlockedAnd(Values[8], 6, original);
+            Values[10] = original;
+            InterlockedCompareExchange(Values[8], 6, -9, original);
+            Values[11] = original;
+            InterlockedCompareExchange(Values[8], 6, 100, original);
+            Values[12] = original;
+            InterlockedCompareStore(Values[8], -9, 42);
+            uint unsignedOriginal;
+            InterlockedOr(Values[13], -1, unsignedOriginal);
+            InterlockedXor(Values[13], 1u << 31, unsignedOriginal);
+            InterlockedMax(Values[14], 1023u);
+        }
+    }
+}

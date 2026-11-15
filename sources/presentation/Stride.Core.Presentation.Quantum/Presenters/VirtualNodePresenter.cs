@@ -10,11 +10,11 @@ public class VirtualNodePresenter : NodePresenterBase
 {
     protected NodeAccessor AssociatedNode;
     private readonly Func<object> getter;
-    private readonly Action<object> setter;
+    private readonly Action<object?> setter;
     private readonly List<Attribute> memberAttributes = [];
     private bool updatingValue;
 
-    public VirtualNodePresenter(INodePresenterFactoryInternal factory, IPropertyProviderViewModel propertyProvider, INodePresenter parent, string name, Type type, int? order, Func<object> getter, Action<object> setter)
+    public VirtualNodePresenter(INodePresenterFactoryInternal factory, IPropertyProviderViewModel? propertyProvider, INodePresenter parent, string name, Type type, int? order, Func<object> getter, Action<object?> setter)
         : base(factory, propertyProvider, parent)
     {
         ArgumentNullException.ThrowIfNull(factory);
@@ -90,7 +90,7 @@ public class VirtualNodePresenter : NodePresenterBase
     }
 
     /// <inheritdoc/>
-    public override void UpdateValue(object newValue)
+    public override void UpdateValue(object? newValue)
     {
         try
         {
@@ -171,6 +171,9 @@ public class VirtualNodePresenter : NodePresenterBase
         if (AssociatedNode.Node == null || AssociatedNode.Index == NodeIndex.Empty)
             return true;
 
-        return index != NodeIndex.Empty && ItemNodePresenter.IsValidChange(changeType, index, Index);
+        // Unlike an item presenter, which the collection's presenter rebuilds when items are added or removed, nothing
+        // rebuilds a virtual node: adding or removing the item at its index changes its value too.
+        return index != NodeIndex.Empty && Equals(index, Index)
+            && changeType is ContentChangeType.CollectionUpdate or ContentChangeType.CollectionAdd or ContentChangeType.CollectionRemove;
     }
 }

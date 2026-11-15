@@ -1,0 +1,37 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+/// <summary>
+/// Packed morph entry decoding and basis preparation shared by vertex and compute deformation.
+/// Buffer access and attribute selection belong to each path; these helpers operate only on values.
+/// </summary>
+shader MorphTargetUtil : NormalUtil, Utilities
+{
+    // A MeshMorphEntry stores shape | position.x, position.yz, normal.xy, normal.z | tangent.x, tangent.yz.
+    float3 DecodeMorphPosition(uint shapeAndPositionX, uint positionYZ)
+    {
+        return UnpackHalf4ToFloat4(uint2(shapeAndPositionX, positionYZ)).yzw;
+    }
+
+    float3 DecodeMorphNormal(uint normalXY, uint normalZAndTangentX)
+    {
+        return UnpackHalf4ToFloat4(uint2(normalXY, normalZAndTangentX)).xyz;
+    }
+
+    float3 DecodeMorphTangent(uint normalZAndTangentX, uint tangentYZ)
+    {
+        return UnpackHalf4ToFloat4(uint2(normalZAndTangentX, tangentYZ)).yzw;
+    }
+
+    float3 ApplyMorphNormal(float3 normal, float3 delta)
+    {
+        return SafeNormalize(normal + delta, float3(0, 1, 0));
+    }
+
+    // Prepare the morph basis before skinning; tangent handedness is preserved by the caller.
+    float3 ApplyMorphTangent(float3 tangent, float3 delta, float3 morphedNormal)
+    {
+        tangent += delta;
+        return SafeNormalize(tangent - morphedNormal * dot(morphedNormal, tangent), Perpendicular(morphedNormal));
+    }
+};

@@ -1,0 +1,35 @@
+// CSMain(structuredbuffer.Raw="4: 0 0 0 0 0 0 0 0 0 0", expected.Raw="1024 7 100 1023 2147483647 9 5 6 -3")
+
+namespace Stride.Shaders.Tests;
+
+// RWByteAddressBuffer.Interlocked*, from 1024 threads (32 x 32 groups of one). Thread 0 alone checks the original values
+shader CSInterlockedByteAddressBuffer
+{
+    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+
+    RWByteAddressBuffer Raw;
+
+    [numthreads(1, 1, 1)]
+    void CSMain()
+    {
+        uint thread = streams.DispatchThreadId.x + streams.DispatchThreadId.y * 32;
+
+        Raw.InterlockedAdd(0, 1);
+        Raw.InterlockedMax(12, thread);
+        Raw.InterlockedOr(16, 1u << (thread % 31));
+
+        if (thread == 0)
+        {
+            uint original;
+            Raw.InterlockedExchange(4, 100, original);
+            Raw.InterlockedMin(4, 7u, original);
+            Raw.Store(8, original);
+            Raw.InterlockedExchange(20, 5, original);
+            Raw.InterlockedCompareExchange(20, 5, -2, original);
+            Raw.Store(24, original);
+            Raw.InterlockedCompareStore(20, -2, 9);
+            Raw.InterlockedXor(28, 6, original);
+            Raw.InterlockedAdd(32, -3, original);
+        }
+    }
+}

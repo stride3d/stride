@@ -4,7 +4,7 @@
 namespace Stride.Core.Quantum;
 
 /// <summary>
-/// Arguments of the <see cref="IMemberNode.ValueChanging"/> and <see cref="IMemberNode.ValueChanged"/> events.
+/// Arguments of the <see cref="INotifyNodeValueChange.ValueChanging"/> and <see cref="INotifyNodeValueChange.ValueChanged"/> events.
 /// </summary>
 public class MemberNodeChangeEventArgs : EventArgs, INodeChangeEventArgs
 {

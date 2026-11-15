@@ -335,10 +335,11 @@ public class Builder : IDisposable
         }
 
         using var indexFile = ContentIndexMap.NewTool(indexName);
-        // Filter database Location
+        // Filter database Location. Sorted because commands finish in any order
         indexFile.AddValues(
             Root.OutputObjects.Where(x => x.Key.Type == UrlType.Content)
-                .Select(x => new KeyValuePair<string, ObjectId>(x.Key.Path, x.Value.ObjectId)));
+                .Select(x => new KeyValuePair<string, ObjectId>(x.Key.Path, x.Value.ObjectId))
+                .OrderBy(x => x.Key, StringComparer.Ordinal));
 
         foreach (var outputObject in Root.OutputObjects.Where(x => x.Key.Type == UrlType.Content).Select(x => x.Value))
         {
@@ -379,8 +380,8 @@ public class Builder : IDisposable
 
         using var stream = VirtualFileSystem.OpenStream(closurePath, VirtualFileMode.Create, VirtualFileAccess.Write);
         using var writer = new StreamWriter(stream);
-        foreach (var id in ids)
-            writer.WriteLine(id.ToString());
+        foreach (var id in ids.Select(x => x.ToString()).Order(StringComparer.Ordinal))
+            writer.WriteLine(id);
     }
 
     private static IEnumerable<CommandBuildStep> CollectCommandSteps(BuildStep step)

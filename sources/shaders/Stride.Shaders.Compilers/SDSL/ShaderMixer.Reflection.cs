@@ -5,12 +5,13 @@ using Stride.Shaders.Spirv;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
+using Stride.Shaders.Spirv.Tools;
 
 namespace Stride.Shaders.Compilers.SDSL;
 
 public partial class ShaderMixer
 {
-    private record struct VariableMetadata(string? Link = null, string? ResourceGroup = null, string? LogicalGroup = null, bool Color = false);
+    private record struct VariableMetadata(string? Link = null, string? ResourceGroup = null, string? LogicalGroup = null, bool Color = false, TypeModifier MatrixLayout = TypeModifier.None);
     private record struct CBufferMemberMetadata(string? Link = null, string? LogicalGroup = null, bool Color = false, object? DefaultValue = null);
 
     private Dictionary<int, VariableMetadata> variableMetadata = new();
@@ -33,13 +34,20 @@ public partial class ShaderMixer
         foreach (var i in context)
         {
             if (i.Op == Specification.Op.OpDecorate && (OpDecorate)i is
-                { Decoration: Specification.Decoration.ColorSDSL } decorate)
+                { Decoration: Specification.Decoration.ColorSDSL or Specification.Decoration.ColMajor or Specification.Decoration.RowMajor } decorate)
             {
                 ref var metadata = ref CollectionsMarshal.GetValueRefOrAddDefault(variableDecorationMetadata, decorate.Target, out _);
                 switch (decorate.Decoration)
                 {
                     case Specification.Decoration.ColorSDSL:
                         metadata.Color = true;
+                        break;
+                    // A matrix layout on a variable: SPIR-V and HLSL have opposite meanings
+                    case Specification.Decoration.ColMajor:
+                        metadata.MatrixLayout = TypeModifier.RowMajor;
+                        break;
+                    case Specification.Decoration.RowMajor:
+                        metadata.MatrixLayout = TypeModifier.ColumnMajor;
                         break;
                     default:
                         throw new NotImplementedException();
@@ -270,6 +278,9 @@ public partial class ShaderMixer
         if (options.ResourcesRegisterSeparate)
             uavSlot = GetFirstUnorderedAccessSlot(context);
 
+        // Structured buffers given Direct3D's tight layout (named in a marker at the end)
+        var tightStructuredBuffers = new List<string>();
+
         // TODO: do this once at root level and reuse for child mixin
         var samplerStates = new Dictionary<int, Graphics.SamplerStateDescription>();
         foreach (var i in context)
@@ -392,8 +403,14 @@ public partial class ShaderMixer
                             // UserTypeGOOGLE and NonWritable decorations are already added during shader compilation
 
                             var baseType = structuredBufferType.BaseType;
+                            var layout = options.Direct3DStructuredBufferLayout ? SpirvBuilder.StructuredBufferLayout(baseType) : SpirvBuilder.AlignmentRules.StructuredBuffer;
+                            if (layout == SpirvBuilder.AlignmentRules.StructuredBufferTight)
+                            {
+                                UseTightLayout(context, structuredBufferType);
+                                tightStructuredBuffers.Add(name);
+                            }
                             // This will add array stride and offsets decorations
-                            EmitTypeDecorationsRecursively(context, baseType, SpirvBuilder.AlignmentRules.StructuredBuffer);
+                            EmitTypeDecorationsRecursively(context, baseType, layout);
                         }
                         else if (variableType is ByteAddressBufferType byteAddressBufferType)
                         {
@@ -455,6 +472,9 @@ public partial class ShaderMixer
                 }
             }
         }
+
+        if (tightStructuredBuffers.Count > 0)
+            context.Add(new OpSourceExtension(SpirvTools.TightStructuredBufferMarker + string.Join(" ", tightStructuredBuffers)));
     }
 
     /// <summary>

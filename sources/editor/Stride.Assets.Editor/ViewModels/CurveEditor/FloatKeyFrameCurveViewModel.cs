@@ -1,0 +1,39 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#nullable disable
+
+using Stride.Core.Annotations;
+using Stride.Core.Presentation.Drawing;
+using Stride.Core.Quantum;
+using Stride.Animations;
+using Stride.Assets.Editor.ViewModels.CurveEditor.ControlPoints;
+
+namespace Stride.Assets.Editor.ViewModels.CurveEditor
+{
+
+    public sealed class FloatKeyFrameCurveViewModel : KeyFrameCurveViewModel<float>
+    {
+        public FloatKeyFrameCurveViewModel([NotNull] CurveEditorViewModel editor, [NotNull] ComputeAnimationCurve<float> computeCurve, CurveViewModelBase parent = null, string name = null)
+            : base(editor, parent, computeCurve, name)
+        {
+        }
+
+        public override void AddPoint(DrawingPoint point)
+        {
+            var realPoint = InverseTransformPoint(point);
+            var keyFrame = new AnimationKeyFrame<float>
+            {
+                Key = realPoint.X,
+                Value = realPoint.Y,
+            };
+            var index = GetInsertIndex(realPoint);
+            KeyFramesNode.Add(keyFrame, index);
+        }
+
+        [NotNull]
+        protected override KeyFrameControlPointViewModel<float> CreateKeyFrameControlPoint(IMemberNode keyNode, IMemberNode valueNode, IMemberNode tangentTypeNode)
+        {
+            return new FloatControlPointViewModel(this, keyNode, valueNode, tangentTypeNode);
+        }
+    }
+}

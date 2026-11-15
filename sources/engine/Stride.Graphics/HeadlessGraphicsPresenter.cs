@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Core;
+
 namespace Stride.Graphics;
 
 /// <summary>
@@ -35,6 +37,10 @@ internal class HeadlessGraphicsPresenter : GraphicsPresenter
 
     protected override void ResizeDepthStencilBuffer(int width, int height, PixelFormat format)
     {
+        // The depth buffer belongs to the presenter's collector (the base class created the first one with DisposeBy):
+        // take the old one out before disposing it and give the new one to the collector, or Destroy releases the old
+        // one a second time (and the new one leaks)
+        DetachDepthStencilBuffer();
         DepthStencilBuffer?.Dispose();
         // Expose the depth buffer as a shader resource so scene passes that sample depth
         // (soft-edge particles, SSAO, light shafts, ...) get a valid SRV view. Without it,
@@ -42,7 +48,7 @@ internal class HeadlessGraphicsPresenter : GraphicsPresenter
         var flags = TextureFlags.DepthStencil;
         if (GraphicsDevice.Features.HasDepthAsSRV)
             flags |= TextureFlags.ShaderResource;
-        DepthStencilBuffer = Texture.New2D(GraphicsDevice, width, height, format, flags);
+        DepthStencilBuffer = Texture.New2D(GraphicsDevice, width, height, format, flags).DisposeBy(this);
     }
 
     protected override void Destroy()

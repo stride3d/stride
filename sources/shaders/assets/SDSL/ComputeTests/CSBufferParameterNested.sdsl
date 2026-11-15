@@ -1,0 +1,39 @@
+// PSMain(ExpectedResult=#00000000)
+
+// Buffer parameters passed on to other methods, with an early return. On Direct3D 11 the copies the mixer makes are then
+// inlined by the legalization for HLSL, like any method.
+
+namespace Stride.Shaders.Tests;
+
+shader CSBufferParameterNested
+{
+    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+
+    StructuredBuffer<float4> Input;
+    RWStructuredBuffer<float4> First;
+    RWStructuredBuffer<float4> Second;
+
+    float4 Get(StructuredBuffer<float4> source, uint index)
+    {
+        if (index > 16)
+            return 0;
+        return source[index];
+    }
+
+    void Set(RWStructuredBuffer<float4> target, uint index, float4 value)
+    {
+        target[index] = value;
+    }
+
+    void Copy(RWStructuredBuffer<float4> target, StructuredBuffer<float4> source, uint index)
+    {
+        Set(target, index, Get(source, index));
+    }
+
+    [numthreads(1, 1, 1)]
+    void CSMain()
+    {
+        Copy(First, Input, streams.DispatchThreadId.x);
+        Copy(Second, Input, streams.DispatchThreadId.x);
+    }
+}

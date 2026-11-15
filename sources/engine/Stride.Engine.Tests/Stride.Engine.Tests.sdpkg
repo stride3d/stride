@@ -15,6 +15,7 @@ RootAssets:
     - 39f244ad-8360-48db-8074-d0d3cade8289:01-Default
     - 3b9e7d5b-28b5-4091-852a-fe8732ca5787:c100_body_cm
     - 3c6d4404-3e52-47a7-9161-9341e5ccba93:PNTessellationDisplAE
+    - 42096854-845d-42af-a645-4ac4c79d30e4:MorphDonut Model
     - 42e13c3a-d915-4255-9531-25891f8435be:c100_body_sp
     - 4adb2d35-7a6f-401a-bc08-74aba11c2ad2:FlatTessellationDisplAE
     - 4c09a08e-1b49-4dde-81ed-57f69627ff93:Walk
@@ -35,6 +36,7 @@ RootAssets:
     - c88b7d39-bb04-407f-92e4-69f2dcfef378:c100_chr_ch00_Knight_KINGHT
     - cc7836ee-28a3-4a94-bf68-f24516109ef5:FlatTessellationDispl
     - d4fe46ef-c9fe-4718-9311-0f5e71429b92:c100_body_em
+    - d8031d47-062d-48da-bd08-3c7c5f0c3dfb:MorphDonut Animation
     - dfd25be5-f94f-4c4a-8437-02c5424cfec4:NoTessellation
     - e323d1dc-c052-4191-9b71-b139eb248070:Sphere2
     - e3beb255-7a4c-46a6-8f8a-65703d344614:Font

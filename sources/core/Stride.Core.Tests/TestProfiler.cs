@@ -187,7 +187,8 @@ public class TestProfiler
         Assert.All(results, x => Assert.Equal(eventCount, x.Count));
     }
 
-    private static readonly Regex matchElapsed = new Regex(@"Elapsed = ([\d.]+)", RegexOptions.CultureInvariant);
+    // ProfilingMessage writes the elapsed time in ms, s or m depending on its length (current culture)
+    private static readonly Regex matchElapsed = new Regex(@"Elapsed = ([\d.,]+)(ms|s|m)", RegexOptions.CultureInvariant);
 
     // Maximum time difference accepted between elapsed time
     private const double ElapsedTimeEpsilon = 10;
@@ -216,8 +217,14 @@ public class TestProfiler
             {
                 var elapsedStr = match.Groups[1].Value;
                 Assert.True(double.TryParse(elapsedStr, out var elapsed), $"Expecting parsable double for elapsed [{elapsedStr}]");
+                elapsed *= match.Groups[2].Value switch
+                {
+                    "s" => 1000,
+                    "m" => 60 * 1000,
+                    _ => 1,
+                };
                 // Note: just checking minimum time (max time depends too much on OS scheduling to be reliable)
-                Assert.True(elapsed >= expectedElapsed - ElapsedTimeEpsilon, $"Elapsed time [{elapsed}] is faster than expected value [{expectedElapsed}]");
+                Assert.True(elapsed >= expectedElapsed - ElapsedTimeEpsilon, $"Elapsed time [{elapsed}ms] is faster than expected value [{expectedElapsed}ms]");
             }
             return true;
         });

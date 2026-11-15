@@ -1,0 +1,10 @@
+namespace Stride.Shaders.Tests;
+
+shader OneRowMatrix
+{
+    float4 F()
+    {
+        float1x3 m = 0;
+        return float4(m, 1);
+    }
+};

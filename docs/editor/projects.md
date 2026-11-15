@@ -2,7 +2,7 @@
 
 ## Role
 
-The editor codebase is split across `sources/presentation/` (MVVM framework, shared controls, Quantum-to-UI binding) and `sources/editor/` (editor infrastructure and concrete asset editors). WPF is the only supported view layer, but ViewModels are written to be platform-agnostic. This file maps each project to its responsibility and WPF coupling status.
+The editor codebase is split across `sources/presentation/` (MVVM framework, shared controls, Quantum-to-UI binding) and `sources/editor/` (editor infrastructure and concrete asset editors, while each engine plugin's projects, from its runtime to its `Assets` and `Editor` packages, live under `sources/plugins/<Name>/`). WPF is the only supported view layer, but ViewModels are written to be platform-agnostic. This file maps each project to its responsibility and WPF coupling status.
 
 ## The WPF Boundary
 
@@ -25,11 +25,14 @@ Assembly names match project names throughout; the "same" shorthand in the Assem
 | `Stride.Core.Presentation.Wpf.Graph` | same | Yes | Node-graph visualization controls (used by GraphicsCompositor editor) |
 | `Stride.Core.Presentation.Wpf.Dialogs` | same | Yes | Dialog services and file picker implementations |
 | `Stride.Core.Assets.Editor.Wpf` | same | Yes* | Base editor infrastructure: `AssetEditorViewModel`, `IEditorView`, `AssetsEditorPlugin`, `SelectionService`, `IUndoRedoService`, registration attributes; *project targets WPF but ViewModel base classes are platform-agnostic |
-| `Stride.Assets.Presentation.Wpf` | same | Yes | All concrete asset editors (ViewModels + Views), `StrideDefaultAssetsPlugin`, node presenter updaters |
+| `Stride.Assets.Editor.Wpf` | same | Yes | All concrete asset editors (ViewModels + Views), `StrideDefaultAssetsWpfPlugin`, node presenter updaters |
 | `Stride.Editor.Wpf` | same | Yes | Core editor wiring and game-editor infrastructure |
 | `Stride.GameStudio` | same | Yes | Shell, `AssetEditorsManager`, `PluginService`, main window |
+| `Stride.*.Editor` (`sources/plugins/<Name>/`) | same | Yes* | `Editor` package of an engine plugin (`Stride.Audio`, `Stride.Particles`, `Stride.Physics`, `Stride.SpriteStudio`, `Stride.UI`, `Stride.Video`, `Stride.Voxels`): plugin class, icons, gizmos, previews, thumbnails, the plugin's asset editors; *builds on the WPF editor assemblies, holds no views |
+| `Stride.*.Editor.Wpf` (`sources/plugins/<Name>/`) | same | Yes | WPF views of a plugin's `Editor` package (`Stride.Audio.Editor.Wpf`, `Stride.UI.Editor.Wpf`); see [plugins.md](../build/plugins.md) |
 
 ## Where to Put New Code
 
-- **New ViewModel code** → `Stride.Assets.Presentation.Wpf`, under `sources/editor/Stride.Assets.Presentation.Wpf/AssetEditors/%%EditorName%%/ViewModels/`
+- **New ViewModel code** → `Stride.Assets.Editor.Wpf`, under `sources/editor/Stride.Assets.Editor.Wpf/AssetEditors/%%EditorName%%/ViewModels/`
 - **New View / XAML code** → same project, `AssetEditors/%%EditorName%%/Views/`
+- **Editor code for a plugin's asset** → the plugin's `Editor` package (`sources/plugins/%%Plugin%%/Stride.%%Plugin%%.Editor/`), its views in the `Editor.Wpf` companion

@@ -2,13 +2,10 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
+using System.CommandLine;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
-using GNU.Getopt;
-using Stride.Core.Annotations;
 using Stride.Core.IO;
 using Stride.Core.Translation.Providers;
 
@@ -16,227 +13,129 @@ namespace Stride.Core.Translation.Extractor
 {
     internal static class Program
     {
-        private static readonly LongOpt[] LOpts =
-        [
-            new("directory", Argument.Required, null, 'D'),
-            new("recursive", Argument.No, null, 'r'),
-            new("exclude", Argument.Required, null, 'x'),
-            new("domain-name", Argument.Required, null, 'd'),
-            new("backup", Argument.No, null, 'b'),
-            new("output", Argument.Required, null, 'o'),
-            new("merge", Argument.No, null, 'm'),
-            new("preserve-comments", Argument.No, null, 'C'),
-            new("verbose", Argument.No, null, 'v'),
-            new("help", Argument.No, null, 'h')
-        ];
-        private static readonly string SOpts = "-:D:rx:d:bo:mCvh";
-
-        private static int Main([NotNull] string[] args)
+        private static int Main(string[] args)
         {
+            var dirOption = new Option<string[]>("--directory", "-D")
+                { Description = "Add a directory to search for source files. Repeat for multiple directories." };
+            var recursiveOption = new Option<bool>("--recursive", "-r")
+                { Description = "Process all subdirectories." };
+            var excludeOption = new Option<string[]>("--exclude", "-x")
+                { Description = "Exclude a file mask from the input list. Repeat for multiple patterns." };
+            var domainOption = new Option<string>("--domain-name", "-d")
+                { Description = "Use <name>.pot as the output file (instead of messages.pot)." };
+            var backupOption = new Option<bool>("--backup", "-b")
+                { Description = "Create a .bak backup of any existing output file." };
+            var outputOption = new Option<string>("--output", "-o")
+                { Description = "Write output to the specified file." };
+            var mergeOption = new Option<bool>("--merge", "-m")
+                { Description = "Merge with existing file instead of overwriting it." };
+            var commentsOption = new Option<bool>("--preserve-comments", "-C")
+                { Description = "Keep previous comments from an existing file." };
+            var verboseOption = new Option<bool>("--verbose", "-v")
+                { Description = "Verbose output." };
+            var patternsArg = new Argument<string[]>("patterns")
+            {
+                Description = "Input file masks (e.g. *.cs *.xaml). Defaults to *.cs *.xaml *.axaml.",
+                Arity = ArgumentArity.ZeroOrMore,
+            };
+
+            var rootCommand = new RootCommand(
+                "Extract translatable strings from C# and XAML source files into a PO template (.pot).")
+            {
+                dirOption, recursiveOption, excludeOption, domainOption,
+                backupOption, outputOption, mergeOption, commentsOption,
+                verboseOption, patternsArg,
+            };
+
+            rootCommand.SetAction(parseResult =>
+            {
+                var options = new Options
+                {
+                    Recursive        = parseResult.GetValue(recursiveOption),
+                    Backup           = parseResult.GetValue(backupOption),
+                    Overwrite        = !parseResult.GetValue(mergeOption),
+                    PreserveComments = parseResult.GetValue(commentsOption),
+                    Verbose          = parseResult.GetValue(verboseOption),
+                };
+
+                if (parseResult.GetValue(domainOption) is { } domain)
+                    options.OutputFile = $"{domain}.pot";
+                else if (parseResult.GetValue(outputOption) is { } output)
+                    options.OutputFile = output;
+
+                options.InputDirs.AddRange(parseResult.GetValue(dirOption) ?? []);
+                options.Excludes.AddRange(parseResult.GetValue(excludeOption) ?? []);
+                options.InputFiles.AddRange(parseResult.GetValue(patternsArg) ?? []);
+
+                return Run(options);
+            });
+
+            // Show help when invoked with no arguments
             if (args.Length == 0)
-            {
-                ShowUsage();
-                return -1;
-            }
+                return rootCommand.Parse(["--help"]).Invoke();
 
-            if (!ParseOptions(args, out var options, out var message))
-            {
-                Console.WriteLine(message.ToString());
-                return -1;
-            }
+            return rootCommand.Parse(args).Invoke();
+        }
 
-            if (options.ShowUsage)
+        private static int Run(Options options)
+        {
+            if (options.InputFiles.Count == 0)
             {
-                ShowUsage();
-                return 0;
+                options.InputFiles.Add("*.cs");
+                options.InputFiles.Add("*.xaml");
+                options.InputFiles.Add("*.axaml");
             }
+            if (options.InputDirs.Count == 0)
+                options.InputDirs.Add(Environment.CurrentDirectory);
 
-            if (!CheckOptions(options, out message))
+            foreach (var dir in options.InputDirs)
             {
-                Console.WriteLine(message.ToString());
-                return -1;
+                if (!Directory.Exists(dir))
+                {
+                    Console.Error.WriteLine(Tr._("Input directory '{0}' not found"), dir);
+                    return -1;
+                }
             }
 
             try
             {
-                // Initialize translation
                 TranslationManager.Instance.RegisterProvider(new GettextTranslationProvider());
 
-                // Compute the list of input files
                 HashSet<UFile> inputFiles = [];
-                var re = options.Excludes.Count > 0 ? new Regex(string.Join("|", options.Excludes.Select(x => Regex.Escape(x).Replace(@"\*", @".*")))) : null;
+                var re = options.Excludes.Count > 0
+                    ? new Regex(string.Join("|", options.Excludes.Select(x => Regex.Escape(x).Replace(@"\*", @".*"))))
+                    : null;
+
                 foreach (var path in options.InputDirs)
                 {
                     foreach (var searchPattern in options.InputFiles)
                     {
-                        var files = Directory.EnumerateFiles(path, searchPattern, options.Recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly)
+                        var files = Directory.EnumerateFiles(path, searchPattern,
+                                options.Recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly)
                             .Where(f => !re?.IsMatch(f) ?? true);
                         foreach (var fileName in files)
-                        {
                             inputFiles.Add(new UFile(fileName));
-                        }
                     }
                 }
-                // Extract all messages from the input files
+
                 var messages = new List<Message>();
                 messages.AddRange(new CSharpExtractor(inputFiles).ExtractMessages());
                 messages.AddRange(new XamlExtractor(inputFiles).ExtractMessages());
+
                 if (options.Verbose)
                     Console.WriteLine(Tr._n("Found {0} message.", "Found {0} messages.", messages.Count), messages.Count);
-                // Export/merge messages
+
                 var exporter = new POExporter(options);
                 exporter.Merge(messages);
                 exporter.Save();
             }
             catch (Exception ex)
             {
-                Console.WriteLine(Tr._("Error during execution: {0}"), ex.Message);
+                Console.Error.WriteLine(Tr._("Error during execution: {0}"), ex.Message);
                 return 1;
             }
 
             return 0;
-        }
-
-        private static bool CheckOptions([NotNull] Options options, [NotNull] out StringBuilder message)
-        {
-            message = new StringBuilder();
-            try
-            {
-                if (options.InputFiles.Count == 0)
-                {
-                    // Add all supported formats
-                    options.InputFiles.Add("*.cs");
-                    options.InputFiles.Add("*.xaml");
-                }
-                if (options.InputDirs.Count == 0)
-                {
-                    options.InputDirs.Add(Environment.CurrentDirectory);
-                }
-
-                foreach (var dir in options.InputDirs)
-                {
-                    if (!Directory.Exists(dir))
-                    {
-                        message.AppendLine(string.Format(Tr._("Input directory '{0}' not found"), dir));
-                        return false;
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                message.Append(e.Message);
-                return false;
-            }
-
-            return true;
-        }
-
-        private static bool ParseOptions([NotNull] string[] args, [NotNull] out Options options, [NotNull] out StringBuilder message)
-        {
-            options = new Options();
-            message = new StringBuilder();
-
-            try
-            {
-                var getopt = new Getopt(Assembly.GetExecutingAssembly().GetName().Name, args, SOpts, LOpts) { Opterr = false };
-                int option;
-                while ((option = getopt.getopt()) != -1)
-                {
-                    switch (option)
-                    {
-                        case 1:
-                            options.InputFiles.Add(getopt.Optarg);
-                            break;
-
-                        case 'D':
-                            options.InputDirs.Add(getopt.Optarg);
-                            break;
-
-                        case 'r':
-                            options.Recursive = true;
-                            break;
-
-                        case 'x':
-                            options.Excludes.Add(getopt.Optarg);
-                            break;
-
-                        case 'd':
-                            options.OutputFile = $"{getopt.Optarg}.pot";
-                            break;
-
-                        case 'b':
-                            options.Backup = true;
-                            break;
-
-                        case 'o':
-                            options.OutputFile = getopt.Optarg;
-                            break;
-
-                        case 'm':
-                            options.Overwrite = false;
-                            break;
-
-                        case 'C':
-                            options.PreserveComments = true;
-                            break;
-
-                        case 'v':
-                            options.Verbose = true;
-                            break;
-
-                        case 'h':
-                            options.ShowUsage = true;
-                            return true;
-
-                        case ':':
-                            message.AppendLine(string.Format(Tr._("Option '{0}' requires an argument"), getopt.OptoptStr));
-                            return false;
-
-                        case '?':
-                            message.AppendLine(string.Format(Tr._("Invalid option '{0}'"), getopt.OptoptStr));
-                            return false;
-
-                        default:
-                            ShowUsage();
-                            return false;
-                    }
-                }
-
-                if (getopt.Opterr)
-                {
-                    message.AppendLine();
-                    message.Append(Tr._("Error in the command line options. Use -h to display the options usage."));
-                    return false;
-                }
-            }
-            catch (Exception e)
-            {
-                message.Append(e.Message);
-                return false;
-            }
-
-            return true;
-        }
-
-        private static void ShowUsage()
-        {
-            var newLine = Environment.NewLine;
-            Console.Write(
-                $"Extract strings from C# or XAML source code files and then creates or updates PO template file{newLine}{newLine}" +
-                $"Usage:{newLine}" +
-                $"    {Assembly.GetExecutingAssembly().GetName().Name}[.exe] [options] [inputfile | filemask] ...{newLine}{newLine}" +
-                $"   -D directory, --directory=directory    Add directory to the list of directories. Source files are searched relative to this list of directories{newLine}" +
-                $"                                          Use multiples options to specify more directories{newLine}{newLine}" +
-                $"   -r, --recursive                        Process all subdirectories{newLine}{newLine}" +
-                $"   -x, --exclude=filemask                 Exclude a filemask from the list of input{newLine}{newLine}" +
-                $"   -d, --domain-name=name                 Use name.pot for output (instead of messages.pot){newLine}{newLine}" +
-                $"   -b, --backup                           Create a backup file (.bak) in case of an existing file{newLine}{newLine}" +
-                $"   -o file, --output=file                 Write output to specified file (instead of name.po or messages.po) {newLine}{newLine}" +
-                $"   -m, --merge                            Merge with existing file instead of overwriting it{newLine}{newLine}" +
-                $"   -C, --preserve-comments                Keep previous comments from existing file{newLine}{newLine}" +
-                $"   -v, --verbose                          Verbose output{newLine}{newLine}" +
-                $"   -h, --help                             Display this help and exit{newLine}"
-            );
         }
     }
 }

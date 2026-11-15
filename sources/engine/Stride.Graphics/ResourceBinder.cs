@@ -150,7 +150,7 @@ namespace Stride.Graphics
                             break;
 
                         case EffectParameterClass.ShaderResourceView:
-                            commandList.UnsetUnorderedAccessView(value.Value as GraphicsResource);
+                            // A UAV writing the same sub-Resources was unbound by the transition to shader resource
                             commandList.SetShaderResourceView(bindingOperation.Stage, bindingOperation.SlotStart, (GraphicsResource) value.Value);
                             break;
 

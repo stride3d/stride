@@ -38,17 +38,19 @@ public struct CommentProcessedCode : IScannableCode
                 started = true;
             Add(lastPos..scanner.Position);
             lastPos = scanner.Position;
+            // A comment becomes as many spaces, keeping its line breaks: lines and columns stay those of the original,
+            // so are the ones in error messages. The end of a line comment stays with the code after it
             if (Tokens.Literal("//", ref scanner))
             {
-                Parsers.Until(ref scanner, '\n', advance: true);
+                Parsers.Until(ref scanner, '\n');
+                AddBlank(lastPos..scanner.Position);
                 lastPos = scanner.Position;
-                Add([' ']);
             }
             else if (Tokens.Literal("/*", ref scanner))
             {
                 Parsers.Until(ref scanner, "*/", advance: true);
+                AddBlank(lastPos..scanner.Position);
                 lastPos = scanner.Position;
-                Add([' ']);
             }
             else if (Tokens.Literal("\"", ref scanner))
             {
@@ -69,6 +71,16 @@ public struct CommentProcessedCode : IScannableCode
     internal void Add(Span<char> span)
     {
         Processed = Processed.Add(span);
+    }
+
+    // Spaces in place of the original text, except its line breaks and tabs: the layout stays the original's
+    internal void AddBlank(Range range)
+    {
+        var original = Original.Span[range];
+        Span<char> blank = original.Length <= 256 ? stackalloc char[original.Length] : new char[original.Length];
+        for (var i = 0; i < original.Length; i++)
+            blank[i] = original[i] is '\n' or '\r' or '\t' ? original[i] : ' ';
+        Add(blank);
     }
 
     /// <summary>

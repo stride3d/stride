@@ -6,12 +6,11 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <StrideBuildTags>WindowsTools</StrideBuildTags>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="NuGet.Protocol" />
-    <PackageReference Include="NuGet.PackageManagement" />
-    <PackageReference Include="NuGet.Resolver" />
     <PackageReference Include="NuGet.Commands" />
   </ItemGroup>
 

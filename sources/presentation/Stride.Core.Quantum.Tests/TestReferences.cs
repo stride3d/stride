@@ -9,27 +9,27 @@ public class TestReferences
 {
     public class TestObject
     {
-        public string Name;
+        public string? Name;
         public override string ToString() => $"{{TestObject: {Name}}}";
     }
 
     public class ObjectContainer
     {
-        public object Instance { get; set; }
+        public object? Instance { get; set; }
         public override string ToString() => "{ObjectContainer}";
     }
 
     public class ObjectsContainer
     {
-        public TestObject Instance1 { get; set; }
-        public TestObject Instance2 { get; set; }
+        public TestObject? Instance1 { get; set; }
+        public TestObject? Instance2 { get; set; }
         public override string ToString() => $"{{ObjectsContainer: {Instance1}, {Instance2}}}";
     }
 
     public class MultipleObjectContainer
     {
-        public List<TestObject> Instances { get; set; } = [];
-        public override string ToString() => $"{{MultipleObjectContainer: {string.Join(", ", Instances.Select(x => x.ToString()))}}}";
+        public List<TestObject?> Instances { get; set; } = [];
+        public override string ToString() => $"{{MultipleObjectContainer: {string.Join(", ", Instances.Select(x => x?.ToString()))}}}";
     }
 
     /// <summary>
@@ -46,11 +46,11 @@ public class TestReferences
 
         var memberNode = containerNode.Members.First();
         Helper.TestMemberNode(containerNode, memberNode, container, instance, nameof(ObjectContainer.Instance), true);
-        Helper.TestNonNullObjectReference(memberNode.TargetReference, instance, false);
+        Helper.TestNonNullObjectReference(memberNode.TargetReference!, instance, false);
         var instanceNode = nodeContainer.GetNode(instance);
-        Helper.TestNonNullObjectReference(memberNode.TargetReference, instanceNode, instance);
+        Helper.TestNonNullObjectReference(memberNode.TargetReference!, instanceNode!, instance);
 
-        memberNode = instanceNode.Members.First();
+        memberNode = instanceNode!.Members.First();
         Helper.TestMemberNode(instanceNode, memberNode, instance, instance.Name, nameof(TestObject.Name), false);
     }
 
@@ -66,8 +66,8 @@ public class TestReferences
         Helper.TestNonCollectionObjectNode(containerNode, container, 1);
 
         var memberNode = containerNode.Members.First();
-        Helper.TestMemberNode(containerNode, memberNode, container, null, nameof(ObjectContainer.Instance), true);
-        Helper.TestNullObjectReference(memberNode.TargetReference);
+        Helper.TestMemberNode(containerNode, memberNode, container, null!, nameof(ObjectContainer.Instance), true);
+        Helper.TestNullObjectReference(memberNode.TargetReference!);
     }
 
     /// <summary>
@@ -81,27 +81,27 @@ public class TestReferences
         var container = new ObjectContainer { Instance = instance };
         var containerNode = nodeContainer.GetOrCreateNode(container);
         var memberNode = containerNode.Members.First();
-        var instanceNode = memberNode.TargetReference.TargetNode;
+        var instanceNode = memberNode.TargetReference!.TargetNode;
 
         // Update to a new instance
         var newInstance = new TestObject { Name = "Test2" };
         memberNode.Update(newInstance);
         Helper.TestMemberNode(containerNode, memberNode, container, newInstance, nameof(ObjectContainer.Instance), true);
-        Helper.TestNonNullObjectReference(memberNode.TargetReference, newInstance, false);
+        Helper.TestNonNullObjectReference(memberNode.TargetReference!, newInstance, false);
 
         var newInstanceNode = nodeContainer.GetNode(newInstance);
-        Helper.TestNonNullObjectReference(memberNode.TargetReference, newInstanceNode, newInstance);
-        Assert.NotEqual(instanceNode.Guid, newInstanceNode.Guid);
+        Helper.TestNonNullObjectReference(memberNode.TargetReference!, newInstanceNode!, newInstance);
+        Assert.NotEqual(instanceNode!.Guid, newInstanceNode!.Guid);
 
         // Update to null
         memberNode.Update(null);
-        Helper.TestMemberNode(containerNode, memberNode, container, null, nameof(ObjectContainer.Instance), true);
-        Helper.TestNullObjectReference(memberNode.TargetReference);
+        Helper.TestMemberNode(containerNode, memberNode, container, null!, nameof(ObjectContainer.Instance), true);
+        Helper.TestNullObjectReference(memberNode.TargetReference!);
 
         // Update back to the initial instance
         memberNode.Update(instance);
         Helper.TestMemberNode(containerNode, memberNode, container, instance, nameof(ObjectContainer.Instance), true);
-        Helper.TestNonNullObjectReference(memberNode.TargetReference, instanceNode, instance);
+        Helper.TestNonNullObjectReference(memberNode.TargetReference!, instanceNode!, instance);
     }
 
     /// <summary>
@@ -120,17 +120,17 @@ public class TestReferences
 
         var memberNode = containerNode.Members.First();
         Helper.TestMemberNode(containerNode, memberNode, container, container.Instances, nameof(MultipleObjectContainer.Instances), true);
-        Helper.TestReferenceEnumerable(memberNode.Target.ItemReferences, container.Instances);
+        Helper.TestReferenceEnumerable(memberNode.Target!.ItemReferences!, container.Instances);
 
         Assert.Equal(container.Instances, memberNode.Retrieve());
         Assert.Equal(instance1, memberNode.Retrieve(new NodeIndex(0)));
         Assert.Equal(instance2, memberNode.Retrieve(new NodeIndex(1)));
 
-        var reference1 = memberNode.Target.ItemReferences.First();
-        Helper.TestMemberNode(reference1.TargetNode, reference1.TargetNode.Members.First(), instance1, instance1.Name, nameof(TestObject.Name), false);
+        var reference1 = memberNode.Target!.ItemReferences!.First();
+        Helper.TestMemberNode(reference1.TargetNode!, reference1.TargetNode!.Members.First(), instance1, instance1.Name, nameof(TestObject.Name), false);
 
-        var reference2 = memberNode.Target.ItemReferences.Last();
-        Helper.TestMemberNode(reference2.TargetNode, reference2.TargetNode.Members.First(), instance2, instance2.Name, nameof(TestObject.Name), false);
+        var reference2 = memberNode.Target!.ItemReferences!.Last();
+        Helper.TestMemberNode(reference2.TargetNode!, reference2.TargetNode!.Members.First(), instance2, instance2.Name, nameof(TestObject.Name), false);
     }
 
     /// <summary>
@@ -147,7 +147,7 @@ public class TestReferences
 
         var memberNode = containerNode.Members.First();
         Helper.TestMemberNode(containerNode, memberNode, container, container.Instances, nameof(MultipleObjectContainer.Instances), true);
-        Helper.TestReferenceEnumerable(memberNode.Target.ItemReferences, container.Instances);
+        Helper.TestReferenceEnumerable(memberNode.Target!.ItemReferences!, container.Instances);
 
         Assert.Equal(container.Instances, memberNode.Retrieve());
         Assert.Null(memberNode.Retrieve(new NodeIndex(0)));
@@ -167,20 +167,20 @@ public class TestReferences
         var container = new MultipleObjectContainer { Instances = { instance1, instance2 } };
         var containerNode = nodeContainer.GetOrCreateNode(container);
         var memberNode = containerNode.Members.First();
-        var reference = memberNode.Target.ItemReferences;
+        var reference = memberNode.Target!.ItemReferences!;
         var reference1 = reference.First();
         var reference2 = reference.Last();
 
         // Update item 0 to a new instance and item 1 to null
         var newInstance = new TestObject { Name = "Test3" };
-        memberNode.Target.Update(newInstance, new NodeIndex(0));
-        memberNode.Target.Update(null, new NodeIndex(1));
+        memberNode.Target!.Update(newInstance, new NodeIndex(0));
+        memberNode.Target!.Update(null, new NodeIndex(1));
         Assert.Equal(container.Instances, memberNode.Retrieve());
         Assert.Equal(newInstance, memberNode.Retrieve(new NodeIndex(0)));
         Assert.Null(memberNode.Retrieve(new NodeIndex(1)));
-        Helper.TestReferenceEnumerable(memberNode.Target.ItemReferences, container.Instances);
+        Helper.TestReferenceEnumerable(memberNode.Target!.ItemReferences!, container.Instances);
 
-        var newReference = memberNode.Target.ItemReferences;
+        var newReference = memberNode.Target!.ItemReferences!;
         Assert.Equal(reference, newReference);
         Assert.Equal(2, newReference.Count);
         var newReference1 = newReference.First();
@@ -210,14 +210,14 @@ public class TestReferences
 
         var member1Node = containerNode.Members.First();
         Helper.TestMemberNode(containerNode, member1Node, container, instance, nameof(ObjectsContainer.Instance1), true);
-        Helper.TestNonNullObjectReference(member1Node.TargetReference, instance, false);
+        Helper.TestNonNullObjectReference(member1Node.TargetReference!, instance, false);
 
         var member2Node = containerNode.Members.Last();
         Helper.TestMemberNode(containerNode, member2Node, container, instance, nameof(ObjectsContainer.Instance2), true);
-        Helper.TestNonNullObjectReference(member2Node.TargetReference, instance, false);
+        Helper.TestNonNullObjectReference(member2Node.TargetReference!, instance, false);
 
-        var reference1 = member1Node.TargetReference;
-        var reference2 = member2Node.TargetReference;
+        var reference1 = member1Node.TargetReference!;
+        var reference2 = member2Node.TargetReference!;
         Assert.Equal(reference1.TargetGuid, reference2.TargetGuid);
         Assert.Equal(reference1.TargetNode, reference2.TargetNode);
         Assert.Equal(reference1.ObjectValue, reference2.ObjectValue);
@@ -238,9 +238,9 @@ public class TestReferences
 
         var memberNode = containerNode.Members.First();
         Helper.TestMemberNode(containerNode, memberNode, container, container.Instances, nameof(MultipleObjectContainer.Instances), true);
-        Helper.TestReferenceEnumerable(memberNode.Target.ItemReferences, container.Instances);
+        Helper.TestReferenceEnumerable(memberNode.Target!.ItemReferences!, container.Instances);
 
-        var reference = memberNode.Target.ItemReferences;
+        var reference = memberNode.Target!.ItemReferences!;
         Assert.Equal(2, reference.Count);
         var reference1 = reference.First();
         var reference2 = reference.Last();
@@ -265,7 +265,7 @@ public class TestReferences
         var memberNode = containerNode.Members.First();
         Assert.Equal(instance, memberNode.Retrieve());
         Assert.True(memberNode.IsReference);
-        Assert.Equal(instanceNode, memberNode.TargetReference.TargetNode);
+        Assert.Equal(instanceNode, memberNode.TargetReference!.TargetNode);
     }
 
     /// <summary>
@@ -284,7 +284,7 @@ public class TestReferences
         var memberNode = containerNode.Members.First();
         Assert.Equal(instance, memberNode.Retrieve());
         Assert.True(memberNode.IsReference);
-        Assert.Equal(instanceNode, memberNode.TargetReference.TargetNode);
+        Assert.Equal(instanceNode, memberNode.TargetReference!.TargetNode);
     }
 
     /// <summary>
@@ -304,7 +304,7 @@ public class TestReferences
         Assert.Single(containerNode.Members);
         var memberNode = containerNode.Members.First();
         Assert.True(memberNode.IsReference);
-        var reference = memberNode.Target.ItemReferences;
+        var reference = memberNode.Target!.ItemReferences!;
         Assert.Equal(2, reference.Indices.Count);
         var reference1 = reference.First();
         var reference2 = reference.Last();
@@ -327,8 +327,8 @@ public class TestReferences
         var instance2Node = nodeContainer.GetOrCreateNode(instance2);
         Assert.Single(instance1Node.Members);
         Assert.Single(instance2Node.Members);
-        Assert.Equal(instance1Node.Members.First().TargetReference.TargetNode, instance2Node);
-        Assert.Equal(instance2Node.Members.First().TargetReference.TargetNode, instance1Node);
+        Assert.Equal(instance1Node.Members.First().TargetReference!.TargetNode, instance2Node);
+        Assert.Equal(instance2Node.Members.First().TargetReference!.TargetNode, instance1Node);
     }
 
     /// <summary>
@@ -344,8 +344,8 @@ public class TestReferences
         var instance2Node = nodeContainer.GetOrCreateNode(instance2);
         instance1Node.Members.First().Update(instance2);
         instance2Node.Members.First().Update(instance1);
-        Assert.Equal(instance1Node.Members.First().TargetReference.TargetNode, instance2Node);
-        Assert.Equal(instance2Node.Members.First().TargetReference.TargetNode, instance1Node);
+        Assert.Equal(instance1Node.Members.First().TargetReference!.TargetNode, instance2Node);
+        Assert.Equal(instance2Node.Members.First().TargetReference!.TargetNode, instance1Node);
     }
 
     /// <summary>
@@ -359,7 +359,7 @@ public class TestReferences
         instance.Instance = instance;
         var instanceNode = nodeContainer.GetOrCreateNode(instance);
         Assert.Single(instanceNode.Members);
-        Assert.Equal(instanceNode.Members.First().TargetReference.TargetNode, instanceNode);
+        Assert.Equal(instanceNode.Members.First().TargetReference!.TargetNode, instanceNode);
     }
 
     /// <summary>
@@ -374,6 +374,6 @@ public class TestReferences
         instanceNode.Members.First().Update(instance);
         instance.Instance = instance;
         Assert.Single(instanceNode.Members);
-        Assert.Equal(instanceNode.Members.First().TargetReference.TargetNode, instanceNode);
+        Assert.Equal(instanceNode.Members.First().TargetReference!.TargetNode, instanceNode);
     }
 }

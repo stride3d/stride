@@ -1,0 +1,12 @@
+namespace Stride.Shaders.Tests;
+
+shader ByteAddressBufferUtils
+{
+    ByteAddressBuffer Table;
+    RWByteAddressBuffer Scratch;
+
+    static uint Twice(uint value)
+    {
+        return value * 2;
+    }
+}

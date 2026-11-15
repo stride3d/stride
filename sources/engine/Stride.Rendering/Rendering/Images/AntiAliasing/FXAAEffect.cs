@@ -11,6 +11,7 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// A FXAA anti-aliasing pass.
     /// </summary>
+    [EffectKeys]
     [DataContract("FXAAEffect")]
     public class FXAAEffect : ImageEffectShader, IScreenSpaceAntiAliasingEffect
     {

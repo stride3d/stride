@@ -52,12 +52,30 @@ public abstract class Expression(TextLocation info) : ValueNode(info)
 
     protected void ThrowErrorOnLValue()
     {
-        throw new InvalidOperationException($"{this} is not a l-value and cannot be assigned to.");
+        throw new StatementCompileException(new(Info, string.Format(SDSLErrorMessages.SDSL0103, Info.Text.Span.Trim().ToString())));
     }
 
     public abstract SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler);
 
     public SymbolType? ValueType => Type?.GetValueType();
+
+    /// <summary>
+    /// Set by the expressions that take a composition itself (a member access, a foreach collection): anywhere else, a composition
+    /// is used as a value (SDSL0165).
+    /// </summary>
+    internal bool AllowComposition { get; set; }
+
+    /// <summary>
+    /// Stops at a composition used as a value: the expression around it would fail later with an internal error.
+    /// </summary>
+    protected void CheckNotCompositionValue()
+    {
+        if (!AllowComposition && Type is PointerType { BaseType: ShaderSymbol or ArrayType { BaseType: ShaderSymbol } } compositionType)
+        {
+            var call = compositionType.BaseType is ArrayType ? $"{this}[0].Compute()" : $"{this}.Compute()";
+            throw new StatementCompileException(new(Info, string.Format(SDSLErrorMessages.SDSL0165, this, call)));
+        }
+    }
 
     public virtual SpirvValue CompileAsValue(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
     {
@@ -139,7 +157,49 @@ public partial class ParenthesisExpression(Expression expression, TextLocation i
     }
     public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler) => Expression.Compile(table, compiler);
 
+    public override void SetValue(SymbolTable table, CompilerUnit compiler, SpirvValue rvalue) => Expression.SetValue(table, compiler, rvalue);
+
     public override string ToString() => $"({Expression})";
+}
+
+/// <summary>
+/// HLSL comma operator <c>(a, b, c)</c>: evaluates every value in order, the result is the last one.
+/// Only parsed inside parentheses, since a comma also separates arguments and initializer values.
+/// </summary>
+public partial class CommaExpression(List<Expression> expressions, TextLocation info) : Expression(info)
+{
+    public List<Expression> Expressions { get; set; } = expressions;
+
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
+    {
+        for (var i = 0; i < Expressions.Count - 1; i++)
+            Expressions[i].ProcessSymbol(table);
+        Expressions[^1].ProcessSymbol(table, expectedType);
+        Type = Expressions[^1].Type;
+
+        // As fxc's X3081: a dropped value without side effect usually means a vector constructor was intended
+        if (Expressions.Take(Expressions.Count - 1).Any(x => !HasSideEffect(x)))
+            table.AddWarning(new(Info, string.Format(SDSLErrorMessages.SDSL0219, Info.Text, Expressions[^1].Info.Text)));
+    }
+
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
+    {
+        for (var i = 0; i < Expressions.Count - 1; i++)
+            Expressions[i].Compile(table, compiler);
+        return Expressions[^1].Compile(table, compiler);
+    }
+
+    private static bool HasSideEffect(Expression expression) => expression switch
+    {
+        AssignExpression or MethodCall => true,
+        PrefixExpression { Operator: Operator.Inc or Operator.Dec } => true,
+        AccessorChainExpression chain => chain.Accessors.Any(x => x is PostfixIncrement or MethodCall),
+        ParenthesisExpression parenthesis => HasSideEffect(parenthesis.Expression),
+        CommaExpression comma => comma.Expressions.Any(HasSideEffect),
+        _ => false,
+    };
+
+    public override string ToString() => string.Join(", ", Expressions);
 }
 
 public partial class MethodCall(Identifier name, ShaderExpressionList arguments, TextLocation info) : Expression(info)
@@ -162,8 +222,13 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
 
         var argumentTypes = new SymbolType[Arguments.Values.Count];
         for (int i = 0; i < Arguments.Values.Count; ++i)
-            argumentTypes[i] = Arguments.Values[i].Type!;
+        {
+            // A swizzle of a variable can take an out value: it is written back through the swizzle after the call
+            var argument = Arguments.Values[i];
+            argumentTypes[i] = IsWritableSwizzle(argument) ? new PointerType(argument.Type!, Specification.StorageClass.Function) : argument.Type!;
+        }
 
+        var errorCount = table.Errors.Count;
         if (TryResolveFunctionSymbol(table, argumentTypes, out var functionSymbol))
         {
             var functionType = (FunctionType)functionSymbol.Type;
@@ -171,16 +236,31 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
         }
         else
         {
-            if (IntrinsicCallHelper.TryResolveIntrinsic(table, MemberCallBaseType, Name, argumentTypes, out var resolvedIntrinsic))
+            if (IntrinsicCallHelper.TryResolveIntrinsic(table, MemberCallBaseType, Name, argumentTypes, out var resolvedIntrinsic, out var intrinsicFailure))
             {
+                var overload = resolvedIntrinsic.Overload;
+                CheckAtomicCall(table, ref overload);
                 resolvedIntrinsicCompiler = resolvedIntrinsic.Compiler;
                 resolvedIntrinsicNamespace = resolvedIntrinsic.Namespace;
-                resolvedIntrinsicOverload = resolvedIntrinsic.Overload;
+                resolvedIntrinsicOverload = overload;
                 Type = resolvedIntrinsicOverload.Value.Type.ReturnType;
             }
-            else
+            // A method of that name was found, but the call doesn't fit it: that error says why
+            else if (table.Errors.Count == errorCount)
             {
-                table.AddError(new(Info, $"Can't find a valid method overload or intrinsic to call for {Name}({string.Join(", ", Arguments)})"));
+                table.AddError(new(Info, intrinsicFailure switch
+                {
+                    IntrinsicLookupFailure.NotImplemented => string.Format(SDSLErrorMessages.SDSL0111, $"{MemberCallBaseType}.{Name}"),
+                    IntrinsicLookupFailure.UnknownName when MemberCallBaseType != null => string.Format(SDSLErrorMessages.SDSL0109, Name, MemberCallBaseType),
+                    IntrinsicLookupFailure.UnknownName when functionSymbol == null => string.Format(SDSLErrorMessages.SDSL0110, Name),
+                    IntrinsicLookupFailure.NoMatchingOverload => string.Format(SDSLErrorMessages.SDSL0162, FormatSignature(Name, argumentTypes), $" {Name} is an intrinsic: check the number and types of its arguments."),
+                    _ => string.Format(SDSLErrorMessages.SDSL0162, FormatSignature(Name, argumentTypes), $" {Name} is not a method."),
+                }));
+            }
+            // The call doesn't fit the only signature, but the result type is known: the code around it can still be checked
+            else if (functionSymbol?.Type is FunctionType mismatchedFunctionType)
+            {
+                Type = mismatchedFunctionType.ReturnType;
             }
         }
 
@@ -211,9 +291,9 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
         SpirvValue result;
         if (resolvedIntrinsicOverload != null)
         {
-            // ByteAddressBuffer needs the pointer for OpAccessChain, not the loaded struct value
+            // Storage buffers need the pointer for OpAccessChain / OpArrayLength, not the loaded struct value
             SpirvValue? @this = MemberCall != null
-                ? (MemberCallBaseType is ByteAddressBufferType ? MemberCall.Value : builder.AsValue(context, MemberCall.Value))
+                ? (MemberCallBaseType is ByteAddressBufferType or StructuredBufferType ? MemberCall.Value : builder.AsValue(context, MemberCall.Value))
                 : null;
             result = IntrinsicCallHelper.CompileIntrinsic(table, compiler, resolvedIntrinsicCompiler!, resolvedIntrinsicNamespace!, Name.Name, resolvedIntrinsicOverload.Value, @this, compiledParams, Info);
         }
@@ -374,14 +454,24 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
     /// </summary>
     /// <remarks>
     /// Applies to <c>ref</c> parameters (atomics need the actual memory pointer), opaque resources
-    /// (SPIR-V forbids OpStore to them) and geometry streams (nothing to copy). Used for both input and output arguments.
+    /// (SPIR-V forbids OpStore to them), structured and byte address buffers (a runtime array can't be copied; the mixer then
+    /// gives each call a copy of the method that uses the buffer itself) and geometry streams (nothing to copy).
+    /// Used for both input and output arguments.
     /// </remarks>
     /// <returns>True when the argument is passed as a pointer, false when it is copied.</returns>
     private static bool IsPassedByPointer(FunctionParameter parameter)
         => parameter.Type is PointerType pointerType
             && (parameter.Modifiers == ParameterModifiers.Ref
                 || pointerType.BaseType.IsOpaqueResource()
+                || pointerType.BaseType is StructuredBufferType or ByteAddressBufferType
                 || pointerType.BaseType is GeometryStreamType);
+
+    private static bool IsWritableSwizzle(Expression argument) => argument switch
+    {
+        AccessorChainExpression chain => chain.IsWritableSwizzle(),
+        ParenthesisExpression parenthesis => IsWritableSwizzle(parenthesis.Expression),
+        _ => false,
+    };
 
     protected void ProcessOutputArguments(SymbolTable table, CompilerUnit compiler, FunctionType functionType, Span<int> compiledParams)
     {
@@ -394,14 +484,22 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
             {
                 var paramDefinitionType = (PointerType)paramDefinition.Type;
                 var paramVariable = compiledParams[i];
-                var paramTarget = Arguments.Values[i].Compile(table, compiler, paramDefinitionType);
+                var argument = Arguments.Values[i];
+                if (argument.Type is not PointerType)
+                {
+                    // A swizzle (IsWritableSwizzle): the value is written through it, after conversion to its type
+                    var loadedValue = builder.Insert(new OpLoad(context.GetOrRegister(paramDefinitionType.BaseType), context.Bound++, paramVariable, null, []));
+                    argument.SetValue(table, compiler, builder.Convert(context, new(loadedValue.ResultId, loadedValue.ResultType), argument.Type!));
+                    continue;
+                }
+
+                var paramTarget = argument.Compile(table, compiler, paramDefinitionType);
                 var paramTargetType = (PointerType)context.ReverseTypes[paramTarget.TypeId];
 
-                if (paramTargetType.BaseType != paramDefinitionType.BaseType)
-                    throw new InvalidOperationException($"Value of type {paramTargetType.BaseType} can't be used as out parameter {i} of type {paramDefinitionType.BaseType} in method call [{this}]");
-
-                var loadedResult = builder.Insert(new OpLoad(context.GetOrRegister(paramTargetType.BaseType), context.Bound++, paramVariable, null, [])).ResultId;
-                builder.Insert(new OpStore(paramTarget.Id, loadedResult, null, []));
+                // As in HLSL, the value is converted to the argument's type (an int receiving an out uint)
+                var loadedResult = builder.Insert(new OpLoad(context.GetOrRegister(paramDefinitionType.BaseType), context.Bound++, paramVariable, null, []));
+                var convertedResult = builder.Convert(context, new(loadedResult.ResultId, loadedResult.ResultType), paramTargetType.BaseType);
+                builder.Insert(new OpStore(paramTarget.Id, convertedResult.Id, null, []));
             }
         }
     }
@@ -448,7 +546,7 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
             if (!loadedShaderSymbol.TryResolveSymbol(Name, out functionSymbol))
             {
                 functionSymbol = default;
-                table.AddError(new(Info, string.Format(SDSLErrorMessages.SDSL0109, Name)));
+                table.AddError(new(Info, string.Format(SDSLErrorMessages.SDSL0109, Name, loadedShaderSymbol.Name)));
                 return false;
             }
         }
@@ -463,40 +561,43 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
         if (functionSymbol.Type is FunctionGroupType)
         {
             var accessibleMethods = functionSymbol.GroupMembers
-                // Check overload score
-                .Select(x => (Score: OverloadScore((FunctionType)x.Type, x.MethodDefaultParameters?.DefaultValues.Length ?? 0, argumentTypes), Symbol: x))
+                // Rank overloads like DXC
+                .Select(x => (Score: RankOverload((FunctionType)x.Type, x.MethodDefaultParameters?.DefaultValues.Length ?? 0, argumentTypes), Symbol: x))
                 // Remove non-applicable methods
-                .Where(x => x.Score != int.MaxValue)
+                .Where(x => x.Score != null)
                 // Group by signature/score (we assume method with exact same signature means they are overriding each other, but we might need to do a better check using override info)
                 .GroupBy(x => (x.Score, x.Symbol.Type))
                 // Sort by best match (score)
                 .OrderBy(x => x.Key.Score)
                 .ToList();
 
-            static string FormatSignature(string name, FunctionType ft)
-                => $"{name}({string.Join(", ", ft.ParameterTypes.Select(p => p.Type.GetValueType()))})";
-
             if (accessibleMethods.Count == 0)
             {
-                var callStr = FormatSignature(Name, new FunctionType(ScalarType.Void, [.. argumentTypes.Select(t => new FunctionParameter(t, ParameterModifiers.None))]));
-                var candidatesStr = string.Join("\n  ", functionSymbol.GroupMembers.Select(x => FormatSignature(Name, (FunctionType)x.Type)));
-                table.AddError(new(Info, $"Can't find a valid method overload for '{callStr}'. Candidates:\n  {candidatesStr}"));
+                table.AddError(new(Info, FormatNoOverloadError(functionSymbol.GroupMembers, argumentTypes)));
                 return false;
             }
 
             // Check if there is an ambiguous call (multiple method groups with the lowest score)
             if (accessibleMethods.Count > 1 && accessibleMethods[0].Key.Score == accessibleMethods[1].Key.Score)
             {
-                var callStr = FormatSignature(Name, new FunctionType(ScalarType.Void, [.. argumentTypes.Select(t => new FunctionParameter(t, ParameterModifiers.None))]));
-                var ambiguousStr = string.Join("\n  ", accessibleMethods.Where(g => g.Key.Score == accessibleMethods[0].Key.Score)
-                    .SelectMany(g => g).Select(x => $"{FormatSignature(Name, (FunctionType)x.Symbol.Type)} [score: {x.Score}]"));
-                table.AddError(new(Info, $"Ambiguous method overload for '{callStr}'. Matching candidates:\n  {ambiguousStr}"));
+                var ambiguous = accessibleMethods.Where(g => g.Key.Score == accessibleMethods[0].Key.Score).Select(g => g.First().Symbol);
+                table.AddError(new(Info, FormatAmbiguousError(ambiguous, argumentTypes)));
                 return false;
             }
 
             // Note: actual override (base/this) will be reevaluted during ShaderMixer, but overload (different signature) won't be changed
             // So we just pick the method with the lowest score
             functionSymbol = accessibleMethods[0].First().Symbol;
+        }
+        // An argument without type already has its error
+        else if (functionSymbol.Type is FunctionType singleFunctionType && !argumentTypes.Contains(null))
+        {
+            var defaultParameters = functionSymbol.MethodDefaultParameters?.DefaultValues.Length ?? 0;
+            if (RankOverload(singleFunctionType, defaultParameters, argumentTypes) == null)
+            {
+                table.AddError(new(Info, FormatCallError(singleFunctionType, defaultParameters, argumentTypes)));
+                return false;
+            }
         }
 
         return functionSymbol.Type is FunctionType;
@@ -534,11 +635,14 @@ public partial class PrefixExpression(Operator op, Expression expression, TextLo
             case Operator.Inc:
             case Operator.Dec:
             case Operator.Not:
+                Expression.ProcessSymbol(table, expectedType);
+                Type = Expression.ValueType;
+                break;
             case Operator.BitwiseNot:
             case Operator.Plus:
             case Operator.Minus:
                 Expression.ProcessSymbol(table, expectedType);
-                Type = Expression.ValueType;
+                Type = PromoteBoolean(Expression.ValueType!);
                 break;
             default:
                 table.AddError(new(Info, string.Format(SDSLErrorMessages.SDSL0111, $"Prefix operator {Operator}")));
@@ -565,6 +669,32 @@ public partial class PrefixExpression(Operator op, Expression expression, TextLo
         var valueExpression = isPointer
             ? compiler.Builder.AsValue(compiler.Context, expression)
             : expression;
+
+        // As in HLSL, +b, -b and ~b compute on int
+        if (Operator is Operator.Plus or Operator.Minus or Operator.BitwiseNot && valueType.GetElementType() is ScalarType { Type: Scalar.Boolean })
+        {
+            valueType = PromoteBoolean(valueType);
+            valueExpression = builder.Convert(context, valueExpression, valueType);
+        }
+
+        if (valueType is MatrixType matrixType && Operator is Operator.Plus or Operator.Minus)
+        {
+            if (Operator == Operator.Plus)
+                return valueExpression;
+
+            // OpFNegate / OpSNegate take a scalar or a vector: negate each column
+            var columnType = new VectorType(matrixType.BaseType, matrixType.Rows);
+            var columnTypeId = context.GetOrRegister(columnType);
+            Span<int> columns = stackalloc int[matrixType.Columns];
+            for (var i = 0; i < matrixType.Columns; i++)
+            {
+                var column = builder.Insert(new OpCompositeExtract(columnTypeId, context.Bound++, valueExpression.Id, [i])).ResultId;
+                columns[i] = matrixType.BaseType.IsFloating()
+                    ? builder.Insert(new OpFNegate(columnTypeId, context.Bound++, column)).ResultId
+                    : builder.Insert(new OpSNegate(columnTypeId, context.Bound++, column)).ResultId;
+            }
+            return new(builder.InsertData(new OpCompositeConstruct(valueExpression.TypeId, context.Bound++, [.. columns])));
+        }
 
         if (valueType is ScalarType or VectorType)
         {
@@ -601,8 +731,9 @@ public partial class PrefixExpression(Operator op, Expression expression, TextLo
                         return new(result.ResultId, result.ResultType);
                     }
                 case Operator.Plus:
-                    // Nothing to do
-                    return expression;
+                    // The value, never the variable: +x can't be assigned to
+                    Type = valueType;
+                    return valueExpression;
                 case Operator.Minus:
                     {
                         var result = valueType.GetElementType() switch
@@ -631,6 +762,10 @@ public partial class PrefixExpression(Operator op, Expression expression, TextLo
             throw new NotImplementedException();
         }
     }
+
+    // bool, bool2... become int, int2...
+    private static SymbolType PromoteBoolean(SymbolType type)
+        => type.GetElementType() is ScalarType { Type: Scalar.Boolean } ? type.WithElementType(ScalarType.Int) : type;
 
     public override string ToString() => $"{Operator.ToSymbol()}{Expression}";
 }
@@ -704,12 +839,12 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
     private SpirvValue[]? intermediateValues;
 
     /// <summary>
-    /// Compiles a trailing <c>buffer[i]</c> into an <c>OpImageTexelPointer</c> for use by atomics.
+    /// Compiles a trailing <c>buffer[i]</c> or <c>texture[uv]</c> into an <c>OpImageTexelPointer</c> for use by atomics.
     /// </summary>
     /// <remarks>
-    /// A typed buffer is a storage image, so normal indexing produces an image read/write; atomics
+    /// A typed buffer or a read-write texture is a storage image, so normal indexing produces an image read/write; atomics
     /// need a pointer, and OpImageTexelPointer results may only be consumed by atomics, hence this
-    /// is only used on the <c>ref</c> argument path. Returns false when the chain is not a buffer index.
+    /// is only used on the <c>ref</c> argument path. Returns false when the chain is not a buffer or texture index.
     /// </remarks>
     public bool TryCompileAsTexelPointer(SymbolTable table, CompilerUnit compiler, out SpirvValue texelPointer)
     {
@@ -720,12 +855,17 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
 
         var lastIndex = Accessors.Count - 1;
         var baseType = lastIndex > 0 ? Accessors[lastIndex - 1].Type : Source.Type;
-        if (baseType is not PointerType { BaseType: BufferType bufferType })
-            return false;
+        var (texelType, coordinateType) = baseType switch
+        {
+            PointerType { BaseType: BufferType bufferType } => (bufferType.BaseType, (SymbolType)ScalarType.Int),
+            PointerType { BaseType: TextureType { Sampled: 2 } texture } => (texture.ReturnType,
+                texture.CoordinateDimension == 1 ? ScalarType.Int : new VectorType(ScalarType.Int, texture.CoordinateDimension)),
+            _ => default,
+        };
 
         // Image atomics are only defined on 32-bit integer texels, which is also the only case
         // where the image declares a format - see SpirvContext.GetStorageImageFormat.
-        if (bufferType.BaseType is not ScalarType { Type: Scalar.UInt or Scalar.Int })
+        if (texelType is not ScalarType { Type: Scalar.UInt or Scalar.Int })
             return false;
 
         var (builder, context) = compiler;
@@ -735,8 +875,8 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
 
         // The image operand stays a pointer to the image; it must not be loaded into a value.
         var image = intermediateValues![lastIndex];
-        var coordinate = builder.Convert(context, indexer.Index.CompileAsValue(table, compiler), ScalarType.Int);
-        var pointerType = new PointerType(bufferType.BaseType, Specification.StorageClass.Image);
+        var coordinate = builder.Convert(context, indexer.Index.CompileAsValue(table, compiler), coordinateType);
+        var pointerType = new PointerType(texelType, Specification.StorageClass.Image);
 
         var instruction = builder.Insert(new OpImageTexelPointer(
             context.GetOrRegister(pointerType), context.Bound++,
@@ -744,6 +884,32 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
 
         texelPointer = new SpirvValue(instruction.ResultId, instruction.ResultType);
         return true;
+    }
+
+    /// <summary>
+    /// Whether this chain is a swizzle value that <see cref="SetValue"/> can write: swizzles of a variable, each element once.
+    /// </summary>
+    internal bool IsWritableSwizzle()
+    {
+        if (Type is null or PointerType)
+            return false;
+
+        for (var i = Accessors.Count - 1; i >= 0; --i)
+        {
+            var baseType = i > 0 ? Accessors[i - 1].Type : Source.Type;
+            var isSwizzle = (baseType?.GetValueType(), Accessors[i]) switch
+            {
+                (MatrixType m, Identifier id) => id.IsMatrixSwizzle(m, out var swizzles) && swizzles.Distinct().Count() == swizzles.Count,
+                (VectorType, Identifier id) => id.IsVectorSwizzle() && id.Name.Distinct().Count() == id.Name.Length,
+                _ => false,
+            };
+            if (!isSwizzle)
+                return false;
+            if (baseType is PointerType)
+                return true;
+        }
+
+        return false;
     }
 
     public override void SetValue(SymbolTable table, CompilerUnit compiler, SpirvValue rvalue)
@@ -803,9 +969,38 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                         return;
                     }
                 case (PointerType { BaseType: MatrixType } or MatrixType, Identifier { Name: var swizzle } id) when id.IsMatrixSwizzle((MatrixType)currentValueType.GetValueType(), out var swizzles):
-                    throw new NotImplementedException("Assign back to matrix swizzle is not implemented yet");
+                    {
+                        if (swizzles.Distinct().Count() != swizzles.Count)
+                        {
+                            table.AddError(new(id.Info, string.Format(SDSLErrorMessages.SDSL0145, swizzle)));
+                            return;
+                        }
+
+                        // Same shape as a vector swizzle: insert each written element into the matrix, which becomes the value to assign
+                        var matrixType = (MatrixType)currentValueType.GetValueType();
+                        var matrix = currentValueType is PointerType
+                            ? new SpirvValue(builder.InsertData(new OpLoad(context.GetOrRegister(matrixType), context.Bound++, lvalueBase.Id, null, [])))
+                            : lvalueBase;
+                        // A scalar is copied to every written element
+                        rvalue = builder.Convert(context, rvalue, matrixType.BaseType.GetVectorOrScalar(swizzles.Count));
+                        for (var j = 0; j < swizzles.Count; j++)
+                        {
+                            var element = swizzles.Count == 1
+                                ? rvalue.Id
+                                : builder.Insert(new OpCompositeExtract(context.GetOrRegister(matrixType.BaseType), context.Bound++, rvalue.Id, [j])).ResultId;
+                            // (Column, Row) as the read path extracts them: the HLSL row is the SPIR-V column
+                            matrix = new(builder.InsertData(new OpCompositeInsert(context.GetOrRegister(matrixType), context.Bound++, element, matrix.Id, [swizzles[j].Column, swizzles[j].Row])));
+                        }
+                        rvalue = matrix;
+                        break;
+                    }
                 case (PointerType { BaseType: VectorType or ScalarType } or VectorType or ScalarType, Identifier { Name: var swizzle } id) when id.IsVectorSwizzle():
                     // Swizzle: we transform the value to assign accordingly
+                    if (swizzle.Distinct().Count() != swizzle.Length)
+                    {
+                        table.AddError(new(id.Info, string.Format(SDSLErrorMessages.SDSL0145, swizzle)));
+                        return;
+                    }
 
                     // We load the original value (if pointer)
                     var lvalueType = currentValueType;
@@ -818,6 +1013,11 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                     // Shuffle with new data
                     switch (lvalueType)
                     {
+                        // One element of a vector value (`m._m01_m02.y = x`; on a pointer it is an access chain instead)
+                        case VectorType v when swizzle.Length == 1:
+                            rvalue = builder.Convert(context, rvalue, v.BaseType);
+                            rvalue = new(builder.InsertData(new OpCompositeInsert(context.GetOrRegister(lvalueType), context.Bound++, rvalue.Id, lvalueBase.Id, [ConvertSwizzle(swizzle[0])])));
+                            break;
                         case VectorType v:
                             var shuffleIndices = shuffleBuffer[..v.Size];
                             // Default: lvalue
@@ -850,10 +1050,15 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
 
     public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
     {
+        ResolveThisMember(table);
+
+        // A composition is used through its members: Color.Compute()
+        Source.AllowComposition = true;
         Source.ProcessSymbol(table);
         var currentValueType = Source.Type;
 
         CompileHelper(table, null);
+        CheckNotCompositionValue();
     }
 
     public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
@@ -861,7 +1066,39 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
         return CompileHelper(table, compiler);
     }
 
+    /// <summary>
+    /// <c>this.X</c> (X a variable or a composition) continues from the member X, resolved among the shader's members only.
+    /// </summary>
+    /// <remarks>
+    /// A stage member is shared by every instance, and a variable is not overridden: <c>this.X</c> on the first and
+    /// <c>base.X</c> on any variable are errors (SDSL0192). Method calls (<c>this.M()</c>, <c>base.M()</c>) are not changed.
+    /// </remarks>
+    private void ResolveThisMember(SymbolTable table)
+    {
+        if (Source is not Identifier { Name: "this" or "base" } qualifier || Accessors.Count == 0 || Accessors[0] is not Identifier member
+            || table.CurrentShader is not { } shader)
+            return;
+
+        if (!shader.TryResolveSymbol(member.Name, out var symbol) || symbol.Id.Kind is not (SymbolKind.Variable or SymbolKind.Composition or SymbolKind.CBuffer or SymbolKind.TBuffer or SymbolKind.RGroup))
+            throw new StatementCompileException(new(member.Info, string.Format(SDSLErrorMessages.SDSL0112, member.Name, qualifier.Name, shader.Name)));
+        if (qualifier.Name == "base")
+            throw new StatementCompileException(new(Info, string.Format(SDSLErrorMessages.SDSL0192, qualifier.Name, member.Name, "a variable, which is not overridden")));
+        // A cbuffer member's symbol refers to its cbuffer, which has the flag
+        if (symbol.Id.IsStage || (symbol.OwnerType ?? shader).Variables.Any(v => v.Symbol.IdRef == symbol.IdRef && (v.Flags & VariableFlagsMask.Stage) != 0))
+            throw new StatementCompileException(new(Info, string.Format(SDSLErrorMessages.SDSL0192, qualifier.Name, member.Name, "a stage member, shared by every instance")));
+
+        Source = new Identifier(member.Name, member.Info) { MemberOnly = true };
+        Accessors.RemoveAt(0);
+    }
+
     // Since there are many switch case, we do both ProcessSymbols and Compile in the same functions to make sure to not miss anything (depending on if compiler is set)
+    // HLSL converts a floating-point index to an integer (towards zero); SPIR-V indexes with an integer only
+    private static SpirvValue CompileIndex(IndexerExpression indexer, SymbolTable table, CompilerUnit compiler)
+    {
+        var value = indexer.Index.CompileAsValue(table, compiler);
+        return compiler.Context.ReverseTypes[value.TypeId].IsFloating() ? compiler.Builder.Convert(compiler.Context, value, ScalarType.Int) : value;
+    }
+
     public SpirvValue CompileHelper(SymbolTable table, CompilerUnit? compiler = null)
     {
         SpirvValue result = default;
@@ -1050,7 +1287,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                         // so first, we push a 0 to access the OpTypeRuntimeArray
                         PushAccessChainId(accessChainIds, compiler.Context.CompileConstant(0).Id);
                         // Then we push the index inside the array
-                        var indexerValue = indexer.Index.CompileAsValue(table, compiler);
+                        var indexerValue = CompileIndex(indexer, table, compiler);
                         PushAccessChainId(accessChainIds, indexerValue.Id);
                         break;
                     }
@@ -1181,6 +1418,26 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                     //indexes[i] = builder.CreateConstant(context, shader, new IntegerLiteral(new(32, false, true), index, new())).Id;
                     PushAccessChainId(accessChainIds, compiler.Context.CompileConstant(index).Id);
                     break;
+                // A member of a struct value (a method result: Make(3).Id, Values.Load(1).Id): extract it, as DXC does
+                case (StructType s, Identifier field):
+                    {
+                        var fieldIndex = s.TryGetFieldIndex(field);
+                        if (compiler == null)
+                        {
+                            if (fieldIndex == -1)
+                            {
+                                table.AddError(new(Info, string.Format(SDSLErrorMessages.SDSL0113, field.Name, currentValueType)));
+                                return default;
+                            }
+
+                            accessor.Type = s.Members[fieldIndex].Type;
+                            break;
+                        }
+
+                        var (builder, context) = compiler;
+                        result = new(builder.InsertData(new OpCompositeExtract(context.GetOrRegister(s.Members[fieldIndex].Type), context.Bound++, result.Id, [fieldIndex])));
+                        break;
+                    }
                 // Swizzles
                 case (PointerType { BaseType: MatrixType m } p, Identifier id) when id.IsMatrixSwizzle(m, out var swizzles):
                     {
@@ -1373,7 +1630,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                             break;
                         }
 
-                        var indexerValue = indexer.Index.CompileAsValue(table, compiler);
+                        var indexerValue = CompileIndex(indexer, table, compiler);
                         PushAccessChainId(accessChainIds, indexerValue.Id);
                         break;
                     }
@@ -1389,7 +1646,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                             accessor.Type = new PointerType(t, p.StorageClass);
                             break;
                         }
-                        var indexerValue = indexer.Index.CompileAsValue(table, compiler);
+                        var indexerValue = CompileIndex(indexer, table, compiler);
                         PushAccessChainId(accessChainIds, indexerValue.Id);
                         break;
                     }
@@ -1408,7 +1665,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                             break;
                         }
 
-                        var indexerValue = indexer.Index.CompileAsValue(table, compiler);
+                        var indexerValue = CompileIndex(indexer, table, compiler);
                         PushAccessChainId(accessChainIds, indexerValue.Id);
                         break;
                     }
@@ -1436,7 +1693,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                         builder.Insert(new OpStore(functionVariable, result.Id, null, []));
                         result = new SpirvValue(functionVariable, ptrType);
                         // Process again the same item with new type
-                        var indexerValue = indexer.Index.CompileAsValue(table, compiler);
+                        var indexerValue = CompileIndex(indexer, table, compiler);
                         PushAccessChainId(accessChainIds, indexerValue.Id);
                         break;
                     }
@@ -1448,7 +1705,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                             accessor.Type = new PointerType(t, p.StorageClass);
                             break;
                         }
-                        var indexerValue = indexer.Index.CompileAsValue(table, compiler);
+                        var indexerValue = CompileIndex(indexer, table, compiler);
                         PushAccessChainId(accessChainIds, indexerValue.Id);
                         break;
                     }
@@ -1482,6 +1739,22 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                         // We store the modified value back in the variable
                         builder.Insert(new OpStore(resultPointer.Id, modifiedValue.Id, null, []));
 
+                        break;
+                    }
+                // A buffer has methods but no members: `buffer.Length` is FXC-only, DXC rejects it too
+                case (PointerType { BaseType: var bufferType and (StructuredBufferType or BufferType or ByteAddressBufferType) }, Identifier member):
+                    {
+                        // After the error, the member is a uint 0 so the rest of the method still analyzes (the class doesn't compile)
+                        if (compiler != null)
+                        {
+                            result = compiler.Context.CompileConstant((uint)0);
+                            break;
+                        }
+
+                        var getDimensionsParameters = bufferType is BufferType or ByteAddressBufferType ? "out uint width" : "out uint count, out uint stride";
+                        var buffer = i == 0 ? Source : new AccessorChainExpression(Source, Info) { Accessors = Accessors[0..i] };
+                        table.AddError(new(member.Info, string.Format(SDSLErrorMessages.SDSL0150, bufferType, member.Name, buffer, getDimensionsParameters)));
+                        accessor.Type = ScalarType.UInt;
                         break;
                     }
                 default:
@@ -1578,6 +1851,7 @@ public partial class BinaryExpression(Expression left, Operator op, Expression r
 
     private SymbolType? expectedOperandType;
     private object? foldedValue;
+    private bool precedenceWarned;
 
     public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
     {
@@ -1592,6 +1866,8 @@ public partial class BinaryExpression(Expression left, Operator op, Expression r
 
         Left.ProcessSymbol(table);
         Right.ProcessSymbol(table);
+
+        WarnPrecedence(table);
 
         var analysisResult = SpirvBuilder.AnalyzeBinaryOperation(table, Left.ValueType!, Op, Right.ValueType!, Info);
 
@@ -1618,6 +1894,34 @@ public partial class BinaryExpression(Expression left, Operator op, Expression r
         var result = builder.BinaryOperation(table, context, left, Op, right, Info);
         Type = context.ReverseTypes[result.TypeId];
         return result;
+    }
+
+    // As DXC's -Wparentheses: `a & b == c` computes b == c first, which usually isn't what was meant
+    private void WarnPrecedence(SymbolTable table)
+    {
+        if (precedenceWarned)
+            return;
+
+        // An operand in parentheses is a ParenthesisExpression, so it doesn't match
+        BinaryExpression? Operand(Func<Operator, bool> match)
+            => Left is BinaryExpression left && match(left.Op) ? left : Right is BinaryExpression right && match(right.Op) ? right : null;
+
+        string? warning = null;
+        if (Op is Operator.AND or Operator.OR or Operator.XOR
+            && Operand(op => op is Operator.Equals or Operator.NotEquals or Operator.Lower or Operator.LowerOrEqual or Operator.Greater or Operator.GreaterOrEqual) is { } comparison)
+            warning = string.Format(SDSLErrorMessages.SDSL0232, Op.ToSymbol(), comparison.Op.ToSymbol(), Info.Text, comparison.Info.Text);
+        else if (Op is Operator.OR && Operand(op => op is Operator.AND) is { } and)
+            warning = string.Format(SDSLErrorMessages.SDSL0242, Info.Text, and.Info.Text);
+        else if (Op is Operator.LogicalOR && Operand(op => op is Operator.LogicalAND) is { } logicalAnd)
+            warning = string.Format(SDSLErrorMessages.SDSL0243, Info.Text, logicalAnd.Info.Text);
+        else if (Op is Operator.LeftShift or Operator.RightShift && Operand(op => op is Operator.Plus or Operator.Minus) is { } additive)
+            warning = string.Format(SDSLErrorMessages.SDSL0244, Op.ToSymbol(), additive.Op.ToSymbol(), Info.Text, additive.Info.Text);
+
+        if (warning == null)
+            return;
+
+        precedenceWarned = true;
+        table.AddWarning(new(Info, warning));
     }
 
     public override string ToString()

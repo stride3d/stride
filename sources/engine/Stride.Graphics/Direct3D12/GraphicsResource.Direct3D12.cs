@@ -52,6 +52,7 @@ namespace Stride.Graphics
             (NativeUnorderedAccessView, otherResource.NativeUnorderedAccessView) = (otherResource.NativeUnorderedAccessView, NativeUnorderedAccessView);
             (IsHostVisibleHeap, otherResource.IsHostVisibleHeap)                 = (otherResource.IsHostVisibleHeap, IsHostVisibleHeap);
             (LayoutTracker, otherResource.LayoutTracker)                         = (otherResource.LayoutTracker, LayoutTracker);
+            (SubmittedLayouts, otherResource.SubmittedLayouts)                   = (otherResource.SubmittedLayouts, SubmittedLayouts);
         }
     }
 }

@@ -18,8 +18,7 @@ namespace Stride;
 /// Internal version used to identify Stride version.
 /// </summary>
 /// <remarks>
-/// This file is the source of truth for the version: it is the committed value, bumped per release (not derived
-/// from git tags). The generators (StrideVersionTasks.cs) read <see cref="MajorMinor"/> + <see cref="Patch"/> +
+/// This file is the source of truth for the version: it is the committed value (not derived from git tags). The generators (StrideVersionTasks.cs) read <see cref="MajorMinor"/> + <see cref="Patch"/> +
 /// <see cref="NuGetVersionSuffix"/> and overlay them into a single generated copy, SharedAssemblyInfo.Generated.cs,
 /// which the Stride SDK swaps in at build time (the suffix on package builds only, with +g&lt;sha&gt;; dev builds use
 /// the -devN worktree suffix instead). Keep the shape of the MajorMinor/Patch/NuGetVersionSuffix/PublicVersion/
@@ -28,10 +27,10 @@ namespace Stride;
 internal class StrideVersion
 {
     // ── Editable inputs ──────────────────────────────────────────────────────────────────────────────────
-    // The version is MajorMinor.Patch + NuGetVersionSuffix. Edit these and bump per release — usually that's
-    // release.yml bumping Patch automatically after a stable release, but you edit by hand to start a new
-    // major/minor cycle, a beta, or the next beta. (Patch is a string, not an int, only because a const string
-    // can't concatenate an int.) Don't edit the derived consts below.
+    // The version is MajorMinor.Patch + NuGetVersionSuffix. release.yml bumps Patch after every release, so the
+    // committed number has never been released. By hand, bump Patch in each PR that adds a code or project upgrader,
+    // and edit the rest to start a new major/minor cycle or to end its betas. (Patch is a string, not an int, only
+    // because a const string can't concatenate an int.) Don't edit the derived consts below.
 
     /// <summary>
     /// Release line. The single source for major.minor; pins <see cref="AssemblyVersion"/>. Bump when starting a new
@@ -40,18 +39,18 @@ internal class StrideVersion
     public const string MajorMinor = "4.5";
 
     /// <summary>
-    /// The patch within <see cref="MajorMinor"/>, so the version is MajorMinor.Patch. Bumped per stable release
-    /// (release.yml). A patch bump is also what gates asset upgraders, so bump it whenever the asset format changes.
+    /// The patch within <see cref="MajorMinor"/>, so the version is MajorMinor.Patch. Bumped after every release
+    /// (release.yml) and by each PR that adds a code or project upgrader: their gates compare only this number,
+    /// so a new gate needs a new number. YAML asset upgraders use their own per-asset versions and don't need a bump.
     /// </summary>
-    public const string Patch = "0";
+    public const string Patch = "3";
 
     /// <summary>
-    /// The prerelease suffix (e.g. -beta1), a cosmetic, NuGet-ordered label — asset upgraders ignore it (they gate on
-    /// the numeric version). Empty for a stable release. Commit it before releasing a prerelease: release.yml and
-    /// release-samples.yml read it from here. Only package builds apply it; dev and CI builds stay at
-    /// MajorMinor.Patch (+ -devN), so the prereleases of one version share one dev version.
+    /// The prerelease suffix, -beta with no number or empty for a stable release: the number already moves at every
+    /// release. Upgrader gates ignore it. release.yml reads it from here. Only package builds
+    /// apply it; dev and CI builds stay at MajorMinor.Patch (+ -devN).
     /// </summary>
-    public const string NuGetVersionSuffix = "-beta01";
+    public const string NuGetVersionSuffix = "-beta";
 
     // The content template version (samples) is not here: it lives in sources/templates/StrideSamplesVersion.props,
     // so a samples release rebuilds only Stride.Assets, not every assembly.
@@ -62,8 +61,8 @@ internal class StrideVersion
     public const string Version = MajorMinor + "." + Patch;
 
     /// <summary>
-    /// The build version (used for display and as <see cref="AssemblyFileVersion"/> /
-    /// <see cref="AssemblyInformationalVersion"/>). The generators overlay it with the real version. In this
+    /// The build version (used for display and as <see cref="AssemblyFileVersionAttribute"/> /
+    /// <see cref="AssemblyInformationalVersionAttribute"/>). The generators overlay it with the real version. In this
     /// un-overlaid template it is a deliberately implausible sentinel — decoupled from <see cref="Version"/> so
     /// a build that skipped the overlay swap ships an obvious 4.4.65534 instead of a plausible-looking version.
     /// </summary>
@@ -86,7 +85,7 @@ internal class StrideVersion
     public const string BuildMetadata = "";
 
     /// <summary>
-    /// The informational assembly version, containing -beta01 or +g[git_hash] during package.
+    /// The informational assembly version, containing -beta or +g[git_hash] during package.
     /// </summary>
     public const string AssemblyInformationalVersion = PublicVersion + NuGetVersionSuffix + BuildMetadata;
 }

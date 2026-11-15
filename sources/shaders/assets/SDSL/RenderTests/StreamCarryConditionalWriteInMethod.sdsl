@@ -1,0 +1,41 @@
+// PSMain(ExpectedResult=#FFFFFFFF, cbuffer.Test=(Test1=1))
+// PSMain(ExpectedResult=#336699FF, cbuffer.Test=(Test1=0))
+
+namespace Stride.Shaders.Tests;
+
+// The usual shape in real code: the write is in one method, behind the condition at its call, and the read in another.
+shader StreamCarryConditionalWriteInMethod
+{
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+    stream float4 ColorTarget : SV_Target0;
+    stream float4 X;
+
+    cbuffer Test
+    {
+        int Test1;
+    }
+
+    void Write()
+    {
+        streams.X = float4(1.0, 1.0, 1.0, 1.0);
+    }
+
+    float4 Read()
+    {
+        return streams.X;
+    }
+
+    void VSMain()
+    {
+        streams.ShadingPosition = streams.Position;
+        streams.X = float4(0.2, 0.4, 0.6, 1.0);
+    }
+
+    void PSMain()
+    {
+        if (Test1 != 0)
+            Write();
+        streams.ColorTarget = Read();
+    }
+}

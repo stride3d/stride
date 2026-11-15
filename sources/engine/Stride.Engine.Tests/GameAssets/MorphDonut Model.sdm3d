@@ -1,0 +1,13 @@
+!Model
+Id: 42096854-845d-42af-a645-4ac4c79d30e4
+SerializedVersion: {Stride: 2.1.0.0}
+Tags: []
+Source: !file ../../../data/tests/MorphDonut/donut.gltf
+Skeleton: e263f830-083c-4315-8560-bb6a0f87d789:MorphDonut Skeleton
+PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
+Materials:
+    66c2516706746b4f4176ba7def50cd8e:
+        Name: Material
+        MaterialInstance:
+            Material: 605bb8a7-eb65-482a-9a79-d5c6f05e4155:MorphDonut
+Modifiers: {}

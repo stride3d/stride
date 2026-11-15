@@ -25,21 +25,6 @@ namespace Stride.Assets.Skyboxes
             yield return new BuildDependencyInfo(typeof(TextureAsset), typeof(AssetCompilationContext), BuildDependencyType.CompileContent);
         }
 
-        public override IEnumerable<ObjectUrl> GetInputFiles(AssetItem assetItem)
-        {
-            //skybox needs many shaders to generate... todo should find which ones at some point maybe!
-            foreach (var sessionPackage in assetItem.Package.Session.Packages)
-            {
-                foreach (var sessionPackageAsset in sessionPackage.Assets)
-                {
-                    if (sessionPackageAsset.Asset is EffectShaderAsset)
-                    {
-                        yield return new ObjectUrl(UrlType.Content, sessionPackageAsset.Location);
-                    }
-                }
-            }
-        }
-
         protected override void Prepare(AssetCompilerContext context, AssetItem assetItem, string targetUrlInStorage, AssetCompilerResult result)
         {
             var asset = (SkyboxAsset)assetItem.Asset;
@@ -95,7 +80,9 @@ namespace Stride.Assets.Skyboxes
                 }
             }
 
-            var assetStep = new CommandBuildStep(new SkyboxCompileCommand(targetUrlInStorage, asset, assetItem.Package)
+            // The effects read the shader files where they are: the command registers the ones it used, instead of depending on every shader asset
+            var shaderSources = ShaderSourceLocator.GetOrCreate(context, assetItem.Package.Session);
+            var assetStep = new CommandBuildStep(new SkyboxCompileCommand(targetUrlInStorage, asset, assetItem.Package, shaderSources)
             {
                 InputFilesGetter = InputFilesGetter
             });
@@ -107,12 +94,16 @@ namespace Stride.Assets.Skyboxes
             }
         }
 
-        private class SkyboxCompileCommand : AssetCommand<SkyboxAsset>
+        internal class SkyboxCompileCommand : AssetCommand<SkyboxAsset>
         {
-            public SkyboxCompileCommand(string url, SkyboxAsset parameters, IAssetFinder assetFinder)
+            private readonly ShaderSourceLocator shaderSources;
+
+            public SkyboxCompileCommand(string url, SkyboxAsset parameters, IAssetFinder assetFinder, ShaderSourceLocator shaderSources)
                 : base(url, parameters, assetFinder)
             {
-                Version = 2;
+                // 3: the results register the shader files they used; older ones would match whatever the shaders became
+                Version = 3;
+                this.shaderSources = shaderSources;
             }
 
             /// <inheritdoc/>
@@ -120,6 +111,13 @@ namespace Stride.Assets.Skyboxes
             {
                 base.ComputeParameterHash(writer);
                 writer.Write(2); // Change this number to recompute the hash when prefiltering algorithm are changed
+
+                // Another version of a package brings its shaders in other files, while the files of the last build are often still there, unchanged
+                foreach (var (name, version) in shaderSources.Packages)
+                {
+                    writer.Write(name);
+                    writer.Write(version ?? string.Empty);
+                }
             }
 
             /// <inheritdoc/>
@@ -128,9 +126,15 @@ namespace Stride.Assets.Skyboxes
                 // TODO Convert SkyboxAsset to Skybox and save to Skybox object
                 // TODO Add system to prefilter
 
-                using (var context = new SkyboxGeneratorContext(Parameters, MicrothreadLocalDatabases.ProviderService))
+                using var shaderFiles = new ShaderSourceFileProvider(shaderSources, MicrothreadLocalDatabases.DatabaseFileProvider);
+                using (var context = new SkyboxGeneratorContext(Parameters, MicrothreadLocalDatabases.ProviderService, shaderFiles))
                 {
                     var result = SkyboxGenerator.Compile(Parameters, context);
+
+                    // A change of a shader the effects used builds the skybox again; the effects check their cached bytecode against
+                    // the content of each of their shaders, so a cache hit reads them too
+                    foreach (var filePath in shaderFiles.ReadSources)
+                        commandContext.RegisterInputDependency(new ObjectUrl(UrlType.File, filePath));
 
                     if (result.HasErrors)
                     {

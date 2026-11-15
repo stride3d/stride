@@ -1,0 +1,37 @@
+!PrefabAsset
+Id: 50e8a53e-2757-4cfe-912b-f619910a704b
+SerializedVersion: {Stride: 2.1.0.1}
+Tags: []
+Hierarchy:
+    RootParts:
+        - ref!! 438bdc55-c941-4f02-9a11-fc8dbf67203c
+    Parts:
+        -   Entity:
+                Id: 438bdc55-c941-4f02-9a11-fc8dbf67203c
+                Name: Cube
+                Components:
+                    d0b5da5826f35f48962379b096eacd20: !TransformComponent
+                        Id: 58dab5d0-f326-485f-9623-79b096eacd20
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    b50e1c2a4fe9714384f2970417977bbf: !ModelComponent
+                        Id: 2a1c0eb5-e94f-4371-84f2-970417977bbf
+                        Model: 69842ff5-ff34-4b17-8d29-7348f2d9fca0:Cube
+                        Materials: {}
+                    1df4b602aa7c1a428c5671caf627c0ea: !StaticColliderComponent
+                        Id: 02b6f41d-7caa-421a-8c56-71caf627c0ea
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        ColliderShapes:
+                            c57561f5fb329c4da4ce48f2f4765da9: !BoxColliderShapeDesc
+                                Is2D: false
+                                Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}

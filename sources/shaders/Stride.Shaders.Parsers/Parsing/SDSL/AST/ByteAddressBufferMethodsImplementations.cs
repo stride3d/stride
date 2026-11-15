@@ -180,17 +180,19 @@ public class ByteAddressBufferMethodsImplementations : ByteAddressBufferMethodsD
         return CompileAtomicOp(context, builder, byteAddressBuffer, byteOffset, value, original, AtomicOp.Add);
     }
 
-    // InterlockedMin(uint byteOffset, uint/int value [, out uint original])
+    // InterlockedMin(uint byteOffset, uint/int value [, out uint original]): signed for an int value, as in DXC
     public override SpirvValue CompileInterlockedMin(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue value, SpirvValue? original = null, TextLocation location = default)
     {
-        return CompileAtomicOp(context, builder, byteAddressBuffer, byteOffset, value, original, AtomicOp.UMin);
+        return CompileAtomicOp(context, builder, byteAddressBuffer, byteOffset, value, original, IsSigned(context, value) ? AtomicOp.SMin : AtomicOp.UMin);
     }
 
-    // InterlockedMax(uint byteOffset, uint/int value [, out uint original])
+    // InterlockedMax(uint byteOffset, uint/int value [, out uint original]): signed for an int value, as in DXC
     public override SpirvValue CompileInterlockedMax(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue value, SpirvValue? original = null, TextLocation location = default)
     {
-        return CompileAtomicOp(context, builder, byteAddressBuffer, byteOffset, value, original, AtomicOp.UMax);
+        return CompileAtomicOp(context, builder, byteAddressBuffer, byteOffset, value, original, IsSigned(context, value) ? AtomicOp.SMax : AtomicOp.UMax);
     }
+
+    private static bool IsSigned(SpirvContext context, SpirvValue value) => context.ReverseTypes[value.TypeId] is ScalarType { Type: Scalar.Int };
 
     // InterlockedAnd(uint byteOffset, uint value [, out uint original])
     public override SpirvValue CompileInterlockedAnd(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue byteAddressBuffer, SpirvValue byteOffset, SpirvValue value, SpirvValue? original = null, TextLocation location = default)
@@ -223,6 +225,8 @@ public class ByteAddressBufferMethodsImplementations : ByteAddressBufferMethodsD
         var uintType = context.GetOrRegister(ScalarType.UInt);
         var scopeDevice = context.CompileConstant((uint)Scope.Device);
         var memSemanticsNone = context.CompileConstant((uint)0);
+        value = builder.Convert(context, value, ScalarType.UInt);
+        compare = builder.Convert(context, compare, ScalarType.UInt);
         // OpAtomicCompareExchange: result = (original == compare) ? value : original
         builder.Insert(new OpAtomicCompareExchange(uintType, context.Bound++, ptr.Id, scopeDevice.Id, memSemanticsNone.Id, memSemanticsNone.Id, value.Id, compare.Id));
         return default;
@@ -235,12 +239,14 @@ public class ByteAddressBufferMethodsImplementations : ByteAddressBufferMethodsD
         var uintType = context.GetOrRegister(ScalarType.UInt);
         var scopeDevice = context.CompileConstant((uint)Scope.Device);
         var memSemanticsNone = context.CompileConstant((uint)0);
+        value = builder.Convert(context, value, ScalarType.UInt);
+        compare = builder.Convert(context, compare, ScalarType.UInt);
         var result = builder.Insert(new OpAtomicCompareExchange(uintType, context.Bound++, ptr.Id, scopeDevice.Id, memSemanticsNone.Id, memSemanticsNone.Id, value.Id, compare.Id));
         builder.Insert(new OpStore(original.Id, result.ResultId, null, []));
         return default;
     }
 
-    private enum AtomicOp { Add, UMin, UMax, And, Or, Xor, Exchange }
+    private enum AtomicOp { Add, SMin, UMin, SMax, UMax, And, Or, Xor, Exchange }
 
     private SpirvValue CompileAtomicOp(SpirvContext context, SpirvBuilder builder, SpirvValue bufferPtr, SpirvValue byteOffset, SpirvValue value, SpirvValue? original, AtomicOp op)
     {
@@ -248,11 +254,15 @@ public class ByteAddressBufferMethodsImplementations : ByteAddressBufferMethodsD
         var uintType = context.GetOrRegister(ScalarType.UInt);
         var scopeDevice = context.CompileConstant((uint)Scope.Device);
         var memSemanticsNone = context.CompileConstant((uint)0);
+        // An int value (Min, Max) keeps its bits
+        value = builder.Convert(context, value, ScalarType.UInt);
 
         var resultId = op switch
         {
             AtomicOp.Add => builder.Insert(new OpAtomicIAdd(uintType, context.Bound++, ptr.Id, scopeDevice.Id, memSemanticsNone.Id, value.Id)).ResultId,
+            AtomicOp.SMin => builder.Insert(new OpAtomicSMin(uintType, context.Bound++, ptr.Id, scopeDevice.Id, memSemanticsNone.Id, value.Id)).ResultId,
             AtomicOp.UMin => builder.Insert(new OpAtomicUMin(uintType, context.Bound++, ptr.Id, scopeDevice.Id, memSemanticsNone.Id, value.Id)).ResultId,
+            AtomicOp.SMax => builder.Insert(new OpAtomicSMax(uintType, context.Bound++, ptr.Id, scopeDevice.Id, memSemanticsNone.Id, value.Id)).ResultId,
             AtomicOp.UMax => builder.Insert(new OpAtomicUMax(uintType, context.Bound++, ptr.Id, scopeDevice.Id, memSemanticsNone.Id, value.Id)).ResultId,
             AtomicOp.And => builder.Insert(new OpAtomicAnd(uintType, context.Bound++, ptr.Id, scopeDevice.Id, memSemanticsNone.Id, value.Id)).ResultId,
             AtomicOp.Or => builder.Insert(new OpAtomicOr(uintType, context.Bound++, ptr.Id, scopeDevice.Id, memSemanticsNone.Id, value.Id)).ResultId,

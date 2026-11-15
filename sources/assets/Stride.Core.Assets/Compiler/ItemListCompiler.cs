@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Core.Yaml;
 using Stride.Core.Assets.Diagnostics;
 using Stride.Core.BuildEngine;
 using Stride.Core.Diagnostics;
@@ -75,6 +76,9 @@ public abstract class ItemListCompiler
 
         if (compiler == null)
         {
+            // Skipped, like an asset without a compiler: the game build reports it (PackageCompiler)
+            if (assetItem.Asset is IUnloadable unloadable)
+                compilationResult.Warning($"Cannot compile asset [{assetItem.Location}]: its type [{unloadable.TypeName}] from [{unloadable.AssemblyName}] is not loaded ({unloadable.Error}). The package providing it is missing.");
             return null;
         }
 
@@ -125,6 +129,7 @@ public abstract class ItemListCompiler
     /// Sets recursively the <see cref="Module"/>.
     /// </summary>
     /// <param name="buildStep">The build step.</param>
+    /// <param name="package">The package containing the asset, if any.</param>
     /// <param name="assetReference"></param>
     /// <param name="assetFullPath"></param>
     private void SetAssetLogger(BuildStep buildStep, Package? package, IReference assetReference, string assetFullPath)

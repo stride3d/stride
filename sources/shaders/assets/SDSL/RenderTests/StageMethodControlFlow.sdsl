@@ -1,0 +1,40 @@
+// PSMain(ExpectedResult=#336699FF)
+
+namespace Stride.Shaders.Tests;
+
+// A method that reads streams is copied for each stage that calls it; its copy has branches to blocks further down
+// (a loop, an if / else and an early return), which must go to the copy's own blocks
+shader StageMethodControlFlow
+{
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+    stream float4 ColorTarget : SV_Target0;
+    stream float Weight;
+
+    float4 Scan(uint count)
+    {
+        float4 result = 0;
+        for (uint i = 0; i < count; i++)
+        {
+            if (i == 0)
+                result += float4(0.2, 0.4, 0.6, 1);
+            else
+                result += float4(1, 0, 0, 0) * streams.Weight;
+        }
+        if (streams.Weight > 1)
+            return float4(1, 0, 0, 1);
+        return result;
+    }
+
+    void VSMain()
+    {
+        streams.ShadingPosition = streams.Position;
+        streams.Weight = 0;
+        streams.Weight = Scan(1).w - 1;
+    }
+
+    void PSMain()
+    {
+        streams.ColorTarget = Scan(2);
+    }
+};

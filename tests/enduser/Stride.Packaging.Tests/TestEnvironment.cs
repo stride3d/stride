@@ -9,6 +9,7 @@ using Stride.Core.Assets;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Samples.Generator;
+using Xunit.Abstractions;
 
 namespace Stride.Packaging.Tests;
 
@@ -17,6 +18,13 @@ namespace Stride.Packaging.Tests;
 /// </summary>
 internal static class TestEnvironment
 {
+    // Dev-redirect packages skip the engine's pack: bin/packages then holds stubs and stale packages
+#if STRIDE_REDIRECT_PACKAGES
+    private static readonly bool BuiltWithRedirectPackages = true;
+#else
+    private static readonly bool BuiltWithRedirectPackages = false;
+#endif
+
     /// <summary>Repo root: walk up from the test bin output to the directory holding nuget.config.</summary>
     public static string WorktreeRoot()
     {
@@ -33,6 +41,9 @@ internal static class TestEnvironment
     /// <summary>The locally-built package feed; the engine build/pack must have populated it.</summary>
     public static string BinPackages()
     {
+        if (BuiltWithRedirectPackages)
+            throw new InvalidOperationException("These tests need the real packages in bin/packages, which dev-redirect packages don't pack: "
+                + "run them with -p:StrideRedirectPackages=false (dotnet test tests/enduser/Stride.Packaging.Tests -p:StrideRedirectPackages=false).");
         var binPackages = Path.Combine(WorktreeRoot(), "bin", "packages");
         if (!Directory.Exists(binPackages))
             throw new DirectoryNotFoundException($"bin/packages not found at {binPackages}; build the engine first.");
@@ -83,6 +94,69 @@ internal static class TestEnvironment
         }
     }
 
+    /// <summary>The temp folder that holds one tree per case.</summary>
+    public static string CasesRoot => Path.Combine(Path.GetTempPath(), "stride-packaging-tests");
+
+    /// <summary>The case tree, directly under <see cref="CasesRoot"/>, that holds <paramref name="path"/>.</summary>
+    public static string CaseDirectory(string path)
+    {
+        var relative = Path.GetRelativePath(CasesRoot, Path.GetFullPath(path));
+        var caseName = relative.Split(Path.DirectorySeparatorChar)[0];
+        if (Path.IsPathRooted(relative) || caseName is "." or "..")
+            throw new ArgumentException($"[{path}] is not in a case tree under [{CasesRoot}].", nameof(path));
+        return Path.Combine(CasesRoot, caseName);
+    }
+
+    /// <summary>
+    /// The NuGet packages folder the plugin cases restore into, one per test run: the engine packages are extracted
+    /// once, and each case deletes the fixed-version packages first (<see cref="DeleteFixedVersionPackages"/>).
+    /// </summary>
+    public static string RunPackagesFolder { get; } = Path.Combine(CasesRoot, $"nuget-{Guid.NewGuid():N}");
+
+    /// <summary>
+    /// Deletes the packages whose content changes under the same version (the plugin fixtures at 1.0.0, the engine's Bepu
+    /// companion at <paramref name="engineVersion"/>) from <paramref name="packagesFolder"/>, so a restore extracts them again.
+    /// </summary>
+    public static void DeleteFixedVersionPackages(string packagesFolder, string engineVersion)
+    {
+        if (!Directory.Exists(packagesFolder))
+            return;
+        var dirs = Directory.EnumerateDirectories(packagesFolder, "strideassetplugin*")
+            .Concat(Directory.EnumerateDirectories(packagesFolder, "acmespinplugin*"))
+            .Append(Path.Combine(packagesFolder, "stride.bepuphysics.assets", engineVersion.ToLowerInvariant()))
+            .Where(Directory.Exists)
+            .ToList();
+        foreach (var dir in dirs)
+        {
+            // Extracted packages can hold read-only files
+            foreach (var file in Directory.EnumerateFiles(dir, "*", SearchOption.AllDirectories))
+                File.SetAttributes(file, FileAttributes.Normal);
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    /// <summary>
+    /// Deletes a temp tree (a case's, or <see cref="RunPackagesFolder"/>) once done with it: the packages folder holds well
+    /// over 1 GB. Set STRIDE_KEEP_TEST_DIRS to keep them for a look after the run.
+    /// </summary>
+    public static void DeleteCaseDirectory(string caseDir, ITestOutputHelper? output = null)
+    {
+        if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("STRIDE_KEEP_TEST_DIRS")) || !Directory.Exists(caseDir))
+            return;
+        try
+        {
+            // Extracted packages can hold read-only files
+            foreach (var file in Directory.EnumerateFiles(caseDir, "*", SearchOption.AllDirectories))
+                File.SetAttributes(file, FileAttributes.Normal);
+            Directory.Delete(caseDir, recursive: true);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            // A file still in use (a build server): left for the OS temp cleanup
+            output?.WriteLine($"Could not delete [{caseDir}]: {e.Message}");
+        }
+    }
+
     private static bool msbuildReady;
 
     /// <summary>Generate a sample from its template GUID into a fresh temp directory; returns the .slnx path.</summary>
@@ -95,7 +169,7 @@ internal static class TestEnvironment
             msbuildReady = true;
         }
 
-        var outputDir = Path.Combine(Path.GetTempPath(), "stride-packaging-tests", sampleName);
+        var outputDir = Path.Combine(CasesRoot, sampleName);
         var logger = new LoggerResult();
         var session = SampleGenerator.Generate(new UDirectory(outputDir), templateGuid, sampleName, logger);
         return session.SolutionPath.ToOSPath();

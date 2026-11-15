@@ -29,6 +29,7 @@ namespace Stride.Rendering
         private static readonly ProfilingKey DrawKey = new ProfilingKey("MeshRenderFeature.Draw");
 
         private Buffer emptyBuffer;
+        private readonly List<IModelDeformer> collectedDeformers = new List<IModelDeformer>();
 
         /// <summary>
         /// Lists of sub render features that can be applied on <see cref="RenderMesh"/>.
@@ -99,12 +100,13 @@ namespace Stride.Rendering
         {
             using var _ = Profiler.Begin(PreparePermutationsImplKey);
             // Setup ActiveMeshDraw
-            Dispatcher.ForEach(RenderObjects, renderObject =>
+            Dispatcher.ForEach(RenderObjects, this, SetActiveMeshDraw);
+
+            static void SetActiveMeshDraw(MeshRenderFeature _, RenderObject renderObject)
             {
                 var renderMesh = (RenderMesh)renderObject;
-
                 renderMesh.ActiveMeshDraw = renderMesh.Mesh.Draw;
-            });
+            }
 
             base.PrepareEffectPermutationsImpl(context);
 
@@ -119,6 +121,8 @@ namespace Stride.Rendering
         {
             using (Profiler.Begin(PrepareKey))
             {
+                DeformCollectedModels();
+
                 base.Prepare(context);
 
                 // Prepare each sub render feature
@@ -309,6 +313,24 @@ namespace Stride.Rendering
             }
 
             return inputElements.ToArray();
+        }
+
+        // Every view is culled by now: deform only the models that a view collected, shadow views included.
+        private void DeformCollectedModels()
+        {
+            foreach (var objectNodeReference in ObjectNodeReferences)
+            {
+                var renderModel = ((RenderMesh)GetObjectNode(objectNodeReference).RenderObject).RenderModel;
+                var deformer = renderModel?.Deformer;
+                if (deformer == null)
+                    continue;
+                deformer.Deform(renderModel);
+                if (!collectedDeformers.Contains(deformer))
+                    collectedDeformers.Add(deformer);
+            }
+            foreach (var deformer in collectedDeformers)
+                deformer.Flush();
+            collectedDeformers.Clear();
         }
 
         private static int FindElementBySemantic(InputElementDescription[] inputElements, string semanticName, int semanticIndex)

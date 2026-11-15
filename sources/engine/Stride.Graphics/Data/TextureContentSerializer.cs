@@ -21,6 +21,29 @@ namespace Stride.Graphics.Data
             if (mode == ArchiveMode.Deserialize)
             {
                 var services = stream.Context.Tags.Get(ServiceRegistry.ServiceRegistryKey);
+                if (services == null)
+                {
+                    var data = TextureSerializationData.Read(stream, out var fullResDescription);
+                    if (data.EnableStreaming)
+                    {
+                        // regardless of 'allowContentStreaming' state, we can't stream at
+                        // this point without a service, load it in full.
+
+                        if (fullResDescription != data.Image.Description) // This is the lowest mip used as placeholder while streaming, discard it
+                        {
+                            data.Image.Dispose();
+                            data.Image = Image.New(fullResDescription);
+                        }
+
+                        var contentSerializerContext = stream.Context.Get(ContentSerializerContext.ContentSerializerContextProperty);
+                        DeserializeTexture(contentSerializerContext.ContentManager, data.Image, ref data.StorageHeader);
+                    }
+
+                    data.Image.DisposeBy(texture);
+                    texture.SetSerializationData(data);
+                    return;
+                }
+
                 var graphicsDeviceService = services.GetSafeServiceAs<IGraphicsDeviceService>();
                 var texturesStreamingProvider = services.GetService<ITexturesStreamingProvider>();
 
@@ -157,6 +180,41 @@ namespace Stride.Graphics.Data
 
                 // Initialize texture
                 texture.InitializeFrom(imageDescription, new TextureViewDescription(), dataBoxes);
+
+                storage.UnlockChunks();
+            }
+        }
+
+        private static void DeserializeTexture(ContentManager contentManager, Image image, ref ContentStorageHeader storageHeader)
+        {
+            using (var content = new ContentStreamingService())
+            {
+                // Get content storage container
+                var storage = content.GetStorage(ref storageHeader);
+                if (storage == null)
+                    throw new ContentStreamingException("Missing content storage.");
+                storage.LockChunks();
+
+                // Cache data
+                var fileProvider = contentManager.FileProvider;
+
+                // Get data boxes data
+                for (int arrayIndex = 0; arrayIndex < image.Description.ArraySize; arrayIndex++)
+                {
+                    for (int mipIndex = 0; mipIndex < image.Description.MipLevels; mipIndex++)
+                    {
+                        var dest = image.GetPixelBuffer(arrayIndex, mipIndex);
+
+                        var chunk = storage.GetChunk(mipIndex);
+                        if (chunk == null || chunk.Size != dest.BufferStride * image.Description.ArraySize)
+                            throw new ContentStreamingException("Data chunk is missing or has invalid size.", storage);
+                        var data = chunk.GetData(fileProvider);
+                        if (!chunk.IsLoaded)
+                            throw new ContentStreamingException("Data chunk is not loaded.", storage);
+
+                        MemoryUtilities.CopyWithAlignmentFallback(dest.DataPointer, source: data + dest.BufferStride * arrayIndex, (uint)dest.BufferStride);
+                    }
+                }
 
                 storage.UnlockChunks();
             }

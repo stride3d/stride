@@ -62,4 +62,95 @@ internal static class SymbolExtensions
         }
         return false;
     }
+
+    public static int GetTotalArity(this INamedTypeSymbol? type)
+    {
+        int totalArity = 0;
+        for (INamedTypeSymbol? current = type; current is not null; current = current.ContainingType)
+        {
+            totalArity += current.Arity;
+        }
+        return totalArity;
+    }
+
+    /// <summary>
+    /// Determines whether the specified named type or any containing type declares generic type parameters.
+    /// </summary>
+    /// <remarks>
+    /// The check walks the containing type chain to account for nested types declared within generic types.
+    /// </remarks>
+    /// <param name="type">The named type symbol to inspect.</param>
+    /// <returns><see langword="true"/> if the type or any containing type has a non-zero arity; otherwise, <see langword="false"/>.</returns>
+    public static bool HasGenericParameters(this INamedTypeSymbol? type)
+    {
+        for (INamedTypeSymbol? current = type; current is not null; current = current.ContainingType)
+        {
+            if (current.Arity is not 0)
+                return true;
+        }
+        return false;
+    }
+
+    public static IEnumerable<INamedTypeSymbol> GetAllTypes(this IModuleSymbol module)
+    {
+        var globalNamespace = module.GlobalNamespace;
+        if (globalNamespace is not null)
+        {
+            foreach (var type in globalNamespace.GetAllTypes())
+            {
+                yield return type;
+            }
+        }
+    }
+
+    public static IEnumerable<INamedTypeSymbol> GetAllTypes(this INamespaceSymbol @namespace)
+    {
+        foreach (var type in @namespace.GetTypeMembers())
+        {
+            yield return type;
+            foreach (var nestedType in type.GetAllTypes())
+            {
+                yield return nestedType;
+            }
+        }
+        foreach (var nestedNamespace in @namespace.GetNamespaceMembers())
+        {
+            foreach (var type in nestedNamespace.GetAllTypes())
+            {
+                yield return type;
+            }
+        }
+    }
+
+    public static IEnumerable<INamedTypeSymbol> GetAllTypes(this INamedTypeSymbol type)
+    {
+        foreach (var nestedType in type.GetTypeMembers())
+        {
+            yield return nestedType;
+            foreach (var nestedNestedType in nestedType.GetAllTypes())
+            {
+                yield return nestedNestedType;
+            }
+        }
+    }
+
+    public static IEnumerable<INamedTypeSymbol> GetAllBaseTypesAscending(this INamedTypeSymbol type)
+    {
+        while (type.BaseType is not null)
+        {
+            yield return type.BaseType;
+            type = type.BaseType;
+        }
+    }
+
+    public static bool InheritsFromSystemAttribute(this INamedTypeSymbol type)
+    {
+        while (type.BaseType is not null)
+        {
+            if (type.BaseType is { Name: "Attribute", ContainingNamespace: { Name: "System", ContainingNamespace: null or { IsGlobalNamespace: true } } })
+                return true;
+            type = type.BaseType;
+        }
+        return false;
+    }
 }

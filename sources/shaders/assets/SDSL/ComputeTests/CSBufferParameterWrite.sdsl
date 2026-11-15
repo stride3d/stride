@@ -1,0 +1,24 @@
+// PSMain(ExpectedResult=#00000000)
+
+// A compute shader method that writes the read-write structured buffer it is given. The parameter is a StorageBuffer
+// pointer, which SPIR-V only accepts with variable pointers: the mixer calls a copy that uses the buffer itself.
+
+namespace Stride.Shaders.Tests;
+
+shader CSBufferParameterWrite
+{
+    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+
+    RWStructuredBuffer<float4> Values;
+
+    void Reset(RWStructuredBuffer<float4> target, uint index)
+    {
+        target[index] = 1;
+    }
+
+    [numthreads(1, 1, 1)]
+    void CSMain()
+    {
+        Reset(Values, streams.DispatchThreadId.x);
+    }
+}

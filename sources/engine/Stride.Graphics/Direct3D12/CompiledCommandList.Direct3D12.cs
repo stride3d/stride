@@ -39,6 +39,11 @@ public unsafe partial struct CompiledCommandList
     ///   A list of Graphics Resources that are currently being used for staging data by this Command List.
     /// </summary>
     internal List<GraphicsResource> StagingResources;
+
+    /// <summary>
+    ///   The texture layout changes this Command List recorded, replayed at submission (see <see cref="SubmittedLayoutReplay"/>).
+    /// </summary>
+    internal List<RecordedTransition> RecordedTransitions;
 }
 
 #endif

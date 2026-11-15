@@ -1,0 +1,28 @@
+// PSMain(ExpectedResult=#336699FF)
+
+namespace Stride.Shaders.Tests;
+
+shader SampleAsName
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    // `sample` is an interpolation modifier in HLSL, but also a valid name
+    static const float sample = 0.2;
+
+    float Twice(float sample)
+    {
+        return sample * 2;
+    }
+
+    void PSMain()
+    {
+        float r = sample;
+        float g = Twice(0.2);
+        float4 color = float4(r, g, 0, 1);
+        {
+            float sample = 0.6;
+            color.b = sample;
+        }
+        streams.ColorTarget = color;
+    }
+};

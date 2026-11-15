@@ -33,7 +33,7 @@ namespace Stride.Streaming
         /// <seealso cref="StreamingManager.ManagerUpdatesInterval"/>
         [DataMember]
         [Display("Update interval")]
-        [DataMemberRange(0.001, 3)]
+        [DataMemberRange(minimum: 0.001, decimalPlaces: 3)]
         public TimeSpan ManagerUpdatesInterval { get; set; } = TimeSpan.FromMilliseconds(33);
 
         /// <inheritdoc cref="StreamingManager.MaxResourcesPerUpdate"/>
@@ -43,7 +43,7 @@ namespace Stride.Streaming
         /// <seealso cref="StreamingManager.MaxResourcesPerUpdate"/>
         [DataMember]
         [Display("Max resources per update")]
-        [DataMemberRange(1, 0)]
+        [DataMemberRange(minimum: 1, decimalPlaces: 0)]
         [DefaultValue(8)]
         public int MaxResourcesPerUpdate { get; set; } = 8;
 
@@ -54,7 +54,7 @@ namespace Stride.Streaming
         /// <seealso cref="StreamingManager.ResourceLiveTimeout"/>
         [DataMember]
         [Display("Resource timeout (ms)")]
-        [DataMemberRange(0, 3)]
+        [DataMemberRange(minimum: 0, decimalPlaces: 3)]
         public TimeSpan ResourceLiveTimeout { get; set; } = TimeSpan.FromSeconds(8);
 
         /// <inheritdoc cref="StreamingManager.TargetedMemoryBudget"/>
@@ -64,7 +64,7 @@ namespace Stride.Streaming
         /// <seealso cref="StreamingManager.TargetedMemoryBudget"/>
         [DataMember]
         [Display("Memory budget (in MB)")]
-        [DataMemberRange(0, 0)]
+        [DataMemberRange(minimum: 0, decimalPlaces: 0)]
         [DefaultValue(512)]
         public int TargetedMemoryBudget { get; set; } = 512;
     }

@@ -1,0 +1,68 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+/// <summary>
+/// Applies morph targets to the mesh position, normal and tangent before skinning, gathering the vertex's sparse entries.
+/// </summary>
+/// <remarks>
+/// MorphTargets: Macro - flags of <see cref="MeshMorphBuffers"/>: 1 enabled, 2 normal deltas, 4 tangent deltas.
+/// </remarks>
+#ifndef MorphTargets
+# define MorphTargets 1
+#endif
+
+shader TransformationMorph : TransformationBase, PositionStream4, NormalStream, MorphTargetUtil
+{
+    // A MeshMorphEntry is six dwords: vertex, shape | position.x, position.yz, normal.xy, normal.z | tangent.x, tangent.yz.
+    static const uint EntryDwords = 6;
+    static const uint HalfMask = 0xFFFF;
+
+    rgroup PerDraw.Morph
+    {
+        stage StructuredBuffer<uint> MorphEntries;
+        stage StructuredBuffer<uint> MorphVertexOffsets;
+        stage StructuredBuffer<float> MorphWeights;
+    }
+
+    cbuffer PerDraw
+    {
+        stage uint MorphTargetCount;
+    }
+
+    stage stream uint VertexID : SV_VertexID;
+
+    override stage void PreTransformPosition()
+    {
+        uint vertex = streams.VertexID;
+        uint endItem = MorphVertexOffsets[vertex + 1];
+        float3 positionSum = 0, normalSum = 0, tangentSum = 0;
+        // No continue: the SPIR-V to HLSL translation wraps it in a one-pass loop that FXC warns about.
+        for (uint item = MorphVertexOffsets[vertex]; item < endItem; item++)
+        {
+            uint entry = item * EntryDwords;
+            uint shapeAndX = MorphEntries[entry + 1];
+            float weight = MorphWeights[shapeAndX & HalfMask];
+            [branch]
+            if (weight != 0)
+            {
+                positionSum += DecodeMorphPosition(shapeAndX, MorphEntries[entry + 2]) * weight;
+#if (MorphTargets & 2) != 0
+                uint normalZAndTangentX = MorphEntries[entry + 4];
+                normalSum += DecodeMorphNormal(MorphEntries[entry + 3], normalZAndTangentX) * weight;
+#if (MorphTargets & 4) != 0
+                tangentSum += DecodeMorphTangent(normalZAndTangentX, MorphEntries[entry + 5]) * weight;
+#endif
+#endif
+            }
+        }
+        streams.Position.xyz += positionSum;
+#if (MorphTargets & 2) != 0
+        float3 normal = ApplyMorphNormal(streams.meshNormal, normalSum);
+        streams.meshNormal = normal;
+#if (MorphTargets & 4) != 0
+        // tangent.w keeps the imported bitangent handedness.
+        streams.meshTangent.xyz = ApplyMorphTangent(streams.meshTangent.xyz, tangentSum, normal);
+#endif
+#endif
+        base.PreTransformPosition();
+    }
+};

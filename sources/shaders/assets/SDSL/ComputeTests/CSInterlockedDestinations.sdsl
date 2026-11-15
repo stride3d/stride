@@ -1,0 +1,45 @@
+// CSMain(structuredbuffer.Entries="12: 0 0 0 0 0 0", structuredbuffer.Pairs="8: 0 0", structuredbuffer.Values="4: 0 0", structuredbuffer.Raw="4: 0 0", expected.Entries="0 -1024 0 0 0 2147483647", expected.Pairs="0 3072", expected.Values="1024 -1024", expected.Raw="0 2048")
+
+namespace Stride.Shaders.Tests;
+
+// Interlocked* destinations from 1024 threads (32 x 32 groups of one): a struct member, a vector component, and buffers
+// passed as parameters
+shader CSInterlockedDestinations
+{
+    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+
+    struct Entry
+    {
+        float Weight;
+        int Count;
+        uint Mask;
+    };
+
+    RWStructuredBuffer<Entry> Entries;
+    RWStructuredBuffer<int2> Pairs;
+    RWStructuredBuffer<int> Values;
+    RWByteAddressBuffer Raw;
+
+    void Add(RWStructuredBuffer<int> target, uint index, int value)
+    {
+        InterlockedAdd(target[index], value);
+    }
+
+    void AddRaw(RWByteAddressBuffer target, uint offset)
+    {
+        target.InterlockedAdd(offset, 2);
+    }
+
+    [numthreads(1, 1, 1)]
+    void CSMain()
+    {
+        uint thread = streams.DispatchThreadId.x + streams.DispatchThreadId.y * 32;
+
+        InterlockedAdd(Entries[0].Count, -1);
+        InterlockedOr(Entries[1].Mask, 1u << (thread % 31));
+        InterlockedAdd(Pairs[0].y, 3);
+        Add(Values, 0, 1);
+        Add(Values, 1, -1);
+        AddRaw(Raw, 4);
+    }
+}

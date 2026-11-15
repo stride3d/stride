@@ -89,9 +89,9 @@ namespace Stride.Rendering.LightProbes
             FetchLightProbe(sphericalColors, probeIndices.z, tetrahedronFactors4.z);
             FetchLightProbe(sphericalColors, probeIndices.w, tetrahedronFactors4.w);
 
-            streams.envLightDiffuseColor = EvaluateSphericalHarmonics(sphericalColors, sampleDirection).rgb * ambientAccessibility * streams.matDiffuseSpecularAlphaBlend.x;
+            streams.envLightDiffuseColor = EvaluateSphericalHarmonics(sphericalColors, sampleDirection).rgb * ambientAccessibility;
             // TEST:
-            //streams.envLightDiffuseColor = LightProbeCube.Sample(Texturing.LinearSampler, sampleDirection).rgb * ambientAccessibility * streams.matDiffuseSpecularAlphaBlend.y;
+            //streams.envLightDiffuseColor = LightProbeCube.Sample(Texturing.LinearSampler, sampleDirection).rgb * ambientAccessibility;
             //streams.envLightDiffuseColor = tetrahedronFactors3;
             //streams.envLightDiffuseColor = float4(tetrahedronIndex.xxx * 0.2, 1.0);
         }

@@ -158,6 +158,10 @@ public partial class SpirvBuilder
             _ => FindCommonBaseTypeForBinaryOperation(leftElementType, rightElementType),
         };
 
+        // As in HLSL (and C), bools are promoted to int for arithmetic, bitwise and comparison operators: true & false is 0 (an int)
+        if (desiredElementType is { Type: Scalar.Boolean } && op is not (Operator.LogicalAND or Operator.LogicalOR or Operator.Equals or Operator.NotEquals))
+            desiredElementType = ScalarType.Int;
+
         // Check size
         SymbolType resultType;
         switch (leftType, rightType)
@@ -293,12 +297,10 @@ public partial class SpirvBuilder
         rightType = context.ReverseTypes[right.TypeId];
 
         // SPIR-V arithmetic ops (OpFAdd, OpFSub, OpFMul, etc.) only accept scalar/vector types.
-        // For matrices, decompose into column vectors, apply the op per-column, then reconstruct.
+        // For matrices, decompose into column vectors, apply the op per-column, then reconstruct
+        // (HLSL's matrix operators, comparisons included, are component-wise).
         if (leftType is MatrixType matType)
         {
-            if (op is not (Operator.Plus or Operator.Minus or Operator.Mul or Operator.Div))
-                throw new InvalidOperationException($"Operator '{op}' is not supported on matrix types");
-
             var columnTypeId = context.GetOrRegister(new VectorType(matType.BaseType, matType.Rows));
             Span<int> columnResults = stackalloc int[matType.Columns];
             for (int i = 0; i < matType.Columns; i++)
@@ -461,6 +463,8 @@ public partial class SpirvBuilder
             (ScalarType { Type: Scalar.Float }, ScalarType { Type: Scalar.Int or Scalar.UInt }) => 7,
             (ScalarType { Type: Scalar.Float or Scalar.Half or Scalar.Int or Scalar.UInt }, ScalarType { Type: Scalar.Boolean }) => 7,
             (ScalarType { Type: Scalar.Int or Scalar.UInt or Scalar.Boolean }, ScalarType { Type: Scalar.Float }) => 2,
+            // Convert() does it; intrinsics still prefer their float overload for a bool
+            (ScalarType { Type: Scalar.Boolean }, ScalarType { Type: Scalar.Int }) => 3,
 
             // Half conversions: half=>float (widening) is cheaper than float=>half (narrowing/lossy)
             (ScalarType { Type: Scalar.Half }, ScalarType { Type: Scalar.Float or Scalar.Double }) => 1,
@@ -553,7 +557,7 @@ public partial class SpirvBuilder
                 values[0] = valueId;
                 break;
             case (VectorType v1, VectorType v2) when v1.Size < v2.Size:
-                throw new InvalidOperationException($"Can't cast from {v1} to {v2} (more components)");
+                throw new InvalidOperationException(string.Format(SDSLErrorMessages.SDSL0193, v1, v2));
             case (VectorType v1, VectorType v2) when v1.Size > v2.Size:
                 {
                     Span<int> valuesTemp = stackalloc int[v2.Size];

@@ -1,0 +1,15 @@
+{
+  "os": "Ubuntu 24.04.5 LTS",
+  "cpu": "AMD EPYC 9V74 80-Core Processor",
+  "cpuFeatures": "AVX2 FMA AVX512F AVX512VL AVX512DQ AVX512BW AVX512VBMI V512",
+  "gpu": "Mesa llvmpipe (LLVM 22.1.8, 256 bits)",
+  "gpuVendorId": "0x10005",
+  "gpuDeviceId": "0x0000",
+  "vendorName": "Mesa",
+  "driverId": "MesaLLVMPipe",
+  "driverName": "llvmpipe",
+  "driverInfo": "Mesa 26.2.4 (git-96cb431210) (LLVM 22.1.8)",
+  "driverVersion": "26.2.4",
+  "apiName": "Vulkan",
+  "apiVersion": "1.4.354"
+}

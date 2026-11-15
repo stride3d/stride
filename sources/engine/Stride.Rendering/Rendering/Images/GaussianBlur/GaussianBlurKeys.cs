@@ -8,6 +8,7 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// Keys used by <see cref="GaussianBlur"/> and GaussianBlurEffect sdfx
     /// </summary>
+    [EffectKeys]
     internal static class GaussianBlurKeys
     {
         public static readonly PermutationParameterKey<int> Count = ParameterKeys.NewPermutation<int>();

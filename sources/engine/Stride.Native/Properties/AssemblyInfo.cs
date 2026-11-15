@@ -11,6 +11,5 @@ using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("Stride.Graphics")]
 [assembly: InternalsVisibleTo("Stride.Rendering")]
-[assembly: InternalsVisibleTo("Stride.Audio")]
 [assembly: InternalsVisibleTo("Stride.Engine")]
 [assembly: InternalsVisibleTo("Stride.Assets")]

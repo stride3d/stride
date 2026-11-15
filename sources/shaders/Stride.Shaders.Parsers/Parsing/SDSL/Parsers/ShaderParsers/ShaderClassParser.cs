@@ -125,6 +125,9 @@ public record struct ShaderClassParser : IParser<ShaderClass>
                     {
                         if (ShaderElementParsers.ShaderElement(ref scanner, result, out var e))
                         {
+                            // Structs declared in the method go before it
+                            if (e is ShaderMethod method)
+                                LocalStructs.Hoist(parsed, method);
                             parsed.Elements.Add(e);
                         }
                         else

@@ -1,0 +1,42 @@
+!Package
+Id: dca60fd5-341a-4969-ab24-de6a746a7603
+SerializedVersion: {Assets: 0.0.4}
+Meta:
+    Name: EditorPackage
+    Version: 1.0.0.0
+    Authors: []
+    Owners: []
+    RootNamespace: EditorPackage
+    Dependencies:
+        -   Name: Stride
+            Version: 1.11.1.2
+            RootAssets: []
+LocalDependencies: []
+Profiles:
+    -   Name: Windows
+        Platform: Windows
+        InheritProfiles: []
+        AssetFolders:
+            -   Path: Assets
+        OutputGroupDirectories: {}
+        ProjectReferences:
+            -   Id: 550c1b7c-b7ad-46df-acf3-c36aef35d5ff
+                Location: ../Stride.Assets.Presentation.csproj
+                Type: Plugin
+    -   Name: Shared
+        Platform: Shared
+        InheritProfiles: []
+        AssetFolders:
+            -   Path: Assets/Shared
+        OutputGroupDirectories: {}
+        ProjectReferences: []
+ExplicitFolders: []
+Bundles:
+    -   Name: EditorShadersD3D11
+        Selectors:
+            - !PathSelector
+                Paths:
+                    - __shaders_bytecode__/*
+        Dependencies: []
+TemplateFolders: []
+RootAssets: []

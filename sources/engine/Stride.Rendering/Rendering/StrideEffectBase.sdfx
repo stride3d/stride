@@ -38,6 +38,15 @@ namespace Stride.Rendering
         mixin TransformationBase;
         mixin NormalStream;
 
+        // -----------------------------------------------
+        // Applies morph targets before transformation and skinning
+        // -----------------------------------------------
+        if (StrideEffectBaseKeys.MorphTargets != 0)
+        {
+            mixin macro StrideEffectBaseKeys.MorphTargets;
+            mixin TransformationMorph;
+        }
+
         var extensionTessellationShader = MaterialKeys.TessellationShader;
 
         if (StrideEffectBaseKeys.HasInstancing)

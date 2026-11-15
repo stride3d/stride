@@ -8,6 +8,7 @@ using Stride.Core.Mathematics;
 
 namespace Stride.Rendering.Materials
 {
+    [EffectKeys]
     public static partial class MaterialSurfaceSubsurfaceScatteringShadingKeys
     {
         public static readonly ObjectParameterKey<Vector4[]> ScatteringKernel = ParameterKeys.NewObject<Vector4[]>();

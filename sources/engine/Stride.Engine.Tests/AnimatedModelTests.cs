@@ -120,10 +120,30 @@ namespace Stride.Engine.Tests
             }).TakeScreenshot();
         }
 
-        [Fact]
-        public void RunTestGame()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void RunTestGame(bool computeSkinning)
         {
-            RunGameTest(new AnimatedModelTests());
+            var game = new AnimatedModelTests();
+            if (computeSkinning)
+            {
+                // Keep the original vertex golds; compute has its own rasterization baseline.
+                game.TestName = "Compute";
+                game.GraphicsDeviceManager.PreferredGraphicsProfile = new[] { GraphicsProfile.Level_11_0 };
+                game.GraphicsDeviceManager.ShaderProfile = GraphicsProfile.Level_11_0;
+            }
+
+            var previousOverride = ModelRenderProcessor.DeformationOverride;
+            try
+            {
+                ModelRenderProcessor.DeformationOverride = computeSkinning ? new(MeshDeformationMode.Compute) : null;
+                RunGameTest(game);
+            }
+            finally
+            {
+                ModelRenderProcessor.DeformationOverride = previousOverride;
+            }
         }
     }
 }

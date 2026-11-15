@@ -1,0 +1,5 @@
+Plugin: Stride.SpriteStudio.Editor.SpriteStudioEditorPlugin
+Services:
+NodePresenterCommands:
+NodePresenterUpdaters:
+  Stride.SpriteStudio.Editor.SpriteStudioNodeLinkNodeUpdater

@@ -1,0 +1,48 @@
+// PSMain(ExpectedResult=#336699FF)
+
+namespace Stride.Shaders.Tests;
+
+shader LocalStruct
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    // A class struct: methods that declare their own Pair hide it
+    struct Pair { float a; float b; };
+
+    float Red()
+    {
+        struct Pair { float value; };
+        Pair p;
+        p.value = 0.2;
+        return p.value;
+    }
+
+    float Green()
+    {
+        // Another method can use the same name with other fields, and a local struct can use another one
+        struct Pair { float x; float y; };
+        struct Holder { Pair inner; };
+        Holder h;
+        h.inner.x = 0.1;
+        h.inner.y = 0.3;
+        float result = h.inner.x + h.inner.y;
+        {
+            // Hides Green's Pair until the end of the block
+            struct Pair { float only; };
+            Pair q;
+            q.only = 0;
+            result += q.only;
+        }
+        Pair after;
+        after.x = 0;
+        return result + after.x;
+    }
+
+    void PSMain()
+    {
+        Pair classPair;
+        classPair.a = 0.6;
+        classPair.b = 0;
+        streams.ColorTarget = float4(Red(), Green(), classPair.a + classPair.b, 1);
+    }
+};

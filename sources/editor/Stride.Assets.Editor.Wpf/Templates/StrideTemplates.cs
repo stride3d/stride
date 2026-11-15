@@ -1,0 +1,31 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using Stride.Assets.Editor.Templates;
+using Stride.Assets.Templates;
+using Stride.Core.Assets.Quantum.Templates;
+using Stride.Core.Assets.Templates;
+
+namespace Stride.Assets.Presentation.Templates
+{
+    internal static class StrideTemplates
+    {
+        public static void Register()
+        {
+            // TODO: Attribute-based auto registration would be better I guess
+            // SessionTemplateGenerator-derived generators are wrapped with the Quantum-aware
+            // decorator at registration time so override metadata is materialized through the
+            // asset graph before save. CLI / headless flows (Samples Tests, sample regen)
+            // register session generators directly via TemplateManager.Register and skip the
+            // wrap.
+            QuantumTemplateRegistration.Register(new DotNetNewTemplateGenerator(new WpfDotNetNewParameterPrompt()));
+            // AddLibraryGenerator registered after DotNetNew so it takes precedence for stride-library
+            // templates (TemplateManager iterates most-recent-first).
+            QuantumTemplateRegistration.Register(new AddLibraryGenerator(new WpfAddLibraryParameterPrompt()));
+            QuantumTemplateRegistration.Register(new AddPluginGenerator(new WpfAddPluginParameterPrompt()));
+            // The Update platforms template of the Update package menu, shared with the cross-platform editor
+            UpdatePlatformsTemplate.Register(new WpfUpdatePlatformsParameterPrompt());
+            // The asset generators, shared with the cross-platform editor, with the WPF dialogs of the script and model templates
+            StrideAssetTemplates.Register(new WpfScriptNamePrompt(), new WpfModelImportPrompt());
+        }
+    }
+}

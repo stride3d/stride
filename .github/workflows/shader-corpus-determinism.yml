@@ -1,0 +1,62 @@
+name: Shader Corpus Determinism
+
+# PRs compare their shader corpus output with the cached result of their base commit, compiled by an earlier run on
+# another runner (see sources/shaders/Stride.Shaders.Tests/Corpus/README.md). That holds only if a commit always compiles
+# the same way: this compiles the newest master commit that has a cached result again, and fails on any difference.
+
+on:
+  schedule:
+    - cron: '0 5 * * 1'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  Find:
+    runs-on: ubuntu-latest
+    outputs:
+      Direct3D11: ${{ steps.find.outputs.Direct3D11 }}
+      Vulkan: ${{ steps.find.outputs.Vulkan }}
+    steps:
+      - name: Find the newest cached result per platform
+        id: find
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for platform in Direct3D11 Vulkan; do
+            found=
+            # Keys are shader-corpus-<platform>-<commit>-<corpus.json blob>. A base result can have been compiled with its
+            # child's corpus.json: keep one of the commit's own, which compiling the commit again uses.
+            for key in $(gh api "repos/$GITHUB_REPOSITORY/actions/caches?key=shader-corpus-$platform-&ref=refs/heads/master&sort=created_at&direction=desc&per_page=30" --jq '.actions_caches[].key'); do
+              rest=${key#shader-corpus-$platform-}
+              commit=${rest%-*}
+              corpus=${rest#*-}
+              if [ "$(gh api -H 'Accept: application/vnd.github.object' "repos/$GITHUB_REPOSITORY/contents/sources/shaders/Stride.Shaders.Tests/Corpus/corpus.json?ref=$commit" --jq .sha)" = "$corpus" ]; then
+                echo "$platform: $key"
+                echo "$platform=$commit" >> "$GITHUB_OUTPUT"
+                found=1
+                break
+              fi
+            done
+            [ -n "$found" ] || echo "::warning title=Shader corpus determinism::$platform: no cached result on master to compare with."
+          done
+
+  Direct3D11:
+    needs: Find
+    if: needs.Find.outputs.Direct3D11 != ''
+    uses: ./.github/workflows/test-shader-corpus.yml
+    with:
+      platform: Direct3D11
+      commit: ${{ needs.Find.outputs.Direct3D11 }}
+      determinism: true
+
+  Vulkan:
+    needs: Find
+    if: needs.Find.outputs.Vulkan != ''
+    uses: ./.github/workflows/test-shader-corpus.yml
+    with:
+      platform: Vulkan
+      commit: ${{ needs.Find.outputs.Vulkan }}
+      determinism: true

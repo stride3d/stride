@@ -1,0 +1,7 @@
+namespace Stride.Shaders.Tests;
+
+shader ByteAddressBufferBase
+{
+    ByteAddressBuffer Input;
+    RWByteAddressBuffer Output;
+}

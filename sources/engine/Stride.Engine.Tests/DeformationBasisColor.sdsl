@@ -1,0 +1,12 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+// Used as a lit diffuse color so both deformed directions contribute directly to the regression image.
+shader DeformationBasisColor : ComputeColor, NormalStream
+{
+    override float4 Compute()
+    {
+        float3 combined = 0.5 * normalize(streams.meshNormal) + 0.5 * normalize(streams.meshTangent.xyz);
+        return float4(combined * 0.5 + 0.5, 1);
+    }
+};

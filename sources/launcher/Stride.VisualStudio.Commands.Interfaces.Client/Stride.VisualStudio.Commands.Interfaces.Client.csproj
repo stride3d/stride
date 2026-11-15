@@ -17,9 +17,6 @@
     <Nullable>disable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="ServiceWire" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="..\..\tools\Stride.VisualStudio.Commands.Interfaces\IStrideCommands.cs" Link="IStrideCommands.cs" />
     <Compile Include="..\..\tools\Stride.VisualStudio.Commands.Interfaces\Shaders\RawSourceSpan.cs" Link="Shaders\RawSourceSpan.cs" />
     <Compile Include="..\..\tools\Stride.VisualStudio.Commands.Interfaces\Shaders\RawShaderNavigationResult.cs" Link="Shaders\RawShaderNavigationResult.cs" />

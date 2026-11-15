@@ -1,0 +1,17 @@
+// PSMain(ExpectedResult=#01020304)
+
+namespace Stride.Shaders.Tests;
+
+// A static row_major member stays a variable (not in a cbuffer): its layout decoration must not reach the output.
+shader MatrixLayoutRowMajorStaticMember
+{
+    static row_major float4x4 Matrix;
+
+    stream float4 ColorTarget : SV_Target0;
+
+    void PSMain()
+    {
+        Matrix = float4x4(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+        streams.ColorTarget = Matrix[0] / 255.0;
+    }
+};

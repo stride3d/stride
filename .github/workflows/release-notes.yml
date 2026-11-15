@@ -78,7 +78,7 @@ jobs:
   Notes:
     needs: Config
     permissions:
-      contents: read       # passed down only as the model's read-only token; apply uses the PAT
+      contents: read       # passed down only as the model's read-only token; apply uses the Stride Bot token
       pull-requests: read  # let the model trace commits to their PRs
     uses: ./.github/workflows/release-notes-apply.yml
     with:
@@ -92,5 +92,5 @@ jobs:
       add-contributors: ${{ inputs.add-contributors }}
       docs-notes: ${{ needs.Config.outputs.docs-notes == 'true' }}
     secrets:
-      gh-token: ${{ secrets.GH_PAT }}      # write-capable PAT: shell reads + apply (model uses the read-only GITHUB_TOKEN)
-      anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+      bot-private-key: ${{ secrets.STRIDE_BOT_PRIVATE_KEY }}  # shell reads + apply (model uses the read-only GITHUB_TOKEN)
+      anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY_RELEASE_NOTES }}

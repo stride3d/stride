@@ -316,8 +316,9 @@ namespace Stride.Graphics
                 SharedHandle = IntPtr.Zero;
             }
 #if STRIDE_GRAPHICS_API_DIRECT3D11
-            else if (textureDescription.Options.HasFlag(TextureOptions.SharedNtHandle) ||
-                     textureDescription.Options.HasFlag(TextureOptions.SharedKeyedMutex))
+            // An NT handle only exists for a resource created with the NT handle option: a keyed mutex alone has a
+            // legacy (global) handle, like Shared
+            else if (textureDescription.Options.HasFlag(TextureOptions.SharedNtHandle))
             {
                 HResult result = NativeDeviceChild.QueryInterface(out ComPtr<IDXGIResource1> sharedResource1);
 
@@ -327,8 +328,9 @@ namespace Stride.Graphics
                 var uniqueName = $"Stride:{Guid.NewGuid()}";
 
                 void* sharedHandle = null;
+                // Read and write: a consumer that only reads the texture (a UI compositor copying the frames) opens it too
                 result = sharedResource1.CreateSharedHandle(pAttributes: in NullRef<SecurityAttributes>(),
-                                                            dwAccess: DxgiConstants.SharedAccessResourceWrite,
+                                                            dwAccess: DxgiConstants.SharedAccessResourceRead | DxgiConstants.SharedAccessResourceWrite,
                                                             uniqueName, ref sharedHandle);
                 if (result.IsFailure)
                     result.Throw();
@@ -339,7 +341,8 @@ namespace Stride.Graphics
                 SharedNtHandleName = uniqueName;
             }
 #endif
-            else if (textureDescription.Options.HasFlag(TextureOptions.Shared))
+            else if (textureDescription.Options.HasFlag(TextureOptions.Shared) ||
+                     textureDescription.Options.HasFlag(TextureOptions.SharedKeyedMutex))
             {
                 HResult result = NativeDeviceChild.QueryInterface(out ComPtr<IDXGIResource> sharedResource);
 
@@ -454,6 +457,16 @@ namespace Stride.Graphics
             // Release Views, which are always created and managed by us
             SafeRelease(ref depthStencilView);
             SafeRelease(ref renderTargetView);
+
+#if STRIDE_GRAPHICS_API_DIRECT3D11
+            // The Texture created its NT handle (CreateSharedHandle) and owns it: the consumers opened their own reference
+            if (SharedNtHandleName.Length > 0 && SharedHandle != IntPtr.Zero)
+            {
+                Win32.CloseHandle(SharedHandle);
+                SharedHandle = IntPtr.Zero;
+                SharedNtHandleName = string.Empty;
+            }
+#endif
 
             base.OnDestroyed(immediately);
         }
@@ -1076,70 +1089,6 @@ namespace Stride.Graphics
                 MiscFlags = (uint) textureDescription.Options
             };
             return desc;
-        }
-
-        /// <summary>
-        ///   Checks a <see cref="TextureDescription"/> for invalid mip-levels and modifies the description if necessary.
-        /// </summary>
-        /// <param name="device">The graphics device.</param>
-        /// <param name="description">The Texture description to check.</param>
-        /// <returns>The updated Texture description.</returns>
-        /// <remarks>
-        ///   This check is to prevent issues with Direct3D 9.x where the driver may not be able to create mipmaps
-        ///   whose resolution in less than 4x4 pixels.
-        /// </remarks>
-        private static TextureDescription CheckMipLevels(GraphicsDevice device, ref TextureDescription description)
-        {
-            if (device.Features.CurrentProfile < GraphicsProfile.Level_10_0 &&
-                !description.Flags.HasFlag(TextureFlags.DepthStencil) && description.Format.IsCompressed)
-            {
-                description.MipLevelCount = Math.Min(CalculateMipCount(description.Width, description.Height), description.MipLevelCount);
-            }
-            return description;
-        }
-
-        /// <summary>
-        ///   Calculates the number of mip-levels that can be created for a specified size, taking into account
-        ///   a minimum mip-level size.
-        /// </summary>
-        /// <param name="size">The size in pixels.</param>
-        /// <param name="minimumSizeLastMip">The minimum size of the last mip-level. By default, this is 4 pixels.</param>
-        /// <returns>The number of possible mip-levels.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">
-        ///   Both <paramref name="size"/> and <paramref name="minimumSizeLastMip"/> must be greater than 0.
-        /// </exception>
-        private static int CalculateMipCountFromSize(int size, int minimumSizeLastMip = 4)
-        {
-            // TODO: CountMips?
-
-            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(size);
-            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(minimumSizeLastMip);
-
-            int level = 1;
-            while ((size / 2) >= minimumSizeLastMip)
-            {
-                size = Math.Max(1, size / 2);
-                level++;
-            }
-            return level;
-        }
-
-        /// <summary>
-        ///   Calculates the number of mip-levels that can be created for a specified size, taking into account
-        ///   a minimum mip-level size.
-        /// </summary>
-        /// <param name="width">The width in pixels.</param>
-        /// <param name="height">The height in pixels.</param>
-        /// <param name="minimumSizeLastMip">The minimum size of the last mip-level. By default, this is 4 pixels.</param>
-        /// <returns>The number of possible mip-levels.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">
-        ///   <paramref name="width"/> and <paramref name="height"/> must be greater than 0, and
-        ///   <paramref name="minimumSizeLastMip"/> must also be greater than 0.
-        /// </exception>
-        private static int CalculateMipCount(int width, int height, int minimumSizeLastMip = 4)
-        {
-            return Math.Min(CalculateMipCountFromSize(width, minimumSizeLastMip),
-                            CalculateMipCountFromSize(height, minimumSizeLastMip));
         }
 
         /// <summary>

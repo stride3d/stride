@@ -49,7 +49,7 @@ namespace Stride.Graphics
 
             typeCounts = new uint[DescriptorTypeCount];
 
-            fixed (VkSampler* immutableSamplersPointer = &immutableSamplers[0])
+            fixed (VkSampler* immutableSamplersPointer = immutableSamplers) // null if the effect has no resources
             {
                 for (int i = 0; i < entries.Count; i++)
                 {

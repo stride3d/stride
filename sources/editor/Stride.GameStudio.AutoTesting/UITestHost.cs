@@ -16,18 +16,18 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using AvalonDock.Layout;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories;
+using Stride.Assets.Editor.EntityFactories;
+using Stride.Assets.Editor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
-using Stride.Assets.Presentation.AssetEditors.SceneEditor.ViewModels;
 using Stride.GameStudio.AssetsEditors;
-using Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;
+using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.View;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Controls;
@@ -49,7 +49,7 @@ namespace Stride.GameStudio.AutoTesting;
 internal sealed class UITestHost
 {
     // Output dir suffix is the runtime monitor DPI percentage so per-DPI captures stay separate
-    // (baselines are likewise stored under tests/editor/baselines/dpi<N>/). The runner detects
+    // (baselines are likewise stored under tests/editor/Stride.Editor.Wpf.Tests/baselines/dpi<N>/). The runner detects
     // DPI at startup via GetDpiForMonitor(MDT_EFFECTIVE_DPI), which returns the user-set scale
     // factor regardless of process DPI-awareness.
     private const string OutDirNamePrefix = "ui-test-out-dpi";
@@ -306,7 +306,7 @@ internal sealed class UITestHost
                 host.Log("WaitForInitialEditors: initial editors open");
         }
 
-        public async Task WaitForRendering(int frames = 60, double timeoutSeconds = 30)
+        public async Task WaitForRendering(int frames = 20, double timeoutSeconds = 30)
         {
             // Snapshot the (game, startFrameCount) pairs on the dispatcher; reading EditorServiceGame
             // state from the WPF UI thread is the safe path. PreviewGame lives on its own thread but
@@ -361,19 +361,98 @@ internal sealed class UITestHost
             var session = TryGetSession();
             if (session is null) return list;
 
+            // Hidden games skip Draw, so their frame count doesn't advance: don't wait for them.
+
             // 1) Shared asset-preview game (runs on its own STA thread, drives thumbnail rendering).
             var previewSvc = session.ServiceProvider.TryGet<GameStudioPreviewService>();
-            if (previewSvc?.PreviewGame is { IsRunning: true } previewGame)
+            if (previewSvc?.PreviewGame is { IsRunning: true, IsEditorHidden: false } previewGame)
                 list.Add(new WatchedGame(previewGame, previewGame.DrawTime?.FrameCount ?? 0));
 
             // 2) Each open asset editor's embedded game.
             if (session.ServiceProvider.TryGet<IAssetEditorsManager>() is not AssetEditorsManager aem) return list;
             foreach (var editorVm in aem.EditorViewModels)
             {
-                if (editorVm is GameEditorViewModel { Controller: IEditorGameAccess access } && access.EditorGame is { IsRunning: true } game)
+                if (GetEditorGame(editorVm) is { IsRunning: true, IsEditorHidden: false } game)
                     list.Add(new WatchedGame(game, game.DrawTime?.FrameCount ?? 0));
             }
             return list;
+        }
+
+        /// <summary>
+        /// Returns the running game of the game editor document (e.g. the scene editor) whose asset URL is
+        /// <paramref name="idOrTitle"/>, matched like <see cref="SearchTree"/> matches document titles.
+        /// </summary>
+        private static EditorServiceGame? FindEditorGame(string idOrTitle)
+        {
+            var session = TryGetSession();
+            if (session?.ServiceProvider.TryGet<IAssetEditorsManager>() is not AssetEditorsManager aem) return null;
+            foreach (var editorVm in aem.EditorViewModels)
+            {
+                if (GetEditorGame(editorVm) is { IsRunning: true } game
+                    && (string.Equals(editorVm.Asset.Url, idOrTitle, StringComparison.Ordinal)
+                        || editorVm.Asset.Url.EndsWith("/" + idOrTitle, StringComparison.Ordinal)))
+                    return game;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Returns the game of a game editor (scene, prefab or UI), once its game services are initialized.
+        /// </summary>
+        private static EditorServiceGame? GetEditorGame(IAssetEditorViewModel editor)
+        {
+            return editor is IGameEditorViewModel { GameHost.Controller: { } controller } ? controller.GetService<WpfEditorGameHostService>()?.EditorGame : null;
+        }
+
+        /// <summary>
+        /// When <paramref name="idOrTitle"/> is a game editor document, waits until its game has drawn
+        /// frames with a back buffer of its window's size. Right after a resize, the swap chain still
+        /// shows the old back buffer stretched, and slow renderers (D3D12 on WARP) take seconds per frame.
+        /// </summary>
+        private async Task WaitForEditorGameResized(string idOrTitle, double timeoutSeconds = 60)
+        {
+            var game = await host.dispatcher.InvokeAsync(() => FindEditorGame(idOrTitle)).Task.ConfigureAwait(false);
+            if (game is null) return;
+
+            const int RequiredFrames = 2;
+            var deadline = DateTime.UtcNow.AddSeconds(timeoutSeconds);
+            int? firstFrameAtSize = null;
+            var sizes = "unknown";
+            while (DateTime.UtcNow < deadline)
+            {
+                try
+                {
+                    var frame = game.DrawTime?.FrameCount ?? 0;
+                    var backBuffer = game.GraphicsDevice?.Presenter?.BackBuffer;
+                    var hwnd = game.Window?.NativeWindow?.Handle ?? IntPtr.Zero;
+                    if (backBuffer is not null && hwnd != IntPtr.Zero && GetClientRect(hwnd, out var rect))
+                    {
+                        int width = rect.Right - rect.Left, height = rect.Bottom - rect.Top;
+                        sizes = $"back buffer {backBuffer.Width}x{backBuffer.Height}, window {width}x{height}";
+                        if (backBuffer.Width == width && backBuffer.Height == height)
+                        {
+                            firstFrameAtSize ??= frame;
+                            if (frame - firstFrameAtSize >= RequiredFrames)
+                            {
+                                host.Log($"WaitForEditorGameResized: '{idOrTitle}' drew {RequiredFrames} frames at {width}x{height}");
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            firstFrameAtSize = null;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Game disposed mid-wait
+                    host.Log($"WaitForEditorGameResized: '{idOrTitle}' stopped: {ex.Message}");
+                    return;
+                }
+                await Task.Delay(100).ConfigureAwait(false);
+            }
+            host.Log($"WaitForEditorGameResized: '{idOrTitle}' timed out after {timeoutSeconds}s ({sizes})");
         }
 
         /// <summary>
@@ -510,7 +589,24 @@ internal sealed class UITestHost
             return null;
         }
 
-        public Task<bool> SelectTemplate(Guid templateId) =>
+        public async Task<bool> SelectTemplate(Guid templateId, double timeoutSeconds = 30)
+        {
+            // The template list fills asynchronously after the window shows
+            var deadline = DateTime.UtcNow.AddSeconds(timeoutSeconds);
+            while (true)
+            {
+                if (await TrySelectTemplate(templateId).ConfigureAwait(false))
+                    return true;
+                if (DateTime.UtcNow >= deadline)
+                {
+                    host.Log($"SelectTemplate: {templateId} not selected after {timeoutSeconds}s");
+                    return false;
+                }
+                await Task.Delay(500).ConfigureAwait(false);
+            }
+        }
+
+        private Task<bool> TrySelectTemplate(Guid templateId) =>
             host.dispatcher.InvokeAsync(() =>
             {
                 host.Log($"SelectTemplate: {templateId}");
@@ -589,6 +685,9 @@ internal sealed class UITestHost
                 await WaitDispatcherIdle();
                 await Task.Delay(250).ConfigureAwait(false);
                 await WaitDispatcherIdle();
+
+                // An embedded game (scene editor) must also draw at the new size.
+                await WaitForEditorGameResized(idOrTitle);
 
                 await host.dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render).Task.ConfigureAwait(false);
                 await Task.Delay(150).ConfigureAwait(false);
@@ -707,10 +806,10 @@ internal sealed class UITestHost
                 var debugging = TryGetDebugging();
                 if (debugging is null) { host.Log("RunProject: GameStudioViewModel not found"); return -1; }
                 host.Log("RunProject: invoking RunProjectAsync");
-                var (ok, proc) = await debugging.RunProjectAsync().ConfigureAwait(true);
-                if (!ok || proc is null) { host.Log("RunProject: failed"); return -1; }
-                host.Log($"RunProject: launched pid={proc.Id}");
-                return proc.Id;
+                var (ok, pid) = await debugging.RunProjectAsync().ConfigureAwait(true);
+                if (!ok || pid is not { } processId) { host.Log("RunProject: failed"); return -1; }
+                host.Log($"RunProject: launched pid={processId}");
+                return processId;
             }).Task.Unwrap();
 
         public async Task<IntPtr> WaitForGameWindow(int pid, double timeoutSeconds = 60)
@@ -738,7 +837,7 @@ internal sealed class UITestHost
             return IntPtr.Zero;
         }
 
-        public async Task WaitForGameFrames(IntPtr hwnd, int minFrames = 100, double postFirstFrameDelaySeconds = 2.0, double timeoutSeconds = 90)
+        public async Task WaitForGameFrames(IntPtr hwnd, int minFrames = 30, double postFirstFrameDelaySeconds = 2.0, double timeoutSeconds = 90)
         {
             host.Log($"WaitForGameFrames: hwnd=0x{hwnd.ToInt64():X} minFrames={minFrames} postFirstFrame={postFirstFrameDelaySeconds}s timeout={timeoutSeconds}s");
             await GraphicsCaptureClient.WaitForFramesAsync(hwnd, minFrames, postFirstFrameDelaySeconds, timeoutSeconds).ConfigureAwait(false);
@@ -784,6 +883,13 @@ internal sealed class UITestHost
         [return: MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
         private static extern bool PostMessage(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
 
+        [StructLayout(LayoutKind.Sequential)]
+        private struct RECT { public int Left, Top, Right, Bottom; }
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
+        private static extern bool GetClientRect(IntPtr hWnd, out RECT lpRect);
+
         private static DebuggingViewModel TryGetDebugging()
         {
             var app = Application.Current;
@@ -810,7 +916,7 @@ internal sealed class UITestHost
                     host.Log($"AddAssetFromTemplate: template id={templateId} name='{templateName ?? "*"}' not found ({matches.Count} sharing Id: {string.Join(",", matches.Select(t => t.Name))})");
                     return Guid.Empty;
                 }
-                var assetView = session.ActiveAssetView;
+                var assetView = session.AssetCollection;
                 if (assetView is null) { host.Log("AddAssetFromTemplate: ActiveAssetView is null"); return Guid.Empty; }
                 // RunAssetTemplate's target-folder lookup uses SelectedLocations and pops a modal
                 // MessageBox if nothing is selected (or if the selected package isn't editable —
@@ -825,7 +931,7 @@ internal sealed class UITestHost
                 assetView.SelectedLocations.Add(rootDir);
                 host.Log($"AddAssetFromTemplate: default-selected '{rootDir.Path}' in package '{editablePackage.Name}' as creation target");
                 var templateVm = new TemplateDescriptionViewModel(session.ServiceProvider, template);
-                var created = await assetView.RunAssetTemplate(templateVm, null).ConfigureAwait(true);
+                var created = await assetView.RunAssetTemplateAsync(templateVm, null).ConfigureAwait(true);
                 if (created is null || created.Count == 0) { host.Log("AddAssetFromTemplate: RunAssetTemplate returned no asset"); return Guid.Empty; }
                 host.Log($"AddAssetFromTemplate: created '{created[0].Url}' (id={created[0].Id})");
                 return (Guid)created[0].Id;
@@ -845,7 +951,7 @@ internal sealed class UITestHost
                     return (string?)null;
                 }
                 if (session.ServiceProvider.TryGet<IAssetEditorsManager>() is not { } aem) { host.Log("OpenAssetEditor: no IAssetEditorsManager"); return (string?)null; }
-                await aem.OpenAssetEditorWindow(asset).ConfigureAwait(true);
+                await aem.OpenAssetEditorAsync(asset).ConfigureAwait(true);
                 host.Log($"OpenAssetEditor: opened '{asset.Url}' (id={asset.Id})");
                 return asset.Url;
             }).Task.Unwrap();
@@ -982,7 +1088,7 @@ internal sealed class UITestHost
                 this.position = position;
             }
 
-            public Task<Entity> CreateEntity(EntityHierarchyItemViewModel parent)
+            public Task<Entity> CreateEntity(IEntityHierarchyItemViewModel parent)
             {
                 var entity = new Entity(entityName);
                 entity.Transform.Position = position;
@@ -1008,11 +1114,8 @@ internal sealed class UITestHost
                 return found.Count;
             }).Task;
 
-        public void Exit(int newExitCode = 0)
-        {
-            host.ExitCode = newExitCode;
-            ShutdownInternal();
-        }
+        // RunTest shuts down once the test returns, after writing done.json
+        public void Exit(int newExitCode = 0) => host.ExitCode = newExitCode;
 
         public void ShutdownInternal()
         {

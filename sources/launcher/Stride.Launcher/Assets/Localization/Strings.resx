@@ -305,6 +305,10 @@
     <value>Set current version to {0}</value>
     <comment>{0}: long version name</comment>
   </data>
+  <data name="ToolTipSetActiveDevVersion" xml:space="preserve">
+    <value>Set current version to {0} (built from {1})</value>
+    <comment>Status bar text of a locally built version whose checkout is known. {0}: version, {1}: full path of the checkout</comment>
+  </data>
   <data name="ToolTipStartButton" xml:space="preserve">
     <value>Start Stride Game Studio {0}</value>
     <comment>{0}: long version name</comment>
@@ -328,6 +332,10 @@
   <data name="VersionButtonUninstalled" xml:space="preserve">
     <value>(not installed)</value>
     <comment>Additional message stating that the version is not currently installed. It is displayed right after the VersionButton text (with a space)</comment>
+  </data>
+  <data name="VersionButtonReleaseAvailable" xml:space="preserve">
+    <value>(release available)</value>
+    <comment>After the name of a version in the list, when a beta is installed and a newer release is available</comment>
   </data>
   <data name="VersionButtonUpdateAvailable" xml:space="preserve">
     <value>(update available)</value>
@@ -394,6 +402,60 @@
   </data>
   <data name="IncludePrereleaseUpdates" xml:space="preserve">
     <value>Receive launcher pre-releases</value>
+  </data>
+  <data name="ShowNightlyBuilds" xml:space="preserve">
+    <value>Show nightly builds of Stride</value>
+  </data>
+  <data name="ToolTipShowNightlyBuilds" xml:space="preserve">
+    <value>Lists the nightly builds of the development branches in rows of their own</value>
+  </data>
+  <data name="VersionNightly" xml:space="preserve">
+    <value>{0} Nightly</value>
+    <comment>Name of the row of the nightly builds of a version. {0}: product name and short version name</comment>
+  </data>
+  <data name="BadgeBeta" xml:space="preserve">
+    <value>BETA</value>
+    <comment>Badge of a version that is a beta, in the version list and on the Start and Install buttons</comment>
+  </data>
+  <data name="BadgeNightly" xml:space="preserve">
+    <value>NIGHTLY</value>
+    <comment>Badge of the row of nightly builds, in the version list</comment>
+  </data>
+  <data name="AskShowNightlyBuilds" xml:space="preserve">
+    <value>Nightly builds are built every night from the development branches of Stride. They are not signed, and not tested as much as releases.
+
+Project upgrades might not be fully tested: back up your projects before opening them with a nightly build, and use nightly builds at your own risk.
+
+Show the nightly builds?</value>
+    <comment>Asked when the user turns on "Show nightly builds of Stride"</comment>
+  </data>
+  <data name="ErrorChangingNuGetConfig" xml:space="preserve">
+    <value>An error occurred while changing your NuGet.config: {0}</value>
+    <comment>MessageBox text indicating that the nightly feed could not be added to or removed from the user's NuGet.config. {0}: Error message</comment>
+  </data>
+  <data name="ToolTipWhatsNew" xml:space="preserve">
+    <value>What's new in {0}, on GitHub</value>
+    <comment>Tooltip of the button of a nightly row, in place of its release notes, when there's no build to compare with. {0}: version of the newest nightly</comment>
+  </data>
+  <data name="ToolTipWhatsNewSince" xml:space="preserve">
+    <value>What's new in {0} since {1}, on GitHub</value>
+    <comment>Tooltip of the button of a nightly row, in place of its release notes. {0}: version of the newest nightly; {1}: version it's compared with (the installed nightly, else the release before it)</comment>
+  </data>
+  <data name="ToolTipRefreshVersions" xml:space="preserve">
+    <value>Check for new versions</value>
+    <comment>Tooltip of the icon before "Switch/update version": lists the versions again</comment>
+  </data>
+  <data name="EditorNotBuilt" xml:space="preserve">
+    <value>{0} (not built)</value>
+    <comment>Greyed entry of the Game Studio selector for a Game Studio a local build doesn't have; {0} is its name, such as "Game Studio (Avalonia)"</comment>
+  </data>
+  <data name="EditorNotInVersion" xml:space="preserve">
+    <value>{0} (not in this version)</value>
+    <comment>Greyed entry of the Game Studio selector for a Game Studio a version doesn't have; {0} is its name, such as "Game Studio (Avalonia)"</comment>
+  </data>
+  <data name="BadgeLocal" xml:space="preserve">
+    <value>LOCAL</value>
+    <comment>Badge of the rows of local builds (from a Stride checkout), in the version list</comment>
   </data>
   <data name="LauncherSettings" xml:space="preserve">
     <value>Launcher settings</value>

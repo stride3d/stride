@@ -93,6 +93,13 @@ internal class TemplatePreprocessor
     public string? EngineVersion { get; set; }
 
     /// <summary>
+    /// With <see cref="EngineVersion"/>, stamps only the <c>$EngineVersion$</c> literals: concrete versions stay as the
+    /// sample commits them. A release pack does this, as a sample's version records the upgrader gates it had, so a
+    /// sample behind the engine still runs the gates above its version when it is upgraded.
+    /// </summary>
+    public bool KeepSampleVersions { get; set; }
+
+    /// <summary>
     /// Parsed from the input's <c>.sdtpl</c> file (if present). Drives template.json metadata
     /// (Name, Description, identity, etc.) and per-template parameter opt-in via the
     /// <see cref="SdtplMetadata.Parameters"/> list. Null when the input dir has no .sdtpl —
@@ -283,6 +290,18 @@ internal class TemplatePreprocessor
     /// </summary>
     private bool RunAssetPack(string? sdtplPath, ILogger logger)
     {
+        // The top-level folders are what the pack contains. The input is a real project, so its build output is not content.
+        var unknownFolders = Directory.EnumerateDirectories(InputPath!)
+            .Select(path => Path.GetFileName(path))
+            .Where(name => name is not ("Assets" or "Resources") && !name.StartsWith('.')
+                && !name.Equals("bin", StringComparison.OrdinalIgnoreCase) && !name.Equals("obj", StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        if (unknownFolders.Count > 0)
+        {
+            logger.Error($"Asset pack input has folders other than Assets/ and Resources/: {string.Join(", ", unknownFolders)} ({InputPath})");
+            return false;
+        }
+
         if (Directory.Exists(OutputDirectory))
             Directory.Delete(OutputDirectory, recursive: true);
         Directory.CreateDirectory(OutputDirectory!);
@@ -430,7 +449,7 @@ internal class TemplatePreprocessor
     private static readonly string[] NonEnginePackagePrefixes =
     {
         "Stride.Awesome.Shaders", "Stride.Community", "Stride.Dependencies.", "Stride.GNU.",
-        "Stride.GraphX", "Stride.Mono.", "Stride.OpenTK", "Stride.QuickGraph",
+        "Stride.Mono.", "Stride.OpenTK",
     };
 
     private static bool IsNonEnginePackage(string packageId)
@@ -456,7 +475,7 @@ internal class TemplatePreprocessor
                 var value = version is XAttribute attribute ? attribute.Value : ((XElement)version).Value;
                 // A remaining $placeholder$ is someone else's substitution point; community
                 // packages keep their committed version.
-                if (value.Contains('$') || value == EngineVersion || IsNonEnginePackage(include))
+                if (KeepSampleVersions || value.Contains('$') || value == EngineVersion || IsNonEnginePackage(include))
                     continue;
                 if (version is XAttribute versionAttribute)
                     versionAttribute.Value = EngineVersion;
@@ -900,29 +919,36 @@ internal class TemplatePreprocessor
     }
 
     /// <summary>
-    /// Reads the first <c>.sdpkg</c>'s <c>Name:</c> field and strips a trailing <c>.Game</c> /
-    /// <c>.Windows</c> / <c>.Linux</c> / <c>.macOS</c> / <c>.iOS</c> / <c>.Android</c> suffix.
-    /// Stride convention is <c>SampleName.Game</c> for the library package; the base name is
-    /// what gets referenced in code namespaces.
+    /// Reads the <c>.sdpkg</c>s' <c>Name:</c> fields, strips a trailing <c>.Game</c> /
+    /// <c>.Windows</c> / <c>.Linux</c> / <c>.macOS</c> / <c>.iOS</c> / <c>.Android</c> suffix and
+    /// keeps the shortest. Stride convention is <c>SampleName.Game</c> for the library package; the
+    /// base name is what gets referenced in code namespaces. The shortest, not the first found: a
+    /// plugin's <c>Plugin.Assets</c> package comes before <c>Plugin</c> on some file systems.
     /// </summary>
     private string? DetectSourceNameFromSdpkg(ILogger logger)
     {
-        var sdpkg = Directory.EnumerateFiles(OutputDirectory!, "*.sdpkg", SearchOption.AllDirectories).FirstOrDefault();
-        if (sdpkg == null)
-            return null;
+        return Directory.EnumerateFiles(OutputDirectory!, "*.sdpkg", SearchOption.AllDirectories)
+            .Select(ReadBaseName)
+            .Where(x => x != null)
+            .OrderBy(x => x!.Length)
+            .ThenBy(x => x, StringComparer.Ordinal)
+            .FirstOrDefault();
 
-        var nameLine = File.ReadLines(sdpkg)
-            .FirstOrDefault(l => l.TrimStart().StartsWith("Name:", StringComparison.Ordinal));
-        if (nameLine == null)
-            return null;
-
-        var name = nameLine.Substring(nameLine.IndexOf(':') + 1).Trim();
-        foreach (var suffix in new[] { ".Game", ".Windows", ".Linux", ".macOS", ".iOS", ".Android" })
+        static string? ReadBaseName(string sdpkg)
         {
-            if (name.EndsWith(suffix, StringComparison.Ordinal))
-                return name.Substring(0, name.Length - suffix.Length);
+            var nameLine = File.ReadLines(sdpkg)
+                .FirstOrDefault(l => l.TrimStart().StartsWith("Name:", StringComparison.Ordinal));
+            if (nameLine == null)
+                return null;
+
+            var name = nameLine.Substring(nameLine.IndexOf(':') + 1).Trim();
+            foreach (var suffix in new[] { ".Game", ".Windows", ".Linux", ".macOS", ".iOS", ".Android" })
+            {
+                if (name.EndsWith(suffix, StringComparison.Ordinal))
+                    return name.Substring(0, name.Length - suffix.Length);
+            }
+            return name;
         }
-        return name;
     }
 
     /// <summary>
@@ -1271,10 +1297,12 @@ internal class TemplatePreprocessor
         // JumpyClone.Windows/ + JumpyClone.Linux/ — the .Game suffix on the shared lib is
         // preserved to mirror what samples already use.
         sb.AppendLine("  \"sourceName\": \"MyTemplate\",");
-        EmitCompactNameForm(sb);
+        var typeNames = ScanTypeNames();
+        EmitCompactNameForm(sb, typeNames);
         sb.AppendLine("  \"symbols\": {");
 
         EmitCompactNameSymbol(sb);
+        EmitTypeNameSymbols(sb, typeNames);
         EmitBaseParameterSymbols(sb);
         if (Sdtpl?.HasParameter("HDR") == true)             EmitHDRSymbol(sb);
         if (Sdtpl?.HasParameter("graphicsProfile") == true) EmitGraphicsProfileSymbol(sb);
@@ -1321,15 +1349,70 @@ internal class TemplatePreprocessor
     /// engine's <c>safe_namespace</c> pass for the remaining characters a C# identifier cannot
     /// contain ("2D Game" → <c>_2DGame</c>).
     /// </summary>
-    private static void EmitCompactNameForm(StringBuilder sb)
+    private static void EmitCompactNameForm(StringBuilder sb, IReadOnlyCollection<string> typeNames)
     {
-        sb.AppendLine("""
-              "forms": {
-                "stripWhitespace": { "identifier": "replace", "pattern": "\\s+", "replacement": "" },
-                "dotBeforeDigit":  { "identifier": "replace", "pattern": "\\.(?=[0-9])", "replacement": "_" },
-                "compactName":     { "identifier": "chain", "steps": [ "stripWhitespace", "dotBeforeDigit", "safe_namespace" ] }
-              },
-        """);
+        var forms = new List<string>
+        {
+            """    "stripWhitespace": { "identifier": "replace", "pattern": "\\s+", "replacement": "" }""",
+            """    "dotBeforeDigit":  { "identifier": "replace", "pattern": "\\.(?=[0-9])", "replacement": "_" }""",
+            """    "compactName":     { "identifier": "chain", "steps": [ "stripWhitespace", "dotBeforeDigit", "safe_namespace" ] }""",
+            // The type name forms (EmitTypeNameSymbols)
+            """    "lastSegment":     { "identifier": "replace", "pattern": "^.*\\.", "replacement": "" }""",
+            """    "lowerCase":       { "identifier": "lowerCase" }""",
+            """    "typeName":        { "identifier": "chain", "steps": [ "compactName", "lastSegment" ] }""",
+            """    "lowerTypeName":   { "identifier": "chain", "steps": [ "typeName", "lowerCase" ] }""",
+        };
+        foreach (var typeName in typeNames.Where(t => t != LowerTypeNameToken))
+        {
+            var suffix = typeName["MyTemplate".Length..];
+            forms.Add($$"""    "suffix{{suffix}}": { "identifier": "replace", "pattern": "$", "replacement": "{{suffix}}" }""");
+            forms.Add($$"""    "typeName{{suffix}}": { "identifier": "chain", "steps": [ "typeName", "suffix{{suffix}}" ] }""");
+        }
+        sb.AppendLine("  \"forms\": {");
+        sb.AppendLine(string.Join("," + Environment.NewLine, forms));
+        sb.AppendLine("  },");
+    }
+
+    private const string LowerTypeNameToken = "mytemplate";
+
+    // An identifier built on the name (MyTemplateComponent, MyTemplateApp), or the lowercase name (an asset file extension)
+    private static readonly Regex TypeNameRegex = new(@"MyTemplate[A-Z][A-Za-z0-9_]*|mytemplate", RegexOptions.Compiled);
+
+    /// <summary>
+    /// The identifiers built on the name in the staged tree, in file contents and file names.
+    /// </summary>
+    private SortedSet<string> ScanTypeNames()
+    {
+        var typeNames = new SortedSet<string>(StringComparer.Ordinal);
+        foreach (var path in Directory.EnumerateFiles(OutputDirectory!, "*", SearchOption.AllDirectories))
+        {
+            foreach (Match match in TypeNameRegex.Matches(Path.GetFileName(path)))
+                typeNames.Add(match.Value);
+            if (IsTextFile(path))
+            {
+                foreach (Match match in TypeNameRegex.Matches(File.ReadAllText(path)))
+                    typeNames.Add(match.Value);
+            }
+        }
+        return typeNames;
+    }
+
+    /// <summary>
+    /// Substitutes the last segment of the compact name for <c>MyTemplate</c> where it starts an identifier, in file
+    /// contents and file names: a dotted name keeps its dots in project names and namespaces, while its types are
+    /// named after the last segment ("Acme.Fog" gives <c>Acme.Fog.FogComponent</c>, not <c>Acme.FogComponent</c>).
+    /// The lowercase <c>mytemplate</c> (an asset file extension) takes the lowercase last segment. A longer token
+    /// wins over <c>MyTemplate</c> where both match.
+    /// </summary>
+    private static void EmitTypeNameSymbols(StringBuilder sb, IReadOnlyCollection<string> typeNames)
+    {
+        foreach (var typeName in typeNames)
+        {
+            var transform = typeName == LowerTypeNameToken ? "lowerTypeName" : "typeName" + typeName["MyTemplate".Length..];
+            sb.AppendLine($$"""
+                    "{{transform}}Symbol": { "type": "derived", "valueSource": "name", "valueTransform": "{{transform}}", "replaces": "{{typeName}}", "fileRename": "{{typeName}}" },
+            """);
+        }
     }
 
     /// <summary>
@@ -1590,6 +1673,9 @@ internal class TemplatePreprocessor
         "bin", "obj", ".vs",
     };
 
+    /// <summary>Prefix of the timestamped folders an upgrade leaves next to a project, also never staged.</summary>
+    private const string UpgradeBackupDirPrefix = ".stride-backup-";
+
     public static void CopyDirectory(string source, string dest)
     {
         Directory.CreateDirectory(dest);
@@ -1601,9 +1687,10 @@ internal class TemplatePreprocessor
         {
             // Skip build outputs / editor state: they bloat the package and their deep asset-build
             // cache paths blow past Windows MAX_PATH once nested under the staging dir.
-            if (ExcludedCopyDirs.Contains(Path.GetFileName(subdir)))
+            var name = Path.GetFileName(subdir);
+            if (ExcludedCopyDirs.Contains(name) || name.StartsWith(UpgradeBackupDirPrefix, StringComparison.OrdinalIgnoreCase))
                 continue;
-            CopyDirectory(subdir, Path.Combine(dest, Path.GetFileName(subdir)));
+            CopyDirectory(subdir, Path.Combine(dest, name));
         }
     }
 }

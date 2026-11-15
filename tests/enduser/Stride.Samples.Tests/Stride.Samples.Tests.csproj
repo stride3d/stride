@@ -35,8 +35,8 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\sources\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
-    <ProjectReference Include="..\..\..\sources\tests\Stride.ScreenshotComparator\Stride.ScreenshotComparator.csproj" />
+    <ProjectReference Include="..\..\..\sources\tests\Stride.XunitRunner\Stride.XunitRunner.csproj" />
+    <ProjectReference Include="..\..\..\tests\infra\Stride.ScreenshotComparator\Stride.ScreenshotComparator.csproj" />
     <ProjectReference Include="..\..\..\sources\engine\Stride.Assets\Stride.Assets.csproj" />
     <!-- Build-time trigger: regenerated samples PackageReference Stride.Games.AutoTesting
          (via samplesGenerated/Directory.Build.targets) when StrideAutoTesting=true. -->
@@ -48,9 +48,8 @@
       <SetTargetFramework>TargetFramework=$(StrideFramework)</SetTargetFramework>
     </ProjectReference>
     <!-- Build-time triggers: ensure engine nupkgs that samples PackageReference end up in
-         bin/packages. Stride.Assets pulls Engine/Physics/UI/Video; these three are not in
-         that graph but are referenced by regenerated samples (asset compiler + particles +
-         sprite-studio). -->
+         bin/packages. Stride.Assets pulls Engine; the asset compiler and the plugins are not in
+         that graph. A plugin's Assets package pulls its runtime. -->
     <ProjectReference Include="..\..\..\sources\assets\Stride.AssetCompiler\Stride.AssetCompiler.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
@@ -58,14 +57,39 @@
       <!-- Cross-targeting ref: SetTargetFramework avoids MSB4057 on GetTargetPath (outer build lacks it). -->
       <SetTargetFramework>TargetFramework=$(StrideFramework)</SetTargetFramework>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\sources\engine\Stride.Particles\Stride.Particles.csproj">
+    <ProjectReference Include="..\..\..\sources\plugins\BepuPhysics\Stride.BepuPhysics.Assets\Stride.BepuPhysics.Assets.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\sources\plugins\Video\Stride.Video.Assets\Stride.Video.Assets.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\sources\plugins\BulletPhysics\Stride.Physics.Assets\Stride.Physics.Assets.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\sources\plugins\UI\Stride.UI.Assets\Stride.UI.Assets.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\sources\plugins\Particles\Stride.Particles\Stride.Particles.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
       <!-- Cross-targeting ref: SetTargetFramework avoids MSB4057 on GetTargetPath (outer build lacks it). -->
       <SetTargetFramework>TargetFramework=$(StrideFramework)</SetTargetFramework>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\sources\engine\Stride.SpriteStudio.Offline\Stride.SpriteStudio.Offline.csproj">
+    <ProjectReference Include="..\..\..\sources\plugins\Audio\Stride.Audio.Assets\Stride.Audio.Assets.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\sources\plugins\SpriteStudio\Stride.SpriteStudio.Assets\Stride.SpriteStudio.Assets.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>

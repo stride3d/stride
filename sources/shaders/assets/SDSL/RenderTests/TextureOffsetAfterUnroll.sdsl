@@ -1,0 +1,33 @@
+// PSMain(ExpectedResult=#5713CDAB, texture.Texture1=#1357ABCD)
+
+namespace Stride.Shaders.Tests;
+
+// Texture offsets that are constants only once the helper is inlined and the [unroll] loops unrolled: elements of a static
+// const array, and the loop counters. The texture has one texel, so every offset reads it: the average is its color
+shader TextureOffsetAfterUnroll
+{
+    stream float4 ColorTarget : SV_Target0;
+    stream float2 TexCoord : TEXCOORD;
+
+    stage Texture2D<float4> Texture1;
+    stage SamplerState Sampler1;
+
+    static const int2 Neighbors[4] = { int2(1, 0), int2(-1, 0), int2(0, 1), int2(0, -1) };
+
+    float4 Fetch(float2 uv, int2 offset)
+    {
+        return Texture1.SampleLevel(Sampler1, uv, 0.0, offset);
+    }
+
+    void PSMain()
+    {
+        float4 sum = 0;
+        [unroll]
+        for (int i = 0; i < 4; i++)
+            sum += Fetch(streams.TexCoord, Neighbors[i]);
+        [unroll]
+        for (int x = -2; x <= 1; x++)
+            sum += Fetch(streams.TexCoord, int2(x, x * 2));
+        streams.ColorTarget = (sum / 8).yxwz;
+    }
+}

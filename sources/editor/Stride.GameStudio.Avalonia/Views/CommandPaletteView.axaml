@@ -1,0 +1,53 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+             xmlns:cmds="using:Stride.Core.Assets.Editor.Commands"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="400"
+             x:Class="Stride.GameStudio.Avalonia.Views.CommandPaletteView"
+             x:DataType="cmds:CommandPaletteViewModel">
+  <!-- The command palette: a search box over the commands, the recently used ones first, each with its category and its shortcut.
+       Up and Down move in the list, Enter runs the selected command, Escape closes. -->
+  <Border Width="600"
+          Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
+          BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+          BorderThickness="1" CornerRadius="4" Padding="6"
+          BoxShadow="0 4 16 0 #60000000">
+    <DockPanel>
+      <TextBox x:Name="SearchBox" DockPanel.Dock="Top"
+               Text="{Binding SearchText}"
+               PlaceholderText="{sd:LocalizeString Type the name of a command, Context=Palette}"
+               KeyDown="OnSearchKeyDown"/>
+      <TextBlock x:Name="NoResult" DockPanel.Dock="Top" Margin="6,8"
+                 Opacity="0.6"
+                 Text="{sd:LocalizeString No command found, Context=Palette}"
+                 IsVisible="{Binding !HasResults}"/>
+      <ListBox x:Name="ResultList" Margin="0,6,0,0" MaxHeight="360"
+               ItemsSource="{Binding Results}"
+               SelectedItem="{Binding SelectedItem}"
+               Tapped="OnResultTapped">
+        <ListBox.ItemTemplate>
+          <DataTemplate DataType="cmds:CommandPaletteItem">
+            <Grid ColumnDefinitions="18, *, Auto, Auto" Opacity="{Binding IsEnabled, Converter={sd:BoolToOpacity}}">
+              <!-- A check for a toggle that is on -->
+              <TextBlock Grid.Column="0" Text="&#x2713;" VerticalAlignment="Center"
+                         IsVisible="{Binding IsChecked, FallbackValue=False, TargetNullValue=False}"/>
+              <TextBlock Grid.Column="1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis">
+                <Run Text="{Binding CategoryName, StringFormat={}{0}: }" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                <Run Text="{Binding Title}"/>
+              </TextBlock>
+              <TextBlock Grid.Column="2" Margin="12,0,0,0" VerticalAlignment="Center" FontSize="11"
+                         Opacity="0.7"
+                         Text="{sd:LocalizeString recently used, Context=Palette}"
+                         IsVisible="{Binding IsRecent}"/>
+              <TextBlock Grid.Column="3" Margin="12,0,0,0" VerticalAlignment="Center"
+                         Text="{Binding Gesture}"
+                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+            </Grid>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </DockPanel>
+  </Border>
+</UserControl>

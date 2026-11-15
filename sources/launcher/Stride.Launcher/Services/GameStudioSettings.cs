@@ -115,11 +115,20 @@ public static class GameStudioSettings
         UpdateMostRecentlyUsed();
     }
 
-    public static void RemoveMostRecentlyUsed(UFile filePath, string strideVersion)
+    public static void RemoveMostRecentlyUsed(UFile filePath)
     {
         lock (LockObject)
         {
-            MRU.RemoveFile(filePath, strideVersion);
+            // Game Studio lists a project under the version it ran as (4.5 for a 4.5.0-dev3 build), which neither the
+            // project's version nor the installed ones tell: remove it from each version that lists it
+            MRU.LoadFromSettings();
+            var versions = MRU.MostRecentlyUsedFiles
+                .Where(x => string.Equals(x.FilePath, filePath, StringComparison.OrdinalIgnoreCase))
+                .Select(x => x.Version)
+                .Distinct()
+                .ToList();
+            foreach (var version in versions)
+                MRU.RemoveFile(filePath, version);
             UpdateMostRecentlyUsed();
         }
     }

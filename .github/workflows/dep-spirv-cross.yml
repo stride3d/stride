@@ -15,6 +15,8 @@ jobs:
   build-windows:
     name: Build SPIRV-Cross (Windows x64)
     runs-on: windows-2025-vs2026
+    outputs:
+      commit: ${{ steps.info.outputs.commit }}
     steps:
       - name: Checkout Stride
         uses: actions/checkout@v7
@@ -25,6 +27,11 @@ jobs:
           repository: stride3d/SPIRV-Cross
           ref: ${{ github.event.inputs.branch || 'hlsl_tessel_shader' }}
           path: spirv-cross-src
+
+      - name: Record build info
+        id: info
+        shell: pwsh
+        run: '"commit=$(git -C spirv-cross-src rev-parse HEAD)" >> $env:GITHUB_OUTPUT'
 
       - name: Build
         shell: pwsh
@@ -45,6 +52,8 @@ jobs:
   build-windows-arm64:
     name: Build SPIRV-Cross (Windows ARM64)
     runs-on: windows-2025-vs2026
+    outputs:
+      commit: ${{ steps.info.outputs.commit }}
     steps:
       - name: Checkout Stride
         uses: actions/checkout@v7
@@ -55,6 +64,11 @@ jobs:
           repository: stride3d/SPIRV-Cross
           ref: ${{ github.event.inputs.branch || 'hlsl_tessel_shader' }}
           path: spirv-cross-src
+
+      - name: Record build info
+        id: info
+        shell: pwsh
+        run: '"commit=$(git -C spirv-cross-src rev-parse HEAD)" >> $env:GITHUB_OUTPUT'
 
       - name: Build
         shell: pwsh
@@ -72,20 +86,12 @@ jobs:
           path: spirv-cross-build/Release/spirv-cross-c-shared.dll
 
   pack:
-    name: Pack & Publish NuGet
+    name: Pack NuGet
     needs: [build-windows, build-windows-arm64]
     runs-on: windows-2025-vs2026
     steps:
       - name: Checkout
         uses: actions/checkout@v7
-
-      - name: Checkout SPIRV-Cross (for commit hash)
-        uses: actions/checkout@v7
-        with:
-          repository: stride3d/SPIRV-Cross
-          ref: ${{ github.event.inputs.branch || 'hlsl_tessel_shader' }}
-          path: spirv-cross-src
-          fetch-depth: 1
 
       - name: Download Windows x64 artifact
         uses: actions/download-artifact@v8
@@ -102,22 +108,55 @@ jobs:
       - name: Prepare package contents
         shell: pwsh
         run: |
-          $destDir = "build/deps/spirv-cross"
+          $destDir = "deps/spirv-cross"
           # Silk.NET expects the DLL named "spirv-cross"
           foreach ($rid in 'win-x64', 'win-arm64') {
             New-Item -Path "$destDir/$rid" -ItemType Directory -Force | Out-Null
             Copy-Item "artifacts/$rid/spirv-cross-c-shared.dll" "$destDir/$rid/spirv-cross.dll"
           }
 
+      - name: Write VERSION.txt and README.md
+        shell: pwsh
+        run: |
+          $commits = [ordered]@{
+            'win-x64'   = '${{ needs.build-windows.outputs.commit }}'
+            'win-arm64' = '${{ needs.build-windows-arm64.outputs.commit }}'
+          }
+          $unique = @($commits.Values | Select-Object -Unique)
+          $lines = @(
+            "SPIRV-Cross (branch ${{ github.event.inputs.branch || 'hlsl_tessel_shader' }})"
+            "Repository: https://github.com/stride3d/SPIRV-Cross"
+          )
+          if ($unique.Count -eq 1) { $lines += "Commit: $($unique[0])" }
+          else { $lines += ""; $lines += $commits.GetEnumerator() | ForEach-Object { "{0}: {1}" -f $_.Key, $_.Value } }
+          $lines += @(
+            ""
+            "Stride: ${{ github.server_url }}/${{ github.repository }} @ ${{ github.sha }}"
+            "Built: $(Get-Date -AsUTC -Format yyyy-MM-dd)"
+            "Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          )
+          New-Item -ItemType Directory -Force deps/spirv-cross/tools | Out-Null
+          $lines | Set-Content deps/spirv-cross/tools/VERSION.txt
+          $block = @('```') + $lines + @('```')
+          $block | Add-Content $env:GITHUB_STEP_SUMMARY
+          @(
+            "# Stride.Dependencies.SpirvCross"
+            ""
+            "SPIRV-Cross shared library for Stride SPIR-V to HLSL/GLSL translation."
+            ""
+            "## Build"
+            ""
+          ) + $block | Set-Content deps/spirv-cross/README.md
+
       - name: Pack NuGet
         shell: pwsh
         run: |
-          $commitHash = git -C spirv-cross-src rev-parse --short HEAD
+          $commitHash = '${{ needs.build-windows.outputs.commit }}'.Substring(0, 7)
           $version = "${{ github.event.inputs.version }}"
           if (-not $version) { $version = (Get-Date -Format "yyyy.M.d") }
-          nuget pack build/deps/spirv-cross/Stride.Dependencies.SpirvCross.nuspec `
+          nuget pack deps/spirv-cross/Stride.Dependencies.SpirvCross.nuspec `
             -Version $version `
-            -Properties "commit=$commitHash" `
+            -Properties "commit=$commitHash;strideCommit=${{ github.sha }}" `
             -OutputDirectory nupkg
           echo "PACKAGE_VERSION=$version" >> $env:GITHUB_ENV
 
@@ -127,34 +166,12 @@ jobs:
           name: Stride.Dependencies.SpirvCross.nupkg
           path: nupkg/*.nupkg
 
+  # Signing and pushing are shared by all dependencies: nuget.org trusts dep-publish.yml
   publish:
-    name: Sign & Publish to NuGet.org
     needs: pack
-    runs-on: windows-2025-vs2026
-    environment: production
-    steps:
-      - name: Install signing tool
-        run: dotnet tool install sign --tool-path ./sign-tool --version 0.9.0-beta.23127.3
-
-      - name: Download artifact
-        uses: actions/download-artifact@v8
-        with:
-          name: Stride.Dependencies.SpirvCross.nupkg
-
-      - name: Sign NuGet package
-        shell: pwsh
-        run: |
-          ./sign-tool/sign code azure-key-vault *.nupkg `
-            --description "Stride" `
-            --description-url "https://stride3d.net" `
-            --publisher-name "Stride" `
-            --azure-key-vault-tenant-id "${{ secrets.STRIDE_SIGN_TENANT_ID }}" `
-            --azure-key-vault-client-id "${{ secrets.STRIDE_SIGN_CLIENT_ID }}" `
-            --azure-key-vault-client-secret "${{ secrets.STRIDE_SIGN_CLIENT_SECRET }}" `
-            --azure-key-vault-certificate "${{ secrets.STRIDE_SIGN_KEYVAULT_CERTIFICATE }}" `
-            --azure-key-vault-url "https://${{ secrets.STRIDE_SIGN_KEYVAULT_NAME }}.vault.azure.net/" `
-            -v Information
-
-      - name: Publish
-        run: |
-          dotnet nuget push *.nupkg --api-key "${{ secrets.STRIDE_NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/dep-publish.yml
+    with:
+      artifact: Stride.Dependencies.SpirvCross.nupkg

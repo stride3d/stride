@@ -25,7 +25,7 @@ namespace Stride.Engine
     [DefaultEntityComponentRenderer(typeof(ModelRenderProcessor))]
     [ComponentOrder(11000)]
     [ComponentCategory("Model")]
-    public sealed class ModelComponent : ActivableEntityComponent, IModelInstance
+    public sealed partial class ModelComponent : ActivableEntityComponent, IModelInstance
     {
         private readonly List<MeshInfo> meshInfos = new List<MeshInfo>();
         private Model model;

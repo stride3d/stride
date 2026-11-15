@@ -66,7 +66,7 @@ internal abstract class SettingsEntry
     /// Gets the value of this entry converted to a serializable type.
     /// </summary>
     /// <returns></returns>
-    internal abstract List<ParsingEvent> GetSerializableValue(SettingsKey key);
+    internal abstract List<ParsingEvent> GetSerializableValue(SettingsKey? key);
 
     private void UpdateValue(object newValue)
     {

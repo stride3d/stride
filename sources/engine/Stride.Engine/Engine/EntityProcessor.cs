@@ -216,7 +216,7 @@ namespace Stride.Engine
     /// <remarks>
     /// Additional precomputed data will be stored alongside the <see cref="Entity" /> to offer faster accesses and iterations.
     /// </remarks>
-    public abstract class EntityProcessor<TComponent, TData> : EntityProcessor where TData : class where TComponent : EntityComponent
+    public abstract class EntityProcessor<TComponent, TData> : EntityProcessor where TComponent : EntityComponent
     {
         protected readonly Dictionary<TComponent, TData> ComponentDatas = [];
         private readonly HashSet<Entity> reentrancyCheck = [];
@@ -319,7 +319,7 @@ namespace Stride.Engine
         /// <returns>True if the change in associated data requires the entity to be readded, false otherwise.</returns>
         protected virtual bool IsAssociatedDataValid([NotNull] Entity entity, [NotNull] TComponent component, [NotNull] TData associatedData)
         {
-            return GenerateComponentData(entity, component).Equals(associatedData);
+            return EqualityComparer<TData>.Default.Equals(GenerateComponentData(entity, component), associatedData);
         }
 
         /// <summary>Run when a matching entity is added to this entity processor.</summary>

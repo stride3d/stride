@@ -83,6 +83,7 @@
        Stride.Core.targets (NuGet PackageReference path) and this (engine self-build path)
        use one implementation. -->
   <Import Project="$(StrideRoot)sources/core/Stride.Core/build/Stride.Core.NativeLibraries.targets" />
+  <Import Project="$(StrideRoot)sources/core/Stride.Core/build/Stride.Core.UserDocumentation.targets" />
 
   <!-- ================================================================ -->
   <!-- Native libraries setup (from .ssdeps)                            -->
@@ -247,10 +248,12 @@
       </_StrideDependencyToCopy>
     </ItemGroup>
 
-    <!-- Copy files -->
+    <!-- Copy files. An unchanged one is skipped: a process using the build output (Game Studio loads a dev-redirect
+         package's natives from there) holds it open, which would fail every rebuild, a managed-only change included -->
     <Copy
       SourceFiles = "@(_StrideDependencyToCopy)"
       DestinationFiles = "@(_StrideDependencyToCopy->'%(Destination)')"
+      SkipUnchangedFiles="true"
       OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
       Retries="$(CopyRetryCount)"
       RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
@@ -279,7 +282,7 @@
       <!-- Native dependencies go to the runtimes/RID/native folder. PackagePath is the target directory
            (trailing slash required): NuGet reads an extensionless PackagePath as a folder and would nest
            extensionless natives such as the linux/osx ffmpeg one level too deep. -->
-      <TfmSpecificPackageFile Include="@(_StrideDependencyToCopy)"
+      <TfmSpecificPackageFile Include="@(_StrideDependencyToCopy)" Condition="'%(_StrideDependencyToCopy.Pack)' != 'false'"
                               PackagePath="$([System.IO.Path]::GetDirectoryName('%(_StrideDependencyToCopy.TargetPath)'))/" />
     </ItemGroup>
   </Target>

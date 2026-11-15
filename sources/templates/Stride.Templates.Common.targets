@@ -13,7 +13,7 @@
 
   <!-- StrideNuGetVersion (+ parts) from SharedAssemblyInfo[.Generated].cs; shared with Stride.PackageInfo.targets.
        Imported here (vanilla Microsoft.NET.Sdk, outside the Stride SDK chain). -p:PackageVersion=X pins explicitly. -->
-  <Import Project="$(StrideRoot)sources\targets\Stride.NuGetVersion.props" />
+  <Import Project="$(StrideRoot)sources\sdk\Stride.Build.Sdk\Sdk\Stride.NuGetVersion.props" />
 
   <!-- The developer's local settings (StridePackContentTemplates among them). The Stride SDK imports this file for
        engine projects; these projects use NoTargets, outside that chain. It only exists once a Stride SDK project
@@ -39,10 +39,10 @@
     <PackageVersion Condition="'$(PackageVersion)' == '' And '$(StrideTemplateContentVersioned)' == 'true'">$(StrideSamplesVersion)</PackageVersion>
     <PackageVersion Condition="'$(PackageVersion)' == ''">$(StrideNuGetVersion)</PackageVersion>
 
-    <!-- Content packs are large, rarely changing content, published on their own schedule (release-samples.yml).
-         A local build never packs them unless StridePackContentTemplates=true (build/Stride.Local.props,
-         PrepareSamplesForRelease, release-samples.yml). CI builds do, so the tests that instantiate templates run on
-         the samples of the branch; the engine release (StridePackageBuild) doesn't. It is a plain property, never
+    <!-- Content packs are large, rarely changing content: an engine release includes them only when a sample moved to
+         its version (release.yml). A local build never packs them unless StridePackContentTemplates=true
+         (build/Stride.Local.props, PrepareSamplesForRelease, PackageSamples). CI builds do, so the tests that instantiate
+         templates run on the samples of the branch; the engine build (StridePackageBuild) doesn't. It is a plain property, never
          passed to one project only: a global property on a single reference would build these projects, and
          everything they reference, a second time. Off, the project still builds (nothing to build) and still answers
          Game Studio's nuspec dependency query with the exact committed version. -->
@@ -81,12 +81,15 @@
     <StrideTemplatesPackMode Condition="'$(StridePackageBuild)' == 'true'">preprocessed</StrideTemplatesPackMode>
     <StrideTemplatesPackMode Condition="'$(StrideTemplatesPackMode)' == ''">minimal</StrideTemplatesPackMode>
     <_StrideTemplatesSkipPruneFlag Condition="'$(StrideTemplatesPackMode)' == 'minimal'">--skip-prune</_StrideTemplatesSkipPruneFlag>
+    <!-- A release pack keeps each sample's version, which records the upgrader gates it had. Local and CI packs stamp
+         it: their engine only exists under the version being built. -->
+    <_StrideTemplatesKeepVersionsFlag Condition="'$(StridePackageBuild)' == 'true' And '$(StrideTemplateContentVersioned)' == 'true'">--keep-sample-versions</_StrideTemplatesKeepVersionsFlag>
   </PropertyGroup>
 
   <!-- Per-checkout NuGet version suffix; mirrors StrideAppendWorktreeVersion in
        Stride.PackageInfo.targets (templates use Microsoft.NET.Sdk so don't get it transitively).
        Must run before the preprocessor too so $EngineVersion$ matches the engine's suffix. -->
-  <Import Project="$(StrideRoot)sources/targets/Stride.WorktreeVersion.targets"
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Stride.WorktreeVersion.targets"
           Condition="'$(_StrideWorktreeVersionTargetsImported)' != 'true'" />
   <Target Name="StrideTemplatesAppendWorktreeVersion"
           DependsOnTargets="StrideEnsureWorktreeVersion"
@@ -117,7 +120,7 @@
   <!-- Auto-pack to bin/packages and deploy to %LocalAppData%\stride\nugetdev on build
        (shared with the Stride SDK chain; imported directly here because this project uses
        vanilla Microsoft.NET.Sdk). -->
-  <Import Project="$(StrideRoot)sources\targets\Stride.AutoPackDeploy.targets" />
+  <Import Project="$(StrideRoot)sources\sdk\Stride.Build.Sdk\Sdk\Stride.AutoPackDeploy.targets" />
 
   <!-- CI safeguard: never publish a non-preprocessed nupkg. -->
   <Target Name="StrideAssertPackModeForRelease" BeforeTargets="GenerateNuspec"
@@ -134,7 +137,7 @@
 
   <!-- Removes this checkout's local content packs (bin/packages, the nugetdev feed, the extracted copies in the
        global cache): the bridge and the CLI prefer a -devN pack while it exists. A build with
-       StridePackContentTemplates off runs it (StrideCleanContentTemplatesWhenOff); build/Stride.Samples.build
+       StridePackContentTemplates off runs it (StrideCleanContentTemplatesWhenOff); build/samples.proj
        -t:CleanContentTemplates runs it on all three packages by hand. Also warns about a pack in those feeds that
        carries a published version (no -devN): restores may take it over the published package. -->
   <Target Name="CleanContentTemplates" DependsOnTargets="StrideEnsureWorktreeVersion"
@@ -252,7 +255,7 @@
          Stride-side rewrite hook. platform-template-path points the preprocessor at the NewGame
          scaffold so samples that ship only Windows (most of them) gain Linux/macOS/iOS/Android
          exec projects in the packed output. -->
-    <Exec Command="dotnet &quot;$(StrideTemplatesDll)&quot; preprocess-template --input-path=&quot;%(StrideSampleTemplate.SamplePath)&quot; --output-path=&quot;$(TemplateContentRoot)/%(StrideSampleTemplate.Identity)&quot; --template-name=%(StrideSampleTemplate.Identity) --engine-version=&quot;$(_StrideTemplatesEngineVersion)&quot; --platform-template-path=&quot;$(StrideRoot)samples/NewGame/NewGame&quot; $(_StrideTemplatesSkipPruneFlag)" />
+    <Exec Command="dotnet &quot;$(StrideTemplatesDll)&quot; preprocess-template --input-path=&quot;%(StrideSampleTemplate.SamplePath)&quot; --output-path=&quot;$(TemplateContentRoot)/%(StrideSampleTemplate.Identity)&quot; --template-name=%(StrideSampleTemplate.Identity) --engine-version=&quot;$(_StrideTemplatesEngineVersion)&quot; --platform-template-path=&quot;$(StrideRoot)samples/NewGame/NewGame&quot; $(_StrideTemplatesSkipPruneFlag) $(_StrideTemplatesKeepVersionsFlag)" />
 
     <!-- Aggregate every wrapped template's .sdtpl into a single multi-doc YAML at the package
          root. GameStudio's bridge reads this one file for display metadata. -->

@@ -1,0 +1,17 @@
+# Effects whose bytecode is embedded in Stride.Graphics, as the C# files of this folder.
+# Compiled by Stride.Shaders.Tests: EmbeddedEffectTests.EmbeddedEffectsAreCurrent checks them, UpdateEmbeddedEffects rewrites them.
+Profile: Level_9_1
+Namespace: Stride.Graphics
+Effects:
+    - Name: SpriteEffect
+      Shader: SpriteEffect
+    - Name: SpriteBatch
+      Shader: SpriteBatchShader<false>
+    - Name: SpriteBatch
+      Shader: SpriteBatchShader<true>
+      FieldName: binaryBytecodeSRgb
+    - Name: UIEffect
+      Shader: UIEffectShader<false>
+    - Name: UIEffect
+      Shader: UIEffectShader<true>
+      FieldName: binaryBytecodeSRgb

@@ -33,6 +33,7 @@ namespace Stride.Graphics
         /// </summary>
         public ref readonly GraphicsDeviceFeatures Features => ref features;
         private GraphicsDeviceFeatures features;
+        private GraphicsDeviceFeatures deviceFeatures;
 
         /// <summary>
         ///   The set of Graphics Resources currently managed by the Graphics Device.
@@ -152,11 +153,9 @@ namespace Stride.Graphics
             InitializePlatformDevice(graphicsProfiles, creationFlags, windowHandle);
 
             // Checks the features supported by the new Graphics Device
-            features = new GraphicsDeviceFeatures(this);
-
-            // The only point where features are built, on both the create and the reset path. Anything
-            // that reports them from elsewhere goes stale when a reset rebuilds them.
-            Log.Info($"Graphics device: {Adapter?.Description ?? "unknown adapter"} ({Platform})\n  {features}");
+            deviceFeatures = new GraphicsDeviceFeatures(this);
+            Log.Info($"Graphics device: {Adapter?.Description ?? "unknown adapter"} ({Platform})\n  {deviceFeatures}");
+            LimitFeaturesToEffectProfile();
 
             // Initialize the internal states of the new Graphics Device
             SamplerStates = new SamplerStateFactory(this);
@@ -250,6 +249,58 @@ namespace Stride.Graphics
         /// </summary>
         protected partial void DestroyPlatformDevice();
 
+        /// <summary>
+        ///   Adds the pipelines of an earlier run to the device's pipeline cache, as <see cref="GetPipelineCacheData"/>
+        ///   returned them, so the driver does not build those pipelines again when a pipeline state is created for them
+        ///   from here on. Data that is not of this device and driver (<see cref="AdapterDriverInfo.PipelineCacheUuid"/>)
+        ///   in this version of it (<see cref="AdapterDriverInfo.DriverVersion"/>), or that was damaged since it was
+        ///   returned, is dropped and never given to the driver.
+        /// </summary>
+        /// <param name="data">The data of an earlier run; <see langword="null"/> or empty for none.</param>
+        /// <returns>
+        ///   <see langword="true"/> if the data was merged; <see langword="false"/> if it was dropped, or on an API without
+        ///   an exposed pipeline cache (Direct3D).
+        /// </returns>
+        /// <remarks>
+        ///   Can be called from any thread at any time in the device's life: it takes the lock pipeline states are
+        ///   created under. The pipelines built before the merge are in the cache already; the merge spares the ones
+        ///   created after it.
+        /// </remarks>
+        public bool MergePipelineCache(byte[] data)
+        {
+            if (data is null || !PipelineCacheData.TryUnwrap(data, PipelineCacheDriverVersion, out var driverData))
+                return false;
+
+            var merged = false;
+            lock (CachedPipelineStates)
+                MergePipelineCachePlatform(driverData, ref merged);
+            return merged;
+        }
+
+        /// <summary>
+        ///   Gets the device's pipeline cache, the pipelines built so far as the driver serializes them, to keep for
+        ///   <see cref="MergePipelineCache"/> in a later run. The data is opaque, and for a device with the same
+        ///   <see cref="AdapterDriverInfo.PipelineCacheUuid"/> and <see cref="AdapterDriverInfo.DriverVersion"/>.
+        /// </summary>
+        /// <returns>The serialized pipeline cache; empty on an API without an exposed pipeline cache (Direct3D).</returns>
+        /// <remarks>Can be called from any thread at any time in the device's life.</remarks>
+        public byte[] GetPipelineCacheData()
+        {
+            byte[] driverData = null;
+            lock (CachedPipelineStates)
+                GetPipelineCacheDataPlatform(ref driverData);
+            return driverData is { Length: > 0 } ? PipelineCacheData.Wrap(driverData, PipelineCacheDriverVersion) : [];
+        }
+
+        /// <summary>The version of the driver the device's pipeline cache data is made by, and the only one it is given back to.</summary>
+        private string PipelineCacheDriverVersion => Adapter?.DriverInfo?.DriverVersion ?? string.Empty;
+
+        /// <summary>Merges the driver's blob of an earlier run, after the envelope was checked; the platform checks the blob's own header.</summary>
+        partial void MergePipelineCachePlatform(ReadOnlySpan<byte> driverData, ref bool merged);
+
+        /// <summary>Gets the driver's blob of the device's pipeline cache; leaves <paramref name="driverData"/> <see langword="null"/> for none.</summary>
+        partial void GetPipelineCacheDataPlatform(ref byte[] driverData);
+
 
         /// <summary>
         ///   Occurs while this component is disposing but before it is disposed.
@@ -316,9 +367,29 @@ namespace Stride.Graphics
         public SamplerStateFactory SamplerStates { get; private set; }
 
         /// <summary>
-        ///   Gets the graphics profile the Graphics Device is using, which determines the available features.
+        ///   Gets the graphics profile the effects are compiled against, when it is set apart from the Graphics Device.
         /// </summary>
-        internal GraphicsProfile? ShaderProfile { get; set; }
+        internal GraphicsProfile? ShaderProfile
+        {
+            get => shaderProfile;
+            set
+            {
+                shaderProfile = value;
+                LimitFeaturesToEffectProfile();
+                Log.Info($"Effects compiled for {EffectProfile}");
+            }
+        }
+        private GraphicsProfile? shaderProfile;
+
+        /// <summary>
+        ///   Gets the graphics profile the effects are compiled against. The Graphics Device can run at a higher level.
+        /// </summary>
+        internal GraphicsProfile EffectProfile => shaderProfile ?? deviceFeatures.RequestedProfile;
+
+        private void LimitFeaturesToEffectProfile()
+        {
+            features = deviceFeatures.LimitedTo(EffectProfile);
+        }
 
 
         /// <summary>

@@ -231,7 +231,7 @@ namespace Stride.Rendering.Images
         /// <value>
         /// The temporal response.
         /// </value>
-        /// <userdoc><userdoc>How quickly reflections blend between the reflection in the current frame and the history buffer. Lower values produce reflections faster, but with more jittering. If the camera in your game doesn't move much, we recommend values closer to 1. The default value is 0.9.</userdoc></userdoc>
+        /// <userdoc>How quickly reflections blend between the reflection in the current frame and the history buffer. Lower values produce reflections faster, but with more jittering. If the camera in your game doesn't move much, we recommend values closer to 1. The default value is 0.9.</userdoc>
         [Display("Response", "Temporal")]
         [DefaultValue(0.9f)]
         [DataMemberRange(0.5, 1.0, 0.01, 0.1, 2)]
@@ -263,12 +263,14 @@ namespace Stride.Rendering.Images
             public Texture TemporalBuffer;
             public Matrix PrevViewProjection;
 
-            public void Resize(GraphicsDevice device, ref Size3 size)
+            public void Resize(RenderDrawContext context, ref Size3 size)
             {
                 if (TemporalBuffer == null || TemporalBuffer.Size != size)
                 {
                     TemporalBuffer?.Dispose();
-                    TemporalBuffer = Texture.New2D(device, size.Width, size.Height, 1, ReflectionsFormat, TextureFlags.ShaderResource | TextureFlags.RenderTarget);
+                    TemporalBuffer = Texture.New2D(context.GraphicsDevice, size.Width, size.Height, 1, ReflectionsFormat, TextureFlags.ShaderResource | TextureFlags.RenderTarget);
+                    // The temporal pass reads this as the previous frame, and new texture memory is undefined
+                    context.CommandList.Clear(TemporalBuffer, new Color4(0.0f));
                 }
             }
 
@@ -580,7 +582,7 @@ namespace Stride.Rendering.Images
             if (TemporalEffect)
             {
                 var temporalSize = outputBuffer.Size;
-                temporalCache.Resize(GraphicsDevice, ref temporalSize);
+                temporalCache.Resize(context, ref temporalSize);
                 Texture temporalBuffer0 = NewScopedRenderTarget2D(temporalSize.Width, temporalSize.Height, ReflectionsFormat, 1);
 
                 temporalPassShader.SetInput(0, resolveBuffer);

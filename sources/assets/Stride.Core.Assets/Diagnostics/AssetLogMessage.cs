@@ -59,6 +59,7 @@ public class AssetLogMessage : LogMessage
     /// <param name="package">The package.</param>
     /// <param name="assetReference">The asset reference.</param>
     /// <param name="type">The type.</param>
+    /// <param name="text">The log message text.</param>
     /// <exception cref="ArgumentNullException">asset</exception>
     public AssetLogMessage(Package? package, IReference? assetReference, LogMessageType type, string text)
         : base(LogModule, type, text)

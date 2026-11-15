@@ -13,7 +13,7 @@ shader SpriteBase : ShaderBase, Texturing
         // uniforms
         // -------------------------------------
         // A general transformation matrix
-        stage float4x4 MatrixTransform;
+        stage float4x4 MatrixTransform = float4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
     }
         
     // -------------------------------------

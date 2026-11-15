@@ -44,8 +44,10 @@ namespace Stride.Graphics
     ///   <para><see cref="Texture"/> constains static methods for creating new Textures by specifying all their characteristics.</para>
     ///   <para>
     ///     Also look for the following static methods that aid in the creation of specific kinds of buffers:
-    ///     <see cref="New1D"/> (for <strong>one-dimensional Textures</strong>), <see cref="New2D"/> (for <strong>two-dimensional Textures</strong>),
-    ///     <see cref="New3D"/> (for <strong>three-dimensional Textures</strong>), and <see cref="NewCube"/> (for <strong>six-sided two-dimensional Cube-maps</strong>).
+    ///     <see cref="New1D(GraphicsDevice, int, PixelFormat, TextureFlags, int, GraphicsResourceUsage)"/> (for <strong>one-dimensional Textures</strong>),
+    ///     <see cref="New2D(GraphicsDevice, int, int, PixelFormat, TextureFlags, int, GraphicsResourceUsage, TextureOptions)"/> (for <strong>two-dimensional Textures</strong>),
+    ///     <see cref="New3D(GraphicsDevice, int, int, int, PixelFormat, TextureFlags, GraphicsResourceUsage)"/> (for <strong>three-dimensional Textures</strong>), and
+    ///     <see cref="NewCube(GraphicsDevice, int, PixelFormat, TextureFlags, GraphicsResourceUsage)"/> (for <strong>six-sided two-dimensional Cube-maps</strong>).
     ///   </para>
     ///   <para>Consult the documentation of your graphics API for more information on each kind of Texture.</para>
     /// </remarks>
@@ -204,23 +206,27 @@ namespace Stride.Graphics
 
         /// <summary>
         ///   Gets a handle that identifies the Texture as a shared resource when it has the
-        ///   option <see cref="TextureOptions.Shared"/> or <see cref="TextureOptions.SharedNtHandle"/>.
+        ///   option <see cref="TextureOptions.Shared"/> or the Direct3D-specific TextureOptions.SharedNtHandle option
+        ///   (on Direct3D 11, <see cref="TextureOptions.SharedKeyedMutex"/> alone gives a global handle too).
         /// </summary>
         /// <value>
         ///   A handle that identifies the shared Texture, or <see cref="IntPtr.Zero"/> if it is not a shared resource.
         /// </value>
+        /// <remarks>
+        ///   An NT handle (<see cref="TextureOptions.SharedNtHandle"/>) belongs to the Texture, which closes it when it is
+        ///   destroyed: a consumer opens its own reference to the resource with it before that.
+        /// </remarks>
         public IntPtr SharedHandle { get; private set; } = IntPtr.Zero;
 
-#if STRIDE_GRAPHICS_API_DIRECT3D11
         /// <summary>
         ///   Gets the name of the shared NT handle that identifies the Texture as a shared resource
         ///   when it has the option <see cref="TextureOptions.SharedNtHandle"/>.
         /// </summary>
         /// <value>
         ///   The name of the NT handle of the shared Texture, or <see cref="string.Empty"/> if it is not a shared resource.
+        ///   Only Direct3D 11 creates shared NT handles, so it is always empty on the other graphics APIs.
         /// </value>
         public string SharedNtHandleName { get; private set; } = string.Empty;
-#endif
 
         /// <summary>
         ///   Gets a value indicating if the Texture View is a Render Target View.
@@ -318,6 +324,11 @@ namespace Stride.Graphics
         ///   Gets the underlying parent Texture if this is a Texture View.
         /// </summary>
         internal Texture ParentTexture { get; private set; }
+
+        /// <summary>
+        ///   Gets the Texture that holds the state of this Texture: its parent if this is a Texture View, otherwise itself.
+        /// </summary>
+        internal Texture RootTexture => ParentTexture ?? this;
 
         /// <summary>
         ///   Gets the total amount of memory allocated by the Texture in bytes.
@@ -1343,7 +1354,7 @@ namespace Stride.Graphics
         ///   The <paramref name="region"/> largestSize (in any of its dimensions) cannot be greater than the mip-level largestSize.
         /// </exception>
         /// <remarks>
-        ///   See <see cref="CommandList.MapSubResource"/> and <see cref="CommandList.UpdateSubResource"/> for more information about
+        ///   See <see cref="CommandList.MapSubResource"/> and <see cref="CommandList.UpdateSubResource(GraphicsResource, int, DataBox, ResourceRegion)">CommandList.UpdateSubResource</see> for more information about
         ///   usage and restrictions.
         /// </remarks>
         public unsafe void SetData<TData>(CommandList commandList, TData[] fromData, int arrayIndex = 0, int mipLevel = 0, ResourceRegion? region = null) where TData : unmanaged
@@ -1374,8 +1385,7 @@ namespace Stride.Graphics
         /// <exception cref="ArgumentException">
         ///   The length of <paramref name="fromData"/> is not compatible with the expected largestSize for the data
         ///   at <paramref name="arrayIndex"/> and <paramref name="mipLevel"/>.
-        ///   This can also occur when the stride is different from the optimal stride, and <typeparamref name="TData"/> is not the same largestSize as
-        ///   the largestSize of <see cref="Format"/>.
+        ///   The buffer must contain enough bytes for the selected region, including its row pitch.
         /// </exception>
         /// <exception cref="ArgumentException">
         ///   <paramref name="region"/> can only be specified (non-<see langword="null"/>) for Textures with <see cref="GraphicsResourceUsage.Default"/>.
@@ -1384,7 +1394,7 @@ namespace Stride.Graphics
         ///   The <paramref name="region"/> largestSize (in any of its dimensions) cannot be greater than the mip-level largestSize.
         /// </exception>
         /// <remarks>
-        ///   See <see cref="CommandList.MapSubResource"/> and <see cref="CommandList.UpdateSubResource"/> for more information about
+        ///   See <see cref="CommandList.MapSubResource"/> and <see cref="CommandList.UpdateSubResource(GraphicsResource, int, DataBox, ResourceRegion)">CommandList.UpdateSubResource</see> for more information about
         ///   usage and restrictions.
         /// </remarks>
         [Obsolete("This method is obsolete. Use the Span-based methods instead")]
@@ -1427,7 +1437,7 @@ namespace Stride.Graphics
         ///   The <paramref name="region"/> largestSize (in any of its dimensions) cannot be greater than the mip-level largestSize.
         /// </exception>
         /// <remarks>
-        ///   See <see cref="CommandList.MapSubResource"/> and <see cref="CommandList.UpdateSubResource"/> for more information about
+        ///   See <see cref="CommandList.MapSubResource"/> and <see cref="CommandList.UpdateSubResource(GraphicsResource, int, DataBox, ResourceRegion)">CommandList.UpdateSubResource</see> for more information about
         ///   usage and restrictions.
         /// </remarks>
         public unsafe void SetData<TData>(CommandList commandList, ReadOnlySpan<TData> fromData, int arrayIndex = 0, int mipLevel = 0, ResourceRegion? region = null) where TData : unmanaged
@@ -1584,6 +1594,7 @@ namespace Stride.Graphics
         ///   <see langword="true"/> if the Texture should be loaded as an sRGB Texture;
         ///   <see langword="false"/> to load it in its default format.
         /// </param>
+        /// <param name="alphaLoadMode">The requested alpha conversion mode.</param>
         /// <returns>The loaded Texture.</returns>
         public static Texture Load(GraphicsDevice device, Stream stream, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable, bool loadAsSrgb = false, AlphaLoadMode alphaLoadMode = AlphaLoadMode.Preserve)
         {
@@ -1622,7 +1633,7 @@ namespace Stride.Graphics
         /// <summary>
         ///   Creates a new Texture with the specified description.
         /// </summary>
-        /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
+        /// <param name="graphicsDevice">The <see cref="GraphicsDevice"/>.</param>
         /// <param name="description">A <see cref="TextureDescription"/> for the new Texture.</param>
         /// <param name="boxes">
         ///   An optional array of <see cref="DataBox"/> structures describing the initial data for all the sub-Resources of the new Texture.
@@ -1637,7 +1648,7 @@ namespace Stride.Graphics
         /// <summary>
         ///   Creates a new Texture with the specified description.
         /// </summary>
-        /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
+        /// <param name="graphicsDevice">The <see cref="GraphicsDevice"/>.</param>
         /// <param name="description">A <see cref="TextureDescription"/> for the new Texture.</param>
         /// <param name="viewDescription">A <see cref="TextureViewDescription"/> describing a Texture View that will be created the same time.</param>
         /// <param name="boxes">
@@ -1799,11 +1810,21 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Swaps the Texture's internal data with another Texture.
+        ///   Swaps the Texture's description and native resources with another Texture.
         /// </summary>
+        /// <remarks>
+        ///   Only the native resources move: views created on either Texture keep the resources they were created on.
+        ///   A streamed Texture must not be swapped while the streaming system manages it.
+        /// </remarks>
         /// <param name="other">The other Texture.</param>
-        internal void Swap([NotNull] Texture other)
+        /// <exception cref="ArgumentNullException"><paramref name="other"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException">The Textures belong to different Graphics Devices.</exception>
+        /// <exception cref="NotSupportedException">One of the Textures is a view.</exception>
+        public void Swap([NotNull] Texture other)
         {
+            ArgumentNullException.ThrowIfNull(other);
+            if (other.GraphicsDevice != GraphicsDevice)
+                throw new ArgumentException("Cannot swap textures of different graphics devices.", nameof(other));
             if (ParentTexture is not null || other.ParentTexture is not null)
                 throw new NotSupportedException("Cannot swap texture views; only root textures can be swapped.");
 
@@ -1914,6 +1935,38 @@ namespace Stride.Graphics
                     mipCount = 0;
                     break;
             }
+        }
+
+        /// <summary>
+        ///   Gets the mip-levels and array slices this Texture View accesses, as a range of the sub-Resources of the
+        ///   Texture (see <see cref="GetSubResourceIndex"/>).
+        /// </summary>
+        internal TextureSubresourceRange GetViewSubResourceRange()
+        {
+            int arraySlice = ArraySlice;
+            int mipLevel = MipLevel;
+            GetViewSliceBounds(ViewType, ref arraySlice, ref mipLevel, out var arraySliceCount, out var mipCount);
+
+            return Dimension == TextureDimension.Texture3D
+                ? new TextureSubresourceRange(mipLevel, mipCount, ArraySliceStart: 0, ArraySliceCount: 1)
+                : new TextureSubresourceRange(mipLevel, mipCount, arraySlice, arraySliceCount);
+        }
+
+        /// <summary>
+        ///   Gets the sub-Resources of the parent Texture a barrier on this Texture View moves.
+        /// </summary>
+        /// <returns>
+        ///   The range of the View, or <see langword="null"/> for the whole Texture: this is not a View, the View covers
+        ///   the whole Texture, or the Texture is a depth-stencil (its stencil plane has its own sub-Resources, which the
+        ///   layout tracker does not know).
+        /// </returns>
+        internal TextureSubresourceRange? GetBarrierRange()
+        {
+            if (ParentTexture is not { } parent || parent.IsDepthStencil)
+                return null;
+
+            var range = GetViewSubResourceRange();
+            return range.CoversWhole(parent) ? null : range;
         }
 
         /// <summary>

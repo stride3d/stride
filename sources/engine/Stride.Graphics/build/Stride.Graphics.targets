@@ -14,6 +14,26 @@
   <!-- Consume packages with StrideGraphicsApi -->
   <Import Project="$(MSBuildThisFileDirectory)Stride.GraphicsApiSpecificPackages.targets" />
 
+  <!-- D3D12 Agility SDK: copy it from the Microsoft.Direct3D.D3D12 version restore resolved (a game can reference a newer
+       one) into D3D12\, where D3D12Runtime loads it. Honors the package's own Microsoft_Direct3D_D3D12_Skip*Copy switches.
+       The package is native-only, so NuGet gives no path property for it. Engine builds get it through .ssdeps. -->
+  <Target Name="_StrideAddD3D12AgilitySDK" BeforeTargets="AssignTargetPaths"
+          Condition="'$(StrideGraphicsApi)' == 'Direct3D12' And '$(Microsoft_Direct3D_D3D12_SkipLibraryCopy)' != 'true' And Exists('$(ProjectAssetsFile)')">
+    <PropertyGroup>
+      <_StrideD3D12AgilitySDKVersion>$([System.Text.RegularExpressions.Regex]::Match($([System.IO.File]::ReadAllText('$(ProjectAssetsFile)')), '"Microsoft\.Direct3D\.D3D12/([^"]+)"').get_Groups().get_Item(1).ToString().ToLowerInvariant())</_StrideD3D12AgilitySDKVersion>
+      <_StrideD3D12AgilitySDKArchitecture>x64</_StrideD3D12AgilitySDKArchitecture>
+      <_StrideD3D12AgilitySDKArchitecture Condition="'$(RuntimeIdentifier)' == 'win-arm64'">arm64</_StrideD3D12AgilitySDKArchitecture>
+      <_StrideD3D12AgilitySDKDir>$([MSBuild]::EnsureTrailingSlash('$(NuGetPackageRoot)'))microsoft.direct3d.d3d12\$(_StrideD3D12AgilitySDKVersion)\build\native\bin\$(_StrideD3D12AgilitySDKArchitecture)\</_StrideD3D12AgilitySDKDir>
+    </PropertyGroup>
+    <Warning Condition="'$(_StrideD3D12AgilitySDKVersion)' == '' Or !Exists('$(_StrideD3D12AgilitySDKDir)D3D12Core.dll')"
+             Text="D3D12 Agility SDK not found ('$(_StrideD3D12AgilitySDKDir)'); the game will use the system D3D12 runtime." />
+    <ItemGroup Condition="Exists('$(_StrideD3D12AgilitySDKDir)D3D12Core.dll')">
+      <None Include="$(_StrideD3D12AgilitySDKDir)D3D12Core.dll" Link="D3D12\D3D12Core.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+      <None Include="$(_StrideD3D12AgilitySDKDir)D3D12SDKLayers.dll" Link="D3D12\D3D12SDKLayers.dll" CopyToOutputDirectory="PreserveNewest" Visible="false"
+            Condition="'$(Microsoft_Direct3D_D3D12_SkipDebugLayerCopy)' != 'true'" />
+    </ItemGroup>
+  </Target>
+
   <!--
     Download and include Vulkan validation layers for Android Debug builds.
     The layer .so is bundled into the APK so the Vulkan loader picks it up automatically.

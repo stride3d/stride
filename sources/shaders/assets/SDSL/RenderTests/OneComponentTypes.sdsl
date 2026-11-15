@@ -1,0 +1,30 @@
+// PSMain(ExpectedResult=#336699FF)
+
+namespace Stride.Shaders.Tests;
+
+shader OneComponentTypes
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    void Split(float v, out float low, out float high)
+    {
+        low = v * 0.5;
+        high = v;
+    }
+
+    void PSMain()
+    {
+        // float1 and float1x1 are float
+        float1 x = 0.4;
+        float1 p2, p3;
+        Split(x, p2, p3);
+
+        int1 i = 2;
+        uint1 u = 3;
+        bool1 b = x > 0.3;
+        float1x1 m = 0.6;
+        float1 c = float1(1.0);
+
+        streams.ColorTarget = float4(p2, p3, m, (i == 2 && u == 3 && b && c.x == 1.0) ? 1 : 0);
+    }
+};

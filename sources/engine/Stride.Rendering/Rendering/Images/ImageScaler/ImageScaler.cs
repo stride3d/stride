@@ -17,6 +17,7 @@ namespace Stride.Rendering.Images
         /// Initializes a new instance of the <see cref="ImageScaler"/> class.
         /// </summary>
         /// <param name="samplingPattern">9 taps multi-sampler (Expanded) or 1-tap Point sampling (Linear)</param>
+        /// <param name="delaySetRenderTargets">Whether to delay setting the render targets.</param>
         public ImageScaler(SamplingPattern samplingPattern, bool delaySetRenderTargets = false) : base(null, delaySetRenderTargets)
         {
             EffectName = samplingPattern == SamplingPattern.Expanded ? "ImageSuperSamplerScalerEffect" : "ImageScalerEffect";

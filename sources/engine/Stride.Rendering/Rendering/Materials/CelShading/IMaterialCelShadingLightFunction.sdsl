@@ -8,5 +8,14 @@ namespace Stride.Rendering.Materials
         {
             return float3(lightIn, lightIn, lightIn);
         }
+
+        /// <summary>
+        /// Ramps the luminance of a color and keeps its hue.
+        /// </summary>
+        float3 ComputeColor(float3 color)
+        {
+            var luminance = LuminanceUtils.Luma(color);
+            return Compute(luminance) * color / luminance;
+        }
     };
 }

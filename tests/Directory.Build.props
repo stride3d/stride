@@ -1,9 +1,6 @@
 <Project>
-  <!-- Test projects under /tests/ inherit StrideRoot from the repo's sources/Directory.Build.props
-       only if they live under sources/. This sibling file makes /tests/ pick up the same root so
-       Stride.Build.Sdk imports can resolve $(StrideRoot)-prefixed paths (Stride.Core.CompilerServices,
-       SDK targets, etc.). Mirrors the formula used in sources/Directory.Build.props. -->
-  <PropertyGroup>
-    <StrideRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../'))</StrideRoot>
-  </PropertyGroup>
+  <!-- MSBuild only finds sources/Directory.Build.props for projects under sources/. Importing it here gives the
+       projects under tests/ the same settings: $(StrideRoot) (it is computed from that file's folder, so it is the
+       same root) and the build properties every Stride project gets. -->
+  <Import Project="..\sources\Directory.Build.props" />
 </Project>

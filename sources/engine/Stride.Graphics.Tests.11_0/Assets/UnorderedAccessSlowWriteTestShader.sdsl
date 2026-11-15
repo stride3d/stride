@@ -1,0 +1,26 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Graphics.Tests
+{
+    /// <summary>
+    /// Writes index * 3 into a structured buffer after a busy loop, so the dispatch runs long enough for a next
+    /// dispatch to overlap it when nothing orders them.
+    /// </summary>
+    internal shader UnorderedAccessSlowWriteTestShader : ComputeShaderBase
+    {
+        stage RWStructuredBuffer<uint> Output;
+        stage uint Iterations;
+
+        override void Compute()
+        {
+            uint index = streams.DispatchThreadId.x;
+            uint state = index;
+            for (uint i = 0; i < Iterations; i++)
+                state = state * 1664525 + 1013904223;
+
+            // Never true in practice, but the compiler can't remove the loop
+            Output[index] = state == 0x12345678 && Iterations == 7 ? 0 : index * 3;
+        }
+    };
+}

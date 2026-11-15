@@ -38,6 +38,7 @@ namespace Stride.TextureConverter.Requests
         /// Initializes a new instance of the <see cref="ArrayExtractionRequest"/> class. Used to extracted a single texture.
         /// </summary>
         /// <param name="indice">The indice.</param>
+        /// <param name="minimimMipmapSize">The minimum size of mipmaps to extract.</param>
         public ArrayExtractionRequest(int indice, int minimimMipmapSize)
         {
             MinimumMipMapSize = minimimMipmapSize;

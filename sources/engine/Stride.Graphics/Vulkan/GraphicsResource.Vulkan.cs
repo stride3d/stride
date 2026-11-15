@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_VULKAN
+using System.Text;
 using Vortice.Vulkan;
 using static Vortice.Vulkan.Vulkan;
 
@@ -32,7 +33,21 @@ namespace Stride.Graphics
         internal int LastBarrierCommandListId;
 
         internal VkDeviceMemory NativeMemory;
-        internal VkPipelineStageFlags NativePipelineStageMask;
+
+        private VkPipelineStageFlags nativePipelineStageMask;
+
+        // A Texture View has no state of its own: this is its parent Texture's
+        internal VkPipelineStageFlags NativePipelineStageMask
+        {
+            get => this is Texture { ParentTexture: { } parent } ? parent.nativePipelineStageMask : nativePipelineStageMask;
+            set
+            {
+                if (this is Texture { ParentTexture: { } parent })
+                    parent.nativePipelineStageMask = value;
+                else
+                    nativePipelineStageMask = value;
+            }
+        }
 
         protected bool IsDebugMode
         {
@@ -42,28 +57,44 @@ namespace Stride.Graphics
             }
         }
 
-        protected override unsafe void OnNameChanged()
+        protected override void OnNameChanged()
         {
             base.OnNameChanged();
-            //if (GraphicsDevice != null && GraphicsDevice.IsProfilingSupported)
-            //{
-            //    if (string.IsNullOrEmpty(Name))
-            //        return;
+            SetDebugName();
+        }
 
-            //    var bytes = System.Text.Encoding.ASCII.GetBytes(Name);
+        /// <summary>
+        /// Gives the resource's name to its native image or buffer, where the validation layer and debuggers read it.
+        /// </summary>
+        internal unsafe void SetDebugName()
+        {
+            if (GraphicsDevice is not { IsProfilingSupported: true } || string.IsNullOrEmpty(Name))
+                return;
 
-            //    fixed (byte* bytesPointer = &bytes[0])
-            //    {
-            //        var nameInfo = new DebugMarkerObjectNameInfo
-            //        {
-            //            sType = VkStructureType.DebugMarkerObjectNameInfo,
-            //            Object = ,
-            //            ObjectName = new IntPtr(bytesPointer),
-            //            ObjectType =
-            //        };
-            //        GraphicsDevice.NativeDevice.DebugMarkerSetObjectName(ref nameInfo);
-            //    }
-            //}
+            // A texture view shares its parent's image: naming it would rename the parent.
+            // A staging texture has a buffer instead of an image.
+            var (objectType, objectHandle) = this switch
+            {
+                Texture { ParentTexture: null } texture when texture.NativeImage != VkImage.Null => (VkObjectType.Image, texture.NativeImage.Handle),
+                Texture { ParentTexture: null } texture when texture.NativeBuffer != VkBuffer.Null => (VkObjectType.Buffer, texture.NativeBuffer.Handle),
+                Buffer buffer when buffer.NativeBuffer != VkBuffer.Null => (VkObjectType.Buffer, buffer.NativeBuffer.Handle),
+                _ => (VkObjectType.Unknown, 0UL),
+            };
+            if (objectHandle == 0)
+                return;
+
+            var name = Encoding.UTF8.GetBytes(Name + "\0");
+            fixed (byte* namePointer = name)
+            {
+                var nameInfo = new VkDebugUtilsObjectNameInfoEXT
+                {
+                    sType = VkStructureType.DebugUtilsObjectNameInfoEXT,
+                    objectType = objectType,
+                    objectHandle = objectHandle,
+                    pObjectName = namePointer,
+                };
+                GraphicsDevice.NativeInstanceApi.vkSetDebugUtilsObjectNameEXT(GraphicsDevice.NativeDevice, &nameInfo);
+            }
         }
 
         protected unsafe void AllocateMemory(VkMemoryPropertyFlags memoryProperties, VkMemoryRequirements memoryRequirements)
@@ -114,6 +145,7 @@ namespace Stride.Graphics
             (NativePipelineStageMask, otherResource.NativePipelineStageMask)   = (otherResource.NativePipelineStageMask, NativePipelineStageMask);
             (IsHostVisibleHeap, otherResource.IsHostVisibleHeap)               = (otherResource.IsHostVisibleHeap, IsHostVisibleHeap);
             (LayoutTracker, otherResource.LayoutTracker)                       = (otherResource.LayoutTracker, LayoutTracker);
+            (SubmittedLayouts, otherResource.SubmittedLayouts)                 = (otherResource.SubmittedLayouts, SubmittedLayouts);
         }
     }
 }

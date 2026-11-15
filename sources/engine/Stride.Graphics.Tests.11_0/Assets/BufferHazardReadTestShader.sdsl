@@ -1,0 +1,20 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Graphics.Tests
+{
+    /// <summary>
+    /// Reads a structured buffer bound for unordered access, so a previous dispatch's write to it needs an
+    /// unordered access barrier, not a transition.
+    /// </summary>
+    internal shader BufferHazardReadTestShader : ComputeShaderBase
+    {
+        stage RWStructuredBuffer<uint> Input;
+        stage RWStructuredBuffer<uint> Result;
+
+        override void Compute()
+        {
+            Result[streams.DispatchThreadId.x] = Input[streams.DispatchThreadId.x] + 1;
+        }
+    };
+}

@@ -24,6 +24,11 @@
     <StrideSampleTemplate Include="stride-library">
       <SamplePath>$(StrideRoot)samples/Library/Library</SamplePath>
     </StrideSampleTemplate>
+    <!-- Plugin: a runtime library with its Assets and Editor companion projects. Used by GameStudio's
+         "Add Plugin" flow to scaffold a plugin into an existing solution. -->
+    <StrideSampleTemplate Include="stride-plugin">
+      <SamplePath>$(StrideRoot)samples/Plugin/Plugin</SamplePath>
+    </StrideSampleTemplate>
   </ItemGroup>
   <!-- Update Platforms drives stride-game with updateOnly=true (see UpdatePlatformsGenerator) — no dedicated template. -->
 
@@ -32,5 +37,6 @@
   <ItemGroup>
     <UpToDateCheckInput Include="$(StrideRoot)samples/NewGame/NewGame/**/*" />
     <UpToDateCheckInput Include="$(StrideRoot)samples/Library/Library/**/*" />
+    <UpToDateCheckInput Include="$(StrideRoot)samples/Plugin/Plugin/**/*" />
   </ItemGroup>
 </Project>

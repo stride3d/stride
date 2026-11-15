@@ -1,0 +1,27 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using Stride.Rendering.Data;
+using Stride.Shaders.Compiler;
+
+namespace StrideEffects
+{
+    params PreviewTextureParameters
+    {
+        bool Is3D;
+    };
+
+    effect PreviewTexture
+    {
+        using params PreviewTextureParameters;
+        using params SpriteBaseKeys;
+
+        if(PreviewTextureParameters.Is3D)
+        {
+            mixin Sprite3DBase;
+        }
+
+        // The SpriteBatch effect file no longer exists: mix the sprite batch shader directly, as SpriteBatch itself does
+        mixin SpriteBatchShader<SpriteBaseKeys.ColorIsSRgb>;
+    };
+}

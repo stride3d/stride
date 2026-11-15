@@ -1,0 +1,35 @@
+// A call that doesn't fit a function with a single signature: errors SDSL0160 (argument count), SDSL0161 (argument type)
+// and SDSL0164 (a value given for an out parameter)
+namespace Stride.Shaders.Tests;
+
+shader CallArgumentErrors
+{
+    StructuredBuffer<float4> Layout;
+    RWStructuredBuffer<float4> Output;
+
+    float Score(float4 corner, StructuredBuffer<float4> layout, uint index)
+    {
+        return dot(corner, layout[index]);
+    }
+
+    float Blend(float a, float b, float t = 0.5)
+    {
+        return lerp(a, b, t);
+    }
+
+    void Fill(out float2 value)
+    {
+        value = 1;
+    }
+
+    [numthreads(1, 1, 1)]
+    void CSMain(uint3 id : SV_DispatchThreadID)
+    {
+        float4 corner = 1;
+        float few = Score(corner, id.x);
+        float many = Blend(1, 2, 0.25, 4);
+        float wrong = Score(corner, corner, id.x);
+        Fill(corner.xx);
+        Output[id.x] = float4(few, many, wrong, 0);
+    }
+};

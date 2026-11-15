@@ -18,7 +18,6 @@ public class RootPackageAssetEnumerator : IPackageCompilerSource
     /// Initializes a new instance.
     /// </summary>
     /// <param name="package">The start package.</param>
-    /// <param name="extraRoots">The extra roots that needs to be collected with their dependencies.</param>
     public RootPackageAssetEnumerator(Package package)
     {
         rootPackage = package;

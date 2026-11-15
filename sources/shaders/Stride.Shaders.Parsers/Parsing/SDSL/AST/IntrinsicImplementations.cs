@@ -149,6 +149,27 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
     public override SpirvValue CompileLog2(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType.ReturnType, Specification.GLSLOp.GLSLLog2, x);
     public override SpirvValue CompilePow(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, SpirvValue y, TextLocation location = default) => CompileGLSLFloatBinaryCall(table, context, builder, functionType.ReturnType, Specification.GLSLOp.GLSLPow, x, y);
 
+    // lit(n_dot_l, n_dot_h, m) = (1, diffuse, specular, 1), as DXC lowers it:
+    // diffuse = n_dot_l < 0 ? 0 : n_dot_l, specular = (n_dot_l < 0 || n_dot_h < 0) ? 0 : pow(n_dot_h, m)
+    public override SpirvValue CompileLit(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue l, SpirvValue h, SpirvValue m, TextLocation location = default)
+    {
+        var scalarType = functionType.ReturnType.GetElementType();
+        var scalarTypeId = context.GetOrRegister(scalarType);
+        var boolType = context.GetOrRegister(ScalarType.Boolean);
+        var zero = builder.Convert(context, context.CompileConstant(0.0f), scalarType);
+        var one = builder.Convert(context, context.CompileConstant(1.0f), scalarType);
+
+        var diffuseIsZero = builder.Insert(new OpFOrdLessThan(boolType, context.Bound++, l.Id, zero.Id)).ResultId;
+        var diffuse = builder.Insert(new OpSelect(scalarTypeId, context.Bound++, diffuseIsZero, zero.Id, l.Id)).ResultId;
+
+        var halfVectorIsNegative = builder.Insert(new OpFOrdLessThan(boolType, context.Bound++, h.Id, zero.Id)).ResultId;
+        var specularIsZero = builder.Insert(new OpLogicalOr(boolType, context.Bound++, diffuseIsZero, halfVectorIsNegative)).ResultId;
+        var power = CompileGLSLFloatBinaryCall(table, context, builder, scalarType, Specification.GLSLOp.GLSLPow, h, m);
+        var specular = builder.Insert(new OpSelect(scalarTypeId, context.Bound++, specularIsZero, zero.Id, power.Id)).ResultId;
+
+        return new(builder.InsertData(new OpCompositeConstruct(context.GetOrRegister(functionType.ReturnType), context.Bound++, [one.Id, diffuse, specular, one.Id])));
+    }
+
     // Vector math
     public override SpirvValue CompileDistance(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue a, SpirvValue b, TextLocation location = default)
     {
@@ -184,6 +205,9 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
     {
         // Version on https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-mul
         // Note: SPIR-V and HLSL have opposite meaning for Rows/Columns and multiplication order need to be swapped
+        if (!context.ReverseTypes[a.TypeId].GetElementType().IsFloating() || !context.ReverseTypes[b.TypeId].GetElementType().IsFloating())
+            return CompileIntegerMul(table, context, builder, a, b, location);
+
         var result = (context.ReverseTypes[a.TypeId], context.ReverseTypes[b.TypeId]) switch
         {
             (ScalarType type1, ScalarType type2) => builder.InsertData(new OpFMul(a.TypeId, context.Bound++, a.Id, b.Id)),
@@ -204,6 +228,67 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
         };
 
         return new SpirvValue(result);
+    }
+
+    /// <summary>
+    /// mul() on integers: SPIR-V's matrix instructions and OpDot are for floats, so it is built from multiplications and
+    /// additions, row by row (the SPIR-V columns of a matrix are its HLSL rows).
+    /// </summary>
+    private static SpirvValue CompileIntegerMul(SymbolTable table, SpirvContext context, SpirvBuilder builder, SpirvValue a, SpirvValue b, TextLocation location)
+    {
+        var (typeA, typeB) = (context.ReverseTypes[a.TypeId], context.ReverseTypes[b.TypeId]);
+        return (typeA, typeB) switch
+        {
+            (ScalarType or VectorType or MatrixType, ScalarType) or (ScalarType, VectorType or MatrixType) => builder.BinaryOperation(table, context, a, Operator.Mul, b, location),
+            (VectorType v1, VectorType v2) when v1.Size == v2.Size => IntegerDot(table, context, builder, a, b, location),
+            // mul(v, M): the sum of the rows of M weighted by v
+            (VectorType v, MatrixType m) when v.Size == m.Columns => SumRows(table, context, builder, a, b, m, location),
+            // mul(M, v): one dot product per row of M
+            (MatrixType m, VectorType v) when m.Rows == v.Size => CompositeOfRows(context, builder, new VectorType(m.BaseType, m.Columns), m.Columns,
+                row => IntegerDot(table, context, builder, Row(context, builder, a, m, row), b, location)),
+            // mul(M1, M2): each row of M1 times M2
+            (MatrixType m1, MatrixType m2) when m1.Rows == m2.Columns => CompositeOfRows(context, builder, new MatrixType(m1.BaseType, m2.Rows, m1.Columns), m1.Columns,
+                row => SumRows(table, context, builder, Row(context, builder, a, m1, row), b, m2, location)),
+            _ => throw new NotSupportedException($"Unsupported mul operand types: {typeA} and {typeB}"),
+        };
+    }
+
+    private static SpirvValue Row(SpirvContext context, SpirvBuilder builder, SpirvValue matrix, MatrixType type, int row)
+        => new(builder.InsertData(new OpCompositeExtract(context.GetOrRegister(new VectorType(type.BaseType, type.Rows)), context.Bound++, matrix.Id, [row])));
+
+    private static SpirvValue Element(SpirvContext context, SpirvBuilder builder, SpirvValue vector, int index)
+    {
+        var elementType = context.GetOrRegister(((VectorType)context.ReverseTypes[vector.TypeId]).BaseType);
+        return new(builder.InsertData(new OpCompositeExtract(elementType, context.Bound++, vector.Id, [index])));
+    }
+
+    private static SpirvValue IntegerDot(SymbolTable table, SpirvContext context, SpirvBuilder builder, SpirvValue a, SpirvValue b, TextLocation location)
+    {
+        var product = builder.BinaryOperation(table, context, a, Operator.Mul, b, location);
+        var size = ((VectorType)context.ReverseTypes[product.TypeId]).Size;
+        var sum = Element(context, builder, product, 0);
+        for (var i = 1; i < size; i++)
+            sum = builder.BinaryOperation(table, context, sum, Operator.Plus, Element(context, builder, product, i), location);
+        return sum;
+    }
+
+    private static SpirvValue SumRows(SymbolTable table, SpirvContext context, SpirvBuilder builder, SpirvValue vector, SpirvValue matrix, MatrixType type, TextLocation location)
+    {
+        SpirvValue sum = default;
+        for (var row = 0; row < type.Columns; row++)
+        {
+            var term = builder.BinaryOperation(table, context, Row(context, builder, matrix, type, row), Operator.Mul, Element(context, builder, vector, row), location);
+            sum = row == 0 ? term : builder.BinaryOperation(table, context, sum, Operator.Plus, term, location);
+        }
+        return sum;
+    }
+
+    private static SpirvValue CompositeOfRows(SpirvContext context, SpirvBuilder builder, SymbolType type, int rows, Func<int, SpirvValue> getRow)
+    {
+        var values = new int[rows];
+        for (var row = 0; row < rows; row++)
+            values[row] = getRow(row).Id;
+        return new(builder.InsertData(new OpCompositeConstruct(context.GetOrRegister(type), context.Bound++, [.. values])));
     }
 
     public override SpirvValue CompileReflect(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue i, SpirvValue n, TextLocation location = default)
@@ -478,7 +563,6 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
     }
     public override SpirvValue CompileIsnormal(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => throw new NotImplementedException();
     public override SpirvValue CompileLdexp(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, SpirvValue exp, TextLocation location = default) => throw new NotImplementedException();
-    public override SpirvValue CompileLit(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue l, SpirvValue h, SpirvValue m, TextLocation location = default) => throw new NotImplementedException();
     public override SpirvValue CompileModf(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, SpirvValue ip, TextLocation location = default) => throw new NotImplementedException();
     public override SpirvValue CompileMsad4(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue reference, SpirvValue source, SpirvValue accum, TextLocation location = default) => throw new NotImplementedException();
     public override SpirvValue CompileProcess2DQuadTessFactorsAvg(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue RawEdgeFactors, SpirvValue InsideScale, SpirvValue RoundedEdgeFactors, SpirvValue RoundedInsideFactors, SpirvValue UnroundedInsideFactors, TextLocation location = default) => throw new NotImplementedException();
@@ -496,6 +580,21 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
     public override SpirvValue CompileTranspose(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default)
     {
         var returnTypeId = context.GetOrRegister(functionType.ReturnType);
+        // OpTranspose is for floats: an integer matrix is transposed element by element
+        if (functionType.ReturnType is MatrixType { BaseType: var baseType } returnType && !baseType.IsFloating())
+        {
+            var elementType = context.GetOrRegister(baseType);
+            var rowType = context.GetOrRegister(new VectorType(baseType, returnType.Rows));
+            var rows = new int[returnType.Columns];
+            var elements = new int[returnType.Rows];
+            for (var row = 0; row < returnType.Columns; row++)
+            {
+                for (var column = 0; column < returnType.Rows; column++)
+                    elements[column] = new SpirvValue(builder.InsertData(new OpCompositeExtract(elementType, context.Bound++, x.Id, [column, row]))).Id;
+                rows[row] = new SpirvValue(builder.InsertData(new OpCompositeConstruct(rowType, context.Bound++, [.. elements]))).Id;
+            }
+            return new(builder.InsertData(new OpCompositeConstruct(returnTypeId, context.Bound++, [.. rows])));
+        }
         var result = builder.Insert(new OpTranspose(returnTypeId, context.Bound++, x.Id));
         return new(result.ResultId, result.ResultType);
     }
@@ -628,28 +727,32 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
 
     public static SpirvValue CompileInterlockedCall(SymbolTable table, SpirvContext context, SpirvBuilder builder, InterlockedOp op, SpirvValue dest, SpirvValue value, SpirvValue? originalLocation = null, SpirvValue? compare = null)
     {
+        // MethodCall.CheckAtomicCall gave the destination the argument's type: an int or uint in shared memory
         var destType = context.ReverseTypes[dest.TypeId];
         if (destType is not PointerType pointerType || pointerType.BaseType is not ScalarType { Type: Scalar.UInt or Scalar.Int } s)
             throw new InvalidOperationException($"l-value int or uint expected but got {destType}");
 
         var resultType = s;
+        // The signature takes uint values (any int for Min and Max): as in DXC, they become the destination's type
+        value = builder.Convert(context, value, resultType);
+        var scope = context.CompileConstant((int)(pointerType.StorageClass == Specification.StorageClass.Workgroup ? Specification.Scope.Workgroup : Specification.Scope.Device));
 
         // If there is an out parameter to save original value
         SpirvValue originalValue;
         if (op == InterlockedOp.CompareStore || op == InterlockedOp.CompareExchange)
         {
             var instruction = builder.Insert(new OpAtomicCompareExchange(context.GetOrRegister(resultType), context.Bound++, dest.Id,
-                context.CompileConstant((int)Specification.Scope.Device).Id,
+                scope.Id,
                 context.CompileConstant((int)Specification.MemorySemanticsMask.Relaxed).Id,
                 context.CompileConstant((int)Specification.MemorySemanticsMask.Relaxed).Id,
-                compare!.Value.Id,
-                value.Id));
+                value.Id,
+                builder.Convert(context, compare!.Value, resultType).Id));
             originalValue = new SpirvValue(instruction.ResultId, instruction.ResultType);
         }
         else
         {
             var instruction = builder.Insert(new OpAtomicIAdd(context.GetOrRegister(resultType), context.Bound++, dest.Id,
-                context.CompileConstant((int)Specification.Scope.Device).Id,
+                scope.Id,
                 context.CompileConstant((int)Specification.MemorySemanticsMask.Relaxed).Id,
                 value.Id));
             // Update instruction type (they all share same memory layout)
@@ -715,6 +818,10 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
 
         var parameterType = context.ReverseTypes[x.TypeId].WithElementType(ScalarType.Boolean);
         x = builder.Convert(context, x, parameterType);
+
+        // OpAny / OpAll take a vector: for a scalar, the result is the value itself
+        if (parameterType is ScalarType)
+            return x;
 
         var instruction = builder.Insert(new OpAny(context.GetOrRegister(resultType), context.Bound++, x.Id));
         instruction.InstructionMemory.Span[0] = (int)(instruction.InstructionMemory.Span[0] & 0xFFFF0000) | (int)op;

@@ -5,13 +5,14 @@ Stride Sources
 
 All Stride projects import the MSBuild SDK files directly from source. The props import uses `GetDirectoryNameOfFileAbove` to locate `Directory.Build.props` without relying on any pre-set property; the targets import uses `$(StrideRoot)` (set by `sources/Directory.Build.props`, available by that point in the evaluation). See [SDK-GUIDE.md](../docs/build/SDK-GUIDE.md) for details.
 
-Three SDK packages are defined in `sources/sdk/`:
+Four MSBuild SDKs (props and targets) are defined in `sources/sdk/`:
 
-| Package | Purpose |
+| SDK | Purpose |
 |---------|---------|
 | **Stride.Build.Sdk** | Core SDK for all projects — platform detection, graphics API multi-targeting, assembly processor, dependencies |
 | **Stride.Build.Sdk.Editor** | Additional properties for editor/presentation projects |
 | **Stride.Build.Sdk.Tests** | Test infrastructure — xunit integration, test launcher code generation |
+| **Stride.Build.Sdk.MultiPlatform.Tests** | Tests that run on several platforms (multi-TFM) |
 
 For detailed SDK documentation, see [SDK-GUIDE.md](../docs/build/SDK-GUIDE.md).
 
@@ -49,9 +50,13 @@ For detailed SDK documentation, see [SDK-GUIDE.md](../docs/build/SDK-GUIDE.md).
 * __Stride.Core.Shaders__: Shader parsing, type analysis and conversion library (used by HLSL->GLSL and Stride Shader Language)
 * __Irony.GrammarExplorer__: Language syntax tester, you can check how [Stride Shading Language (SDSL)](https://doc.stride3d.net/latest/en/manual/graphics/effects-and-shaders/shading-language/index.html) works or test newly introduced features
 
+### plugins ###
+
+* One folder per engine plugin (`Audio`, `BepuPhysics`, `BulletPhysics`, `Particles`, `SpriteStudio`, `UI`, `Video`, `Voxels`), holding its runtime project, its `Assets` and `Editor` companion packages and its tests. See [plugins.md](../docs/build/plugins.md).
+
 ### sdk ###
 
-* MSBuild SDK packages that provide build logic for all Stride projects. See [Build System](#build-system) above.
+* MSBuild SDKs (props and targets) that provide build logic for all Stride projects. See [Build System](#build-system) above.
 
 ## Use in your project
 

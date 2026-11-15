@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Data;
 using Avalonia.Data.Converters;
 using Avalonia.Metadata;
@@ -115,12 +116,30 @@ public sealed class MultiBindingExtension
 
     public IMultiValueConverter? Converter { get; init; }
 
+    /// <summary>
+    /// Gets the parameter passed to the <see cref="Converter"/>.
+    /// </summary>
+    public object? ConverterParameter { get; init; }
+
+    public object? FallbackValue { get; init; } = AvaloniaProperty.UnsetValue;
+
+    /// <summary>
+    /// Gets the format of the string the values give, when there is no <see cref="Converter"/>.
+    /// </summary>
+    public string? StringFormat { get; init; }
+
     public MultiBinding ProvideTypedValue()
     {
         if (cachedBinding is not null)
             return cachedBinding;
 
-        cachedBinding = new MultiBinding { Converter = Converter };
+        cachedBinding = new MultiBinding
+        {
+            Converter = Converter,
+            ConverterParameter = ConverterParameter,
+            FallbackValue = FallbackValue,
+            StringFormat = StringFormat,
+        };
 
         foreach (var binding in Bindings)
             cachedBinding.Bindings.Add(binding);

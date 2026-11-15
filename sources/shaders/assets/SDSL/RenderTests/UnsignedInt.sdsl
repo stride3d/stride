@@ -1,0 +1,23 @@
+// PSMain(ExpectedResult=#336699FF)
+
+namespace Stride.Shaders.Tests;
+
+shader UnsignedInt
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    // `unsigned int` is HLSL's spelling of uint, also for vectors and in casts
+    unsigned int Half(unsigned int value)
+    {
+        return value / 2;
+    }
+
+    void PSMain()
+    {
+        const unsigned int id = (unsigned int)4.7;
+        unsigned int2 pair = uint2(3, 5);
+        float r = Half(id) == 2 ? 0.2 : 0;
+        float g = pair.x + pair.y == 8 ? 0.4 : 0;
+        streams.ColorTarget = float4(r, g, 0.6, 1);
+    }
+};

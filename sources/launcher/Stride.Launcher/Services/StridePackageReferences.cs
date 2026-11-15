@@ -28,6 +28,19 @@ internal static class StridePackageReferences
     public static List<NugetLocalPackage> FindRemovable(NugetStore store, IReadOnlyCollection<NugetLocalPackage> releases, IReadOnlyCollection<NugetLocalPackage> localBuilds)
         => FindRemovable(releases, localBuilds, InstalledDependencies(store), Comparer);
 
+    /// <summary>
+    /// The packages of <paramref name="previous"/> that <paramref name="current"/> no longer has, for the cleanup
+    /// after an install or an update. A local build's packages stay while that build is there (a folder of its main
+    /// package): its checkout regenerates them and invalidates them in the NuGet cache until its next restore, so they
+    /// may look unused for a while. Once the local build is deleted, they go like any other.
+    /// </summary>
+    public static List<NugetLocalPackage> FindUnused(NugetStore store, IEnumerable<NugetLocalPackage> previous, IReadOnlySet<NugetLocalPackage> current)
+        => FindUnused(previous, current, package => store.IsDevRedirectPackage(package)
+            && store.MainPackageIds.Any(id => store.HasPackageFolder(id, package.Version)));
+
+    internal static List<T> FindUnused<T>(IEnumerable<T> previous, IReadOnlySet<T> current, Func<T, bool> isPresentLocalBuild)
+        => [.. previous.Where(package => !current.Contains(package) && !isPresentLocalBuild(package))];
+
     internal static HashSet<T> Find<T>(IEnumerable<T> mainPackages, Func<T, IEnumerable<T>> dependencies, IEqualityComparer<T> comparer)
     {
         var referenced = new HashSet<T>(comparer);

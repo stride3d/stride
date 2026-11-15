@@ -12,7 +12,10 @@ namespace Stride.Core.Assets;
 /// </summary>
 public class PackageUserSettings
 {
-    private const string SettingsExtension = ".user";
+    /// <summary>
+    /// The extension added to the path of the package file to get the path of its user settings file.
+    /// </summary>
+    public const string SettingsExtension = ".user";
     private readonly Package package;
 
     public static SettingsContainer SettingsContainer = new();

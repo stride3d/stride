@@ -51,6 +51,7 @@ namespace Stride.Input
         private readonly List<IInputDevice> devices = new List<IInputDevice>();
 
         private readonly List<InputEvent> events = new List<InputEvent>();
+        private readonly MaskedEventList<InputEvent> maskedEvents;
         private readonly List<GestureEvent> currentGestureEvents = new List<GestureEvent>();
 
         private readonly Dictionary<GestureConfig, GestureRecognizer> gestureConfigToRecognizer = new Dictionary<GestureConfig, GestureRecognizer>();
@@ -72,6 +73,12 @@ namespace Stride.Input
 
         private GameContext gameContext;
 
+        /// <summary>
+        /// Whether <see cref="Initialize"/> and <see cref="ResetSources"/> add the gamepad sources of the platform (DirectInput
+        /// and XInput on Windows). Editor games turn it off: they read no gamepad, and DirectInput takes about 0.3 s to start.
+        /// </summary>
+        internal bool UseGamePadSources { get; set; } = true;
+
         private Dictionary<IInputSource, EventHandler<TrackingCollectionChangedEventArgs>> devicesCollectionChangedActions = new Dictionary<IInputSource, EventHandler<TrackingCollectionChangedEventArgs>>();
 
 #if STRIDE_INPUT_RAWINPUT
@@ -81,9 +88,12 @@ namespace Stride.Input
         /// <summary>
         /// Initializes a new instance of the <see cref="InputManager"/> class.
         /// </summary>
-        /// <param name="gameContext">The game context.</param>
         public InputManager()
         {
+            maskedEvents = new MaskedEventList<InputEvent>(this, events);
+            maskedKeyEvents = new MaskedEventList<KeyEvent>(this, keyEvents);
+            maskedPointerEvents = new MaskedEventList<PointerEvent>(this, pointerEvents);
+
             Gestures = new TrackingCollection<GestureConfig>();
             Gestures.CollectionChanged += GesturesOnCollectionChanged;
 
@@ -145,7 +155,8 @@ namespace Stride.Input
         /// <summary>
         /// All input events that happened since the last frame
         /// </summary>
-        public IReadOnlyList<InputEvent> Events => events;
+        /// <remarks>Events from captured devices and pointers are left out while <see cref="MaskCapturedInput"/> is enabled.</remarks>
+        public IReadOnlyList<InputEvent> Events => maskedEvents;
 
         /// <summary>
         /// Gets the collection of gesture events since the previous updates.
@@ -408,6 +419,7 @@ namespace Stride.Input
         /// </summary>
         /// <remarks>
         /// This method could take several milliseconds and should be used at specific time in a game where performance is not crucial (pause, configuration screen...etc.)
+        /// Some sources, such as DirectInput, scan on a worker thread: the devices they find are added by a later <see cref="Update"/>.
         /// </remarks>
         public void Scan()
         {
@@ -419,6 +431,7 @@ namespace Stride.Input
 
         public void Update(GameTime gameTime)
         {
+            FrameIndex++;
             ResetGlobalInputState();
 
             // Recycle input event to reduce garbage generation
@@ -439,19 +452,26 @@ namespace Stride.Input
             foreach (var inputDevice in devices)
             {
                 inputDevice.Update(events);
+                inputDevice.CaptureState.RaiseDeviceUpdated();
             }
 
             // Notify PreUpdateInput
             PreUpdateInput?.Invoke(this, new InputPreUpdateEventArgs { GameTime = gameTime });
             
-            // Send events to input listeners
-            foreach (var evt in events)
-            {
-                IInputEventRouter router;
-                if (!eventRouters.TryGetValue(evt.GetType(), out router))
-                    throw new InvalidOperationException($"The event type {evt.GetType()} was not registered with the input manager and cannot be processed");
+            RouteEvents(events);
 
-                router.RouteEvent(evt);
+            // The key and pointer event lists fill while events are routed, so a read before or during routing is rebuilt
+            CaptureVersion++;
+
+            // Let capture owners decide this frame's captures before the state scripts and systems read is built
+            resolvingCapture = true;
+            try
+            {
+                ResolvingCapture?.Invoke(this, EventArgs.Empty);
+            }
+            finally
+            {
+                resolvingCapture = false;
             }
 
             // Update virtual buttons
@@ -462,9 +482,29 @@ namespace Stride.Input
         }
 
         /// <summary>
-        /// Registers an object that listens for certain types of events using the specialized versions of <see cref="IInputEventListener&lt;"/>
+        /// Sends each event to the listeners registered for its type, in order.
+        /// </summary>
+        /// <param name="inputEvents">The events to route</param>
+        internal void RouteEvents(List<InputEvent> inputEvents)
+        {
+            foreach (var evt in inputEvents)
+            {
+                IInputEventRouter router;
+                if (!eventRouters.TryGetValue(evt.GetType(), out router))
+                    throw new InvalidOperationException($"The event type {evt.GetType()} was not registered with the input manager and cannot be processed");
+
+                router.RouteEvent(evt);
+            }
+        }
+
+        /// <summary>
+        /// Registers an object that listens for certain types of events using specialized versions of <see cref="IInputEventListener{TEventType}"/>.
         /// </summary>
         /// <param name="listener">The listener to register</param>
+        /// <remarks>
+        /// Listeners receive each event in the order they were registered. Adding a listener that is already registered has no effect.
+        /// A listener added while an event is being routed receives events from the next one onwards.
+        /// </remarks>
         public void AddListener(IInputEventListener listener)
         {
             foreach (var router in eventRouters)
@@ -477,11 +517,14 @@ namespace Stride.Input
         /// Removes a previously registered event listener
         /// </summary>
         /// <param name="listener">The listener to remove</param>
+        /// <remarks>
+        /// A listener removed while an event is being routed still receives that event, but none after it.
+        /// </remarks>
         public void RemoveListener(IInputEventListener listener)
         {
             foreach (var pair in eventRouters)
             {
-                pair.Value.Listeners.Remove(listener);
+                pair.Value.RemoveListener(listener);
             }
         }
 
@@ -622,7 +665,7 @@ namespace Stride.Input
         }
 
         /// <summary>
-        /// Inserts any registered event back into it's <see cref="InputEventPool&lt;"/>.
+        /// Inserts any registered event back into its <see cref="InputEventPool{TEventType}"/>.
         /// </summary>
         /// <param name="inputEvent">The event to insert into it's event pool</param>
         public void PoolInputEvent(InputEvent inputEvent)
@@ -702,9 +745,12 @@ namespace Stride.Input
                     // stack (DirectInput/XInput/raw input + SharpDX) when the WinForms backend is off.
                     if (GameContextFactory.WinFormsBackendEnabled)
                     {
-                        Sources.Add(new InputSourceWindowsDirectInput());
-                        if (InputSourceWindowsXInput.IsSupported())
-                            Sources.Add(new InputSourceWindowsXInput());
+                        if (UseGamePadSources)
+                        {
+                            Sources.Add(new InputSourceWindowsDirectInput((context as GameContextWinforms)?.Control));
+                            if (InputSourceWindowsXInput.IsSupported())
+                                Sources.Add(new InputSourceWindowsXInput((context as GameContextWinforms)?.Control));
+                        }
 #if STRIDE_INPUT_RAWINPUT
                         if (rawInputEnabled && context is GameContextWinforms gameContextWinforms)
                             Sources.Add(new InputSourceWindowsRawInput(gameContextWinforms.Control));
@@ -791,6 +837,7 @@ namespace Stride.Input
         private void OnInputDeviceAdded(IInputSource source, IInputDevice device)
         {
             devices.Add(device);
+            device.CaptureState.SetMaskingEnabled(maskCapturedInput);
             if (!devicesById.TryAdd(device.Id, device))
                 throw new InvalidOperationException($"Device with Id {device.Id}({device.Name}) already registered to {devicesById[device.Id].Name}");
 
@@ -829,6 +876,7 @@ namespace Stride.Input
                 throw new InvalidOperationException("Input device was not registered");
 
             var source = device.Source;
+            DropCapture(device);
             devices.Remove(device);
             devicesById.Remove(device.Id);
 
@@ -985,10 +1033,12 @@ namespace Stride.Input
         {
             currentGestureEvents.Clear();
 
+            CollectUnmaskedPointerEvents(gesturePointerEvents);
             foreach (var gestureRecognizer in gestureConfigToRecognizer.Values)
             {
-                gestureRecognizer.ProcessPointerEvents(elapsedGameTime, pointerEvents, currentGestureEvents);
+                gestureRecognizer.ProcessPointerEvents(elapsedGameTime, gesturePointerEvents, currentGestureEvents);
             }
+            gesturePointerEvents.Clear();
         }
 
         private void UpdateVirtualButtonStates()
@@ -1030,35 +1080,60 @@ namespace Stride.Input
 
         private interface IInputEventRouter
         {
-            HashSet<IInputEventListener> Listeners { get; }
-
             void PoolEvent(InputEvent evt);
 
             void RouteEvent(InputEvent evt);
 
             void TryAddListener(IInputEventListener listener);
+
+            void RemoveListener(IInputEventListener listener);
         }
 
         private class InputEventRouter<TEventType> : IInputEventRouter where TEventType : InputEvent, new()
         {
-            public HashSet<IInputEventListener> Listeners { get; } = new HashSet<IInputEventListener>(ReferenceEqualityComparer<IInputEventListener>.Default);
+            // Replaced rather than mutated, so an event being routed keeps the listeners it started with
+            private IInputEventListener<TEventType>[] listeners = Array.Empty<IInputEventListener<TEventType>>();
 
             public void RouteEvent(InputEvent evt)
             {
-                var listeners = Listeners.ToArray();
-                foreach (var gesture in listeners)
+                var typedEvent = (TEventType)evt;
+                foreach (var listener in listeners)
                 {
-                    ((IInputEventListener<TEventType>)gesture).ProcessEvent((TEventType)evt);
+                    listener.ProcessEvent(typedEvent);
                 }
             }
 
             public void TryAddListener(IInputEventListener listener)
             {
-                var specific = listener as IInputEventListener<TEventType>;
-                if (specific != null)
+                if (listener is IInputEventListener<TEventType> specific && IndexOf(specific) < 0)
                 {
-                    Listeners.Add(specific);
+                    var newListeners = new IInputEventListener<TEventType>[listeners.Length + 1];
+                    listeners.CopyTo(newListeners, 0);
+                    newListeners[^1] = specific;
+                    listeners = newListeners;
                 }
+            }
+
+            public void RemoveListener(IInputEventListener listener)
+            {
+                var index = IndexOf(listener);
+                if (index < 0)
+                    return;
+
+                var newListeners = new IInputEventListener<TEventType>[listeners.Length - 1];
+                Array.Copy(listeners, 0, newListeners, 0, index);
+                Array.Copy(listeners, index + 1, newListeners, index, listeners.Length - index - 1);
+                listeners = newListeners;
+            }
+
+            private int IndexOf(IInputEventListener listener)
+            {
+                for (int i = 0; i < listeners.Length; i++)
+                {
+                    if (ReferenceEquals(listeners[i], listener))
+                        return i;
+                }
+                return -1;
             }
 
             public void PoolEvent(InputEvent evt)

@@ -190,7 +190,7 @@ public static class MemoryUtilities
     /// </summary>
     /// <param name="alignedBuffer">The aligned buffer to free.</param>
     /// <remarks>
-    ///   The buffer must have been allocated with <see cref="AllocateMemory"/>.
+    ///   The buffer must have been allocated with <see cref="Allocate(int, int)"/> or <see cref="AllocateCleared"/>.
     /// </remarks>
     public static unsafe void Free(nint alignedBuffer)
     {

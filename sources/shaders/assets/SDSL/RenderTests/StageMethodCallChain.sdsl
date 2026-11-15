@@ -1,0 +1,45 @@
+// PSMain(ExpectedResult=#336699FF)
+
+namespace Stride.Shaders.Tests;
+
+// Outer calls Inner, and both are copied for the second stage that calls them: each stage's Outer must call that stage's Inner.
+// Keep has no streams, so all the stages share it. Each stage gives part of the color, so a call to the wrong copy changes it.
+shader StageMethodCallChain
+{
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+    stream float4 ColorTarget : SV_Target0;
+    stream float4 Seed;
+    stream float4 Temp;
+    stream float4 Result;
+
+    float4 Keep(float4 value)
+    {
+        return value;
+    }
+
+    void Inner()
+    {
+        streams.Temp = Keep(streams.Seed);
+    }
+
+    void Outer()
+    {
+        Inner();
+    }
+
+    void VSMain()
+    {
+        streams.ShadingPosition = streams.Position;
+        streams.Seed = float4(0.2, 0.4, 0, 1);
+        Outer();
+        streams.Result = streams.Temp;
+    }
+
+    void PSMain()
+    {
+        streams.Seed = float4(0, 0, 0.6, 0);
+        Outer();
+        streams.ColorTarget = streams.Result + streams.Temp;
+    }
+};

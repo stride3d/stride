@@ -1,0 +1,33 @@
+// PSMain(ExpectedResult=#336699FF, cbuffer.PerDraw=(Red=0.2, Blue=0.6))
+
+namespace Stride.Shaders.Tests;
+
+shader IgnoredHlslAnnotations
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    // packoffset and register are dropped (SDSL0220): the values arrive at the offsets Stride gives them
+    cbuffer PerDraw
+    {
+        float Red : packoffset(c0.y);
+        float Blue : register(c3);
+    }
+
+    // A semantic on a sampler does nothing
+    SamplerState LinearSampler : IMMUTABLE
+    {
+        Filter = MIN_MAG_MIP_LINEAR;
+        AddressU = Clamp;
+    };
+
+    // A return semantic on a helper is never emitted
+    float4 Color(float red, float blue) : COLOR
+    {
+        return float4(red, 0.4, blue, 1);
+    }
+
+    void PSMain()
+    {
+        streams.ColorTarget = Color(Red, Blue);
+    }
+};

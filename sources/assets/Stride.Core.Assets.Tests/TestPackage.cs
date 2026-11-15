@@ -1,12 +1,16 @@
 ﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Xunit;
+using Stride.Core.Assets.Analysis;
+using Stride.Core.Assets.Tracking;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
+using Stride.Core.Storage;
 
 namespace Stride.Core.Assets.Tests
 {
@@ -29,6 +33,33 @@ namespace Stride.Core.Assets.Tests
             Assert.False(loadResult.HasErrors);
             Assert.NotNull(package);
             Assert.Equal("MyPkgName", package.Meta.Name);
+        }
+
+        [Fact]
+        public void ProjectPackageSavesNoBuildDeclarations()
+        {
+            var dirPath = DirectoryTestBase + @"ProjectPackageSavesNoBuildDeclarations";
+            Directory.CreateDirectory(dirPath);
+            CompanionPackage NewCompanion() => new() { Kind = PackageKind.Assets, Name = "MyPlugin.Assets", Version = new PackageVersion("1.0.0") };
+
+            // A project's sdpkg is authored: the kind and companions its build declared are not written back
+            var projectPackage = new Package { Kind = PackageKind.Assets };
+            projectPackage.CompanionPackages.Add(NewCompanion());
+            _ = new SolutionProject(projectPackage, Guid.NewGuid(), Path.Combine(dirPath, "MyPlugin.csproj"));
+            var projectPath = Path.Combine(dirPath, "Project.sdpkg");
+            AssetFileSerializer.Save(projectPath, projectPackage, null);
+            var projectText = File.ReadAllText(projectPath);
+            Assert.DoesNotContain("CompanionPackages", projectText);
+            Assert.DoesNotContain("Kind:", projectText);
+
+            // A packed sdpkg keeps them
+            var packedPackage = new Package { Kind = PackageKind.Assets };
+            packedPackage.CompanionPackages.Add(NewCompanion());
+            var packedPath = Path.Combine(dirPath, "Packed.sdpkg");
+            AssetFileSerializer.Save(packedPath, packedPackage, null);
+            var packedText = File.ReadAllText(packedPath);
+            Assert.Contains("CompanionPackages", packedText);
+            Assert.Contains("Kind: Assets", packedText);
         }
 
         [Fact(Skip = "Need check: we don't work with package directly anymore, they are considered external")]
@@ -113,6 +144,83 @@ namespace Stride.Core.Assets.Tests
             Assert.False(result.HasErrors, string.Join("\n", result.Messages));
             Assert.False(File.Exists(oldFile));
             Assert.True(File.Exists(Path.Combine(dirPath, "Assets", "Sub", "Ground2.sdtest")));
+        }
+
+        private (PackageSession Session, Package Package, AssetItem Asset, string File) CreateSavedAsset(string testName)
+        {
+            var dirPath = Path.Combine(DirectoryTestBase, testName);
+            if (Directory.Exists(dirPath))
+                Directory.Delete(dirPath, true);
+            Directory.CreateDirectory(dirPath);
+
+            var package = new Package { FullPath = Path.Combine(dirPath, "MyGame.sdpkg") };
+            package.AssetFolders.Add(new AssetFolder("Assets"));
+            var session = new PackageSession();
+            session.Projects.Add(new SolutionProject(package, Guid.NewGuid(), Path.Combine(dirPath, "MyGame.csproj")));
+            var asset = new AssetItem("Ground", new AssetObjectTest());
+            package.Assets.Add(asset);
+            asset.IsDirty = true;
+
+            var result = new LoggerResult();
+            session.Save(result);
+            Assert.False(result.HasErrors, string.Join("\n", result.Messages));
+            var file = Path.Combine(dirPath, "Assets", "Ground.sdtest");
+            Assert.True(File.Exists(file));
+            return (session, package, asset, file);
+        }
+
+        [Fact]
+        public void TestSaveKeepsFileOfRemovedAssetWhenAnotherAssetHasIt()
+        {
+            var (session, package, asset, file) = CreateSavedAsset(nameof(TestSaveKeepsFileOfRemovedAssetWhenAnotherAssetHasIt));
+
+            // The file was deleted and came back: a new asset, with another id, now stands for it
+            package.Assets.Remove(asset);
+            var newAsset = new AssetItem(asset.Location, new AssetObjectTest()) { SourceFolder = asset.SourceFolder };
+            package.Assets.Add(newAsset);
+            newAsset.IsDirty = false;
+            package.Assets.IsDirty = true;
+            var content = File.ReadAllText(file) + "# Kept\n";
+            File.WriteAllText(file, content);
+
+            var result = new LoggerResult();
+            session.Save(result);
+
+            Assert.False(result.HasErrors, string.Join("\n", result.Messages));
+            Assert.True(File.Exists(file));
+            Assert.Equal(content, File.ReadAllText(file));
+        }
+
+        [Fact]
+        public void TestSaveKeepsFileThatCameBackAfterDeleteOutside()
+        {
+            var (session, package, asset, file) = CreateSavedAsset(nameof(TestSaveKeepsFileThatCameBackAfterDeleteOutside));
+
+            package.Assets.Remove(asset);
+            session.SetFileDeletedOutside(asset.FullPath, true);
+
+            var result = new LoggerResult();
+            session.Save(result);
+
+            Assert.False(result.HasErrors, string.Join("\n", result.Messages));
+            Assert.True(File.Exists(file));
+        }
+
+        [Fact]
+        public void TestSaveDeletesFileOfAssetRemovedInSession()
+        {
+            var (session, package, asset, file) = CreateSavedAsset(nameof(TestSaveDeletesFileOfAssetRemovedInSession));
+
+            // An undo of a delete from outside clears the mark, so a later delete in the session still deletes the file
+            session.SetFileDeletedOutside(asset.FullPath, true);
+            session.SetFileDeletedOutside(asset.FullPath, false);
+            package.Assets.Remove(asset);
+
+            var result = new LoggerResult();
+            session.Save(result);
+
+            Assert.False(result.HasErrors, string.Join("\n", result.Messages));
+            Assert.False(File.Exists(file));
         }
 
         [Fact]
@@ -385,6 +493,99 @@ namespace Stride.Core.Assets.Tests
                 Assert.Contains("../../TestPackage/SubFolder/TestAsset.sdtest", text);
 
                 Assert.Equal("subTest/TestAsset2", assetChanged.Reference.Location);
+            }
+        }
+
+        [Fact]
+        public void TestLoadAssetFromFile()
+        {
+            var dirPath = Path.Combine(DirectoryTestBase, "TestLoadAssetFromFile");
+            if (Directory.Exists(dirPath))
+                Directory.Delete(dirPath, true);
+            Directory.CreateDirectory(dirPath);
+
+            var package = new Package { FullPath = Path.Combine(dirPath, "MyPkg.sdpkg") };
+            package.AssetFolders.Clear();
+            package.AssetFolders.Add(new AssetFolder("Assets"));
+
+            // A file written by another program, in a sub-folder of an asset folder, with paths relative to it as when saved
+            var sourcePath = new UFile(Path.Combine(dirPath, "Resources", "ground.png"));
+            var asset = new AssetObjectTest { Name = "Changed outside", RawAsset = sourcePath };
+            SourceHashesHelper.UpdateHashes(asset, new Dictionary<UFile, ObjectId> { [sourcePath] = ObjectId.New() });
+            var filePath = Path.Combine(dirPath, "Assets", "Sub", "Ground.sdtest");
+            AssetAnalysis.ConvertUPaths(new AssetItem("Sub/Ground", asset, package) { SourceFolder = "Assets" }, UPathType.Relative);
+            Assert.Equal(new UFile("../../Resources/ground.png"), asset.RawAsset);
+            AssetFileSerializer.Save(filePath, asset, null);
+
+            var result = new LoggerResult();
+            var assetItem = package.LoadAssetFromFile(new UFile(filePath), result);
+            Assert.False(result.HasErrors, string.Join("\n", result.Messages));
+            Assert.NotNull(assetItem);
+            Assert.Equal("Sub/Ground", assetItem.Location.FullPath);
+            Assert.Equal(asset.Id, assetItem.Id);
+            Assert.Equal(asset.Name, ((AssetObjectTest)assetItem.Asset).Name);
+            Assert.False(assetItem.IsDirty);
+            // Its paths are absolute, as in the assets of a loaded package
+            Assert.Equal(sourcePath, ((AssetObjectTest)assetItem.Asset).RawAsset);
+            Assert.Equal(sourcePath, Assert.Single(SourceHashesHelper.GetAllHashes(assetItem.Asset)).Key);
+            // It is loaded, not added
+            Assert.Empty(package.Assets);
+
+            // A file out of the asset folders is not an asset of the package
+            var outsidePath = Path.Combine(dirPath, "Elsewhere", "Ground.sdtest");
+            AssetFileSerializer.Save(outsidePath, asset, null);
+            result = new LoggerResult();
+            Assert.Null(package.LoadAssetFromFile(new UFile(outsidePath), result));
+            Assert.True(result.HasErrors);
+        }
+
+        [Fact]
+        public void TestAssetOfUnknownTypeLoadsAsUnloadable()
+        {
+            PackageSessionPublicHelper.FindAndSetMSBuildVersion();
+
+            var dirPath = Path.Combine(DirectoryTestBase, "TestAssetOfUnknownTypeLoadsAsUnloadable");
+            if (Directory.Exists(dirPath))
+                Directory.Delete(dirPath, true);
+            Directory.CreateDirectory(dirPath);
+
+            var packagePath = Path.Combine(dirPath, "MyPkg.sdpkg");
+            var package = new Package { FullPath = packagePath };
+            package.AssetFolders.Clear();
+            package.AssetFolders.Add(new AssetFolder("."));
+            AssetFileSerializer.Save(packagePath, package, null);
+
+            // An asset of a type no loaded assembly defines (a plugin missing or not built)
+            var assetContent = "!MyPluginAsset,MyPlugin" + Environment.NewLine
+                + "Id: 1b4f1e3a-6a1b-4b6e-9f0d-2c3d4e5f6071" + Environment.NewLine
+                + "Speed: 3.0" + Environment.NewLine;
+            File.WriteAllText(Path.Combine(dirPath, "Thing.sdmyplugin"), assetContent);
+            // Not an asset at all: no Yaml type tag, so it stays out of the session
+            File.WriteAllText(Path.Combine(dirPath, "Junk.sdjunk"), "this is not yaml");
+
+            // The editor keeps it, so the user sees the asset and its content is preserved
+            var editorParameters = PackageLoadParameters.Default();
+            editorParameters.LoadAssetsOfUnknownType = true;
+            var editorResult = new PackageSessionResult();
+            PackageSession.Load(packagePath, editorResult, editorParameters);
+            using (var session = editorResult.Session)
+            {
+                var loadedPackage = Assert.Single(session.Packages);
+                var messages = string.Join(Environment.NewLine, editorResult.Messages.Select(x => x.ToString()));
+                Assert.True(loadedPackage.Assets.Count == 1, $"Expected the unloadable asset, got {loadedPackage.Assets.Count}:{Environment.NewLine}{messages}");
+                var assetItem = loadedPackage.Assets.First();
+                Assert.Equal("Thing", assetItem.Location.GetFileNameWithoutExtension());
+                var unloadable = Assert.IsAssignableFrom<Stride.Core.Yaml.IUnloadable>(assetItem.Asset);
+                Assert.Equal("MyPluginAsset", unloadable.TypeName);
+                Assert.Equal("MyPlugin", unloadable.AssemblyName);
+            }
+
+            // Every other host (the asset compiler) leaves it out
+            var compilerResult = new PackageSessionResult();
+            PackageSession.Load(packagePath, compilerResult, PackageLoadParameters.Default());
+            using (var session = compilerResult.Session)
+            {
+                Assert.Empty(Assert.Single(session.Packages).Assets);
             }
         }
 

@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using Stride.Audio;
 using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.Serialization.Contents;
@@ -193,21 +192,6 @@ namespace Stride.Engine
             }
         }
         private DebugTextSystem debugTextSystem;
-
-        [DataMemberIgnore]
-        public AudioSystem Audio
-        {
-            get
-            {
-                audioSystem ??= Services.GetSafeServiceAs<AudioSystem>();
-                return audioSystem;
-            }
-            private set
-            {
-                audioSystem = value;
-            }
-        }
-        private AudioSystem audioSystem;
 
         [DataMemberIgnore]
         public SpriteAnimationSystem SpriteAnimation

@@ -11,7 +11,7 @@ using Stride.Core.Presentation.Extensions;
 
 namespace Stride.Core.Assets.Editor.View.Behaviors
 {
-    using TextBoxBase = Presentation.Controls.TextBoxBase;
+    using TextBoxBase = Stride.Core.Presentation.Controls.TextBoxBase;
 
     public class ValidateTextBoxAfterSlidingBehavior : Behavior<Slider>
     {

@@ -225,7 +225,7 @@ namespace Stride.Core.Presentation.Controls
         }
 
         /// <summary>
-        /// Handles the <see cref="Rectangle.MouseDown"/> event of the color surface.
+        /// Handles the <see cref="System.Windows.UIElement.MouseDown"/> event of the color surface.
         /// </summary>
         /// <param name="sender">The object where the event handler is attached.</param>
         /// <param name="e">The event data.</param>
@@ -240,7 +240,7 @@ namespace Stride.Core.Presentation.Controls
         }
 
         /// <summary>
-        /// Handles the <see cref="Rectangle.MouseUp"/> event of the color surface.
+        /// Handles the <see cref="System.Windows.UIElement.MouseUp"/> event of the color surface.
         /// </summary>
         /// <param name="sender">The object where the event handler is attached.</param>
         /// <param name="e">The event data.</param>
@@ -255,7 +255,7 @@ namespace Stride.Core.Presentation.Controls
         }
 
         /// <summary>
-        /// Handles the <see cref="Rectangle.MouseMove"/> event of the color surface.
+        /// Handles the <see cref="System.Windows.UIElement.MouseMove"/> event of the color surface.
         /// </summary>
         /// <param name="sender">The object where the event handler is attached.</param>
         /// <param name="e">The event data.</param>
@@ -287,7 +287,7 @@ namespace Stride.Core.Presentation.Controls
 
 
         /// <summary>
-        /// Handles the <see cref="Rectangle.MouseDown"/> event of the hue surface.
+        /// Handles the <see cref="System.Windows.UIElement.MouseDown"/> event of the hue surface.
         /// </summary>
         /// <param name="sender">The object where the event handler is attached.</param>
         /// <param name="e">The event data.</param>
@@ -302,7 +302,7 @@ namespace Stride.Core.Presentation.Controls
         }
 
         /// <summary>
-        /// Handles the <see cref="Rectangle.MouseUp"/> event of the hue surface.
+        /// Handles the <see cref="System.Windows.UIElement.MouseUp"/> event of the hue surface.
         /// </summary>
         /// <param name="sender">The object where the event handler is attached.</param>
         /// <param name="e">The event data.</param>
@@ -317,7 +317,7 @@ namespace Stride.Core.Presentation.Controls
         }
 
         /// <summary>
-        /// Handles the <see cref="Rectangle.MouseMove"/> event of the hue surface.
+        /// Handles the <see cref="System.Windows.UIElement.MouseMove"/> event of the hue surface.
         /// </summary>
         /// <param name="sender">The object where the event handler is attached.</param>
         /// <param name="e">The event data.</param>

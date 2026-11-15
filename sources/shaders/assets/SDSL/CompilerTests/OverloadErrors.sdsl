@@ -1,0 +1,30 @@
+// Calls that match no overload (SDSL0162) or several equally well (SDSL0163), ranked like DXC
+namespace Stride.Shaders.Tests;
+
+shader OverloadErrors
+{
+    RWStructuredBuffer<float4> Output;
+
+    float Mix(float a, int b) { return a; }
+    float Mix(int a, float b) { return b; }
+
+    float Shrink(float v) { return v; }
+    float Shrink(float2 v) { return v.x; }
+
+    float Pick(float2 v, float w) { return w; }
+    float Pick(float3 v) { return v.x; }
+
+    [numthreads(1, 1, 1)]
+    void CSMain(uint3 id : SV_DispatchThreadID)
+    {
+        float f = 1;
+        float3 v = 2;
+        // One element conversion each
+        float mixed = Mix(f, f);
+        // A truncation each, whatever the size
+        float shrunk = Shrink(v);
+        // Neither overload takes 3 arguments
+        float picked = Pick(v, f, f);
+        Output[id.x] = float4(mixed, shrunk, picked, 0);
+    }
+};

@@ -3,16 +3,12 @@ name: Release VS Package
 on:
   workflow_dispatch:
     inputs:
-      sign:
-        description: Code sign packages
-        default: true
-        type: boolean
       deploy:
         description: Deploy to NuGet.org
         default: false
         type: boolean
       upload-binlog:
-        description: Capture and upload an MSBuild binlog (diagnostics). Ignored on signed builds — a binlog records env vars/task params and would leak signing secrets.
+        description: Capture and upload an MSBuild binlog (diagnostics). The build has no secrets, so it may hold the binlog.
         default: false
         type: boolean
       version-suffix:
@@ -29,24 +25,28 @@ jobs:
     name: Validate
     runs-on: ubuntu-latest
     steps:
-      - name: Check deploy requires signing
-        if: ${{ inputs.deploy && !inputs.sign }}
-        run: |
-          echo "::error::Cannot deploy unsigned packages. Enable 'sign' to deploy."
-          exit 1
+      # GITHUB_TOKEN can't read team membership: the Stride Bot app can (Organization Members: Read).
+      - name: Get the Stride Bot token
+        id: bot
+        if: ${{ inputs.deploy }}
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.STRIDE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.STRIDE_BOT_PRIVATE_KEY }}
+          permission-members: read
 
       - name: Check release permissions
-        if: ${{ inputs.sign || inputs.deploy }}
+        if: ${{ inputs.deploy }}
         env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
+          GH_TOKEN: ${{ steps.bot.outputs.token }}
         run: |
           ORG=$(echo "${{ github.repository }}" | cut -d/ -f1)
           TEAM="stride-release-managers"
           USER="${{ github.actor }}"
-          # A 404 here means either the actor isn't a member OR GH_PAT can't read the team
-          # (dead/under-scoped token); the message covers both since the API can't distinguish them.
+          # A 404 here means either the actor isn't a member OR the token can't read the team
+          # (app without Organization Members: Read); the message covers both since the API can't distinguish them.
           if ! gh api "orgs/$ORG/teams/$TEAM/memberships/$USER" --silent 2>/dev/null; then
-            echo "::error::Sign/deploy blocked: '$USER' is not a member of $ORG/$TEAM, or GH_PAT cannot read it (dead token / missing Organization Members: Read). Requires stride-release-managers membership."
+            echo "::error::Deploy blocked: '$USER' is not a member of $ORG/$TEAM, or the Stride Bot token cannot read it (missing Organization Members: Read). Requires stride-release-managers membership."
             exit 1
           fi
 
@@ -54,7 +54,7 @@ jobs:
     name: Package VS Extension
     needs: Validate
     runs-on: windows-2025-vs2026
-    environment: production
+    # No environment and no secrets: the packages are signed by the Deploy job, in production.
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
@@ -70,18 +70,12 @@ jobs:
       - name: Build VS Package
         run: |
           # --no-restore: the VSIXPlugin target restores its solution itself.
-          dotnet build build\Stride.build `
+          dotnet build build\package.proj `
             -t:VSIXPlugin `
             --no-restore `
-            ${{ inputs.upload-binlog && !inputs.sign && '-bl' || '' }} -m -nr:false `
-            -p:StrideSign=${{ inputs.sign }} `
+            ${{ inputs.upload-binlog && '-bl' || '' }} -m -nr:false `
+            -p:StrideSign=false `
             -p:VersionSuffix=${{ inputs.version-suffix }}
-        env:
-          StrideSignTenantId: ${{ secrets.STRIDE_SIGN_TENANT_ID }}
-          StrideSignClientId: ${{ secrets.STRIDE_SIGN_CLIENT_ID }}
-          StrideSignClientSecret: ${{ secrets.STRIDE_SIGN_CLIENT_SECRET }}
-          StrideSignKeyVaultCertificate: ${{ secrets.STRIDE_SIGN_KEYVAULT_CERTIFICATE }}
-          StrideSignKeyVaultName: ${{ secrets.STRIDE_SIGN_KEYVAULT_NAME }}
 
       - name: Get version
         id: version
@@ -109,7 +103,7 @@ jobs:
 
       - name: Upload build log
         uses: actions/upload-artifact@v7
-        if: ${{ always() && inputs.upload-binlog && !inputs.sign }}
+        if: ${{ always() && inputs.upload-binlog }}
         with:
           name: build-log
           path: msbuild.binlog
@@ -117,16 +111,33 @@ jobs:
 
   Deploy:
     name: Deploy VS Package
-    if: ${{ inputs.deploy && inputs.sign }}
+    if: ${{ inputs.deploy }}
     needs: Package
-    runs-on: ubuntu-latest
-    environment: production
+    runs-on: windows-2025  # the sign tool needs Windows
+    environment: production  # requires manual approval in GitHub settings
+    defaults:
+      run:
+        shell: bash
+    env:
+      MSYS_NO_PATHCONV: 1  # Git Bash: keep tag and path arguments as they are
+    permissions:
+      contents: read
+      id-token: write # nuget.org trusted publishing
     steps:
+      # The Stride Release app's key is only in the production environment, and the app may pass the master ruleset.
+      - name: Get the Stride Release token
+        id: release
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.STRIDE_RELEASE_CLIENT_ID }}
+          private-key: ${{ secrets.STRIDE_RELEASE_PRIVATE_KEY }}
+          permission-contents: write
+
       - uses: actions/checkout@v7  # full history + tags for the vspackage-scoped changelog and tagging
         with:
           fetch-depth: 0
           fetch-tags: true
-          token: ${{ secrets.GH_PAT }}  # push the vspackage/<version> tag
+          token: ${{ steps.release.outputs.token }}  # push the vspackage/<version> tag
 
       - uses: actions/setup-dotnet@v6
         with:
@@ -138,6 +149,22 @@ jobs:
           name: stride-vsix-${{ needs.Package.outputs.version }}
           path: bin/vsix
 
+      - name: Sign
+        run: dotnet build build/package.proj -t:SignVSIXPlugin --no-restore -p:StrideSign=true
+        env:
+          StrideSignTenantId: ${{ secrets.STRIDE_SIGN_TENANT_ID }}
+          StrideSignClientId: ${{ secrets.STRIDE_SIGN_CLIENT_ID }}
+          StrideSignClientSecret: ${{ secrets.STRIDE_SIGN_CLIENT_SECRET }}
+          StrideSignKeyVaultCertificate: ${{ secrets.STRIDE_SIGN_KEYVAULT_CERTIFICATE }}
+          StrideSignKeyVaultName: ${{ secrets.STRIDE_SIGN_KEYVAULT_NAME }}
+
+      # A short-lived key from nuget.org's trusted publishing policy for this workflow file, instead of a stored one
+      - name: NuGet login
+        id: nuget-login
+        uses: NuGet/login@v1
+        with:
+          user: ${{ vars.STRIDE_NUGET_USER }}
+
       - name: Push to NuGet
         shell: pwsh
         run: |
@@ -146,7 +173,7 @@ jobs:
             dotnet nuget push $_.FullName --api-key $env:STRIDE_NUGET_API_KEY --source "https://api.nuget.org/v3/index.json" --skip-duplicate
           }
         env:
-          STRIDE_NUGET_API_KEY: ${{ secrets.STRIDE_NUGET_API_KEY }}
+          STRIDE_NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
 
       - name: Tag release
         run: |
@@ -160,7 +187,7 @@ jobs:
 
       - name: Create GitHub Release
         env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
+          GH_TOKEN: ${{ steps.release.outputs.token }}
         run: |
           TAG="vspackage/${{ needs.Package.outputs.version }}"
           if gh release view "$TAG" >/dev/null 2>&1; then
@@ -200,7 +227,7 @@ jobs:
     needs: [Package, Deploy]
     if: ${{ needs.Package.outputs.version != '' }}
     permissions:
-      contents: read       # passed down only as the model's read-only token; apply uses the PAT
+      contents: read       # passed down only as the model's read-only token; apply uses the Stride Bot token
       pull-requests: read  # lets the model trace commits to their PRs
     uses: ./.github/workflows/release-notes-apply.yml
     with:
@@ -210,5 +237,5 @@ jobs:
       scope: sources/tools/Stride.VisualStudio.*
       apply: true
     secrets:
-      gh-token: ${{ secrets.GH_PAT }}
-      anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+      bot-private-key: ${{ secrets.STRIDE_BOT_PRIVATE_KEY }}
+      anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY_RELEASE_NOTES }}

@@ -1,0 +1,41 @@
+// PSMain(ExpectedResult=#336699FF, structuredbuffer.V3="12: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23", structuredbuffer.S1="12: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23", structuredbuffer.M33="36: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71", structuredbuffer.M34="48: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95", structuredbuffer.S2="28: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27")
+
+namespace Stride.Shaders.Tests;
+
+// Structured buffers whose std430 layout differs from Direct3D's read the same tight CPU data on every API
+// (0, 1, 2... in memory order): Vulkan uses Direct3D's layout through scalarBlockLayout
+shader StructuredBufferTightLayout
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    struct OneFloat3
+    {
+        float3 Value;
+    };
+
+    struct ArrayAndFloat
+    {
+        float3 Values[2];
+        float Tail;
+    };
+
+    StructuredBuffer<float3> V3;            // 12-byte elements
+    StructuredBuffer<OneFloat3> S1;         // 12-byte elements
+    StructuredBuffer<float3x3> M33;         // three columns of 3: 36 bytes
+    StructuredBuffer<float3x4> M34;         // four columns of 3: 48 bytes
+    StructuredBuffer<ArrayAndFloat> S2;     // Values at 0 and 12, Tail at 24: 28 bytes
+
+    void PSMain()
+    {
+        bool vectors = all(V3[1] == float3(3, 4, 5)) && V3[7].z == 23 && all(S1[1].Value == float3(3, 4, 5));
+
+        // column_major: m[row][column] = data[column * rows + row]
+        float3x3 a = M33[1];
+        float3x4 b = M34[1];
+        bool matrices = a[0][1] == 12 && a[2][2] == 17 && b[0][1] == 15 && b[2][3] == 23;
+
+        bool structs = all(S2[0].Values[1] == float3(3, 4, 5)) && S2[0].Tail == 6 && S2[1].Values[0].x == 7;
+
+        streams.ColorTarget = float4(vectors ? 0.2 : 0, matrices ? 0.4 : 0, structs ? 0.6 : 0, 1);
+    }
+};

@@ -38,7 +38,7 @@ public interface INodePresenter : IDisposable
 
     int? Order { get; set; }
 
-    object Value { get; }
+    object? Value { get; }
 
     string CombineKey { get; set; }
 
@@ -50,7 +50,7 @@ public interface INodePresenter : IDisposable
 
     event EventHandler<ValueChangedEventArgs>? ValueChanged;
 
-    void UpdateValue(object newValue);
+    void UpdateValue(object? newValue);
 
     void AddItem(object value);
 

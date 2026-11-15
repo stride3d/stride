@@ -40,19 +40,27 @@ namespace Stride.Importer.ThreeD
 
         public Logger Logger { get; set; }
 
+        /// <summary>
+        /// Where morph target normal deltas come from.
+        /// </summary>
+        public MorphDeltaSource MorphNormals { get; set; }
+
+        /// <summary>
+        /// Where morph target tangent deltas come from.
+        /// </summary>
+        public MorphDeltaSource MorphTangents { get; set; }
+
         private readonly Assimp assimp = CreateAssimpApi();
 
         private static Assimp CreateAssimpApi()
         {
-            // On Windows the default loader picks the single shipped Assimp64.dll (Assimp 6.0.2).
+            // On Windows the default loader picks Stride.Dependencies.Assimp's Assimp64.dll.
             if (Platform.Type == PlatformType.Windows)
                 return Assimp.GetApi();
 
             // Silk.NET's Assimp binding still requests the legacy Assimp 5 SONAME (libassimp.so.5 /
-            // libassimp.5.dylib) even though its managed types match Assimp 6. Ultz.Native.Assimp 6.x
-            // ships both the old (.so.5) and new (.so.6) binaries, so the default loader binds the
-            // stale Assimp 5 lib on Linux/macOS and corrupts animation keys. Resolve the highest-version
-            // native library ourselves and build the API from it.
+            // libassimp.5.dylib) even though its managed types match Assimp 6. Stride.Dependencies.Assimp
+            // ships only the new one, so locate it ourselves and build the API from it.
             var libraryPath = NativeLibraryHelper.LocateLibrary("libassimp", typeof(MeshConverter));
             return new Assimp(Assimp.CreateDefaultContext([libraryPath]));
         }
@@ -92,16 +100,10 @@ namespace Stride.Importer.ThreeD
                     postProcessFlags |= aiPostProcessSteps.aiProcess_RemoveRedundantMaterials;
                 }
 
-                var scene = Initialize(inputFilename, outputFilename, importFlags, postProcessFlags);
-                // If scene is null, something went wrong inside Assimp
+                var scene = Initialize(inputFilename, outputFilename, importFlags, postProcessFlags, out var error);
                 if (scene == null)
                 {
-                    var error = assimp.GetErrorStringS();
-                    if (error.Length > 0)
-                    {
-                        Logger.Error($"Assimp: {error}");
-                    }
-
+                    Logger.Error(error);
                     return null;
                 }
 
@@ -122,8 +124,37 @@ namespace Stride.Importer.ThreeD
                     AnimationNodes = ExtractAnimations(scene, animationNames)
                 };
 
+                entityInfo.MorphTargetNames = new List<string>();
+                var morphNames = new HashSet<string>(StringComparer.Ordinal);
+                for (uint meshIndex = 0; meshIndex < scene->MNumMeshes; meshIndex++)
+                {
+                    var mesh = scene->MMeshes[meshIndex];
+                    if (mesh->MNumAnimMeshes > MeshMorphData.MaxTargetCount || (mesh->MNumAnimMeshes != 0 && mesh->MAnimMeshes == null))
+                        throw new InvalidOperationException("Invalid morph target table.");
+                    for (int shape = 0; shape < mesh->MNumAnimMeshes; shape++)
+                    {
+                        var target = mesh->MAnimMeshes[shape];
+                        if (target == null) throw new InvalidOperationException("Missing morph target.");
+                        var name = MorphTargetName(target, shape);
+                        if (morphNames.Add(name)) entityInfo.MorphTargetNames.Add(name);
+                    }
+                }
+
                 if (extractTextureDependencies)
-                    entityInfo.TextureDependencies = ExtractTextureDependencies(scene);
+                {
+                    if (Material.GltfMaterialBuilder.IsGltfFile(inputFilename))
+                    {
+                        var gltfMaterials = new Material.GltfMaterialBuilder(assimp, scene, Logger);
+                        entityInfo.TextureRoles = gltfMaterials.CollectTextureRoles(fileName => Path.Combine(vfsInputPath, fileName));
+                        entityInfo.PremultipliedTextures = gltfMaterials.CollectPremultipliedTextures(fileName => Path.Combine(vfsInputPath, fileName));
+                        entityInfo.TextureDependencies = new List<string>(entityInfo.TextureRoles.Keys);
+                    }
+                    else
+                    {
+                        entityInfo.TextureRoles = new Dictionary<string, TextureRole>();
+                        entityInfo.TextureDependencies = ExtractTextureDependencies(scene, entityInfo.TextureRoles);
+                    }
+                }
 
                 return entityInfo;
             }
@@ -134,19 +165,85 @@ namespace Stride.Importer.ThreeD
             }
         }
 
-        public unsafe Model Convert(string inputFilename, string outputFilename, bool deduplicateMaterials)
+        /// <summary>
+        /// Imports the model of a file.
+        /// </summary>
+        /// <param name="inputFilename">The file to import.</param>
+        /// <param name="outputFilename">The location of the output.</param>
+        /// <param name="deduplicateMaterials">Whether materials with the same properties are merged.</param>
+        /// <param name="materialSlots">
+        /// The names of the material slots of the model asset, which <see cref="Mesh.MaterialIndex"/> then refers to.
+        /// When <c>null</c>, it refers to the materials of the file.
+        /// </param>
+        /// <returns>The imported model.</returns>
+        public unsafe Model Convert(string inputFilename, string outputFilename, bool deduplicateMaterials, IReadOnlyList<string> materialSlots = null)
         {
             uint importFlags = 0;
 
-            aiPostProcessSteps postProcessFlags = 0;
+            var scene = Initialize(inputFilename, outputFilename, importFlags, 0);
+
+            // Deduplication runs on its own, to read the material of each mesh before and after it
+            var meshMaterials = materialSlots != null ? GetMeshMaterialSlotNames(scene) : null;
             if (deduplicateMaterials)
             {
-                postProcessFlags |= aiPostProcessSteps.aiProcess_RemoveRedundantMaterials;
+                scene = assimp.ApplyPostProcessing(scene, (uint)aiPostProcessSteps.aiProcess_RemoveRedundantMaterials);
+                if (scene == null)
+                    throw new InvalidOperationException(PostProcessingError(inputFilename));
             }
 
-            var scene = Initialize(inputFilename, outputFilename, importFlags, postProcessFlags);
-            return ConvertAssimpScene(scene);
+            var meshSlots = materialSlots != null ? FindMeshSlots(scene, meshMaterials, materialSlots) : null;
+            return ConvertAssimpScene(scene, meshSlots);
         }
+
+        /// <summary>
+        /// Finds the material slot of each mesh, by the name of its material or else of the material deduplication merged it into, and last by position.
+        /// </summary>
+        private unsafe int[] FindMeshSlots(Scene* scene, string[] meshMaterials, IReadOnlyList<string> materialSlots)
+        {
+            var slotIndices = new Dictionary<string, int>();
+            for (var i = 0; i < materialSlots.Count; i++)
+            {
+                if (materialSlots[i] != null)
+                    slotIndices.TryAdd(materialSlots[i], i);
+            }
+
+            var deduplicatedMaterials = GetMeshMaterialSlotNames(scene);
+            var meshSlots = new int[scene->MNumMeshes];
+            var notFound = new HashSet<string>();
+            var anyFound = false;
+            for (var i = 0; i < meshSlots.Length; i++)
+            {
+                if (slotIndices.TryGetValue(meshMaterials[i], out var slot) || slotIndices.TryGetValue(deduplicatedMaterials[i], out slot))
+                {
+                    meshSlots[i] = slot;
+                    anyFound = true;
+                }
+                else
+                {
+                    meshSlots[i] = (int)scene->MMeshes[i]->MMaterialIndex;
+                    notFound.Add(meshMaterials[i]);
+                }
+            }
+
+            if (anyFound && notFound.Count > 0)
+                Logger.Warning($"The model asset has no material slot named {string.Join(", ", notFound)}, so these meshes use the slot at the position of their material. Update the asset from its source if the file changed.");
+
+            return meshSlots;
+        }
+
+        private unsafe string[] GetMeshMaterialSlotNames(Scene* scene)
+        {
+            var materialNames = new Dictionary<IntPtr, string>();
+            GenerateMaterialNames(scene, materialNames);
+
+            var names = new string[scene->MNumMeshes];
+            for (uint i = 0; i < scene->MNumMeshes; i++)
+                names[i] = ToMaterialSlotName(materialNames[(IntPtr)scene->MMaterials[scene->MMeshes[i]->MMaterialIndex]]);
+            return names;
+        }
+
+        // Replace slashes with an underscore to indicate it is not absolute to Strides asset system.
+        private static string ToMaterialSlotName(string materialName) => materialName.Replace('/', '_');
 
         public unsafe AnimationInfo ConvertAnimation(string inputFilename, string outputFilename, int animationIndex)
         {
@@ -166,7 +263,21 @@ namespace Stride.Importer.ThreeD
             return ProcessSkeleton(scene);
         }
 
+        /// <summary>
+        /// Imports and post-processes a file, and throws when Assimp can't read it.
+        /// </summary>
         private unsafe Scene* Initialize(string inputFilename, string outputFilename, uint importFlags, aiPostProcessSteps postProcessFlags)
+        {
+            var scene = Initialize(inputFilename, outputFilename, importFlags, postProcessFlags, out var error);
+            if (scene == null)
+                throw new InvalidOperationException(error);
+            return scene;
+        }
+
+        /// <summary>
+        /// Imports and post-processes a file, or returns <c>null</c> with the reason in <paramref name="error"/>.
+        /// </summary>
+        private unsafe Scene* Initialize(string inputFilename, string outputFilename, uint importFlags, aiPostProcessSteps postProcessFlags, out string error)
         {
             ResetConversionData();
 
@@ -178,10 +289,19 @@ namespace Stride.Importer.ThreeD
             assimp.SetImportPropertyInteger(propStore, "IMPORT_FBX_PRESERVE_PIVOTS", 0); // Trade some issues for others, see: https://github.com/assimp/assimp/issues/894, https://github.com/assimp/assimp/issues/1974
             assimp.SetImportPropertyFloat(propStore, "APP_SCALE_FACTOR", .01f);
             var scene = assimp.ImportFileExWithProperties(inputFilename, importFlags, null, propStore);
+            assimp.ReleasePropertyStore(propStore);
+
+            if (scene == null)
+            {
+                var reason = assimp.GetErrorStringS();
+                error = reason.Length > 0 ? $"Assimp can't read {inputFilename}: {reason}" : $"Assimp can't read {inputFilename}.";
+                return null;
+            }
 
             postProcessFlags |= aiPostProcessSteps.aiProcess_CalcTangentSpace
                                 | aiPostProcessSteps.aiProcess_Triangulate
                                 | aiPostProcessSteps.aiProcess_GenNormals
+                                | aiPostProcessSteps.aiProcess_JoinIdenticalVertices
                                 | aiPostProcessSteps.aiProcess_SortByPType
                                 | aiPostProcessSteps.aiProcess_FlipWindingOrder
                                 | aiPostProcessSteps.aiProcess_FlipUVs
@@ -189,11 +309,14 @@ namespace Stride.Importer.ThreeD
                                 | aiPostProcessSteps.aiProcess_LimitBoneWeights;
 
             scene = assimp.ApplyPostProcessing(scene, (uint)postProcessFlags);
-            assimp.ReleasePropertyStore(propStore);
+            error = scene == null ? PostProcessingError(inputFilename) : null;
             return scene;
         }
 
-        private unsafe Model ConvertAssimpScene(Scene* scene)
+        // GetErrorString gives the reason of a failed import only, not of a failed post-processing step
+        private static string PostProcessingError(string inputFilename) => $"Assimp can't post-process {inputFilename}.";
+
+        private unsafe Model ConvertAssimpScene(Scene* scene, int[] meshSlots)
         {
             modelData = new Model();
 
@@ -233,8 +356,9 @@ namespace Stride.Importer.ThreeD
                     {
                         Draw = meshInfo.Draw,
                         Name = meshInfo.Name,
-                        MaterialIndex = meshInfo.MaterialIndex,
+                        MaterialIndex = meshSlots?[i] ?? meshInfo.MaterialIndex,
                         NodeIndex = nodeIndex,
+                        MorphTargets = meshInfo.MorphTargets,
                     };
 
                     if (meshInfo.Bones != null)
@@ -555,9 +679,98 @@ namespace Stride.Importer.ThreeD
                         return null;
                     }
                 }
+
+                // animation of morph target weights (after nodes, as they share the node's clip)
+                for (uint morphAnimId = 0; morphAnimId < aiAnim->MNumMorphMeshChannels; ++morphAnimId)
+                {
+                    ProcessMorphAnimation(animationData.AnimationClips, scene, aiAnim->MMorphMeshChannels[morphAnimId], ticksPerSec, meshIndexToNodeIndex);
+                }
             }
 
             return animationData;
+        }
+
+        private unsafe void ProcessMorphAnimation(Dictionary<string, AnimationClip> animationClips, Scene* scene, MeshMorphAnim* channel, double ticksPerSec, Dictionary<int, List<int>> meshIndexToNodeIndex)
+        {
+            // The channel names the node (glTF), the mesh, or "<mesh name>*<mesh index>" (FBX) owning the morph targets;
+            // its keys index that mesh's anim meshes.
+            var channelName = channel->MName.AsString;
+            var nodeName = channelName.CleanNodeName();
+            Silk.NET.Assimp.Mesh* mesh = null;
+            int star = channelName.LastIndexOf('*');
+            if (star >= 0 && int.TryParse(channelName.AsSpan(star + 1), out var meshIndex) && (uint)meshIndex < scene->MNumMeshes)
+            {
+                mesh = scene->MMeshes[meshIndex];
+                nodeName = meshIndexToNodeIndex.TryGetValue(meshIndex, out var owners) && owners.Count > 0
+                    ? nodes[owners[0]].Name
+                    : channelName[..star].CleanNodeName();
+            }
+            else
+            {
+                foreach (var (index, nodeIndices) in meshIndexToNodeIndex)
+                {
+                    if (nodeIndices.Exists(nodeIndex => nodes[nodeIndex].Name == nodeName) || scene->MMeshes[index]->MName.AsString == channelName)
+                    {
+                        mesh = scene->MMeshes[index];
+                        break;
+                    }
+                }
+            }
+            if (mesh == null)
+            {
+                Logger.Warning($"Morph animation channel '{channelName}' matches no mesh and will be ignored.");
+                return;
+            }
+
+            // Like node animation: one clip per node, with one channel per target ("MorphWeights[<name>]").
+            if (!animationClips.TryGetValue(nodeName, out var animationClip))
+                animationClips.Add(nodeName, animationClip = new AnimationClip());
+
+            var curves = new Dictionary<uint, AnimationCurve<float>>();
+            for (uint keyId = 0; keyId < channel->MNumKeys; keyId++)
+            {
+                var key = channel->MKeys[keyId];
+                for (uint i = 0; i < key.MNumValuesAndWeights; i++)
+                {
+                    uint target = key.MValues[i];
+                    if (target >= mesh->MNumAnimMeshes || curves.ContainsKey(target))
+                        continue;
+
+                    // Same naming as ProcessMorphTargets, so curves match the imported target names.
+                    var name = MorphTargetName(mesh->MAnimMeshes[target], (int)target);
+                    if (name.Contains(']'))
+                    {
+                        Logger.Warning($"Morph target '{name}' cannot be animated: ']' is not allowed in animation paths.");
+                        continue;
+                    }
+                    var curve = new AnimationCurve<float> { InterpolationType = AnimationCurveInterpolationType.Linear };
+                    curves.Add(target, curve);
+                    animationClip.AddCurve($"MorphWeights[{name}]", curve);
+                }
+            }
+
+            // Targets missing from a key have weight 0 at that key.
+            var lastKeyTime = new CompressedTimeSpan();
+            for (uint keyId = 0; keyId < channel->MNumKeys; keyId++)
+            {
+                var key = channel->MKeys[keyId];
+                lastKeyTime = Utils.AiTimeToStrideTimeSpan(key.MTime, ticksPerSec);
+                foreach (var curve in curves.Values)
+                {
+                    curve.KeyFrames.Add(new KeyFrameData<float>(lastKeyTime, 0));
+                }
+                for (uint i = 0; i < key.MNumValuesAndWeights; i++)
+                {
+                    if (!curves.TryGetValue(key.MValues[i], out var curve))
+                        continue;
+                    var weight = (float)key.MWeights[i];
+                    if (!float.IsFinite(weight))
+                        throw new InvalidOperationException($"Morph animation channel '{channelName}' has a non-finite weight.");
+                    curve.KeyFrames[^1] = new KeyFrameData<float>(lastKeyTime, weight);
+                }
+            }
+            if (channel->MNumKeys > 0 && animationClip.Duration < lastKeyTime)
+                animationClip.Duration = lastKeyTime;
         }
 
         private unsafe void ProcessNodeAnimation(Dictionary<string, AnimationClip> animationClips, NodeAnim* nodeAnim, double ticksPerSec, Dictionary<string, List<int>> duplicateNodeNameToNodeIndices, Dictionary<string, int> boneNameToNodeIndex)
@@ -593,6 +806,19 @@ namespace Stride.Importer.ThreeD
 
             if (animationClip.Curves.Count > 0)
                 animationClips.Add(targetNodeName, animationClip);
+        }
+
+        /// <summary>
+        /// Name of a morph target. Assimp names FBX blend shapes "Channel.Shape"; exporters such as Blender give both the
+        /// same name, which is collapsed so the target matches its glTF name.
+        /// </summary>
+        private static unsafe string MorphTargetName(AnimMesh* target, int index)
+        {
+            var name = target->MName.AsString;
+            if (string.IsNullOrWhiteSpace(name))
+                return $"Morph{index}";
+            int dot = name.IndexOf('.');
+            return dot > 0 && name.AsSpan(0, dot).SequenceEqual(name.AsSpan(dot + 1)) ? name[..dot] : name;
         }
 
         private unsafe void ProcessAnimationCurveVector(AnimationClip animationClip, VectorKey* keys, uint nbKeys, string partialTargetName, double ticksPerSec, bool isTranslation)
@@ -835,6 +1061,13 @@ namespace Stride.Importer.ThreeD
 
         private unsafe MeshInfo ProcessMesh(Scene* scene, Silk.NET.Assimp.Mesh* mesh, Dictionary<IntPtr, string> meshNames, Dictionary<IntPtr, int> nodePointerToNodeIndex, Dictionary<IntPtr, IntPtr> bonePointerToNodePointerMap)
         {
+            // SortByPType gives lines and points meshes of their own (an FBX rig's control shapes, for example). They have no surface to draw, and their faces don't have 3 indices.
+            if ((mesh->MPrimitiveTypes & (uint)Silk.NET.Assimp.PrimitiveType.Triangle) == 0)
+            {
+                Logger.Info($"Mesh {meshNames[(IntPtr)mesh]} has no triangles and is skipped.");
+                return null;
+            }
+
             List<MeshBoneDefinition> bones = null;
             var hasSkinningPosition = false;
             var hasSkinningNormal = false;
@@ -925,19 +1158,16 @@ namespace Stride.Importer.ThreeD
                 vertexStride += sizeColor;
             }
 
+            // Tangents are stored as float4 with the bitangent sign in W, which is what the shaders read.
             var tangentOffset = vertexStride;
+            Vector3[] uvBitangents = null;
             if (mesh->MTangents != null)
             {
-                vertexElements.Add(VertexElement.Tangent<Vector3>(0, vertexStride));
-                vertexStride += sizeof(Vector3);
+                vertexElements.Add(VertexElement.Tangent<Vector4>(0, vertexStride));
+                vertexStride += sizeof(Vector4);
+                uvBitangents = ComputeUVBitangents(mesh);
             }
-
-            var bitangentOffset = vertexStride;
-            if (mesh->MTangents != null)
-            {
-                vertexElements.Add(VertexElement.BiTangent<Vector3>(0, vertexStride));
-                vertexStride += sizeof(Vector3);
-            }
+            var rootHandedness = rootTransform.Determinant() < 0 ? -1.0f : 1.0f;
 
             var blendIndicesOffset = vertexStride;
             var controlPointIndices16 = totalClusterCount > 256;
@@ -1001,25 +1231,24 @@ namespace Stride.Importer.ThreeD
 
                     if (mesh->MTangents != null)
                     {
-                        var tangentPointer = (Vector3*)(vbPointer + tangentOffset);
-                        var bitangentPointer = (Vector3*)(vbPointer + bitangentOffset);
-                        *tangentPointer = mesh->MTangents[i].ToStrideVector3();
-                        *bitangentPointer = mesh->MBitangents[i].ToStrideVector3();
-                        if (float.IsNaN(tangentPointer->X) || float.IsNaN(tangentPointer->Y) || float.IsNaN(tangentPointer->Z) ||
-                            float.IsNaN(bitangentPointer->X) || float.IsNaN(bitangentPointer->Y) || float.IsNaN(bitangentPointer->Z))
+                        var tangent = mesh->MTangents[i].ToStrideVector3();
+                        float handedness;
+                        if (float.IsNaN(tangent.X) || float.IsNaN(tangent.Y) || float.IsNaN(tangent.Z) || mesh->MNormals == null)
                         {
-                            var normalPointer = ((Vector3*)(vbPointer + normalOffset));
-                            Vector3 c1 = Vector3.Cross(*normalPointer, new Vector3(0.0f, 0.0f, 1.0f));
-                            Vector3 c2 = Vector3.Cross(*normalPointer, new Vector3(0.0f, 1.0f, 0.0f));
-
-                            if (c1.LengthSquared() > c2.LengthSquared())
-                                *tangentPointer = c1;
-                            else
-                                *tangentPointer = c2;
-                            *bitangentPointer = Vector3.Cross(*normalPointer, *tangentPointer);
+                            var normal = mesh->MNormals != null ? *(Vector3*)(vbPointer + normalOffset) : Vector3.UnitZ;
+                            Vector3 c1 = Vector3.Cross(normal, new Vector3(0.0f, 0.0f, 1.0f));
+                            Vector3 c2 = Vector3.Cross(normal, new Vector3(0.0f, 1.0f, 0.0f));
+                            tangent = c1.LengthSquared() > c2.LengthSquared() ? c1 : c2;
+                            handedness = 1.0f;
                         }
-                        tangentPointer->Normalize();
-                        bitangentPointer->Normalize();
+                        else
+                        {
+                            var uvBitangent = uvBitangents?[i] ?? Vector3.Zero;
+                            handedness = Vector3.Dot(Vector3.Cross(mesh->MNormals[i].ToStrideVector3(), tangent), uvBitangent) < 0 ? -rootHandedness : rootHandedness;
+                            Vector3.TransformNormal(ref tangent, ref rootTransform, out tangent);
+                        }
+                        tangent.Normalize();
+                        *(Vector4*)(vbPointer + tangentOffset) = new Vector4(tangent, handedness);
                     }
 
                     if (vertexIndexToBoneIdWeight.Count > 0)
@@ -1100,8 +1329,173 @@ namespace Stride.Importer.ThreeD
                 MaterialIndex = (int)mesh->MMaterialIndex,
                 HasSkinningPosition = hasSkinningPosition,
                 HasSkinningNormal = hasSkinningNormal,
-                TotalClusterCount = totalClusterCount
+                TotalClusterCount = totalClusterCount,
+                MorphTargets = ProcessMorphTargets(mesh),
             };
+        }
+
+        private unsafe MeshMorphData ProcessMorphTargets(Silk.NET.Assimp.Mesh* mesh)
+        {
+            if (mesh->MNumAnimMeshes == 0) return null;
+            if (mesh->MAnimMeshes == null || mesh->MNumAnimMeshes > MeshMorphData.MaxTargetCount)
+                throw new InvalidOperationException("Morph target table is missing or exceeds the 16-bit shape limit.");
+            var names = new string[mesh->MNumAnimMeshes];
+            var usedNames = new HashSet<string>(StringComparer.Ordinal);
+            var vertexCount = (int)mesh->MNumVertices;
+            var generator = CreateMorphFrameGenerator(mesh);
+            var shapes = new MorphShapeImport[names.Length];
+            for (int shape = 0; shape < names.Length; shape++)
+            {
+                var target = mesh->MAnimMeshes[shape];
+                if (target == null || target->MNumVertices != mesh->MNumVertices)
+                    throw new InvalidOperationException($"Morph target {shape} has incompatible vertex topology.");
+                names[shape] = MorphTargetName(target, shape);
+                if (!usedNames.Add(names[shape])) throw new InvalidOperationException($"Duplicate morph target name '{names[shape]}'.");
+
+                bool fileNormals = target->MNormals != null && mesh->MNormals != null;
+                bool fileTangents = target->MTangents != null && mesh->MTangents != null;
+                bool generateNormals = MorphNormals == MorphDeltaSource.Generate || (MorphNormals == MorphDeltaSource.ImportOrGenerate && !fileNormals);
+                bool generateTangents = mesh->MTangents != null && (MorphTangents == MorphDeltaSource.Generate || (MorphTangents == MorphDeltaSource.ImportOrGenerate && !fileTangents));
+                if ((generateNormals && generator == null) || (generateTangents && generator?.CanGenerateTangents != true))
+                    Logger.Warning($"Morph '{names[shape]}': normal or tangent deltas cannot be generated (missing triangles, normals or UVs); those deltas remain zero.");
+                if ((MorphNormals == MorphDeltaSource.Import && !fileNormals) || (MorphTangents == MorphDeltaSource.Import && mesh->MTangents != null && !fileTangents))
+                    Logger.Warning($"Morph '{names[shape]}' has missing normal or tangent attributes; those deltas remain zero.");
+                shapes[shape] = new MorphShapeImport
+                {
+                    ImportNormals = fileNormals && MorphNormals is MorphDeltaSource.Import or MorphDeltaSource.ImportOrGenerate,
+                    ImportTangents = fileTangents && MorphTangents is MorphDeltaSource.Import or MorphDeltaSource.ImportOrGenerate,
+                    GenerateNormals = generateNormals && generator != null,
+                    GenerateTangents = generateTangents && generator?.CanGenerateTangents == true,
+                };
+            }
+
+            // Targets are independent: convert them in parallel, each thread with its own generator scratch memory.
+            var meshPointer = (nint)mesh;
+            System.Threading.Tasks.Parallel.For(0, names.Length, () => generator?.CreateScratch(), (shape, _, scratch) =>
+            {
+                ProcessMorphTarget((Silk.NET.Assimp.Mesh*)meshPointer, shape, shapes[shape], generator, scratch);
+                return scratch;
+            }, _ => { });
+
+            var entries = new List<MeshMorphEntry>();
+            bool hasNormals = false, hasTangents = false;
+            for (int shape = 0; shape < names.Length; shape++)
+            {
+                entries.AddRange(shapes[shape].Entries);
+                hasNormals |= shapes[shape].ImportNormals || shapes[shape].GenerateNormals;
+                hasTangents |= shapes[shape].ImportTangents || shapes[shape].GenerateTangents;
+                if (shapes[shape].FlippedTangents > 0)
+                    Logger.Warning($"Morph '{names[shape]}' mirrors the tangent frame at {shapes[shape].FlippedTangents} vertices; their tangent deltas are ignored.");
+            }
+            return MeshMorphData.Create(vertexCount, names, entries, hasNormals, hasTangents);
+        }
+
+        private sealed class MorphShapeImport
+        {
+            public bool ImportNormals;
+            public bool ImportTangents;
+            public bool GenerateNormals;
+            public bool GenerateTangents;
+            public List<MeshMorphEntry> Entries;
+            public int FlippedTangents;
+        }
+
+        private unsafe void ProcessMorphTarget(Silk.NET.Assimp.Mesh* mesh, int shape, MorphShapeImport import, MorphFrameGenerator generator, MorphFrameGenerator.Scratch scratch)
+        {
+            var target = mesh->MAnimMeshes[shape];
+            var vertexCount = (int)mesh->MNumVertices;
+            var movedVertices = new List<int>();
+            if (target->MVertices != null)
+            {
+                for (int vertex = 0; vertex < vertexCount; vertex++)
+                {
+                    if (target->MVertices[vertex] != mesh->MVertices[vertex])
+                        movedVertices.Add(vertex);
+                }
+            }
+
+            bool generate = import.GenerateNormals || import.GenerateTangents;
+            if (generate)
+            {
+                var positions = target->MVertices != null ? target->MVertices : mesh->MVertices;
+                generator.Generate(new ReadOnlySpan<Vector3>(positions, vertexCount), movedVertices, import.GenerateTangents, scratch);
+            }
+
+            import.Entries = new List<MeshMorphEntry>();
+            for (int vertex = 0; vertex < vertexCount; vertex++)
+            {
+                var position = target->MVertices != null
+                    ? Vector3.TransformNormal(target->MVertices[vertex].ToStrideVector3() - mesh->MVertices[vertex].ToStrideVector3(), rootTransform) : Vector3.Zero;
+                bool generated = generate && scratch.Contains(vertex);
+                var normal = import.ImportNormals ? MorphDirection(target->MNormals[vertex].ToStrideVector3(), mesh->MNormals[vertex].ToStrideVector3())
+                    : import.GenerateNormals && generated ? GeneratedMorphDirection(scratch.Normals[vertex], generator.BaseNormals[vertex]) : Vector3.Zero;
+                var tangent = import.ImportTangents ? MorphDirection(target->MTangents[vertex].ToStrideVector3(), mesh->MTangents[vertex].ToStrideVector3())
+                    : import.GenerateTangents && generated ? GeneratedMorphDirection(scratch.Tangents[vertex], generator.BaseTangents[vertex]) : Vector3.Zero;
+                if (import.ImportTangents && import.ImportNormals && target->MBitangents != null && mesh->MBitangents != null)
+                {
+                    float baseSign = Vector3.Dot(Vector3.Cross(mesh->MNormals[vertex].ToStrideVector3(), mesh->MTangents[vertex].ToStrideVector3()), mesh->MBitangents[vertex].ToStrideVector3());
+                    float targetSign = Vector3.Dot(Vector3.Cross(target->MNormals[vertex].ToStrideVector3(), target->MTangents[vertex].ToStrideVector3()), target->MBitangents[vertex].ToStrideVector3());
+                    // Handedness is not encoded; keep the base tangent where the target frame is mirrored.
+                    // Importers often regenerate target tangents (e.g. FBX), which can flip at seams.
+                    if ((baseSign < 0) != (targetSign < 0)) { tangent = Vector3.Zero; import.FlippedTangents++; }
+                }
+                var entry = MeshMorphEntry.Create((uint)vertex, (ushort)shape, position, normal, tangent);
+                if (!entry.IsZero) import.Entries.Add(entry);
+            }
+        }
+
+        private unsafe MorphFrameGenerator CreateMorphFrameGenerator(Silk.NET.Assimp.Mesh* mesh)
+        {
+            bool needed = MorphNormals is MorphDeltaSource.ImportOrGenerate or MorphDeltaSource.Generate
+                || MorphTangents is MorphDeltaSource.ImportOrGenerate or MorphDeltaSource.Generate;
+            if (!needed || mesh->MNormals == null || mesh->MFaces == null)
+                return null;
+
+            var vertexCount = (int)mesh->MNumVertices;
+            var positions = new Vector3[vertexCount];
+            var normals = new Vector3[vertexCount];
+            for (int vertex = 0; vertex < vertexCount; vertex++)
+            {
+                positions[vertex] = mesh->MVertices[vertex].ToStrideVector3();
+                normals[vertex] = mesh->MNormals[vertex].ToStrideVector3();
+            }
+
+            Vector2[] uvs = null;
+            if (mesh->MTextureCoords[0] != null && mesh->MTangents != null)
+            {
+                uvs = new Vector2[vertexCount];
+                for (int vertex = 0; vertex < vertexCount; vertex++)
+                    uvs[vertex] = new Vector2(mesh->MTextureCoords[0][vertex].X, mesh->MTextureCoords[0][vertex].Y);
+            }
+
+            var triangles = new List<int>((int)mesh->MNumFaces * 3);
+            for (int face = 0; face < mesh->MNumFaces; face++)
+            {
+                if (mesh->MFaces[face].MNumIndices != 3)
+                    continue;
+                for (int corner = 0; corner < 3; corner++)
+                    triangles.Add((int)mesh->MFaces[face].MIndices[corner]);
+            }
+            return triangles.Count == 0 ? null : new MorphFrameGenerator(positions, normals, uvs, triangles.ToArray());
+        }
+
+        private Vector3 GeneratedMorphDirection(Vector3 target, Vector3 basis)
+        {
+            // Degenerate geometry has no computed direction; that vertex keeps a zero delta.
+            if (target == Vector3.Zero || basis == Vector3.Zero)
+                return Vector3.Zero;
+            return MorphDirection(target, basis);
+        }
+
+        private Vector3 MorphDirection(Vector3 target, Vector3 basis)
+        {
+            // Match the base import's direction transform. Normalize attributes, never their delta.
+            target = Vector3.TransformNormal(target, rootTransform);
+            basis = Vector3.TransformNormal(basis, rootTransform);
+            if (!float.IsFinite(target.X) || !float.IsFinite(target.Y) || !float.IsFinite(target.Z) || !float.IsFinite(target.LengthSquared()) || target.LengthSquared() <= 0 ||
+                !float.IsFinite(basis.X) || !float.IsFinite(basis.Y) || !float.IsFinite(basis.Z) || !float.IsFinite(basis.LengthSquared()) || basis.LengthSquared() <= 0)
+                throw new InvalidOperationException("Morph direction attributes must be finite and nonzero.");
+            return Vector3.Normalize(target) - Vector3.Normalize(basis);
         }
 
         /// <summary>
@@ -1156,6 +1550,9 @@ namespace Stride.Importer.ThreeD
             for (uint i = 0; i < scene->MNumTextures; ++i)
             {
                 var texture = scene->MTextures[i];
+                if (string.IsNullOrEmpty(Path.GetFileNameWithoutExtension(texture->MFilename.AsString)))
+                    SetTextureName(texture, $"{Path.GetFileNameWithoutExtension(importFieName)}_texture{i}");
+
                 if (!Material.Materials.TryGetTextureFileName(texture, out var texFileName, out var errorMessage))
                 {
                     Logger.Error(errorMessage);
@@ -1164,6 +1561,55 @@ namespace Stride.Importer.ThreeD
                 string fullName = Path.Combine(dir, texFileName);
                 CreateTextureFile(texture, fullName);
             }
+        }
+
+        /// <summary>
+        /// Accumulates, per vertex, the direction in which the first texture coordinate's V increases.
+        /// Its side of the normal-tangent plane gives the tangent frame's handedness, as in <see cref="VertexHelper.GenerateTangentBinormal"/>,
+        /// independently of how the source format or Assimp stores bitangents.
+        /// </summary>
+        private static unsafe Vector3[] ComputeUVBitangents(Silk.NET.Assimp.Mesh* mesh)
+        {
+            if (mesh->MTextureCoords[0] == null)
+                return null;
+
+            var uvs = mesh->MTextureCoords[0];
+            var bitangents = new Vector3[mesh->MNumVertices];
+            for (uint f = 0; f < mesh->MNumFaces; f++)
+            {
+                var face = mesh->MFaces[f];
+                if (face.MNumIndices != 3)
+                    continue;
+
+                uint a = face.MIndices[0], b = face.MIndices[1], c = face.MIndices[2];
+                var edge1 = mesh->MVertices[b].ToStrideVector3() - mesh->MVertices[a].ToStrideVector3();
+                var edge2 = mesh->MVertices[c].ToStrideVector3() - mesh->MVertices[a].ToStrideVector3();
+                var uvEdge1 = new Vector2(uvs[b].X - uvs[a].X, uvs[b].Y - uvs[a].Y);
+                var uvEdge2 = new Vector2(uvs[c].X - uvs[a].X, uvs[c].Y - uvs[a].Y);
+
+                var determinant = uvEdge1.X * uvEdge2.Y - uvEdge2.X * uvEdge1.Y;
+                if (MathUtil.IsZero(determinant))
+                    continue;
+
+                var bitangent = (uvEdge1.X * edge2 - uvEdge2.X * edge1) / determinant;
+                bitangents[a] += bitangent;
+                bitangents[b] += bitangent;
+                bitangents[c] += bitangent;
+            }
+            return bitangents;
+        }
+
+        /// <summary>
+        /// Names an embedded texture that has no file name (common in GLB files), so its extracted file and asset don't collide with other textures.
+        /// </summary>
+        private static unsafe void SetTextureName(Silk.NET.Assimp.Texture* texture, string name)
+        {
+            var bytes = System.Text.Encoding.UTF8.GetBytes(name);
+            var length = Math.Min(bytes.Length, (int)Assimp.Maxlen - 1);
+            for (var i = 0; i < length; i++)
+                texture->MFilename.Data[i] = bytes[i];
+            texture->MFilename.Data[length] = 0;
+            texture->MFilename.Length = (uint)length;
         }
 
         private unsafe void CreateTextureFile(Silk.NET.Assimp.Texture* texture, string path)
@@ -1183,14 +1629,15 @@ namespace Stride.Importer.ThreeD
         {
             GenerateMaterialNames(scene, materialNames);
 
+            var gltfBuilder = Material.GltfMaterialBuilder.IsGltfFile(vfsInputFilename) ? new Material.GltfMaterialBuilder(assimp, scene, Logger) : null;
+
             var materials = new Dictionary<string, MaterialAsset>();
             for (uint i = 0; i < scene->MNumMaterials; i++)
             {
                 var lMaterial = scene->MMaterials[i];
-                // Replace slashes with an underscore to indicate it is not absolute to Strides asset system.
-                var materialName = materialNames[(IntPtr)lMaterial].Replace('/', '_');
+                var materialName = ToMaterialSlotName(materialNames[(IntPtr)lMaterial]);
 
-                materials.Add(materialName, ProcessMeshMaterial(scene, lMaterial));
+                materials.Add(materialName, gltfBuilder?.Build(lMaterial, materialName) ?? ProcessMeshMaterial(scene, lMaterial));
             }
             return materials;
         }
@@ -1593,9 +2040,16 @@ namespace Stride.Importer.ThreeD
             return animationList;
         }
 
-        private unsafe List<string> ExtractTextureDependencies(Scene* scene)
+        /// <summary>
+        /// Collects the textures referenced by the materials of a non-glTF file. Textures in the normals slot get the
+        /// <see cref="TextureRole.Normal"/> role, the only slot the legacy material builder maps to a normal map; the others
+        /// have no role and are imported as color textures.
+        /// </summary>
+        private unsafe List<string> ExtractTextureDependencies(Scene* scene, Dictionary<string, TextureRole> textureRoles)
         {
             var textureNames = new List<string>();
+            var normalMaps = new HashSet<string>();
+            var otherUses = new HashSet<string>();
 
             // texture search is done by type so we need to loop on them
             var allTextureTypes = new TextureType[]
@@ -1640,10 +2094,18 @@ namespace Stride.Importer.ThreeD
                             var relFileName = texFileName;
                             var fileNameToUse = Path.Combine(vfsInputPath, relFileName);
                             textureNames.Add(fileNameToUse);
+                            (textureType == TextureType.Normals ? normalMaps : otherUses).Add(fileNameToUse);
                             break;
                         }
                     }
                 }
+            }
+
+            foreach (var normalMap in normalMaps)
+            {
+                textureRoles[normalMap] = TextureRole.Normal;
+                if (otherUses.Contains(normalMap))
+                    Logger?.Info($"Texture '{Path.GetFileName(normalMap)}' is used both as a normal map and in another slot; it is imported as a normal map.");
             }
 
             return textureNames;
@@ -1659,6 +2121,7 @@ namespace Stride.Importer.ThreeD
         public bool HasSkinningPosition = false;
         public bool HasSkinningNormal = false;
         public int TotalClusterCount = 0;
+        public MeshMorphData MorphTargets;
     }
 
     public class MaterialInstantiation

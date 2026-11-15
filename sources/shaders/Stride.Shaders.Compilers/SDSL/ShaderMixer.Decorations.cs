@@ -3,6 +3,7 @@ using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
+using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Compilers.SDSL;
 
@@ -38,21 +39,21 @@ public partial class ShaderMixer
     private void EmitArrayStrideDecorations(SpirvContext context, ArrayType a, TypeModifier typeModifier, SpirvBuilder.AlignmentRules alignmentRules, out int arrayStride)
     {
         var typeId = context.Types[a];
-        if (decoratedArrays.TryGetValue(typeId, out var arrayDecoration))
-        {
-            if (arrayDecoration.Rules != alignmentRules)
-                throw new InvalidOperationException($"Using type {a.ToId()} with both {alignmentRules} and {arrayDecoration.Rules} rules");
-
-            arrayStride = arrayDecoration.Stride;
-            return;
-        }
-
         arrayStride = alignmentRules switch
         {
             SpirvBuilder.AlignmentRules.CBuffer => (SpirvBuilder.TypeSizeInBuffer(a.BaseType, typeModifier, alignmentRules).Size + 15) / 16 * 16,
-            SpirvBuilder.AlignmentRules.StructuredBuffer => SpirvBuilder.StorageBufferArrayStride(a.BaseType, typeModifier),
+            SpirvBuilder.AlignmentRules.StructuredBuffer or SpirvBuilder.AlignmentRules.StructuredBufferTight => SpirvBuilder.StorageBufferArrayStride(a.BaseType, typeModifier, alignmentRules),
             _ => throw new NotSupportedException($"Unsupported alignment rules: {alignmentRules}"),
         };
+
+        // A type used with two rules is fine as long as they lay it out the same (std430 and the tight layout often do)
+        if (decoratedArrays.TryGetValue(typeId, out var arrayDecoration))
+        {
+            if (arrayDecoration.Stride != arrayStride)
+                throw new InvalidOperationException($"Using type {a.ToId()} with both {alignmentRules} and {arrayDecoration.Rules} rules");
+            return;
+        }
+
         context.Add(new OpDecorate(typeId, Specification.Decoration.ArrayStride, [arrayStride]));
 
         decoratedArrays[typeId] = (alignmentRules, arrayStride);
@@ -61,30 +62,54 @@ public partial class ShaderMixer
     private void EmitStructDecorations(SpirvContext context, StructType s, SpirvBuilder.AlignmentRules alignmentRules, out int size, out int[] offsets)
     {
         var structId = context.Types[s];
+        var offset = 0;
+        offsets = new int[s.Members.Count];
+        var memberSizes = new int[s.Members.Count];
+        for (int i = 0; i < s.Members.Count; ++i)
+        {
+            memberSizes[i] = SpirvBuilder.ComputeBufferOffset(s.Members[i].Type, s.Members[i].TypeModifier, ref offset, alignmentRules).Size;
+            offsets[i] = offset;
+            offset += memberSizes[i];
+            SpirvBuilder.PadOffsetAfterArray(s.Members[i].Type, s.Members[i].TypeModifier, offsets[i], ref offset, alignmentRules);
+        }
+        size = offset;
+
+        // A type used with two rules is fine as long as they lay it out the same (std430 and the tight layout often do)
         if (decoratedStructs.TryGetValue(structId, out var structDecoration))
         {
-            if (structDecoration.Rules != alignmentRules)
+            if (structDecoration.Size != size || !structDecoration.Offsets.AsSpan().SequenceEqual(offsets))
                 throw new InvalidOperationException($"Using type {s.ToId()} with both {alignmentRules} and {structDecoration.Rules} rules");
-            offsets = structDecoration.Offsets;
-            size = structDecoration.Size;
             return;
         }
 
-        var offset = 0;
-        offsets = new int[s.Members.Count];
         for (int i = 0; i < s.Members.Count; ++i)
+            DecorateMember(context, structId, i, offsets[i], s.Members[i].Type, s.Members[i].TypeModifier, alignmentRules);
+
+        decoratedStructs[structId] = (alignmentRules, size, offsets);
+    }
+
+    /// <summary>
+    /// The element stride of a structured buffer, and a matrix element's stride, were written with std430 when the class compiled
+    /// (<c>SpirvContext.RegisterStructuredBufferType</c>): rewrites them for the tight layout.
+    /// </summary>
+    private static void UseTightLayout(SpirvContext context, StructuredBufferType structuredBufferType)
+    {
+        const SpirvBuilder.AlignmentRules tight = SpirvBuilder.AlignmentRules.StructuredBufferTight;
+        var blockId = context.Types[structuredBufferType];
+        var runtimeArrayId = -1;
+        foreach (var i in context)
         {
-            var memberSize = SpirvBuilder.ComputeBufferOffset(s.Members[i].Type, s.Members[i].TypeModifier, ref offset, alignmentRules).Size;
-
-            // Note: we assume if already added by another cbuffer using this type, the offsets were computed the same way
-            offsets[i] = offset;
-            DecorateMember(context, structId, i, offset, memberSize, s.Members[i].Type, s.Members[i].TypeModifier);
-
-            offset += memberSize;
-            SpirvBuilder.PadOffsetAfterArray(s.Members[i].Type, s.Members[i].TypeModifier, offsets[i], ref offset, alignmentRules);
+            if (i.Op == Op.OpTypeStruct && (OpTypeStruct)i is { } typeStruct && typeStruct.ResultId == blockId)
+                runtimeArrayId = typeStruct.MemberTypes.Words[0];
         }
 
-        decoratedStructs[structId] = (alignmentRules, offset, offsets);
-        size = offset;
+        foreach (var i in context)
+        {
+            if (i.Op == Op.OpDecorate && (OpDecorate)i is { Decoration: Decoration.ArrayStride } decorate && decorate.Target == runtimeArrayId)
+                i.Buffer.Replace(i.Index, new OpDecorate(runtimeArrayId, Decoration.ArrayStride, [SpirvBuilder.StorageBufferArrayStride(structuredBufferType.BaseType, TypeModifier.None, tight)]));
+            else if (i.Op == Op.OpMemberDecorate && (OpMemberDecorate)i is { Decoration: Decoration.MatrixStride } memberDecorate && memberDecorate.StructureType == blockId
+                && structuredBufferType.BaseType is MatrixType m)
+                i.Buffer.Replace(i.Index, new OpMemberDecorate(blockId, 0, Decoration.MatrixStride, [SpirvBuilder.MatrixStride(m, TypeModifier.None, tight)]));
+        }
     }
 }

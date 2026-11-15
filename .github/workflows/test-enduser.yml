@@ -17,11 +17,18 @@ on:
         description: Commit SHA to test (default = HEAD of selected branch)
         type: string
         default: ''
+      capture-shader-corpus:
+        description: Record every compiled mixin tree for the shader corpus (runs only the Windows Direct3D11 leg, artifact shader-corpus-samples)
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       build-type:
         default: Debug
         type: string
+      capture-shader-corpus:
+        default: false
+        type: boolean
     secrets:
       ANTHROPIC_API_KEY:
         required: false
@@ -55,11 +62,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - { os: windows-2025-vs2026, platform: Windows, graphics-api: Direct3D11, rid: win-x64 }
-          - { os: windows-2025-vs2026, platform: Windows, graphics-api: Direct3D12, rid: win-x64 }
-          - { os: windows-2025-vs2026, platform: Windows, graphics-api: Vulkan,     rid: win-x64 }
-          - { os: ubuntu-24.04,        platform: Linux,   graphics-api: Vulkan,     rid: linux-x64 }
+        # A shader corpus capture only needs the Windows Direct3D11 leg
+        include: >-
+          ${{ fromJSON(inputs.capture-shader-corpus && '[
+            {"os":"windows-2025-vs2026","platform":"Windows","graphics-api":"Direct3D11","rid":"win-x64"}
+          ]' || '[
+            {"os":"windows-2025-vs2026","platform":"Windows","graphics-api":"Direct3D11","rid":"win-x64"},
+            {"os":"windows-2025-vs2026","platform":"Windows","graphics-api":"Direct3D12","rid":"win-x64"},
+            {"os":"windows-2025-vs2026","platform":"Windows","graphics-api":"Vulkan","rid":"win-x64"},
+            {"os":"ubuntu-24.04","platform":"Linux","graphics-api":"Vulkan","rid":"linux-x64"}
+          ]') }}
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -70,6 +82,9 @@ jobs:
       STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
       # A sync hazard is logged as an error, which fails the sample run.
       STRIDE_VULKAN_SYNC_VALIDATION: ${{ matrix.graphics-api == 'Vulkan' && '1' || '' }}
+      # Shader corpus refresh (sources/shaders/Stride.Shaders.Tests/Corpus/README.md): the sample builds and runs
+      # record their mixin trees. One leg is enough, the corpus test compiles each tree for every graphics API.
+      STRIDE_SHADER_CORPUS_CAPTURE: ${{ inputs.capture-shader-corpus && matrix.graphics-api == 'Direct3D11' && format('{0}/shader-corpus', github.workspace) || '' }}
       # Stride.NuGetResolver re-verifies packages per synthetic project (unlike dotnet
       # restore which trusts cached results), tripping on legacy 4.3.0/4.7.0 BCL packages
       # whose timestamping CAs have expired.
@@ -113,14 +128,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libopenal-dev libvulkan1 xvfb lld vulkan-validationlayers libva2 libva-drm2 libva-x11-2
 
-      - name: Start virtual display (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          # Lavapipe's x11 WSI needs a display server to expose VK_KHR_swapchain,
-          # which Stride's GraphicsDevice requires even for pure offscreen rendering.
-          Xvfb :99 -screen 0 1920x1080x24 &
-          echo "DISPLAY=:99" >> $GITHUB_ENV
-
       # PackageStore at test runtime calls Settings.LoadDefaultSettings(null) which only loads
       # user + machine configs, NOT the workspace's nuget.config (no walkup with null root).
       # Locally this works because the dev's user config has Stride.AutoPackDeploy's
@@ -154,52 +161,20 @@ jobs:
           EOF
           dotnet nuget add source "${{ github.workspace }}/bin/packages" --name stride-local --configfile "$HOME/.nuget/NuGet/NuGet.Config"
 
-      # Stride.Games.AutoTesting must be built explicitly so its auto-pack-deploy lands the .nupkg
-      # in bin/packages — the sample projects consume it via <PackageReference>, not via the
-      # ProjectReference graph the test project would otherwise transitively pull. The engine
-      # is built with StrideGraphicsApis pinned to the matrix entry so the resulting nupkg only
-      # contains binaries for that API; the regenerated samples then link against those.
-      - name: Build harness assembly (packs Stride.Games.AutoTesting into bin/packages)
-        run: |
-          dotnet build sources/engine/Stride.Games.AutoTesting/Stride.Games.AutoTesting.csproj \
-            -nr:false -v:m -p:WarningLevel=0 \
-            -p:Configuration=${{ inputs.build-type || 'Debug' }} \
-            -p:StridePlatforms=${{ matrix.platform }} \
-            -p:StrideGraphicsApi=${{ matrix.graphics-api }} \
-            -p:StrideGraphicsApis=${{ matrix.graphics-api }}
-
       # No GPU on the runner: the samples' Vulkan path gets Lavapipe, and the debug-mode samples the validation layers
       - name: Set up Vulkan (Windows / Vulkan)
         if: runner.os == 'Windows' && matrix.graphics-api == 'Vulkan'
         uses: ./.github/actions/setup-vulkan-windows
 
-      # On Linux the Vulkan loader honors VK_DRIVER_FILES → point it at the linux-x64
-      # Lavapipe .so shipped inside the Stride.Dependencies.Lavapipe nupkg.
-      - name: Install Lavapipe and register its Vulkan ICD (Linux / Vulkan)
+      - name: Set up Lavapipe (Linux / Vulkan)
         if: runner.os == 'Linux' && matrix.graphics-api == 'Vulkan'
-        run: |
-          tmpDir="${{ runner.temp }}/lavapipe-fetch"
-          mkdir -p "$tmpDir"
-          cat > "$tmpDir/LavapipeFetch.csproj" <<'EOF'
-          <Project Sdk="Microsoft.NET.Sdk">
-            <PropertyGroup><TargetFramework>net10.0</TargetFramework></PropertyGroup>
-          </Project>
-          EOF
-          dotnet add "$tmpDir/LavapipeFetch.csproj" package Stride.Dependencies.Lavapipe
-          LIB=$(find ~/.nuget/packages/stride.dependencies.lavapipe -path "*/runtimes/linux-x64/native/libvulkan_lvp.so" | head -1)
-          if [ -z "$LIB" ]; then
-            echo "::error::Lavapipe libvulkan_lvp.so not found in NuGet cache"
-            exit 1
-          fi
-          LIB_ABS=$(readlink -f "$LIB")
-          ICD_JSON="$PWD/lvp_icd.json"
-          echo "{\"file_format_version\":\"1.0.0\",\"ICD\":{\"library_path\":\"$LIB_ABS\",\"api_version\":\"1.3.0\"}}" > "$ICD_JSON"
-          echo "VK_DRIVER_FILES=$ICD_JSON" >> $GITHUB_ENV
-          echo "Registered Lavapipe ICD: $ICD_JSON -> $LIB_ABS"
+        uses: ./.github/actions/setup-lavapipe-linux
 
-      # Builds the test project plus its transitive ProjectReferences. StrideGraphicsApi (singular)
-      # selects the test SDK output path; StrideGraphicsApis (plural) keeps the engine deps aligned
-      # with the harness build above.
+      # Builds the test project plus its transitive ProjectReferences, which pack into bin/packages what the
+      # regenerated samples PackageReference: the engine, the asset compiler, the plugins, the templates and
+      # the Stride.Games.AutoTesting harness. StrideGraphicsApis (plural) pins the engine to the matrix entry,
+      # so the nupkgs only contain binaries for that API; StrideGraphicsApi (singular) selects the test SDK
+      # output path.
       - name: Build test project
         run: |
           dotnet build tests/enduser/Stride.Samples.Tests/Stride.Samples.Tests.csproj \
@@ -216,7 +191,8 @@ jobs:
           # AnimatedModel) into a Claude vision second-opinion when LPIPS is over threshold.
           # Key is bound to a budget-capped Anthropic workspace; the fallback only runs on
           # frames that already failed LPIPS so cost is bounded even when noisy.
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Called by another workflow: the key it passes. Run on its own (dispatch, schedule): the screenshots key.
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY || secrets.ANTHROPIC_API_KEY_SCREENSHOTS }}
         run: |
           dotnet test tests/enduser/Stride.Samples.Tests/Stride.Samples.Tests.csproj \
             --no-build \
@@ -247,6 +223,14 @@ jobs:
             TestResults/
             !screenshot-out/**/*.dmp
             !screenshot-out-aot/**/*.dmp
+          if-no-files-found: warn
+
+      - name: Upload shader corpus capture
+        if: always() && inputs.capture-shader-corpus && matrix.graphics-api == 'Direct3D11'
+        uses: actions/upload-artifact@v7
+        with:
+          name: shader-corpus-samples
+          path: shader-corpus/
           if-no-files-found: warn
 
       - name: Upload crash dumps (Windows)
@@ -304,7 +288,8 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y lld
+          # libva: the asset compiler's ffmpeg (sound and video assets)
+          sudo apt-get install -y lld libva2 libva-drm2 libva-x11-2
 
       # The consumer-template generation (NuGetConsumerTests → PackageStore) reads the *user* NuGet
       # config (Settings.LoadDefaultSettings(null) ignores the workspace config), so register the
@@ -331,10 +316,15 @@ jobs:
           EOF
           dotnet nuget add source "${{ github.workspace }}/bin/packages" --name stride-local --configfile "$HOME/.nuget/NuGet/NuGet.Config"
 
+      # The consumers' asset compiles need a graphics device (skybox, model loading): WARP on Windows, Lavapipe here
+      - name: Set up Lavapipe (Linux)
+        if: runner.os == 'Linux'
+        uses: ./.github/actions/setup-lavapipe-linux
+
       # Build + test in one invocation: the test project's ProjectReferences pack the engine into
       # bin/packages, then the pack/consume + external-consumer tests run against it. StridePlatforms
       # is required for the test SDK to emit the test assembly (host platform; graphics API defaults
-      # per OS — D3D11 on Windows, Vulkan on Linux — and is irrelevant to these headless build tests).
+      # per OS — D3D11 on Windows, Vulkan on Linux).
       - name: Run packaging + consumer tests
         run: |
           dotnet test tests/enduser/Stride.Packaging.Tests/Stride.Packaging.Tests.csproj \

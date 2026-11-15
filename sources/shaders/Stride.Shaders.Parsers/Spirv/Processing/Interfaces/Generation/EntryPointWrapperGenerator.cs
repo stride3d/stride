@@ -377,6 +377,8 @@ internal static class EntryPointWrapperGenerator
                     GeometryStreamOutputKindSDSL.Triangle => ExecutionMode.OutputTriangleStrip,
                     _ => throw new NotSupportedException($"Unsupported geometry stream output kind: {outputStreamType.Kind}"),
                 }, []));
+                // Vulkan requires the invocation count on every geometry shader (HLSL [instance] defaults to 1)
+                context.Add(new OpExecutionMode(entryPoint.IdRef, ExecutionMode.Invocations, new(1)));
 
                 arguments[0] = inputsVariable;
 

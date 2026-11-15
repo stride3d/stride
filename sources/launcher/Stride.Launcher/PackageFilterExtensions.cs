@@ -9,6 +9,6 @@ internal static class PackageFilterExtensions
 {
     public static IEnumerable<T> FilterStrideMainPackages<T>(this IEnumerable<T> packages) where T : NugetPackage
     {
-        return packages.Where(x => x.Id is GameStudioNames.Stride or GameStudioNames.StrideAvalonia);
+        return packages.Where(x => GameStudioEditors.FromPackageId(x.Id) is not null);
     }
 }

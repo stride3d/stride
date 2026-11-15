@@ -1,0 +1,30 @@
+// PSMain(ExpectedResult=#FFFFFFFF, cbuffer.Test=(Test1=1), stream.EXTRA_COLOR=(0.2 0.4 0.6 1.0))
+// PSMain(ExpectedResult=#336699FF, cbuffer.Test=(Test1=0), stream.EXTRA_COLOR=(0.2 0.4 0.6 1.0))
+
+namespace Stride.Shaders.Tests;
+
+// The vertex shader only passes the attribute on, and writes it in a branch: the other path keeps the vertex buffer's value.
+shader StreamCarryConditionalWriteVertexInput
+{
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+    stream float4 ColorTarget : SV_Target0;
+    stream float4 ExtraColor : EXTRA_COLOR;
+
+    cbuffer Test
+    {
+        int Test1;
+    }
+
+    void VSMain()
+    {
+        streams.ShadingPosition = streams.Position;
+        if (Test1 != 0)
+            streams.ExtraColor = float4(1.0, 1.0, 1.0, 1.0);
+    }
+
+    void PSMain()
+    {
+        streams.ColorTarget = streams.ExtraColor;
+    }
+}

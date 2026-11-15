@@ -45,6 +45,7 @@ public interface INodeBuilder
     /// </summary>
     /// <param name="type">The type.</param>
     /// <param name="value">The value.</param>
+    /// <param name="isMember">Whether the node represents a member.</param>
     /// <returns></returns>
     IReference? CreateReferenceForNode(Type type, object? value, bool isMember);
 }

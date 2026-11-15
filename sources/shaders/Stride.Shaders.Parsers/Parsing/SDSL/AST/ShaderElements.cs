@@ -182,6 +182,7 @@ public abstract class ShaderBuffer : ShaderElement
         var fields = new List<StructuredTypeMember>();
         foreach (var smem in Members)
         {
+            smem.WarnIgnoredRegister(table, smem.Name);
             smem.TypeName.ProcessSymbol(table);
             smem.Type = smem.TypeName.Type!;
             table.DeclaredTypes.TryAdd(smem.Type.ToString(), smem.Type);
@@ -327,6 +328,8 @@ public sealed partial class CBuffer(string name, TextLocation info) : ShaderBuff
         {
             cbMember.TypeName.ProcessSymbol(table);
             cbMember.Type = cbMember.TypeName.Type;
+            if (ShaderMember.FindIntegerMatrix(cbMember.Type) is { } integerMatrix)
+                table.AddError(new(cbMember.TypeName.Info, string.Format(SDSLErrorMessages.SDSL0195, cbMember.Name, integerMatrix, new VectorType(integerMatrix.BaseType, integerMatrix.Rows))));
         }
 
         var pointerType = new PointerType(Type!, Specification.StorageClass.Uniform);
@@ -341,7 +344,12 @@ public sealed partial class CBuffer(string name, TextLocation info) : ShaderBuff
                 isStaged = member.IsStaged;
             // Make sure IsStaged for all members match the first member (they're all the same)
             if (isStaged != member.IsStaged)
-                throw new InvalidOperationException($"cbuffer {Name} have a mix of stage and non-stage members");
+            {
+                var (stageMember, nonStageMember) = member.IsStaged ? (member, Members[0]) : (Members[0], member);
+                var fullName = LogicalGroup != null ? $"{Name}.{LogicalGroup}" : Name;
+                table.AddError(new(member.Info, string.Format(SDSLErrorMessages.SDSL0174, fullName, stageMember.Name, nonStageMember.Name)));
+                break;
+            }
         }
 
         var constantBufferType = (ConstantBufferSymbol)Type!;

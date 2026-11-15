@@ -36,8 +36,9 @@ internal enum D3D12BarrierSync : uint
     ExecuteIndirect = 0x800,
     AllShading = 0x1000,
     NonPixelShading = 0x2000,
-    BuildRaytracingAccelerationStructure = 0x8000,
-    CopyRaytracingAccelerationStructure = 0x10000,
+    ClearUnorderedAccessView = 0x8000,
+    BuildRaytracingAccelerationStructure = 0x800000,
+    CopyRaytracingAccelerationStructure = 0x1000000,
 }
 
 /// <summary>
@@ -107,6 +108,18 @@ internal unsafe struct D3D12BufferBarrier
 }
 
 /// <summary>
+///   D3D12 global barrier for Enhanced Barriers: all resources, no layout change.
+/// </summary>
+[StructLayout(LayoutKind.Sequential)]
+internal struct D3D12GlobalBarrier
+{
+    public D3D12BarrierSync SyncBefore;
+    public D3D12BarrierSync SyncAfter;
+    public D3D12BarrierAccess AccessBefore;
+    public D3D12BarrierAccess AccessAfter;
+}
+
+/// <summary>
 ///   D3D12 subresource range for Enhanced Barriers.
 /// </summary>
 [StructLayout(LayoutKind.Sequential)]
@@ -143,6 +156,19 @@ internal struct D3D12SubresourceRange
         FirstPlane = 0,
         NumPlanes = 0,
     };
+
+    /// <summary>
+    ///   A range of mip-levels and array slices of the first plane (color, or depth-only textures).
+    /// </summary>
+    public static D3D12SubresourceRange FromRange(TextureSubresourceRange range) => new()
+    {
+        IndexOrFirstMipLevel = (uint) range.MipStart,
+        NumMipLevels = (uint) range.MipCount,
+        FirstArraySlice = (uint) range.ArraySliceStart,
+        NumArraySlices = (uint) range.ArraySliceCount,
+        FirstPlane = 0,
+        NumPlanes = 1,
+    };
 }
 
 /// <summary>
@@ -160,14 +186,15 @@ internal unsafe struct D3D12BarrierGroup
 internal static unsafe class EnhancedBarriers
 {
     /// <summary>
-    ///   Emits a single-texture enhanced Barrier on the given command list (all subresources).
+    ///   Emits a single-texture enhanced Barrier on the given command list (all subresources, or a range of them).
     /// </summary>
     public static void TextureBarrier(
         ID3D12GraphicsCommandList7* commandList,
         ID3D12Resource* resource,
         D3D12BarrierSync syncBefore, D3D12BarrierSync syncAfter,
         D3D12BarrierAccess accessBefore, D3D12BarrierAccess accessAfter,
-        NativeBarrierLayout layoutBefore, NativeBarrierLayout layoutAfter)
+        NativeBarrierLayout layoutBefore, NativeBarrierLayout layoutAfter,
+        D3D12SubresourceRange? subresources = null)
     {
         var barrier = new D3D12TextureBarrier
         {
@@ -178,12 +205,64 @@ internal static unsafe class EnhancedBarriers
             LayoutBefore = layoutBefore,
             LayoutAfter = layoutAfter,
             PResource = resource,
-            Subresources = D3D12SubresourceRange.All,
+            Subresources = subresources ?? D3D12SubresourceRange.All,
             Flags = 0,
         };
         var group = new D3D12BarrierGroup
         {
             Type = D3D12BarrierType.Texture,
+            NumBarriers = 1,
+            PBarriers = &barrier,
+        };
+        commandList->Barrier(1, (BarrierGroup*)&group);
+    }
+
+    /// <summary>
+    ///   Emits a single-buffer enhanced Barrier on the given command list (the whole buffer).
+    /// </summary>
+    public static void BufferBarrier(
+        ID3D12GraphicsCommandList7* commandList,
+        ID3D12Resource* resource,
+        D3D12BarrierSync syncBefore, D3D12BarrierSync syncAfter,
+        D3D12BarrierAccess accessBefore, D3D12BarrierAccess accessAfter)
+    {
+        var barrier = new D3D12BufferBarrier
+        {
+            SyncBefore = syncBefore,
+            SyncAfter = syncAfter,
+            AccessBefore = accessBefore,
+            AccessAfter = accessAfter,
+            PResource = resource,
+            Offset = 0,
+            Size = ulong.MaxValue, // Entire buffer
+        };
+        var group = new D3D12BarrierGroup
+        {
+            Type = D3D12BarrierType.Buffer,
+            NumBarriers = 1,
+            PBarriers = &barrier,
+        };
+        commandList->Barrier(1, (BarrierGroup*)&group);
+    }
+
+    /// <summary>
+    ///   Emits a global enhanced Barrier on the given command list.
+    /// </summary>
+    public static void GlobalBarrier(
+        ID3D12GraphicsCommandList7* commandList,
+        D3D12BarrierSync syncBefore, D3D12BarrierSync syncAfter,
+        D3D12BarrierAccess accessBefore, D3D12BarrierAccess accessAfter)
+    {
+        var barrier = new D3D12GlobalBarrier
+        {
+            SyncBefore = syncBefore,
+            SyncAfter = syncAfter,
+            AccessBefore = accessBefore,
+            AccessAfter = accessAfter,
+        };
+        var group = new D3D12BarrierGroup
+        {
+            Type = D3D12BarrierType.Global,
             NumBarriers = 1,
             PBarriers = &barrier,
         };

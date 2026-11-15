@@ -1,0 +1,30 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Shaders.Tests
+{
+    params EffectDoWhileParameters
+    {
+        int Count;
+    }
+
+    // The body runs once before the condition is checked: with Count = 0, i ends at 1
+    effect EffectDoWhile
+    {
+        using params EffectDoWhileParameters;
+
+        int i = 0;
+        do
+        {
+            i++;
+        }
+        while (i < EffectDoWhileParameters.Count);
+
+        if (i == 1)
+            mixin OneShader;
+        else if (i == 3)
+            mixin ThreeShader;
+        else
+            mixin OtherShader;
+    };
+}

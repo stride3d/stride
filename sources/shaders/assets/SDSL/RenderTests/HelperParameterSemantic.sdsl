@@ -1,0 +1,19 @@
+// PSMain(ExpectedResult=#336699FF)
+
+namespace Stride.Shaders.Tests;
+
+shader HelperParameterSemantic
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    // Semantics on the parameters of a function that is not an entry point: HLSL ignores them
+    float4 Helper(float2 uv : TEXCOORD0, float b : TEXCOORD1)
+    {
+        return float4(uv, b, 1);
+    }
+
+    void PSMain()
+    {
+        streams.ColorTarget = Helper(float2(0.2, 0.4), 0.6);
+    }
+};
