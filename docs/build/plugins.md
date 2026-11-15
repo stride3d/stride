@@ -347,7 +347,7 @@ or around the code that uses it (`#pragma warning disable STREXP003`). Opting in
 
 Game Studio reloads a plugin's assemblies while the session stays open. It asks first, or the user runs *Reload game assemblies*. The reload is one undo step.
 
-- **A plugin project of the solution**: an edit of its code or its `.csproj` builds it again, and it reloads.
+- **A plugin project of the solution**: an edit of its code (`.cs`), its views (`.axaml`, `.xaml`), its resources (`.resx`) or its `.csproj` builds it again, and it reloads.
 - **A dependency built locally** (a dev-redirect to a source tree, as `build/redirect-packages.cs` sets up): Game Studio watches the assemblies the checkout built. When they are rebuilt, they reload.
 - **A `PackageReference` version change** in a project of the solution: the project restores, and the dependency loads its new version.
 
