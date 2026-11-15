@@ -151,7 +151,6 @@ internal struct VoxelGridData<TSource> where TSource : unmanaged, IVoxelDensityS
         return new Vector3(CubeCorners[offset], CubeCorners[offset + 1], CubeCorners[offset + 2]);
     }
 
-
     /// <summary>Orients a triangle so it collides from <paramref name="outward"/>, or from the other side with <see cref="InvertWinding"/>.</summary>
     /// <remarks>Bepu triangles collide on the side where cross(C - A, B - A) points.</remarks>
     private readonly Triangle Orient(Triangle triangle, Vector3 outward)
