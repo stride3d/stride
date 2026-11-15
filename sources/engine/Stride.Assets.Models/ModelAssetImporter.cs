@@ -313,9 +313,8 @@ namespace Stride.Assets.Models
             {
                 if (!File.Exists(textureFullPath))
                 {
-                    string texName = Path.GetFileNameWithoutExtension(textureFullPath)??"<unknown>";
-                    logger.Error($"Texture with name {texName} not found");
-                    continue; 
+                    logger.Warning($"Texture '{Path.GetFileName(textureFullPath)}' was not found at '{textureFullPath}', so no texture asset is created for it.");
+                    continue;
                 }
                 var texturePath = new UFile(textureFullPath);
 

@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 
 namespace Stride.Core.Assets;
@@ -36,4 +37,7 @@ public abstract class AssetImporterBase : IAssetImporter
     }
 
     public abstract IEnumerable<AssetItem> Import(UFile rawAssetPath, AssetImporterParameters importParameters);
+
+    /// <inheritdoc/>
+    public virtual IEnumerable<RawAssetDependency> GetSourceDependencies(UFile rawAssetPath, Logger logger) => [];
 }

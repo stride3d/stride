@@ -22,6 +22,7 @@
       <Link>GuidGenerator.cs</Link>
     </Compile>
     <Compile Include="TestAssetContentTypeMap.cs" />
+    <Compile Include="TestModelTextureImport.cs" />
     <Compile Include="TestAssetConstantsTargets.cs" />
     <Compile Include="TestAssetUrlConstantsGenerator.cs" />
     <Compile Include="TestCodeUpgrade.cs" />
