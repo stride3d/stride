@@ -55,20 +55,44 @@ namespace Stride.VirtualReality
         {
         }
 
+        /// <summary>
+        /// Gets the trigger value, from 0 to 1. It reads 0 while the controller is captured.
+        /// </summary>
         public float Trigger => CaptureState.IsMasked ? 0.0f : RawTrigger;
 
+        /// <summary>
+        /// Gets the grip value, from 0 to 1. It reads 0 while the controller is captured.
+        /// </summary>
         public float Grip => CaptureState.IsMasked ? 0.0f : RawGrip;
 
+        /// <summary>
+        /// Gets whether the index finger points, off the trigger. It reads <c>false</c> while the controller is captured.
+        /// </summary>
         public bool IndexPointing => !CaptureState.IsMasked && RawIndexPointing;
 
+        /// <summary>
+        /// Gets whether the index finger rests on the trigger. It reads <c>false</c> while the controller is captured.
+        /// </summary>
         public bool IndexResting => !CaptureState.IsMasked && RawIndexResting;
 
+        /// <summary>
+        /// Gets whether the thumb is up, off the thumb controls. It reads <c>false</c> while the controller is captured.
+        /// </summary>
         public bool ThumbUp => !CaptureState.IsMasked && RawThumbUp;
 
+        /// <summary>
+        /// Gets whether the thumb rests on the thumb controls. It reads <c>false</c> while the controller is captured.
+        /// </summary>
         public bool ThumbResting => !CaptureState.IsMasked && RawThumbResting;
 
+        /// <summary>
+        /// Gets the thumb position on the touchpad or the thumbstick, depending on the backend. It reads zero while the controller is captured.
+        /// </summary>
         public Vector2 ThumbAxis => CaptureState.IsMasked ? Vector2.Zero : RawThumbAxis;
 
+        /// <summary>
+        /// Gets the thumbstick position. It reads zero while the controller is captured.
+        /// </summary>
         public Vector2 ThumbstickAxis => CaptureState.IsMasked ? Vector2.Zero : RawThumbstickAxis;
 
         /// <summary>
@@ -81,16 +105,34 @@ namespace Stride.VirtualReality
         /// </summary>
         protected abstract float RawGrip { get; }
 
+        /// <summary>
+        /// Gets whether the backend reports the index finger pointing, whether or not the controller is captured.
+        /// </summary>
         protected abstract bool RawIndexPointing { get; }
 
+        /// <summary>
+        /// Gets whether the backend reports the index finger resting on the trigger, whether or not the controller is captured.
+        /// </summary>
         protected abstract bool RawIndexResting { get; }
 
+        /// <summary>
+        /// Gets whether the backend reports the thumb up, whether or not the controller is captured.
+        /// </summary>
         protected abstract bool RawThumbUp { get; }
 
+        /// <summary>
+        /// Gets whether the backend reports the thumb resting on the thumb controls, whether or not the controller is captured.
+        /// </summary>
         protected abstract bool RawThumbResting { get; }
 
+        /// <summary>
+        /// Gets the thumb position on the touchpad or the thumbstick reported by the backend, whether or not the controller is captured.
+        /// </summary>
         protected abstract Vector2 RawThumbAxis { get; }
 
+        /// <summary>
+        /// Gets the thumbstick position reported by the backend, whether or not the controller is captured.
+        /// </summary>
         protected abstract Vector2 RawThumbstickAxis { get; }
 
         public enum ControllerHaptics
