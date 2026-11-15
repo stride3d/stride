@@ -17,7 +17,7 @@ namespace Stride.Core.Presentation.Avalonia.Controls;
 /// <para>Pseudo-class: <c>:selected</c> while the node is in the graph's <see cref="NodeGraphControl.SelectedNodes"/>.</para>
 /// <para>A style of the containers, in the graph's styles, can bind their properties to the node, for example
 /// <c>&lt;Style Selector="sd|NodeGraphNode"&gt;&lt;Setter Property="Position" Value="{Binding Position}"/&gt;&lt;/Style&gt;</c>
-/// to show the positions a view model saved.</para>
+/// to show the positions a view model saved, or a <see cref="Control.ContextMenu"/> of the nodes.</para>
 /// </remarks>
 [Experimental("STREXP010")]
 public sealed class NodeGraphNode : ContentControl

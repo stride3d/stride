@@ -33,7 +33,10 @@ namespace Stride.Core.Presentation.Avalonia.Controls;
 /// selected nodes; a click on a node of a selection selects only that node. A press on a link selects it the same way.
 /// A press elsewhere draws a selection rectangle (none: replaces the selection, Shift: adds to it, Ctrl: toggles), and a click
 /// there clears the selection.</item>
-/// <item>Middle button, or right button moved: pans the view. A right click without a move opens the context menu.</item>
+/// <item>Middle button, or right button moved: pans the view. A right click without a move opens the context menu: on a node,
+/// the menu of the node (the <see cref="Control.ContextMenu"/> or <see cref="Control.ContextFlyout"/> of an element of its
+/// template or of its <see cref="NodeGraphNode"/> container) or else the graph's, after selecting the node if it wasn't
+/// selected; elsewhere, the graph's.</item>
 /// <item>Wheel: zooms around the pointer.</item>
 /// <item>Home: shows every node (<see cref="FitToView"/>). Escape: cancels the drag.</item>
 /// </list>
@@ -218,6 +221,7 @@ public sealed class NodeGraphControl : Control
     private KeyModifiers pressModifiers;
     private bool hasMoved;
     private NodeGraphNode? pressedNode;
+    private Visual? rightPressSource;
     private bool selectOnlyPressedNodeOnClick;
     private readonly List<(NodeGraphNode Node, Point Start)> draggedNodes = [];
     private object? linkSourceSlot;
@@ -616,7 +620,8 @@ public sealed class NodeGraphControl : Control
                 return;
 
             case PointerUpdateKind.RightButtonPressed:
-                // A pan once it moves; otherwise the release opens the context menu
+                // A pan once it moves; otherwise the release opens the context menu of what was pressed
+                rightPressSource = e.Source as Visual;
                 StartGesture(Gesture.PendingPan, MouseButton.Right, e);
                 return;
 
@@ -727,10 +732,24 @@ public sealed class NodeGraphControl : Control
             var selectOnlyNode = selectOnlyPressedNodeOnClick && !hasMoved;
             var moved = hasMoved;
             var moves = endedGesture == Gesture.NodeDrag && moved ? DropNodes() : null;
+            var contextSource = rightPressSource;
             EndGesture(e.Pointer);
 
             switch (endedGesture)
             {
+                case Gesture.PendingPan:
+                    if (FindContainer(contextSource) is { } contextNode && contextSource is Interactive pressedElement)
+                    {
+                        // A menu acts on the selection: a node outside of it becomes the selection
+                        if (!EffectiveSelectedNodes.Contains(contextNode.Node))
+                            SelectOnly(contextNode.Node);
+                        // The request goes up from the pressed element: the first menu on the way opens, the graph's at the latest
+                        var request = new ContextRequestedEventArgs(e);
+                        pressedElement.RaiseEvent(request);
+                        e.Handled = true;
+                    }
+                    break;
+
                 case Gesture.Pan:
                     // A moved right button doesn't open the context menu
                     e.Handled = true;
@@ -1179,6 +1198,7 @@ public sealed class NodeGraphControl : Control
         var endedGesture = gesture;
         gesture = Gesture.None;
         pressedNode = null;
+        rightPressSource = null;
         selectOnlyPressedNodeOnClick = false;
         draggedNodes.Clear();
         linkSourceSlot = null;

@@ -461,6 +461,81 @@ public sealed class NodeGraphControlTests
         window.Close();
     }
 
+    [AvaloniaFact]
+    public void ARightClickOnANodeSelectsItAndOpensItsMenu()
+    {
+        var graph = new TestGraph();
+        var a = graph.AddNode("A", 0, 1);
+        var b = graph.AddNode("B", 1, 0);
+        var c = graph.AddNode("C", 1, 0);
+        var selectedNodes = new ObservableCollection<object> { a };
+        var graphMenu = new ContextMenu { Items = { new MenuItem { Header = "Graph" } } };
+        var nodeMenu = new ContextMenu { Items = { new MenuItem { Header = "Node" } } };
+        var (window, control) = Show(graph, x =>
+        {
+            x.SelectedNodes = selectedNodes;
+            x.ContextMenu = graphMenu;
+            // Every node has the same menu, whose data context is the node it opens on
+            x.Styles.Add(new Style(s => s.OfType<NodeGraphNode>()) { Setters = { new Setter(Control.ContextMenuProperty, nodeMenu) } });
+        });
+
+        RightClick(window, NodeTitle(window, control, b));
+        Assert.Equal([b], selectedNodes);
+        Assert.True(nodeMenu.IsOpen);
+        Assert.False(graphMenu.IsOpen);
+        Assert.Same(b, nodeMenu.DataContext);
+        nodeMenu.Close();
+
+        // A node of the selection keeps the selection, which the menu acts on
+        selectedNodes.Add(c);
+        RightClick(window, NodeTitle(window, control, c));
+        Assert.Equal([b, c], selectedNodes);
+        Assert.True(nodeMenu.IsOpen);
+        nodeMenu.Close();
+
+        // The background opens the graph's menu and keeps the selection
+        RightClick(window, EmptyPoint(window, control));
+        Assert.True(graphMenu.IsOpen);
+        Assert.False(nodeMenu.IsOpen);
+        Assert.Equal([b, c], selectedNodes);
+        graphMenu.Close();
+
+        // A right drag that starts on a node pans, without a menu or a change of the selection
+        var offset = control.Offset;
+        var title = NodeTitle(window, control, a);
+        window.MouseDown(title, MouseButton.Right);
+        window.MouseMove(title + new Point(30, 0));
+        window.MouseUp(title + new Point(30, 0), MouseButton.Right);
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(offset + new Vector(30, 0), control.Offset);
+        Assert.False(nodeMenu.IsOpen);
+        Assert.False(graphMenu.IsOpen);
+        Assert.Equal([b, c], selectedNodes);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void ARightClickOnANodeWithoutAMenuOpensTheGraphsMenu()
+    {
+        var graph = new TestGraph();
+        var a = graph.AddNode("A", 0, 1);
+        var b = graph.AddNode("B", 1, 0);
+        var selectedNodes = new ObservableCollection<object> { a };
+        var graphMenu = new ContextMenu { Items = { new MenuItem { Header = "Graph" } } };
+        var (window, control) = Show(graph, x =>
+        {
+            x.SelectedNodes = selectedNodes;
+            x.ContextMenu = graphMenu;
+        });
+
+        // The node is selected first, so that the graph's commands act on it
+        RightClick(window, NodeTitle(window, control, b));
+        Assert.Equal([b], selectedNodes);
+        Assert.True(graphMenu.IsOpen);
+        graphMenu.Close();
+        window.Close();
+    }
+
     private static (Window Window, NodeGraphControl Control) Show(TestGraph graph, Action<NodeGraphControl>? setup = null)
     {
         var control = new NodeGraphControl
@@ -519,6 +594,13 @@ public sealed class NodeGraphControlTests
     {
         window.MouseDown(point, MouseButton.Left, modifiers);
         window.MouseUp(point, MouseButton.Left, modifiers);
+        Dispatcher.UIThread.RunJobs();
+    }
+
+    private static void RightClick(Window window, Point point)
+    {
+        window.MouseDown(point, MouseButton.Right);
+        window.MouseUp(point, MouseButton.Right);
         Dispatcher.UIThread.RunJobs();
     }
 
