@@ -78,7 +78,7 @@ namespace Stride.Core.Yaml.Serialization.Serializers
         /// Gets the style that will be used to serialized the object.
         /// </summary>
         /// <param name="objectContext"></param>
-        /// <returns>The <see cref="DataStyle"/> to use. Default is <see cref="IYamlTypeDescriptor.Style"/>.</returns>
+        /// <returns>The <see cref="DataStyle"/> to use. Default is <see cref="ITypeDescriptor.Style"/>.</returns>
         protected virtual DataStyle GetStyle(ref ObjectContext objectContext)
         {
             return objectContext.ObjectSerializerBackend.GetStyle(ref objectContext);
@@ -380,7 +380,7 @@ namespace Stride.Core.Yaml.Serialization.Serializers
         }
 
         /// <summary>
-        /// Writes the members of the object to serialize. By default this method is iterating on the <see cref="IYamlTypeDescriptor.Members"/> and
+        /// Writes the members of the object to serialize. By default this method is iterating on the <see cref="ITypeDescriptor.Members"/> and
         /// calling <see cref="WriteMember"/> on each member.
         /// </summary>
         /// <param name="objectContext"></param>

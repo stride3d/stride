@@ -11,13 +11,21 @@ namespace Stride.Assets.Templates;
 
 /// <summary>
 /// Bootstraps the editor-internal template registry (asset / script / project-modification .sdtpl
-/// files in Stride.Assets.Presentation.Wpf, plus the dotnet new project templates from Stride.Templates.*;
+/// files in Stride.Assets.Templates, plus the dotnet new project templates from Stride.Templates.*;
 /// a package's own templates come with its Assets companion). Non-WPF entry point — callable from
-/// headless test runners without pulling Stride.Assets.Presentation.Wpf (and its WPF dependency tree)
+/// headless test runners without pulling the editor assemblies (and the WPF dependency tree)
 /// into the consumer.
 /// </summary>
 public static class StrideDefaultTemplates
 {
+    /// <summary>
+    /// The package whose <c>.sdpkg</c> lists the asset template folders, shared by the WPF and cross-platform editors.
+    /// </summary>
+    public const string AssetTemplatesPackageName = "Stride.Assets.Templates";
+
+    private static readonly object AssetTemplatesLock = new();
+    private static Package assetTemplatesPackage;
+
     /// <summary>
     /// Loads default templates. Pass <paramref name="loadAssemblyReferences"/>=false in headless
     /// test runners so the .sdpkg's referenced assemblies (Stride.Particles etc.) don't get loaded
@@ -26,22 +34,65 @@ public static class StrideDefaultTemplates
     /// </summary>
     public static void Load(bool loadAssemblyReferences = true)
     {
+        LoadAssetTemplates(loadAssemblyReferences);
+        DotNetNewTemplateBridge.RegisterProjectTemplates();
+    }
+
+    /// <summary>
+    /// Registers the asset, script and project-modification templates (the <c>.sdtpl</c> files listed by the
+    /// <see cref="AssetTemplatesPackageName"/> package) with the <see cref="TemplateManager"/>, without the dotnet new project
+    /// templates: what an editor that registers the project templates itself needs.
+    /// </summary>
+    /// <remarks>
+    /// The templates are registered once: a later call keeps the package already registered, including one registered from a file
+    /// with <see cref="LoadAssetTemplates(string, bool)"/>.
+    /// </remarks>
+    /// <param name="loadAssemblyReferences">Whether the assemblies referenced by the package are loaded; see <see cref="Load"/>.</param>
+    /// <exception cref="InvalidOperationException">The package is not in the package store, or it could not be loaded.</exception>
+    public static void LoadAssetTemplates(bool loadAssemblyReferences = true)
+    {
+        lock (AssetTemplatesLock)
+        {
+            if (assetTemplatesPackage is not null)
+                return;
+
+            var version = StrideVersion.NuGetVersion;
+            var packageFile = PackageStore.Instance.GetPackageFileName(AssetTemplatesPackageName, new PackageVersionRange(new PackageVersion(version)));
+            if (packageFile is null)
+                throw new InvalidOperationException($"Could not find package {AssetTemplatesPackageName} {version}. Ensure packages have been resolved.");
+            Register(packageFile.ToOSPath(), loadAssemblyReferences);
+        }
+    }
+
+    /// <summary>
+    /// Registers the templates of the given <see cref="AssetTemplatesPackageName"/> package file instead of the one in the package
+    /// store, for example the repository's on a machine that has not restored the package (the tests of a CI machine).
+    /// </summary>
+    /// <param name="packageFile">The full path of the <c>.sdpkg</c> file.</param>
+    /// <param name="loadAssemblyReferences">Whether the assemblies referenced by the package are loaded; see <see cref="Load"/>.</param>
+    /// <exception cref="InvalidOperationException">The package could not be loaded.</exception>
+    public static void LoadAssetTemplates(string packageFile, bool loadAssemblyReferences = true)
+    {
+        ArgumentNullException.ThrowIfNull(packageFile);
+        lock (AssetTemplatesLock)
+        {
+            if (assetTemplatesPackage is not null)
+                return;
+            Register(packageFile, loadAssemblyReferences);
+        }
+    }
+
+    private static void Register(string packageFile, bool loadAssemblyReferences)
+    {
         // Only TemplateFolders are needed here (loaded regardless of this flag); skip the package's
         // assets — they're unused for template registration and slow to load.
         var loadParams = new PackageLoadParameters { LoadAssemblyReferences = loadAssemblyReferences, AutoLoadTemporaryAssets = false };
-        foreach (var packageInfo in new[] { new { Name = "Stride.Assets.Presentation.Wpf", Version = StrideVersion.NuGetVersion } })
-        {
-            var logger = new LoggerResult();
-            var packageFile = PackageStore.Instance.GetPackageFileName(packageInfo.Name, new PackageVersionRange(new PackageVersion(packageInfo.Version)));
-            if (packageFile is null)
-                throw new InvalidOperationException($"Could not find package {packageInfo.Name} {packageInfo.Version}. Ensure packages have been resolved.");
-            var package = Package.Load(logger, packageFile.ToOSPath(), loadParams);
-            if (logger.HasErrors)
-                throw new InvalidOperationException($"Could not load package {packageInfo.Name}:{Environment.NewLine}{logger.ToText()}");
+        var logger = new LoggerResult();
+        var package = Package.Load(logger, packageFile, loadParams);
+        if (logger.HasErrors)
+            throw new InvalidOperationException($"Could not load package {AssetTemplatesPackageName}:{Environment.NewLine}{logger.ToText()}");
 
-            TemplateManager.RegisterPackage(package);
-        }
-
-        DotNetNewTemplateBridge.RegisterProjectTemplates();
+        TemplateManager.RegisterPackage(package);
+        assetTemplatesPackage = package;
     }
 }

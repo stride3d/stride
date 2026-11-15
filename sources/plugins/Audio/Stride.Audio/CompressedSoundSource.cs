@@ -17,7 +17,7 @@ namespace Stride.Audio
         internal const int NumberOfBuffers = 4;
         internal const int SamplesPerFrame = 512;
 
-        private static UnmanagedArray<short> utilityBuffer = new UnmanagedArray<short>(SamplesPerBuffer * MaxChannels);
+        private static readonly short[] utilityBuffer = new short[SamplesPerBuffer * MaxChannels];
 
         private Stream compressedSoundStream;
         private BinarySerializationReader reader;
@@ -251,7 +251,6 @@ namespace Stride.Audio
             {
                 const int passes = SamplesPerBuffer / SamplesPerFrame;
                 var offset = 0;
-                var bufferPtr = (short*)utilityBuffer.Pointer;
                 var startingPacket = startingPacketIndex == currentPacketIndex;
                 var endingPacket = false;
                 for (var i = 0; i < passes; i++)
@@ -263,8 +262,7 @@ namespace Stride.Audio
                     compressedSoundStream.ReadExactly(compressedBuffer, 0, len);
                     currentPacketIndex++;
 
-                    var writePtr = bufferPtr + offset;
-                    if (decoder.Decode(compressedBuffer, len, writePtr) != SamplesPerFrame)
+                    if (decoder.Decode(compressedBuffer.AsSpan(0, len), utilityBuffer.AsSpan(offset, SamplesPerFrame * channels)) != SamplesPerFrame)
                     {
                         throw new Exception("Celt decoder returned a wrong decoding buffer size.");
                     }
@@ -278,8 +276,10 @@ namespace Stride.Audio
                 }
 
                 // Send buffer to hardware
-                var finalPtr = new IntPtr(bufferPtr + (startingPacket ? startPktSampleIndex : 0));
-                var finalSize = (offset - (startingPacket ? startPktSampleIndex : 0) - (endingPacket ? endPktSampleIndex : 0)) * sizeof(short);
+                var finalStart = startingPacket ? startPktSampleIndex : 0;
+                var finalSize = offset - finalStart - (endingPacket ? endPktSampleIndex : 0);
+                var finalSpan = utilityBuffer.AsSpan(finalStart, finalSize);
+                var finalSizeInBytes = finalSize * sizeof(short);
 
                 var bufferType = AudioLayer.BufferType.None;
                 if (endingPacket)
@@ -291,7 +291,10 @@ namespace Stride.Audio
                     bufferType = AudioLayer.BufferType.BeginOfStream;
                     begin = false;
                 }
-                FillBuffer(finalPtr, finalSize, bufferType);
+                fixed (short* finalPtr = finalSpan)
+                {
+                    FillBuffer((nint)finalPtr, finalSizeInBytes, bufferType);
+                }
 
                 // Go back to beginning if necessary
                 if (endingPacket || compressedSoundStream.Position == compressedSoundStream.Length)

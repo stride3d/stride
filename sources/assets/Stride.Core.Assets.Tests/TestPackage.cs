@@ -1,12 +1,16 @@
 ﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Xunit;
+using Stride.Core.Assets.Analysis;
+using Stride.Core.Assets.Tracking;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
+using Stride.Core.Storage;
 
 namespace Stride.Core.Assets.Tests
 {
@@ -140,6 +144,83 @@ namespace Stride.Core.Assets.Tests
             Assert.False(result.HasErrors, string.Join("\n", result.Messages));
             Assert.False(File.Exists(oldFile));
             Assert.True(File.Exists(Path.Combine(dirPath, "Assets", "Sub", "Ground2.sdtest")));
+        }
+
+        private (PackageSession Session, Package Package, AssetItem Asset, string File) CreateSavedAsset(string testName)
+        {
+            var dirPath = Path.Combine(DirectoryTestBase, testName);
+            if (Directory.Exists(dirPath))
+                Directory.Delete(dirPath, true);
+            Directory.CreateDirectory(dirPath);
+
+            var package = new Package { FullPath = Path.Combine(dirPath, "MyGame.sdpkg") };
+            package.AssetFolders.Add(new AssetFolder("Assets"));
+            var session = new PackageSession();
+            session.Projects.Add(new SolutionProject(package, Guid.NewGuid(), Path.Combine(dirPath, "MyGame.csproj")));
+            var asset = new AssetItem("Ground", new AssetObjectTest());
+            package.Assets.Add(asset);
+            asset.IsDirty = true;
+
+            var result = new LoggerResult();
+            session.Save(result);
+            Assert.False(result.HasErrors, string.Join("\n", result.Messages));
+            var file = Path.Combine(dirPath, "Assets", "Ground.sdtest");
+            Assert.True(File.Exists(file));
+            return (session, package, asset, file);
+        }
+
+        [Fact]
+        public void TestSaveKeepsFileOfRemovedAssetWhenAnotherAssetHasIt()
+        {
+            var (session, package, asset, file) = CreateSavedAsset(nameof(TestSaveKeepsFileOfRemovedAssetWhenAnotherAssetHasIt));
+
+            // The file was deleted and came back: a new asset, with another id, now stands for it
+            package.Assets.Remove(asset);
+            var newAsset = new AssetItem(asset.Location, new AssetObjectTest()) { SourceFolder = asset.SourceFolder };
+            package.Assets.Add(newAsset);
+            newAsset.IsDirty = false;
+            package.Assets.IsDirty = true;
+            var content = File.ReadAllText(file) + "# Kept\n";
+            File.WriteAllText(file, content);
+
+            var result = new LoggerResult();
+            session.Save(result);
+
+            Assert.False(result.HasErrors, string.Join("\n", result.Messages));
+            Assert.True(File.Exists(file));
+            Assert.Equal(content, File.ReadAllText(file));
+        }
+
+        [Fact]
+        public void TestSaveKeepsFileThatCameBackAfterDeleteOutside()
+        {
+            var (session, package, asset, file) = CreateSavedAsset(nameof(TestSaveKeepsFileThatCameBackAfterDeleteOutside));
+
+            package.Assets.Remove(asset);
+            session.SetFileDeletedOutside(asset.FullPath, true);
+
+            var result = new LoggerResult();
+            session.Save(result);
+
+            Assert.False(result.HasErrors, string.Join("\n", result.Messages));
+            Assert.True(File.Exists(file));
+        }
+
+        [Fact]
+        public void TestSaveDeletesFileOfAssetRemovedInSession()
+        {
+            var (session, package, asset, file) = CreateSavedAsset(nameof(TestSaveDeletesFileOfAssetRemovedInSession));
+
+            // An undo of a delete from outside clears the mark, so a later delete in the session still deletes the file
+            session.SetFileDeletedOutside(asset.FullPath, true);
+            session.SetFileDeletedOutside(asset.FullPath, false);
+            package.Assets.Remove(asset);
+
+            var result = new LoggerResult();
+            session.Save(result);
+
+            Assert.False(result.HasErrors, string.Join("\n", result.Messages));
+            Assert.False(File.Exists(file));
         }
 
         [Fact]
@@ -413,6 +494,49 @@ namespace Stride.Core.Assets.Tests
 
                 Assert.Equal("subTest/TestAsset2", assetChanged.Reference.Location);
             }
+        }
+
+        [Fact]
+        public void TestLoadAssetFromFile()
+        {
+            var dirPath = Path.Combine(DirectoryTestBase, "TestLoadAssetFromFile");
+            if (Directory.Exists(dirPath))
+                Directory.Delete(dirPath, true);
+            Directory.CreateDirectory(dirPath);
+
+            var package = new Package { FullPath = Path.Combine(dirPath, "MyPkg.sdpkg") };
+            package.AssetFolders.Clear();
+            package.AssetFolders.Add(new AssetFolder("Assets"));
+
+            // A file written by another program, in a sub-folder of an asset folder, with paths relative to it as when saved
+            var sourcePath = new UFile(Path.Combine(dirPath, "Resources", "ground.png"));
+            var asset = new AssetObjectTest { Name = "Changed outside", RawAsset = sourcePath };
+            SourceHashesHelper.UpdateHashes(asset, new Dictionary<UFile, ObjectId> { [sourcePath] = ObjectId.New() });
+            var filePath = Path.Combine(dirPath, "Assets", "Sub", "Ground.sdtest");
+            AssetAnalysis.ConvertUPaths(new AssetItem("Sub/Ground", asset, package) { SourceFolder = "Assets" }, UPathType.Relative);
+            Assert.Equal(new UFile("../../Resources/ground.png"), asset.RawAsset);
+            AssetFileSerializer.Save(filePath, asset, null);
+
+            var result = new LoggerResult();
+            var assetItem = package.LoadAssetFromFile(new UFile(filePath), result);
+            Assert.False(result.HasErrors, string.Join("\n", result.Messages));
+            Assert.NotNull(assetItem);
+            Assert.Equal("Sub/Ground", assetItem.Location.FullPath);
+            Assert.Equal(asset.Id, assetItem.Id);
+            Assert.Equal(asset.Name, ((AssetObjectTest)assetItem.Asset).Name);
+            Assert.False(assetItem.IsDirty);
+            // Its paths are absolute, as in the assets of a loaded package
+            Assert.Equal(sourcePath, ((AssetObjectTest)assetItem.Asset).RawAsset);
+            Assert.Equal(sourcePath, Assert.Single(SourceHashesHelper.GetAllHashes(assetItem.Asset)).Key);
+            // It is loaded, not added
+            Assert.Empty(package.Assets);
+
+            // A file out of the asset folders is not an asset of the package
+            var outsidePath = Path.Combine(dirPath, "Elsewhere", "Ground.sdtest");
+            AssetFileSerializer.Save(outsidePath, asset, null);
+            result = new LoggerResult();
+            Assert.Null(package.LoadAssetFromFile(new UFile(outsidePath), result));
+            Assert.True(result.HasErrors);
         }
 
         [Fact]

@@ -4,6 +4,8 @@ using System;
 using System.Globalization;
 
 using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Presentation.ValueConverters;
 
 namespace Stride.Core.Assets.Editor.View.ValueConverters
@@ -15,15 +17,36 @@ namespace Stride.Core.Assets.Editor.View.ValueConverters
             return FetchResourceFromType(value as Type, true);
         }
 
+        /// <summary>
+        /// The image of <paramref name="type"/>, or of its closest base type that has one when <paramref name="tryBase"/> is
+        /// set: an image of <see cref="AssetsEditorPlugin.TypeImagesDictionary"/>, then one that the plugins of the session
+        /// register or the registered assemblies declare (<see cref="IAssetsPluginService.GetImageForType"/>).
+        /// </summary>
         public static object FetchResourceFromType(Type type, bool tryBase)
+        {
+            var pluginService = type is null ? null : SessionViewModel.CurrentInstance?.ServiceProvider.TryGet<IAssetsPluginService>();
+            return FetchResourceFromType(type, tryBase, pluginService);
+        }
+
+        /// <summary>
+        /// The image of <paramref name="type"/>, as <see cref="FetchResourceFromType(Type, bool)"/>, with the plugin images of
+        /// <paramref name="pluginService"/>.
+        /// </summary>
+        public static object FetchResourceFromType(Type type, bool tryBase, IAssetsPluginService pluginService)
         {
             object result = null;
             while (type != null)
             {
+                // The older API's images, still shown for the plugins that set them
+#pragma warning disable STRPLUGIN004
                 if (AssetsEditorPlugin.TypeImagesDictionary.TryGetValue(type, out result))
                     break;
+#pragma warning restore STRPLUGIN004
 
-                if ((result = DeclaredImages.GetTypeImage(type)) is not null)
+                if ((result = pluginService?.GetImageForType(type)) is not null)
+                    break;
+
+                if (!tryBase)
                     break;
 
                 type = type.BaseType;

@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using Stride.Core.Assets;
 using Stride.Core.Presentation.Quantum;
-using Stride.Assets.Presentation.ViewModel;
 using Stride.UI.Assets;
 using Stride.UI;
 using Stride.Core.Presentation.ViewModels;

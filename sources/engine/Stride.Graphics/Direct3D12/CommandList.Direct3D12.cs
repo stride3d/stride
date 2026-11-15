@@ -315,18 +315,6 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Sets the stream output Buffers.
-        /// </summary>
-        /// <param name="buffers">
-        ///   The Buffers to set for stream output.
-        ///   Specify <see langword="null"/> or an empty array to unset any bound output Buffer.
-        /// </param>
-        public void SetStreamTargets(params Buffer[] buffers)
-        {
-            // TODO: Implement stream output buffers
-        }
-
-        /// <summary>
         ///   Sets the viewports to the rasterizer stage.
         /// </summary>
         private void SetViewportImpl()
@@ -1243,11 +1231,6 @@ namespace Stride.Graphics
                 WinPixNative.PIXEndEventOnCommandList(currentCommandList.NativeCommandList);
             else
                 currentCommandList.NativeCommandList.EndEvent();
-        }
-
-        // TODO: Unused, remove?
-        public void ResetQueryPool(QueryPool queryPool)
-        {
         }
 
         /// <summary>

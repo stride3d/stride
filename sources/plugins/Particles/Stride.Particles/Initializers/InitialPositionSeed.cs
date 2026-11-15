@@ -158,7 +158,7 @@ namespace Stride.Particles.Initializers
         /// If set to <c>true</c> it will interpolate the particles between the old and the new position, rather than using only the new one
         /// </summary>
         /// <userdoc>
-        /// If set to <c>true</c> it will interpolate the particles between the old and the new position, rather than using only the new one
+        /// If enabled, it will interpolate the particles between the old and the new position, rather than using only the new one
         /// </userdoc>
         [DataMember(50)]
         [Display("Interpolate")]

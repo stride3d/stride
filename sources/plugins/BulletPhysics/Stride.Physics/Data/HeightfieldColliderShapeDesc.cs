@@ -78,22 +78,6 @@ namespace Stride.Physics
             return (heightRange.X + heightRange.Y) * 0.5f - centerHeight;
         }
 
-        private static UnmanagedArray<T> CreateHeights<T>(IHeightStickArraySource heightStickArraySource) where T : struct
-        {
-            if (!heightStickArraySource?.IsValid() ?? false)
-            {
-                return null;
-            }
-
-            var arrayLength = heightStickArraySource.HeightStickSize.X * heightStickArraySource.HeightStickSize.Y;
-
-            var unmanagedArray = new UnmanagedArray<T>(arrayLength);
-
-            heightStickArraySource.CopyTo(unmanagedArray, 0);
-
-            return unmanagedArray;
-        }
-
         /// <summary>
         /// Get the centering offset that will be added to the local offset of the collider shape.
         /// </summary>
@@ -109,48 +93,48 @@ namespace Stride.Physics
 
         public ColliderShape CreateShape(IServiceRegistry services)
         {
-            object unmanagedArray;
-
-            switch (HeightStickArraySource.HeightType)
+            if (HeightStickArraySource is null || !HeightStickArraySource.IsValid() || HeightStickArraySource.HeightType is not (HeightfieldTypes.Float or HeightfieldTypes.Short or HeightfieldTypes.Byte))
             {
-                case HeightfieldTypes.Float:
-                {
-                    unmanagedArray = CreateHeights<float>(HeightStickArraySource);
-                    break;
-                }
-                case HeightfieldTypes.Short:
-                {
-                    unmanagedArray = CreateHeights<short>(HeightStickArraySource);
-                    break;
-                }
-                case HeightfieldTypes.Byte:
-                {
-                    unmanagedArray = CreateHeights<byte>(HeightStickArraySource);
-                    break;
-                }
-
-                default:
-                    return null;
+                return null;
             }
-
-            if (unmanagedArray == null) return null;
 
             var shape = new HeightfieldColliderShape
                         (
                             HeightStickArraySource.HeightStickSize.X,
                             HeightStickArraySource.HeightStickSize.Y,
                             HeightStickArraySource.HeightType,
-                            unmanagedArray,
                             HeightStickArraySource.HeightScale,
                             HeightStickArraySource.HeightRange.X,
                             HeightStickArraySource.HeightRange.Y,
                             FlipQuadEdges
                         )
-                        {
-                            LocalOffset = LocalOffset + new Vector3(0, GetCenteringOffset(), 0),
-                            LocalRotation = LocalRotation,
-                            Description = this
-                        };
+            {
+                LocalOffset = LocalOffset + new Vector3(0, GetCenteringOffset(), 0),
+                LocalRotation = LocalRotation,
+                Description = this
+            };
+
+            using (shape.LockToReadAndWriteHeights())
+            {
+                switch (HeightStickArraySource.HeightType)
+                {
+                    case HeightfieldTypes.Float:
+                    {
+                        HeightStickArraySource.CopyTo(shape.FloatSpan);
+                        break;
+                    }
+                    case HeightfieldTypes.Short:
+                    {
+                        HeightStickArraySource.CopyTo(shape.ShortSpan);
+                        break;
+                    }
+                    case HeightfieldTypes.Byte:
+                    {
+                        HeightStickArraySource.CopyTo(shape.ByteSpan);
+                        break;
+                    }
+                }
+            }
 
             return shape;
         }

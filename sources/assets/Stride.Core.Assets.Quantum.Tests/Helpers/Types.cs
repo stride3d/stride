@@ -92,6 +92,24 @@ public static class Types
         public bool MyBool { get; set; } = true;
     }
 
+    // Written only when it holds something, as ModelComponent.Morphs
+    [DataContract]
+    public class SettingsSkippedWhenEmpty
+    {
+        [DefaultValue(true)]
+        public bool Enabled { get; set; } = true;
+        public Dictionary<string, string> Strings { get; set; } = [];
+        private bool ShouldSerializeStrings() => Strings.Count > 0;
+    }
+
+    [DataContract]
+    [AssetDescription(FileExtension)]
+    public class MyAssetWithSkippedSettings : MyAssetBase
+    {
+        public SettingsSkippedWhenEmpty Settings { get; } = new();
+        private bool ShouldSerializeSettings() => !Settings.Enabled || Settings.Strings.Count > 0;
+    }
+
     [DataContract]
     public class MyReferenceable : IIdentifiable
     {

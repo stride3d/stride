@@ -40,11 +40,15 @@
 
   <!-- Default GameStudioVersion to the single Stride.GameStudio package in the local feed. -->
   <ItemGroup Condition="'$(GameStudioVersion)' == ''">
-    <_GameStudioNupkg Include="$(StrideLocalFeed)$(GameStudioPackageId).*.nupkg"
-                      Exclude="$(StrideLocalFeed)$(GameStudioPackageId).AutoTesting.*.nupkg" />
+    <_GameStudioNupkgCandidate Include="$(StrideLocalFeed)$(GameStudioPackageId).*.nupkg" />
   </ItemGroup>
 
   <Target Name="_ResolveVersion">
+    <!-- The glob also matches other packages (Stride.GameStudio.Avalonia, .AutoTesting, ...): keep the names
+         where a version, so a digit, follows the 'Stride.GameStudio.' prefix (18 chars). -->
+    <ItemGroup Condition="'$(GameStudioVersion)' == ''">
+      <_GameStudioNupkg Include="@(_GameStudioNupkgCandidate)" Condition="$([System.Char]::IsDigit('%(Filename)', 18))" />
+    </ItemGroup>
     <PropertyGroup Condition="'$(GameStudioVersion)' == ''">
       <!-- '%(Filename)' = 'Stride.GameStudio.<version>'; strip the 'Stride.GameStudio.' prefix (18 chars). -->
       <_GameStudioFileName>@(_GameStudioNupkg->'%(Filename)')</_GameStudioFileName>
@@ -52,7 +56,7 @@
     </PropertyGroup>
 
     <Error Condition="'$(GameStudioVersion)' == '' and '$(_GameStudioFileName)' == ''"
-           Text="No $(GameStudioPackageId).*.nupkg found in '$(StrideLocalFeed)'. Build the editor packages first, or pass -p:GameStudioVersion=&lt;version&gt;." />
+           Text="No $(GameStudioPackageId).&lt;version&gt;.nupkg found in '$(StrideLocalFeed)'. Build the editor packages first, or pass -p:GameStudioVersion=&lt;version&gt;." />
     <Error Condition="'$(GameStudioVersion)' == '' and $(_GameStudioFileName.Contains(';'))"
            Text="Multiple $(GameStudioPackageId) packages in '$(StrideLocalFeed)'; disambiguate with -p:GameStudioVersion=&lt;version&gt;. Found: $(_GameStudioFileName)" />
 

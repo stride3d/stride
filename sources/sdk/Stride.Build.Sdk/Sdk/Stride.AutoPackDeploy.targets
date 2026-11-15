@@ -20,6 +20,78 @@
     <AllowedOutputExtensionsInPackageBuildOutputFolder>.so;.a;.bin;.dylib;$(AllowedOutputExtensionsInPackageBuildOutputFolder)</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
 
+  <!-- Removes this package's slots with the same -devN suffix and another number: pack output folder, feed, NuGet
+       cache. The suffix identifies the checkout, which is on one number at a time. -->
+  <UsingTask TaskName="StridePruneOldDevSlots" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <PackageFile ParameterType="System.String" Required="true" />
+      <PackageId ParameterType="System.String" Required="true" />
+      <Suffix ParameterType="System.String" Required="true" />
+      <Feed ParameterType="System.String" Required="true" />
+      <Cache ParameterType="System.String" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.Text.RegularExpressions" />
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+        // The number comes right after the id, which leaves out a longer id: Stride.Core.Assets, or Stride.Importer.3D.
+        var version = @"\d+\.\d+\.\d+([.+-].*)?" + Regex.Escape(Suffix);
+        var fileSlot = new Regex("^" + Regex.Escape(PackageId) + @"\." + version + @"\.nupkg$", RegexOptions.IgnoreCase);
+        var freshFile = Path.GetFileName(PackageFile);
+        if (!fileSlot.IsMatch(freshFile))
+            return true;
+
+        foreach (var folder in new[] { Path.GetDirectoryName(PackageFile), Feed })
+        {
+            if (!Directory.Exists(folder))
+                continue;
+            foreach (var file in Directory.GetFiles(folder, PackageId + ".*.nupkg"))
+            {
+                var name = Path.GetFileName(file);
+                if (!fileSlot.IsMatch(name) || name.Equals(freshFile, StringComparison.OrdinalIgnoreCase))
+                    continue;
+                try
+                {
+                    File.Delete(file);
+                    Log.LogMessage("Removed old dev package " + file);
+                }
+                catch (Exception e) when (e is IOException || e is UnauthorizedAccessException)
+                {
+                    Log.LogMessage("Old dev package in use, left for the next pack: " + file);
+                }
+            }
+        }
+
+        var cacheFolder = string.IsNullOrEmpty(Cache) ? null : Path.Combine(Cache, PackageId.ToLowerInvariant());
+        if (cacheFolder == null || !Directory.Exists(cacheFolder))
+            return true;
+        var freshVersion = Path.GetFileNameWithoutExtension(freshFile).Substring(PackageId.Length + 1);
+        var folderSlot = new Regex("^" + version + "$", RegexOptions.IgnoreCase);
+        foreach (var slot in Directory.GetDirectories(cacheFolder))
+        {
+            var name = Path.GetFileName(slot);
+            if (!folderSlot.IsMatch(name) || name.Equals(freshVersion, StringComparison.OrdinalIgnoreCase))
+                continue;
+            try
+            {
+                // All or nothing: Directory.Delete alone would leave a loaded DLL in a folder without its .nupkg,
+                // and NuGet can't reinstall over that.
+                foreach (var file in Directory.GetFiles(slot, "*", SearchOption.AllDirectories))
+                    using (File.Open(file, FileMode.Open, FileAccess.ReadWrite, FileShare.None)) { }
+                Directory.Delete(slot, true);
+                Log.LogMessage("Removed old dev package " + slot);
+            }
+            catch (Exception e) when (e is IOException || e is UnauthorizedAccessException)
+            {
+                Log.LogMessage("Old dev package in use, left for the next pack: " + slot);
+            }
+        }
+        ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+
   <Target Name="StrideAutoPackDeploy" AfterTargets="Pack" Condition="'$(StrideSkipAutoPack)' != 'true'">
     <Copy Condition="'%(Extension)' == '.nupkg'" SourceFiles="@(NuGetPackOutput)" DestinationFolder="$(LocalAppData)\stride\nugetdev"/>
     <!-- Same-version repacks: NuGet keeps the previously-extracted package in the global cache and
@@ -27,6 +99,9 @@
          dir so the next consumer restore re-extracts from the freshly built .nupkg. -->
     <RemoveDir Condition="Exists('$(NuGetPackageRoot)$(PackageId.ToLowerInvariant())\$(PackageVersion)')"
                Directories="$(NuGetPackageRoot)$(PackageId.ToLowerInvariant())\$(PackageVersion)" />
+    <StridePruneOldDevSlots Condition="'$(StrideWorktreeSuffix)' != '' And '%(NuGetPackOutput.Extension)' == '.nupkg'"
+                            PackageFile="%(NuGetPackOutput.FullPath)" PackageId="$(PackageId)" Suffix="$(StrideWorktreeSuffix)"
+                            Feed="$(LocalAppData)\stride\nugetdev" Cache="$(NuGetPackageRoot)" />
   </Target>
 
 </Project>

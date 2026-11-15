@@ -61,6 +61,9 @@ namespace Stride.Assets.Effect
             writer.Write(EffectBytecode.MagicHeader);
             writer.Write(ShaderCompilerVersion.Shader);
             writer.Write(ShaderCompilerVersion.Effect);
+
+            // Bump when what the command saves changes without a compiler change
+            writer.Write(1);
         }
 
         protected override Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)
@@ -78,12 +81,14 @@ namespace Stride.Assets.Effect
                 permutationCount++;
                 PermutationCount[effectName] = permutationCount;
             }
-            commandContext.Logger.Verbose($"Trying permutation #{permutationCount} for effect [{effectName}]: \n{compilerParameters.ToStringPermutationsDetailed()}");
+            // ToStringPermutationsDetailed ends with a line break, and the log listener adds its own
+            commandContext.Logger.Verbose($"Trying permutation #{permutationCount} for effect [{effectName}]: \n{compilerParameters.ToStringPermutationsDetailed()}".TrimEnd());
 
-            var compilerResults = compiler.Compile(source, compilerParameters);
+            // The permutations of an effect log are old data, not shader corpus captures
+            var compilerResults = ShaderCorpusCapture.WithoutRecording(() => compiler.Compile(source, compilerParameters));
 
             // Copy logs and if there are errors, exit directly
-            compilerResults.CopyTo(commandContext.Logger);
+            ShaderBackendLog.CopyTo(compilerResults, commandContext.Logger);
             if (compilerResults.HasErrors)
             {
                 return Task.FromResult(ResultStatus.Failed);
@@ -91,7 +96,7 @@ namespace Stride.Assets.Effect
 
             // wait for result an check compilation status
             var completedTask = compilerResults.Bytecode.WaitForResult();
-            completedTask.CompilationLog.CopyTo(commandContext.Logger);
+            ShaderBackendLog.CopyTo(completedTask.CompilationLog, commandContext.Logger);
             if (completedTask.CompilationLog.HasErrors)
             {
                 return Task.FromResult(ResultStatus.Failed);
@@ -147,7 +152,8 @@ namespace Stride.Assets.Effect
                     // Create compiler
                     var effectCompiler = new EffectCompiler(MicrothreadLocalDatabases.DatabaseFileProvider);
                     effectCompiler.SourceDirectories.Add(EffectCompilerBase.DefaultSourceShaderFolder);
-                    compiler = new EffectCompilerCache(effectCompiler, MicrothreadLocalDatabases.DatabaseFileProvider) { CurrentCache = EffectBytecodeCacheLoadSource.StartupCache };
+                    // Each command has its own database: its entry in the index is saved with its result
+                    compiler = new EffectCompilerCache(effectCompiler, MicrothreadLocalDatabases.ProviderService) { CurrentCache = EffectBytecodeCacheLoadSource.StartupCache };
                     context.Properties.Set(CompilerKey, compiler);
 
                     var shaderLocations = context.Properties.Get(EffectShaderAssetCompiler.ShaderLocationsKey);

@@ -33,7 +33,7 @@ public enum TextureAddressMode
 
     /// <summary>
     ///   Texture coordinates outside the range [0, 1] are set to the border color specified in
-    ///   <see cref="SamplerState"/> or HLSL code.
+    ///   the sampler state or HLSL code.
     /// </summary>
     Border = 4,
 

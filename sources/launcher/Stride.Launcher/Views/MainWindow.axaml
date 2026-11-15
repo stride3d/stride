@@ -62,7 +62,10 @@
       <FlyoutBase.AttachedFlyout>
         <Flyout Placement="BottomEdgeAlignedRight">
           <StackPanel Spacing="8">
-            <!-- A check box rather than a menu item: its box shows when it's off too -->
+            <!-- A check box rather than a menu item: its box shows when it's off too. Set once, unlike the choices under
+                 Start, which can change with each start -->
+            <CheckBox Content="{x:Static l:Strings.AutoCloseLauncher}"
+                      IsChecked="{Binding AutoCloseLauncher, Mode=TwoWay}"/>
             <CheckBox Content="{x:Static l:Strings.IncludePrereleaseUpdates}"
                       IsChecked="{Binding IncludePrereleaseUpdates, Mode=TwoWay}"/>
             <CheckBox Content="{x:Static l:Strings.ShowNightlyBuilds}"

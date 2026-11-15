@@ -236,7 +236,7 @@ namespace Stride.UI.Controls
         /// <remarks>The value is coerced in the range [0, <see cref="float.MaxValue"/>].</remarks>
         /// <userdoc>The size of the text in virtual pixels unit.</userdoc>
         [DataMember]
-        [DataMemberRange(0, 2)]
+        [DataMemberRange(minimum: 0, decimalPlaces: 2)]
         [Display(category: AppearanceCategory)]
         [DefaultValue(float.NaN)]
         public float TextSize
@@ -307,7 +307,7 @@ namespace Stride.UI.Controls
         /// <remarks>The value is coerced in the range [0, <see cref="float.MaxValue"/>].</remarks>
         /// <userdoc>The width of the edit text's cursor (in virtual pixels).</userdoc>
         [DataMember]
-        [DataMemberRange(0, 2)]
+        [DataMemberRange(minimum: 0, decimalPlaces: 2)]
         [Display(category: AppearanceCategory)]
         [DefaultValue(0)]
         public float CaretWidth
@@ -386,7 +386,7 @@ namespace Stride.UI.Controls
         /// <remarks>The value is coerced in the range [1, <see cref="int.MaxValue"/>].</remarks>
         /// <userdoc>The maximum number of characters that can be manually entered into the text box.</userdoc>
         [DataMember]
-        [DataMemberRange(1, 0)]
+        [DataMemberRange(minimum: 1, decimalPlaces: 0)]
         [Display(category: BehaviorCategory)]
         [DefaultValue(int.MaxValue)]
         public int MaxLength
@@ -405,7 +405,7 @@ namespace Stride.UI.Controls
         /// <remarks>The value is coerced in the range [1, <see cref="int.MaxValue"/>].</remarks>
         /// <userdoc>The minimum number of visible lines.</userdoc>
         [DataMember]
-        [DataMemberRange(1, 0)]
+        [DataMemberRange(minimum: 1, decimalPlaces: 0)]
         [Display(category: BehaviorCategory)]
         [DefaultValue(1)]
         public int MinLines
@@ -424,7 +424,7 @@ namespace Stride.UI.Controls
         /// <remarks>The value is coerced in the range [int, <see cref="int.MaxValue"/>].</remarks>
         /// <userdoc>The maximum number of visible lines.</userdoc>
         [DataMember]
-        [DataMemberRange(1, 0)]
+        [DataMemberRange(minimum: 1, decimalPlaces: 0)]
         [Display(category: BehaviorCategory)]
         [DefaultValue(int.MaxValue)]
         public int MaxLines
@@ -463,7 +463,7 @@ namespace Stride.UI.Controls
         /// <remarks>The value is coerced in the range [0, <see cref="float.MaxValue"/>].</remarks>
         /// <userdoc>The caret blinking frequency.</userdoc>
         [DataMember]
-        [DataMemberRange(0, 3)]
+        [DataMemberRange(minimum: 0, decimalPlaces: 3)]
         [Display(category: BehaviorCategory)]
         [DefaultValue(0)]
         public float CaretFrequency

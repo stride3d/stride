@@ -85,7 +85,7 @@ public static partial class NamingHelper
     /// <param name="existingItems">The collection of existing items, used to verify that the name being generated is not already used.</param>
     /// <param name="existingNameFunc">A function used to extract the name of an object of the given collection. If null, the <see cref="object.ToString"/> method will be used.</param>
     /// <param name="namePattern">The pattern used to generate the new name, when the base name is unavailable. This pattern must contains the token '{0}' that will be replaced by the base name, and the token '{1}' that will be replaced by the smallest numerical value that can generate an available name, starting from 2. If null, <see cref="DefaultNamePattern"/> will be used instead.</param>
-    /// <returns><see cref="baseName"/> if no item of <see cref="existingItems"/> returns this value through <see cref="existingNameFunc"/>. Otherwise, a string formatted with <see cref="namePattern"/>, using <see cref="baseName"/> as token '{0}' and the smallest numerical value that can generate an available name, starting from 2</returns>
+    /// <returns><paramref name="baseName"/> if no item of <paramref name="existingItems"/> returns this value through <paramref name="existingNameFunc"/>. Otherwise, a string formatted with <paramref name="namePattern"/>, using <paramref name="baseName"/> as token '{0}' and the smallest numerical value that can generate an available name, starting from 2</returns>
     public static string ComputeNewName<T>(string baseName, IEnumerable<T> existingItems, Func<T, string>? existingNameFunc = null, string? namePattern = null)
     {
 #if NET6_0_OR_GREATER
@@ -105,7 +105,7 @@ public static partial class NamingHelper
     /// <param name="baseName">The base name used to generate the new name. If the name is available in the collection, it will be returned as-is. Otherwise, a name following the given pattern will be returned.</param>
     /// <param name="containsDelegate">The delegate used to determine if the asset is already existing</param>
     /// <param name="namePattern">The pattern used to generate the new name, when the base name is unavailable. This pattern must contains the token '{0}' that will be replaced by the base name, and the token '{1}' that will be replaced by the smallest numerical value that can generate an available name, starting from 2. If null, <see cref="DefaultNamePattern"/> will be used instead.</param>
-    /// <returns><see cref="baseName"/> if the "contains predicate" returns false. Otherwise, a string formatted with <see cref="namePattern"/>, using <see cref="baseName"/> as token '{0}' and the smallest numerical value that can generate an available name, starting from 2</returns>
+    /// <returns><paramref name="baseName"/> if the "contains predicate" returns false. Otherwise, a string formatted with <paramref name="namePattern"/>, using <paramref name="baseName"/> as token '{0}' and the smallest numerical value that can generate an available name, starting from 2</returns>
     public static string ComputeNewName(string baseName, ContainsLocationDelegate containsDelegate, string? namePattern = null)
     {
 #if NET6_0_OR_GREATER

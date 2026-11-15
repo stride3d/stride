@@ -3,7 +3,7 @@
 
 using System;
 using System.Windows;
-using Stride.Core.Diagnostics;
+using Stride.Core.Assets.Editor.Services;
 using Stride.Editor;
 
 namespace Stride.UI.Editor.Views;
@@ -12,12 +12,14 @@ namespace Stride.UI.Editor.Views;
 /// The Game Studio's entry point into this package: the UI page and library editor views declared in this assembly
 /// register through it, and it adds the UI property templates (thickness, strip definition).
 /// </summary>
-public sealed class UIEditorWpfPlugin : StrideAssetsPlugin
+public sealed class UIEditorWpfPlugin : StrideAssetsWpfPlugin
 {
     /// <inheritdoc />
-    protected override void Initialize(ILogger logger)
+    public override void Initialize(IEditorPluginContext context)
     {
+        base.Initialize(context);
+
         var templates = (ResourceDictionary)Application.LoadComponent(new Uri("/Stride.UI.Editor.Wpf;component/Views/UIPropertyTemplates.xaml", UriKind.RelativeOrAbsolute));
-        RegisterResourceDictionary(templates);
+        RegisterResourceDictionary(context, templates);
     }
 }

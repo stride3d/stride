@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using Stride.Core.Annotations;
-using Stride.Assets.Presentation.ViewModel;
 using Stride.UI.Assets;
 using Stride.UI.Controls;
 using Stride.UI.Panels;

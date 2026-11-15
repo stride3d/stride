@@ -3,6 +3,7 @@
 using System;
 using System.Globalization;
 using Stride.Core.Presentation.ValueConverters;
+using Stride.Core.Reflection;
 
 namespace Stride.Core.Assets.Editor.View.ValueConverters
 {
@@ -10,7 +11,7 @@ namespace Stride.Core.Assets.Editor.View.ValueConverters
     {
         public override object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return value is Type ? DisplayAttribute.GetDisplayName((Type)value) : "None";
+            return value is Type type ? TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<DisplayAttribute>(type)?.Name ?? type.Name : "None";
         }
     }
 }

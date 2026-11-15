@@ -1,7 +1,7 @@
 <Project>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.props" />
   <PropertyGroup>
-    <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--serialization --parameter-key</StrideAssemblyProcessorOptions>
     <StridePackageKind>Editor</StridePackageKind>
@@ -9,6 +9,8 @@
   <ItemGroup>
     <!-- The sound preview's WPF view: the WPF Game Studio loads it, another toolkit's editor does not -->
     <StrideCompanionProject Include="..\Stride.Audio.Editor.Wpf\Stride.Audio.Editor.Wpf.csproj" />
+    <!-- Its Avalonia view: the Avalonia editor loads it, the WPF Game Studio does not -->
+    <StrideCompanionProject Include="..\Stride.Audio.Editor.Avalonia\Stride.Audio.Editor.Avalonia.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\shared\SharedAssemblyInfo.cs">
@@ -16,7 +18,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\editor\Stride.Assets.Presentation.Wpf\Stride.Assets.Presentation.Wpf.csproj" />
+    <ProjectReference Include="..\..\..\editor\Stride.Assets.Editor\Stride.Assets.Editor.csproj" />
     <ProjectReference Include="..\Stride.Audio\Stride.Audio.csproj" />
     <ProjectReference Include="..\Stride.Audio.Assets\Stride.Audio.Assets.csproj" />
   </ItemGroup>

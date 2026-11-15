@@ -33,7 +33,7 @@ namespace Stride.UI.Panels
         /// <remarks>The value is coerced in the range [1, <see cref="int.MaxValue"/>].</remarks>
         /// <userdoc>The number of rows.</userdoc>
         [DataMember]
-        [DataMemberRange(1, 0)]
+        [DataMemberRange(minimum: 1, decimalPlaces: 0)]
         [Display(category: LayoutCategory)]
         [DefaultValue(1)]
         public int Rows
@@ -52,7 +52,7 @@ namespace Stride.UI.Panels
         /// <remarks>The value is coerced in the range [1, <see cref="int.MaxValue"/>].</remarks>
         /// <userdoc>The number of columns.</userdoc>
         [DataMember]
-        [DataMemberRange(1, 0)]
+        [DataMemberRange(minimum: 1, decimalPlaces: 0)]
         [Display(category: LayoutCategory)]
         [DefaultValue(1)]
         public int Columns
@@ -71,7 +71,7 @@ namespace Stride.UI.Panels
         /// <remarks>The value is coerced in the range [1, <see cref="int.MaxValue"/>].</remarks>
         /// <userdoc>The number of layers.</userdoc>
         [DataMember]
-        [DataMemberRange(1, 0)]
+        [DataMemberRange(minimum: 1, decimalPlaces: 0)]
         [Display(category: LayoutCategory)]
         [DefaultValue(1)]
         public int Layers

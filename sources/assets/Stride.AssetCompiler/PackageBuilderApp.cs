@@ -136,6 +136,7 @@ namespace Stride.AssetCompiler
                 { "t|threads=", "Number of threads to create. Default value is the number of hardware threads available.", v => options.ThreadCount = int.Parse(v) },
                 { "test=", "Run a test session.", v => options.TestName = v },
                 { "no-backup", "Upgrade verb only: skip backing up the files the upgrade overwrites (backup is on by default).", v => options.NoBackup = v != null },
+                { "resave-all", "Upgrade verb only: save every asset in the current format, also the ones the upgrade did not change.", v => options.ResaveAll = v != null },
                 { "property:", "Properties. Format is name1=value1;name2=value2", v =>
                 {
                     if (!string.IsNullOrEmpty(v))
@@ -394,6 +395,16 @@ namespace Stride.AssetCompiler
                         options.Logger.Warning("The session loaded with errors; upgrading and saving the assets that loaded. Fix the errors and re-run for a complete upgrade.");
 
                     ReconcileBases(sessionResult.Session, options.Logger);
+
+                    if (options.ResaveAll)
+                    {
+                        foreach (var assetItem in sessionResult.Session.LocalPackages.SelectMany(package => package.Assets))
+                        {
+                            // A source file holds user text, not a serialized asset.
+                            if (assetItem.Asset is not SourceCodeAsset)
+                                assetItem.IsDirty = true;
+                        }
+                    }
 
                     sessionResult.Session.Save(options.Logger);
                     return (int)(options.Logger.HasErrors ? BuildResultCode.BuildError : BuildResultCode.Successful);

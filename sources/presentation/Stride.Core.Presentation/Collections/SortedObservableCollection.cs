@@ -100,7 +100,7 @@ public class SortedObservableCollection<T> : ObservableCollection<T>, IObservabl
     /// </summary>
     /// <typeparam name="TSearch">The type of the key to search.</typeparam>
     /// <param name="key">The key to search in the collection.</param>
-    /// <param name="compareFunc">A comparison function that can compare a key to an item of the collection. Can be null if <typeparamref name="{T}"/> implements <see cref="IComparable{TSearch}"/>.</param>
+    /// <param name="compareFunc">A comparison function that can compare a key to an item of the collection. Can be null if <typeparamref name="T"/> implements <see cref="IComparable{TSearch}"/>.</param>
     /// <returns>The index corresponding to the key in the collection, or -1 if it could not be found.</returns>
     public int BinarySearch<TSearch>(TSearch key, Func<T, TSearch, int>? compareFunc = null)
     {

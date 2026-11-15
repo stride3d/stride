@@ -3,19 +3,19 @@
 
 using System;
 using Stride.Core.Quantum;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Editor.EditorGame.Game;
 using Stride.Particles.Components;
 using Stride.Particles.Materials;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Game;
+using Stride.Assets.Editor.AssetEditors.EntityHierarchyEditor.Services;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 
 namespace Stride.Particles.Editor
 {
     /// <summary>
     /// Refreshes a particle material when one of its blending properties changes in the property grid.
     /// </summary>
-    [EditorGameService(typeof(EntityHierarchyEditorController), Order = 250)]
+    [EditorGameService(typeof(IEntityHierarchyEditorController), Order = 250)]
     public class EditorGameParticleComponentChangeWatcherService : EditorGameComponentChangeWatcherService
     {
         public EditorGameParticleComponentChangeWatcherService(IEditorGameController controller)

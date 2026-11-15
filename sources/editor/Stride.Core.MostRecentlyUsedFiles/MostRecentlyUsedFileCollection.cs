@@ -60,34 +60,40 @@ namespace Stride.Core.MostRecentlyUsedFiles
         public void AddFile(UFile filePath, string strideVersion)
         {
             // Reload settings in case concurrent Game Studio instances are running.
-            LoadFromSettings();
+            var mruList = Load();
             // Remove it if it was already in the list
             mostRecentlyUsedFiles.RemoveWhere(x => string.Equals(x.FilePath, filePath, StringComparison.OrdinalIgnoreCase));
             // Add it on top of the list
             mostRecentlyUsedFiles.Insert(0, new MostRecentlyUsedFile(filePath) { Version = strideVersion });
             // Save immediately
-            SaveToSettings(strideVersion);
+            SaveToSettings(mruList, strideVersion);
         }
 
         public void RemoveFile(UFile filePath, string strideVersion)
         {
             // Reload settings in case concurrent Game Studio instances are running.
-            LoadFromSettings();
+            var mruList = Load();
             mostRecentlyUsedFiles.RemoveWhere(x => string.Equals(x.FilePath, filePath, StringComparison.OrdinalIgnoreCase));
             // Save immediately
-            SaveToSettings(strideVersion);
+            SaveToSettings(mruList, strideVersion);
         }
 
         public void Clear(string strideVersion)
         {
             // Reload settings in case concurrent Game Studio instances are running.
-            LoadFromSettings();
+            var mruList = Load();
             mostRecentlyUsedFiles.Clear();
             // Save immediately
-            SaveToSettings(strideVersion);
+            SaveToSettings(mruList, strideVersion);
         }
 
         public void LoadFromSettings()
+        {
+            Load();
+        }
+
+        // Shows the list of the file, and returns it (null when it could not be read)
+        private MRUDictionary Load()
         {
             mostRecentlyUsedFiles.Clear();
 
@@ -96,38 +102,47 @@ namespace Stride.Core.MostRecentlyUsedFiles
                 // We load a copy of the profile in case concurrent Game Studio instances are running.
                 var profileCopy = LoadLatestProfile();
                 var mruList = settingsKey.GetValue(profileCopy, true);
-
-                // If the version is null, we take all versions, otherwise we take version equal or older to the current version.
-                var files = mruList.SelectMany(x =>
-                {
-                    // Set version information
-                    x.Value.ForEach(f => f.Version = x.Key);
-                    return x.Value;
-                }).ToList();
-                // Sort by descending timestamp
-                files.Sort((x, y) => -x.Timestamp.CompareTo(y.Timestamp));
-                mostRecentlyUsedFiles.AddRange(files);
+                Show(mruList);
+                return mruList;
             }
             catch (Exception e)
             {
                 e.Ignore();
+                return null;
             }
         }
 
-        private void SaveToSettings(string strideVersion)
+        private void Show(MRUDictionary mruList)
+        {
+            // If the version is null, we take all versions, otherwise we take version equal or older to the current version.
+            var files = mruList.SelectMany(x =>
+            {
+                // Set version information
+                x.Value.ForEach(f => f.Version = x.Key);
+                return x.Value;
+            }).ToList();
+            // Sort by descending timestamp
+            files.Sort((x, y) => -x.Timestamp.CompareTo(y.Timestamp));
+            mostRecentlyUsedFiles.AddRange(files);
+        }
+
+        /// <param name="mruList">The lists of the file read just before the change, of every version: those of the other versions
+        /// are written as the file has them.</param>
+        /// <param name="strideVersion">The version whose list changed.</param>
+        private void SaveToSettings(MRUDictionary mruList, string strideVersion)
         {
             // We load a copy of the profile in case concurrent Game Studio instances are running.
             // Note that when this is called, the collection should be sync for the current version,
             // but not for other versions.
-            var profileCopy = LoadLatestProfile();
-            var mruList = settingsKey.GetValue(profileCopy, true);
+            mruList ??= settingsKey.GetValue(LoadLatestProfile(), true);
             mruList[strideVersion] = MostRecentlyUsedFiles.Where(x => x.Version.Equals(strideVersion)).Take(MaxMRUCount).ToList();
             // Update the current profile with the new values so we can properly save it.
             settingsKey.SetValue(mruList);
             save?.Invoke();
 
-            // Ensure we are properly synchronized with the file.
-            LoadFromSettings();
+            // What the file has now, without reading it again
+            mostRecentlyUsedFiles.Clear();
+            Show(mruList);
         }
     }
 }

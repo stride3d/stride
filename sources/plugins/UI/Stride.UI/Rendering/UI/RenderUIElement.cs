@@ -48,6 +48,9 @@ namespace Stride.Rendering.UI
         /// </summary>
         public UIElement LastMouseOverElement;
 
+        // The frame of the picking target the mouse-over state was last tested against
+        internal int LastMouseOverFrame = -1;
+
         /// <summary>
         /// Last element which received a touch/click event
         /// </summary>

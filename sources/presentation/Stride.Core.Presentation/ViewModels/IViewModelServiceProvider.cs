@@ -6,7 +6,11 @@ namespace Stride.Core.Presentation.ViewModels;
 /// <summary>
 /// A service provider class for view model objects.
 /// </summary>
-public interface IViewModelServiceProvider
+/// <remarks>
+/// A provider can have a parent: a service it doesn't have is looked up in its parent at the time it is asked for. The editor
+/// has one for the whole process, a child of it for the session, and a child of that one for each asset editor.
+/// </remarks>
+public interface IViewModelServiceProvider : IServiceProvider
 {
     /// <summary>
     /// Raised when a service is registered to this service provider.
@@ -32,6 +36,23 @@ public interface IViewModelServiceProvider
     /// <param name="service">The service to unregister.</param>
     /// <exception cref="ArgumentNullException"><c>service</c> is null.</exception>
     void UnregisterService(object service);
+
+    /// <summary>
+    /// Registers a service made by a factory, under an explicit service type. A lookup of exactly <typeparamref name="TService"/>
+    /// gets it, even when several registered instances are also assignable to that type.
+    /// </summary>
+    /// <typeparam name="TService">The type the service is registered as, and looked up by.</typeparam>
+    /// <param name="factory">Makes the service, with the provider that it is made for.</param>
+    /// <param name="lifetime">How long an instance lives: one for this provider, or one per scope that asks for it.</param>
+    /// <returns>An object that removes the registration when disposed, and disposes the instances it made.</returns>
+    /// <exception cref="ArgumentNullException"><c>factory</c> is null.</exception>
+    /// <exception cref="InvalidOperationException">A factory is already registered for <typeparamref name="TService"/> in this provider.</exception>
+    /// <exception cref="NotSupportedException">This provider has no factory registrations.</exception>
+    IDisposable Register<TService>(Func<IServiceProvider, TService> factory, ServiceLifetime lifetime = ServiceLifetime.Singleton)
+        where TService : class
+    {
+        throw new NotSupportedException("This service provider does not support factory registrations.");
+    }
 
     /// <summary>
     /// Gets a service of the given type, if available.
@@ -66,4 +87,13 @@ public interface IViewModelServiceProvider
     /// <exception cref="InvalidOperationException">No service matches the given type.</exception>
     /// <exception cref="InvalidOperationException">Multiple services match the given type.</exception>
     T Get<T>() where T : class;
+
+    /// <summary>
+    /// Gets a service of the given type, as <see cref="TryGet(Type)"/> does. Asked for <see cref="IServiceProvider"/> or
+    /// <see cref="IViewModelServiceProvider"/>, it gives this provider.
+    /// </summary>
+    object? IServiceProvider.GetService(Type serviceType)
+    {
+        return serviceType == typeof(IServiceProvider) || serviceType == typeof(IViewModelServiceProvider) ? this : TryGet(serviceType);
+    }
 }

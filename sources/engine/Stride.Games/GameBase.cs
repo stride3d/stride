@@ -40,6 +40,13 @@ namespace Stride.Games
     public abstract class GameBase : ComponentBase, IGame
     {
         #region Fields
+        /// <summary>
+        /// When a frame takes longer than this span of time, the elapsed time the game reports and advances by is clamped to this value
+        /// </summary>
+        /// <remarks>
+        /// This value is used in the base <see cref="RawTickProducer"/>, games overriding that method may ignore this value
+        /// </remarks>
+        public static readonly TimeSpan DefaultMaximumElapsedTime = TimeSpan.FromMilliseconds(500.0);
 
         private readonly GamePlatform gamePlatform;
         private IGraphicsDeviceService graphicsDeviceService;
@@ -75,7 +82,7 @@ namespace Stride.Games
             DrawTime = new GameTime();
             autoTickTimer = new TimerTick();
             IsFixedTimeStep = false;
-            maximumElapsedTime = TimeSpan.FromMilliseconds(500.0);
+            maximumElapsedTime = DefaultMaximumElapsedTime;
             TargetElapsedTime = TimeSpan.FromTicks(TimeSpan.TicksPerSecond / 60); // target elapsed time is by default 60Hz
             
             TreatNotFocusedLikeMinimized = true;
@@ -811,6 +818,37 @@ namespace Stride.Games
             }
 
             return true;
+        }
+
+        /// <summary>
+        ///   Runs a change that releases the buffers of the presenter, also while a frame records (from <see cref="BeginRun"/> or an update).
+        /// </summary>
+        /// <remarks>
+        ///   What the frame recorded so far uses the old buffers, so it is submitted first; the frame then records again with the new ones.
+        /// </remarks>
+        internal void ChangePresenterBuffers(Action change)
+        {
+            if (!beginDrawOk)
+            {
+                change();
+                return;
+            }
+
+            var commandList = GraphicsContext.CommandList;
+            GraphicsContext.ResourceGroupAllocator.Flush();
+            commandList.Flush();
+
+            try
+            {
+                change();
+            }
+            finally
+            {
+                // Open again even when the change failed: EndDraw closes the frame's Command List
+                commandList.Reset();
+                commandList.ClearState();
+                GraphicsDevice.Presenter?.BeginDraw(commandList);
+            }
         }
 
         /// <summary>

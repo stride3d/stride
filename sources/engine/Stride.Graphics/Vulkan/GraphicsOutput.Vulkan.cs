@@ -19,6 +19,21 @@ public partial class GraphicsOutput
         MonitorHandle = info.MonitorHandle;
         currentDisplayMode = info.CurrentDisplayMode;
         supportedDisplayModes = (DisplayMode[])info.SupportedDisplayModes.Clone();
+
+        // Only the displays attached to the desktop are enumerated
+        IsAttached = true;
+        var details = info.Details ?? DisplayDetails.Sdr(info.Name);
+        Description = details.Description;
+        Rotation = details.Rotation;
+        ColorSpace = details.ColorSpace;
+        BitsPerChannel = details.BitsPerChannel;
+        MinLuminance = details.MinLuminance;
+        MaxLuminance = details.MaxLuminance;
+        MaxFullFrameLuminance = details.MaxFullFrameLuminance;
+        RedPrimary = details.RedPrimary;
+        GreenPrimary = details.GreenPrimary;
+        BluePrimary = details.BluePrimary;
+        WhitePoint = details.WhitePoint;
     }
 
     /// <summary>Gets the native Windows monitor handle, or zero when unavailable.</summary>

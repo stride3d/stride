@@ -71,11 +71,6 @@ namespace Stride.Graphics
         /// <summary>
         ///   The buffer is an indirect arguments buffer.
         /// </summary>
-        ArgumentBuffer = 1024,
-
-        /// <summary>
-        ///   The buffer is a buffer for the geometry shader stream-output stage.
-        /// </summary>
-        StreamOutput = 2048
+        ArgumentBuffer = 1024
     }
 }

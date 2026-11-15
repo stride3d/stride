@@ -94,8 +94,9 @@ namespace Stride.BepuPhysics.Assets
                 // for unit consistency — this only matters if the user changed it.
                 if (decomp.ContainsChild("Threshold"))
                 {
-                    if (float.TryParse((string)decomp.Threshold, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var t))
-                        decomp.MinimumVolumePercentErrorAllowed = t * 100.0;
+                    // As a decimal, the shift is exact: 0.01 becomes 1, not the 0.99999997... of a float times 100
+                    if (decimal.TryParse((string)decomp.Threshold, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var t))
+                        decomp.MinimumVolumePercentErrorAllowed = (double)(t * 100m);
                     decomp.RemoveChild("Threshold");
                     migrated = true;
                 }

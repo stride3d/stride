@@ -80,7 +80,8 @@ namespace Stride.Graphics
             {
                 var (device, properties, driverProps, adapterUid, enumerationIndex, hasValidLuid) = physicalDevices[index];
                 var attachedDisplays = DisplayEnumeration.ForAdapter(displays, hasValidLuid ? adapterUid : null);
-                var adapter = new GraphicsAdapter(device, properties, driverProps, adapterUid, index, enumerationIndex, attachedDisplays);
+                defaultInstance.NativeInstanceApi.vkGetPhysicalDeviceMemoryProperties(device, out var memoryProperties);
+                var adapter = new GraphicsAdapter(device, properties, driverProps, in memoryProperties, adapterUid, index, enumerationIndex, attachedDisplays);
                 staticCollector.Add(adapter);
                 adapterList.Add(adapter);
             }

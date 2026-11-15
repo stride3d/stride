@@ -14,19 +14,23 @@ namespace Stride.Input
     {
         protected MouseDeviceState MouseState;
 
+        private readonly ButtonCaptureTracker<MouseButton> buttonTracker;
+
         protected MouseDeviceBase()
         {
             MouseState = new MouseDeviceState(PointerState, this);
+
+            buttonTracker = CaptureState.TrackButtons(MouseState.DownButtons, MouseState.PressedButtons, MouseState.ReleasedButtons);
         }
 
         public abstract bool IsPositionLocked { get; }
 
-        public Core.Collections.IReadOnlySet<MouseButton> PressedButtons => MouseState.PressedButtons;
-        public Core.Collections.IReadOnlySet<MouseButton> ReleasedButtons => MouseState.ReleasedButtons;
-        public Core.Collections.IReadOnlySet<MouseButton> DownButtons => MouseState.DownButtons;
+        public Core.Collections.IReadOnlySet<MouseButton> PressedButtons => buttonTracker.Pressed;
+        public Core.Collections.IReadOnlySet<MouseButton> ReleasedButtons => buttonTracker.Released;
+        public Core.Collections.IReadOnlySet<MouseButton> DownButtons => buttonTracker.Down;
 
         public Vector2 Position => MouseState.Position;
-        public Vector2 Delta => MouseState.Delta;
+        public Vector2 Delta => CaptureState.IsMasked ? Vector2.Zero : MouseState.Delta;
 
         public override void Update(List<InputEvent> inputEvents)
         {

@@ -131,7 +131,6 @@ namespace Stride.Rendering
         /// </summary>
         /// <param name="effectName">Name of the effect.</param>
         /// <param name="compilerParameters">The compiler parameters.</param>
-        /// <param name="usedParameters">The used parameters.</param>
         /// <returns>A new instance of an effect.</returns>
         /// <exception cref="System.InvalidOperationException">Could not compile shader. Need fallback.</exception>
         public TaskOrResult<Effect> LoadEffect(string effectName, CompilerParameters compilerParameters)

@@ -225,6 +225,42 @@ public class FileSystemProviderTests
     }
 
     [Fact]
+    public void FileMove_ToOtherProvider_MovesFile()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), "stride_test_" + Guid.NewGuid().ToString());
+        Directory.CreateDirectory(tempDir);
+        var rootPath = "/test_" + Guid.NewGuid().ToString("N")[..8];
+        var provider = new FileSystemProvider(rootPath, tempDir);
+        var destinationProvider = new MemoryFileProvider("/test_" + Guid.NewGuid().ToString("N")[..8]);
+        var sourceFile = "source.txt";
+        var destFile = "dest.txt";
+        var testData = new byte[] { 1, 2, 3, 4, 5 };
+
+        try
+        {
+            using (var stream = provider.OpenStream(sourceFile, VirtualFileMode.Create, VirtualFileAccess.Write))
+            {
+                stream.Write(testData, 0, testData.Length);
+            }
+
+            provider.FileMove(sourceFile, destinationProvider, destFile);
+
+            Assert.False(provider.FileExists(sourceFile));
+            using var destStream = destinationProvider.OpenStream(destFile, VirtualFileMode.Open, VirtualFileAccess.Read);
+            using var memoryStream = new MemoryStream();
+            destStream.CopyTo(memoryStream);
+            Assert.Equal(testData, memoryStream.ToArray());
+        }
+        finally
+        {
+            provider.Dispose();
+            destinationProvider.Dispose();
+            if (Directory.Exists(tempDir))
+                Directory.Delete(tempDir, true);
+        }
+    }
+
+    [Fact]
     public void FileSize_ReturnsCorrectSize()
     {
         var tempDir = Path.Combine(Path.GetTempPath(), "stride_test_" + Guid.NewGuid().ToString());

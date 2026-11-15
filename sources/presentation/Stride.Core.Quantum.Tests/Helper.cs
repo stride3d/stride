@@ -98,7 +98,7 @@ public static class Helper
         // Check that the reference is not null.
         Assert.NotNull(reference);
         // Check that the values match.
-        Assert.Equal(targetValue, reference.TargetNode.Retrieve());
+        Assert.Equal(targetValue, reference.TargetNode!.Retrieve());
         // Check that the values match.
         Assert.Equal(targetValue, reference.ObjectValue);
         // Check that that we have an index if expected.

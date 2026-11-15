@@ -5,7 +5,7 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Interop;
 
-using Stride.Core.Assets.Editor.ViewModel.Progress;
+using Stride.Core.Assets.Editor.ViewModels.Progress;
 
 namespace Stride.Core.Assets.Editor.View
 {
@@ -67,7 +67,7 @@ namespace Stride.Core.Assets.Editor.View
         private void WindowClosing(object sender, CancelEventArgs e)
         {
             // Prevent closing the window while the work is still in progress, unless it has been user cancelled.
-            if (!workProgress.WorkDone && Result != Presentation.Services.DialogResult.Cancel)
+            if (!workProgress.WorkDone && Result != Stride.Core.Presentation.Services.DialogResult.Cancel)
             {
                 e.Cancel = true;
             }

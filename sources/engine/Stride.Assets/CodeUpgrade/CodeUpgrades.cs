@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 
 namespace Stride.Assets;
 
@@ -224,11 +225,34 @@ public static partial class CodeUpgrades
     }
 
     /// <summary>
+    /// Migrates an instance member renamed on its type: <c>x.Foo(a)</c> → <c>x.Bar(a)</c>. Matches the member
+    /// <paramref name="memberName"/> on <paramref name="declaringType"/> (its full metadata name) and renames each
+    /// reference, keeping its receiver, arguments and trivia; conditional access and method groups too.
+    /// </summary>
+    public static SymbolRewrite MemberRename(string declaringType, string memberName, string newMemberName)
+    {
+        ArgumentNullException.ThrowIfNull(declaringType);
+        ArgumentNullException.ThrowIfNull(memberName);
+        ArgumentNullException.ThrowIfNull(newMemberName);
+        return new SymbolRewrite(
+            compilation => ResolveMembers(compilation, declaringType, memberName),
+            (editor, referenceNode, symbol) =>
+            {
+                if (referenceNode is not SimpleNameSyntax name || name.Identifier.ValueText != memberName)
+                    return;
+
+                // WithIdentifier keeps the type argument list of a generic name
+                editor.ReplaceNode(name, name.WithIdentifier(SyntaxFactory.Identifier(name.Identifier.LeadingTrivia, newMemberName, name.Identifier.TrailingTrivia)));
+            });
+    }
+
+    /// <summary>
     /// Migrates a removed method that returned its receiver, so that the call can simply go:
     /// <c>Buffer.New(...).RecreateWith(data)</c> → <c>Buffer.New(...)</c>. Matches the method
     /// <paramref name="methodName"/> on <paramref name="declaringType"/> (its full metadata name) and
     /// replaces each invocation by its receiver, preserving trivia. Also handles conditional access
     /// (<c>x?.Foo(a)</c> → <c>x</c>). Other reference forms (method groups, cref) are left untouched.
+    /// A removed method that returned nothing fits too: its calls are statements, which go.
     /// </summary>
     public static SymbolRewrite FluentCallRemove(string declaringType, string methodName)
     {
@@ -305,7 +329,8 @@ public static partial class CodeUpgrades
 
     /// <summary>
     /// Migrates a removed member that user code only assigned or subscribed to: the statements
-    /// <c>x.Reload = ...;</c>, <c>x.DeviceReset += ...;</c> and <c>x.DeviceReset -= ...;</c> are removed.
+    /// <c>x.Reload = ...;</c>, <c>x.DeviceReset += ...;</c> and <c>x.DeviceReset -= ...;</c> are removed,
+    /// and so is the entry <c>Reload = ...</c> of an object initializer or a <c>with</c> expression.
     /// Matches the member <paramref name="memberName"/> on <paramref name="declaringType"/> (its full
     /// metadata name). A read of the member is left untouched: the code around it needs manual porting,
     /// and the compile error shows where.
@@ -322,10 +347,18 @@ public static partial class CodeUpgrades
                 if (referenceNode.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Name == referenceNode)
                     target = memberAccess;
 
-                if (target.Parent is AssignmentExpressionSyntax assignment && assignment.Left == target
-                    && assignment.Parent is ExpressionStatementSyntax statement)
+                if (target.Parent is not AssignmentExpressionSyntax assignment || assignment.Left != target)
+                    return;
+
+                if (assignment.Parent is ExpressionStatementSyntax statement)
                 {
                     RemoveStatement(editor, statement);
+                }
+                else if (assignment.Parent is InitializerExpressionSyntax initializer
+                    && initializer.Kind() is SyntaxKind.ObjectInitializerExpression or SyntaxKind.WithInitializerExpression)
+                {
+                    // An entry of an object initializer or a with expression: the entry goes, the rest stays.
+                    editor.RemoveNode(assignment, SyntaxRemoveOptions.KeepNoTrivia);
                 }
             });
     }
@@ -455,18 +488,206 @@ public static partial class CodeUpgrades
                 }
 
                 // Import the namespace once per file (the callback sees the root as edited so far)
-                editor.ReplaceNode(editor.OriginalRoot, (root, _) =>
-                {
-                    if (root is not CompilationUnitSyntax unit || unit.Usings.Any(x => x.Name?.ToString() == extensionNamespace))
-                        return root;
-                    var directive = SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(extensionNamespace)).NormalizeWhitespace().WithTrailingTrivia(SyntaxFactory.EndOfLine(Environment.NewLine));
-                    return unit.AddUsings(directive);
-                });
+                editor.ReplaceNode(editor.OriginalRoot, (root, _) => root is CompilationUnitSyntax unit ? AddUsing(unit, extensionNamespace) : root);
             });
     }
 
     private static MemberAccessExpressionSyntax Access(ExpressionSyntax receiver, SimpleNameSyntax member)
         => SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, receiver, member);
+
+    private static CompilationUnitSyntax AddUsing(CompilationUnitSyntax unit, string @namespace)
+    {
+        if (unit.Usings.Any(x => x.Name?.ToString() == @namespace))
+            return unit;
+        var directive = SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(@namespace)).NormalizeWhitespace().WithTrailingTrivia(SyntaxFactory.EndOfLine(Environment.NewLine));
+        return unit.AddUsings(directive);
+    }
+
+    /// <summary>
+    /// Migrates an interface that gained a required member: each class that implements <paramref name="interfaceType"/> itself,
+    /// rather than through a base class that already does, gets <paramref name="memberDeclaration"/> after its last property,
+    /// and the file gets the <c>using</c> for <paramref name="memberNamespace"/>. A class that already has a member with that name is left alone.
+    /// </summary>
+    /// <param name="interfaceType">The full metadata name of the interface, e.g. <c>"Stride.Input.IInputDevice"</c>.</param>
+    /// <param name="memberDeclaration">The property or event to add, as C# source.</param>
+    /// <param name="memberNamespace">The namespace the member's types live in.</param>
+    public static CodeUpgrade InterfaceMemberAdd(string interfaceType, string memberDeclaration, string memberNamespace)
+    {
+        ArgumentNullException.ThrowIfNull(interfaceType);
+        ArgumentNullException.ThrowIfNull(memberDeclaration);
+        ArgumentNullException.ThrowIfNull(memberNamespace);
+        var (member, memberName) = SyntaxFactory.ParseMemberDeclaration(memberDeclaration) switch
+        {
+            PropertyDeclarationSyntax property => ((MemberDeclarationSyntax)property, property.Identifier.ValueText),
+            EventDeclarationSyntax @event => (@event, @event.Identifier.ValueText),
+            _ => throw new ArgumentException("The member must be a property or an event with accessors.", nameof(memberDeclaration)),
+        };
+
+        return async (solution, targets, cancellationToken) =>
+        {
+            foreach (var projectId in targets)
+            {
+                var project = solution.GetProject(projectId);
+                if (project is null)
+                    continue;
+
+                foreach (var documentId in project.DocumentIds)
+                {
+                    // Read from the solution as edited so far: a partial class completed in one file is complete in the next
+                    var document = solution.GetDocument(documentId);
+                    if (document is null || !SymbolRewriteEngine.IsUpgradableSource(document))
+                        continue;
+
+                    var root = await document.GetSyntaxRootAsync(cancellationToken);
+                    var semanticModel = await document.GetSemanticModelAsync(cancellationToken);
+                    var @interface = semanticModel?.Compilation.GetTypeByMetadataName(interfaceType);
+                    if (root is not CompilationUnitSyntax unit || @interface is null)
+                        continue;
+
+                    var classes = new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
+                    var declarations = new List<TypeDeclarationSyntax>();
+                    var needsUsing = false;
+                    foreach (var declaration in unit.DescendantNodes().OfType<TypeDeclarationSyntax>())
+                    {
+                        if (semanticModel.GetDeclaredSymbol(declaration, cancellationToken) is not { TypeKind: TypeKind.Class } type
+                            || !type.AllInterfaces.Contains(@interface, SymbolEqualityComparer.Default)
+                            || (type.BaseType?.AllInterfaces.Contains(@interface, SymbolEqualityComparer.Default) ?? false)
+                            || !type.GetMembers(memberName).IsEmpty
+                            || !classes.Add(type))
+                            continue;
+
+                        declarations.Add(declaration);
+                        var containingNamespace = type.ContainingNamespace.ToDisplayString();
+                        needsUsing |= containingNamespace != memberNamespace && !containingNamespace.StartsWith(memberNamespace + ".", StringComparison.Ordinal);
+                    }
+                    if (declarations.Count == 0)
+                        continue;
+
+                    var newRoot = unit.ReplaceNodes(declarations, (_, declaration) => InsertMember(declaration, member));
+                    if (needsUsing)
+                        newRoot = AddUsing(newRoot, memberNamespace);
+
+                    var formatted = await Formatter.FormatAsync(document.WithSyntaxRoot(newRoot), Formatter.Annotation, cancellationToken: cancellationToken);
+                    solution = formatted.Project.Solution;
+                }
+            }
+            return solution;
+        };
+    }
+
+    /// <summary>
+    /// Inserts a member after the last property, or else before the first member, with that member's indentation and line ending.
+    /// A member added to a class without members, or written on one line, is left to the formatter.
+    /// </summary>
+    private static TypeDeclarationSyntax InsertMember(TypeDeclarationSyntax declaration, MemberDeclarationSyntax member)
+    {
+        var members = declaration.Members;
+        var lastProperty = members.LastOrDefault(x => x is BasePropertyDeclarationSyntax);
+        var anchor = lastProperty ?? members.FirstOrDefault();
+        var endOfLine = anchor?.GetTrailingTrivia().Where(x => x.IsKind(SyntaxKind.EndOfLineTrivia)).TakeLast(1).ToList();
+        if (endOfLine is not [_])
+            return declaration.AddMembers(member.WithAdditionalAnnotations(Formatter.Annotation));
+
+        var indentation = anchor.GetLeadingTrivia().Where(x => x.IsKind(SyntaxKind.WhitespaceTrivia)).TakeLast(1);
+        member = member.WithLeadingTrivia(indentation).WithTrailingTrivia(endOfLine);
+        return declaration.WithMembers(members.Insert(lastProperty is null ? 0 : members.IndexOf(lastProperty) + 1, member));
+    }
+
+    /// <summary>
+    /// Migrates overrides of a property whose overridable part moved to another property:
+    /// <c>public override GamePadState State => state;</c> → <c>protected override GamePadState RawState => state;</c>.
+    /// Each override of <paramref name="propertyName"/> on <paramref name="declaringType"/> (its full metadata name) is renamed
+    /// <paramref name="newPropertyName"/> with the accessibility <paramref name="newAccessibility"/>, and <c>base.</c> uses of the
+    /// property inside it go to the new property too, since the old one now calls the new one. Assignments to the override,
+    /// such as a get-only auto-property set in the constructor, go to the new property as well, since the old one has no setter.
+    /// </summary>
+    public static CodeUpgrade PropertyOverrideRename(string declaringType, string propertyName, string newPropertyName, SyntaxKind newAccessibility)
+    {
+        ArgumentNullException.ThrowIfNull(declaringType);
+        ArgumentNullException.ThrowIfNull(propertyName);
+        ArgumentNullException.ThrowIfNull(newPropertyName);
+        if (!SyntaxFacts.IsAccessibilityModifier(newAccessibility))
+            throw new ArgumentException("The accessibility must be an accessibility keyword.", nameof(newAccessibility));
+
+        return async (solution, targets, cancellationToken) =>
+        {
+            foreach (var projectId in targets)
+            {
+                var project = solution.GetProject(projectId);
+                if (project is null)
+                    continue;
+
+                foreach (var documentId in project.DocumentIds)
+                {
+                    var document = solution.GetDocument(documentId);
+                    if (document is null || !SymbolRewriteEngine.IsUpgradableSource(document))
+                        continue;
+
+                    var root = await document.GetSyntaxRootAsync(cancellationToken);
+                    var semanticModel = await document.GetSemanticModelAsync(cancellationToken);
+                    var overridden = semanticModel?.Compilation.GetTypeByMetadataName(declaringType)?.GetMembers(propertyName).OfType<IPropertySymbol>().FirstOrDefault();
+                    if (root is null || overridden is null)
+                        continue;
+
+                    var overrides = root.DescendantNodes().OfType<PropertyDeclarationSyntax>()
+                        .Where(declaration => Overrides(semanticModel.GetDeclaredSymbol(declaration, cancellationToken), overridden))
+                        .ToList<SyntaxNode>();
+                    var assignedNames = root.DescendantNodes().OfType<AssignmentExpressionSyntax>()
+                        .Select(assignment => assignment.Left switch
+                        {
+                            IdentifierNameSyntax name => name,
+                            MemberAccessExpressionSyntax { Expression: ThisExpressionSyntax } access => access.Name,
+                            _ => null,
+                        })
+                        .Where(name => name is not null && Overrides(semanticModel.GetSymbolInfo(name, cancellationToken).Symbol as IPropertySymbol, overridden))
+                        .ToList<SyntaxNode>();
+                    if (overrides.Count == 0 && assignedNames.Count == 0)
+                        continue;
+
+                    var newRoot = root.ReplaceNodes(overrides.Concat(assignedNames), (_, node) =>
+                    {
+                        if (node is SimpleNameSyntax assignedName)
+                            return assignedName.WithIdentifier(SyntaxFactory.Identifier(newPropertyName).WithTriviaFrom(assignedName.Identifier));
+
+                        var declaration = (PropertyDeclarationSyntax)node;
+                        var baseUses = declaration.DescendantNodes().OfType<MemberAccessExpressionSyntax>()
+                            .Where(x => x.Expression is BaseExpressionSyntax && x.Name.Identifier.ValueText == propertyName);
+                        declaration = declaration.ReplaceNodes(baseUses, (_, access) => access.WithName(SyntaxFactory.IdentifierName(newPropertyName).WithTriviaFrom(access.Name)));
+
+                        // The first accessibility keyword becomes the new one and the others go (public → protected, protected internal → protected)
+                        var modifiers = new SyntaxTokenList();
+                        var replaced = false;
+                        foreach (var modifier in declaration.Modifiers)
+                        {
+                            if (!SyntaxFacts.IsAccessibilityModifier(modifier.Kind()))
+                                modifiers = modifiers.Add(modifier);
+                            else if (!replaced)
+                            {
+                                modifiers = modifiers.Add(SyntaxFactory.Token(newAccessibility).WithTriviaFrom(modifier));
+                                replaced = true;
+                            }
+                        }
+
+                        return declaration
+                            .WithModifiers(modifiers)
+                            .WithIdentifier(SyntaxFactory.Identifier(newPropertyName).WithTriviaFrom(declaration.Identifier));
+                    });
+                    solution = solution.WithDocumentSyntaxRoot(documentId, newRoot);
+                }
+            }
+            return solution;
+        };
+
+        static bool Overrides(IPropertySymbol property, IPropertySymbol overridden)
+        {
+            for (var current = property?.OverriddenProperty; current is not null; current = current.OverriddenProperty)
+            {
+                if (SymbolEqualityComparer.Default.Equals(current.OriginalDefinition, overridden))
+                    return true;
+            }
+            return false;
+        }
+    }
 
     /// <summary>
     /// Removes <c>using</c> directives for namespaces that left the Stride dependency closure

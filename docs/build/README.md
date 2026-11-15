@@ -64,17 +64,17 @@ Stride auto-selects the native toolchain: MSVC when running under `MSBuild.exe` 
 Instantiates a sample from the locally built template packages, bound to this checkout's engine build (`-devN` dev version — see [versioning.md](versioning.md)). Works in both package modes:
 
 1. **Produce the packages.**
-   - Dev-redirect mode (`StrideDevPackages=true` in `build/Stride.Local.props` — fastest engine iteration):
+   - Dev-redirect mode (`StrideRedirectPackages`, the default in a checkout — fastest engine iteration): each engine build deploys redirect packages for the projects it built to `%LocalAppData%\stride\nugetdev` (`~/.local/share/stride/nugetdev` on Linux), mirrored into `bin\packages` so the repo's own feed stays current too. The template packages this section needs come only from a full run, which deploys the whole set:
      ```bash
-     dotnet run --file build/dev-packages.cs
+     dotnet run --file build/redirect-packages.cs
      ```
-     Builds the solution and deploys redirect packages to `%LocalAppData%\stride\nugetdev`, mirrored into `bin\packages` so the repo's own feed stays current too.
-   - Normal mode: any engine build (Visual Studio or `dotnet build Stride.slnx`) auto-packs real packages into `bin\packages`.
+     On Linux and macOS, it leaves out the projects that need Windows (WPF or Windows Forms, and those referencing them).
+   - Normal mode (`StrideRedirectPackages=false` in `build/Stride.Local.props`, as on CI and in release builds): any engine build (Visual Studio or `dotnet build Stride.slnx`) auto-packs real packages into `bin\packages`.
 2. **Deploy the package closure into the NuGet cache** — this is what makes a version "installed" for the `stride` CLI, and it purges stale same-version extractions so a rebuilt package actually takes effect:
    ```bash
    dotnet msbuild build/install-gamestudio.proj -t:Deploy
    ```
-3. **Instantiate** (browse with `stride new list --version 4.4.0-devN`):
+3. **Instantiate** (browse with `stride new list --version 4.4.0-devN`). After a build, `PublicVersion` and `NuGetVersionSuffix` in `sources/shared/SharedAssemblyInfo.Generated.cs` give this checkout's version:
    ```bash
    stride new stride-animatedmodel --version 4.4.0-devN -n MySample -o C:\path\MySample
    ```
@@ -88,9 +88,40 @@ Instantiates a sample from the locally built template packages, bound to this ch
 After engine changes: in dev-redirect mode rebuild the engine project, then rebuild the game (the redirect re-copies the tree's DLLs into its `Bin`); in normal mode rebuild (auto-repack) and run the Deploy step again.
 
 > [!NOTE]
-> Any build run with `-p:StrideDevPackages=false` while dev-redirect packages are deployed deletes them (the intended cleanup when switching modes off) — rerun `dev-packages.cs` afterwards.
+> Any build run with `-p:StrideRedirectPackages=false` while dev-redirect packages are deployed deletes them (the intended cleanup when switching modes off). The next build without it deploys them again, project by project, or rerun `redirect-packages.cs`.
 
 See also [sources/templates/README.md](../../sources/templates/README.md) for iterating on the template packages themselves.
+
+## Building and Testing on Linux (WSL)
+
+A Linux machine, or WSL2 on Windows, can build the Linux runtime, its native code and the unit tests, and run the Vulkan tests on the CPU. This is a good way to repeat a failure of a Linux CI lane.
+
+1. Install the [.NET 10.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0) and the native tools:
+   ```bash
+   sudo apt install clang lld git-lfs libvulkan1
+   git lfs install
+   ```
+2. Clone inside the Linux file system, for example in `~/stride`. Don't build in a Windows checkout through `/mnt/c`: it is slow and causes many build problems.
+   - To test a branch of a Windows checkout, fetch it into the Linux clone: `git fetch /mnt/c/<path to the checkout> <branch>`. This copies git objects only, so the line endings stay right.
+   - Never copy the files of a Windows checkout into Linux. With `core.autocrlf=true` they have CRLF line endings, git then shows every file as changed, and a script without the `.sh` extension fails with `bash\r: No such file or directory`.
+   - A script written from Windows (for example through `\\wsl.localhost\`) also gets CRLF line endings: run `sed -i 's/\r$//' <file>` before you run it.
+3. Build and test as the [Linux CI lane](../../.github/workflows/test-linux-simple.yml) does:
+   ```bash
+   dotnet build sources/Stride.Tests.Simple.Linux.slnf -p:StridePlatforms=Linux -p:StrideGraphicsApis=Vulkan -p:StrideTestRuntimeIdentifier=linux-x64
+   dotnet test sources/Stride.Tests.Simple.Linux.slnf --no-build
+   ```
+   A test that compares text with a `\r\n` string fails on Linux: that is a real bug, CI sees it too.
+
+**Vulkan on the CPU.** CI runs the Vulkan tests on Lavapipe, a software driver, from the `Stride.Dependencies.Lavapipe` package ([setup-lavapipe-linux](../../.github/actions/setup-lavapipe-linux/action.yml)). Locally, the Lavapipe of Mesa also works:
+```bash
+sudo apt install mesa-vulkan-drivers
+export VK_DRIVER_FILES=/usr/share/vulkan/icd.d/lvp_icd.x86_64.json
+```
+Another version of Lavapipe can render slightly different images, so compare with the gold images only on CI.
+
+**Vulkan on the GPU.** WSL has no Linux GPU driver, only Mesa's Dozen, which runs Vulkan on top of Direct3D 12. Results there don't tell how a real Linux driver behaves.
+
+**Game windows.** Under WSLg, a game window opens on the Windows desktop. The graphics tests run without a window unless interactive mode is forced.
 
 ## Troubleshooting
 

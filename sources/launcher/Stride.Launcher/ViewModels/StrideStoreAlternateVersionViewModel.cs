@@ -12,10 +12,12 @@ public sealed class StrideStoreAlternateVersionViewModel : DispatcherViewModel
 {
     internal NugetServerPackage ServerPackage;
     internal NugetLocalPackage LocalPackage;
+    private readonly StrideStoreVersionViewModel strideVersion;
 
     public StrideStoreAlternateVersionViewModel(StrideStoreVersionViewModel strideVersion)
         : base(strideVersion.ServiceProvider)
     {
+        this.strideVersion = strideVersion;
         SetAsActiveCommand = new AnonymousCommand(ServiceProvider, () =>
         {
             strideVersion.UpdateLocalPackage(LocalPackage, null);
@@ -26,8 +28,8 @@ public sealed class StrideStoreAlternateVersionViewModel : DispatcherViewModel
             }
             else
             {
-                // Otherwise, offer latest version for update
-                strideVersion.UpdateServerPackage(strideVersion.LatestServerPackage, null);
+                // Otherwise, offer its update: a release, or for a beta the newest build
+                strideVersion.UpdateServerPackage(strideVersion.OfferedBuild(LocalPackage.Version), null);
             }
 
             strideVersion.Launcher.ActiveVersion = strideVersion;
@@ -39,15 +41,18 @@ public sealed class StrideStoreAlternateVersionViewModel : DispatcherViewModel
     /// </summary>
     public CommandBase SetAsActiveCommand { get; }
 
-    public string FullName
-    {
-        get
-        {
-            return LocalPackage is not null ? $"{LocalPackage.Id} {LocalPackage.Version} (installed)" : $"{ServerPackage.Id} {ServerPackage.Version}";
-        }
-    }
+    /// <summary>
+    /// Gets the name of this build in the alternate versions: the product and the version, without the package id, as
+    /// the same version has a package for each Game Studio and the editor is chosen apart.
+    /// </summary>
+    public string FullName => LocalPackage is not null ? $"{strideVersion.PackageSimpleName} {Version} (installed)" : $"{strideVersion.PackageSimpleName} {Version}";
 
     public PackageVersion Version => LocalPackage?.Version ?? ServerPackage.Version;
+
+    /// <summary>
+    /// Gets whether this build is a beta, which has a badge in the alternate versions.
+    /// </summary>
+    public bool IsBeta => StrideVersionViewModel.IsBetaVersion(Version);
 
     internal void UpdateLocalPackage(NugetLocalPackage package)
     {

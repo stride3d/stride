@@ -37,7 +37,7 @@ namespace Stride.Core.Assets.Editor
     public static class ArgumentCheck
     {
         /// <summary>
-        /// Checks wether the <paramref name="variable"/> meets the <see cref="predicate"/>.
+        /// Checks whether the <paramref name="variable"/> meets the <paramref name="predicate"/>.
         /// Otherwise throws an exception.
         /// </summary>
         /// <typeparam name="T">The type of the <paramref name="variable"/>.</typeparam>
@@ -213,7 +213,7 @@ namespace Stride.Core.Assets.Editor
     public static class ArgumentDebugCheck
     {
         /// <summary>
-        /// Checks wether the <paramref name="variable"/> meets the <see cref="predicate"/>.
+        /// Checks whether the <paramref name="variable"/> meets the <paramref name="predicate"/>.
         /// Otherwise throws an exception.
         /// </summary>
         /// <typeparam name="T">The type of the <paramref name="variable"/>.</typeparam>

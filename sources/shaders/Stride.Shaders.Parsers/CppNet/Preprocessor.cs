@@ -444,10 +444,10 @@ internal class Preprocessor : IDisposable {
 		states.Push(new State(top));
 	}
 
-	private void pop_state() {
+	private void pop_state(Token tok) {
 		State	s = states.Pop();
 		if (states.Count == 0) {
-			error(0, 0, "#" + "endif without #" + "if");
+			error(tok, "#" + "endif without #" + "if");
 			states.Push(s);
 		}
 	}
@@ -1957,14 +1957,12 @@ internal class Preprocessor : IDisposable {
 								tok.getText());
 							return source_skipline(false);
 					}
-					int	_ppcmd = ppcmds[tok.getText()];
-					if (_ppcmd == null) {
+					if (!ppcmds.TryGetValue(tok.getText(), out int ppcmd)) {
 						error(tok,
 							"Unknown preprocessor directive " +
 							tok.getText());
 						return source_skipline(false);
 					}
-					int	ppcmd = _ppcmd;
 
                 PP: switch(ppcmd) {
 
@@ -2110,7 +2108,7 @@ internal class Preprocessor : IDisposable {
                         // break;
 
                         case PP_ENDIF:
-                            pop_state();
+                            pop_state(tok);
                             return source_skipline(warnings.HasFlag(Warning.ENDIF_LABELS));
                         // break;
 

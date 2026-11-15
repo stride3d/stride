@@ -14,14 +14,17 @@ namespace Stride.Input
 {
     internal class GamePadXInput : GamePadDeviceBase, IDisposable
     {
+        private readonly InputSourceWindowsXInput source;
         private readonly Controller controller;
-        private readonly short[] lastAxisState = new short[6];
+        private readonly float[] lastAxisState = new float[6];
+        private readonly AxisRest[] axisRests = new AxisRest[6];
         private State xinputState;
-        private GamePadState state = new GamePadState();
+        private GamePadState rawState = new GamePadState();
 
         public GamePadXInput(InputSourceWindowsXInput source, Controller controller, Guid id, int index)
         {
             Source = source;
+            this.source = source;
             this.controller = controller;
 
             // XBox controllers have a fixed index, given by the controller
@@ -53,7 +56,7 @@ namespace Stride.Input
         public override string Name => $"XInput GamePad {Index}";
         public override Guid Id { get; }
         public override Guid ProductId { get; }
-        public override GamePadState State => state;
+        protected override GamePadState RawState => rawState;
         public override IInputSource Source { get; }
 
         public event EventHandler Disconnected;
@@ -69,19 +72,24 @@ namespace Stride.Input
 
             if (controller.GetState(out xinputState))
             {
+                var hasFocus = source.HasFocus;
+
                 // DPad/Shoulder/Thumb/Option buttons
                 for (int i = 0; i < 16; i++)
                 {
                     int mask = 1 << i;
                     var masked = (int)xinputState.Gamepad.Buttons & mask;
-                    if (masked != ((int)state.Buttons & mask))
+                    if (masked != ((int)rawState.Buttons & mask))
                     {
                         bool buttonState = (masked != 0);
+                        if (!hasFocus && !BackgroundInputFilter.AcceptsButton(buttonState))
+                            continue;
+
                         GamePadButtonEvent buttonEvent = InputEventPool<GamePadButtonEvent>.GetOrCreate(this);
                         buttonEvent.IsDown = buttonState;
                         buttonEvent.Button = (GamePadButton)mask; // 1 to 1 mapping with XInput buttons
                         inputEvents.Add(buttonEvent);
-                        if (state.Update(buttonEvent))
+                        if (rawState.Update(buttonEvent))
                         {
                             UpdateButtonState(buttonEvent);
                         }
@@ -89,20 +97,12 @@ namespace Stride.Input
                 }
                 
                 // Axes
-                if (ChangeAxis(0, xinputState.Gamepad.LeftThumbX))
-                    inputEvents.Add(CreateAxisEvent(GamePadAxis.LeftThumbX, xinputState.Gamepad.LeftThumbX / 32768.0f));
-                if (ChangeAxis(1, xinputState.Gamepad.LeftThumbY))
-                    inputEvents.Add(CreateAxisEvent(GamePadAxis.LeftThumbY, xinputState.Gamepad.LeftThumbY / 32768.0f));
-
-                if (ChangeAxis(2, xinputState.Gamepad.RightThumbX))
-                    inputEvents.Add(CreateAxisEvent(GamePadAxis.RightThumbX, xinputState.Gamepad.RightThumbX / 32768.0f));
-                if (ChangeAxis(3, xinputState.Gamepad.RightThumbY))
-                    inputEvents.Add(CreateAxisEvent(GamePadAxis.RightThumbY, xinputState.Gamepad.RightThumbY / 32768.0f));
-
-                if (ChangeAxis(4, xinputState.Gamepad.LeftTrigger))
-                    inputEvents.Add(CreateAxisEvent(GamePadAxis.LeftTrigger, xinputState.Gamepad.LeftTrigger / 255.0f));
-                if (ChangeAxis(5, xinputState.Gamepad.RightTrigger))
-                    inputEvents.Add(CreateAxisEvent(GamePadAxis.RightTrigger, xinputState.Gamepad.RightTrigger / 255.0f));
+                UpdateAxis(0, GamePadAxis.LeftThumbX, xinputState.Gamepad.LeftThumbX / 32768.0f, hasFocus, inputEvents);
+                UpdateAxis(1, GamePadAxis.LeftThumbY, xinputState.Gamepad.LeftThumbY / 32768.0f, hasFocus, inputEvents);
+                UpdateAxis(2, GamePadAxis.RightThumbX, xinputState.Gamepad.RightThumbX / 32768.0f, hasFocus, inputEvents);
+                UpdateAxis(3, GamePadAxis.RightThumbY, xinputState.Gamepad.RightThumbY / 32768.0f, hasFocus, inputEvents);
+                UpdateAxis(4, GamePadAxis.LeftTrigger, xinputState.Gamepad.LeftTrigger / 255.0f, hasFocus, inputEvents);
+                UpdateAxis(5, GamePadAxis.RightTrigger, xinputState.Gamepad.RightTrigger / 255.0f, hasFocus, inputEvents);
             }
 
             if (!controller.IsConnected)
@@ -135,15 +135,17 @@ namespace Stride.Input
             SetVibration((smallLeft + largeLeft) * 0.5f, (smallRight + largeRight) * 0.5f);
         }
 
-        private bool ChangeAxis(int index, short newValue)
+        private void UpdateAxis(int index, GamePadAxis axis, float value, bool hasFocus, List<InputEvent> inputEvents)
         {
-            if (lastAxisState[index] != newValue)
-            {
-                lastAxisState[index] = newValue;
-                return true;
-            }
+            axisRests[index].Observe(value);
+            if (lastAxisState[index] == value)
+                return;
 
-            return false;
+            if (!hasFocus && !BackgroundInputFilter.AcceptsAxis(axisRests[index].Value, lastAxisState[index], value))
+                return;
+
+            lastAxisState[index] = value;
+            inputEvents.Add(CreateAxisEvent(axis, value));
         }
 
         private GamePadAxisEvent CreateAxisEvent(GamePadAxis axis, float newValue)
@@ -151,7 +153,7 @@ namespace Stride.Input
             GamePadAxisEvent axisEvent = InputEventPool<GamePadAxisEvent>.GetOrCreate(this);
             axisEvent.Value = newValue;
             axisEvent.Axis = axis;
-            state.Update(axisEvent);
+            rawState.Update(axisEvent);
             return axisEvent;
         }
 

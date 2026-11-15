@@ -49,6 +49,7 @@ public class GraphicsDeviceException : GraphicsException
     /// <param name="innerException">
     ///   The exception that is the cause of the current exception, or a <see langword="null"/> reference if no inner exception is specified.
     /// </param>
+    /// <param name="status">The status of the graphics device.</param>
     public GraphicsDeviceException(string? message, Exception? innerException, GraphicsDeviceStatus status = GraphicsDeviceStatus.Normal)
         : base(message ?? DefaultMessage, innerException)
     {

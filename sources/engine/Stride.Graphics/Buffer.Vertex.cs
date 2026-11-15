@@ -47,7 +47,7 @@ namespace Stride.Graphics
             ///   The usage for the Buffer, which determines who can read/write data. By default, it is <see cref="GraphicsResourceUsage.Default"/>.
             /// </param>
             /// <param name="additionalFlags">
-            ///   Additional Buffer flags. For example, you can specify <see cref="BufferFlags.StreamOutput"/> to use the Buffer as a Stream Output target.
+            ///   Additional Buffer flags, combined with <see cref="BufferFlags.VertexBuffer"/>.
             /// </param>
             /// <returns>A new instance of <see cref="Buffer"/>.</returns>
             public static Buffer New(GraphicsDevice device, int bufferSize, GraphicsResourceUsage usage = GraphicsResourceUsage.Default, BufferFlags additionalFlags = BufferFlags.None)

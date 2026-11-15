@@ -1,0 +1,43 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using System;
+using System.Collections.Generic;
+using Stride.Core.Annotations;
+
+namespace Stride.Assets.Presentation.Extensions
+{
+    public static class EnumerableExtensions
+    {
+        /// <summary>
+        /// Groups together elements in a sequence as long as they satisfy the given predicate.
+        /// </summary>
+        /// <remarks>
+        /// See http://stackoverflow.com/a/4682163 for details.
+        /// </remarks>
+        public static IEnumerable<IEnumerable<T>> GroupAdjacentBy<T>(this IEnumerable<T> source, Func<T, T, bool> predicate)
+        {
+            using (var e = source.GetEnumerator())
+            {
+                if (e.MoveNext())
+                {
+                    var list = new List<T> { e.Current };
+                    var pred = e.Current;
+                    while (e.MoveNext())
+                    {
+                        if (predicate(pred, e.Current))
+                        {
+                            list.Add(e.Current);
+                        }
+                        else
+                        {
+                            yield return list;
+                            list = new List<T> { e.Current };
+                        }
+                        pred = e.Current;
+                    }
+                    yield return list;
+                }
+            }
+        }
+    }
+}

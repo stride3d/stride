@@ -313,6 +313,12 @@ namespace Stride.AssetCompiler
             foreach (var manifest in rootPackage.Session.LoadedBuildManifests)
                 inputs.Add(new UFile(manifest).ToOSPath());
 
+            // The built package's user settings go into the built game settings (effect compilation mode, recorded effects).
+            // The file can exist without its sdpkg (implicit package). Tracked through a wildcard, as an implicit sdpkg below:
+            // it expands to the file when it exists, and the file appearing or going away changes the expanded list.
+            if (rootPackage.FullPath is not null)
+                inputs.Add(Path.Combine(rootPackage.FullPath.GetFullDirectory().ToOSPath(), "*" + Package.PackageFileExtension + PackageUserSettings.SettingsExtension));
+
             // List asset folders from projects
             foreach (var package in rootPackage.Session.Packages)
             {

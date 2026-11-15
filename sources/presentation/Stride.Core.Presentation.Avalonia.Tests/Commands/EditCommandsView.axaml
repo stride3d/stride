@@ -1,0 +1,37 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+             xmlns:local="using:Stride.Core.Presentation.Avalonia.Tests.Commands"
+             x:Class="Stride.Core.Presentation.Avalonia.Tests.Commands.EditCommandsView"
+             x:DataType="local:EditCommandsViewModel">
+  <!-- Two panels with their own Edit commands, a text box, a menu, and the fallback bindings of the view itself -->
+  <sd:EditCommands.Bindings>
+    <sd:EditCommandBinding Kind="Undo" Command="{Binding Undo}"/>
+    <sd:EditCommandBinding Kind="Rename" Command="{Binding RenameAnywhere}" CommandParameter="{Binding RenameParameter}"/>
+  </sd:EditCommands.Bindings>
+  <DockPanel>
+    <Menu x:Name="MainMenu" DockPanel.Dock="Top">
+      <MenuItem x:Name="EditMenu" Header="Edit">
+        <MenuItem x:Name="CopyMenuItem" Header="Copy"/>
+      </MenuItem>
+    </Menu>
+    <StackPanel>
+      <Border x:Name="Assets" Focusable="True">
+        <sd:EditCommands.Bindings>
+          <sd:EditCommandBinding Kind="Copy" Command="{Binding CopyAssets}"/>
+          <sd:EditCommandBinding Kind="Delete" Command="{Binding DeleteAssets}"/>
+          <sd:EditCommandBinding Kind="Paste" Command="{Binding PasteAssets}"/>
+        </sd:EditCommands.Bindings>
+        <StackPanel>
+          <Button x:Name="AssetButton" Content="An asset"/>
+          <TextBox x:Name="Filter"/>
+        </StackPanel>
+      </Border>
+      <Border x:Name="Explorer" Focusable="True">
+        <sd:EditCommands.Bindings>
+          <sd:EditCommandBinding Kind="Copy" Command="{Binding CopyLocations}"/>
+        </sd:EditCommands.Bindings>
+      </Border>
+    </StackPanel>
+  </DockPanel>
+</UserControl>

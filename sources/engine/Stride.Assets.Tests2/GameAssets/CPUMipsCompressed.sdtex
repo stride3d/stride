@@ -1,0 +1,10 @@
+!Texture
+Id: 2c6491c4-710b-4eb7-b9f8-94d22d95b0c2
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: ../../../data/tests/Sphere2.bmp
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+GenerateMipmaps: true
+IsStreamable: false
+IsCompressed: true

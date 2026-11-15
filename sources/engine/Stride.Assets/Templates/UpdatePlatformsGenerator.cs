@@ -23,7 +23,7 @@ namespace Stride.Assets.Templates;
 public sealed class UpdatePlatformsGenerator : TemplateGeneratorBase<PackageTemplateGeneratorParameters>
 {
     /// <summary>
-    /// Stable Id (matches the legacy Platforms.sdtpl Id) for the synthetic description registered in StrideTemplates.Register.
+    /// Stable Id (matches the legacy Platforms.sdtpl Id) for the synthetic description registered by the editors (UpdatePlatformsTemplate.Register).
     /// </summary>
     public static readonly Guid TemplateId = new("2D1A7C7E-44B6-4E94-8B6C-6E2C5D4A3F11");
 

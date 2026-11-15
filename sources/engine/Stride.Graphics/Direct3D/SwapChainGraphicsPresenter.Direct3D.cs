@@ -473,8 +473,20 @@ namespace Stride.Graphics
             //   compensate with Release() to return the reference count to its previous value
             backBuffer.InitializeFromImpl(backBufferTexture, Description.BackBufferFormat.IsSRgb);
             backBufferTexture.Release();
+            ResetBackBufferLayout();
 
             backBuffer.LifetimeState = GraphicsResourceLifetimeState.Active;
+        }
+
+        /// <summary>
+        ///   Tracks the Back-Buffer from the layout of new Swap-Chain buffers, not the one a frame left the old buffers in.
+        /// </summary>
+        private void ResetBackBufferLayout()
+        {
+#if STRIDE_GRAPHICS_API_DIRECT3D12
+            backBuffer.LayoutTracker.Initialize(BarrierLayout.Present, backBuffer.ArraySize * backBuffer.MipLevelCount);
+            backBuffer.SubmittedLayouts = null;
+#endif
         }
 
         /// <inheritdoc/>
@@ -545,6 +557,7 @@ namespace Stride.Graphics
             //   compensate with Release() to return the reference count to its previous value
             backBuffer.InitializeFromImpl(backBufferTexture, Description.BackBufferFormat.IsSRgb);
             backBufferTexture.Release();
+            ResetBackBufferLayout();
 
             foreach (var childTexture in childrenTextures)
             {

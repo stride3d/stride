@@ -537,7 +537,8 @@ namespace Stride.Core.Presentation.Controls
             if (obj == null)
                 return false;
 
-            if (ItemsToExclude != null && ItemsToExclude.Cast<object>().Contains(obj))
+            var itemsToExclude = (IEnumerable)GetValue(ItemsToExcludeProperty);
+            if (itemsToExclude != null && itemsToExclude.Cast<object>().Contains(obj))
                 return false;
 
             var value = ResolveSortMemberValue(obj);

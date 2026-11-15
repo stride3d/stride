@@ -9,8 +9,10 @@ using System.Windows.Input;
 
 using Stride.Core.Assets.Diagnostics;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Collections;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.View.Controls
 {
@@ -21,7 +23,7 @@ namespace Stride.Core.Assets.Editor.View.Controls
     public class GridLogViewer : Control
     {
         /// <summary>
-        /// The <see cref="DataGridControl"/> used to display log messages.
+        /// The <see cref="DataGridEx"/> used to display log messages.
         /// </summary>
         private DataGridEx logGridView;
 
@@ -167,7 +169,7 @@ namespace Stride.Core.Assets.Editor.View.Controls
             {
                 var asset = Session.GetAssetById(logMessage.AssetId);
                 if (asset != null)
-                    Session.ActiveAssetView.SelectAssetCommand.Execute(asset);
+                    Session.AssetCollection.SelectAssetCommand.Execute(asset);
             }
 
             var assetLogMessage = logGridView.SelectedItem as AssetLogMessage;
@@ -175,7 +177,7 @@ namespace Stride.Core.Assets.Editor.View.Controls
             {
                 AssetViewModel asset = Session.GetAssetById(assetLogMessage.AssetReference.Id);
                 if (asset != null)
-                    Session.ActiveAssetView.SelectAssetCommand.Execute(asset);
+                    Session.AssetCollection.SelectAssetCommand.Execute(asset);
             }
 
         }

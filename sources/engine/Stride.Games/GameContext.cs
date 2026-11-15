@@ -164,6 +164,7 @@ namespace Stride.Games
         /// <param name="control">The control.</param>
         /// <param name="requestedWidth">Width of the requested.</param>
         /// <param name="requestedHeight">Height of the requested.</param>
+        /// <param name="isUserManagingRun">Whether the caller manages the game loop.</param>
         protected GameContext(TK control, int requestedWidth = 0, int requestedHeight = 0, bool isUserManagingRun = false)
         {
             Control = control;

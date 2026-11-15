@@ -6,11 +6,12 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Stride.Assets.Editor.ViewModels;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Extensions;
+using Stride.Core.Assets.Editor.Internal;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.View.Behaviors;
-using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Quantum;
 using Stride.Core;
 using Stride.Core.Annotations;
@@ -23,27 +24,27 @@ using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Quantum;
 using Stride.Core.Translation;
-using Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
+using Stride.Assets.Editor.EditorGame;
+using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Editor.Engine;
+using Stride.Games;
+using Stride.Assets.Editor.AssetEditors.GameEditor.ViewModels;
 using Stride.UI.Editor.Game;
 using Stride.UI.Editor.Services;
 using Stride.Assets.Quantum;
-using Stride.Assets.Presentation.SceneEditor;
-using Stride.Assets.Presentation.ViewModel;
 using Stride.UI.Assets;
 using Stride.Engine;
 using Stride.Engine.Processors;
 using Stride.UI;
 using Stride.UI.Panels;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 
 namespace Stride.UI.Editor.ViewModels
 {
     /// <summary>
     /// Base class for the view model of an <see cref="UIBaseViewModel"/> editor.
     /// </summary>
-    public abstract class UIEditorBaseViewModel : AssetCompositeHierarchyEditorViewModel<UIElementDesign, UIElement, UIElementViewModel>, IAddChildViewModel
+    public abstract class UIEditorBaseViewModel : AssetCompositeHierarchyEditorViewModel<UIElementDesign, UIElement, UIBaseViewModel, UIElementViewModel>, IAddChildViewModel, IGameEditorViewModel
     {
         public static readonly ILogger EditorLogger = GlobalLogger.GetLogger("UI");
 
@@ -66,10 +67,17 @@ namespace Stride.UI.Editor.ViewModels
         /// Initializes a new instance of the <see cref="UIBaseViewModel"/> class.
         /// </summary>
         /// <param name="asset">The asset related to this editor.</param>
-        /// <param name="controllerFactory">A factory to create the associated <see cref="IEditorGameController"/>.</param>
-        protected UIEditorBaseViewModel([NotNull] UIBaseViewModel asset, [NotNull] Func<GameEditorViewModel, IEditorGameController> controllerFactory)
-            : base(asset, controllerFactory)
+        /// <param name="controllerFactory">A factory to create the controller of the game, from the editor and the viewport service of the session.</param>
+        protected UIEditorBaseViewModel([NotNull] UIBaseViewModel asset, [NotNull] Func<UIEditorBaseViewModel, IEditorGameViewportService, UIEditorController> controllerFactory)
+            : base(asset)
         {
+            GameHost = new EditorGameHost(ServiceProvider);
+            // The game starts with the editor; its controller exists from now on, for the view models that use it. Without a
+            // viewport (no graphics device, previews turned off) the game never starts: as the scene editor, the editor edits
+            // the hierarchy without it, and what it asks of the game is canceled when it closes.
+            var viewportService = ServiceProvider.TryGet<IEditorGameViewportService>();
+            HasGame = viewportService != null;
+            Controller = controllerFactory(this, viewportService ?? new NoViewportService());
             Camera = new EditorCameraViewModel(ServiceProvider, Controller);
 
             BreakLinkToLibraryCommand = new AnonymousCommand(ServiceProvider, BreakLinkToLibrary);
@@ -78,6 +86,7 @@ namespace Stride.UI.Editor.ViewModels
             GroupIntoCommand = new AnonymousCommand<IUIElementFactory>(ServiceProvider, GroupInto);
             OpenLibraryEditorCommand = new AnonymousCommand(ServiceProvider, OpenLibraryEditor);
             RefreshSelectableElementsCommand = new AnonymousCommand(ServiceProvider, RefreshSelectableElements);
+            RenameCommand = new AnonymousCommand(ServiceProvider, Rename);
             ResetZoomCommand = new AnonymousCommand(ServiceProvider, ResetZoom);
             SelectLibraryCommand = new AnonymousCommand(ServiceProvider, SelectLibrary);
             SetCurrentSelectionCommand = new AnonymousCommand<AbsoluteId>(ServiceProvider, SetCurrentSelection);
@@ -120,49 +129,49 @@ namespace Stride.UI.Editor.ViewModels
         public Color GuidelineColor
         {
             get { return guidelineColor; }
-            set { SetValue(ref guidelineColor, value, () => Controller.AdornerService.Refresh()); }
+            set { SetValue(ref guidelineColor, value, () => Controller.AdornerService?.Refresh()); }
         }
 
         public float GuidelineThickness
         {
             get { return guidelineThickness; }
-            set { SetValue(ref guidelineThickness, value, () => Controller.AdornerService.Refresh()); }
+            set { SetValue(ref guidelineThickness, value, () => Controller.AdornerService?.Refresh()); }
         }
 
         public Color HighlightColor
         {
             get { return highlightColor; }
-            set { SetValue(ref highlightColor, value, () => Controller.AdornerService.Refresh()); }
+            set { SetValue(ref highlightColor, value, () => Controller.AdornerService?.Refresh()); }
         }
 
         public float HighlightThickness
         {
             get { return highlightThickness; }
-            set { SetValue(ref highlightThickness, value, () => Controller.AdornerService.Refresh()); }
+            set { SetValue(ref highlightThickness, value, () => Controller.AdornerService?.Refresh()); }
         }
 
         public Color SelectionColor
         {
             get { return selectionColor; }
-            set { SetValue(ref selectionColor, value, () => Controller.AdornerService.Refresh()); }
+            set { SetValue(ref selectionColor, value, () => Controller.AdornerService?.Refresh()); }
         }
 
         public float SelectionThickness
         {
             get { return selectionThickness; }
-            set { SetValue(ref selectionThickness, value, () => Controller.AdornerService.Refresh()); }
+            set { SetValue(ref selectionThickness, value, () => Controller.AdornerService?.Refresh()); }
         }
 
         public Color SizingColor
         {
             get { return sizingColor; }
-            set { SetValue(ref sizingColor, value, () => Controller.AdornerService.Refresh()); }
+            set { SetValue(ref sizingColor, value, () => Controller.AdornerService?.Refresh()); }
         }
 
         public float SizingThickness
         {
             get { return sizingThickness; }
-            set { SetValue(ref sizingThickness, value, () => Controller.AdornerService.Refresh()); }
+            set { SetValue(ref sizingThickness, value, () => Controller.AdornerService?.Refresh()); }
         }
 
         public float SnapValue
@@ -176,7 +185,18 @@ namespace Stride.UI.Editor.ViewModels
         internal new UIBaseViewModel Asset => (UIBaseViewModel)base.Asset;
 
         [NotNull]
-        internal new UIEditorController Controller => (UIEditorController)base.Controller;
+        internal UIEditorController Controller { get; }
+
+        /// <inheritdoc/>
+        public EditorGameHost GameHost { get; }
+
+        /// <summary>
+        /// Gets whether the editor runs its game: it doesn't without a viewport (no graphics device, previews turned off).
+        /// </summary>
+        public bool HasGame { get; }
+
+        /// <inheritdoc/>
+        public override Task Stopped => Controller.GameEnded;
 
         [NotNull]
         public ICommandBase BreakLinkToLibraryCommand { get; }
@@ -202,6 +222,12 @@ namespace Stride.UI.Editor.ViewModels
         /// <seealso cref="SelectableElements"/>
         [NotNull]
         public ICommandBase RefreshSelectableElementsCommand { get; }
+
+        /// <summary>
+        /// Gets the command to rename the last selected element in place (F2).
+        /// </summary>
+        [NotNull]
+        public ICommandBase RenameCommand { get; }
 
         [NotNull]
         public ICommandBase ResetZoomCommand { get; }
@@ -242,7 +268,13 @@ namespace Stride.UI.Editor.ViewModels
             // We should save settings first, before starting to destroy everything
             SaveSettings();
 
-            Session.ActiveAssetView.Assets.CollectionChanged -= AssetsCollectionChanged;
+            Session.AssetCollection.Assets.CollectionChanged -= AssetsCollectionChanged;
+
+            // The host destroys the controller once the game started
+            var started = GameHost.Controller != null;
+            GameHost.Destroy();
+            if (!started)
+                Controller.Destroy();
 
             base.Destroy();
         }
@@ -296,30 +328,57 @@ namespace Stride.UI.Editor.ViewModels
         }
 
         /// <inheritdoc/>
-        protected override async Task<bool> InitializeEditor()
+        public sealed override Task<bool> Initialize()
         {
-            if (!await base.InitializeEditor())
+            return InitializeEditor();
+        }
+
+        /// <summary>
+        /// Starts the game, creates the root of the hierarchy once the game has its scene, and initializes the editor.
+        /// </summary>
+        /// <returns><c>false</c> when the game could not start.</returns>
+        protected virtual async Task<bool> InitializeEditor()
+        {
+            Dispatcher.EnsureAccess();
+
+            if (HasGame && !await GameHost.StartAsync(Controller))
                 return false;
+
+            LoadSettings();
+            // The parts add their elements to the game: it must have its scene
+            InitializeRootPart();
 
             // Initialize the libraries
             InitializeLibraries();
-            Session.ActiveAssetView.Assets.CollectionChanged += AssetsCollectionChanged;
+            Session.AssetCollection.Assets.CollectionChanged += AssetsCollectionChanged;
 
             ShowAssetProperties();
             return true;
         }
 
-        /// <inheritdoc/>
-        public override AssetCompositeItemViewModel CreatePartViewModel(AssetCompositeHierarchyViewModel<UIElementDesign, UIElement> asset, UIElementDesign partDesign)
+        /// <summary>
+        /// Creates the view model of the given element of the given asset.
+        /// </summary>
+        /// <param name="asset">The UI page or library.</param>
+        /// <param name="partDesign">The design of the element.</param>
+        /// <returns>The view model of the element.</returns>
+        [NotNull]
+        public AssetCompositeItemViewModel CreatePartViewModel([NotNull] AssetCompositeHierarchyViewModel<UIElementDesign, UIElement> asset, [NotNull] UIElementDesign partDesign)
         {
             return UIElementViewModelFactory.Instance.ProvideViewModel(this, (UIBaseViewModel)asset, partDesign);
         }
 
         /// <inheritdoc/>
-        protected override Task OnGameContentLoaded()
+        protected override UIElementDesign GetPartDesign(UIElementViewModel item)
         {
-            LoadSettings();
-            return base.OnGameContentLoaded();
+            return item.UIElementDesign;
+        }
+
+        /// <inheritdoc/>
+        protected override (Type TargetMemberType, Type[] ExpectedTypes) GetPasteTypes(bool asRoot)
+        {
+            // Elements go into the root, or into a panel or a content control
+            return (asRoot ? typeof(AssetCompositeHierarchyData<UIElementDesign, UIElement>) : typeof(UIElement), [typeof(AssetCompositeHierarchyData<UIElementDesign, UIElement>)]);
         }
 
         private async void ActiveRootChanged(UIElementViewModel previousRoot, UIElementViewModel newRoot)
@@ -388,19 +447,16 @@ namespace Stride.UI.Editor.ViewModels
         }
 
         /// <inheritdoc />
+        /// <remarks>The clipboard is read when the paste runs: a clipboard without UI elements pastes nothing.</remarks>
         protected override bool CanPaste(bool asRoot)
         {
-            var copyPasteService = ServiceProvider.TryGet<ICopyPasteService>();
-            if (copyPasteService == null)
+            if (!base.CanPaste(asRoot))
                 return false;
 
             if (asRoot)
-            {
-                return PasteAsRootMonitor.Get(() =>
-                        copyPasteService.CanPaste(ClipboardText, Asset.AssetType, typeof(AssetCompositeHierarchyData<UIElementDesign, UIElement>), typeof(AssetCompositeHierarchyData<UIElementDesign, UIElement>)));
-            }
+                return true;
 
-            var canAddOrInsert = SelectedItems.All(element =>
+            return SelectedItems.All(element =>
             {
                 var contentControl = element as ContentControlViewModel;
                 if (contentControl != null)
@@ -409,10 +465,6 @@ namespace Stride.UI.Editor.ViewModels
                 }
                 return element is PanelViewModel;
             });
-            if (!canAddOrInsert)
-                return false;
-
-            return PasteMonitor.Get(() => copyPasteService.CanPaste(ClipboardText, Asset.AssetType, typeof(UIElement), typeof(AssetCompositeHierarchyData<UIElementDesign, UIElement>)));
         }
 
         /// <inheritdoc />
@@ -425,8 +477,8 @@ namespace Stride.UI.Editor.ViewModels
                 var confirmMessage = Tr._p("Message", "Are you sure you want to delete this UI element?");
                 if (elementsToDelete.Count > 1)
                     confirmMessage = string.Format(Tr._p("Message", "Are you sure you want to delete these {0} UI elements?"), elementsToDelete.Count);
-                var buttons = DialogHelper.CreateButtons(new[] { Tr._p("Button", "Delete"), Tr._p("Button", "Cancel") }, 1, 2);
-                var result = await ServiceProvider.Get<IDialogService>().CheckedMessageBoxAsync(confirmMessage, false, DialogHelper.DontAskAgain, buttons, MessageBoxImage.Question);
+                var buttons = DialogButtons.Create(new[] { Tr._p("Button", "Delete"), Tr._p("Button", "Cancel") }, 1, 2);
+                var result = await ServiceProvider.Get<IDialogService>().CheckedMessageBoxAsync(confirmMessage, false, Tr._p("Settings", "Don't ask again"), buttons, MessageBoxImage.Question);
                 if (result.Result != 1)
                     return;
                 if (result.IsChecked == true)
@@ -502,7 +554,7 @@ namespace Stride.UI.Editor.ViewModels
 
             if (action == NotifyCollectionChangedAction.Reset)
             {
-                Controller.AdornerService.ClearSelection().Forget();
+                Controller.AdornerService?.ClearSelection().Forget();
                 return;
             }
 
@@ -533,6 +585,7 @@ namespace Stride.UI.Editor.ViewModels
             CreatePageCommand.IsEnabled = exactlyOne;
             DuplicateSelectionCommand.IsEnabled = atLeastOne && GetCommonRoots(SelectedItems).All(e => e.CanDuplicate());
             GroupIntoCommand.IsEnabled = atLeastOne && allSiblings;
+            RenameCommand.IsEnabled = SelectedItems.LastOrDefault() is { IsEditable: true };
 
             var libraryInstanceSelected = SelectedItems.Any(x => x.SourceLibrary != null);
             BreakLinkToLibraryCommand.IsEnabled = libraryInstanceSelected;
@@ -545,6 +598,12 @@ namespace Stride.UI.Editor.ViewModels
         {
             EditorProperties.UpdateTypeAndName(SelectedItems, e => e.ElementType.Name, e => e.AssetSideUIElement.Name, "elements");
             return EditorProperties.GenerateSelectionPropertiesAsync(SelectedItems);
+        }
+
+        private void Rename()
+        {
+            if (SelectedItems.LastOrDefault() is { IsEditable: true } element)
+                element.IsEditing = true;
         }
 
         private void BreakLinkToLibrary()
@@ -581,7 +640,7 @@ namespace Stride.UI.Editor.ViewModels
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private IEnumerable<UIElementViewModel> GetElementsAtPosition(ref Vector3 worldPosition)
         {
-            return Controller.AdornerService.GetElementIdsAtPosition(ref worldPosition).Select(id => FindPartViewModel(new AbsoluteId(Asset.Id, id))).OfType<UIElementViewModel>();
+            return Controller.AdornerService?.GetElementIdsAtPosition(ref worldPosition).Select(id => FindPartViewModel(new AbsoluteId(Asset.Id, id))).OfType<UIElementViewModel>();
         }
 
         private void GroupInto(IUIElementFactory factory)
@@ -636,8 +695,8 @@ namespace Stride.UI.Editor.ViewModels
                 .GroupBy(p => p.Package.IsReadOnly)
                 .ToDictionary(p => p.Key, p => p.SelectMany(x => x.Assets).OfType<UILibraryViewModel>());
 
-            // system libraries
-            foreach (var sysLib in allLibraries[true])
+            // system libraries (a session can have no read-only package, or no package of its own)
+            foreach (var sysLib in allLibraries.GetValueOrDefault(true, []))
             {
                 var asset = sysLib.Asset;
                 factories.AddRange(asset.PublicUIElements.Select(x => new UIElementFromSystemLibrary(ServiceProvider, sysLib, x.Key)));
@@ -645,7 +704,7 @@ namespace Stride.UI.Editor.ViewModels
             PanelFactories = factories.Where(f => f.Category == "Panel").OrderBy(f => f.Name).ToList();
 
             // user libraries
-            foreach (var userLib in allLibraries[false])
+            foreach (var userLib in allLibraries.GetValueOrDefault(false, []))
             {
                 RemoveLibrary(userLib);
                 AddLibrary(userLib);
@@ -710,7 +769,7 @@ namespace Stride.UI.Editor.ViewModels
             var libraries = new HashSet<UILibraryViewModel>(SelectedItems.Select(x => x.SourceLibrary).NotNull());
             foreach (var library in libraries)
             {
-                ServiceProvider.Get<IAssetEditorsManager>().OpenAssetEditorWindow(library);
+                ServiceProvider.Get<IAssetEditorsManager>().OpenAssetEditorAsync(library);
             }
         }
 
@@ -772,13 +831,17 @@ namespace Stride.UI.Editor.ViewModels
         private void SaveSettings(SceneSettingsData settings)
         {
             Camera.SaveSettings(settings);
+            // The zoom is the size of the camera, which the wheel and the zoom commands change in the game without the view
+            // model of the camera: the size of the game's camera is saved, so that the editor opens again at the same zoom
+            if (Controller.GetService<IEditorGameCameraViewModelService>() is UIEditorGameCameraService { Component: { } camera })
+                settings.CamOrthographicSize = camera.OrthographicSize;
         }
 
         private void SelectLibrary()
         {
             var library = LastSelectedElement?.SourceLibrary;
             if (library != null)
-                Session.ActiveAssetView.SelectAssets(library.Yield());
+                Session.AssetCollection.SelectAssets(library.Yield());
         }
 
         private void SetCurrentSelection(AbsoluteId elementId)
@@ -810,11 +873,11 @@ namespace Stride.UI.Editor.ViewModels
             var element = GetDropTarget(ref worldPosition, children, modifiers, out message);
             if (element != null)
             {
-                Controller.AdornerService.HighlightAdorner(element.Id.ObjectId).Forget();
+                Controller.AdornerService?.HighlightAdorner(element.Id.ObjectId).Forget();
                 return true;
             }
 
-            Controller.AdornerService.UnlitAllAdorners().Forget();
+            Controller.AdornerService?.UnlitAllAdorners().Forget();
             return false;
         }
 
@@ -828,7 +891,7 @@ namespace Stride.UI.Editor.ViewModels
 
         private UIElementViewModel GetDropTarget(ref Vector3 worldPosition, IReadOnlyCollection<object> children, AddChildModifiers modifiers, out string message)
         {
-            message = DragDropBehavior.InvalidDropAreaMessage;
+            message = DragDropMessages.InvalidDropArea;
 
             var elements = GetElementsAtPosition(ref worldPosition);
             if (elements == null)
@@ -840,6 +903,41 @@ namespace Stride.UI.Editor.ViewModels
                     return target;
             }
             return null;
+        }
+
+        /// <summary>
+        /// The viewport service of an editor without a viewport: its game never starts, so its viewport is never attached.
+        /// </summary>
+        private sealed class NoViewportService : IEditorGameViewportService
+        {
+            public IEditorGameViewport CreateViewport(Logger logger) => new NoViewport();
+
+            private sealed class NoViewport : IEditorGameViewport
+            {
+                public object View => null;
+
+                public GameContext Attach(EmbeddedGame game) => throw new NotSupportedException("An editor without a viewport has no game.");
+
+                public void Initialize(EmbeddedGame game)
+                {
+                }
+
+                public void BeginDraw(EmbeddedGame game)
+                {
+                }
+
+                public void EndDraw(EmbeddedGame game, bool present)
+                {
+                }
+
+                public void AfterEndDraw(EmbeddedGame game, bool present)
+                {
+                }
+
+                public void Dispose()
+                {
+                }
+            }
         }
     }
 }

@@ -207,8 +207,7 @@ namespace Stride.Rendering.Lights
             /// <summary>
             /// Initializes a new instance of the <see cref="LightSpotTextureProjectionGroupShaderData" /> class.
             /// </summary>
-            /// <param name="shadowType">Type of the shadow.</param>
-            /// <param name="lightCountMax">The light count maximum.</param>
+            /// <param name="parameters">The spot light texture parameters.</param>
             public LightSpotTextureProjectionGroupShaderData(SpotLightTextureParameters parameters)
             {
                 lightParameters = parameters;

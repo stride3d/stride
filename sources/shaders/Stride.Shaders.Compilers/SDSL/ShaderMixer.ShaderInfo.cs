@@ -33,10 +33,16 @@ public partial class ShaderMixer
         /// </summary>
         public string? CompositionPath { get; set; }
 
+        /// <summary>
+        /// Only the stage members of this shader were mixed in this node (a shader of a composition promoted to the root).
+        /// </summary>
+        public bool ImportStageOnly { get; set; }
+
         public int StartInstruction { get; internal set; } = startInstruction;
         public int EndInstruction { get; internal set; } = endInstruction;
         public Dictionary<string, List<(int Id, FunctionType Type)>> Functions { get; } = new();
         public Dictionary<string, (int Id, SymbolType Type)> Variables { get; } = new();
+        public HashSet<string> StageVariables { get; } = new();
 
         public Dictionary<string, int> StructTypes { get; } = new();
 
@@ -78,6 +84,8 @@ public partial class ShaderMixer
                 var variableName = context.Names[variable.ResultId];
                 var variableType = context.ReverseTypes[variable.ResultType];
                 shaderInfo!.Variables.Add(variableName, (variable.ResultId, variableType));
+                if ((variable.Flags & VariableFlagsMask.Stage) != 0)
+                    shaderInfo.StageVariables.Add(variableName);
 
                 // Remove SPIR-V variables to other shaders (already stored in ShaderInfo and not valid SPIR-V)
                 if (variableType is PointerType pointer && pointer.BaseType is (ShaderSymbol or ArrayType { BaseType: ShaderSymbol }))

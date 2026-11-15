@@ -649,6 +649,8 @@ public partial struct VertexElement : IEquatable<VertexElement>
         ///   Serializes or deserializes a <see cref="VertexElement"/> object.
         /// </summary>
         /// <param name="vertexElement">The object to serialize or deserialize.</param>
+        /// <param name="mode">The serialization mode.</param>
+        /// <param name="stream">The serialization stream.</param>
         /// <inheritdoc/>
         public override void Serialize(ref VertexElement vertexElement, ArchiveMode mode, SerializationStream stream)
         {

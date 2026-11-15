@@ -30,7 +30,7 @@ namespace Stride.Core.Presentation.Controls
         public static readonly DependencyProperty TrimmingSourceProperty = DependencyProperty.RegisterAttached("TrimmingSource", typeof(TrimmingSource), typeof(Trimming), new PropertyMetadata(TrimmingSource.End));
 
         /// <summary>
-        /// Identifies the <see cref="WordSeparators"/> dependency property.
+        /// Identifies the WordSeparators dependency property.
         /// </summary>
         public static readonly DependencyProperty WordSeparatorsProperty = DependencyProperty.RegisterAttached("WordSeparators", typeof(string), typeof(Trimming), new PropertyMetadata(" \t"));
 
@@ -75,17 +75,17 @@ namespace Stride.Core.Presentation.Controls
         }
 
         /// <summary>
-        /// Gets the current value of the <see cref="WordSeparators"/> dependency property attached to the given <see cref="DependencyObject"/>.
+        /// Gets the current value of the <see cref="WordSeparatorsProperty"/> dependency property attached to the given <see cref="DependencyObject"/>.
         /// </summary>
         /// <param name="target">The target <see cref="DependencyObject"/>.</param>
-        /// <returns>The value of the <see cref="WordSeparators"/> dependency property.</returns>
+        /// <returns>The value of the <see cref="WordSeparatorsProperty"/> dependency property.</returns>
         public static string GetWordSeparators([NotNull] DependencyObject target)
         {
             return (string)target.GetValue(WordSeparatorsProperty);
         }
 
         /// <summary>
-        /// Sets the value of the <see cref="WordSeparators"/> dependency property attached to the given <see cref="DependencyObject"/>.
+        /// Sets the value of the <see cref="WordSeparatorsProperty"/> dependency property attached to the given <see cref="DependencyObject"/>.
         /// </summary>
         /// <param name="target">The target <see cref="DependencyObject"/>.</param>
         /// <param name="value">The value to set.</param>
@@ -105,7 +105,7 @@ namespace Stride.Core.Presentation.Controls
         public static string ProcessTrimming([NotNull] Control control, string text, TextTrimming trimming, TrimmingSource source, string wordSeparators, double availableWidth)
         {
             var typeface = new Typeface(control.FontFamily, control.FontStyle, control.FontWeight, control.FontStretch);
-            return ProcessTrimming(text, typeface, control.FontSize, trimming, source, wordSeparators, availableWidth);
+            return ProcessTrimming(text, typeface, control.FontSize, trimming, source, wordSeparators, availableWidth, VisualTreeHelper.GetDpi(control).PixelsPerDip);
         }
 
         public static string ProcessTrimming([NotNull] TextBlock textBlock, string text, double availableWidth)
@@ -119,17 +119,17 @@ namespace Stride.Core.Presentation.Controls
         public static string ProcessTrimming([NotNull] TextBlock textBlock, string text, TextTrimming trimming, TrimmingSource source, string wordSeparators, double availableWidth)
         {
             var typeface = new Typeface(textBlock.FontFamily, textBlock.FontStyle, textBlock.FontWeight, textBlock.FontStretch);
-            return ProcessTrimming(text, typeface, textBlock.FontSize, trimming, source, wordSeparators, availableWidth);
+            return ProcessTrimming(text, typeface, textBlock.FontSize, trimming, source, wordSeparators, availableWidth, VisualTreeHelper.GetDpi(textBlock).PixelsPerDip);
         }
 
-        private static string ProcessTrimming(string text, [NotNull] Typeface typeface, double fontSize, TextTrimming trimming, TrimmingSource source, string wordSeparators, double availableWidth)
+        private static string ProcessTrimming(string text, [NotNull] Typeface typeface, double fontSize, TextTrimming trimming, TrimmingSource source, string wordSeparators, double availableWidth, double pixelsPerDip)
         {
             if (trimming == TextTrimming.None)
             {
                 return text;
             }
 
-            var textWidth = GetTextWidth(text, trimming, typeface, fontSize, wordSeparators, out double[] sizes);
+            var textWidth = GetTextWidth(text, trimming, typeface, fontSize, wordSeparators, pixelsPerDip, out double[] sizes);
             if (availableWidth >= textWidth)
             {
                 return text;
@@ -159,7 +159,7 @@ namespace Stride.Core.Presentation.Controls
             {
                 case TrimmingSource.Begin:
                 {
-                    var currentWidth = GetTextWidth(Ellipsis, trimming, typeface, fontSize, wordSeparators, out _);
+                    var currentWidth = GetTextWidth(Ellipsis, trimming, typeface, fontSize, wordSeparators, pixelsPerDip, out _);
 
                     var ending = new StringBuilder();
                     for (var i = words.Count - 1; i >= 0; --i)
@@ -171,7 +171,7 @@ namespace Stride.Core.Presentation.Controls
                             // If there's not enough room for a single word, fall back on character trimming from the beginning
                             if (trimming == TextTrimming.WordEllipsis && firstWord)
                             {
-                                return ProcessTrimming(words[i], typeface, fontSize, TextTrimming.CharacterEllipsis, TrimmingSource.Begin, wordSeparators, availableWidth);
+                                return ProcessTrimming(words[i], typeface, fontSize, TextTrimming.CharacterEllipsis, TrimmingSource.Begin, wordSeparators, availableWidth, pixelsPerDip);
                             }
                             break;
                         }
@@ -184,7 +184,7 @@ namespace Stride.Core.Presentation.Controls
                 }
                 case TrimmingSource.Middle:
                 {
-                    var currentWidth = GetTextWidth(Ellipsis, trimming, typeface, fontSize, wordSeparators, out _);
+                    var currentWidth = GetTextWidth(Ellipsis, trimming, typeface, fontSize, wordSeparators, pixelsPerDip, out _);
 
                     var begin = new StringBuilder();
                     var ending = new StringBuilder();
@@ -197,7 +197,7 @@ namespace Stride.Core.Presentation.Controls
                             // If there's not enough room for a single word, fall back on character trimming from the end
                             if (trimming == TextTrimming.WordEllipsis && firstWord)
                             {
-                                return ProcessTrimming(words[j], typeface, fontSize, TextTrimming.CharacterEllipsis, TrimmingSource.End, wordSeparators, availableWidth);
+                                return ProcessTrimming(words[j], typeface, fontSize, TextTrimming.CharacterEllipsis, TrimmingSource.End, wordSeparators, availableWidth, pixelsPerDip);
                             }
                             break;
                         }
@@ -213,7 +213,7 @@ namespace Stride.Core.Presentation.Controls
                 }
                 case TrimmingSource.End:
                 {
-                    var currentWidth = GetTextWidth(Ellipsis, trimming, typeface, fontSize, wordSeparators, out _);
+                    var currentWidth = GetTextWidth(Ellipsis, trimming, typeface, fontSize, wordSeparators, pixelsPerDip, out _);
 
                     var begin = new StringBuilder();
                     for (var i = 0; i < words.Count; ++i)
@@ -225,7 +225,7 @@ namespace Stride.Core.Presentation.Controls
                             // If there's not enough room for a single word, fall back on character trimming from the end
                             if (trimming == TextTrimming.WordEllipsis && firstWord)
                             {
-                                return ProcessTrimming(words[i], typeface, fontSize, TextTrimming.CharacterEllipsis, TrimmingSource.Begin, wordSeparators, availableWidth);
+                                return ProcessTrimming(words[i], typeface, fontSize, TextTrimming.CharacterEllipsis, TrimmingSource.Begin, wordSeparators, availableWidth, pixelsPerDip);
                             }
                             break;
                         }
@@ -242,11 +242,11 @@ namespace Stride.Core.Presentation.Controls
             }
         }
 
-        private static double GetTextWidth([NotNull] string text, TextTrimming trimming, [NotNull] Typeface typeface, double fontSize, string wordSeparators, [NotNull] out double[] sizes)
+        private static double GetTextWidth([NotNull] string text, TextTrimming trimming, [NotNull] Typeface typeface, double fontSize, string wordSeparators, double pixelsPerDip, [NotNull] out double[] sizes)
         {
             var totalWidth = 0.0;
             // We use a period to ensure space characters will have their actual size used.
-            var period = new FormattedText(".", CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, typeface, fontSize, Brushes.Black);
+            var period = new FormattedText(".", CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, typeface, fontSize, Brushes.Black, pixelsPerDip);
             var periodWidth = period.Width;
 
             switch (trimming)
@@ -256,7 +256,7 @@ namespace Stride.Core.Presentation.Controls
                     for (var i = 0; i < text.Length; i++)
                     {
                         var token = text[i].ToString(CultureInfo.CurrentUICulture) + ".";
-                        var formattedText = new FormattedText(token, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, typeface, fontSize, Brushes.Black);
+                        var formattedText = new FormattedText(token, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, typeface, fontSize, Brushes.Black, pixelsPerDip);
                         var width = formattedText.Width - periodWidth;
                         sizes[i] = width;
                         totalWidth += width;
@@ -268,7 +268,7 @@ namespace Stride.Core.Presentation.Controls
                     for (var i = 0; i < words.Count; i++)
                     {
                         var token = words[i] + ".";
-                        var formattedText = new FormattedText(token, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, typeface, fontSize, Brushes.Black);
+                        var formattedText = new FormattedText(token, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, typeface, fontSize, Brushes.Black, pixelsPerDip);
                         var width = formattedText.Width - periodWidth;
                         sizes[i] = width;
                         totalWidth += width;

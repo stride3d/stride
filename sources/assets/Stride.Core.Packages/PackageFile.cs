@@ -17,6 +17,7 @@ public class PackageFile
     /// <summary>
     /// Initializes a new instance of <see cref="PackageFile"/> located in <paramref name="path"/>.
     /// </summary>
+    /// <param name="packagePath">The path of the package.</param>
     /// <param name="path">Path of the file in the package.</param>
     public PackageFile(string packagePath, string path)
     {

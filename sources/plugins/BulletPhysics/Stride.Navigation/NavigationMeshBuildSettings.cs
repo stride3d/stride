@@ -20,14 +20,14 @@ namespace Stride.Navigation
         /// The Height of a grid cell in the navigation mesh building steps using heightfields. 
         /// A lower number means higher precision on the vertical axis but longer build times
         /// </summary>
-        [DataMemberRange(0.01, 4)]
+        [DataMemberRange(minimum: 0.01, decimalPlaces: 4)]
         public float CellHeight;
 
         /// <summary>
         /// The Width/Height of a grid cell in the navigation mesh building steps using heightfields. 
         /// A lower number means higher precision on the horizontal axes but longer build times
         /// </summary>
-        [DataMemberRange(0.01, 4)]
+        [DataMemberRange(minimum: 0.01, decimalPlaces: 4)]
         public float CellSize;
 
         /// <summary>
@@ -40,41 +40,41 @@ namespace Stride.Navigation
         /// The minimum number of cells allowed to form isolated island areas
         /// </summary>
         [Display("Minimum Region Area")]
-        [DataMemberRange(0, 0)]
+        [DataMemberRange(minimum: 0, decimalPlaces: 0)]
         public int MinRegionArea;
 
         /// <summary>
         /// Any regions with a span count smaller than this value will, if possible, 
         /// be merged with larger regions.
         /// </summary>
-        [DataMemberRange(0, 0)]
+        [DataMemberRange(minimum: 0, decimalPlaces: 0)]
         public int RegionMergeArea;
 
         /// <summary>
         /// The maximum allowed length for contour edges along the border of the mesh.
         /// </summary>
         [Display("Maximum Edge Length")]
-        [DataMemberRange(0, 0)]
+        [DataMemberRange(minimum: 0, decimalPlaces: 0)]
         public float MaxEdgeLen;
 
         /// <summary>
         /// The maximum distance a simplfied contour's border edges should deviate from the original raw contour.
         /// </summary>
         [Display("Maximum Edge Error")]
-        [DataMemberRange(0.1, 4)]
+        [DataMemberRange(minimum: 0.1, decimalPlaces: 4)]
         public float MaxEdgeError;
 
         /// <summary>
         /// Sets the sampling distance to use when generating the detail mesh. (For height detail only.)
         /// </summary>
-        [DataMemberRange(1.0, 3)]
+        [DataMemberRange(minimum: 1.0, decimalPlaces: 3)]
         public float DetailSamplingDistance;
 
         /// <summary>
         /// The maximum distance the detail mesh surface should deviate from heightfield data. (For height detail only.)
         /// </summary>
         [Display("Maximum Detail Sampling Error")]
-        [DataMemberRange(0.0, 3)]
+        [DataMemberRange(minimum: 0.0, decimalPlaces: 3)]
         public float MaxDetailSamplingError;
 
         public bool Equals(NavigationMeshBuildSettings other)

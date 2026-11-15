@@ -20,5 +20,5 @@ public class ValueChangingEventArgs : EventArgs
     /// <summary>
     /// The new value of the node.
     /// </summary>
-    public object? NewValue { get; private set; }
+    public object? NewValue { get; }
 }

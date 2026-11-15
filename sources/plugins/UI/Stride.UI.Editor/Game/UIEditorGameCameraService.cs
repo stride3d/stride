@@ -3,14 +3,13 @@
 
 using System;
 using System.Threading.Tasks;
+using Stride.Assets.Editor.EditorGame;
 using Stride.Core.Mathematics;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
-using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
-using Stride.Assets.Presentation.SceneEditor;
 using Stride.Editor.EditorGame.Game;
 using Stride.Engine;
 using Stride.Input;
 using Stride.UI.Editor.Services;
+using Stride.Assets.Editor.AssetEditors.GameEditor.Services;
 
 namespace Stride.UI.Editor.Game
 {

@@ -132,18 +132,17 @@ public interface IExternalShaderLoader
     public bool Exists(string name);
     public bool LoadExternalFileContent(string name, out string filename, out string code, out ObjectId hash);
     public bool LoadExternalBuffer(string name, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers bytecode, out ObjectId hash, out bool isFromCache);
-    public bool LoadExternalBuffer(string name, string? filename, string code, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers bytecode, out ObjectId hash, out bool isFromCache);
+
+    /// <summary>
+    /// Compiles code that is not the content of a file as it is, such as macro-expanded code.
+    /// </summary>
+    /// <param name="sourceHash">The source hash to record: the hash of the file the code comes from.</param>
+    public bool LoadExternalBuffer(string name, string? filename, string code, ObjectId sourceHash, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers bytecode, out ObjectId hash, out bool isFromCache);
 
     /// <summary>
     /// Whether a cached buffer still matches the sources it was built from (its own file and its dependencies).
     /// </summary>
     public bool IsCachedBufferCurrent(ShaderBuffers buffer);
-
-    /// <summary>
-    /// When set, the next compilation records this as its source hash instead of hashing the code it is
-    /// given. A MemberName recompilation is handed macro-expanded source, whose hash matches no file.
-    /// </summary>
-    ObjectId? SourceHashOverride { get; set; }
 }
 
 // Should contain internal data not seen by the client but helpful for the generation like type symbols and other 

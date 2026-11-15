@@ -13,8 +13,6 @@ namespace Stride.Core.Assets.Editor.View.ValueConverters
 {
     public class FlagEnumToObservableList : OneWayMultiValueConverter<FlagEnumToObservableList>
     {
-        bool updatingCollection;
-
         // Note: this converter is a multi-converter so we can make a multi-binding that also binds the value of the node, triggering an update when the value changes.
 
         public override object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
@@ -28,22 +26,18 @@ namespace Stride.Core.Assets.Editor.View.ValueConverters
             if (value != null)
             {
                 var enumValue = (Enum)value;
-                var result = enumValue.GetIndividualFlags();
-                collection.AddRange(result);
+                collection.AddRange(enumValue.GetAllFlags());
             }
             collection.CollectionChanged += (sender, e) => CollectionChanged(collection, node, e);
             return collection;
         }
 
-        private void CollectionChanged(ObservableList<object> collection, NodeViewModel node, NotifyCollectionChangedEventArgs e)
+        private static void CollectionChanged(ObservableList<object> collection, NodeViewModel node, NotifyCollectionChangedEventArgs e)
         {
-            if (updatingCollection)
-                return;
-
-            updatingCollection = true;
-
+            // The collection must not change during its own event: the new node value rebuilds it through the multi-binding.
             var newEnumValue = EnumExtensions.GetEnum(node.Type, collection.Cast<Enum>());
 
+            // A removed combination clears all its bits, also the ones of the individual flags still in the collection.
             if (e.OldItems != null)
             {
                 foreach (var oldItem in e.OldItems)
@@ -53,31 +47,16 @@ namespace Stride.Core.Assets.Editor.View.ValueConverters
             }
             if (e.NewItems != null)
             {
-                foreach (var oldItem in e.NewItems)
+                foreach (var newItem in e.NewItems)
                 {
-                    newEnumValue = (Enum)Enum.ToObject(node.Type, System.Convert.ToUInt64(newEnumValue) | System.Convert.ToUInt64(oldItem));
+                    newEnumValue = (Enum)Enum.ToObject(node.Type, System.Convert.ToUInt64(newEnumValue) | System.Convert.ToUInt64(newItem));
                 }
             }
 
-            var flags = newEnumValue.GetAllFlags().ToList();
-            foreach (var item in collection.ToList())
+            if (!Equals(node.NodeValue, newEnumValue))
             {
-                if (!flags.Contains(item))
-                    collection.Remove(item);
+                node.NodeValue = newEnumValue;
             }
-
-            foreach (var flag in flags)
-            {
-                if (!collection.Contains(flag))
-                    collection.Add(flag);
-            }
-
-            if (!Equals(node.NodeValue, EnumExtensions.GetEnum(node.Type, collection.Cast<Enum>())))
-            {
-                node.NodeValue = EnumExtensions.GetEnum(node.Type, collection.Cast<Enum>());
-            }
-
-            updatingCollection = false;
         }
     }
 }

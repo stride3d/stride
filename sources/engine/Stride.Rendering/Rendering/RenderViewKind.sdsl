@@ -1,0 +1,26 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering
+{
+    /// <summary>
+    /// Tells a material shader what kind of view it is drawn for, such as a shadow map.
+    /// </summary>
+    /// <remarks>
+    /// A material whose surface is computed in the pixel shader (a ray-marched volume, a parallax search) can settle for a
+    /// depth good enough for a shadow and skip the rest. The values match <see cref="Stride.Rendering.RenderViewKind"/>.
+    /// <see cref="Materials.MaterialRenderFeature"/> writes it for the views of mesh materials only: in sprites, the
+    /// background, particles or UI, it is undefined.
+    /// </remarks>
+    shader RenderViewKind
+    {
+        // Any view that is not one of the kinds below (camera, prepass, VR eye, voxelization...)
+        static const uint ViewKindDefault = 0;
+        // A shadow map view (ShadowMapRenderView), whatever effect draws it
+        static const uint ViewKindShadowMap = 1;
+
+        cbuffer PerView.ViewKind
+        {
+            stage uint ViewKind;
+        }
+    };
+}

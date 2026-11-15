@@ -410,6 +410,33 @@ public struct Vector2 : IEquatable<Vector2>, ISpanFormattable
     }
 
     /// <summary>
+    /// Rounds each component of this vector down to its previous whole value
+    /// </summary>
+    /// <example> <code>Floor({1.9, -1.60}) -> {1.0, -2.0}</code> </example>
+    public static Vector2 Floor(Vector2 value)
+    {
+        return new Vector2(MathF.Floor(value.X), MathF.Floor(value.Y));
+    }
+
+    /// <summary>
+    /// Rounds each component of this vector up to its next whole value
+    /// </summary>
+    /// <example> <code>Ceiling({1.9, -1.60}) -> {2.0, -1.0}</code> </example>
+    public static Vector2 Ceiling(Vector2 value)
+    {
+        return new Vector2(MathF.Ceiling(value.X), MathF.Ceiling(value.Y));
+    }
+
+    /// <summary>
+    /// Rounds each component of this vector to the nearest whole value
+    /// </summary>
+    /// <example> <code>Round({1.9, -1.60}) -> {2.0, -2.0}</code> </example>
+    public static Vector2 Round(Vector2 value)
+    {
+        return new Vector2(MathF.Round(value.X), MathF.Round(value.Y));
+    }
+
+    /// <summary>
     /// Returns a <see cref="Stride.Core.Mathematics.Vector2"/> containing the 2D Cartesian coordinates of a point specified in Barycentric coordinates relative to a 2D triangle.
     /// </summary>
     /// <param name="value1">A <see cref="Stride.Core.Mathematics.Vector2"/> containing the 2D Cartesian coordinates of vertex 1 of the triangle.</param>

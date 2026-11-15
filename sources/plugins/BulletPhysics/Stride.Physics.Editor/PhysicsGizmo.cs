@@ -12,7 +12,7 @@ using Stride.Graphics;
 using Stride.Physics;
 using Stride.Rendering;
 using Stride.Core.Assets;
-using Stride.Assets.Presentation.AssetEditors.Gizmos;
+using Stride.Assets.Editor.AssetEditors.Gizmos;
 
 namespace Stride.Physics.Editor
 {

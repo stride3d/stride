@@ -1,9 +1,10 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Assets.Presentation.NodePresenters.Keys;
-using Stride.Assets.Presentation.NodePresenters.Updaters;
-using Stride.Core.Assets.Editor.Quantum.NodePresenters;
+
+using Stride.Assets.Editor.Quantum.NodePresenters.Keys;
+using Stride.Assets.Editor.Quantum.NodePresenters.Updaters;
+using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
 using Stride.Engine;
 
 namespace Stride.Physics.Editor;

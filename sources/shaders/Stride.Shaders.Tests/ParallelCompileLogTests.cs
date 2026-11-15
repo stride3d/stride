@@ -115,7 +115,7 @@ public class ParallelCompileLogTests : IDisposable
         }
     }
 
-    private string BrokenError => $"{sourceDir.FullName}/Broken.sdsl(1,";
+    private string BrokenError => $"{Path.Combine(sourceDir.FullName, "Broken.sdsl")}(1,";
 
     private static bool Merge(ShaderLoader loader, string shader, LoggerResult log)
         => new ShaderMixer(loader).MergeSDSL(new ShaderClassSource(shader), new ShaderMixer.Options(true), log, out _, out _, out _, out _);

@@ -39,11 +39,11 @@ namespace Stride.Shaders
         [DataMemberIgnore]
         public ShaderMixinSource Parent { get; set; }
 
-        /// <summary>
-        /// Gets or sets the name of this mixin source (if this ShaderMixinSource was generated from a <see cref="ShaderMixinGeneratorSource"/>,
-        /// it contains the name of <see cref="ShaderMixinGeneratorSource.Name"/>.
-        /// </summary>
-        /// <value>The name.</value>
+        // <summary>
+        // Gets or sets the name of this mixin source (if this ShaderMixinSource was generated from a <see cref="ShaderMixinGeneratorSource"/>,
+        // it contains the name of <see cref="ShaderMixinGeneratorSource.Name"/>.
+        // </summary>
+        // <value>The name.</value>
         //public string Name { get; set; }
 
         /// <summary>

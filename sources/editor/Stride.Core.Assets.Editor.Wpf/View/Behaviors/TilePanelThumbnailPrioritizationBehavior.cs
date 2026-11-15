@@ -6,10 +6,12 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Behaviors;
 using Stride.Core.Presentation.Controls;
 using Stride.Core.Presentation.Extensions;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.View.Behaviors
 {
@@ -42,7 +44,10 @@ namespace Stride.Core.Assets.Editor.View.Behaviors
             if (items == null || firstVisibleItemIndex > lastVisibleItemIndex)
                 return;
 
-            var session = items[0].Session;
+            // Thumbnails are a service of the editor's session
+            if (items[0].Session is not SessionViewModel session)
+                return;
+
             var visibleAssets = items.Subset(firstVisibleItemIndex, lastVisibleItemIndex - firstVisibleItemIndex + 1).OfType<AssetViewModel>();
             session.Thumbnails.IncreaseThumbnailPriority(visibleAssets);
         }

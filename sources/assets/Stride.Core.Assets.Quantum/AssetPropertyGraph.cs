@@ -529,7 +529,7 @@ public class AssetPropertyGraph : IDisposable
     }
 
     /// <summary>
-    /// Clones the given object, remove any override information on it, and propagate its id (from <see cref="IdentifiableHelper"/>) to the cloned object.
+    /// Clones the given object and generates new identifiers for identifiable objects.
     /// </summary>
     /// <param name="value">The object to clone.</param>
     /// <returns>A clone of the given object.</returns>

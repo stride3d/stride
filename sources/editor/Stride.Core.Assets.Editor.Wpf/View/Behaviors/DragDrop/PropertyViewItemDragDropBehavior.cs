@@ -9,6 +9,7 @@ using Stride.Core.Extensions;
 using Stride.Core.Reflection;
 using Stride.Core.Presentation.Controls;
 using Stride.Core.Presentation.Quantum.ViewModels;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.View.Behaviors
 {

@@ -36,6 +36,9 @@ namespace Stride.Games
     {
         private static readonly Logger Log = GlobalLogger.GetLogger(nameof(GamePlatform));
 
+        // FindBestDevices runs again on each device change: warn once per adapter
+        private static readonly HashSet<long> skippedAdaptersWarned = [];
+
         private bool hasExitRan = false;
 
         protected readonly GameBase game;
@@ -123,8 +126,8 @@ namespace Stride.Games
         }
 
         /// <summary>
-        /// If <c>true</c>, <see cref="Game.Run()"/> is blocking until the game is exited, i.e. internal main loop is used.
-        /// If <c>false</c>, <see cref="Game.Run()"/> returns immediately and the caller has to manage the main loop by invoking the <see cref="GameWindow.RunCallback"/>.
+        /// If <c>true</c>, <see cref="GameBase.Run(GameContext)"/> is blocking until the game is exited, i.e. internal main loop is used.
+        /// If <c>false</c>, <see cref="GameBase.Run(GameContext)"/> returns immediately and the caller has to manage the main loop by invoking the <see cref="GameWindow.RunCallback"/>.
         /// </summary>
         public bool IsBlockingRun { get; protected set; }
 
@@ -360,7 +363,7 @@ namespace Stride.Games
                     skipSoftwareAdapters |= !graphicsAdapter.IsSoftwareAdapter;
             }
 
-            // Iterate on each adapter
+            var candidateAdapters = new List<GraphicsAdapter>();
             foreach (var graphicsAdapter in GraphicsAdapterFactory.Adapters)
             {
                 var adapterUid = graphicsAdapter.AdapterUid.ToString();
@@ -371,6 +374,23 @@ namespace Stride.Games
                 if (skipSoftwareAdapters && graphicsAdapter.IsSoftwareAdapter)
                     continue;
 
+                candidateAdapters.Add(graphicsAdapter);
+            }
+
+            // Adapters Stride can't use are skipped when another one can be used; otherwise the device creation reports why
+            if (candidateAdapters.Count > 1 && candidateAdapters.Exists(adapter => adapter.UnsupportedReason is null))
+            {
+                foreach (var adapter in candidateAdapters.FindAll(adapter => adapter.UnsupportedReason is not null))
+                {
+                    if (skippedAdaptersWarned.Add(adapter.AdapterUid))
+                        Log.Warning($"Skipping graphics adapter {adapter.Description}: {adapter.UnsupportedReason}");
+                    candidateAdapters.Remove(adapter);
+                }
+            }
+
+            // Iterate on each adapter
+            foreach (var graphicsAdapter in candidateAdapters)
+            {
                 var preferredGraphicsProfiles = preferredParameters.PreferredGraphicsProfile;
 
                 // Iterate on each preferred graphics profile

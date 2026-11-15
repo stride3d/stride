@@ -74,7 +74,7 @@ stride new game -n MyGame     # `stride new` with no template lists what's avail
 Command groups:
 
 - `stride sdk <list|install|uninstall|update>` — manage installed Stride engine versions.
-- `stride new` — create a project from a template, or add an asset pack (`stride-pack-*`) to the project in the output folder, from that project's version and without upgrading it.
+- `stride new` — create a project from a template, or add an asset pack (`stride-pack-*`) to the package around the current folder, in the folders it lists, from that project's version and without upgrading it.
 - `stride upgrade` — move a project to a newer installed engine (4.4.0+).
 - `stride studio` — open Game Studio for the project's version. `--editor wpf|avalonia` picks the Game Studio when the version has both; the default is WPF on Windows, Avalonia elsewhere. Off Windows, WPF runs under Wine when `wine` is on the PATH (setting up its prefix for Stride is up to you).
 - `stride self update` / `stride version` — manage and inspect the CLI itself.

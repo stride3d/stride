@@ -148,6 +148,13 @@ public interface IUndoRedoService
     void NotifySave();
 
     /// <summary>
+    /// Notifies that the given <see cref="Dirtiables.IDirtiable"/> instance is in sync with its saved state, for instance after it
+    /// has been reloaded from its file: undoing or redoing its operations then updates its dirty flag relative to this state.
+    /// </summary>
+    /// <param name="dirtiable">The dirtiable object that is in sync with its saved state.</param>
+    void NotifySave(Dirtiables.IDirtiable dirtiable);
+
+    /// <summary>
     /// Updates the capacity of this undo/redo service.
     /// </summary>
     /// <param name="newCapacity">The new size for the undo/redo service.</param>

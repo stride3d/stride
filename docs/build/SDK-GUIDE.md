@@ -153,10 +153,10 @@ sources/sdk/
 |       +-- Stride.NuGetVersion.props          # Package version from SharedAssemblyInfo.cs
 |       +-- Stride.GitVersion.targets          # Release version + git metadata (package.proj)
 |       +-- Stride.WorktreeVersion.targets     # Per-checkout dev version suffix
-|       +-- Stride.DevPackages.targets         # Dev-redirect package stubs (StrideDevPackages=true)
+|       +-- Stride.RedirectPackages.targets    # Dev-redirect package stubs (StrideRedirectPackages=true)
 |       +-- Stride.AutoPackDeploy.targets      # Auto-pack into bin/packages
 |       +-- StrideVersionTasks.cs              # Inline tasks of the version targets
-|       +-- StrideDevPackagesTasks.cs          # Inline tasks of Stride.DevPackages.targets
+|       +-- StrideRedirectPackagesTasks.cs     # Inline tasks of Stride.RedirectPackages.targets
 |       +-- Stride.NativeBuildMode.props       # Clang/MSVC selection
 |       +-- Stride.DisableBuild.targets        # Empty targets for build skip
 |       +-- Stride.ruleset                     # Code analysis ruleset

@@ -1,0 +1,21 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using Stride.Core.Presentation.Quantum.ViewModels;
+
+namespace Stride.Core.Assets.Editor.Avalonia.Views;
+
+public class DictionaryTemplateProvider : NodeViewModelTemplateProvider
+{
+    public override string Name => "Dictionary";
+
+    public override bool MatchNode(NodeViewModel node)
+    {
+        return CheckNode(node);
+    }
+
+    public static bool CheckNode(NodeViewModel node)
+    {
+        return node is { HasDictionary: true, NodeValue: not null };
+    }
+}

@@ -4,13 +4,14 @@ using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows;
-using Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;
+using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.View;
 using Stride.Core.Presentation.Windows;
+using Stride.Core.Assets.Editor.ViewModels;
 using MessageBoxImage = Stride.Core.Presentation.Services.MessageBoxImage;
 
 namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views
@@ -43,7 +44,7 @@ namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views
 
         protected override void OnClosing(CancelEventArgs e)
         {
-            if (Result == Presentation.Services.DialogResult.Ok)
+            if (Result == Stride.Core.Presentation.Services.DialogResult.Ok)
             {
                 if (!ValidateProperties())
                 {
@@ -53,7 +54,7 @@ namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views
             }
 
             Parameters = new NewPackageParameters();
-            if (Result == Presentation.Services.DialogResult.Ok)
+            if (Result == Stride.Core.Presentation.Services.DialogResult.Ok)
             {
                 Parameters.TemplateDescription = Templates.SelectedTemplate?.GetTemplate();
                 Parameters.OutputName = Templates.Name;

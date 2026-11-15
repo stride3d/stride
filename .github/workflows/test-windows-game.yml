@@ -30,6 +30,10 @@ on:
         description: 'Rerun the filtered test set up to N times, stop on first failure (flake hunting). 1 = single run (default).'
         type: number
         default: 1
+      test-parallelism:
+        description: 'Test assemblies run at a time (dotnet test -m). 0 = one per core.'
+        type: number
+        default: 2
       projects:
         description: 'Test .csproj paths to build/test, separated by ; (blank = detected automatically using test-filter, or all)'
         type: string
@@ -42,6 +46,10 @@ on:
         description: Capture and upload build binlog (off by default; adds some I/O overhead)
         default: false
         type: boolean
+      capture-shader-corpus:
+        description: Record every compiled mixin tree for the shader corpus (Direct3D11 leg only, artifact shader-corpus-game)
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       build-type:
@@ -73,6 +81,9 @@ on:
         default: false
         type: boolean
       upload-binlog:
+        default: false
+        type: boolean
+      capture-shader-corpus:
         default: false
         type: boolean
 
@@ -107,6 +118,9 @@ jobs:
       DOTNET_DbgEnableMiniDump: "1"                                                  # Type 2: .NET unhandled exceptions
       DOTNET_DbgMiniDumpType: "4"                                                    # MiniDumpWithFullMemory
       DOTNET_DbgMiniDumpName: "${{ github.workspace }}\\TestResults\\dotnet_%p.dmp"  # Type 2: dump path
+      # Shader corpus refresh (sources/shaders/Stride.Shaders.Tests/Corpus/README.md): the test suites record their
+      # mixin trees. One leg is enough, the corpus test compiles each tree for every graphics API.
+      STRIDE_SHADER_CORPUS_CAPTURE: ${{ inputs.capture-shader-corpus && matrix.graphics-api == 'Direct3D11' && format('{0}\shader-corpus', github.workspace) || '' }}
     steps:
       # Bootstrap .github so the local composite action below is resolvable pre-checkout.
       - uses: actions/checkout@v7
@@ -119,6 +133,12 @@ jobs:
           # (works uniformly for same-repo and fork PRs).
           ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || (inputs.commit-sha != '' && inputs.commit-sha) || github.ref }}
           exclude: samples
+      # Before the build: the key hashes the compiler sources, not build outputs
+      - uses: ./.github/actions/effect-cache
+        with:
+          mode: restore
+          lane: ${{ matrix.graphics-api }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+          fxc: ${{ matrix.graphics-api == 'Direct3D11' }}
       - name: Configure crash dumps
         shell: pwsh
         run: |
@@ -147,8 +167,11 @@ jobs:
           $filter = "${{ github.event.inputs.test-filter || inputs.test-filter }}"
           $neutral = '${{ matrix.graphics-api }}' -eq 'Direct3D11' -and ($projects -or $filter -or '${{ inputs.api-neutral-suites }}' -eq 'true')
           $slnf = if ($neutral) { 'sources/Stride.Tests.Game.Desktop.slnf' } else { 'sources/Stride.Tests.Game.GPU.slnf' }
-          $target = dotnet run --project build/tools/Stride.TestSuites -- `
-            --projects "$projects" --filter "$filter" --slnf $slnf
+          # Nothing to narrow (every PR and push run): the whole solution, without building the tool.
+          $target = if (-not $projects -and -not $filter) { $slnf } else {
+            dotnet run --project build/tools/Stride.TestSuites -- `
+              --projects "$projects" --filter "$filter" --slnf $slnf
+          }
           Write-Host "Build/test target: $(if ($target) { $target } else { '(nothing)' })"
           Add-Content $env:GITHUB_ENV "STRIDE_TEST_TARGET=$target"
           Add-Content $env:GITHUB_ENV "STRIDE_TEST_FILTER=${{ github.event.inputs.test-filter || inputs.test-filter }}"
@@ -179,6 +202,10 @@ jobs:
         run: |
           $repeat = [int]("${{ github.event.inputs.repeat || inputs.repeat || '1' }}")
           $filterArgs = if ($env:STRIDE_TEST_FILTER) { @('--filter', $env:STRIDE_TEST_FILTER) } else { @() }
+          # Two at a time: software rendering already takes every core, more assemblies only slow each other down
+          $parallelism = [int]("${{ github.event.inputs.test-parallelism || '2' }}")
+          # Quoted below: a splatted "-m:N" reaches dotnet as "-m:" and "N"
+          if ($parallelism -le 0) { $parallelism = [Environment]::ProcessorCount }
           for ($i = 1; $i -le $repeat; $i++) {
             Write-Host "=== Test run $i / $repeat ==="
             dotnet test $env:STRIDE_TEST_TARGET `
@@ -188,13 +215,18 @@ jobs:
               -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
               -p:StrideGraphicsApis=${{ matrix.graphics-api }} `
               -p:StrideGraphicsApi=${{ matrix.graphics-api }} `
-              @filterArgs `
+              @filterArgs "-m:$parallelism" `
               -- RunConfiguration.MaxCpuCount=1
             if ($LASTEXITCODE -ne 0) {
               Write-Host "Run $i failed (exit $LASTEXITCODE); stopping."
               exit $LASTEXITCODE
             }
           }
+      - uses: ./.github/actions/effect-cache
+        if: success() || failure()
+        with:
+          mode: save
+          lane: ${{ matrix.graphics-api }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
       - name: Publish Test Report
         if: always() && env.STRIDE_TEST_TARGET != ''
         uses: phoenix-actions/test-reporting@v16
@@ -232,3 +264,10 @@ jobs:
           name: test-results-game-${{ matrix.graphics-api }}
           path: TestResults/
           if-no-files-found: ignore
+      - name: Upload shader corpus capture
+        if: always() && env.STRIDE_SHADER_CORPUS_CAPTURE != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: shader-corpus-game
+          path: shader-corpus/
+          if-no-files-found: warn

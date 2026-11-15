@@ -11,7 +11,9 @@ namespace Stride.UI.Tests.Layering
     /// A class that contains test functions for layering of the <see cref="ContentPresenter"/> class.
     /// </summary>
     [System.ComponentModel.Description("Tests for ContentPresenter layering")]
+#pragma warning disable CS0618 // Type or member is obsolete
     public class ContentPresenterTests : ContentPresenter
+#pragma warning restore CS0618 // Type or member is obsolete
     {
         /// <summary>
         /// Test the invalidations generated object property changes.

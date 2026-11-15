@@ -115,15 +115,6 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Sets the stream targets.
-        /// </summary>
-        /// <param name="buffers">The buffers.</param>
-        public void SetStreamTargets(params Buffer[] buffers)
-        {
-            NullHelper.ToImplement();
-        }
-
-        /// <summary>
         /// Unset the read/write buffers.
         /// </summary>
         public void UnsetReadWriteBuffers()
@@ -131,15 +122,16 @@ namespace Stride.Graphics
             NullHelper.ToImplement();
         }
 
-        /// <summary>
-        /// Unset the render targets.
-        /// </summary>
-        public void UnsetRenderTargets()
+        public void SetStencilReference(int stencilReference)
         {
             NullHelper.ToImplement();
         }
 
-        public void SetStencilReference(int stencilReference)
+        /// <summary>
+        ///   Sets the blend factors used by the blend states that use <see cref="Blend.BlendFactor"/>.
+        /// </summary>
+        /// <param name="blendFactor">The blend factor for each RGBA component.</param>
+        public void SetBlendFactor(Color4 blendFactor)
         {
             NullHelper.ToImplement();
         }
@@ -160,11 +152,6 @@ namespace Stride.Graphics
         }
 
         public void ResourceBarrierTransition(GraphicsResource resource, BarrierLayout newLayout, uint subresource = uint.MaxValue)
-        {
-            NullHelper.ToImplement();
-        }
-
-        public void ResourceBarrierTransition(GraphicsResource resource, GraphicsResourceState newState)
         {
             NullHelper.ToImplement();
         }

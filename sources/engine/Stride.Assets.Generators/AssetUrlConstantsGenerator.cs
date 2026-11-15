@@ -1,6 +1,5 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -9,7 +8,7 @@ namespace Stride.Assets.Generators;
 
 /// <summary>
 /// Generates typed <c>UrlReference</c> constants for the project's authored assets, exposed as
-/// AdditionalFiles by Stride.AssetConstants.targets, so game code can write
+/// the property StrideAssetPaths by Stride.AssetConstants.targets, so game code can write
 /// <c>Assets.Materials.Ground</c> instead of a URL string.
 /// </summary>
 [Generator]
@@ -18,8 +17,6 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
     private const string DefaultClassName = "Assets";
     private const string GeneratedFileName = "StrideAssetConstants.g.cs";
 
-    private const string AssetFolderMetadataKey = "build_metadata.AdditionalFiles.StrideAssetFolder";
-    private const string AssetContentTypeMapMetadataKey = "build_metadata.AdditionalFiles.StrideAssetContentTypeMap";
     private const string UrlReferenceTypeName = "global::Stride.Core.Serialization.UrlReference";
     private const string AssetContentTypeAttributeFullName = "Stride.Core.Assets.AssetContentTypeAttribute";
     private const string AssetDescriptionAttributeFullName = "Stride.Core.Assets.AssetDescriptionAttribute";
@@ -67,8 +64,6 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
 
     internal sealed record AssetEntry(string RelativePath, string Extension);
 
-    internal sealed record MapEntry(string Extension, string TypeName);
-
     internal sealed record Config(string UrlNamespace, string ClassName, string Namespace);
 
     internal sealed record ExtensionType(string Extension, string TypeName);
@@ -80,17 +75,23 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        var filesWithOptions = context.AdditionalTextsProvider.Combine(context.AnalyzerConfigOptionsProvider);
+        var assets = context.AnalyzerConfigOptionsProvider.Select(static (options, _) =>
+        {
+            if (!options.GlobalOptions.TryGetValue("build_property.StrideAssetPaths", out var encodedPaths) || string.IsNullOrEmpty(encodedPaths))
+                return [];
 
-        var assets = filesWithOptions
-            .Select(static (pair, cancellationToken) => ReadAssetEntry(pair.Left, pair.Right.GetOptions(pair.Left), cancellationToken))
-            .Where(static entry => entry is not null)
-            .Select(static (entry, _) => entry!)
-            .Collect();
-
-        var mapEntries = filesWithOptions
-            .SelectMany(static (pair, cancellationToken) => ReadMapEntries(pair.Left, pair.Right.GetOptions(pair.Left), cancellationToken))
-            .Collect();
+            var result = new List<AssetEntry>();
+            foreach (var escapedPath in encodedPaths.Split(['|'], StringSplitOptions.RemoveEmptyEntries))
+            {
+                var path = Uri.UnescapeDataString(escapedPath);
+                var extension = Path.GetExtension(path);
+                if (string.IsNullOrEmpty(extension))
+                    continue;
+                var pathWithoutExtension = path[..^extension.Length];
+                result.Add(new AssetEntry(pathWithoutExtension.Replace('\\', '/'), extension));
+            }
+            return result;
+        }).WithComparer(SequentialListComparer<AssetEntry>.Instance);
 
         var config = context.AnalyzerConfigOptionsProvider.Select(static (provider, _) => ReadConfig(provider));
 
@@ -98,13 +99,13 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
         // symbol-dependent parts (type table, name conflict) run in their own stages returning
         // value-equatable results, so the emit stays cached when assets and config are unchanged.
         // hasAssets keeps the symbol work off projects that only reference Stride.Engine.
-        var hasAssets = assets.Select(static (entries, _) => !entries.IsEmpty);
+        var hasAssets = assets.Select(static (entries, _) => entries.Count > 0);
 
-        var typeTable = context.CompilationProvider.Combine(mapEntries).Combine(hasAssets)
+        var typeTable = context.CompilationProvider.Combine(hasAssets)
             .Select(static (data, cancellationToken) => data.Right
-                ? ResolveExtensionTypes(data.Left.Left, data.Left.Right, cancellationToken)
-                : ImmutableArray<ExtensionType>.Empty)
-            .WithComparer(TypeTableComparer.Instance);
+                ? ResolveExtensionTypes(data.Left, cancellationToken)
+                : [])
+            .WithComparer(SequentialListComparer<ExtensionType>.Instance);
 
         var conflict = context.CompilationProvider.Combine(config).Combine(hasAssets)
             .Select(static (data, _) => data.Right
@@ -128,27 +129,28 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
             (string.IsNullOrEmpty(constantsNamespace) ? rootNamespace : constantsNamespace) ?? "");
     }
 
-    // Maps each asset extension to its runtime type (later sources win): map files, declared extensions, visible asset types.
-    // A map extension whose type is not visible gets an empty type name. Sorted so the array compares equal.
-    private static ImmutableArray<ExtensionType> ResolveExtensionTypes(Compilation compilation, ImmutableArray<MapEntry> mapEntries, CancellationToken cancellationToken)
+    // Maps each asset extension to its runtime type from declarations and visible asset types.
+    // Sorted so the array compares equal.
+    private static List<ExtensionType> ResolveExtensionTypes(Compilation compilation, CancellationToken cancellationToken)
     {
         var extensionTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var mapEntry in mapEntries.OrderBy(entry => entry.Extension, StringComparer.Ordinal).ThenBy(entry => entry.TypeName, StringComparer.Ordinal))
+        var extensionAttribute = compilation.GetTypeByMetadataName(AssetFileExtensionAttributeFullName);
+        foreach (var assembly in compilation.SourceModule.ReferencedAssemblySymbols.Concat([compilation.Assembly]))
         {
-            if (extensionTypes.TryGetValue(mapEntry.Extension, out var resolved) && resolved.Length > 0)
-                continue;
-            extensionTypes[mapEntry.Extension] = compilation.GetTypeByMetadataName(mapEntry.TypeName) is { TypeKind: TypeKind.Class, DeclaredAccessibility: Accessibility.Public } type
-                ? type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
-                : "";
+            cancellationToken.ThrowIfCancellationRequested();
+            foreach (var pair in ReadDeclaredExtensions(assembly, extensionAttribute))
+                extensionTypes[pair.Key] = pair.Value;
         }
-        foreach (var pair in ReadDeclaredExtensions(compilation))
-            extensionTypes[pair.Key] = pair.Value;
-        foreach (var pair in ScanCompilationForAssetTypes(compilation, cancellationToken))
-            extensionTypes[pair.Key] = pair.Value;
+        foreach (var assembly in compilation.SourceModule.ReferencedAssemblySymbols.Concat([compilation.Assembly]))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (assembly.Modules.Any(module => module.ReferencedAssemblies.Any(identity => identity.Name == StrideCoreAssetsAssemblyName)))
+                CollectAssetTypes(assembly.GlobalNamespace, extensionTypes);
+        }
         return extensionTypes
             .OrderBy(pair => pair.Key, StringComparer.OrdinalIgnoreCase)
             .Select(pair => new ExtensionType(pair.Key, pair.Value))
-            .ToImmutableArray();
+            .ToList();
     }
 
     private static ConflictInfo ResolveConflict(Compilation compilation, Config config)
@@ -156,84 +158,7 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
             ? new ConflictInfo(true, config.Namespace, config.ClassName, suggestion)
             : ConflictInfo.None;
 
-    // ImmutableArray equality is by-reference, so compare element-wise to let equal tables cache.
-    private sealed class TypeTableComparer : IEqualityComparer<ImmutableArray<ExtensionType>>
-    {
-        public static readonly TypeTableComparer Instance = new();
-
-        public bool Equals(ImmutableArray<ExtensionType> x, ImmutableArray<ExtensionType> y)
-        {
-            if (x.Length != y.Length)
-                return false;
-            for (var i = 0; i < x.Length; i++)
-            {
-                if (!x[i].Equals(y[i]))
-                    return false;
-            }
-            return true;
-        }
-
-        public int GetHashCode(ImmutableArray<ExtensionType> obj)
-        {
-            var hash = 17;
-            foreach (var entry in obj)
-                hash = unchecked(hash * 31 + entry.GetHashCode());
-            return hash;
-        }
-    }
-
-    private static AssetEntry? ReadAssetEntry(AdditionalText file, AnalyzerConfigOptions options, CancellationToken cancellationToken)
-    {
-        if (!options.TryGetValue(AssetFolderMetadataKey, out var folder) || string.IsNullOrEmpty(folder))
-            return null;
-
-        // Asset-ness and type come from the file extension (the build task already filtered the
-        // asset folders to registered asset extensions); the file content is never read.
-        var extension = Path.GetExtension(file.Path);
-        if (string.IsNullOrEmpty(extension))
-            return null;
-
-        var relativePath = GetRelativeAssetPath(folder!, file.Path);
-        return relativePath is null ? null : new AssetEntry(relativePath, extension);
-    }
-
-    private static IEnumerable<MapEntry> ReadMapEntries(AdditionalText file, AnalyzerConfigOptions options, CancellationToken cancellationToken)
-    {
-        if (!options.TryGetValue(AssetContentTypeMapMetadataKey, out var isMap) || !string.Equals(isMap, "true", StringComparison.OrdinalIgnoreCase))
-            yield break;
-        var text = file.GetText(cancellationToken);
-        if (text is null)
-            yield break;
-        foreach (var textLine in text.Lines)
-        {
-            var line = textLine.ToString().Trim();
-            if (line.Length == 0 || line[0] == '#')
-                continue;
-            var separator = line.IndexOf('|');
-            if (separator <= 0 || separator == line.Length - 1)
-                continue;
-            yield return new MapEntry(line.Substring(0, separator).Trim(), line.Substring(separator + 1).Trim());
-        }
-    }
-
-    /// <summary>
-    /// Asset URL path relative to its asset folder: forward slashes, no extension.
-    /// </summary>
-    private static string? GetRelativeAssetPath(string folder, string filePath)
-    {
-        folder = folder.Replace('/', '\\').TrimEnd('\\');
-        var file = filePath.Replace('/', '\\');
-        if (!file.StartsWith(folder + "\\", StringComparison.OrdinalIgnoreCase))
-            return null;
-        var relative = file.Substring(folder.Length + 1).Replace('\\', '/');
-        var lastSlash = relative.LastIndexOf('/');
-        var lastDot = relative.LastIndexOf('.');
-        if (lastDot > lastSlash)
-            relative = relative.Substring(0, lastDot);
-        return relative.Length == 0 ? null : relative;
-    }
-
-    private static void Emit(SourceProductionContext context, ImmutableArray<AssetEntry> assets, ImmutableArray<ExtensionType> typeTable, Config config, ConflictInfo conflict)
+    private static void Emit(SourceProductionContext context, List<AssetEntry> assets, List<ExtensionType> typeTable, Config config, ConflictInfo conflict)
     {
         // Extension -> runtime type (empty = untyped); a file with an unknown extension gets no constant
         var extensionTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -310,23 +235,20 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
     }
 
     /// <summary>
-    /// The [assembly: AssetFileExtension] declarations of the compilation and its references.
+    /// The [assembly: AssetFileExtension] declarations of one assembly.
     /// A runtime package declares the extensions of its Assets package, which the game does not reference.
     /// </summary>
-    private static IEnumerable<KeyValuePair<string, string>> ReadDeclaredExtensions(Compilation compilation)
+    private static IEnumerable<KeyValuePair<string, string>> ReadDeclaredExtensions(IAssemblySymbol assembly, INamedTypeSymbol? attributeType)
     {
-        if (compilation.GetTypeByMetadataName(AssetFileExtensionAttributeFullName) is not { } attributeType)
+        if (attributeType is null)
             yield break;
-        foreach (var assembly in new[] { compilation.Assembly }.Concat(compilation.SourceModule.ReferencedAssemblySymbols))
+        foreach (var attribute in assembly.GetAttributes())
         {
-            foreach (var attribute in assembly.GetAttributes())
-            {
-                if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, attributeType)
-                    && attribute.ConstructorArguments.Length == 2
-                    && attribute.ConstructorArguments[0].Value is string extension
-                    && attribute.ConstructorArguments[1].Value is INamedTypeSymbol type)
-                    yield return new KeyValuePair<string, string>(extension, type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
-            }
+            if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, attributeType)
+                && attribute.ConstructorArguments.Length == 2
+                && attribute.ConstructorArguments[0].Value is string extension
+                && attribute.ConstructorArguments[1].Value is INamedTypeSymbol type)
+                yield return new KeyValuePair<string, string>(extension, type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
         }
     }
 
@@ -335,28 +257,6 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
     /// gives the runtime type, [AssetDescription] its file extension(s). Only assemblies that
     /// reference Stride.Core.Assets can declare asset types, so anything else is skipped whole.
     /// </summary>
-    private static Dictionary<string, string> ScanCompilationForAssetTypes(Compilation compilation, CancellationToken cancellationToken)
-    {
-        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var assembly in EnumerateAssetTypeAssemblies(compilation))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            CollectAssetTypes(assembly.GlobalNamespace, result);
-        }
-        return result;
-    }
-
-    private static IEnumerable<IAssemblySymbol> EnumerateAssetTypeAssemblies(Compilation compilation)
-    {
-        if (compilation.SourceModule.ReferencedAssemblies.Any(identity => identity.Name == StrideCoreAssetsAssemblyName))
-            yield return compilation.Assembly;
-        foreach (var reference in compilation.SourceModule.ReferencedAssemblySymbols)
-        {
-            if (reference.Modules.Any(module => module.ReferencedAssemblies.Any(identity => identity.Name == StrideCoreAssetsAssemblyName)))
-                yield return reference;
-        }
-    }
-
     private static void CollectAssetTypes(INamespaceSymbol ns, Dictionary<string, string> result)
     {
         foreach (var member in ns.GetMembers())

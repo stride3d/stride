@@ -4,14 +4,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Stride.Core.Assets;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Annotations;
 using Stride.Core.Extensions;
 using Stride.Core.Quantum;
 using Stride.UI.Editor.ViewModels;
-using Stride.Assets.Presentation.ViewModel;
 using Stride.UI.Assets;
 using Stride.UI;
+using Stride.Core.Assets.Presentation.ViewModels;
 
 namespace Stride.UI.Editor.ViewModels
 {

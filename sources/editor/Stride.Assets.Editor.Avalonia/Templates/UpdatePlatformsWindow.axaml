@@ -1,0 +1,56 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+        xmlns:tpl="using:Stride.Assets.Editor.Templates"
+        xmlns:local="using:Stride.Assets.Editor.Avalonia.Templates"
+        mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="400"
+        x:Class="Stride.Assets.Editor.Avalonia.Templates.UpdatePlatformsWindow"
+        x:DataType="tpl:UpdatePlatformsViewModel"
+        Title="{sd:LocalizeString Select platforms, Context=Title}"
+        Width="480" SizeToContent="Height"
+        CanResize="False"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner">
+  <!-- A box per platform, checked when the package has it; unchecking one removes its project -->
+  <StackPanel Margin="20" Spacing="10">
+    <Border Background="#30808080" Padding="20,10">
+      <TextBlock Text="{sd:LocalizeString Platforms}" FontSize="16"/>
+    </Border>
+    <ItemsControl x:Name="PlatformList" ItemsSource="{Binding Platforms}" Margin="10,0">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate DataType="tpl:UpdatePlatformEntryViewModel">
+          <StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="4">
+              <Image Width="16" Height="16" VerticalAlignment="Center"
+                     Source="{Binding Platform, Converter={x:Static local:PlatformIconConverter.Instance}}"/>
+              <CheckBox Content="{Binding Name}" IsChecked="{Binding IsSelected, Mode=TwoWay}" IsEnabled="{Binding CanBeUnselected}"/>
+              <TextBlock VerticalAlignment="Center" Foreground="OrangeRed" TextWrapping="Wrap"
+                         Text="{sd:LocalizeString (This will remove the project from the package and disk.)}"
+                         IsVisible="{Binding MarkedToRemove}"/>
+            </StackPanel>
+            <TextBlock Margin="24,0,0,4" FontSize="10" TextWrapping="Wrap"
+                       Text="{sd:LocalizeString This machine doesn\'t meet the requirements to build for this platform.}"
+                       IsVisible="{Binding !IsAvailableOnMachine}"/>
+          </StackPanel>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+    <CheckBox x:Name="ForceRegenerationBox"
+              Content="{sd:LocalizeString Force regeneration of all platform projects, Context=Button}"
+              IsChecked="{Binding ForcePlatformRegeneration, Mode=TwoWay}"/>
+    <TextBlock x:Name="ErrorLabel" Foreground="Tomato" TextWrapping="Wrap" IsVisible="False"
+               Text="{sd:LocalizeString You must select at least one platform.}"/>
+    <Grid ColumnDefinitions="*,20,*" Margin="0,4,0,0">
+      <Button x:Name="OkButton" Grid.Column="0" Padding="8" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+              Content="{sd:LocalizeString OK, Context=Button}"
+              IsDefault="True"
+              Click="OnOkClick"/>
+      <Button x:Name="CancelButton" Grid.Column="2" Padding="8" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+              Content="{sd:LocalizeString Cancel, Context=Button}"
+              IsCancel="True"
+              Click="OnCancelClick"/>
+    </Grid>
+  </StackPanel>
+</Window>

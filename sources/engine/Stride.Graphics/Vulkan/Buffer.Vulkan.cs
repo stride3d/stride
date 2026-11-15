@@ -145,6 +145,7 @@ namespace Stride.Graphics
 
             // Create buffer
             GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateBuffer(GraphicsDevice.NativeDevice, &createInfo, null, out NativeBuffer));
+            SetDebugName();
 
             // Allocate memory
             var memoryProperties = VkMemoryPropertyFlags.DeviceLocal;

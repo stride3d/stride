@@ -20,14 +20,14 @@ namespace Stride.Rendering.Lights
         /// <summary>
         /// The light projection is snapped to the closest pixel according to the size of the shadow map. This will decrease filtering but lower the quality of the shadow map (more than <see cref="None"/>).
         /// </summary>
-        /// <userdoc>The light projection is snapped to the closest pixel according to the size of the shadow map. This will decrease filtering but lower the quality of the shadow map (more than <see cref="None"/>)</userdoc>
+        /// <userdoc>The light projection is snapped to the closest pixel according to the size of the shadow map. This will decrease filtering but lower the quality of the shadow map (more than the None mode).</userdoc>
         [Display("Projection Snapping")]
         ProjectionSnapping,
 
         /// <summary>
         /// The light target view is snapped according to the size of the shadow map. Gives better results but decrease the quality of the shadow map (more than <see cref="ProjectionSnapping"/>).
         /// </summary>
-        /// <userdoc>The light target view is snapped according to the size of the shadow map. Gives better results but decrease the quality of the shadow map (more than <see cref="ProjectionSnapping"/>).</userdoc>
+        /// <userdoc>The light target view is snapped according to the size of the shadow map. Gives better results but decrease the quality of the shadow map (more than the Projection Snapping mode).</userdoc>
         [Display("View Snapping")]
         ViewSnapping,
     }

@@ -25,7 +25,11 @@ public class TestGraphicsDeviceManager : GraphicsDeviceManager
     ///   Initializes a new instance of the <see cref="TestGraphicsDeviceManager"/> class.
     /// </summary>
     /// <param name="game"></param>
-    public TestGraphicsDeviceManager(GameBase game) : base(game) { }
+    public TestGraphicsDeviceManager(GameBase game) : base(game)
+    {
+        // The pipelines one test built would be merged into the device of the next: no test shares a file with another
+        PersistPipelineCache = false;
+    }
 
 
     /// <inheritdoc/>

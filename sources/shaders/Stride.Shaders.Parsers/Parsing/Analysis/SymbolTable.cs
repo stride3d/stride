@@ -10,7 +10,17 @@ namespace Stride.Shaders.Parsing.Analysis;
 
 public record struct SemanticError(TextLocation Location, string Message)
 {
-    override public string ToString() => $"{Location}: {Message}";
+    public override readonly string ToString() => ToString(null);
+
+    /// <summary>
+    /// file(line,col): the form build tools and editors link to, as for parse errors; (line,col) when the file is unknown.
+    /// </summary>
+    public readonly string ToString(string? filename)
+    {
+        var text = Location.Text.Span.Trim();
+        var context = text.Length > 0 && !text.ContainsAny('\r', '\n') ? $" (in `{text}`)" : "";
+        return $"{MessageFileName.Of(filename)}({Location.Line},{Location.Column}): {Message}{context}";
+    }
 }
 
 public partial class SymbolTable : ISymbolProvider

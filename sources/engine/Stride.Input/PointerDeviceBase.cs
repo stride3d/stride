@@ -19,19 +19,29 @@ namespace Stride.Input
 
         protected PointerDeviceState PointerState;
 
+        private readonly PointerSetView pressedPointers;
+        private readonly PointerSetView releasedPointers;
+        private readonly PointerSetView downPointers;
+
         protected PointerDeviceBase()
         {
             PointerState = new PointerDeviceState(this);
+            pressedPointers = new PointerSetView(CaptureState, PointerState.PressedPointers);
+            releasedPointers = new PointerSetView(CaptureState, PointerState.ReleasedPointers);
+            downPointers = new PointerSetView(CaptureState, PointerState.DownPointers);
         }
 
         public Vector2 SurfaceSize => PointerState.SurfaceSize;
         public float SurfaceAspectRatio => PointerState.SurfaceAspectRatio;
-        public Core.Collections.IReadOnlySet<PointerPoint> PressedPointers => PointerState.PressedPointers;
-        public Core.Collections.IReadOnlySet<PointerPoint> ReleasedPointers => PointerState.ReleasedPointers;
-        public Core.Collections.IReadOnlySet<PointerPoint> DownPointers => PointerState.DownPointers;
+        public Core.Collections.IReadOnlySet<PointerPoint> PressedPointers => pressedPointers;
+        public Core.Collections.IReadOnlySet<PointerPoint> ReleasedPointers => releasedPointers;
+        public Core.Collections.IReadOnlySet<PointerPoint> DownPointers => downPointers;
         public event EventHandler<SurfaceSizeChangedEventArgs> SurfaceSizeChanged;
 
         public int Priority { get; set; }
+
+        /// <inheritdoc/>
+        public DeviceCaptureState CaptureState { get; } = new DeviceCaptureState();
 
         public abstract string Name { get; }
         public abstract Guid Id { get; }

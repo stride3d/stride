@@ -151,11 +151,12 @@ namespace Stride.Rendering
         }
 
         /// <summary>
-        /// Gets a render target with the specified description, scoped for the duration of the <see cref="DrawEffect.Draw"/>.
+        /// Gets a temporary buffer with the specified description, scoped for the duration of the current draw call.
         /// </summary>
         /// <param name="description">The description of the buffer to allocate</param>
         /// <param name="viewFormat">The pixel format seen in shader</param>
-        /// <returns>A new instance of texture.</returns>
+        /// <returns>The temporary buffer.</returns>
+        /// <seealso cref="PostDrawCoreInternal"/>
         protected Buffer NewScopedBuffer(BufferDescription description, PixelFormat viewFormat = PixelFormat.None)
         {
             CheckIsInDrawCore();
@@ -163,9 +164,14 @@ namespace Stride.Rendering
         }
 
         /// <summary>
-        /// Gets a render target with the specified description, scoped for the duration of the <see cref="DrawEffect.Draw"/>.
+        /// Gets a temporary typed buffer, scoped for the duration of the current draw call.
         /// </summary>
-        /// <returns>A new instance of texture.</returns>
+        /// <param name="count">The number of elements in the buffer.</param>
+        /// <param name="viewFormat">The pixel format used to view the buffer.</param>
+        /// <param name="isUnorderedAccess">Whether the buffer supports unordered access.</param>
+        /// <param name="usage">The intended usage of the buffer.</param>
+        /// <returns>The temporary buffer.</returns>
+        /// <seealso cref="PostDrawCoreInternal"/>
         protected Buffer NewScopedTypedBuffer(int count, PixelFormat viewFormat, bool isUnorderedAccess, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
         {
             return NewScopedBuffer(new BufferDescription(count * viewFormat.SizeInBytes, BufferFlags.ShaderResource | (isUnorderedAccess ? BufferFlags.UnorderedAccess : BufferFlags.None), usage), viewFormat);

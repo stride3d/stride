@@ -7,7 +7,7 @@ using Xunit;
 namespace Stride.Core.Design.Tests.Extensions;
 
 /// <summary>
-/// Tests for the <see cref="DictionaryExtensions"/> class.
+/// Tests for the <see cref="Stride.Core.Extensions.DictionaryExtensions"/> class.
 /// </summary>
 public class TestDictionaryExtensions
 {

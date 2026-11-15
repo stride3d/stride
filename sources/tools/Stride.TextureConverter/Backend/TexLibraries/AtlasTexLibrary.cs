@@ -167,7 +167,7 @@ namespace Stride.TextureConverter.TexLibraries
         /// </summary>
         /// <param name="atlas">The atlas.</param>
         /// <param name="request">The request.</param>
-        /// <exception cref="TexLibraryException">The request texture name  + request.Name +  doesn't exist in this atlas.</exception>
+        /// <exception cref="TextureToolsException">The request texture name  + request.Name +  doesn't exist in this atlas.</exception>
         private unsafe void Update(TexAtlas atlas, AtlasUpdateRequest request)
         {
             if (!atlas.Layout.TexList.ContainsKey(request.Name))
@@ -230,6 +230,7 @@ namespace Stride.TextureConverter.TexLibraries
         /// <param name="atlas">The atlas.</param>
         /// <param name="texture">The texture that will be filled.</param>
         /// <param name="position">The position of the texture in the atlas.</param>
+        /// <param name="minimumMipmapSize">The minimum size of mipmaps to extract.</param>
         private unsafe void ExtractTexture(TexAtlas atlas, TexImage texture, TexAtlas.TexLayout.Position position, int minimumMipmapSize)
         {
             texture.Format = atlas.Format;
@@ -315,6 +316,7 @@ namespace Stride.TextureConverter.TexLibraries
         /// </summary>
         /// <param name="atlas">The atlas.</param>
         /// <param name="request">The request.</param>
+        /// <param name="atlasSizeIncrement">The increment used when increasing the atlas size.</param>
         private void InitalizeAtlas(TexAtlas atlas, AtlasCreationRequest request, int atlasSizeIncrement)
         {
             // Calculating the total number of pixels of every texture to be included

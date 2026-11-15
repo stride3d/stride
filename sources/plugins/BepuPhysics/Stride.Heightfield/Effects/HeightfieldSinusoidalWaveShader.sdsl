@@ -1,0 +1,14 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net).
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Heightfield
+{
+    shader HeightfieldSinusoidalWaveShader<float TilingX, float TilingY> : ComputeColor, HeightfieldDisplacementProperties, PositionStream, NormalStream, Transformation, Texturing
+    {
+        override float4 Compute()
+        {
+            float2 uv = streams.TexCoord * float2(TilingX, TilingY);
+            return sin(uv.x) * cos(uv.y);
+        }
+    };
+}

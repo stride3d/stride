@@ -11,7 +11,8 @@ internal static class SdkCommand
 {
     public static Command Create(StrideVersionManager manager)
     {
-        var prerelease = new Option<bool>("--prerelease") { Description = "Include prerelease (beta) versions when resolving the newest version or line." };
+        var prerelease = new Option<bool>("--prerelease") { Description = "Include prerelease (alpha, beta, preview, rc) versions when resolving the newest version or line; a line with no release takes its newest prerelease without it." };
+        var tag = new Option<string?>("--tag") { Description = "Take only the custom builds of this tag (mystudio for 4.5.3-mystudio.32), which are otherwise left out; update keeps a line already on custom builds on their tag." };
         var nightly = new Option<bool>("--nightly") { Description = $"Include the nightly builds (X.Y.Z-nightly.YYYYMMDD.N, project upgrades might not be fully tested). Install and update add their feed ({NugetStore.NightlyFeedUrl}) to your NuGet.config." };
 
         // list: print the installed Stride versions.
@@ -33,12 +34,13 @@ internal static class SdkCommand
         var availableCommand = new Command("available", "List Stride versions available from the package sources.");
         availableCommand.Options.Add(prerelease);
         availableCommand.Options.Add(nightly);
+        availableCommand.Options.Add(tag);
         availableCommand.SetAction(async (parseResult, cancellationToken) =>
         {
             // Listing only: the NuGet.config is left as is
             if (parseResult.GetValue(nightly))
                 manager.AddNightlyFeed(save: false);
-            var versions = await manager.GetAvailable(parseResult.GetValue(prerelease), parseResult.GetValue(nightly), cancellationToken);
+            var versions = await manager.GetAvailable(parseResult.GetValue(prerelease), parseResult.GetValue(nightly), parseResult.GetValue(tag), cancellationToken);
             if (versions.Count == 0)
             {
                 Console.Error.WriteLine("No Stride version is available from the package sources.");
@@ -60,6 +62,7 @@ internal static class SdkCommand
         installCommand.Arguments.Add(installVersion);
         installCommand.Options.Add(prerelease);
         installCommand.Options.Add(nightly);
+        installCommand.Options.Add(tag);
         installCommand.SetAction(async (parseResult, cancellationToken) =>
         {
             var spec = parseResult.GetValue(installVersion);
@@ -80,7 +83,7 @@ internal static class SdkCommand
             var progress = new InstallProgressConsole();
             try
             {
-                var installed = await manager.Install(spec, parseResult.GetValue(prerelease), parseResult.GetValue(nightly), progress, cancellationToken);
+                var installed = await manager.Install(spec, parseResult.GetValue(prerelease), parseResult.GetValue(nightly), parseResult.GetValue(tag), progress, cancellationToken);
                 progress.Dispose();
                 Console.WriteLine($"Installed Stride {installed.Version}.");
                 return 0;
@@ -128,10 +131,11 @@ internal static class SdkCommand
             Arity = ArgumentArity.ZeroOrOne,
             Description = "Major.minor line to update (e.g. 4.4). Updates all installed lines if omitted.",
         };
-        var updateCommand = new Command("update", "Update installed Stride lines to their newest patch.");
+        var updateCommand = new Command("update", "Update installed Stride lines to their newest patch. A line on a prerelease follows its prereleases until its next release.");
         updateCommand.Arguments.Add(updateLine);
         updateCommand.Options.Add(prerelease);
         updateCommand.Options.Add(nightly);
+        updateCommand.Options.Add(tag);
         updateCommand.SetAction(async (parseResult, cancellationToken) =>
         {
             if (parseResult.GetValue(nightly) && !AddNightlyFeed(manager))
@@ -139,7 +143,7 @@ internal static class SdkCommand
             var progress = new InstallProgressConsole();
             try
             {
-                var updated = await manager.Update(parseResult.GetValue(updateLine), parseResult.GetValue(prerelease), parseResult.GetValue(nightly), progress, cancellationToken);
+                var updated = await manager.Update(parseResult.GetValue(updateLine), parseResult.GetValue(prerelease), parseResult.GetValue(nightly), parseResult.GetValue(tag), progress, cancellationToken);
                 progress.Dispose();
                 if (updated.Count == 0)
                 {

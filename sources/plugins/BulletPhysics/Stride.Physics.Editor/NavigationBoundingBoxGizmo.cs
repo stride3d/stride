@@ -10,7 +10,7 @@ using Stride.Navigation;
 using Stride.Rendering;
 using Stride.Rendering.Lights;
 using Buffer = Stride.Graphics.Buffer;
-using Stride.Assets.Presentation.AssetEditors.Gizmos;
+using Stride.Assets.Editor.AssetEditors.Gizmos;
 
 namespace Stride.Physics.Editor
 {

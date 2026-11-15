@@ -3,6 +3,7 @@
 using System.Diagnostics;
 using System.Management;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.CodeEditorSupport;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
@@ -10,8 +11,18 @@ using Stride.Core.Presentation.Interop;
 
 namespace Stride.Core.Assets.Editor.Services;
 
-public static class VisualStudioService
+/// <summary>
+/// Finds the Visual Studio instance that has the session's solution open, on Windows. It is also the <see cref="IVisualStudioService"/>
+/// of the WPF editor, so the shared Open in IDE command brings that instance to the front instead of starting a new one.
+/// </summary>
+public sealed class VisualStudioService : IVisualStudioService
 {
+    /// <inheritdoc />
+    public Task<Process> GetInstanceAsync(UFile solutionPath, bool makeActive)
+    {
+        return Task.FromResult(FindAndActivate(solutionPath, makeActive));
+    }
+
     public static Process FindVisualStudioInstance(UFile solutionPath)
     {
         // NOTE: this code is very hackish and does not 100% ensure that the correct instance of VS will be activated.
@@ -41,10 +52,15 @@ public static class VisualStudioService
         if (!await CodeEditorOpenerService.CheckCanOpenSolution(session, IDEInfo.DefaultIDE))
             return null;
 
+        return FindAndActivate(session.SolutionPath, makeActive);
+    }
+
+    private static Process FindAndActivate(UFile solutionPath, bool makeActive)
+    {
         try
         {
             // Try to find an existing instance of Visual Studio with this solution open.
-            var process = FindVisualStudioInstance(session.SolutionPath);
+            var process = FindVisualStudioInstance(solutionPath);
 
             if (process != null && makeActive)
             {

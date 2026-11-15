@@ -26,6 +26,17 @@ namespace Stride.Assets.Skyboxes
     public class SkyboxGeneratorContext : ShaderGeneratorContext
     {
         public SkyboxGeneratorContext(SkyboxAsset skybox, IDatabaseFileProviderService fileProviderService)
+            : this(skybox, fileProviderService, null)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SkyboxGeneratorContext"/> class.
+        /// </summary>
+        /// <param name="skybox">The skybox to generate.</param>
+        /// <param name="fileProviderService">The provider of the database the textures load from, and the effects compile into.</param>
+        /// <param name="shaderSourceProvider">The provider the effects read their shaders from; <c>null</c> to read them from the database.</param>
+        public SkyboxGeneratorContext(SkyboxAsset skybox, IDatabaseFileProviderService fileProviderService, IVirtualFileProvider shaderSourceProvider)
         {
             Skybox = skybox ?? throw new ArgumentNullException(nameof(skybox));
             Services = new ServiceRegistry();
@@ -42,7 +53,7 @@ namespace Stride.Assets.Skyboxes
             Services.AddService(graphicsContext);
 
             EffectSystem = new EffectSystem(Services);
-            EffectSystem.Compiler = EffectCompilerFactory.CreateEffectCompiler(Content.FileProvider, EffectSystem);
+            EffectSystem.Compiler = EffectCompilerFactory.CreateEffectCompiler(shaderSourceProvider ?? Content.FileProvider, EffectSystem, database: Content.FileProvider);
 
             Services.AddService(EffectSystem);
             EffectSystem.Initialize();

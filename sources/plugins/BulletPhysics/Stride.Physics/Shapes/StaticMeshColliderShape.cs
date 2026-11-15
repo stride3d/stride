@@ -23,7 +23,7 @@ namespace Stride.Physics
         [CanBeNull]
         public readonly Model Model;
         
-        private readonly SharedMeshData sharedData;
+        private SharedMeshData sharedData;
         
         private static readonly Dictionary<string, SharedMeshData> MeshSharingCache = new();
         
@@ -54,13 +54,19 @@ namespace Stride.Physics
             DebugPrimitiveMatrix = Matrix.Scaling(Vector3.One * DebugScaling);
         }
 
-        public override void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            base.Dispose();
+            base.Dispose(disposing);
+
+            if (sharedData == null)
+                return;
+
             if (sharedData.Key == null)
             {
                 // Not actually shared, dispose and move on
-                sharedData.Dispose();
+                if (disposing)
+                    sharedData.Dispose();
+                sharedData = null;
                 return;
             }
 
@@ -73,8 +79,9 @@ namespace Stride.Physics
                     sharedData.Dispose();
                 }
             }
+            sharedData = null;
         }
-        
+
         public unsafe void GetMeshDataCopy(out Vector3[] verts, out int[] indices)
         {
             var iMesh = sharedData.BulletMesh.IndexedMeshArray[0];

@@ -45,7 +45,7 @@ public delegate void ProfilerDisposeEventDelegate(ref ProfilingState profilingSt
 /// By default, the profiler is not enabled, so there is a minimum performance impact leaving it in the code. 
 /// It doesn't measure anything and doesn't collect any data.
 /// 
-/// To enable a particular profile (before using <see cref="Begin"/> method), use:
+/// To enable a particular profile (before using <see cref="Begin(ProfilingKey)"/> method), use:
 /// <code>
 /// Profiler.Enable(GameInitialization);
 /// </code>

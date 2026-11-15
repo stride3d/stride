@@ -20,7 +20,7 @@ namespace Stride.Core.Assets.Editor.View
 
         /// <summary>
         /// Gets or sets the <see cref="Type"/> to match. This provider will accept any node that has either a <see cref="Stride.Core.Presentation.Quantum.ViewModels.NodeViewModel.Type"/>
-        /// or a <see cref="Stride.Core.Presentation.Quantum.ViewModels.NodeViewModel.Value"/> with a type that is assignable to the type represented in this property.
+        /// or a <see cref="Stride.Core.Presentation.Quantum.ViewModels.NodeViewModel.NodeValue"/> with a type that is assignable to the type represented in this property.
         /// </summary>
         public Type Type { get; set; }
 

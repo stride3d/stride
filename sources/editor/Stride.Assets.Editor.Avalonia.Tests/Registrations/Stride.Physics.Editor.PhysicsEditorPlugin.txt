@@ -1,0 +1,16 @@
+Plugin: Stride.Physics.Editor.PhysicsEditorPlugin
+AssetViewModelTypes:
+  Stride.Navigation.Assets.NavigationMeshAsset -> Stride.Physics.Editor.NavigationViewModel
+AssetEditorViewModelTypes:
+AssetEditorViewTypes:
+AssetPreviewViewModelTypes:
+AssetPreviewViewTypes:
+PrimitiveTypes:
+EnumImages:
+TypeImages:
+TemplateProviders:
+CopyProcessors:
+PasteProcessors:
+PostPasteProcessors:
+SettingsKeys:
+ProfileSettings:

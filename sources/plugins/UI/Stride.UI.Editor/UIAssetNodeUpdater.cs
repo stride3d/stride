@@ -4,14 +4,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Stride.Core.Assets.Editor.Extensions;
-using Stride.Core.Assets.Editor.Quantum.NodePresenters;
+using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Extensions;
 using Stride.Core.Reflection;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Quantum;
-using Stride.Assets.Presentation.ViewModel;
 using Stride.UI;
 using Stride.UI.Editor.ViewModels;
 

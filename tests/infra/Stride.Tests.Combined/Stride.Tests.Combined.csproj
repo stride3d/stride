@@ -16,9 +16,9 @@
     <_StrideSuiteRefProperties>IncludeXunitLauncher=false;OutputType=Library;StrideIsExecutable=true;StrideTestPlatforms=$(StrideTestPlatforms);StrideExplicitMacOSRuntime=false</_StrideSuiteRefProperties>
   </PropertyGroup>
   <ItemGroup>
-    <!-- xunit.runner.stride is a shared library, not a suite: referenced with clean globals so
+    <!-- Stride.XunitRunner is a shared library, not a suite: referenced with clean globals so
          this dispatch dedups with the suites' own direct references. -->
-    <ProjectReference Include="..\..\..\sources\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
+    <ProjectReference Include="..\..\..\sources\tests\Stride.XunitRunner\Stride.XunitRunner.csproj" />
     <ProjectReference Include="..\..\..\sources\engine\Stride.Engine.NoAssets.Tests\Stride.Engine.NoAssets.Tests.csproj"
                       Properties="$(_StrideSuiteRefProperties)"
                       StrideTestSuiteRef="true" />

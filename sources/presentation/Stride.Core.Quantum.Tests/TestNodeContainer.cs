@@ -10,12 +10,12 @@ public class TestNodeContainer
     public class SimpleClass
     {
         public int Value { get; set; }
-        public string Name { get; set; }
+        public string? Name { get; set; }
     }
 
     public class ClassWithReference
     {
-        public SimpleClass Reference { get; set; }
+        public SimpleClass? Reference { get; set; }
     }
 
     [Fact]

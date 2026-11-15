@@ -51,6 +51,7 @@ namespace Stride.Graphics.Font
         /// <summary>
         /// Upload a character's bitmap into the current cache.
         /// </summary>
+        /// <param name="commandList">The command list used for the upload.</param>
         /// <param name="character">The character specifications corresponding to the bitmap</param>
         public void UploadCharacterBitmap(CommandList commandList, CharacterSpecification character)
         {

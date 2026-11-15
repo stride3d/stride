@@ -64,11 +64,32 @@ public static class DotNetNewTemplateBridge
     /// <summary>Serializes content downloads (<see cref="InstallContentPackageAsync"/>).</summary>
     private static readonly SemaphoreSlim DownloadGate = new(1, 1);
 
+    /// <summary>The download of the missing content that <see cref="RegisterProjectTemplates"/> started (guarded by <see cref="InitLock"/>).</summary>
+    private static Task contentDownload = Task.CompletedTask;
+
+    /// <summary>Cancels <see cref="contentDownload"/> while it runs, null otherwise (guarded by <see cref="InitLock"/>).</summary>
+    private static CancellationTokenSource? contentDownloadCancellation;
+
     /// <summary>
     /// In-process singleton; null until <see cref="RegisterProjectTemplates"/> has run.
     /// Consumed by <c>DotNetNewTemplateGenerator</c> at instantiation time.
     /// </summary>
     public static DotNetNewTemplateRegistry? Registry => registry;
+
+    /// <summary>
+    /// The download of the content packages missing at <see cref="RegisterProjectTemplates"/>, which registers their templates
+    /// when it is done; a completed task when none runs. It never faults: a failed or cancelled download is logged.
+    /// </summary>
+    public static Task ContentDownload
+    {
+        get
+        {
+            lock (InitLock)
+            {
+                return contentDownload;
+            }
+        }
+    }
 
     /// <summary>Identities of the templates already registered with <see cref="TemplateManager"/> (guarded by <see cref="InitLock"/>).</summary>
     private static readonly HashSet<string> RegisteredTemplateIdentities = new(StringComparer.Ordinal);
@@ -86,8 +107,9 @@ public static class DotNetNewTemplateBridge
     /// Resolves each <see cref="BundledTemplatePackageIds"/> entry installed on this machine, installs them into the
     /// shared registry, and wraps every loaded dotnet new template as a <see cref="TemplateDotNetNewDescription"/>
     /// registered with <see cref="TemplateManager"/>. Never downloads: this runs during editor startup, often on the
-    /// UI thread. Starters and Samples missing locally are downloaded in the background and their templates are
-    /// registered when ready (AssetPacks are fetched on demand by <see cref="GetAssetPackTemplatesAsync"/>).
+    /// UI thread. Starters and Samples missing locally are downloaded in the background (<see cref="ContentDownload"/>, which
+    /// <see cref="CancelContentDownloadAsync"/> stops) and their templates are registered when ready (AssetPacks are fetched
+    /// on demand by <see cref="GetAssetPackTemplatesAsync"/>).
     /// Tolerates missing packages — dev workflows that haven't built every template project yet still load the editor.
     /// </summary>
     public static void RegisterProjectTemplates()
@@ -129,25 +151,46 @@ public static class DotNetNewTemplateBridge
             }
 
             RegisterNewTemplates(sdtplsByIdentity, logger);
-        }
 
-        if (missingContent.Count > 0)
-            _ = Task.Run(() => DownloadMissingContentAsync(missingContent, logger));
+            // A download already running gets the same packages
+            if (missingContent.Count > 0 && contentDownload.IsCompleted)
+            {
+                var cancellation = new CancellationTokenSource();
+                contentDownloadCancellation = cancellation;
+                contentDownload = Task.Run(() => DownloadMissingContentAsync(missingContent, logger, cancellation));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Cancels <see cref="ContentDownload"/>, the package being downloaded included, and waits for it to end.
+    /// </summary>
+    /// <returns>The download, completed once it has stopped.</returns>
+    public static Task CancelContentDownloadAsync()
+    {
+        lock (InitLock)
+        {
+            contentDownloadCancellation?.Cancel();
+            return contentDownload;
+        }
     }
 
     /// <summary>
     /// Downloads content packages (<paramref name="packageIds"/>) this machine doesn't have, then installs them into the
     /// registry and registers their templates, so they show in the New-Project dialog once ready. Best effort.
     /// </summary>
-    private static async Task DownloadMissingContentAsync(IReadOnlyList<string> packageIds, Logger logger)
+    /// <param name="cancellation">Stops the download; disposed when it ends.</param>
+    private static async Task DownloadMissingContentAsync(IReadOnlyList<string> packageIds, Logger logger, CancellationTokenSource cancellation)
     {
+        var cancellationToken = cancellation.Token;
         try
         {
             var fetched = new List<string>();
             for (var i = 0; i < packageIds.Count; i++)
             {
-                if (await InstallContentPackageAsync(packageIds[i], logger, i + 1, packageIds.Count).ConfigureAwait(false) is not null)
+                if (await InstallContentPackageAsync(packageIds[i], logger, i + 1, packageIds.Count, cancellationToken).ConfigureAwait(false) is not null)
                     fetched.Add(packageIds[i]);
+                cancellationToken.ThrowIfCancellationRequested();
             }
             if (fetched.Count == 0)
                 return;
@@ -160,9 +203,22 @@ public static class DotNetNewTemplateBridge
                 RegisterNewTemplates(sdtplsByIdentity, logger);
             }
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            logger.Info($"The download of the template content ({string.Join(", ", packageIds)}) was cancelled.");
+        }
         catch (Exception e)
         {
             logger.Warning($"Could not download the template content ({string.Join(", ", packageIds)}): {e.Message}");
+        }
+        finally
+        {
+            lock (InitLock)
+            {
+                if (contentDownloadCancellation == cancellation)
+                    contentDownloadCancellation = null;
+            }
+            cancellation.Dispose();
         }
     }
 
@@ -339,10 +395,11 @@ public static class DotNetNewTemplateBridge
     /// </summary>
     /// <param name="index">Position of <paramref name="packageId"/> in its batch, from 1 (shown with the progress).</param>
     /// <param name="count">Number of packages in the batch.</param>
-    private static async Task<NugetLocalPackage?> InstallContentPackageAsync(string packageId, Logger logger, int index = 1, int count = 1)
+    /// <param name="cancellationToken">Stops the download; the package is then not installed.</param>
+    private static async Task<NugetLocalPackage?> InstallContentPackageAsync(string packageId, Logger logger, int index = 1, int count = 1, CancellationToken cancellationToken = default)
     {
         // One content download at a time: the store reports progress for all of them together.
-        await DownloadGate.WaitAsync().ConfigureAwait(false);
+        await DownloadGate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             var downloading = false;
@@ -354,7 +411,7 @@ public static class DotNetNewTemplateBridge
             {
                 downloading = true;
                 TemplateDownloads.Report(new TemplateDownload(packageId, 0, 0, index, count));
-                return PackageStore.Instance.InstallPackage(id, version);
+                return PackageStore.Instance.InstallPackage(id, version, cancellationToken: cancellationToken);
             }
 
             PackageStore.Instance.DownloadProgress += OnProgress;
@@ -371,8 +428,9 @@ public static class DotNetNewTemplateBridge
             finally
             {
                 PackageStore.Instance.DownloadProgress -= OnProgress;
+                // A cancelled download is no failure to show
                 if (downloading)
-                    TemplateDownloads.Report(package is null ? new TemplateDownload(packageId, 0, 0, index, count, Failed: true) : null);
+                    TemplateDownloads.Report(package is null && !cancellationToken.IsCancellationRequested ? new TemplateDownload(packageId, 0, 0, index, count, Failed: true) : null);
             }
         }
         finally

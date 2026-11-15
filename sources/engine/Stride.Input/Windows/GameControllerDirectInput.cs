@@ -27,18 +27,37 @@ namespace Stride.Input
         private readonly List<GameControllerDirectionInfo> directionInfos = new List<GameControllerDirectionInfo>();
         
         //private DirectInputGameController gamepad;
+        private readonly InputSourceWindowsDirectInput source;
         private readonly DirectInputJoystick joystick;
         private DirectInputState state = new DirectInputState();
+        private readonly AxisRest[] axisRests;
 
+        /// <summary>
+        /// Opens a DirectInput game controller.
+        /// </summary>
+        /// <param name="source">The input source that owns the controller.</param>
+        /// <param name="directInput">The DirectInput instance.</param>
+        /// <param name="instance">The device to open.</param>
         public GameControllerDirectInput(InputSourceWindowsDirectInput source, DirectInput directInput, DeviceInstance instance)
         {
             Source = source;
+            this.source = source;
             Name = instance.InstanceName.TrimEnd('\0');
             Id = instance.InstanceGuid;
             ProductId = instance.ProductGuid;
             joystick = new DirectInputJoystick(directInput, instance.InstanceGuid);
-            joystick.SetCooperativeLevel(IntPtr.Zero, CooperativeLevel.NonExclusive | CooperativeLevel.Foreground);
-            var objects = joystick.GetObjects();
+            IList<DeviceObjectInstance> objects;
+            try
+            {
+                // Read in the background with no window, so the device does not depend on the game window.
+                joystick.SetCooperativeLevel(IntPtr.Zero, CooperativeLevel.NonExclusive | CooperativeLevel.Background);
+                objects = joystick.GetObjects();
+            }
+            catch
+            {
+                joystick.Dispose();
+                throw;
+            }
 
             int sliderCount = 0;
             foreach (var obj in objects)
@@ -85,6 +104,7 @@ namespace Stride.Input
             
             // Sort axes, buttons and hats do not need to be sorted
             axisInfos.Sort((a, b) => a.Offset.CompareTo(b.Offset));
+            axisRests = new AxisRest[axisInfos.Count];
 
             InitializeButtonStates();
         }
@@ -147,13 +167,17 @@ namespace Stride.Input
                 joystick.Acquire();
                 joystick.Poll();
                 joystick.GetCurrentState(ref state);
-                
+
+                var hasFocus = source.HasFocus;
+
                 // Some device might report (perhaps erroneously) more than 128 buttons, which DirectInputState doesn't support  
                 // Should be investigated with such a device at hand for proper testing
                 var buttonCount = buttonInfos.Count < state.Buttons.Length ? buttonInfos.Count : state.Buttons.Length;
                 for (int i = 0; i < buttonCount; i++)
                 {
-                    HandleButton(i, state.Buttons[i]);
+                    var isDown = state.Buttons[i];
+                    if (hasFocus || BackgroundInputFilter.AcceptsButton(isDown))
+                        HandleButton(i, isDown);
                 }
 
                 for (int i = 0; i < axisInfos.Count; i++)
@@ -162,7 +186,10 @@ namespace Stride.Input
                     // See previous comment
                     if(axisMemIndex >= state.Axes.Length)
                         continue;
-                    HandleAxis(i, ClampDeadZone(state.Axes[axisMemIndex] * 2.0f - 1.0f, InputManager.GameControllerAxisDeadZone));
+                    var value = ClampDeadZone(state.Axes[axisMemIndex] * 2.0f - 1.0f, InputManager.GameControllerAxisDeadZone);
+                    axisRests[i].Observe(value);
+                    if (hasFocus || BackgroundInputFilter.AcceptsAxis(axisRests[i].Value, AxisStates[i], value))
+                        HandleAxis(i, value);
                 }
                 
                 // See previous comment
@@ -170,8 +197,14 @@ namespace Stride.Input
                 for (int i = 0; i < dirCount; i++)
                 {
                     int povController = state.PovControllers[i];
-                    HandleDirection(i, povController >= 0 ? Direction.FromTicks(povController, 36000) : Direction.None);
+                    var direction = povController >= 0 ? Direction.FromTicks(povController, 36000) : Direction.None;
+                    if (hasFocus || BackgroundInputFilter.AcceptsDirection(direction))
+                        HandleDirection(i, direction);
                 }
+            }
+            catch (SharpDXException ex) when (IsTransient(ex.ResultCode))
+            {
+                // The device is still there but could not be read this frame; try again on the next one.
             }
             catch (SharpDXException)
             {
@@ -179,6 +212,13 @@ namespace Stride.Input
             }
 
             base.Update(inputEvents);
+        }
+
+        private static bool IsTransient(Result result)
+        {
+            return result == ResultCode.OtherApplicationHasPriority
+                || result == ResultCode.NotAcquired
+                || result == ResultCode.InputLost;
         }
 
         private void HandleDisconnect()

@@ -25,10 +25,10 @@ namespace Stride.TextureConverter.Requests
 
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AtlasUpdateRequest"/> class.
+        /// Initializes a new instance of the <see cref="ArrayUpdateRequest"/> class.
         /// </summary>
         /// <param name="texture">The new texture.</param>
-        /// <param name="name">The indice of the texture to replace.</param>
+        /// <param name="indice">The index of the texture to replace.</param>
         public ArrayUpdateRequest(TexImage texture, int indice)
         {
             Texture = texture;

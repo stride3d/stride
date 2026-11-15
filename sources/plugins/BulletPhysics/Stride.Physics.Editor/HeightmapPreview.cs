@@ -6,7 +6,7 @@ using Stride.Core.Mathematics;
 using Stride.Editor.Annotations;
 using Stride.Graphics;
 using Stride.Physics;
-using Stride.Assets.Presentation.Preview;
+using Stride.Assets.Editor.Preview;
 
 namespace Stride.Physics.Editor
 {

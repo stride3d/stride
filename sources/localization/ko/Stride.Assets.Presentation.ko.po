@@ -1,0 +1,44 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2026-11-07 10:57:06+0000\n"
+"PO-Revision-Date: 2019-11-23 13:05+0000\n"
+"Last-Translator: hyeonzii <guswl9_9@naver.com>\n"
+"Language-Team: Korean <https://hosted.weblate.org/projects/stride/"
+"assetspresentation/ko/>\n"
+"Language: ko\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 3.10-dev\n"
+
+#: ../editor/Stride.Assets.Presentation/ViewModels/EntityFolderViewModel.cs:161
+msgctxt "Message"
+msgid ""
+"Unable to rename the folder '{0}' to '{1}'. A folder with the same name "
+"already exists."
+msgstr ""
+"폴더의 이름을 '{0}'에서 '{1}'로 변경할 수 없습니다. 이름이 같은 폴더가 이미 "
+"있습니다."
+
+#: ../editor/Stride.Assets.Presentation/ViewModels/SpriteFontViewModel.cs:53
+msgctxt "Message"
+msgid ""
+"**Only static fonts can be precompiled.**\r\n"
+"\r\n"
+"Clear the _Is Dynamic_ property on this font and try again."
+msgstr ""
+"**정적 글꼴만 사전 컴파일할 수 있음.**\n"
+"\n"
+"이 글꼴에서 _Is Dynamic_ 속성을 지우고 다시 시도하십시오."
+
+#: ../editor/Stride.Assets.Presentation/ViewModels/SpriteFontViewModel.cs:73
+msgctxt "Button"
+msgid "Cancel"
+msgstr "취소"
+
+#: ../editor/Stride.Assets.Presentation/ViewModels/SpriteFontViewModel.cs:75
+msgctxt "Message"
+msgid "Which color space do you want to use?"
+msgstr "어떤 색 공간을 이용하시겠습니까?"

@@ -15,7 +15,7 @@ namespace Stride.Core.Presentation.Extensions
     public static class WindowHelper
     {
         /// <summary>
-        /// Moves the <paramref cref="window"/> to the center of the given <paramref cref="area"/>.
+        /// Moves the <paramref name="window"/> to the center of the given <paramref name="area"/>.
         /// </summary>
         /// <param name="window">The window.</param>
         /// <param name="area">The area in WPF coordinates (see remarks).</param>
@@ -75,10 +75,10 @@ namespace Stride.Core.Presentation.Extensions
         }
 
         /// <summary>
-        /// Gets the size of the screen monitor for this <paramref cref="window"/>.
+        /// Gets the size of the screen monitor for this <paramref name="window"/>.
         /// </summary>
-        /// <param name="window">The window.</param>>
-        /// <returns>The size of the screen monitor for this <paramref cref="window"/> in WPF screen coordinates (see remarks).</returns>
+        /// <param name="window">The window.</param>
+        /// <returns>The size of the screen monitor for this <paramref name="window"/> in WPF screen coordinates (see remarks).</returns>
         /// <remarks>
         /// Because of monitor DPI, WPF screen coordinates and virtual screen coordinates can be different.
         /// To convert a <see cref="Rect"/> in virtual screen coordinates to WPF screen coordinates:
@@ -104,7 +104,7 @@ namespace Stride.Core.Presentation.Extensions
         }
 
         /// <summary>
-        /// Gets the available work area for this <paramref cref="window"/> on the current screen.
+        /// Gets the available work area for this <paramref name="window"/> on the current screen.
         /// </summary>
         /// <param name="window">The window.</param>
         /// <returns>The available work area on the current screen in WPF screen coordinates (see remarks).</returns>
@@ -135,7 +135,7 @@ namespace Stride.Core.Presentation.Extensions
         }
 
         /// <summary>
-        /// Moves and resize the <paramref cref="window"/> to make it fill the whole given <paramref cref="area"/>.
+        /// Moves and resizes the <paramref name="window"/> to make it fill the whole given <paramref name="area"/>.
         /// </summary>
         /// <param name="window">The window.</param>
         /// <param name="area">The area in WPF coordinates (see remarks).</param>

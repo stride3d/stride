@@ -28,7 +28,7 @@ namespace Stride.TextureConverter.Requests
         /// Initializes a new instance of the <see cref="ArrayInsertionRequest"/> class.
         /// </summary>
         /// <param name="texture">The new texture.</param>
-        /// <param name="name">The indice where to place the new texture.</param>
+        /// <param name="indice">The index where to place the new texture.</param>
         public ArrayInsertionRequest(TexImage texture, int indice)
         {
             Texture = texture;

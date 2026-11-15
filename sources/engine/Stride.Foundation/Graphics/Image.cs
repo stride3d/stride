@@ -171,6 +171,8 @@ namespace Stride.Graphics
         /// <param name="offset">The offset from the beginning of the data buffer.</param>
         /// <param name="handle">The handle (optionnal).</param>
         /// <param name="bufferIsDisposable">if set to <c>true</c> [buffer is disposable].</param>
+        /// <param name="pitchFlags">The flags used to calculate image pitch.</param>
+        /// <param name="rowStride">The row stride in bytes, or zero to calculate it.</param>
         /// <exception cref="InvalidOperationException">If the format is invalid, or width/height/depth/arraysize is invalid with respect to the dimension.</exception>
         internal unsafe Image(ImageDescription description, IntPtr dataPointer, int offset, GCHandle? handle, bool bufferIsDisposable, PitchFlags pitchFlags = PitchFlags.None, int rowStride = 0)
         {
@@ -396,6 +398,7 @@ namespace Stride.Graphics
         /// <param name="mipMapCount">The mip map count.</param>
         /// <param name="format">The format.</param>
         /// <param name="arraySize">Size of the array.</param>
+        /// <param name="rowStride">Specify a specific rowStride, only valid when mipMapCount == 1 and pixel format is not compressed.</param>
         /// <returns>A new image.</returns>
         public static Image New2D(int width, int height, MipMapCount mipMapCount, PixelFormat format, int arraySize = 1, int rowStride = 0)
         {
@@ -517,6 +520,7 @@ namespace Stride.Graphics
         /// <param name="dataBuffer">Pointer to an unmanaged memory. If <paramref name="makeACopy"/> is false, this buffer must be allocated with <see cref="MemoryUtilities.Allocate"/>.</param>
         /// <param name="makeACopy">True to copy the content of the buffer to a new allocated buffer, false otherwise.</param>
         /// <param name="loadAsSRGB">Indicate if the image should be loaded as an sRGB texture</param>
+        /// <param name="alphaLoadMode">The requested alpha conversion mode.</param>
         /// <returns>An new image.</returns>
         /// <remarks>If <paramref name="makeACopy"/> is set to false, the returned image is now the holder of the unmanaged pointer and will release it on Dispose. </remarks>
         [Obsolete("Use span instead")]
@@ -531,6 +535,7 @@ namespace Stride.Graphics
         /// <param name="dataBuffer">Pointer to an unmanaged memory. If <paramref name="makeACopy"/> is false, this buffer must be allocated with <see cref="MemoryUtilities.Allocate"/>.</param>
         /// <param name="makeACopy">True to copy the content of the buffer to a new allocated buffer, false otherwise.</param>
         /// <param name="loadAsSRGB">Indicate if the image should be loaded as an sRGB texture</param>
+        /// <param name="alphaLoadMode">The requested alpha conversion mode.</param>
         /// <returns>An new image.</returns>
         /// <remarks>If <paramref name="makeACopy"/> is set to false, the returned image is now the holder of the unmanaged pointer and will release it on Dispose. </remarks>
         public static unsafe Image Load(Span<byte> dataBuffer, bool makeACopy = false, bool loadAsSRGB = false, AlphaLoadMode alphaLoadMode = AlphaLoadMode.Preserve)
@@ -548,6 +553,7 @@ namespace Stride.Graphics
         /// <param name="dataSize">Size of the unmanaged buffer.</param>
         /// <param name="makeACopy">True to copy the content of the buffer to a new allocated buffer, false otherwise.</param>
         /// <param name="loadAsSRGB">Indicate if the image should be loaded as an sRGB texture</param>
+        /// <param name="alphaLoadMode">The requested alpha conversion mode.</param>
         /// <returns>An new image.</returns>
         /// <remarks>If <paramref name="makeACopy"/> is set to false, the returned image is now the holder of the unmanaged pointer and will release it on Dispose. </remarks>
         public static Image Load(IntPtr dataPointer, int dataSize, bool makeACopy = false, bool loadAsSRGB = false, AlphaLoadMode alphaLoadMode = AlphaLoadMode.Preserve)
@@ -560,6 +566,7 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="buffer">Reference to a managed buffer.</param>
         /// <param name="loadAsSRGB">Indicate if the image should be loaded as an sRGB texture</param>
+        /// <param name="alphaLoadMode">The requested alpha conversion mode.</param>
         /// <returns>An new image.</returns>
         /// <remarks>This method support the following format: <c>dds, bmp, jpg, png, gif, tiff, wmp, tga</c>.</remarks>
         public static unsafe Image Load(byte[] buffer, bool loadAsSRGB = false, AlphaLoadMode alphaLoadMode = AlphaLoadMode.Preserve)
@@ -584,6 +591,7 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="imageStream">The image stream.</param>
         /// <param name="loadAsSRGB">Indicate if the image should be loaded as an sRGB texture. If false, the image is loaded in its default format.</param>
+        /// <param name="alphaLoadMode">The requested alpha conversion mode.</param>
         /// <returns>An new image.</returns>
         /// <remarks>This method support the following format: <c>dds, bmp, jpg, png, gif, tiff, wmp, tga</c>.</remarks>
         public static Image Load(Stream imageStream, bool loadAsSRGB = false, AlphaLoadMode alphaLoadMode = AlphaLoadMode.Preserve)
@@ -591,7 +599,9 @@ namespace Stride.Graphics
             ArgumentNullException.ThrowIfNull(imageStream);
 
             // Read the whole stream into memory
-            return Load(Utilities.ReadStream(imageStream), loadAsSRGB, alphaLoadMode);
+            var data = new byte[checked((int)(imageStream.Length - imageStream.Position))];
+            imageStream.ReadExactly(data);
+            return Load(data, loadAsSRGB, alphaLoadMode);
         }
 
         /// <summary>
@@ -706,6 +716,7 @@ namespace Stride.Graphics
         /// <param name="makeACopy">if set to <c>true</c> [make A copy].</param>
         /// <param name="handle">The handle.</param>
         /// <param name="loadAsSRGB">Indicate if the image should be loaded as an sRGB texture</param>
+        /// <param name="alphaLoadMode">The requested alpha conversion mode.</param>
         /// <returns></returns>
         /// <exception cref="NotSupportedException"></exception>
         private static Image Load(IntPtr dataPointer, int dataSize, bool makeACopy, GCHandle? handle, bool loadAsSRGB = true, AlphaLoadMode alphaLoadMode = AlphaLoadMode.Preserve)
@@ -1001,6 +1012,7 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="imageDesc">Description of the image to create.</param>
         /// <param name="pitchFlags">Pitch flags.</param>
+        /// <param name="rowStride">The row stride in bytes, or zero to calculate it.</param>
         /// <param name="bufferCount">Output number of mipmap.</param>
         /// <param name="pixelSizeInBytes">Output total size to allocate pixel buffers for all images.</param>
         private static List<int> CalculateImageArray(ImageDescription imageDesc, PitchFlags pitchFlags, int rowStride, out int bufferCount, out int pixelSizeInBytes)
@@ -1062,7 +1074,7 @@ namespace Stride.Graphics
         /// Allocates PixelBuffers
         /// </summary>
         /// <param name="buffer"></param>
-        /// <param name="pixelSize"></param>
+        /// <param name="rowStride">The row stride in bytes, or zero to calculate it.</param>
         /// <param name="imageDesc"></param>
         /// <param name="pitchFlags"></param>
         /// <param name="output"></param>

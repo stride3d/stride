@@ -33,7 +33,7 @@ public interface IUITestContext
     /// presented real content. No-op if no games are active. Times out after
     /// <paramref name="timeoutSeconds"/> with a log message — never throws.
     /// </summary>
-    Task WaitForRendering(int frames = 60, double timeoutSeconds = 30);
+    Task WaitForRendering(int frames = 20, double timeoutSeconds = 30);
 
     /// <summary>Captures the active main window to a PNG named <paramref name="name"/>.</summary>
     Task Screenshot(string name);
@@ -100,7 +100,7 @@ public interface IUITestContext
     /// <paramref name="postFirstFrameDelaySeconds"/> have elapsed since the first one (lets TAA-style
     /// post-effects converge). Default timeout absorbs cold shader-cache builds.
     /// </summary>
-    Task WaitForGameFrames(IntPtr hwnd, int minFrames = 100, double postFirstFrameDelaySeconds = 2.0, double timeoutSeconds = 90);
+    Task WaitForGameFrames(IntPtr hwnd, int minFrames = 30, double postFirstFrameDelaySeconds = 2.0, double timeoutSeconds = 90);
 
     /// <summary>Captures a specific HWND (e.g. a game window from a child process) to a PNG.</summary>
     Task ScreenshotHwnd(IntPtr hwnd, string name);

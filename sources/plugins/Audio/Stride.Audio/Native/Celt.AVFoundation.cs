@@ -3,7 +3,6 @@
 #if STRIDE_PLATFORM_IOS || STRIDE_PLATFORM_MACOS
 #pragma warning disable SA1300
 using System;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security;
 
@@ -65,22 +64,12 @@ namespace Stride.Audio
             if (mode != IntPtr.Zero) { opus_custom_mode_destroy(mode); mode = IntPtr.Zero; }
         }
 
-        public unsafe int Decode(byte[] inputBuffer, int inputBufferSize, short[] outputSamples)
+        public unsafe int Decode(ReadOnlySpan<byte> inputBuffer, Span<short> outputSamples)
         {
-            Debug.Assert((uint)inputBufferSize <= (uint)inputBuffer.Length);
             fixed (short* samplesPtr = outputSamples)
             fixed (byte* bufferPtr = inputBuffer)
             {
-                return opus_custom_decode(decoder, bufferPtr, inputBufferSize, samplesPtr, outputSamples.Length / Channels);
-            }
-        }
-
-        public unsafe int Decode(byte[] inputBuffer, int inputBufferSize, short* outputSamples)
-        {
-            Debug.Assert((uint)inputBufferSize <= (uint)inputBuffer.Length);
-            fixed (byte* bufferPtr = inputBuffer)
-            {
-                return opus_custom_decode(decoder, bufferPtr, inputBufferSize, outputSamples, BufferSize);
+                return opus_custom_decode(decoder, bufferPtr, inputBuffer.Length, samplesPtr, outputSamples.Length / Channels);
             }
         }
 

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 namespace Stride.Core.Annotations;
@@ -13,36 +13,48 @@ public class DataMemberRangeAttribute : Attribute
     /// <summary>
     /// Initializes a new instance of the <see cref="DataMemberRangeAttribute" /> class.
     /// </summary>
-    /// <param name="minimum">The minimum.</param>
-    /// <param name="decimalPlaces">The decimal places</param>
-    public DataMemberRangeAttribute(double minimum, int decimalPlaces)
+    /// <param name="min">The minimum.</param>
+    /// <param name="decimals">The decimal places</param>
+    /// <remarks>
+    /// The parameter names differ from the other constructor on purpose: named arguments
+    /// (<c>minimum:</c>, <c>decimalPlaces:</c>) must bind to the other constructor, not to this one.
+    /// </remarks>
+    [Obsolete("Use named arguments instead: [DataMemberRange(minimum: x, decimalPlaces: y)]. Two positional arguments are ambiguous with (minimum, maximum).")]
+    public DataMemberRangeAttribute(double min, int decimals)
     {
-        if (double.IsNaN(minimum)) throw new ArgumentOutOfRangeException(nameof(minimum));
-        if (decimalPlaces < 0) throw new ArgumentException("The decimalPlaces should be greater or equal to zero.", nameof(decimalPlaces));
-        Minimum = minimum;
-        DecimalPlaces = decimalPlaces;
+        if (double.IsNaN(min)) throw new ArgumentOutOfRangeException(nameof(min));
+        if (decimals < 0) throw new ArgumentException("The decimalPlaces should be greater or equal to zero.", nameof(decimals));
+        Minimum = min;
+        DecimalPlaces = decimals;
     }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DataMemberRangeAttribute" /> class.
     /// </summary>
-    /// <param name="minimum">The minimum.</param>
-    /// <param name="maximum">The maximum.</param>
-    /// <param name="smallStep">The minimum step used to go from minimum to maximum.</param>
-    /// <param name="largeStep">The maximum step used to go from minimum to maximum.</param>
-    /// <param name="decimalPlaces">The decimal places.</param>
-    public DataMemberRangeAttribute(double minimum, double maximum, double smallStep, double largeStep, int decimalPlaces)
-        : this(minimum, decimalPlaces)
+    /// <param name="minimum">The minimum value this member accepts.</param>
+    /// <param name="maximum">The maximum value this member accepts.</param>
+    /// <param name="smallStep">The default step used to go from minimum to maximum.</param>
+    /// <param name="largeStep">The 'accelerated' step used to go from minimum to maximum.</param>
+    /// <param name="decimalPlaces">The number of digits to show after the decimal point.</param>
+    /// <remarks>
+    /// Parameters left at their default value (<see cref="double.NaN"/>, or -1 for <paramref name="decimalPlaces"/>) are undefined.
+    /// </remarks>
+    public DataMemberRangeAttribute(double minimum = double.NaN, double maximum = double.NaN, double smallStep = double.NaN, double largeStep = double.NaN, int decimalPlaces = -1)
     {
-        if (double.IsNaN(maximum)) throw new ArgumentOutOfRangeException(nameof(maximum));
-        if (minimum > maximum) throw new ArgumentException("The minimum should be lesser or equal to the maximum.", nameof(minimum));
-        if (double.IsNaN(smallStep)) throw new ArgumentOutOfRangeException(nameof(smallStep));
-        if (double.IsNaN(largeStep)) throw new ArgumentOutOfRangeException(nameof(largeStep));
-        if (smallStep > largeStep) throw new ArgumentException("The smallStep should be lesser or equal to the largeStep.", nameof(smallStep));
-        if (decimalPlaces < 0) throw new ArgumentException("The decimalPlaces should be greater or equal to zero.", nameof(decimalPlaces));
-        Maximum = maximum;
-        SmallStep = smallStep;
-        LargeStep = largeStep;
+        if (double.IsNaN(maximum) == false && double.IsNaN(minimum) == false && minimum > maximum)
+            throw new ArgumentException("The minimum should be lesser or equal to the maximum.", nameof(minimum));
+
+        if (double.IsNaN(smallStep) == false && double.IsNaN(largeStep) == false && smallStep > largeStep)
+            throw new ArgumentException("The smallStep should be lesser or equal to the largeStep.", nameof(smallStep));
+
+        if (decimalPlaces < -1)
+            throw new ArgumentException("The decimalPlaces should be greater or equal to zero.", nameof(decimalPlaces));
+        
+        DecimalPlaces = decimalPlaces == -1 ? null : decimalPlaces;
+        Minimum = double.IsNaN(minimum) ? null : minimum;
+        Maximum = double.IsNaN(maximum) ? null : maximum;
+        SmallStep = double.IsNaN(smallStep) ? null : smallStep;
+        LargeStep = double.IsNaN(largeStep) ? null : largeStep;
     }
 
     /// <summary>

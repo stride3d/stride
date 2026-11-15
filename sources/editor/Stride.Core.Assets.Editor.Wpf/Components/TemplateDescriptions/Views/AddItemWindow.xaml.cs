@@ -1,7 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Windows.Input;
-using Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;
+using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.ViewModels;
@@ -34,7 +34,7 @@ namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views
 
             validated = true;
             SelectedTemplate = template;
-            Result = SelectedTemplate != null ? Presentation.Services.DialogResult.Ok : Presentation.Services.DialogResult.Cancel;
+            Result = SelectedTemplate != null ? Stride.Core.Presentation.Services.DialogResult.Ok : Stride.Core.Presentation.Services.DialogResult.Cancel;
             Close();
         }
     }

@@ -53,7 +53,7 @@ public record struct ParseError(string Message, ErrorLocation Location, ReadOnly
 
         var token = GetNextToken().Trim();
         var context = token.Length > 0 ? $" (at `{token}`)" : "";
-        return $"{filename}({Location.Line},{Location.Column}): {Message}{context}";
+        return $"{MessageFileName.Of(filename)}({Location.Line},{Location.Column}): {Message}{context}";
     }
 }
 

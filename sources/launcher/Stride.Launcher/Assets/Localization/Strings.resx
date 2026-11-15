@@ -333,6 +333,10 @@
     <value>(not installed)</value>
     <comment>Additional message stating that the version is not currently installed. It is displayed right after the VersionButton text (with a space)</comment>
   </data>
+  <data name="VersionButtonReleaseAvailable" xml:space="preserve">
+    <value>(release available)</value>
+    <comment>After the name of a version in the list, when a beta is installed and a newer release is available</comment>
+  </data>
   <data name="VersionButtonUpdateAvailable" xml:space="preserve">
     <value>(update available)</value>
     <comment>Additional message stating that an update is available for the version. It is displayed right after the VersionButton text (with a space)</comment>
@@ -409,6 +413,10 @@
     <value>{0} Nightly</value>
     <comment>Name of the row of the nightly builds of a version. {0}: product name and short version name</comment>
   </data>
+  <data name="BadgeBeta" xml:space="preserve">
+    <value>BETA</value>
+    <comment>Badge of a version that is a beta, in the version list and on the Start and Install buttons</comment>
+  </data>
   <data name="BadgeNightly" xml:space="preserve">
     <value>NIGHTLY</value>
     <comment>Badge of the row of nightly builds, in the version list</comment>
@@ -436,6 +444,14 @@ Show the nightly builds?</value>
   <data name="ToolTipRefreshVersions" xml:space="preserve">
     <value>Check for new versions</value>
     <comment>Tooltip of the icon before "Switch/update version": lists the versions again</comment>
+  </data>
+  <data name="EditorNotBuilt" xml:space="preserve">
+    <value>{0} (not built)</value>
+    <comment>Greyed entry of the Game Studio selector for a Game Studio a local build doesn't have; {0} is its name, such as "Game Studio (Avalonia)"</comment>
+  </data>
+  <data name="EditorNotInVersion" xml:space="preserve">
+    <value>{0} (not in this version)</value>
+    <comment>Greyed entry of the Game Studio selector for a Game Studio a version doesn't have; {0} is its name, such as "Game Studio (Avalonia)"</comment>
   </data>
   <data name="BadgeLocal" xml:space="preserve">
     <value>LOCAL</value>

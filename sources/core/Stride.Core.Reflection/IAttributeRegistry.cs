@@ -35,6 +35,20 @@ public interface IAttributeRegistry
 public static class AttributeRegistryExtensions
 {
     /// <summary>
+    /// Gets the display name of the specified type, or the type name when no display name is registered.
+    /// </summary>
+    /// <param name="attributeRegistry">The attribute registry.</param>
+    /// <param name="type">The type whose display name to retrieve.</param>
+    /// <returns>The registered display name, or the type name.</returns>
+    public static string GetDisplayName(this IAttributeRegistry attributeRegistry, Type type)
+    {
+        ArgumentNullException.ThrowIfNull(attributeRegistry);
+        ArgumentNullException.ThrowIfNull(type);
+
+        return attributeRegistry.GetAttribute<DisplayAttribute>(type)?.Name ?? type.Name;
+    }
+
+    /// <summary>
     /// Gets the attributes associated with the specified member.
     /// </summary>
     /// <typeparam name="T">Type of the attribute</typeparam>

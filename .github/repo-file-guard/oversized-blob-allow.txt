@@ -6,3 +6,4 @@
 # Lines starting with # and blank lines are ignored. Keep sorted.
 sources/plugins/UI/Stride.UI.Tests/Regression/ElementTestDesigns.cs
 sources/shaders/Stride.Shaders.Spirv/Generated/Instructions.gen.cs
+sources/shaders/Stride.Shaders.Tests/Corpus/corpus.json

@@ -97,8 +97,8 @@ public class PluginTemplateTests
         Assert.Empty(Directory.GetFiles(Path.Combine(solutionDir, "Bin"), pluginName + ".Assets.dll", SearchOption.AllDirectories));
         Assert.NotEmpty(Directory.GetFiles(Path.Combine(solutionDir, "Bin"), pluginName + ".dll", SearchOption.AllDirectories));
 
-        // The reloaded solution in Game Studio: the runtime declares both companions, found as solution projects.
-        // Off Windows, the game build leaves out the Editor project (it targets Windows only, as Game Studio does).
+        // The reloaded solution in Game Studio: the runtime declares both companions, found as solution projects. The Editor
+        // project is toolkit-neutral (net10.0, Stride.Assets.Editor), so it builds with the game on every platform.
         var reloaded = new PackageSessionResult();
         loadParameters.LoadEditorPackages = true;
         loadParameters.EditorToolkit = "Wpf";
@@ -106,7 +106,7 @@ public class PluginTemplateTests
         AssertNoPluginError(reloaded);
         using var reloadedSession = reloaded.Session;
         var runtime = Assert.Single(reloadedSession.Packages, p => p.Meta.Name == pluginName);
-        var companions = OperatingSystem.IsWindows() ? new[] { pluginName + ".Assets", pluginName + ".Editor" } : [pluginName + ".Assets"];
+        var companions = new[] { pluginName + ".Assets", pluginName + ".Editor" };
         Assert.Equal(companions, runtime.CompanionPackages.Select(c => c.Name).OrderBy(n => n));
         Assert.Contains(runtime.CompanionPackages, c => c.Kind == PackageKind.Assets);
         var editorProject = Assert.IsType<SolutionProject>(Assert.Single(reloadedSession.Packages, p => p.Meta.Name == pluginName + ".Editor").Container);
@@ -114,20 +114,16 @@ public class PluginTemplateTests
         // The Assets companion's asset template, listed by its .sdpkg, is what Add asset offers
         Assert.Contains(TemplateManager.FindTemplates(TemplateScope.Asset, reloadedSession), t => t.Name == pluginName && t is TemplateAssetDescription);
 
-        if (OperatingSystem.IsWindows())
-        {
-            // The Editor project references the WPF editor assemblies, so it is a Wpf package without saying so: an
-            // editor of another toolkit does not load its assembly
-            var editorDeclaration = Assert.Single(runtime.CompanionPackages, c => c.Kind == PackageKind.Editor);
-            Assert.Equal("Wpf", editorDeclaration.Toolkit);
-            var otherEditor = new PackageSessionResult();
-            loadParameters.EditorToolkit = "Avalonia";
-            PackageSession.Load(solutionPath, otherEditor, loadParameters);
-            AssertNoPluginError(otherEditor);
-            using var otherEditorSession = otherEditor.Session;
-            var otherEditorProject = (SolutionProject)Assert.Single(otherEditorSession.Packages, p => p.Meta.Name == pluginName + ".Editor").Container;
-            Assert.False(otherEditorProject.ShouldLoadAssemblyInEditor);
-        }
+        // The Editor project references no editor toolkit, so the editors of both toolkits load its assembly
+        var editorDeclaration = Assert.Single(runtime.CompanionPackages, c => c.Kind == PackageKind.Editor);
+        Assert.True(string.IsNullOrEmpty(editorDeclaration.Toolkit), $"The Editor project should be toolkit-neutral, not {editorDeclaration.Toolkit}.");
+        var otherEditor = new PackageSessionResult();
+        loadParameters.EditorToolkit = "Avalonia";
+        PackageSession.Load(solutionPath, otherEditor, loadParameters);
+        AssertNoPluginError(otherEditor);
+        using var otherEditorSession = otherEditor.Session;
+        var otherEditorProject = (SolutionProject)Assert.Single(otherEditorSession.Packages, p => p.Meta.Name == pluginName + ".Editor").Container;
+        Assert.True(otherEditorProject.ShouldLoadAssemblyInEditor);
 
         // The game loads first and pulls in the plugin's assembly; the plugin package must still register it.
         // The Editor project is left out: only Game Studio builds and loads it.

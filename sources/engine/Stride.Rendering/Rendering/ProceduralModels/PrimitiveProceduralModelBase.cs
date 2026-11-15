@@ -57,7 +57,7 @@ namespace Stride.Rendering.ProceduralModels
         /// The number of texure coordinate channels.
         /// </value>
         [DataMember(540)]
-        [DataMemberRange(1, 10)]
+        [DataMemberRange(minimum: 1, maximum: 10, decimalPlaces: 0)]
         [Display("Number of texture coordinate channels")]
         public int NumberOfTextureCoordinates  { get; set; } = 10;
 

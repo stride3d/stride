@@ -7,9 +7,9 @@ using Avalonia.iOS;
 using Foundation;
 using Stride.Graphics.Regression;
 using UIKit;
-using xunit.runner.stride.ViewModels;
+using Stride.XunitRunner.ViewModels;
 
-namespace xunit.runner.stride;
+namespace Stride.XunitRunner;
 
 // Graphics-regression iOS variant — mirrors LauncherSimple.iOS.cs but also wires
 // GameTestBase callbacks for the test runner's Interactive Mode / Force Save Image toggles.

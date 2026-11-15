@@ -5,7 +5,6 @@ using System;
 using System.Threading.Tasks;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors;
 using Stride.Core.Assets.Quantum;
 using Stride.Core;
 using Stride.Core.Quantum;
@@ -13,6 +12,7 @@ using Stride.Assets.Quantum;
 using Stride.UI.Assets;
 using Stride.UI;
 using Stride.UI.Panels;
+using Stride.Core.Assets.Editor.Components.CopyPasteProcessors;
 
 namespace Stride.UI.Editor
 {

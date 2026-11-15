@@ -8,11 +8,10 @@
 		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
 		<RootNamespace>Stride.Shaders.Generators</RootNamespace>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <!-- Ships inside Stride.Shaders.Compilers (its _PackGeneratorAnalyzerFiles), not as a package of its own. -->
+    <IsPackable>false</IsPackable>
     <!-- Forward referenced runtime deps to consumers as analyzer-set DLLs. -->
     <GetTargetPathDependsOn>$(GetTargetPathDependsOn);GetDependencyTargetPaths</GetTargetPathDependsOn>
-    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_PackGeneratorAnalyzerFiles</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,19 +23,40 @@
 	  <ProjectReference Include="..\Stride.Shaders.Parsers\Stride.Shaders.Parsers.csproj" />
 	</ItemGroup>
 
-	<Target Name="GetDependencyTargetPaths" DependsOnTargets="ResolveReferences">
+	<!-- The dependencies are analyzers of every project with shaders, so their dates are inputs of its CoreCompile: consumers get
+	     copies in obj, replaced only when their content changes. -->
+	<Target Name="_GetGeneratorDependencies" DependsOnTargets="ResolveReferences">
 		<ItemGroup>
-			<TargetPathWithTargetPlatformMoniker Include="@(ReferenceCopyLocalPaths)"
-			                                     Condition="'%(Extension)' == '.dll' AND '%(ReferenceCopyLocalPaths.AssetType)' != 'native'"
-			                                     IncludeRuntimeDependency="false" />
+			<!-- Not the satellite assemblies (one file name for every culture), nor Roslyn: the compiler gives analyzers its own -->
+			<_GeneratorDependency Include="@(ReferenceCopyLocalPaths)"
+			                      Condition="'%(Extension)' == '.dll' AND '%(ReferenceCopyLocalPaths.AssetType)' != 'native' AND '%(ReferenceCopyLocalPaths.DestinationSubDirectory)' == '' AND !$([System.String]::Copy('%(Filename)').StartsWith('Microsoft.CodeAnalysis'))">
+				<StagedPath>$(ProjectDir)$(IntermediateOutputPath)analyzer\%(Filename)%(Extension)</StagedPath>
+				<HashPath>$(ProjectDir)$(IntermediateOutputPath)analyzer\%(Filename)%(Extension).sha256</HashPath>
+			</_GeneratorDependency>
 		</ItemGroup>
 	</Target>
 
-	<Target Name="_PackGeneratorAnalyzerFiles">
+	<Target Name="_StageGeneratorDependencies" AfterTargets="CopyFilesToOutputDirectory" DependsOnTargets="_GetGeneratorDependencies">
+		<GetFileHash Files="@(_GeneratorDependency)" Algorithm="SHA256">
+			<Output TaskParameter="Items" ItemName="_GeneratorDependencyHashed" />
+		</GetFileHash>
 		<ItemGroup>
-			<TfmSpecificPackageFile Include="$(OutputPath)*.dll"
-			                        Exclude="$(OutputPath)Microsoft.CodeAnalysis*.dll"
-			                        PackagePath="analyzers/dotnet/cs" />
+			<_GeneratorDependencyChanged Include="@(_GeneratorDependencyHashed)"
+			                             Condition="!Exists('%(StagedPath)') Or !Exists('%(HashPath)') Or '$([System.IO.File]::ReadAllText(%(HashPath)).Trim())' != '%(FileHash)'" />
+		</ItemGroup>
+		<Copy SourceFiles="@(_GeneratorDependencyChanged)" DestinationFiles="@(_GeneratorDependencyChanged->'%(StagedPath)')" />
+		<!-- Copy keeps the source's date: a changed file must be newer than its consumers' outputs -->
+		<Touch Files="@(_GeneratorDependencyChanged->'%(StagedPath)')" />
+		<WriteLinesToFile File="%(_GeneratorDependencyChanged.HashPath)" Lines="%(_GeneratorDependencyChanged.FileHash)" Overwrite="true"
+		                  Condition="'@(_GeneratorDependencyChanged)' != ''" />
+		<ItemGroup>
+			<FileWrites Include="@(_GeneratorDependency->'%(StagedPath)');@(_GeneratorDependency->'%(HashPath)')" />
+		</ItemGroup>
+	</Target>
+
+	<Target Name="GetDependencyTargetPaths" DependsOnTargets="_GetGeneratorDependencies">
+		<ItemGroup>
+			<TargetPathWithTargetPlatformMoniker Include="@(_GeneratorDependency->'%(StagedPath)')" IncludeRuntimeDependency="false" />
 		</ItemGroup>
 	</Target>
 

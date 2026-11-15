@@ -192,6 +192,23 @@ public partial class RenderingTests
     }
 
     [Fact]
+    public void ConditionalWriteInGeometryShaderKeepsItsInput()
+    {
+        // StreamOutTest1 only counts primitives, so this reads the interface
+        const string shaderName = "StreamGSConditionalWrite";
+        var shaderMixer = new ShaderMixer(new ShaderLoader("./assets/SDSL/StreamOutTests"));
+        shaderMixer.ShaderLoader.LoadExternalBuffer(shaderName, [], out _, out _, out _);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource(shaderName), new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var code = Spv.Dis(SpirvBytecode.CreateFromSpan(bytecode), DisassemblerFlags.Name, true);
+        Assert.Contains("in_GS_X", code);
+        Assert.Contains("out_VS_X", code);
+    }
+
+    [Fact]
     public void HelperParameterSemanticIsNotInOutput()
     {
         // Regression: a semantic on a parameter of a function that is not an entry point was left in the output as a member

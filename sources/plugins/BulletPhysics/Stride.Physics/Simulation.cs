@@ -200,7 +200,6 @@ namespace Stride.Physics
 
         internal void UpdateContacts()
         {
-            EndedFromComponentRemoval.Clear();
             // Mark previous collisions as outdated,
             // we'll iterate through bullet's actives and remove them from here
             // to be left with only the outdated ones.
@@ -1048,8 +1047,8 @@ namespace Stride.Physics
         public int MaxSubSteps { get; set; }
 
         /// <userdoc>
-        /// Amount of time in seconds allotted to update the physics simulation when the update rate is lower than <see cref="FixedTimeStep"/>.
-        /// When the whole game takes longer than <see cref="FixedTimeStep"/> to display one frame, the simulation has to tick multiple times to catch up.
+        /// Amount of time in seconds allotted to update the physics simulation when the update rate is lower than the fixed time step.
+        /// When the whole game takes longer than the fixed time step to display one frame, the simulation has to tick multiple times to catch up.
         /// Those additional ticks may themselves make the current frame take longer, leading to a negative feedback loop for your game's performances.
         /// This variable will 'slow down' the simulation instead.
         /// </userdoc>

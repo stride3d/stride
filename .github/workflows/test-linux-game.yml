@@ -21,6 +21,10 @@ on:
         description: 'Rerun the filtered GPU test set up to N times, stop on first failure (flake hunting). 1 = single run (default).'
         type: number
         default: 1
+      test-parallelism:
+        description: 'Test assemblies run at a time (dotnet test -m). 0 = one per core.'
+        type: number
+        default: 2
       projects:
         description: 'Test .csproj paths to build/test, separated by ; (blank = detected automatically using test-filter, or all)'
         type: string
@@ -92,6 +96,11 @@ jobs:
         with:
           ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || (inputs.commit-sha != '' && inputs.commit-sha) || github.ref }}
           exclude: samples
+      # Before the build: the key hashes the compiler sources, not build outputs
+      - uses: ./.github/actions/effect-cache
+        with:
+          mode: restore
+          lane: Vulkan-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
       - name: Install runtime dependencies
         run: |
           sudo apt-get update
@@ -128,10 +137,15 @@ jobs:
           mkdir -p "$GITHUB_WORKSPACE/TestResults"
           # The game test solution narrowed to the suites this run needs: the `projects` list if given,
           # else the ones `test-filter` can hit, else the whole solution. See build/tools/Stride.TestSuites.
-          TARGET=$(dotnet run --project build/tools/Stride.TestSuites -- \
-                     --projects "${{ github.event.inputs.projects || inputs.projects }}" \
-                     --filter "${{ github.event.inputs.test-filter || inputs.test-filter }}" \
-                     --slnf sources/Stride.Tests.Game.Desktop.slnf)
+          PROJECTS="${{ github.event.inputs.projects || inputs.projects }}"
+          FILTER="${{ github.event.inputs.test-filter || inputs.test-filter }}"
+          # Nothing to narrow (every PR and push run): the whole solution, without building the tool.
+          if [ -z "$PROJECTS$FILTER" ]; then
+            TARGET=sources/Stride.Tests.Game.Desktop.slnf
+          else
+            TARGET=$(dotnet run --project build/tools/Stride.TestSuites -- \
+                       --projects "$PROJECTS" --filter "$FILTER" --slnf sources/Stride.Tests.Game.Desktop.slnf)
+          fi
           if [ -z "$TARGET" ]; then echo "::error::None of the needed suites is in sources/Stride.Tests.Game.Desktop.slnf"; exit 1; fi
           echo "Build/test target: $TARGET"
           echo "STRIDE_TEST_TARGET=$TARGET" >> "$GITHUB_ENV"
@@ -162,6 +176,10 @@ jobs:
           REPEAT="${{ github.event.inputs.repeat || inputs.repeat || '1' }}"
           FILTER_ARG=()
           if [ -n "$STRIDE_TEST_FILTER" ]; then FILTER_ARG=(--filter "$STRIDE_TEST_FILTER"); fi
+          PARALLEL_ARG=()
+          # Two at a time: software rendering already takes every core, more assemblies only slow each other down
+          PARALLELISM="${{ github.event.inputs.test-parallelism || '2' }}"
+          if [ "$PARALLELISM" -gt 0 ]; then PARALLEL_ARG=("-m:$PARALLELISM"); fi
           for i in $(seq 1 "$REPEAT"); do
             echo "=== Test run $i / $REPEAT ==="
             dotnet test "$STRIDE_TEST_TARGET" \
@@ -170,9 +188,14 @@ jobs:
               --blame-hang-timeout 5m --blame-hang-dump-type full \
               -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} \
               -p:StrideGraphicsApis=Vulkan \
-              "${FILTER_ARG[@]}" \
+              "${FILTER_ARG[@]}" "${PARALLEL_ARG[@]}" \
               -- RunConfiguration.MaxCpuCount=1 || { ec=$?; echo "Run $i failed (exit $ec); stopping."; exit $ec; }
           done
+      - uses: ./.github/actions/effect-cache
+        if: success() || failure()
+        with:
+          mode: save
+          lane: Vulkan-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
       - name: Publish Test Report
         if: always()
         uses: phoenix-actions/test-reporting@v16

@@ -22,6 +22,7 @@ public class ProfilingKey
     /// Initializes a new instance of the <see cref="ProfilingKey" /> class.
     /// </summary>
     /// <param name="name">The name.</param>
+    /// <param name="flags">The profiling options for this key.</param>
     public ProfilingKey(string name, ProfilingKeyFlags flags = ProfilingKeyFlags.None)
     {
         Name = ValidateNameNotEmpty(name);
@@ -40,6 +41,7 @@ public class ProfilingKey
     /// </summary>
     /// <param name="parent">The parent profile key.</param>
     /// <param name="name">Name of the profile.</param>
+    /// <param name="flags">The profiling options for this key.</param>
     /// <exception cref="System.ArgumentNullException">Thrown when <paramref name="parent"/> is set to null.</exception>
     public ProfilingKey(ProfilingKey parent, string name, ProfilingKeyFlags flags = ProfilingKeyFlags.None)
         : this($"{parent}.{name}", flags)

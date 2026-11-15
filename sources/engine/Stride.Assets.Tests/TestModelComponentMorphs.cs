@@ -126,6 +126,59 @@ public class TestModelComponentMorphs
     }
 
     [Fact]
+    public void EmptyMorphsAreNotWrittenAndReadAsBefore()
+    {
+        var yaml = SaveScene(new ModelComponent());
+        Assert.DoesNotContain("Morphs:", yaml);
+
+        // A file saved before, with the empty block, reads the same as one without it
+        var componentLine = yaml.Split('\n').First(line => line.TrimEnd().EndsWith("!ModelComponent", StringComparison.Ordinal));
+        var indent = new string(' ', componentLine.Length - componentLine.TrimStart().Length + 4);
+        var withBlock = System.Text.RegularExpressions.Regex.Replace(yaml, @"!ModelComponent\r?\n", match => match.Value + $"{indent}Morphs:\n{indent}    Weights: {{}}\n");
+        Assert.Contains("Weights: {}", withBlock);
+        foreach (var text in new[] { yaml, withBlock })
+        {
+            var scene = LoadScene(text);
+            var morphs = scene.Hierarchy.Parts.First().Value.Entity.Get<ModelComponent>().Morphs;
+            Assert.True(morphs.Enabled);
+            Assert.Empty(morphs.Weights);
+            Assert.DoesNotContain("Morphs:", Save(scene));
+        }
+    }
+
+    [Fact]
+    public void DisabledMorphsAreWrittenWithoutWeights()
+    {
+        var model = new ModelComponent();
+        model.Morphs.Enabled = false;
+        var yaml = SaveScene(model);
+
+        Assert.Contains("Morphs:", yaml);
+        Assert.DoesNotContain("Weights:", yaml);
+        Assert.False(LoadScene(yaml).Hierarchy.Parts.First().Value.Entity.Get<ModelComponent>().Morphs.Enabled);
+    }
+
+    private static string SaveScene(ModelComponent model)
+    {
+        var scene = new Stride.Assets.Entities.SceneAsset();
+        scene.Hierarchy.Parts.Add(new Stride.Assets.Entities.EntityDesign(new Entity { model }));
+        return Save(scene);
+    }
+
+    private static string Save(Stride.Assets.Entities.SceneAsset scene)
+    {
+        using var stream = new MemoryStream();
+        AssetFileSerializer.Save(stream, scene, null);
+        return System.Text.Encoding.UTF8.GetString(stream.ToArray());
+    }
+
+    private static Stride.Assets.Entities.SceneAsset LoadScene(string yaml)
+    {
+        using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(yaml));
+        return AssetFileSerializer.Load<Stride.Assets.Entities.SceneAsset>(stream, "scene.sdscene").Asset;
+    }
+
+    [Fact]
     public void AnimationPathsWriteWeightsByName()
     {
         var shared = new Model();

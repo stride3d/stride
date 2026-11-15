@@ -16,7 +16,7 @@ public sealed class DevRedirectStubTests : IDisposable
             Directory.Delete(root, true);
     }
 
-    // The props of a stub made by build/GenerateDevPackages.cs, reduced to what the store reads
+    // The props of a stub made by build/redirect-packages.cs, reduced to what the store reads
     private string WriteStub(string? configuration)
     {
         var package = Path.Combine(root, "packages", "stride.assetcompiler", "4.5.0-dev");

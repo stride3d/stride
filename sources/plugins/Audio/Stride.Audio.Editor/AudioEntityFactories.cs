@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Threading.Tasks;
 using Stride.Core;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories;
+using Stride.Assets.Editor.EntityFactories;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Engine;
 
@@ -17,7 +17,7 @@ namespace Stride.Audio.Editor
                 EntityFactoryCategory.RegisterCategory(50, "Audio");
         }
 
-        public override Task<Entity> CreateEntity(EntityHierarchyItemViewModel parent)
+        public override Task<Entity> CreateEntity(IEntityHierarchyItemViewModel parent)
         {
             var name = ComputeNewName(parent, "AudioEmitter");
             var component = new AudioEmitterComponent();
@@ -28,7 +28,7 @@ namespace Stride.Audio.Editor
     [Display(20, "Audio listener", "Audio")]
     public class AudioListenerFactory : EntityFactory
     {
-        public override Task<Entity> CreateEntity(EntityHierarchyItemViewModel parent)
+        public override Task<Entity> CreateEntity(IEntityHierarchyItemViewModel parent)
         {
             var name = ComputeNewName(parent, "AudioListener");
             var component = new AudioListenerComponent();

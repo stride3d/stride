@@ -67,6 +67,35 @@ public static class Types
         public Dictionary<string, float> Dictionary { get; set; } = [];
     }
 
+    public class ClassWithNestedDictionary
+    {
+        [Display(1)]
+        public required string String { get; set; }
+        [Display(2)]
+        public Dictionary<string, List<string>> Dictionary { get; set; } = [];
+    }
+
+    public class ClassWithNestedList
+    {
+        [Display(1)]
+        public required string String { get; set; }
+        [Display(2)]
+        public List<List<string>> List { get; set; } = [];
+    }
+
+    public class ClassWithMembersNamedLikeTheViewModel
+    {
+        // The name of the indexer of NodeViewModel (this[string])
+        public required string Item { get; set; }
+        // The name of a property of NodeViewModel
+        public required string Children { get; set; }
+    }
+
+    public class ClassWithRefToMembersNamedLikeTheViewModel
+    {
+        public ClassWithMembersNamedLikeTheViewModel? Ref { get; set; }
+    }
+
     public class ClassWithRefCollection
     {
         [Display(1)]

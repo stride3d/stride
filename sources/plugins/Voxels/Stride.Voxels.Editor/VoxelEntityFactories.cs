@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Threading.Tasks;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories;
+using Stride.Assets.Editor.EntityFactories;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Core;
 using Stride.Engine;
@@ -18,7 +18,7 @@ namespace Stride.Voxels.Editor;
 [Display(60, "Voxel light", "Light")]
 public class VoxelLightEntityFactory : EntityFactory
 {
-    public override Task<Entity> CreateEntity(EntityHierarchyItemViewModel parent)
+    public override Task<Entity> CreateEntity(IEntityHierarchyItemViewModel parent)
     {
         var name = ComputeNewName(parent, "Voxel light");
         var component = new LightComponent { Type = new LightVoxel() };
@@ -32,7 +32,7 @@ public class VoxelLightEntityFactory : EntityFactory
 [Display(65, "Voxel volume", "Light")]
 public class VoxelVolumeEntityFactory : EntityFactory
 {
-    public override Task<Entity> CreateEntity(EntityHierarchyItemViewModel parent)
+    public override Task<Entity> CreateEntity(IEntityHierarchyItemViewModel parent)
     {
         var name = ComputeNewName(parent, "Voxel volume");
         var component = new VoxelVolumeComponent { Attributes = { new VoxelAttributeEmissionOpacity() } };

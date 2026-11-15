@@ -512,6 +512,7 @@ namespace Stride.TextureConverter
         /// </remarks>
         /// <param name="image">The image.</param>
         /// <param name="format">The format.</param>
+        /// <param name="quality">The compression quality.</param>
         public void Compress(TexImage image, PixelFormat format, TextureQuality quality = TextureQuality.Fast)
         {
             if (image.Format == format) return;
@@ -1062,7 +1063,7 @@ namespace Stride.TextureConverter
         /// Flips the specified image horizontally or vertically.
         /// </summary>
         /// <param name="image">The image.</param>
-        /// <param name="orientation">The orientation <see cref="Orientation.Flip"/>.</param>
+        /// <param name="orientation">The flip orientation.</param>
         public void Flip(TexImage image, Orientation orientation)
         {
             if (image.Format.IsCompressed)
@@ -1081,7 +1082,7 @@ namespace Stride.TextureConverter
         /// </summary>
         /// <param name="image">The image.</param>
         /// <param name="index">The index of the sub-image.</param>
-        /// <param name="orientation">The orientation <see cref="Orientation.Flip"/>.</param>
+        /// <param name="orientation">The flip orientation.</param>
         public void FlipSub(TexImage image, int index, Orientation orientation)
         {
             if (image.Format.IsCompressed)

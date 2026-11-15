@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Buffers;
 using System.Diagnostics;
 using Stride.Core;
 using Stride.Core.IO;
@@ -74,7 +75,7 @@ namespace Stride.Audio
             }
         }
 
-        internal void LoadSoundInMemory()
+        internal unsafe void LoadSoundInMemory()
         {
             if (PreloadedBuffer.Ptr != IntPtr.Zero) return;
 
@@ -86,23 +87,27 @@ namespace Stride.Audio
 
                 PreloadedBuffer = AudioLayer.BufferCreate(samplesPerPacket * NumberOfPackets * sizeof(short));
 
-                var memory = new UnmanagedArray<short>(samplesPerPacket * NumberOfPackets);
+                var memory = ArrayPool<short>.Shared.Rent(samplesPerPacket * NumberOfPackets);
 
                 var offset = 0;
-                var outputBuffer = new short[samplesPerPacket];
                 for (var i = 0; i < NumberOfPackets; i++)
                 {
                     var len = reader.ReadInt16();
-                    var compressedBuffer = reader.ReadBytes(len);
-                    var samplesDecoded = decoder.Decode(compressedBuffer, len, outputBuffer);
-                    memory.Write(outputBuffer, offset, 0, samplesDecoded * Channels);
-                    offset += samplesDecoded * Channels * sizeof(short);
+                    var compressedBuffer = ArrayPool<byte>.Shared.Rent(len);
+                    reader.Serialize(compressedBuffer, 0, len);
+                    var samplesDecoded = decoder.Decode(compressedBuffer.AsSpan(0, len), memory.AsSpan(offset, samplesPerPacket));
+                    ArrayPool<byte>.Shared.Return(compressedBuffer);
+                    offset += samplesDecoded * Channels;
                 }
 
                 // Ignore invalid data at beginning (due to encoder delay) & end of stream (due to packet size)
                 var samplesToSkip = decoder.GetDecoderSampleDelay();
-                AudioLayer.BufferFill(PreloadedBuffer, memory.Pointer + samplesToSkip * Channels * sizeof(short), Samples * Channels * sizeof(short), SampleRate, Channels == 1);
-                memory.Dispose();
+                var buffer = memory.AsSpan(samplesToSkip * Channels, Samples * Channels);
+                fixed (short* bufferPointer = buffer)
+                {
+                    AudioLayer.BufferFill(PreloadedBuffer, (nint)bufferPointer, buffer.Length * sizeof(short), SampleRate, Channels == 1);
+                }
+                ArrayPool<short>.Shared.Return(memory);
             }
         }
     }

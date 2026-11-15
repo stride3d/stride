@@ -32,13 +32,20 @@ public class FileVersionTracker : IDisposable
     /// Gets the default file version tracker for this machine.
     /// </summary>
     /// <returns>FileVersionTracker.</returns>
+    /// <remarks>
+    /// The file is <c>stride/FileVersionTracker.cache</c> in the local application data folder, unless the
+    /// <c>STRIDE_FILE_VERSION_CACHE</c> environment variable gives the path of another file. Child processes inherit
+    /// the variable, so builds in throwaway folders, such as tests, can keep their entries out of the machine's file.
+    /// </remarks>
     public static FileVersionTracker GetDefault()
     {
         lock (lockDefaultTracker)
         {
             if (defaultFileVersionTracker == null)
             {
-                var filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), DefaultFileVersionTrackerFile);
+                var filePath = Environment.GetEnvironmentVariable("STRIDE_FILE_VERSION_CACHE") is { Length: > 0 } cachePath
+                    ? Path.GetFullPath(cachePath)
+                    : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), DefaultFileVersionTrackerFile);
                 var directory = Path.GetDirectoryName(filePath);
                 if (directory != null && !Directory.Exists(directory))
                 {
@@ -137,12 +144,13 @@ public class FileVersionTracker : IDisposable
                     using var stream = new DigestStream(Stream.Null);
                     fileStream.CopyTo(stream);
                     hash = stream.CurrentHash;
+                    storage[inputVersionKey] = hash;
                 }
                 catch (Exception ex)
                 {
+                    // Not kept: the key may still describe a readable file (locked for now, or deleted then restored with its date)
                     log.Debug($"Cannot calculate hash for file [{filePath}]", ex);
                 }
-                storage[inputVersionKey] = hash;
             }
         }
 
@@ -171,10 +179,12 @@ public struct FileVersionKey : IEquatable<FileVersionKey>
         LastModifiedDate = DateTime.MinValue;
         FileSize = -1;
 
-        if (File.Exists(path))
+        // FileInfo reads the date and the size once, when Exists is read: a file deleted afterwards does not make Length throw
+        var fileInfo = new FileInfo(path);
+        if (fileInfo.Exists)
         {
-            LastModifiedDate = File.GetLastWriteTime(path);
-            FileSize = new FileInfo(path).Length;
+            LastModifiedDate = fileInfo.LastWriteTime;
+            FileSize = fileInfo.Length;
         }
     }
 

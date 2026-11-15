@@ -23,7 +23,6 @@ namespace Stride.Rendering
         /// <summary>
         /// Returns property keys matching a given type
         /// </summary>
-        /// <param name="keyType">Type of the key.</param>
         /// <returns></returns>
         public static IEnumerable<ParameterKey> GetKeys()
         {
@@ -78,6 +77,7 @@ namespace Stride.Rendering
         /// <summary>
         /// Creates the key with specified index.
         /// </summary>
+        /// <param name="key">The original key.</param>
         /// <param name="index">The index.</param>
         /// <returns></returns>
         public static T IndexedKey<T>(T key, int index) where T : ParameterKey

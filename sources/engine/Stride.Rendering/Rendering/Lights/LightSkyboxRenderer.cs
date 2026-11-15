@@ -27,7 +27,6 @@ namespace Stride.Rendering.Lights
             IsEnvironmentLight = true;
         }
 
-        /// <param name="viewCount"></param>
         /// <inheritdoc/>
         public override void Reset()
         {

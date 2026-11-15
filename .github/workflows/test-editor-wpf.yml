@@ -1,0 +1,95 @@
+name: Test Editor (WPF)
+
+# Runs the test projects of the WPF editor (Game Studio, its presentation layer, and the Quantum model behind its
+# property grid) on Windows. main.yml starts it for any change the full build covers, while the Simple lanes start on
+# runtime changes only. Stride.Core.Quantum.Tests runs on any platform: Linux Simple runs it too.
+
+on:
+  workflow_dispatch:
+    inputs:
+      build-type:
+        description: Build
+        default: Debug
+        type: choice
+        options:
+          - Debug
+          - Release
+      test-filter:
+        description: 'dotnet test --filter expression (blank = all tests)'
+        type: string
+        default: ''
+      repeat:
+        description: 'Rerun the filtered test set up to N times, stop on first failure (flake hunting). 1 = single run (default).'
+        type: number
+        default: 1
+  workflow_call:
+    inputs:
+      build-type:
+        default: Debug
+        type: string
+      test-filter:
+        default: ''
+        type: string
+      repeat:
+        default: 1
+        type: number
+
+concurrency:
+  group: test-editor-wpf-${{ github.event.pull_request.number || github.sha }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+  cancel-in-progress: true
+
+jobs:
+  Editor-Tests:
+    name: Windows (Editor WPF, ${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
+    runs-on: windows-2025-vs2026
+    timeout-minutes: 30
+    steps:
+      # Full checkout: Game Studio builds Stride.Templates.*, which preprocesses template content from samples/.
+      - uses: actions/checkout@v7
+        with:
+          lfs: true
+          submodules: true
+          ref: ${{ github.ref }}
+      - name: Build
+        run: |
+          dotnet build sources\Stride.Tests.Editor.Wpf.slnf `
+            -p:StrideTestRuntimeIdentifier=win-x64 `
+            -nr:false `
+            -v:m -p:WarningLevel=0 `
+            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
+            -p:StridePlatforms=Windows `
+            -p:StrideGraphicsApis=Direct3D11
+      - name: Test
+        run: |
+          $filter = "${{ github.event.inputs.test-filter || inputs.test-filter }}"
+          $repeat = [int]("${{ github.event.inputs.repeat || inputs.repeat || '1' }}")
+          $filterArgs = if ($filter) { @('--filter', $filter) } else { @() }
+          for ($i = 1; $i -le $repeat; $i++) {
+            Write-Host "=== Test run $i / $repeat ==="
+            dotnet test sources\Stride.Tests.Editor.Wpf.slnf `
+              --no-build `
+              --logger:"trx;LogFilePrefix=run-$i" --results-directory TestResults `
+              --blame-hang-timeout 5m --blame-hang-dump-type full `
+              -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
+              @filterArgs
+            if ($LASTEXITCODE -ne 0) {
+              Write-Host "Run $i failed (exit $LASTEXITCODE); stopping."
+              exit $LASTEXITCODE
+            }
+          }
+      - name: Publish Test Report
+        if: always()
+        uses: phoenix-actions/test-reporting@v16
+        with:
+          name: 'Test Report: Windows Editor WPF'
+          path: TestResults/*.trx
+          reporter: dotnet-trx
+          output-to: step-summary
+          list-tests: 'failed'
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results-editor-wpf
+          path: TestResults/
+          if-no-files-found: ignore

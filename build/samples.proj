@@ -4,12 +4,13 @@
   dotnet msbuild build/samples.proj -t:PrepareSamplesForRelease. See docs/build/versioning.md.
 
   Two versions meet here:
-    - the ENGINE version the sample csprojs reference (SamplesEngineVersion, the committed release version such as 4.4.0 or
-      4.4.0-beta1; locally only the per-checkout dev packages 4.4.0-devN exist, so the targets switch the csprojs between the two by REAL on-disk
-      edits, no evaluation-time flip);
+    - the ENGINE version the sample csprojs reference: the version of their last upgrade, which records the upgrader gates
+      they had (SamplesEngineVersion is the committed release version such as 4.5.3 or 4.5.3-beta they get at an upgrade;
+      locally only the per-checkout dev packages 4.5.3-devN exist, so the targets switch the csprojs between the two by
+      REAL on-disk edits, no evaluation-time flip);
     - the CONTENT version of the template packs made from the samples (StrideSamplesVersion, from
-      sources/templates/StrideSamplesVersion.props: the exact published version an engine names). Only
-      release-samples.yml changes it, after publishing.
+      sources/templates/StrideSamplesVersion.props: the exact published version an engine names). Only a release that
+      includes the samples changes it, after publishing.
 
     PrepareSamplesForRelease - bring the samples up to this engine: SamplesToDevEngine, UpgradeSamples,
                              SamplesToReleaseEngine, pack the content templates as this checkout's -devN, print
@@ -53,52 +54,84 @@
     <_StrideContentTemplateProject Include="$(StrideRoot)sources\templates\Stride.Templates.AssetPacks\Stride.Templates.AssetPacks.csproj" />
   </ItemGroup>
 
-  <!-- Rewrites Stride.* PackageReference Versions equal to SourceVersion -> TargetVersion (a real csproj
-       edit). The exact source-version match is the whole filter: only refs at the expected version are
-       touched, so $-placeholder versions (e.g. $EngineVersion$) and third-party Stride.*-prefixed packages
-       (which carry their own version) are left alone without needing a name skip-list. -->
+  <!-- Rewrites the Version of Stride.* PackageReferences to TargetVersion (a real csproj edit): those at exactly
+       SourceVersion, or at any label of SourceNumber. Only refs at the expected version are touched, so $-placeholder
+       versions (e.g. $EngineVersion$) and third-party Stride.*-prefixed packages (which carry their own version) are
+       left alone without needing a name skip-list. Says which other versions it left. -->
   <UsingTask TaskName="SetStrideVersionInProjects" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
       <Projects ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
-      <SourceVersion ParameterType="System.String" Required="true" />
+      <SourceVersion ParameterType="System.String" />
+      <SourceNumber ParameterType="System.String" />
       <TargetVersion ParameterType="System.String" Required="true" />
     </ParameterGroup>
     <Task>
+      <Using Namespace="System.Linq" />
+      <Using Namespace="System.Xml.Linq" />
       <Code Type="Fragment" Language="cs"><![CDATA[
-        var rx = new System.Text.RegularExpressions.Regex("(Include=\"Stride[^\"]*\"[^>]*?\\sVersion=\")([^\"]*)(\")");
+        var rewritten = 0;
+        var left = new System.Collections.Generic.SortedSet<string>();
         foreach (var item in Projects)
         {
             var path = item.ItemSpec;
             if (!System.IO.File.Exists(path)) continue;
             var text = System.IO.File.ReadAllText(path);
-            var newText = rx.Replace(text, m => m.Groups[2].Value == SourceVersion
-                ? m.Groups[1].Value + TargetVersion + m.Groups[3].Value
-                : m.Value);
-            if (newText != text)
-                System.IO.File.WriteAllText(path, newText);
+            var hasBom = System.IO.File.ReadAllBytes(path).Take(3).SequenceEqual(new byte[] { 0xEF, 0xBB, 0xBF });
+            var document = XDocument.Parse(text, LoadOptions.PreserveWhitespace);
+            var changed = false;
+            foreach (var reference in document.Descendants().Where(x => x.Name.LocalName == "PackageReference"))
+            {
+                var include = (string)reference.Attribute("Include");
+                var version = reference.Attribute("Version");
+                if (include == null || version == null || !include.StartsWith("Stride.") || version.Value.StartsWith("$") || version.Value == TargetVersion)
+                    continue;
+                if (version.Value == SourceVersion || version.Value.Split('-')[0] == SourceNumber)
+                {
+                    version.Value = TargetVersion;
+                    changed = true;
+                }
+                else
+                {
+                    left.Add(version.Value);
+                }
+            }
+            if (changed)
+            {
+                // ToString() drops the declaration, and can change line endings: keep the file as it was
+                var newLine = text.Contains("\r\n") ? "\r\n" : "\n";
+                var written = document.ToString(SaveOptions.DisableFormatting).Replace("\r\n", "\n").Replace("\n", newLine);
+                System.IO.File.WriteAllText(path, document.Declaration + written, new System.Text.UTF8Encoding(hasBom));
+                rewritten++;
+            }
         }
+        Log.LogMessage(MessageImportance.High, $"{rewritten} sample csproj(s) set to {TargetVersion}.");
+        if (left.Count > 0)
+            Log.LogMessage(MessageImportance.High, $"Left the references on {string.Join(", ", left)}: a sample below the engine's number needs UpgradeSamples, or it would skip the upgrader gates in between.");
       ]]></Code>
     </Task>
   </UsingTask>
 
-  <!-- Resolves SamplesEngineVersion (the committed release version) + SamplesDevEngineVersion (MajorMinor.Patch +
-       worktree suffix = the locally-published dev version, which never carries the committed -betaN) + the concrete sample csproj set (all under
-       samples/ minus the $EngineVersion$ template sources NewGame/Library, the set release-deploy.yml
+  <!-- Resolves SamplesEngineVersion (the committed release version, or -p:SamplesEngineVersion= for another one to write
+       to the csprojs) + SamplesEngineNumber and SamplesDevEngineVersion (MajorMinor.Patch + worktree suffix = the
+       locally-published dev version, which never carries the committed suffix) + the concrete sample csproj set (all
+       under samples/ minus the $EngineVersion$ template sources NewGame/Library, the set plan-sample-release.ps1
        checks for changes since the content version was set). -->
   <Target Name="_ResolveSamplesEngineVersions" DependsOnTargets="StrideEnsureWorktreeVersion">
     <PropertyGroup>
       <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     </PropertyGroup>
-    <MakeDir Directories="$(StrideRoot)bin\obj" Condition="'$(SamplesEngineVersion)' == ''" />
-    <StrideGitVersion Condition="'$(SamplesEngineVersion)' == ''"
+    <MakeDir Directories="$(StrideRoot)bin\obj" />
+    <StrideGitVersion
         RootDirectory="$(StrideRoot)"
         VersionFile="sources\shared\SharedAssemblyInfo.cs"
         GeneratedVersionFile="bin\obj\SampleVersionProbe.cs">
-      <Output TaskParameter="NuGetVersion" PropertyName="SamplesEngineVersion" />
+      <Output TaskParameter="NuGetVersion" PropertyName="_SamplesCommittedVersion" />
     </StrideGitVersion>
-    <Error Condition="'$(SamplesEngineVersion)' == ''" Text="Could not resolve a sample version. Pass -p:SamplesEngineVersion=." />
+    <Error Condition="'$(_SamplesCommittedVersion)' == ''" Text="Could not read the committed version from SharedAssemblyInfo.cs." />
     <PropertyGroup>
-      <SamplesDevEngineVersion>$([System.Text.RegularExpressions.Regex]::Replace('$(SamplesEngineVersion)', '-.*$', ''))$(StrideWorktreeSuffix)</SamplesDevEngineVersion>
+      <SamplesEngineVersion Condition="'$(SamplesEngineVersion)' == ''">$(_SamplesCommittedVersion)</SamplesEngineVersion>
+      <SamplesEngineNumber>$([System.Text.RegularExpressions.Regex]::Replace('$(_SamplesCommittedVersion)', '-.*$', ''))</SamplesEngineNumber>
+      <SamplesDevEngineVersion>$(SamplesEngineNumber)$(StrideWorktreeSuffix)</SamplesDevEngineVersion>
     </PropertyGroup>
     <ItemGroup>
       <_StrideSampleCsproj Include="$(StrideRoot)samples\**\*.csproj" />
@@ -107,18 +140,17 @@
     </ItemGroup>
   </Target>
 
-  <!-- Switch already-bumped samples (committed at the clean version) to this checkout's dev build, e.g.
-       before opening them in GameStudio on a worktree. Real csproj edits; run SamplesToReleaseEngine
-       before committing. A no-op on samples not at the clean version (run UpgradeSamples first). -->
+  <!-- Switch samples already at the engine's number to this checkout's dev build, e.g. before opening them in
+       GameStudio on a worktree. Real csproj edits; run SamplesToReleaseEngine before committing. A sample on a lower
+       number stays there: the upgrade to the dev build must see that number, or it would skip the gates in between
+       (run UpgradeSamples). -->
   <Target Name="SamplesToDevEngine" DependsOnTargets="_ResolveSamplesEngineVersions">
-    <SetStrideVersionInProjects Projects="@(_StrideSampleCsproj)" SourceVersion="$(SamplesEngineVersion)" TargetVersion="$(SamplesDevEngineVersion)" />
-    <Message Importance="high" Text="Samples set to dev version $(SamplesDevEngineVersion)." />
+    <SetStrideVersionInProjects Projects="@(_StrideSampleCsproj)" SourceNumber="$(SamplesEngineNumber)" TargetVersion="$(SamplesDevEngineVersion)" />
   </Target>
 
-  <!-- Switch samples from the dev build back to the committed clean release version. Run before committing. -->
+  <!-- Switch samples from the dev build back to the committed release version. Run before committing. -->
   <Target Name="SamplesToReleaseEngine" DependsOnTargets="_ResolveSamplesEngineVersions">
     <SetStrideVersionInProjects Projects="@(_StrideSampleCsproj)" SourceVersion="$(SamplesDevEngineVersion)" TargetVersion="$(SamplesEngineVersion)" />
-    <Message Importance="high" Text="Samples set to release version $(SamplesEngineVersion)." />
   </Target>
 
   <!-- Bump the in-repo samples through the real package upgraders: each sample upgrades from its committed
@@ -141,13 +173,16 @@
     <!-- Run the package upgrader once over the whole samples solution: one process + one shared NuGet restore,
          so the samples resolve against one coherent graph and don't each pay a fresh process + restore. It sees
          each sample's committed version, migrates assets, rewrites the Stride.* references to this checkout's dev
-         build and restores from the local dev feed. Override SampleUpgradeTarget for a single .slnx/.csproj/.sdpkg. -->
+         build and restores from the local dev feed. Override SampleUpgradeTarget for a single .slnx/.sdpkg (a .csproj
+         upgrades its whole solution). -p:SampleResaveAll=true also writes the assets the upgrade did not change, with
+         no backup folder: git holds the originals. -->
     <PropertyGroup>
       <SampleUpgradeTarget Condition="'$(SampleUpgradeTarget)' == ''">$(StrideRoot)samples\StrideSamples.slnx</SampleUpgradeTarget>
+      <_SampleUpgradeArgs Condition="'$(SampleResaveAll)' == 'true'">--resave-all --no-backup</_SampleUpgradeArgs>
     </PropertyGroup>
     <Message Importance="high" Text="UpgradeSamples: upgrading $(SampleUpgradeTarget)" />
     <Exec WorkingDirectory="$(StrideRoot)"
-          Command="dotnet &quot;@(_StrideCompilerAppDll)&quot; upgrade &quot;$(SampleUpgradeTarget)&quot;" />
+          Command="dotnet &quot;@(_StrideCompilerAppDll)&quot; upgrade &quot;$(SampleUpgradeTarget)&quot; $(_SampleUpgradeArgs)" />
     <Message Importance="high" Text="UpgradeSamples: done (samples at $(SamplesDevEngineVersion))" />
   </Target>
 
@@ -174,7 +209,7 @@
   <!-- Brings the samples up to this engine, as far as a tool can: UpgradeSamples (real upgraders), SamplesToReleaseEngine,
        then a -devN pack of the content to try them. Then the manual part the tool cannot judge: open the samples in
        Game Studio, fix what the upgraders left, commit them in a normal PR. The content version is not touched here:
-       release-samples.yml takes the number, publishes the samples and only then commits SamplesVersion. -->
+       a release on that version publishes the samples and only then commits SamplesVersion. -->
   <Target Name="PrepareSamplesForRelease" DependsOnTargets="_ResolveSamplesEngineVersions">
     <Message Importance="high" Text="PrepareSamplesForRelease: samples referencing engine $(SamplesEngineVersion)" />
 
@@ -183,7 +218,7 @@
          (or worse, it resolves to a stale cached copy). A no-op for samples still at an older engine version. -->
     <CallTarget Targets="SamplesToDevEngine;UpgradeSamples;SamplesToReleaseEngine;PackContentTemplates" />
 
-    <Message Importance="high" Text="%0APrepareSamplesForRelease: samples upgraded and packed locally as $(StrideSamplesVersion)$(StrideWorktreeSuffix). Left to do:%0A  1. Open the samples in Game Studio (SamplesToDevEngine points them at this checkout's engine again) and fix what the upgraders left.%0A  2. Run SamplesToReleaseEngine, commit the samples and merge them with a normal PR.%0A  3. Publish them: release-samples.yml with the next content version; it commits SamplesVersion once published.%0A  4. CleanContentTemplates when this checkout should resolve the published content again." />
+    <Message Importance="high" Text="%0APrepareSamplesForRelease: samples upgraded and packed locally as $(StrideSamplesVersion)$(StrideWorktreeSuffix). Left to do:%0A  1. Open the samples in Game Studio (SamplesToDevEngine points them at this checkout's engine again) and fix what the upgraders left.%0A  2. Run SamplesToReleaseEngine, commit the samples and merge them with a normal PR.%0A  3. Publish them: release.yml on this version includes them, and commits SamplesVersion once published.%0A  4. CleanContentTemplates when this checkout should resolve the published content again." />
   </Target>
 
 </Project>

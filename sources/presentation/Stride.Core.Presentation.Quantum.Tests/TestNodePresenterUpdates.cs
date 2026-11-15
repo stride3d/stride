@@ -481,11 +481,11 @@ public class TestNodePresenterUpdates
         var instance = new Types.ClassWithDictionary();
         var context = BuildContext(instance);
         var presenter = context.Factory.CreateNodeHierarchy(context.RootNode, new GraphNodePath(context.RootNode));
-        var dictionaryNode = context.RootNode[nameof(Types.ClassWithDictionary.Dictionary)].Target;
+        var dictionaryNode = context.RootNode[nameof(Types.ClassWithDictionary.Dictionary)].Target!;
         var index = new NodeIndex("Key");
         // Like a slider shown for a key the dictionary may not have yet: it reads 0 until the key is added.
         var virtualNode = new VirtualNodePresenter((INodePresenterFactoryInternal)context.Factory, context.PropertyProvider, presenter, "Key", typeof(float), 0,
-            () => dictionaryNode.Indices.Contains(index) ? dictionaryNode.Retrieve(index) : 0f, value => { });
+            () => dictionaryNode.Indices!.Contains(index) ? dictionaryNode.Retrieve(index)! : 0f, value => { });
         virtualNode.RegisterAssociatedNode(new NodeAccessor(dictionaryNode, index));
         var changes = new List<object>();
         virtualNode.ValueChanged += (_, _) => changes.Add(virtualNode.Value);

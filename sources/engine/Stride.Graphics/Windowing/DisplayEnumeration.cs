@@ -55,4 +55,21 @@ internal static class DisplayEnumeration
 /// Carries display geometry, modes and optional native identity for creating graphics outputs.
 /// </summary>
 internal sealed record DisplayInfo(string Name, Rectangle DesktopBounds, DisplayMode? CurrentDisplayMode,
-    DisplayMode[] SupportedDisplayModes, long? AdapterLuid = null, IntPtr MonitorHandle = default);
+    DisplayMode[] SupportedDisplayModes, long? AdapterLuid = null, IntPtr MonitorHandle = default,
+    DisplayDetails Details = null);
+
+/// <summary>
+/// Carries the friendly name, rotation and color capabilities of a display.
+/// </summary>
+internal sealed record DisplayDetails(string Description, DisplayRotation Rotation, ColorSpaceType ColorSpace,
+    int BitsPerChannel, float MinLuminance, float MaxLuminance, float MaxFullFrameLuminance,
+    Vector2 RedPrimary, Vector2 GreenPrimary, Vector2 BluePrimary, Vector2 WhitePoint)
+{
+    /// <summary>
+    /// An SDR display with the sRGB primaries and white point, for a display that reports nothing else.
+    /// </summary>
+    internal static DisplayDetails Sdr(string description, DisplayRotation rotation = DisplayRotation.Default) =>
+        new(description, rotation, ColorSpaceType.Rgb_Full_G22_None_P709, BitsPerChannel: 8,
+            MinLuminance: 0, MaxLuminance: 100, MaxFullFrameLuminance: 100,
+            new Vector2(0.6400f, 0.3300f), new Vector2(0.3000f, 0.6000f), new Vector2(0.1500f, 0.0600f), new Vector2(0.3127f, 0.3290f));
+}

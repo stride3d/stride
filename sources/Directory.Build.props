@@ -16,5 +16,11 @@
          that, and nothing needs it: Sentry is only used at send time. This property is the only switch;
          ExcludeAssets="analyzers" on the reference doesn't keep the SDK from loading the generator. -->
     <SentryDisableSourceGenerator>true</SentryDisableSourceGenerator>
+    <!-- CS1591: Missing XML comment for publicly visible type or member
+         VSTHRD200: Use "Async" suffix for async methods
+         The editor's plugin API added in Phase 4 is [Experimental] (STREXP001 to STREXP005, docs/build/plugins.md):
+         a plugin outside this repository opts in per id. Stride's own projects (the editors, the built-in plugins,
+         the tests) change with it, so they all opt in here, in one place. -->
+    <NoWarn>$(NoWarn);CS1591;VSTHRD200;STREXP001;STREXP002;STREXP003;STREXP004;STREXP005</NoWarn>
   </PropertyGroup>
 </Project>

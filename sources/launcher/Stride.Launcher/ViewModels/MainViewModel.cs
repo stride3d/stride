@@ -6,6 +6,7 @@ using System.IO.Pipes;
 using Stride.Core.Assets;
 using Stride.Core.CodeEditorSupport.VisualStudio;
 using Stride.Core.Extensions;
+using Stride.Core.IO;
 using Stride.Core.Packages;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
@@ -74,7 +75,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
 
         foreach (var devVersion in _settings.DeveloperVersions)
         {
-            var version = new StrideDevVersionViewModel(this, store, null, devVersion, false);
+            var version = new StrideDevVersionViewModel(this, store, [(null, devVersion)], false);
             strideVersions.Add(version);
         }
         FetchOnlineData().Forget();
@@ -116,16 +117,35 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
 
     public VsixVersionViewModel VsixPackage2022 { get; }
 
+    /// <summary>
+    /// Gets whether <see cref="ActiveVersion"/> is being changed, while the controls bound to it update.
+    /// </summary>
+    internal bool IsSwitchingVersion { get; private set; }
+
     public StrideVersionViewModel? ActiveVersion
     {
         get { return activeVersion; }
         set
         {
             var previous = activeVersion;
-            if (SetValue(ref activeVersion, value))
+            bool changed;
+            // The Game Studio selector sets the editor while it changes version: not a choice of the user
+            IsSwitchingVersion = true;
+            try
+            {
+                changed = SetValue(ref activeVersion, value);
+            }
+            finally
+            {
+                IsSwitchingVersion = false;
+            }
+            if (changed)
             {
                 previous?.IsActive = false;
                 value?.IsActive = true;
+                // The editor the user last picked, when this version has it; shown again in the selector, which may have
+                // lost its selection with its items
+                value?.UpdateSelectedEditor();
                 Dispatcher.InvokeAsync(() => StartStudioCommand.IsEnabled = value?.CanStart ?? false);
                 RefreshRuntimes();
                 // A click on a recent project opens it with the active version when several local builds match it
@@ -202,7 +222,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         }
     }
 
-    public bool AutoCloseLauncher { get { return autoCloseLauncher; } set { SetValue(ref autoCloseLauncher, value, () => _settings.CloseLauncherAutomatically = value); } }
+    public bool AutoCloseLauncher { get { return autoCloseLauncher; } set { SetValue(ref autoCloseLauncher, value, () => { _settings.CloseLauncherAutomatically = value; _settings.Save(); }); } }
 
     // Applies from the next start: an update check now could run alongside the one from startup
     public bool IncludePrereleaseUpdates
@@ -543,8 +563,8 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
             lock (objectLock)
             {
                 // Retrieve all local packages
-                // One row per major.minor, and one for its nightlies
-                var packages = localPackages.Where(p => !store.IsDevRedirectPackage(p)).GroupBy(p => (p.Version.Version.Major, p.Version.Version.Minor, p.Version.IsNightly), p => p);
+                // One row per major.minor, one for its nightlies, and one per tag of custom builds
+                var packages = localPackages.Where(p => !store.IsDevRedirectPackage(p)).GroupBy(p => (p.Version.Version.Major, p.Version.Version.Minor, Channel: StrideVersionViewModel.ChannelOf(p.Version)), p => p);
                 var updatedLocalPackages = new HashSet<StrideStoreVersionViewModel>();
                 foreach (var package in packages)
                 {
@@ -557,7 +577,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
                         if (index < 0)
                         {
                             // If not, add it
-                            version = new(this, store, localPackage, localPackage.Id, package.Key.Major, package.Key.Minor, package.Key.IsNightly);
+                            version = new(this, store, localPackage, localPackage.Id, package.Key.Major, package.Key.Minor, package.Key.Channel);
                             Dispatcher.Invoke(() => strideVersions.Add(version));
                         }
                         else
@@ -582,15 +602,25 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
             var existingDevVersions = await Dispatcher.InvokeAsync(() => strideVersions.OfType<StrideDevVersionViewModel>().ToList());
             var keptDevVersions = new HashSet<StrideDevVersionViewModel>();
             var newDevVersions = new List<StrideDevVersionViewModel>();
-            foreach (var package in localPackages.Where(store.IsDevRedirectPackage))
+            // One row per checkout, its -devN suffix: one folder builds one version. A stub only points to the checkout's
+            // project, so the stubs of the versions it had before start its current build under an old name; the packages of
+            // the versions it had before are older states of it. Those are hidden, and removed with the row.
+            // A checkout builds the WPF and the Avalonia Game Studio, two packages of the same version: one row, as a release,
+            // whose Game Studio is picked under Start. The WPF one first, which names the row
+            foreach (var checkout in localPackages.Where(store.IsDevRedirectPackage).GroupBy(x => StrideDevVersionViewModel.DevSuffix(x.Version.SpecialVersion) ?? x.Version.ToString()))
             {
                 try
                 {
-                    var realPath = store.GetRealPath(package);
-                    if (existingDevVersions.FirstOrDefault(x => x.Matches(package, realPath)) is { } existing)
+                    var built = checkout.Select(x => StrideDevVersionViewModel.CheckoutBuildVersion(x.Path, x.Id)).FirstOrDefault(x => x is not null);
+                    var version = StrideDevVersionViewModel.ChooseCheckoutVersion(checkout.Select(x => (x.Version, NugetStore.TryGetDevRedirectProjectDirectory(x.Path, x.Id) is not null)), built);
+                    List<(NugetLocalPackage? Package, UDirectory Path)> builds = [.. checkout.Where(x => x.Version == version).OrderBy(x => x.Id, StringComparer.Ordinal)
+                        .Select(x => ((NugetLocalPackage?)x, new UDirectory(store.GetRealPath(x))))];
+                    List<NugetLocalPackage> olderPackages = [.. checkout.Where(x => x.Version != version).OrderBy(x => x.Id, StringComparer.Ordinal).ThenBy(x => x.Version)];
+                    var builtVersion = built != version ? built : null;
+                    if (existingDevVersions.FirstOrDefault(x => x.Matches(builds, olderPackages, builtVersion)) is { } existing)
                         keptDevVersions.Add(existing);
                     else
-                        newDevVersions.Add(new StrideDevVersionViewModel(this, store, package, realPath, true));
+                        newDevVersions.Add(new StrideDevVersionViewModel(this, store, builds, true, olderPackages, builtVersion));
                 }
                 catch (Exception e)
                 {
@@ -635,7 +665,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         {
             // When it is now invalid: an installed release first, then a local build (the top rows, for their developer)
             if (ActiveVersion is null || !strideVersions.Contains(ActiveVersion) || !ActiveVersion.CanDelete)
-                ActiveVersion = StrideVersions.OfType<StrideStoreVersionViewModel>().FirstOrDefault(x => x.CanDelete && !x.IsNightly) ?? StrideVersions.FirstOrDefault(x => x.CanDelete);
+                ActiveVersion = StrideVersions.OfType<StrideStoreVersionViewModel>().FirstOrDefault(x => x.CanDelete && x.IsReleaseChannel) ?? StrideVersions.FirstOrDefault(x => x.CanDelete);
 
             if (!lastActiveVersionRestored)
             {
@@ -685,10 +715,10 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
             lock (objectLock)
             {
                 // Retrieve all server packages (ignoring dev ones)
-                // One row per major.minor, and one for its nightlies
+                // One row per major.minor, one for its nightlies, and one per tag of custom builds
                 var packages = serverPackages
                     //.Where(x => !string.Equals(x.Source, Environment.ExpandEnvironmentVariables(store.DevSource), StringComparison.OrdinalIgnoreCase))
-                    .GroupBy(p => (p.Version.Version.Major, p.Version.Version.Minor, p.Version.IsNightly), p => p);
+                    .GroupBy(p => (p.Version.Version.Major, p.Version.Version.Minor, Channel: StrideVersionViewModel.ChannelOf(p.Version)), p => p);
                 foreach (var package in packages)
                 {
                     var serverPackage = package.FirstOrDefault();
@@ -700,7 +730,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
                         if (index < 0)
                         {
                             // If not, add it
-                            version = new(this, store, null, serverPackage.Id, package.Key.Major, package.Key.Minor, package.Key.IsNightly);
+                            version = new(this, store, null, serverPackage.Id, package.Key.Major, package.Key.Minor, package.Key.Channel);
                             Dispatcher.Invoke(() => strideVersions.Add(version));
                         }
                         else
@@ -708,7 +738,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
                             // If yes, update it and remove it from the list of old version
                             version = (StrideStoreVersionViewModel)strideVersions[index];
                         }
-                        version.UpdateServerPackage(serverPackage, package);
+                        version.UpdateServerPackages([.. package]);
                     }
                 }
             }
@@ -722,8 +752,8 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         {
             await Dispatcher.InvokeAsync(() =>
             {
-                // Allow to install the latest version if any version is found (a release: the local builds are the top rows)
-                var latestVersion = strideVersions.OfType<StrideStoreVersionViewModel>().FirstOrDefault(x => !x.IsNightly);
+                // Allow to install the latest version if any version is found
+                var latestVersion = LatestLine();
                 if (latestVersion is not null)
                 {
                     // Latest version not installed and can be downloaded
@@ -751,7 +781,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
             SaveTaskAsDone(prerequisitesRunTaskName);
         }
 
-        bool firstInstall = StrideVersions.All(x => !x.CanDelete) && StrideVersions.Any(x => x.CanBeDownloaded && !x.IsNightly);
+        bool firstInstall = StrideVersions.All(x => !x.CanDelete) && StrideVersions.Any(x => x.CanBeDownloaded && x.IsReleaseChannel);
 
         await Dispatcher.InvokeTask(async () =>
         {
@@ -760,7 +790,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
                 var result = await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Strings.AskInstallVersion, MessageBoxButton.YesNo, MessageBoxImage.Question);
                 if (result == MessageBoxResult.Yes)
                 {
-                    var versionToInstall = StrideVersions.First(x => x.CanBeDownloaded && !x.IsNightly);
+                    var versionToInstall = StrideVersions.First(x => x.CanBeDownloaded && x.IsReleaseChannel);
                     await versionToInstall.Download(true);
 
                     // if VS2022+ is installed (version 17.x+)
@@ -920,9 +950,18 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         catch (Exception) { }
     }
 
+    // The row "install the latest version" installs: the newest line with a release, rather than one that only has betas
+    // or local builds of the dev feed yet (the checkouts are the top rows, the nightlies and the custom builds have rows
+    // of their own)
+    private StrideStoreVersionViewModel? LatestLine()
+    {
+        var lines = strideVersions.OfType<StrideStoreVersionViewModel>().Where(x => x.IsReleaseChannel).ToList();
+        return lines.FirstOrDefault(x => x.AlternateVersions.Any(build => StrideVersionViewModel.IsReleaseVersion(build.Version))) ?? lines.FirstOrDefault();
+    }
+
     private async Task InstallLatestVersion()
     {
-        var latestVersion = strideVersions.OfType<StrideStoreVersionViewModel>().FirstOrDefault(x => !x.IsNightly);
+        var latestVersion = LatestLine();
         // Should never happen
         if (latestVersion is null || !latestVersion.CanBeDownloaded)
             return;

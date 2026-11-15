@@ -103,6 +103,11 @@ public class UndoRedoService : IUndoRedoService
         dirtiableManager.CreateSnapshot();
     }
 
+    public void NotifySave(IDirtiable dirtiable)
+    {
+        dirtiableManager.CreateSnapshot(dirtiable);
+    }
+
     public void Resize(int newCapacity)
     {
         stack.Resize(newCapacity);

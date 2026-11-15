@@ -21,7 +21,7 @@ public class TestEventArgs
         var rootNode = nodeContainer.GetOrCreateNode(obj);
         var memberNode = rootNode[nameof(SimpleClass.Value)];
 
-        MemberNodeChangeEventArgs capturedArgs = null;
+        MemberNodeChangeEventArgs? capturedArgs = null;
         memberNode.ValueChanged += (sender, args) =>
         {
             capturedArgs = args as MemberNodeChangeEventArgs;
@@ -44,8 +44,8 @@ public class TestEventArgs
         var rootNode = nodeContainer.GetOrCreateNode(obj);
         var listMemberNode = rootNode[nameof(SimpleClass.Items)];
 
-        ItemChangeEventArgs capturedArgs = null;
-        listMemberNode.Target.ItemChanged += (sender, args) =>
+        ItemChangeEventArgs? capturedArgs = null;
+        listMemberNode.Target!.ItemChanged += (sender, args) =>
         {
             capturedArgs = args;
         };
@@ -67,8 +67,8 @@ public class TestEventArgs
         var rootNode = nodeContainer.GetOrCreateNode(obj);
         var listMemberNode = rootNode[nameof(SimpleClass.Items)];
 
-        ItemChangeEventArgs capturedArgs = null;
-        listMemberNode.Target.ItemChanged += (sender, args) =>
+        ItemChangeEventArgs? capturedArgs = null;
+        listMemberNode.Target!.ItemChanged += (sender, args) =>
         {
             capturedArgs = args;
         };
@@ -90,8 +90,8 @@ public class TestEventArgs
         var rootNode = nodeContainer.GetOrCreateNode(obj);
         var listMemberNode = rootNode[nameof(SimpleClass.Items)];
 
-        ItemChangeEventArgs capturedArgs = null;
-        listMemberNode.Target.ItemChanged += (sender, args) =>
+        ItemChangeEventArgs? capturedArgs = null;
+        listMemberNode.Target!.ItemChanged += (sender, args) =>
         {
             capturedArgs = args;
         };

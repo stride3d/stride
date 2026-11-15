@@ -11,7 +11,7 @@ namespace Stride.Core.Collections;
 /// Represents a priority queue, where keys are sorted and each key might have mlutiple values.
 /// </summary>
 /// <remarks>
-/// Storage is based on a <see cref="List{TKey}"/> and a <see cref="List{KeyValuePair{TKey, TValue}}"/>.
+/// Storage is based on a <see cref="List{TKey}"/> and a list of <see cref="KeyValuePair{TKey, TValue}"/> values.
 /// </remarks>
 /// <typeparam name="TKey">The type of the key.</typeparam>
 /// <typeparam name="TValue">The type of the value.</typeparam>

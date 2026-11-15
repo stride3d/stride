@@ -23,7 +23,6 @@ namespace GameMenu
             {
                 // Next scene
                 SceneSystem.SceneInstance.RootScene = Content.Load(NextSceneUrl);
-                Cancel();
             }
         }
     }

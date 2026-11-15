@@ -106,7 +106,7 @@ namespace Stride.Navigation.Assets
             private UFile assetUrl;
             private NavigationMeshAsset asset;
 
-            private int sceneHash = 0;
+            private ObjectId sceneHash;
             private SceneAsset clonedSceneAsset;
             private GameSettingsAsset gameSettingsAsset;
             private bool sceneCloned = false; // Used so that the scene is only cloned once when ComputeParameterHash or DoCommand is called
@@ -270,7 +270,9 @@ namespace Stride.Navigation.Assets
                         // Turn the entire entity hierarchy into a single list
                         var sceneEntities = clonedSceneAsset.Hierarchy.Parts.Select(x => x.Value.Entity).ToList();
 
-                        sceneHash = 0;
+                        var hashStream = new DigestStream(Stream.Null);
+                        var hashWriter = new BinarySerializationWriter(hashStream) { Context = { SerializerSelector = SerializerSelector.AssetWithReuse } };
+
                         foreach (var entity in sceneEntities)
                         {
                             // Collect bounding box entities
@@ -293,12 +295,19 @@ namespace Stride.Navigation.Assets
                                 var boundingBox = new BoundingBox(translation - boundingBoxComponent.Size * scale, translation + boundingBoxComponent.Size * scale);
                                 boundingBoxes.Add(boundingBox);
 
-                                // Hash collider for ComputeParameterHash
-                                sceneHash = (sceneHash * 397) ^ boundingBox.GetHashCode();
+                                hashWriter.Write(boundingBox);
                             }
 
                             if (colliderComponent != null)
                             {
+                                hashWriter.Write(colliderComponent.Entity.Transform.WorldMatrix);
+                                hashWriter.Write(colliderComponent.Enabled);
+                                hashWriter.Write(colliderComponent.IsTrigger);
+                                hashWriter.Write(NavigationMeshBuildUtils.CheckColliderFilter(colliderComponent, asset.IncludedCollisionGroups));
+                                // Before the loading below: a reference to a shape or heightmap hashes as its URL, and its content is an input file
+                                foreach (var desc in colliderComponent.ColliderShapes)
+                                    hashWriter.Write(AssetHash.Compute(desc));
+
                                 staticColliderDatas.Add(new StaticColliderData
                                 {
                                     Component = colliderComponent,
@@ -340,11 +349,11 @@ namespace Stride.Navigation.Assets
                                         }
                                     }
                                 }
-
-                                // Hash collider for ComputeParameterHash
-                                sceneHash = (sceneHash * 397) ^ Stride.Navigation.NavigationMeshBuildUtils.HashEntityCollider(colliderComponent, asset.IncludedCollisionGroups);
                             }
                         }
+
+                        hashWriter.Flush();
+                        sceneHash = hashStream.CurrentHash;
                     }
                     sceneCloned = true;
                 }

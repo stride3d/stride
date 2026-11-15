@@ -30,6 +30,7 @@ namespace Stride.TextureConverter.Requests
         /// Initializes a new instance of the <see cref="CompressingRequest"/> class.
         /// </summary>
         /// <param name="format">The compression format.</param>
+        /// <param name="quality">The compression quality.</param>
         public CompressingRequest(Stride.Graphics.PixelFormat format, TextureQuality quality = TextureQuality.Fast)
         {
             this.Format = format;

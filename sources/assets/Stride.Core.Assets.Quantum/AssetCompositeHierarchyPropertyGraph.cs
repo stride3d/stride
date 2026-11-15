@@ -62,7 +62,7 @@ public abstract class AssetCompositeHierarchyPropertyGraph<TAssetPartDesign, TAs
     protected IObjectNode HierarchyNode { get; }
 
     /// <summary>
-    /// Gets the name of the property targeting the part in the <see cref="TAssetPartDesign"/> type.
+    /// Gets the name of the property targeting the part in the <typeparamref name="TAssetPartDesign"/> type.
     /// </summary>
     protected virtual string PartName => nameof(IAssetPartDesign<TAssetPart>.Part);
 

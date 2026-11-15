@@ -18,7 +18,7 @@
     <PackageReference Include="Sentry" ExcludeAssets="analyzers;build" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
+    <ProjectReference Include="..\..\tests\Stride.XunitRunner\Stride.XunitRunner.csproj" />
     <ProjectReference Include="..\Stride.CrashReport\Stride.CrashReport.csproj" />
     <!-- The probe exe the tests spawn and crash; referenced so it builds and lands beside the tests. -->
     <ProjectReference Include="..\Stride.CrashReport.TestProbe\Stride.CrashReport.TestProbe.csproj" />

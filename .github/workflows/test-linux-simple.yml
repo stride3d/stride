@@ -38,7 +38,7 @@ jobs:
   Linux-Tests:
     name: Linux (Simple, ${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 35
     steps:
       # Full checkout: the Simple test solutions build Stride.Templates.*, which
       # preprocesses template content from samples/.

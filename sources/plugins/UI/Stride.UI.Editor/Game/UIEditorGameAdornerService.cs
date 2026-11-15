@@ -10,13 +10,14 @@ using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.UI.Editor.Adorners;
 using Stride.UI.Editor.Services;
-using Stride.Assets.Presentation.ViewModel;
 using Stride.Editor.EditorGame.Game;
 using Stride.Editor.EditorGame.ViewModels;
 using Stride.Engine;
 using Stride.UI;
 using Stride.UI.Panels;
 using Stride.Rendering.Compositing;
+using Stride.Assets.Editor.ViewModels.SpriteEditor;
+using Stride.Assets.Editor.ViewModels;
 
 namespace Stride.UI.Editor.Game
 {
