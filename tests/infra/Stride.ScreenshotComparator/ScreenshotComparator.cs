@@ -23,11 +23,7 @@ public static class ScreenshotComparator
 {
     public const float DefaultThreshold = 0.05f;
 
-    /// <summary>
-    /// LPIPS canonical eval resolution. Resizing to a square here also dodges a NaN-on-tall-aspect
-    /// issue with the ONNX-exported AlexNet at native portrait sizes (640×1136 → NaN; 256×256 → 0)
-    /// — the L2-normalize step loses numerical safety through the dynamo export.
-    /// </summary>
+    /// <summary>LPIPS canonical eval resolution.</summary>
     private const int InputSize = 256;
 
     /// <summary>
@@ -184,8 +180,10 @@ public static class ScreenshotComparator
         };
 
         using var results = session.Run(inputs);
-        var output = (DenseTensor<float>)results[0].Value;
-        return output[0];
+        var distance = ((DenseTensor<float>)results[0].Value)[0];
+        if (!float.IsFinite(distance))
+            throw new InvalidOperationException($"LPIPS against {Path.GetFileName(pathA)} is {distance}");
+        return distance;
     }
 
     /// <summary>PNG bytes → NCHW float32 in [-1, 1], matching the preprocessing the lpips Python lib does.</summary>
