@@ -113,6 +113,12 @@ jobs:
         with:
           ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || (inputs.commit-sha != '' && inputs.commit-sha) || github.ref }}
           exclude: samples
+      # Before the build: the key hashes the compiler sources, not build outputs. Not the macOS lane's
+      # name: the key has the runner's OS, macOS on both.
+      - uses: ./.github/actions/effect-cache
+        with:
+          mode: restore
+          lane: iOS-Vulkan-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
 
       - name: Install iOS + macOS Workloads
         # macOS workload is needed because the engine libs cross-target net10.0-macos (for the
@@ -279,6 +285,8 @@ jobs:
                   '-App', $appPath.FullName,
                   '-Simulator', $env:IOS_SIM_UDID,
                   '-ResultsDir', "$PWD/tests/local",
+                  # Where the effect-cache action keeps it
+                  '-CacheDir', "$PWD/bin/Tests/$suite/iOS-Vulkan/$config/cache",
                   '-TimeoutSeconds', '1800',
                   '-KeepSimulator',
                   '-StreamLog'
@@ -296,6 +304,11 @@ jobs:
               Write-Host "::error::At least one suite exited with non-zero code (worst=$worstExit)"
               exit $worstExit
           }
+      - uses: ./.github/actions/effect-cache
+        if: success() || failure()
+        with:
+          mode: save
+          lane: iOS-Vulkan-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
 
       - name: Publish Test Report
         if: always()

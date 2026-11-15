@@ -105,6 +105,12 @@ jobs:
         with:
           ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || (inputs.commit-sha != '' && inputs.commit-sha) || github.ref }}
           exclude: samples
+      # Before the build: the key hashes the compiler sources, not build outputs. Not the Linux lane's
+      # name: the key has the runner's OS, Linux on both.
+      - uses: ./.github/actions/effect-cache
+        with:
+          mode: restore
+          lane: Android-Vulkan-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
 
       - name: Setup Android SDK
         # NDK: not installed/pinned — the runner image preinstalls NDKs and each project's
@@ -273,6 +279,12 @@ jobs:
           # shell blocks break with "unexpected end of file". The driver lives in a standalone
           # script — Combined or per-suite — chosen by the Resolve step above.
           script: bash "$ANDROID_RUN_SCRIPT" "${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}" "${{ github.event.inputs.test-filter || inputs.test-filter }}" "${{ github.event.inputs.repeat || inputs.repeat || '1' }}"
+      # The run scripts pulled the app's cache next to its APK
+      - uses: ./.github/actions/effect-cache
+        if: success() || failure()
+        with:
+          mode: save
+          lane: Android-Vulkan-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
 
       - name: Publish Test Report
         if: always()

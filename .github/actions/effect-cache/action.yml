@@ -1,7 +1,8 @@
 name: Effect cache
 description: >-
-  Keeps the effect caches of the game tests (the cache folder next to each test assembly) between runs, so
-  that the tests load their effects instead of compiling them. Cache entries are keyed on the shader sources
+  Keeps the effect caches of the game tests (the cache folder next to each test assembly; the Android and
+  iOS drivers copy the app's cache there and back) between runs, so that the tests load their effects
+  instead of compiling them. Cache entries are keyed on the shader sources
   and ShaderCompilerVersion, not on the compiler code: the key of this cache holds a hash of the compiler and
   of its native tools (and of the FXC of the runner when the lane uses it), so a compiler change starts from
   an empty cache. A run restores the newest cache of the same compiler; the effects of changed shaders miss

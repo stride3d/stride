@@ -5,10 +5,10 @@
 # Drives a deployed Stride test APK on a connected Android device/emulator:
 #   1. (optional) cold-boot an emulator with -gpu swiftshader_indirect
 #   2. (optional) adb install -r the APK
-#   3. push gold images into the app's external files dir
+#   3. push gold images (and the -CacheDir effect cache) into the app's internal files dir
 #   4. launch MainActivity with --es xunit_command run (App.HeadlessMode path)
 #   5. wait for process exit
-#   6. pull tests/local/ (TRX + generated images) back to host
+#   6. pull tests/local/ (TRX + generated images) and the effect cache back to host
 #   7. exit non-zero if any test failed (parsed from the TRX)
 #
 # Works on Windows, Linux, and macOS via PowerShell Core (pwsh).
@@ -22,6 +22,7 @@ param(
     [string]$RepoRoot,                                     # Stride repo root; auto-discovered from script dir
     [string]$GoldDir,                                      # Override gold push source; defaults to <RepoRoot>/tests/baselines/<Suite>
     [string]$ResultsDir,                                   # Override result pull dest; defaults to <RepoRoot>/tests/local
+    [string]$CacheDir,                                     # Host copy of the app's cache folder (its compiled effects): pushed after the install, pulled back after the run
     [string]$Avd,                                          # AVD name to boot if no device is connected
     [string]$Serial,                                       # adb -s target. When -Avd is used, derived from -Port.
     [int]$Port,                                            # emulator console port for cold-boot via -Avd (even; required with -Avd).
@@ -166,6 +167,35 @@ Write-Host "Target serial: $Serial"
 
 function Invoke-Adb { & $adb -s $Serial @args }
 
+# Copies between the host and a folder of the app's internal storage (a path relative to its data dir,
+# such as files/cache). targetSdk 30+ scoped storage blocks app writes through the FUSE-bound external
+# path, so we bridge adb-shell uid <-> app uid: a tar file in /data/local/tmp, read or written by run-as.
+function Copy-ToApp([string]$Source, [string]$Target) {
+    $localTar = [IO.Path]::GetTempFileName()
+    try {
+        & $tar c -C $Source -f $localTar . 2>$null
+        Invoke-Adb push $localTar "/data/local/tmp/$Package-push.tar" | Out-Null
+        Invoke-Adb shell "run-as $Package mkdir -p $Target" 2>$null | Out-Null
+        Invoke-Adb shell "cat /data/local/tmp/$Package-push.tar | run-as $Package tar x -C $Target" 2>$null | Out-Null
+        Invoke-Adb shell "rm /data/local/tmp/$Package-push.tar" 2>$null | Out-Null
+    } finally {
+        Remove-Item $localTar -ErrorAction SilentlyContinue
+    }
+}
+function Copy-FromApp([string]$Source, [string]$Target) {
+    $localTar = [IO.Path]::GetTempFileName()
+    try {
+        # The inner run-as streams the tarball through stdout; a missing folder gives an empty
+        # tarball, so the pipe doesn't break.
+        Invoke-Adb shell "run-as $Package sh -c 'cd $Source 2>/dev/null && tar c . || tar c -T /dev/null' > /data/local/tmp/$Package-pull.tar" 2>$null | Out-Null
+        Invoke-Adb pull "/data/local/tmp/$Package-pull.tar" $localTar 2>$null | Out-Null
+        Invoke-Adb shell "rm /data/local/tmp/$Package-pull.tar" 2>$null | Out-Null
+        & $tar x -C $Target -f $localTar 2>$null
+    } finally {
+        Remove-Item $localTar -ErrorAction SilentlyContinue
+    }
+}
+
 # Connecting + coming online are near-instant against a live adb port, so they get their own
 # short deadline ($ConnectTimeoutSeconds) — a failure here means the emulator/relay is broken,
 # and it should fail fast rather than burn the long test-execution timeout.
@@ -219,10 +249,8 @@ if ($Apk) {
 }
 
 # 3+4. Push gold images per inner suite into the app's internal FilesDir
-# (/data/user/0/<pkg>/files/tests/baselines/<SuiteName>/). targetSdk 30+ scoped storage blocks app
-# writes through the FUSE-bound external path, so we bridge adb-shell uid <-> app uid via
-# tar streams + run-as. Multi-suite hosts (Combined) push one dir per inner suite, keyed
-# by AssemblyName (matching GameTestBase's Assembly.GetName().Name gold lookup).
+# (/data/user/0/<pkg>/files/tests/baselines/<SuiteName>/). Multi-suite hosts (Combined) push one dir
+# per inner suite, keyed by AssemblyName (matching GameTestBase's Assembly.GetName().Name gold lookup).
 # Wipe each device gold dir before pushing so it mirrors the host: a gold file deleted on
 # the host (e.g. a stale primary that's been promoted away) must also disappear from the
 # device, otherwise the on-device framework still finds it as "primary" and ignores fallbacks.
@@ -232,16 +260,15 @@ foreach ($s in $innerSuites) {
            else { $null }
     if (-not $src -or -not (Test-Path $src)) { continue }
     Write-Host "Pushing gold $src/* -> files/tests/baselines/$s/ on device (cleared first)"
-    & $adb shell "run-as $Package sh -c 'rm -rf files/tests/baselines/$s && mkdir -p files/tests/baselines/$s'" 2>$null | Out-Null
-    $localTar = [IO.Path]::GetTempFileName()
-    try {
-        & $tar c -C $src -f $localTar . 2>$null
-        Invoke-Adb push $localTar "/data/local/tmp/$Package-gold.tar" | Out-Null
-        Invoke-Adb shell "cat /data/local/tmp/$Package-gold.tar | run-as $Package tar x -C files/tests/baselines/$s" 2>$null | Out-Null
-        Invoke-Adb shell "rm /data/local/tmp/$Package-gold.tar" 2>$null | Out-Null
-    } finally {
-        Remove-Item $localTar -ErrorAction SilentlyContinue
-    }
+    & $adb shell "run-as $Package rm -rf files/tests/baselines/$s" 2>$null | Out-Null
+    Copy-ToApp $src "files/tests/baselines/$s"
+}
+
+# The app compiles the effects it doesn't find into its cache folder (files/cache). Starting it from
+# the copy of an earlier run leaves only the effects of changed shaders to compile.
+if ($CacheDir -and (Get-ChildItem $CacheDir -Recurse -File -ErrorAction SilentlyContinue | Select-Object -First 1)) {
+    Write-Host "Pushing effect cache $CacheDir -> files/cache"
+    Copy-ToApp $CacheDir 'files/cache'
 }
 
 # 5. Resolve the launch activity
@@ -375,24 +402,19 @@ if ((Get-Date) -ge $deadline) {
 # 9. Pull TRX + generated images from device's files/tests/local/ into $ResultsDir.
 # Each inner suite writes files/tests/local/<SuiteName>/<SuiteName>.trx (+ generated images);
 # pulling the whole local/ dir captures every suite in one shot for both single-suite and
-# Combined hosts. tar device-side via run-as, write to a shell-readable /data/local/tmp file,
-# adb pull, untar. Wipe $ResultsDir first so the host mirrors the device — otherwise a
+# Combined hosts. Wipe $ResultsDir first so the host mirrors the device — otherwise a
 # previously-failing test that now passes (no fresh image written) would leave its stale
 # failure PNG behind and mislead CompareGold.
 Write-Host "Pulling results -> $ResultsDir (cleared first)"
 if (Test-Path $ResultsDir) { Remove-Item -Recurse -Force (Join-Path $ResultsDir '*') }
 else { New-Item -ItemType Directory -Force -Path $ResultsDir | Out-Null }
-$localTar = [IO.Path]::GetTempFileName()
-try {
-    # The outer shell (uid 2000 = shell) writes to /data/local/tmp; the inner run-as streams
-    # the tarball through stdout. If the local/ dir doesn't exist yet, fallback creates an
-    # empty tarball so we don't break the pipe.
-    Invoke-Adb shell "run-as $Package sh -c 'cd files/tests/local 2>/dev/null && tar c . || tar c -T /dev/null' > /data/local/tmp/$Package-results.tar" 2>$null | Out-Null
-    Invoke-Adb pull "/data/local/tmp/$Package-results.tar" $localTar 2>$null | Out-Null
-    Invoke-Adb shell "rm /data/local/tmp/$Package-results.tar" 2>$null | Out-Null
-    & $tar x -C $ResultsDir -f $localTar 2>$null
-} finally {
-    Remove-Item $localTar -ErrorAction SilentlyContinue
+Copy-FromApp 'files/tests/local' $ResultsDir
+
+# The device's cache holds the pushed one, so pulling it over the host copy adds what this run compiled.
+if ($CacheDir) {
+    Write-Host "Pulling effect cache files/cache -> $CacheDir"
+    New-Item -ItemType Directory -Force -Path $CacheDir | Out-Null
+    Copy-FromApp 'files/cache' $CacheDir
 }
 
 # Native crashes: the crash log buffer has the abort message and the crashing thread's backtrace;

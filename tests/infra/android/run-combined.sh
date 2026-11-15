@@ -50,6 +50,7 @@ pwsh tests/infra/android/run-android-tests.ps1 \
     -Suite "Stride.Tests.Combined" \
     -Apk "$APK" \
     -ResultsDir "$PWD/tests/local" \
+    -CacheDir "$PWD/$(dirname "$APK")/cache" \
     -KeepEmulator \
     ${FILTER:+-Filter "$FILTER"} \
     -Repeat "$REPEAT" &

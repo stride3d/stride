@@ -195,6 +195,7 @@ jobs:
               - 'tests/**/iOS.Vulkan/**'
               - 'sources/Stride.iOS.slnf'
               - '.github/workflows/test-ios-game.yml'
+              - '.github/actions/effect-cache/**'
               - '.github/actions/stride-checkout/**'
               - '.github/actions/stride-workload/**'
             android:
@@ -207,6 +208,7 @@ jobs:
               - 'tests/**/Android.Vulkan/**'
               - 'sources/Stride.Tests.Game.Android.slnf'
               - '.github/workflows/test-android-game.yml'
+              - '.github/actions/effect-cache/**'
               - '.github/actions/stride-checkout/**'
               - '.github/actions/stride-workload/**'
             full:
