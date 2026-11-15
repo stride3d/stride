@@ -340,6 +340,7 @@ namespace Stride.Core.UnsafeExtensions
         /// <param name="span">The span from which the pointer is retrieved.</param>
         /// <returns>A pointer to the item at index zero of <paramref name="span"/>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [Obsolete("The pointer is not pinned, so it's only valid for memory that can't move. Pass the span's reference (span[0] or GetReference()) to a ref overload, or use a fixed statement.")]
         public static T* GetPointer<T>(this Span<T> span) where T : unmanaged
             => (T*) DotNetUnsafe.AsPointer(ref span.GetReference());
 
@@ -350,6 +351,7 @@ namespace Stride.Core.UnsafeExtensions
         /// <param name="span">The span from which the pointer is retrieved.</param>
         /// <returns>A pointer to the item at index zero of <paramref name="span"/>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [Obsolete("The pointer is not pinned, so it's only valid for memory that can't move. Pass the span's reference (span[0] or GetReference()) to a ref overload, or use a fixed statement.")]
         public static T* GetPointer<T>(this ReadOnlySpan<T> span) where T : unmanaged
             => (T*) DotNetUnsafe.AsPointer(ref AsRef(in span.GetReference()));
 
