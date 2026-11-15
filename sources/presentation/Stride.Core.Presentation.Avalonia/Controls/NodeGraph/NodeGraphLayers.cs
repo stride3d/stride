@@ -38,7 +38,7 @@ internal sealed class NodeGraphNodesPanel : Panel
 
         foreach (var child in Children)
         {
-            var position = child is NodeGraphNode node ? node.Position : default;
+            var position = child is NodeGraphNode node ? node.ShownPosition : default;
             child.Arrange(new Rect(position, child.DesiredSize));
         }
         return finalSize;
