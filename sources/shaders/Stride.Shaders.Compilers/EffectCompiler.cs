@@ -106,6 +106,19 @@ namespace Stride.Shaders.Compiler
             }
         }
 
+        /// <summary>
+        /// The <see cref="ShaderMixer.Options"/> effects are compiled with for <paramref name="platform"/>.
+        /// </summary>
+        /// <param name="platform">The graphics platform the SPIR-V is compiled for.</param>
+        /// <returns>The register scheme and buffer layout that platform's backend needs.</returns>
+        public static ShaderMixer.Options GetMixerOptions(GraphicsPlatform platform) => new(
+            // D3D12 also goes through SPIR-V (then DXIL via mesa), so it needs the unified
+            // binding scheme — only D3D11/FXC consumes the per-class b#/t#/u#/s# bank style.
+            ResourcesRegisterSeparate: platform is GraphicsPlatform.Direct3D11,
+            StripGoogleUserType: platform is GraphicsPlatform.Vulkan,
+            // Vulkan and D3D12 (spirv_to_dxil) read the SPIR-V layout; D3D11 packs the HLSL like Direct3D already
+            Direct3DStructuredBufferLayout: platform is GraphicsPlatform.Vulkan or GraphicsPlatform.Direct3D12);
+
         public override TaskOrResult<EffectBytecodeCompilerResult> Compile(ShaderMixinSource mixinTree, EffectCompilerParameters effectParameters, CompilerParameters compilerParameters, ObjectId mixinObjectId)
         {
             var log = new EffectCompileLog(EffectCompileLog.EffectCompilerModule);
@@ -159,13 +172,7 @@ namespace Stride.Shaders.Compiler
             shaderMixinSource.AddMacro("class", "shader");
 
             var shaderMixer = new ShaderMixer(GetFileShaderLoader());
-            if (!shaderMixer.MergeSDSL(shaderMixinSource, new ShaderMixer.Options(
-                // D3D12 also goes through SPIR-V (then DXIL via mesa), so it needs the unified
-                // binding scheme — only D3D11/FXC consumes the per-class b#/t#/u#/s# bank style.
-                ResourcesRegisterSeparate: effectParameters.Platform is GraphicsPlatform.Direct3D11,
-                StripGoogleUserType: effectParameters.Platform is GraphicsPlatform.Vulkan,
-                // Vulkan and D3D12 (spirv_to_dxil) read the SPIR-V layout; D3D11 packs the HLSL like Direct3D already
-                Direct3DStructuredBufferLayout: effectParameters.Platform is GraphicsPlatform.Vulkan or GraphicsPlatform.Direct3D12), log, out var spirvBytecode, out var effectReflection, out var usedHashSources, out var entryPoints))
+            if (!shaderMixer.MergeSDSL(shaderMixinSource, GetMixerOptions(effectParameters.Platform), log, out var spirvBytecode, out var effectReflection, out var usedHashSources, out var entryPoints))
                 return new EffectBytecodeCompilerResult(null, log);
 
             // Optional SPIR-V validation (requires spirv-val from Vulkan SDK)
