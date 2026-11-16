@@ -5,7 +5,7 @@ description: >-
   tests load their effects instead of compiling them. Cache entries are keyed on the shader sources and
   ShaderCompilerVersion, not on the compiler code: the key of this cache holds a hash of the compiler and of
   the versions of its packages (and of the FXC of the runner when the lane uses it), so a compiler change
-  starts from an empty cache. A run restores the newest cache of the same compiler; the effects of changed
+  starts from an empty cache, as does each new ISO week. A run restores the newest cache of the same compiler; the effects of changed
   shaders miss and compile. Use `restore` after the checkout and `save` after the tests. Only runs outside
   pull requests save, and only when their tests compiled something new. A shader corpus capture
   (STRIDE_SHADER_CORPUS_CAPTURE set on the job) starts from an empty cache and saves nothing: the capture
@@ -80,7 +80,10 @@ runs:
           [ -f "$fxc_dll" ] || { echo "::error::FXC not found: $fxc_dll"; exit 1; }
           compiler="$compiler-fxc$(sha256sum < "$fxc_dll" | cut -c1-12)"
         fi
-        echo "STRIDE_EFFECT_CACHE_PREFIX=effect-cache-${{ runner.os }}-${{ inputs.lane }}-$compiler-" >> "$GITHUB_ENV"
+        # Each save carries the whole restored cache forward, effects of old shader versions included: a new
+        # cache each ISO week drops them, and runs the cold path weekly
+        week=$(date -u +%G-W%V)
+        echo "STRIDE_EFFECT_CACHE_PREFIX=effect-cache-${{ runner.os }}-${{ inputs.lane }}-$week-$compiler-" >> "$GITHUB_ENV"
     - name: Restore the effect cache
       if: inputs.mode == 'restore' && env.STRIDE_EFFECT_CACHE_PREFIX != ''
       uses: actions/cache/restore@v6
@@ -92,9 +95,12 @@ runs:
       id: count
       shell: bash
       run: |
-        # No globstar: macOS runs bash 3.2
+        # No globstar: macOS runs bash 3.2. nullglob drops a glob that matches nothing, `-e` a folder not made yet (a cold run)
         shopt -s nullglob
-        caches=(${{ inputs.path }})
+        caches=()
+        for cache in ${{ inputs.path }}; do
+          if [ -e "$cache" ]; then caches+=("$cache"); fi
+        done
         count=0
         if [ ${#caches[@]} -gt 0 ]; then count=$(find "${caches[@]}" -type f | wc -l | tr -d ' '); fi
         if [ "${{ inputs.mode }}" = restore ]; then
