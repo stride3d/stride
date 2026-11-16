@@ -83,6 +83,8 @@ namespace Stride.Audio
 
         protected bool isDisposed;
 
+        private bool faulted;
+
         /// <summary>
         /// If we are in the paused state.
         /// </summary>
@@ -346,6 +348,31 @@ namespace Stride.Audio
 
         protected abstract void ExtractAndFillData();
 
+        /// <summary>
+        /// Logs the exception and puts this source in the stopped state, so that it reports not playing and completes its tasks.
+        /// A faulted source stays in <see cref="Sources"/> only to handle its Dispose command.
+        /// </summary>
+        private void Fault(Exception exception)
+        {
+            Logger.Error($"The dynamic sound source '{GetType().Name}' failed and was stopped.", exception);
+
+            faulted = true;
+            state = PlayState.Stopped;
+            playingQueued = false;
+            isSourcePausedOrPlaying = false;
+            Ended.TrySetResult(false);
+            ReadyToPlay.TrySetResult(false);
+
+            try
+            {
+                AudioLayer.SourceStop(soundInstance.Source);
+            }
+            catch (Exception e)
+            {
+                Logger.Error($"Failed to stop the faulted dynamic sound source '{GetType().Name}'.", e);
+            }
+        }
+
         private static unsafe void Worker()
         {
             var toRemove = new List<DynamicSoundSource>();
@@ -370,11 +397,19 @@ namespace Stride.Audio
                     if (!NewSources.TryTake(out var source))
                         continue;
 
-                    if (!source.isInitialized)
-                        source.InitializeInternal();
+                    try
+                    {
+                        if (!source.isInitialized)
+                            source.InitializeInternal();
 
-                    if (source.isInitialized)
-                        Sources.Add(source);
+                        if (source.isInitialized)
+                            Sources.Add(source);
+                    }
+                    catch (Exception e)
+                    {
+                        source.Fault(e);
+                        Sources.Add(source); // kept to handle its Dispose command
+                    }
                 }
 
                 foreach (var source in Sources)
@@ -385,54 +420,72 @@ namespace Stride.Audio
                         continue;
                     }
 
-                    source.UpdateInternal();
-
-                    var seekRequested = false;
-
-                    while (!source.Commands.IsEmpty)
+                    try
                     {
-                        AsyncCommand command;
-                        if (!source.Commands.TryDequeue(out command)) continue;
-                        switch (command)
+                        if (source.faulted)
                         {
-                            case AsyncCommand.Play:
-                                source.PlayInternal();
-                                break;
-                            case AsyncCommand.Pause:
-                                source.PauseInternal();
-                                break;
-                            case AsyncCommand.Stop:
-                                source.StopInternal();
-                                break;
-                            case AsyncCommand.Seek:
-                                seekRequested = true;
-                                break;
-                            case AsyncCommand.SetRange:
-                                source.RestartInternal();
-                                break;
-                            case AsyncCommand.Dispose:
+                            while (source.Commands.TryDequeue(out var faultedCommand))
+                            {
+                                if (faultedCommand != AsyncCommand.Dispose) continue;
                                 source.DisposeInternal();
                                 toRemove.Add(source);
-                                break;
-                            default:
-                                throw new ArgumentOutOfRangeException();
+                            }
+                            continue;
                         }
+
+                        source.UpdateInternal();
+
+                        var seekRequested = false;
+
+                        while (!source.Commands.IsEmpty)
+                        {
+                            AsyncCommand command;
+                            if (!source.Commands.TryDequeue(out command)) continue;
+                            switch (command)
+                            {
+                                case AsyncCommand.Play:
+                                    source.PlayInternal();
+                                    break;
+                                case AsyncCommand.Pause:
+                                    source.PauseInternal();
+                                    break;
+                                case AsyncCommand.Stop:
+                                    source.StopInternal();
+                                    break;
+                                case AsyncCommand.Seek:
+                                    seekRequested = true;
+                                    break;
+                                case AsyncCommand.SetRange:
+                                    source.RestartInternal();
+                                    break;
+                                case AsyncCommand.Dispose:
+                                    source.DisposeInternal();
+                                    toRemove.Add(source);
+                                    break;
+                                default:
+                                    throw new ArgumentOutOfRangeException();
+                            }
+                        }
+
+                        if (source.isDisposed)
+                            continue;
+
+                        source.isSourcePausedOrPlaying = (source.IsPausedOrPlaying && !source.Ended.Task.IsCompleted) || AudioLayer.SourceIsPlaying(source.soundInstance.Source);
+
+                        //Did we get a Seek request?
+                        if (seekRequested)
+                        {
+                            source.SeekInternal();
+                            continue;
+                        }
+
+                        if (source.CanFill && source.isSourcePausedOrPlaying)
+                            source.ExtractAndFillData();
                     }
-
-                    if (source.isDisposed)
-                        continue;
-
-                    source.isSourcePausedOrPlaying = (source.IsPausedOrPlaying && !source.Ended.Task.IsCompleted) || AudioLayer.SourceIsPlaying(source.soundInstance.Source);
-
-                    //Did we get a Seek request?
-                    if (seekRequested)
+                    catch (Exception e)
                     {
-                        source.SeekInternal();
-                        continue;
+                        source.Fault(e);
                     }
-                    
-                    if (source.CanFill && source.isSourcePausedOrPlaying)
-                        source.ExtractAndFillData();
                 }
 
                 foreach (var source in toRemove)
@@ -441,7 +494,7 @@ namespace Stride.Audio
                 var buffersShouldBeFill = false;
                 foreach (var source in Sources)
                 { 
-                    if (source.CanFill)
+                    if (!source.faulted && source.CanFill)
                     {
                         buffersShouldBeFill = true;
                         break;
