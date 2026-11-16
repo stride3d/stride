@@ -113,8 +113,7 @@ jobs:
         with:
           ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || (inputs.commit-sha != '' && inputs.commit-sha) || github.ref }}
           exclude: samples
-      # Before the build: the key hashes the compiler sources, not build outputs. Not the macOS lane's
-      # name: the key has the runner's OS, macOS on both.
+      # Not the macOS lane's name: the key has the runner's OS, macOS on both.
       - uses: ./.github/actions/effect-cache
         with:
           mode: restore
