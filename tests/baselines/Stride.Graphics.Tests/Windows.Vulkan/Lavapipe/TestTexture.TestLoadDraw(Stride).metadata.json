@@ -1,0 +1,15 @@
+{
+  "os": "Microsoft Windows 10.0.26100",
+  "cpu": "AMD EPYC 9V45 96-Core Processor",
+  "cpuFeatures": "AVX2 FMA AVX-VNNI AVX512F AVX512VL AVX512DQ AVX512BW AVX512VBMI V512",
+  "gpu": "Mesa llvmpipe (LLVM 21.1.0, 256 bits)",
+  "gpuVendorId": "0x10005",
+  "gpuDeviceId": "0x0000",
+  "vendorName": "Mesa",
+  "driverId": "MesaLLVMPipe",
+  "driverName": "llvmpipe",
+  "driverInfo": "Mesa 26.2.4 (git-96cb431210) (LLVM 21.1.0)",
+  "driverVersion": "26.2.4",
+  "apiName": "Vulkan",
+  "apiVersion": "1.4.354"
+}

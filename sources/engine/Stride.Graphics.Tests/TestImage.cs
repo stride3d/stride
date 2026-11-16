@@ -183,36 +183,37 @@ namespace Stride.Graphics.Tests
         [SkippableFact]
         public void TestLoadAndSave()
         {
-            foreach (ImageFileType sourceFormat in Enum.GetValues<ImageFileType>())
-            {
-                foreach (ImageFileType intermediateFormat in Enum.GetValues<ImageFileType>())
+            // One game for every pair: the conversions only need the game for its content.
+            PerformTest(
+                game =>
                 {
-                    if (Platform.Type == PlatformType.Android && (
-                        intermediateFormat == ImageFileType.Bmp || // TODO remove this when Save method is implemented for the bmp format
-                        intermediateFormat == ImageFileType.Gif || // TODO remove this when Save method is implemented for the gif format
-                        intermediateFormat == ImageFileType.Tiff || // TODO remove this when Save method is implemented for the tiff format
-                        sourceFormat == ImageFileType.Bmp || // TODO remove this when Load method is fixed for the bmp format
-                        sourceFormat == ImageFileType.Tiff)) // TODO remove this when Load method is fixed for the tiff format
-                        continue;
-
-                    // iOS ImageIO premultiplies during decode; PNG (and other lossless container
-                    // formats via ImageSharp) can't tag premul state, so Image.Load → Save → Image.Load
-                    // through them ends up doubly-premultiplied. Skip when the intermediate is one of
-                    // those formats. Stride/DDS intermediates preserve bytes verbatim and still work.
-                    if (Platform.Type == PlatformType.iOS && intermediateFormat is
-                        ImageFileType.Png or ImageFileType.Bmp or ImageFileType.Gif or ImageFileType.Jpg or ImageFileType.Tiff)
-                        continue;
-
-                    if (intermediateFormat == ImageFileType.Tga || sourceFormat == ImageFileType.Tga) // TODO remove this when Load/Save methods are implemented for Tga.
-                        continue;
-
-                    PerformTest(
-                        game =>
+                    foreach (ImageFileType sourceFormat in Enum.GetValues<ImageFileType>())
+                    {
+                        foreach (ImageFileType intermediateFormat in Enum.GetValues<ImageFileType>())
                         {
+                            if (Platform.Type == PlatformType.Android && (
+                                intermediateFormat == ImageFileType.Bmp || // TODO remove this when Save method is implemented for the bmp format
+                                intermediateFormat == ImageFileType.Gif || // TODO remove this when Save method is implemented for the gif format
+                                intermediateFormat == ImageFileType.Tiff || // TODO remove this when Save method is implemented for the tiff format
+                                sourceFormat == ImageFileType.Bmp || // TODO remove this when Load method is fixed for the bmp format
+                                sourceFormat == ImageFileType.Tiff)) // TODO remove this when Load method is fixed for the tiff format
+                                continue;
+
+                            // iOS ImageIO premultiplies during decode; PNG (and other lossless container
+                            // formats via ImageSharp) can't tag premul state, so Image.Load → Save → Image.Load
+                            // through them ends up doubly-premultiplied. Skip when the intermediate is one of
+                            // those formats. Stride/DDS intermediates preserve bytes verbatim and still work.
+                            if (Platform.Type == PlatformType.iOS && intermediateFormat is
+                                ImageFileType.Png or ImageFileType.Bmp or ImageFileType.Gif or ImageFileType.Jpg or ImageFileType.Tiff)
+                                continue;
+
+                            if (intermediateFormat == ImageFileType.Tga || sourceFormat == ImageFileType.Tga) // TODO remove this when Load/Save methods are implemented for Tga.
+                                continue;
+
                             ProcessFiles(game, sourceFormat, intermediateFormat);
-                        });
-                }
-            }
+                        }
+                    }
+                });
         }
 
         [SkippableFact]
