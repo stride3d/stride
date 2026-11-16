@@ -21,6 +21,9 @@ namespace Stride.Core.Assets.Editor.Testing;
 /// close actions run, as when the editor closes a session), waits for its background work and deletes the folder.</para>
 /// <para>The package loads without the NuGet restore and the MSBuild evaluation of its project, which have nothing to give for it
 /// (<see cref="TestPackageLoad"/>).</para>
+/// <para>The sessions share one dispatcher and the editor's process-wide registries: tests that open them don't run in parallel.
+/// A session that opens while another test has one open fails at once, with a message that says so. A test can open several
+/// sessions, one after the other or together.</para>
 /// </remarks>
 public sealed class EditorTestSession : IAsyncDisposable
 {
@@ -30,6 +33,7 @@ public sealed class EditorTestSession : IAsyncDisposable
     public const string DefaultPackageName = "TestGame";
 
     private bool disposed;
+    private IDisposable? registration;
 
     private EditorTestSession(string directory, string packageName, UFile packagePath, IViewModelServiceProvider serviceProvider, IAssetsPluginService plugins)
     {
@@ -95,13 +99,24 @@ public sealed class EditorTestSession : IAsyncDisposable
     /// <param name="options">The plugin host, the services and the name of the package.</param>
     /// <param name="assets">The assets, each with its location in the package, without extension.</param>
     /// <returns>The open session, which continues its caller in the dispatcher.</returns>
-    /// <exception cref="InvalidOperationException">The session could not be opened; the message has the log of the loading.</exception>
+    /// <exception cref="InvalidOperationException">The session could not be opened; the message has the log of the loading. Or
+    /// another test has a session open: the sessions of the kit share one dispatcher, so tests that open them can't run in parallel.</exception>
     public static DispatcherTask<EditorTestSession> OpenAsync(EditorTestSessionOptions options, params (string Location, Asset Asset)[] assets)
     {
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(options.Plugins);
         ArgumentNullException.ThrowIfNull(assets);
-        return DispatcherTask.InDispatcher(() => OpenCoreAsync(options, assets));
+        // Fails at once when another test has a session open, rather than hang with it
+        var registration = OpenSessions.Add();
+        try
+        {
+            return DispatcherTask.InDispatcher(() => OpenCoreAsync(options, assets, registration));
+        }
+        catch
+        {
+            registration.Dispose();
+            throw;
+        }
     }
 
     /// <summary>
@@ -142,6 +157,23 @@ public sealed class EditorTestSession : IAsyncDisposable
         catch (IOException)
         {
             // Best effort: a file the session opened last can still be closing
+        }
+        registration?.Dispose();
+    }
+
+    private static async Task<EditorTestSession> OpenCoreAsync(EditorTestSessionOptions options, (string Location, Asset Asset)[] assets, IDisposable registration)
+    {
+        try
+        {
+            var fixture = await OpenCoreAsync(options, assets);
+            // The session stays recorded until it is disposed
+            fixture.registration = registration;
+            return fixture;
+        }
+        catch
+        {
+            registration.Dispose();
+            throw;
         }
     }
 
