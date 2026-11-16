@@ -362,6 +362,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
         /// <summary>The methods a <c>base.</c> call reaches.</summary>
         public HashSet<int> BaseCallTargets { get; } = new();
+
+        /// <summary>The types, names and decorations of the context, for the duplicate checks of the whole merge.</summary>
+        public TypeMergeIndex? TypeIndex { get; set; }
     }
 
     class MixinNodeContext
@@ -432,13 +435,15 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
     private void ProcessMixinClasses(MixinGlobalContext globalContext, SpirvContext context, SpirvBuffer buffer, ShaderMixinInstantiation mixinSource, MixinNode mixinNode)
     {
         mixinNode.StartInstruction = buffer.Count;
-        var typeDuplicateInserter = new TypeDuplicateHelper(context);
+        var typeIndex = globalContext.TypeIndex ??= new TypeMergeIndex(context);
+        // What other code appended to the context since the previous node becomes visible to the duplicate checks here
+        typeIndex.Sync();
 
         foreach (var shaderClass in mixinSource.Mixins)
         {
             var contextStart = context.Count;
 
-            var shaderInfo = MergeClassInBuffers(globalContext, context, buffer, mixinNode, shaderClass, typeDuplicateInserter);
+            var shaderInfo = MergeClassInBuffers(globalContext, context, buffer, mixinNode, shaderClass, typeIndex);
 
             mixinNode.ShadersByName.Add(shaderClass.ToClassNameWithGenerics(), shaderInfo);
             mixinNode.Shaders.Add(shaderInfo);
@@ -446,9 +451,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             // Note: we process name, types and struct right away, as they might be needed by the next Shader
             ShaderClass.ProcessNameAndTypes(context, contextStart, context.Count);
             PopulateShaderInfo(globalContext, context, contextStart, context.Count, buffer, shaderInfo.StartInstruction, shaderInfo.EndInstruction, shaderInfo, mixinNode);
-
-            // The merge and PopulateShaderInfo turned some names and decorations into OpNop: the next class searches the others
-            typeDuplicateInserter.DropNopDecorations();
         }
 
         mixinNode.EndInstruction = buffer.Count;
@@ -469,7 +471,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
     // Append CompositionPath to "Link" for any non-stage variable
     // Also force-emit the missing "Link" decorations
 
-    private ShaderInfo MergeClassInBuffers(MixinGlobalContext globalContext, SpirvContext context, SpirvBuffer buffer, MixinNode mixinNode, ShaderClassInstantiation shaderClass, TypeDuplicateHelper typeDuplicateInserter)
+    private ShaderInfo MergeClassInBuffers(MixinGlobalContext globalContext, SpirvContext context, SpirvBuffer buffer, MixinNode mixinNode, ShaderClassInstantiation shaderClass, TypeMergeIndex typeIndex)
     {
         var isRootMixin = mixinNode.Stage == null;
         if (shaderClass.ImportStageOnly)
@@ -677,12 +679,12 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     else
                     {
                         // Check if type already exists in context (deduplicate them)
-                        if (typeDuplicateInserter.CheckForDuplicates(i2, out var existingInstruction))
+                        if (typeIndex.CheckForDuplicates(i2, out var existingInstruction))
                         {
                             if (i2.IdResult is int duplicateId)
                             {
                                 remapIds.Add(duplicateId, existingInstruction.Data.IdResult!.Value);
-                                var mismatches = typeDuplicateInserter.MergeTypeDecorations(existingInstruction.Data.IdResult.Value, duplicateId);
+                                var mismatches = typeIndex.MergeTypeDecorations(existingInstruction.Data.IdResult.Value, duplicateId);
                                 if (mismatches != null)
                                 {
                                     var details = string.Join("; ", mismatches.Select(m =>
@@ -763,7 +765,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
                     if (addToContext)
                     {
-                        typeDuplicateInserter.InsertInstruction(context.Count, i2);
+                        typeIndex.Add(i2);
                     }
                 }
             }
