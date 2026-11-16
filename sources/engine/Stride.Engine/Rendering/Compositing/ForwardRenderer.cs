@@ -503,7 +503,6 @@ namespace Stride.Rendering.Compositing
                 using (drawContext.QueryManager.BeginProfile(Color.Green, CompositingProfilingKeys.GBuffer))
                 using (drawContext.PushRenderTargetsAndRestore())
                 {
-                    drawContext.CommandList.Clear(drawContext.CommandList.DepthStencilBuffer, DepthStencilClearOptions.DepthBuffer);
                     drawContext.CommandList.SetRenderTarget(drawContext.CommandList.DepthStencilBuffer, null);
 
                     // Draw [main view | z-prepass stage]
