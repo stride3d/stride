@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,11 +12,14 @@ using Microsoft.Win32;
 
 namespace Stride
 {
-    public static class AndroidDeviceEnumerator
+    /// <summary>
+    /// Finds <c>adb</c>, the Android Debug Bridge, and lists the Android devices it sees.
+    /// </summary>
+    internal static class AndroidDeviceEnumerator
     {
-        private static string adbPath;
+        private static string? adbPath;
 
-        private static string LocateAdb()
+        private static string? LocateAdb()
         {
             // First, look for adb.exe process (if daemon is started)
             var processes = Process.GetProcessesByName("adb");
@@ -22,7 +27,9 @@ namespace Stride
             {
                 try
                 {
-                    return process.MainModule.FileName;
+                    var fileName = process.MainModule?.FileName;
+                    if (fileName != null)
+                        return fileName;
                 }
                 catch (Exception)
                 {
@@ -61,7 +68,7 @@ namespace Stride
             return null;
         }
 
-        public static string GetAdbPath()
+        public static string? GetAdbPath()
         {
             return adbPath ?? (adbPath = LocateAdb());
         }
@@ -168,9 +175,9 @@ namespace Stride
             [DllImport("kernel32.dll", EntryPoint = "CreateProcessW", CharSet = CharSet.Unicode)]
             [return: MarshalAs(UnmanagedType.Bool)]
             private static extern bool CreateProcessW(
-                string lpApplicationName, string lpCommandLine, IntPtr lpProcessAttributes,
+                string? lpApplicationName, string lpCommandLine, IntPtr lpProcessAttributes,
                 IntPtr lpThreadAttributes, bool bInheritHandles, ProcessCreationFlags dwCreationFlags,
-                IntPtr lpEnvironment, string lpCurrentDirectory, [In] ref STARTUPINFOEX lpStartupInfo,
+                IntPtr lpEnvironment, string? lpCurrentDirectory, [In] ref STARTUPINFOEX lpStartupInfo,
                 out PROCESS_INFORMATION lpProcessInformation);
 
             [Flags]
@@ -215,9 +222,9 @@ namespace Stride
             private struct STARTUPINFO
             {
                 public Int32 cb;
-                public string lpReserved;
-                public string lpDesktop;
-                public string lpTitle;
+                public string? lpReserved;
+                public string? lpDesktop;
+                public string? lpTitle;
                 public Int32 dwX;
                 public Int32 dwY;
                 public Int32 dwXSize;

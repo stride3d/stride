@@ -41,6 +41,32 @@ msgctxt "Label"
 msgid "{0} out of {1} file(s)"
 msgstr ""
 
+#. Displayed when user tries to run Android project without an Android device attached.
+#: ../editor/Stride.Core.Assets.Editor/Components/Build/AndroidGameDeployer.cs:47
+msgctxt "Message"
+msgid "No Android device found for execution."
+msgstr "Nessun dispositivo Android è stato trovato."
+
+#: ../editor/Stride.Core.Assets.Editor/Components/Build/AndroidGameDeployer.cs:67
+msgctxt "Message"
+msgid "Couldn't find Android package name for {0}."
+msgstr "Impossibile trovare il nome del pacchetto Android per {0}."
+
+#. Displayed when Android tools "adb" can't be found
+#: ../editor/Stride.Core.Assets.Editor/Components/Build/AndroidGameDeployer.cs:75
+msgctxt "Message"
+msgid ""
+"Android tool \"\"adb\"\" couldn't found (no running process, in registry or "
+"on the PATH). Please add it to your PATH."
+msgstr ""
+"Lo strumento Android \"\"adb\" non è stato trovato (Nessun processo attivo, "
+"ne nel registro o nel PERCORSO). Per favore, aggiungilo al tuo PERCORSO."
+
+#: ../editor/Stride.Core.Assets.Editor/Components/Build/AndroidGameDeployer.cs:84
+msgctxt "Message"
+msgid "Can't run Android app with adb: {0}"
+msgstr "Impossibile avviare l'app Android con adb: {0}"
+
 #: ../editor/Stride.Core.Assets.Editor/Components/Build/BuildAndRunViewModel.cs:35
 msgctxt "Title"
 msgid "Output"

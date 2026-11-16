@@ -106,12 +106,6 @@ msgctxt "Message"
 msgid "Platform {0} isn't supported for execution."
 msgstr "La plateforme {0} n'est pas prise en charge pour l'exécution."
 
-#. Displayed when user tries to run Android project without an Android device attached.
-#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:713
-msgctxt "Message"
-msgid "No Android device found for execution."
-msgstr "Aucun appareil Android trouvé pour l'exécution."
-
 #: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:763
 #: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:934
 msgctxt "Message"
@@ -124,27 +118,6 @@ msgstr "Impossible de charger et compiler le projet {0}"
 msgctxt "Message"
 msgid "Unable to reach to output executable: {0}"
 msgstr "Impossible d’atteindre la sortie exécutable : {0}"
-
-#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:805
-msgctxt "Message"
-msgid "Couldn't find Android package name for {0}."
-msgstr "Impossible de trouver le nom du paquet Android pour {0}."
-
-#. Displayed when Android tools "adb" can't be found
-#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:815
-msgctxt "Message"
-msgid ""
-"Android tool \"\"adb\"\" couldn't found (no running process, in registry or "
-"on the PATH). Please add it to your PATH."
-msgstr ""
-"L’outil Android « adb » n’a pas pu être trouvé (pas de processus en cours "
-"d’exécution, dans le registre ou sur le PATH). Veuillez l’ajouter à votre "
-"PATH."
-
-#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:822
-msgctxt "Message"
-msgid "Can't run Android app with adb: {0}"
-msgstr "Impossible de lancer l'application Android avec adb : {0}"
 
 #. Displayed when starting a game on a platform requiring credentials but none were provided.
 #: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:847

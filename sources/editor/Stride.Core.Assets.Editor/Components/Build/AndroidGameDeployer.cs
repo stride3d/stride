@@ -1,19 +1,11 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#nullable enable
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Stride.Core.Assets.Editor.Components.Build;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Translation;
 
-namespace Stride.GameStudio.Deployment;
+namespace Stride.Core.Assets.Editor.Components.Build;
 
 /// <summary>
 /// The deploy step of the Android games: the build installs the game on the first device <c>adb</c> lists, then <c>adb</c> starts it.
