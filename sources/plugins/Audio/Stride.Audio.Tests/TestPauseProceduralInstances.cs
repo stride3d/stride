@@ -103,8 +103,14 @@ namespace Stride.Audio.Tests
             Assert.Equal(0, engine.DynamicSourceInstanceCount);
         }
 
+        private static void SkipWithoutAudioDevice(AudioEngine engine)
+        {
+            Skip.If(engine.State == AudioEngineState.Invalidated, "No audio device: the engine cannot create sources.");
+        }
+
         private Sound CreateInMemorySound()
         {
+            SkipWithoutAudioDevice(engine);
             const int sampleCount = 4410;
             var sound = new Sound { Channels = 1, SampleRate = 44100, Samples = sampleCount, StreamFromDisk = false };
             sound.Attach(engine);
@@ -121,7 +127,7 @@ namespace Stride.Audio.Tests
             return sound;
         }
 
-        [Fact]
+        [SkippableFact]
         public void ProceduralInstancePlayedDuringPauseStartsOnResume()
         {
             var instance = ProceduralSource.CreateInstance(engine);
@@ -136,7 +142,7 @@ namespace Stride.Audio.Tests
             instance.Dispose();
         }
 
-        [Fact]
+        [SkippableFact]
         public void LoopingInMemoryInstancePlayedDuringPauseStartsOnResume()
         {
             using var sound = CreateInMemorySound();
@@ -153,7 +159,7 @@ namespace Stride.Audio.Tests
             instance.Dispose();
         }
 
-        [Fact]
+        [SkippableFact]
         public void NonLoopingInMemoryInstancePlayedDuringPauseIsDropped()
         {
             using var sound = CreateInMemorySound();
@@ -169,7 +175,7 @@ namespace Stride.Audio.Tests
             instance.Dispose();
         }
 
-        [Fact]
+        [SkippableFact]
         public void DeferredInstanceStoppedDuringPauseStaysStopped()
         {
             var instance = ProceduralSource.CreateInstance(engine);
@@ -184,7 +190,7 @@ namespace Stride.Audio.Tests
             instance.Dispose();
         }
 
-        [Fact]
+        [SkippableFact]
         public void DeferredInstancePausedDuringPauseStaysPausedAfterResume()
         {
             var instance = ProceduralSource.CreateInstance(engine);
@@ -204,7 +210,7 @@ namespace Stride.Audio.Tests
             instance.Dispose();
         }
 
-        [Fact]
+        [SkippableFact]
         public void InstancePausedByEnginePausedAgainByUserStaysPausedAfterResume()
         {
             var instance = CreatePlayingInstance();
@@ -219,7 +225,7 @@ namespace Stride.Audio.Tests
             instance.Dispose();
         }
 
-        [Fact]
+        [SkippableFact]
         public void DeferredInstanceDisposedDuringPauseDoesNotBreakResume()
         {
             var instance = ProceduralSource.CreateInstance(engine);
@@ -232,7 +238,7 @@ namespace Stride.Audio.Tests
             Assert.Equal(AudioEngineState.Running, engine.State);
         }
 
-        [Fact]
+        [SkippableFact]
         public void PlayCalledTwiceDuringPauseIsRememberedOnce()
         {
             var instance = ProceduralSource.CreateInstance(engine);
@@ -249,7 +255,7 @@ namespace Stride.Audio.Tests
             instance.Dispose();
         }
 
-        [Fact]
+        [SkippableFact]
         public void PlayExclusiveDuringPauseStopsSiblingsAndStartsOnResume()
         {
             using var sound = CreateInMemorySound();
@@ -293,7 +299,7 @@ namespace Stride.Audio.Tests
 
             public static SoundInstance CreateInstance(AudioEngine engine)
             {
-                Skip.If(engine.State == AudioEngineState.Invalidated, "No audio device: the engine cannot create sources.");
+                SkipWithoutAudioDevice(engine);
                 var source = new ProceduralSource();
                 var instance = new SoundInstance(engine, engine.DefaultListener, source, 44100, mono: true);
                 source.soundInstance = instance;
