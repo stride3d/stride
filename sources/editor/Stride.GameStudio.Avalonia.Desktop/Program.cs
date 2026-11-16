@@ -14,6 +14,7 @@ using Avalonia.Threading;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Diagnostics;
+using Stride.Core.Presentation.Avalonia.Services;
 using Stride.Crash;
 using Stride.Crash.ViewModels;
 using Stride.GameStudio.Avalonia.Services;
@@ -38,6 +39,8 @@ internal sealed class Program
     public static void Main(string[] args)
     {
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+        // Before Avalonia and Skia start, which load the system HarfBuzz on Linux
+        HarfBuzzBinding.BindNow();
 
         // The persisted graphics API preference isn't staged in this build: fall back to the platform default and reset
         // the setting, so the user isn't stuck in a fail-at-launch loop (there is no window yet to ask the user).
