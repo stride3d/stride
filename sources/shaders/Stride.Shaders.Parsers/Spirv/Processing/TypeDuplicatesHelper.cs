@@ -241,18 +241,6 @@ public class TypeDuplicateHelper
         }
     }
 
-    /// <summary>
-    /// Removes the names and decorations that were turned into <see cref="Op.OpNop"/> since they were inserted.
-    /// </summary>
-    /// <remarks>
-    /// An <see cref="Op.OpNop"/> has target 0, which breaks the order that <see cref="FindDecorationRange"/> searches.
-    /// The other entries keep their order: a name or decoration whose target is remapped after its insertion is also turned into <see cref="Op.OpNop"/>.
-    /// </remarks>
-    public void DropNopDecorations()
-    {
-        namesByOp.RemoveAll(x => x.Data.Op == Op.OpNop);
-    }
-
     private List<InstructionSortHelper> GetTargetList(OpData data)
     {
         switch (data.Op)
@@ -318,112 +306,6 @@ public class TypeDuplicateHelper
             || op == Op.OpSpecConstantTrue
             || op == Op.OpSpecConstantFalse
             || op == Op.OpSpecConstantOp;
-    }
-
-    public (int Start, int End) FindDecorationRange(int targetId)
-    {
-        var span = CollectionsMarshal.AsSpan(namesByOp);
-        int lo = 0, hi = namesByOp.Count - 1, start = namesByOp.Count;
-        while (lo <= hi)
-        {
-            int mid = lo + (hi - lo) / 2;
-            if (span[mid].Data.Memory.Span[1] < targetId)
-                lo = mid + 1;
-            else if (span[mid].Data.Memory.Span[1] > targetId)
-                hi = mid - 1;
-            else { start = mid; hi = mid - 1; }
-        }
-        int end = start;
-        while (end < namesByOp.Count && span[end].Data.Memory.Span[1] == targetId)
-            end++;
-        return (start, end);
-    }
-
-    /// <summary>
-    /// Compares decorations for two type IDs and removes the duplicate side.
-    /// Returns true if all decorations matched, false if there was a mismatch.
-    /// </summary>
-    /// <summary>
-    /// Merges decorations when deduplicating types. Removes the removeId's decorations
-    /// and returns a list of decorations that only exist on one side (mismatches).
-    /// Each entry is (Data, OnKeepOnly: true if only on keepId, false if only on removeId).
-    /// Remove-side OpData are clones that the caller should dispose.
-    /// </summary>
-    public List<(OpData Data, bool OnKeepOnly)>? MergeTypeDecorations(int keepId, int removeId)
-    {
-        var (keepStart, keepEnd) = FindDecorationRange(keepId);
-        var (removeStart, removeEnd) = FindDecorationRange(removeId);
-
-        List<(OpData Data, bool OnKeepOnly)>? mismatches = null;
-        var span = CollectionsMarshal.AsSpan(namesByOp);
-
-        // Check: every removeId decoration has a match in keepId
-        for (int r = removeStart; r < removeEnd; r++)
-        {
-            ref var rInst = ref span[r];
-            bool found = false;
-            for (int k = keepStart; k < keepEnd; k++)
-            {
-                ref var kInst = ref span[k];
-                if (kInst.Op == rInst.Op
-                    && MemoryExtensions.SequenceEqual(kInst.Data.Memory.Span[2..], rInst.Data.Memory.Span[2..]))
-                {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found)
-            {
-                if (rInst.Op is Op.OpName)
-                {
-                    // OpName mismatches are harmless — just adopt the remove-side name onto keepId
-                    var clone = new OpData(rInst.Data.Memory.Span);
-                    clone.Memory.Span[1] = keepId;
-                    var insertIndex = keepStart < namesByOp.Count ? namesByOp[keepStart].Index : 0;
-                    namesByOp.Insert(keepEnd, new InstructionSortHelper { Op = clone.Op, Index = insertIndex, Data = clone });
-                    keepEnd++;
-                    // Inserting before the remove range shifts its indices
-                    if (keepEnd <= removeStart + 1) // +1 because keepEnd was just incremented
-                    {
-                        removeStart++;
-                        removeEnd++;
-                        r++;
-                    }
-                    span = CollectionsMarshal.AsSpan(namesByOp); // re-acquire after mutation
-                }
-                else
-                    (mismatches ??= []).Add((new OpData(rInst.Data.Memory.Span), false));
-            }
-        }
-        // Check reverse: every keepId decoration has a match in removeId
-        for (int k = keepStart; k < keepEnd; k++)
-        {
-            ref var kInst = ref span[k];
-            if (kInst.Op is Op.OpName)
-                continue; // OpName on keep-side is always fine
-            bool found = false;
-            for (int r = removeStart; r < removeEnd; r++)
-            {
-                ref var rInst = ref span[r];
-                if (rInst.Op == kInst.Op
-                    && MemoryExtensions.SequenceEqual(rInst.Data.Memory.Span[2..], kInst.Data.Memory.Span[2..]))
-                {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found)
-                (mismatches ??= []).Add((kInst.Data, true));
-        }
-
-        // Nop and remove the removeId's decorations
-        for (int r = removeEnd - 1; r >= removeStart; r--)
-        {
-            SetOpNop(namesByOp[r].Data.Memory.Span);
-            namesByOp.RemoveAt(r);
-        }
-
-        return mismatches;
     }
 
     public bool CheckForDuplicates(OpData data, out OpDataIndex foundData)
