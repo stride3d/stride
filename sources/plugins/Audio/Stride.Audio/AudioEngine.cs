@@ -181,7 +181,7 @@ namespace Stride.Audio
         }
 
         /// <summary>
-        /// Resume all audio engine. That is, resume the sounds paused by <see cref="PauseAudio"/>, start the looping and streamed sounds that were played while the engine was paused, and re-authorize future calls to play. A sound that the user paused, stopped or disposed during the pause is not started.
+        /// Resume all audio engine. That is, resume the sounds paused by <see cref="PauseAudio"/>, start the looping, streamed and paused sounds that were played while the engine was paused, and re-authorize future calls to play. A sound that the user paused, stopped or disposed during the pause is not started.
         /// </summary>
         public void ResumeAudio()
         {

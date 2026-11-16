@@ -111,7 +111,7 @@ namespace Stride.Audio.Tests
         private Sound CreateInMemorySound()
         {
             SkipWithoutAudioDevice(engine);
-            const int sampleCount = 4410;
+            const int sampleCount = 44100;
             var sound = new Sound { Channels = 1, SampleRate = 44100, Samples = sampleCount, StreamFromDisk = false };
             sound.Attach(engine);
             sound.PreloadedBuffer = AudioLayer.BufferCreate(sampleCount * sizeof(short));
@@ -171,6 +171,24 @@ namespace Stride.Audio.Tests
 
             engine.ResumeAudio();
             Assert.Equal(PlayState.Stopped, instance.PlayState);
+
+            instance.Dispose();
+        }
+
+        [SkippableFact]
+        public void NonLoopingInstancePausedByEngineAndPlayedAgainDuringPauseResumes()
+        {
+            using var sound = CreateInMemorySound();
+            var instance = sound.CreateInstance(engine.DefaultListener);
+            instance.Play();
+            Assert.Equal(PlayState.Playing, instance.PlayState);
+
+            engine.PauseAudio();
+            instance.Pause();
+            instance.Play();
+
+            engine.ResumeAudio();
+            Assert.Equal(PlayState.Playing, instance.PlayState);
 
             instance.Dispose();
         }

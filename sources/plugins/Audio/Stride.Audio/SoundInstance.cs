@@ -240,7 +240,7 @@ namespace Stride.Audio
         /// Play or resume the sound effect instance.
         /// </summary>
         /// <remarks>
-        /// While the audio engine is paused, a looping instance or an instance with a streamed or dynamic source is remembered and starts when <see cref="AudioEngine.ResumeAudio"/> is called.
+        /// While the audio engine is paused, a paused instance, a looping instance or an instance with a streamed or dynamic source is remembered and starts when <see cref="AudioEngine.ResumeAudio"/> is called.
         /// Any other instance is not played.
         /// </remarks>
         public void Play()
@@ -252,7 +252,7 @@ namespace Stride.Audio
         /// Play or resume the sound effect instance, stopping sibling instances.
         /// </summary>
         /// <remarks>
-        /// While the audio engine is paused, a looping instance or an instance with a streamed or dynamic source stops its siblings at once and starts when <see cref="AudioEngine.ResumeAudio"/> is called.
+        /// While the audio engine is paused, a paused instance, a looping instance or an instance with a streamed or dynamic source stops its siblings at once and starts when <see cref="AudioEngine.ResumeAudio"/> is called.
         /// Any other instance is not played and does not stop its siblings.
         /// </remarks>
         public void PlayExclusive()
@@ -338,7 +338,7 @@ namespace Stride.Audio
             if (engine.State == AudioEngineState.Paused)
             {
                 // Nothing reaches the native source until ResumeAudio plays the instance.
-                if ((isLooping || soundSource != null) && engine.DeferPlayUntilResume(this))
+                if ((isLooping || soundSource != null || playState == PlayState.Paused) && engine.DeferPlayUntilResume(this))
                 {
                     if (stopSiblingInstances)
                         sound?.StopConcurrentInstances(this);
