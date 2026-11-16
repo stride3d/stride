@@ -48,6 +48,7 @@ namespace Stride.Graphics
             ///   The usage for the Buffer, which determines who can read/write data. By default, it is <see cref="GraphicsResourceUsage.Default"/>.
             /// </param>
             /// <returns>A new instance of <see cref="Buffer"/>.</returns>
+            [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
             public static Buffer New(GraphicsDevice device, int bufferSize, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
             {
                 return Buffer.New(device, bufferSize, BufferFlags.IndexBuffer, usage);
