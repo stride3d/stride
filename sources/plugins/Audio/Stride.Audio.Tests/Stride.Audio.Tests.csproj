@@ -45,6 +45,7 @@
     <Compile Include="Engine\TestAssetLoading.cs" />
     <Compile Include="Engine\TestAudioEmitterComponent.cs" />
     <Compile Include="Engine\TestAudioEmitterProcessor.cs" />
+    <Compile Include="Engine\TestAudioEmitterZeroMatrix.cs" />
     <Compile Include="Engine\TestAudioListenerProcessor.cs" />
     <Compile Include="Engine\TestAudioSystem.cs" />
     <Compile Include="Engine\TestController.cs" />
