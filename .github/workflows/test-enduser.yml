@@ -85,6 +85,9 @@ jobs:
       # Shader corpus refresh (sources/shaders/Stride.Shaders.Tests/Corpus/README.md): the sample builds and runs
       # record their mixin trees. One leg is enough, the corpus test compiles each tree for every graphics API.
       STRIDE_SHADER_CORPUS_CAPTURE: ${{ inputs.capture-shader-corpus && matrix.graphics-api == 'Direct3D11' && format('{0}/shader-corpus', github.workspace) || '' }}
+      # One cache folder for every sample of the lane, which ScreenshotRunner copies next to each game and back. Not in a
+      # corpus capture: the capture records an effect when a game compiles it, not when it loads one an earlier game compiled.
+      STRIDE_TESTS_EFFECT_CACHE: ${{ !inputs.capture-shader-corpus && format('{0}/samples-effect-cache', github.workspace) || '' }}
       # Stride.NuGetResolver re-verifies packages per synthetic project (unlike dotnet
       # restore which trusts cached results), tripping on legacy 4.3.0/4.7.0 BCL packages
       # whose timestamping CAs have expired.
@@ -110,6 +113,13 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
           ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || github.ref }}
+
+      - uses: ./.github/actions/effect-cache
+        with:
+          mode: restore
+          lane: Samples-${{ matrix.graphics-api }}-${{ inputs.build-type || 'Debug' }}
+          fxc: ${{ matrix.graphics-api == 'Direct3D11' }}
+          path: samples-effect-cache
 
       - name: Configure crash dumps (Windows)
         if: runner.os == 'Windows'
@@ -201,6 +211,13 @@ jobs:
             --results-directory TestResults \
             -p:Configuration=${{ inputs.build-type || 'Debug' }} \
             -p:StrideGraphicsApi=${{ matrix.graphics-api }}
+
+      - uses: ./.github/actions/effect-cache
+        if: success() || failure()
+        with:
+          mode: save
+          lane: Samples-${{ matrix.graphics-api }}-${{ inputs.build-type || 'Debug' }}
+          path: samples-effect-cache
 
       - name: Publish test report
         if: always()
