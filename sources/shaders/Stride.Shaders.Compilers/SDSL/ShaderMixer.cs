@@ -446,6 +446,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             // Note: we process name, types and struct right away, as they might be needed by the next Shader
             ShaderClass.ProcessNameAndTypes(context, contextStart, context.Count);
             PopulateShaderInfo(globalContext, context, contextStart, context.Count, buffer, shaderInfo.StartInstruction, shaderInfo.EndInstruction, shaderInfo, mixinNode);
+
+            // The merge and PopulateShaderInfo turned some names and decorations into OpNop: the next class searches the others
+            typeDuplicateInserter.DropNopDecorations();
         }
 
         mixinNode.EndInstruction = buffer.Count;
@@ -785,10 +788,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     SetOpNop(i.Data.Memory.Span);
             }
         }
-
-        // Re-sort decoration index after remapping changed target IDs in the buffer
-        if (remapIds.Count > 0)
-            typeDuplicateInserter.ResortDecorations();
 
         // Build ShaderInfo
         var shaderInfo = new ShaderInfo(mixinNode.Shaders.Count, shaderClass.ClassName, shaderStart, buffer.Count);
