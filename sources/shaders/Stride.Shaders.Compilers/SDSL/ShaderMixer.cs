@@ -533,7 +533,10 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         }
 
         var structTypes = new Dictionary<string, int>();
-        OpData? pendingOpLine = null; // Defer OpLine until the next included instruction
+        // The words of each copied instruction, and of the OpLine deferred until the next included instruction (none when its length is 0)
+        var scratch = new int[64];
+        var pendingOpLine = new int[4];
+        var pendingOpLineLength = 0;
 
         // Copy instructions to main buffer
         foreach (var (shader, links) in new[] { (shaderBuffers.Context.GetBuffer(), linkInfo.Context), (shaderBuffers.Buffer, linkInfo.Buffer) })
@@ -613,14 +616,18 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         }
 
                         // Discard pending OpLine — the instruction it was meant for was skipped
-                        pendingOpLine = null;
+                        pendingOpLineLength = 0;
 
                         // Go to next instruction
                         continue;
                     }
                 }
 
-                var i2 = new OpData(shader[index].Words);
+                var source = shader.GetWords(index);
+                if (scratch.Length < source.Length)
+                    scratch = new int[Math.Max(source.Length, scratch.Length * 2)];
+                source.CopyTo(scratch);
+                var i2 = new OpData(scratch.AsMemory(0, source.Length));
                 var words = i2.Memory.Span;
 
                 if (offset > 0)
@@ -716,27 +723,30 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         }
                     }
                     // Instruction goes to context or is deduplicated — discard any pending OpLine
-                    pendingOpLine = null;
+                    pendingOpLineLength = 0;
                 }
                 // Does this belong in context or buffer?
                 else if (isContext)
                 {
                     addToContext = true;
                     // Instruction goes to context — discard any pending OpLine (OpLine belongs in function bodies only)
-                    pendingOpLine = null;
+                    pendingOpLineLength = 0;
                 }
                 else if (i2.Op == Op.OpLine)
                 {
                     // Defer OpLine — only emit when the next non-OpLine instruction is actually included
-                    pendingOpLine = i2;
+                    if (pendingOpLine.Length < words.Length)
+                        pendingOpLine = new int[words.Length];
+                    words.CopyTo(pendingOpLine);
+                    pendingOpLineLength = words.Length;
                 }
                 else
                 {
                     // Flush pending OpLine before emitting a real instruction
-                    if (pendingOpLine is { } pending)
+                    if (pendingOpLineLength > 0)
                     {
-                        buffer.Add(pending);
-                        pendingOpLine = null;
+                        buffer.Add(new OpData(pendingOpLine.AsMemory(0, pendingOpLineLength)));
+                        pendingOpLineLength = 0;
                     }
                     buffer.Add(i2);
                 }
