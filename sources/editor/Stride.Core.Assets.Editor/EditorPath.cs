@@ -22,7 +22,7 @@ public static class EditorPath
     /// </remarks>
     public static string UserDataPath
     {
-        get => userDataPath ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ProductNameDirectory);
+        get => userDataPath ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData, Environment.SpecialFolderOption.DoNotVerify), ProductNameDirectory);
         set => userDataPath = value;
     }
 

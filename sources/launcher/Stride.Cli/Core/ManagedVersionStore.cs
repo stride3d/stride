@@ -15,7 +15,7 @@ internal sealed class ManagedVersionStore
 
     public ManagedVersionStore()
     {
-        filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "stride", "installs.json");
+        filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify), "stride", "installs.json");
     }
 
     public Dictionary<string, string> Load()

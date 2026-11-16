@@ -385,7 +385,7 @@ public sealed class StrideVersionManager
         // from the user's global `dotnet new` installation and is deterministic regardless of whether
         // Game Studio has been run.
         var profileDir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify),
             "stride", "cli", "templates", version.ToString());
 
         var registry = new DotNetNewTemplateRegistry(version.ToString(), profileDir);
