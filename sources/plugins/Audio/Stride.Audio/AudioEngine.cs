@@ -162,6 +162,15 @@ namespace Stride.Audio
                         }
                     }
                 }
+
+                foreach (var instance in dynamicSourceInstances)
+                {
+                    if (instance.PlayState == PlayState.Playing)
+                    {
+                        instance.Pause();
+                        pausedSounds.Add(instance);
+                    }
+                }
             }
         }
 
@@ -183,6 +192,36 @@ namespace Stride.Audio
         }
 
         private readonly List<SoundBase> notDisposedSounds = new List<SoundBase>();
+
+        // Instances created on a DynamicSoundSource have no Sound to reach them from. Guarded by the lock of notDisposedSounds.
+        private readonly List<SoundInstance> dynamicSourceInstances = new List<SoundInstance>();
+
+        internal int DynamicSourceInstanceCount
+        {
+            get
+            {
+                lock (notDisposedSounds)
+                {
+                    return dynamicSourceInstances.Count;
+                }
+            }
+        }
+
+        internal void RegisterDynamicSourceInstance(SoundInstance instance)
+        {
+            lock (notDisposedSounds)
+            {
+                dynamicSourceInstances.Add(instance);
+            }
+        }
+
+        internal void UnregisterDynamicSourceInstance(SoundInstance instance)
+        {
+            lock (notDisposedSounds)
+            {
+                dynamicSourceInstances.Remove(instance);
+            }
+        }
 
         internal void RegisterSound(SoundBase newSound)
         {
@@ -212,14 +251,20 @@ namespace Stride.Audio
                 return;
 
             SoundBase[] notDisposedSoundsArray;
+            SoundInstance[] dynamicSourceInstancesArray;
             lock (notDisposedSounds)
             {
                 notDisposedSoundsArray = notDisposedSounds.ToArray();
+                dynamicSourceInstancesArray = dynamicSourceInstances.ToArray();
             }
 
             // Dispose all the sound not disposed yet.
             foreach (var soundBase in notDisposedSoundsArray)
                 soundBase.Dispose();
+
+            // Instances of a dynamic source have no sound to reach them from. Each one unregisters itself when disposed, hence the copy.
+            foreach (var instance in dynamicSourceInstancesArray)
+                instance.Dispose();
 
             // Drain the DynamicSoundSource worker before tearing down the native device:
             // it's a static, long-running task that keeps calling AudioLayer.Source* on any

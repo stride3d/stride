@@ -56,6 +56,8 @@ namespace Stride.Audio
                 throw new Exception("Failed to create an AudioLayer Source");
             }
 
+            engine.RegisterDynamicSourceInstance(this);
+
             ResetStateToDefault();
         }
 
@@ -290,6 +292,9 @@ namespace Stride.Audio
             Stop();
 
             sound?.UnregisterInstance(this);
+
+            if (sound == null)
+                engine.UnregisterDynamicSourceInstance(this);
 
             if (engine.State == AudioEngineState.Invalidated)
                 return;
