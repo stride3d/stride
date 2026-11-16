@@ -76,13 +76,30 @@ public class STRDIAG010InvalidConstructor : DiagnosticAnalyzer
     }
     private static void TryReportDiagnostics(INamedTypeSymbol symbol,SymbolAnalysisContext context)
     {
-        if (HasPublicEmptyConstructor(symbol))
+        if (HasPublicEmptyConstructor(symbol) || IsCommandRunInProcess(symbol))
         {
             return;
         }
 
         Rule.ReportDiagnostics(context, symbol);
     }
+
+    /// <summary>
+    /// Whether the type is a build command (<c>Stride.Core.BuildEngine.Command</c>) that runs in the process that made it.
+    /// Commands are data contracts, but only one that runs in a process of its own (<c>ShouldSpawnNewProcess</c>) is serialized.
+    /// </summary>
+    private static bool IsCommandRunInProcess(INamedTypeSymbol symbol)
+    {
+        for (var type = symbol; type != null; type = type.BaseType)
+        {
+            if (type.Name == "Command" && type.ContainingNamespace?.ToDisplayString() == "Stride.Core.BuildEngine")
+                return true;
+            if (type.GetMembers("ShouldSpawnNewProcess").OfType<IMethodSymbol>().Any(x => x.IsOverride && x.Parameters.Length == 0))
+                return false;
+        }
+        return false;
+    }
+
     private static bool HasPublicEmptyConstructor(INamedTypeSymbol type) 
         => type.Constructors.Any(x => x.Parameters.Length == 0 && x.DeclaredAccessibility == Accessibility.Public);
 }

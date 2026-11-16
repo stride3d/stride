@@ -41,9 +41,44 @@ public class STRDIAG010_Test
         await TestHelper.ExpectDiagnosticAsync(sourceCode, STRDIAG010InvalidConstructor.DiagnosticId);
     }
     [Fact]
+    public async Task No_Error_On_Command_Run_In_Process()
+    {
+        // A plugin's asset command takes what it compiles in its constructor, as Stride's own do
+        string sourceCode = string.Format(CommandTemplate, "");
+        await TestHelper.ExpectNoDiagnosticsAsync(sourceCode);
+    }
+    [Fact]
+    public async Task Error_On_Command_Run_In_Its_Own_Process()
+    {
+        string sourceCode = string.Format(CommandTemplate, "public override bool ShouldSpawnNewProcess() => true;");
+        await TestHelper.ExpectDiagnosticAsync(sourceCode, STRDIAG010InvalidConstructor.DiagnosticId);
+    }
+    [Fact]
     public async Task No_Error_On_Flipped_DataContract_Parameters()
     {
         string sourceCode = string.Format(ClassTemplates.DataContractArgumentsTemplate, "");
         await TestHelper.ExpectNoDiagnosticsAsync(sourceCode);
     }
+
+    // A build command as the build engine declares it, and one of an asset compiler
+    private const string CommandTemplate = @"
+using Stride.Core;
+namespace Stride.Core.BuildEngine
+{{
+    [DataContract(Inherited = true)]
+    public abstract class Command
+    {{
+        public virtual bool ShouldSpawnNewProcess() => false;
+    }}
+}}
+public abstract class AssetCommand<T> : Stride.Core.BuildEngine.Command
+{{
+    protected AssetCommand(string url, T parameters) {{ }}
+}}
+public class MyAssetCommand : AssetCommand<string>
+{{
+    public MyAssetCommand(string url, string parameters) : base(url, parameters) {{ }}
+    {0}
+}}
+";
 }
