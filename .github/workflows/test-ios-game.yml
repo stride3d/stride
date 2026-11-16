@@ -125,7 +125,7 @@ jobs:
         run: |
           echo "STRIDE_METAL_APP_CACHE=$RUNNER_TEMP/metal-cache/app" >> "$GITHUB_ENV"
           echo "STRIDE_METAL_HOST_CACHE=$(getconf DARWIN_USER_CACHE_DIR)com.apple.CoreSimulator.SimRenderingServices.SimMetalHost" >> "$GITHUB_ENV"
-          echo "STRIDE_METAL_CACHE_PREFIX=metal-cache-$ImageOS-$ImageVersion-$(date -u +%G-W%V)-" >> "$GITHUB_ENV"
+          echo "STRIDE_METAL_CACHE_PREFIX=metal-cache-$ImageOS-$ImageVersion-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}-$(date -u +%G-W%V)-" >> "$GITHUB_ENV"
       - name: Restore the Metal cache
         id: metal-cache
         uses: actions/cache/restore@v6
