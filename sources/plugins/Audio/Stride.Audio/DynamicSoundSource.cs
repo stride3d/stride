@@ -82,6 +82,7 @@ namespace Stride.Audio
         protected bool isInitialized;
 
         protected bool isDisposed;
+        private int disposeRequested;
 
         private bool faulted;
 
@@ -126,11 +127,13 @@ namespace Stride.Audio
         }
 
         /// <summary>
-        /// Enqueues a dispose command, to dispose this instance.
+        /// Enqueues a dispose command, to dispose this instance. Calling it again has no effect.
         /// </summary>
         public virtual void Dispose()
         {
-            Commands.Enqueue(AsyncCommand.Dispose);
+            // The worker frees the native source once per command.
+            if (Interlocked.Exchange(ref disposeRequested, 1) == 0)
+                Commands.Enqueue(AsyncCommand.Dispose);
         }
 
         /// <summary>
