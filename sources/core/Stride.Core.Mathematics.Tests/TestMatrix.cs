@@ -242,6 +242,22 @@ public class TestMatrix
         Assert.Equal(matrix, doubleTranspose);
     }
 
+    [Fact]
+    public void TestMatrixTransposeReturnsTranspose()
+    {
+        var matrix = new Matrix(
+            1, 2, 3, 4,
+            5, 6, 7, 8,
+            9, 10, 11, 12,
+            13, 14, 15, 16);
+        Matrix.Transpose(ref matrix, out var expected);
+
+        var transpose = Matrix.Transpose(matrix);
+
+        Assert.Equal(expected, transpose);
+        Assert.NotEqual(matrix, transpose);
+    }
+
     [Theory]
     [InlineData(0, 0, 0)]
     [InlineData(90, 0, 0)]

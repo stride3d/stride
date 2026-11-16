@@ -1349,8 +1349,8 @@ public struct Matrix : IEquatable<Matrix>, ISpanFormattable
     /// <returns>The transpose of the specified matrix.</returns>
     public static Matrix Transpose(in Matrix value)
     {
-        value.Transpose();
-        return value;
+        Transpose(in value, out var result);
+        return result;
     }
 
     /// <summary>
