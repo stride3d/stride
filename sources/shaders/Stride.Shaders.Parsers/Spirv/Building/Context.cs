@@ -316,26 +316,19 @@ public partial class SpirvContext
     public void RemoveNameAndDecorations(HashSet<int> ids)
     {
         ThrowIfFrozen();
+        if (ids.Count == 0)
+            return;
         foreach (var i in Buffer)
         {
-            if (i.Op == Op.OpDecorate && ((OpDecorate)i) is { } decorate)
-            {
-                if (ids.Contains(decorate.Target))
-                    SpirvBuilder.SetOpNop(i.Data.Memory.Span);
-            }
-            else if (i.Op == Op.OpDecorateString && ((OpDecorateString)i) is { } decorateString)
-            {
-                if (ids.Contains(decorateString.Target))
-                    SpirvBuilder.SetOpNop(i.Data.Memory.Span);
-            }
-            else if (i.Op == Op.OpName && (OpName)i is { } nameInstruction)
-            {
-                if (ids.Contains(nameInstruction.Target))
-                {
-                    Names.Remove(nameInstruction.Target);
-                    SpirvBuilder.SetOpNop(i.Data.Memory.Span);
-                }
-            }
+            if (i.Op is not (Op.OpDecorate or Op.OpDecorateString or Op.OpName))
+                continue;
+            // The target is the first operand of all three; a typed instruction would also decode the name or decoration
+            var target = i.Data.Memory.Span[1];
+            if (!ids.Contains(target))
+                continue;
+            if (i.Op == Op.OpName)
+                Names.Remove(target);
+            SpirvBuilder.SetOpNop(i.Data.Memory.Span);
         }
     }
 

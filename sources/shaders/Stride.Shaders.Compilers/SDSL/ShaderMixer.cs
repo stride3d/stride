@@ -1001,6 +1001,17 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         }
     }
 
+    // The shader that instruction index belongs to; no LINQ, as it runs for every instruction of the node
+    private static ShaderInfo ShaderAt(MixinNode mixinNode, int index)
+    {
+        for (var s = mixinNode.Shaders.Count - 1; s >= 0; s--)
+        {
+            if (index >= mixinNode.Shaders[s].StartInstruction)
+                return mixinNode.Shaders[s];
+        }
+        throw new InvalidOperationException($"No shader of the mixin node holds instruction {index}");
+    }
+
     private static void ProcessMemberAccessAndForeach(MixinGlobalContext globalContext, SpirvContext context, SpirvBuffer temp, MixinNode mixinNode)
     {
         var memberAccesses = new Dictionary<int, int>();
@@ -1012,7 +1023,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         for (var index = mixinNode.StartInstruction; index < mixinNode.EndInstruction; index++)
         {
             var i = temp[index];
-            currentShader = mixinNode.Shaders.Last(x => index >= x.StartInstruction);
+            currentShader = ShaderAt(mixinNode, index);
 
             // Apply any OpMemberAccessSDSL remapping
             if (memberAccesses.Count > 0)
