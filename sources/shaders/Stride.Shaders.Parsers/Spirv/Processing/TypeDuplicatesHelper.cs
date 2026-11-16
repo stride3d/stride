@@ -121,7 +121,8 @@ public class TypeDuplicateHelper
             else if (x.Op == Op.OpName || x.Op == Op.OpDecorate || x.Op == Op.OpDecorateString || x.Op == Op.OpMemberName || x.Op == Op.OpMemberDecorate || x.Op == Op.OpMemberDecorateString)
             {
                 // Use actual op (they were all remapped to same ID in RemapOp() to be grouped by TargetId first)
-                comparison = x.Op.CompareTo(y.Op);
+                // As int: Enum.CompareTo boxes
+                comparison = ((int)x.Op).CompareTo((int)y.Op);
                 if (comparison != 0)
                     return comparison;
 

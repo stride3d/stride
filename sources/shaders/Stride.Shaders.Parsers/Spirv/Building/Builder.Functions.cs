@@ -98,7 +98,8 @@ public partial class SpirvBuilder
         for (var index = 0; index < buffer.Count; index++)
         {
             var instruction = buffer[index];
-            if (instruction.Op is Op.OpFunction && ((OpFunction)instruction).ResultId == functionId)
+            // Word 2 is the result ID: reading it as an OpFunction would decode every operand
+            if (instruction.Op is Op.OpFunction && instruction.Data.Memory.Span[2] == functionId)
                 start = index;
             if (instruction.Op is Op.OpFunctionEnd && start is int startIndex)
                 return (startIndex, index + 1);

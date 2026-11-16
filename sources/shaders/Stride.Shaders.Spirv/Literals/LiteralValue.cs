@@ -52,6 +52,18 @@ public struct LiteralValue<T> : ISpirvElement, IFromSpirv<LiteralValue<T>>
     public LiteralValue(Span<int> words, bool dispose = false)
     {
         this.dispose = dispose;
+        Value = Decode(words);
+
+        MemoryOwner = MemoryOwner<int>.Allocate(words.Length, AllocationMode.Clear);
+        words.CopyTo(MemoryOwner.Span);
+        UpdateMemory();
+    }
+
+    /// <summary>
+    /// Reads the value from its words, without the memory a <see cref="LiteralValue{T}"/> holds.
+    /// </summary>
+    public static T Decode(ReadOnlySpan<int> words)
+    {
         T value = default!;
         if (value is bool)
             Unsafe.As<T, bool>(ref value) = words[0] != 0;
@@ -100,12 +112,7 @@ public struct LiteralValue<T> : ISpirvElement, IFromSpirv<LiteralValue<T>>
             throw new NotImplementedException("Use LiteralArray<T>.From instead");
         else
             throw new NotImplementedException("Cannot create LiteralValue from the provided words");
-
-        Value = value;
-
-        MemoryOwner = MemoryOwner<int>.Allocate(words.Length, AllocationMode.Clear);
-        words.CopyTo(MemoryOwner.Span);
-        UpdateMemory();
+        return value;
     }
     public LiteralValue(T value, bool dispose = false)
     {
