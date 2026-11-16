@@ -162,6 +162,15 @@ namespace Stride.Audio
                         }
                     }
                 }
+
+                foreach (var instance in dynamicSourceInstances)
+                {
+                    if (instance.PlayState == PlayState.Playing)
+                    {
+                        instance.Pause();
+                        pausedSounds.Add(instance);
+                    }
+                }
             }
         }
 
@@ -183,6 +192,36 @@ namespace Stride.Audio
         }
 
         private readonly List<SoundBase> notDisposedSounds = new List<SoundBase>();
+
+        // Instances created on a DynamicSoundSource have no Sound to reach them from. Guarded by the lock of notDisposedSounds.
+        private readonly List<SoundInstance> dynamicSourceInstances = new List<SoundInstance>();
+
+        internal int DynamicSourceInstanceCount
+        {
+            get
+            {
+                lock (notDisposedSounds)
+                {
+                    return dynamicSourceInstances.Count;
+                }
+            }
+        }
+
+        internal void RegisterDynamicSourceInstance(SoundInstance instance)
+        {
+            lock (notDisposedSounds)
+            {
+                dynamicSourceInstances.Add(instance);
+            }
+        }
+
+        internal void UnregisterDynamicSourceInstance(SoundInstance instance)
+        {
+            lock (notDisposedSounds)
+            {
+                dynamicSourceInstances.Remove(instance);
+            }
+        }
 
         internal void RegisterSound(SoundBase newSound)
         {
@@ -215,6 +254,7 @@ namespace Stride.Audio
             lock (notDisposedSounds)
             {
                 notDisposedSoundsArray = notDisposedSounds.ToArray();
+                dynamicSourceInstances.Clear();
             }
 
             // Dispose all the sound not disposed yet.
