@@ -10,6 +10,11 @@ public sealed class SpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
     List<OpData> Instructions { get; set; } = [];
     public int Count => Instructions.Count;
 
+    /// <summary>
+    /// Increases when an instruction is inserted before the end, removed or replaced, or when the buffer is sorted: the positions of the instructions may have changed.
+    /// </summary>
+    public int StructureVersion { get; private set; }
+
     // internal ref OpData this[int index] => ref CollectionsMarshal.AsSpan(Instructions)[index];
     public OpDataIndex this[int index] => new(index, this);
 
@@ -39,6 +44,7 @@ public sealed class SpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
 
     public OpDataIndex Insert(int index, OpData data)
     {
+        InsertingAt(index);
         Instructions.Insert(index, data);
         return new OpDataIndex(index, this);
     }
@@ -73,6 +79,7 @@ public sealed class SpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
     public T Insert<T>(int index, in T instruction)
         where T : struct, IMemoryInstruction, allows ref struct
     {
+        InsertingAt(index);
         Instructions.Insert(index, new(instruction.InstructionMemory));
         instruction.Attach(new(index, this));
         return instruction;
@@ -81,6 +88,7 @@ public sealed class SpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
         where T : struct, IMemoryInstruction, allows ref struct
     {
         var result = new OpData(instruction.InstructionMemory);
+        InsertingAt(index);
         Instructions.Insert(index, result);
         instruction.Attach(new(index, this));
         return result;
@@ -99,6 +107,7 @@ public sealed class SpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
         if (dispose)
             Instructions[index].Dispose();
         Instructions.RemoveAt(index);
+        StructureVersion++;
     }
 
     public void RemoveRange(int index, int count, bool dispose = true)
@@ -109,11 +118,19 @@ public sealed class SpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
                 Instructions[i].Dispose();
         }
         Instructions.RemoveRange(index, count);
+        StructureVersion++;
     }
 
     public void InsertRange(int index, params ReadOnlySpan<OpData> source)
     {
+        InsertingAt(index);
         Instructions.InsertRange(index, source);
+    }
+
+    private void InsertingAt(int index)
+    {
+        if (index < Instructions.Count)
+            StructureVersion++;
     }
 
     public OpData Replace(int index, OpData i, bool dispose = true)
@@ -124,6 +141,7 @@ public sealed class SpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
         if (dispose)
             Instructions[index].Dispose();
         Instructions[index] = i;
+        StructureVersion++;
         return Instructions[index];
     }
 
@@ -135,6 +153,7 @@ public sealed class SpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
         if (dispose)
             Instructions[index].Dispose();
         Instructions[index] = new(instruction.InstructionMemory);
+        StructureVersion++;
         return Instructions[index];
     }
 
@@ -185,6 +204,7 @@ public sealed class SpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
         var sortedInstructions = Instructions.OrderBy(InstructionInfo.GetGroupOrder).ToList();
         Instructions.Clear();
         Instructions.AddRange(sortedInstructions);
+        StructureVersion++;
     }
 
     public Span<byte> ToBytecode()
