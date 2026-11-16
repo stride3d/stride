@@ -218,15 +218,8 @@
   <!-- ================================================================ -->
   <!-- StridePublicApi - User Documentation (.usrdoc) Support -->
   <!-- ================================================================ -->
-  <PropertyGroup Condition="'$(StridePublicApi)' == 'true'">
-    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.usrdoc</AllowedOutputExtensionsInPackageBuildOutputFolder>
-    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);_StrideRegisterUserDocOutputs</TargetsForTfmSpecificBuildOutput>
-  </PropertyGroup>
-  <Target Name="_StrideRegisterUserDocOutputs">
-    <ItemGroup Condition="Exists('$(OutputPath)$(AssemblyName).usrdoc')">
-      <BuildOutputInPackage Include="$(OutputPath)$(AssemblyName).usrdoc"/>
-    </ItemGroup>
-  </Target>
+  <!-- Stride.Core.UserDocumentation.targets (imported by Stride.Dependencies.targets) writes the .usrdoc file and
+       puts it in the package. -->
   <Target Name="_StrideRegisterUserDocReferenceRelatedFileExtensions" Condition="'$(StridePublicApi)' == 'true'" BeforeTargets="ResolveAssemblyReferences">
     <PropertyGroup>
       <AllowedReferenceRelatedFileExtensions>$(AllowedReferenceRelatedFileExtensions);.usrdoc</AllowedReferenceRelatedFileExtensions>
