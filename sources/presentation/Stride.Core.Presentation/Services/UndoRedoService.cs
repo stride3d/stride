@@ -52,7 +52,8 @@ public class UndoRedoService : IUndoRedoService
             return new DummyTransaction();
         }
 
-        transactionCompletion = new TaskCompletionSource<int>();
+        // A nested transaction keeps the completion of the outermost one: the stack completes the transactions once, when the outermost ends.
+        transactionCompletion ??= new TaskCompletionSource<int>();
         return stack.CreateTransaction(flags);
     }
 
@@ -64,18 +65,7 @@ public class UndoRedoService : IUndoRedoService
     {
         if (CanUndo)
         {
-            UndoRedoInProgress = true;
-            undoRedoCompletion = new TaskCompletionSource<int>();
-            try
-            {
-                stack.Rollback();
-            }
-            finally
-            {
-                undoRedoCompletion.SetResult(0);
-                undoRedoCompletion = null;
-                UndoRedoInProgress = false;
-            }
+            RunUndoRedo(stack.Rollback);
         }
     }
 
@@ -83,18 +73,7 @@ public class UndoRedoService : IUndoRedoService
     {
         if (CanRedo)
         {
-            UndoRedoInProgress = true;
-            undoRedoCompletion = new TaskCompletionSource<int>();
-            try
-            {
-                stack.Rollforward();
-            }
-            finally
-            {
-                undoRedoCompletion.SetResult(0);
-                undoRedoCompletion = null;
-                UndoRedoInProgress = false;
-            }
+            RunUndoRedo(stack.Rollforward);
         }
     }
 
@@ -160,6 +139,29 @@ public class UndoRedoService : IUndoRedoService
     {
         operationNames.TryGetValue(id, out var name);
         return name;
+    }
+
+    private void RunUndoRedo(Action action)
+    {
+        // An undo or redo started by a handler of another one keeps the completion of the outermost, which completes it when it ends.
+        if (undoRedoCompletion is not null)
+        {
+            action();
+            return;
+        }
+
+        UndoRedoInProgress = true;
+        undoRedoCompletion = new TaskCompletionSource<int>();
+        try
+        {
+            action();
+        }
+        finally
+        {
+            undoRedoCompletion.SetResult(0);
+            undoRedoCompletion = null;
+            UndoRedoInProgress = false;
+        }
     }
 
     private void TransactionCompleted(object? sender, TransactionEventArgs e)
