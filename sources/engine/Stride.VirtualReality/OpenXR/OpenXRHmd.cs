@@ -544,10 +544,7 @@ namespace Stride.VirtualReality
         /// </summary>
         internal static void CopyToSwapchainImage(CommandList commandList, Texture renderFrame, ID3D11Resource* swapchainImage)
         {
-            ID3D11Resource* renderFrameResource;
-            renderFrame.NativeRenderTargetView.GetResource(&renderFrameResource);
-
-            commandList.NativeDeviceContext.CopyResource(swapchainImage, renderFrameResource);
+            commandList.NativeDeviceContext.CopyResource(swapchainImage, renderFrame.NativeResource.Handle);
         }
 #endif
 
@@ -576,6 +573,7 @@ namespace Stride.VirtualReality
                 render_targets[swapchainPointer]->GetResource(&swapChainRenderTargetResource);
 
                 CopyToSwapchainImage(commandList, renderFrame, swapChainRenderTargetResource);
+                swapChainRenderTargetResource->Release();
 #endif
 
                 // Release the swapchain image
