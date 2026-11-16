@@ -780,7 +780,7 @@
                     </Grid.RowDefinitions>
                     <DockPanel Margin="6,6,6,2">
                       <!-- Adding tag -->
-                      <sd:TextBox MinWidth="90" DockPanel.Dock="Right" ValidateOnLostFocus="False" WatermarkContent="{sd:Localize Add new tag}" x:Name="NewTagTextBox"  Visibility="{Binding Session.AssetCollection.SelectedAssets.Count, Converter={sd:Chained {sd:NumericToBool}, {sd:VisibleOrCollapsed}}}">
+                      <sd:TextBox MinWidth="90" DockPanel.Dock="Right" ValidateOnLostFocus="False" WatermarkContent="{sd:Localize Add new tag}" x:Name="NewTagTextBox"  Visibility="{sd:MultiBinding {Binding Session.AssetCollection.SelectedAssets.Count, Converter={sd:NumericToBool}}, {Binding Session.ActiveProperties.IsAssetSelection, FallbackValue={sd:True}}, Converter={sd:MultiChained {sd:AndMultiConverter}, {sd:VisibleOrCollapsed}}}">
                         <i:Interaction.Behaviors>
                           <sd:OnEventCommandBehavior EventName="Validated" Command="{Binding Session.AssetTags.AddTagCommand}" CommandParameter="{Binding Text, ElementName=NewTagTextBox}"/>
                           <sd:OnEventCommandBehavior EventName="Validated" Command="{x:Static sd:TextBox.ClearTextCommand}"/>
@@ -802,7 +802,7 @@
                       </TextBlock>
                     </DockPanel>
                     <!--  TAGS  -->
-                    <ToolBar Grid.Row="1" Margin="6,2" ItemsSource="{Binding Session.AssetTags.Tags}" HorizontalAlignment="Stretch" Visibility="{Binding Session.AssetTags.Tags.Count, Converter={sd:Chained {sd:NumericToBool}, {sd:VisibleOrCollapsed}}}"
+                    <ToolBar Grid.Row="1" Margin="6,2" ItemsSource="{Binding Session.AssetTags.Tags}" HorizontalAlignment="Stretch" Visibility="{sd:MultiBinding {Binding Session.AssetTags.Tags.Count, Converter={sd:NumericToBool}}, {Binding Session.ActiveProperties.IsAssetSelection, FallbackValue={sd:True}}, Converter={sd:MultiChained {sd:AndMultiConverter}, {sd:VisibleOrCollapsed}}}"
                              Style="{StaticResource TagToolBarStyle}">
                       <ToolBar.ItemTemplate>
                         <DataTemplate>
@@ -824,7 +824,7 @@
 
                     <DockPanel Grid.Row="3" Margin="6,2">
                       <Button Command="{Binding Session.EditSelectedContentCommand}" DockPanel.Dock="Top" HorizontalContentAlignment="Center" Margin="0,0,0,8"
-                              Visibility="{Binding Session.EditSelectedContentCommand.IsEnabled, Converter={sd:VisibleOrCollapsed}, FallbackValue={sd:Collapsed}}">
+                              Visibility="{sd:MultiBinding {Binding Session.EditSelectedContentCommand.IsEnabled, FallbackValue={sd:False}}, {Binding Session.ActiveProperties.IsAssetSelection, FallbackValue={sd:True}}, Converter={sd:MultiChained {sd:AndMultiConverter}, {sd:VisibleOrCollapsed}}}">
                         <Grid>
                           <DockPanel Visibility="{Binding Session.ActiveProperties.CanDisplayProperties, Converter={sd:VisibleOrCollapsed}}">
                             <Image Source="{StaticResource ImageEditAsset}" Margin="4" DockPanel.Dock="Left" Width="16" Height="16" RenderOptions.BitmapScalingMode="NearestNeighbor"/>

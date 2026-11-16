@@ -64,13 +64,14 @@
   </UserControl.Styles>
   <!-- The property grid: a header with the navigation in the selection history, the
        description of the selection, the tags of the selected assets, "Open this asset in editor" and the search; the properties; and
-       a footer with the description of the property under the mouse. -->
+       a footer with the description of the property under the mouse. The tags and "Open this asset in editor" act on the selected assets:
+       they show only while the properties are those of assets. -->
   <Grid RowDefinitions="Auto, Auto, Auto, *, 5, 70">
     <DockPanel Grid.Row="0" Margin="6,6,6,2">
       <!-- Adding tag -->
       <TextBox x:Name="NewTagTextBox" DockPanel.Dock="Right" MinWidth="90"
                PlaceholderText="{sd:LocalizeString Add new tag}"
-               IsVisible="{Binding ((caevm:SessionViewModel)Session).AssetCollection.SelectedAssets.Count, Converter={sd:NumericToBool}, FallbackValue={sd:False}}"
+               IsVisible="{sd:MultiBinding {Binding ((caevm:SessionViewModel)Session).AssetCollection.SelectedAssets.Count, Converter={sd:NumericToBool}, FallbackValue={sd:False}}, {Binding IsAssetSelection}, Converter={sd:AndMulti}}"
                KeyDown="OnNewTagKeyDown"/>
       <!-- Navigation; Alt+Left and Alt+Right are the shortcuts of the commands Stride.Edit.PreviousSelection and NextSelection -->
       <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Margin="0,0,6,0" VerticalAlignment="Center">
@@ -96,7 +97,7 @@
     <!-- Tags -->
     <ItemsControl x:Name="Tags" Grid.Row="1" Margin="6,2"
                   ItemsSource="{Binding ((caevm:SessionViewModel)Session).AssetTags.Tags}"
-                  IsVisible="{Binding ((caevm:SessionViewModel)Session).AssetTags.Tags.Count, Converter={sd:NumericToBool}, FallbackValue={sd:False}}">
+                  IsVisible="{sd:MultiBinding {Binding ((caevm:SessionViewModel)Session).AssetTags.Tags.Count, Converter={sd:NumericToBool}, FallbackValue={sd:False}}, {Binding IsAssetSelection}, Converter={sd:AndMulti}}">
       <ItemsControl.ItemsPanel>
         <ItemsPanelTemplate>
           <WrapPanel Orientation="Horizontal"/>
@@ -132,7 +133,7 @@
       <!-- Open in editor -->
       <Button x:Name="EditSelectedContentButton" DockPanel.Dock="Top" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="0,0,0,8"
               Command="{Binding ((caevm:SessionViewModel)Session).EditSelectedContentCommand}"
-              IsVisible="{Binding ((caevm:SessionViewModel)Session).EditSelectedContentCommand.IsEnabled, FallbackValue={sd:False}}">
+              IsVisible="{sd:MultiBinding {Binding ((caevm:SessionViewModel)Session).EditSelectedContentCommand.IsEnabled, FallbackValue={sd:False}}, {Binding IsAssetSelection}, Converter={sd:AndMulti}}">
         <Panel>
           <StackPanel Orientation="Horizontal" IsVisible="{Binding CanDisplayProperties, FallbackValue={sd:False}}">
             <Image Source="{StaticResource ImageRename}" Margin="4" Width="16" Height="16"/>

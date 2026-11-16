@@ -81,7 +81,7 @@ public abstract class PropertiesViewModel : DispatcherViewModel
 
     protected abstract string EmptySelectionFallbackMessage { get; }
 
-    public IReadOnlyCollection<IPropertyProviderViewModel>? Selection { get; private set; }
+    public IReadOnlyCollection<IPropertyProviderViewModel>? Selection { get; private set => SetValue(ref field, value); }
 
     // TODO: provide a more solid API to avoid duplicates and name collision
     public void RegisterNodePresenterCommand(INodePresenterCommand command) => ViewModelService.AvailableCommands.Add(command);
