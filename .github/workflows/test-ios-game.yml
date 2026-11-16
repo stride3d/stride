@@ -133,6 +133,8 @@ jobs:
         run: |
           ls -d /Applications/Xcode_*.app
           latest=$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)
+          # Some Xcode_*.app names are links; xcrun needs the real folder
+          latest=$(cd "$latest" && pwd -P)
           echo "Selecting $latest"
           sudo xcode-select -s "$latest"
           xcodebuild -version
