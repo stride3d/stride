@@ -348,6 +348,19 @@ public sealed class SpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
         words[1..].Clear();
     }
 
+    /// <summary>
+    /// Makes room for <paramref name="wordCount"/> more words in <paramref name="instructionCount"/> more instructions, so that adding them doesn't grow the buffer again.
+    /// </summary>
+    public void Reserve(int wordCount, int instructionCount)
+    {
+        offsets.EnsureCapacity(offsets.Count + instructionCount);
+        if (this.wordCount + wordCount > words.Length)
+        {
+            Array.Resize(ref words, this.wordCount + wordCount);
+            Changed();
+        }
+    }
+
     public void Dispose() => Clear();
 
     private void Clear()

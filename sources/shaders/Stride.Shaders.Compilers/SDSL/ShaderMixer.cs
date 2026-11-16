@@ -76,6 +76,12 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             // Process name and types imported by constants due to generics instantiation
             ShaderClass.ProcessNameAndTypes(context);
 
+            // The classes are loaded: make room for all their words at once, instead of growing the buffers as they are merged
+            var size = default(MergedSize);
+            AddMergedSize(shaderSource2, ref size);
+            temp.Reserve(size.BufferWords, size.BufferInstructions);
+            context.GetBuffer().Reserve(size.ContextWords, size.ContextInstructions);
+
             rootMixin = MergeMixinNode(globalContext, context, temp, shaderSource2);
 
             if (CollectExplanation)
@@ -172,6 +178,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         LowerIntegerMatrices(context);
         new TypeDuplicateHelper(context).RemoveDuplicateImageTypes(temp);
 
+        temp.Reserve(context.GetBuffer().WordCount, context.Count);
         foreach (var inst in context)
             temp.Add(inst.Data);
 
@@ -187,6 +194,27 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         effectReflection = globalContext.Reflection;
         usedHashSources = shaderLoader.Sources;
         return true;
+    }
+
+    // The words and instructions of the classes of a mixin tree, counted once per time they are merged
+    private record struct MergedSize(int BufferWords, int BufferInstructions, int ContextWords, int ContextInstructions);
+
+    private static void AddMergedSize(ShaderMixinInstantiation mixin, ref MergedSize size)
+    {
+        foreach (var shaderClass in mixin.Mixins)
+        {
+            if (shaderClass.Buffer is not { } buffers)
+                continue;
+            size.BufferWords += buffers.Buffer.WordCount;
+            size.BufferInstructions += buffers.Buffer.Count;
+            size.ContextWords += buffers.Context.GetBuffer().WordCount;
+            size.ContextInstructions += buffers.Context.Count;
+        }
+        foreach (var compositions in mixin.Compositions.Values)
+        {
+            foreach (var composition in compositions)
+                AddMergedSize(composition, ref size);
+        }
     }
 
     private static void AddRequiredCapabilities(SpirvContext context, SpirvBuffer temp)
