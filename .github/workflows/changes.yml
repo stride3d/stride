@@ -164,6 +164,7 @@ jobs:
               - '.github/workflows/test-linux-simple.yml'
               - '.github/workflows/test-macos-game.yml'
               - '.github/actions/effect-cache/**'
+              - '.github/actions/lfs-pull/**'
               - '.github/actions/setup-vulkan-windows/**'
               - '.github/actions/stride-checkout/**'
               - '.github/actions/stride-workload/**'
@@ -196,6 +197,7 @@ jobs:
               - 'sources/Stride.iOS.slnf'
               - '.github/workflows/test-ios-game.yml'
               - '.github/actions/effect-cache/**'
+              - '.github/actions/lfs-pull/**'
               - '.github/actions/stride-checkout/**'
               - '.github/actions/stride-workload/**'
             android:
@@ -209,6 +211,7 @@ jobs:
               - 'sources/Stride.Tests.Game.Android.slnf'
               - '.github/workflows/test-android-game.yml'
               - '.github/actions/effect-cache/**'
+              - '.github/actions/lfs-pull/**'
               - '.github/actions/stride-checkout/**'
               - '.github/actions/stride-workload/**'
             full:
@@ -218,9 +221,11 @@ jobs:
               - 'tests/infra/Stride.*/**'
               - 'tests/enduser/Stride.Templates.Tests/**'
               - 'Stride.slnx'
-              # The workflows of the full build and of the WPF editor tests, and the check the build runs: an edit runs them
+              # The workflows of the full build and of the WPF editor tests, their action, and the check the build runs: an
+              # edit runs them
               - '.github/workflows/build-windows-full.yml'
               - '.github/workflows/test-editor-wpf.yml'
+              - '.github/actions/lfs-pull/**'
               - 'build/check-graphics-api-compat.ps1'
             # The Avalonia editor job: the folders of the projects sources/Stride.Editor.Avalonia.slnf builds,
             # engine included (the filter compiles it, and the editor tests run on top of it), and its build inputs
@@ -251,3 +256,4 @@ jobs:
               - 'nuget.config'
               - 'tests/editor-coverage.runsettings'
               - '.github/workflows/test-editor-avalonia.yml'
+              - '.github/actions/lfs-pull/**'
