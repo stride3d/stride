@@ -88,6 +88,20 @@ namespace Stride.Audio.Tests
             Assert.Equal(AudioEngineState.Running, engine.State);
         }
 
+        [Fact]
+        public void ProceduralInstanceNotDisposedByUserIsDisposedWithTheEngine()
+        {
+            var playing = CreatePlayingInstance();
+            var idle = ProceduralSource.CreateInstance(engine);
+            Assert.Equal(2, engine.DynamicSourceInstanceCount);
+
+            engine.Dispose();
+
+            Assert.True(playing.IsDisposed);
+            Assert.True(idle.IsDisposed);
+            Assert.Equal(0, engine.DynamicSourceInstanceCount);
+        }
+
         private sealed class ProceduralSource : DynamicSoundSource
         {
             private ProceduralSource() : base(null, 4, 4096)

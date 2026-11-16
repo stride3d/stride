@@ -251,15 +251,20 @@ namespace Stride.Audio
                 return;
 
             SoundBase[] notDisposedSoundsArray;
+            SoundInstance[] dynamicSourceInstancesArray;
             lock (notDisposedSounds)
             {
                 notDisposedSoundsArray = notDisposedSounds.ToArray();
-                dynamicSourceInstances.Clear();
+                dynamicSourceInstancesArray = dynamicSourceInstances.ToArray();
             }
 
             // Dispose all the sound not disposed yet.
             foreach (var soundBase in notDisposedSoundsArray)
                 soundBase.Dispose();
+
+            // Instances of a dynamic source have no sound to reach them from. Each one unregisters itself when disposed, hence the copy.
+            foreach (var instance in dynamicSourceInstancesArray)
+                instance.Dispose();
 
             // Drain the DynamicSoundSource worker before tearing down the native device:
             // it's a static, long-running task that keeps calling AudioLayer.Source* on any
