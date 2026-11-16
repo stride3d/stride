@@ -635,12 +635,6 @@ public partial class SpirvBuilder
         }
     }
 
-    public static void SetOpNop(Span<int> words)
-    {
-        words[0] = words.Length << 16;
-        words[1..].Clear();
-    }
-
     public static bool ContainIds(HashSet<int> ids, OpData i)
     {
         foreach (var op in i)
@@ -695,7 +689,7 @@ public partial class SpirvBuilder
             // Target/Structure ID is always stored in first operand for all those instructions
             var target = i.Memory.Span[1];
             if (idRemapping.ContainsKey(target))
-                SetOpNop(i.Memory.Span);
+                SpirvBuffer.SetOpNop(i.Memory.Span);
             return;
         }
 
@@ -888,7 +882,7 @@ public partial class SpirvBuilder
         var copiedShader = new SpirvBuffer();
         foreach (var i in shader)
         {
-            var i2 = new OpData(i.Data.Memory.Span);
+            var i2 = new OpData(i.Words);
             copiedShader.Add(i2);
         }
         shader = copiedShader;
@@ -905,7 +899,7 @@ public partial class SpirvBuilder
             if (i.Op == Op.OpGenericParameterSDSL && (OpGenericParameterSDSL)i is { } genericParameter)
             {
                 generics.Add(genericParameter.ResultId);
-                SetOpNop(i.Data.Memory.Span);
+                i.SetOpNop();
             }
         }
 

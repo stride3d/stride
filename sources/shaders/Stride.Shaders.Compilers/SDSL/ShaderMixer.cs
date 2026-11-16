@@ -301,7 +301,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             };
             if (imageOperandsIndex >= 0)
             {
-                var span = i.Data.Memory.Span;
+                var span = i.Words;
                 if (span.Length > imageOperandsIndex && (span[imageOperandsIndex] & ((int)ImageOperandsMask.Offset | (int)ImageOperandsMask.ConstOffsets)) != 0)
                 {
                     context.Add(new OpCapability(Capability.ImageGatherExtended));
@@ -572,7 +572,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     if (i.Op == Op.OpSource)
                     {
                         // OpSource references an OpString via file ID; skip if that OpString was deduplicated
-                        var fileOperand = i.Data.Memory.Span;
+                        var fileOperand = i.Words;
                         // OpSource layout: [wordcount|op, sourcelanguage, version, file?, source?]
                         if (fileOperand.Length > 3)
                         {
@@ -639,7 +639,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     }
                 }
 
-                var i2 = new OpData(i.Data.Memory.Span);
+                var i2 = new OpData(i.Words);
 
                 if (offset > 0)
                     OffsetIds(i2, offset);
@@ -789,9 +789,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             {
                 SpirvBuilder.RemapIds(remapIds, ref i.Data);
 
-                var target = i.Data.Memory.Span[1];
+                var target = i.Words[1];
                 if (removedIds.Contains(target))
-                    SetOpNop(i.Data.Memory.Span);
+                    i.SetOpNop();
             }
         }
 
@@ -869,16 +869,16 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         {
                             if (temp[index].Data.IdResult is { } idResult)
                                 removedIds.Add(idResult);
-                            SetOpNop(temp[index++].Data.Memory.Span);
+                            temp[index++].SetOpNop();
                         }
                         context.RemoveNameAndDecorations(removedIds);
 
-                        SetOpNop(temp[index].Data.Memory.Span);
+                        temp[index].SetOpNop();
                     }
                     else
                     {
                         // Remove the OpFunctionMetadataSDSL
-                        //SetOpNop(temp[index + 1].Data.Memory.Span);
+                        //SetOpNop(temp[index + 1].Words);
                     }
                 }
             }
@@ -1037,12 +1037,12 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             else if (i.Data.Op == Op.OpThisSDSL && (OpThisSDSL)i is { } thisInstruction)
             {
                 thisInstructions.Add(thisInstruction.ResultId);
-                SetOpNop(i.Data.Memory.Span);
+                i.SetOpNop();
             }
             else if (i.Data.Op == Op.OpBaseSDSL && (OpBaseSDSL)i is { } baseInstruction)
             {
                 baseInstructions.Add(baseInstruction.ResultId);
-                SetOpNop(i.Data.Memory.Span);
+                i.SetOpNop();
             }
             else if (i.Data.Op == Op.OpAccessChain && (OpAccessChain)i is { } accessChain)
             {
@@ -1053,7 +1053,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     var compositionIndex = Convert.ToInt32(context.GetConstantValue(accessChain.Indexes.Elements.Span[0]));
                     compositionArrayAccesses.Add(accessChain.ResultId, compositions[compositionIndex]);
 
-                    SetOpNop(i.Data.Memory.Span);
+                    i.SetOpNop();
                 }
             }
             else if (i.Data.Op == Op.OpMemberAccessSDSL && (OpMemberAccessSDSL)i is { } memberAccess)
@@ -1154,7 +1154,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     throw new InvalidOperationException($"Member {memberAccess.Member} not found");
                 }
 
-                SetOpNop(i.Data.Memory.Span);
+                i.SetOpNop();
             }
             else if (i.Data.Op == Op.OpFunction && (OpFunction)i is { } function)
             {
@@ -1191,12 +1191,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             }
         }
         return result;
-    }
-
-    static void SetOpNop(Span<int> words)
-    {
-        words[0] = words.Length << 16;
-        words[1..].Clear();
     }
 
     public static void OffsetIds(OpData inst, int offset)
@@ -1257,7 +1251,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             {
                 if (!ExpressionExtensions.ShaderSpecConstantOpSupportedOps.Contains((Op)specConstantOp.Opcode))
                 {
-                    var resultType = i.Data.Memory.Span[1];
+                    var resultType = i.Words[1];
                     var resultId = i.Data.IdResult!.Value;
                     if (context.TryGetConstantValue(i, out var value, out _) && value != null)
                     {
@@ -1328,7 +1322,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 if (functionTypes.TryGetValue(functionTypeWithIds, out var functionTypeId))
                 {
                     remapIds.Add(functionType.ResultId, functionTypeId);
-                    SetOpNop(i.Data.Memory.Span);
+                    i.SetOpNop();
                 }
                 else
                 {
@@ -1354,7 +1348,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             // Remove Nop
             if (i.Op == Op.OpNop)
                 return true;
-            if (i.Op == Op.OpMemberDecorateString && (Decoration)i.Data.Memory.Span[3] == Decoration.UserSemantic && functionIds.Contains(i.Data.Memory.Span[1]))
+            if (i.Op == Op.OpMemberDecorateString && (Decoration)i.Words[3] == Decoration.UserSemantic && functionIds.Contains(i.Words[1]))
                 return true;
             // Also remove some other SDSL specific operators (that we keep late mostly for debug purposes)
             if (i.Op == Op.OpShaderSDSL
@@ -1370,7 +1364,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 || i.Op == Op.OpFunctionMetadataSDSL
                 || i.Op == Op.OpSourceHashSDSL)
                 return true;
-            if ((i.Op == Op.OpDecorate || i.Op == Op.OpDecorateString) && (Decoration)i.Data.Memory.Span[2] is
+            if ((i.Op == Op.OpDecorate || i.Op == Op.OpDecorateString) && (Decoration)i.Words[2] is
                     Decoration.FunctionParameterDefaultValueSDSL
                     or Decoration.ShaderConstantSDSL
                     or Decoration.PatchConstantFuncSDSL
@@ -1379,7 +1373,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     // Matrix layout of a member variable (moved to the Globals cbuffer); only valid on struct members in SPIR-V
                     or Decoration.RowMajor or Decoration.ColMajor)
                 return true;
-            if ((i.Op == Op.OpMemberDecorate || i.Op == Op.OpMemberDecorateString) && (Decoration)i.Data.Memory.Span[3] is Decoration.LinkIdSDSL or Decoration.LinkSDSL or Decoration.ColorSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL)
+            if ((i.Op == Op.OpMemberDecorate || i.Op == Op.OpMemberDecorateString) && (Decoration)i.Words[3] is Decoration.LinkIdSDSL or Decoration.LinkSDSL or Decoration.ColorSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL)
                 return true;
 
             // Strip SPV_GOOGLE_user_type for Vulkan (requires VK_GOOGLE_user_type which most drivers don't support)
@@ -1387,9 +1381,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             {
                 if (i.Op == Op.OpExtension && ((OpExtension)i).Name == "SPV_GOOGLE_user_type")
                     return true;
-                if (i.Op == Op.OpDecorateString && (Decoration)i.Data.Memory.Span[2] is Decoration.UserTypeGOOGLE)
+                if (i.Op == Op.OpDecorateString && (Decoration)i.Words[2] is Decoration.UserTypeGOOGLE)
                     return true;
-                if (i.Op == Op.OpMemberDecorateString && (Decoration)i.Data.Memory.Span[3] is Decoration.UserTypeGOOGLE)
+                if (i.Op == Op.OpMemberDecorateString && (Decoration)i.Words[3] is Decoration.UserTypeGOOGLE)
                     return true;
             }
 

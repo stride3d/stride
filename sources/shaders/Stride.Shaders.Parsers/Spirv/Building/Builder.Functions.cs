@@ -77,7 +77,7 @@ public partial class SpirvBuilder
 
         // Find OpFunctionParameter and remove it
         var functionParameter = GetFunctionParameter(buffer, method, argIndex);
-        SetOpNop(functionParameter.InstructionMemory.Span);
+        SpirvBuffer.SetOpNop(functionParameter.InstructionMemory.Span);
     }
 
     public static void FunctionReplaceParameter(SpirvContext context, SpirvBuffer buffer, Symbol method, int argIndex, SymbolType newType)
@@ -99,7 +99,7 @@ public partial class SpirvBuilder
         {
             var instruction = buffer[index];
             // Word 2 is the result ID: reading it as an OpFunction would decode every operand
-            if (instruction.Op is Op.OpFunction && instruction.Data.Memory.Span[2] == functionId)
+            if (instruction.Op is Op.OpFunction && instruction.Words[2] == functionId)
                 start = index;
             if (instruction.Op is Op.OpFunctionEnd && start is int startIndex)
                 return (startIndex, index + 1);

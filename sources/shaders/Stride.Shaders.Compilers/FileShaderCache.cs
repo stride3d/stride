@@ -202,7 +202,7 @@ public class FileShaderCache(IVirtualFileProvider fileProvider, string basePath 
     {
         int count = 0;
         foreach (var i in buffer)
-            count += i.Data.Memory.Length;
+            count += i.Words.Length;
         return count;
     }
 
@@ -210,7 +210,7 @@ public class FileShaderCache(IVirtualFileProvider fileProvider, string basePath 
     {
         foreach (var i in buffer)
         {
-            var span = i.Data.Memory.Span;
+            var span = i.Words;
             for (int j = 0; j < span.Length; j++)
                 writer.Write(span[j]);
         }

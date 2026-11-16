@@ -95,7 +95,7 @@ public abstract record ConstantExpression
             case Op.OpConstant:
             case Op.OpSpecConstant:
             {
-                var typeId = inst.Data.Memory.Span[1];
+                var typeId = inst.Words[1];
                 var operand = inst.Data.Get("value");
                 if (buffer.TryGetInstructionById(typeId, out var typeInst))
                 {
@@ -136,7 +136,7 @@ public abstract record ConstantExpression
 
             case Op.OpConstantNull:
             {
-                var typeId = inst.Data.Memory.Span[1];
+                var typeId = inst.Words[1];
                 if (!context.ReverseTypes.TryGetValue(typeId, out var nullType))
                     throw new InvalidOperationException($"Cannot find type for null constant type id {typeId}");
                 return new NullConstExpr(nullType);
@@ -152,10 +152,10 @@ public abstract record ConstantExpression
             case Op.OpConstantComposite:
             case Op.OpSpecConstantComposite:
             {
-                var typeId = inst.Data.Memory.Span[1];
+                var typeId = inst.Words[1];
                 if (!context.ReverseTypes.TryGetValue(typeId, out var compositeType))
                     throw new InvalidOperationException($"Cannot find type for composite constant type id {typeId}");
-                var constituents = inst.Data.Memory.Span[3..];
+                var constituents = inst.Words[3..];
                 var components = new ConstantExpression[constituents.Length];
                 for (int i = 0; i < constituents.Length; i++)
                     components[i] = ParseFromBuffer(constituents[i], buffer, context);
@@ -164,17 +164,17 @@ public abstract record ConstantExpression
 
             case Op.OpSpecConstantOp:
             {
-                var op = (Op)inst.Data.Memory.Span[3];
-                if (!context.ReverseTypes.TryGetValue(inst.Data.Memory.Span[1], out var resultType))
-                    throw new InvalidOperationException($"Cannot find result type of constant {inst.Data.Memory.Span[2]}");
+                var op = (Op)inst.Words[3];
+                if (!context.ReverseTypes.TryGetValue(inst.Words[1], out var resultType))
+                    throw new InvalidOperationException($"Cannot find result type of constant {inst.Words[2]}");
                 // Operations on composites: their last operands are literal indices
                 if (op is Op.OpCompositeExtract or Op.OpCompositeInsert or Op.OpVectorShuffle)
                 {
                     var idOperandCount = ConstantEvaluator.GetIdOperandCount(op);
                     var operands = new ConstantExpression[idOperandCount];
                     for (int i = 0; i < idOperandCount; i++)
-                        operands[i] = ParseFromBuffer(inst.Data.Memory.Span[4 + i], buffer, context);
-                    return CompositeOpExpr.Create(op, resultType, operands, inst.Data.Memory.Span[(4 + idOperandCount)..].ToArray());
+                        operands[i] = ParseFromBuffer(inst.Words[4 + i], buffer, context);
+                    return CompositeOpExpr.Create(op, resultType, operands, inst.Words[(4 + idOperandCount)..].ToArray());
                 }
 
                 // Note: the operation decides how many operands are ids, the length of the instruction does not
@@ -182,20 +182,20 @@ public abstract record ConstantExpression
                 {
                     case 1:
                     {
-                        var operandExpr = ParseFromBuffer(inst.Data.Memory.Span[4], buffer, context);
+                        var operandExpr = ParseFromBuffer(inst.Words[4], buffer, context);
                         return new UnaryOpExpr(op, resultType, operandExpr);
                     }
                     case 2:
                     {
-                        var left = ParseFromBuffer(inst.Data.Memory.Span[4], buffer, context);
-                        var right = ParseFromBuffer(inst.Data.Memory.Span[5], buffer, context);
+                        var left = ParseFromBuffer(inst.Words[4], buffer, context);
+                        var right = ParseFromBuffer(inst.Words[5], buffer, context);
                         return new BinaryOpExpr(op, resultType, left, right);
                     }
                     case 3:
                     {
-                        var cond = ParseFromBuffer(inst.Data.Memory.Span[4], buffer, context);
-                        var trueVal = ParseFromBuffer(inst.Data.Memory.Span[5], buffer, context);
-                        var falseVal = ParseFromBuffer(inst.Data.Memory.Span[6], buffer, context);
+                        var cond = ParseFromBuffer(inst.Words[4], buffer, context);
+                        var trueVal = ParseFromBuffer(inst.Words[5], buffer, context);
+                        var falseVal = ParseFromBuffer(inst.Words[6], buffer, context);
                         return new SelectExpr(cond, trueVal, falseVal);
                     }
                     default:

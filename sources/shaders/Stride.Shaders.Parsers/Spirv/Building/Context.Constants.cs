@@ -64,7 +64,7 @@ public partial class SpirvContext
         if (i.Op == Specification.Op.OpSpecConstantOp)
         {
             // Layout: [header, resultType, resultId, opcode, operands...]
-            var span = i.Data.Memory.Span;
+            var span = i.Words;
             var op = (Specification.Op)span[3];
             typeId = span[1];
 
@@ -128,7 +128,7 @@ public partial class SpirvContext
             value = null;
             return false;
         }
-        typeId = i.Data.Memory.Span[1];
+        typeId = i.Words[1];
         var operand = i.Data.Get("value");
         if (Buffer.TryGetInstructionById(typeId, out var typeInst))
         {
