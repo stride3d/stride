@@ -251,6 +251,12 @@ public sealed partial class PackageVersion : IComparable, IComparable<PackageVer
         return CompareTo(other);
     }
 
+    /// <summary>
+    /// Compares this version with another, as NuGet orders them: by their numbers, then a release above its prereleases,
+    /// whose labels compare part by part between their dots as SemVer 2 says (rc.9 below rc.10).
+    /// </summary>
+    /// <param name="other">The version to compare with; null is below every version.</param>
+    /// <returns>Less than 0 when this version is below <paramref name="other"/>, 0 when they are equal, more than 0 when it is above.</returns>
     public int CompareTo(PackageVersion? other)
     {
         if (ReferenceEquals(other, null))
@@ -279,7 +285,52 @@ public sealed partial class PackageVersion : IComparable, IComparable<PackageVer
         {
             return -1;
         }
-        return StringComparer.OrdinalIgnoreCase.Compare(SpecialVersion, other.SpecialVersion);
+        return CompareLabels(SpecialVersion, other.SpecialVersion);
+    }
+
+    // Part by part between the dots: a numeric part as a number and below any other, which compares as text without case;
+    // a label below a longer one that starts with the same parts. Labels equal so but written differently (rc.1, rc.01)
+    // then compare as text, so that only equal versions compare as 0.
+    private static int CompareLabels(string label, string other)
+    {
+        var parts = label.Split('.');
+        var otherParts = other.Split('.');
+        for (var i = 0; i < Math.Min(parts.Length, otherParts.Length); i++)
+        {
+            var result = CompareLabelParts(parts[i], otherParts[i]);
+            if (result != 0)
+                return result;
+        }
+
+        return parts.Length != otherParts.Length
+            ? parts.Length.CompareTo(otherParts.Length)
+            : StringComparer.OrdinalIgnoreCase.Compare(label, other);
+    }
+
+    private static int CompareLabelParts(string part, string other)
+    {
+        var numeric = IsNumeric(part);
+        if (numeric != IsNumeric(other))
+            return numeric ? -1 : 1;
+        if (!numeric)
+            return StringComparer.OrdinalIgnoreCase.Compare(part, other);
+
+        // As numbers of any length: without their leading zeros, the longer is the larger
+        var digits = part.TrimStart('0');
+        var otherDigits = other.TrimStart('0');
+        return digits.Length != otherDigits.Length
+            ? digits.Length.CompareTo(otherDigits.Length)
+            : string.CompareOrdinal(digits, otherDigits);
+
+        static bool IsNumeric(string part)
+        {
+            foreach (var c in part)
+            {
+                if (c is < '0' or > '9')
+                    return false;
+            }
+            return part.Length > 0;
+        }
     }
 
     public static bool operator ==(PackageVersion? version1, PackageVersion? version2)
@@ -348,14 +399,15 @@ public sealed partial class PackageVersion : IComparable, IComparable<PackageVer
     public override int GetHashCode()
     {
 #if NETCOREAPP2_1_OR_GREATER
-        return HashCode.Combine(Version, SpecialVersion);
+        // Without case, as Equals
+        return HashCode.Combine(Version, StringComparer.OrdinalIgnoreCase.GetHashCode(SpecialVersion));
 #else
         unchecked
         {
             var hashCode = Version.GetHashCode();
             if (SpecialVersion != null)
             {
-                hashCode = (hashCode * 4567) ^ SpecialVersion.GetHashCode();
+                hashCode = (hashCode * 4567) ^ StringComparer.OrdinalIgnoreCase.GetHashCode(SpecialVersion);
             }
             return hashCode;
         }
