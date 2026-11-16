@@ -1323,23 +1323,8 @@ public struct Matrix : IEquatable<Matrix>, ISpanFormattable
     /// <param name="result">When the method completes, contains the transpose of the specified matrix.</param>
     public static void Transpose(ref readonly Matrix value, out Matrix result)
     {
-        result = new Matrix(
-            value.M11,
-            value.M21,
-            value.M31,
-            value.M41,
-            value.M12,
-            value.M22,
-            value.M32,
-            value.M42,
-            value.M13,
-            value.M23,
-            value.M33,
-            value.M43,
-            value.M14,
-            value.M24,
-            value.M34,
-            value.M44);
+        result = value;
+        result.Transpose();
     }
 
     /// <summary>
@@ -1349,7 +1334,8 @@ public struct Matrix : IEquatable<Matrix>, ISpanFormattable
     /// <returns>The transpose of the specified matrix.</returns>
     public static Matrix Transpose(in Matrix value)
     {
-        Transpose(in value, out var result);
+        var result = value;
+        result.Transpose();
         return result;
     }
 
