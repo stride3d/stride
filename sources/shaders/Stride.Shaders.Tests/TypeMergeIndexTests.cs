@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using CommunityToolkit.HighPerformance.Buffers;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
 using Stride.Shaders.Spirv.Core.Buffers;
@@ -83,5 +82,5 @@ public class TypeMergeIndexTests
         Assert.Equal(Op.OpNop, context[2].Data.Op);
     }
 
-    private static OpData Data(MemoryOwner<int> instruction) => new(instruction);
+    private static OpData Data(Memory<int> instruction) => new(instruction);
 }

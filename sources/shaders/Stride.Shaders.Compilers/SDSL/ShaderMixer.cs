@@ -627,7 +627,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         }
 
                         // Discard pending OpLine — the instruction it was meant for was skipped
-                        pendingOpLine?.Dispose();
                         pendingOpLine = null;
 
                         // Go to next instruction
@@ -699,7 +698,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         }
                     }
                     // Instruction goes to context or is deduplicated — discard any pending OpLine
-                    pendingOpLine?.Dispose();
                     pendingOpLine = null;
                 }
                 // Does this belong in context or buffer?
@@ -707,13 +705,11 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 {
                     addToContext = true;
                     // Instruction goes to context — discard any pending OpLine (OpLine belongs in function bodies only)
-                    pendingOpLine?.Dispose();
                     pendingOpLine = null;
                 }
                 else if (i2.Op == Op.OpLine)
                 {
                     // Defer OpLine — only emit when the next non-OpLine instruction is actually included
-                    pendingOpLine?.Dispose();
                     pendingOpLine = i2;
                 }
                 else
@@ -781,7 +777,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 || i.Op == Op.OpMemberDecorate
                 || i.Op == Op.OpMemberDecorateString)
             {
-                SpirvBuilder.RemapIds(remapIds, ref i.Data);
+                SpirvBuilder.RemapIds(remapIds, i);
 
                 var target = i.Words[1];
                 if (removedIds.Contains(target))
@@ -1018,7 +1014,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
             // Apply any OpMemberAccessSDSL remapping
             if (memberAccesses.Count > 0)
-                SpirvBuilder.RemapIds(memberAccesses, ref i.Data);
+                SpirvBuilder.RemapIds(memberAccesses, i);
 
             if (i.Data.Op == Op.OpForeachSDSL && (OpForeachSDSL)i is { } @foreach)
             {
@@ -1157,7 +1153,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 memberAccesses.Clear();
             }
 
-            SpirvBuilder.RemapIds(memberAccesses, ref i.Data);
+            SpirvBuilder.RemapIds(memberAccesses, i);
         }
     }
 

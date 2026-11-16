@@ -333,7 +333,8 @@ namespace Stride.Shaders.Compilers.SDSL
                     }
 
                     // Update first variable to use new type
-                    cbuffersSpan[0].Variable.Data.IdResultType = mergedCbufferPtrStructId;
+                    var mergedVariable = cbuffersSpan[0].Variable.Data;
+                    mergedVariable.IdResultType = mergedCbufferPtrStructId;
                     cbufferMemberMetadata[cbuffersSpan[0].VariableId] = GenerateCBufferLinks(cbuffersSpan[0].VariableId, cbuffersSpan, mergedCbufferStruct);
 
                     foreach (var i in buffer)
