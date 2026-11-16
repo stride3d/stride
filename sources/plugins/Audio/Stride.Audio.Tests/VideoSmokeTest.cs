@@ -4,6 +4,7 @@
 #if STRIDE_VIDEO_FFMPEG || STRIDE_VIDEO_MEDIACODEC || STRIDE_VIDEO_AVFOUNDATION
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Xunit;
 using Stride.Engine;
@@ -145,6 +146,8 @@ namespace Stride.Audio.Tests
         /// been uploaded to the target texture (bounded by <see cref="CaptureTimeout"/>).</summary>
         private sealed class VideoSmokeTestSeek : VideoTestGameBase
         {
+            private readonly Stopwatch sinceCreation = Stopwatch.StartNew();
+
             public VideoSmokeTestSeek(string backend, bool forceSoftware) : base(backend, forceSoftware) { }
 
             internal static void Run(string backend, bool forceSoftware)
@@ -173,7 +176,8 @@ namespace Stride.Audio.Tests
             }
 
             // Seek to the step's target, then poll until a fresh frame has been presented (or
-            // the timeout) before capturing, and chain the next step from there.
+            // the timeout) before capturing, and chain the next step from there. Each step logs
+            // one line with its timings: CI runs are sometimes much slower than local ones.
             private void ScheduleSeekCapture((double Seconds, string Name)[] steps, int index, int atFrame)
             {
                 if (index >= steps.Length)
@@ -181,13 +185,20 @@ namespace Stride.Audio.Tests
 
                 var (seconds, name) = steps[index];
                 long presentedAtSeek = 0;
-                var deadline = default(DateTime);
+                var stepTime = new Stopwatch();
+                var seekTime = TimeSpan.Zero;
+                var framesPolled = 0;
 
                 FrameGameSystem.Update(atFrame, () =>
                 {
+                    if (index == 0)
+                        TestGameLogger.Info($"VideoSmokeTestSeek: first Update {sinceCreation.Elapsed.TotalMilliseconds:F0} ms after the game was created");
+
+                    // The deadline counts from before the seek: a seek that blocks is part of the wait.
+                    stepTime.Start();
                     Instance.Seek(TimeSpan.FromSeconds(seconds));
+                    seekTime = stepTime.Elapsed;
                     presentedAtSeek = Instance.FramesPresented;
-                    deadline = DateTime.UtcNow + CaptureTimeout;
 
                     if (index == 0)
                     {
@@ -202,9 +213,17 @@ namespace Stride.Audio.Tests
 
                 void Attempt()
                 {
-                    if (Instance.FramesPresented > presentedAtSeek || DateTime.UtcNow >= deadline)
+                    framesPolled++;
+                    var presented = Instance.FramesPresented > presentedAtSeek;
+                    if (presented || stepTime.Elapsed >= CaptureTimeout)
                     {
+                        var waitTime = stepTime.Elapsed;
                         SaveImage(VideoTarget, name);
+                        var timings = $"Seek {seekTime.TotalMilliseconds:F0} ms, capture after {waitTime.TotalMilliseconds:F0} ms, frames polled: {framesPolled}, SaveImage {(stepTime.Elapsed - waitTime).TotalMilliseconds:F0} ms";
+                        if (presented)
+                            TestGameLogger.Info($"VideoSmokeTestSeek {name}: frame presented ({timings})");
+                        else
+                            TestGameLogger.Warning($"VideoSmokeTestSeek {name}: no frame presented before the {CaptureTimeout.TotalSeconds:F0} s timeout, captured the target as it was ({timings})");
                         ScheduleSeekCapture(steps, index + 1, FrameGameSystem.CurrentFrame + 1);
                     }
                     else

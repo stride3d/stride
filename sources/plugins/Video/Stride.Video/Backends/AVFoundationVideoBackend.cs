@@ -224,6 +224,8 @@ internal sealed class AVFoundationVideoBackend : VideoBackend
         if (sampleBuffer == null)
         {
             // End of media. Reader.Status will be Completed on clean EOF, Failed otherwise.
+            if (reader.Status == AVAssetReaderStatus.Failed)
+                VideoInstance.Logger.Warning($"AVFoundationVideoBackend: reading failed at {Instance.CurrentTime}: {reader.Error?.LocalizedDescription}");
             if (Instance.IsLooping && Instance.LoopRange.IsValid())
             {
                 Instance.SetCurrentTime(Instance.LoopRange.Start);
@@ -310,7 +312,10 @@ internal sealed class AVFoundationVideoBackend : VideoBackend
         // CPU work is allocating the VkImage/VkImageView (~tens of µs).
         using var ioSurface = pixelBuffer.GetIOSurface();
         if (ioSurface == null)
+        {
+            VideoInstance.Logger.Warning("AVFoundationVideoBackend: the decoded frame has no IOSurface, it is not presented.");
             return;
+        }
 
         var width = (int)pixelBuffer.Width;
         var height = (int)pixelBuffer.Height;
