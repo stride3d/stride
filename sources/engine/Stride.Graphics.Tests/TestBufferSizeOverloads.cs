@@ -8,10 +8,10 @@ using Stride.Graphics.Regression;
 namespace Stride.Graphics.Tests
 {
     /// <summary>
-    ///   Calling a <c>Buffer.Vertex.New</c>, <c>Buffer.Index.New</c> or <c>Buffer.Constant.New</c> helper with an <c>int</c> size creates a buffer of that size,
+    ///   Calling a <c>Buffer.Vertex.New</c>, <c>Buffer.Index.New</c>, <c>Buffer.Constant.New</c>, <c>Buffer.Raw.New</c> or <c>Buffer.Argument.New</c> helper with an <c>int</c> size creates a buffer of that size,
     ///   not a 4-byte buffer holding the <c>int</c>.
     /// </summary>
-    public class TestBufferSizeOverloads : GameTestBase
+    public class TestBufferSizeOverloads : GraphicTestGameBase
     {
         private const int Size = 256;
 
@@ -48,5 +48,17 @@ namespace Stride.Graphics.Tests
 
         [SkippableFact]
         public void ConstantSizeUsage() => Check(d => { int size = Size; return Buffer.Constant.New(d, size, GraphicsResourceUsage.Dynamic); });
+
+        [SkippableFact]
+        public void RawSizeFlags() => Check(d => { int size = Size; return Buffer.Raw.New(d, size, BufferFlags.UnorderedAccess); });
+
+        [SkippableFact]
+        public void RawSizeFlagsUsage() => Check(d => { int size = Size; return Buffer.Raw.New(d, size, BufferFlags.UnorderedAccess, GraphicsResourceUsage.Default); });
+
+        [SkippableFact]
+        public void ArgumentSize() => Check(d => { int size = Size; return Buffer.Argument.New(d, size); });
+
+        [SkippableFact]
+        public void ArgumentSizeUsage() => Check(d => { int size = Size; return Buffer.Argument.New(d, size, GraphicsResourceUsage.Default); });
     }
 }
