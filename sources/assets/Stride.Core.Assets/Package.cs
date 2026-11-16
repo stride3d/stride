@@ -901,7 +901,7 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
             resolver.AlwaysCreateNewId = alwaysGenerateNewAssetId;
 
             // Clean assets
-            AssetCollision.Clean(this, TemporaryAssets, outputItems, resolver, true, removeUnloadableObjects);
+            AssetCollision.Clean(this, TemporaryAssets, outputItems, resolver, true, removeUnloadableObjects, log);
 
             // Add them back to the package
             foreach (var item in outputItems)
