@@ -1,3 +1,4 @@
+using CommunityToolkit.HighPerformance.Buffers;
 using System.Collections;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -267,6 +268,22 @@ public sealed class SpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
         }
         instruction = default;
         return false;
+    }
+
+    /// <summary>
+    /// Writes the words of the instruction at <paramref name="index"/>, which may change its size.
+    /// </summary>
+    public void SetWords(int index, ReadOnlySpan<int> words)
+    {
+        ref var data = ref GetRef(index);
+        if (words.Length == data.Memory.Length)
+        {
+            words.CopyTo(data.Memory.Span);
+            return;
+        }
+        var memory = MemoryOwner<int>.Allocate(words.Length);
+        words.CopyTo(memory.Span);
+        data.Memory = memory;
     }
 
     /// <summary>

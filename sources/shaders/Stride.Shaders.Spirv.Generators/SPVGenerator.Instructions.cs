@@ -65,8 +65,12 @@ public partial class SPVGenerator
 
         structBuilder.AppendLine(@$"
         {{
+            // A detached instruction being edited, when not in a buffer
             private ref OpData opData;
-            public ref OpData OpData => ref opData;
+            // An instruction in a buffer: its slot is looked up on each access, as the storage of the buffer moves when it grows
+            private SpirvBuffer? attachedBuffer;
+            private int attachedIndex;
+            public ref OpData OpData => ref attachedBuffer is not null ? ref attachedBuffer.GetRef(attachedIndex) : ref opData;
             public MemoryOwner<int> InstructionMemory
             {{
                 get
@@ -101,7 +105,8 @@ public partial class SPVGenerator
             public {instruction.OpName}(OpDataIndex index)
             {{
                 InitializeProperties(ref index.Data);
-                opData = ref index.Data;
+                attachedBuffer = index.Buffer;
+                attachedIndex = index.Index;
             }}
             
             public {instruction.OpName}(ref OpData data)
@@ -161,14 +166,20 @@ public partial class SPVGenerator
 
             public void Attach(OpDataIndex index)
             {{
-                opData = ref index.Data;
+                attachedBuffer = index.Buffer;
+                attachedIndex = index.Index;
             }}
 
             public void UpdateInstructionMemory()
             {{
-                InstructionMemory ??= MemoryOwner<int>.Empty;
                 Span<int> instruction = [(int)Op.{ToSpreadOperators(instruction, grammar)}];
                 instruction[0] |= instruction.Length << 16;
+                if (attachedBuffer is not null)
+                {{
+                    attachedBuffer.SetWords(attachedIndex, instruction);
+                    return;
+                }}
+                InstructionMemory ??= MemoryOwner<int>.Empty;
                 if(instruction.Length == InstructionMemory.Length)
                     instruction.CopyTo(InstructionMemory.Span);
                 else
