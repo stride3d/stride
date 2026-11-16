@@ -69,7 +69,8 @@ public sealed class StartupOptions
     /// <summary>
     /// Parses the command line of the Game Studio: <c>/NewProject</c>, <c>/DisableThumbnails</c>, <c>/DisablePreview</c>,
     /// <c>/DebugEditorGraphics</c>, a session path; the launcher handshake (<c>/LauncherWindowHandle</c>, <c>/LauncherPipe</c>)
-    /// and the host selection (<c>--graphics-api</c>) take a value and are consumed by the host. <c>--project &lt;path&gt;</c>
+    /// and the host selection (<c>--graphics-api</c>, the .NET major <c>--framework</c>) take a value and are consumed by the
+    /// host, as is the mark of a host that re-executed the editor (<c>--host-relaunched</c>). <c>--project &lt;path&gt;</c>
     /// (or <c>/project</c>) names the session explicitly, as the earlier Avalonia prototype did. <c>--viewport-readback</c> is
     /// specific to the Avalonia Game Studio. <c>--safe-mode</c> is common to both.
     /// </summary>
@@ -83,10 +84,14 @@ public sealed class StartupOptions
                 case "/LauncherWindowHandle":
                 case "/LauncherPipe":
                 case "--graphics-api":
+                case "--framework":
                 case "/RecordEffects":
                     // Consumed by the host (or not supported yet): skip the value
                     options.ForwardedArguments.Add((args[i], i + 1 < args.Count ? args[i + 1] : null));
                     i++;
+                    break;
+                case "--host-relaunched":
+                    // Consumed by the host (DotNetHostSelector); a new editor decides its .NET major again, so not forwarded
                     break;
                 case "--project" or "/project" when i + 1 < args.Count:
                     options.InitialSessionPath = args[++i];

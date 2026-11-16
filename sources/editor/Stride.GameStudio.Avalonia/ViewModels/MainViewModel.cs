@@ -327,31 +327,26 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
             };
             var message = string.Format(Tr._p("Message", "The last attempt to load the project **{0}** failed. \r\n\r\nDo you want to try to load it again?"), Path.GetFileName(initialSessionPath.ToOSPath()));
             var result = await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, buttons, MessageBoxImage.Warning);
+            // Set again only when this process loads the session (OpenSessionAsync)
+            InternalSettings.LoadingStartupSession.SetValue(false);
+            InternalSettings.Save();
             if (result != 1)
-            {
-                InternalSettings.LoadingStartupSession.SetValue(false);
-                InternalSettings.Save();
                 return false;
-            }
         }
 
-        // Safe-guard - this will warn that the startup session makes the editor crash while loading.
-        InternalSettings.LoadingStartupSession.SetValue(true);
-        InternalSettings.Save();
-
-        var sessionResult = await OpenSession(initialSessionPath, token);
-
-        InternalSettings.LoadingStartupSession.SetValue(false);
-        InternalSettings.Save();
-
-        return sessionResult;
+        return await OpenSessionAsync(initialSessionPath, startupSession: true, token);
     }
 
     /// <summary>
     /// Opens the session of a solution or package file, asking for one when no path is given.
     /// </summary>
     /// <returns><c>true</c> when the session is open, <c>false</c> when it failed, no file was chosen or the user kept an editor of the current session open, <c>null</c> when the user cancelled the loading.</returns>
-    public async Task<bool?> OpenSession(UFile? filePath, CancellationToken token = default)
+    public Task<bool?> OpenSession(UFile? filePath, CancellationToken token = default)
+        => OpenSessionAsync(filePath, startupSession: false, token);
+
+    /// <inheritdoc cref="OpenSession"/>
+    /// <param name="startupSession">Whether this is the session the editor starts with: its load in this process is guarded against a crash loop.</param>
+    private async Task<bool?> OpenSessionAsync(UFile? filePath, bool startupSession, CancellationToken token)
     {
         if (filePath is not null && !File.Exists(filePath.ToOSPath()))
         {
@@ -371,13 +366,38 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
         if (session is not null || NeedsNewProcess)
             return await RestartAsync(filePath);
 
+        // The game of the session may need a newer .NET major than this process runs on: a new editor process re-executes on it
+        if (ProcessService is { } processService)
+        {
+            switch (processService.CheckHost(filePath, out var hostProblem))
+            {
+                case SessionHost.NewProcess:
+                    return await RestartAsync(filePath, newProcess: true);
+                case SessionHost.Missing:
+                    await ServiceProvider.Get<IDialogService>().MessageBoxAsync(hostProblem!, MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return false;
+            }
+        }
+
         // The session needs MSBuild to load the projects of the solution
         if (!await EnsureMSBuildAsync())
             return false;
 
         ProcessService?.NotifySessionLoading();
+        // Safe-guard: the next start warns that the startup session made the editor crash while loading. Not set for a session
+        // another process opens, which can't crash this one, and which that process would otherwise take for a crash.
+        if (startupSession)
+        {
+            InternalSettings.LoadingStartupSession.SetValue(true);
+            InternalSettings.Save();
+        }
         var sessionResult = new PackageSessionResult();
         var loadedSession = await SessionViewModel.OpenSessionAsync(filePath, loadParameters => LoadSessionFile(filePath, sessionResult, loadParameters), sessionResult, this, ServiceProvider, token);
+        if (startupSession)
+        {
+            InternalSettings.LoadingStartupSession.SetValue(false);
+            InternalSettings.Save();
+        }
 
         // Loading has failed
         if (loadedSession == null)
@@ -700,13 +720,14 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel, IEditorRest
     /// </summary>
     /// <param name="filePath">The session to open; <c>null</c> for the project selection.</param>
     /// <param name="safeMode">Whether the fresh editor runs in safe mode; null to keep this one's mode.</param>
+    /// <param name="newProcess">Whether the fresh editor needs a new process even when this one loaded no session (another .NET major).</param>
     /// <returns><c>true</c> when the editor restarts, <c>false</c> when the user kept the session open.</returns>
-    private async Task<bool> RestartAsync(UFile? filePath, bool? safeMode = null)
+    private async Task<bool> RestartAsync(UFile? filePath, bool? safeMode = null, bool newProcess = false)
     {
         if (!await CloseSessionAsync())
             return false;
 
-        var restartProcess = session is not null || NeedsNewProcess;
+        var restartProcess = newProcess || session is not null || NeedsNewProcess;
         CloseSessionServices();
         if (restartProcess && ProcessService is { } process)
         {

@@ -316,7 +316,7 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
             if (SetValue(ref selectedEditor, value))
             {
                 Launcher.PreferredEditor = value;
-                // The runtimes offered are the ones of the selected editor (only the WPF Game Studio takes one)
+                // The runtimes offered are the ones of the selected editor (an older build takes none)
                 if (Launcher.ActiveVersion == this)
                     Launcher.RefreshRuntimes();
             }

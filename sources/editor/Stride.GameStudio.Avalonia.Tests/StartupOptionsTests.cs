@@ -97,6 +97,18 @@ public sealed class StartupOptionsTests
     }
 
     [Fact]
+    public void TheDotNetMajorIsKeptOnARestartAndTheRelaunchMarkIsNot()
+    {
+        // As the launcher and stride studio start an editor re-executed on .NET 11
+        var options = StartupOptions.Parse(["/home/user/MyGame/MyGame.sln", "--framework", "net11.0", "--host-relaunched"]);
+
+        Assert.Equal("/home/user/MyGame/MyGame.sln", options.InitialSessionPath?.FullPath);
+        Assert.Empty(options.UnknownArguments);
+        // The new editor decides its host again, from the same choice
+        Assert.Equal(["--framework", "net11.0", "/NewProject"], options.GetRestartArguments(null, launcherNotified: true));
+    }
+
+    [Fact]
     public void AnAbsoluteUnixPathIsASessionNotAnOption()
     {
         var options = StartupOptions.Parse(["/home/user/MyGame/MyGame.sln"]);
