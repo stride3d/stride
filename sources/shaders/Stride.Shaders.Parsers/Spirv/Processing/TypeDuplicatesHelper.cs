@@ -241,11 +241,15 @@ public class TypeDuplicateHelper
     }
 
     /// <summary>
-    /// Re-sorts namesByOp after external mutations (e.g. RemapIds) that change target IDs in the buffer.
+    /// Removes the names and decorations that were turned into <see cref="Op.OpNop"/> since they were inserted.
     /// </summary>
-    public void ResortDecorations()
+    /// <remarks>
+    /// An <see cref="Op.OpNop"/> has target 0, which breaks the order that <see cref="FindDecorationRange"/> searches.
+    /// The other entries keep their order: a name or decoration whose target is remapped after its insertion is also turned into <see cref="Op.OpNop"/>.
+    /// </remarks>
+    public void DropNopDecorations()
     {
-        namesByOp.Sort(comparerSort);
+        namesByOp.RemoveAll(x => x.Data.Op == Op.OpNop);
     }
 
     private List<InstructionSortHelper> GetTargetList(OpData data)
