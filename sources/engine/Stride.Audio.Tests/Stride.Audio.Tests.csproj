@@ -46,6 +46,7 @@
     <Compile Include="Engine\TestAudioListenerProcessor.cs" />
     <Compile Include="Engine\TestAudioSystem.cs" />
     <Compile Include="Engine\TestController.cs" />
+    <Compile Include="Engine\TestDopplerVelocity.cs" />
     <Compile Include="Engine\TestGame.cs" />
     <Compile Include="Engine\TestUtilities.cs" />
     <Compile Include="PauseResumeTests.cs" />
