@@ -118,6 +118,8 @@ sealed class Triage(GitHub github, Config config)
     const string ConflictLabel = "has-conflicts";
     const string IssueMarker = "<!-- stride-triage:issue -->";
     const string DigestMarker = "<!-- stride-triage:digest -->";
+    // In a review of a reviewer bot whose AI review found nothing blocking: its comments are optional, a maintainer reviews next
+    const string NothingBlockingMarker = "<!-- stride-review:nothing-blocking -->";
 
     static readonly Dictionary<string, string> MissingText = new()
     {
@@ -349,6 +351,8 @@ sealed class Triage(GitHub github, Config config)
             return (manual.Label, $"set by @{manual.By}{(rebased ? ", then only rebased" : "")}");
         if (lastReview != null && (lastReview.At > pr.LastAuthorActivity || rebased))
         {
+            if (lastReview.Bot && lastReview.State == "COMMENTED" && lastReview.Body.Contains(NothingBlockingMarker, StringComparison.Ordinal))
+                return ("waiting-on-review", $"@{lastReview.Author} found nothing blocking, a maintainer reviews next{(rebased ? ", then only rebased" : "")}");
             if (lastReview.State != "APPROVED")
                 return ("waiting-on-author", $"@{lastReview.Author} reviewed after the last push or reply{(rebased ? ", then only rebased" : "")}");
             if (pr.ReviewDecision == "CHANGES_REQUESTED")
@@ -926,7 +930,7 @@ sealed class Config
 
 record LabelSpec(string Color, string Description);
 // Commit: the commit the review was made on (GitHub.ReviewedCommit), null when not known
-record Review(string Author, string Association, string State, DateTimeOffset At, bool Bot, string? Commit);
+record Review(string Author, string Association, string State, DateTimeOffset At, bool Bot, string? Commit, string Body);
 record LabelEvent(string Label, string By, DateTimeOffset At);
 record Comment(string Author, DateTimeOffset At, string Body);
 record PrFile(string Path, string? PreviousPath, string Status, int Additions, int Deletions, string? Patch);
@@ -958,7 +962,7 @@ sealed class GitHub
         assignees(first: 10) { nodes { login } }
         reviewRequests(first: 20) { nodes { requestedReviewer { __typename ... on User { login } ... on Team { slug } } } }
         commits(last: 1) { nodes { commit { committedDate statusCheckRollup { state } checkSuites(first: 40, filterBy: { appId: 15368 }) { nodes { conclusion } } } } }
-        reviews(last: 50) { nodes { submittedAt state authorAssociation author { login __typename } commit { oid committedDate } } }
+        reviews(last: 50) { nodes { submittedAt state body authorAssociation author { login __typename } commit { oid committedDate } } }
         timelineItems(last: 100, itemTypes: [ISSUE_COMMENT, HEAD_REF_FORCE_PUSHED_EVENT, PULL_REQUEST_COMMIT, READY_FOR_REVIEW_EVENT]) {
           nodes {
             __typename
@@ -1053,7 +1057,7 @@ sealed class GitHub
         // From the reviews, not the timeline: the timeline leaves out the reviews that only reply in a review thread
         var reviews = node["reviews"]!["nodes"]!.AsArray().OfType<JsonNode>().Where(x => x["submittedAt"] != null)
             .Select(x => new Review((string?)x["author"]?["login"] ?? "ghost", (string?)x["authorAssociation"] ?? "NONE", (string)x["state"]!, Date(x["submittedAt"]),
-                IsBot(x["author"]), ReviewedCommit(x, forcePushes)))
+                IsBot(x["author"]), ReviewedCommit(x, forcePushes), (string?)x["body"] ?? ""))
             .ToList();
         foreach (var item in items)
         {
