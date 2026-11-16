@@ -238,7 +238,19 @@ public class TestPackageVersion
     [InlineData("1.2.3-alpha", "1.2.3-beta", true)]
     [InlineData("1.2.3-beta", "1.2.3-alpha", false)]
     [InlineData("1.2.3-alpha.1", "1.2.3-alpha.2", true)]
-    public void CompareTo_WithSpecialVersions_ShouldCompareAlphabetically(string version1Str, string version2Str, bool version1IsLess)
+    // Part by part, numeric parts as numbers, as NuGet orders them (checked with NuGet.Versioning 6.14)
+    [InlineData("4.5.3-nightly.20261114.9", "4.5.3-nightly.20261114.10", true)]
+    [InlineData("4.5.3-mystudio.9", "4.5.3-mystudio.10", true)]
+    [InlineData("4.5.0-beta.2", "4.5.0-beta.10", true)]
+    [InlineData("4.5.0-beta9", "4.5.0-beta10", false)]
+    [InlineData("4.5.0-beta", "4.5.0-beta.1", true)]
+    [InlineData("4.5.0-1", "4.5.0-alpha", true)]
+    [InlineData("4.5.0-beta.1", "4.5.0-beta-dev", true)]
+    [InlineData("4.5.0-beta7", "4.5.0-beta7-dev4", true)]
+    [InlineData("5.0.1-beta1", "5.0.1-beta1.nightly.20261014.3", true)]
+    // Equal as numbers but written differently: text decides, so that only equal versions compare as 0
+    [InlineData("4.5.0-rc.01", "4.5.0-rc.1", true)]
+    public void CompareTo_WithSpecialVersions_ShouldCompareAsNuGet(string version1Str, string version2Str, bool version1IsLess)
     {
         var version1 = new PackageVersion(version1Str);
         var version2 = new PackageVersion(version2Str);
@@ -347,10 +359,10 @@ public class TestPackageVersion
         var version1 = new PackageVersion("1.2.3-ALPHA");
         var version2 = new PackageVersion("1.2.3-alpha");
 
-        // Equals should be case-insensitive for special versions
+        // Equals should be case-insensitive for special versions, and so the hash code, for a set or a dictionary
         Assert.True(version1.Equals(version2));
-        // Note: HashCode may differ due to implementation details, but equal objects
-        // don't need to have equal hash codes (though it's preferred for performance)
+        Assert.Equal(0, version1.CompareTo(version2));
+        Assert.Equal(version1.GetHashCode(), version2.GetHashCode());
     }
 
     [Fact]
