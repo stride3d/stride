@@ -25,6 +25,11 @@ inputs:
     description: The cache folders, a glob without `**` (the count step runs on macOS's bash 3.2)
     default: bin/Tests/*/*/*/cache
 
+outputs:
+  grew:
+    description: In `save` mode, whether the tests compiled effects that the restored cache did not have
+    value: ${{ steps.count.outputs.grew }}
+
 runs:
   using: composite
   steps:
