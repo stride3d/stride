@@ -103,7 +103,7 @@ namespace Stride.Audio
         {
             // initialize the AudioEmitter first position
             data.TransformComponent.UpdateWorldMatrix(); // ensure the worldMatrix is correct
-            data.AudioEmitter = new AudioEmitter { Position = data.TransformComponent.WorldMatrix.TranslationVector }; // valid position is needed at first Update loop to compute velocity.
+            data.AudioEmitter = new AudioEmitter { Position = data.TransformComponent.WorldMatrix.TranslationVector };
 
             // create a SoundInstance for each listener activated and for each sound controller of the EmitterComponent.
             foreach (var listener in audioSystem.Listeners.Keys)
