@@ -104,7 +104,7 @@ internal static class StreamAccessPatcher
             {
                 streamsInstructionIds.Add(streamsInstruction.ResultId, (true, StreamsKindSDSL.Streams));
                 remapIds.Add(streamsInstruction.ResultId, streamsVariableId);
-                SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+                i.SetOpNop();
             }
             else if (i.Op is Op.OpVariable && (OpVariable)i is { } variable)
             {
@@ -168,12 +168,10 @@ internal static class StreamAccessPatcher
 
                 // Replace OpBinaryOperationSDSL with expanded code
                 buffer.RemoveAt(index);
-                var instructions = new List<OpData>();
-                foreach (var inst in builder.GetBuffer())
-                    instructions.Add(inst.Data);
-                buffer.InsertRange(index, instructions.AsSpan());
+                var count = builder.GetBuffer().Count;
+                buffer.InsertRange(index, builder.GetBuffer());
 
-                codeInserted?.Invoke(index--, instructions.Count - 1);
+                codeInserted?.Invoke(index--, count - 1);
             }
             else if (i.Op == Op.OpCopyLogical && (OpCopyLogical)i is { } copyLogical)
             {
@@ -269,7 +267,7 @@ internal static class StreamAccessPatcher
 
             SpirvBuilder.CollectIds(i.Data, CheckStreamTypes);
 
-            SpirvBuilder.RemapIds(remapIds, ref i.Data);
+            SpirvBuilder.RemapIds(remapIds, i);
         }
     }
 }

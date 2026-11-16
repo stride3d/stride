@@ -33,23 +33,13 @@ public record struct ShaderBuffers(SpirvContext Context, SpirvBuffer Buffer)
         if (span[0] != Specification.MagicNumber)
             throw new InvalidOperationException("SPIRV Magic number not found");
 
-        var header = SpirvHeader.Read(span);
-
-        var context = new SpirvContext();
-        var buffer = new SpirvBuffer();
-
+        // The context ends at OpShaderSDSL
         int wid = SpirvHeader.IntSpanSize;
-        bool isContext = true;
-        while (wid < span.Length)
-        {
-            var instruction = new OpData(span.Slice(wid, span[wid] >> 16));
-            if (instruction.Op == Op.OpShaderSDSL)
-                isContext = false;
-            (isContext ? context.GetBuffer() : buffer).Add(instruction);
+        while (wid < span.Length && (Op)(span[wid] & 0xFFFF) != Op.OpShaderSDSL)
             wid += span[wid] >> 16;
-        }
 
-        return new(context, buffer);
+        var context = new SpirvContext(new SpirvBuffer(span[SpirvHeader.IntSpanSize..wid]));
+        return new(context, new SpirvBuffer(span[wid..]));
     }
 }
 
@@ -635,12 +625,6 @@ public partial class SpirvBuilder
         }
     }
 
-    public static void SetOpNop(Span<int> words)
-    {
-        words[0] = words.Length << 16;
-        words[1..].Clear();
-    }
-
     public static bool ContainIds(HashSet<int> ids, OpData i)
     {
         foreach (var op in i)
@@ -678,10 +662,18 @@ public partial class SpirvBuilder
         if (idRemapping.Count == 0)
             return;
         for (var index = shaderStart; index < buffer.Count; index++)
-        {
-            var i = buffer[index];
-            RemapIds(idRemapping, ref i.Data);
-        }
+            RemapIds(idRemapping, buffer[index]);
+    }
+
+    /// <summary>
+    /// Remaps the IDs of an instruction of a buffer, which may change its size.
+    /// </summary>
+    public static void RemapIds(Dictionary<int, int> idRemapping, OpDataIndex i)
+    {
+        var data = i.Data;
+        RemapIds(idRemapping, ref data);
+        if (data.Memory.Length != i.Words.Length)
+            i.Buffer.SetWords(i.Index, data.Memory.Span);
     }
 
     public static void RemapIds(Dictionary<int, int> idRemapping, ref OpData i)
@@ -695,7 +687,7 @@ public partial class SpirvBuilder
             // Target/Structure ID is always stored in first operand for all those instructions
             var target = i.Memory.Span[1];
             if (idRemapping.ContainsKey(target))
-                SetOpNop(i.Memory.Span);
+                SpirvBuffer.SetOpNop(i.Memory.Span);
             return;
         }
 
@@ -888,7 +880,7 @@ public partial class SpirvBuilder
         var copiedShader = new SpirvBuffer();
         foreach (var i in shader)
         {
-            var i2 = new OpData(i.Data.Memory.Span);
+            var i2 = new OpData(i.Words);
             copiedShader.Add(i2);
         }
         shader = copiedShader;
@@ -905,7 +897,7 @@ public partial class SpirvBuilder
             if (i.Op == Op.OpGenericParameterSDSL && (OpGenericParameterSDSL)i is { } genericParameter)
             {
                 generics.Add(genericParameter.ResultId);
-                SetOpNop(i.Data.Memory.Span);
+                i.SetOpNop();
             }
         }
 

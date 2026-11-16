@@ -153,12 +153,12 @@ public static class ExpressionExtensions
         // Operands first: a constant is defined before it is used
         for (var index = 0; index < idOperandCount; index++)
         {
-            if (!TryHoistAsConstant(context, buffer, i.Data.Memory.Span[3 + index]))
+            if (!TryHoistAsConstant(context, buffer, i.Words[3 + index]))
                 return false;
         }
 
         AddAsConstant(context, i);
-        SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+        i.SetOpNop();
         return true;
     }
 
@@ -184,7 +184,7 @@ public static class ExpressionExtensions
     {
         return i.Op switch
         {
-            Op.OpCompositeConstruct => i.Data.Memory.Length - 3,
+            Op.OpCompositeConstruct => i.Words.Length - 3,
             _ when ConstantEvaluator.GetIdOperandCount(i.Op) is > 0 and var count => count,
             _ => -1,
         };
@@ -193,7 +193,7 @@ public static class ExpressionExtensions
     // Adds the constant form of an instruction to the context, with the same result id
     private static SpirvValue AddAsConstant(SpirvContext context, OpDataIndex i)
     {
-        var span = i.Data.Memory.Span;
+        var span = i.Words;
         var resultType = span[1];
         var resultId = span[2];
 
@@ -242,7 +242,7 @@ public static class ExpressionExtensions
     private static bool TryFoldConstantOp(SpirvContext context, OpDataIndex instruction, [NotNullWhen(true)] out object? result)
     {
         result = null;
-        var span = instruction.Data.Memory.Span;
+        var span = instruction.Words;
 
         if (!context.ReverseTypes.TryGetValue(span[1], out var resultSymbolType))
             return false;

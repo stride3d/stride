@@ -90,7 +90,7 @@ public partial class ShaderMixer
                 // Remove SPIR-V variables to other shaders (already stored in ShaderInfo and not valid SPIR-V)
                 if (variableType is PointerType pointer && pointer.BaseType is (ShaderSymbol or ArrayType { BaseType: ShaderSymbol }))
                 {
-                    SetOpNop(i.Data.Memory.Span);
+                    i.SetOpNop();
                     removedIds.Add(variable.ResultId);
                 }
             }
@@ -104,7 +104,7 @@ public partial class ShaderMixer
             if (i.Data.Op == Op.OpName && (OpName)i is { } nameInstruction)
             {
                 if (removedIds.Contains(nameInstruction.Target))
-                    SetOpNop(i.Data.Memory.Span);
+                    i.SetOpNop();
             }
         }
     }

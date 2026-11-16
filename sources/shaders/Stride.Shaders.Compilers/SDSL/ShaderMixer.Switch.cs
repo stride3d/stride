@@ -49,7 +49,7 @@ public partial class ShaderMixer
     // Both instructions have the same layout: [header, selector, default, (label, block)...]
     private static bool TryLowerSwitchId(SpirvContext context, OpDataIndex i, out string? error)
     {
-        var words = i.Data.Memory.Span;
+        var words = i.Words;
         var values = new List<int>();
         for (var labelIndex = 3; labelIndex < words.Length; labelIndex += 2)
         {

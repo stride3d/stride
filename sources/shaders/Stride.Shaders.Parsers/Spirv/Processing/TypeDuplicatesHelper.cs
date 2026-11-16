@@ -41,16 +41,18 @@ public class TypeDuplicateHelper
         return result;
     }
 
-    // Note: Target is only for OpName and OpMember
-    record struct InstructionSortHelper(Op Op, int Index, OpData Data)
-    {
-        public InstructionSortHelper(OpDataIndex i) : this(i.Op, i.Index, i.Data) { }
-
-        public override string ToString() => Data.Memory != null ? Data.ToString() : $"{Op} Index: {Index}";
-    }
+    // An instruction of the context by its position; -1 is the instruction a search looks for, and -1 or int.MaxValue a bound
+    record struct InstructionSortHelper(Op Op, int Index);
 
     class OperationComparer(SpirvContext Context, bool UseIndices) : IComparer<InstructionSortHelper>
     {
+        // The words of the instruction a search looks for, which isn't in the context
+        public OpData Searched;
+
+        private Span<int> Words(InstructionSortHelper x)
+            => x.Index >= 0 && x.Index < Context.Count ? Context[x.Index].Words
+                : x.Index == -1 ? Searched.Memory.Span : [];
+
         private static int RemapOp(Op op)
         {
             // Make sure all OpName and OpMember are contiguous
@@ -84,7 +86,7 @@ public class TypeDuplicateHelper
             // OpName %4 "Test2"
             if (x.Op == Op.OpName || x.Op == Op.OpDecorate || x.Op == Op.OpDecorateString || x.Op == Op.OpMemberName || x.Op == Op.OpMemberDecorate || x.Op == Op.OpMemberDecorateString)
             {
-                comparison = (x.Data.Memory.Span[1]).CompareTo(y.Data.Memory.Span[1]);
+                comparison = (Words(x)[1]).CompareTo(Words(y)[1]);
                 if (comparison != 0)
                     return comparison;
             }
@@ -93,28 +95,28 @@ public class TypeDuplicateHelper
             // For arrays, we have some additional checks: same name and member info
             if (x.Op == Op.OpTypeArray)
             {
-                comparison = x.Data.Memory.Span[2].CompareTo(y.Data.Memory.Span[2]);
+                comparison = Words(x)[2].CompareTo(Words(y)[2]);
                 if (comparison != 0)
                     return comparison;
 
-                comparison = CompareIntConstant(Context, x.Data.Memory.Span[3], y.Data.Memory.Span[3]);
+                comparison = CompareIntConstant(Context, Words(x)[3], Words(y)[3]);
                 if (comparison != 0)
                     return comparison;
             }
             // Standard ResultType/ResultId instructions: ignore ResultId (Span[2]) and compare the rest
             else if (x.Op == Op.OpGenericParameterSDSL || OpCheckDuplicateForConstant(x.Op))
             {
-                comparison = x.Data.Memory.Span[1].CompareTo(y.Data.Memory.Span[1]);
+                comparison = Words(x)[1].CompareTo(Words(y)[1]);
                 if (comparison != 0)
                     return comparison;
 
-                comparison = MemoryExtensions.SequenceCompareTo(x.Data.Memory.Span[3..], y.Data.Memory.Span[3..]);
+                comparison = MemoryExtensions.SequenceCompareTo(Words(x)[3..], Words(y)[3..]);
                 if (comparison != 0)
                     return comparison;
             }
             else if (OpCheckDuplicateForTypesAndImport(x.Op))
             {
-                comparison = MemoryExtensions.SequenceCompareTo(x.Data.Memory.Span[2..], y.Data.Memory.Span[2..]);
+                comparison = MemoryExtensions.SequenceCompareTo(Words(x)[2..], Words(y)[2..]);
                 if (comparison != 0)
                     return comparison;
             }
@@ -126,7 +128,7 @@ public class TypeDuplicateHelper
                 if (comparison != 0)
                     return comparison;
 
-                comparison = MemoryExtensions.SequenceCompareTo(x.Data.Memory != null ? x.Data.Memory.Span[2..] : [], y.Data.Memory != null ? y.Data.Memory.Span[2..] : []);
+                comparison = MemoryExtensions.SequenceCompareTo(Words(x)[2..], Words(y)[2..]);
                 if (comparison != 0)
                     return comparison;
             }
@@ -170,7 +172,7 @@ public class TypeDuplicateHelper
         namesSorted = false;
         foreach (var i in context)
         {
-            GetTargetList(i.Data).Add(new InstructionSortHelper(i.Op, i.Index, i.Data));
+            GetTargetList(i.Data).Add(new InstructionSortHelper(i.Op, i.Index));
         }
 
         comparerSort = new OperationComparer(context, true);
@@ -206,7 +208,7 @@ public class TypeDuplicateHelper
 
         // Add new item
         var targetList = GetTargetList(data);
-        var newItem = new InstructionSortHelper(data.Op, index, data);
+        var newItem = new InstructionSortHelper(data.Op, index);
         var sortedInsertionIndex = targetList.BinarySearch(newItem, comparerSort);
         // Since comparerSort uses Index as last key, it should never be an exact match
         if (sortedInsertionIndex >= 0)
@@ -216,9 +218,9 @@ public class TypeDuplicateHelper
         return result;
     }
 
-    public void RemoveInstructionAt(int index, bool dispose)
+    public void RemoveInstructionAt(int index)
     {
-        context.RemoveAt(index, dispose);
+        context.RemoveAt(index);
 
         // Adjust indices and remove at same time
         var namesByOpSpan = CollectionsMarshal.AsSpan(namesByOp);
@@ -310,8 +312,9 @@ public class TypeDuplicateHelper
 
     public bool CheckForDuplicates(OpData data, out OpDataIndex foundData)
     {
-        var searchKey = new InstructionSortHelper { Op = data.Op, Index = -1, Data = data };
-        var index = instructionsByOp.BinarySearch(searchKey, comparerInsert);
+        comparerInsert.Searched = data;
+        var index = instructionsByOp.BinarySearch(new InstructionSortHelper(data.Op, -1), comparerInsert);
+        comparerInsert.Searched = default;
 
         if (index >= 0)
         {
@@ -363,8 +366,8 @@ public class TypeDuplicateHelper
     /// </summary>
     private static void ProcessInstructions(SpirvBuffer buffer, List<InstructionSortHelper> instructionsByOp, Op startOp, Op endOp, bool sort, OperationComparer comparer, SpirvBuffer[]? additionalBuffers = null)
     {
-        var start = ~instructionsByOp.BinarySearch(new InstructionSortHelper { Op = startOp, Index = -1 }, comparer);
-        var end = ~instructionsByOp.BinarySearch(new InstructionSortHelper { Op = endOp, Index = int.MaxValue }, comparer);
+        var start = ~instructionsByOp.BinarySearch(new InstructionSortHelper(startOp, -1), comparer);
+        var end = ~instructionsByOp.BinarySearch(new InstructionSortHelper(endOp, int.MaxValue), comparer);
 
         if (sort)
         {
@@ -396,7 +399,7 @@ public class TypeDuplicateHelper
                 var isTargetBased = i.Op == Op.OpName || i.Op == Op.OpDecorate || i.Op == Op.OpDecorateString
                     || i.Op == Op.OpMemberName || i.Op == Op.OpMemberDecorate || i.Op == Op.OpMemberDecorateString;
                 var firstMemoryIndex = isTargetBased ? 1 : 2;
-                var same = i.Op == j.Op && MemoryExtensions.SequenceEqual(i.Data.Memory.Span[firstMemoryIndex..], j.Data.Memory.Span[firstMemoryIndex..]);
+                var same = i.Op == j.Op && MemoryExtensions.SequenceEqual(i.Words[firstMemoryIndex..], buffer[j.Index].Words[firstMemoryIndex..]);
                 if (!same)
                     break;
             }
@@ -415,7 +418,7 @@ public class TypeDuplicateHelper
                     var j = buffer[instructionsByOp[index].Index].Data;
                     if (!isOpWithResultId)
                         matchingRefs[index - (firstIndex + 1)] = j.IdResult ?? throw new InvalidOperationException();
-                    SetOpNop(j.Memory.Span);
+                    SpirvBuffer.SetOpNop(j.Memory.Span);
                 }
 
                 // Replace all IdResult at once to the one of first instruction
@@ -462,11 +465,5 @@ public class TypeDuplicateHelper
                 }
             }
         }
-    }
-
-    static void SetOpNop(Span<int> words)
-    {
-        words[0] = words.Length << 16;
-        words[1..].Clear();
     }
 }

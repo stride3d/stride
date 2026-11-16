@@ -14,7 +14,7 @@ internal class MethodInfo
     /// </summary>
     public bool UsedAnyStage { get; internal set; }
 
-    public List<OpData>? OriginalMethodCode { get; set; }
+    public SpirvBuffer? OriginalMethodCode { get; set; }
     public int? ThisStageMethodId { get; set; }
 
     // True if the method depends on STREAMS type (also if used by any OpFunctionCall recursively)

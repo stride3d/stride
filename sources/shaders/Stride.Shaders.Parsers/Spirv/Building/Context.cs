@@ -296,8 +296,8 @@ public partial class SpirvContext
     public OpDataIndex Add(OpData data)
     { ThrowIfFrozen(); return Buffer.Add(data); }
 
-    public void RemoveAt(int index, bool dispose = true)
-    { ThrowIfFrozen(); Buffer.RemoveAt(index, dispose); }
+    public void RemoveAt(int index)
+    { ThrowIfFrozen(); Buffer.RemoveAt(index); }
 
     public OpData Replace<T>(int index, in T instruction) where T : struct, IMemoryInstruction, allows ref struct
     { ThrowIfFrozen(); return Buffer.Replace(index, instruction); }
@@ -323,12 +323,12 @@ public partial class SpirvContext
             if (i.Op is not (Op.OpDecorate or Op.OpDecorateString or Op.OpName))
                 continue;
             // The target is the first operand of all three; a typed instruction would also decode the name or decoration
-            var target = i.Data.Memory.Span[1];
+            var target = i.Words[1];
             if (!ids.Contains(target))
                 continue;
             if (i.Op == Op.OpName)
                 Names.Remove(target);
-            SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+            i.SetOpNop();
         }
     }
 

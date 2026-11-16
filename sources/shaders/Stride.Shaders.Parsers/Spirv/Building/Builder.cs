@@ -127,16 +127,6 @@ public partial class SpirvBuilder()
         return result;
     }
 
-    public void Merge(SpirvBuffer other)
-    {
-        var instructions = new List<OpData>();
-        foreach (var instruction in other)
-            instructions.Add(instruction.Data);
-
-        buffer.InsertRange(Position, instructions.AsSpan());
-        Position += other.Count;
-    }
-
     public struct UseTemporaryBufferHelper(SpirvBuilder builder, SpirvBuffer buffer, int position) : IDisposable
     {
         public void Dispose()

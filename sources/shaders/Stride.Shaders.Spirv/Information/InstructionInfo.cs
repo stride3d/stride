@@ -40,9 +40,6 @@ public partial class InstructionInfo
     public static LogicalOperandArray GetInfo(Span<int> words)
         => GetInfo((Op)(words[0] & 0xFFFF));
 
-    public static LogicalOperandArray GetInfo(Instruction instruction)
-        => GetInfo(instruction.Words);
-
     public static LogicalOperandArray GetInfo(OpData instruction)
         => GetInfo(instruction.Op);
 }
