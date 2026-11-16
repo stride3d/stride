@@ -31,9 +31,10 @@ public partial class ShaderMixer
         }
 
         var callees = new Dictionary<int, List<int>>();
-        var derivativeSites = new Dictionary<int, List<(string? Location, Op Op)>>();
+        // The OpLine of each site, formatted only for an error
+        var derivativeSites = new Dictionary<int, List<((int File, int Line, int Column)? Location, Op Op)>>();
         var currentFunction = 0;
-        string? currentLocation = null;
+        (int File, int Line, int Column)? currentLocation = null;
 
         foreach (var i in buffer)
         {
@@ -46,9 +47,7 @@ public partial class ShaderMixer
 
                 case Op.OpLine:
                     OpLine line = i;
-                    currentLocation = sourceFiles.TryGetValue(line.File, out var fileName)
-                        ? $"{MessageFileName.Of(fileName)}({line.Line},{line.Column})"
-                        : null;
+                    currentLocation = (line.File, line.Line, line.Column);
                     break;
 
                 case Op.OpFunctionCall:
@@ -100,7 +99,9 @@ public partial class ShaderMixer
                 {
                     foreach (var (site, op) in sites)
                     {
-                        var location = site is null ? string.Empty : $"{site}: ";
+                        var location = site is { } s && sourceFiles.TryGetValue(s.File, out var fileName)
+                            ? $"{MessageFileName.Of(fileName)}({s.Line},{s.Column}): "
+                            : string.Empty;
                         reported.Add($"{location}{DescribeDerivativeUse(op)} A {entryPoint.Stage} shader reaches this code.");
                     }
                 }
