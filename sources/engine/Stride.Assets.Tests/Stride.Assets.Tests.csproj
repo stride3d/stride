@@ -41,6 +41,7 @@
     <Compile Include="TestFFmpegTool.cs" />
     <Compile Include="TestRawMediaImporters.cs" />
     <Compile Include="TestAssetUrlConstantsGenerator.cs" />
+    <Compile Include="TestAssetCompilerExecutableTargets.cs" />
     <Compile Include="TestCodeUpgrade.cs" />
     <Compile Include="TestContentTemplateResolver.cs" />
     <Compile Include="TestDotNetNewTemplateGenerator.cs" />

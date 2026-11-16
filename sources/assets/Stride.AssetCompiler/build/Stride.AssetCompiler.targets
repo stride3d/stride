@@ -50,9 +50,13 @@
     <StrideCompilerSkipAndroidInnerBuild Condition="'$(_ComputeFilesToPublishForRuntimeIdentifiers)' == 'true' And '$(AndroidApplication)' == 'true'">true</StrideCompilerSkipAndroidInnerBuild>
     <StrideCompilerSkipBuild Condition="'$(StrideCompilerSkipAndroidInnerBuild)' != ''">$(StrideCompilerSkipAndroidInnerBuild)</StrideCompilerSkipBuild>
 
+    <!-- A test program (a test framework such as xunit.v3 makes it an Exe) is not a game, unless it has a Stride package
+         of its own or names one (StrideCurrentPackagePath). A test that runs a game with its assets sets
+         StrideIsExecutable to true. Stride's own test projects set it. -->
+    <_StrideIsTestWithoutPackage Condition="'$(IsTestProject)' == 'true' And '$(StrideCurrentPackagePath)' == '' And !Exists('$(MSBuildProjectDirectory)\$(MSBuildProjectName).sdpkg')">true</_StrideIsTestWithoutPackage>
     <!--This variable can be overriden by a platform specific targets (in case the executable is located into an assembly dll )-->
-    <StrideIsExecutable Condition=" '$(OutputType)' == 'Exe'">true</StrideIsExecutable>
-    <StrideIsExecutable Condition=" '$(OutputType)' == 'WinExe'">true</StrideIsExecutable>
+    <StrideIsExecutable Condition=" '$(OutputType)' == 'Exe' And '$(_StrideIsTestWithoutPackage)' != 'true'">true</StrideIsExecutable>
+    <StrideIsExecutable Condition=" '$(OutputType)' == 'WinExe' And '$(_StrideIsTestWithoutPackage)' != 'true'">true</StrideIsExecutable>
     <StrideIsExecutable Condition=" '$(OutputType)' == 'AppContainerExe'">true</StrideIsExecutable>
     <StrideIsExecutable Condition=" '$(AndroidApplication)' == 'true'">true</StrideIsExecutable>
 
