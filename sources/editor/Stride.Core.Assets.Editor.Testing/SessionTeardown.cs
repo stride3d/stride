@@ -11,14 +11,18 @@ namespace Stride.Core.Assets.Editor.Testing;
 public static class SessionTeardown
 {
     /// <summary>
-    /// Disposes the build services, then the session services and the session, then waits for the background work of the session.
+    /// Disposes the build services, then the session services and the session, then the plugin host, then waits for the background
+    /// work of the session.
     /// </summary>
     /// <param name="session">The session.</param>
     /// <param name="buildServices">The build services (the database, then the builder), disposed outside the dispatcher: the builder
     /// waits for its thread, which can dispatch work. The object database they opened is closed after them.</param>
     /// <param name="sessionServices">The services of the session, disposed in the dispatcher before the session is destroyed there.</param>
+    /// <param name="plugins">The plugin host of the session, disposed in the dispatcher once the session is destroyed, as the editor
+    /// does when it closes a session: the plugins leave, what they registered goes and their close actions
+    /// (<c>ISessionPluginContext.OnClose</c>) run, before the wait for the background work they may stop.</param>
     /// <exception cref="TimeoutException">The background work of the session did not end within 30 seconds.</exception>
-    public static async Task DestroyAsync(SessionViewModel session, IDisposable?[]? buildServices = null, IDisposable?[]? sessionServices = null)
+    public static async Task DestroyAsync(SessionViewModel session, IDisposable?[]? buildServices = null, IDisposable?[]? sessionServices = null, IDisposable? plugins = null)
     {
         if (buildServices?.Any(x => x is not null) == true)
         {
@@ -35,6 +39,8 @@ public static class SessionTeardown
             foreach (var service in sessionServices ?? [])
                 service?.Dispose();
             session.Destroy();
+            // The plugins leave the destroyed session last, as in the editor
+            plugins?.Dispose();
         });
         // Nothing the test started may outlive it; the wait lets the dispatched work run
         try

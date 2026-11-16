@@ -386,7 +386,7 @@ var asset = session.Asset<MyAssetViewModel>("Stories/Intro");
 session.Session.EditorCollection.OpenAssetEditor(asset);
 ```
 
-- The session writes a package with the given assets in a temporary folder and opens it with the plugins of the test and Stride's default assets plugin. Disposing it closes the session, waits for its background work and deletes the folder.
+- The session writes a package with the given assets in a temporary folder and opens it with the plugins of the test and Stride's default assets plugin. Disposing it closes the session as Game Studio does: the plugins leave it and the actions they registered with `context.OnClose` run, then it waits for its background work and deletes the folder. A session service that stops its background work in `OnClose` is stopped there, before the wait.
 - An `ExclusiveDispatcherService` is the UI thread. `OpenAsync` returns a `DispatcherTask`: a test that awaits it goes on in the dispatcher, where it changes the session and disposes it, as the editor does on its UI thread.
 - The session opens the editor of an asset only when a view is registered for it: `StandInEditors` gives the editors of the test a stand-in view. A test of the views themselves registers the plugin's toolkit companion instead.
 - The dialog and clipboard services throw `NotSupportedException` unless the test gives its own fakes in `Services`. `InitializeSession` initializes the plugins for the session, as Game Studio does once its views are ready, for a test of the session services and commands they register.

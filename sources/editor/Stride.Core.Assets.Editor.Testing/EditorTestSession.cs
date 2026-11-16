@@ -17,7 +17,8 @@ namespace Stride.Core.Assets.Editor.Testing;
 /// <remarks>
 /// <para>The session opens in the dispatcher, and a test that awaits <see cref="OpenAsync"/> goes on there
 /// (<see cref="DispatcherTask{TResult}"/>): it changes the session and disposes it there, as the editor does on its UI thread.
-/// Disposing destroys the session, waits for its background work and deletes the folder.</para>
+/// Disposing destroys the session, disposes its plugin host when the host is disposable (the plugins leave the session and their
+/// close actions run, as when the editor closes a session), waits for its background work and deletes the folder.</para>
 /// <para>The package loads without the NuGet restore and the MSBuild evaluation of its project, which have nothing to give for it
 /// (<see cref="TestPackageLoad"/>).</para>
 /// </remarks>
@@ -30,8 +31,9 @@ public sealed class EditorTestSession : IAsyncDisposable
 
     private bool disposed;
 
-    private EditorTestSession(string directory, string packageName, UFile packagePath, IViewModelServiceProvider serviceProvider)
+    private EditorTestSession(string directory, string packageName, UFile packagePath, IViewModelServiceProvider serviceProvider, IAssetsPluginService plugins)
     {
+        Plugins = plugins;
         Directory = directory;
         PackageName = packageName;
         PackagePath = packagePath;
@@ -52,6 +54,11 @@ public sealed class EditorTestSession : IAsyncDisposable
     /// The path of the package file.
     /// </summary>
     public UFile PackagePath { get; }
+
+    /// <summary>
+    /// The plugin host of the session, which disposing the session disposes when it is disposable.
+    /// </summary>
+    public IAssetsPluginService Plugins { get; }
 
     /// <summary>
     /// The services the session was opened with.
@@ -127,7 +134,7 @@ public sealed class EditorTestSession : IAsyncDisposable
             return;
         disposed = true;
         if (Session is not null)
-            await SessionTeardown.DestroyAsync(Session);
+            await SessionTeardown.DestroyAsync(Session, plugins: Plugins as IDisposable);
         try
         {
             System.IO.Directory.Delete(Directory, true);
@@ -169,7 +176,7 @@ public sealed class EditorTestSession : IAsyncDisposable
                 System.IO.Directory.Delete(directory, true);
             throw;
         }
-        var fixture = new EditorTestSession(directory, packageName, packagePath, serviceProvider);
+        var fixture = new EditorTestSession(directory, packageName, packagePath, serviceProvider, options.Plugins!);
         try
         {
             var session = await SessionViewModel.OpenSessionAsync(packagePath, loadParameters => TestPackageLoad.WithoutMSBuild(packagePath, null, fixture.Result, loadParameters),
@@ -194,7 +201,8 @@ public sealed class EditorTestSession : IAsyncDisposable
 public sealed class EditorTestSessionOptions
 {
     /// <summary>
-    /// The plugin host of the session, which knows the plugins of the assets and their editors.
+    /// The plugin host of the session, which knows the plugins of the assets and their editors. The session disposes it when it is
+    /// disposed, if the host is disposable.
     /// </summary>
     public IAssetsPluginService? Plugins { get; init; }
 
