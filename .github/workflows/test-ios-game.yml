@@ -288,7 +288,10 @@ jobs:
           $suites = ($env:IOS_TEST_SUITES -split "`n") | Where-Object { $_ -ne '' }
           $worstExit = 0
           foreach ($suite in $suites) {
-              $appPath = Get-ChildItem -Path "bin/Tests/$suite/iOS-Vulkan/$config" -Recurse -Filter "$suite.app" -ErrorAction SilentlyContinue | Select-Object -First 1
+              $appPath = Get-Item -Path "bin/Tests/$suite/iOS-Vulkan/$config/$suite.app" -ErrorAction SilentlyContinue
+              if (-not $appPath) {
+                  $appPath = Get-ChildItem -Path "bin/Tests/$suite/iOS-Vulkan/$config" -Recurse -Filter "$suite.app" -ErrorAction SilentlyContinue | Select-Object -First 1
+              }
               if (-not $appPath) {
                   Write-Host "::warning::$suite.app not built — skipping"
                   continue
