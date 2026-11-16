@@ -196,6 +196,7 @@ jobs:
             -p:StrideGraphicsApis=${{ matrix.graphics-api }}
 
       - name: Run sample screenshot tests
+        id: test
         env:
           # Comparator opts a few non-deterministic tests (ParticlesSample, SpriteStudioDemo,
           # AnimatedModel) into a Claude vision second-opinion when LPIPS is over threshold.
@@ -228,6 +229,11 @@ jobs:
           reporter: dotnet-trx
           output-to: step-summary
           list-tests: 'failed'
+
+      - name: Failed tests
+        if: failure() && steps.test.outcome == 'failure'
+        shell: pwsh
+        run: ./.github/scripts/show-failed-tests.ps1
 
       - name: Upload test artifacts (captures + done.json + TRX)
         if: always()
@@ -343,6 +349,7 @@ jobs:
       # is required for the test SDK to emit the test assembly (host platform; graphics API defaults
       # per OS — D3D11 on Windows, Vulkan on Linux).
       - name: Run packaging + consumer tests
+        id: test
         run: |
           dotnet test tests/enduser/Stride.Packaging.Tests/Stride.Packaging.Tests.csproj \
             -nr:false -v:m -p:WarningLevel=0 \
@@ -360,6 +367,11 @@ jobs:
           reporter: dotnet-trx
           output-to: step-summary
           list-tests: 'failed'
+
+      - name: Failed tests
+        if: failure() && steps.test.outcome == 'failure'
+        shell: pwsh
+        run: ./.github/scripts/show-failed-tests.ps1
 
       - name: Upload test artifacts (TRX)
         if: always()

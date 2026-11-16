@@ -61,6 +61,7 @@ jobs:
             -p:StridePlatforms=Linux \
             -p:StrideGraphicsApis=Vulkan
       - name: Test
+        id: test
         run: |
           FILTER="${{ github.event.inputs.test-filter || inputs.test-filter }}"
           REPEAT="${{ github.event.inputs.repeat || inputs.repeat || '1' }}"
@@ -84,6 +85,10 @@ jobs:
           reporter: dotnet-trx
           output-to: step-summary
           list-tests: 'failed'
+      - name: Failed tests
+        if: failure() && steps.test.outcome == 'failure'
+        shell: pwsh
+        run: ./.github/scripts/show-failed-tests.ps1
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v7

@@ -246,6 +246,7 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       - name: Run tests on Android emulator
+        id: test
         continue-on-error: ${{ inputs.tolerate-test-failures == true }}
         # Action handles emulator boot/teardown; we run the per-suite pwsh driver inside.
         # API 34 / google_apis / x86_64 — API 36+ (Android 16) crashes Mono JIT on the
@@ -297,6 +298,11 @@ jobs:
           # Tolerated (gold-gen) test failures shouldn't red the run via the reporter; the Build
           # and Test steps still fail normally. Defaults to true for direct / PR-gate runs.
           fail-on-error: ${{ inputs.tolerate-test-failures != true }}
+
+      - name: Failed tests
+        if: failure() && steps.test.outcome == 'failure'
+        shell: pwsh
+        run: ./.github/scripts/show-failed-tests.ps1
 
       - name: Upload test results
         if: always()

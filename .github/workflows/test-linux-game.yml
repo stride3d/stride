@@ -169,6 +169,7 @@ jobs:
           path: build.binlog
           if-no-files-found: ignore
       - name: Test
+        id: test
         if: success() || failure()
         continue-on-error: ${{ inputs.tolerate-test-failures == true }}
         run: |
@@ -207,6 +208,10 @@ jobs:
           # Tolerated (gold-gen) test failures shouldn't red the run via the reporter; the Build
           # and Test steps still fail normally. Defaults to true for direct / PR-gate runs.
           fail-on-error: ${{ inputs.tolerate-test-failures != true }}
+      - name: Failed tests
+        if: failure() && steps.test.outcome == 'failure'
+        shell: pwsh
+        run: ./.github/scripts/show-failed-tests.ps1
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v7

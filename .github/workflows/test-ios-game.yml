@@ -256,6 +256,7 @@ jobs:
           xcrun simctl bootstatus $IOS_SIM_UDID -b
 
       - name: Run tests on iOS Simulator
+        id: test
         shell: pwsh
         continue-on-error: ${{ inputs.tolerate-test-failures == true }}
         run: |
@@ -319,6 +320,11 @@ jobs:
           output-to: step-summary
           list-tests: 'failed'
           fail-on-error: ${{ inputs.tolerate-test-failures != true }}
+
+      - name: Failed tests
+        if: failure() && steps.test.outcome == 'failure'
+        shell: pwsh
+        run: ./.github/scripts/show-failed-tests.ps1
 
       - name: Upload test results
         if: always()

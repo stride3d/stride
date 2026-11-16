@@ -88,6 +88,7 @@ jobs:
             -p:StridePlatforms=${{ matrix.platform }} \
             -p:ContinuousIntegrationBuild=false
       - name: Test
+        id: test
         run: |
           FILTER="${{ github.event.inputs.test-filter || inputs.test-filter }}"
           REPEAT="${{ github.event.inputs.repeat || inputs.repeat || '1' }}"
@@ -112,6 +113,10 @@ jobs:
           reporter: dotnet-trx
           output-to: step-summary
           list-tests: 'failed'
+      - name: Failed tests
+        if: failure() && steps.test.outcome == 'failure'
+        shell: pwsh
+        run: ./.github/scripts/show-failed-tests.ps1
       # ReportGenerator as a pinned dotnet tool rather than its action: the same command runs locally,
       # and no further third-party action is needed.
       - name: Coverage report

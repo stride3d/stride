@@ -165,6 +165,7 @@ jobs:
       # opts the comparator into Claude vision second-opinions on frames that exceed LPIPS —
       # cost is bounded because Claude only fires on already-failing frames.
       - name: Run editor screenshot tests
+        id: test
         env:
           # Called by another workflow: the key it passes. Run on its own (dispatch, schedule): the screenshots key.
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY || secrets.ANTHROPIC_API_KEY_SCREENSHOTS }}
@@ -191,6 +192,11 @@ jobs:
           path: TestResults/*.trx
           reporter: dotnet-trx
           output-to: step-summary
+
+      - name: Failed tests
+        if: failure() && steps.test.outcome == 'failure'
+        shell: pwsh
+        run: ./.github/scripts/show-failed-tests.ps1
 
       # Named screenshots-* so the trusted vision gate's download pattern (screenshots-*) picks it up
       # alongside the enduser captures and re-judges any deferred frames.
