@@ -9,6 +9,14 @@ namespace MyTemplate.Assets;
 [AssetCompiler(typeof(MyTemplateAsset), typeof(AssetCompilationContext))]
 public class MyTemplateAssetCompiler : AssetCompilerBase
 {
+    // The types of the asset whose references (to a texture, a model, another asset of the plugin) the game needs at
+    // runtime: the build compiles the assets they reference into the game too. This asset holds none yet; without
+    // this, a reference added to it later fails the game build with "Could not find content [...], referenced by [...]".
+    public override IEnumerable<Type> GetRuntimeTypes(AssetItem assetItem)
+    {
+        yield return typeof(MyTemplateAsset);
+    }
+
     protected override void Prepare(AssetCompilerContext context, AssetItem assetItem, string targetUrlInStorage, AssetCompilerResult result)
     {
         result.BuildSteps = new AssetBuildStep(assetItem);
