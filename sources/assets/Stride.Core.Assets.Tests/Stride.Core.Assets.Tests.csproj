@@ -22,6 +22,8 @@
     <Compile Include="..\..\shared\Stride.NuGetResolver\RestoreHelper.cs" Link="Shared\RestoreHelper.cs" />
     <Compile Include="..\..\shared\Stride.NuGetResolver\GraphicsApiSelector.cs" Link="Shared\GraphicsApiSelector.cs" />
     <Compile Include="..\..\shared\Stride.NuGetResolver\NuGetResolverCache.cs" Link="Shared\NuGetResolverCache.cs" />
+    <!-- The pack step of the asset compiler, which is a program: compile it here, as Stride.Core.Tasks does -->
+    <Compile Include="..\Stride.AssetCompiler\Tasks\PackAssets.cs" Link="Shared\PackAssets.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\engine\Stride.Assets\Stride.Assets.csproj" />

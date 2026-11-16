@@ -446,6 +446,8 @@
       <_StridePackCompanionArg>@(_StrideCompanion->' --pack-companion=&quot;%(Kind):%(PackageId):%(PackageVersion):%(Replaces):%(Toolkit)&quot;', '')</_StridePackCompanionArg>
       <_StridePackKindArg Condition="'$(StridePackageKind)' != ''"> --pack-kind=&quot;$(StridePackageKind)&quot;</_StridePackKindArg>
       <_StridePackKindArg Condition="'$(StrideEditorToolkit)' != ''">$(_StridePackKindArg) --pack-toolkit=&quot;$(StrideEditorToolkit)&quot;</_StridePackKindArg>
+      <!-- The packed sdpkg carries the version of its NuGet package, which a project without a version in its sdpkg has nowhere else -->
+      <_StridePackKindArg Condition="'$(PackageVersion)' != ''">$(_StridePackKindArg) --pack-version=&quot;$(PackageVersion)&quot;</_StridePackKindArg>
     </PropertyGroup>
     <Error Condition="'$(StrideContainsAssetTypes)' == 'true' And '@(_StrideHostAssetAssembly)' == ''"
            Text="StrideContainsAssetTypes=true but none of the target framework(s) '$(TargetFrameworks)$(TargetFramework)' is host-compatible: the asset compiler needs a base netX.0 or net*-windows* build to load. A mobile-only asset package can't ship a host-loadable assembly." />
