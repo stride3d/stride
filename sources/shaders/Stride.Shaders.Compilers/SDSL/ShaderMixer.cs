@@ -76,6 +76,12 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             // Process name and types imported by constants due to generics instantiation
             ShaderClass.ProcessNameAndTypes(context);
 
+            // The classes are loaded: make room for all their words at once, instead of growing the buffers as they are merged
+            var size = default(MergedSize);
+            AddMergedSize(shaderSource2, ref size);
+            temp.Reserve(size.BufferWords, size.BufferInstructions);
+            context.GetBuffer().Reserve(size.ContextWords, size.ContextInstructions);
+
             rootMixin = MergeMixinNode(globalContext, context, temp, shaderSource2);
 
             if (CollectExplanation)
@@ -172,6 +178,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         LowerIntegerMatrices(context);
         new TypeDuplicateHelper(context).RemoveDuplicateImageTypes(temp);
 
+        temp.Reserve(context.GetBuffer().WordCount, context.Count);
         foreach (var inst in context)
             temp.Add(inst.Data);
 
@@ -187,6 +194,27 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         effectReflection = globalContext.Reflection;
         usedHashSources = shaderLoader.Sources;
         return true;
+    }
+
+    // The words and instructions of the classes of a mixin tree, counted once per time they are merged
+    private record struct MergedSize(int BufferWords, int BufferInstructions, int ContextWords, int ContextInstructions);
+
+    private static void AddMergedSize(ShaderMixinInstantiation mixin, ref MergedSize size)
+    {
+        foreach (var shaderClass in mixin.Mixins)
+        {
+            if (shaderClass.Buffer is not { } buffers)
+                continue;
+            size.BufferWords += buffers.Buffer.WordCount;
+            size.BufferInstructions += buffers.Buffer.Count;
+            size.ContextWords += buffers.Context.GetBuffer().WordCount;
+            size.ContextInstructions += buffers.Context.Count;
+        }
+        foreach (var compositions in mixin.Compositions.Values)
+        {
+            foreach (var composition in compositions)
+                AddMergedSize(composition, ref size);
+        }
     }
 
     private static void AddRequiredCapabilities(SpirvContext context, SpirvBuffer temp)
@@ -485,13 +513,14 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         }
 
         var shaderBuffers = shaderClass.Buffer ?? throw new InvalidOperationException($"Shader buffers not loaded for {shaderClass.ClassName}");
+        var linkInfo = ClassLinkInfo.Get(shaderBuffers);
         var offset = context.Bound;
         var resourceGroupOffset = context.ResourceGroupBound;
 
         // Remember when we started to add instructions in both context and main buffer
         var shaderStart = buffer.Count;
         var contextStart = context.Count;
-        var names = new Dictionary<int, string>();
+        var names = linkInfo.Names;
 
         var forbiddenIds = new HashSet<int>();
         var remapIds = new Dictionary<int, int>();
@@ -532,119 +561,116 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         }
 
         var structTypes = new Dictionary<string, int>();
-        OpData? pendingOpLine = null; // Defer OpLine until the next included instruction
+        // The words of each copied instruction, and of the OpLine deferred until the next included instruction (none when its length is 0)
+        var scratch = new int[64];
+        var pendingOpLine = new int[4];
+        var pendingOpLineLength = 0;
 
         // Copy instructions to main buffer
-        foreach (var shader in new[] { shaderBuffers.Context.GetBuffer(), shaderBuffers.Buffer })
+        foreach (var (shader, links) in new[] { (shaderBuffers.Context.GetBuffer(), linkInfo.Context), (shaderBuffers.Buffer, linkInfo.Buffer) })
         {
+            var idPositions = links.IdPositions;
             for (var index = 0; index < shader.Count; index++)
             {
-                var i = shader[index];
+                var link = links.Instructions[index];
 
                 // Do we need to skip variable/functions? (depending on stage/non-stage)
                 {
                     var include = true;
-                    if (i.Op == Op.OpName)
+                    switch (link.Kind)
                     {
-                        OpName nameInstruction = i;
-                        names.Add(nameInstruction.Target, nameInstruction.Name);
-                    }
-
-                    // Skip source hash (doesn't make sense during mixing, as it's not a 1 sdsl <=> 1 spv mapping anymore)
-                    if (i.Op == Op.OpSourceHashSDSL)
-                        include = false;
-
-                    // Deduplicate OpString/OpSource: keep only one per unique filename
-                    if (i.Op == Op.OpString)
-                    {
-                        var opString = (OpString)i;
-                        var offsetId = opString.ResultId + offset;
-                        if (globalContext.SourceFileStrings.TryGetValue(opString.Value, out var existingId))
-                        {
-                            remapIds[offsetId] = existingId;
+                        // Skip source hash (doesn't make sense during mixing, as it's not a 1 sdsl <=> 1 spv mapping anymore)
+                        case InstructionLinkKind.SourceHash:
                             include = false;
-                        }
-                        else
-                        {
-                            globalContext.SourceFileStrings[opString.Value] = offsetId;
-                        }
-                    }
-                    if (i.Op == Op.OpSource)
-                    {
-                        // OpSource references an OpString via file ID; skip if that OpString was deduplicated
-                        var fileOperand = i.Words;
-                        // OpSource layout: [wordcount|op, sourcelanguage, version, file?, source?]
-                        if (fileOperand.Length > 3)
-                        {
-                            var fileId = fileOperand[3] + offset;
-                            if (remapIds.ContainsKey(fileId))
+                            break;
+                        // Deduplicate OpString/OpSource: keep only one per unique filename
+                        case InstructionLinkKind.String:
+                            var offsetId = link.ResultId + offset;
+                            var value = links.Strings[index]!;
+                            if (globalContext.SourceFileStrings.TryGetValue(value, out var existingId))
+                            {
+                                remapIds[offsetId] = existingId;
                                 include = false;
-                        }
-                    }
+                            }
+                            else
+                            {
+                                globalContext.SourceFileStrings[value] = offsetId;
+                            }
+                            break;
+                        // OpSource references an OpString via file ID; skip if that OpString was deduplicated
+                        case InstructionLinkKind.Source:
+                            if (link.SourceFile != 0 && remapIds.ContainsKey(link.SourceFile + offset))
+                                include = false;
+                            break;
+                        case InstructionLinkKind.Function:
+                            // Note: BuildTypesAndMethodGroups has not been called for this mixin so context.Types/ReverseTypes is not filled
+                            //       However:
+                            //        - FunctionType is only required when looking for stage function
+                            //        - In that case, root stage mixin MergeMixinNode => BuildTypesAndMethodGroups would have been called for this function type
+                            //        - function type is already deduplicated (in this loop)
+                            //       So the lookup will work when it is necessary
+                            FunctionType? functionType = default;
+                            // First, assuming FunctionType is a duplicate from a previous shader, we could find the already existing type by applying offset and remapIds
+                            if (remapIds.TryGetValue(link.FunctionType + offset, out var remappedFunctionTypeId)
+                                // Then, we can find the actual type in context.ReverseTypes
+                                && context.ReverseTypes.TryGetValue(remappedFunctionTypeId, out var functionType2))
+                                functionType = (FunctionType)functionType2;
 
-                    if (i.Op == Op.OpFunction && (OpFunction)i is { } function && shader[index + 1].Op == Op.OpFunctionMetadataSDSL && (OpFunctionMetadataSDSL)shader[index + 1] is { } functionInfo)
-                    {
-                        var isStage = (functionInfo.Flags & FunctionFlagsMask.Stage) != 0;
-                        // Note: BuildTypesAndMethodGroups has not been called for this mixin so context.Types/ReverseTypes is not filled
-                        //       However:
-                        //        - FunctionType is only required when looking for stage function
-                        //        - In that case, root stage mixin MergeMixinNode => BuildTypesAndMethodGroups would have been called for this function type
-                        //        - function type is already deduplicated (in this loop)
-                        //       So the lookup will work when it is necessary
-
-                        FunctionType? functionType = default;
-                        // First, assuming FunctionType is a duplicate from a previous shader, we could find the already existing type by applying offset and remapIds
-                        if (remapIds.TryGetValue(function.FunctionType + offset, out var remappedFunctionTypeId)
-                            // Then, we can find the actual type in context.ReverseTypes
-                            && context.ReverseTypes.TryGetValue(remappedFunctionTypeId, out var functionType2))
-                            functionType = (FunctionType)functionType2;
-
-                        include = ProcessStageMemberOrType(function.ResultId, functionType, isStage);
-                    }
-                    if (i.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { } variableInstruction)
-                    {
-                        var isStage = (variableInstruction.Flags & VariableFlagsMask.Stage) != 0;
-                        include = ProcessStageMemberOrType(variableInstruction.ResultId, null, isStage);
-                    }
-                    if (i.Op == Op.OpTypeStruct && (OpTypeStruct)i is { } typeStruct)
-                    {
-                        include = ProcessStageMemberOrType(typeStruct.ResultId, null, true);
+                            include = ProcessStageMemberOrType(link.ResultId, functionType, link.IsStage);
+                            break;
+                        case InstructionLinkKind.Variable:
+                        case InstructionLinkKind.Struct:
+                            include = ProcessStageMemberOrType(link.ResultId, null, link.IsStage);
+                            break;
                     }
 
                     if (!include)
                     {
                         // We store removed IDs for further OpName removals
-                        if (i.Data.IdResult is int id)
-                            removedIds.Add(offset + id);
+                        if (link.ResultId != 0)
+                            removedIds.Add(offset + link.ResultId);
 
                         // Special case for function: skip until function end
                         // (for other cases such as variable, skipping only current instruction is enough)
-                        if (i.Op == Op.OpFunction)
+                        if (link.Kind == InstructionLinkKind.Function)
                         {
                             // Skip until end of function
-                            while (shader[++index].Op != Op.OpFunctionEnd)
+                            while (++index < link.FunctionEnd)
                             {
                                 // We store removed IDs for further OpName removals
-                                if (shader[index].Data.IdResult is int id2)
+                                if (links.Instructions[index].ResultId is not 0 and var id2)
                                     removedIds.Add(offset + id2);
                             }
                         }
 
                         // Discard pending OpLine — the instruction it was meant for was skipped
-                        pendingOpLine = null;
+                        pendingOpLineLength = 0;
 
                         // Go to next instruction
                         continue;
                     }
                 }
 
-                var i2 = new OpData(i.Words);
+                var source = shader.GetWords(index);
+                if (scratch.Length < source.Length)
+                    scratch = new int[Math.Max(source.Length, scratch.Length * 2)];
+                source.CopyTo(scratch);
+                var i2 = new OpData(scratch.AsMemory(0, source.Length));
+                var words = i2.Memory.Span;
 
                 if (offset > 0)
-                    OffsetIds(i2, offset);
+                {
+                    // As OffsetIds: an ID word of 0 (an absent optional ID) stays 0
+                    for (var p = link.IdStart; p < link.IdEnd; p++)
+                    {
+                        ref var word = ref words[idPositions[p]];
+                        if (word != 0)
+                            word += offset;
+                    }
+                }
 
-                if (i2.IdResult != null)
-                    context.Bound = Math.Max(context.Bound, i2.IdResult.Value + 1);
+                if (link.ResultId != 0)
+                    context.Bound = Math.Max(context.Bound, link.ResultId + offset + 1);
 
                 // ResourceGroupId: adjust offsets too
                 if (i2.Op == Op.OpDecorate && new OpDecorate(ref i2) is { Decoration: Decoration.ResourceGroupIdSDSL, DecorationParameters: { } m } resourceGroupIdDecorate)
@@ -653,10 +679,33 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     resourceGroupIdDecorate.DecorationParameters = new(m.Span[0] + resourceGroupOffset);
                 }
 
-                if (SpirvBuilder.ContainIds(forbiddenIds, i2))
-                    throw new InvalidOperationException($"Stage instruction {i.Data} references a non-stage ID");
+                // Almost always empty: only a stage-only import forbids IDs
+                if (forbiddenIds.Count > 0)
+                {
+                    for (var p = link.IdStart; p < link.IdEnd; p++)
+                    {
+                        if (forbiddenIds.Contains(words[idPositions[p]]))
+                            throw new InvalidOperationException($"Stage instruction {shader[index].Data} references a non-stage ID");
+                    }
+                }
 
-                SpirvBuilder.RemapIds(remapIds, ref i2);
+                if (remapIds.Count > 0)
+                {
+                    // Names and decorations of a remapped target, and the interface of an entry point, need more than replacing IDs
+                    if (i2.Op is Op.OpName or Op.OpDecorate or Op.OpDecorateString or Op.OpMemberName or Op.OpMemberDecorate or Op.OpMemberDecorateString or Op.OpEntryPoint)
+                    {
+                        SpirvBuilder.RemapIds(remapIds, ref i2);
+                    }
+                    else
+                    {
+                        for (var p = link.IdStart; p < link.IdEnd; p++)
+                        {
+                            ref var word = ref words[idPositions[p]];
+                            if (remapIds.TryGetValue(word, out var to))
+                                word = to;
+                        }
+                    }
+                }
 
                 // Detect when we switch from context to main buffer
                 if (i2.Op == Op.OpShaderSDSL)
@@ -702,27 +751,30 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         }
                     }
                     // Instruction goes to context or is deduplicated — discard any pending OpLine
-                    pendingOpLine = null;
+                    pendingOpLineLength = 0;
                 }
                 // Does this belong in context or buffer?
                 else if (isContext)
                 {
                     addToContext = true;
                     // Instruction goes to context — discard any pending OpLine (OpLine belongs in function bodies only)
-                    pendingOpLine = null;
+                    pendingOpLineLength = 0;
                 }
                 else if (i2.Op == Op.OpLine)
                 {
                     // Defer OpLine — only emit when the next non-OpLine instruction is actually included
-                    pendingOpLine = i2;
+                    if (pendingOpLine.Length < words.Length)
+                        pendingOpLine = new int[words.Length];
+                    words.CopyTo(pendingOpLine);
+                    pendingOpLineLength = words.Length;
                 }
                 else
                 {
                     // Flush pending OpLine before emitting a real instruction
-                    if (pendingOpLine is { } pending)
+                    if (pendingOpLineLength > 0)
                     {
-                        buffer.Add(pending);
-                        pendingOpLine = null;
+                        buffer.Add(new OpData(pendingOpLine.AsMemory(0, pendingOpLineLength)));
+                        pendingOpLineLength = 0;
                     }
                     buffer.Add(i2);
                 }
@@ -1182,44 +1234,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             }
         }
         return result;
-    }
-
-    public static void OffsetIds(OpData inst, int offset)
-    {
-        foreach (var o in inst)
-        {
-            if (o.Kind == OperandKind.IdRef
-                || o.Kind == OperandKind.IdResult
-                || o.Kind == OperandKind.IdResultType
-                || o.Kind == OperandKind.IdScope
-                || o.Kind == OperandKind.IdMemorySemantics
-                || o.Kind == OperandKind.PairIdRefIdRef)
-            {
-                for (int i = 0; i < o.Words.Length; ++i)
-                {
-                    if (o.Words[i] != 0)
-                        o.Words[i] += offset;
-                }
-            }
-            else if (o.Kind == OperandKind.PairIdRefLiteralInteger
-                     || o.Kind == OperandKind.PairLiteralIntegerIdRef)
-            {
-                for (int i = 0; i < o.Words.Length; i += 2)
-                {
-                    if (o.Kind == OperandKind.PairIdRefLiteralInteger)
-                    {
-                        if (o.Words[i + 0] != 0)
-                            o.Words[i + 0] += offset;
-                    }
-
-                    if (o.Kind == OperandKind.PairLiteralIntegerIdRef)
-                    {
-                        if (o.Words[i + 1] != 0)
-                            o.Words[i + 1] += offset;
-                    }
-                }
-            }
-        }
     }
 
     /// <summary>

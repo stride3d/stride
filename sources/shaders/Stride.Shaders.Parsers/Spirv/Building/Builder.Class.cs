@@ -14,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -625,38 +626,6 @@ public partial class SpirvBuilder
         }
     }
 
-    public static bool ContainIds(HashSet<int> ids, OpData i)
-    {
-        foreach (var op in i)
-        {
-            if (op.Kind == OperandKind.IdRef
-                 || op.Kind == OperandKind.IdResult
-                 || op.Kind == OperandKind.IdResultType
-                 || op.Kind == OperandKind.IdScope
-                 || op.Kind == OperandKind.IdMemorySemantics
-                 || op.Kind == OperandKind.PairIdRefIdRef)
-            {
-                foreach (var word in op.Words)
-                    if (ids.Contains(word))
-                        return true;
-            }
-            else if (op.Kind == OperandKind.PairIdRefLiteralInteger)
-            {
-                for (int j = 0; j < op.Words.Length; j += 2)
-                    if (ids.Contains(op.Words[j]))
-                        return true;
-            }
-            else if (op.Kind == OperandKind.PairLiteralIntegerIdRef)
-            {
-                for (int j = 1; j < op.Words.Length; j += 2)
-                    if (ids.Contains(op.Words[j]))
-                        return true;
-            }
-        }
-
-        return false;
-    }
-
     public static void RemapIds(SpirvBuffer buffer, int shaderStart, int shaderEnd, Dictionary<int, int> idRemapping)
     {
         if (idRemapping.Count == 0)
@@ -742,6 +711,39 @@ public partial class SpirvBuilder
                     if (idRemapping.TryGetValue(op.Words[j], out var to2))
                         op.Words[j] = to2;
                 }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Adds the position in <paramref name="i"/> of each word that holds an ID, the words that <see cref="RemapIds(Dictionary{int, int}, ref OpData)"/> remaps.
+    /// </summary>
+    /// <remarks>An operand's layout depends only on the literal words, so the positions stay valid when the IDs change.</remarks>
+    public static void CollectIdPositions(OpData i, List<int> positions)
+    {
+        var words = i.Memory.Span;
+        foreach (var op in i)
+        {
+            var start = (int)(Unsafe.ByteOffset(ref MemoryMarshal.GetReference(words), ref MemoryMarshal.GetReference(op.Words)) / sizeof(int));
+            if (op.Kind == OperandKind.IdRef
+                || op.Kind == OperandKind.IdResult
+                || op.Kind == OperandKind.IdResultType
+                || op.Kind == OperandKind.IdScope
+                || op.Kind == OperandKind.IdMemorySemantics
+                || op.Kind == OperandKind.PairIdRefIdRef)
+            {
+                for (int j = 0; j < op.Words.Length; j++)
+                    positions.Add(start + j);
+            }
+            else if (op.Kind == OperandKind.PairIdRefLiteralInteger)
+            {
+                for (int j = 0; j < op.Words.Length; j += 2)
+                    positions.Add(start + j);
+            }
+            else if (op.Kind == OperandKind.PairLiteralIntegerIdRef)
+            {
+                for (int j = 1; j < op.Words.Length; j += 2)
+                    positions.Add(start + j);
             }
         }
     }
