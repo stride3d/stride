@@ -15,11 +15,14 @@ concurrency:
 jobs:
   Upgrade:
     runs-on: windows-2025-vs2026
+    permissions:
+      contents: write       # the push, when there's no Stride Bot app (a fork)
+      pull-requests: write
     steps:
       - uses: actions/checkout@v7
         with:
           lfs: true
-          persist-credentials: false  # the push uses the Stride Bot token
+          persist-credentials: false  # the push uses the token of the stride-bot action
 
       - uses: actions/setup-dotnet@v6
         with:
@@ -63,18 +66,17 @@ jobs:
       # it's made after the build.
       - name: Get the Stride Bot token
         id: bot
-        uses: actions/create-github-app-token@v3
+        uses: ./.github/actions/stride-bot
         with:
           client-id: ${{ vars.STRIDE_BOT_CLIENT_ID }}
           private-key: ${{ secrets.STRIDE_BOT_PRIVATE_KEY }}
-          permission-contents: write
-          permission-pull-requests: write
 
       - name: Open the PR
         shell: bash
         env:
           GH_TOKEN: ${{ steps.bot.outputs.token }}
-          BOT: ${{ steps.bot.outputs.app-slug }}[bot]
+          BOT_NAME: ${{ steps.bot.outputs.name }}
+          BOT_EMAIL: ${{ steps.bot.outputs.email }}
         run: |
           dotnet msbuild build/samples.proj -t:SamplesToReleaseEngine -p:Configuration=Release
           FILE=sources/shared/SharedAssemblyInfo.cs
@@ -89,9 +91,8 @@ jobs:
             exit 0
           fi
           BRANCH="chore/upgrade-samples-$VERSION-${{ github.run_number }}"
-          # The id prefix is what links the author to the bot's profile.
-          git config user.name "$BOT"
-          git config user.email "$(gh api "users/$BOT" --jq .id)+$BOT@users.noreply.github.com"
+          git config user.name "$BOT_NAME"
+          git config user.email "$BOT_EMAIL"
           gh auth setup-git
           git checkout -b "$BRANCH"
           git commit -q -m "Samples: upgrade to $VERSION"
