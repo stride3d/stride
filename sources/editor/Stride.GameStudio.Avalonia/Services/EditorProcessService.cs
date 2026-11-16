@@ -54,11 +54,12 @@ internal sealed class EditorProcessService
     {
         // The new editor does not tell the launcher again that it started
         var arguments = options.GetRestartArguments(sessionPath, launcherNotified: App.LauncherNotifier is null, safeMode);
+        var session = sessionPath?.ToOSPath();
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             // The new editor starts once this one is gone, after its main window has closed: the window saved
             // its settings and the preview game has exited
-            desktop.Exit += (_, _) => Start(arguments);
+            desktop.Exit += (_, _) => Start(arguments, session);
             if (desktop.ShutdownMode == ShutdownMode.OnMainWindowClose && desktop.MainWindow is { } mainWindow)
                 mainWindow.Close();
             else
@@ -67,15 +68,25 @@ internal sealed class EditorProcessService
         else
         {
             // A host without a desktop lifetime owns its process
-            Start(arguments);
+            Start(arguments, session);
         }
     }
 
-    private void Start(IReadOnlyList<string> arguments)
+    /// <summary>
+    /// Whether this process can load a session, by the .NET major its game needs: a newer one opens it in a new process
+    /// (<see cref="Restart"/>), one that is not installed keeps it closed, for the given reason.
+    /// </summary>
+    public SessionHost CheckHost(UFile sessionPath, out string? reason)
+    {
+        var arguments = options.GetRestartArguments(sessionPath, launcherNotified: true);
+        return launcher.CheckHost(sessionPath.ToOSPath(), arguments, out reason);
+    }
+
+    private void Start(IReadOnlyList<string> arguments, string? sessionPath)
     {
         try
         {
-            launcher.Start(arguments);
+            launcher.Start(arguments, sessionPath);
         }
         catch (Exception e)
         {

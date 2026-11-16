@@ -71,8 +71,14 @@ internal sealed class Program
             App.Options = StartupOptions.Parse(args);
             foreach (var unknown in App.Options.UnknownArguments)
                 GlobalLogger.GetLogger("GameStudio").Warning($"Unknown command line option [{unknown}] ignored.");
-            // Another session opens in a new process, started as this one was (from the working directory it has now)
-            App.ProcessLauncher = new EditorProcessLauncher(typeof(Program).Assembly.Location);
+            // Another session opens in a new process, started as this one was (from the working directory it has now), on the
+            // .NET major its game needs
+            var initialSessionPath = App.Options.InitialSessionPath?.ToOSPath();
+            var processLauncher = new DotNetHostLauncher(typeof(Program).Assembly.Location, args, initialSessionPath);
+            // The session of the command line may need a newer .NET major than this one: re-execute on it before any window
+            if (processLauncher.RelaunchIfNeeded(initialSessionPath, args))
+                return;
+            App.ProcessLauncher = processLauncher;
             // The marker of a start that dies while plugins load, beside the user's settings (both editors share them)
             App.LoadingMarker = PluginLoadingMarker.CreateDefault();
             // The extensions the user installed, listed in the internal settings both editors read, their packages beside them

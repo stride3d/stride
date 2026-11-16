@@ -6,15 +6,16 @@ using System.Diagnostics;
 namespace Stride.GameStudio.Avalonia.Services;
 
 /// <summary>
-/// Starts a new editor process the way this one was started: its apphost, or the <c>dotnet</c> muxer running its assembly, from
-/// the same working directory and with the same environment.
+/// The start line of a new editor process the way this one was started: its apphost, or the <c>dotnet</c> muxer running its
+/// assembly, from the same working directory and with the same environment. The desktop host re-executes it on another .NET
+/// major instead when its session needs one.
 /// </summary>
 /// <remarks>
 /// The launcher and <c>stride studio</c> start the apphost when there is one, else <c>dotnet &lt;dll&gt;</c>
 /// (<c>DotNetHostSelector.NativeStartInfo</c>); the launcher sets the working directory to the editor's folder, the command line
 /// keeps the shell's.
 /// </remarks>
-public sealed class EditorProcessLauncher : IEditorProcessLauncher
+public sealed class EditorProcessLauncher
 {
     private readonly string appDllPath;
     private readonly string? processPath;
@@ -36,12 +37,6 @@ public sealed class EditorProcessLauncher : IEditorProcessLauncher
         this.workingDirectory = workingDirectory;
     }
 
-    /// <inheritdoc/>
-    public void Start(IReadOnlyList<string> arguments)
-    {
-        Process.Start(CreateStartInfo(arguments));
-    }
-
     /// <summary>
     /// The start line of the new process.
     /// </summary>
@@ -59,6 +54,15 @@ public sealed class EditorProcessLauncher : IEditorProcessLauncher
         }
         foreach (var argument in arguments)
             startInfo.ArgumentList.Add(argument);
+        return Prepare(startInfo);
+    }
+
+    /// <summary>
+    /// Runs a start line of the editor (this one, or one that re-executes it) from the working directory of this process, without
+    /// a console window.
+    /// </summary>
+    public ProcessStartInfo Prepare(ProcessStartInfo startInfo)
+    {
         startInfo.UseShellExecute = false;
         startInfo.WorkingDirectory = workingDirectory;
         // dotnet.exe is a console program; started from a GUI process it would get a console window of its own

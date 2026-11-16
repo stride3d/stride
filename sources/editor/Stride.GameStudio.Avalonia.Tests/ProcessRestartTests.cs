@@ -3,6 +3,7 @@
 
 using Avalonia.Headless.XUnit;
 using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.IO;
 using Stride.GameStudio.Avalonia.Services;
@@ -119,6 +120,66 @@ public sealed class ProcessRestartTests
         Assert.Empty(launcher.Starts);
         Assert.NotNull(fixture.Main.Session);
         Assert.True(launcher.Service.HasLoadedSession);
+    }
+
+    [AvaloniaFact]
+    public async Task AFirstSessionOnANewerDotNetOpensInANewProcess()
+    {
+        using var fixture = ShellSessionFixture.Create((AssetLocation, new TextPropertiesAsset { Label = "label" }));
+        var launcher = UseProcessLauncher(fixture);
+        launcher.Host = _ => (SessionHost.NewProcess, null);
+
+        Assert.True(await fixture.Main.OpenSession(fixture.PackagePath));
+        await WindowTestHelper.WaitUntilAsync(() => launcher.Starts.Count > 0, "the start of the new editor");
+
+        // The new editor re-executes on that major; this one loaded nothing
+        Assert.Equal([.. CommandLine, fixture.PackagePath.ToOSPath()], Assert.Single(launcher.Starts));
+        Assert.Null(fixture.Main.Session);
+        Assert.False(launcher.Service.HasLoadedSession);
+    }
+
+    [AvaloniaTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task AStartupSessionOnANewerDotNetLeavesNoCrashMarkForTheNewProcess(bool crashedLastTime)
+    {
+        using var fixture = ShellSessionFixture.Create((AssetLocation, new TextPropertiesAsset { Label = "label" }));
+        var dialogs = fixture.ReplaceDialogService();
+        dialogs.PickButton = x => x.Single(b => (string)b.Content! == "Try again").Result;
+        var launcher = UseProcessLauncher(fixture);
+        launcher.Host = _ => (SessionHost.NewProcess, null);
+        // What the new editor reads when it starts
+        bool? markedAtStart = null;
+        launcher.Started = () => markedAtStart = InternalSettings.LoadingStartupSession.GetValue();
+        InternalSettings.LoadingStartupSession.SetValue(crashedLastTime);
+        try
+        {
+            Assert.True(await fixture.Main.OpenInitialSessionAsync(fixture.PackagePath));
+            await WindowTestHelper.WaitUntilAsync(() => launcher.Starts.Count > 0, "the start of the new editor");
+
+            // Else the new editor would ask whether to load again a session that never crashed
+            Assert.False(markedAtStart);
+            Assert.Equal(crashedLastTime ? 1 : 0, dialogs.Messages.Count);
+        }
+        finally
+        {
+            InternalSettings.LoadingStartupSession.SetValue(false);
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task ASessionOnAMissingDotNetSaysWhyAndStaysClosed()
+    {
+        using var fixture = ShellSessionFixture.Create((AssetLocation, new TextPropertiesAsset { Label = "label" }));
+        var dialogs = fixture.ReplaceDialogService();
+        var launcher = UseProcessLauncher(fixture);
+        launcher.Host = _ => (SessionHost.Missing, "This project needs .NET 12, but the SDK of .NET 12 is not installed.");
+
+        Assert.False(await fixture.Main.OpenSession(fixture.PackagePath));
+
+        Assert.Equal("This project needs .NET 12, but the SDK of .NET 12 is not installed.", Assert.Single(dialogs.Messages));
+        Assert.Empty(launcher.Starts);
+        Assert.Null(fixture.Main.Session);
     }
 
     private static Task ExecuteAsync(ShellSessionFixture fixture, string command)
