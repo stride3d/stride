@@ -256,6 +256,9 @@ partial class SessionViewModel
 
         serviceProvider.Get<IEditorDialogService>().ShowProgressWindow(workProgress);
 
+        // Whether the user agreed to upgrade a package during the load (the upgrade question)
+        var upgradeAccepted = false;
+
         // Ensure the loading is finished
         SessionViewModel? sessionViewModel;
         try
@@ -266,7 +269,15 @@ partial class SessionViewModel
                 try
                 {
                     // Load the session file (package or solution)
-                    load(CreatePackageLoadParameters(serviceProvider, path, main.EditorToolkitName, token));
+                    var loadParameters = CreatePackageLoadParameters(serviceProvider, path, main.EditorToolkitName, token);
+                    var requestUpgrade = loadParameters.PackageUpgradeRequested!;
+                    loadParameters.PackageUpgradeRequested = (package, pendingUpgrades) =>
+                    {
+                        var answer = requestUpgrade(package, pendingUpgrades);
+                        upgradeAccepted |= PackageLoadParameters.ShouldUpgrade(answer);
+                        return answer;
+                    };
+                    load(loadParameters);
                     if (!token.IsCancellationRequested)
                     {
                         // Load references
@@ -323,13 +334,16 @@ partial class SessionViewModel
 
         await SetInstanceAsync(sessionViewModel);
 
-        // An upgrade (package or pure asset-format) dirties the freshly-loaded session.
-        // Persist it now so the upgrade and its backup complete now instead of manual save later.
+        // A package upgrade that the user accepted has already rewritten some files (code, projects): the session is saved now,
+        // so that its assets match them and the upgrade and its backup complete. The other changes of a load (assets in an
+        // older format, or fixed up: a URL taken twice, a child scene that does not name its parent) are unsaved changes like
+        // any other: the user saves them, or is asked on close, and the first save backs up the files it overwrites.
         var loadedSession = sessionResult.Session;
-        if (loadedSession.LocalPackages.Any(package => package.IsDirty || package.Assets.IsDirty))
+        var loadChangedPackages = loadedSession.LocalPackages.Any(package => package.IsDirty || package.Assets.IsDirty);
+        if (loadChangedPackages && upgradeAccepted)
             await sessionViewModel.SaveSessionAsync();    // save persists the upgrade and disarms the backup
-        else
-            loadedSession.DisarmUpgradeBackup();         // clean load: no save runs, so disarm here
+        else if (!loadChangedPackages)
+            loadedSession.DisarmUpgradeBackup();         // clean load: nothing to back up
 
         sessionViewModel.UpdateHasUnsavedChanges();
         return sessionViewModel;
