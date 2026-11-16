@@ -20,14 +20,17 @@ public partial class ShaderMixer
     /// </summary>
     private static bool MakeSampleOffsetsConstant(ref Span<byte> bytecode, ILogger log)
     {
-        var words = MemoryMarshal.Cast<byte, uint>(bytecode).ToArray();
-        if (PromoteConstantOffsets(words).VariableOffsets.Count == 0)
+        // Most modules have no variable offset: find out without copying them
+        if (PromoteConstantOffsets(MemoryMarshal.Cast<byte, uint>(bytecode), promote: false).VariableOffsets.Count == 0)
             return true;
+
+        var words = MemoryMarshal.Cast<byte, uint>(bytecode).ToArray();
+        PromoteConstantOffsets(words, promote: true);
 
         // Universal rules: Vulkan's would reject the Offset operand in the input
         var legalized = SpirvTools.LegalizeForHlsl(words, SpirvTools.TargetEnv.Universal_1_6);
         legalized = SpirvTools.Optimize(legalized, PropagateConstantsPasses, preserveInterface: true, SpirvTools.TargetEnv.Universal_1_6);
-        var (variableOffsets, needsGatherExtended) = PromoteConstantOffsets(legalized);
+        var (variableOffsets, needsGatherExtended) = PromoteConstantOffsets(legalized, promote: true);
         foreach (var location in variableOffsets)
             log.Error($"{location}{SDSLErrorMessages.SDSL0189}");
         if (variableOffsets.Count > 0)
@@ -68,17 +71,19 @@ public partial class ShaderMixer
     }
 
     /// <summary>
-    /// Turns each <c>Offset</c> image operand whose value is a constant into a <c>ConstOffset</c>.
+    /// Turns each <c>Offset</c> image operand whose value is a constant into a <c>ConstOffset</c>, or only finds them when
+    /// <paramref name="promote"/> is false.
     /// </summary>
     /// <returns>The source locations ("file(line,col): ", or empty) of the image operations whose offset is not a constant, and
     /// whether an operand that needs ImageGatherExtended is left (a gather's Offset or ConstOffsets).</returns>
-    private static (List<string> VariableOffsets, bool NeedsGatherExtended) PromoteConstantOffsets(uint[] words)
+    private static (List<string> VariableOffsets, bool NeedsGatherExtended) PromoteConstantOffsets(Span<uint> words, bool promote)
     {
         var needsGatherExtended = false;
         var sourceFiles = new Dictionary<uint, string>();
         var constants = new HashSet<uint>();
         var variableOffsets = new List<string>();
-        var location = string.Empty;
+        // The OpLine of the current instruction, formatted only for an error
+        var line = -1;
 
         for (var w = 5; w < words.Length; w += (int)(words[w] >> 16))
         {
@@ -87,17 +92,17 @@ public partial class ShaderMixer
             switch (op)
             {
                 case Op.OpString:
-                    var text = MemoryMarshal.AsBytes(words.AsSpan(w + 2, wordCount - 2));
+                    var text = MemoryMarshal.AsBytes(words.Slice(w + 2, wordCount - 2));
                     sourceFiles[words[w + 1]] = Encoding.UTF8.GetString(text[..text.IndexOf((byte)0)]);
                     break;
                 case Op.OpConstant or Op.OpConstantComposite or Op.OpConstantNull:
                     constants.Add(words[w + 2]);
                     break;
                 case Op.OpLine:
-                    location = sourceFiles.TryGetValue(words[w + 1], out var file) ? $"{MessageFileName.Of(file)}({words[w + 2]},{words[w + 3]}): " : string.Empty;
+                    line = w;
                     break;
                 case Op.OpNoLine or Op.OpFunction:
-                    location = string.Empty;
+                    line = -1;
                     break;
             }
 
@@ -130,9 +135,16 @@ public partial class ShaderMixer
                 + (mask.HasFlag(ImageOperandsMask.Grad) ? 2 : 0)
                 + (mask.HasFlag(ImageOperandsMask.ConstOffset) ? 1 : 0);
             if (constants.Contains(words[offsetIndex]))
-                words[w + maskIndex] = (uint)(mask & ~ImageOperandsMask.Offset | ImageOperandsMask.ConstOffset);
+            {
+                if (promote)
+                    words[w + maskIndex] = (uint)(mask & ~ImageOperandsMask.Offset | ImageOperandsMask.ConstOffset);
+            }
             else
-                variableOffsets.Add(location);
+            {
+                variableOffsets.Add(line >= 0 && sourceFiles.TryGetValue(words[line + 1], out var file)
+                    ? $"{MessageFileName.Of(file)}({words[line + 2]},{words[line + 3]}): "
+                    : string.Empty);
+            }
         }
 
         return (variableOffsets, needsGatherExtended);
