@@ -37,10 +37,13 @@ public static unsafe class StringMarshal
     ///   Gets a <see cref="string"/> for a given span of bytes, assuming an UTF-8 encoding.
     /// </summary>
     /// <param name="span">The span for which to create the string.</param>
-    /// <returns>A string created from <paramref name="span"/>.</returns>
+    /// <returns>
+    ///   A string created from <paramref name="span"/>, or <see langword="null"/> if <paramref name="span"/> is a
+    ///   <see langword="default"/> span, with no reference. An empty span with a reference gives an empty string.
+    /// </returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string? GetString(this ReadOnlySpan<byte> span)
-        => span.GetPointer() is not null
+        => !IsNullRef(in span.GetReference())
             ? Encoding.UTF8.GetString(span)
             : null;
 
@@ -48,10 +51,13 @@ public static unsafe class StringMarshal
     ///   Gets a <see cref="string"/> for a given span, assuming an UTF-16 encoding.
     /// </summary>
     /// <param name="span">The span for which to create the string.</param>
-    /// <returns>A string created from <paramref name="span"/>.</returns>
+    /// <returns>
+    ///   A string created from <paramref name="span"/>, or <see langword="null"/> if <paramref name="span"/> is a
+    ///   <see langword="default"/> span, with no reference. An empty span with a reference gives an empty string.
+    /// </returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string? GetString(this ReadOnlySpan<ushort> span)
-        => span.GetPointer() is not null
+        => !IsNullRef(in span.GetReference())
             ? new string(span.As<ushort, char>())
             : null;
 
@@ -71,10 +77,13 @@ public static unsafe class StringMarshal
     ///   Gets a <see cref="string"/> for a given span, assuming an UTF-16 encoding.
     /// </summary>
     /// <param name="span">The span for which to create the string.</param>
-    /// <returns>A string created from <paramref name="span"/>.</returns>
+    /// <returns>
+    ///   A string created from <paramref name="span"/>, or <see langword="null"/> if <paramref name="span"/> is a
+    ///   <see langword="default"/> span, with no reference. An empty span with a reference gives an empty string.
+    /// </returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string? GetString(this ReadOnlySpan<char> span)
-        => span.GetPointer() is not null
+        => !IsNullRef(in span.GetReference())
             ? new string(span)
             : null;
 

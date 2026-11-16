@@ -223,31 +223,39 @@ namespace Stride.Graphics
 
             scoped Span<byte> semanticNamesBytes = stackalloc byte[MAX_SEMANTIC_NAME_LENGTH * numInputElements];
 
-            for (int index = 0; index < inputElements.Length; index++)
-            {
-                scoped ref readonly var inputElement = ref inputElements[index];
-
-                byte* semanticNamePtr = EncodeSemanticName(inputElement.SemanticName, ref semanticNamesBytes);
-
-                nativeInputElements[index] = new InputElementDesc
-                {
-                    InputSlot = (uint) inputElement.InputSlot,
-                    SemanticName = semanticNamePtr,
-                    SemanticIndex = (uint) inputElement.SemanticIndex,
-                    AlignedByteOffset = (uint) inputElement.AlignedByteOffset,
-                    Format = (Format) inputElement.Format,
-                    InputSlotClass = (Silk.NET.Direct3D11.InputClassification) inputElement.InputSlotClass,
-                    InstanceDataStepRate = (uint) inputElement.InstanceDataStepRate
-                };
-            }
-
             scoped ReadOnlySpan<byte> inputSignatureBytes = inputSignature ?? [];
 
             ComPtr<ID3D11InputLayout> tempInputLayout = default;
+            HResult result;
 
-            HResult result = NativeDevice.CreateInputLayout(in nativeInputElements.GetReference(), (uint) inputElements.Length,
-                                                            in inputSignatureBytes.GetReference(), (nuint) inputSignatureBytes.Length,
-                                                            ref tempInputLayout);
+            // The input element descriptions point into the semantic names until the input layout is created
+            fixed (byte* semanticNames = semanticNamesBytes)
+            {
+                int semanticNameOffset = 0;
+
+                for (int index = 0; index < inputElements.Length; index++)
+                {
+                    scoped ref readonly var inputElement = ref inputElements[index];
+
+                    nativeInputElements[index] = new InputElementDesc
+                    {
+                        InputSlot = (uint) inputElement.InputSlot,
+                        SemanticName = semanticNames + semanticNameOffset,
+                        SemanticIndex = (uint) inputElement.SemanticIndex,
+                        AlignedByteOffset = (uint) inputElement.AlignedByteOffset,
+                        Format = (Format) inputElement.Format,
+                        InputSlotClass = (Silk.NET.Direct3D11.InputClassification) inputElement.InputSlotClass,
+                        InstanceDataStepRate = (uint) inputElement.InstanceDataStepRate
+                    };
+
+                    semanticNameOffset += EncodeSemanticName(inputElement.SemanticName, semanticNamesBytes[semanticNameOffset..]);
+                }
+
+                result = NativeDevice.CreateInputLayout(in nativeInputElements.GetReference(), (uint) inputElements.Length,
+                                                        in inputSignatureBytes.GetReference(), (nuint) inputSignatureBytes.Length,
+                                                        ref tempInputLayout);
+            }
+
             if (result.IsFailure)
                 result.Throw();
 
@@ -306,31 +314,27 @@ namespace Stride.Graphics
 
         /// <summary>
         ///   Encodes a semantic name into a null-terminated ASCII byte sequence.
-        ///   The <paramref name="semanticNameBytes"/> span is updated to exclude the bytes used for the encoded name
-        ///   so it can be used to encode more semantic names.
         /// </summary>
         /// <param name="semanticName">The semantic name to encode. Must be a non-null string.</param>
-        /// <param name="semanticNameBytes">
-        ///   A reference to a <see cref="Span{T}"/> of bytes where the encoded semantic name will be stored.
+        /// <param name="destination">
+        ///   The bytes where the encoded semantic name is stored.
         ///   The span must have sufficient length to accommodate the encoded name and a null terminator.
         /// </param>
-        /// <returns>A pointer to the start of the encoded semantic name within the provided byte span.</returns>
+        /// <returns>The number of bytes written, including the null terminator.</returns>
         /// <exception cref="ArgumentException">
-        ///   The length of the encoded semantic name exceeds the length of <paramref name="semanticNameBytes"/>.
+        ///   The length of the encoded semantic name exceeds the length of <paramref name="destination"/>.
         /// </exception>
-        private static byte* EncodeSemanticName(string semanticName, ref Span<byte> semanticNameBytes)
+        private static int EncodeSemanticName(string semanticName, Span<byte> destination)
         {
             int nameLength = Encoding.ASCII.GetByteCount(semanticName) + 1;  // Ensure to include the null terminator
-            if (nameLength > semanticNameBytes.Length)
+            if (nameLength > destination.Length)
                 ThrowSemanticNameTooLong(semanticName);
 
             // Encode and null-terminate the string
-            Encoding.ASCII.GetBytes(semanticName, semanticNameBytes);
-            semanticNameBytes[nameLength - 1] = 0;
+            Encoding.ASCII.GetBytes(semanticName, destination);
+            destination[nameLength - 1] = 0;
 
-            byte* ptrSemanticName = semanticNameBytes.GetPointer();
-            semanticNameBytes = semanticNameBytes[nameLength..];
-            return ptrSemanticName;
+            return nameLength;
         }
 
         /// <summary>
