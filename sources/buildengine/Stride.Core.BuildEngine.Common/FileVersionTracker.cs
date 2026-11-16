@@ -45,7 +45,7 @@ public class FileVersionTracker : IDisposable
             {
                 var filePath = Environment.GetEnvironmentVariable("STRIDE_FILE_VERSION_CACHE") is { Length: > 0 } cachePath
                     ? Path.GetFullPath(cachePath)
-                    : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), DefaultFileVersionTrackerFile);
+                    : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify), DefaultFileVersionTrackerFile);
                 var directory = Path.GetDirectoryName(filePath);
                 if (directory != null && !Directory.Exists(directory))
                 {

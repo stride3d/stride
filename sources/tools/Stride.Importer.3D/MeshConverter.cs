@@ -52,6 +52,17 @@ namespace Stride.Importer.ThreeD
 
         private readonly Assimp assimp = CreateAssimpApi();
 
+        /// <summary>
+        /// Finds the files a model reads besides itself, without writing any file: the files the importer opens (a glTF buffer,
+        /// an OBJ material library) and the texture files its materials reference.
+        /// </summary>
+        /// <param name="inputFilename">The model file.</param>
+        /// <returns>
+        /// Each file that exists, with where the importer reads it relative to the model's folder: files it opens keep their path,
+        /// and textures are read next to the model.
+        /// </returns>
+        public List<(string Source, string RelativePath)> FindSourceFiles(string inputFilename) => SourceFileFinder.Find(assimp, inputFilename);
+
         private static Assimp CreateAssimpApi()
         {
             // On Windows the default loader picks Stride.Dependencies.Assimp's Assimp64.dll.

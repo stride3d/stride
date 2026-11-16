@@ -102,7 +102,7 @@ internal static class EntryPointWrapperGenerator
                     buffer.Add(new OpStore(localVariable, value, null, []));
                     arguments[argumentIndex] = localVariable;
 
-                    SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+                    i.SetOpNop();
                 }
             }
         }

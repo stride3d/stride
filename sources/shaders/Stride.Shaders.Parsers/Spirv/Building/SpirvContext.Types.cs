@@ -125,7 +125,7 @@ public partial class SpirvContext
         {
             if (i.Data.IdResult == typeId)
             {
-                SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+                i.SetOpNop();
                 var type = ReverseTypes[typeId];
                 Types.Remove(type);
                 ReverseTypes.Remove(typeId);

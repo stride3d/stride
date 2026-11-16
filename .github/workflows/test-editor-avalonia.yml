@@ -69,9 +69,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          lfs: true
           submodules: true
           ref: ${{ github.ref }}
+      - uses: ./.github/actions/lfs-pull
       - name: Install dependencies
         if: runner.os == 'Linux'
         # lld links the native code the filter builds (Stride.Native.targets, Stride.CrashReport); the Vulkan

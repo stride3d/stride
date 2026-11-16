@@ -15,9 +15,9 @@ namespace Stride.Cli.Core;
 /// </summary>
 public sealed class StrideVersionManager
 {
-    // The package every Stride version is published under, the one install and update fetch from the sources. The
-    // Avalonia Game Studio's package (GameStudioEditor.Avalonia) is only found once installed, e.g. by a local build.
-    private const string MainPackageId = "Stride.GameStudio";
+    // The package every Stride version is published under, which brings the engine: install and update resolve versions
+    // from it, then add the other Game Studios the sources publish at that version (InstallCompanions).
+    private const string MainPackageId = GameStudioEditors.WpfPackageId;
 
     private readonly NugetStore store = new(oldRootDirectory: null);
 
@@ -86,7 +86,8 @@ public sealed class StrideVersionManager
     ///   a major.minor line (newest patch in that line), or null for the newest version. The newest/line
     ///   resolution prefers stable releases unless <paramref name="includePrerelease"/> or
     ///   <paramref name="includeNightly"/> is set or the line has none, and never takes a custom build unless <paramref name="tag"/> names
-    ///   theirs, which then takes only them; an explicit version is always honored. Existing versions are left untouched.
+    ///   theirs, which then takes only them; an explicit version is always honored. Existing versions are left untouched,
+    ///   except for the Game Studios they lack, which are added when the sources publish them at that version.
     /// </summary>
     public async Task<StrideVersion> Install(string? versionSpec, bool includePrerelease, bool includeNightly, string? tag, IProgress<InstallProgress>? progress, CancellationToken cancellationToken)
     {
@@ -105,8 +106,26 @@ public sealed class StrideVersionManager
 
         var installed = await InstallWithProgress(target, progress)
             ?? throw new InvalidOperationException($"Failed to install Stride {target.Version}.");
+        await InstallCompanions(installed.Version, progress, cancellationToken);
 
         return ToStrideVersion(installed.Version);
+    }
+
+    // Installs the other Game Studios of a version whose main package is installed, as the launcher does: each one not
+    // installed yet that the sources publish at exactly that version (VersionRules.CompanionBuild).
+    private async Task InstallCompanions(PackageVersion version, IProgress<InstallProgress>? progress, CancellationToken cancellationToken)
+    {
+        foreach (var editor in GameStudioEditors.All)
+        {
+            var packageId = editor.PackageId();
+            if (packageId == MainPackageId || store.FindLocalPackage(packageId, version) is not null)
+                continue;
+
+            var published = await store.FindSourcePackagesById(packageId, cancellationToken);
+            if (VersionRules.CompanionBuild(published, package => package.Version, version) is { } build
+                && await InstallWithProgress(build, progress) is null)
+                throw new InvalidOperationException($"Failed to install the {editor.DisplayName()} Game Studio of Stride {version}.");
+        }
     }
 
     // Installs a resolved package, forwarding NuGet's restore events as InstallProgress updates.
@@ -150,9 +169,11 @@ public sealed class StrideVersionManager
     ///   Uninstalls the given Stride version (each of its Game Studios) along with any dependencies they pulled in
     ///   that are no longer used by another installed version. Returns false if it was not installed.
     /// </summary>
-    public async Task<bool> Uninstall(string versionSpec, IProgress<InstallProgress>? progress = null)
+    public Task<bool> Uninstall(string versionSpec, IProgress<InstallProgress>? progress = null)
+        => Uninstall(new PackageVersion(versionSpec), progress);
+
+    private async Task<bool> Uninstall(PackageVersion version, IProgress<InstallProgress>? progress)
     {
-        var version = new PackageVersion(versionSpec);
         var locals = GameStudioEditors.All
             .Select(editor => store.FindLocalPackage(editor.PackageId(), version))
             .OfType<NugetPackage>()
@@ -183,7 +204,7 @@ public sealed class StrideVersionManager
         for (var i = 0; i < toRemove.Count; i++)
         {
             var package = toRemove[i];
-            progress?.Report(new InstallProgress(InstallStage.Removing, versionSpec, package.Id, i + 1, toRemove.Count));
+            progress?.Report(new InstallProgress(InstallStage.Removing, version.ToString(), package.Id, i + 1, toRemove.Count));
             await store.UninstallPackage(package, progress: null);
             store.DeleteHttpCacheCopy(package.Id, package.Version);
         }
@@ -215,12 +236,14 @@ public sealed class StrideVersionManager
     }
 
     /// <summary>
-    ///   Updates installed lines to their newest patch: installs the newest patch, records it as the line's
-    ///   managed version, and uninstalls the previously managed one (manual installs are kept). With no line,
+    ///   Updates installed lines to their newest patch: installs the newest patch with its Game Studios, records it as
+    ///   the line's managed version, and uninstalls the previously managed one as uninstall does. A newest patch installed
+    ///   manually already is left the user's, not recorded, so a later update keeps it (<see cref="VersionRules.UpdateStep"/>). With no line,
     ///   every installed line is updated. A line follows its releases (its prereleases while it has none, or while the newest
     ///   release or prerelease installed in it is a prerelease), or with <paramref name="tag"/> the custom builds
     ///   of that tag, and the lines of the installed custom builds follow their tag, each managed apart
-    ///   (<see cref="VersionRules.UpdateTargets"/>). Returns the versions that were updated.
+    ///   (<see cref="VersionRules.UpdateTargets"/>). Returns the versions that were updated. A Game Studio that fails to
+    ///   install doesn't stop its line's update: once every line is done, an <see cref="InvalidOperationException"/> lists them.
     /// </summary>
     public async Task<IReadOnlyList<StrideVersion>> Update(string? line, bool includePrerelease, bool includeNightly, string? tag, IProgress<InstallProgress>? progress, CancellationToken cancellationToken)
     {
@@ -233,6 +256,7 @@ public sealed class StrideVersionManager
             .ToList();
 
         var updated = new List<StrideVersion>();
+        var companionFailures = new List<string>();
         foreach (var (targetLine, targetTag) in targets)
         {
             var followsPrereleases = includePrerelease || VersionRules.FollowsPrereleases(installed, targetLine);
@@ -240,27 +264,44 @@ public sealed class StrideVersionManager
                 continue;
             var newest = available.First(package => package.Version == newestVersion);
             var key = VersionRules.ManagedKey(targetLine, targetTag);
+            var previous = managed.TryGetValue(key, out var previousText) && PackageVersion.TryParse(previousText, out var previousVersion) ? previousVersion : null;
             // A line never goes back: one on a nightly or a prerelease stays there when only an older version qualifies
-            if (managed.TryGetValue(key, out var current) && PackageVersion.TryParse(current, out var currentVersion) && currentVersion > newest.Version)
+            if (previous is not null && previous > newest.Version)
                 continue;
 
-            var installedPackage = await InstallWithProgress(newest, progress);
-            if (installedPackage is null)
+            var (install, retire) = VersionRules.UpdateStep(newest.Version, installed.Contains(newest.Version), previous);
+            if (!install && retire is null)
                 continue;
 
-            // Retire the version this line previously managed, unless it is the one just installed.
-            if (managed.TryGetValue(key, out var previous) && previous != newest.Version.ToString())
+            if (install)
             {
-                var previousPackage = store.FindLocalPackage(MainPackageId, new PackageVersion(previous));
-                if (previousPackage is not null)
-                    await store.UninstallPackage(previousPackage, progress: null);
+                if (await InstallWithProgress(newest, progress) is null)
+                    continue;
+                // The line is still updated: installs.json must record the installed version so a later update retires
+                // it, and the version works with the Game Studios it has. The failure is reported once installs.json is saved.
+                try
+                {
+                    await InstallCompanions(newest.Version, progress, cancellationToken);
+                }
+                catch (Exception exception) when (exception is not OperationCanceledException)
+                {
+                    companionFailures.Add($"Stride {newest.Version} is installed, but not all its Game Studios: {exception.Message} Run 'stride sdk install {newest.Version}' to add them.");
+                }
             }
 
-            managed[key] = newest.Version.ToString();
-            updated.Add(ToStrideVersion(installedPackage.Version));
+            if (retire is not null)
+                await Uninstall(retire, progress);
+
+            if (install)
+                managed[key] = newest.Version.ToString();
+            else
+                managed.Remove(key);
+            updated.Add(ToStrideVersion(newest.Version));
         }
 
         managedVersions.Save(managed);
+        if (companionFailures.Count > 0)
+            throw new InvalidOperationException(string.Join(Environment.NewLine, companionFailures));
         return updated;
     }
 
@@ -382,7 +423,7 @@ public sealed class StrideVersionManager
         // from the user's global `dotnet new` installation and is deterministic regardless of whether
         // Game Studio has been run.
         var profileDir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify),
             "stride", "cli", "templates", version.ToString());
 
         var registry = new DotNetNewTemplateRegistry(version.ToString(), profileDir);

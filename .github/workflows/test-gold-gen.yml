@@ -256,7 +256,8 @@ jobs:
     if: ${{ always() && inputs.update-gold != 'none' && needs.gather.result == 'success' }}
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write       # the push, when there's no Stride Bot app (a fork)
+      pull-requests: write
     steps:
       - uses: actions/checkout@v7
         with:
@@ -266,7 +267,7 @@ jobs:
           # Compare against the tested commit's gold. A detached commit-sha can't be pushed to, so
           # those runs always land via PR (see can_branch below).
           ref: ${{ inputs.commit-sha || github.ref }}
-          persist-credentials: false  # the push uses the Stride Bot token
+          persist-credentials: false  # the push uses the token of the stride-bot action
       - name: Download combined gold images
         uses: actions/download-artifact@v8
         with:
@@ -284,25 +285,24 @@ jobs:
       # Pushes and PRs made with GITHUB_TOKEN start no workflows, so the PR's required checks would never run.
       - name: Get the Stride Bot token
         id: bot
-        uses: actions/create-github-app-token@v3
+        uses: ./.github/actions/stride-bot
         with:
           client-id: ${{ vars.STRIDE_BOT_CLIENT_ID }}
           private-key: ${{ secrets.STRIDE_BOT_PRIVATE_KEY }}
-          permission-contents: write
-          permission-pull-requests: write
       - name: Commit and land
         env:
           GH_TOKEN: ${{ steps.bot.outputs.token }}
+          BOT_APP: ${{ steps.bot.outputs.app }}
+          BOT_NAME: ${{ steps.bot.outputs.name }}
+          BOT_EMAIL: ${{ steps.bot.outputs.email }}
           MODE: ${{ inputs.update-gold }}
           BRANCH: ${{ github.ref_name }}
           DETACHED: ${{ inputs.commit-sha }}
           DEFAULT: ${{ github.event.repository.default_branch }}
           ACTOR: ${{ github.actor }}
-          BOT: ${{ steps.bot.outputs.app-slug }}[bot]
         run: |
-          # The id prefix is what links the author to the bot's profile.
-          git config user.name "$BOT"
-          git config user.email "$(gh api "users/$BOT" --jq .id)+$BOT@users.noreply.github.com"
+          git config user.name "$BOT_NAME"
+          git config user.email "$BOT_EMAIL"
           gh auth setup-git
 
           # Record who promoted, and from which run, so an odd reference image can be traced back.
@@ -348,6 +348,11 @@ jobs:
                 exit 1
               fi
               if [ "$MODE" = "amend" ]; then
+                # Neither token has the `workflows` permission, so GitHub refuses the amended commit.
+                if [ -n "$(git diff --name-only HEAD~1 HEAD -- .github/workflows)" ]; then
+                  echo "::error::update-gold=amend can't push: the last commit changes .github/workflows, and the token can't push workflow changes. Use update-gold=commit."
+                  exit 1
+                fi
                 git commit --amend --no-edit
                 git push --force-with-lease origin "HEAD:$BRANCH"
                 echo "Amended last commit on $BRANCH."
@@ -362,10 +367,19 @@ jobs:
               PR_BRANCH="gold-update/${{ github.run_id }}"
               git push origin "HEAD:$PR_BRANCH"
               # Actions can't open a PR as the dispatcher, so name and assign them instead.
-              gh pr create --base "${BRANCH:-$DEFAULT}" --head "$PR_BRANCH" \
+              if ! gh pr create --base "${BRANCH:-$DEFAULT}" --head "$PR_BRANCH" \
                 --title "Update gold images" \
                 --body "Automated gold update from test-gold-gen run ${{ github.run_id }}, triggered by @$ACTOR." \
-                "${ASSIGNEE[@]}"
+                "${ASSIGNEE[@]}"; then
+                # The gold is pushed: say how to open the PR by hand, and still fail the run.
+                COMPARE="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/compare/${BRANCH:-$DEFAULT}...$PR_BRANCH?expand=1"
+                if [ "$BOT_APP" = "true" ]; then
+                  echo "::error::The gold is on $PR_BRANCH, but opening its PR failed. Open it here: $COMPARE"
+                else
+                  echo "::error::The gold is on $PR_BRANCH, but GITHUB_TOKEN couldn't open its PR: turn on 'Allow GitHub Actions to create and approve pull requests' (Settings > Actions > General), or open it here: $COMPARE"
+                fi
+                exit 1
+              fi
               echo "Opened PR from $PR_BRANCH."
               ;;
           esac

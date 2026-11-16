@@ -14,6 +14,7 @@ using Avalonia.Threading;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Diagnostics;
+using Stride.Core.Presentation.Avalonia.Services;
 using Stride.Crash;
 using Stride.Crash.ViewModels;
 using Stride.GameStudio.Avalonia.Services;
@@ -40,6 +41,8 @@ internal sealed class Program
     public static void Main(string[] args)
     {
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+        // Before Avalonia and Skia start, which load the system HarfBuzz on Linux
+        HarfBuzzBinding.BindNow();
 
         // The persisted graphics API preference isn't staged in this build: fall back to the platform default and reset
         // the setting, so the user isn't stuck in a fail-at-launch loop (there is no window yet to ask the user).
@@ -73,8 +76,14 @@ internal sealed class Program
             App.Options = StartupOptions.Parse(args);
             foreach (var unknown in App.Options.UnknownArguments)
                 GlobalLogger.GetLogger("GameStudio").Warning($"Unknown command line option [{unknown}] ignored.");
-            // Another session opens in a new process, started as this one was (from the working directory it has now)
-            App.ProcessLauncher = new EditorProcessLauncher(typeof(Program).Assembly.Location);
+            // Another session opens in a new process, started as this one was (from the working directory it has now), on the
+            // .NET major its game needs
+            var initialSessionPath = App.Options.InitialSessionPath?.ToOSPath();
+            var processLauncher = new DotNetHostLauncher(typeof(Program).Assembly.Location, args, initialSessionPath);
+            // The session of the command line may need a newer .NET major than this one: re-execute on it before any window
+            if (processLauncher.RelaunchIfNeeded(initialSessionPath, args))
+                return;
+            App.ProcessLauncher = processLauncher;
             // The marker of a start that dies while plugins load, beside the user's settings (both editors share them)
             App.LoadingMarker = PluginLoadingMarker.CreateDefault();
             // The extensions the user installed, listed in the internal settings both editors read, their packages beside them

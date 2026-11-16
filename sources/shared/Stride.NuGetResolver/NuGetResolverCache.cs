@@ -21,7 +21,7 @@ namespace Stride.Core.Assets
         ///   Gets the folder that holds the restore folders. Per-user, not the shared temp dir: the output drives
         ///   assembly loading and its name is predictable (pre-seed risk).
         /// </summary>
-        public static string Root => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "stride", "nugetresolver");
+        public static string Root => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify), "stride", "nugetresolver");
 
         /// <summary>
         ///   Gets the restore folder of a package.

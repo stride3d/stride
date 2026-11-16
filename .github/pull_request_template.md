@@ -8,6 +8,7 @@
 
 <!--- If suggesting a new feature or change, please discuss it in an issue first -->
 <!--- If fixing a bug, there should be an issue describing it with steps to reproduce -->
+<!--- For a large change (see "Large changes" in CONTRIBUTING.md), link the design that the area's owner agreed to -->
 <!--- Please link to the issue here: -->
 
 ## Types of changes

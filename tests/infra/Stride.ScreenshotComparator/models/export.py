@@ -33,7 +33,10 @@ torch.onnx.export(
         'b': {0: 'batch', 2: 'height', 3: 'width'},
         'distance': {0: 'batch'},
     },
-    opset_version=17,
+    opset_version=18,
+    # The optimizer removes "x + c" when c is within 1e-8 of 0, which drops the eps=1e-10 of LPIPS's
+    # normalize_tensor: a feature column that is all zeros then gives 0/0 = NaN.
+    optimize=False,
 )
 # torch.onnx.export emits external data by default; re-save with everything inlined so the .NET
 # comparator only needs the single .onnx file.

@@ -1,12 +1,41 @@
 using System.Text;
-using CommunityToolkit.HighPerformance.Buffers;
 using Stride.Shaders.Spirv.Core.Parsing;
 
 namespace Stride.Shaders.Spirv.Core.Buffers;
 
-public struct OpData : IDisposable, IComparable<OpData>
+/// <summary>
+/// The words of one instruction: an array of its own, or a view into the words of a <see cref="SpirvBuffer"/>.
+/// </summary>
+/// <remarks>
+/// A view is valid until its buffer changes, as the buffer may then move its words: take it from the buffer again after that.
+/// Debug builds check it.
+/// </remarks>
+public struct OpData : IComparable<OpData>
 {
-    public MemoryOwner<int> Memory { get; internal set { field?.Dispose(); field = value; } }
+    private Memory<int> memory;
+#if DEBUG
+    private SpirvBuffer? viewOf;
+    private int viewVersion;
+#endif
+
+    public Memory<int> Memory
+    {
+        readonly get
+        {
+#if DEBUG
+            if (viewOf is not null && viewOf.WordsVersion != viewVersion)
+                throw new InvalidOperationException("These words were taken from a SpirvBuffer that changed since then: take them from the buffer again.");
+#endif
+            return memory;
+        }
+        internal set
+        {
+            memory = value;
+#if DEBUG
+            viewOf = null;
+#endif
+        }
+    }
     public readonly Specification.Op Op => (Specification.Op)(Memory.Span[0] & 0xFFFF);
 
     public readonly int? IdResult
@@ -30,20 +59,33 @@ public struct OpData : IDisposable, IComparable<OpData>
 
     public OpData()
     {
-        Memory = MemoryOwner<int>.Empty;
+        memory = Memory<int>.Empty;
     }
 
-    public OpData(MemoryOwner<int> memory)
+    /// <summary>
+    /// Uses <paramref name="memory"/> as the words, without copying them.
+    /// </summary>
+    public OpData(Memory<int> memory)
     {
-        Memory = memory;
-    }
-    public OpData(Span<int> memory)
-    {
-        Memory = MemoryOwner<int>.Allocate(memory.Length);
-        memory.CopyTo(Memory.Span);
+        this.memory = memory;
     }
 
-    public readonly void Dispose() => Memory.Dispose();
+    /// <summary>
+    /// Copies <paramref name="words"/> into an array of its own.
+    /// </summary>
+    public OpData(Span<int> words)
+    {
+        memory = words.ToArray();
+    }
+
+    internal OpData(SpirvBuffer buffer, Memory<int> memory)
+    {
+        this.memory = memory;
+#if DEBUG
+        viewOf = buffer;
+        viewVersion = buffer.WordsVersion;
+#endif
+    }
 
     public readonly SpvOperand Get(string name)
     {

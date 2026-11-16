@@ -593,7 +593,7 @@ public partial class NugetStore : INugetDownloadProgress
     /// </remarks>
     private static FileLock? GetLocalRepositoryLock()
     {
-        var directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "stride");
+        var directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify), "stride");
         Directory.CreateDirectory(directory);
         return FileLock.Wait(Path.Combine(directory, "nuget.lock"));
     }

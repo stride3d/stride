@@ -38,6 +38,7 @@ namespace Stride.Editor.Build
         private readonly Dictionary<(Guid Context, AssetId Asset), HashSet<string>> shaderFilesByUnit = new();
         private readonly HashSet<string> watchedShaderFiles = new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> changedShaderFiles = new(StringComparer.OrdinalIgnoreCase);
+        private readonly FileWriteTimes shaderFileTimes = new();
         private readonly DirectoryWatcher shaderFileWatcher = new("*.sdsl");
         private bool shaderChangePending;
 
@@ -82,6 +83,7 @@ namespace Stride.Editor.Build
             var sharedDatabase = MicrothreadLocalDatabases.GetSharedDatabase();
             effectCompiler = (EffectCompilerBase)EffectCompilerFactory.CreateEffectCompiler(new ShaderSourceFileProvider(ShaderSources, sharedDatabase), taskSchedulerSelector: taskSchedulerSelector, database: sharedDatabase);
             shaderFileWatcher.Modified += ShaderFileModified;
+            shaderFileWatcher.ChangesMissed += ShaderFileChangesMissed;
 
             StartPushNotificationsTask();
         }
@@ -149,6 +151,7 @@ namespace Stride.Editor.Build
             }
             notificationsCancellation.Cancel();
             shaderFileWatcher.Modified -= ShaderFileModified;
+            shaderFileWatcher.ChangesMissed -= ShaderFileChangesMissed;
             shaderFileWatcher.Dispose();
         }
 
@@ -189,7 +192,10 @@ namespace Stride.Editor.Build
                 foreach (var file in files)
                 {
                     if (watchedShaderFiles.Add(file))
+                    {
                         shaderFileWatcher.Track(file);
+                        shaderFileTimes.Add(file);
+                    }
                 }
             }
         }
@@ -206,6 +212,7 @@ namespace Stride.Editor.Build
                 if (!watchedShaderFiles.Contains(file))
                     return;
 
+                shaderFileTimes.Update(file);
                 changedShaderFiles.Add(file);
                 if (shaderChangePending)
                     return;
@@ -213,6 +220,14 @@ namespace Stride.Editor.Build
             }
 
             _ = NotifyShaderSourcesChangedAsync();
+        }
+
+        private void ShaderFileChangesMissed(object? sender, ChangesMissedEventArgs e)
+        {
+            // The watch of a folder failed (its events overflowed) and started again: the watched files that changed meanwhile are
+            // found from their last write times
+            foreach (var change in shaderFileTimes.Reconcile(e.Directory))
+                ShaderFileModified(sender, change);
         }
 
         private async Task NotifyShaderSourcesChangedAsync()

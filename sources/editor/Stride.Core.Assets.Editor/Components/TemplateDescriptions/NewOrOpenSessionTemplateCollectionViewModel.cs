@@ -3,6 +3,7 @@
 #nullable disable
 
 using Stride.Core.Assets.Editor.Settings;
+using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Templates;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Commands;
@@ -24,9 +25,35 @@ namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 public sealed class NewOrOpenSessionTemplateCollectionViewModel : ProjectTemplateCollectionViewModel
 {
     /// <summary>
-    /// The default location of the new projects, when the settings have none: "Stride Projects" in the user's documents.
+    /// The default location of the new projects: "Stride Projects" in the user's documents.
     /// </summary>
-    public static UDirectory DefaultLocation => UPath.Combine<UDirectory>(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Stride Projects");
+    /// <remarks>
+    /// A full path even when the documents folder doesn't exist yet (on Linux, <c>~/Documents</c> is often missing): creating
+    /// the project creates it.
+    /// </remarks>
+    public static UDirectory DefaultLocation => UPath.Combine<UDirectory>(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments, Environment.SpecialFolderOption.DoNotVerify), "Stride Projects");
+
+    /// <summary>
+    /// The location the windows start with when no session gives one: the last location of a new session, or
+    /// <see cref="DefaultLocation"/> when none is saved or the saved one is not absolute.
+    /// </summary>
+    public static UDirectory InitialLocation
+    {
+        get
+        {
+            var last = new UDirectory(InternalSettings.TemplatesWindowDialogLastNewSessionTemplateDirectory.GetValue());
+            return last.IsAbsolute ? last : DefaultLocation;
+        }
+    }
+
+    /// <summary>
+    /// The location the windows of an open session start with: the folder of its solution, or <see cref="InitialLocation"/>
+    /// when it has none (a session opened from a project or a package has an empty solution path).
+    /// </summary>
+    public static UDirectory InitialLocationFor(ISessionViewModel session)
+    {
+        return string.IsNullOrEmpty(session.SolutionPath) ? InitialLocation : session.SolutionPath.GetFullDirectory();
+    }
 
     // Library template Id from samples/Library/Library/Library.sdtpl. Code Library adds a
     // project to an existing session: it can't seed a new solution on its own (no entry point
@@ -77,9 +104,7 @@ public sealed class NewOrOpenSessionTemplateCollectionViewModel : ProjectTemplat
             recentGroup.Templates.Add(new ExistingProjectViewModel(ServiceProvider, file, OpenExistingProject, RemoveExistingProject));
         }
 
-        Location = InternalSettings.TemplatesWindowDialogLastNewSessionTemplateDirectory.GetValue();
-        if (string.IsNullOrWhiteSpace(Location))
-            Location = DefaultLocation;
+        Location = InitialLocation;
 
         BrowseForExistingProjectCommand = new AnonymousTaskCommand(serviceProvider, BrowseForExistingProjectAsync);
         SelectedGroup = recentGroup.Templates.Count == 0 ? rootGroup : recentGroup;
@@ -254,9 +279,9 @@ public sealed class NewOrOpenSessionTemplateCollectionViewModel : ProjectTemplat
     {
         if (SelectedTemplate is TemplateDescriptionViewModel)
         {
-            if (!string.IsNullOrWhiteSpace(SolutionLocation) && !UPath.IsValid(SolutionLocation))
+            if (!string.IsNullOrWhiteSpace(SolutionLocation) && (!UPath.IsValid(SolutionLocation) || !SolutionLocation.IsAbsolute))
             {
-                error = "Invalid solution directory.";
+                error = "Invalid solution directory: it must be a full path.";
                 return ArePropertiesValid = false;
             }
             if (!string.IsNullOrWhiteSpace(SolutionName) && (!UFile.IsValid(SolutionName) || SolutionName.Contains(UPath.DirectorySeparatorString) || SolutionName.Contains(UPath.DirectorySeparatorStringAlt)))

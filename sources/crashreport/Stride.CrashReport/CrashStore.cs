@@ -43,7 +43,7 @@ public sealed class CrashStore
 
     /// <summary>The per-user default base, independent of <c>STRIDE_CRASH_DIR</c> — where persistent suppression lives.</summary>
     private static string DefaultBaseDirectory
-        => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "stride", "crash-reports");
+        => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify), "stride", "crash-reports");
 
     /// <summary>Resolves the base directory: explicit override, else <c>STRIDE_CRASH_DIR</c>, else the per-user default.</summary>
     public static string ResolveBaseDirectory(string baseDirectory = null)

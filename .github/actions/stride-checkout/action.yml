@@ -1,7 +1,7 @@
 name: Stride checkout
 description: >-
-  Checkout with a sparse working tree and a matching trimmed LFS fetch. LFS ignores the
-  sparse tree when deciding what to fetch, so the exclusions are also fed to lfs.fetchexclude.
+  Checkout with a sparse working tree, then the LFS files inside it (the lfs-pull action, with its cache).
+  The LFS objects of the excluded dirs are still fetched, so the cache that any job saves is complete.
   The sparse tree is applied after checkout rather than via the action's sparse-checkout
   input: that input switches the fetch to blob:none, and git-lfs then faults in every
   excluded path's pointer blob one round-trip at a time (minutes of serial fetches).
@@ -13,7 +13,7 @@ inputs:
     description: Ref to check out (passed to actions/checkout)
     default: ''
   exclude:
-    description: 'Comma-separated repo dirs to drop from the working tree and LFS fetch (empty = full checkout).'
+    description: 'Comma-separated repo dirs to drop from the working tree (empty = full checkout).'
     default: ''
   fetch-depth:
     description: Passed to actions/checkout
@@ -37,10 +37,6 @@ runs:
         for e in "${EXCLUDES[@]}"; do PATTERNS+=("!${e%/}/"); done
         git sparse-checkout set --no-cone "${PATTERNS[@]}"
 
-    - name: Pull LFS
-      shell: bash
-      run: |
-        if [ -n "${{ inputs.exclude }}" ]; then
-          git config lfs.fetchexclude '${{ inputs.exclude }}'
-        fi
-        git lfs pull
+    - uses: ./.github/actions/lfs-pull
+      with:
+        exclude: ${{ inputs.exclude }}

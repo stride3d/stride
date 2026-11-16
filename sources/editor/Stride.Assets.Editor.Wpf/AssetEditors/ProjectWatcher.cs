@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Text;
 using NuGet.Common;
 using Stride.Assets.Presentation.AssetEditors.ScriptEditor;
 using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Components.Build;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Collections;
@@ -89,6 +90,8 @@ namespace Stride.Assets.Presentation.AssetEditors
         private readonly IDisposable fileChangedLink2;
         private IDisposable assemblyChangedLink;
         private readonly DirectoryWatcher directoryWatcher;
+        // The watched files, to find the changes the watcher missed
+        private readonly FileWriteTimes fileTimes = new FileWriteTimes();
         private readonly SessionViewModel session;
         private readonly bool trackBinaries;
         private TaskCompletionSource<bool> initializedTaskSource;
@@ -136,6 +139,7 @@ namespace Stride.Assets.Presentation.AssetEditors
 
             directoryWatcher = new DirectoryWatcher();
             directoryWatcher.Modified += directoryWatcher_Modified;
+            directoryWatcher.ChangesMissed += directoryWatcher_ChangesMissed;
 
             var fileChangedTransform = new TransformBlock<FileEvent, AssemblyChangedEvent>(x => FileChangeTransformation(x));
             fileChangedLink1 = fileChanged.LinkTo(fileChangedTransform);
@@ -471,7 +475,7 @@ namespace Stride.Assets.Presentation.AssetEditors
                         continue;
                     trackedAssembly.LoadedAssembly = package.LoadedAssemblies.FirstOrDefault();
                     if (trackBinaries && trackedAssembly.LoadedAssembly != null)
-                        directoryWatcher.Track(trackedAssembly.LoadedAssembly.Path);
+                        TrackFile(trackedAssembly.LoadedAssembly.Path);
                 }
             }
         }
@@ -538,7 +542,7 @@ namespace Stride.Assets.Presentation.AssetEditors
                 if (string.IsNullOrEmpty(loadedAssembly.Path) || IsInPackageCache(loadedAssembly.Path))
                     continue;
 
-                directoryWatcher.Track(loadedAssembly.Path);
+                TrackFile(loadedAssembly.Path);
                 lock (trackedAssembliesLock)
                 {
                     if (!devBuildAssemblies.Contains(loadedAssembly))
@@ -572,7 +576,7 @@ namespace Stride.Assets.Presentation.AssetEditors
             {
                 // Track the assembly binary
                 if (trackBinaries)
-                    directoryWatcher.Track(loadedAssembly.Path);
+                    TrackFile(loadedAssembly.Path);
 
                 // Track the project file
                 if (loadedAssembly.ProjectReference == null)
@@ -675,6 +679,22 @@ namespace Stride.Assets.Presentation.AssetEditors
 
                 directoryWatcher.Track(document.FilePath);
             }
+
+            fileTimes.Add(project.FilePath);
+            foreach (var file in GameCodeWatcher.EnumerateProjectFiles(projectDirectory.ToOSPath(), IsSourceFile))
+                fileTimes.Add(file);
+        }
+
+        private void TrackFile(string path)
+        {
+            directoryWatcher.Track(path);
+            fileTimes.Add(path);
+        }
+
+        /// <summary>Whether a file of a project is a file whose events the watcher handles: a script or a shader.</summary>
+        private static bool IsSourceFile(string path)
+        {
+            return path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) || ProjectShaderChanges.IsShaderFile(path);
         }
 
         private async Task<Project> OpenProject(UFile projectPath, bool forceReload = false)
@@ -798,7 +818,38 @@ namespace Stride.Assets.Presentation.AssetEditors
 
         private void directoryWatcher_Modified(object sender, FileEvent e)
         {
+            RecordEvent(e.FullPath);
+            if (e is FileRenameEvent renameEvent)
+                RecordEvent(renameEvent.OldFullPath);
             fileChanged.Post(e);
+        }
+
+        private void RecordEvent(string path)
+        {
+            if (IsSourceFile(path) || fileTimes.Contains(path))
+                fileTimes.Update(path);
+        }
+
+        private void directoryWatcher_ChangesMissed(object sender, ChangesMissedEventArgs e)
+        {
+            // The watch of a folder failed (its events overflowed during a build) and started again: the files that changed
+            // meanwhile are found from their last write times, and go through the same steps as the events of the watcher
+            var currentFiles = new List<string>();
+            var projectDirectories = SnapshotTrackedAssemblies()
+                .Select(x => x.Project?.FilePath)
+                .Where(x => x != null)
+                .Select(x => Path.GetDirectoryName(x))
+                .Distinct(StringComparer.OrdinalIgnoreCase);
+            foreach (var projectDirectory in projectDirectories)
+            {
+                if (FileWriteTimes.IsUnder(projectDirectory, e.Directory))
+                    currentFiles.AddRange(GameCodeWatcher.EnumerateProjectFiles(projectDirectory, IsSourceFile));
+                else if (FileWriteTimes.IsUnder(e.Directory, projectDirectory))
+                    currentFiles.AddRange(GameCodeWatcher.EnumerateProjectFiles(e.Directory, IsSourceFile));
+            }
+
+            foreach (var change in fileTimes.Reconcile(e.Directory, currentFiles))
+                fileChanged.Post(change);
         }
 
         public class TrackedAssembly

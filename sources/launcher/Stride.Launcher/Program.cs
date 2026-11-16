@@ -5,6 +5,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
+using Stride.Core.Presentation.Avalonia.Services;
 
 namespace Stride.Launcher;
 
@@ -13,6 +14,8 @@ internal sealed class Program
     [STAThread]
     private static int Main(string[] args)
     {
+        // Before Avalonia and Skia start, which load the system HarfBuzz on Linux
+        HarfBuzzBinding.BindNow();
         return (int)Launcher.Main(args);
     }
 

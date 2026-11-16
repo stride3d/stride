@@ -442,7 +442,7 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                     {
                         if (!removedParameters.TryGetValue(currentFunction, out var removedIndices))
                             removedParameters[currentFunction] = removedIndices = [];
-                        SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+                        i.SetOpNop();
 
                         // Drop it from the function's own type too, unless a shared type already
                         // lost it when the entry point sharing that signature was rewritten.
@@ -581,7 +581,7 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                         if (movedModes.Add(executionMode.Mode))
                             executionMode.EntryPoint = entryPointInfo.Id;
                         else
-                            SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+                            i.SetOpNop();
                     }
                 }
             }

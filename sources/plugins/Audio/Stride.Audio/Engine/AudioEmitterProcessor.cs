@@ -52,6 +52,11 @@ namespace Stride.Audio
             /// If this emitter has some instances playing
             /// </summary>
             public bool IsPlaying;
+
+            /// <summary>
+            /// Whether the emitter has been updated once, so that its position is known from a previous frame.
+            /// </summary>
+            internal bool HasPreviousPosition;
         }
 
         /// <summary>
@@ -98,7 +103,7 @@ namespace Stride.Audio
         {
             // initialize the AudioEmitter first position
             data.TransformComponent.UpdateWorldMatrix(); // ensure the worldMatrix is correct
-            data.AudioEmitter = new AudioEmitter { Position = data.TransformComponent.WorldMatrix.TranslationVector }; // valid position is needed at first Update loop to compute velocity.
+            data.AudioEmitter = new AudioEmitter { Position = data.TransformComponent.WorldMatrix.TranslationVector };
 
             // create a SoundInstance for each listener activated and for each sound controller of the EmitterComponent.
             foreach (var listener in audioSystem.Listeners.Keys)
@@ -116,10 +121,12 @@ namespace Stride.Audio
 
         public override void Draw(RenderContext context)
         {
+            var elapsedSeconds = (float)context.Time.Elapsed.TotalSeconds;
             foreach (var associatedData in ComponentDatas.Values)
             {
                 if (!associatedData.AudioEmitterComponent.Enabled)
                 {
+                    associatedData.HasPreviousPosition = false;
                     if (associatedData.IsPlaying)
                     {
                         //stop any running instance
@@ -139,8 +146,11 @@ namespace Stride.Audio
                 emitter.WorldTransform = associatedData.TransformComponent.WorldMatrix;
                 var pos = emitter.WorldTransform.TranslationVector;
 
-                // First update the emitter data if required.
-                emitter.Velocity = pos - emitter.Position;
+                // Units per second, as the audio backends expect. No velocity without a previous frame to compare with.
+                emitter.Velocity = associatedData.HasPreviousPosition && elapsedSeconds > 0
+                    ? (pos - emitter.Position) / elapsedSeconds
+                    : Vector3.Zero;
+                associatedData.HasPreviousPosition = true;
                 emitter.Position = pos;
 
                 // TODO: if the entity has just been added, it might crash because part of the Transform update is done at the Draw and we might have uninitialized values

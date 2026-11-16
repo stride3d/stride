@@ -93,7 +93,7 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
     {
         if (localPackage?.Version.SpecialVersion is { } label)
         {
-            var ledger = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "stride", "worktree-ids.txt");
+            var ledger = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify), "stride", "worktree-ids.txt");
             try
             {
                 if (File.Exists(ledger) && FindCheckoutInLedger(File.ReadLines(ledger), label) is { } checkout)
@@ -221,7 +221,7 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
     /// <inheritdoc/>
     protected override void AfterUninstall()
     {
-        var devFeed = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "stride", "nugetdev");
+        var devFeed = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify), "stride", "nugetdev");
         if (localPackage is null || !Directory.Exists(devFeed))
             return;
 

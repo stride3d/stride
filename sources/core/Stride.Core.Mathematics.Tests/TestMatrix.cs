@@ -242,6 +242,22 @@ public class TestMatrix
         Assert.Equal(matrix, doubleTranspose);
     }
 
+    [Fact]
+    public void TestMatrixTransposeReturnsTranspose()
+    {
+        var matrix = new Matrix(
+            1, 2, 3, 4,
+            5, 6, 7, 8,
+            9, 10, 11, 12,
+            13, 14, 15, 16);
+        Matrix.Transpose(ref matrix, out var expected);
+
+        var transpose = Matrix.Transpose(matrix);
+
+        Assert.Equal(expected, transpose);
+        Assert.NotEqual(matrix, transpose);
+    }
+
     [Theory]
     [InlineData(0, 0, 0)]
     [InlineData(90, 0, 0)]
@@ -278,6 +294,29 @@ public class TestMatrix
         Assert.Equal(rotationMatrix.M31, reconstructed.M31, 3);
         Assert.Equal(rotationMatrix.M32, reconstructed.M32, 3);
         Assert.Equal(rotationMatrix.M33, reconstructed.M33, 3);
+    }
+
+    [Fact]
+    public void TestMatrixTransformationWithScalingRotation()
+    {
+        var scalingCenter = new Vector3(1, -2, 3);
+        var scalingRotation = Quaternion.RotationYawPitchRoll(0.4f, 0.7f, -0.3f);
+        var scaling = new Vector3(2, 3, 4);
+        var rotationCenter = new Vector3(-3, 1, 2);
+        var rotation = Quaternion.RotationYawPitchRoll(-0.5f, 0.2f, 0.9f);
+        var translation = new Vector3(5, 6, 7);
+
+        var actual = Matrix.Transformation(scalingCenter, scalingRotation, scaling, rotationCenter, rotation, translation);
+
+        // Scaling is applied along the axes turned by scalingRotation: the inverse rotation, then the scaling, then the rotation.
+        var sr = Matrix.RotationQuaternion(scalingRotation);
+        var srInverse = Matrix.Invert(sr);
+        var expected = Matrix.Translation(-scalingCenter) * srInverse * Matrix.Scaling(scaling) * sr * Matrix.Translation(scalingCenter)
+            * Matrix.Translation(-rotationCenter) * Matrix.RotationQuaternion(rotation) * Matrix.Translation(rotationCenter)
+            * Matrix.Translation(translation);
+
+        for (var i = 0; i < 16; i++)
+            Assert.Equal(expected[i], actual[i], 4);
     }
 
     [Fact]

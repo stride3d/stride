@@ -18,7 +18,7 @@ internal sealed class InstallProgressConsole : IProgress<InstallProgress>, IDisp
     private int lastLength;
     private bool wrote;
     private bool disposed;
-    private bool downloadAnnounced;
+    private string? downloadAnnounced;
 
     public InstallProgressConsole()
     {
@@ -34,10 +34,11 @@ internal sealed class InstallProgressConsole : IProgress<InstallProgress>, IDisp
             current = value;
             if (plain)
             {
-                // Discrete lines; download progress fires repeatedly, so announce it only once.
-                if (value.Stage == InstallStage.Downloading && !downloadAnnounced)
+                // Discrete lines; download progress fires repeatedly, so announce each version once, when its bytes start
+                // to come (never for a version restored from the cache).
+                if (value.Stage == InstallStage.Downloading && value.DownloadedBytes > 0 && value.Version != downloadAnnounced)
                 {
-                    downloadAnnounced = true;
+                    downloadAnnounced = value.Version;
                     Console.WriteLine($"Stride {value.Version}: downloading...");
                 }
                 else if (value.Stage == InstallStage.SettingUp)

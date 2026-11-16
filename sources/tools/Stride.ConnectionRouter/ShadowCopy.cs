@@ -20,7 +20,7 @@ namespace Stride.ConnectionRouter
         /// <summary>
         /// Gets the folder of the copy. All its content is replaced with the copy, so nothing else may be kept there.
         /// </summary>
-        public static string Folder { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "stride", "router-shadowcopy");
+        public static string Folder { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify), "stride", "router-shadowcopy");
 
         private static string SourceFile => Path.Combine(Folder, SourceFileName);
 

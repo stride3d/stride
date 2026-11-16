@@ -57,7 +57,8 @@ jobs:
     if: ${{ !cancelled() }}
     runs-on: windows-2025-vs2026
     permissions:
-      contents: read
+      contents: write       # the push, when there's no Stride Bot app (a fork)
+      pull-requests: write
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
@@ -102,29 +103,17 @@ jobs:
       - name: Get the Stride Bot token
         id: bot
         if: inputs.open-pr || github.event_name == 'schedule'
-        uses: actions/create-github-app-token@v3
+        uses: ./.github/actions/stride-bot
         with:
           client-id: ${{ vars.STRIDE_BOT_CLIENT_ID }}
           private-key: ${{ secrets.STRIDE_BOT_PRIVATE_KEY }}
-          permission-contents: write
-          permission-pull-requests: write
-      - name: Get the Stride Bot identity
-        id: who
-        if: inputs.open-pr || github.event_name == 'schedule'
-        env:
-          GH_TOKEN: ${{ steps.bot.outputs.token }}
-          BOT: ${{ steps.bot.outputs.app-slug }}[bot]
-        run: |
-          # The id prefix is what links the author to the bot's profile.
-          $id = gh api "users/$env:BOT" --jq .id
-          "identity=$env:BOT <$id+$env:BOT@users.noreply.github.com>" >> $env:GITHUB_OUTPUT
       - name: Open PR with the refreshed corpus
         if: inputs.open-pr || github.event_name == 'schedule'
         uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ steps.bot.outputs.token }}
-          author: ${{ steps.who.outputs.identity }}
-          committer: ${{ steps.who.outputs.identity }}
+          author: ${{ steps.bot.outputs.name }} <${{ steps.bot.outputs.email }}>
+          committer: ${{ steps.bot.outputs.name }} <${{ steps.bot.outputs.email }}>
           commit-message: "Shaders: refresh the shader corpus from run ${{ github.run_id }}"
           title: "Refresh the shader corpus"
           body: |

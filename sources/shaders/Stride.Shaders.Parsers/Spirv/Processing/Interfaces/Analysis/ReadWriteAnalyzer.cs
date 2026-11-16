@@ -28,16 +28,10 @@ internal static class ReadWriteAnalyzer
         methodInfo.UsedThisStage = true;
 
         // If method was mutated by another stage, we work on the original copy instead
-        List<OpData> methodInstructions;
-        if (methodInfo.OriginalMethodCode != null)
-        {
-            methodInstructions = methodInfo.OriginalMethodCode;
-        }
-        else
-        {
-            (var methodStart, var methodEnd) = SpirvBuilder.FindMethodBounds(buffer, functionId);
-            methodInstructions = buffer.Slice(methodStart, methodEnd - methodStart);
-        }
+        var methodInstructions = methodInfo.OriginalMethodCode ?? buffer;
+        var (methodStart, methodEnd) = methodInfo.OriginalMethodCode is { } originalCode
+            ? (0, originalCode.Count)
+            : SpirvBuilder.FindMethodBounds(buffer, functionId);
 
         var streamsInstructionIds = new Dictionary<int, StreamsKindSDSL>();
         var patchInstructionIds = new Dictionary<int, StreamsKindSDSL>();
@@ -53,20 +47,21 @@ internal static class ReadWriteAnalyzer
         var openMerges = new HashSet<int>();
         var returnedEarly = false;
 
-        foreach (ref var i in CollectionsMarshal.AsSpan(methodInstructions))
+        for (var index = methodStart; index < methodEnd; index++)
         {
-            if (i.Op is Op.OpLine && new OpLine(ref i) is { } line)
+            var i = methodInstructions[index];
+            if (i.Op is Op.OpLine && new OpLine(i) is { } line)
                 currentLine = (line.File, line.Line, line.Column);
-            else if (i.Op is Op.OpSelectionMerge && new OpSelectionMerge(ref i) is { } selectionMerge)
+            else if (i.Op is Op.OpSelectionMerge && new OpSelectionMerge(i) is { } selectionMerge)
                 openMerges.Add(selectionMerge.MergeBlock);
-            else if (i.Op is Op.OpLoopMerge && new OpLoopMerge(ref i) is { } loopMerge)
+            else if (i.Op is Op.OpLoopMerge && new OpLoopMerge(i) is { } loopMerge)
                 openMerges.Add(loopMerge.MergeBlock);
-            else if (i.Op is Op.OpLabel && new OpLabel(ref i) is { } label)
+            else if (i.Op is Op.OpLabel && new OpLabel(i) is { } label)
                 openMerges.Remove(label.ResultId);
             else if (i.Op is Op.OpReturn or Op.OpReturnValue)
                 returnedEarly |= openMerges.Count > 0;
             // Check for any Streams variable
-            else if (i.Op is Op.OpFunction && new OpFunction(ref i) is { } function)
+            else if (i.Op is Op.OpFunction && new OpFunction(i) is { } function)
             {
                 var functionType = (FunctionType)context.ReverseTypes[function.FunctionType];
                 var streamsTypeSearch = new StreamsTypeSearch();
@@ -74,7 +69,7 @@ internal static class ReadWriteAnalyzer
                 if (streamsTypeSearch.Found)
                     methodInfo.HasStreamAccess = true;
             }
-            else if (i.Op is Op.OpVariable && new OpVariable(ref i) is { } variable)
+            else if (i.Op is Op.OpVariable && new OpVariable(i) is { } variable)
             {
                 var type = context.ReverseTypes[variable.ResultType];
                 if (type is PointerType { BaseType: StreamsType s })
@@ -85,7 +80,7 @@ internal static class ReadWriteAnalyzer
                 }
             }
             // and for any Streams parameter
-            else if (i.Op is Op.OpFunctionParameter && new OpFunctionParameter(ref i) is { } functionParameter)
+            else if (i.Op is Op.OpFunctionParameter && new OpFunctionParameter(i) is { } functionParameter)
             {
                 var type = context.ReverseTypes[functionParameter.ResultType];
                 if (type is PointerType { BaseType: StreamsType s })
@@ -106,7 +101,7 @@ internal static class ReadWriteAnalyzer
                     methodInfo.HasStreamAccess = true;
                 }
             }
-            else if (i.Op is Op.OpLoad && new OpLoad(ref i) is { } load)
+            else if (i.Op is Op.OpLoad && new OpLoad(i) is { } load)
             {
                 // Check for indirect access chains
                 if (!accessChainBases.TryGetValue(load.Pointer, out var accessChain))
@@ -149,7 +144,7 @@ internal static class ReadWriteAnalyzer
                 if (analysisResult.CBuffers.TryGetValue(accessChain.Base, out var cbufferInfo))
                     cbufferInfo.UsedThisStage = true;
             }
-            else if (i.Op is Op.OpStore && new OpStore(ref i) is { } store)
+            else if (i.Op is Op.OpStore && new OpStore(i) is { } store)
             {
                 // Check for indirect access chains
                 if (!accessChainBases.TryGetValue(store.Pointer, out var accessChain))
@@ -181,8 +176,8 @@ internal static class ReadWriteAnalyzer
                 // Atomic operations reference a pointer (word 3 after opcode, i.e. first operand after ResultType+ResultId or just after opcode for OpAtomicStore)
                 // Extract the pointer and mark the underlying resource as used
                 var pointer = i.Op == Op.OpAtomicStore
-                    ? i.Memory.Span[1] // OpAtomicStore has no ResultType/ResultId, pointer is word 1
-                    : i.Memory.Span[3]; // All other atomics: word 3 (after ResultType, ResultId)
+                    ? i.Words[1] // OpAtomicStore has no ResultType/ResultId, pointer is word 1
+                    : i.Words[3]; // All other atomics: word 3 (after ResultType, ResultId)
                 if (!accessChainBases.TryGetValue(pointer, out var atomicAccessChain))
                     atomicAccessChain.Base = pointer;
                 if (variables.TryGetValue(atomicAccessChain.Base, out var variableInfo2))
@@ -195,19 +190,19 @@ internal static class ReadWriteAnalyzer
             else if (i.Op is Op.OpArrayLength)
             {
                 // OpArrayLength directly references the struct variable pointer (word 3)
-                var structureId = i.Memory.Span[3];
+                var structureId = i.Words[3];
                 if (variables.TryGetValue(structureId, out var variableInfo3))
                     MarkVariableUsed(variableInfo3);
                 if (analysisResult.Resources.TryGetValue(structureId, out var resourceInfo3))
                     resourceInfo3.UsedThisStage = true;
             }
-            else if (i.Op == Op.OpStreamsSDSL && new OpStreamsSDSL(ref i) is { } streamsInstruction)
+            else if (i.Op == Op.OpStreamsSDSL && new OpStreamsSDSL(i) is { } streamsInstruction)
             {
                 streamsInstructionIds.Add(streamsInstruction.ResultId, StreamsKindSDSL.Streams);
                 directStreamsIds.Add(streamsInstruction.ResultId);
                 methodInfo.HasStreamAccess = true;
             }
-            else if (i.Op == Op.OpAccessChain && new OpAccessChain(ref i) is { } accessChain)
+            else if (i.Op == Op.OpAccessChain && new OpAccessChain(i) is { } accessChain)
             {
                 var currentBase = accessChain.BaseId;
 
@@ -251,11 +246,11 @@ internal static class ReadWriteAnalyzer
                     accessChainBases.Add(accessChain.ResultId, (currentBase, currentStreamKind, whole, onStreams));
                 }
             }
-            else if (i.Op == Op.OpFunctionCall && new OpFunctionCall(ref i) is { } call)
+            else if (i.Op == Op.OpFunctionCall && new OpFunctionCall(i) is { } call)
             {
                 // Mark any resource/variable/cbuffer passed as function argument as used
                 // (e.g. texture/sampler passed by UniformConstant pointer)
-                var argSpan = i.Memory.Span;
+                var argSpan = i.Words;
                 for (int argIdx = 4; argIdx < argSpan.Length; argIdx++)
                 {
                     var argId = argSpan[argIdx];

@@ -4,6 +4,7 @@
 using Stride.Shaders.Core;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
+using Stride.Shaders.Spirv.Core.Buffers;
 using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Compilers.SDSL;
@@ -22,7 +23,7 @@ public partial class ShaderMixer
             if (context[index].Op != Op.OpTypeMatrix)
                 continue;
 
-            var words = context[index].Data.Memory.Span;
+            var words = context[index].Words;
             var (resultId, columnType, columnCount) = (words[1], words[2], words[3]);
             if (context.ReverseTypes[columnType] is not VectorType { BaseType: { } baseType } || baseType.IsFloating())
                 continue;
@@ -46,11 +47,11 @@ public partial class ShaderMixer
         var resultIndex = op == Op.OpTypeInt ? 1 : 2;
         for (var i = index + 1; i < context.Count; i++)
         {
-            var words = context[i].Data.Memory.Span;
+            var words = context[i].Words;
             if (context[i].Op == op && words[resultIndex] == id)
             {
-                var data = context[i].Data;
-                context.RemoveAt(i, dispose: false);
+                var data = new OpData(words);
+                context.RemoveAt(i);
                 context.Insert(index++, data);
                 return;
             }

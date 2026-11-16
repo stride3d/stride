@@ -122,6 +122,14 @@ jobs:
         if: matrix.graphics-api == 'Vulkan'
         uses: ./.github/actions/setup-vulkan-windows
 
+      # Game Studio's effect cache is the cache folder next to the runner exe, shared by every project the fixtures open
+      - uses: ./.github/actions/effect-cache
+        with:
+          mode: restore
+          lane: Editor-${{ matrix.graphics-api }}-${{ inputs.build-type || 'Debug' }}
+          fxc: ${{ matrix.graphics-api == 'Direct3D11' }}
+          path: sources/editor/Stride.GameStudio.AutoTesting/bin/*/*/cache
+
       # Also builds Stride.GameStudio.AutoTesting, the runner the tests start, through its ProjectReference
       - name: Build Stride.Editor.Wpf.Tests
         run: |
@@ -167,6 +175,13 @@ jobs:
             --logger "trx;LogFileName=editor-screenshots.trx" `
             --results-directory TestResults `
             -p:Configuration=${{ inputs.build-type || 'Debug' }}
+
+      - uses: ./.github/actions/effect-cache
+        if: success() || failure()
+        with:
+          mode: save
+          lane: Editor-${{ matrix.graphics-api }}-${{ inputs.build-type || 'Debug' }}
+          path: sources/editor/Stride.GameStudio.AutoTesting/bin/*/*/cache
 
       - name: Publish test report
         if: always()

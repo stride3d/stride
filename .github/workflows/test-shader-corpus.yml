@@ -61,7 +61,7 @@ jobs:
         with:
           ref: ${{ inputs.commit }}
           fetch-depth: 2
-          lfs: true
+      - uses: ./.github/actions/lfs-pull
       - name: Cache keys
         id: keys
         env:

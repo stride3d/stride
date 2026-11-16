@@ -143,7 +143,7 @@ internal static class NewCommand
                 var resolvedName = template.ShortNameList.FirstOrDefault() ?? templateName;
                 Console.WriteLine($"Creating '{name}' from {resolvedName} (Stride {version})...");
                 if (isItemTemplate)
-                    return await AddAssetPack(context.Registry, template, name, parameters, packPackage, packFolders ?? AssetPackPlacement.GetFolders(output), version, cancellationToken);
+                    return await AddAssetPack(context.Registry, template, name, parameters, packPackage, packFolders ?? AssetPackPlacement.GetFolders(output), cancellationToken);
 
                 var result = await context.Registry.InstantiateAsync(template, name, output, parameters, cancellationToken);
                 if (result.Status != CreationResultStatus.Success)
@@ -188,12 +188,10 @@ internal static class NewCommand
     // Adds a pack to the folders it goes to. Prints the reason and returns 1 when it is refused.
     private static async Task<int> AddAssetPack(
         DotNetNewTemplateRegistry registry, ITemplateInfo template, string name, IReadOnlyDictionary<string, string> parameters,
-        AssetPackPlacement.PackageChoice? package, AssetPackPlacement.PackFolders folders, PackageVersion engine, CancellationToken cancellationToken)
+        AssetPackPlacement.PackageChoice? package, AssetPackPlacement.PackFolders folders, CancellationToken cancellationToken)
     {
         try
         {
-            AssetPackPlacement.CheckVersionForRewrite(engine, folders);
-
             var (hasAssets, hasResources) = await AssetPackPlacement.AddAsync(async staging =>
             {
                 var result = await registry.InstantiateAsync(template, name, staging, parameters, cancellationToken);

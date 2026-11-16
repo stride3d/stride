@@ -52,13 +52,13 @@ static class SpirvNormalizer
             if (i.Op is Op.OpName or Op.OpMemberName)
             {
                 if (keepNames)
-                    names.Add(new OpData(i.Data.Memory.Span));
+                    names.Add(new OpData(i.Words));
                 continue;
             }
             if (IsDebugInstruction(i.Op))
                 continue;
 
-            var data = new OpData(i.Data.Memory.Span);
+            var data = new OpData(i.Words);
             ForEachId(data, (ref int id) =>
             {
                 if (!remap.TryGetValue(id, out var newId))
@@ -86,10 +86,6 @@ static class SpirvNormalizer
                     namedIds.Add(newTarget);
                 instructionLocations.Insert(insertIndex, null);
                 output.Insert(insertIndex++, name);
-            }
-            else
-            {
-                name.Dispose();
             }
         }
 
@@ -149,7 +145,7 @@ static class SpirvNormalizer
 
         foreach (var i in buffer)
         {
-            var w = i.Data.Memory.Span;
+            var w = i.Words;
             if (i.Op is Op.OpTypeInt)
                 scalarTypes[w[1]] = (i.Op, w[2], w[3]);
             else if (i.Op is Op.OpTypeFloat)

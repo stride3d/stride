@@ -28,6 +28,11 @@ namespace Stride.Audio
         private AudioSystem audioSystem;
 
         /// <summary>
+        /// The listeners that have been updated at least once, so that their position is known from a previous frame.
+        /// </summary>
+        private readonly HashSet<AudioListenerComponent> listenersWithPosition = new HashSet<AudioListenerComponent>();
+
+        /// <summary>
         /// Create a new instance of AudioListenerProcessor.
         /// </summary>
         public AudioListenerProcessor()
@@ -55,21 +60,30 @@ namespace Stride.Audio
         protected override void OnEntityComponentRemoved(Entity entity, AudioListenerComponent component, AudioListenerComponent data)
         {
             audioSystem.Listeners.Remove(component);
+            listenersWithPosition.Remove(component);
 
             component.Listener.Dispose();
         }
 
         public override void Draw(RenderContext context)
         {
+            var elapsedSeconds = (float)context.Time.Elapsed.TotalSeconds;
             foreach (var listenerData in ComponentDatas.Values)
             {
                 if (!listenerData.Enabled) // skip all updates if the listener is not used.
+                {
+                    listenersWithPosition.Remove(listenerData);
                     continue;
+                }
 
                 var listener = listenerData.Listener;
                 listener.WorldTransform = listenerData.Entity.Transform.WorldMatrix;
                 var newPosition = listener.WorldTransform.TranslationVector;
-                listener.Velocity = newPosition - listener.Position; // estimate velocity from last and new position
+                // Units per second, as the audio backends expect. No velocity without a previous frame to compare with.
+                listener.Velocity = listenersWithPosition.Contains(listenerData) && elapsedSeconds > 0
+                    ? (newPosition - listener.Position) / elapsedSeconds
+                    : Vector3.Zero;
+                listenersWithPosition.Add(listenerData);
                 listener.Position = newPosition;
                 listener.Forward = Vector3.Normalize((Vector3)listener.WorldTransform.Row3);
                 listener.Up = Vector3.Normalize((Vector3)listener.WorldTransform.Row2);
