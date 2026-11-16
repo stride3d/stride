@@ -56,6 +56,7 @@
     <Compile Include="TestAudioListener.cs" />
     <Compile Include="TestDynamicSoundEffectInstance.cs" />
     <Compile Include="TestInvalidationAudioContext.cs" />
+    <Compile Include="TestPauseProceduralInstances.cs" />
     <Compile Include="TestSoundEffect.cs" />
     <Compile Include="TestSoundEffectInstance.cs" />
     <Compile Include="TestSoundMusic.cs" />
