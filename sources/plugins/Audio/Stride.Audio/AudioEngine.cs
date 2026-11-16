@@ -144,7 +144,7 @@ namespace Stride.Audio
         /// Pause the audio engine. That is, pause all the currently playing <see cref="SoundInstance"/>, and hold any future play until <see cref="ResumeAudio"/> is called.
         /// </summary>
         /// <remarks>
-        /// While the engine is paused, a play request on a looping instance or on an instance with a streamed or dynamic source is remembered and starts at <see cref="ResumeAudio"/>.
+        /// While the engine is paused, a play request on a paused instance, a looping instance or an instance with a streamed or dynamic source is remembered and starts at <see cref="ResumeAudio"/>.
         /// A play request on any other instance, such as a short non-looping effect, is dropped.
         /// </remarks>
         public void PauseAudio()
