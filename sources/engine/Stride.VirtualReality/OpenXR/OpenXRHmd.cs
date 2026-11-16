@@ -538,6 +538,16 @@ namespace Stride.VirtualReality
         }
 #endif
 
+#if STRIDE_GRAPHICS_API_DIRECT3D11
+        /// <summary>
+        /// Copies the rendered frame into the swapchain image that OpenXR shows in the headset.
+        /// </summary>
+        internal static void CopyToSwapchainImage(CommandList commandList, Texture renderFrame, ID3D11Resource* swapchainImage)
+        {
+            commandList.NativeDeviceContext.CopyResource(swapchainImage, renderFrame.NativeResource.Handle);
+        }
+#endif
+
         public override void Commit(CommandList commandList, Texture renderFrame)
         {
             if (baseDevice is null || projection_views is null || views is null)
@@ -559,14 +569,11 @@ namespace Stride.VirtualReality
 #if STRIDE_GRAPHICS_API_DIRECT3D11
                 Debug.Assert(commandList.NativeDeviceContext.EqualsComPtr(baseDevice.NativeDeviceContext));
 
-                // Logger.Warning("Blit render target");
-                ID3D11Resource* renderFrameResource;
-                renderFrame.NativeRenderTargetView.GetResource(&renderFrameResource);
-
                 ID3D11Resource* swapChainRenderTargetResource;
                 render_targets[swapchainPointer]->GetResource(&swapChainRenderTargetResource);
 
-                baseDevice.NativeDeviceContext.CopyResource(renderFrameResource, swapChainRenderTargetResource);
+                CopyToSwapchainImage(commandList, renderFrame, swapChainRenderTargetResource);
+                swapChainRenderTargetResource->Release();
 #endif
 
                 // Release the swapchain image
