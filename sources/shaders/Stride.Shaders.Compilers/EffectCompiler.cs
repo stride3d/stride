@@ -187,7 +187,7 @@ namespace Stride.Shaders.Compiler
 #if STRIDE_PLATFORM_DESKTOP
                 if (spirvBytecode is { Length: > 0 })
                     lock (WriterLock)
-                        WriteSpvDebugFiles(effectDir, mixinObjectId.ToString(), spirvBytecode.ToArray());
+                        WriteSpvDebugFiles(effectDir, mixinObjectId.ToString(), spirvBytecode.ToArray(), disassemble: true);
 #endif
                 return new EffectBytecodeCompilerResult(null, log);
             }
@@ -249,7 +249,7 @@ namespace Stride.Shaders.Compiler
 #if STRIDE_PLATFORM_DESKTOP
                             // Returning here skips the outer catch, so dump the module that failed to legalize.
                             lock (WriterLock)
-                                WriteSpvDebugFiles(effectDir, mixinObjectId.ToString(), spirvBytecodeForDebug);
+                                WriteSpvDebugFiles(effectDir, mixinObjectId.ToString(), spirvBytecodeForDebug, disassemble: true);
 #endif
                             return new EffectBytecodeCompilerResult(null, log);
                         }
@@ -365,7 +365,7 @@ namespace Stride.Shaders.Compiler
             {
 #if STRIDE_PLATFORM_DESKTOP
                 lock (WriterLock)
-                    WriteSpvDebugFiles(effectDir, mixinObjectId.ToString(), spirvBytecodeForDebug);
+                    WriteSpvDebugFiles(effectDir, mixinObjectId.ToString(), spirvBytecodeForDebug, disassemble: true);
 #endif
                 throw;
             }
@@ -380,7 +380,7 @@ namespace Stride.Shaders.Compiler
             lock (WriterLock) // protect write in case the same shader is created twice
             {
                 // Note: we used input hash in previous case because bytecode was not valid, but when available we prefer bytecode hash
-                WriteSpvDebugFiles(effectDir, outputHash.ToString(), spirvBytecodeForDebug);
+                WriteSpvDebugFiles(effectDir, outputHash.ToString(), spirvBytecodeForDebug, disassemble: false);
 
                 // Write per-stage HLSL
                 foreach (var (suffix, hlslCode) in stageHlslSources)
@@ -668,16 +668,17 @@ namespace Stride.Shaders.Compiler
         }
 
         /// <summary>
-        /// Writes .spv and .spvdis files. Caller must hold WriterLock.
+        /// Writes the .spv file, and its disassembly (.spvdis) when <paramref name="disassemble"/> is set. Caller must hold WriterLock.
         /// </summary>
-        private static void WriteSpvDebugFiles(string effectDir, string hashName, byte[] spirvBytecode)
+        private static void WriteSpvDebugFiles(string effectDir, string hashName, byte[] spirvBytecode, bool disassemble)
         {
             var baseFilename = Path.Combine(effectDir, hashName);
             if (!File.Exists(baseFilename + ".spv"))
-            {
                 File.WriteAllBytes(baseFilename + ".spv", spirvBytecode);
+            // The disassembly costs more than the compile steps around it: only for a failed compile, where someone reads it.
+            // spirv-dis gives it from the .spv otherwise.
+            if (disassemble && !File.Exists(baseFilename + ".spvdis"))
                 File.WriteAllText(baseFilename + ".spvdis", Spirv.Tools.Spv.Dis(SpirvBytecode.CreateFromSpan(spirvBytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex));
-            }
         }
 #endif
 
