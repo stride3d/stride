@@ -111,7 +111,7 @@ public sealed class AssetsSessionFixture : IAsyncDisposable
         var serviceProvider = new ViewModelServiceProvider(
         [
             dispatcher,
-            new FakeEditorDialogService(),
+            new TestEditorDialogService(),
             new FakeClipboardService(),
             plugins,
             new FakeThumbnailDataFactory(),

@@ -289,5 +289,5 @@ public sealed class ScriptSessionSaveTests
 
     private static string PathOf(ScriptSourceFileViewModel script) => script.AssetItem.FullPath.ToOSPath();
 
-    private static FakeEditorDialogService Dialogs(AssetsSessionFixture fixture) => (FakeEditorDialogService)fixture.ServiceProvider.Get<IDialogService>();
+    private static TestEditorDialogService Dialogs(AssetsSessionFixture fixture) => (TestEditorDialogService)fixture.ServiceProvider.Get<IDialogService>();
 }

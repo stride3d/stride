@@ -162,6 +162,9 @@ public sealed class EditorTestSession : IAsyncDisposable
             services = services.Append(NotSupportedService<IEditorDialogService>.Create());
         if (!options.Services.OfType<IClipboardService>().Any())
             services = services.Append(NotSupportedService<IClipboardService>.Create());
+        // The progress windows show nothing, so that the session's own save runs
+        if (!options.Services.OfType<IProgressWindowService>().Any())
+            services = services.Append(new TestProgressWindowService());
         var serviceProvider = new ViewModelServiceProvider(services);
 
         UFile packagePath;
@@ -207,8 +210,10 @@ public sealed class EditorTestSessionOptions
     public IAssetsPluginService? Plugins { get; init; }
 
     /// <summary>
-    /// Other services of the session, such as fakes of the dialog and clipboard services; without them, these two services fail when
-    /// they are used (<see cref="NotSupportedService{T}"/>).
+    /// Other services of the session, such as a <see cref="TestEditorDialogService"/> and a fake of the clipboard service; without
+    /// them, these two services fail when they are used (<see cref="NotSupportedService{T}"/>). Without a progress window service
+    /// (<see cref="IProgressWindowService"/>, which a <see cref="TestEditorDialogService"/> is), the session has a
+    /// <see cref="TestProgressWindowService"/>.
     /// </summary>
     public IReadOnlyList<object> Services { get; init; } = [];
 

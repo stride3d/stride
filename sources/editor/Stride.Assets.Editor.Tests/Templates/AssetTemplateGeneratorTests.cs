@@ -319,7 +319,7 @@ public sealed class AssetTemplateGeneratorTests
         return assets;
     }
 
-    private static FakeEditorDialogService Dialogs(AssetsSessionFixture fixture) => (FakeEditorDialogService)fixture.ServiceProvider.Get<IDialogService>();
+    private static TestEditorDialogService Dialogs(AssetsSessionFixture fixture) => (TestEditorDialogService)fixture.ServiceProvider.Get<IDialogService>();
 
     /// <summary>
     /// Registers the generators with the fake prompts, and a package of descriptions written like the ones of the Stride package

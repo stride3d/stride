@@ -250,7 +250,7 @@ public sealed class GraphicsCompositorEditorTests
         await using var test = await CompositorTest.OpenAsync();
         var editor = test.Editor;
         editor.RenderStages[0].Name = "Solid";
-        var dialogs = (FakeEditorDialogService)test.Fixture.ServiceProvider.Get<IDialogService>();
+        var dialogs = (TestEditorDialogService)test.Fixture.ServiceProvider.Get<IDialogService>();
 
         // The dialog service of the test answers at once, so the command ends before Execute returns
         editor.AddPackageRenderFeaturesCommand.Execute(null);

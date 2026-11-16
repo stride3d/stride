@@ -265,7 +265,7 @@ public sealed class TemplateDescriptionTests
     {
         // The package is registered once the first test asks for it
         _ = TestTemplatePackage.Package;
-        return new ViewModelServiceProvider([new NullDispatcherService(), new FakeEditorDialogService()]);
+        return new ViewModelServiceProvider([new NullDispatcherService(), new TestEditorDialogService()]);
     }
 
     private sealed class TemporaryDirectory : IDisposable

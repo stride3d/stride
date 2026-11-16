@@ -73,7 +73,7 @@ public sealed class EntityCreationTests
     {
         await using var fixture = await OpenSceneAsync();
         var editor = await OpenEditorAsync(fixture);
-        var dialogs = (FakeEditorDialogService)fixture.ServiceProvider.Get<IEditorDialogService>();
+        var dialogs = (TestEditorDialogService)fixture.ServiceProvider.Get<IEditorDialogService>();
         var names = RecordUndoNames(fixture);
 
         editor.CreateEntityInRootCommand.Execute(new ModelEntityFactory());

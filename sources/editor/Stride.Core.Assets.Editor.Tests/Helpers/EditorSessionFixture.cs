@@ -36,7 +36,7 @@ public sealed class EditorSessionFixture : IAsyncDisposable
     private bool destroyed;
     private bool ownsDirectory = true;
 
-    private EditorSessionFixture(string directory, Action<UFile, PackageSessionResult, PackageLoadParameters> load, IViewModelServiceProvider serviceProvider, FakeEditorDialogService dialogs, FakeClipboardService clipboard, FakePluginService plugins)
+    private EditorSessionFixture(string directory, Action<UFile, PackageSessionResult, PackageLoadParameters> load, IViewModelServiceProvider serviceProvider, TestEditorDialogService dialogs, FakeClipboardService clipboard, FakePluginService plugins)
     {
         Directory = directory;
         this.load = load;
@@ -53,7 +53,7 @@ public sealed class EditorSessionFixture : IAsyncDisposable
 
     public IViewModelServiceProvider ServiceProvider { get; }
 
-    public FakeEditorDialogService Dialogs { get; }
+    public TestEditorDialogService Dialogs { get; }
 
     public FakeClipboardService Clipboard { get; }
 
@@ -192,7 +192,7 @@ public sealed class EditorSessionFixture : IAsyncDisposable
 
     private static EditorSessionFixture CreateFixture(string directory, Action<UFile, PackageSessionResult, PackageLoadParameters> load)
     {
-        var dialogs = new FakeEditorDialogService();
+        var dialogs = new TestEditorDialogService();
         var clipboard = new FakeClipboardService();
         var plugins = new FakePluginService();
         var serviceProvider = new ViewModelServiceProvider(

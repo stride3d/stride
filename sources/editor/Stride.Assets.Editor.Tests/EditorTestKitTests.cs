@@ -8,6 +8,7 @@ using Stride.Assets.Sprite;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.Windows;
 
 namespace Stride.Assets.Editor.Tests;
 
@@ -59,6 +60,68 @@ public sealed class EditorTestKitTests
         var clipboard = new FakeClipboardService();
         await using var withClipboard = await StrideEditorTestSession.OpenAsync(new StrideEditorTestSessionOptions { Services = [clipboard] });
         Assert.Same(clipboard, withClipboard.ServiceProvider.Get<IClipboardService>());
+    }
+
+    [Fact]
+    public async Task TheTestScriptsTheAnswersOfTheDialogServiceAndReadsTheQuestions()
+    {
+        var dialogs = new TestEditorDialogService();
+        dialogs.Answers.Enqueue(MessageBoxResult.Yes);
+        dialogs.Answers.Enqueue(MessageBoxResult.No);
+        dialogs.Answer = MessageBoxResult.Cancel;
+        await using var fixture = await StrideEditorTestSession.OpenAsync(new StrideEditorTestSessionOptions { Services = [dialogs] });
+        var asker = new Asker(fixture.ServiceProvider.Get<IEditorDialogService>());
+
+        // The scripted answers reach the code that asked, in order, then the default answer
+        Assert.Equal("overwritten", await asker.OverwriteAsync("Sprites/Sheet"));
+        Assert.Equal("kept", await asker.OverwriteAsync("Sprites/Other"));
+        Assert.Equal("cancelled", await asker.OverwriteAsync("Sprites/Last"));
+        // A message box with buttons of its own takes the button of the answer
+        dialogs.Answers.Enqueue(MessageBoxResult.No);
+        Assert.Equal((int)MessageBoxResult.No, await asker.PickAsync());
+
+        Assert.Equal(["Overwrite Sprites/Sheet?", "Overwrite Sprites/Other?", "Overwrite Sprites/Last?", "Which one?"], dialogs.Messages);
+        Assert.Empty(dialogs.Answers);
+        // The pickers cancel unless the test picks
+        Assert.Null(await fixture.ServiceProvider.Get<IEditorDialogService>().OpenFilePickerAsync());
+    }
+
+    [Fact]
+    public async Task TheSessionsOwnSaveRunsWithTheProgressWindowThatShowsNothing()
+    {
+        await using var fixture = await StrideEditorTestSession.OpenAsync(new StrideEditorTestSessionOptions(),
+            ("Sprites/Sheet", new SpriteSheetAsset()));
+        var sheet = fixture.Asset<SpriteSheetViewModel>("Sprites/Sheet");
+        var file = Path.Combine(fixture.Directory, fixture.PackageName, "Assets", "Sprites", "Sheet.sdsheet");
+        File.Delete(file);
+        // The package keeps the asset to save, as an edit leaves it
+        sheet.AssetItem.IsDirty = true;
+
+        Assert.True(await fixture.Session.SaveSessionAsync());
+
+        Assert.True(File.Exists(file), "The save wrote the asset.");
+        Assert.False(sheet.AssetItem.IsDirty);
+        var progress = Assert.IsType<TestProgressWindowService>(fixture.ServiceProvider.Get<IProgressWindowService>());
+        Assert.Equal(500, Assert.Single(progress.Shown).MinDelay);
+    }
+
+    /// <summary>
+    /// Code that asks the user, as a plugin's service does.
+    /// </summary>
+    private sealed class Asker(IEditorDialogService dialogs)
+    {
+        public async Task<string> OverwriteAsync(string location)
+        {
+            return await dialogs.MessageBoxAsync($"Overwrite {location}?", MessageBoxButton.YesNoCancel) switch
+            {
+                MessageBoxResult.Yes => "overwritten",
+                MessageBoxResult.No => "kept",
+                _ => "cancelled",
+            };
+        }
+
+        public Task<int> PickAsync()
+            => dialogs.MessageBoxAsync("Which one?", [new DialogButtonInfo { Content = "First", Result = 1 }, new DialogButtonInfo { Content = "Second", Result = (int)MessageBoxResult.No }]);
     }
 
     [Fact]

@@ -27,7 +27,7 @@ public sealed class ServicesSessionFixture : IAsyncDisposable
 
     private bool disposed;
 
-    private ServicesSessionFixture(string directory, IViewModelServiceProvider serviceProvider, FakeEditorDialogService dialogs)
+    private ServicesSessionFixture(string directory, IViewModelServiceProvider serviceProvider, TestEditorDialogService dialogs)
     {
         Directory = directory;
         ServiceProvider = serviceProvider;
@@ -43,7 +43,7 @@ public sealed class ServicesSessionFixture : IAsyncDisposable
 
     public IViewModelServiceProvider ServiceProvider { get; }
 
-    public FakeEditorDialogService Dialogs { get; }
+    public TestEditorDialogService Dialogs { get; }
 
     public PackageSessionResult Result { get; }
 
@@ -81,7 +81,7 @@ public sealed class ServicesSessionFixture : IAsyncDisposable
     private static async Task<ServicesSessionFixture> OpenSessionAsync(bool withBuilder, (string Location, Asset Asset)[] assets)
     {
         var directory = Path.Combine(Path.GetTempPath(), "Stride.Editor.Tests", Guid.NewGuid().ToString("N"));
-        var dialogs = new FakeEditorDialogService();
+        var dialogs = new TestEditorDialogService();
         var dispatcher = new ExclusiveDispatcherService();
         dispatcher.EnsureAccess();
         var serviceProvider = new ViewModelServiceProvider(
