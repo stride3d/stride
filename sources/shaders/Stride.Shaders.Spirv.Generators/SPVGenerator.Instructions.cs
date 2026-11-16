@@ -39,6 +39,7 @@ public partial class SPVGenerator
                     using CommunityToolkit.HighPerformance.Buffers;
                     using Stride.Shaders.Spirv.Core.Buffers;
                     using System.Numerics;
+                    using System.Diagnostics;
                     using System.Runtime.CompilerServices;
 
                     namespace Stride.Shaders.Spirv.Core;
@@ -70,12 +71,17 @@ public partial class SPVGenerator
             // An instruction in a buffer: its slot is looked up on each access, as the storage of the buffer moves when it grows
             private SpirvBuffer? attachedBuffer;
             private int attachedIndex;
+            // The buffer's StructureVersion when attached: an insert before the instruction, a removal or a sort may give its index to another one
+            private int attachedVersion;
             public Memory<int> InstructionMemory
             {{
                 get
                 {{
                     if (attachedBuffer is not null)
+                    {{
+                        CheckAttached();
                         return attachedBuffer.GetData(attachedIndex).Memory;
+                    }}
                     if (!Unsafe.IsNullRef(ref opData))
                         return opData.Memory;
                     return field;
@@ -101,8 +107,7 @@ public partial class SPVGenerator
             public {instruction.OpName}(OpDataIndex index)
             {{
                 InitializeProperties(index.Data);
-                attachedBuffer = index.Buffer;
-                attachedIndex = index.Index;
+                Attach(index);
             }}
             
             public {instruction.OpName}(ref OpData data)
@@ -164,6 +169,14 @@ public partial class SPVGenerator
             {{
                 attachedBuffer = index.Buffer;
                 attachedIndex = index.Index;
+                attachedVersion = index.Buffer.StructureVersion;
+            }}
+
+            [Conditional(""DEBUG"")]
+            private readonly void CheckAttached()
+            {{
+                if (attachedBuffer!.StructureVersion != attachedVersion)
+                    throw new InvalidOperationException(""This instruction was taken from a SpirvBuffer whose instructions moved since then: take it from the buffer again."");
             }}
 
             public void UpdateInstructionMemory()
@@ -172,6 +185,7 @@ public partial class SPVGenerator
                 instruction[0] |= instruction.Length << 16;
                 if (attachedBuffer is not null)
                 {{
+                    CheckAttached();
                     attachedBuffer.SetWords(attachedIndex, instruction);
                     return;
                 }}
