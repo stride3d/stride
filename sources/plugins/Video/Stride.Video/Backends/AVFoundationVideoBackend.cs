@@ -3,8 +3,10 @@
 
 #if STRIDE_VIDEO_AVFOUNDATION
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using AVFoundation;
 using CoreMedia;
 using CoreVideo;
@@ -18,9 +20,10 @@ namespace Stride.Video.Backends;
 
 /// <summary>
 /// Video backend for iOS and macOS using AVFoundation. AVAssetReader does the demux and dispatches
-/// to VideoToolbox under the hood for hardware decode; we pull <see cref="CMSampleBuffer"/>s on
-/// demand and import the resulting <see cref="CVPixelBuffer"/>'s IOSurface as a Vulkan VkImage
-/// via VK_EXT_metal_objects, then shader-blit to the user's RGBA target. Zero-copy GPU path.
+/// to VideoToolbox under the hood for hardware decode; a worker thread pulls <see cref="CMSampleBuffer"/>s
+/// ahead of playback, and the game thread imports the IOSurface of each <see cref="CVPixelBuffer"/> it
+/// presents as a Vulkan VkImage via VK_EXT_metal_objects, then shader-blits it to the user's RGBA target.
+/// Zero-copy GPU path.
 /// </summary>
 internal sealed class AVFoundationVideoBackend : VideoBackend
 {
@@ -30,12 +33,15 @@ internal sealed class AVFoundationVideoBackend : VideoBackend
     // adds delegate plumbing we don't need to validate the decode pipeline first.
     private string tempFilePath;
     private AVAsset asset;
-    private AVAssetReader reader;
-    private AVAssetReaderTrackOutput videoOutput;
+    private AVAssetTrack videoTrack;
+    // Owns the asset and the temp file once Initialize created it.
+    private FrameReader frameReader;
     // Last delivered frame, held until the next one replaces it: the blit reading its IOSurface
     // runs after Update, and releasing sooner lets the decoder pool overwrite the surface mid-read.
     private CMSampleBuffer presentedSampleBuffer;
-    private AVAssetTrack videoTrack;
+    // Set by a seek, or by Play from Stopped: the next decoded frame is presented as soon as the
+    // worker has it, even when not playing, and the video clock waits for it.
+    private bool presentNextFrame;
 
     private int videoWidth;
     private int videoHeight;
@@ -46,7 +52,7 @@ internal sealed class AVFoundationVideoBackend : VideoBackend
     private MediaSynchronizer audioSynchronizer;
     private StreamedBufferSound audioSound;
     private SoundInstanceStreamedBuffer audioSoundInstance;
-    private readonly System.Collections.Generic.List<AudioEmitterSoundController> audioControllers = new();
+    private readonly List<AudioEmitterSoundController> audioControllers = new();
 
     public AVFoundationVideoBackend(VideoInstance instance) : base(instance) { }
 
@@ -54,7 +60,7 @@ internal sealed class AVFoundationVideoBackend : VideoBackend
 
     public override bool Initialize(string url, long startPosition, long length)
     {
-        if (reader != null)
+        if (frameReader != null)
             throw new InvalidOperationException("AVFoundationVideoBackend already initialized.");
 
         try
@@ -86,9 +92,12 @@ internal sealed class AVFoundationVideoBackend : VideoBackend
             Instance.SetDuration(TimeSpan.FromSeconds(asset.Duration.Seconds));
             Instance.AllocateVideoTexture(videoWidth, videoHeight);
 
-            CreateReader(TimeSpan.Zero);
-
             InitializeAudio(url, startPosition, length);
+
+            frameReader = new FrameReader(asset, videoTrack, tempFilePath, TimeSpan.Zero);
+            asset = null;
+            videoTrack = null;
+            tempFilePath = null;
             return true;
         }
         catch (Exception ex)
@@ -103,18 +112,17 @@ internal sealed class AVFoundationVideoBackend : VideoBackend
     {
         ReleaseAudio();
 
-        DisposeReader();
+        frameReader?.Dispose();
+        frameReader = null;
+        presentNextFrame = false;
         presentedSampleBuffer?.Dispose();
         presentedSampleBuffer = null;
+
+        // Only set when Initialize failed before the frame reader took them.
         asset?.Dispose();
         asset = null;
         videoTrack = null;
-
-        if (tempFilePath != null && File.Exists(tempFilePath))
-        {
-            try { File.Delete(tempFilePath); }
-            catch { /* best-effort cleanup */ }
-        }
+        DeleteTempFile(tempFilePath);
         tempFilePath = null;
     }
 
@@ -125,12 +133,13 @@ internal sealed class AVFoundationVideoBackend : VideoBackend
             Instance.SetCurrentTime(Instance.PlayRange.Start);
             Instance.Seek(Instance.PlayRange.Start);
         }
-        else if (Instance.PlayState == PlayState.Stopped && reader != null)
+        else if ((Instance.PlayState == PlayState.Stopped || presentedSampleBuffer == null) && frameReader != null)
         {
-            // Prime the accumulator so the first frame extracts on the very next Update, matching
-            // the FFmpeg backend's behavior (otherwise the caller waits frameDuration/60Hz_tick
-            // game frames before any frame surfaces).
-            adjustedTicksSinceLastFrame = frameDuration.Ticks;
+            // Present the first frame as soon as it is decoded, matching the FFmpeg backend's
+            // behavior (otherwise the caller waits frameDuration/60Hz_tick game frames before any
+            // frame surfaces). With no frame presented yet, the decoder may still be starting:
+            // the video waits for it, not the game.
+            presentNextFrame = true;
         }
         audioSynchronizer?.Play();
     }
@@ -142,18 +151,15 @@ internal sealed class AVFoundationVideoBackend : VideoBackend
 
     public override void Stop()
     {
-        // FFmpeg backend pattern: seeks back to the play range start. Keeps the reader alive in
-        // case Play() resumes; the next Seek/Play just recreates the reader at the new position.
+        // FFmpeg backend pattern: seeks back to the play range start, so that Play() resumes from there.
         Instance.Seek(Instance.PlayRange.Start);
         audioSynchronizer?.Stop();
     }
 
     public override void Seek(TimeSpan time)
     {
-        // AVAssetReader has no in-place seek — recreate it with a new timeRange. Cheap enough
-        // for the smoke test's seek-per-capture pattern (~5-50 ms per seek).
-        CreateReader(time);
-        adjustedTicksSinceLastFrame = frameDuration.Ticks; // make the first frame extract immediately
+        frameReader?.Seek(time);
+        presentNextFrame = true;
         audioSynchronizer?.Seek(time);
     }
 
@@ -184,21 +190,32 @@ internal sealed class AVFoundationVideoBackend : VideoBackend
     {
         audioSynchronizer?.Update(elapsed);
 
-        if (reader == null)
+        if (frameReader == null)
             return;
 
-        // Mirror the FFmpeg accumulator semantics: speedFactor=0 when not playing freezes auto-advance,
-        // but a Seek() that just primed the accumulator still gets to decode this tick (= delivers
-        // a frame for seek-only captures with no Play()).
+        if (presentNextFrame)
+        {
+            // Until the decoder delivers it, the video clock does not advance.
+            if (frameReader.TryTake(out var firstFrame, out var firstReachedEnd))
+            {
+                presentNextFrame = false;
+                adjustedTicksSinceLastFrame = 0;
+                PresentFrame(firstFrame);
+            }
+            else if (firstReachedEnd)
+            {
+                OnEndOfMedia();
+            }
+            return;
+        }
+
+        // Mirror the FFmpeg accumulator semantics: speedFactor=0 when not playing freezes auto-advance.
         var speedFactor = Instance.SpeedFactor;
         if (Instance.PlayState != PlayState.Playing)
             speedFactor = 0;
 
         var frameDurationTicks = frameDuration.Ticks;
         adjustedTicksSinceLastFrame += (long)(elapsed.Ticks * speedFactor);
-        if (adjustedTicksSinceLastFrame < frameDurationTicks)
-            return;
-
         var frameCount = (int)(adjustedTicksSinceLastFrame / frameDurationTicks);
         if (frameCount == 0)
             return;
@@ -209,37 +226,33 @@ internal sealed class AVFoundationVideoBackend : VideoBackend
         if (frameCount > 4)
         {
             Instance.Seek(Instance.CurrentTime + TimeSpan.FromTicks(frameDurationTicks * frameCount));
-            frameCount = 1;
+            return;
         }
 
+        // Waits when the worker has not decoded the frame yet, which keeps the video in step with
+        // game time; during playback the worker is frames ahead, so this rarely waits.
         CMSampleBuffer sampleBuffer = null;
         for (int i = 0; i < frameCount; i++)
         {
             sampleBuffer?.Dispose();
-            sampleBuffer = videoOutput.CopyNextSampleBuffer();
+            sampleBuffer = frameReader.Take();
             if (sampleBuffer == null)
-                break; // EOF or error
+                break;
         }
 
         if (sampleBuffer == null)
         {
-            // End of media. Reader.Status will be Completed on clean EOF, Failed otherwise.
-            if (reader.Status == AVAssetReaderStatus.Failed)
-                VideoInstance.Logger.Warning($"AVFoundationVideoBackend: reading failed at {Instance.CurrentTime}: {reader.Error?.LocalizedDescription}");
-            if (Instance.IsLooping && Instance.LoopRange.IsValid())
-            {
-                Instance.SetCurrentTime(Instance.LoopRange.Start);
-                Instance.Seek(Instance.LoopRange.Start);
-            }
-            else
-            {
-                Instance.Stop();
-            }
+            OnEndOfMedia();
             return;
         }
 
-        var pts = sampleBuffer.PresentationTimeStamp;
-        Instance.SetCurrentTime(TimeSpan.FromSeconds(pts.Seconds));
+        adjustedTicksSinceLastFrame %= frameDurationTicks;
+        PresentFrame(sampleBuffer);
+    }
+
+    private void PresentFrame(CMSampleBuffer sampleBuffer)
+    {
+        Instance.SetCurrentTime(TimeSpan.FromSeconds(sampleBuffer.PresentationTimeStamp.Seconds));
 
         using (var imageBuffer = sampleBuffer.GetImageBuffer())
         {
@@ -248,57 +261,28 @@ internal sealed class AVFoundationVideoBackend : VideoBackend
                 UploadFrameToTarget(pixelBuffer);
             }
         }
-        adjustedTicksSinceLastFrame %= frameDurationTicks;
 
         presentedSampleBuffer?.Dispose();
         presentedSampleBuffer = sampleBuffer;
     }
 
-    private void CreateReader(TimeSpan startTime)
+    private void OnEndOfMedia()
     {
-        DisposeReader();
+        presentNextFrame = false;
 
-        reader = AVAssetReader.FromAsset(asset, out var error);
-        if (error != null)
-            throw new InvalidOperationException($"AVAssetReader create failed: {error.LocalizedDescription}");
+        var failure = frameReader.TakeFailure();
+        if (failure != null)
+            VideoInstance.Logger.Warning($"AVFoundationVideoBackend: reading failed at {Instance.CurrentTime}: {failure}");
 
-        if (startTime > TimeSpan.Zero)
+        if (Instance.IsLooping && Instance.LoopRange.IsValid())
         {
-            // Timescale 600 covers all common video framerates exactly (24/25/30/50/60 fps all
-            // hit integer tick counts at 600).
-            var startCMTime = new CMTime((long)(startTime.TotalSeconds * 600), 600);
-            reader.TimeRange = new CMTimeRange { Start = startCMTime, Duration = CMTime.PositiveInfinity };
+            Instance.SetCurrentTime(Instance.LoopRange.Start);
+            Instance.Seek(Instance.LoopRange.Start);
         }
-
-        // Ask the reader to deliver decoded BGRA pixel buffers backed by IOSurface. BGRA is the
-        // VideoToolbox native output format for H.264/HEVC SDR content — picking it avoids an
-        // internal NV12→RGB conversion. The IOSurface is imported as a VkImage in UploadFrameToTarget.
-        var settings = new NSMutableDictionary
+        else
         {
-            [CVPixelBuffer.PixelFormatTypeKey] = NSNumber.FromInt32((int)CVPixelFormatType.CV32BGRA),
-            [CVPixelBuffer.IOSurfacePropertiesKey] = new NSDictionary(),
-        };
-        videoOutput = new AVAssetReaderTrackOutput(videoTrack, settings)
-        {
-            // The default of true caches output buffers via the track output's internal pool which
-            // is what we want — keeps each frame available until we Dispose() it.
-            AlwaysCopiesSampleData = false,
-        };
-        reader.AddOutput(videoOutput);
-        if (!reader.StartReading())
-        {
-            var err = reader.Error;
-            throw new InvalidOperationException(
-                $"AVAssetReader.StartReading failed: {(err != null ? err.LocalizedDescription : "unknown")}");
+            Instance.Stop();
         }
-    }
-
-    private void DisposeReader()
-    {
-        videoOutput?.Dispose();
-        videoOutput = null;
-        reader?.Dispose();
-        reader = null;
     }
 
     private void UploadFrameToTarget(CVPixelBuffer pixelBuffer)
@@ -426,6 +410,257 @@ internal sealed class AVFoundationVideoBackend : VideoBackend
             remaining -= read;
         }
         return temp;
+    }
+
+    private static void DeleteTempFile(string path)
+    {
+        if (path == null || !File.Exists(path))
+            return;
+        try { File.Delete(path); }
+        catch { /* best-effort cleanup */ }
+    }
+
+    /// <summary>
+    /// Decodes frames ahead of playback on a thread of its own, so that starting the decoder and
+    /// seeking, which can take seconds, never block the game thread.
+    /// </summary>
+    /// <remarks>
+    /// The worker owns the asset and the temp file, and releases them when it exits after <see cref="Dispose"/>:
+    /// the game thread does not wait for a decoder call in progress, which can take seconds on a cold start.
+    /// </remarks>
+    private sealed class FrameReader : IDisposable
+    {
+        // Each queued frame holds a decoded picture: a few frames ahead are enough to hide the
+        // decode time of a frame.
+        private const int MaxQueuedFrames = 3;
+
+        private readonly object sync = new();
+        private readonly Queue<CMSampleBuffer> frames = new();
+        private readonly AVAsset asset;
+        private readonly AVAssetTrack videoTrack;
+        private readonly string tempFilePath;
+        private TimeSpan? requestedStart;
+        // Where the current reader started, and whether a frame was taken since.
+        private TimeSpan decodingStart;
+        private bool frameTaken;
+        private bool reachedEnd;
+        private string failure;
+        private bool disposed;
+
+        // Only used on the worker thread.
+        private AVAssetReader reader;
+        private AVAssetReaderTrackOutput output;
+
+        public FrameReader(AVAsset asset, AVAssetTrack videoTrack, string tempFilePath, TimeSpan start)
+        {
+            this.asset = asset;
+            this.videoTrack = videoTrack;
+            this.tempFilePath = tempFilePath;
+            requestedStart = start;
+            new Thread(Run) { Name = "AVFoundation video decode", IsBackground = true }.Start();
+        }
+
+        /// <summary>Drops the decoded frames and restarts decoding at <paramref name="time"/>.</summary>
+        public void Seek(TimeSpan time)
+        {
+            lock (sync)
+            {
+                // A seek to where decoding already starts keeps the frames decoded so far, such as
+                // the first seek after Initialize.
+                if (requestedStart == time || (requestedStart == null && decodingStart == time && !frameTaken && !reachedEnd))
+                    return;
+
+                ClearFrames();
+                requestedStart = time;
+                reachedEnd = false;
+                failure = null;
+                Monitor.PulseAll(sync);
+            }
+        }
+
+        /// <summary>Takes the next decoded frame, when the worker has one.</summary>
+        /// <param name="frame">The frame, which the caller disposes.</param>
+        /// <param name="ended">True when no frame is left because decoding reached the end of the media or failed.</param>
+        public bool TryTake(out CMSampleBuffer frame, out bool ended)
+        {
+            lock (sync)
+            {
+                ended = !TakeFrame(out frame) && reachedEnd;
+                return frame != null;
+            }
+        }
+
+        /// <summary>Takes the next decoded frame, waiting for the worker to decode it.</summary>
+        /// <returns>The frame, which the caller disposes, or null when decoding reached the end of the media or failed.</returns>
+        public CMSampleBuffer Take()
+        {
+            lock (sync)
+            {
+                CMSampleBuffer frame;
+                while (!TakeFrame(out frame) && !reachedEnd)
+                    Monitor.Wait(sync);
+                return frame;
+            }
+        }
+
+        private bool TakeFrame(out CMSampleBuffer frame)
+        {
+            if (!frames.TryDequeue(out frame))
+                return false;
+            frameTaken = true;
+            Monitor.PulseAll(sync);
+            return true;
+        }
+
+        /// <summary>Returns why decoding failed, once, or null when it did not.</summary>
+        public string TakeFailure()
+        {
+            lock (sync)
+            {
+                var result = failure;
+                failure = null;
+                return result;
+            }
+        }
+
+        public void Dispose()
+        {
+            lock (sync)
+            {
+                disposed = true;
+                Monitor.PulseAll(sync);
+            }
+        }
+
+        private void Run()
+        {
+            try
+            {
+                while (true)
+                {
+                    using var pool = new NSAutoreleasePool();
+
+                    TimeSpan? start;
+                    lock (sync)
+                    {
+                        while (!disposed && requestedStart == null && (output == null || reachedEnd || frames.Count >= MaxQueuedFrames))
+                            Monitor.Wait(sync);
+                        if (disposed)
+                            return;
+                        start = requestedStart;
+                        requestedStart = null;
+                        if (start != null)
+                        {
+                            decodingStart = start.Value;
+                            frameTaken = false;
+                        }
+                    }
+
+                    CMSampleBuffer frame = null;
+                    string error = null;
+                    try
+                    {
+                        if (start != null)
+                        {
+                            StartReading(start.Value);
+                            continue;
+                        }
+
+                        frame = output.CopyNextSampleBuffer();
+                        if (frame == null && reader.Status == AVAssetReaderStatus.Failed)
+                            error = reader.Error?.LocalizedDescription ?? "unknown error";
+                    }
+                    catch (Exception ex)
+                    {
+                        DisposeReader();
+                        error = ex.Message;
+                    }
+
+                    lock (sync)
+                    {
+                        // A seek or Dispose during the decoder call makes its result stale.
+                        if (disposed || requestedStart != null)
+                        {
+                            frame?.Dispose();
+                            continue;
+                        }
+
+                        if (frame != null)
+                        {
+                            frames.Enqueue(frame);
+                        }
+                        else
+                        {
+                            reachedEnd = true;
+                            failure = error;
+                        }
+                        Monitor.PulseAll(sync);
+                    }
+                }
+            }
+            finally
+            {
+                DisposeReader();
+                lock (sync)
+                    ClearFrames();
+                asset.Dispose();
+                DeleteTempFile(tempFilePath);
+            }
+        }
+
+        private void StartReading(TimeSpan startTime)
+        {
+            DisposeReader();
+
+            reader = AVAssetReader.FromAsset(asset, out var error);
+            if (error != null)
+                throw new InvalidOperationException($"AVAssetReader create failed: {error.LocalizedDescription}");
+
+            // AVAssetReader has no in-place seek: each seek creates a new reader with a time range.
+            if (startTime > TimeSpan.Zero)
+            {
+                // Timescale 600 covers all common video framerates exactly (24/25/30/50/60 fps all
+                // hit integer tick counts at 600).
+                var startCMTime = new CMTime((long)(startTime.TotalSeconds * 600), 600);
+                reader.TimeRange = new CMTimeRange { Start = startCMTime, Duration = CMTime.PositiveInfinity };
+            }
+
+            // Ask the reader to deliver decoded BGRA pixel buffers backed by IOSurface. BGRA is the
+            // VideoToolbox native output format for H.264/HEVC SDR content — picking it avoids an
+            // internal NV12→RGB conversion. The IOSurface is imported as a VkImage in UploadFrameToTarget.
+            var settings = new NSMutableDictionary
+            {
+                [CVPixelBuffer.PixelFormatTypeKey] = NSNumber.FromInt32((int)CVPixelFormatType.CV32BGRA),
+                [CVPixelBuffer.IOSurfacePropertiesKey] = new NSDictionary(),
+            };
+            output = new AVAssetReaderTrackOutput(videoTrack, settings)
+            {
+                // The default of true caches output buffers via the track output's internal pool which
+                // is what we want — keeps each frame available until we Dispose() it.
+                AlwaysCopiesSampleData = false,
+            };
+            reader.AddOutput(output);
+            if (!reader.StartReading())
+            {
+                var err = reader.Error;
+                throw new InvalidOperationException(
+                    $"AVAssetReader.StartReading failed: {(err != null ? err.LocalizedDescription : "unknown")}");
+            }
+        }
+
+        private void DisposeReader()
+        {
+            output?.Dispose();
+            output = null;
+            reader?.Dispose();
+            reader = null;
+        }
+
+        private void ClearFrames()
+        {
+            while (frames.TryDequeue(out var frame))
+                frame.Dispose();
+        }
     }
 }
 #endif

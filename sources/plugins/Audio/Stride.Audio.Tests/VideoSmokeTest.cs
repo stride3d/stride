@@ -22,8 +22,7 @@ namespace Stride.Audio.Tests
     ///
     /// Captures are seek-driven: <see cref="VideoInstance.Seek"/> + a fixed frame budget that
     /// lets even the async backends (MediaCodec ImageReader round-trip) deliver before capture.
-    /// A separate Theory exercises Play-based timing on FFmpeg only — MediaCodec/MediaEngine
-    /// deliver frames asynchronously and can't satisfy mid-playback tick captures deterministically.
+    /// A separate Theory plays the video and captures the frame at 0.3 s.
     /// </summary>
     public class VideoSmokeTest
     {
@@ -81,11 +80,8 @@ namespace Stride.Audio.Tests
         public void RunVideoSmokeTestPlayback(string backend, bool forceSoftware)
         {
             Skip.If(VideoBackendRegistry.Factories.Count == 0, "No video backend registered on this platform.");
-            // Play-based timing only deterministic on synchronous backends — those that decode
-            // inline on the game thread inside Update. MediaCodec/MediaEngine decode async on a
-            // worker thread, so the captured frame at tick N depends on decoder/surface latency.
             Skip.IfNot(backend == "FFmpeg" || backend == "AVFoundation",
-                $"Playback timing test only runs on synchronous backends (current: {backend}).");
+                $"Playback test has no gold for this backend (current: {backend}).");
             VideoSmokeTestPlayback.Run(backend, forceSoftware);
         }
 
@@ -235,10 +231,16 @@ namespace Stride.Audio.Tests
             }
         }
 
-        /// <summary>Play-based capture: only deterministic for FFmpeg because its decode
-        /// happens inline on the game thread inside Update.</summary>
+        /// <summary>Play-based capture of the frame at 0.3 s. The capture waits for the video
+        /// to reach it, not for a given tick: a backend that decodes on a worker thread presents
+        /// its first frame when the decoder is ready, which varies between runs.</summary>
         private sealed class VideoSmokeTestPlayback : VideoTestGameBase
         {
+            // Halfway between the frames at 0.2 s and 0.3 s, so that rounding of the frame time doesn't matter.
+            private static readonly TimeSpan CaptureVideoTime = TimeSpan.FromSeconds(0.25);
+
+            private readonly Stopwatch sincePlay = new();
+
             public VideoSmokeTestPlayback(string backend, bool forceSoftware) : base(backend, forceSoftware) { }
 
             internal static void Run(string backend, bool forceSoftware)
@@ -252,13 +254,29 @@ namespace Stride.Audio.Tests
                 base.RegisterTests();
                 var suffix = GoldSuffix(Backend, ForceSoftware);
 
-                FrameGameSystem.Update(0, () => Instance.Play());
-                FrameGameSystem.Draw(20, () =>
+                FrameGameSystem.Update(0, () =>
                 {
-                    Skip.If(!ForceSoftware && !Instance.UsesHardwareDecode,
-                        $"{Backend} HW decode unavailable on this device (D3D11VA acquisition failed), skipping HW variant.");
-                    SaveImage(VideoTarget, $"Playback.{suffix}");
+                    sincePlay.Start();
+                    Instance.Play();
                 });
+
+                void Attempt()
+                {
+                    var reached = Instance.CurrentTime >= CaptureVideoTime;
+                    if (reached || sincePlay.Elapsed >= CaptureTimeout)
+                    {
+                        Skip.If(!ForceSoftware && !Instance.UsesHardwareDecode,
+                            $"{Backend} HW decode unavailable on this device (D3D11VA acquisition failed), skipping HW variant.");
+                        if (!reached)
+                            TestGameLogger.Warning($"VideoSmokeTestPlayback: the video was at {Instance.CurrentTime.TotalSeconds:F2} s after the {CaptureTimeout.TotalSeconds:F0} s timeout, captured the target as it was");
+                        SaveImage(VideoTarget, $"Playback.{suffix}");
+                    }
+                    else
+                    {
+                        FrameGameSystem.Draw(FrameGameSystem.CurrentFrame + 1, Attempt);
+                    }
+                }
+                FrameGameSystem.Draw(1, Attempt);
             }
         }
     }
