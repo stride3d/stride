@@ -185,6 +185,41 @@ namespace Stride.Audio.Tests
         }
 
         [Fact]
+        public void DeferredInstancePausedDuringPauseStaysPausedAfterResume()
+        {
+            var instance = ProceduralSource.CreateInstance(engine);
+
+            engine.PauseAudio();
+            instance.Play();
+            instance.Pause();
+            Assert.Equal(PlayState.Paused, instance.PlayState);
+            Assert.Equal(0, engine.PausedSoundCount);
+
+            engine.ResumeAudio();
+            Assert.Equal(PlayState.Paused, instance.PlayState);
+
+            instance.Play();
+            Assert.Equal(PlayState.Playing, instance.PlayState);
+
+            instance.Dispose();
+        }
+
+        [Fact]
+        public void InstancePausedByEnginePausedAgainByUserStaysPausedAfterResume()
+        {
+            var instance = CreatePlayingInstance();
+
+            engine.PauseAudio();
+            Assert.Equal(PlayState.Paused, instance.PlayState);
+            instance.Pause();
+
+            engine.ResumeAudio();
+            Assert.Equal(PlayState.Paused, instance.PlayState);
+
+            instance.Dispose();
+        }
+
+        [Fact]
         public void DeferredInstanceDisposedDuringPauseDoesNotBreakResume()
         {
             var instance = ProceduralSource.CreateInstance(engine);

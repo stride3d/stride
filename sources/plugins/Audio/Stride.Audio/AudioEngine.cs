@@ -92,6 +92,7 @@ namespace Stride.Audio
 
         /// <summary>
         /// The list of the sounds that have been paused by the call to <see cref="PauseAudio"/>, or played while the engine was paused, and should be started by <see cref="ResumeAudio"/>.
+        /// A sound that the user pauses while the engine is paused leaves the list.
         /// Guarded by the lock of <see cref="notDisposedSounds"/>.
         /// </summary>
         private readonly List<SoundInstance> pausedSounds = new List<SoundInstance>();
@@ -180,7 +181,7 @@ namespace Stride.Audio
         }
 
         /// <summary>
-        /// Resume all audio engine. That is, resume the sounds paused by <see cref="PauseAudio"/>, start the looping and streamed sounds that were played while the engine was paused, and re-authorize future calls to play.
+        /// Resume all audio engine. That is, resume the sounds paused by <see cref="PauseAudio"/>, start the looping and streamed sounds that were played while the engine was paused, and re-authorize future calls to play. A sound that the user paused, stopped or disposed during the pause is not started.
         /// </summary>
         public void ResumeAudio()
         {
@@ -217,6 +218,18 @@ namespace Stride.Audio
                     pausedSounds.Add(instance);
 
                 return true;
+            }
+        }
+
+        /// <summary>
+        /// Forgets <paramref name="instance"/>, so that <see cref="ResumeAudio"/> does not start it, when the engine is paused.
+        /// </summary>
+        internal void CancelStartOnResume(SoundInstance instance)
+        {
+            lock (notDisposedSounds)
+            {
+                if (State == AudioEngineState.Paused)
+                    pausedSounds.Remove(instance);
             }
         }
 

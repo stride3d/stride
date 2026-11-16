@@ -209,11 +209,17 @@ namespace Stride.Audio
         /// <summary>
         /// Pause the sounds.
         /// </summary>
-        /// <remarks>A call to Pause when the sound is already paused or stopped has no effects.</remarks>
+        /// <remarks>
+        /// A call to Pause when the sound is already paused or stopped has no effects.
+        /// While the audio engine is paused, Pause keeps the instance paused when <see cref="AudioEngine.ResumeAudio"/> is called,
+        /// whether the instance was paused by <see cref="AudioEngine.PauseAudio"/> or its play was remembered during the pause.
+        /// </remarks>
         public void Pause()
         {
             if (engine.State == AudioEngineState.Invalidated)
                 return;
+
+            engine.CancelStartOnResume(this);
 
             if (PlayState != PlayState.Playing)
                 return;
