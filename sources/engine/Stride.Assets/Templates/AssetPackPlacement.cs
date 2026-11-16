@@ -7,10 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using Stride.Core;
 using Stride.Core.Yaml;
 using Stride.Core.Yaml.Serialization;
-using Version = System.Version;
 
 #nullable enable
 
@@ -23,10 +21,6 @@ internal static class AssetPackPlacement
     private const string AssetsFolder = "Assets";
     private const string ResourcesFolder = "Resources";
     private const string Advice = "Run this command inside a package folder, or pass -o to write to a given folder.";
-
-    // The first engine whose packs have every path tagged, which a rewrite needs. Only the numbers count, so that a
-    // checkout's 4.4.2-devN qualifies.
-    private static readonly Version MinVersionToRewritePaths = new(4, 4, 2);
 
     private static readonly StringComparison PathComparison = OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
     private static readonly EnumerationOptions Enumeration = new() { IgnoreInaccessible = true };
@@ -112,18 +106,6 @@ internal static class AssetPackPlacement
             throw new InvalidOperationException($"Template '{templateName}' writes nothing.");
     }
 
-    // Refuses a pack of an engine older than the minimum when its paths would have to change. In the standard layout
-    // nothing is rewritten, so any version works.
-    public static void CheckVersionForRewrite(PackageVersion engine, PackFolders folders)
-    {
-        if (folders.Resources is null || !NeedsRewrite(folders.Assets, folders.Resources))
-            return;
-
-        var version = engine.Version;
-        if (new Version(version.Major, version.Minor, Math.Max(version.Build, 0)) < MinVersionToRewritePaths)
-            throw new InvalidOperationException($"The asset packs of Stride {engine} can only go in the standard layout, with {ResourcesFolder} next to the asset folder, and this package lists '{folders.Assets}' and '{folders.Resources}'. Upgrade the project to Stride {MinVersionToRewritePaths} or later with 'stride upgrade', or pass -o to write to a given folder.");
-    }
-
     // Instantiates a pack into a temporary folder, as the template engine can't rename its folders, then moves it into the
     // folders it goes to. Nothing is written to them when the pack is refused. Says which of the two the pack has.
     public static async Task<(bool HasAssets, bool HasResources)> AddAsync(Func<string, Task> instantiate, string templateName, PackFolders folders)
@@ -158,7 +140,8 @@ internal static class AssetPackPlacement
     }
 
     // Points the assets of a staged pack at the folders it goes to. Only a path of an asset that resolves to a staged
-    // resource changes, in the text of the file, so every other byte stays as it is.
+    // resource changes, in the text of the file, so every other byte stays as it is. A path to a staged resource without
+    // the !file tag, as in the packs saved before 4.4.4, can't be found as a path, so such a pack is refused.
     public static void RewriteResourcePaths(string stagedAssets, string stagedResources, string assets, string resources)
     {
         if (!NeedsRewrite(assets, resources))
@@ -175,6 +158,9 @@ internal static class AssetPackPlacement
                 continue;
 
             var stagedFolder = Path.GetDirectoryName(file)!;
+            if (FindUntaggedPath(text, path => ResolveResource(path, stagedFolder, stagedResourceFiles) is not null) is { } untagged)
+                throw new InvalidOperationException($"'{Path.GetFileName(file)}' in the pack refers to '{untagged}' without the {YamlFilePaths.FileTag} tag, so the pack can only go in the standard layout, with {ResourcesFolder} next to the asset folder, and this package lists '{assets}' and '{resources}'. Upgrade the project with 'stride upgrade' for a pack whose paths are all tagged, or pass -o to write to a given folder.");
+
             var folder = Path.GetDirectoryName(Path.Combine(assets, Path.GetRelativePath(stagedAssets, file)))!;
             string? rewritten;
             try
@@ -218,6 +204,34 @@ internal static class AssetPackPlacement
             return false;
         }
     }
+
+    // The first key or value of a YAML text, other than the file paths YamlFilePaths visits, that is a path; null for a text
+    // that isn't YAML.
+    private static string? FindUntaggedPath(string text, Func<string, bool> isPath)
+    {
+        var stream = new YamlStream();
+        try
+        {
+            // The parser reads a byte order mark as content
+            stream.Load(new StringReader(text.TrimStart((char)0xFEFF)));
+        }
+        catch (YamlException)
+        {
+            return null;
+        }
+
+        return stream.Documents.SelectMany(document => UntaggedScalars(document.RootNode)).FirstOrDefault(isPath);
+    }
+
+    private static IEnumerable<string> UntaggedScalars(YamlNode node) => node switch
+    {
+        YamlScalarNode scalar => scalar.Tag == YamlFilePaths.FileTag ? [] : [scalar.Value],
+        YamlSequenceNode sequence => sequence.Children.SelectMany(UntaggedScalars),
+        YamlMappingNode mapping => mapping.Children
+            .Where(child => child.Key is not YamlScalarNode { Value: YamlFilePaths.SourceHashesKey })
+            .SelectMany(child => UntaggedScalars(child.Key).Concat(UntaggedScalars(child.Value))),
+        _ => [],
+    };
 
     private static bool NeedsRewrite(string assets, string resources)
         => Path.GetRelativePath(assets, resources).Replace('\\', '/') != $"../{ResourcesFolder}";

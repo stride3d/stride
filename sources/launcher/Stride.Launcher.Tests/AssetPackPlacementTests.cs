@@ -371,14 +371,37 @@ public sealed class AssetPackPlacementTests : IDisposable
     [InlineData("Source: !file x../../Resources/Models/a.fbx")]
     [InlineData("Source: !file ../a.sdtex")]
     [InlineData("Text: see Resources/Models/a.fbx")]
-    [InlineData("Source: ../../Resources/Models/a.fbx")]
-    [InlineData("Other: \"../../Resources/Models/a.fbx\"")]
+    [InlineData("Other: ../../Resources/Models/missing.fbx")]
     [InlineData("Other:\n    1234~../../Resources/Models/a.fbx: 5678")]
     [InlineData("Not YAML: [ ../../Resources/Models/a.fbx")]
     public void AnyOtherPathStays(string text)
     {
         Staged("Resources/Models/a.fbx");
         Assert.Equal(text, Rewrite("Assets/Animations/a.sdanim", text, "Content", "Art"));
+    }
+
+    [Theory]
+    // As the packs saved before 4.4.4: the hash is moved, the path it hashes isn't
+    [InlineData("Source: ../../Resources/Models/a.fbx\n~SourceHashes:\n    1234~../../Resources/Models/a.fbx: 5678", "../../Resources/Models/a.fbx")]
+    [InlineData("Other: \"../../Resources/Models/a.fbx\"", "../../Resources/Models/a.fbx")]
+    [InlineData("Others:\n    - !file ../../Resources/Models/a.fbx\n    - ../../Resources/Models/a.fbx", "../../Resources/Models/a.fbx")]
+    [InlineData("? ../../Resources/Models/a.fbx\n: 1", "../../Resources/Models/a.fbx")]
+    public void APathToAResourceWithoutItsTagIsAnError(string text, string path)
+    {
+        Staged("Resources/Models/a.fbx");
+        Staged("Assets/Animations/a.sdanim", text);
+        var error = Assert.Throws<InvalidOperationException>(() => Rewrite("Content", "Art"));
+        Assert.Contains("'a.sdanim'", error.Message);
+        Assert.Contains($"'{path}'", error.Message);
+        Assert.Equal(text, File.ReadAllText(Path.Combine(Dir("pack"), "Assets/Animations/a.sdanim")));
+    }
+
+    [Fact]
+    public void APathWithoutItsTagStaysInTheStandardLayout()
+    {
+        Staged("Resources/a.fbx");
+        const string text = "Source: ../Resources/a.fbx";
+        Assert.Equal(text, Rewrite("Assets/a.sdanim", text, "Assets", "Resources"));
     }
 
     [Theory]
@@ -518,42 +541,16 @@ public sealed class AssetPackPlacementTests : IDisposable
     private AssetPackPlacement.PackFolders Folders(string assets, string resources)
         => new(Path.Combine(root, "G", assets), Path.Combine(root, "G", resources), null);
 
-    [Theory]
-    [InlineData("4.4.0")]
-    [InlineData("4.4.1")]
-    [InlineData("4.4.1-dev3")]
-    [InlineData("4.3.0.2507")]
-    public void AnOlderEngineIsRefusedWhenPathsWouldChange(string version)
-    {
-        var error = Assert.Throws<InvalidOperationException>(() => AssetPackPlacement.CheckVersionForRewrite(new PackageVersion(version), Folders("Content", "Art")));
-        Assert.Contains("stride upgrade", error.Message);
-    }
-
-    [Theory]
-    [InlineData("4.4.2")]
-    [InlineData("4.4.2-dev3")]
-    [InlineData("4.4.2-beta1")]
-    [InlineData("4.5.0-beta01")]
-    public void TheMinimumEngineAndNewerCanChangePaths(string version)
-        => AssetPackPlacement.CheckVersionForRewrite(new PackageVersion(version), Folders("Content", "Art"));
-
-    [Theory]
-    [InlineData("Assets", "Resources")]
-    [InlineData("../Assets", "../Resources")]
-    public void AnOlderEngineWorksInTheStandardLayout(string assets, string resources)
-        => AssetPackPlacement.CheckVersionForRewrite(new PackageVersion("4.4.0"), Folders(assets, resources));
-
-    [Fact]
-    public void APackageWithNoResourceFolderIsNotAVersionProblem()
-        => AssetPackPlacement.CheckVersionForRewrite(new PackageVersion("4.4.0"), new AssetPackPlacement.PackFolders(Path.Combine(root, "G", "Content"), null, "add a folder"));
-
     private static Task Instantiate(string staging, params string[] files)
+        => InstantiateWithAssetText(staging, "Source: !file ../Resources/a.png", files);
+
+    private static Task InstantiateWithAssetText(string staging, string assetText, params string[] files)
     {
         foreach (var file in files)
         {
             var path = Path.Combine(staging, file);
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-            File.WriteAllText(path, file.EndsWith(".sdtex") ? "Source: !file ../Resources/a.png" : "");
+            File.WriteAllText(path, file.EndsWith(".sdtex") ? assetText : "");
         }
         return Task.CompletedTask;
     }
@@ -579,6 +576,21 @@ public sealed class AssetPackPlacementTests : IDisposable
             return Instantiate(staging, "Assets/a.sdtex", "LICENSE.txt");
         }, "my-pack", folders));
         Assert.False(Directory.Exists(folders.Assets));
+        Assert.False(Directory.Exists(usedStaging));
+    }
+
+    [Fact]
+    public async Task APackWithAPathWithoutItsTagWritesNothing()
+    {
+        var folders = Folders("Content", "Art");
+        string? usedStaging = null;
+        await Assert.ThrowsAsync<InvalidOperationException>(() => AssetPackPlacement.AddAsync(staging =>
+        {
+            usedStaging = staging;
+            return InstantiateWithAssetText(staging, "Source: ../Resources/a.png", "Assets/a.sdtex", "Assets/b.sdtex", "Resources/a.png");
+        }, "my-pack", folders));
+        Assert.False(Directory.Exists(folders.Assets));
+        Assert.False(Directory.Exists(folders.Resources));
         Assert.False(Directory.Exists(usedStaging));
     }
 
