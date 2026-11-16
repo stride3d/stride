@@ -25,7 +25,7 @@ public class TypeMergeIndexTests
         for (var id = 2; id <= 6; id++)
             index.Add(Data(new OpName(id, $"removed{id}").InstructionMemory));
         for (var position = 2; position < context.Count; position++)
-            SpirvBuilder.SetOpNop(context[position].Data.Memory.Span);
+            context[position].SetOpNop();
 
         index.Add(Data(new OpName(8, "duplicate").InstructionMemory));
         index.Add(Data(new OpDecorate(8, Decoration.ArrayStride, [16]).InstructionMemory));

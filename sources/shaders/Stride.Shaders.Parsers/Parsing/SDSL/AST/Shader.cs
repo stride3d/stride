@@ -424,7 +424,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
             {
                 // OpDecorate binary layout: [header][target][decoration][params...]
                 // Read raw memory to avoid InitializeProperties overwrite bug when params.count > 1
-                var span = i.Data.Memory.Span;
+                var span = i.Words;
                 if (span.Length >= 3 && span[2] == (int)Decoration.FunctionParameterDefaultValueSDSL)
                 {
                     var target = span[1];

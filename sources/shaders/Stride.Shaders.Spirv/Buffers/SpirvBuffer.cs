@@ -221,9 +221,9 @@ public sealed class SpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
         if (TryGetInstructionById(id, out var instruction))
         {
             var info = InstructionInfo.GetInfo(instruction.Op);
-            if (info.GetResultTypeIndex(out int typeIndex) && typeIndex < instruction.Data.Memory.Length)
+            if (info.GetResultTypeIndex(out int typeIndex) && typeIndex < instruction.Words.Length)
             {
-                typeId = instruction.Data.Memory.Span[typeIndex + 1];
+                typeId = instruction.Words[typeIndex + 1];
                 return true;
             }
         }
@@ -236,7 +236,7 @@ public sealed class SpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
         foreach (var op in this)
         {
             var info = InstructionInfo.GetInfo(op.Op);
-            if (info.GetResultIndex(out int index) && index < op.Data.Memory.Length && op.Data.Memory.Span[index + 1] == id)
+            if (info.GetResultIndex(out int index) && index < op.Words.Length && op.Words[index + 1] == id)
             {
                 instruction = op;
                 return true;
@@ -244,6 +244,15 @@ public sealed class SpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
         }
         instruction = default;
         return false;
+    }
+
+    /// <summary>
+    /// Turns the words of an instruction into <see cref="Specification.Op.OpNop"/> words, keeping its size.
+    /// </summary>
+    public static void SetOpNop(Span<int> words)
+    {
+        words[0] = words.Length << 16;
+        words[1..].Clear();
     }
 
     public void Dispose()

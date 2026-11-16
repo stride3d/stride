@@ -115,7 +115,7 @@ public sealed class TypeMergeIndex
         }
 
         foreach (var position in remove)
-            SpirvBuilder.SetOpNop(context[position].Data.Memory.Span);
+            context[position].SetOpNop();
         decorations.Remove(removeId);
 
         return mismatches;

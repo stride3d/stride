@@ -104,7 +104,7 @@ internal static class StreamAccessPatcher
             {
                 streamsInstructionIds.Add(streamsInstruction.ResultId, (true, StreamsKindSDSL.Streams));
                 remapIds.Add(streamsInstruction.ResultId, streamsVariableId);
-                SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+                i.SetOpNop();
             }
             else if (i.Op is Op.OpVariable && (OpVariable)i is { } variable)
             {

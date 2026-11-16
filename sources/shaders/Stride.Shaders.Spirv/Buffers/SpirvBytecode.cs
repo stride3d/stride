@@ -74,8 +74,8 @@ public record SpirvBytecode(SpirvHeader Header, SpirvBuffer Buffer) : IDisposabl
         {
             foreach (var i in buffer)
             {
-                i.Data.Memory.Span.CopyTo(span[offset..]);
-                offset += i.Data.Memory.Length;
+                i.Words.CopyTo(span[offset..]);
+                offset += i.Words.Length;
             }
         }
         return span;

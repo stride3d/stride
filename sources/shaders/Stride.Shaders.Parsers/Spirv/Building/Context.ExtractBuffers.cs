@@ -37,7 +37,7 @@ public partial class SpirvContext
         {
             // Copy instruction data so we never modify the source buffer in-place.
             // The source may be a frozen cached buffer shared across compilations.
-            var iData = new OpData(source[index].Data.Memory.Span);
+            var iData = new OpData(source[index].Words);
             SpirvBuilder.RemapIds(remapIds, ref iData);
 
             // For dedup: normalize GenericReference → GenericParameter so it matches existing entries.
@@ -156,7 +156,7 @@ public partial class SpirvContext
             var i = source[index];
             if (i.Data.IdResult is int resultId && referenced.Remove(resultId))
             {
-                var i2 = new OpData(i.Data.Memory.Span);
+                var i2 = new OpData(i.Words);
 
                 // Then add IdRef operands to next requested instructions or types
                 foreach (var op in i2)

@@ -182,7 +182,7 @@ public partial class ShaderMixer
             if (i.Op == Op.OpFunctionParameter && indices.Contains(parameterIndex++))
                 continue;
 
-            var copy = new OpData(i.Data.Memory.Span);
+            var copy = new OpData(i.Words);
             SpirvBuilder.RemapIds(remapIds, ref copy);
             if (copy.Op == Op.OpFunction)
             {

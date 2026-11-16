@@ -415,7 +415,7 @@ public class TypeDuplicateHelper
                     var j = buffer[instructionsByOp[index].Index].Data;
                     if (!isOpWithResultId)
                         matchingRefs[index - (firstIndex + 1)] = j.IdResult ?? throw new InvalidOperationException();
-                    SetOpNop(j.Memory.Span);
+                    SpirvBuffer.SetOpNop(j.Memory.Span);
                 }
 
                 // Replace all IdResult at once to the one of first instruction
@@ -462,11 +462,5 @@ public class TypeDuplicateHelper
                 }
             }
         }
-    }
-
-    static void SetOpNop(Span<int> words)
-    {
-        words[0] = words.Length << 16;
-        words[1..].Clear();
     }
 }
