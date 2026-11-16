@@ -22,6 +22,31 @@ public class SpirvBufferTests
         Assert.Equal("a longer name", ((OpName)buffer[0]).Name);
     }
 
+#if DEBUG
+    // Otherwise the write would go to the instruction that took its index
+    [Fact]
+    public void ATypedInstructionRefusesToWriteAfterAnInsertBeforeIt()
+    {
+        using var buffer = Names(1, 2);
+        OpName name = buffer[1];
+        buffer.Insert(0, new OpName(3, "c"));
+
+        // A ref struct can't be captured by Assert.Throws
+        var thrown = false;
+        try
+        {
+            name.Target = 9;
+        }
+        catch (InvalidOperationException)
+        {
+            thrown = true;
+        }
+
+        Assert.True(thrown);
+        Assert.Equal([3, 1, 2], Targets(buffer));
+    }
+#endif
+
     [Fact]
     public void InsertRangeMovesTheInstructionsOfAScratchBuffer()
     {
