@@ -72,6 +72,11 @@ namespace Stride.Audio.Tests
             }
         }
 
+        private static void SkipWithoutAudioDevice(AudioEngine engine)
+        {
+            Skip.If(engine.State == AudioEngineState.Invalidated, "No audio device: the engine cannot create sources.");
+        }
+
         private static async Task<bool> WaitUntil(Func<bool> condition)
         {
             var deadline = DateTime.UtcNow + Timeout;
@@ -84,12 +89,13 @@ namespace Stride.Audio.Tests
             return condition();
         }
 
-        [Fact]
+        [SkippableFact]
         public async Task FaultySourceDoesNotStopOtherSources()
         {
             var engine = AudioEngineFactory.NewAudioEngine(new AudioDevice());
             try
             {
+                SkipWithoutAudioDevice(engine);
                 Assert.Equal(AudioEngineState.Running, engine.State);
 
                 var faulty = new ProbeSoundSource(throwOnFill: true);
@@ -123,12 +129,13 @@ namespace Stride.Audio.Tests
             }
         }
 
-        [Fact]
+        [SkippableFact]
         public async Task PlayOnFaultedSourceDoesNotReportPlaying()
         {
             var engine = AudioEngineFactory.NewAudioEngine(new AudioDevice());
             try
             {
+                SkipWithoutAudioDevice(engine);
                 var faulty = new ProbeSoundSource(throwOnFill: true);
                 var instance = new SoundInstance(engine, engine.DefaultListener, faulty, 44100, mono: true);
                 faulty.Attach(instance);
@@ -149,12 +156,13 @@ namespace Stride.Audio.Tests
             }
         }
 
-        [Fact]
+        [SkippableFact]
         public async Task SourceThatFailsToDisposeDoesNotCrashNorStopOtherSources()
         {
             var engine = AudioEngineFactory.NewAudioEngine(new AudioDevice());
             try
             {
+                SkipWithoutAudioDevice(engine);
                 var failing = new ProbeSoundSource(throwOnFill: false) { ThrowAfterDispose = true };
                 var healthy = new ProbeSoundSource(throwOnFill: false);
                 var failingInstance = new SoundInstance(engine, engine.DefaultListener, failing, 44100, mono: true);
@@ -178,13 +186,14 @@ namespace Stride.Audio.Tests
             }
         }
 
-        [Fact]
+        [SkippableFact]
         public async Task ShutdownDisposesOtherSourcesWhenOneFailsToDispose()
         {
             var engine = AudioEngineFactory.NewAudioEngine(new AudioDevice());
             var release = new ManualResetEventSlim();
             try
             {
+                SkipWithoutAudioDevice(engine);
                 var failing = new ProbeSoundSource(throwOnFill: false) { ThrowAfterDispose = true };
                 var healthy = new ProbeSoundSource(throwOnFill: false);
                 var blocker = new ProbeSoundSource(throwOnFill: false) { Release = release };
