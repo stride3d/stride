@@ -70,16 +70,9 @@
                 MinHeight="26" Margin="4,4,1,8"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                 ToolTip.Tip="{Binding [Documentation]}">
-          <!-- TODO AddEntityComponentUserControl -->
-          <ToggleButton x:Name="ToggleButton">
-            <DockPanel Margin="4">
-              <TextBlock DockPanel.Dock="Left"
-                         Width="16" Height="16"
-                         Text="➕"/>
-              <TextBlock Margin="4,0"
-                         Text="{sd:LocalizeString Add component}" FontStyle="Italic"/>
-            </DockPanel>
-          </ToggleButton>
+          <aev:AddEntityComponentView AvailableComponentTypes="{Binding [EntityComponentAvailableTypes]}"
+                                      AvailableComponentTypeGroups="{Binding [EntityComponentAvailableTypeGroups]}"
+                                      AddNewItemCommand="{Binding [AddNewItem]}"/>
         </Border>
       </Border>
     </DataTemplate>
