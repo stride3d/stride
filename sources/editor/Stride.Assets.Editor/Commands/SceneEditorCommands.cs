@@ -63,15 +63,6 @@ public static class SceneEditorCommands
     /// <summary>Pastes the copied entities in the active scene (the context menu of the tree's empty area).</summary>
     public const string PasteInRootId = "Stride.Scene.PasteInRoot";
 
-    /// <summary>Cuts the selected entities (the scene view's context menu, where the Edit shortcuts don't reach the tree).</summary>
-    public const string CutId = "Stride.Scene.Cut";
-
-    /// <summary>Copies the selected entities (the scene view's context menu).</summary>
-    public const string CopyId = "Stride.Scene.Copy";
-
-    /// <summary>Renames the selected entity (the scene view's context menu).</summary>
-    public const string RenameId = "Stride.Scene.Rename";
-
     /// <summary>
     /// Creates the commands, each time new descriptors (a descriptor is registered once).
     /// </summary>
@@ -90,9 +81,6 @@ public static class SceneEditorCommands
         Wrap(BreakLinkToPrefabId, () => Tr._p("Menu", "Break link to prefab"), null, x => x.BreakLinkToPrefabCommand, null, true, "prefab", "unlink"),
         Wrap(CreatePrefabFromSelectionId, () => Tr._p("Menu", "Create prefab from selection"), null, x => x.CreatePrefabFromSelectionCommand, null, true, "prefab", "new"),
         Wrap(PasteInRootId, () => Tr._p("Menu", "Paste into the active scene"), null, x => x.PasteCommand, true, false, "clipboard", "root"),
-        Wrap(CutId, () => Tr._p("Menu", "Cut selected entities"), null, x => x.CutCommand, null, false, "clipboard"),
-        Wrap(CopyId, () => Tr._p("Menu", "Copy selected entities"), null, x => x.CopyCommand, null, false, "clipboard"),
-        Wrap(RenameId, () => Tr._p("Menu", "Rename selected entity"), null, x => x.RenameCommand, null, false),
     ];
 
     // A command of the editor it was invoked in, run with the parameter its menu item or key gave it; it is in the command

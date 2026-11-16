@@ -27,7 +27,7 @@ public sealed class TestSessionCore
     public async Task SavingPutsTheSessionAtTheTopOfTheRecentFiles()
     {
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
-        var main = (FakeMainViewModel)fixture.Session.Main;
+        var main = (TestMainViewModel)fixture.Session.Main;
         Assert.Empty(main.RecentFiles);
 
         Assert.True(await fixture.Session.SaveSessionAsync());
@@ -40,7 +40,7 @@ public sealed class TestSessionCore
     public async Task TheTextAssetsOpenWithTheShaderEditor()
     {
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
-        var main = (FakeMainViewModel)fixture.Session.Main;
+        var main = (TestMainViewModel)fixture.Session.Main;
         main.TextAssetTypes.Add(nameof(TestEditorAsset));
         var explorer = new FakeFileExplorerService();
         ((ViewModelServiceProvider)fixture.ServiceProvider).RegisterService(explorer);

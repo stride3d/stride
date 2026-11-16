@@ -95,6 +95,25 @@ public sealed class BuildAndRunViewModelTests
         Assert.Empty(fixture.Dialogs.Messages);
     }
 
+    [Fact]
+    public async Task ABuildWhoseViewModelIsDestroyedWhileTheSessionSavesDoesNotStart()
+    {
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type, ("Textures/Wood", "wood"));
+        var (builder, launcher) = RegisterFakes(fixture);
+        var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider) { Session = fixture.Session };
+        Edit(fixture, fixture.Session.AllAssets.Single(), "oak");
+
+        // The session closes while the build saves it
+        var building = buildAndRun.BuildAsync(true);
+        Assert.False(building.IsCompleted);
+        buildAndRun.Destroy();
+
+        Assert.Equal(GameBuildOutcome.NotBuilt, await building);
+        Assert.Empty(builder.Requests);
+        Assert.Empty(launcher.Games);
+        Assert.False(buildAndRun.BuildInProgress);
+    }
+
     [Theory]
     [InlineData(PlatformType.Windows, "AnyCPU", "Any CPU")]
     [InlineData(PlatformType.Linux, "Linux", "Linux")]
@@ -243,8 +262,8 @@ public sealed class BuildAndRunViewModelTests
         var messages = Messages(buildAndRun);
         Assert.Contains("The device refused the game.", messages);
         Assert.DoesNotContain($"Deployment of {ProjectName} successful.", messages);
-        // The build itself succeeded
-        Assert.Equal("Build successful", status.CurrentStatus);
+        // The build itself succeeded, the game did not start
+        Assert.Equal("Build successful, but the game did not start", status.CurrentStatus);
 
         // A deploy step that throws
         deployer.Deploy = true;
@@ -370,6 +389,36 @@ public sealed class BuildAndRunViewModelTests
     }
 
     [Fact]
+    public async Task WhileBuildsAreHeldOnlyTheBuildsOfTheGameCodeRun()
+    {
+        await using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);
+        var (builder, _) = RegisterFakes(fixture);
+        var buildAndRun = new BuildAndRunViewModel(fixture.ServiceProvider) { Session = fixture.Session };
+        var project = Path.Combine(Path.GetTempPath(), "Game", "Game.csproj");
+
+        var hold = buildAndRun.HoldBuilds();
+        Assert.True(buildAndRun.BuildsHeld);
+        Assert.False(buildAndRun.BuildProjectCommand.IsEnabled);
+        Assert.False(buildAndRun.StartProjectCommand.IsEnabled);
+        Assert.Equal(GameBuildOutcome.NotBuilt, await buildAndRun.BuildAsync(true));
+        Assert.Empty(builder.Requests);
+
+        // A reload builds its projects one after the other
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildCodeAsync([project]));
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildCodeAsync([project]));
+        Assert.Equal(2, builder.Requests.Count);
+        Assert.False(buildAndRun.BuildProjectCommand.IsEnabled);
+
+        hold.Dispose();
+        hold.Dispose();
+        Assert.False(buildAndRun.BuildsHeld);
+        Assert.True(buildAndRun.BuildProjectCommand.IsEnabled);
+        Assert.True(buildAndRun.StartProjectCommand.IsEnabled);
+        Assert.Equal(GameBuildOutcome.Succeeded, await buildAndRun.BuildAsync(false));
+        Assert.Equal(3, builder.Requests.Count);
+    }
+
+    [Fact]
     public async Task StartBuildsThenStartsTheGameAndReportsItsExit()
     {
         await using var fixture = await EditorSessionFixture.OpenExecutableAsync(Platform.Type);
@@ -451,7 +500,7 @@ public sealed class BuildAndRunViewModelTests
         Assert.Single(builder.Requests);
         Assert.Empty(launcher.Games);
         Assert.Contains($"{ProjectName} is a {OtherPlatform} game: this editor can only start the games of its own platform ({Platform.Type}).", Messages(buildAndRun));
-        Assert.Equal("Build successful", status.CurrentStatus);
+        Assert.Equal("Build successful, but the game did not start", status.CurrentStatus);
     }
 
     [Fact]

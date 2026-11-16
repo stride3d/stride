@@ -214,7 +214,7 @@ public abstract partial class EditorPluginHost
             record.Add(() => services.UnregisterService(item));
         });
 
-        public void Register<TService>(Func<IServiceProvider, TService> factory, ServiceLifetime lifetime = ServiceLifetime.Singleton)
+        public void Register<TService>(Func<IServiceProvider, TService> factory, ViewModelServiceLifetime lifetime = ViewModelServiceLifetime.Singleton)
             where TService : class
         {
             ArgumentNullException.ThrowIfNull(factory);

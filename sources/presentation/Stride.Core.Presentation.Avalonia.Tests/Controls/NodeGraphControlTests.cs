@@ -2,14 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
+using Avalonia.Data;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Layout;
+using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Stride.Core.Presentation.Avalonia.Controls;
@@ -312,6 +315,227 @@ public sealed class NodeGraphControlTests
         window.Close();
     }
 
+    [AvaloniaFact]
+    public void DroppingDraggedNodesRaisesNodesMovedWithTheirPositions()
+    {
+        var graph = new TestGraph();
+        var a = graph.AddNode("A", 0, 0);
+        var b = graph.AddNode("B", 0, 0);
+        var selectedNodes = new ObservableCollection<object> { a, b };
+        var (window, control) = Show(graph, x => x.SelectedNodes = selectedNodes);
+        var events = new List<NodeGraphNodesMovedEventArgs>();
+        control.NodesMoved += (_, e) => events.Add(e);
+        var positionA = control.GetNodePosition(a)!.Value;
+        var positionB = control.GetNodePosition(b)!.Value;
+
+        var title = NodeTitle(window, control, a);
+        window.MouseDown(title, MouseButton.Left);
+        window.MouseMove(title + new Point(20, 10));
+        Dispatcher.UIThread.RunJobs();
+        // Nothing is raised, and the position doesn't change, while the nodes are dragged
+        Assert.Empty(events);
+        Assert.Equal(positionA, control.ContainerFromNode(a)!.Position);
+        Assert.Equal(positionA + new Point(20, 10), control.GetNodePosition(a));
+        window.MouseMove(title + new Point(40, 20));
+        window.MouseUp(title + new Point(40, 20), MouseButton.Left);
+        Dispatcher.UIThread.RunJobs();
+
+        // One event for the whole drop, with each node's old and new position
+        var moved = Assert.Single(events);
+        Assert.Same(NodeGraphControl.NodesMovedEvent, moved.RoutedEvent);
+        Assert.Equal([new NodeGraphNodeMove(a, positionA, positionA + new Point(40, 20)), new NodeGraphNodeMove(b, positionB, positionB + new Point(40, 20))], moved.Moves);
+        Assert.Equal(positionA + new Point(40, 20), control.ContainerFromNode(a)!.Position);
+        Assert.Equal(positionB + new Point(40, 20), control.ContainerFromNode(b)!.Position);
+
+        // A click, a drag cancelled with Escape and a node placed by code raise nothing
+        title = NodeTitle(window, control, a);
+        Click(window, title);
+        window.MouseDown(title, MouseButton.Left);
+        window.MouseMove(title + new Point(50, 50));
+        window.KeyPressQwerty(PhysicalKey.Escape, RawInputModifiers.None);
+        window.MouseUp(title + new Point(50, 50), MouseButton.Left);
+        control.SetNodePosition(b, new Point(500, 500));
+        Dispatcher.UIThread.RunJobs();
+        Assert.Single(events);
+        Assert.Equal(positionA + new Point(40, 20), control.GetNodePosition(a));
+        Assert.Equal(new Point(500, 500), control.ContainerFromNode(b)!.Position);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void ABoundPositionPlacesTheNodeAndTheDropUpdatesATwoWayBinding()
+    {
+        var graph = new TestGraph();
+        var a = graph.AddNode("A", 0, 0);
+        var b = graph.AddNode("B", 0, 0);
+        a.Position = new Point(300, 200);
+        var (window, control) = Show(graph, x =>
+        {
+            x.AutoLayout = false;
+            x.Styles.Add(new Style(s => s.OfType<NodeGraphNode>())
+            {
+                Setters = { new Setter(NodeGraphNode.PositionProperty, new Binding(nameof(TestNode.Position)) { Mode = BindingMode.TwoWay }) },
+            });
+        });
+
+        // A node with a position goes there; one without is placed by the graph, which gives the binding that position
+        Assert.Equal(new Point(300, 200), control.GetNodePosition(a));
+        Assert.Equal(new Point(NodeGraphControl.LayoutMargin, NodeGraphControl.LayoutMargin), control.GetNodePosition(b));
+        Assert.Equal(control.GetNodePosition(b), b.Position);
+
+        // A change of the view model moves the node
+        a.Position = new Point(320, 260);
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(new Point(320, 260), control.GetNodePosition(a));
+
+        // The drop writes the new position back, the drag doesn't
+        var title = NodeTitle(window, control, a);
+        window.MouseDown(title, MouseButton.Left);
+        window.MouseMove(title + new Point(15, 5));
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(new Point(320, 260), a.Position);
+        window.MouseMove(title + new Point(30, 10));
+        window.MouseUp(title + new Point(30, 10), MouseButton.Left);
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(new Point(350, 270), a.Position);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void ResettingTheNodesKeepsThePositionsOfTheNodesStillThere()
+    {
+        var graph = new TestGraph();
+        var a = graph.AddNode("A", 0, 0);
+        var b = graph.AddNode("B", 0, 0);
+        var (window, control) = Show(graph, x => x.AutoLayout = false);
+        control.SetNodePosition(a, new Point(400, 100));
+        control.SetNodePosition(b, new Point(100, 400));
+        var containerA = control.ContainerFromNode(a);
+
+        // Another collection with A and a new node C
+        var c = new TestNode("C");
+        control.Nodes = new ObservableCollection<TestNode> { c, a };
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.Same(containerA, control.ContainerFromNode(a));
+        Assert.Equal(new Point(400, 100), control.GetNodePosition(a));
+        Assert.Null(control.ContainerFromNode(b));
+        Assert.NotNull(control.GetNodePosition(c));
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void DoubleClickingANodeRaisesNodeDoubleClickedAndRunsTheCommand()
+    {
+        var graph = new TestGraph();
+        var a = graph.AddNode("A", 0, 1);
+        var b = graph.AddNode("B", 1, 0);
+        var executed = new List<object?>();
+        var (window, control) = Show(graph, x => x.NodeDoubleClickCommand = new TestCommand(_ => true, executed.Add));
+        var events = new List<NodeGraphNodeEventArgs>();
+        control.NodeDoubleClicked += (_, e) => events.Add(e);
+
+        var title = NodeTitle(window, control, b);
+        Click(window, title);
+        Assert.Empty(events);
+        Click(window, title);
+        var doubleClicked = Assert.Single(events);
+        Assert.Same(b, doubleClicked.Node);
+        Assert.Equal([b], executed);
+        // The node didn't move
+        Assert.Equal(control.ContainerFromNode(b)!.Position, control.GetNodePosition(b));
+
+        // A handler that handles the double click stops the command
+        control.NodeDoubleClicked += (_, e) => e.Handled = true;
+        title = NodeTitle(window, control, a);
+        Click(window, title);
+        Click(window, title);
+        Assert.Equal(2, events.Count);
+        Assert.Same(a, events[1].Node);
+        Assert.Equal([b], executed);
+
+        // A double click on the background is no node's
+        Click(window, EmptyPoint(window, control));
+        Click(window, EmptyPoint(window, control));
+        Assert.Equal(2, events.Count);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void ARightClickOnANodeSelectsItAndOpensItsMenu()
+    {
+        var graph = new TestGraph();
+        var a = graph.AddNode("A", 0, 1);
+        var b = graph.AddNode("B", 1, 0);
+        var c = graph.AddNode("C", 1, 0);
+        var selectedNodes = new ObservableCollection<object> { a };
+        var graphMenu = new ContextMenu { Items = { new MenuItem { Header = "Graph" } } };
+        var nodeMenu = new ContextMenu { Items = { new MenuItem { Header = "Node" } } };
+        var (window, control) = Show(graph, x =>
+        {
+            x.SelectedNodes = selectedNodes;
+            x.ContextMenu = graphMenu;
+            // Every node has the same menu, whose data context is the node it opens on
+            x.Styles.Add(new Style(s => s.OfType<NodeGraphNode>()) { Setters = { new Setter(Control.ContextMenuProperty, nodeMenu) } });
+        });
+
+        RightClick(window, NodeTitle(window, control, b));
+        Assert.Equal([b], selectedNodes);
+        Assert.True(nodeMenu.IsOpen);
+        Assert.False(graphMenu.IsOpen);
+        Assert.Same(b, nodeMenu.DataContext);
+        nodeMenu.Close();
+
+        // A node of the selection keeps the selection, which the menu acts on
+        selectedNodes.Add(c);
+        RightClick(window, NodeTitle(window, control, c));
+        Assert.Equal([b, c], selectedNodes);
+        Assert.True(nodeMenu.IsOpen);
+        nodeMenu.Close();
+
+        // The background opens the graph's menu and keeps the selection
+        RightClick(window, EmptyPoint(window, control));
+        Assert.True(graphMenu.IsOpen);
+        Assert.False(nodeMenu.IsOpen);
+        Assert.Equal([b, c], selectedNodes);
+        graphMenu.Close();
+
+        // A right drag that starts on a node pans, without a menu or a change of the selection
+        var offset = control.Offset;
+        var title = NodeTitle(window, control, a);
+        window.MouseDown(title, MouseButton.Right);
+        window.MouseMove(title + new Point(30, 0));
+        window.MouseUp(title + new Point(30, 0), MouseButton.Right);
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(offset + new Vector(30, 0), control.Offset);
+        Assert.False(nodeMenu.IsOpen);
+        Assert.False(graphMenu.IsOpen);
+        Assert.Equal([b, c], selectedNodes);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void ARightClickOnANodeWithoutAMenuOpensTheGraphsMenu()
+    {
+        var graph = new TestGraph();
+        var a = graph.AddNode("A", 0, 1);
+        var b = graph.AddNode("B", 1, 0);
+        var selectedNodes = new ObservableCollection<object> { a };
+        var graphMenu = new ContextMenu { Items = { new MenuItem { Header = "Graph" } } };
+        var (window, control) = Show(graph, x =>
+        {
+            x.SelectedNodes = selectedNodes;
+            x.ContextMenu = graphMenu;
+        });
+
+        // The node is selected first, so that the graph's commands act on it
+        RightClick(window, NodeTitle(window, control, b));
+        Assert.Equal([b], selectedNodes);
+        Assert.True(graphMenu.IsOpen);
+        graphMenu.Close();
+        window.Close();
+    }
+
     private static (Window Window, NodeGraphControl Control) Show(TestGraph graph, Action<NodeGraphControl>? setup = null)
     {
         var control = new NodeGraphControl
@@ -373,6 +597,13 @@ public sealed class NodeGraphControlTests
         Dispatcher.UIThread.RunJobs();
     }
 
+    private static void RightClick(Window window, Point point)
+    {
+        window.MouseDown(point, MouseButton.Right);
+        window.MouseUp(point, MouseButton.Right);
+        Dispatcher.UIThread.RunJobs();
+    }
+
     private static void Drag(Window window, Point from, Point to, RawInputModifiers modifiers = RawInputModifiers.None)
     {
         window.MouseDown(from, MouseButton.Left, modifiers);
@@ -382,9 +613,25 @@ public sealed class NodeGraphControlTests
         Dispatcher.UIThread.RunJobs();
     }
 
-    private sealed class TestNode(string name)
+    private sealed class TestNode(string name) : INotifyPropertyChanged
     {
+        private Point? position;
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
         public string Name { get; } = name;
+
+        public Point? Position
+        {
+            get => position;
+            set
+            {
+                if (position == value)
+                    return;
+                position = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Position)));
+            }
+        }
 
         public List<TestSlot> Inputs { get; } = [];
 

@@ -11,6 +11,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Using Include="Xunit" />
+    <Using Include="Stride.Core.Assets.Editor.Testing" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\tests\Stride.XunitRunner\Stride.XunitRunner.csproj" />

@@ -3,7 +3,7 @@
 
 using System.Runtime.CompilerServices;
 
-namespace Stride.Core.Assets.Editor.Tests.Helpers;
+namespace Stride.Core.Assets.Editor.Testing;
 
 /// <summary>
 /// A task that, awaited, continues its caller in the exclusive dispatcher when it ended there, as the open of a session fixture does:

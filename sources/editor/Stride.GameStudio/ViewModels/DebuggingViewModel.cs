@@ -273,8 +273,8 @@ namespace Stride.GameStudio.ViewModels
             assemblyChangesPending = modifiedAssemblies.Count > 0 || modifiedLoadabilities.Count > 0;
             var hasCurrentProject = editor.Session.CurrentProject != null;
 
-            LivePlayProjectCommand.IsEnabled = hasCurrentProject && !BuildInProgress;
-            ReloadAssembliesCommand.IsEnabled = assemblyChangesPending && !BuildInProgress;
+            LivePlayProjectCommand.IsEnabled = hasCurrentProject && !BuildInProgress && !Build.BuildsHeld;
+            ReloadAssembliesCommand.IsEnabled = assemblyChangesPending && !BuildInProgress && !Build.BuildsHeld;
         }
 
         private struct ModifiedAssembly
@@ -388,6 +388,15 @@ namespace Stride.GameStudio.ViewModels
         }
 
         private async Task ReloadAssemblies()
+        {
+            // The projects build one after the other: Build project and Start project wait for the end of the reload
+            using (Build.HoldBuilds())
+            {
+                await ReloadAssembliesCore();
+            }
+        }
+
+        private async Task ReloadAssembliesCore()
         {
             trackAssemblyChanges = false;
 
@@ -507,7 +516,10 @@ namespace Stride.GameStudio.ViewModels
                     var result = await BuildProject(loadedAssembly.ProjectReference.Location);
                     if (!result.IsSuccessful)
                     {
-                        ReloadLog.Error($"[{loadedAssembly.ProjectReference.Location.GetFileNameWithoutExtension()}] failed to build: no assembly was reloaded.");
+                        var projectName = loadedAssembly.ProjectReference.Location.GetFileNameWithoutExtension();
+                        ReloadLog.Error(result.WasNotBuilt
+                            ? $"[{projectName}] was not built, another build is in progress: no assembly was reloaded."
+                            : $"[{projectName}] failed to build: no assembly was reloaded.");
                         foreach (var pending in modifiedAssembliesCopy)
                             modifiedAssemblies[pending.Key] = pending.Value;
                         askOnNextChange = true;
@@ -622,12 +634,15 @@ namespace Stride.GameStudio.ViewModels
 
         private struct BuildProjectResult
         {
-            public BuildProjectResult(bool isSuccessful, string assemblyPath)
+            public BuildProjectResult(GameBuildOutcome outcome, string assemblyPath)
             {
-                IsSuccessful = isSuccessful;
+                IsSuccessful = outcome == GameBuildOutcome.Succeeded;
+                WasNotBuilt = outcome == GameBuildOutcome.NotBuilt;
                 AssemblyPath = assemblyPath;
             }
             public bool IsSuccessful { get; }
+
+            public bool WasNotBuilt { get; }
 
             public string AssemblyPath { get; }
         }
@@ -639,7 +654,7 @@ namespace Stride.GameStudio.ViewModels
         {
             var projectFile = projectPath.ToOSPath();
             var result = await Build.BuildCodeAssembliesAsync([projectFile]);
-            return new BuildProjectResult(result.Outcome == GameBuildOutcome.Succeeded, result.AssemblyPaths.GetValueOrDefault(projectFile));
+            return new BuildProjectResult(result.Outcome, result.AssemblyPaths.GetValueOrDefault(projectFile));
         }
 
         private void SessionPropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -652,7 +667,7 @@ namespace Stride.GameStudio.ViewModels
 
         private void BuildPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(BuildAndRunViewModel.BuildInProgress))
+            if (e.PropertyName is nameof(BuildAndRunViewModel.BuildInProgress) or nameof(BuildAndRunViewModel.BuildsHeld))
             {
                 UpdateCommands();
             }

@@ -11,12 +11,16 @@
   </PropertyGroup>
   <ItemGroup>
     <Using Include="Xunit" />
+    <Using Include="Stride.Core.Assets.Editor.Testing" />
+    <Using Include="Stride.Assets.Editor.Testing" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\tests\Stride.XunitRunner\Stride.XunitRunner.csproj" />
     <!-- The session fakes (dialogs, clipboard, main view model, thumbnails) of the Core.Assets.Editor tests are reused -->
     <ProjectReference Include="..\Stride.Core.Assets.Editor.Tests\Stride.Core.Assets.Editor.Tests.csproj" />
     <ProjectReference Include="..\Stride.Assets.Editor\Stride.Assets.Editor.csproj" />
+    <!-- The plugin host of the tests, from the test kit of editor plugins -->
+    <ProjectReference Include="..\Stride.Assets.Editor.Testing\Stride.Assets.Editor.Testing.csproj" />
     <!-- The curve editor tests edit the curves of a particle system -->
     <ProjectReference Include="..\..\plugins\Particles\Stride.Particles\Stride.Particles.csproj" />
   </ItemGroup>

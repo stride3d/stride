@@ -9,7 +9,7 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Stride.GameStudio.Avalonia.Views.SettingsWindow"
         x:DataType="caevm:SettingsViewModel"
-        Title="SettingsWindow"
+        Title="{sd:LocalizeString Settings, Context=Title}"
         Width="800" Height="600" WindowStartupLocation="CenterOwner">
   <Window.Resources>
     <ResourceDictionary>

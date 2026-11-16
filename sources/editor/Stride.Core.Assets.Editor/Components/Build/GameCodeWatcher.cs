@@ -15,10 +15,11 @@ namespace Stride.Core.Assets.Editor.Components.Build;
 /// </summary>
 /// <remarks>
 /// <para>
-/// A change is a <c>.cs</c> file created, changed, deleted or renamed in the folder of such a project, or a new content of its project
-/// file. The build output of a project (its <c>bin</c> and <c>obj</c> folders) and its hidden folders do not count, so that the
-/// builds of the editor do not report anything; neither do the projects the editor does not load (the executables of the game), even
-/// in a folder of a loaded project.
+/// A change is a source file (<see cref="SourceExtensions"/>: code, views and resources that a build compiles into the assembly)
+/// created, changed, deleted or renamed in the folder of such a project, or a new content of its project file. The build output
+/// of a project (its <c>bin</c> and <c>obj</c> folders) and its hidden folders do not count, so that the builds of the editor do
+/// not report anything; neither do the projects the editor does not load (the executables of the game), even in a folder of a
+/// loaded project.
 /// </para>
 /// <para>
 /// An IDE saves several files at once: the changes are grouped until none came for <see cref="BurstDelay"/>, then reported together
@@ -35,6 +36,13 @@ public sealed class GameCodeWatcher : IDisposable
     /// The default time without a change that ends a burst, as in the WPF editor.
     /// </summary>
     public static readonly TimeSpan DefaultBurstDelay = TimeSpan.FromMilliseconds(500);
+
+    /// <summary>
+    /// The extensions of the files that count: the C# code, the views of an Avalonia or a WPF plugin (<c>.axaml</c>, <c>.xaml</c>),
+    /// and the resource files (<c>.resx</c>). Other files that a project compiles (an image of its views, for example) are left out:
+    /// a project's folder also holds files the build doesn't read, such as the assets of a game.
+    /// </summary>
+    public static IReadOnlyList<string> SourceExtensions { get; } = [".cs", ".axaml", ".xaml", ".resx"];
 
     private static readonly Logger Log = GlobalLogger.GetLogger(nameof(GameCodeWatcher));
     private static readonly StringComparison PathComparison = OperatingSystem.IsLinux() ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
@@ -289,7 +297,7 @@ public sealed class GameCodeWatcher : IDisposable
         changes.Add(new GameCodeChange(project.ProjectPath, filePath));
     }
 
-    private static bool IsCodeFile(string path) => path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase);
+    private static bool IsCodeFile(string path) => SourceExtensions.Any(x => path.EndsWith(x, StringComparison.OrdinalIgnoreCase));
 
     /// <summary>
     /// Whether a file of a project is in its build output (<c>bin</c>, <c>obj</c>) or in a hidden folder, as the default items of an

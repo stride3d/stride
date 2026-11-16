@@ -3,7 +3,7 @@
 
 using Stride.Core.Assets.Editor.ViewModels;
 
-namespace Stride.Core.Assets.Editor.Tests.Helpers;
+namespace Stride.Core.Assets.Editor.Testing;
 
 /// <summary>
 /// The end of the session of a session fixture.

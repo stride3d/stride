@@ -14,6 +14,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Using Include="Xunit" />
+    <Using Include="Stride.Core.Assets.Editor.Testing" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Avalonia" />
@@ -24,6 +25,8 @@
   <ItemGroup>
     <!-- The shell itself: the tests run its App headless, with its services and plugins -->
     <ProjectReference Include="..\Stride.GameStudio.Avalonia\Stride.GameStudio.Avalonia.csproj" />
+    <!-- The load of the packages that the tests write, without NuGet and MSBuild -->
+    <ProjectReference Include="..\Stride.Core.Assets.Editor.Testing\Stride.Core.Assets.Editor.Testing.csproj" />
     <!-- A plugin package declaring type and enum images (the particle state control) -->
     <ProjectReference Include="..\..\plugins\Particles\Stride.Particles.Editor\Stride.Particles.Editor.csproj" />
     <!-- The UI editor and its Avalonia views (the UI page editor tests) -->
@@ -52,10 +55,6 @@
     <!-- A NuGet setup of its own (feed, global packages folder, nuget.config), for the extensions of the Plugins panel -->
     <Compile Include="..\..\assets\Stride.Core.Assets.Tests\Helpers\LocalPackageFeed.cs">
       <Link>Helpers\LocalPackageFeed.cs</Link>
-    </Compile>
-    <!-- The load of the packages that the tests write, without NuGet and MSBuild -->
-    <Compile Include="..\Stride.Core.Assets.Editor.Tests\Helpers\TestPackageLoad.cs">
-      <Link>Helpers\TestPackageLoad.cs</Link>
     </Compile>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>

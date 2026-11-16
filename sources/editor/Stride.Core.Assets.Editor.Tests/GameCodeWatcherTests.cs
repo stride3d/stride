@@ -73,12 +73,16 @@ public sealed class GameCodeWatcherTests : IDisposable
         Change(watcher, FileEventChangeType.Created, Path.Combine(gameDirectory, "Scripts", "Enemy.cs"));
         Change(watcher, FileEventChangeType.Deleted, Path.Combine(gameDirectory, "Old.CS"));
         watcher.OnFileChanged(new FileRenameEvent("New.cs", Path.Combine(gameDirectory, "New.cs"), Path.Combine(gameDirectory, "Before.txt")));
+        // The views and the resources of a plugin
+        Change(watcher, FileEventChangeType.Changed, Path.Combine(gameDirectory, "Views", "StoryEditorView.axaml"));
+        Change(watcher, FileEventChangeType.Changed, Path.Combine(gameDirectory, "Views", "DialogueView.xaml"));
+        Change(watcher, FileEventChangeType.Changed, Path.Combine(gameDirectory, "Properties", "Resources.resx"));
         Change(watcher, FileEventChangeType.Changed, game);
 
         var burst = await bursts.Reader.ReadAsync().AsTask().WaitAsync(Timeout);
         Assert.All(burst, x => Assert.Equal(game, x.ProjectPath));
         Assert.Equal(
-            new[] { "Player.cs", Path.Combine("Scripts", "Enemy.cs"), "Old.CS", "New.cs", "MyGame.csproj" },
+            new[] { "Player.cs", Path.Combine("Scripts", "Enemy.cs"), "Old.CS", "New.cs", Path.Combine("Views", "StoryEditorView.axaml"), Path.Combine("Views", "DialogueView.xaml"), Path.Combine("Properties", "Resources.resx"), "MyGame.csproj" },
             burst.Select(x => Path.GetRelativePath(gameDirectory, x.FilePath)));
     }
 
@@ -93,6 +97,8 @@ public sealed class GameCodeWatcherTests : IDisposable
         Change(watcher, FileEventChangeType.Changed, Path.Combine(gameDirectory, "Bin", "Generated.cs"));
         Change(watcher, FileEventChangeType.Changed, Path.Combine(gameDirectory, ".vs", "Backup.cs"));
         Change(watcher, FileEventChangeType.Changed, Path.Combine(gameDirectory, "Assets", "MainScene.sdscene"));
+        Change(watcher, FileEventChangeType.Changed, Path.Combine(gameDirectory, "Resources", "Logo.png"));
+        Change(watcher, FileEventChangeType.Changed, Path.Combine(gameDirectory, "obj", "Debug", "net10.0", "Avalonia", "StoryEditorView.axaml"));
         Change(watcher, FileEventChangeType.Changed, Path.Combine(gameDirectory, "Tools", "Program.cs"));
         Change(watcher, FileEventChangeType.Changed, nestedHead);
         Change(watcher, FileEventChangeType.Changed, Path.Combine(Path.GetDirectoryName(head)!, "MyGameApp.cs"));

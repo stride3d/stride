@@ -10,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Using Include="Xunit" />
+    <Using Include="Stride.Core.Assets.Editor.Testing" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Xunit.SkippableFact" />
@@ -17,6 +18,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\tests\Stride.XunitRunner\Stride.XunitRunner.csproj" />
     <ProjectReference Include="..\Stride.Core.Assets.Editor\Stride.Core.Assets.Editor.csproj" />
+    <!-- The dispatcher, the session teardown and the stand-ins that the tests of editor plugins use too -->
+    <ProjectReference Include="..\Stride.Core.Assets.Editor.Testing\Stride.Core.Assets.Editor.Testing.csproj" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\TestPluginImage.txt" />

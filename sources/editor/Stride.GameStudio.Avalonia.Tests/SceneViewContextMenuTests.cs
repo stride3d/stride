@@ -11,6 +11,7 @@ using Stride.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Editor.Avalonia.Commands;
 using Stride.Core.Assets.Editor.Commands;
 using Stride.Core.Mathematics;
+using Stride.GameStudio.Avalonia.Commands;
 using Stride.GameStudio.Avalonia.Tests.Helpers;
 using Stride.Input;
 
@@ -159,6 +160,8 @@ public sealed class SceneViewContextMenuTests
         {
             // No plugin command at the place, no tool entry: the entries of the editor, the creation at the cursor and
             // the actions on the selection
+            scene.Editor.SelectedContent.Clear();
+            scene.Editor.SelectedContent.Add(scene.Entity("Box"));
             tools.RaiseContextMenu(new EditorViewContextMenuRequest { Click = Click(), Tool = tools.Tools[0] });
             await WindowTestHelper.PumpAsync();
 
@@ -173,6 +176,15 @@ public sealed class SceneViewContextMenuTests
             var createEntity = Assert.IsType<CommandReference>(menu.Items.OfType<MenuItem>().Single(x => Equals(x.Header, "Empty entity")).Command);
             Assert.Equal(SceneEditorCommands.NewEntityAtCursorId, createEntity.Id);
             Assert.True(createEntity.CanExecute(null));
+            // Cut, Copy, Delete and Rename are the shared Edit commands, which act on the selected entities through the
+            // Edit bindings of the view
+            var edits = menu.Items.OfType<MenuItem>().Select(x => x.Command).OfType<CommandReference>().Select(x => x.Id).Where(x => x.StartsWith("Stride.Edit.", StringComparison.Ordinal));
+            Assert.Equal([GameStudioCommands.CutId, GameStudioCommands.CopyId, GameStudioCommands.DeleteId, GameStudioCommands.RenameId], edits);
+            var rename = menu.Items.OfType<MenuItem>().Single(x => x.Command is CommandReference { Id: GameStudioCommands.RenameId });
+            Assert.True(scene.Editor.RenameCommand.CanExecute(null));
+            Assert.True(rename.IsEffectivelyEnabled);
+            var copy = menu.Items.OfType<MenuItem>().Single(x => x.Command is CommandReference { Id: GameStudioCommands.CopyId });
+            Assert.Equal(scene.Editor.CopyCommand.CanExecute(null), copy.IsEffectivelyEnabled);
             Assert.DoesNotContain(menu.Items.OfType<Control>(), CommandSlot.IsSlotItem);
             menu.Close();
         }

@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Stride.Core.Presentation.ViewModels;
@@ -19,6 +20,7 @@ public static class ServiceProviderExtensions
     /// <param name="arguments">The arguments that are not services, such as the asset of an editor.</param>
     /// <returns>The new instance.</returns>
     /// <exception cref="InvalidOperationException">No constructor can be called with these arguments and services.</exception>
+    [Experimental("STREXP006")]
     public static T CreateInstance<T>(this IServiceProvider provider, params object[] arguments)
     {
         ArgumentNullException.ThrowIfNull(provider);
@@ -34,6 +36,7 @@ public static class ServiceProviderExtensions
     /// <param name="arguments">The arguments that are not services, such as the asset of an editor.</param>
     /// <returns>The new instance.</returns>
     /// <exception cref="InvalidOperationException">No constructor can be called with these arguments and services.</exception>
+    [Experimental("STREXP006")]
     public static object CreateInstance(this IServiceProvider provider, Type type, params object[] arguments)
     {
         ArgumentNullException.ThrowIfNull(provider);

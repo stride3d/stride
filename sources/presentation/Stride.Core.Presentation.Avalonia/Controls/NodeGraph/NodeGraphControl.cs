@@ -4,11 +4,13 @@
 using System.Collections;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Diagnostics.CodeAnalysis;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
 using Avalonia.VisualTree;
@@ -31,13 +33,20 @@ namespace Stride.Core.Presentation.Avalonia.Controls;
 /// selected nodes; a click on a node of a selection selects only that node. A press on a link selects it the same way.
 /// A press elsewhere draws a selection rectangle (none: replaces the selection, Shift: adds to it, Ctrl: toggles), and a click
 /// there clears the selection.</item>
-/// <item>Middle button, or right button moved: pans the view. A right click without a move opens the context menu.</item>
+/// <item>Middle button, or right button moved: pans the view. A right click without a move opens the context menu: on a node,
+/// the menu of the node (the <see cref="Control.ContextMenu"/> or <see cref="Control.ContextFlyout"/> of an element of its
+/// template or of its <see cref="NodeGraphNode"/> container) or else the graph's, after selecting the node if it wasn't
+/// selected; elsewhere, the graph's.</item>
 /// <item>Wheel: zooms around the pointer.</item>
 /// <item>Home: shows every node (<see cref="FitToView"/>). Escape: cancels the drag.</item>
 /// </list>
 /// With <see cref="AutoLayout"/>, the nodes are laid out as a tree from left to right whenever nodes are added; the user
-/// can then move them. Positions aren't saved.
+/// can then move them. A node is placed at its container's <see cref="NodeGraphNode.Position"/>, which a style of the
+/// containers can bind to a saved position; <see cref="NodesMoved"/> says where the user dropped the nodes they dragged, so
+/// that an editor saves them. A double click on a node raises <see cref="NodeDoubleClicked"/> and runs
+/// <see cref="NodeDoubleClickCommand"/>.
 /// </remarks>
+[Experimental("STREXP010")]
 public sealed class NodeGraphControl : Control
 {
     /// <summary>
@@ -161,6 +170,24 @@ public sealed class NodeGraphControl : Control
     public static readonly StyledProperty<double> LinkThicknessProperty =
         AvaloniaProperty.Register<NodeGraphControl, double>(nameof(LinkThickness), 3.0);
 
+    /// <summary>
+    /// Identifies the <see cref="NodeDoubleClickCommand"/> styled property.
+    /// </summary>
+    public static readonly StyledProperty<ICommand?> NodeDoubleClickCommandProperty =
+        AvaloniaProperty.Register<NodeGraphControl, ICommand?>(nameof(NodeDoubleClickCommand));
+
+    /// <summary>
+    /// Identifies the <see cref="NodesMoved"/> routed event.
+    /// </summary>
+    public static readonly RoutedEvent<NodeGraphNodesMovedEventArgs> NodesMovedEvent =
+        RoutedEvent.Register<NodeGraphControl, NodeGraphNodesMovedEventArgs>(nameof(NodesMoved), RoutingStrategies.Bubble);
+
+    /// <summary>
+    /// Identifies the <see cref="NodeDoubleClicked"/> routed event.
+    /// </summary>
+    public static readonly RoutedEvent<NodeGraphNodeEventArgs> NodeDoubleClickedEvent =
+        RoutedEvent.Register<NodeGraphControl, NodeGraphNodeEventArgs>(nameof(NodeDoubleClicked), RoutingStrategies.Bubble);
+
     private const double ZoomStep = 1.1;
     private const double DragThreshold = 4.0;
     private const double LinkHitTolerance = 4.0;
@@ -194,6 +221,7 @@ public sealed class NodeGraphControl : Control
     private KeyModifiers pressModifiers;
     private bool hasMoved;
     private NodeGraphNode? pressedNode;
+    private Visual? rightPressSource;
     private bool selectOnlyPressedNodeOnClick;
     private readonly List<(NodeGraphNode Node, Point Start)> draggedNodes = [];
     private object? linkSourceSlot;
@@ -377,6 +405,39 @@ public sealed class NodeGraphControl : Control
         set => SetValue(LinkThicknessProperty, value);
     }
 
+    /// <summary>
+    /// The command that runs, with the node, when the user double-clicks a node, unless a handler of
+    /// <see cref="NodeDoubleClicked"/> handled it.
+    /// </summary>
+    public ICommand? NodeDoubleClickCommand
+    {
+        get => GetValue(NodeDoubleClickCommandProperty);
+        set => SetValue(NodeDoubleClickCommandProperty, value);
+    }
+
+    /// <summary>
+    /// Raised when the user dropped the nodes they dragged, which have their new <see cref="NodeGraphNode.Position"/>.
+    /// </summary>
+    /// <remarks>
+    /// Raised too when another control takes the pointer during the drag (the nodes stay where they went), but not when the
+    /// user cancels the drag with Escape, nor when the layout or <see cref="SetNodePosition"/> places nodes.
+    /// </remarks>
+    public event EventHandler<NodeGraphNodesMovedEventArgs>? NodesMoved
+    {
+        add => AddHandler(NodesMovedEvent, value);
+        remove => RemoveHandler(NodesMovedEvent, value);
+    }
+
+    /// <summary>
+    /// Raised when the user double-clicks a node, at the second press, before <see cref="NodeDoubleClickCommand"/> runs.
+    /// </summary>
+    /// <remarks>The second press also does what a press on a node does: it selects the node and can drag it.</remarks>
+    public event EventHandler<NodeGraphNodeEventArgs>? NodeDoubleClicked
+    {
+        add => AddHandler(NodeDoubleClickedEvent, value);
+        remove => RemoveHandler(NodeDoubleClickedEvent, value);
+    }
+
     private IList EffectiveSelectedNodes => SelectedNodes ?? ownSelectedNodes;
 
     private IList EffectiveSelectedLinks => SelectedLinks ?? ownSelectedLinks;
@@ -412,21 +473,17 @@ public sealed class NodeGraphControl : Control
     /// <returns>The position of its top left corner in the coordinates of the graph, or <c>null</c> if the node isn't in the graph
     /// or has no position yet (the graph places a new node at its next arrange).</returns>
     public Point? GetNodePosition(object node)
-        => containers.TryGetValue(node, out var container) && container.HasPosition ? container.Position : null;
+        => containers.TryGetValue(node, out var container) && container.HasPosition ? container.ShownPosition : null;
 
     /// <summary>
-    /// Moves a node.
+    /// Moves a node: sets the <see cref="NodeGraphNode.Position"/> of its container.
     /// </summary>
     /// <param name="node">A node of <see cref="Nodes"/>.</param>
     /// <param name="position">The position of its top left corner in the coordinates of the graph.</param>
     public void SetNodePosition(object node, Point position)
     {
-        if (!containers.TryGetValue(node, out var container))
-            return;
-
-        container.Position = position;
-        container.HasPosition = true;
-        nodesPanel.InvalidateArrange();
+        if (containers.TryGetValue(node, out var container))
+            container.Place(position);
     }
 
     /// <summary>
@@ -435,8 +492,6 @@ public sealed class NodeGraphControl : Control
     public void LayoutNodes()
     {
         isLayoutPending = true;
-        foreach (var container in containers.Values)
-            container.HasPosition = false;
         nodesPanel.InvalidateArrange();
     }
 
@@ -450,7 +505,7 @@ public sealed class NodeGraphControl : Control
         if (placed.Count == 0 || size.Width <= 0 || size.Height <= 0)
             return;
 
-        var area = placed.Select(x => new Rect(x.Position, x.Bounds.Size)).Aggregate((a, b) => a.Union(b)).Inflate(LayoutMargin);
+        var area = placed.Select(x => new Rect(x.ShownPosition, x.Bounds.Size)).Aggregate((a, b) => a.Union(b)).Inflate(LayoutMargin);
         Zoom = Math.Min(1.0, Math.Min(size.Width / area.Width, size.Height / area.Height));
         Offset = new Vector((size.Width - area.Width * Zoom) / 2 - area.X * Zoom, (size.Height - area.Height * Zoom) / 2 - area.Y * Zoom);
     }
@@ -534,9 +589,13 @@ public sealed class NodeGraphControl : Control
         {
             linksLayer.InvalidateVisual();
         }
-        else if (change.Property == AutoLayoutProperty && change.GetNewValue<bool>())
+        else if (change.Property == AutoLayoutProperty)
         {
-            LayoutNodes();
+            // Without it, the nodes added before keep the place they have or get one near the corner
+            if (change.GetNewValue<bool>())
+                LayoutNodes();
+            else
+                isLayoutPending = false;
         }
     }
 
@@ -561,7 +620,8 @@ public sealed class NodeGraphControl : Control
                 return;
 
             case PointerUpdateKind.RightButtonPressed:
-                // A pan once it moves; otherwise the release opens the context menu
+                // A pan once it moves; otherwise the release opens the context menu of what was pressed
+                rightPressSource = e.Source as Visual;
                 StartGesture(Gesture.PendingPan, MouseButton.Right, e);
                 return;
 
@@ -590,10 +650,12 @@ public sealed class NodeGraphControl : Control
             }
         }
 
-        var container = source?.GetSelfAndVisualAncestors().OfType<NodeGraphNode>().FirstOrDefault(x => ReferenceEquals(x.GetVisualParent(), nodesPanel));
+        var container = FindContainer(source);
         if (container is not null)
         {
             PressNode(container, e);
+            if (e.ClickCount == 2)
+                DoubleClickNode(container);
             return;
         }
 
@@ -639,11 +701,7 @@ public sealed class NodeGraphControl : Control
 
                 var delta = (position - pressPosition) / Zoom;
                 foreach (var (node, start) in draggedNodes)
-                {
-                    node.Position = start + delta;
-                    node.HasPosition = true;
-                }
-                nodesPanel.InvalidateArrange();
+                    node.ShowAt(start + delta);
                 break;
 
             case Gesture.LinkDrag:
@@ -673,10 +731,25 @@ public sealed class NodeGraphControl : Control
             var node = pressedNode;
             var selectOnlyNode = selectOnlyPressedNodeOnClick && !hasMoved;
             var moved = hasMoved;
+            var moves = endedGesture == Gesture.NodeDrag && moved ? DropNodes() : null;
+            var contextSource = rightPressSource;
             EndGesture(e.Pointer);
 
             switch (endedGesture)
             {
+                case Gesture.PendingPan:
+                    if (FindContainer(contextSource) is { } contextNode && contextSource is Interactive pressedElement)
+                    {
+                        // A menu acts on the selection: a node outside of it becomes the selection
+                        if (!EffectiveSelectedNodes.Contains(contextNode.Node))
+                            SelectOnly(contextNode.Node);
+                        // The request goes up from the pressed element: the first menu on the way opens, the graph's at the latest
+                        var request = new ContextRequestedEventArgs(e);
+                        pressedElement.RaiseEvent(request);
+                        e.Handled = true;
+                    }
+                    break;
+
                 case Gesture.Pan:
                     // A moved right button doesn't open the context menu
                     e.Handled = true;
@@ -685,6 +758,7 @@ public sealed class NodeGraphControl : Control
                 case Gesture.NodeDrag:
                     if (selectOnlyNode && node is not null)
                         SelectOnly(node.Node);
+                    RaiseNodesMoved(moves);
                     e.Handled = true;
                     break;
 
@@ -717,7 +791,11 @@ public sealed class NodeGraphControl : Control
         base.OnPointerCaptureLost(e);
         // Another control took the pointer: moved nodes stay where they went, a link or a rectangle does nothing
         if (gesture != Gesture.None)
+        {
+            var moves = gesture == Gesture.NodeDrag && hasMoved ? DropNodes() : null;
             EndGesture(null);
+            RaiseNodesMoved(moves);
+        }
     }
 
     /// <inheritdoc/>
@@ -753,8 +831,7 @@ public sealed class NodeGraphControl : Control
             {
                 // The nodes go back where they were
                 foreach (var (node, start) in draggedNodes)
-                    node.Position = start;
-                nodesPanel.InvalidateArrange();
+                    node.ShowAt(start);
             }
             EndGesture(null);
             e.Handled = true;
@@ -770,16 +847,15 @@ public sealed class NodeGraphControl : Control
         if (!isLayoutPending && unplaced.Count == 0)
             return;
 
-        if (AutoLayout)
+        // Cleared first: placing a node sets its position, which arranges the panel again
+        var isTreeLayout = isLayoutPending || AutoLayout;
+        isLayoutPending = false;
+        if (isTreeLayout)
         {
             var nodes = OrderedContainers().Select(x => x.Node).ToList();
             var positions = NodeGraphTreeLayout.Compute(nodes, x => containers[x].DesiredSize, GetNodeLinks(), new Point(LayoutMargin, LayoutMargin), LayoutVertexGap, LayoutLayerGap);
             foreach (var (node, position) in positions)
-            {
-                var container = containers[node];
-                container.Position = position;
-                container.HasPosition = true;
-            }
+                containers[node].Place(position);
         }
         else
         {
@@ -787,12 +863,10 @@ public sealed class NodeGraphControl : Control
             var cascade = 0;
             foreach (var container in unplaced)
             {
-                container.Position = new Point(LayoutMargin + cascade, LayoutMargin + cascade);
-                container.HasPosition = true;
+                container.Place(new Point(LayoutMargin + cascade, LayoutMargin + cascade));
                 cascade += 20;
             }
         }
-        isLayoutPending = false;
     }
 
     /// <summary>
@@ -1000,7 +1074,7 @@ public sealed class NodeGraphControl : Control
             return null;
 
         return connector.FindAncestorOfType<NodeGraphNode>() is { } container && ReferenceEquals(container.GetVisualParent(), nodesPanel)
-            ? new Point(Math.Min(point.X, container.Position.X), point.Y)
+            ? new Point(Math.Min(point.X, container.ShownPosition.X), point.Y)
             : point;
     }
 
@@ -1080,9 +1154,43 @@ public sealed class NodeGraphControl : Control
         foreach (var node in selectedNodes.Cast<object?>().ToList())
         {
             if (node is not null && containers.TryGetValue(node, out var selected))
-                draggedNodes.Add((selected, selected.Position));
+                draggedNodes.Add((selected, selected.ShownPosition));
         }
         StartGesture(Gesture.NodeDrag, MouseButton.Left, e);
+    }
+
+    private NodeGraphNode? FindContainer(Visual? source)
+        => source?.GetSelfAndVisualAncestors().OfType<NodeGraphNode>().FirstOrDefault(x => ReferenceEquals(x.GetVisualParent(), nodesPanel));
+
+    private void DoubleClickNode(NodeGraphNode container)
+    {
+        var args = new NodeGraphNodeEventArgs(NodeDoubleClickedEvent, container.Node);
+        RaiseEvent(args);
+        if (!args.Handled && NodeDoubleClickCommand?.CanExecute(container.Node) == true)
+            NodeDoubleClickCommand.Execute(container.Node);
+    }
+
+    /// <summary>
+    /// Gives the dragged nodes the position where they are drawn.
+    /// </summary>
+    /// <returns>The nodes that moved.</returns>
+    private List<NodeGraphNodeMove> DropNodes()
+    {
+        var moves = new List<NodeGraphNodeMove>();
+        foreach (var (node, start) in draggedNodes)
+        {
+            var end = node.ShownPosition;
+            node.Place(end);
+            if (end != start)
+                moves.Add(new NodeGraphNodeMove(node.Node, start, end));
+        }
+        return moves;
+    }
+
+    private void RaiseNodesMoved(List<NodeGraphNodeMove>? moves)
+    {
+        if (moves is { Count: > 0 })
+            RaiseEvent(new NodeGraphNodesMovedEventArgs(moves));
     }
 
     private void EndGesture(IPointer? pointer)
@@ -1090,6 +1198,7 @@ public sealed class NodeGraphControl : Control
         var endedGesture = gesture;
         gesture = Gesture.None;
         pressedNode = null;
+        rightPressSource = null;
         selectOnlyPressedNodeOnClick = false;
         draggedNodes.Clear();
         linkSourceSlot = null;
@@ -1196,7 +1305,7 @@ public sealed class NodeGraphControl : Control
         }
 
         var area = new Rect(ViewToGraph(pressPosition), ViewToGraph(currentPosition)).Normalize();
-        var hits = OrderedContainers().Where(x => new Rect(x.Position, x.Bounds.Size).Intersects(area)).Select(x => x.Node).ToList();
+        var hits = OrderedContainers().Where(x => new Rect(x.ShownPosition, x.Bounds.Size).Intersects(area)).Select(x => x.Node).ToList();
         var selection = EffectiveSelectedNodes;
         if (pressModifiers.HasFlag(KeyModifiers.Control))
         {
@@ -1222,16 +1331,16 @@ public sealed class NodeGraphControl : Control
 
     private void ResetContainers()
     {
+        // The nodes still there keep their containers, so their positions
+        var nodes = Nodes?.Cast<object?>().OfType<object>().ToList() ?? [];
+        var kept = nodes.ToHashSet(ReferenceEqualityComparer.Instance);
         foreach (var container in containers.Values.ToList())
-            RemoveContainer(container.Node);
-        if (Nodes is { } nodes)
         {
-            foreach (var node in nodes)
-            {
-                if (node is not null)
-                    AddContainer(node);
-            }
+            if (!kept.Contains(container.Node))
+                RemoveContainer(container.Node);
         }
+        foreach (var node in nodes)
+            AddContainer(node);
     }
 
     private void AddContainer(object node)

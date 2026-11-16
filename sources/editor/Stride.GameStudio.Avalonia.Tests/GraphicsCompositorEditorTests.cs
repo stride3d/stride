@@ -23,7 +23,8 @@ namespace Stride.GameStudio.Avalonia.Tests;
 /// <summary>
 /// The graphics compositor editor in the shell: the graph shows the entry points and the shared renderers with their slots, a drag
 /// from an output slot to a renderer links them in one undo entry, a link dragged off its renderer is removed, and the selection
-/// of a block fills the property grid and is deleted with the Delete key.
+/// of a block fills the property grid and is deleted with the Delete key or from the context menu, which a right click on a block
+/// opens with that block selected.
 /// </summary>
 public sealed class GraphicsCompositorEditorTests
 {
@@ -182,6 +183,44 @@ public sealed class GraphicsCompositorEditorTests
                 Assert.Contains(asset.SharedRenderers, x => x is DebugRenderer);
                 Assert.Equal(3, editor.Blocks.Count);
                 Assert.NotNull(graph.ContainerFromNode(Block<DebugRenderer>(editor)));
+            }
+            finally
+            {
+                await window.CloseAsync();
+            }
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task ARightClickOnABlockSelectsItForTheContextMenu()
+    {
+        var (fixture, window) = await OpenAsync();
+        using (fixture)
+        {
+            try
+            {
+                var (editor, _, graph) = await OpenEditorAsync(fixture, window);
+                var asset = (GraphicsCompositorAsset)editor.Asset.Asset;
+                var forward = Block<ForwardRenderer>(editor);
+                var debug = Block<DebugRenderer>(editor);
+                editor.SelectedSharedRenderers.Add(forward);
+                await WindowTestHelper.PumpAsync();
+
+                // The block becomes the selection, which "Delete selection" of the graph's menu removes
+                var title = graph.ContainerFromNode(debug)!.GetVisualDescendants().OfType<TextBlock>().First(x => x.Text == debug.Title);
+                var point = Center(window, title);
+                window.MouseDown(point, MouseButton.Right);
+                window.MouseUp(point, MouseButton.Right);
+                await WindowTestHelper.PumpAsync();
+                Assert.Equal([debug], editor.SelectedSharedRenderers);
+                var menu = graph.ContextMenu!;
+                Assert.True(menu.IsOpen);
+                var delete = menu.Items.OfType<MenuItem>().Single(x => x.Command == editor.DeleteSelectionCommand);
+                delete.Command!.Execute(delete.CommandParameter);
+                menu.Close();
+                await WindowTestHelper.PumpAsync();
+                Assert.DoesNotContain(asset.SharedRenderers, x => x is DebugRenderer);
+                Assert.Contains(asset.SharedRenderers, x => x is ForwardRenderer);
             }
             finally
             {

@@ -96,7 +96,7 @@ public sealed class TestSessionServiceScopes
     {
         await using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
         var wood = fixture.Session.AllAssets.Single();
-        using var perScope = fixture.Session.ServiceProvider.Register(_ => new TabService(), ServiceLifetime.PerScope);
+        using var perScope = fixture.Session.ServiceProvider.Register(_ => new TabService(), ViewModelServiceLifetime.PerScope);
 
         var editor = fixture.OnUiThread(() => Assert.IsType<TabEditor>(AssetEditorViewModel.Create(typeof(TabEditor), wood)));
 

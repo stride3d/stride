@@ -6,14 +6,14 @@ using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.IO;
 using Stride.Core.Presentation.ViewModels;
 
-namespace Stride.Core.Assets.Editor.Tests.Helpers;
+namespace Stride.Core.Assets.Editor.Testing;
 
 /// <summary>
 /// The main view model of a test host: the status bar, the Avalonia toolkit, the text asset types and the recent files.
 /// </summary>
-public sealed class FakeMainViewModel : IMainViewModel
+public sealed class TestMainViewModel : IMainViewModel
 {
-    public FakeMainViewModel(IViewModelServiceProvider serviceProvider)
+    public TestMainViewModel(IViewModelServiceProvider serviceProvider)
     {
         Status = new StatusViewModel(serviceProvider);
     }

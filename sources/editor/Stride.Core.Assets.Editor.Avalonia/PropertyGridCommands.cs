@@ -50,6 +50,7 @@ public static class PropertyGridCommands
         return new CommandDescriptor
         {
             Id = ToggleNestedPropertiesId,
+            Category = CommandCategories.Edit,
             Title = () => Tr._p("Menu", "Expand or collapse all nested properties"),
             ContextTitle = context => FindItem(context) is { IsExpanded: true } item && item.Properties.Count > 0 && item.Properties.All(x => x.IsExpanded)
                 ? Tr._p("Menu", "Collapse all nested properties")

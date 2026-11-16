@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Assets.Editor.ViewModels;
 using Stride.Assets.Presentation;
 using Stride.Core;
 using Stride.Core.Assets;
@@ -31,7 +32,7 @@ public sealed class AssetsSessionFixture : IAsyncDisposable
 
     private bool disposed;
 
-    private AssetsSessionFixture(string directory, IViewModelServiceProvider serviceProvider, TestPluginService plugins)
+    private AssetsSessionFixture(string directory, IViewModelServiceProvider serviceProvider, TestPluginHost plugins)
     {
         Directory = directory;
         ServiceProvider = serviceProvider;
@@ -47,7 +48,7 @@ public sealed class AssetsSessionFixture : IAsyncDisposable
 
     public IViewModelServiceProvider ServiceProvider { get; }
 
-    public TestPluginService Plugins { get; }
+    public TestPluginHost Plugins { get; }
 
     public PackageSessionResult Result { get; }
 
@@ -106,7 +107,7 @@ public sealed class AssetsSessionFixture : IAsyncDisposable
         var directory = Path.Combine(Path.GetTempPath(), "Stride.Assets.Editor.Tests", Guid.NewGuid().ToString("N"));
         var assetsPlugin = new StrideDefaultAssetsPlugin();
         var editorPlugin = new StrideEditorPlugin { EnableThumbnailService = false };
-        var plugins = new TestPluginService(assetsPlugin, editorPlugin, new TestEditorViewsPlugin());
+        var plugins = new TestPluginHost(assetsPlugin, editorPlugin, new StandInEditorViewsPlugin(typeof(ScriptSourceFileEditorViewModel)));
         var serviceProvider = new ViewModelServiceProvider(
         [
             dispatcher,
@@ -118,7 +119,7 @@ public sealed class AssetsSessionFixture : IAsyncDisposable
         var fixture = new AssetsSessionFixture(directory, serviceProvider, plugins);
         fixture.WritePackage(assets);
         var session = await SessionViewModel.OpenSessionAsync(fixture.PackagePath, loadParameters => TestPackageLoad.WithoutMSBuild(fixture.PackagePath, null, fixture.Result, loadParameters),
-            fixture.Result, new FakeMainViewModel(serviceProvider), serviceProvider);
+            fixture.Result, new TestMainViewModel(serviceProvider), serviceProvider);
         if (session is null)
             throw new InvalidOperationException("The session could not be opened:" + Environment.NewLine + fixture.Log);
         fixture.Session = session;

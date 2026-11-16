@@ -283,7 +283,7 @@ public class TestEditorPluginHost
                 Made.Add(service);
                 return service;
             });
-            context.Services.Register(_ => new FactoryService(null), ServiceLifetime.PerScope);
+            context.Services.Register(_ => new FactoryService(null), ViewModelServiceLifetime.PerScope);
         }
     }
 #pragma warning restore STREXP006
