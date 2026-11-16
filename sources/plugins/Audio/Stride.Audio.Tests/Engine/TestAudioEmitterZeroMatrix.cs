@@ -41,11 +41,12 @@ namespace Stride.Audio.Tests.Engine
 
             var normalComponent = new AudioEmitterComponent();
             var normalEntity = new Entity("normal") { normalComponent };
-            normalEntity.Transform.Position = new Vector3(3, 0, 0);
             normalEntity.Transform.Rotation = Quaternion.RotationY(MathUtil.PiOverTwo);
 
             scene.Entities.Add(zeroEntity);
             scene.Entities.Add(normalEntity);
+            // Moved after the entity was added: only the transform update at Draw can bring the emitter to this position.
+            normalEntity.Transform.Position = new Vector3(3, 0, 0);
 
             // The processor iterates its emitters in insertion order: the zero-matrix one must come first.
             Assert.Equal(new[] { zeroComponent, normalComponent }, probe.ComponentsInIterationOrder);
@@ -59,10 +60,11 @@ namespace Stride.Audio.Tests.Engine
 
             Assert.Equal(Matrix.Zero, zeroEntity.Transform.WorldMatrix);
 
+            Assert.Equal(new Vector3(3, 0, 0), normalEmitter.Position);
+
             // Forward is set after the zero-matrix check: it follows the rotated world matrix.
             Assert.NotEqual(defaultForward, normalEmitter.Forward);
             Assert.True(Vector3.Distance(new Vector3(1, 0, 0), normalEmitter.Forward) < 1e-4f, $"Forward was {normalEmitter.Forward}");
-            Assert.Equal(new Vector3(3, 0, 0), normalEmitter.Position);
         }
     }
 }
