@@ -158,6 +158,9 @@ jobs:
       - name: Test
         if: success() || failure()
         continue-on-error: ${{ inputs.tolerate-test-failures == true }}
+        env:
+          # The runner has no sound card: OpenAL Soft's null output gives the audio tests a working device.
+          ALSOFT_DRIVERS: "null"
         run: |
           REPEAT="${{ github.event.inputs.repeat || inputs.repeat || '1' }}"
           FILTER_ARG=()
