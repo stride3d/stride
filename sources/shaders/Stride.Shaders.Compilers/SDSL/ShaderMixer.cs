@@ -653,7 +653,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     resourceGroupIdDecorate.DecorationParameters = new(m.Span[0] + resourceGroupOffset);
                 }
 
-                if (SpirvBuilder.ContainIds(forbiddenIds, i2))
+                // Almost always empty: only a stage-only import forbids IDs
+                if (forbiddenIds.Count > 0 && SpirvBuilder.ContainIds(forbiddenIds, i2))
                     throw new InvalidOperationException($"Stage instruction {i.Data} references a non-stage ID");
 
                 SpirvBuilder.RemapIds(remapIds, ref i2);
