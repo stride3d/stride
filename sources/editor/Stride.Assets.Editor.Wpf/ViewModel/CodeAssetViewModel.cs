@@ -4,6 +4,7 @@
 using Stride.Assets.Effect;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Annotations;
+using Stride.Core.Diagnostics;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.IO;
@@ -24,9 +25,9 @@ namespace Stride.Assets.Presentation.ViewModel
         }
 
         /// <inheritdoc/>
-        protected override void Initialize()
+        protected override void Initialize(ILogger log)
         {
-            base.Initialize();
+            base.Initialize(log);
 
             // Keeps the text of a project file in memory: an undo writes it back if the file is deleted from outside
             if (Asset is IProjectAsset && !Directory.Package.Package.IsReadOnly)

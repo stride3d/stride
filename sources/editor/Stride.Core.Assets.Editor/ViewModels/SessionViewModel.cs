@@ -669,7 +669,7 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
             viewModel.LoadPackageInformation(loggerResult, workProgress);
             newPackages.Add(viewModel);
         }
-        TrackBackgroundWork(ProcessAddedPackages(newPackages));
+        TrackBackgroundWork(ProcessAddedPackages(newPackages, loggerResult));
     }
 
     /// <summary>
@@ -1570,7 +1570,7 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
         // This transaction is done to prevent action responding to undoRedoService.TransactionCompletion to occur during loading
         using (undoRedoService.CreateTransaction())
         {
-            Initialization = TrackBackgroundWork(ProcessAddedPackages(AllPackages));
+            Initialization = TrackBackgroundWork(ProcessAddedPackages(AllPackages, loggerResult));
         }
     }
 
@@ -1585,11 +1585,11 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
         }
     }
 
-    private async Task ProcessAddedPackages(IEnumerable<PackageViewModel> packages)
+    private async Task ProcessAddedPackages(IEnumerable<PackageViewModel> packages, ILogger log)
     {
         var packageList = packages.ToList();
         // We must refresh asset bases after all packages have been added, because we might have cross-packages references here.
-        packageList.SelectMany(x => x.Assets).ForEach(x => x.Initialize());
+        packageList.SelectMany(x => x.Assets).ForEach(x => x.Initialize(log));
         await AssetDependenciesViewModel.TriggerInitialReferenceBuild(this);
         var thumbnails = await Dispatcher.InvokeAsync(() => packageList.Select(x => Thumbnails.StartInitialBuild(x)).ToList());
         await Task.WhenAll(thumbnails);

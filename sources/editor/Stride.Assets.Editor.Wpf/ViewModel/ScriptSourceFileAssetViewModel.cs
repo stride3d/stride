@@ -56,9 +56,9 @@ namespace Stride.Assets.Presentation.ViewModel
 
         public TextDocument TextDocument => TextContainer.Document;
 
-        protected override void Initialize()
+        protected override void Initialize(ILogger log)
         {
-            base.Initialize();
+            base.Initialize(log);
 
             // Duplicate the text so it is more easily accessible from a different thread
             mirroredText = new Rope<char>(Asset.TextAccessor.Get());

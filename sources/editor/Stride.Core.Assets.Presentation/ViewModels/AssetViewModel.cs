@@ -303,10 +303,11 @@ namespace Stride.Core.Assets.Presentation.ViewModels
         /// <summary>
         /// Initializes this asset. This method is guaranteed to be called once every other assets are loaded in the session.
         /// </summary>
+        /// <param name="log">The log of the load of the session (or of the asset's addition), which gets what the initialization changes in the asset.</param>
         /// <remarks>
         /// Inheriting classes should override it when necessary, provided that they also call the base implementation.
         /// </remarks>
-        protected internal virtual void Initialize()
+        protected internal virtual void Initialize(ILogger log)
         {
             using (var transaction = UndoRedoService.CreateTransaction())
             {

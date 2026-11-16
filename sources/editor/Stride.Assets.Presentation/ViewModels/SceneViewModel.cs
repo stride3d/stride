@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using Stride.Assets.Entities;
 using Stride.Core.Assets;
+using Stride.Core.Assets.Diagnostics;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Collections;
@@ -130,9 +131,9 @@ public sealed class SceneViewModel : EntityHierarchyViewModel, IAssetViewModel<S
     }
 
     /// <inheritdoc />
-    protected internal override void Initialize()
+    protected internal override void Initialize(ILogger log)
     {
-        base.Initialize();
+        base.Initialize(log);
 
         var invalidIndices = new Stack<int>();
         for (var i = 0; i < Asset.ChildrenIds.Count; i++)
@@ -142,6 +143,7 @@ public sealed class SceneViewModel : EntityHierarchyViewModel, IAssetViewModel<S
             {
                 // Mark this id for deletion
                 invalidIndices.Push(i);
+                LogRemovedChild(log, $"The scene lists the id {childId} in ChildrenIds, but no scene of the session has this id: it is removed from the list.");
                 continue;
             }
 
@@ -152,6 +154,8 @@ public sealed class SceneViewModel : EntityHierarchyViewModel, IAssetViewModel<S
             {
                 // Mark this id for deletion
                 invalidIndices.Push(i);
+                var childParent = parentReference is null ? "empty" : $"'{Session.GetAssetById(parentReference.Id)?.Url ?? parentReference.Url}'";
+                LogRemovedChild(log, $"The scene lists the scene '{childScene.Url}' in ChildrenIds, but the Parent of that scene is {childParent}: it is removed from the list.");
                 // If the parent is already initialized and the child is connected, there is nothing to do
                 if (childScene.Parent?.isInitialized == true)
                 {
@@ -230,6 +234,13 @@ public sealed class SceneViewModel : EntityHierarchyViewModel, IAssetViewModel<S
         }
 
         base.OnAssetReplaced(previousAsset);
+    }
+
+    // A child scene removed from ChildrenIds on load: the next save of the scene writes the list without it
+    private void LogRemovedChild(ILogger log, string message)
+    {
+        log.Log(new AssetLogMessage(AssetItem.Package, AssetItem.ToReference(), LogMessageType.Warning,
+            $"{message} A scene keeps a child scene only when both name each other: the parent in ChildrenIds, the child in Parent."));
     }
 
     // Links a child scene in the view models only, as an update of the hierarchy from the assets

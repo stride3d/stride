@@ -355,7 +355,7 @@ namespace Stride.Core.Assets.Presentation.ViewModels
             var asset = (AssetViewModel)Activator.CreateInstance(assetViewModelType, parameters);
             if (!isLoading)
             {
-                asset.Initialize();
+                asset.Initialize((ILogger?)loggerResult ?? GlobalLogger.GetLogger("Asset"));
             }
             return asset;
         }
