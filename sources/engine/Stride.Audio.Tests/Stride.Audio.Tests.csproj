@@ -38,6 +38,7 @@
     <Compile Include="XunitAttributes.cs" />
     <Compile Include="AudioTestGame.cs" />
     <Compile Include="BasicTest.cs" />
+    <Compile Include="DynamicSoundSourceFaultTests.cs" />
     <Compile Include="Engine\GameClassForTests.cs" />
     <Compile Include="Engine\LaunchProgram.cs" />
     <Compile Include="Engine\TestAssetLoading.cs" />
