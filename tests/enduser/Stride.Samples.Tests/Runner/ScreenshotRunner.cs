@@ -412,7 +412,8 @@ public static class ScreenshotRunner
         }
 
         using var process = Process.Start(psi)!;
-        using var log = new StreamWriter(File.Create(logPath));
+        // The two streams are read on different threads
+        using var log = TextWriter.Synchronized(new StreamWriter(File.Create(logPath)));
         process.OutputDataReceived += (_, e) => { if (e.Data is not null) log.WriteLine(e.Data); };
         process.ErrorDataReceived += (_, e) => { if (e.Data is not null) log.WriteLine("[stderr] " + e.Data); };
         process.BeginOutputReadLine();
@@ -435,6 +436,8 @@ public static class ScreenshotRunner
             log.WriteLine($"[runner] killed after {timeoutSeconds}s timeout");
             return false;
         }
+        // The timed wait can return before the handlers got the last lines: this one waits for the end of both streams
+        process.WaitForExit();
         TestContext.Current.CancellationToken.ThrowIfCancellationRequested();
         return process.ExitCode == 0;
     }
