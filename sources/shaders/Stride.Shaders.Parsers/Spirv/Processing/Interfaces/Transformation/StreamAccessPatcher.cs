@@ -267,7 +267,7 @@ internal static class StreamAccessPatcher
 
             SpirvBuilder.CollectIds(i.Data, CheckStreamTypes);
 
-            SpirvBuilder.RemapIds(remapIds, ref i.Data);
+            SpirvBuilder.RemapIds(remapIds, i);
         }
     }
 }

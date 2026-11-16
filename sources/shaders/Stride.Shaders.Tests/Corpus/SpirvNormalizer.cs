@@ -87,10 +87,6 @@ static class SpirvNormalizer
                 instructionLocations.Insert(insertIndex, null);
                 output.Insert(insertIndex++, name);
             }
-            else
-            {
-                name.Dispose();
-            }
         }
 
         // Types and constants are named after their content (int, float4, ptr_Uniform_float2, int_4): a type that moves is

@@ -51,7 +51,7 @@ public class TypeDuplicateHelper
 
         private Span<int> Words(InstructionSortHelper x)
             => x.Index >= 0 && x.Index < Context.Count ? Context[x.Index].Words
-                : x.Index == -1 && Searched.Memory != null ? Searched.Memory.Span : [];
+                : x.Index == -1 ? Searched.Memory.Span : [];
 
         private static int RemapOp(Op op)
         {

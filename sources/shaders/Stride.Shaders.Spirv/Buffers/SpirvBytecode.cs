@@ -17,8 +17,7 @@ public record SpirvBytecode(SpirvHeader Header, SpirvBuffer Buffer) : IDisposabl
         var bound = 1;
         foreach (var i in buffer)
         {
-            ref var data = ref i.Data;
-            if (data.IdResult is int index && index >= bound)
+            if (i.Data.IdResult is int index && index >= bound)
                 bound = index + 1;
         }
         return new SpirvHeader("1.4", 0, bound);
@@ -56,12 +55,10 @@ public record SpirvBytecode(SpirvHeader Header, SpirvBuffer Buffer) : IDisposabl
         {
             foreach (var i in buffer)
             {
-                ref var data = ref i.Data;
-                if (data.IdResult is int index && index >= bound)
+                if (i.Data.IdResult is int index && index >= bound)
                     bound = index + 1;
-
-                instructionsMemorySize += data.Memory.Length;
             }
+            instructionsMemorySize += buffer.WordCount;
         }
 
         header = header with { Bound = bound };
@@ -71,13 +68,7 @@ public record SpirvBytecode(SpirvHeader Header, SpirvBuffer Buffer) : IDisposabl
         header.WriteTo(span);
         var offset = 5;
         foreach (var buffer in buffers)
-        {
-            foreach (var i in buffer)
-            {
-                i.Words.CopyTo(span[offset..]);
-                offset += i.Words.Length;
-            }
-        }
+            offset += buffer.CopyTo(span[offset..]);
         return span;
     }
 

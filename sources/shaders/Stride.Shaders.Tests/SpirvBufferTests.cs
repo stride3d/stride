@@ -55,6 +55,27 @@ public class SpirvBufferTests
         Assert.Equal([1, 3, 5], Targets(buffer));
     }
 
+    [Fact]
+    public void WordCountMatchesTheWordsCopiedAfterAnInstructionGrowsDuringACompaction()
+    {
+        using var buffer = Names(1, 2, 3, 4);
+        // Enough garbage that the next append compacts the storage
+        buffer.RemoveRange(0, 3);
+
+        OpName name = buffer[0];
+        name.Name = "a longer name";
+
+        var copied = new int[buffer.WordCount + 8];
+        Assert.Equal(buffer.WordCount, buffer.CopyTo(copied));
+        Assert.Equal("a longer name", ((OpName)buffer[0]).Name);
+    }
+
+    [Fact]
+    public void AWordCountOfZeroIsRejected()
+    {
+        Assert.Throws<InvalidOperationException>(() => new SpirvBuffer([(int)Stride.Shaders.Spirv.Specification.Op.OpNop | (1 << 16), 0, 0]));
+    }
+
     private static SpirvBuffer Names(params int[] targets)
     {
         var buffer = new SpirvBuffer();

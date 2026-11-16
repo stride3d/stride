@@ -70,31 +70,27 @@ public partial class SPVGenerator
             // An instruction in a buffer: its slot is looked up on each access, as the storage of the buffer moves when it grows
             private SpirvBuffer? attachedBuffer;
             private int attachedIndex;
-            public ref OpData OpData => ref attachedBuffer is not null ? ref attachedBuffer.GetRef(attachedIndex) : ref opData;
-            public MemoryOwner<int> InstructionMemory
+            public Memory<int> InstructionMemory
             {{
                 get
                 {{
-                    if (!Unsafe.IsNullRef(ref OpData))
-                        return OpData.Memory;
-                    else
-                        return field;
+                    if (attachedBuffer is not null)
+                        return attachedBuffer.GetData(attachedIndex).Memory;
+                    if (!Unsafe.IsNullRef(ref opData))
+                        return opData.Memory;
+                    return field;
                 }}
                 private set
                 {{
-                    if (!Unsafe.IsNullRef(ref OpData))
-                    {{
-                        OpData.Memory.Dispose();
-                        OpData.Memory = value;
-                    }}
+                    if (!Unsafe.IsNullRef(ref opData))
+                        opData.Memory = value;
                     else
                         field = value;
                 }}
             }}
             public {instruction.OpName}()
             {{
-                InstructionMemory = MemoryOwner<int>.Allocate(1);
-                InstructionMemory.Span[0] = (int)Op.{(instruction.OpName.StartsWith("GLSL") ? "OpExtInst" : instruction.OpName)} | (1 << 16);
+                InstructionMemory = new int[] {{ (int)Op.{(instruction.OpName.StartsWith("GLSL") ? "OpExtInst" : instruction.OpName)} | (1 << 16) }};
             }}
         ");
 
@@ -104,14 +100,14 @@ public partial class SPVGenerator
         .AppendLine(@$"
             public {instruction.OpName}(OpDataIndex index)
             {{
-                InitializeProperties(ref index.Data);
+                InitializeProperties(index.Data);
                 attachedBuffer = index.Buffer;
                 attachedIndex = index.Index;
             }}
             
             public {instruction.OpName}(ref OpData data)
             {{
-                InitializeProperties(ref data);
+                InitializeProperties(data);
                 opData = ref data;
             }}"
         );
@@ -123,16 +119,16 @@ public partial class SPVGenerator
             {
                 (string typename, string fieldName, string operandName) = ToTypeFieldAndOperandName(op);
                 if (typename.StartsWith("LiteralArray"))
-                    structBuilder.Append($"public {typename} {fieldName} {{ get; set {{ field.Assign(value); if(InstructionMemory is not null) UpdateInstructionMemory(); }} }}");
+                    structBuilder.Append($"public {typename} {fieldName} {{ get; set {{ field.Assign(value); if(!InstructionMemory.IsEmpty) UpdateInstructionMemory(); }} }}");
                 else if (op.IsParameterized)
                     structBuilder.Append(@$"
                         public {typename} {fieldName} {{ get; set; }}
-                        public EnumerantParameters {fieldName}Parameters {{ get; set {{ field.Dispose(); field = value; if(InstructionMemory is not null) UpdateInstructionMemory(); }} }}"
+                        public EnumerantParameters {fieldName}Parameters {{ get; set {{ field.Dispose(); field = value; if(!InstructionMemory.IsEmpty) UpdateInstructionMemory(); }} }}"
                     );
                 else if (instruction.OpName.EndsWith("Constant") && typename.StartsWith("LiteralValue"))
-                    structBuilder.Append($"public T {fieldName} {{ get; set {{ field = value; if(InstructionMemory is not null) UpdateInstructionMemory(); }} }}");
+                    structBuilder.Append($"public T {fieldName} {{ get; set {{ field = value; if(!InstructionMemory.IsEmpty) UpdateInstructionMemory(); }} }}");
                 else
-                    structBuilder.Append($"public {typename} {fieldName} {{ get; set {{ field = value; if(InstructionMemory is not null) UpdateInstructionMemory(); }} }}");
+                    structBuilder.Append($"public {typename} {fieldName} {{ get; set {{ field = value; if(!InstructionMemory.IsEmpty) UpdateInstructionMemory(); }} }}");
             }
 
             if (operands.Any(x => x is { Kind: "IdResult" }))
@@ -179,18 +175,12 @@ public partial class SPVGenerator
                     attachedBuffer.SetWords(attachedIndex, instruction);
                     return;
                 }}
-                InstructionMemory ??= MemoryOwner<int>.Empty;
                 if(instruction.Length == InstructionMemory.Length)
                     instruction.CopyTo(InstructionMemory.Span);
                 else
-                {{
-                    var tmp = MemoryOwner<int>.Allocate(instruction.Length);
-                    instruction.CopyTo(tmp.Span);
-                    InstructionMemory?.Dispose();
-                    InstructionMemory = tmp;
-                }}
+                    InstructionMemory = instruction.ToArray();
             }}
-            private void InitializeProperties(ref OpData data)
+            private void InitializeProperties(OpData data)
             {{
                 foreach (var o in data)
                 {{
