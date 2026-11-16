@@ -48,7 +48,7 @@ public static partial class NuGetAssemblyResolver
         // Make sure our nuget local store is added to nuget config
         var executingPath = Assembly.GetExecutingAssembly().Location;
         var folder = Path.GetDirectoryName(executingPath);
-        var devSourcePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), DevSource);
+        var devSourcePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify), DevSource);
 
         while (folder != null)
         {
