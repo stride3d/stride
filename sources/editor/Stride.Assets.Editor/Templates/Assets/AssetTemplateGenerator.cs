@@ -144,9 +144,11 @@ public abstract class AssetTemplateGenerator : TemplateGeneratorBase<AssetTempla
 
     private static UFile GenerateLocation(string assetName, AssetTemplateGeneratorParameters parameters)
     {
-        var location = assetName.StartsWith(parameters.TargetLocation, StringComparison.Ordinal)
-            ? new UFile(assetName)
-            : UPath.Combine(parameters.TargetLocation, new UFile(assetName));
+        // A name that is already a location in the folder is kept; any other name goes in the folder, even one that starts like the folder.
+        var name = new UFile(assetName);
+        var location = parameters.TargetLocation.Contains(name)
+            ? name
+            : UPath.Combine(parameters.TargetLocation, name);
 
         return NamingHelper.ComputeNewName(location, x => parameters.Package.Assets.Find(x) != null, "{0}_{1}");
     }

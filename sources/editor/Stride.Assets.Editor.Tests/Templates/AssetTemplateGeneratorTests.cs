@@ -76,6 +76,26 @@ public sealed class AssetTemplateGeneratorTests
         Assert.Equal(AssetsSessionFixture.Url("Material_2"), second.Url);
     }
 
+    [Theory]
+    [InlineData("Material")]
+    [InlineData("Mat")]
+    [InlineData("Textures/Material")]
+    public async Task ANewAssetGoesInTheSelectedFolderWhenTheFolderNameStartsTheAssetName(string folder)
+    {
+        await using var fixture = await OpenAsync();
+        var session = fixture.Session;
+        session.Dispatcher.Invoke(() =>
+        {
+            var directory = fixture.Package.GetOrCreateAssetDirectory(folder, false);
+            session.AssetCollection.SelectedLocations.Clear();
+            session.AssetCollection.SelectedLocations.Add(directory);
+        });
+
+        var material = Assert.Single(await RunAsync(fixture, MaterialId));
+
+        Assert.Equal(AssetsSessionFixture.Url(folder + "/Material"), material.Url);
+    }
+
     [Fact]
     public async Task TheCubeTemplateCreatesAProceduralModelWithTheCubeFactory()
     {
