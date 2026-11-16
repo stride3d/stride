@@ -2,13 +2,14 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Runtime.InteropServices;
 using Stride.Media;
 using Xunit;
 
 namespace Stride.Audio.Tests
 {
     /// <summary>
-    /// <see cref="AudioEngine.PauseAudio"/> and <see cref="AudioEngine.ResumeAudio"/> on instances created on a <see cref="DynamicSoundSource"/>, which have no <see cref="Sound"/>.
+    /// <see cref="AudioEngine.PauseAudio"/> and <see cref="AudioEngine.ResumeAudio"/> on instances created on a <see cref="DynamicSoundSource"/>, which have no <see cref="Sound"/>, and play requests made while the engine is paused.
     /// </summary>
     public class TestPauseProceduralInstances : IDisposable
     {
@@ -100,6 +101,141 @@ namespace Stride.Audio.Tests
             Assert.True(playing.IsDisposed);
             Assert.True(idle.IsDisposed);
             Assert.Equal(0, engine.DynamicSourceInstanceCount);
+        }
+
+        private Sound CreateInMemorySound()
+        {
+            const int sampleCount = 4410;
+            var sound = new Sound { Channels = 1, SampleRate = 44100, Samples = sampleCount, StreamFromDisk = false };
+            sound.Attach(engine);
+            sound.PreloadedBuffer = AudioLayer.BufferCreate(sampleCount * sizeof(short));
+            var pcm = Marshal.AllocHGlobal(sampleCount * sizeof(short));
+            try
+            {
+                AudioLayer.BufferFill(sound.PreloadedBuffer, pcm, sampleCount * sizeof(short), sound.SampleRate, true);
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(pcm);
+            }
+            return sound;
+        }
+
+        [Fact]
+        public void ProceduralInstancePlayedDuringPauseStartsOnResume()
+        {
+            var instance = ProceduralSource.CreateInstance(engine);
+
+            engine.PauseAudio();
+            instance.Play();
+            Assert.Equal(PlayState.Paused, instance.PlayState);
+
+            engine.ResumeAudio();
+            Assert.Equal(PlayState.Playing, instance.PlayState);
+
+            instance.Dispose();
+        }
+
+        [Fact]
+        public void LoopingInMemoryInstancePlayedDuringPauseStartsOnResume()
+        {
+            using var sound = CreateInMemorySound();
+            var instance = sound.CreateInstance(engine.DefaultListener);
+            instance.IsLooping = true;
+
+            engine.PauseAudio();
+            instance.Play();
+            Assert.Equal(PlayState.Paused, instance.PlayState);
+
+            engine.ResumeAudio();
+            Assert.Equal(PlayState.Playing, instance.PlayState);
+
+            instance.Dispose();
+        }
+
+        [Fact]
+        public void NonLoopingInMemoryInstancePlayedDuringPauseIsDropped()
+        {
+            using var sound = CreateInMemorySound();
+            var instance = sound.CreateInstance(engine.DefaultListener);
+
+            engine.PauseAudio();
+            instance.Play();
+            Assert.Equal(PlayState.Stopped, instance.PlayState);
+
+            engine.ResumeAudio();
+            Assert.Equal(PlayState.Stopped, instance.PlayState);
+
+            instance.Dispose();
+        }
+
+        [Fact]
+        public void DeferredInstanceStoppedDuringPauseStaysStopped()
+        {
+            var instance = ProceduralSource.CreateInstance(engine);
+
+            engine.PauseAudio();
+            instance.Play();
+            instance.Stop();
+            engine.ResumeAudio();
+
+            Assert.Equal(PlayState.Stopped, instance.PlayState);
+
+            instance.Dispose();
+        }
+
+        [Fact]
+        public void DeferredInstanceDisposedDuringPauseDoesNotBreakResume()
+        {
+            var instance = ProceduralSource.CreateInstance(engine);
+
+            engine.PauseAudio();
+            instance.Play();
+            instance.Dispose();
+
+            engine.ResumeAudio();
+            Assert.Equal(AudioEngineState.Running, engine.State);
+        }
+
+        [Fact]
+        public void PlayCalledTwiceDuringPauseIsRememberedOnce()
+        {
+            var instance = ProceduralSource.CreateInstance(engine);
+
+            engine.PauseAudio();
+            instance.Play();
+            instance.Play();
+            Assert.Equal(1, engine.PausedSoundCount);
+
+            engine.ResumeAudio();
+            Assert.Equal(PlayState.Playing, instance.PlayState);
+            Assert.Equal(0, engine.PausedSoundCount);
+
+            instance.Dispose();
+        }
+
+        [Fact]
+        public void PlayExclusiveDuringPauseStopsSiblingsAndStartsOnResume()
+        {
+            using var sound = CreateInMemorySound();
+            var playing = sound.CreateInstance(engine.DefaultListener);
+            playing.IsLooping = true;
+            playing.Play();
+            Assert.Equal(PlayState.Playing, playing.PlayState);
+            var exclusive = sound.CreateInstance(engine.DefaultListener);
+            exclusive.IsLooping = true;
+
+            engine.PauseAudio();
+            exclusive.PlayExclusive();
+            Assert.Equal(PlayState.Stopped, playing.PlayState);
+            Assert.Equal(PlayState.Paused, exclusive.PlayState);
+
+            engine.ResumeAudio();
+            Assert.Equal(PlayState.Stopped, playing.PlayState);
+            Assert.Equal(PlayState.Playing, exclusive.PlayState);
+
+            playing.Dispose();
+            exclusive.Dispose();
         }
 
         private sealed class ProceduralSource : DynamicSoundSource

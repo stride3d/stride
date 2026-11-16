@@ -91,7 +91,8 @@ namespace Stride.Audio
         }
 
         /// <summary>
-        /// The list of the sounds that have been paused by the call to <see cref="PauseAudio"/> and should be resumed by <see cref="ResumeAudio"/>.
+        /// The list of the sounds that have been paused by the call to <see cref="PauseAudio"/>, or played while the engine was paused, and should be started by <see cref="ResumeAudio"/>.
+        /// Guarded by the lock of <see cref="notDisposedSounds"/>.
         /// </summary>
         private readonly List<SoundInstance> pausedSounds = new List<SoundInstance>();
 
@@ -139,18 +140,22 @@ namespace Stride.Audio
         }
 
         /// <summary>
-        /// Pause the audio engine. That is, pause all the currently playing <see cref="SoundInstance"/>, and block any future play until <see cref="ResumeAudio"/> is called.
+        /// Pause the audio engine. That is, pause all the currently playing <see cref="SoundInstance"/>, and hold any future play until <see cref="ResumeAudio"/> is called.
         /// </summary>
+        /// <remarks>
+        /// While the engine is paused, a play request on a looping instance or on an instance with a streamed or dynamic source is remembered and starts at <see cref="ResumeAudio"/>.
+        /// A play request on any other instance, such as a short non-looping effect, is dropped.
+        /// </remarks>
         public void PauseAudio()
         {
             if (State != AudioEngineState.Running)
                 return;
 
-            State = AudioEngineState.Paused;
-
-            pausedSounds.Clear();
             lock (notDisposedSounds)
             {
+                State = AudioEngineState.Paused;
+                pausedSounds.Clear();
+
                 foreach (var sound in notDisposedSounds)
                 {
                     foreach (var instance in sound.Instances)
@@ -175,19 +180,43 @@ namespace Stride.Audio
         }
 
         /// <summary>
-        /// Resume all audio engine. That is, resume the sounds paused by <see cref="PauseAudio"/>, and re-authorize future calls to play.
+        /// Resume all audio engine. That is, resume the sounds paused by <see cref="PauseAudio"/>, start the looping and streamed sounds that were played while the engine was paused, and re-authorize future calls to play.
         /// </summary>
         public void ResumeAudio()
         {
             if (State != AudioEngineState.Paused)
                 return;
 
-            State = AudioEngineState.Running;
+            SoundInstance[] soundsToStart;
+            lock (notDisposedSounds)
+            {
+                State = AudioEngineState.Running;
+                soundsToStart = pausedSounds.ToArray();
+                pausedSounds.Clear();
+            }
 
-            foreach (var playableSound in pausedSounds)
+            foreach (var playableSound in soundsToStart)
             {
                 if (!playableSound.IsDisposed && playableSound.PlayState == PlayState.Paused) // sounds can have been stopped by user while the audio engine was paused.
                     playableSound.Play();
+            }
+        }
+
+        /// <summary>
+        /// Remembers <paramref name="instance"/> so that <see cref="ResumeAudio"/> starts it.
+        /// </summary>
+        /// <returns>false if the engine is not paused, in which case nothing is remembered.</returns>
+        internal bool DeferPlayUntilResume(SoundInstance instance)
+        {
+            lock (notDisposedSounds)
+            {
+                if (State != AudioEngineState.Paused)
+                    return false;
+
+                if (!pausedSounds.Contains(instance))
+                    pausedSounds.Add(instance);
+
+                return true;
             }
         }
 
@@ -203,6 +232,17 @@ namespace Stride.Audio
                 lock (notDisposedSounds)
                 {
                     return dynamicSourceInstances.Count;
+                }
+            }
+        }
+
+        internal int PausedSoundCount
+        {
+            get
+            {
+                lock (notDisposedSounds)
+                {
+                    return pausedSounds.Count;
                 }
             }
         }

@@ -233,6 +233,10 @@ namespace Stride.Audio
         /// <summary>
         /// Play or resume the sound effect instance.
         /// </summary>
+        /// <remarks>
+        /// While the audio engine is paused, a looping instance or an instance with a streamed or dynamic source is remembered and starts when <see cref="AudioEngine.ResumeAudio"/> is called.
+        /// Any other instance is not played.
+        /// </remarks>
         public void Play()
         {
             Play(false); //this is the same behavior in AudioEmitterProcessor and Controllers
@@ -241,6 +245,10 @@ namespace Stride.Audio
         /// <summary>
         /// Play or resume the sound effect instance, stopping sibling instances.
         /// </summary>
+        /// <remarks>
+        /// While the audio engine is paused, a looping instance or an instance with a streamed or dynamic source stops its siblings at once and starts when <see cref="AudioEngine.ResumeAudio"/> is called.
+        /// Any other instance is not played and does not stop its siblings.
+        /// </remarks>
         public void PlayExclusive()
         {
             Play(true);
@@ -315,11 +323,25 @@ namespace Stride.Audio
         /// <param name="stopSiblingInstances">if true any other istance of the same Sound will be stopped.</param>
         protected void Play(bool stopSiblingInstances)
         {
-            if (engine.State == AudioEngineState.Invalidated || engine.State == AudioEngineState.Paused)
+            if (engine.State == AudioEngineState.Invalidated)
                 return;
 
             if (PlayState == PlayState.Playing)
                 return;
+
+            if (engine.State == AudioEngineState.Paused)
+            {
+                // Nothing reaches the native source until ResumeAudio plays the instance.
+                if ((isLooping || soundSource != null) && engine.DeferPlayUntilResume(this))
+                {
+                    if (stopSiblingInstances)
+                        sound?.StopConcurrentInstances(this);
+
+                    playState = PlayState.Paused;
+                }
+
+                return;
+            }
 
             if (stopSiblingInstances)
             {
