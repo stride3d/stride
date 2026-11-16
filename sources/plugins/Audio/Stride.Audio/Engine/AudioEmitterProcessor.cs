@@ -143,9 +143,9 @@ namespace Stride.Audio
                 emitter.Velocity = pos - emitter.Position;
                 emitter.Position = pos;
 
-                // TODO: if the entity has just been added, it might crash because part of the Transform update is done at the Draw and we might have uninitialized values
+                // TODO: if the entity has just been added, part of the Transform update is done at the Draw and the world matrix might still be uninitialized
                 if (emitter.WorldTransform == Matrix.Zero)
-                    return;
+                    continue;
 
                 emitter.Forward = Vector3.Normalize((Vector3)emitter.WorldTransform.Row3);
                 emitter.Up = Vector3.Normalize((Vector3)emitter.WorldTransform.Row2);
