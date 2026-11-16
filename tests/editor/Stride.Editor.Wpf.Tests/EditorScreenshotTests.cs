@@ -104,6 +104,7 @@ public class EditorScreenshotTests
             try { proc.Kill(); } catch { }
             throw new TimeoutException($"{fixtureName} timed out after {timeoutMin}min");
         }
+        proc.WaitForExit(); // flush async readers
         // Snapshot per-fixture: the runner writes to <test-dll-dir>/ui-test-out-dpi100/{screenshots,
         // log.txt, done.json}; relocate that into <worktree>/ui-test-out-dpi100/<fixture>/ so the
         // comparator can find <newDir>/<sample>/screenshots/<frame>.png. Done before the exit checks
