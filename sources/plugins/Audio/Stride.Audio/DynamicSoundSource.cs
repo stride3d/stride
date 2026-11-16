@@ -363,6 +363,10 @@ namespace Stride.Audio
             Ended.TrySetResult(false);
             ReadyToPlay.TrySetResult(false);
 
+            // The native source is gone once the source is disposed: stopping it would touch freed memory.
+            if (isDisposed)
+                return;
+
             try
             {
                 AudioLayer.SourceStop(soundInstance.Source);
@@ -384,8 +388,15 @@ namespace Stride.Audio
                     // synchronously by the C# side before AudioEngine tears down the device.
                     foreach (var source in Sources)
                     {
-                        while (source.Commands.TryDequeue(out var cmd))
-                            if (cmd == AsyncCommand.Dispose) source.DisposeInternal();
+                        try
+                        {
+                            while (source.Commands.TryDequeue(out var cmd))
+                                if (cmd == AsyncCommand.Dispose) source.DisposeInternal();
+                        }
+                        catch (Exception e)
+                        {
+                            Logger.Error($"Failed to dispose the dynamic sound source '{source.GetType().Name}' at shutdown.", e);
+                        }
                     }
                     Sources.Clear();
                     return;
@@ -430,6 +441,9 @@ namespace Stride.Audio
                                 source.DisposeInternal();
                                 toRemove.Add(source);
                             }
+
+                            // A Play() on a faulted source is dropped above: it must not stay queued.
+                            source.playingQueued = false;
                             continue;
                         }
 
