@@ -57,6 +57,7 @@ jobs:
             -p:StridePlatforms=Windows `
             -p:StrideGraphicsApis=Direct3D11
       - name: Test
+        id: test
         run: |
           $filter = "${{ github.event.inputs.test-filter || inputs.test-filter }}"
           $repeat = [int]("${{ github.event.inputs.repeat || inputs.repeat || '1' }}")
@@ -83,6 +84,10 @@ jobs:
           reporter: dotnet-trx
           output-to: step-summary
           list-tests: 'failed'
+      - name: Failed tests
+        if: failure() && steps.test.outcome == 'failure'
+        shell: pwsh
+        run: ./.github/scripts/show-failed-tests.ps1
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v7
