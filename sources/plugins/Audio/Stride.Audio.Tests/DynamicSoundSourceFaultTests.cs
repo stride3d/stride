@@ -17,6 +17,7 @@ namespace Stride.Audio.Tests
             private readonly bool throwOnFill;
             private int fillCount;
             private int updateCount;
+            private int disposeCount;
 
             public ProbeSoundSource(bool throwOnFill) : base(null, 2, 4096)
             {
@@ -34,6 +35,8 @@ namespace Stride.Audio.Tests
             public ManualResetEventSlim Release { get; init; }
 
             public ManualResetEventSlim Blocked { get; } = new ManualResetEventSlim();
+
+            public int DisposeCount => Volatile.Read(ref disposeCount);
 
             public bool Disposed => Volatile.Read(ref isDisposed);
 
@@ -59,6 +62,7 @@ namespace Stride.Audio.Tests
 
             protected override void DisposeInternal()
             {
+                Interlocked.Increment(ref disposeCount);
                 base.DisposeInternal();
                 if (ThrowAfterDispose)
                     throw new InvalidOperationException("Dispose failed after the native source was destroyed.");
@@ -224,6 +228,56 @@ namespace Stride.Audio.Tests
             finally
             {
                 release.Set();
+                engine.Dispose();
+            }
+        }
+
+        [SkippableFact]
+        public async Task DisposingSourceThenInstanceThenEngineDisposesSourceOnce()
+        {
+            var engine = AudioEngineFactory.NewAudioEngine(new AudioDevice());
+            try
+            {
+                SkipWithoutAudioDevice(engine);
+                var source = new ProbeSoundSource(throwOnFill: false);
+                var instance = new SoundInstance(engine, engine.DefaultListener, source, 44100, mono: true);
+                source.Attach(instance);
+                Assert.True(await WaitUntil(() => source.UpdateCount > 0), "The source was never updated.");
+
+                source.Dispose();
+                instance.Dispose();
+                Assert.True(await WaitUntil(() => source.Disposed), "The source was not disposed by the worker.");
+
+                engine.Dispose();
+                Assert.Equal(1, source.DisposeCount);
+            }
+            finally
+            {
+                engine.Dispose();
+            }
+        }
+
+        [SkippableFact]
+        public async Task DisposingSourceTwiceDisposesItOnce()
+        {
+            var engine = AudioEngineFactory.NewAudioEngine(new AudioDevice());
+            try
+            {
+                SkipWithoutAudioDevice(engine);
+                var source = new ProbeSoundSource(throwOnFill: false);
+                var instance = new SoundInstance(engine, engine.DefaultListener, source, 44100, mono: true);
+                source.Attach(instance);
+                Assert.True(await WaitUntil(() => source.UpdateCount > 0), "The source was never updated.");
+
+                source.Dispose();
+                source.Dispose();
+                Assert.True(await WaitUntil(() => source.Disposed), "The source was not disposed by the worker.");
+
+                engine.Dispose();
+                Assert.Equal(1, source.DisposeCount);
+            }
+            finally
+            {
                 engine.Dispose();
             }
         }
