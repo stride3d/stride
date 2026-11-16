@@ -105,4 +105,16 @@ public sealed class VersionRulesTests
         Assert.Equal("4.5", VersionRules.ManagedKey("4.5", null));
         Assert.Equal("4.5-mystudio", VersionRules.ManagedKey("4.5", "mystudio"));
     }
+
+    private static readonly string[] PublishedAvalonia = ["4.5.0-nightly.20261115.12", "4.5.0-nightly.20261116.3", "4.5.0-beta1"];
+
+    [Theory]
+    [InlineData("4.5.0-nightly.20261116.3", "4.5.0-nightly.20261116.3")]
+    [InlineData("4.5.0-beta1", "4.5.0-beta1")]
+    // Not published at that version: the version installs with its main Game Studio only, never with another build
+    [InlineData("4.5.0-nightly.20261114.40", null)]
+    [InlineData("4.5.0", null)]
+    [InlineData("4.4.2", null)]
+    public void TheOtherGameStudioInstallsAtExactlyTheVersion(string version, string? expected)
+        => Assert.Equal(expected, VersionRules.CompanionBuild(PublishedAvalonia, V, V(version)));
 }
