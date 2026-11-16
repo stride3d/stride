@@ -28,7 +28,8 @@ namespace Stride.Shaders.Compiler.Direct3D
     ///   using the Direct3D compiler APIs (<c>fxc</c>).
     ///   It also handles Shader reflection to provide metadata about the compiled Shaders.
     /// </summary>
-    internal unsafe class ShaderCompiler : IShaderCompiler
+    /// <param name="cache">The bytecodes FXC gave for the HLSL of earlier stages.</param>
+    internal unsafe class ShaderCompiler(HlslBackendCache cache) : IShaderCompiler
     {
         // D3DCOMPILE constants from d3dcompiler.h in the Windows SDK for Windows 10.0.22621.0
 
@@ -102,6 +103,17 @@ namespace Stride.Shaders.Compiler.Direct3D
             ComPtr<ID3D10Blob> compileErrors = default;
             var bytecodeResult = new ShaderBytecodeResult();
 
+            // Effects share the bytecode of the same HLSL, and each fills its own reflection from it. With debug info, the
+            // shared bytecode names the HLSL file of the first effect: only a debugger shows it.
+            var cacheKey = ComputeCacheKey();
+            if (cache.FxcBytecodes.TryGetValue(cacheKey, out var cached))
+            {
+                bytecodeResult.Bytecode = new ShaderBytecode(stage, cached.Id, cached.Data);
+                bytecodeResult.DisassembleText = cached.DisassembleText;
+                UpdateReflection(bytecodeResult.Bytecode, reflection, bytecodeResult);
+                return bytecodeResult;
+            }
+
             HResult result = Compile();
 
             if (result.IsSuccess && bytecode.Handle is not null)
@@ -123,6 +135,11 @@ namespace Stride.Shaders.Compiler.Direct3D
                 if (compileErrors.Handle is not null)
                 {
                     ProcessCompilerErrors(compileErrors, bytecodeResult, sourceFilename);
+                }
+                // FXC's messages name the effect: an output with messages is not shared
+                else
+                {
+                    cache.FxcBytecodes.TryAdd(cacheKey, new FxcBytecode(bytecodeId, bytecodeResult.Bytecode.Data, bytecodeResult.DisassembleText));
                 }
             }
 
@@ -168,6 +185,17 @@ namespace Stride.Shaders.Compiler.Direct3D
                 };
             }
 
+
+            //
+            // Hashes everything FXC reads: the source, the entry point, the Shader Model and the flags.
+            //
+            ObjectId ComputeCacheKey()
+            {
+                var builder = new ObjectIdBuilder();
+                builder.Write($"{shaderModel}|{shaderFlags}|{effectFlags}|{entryPoint}|");
+                builder.Write(shaderSource);
+                return builder.ComputeHash();
+            }
 
             //
             // Compiles the Shader source code to byte-code for the specified Shader Model.
