@@ -215,8 +215,8 @@ namespace Stride.Audio
         protected override void DisposeInternal()
         {
             base.DisposeInternal();
-            compressedSoundStream.Dispose();
-            decoder.Dispose();
+            compressedSoundStream?.Dispose();
+            decoder?.Dispose();
         }
 
         protected override unsafe void ExtractAndFillData()
