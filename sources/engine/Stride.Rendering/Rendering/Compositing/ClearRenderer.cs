@@ -77,7 +77,9 @@ namespace Stride.Rendering.Compositing
             // clear the targets
             if (depthStencil != null && (ClearFlags == ClearRendererFlags.ColorAndDepth || ClearFlags == ClearRendererFlags.DepthOnly))
             {
-                var clearOptions = DepthStencilClearOptions.DepthBuffer | DepthStencilClearOptions.Stencil;
+                var clearOptions = depthStencil.HasStencil
+                    ? DepthStencilClearOptions.DepthBuffer | DepthStencilClearOptions.Stencil
+                    : DepthStencilClearOptions.DepthBuffer;
 
                 commandList.Clear(depthStencil, clearOptions, Depth, Stencil);
             }
