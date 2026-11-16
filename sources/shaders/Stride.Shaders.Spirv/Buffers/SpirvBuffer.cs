@@ -18,9 +18,6 @@ public sealed class SpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
     // internal ref OpData this[int index] => ref CollectionsMarshal.AsSpan(Instructions)[index];
     public OpDataIndex this[int index] => new(index, this);
 
-    public List<OpData> Slice(int start, int length) => Instructions.Slice(start, length);
-
-
     public ref OpData GetRef(int index) => ref CollectionsMarshal.AsSpan(Instructions)[index];
 
     public SpirvBuffer(Span<int> instructions) : this()
@@ -98,33 +95,61 @@ public sealed class SpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
     /// Removes an instruction at a certain index. 
     /// <br/>Be careful when using this method, as it will invalidate any references to the removed instruction.
     /// </summary>
-    /// <param name="index"></param>
-    /// <param name="dispose">Whether to dispose the removed instruction.</param>
-    public void RemoveAt(int index, bool dispose = true)
+    public void RemoveAt(int index)
     {
         if (index < 0 || index >= Instructions.Count)
             throw new ArgumentOutOfRangeException();
-        if (dispose)
-            Instructions[index].Dispose();
+        Instructions[index].Dispose();
         Instructions.RemoveAt(index);
         StructureVersion++;
     }
 
-    public void RemoveRange(int index, int count, bool dispose = true)
+    public void RemoveRange(int index, int count)
     {
-        if (dispose)
-        {
-            for (int i = index; i < index + count; ++i)
-                Instructions[i].Dispose();
-        }
+        for (int i = index; i < index + count; ++i)
+            Instructions[i].Dispose();
         Instructions.RemoveRange(index, count);
         StructureVersion++;
     }
 
-    public void InsertRange(int index, params ReadOnlySpan<OpData> source)
+    /// <summary>
+    /// Removes the instructions that match, keeping the order of the others.
+    /// </summary>
+    /// <param name="match">Called once per instruction, in order, before any instruction after it moves.</param>
+    public void RemoveAll(Func<OpDataIndex, bool> match)
+    {
+        var kept = 0;
+        for (var index = 0; index < Instructions.Count; index++)
+        {
+            if (match(new(index, this)))
+                Instructions[index].Dispose();
+            else
+                Instructions[kept++] = Instructions[index];
+        }
+        Instructions.RemoveRange(kept, Instructions.Count - kept);
+        StructureVersion++;
+    }
+
+    /// <summary>
+    /// Moves the instructions of <paramref name="source"/> to <paramref name="index"/>, and leaves <paramref name="source"/> empty.
+    /// </summary>
+    public void InsertRange(int index, SpirvBuffer source)
     {
         InsertingAt(index);
-        Instructions.InsertRange(index, source);
+        Instructions.InsertRange(index, source.Instructions);
+        source.Instructions.Clear();
+    }
+
+    /// <summary>
+    /// Moves a range of instructions out of this buffer, into a new buffer.
+    /// </summary>
+    public SpirvBuffer ExtractRange(int index, int count)
+    {
+        var result = new SpirvBuffer();
+        result.Instructions.AddRange(CollectionsMarshal.AsSpan(Instructions).Slice(index, count));
+        Instructions.RemoveRange(index, count);
+        StructureVersion++;
+        return result;
     }
 
     private void InsertingAt(int index)
@@ -133,25 +158,23 @@ public sealed class SpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
             StructureVersion++;
     }
 
-    public OpData Replace(int index, OpData i, bool dispose = true)
+    public OpData Replace(int index, OpData i)
     {
         if (index < 0 || index >= Instructions.Count)
             throw new InvalidOperationException();
 
-        if (dispose)
-            Instructions[index].Dispose();
+        Instructions[index].Dispose();
         Instructions[index] = i;
         StructureVersion++;
         return Instructions[index];
     }
 
-    public OpData Replace<T>(int index, in T instruction, bool dispose = true) where T : struct, IMemoryInstruction, allows ref struct
+    public OpData Replace<T>(int index, in T instruction) where T : struct, IMemoryInstruction, allows ref struct
     {
         if (index < 0 || index >= Instructions.Count)
             throw new InvalidOperationException();
 
-        if (dispose)
-            Instructions[index].Dispose();
+        Instructions[index].Dispose();
         Instructions[index] = new(instruction.InstructionMemory);
         StructureVersion++;
         return Instructions[index];
@@ -262,11 +285,16 @@ public sealed class SpirvBuffer() : IDisposable, IEnumerable<OpDataIndex>
         Instructions.Clear();
     }
 
+    /// <summary>
+    /// Copies the instructions of two buffers into a new buffer.
+    /// </summary>
     public static SpirvBuffer Merge(SpirvBuffer buffer1, SpirvBuffer buffer2)
     {
         var result = new SpirvBuffer();
-        result.Instructions.AddRange(buffer1.Instructions);
-        result.Instructions.AddRange(buffer2.Instructions);
+        foreach (var i in buffer1)
+            result.Add(new OpData(i.Words));
+        foreach (var i in buffer2)
+            result.Add(new OpData(i.Words));
         return result;
     }
 

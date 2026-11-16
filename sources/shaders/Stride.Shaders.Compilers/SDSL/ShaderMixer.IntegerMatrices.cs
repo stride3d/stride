@@ -4,6 +4,7 @@
 using Stride.Shaders.Core;
 using Stride.Shaders.Spirv.Building;
 using Stride.Shaders.Spirv.Core;
+using Stride.Shaders.Spirv.Core.Buffers;
 using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Compilers.SDSL;
@@ -49,8 +50,8 @@ public partial class ShaderMixer
             var words = context[i].Words;
             if (context[i].Op == op && words[resultIndex] == id)
             {
-                var data = context[i].Data;
-                context.RemoveAt(i, dispose: false);
+                var data = new OpData(words);
+                context.RemoveAt(i);
                 context.Insert(index++, data);
                 return;
             }

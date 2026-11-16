@@ -53,8 +53,8 @@ public partial class SpirvContext
                 // Note: it should be safe to do so as the source buffer has all the dependencies and they should have been inserted in previous loops
                 if (existingData.Index > instructionIndex)
                 {
-                    var existingDataCopy = new OpData(existingData.Data.Memory);
-                    typeDuplicateInserter.RemoveInstructionAt(existingData.Index, false);
+                    var existingDataCopy = new OpData(existingData.Words);
+                    typeDuplicateInserter.RemoveInstructionAt(existingData.Index);
                     existingData = typeDuplicateInserter.InsertInstruction(instructionIndex++, existingDataCopy);
                 }
                 remapIds.Add(iData.IdResult!.Value, existingData.Data.IdResult!.Value);

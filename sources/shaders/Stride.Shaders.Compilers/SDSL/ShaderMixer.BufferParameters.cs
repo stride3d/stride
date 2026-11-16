@@ -174,7 +174,7 @@ public partial class ShaderMixer
                 remapIds.Add(resultId, context.Bound++);
         }
 
-        var copied = new List<OpData>(end - start);
+        using var copied = new SpirvBuffer();
         parameterIndex = 0;
         for (var index = start; index < end; index++)
         {
@@ -208,7 +208,8 @@ public partial class ShaderMixer
             }
         }
 
-        buffer.InsertRange(end, System.Runtime.InteropServices.CollectionsMarshal.AsSpan(copied));
-        return (remapIds[function], end, copied.Count);
+        var count = copied.Count;
+        buffer.InsertRange(end, copied);
+        return (remapIds[function], end, count);
     }
 }

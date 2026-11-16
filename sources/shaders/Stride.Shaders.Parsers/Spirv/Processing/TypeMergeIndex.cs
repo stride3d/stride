@@ -89,29 +89,26 @@ public sealed class TypeMergeIndex
 
     /// <summary>
     /// Turns the names and decorations of a duplicate type into <see cref="Op.OpNop"/>, and returns the decorations that only
-    /// one of the two types has. Names may differ.
+    /// one of the two types has, as text. Names may differ.
     /// </summary>
-    /// <remarks>
-    /// The entries of the removed type are copies, which the caller disposes.
-    /// </remarks>
-    public List<(OpData Data, bool OnKeepOnly)>? MergeTypeDecorations(int keepId, int removeId)
+    public List<(string Instruction, bool OnKeepOnly)>? MergeTypeDecorations(int keepId, int removeId)
     {
         RebuildIfMoved();
         var keep = DecorationsOf(keepId);
         var remove = DecorationsOf(removeId);
-        List<(OpData Data, bool OnKeepOnly)>? mismatches = null;
+        List<(string Instruction, bool OnKeepOnly)>? mismatches = null;
 
         foreach (var position in remove)
         {
             var data = context[position].Data;
             if (data.Op != Op.OpName && !ContainsDecoration(keep, data))
-                (mismatches ??= []).Add((new OpData(data.Memory.Span), false));
+                (mismatches ??= []).Add((data.ToString(), false));
         }
         foreach (var position in keep)
         {
             var data = context[position].Data;
             if (data.Op != Op.OpName && !ContainsDecoration(remove, data))
-                (mismatches ??= []).Add((data, true));
+                (mismatches ??= []).Add((data.ToString(), true));
         }
 
         foreach (var position in remove)

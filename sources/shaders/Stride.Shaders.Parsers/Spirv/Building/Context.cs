@@ -296,8 +296,8 @@ public partial class SpirvContext
     public OpDataIndex Add(OpData data)
     { ThrowIfFrozen(); return Buffer.Add(data); }
 
-    public void RemoveAt(int index, bool dispose = true)
-    { ThrowIfFrozen(); Buffer.RemoveAt(index, dispose); }
+    public void RemoveAt(int index)
+    { ThrowIfFrozen(); Buffer.RemoveAt(index); }
 
     public OpData Replace<T>(int index, in T instruction) where T : struct, IMemoryInstruction, allows ref struct
     { ThrowIfFrozen(); return Buffer.Replace(index, instruction); }
