@@ -52,3 +52,5 @@ The editor codebase spans `sources/presentation/` (MVVM framework, Quantum-to-UI
 | [projects.md](projects.md) | Project inventory, WPF boundary rule, assembly map |
 | [custom-editor.md](custom-editor.md) | Custom asset editor: base class, registration, lifecycle, services, MVVM patterns |
 | [editors.md](editors.md) | Existing editors catalogue: SpriteSheet, Scene, Prefab, UIPage, UILibrary, GraphicsCompositor, Script, VisualScript |
+
+To try an editor change on a clean machine (Game Studio in Windows Sandbox, driven by a script), see [build/tools/sandbox](../../build/tools/sandbox/README.md).

@@ -22,6 +22,7 @@ When you review a pull request, also follow [REVIEW.md](REVIEW.md).
 - Check exit codes and test counts. A `dotnet test --filter` that matches no test still exits with 0. Some test projects set `EnableDefaultItems` to `false` (for example `Stride.Assets.Tests`), so a new test file there needs its own `<Compile>` item, or it never runs.
 - When two checkouts of Stride build at the same time, the shared compiler server can run the shader source generator of the other checkout. Build with `-p:UseSharedCompilation=false` in that case. Don't run `dotnet build-server shutdown`: other builds use the server.
 - Packaging tests (`tests/enduser/Stride.Packaging.Tests`) need real packages: build and run them with `-p:StrideRedirectPackages=false`.
+- To try a change in Game Studio, use [build/tools/sandbox](build/tools/sandbox/README.md). It runs Game Studio in Windows Sandbox, a clean Windows, off the user's desktop. A script clicks in it, takes pictures, reads the log and runs the game. Ask the user before your first `start` in a task: it needs Windows Sandbox turned on, and while it runs it takes 16 GB of memory and the GPU. `stop` it when the task no longer needs it.
 - Linux: build and test in a clone inside the Linux file system, never in a Windows checkout through `/mnt/c`, and never copy a Windows checkout into Linux (its files have CRLF line endings there). See [Linux and WSL](docs/build/README.md#building-and-testing-on-linux-wsl).
 
 ## Code
