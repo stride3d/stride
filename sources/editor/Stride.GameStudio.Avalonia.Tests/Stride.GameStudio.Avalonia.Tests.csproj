@@ -45,12 +45,15 @@
     <Compile Include="..\Stride.Core.Assets.Editor.Avalonia.Tests\Helpers\DispatcherPump.cs">
       <Link>Helpers\DispatcherPump.cs</Link>
     </Compile>
-    <!-- The fake builder and game launcher of the build view model tests -->
+    <!-- The fake builder, game launcher and adb of the build view model tests -->
     <Compile Include="..\Stride.Core.Assets.Editor.Tests\Helpers\FakeGameProjectBuilder.cs">
       <Link>Helpers\FakeGameProjectBuilder.cs</Link>
     </Compile>
     <Compile Include="..\Stride.Core.Assets.Editor.Tests\Helpers\FakeGameLauncher.cs">
       <Link>Helpers\FakeGameLauncher.cs</Link>
+    </Compile>
+    <Compile Include="..\Stride.Core.Assets.Editor.Tests\Helpers\FakeAdb.cs">
+      <Link>Helpers\FakeAdb.cs</Link>
     </Compile>
     <!-- A NuGet setup of its own (feed, global packages folder, nuget.config), for the extensions of the Plugins panel -->
     <Compile Include="..\..\assets\Stride.Core.Assets.Tests\Helpers\LocalPackageFeed.cs">
