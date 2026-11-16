@@ -24,6 +24,7 @@ param(
     [string]$GoldDir,                                      # Override gold push source; defaults to <RepoRoot>/tests/baselines/<Suite>
     [string]$ResultsDir,                                   # Override result pull dest; defaults to <RepoRoot>/tests/local/<Suite>
     [string]$CacheDir,                                     # Host copy of the app's cache (its compiled effects): copied in after the install, back after the run
+    [string]$MetalCacheDir,                                # Host copy of the app's Metal shader caches: copied in after the install, back after the run
     [string]$Simulator = 'booted',                         # 'booted' (use whatever is booted), a UDID, or a device-type+OS pair (e.g. 'iPhone 15')
     [int]$TimeoutSeconds = 1800,                           # max wait for tests to finish
     [string]$Filter,                                       # optional vstest --filter expr passed on to the on-device runner
@@ -184,6 +185,12 @@ if ($CacheDir -and (Test-Path $CacheDir)) {
     Write-Host "Pushing effect cache $CacheDir -> $cacheOnDevice"
     Copy-EffectCache $CacheDir $cacheOnDevice
 }
+# Metal keeps the app's compiled shaders in Library/Caches/<bundle id>
+$metalCacheOnDevice = Join-Path $cacheOnDevice $Package
+if ($MetalCacheDir -and (Test-Path $MetalCacheDir)) {
+    Write-Host "Pushing Metal cache $MetalCacheDir -> $metalCacheOnDevice"
+    & ditto $MetalCacheDir $metalCacheOnDevice
+}
 
 # Clear previous results so a stale TRX doesn't fool detection.
 $resultsOnDevice = Join-Path $dataContainer "Documents/tests/local"
@@ -313,6 +320,10 @@ if (Test-Path $resultsOnDevice) {
 if ($CacheDir) {
     Write-Host "Pulling effect cache $cacheOnDevice -> $CacheDir"
     Copy-EffectCache $cacheOnDevice $CacheDir
+}
+if ($MetalCacheDir -and (Test-Path $metalCacheOnDevice)) {
+    Write-Host "Pulling Metal cache $metalCacheOnDevice -> $MetalCacheDir"
+    & ditto $metalCacheOnDevice $MetalCacheDir
 }
 
 # 7. Parse TRX for pass/fail

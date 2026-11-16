@@ -118,6 +118,23 @@ jobs:
         with:
           mode: restore
           lane: iOS-Vulkan-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+      # Metal's shader caches: the app's, and SimMetalHost's, which compiles the simulator's shaders on the host.
+      # The key holds the runner image, which brings Xcode and the simulator runtimes, and the ISO week, so the
+      # pipelines of old shader versions drop out as the effect cache's do.
+      - name: Metal cache paths
+        run: |
+          echo "STRIDE_METAL_APP_CACHE=$RUNNER_TEMP/metal-cache/app" >> "$GITHUB_ENV"
+          echo "STRIDE_METAL_HOST_CACHE=$(getconf DARWIN_USER_CACHE_DIR)com.apple.CoreSimulator.SimRenderingServices.SimMetalHost" >> "$GITHUB_ENV"
+          echo "STRIDE_METAL_CACHE_PREFIX=metal-cache-$ImageOS-$ImageVersion-$(date -u +%G-W%V)-" >> "$GITHUB_ENV"
+      - name: Restore the Metal cache
+        id: metal-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: |
+            ${{ env.STRIDE_METAL_APP_CACHE }}
+            ${{ env.STRIDE_METAL_HOST_CACHE }}
+          key: ${{ env.STRIDE_METAL_CACHE_PREFIX }}${{ github.sha }}
+          restore-keys: ${{ env.STRIDE_METAL_CACHE_PREFIX }}
 
       - name: Install iOS + macOS Workloads
         # macOS workload is needed because the engine libs cross-target net10.0-macos (for the
@@ -288,6 +305,7 @@ jobs:
                   '-ResultsDir', "$PWD/tests/local",
                   # Where the effect-cache action keeps it
                   '-CacheDir', "$PWD/bin/Tests/$suite/iOS-Vulkan/$config/cache",
+                  '-MetalCacheDir', "$env:STRIDE_METAL_APP_CACHE/$package",
                   '-TimeoutSeconds', '1800',
                   '-KeepSimulator',
                   '-StreamLog'
@@ -306,10 +324,23 @@ jobs:
               exit $worstExit
           }
       - uses: ./.github/actions/effect-cache
+        id: effect-cache-save
         if: success() || failure()
         with:
           mode: save
           lane: iOS-Vulkan-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+      # Metal writes to its files on every run, so they change even when nothing new compiled. New pipelines come
+      # with new effects: save when the effect cache grew, or when no Metal cache was restored.
+      - name: Save the Metal cache
+        if: >-
+          (success() || failure()) && github.event_name != 'pull_request' &&
+          (steps.effect-cache-save.outputs.grew == 'true' || steps.metal-cache.outputs.cache-matched-key == '')
+        uses: actions/cache/save@v6
+        with:
+          path: |
+            ${{ env.STRIDE_METAL_APP_CACHE }}
+            ${{ env.STRIDE_METAL_HOST_CACHE }}
+          key: ${{ env.STRIDE_METAL_CACHE_PREFIX }}${{ github.sha }}
 
       - name: Publish Test Report
         if: always()
