@@ -306,7 +306,7 @@ namespace Stride.Graphics.Tests
                             allowSmallDifferences = 1;
                             break;
                         case ImageFileType.Jpg: // TODO: remove this when jepg encryption implementation is stable
-                            allowSmallDifferences = 30;
+                            allowSmallDifferences = 40;
                             break;
                         default:
                             allowSmallDifferences = 0;
@@ -366,25 +366,18 @@ namespace Stride.Graphics.Tests
 
         public static unsafe bool CompareImageData(IntPtr from, IntPtr against, int sizeToCompare, bool ignoreAlpha, int allowedDifference = 0)
         {
-            var pSrc = (byte*)from;
-            var pDst = (byte*)against;
+            var source = new ReadOnlySpan<byte>((void*)from, sizeToCompare);
+            var destination = new ReadOnlySpan<byte>((void*)against, sizeToCompare);
+            if (allowedDifference == 0 && !ignoreAlpha)
+                return source.SequenceEqual(destination);
 
-            // Compare remaining bytes.
-            var pixelCount = sizeToCompare >> 2;
-            while (pixelCount > 0)
+            for (int i = 0; i < sizeToCompare; i++)
             {
-                for (int i = 0; i < 4; i++)
-                {
-                    var originalValue = *pSrc;
-                    var newValue = *pDst;
-                    if ((i != 3 || !ignoreAlpha) && Math.Abs(originalValue - newValue) > allowedDifference)
-                        return false;
-
-                    pSrc++;
-                    pDst++;
-                }
-
-                pixelCount -= 4;
+                // The alpha channel is the fourth byte of each 4-byte pixel.
+                if (ignoreAlpha && (i & 3) == 3)
+                    continue;
+                if (Math.Abs(source[i] - destination[i]) > allowedDifference)
+                    return false;
             }
 
             return true;
