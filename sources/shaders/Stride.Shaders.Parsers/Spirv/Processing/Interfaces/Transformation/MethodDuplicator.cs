@@ -35,9 +35,9 @@ internal static class MethodDuplicator
         if (methodInfo.OriginalMethodCode == null)
         {
             // Copy instructions memory (since we're going to mutate them and want to retain original version)
-            var methodInstructions = buffer.Slice(methodStart, methodEnd - methodStart);
-            foreach (ref var i in CollectionsMarshal.AsSpan(methodInstructions))
-                i = new OpData(i.Memory.Span);
+            var methodInstructions = new SpirvBuffer();
+            for (var index = methodStart; index < methodEnd; index++)
+                methodInstructions.Add(new OpData(buffer[index].Words));
 
             methodInfo.OriginalMethodCode = methodInstructions;
         }
@@ -47,7 +47,7 @@ internal static class MethodDuplicator
             var remapIds = new Dictionary<int, int>();
             foreach (var i in methodInfo.OriginalMethodCode)
             {
-                if (i.IdResult is int originalId)
+                if (i.Data.IdResult is int originalId)
                 {
                     // Save copied function ID
                     if (i.Op == Op.OpFunction)
@@ -56,15 +56,15 @@ internal static class MethodDuplicator
                 }
             }
 
-            var copiedInstructions = new List<OpData>();
+            var copiedInstructions = new SpirvBuffer();
             foreach (var i in methodInfo.OriginalMethodCode)
             {
-                var i2 = new OpData(i.Memory.Span);
+                var i2 = new OpData(i.Words);
                 SpirvBuilder.RemapIds(remapIds, ref i2);
                 copiedInstructions.Add(i2);
 
                 // Copy names too
-                if (i.IdResult is int resultId)
+                if (i.Data.IdResult is int resultId)
                 {
                     if (analysisResult.Names.TryGetValue(resultId, out var name))
                         context.AddName(i2.IdResult!.Value, name);
@@ -76,8 +76,9 @@ internal static class MethodDuplicator
 
             liveAnalysis.ExtraReferencedMethods.Add(methodInfo.ThisStageMethodId.Value);
 
-            buffer.InsertRange(methodEnd, CollectionsMarshal.AsSpan(copiedInstructions));
-            codeInserted?.Invoke(methodEnd, copiedInstructions.Count);
+            var count = copiedInstructions.Count;
+            buffer.InsertRange(methodEnd, copiedInstructions);
+            codeInserted?.Invoke(methodEnd, count);
         }
     }
 }

@@ -28,16 +28,10 @@ internal static class ReadWriteAnalyzer
         methodInfo.UsedThisStage = true;
 
         // If method was mutated by another stage, we work on the original copy instead
-        List<OpData> methodInstructions;
-        if (methodInfo.OriginalMethodCode != null)
-        {
-            methodInstructions = methodInfo.OriginalMethodCode;
-        }
-        else
-        {
-            (var methodStart, var methodEnd) = SpirvBuilder.FindMethodBounds(buffer, functionId);
-            methodInstructions = buffer.Slice(methodStart, methodEnd - methodStart);
-        }
+        var methodInstructions = methodInfo.OriginalMethodCode ?? buffer;
+        var (methodStart, methodEnd) = methodInfo.OriginalMethodCode is { } originalCode
+            ? (0, originalCode.Count)
+            : SpirvBuilder.FindMethodBounds(buffer, functionId);
 
         var streamsInstructionIds = new Dictionary<int, StreamsKindSDSL>();
         var patchInstructionIds = new Dictionary<int, StreamsKindSDSL>();
@@ -53,8 +47,9 @@ internal static class ReadWriteAnalyzer
         var openMerges = new HashSet<int>();
         var returnedEarly = false;
 
-        foreach (ref var i in CollectionsMarshal.AsSpan(methodInstructions))
+        for (var index = methodStart; index < methodEnd; index++)
         {
+            ref var i = ref methodInstructions.GetRef(index);
             if (i.Op is Op.OpLine && new OpLine(ref i) is { } line)
                 currentLine = (line.File, line.Line, line.Column);
             else if (i.Op is Op.OpSelectionMerge && new OpSelectionMerge(ref i) is { } selectionMerge)

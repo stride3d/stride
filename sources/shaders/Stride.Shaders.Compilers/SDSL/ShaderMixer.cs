@@ -692,10 +692,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                                 if (mismatches != null)
                                 {
                                     var details = string.Join("; ", mismatches.Select(m =>
-                                        $"{m.Data} (only on {(m.OnKeepOnly ? "kept" : "removed")} type)"));
+                                        $"{m.Instruction} (only on {(m.OnKeepOnly ? "kept" : "removed")} type)"));
                                     globalContext.Log.Warning($"Mismatched decorations when merging type {duplicateId} into {existingInstruction.Data.IdResult.Value}: {details}");
-                                    foreach (var entry in mismatches)
-                                        if (!entry.OnKeepOnly) entry.Data.Dispose();
                                 }
                             }
                         }
@@ -909,25 +907,24 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             throw new InvalidOperationException($"Could not find compositions for expression [{@foreach.Collection}]");
 
         // Extract foreach buffer (with the foreach start/end)
-        var foreachBuffer = buffer[index..endIndex];
-        buffer.RemoveRange(index, foreachBuffer.Count, false);
+        using var foreachBuffer = buffer.ExtractRange(index, endIndex - index);
 
-        var foreachBufferCopy = new List<OpData>();
+        using var foreachBufferCopy = new SpirvBuffer();
         // Note: Make sure we replace the OpForeachSDSL with a first OpNop, so that if a for() loop works fine and don't miss an instruction without having to do index--
-        foreachBufferCopy.Add(new OpData(new OpNop().InstructionMemory));
+        foreachBufferCopy.Add(new OpNop());
         for (int j = 0; j < compositions.Length; ++j)
         {
             var idRemapping = new Dictionary<int, int>();
 
             // Setup variable for iterator access
             var accessChain = new OpAccessChain(0, context.Bound++, @foreach.Collection, [context.CompileConstant(j).Id]);
-            foreachBufferCopy.Add(new(accessChain.InstructionMemory));
+            foreachBufferCopy.Add(accessChain);
             idRemapping.Add(@foreach.ResultId, accessChain);
 
             // Do a first pass to find all IDs (OpBranch might point to OpLabel which are defined further)
-            foreach (var i in foreachBuffer[1..^1])
+            for (var k = 1; k < foreachBuffer.Count - 1; k++)
             {
-                if (i.IdResult is int result)
+                if (foreachBuffer[k].Data.IdResult is int result)
                 {
                     // Also duplicate name (if any)
                     if (context.Names.TryGetValue(result, out var name))
@@ -936,9 +933,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 }
             }
             // Build a buffer with all foreach instructions (with new ids)
-            foreach (var i in foreachBuffer[1..^1]) // skip start/end
+            for (var k = 1; k < foreachBuffer.Count - 1; k++) // skip start/end
             {
-                var i2 = new OpData(i.Memory.Span);
+                var i2 = new OpData(foreachBuffer[k].Words);
                 // All result ids are remapped to new ids
                 SpirvBuilder.RemapIds(idRemapping, ref i2);
 
@@ -949,20 +946,18 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         // Clean OpName used by removed instructions (only for IdResult)
         var removedIds = new HashSet<int>();
         foreach (var i in foreachBuffer)
-            if (i.IdResult is { } idResult)
+            if (i.Data.IdResult is { } idResult)
                 removedIds.Add(idResult);
         context.RemoveNameAndDecorations(removedIds);
 
         // Insert new code
-        buffer.InsertRange(index, foreachBufferCopy.AsSpan());
+        var insertCount = foreachBufferCopy.Count;
+        buffer.InsertRange(index, foreachBufferCopy);
 
         // Note: mixinNode is not added to rootMixin hierarchy yet
         //       Moreover, we are the last mixin (or one of our child is)
         //       So we need (and it's safe) to call this on mixinNode rather than root node
-        AdjustIndicesAfterAppendInstructions(mixinNode, index, foreachBufferCopy.Count - foreachBuffer.Count);
-
-        foreach (var inst in foreachBuffer)
-            inst.Dispose();
+        AdjustIndicesAfterAppendInstructions(mixinNode, index, insertCount - foreachBuffer.Count);
     }
 
     // Note: Make sure to call it on propre node (i.e. either last mixin node (if just added) or root, otherwise it won't increment the MixinNode after current one 
@@ -1278,30 +1273,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         return success;
     }
 
-    private static void RemoveInstructionWhere(SpirvBuffer buffer, Func<OpDataIndex, bool> match)
-    {
-        int insertIndex = 0;
-        for (int sourceIndex = 0; sourceIndex < buffer.Count; sourceIndex++)
-        {
-            var i = buffer[sourceIndex];
-            var remove = match(i);
-
-            if (!remove)
-            {
-                if (insertIndex++ != sourceIndex)
-                    // Note: we're not using Dispose() since we simply move it
-                    buffer.Replace(insertIndex - 1, buffer[sourceIndex].Data, false);
-            }
-            else
-            {
-                buffer[sourceIndex].Data.Dispose();
-            }
-        }
-
-        // Remove leftover instructions (they have been either disposed or moved so no need to dispose them)
-        buffer.RemoveRange(insertIndex, buffer.Count - insertIndex, false);
-    }
-
     private static void CleanupUnnecessaryInstructions(MixinGlobalContext globalContext, SpirvContext context, SpirvBuffer temp, Options options)
     {
         // Process OpTypeFunctionSDSL
@@ -1343,7 +1314,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         }
 
         // Remove in a single pass (we do in-place without RemoveAt otherwise it would be up to O(n^2) complexity)
-        RemoveInstructionWhere(temp, i =>
+        temp.RemoveAll(i =>
         {
             // Remove Nop
             if (i.Op == Op.OpNop)
@@ -1425,7 +1396,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
         // Remove unnecessary OpName/OpDecorate/OpDecorateString
         // Note: we should issue a warning and make sure those are deleted as we process stuff?
-        RemoveInstructionWhere(temp, i =>
+        temp.RemoveAll(i =>
         {
             if (i.Op == Op.OpName && (OpName)i is { } nameInstruction)
             {
