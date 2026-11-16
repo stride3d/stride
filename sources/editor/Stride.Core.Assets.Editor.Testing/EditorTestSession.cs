@@ -12,11 +12,13 @@ namespace Stride.Core.Assets.Editor.Testing;
 
 /// <summary>
 /// A session over a package written for the test in a temporary folder, opened the way the editor opens one, with an
-/// <see cref="ExclusiveDispatcherService"/> as the UI thread.
+/// <see cref="ExclusiveDispatcherService"/> as the UI thread, or the dispatcher of the test's UI thread
+/// (<see cref="EditorTestSessionOptions.Dispatcher"/>).
 /// </summary>
 /// <remarks>
 /// <para>The session opens in the dispatcher, and a test that awaits <see cref="OpenAsync"/> goes on there
 /// (<see cref="DispatcherTask{TResult}"/>): it changes the session and disposes it there, as the editor does on its UI thread.
+/// A session on the test's UI thread opens from that thread, and the test stays there.
 /// Disposing destroys the session, disposes its plugin host when the host is disposable (the plugins leave the session and their
 /// close actions run, as when the editor closes a session), waits for its background work and deletes the folder.</para>
 /// <para>The package loads without the NuGet restore and the MSBuild evaluation of its project, which have nothing to give for it
@@ -106,11 +108,16 @@ public sealed class EditorTestSession : IAsyncDisposable
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(options.Plugins);
         ArgumentNullException.ThrowIfNull(assets);
+        if (options.Dispatcher is { } uiThread && uiThread is not ExclusiveDispatcherService && !uiThread.CheckAccess())
+            throw new InvalidOperationException("A session on the dispatcher of a UI thread opens from that thread: the test runs on it, as a test of views does.");
         // Fails at once when another test has a session open, rather than hang with it
         var registration = OpenSessions.Add();
         try
         {
-            return DispatcherTask.InDispatcher(() => OpenCoreAsync(options, assets, registration));
+            return options.Dispatcher is null or ExclusiveDispatcherService
+                ? DispatcherTask.InDispatcher(() => OpenCoreAsync(options, assets, registration))
+                // The test is on the UI thread: the session opens there, and the test goes on there
+                : new DispatcherTask<EditorTestSession>(OpenCoreAsync(options, assets, registration));
         }
         catch
         {
@@ -179,7 +186,7 @@ public sealed class EditorTestSession : IAsyncDisposable
 
     private static async Task<EditorTestSession> OpenCoreAsync(EditorTestSessionOptions options, (string Location, Asset Asset)[] assets)
     {
-        var dispatcher = new ExclusiveDispatcherService();
+        var dispatcher = options.Dispatcher ?? new ExclusiveDispatcherService();
         dispatcher.EnsureAccess();
         var directory = Path.Combine(Path.GetTempPath(), "StrideEditorTestSessions", Guid.NewGuid().ToString("N"));
         var packageName = options.PackageName ?? DefaultPackageName;
@@ -253,6 +260,16 @@ public sealed class EditorTestSessionOptions
     /// The name of the package; <see cref="EditorTestSession.DefaultPackageName"/> when <c>null</c>.
     /// </summary>
     public string? PackageName { get; init; }
+
+    /// <summary>
+    /// The UI thread of the session; a new <see cref="ExclusiveDispatcherService"/> when <c>null</c>.
+    /// </summary>
+    /// <remarks>
+    /// A test of views gives the dispatcher of its toolkit's UI thread (the <c>DispatcherService</c> of
+    /// <c>Stride.Core.Presentation.Avalonia</c> for Avalonia) and opens the session from that thread, as a headless test runs: the
+    /// session's work then reaches the views on their thread, and the test never leaves it. Its awaits let the session's work run.
+    /// </remarks>
+    public IDispatcherService? Dispatcher { get; init; }
 
     /// <summary>
     /// Runs once the session is open, in the dispatcher, before its initialization ends: for example to initialize the plugins of
