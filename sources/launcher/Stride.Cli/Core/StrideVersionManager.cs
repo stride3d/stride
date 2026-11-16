@@ -216,7 +216,8 @@ public sealed class StrideVersionManager
 
     /// <summary>
     ///   Updates installed lines to their newest patch: installs the newest patch, records it as the line's
-    ///   managed version, and uninstalls the previously managed one (manual installs are kept). With no line,
+    ///   managed version, and uninstalls the previously managed one. A newest patch installed manually already is
+    ///   left the user's, not recorded, so a later update keeps it (<see cref="VersionRules.UpdateStep"/>). With no line,
     ///   every installed line is updated. A line follows its releases (its prereleases while it has none, or while the newest
     ///   release or prerelease installed in it is a prerelease), or with <paramref name="tag"/> the custom builds
     ///   of that tag, and the lines of the installed custom builds follow their tag, each managed apart
@@ -240,24 +241,26 @@ public sealed class StrideVersionManager
                 continue;
             var newest = available.First(package => package.Version == newestVersion);
             var key = VersionRules.ManagedKey(targetLine, targetTag);
+            var previous = managed.TryGetValue(key, out var previousText) && PackageVersion.TryParse(previousText, out var previousVersion) ? previousVersion : null;
             // A line never goes back: one on a nightly or a prerelease stays there when only an older version qualifies
-            if (managed.TryGetValue(key, out var current) && PackageVersion.TryParse(current, out var currentVersion) && currentVersion > newest.Version)
+            if (previous is not null && previous > newest.Version)
                 continue;
 
-            var installedPackage = await InstallWithProgress(newest, progress);
-            if (installedPackage is null)
+            var (install, retire) = VersionRules.UpdateStep(newest.Version, installed.Contains(newest.Version), previous);
+            if (!install && retire is null)
                 continue;
 
-            // Retire the version this line previously managed, unless it is the one just installed.
-            if (managed.TryGetValue(key, out var previous) && previous != newest.Version.ToString())
-            {
-                var previousPackage = store.FindLocalPackage(MainPackageId, new PackageVersion(previous));
-                if (previousPackage is not null)
-                    await store.UninstallPackage(previousPackage, progress: null);
-            }
+            if (install && await InstallWithProgress(newest, progress) is null)
+                continue;
 
-            managed[key] = newest.Version.ToString();
-            updated.Add(ToStrideVersion(installedPackage.Version));
+            if (retire is not null && store.FindLocalPackage(MainPackageId, retire) is { } retiredPackage)
+                await store.UninstallPackage(retiredPackage, progress: null);
+
+            if (install)
+                managed[key] = newest.Version.ToString();
+            else
+                managed.Remove(key);
+            updated.Add(ToStrideVersion(newest.Version));
         }
 
         managedVersions.Save(managed);

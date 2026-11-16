@@ -88,6 +88,17 @@ public sealed class VersionRulesTests
     public void AGivenLineAndTagAreUpdated_EvenWithNothingInstalled()
         => Assert.Equal([("4.6", "mystudio")], VersionRules.UpdateTargets(Installed, "4.6", "mystudio"));
 
+    [Theory]
+    [InlineData(false, null, true, null)]
+    [InlineData(false, "4.4.1", true, "4.4.1")]
+    // Nothing to do: update prints "already up to date"
+    [InlineData(true, "4.4.2", false, null)]
+    [InlineData(true, null, false, null)]
+    // Installed manually: not installed again nor managed, but the version update installed before goes
+    [InlineData(true, "4.4.1", false, "4.4.1")]
+    public void UpdateInstallsOnlyANewestNotInstalled_AndRetiresTheOneItManaged(bool newestInstalled, string? managed, bool install, string? retire)
+        => Assert.Equal((install, retire is null ? null : V(retire)), VersionRules.UpdateStep(V("4.4.2"), newestInstalled, managed is null ? null : V(managed)));
+
     [Fact]
     public void TheCustomBuildsOfALineAreManagedApart()
     {
