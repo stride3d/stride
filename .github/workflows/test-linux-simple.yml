@@ -44,9 +44,9 @@ jobs:
       # preprocesses template content from samples/.
       - uses: actions/checkout@v7
         with:
-          lfs: true
           submodules: true
           ref: ${{ github.ref }}
+      - uses: ./.github/actions/lfs-pull
       - name: Install dependencies
         # Vulkan loader for Stride.Shaders.Tests (renders through the bundled Lavapipe ICD); lld links the native
         # crash trigger (Stride.CrashReport, pulled in by Stride.CrashReport.Tests)

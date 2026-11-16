@@ -106,13 +106,13 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          lfs: true
           submodules: true
           # Full history + tags so the engine version dominates the committed samples' versions
           # (otherwise a shallow base version < a sample's version silently skips PackageUpgrader).
           fetch-depth: 0
           fetch-tags: true
           ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || github.ref }}
+      - uses: ./.github/actions/lfs-pull
 
       - uses: ./.github/actions/effect-cache
         with:
@@ -297,9 +297,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          lfs: true
           submodules: true
           ref: ${{ (github.event.inputs.commit-sha != '' && github.event.inputs.commit-sha) || github.ref }}
+      - uses: ./.github/actions/lfs-pull
 
       - name: Install build dependencies (Linux)
         if: runner.os == 'Linux'

@@ -1,0 +1,62 @@
+name: LFS pull
+description: >-
+  Pulls the LFS objects of the checkout, most of them from a cache. All runner systems share one cache, and it
+  starts again each ISO week. A run restores the newest cache, checks the hash of its objects, and downloads only
+  what that cache misses. Every run fetches all the objects of the commit, so whichever run saves, the cache is
+  complete. Only runs outside pull requests save, and only when this week's cache is missing. They save on Linux
+  and Windows only, the systems whose saved caches were tested on all three. Use it after an actions/checkout
+  without `lfs: true`.
+
+inputs:
+  exclude:
+    description: 'Comma-separated repo dirs whose LFS files are left out of the working tree (their objects are still fetched)'
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - name: LFS cache key
+      id: key
+      shell: bash
+      run: echo "key=lfs-objects-$(date -u +%G-W%V)" >> "$GITHUB_OUTPUT"
+
+    - name: Restore the LFS cache
+      id: restore
+      uses: actions/cache/restore@v6
+      with:
+        path: .git/lfs/objects
+        key: ${{ steps.key.outputs.key }}
+        restore-keys: lfs-objects-
+        enableCrossOsArchive: true
+
+    - name: Pull LFS
+      shell: bash
+      env:
+        EXCLUDE: ${{ inputs.exclude }}
+      run: |
+        count() { if [ -d .git/lfs/objects ]; then find .git/lfs/objects -type f | wc -l | tr -d ' '; else echo 0; fi; }
+        restored=$(count)
+        git lfs fetch
+        # Git LFS checks the hash of what it downloads, not of what it already has. Any run that saves to the cache
+        # could have changed it, so the objects are checked before they reach the working tree.
+        if [ "$restored" -gt 0 ] && ! git lfs fsck --objects; then
+          echo "::warning::LFS: objects from the cache don't match their hash; downloading them again"
+          git lfs fetch
+          git lfs fsck --objects
+        fi
+        # git lfs checkout ignores a sparse working tree; pull with the same exclusions writes only the files
+        # inside it, and downloads nothing since every object is local.
+        if [ -n "$EXCLUDE" ]; then
+          git lfs pull --exclude "$EXCLUDE"
+        else
+          git lfs checkout
+        fi
+        echo "LFS: $restored objects from the cache, $(( $(count) - restored )) downloaded"
+
+    - name: Save the LFS cache
+      if: steps.restore.outputs.cache-hit != 'true' && github.event_name != 'pull_request' && runner.os != 'macOS'
+      uses: actions/cache/save@v6
+      with:
+        path: .git/lfs/objects
+        key: ${{ steps.key.outputs.key }}
+        enableCrossOsArchive: true
