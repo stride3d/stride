@@ -958,11 +958,11 @@ sealed class GitHub
         assignees(first: 10) { nodes { login } }
         reviewRequests(first: 20) { nodes { requestedReviewer { __typename ... on User { login } ... on Team { slug } } } }
         commits(last: 1) { nodes { commit { committedDate statusCheckRollup { state } checkSuites(first: 40, filterBy: { appId: 15368 }) { nodes { conclusion } } } } }
-        timelineItems(last: 100, itemTypes: [ISSUE_COMMENT, PULL_REQUEST_REVIEW, HEAD_REF_FORCE_PUSHED_EVENT, PULL_REQUEST_COMMIT, READY_FOR_REVIEW_EVENT]) {
+        reviews(last: 50) { nodes { submittedAt state authorAssociation author { login __typename } commit { oid committedDate } } }
+        timelineItems(last: 100, itemTypes: [ISSUE_COMMENT, HEAD_REF_FORCE_PUSHED_EVENT, PULL_REQUEST_COMMIT, READY_FOR_REVIEW_EVENT]) {
           nodes {
             __typename
             ... on IssueComment { createdAt body author { login __typename } }
-            ... on PullRequestReview { submittedAt state authorAssociation author { login __typename } commit { oid committedDate } }
             ... on HeadRefForcePushedEvent { createdAt beforeCommit { oid committedDate } afterCommit { oid } }
             ... on PullRequestCommit { commit { committedDate } }
             ... on ReadyForReviewEvent { createdAt }
@@ -1041,7 +1041,6 @@ sealed class GitHub
         var author = (string?)node["author"]?["login"] ?? "ghost";
         var commit = node["commits"]?["nodes"]?.AsArray().FirstOrDefault()?["commit"];
         var items = node["timelineItems"]!["nodes"]!.AsArray().OfType<JsonNode>().ToList();
-        var reviews = new List<Review>();
         var comments = new List<Comment>();
         var botComments = new List<Comment>();
         var createdAt = Date(node["createdAt"]);
@@ -1051,6 +1050,11 @@ sealed class GitHub
         var forcePushes = items.Where(x => (string?)x["__typename"] == "HeadRefForcePushedEvent")
             .Select(x => new ForcePush(Date(x["createdAt"]), (string?)x["beforeCommit"]?["oid"], x["beforeCommit"]?["committedDate"] is { } at ? Date(at) : null, (string?)x["afterCommit"]?["oid"]))
             .OrderBy(x => x.At).ToList();
+        // From the reviews, not the timeline: the timeline leaves out the reviews that only reply in a review thread
+        var reviews = node["reviews"]!["nodes"]!.AsArray().OfType<JsonNode>().Where(x => x["submittedAt"] != null)
+            .Select(x => new Review((string?)x["author"]?["login"] ?? "ghost", (string?)x["authorAssociation"] ?? "NONE", (string)x["state"]!, Date(x["submittedAt"]),
+                IsBot(x["author"]), ReviewedCommit(x, forcePushes)))
+            .ToList();
         foreach (var item in items)
         {
             switch ((string?)item["__typename"])
@@ -1058,9 +1062,6 @@ sealed class GitHub
                 case "IssueComment":
                     var comment = new Comment((string?)item["author"]?["login"] ?? "ghost", Date(item["createdAt"]), (string?)item["body"] ?? "");
                     (IsBot(item["author"]) ? botComments : comments).Add(comment);
-                    break;
-                case "PullRequestReview" when item["submittedAt"] is { } submitted:
-                    reviews.Add(new Review((string?)item["author"]?["login"] ?? "ghost", (string?)item["authorAssociation"] ?? "NONE", (string)item["state"]!, Date(submitted), IsBot(item["author"]), ReviewedCommit(item, forcePushes)));
                     break;
                 case "HeadRefForcePushedEvent":
                     lastPush = Max(lastPush, Date(item["createdAt"]));
