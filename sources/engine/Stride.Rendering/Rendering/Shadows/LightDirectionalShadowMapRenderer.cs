@@ -337,6 +337,16 @@ namespace Stride.Rendering.Shadows
                 Vector3.TransformCoordinate(ref FrustumBasePoints[i], ref projectionToWorld, out frustumCornersWS[i]);
                 Vector3.TransformCoordinate(ref FrustumBasePoints[i], ref projectionToView, out frustumCornersVS[i]);
             }
+
+            // With a reversed depth projection the z = 0 corners lie on the far plane: order the corners near plane first
+            if (frustumCornersVS[0].Z < frustumCornersVS[4].Z)
+            {
+                for (int i = 0; i < 4; ++i)
+                {
+                    (frustumCornersWS[i], frustumCornersWS[i + 4]) = (frustumCornersWS[i + 4], frustumCornersWS[i]);
+                    (frustumCornersVS[i], frustumCornersVS[i + 4]) = (frustumCornersVS[i + 4], frustumCornersVS[i]);
+                }
+            }
         }
 
         private static float ToLinearDepth(float depthZ, ref Matrix projectionMatrix)
