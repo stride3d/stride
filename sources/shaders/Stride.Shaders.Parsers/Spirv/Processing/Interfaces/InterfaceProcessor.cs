@@ -219,13 +219,15 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                 // further override) means "no pixel shader needed" — drop the Fragment entry point entirely.
                 // Detect this by inspecting the resolved PSMain body in SPIR-V: if it contains only structural
                 // instructions, the source body is empty and the convention applies. Anything else (clip/discard
-                // → OpKill, function calls, stores, atomics, etc.) keeps the PS.
+                // → OpKill, function calls, stores, atomics, etc.) keeps the PS. The SDSL metadata of the method and
+                // debug lines are still there at this point: they are not code.
                 var (psStart, psEnd) = SpirvBuilder.FindMethodBounds(buffer, entryPointPS.IdRef);
                 bool psBodyIsEmpty = true;
                 for (int idx = psStart; idx < psEnd; idx++)
                 {
                     var op = buffer[idx].Op;
-                    if (op is not (Op.OpFunction or Op.OpFunctionParameter or Op.OpLabel or Op.OpReturn or Op.OpReturnValue or Op.OpFunctionEnd))
+                    if (op is not (Op.OpFunction or Op.OpFunctionParameter or Op.OpLabel or Op.OpReturn or Op.OpReturnValue or Op.OpFunctionEnd
+                        or Op.OpFunctionMetadataSDSL or Op.OpLine or Op.OpNoLine or Op.OpNop))
                     {
                         psBodyIsEmpty = false;
                         break;
