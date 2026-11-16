@@ -45,7 +45,7 @@ namespace Stride.Audio.Tests.Engine
 
             scene.Entities.Add(zeroEntity);
             scene.Entities.Add(normalEntity);
-            // Moved after the entity was added: only the transform update at Draw can bring the emitter to this position.
+            // Set after the entity is added: only the transform update at Draw can bring the emitter to this position.
             normalEntity.Transform.Position = new Vector3(3, 0, 0);
 
             // The processor iterates its emitters in insertion order: the zero-matrix one must come first.
