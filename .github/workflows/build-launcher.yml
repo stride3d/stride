@@ -68,3 +68,8 @@ jobs:
             -p:StridePlatforms=Windows `
             -p:StrideSkipUnitTests=true `
             -p:StrideSkipAutoPack=true
+      - name: Test
+        run: |
+          dotnet test sources\launcher\Stride.Launcher.Tests `
+            --no-build `
+            -c ${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}

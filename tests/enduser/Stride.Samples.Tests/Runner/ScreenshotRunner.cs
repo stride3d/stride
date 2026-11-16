@@ -29,6 +29,8 @@ public static class ScreenshotRunner
     // A cold NativeAOT publish (ILC compile + native link) is far slower than a JIT build.
     private const int AotPublishTimeoutSeconds = 1200;
     internal const string SamplesGeneratedDirName = "samplesGenerated";
+    // A folder that every sample of the run shares as its cache folder (compiled effects, parsed shaders, pipeline cache)
+    private const string SharedEffectCacheVariable = "STRIDE_TESTS_EFFECT_CACHE";
 
     // Per-host info used to locate the regenerated sample's project + exe. The dotnet-new templates
     // emit one project per platform under <SampleName>.<Folder>/, with OutputPath=Bin/<Folder>/...
@@ -267,12 +269,24 @@ public static class ScreenshotRunner
         if (Directory.Exists(inProcessOutputDir))
             Directory.Delete(inProcessOutputDir, recursive: true);
 
+        // The game reads and writes its effects in the cache folder next to its exe
+        var sharedEffectCache = Environment.GetEnvironmentVariable(SharedEffectCacheVariable);
+        var gameCache = Path.Combine(Path.GetDirectoryName(exePath)!, "cache");
+        var restoredCache = string.IsNullOrEmpty(sharedEffectCache) ? null : RestoreEffectCache(sharedEffectCache, gameCache);
+
         Console.WriteLine($"[{sampleName}] launching...");
         var launchLog = Path.Combine(sampleOut, "launch.log");
         var env = new Dictionary<string, string>();
         if (headless)
             env["STRIDE_GRAPHICS_SOFTWARE_RENDERING"] = "1";
         var launchOk = RunProcess(exePath, "", launchLog, Path.GetDirectoryName(exePath)!, env, LaunchTimeoutSeconds);
+
+        // Not after a crash or a kill: a file cut off mid-write would stay in the cache, as effect files are never rewritten
+        if (restoredCache is not null)
+        {
+            var saved = launchOk ? SaveEffectCache(gameCache, sharedEffectCache!, restoredCache) : 0;
+            Console.WriteLine($"[{sampleName}] effect cache: {restoredCache.Count} files restored, {(launchOk ? $"{saved} saved" : "nothing saved after a failed run")}");
+        }
 
         // Whether the process exited cleanly or not, copy whatever's in the in-process output dir.
         if (Directory.Exists(inProcessOutputDir))
@@ -540,6 +554,53 @@ public static class ScreenshotRunner
                 return match;
         }
         return publicVersion;
+    }
+
+    /// <summary>
+    /// Copies the shared effect cache into the game's cache folder, and returns the size and time of each file copied,
+    /// so that <see cref="SaveEffectCache"/> finds what the game wrote.
+    /// </summary>
+    private static Dictionary<string, (long Length, DateTime LastWriteTimeUtc)> RestoreEffectCache(string sharedCache, string gameCache)
+    {
+        var restored = new Dictionary<string, (long, DateTime)>();
+        if (!Directory.Exists(sharedCache))
+            return restored;
+
+        foreach (var file in Directory.EnumerateFiles(sharedCache, "*", SearchOption.AllDirectories))
+        {
+            var rel = Path.GetRelativePath(sharedCache, file);
+            var target = Path.Combine(gameCache, rel);
+            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+            File.Copy(file, target, overwrite: true);
+            var copy = new FileInfo(target);
+            restored[rel] = (copy.Length, copy.LastWriteTimeUtc);
+        }
+        return restored;
+    }
+
+    /// <summary>
+    /// Copies to the shared effect cache the files the game added to its cache folder or wrote again: a parsed shader
+    /// whose source changed and the pipeline cache keep their names.
+    /// </summary>
+    private static int SaveEffectCache(string gameCache, string sharedCache, Dictionary<string, (long Length, DateTime LastWriteTimeUtc)> restored)
+    {
+        if (!Directory.Exists(gameCache))
+            return 0;
+
+        var saved = 0;
+        foreach (var file in Directory.EnumerateFiles(gameCache, "*", SearchOption.AllDirectories))
+        {
+            var rel = Path.GetRelativePath(gameCache, file);
+            var info = new FileInfo(file);
+            if (restored.TryGetValue(rel, out var before) && before == (info.Length, info.LastWriteTimeUtc))
+                continue;
+
+            var target = Path.Combine(sharedCache, rel);
+            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+            File.Copy(file, target, overwrite: true);
+            saved++;
+        }
+        return saved;
     }
 
     private static void CopyDirectory(string source, string dest)

@@ -92,10 +92,6 @@ public partial class InstructionInfo
     /// </summary>
     /// <param name="instruction"></param>
     /// <returns></returns>
-    public static int GetGroupOrder(Instruction instruction)
-    {
-        return GetGroupOrder(instruction.OpCode, instruction.OpCode == Op.OpVariable || instruction.OpCode == Op.OpVariableSDSL ? (StorageClass)instruction.Words[3] : null);
-    }
     public static int GetGroupOrder(Buffers.OpData instruction)
     {
         return GetGroupOrder(instruction.Op, instruction.Op == Op.OpVariable || instruction.Op == Op.OpVariableSDSL ? (StorageClass)instruction.Memory.Span[3] : null);

@@ -17,8 +17,9 @@ on:
         default: ''
 
 permissions:
-  actions: read  # list and download the capture runs
-  contents: read
+  actions: read         # list and download the capture runs
+  contents: write       # the push, when there's no Stride Bot app (a fork)
+  pull-requests: write
 
 jobs:
   Update:
@@ -31,7 +32,7 @@ jobs:
           # Need full history for the auto-generated branch name to be stable.
           fetch-depth: 0
           fetch-tags: true  # tag-based versioning (engine version must dominate sample versions)
-          persist-credentials: false  # the push uses the Stride Bot token
+          persist-credentials: false  # the push uses the token of the stride-bot action
 
       - name: Resolve target run id
         id: resolve
@@ -114,12 +115,10 @@ jobs:
       # A PR made with GITHUB_TOKEN starts no workflows, so its required checks would never run.
       - name: Get the Stride Bot token
         id: bot
-        uses: actions/create-github-app-token@v3
+        uses: ./.github/actions/stride-bot
         with:
           client-id: ${{ vars.STRIDE_BOT_CLIENT_ID }}
           private-key: ${{ secrets.STRIDE_BOT_PRIVATE_KEY }}
-          permission-contents: write
-          permission-pull-requests: write
 
       # Plain git and gh, so no third-party action has to be on the repository's allowlist
       - name: Open PR with refreshed baselines
@@ -128,7 +127,8 @@ jobs:
           RUN_ID: ${{ steps.resolve.outputs.run_id }}
           BRANCH: ${{ inputs.branch_name || format('baselines/refresh-{0}', steps.resolve.outputs.run_id) }}
           BASE: ${{ github.ref_name }}
-          BOT: ${{ steps.bot.outputs.app-slug }}[bot]
+          BOT_NAME: ${{ steps.bot.outputs.name }}
+          BOT_EMAIL: ${{ steps.bot.outputs.email }}
         run: |
           set -e
           fixtures=tests/enduser/Stride.Samples.Tests/Fixtures
@@ -136,9 +136,8 @@ jobs:
             echo "No baseline changed: the captures equal the committed references."
             exit 0
           fi
-          # The id prefix is what links the author to the bot's profile.
-          git config user.name "$BOT"
-          git config user.email "$(gh api "users/$BOT" --jq .id)+$BOT@users.noreply.github.com"
+          git config user.name "$BOT_NAME"
+          git config user.email "$BOT_EMAIL"
           gh auth setup-git
           git switch -c "$BRANCH"
           git add -- "$fixtures"

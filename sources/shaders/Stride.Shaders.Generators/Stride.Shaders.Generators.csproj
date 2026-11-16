@@ -23,11 +23,40 @@
 	  <ProjectReference Include="..\Stride.Shaders.Parsers\Stride.Shaders.Parsers.csproj" />
 	</ItemGroup>
 
-	<Target Name="GetDependencyTargetPaths" DependsOnTargets="ResolveReferences">
+	<!-- The dependencies are analyzers of every project with shaders, so their dates are inputs of its CoreCompile: consumers get
+	     copies in obj, replaced only when their content changes. -->
+	<Target Name="_GetGeneratorDependencies" DependsOnTargets="ResolveReferences">
 		<ItemGroup>
-			<TargetPathWithTargetPlatformMoniker Include="@(ReferenceCopyLocalPaths)"
-			                                     Condition="'%(Extension)' == '.dll' AND '%(ReferenceCopyLocalPaths.AssetType)' != 'native'"
-			                                     IncludeRuntimeDependency="false" />
+			<!-- Not the satellite assemblies (one file name for every culture), nor Roslyn: the compiler gives analyzers its own -->
+			<_GeneratorDependency Include="@(ReferenceCopyLocalPaths)"
+			                      Condition="'%(Extension)' == '.dll' AND '%(ReferenceCopyLocalPaths.AssetType)' != 'native' AND '%(ReferenceCopyLocalPaths.DestinationSubDirectory)' == '' AND !$([System.String]::Copy('%(Filename)').StartsWith('Microsoft.CodeAnalysis'))">
+				<StagedPath>$(ProjectDir)$(IntermediateOutputPath)analyzer\%(Filename)%(Extension)</StagedPath>
+				<HashPath>$(ProjectDir)$(IntermediateOutputPath)analyzer\%(Filename)%(Extension).sha256</HashPath>
+			</_GeneratorDependency>
+		</ItemGroup>
+	</Target>
+
+	<Target Name="_StageGeneratorDependencies" AfterTargets="CopyFilesToOutputDirectory" DependsOnTargets="_GetGeneratorDependencies">
+		<GetFileHash Files="@(_GeneratorDependency)" Algorithm="SHA256">
+			<Output TaskParameter="Items" ItemName="_GeneratorDependencyHashed" />
+		</GetFileHash>
+		<ItemGroup>
+			<_GeneratorDependencyChanged Include="@(_GeneratorDependencyHashed)"
+			                             Condition="!Exists('%(StagedPath)') Or !Exists('%(HashPath)') Or '$([System.IO.File]::ReadAllText(%(HashPath)).Trim())' != '%(FileHash)'" />
+		</ItemGroup>
+		<Copy SourceFiles="@(_GeneratorDependencyChanged)" DestinationFiles="@(_GeneratorDependencyChanged->'%(StagedPath)')" />
+		<!-- Copy keeps the source's date: a changed file must be newer than its consumers' outputs -->
+		<Touch Files="@(_GeneratorDependencyChanged->'%(StagedPath)')" />
+		<WriteLinesToFile File="%(_GeneratorDependencyChanged.HashPath)" Lines="%(_GeneratorDependencyChanged.FileHash)" Overwrite="true"
+		                  Condition="'@(_GeneratorDependencyChanged)' != ''" />
+		<ItemGroup>
+			<FileWrites Include="@(_GeneratorDependency->'%(StagedPath)');@(_GeneratorDependency->'%(HashPath)')" />
+		</ItemGroup>
+	</Target>
+
+	<Target Name="GetDependencyTargetPaths" DependsOnTargets="_GetGeneratorDependencies">
+		<ItemGroup>
+			<TargetPathWithTargetPlatformMoniker Include="@(_GeneratorDependency->'%(StagedPath)')" IncludeRuntimeDependency="false" />
 		</ItemGroup>
 	</Target>
 

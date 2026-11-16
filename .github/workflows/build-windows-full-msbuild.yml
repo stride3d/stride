@@ -41,8 +41,8 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          lfs: true
           submodules: true
+      - uses: ./.github/actions/lfs-pull
       # VsDevCmd environment (VCINSTALLDIR etc.), exported for the following steps.
       - uses: ilammy/msvc-dev-cmd@v1
       - name: Restore

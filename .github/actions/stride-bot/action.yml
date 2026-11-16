@@ -1,0 +1,54 @@
+name: Stride Bot
+description: >-
+  Gives the token and the git identity to push and open PRs with: the Stride Bot app's when the repository has it
+  (STRIDE_BOT_CLIENT_ID and STRIDE_BOT_PRIVATE_KEY), else GITHUB_TOKEN and github-actions[bot], as on a fork. A push or a
+  PR made with GITHUB_TOKEN starts no workflows, and opening a PR with it needs the repository's "Allow GitHub Actions to
+  create and approve pull requests" setting. The job needs `contents: write` and `pull-requests: write` for that case.
+
+inputs:
+  client-id:
+    description: vars.STRIDE_BOT_CLIENT_ID
+    default: ''
+  private-key:
+    description: secrets.STRIDE_BOT_PRIVATE_KEY
+    default: ''
+
+outputs:
+  token:
+    description: The token to push and open PRs with
+    value: ${{ steps.app.outputs.token || github.token }}
+  app:
+    description: "'true' when the token is the Stride Bot app's, 'false' when it is GITHUB_TOKEN"
+    value: ${{ steps.app.outputs.token != '' }}
+  name:
+    description: The git user name of the token's account
+    value: ${{ steps.who.outputs.name }}
+  email:
+    description: The git email of the token's account, which links its commits to the account's profile
+    value: ${{ steps.who.outputs.email }}
+
+runs:
+  using: composite
+  steps:
+    - name: Get the Stride Bot token
+      id: app
+      if: inputs.client-id != ''
+      uses: actions/create-github-app-token@v3
+      with:
+        client-id: ${{ inputs.client-id }}
+        private-key: ${{ inputs.private-key }}
+        permission-contents: write
+        permission-pull-requests: write
+    - name: Get the identity
+      id: who
+      shell: bash
+      env:
+        GH_TOKEN: ${{ steps.app.outputs.token || github.token }}
+        BOT: ${{ steps.app.outputs.app-slug && format('{0}[bot]', steps.app.outputs.app-slug) || 'github-actions[bot]' }}
+      run: |
+        if [ "$BOT" = "github-actions[bot]" ]; then
+          echo "::notice title=No Stride Bot app::Pushing with GITHUB_TOKEN: what it pushes starts no workflows, and a PR needs 'Allow GitHub Actions to create and approve pull requests' (Settings > Actions > General)."
+        fi
+        # The id prefix is what links the author to the bot's profile.
+        echo "name=$BOT" >> "$GITHUB_OUTPUT"
+        echo "email=$(gh api "users/$BOT" --jq .id)+$BOT@users.noreply.github.com" >> "$GITHUB_OUTPUT"

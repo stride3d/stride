@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
+using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Services;
@@ -126,12 +127,22 @@ public sealed class TemplateDescriptionTests
             Assert.False(templates.ValidateProperties(out error));
             Assert.StartsWith("Cannot use the selected name", error);
 
+            // A relative folder would be resolved against the editor's current folder
             templates.Name = "Fine";
+            templates.Location = new UDirectory("Stride Projects");
+            Assert.False(templates.ValidateProperties(out error));
+            Assert.Equal("Invalid output directory: it must be a full path.", error);
+            templates.Location = new UDirectory(location.Path);
+
             templates.SolutionName = "Bad/Solution";
             Assert.False(templates.ValidateProperties(out error));
             Assert.Equal("Invalid solution name.", error);
 
             templates.SolutionName = "FineSolution";
+            templates.SolutionLocation = new UDirectory("Solutions");
+            Assert.False(templates.ValidateProperties(out error));
+            Assert.Equal("Invalid solution directory: it must be a full path.", error);
+
             templates.SolutionLocation = new UDirectory(Path.Combine(location.Path, "Solutions"));
             Assert.True(templates.ValidateProperties(out error));
             Assert.Equal("", error);
@@ -144,6 +155,29 @@ public sealed class TemplateDescriptionTests
         finally
         {
             templates.Destroy();
+        }
+    }
+
+    [Fact]
+    public void TheWindowStartsInAFullPath()
+    {
+        var setting = InternalSettings.TemplatesWindowDialogLastNewSessionTemplateDirectory;
+        var saved = setting.GetValue();
+        try
+        {
+            // The documents folder may not exist (Linux): the default stays a full path
+            Assert.True(NewOrOpenSessionTemplateCollectionViewModel.DefaultLocation.IsAbsolute);
+
+            setting.SetValue("Stride Projects");
+            Assert.Equal(NewOrOpenSessionTemplateCollectionViewModel.DefaultLocation, NewOrOpenSessionTemplateCollectionViewModel.InitialLocation);
+
+            var last = new UDirectory(Path.Combine(Path.GetTempPath(), "LastProjects"));
+            setting.SetValue(last.FullPath);
+            Assert.Equal(last, NewOrOpenSessionTemplateCollectionViewModel.InitialLocation);
+        }
+        finally
+        {
+            setting.SetValue(saved);
         }
     }
 
@@ -213,7 +247,7 @@ public sealed class TemplateDescriptionTests
             var library = templates.Templates.Single(x => x.Id == TestTemplatePackage.LibraryId);
             templates.SelectedTemplate = library;
             Assert.Equal("MyTestLibrary", templates.Name);
-            Assert.True(templates.ValidateProperties(out var error));
+            Assert.True(templates.ValidateProperties(out var error), $"{error} (location: {templates.Location})");
             Assert.Equal("", error);
             var parameters = templates.GetNewPackageParameters();
             Assert.NotNull(parameters);

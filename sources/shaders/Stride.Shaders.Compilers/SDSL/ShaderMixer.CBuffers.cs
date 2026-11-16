@@ -38,7 +38,7 @@ namespace Stride.Shaders.Compilers.SDSL
                     members.Add(new(context.Names[variable.ResultId], variableType, variableMetadata.GetValueOrDefault(variable.ResultId).MatrixLayout));
                     variables.Add(variable.ResultId);
                     methodInitializers.Add(variable.MethodOrConstantInitializer);
-                    SetOpNop(i.Data.Memory.Span);
+                    i.SetOpNop();
                 }
             }
 
@@ -141,7 +141,7 @@ namespace Stride.Shaders.Compilers.SDSL
                 {
                     // The matrix layout is on the member already (its TypeModifier, written by DeclareCBuffer)
                     if (variableToMemberIndices.ContainsKey(decorate.Target) && decorate.Decoration is Decoration.RowMajor or Decoration.ColMajor)
-                        SetOpNop(i.Data.Memory.Span);
+                        i.SetOpNop();
                     else if (variableToMemberIndices.TryGetValue(decorate.Target, out var memberIndex))
                         i.Buffer.Replace(i.Index, new OpMemberDecorate(globalCBufferTypeId, memberIndex, decorate.Decoration, decorate.DecorationParameters));
                 }
@@ -153,7 +153,7 @@ namespace Stride.Shaders.Compilers.SDSL
                 else if (i.Op == Op.OpName && (OpName)i is { } name)
                 {
                     if (variableToMemberIndices.ContainsKey(name.Target))
-                        SetOpNop(i.Data.Memory.Span);
+                        i.SetOpNop();
                 }
             }
         }
@@ -333,7 +333,8 @@ namespace Stride.Shaders.Compilers.SDSL
                     }
 
                     // Update first variable to use new type
-                    cbuffersSpan[0].Variable.Data.IdResultType = mergedCbufferPtrStructId;
+                    var mergedVariable = cbuffersSpan[0].Variable.Data;
+                    mergedVariable.IdResultType = mergedCbufferPtrStructId;
                     cbufferMemberMetadata[cbuffersSpan[0].VariableId] = GenerateCBufferLinks(cbuffersSpan[0].VariableId, cbuffersSpan, mergedCbufferStruct);
 
                     foreach (var i in buffer)
@@ -347,7 +348,7 @@ namespace Stride.Shaders.Compilers.SDSL
                             foreach (var cbuffer in cbuffersSpan[1..])
                             {
                                 if (cbuffer.VariableId == name.Target)
-                                    SetOpNop(i.Data.Memory.Span);
+                                    i.SetOpNop();
                             }
                         }
                     }
@@ -358,7 +359,7 @@ namespace Stride.Shaders.Compilers.SDSL
                         idRemapping.Add(cbuffer.VariableId, cbuffersSpan[0].VariableId);
                         removedIds.Add(cbuffer.VariableId);
                         // Remove other cbuffer variables
-                        SetOpNop(cbuffer.Variable.Data.Memory.Span);
+                        cbuffer.Variable.SetOpNop();
                         // TODO: Do we want to remove unecessary types?
                         //       Maybe we don't care as they are not used anymore, they will be ignored.
                         //       Also, if we do so, maybe we could do it as part of a global pass at the end rather than now?
@@ -544,7 +545,7 @@ namespace Stride.Shaders.Compilers.SDSL
             {
                 if (i.Op == Op.OpTypeStruct && i.Data.IdResult is int structId && blockStructIds.Contains(structId))
                 {
-                    var span = i.Data.Memory.Span;
+                    var span = i.Words;
                     // OpTypeStruct layout: [wordcount|op] [resultId] [member0Type] [member1Type] ...
                     for (int j = 2; j < span.Length; j++)
                     {
@@ -578,10 +579,10 @@ namespace Stride.Shaders.Compilers.SDSL
             for (var index = 0; index < buffer.Count; index++)
             {
                 var i = buffer[index];
-                if (i.Op == Op.OpAccessChain && i.Data.Memory.Span[1] == boolPtrUniformId)
+                if (i.Op == Op.OpAccessChain && i.Words[1] == boolPtrUniformId)
                 {
-                    i.Data.Memory.Span[1] = uintPtrUniformId;
-                    boolPtrResultIds.Add(i.Data.Memory.Span[2]);
+                    i.Words[1] = uintPtrUniformId;
+                    boolPtrResultIds.Add(i.Words[2]);
                 }
             }
 

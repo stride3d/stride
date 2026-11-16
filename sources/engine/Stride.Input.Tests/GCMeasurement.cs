@@ -46,14 +46,24 @@ internal readonly record struct GCMeasurement(
 ///     are indistinguishable from a steady-state leak.
 ///   </para>
 ///   <para>
-///     A one-off allocation can still land in the measured iterations, because the Mono interpreter
-///     allocates at points no warm-up length reliably passes. So a measurement that allocates is
-///     repeated and the lowest result is kept. A one-off does not come back, and an allocation the
-///     workload makes every time does.
+///     The Mono interpreter optimizes a method once its calls and loop passes go over 1000, and that
+///     can allocate on the calling thread. The counts are shared with the tests that ran before, so
+///     the default warm-up runs more than 1000 iterations: every method the workload calls in each
+///     iteration is then optimized before the measured iterations start.
+///   </para>
+///   <para>
+///     A one-off allocation can still land in the measured iterations, for example from a method the
+///     workload calls only sometimes. So a measurement that allocates is repeated and the lowest
+///     result is kept. A one-off does not come back, and an allocation the workload makes every time does.
 ///   </para>
 /// </remarks>
 internal static class GCMeasure
 {
+    /// <summary>
+    ///   The count of calls and loop passes past which the Mono interpreter optimizes a method (<c>INTERP_TIER_ENTRY_LIMIT</c>).
+    /// </summary>
+    private const int InterpreterTierUpLimit = 1000;
+
     /// <summary>
     ///   Measures a workload that runs entirely on the calling thread.
     /// </summary>
@@ -65,15 +75,14 @@ internal static class GCMeasure
     ///   Reads <see cref="GC.GetAllocatedBytesForCurrentThread"/>, which ignores allocations made
     ///   on any other thread.
     /// </remarks>
-    public static GCMeasurement Run(Action iteration, int warmupIterations = 64, int measuredIterations = 256, int maxAttempts = 3)
+    public static GCMeasurement Run(Action iteration, int warmupIterations = InterpreterTierUpLimit + 1, int measuredIterations = 256, int maxAttempts = 3)
     {
         ArgumentNullException.ThrowIfNull(iteration);
         ArgumentOutOfRangeException.ThrowIfNegative(warmupIterations);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(measuredIterations);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maxAttempts);
 
-        for (int i = 0; i < warmupIterations; i++)
-            iteration();
+        Repeat(iteration, warmupIterations);
 
         var lowest = MeasureOnce(iteration, measuredIterations);
         for (int attempt = 1; attempt < maxAttempts && lowest.AllocatedBytes > 0; attempt++)
@@ -99,8 +108,7 @@ internal static class GCMeasure
         int gen1Before = GC.CollectionCount(1);
         int gen2Before = GC.CollectionCount(2);
 
-        for (int i = 0; i < measuredIterations; i++)
-            iteration();
+        Repeat(iteration, measuredIterations);
 
         return new GCMeasurement(
             GC.GetAllocatedBytesForCurrentThread() - bytesBefore,
@@ -108,5 +116,12 @@ internal static class GCMeasure
             GC.CollectionCount(1) - gen1Before,
             GC.CollectionCount(2) - gen2Before,
             measuredIterations);
+    }
+
+    // One loop for the warm-up and the measured iterations, so the warm-up also gets the loop itself optimized
+    private static void Repeat(Action iteration, int count)
+    {
+        for (int i = 0; i < count; i++)
+            iteration();
     }
 }

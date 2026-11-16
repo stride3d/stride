@@ -383,7 +383,7 @@ public static partial class Spv
             }
             else
             {
-                ref var data = ref instruction.Data;
+                var data = instruction.Data;
                 var info = InstructionInfo.GetInfo(data);
                 if (info.GetResultIndex(out int resultIndex))
                     AppendResultId(data.Memory.Span[1 + resultIndex]);

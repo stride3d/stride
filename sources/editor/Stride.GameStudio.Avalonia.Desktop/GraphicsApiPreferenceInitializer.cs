@@ -28,7 +28,7 @@ internal static class GraphicsApiPreferenceInitializer
         try
         {
             var confPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData, Environment.SpecialFolderOption.DoNotVerify),
                 "stride", "GameStudioSettings.conf");
             if (File.Exists(confPath))
             {

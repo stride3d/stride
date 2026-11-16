@@ -43,6 +43,8 @@ namespace Stride.Shaders.Compiler
 
         private readonly object shaderMixinParserLock = new object();
 
+        private readonly HlslBackendCache hlslBackendCache = new();
+
         public List<string> SourceDirectories { get; private set; }
 
         public Dictionary<string, string> UrlToFilePath { get; private set; }
@@ -84,6 +86,8 @@ namespace Stride.Shaders.Compiler
         public override void ResetCache(HashSet<string> modifiedShaders)
         {
             GetFileShaderLoader().SourceManager.DeleteObsoleteCache(modifiedShaders);
+            // The back-end cache is never out of date, but what the old shaders gave is not used again
+            hlslBackendCache.Clear();
         }
 
         public FileShaderLoader GetFileShaderLoader()
@@ -202,7 +206,7 @@ namespace Stride.Shaders.Compiler
 #if STRIDE_PLATFORM_DESKTOP
                 if (spirvBytecode is { Length: > 0 })
                     lock (WriterLock)
-                        WriteSpvDebugFiles(effectDir, mixinObjectId.ToString(), spirvBytecode.ToArray());
+                        WriteSpvDebugFiles(effectDir, mixinObjectId.ToString(), spirvBytecode.ToArray(), disassemble: true);
 #endif
                 return new EffectBytecodeCompilerResult(null, log);
             }
@@ -217,7 +221,7 @@ namespace Stride.Shaders.Compiler
                 case GraphicsPlatform.Direct3D11:
                     if (Platform.Type != PlatformType.Windows && Platform.Type != PlatformType.UWP)
                         throw new NotSupportedException();
-                    compiler = new Direct3D.ShaderCompiler();
+                    compiler = new Direct3D.ShaderCompiler(hlslBackendCache);
                     useSpirvCrossToHlsl = true;
                     break;
 #endif
@@ -245,50 +249,42 @@ namespace Stride.Shaders.Compiler
             {
                 if (useSpirvCrossToHlsl)
                 {
-                    // Legalize for SPIRV-Cross HLSL emission: const folding, DCE,
-                    // SSA promotion, inlining. Avoids SPIRV-Cross emitting
-                    // `if (true)` dead code from generic-template constants and
-                    // FXC's 'argument pulled into unrelated predicate' on
-                    // Prepare/Compute helpers over a static stream struct.
-                    uint[] legalizedSpirv;
-                    try
+                    // Effects with other parameters often give the same SPIR-V
+                    var spirvId = ObjectId.FromBytes(spirvBytecode);
+                    if (!hlslBackendCache.HlslStages.TryGetValue(spirvId, out var hlslStages))
                     {
-                        legalizedSpirv = SpirvTools.LegalizeForHlsl(MemoryMarshal.Cast<byte, uint>(spirvBytecode));
-                    }
-                    catch (Exception legalizeException)
-                    {
-                        var validationResult = Spirv.Tools.Spv.ValidateBinary(spirvBytecode, targetVulkan: false);
-                        if (!validationResult.IsValid)
+                        // Legalize for SPIRV-Cross HLSL emission: const folding, DCE,
+                        // SSA promotion, inlining. Avoids SPIRV-Cross emitting
+                        // `if (true)` dead code from generic-template constants and
+                        // FXC's 'argument pulled into unrelated predicate' on
+                        // Prepare/Compute helpers over a static stream struct.
+                        uint[] legalizedSpirv;
+                        try
                         {
-                            log.Error($"SPIR-V for effect {fullEffectName} (id: {mixinObjectId}) is invalid and cannot be legalized for HLSL: {validationResult.Output}", legalizeException);
-#if STRIDE_PLATFORM_DESKTOP
-                            // Returning here skips the outer catch, so dump the module that failed to legalize.
-                            lock (WriterLock)
-                                WriteSpvDebugFiles(effectDir, mixinObjectId.ToString(), spirvBytecodeForDebug);
-#endif
-                            return new EffectBytecodeCompilerResult(null, log);
+                            legalizedSpirv = SpirvTools.LegalizeForHlsl(MemoryMarshal.Cast<byte, uint>(spirvBytecode));
                         }
-                        throw;
-                    }
-                    var translator = new SpirvTranslator(legalizedSpirv.AsMemory());
-                    var translatorEntryPoints = translator.GetEntryPoints();
-                    foreach (var entryPoint in translatorEntryPoints)
-                    {
-                        var code = translator.Translate(Backend.Hlsl, entryPoint);
-
-                        // Compile
-                        // TODO: We could compile stages in different threads to improve compiler throughput?
-                        var shaderStage = entryPoint.ExecutionModel switch
+                        catch (Exception legalizeException)
                         {
-                            ExecutionModel.Vertex => ShaderStage.Vertex,
-                            ExecutionModel.TessellationControl => ShaderStage.Hull,
-                            ExecutionModel.TessellationEvaluation => ShaderStage.Domain,
-                            ExecutionModel.Geometry => ShaderStage.Geometry,
-                            ExecutionModel.Fragment => ShaderStage.Pixel,
-                            ExecutionModel.GLCompute => ShaderStage.Compute,
-                            _ => throw new NotSupportedException($"Unsupported execution model: {entryPoint.ExecutionModel}"),
-                        };
+                            var validationResult = Spirv.Tools.Spv.ValidateBinary(spirvBytecode, targetVulkan: false);
+                            if (!validationResult.IsValid)
+                            {
+                                log.Error($"SPIR-V for effect {fullEffectName} (id: {mixinObjectId}) is invalid and cannot be legalized for HLSL: {validationResult.Output}", legalizeException);
+#if STRIDE_PLATFORM_DESKTOP
+                                // Returning here skips the outer catch, so dump the module that failed to legalize.
+                                lock (WriterLock)
+                                    WriteSpvDebugFiles(effectDir, mixinObjectId.ToString(), spirvBytecodeForDebug, disassemble: true);
+#endif
+                                return new EffectBytecodeCompilerResult(null, log);
+                            }
+                            throw;
+                        }
+                        hlslStages = TranslateToHlsl(legalizedSpirv);
+                        hlslBackendCache.HlslStages.TryAdd(spirvId, hlslStages);
+                    }
 
+                    // TODO: We could compile stages in different threads to improve compiler throughput?
+                    foreach (var (shaderStage, entryPointName, code) in hlslStages)
+                    {
 #if STRIDE_PLATFORM_DESKTOP
                         var stageSuffix = shaderStage switch
                         {
@@ -306,7 +302,7 @@ namespace Stride.Shaders.Compiler
 #else
                         string? stageFilename = null;
 #endif
-                        var result = compiler!.Compile(code, entryPoint.TranslatedName, shaderStage, effectParameters, bytecode.Reflection, stageFilename);
+                        var result = compiler!.Compile(code, entryPointName, shaderStage, effectParameters, bytecode.Reflection, stageFilename);
                         result.CopyTo(log);
 
                         if (result.HasErrors)
@@ -317,7 +313,7 @@ namespace Stride.Shaders.Compiler
                         // Guard against a silent null bytecode (actionable message instead of NRE below).
                         if (result.Bytecode is null)
                         {
-                            log.Error($"Shader compilation for stage {shaderStage} (entry '{entryPoint.TranslatedName}') produced no bytecode and no error.");
+                            log.Error($"Shader compilation for stage {shaderStage} (entry '{entryPointName}') produced no bytecode and no error.");
                             continue;
                         }
 
@@ -333,10 +329,6 @@ namespace Stride.Shaders.Compiler
                         // -------------------------------------------------------
 
                         shaderStageBytecodes.Add(result.Bytecode);
-
-                        // When this is a compute shader, there is no need to scan other stages
-                        if (shaderStage == ShaderStage.Compute)
-                            break;
                     }
                 }
                 // TODO: Move that code inside ShaderCompiler (need a new interface for processing SPIR-V)
@@ -380,7 +372,7 @@ namespace Stride.Shaders.Compiler
             {
 #if STRIDE_PLATFORM_DESKTOP
                 lock (WriterLock)
-                    WriteSpvDebugFiles(effectDir, mixinObjectId.ToString(), spirvBytecodeForDebug);
+                    WriteSpvDebugFiles(effectDir, mixinObjectId.ToString(), spirvBytecodeForDebug, disassemble: true);
 #endif
                 throw;
             }
@@ -395,7 +387,7 @@ namespace Stride.Shaders.Compiler
             lock (WriterLock) // protect write in case the same shader is created twice
             {
                 // Note: we used input hash in previous case because bytecode was not valid, but when available we prefer bytecode hash
-                WriteSpvDebugFiles(effectDir, outputHash.ToString(), spirvBytecodeForDebug);
+                WriteSpvDebugFiles(effectDir, outputHash.ToString(), spirvBytecodeForDebug, disassemble: false);
 
                 // Write per-stage HLSL
                 foreach (var (suffix, hlslCode) in stageHlslSources)
@@ -577,6 +569,32 @@ namespace Stride.Shaders.Compiler
             return new EffectBytecodeCompilerResult(bytecode, log);
         }
 
+        private static HlslStage[] TranslateToHlsl(uint[] legalizedSpirv)
+        {
+            var translator = new SpirvTranslator(legalizedSpirv.AsMemory());
+            var stages = new List<HlslStage>();
+            foreach (var entryPoint in translator.GetEntryPoints())
+            {
+                var code = translator.Translate(Backend.Hlsl, entryPoint);
+                var shaderStage = entryPoint.ExecutionModel switch
+                {
+                    ExecutionModel.Vertex => ShaderStage.Vertex,
+                    ExecutionModel.TessellationControl => ShaderStage.Hull,
+                    ExecutionModel.TessellationEvaluation => ShaderStage.Domain,
+                    ExecutionModel.Geometry => ShaderStage.Geometry,
+                    ExecutionModel.Fragment => ShaderStage.Pixel,
+                    ExecutionModel.GLCompute => ShaderStage.Compute,
+                    _ => throw new NotSupportedException($"Unsupported execution model: {entryPoint.ExecutionModel}"),
+                };
+                stages.Add(new HlslStage(shaderStage, entryPoint.TranslatedName, code));
+
+                // When this is a compute shader, there is no need to scan other stages
+                if (shaderStage == ShaderStage.Compute)
+                    break;
+            }
+            return stages.ToArray();
+        }
+
 #if STRIDE_PLATFORM_DESKTOP
         /// <summary>
         /// Compile SPIR-V to DXIL for all stages in a single linked call. Needed so spirv_to_dxil
@@ -683,16 +701,17 @@ namespace Stride.Shaders.Compiler
         }
 
         /// <summary>
-        /// Writes .spv and .spvdis files. Caller must hold WriterLock.
+        /// Writes the .spv file, and its disassembly (.spvdis) when <paramref name="disassemble"/> is set. Caller must hold WriterLock.
         /// </summary>
-        private static void WriteSpvDebugFiles(string effectDir, string hashName, byte[] spirvBytecode)
+        private static void WriteSpvDebugFiles(string effectDir, string hashName, byte[] spirvBytecode, bool disassemble)
         {
             var baseFilename = Path.Combine(effectDir, hashName);
             if (!File.Exists(baseFilename + ".spv"))
-            {
                 File.WriteAllBytes(baseFilename + ".spv", spirvBytecode);
+            // The disassembly costs more than the compile steps around it: only for a failed compile, where someone reads it.
+            // spirv-dis gives it from the .spv otherwise.
+            if (disassemble && !File.Exists(baseFilename + ".spvdis"))
                 File.WriteAllText(baseFilename + ".spvdis", Spirv.Tools.Spv.Dis(SpirvBytecode.CreateFromSpan(spirvBytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex));
-            }
         }
 #endif
 

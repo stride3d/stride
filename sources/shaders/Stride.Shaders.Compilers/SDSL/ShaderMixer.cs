@@ -301,7 +301,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             };
             if (imageOperandsIndex >= 0)
             {
-                var span = i.Data.Memory.Span;
+                var span = i.Words;
                 if (span.Length > imageOperandsIndex && (span[imageOperandsIndex] & ((int)ImageOperandsMask.Offset | (int)ImageOperandsMask.ConstOffsets)) != 0)
                 {
                     context.Add(new OpCapability(Capability.ImageGatherExtended));
@@ -366,6 +366,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
         /// <summary>The methods a <c>base.</c> call reaches.</summary>
         public HashSet<int> BaseCallTargets { get; } = new();
+
+        /// <summary>The types, names and decorations of the context, for the duplicate checks of the whole merge.</summary>
+        public TypeMergeIndex? TypeIndex { get; set; }
     }
 
     class MixinNodeContext
@@ -436,13 +439,15 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
     private void ProcessMixinClasses(MixinGlobalContext globalContext, SpirvContext context, SpirvBuffer buffer, ShaderMixinInstantiation mixinSource, MixinNode mixinNode)
     {
         mixinNode.StartInstruction = buffer.Count;
-        var typeDuplicateInserter = new TypeDuplicateHelper(context);
+        var typeIndex = globalContext.TypeIndex ??= new TypeMergeIndex(context);
+        // What other code appended to the context since the previous node becomes visible to the duplicate checks here
+        typeIndex.Sync();
 
         foreach (var shaderClass in mixinSource.Mixins)
         {
             var contextStart = context.Count;
 
-            var shaderInfo = MergeClassInBuffers(globalContext, context, buffer, mixinNode, shaderClass, typeDuplicateInserter);
+            var shaderInfo = MergeClassInBuffers(globalContext, context, buffer, mixinNode, shaderClass, typeIndex);
 
             mixinNode.ShadersByName.Add(shaderClass.ToClassNameWithGenerics(), shaderInfo);
             mixinNode.Shaders.Add(shaderInfo);
@@ -470,7 +475,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
     // Append CompositionPath to "Link" for any non-stage variable
     // Also force-emit the missing "Link" decorations
 
-    private ShaderInfo MergeClassInBuffers(MixinGlobalContext globalContext, SpirvContext context, SpirvBuffer buffer, MixinNode mixinNode, ShaderClassInstantiation shaderClass, TypeDuplicateHelper typeDuplicateInserter)
+    private ShaderInfo MergeClassInBuffers(MixinGlobalContext globalContext, SpirvContext context, SpirvBuffer buffer, MixinNode mixinNode, ShaderClassInstantiation shaderClass, TypeMergeIndex typeIndex)
     {
         var isRootMixin = mixinNode.Stage == null;
         if (shaderClass.ImportStageOnly)
@@ -567,7 +572,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     if (i.Op == Op.OpSource)
                     {
                         // OpSource references an OpString via file ID; skip if that OpString was deduplicated
-                        var fileOperand = i.Data.Memory.Span;
+                        var fileOperand = i.Words;
                         // OpSource layout: [wordcount|op, sourcelanguage, version, file?, source?]
                         if (fileOperand.Length > 3)
                         {
@@ -626,7 +631,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         }
 
                         // Discard pending OpLine — the instruction it was meant for was skipped
-                        pendingOpLine?.Dispose();
                         pendingOpLine = null;
 
                         // Go to next instruction
@@ -634,7 +638,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     }
                 }
 
-                var i2 = new OpData(i.Data.Memory.Span);
+                var i2 = new OpData(i.Words);
 
                 if (offset > 0)
                     OffsetIds(i2, offset);
@@ -678,19 +682,17 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     else
                     {
                         // Check if type already exists in context (deduplicate them)
-                        if (typeDuplicateInserter.CheckForDuplicates(i2, out var existingInstruction))
+                        if (typeIndex.CheckForDuplicates(i2, out var existingInstruction))
                         {
                             if (i2.IdResult is int duplicateId)
                             {
                                 remapIds.Add(duplicateId, existingInstruction.Data.IdResult!.Value);
-                                var mismatches = typeDuplicateInserter.MergeTypeDecorations(existingInstruction.Data.IdResult.Value, duplicateId);
+                                var mismatches = typeIndex.MergeTypeDecorations(existingInstruction.Data.IdResult.Value, duplicateId);
                                 if (mismatches != null)
                                 {
                                     var details = string.Join("; ", mismatches.Select(m =>
-                                        $"{m.Data} (only on {(m.OnKeepOnly ? "kept" : "removed")} type)"));
+                                        $"{m.Instruction} (only on {(m.OnKeepOnly ? "kept" : "removed")} type)"));
                                     globalContext.Log.Warning($"Mismatched decorations when merging type {duplicateId} into {existingInstruction.Data.IdResult.Value}: {details}");
-                                    foreach (var entry in mismatches)
-                                        if (!entry.OnKeepOnly) entry.Data.Dispose();
                                 }
                             }
                         }
@@ -700,7 +702,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         }
                     }
                     // Instruction goes to context or is deduplicated — discard any pending OpLine
-                    pendingOpLine?.Dispose();
                     pendingOpLine = null;
                 }
                 // Does this belong in context or buffer?
@@ -708,13 +709,11 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 {
                     addToContext = true;
                     // Instruction goes to context — discard any pending OpLine (OpLine belongs in function bodies only)
-                    pendingOpLine?.Dispose();
                     pendingOpLine = null;
                 }
                 else if (i2.Op == Op.OpLine)
                 {
                     // Defer OpLine — only emit when the next non-OpLine instruction is actually included
-                    pendingOpLine?.Dispose();
                     pendingOpLine = i2;
                 }
                 else
@@ -764,7 +763,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
                     if (addToContext)
                     {
-                        typeDuplicateInserter.InsertInstruction(context.Count, i2);
+                        typeIndex.Add(i2);
                     }
                 }
             }
@@ -782,17 +781,13 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 || i.Op == Op.OpMemberDecorate
                 || i.Op == Op.OpMemberDecorateString)
             {
-                SpirvBuilder.RemapIds(remapIds, ref i.Data);
+                SpirvBuilder.RemapIds(remapIds, i);
 
-                var target = i.Data.Memory.Span[1];
+                var target = i.Words[1];
                 if (removedIds.Contains(target))
-                    SetOpNop(i.Data.Memory.Span);
+                    i.SetOpNop();
             }
         }
-
-        // Re-sort decoration index after remapping changed target IDs in the buffer
-        if (remapIds.Count > 0)
-            typeDuplicateInserter.ResortDecorations();
 
         // Build ShaderInfo
         var shaderInfo = new ShaderInfo(mixinNode.Shaders.Count, shaderClass.ClassName, shaderStart, buffer.Count);
@@ -868,16 +863,16 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         {
                             if (temp[index].Data.IdResult is { } idResult)
                                 removedIds.Add(idResult);
-                            SetOpNop(temp[index++].Data.Memory.Span);
+                            temp[index++].SetOpNop();
                         }
                         context.RemoveNameAndDecorations(removedIds);
 
-                        SetOpNop(temp[index].Data.Memory.Span);
+                        temp[index].SetOpNop();
                     }
                     else
                     {
                         // Remove the OpFunctionMetadataSDSL
-                        //SetOpNop(temp[index + 1].Data.Memory.Span);
+                        //SetOpNop(temp[index + 1].Words);
                     }
                 }
             }
@@ -908,25 +903,24 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             throw new InvalidOperationException($"Could not find compositions for expression [{@foreach.Collection}]");
 
         // Extract foreach buffer (with the foreach start/end)
-        var foreachBuffer = buffer[index..endIndex];
-        buffer.RemoveRange(index, foreachBuffer.Count, false);
+        using var foreachBuffer = buffer.ExtractRange(index, endIndex - index);
 
-        var foreachBufferCopy = new List<OpData>();
+        using var foreachBufferCopy = new SpirvBuffer();
         // Note: Make sure we replace the OpForeachSDSL with a first OpNop, so that if a for() loop works fine and don't miss an instruction without having to do index--
-        foreachBufferCopy.Add(new OpData(new OpNop().InstructionMemory));
+        foreachBufferCopy.Add(new OpNop());
         for (int j = 0; j < compositions.Length; ++j)
         {
             var idRemapping = new Dictionary<int, int>();
 
             // Setup variable for iterator access
             var accessChain = new OpAccessChain(0, context.Bound++, @foreach.Collection, [context.CompileConstant(j).Id]);
-            foreachBufferCopy.Add(new(accessChain.InstructionMemory));
+            foreachBufferCopy.Add(accessChain);
             idRemapping.Add(@foreach.ResultId, accessChain);
 
             // Do a first pass to find all IDs (OpBranch might point to OpLabel which are defined further)
-            foreach (var i in foreachBuffer[1..^1])
+            for (var k = 1; k < foreachBuffer.Count - 1; k++)
             {
-                if (i.IdResult is int result)
+                if (foreachBuffer[k].Data.IdResult is int result)
                 {
                     // Also duplicate name (if any)
                     if (context.Names.TryGetValue(result, out var name))
@@ -935,9 +929,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 }
             }
             // Build a buffer with all foreach instructions (with new ids)
-            foreach (var i in foreachBuffer[1..^1]) // skip start/end
+            for (var k = 1; k < foreachBuffer.Count - 1; k++) // skip start/end
             {
-                var i2 = new OpData(i.Memory.Span);
+                var i2 = new OpData(foreachBuffer[k].Words);
                 // All result ids are remapped to new ids
                 SpirvBuilder.RemapIds(idRemapping, ref i2);
 
@@ -948,20 +942,18 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         // Clean OpName used by removed instructions (only for IdResult)
         var removedIds = new HashSet<int>();
         foreach (var i in foreachBuffer)
-            if (i.IdResult is { } idResult)
+            if (i.Data.IdResult is { } idResult)
                 removedIds.Add(idResult);
         context.RemoveNameAndDecorations(removedIds);
 
         // Insert new code
-        buffer.InsertRange(index, foreachBufferCopy.AsSpan());
+        var insertCount = foreachBufferCopy.Count;
+        buffer.InsertRange(index, foreachBufferCopy);
 
         // Note: mixinNode is not added to rootMixin hierarchy yet
         //       Moreover, we are the last mixin (or one of our child is)
         //       So we need (and it's safe) to call this on mixinNode rather than root node
-        AdjustIndicesAfterAppendInstructions(mixinNode, index, foreachBufferCopy.Count - foreachBuffer.Count);
-
-        foreach (var inst in foreachBuffer)
-            inst.Dispose();
+        AdjustIndicesAfterAppendInstructions(mixinNode, index, insertCount - foreachBuffer.Count);
     }
 
     // Note: Make sure to call it on propre node (i.e. either last mixin node (if just added) or root, otherwise it won't increment the MixinNode after current one 
@@ -1001,6 +993,17 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         }
     }
 
+    // The shader that instruction index belongs to; no LINQ, as it runs for every instruction of the node
+    private static ShaderInfo ShaderAt(MixinNode mixinNode, int index)
+    {
+        for (var s = mixinNode.Shaders.Count - 1; s >= 0; s--)
+        {
+            if (index >= mixinNode.Shaders[s].StartInstruction)
+                return mixinNode.Shaders[s];
+        }
+        throw new InvalidOperationException($"No shader of the mixin node holds instruction {index}");
+    }
+
     private static void ProcessMemberAccessAndForeach(MixinGlobalContext globalContext, SpirvContext context, SpirvBuffer temp, MixinNode mixinNode)
     {
         var memberAccesses = new Dictionary<int, int>();
@@ -1012,11 +1015,11 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         for (var index = mixinNode.StartInstruction; index < mixinNode.EndInstruction; index++)
         {
             var i = temp[index];
-            currentShader = mixinNode.Shaders.Last(x => index >= x.StartInstruction);
+            currentShader = ShaderAt(mixinNode, index);
 
             // Apply any OpMemberAccessSDSL remapping
             if (memberAccesses.Count > 0)
-                SpirvBuilder.RemapIds(memberAccesses, ref i.Data);
+                SpirvBuilder.RemapIds(memberAccesses, i);
 
             if (i.Data.Op == Op.OpForeachSDSL && (OpForeachSDSL)i is { } @foreach)
             {
@@ -1025,12 +1028,12 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             else if (i.Data.Op == Op.OpThisSDSL && (OpThisSDSL)i is { } thisInstruction)
             {
                 thisInstructions.Add(thisInstruction.ResultId);
-                SetOpNop(i.Data.Memory.Span);
+                i.SetOpNop();
             }
             else if (i.Data.Op == Op.OpBaseSDSL && (OpBaseSDSL)i is { } baseInstruction)
             {
                 baseInstructions.Add(baseInstruction.ResultId);
-                SetOpNop(i.Data.Memory.Span);
+                i.SetOpNop();
             }
             else if (i.Data.Op == Op.OpAccessChain && (OpAccessChain)i is { } accessChain)
             {
@@ -1041,7 +1044,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     var compositionIndex = Convert.ToInt32(context.GetConstantValue(accessChain.Indexes.Elements.Span[0]));
                     compositionArrayAccesses.Add(accessChain.ResultId, compositions[compositionIndex]);
 
-                    SetOpNop(i.Data.Memory.Span);
+                    i.SetOpNop();
                 }
             }
             else if (i.Data.Op == Op.OpMemberAccessSDSL && (OpMemberAccessSDSL)i is { } memberAccess)
@@ -1142,7 +1145,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     throw new InvalidOperationException($"Member {memberAccess.Member} not found");
                 }
 
-                SetOpNop(i.Data.Memory.Span);
+                i.SetOpNop();
             }
             else if (i.Data.Op == Op.OpFunction && (OpFunction)i is { } function)
             {
@@ -1155,7 +1158,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 memberAccesses.Clear();
             }
 
-            SpirvBuilder.RemapIds(memberAccesses, ref i.Data);
+            SpirvBuilder.RemapIds(memberAccesses, i);
         }
     }
 
@@ -1179,12 +1182,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             }
         }
         return result;
-    }
-
-    static void SetOpNop(Span<int> words)
-    {
-        words[0] = words.Length << 16;
-        words[1..].Clear();
     }
 
     public static void OffsetIds(OpData inst, int offset)
@@ -1245,7 +1242,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             {
                 if (!ExpressionExtensions.ShaderSpecConstantOpSupportedOps.Contains((Op)specConstantOp.Opcode))
                 {
-                    var resultType = i.Data.Memory.Span[1];
+                    var resultType = i.Words[1];
                     var resultId = i.Data.IdResult!.Value;
                     if (context.TryGetConstantValue(i, out var value, out _) && value != null)
                     {
@@ -1272,30 +1269,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         return success;
     }
 
-    private static void RemoveInstructionWhere(SpirvBuffer buffer, Func<OpDataIndex, bool> match)
-    {
-        int insertIndex = 0;
-        for (int sourceIndex = 0; sourceIndex < buffer.Count; sourceIndex++)
-        {
-            var i = buffer[sourceIndex];
-            var remove = match(i);
-
-            if (!remove)
-            {
-                if (insertIndex++ != sourceIndex)
-                    // Note: we're not using Dispose() since we simply move it
-                    buffer.Replace(insertIndex - 1, buffer[sourceIndex].Data, false);
-            }
-            else
-            {
-                buffer[sourceIndex].Data.Dispose();
-            }
-        }
-
-        // Remove leftover instructions (they have been either disposed or moved so no need to dispose them)
-        buffer.RemoveRange(insertIndex, buffer.Count - insertIndex, false);
-    }
-
     private static void CleanupUnnecessaryInstructions(MixinGlobalContext globalContext, SpirvContext context, SpirvBuffer temp, Options options)
     {
         // Process OpTypeFunctionSDSL
@@ -1316,7 +1289,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 if (functionTypes.TryGetValue(functionTypeWithIds, out var functionTypeId))
                 {
                     remapIds.Add(functionType.ResultId, functionTypeId);
-                    SetOpNop(i.Data.Memory.Span);
+                    i.SetOpNop();
                 }
                 else
                 {
@@ -1337,12 +1310,12 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         }
 
         // Remove in a single pass (we do in-place without RemoveAt otherwise it would be up to O(n^2) complexity)
-        RemoveInstructionWhere(temp, i =>
+        temp.RemoveAll(i =>
         {
             // Remove Nop
             if (i.Op == Op.OpNop)
                 return true;
-            if (i.Op == Op.OpMemberDecorateString && (Decoration)i.Data.Memory.Span[3] == Decoration.UserSemantic && functionIds.Contains(i.Data.Memory.Span[1]))
+            if (i.Op == Op.OpMemberDecorateString && (Decoration)i.Words[3] == Decoration.UserSemantic && functionIds.Contains(i.Words[1]))
                 return true;
             // Also remove some other SDSL specific operators (that we keep late mostly for debug purposes)
             if (i.Op == Op.OpShaderSDSL
@@ -1358,7 +1331,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 || i.Op == Op.OpFunctionMetadataSDSL
                 || i.Op == Op.OpSourceHashSDSL)
                 return true;
-            if ((i.Op == Op.OpDecorate || i.Op == Op.OpDecorateString) && (Decoration)i.Data.Memory.Span[2] is
+            if ((i.Op == Op.OpDecorate || i.Op == Op.OpDecorateString) && (Decoration)i.Words[2] is
                     Decoration.FunctionParameterDefaultValueSDSL
                     or Decoration.ShaderConstantSDSL
                     or Decoration.PatchConstantFuncSDSL
@@ -1367,7 +1340,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     // Matrix layout of a member variable (moved to the Globals cbuffer); only valid on struct members in SPIR-V
                     or Decoration.RowMajor or Decoration.ColMajor)
                 return true;
-            if ((i.Op == Op.OpMemberDecorate || i.Op == Op.OpMemberDecorateString) && (Decoration)i.Data.Memory.Span[3] is Decoration.LinkIdSDSL or Decoration.LinkSDSL or Decoration.ColorSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL)
+            if ((i.Op == Op.OpMemberDecorate || i.Op == Op.OpMemberDecorateString) && (Decoration)i.Words[3] is Decoration.LinkIdSDSL or Decoration.LinkSDSL or Decoration.ColorSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL)
                 return true;
 
             // Strip SPV_GOOGLE_user_type for Vulkan (requires VK_GOOGLE_user_type which most drivers don't support)
@@ -1375,9 +1348,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             {
                 if (i.Op == Op.OpExtension && ((OpExtension)i).Name == "SPV_GOOGLE_user_type")
                     return true;
-                if (i.Op == Op.OpDecorateString && (Decoration)i.Data.Memory.Span[2] is Decoration.UserTypeGOOGLE)
+                if (i.Op == Op.OpDecorateString && (Decoration)i.Words[2] is Decoration.UserTypeGOOGLE)
                     return true;
-                if (i.Op == Op.OpMemberDecorateString && (Decoration)i.Data.Memory.Span[3] is Decoration.UserTypeGOOGLE)
+                if (i.Op == Op.OpMemberDecorateString && (Decoration)i.Words[3] is Decoration.UserTypeGOOGLE)
                     return true;
             }
 
@@ -1419,7 +1392,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
         // Remove unnecessary OpName/OpDecorate/OpDecorateString
         // Note: we should issue a warning and make sure those are deleted as we process stuff?
-        RemoveInstructionWhere(temp, i =>
+        temp.RemoveAll(i =>
         {
             if (i.Op == Op.OpName && (OpName)i is { } nameInstruction)
             {

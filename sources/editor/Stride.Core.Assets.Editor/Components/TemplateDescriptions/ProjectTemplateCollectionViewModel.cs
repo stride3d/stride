@@ -41,9 +41,9 @@ public abstract class ProjectTemplateCollectionViewModel : TemplateDescriptionCo
     {
         if (SelectedTemplate is TemplateDescriptionViewModel)
         {
-            if (!UPath.IsValid(Location))
+            if (!UPath.IsValid(Location) || !Location.IsAbsolute)
             {
-                error = "Invalid output directory.";
+                error = "Invalid output directory: it must be a full path.";
                 return false;
             }
             if (!UFile.IsValid(Name) || Name.Contains(UPath.DirectorySeparatorString) || Name.Contains(UPath.DirectorySeparatorStringAlt))

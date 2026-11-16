@@ -48,7 +48,20 @@ internal static class VersionRules
         return tag is null ? installedTargets : installedTargets.Where(target => target.Tag == tag).ToList();
     }
 
+    // What update does in a line once it has found its newest version: install it unless it is installed already, and
+    // retire the version it managed before, if another. Update manages only what it installs: a newest version installed
+    // with 'install' stays the user's, so a later update never removes it.
+    public static (bool Install, PackageVersion? Retire) UpdateStep(PackageVersion newest, bool newestInstalled, PackageVersion? managed)
+        => (!newestInstalled, managed is not null && managed != newest ? managed : null);
+
     // The key in installs.json of the version update manages for a line: the line for its releases, line-tag for the
     // custom builds of a tag (4.5-mystudio), so that each is replaced only by a build of its own.
     public static string ManagedKey(string line, string? tag) => tag is null ? line : $"{line}-{tag}";
+
+    // The build of another Game Studio (the Avalonia one) that install and update add to a version: the one the sources
+    // publish at exactly that version, else none, as it isn't published for every version. Never another version, whose
+    // engine packages would not be the version's.
+    public static TBuild? CompanionBuild<TBuild>(IEnumerable<TBuild> published, Func<TBuild, PackageVersion> versionOf, PackageVersion version)
+        where TBuild : class
+        => published.FirstOrDefault(build => versionOf(build).Equals(version));
 }

@@ -119,6 +119,36 @@ public class DirectoryWatcherTests : IDisposable
     }
 
     [Fact]
+    public void AWatchThatFailedStartsAgainAndReportsThatChangesMayHaveBeenMissed()
+    {
+        using var missed = new ManualResetEventSlim();
+        string? missedDirectory = null;
+        watcher.ChangesMissed += (sender, e) =>
+        {
+            missedDirectory = e.Directory;
+            missed.Set();
+        };
+        using var created = new ManualResetEventSlim();
+        watcher.Modified += (sender, e) =>
+        {
+            if (e.Name == "after.txt")
+                created.Set();
+        };
+        watcher.Track(testDirectory);
+
+        // As when the buffer of the events overflows, or the system stops the watch
+        watcher.RaiseWatchError(testDirectory, new InternalBufferOverflowException());
+
+        Assert.True(missed.Wait(TimeSpan.FromSeconds(10)));
+        Assert.Equal(testDirectory, missedDirectory, ignoreCase: true);
+        Assert.Contains(testDirectory, watcher.GetTrackedDirectories(), StringComparer.OrdinalIgnoreCase);
+
+        // The new watch reports the changes
+        File.WriteAllText(Path.Combine(testDirectory, "after.txt"), "content");
+        Assert.True(created.Wait(TimeSpan.FromSeconds(10)));
+    }
+
+    [Fact]
     public void Dispose_CanBeCalledMultipleTimes()
     {
         using var disposableWatcher = new DirectoryWatcher();

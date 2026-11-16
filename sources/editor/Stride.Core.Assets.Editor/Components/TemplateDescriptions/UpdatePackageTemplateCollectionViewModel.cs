@@ -2,11 +2,9 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #nullable disable
 
-using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Extensions;
-using Stride.Core.IO;
 
 namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 
@@ -30,9 +28,7 @@ public sealed class UpdatePackageTemplateCollectionViewModel : ProjectTemplateCo
             rootGroup.Templates.Add(viewModel);
         }
 
-        Location = session.SolutionPath?.GetFullDirectory() ?? InternalSettings.TemplatesWindowDialogLastNewSessionTemplateDirectory.GetValue();
-        if (string.IsNullOrWhiteSpace(Location))
-            Location = UPath.Combine<UDirectory>(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Stride Projects");
+        Location = NewOrOpenSessionTemplateCollectionViewModel.InitialLocationFor(session);
 
         SelectedGroup = rootGroup;
     }

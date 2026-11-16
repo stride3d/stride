@@ -39,7 +39,7 @@ internal static class VariableMerger
         {
             if (i.Op == Op.OpVariableSDSL && ((OpVariableSDSL)i) is { } variable && remapIds.ContainsKey(variable.ResultId))
             {
-                SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+                i.SetOpNop();
                 removedIds.Add(variable.ResultId);
             }
         }

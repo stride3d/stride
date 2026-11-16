@@ -16,9 +16,20 @@ internal sealed class RecordingProcessLauncher : IEditorProcessLauncher
 
     public Action? Started { get; set; }
 
-    public void Start(IReadOnlyList<string> arguments)
+    /// <summary>
+    /// Where each session can load, and why not when its .NET major is missing; this process by default.
+    /// </summary>
+    public Func<string, (SessionHost Host, string? Reason)> Host { get; set; } = _ => (SessionHost.ThisProcess, null);
+
+    public void Start(IReadOnlyList<string> arguments, string? sessionPath)
     {
         Starts.Add([.. arguments]);
         Started?.Invoke();
+    }
+
+    public SessionHost CheckHost(string sessionPath, IReadOnlyList<string> arguments, out string? reason)
+    {
+        (var host, reason) = Host(sessionPath);
+        return host;
     }
 }

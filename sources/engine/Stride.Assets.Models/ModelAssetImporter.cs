@@ -321,7 +321,8 @@ namespace Stride.Assets.Models
 
         /// <summary>
         /// Creates a texture asset for each texture a model uses, typed by its role, and a premultiplied copy of each texture in
-        /// <paramref name="premultipliedTextures"/> for the blended materials that reference it.
+        /// <paramref name="premultipliedTextures"/> for the blended materials that reference it. A texture that can't be found is a
+        /// warning, so the model and its other assets are still imported.
         /// </summary>
         internal static void ImportTextures(IEnumerable<string> textureDependencies, IReadOnlyDictionary<string, TextureRole> textureRoles, IReadOnlyDictionary<string, string> premultipliedTextures, List<AssetItem> assetReferences, Logger logger)
         {
@@ -332,9 +333,8 @@ namespace Stride.Assets.Models
             {
                 if (!File.Exists(textureFullPath))
                 {
-                    string texName = Path.GetFileNameWithoutExtension(textureFullPath)??"<unknown>";
-                    logger.Error($"Texture with name {texName} not found");
-                    continue; 
+                    logger.Warning($"Texture '{Path.GetFileName(textureFullPath)}' was not found at '{textureFullPath}', so no texture asset is created for it.");
+                    continue;
                 }
                 var texturePath = new UFile(textureFullPath);
 

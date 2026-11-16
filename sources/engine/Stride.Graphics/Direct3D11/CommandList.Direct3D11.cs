@@ -1380,7 +1380,7 @@ namespace Stride.Graphics
                 return;
 
             nativeDeviceContext->UpdateSubresource(resource.NativeResource, (uint)subResourceIndex, pDstBox: null,
-                                                   sourceData.GetPointer(), SrcRowPitch: 0, SrcDepthPitch: 0);
+                                                   in sourceData[0], SrcRowPitch: 0, SrcDepthPitch: 0);
         }
 
         /// <summary>
@@ -1429,7 +1429,7 @@ namespace Stride.Graphics
             ref Box destBox = ref region.As<ResourceRegion, Box>();
 
             nativeDeviceContext->UpdateSubresource(resource.NativeResource, (uint) subResourceIndex, in destBox,
-                                                   sourceData.GetPointer(), SrcRowPitch: 0, SrcDepthPitch: 0);
+                                                   in sourceData[0], SrcRowPitch: 0, SrcDepthPitch: 0);
         }
 
         /// <summary>

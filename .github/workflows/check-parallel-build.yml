@@ -31,8 +31,7 @@ jobs:
     runs-on: windows-2025-vs2026
     steps:
       - uses: actions/checkout@v7
-        with:
-          lfs: true
+      - uses: ./.github/actions/lfs-pull
 
       - name: Build ParallelBuildAuditor
         run: dotnet build build\tools\ParallelBuildAuditor\ParallelBuildAuditor.csproj -c Release -nologo -v:m

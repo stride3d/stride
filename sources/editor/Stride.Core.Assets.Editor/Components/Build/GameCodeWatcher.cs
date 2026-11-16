@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.IO.Enumeration;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
@@ -23,6 +24,10 @@ namespace Stride.Core.Assets.Editor.Components.Build;
 /// An IDE saves several files at once: the changes are grouped until none came for <see cref="BurstDelay"/>, then reported together
 /// by <see cref="Changed"/>, from a thread of the thread pool.
 /// </para>
+/// <para>
+/// When the file system watcher missed changes (its buffer of events overflowed during a build), the files are read again and the
+/// changes found are reported as its events.
+/// </para>
 /// </remarks>
 public sealed class GameCodeWatcher : IDisposable
 {
@@ -39,6 +44,8 @@ public sealed class GameCodeWatcher : IDisposable
     // Every project of the session, the deepest folder first: a file belongs to the first one whose folder holds it
     private readonly List<WatchedProject> projects;
     private readonly List<GameCodeChange> pendingChanges = [];
+    // The files that count, to find the changes the watcher missed
+    private readonly FileWriteTimes fileTimes = new();
     private readonly DirectoryWatcher? directoryWatcher;
     private readonly Timer burstTimer;
     private bool disposed;
@@ -74,6 +81,7 @@ public sealed class GameCodeWatcher : IDisposable
         {
             var watcher = new DirectoryWatcher();
             watcher.Modified += (_, e) => OnFileChanged(e);
+            watcher.ChangesMissed += (_, e) => OnChangesMissed(e.Directory);
             try
             {
                 // The watcher follows the folder of a file, and its subfolders
@@ -87,6 +95,16 @@ public sealed class GameCodeWatcher : IDisposable
                 // session still opens, without the offer to reload the game code
                 watcher.Dispose();
                 Log.Warning("The code of the game is not watched: the editor will not offer to reload it when it changes.", e);
+            }
+
+            if (directoryWatcher is not null)
+            {
+                foreach (var project in projects.Where(x => x.IsCode))
+                {
+                    fileTimes.Add(project.ProjectPath);
+                    foreach (var file in EnumerateProjectFiles(project.Directory, IsCodeFile))
+                        fileTimes.Add(file);
+                }
             }
         }
     }
@@ -195,6 +213,59 @@ public sealed class GameCodeWatcher : IDisposable
         }
     }
 
+    /// <summary>
+    /// Finds the changes the file system watcher missed in a folder, from the files of the code projects there, and reports them as
+    /// its events.
+    /// </summary>
+    /// <param name="directory">The folder whose watch started again.</param>
+    internal void OnChangesMissed(string directory)
+    {
+        if (IsDisposed)
+            return;
+
+        var currentFiles = new List<string>();
+        foreach (var project in projects.Where(x => x.IsCode))
+        {
+            var projectDirectory = project.Directory;
+            if (FileWriteTimes.IsUnder(projectDirectory, directory))
+                currentFiles.AddRange(EnumerateProjectFiles(projectDirectory, IsCodeFile));
+            else if (FileWriteTimes.IsUnder(directory, projectDirectory))
+                currentFiles.AddRange(EnumerateProjectFiles(directory, IsCodeFile));
+        }
+
+        foreach (var change in fileTimes.Reconcile(directory, currentFiles))
+            OnFileChanged(change);
+    }
+
+    /// <summary>
+    /// Lists the files of a folder of a project and of its subfolders, without the build output (<c>bin</c>, <c>obj</c>) and the
+    /// hidden folders, as the default items of an SDK project.
+    /// </summary>
+    /// <param name="directory">The folder of the project, or a folder in it.</param>
+    /// <param name="include">Which files to list, from their full path.</param>
+    /// <returns>The full paths of the files, or none when the folder does not exist.</returns>
+    public static IEnumerable<string> EnumerateProjectFiles(string directory, Func<string, bool> include)
+    {
+        if (!Directory.Exists(directory))
+            return [];
+
+        // Hidden files count, as for the watcher
+        var options = new EnumerationOptions { RecurseSubdirectories = true, IgnoreInaccessible = true, AttributesToSkip = 0 };
+        try
+        {
+            return new FileSystemEnumerable<string>(directory, (ref FileSystemEntry entry) => entry.ToFullPath(), options)
+            {
+                ShouldIncludePredicate = (ref FileSystemEntry entry) => !entry.IsDirectory && include(entry.ToFullPath()),
+                ShouldRecursePredicate = (ref FileSystemEntry entry) => !IsExcludedFolder(entry.FileName),
+            }.ToList();
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            // The folder is being deleted, or cannot be read
+            return [];
+        }
+    }
+
     private void AddChange(List<GameCodeChange> changes, string filePath, FileEventChangeType changeType)
     {
         if (string.IsNullOrEmpty(filePath))
@@ -206,15 +277,19 @@ public sealed class GameCodeWatcher : IDisposable
 
         if (PathComparer.Equals(filePath, project.ProjectPath))
         {
+            fileTimes.Update(filePath);
             if (project.HasNewContent(changeType))
                 changes.Add(new GameCodeChange(project.ProjectPath, filePath));
             return;
         }
 
-        if (!filePath.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) || IsExcluded(filePath[project.Directory.Length..]))
+        if (!IsCodeFile(filePath) || IsExcluded(filePath[project.Directory.Length..]))
             return;
+        fileTimes.Update(filePath);
         changes.Add(new GameCodeChange(project.ProjectPath, filePath));
     }
+
+    private static bool IsCodeFile(string path) => path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// Whether a file of a project is in its build output (<c>bin</c>, <c>obj</c>) or in a hidden folder, as the default items of an
@@ -227,11 +302,15 @@ public sealed class GameCodeWatcher : IDisposable
         // The last part is the file itself
         for (var i = 0; i < folders.Length - 1; ++i)
         {
-            var folder = folders[i];
-            if (folder.StartsWith('.') || folder.Equals("bin", StringComparison.OrdinalIgnoreCase) || folder.Equals("obj", StringComparison.OrdinalIgnoreCase))
+            if (IsExcludedFolder(folders[i]))
                 return true;
         }
         return false;
+    }
+
+    private static bool IsExcludedFolder(ReadOnlySpan<char> folder)
+    {
+        return folder.StartsWith('.') || folder.Equals("bin", StringComparison.OrdinalIgnoreCase) || folder.Equals("obj", StringComparison.OrdinalIgnoreCase);
     }
 
     private void EndBurst()

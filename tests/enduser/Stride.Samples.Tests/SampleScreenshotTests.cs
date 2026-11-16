@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Stride.Graphics;
 using Stride.SampleScreenshotRunner;
 using Stride.Tests.ScreenshotComparator;
@@ -195,12 +194,7 @@ namespace Stride.Samples.Tests
             };
             File.WriteAllText(
                 Path.Combine(sampleOut, "vision-deferred.json"),
-                // Allow NaN/Infinity — a deferred frame's lpips can be non-finite, so serialization mustn't fail the keyless run.
-                JsonSerializer.Serialize(payload, new JsonSerializerOptions
-                {
-                    WriteIndented = true,
-                    NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
-                }));
+                JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true }));
         }
 
         private void DumpLog(string path, string label)

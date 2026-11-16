@@ -108,10 +108,10 @@ internal static class DeadCodeRemover
                     {
                         if (buffer[index].Data.IdResult is int resultId)
                             removedIds.Add(resultId);
-                        SpirvBuilder.SetOpNop(buffer[index++].Data.Memory.Span);
+                        buffer[index++].SetOpNop();
                     }
 
-                    SpirvBuilder.SetOpNop(buffer[index].Data.Memory.Span);
+                    buffer[index].SetOpNop();
                 }
             }
 
@@ -129,7 +129,7 @@ internal static class DeadCodeRemover
                 if (!cbufferInfo.UsedAnyStage && cbufferInfo.ResourceGroup is not { Used: true })
                 {
                     removedIds.Add(variable.ResultId);
-                    SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+                    i.SetOpNop();
                 }
             }
 
@@ -145,7 +145,7 @@ internal static class DeadCodeRemover
                 if (!(resourceInfo.ResourceGroup?.Used ?? false || resourceInfo.UsedAnyStage))
                 {
                     removedIds.Add(resource.ResultId);
-                    SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+                    i.SetOpNop();
                 }
             }
 
@@ -160,14 +160,14 @@ internal static class DeadCodeRemover
                 {
                     // Always removed as we now use streams structure
                     removedIds.Add(variable2.ResultId);
-                    SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+                    i.SetOpNop();
                 }
                 else
                 {
                     if (!analysisResult.Variables.TryGetValue(variable2.ResultId, out var variableInfo) || !variableInfo.UsedAnyStage)
                     {
                         removedIds.Add(variable2.ResultId);
-                        SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+                        i.SetOpNop();
                     }
                 }
             }
@@ -186,7 +186,7 @@ internal static class DeadCodeRemover
                     if (streamsTypeSearch.Found)
                     {
                         removedIds.Add(i.Data.IdResult.Value);
-                        SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+                        i.SetOpNop();
                     }
                 }
             }
@@ -202,12 +202,12 @@ internal static class DeadCodeRemover
             if (i.Op == Op.OpExecutionMode && (OpExecutionMode)i is { } executionMode)
             {
                 if (removedIds.Contains(executionMode.EntryPoint))
-                    SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+                    i.SetOpNop();
             }
             else if (i.Op == Op.OpEntryPoint && (OpEntryPoint)i is { } entryPoint)
             {
                 if (removedIds.Contains(entryPoint.EntryPoint))
-                    SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+                    i.SetOpNop();
             }
         }
     }

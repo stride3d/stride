@@ -28,6 +28,8 @@ namespace Stride.Core.Assets.Editor.ViewModels;
 /// </summary>
 public sealed partial class AssetCollectionViewModel : IAddChildViewModel
 {
+    private const string ImportLogModule = "Asset import";
+
     private readonly Lazy<AddAssetTemplateCollectionViewModel> addAssetTemplateCollection;
 
     /// <summary>
@@ -74,7 +76,7 @@ public sealed partial class AssetCollectionViewModel : IAddChildViewModel
         if (template is null)
             return [];
 
-        var loggerResult = new LoggerResult();
+        var loggerResult = new LoggerResult(ImportLogModule);
 
         var directory = await GetAssetCreationTargetFolderAsync();
         if (directory is null)
@@ -97,7 +99,20 @@ public sealed partial class AssetCollectionViewModel : IAddChildViewModel
             name = templateDescription.DefaultOutputName ?? templateDescription.AssetTypeName;
         }
 
-        return await InvokeAddAssetTemplateAsync(loggerResult, name, directory, templateDescription, files, customParameters);
+        try
+        {
+            return await InvokeAddAssetTemplateAsync(loggerResult, name, directory, templateDescription, files, customParameters);
+        }
+        finally
+        {
+            // The progress window closes by itself on a clean import, and its log goes with it.
+            if (files is not null)
+            {
+                var editorLog = GlobalLogger.GetLogger(ImportLogModule);
+                foreach (var message in loggerResult.Messages)
+                    editorLog.Log(message);
+            }
+        }
     }
 
     /// <summary>
@@ -354,6 +369,16 @@ public sealed partial class AssetCollectionViewModel : IAddChildViewModel
             Tr._p("Button", "No")
         ], 1, 2);
 
+        // Created before the source files are copied, because it only shows messages logged after this.
+        var workProgress = new WorkProgressViewModel(ServiceProvider, logger)
+        {
+            Title = Tr._p("Title", "Add asset…"),
+            KeepOpen = KeepOpen.OnWarningsOrErrors,
+            IsIndeterminate = true,
+            IsCancellable = false, // The process is not cancellable at the beginning.
+        };
+        workProgress.RegisterProgressStatus(logger, true);
+
         var yesToAll = false;
         var overwriteAll = false;
         var finalPath = string.Empty;
@@ -432,7 +457,15 @@ public sealed partial class AssetCollectionViewModel : IAddChildViewModel
                         File.Copy(file.FullPath, finalPath);
                     }
 
-                    files[i] = new UFile(finalPath);
+                    var original = file;
+                    var copy = new UFile(finalPath);
+                    files[i] = copy;
+
+                    // The importer reads the files a raw asset needs (a model's textures) next to the copy, so copy them too.
+                    var importers = AssetRegistry.FindImporterForFile(finalPath).ToList();
+                    var dependencies = await Task.Run(() => RawAssetDependencyCopier.CopyDependencies(original, copy, importers, logger));
+                    foreach (var dependency in dependencies)
+                        logger.Info(Tr._p("Message", "Copied '{0}', which '{1}' needs, to the resources folder.").ToFormat(dependency.GetFileName(), copy.GetFileName()));
                 }
                 catch (Exception ex)
                 {
@@ -466,15 +499,6 @@ public sealed partial class AssetCollectionViewModel : IAddChildViewModel
             await Dialogs.MessageBoxAsync(Tr._p("Message", "Unable to retrieve template generator for the selected template. Aborting."), MessageBoxButton.OK, MessageBoxImage.Error);
             return newAssets;
         }
-
-        var workProgress = new WorkProgressViewModel(ServiceProvider, logger)
-        {
-            Title = Tr._p("Title", "Add asset…"),
-            KeepOpen = KeepOpen.OnWarningsOrErrors,
-            IsIndeterminate = true,
-            IsCancellable = false, // The process is not cancellable at the beginning.
-        };
-        workProgress.RegisterProgressStatus(logger, true);
 
         try
         {

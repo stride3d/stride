@@ -50,6 +50,7 @@ namespace Stride.Graphics
             ///   Additional Buffer flags, combined with <see cref="BufferFlags.VertexBuffer"/>.
             /// </param>
             /// <returns>A new instance of <see cref="Buffer"/>.</returns>
+            [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
             public static Buffer New(GraphicsDevice device, int bufferSize, GraphicsResourceUsage usage = GraphicsResourceUsage.Default, BufferFlags additionalFlags = BufferFlags.None)
             {
                 return Buffer.New(device, bufferSize, BufferFlags.VertexBuffer | additionalFlags, usage);
