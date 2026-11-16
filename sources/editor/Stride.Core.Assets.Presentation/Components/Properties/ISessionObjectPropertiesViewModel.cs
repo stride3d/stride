@@ -17,6 +17,11 @@ namespace Stride.Core.Assets.Presentation.Components.Properties
         /// <summary>
         /// Generates the properties of the given objects and displays them.
         /// </summary>
+        /// <remarks>
+        /// The generation waits for the transaction or the undo or redo in progress, then builds the properties off the UI thread: a change
+        /// made to the objects while they are built is not shown. An editor refreshes the grid after a change from the undo service's
+        /// <c>Done</c>, <c>Undone</c> and <c>Redone</c> events, not while the change runs.
+        /// </remarks>
         Task<GraphViewModel> GenerateSelectionPropertiesAsync(IEnumerable<IPropertyProviderViewModel> selectedObjects);
 
         /// <summary>

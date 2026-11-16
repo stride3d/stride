@@ -19,6 +19,10 @@ namespace Stride.Core.Assets.Editor.Services;
 /// What a plugin adds to the editor when it joins a session, given to <see cref="AssetsPlugin.Initialize(IEditorPluginContext)"/>.
 /// The editor records every registration under the plugin that made it and removes it when the plugin's assembly is unloaded.
 /// </summary>
+/// <remarks>
+/// The plugin's services of the session go in <see cref="ISessionPluginContext.Services"/>, given to
+/// <see cref="AssetsPlugin.InitializeSession(ISessionPluginContext)"/> once the session's editor is initialized.
+/// </remarks>
 public interface IEditorPluginContext
 {
     /// <summary>

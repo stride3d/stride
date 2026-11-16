@@ -154,6 +154,30 @@ using (var transaction = UndoRedoService.CreateTransaction())
 
 See [undo-redo.md](undo-redo.md#wrapping-a-mutation) for the full pattern including `AnonymousDirtyingOperation`.
 
+### Showing a selection in the property grid
+
+An editor shows what is selected in it (entities, nodes of a graph) in the session's property grid, `EditorProperties`. The selection is a list of `IPropertyProviderViewModel`, which give the root node of the properties; `UpdateTypeAndName` sets the header's text:
+
+```csharp
+private async Task ShowSelectionAsync()
+{
+    EditorProperties.UpdateTypeAndName(SelectedNodes, x => "Node", x => x.Title, "nodes");
+    await EditorProperties.GenerateSelectionPropertiesAsync(SelectedNodes);
+}
+```
+
+- `GenerateSelectionPropertiesAsync` waits for the transaction, undo or redo in progress (the outermost one, when transactions are nested), then builds the properties off the UI thread. A change made to the objects while they are built is not shown. So refresh the grid after a change from the undo service's `Done`, `Undone` and `Redone` events, not while the change runs:
+
+  ```csharp
+  // In the constructor; remove the three handlers in Destroy
+  UndoRedoService.Done += OnChangeCompleted;
+  UndoRedoService.Undone += OnChangeCompleted;
+  UndoRedoService.Redone += OnChangeCompleted;
+
+  private void OnChangeCompleted(object? sender, TransactionEventArgs e) => ShowSelectionAsync().Forget();
+  ```
+- The header's tags, its "Add new tag" box and "Open this asset in editor" act on the assets selected in the asset view: they show only while the grid shows assets (`IsAssetSelection`), and are hidden for an editor's own selection.
+
 ### Commands
 
 ```csharp
