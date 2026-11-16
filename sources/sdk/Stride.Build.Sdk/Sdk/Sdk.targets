@@ -321,13 +321,27 @@
        public API (routine after the assembly processor: same ref assembly, new implementation).
        So a body-only change leaves the marker stale and consumers' FastUpToDateCheck never re-copies
        the refreshed assembly (dotnet/msbuild#13478). Touch it after a real CoreCompile so the
-       marker reflects the rebuild. -->
+       marker reflects the rebuild. AfterTargets also runs when CoreCompile was skipped as up to
+       date: the assembly's time before and after tells a real compile. -->
+  <Target Name="_StrideTimestampBeforeCompile"
+          BeforeTargets="CoreCompile"
+          Condition="'@(CopyUpToDateMarker)' != '' And '$(DesignTimeBuild)' != 'true' And '$(SkipCompilerExecution)' != 'true'">
+    <PropertyGroup>
+      <_StrideAssemblyTimestampBeforeCompile>%(IntermediateAssembly.ModifiedTime)</_StrideAssemblyTimestampBeforeCompile>
+    </PropertyGroup>
+  </Target>
+
   <Target Name="_StrideTouchCopyMarkerAfterCompile"
           AfterTargets="CoreCompile"
           Condition="'@(CopyUpToDateMarker)' != '' And '$(DesignTimeBuild)' != 'true' And '$(SkipCompilerExecution)' != 'true'">
-    <Touch Files="@(CopyUpToDateMarker)" AlwaysCreate="true">
-      <Output TaskParameter="TouchedFiles" ItemName="FileWrites" />
-    </Touch>
+    <PropertyGroup>
+      <_StrideAssemblyTimestampAfterCompile>%(IntermediateAssembly.ModifiedTime)</_StrideAssemblyTimestampAfterCompile>
+    </PropertyGroup>
+    <Touch Files="@(CopyUpToDateMarker)" AlwaysCreate="true"
+           Condition="'$(_StrideAssemblyTimestampBeforeCompile)' != '$(_StrideAssemblyTimestampAfterCompile)'" />
+    <ItemGroup>
+      <FileWrites Include="@(CopyUpToDateMarker)" />
+    </ItemGroup>
   </Target>
 
   <!-- ================================================================ -->
