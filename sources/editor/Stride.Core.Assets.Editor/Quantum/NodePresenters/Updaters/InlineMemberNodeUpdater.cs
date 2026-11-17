@@ -70,7 +70,8 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters
                     TransferAttachedProperty(NumericData.DecimalPlacesKey, node, mainPropertyNode);
                     mainPropertyNode.Rename(InlineData.InlinedProperty);
                     mainPropertyNode.IsVisible = false;
-                    node.AddDependency(mainPropertyNode, false);
+                    // The node shows the value of its inlined member: a change of that value only changes the value of the node
+                    node.AddValueDependency(mainPropertyNode);
                 }
             }
         }
