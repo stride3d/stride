@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
@@ -171,6 +172,30 @@ public sealed class NodeGraphControl : Control
         AvaloniaProperty.Register<NodeGraphControl, double>(nameof(LinkThickness), 3.0);
 
     /// <summary>
+    /// Identifies the <see cref="LinkLabelForeground"/> styled property.
+    /// </summary>
+    public static readonly StyledProperty<IBrush?> LinkLabelForegroundProperty =
+        AvaloniaProperty.Register<NodeGraphControl, IBrush?>(nameof(LinkLabelForeground), Brushes.White);
+
+    /// <summary>
+    /// Identifies the <see cref="LinkLabelBackground"/> styled property.
+    /// </summary>
+    public static readonly StyledProperty<IBrush?> LinkLabelBackgroundProperty =
+        AvaloniaProperty.Register<NodeGraphControl, IBrush?>(nameof(LinkLabelBackground), new ImmutableSolidColorBrush(Color.FromArgb(0xD0, 0x30, 0x30, 0x30)));
+
+    /// <summary>
+    /// Identifies the <see cref="LinkLabelFontSize"/> styled property.
+    /// </summary>
+    public static readonly StyledProperty<double> LinkLabelFontSizeProperty =
+        AvaloniaProperty.Register<NodeGraphControl, double>(nameof(LinkLabelFontSize), 11.0);
+
+    /// <summary>
+    /// Identifies the <see cref="LinkLabelMinLength"/> styled property.
+    /// </summary>
+    public static readonly StyledProperty<double> LinkLabelMinLengthProperty =
+        AvaloniaProperty.Register<NodeGraphControl, double>(nameof(LinkLabelMinLength));
+
+    /// <summary>
     /// Identifies the <see cref="NodeDoubleClickCommand"/> styled property.
     /// </summary>
     public static readonly StyledProperty<ICommand?> NodeDoubleClickCommandProperty =
@@ -194,6 +219,7 @@ public sealed class NodeGraphControl : Control
     private const double ConnectorHitTolerance = 4.0;
     private const int BezierSegmentCount = 24;
     private const double ArrowSize = 9.0;
+    private const double LabelMaxWidth = 200.0;
 
     private static readonly IBrush SelectionRectangleFill = new ImmutableSolidColorBrush(Color.FromArgb(0x40, 0x36, 0x99, 0xB8));
     private static readonly IPen SelectionRectanglePen = new ImmutablePen(new ImmutableSolidColorBrush(Color.FromRgb(0x36, 0x99, 0xB8)), 1);
@@ -406,6 +432,43 @@ public sealed class NodeGraphControl : Control
     }
 
     /// <summary>
+    /// The brush of the text of the labels of the links.
+    /// </summary>
+    public IBrush? LinkLabelForeground
+    {
+        get => GetValue(LinkLabelForegroundProperty);
+        set => SetValue(LinkLabelForegroundProperty, value);
+    }
+
+    /// <summary>
+    /// The brush behind the text of the labels of the links, or <c>null</c> for none.
+    /// </summary>
+    public IBrush? LinkLabelBackground
+    {
+        get => GetValue(LinkLabelBackgroundProperty);
+        set => SetValue(LinkLabelBackgroundProperty, value);
+    }
+
+    /// <summary>
+    /// The size of the text of the labels of the links, in the coordinates of the graph.
+    /// </summary>
+    public double LinkLabelFontSize
+    {
+        get => GetValue(LinkLabelFontSizeProperty);
+        set => SetValue(LinkLabelFontSizeProperty, value);
+    }
+
+    /// <summary>
+    /// The distance between its ends, in the coordinates of the graph, under which a link does not show its label: a short
+    /// link has its two nodes in view, and their own text often says what the label would.
+    /// </summary>
+    public double LinkLabelMinLength
+    {
+        get => GetValue(LinkLabelMinLengthProperty);
+        set => SetValue(LinkLabelMinLengthProperty, value);
+    }
+
+    /// <summary>
     /// The command that runs, with the node, when the user double-clicks a node, unless a handler of
     /// <see cref="NodeDoubleClicked"/> handled it.
     /// </summary>
@@ -585,7 +648,9 @@ public sealed class NodeGraphControl : Control
         {
             UpdateTransforms();
         }
-        else if (change.Property == LinkBrushProperty || change.Property == SelectedLinkBrushProperty || change.Property == LinkPreviewBrushProperty || change.Property == LinkThicknessProperty)
+        else if (change.Property == LinkBrushProperty || change.Property == SelectedLinkBrushProperty || change.Property == LinkPreviewBrushProperty || change.Property == LinkThicknessProperty
+                 || change.Property == LinkLabelForegroundProperty || change.Property == LinkLabelBackgroundProperty || change.Property == LinkLabelFontSizeProperty
+                 || change.Property == LinkLabelMinLengthProperty)
         {
             linksLayer.InvalidateVisual();
         }
@@ -870,6 +935,11 @@ public sealed class NodeGraphControl : Control
     }
 
     /// <summary>
+    /// Draws the links again, for a <see cref="INodeGraphLinkResolver.GetStyle"/> that changed.
+    /// </summary>
+    public void InvalidateLinks() => linksLayer.InvalidateVisual();
+
+    /// <summary>
     /// Draws the links, in the coordinates of the graph.
     /// </summary>
     internal void RenderLinks(DrawingContext context)
@@ -878,6 +948,7 @@ public sealed class NodeGraphControl : Control
         var selectedLinks = EffectiveSelectedLinks;
         IPen? linkPen = LinkBrush is { } linkBrush ? new Pen(linkBrush, thickness) : null;
         IPen? selectedLinkPen = SelectedLinkBrush is { } selectedBrush ? new Pen(selectedBrush, thickness) : null;
+        var labels = new List<(string Text, Point Start, Point End)>();
         foreach (var link in EnumerateLinks())
         {
             // The link the user moves is drawn as the preview
@@ -888,10 +959,23 @@ public sealed class NodeGraphControl : Control
                 continue;
 
             var isSelected = selectedLinks.Contains(link);
-            var pen = isSelected ? selectedLinkPen : linkPen;
+            var style = LinkResolver?.GetStyle(link);
+            var brush = isSelected ? SelectedLinkBrush : style?.Brush ?? LinkBrush;
+            IPen? pen;
+            if (style is null || (style.Brush is null && style.Thickness is null && style.DashStyle is null))
+                pen = isSelected ? selectedLinkPen : linkPen;
+            else
+                pen = brush is not null ? new Pen(brush, style.Thickness ?? thickness, style.DashStyle) : null;
             if (pen is not null)
-                DrawLink(context, pen, isSelected ? SelectedLinkBrush : LinkBrush, ends.Start, ends.End);
+                DrawLink(context, pen, brush, ends.Start, ends.End);
+
+            if (!string.IsNullOrEmpty(style?.Label) && Distance(ends.Start, ends.End) >= LinkLabelMinLength)
+                labels.Add((style.Label, ends.Start, ends.End));
         }
+
+        // Over every link
+        foreach (var label in labels)
+            DrawLabel(context, label.Text, label.Start, label.End);
 
         if (gesture == Gesture.LinkDrag && linkSourceSlot is not null && LinkPreviewBrush is { } previewBrush
             && GetConnectorCenter(ConnectorFromSlot(linkSourceSlot, NodeGraphSlotDirection.Output)) is { } start)
@@ -968,6 +1052,26 @@ public sealed class NodeGraphControl : Control
             arrowContext.EndFigure(true);
         }
         context.DrawGeometry(arrowBrush, null, arrow);
+    }
+
+    private void DrawLabel(DrawingContext context, string text, Point start, Point end)
+    {
+        if (LinkLabelForeground is not { } foreground)
+            return;
+
+        var (control1, control2) = GetControlPoints(start, end);
+        var middle = Bezier(start, control1, control2, end, 0.5);
+        var formatted = new FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default, LinkLabelFontSize, foreground)
+        {
+            MaxTextWidth = LabelMaxWidth,
+            MaxLineCount = 1,
+            Trimming = TextTrimming.CharacterEllipsis,
+        };
+        var size = new Size(formatted.WidthIncludingTrailingWhitespace, formatted.Height);
+        var origin = new Point(middle.X - size.Width / 2, middle.Y - size.Height / 2);
+        if (LinkLabelBackground is { } background)
+            context.DrawRectangle(background, null, new Rect(origin, size).Inflate(new Thickness(4, 1)), 3, 3);
+        context.DrawText(formatted, origin);
     }
 
     private static Geometry CreateLinkGeometry(Point start, Point end)
@@ -1083,12 +1187,13 @@ public sealed class NodeGraphControl : Control
 
     private object? HitTestLink(Point graphPosition)
     {
-        var tolerance = LinkThickness / 2 + LinkHitTolerance / Zoom;
         // The last link is drawn over the others
         foreach (var link in EnumerateLinks().Reverse())
         {
             if (GetLinkEnds(link) is not { } ends)
                 continue;
+
+            var tolerance = (LinkResolver?.GetStyle(link)?.Thickness ?? LinkThickness) / 2 + LinkHitTolerance / Zoom;
 
             var (control1, control2) = GetControlPoints(ends.Start, ends.End);
             var previous = ends.Start;
