@@ -98,7 +98,7 @@ public class TestTypeConverter
     private static void TestConversionMultipleCultures<T>(T testValue)
         where T : struct
     {
-        string[] supportedLanguages = ["de-DE", "en-US", "es-ES", "fr-FR", "it-IT", "ja-JP", "ko-KR", "ru-RU", "zh-Hans"];
+        string[] supportedLanguages = ["de-DE", "en-US", "es-ES", "fr-FR", "it-IT", "ja-JP", "ko-KR", "nb-NO", "pl-PL", "ru-RU", "zh-Hans"];
         foreach (var lang in supportedLanguages)
         {
             Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo(lang);

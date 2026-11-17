@@ -23,6 +23,9 @@ public enum SupportedLanguage
     ChineseSimplified,
     Italian,
     Korean,
+    Polish,
+    [Display("Norwegian (Bokmål)")]
+    NorwegianBokmal,
 }
 
 public static class SupportedLanguageExtensions
@@ -44,6 +47,8 @@ public static class SupportedLanguageExtensions
             SupportedLanguage.ChineseSimplified => new CultureInfo("zh-Hans"),
             SupportedLanguage.Italian => new CultureInfo("it-IT"),
             SupportedLanguage.Korean => new CultureInfo("ko-KR"),
+            SupportedLanguage.Polish => new CultureInfo("pl-PL"),
+            SupportedLanguage.NorwegianBokmal => new CultureInfo("nb-NO"),
             _ => throw new ArgumentException("Invalid language option", nameof(language)),
         };
     }
