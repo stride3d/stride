@@ -25,6 +25,7 @@
     <Compile Include="HeadlessInput.cs" />
     <Compile Include="TestGCMeasurement.cs" />
     <Compile Include="TestGamePadCapture.cs" />
+    <Compile Include="TestTouchControllerCapture.cs" />
     <Compile Include="TestDeviceCaptureState.cs" />
     <Compile Include="TestCapturePhase.cs" />
     <Compile Include="TestButtonCaptureTracker.cs" />

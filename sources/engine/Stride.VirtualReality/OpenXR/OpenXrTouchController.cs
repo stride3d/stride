@@ -55,21 +55,21 @@ namespace Stride.VirtualReality
 
         private Quaternion? holdOffset;
 
-        public override float Trigger => input.GetActionFloat(myHand, TouchControllerButton.Trigger, out _);
+        protected override float RawTrigger => input.GetActionFloat(myHand, TouchControllerButton.Trigger, out _);
 
-        public override float Grip => input.GetActionFloat(myHand, TouchControllerButton.Grip, out _);
+        protected override float RawGrip => input.GetActionFloat(myHand, TouchControllerButton.Grip, out _);
 
-        public override bool IndexPointing => false;
+        protected override bool RawIndexPointing => false;
 
-        public override bool IndexResting => false;
+        protected override bool RawIndexResting => false;
 
-        public override bool ThumbUp => false;
+        protected override bool RawThumbUp => false;
 
-        public override bool ThumbResting => false;
+        protected override bool RawThumbResting => false;
 
-        public override Vector2 ThumbstickAxis => GetAxis((int)TouchControllerButton.Thumbstick);
+        protected override Vector2 RawThumbstickAxis => GetAxis((int)TouchControllerButton.Thumbstick);
 
-        public override Vector2 ThumbAxis => GetAxis((int)TouchControllerButton.Touchpad);
+        protected override Vector2 RawThumbAxis => GetAxis((int)TouchControllerButton.Touchpad);
         public override ControllerHaptics HapticsSupport => ControllerHaptics.None;
 
         public Vector2 GetAxis(int index)
@@ -80,36 +80,36 @@ namespace Stride.VirtualReality
                                input.GetActionFloat(myHand, button, out _, true));
         }
 
-        public override bool IsPressed(TouchControllerButton button)
+        protected override bool IsRawPressed(TouchControllerButton button)
         {
             return input.GetActionBool(myHand, button, out _);
         }
 
-        public override bool IsPressedDown(TouchControllerButton button)
+        protected override bool IsRawPressedDown(TouchControllerButton button)
         {
             bool isDownNow = input.GetActionBool(myHand, button, out bool changed);
             return isDownNow && changed;
         }
 
-        public override bool IsPressReleased(TouchControllerButton button)
+        protected override bool IsRawPressReleased(TouchControllerButton button)
         {
             bool isDownNow = input.GetActionBool(myHand, button, out bool changed);
             return !isDownNow && changed;
         }
 
-        public override bool IsTouched(TouchControllerButton button)
+        protected override bool IsRawTouched(TouchControllerButton button)
         {
             // unsupported right now
             return false;
         }
 
-        public override bool IsTouchedDown(TouchControllerButton button)
+        protected override bool IsRawTouchedDown(TouchControllerButton button)
         {
             // unsupported right now
             return false;
         }
 
-        public override bool IsTouchReleased(TouchControllerButton button)
+        protected override bool IsRawTouchReleased(TouchControllerButton button)
         {
             // unsupported right now
             return false;

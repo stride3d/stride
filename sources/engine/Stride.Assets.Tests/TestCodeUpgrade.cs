@@ -1412,4 +1412,42 @@ public class TestCodeUpgrade
         Assert.Contains("this.RawState = 0;", result);
         AssertCompiles(result.Replace(OldBase, NewBase));
     }
+
+    [Fact]
+    public async Task MethodOverrideRenameMovesOverridesToTheNewMethod()
+    {
+        // The 4.5.4 shape: TouchController.IsPressed became non-virtual and backends override IsRawPressed instead
+        const string OldBase = "public abstract class TouchController { public abstract bool IsPressed(int button); }";
+        const string NewBase = "public abstract class TouchController { public bool IsPressed(int button) => IsRawPressed(button); protected abstract bool IsRawPressed(int button); }";
+        var source = $$"""
+            namespace VR
+            {
+                {{OldBase}}
+            }
+            namespace TestNs
+            {
+                class Hand : VR.TouchController
+                {
+                    public override bool IsPressed(int button) => button == 0;
+                }
+                class DerivedHand : Hand
+                {
+                    public override bool IsPressed(int button) => base.IsPressed(button) || button == 1;
+                    public bool Read() => IsPressed(2);
+                }
+                abstract class OtherBase { public abstract bool IsPressed(int button); }
+                class Other : OtherBase { public override bool IsPressed(int button) => false; }
+            }
+            """;
+
+        var result = await ApplyAsync(source, MethodOverrideRename("VR.TouchController", "IsPressed", "IsRawPressed", SyntaxKind.ProtectedKeyword));
+
+        Assert.Contains("protected override bool IsRawPressed(int button) => button == 0;", result);
+        // base.IsPressed would now call the public IsPressed, which calls IsRawPressed again
+        Assert.Contains("protected override bool IsRawPressed(int button) => base.IsRawPressed(button) || button == 1;", result);
+        // Calls of IsPressed and overrides of an unrelated IsPressed are left alone
+        Assert.Contains("public bool Read() => IsPressed(2);", result);
+        Assert.Contains("class Other : OtherBase { public override bool IsPressed(int button) => false; }", result);
+        AssertCompiles(result.Replace(OldBase, NewBase));
+    }
 }
