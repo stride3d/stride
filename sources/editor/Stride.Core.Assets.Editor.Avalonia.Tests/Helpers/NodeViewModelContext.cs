@@ -27,6 +27,11 @@ public sealed class NodeViewModelContext
     public ViewModelServiceProvider ServiceProvider { get; }
 
     /// <summary>
+    /// The commands attached to the nodes that can take them (<see cref="GraphViewModelService.AvailableCommands"/>).
+    /// </summary>
+    public List<INodePresenterCommand> Commands => ServiceProvider.Get<GraphViewModelService>().AvailableCommands;
+
+    /// <summary>
     /// Creates the view model of the given object and returns its root node.
     /// </summary>
     public NodeViewModel RootOf(object instance)
