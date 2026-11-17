@@ -66,9 +66,9 @@ on:
         type: number
         default: 1
   schedule:
-    # Daily at 02:43 UTC — offset off top-of-hour to avoid GitHub Actions cron load spikes;
-    # spaced from the other nightlies (03:37–05:17) so they don't compete for the scheduler.
-    - cron: '43 2 * * *'
+    # Daily at 15:43 UTC (00:43 JST, the maintainer's night) — offset off top-of-hour to avoid GitHub Actions cron
+    # load spikes; spaced from the other scheduled tests (16:37-18:17) so they don't compete for the scheduler.
+    - cron: '43 15 * * *'
 
 concurrency:
   # A manual run, direct or through test-gold-gen, never cancels or queues behind another one

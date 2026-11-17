@@ -66,7 +66,8 @@ on:
         type: number
         default: 1
   schedule:
-    - cron: '37 3 * * *'
+    # Daily at 16:37 UTC, between the iOS (15:43) and end-user (17:37) tests
+    - cron: '37 16 * * *'
 
 
 concurrency:
