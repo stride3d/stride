@@ -33,8 +33,8 @@ on:
       ANTHROPIC_API_KEY:
         required: false
   schedule:
-    # Daily at 04:37 UTC — offset off top-of-hour to avoid GitHub Actions cron load spikes.
-    - cron: '37 4 * * *'
+    # Daily at 17:37 UTC — offset off top-of-hour to avoid GitHub Actions cron load spikes.
+    - cron: '37 17 * * *'
 
 concurrency:
   group: test-enduser-${{ github.event.pull_request.number || github.sha }}
