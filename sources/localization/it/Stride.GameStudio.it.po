@@ -20,17 +20,19 @@ msgid ""
 "An executable project must be set as current project in the session explorer "
 "in order to process build."
 msgstr ""
+"Un progetto eseguibile deve essere impostato come progetto corrente nella "
+"sessione explorer in ordine da processare la costruzione."
 
 #. Generic error message when we are unable to launch a game on a remote host.
 #: ../editor/Stride.GameStudio/Remote/RemoteFacilities.cs:120
 msgctxt "Message"
 msgid "Unable to launch {0} on host {1}"
-msgstr ""
+msgstr "Impossibile avviare {0} sull'host {1}"
 
 #: ../editor/Stride.GameStudio/Settings/StrideEditorSettings.cs:26
 msgctxt "Settings"
 msgid "Default session to load"
-msgstr ""
+msgstr "Sessione da caricare di default"
 
 #. Confirmation message when everything is correct while testing credentials.
 #: ../editor/Stride.GameStudio/View/CredentialsDialog.xaml.cs:75
@@ -54,13 +56,13 @@ msgstr "Credenziali non valide."
 #: ../editor/Stride.GameStudio/View/CredentialsDialog.xaml.cs:84
 msgctxt "Credentials"
 msgid "The location you specified doesn't exist."
-msgstr ""
+msgstr "La destinazione specificata non esiste."
 
 #. Whenever something not expected happens while checking for credentials.
 #: ../editor/Stride.GameStudio/View/CredentialsDialog.xaml.cs:87
 msgctxt "Credentials"
 msgid "An unknown error occurred."
-msgstr ""
+msgstr "Si è verificato un errore sconosciuto."
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml.cs:97
 msgctxt "Message"
@@ -68,6 +70,9 @@ msgid ""
 "To reset the layout, Game Studio needs to close and re-open all asset and "
 "document editors. You won't lose unsaved changes."
 msgstr ""
+"Per resettare il livello, Game Studio ha bisogno di chiudere e riaprire "
+"tutti gli asset e gli editor di documenti. Non perderai le modifiche non "
+"salvate."
 
 #: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:59
 msgctxt "Title"
@@ -80,6 +85,8 @@ msgid ""
 "Some game code files have been modified. Do you want to reload the "
 "assemblies?"
 msgstr ""
+"Alcuni file codice di gioco sono stati modificati. Vuoi ricaricare gli "
+"assemblamenti?"
 
 #: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:244
 msgctxt "Button"
@@ -116,12 +123,12 @@ msgstr "Impossibile caricare e compilare il progetto {0}"
 #: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:835
 msgctxt "Message"
 msgid "Unable to reach to output executable: {0}"
-msgstr ""
+msgstr "Impossibile trovare l'eseguibile in uscita: {0}"
 
 #: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:805
 msgctxt "Message"
 msgid "Couldn't find Android package name for {0}."
-msgstr ""
+msgstr "Impossibile trovare il nome del pacchetto Android per {0}."
 
 #. Displayed when Android tools "adb" can't be found
 #: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:815
@@ -130,11 +137,13 @@ msgid ""
 "Android tool \"\"adb\"\" couldn't found (no running process, in registry or "
 "on the PATH). Please add it to your PATH."
 msgstr ""
+"Lo strumento Android \"\"adb\" non è stato trovato (Nessun processo attivo, "
+"ne nel registro o nel PERCORSO). Per favore, aggiungilo al tuo PERCORSO."
 
 #: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:822
 msgctxt "Message"
 msgid "Can't run Android app with adb: {0}"
-msgstr ""
+msgstr "Impossibile avviare l'app Android con adb: {0}"
 
 #. Displayed when starting a game on a platform requiring credentials but none were provided.
 #: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:847
@@ -162,6 +171,7 @@ msgstr ""
 msgctxt "Message"
 msgid "An exception occurred while compiling the project: {0}"
 msgstr ""
+"Si è verificato un evento eccezionale nella compilazione del progetto: {0}"
 
 #. Message displayed when the user tries to build without having selected a current project
 #: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:880
@@ -170,6 +180,8 @@ msgid ""
 "To process the build, set an executable project as the current project in "
 "the session explorer."
 msgstr ""
+"Per procedere alla costruzione, imposta un progetto eseguibile come progetto "
+"corrente nella sessione explorer."
 
 #. Message displayed when the user cancels the saving of the current session when trying to build
 #: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:888
@@ -267,7 +279,7 @@ msgstr ""
 #: ../editor/Stride.GameStudio/View/CredentialsDialog.xaml:40
 msgctxt "Button"
 msgid "Save"
-msgstr ""
+msgstr "Salva"
 
 #: ../editor/Stride.GameStudio/View/CredentialsDialog.xaml:45
 msgctxt "Button"
@@ -285,7 +297,7 @@ msgstr "Asset"
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:101
 msgctxt "Menu"
 msgid "Edit asset..."
-msgstr ""
+msgstr "Modifica asset..."
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:146
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:253
@@ -304,7 +316,7 @@ msgstr "Copia"
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:148
 msgctxt "Menu"
 msgid "Copy with dependencies"
-msgstr ""
+msgstr "Copia con dipendenze"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:149
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:255
@@ -345,19 +357,19 @@ msgstr "Crea cartella"
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:574
 msgctxt "Menu"
 msgid "Add asset..."
-msgstr ""
+msgstr "Aggiungi asset..."
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:157
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:305
 msgctxt "Menu"
 msgid "Update selected assets from their source"
-msgstr ""
+msgstr "Aggiorna gli asset selezionati da sorgente"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:158
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:306
 msgctxt "Menu"
 msgid "Update all assets with modified source"
-msgstr ""
+msgstr "Aggiorna tutti gli asset con le sorgenti modificate"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:160
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:307
@@ -374,19 +386,19 @@ msgstr "Apri con editor di testo"
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:162
 msgctxt "Menu"
 msgid "Open asset file"
-msgstr ""
+msgstr "Apri File Asset"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:163
 msgctxt "Menu"
 msgid "Open source file"
-msgstr ""
+msgstr "Apri file sorgente"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:164
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:308
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:577
 msgctxt "Menu"
 msgid "Show in Explorer"
-msgstr ""
+msgstr "Mostra in Explorer"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:165
 msgctxt "Menu"
@@ -416,7 +428,7 @@ msgstr "Apri recente"
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:235
 msgctxt "Menu"
 msgid "Clear list"
-msgstr ""
+msgstr "Pulisci lista"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:237
 msgctxt "Menu"
@@ -426,7 +438,7 @@ msgstr "Salva"
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:239
 msgctxt "Menu"
 msgid "Reload project"
-msgstr ""
+msgstr "Ricarica progetto"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:242
 msgctxt "Menu"
@@ -461,22 +473,22 @@ msgstr "Progetto"
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:262
 msgctxt "Menu"
 msgid "Build project"
-msgstr ""
+msgstr "Costruisci progetto"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:263
 msgctxt "Menu"
 msgid "Start project"
-msgstr ""
+msgstr "Avvia progetto"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:265
 msgctxt "Menu"
 msgid "Start live-scripting"
-msgstr ""
+msgstr "Avvia script in tempo reale"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:266
 msgctxt "Menu"
 msgid "Cancel build"
-msgstr ""
+msgstr "Cancella costruzione"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:267
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:535
@@ -488,19 +500,19 @@ msgstr "Cartella"
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:538
 msgctxt "Menu"
 msgid "Package"
-msgstr ""
+msgstr "Pacchetto"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:271
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:539
 msgctxt "Menu"
 msgid "Update package"
-msgstr ""
+msgstr "Aggiorna Pacchetto"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:289
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:557
 msgctxt "Menu"
 msgid "Add dependency..."
-msgstr ""
+msgstr "Aggiungi dipendenza..."
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:290
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:558
@@ -512,7 +524,7 @@ msgstr "Imposta come progetto corrente"
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:559
 msgctxt "Menu"
 msgid "Package properties"
-msgstr ""
+msgstr "Impostazioni pacchetto"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:293
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:561
@@ -536,12 +548,12 @@ msgstr "Aggiungi progetto esistente..."
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:564
 msgctxt "Menu"
 msgid "Open in IDE"
-msgstr ""
+msgstr "Apri in IDE"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:297
 msgctxt "Menu"
 msgid "Reload game assemblies"
-msgstr ""
+msgstr "Ricarica assemblatori del gioco"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:299
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:566
@@ -562,32 +574,32 @@ msgstr ""
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:313
 msgctxt "Menu"
 msgid "Asset view"
-msgstr ""
+msgstr "Visuale Asset"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:314
 msgctxt "Menu"
 msgid "References"
-msgstr ""
+msgstr "Referenze"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:316
 msgctxt "Menu"
 msgid "Asset preview"
-msgstr ""
+msgstr "Anteprima asset"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:319
 msgctxt "Menu"
 msgid "Property grid"
-msgstr ""
+msgstr "Proprietà griglia"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:320
 msgctxt "Menu"
 msgid "Edit history"
-msgstr ""
+msgstr "Modifica storico"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:323
 msgctxt "Menu"
 msgid "Asset errors"
-msgstr ""
+msgstr "Errori Asset"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:324
 msgctxt "Menu"
@@ -631,7 +643,7 @@ msgstr "Mostra finestra di debug"
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:337
 msgctxt "Menu"
 msgid "About..."
-msgstr ""
+msgstr "Info su..."
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:363
 msgctxt "ToolTip"
@@ -656,7 +668,7 @@ msgstr "Salva il progetto e tutti i suoi documenti"
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:402
 msgctxt "ToolTip"
 msgid "Reload current project (ask to save)"
-msgstr ""
+msgstr "Ricarica progetto corrente (Chiedi di salvare)"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:407
 msgctxt "ToolTip"
@@ -671,7 +683,7 @@ msgstr "Ripristina l'ultima azione"
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:417
 msgctxt "ToolTip"
 msgid "Open in IDE"
-msgstr ""
+msgstr "Apri in Ambiente di Sviluppo"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:421
 msgctxt "ToolTip"
@@ -681,27 +693,27 @@ msgstr "Apri con..."
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:432
 msgctxt "ToolTip"
 msgid "Reload game assemblies and update scripts"
-msgstr ""
+msgstr "Ricarica assemblatori del gioco e aggiorna gli script"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:453
 msgctxt "ToolTip"
 msgid "Build the project"
-msgstr ""
+msgstr "Costruisci progetto"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:457
 msgctxt "ToolTip"
 msgid "Build the project and start the game"
-msgstr ""
+msgstr "Costruisci progetto e avvia il gioco"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:463
 msgctxt "ToolTip"
 msgid "Start project in live-scripting mode"
-msgstr ""
+msgstr "Avvia progetto in modalità script in tempo reale"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:468
 msgctxt "ToolTip"
 msgid "Cancel the current build"
-msgstr ""
+msgstr "Annulla la costruzione corrente"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:484
 msgctxt "View"
@@ -721,22 +733,22 @@ msgstr "Crea una cartella"
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:500
 msgctxt "ToolTip"
 msgid "Display the properties of the selected package in the property grid"
-msgstr ""
+msgstr "Mostra proprietà del pacchetto selezionato nella griglia proprietà"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:504
 msgctxt "ToolTip"
 msgid "Rename the selected folder or package"
-msgstr ""
+msgstr "Rinomina la cartella o pacchetto selezionato"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:508
 msgctxt "ToolTip"
 msgid "Delete the selected items"
-msgstr ""
+msgstr "Elimina elementi selezionati"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:513
 msgctxt "ToolTip"
 msgid "Expand all asset folders"
-msgstr ""
+msgstr "Espandi tutte le cartelle assets"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:517
 msgctxt "ToolTip"
@@ -751,7 +763,7 @@ msgstr "Riduci tutto"
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:526
 msgctxt "ToolTip"
 msgid "Show in Explorer"
-msgstr ""
+msgstr "Mostra in Explorer"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:618
 msgctxt "View"

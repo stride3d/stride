@@ -27,27 +27,27 @@ msgstr "Anuluj"
 #: ../editor/Stride.Assets.Editor.Wpf/Templates/ProjectLibraryWindow.xaml.cs:91
 msgctxt "Message"
 msgid "Type a valid library name. Error with {0}"
-msgstr ""
+msgstr "Wpisz prawidłową nazwę biblioteki. Błąd z {0}"
 
 #: ../editor/Stride.Assets.Editor.Wpf/Templates/ProjectLibraryWindow.xaml.cs:97
 msgctxt "Message"
 msgid "Type a valid namespace name. Error with {0}"
-msgstr ""
+msgstr "Wpisz prawidłową nazwę przestrzeni nazw. Błąd z {0}"
 
 #: ../editor/Stride.Assets.Editor.Wpf/Templates/UpdatePlatformsWindows.xaml.cs:61
 msgctxt "Message"
 msgid "You must select at least one platform."
-msgstr ""
+msgstr "Musisz wybrać co najmniej jedną platformę."
 
 #: ../editor/Stride.Assets.Editor.Wpf/Templates/UpdatePlatformsWindows.xaml.cs:69
 msgctxt "Button"
 msgid "Remove"
-msgstr ""
+msgstr "Usuń"
 
 #: ../editor/Stride.Assets.Editor.Wpf/Templates/UpdatePlatformsWindows.xaml.cs:72
 msgctxt "Message"
 msgid "Are you sure you want to remove these {0} platform(s) from the package?"
-msgstr ""
+msgstr "Czy na pewno chcesz usunąć te {0} platformy z pakietu?"
 
 #: ../editor/Stride.Assets.Editor.Wpf/ViewModel/CodeViewModel.cs:517
 msgctxt "Message"
@@ -57,6 +57,11 @@ msgid ""
 "\r\n"
 "Click OK to keep reloading or Cancel to keep the current version."
 msgstr ""
+"Edytor nie może automatycznie ponownie załadować pliku projektu {0}, "
+"ponieważ masz lokalne zmiany, takie jak nowe lub usunięte skrypty.\n"
+"\n"
+"Kliknij OK, aby spróbować załadować ponowne lub Anuluj, aby zachować bieżącą "
+"wersję."
 
 #: ../editor/Stride.Assets.Editor.Wpf/ViewModel/CodeViewModel.cs:576
 msgctxt "Message"
@@ -67,6 +72,10 @@ msgid ""
 "\r\n"
 "{1}"
 msgstr ""
+"Następujące pliki źródłowe w projekcie {0} zostały usunięte zewnętrznie, ale "
+"mają niezapisane zmiany w edytorze. Czy chcesz usunąć te pliki?\n"
+"\n"
+"{1}"
 
 #: ../editor/Stride.Assets.Editor.Wpf/ViewModel/ScriptSourceFileAssetViewModel.cs:368
 msgctxt "Message"
@@ -77,6 +86,11 @@ msgid ""
 "editor.\r\n"
 "Do you want to reload it and lose your changes?"
 msgstr ""
+"{0}\n"
+"\n"
+"Ten plik został zmieniony zewnętrznie i ma niezapisane zmiany wewnątrz "
+"edytora.\n"
+"Czy chcesz go załadować ponownie i stracić swoje zmiany?"
 
 #: ../editor/Stride.Assets.Editor.Wpf/Templates/DotNetNewTemplateParametersWindow.xaml:27
 msgid "OK"
@@ -92,12 +106,12 @@ msgstr ""
 
 #: ../editor/Stride.Assets.Editor.Wpf/Templates/ModelAssetTemplateWindow.xaml:23
 msgid "Materials and textures"
-msgstr ""
+msgstr "Materiały i tekstury"
 
 #: ../editor/Stride.Assets.Editor.Wpf/Templates/ModelAssetTemplateWindow.xaml:27
 msgctxt "Button"
 msgid "Import materials"
-msgstr ""
+msgstr "Importuj materiały"
 
 #: ../editor/Stride.Assets.Editor.Wpf/Templates/ModelAssetTemplateWindow.xaml:28
 msgctxt "Button"
@@ -111,7 +125,7 @@ msgstr ""
 #: ../editor/Stride.Assets.Editor.Wpf/Templates/ModelAssetTemplateWindow.xaml:30
 msgctxt "Button"
 msgid "Import textures"
-msgstr ""
+msgstr "Importuj tekstury"
 
 #: ../editor/Stride.Assets.Editor.Wpf/Templates/ModelAssetTemplateWindow.xaml:31
 msgctxt "Button"
@@ -142,7 +156,7 @@ msgstr ""
 #: ../editor/Stride.Assets.Editor.Wpf/Templates/UpdatePlatformsWindows.xaml:54
 msgctxt "Button"
 msgid "OK"
-msgstr ""
+msgstr "OK"
 
 #: ../editor/Stride.Assets.Editor.Wpf/Templates/ProjectLibraryWindow.xaml:10
 msgid "New code library"
@@ -151,20 +165,20 @@ msgstr ""
 #: ../editor/Stride.Assets.Editor.Wpf/Templates/ProjectLibraryWindow.xaml:23
 #: ../editor/Stride.Assets.Editor.Wpf/Templates/ScriptNameWindow.xaml:31
 msgid "Namespace:"
-msgstr ""
+msgstr "Przestrzeń nazw:"
 
 #: ../editor/Stride.Assets.Editor.Wpf/Templates/ScriptNameWindow.xaml:9
 msgid "New script"
-msgstr ""
+msgstr "Nowy skrypt"
 
 #: ../editor/Stride.Assets.Editor.Wpf/Templates/ScriptNameWindow.xaml:20
 msgctxt "Button"
 msgid "Create script"
-msgstr ""
+msgstr "Stwórz skrypt"
 
 #: ../editor/Stride.Assets.Editor.Wpf/Templates/ScriptNameWindow.xaml:25
 msgid "Class:"
-msgstr ""
+msgstr "Klasa:"
 
 #: ../editor/Stride.Assets.Editor.Wpf/Templates/ScriptNameWindow.xaml:28
 msgid "Template:"
@@ -172,7 +186,7 @@ msgstr ""
 
 #: ../editor/Stride.Assets.Editor.Wpf/Templates/UpdatePlatformsWindows.xaml:9
 msgid "Select platforms"
-msgstr ""
+msgstr "Wybierz platformy"
 
 #: ../editor/Stride.Assets.Editor.Wpf/Templates/UpdatePlatformsWindows.xaml:31
 msgid "(This will remove the project from the package and disk.)"
@@ -190,12 +204,12 @@ msgstr ""
 #: ../editor/Stride.Assets.Editor.Wpf/Themes/Generic.xaml:27
 msgctxt "ToolTip"
 msgid "Play the animation"
-msgstr ""
+msgstr "Rozpocznij animacje"
 
 #: ../editor/Stride.Assets.Editor.Wpf/Themes/Generic.xaml:30
 msgctxt "ToolTip"
 msgid "Pause the animation"
-msgstr ""
+msgstr "Zatrzymaj animacje"
 
 #: ../editor/Stride.Assets.Editor.Wpf/Themes/Generic.xaml:42
 msgid "Time scale:"
@@ -205,7 +219,7 @@ msgstr ""
 #: ../editor/Stride.Assets.Editor.Wpf/Themes/Generic.xaml:135
 msgctxt "ToolTip"
 msgid "Reset the camera"
-msgstr ""
+msgstr "Zresetuj kamerę"
 
 #: ../editor/Stride.Assets.Editor.Wpf/Themes/Generic.xaml:186
 msgid ""
@@ -252,28 +266,28 @@ msgstr ""
 
 #: ../editor/Stride.Assets.Editor.Wpf/View/AddEntityComponentUserControl.xaml:22
 msgid "Add component"
-msgstr ""
+msgstr "Dodaj komponent"
 
 #: ../editor/Stride.Assets.Editor.Wpf/View/AddEntityComponentUserControl.xaml:35
 msgid "Search"
-msgstr ""
+msgstr "Szukaj"
 
 #: ../editor/Stride.Assets.Editor.Wpf/View/AnimationPropertyTemplates.xaml:18
 msgctxt "ToolTip"
 msgid "Edit curve"
-msgstr ""
+msgstr "Edytuj krzywą"
 
 #: ../editor/Stride.Assets.Editor.Wpf/View/AnimationPropertyTemplates.xaml:70
 #: ../editor/Stride.Assets.Editor.Wpf/View/EntityPropertyTemplates.xaml:124
 #: ../editor/Stride.Assets.Editor.Wpf/View/EntityPropertyTemplates.xaml:164
 #: ../editor/Stride.Assets.Editor.Wpf/View/SkeletonPropertyTemplates.xaml:63
 msgid "(Different values)"
-msgstr ""
+msgstr "(Różne wartości)"
 
 #: ../editor/Stride.Assets.Editor.Wpf/View/DebugEntityHierarchyEditorUserControl.xaml:13
 msgctxt "Button"
 msgid "Refresh"
-msgstr ""
+msgstr "Odśwież"
 
 #: ../editor/Stride.Assets.Editor.Wpf/View/DebuggerPickerWindow.xaml:11
 msgid "Live scripting debugger"
@@ -282,13 +296,13 @@ msgstr ""
 #: ../editor/Stride.Assets.Editor.Wpf/View/DebuggerPickerWindow.xaml:21
 msgctxt "ToolTip"
 msgid "Select these assets"
-msgstr ""
+msgstr "Wybierz te zasoby"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:27
 #: ../editor/Stride.Assets.Editor.Wpf/View/DebuggerPickerWindow.xaml:26
 msgctxt "ToolTip"
 msgid "Cancel (Esc)"
-msgstr ""
+msgstr "Anuluj (Esc)"
 
 #: ../editor/Stride.Assets.Editor.Wpf/View/EntityPropertyTemplates.xaml:97
 #: ../editor/Stride.Assets.Editor.Wpf/View/EntityPropertyTemplates.xaml:137
@@ -296,14 +310,14 @@ msgstr ""
 #: ../editor/Stride.Assets.Editor.Wpf/View/EntityPropertyTemplates.xaml:273
 msgctxt "ToolTip"
 msgid "Select an asset"
-msgstr ""
+msgstr "Wybierz zasób"
 
 #: ../editor/Stride.Assets.Editor.Wpf/View/EntityPropertyTemplates.xaml:103
 #: ../editor/Stride.Assets.Editor.Wpf/View/EntityPropertyTemplates.xaml:143
 #: ../editor/Stride.Assets.Editor.Wpf/View/EntityPropertyTemplates.xaml:278
 msgctxt "ToolTip"
 msgid "Clear the reference"
-msgstr ""
+msgstr "Wyczyść odwołania"
 
 #: ../editor/Stride.Assets.Editor.Wpf/View/EntityPropertyTemplates.xaml:109
 #: ../editor/Stride.Assets.Editor.Wpf/View/EntityPropertyTemplates.xaml:149
@@ -315,7 +329,7 @@ msgstr ""
 #: ../editor/Stride.Assets.Editor.Wpf/View/EntityPropertyTemplates.xaml:269
 msgctxt "ToolTip"
 msgid "Highlight this material in the scene editor"
-msgstr ""
+msgstr "Podświetlaj ten materiał w edytorze scen"
 
 #: ../editor/Stride.Assets.Editor.Wpf/View/EntityPropertyTemplates.xaml:313
 msgid "Add configuration"
@@ -323,7 +337,7 @@ msgstr ""
 
 #: ../editor/Stride.Assets.Editor.Wpf/View/MaterialPropertyTemplates.xaml:13
 msgid "Select shader..."
-msgstr ""
+msgstr "Wybierz shader..."
 
 #. As for "Select all items"
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:586
@@ -331,7 +345,7 @@ msgstr ""
 #: ../editor/Stride.Assets.Editor.Wpf/View/SkeletonPropertyTemplates.xaml:24
 msgctxt "Button"
 msgid "All"
-msgstr ""
+msgstr "Wszystkie"
 
 #. As for "Clear selection"
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:587
@@ -339,7 +353,7 @@ msgstr ""
 #: ../editor/Stride.Assets.Editor.Wpf/View/SkeletonPropertyTemplates.xaml:26
 msgctxt "Button"
 msgid "None"
-msgstr ""
+msgstr "Żaden"
 
 #: ../editor/Stride.Assets.Editor.Wpf/CurveEditor/Views/CurveEditorView.xaml:42
 msgctxt "ToolTip"
@@ -348,7 +362,7 @@ msgstr ""
 
 #: ../editor/Stride.Assets.Editor.Wpf/CurveEditor/Views/CurveEditorView.xaml:44
 msgid "Curves:"
-msgstr ""
+msgstr "Krzywe:"
 
 #: ../editor/Stride.Assets.Editor.Wpf/CurveEditor/Views/CurveEditorView.xaml:74
 msgctxt "ToolTip"
@@ -363,17 +377,17 @@ msgstr ""
 #: ../editor/Stride.Assets.Editor.Wpf/CurveEditor/Views/CurveEditorView.xaml:83
 msgctxt "ToolTip"
 msgid "Fit view to curve height"
-msgstr ""
+msgstr "Dopasuj widok do wysokości krzywej"
 
 #: ../editor/Stride.Assets.Editor.Wpf/CurveEditor/Views/CurveEditorView.xaml:86
 msgctxt "ToolTip"
 msgid "Fit view to curve width"
-msgstr ""
+msgstr "Dopasuj widok do szerokości krzywej"
 
 #: ../editor/Stride.Assets.Editor.Wpf/CurveEditor/Views/CurveEditorView.xaml:93
 msgctxt "ToolTip"
 msgid "Delete selected points"
-msgstr ""
+msgstr "Usuń wybrane punkty"
 
 #: ../editor/Stride.Assets.Editor.Wpf/CurveEditor/Views/CurveEditorView.xaml:102
 msgctxt "ToolTip"
@@ -401,22 +415,22 @@ msgstr ""
 
 #: ../editor/Stride.Assets.Editor.Wpf/CurveEditor/Views/CurveEditorView.xaml:121
 msgid "Value"
-msgstr ""
+msgstr "Wartość"
 
 #: ../editor/Stride.Assets.Editor.Wpf/CurveEditor/Views/CurveEditorView.xaml:168
 msgctxt "Menu"
 msgid "Curve"
-msgstr ""
+msgstr "Krzywa"
 
 #: ../editor/Stride.Assets.Editor.Wpf/CurveEditor/Views/CurveEditorView.xaml:170
 msgctxt "Menu"
 msgid "Add point"
-msgstr ""
+msgstr "Dodaj punkt"
 
 #: ../editor/Stride.Assets.Editor.Wpf/CurveEditor/Views/CurveEditorView.xaml:173
 msgctxt "Menu"
 msgid "Delete selected points"
-msgstr ""
+msgstr "Usuń wybrane punkty"
 
 #: ../editor/Stride.Assets.Editor.Wpf/CurveEditor/Views/CurveEditorView.xaml:175
 msgctxt "Menu"
@@ -426,22 +440,22 @@ msgstr ""
 #: ../editor/Stride.Assets.Editor.Wpf/CurveEditor/Views/CurveEditorView.xaml:178
 msgctxt "Menu"
 msgid "View"
-msgstr ""
+msgstr "Widok"
 
 #: ../editor/Stride.Assets.Editor.Wpf/CurveEditor/Views/CurveEditorView.xaml:179
 msgctxt "Menu"
 msgid "Fit to curve"
-msgstr ""
+msgstr "Dopasuj do krzywej"
 
 #: ../editor/Stride.Assets.Editor.Wpf/CurveEditor/Views/CurveEditorView.xaml:181
 msgctxt "Menu"
 msgid "Fit to curve height"
-msgstr ""
+msgstr "Dopasuj do wysokości krzywej"
 
 #: ../editor/Stride.Assets.Editor.Wpf/CurveEditor/Views/CurveEditorView.xaml:183
 msgctxt "Menu"
 msgid "Fit to curve width"
-msgstr ""
+msgstr "Dopasuj do szerokości krzywej"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:66
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:110
@@ -450,13 +464,13 @@ msgstr ""
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/GraphicsCompositorEditor/Views/GraphicsCompositorEditorView.xaml:34
 msgctxt "Menu"
 msgid "Create"
-msgstr ""
+msgstr "Stwórz"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:67
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:111
 msgctxt "Menu"
 msgid "Folder"
-msgstr ""
+msgstr "Folder"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:68
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:112
@@ -464,20 +478,20 @@ msgstr ""
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:850
 msgctxt "Menu"
 msgid "Empty entity"
-msgstr ""
+msgstr "Pusta encja"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:94
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:138
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:876
 msgctxt "Menu"
 msgid "Actions"
-msgstr ""
+msgstr "Działania"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:95
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:141
 msgctxt "Menu"
 msgid "Open prefab in editor"
-msgstr ""
+msgstr "Otwórz prefabrykat w edytorze"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:96
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:142
@@ -498,19 +512,19 @@ msgstr ""
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:880
 msgctxt "Menu"
 msgid "Create prefab from selection"
-msgstr ""
+msgstr "Stwórz prefabrykat z zaznaczenia"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:100
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:146
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:882
 msgctxt "Menu"
 msgid "Duplicate"
-msgstr ""
+msgstr "Duplikuj"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:139
 msgctxt "Menu"
 msgid "Set as active scene"
-msgstr ""
+msgstr "Ustaw scenę jako aktywną"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:152
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:887
@@ -520,44 +534,44 @@ msgstr "Zmień nazwę"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:169
 msgid "Loading scene..."
-msgstr ""
+msgstr "Ładowanie sceny ..."
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:170
 msgid "This might take a few minutes the first time."
-msgstr ""
+msgstr "Za pierwszym razem może to potrwać kilka minut."
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:198
 msgctxt "ToolTip"
 msgid "Create a new entity"
-msgstr ""
+msgstr "Stwórz nową encję"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:205
 msgctxt "Menu"
 msgid "New folder"
-msgstr ""
+msgstr "Nowy folder"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:238
 msgctxt "ToolTip"
 msgid "Filter entities by name"
-msgstr ""
+msgstr "Filtruj encje według nazwy"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:246
 msgctxt "ToolTip"
 msgid "Expand all entities"
-msgstr ""
+msgstr "Rozwiń wszystkie encje"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:250
 msgctxt "ToolTip"
 msgid "Collapse all entities"
-msgstr ""
+msgstr "Zwiń wszystkie encje"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:277
 msgid "Loading..."
-msgstr ""
+msgstr "Ładowanie..."
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:281
 msgid "Unloading..."
-msgstr ""
+msgstr "Zwalnianie..."
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:355
 msgctxt "ToolTip"
@@ -567,7 +581,7 @@ msgstr ""
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:362
 msgctxt "ToolTip"
 msgid "Lock/unlock this entity"
-msgstr ""
+msgstr "Zablokuj/Odblokuj tą encję"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:363
 msgctxt "ToolTip"
@@ -577,7 +591,7 @@ msgstr ""
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:401
 msgctxt "ToolTip"
 msgid "Lock/unlock all entities"
-msgstr ""
+msgstr "Zablokuj/odblokuj wszystkie encje"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:402
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:411
@@ -588,11 +602,11 @@ msgstr ""
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:410
 msgctxt "ToolTip"
 msgid "Load/unload all entities"
-msgstr ""
+msgstr "Załaduj/zwolnij wszystkie encje"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:431
 msgid "(Unloaded)"
-msgstr ""
+msgstr "(Niezaładowany)"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:498
 msgctxt "ToolTip"
@@ -638,7 +652,7 @@ msgstr ""
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:541
 msgctxt "ToolTip"
 msgid "Compute lighting using light probes"
-msgstr ""
+msgstr "Oblicz oświetlenie używając light proby"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:549
 msgctxt "ToolTip"
@@ -647,7 +661,7 @@ msgstr ""
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:553
 msgid "Reset"
-msgstr ""
+msgstr "Zresetuj"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:559
 msgid "Cubemap"
@@ -683,7 +697,7 @@ msgstr ""
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:642
 msgctxt "Button"
 msgid "Camera preview"
-msgstr ""
+msgstr "Podgląd kamery"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:643
 msgctxt "Button"
@@ -693,26 +707,26 @@ msgstr ""
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:660
 msgctxt "Button"
 msgid "Other entities"
-msgstr ""
+msgstr "Inne encje"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:668
 msgctxt "ToolTip"
 msgid "Editor camera options..."
-msgstr ""
+msgstr "Opcje kamery edytora...."
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:678
 msgid "Projection"
-msgstr ""
+msgstr "Projekcja"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:681
 msgctxt "Button"
 msgid "Perspective"
-msgstr ""
+msgstr "Perspektywa"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:682
 msgctxt "Button"
 msgid "Orthographic"
-msgstr ""
+msgstr "Ortograficzny"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:684
 msgid "Near plane:"
@@ -724,7 +738,7 @@ msgstr ""
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:688
 msgid "Field of view:"
-msgstr ""
+msgstr "Pole widzenia:"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:694
 msgid "Orthographic size:"
@@ -736,41 +750,41 @@ msgstr ""
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:703
 msgid "Speed:"
-msgstr ""
+msgstr "Prędkość:"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:709
 msgid "Orientation"
-msgstr ""
+msgstr "Orientacja"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:712
 msgctxt "Button"
 msgid "Front"
-msgstr ""
+msgstr "Z przodu"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:714
 msgctxt "Button"
 msgid "Back"
-msgstr ""
+msgstr "Z tyłu"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:716
 msgctxt "Button"
 msgid "Top"
-msgstr ""
+msgstr "Z góry"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:718
 msgctxt "Button"
 msgid "Bottom"
-msgstr ""
+msgstr "Z dołu"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:720
 msgctxt "Button"
 msgid "Left"
-msgstr ""
+msgstr "Lewo"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:722
 msgctxt "Button"
 msgid "Right"
-msgstr ""
+msgstr "Prawo"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:753
 msgctxt "ToolTip"
@@ -796,16 +810,16 @@ msgstr ""
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:798
 msgctxt "ToolTip"
 msgid "Show or hide selection mask"
-msgstr ""
+msgstr "Pokaż lub schowaj wybraną maskę"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:800
 msgid "Loading assets..."
-msgstr ""
+msgstr "Wczytywanie zasobów..."
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:877
 msgctxt "Menu"
 msgid "Open in prefab editor"
-msgstr ""
+msgstr "Otwórz w edytorze prefabrykatów"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:919
 msgid ""
@@ -825,30 +839,30 @@ msgstr ""
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:12
 msgid "Select an entity"
-msgstr ""
+msgstr "Wybierz encję"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:22
 msgctxt "ToolTip"
 msgid "Select the selected assets"
-msgstr ""
+msgstr "Wybierz zaznaczone zasoby"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:36
 msgid "Select an entity:"
-msgstr ""
+msgstr "Wybierz encję:"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:65
 msgid "(Index: {0})"
-msgstr ""
+msgstr "(Indeks: {0})"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/GraphicsCompositorEditor/Views/GraphicsCompositorEditorView.xaml:50
 msgctxt "Menu"
 msgid "Action"
-msgstr ""
+msgstr "Działanie"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/GraphicsCompositorEditor/Views/GraphicsCompositorEditorView.xaml:51
 msgctxt "Menu"
 msgid "Delete selection"
-msgstr ""
+msgstr "Usuń zaznaczenie"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/GraphicsCompositorEditor/Views/GraphicsCompositorEditorView.xaml:203
 msgid "Render stages:"
@@ -879,7 +893,7 @@ msgstr ""
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/ScriptEditor/Resources/ThemeScriptEditor.xaml:256
 msgid "No suggestions"
-msgstr ""
+msgstr "Brak podpowiedzi"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:54
 msgctxt "Button"
@@ -948,16 +962,16 @@ msgstr ""
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:168
 msgctxt "Menu"
 msgid "Edit image"
-msgstr ""
+msgstr "Edytuj obraz"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:169
 msgctxt "Menu"
 msgid "Show image in explorer"
-msgstr ""
+msgstr "Pokaż obraz w eksploatorze"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:218
 msgid "Select a single image from the left panel"
-msgstr ""
+msgstr "Wybierz pojedynczy obraz z lewego panelu"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:225
 msgctxt "ToolTip"
@@ -972,12 +986,12 @@ msgstr ""
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:234
 msgctxt "ToolTip"
 msgid "Zoom out"
-msgstr ""
+msgstr "Pomniejsz"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:238
 msgctxt "ToolTip"
 msgid "Zoom in"
-msgstr ""
+msgstr "Powiększ"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:242
 msgctxt "ToolTip"
@@ -1051,24 +1065,24 @@ msgstr ""
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/VisualScriptEditor/Views/VisualScriptEditorView.xaml:253
 msgid "Variables:"
-msgstr ""
+msgstr "Zmienne:"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/VisualScriptEditor/Views/VisualScriptEditorView.xaml:302
 msgid "Functions:"
-msgstr ""
+msgstr "Funkcje:"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/VisualScriptEditor/Views/VisualScriptEditorView.xaml:346
 msgctxt "Button"
 msgid "Static method"
-msgstr ""
+msgstr "Metoda statyczna"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/VisualScriptEditor/Views/VisualScriptEditorView.xaml:347
 msgid "Return type..."
-msgstr ""
+msgstr "Zwracany typ..."
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/VisualScriptEditor/Views/VisualScriptEditorView.xaml:354
 msgid "Function parameters:"
-msgstr ""
+msgstr "Parametry funkcji:"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:576
 msgctxt "ToolTip"

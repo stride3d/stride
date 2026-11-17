@@ -40,7 +40,7 @@ rem Stride.GameStudio.pot
 
 rem Update po files
 FOR %%B IN (Stride.Core.Presentation Stride.Core.Presentation.Wpf Stride.Assets.Editor.Wpf Stride.Core.Assets.Editor.Wpf Stride.Core.Assets.Presentation Stride.Core.Assets.Editor Stride.Assets.Presentation Stride.Assets.Editor Stride.Editor Stride.UI.Editor Stride.GameStudio) DO (
-  FOR %%A IN (de es fr he_IL it ja ko mk nb_NO pl pt pt_BR ru zh_HANS-CN zh_Hant) DO (
+  FOR %%A IN (de es fr he_IL id it ja ko mk nb_NO pl pt pt_BR ru zh_HANS-CN zh_Hant) DO (
     %MSGMERGE% -U %%A\%%B.%%A.po %%B.pot
   )
 )

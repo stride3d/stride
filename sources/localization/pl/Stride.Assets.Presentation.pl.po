@@ -20,6 +20,8 @@ msgid ""
 "Unable to rename the folder '{0}' to '{1}'. A folder with the same name "
 "already exists."
 msgstr ""
+"Nie można zmienić nazwy folderu '{0}' na '{1}'. Folder o tej samej nazwie "
+"już istnieje."
 
 #: ../editor/Stride.Assets.Presentation/ViewModels/SpriteFontViewModel.cs:53
 msgctxt "Message"
@@ -28,6 +30,9 @@ msgid ""
 "\r\n"
 "Clear the _Is Dynamic_ property on this font and try again."
 msgstr ""
+"**Tylko statyczne czcionki mogą być wstępnie skompilowane.*\n"
+"\n"
+"Wyczyść właściwość _Is Dynamic_  dla tej czcionki i spróbuj ponownie."
 
 #: ../editor/Stride.Assets.Presentation/ViewModels/SpriteFontViewModel.cs:73
 msgctxt "Button"
@@ -37,4 +42,4 @@ msgstr "Anuluj"
 #: ../editor/Stride.Assets.Presentation/ViewModels/SpriteFontViewModel.cs:75
 msgctxt "Message"
 msgid "Which color space do you want to use?"
-msgstr ""
+msgstr "Jakiej przestrzeni barw chcesz użyć?"

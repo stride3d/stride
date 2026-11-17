@@ -28,7 +28,7 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor.Wpf/ViewModel/EditorViewModel.cs:151
 msgctxt "Button"
 msgid "Try again"
-msgstr ""
+msgstr "Spróbuj ponownie"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:78
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/NewProjectWindow.xaml:31
@@ -49,24 +49,27 @@ msgid ""
 "\r\n"
 "Do you want to try to load it again?"
 msgstr ""
+"Ostatnia próba załadowania projektu **{0}** nie powiodła się. \n"
+"\n"
+"Czy chcesz spróbować załadować go ponownie?"
 
 #. Message displayed when the solution file to open does not exist. {0} is a file path
 #: ../editor/Stride.Core.Assets.Editor.Wpf/ViewModel/EditorViewModel.cs:186
 msgctxt "Message"
 msgid "The file '{0}' does not exist."
-msgstr ""
+msgstr "Plik '{0}' nie istnieje."
 
 #. Message displayed when trying to open an unsaved file with the text editor
 #: ../editor/Stride.Core.Assets.Editor.Wpf/ViewModel/EditorViewModel.cs:216
 msgctxt "Message"
 msgid "You need to save the file before you can open it."
-msgstr ""
+msgstr "Przed otwarciem pliku należy go zapisać."
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/ViewModel/EditorViewModel.cs:229
 #: ../editor/Stride.Core.Assets.Editor.Wpf/ViewModel/EditorViewModel.cs:261
 msgctxt "Message"
 msgid "An error occurred while opening the file."
-msgstr ""
+msgstr "Podczas otwierania pliku wystąpił błąd."
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:306
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:379
@@ -87,12 +90,12 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/ValueConverters/ContentReferenceToDisplayUrl.cs:33
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/ValueConverters/ContentReferenceToUrl.cs:27
 msgid "(Different values)"
-msgstr ""
+msgstr "(Różne wartości)"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml.cs:28
 msgctxt "Title"
 msgid "Project selection - {0}"
-msgstr ""
+msgstr "Wybór projektu - {0}"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Themes/generic.xaml:23
 msgctxt "ToolTip"
@@ -134,12 +137,12 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetPickerWindow.xaml:14
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1459
 msgid "Select an asset"
-msgstr ""
+msgstr "Wybierz zasób"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetPickerWindow.xaml:25
 msgctxt "Menu"
 msgid "Asset"
-msgstr ""
+msgstr "Zasób"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetPickerWindow.xaml:26
 msgctxt "Menu"
@@ -154,7 +157,7 @@ msgstr "Zmień nazwę"
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetPickerWindow.xaml:30
 msgctxt "Menu"
 msgid "Explore"
-msgstr ""
+msgstr "Przeglądaj"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetPickerWindow.xaml:31
 msgctxt "Menu"
@@ -180,12 +183,12 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/PackagePickerWindow.xaml:15
 msgctxt "Button"
 msgid "OK"
-msgstr ""
+msgstr "OK"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetPickerWindow.xaml:48
 msgctxt "ToolTip"
 msgid "Select these assets"
-msgstr ""
+msgstr "Wybierz te zasoby"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/NewProjectWindow.xaml:31
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:35
@@ -193,7 +196,7 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/PackagePickerWindow.xaml:21
 msgctxt "ToolTip"
 msgid "Cancel (Esc)"
-msgstr ""
+msgstr "Anuluj (Esc)"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:67
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:124
@@ -207,26 +210,26 @@ msgstr ""
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:112
 msgid "Name: {0}"
-msgstr ""
+msgstr "Nazwa: {0}"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:113
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:120
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:152
 msgid "Type: {0}"
-msgstr ""
+msgstr "Typ: {0}"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:119
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:151
 msgid "URL: {0}"
-msgstr ""
+msgstr "URL: {0}"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:121
 msgid "Tags: {0}"
-msgstr ""
+msgstr "Tagi: {0}"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:136
 msgid "Included in build as dependency"
-msgstr ""
+msgstr "Uwzględnij w kompilacji jako zależność"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:140
 msgid "Overridden in build (content not used)"
@@ -239,11 +242,11 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:231
 msgctxt "ToolTip"
 msgid "Add an asset to this location"
-msgstr ""
+msgstr "Dodaj zasób do tej lokalizacji"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:235
 msgid "Add asset"
-msgstr ""
+msgstr "Dodaj zasób"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:256
 msgctxt "ToolTip"
@@ -288,32 +291,32 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:335
 msgctxt "Menu"
 msgid "Name"
-msgstr ""
+msgstr "Nazwa"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:338
 msgctxt "Menu"
 msgid "Date modified"
-msgstr ""
+msgstr "Data modyfikacji"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:341
 msgctxt "Menu"
 msgid "Type"
-msgstr ""
+msgstr "Typ"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:344
 msgctxt "Menu"
 msgid "Unsaved changes"
-msgstr ""
+msgstr "Niezapisane zmiane"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:353
 msgctxt "ToolTip"
 msgid "Zoom in"
-msgstr ""
+msgstr "Powiększ"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:358
 msgctxt "ToolTip"
 msgid "Zoom out"
-msgstr ""
+msgstr "Pomniejsz"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:363
 msgctxt "Menu"
@@ -322,16 +325,16 @@ msgstr ""
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:376
 msgid "Add a filter..."
-msgstr ""
+msgstr "Dodaj filtr..."
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:380
 msgid "Filter assets by name, type or tag"
-msgstr ""
+msgstr "Filtruj zasoby po nazwie, typie lub tagu"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:406
 msgctxt "ToolTip"
 msgid "Clear filters"
-msgstr ""
+msgstr "Wyczyść filtry"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:448
 msgid ""
@@ -347,21 +350,21 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:130
 msgctxt "ToolTip"
 msgid "Add..."
-msgstr ""
+msgstr "Dodaj..."
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:61
 msgctxt "ToolTip"
 msgid "Replace..."
-msgstr ""
+msgstr "Zamień..."
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:139
 msgctxt "ToolTip"
 msgid "Delete"
-msgstr ""
+msgstr "Usuń"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:414
 msgid "List"
-msgstr ""
+msgstr "Lista"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:415
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:481
@@ -372,14 +375,14 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:757
 msgid "{0} item"
 msgid_plural "{0} items"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "{0} element"
+msgstr[1] "{0} elementy"
+msgstr[2] "{0} elementy"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:456
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:560
 msgid "Add to {0}"
-msgstr ""
+msgstr "Dodaj do {0}"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:480
 msgid "Array"
@@ -402,7 +405,7 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:697
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:756
 msgid "Dictionary"
-msgstr ""
+msgstr "Słownik"
 
 #. Keep the colon (:)
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:614
@@ -415,7 +418,7 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:674
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:690
 msgid "New key"
-msgstr ""
+msgstr "Nowy klucz"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:782
 msgctxt "ToolTIp"
@@ -425,12 +428,12 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:789
 msgctxt "ToolTip"
 msgid "Unicode value"
-msgstr ""
+msgstr "Wartość Unicode"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1233
 msgctxt "ToolTip"
 msgid "Angle in degrees"
-msgstr ""
+msgstr "Kąt w stopniach"
 
 #. This button opens a file dialog
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/NewProjectWindow.xaml:65
@@ -438,50 +441,50 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1255
 msgctxt "ToolTip"
 msgid "Browse directory"
-msgstr ""
+msgstr "Przeglądaj katalog"
 
 #. This button opens a file dialog
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1281
 msgctxt "ToolTip"
 msgid "Browse file"
-msgstr ""
+msgstr "Przeglądaj plik"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1324
 msgctxt "Button"
 msgid "Change values..."
-msgstr ""
+msgstr "Zmień wartości..."
 
 #. As for "Select all items"
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1333
 msgctxt "Button"
 msgid "All"
-msgstr ""
+msgstr "Wszystkie"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1333
 msgctxt "ToolTip"
 msgid "Select all values"
-msgstr ""
+msgstr "Wybierz wszystkie wartości"
 
 #. As for "Clear selection"
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1335
 msgctxt "Button"
 msgid "None"
-msgstr ""
+msgstr "Żaden"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1335
 msgctxt "ToolTip"
 msgid "Clear selection"
-msgstr ""
+msgstr "Wyczyść selekcje"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1337
 msgctxt "Button"
 msgid "Invert"
-msgstr ""
+msgstr "Odwróć"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1337
 msgctxt "ToolTip"
 msgid "Invert selection"
-msgstr ""
+msgstr "Odwróć zaznaczenie"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1454
 msgid "Select the referenced asset"
@@ -489,20 +492,20 @@ msgstr ""
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1464
 msgid "Clear this reference"
-msgstr ""
+msgstr "Wyczyść odwołania"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1474
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1548
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1603
 msgctxt "ToolTip"
 msgid "Select an asset"
-msgstr ""
+msgstr "Wybierz zasób"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1478
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1608
 msgctxt "ToolTip"
 msgid "Clear the reference"
-msgstr ""
+msgstr "Wyczyść odwołania"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1482
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1537
@@ -523,7 +526,7 @@ msgstr ""
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1633
 msgid "(null)"
-msgstr ""
+msgstr "(null)"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1662
 msgid "{0} (Not supported)"
@@ -531,52 +534,52 @@ msgstr ""
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1678
 msgid "Unable to load the object of type {0} from assembly {1}"
-msgstr ""
+msgstr "Nie można załadować obiektu typu {0} z zestawu {1}"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/NotificationWindow.xaml:6
 msgid "Notification"
-msgstr ""
+msgstr "Powiadomienie"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/PackagePickerWindow.xaml:10
 msgid "Select a package"
-msgstr ""
+msgstr "Wybierz pakiet"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/PackagePickerWindow.xaml:15
 msgctxt "ToolTip"
 msgid "Select this package"
-msgstr ""
+msgstr "Wybierz ten pakiet"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/SettingsWindow.xaml:15
 msgid "Settings"
-msgstr ""
+msgstr "Ustawienia"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/SettingsWindow.xaml:26
 msgctxt "Button"
 msgid "Save and close"
-msgstr ""
+msgstr "Zapisz i zamknij"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/WorkProgressWindow.xaml:19
 msgid "Operation completed."
-msgstr ""
+msgstr "Operacja zakończona."
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/WorkProgressWindow.xaml:20
 msgid "Operation failed."
-msgstr ""
+msgstr "Operacja zakończona niepowodzeniem."
 
 #. Log message displayed when an operation has been canceled
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/WorkProgressWindow.xaml:21
 msgid "Operation cancelled."
-msgstr ""
+msgstr "Operacja anulowana."
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/WorkProgressWindow.xaml:27
 msgctxt "Button"
 msgid "Close"
-msgstr ""
+msgstr "Zamknij"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/AddAssets/View/ItemTemplatesWindow.xaml:12
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/AddItemWindow.xaml:10
 msgid "Add asset..."
-msgstr ""
+msgstr "Dodaj zasób ..."
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/AddAssets/View/ItemTemplatesWindow.xaml:34
 msgid "out of {0} file(s)"
@@ -584,24 +587,26 @@ msgstr ""
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:13
 msgid "Fix references ({0})"
-msgstr ""
+msgstr "Napraw odwołania ({0})"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:35
 msgid ""
 "The asset {0} is referenced by other assets. Choose how to handle these "
 "references."
 msgstr ""
+"Do zasobu {0} odwołują się inne zasoby. Wybierz sposób obsługi tych "
+"odniesień."
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:37
 msgctxt "Button"
 msgid "Replace all the references with a reference to a different asset:"
-msgstr ""
+msgstr "Zastąp wszystkie odwołania odwołaniem do innego zasobu:"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:42
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:61
 msgctxt "ToolTip"
 msgid "Select asset"
-msgstr ""
+msgstr "Wybierz zasób"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:49
 msgid "Referencer"
@@ -609,12 +614,12 @@ msgstr ""
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:56
 msgid "Replacement asset"
-msgstr ""
+msgstr "Zasób zastępczy"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:63
 msgctxt "Button"
 msgid "Clear this reference"
-msgstr ""
+msgstr "Wyczyść to odwołanie"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:73
 msgctxt "Button"
@@ -624,108 +629,108 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:75
 msgctxt "Button"
 msgid "Done"
-msgstr ""
+msgstr "Gotowe"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:76
 msgctxt "Button"
 msgid "Clear references"
-msgstr ""
+msgstr "Wyczyść odwołania"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:76
 msgctxt "ToolTip"
 msgid "Clear the references of the current asset"
-msgstr ""
+msgstr "Wyczyść odniesienia bieżącego zasobu"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:77
 msgctxt "Button"
 msgid "Clear all references"
-msgstr ""
+msgstr "Wyczyść wszystkie odwołania"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:77
 msgctxt "ToolTip"
 msgid "Clear references for all assets being deleted"
-msgstr ""
+msgstr "Wyczyść odwołania do wszystkich usuwanych zasobów"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:78
 msgctxt "ToolTip"
 msgid "Cancel operation"
-msgstr ""
+msgstr "Anuluj operację"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/AddItemUserControl.xaml:22
 msgid "Search"
-msgstr ""
+msgstr "Szukaj"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/AddItemUserControl.xaml:39
 msgctxt "ToolTip"
 msgid "Import directly from files"
-msgstr ""
+msgstr "Importuj bezpośrednio z plików"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/NewProjectWindow.xaml:11
 msgid "New package"
-msgstr ""
+msgstr "Nowy pakiet"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/NewProjectWindow.xaml:25
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:29
 msgctxt "Button"
 msgid "Select"
-msgstr ""
+msgstr "Wybierz"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/NewProjectWindow.xaml:26
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:30
 msgctxt "ToolTip"
 msgid "Use the selected template"
-msgstr ""
+msgstr "Użyj wybranego szablonu"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/NewProjectWindow.xaml:57
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:73
 msgid "Name:"
-msgstr ""
+msgstr "Nazwa:"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/NewProjectWindow.xaml:63
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:79
 msgid "Location:"
-msgstr ""
+msgstr "Lokalizacja:"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:24
 msgctxt "Button"
 msgid "Browse for existing project"
-msgstr ""
+msgstr "Wyszukaj istniejący projekt"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:25
 msgctxt "Button"
 msgid "Reload last session automatically at startup"
-msgstr ""
+msgstr "Załaduj automatycznie ostatnią sesję podczas uruchamiania"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:91
 msgid "Solution name:"
-msgstr ""
+msgstr "Nazwa rozwiązania:"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:92
 msgid "(Auto-generate solution name)"
-msgstr ""
+msgstr "(Automatycznie wygenerowana nazwa rozwiązania)"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:98
 msgid "Solution location:"
-msgstr ""
+msgstr "Lokalizacja rozwiązania:"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:103
 msgid "(Same location)"
-msgstr ""
+msgstr "(Ta sama lokalizacja)"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/TemplateBrowserUserControl.xaml:40
 msgctxt "Menu"
 msgid "Show in Explorer"
-msgstr ""
+msgstr "Pokaż w Eksploratorze"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/TemplateBrowserUserControl.xaml:44
 msgctxt "Menu"
 msgid "Remove From List"
-msgstr ""
+msgstr "Usuń z listy"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/TemplateBrowserUserControl.xaml:34
 msgctxt "Menu"
 msgid "Open"
-msgstr ""
+msgstr "Otwórz"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/TemplateBrowserUserControl.xaml:41
 msgctxt "Menu"

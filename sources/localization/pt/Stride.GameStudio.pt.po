@@ -396,7 +396,7 @@ msgstr ""
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:202
 msgctxt "Menu"
 msgid "File"
-msgstr ""
+msgstr "Ficheiro"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:203
 msgctxt "Menu"

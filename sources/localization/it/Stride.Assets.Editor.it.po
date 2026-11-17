@@ -15,32 +15,33 @@ msgstr ""
 
 #: ../editor/Stride.Assets.Editor/AssetEditors/GameEditor/Transformation.cs:17
 msgid "Use translation gizmo"
-msgstr ""
+msgstr "Traslazione gizmo"
 
 #: ../editor/Stride.Assets.Editor/AssetEditors/GameEditor/Transformation.cs:23
 msgid "Use rotation gizmo"
-msgstr ""
+msgstr "Rotazione gizmo"
 
 #: ../editor/Stride.Assets.Editor/AssetEditors/GameEditor/Transformation.cs:29
 msgid "Use scale gizmo"
-msgstr ""
+msgstr "Scala gizmo"
 
 #: ../editor/Stride.Assets.Editor/AssetEditors/GameEditor/TransformationSpace.cs:17
 msgid "Use world coordinates for transformations"
-msgstr ""
+msgstr "Usa parole come coordinate per trasformazione"
 
 #: ../editor/Stride.Assets.Editor/AssetEditors/GameEditor/TransformationSpace.cs:23
 msgid "Use local coordinates for transformations"
-msgstr ""
+msgstr "Usa coordinate locali per trasformazione"
 
 #: ../editor/Stride.Assets.Editor/AssetEditors/GameEditor/TransformationSpace.cs:29
 msgid "Use current camera projection coordinates for transformations"
 msgstr ""
+"Usa le coordinate della proiezione camera corrente per la trasformazione"
 
 #: ../editor/Stride.Assets.Editor/AssetEditors/ScriptEditor/ScriptEditorSettings.cs:16
 msgctxt "Settings"
 msgid "Script editor"
-msgstr ""
+msgstr "Editor di script"
 
 #: ../editor/Stride.Assets.Editor/AssetEditors/ScriptEditor/ScriptEditorSettings.cs:23
 msgctxt "Settings"
@@ -50,47 +51,47 @@ msgstr "Grandezza font"
 #: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:17
 msgctxt "Settings"
 msgid "Key bindings"
-msgstr ""
+msgstr "Chiavi di collegamento"
 
 #: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:18
 msgctxt "Settings"
 msgid "Scene editor"
-msgstr ""
+msgstr "Editor di scena"
 
 #: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:19
 msgctxt "Settings"
 msgid "Viewport settings"
-msgstr ""
+msgstr "Impostazioni visuale"
 
 #: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:26
 msgctxt "Settings"
 msgid "Move camera forward"
-msgstr ""
+msgstr "Muovi telecamera in avanti"
 
 #: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:30
 msgctxt "Settings"
 msgid "Move camera backward"
-msgstr ""
+msgstr "Muovi telecamera dietro"
 
 #: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:34
 msgctxt "Settings"
 msgid "Move camera left"
-msgstr ""
+msgstr "Muovi la telecamera verso sinistra"
 
 #: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:38
 msgctxt "Settings"
 msgid "Move camera right"
-msgstr ""
+msgstr "Muovi la telecamera verso destra"
 
 #: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:42
 msgctxt "Settings"
 msgid "Move camera up"
-msgstr ""
+msgstr "Muovi la telecamera su"
 
 #: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:46
 msgctxt "Settings"
 msgid "Move camera down"
-msgstr ""
+msgstr "Muovi la telecamera giù"
 
 #: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:50
 msgctxt "Settings"
@@ -105,17 +106,17 @@ msgstr ""
 #: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:58
 msgctxt "Settings"
 msgid "Invert mouse panning axis"
-msgstr ""
+msgstr "Inverti l'asse del mouse"
 
 #: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:62
 msgctxt "Settings"
 msgid "Center view on selection"
-msgstr ""
+msgstr "Centra visuale sulla selezione"
 
 #: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:66
 msgctxt "Settings"
 msgid "Snap selection to the grid"
-msgstr ""
+msgstr "Allinea la seleziona alla griglia"
 
 #: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:70
 msgctxt "Settings"
@@ -125,37 +126,37 @@ msgstr ""
 #: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:74
 msgctxt "Settings"
 msgid "Switch to translation mode"
-msgstr ""
+msgstr "Vai alla modalità translazione"
 
 #: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:78
 msgctxt "Settings"
 msgid "Switch to rotation mode"
-msgstr ""
+msgstr "Vai alla modalità rotazione"
 
 #: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:82
 msgctxt "Settings"
 msgid "Switch to scale mode"
-msgstr ""
+msgstr "Vai alla modalità scala"
 
 #: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:86
 msgctxt "Settings"
 msgid "Switch to next gizmo mode"
-msgstr ""
+msgstr "Passa al prossimo gizmo"
 
 #: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:90
 msgctxt "Settings"
 msgid "Default snap distance for translation"
-msgstr ""
+msgstr "Distanza di traslazione predefinita"
 
 #: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:94
 msgctxt "Settings"
 msgid "Default snap angle for rotation"
-msgstr ""
+msgstr "Angolo di cattura di defaut per la rotazione"
 
 #: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:98
 msgctxt "Settings"
 msgid "Default snap factor for scale"
-msgstr ""
+msgstr "Fattore di cattura di default per la messa in scala"
 
 #: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:102
 msgctxt "Settings"
@@ -170,17 +171,17 @@ msgstr ""
 #: ../editor/Stride.Assets.Editor/SceneEditor/SceneEditorSettings.cs:110
 msgctxt "Settings"
 msgid "Ask before deleting entities"
-msgstr ""
+msgstr "Chiedi prima di cancellare le entities"
 
 #: ../editor/Stride.Assets.Editor/Templates/Assets/AssetFromFileTemplateGenerator.cs:53
 msgctxt "Button"
 msgid "Create"
-msgstr ""
+msgstr "Crea"
 
 #: ../editor/Stride.Assets.Editor/Templates/Assets/AssetFromFileTemplateGenerator.cs:54
 msgctxt "Button"
 msgid "Select a source..."
-msgstr ""
+msgstr "Seleziona fonte..."
 
 #: ../editor/Stride.Assets.Editor/Templates/Assets/AssetFromFileTemplateGenerator.cs:55
 #: ../editor/Stride.Assets.Editor/Templates/Assets/ScriptTemplateGenerator.cs:129
@@ -193,7 +194,7 @@ msgstr "Annulla"
 #: ../editor/Stride.Assets.Editor/Templates/Assets/AssetFromFileTemplateGenerator.cs:58
 msgctxt "Message"
 msgid "Do you want to create this {0} without a source file?"
-msgstr ""
+msgstr "Vuoi creare questo {0} senza un file di sorgente?"
 
 #: ../editor/Stride.Assets.Editor/Templates/Assets/ImportModelFromFileViewModel.cs:46
 msgctxt "Title"
@@ -213,18 +214,19 @@ msgstr ""
 #: ../editor/Stride.Assets.Editor/Templates/Assets/ScriptNameViewModel.cs:116
 msgctxt "Message"
 msgid "The names you entered are invalid or empty."
-msgstr ""
+msgstr "I nomi inseriti sono vuoti o non validi."
 
 #: ../editor/Stride.Assets.Editor/Templates/Assets/ScriptTemplateGenerator.cs:128
 #: ../editor/Stride.Assets.Editor/ViewModels/ScriptSourceFileEditorViewModel.cs:250
 msgctxt "Button"
 msgid "Save"
-msgstr ""
+msgstr "Salva"
 
 #: ../editor/Stride.Assets.Editor/Templates/Assets/ScriptTemplateGenerator.cs:131
 msgctxt "Message"
 msgid "You can't use scripts until you save them. Do you want to save now?"
 msgstr ""
+"Non puoi utilizzare gli script finché non li salvi. Vuoi salvarli adesso?"
 
 #: ../editor/Stride.Assets.Editor/Templates/ProjectLibraryViewModel.cs:36
 msgctxt "Title"
@@ -244,12 +246,12 @@ msgstr ""
 #: ../editor/Stride.Assets.Editor/Templates/ProjectLibraryViewModel.cs:101
 msgctxt "Message"
 msgid "Type a valid library name. Error with {0}"
-msgstr ""
+msgstr "Digita un nome valido per la libreria. Errore con {0}"
 
 #: ../editor/Stride.Assets.Editor/Templates/ProjectLibraryViewModel.cs:106
 msgctxt "Message"
 msgid "Type a valid namespace name. Error with {0}"
-msgstr ""
+msgstr "Digita un nome valido. Errore con {0}"
 
 #: ../editor/Stride.Assets.Editor/ViewModels/EntityHierarchyEditorViewModel.cs:949
 msgctxt "Message"
@@ -323,12 +325,12 @@ msgstr "Non è stato possibile trovare il file"
 #: ../editor/Stride.Assets.Editor/ViewModels/SpriteEditor/SpriteInfoViewModel.cs:195
 msgctxt "Message"
 msgid "There was a problem while editing the image.{0}"
-msgstr ""
+msgstr "Si è verificato un problema nell'editare l'immagine.{0}"
 
 #: ../editor/Stride.Assets.Editor/ViewModels/SpriteEditor/SpriteInfoViewModel.cs:217
 msgctxt "Message"
 msgid "There was a problem opening Explorer.{0}"
-msgstr ""
+msgstr "Si è verificato un problema nell'apertura di Explorer.{0}"
 
 #: ../editor/Stride.Assets.Editor/ViewModels/EntityHierarchyEditorViewModel.cs:954
 msgctxt "Settings"
