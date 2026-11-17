@@ -26,12 +26,12 @@ msgstr "Avbryt"
 #: ../editor/Stride.Assets.Editor.Wpf/Templates/ProjectLibraryWindow.xaml.cs:91
 msgctxt "Message"
 msgid "Type a valid library name. Error with {0}"
-msgstr ""
+msgstr "Skriv inn et gyldig biblioteksnavn. Feil med {0}"
 
 #: ../editor/Stride.Assets.Editor.Wpf/Templates/ProjectLibraryWindow.xaml.cs:97
 msgctxt "Message"
 msgid "Type a valid namespace name. Error with {0}"
-msgstr ""
+msgstr "Skriv inn et gyldig navneromsnavn. Feil med {0}"
 
 #: ../editor/Stride.Assets.Editor.Wpf/Templates/UpdatePlatformsWindows.xaml.cs:61
 msgctxt "Message"
@@ -260,7 +260,7 @@ msgstr "Legg til komponent"
 
 #: ../editor/Stride.Assets.Editor.Wpf/View/AddEntityComponentUserControl.xaml:35
 msgid "Search"
-msgstr ""
+msgstr "Søk"
 
 #: ../editor/Stride.Assets.Editor.Wpf/View/AnimationPropertyTemplates.xaml:18
 msgctxt "ToolTip"
@@ -307,7 +307,7 @@ msgstr ""
 #: ../editor/Stride.Assets.Editor.Wpf/View/EntityPropertyTemplates.xaml:278
 msgctxt "ToolTip"
 msgid "Clear the reference"
-msgstr ""
+msgstr "Tøm referansen"
 
 #: ../editor/Stride.Assets.Editor.Wpf/View/EntityPropertyTemplates.xaml:109
 #: ../editor/Stride.Assets.Editor.Wpf/View/EntityPropertyTemplates.xaml:149
@@ -741,7 +741,7 @@ msgstr ""
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:700
 msgid "Movement"
-msgstr ""
+msgstr "Bevegelse"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:703
 msgid "Speed:"
@@ -848,7 +848,7 @@ msgstr ""
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:65
 msgid "(Index: {0})"
-msgstr ""
+msgstr "(Indeks: {0})"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/GraphicsCompositorEditor/Views/GraphicsCompositorEditorView.xaml:50
 msgctxt "Menu"
@@ -866,7 +866,7 @@ msgstr ""
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/GraphicsCompositorEditor/Views/GraphicsCompositorEditorView.xaml:257
 msgid "Render features:"
-msgstr ""
+msgstr "Opptegningsfunksjoner:"
 
 #: ../editor/Stride.Assets.Editor.Wpf/AssetEditors/GraphicsCompositorEditor/Views/GraphicsCompositorEditorView.xaml:281
 msgid "Camera slots:"

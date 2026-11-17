@@ -132,6 +132,7 @@ msgstr ""
 msgctxt "Message"
 msgid "An exception occurred while compiling the project: {0}"
 msgstr ""
+"Si è verificato un evento eccezionale nella compilazione del progetto: {0}"
 
 #: ../editor/Stride.Core.Assets.Editor/Components/Build/BuildAndRunViewModel.cs:387
 msgctxt "Message"
@@ -172,6 +173,8 @@ msgid ""
 "Some game code files have been modified. Do you want to reload the "
 "assemblies?"
 msgstr ""
+"Alcuni file codice di gioco sono stati modificati. Vuoi ricaricare gli "
+"assemblamenti?"
 
 #: ../editor/Stride.Core.Assets.Editor/Components/Build/GameCodeReloadViewModel.cs:219
 msgctxt "Message"
@@ -524,7 +527,7 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:619
 msgctxt "Menu"
 msgid "Include in build as root asset"
-msgstr ""
+msgstr "Includere come asset di base nella costruzione del gioco"
 
 #: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:620
 msgctxt "Menu"
@@ -563,7 +566,7 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.Explore.cs:265
 msgctxt "Button"
 msgid "Save"
-msgstr ""
+msgstr "Salva"
 
 #: ../editor/Stride.Core.Assets.Editor/ViewModels/SessionViewModel.cs:971
 msgctxt "Button"

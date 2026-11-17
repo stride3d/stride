@@ -27,7 +27,7 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor/Components/TemplateDescriptions/TemplateGeneratorHelper.cs:35
 msgctxt "Log"
 msgid "Operation cancelled."
-msgstr ""
+msgstr "Operasjon avbrutt."
 
 #. Message displayed when an exception occurs while generating a template
 #: ../editor/Stride.Core.Assets.Editor/Components/TemplateDescriptions/TemplateGeneratorHelper.cs:42
@@ -95,7 +95,7 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor/Components/Build/BuildAndRunViewModel.cs:324
 msgctxt "Message"
 msgid "Platform {0} isn't supported for execution."
-msgstr ""
+msgstr "Plattformen {0} støttes ikke for kjøring."
 
 #: ../editor/Stride.Core.Assets.Editor/Components/Build/BuildAndRunViewModel.cs:349
 msgctxt "Message"
@@ -105,7 +105,7 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor/Components/Build/BuildAndRunViewModel.cs:355
 msgctxt "Message"
 msgid "Unable to load and compile project {0}"
-msgstr ""
+msgstr "Kunne ikke laste inn og kompilere prosjekt {0}"
 
 #: ../editor/Stride.Core.Assets.Editor/Components/Build/BuildAndRunViewModel.cs:370
 msgctxt "Message"
@@ -181,12 +181,12 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor/Components/Build/GameCodeReloadViewModel.cs:220
 msgctxt "Button"
 msgid "Reload"
-msgstr ""
+msgstr "Last inn igjen"
 
 #: ../editor/Stride.Core.Assets.Editor/Components/Build/GameCodeReloadViewModel.cs:220
 msgctxt "Button"
 msgid "Don't reload"
-msgstr ""
+msgstr "Ikke last inn igjen"
 
 #: ../editor/Stride.Core.Assets.Editor/Components/Build/GameCodeReloadViewModel.cs:221
 #: ../editor/Stride.Core.Assets.Editor/Services/DelayedNotifications.cs:45
@@ -222,7 +222,7 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:19
 msgctxt "Settings"
 msgid "Always delete {0} without asking"
-msgstr ""
+msgstr "Alltid slett {0} uten å spørre"
 
 #: ../editor/Stride.Core.Assets.Editor/Settings/EditorSettings.cs:20
 msgctxt "Settings"

@@ -30,7 +30,7 @@ msgstr ""
 #: ../editor/Stride.GameStudio/Settings/StrideEditorSettings.cs:26
 msgctxt "Settings"
 msgid "Default session to load"
-msgstr ""
+msgstr "Forvalgt økt å laste inn"
 
 #. Confirmation message when everything is correct while testing credentials.
 #: ../editor/Stride.GameStudio/View/CredentialsDialog.xaml.cs:75
@@ -42,7 +42,7 @@ msgstr ""
 #: ../editor/Stride.GameStudio/View/CredentialsDialog.xaml.cs:78
 msgctxt "Credentials"
 msgid "Couldn't reach the specified host."
-msgstr ""
+msgstr "Fikk ikke tilgang til angitt vert."
 
 #. Display error message when credentials data is invalid.
 #: ../editor/Stride.GameStudio/View/CredentialsDialog.xaml.cs:81
@@ -60,7 +60,7 @@ msgstr ""
 #: ../editor/Stride.GameStudio/View/CredentialsDialog.xaml.cs:87
 msgctxt "Credentials"
 msgid "An unknown error occurred."
-msgstr ""
+msgstr "En ukjent feil oppstod."
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml.cs:97
 msgctxt "Message"
@@ -84,12 +84,12 @@ msgstr ""
 #: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:244
 msgctxt "Button"
 msgid "Reload"
-msgstr ""
+msgstr "Last inn igjen"
 
 #: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:244
 msgctxt "Button"
 msgid "Don't reload"
-msgstr ""
+msgstr "Ikke last inn igjen"
 
 #. Displayed when user tries to run a project that is not on a supported platform (for execution).
 #: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:608
@@ -97,19 +97,19 @@ msgstr ""
 #: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:750
 msgctxt "Message"
 msgid "Platform {0} isn't supported for execution."
-msgstr ""
+msgstr "Plattformen {0} støttes ikke for kjøring."
 
 #. Displayed when user tries to run Android project without an Android device attached.
 #: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:713
 msgctxt "Message"
 msgid "No Android device found for execution."
-msgstr ""
+msgstr "Fant ingen Android-enhet for kjøring."
 
 #: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:763
 #: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:934
 msgctxt "Message"
 msgid "Unable to load and compile project {0}"
-msgstr ""
+msgstr "Kunne ikke laste inn og kompilere prosjekt {0}"
 
 #. Log message displayed when the executable can't be found after building the project. {0}: the expected executable path
 #: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:787
@@ -121,7 +121,7 @@ msgstr ""
 #: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:805
 msgctxt "Message"
 msgid "Couldn't find Android package name for {0}."
-msgstr ""
+msgstr "Fant ikke Android-pakkenavn for {0}."
 
 #. Displayed when Android tools "adb" can't be found
 #: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:815
@@ -134,7 +134,7 @@ msgstr ""
 #: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:822
 msgctxt "Message"
 msgid "Can't run Android app with adb: {0}"
-msgstr ""
+msgstr "Kan ikke kjøre Android-program med adb: {0}"
 
 #. Displayed when starting a game on a platform requiring credentials but none were provided.
 #: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:847
@@ -146,7 +146,7 @@ msgstr ""
 #: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:856
 msgctxt "Message"
 msgid "Unable to launch project {0}"
-msgstr ""
+msgstr "Kunne ikke kjøre prosjekt {0}"
 
 #. Message displayed to inform user a deployment was succesful.
 #: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:864
@@ -178,7 +178,7 @@ msgstr ""
 #: ../editor/Stride.GameStudio/ViewModels/GameStudioViewModel.cs:116
 msgctxt "Message"
 msgid "The file {0} does not exist."
-msgstr ""
+msgstr "Filen {0} finnes ikke."
 
 #: ../editor/Stride.GameStudio/View/AboutPage.xaml:10
 msgctxt "About"
@@ -255,12 +255,12 @@ msgstr ""
 #: ../editor/Stride.GameStudio/View/CredentialsDialog.xaml:34
 msgctxt "Credentials"
 msgid "Don't ask again"
-msgstr ""
+msgstr "Ikke spør igjen"
 
 #: ../editor/Stride.GameStudio/View/CredentialsDialog.xaml:35
 msgctxt "Credentials"
 msgid "Test settings"
-msgstr ""
+msgstr "Test innstillinger"
 
 #: ../editor/Stride.GameStudio/View/CredentialsDialog.xaml:40
 msgctxt "Button"
@@ -290,26 +290,26 @@ msgstr ""
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:567
 msgctxt "Menu"
 msgid "Cut"
-msgstr ""
+msgstr "Klipp ut"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:147
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:254
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:568
 msgctxt "Menu"
 msgid "Copy"
-msgstr ""
+msgstr "Kopier"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:148
 msgctxt "Menu"
 msgid "Copy with dependencies"
-msgstr ""
+msgstr "Kopier med avhengigheter"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:149
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:255
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:569
 msgctxt "Menu"
 msgid "Paste"
-msgstr ""
+msgstr "Lim inn"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:150
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:256
@@ -317,7 +317,7 @@ msgstr ""
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:570
 msgctxt "Menu"
 msgid "Delete"
-msgstr ""
+msgstr "Slett"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:152
 msgctxt "Menu"
@@ -336,7 +336,7 @@ msgstr "Gi nytt navn"
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:536
 msgctxt "Menu"
 msgid "Create folder"
-msgstr ""
+msgstr "Opprett mappe"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:156
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:304
@@ -362,12 +362,12 @@ msgstr ""
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:576
 msgctxt "Menu"
 msgid "Explore"
-msgstr ""
+msgstr "Utforsk"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:161
 msgctxt "Menu"
 msgid "Open with text editor"
-msgstr ""
+msgstr "Åpne med tekstbehandler"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:162
 msgctxt "Menu"
@@ -377,7 +377,7 @@ msgstr ""
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:163
 msgctxt "Menu"
 msgid "Open source file"
-msgstr ""
+msgstr "Åpne kildefil"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:164
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:308
@@ -394,77 +394,77 @@ msgstr ""
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:202
 msgctxt "Menu"
 msgid "File"
-msgstr ""
+msgstr "Fil"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:203
 msgctxt "Menu"
 msgid "New"
-msgstr ""
+msgstr "Ny"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:204
 msgctxt "Menu"
 msgid "Open"
-msgstr ""
+msgstr "Åpne"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:205
 msgctxt "Menu"
 msgid "Open recent"
-msgstr ""
+msgstr "Åpne nylig"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:235
 msgctxt "Menu"
 msgid "Clear list"
-msgstr ""
+msgstr "Tøm liste"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:237
 msgctxt "Menu"
 msgid "Save"
-msgstr ""
+msgstr "Lagre"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:239
 msgctxt "Menu"
 msgid "Reload project"
-msgstr ""
+msgstr "Gjeninnlast prosjekt"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:242
 msgctxt "Menu"
 msgid "Quit"
-msgstr ""
+msgstr "Avslutt"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:249
 msgctxt "Menu"
 msgid "Edit"
-msgstr ""
+msgstr "Rediger"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:250
 msgctxt "Menu"
 msgid "Undo"
-msgstr ""
+msgstr "Angre"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:251
 msgctxt "Menu"
 msgid "Redo"
-msgstr ""
+msgstr "Gjenta"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:258
 msgctxt "Menu"
 msgid "Settings"
-msgstr ""
+msgstr "Innstillinger"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:261
 msgctxt "Menu"
 msgid "Project"
-msgstr ""
+msgstr "Prosjekt"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:262
 msgctxt "Menu"
 msgid "Build project"
-msgstr ""
+msgstr "Bygg prosjekt"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:263
 msgctxt "Menu"
 msgid "Start project"
-msgstr ""
+msgstr "Start prosjekt"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:265
 msgctxt "Menu"
@@ -474,7 +474,7 @@ msgstr ""
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:266
 msgctxt "Menu"
 msgid "Cancel build"
-msgstr ""
+msgstr "Avbryt bygg"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:267
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:535
@@ -486,37 +486,37 @@ msgstr "Mappe"
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:538
 msgctxt "Menu"
 msgid "Package"
-msgstr ""
+msgstr "Pakke"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:271
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:539
 msgctxt "Menu"
 msgid "Update package"
-msgstr ""
+msgstr "Oppdater pakke"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:289
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:557
 msgctxt "Menu"
 msgid "Add dependency..."
-msgstr ""
+msgstr "Legg til avhengighet…"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:290
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:558
 msgctxt "Menu"
 msgid "Set as current project"
-msgstr ""
+msgstr "Sett som nåværende prosjekt"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:291
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:559
 msgctxt "Menu"
 msgid "Package properties"
-msgstr ""
+msgstr "Pakke-egenskaper"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:293
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:561
 msgctxt "Menu"
 msgid "Solution"
-msgstr ""
+msgstr "Løsning"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:294
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:562
@@ -528,13 +528,13 @@ msgstr ""
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:563
 msgctxt "Menu"
 msgid "Add existing project..."
-msgstr ""
+msgstr "Legg til eksisterende prosjekt…"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:296
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:564
 msgctxt "Menu"
 msgid "Open in IDE"
-msgstr ""
+msgstr "Åpne i IDE"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:297
 msgctxt "Menu"
@@ -565,7 +565,7 @@ msgstr ""
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:314
 msgctxt "Menu"
 msgid "References"
-msgstr ""
+msgstr "Referanser"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:316
 msgctxt "Menu"
@@ -749,7 +749,7 @@ msgstr ""
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:526
 msgctxt "ToolTip"
 msgid "Show in Explorer"
-msgstr ""
+msgstr "Vis i Utforsker"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:618
 msgctxt "View"
@@ -759,11 +759,11 @@ msgstr ""
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:640
 msgctxt "View"
 msgid "References"
-msgstr ""
+msgstr "Referanser"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:657
 msgid "References"
-msgstr ""
+msgstr "Referanser"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:658
 msgid "Referenced by"
@@ -779,7 +779,7 @@ msgstr[1] ""
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:705
 msgid "Build"
-msgstr ""
+msgstr "Bygg"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:719
 msgid "Project"
@@ -792,22 +792,22 @@ msgstr ""
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:768
 msgctxt "View"
 msgid "Property grid"
-msgstr ""
+msgstr "Egenskapsrutenett"
 
 #. Translation must not be longer that the english words
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:783
 msgid "Add new tag"
-msgstr ""
+msgstr "Legg til ny etikett"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:793
 msgctxt "ToolTip"
 msgid "Previous selection"
-msgstr ""
+msgstr "Forrige utvalg"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:796
 msgctxt "ToolTip"
 msgid "Next selection"
-msgstr ""
+msgstr "Neste utvalg"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:814
 msgctxt "ToolTip"
@@ -829,12 +829,12 @@ msgstr ""
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:843
 msgid "Search properties"
-msgstr ""
+msgstr "Søk i egenskaper"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:870
 msgctxt "Menu"
 msgid "Reset to base value"
-msgstr ""
+msgstr "Tilbakestill til grunnverdi"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:994
 msgctxt "View"
@@ -844,7 +844,7 @@ msgstr ""
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:1002
 msgctxt "View"
 msgid "Edit history"
-msgstr ""
+msgstr "Rediger historikk"
 
 #: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml:1065
 msgctxt "StatusBar"

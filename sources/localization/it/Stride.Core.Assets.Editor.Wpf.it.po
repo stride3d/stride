@@ -86,7 +86,7 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/ValueConverters/ContentReferenceToDisplayUrl.cs:33
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/ValueConverters/ContentReferenceToUrl.cs:27
 msgid "(Different values)"
-msgstr ""
+msgstr "(Valori differenti)"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml.cs:28
 msgctxt "Title"
@@ -179,12 +179,12 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/PackagePickerWindow.xaml:15
 msgctxt "Button"
 msgid "OK"
-msgstr ""
+msgstr "OK"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetPickerWindow.xaml:48
 msgctxt "ToolTip"
 msgid "Select these assets"
-msgstr ""
+msgstr "Scegli questi assets"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/NewProjectWindow.xaml:31
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:35
@@ -192,7 +192,7 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/PackagePickerWindow.xaml:21
 msgctxt "ToolTip"
 msgid "Cancel (Esc)"
-msgstr ""
+msgstr "Annulla (Esc)"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:67
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:124
@@ -307,12 +307,12 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:353
 msgctxt "ToolTip"
 msgid "Zoom in"
-msgstr ""
+msgstr "Zoom avanti"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:358
 msgctxt "ToolTip"
 msgid "Zoom out"
-msgstr ""
+msgstr "Zoom indietro"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:363
 msgctxt "Menu"
@@ -453,7 +453,7 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1333
 msgctxt "Button"
 msgid "All"
-msgstr ""
+msgstr "Tutto"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1333
 msgctxt "ToolTip"
@@ -464,7 +464,7 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1335
 msgctxt "Button"
 msgid "None"
-msgstr ""
+msgstr "Nessuno"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1335
 msgctxt "ToolTip"
@@ -494,19 +494,19 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1603
 msgctxt "ToolTip"
 msgid "Select an asset"
-msgstr ""
+msgstr "Scegli un asset"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1478
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1608
 msgctxt "ToolTip"
 msgid "Clear the reference"
-msgstr ""
+msgstr "Elimina le referenze"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1482
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1537
 msgctxt "ToolTip"
 msgid "Select the referenced asset"
-msgstr ""
+msgstr "Scegli l'asset referenziato"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1621
 msgctxt "ToolTip"
@@ -713,7 +713,7 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/TemplateBrowserUserControl.xaml:40
 msgctxt "Menu"
 msgid "Show in Explorer"
-msgstr ""
+msgstr "Mostra in Explorer"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/TemplateBrowserUserControl.xaml:44
 msgctxt "Menu"

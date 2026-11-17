@@ -42,13 +42,13 @@ msgstr "Password"
 #: ../editor/Stride.Editor/Settings/RemoteSettings.cs:41
 msgctxt "Settings"
 msgid "Location"
-msgstr ""
+msgstr "Destinazione"
 
 #. Ask if we should prompt user with the crendential dialogs if necessary.
 #: ../editor/Stride.Editor/Settings/RemoteSettings.cs:45
 msgctxt "Settings"
 msgid "Ask for credentials when deploying game"
-msgstr ""
+msgstr "Chiedi credenziali nello spacchettamento del gioco"
 
 #. Name of X display where to launch game.
 #: ../editor/Stride.Editor/Settings/RemoteSettings.cs:49

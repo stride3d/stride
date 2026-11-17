@@ -29,6 +29,9 @@ msgid ""
 "\r\n"
 "Clear the _Is Dynamic_ property on this font and try again."
 msgstr ""
+"**Solo fonti statiche possono essere precompilate**\n"
+"\n"
+"Cancella la voce _è Dinamico_ su questo font e riprova."
 
 #: ../editor/Stride.Assets.Presentation/ViewModels/SpriteFontViewModel.cs:73
 msgctxt "Button"
@@ -38,4 +41,4 @@ msgstr "Annulla"
 #: ../editor/Stride.Assets.Presentation/ViewModels/SpriteFontViewModel.cs:75
 msgctxt "Message"
 msgid "Which color space do you want to use?"
-msgstr ""
+msgstr "Che spazio di colori vuoi usare?"

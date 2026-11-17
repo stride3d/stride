@@ -49,10 +49,10 @@ msgstr "Lokalizacja"
 #: ../editor/Stride.Editor/Settings/RemoteSettings.cs:45
 msgctxt "Settings"
 msgid "Ask for credentials when deploying game"
-msgstr ""
+msgstr "Poproś o dane logowania podczas wdrażania gry"
 
 #. Name of X display where to launch game.
 #: ../editor/Stride.Editor/Settings/RemoteSettings.cs:49
 msgctxt "Settings"
 msgid "X Display"
-msgstr ""
+msgstr "X Display"

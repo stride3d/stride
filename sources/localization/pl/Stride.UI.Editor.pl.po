@@ -15,27 +15,27 @@ msgstr ""
 #: ../plugins/UI/Stride.UI.Editor/UIEditorSettings.cs:13
 msgctxt "Settings"
 msgid "UI editor"
-msgstr ""
+msgstr "Edytor UI"
 
 #: ../plugins/UI/Stride.UI.Editor/UIEditorSettings.cs:20
 msgctxt "Settings"
 msgid "Ask before deleting UI elements"
-msgstr ""
+msgstr "Pytaj przed usunięciem elementów interfejsu użytkownika"
 
 #: ../plugins/UI/Stride.UI.Editor/ViewModels/UIEditorBaseViewModel.cs:477
 msgctxt "Message"
 msgid "Are you sure you want to delete this UI element?"
-msgstr ""
+msgstr "Czy na pewno chcesz usunąć ten element UI?"
 
 #: ../plugins/UI/Stride.UI.Editor/ViewModels/UIEditorBaseViewModel.cs:479
 msgctxt "Message"
 msgid "Are you sure you want to delete these {0} UI elements?"
-msgstr ""
+msgstr "Jesteś pewien, że chcesz usunąć te {0} elementy UI?"
 
 #: ../plugins/UI/Stride.UI.Editor/ViewModels/UIEditorBaseViewModel.cs:480
 msgctxt "Button"
 msgid "Delete"
-msgstr ""
+msgstr "Usuń"
 
 #: ../plugins/UI/Stride.UI.Editor/ViewModels/UIEditorBaseViewModel.cs:480
 msgctxt "Button"

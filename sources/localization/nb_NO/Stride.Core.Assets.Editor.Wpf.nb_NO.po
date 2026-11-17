@@ -91,7 +91,7 @@ msgstr "(Forskjellige verdier)"
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml.cs:28
 msgctxt "Title"
 msgid "Project selection - {0}"
-msgstr ""
+msgstr "Valg av prosjekt - {0}"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Themes/generic.xaml:23
 msgctxt "ToolTip"
@@ -143,7 +143,7 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetPickerWindow.xaml:26
 msgctxt "Menu"
 msgid "Delete"
-msgstr ""
+msgstr "Slett"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetPickerWindow.xaml:28
 msgctxt "Menu"
@@ -153,7 +153,7 @@ msgstr "Gi nytt navn"
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetPickerWindow.xaml:30
 msgctxt "Menu"
 msgid "Explore"
-msgstr ""
+msgstr "Utforsk"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetPickerWindow.xaml:31
 msgctxt "Menu"
@@ -206,22 +206,22 @@ msgstr ""
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:112
 msgid "Name: {0}"
-msgstr ""
+msgstr "Navn: {0}"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:113
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:120
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:152
 msgid "Type: {0}"
-msgstr ""
+msgstr "Type: {0}"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:119
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:151
 msgid "URL: {0}"
-msgstr ""
+msgstr "Nettadresse: {0}"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:121
 msgid "Tags: {0}"
-msgstr ""
+msgstr "Etiketter: {0}"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:136
 msgid "Included in build as dependency"
@@ -287,22 +287,22 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:335
 msgctxt "Menu"
 msgid "Name"
-msgstr ""
+msgstr "Navn"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:338
 msgctxt "Menu"
 msgid "Date modified"
-msgstr ""
+msgstr "Endringsdato"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:341
 msgctxt "Menu"
 msgid "Type"
-msgstr ""
+msgstr "Type"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:344
 msgctxt "Menu"
 msgid "Unsaved changes"
-msgstr ""
+msgstr "Ulagrede endringer"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:353
 msgctxt "ToolTip"
@@ -317,11 +317,11 @@ msgstr "Forminsk"
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:363
 msgctxt "Menu"
 msgid "Tiles"
-msgstr ""
+msgstr "Fils"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:376
 msgid "Add a filter..."
-msgstr ""
+msgstr "Legg til filter…"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/AssetViewUserControl.xaml:380
 msgid "Filter assets by name, type or tag"
@@ -346,21 +346,21 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:130
 msgctxt "ToolTip"
 msgid "Add..."
-msgstr ""
+msgstr "Legg til…"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:61
 msgctxt "ToolTip"
 msgid "Replace..."
-msgstr ""
+msgstr "Erstatt…"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:139
 msgctxt "ToolTip"
 msgid "Delete"
-msgstr ""
+msgstr "Slett"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:414
 msgid "List"
-msgstr ""
+msgstr "Liste"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:415
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:481
@@ -371,8 +371,8 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:757
 msgid "{0} item"
 msgid_plural "{0} items"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{0} element"
+msgstr[1] "{0} elementer"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:456
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:560
@@ -400,20 +400,20 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:697
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:756
 msgid "Dictionary"
-msgstr ""
+msgstr "Ordbok"
 
 #. Keep the colon (:)
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:614
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:672
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:730
 msgid "Key name:"
-msgstr ""
+msgstr "Nøkkelnavn:"
 
 #. Default name for a new key in a dictionary
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:674
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:690
 msgid "New key"
-msgstr ""
+msgstr "Ny nøkkel"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:782
 msgctxt "ToolTIp"
@@ -423,12 +423,12 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:789
 msgctxt "ToolTip"
 msgid "Unicode value"
-msgstr ""
+msgstr "Unicode-verdi"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1233
 msgctxt "ToolTip"
 msgid "Angle in degrees"
-msgstr ""
+msgstr "Vinkel i grader"
 
 #. This button opens a file dialog
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/NewProjectWindow.xaml:65
@@ -436,18 +436,18 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1255
 msgctxt "ToolTip"
 msgid "Browse directory"
-msgstr ""
+msgstr "Utforsk mappe"
 
 #. This button opens a file dialog
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1281
 msgctxt "ToolTip"
 msgid "Browse file"
-msgstr ""
+msgstr "Utforsk fil"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1324
 msgctxt "Button"
 msgid "Change values..."
-msgstr ""
+msgstr "Endre verdier…"
 
 #. As for "Select all items"
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1333
@@ -459,7 +459,7 @@ msgstr "Alle"
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1333
 msgctxt "ToolTip"
 msgid "Select all values"
-msgstr ""
+msgstr "Velg alle verdier"
 
 #. As for "Clear selection"
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1335
@@ -471,17 +471,17 @@ msgstr "Ingen"
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1335
 msgctxt "ToolTip"
 msgid "Clear selection"
-msgstr ""
+msgstr "Tøm utvalg"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1337
 msgctxt "Button"
 msgid "Invert"
-msgstr ""
+msgstr "Inverter"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1337
 msgctxt "ToolTip"
 msgid "Invert selection"
-msgstr ""
+msgstr "Inverter utvalg"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1454
 msgid "Select the referenced asset"
@@ -502,7 +502,7 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1608
 msgctxt "ToolTip"
 msgid "Clear the reference"
-msgstr ""
+msgstr "Tøm referansen"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1482
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/DefaultPropertyTemplateProviders.xaml:1537
@@ -535,43 +535,43 @@ msgstr ""
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/NotificationWindow.xaml:6
 msgid "Notification"
-msgstr ""
+msgstr "Merknad"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/PackagePickerWindow.xaml:10
 msgid "Select a package"
-msgstr ""
+msgstr "Velg en pakke"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/PackagePickerWindow.xaml:15
 msgctxt "ToolTip"
 msgid "Select this package"
-msgstr ""
+msgstr "Velg denne pakken"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/SettingsWindow.xaml:15
 msgid "Settings"
-msgstr ""
+msgstr "Innstillinger"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/SettingsWindow.xaml:26
 msgctxt "Button"
 msgid "Save and close"
-msgstr ""
+msgstr "Lagre og lukk"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/WorkProgressWindow.xaml:19
 msgid "Operation completed."
-msgstr ""
+msgstr "Operasjon utført."
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/WorkProgressWindow.xaml:20
 msgid "Operation failed."
-msgstr ""
+msgstr "Operasjonen mislyktes."
 
 #. Log message displayed when an operation has been canceled
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/WorkProgressWindow.xaml:21
 msgid "Operation cancelled."
-msgstr ""
+msgstr "Operasjon avbrutt."
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/View/WorkProgressWindow.xaml:27
 msgctxt "Button"
 msgid "Close"
-msgstr ""
+msgstr "Lukk"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/AddAssets/View/ItemTemplatesWindow.xaml:12
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/AddItemWindow.xaml:10
@@ -653,22 +653,22 @@ msgstr ""
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/AddItemUserControl.xaml:22
 msgid "Search"
-msgstr ""
+msgstr "Søk"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/AddItemUserControl.xaml:39
 msgctxt "ToolTip"
 msgid "Import directly from files"
-msgstr ""
+msgstr "Importer direkte fra filer"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/NewProjectWindow.xaml:11
 msgid "New package"
-msgstr ""
+msgstr "Ny pakke"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/NewProjectWindow.xaml:25
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:29
 msgctxt "Button"
 msgid "Select"
-msgstr ""
+msgstr "Velg"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/NewProjectWindow.xaml:26
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:30
@@ -679,17 +679,17 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/NewProjectWindow.xaml:57
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:73
 msgid "Name:"
-msgstr ""
+msgstr "Navn:"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/NewProjectWindow.xaml:63
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:79
 msgid "Location:"
-msgstr ""
+msgstr "Plassering:"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:24
 msgctxt "Button"
 msgid "Browse for existing project"
-msgstr ""
+msgstr "Se etter eksisterende prosjekt"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:25
 msgctxt "Button"
@@ -698,7 +698,7 @@ msgstr ""
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:91
 msgid "Solution name:"
-msgstr ""
+msgstr "Løsningsnavn:"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:92
 msgid "(Auto-generate solution name)"
@@ -720,12 +720,12 @@ msgstr ""
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/TemplateBrowserUserControl.xaml:44
 msgctxt "Menu"
 msgid "Remove From List"
-msgstr ""
+msgstr "Fjern fra liste"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/TemplateBrowserUserControl.xaml:34
 msgctxt "Menu"
 msgid "Open"
-msgstr ""
+msgstr "Åpne"
 
 #: ../editor/Stride.Core.Assets.Editor.Wpf/Components/TemplateDescriptions/Views/TemplateBrowserUserControl.xaml:41
 msgctxt "Menu"
