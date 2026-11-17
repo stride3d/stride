@@ -35,9 +35,9 @@ on:
       ANTHROPIC_API_KEY:
         required: false
   schedule:
-    # Daily at 05:17 UTC — offset off top-of-hour to avoid GitHub Actions cron load spikes;
-    # gap from test-enduser (04:37) so they don't compete for runners.
-    - cron: '17 5 * * *'
+    # Daily at 18:17 UTC — offset off top-of-hour to avoid GitHub Actions cron load spikes;
+    # gap from test-enduser (17:37) so they don't compete for runners.
+    - cron: '17 18 * * *'
 
 concurrency:
   group: test-gamestudio-screenshots-${{ github.event.pull_request.number || github.sha }}
