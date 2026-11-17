@@ -65,10 +65,6 @@ on:
       repeat:
         type: number
         default: 1
-  schedule:
-    # Daily at 16:37 UTC, between the iOS (15:43) and end-user (17:37) tests
-    - cron: '37 16 * * *'
-
 
 concurrency:
   # A manual run, direct or through test-gold-gen, never cancels or queues behind another one
@@ -78,7 +74,6 @@ concurrency:
 jobs:
   Android-Tests-Game:
     name: Android (Vulkan, ${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
-    if: github.event_name != 'schedule' || vars.STRIDE_ENABLE_SCHEDULED_CI == 'true'
     # Linux host: KVM-accelerated x86_64 Android emulator is the only path that runs in a
     # reasonable amount of time on a hosted runner. macOS-14+ Apple Silicon runners don't
     # support nested virt for AOSP emulator; older macOS-13 Intel HAXM is being retired.

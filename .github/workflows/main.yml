@@ -395,6 +395,26 @@ jobs:
     with:
       build-type: Debug
 
+  # The end-user and Game Studio screenshot suites run on each push to master and master-*. Pull requests run them with
+  # the ci-enduser and ci-gamestudio-screenshots labels (pr-label-suites.yml).
+  EndUser-Tests:
+    needs: changes
+    if: github.event_name == 'push'
+    uses: ./.github/workflows/test-enduser.yml
+    secrets:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY_SCREENSHOTS }}
+    with:
+      build-type: Debug
+
+  GameStudio-Screenshots:
+    needs: changes
+    if: github.event_name == 'push'
+    uses: ./.github/workflows/test-gamestudio-screenshots.yml
+    secrets:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY_SCREENSHOTS }}
+    with:
+      build-type: Debug
+
   # Cross-platform (Avalonia) editor: builds its solution filter and runs its tests on Linux and Windows
   # (one matrix job), with a coverage summary of the editor assemblies. Builds on its own, so it only
   # waits for the path filter.
@@ -448,6 +468,8 @@ jobs:
       - macOS-Tests-Game
       - iOS-Tests-Game
       - Android-Tests-Game
+      - EndUser-Tests
+      - GameStudio-Screenshots
       - Editor-Tests-Avalonia
       - Editor-Tests-Wpf
     if: always()
