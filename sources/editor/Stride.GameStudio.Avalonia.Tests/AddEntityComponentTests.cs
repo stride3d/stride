@@ -210,16 +210,20 @@ public sealed class AddEntityComponentTests
     public async Task SeveralEntitiesAreOfferedTheComponentsTheyCanAllTake()
     {
         await using var scene = await SceneTreeDropTests.OpenSceneAsync();
-        AddComponents(scene, scene.Entity("Box"), new ModelComponent());
+        AddComponents(scene, scene.Entity("Box"), new ModelComponent(), new LightShaftComponent());
 
         var view = await SelectAsync(scene, "Box", "Parent");
 
         Assert.DoesNotContain(view.Picker.Types, x => x.Type == typeof(ModelComponent));
         Assert.Contains(view.Picker.Types, x => x.Type == typeof(LightComponent));
-        // A category whose components differ between the entities is left out of the categories, as before: its other
-        // components are found by a search
-        Assert.DoesNotContain(view.Picker.Groups, x => x.GroupName == "Model");
-        Assert.Contains(view.Picker.Groups, x => x.GroupName == "Lights");
+        // Every category with a component both can take is listed, with those components only
+        var model = Assert.Single(view.Picker.Groups, x => x.GroupName == "Model");
+        Assert.NotEmpty(model.Types);
+        Assert.DoesNotContain(model.Types, x => x.Type == typeof(ModelComponent));
+        var lights = Assert.Single(view.Picker.Groups, x => x.GroupName == "Lights");
+        Assert.Contains(lights.Types, x => x.Type == typeof(LightComponent));
+        Assert.DoesNotContain(lights.Types, x => x.Type == typeof(LightShaftComponent));
+        Assert.All(view.Picker.Groups.SelectMany(x => x.Types), x => Assert.Contains(x, view.Picker.Types));
     }
 
     [AvaloniaFact]
