@@ -83,7 +83,7 @@
 
   <!-- Resolves SamplesEngineVersion (the committed release version) + SamplesDevEngineVersion (MajorMinor.Patch +
        worktree suffix = the locally-published dev version, which never carries the committed -betaN) + the concrete sample csproj set (all under
-       samples/ minus the $EngineVersion$ template sources NewGame/Library, the set release-deploy.yml
+       samples/ minus the $EngineVersion$ template sources NewGame/Library, the set release.yml
        checks for changes since the content version was set). -->
   <Target Name="_ResolveSamplesEngineVersions" DependsOnTargets="StrideEnsureWorktreeVersion">
     <PropertyGroup>

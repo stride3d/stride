@@ -98,7 +98,7 @@ jobs:
           }
           # Usually stable, so an engine going from beta to stable keeps the same content (New Project rewrites the
           # Stride.* references to the running engine). A prerelease (typed, never the default) is for content not
-          # ready yet: release-deploy.yml refuses a stable engine that names it.
+          # ready yet: release.yml refuses a stable engine that names it.
           if ($version -notmatch '^\d+\.\d+\.\d+(-(alpha|beta|rc|preview)\d+)?$') {
             echo "::error::Content version '$version' is not an allowed release version. Use X.Y.Z or X.Y.Z-(alpha|beta|rc|preview)<N>."
             exit 1
@@ -341,7 +341,7 @@ jobs:
 
       # Last, once the content is on the feed: the branch now names it, so engines built from here on use it. Goes
       # to the current branch tip (it may have moved since the build). Pushed with the Stride Release app's token, which
-      # may pass the branch ruleset, like the engine's version bump in release-deploy.yml.
+      # may pass the branch ruleset, like the engine's version bump in release.yml.
       - name: Commit the content version
         run: |
           V="${{ needs.Package.outputs.version }}"
