@@ -37,6 +37,13 @@ on:
         description: 'Rerun the filtered test set up to N times in-process, stop on first failure (flake hunting). 1 = single run (default).'
         type: number
         default: 1
+      runner:
+        description: 'macOS runner; the xlarge one (M2 Pro, 5 cores, GPU acceleration) is billed per minute'
+        default: macos-26
+        type: choice
+        options:
+          - macos-26
+          - macos-26-xlarge
   workflow_call:
     inputs:
       build-type:
@@ -86,7 +93,7 @@ jobs:
     # macOS host: iOS Simulator only runs on macOS. macos-26 ships Xcode 26.x (we select 26.5
     # below to match the .NET iOS 26.5 SDK pack's strict version check). macos-15's newest Xcode
     # is 26.3, which the 26.5 pack rejects.
-    runs-on: macos-26
+    runs-on: ${{ inputs.runner || 'macos-26' }}
     # A normal run takes about 25 min
     timeout-minutes: 60
     env:
