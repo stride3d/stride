@@ -5,7 +5,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using Xunit.Abstractions;
 
-namespace xunit.runner.stride.ViewModels;
+namespace Stride.XunitRunner.ViewModels;
 
 public class TestCaseViewModel : TestNodeViewModel
 {

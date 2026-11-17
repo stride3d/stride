@@ -8,7 +8,7 @@ using System.Xml.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace xunit.runner.stride;
+namespace Stride.XunitRunner;
 
 /// <summary>
 ///   Emits a Visual Studio TRX test result file from xunit message events. Parsable by

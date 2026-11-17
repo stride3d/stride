@@ -5,7 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.Versioning;
 
-namespace xunit.runner.stride;
+namespace Stride.XunitRunner;
 
 // Xunit.SkippableFact looks up {Un,}SupportedOSPlatformAttribute by string name at runtime and
 // every [SkippableFact] throws when the type is missing; the iOS Mono AOT trimmer drops the

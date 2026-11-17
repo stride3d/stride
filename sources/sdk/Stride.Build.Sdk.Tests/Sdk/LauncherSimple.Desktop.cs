@@ -1,4 +1,4 @@
-namespace xunit.runner.stride
+namespace Stride.XunitRunner
 {
     class Program
     {

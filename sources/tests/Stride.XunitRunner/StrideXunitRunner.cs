@@ -7,9 +7,9 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Xunit;
 using Xunit.Abstractions;
-using xunit.runner.stride.ViewModels;
+using Stride.XunitRunner.ViewModels;
 
-namespace xunit.runner.stride;
+namespace Stride.XunitRunner;
 
 public static class StrideXunitRunner
 {

@@ -3,7 +3,7 @@
 
 using Avalonia.Controls;
 
-namespace xunit.runner.stride.Views;
+namespace Stride.XunitRunner.Views;
 
 public partial class MainWindow : Window
 {

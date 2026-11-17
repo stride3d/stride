@@ -6,10 +6,10 @@ using System.Text;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using xunit.runner.stride.ViewModels;
-using xunit.runner.stride.Views;
+using Stride.XunitRunner.ViewModels;
+using Stride.XunitRunner.Views;
 
-namespace xunit.runner.stride;
+namespace Stride.XunitRunner;
 
 public partial class App : Avalonia.Application
 {
@@ -25,7 +25,7 @@ public partial class App : Avalonia.Application
 
     // Android has no entry assembly; the per-project MainActivity (injected by the Tests SDK
     // into each test assembly) sets this so test discovery knows where to look. Public because
-    // the setter lives in the test assembly, not in xunit.runner.stride.
+    // the setter lives in the test assembly, not in Stride.XunitRunner.
     public static System.Reflection.Assembly? TestAssembly;
 
     // When set (by Android MainActivity reading the launch Intent), Avalonia still loads its

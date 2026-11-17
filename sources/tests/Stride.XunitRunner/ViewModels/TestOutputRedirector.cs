@@ -3,7 +3,7 @@
 
 using System.Text;
 
-namespace xunit.runner.stride.ViewModels;
+namespace Stride.XunitRunner.ViewModels;
 
 /// <summary>
 ///   A <see cref="TextWriter"/> that fans every write to the original underlying stream AND

@@ -3,7 +3,7 @@
 
 using Xunit.Abstractions;
 
-namespace xunit.runner.stride.ViewModels;
+namespace Stride.XunitRunner.ViewModels;
 
 public abstract class TestNodeViewModel : ViewModelBase
 {

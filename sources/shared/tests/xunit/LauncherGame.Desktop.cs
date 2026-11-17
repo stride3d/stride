@@ -1,8 +1,8 @@
 
 using Stride.Graphics.Regression;
-using xunit.runner.stride.ViewModels;
+using Stride.XunitRunner.ViewModels;
 
-namespace xunit.runner.stride
+namespace Stride.XunitRunner
 {
     class Program
     {

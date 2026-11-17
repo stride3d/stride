@@ -7,7 +7,7 @@
     <EnableDefaultItems>false</EnableDefaultItems>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
+    <ProjectReference Include="..\..\tests\Stride.XunitRunner\Stride.XunitRunner.csproj" />
     <ProjectReference Include="..\Stride.Assets\Stride.Assets.csproj" />
     <ProjectReference Include="..\Stride.Assets.Models\Stride.Assets.Models.csproj" />
     <ProjectReference Include="..\Stride.Assets.Generators\Stride.Assets.Generators.csproj" />
